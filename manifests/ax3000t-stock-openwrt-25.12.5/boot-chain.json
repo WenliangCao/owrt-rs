@@ -1,0 +1,895 @@
+{
+  "boot_service_actions": [
+    {
+      "line": 7,
+      "path": "/etc/init.d/boot",
+      "text": "uci_apply_defaults() {"
+    },
+    {
+      "line": 23,
+      "path": "/etc/init.d/boot",
+      "text": "[ -f /proc/mounts ] || /sbin/mount_root"
+    },
+    {
+      "line": 48,
+      "path": "/etc/init.d/boot",
+      "text": "[ -f /etc/board.json ] && /sbin/wifi config"
+    },
+    {
+      "line": 50,
+      "path": "/etc/init.d/boot",
+      "text": "/sbin/kmodloader"
+    },
+    {
+      "line": 52,
+      "path": "/etc/init.d/boot",
+      "text": "uci_apply_defaults"
+    },
+    {
+      "line": 56,
+      "path": "/etc/init.d/boot",
+      "text": "/sbin/reload_config"
+    }
+  ],
+  "entry_point": {
+    "kernel_init": "/etc/preinit is reached only when PREINIT is set; otherwise /sbin/init runs directly",
+    "preinit_script": {
+      "hook_namespaces": [
+        {
+          "hook": "preinit_essential",
+          "line": 13,
+          "path": "/etc/preinit",
+          "text": "boot_hook_init preinit_essential"
+        },
+        {
+          "hook": "preinit_main",
+          "line": 14,
+          "path": "/etc/preinit",
+          "text": "boot_hook_init preinit_main"
+        },
+        {
+          "hook": "failsafe",
+          "line": 15,
+          "path": "/etc/preinit",
+          "text": "boot_hook_init failsafe"
+        },
+        {
+          "hook": "initramfs",
+          "line": 16,
+          "path": "/etc/preinit",
+          "text": "boot_hook_init initramfs"
+        },
+        {
+          "hook": "preinit_mount_root",
+          "line": 17,
+          "path": "/etc/preinit",
+          "text": "boot_hook_init preinit_mount_root"
+        }
+      ],
+      "hook_runs": [
+        {
+          "hook": "preinit_essential",
+          "line": 23,
+          "path": "/etc/preinit",
+          "text": "boot_run_hook preinit_essential"
+        },
+        {
+          "hook": "preinit_main",
+          "line": 29,
+          "path": "/etc/preinit",
+          "text": "boot_run_hook preinit_main"
+        }
+      ],
+      "path": "/etc/preinit",
+      "sha256": "17688acff383c0c87649e1958c3f6f0bfc255caf3b9518e12c18f2069c074c4e"
+    },
+    "procd_initd_exec_evidence": [
+      {
+        "line": 103,
+        "path": "sources/components/procd/initd/init.c",
+        "text": "execv(argv[0], argv);"
+      },
+      {
+        "line": 140,
+        "path": "sources/components/procd/initd/init.c",
+        "text": "char *kmod[] = { \"/sbin/kmodloader\", \"/etc/modules-boot.d/\", NULL };"
+      },
+      {
+        "line": 145,
+        "path": "sources/components/procd/initd/init.c",
+        "text": "execvp(kmod[0], kmod);"
+      },
+      {
+        "line": 94,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "char *argv[] = { \"/sbin/procd\", NULL};"
+      },
+      {
+        "line": 100,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "unsetenv(\"PREINIT\");"
+      },
+      {
+        "line": 114,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "execvp(argv[0], argv);"
+      },
+      {
+        "line": 126,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "char *init[] = { \"/bin/sh\", \"/etc/preinit\", NULL };"
+      },
+      {
+        "line": 127,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "char *plug[] = { \"/sbin/procd\", \"-h\", \"/etc/hotplug-preinit.json\", NULL };"
+      },
+      {
+        "line": 135,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "execvp(plug[0], plug);"
+      },
+      {
+        "line": 145,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "setenv(\"PREINIT\", \"1\", 1);"
+      },
+      {
+        "line": 157,
+        "path": "sources/components/procd/initd/preinit.c",
+        "text": "execvp(init[0], init);"
+      }
+    ]
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "inittab": [
+    {
+      "action": "",
+      "id": "",
+      "line": 1,
+      "path": "/etc/inittab",
+      "process": "sysinit:/etc/init.d/rcS S boot",
+      "text": "::sysinit:/etc/init.d/rcS S boot"
+    },
+    {
+      "action": "",
+      "id": "",
+      "line": 2,
+      "path": "/etc/inittab",
+      "process": "shutdown:/etc/init.d/rcS K shutdown",
+      "text": "::shutdown:/etc/init.d/rcS K shutdown"
+    },
+    {
+      "action": "",
+      "id": "",
+      "line": 3,
+      "path": "/etc/inittab",
+      "process": "askconsole:/usr/libexec/login.sh",
+      "text": "::askconsole:/usr/libexec/login.sh"
+    }
+  ],
+  "method": {
+    "executes_target_content": false,
+    "reads_only": true,
+    "rootfs": "extracted squashfs root, read-only",
+    "sources": "pinned OpenWrt buildroot, feeds and component checkouts"
+  },
+  "preinit_hook_files": [
+    {
+      "defined_functions": [],
+      "hook_registrations": [],
+      "path": "/lib/preinit/00_preinit.conf",
+      "settings": {
+        "fs_failsafe_wait_timeout": "4",
+        "pi_broadcast": "192.168.1.255",
+        "pi_ifname": "",
+        "pi_init_cmd": "/sbin/init",
+        "pi_init_env": "",
+        "pi_init_path": "/usr/sbin:/usr/bin:/sbin:/bin",
+        "pi_init_suppress_stderr": "y",
+        "pi_ip": "192.168.1.1",
+        "pi_netmask": "255.255.255.0",
+        "pi_preinit_net_messages": "",
+        "pi_preinit_no_failsafe": "",
+        "pi_preinit_no_failsafe_netmsg": "",
+        "pi_suppress_stderr": "y"
+      },
+      "sha256": "bda54f5ed277b08847cb8d04412e7b3f26f8d96bd4c0b9341c8d0eb143cbf02b"
+    },
+    {
+      "defined_functions": [
+        "define_default_set_state"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/02_default_set_state",
+          "file_order": "02_default_set_state",
+          "function": "define_default_set_state",
+          "hook": "preinit_main",
+          "line": 5,
+          "path": "/lib/preinit/02_default_set_state",
+          "text": "boot_hook_add preinit_main define_default_set_state"
+        }
+      ],
+      "path": "/lib/preinit/02_default_set_state",
+      "settings": {},
+      "sha256": "a8f3a0987269aa6ca04218a52c5cbf1f879017c9c7a17b293a08e9c9300f9c1e"
+    },
+    {
+      "defined_functions": [
+        "do_sysinfo_generic"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/02_sysinfo",
+          "file_order": "02_sysinfo",
+          "function": "do_sysinfo_generic",
+          "hook": "preinit_main",
+          "line": 10,
+          "path": "/lib/preinit/02_sysinfo",
+          "text": "boot_hook_add preinit_main do_sysinfo_generic"
+        }
+      ],
+      "path": "/lib/preinit/02_sysinfo",
+      "settings": {},
+      "sha256": "18e49aa9e39c97650a10f6009084d77391b36a371254fb45deed4429a8f5a5ce"
+    },
+    {
+      "defined_functions": [
+        "set_netdev_labels"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/04_set_netdev_label",
+          "file_order": "04_set_netdev_label",
+          "function": "set_netdev_labels",
+          "hook": "preinit_main",
+          "line": 23,
+          "path": "/lib/preinit/04_set_netdev_label",
+          "text": "boot_hook_add preinit_main set_netdev_labels"
+        }
+      ],
+      "path": "/lib/preinit/04_set_netdev_label",
+      "settings": {},
+      "sha256": "0d1ea575c19ea427e50b326d4099a7e1c333356be54a7f6f89e37f141cc60028"
+    },
+    {
+      "defined_functions": [
+        "set_preinit_iface"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/05_set_preinit_iface",
+          "file_order": "05_set_preinit_iface",
+          "function": "set_preinit_iface",
+          "hook": "preinit_main",
+          "line": 51,
+          "path": "/lib/preinit/05_set_preinit_iface",
+          "text": "boot_hook_add preinit_main set_preinit_iface"
+        }
+      ],
+      "path": "/lib/preinit/05_set_preinit_iface",
+      "settings": {},
+      "sha256": "7a9d328d4bde87d448741a6d9be0e1da628844671ed98d54efeb14ca79133152"
+    },
+    {
+      "defined_functions": [
+        "trigger_fip_scrubbing"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/07_trigger_fip_scrubbing",
+          "file_order": "07_trigger_fip_scrubbing",
+          "function": "trigger_fip_scrubbing",
+          "hook": "preinit_main",
+          "line": 16,
+          "path": "/lib/preinit/07_trigger_fip_scrubbing",
+          "text": "boot_hook_add preinit_main trigger_fip_scrubbing"
+        }
+      ],
+      "path": "/lib/preinit/07_trigger_fip_scrubbing",
+      "settings": {},
+      "sha256": "3ffa7cf238b73aa624b1e133669a80a426ae9a2b5f0d260b6c26153d89c9656e"
+    },
+    {
+      "defined_functions": [
+        "mount_ubi_part",
+        "preinit_mount_cfg_part"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/09_mount_cfg_part",
+          "file_order": "09_mount_cfg_part",
+          "function": "preinit_mount_cfg_part",
+          "hook": "preinit_main",
+          "line": 37,
+          "path": "/lib/preinit/09_mount_cfg_part",
+          "text": "boot_hook_add preinit_main preinit_mount_cfg_part"
+        }
+      ],
+      "path": "/lib/preinit/09_mount_cfg_part",
+      "settings": {},
+      "sha256": "9f171473dc46976b479c78953be7c15c9346391616160eab6dc7af5bdaf59e30"
+    },
+    {
+      "defined_functions": [
+        "preinit_set_mac_address"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/10_fix_eth_mac.sh",
+          "file_order": "10_fix_eth_mac.sh",
+          "function": "preinit_set_mac_address",
+          "hook": "preinit_main",
+          "line": 68,
+          "path": "/lib/preinit/10_fix_eth_mac.sh",
+          "text": "boot_hook_add preinit_main preinit_set_mac_address"
+        }
+      ],
+      "path": "/lib/preinit/10_fix_eth_mac.sh",
+      "settings": {},
+      "sha256": "5098b8a65a1f5cde709ed70861d48d128d6a4b09b9d62535153f960556dde7ce"
+    },
+    {
+      "defined_functions": [
+        "indicate_failsafe_led",
+        "indicate_failsafe"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/10_indicate_failsafe",
+          "file_order": "10_indicate_failsafe",
+          "function": "indicate_failsafe",
+          "hook": "failsafe",
+          "line": 22,
+          "path": "/lib/preinit/10_indicate_failsafe",
+          "text": "boot_hook_add failsafe indicate_failsafe"
+        }
+      ],
+      "path": "/lib/preinit/10_indicate_failsafe",
+      "settings": {},
+      "sha256": "cee40120aca2186abdf61670f18e5b98983e1faf76cf5e568e856fb6db8b8d0d"
+    },
+    {
+      "defined_functions": [
+        "preinit_ip_config",
+        "preinit_config_switch",
+        "preinit_config_port",
+        "preinit_config_board",
+        "preinit_ip",
+        "preinit_ip_deconfig",
+        "preinit_net_echo",
+        "pi_indicate_preinit"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/10_indicate_preinit",
+          "file_order": "10_indicate_preinit",
+          "function": "preinit_ip",
+          "hook": "preinit_main",
+          "line": 222,
+          "path": "/lib/preinit/10_indicate_preinit",
+          "text": "boot_hook_add preinit_main preinit_ip"
+        },
+        {
+          "file": "/lib/preinit/10_indicate_preinit",
+          "file_order": "10_indicate_preinit",
+          "function": "pi_indicate_preinit",
+          "hook": "preinit_main",
+          "line": 223,
+          "path": "/lib/preinit/10_indicate_preinit",
+          "text": "boot_hook_add preinit_main pi_indicate_preinit"
+        }
+      ],
+      "path": "/lib/preinit/10_indicate_preinit",
+      "settings": {},
+      "sha256": "396953fdff00780145b32b00a77f3eecfab1e44b4ca61c6b60f5645720610d7a"
+    },
+    {
+      "defined_functions": [
+        "fs_wait_for_key",
+        "failsafe_wait"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/30_failsafe_wait",
+          "file_order": "30_failsafe_wait",
+          "function": "failsafe_wait",
+          "hook": "preinit_main",
+          "line": 105,
+          "path": "/lib/preinit/30_failsafe_wait",
+          "text": "boot_hook_add preinit_main failsafe_wait"
+        }
+      ],
+      "path": "/lib/preinit/30_failsafe_wait",
+      "settings": {},
+      "sha256": "4b09ff1a47ba927f0b73df1c5d12ebe3ba8ee5bdbf1996ae170e9a7a63814e64"
+    },
+    {
+      "defined_functions": [
+        "run_failsafe_hook"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/40_run_failsafe_hook",
+          "file_order": "40_run_failsafe_hook",
+          "function": "run_failsafe_hook",
+          "hook": "preinit_main",
+          "line": 16,
+          "path": "/lib/preinit/40_run_failsafe_hook",
+          "text": "boot_hook_add preinit_main run_failsafe_hook"
+        }
+      ],
+      "path": "/lib/preinit/40_run_failsafe_hook",
+      "settings": {},
+      "sha256": "9ab044e0d5c2211da4a912f7e98f811992017f343c31678e20b1530a2404cee1"
+    },
+    {
+      "defined_functions": [
+        "indicate_regular_preinit"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/50_indicate_regular_preinit",
+          "file_order": "50_indicate_regular_preinit",
+          "function": "indicate_regular_preinit",
+          "hook": "preinit_main",
+          "line": 9,
+          "path": "/lib/preinit/50_indicate_regular_preinit",
+          "text": "boot_hook_add preinit_main indicate_regular_preinit"
+        }
+      ],
+      "path": "/lib/preinit/50_indicate_regular_preinit",
+      "settings": {},
+      "sha256": "69e1044ab0ec91ca6a324b1943620e862d4c90de0ca9372c2ebd72afb2235e69"
+    },
+    {
+      "defined_functions": [
+        "initramfs_test"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/70_initramfs_test",
+          "file_order": "70_initramfs_test",
+          "function": "initramfs_test",
+          "hook": "preinit_main",
+          "line": 12,
+          "path": "/lib/preinit/70_initramfs_test",
+          "text": "boot_hook_add preinit_main initramfs_test"
+        }
+      ],
+      "path": "/lib/preinit/70_initramfs_test",
+      "settings": {},
+      "sha256": "1533e5533b1a2a58de076144a82dd3c3cd6d9f07b5bdf96be92c6182676666e2"
+    },
+    {
+      "defined_functions": [
+        "rootfs_create",
+        "rootfs_prepare"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/75_rootfs_prepare",
+          "file_order": "75_rootfs_prepare",
+          "function": "rootfs_prepare",
+          "hook": "preinit_main",
+          "line": 35,
+          "path": "/lib/preinit/75_rootfs_prepare",
+          "text": "boot_hook_add preinit_main rootfs_prepare"
+        }
+      ],
+      "path": "/lib/preinit/75_rootfs_prepare",
+      "settings": {},
+      "sha256": "a089a9f2704db3b0159da44d62f8dc0478a0cfaa319869d161c7d0e4d0ee9db2"
+    },
+    {
+      "defined_functions": [
+        "missing_lines",
+        "compose_rootfs_mount_options",
+        "do_mount_root"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/80_mount_root",
+          "file_order": "80_mount_root",
+          "function": "do_mount_root",
+          "hook": "preinit_main",
+          "line": 54,
+          "path": "/lib/preinit/80_mount_root",
+          "text": "[ \"$INITRAMFS\" = \"1\" ] || boot_hook_add preinit_main do_mount_root"
+        }
+      ],
+      "path": "/lib/preinit/80_mount_root",
+      "settings": {},
+      "sha256": "da58cd08d9de0f9fd51fa2591314a1f32d9f8fadd6e7047a2dc716a87f3857cf"
+    },
+    {
+      "defined_functions": [
+        "log_urandom_seed",
+        "_do_urandom_seed",
+        "do_urandom_seed"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/81_urandom_seed",
+          "file_order": "81_urandom_seed",
+          "function": "do_urandom_seed",
+          "hook": "preinit_main",
+          "line": 22,
+          "path": "/lib/preinit/81_urandom_seed",
+          "text": "boot_hook_add preinit_main do_urandom_seed"
+        }
+      ],
+      "path": "/lib/preinit/81_urandom_seed",
+      "settings": {},
+      "sha256": "b399c9ba540286ead6024cf6223d37212efe0a6979f157737279f8be58278132"
+    },
+    {
+      "defined_functions": [
+        "do_config_generate"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/82_config_generate",
+          "file_order": "82_config_generate",
+          "function": "do_config_generate",
+          "hook": "preinit_main",
+          "line": 15,
+          "path": "/lib/preinit/82_config_generate",
+          "text": "boot_hook_add preinit_main do_config_generate"
+        },
+        {
+          "file": "/lib/preinit/82_config_generate",
+          "file_order": "82_config_generate",
+          "function": "do_config_generate",
+          "hook": "initramfs",
+          "line": 16,
+          "path": "/lib/preinit/82_config_generate",
+          "text": "boot_hook_add initramfs do_config_generate"
+        }
+      ],
+      "path": "/lib/preinit/82_config_generate",
+      "settings": {},
+      "sha256": "8161a3e6a0d906bf6e1075574f1fc00fdb0ac1bb17117d384ce13ecf95c307b3"
+    },
+    {
+      "defined_functions": [
+        "_dropbear",
+        "_dropbearkey",
+        "_ensurekey",
+        "failsafe_dropbear"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/99_10_failsafe_dropbear",
+          "file_order": "99_10_failsafe_dropbear",
+          "function": "failsafe_dropbear",
+          "hook": "failsafe",
+          "line": 61,
+          "path": "/lib/preinit/99_10_failsafe_dropbear",
+          "text": "boot_hook_add failsafe failsafe_dropbear"
+        }
+      ],
+      "path": "/lib/preinit/99_10_failsafe_dropbear",
+      "settings": {},
+      "sha256": "a718c9aabc500d1cd179eb315443070c8a8d5dbd4242ae1aed3b7514ea0f935a"
+    },
+    {
+      "defined_functions": [
+        "failsafe_shell"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/99_10_failsafe_login",
+          "file_order": "99_10_failsafe_login",
+          "function": "failsafe_shell",
+          "hook": "failsafe",
+          "line": 23,
+          "path": "/lib/preinit/99_10_failsafe_login",
+          "text": "boot_hook_add failsafe failsafe_shell"
+        }
+      ],
+      "path": "/lib/preinit/99_10_failsafe_login",
+      "settings": {},
+      "sha256": "902aaa4cc4e6e27bbd785fc20d6abf749b0d276d3cec3a81563d8d37baca266a"
+    },
+    {
+      "defined_functions": [
+        "run_init"
+      ],
+      "hook_registrations": [
+        {
+          "file": "/lib/preinit/99_10_run_init",
+          "file_order": "99_10_run_init",
+          "function": "run_init",
+          "hook": "preinit_main",
+          "line": 8,
+          "path": "/lib/preinit/99_10_run_init",
+          "text": "boot_hook_add preinit_main run_init"
+        }
+      ],
+      "path": "/lib/preinit/99_10_run_init",
+      "settings": {},
+      "sha256": "5abe1789dc60a74c122495476f3ba2684ade29a9f28129788e266e7533ca0934"
+    }
+  ],
+  "preinit_hook_registrations": {
+    "failsafe": [
+      {
+        "file": "/lib/preinit/10_indicate_failsafe",
+        "file_order": "10_indicate_failsafe",
+        "function": "indicate_failsafe",
+        "hook": "failsafe",
+        "line": 22,
+        "path": "/lib/preinit/10_indicate_failsafe",
+        "text": "boot_hook_add failsafe indicate_failsafe"
+      },
+      {
+        "file": "/lib/preinit/99_10_failsafe_dropbear",
+        "file_order": "99_10_failsafe_dropbear",
+        "function": "failsafe_dropbear",
+        "hook": "failsafe",
+        "line": 61,
+        "path": "/lib/preinit/99_10_failsafe_dropbear",
+        "text": "boot_hook_add failsafe failsafe_dropbear"
+      },
+      {
+        "file": "/lib/preinit/99_10_failsafe_login",
+        "file_order": "99_10_failsafe_login",
+        "function": "failsafe_shell",
+        "hook": "failsafe",
+        "line": 23,
+        "path": "/lib/preinit/99_10_failsafe_login",
+        "text": "boot_hook_add failsafe failsafe_shell"
+      }
+    ],
+    "initramfs": [
+      {
+        "file": "/lib/preinit/82_config_generate",
+        "file_order": "82_config_generate",
+        "function": "do_config_generate",
+        "hook": "initramfs",
+        "line": 16,
+        "path": "/lib/preinit/82_config_generate",
+        "text": "boot_hook_add initramfs do_config_generate"
+      }
+    ],
+    "preinit_main": [
+      {
+        "file": "/lib/preinit/02_default_set_state",
+        "file_order": "02_default_set_state",
+        "function": "define_default_set_state",
+        "hook": "preinit_main",
+        "line": 5,
+        "path": "/lib/preinit/02_default_set_state",
+        "text": "boot_hook_add preinit_main define_default_set_state"
+      },
+      {
+        "file": "/lib/preinit/02_sysinfo",
+        "file_order": "02_sysinfo",
+        "function": "do_sysinfo_generic",
+        "hook": "preinit_main",
+        "line": 10,
+        "path": "/lib/preinit/02_sysinfo",
+        "text": "boot_hook_add preinit_main do_sysinfo_generic"
+      },
+      {
+        "file": "/lib/preinit/04_set_netdev_label",
+        "file_order": "04_set_netdev_label",
+        "function": "set_netdev_labels",
+        "hook": "preinit_main",
+        "line": 23,
+        "path": "/lib/preinit/04_set_netdev_label",
+        "text": "boot_hook_add preinit_main set_netdev_labels"
+      },
+      {
+        "file": "/lib/preinit/05_set_preinit_iface",
+        "file_order": "05_set_preinit_iface",
+        "function": "set_preinit_iface",
+        "hook": "preinit_main",
+        "line": 51,
+        "path": "/lib/preinit/05_set_preinit_iface",
+        "text": "boot_hook_add preinit_main set_preinit_iface"
+      },
+      {
+        "file": "/lib/preinit/07_trigger_fip_scrubbing",
+        "file_order": "07_trigger_fip_scrubbing",
+        "function": "trigger_fip_scrubbing",
+        "hook": "preinit_main",
+        "line": 16,
+        "path": "/lib/preinit/07_trigger_fip_scrubbing",
+        "text": "boot_hook_add preinit_main trigger_fip_scrubbing"
+      },
+      {
+        "file": "/lib/preinit/09_mount_cfg_part",
+        "file_order": "09_mount_cfg_part",
+        "function": "preinit_mount_cfg_part",
+        "hook": "preinit_main",
+        "line": 37,
+        "path": "/lib/preinit/09_mount_cfg_part",
+        "text": "boot_hook_add preinit_main preinit_mount_cfg_part"
+      },
+      {
+        "file": "/lib/preinit/10_fix_eth_mac.sh",
+        "file_order": "10_fix_eth_mac.sh",
+        "function": "preinit_set_mac_address",
+        "hook": "preinit_main",
+        "line": 68,
+        "path": "/lib/preinit/10_fix_eth_mac.sh",
+        "text": "boot_hook_add preinit_main preinit_set_mac_address"
+      },
+      {
+        "file": "/lib/preinit/10_indicate_preinit",
+        "file_order": "10_indicate_preinit",
+        "function": "preinit_ip",
+        "hook": "preinit_main",
+        "line": 222,
+        "path": "/lib/preinit/10_indicate_preinit",
+        "text": "boot_hook_add preinit_main preinit_ip"
+      },
+      {
+        "file": "/lib/preinit/10_indicate_preinit",
+        "file_order": "10_indicate_preinit",
+        "function": "pi_indicate_preinit",
+        "hook": "preinit_main",
+        "line": 223,
+        "path": "/lib/preinit/10_indicate_preinit",
+        "text": "boot_hook_add preinit_main pi_indicate_preinit"
+      },
+      {
+        "file": "/lib/preinit/30_failsafe_wait",
+        "file_order": "30_failsafe_wait",
+        "function": "failsafe_wait",
+        "hook": "preinit_main",
+        "line": 105,
+        "path": "/lib/preinit/30_failsafe_wait",
+        "text": "boot_hook_add preinit_main failsafe_wait"
+      },
+      {
+        "file": "/lib/preinit/40_run_failsafe_hook",
+        "file_order": "40_run_failsafe_hook",
+        "function": "run_failsafe_hook",
+        "hook": "preinit_main",
+        "line": 16,
+        "path": "/lib/preinit/40_run_failsafe_hook",
+        "text": "boot_hook_add preinit_main run_failsafe_hook"
+      },
+      {
+        "file": "/lib/preinit/50_indicate_regular_preinit",
+        "file_order": "50_indicate_regular_preinit",
+        "function": "indicate_regular_preinit",
+        "hook": "preinit_main",
+        "line": 9,
+        "path": "/lib/preinit/50_indicate_regular_preinit",
+        "text": "boot_hook_add preinit_main indicate_regular_preinit"
+      },
+      {
+        "file": "/lib/preinit/70_initramfs_test",
+        "file_order": "70_initramfs_test",
+        "function": "initramfs_test",
+        "hook": "preinit_main",
+        "line": 12,
+        "path": "/lib/preinit/70_initramfs_test",
+        "text": "boot_hook_add preinit_main initramfs_test"
+      },
+      {
+        "file": "/lib/preinit/75_rootfs_prepare",
+        "file_order": "75_rootfs_prepare",
+        "function": "rootfs_prepare",
+        "hook": "preinit_main",
+        "line": 35,
+        "path": "/lib/preinit/75_rootfs_prepare",
+        "text": "boot_hook_add preinit_main rootfs_prepare"
+      },
+      {
+        "file": "/lib/preinit/80_mount_root",
+        "file_order": "80_mount_root",
+        "function": "do_mount_root",
+        "hook": "preinit_main",
+        "line": 54,
+        "path": "/lib/preinit/80_mount_root",
+        "text": "[ \"$INITRAMFS\" = \"1\" ] || boot_hook_add preinit_main do_mount_root"
+      },
+      {
+        "file": "/lib/preinit/81_urandom_seed",
+        "file_order": "81_urandom_seed",
+        "function": "do_urandom_seed",
+        "hook": "preinit_main",
+        "line": 22,
+        "path": "/lib/preinit/81_urandom_seed",
+        "text": "boot_hook_add preinit_main do_urandom_seed"
+      },
+      {
+        "file": "/lib/preinit/82_config_generate",
+        "file_order": "82_config_generate",
+        "function": "do_config_generate",
+        "hook": "preinit_main",
+        "line": 15,
+        "path": "/lib/preinit/82_config_generate",
+        "text": "boot_hook_add preinit_main do_config_generate"
+      },
+      {
+        "file": "/lib/preinit/99_10_run_init",
+        "file_order": "99_10_run_init",
+        "function": "run_init",
+        "hook": "preinit_main",
+        "line": 8,
+        "path": "/lib/preinit/99_10_run_init",
+        "text": "boot_hook_add preinit_main run_init"
+      }
+    ]
+  },
+  "procd_states": [
+    {
+      "line": 133,
+      "path": "sources/components/procd/state.c",
+      "state": "STATE_EARLY",
+      "text": "case STATE_EARLY:"
+    },
+    {
+      "line": 140,
+      "path": "sources/components/procd/state.c",
+      "state": "STATE_UBUS",
+      "text": "case STATE_UBUS:"
+    },
+    {
+      "line": 160,
+      "path": "sources/components/procd/state.c",
+      "state": "STATE_INIT",
+      "text": "case STATE_INIT:"
+    },
+    {
+      "line": 172,
+      "path": "sources/components/procd/state.c",
+      "state": "STATE_RUNNING",
+      "text": "case STATE_RUNNING:"
+    },
+    {
+      "line": 178,
+      "path": "sources/components/procd/state.c",
+      "state": "STATE_SHUTDOWN",
+      "text": "case STATE_SHUTDOWN:"
+    },
+    {
+      "line": 186,
+      "path": "sources/components/procd/state.c",
+      "state": "STATE_HALT",
+      "text": "case STATE_HALT:"
+    }
+  ],
+  "rcS": null,
+  "rc_common": {
+    "defined_functions": [
+      "start",
+      "stop",
+      "reload",
+      "restart",
+      "boot",
+      "shutdown",
+      "disable",
+      "enable",
+      "enabled",
+      "depends",
+      "extra_command",
+      "help",
+      "start_service",
+      "stop_service",
+      "service_triggers",
+      "service_running",
+      "rc_procd",
+      "start",
+      "trace",
+      "info",
+      "stop",
+      "reload",
+      "running",
+      "status"
+    ],
+    "path": "/etc/rc.common",
+    "sha256": "dd8ae95c78d10cccf78cb487874f163ace4c1ee14dace05fe28393b19ba639e4"
+  },
+  "recorded_at": "2026-08-31",
+  "schema_version": 1,
+  "stage": "I0.5",
+  "status": "complete"
+}

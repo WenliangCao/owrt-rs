@@ -1,0 +1,3285 @@
+{
+  "counts": {
+    "hotplug_handlers": 10,
+    "rpcd_acl_files": 9,
+    "rpcd_acl_ubus_targets": 18,
+    "rpcd_acl_ubus_targets_without_provider": 2,
+    "rpcd_binary_plugins": 6,
+    "ubus_dynamic_object_rules": 6,
+    "ubus_linked_artifacts": 22,
+    "ubus_linked_artifacts_without_resolved_objects": 8,
+    "ubus_objects_from_deployed_ucode": 5,
+    "ubus_objects_source": 18,
+    "ubus_objects_with_deployed_artifact": 18,
+    "ubusd_acl_entries": 5
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "hotplug": {
+    "procd_rules": {
+      "path": "/etc/hotplug.json",
+      "sha256": "5bdcecd7029d08c50bcc10c5a5cf7e71067010591b1fa9f446f546ae508701a6",
+      "top_level_rules": 3
+    },
+    "script_handlers": [
+      {
+        "environment_reads": [
+          "FIRMWARE"
+        ],
+        "path": "/etc/hotplug.d/firmware/11-mt76-caldata",
+        "sha256": "ee5ef9c61f9a9d872a1ddc160fcb1d69336d80ea518d5a8ade66e7de88767c05",
+        "subsystem": "firmware"
+      },
+      {
+        "environment_reads": [
+          "ACTION"
+        ],
+        "path": "/etc/hotplug.d/ieee80211/05-wifi-migrate",
+        "sha256": "2c189ad0258b94bab4a4873b8c91e5b964db2dd087dcb7c74f389a94417c9144",
+        "subsystem": "ieee80211"
+      },
+      {
+        "environment_reads": [
+          "ACTION"
+        ],
+        "path": "/etc/hotplug.d/ieee80211/10-wifi-detect",
+        "sha256": "0f8f0830ce3f7708505596b6b933e6ec6bc1156af26ae890ba4b69ae015abdfb",
+        "subsystem": "ieee80211"
+      },
+      {
+        "environment_reads": [
+          "ACTION",
+          "DEVICENAME",
+          "DEVPATH"
+        ],
+        "path": "/etc/hotplug.d/ieee80211/11-ath12k-trigger",
+        "sha256": "9a898767faf6a90ec53a8d603f8bcdfb604161c40f20556578e183c9e241c930",
+        "subsystem": "ieee80211"
+      },
+      {
+        "environment_reads": [
+          "ACTION",
+          "DEVPATH",
+          "PHYNBR"
+        ],
+        "path": "/etc/hotplug.d/ieee80211/11_fix_wifi_mac",
+        "sha256": "0f6dd9f0b909e5464ce5b19e47e498942077997db2005167ff9b0c1f783c3293",
+        "subsystem": "ieee80211"
+      },
+      {
+        "environment_reads": [
+          "ACTION",
+          "DEVICE",
+          "INTERFACE"
+        ],
+        "path": "/etc/hotplug.d/iface/00-netstate",
+        "sha256": "5bfefe4e0f70a0c57d715995c96c68505c41ea27dcf32f70b209b7fb548f67fb",
+        "subsystem": "iface"
+      },
+      {
+        "environment_reads": [
+          "ACTION",
+          "DEVICE",
+          "INTERFACE"
+        ],
+        "path": "/etc/hotplug.d/iface/20-firewall",
+        "sha256": "93a3841f0954f444fd7607ba487f83f1ee9d98d2736e42afad32187639982f02",
+        "subsystem": "iface"
+      },
+      {
+        "environment_reads": [
+          "ACTION",
+          "DEVICENAME"
+        ],
+        "path": "/etc/hotplug.d/leds/00-init",
+        "sha256": "53fd3f6334288df2d97a69f517d55141bd2e52a6f535725a3c3307a4204d3a0d",
+        "subsystem": "leds"
+      },
+      {
+        "environment_reads": [
+          "ACTION",
+          "DEVICENAME"
+        ],
+        "path": "/etc/hotplug.d/net/00-sysctl",
+        "sha256": "d294992711d4fbb48d621b291ef440d50250de7d86969cb8d8f95cda52efaaab",
+        "subsystem": "net"
+      },
+      {
+        "environment_reads": [
+          "ACTION"
+        ],
+        "path": "/etc/hotplug.d/ntp/25-dnsmasqsec",
+        "sha256": "ad2b44ee9161d2f2e16c0500cc66e5722d460be524f03c3454781532a779007b",
+        "subsystem": "ntp"
+      }
+    ]
+  },
+  "method": {
+    "executes_target_content": false,
+    "reads_only": true,
+    "rootfs": "extracted squashfs root, read-only",
+    "sources": "pinned OpenWrt buildroot, feeds and component checkouts"
+  },
+  "netlink_symbol_evidence": [
+    {
+      "component": "netifd",
+      "symbol_occurrences": {
+        "NETLINK_KOBJECT_UEVENT": 1,
+        "NETLINK_ROUTE": 2,
+        "rtnl": 42
+      }
+    },
+    {
+      "component": "odhcpd",
+      "symbol_occurrences": {
+        "NETLINK_ROUTE": 2,
+        "rtnl": 48
+      }
+    },
+    {
+      "component": "procd",
+      "symbol_occurrences": {
+        "NETLINK_KOBJECT_UEVENT": 1
+      }
+    }
+  ],
+  "recorded_at": "2026-08-31",
+  "rpcd": {
+    "acl_files": [
+      {
+        "groups": [
+          "luci-app-attendedsysupgrade"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-app-attendedsysupgrade.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "upgrade_start",
+              "packagelist"
+            ],
+            "scope": "ubus",
+            "target": "rpc-sys"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "board",
+              "info"
+            ],
+            "scope": "ubus",
+            "target": "system"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "get"
+            ],
+            "scope": "ubus",
+            "target": "uci"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/sys/firmware/efi"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "attendedsysupgrade"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "upload"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "set",
+              "commit"
+            ],
+            "scope": "ubus",
+            "target": "uci"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-attendedsysupgrade",
+            "methods": [
+              "attendedsysupgrade"
+            ],
+            "scope": "uci",
+            "target": null
+          }
+        ],
+        "sha256": "a9df4afe172faa50d14f87f2a6dc1ec977957d4149c64c52545d7e78d30199ca"
+      },
+      {
+        "groups": [
+          "luci-app-firewall"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-app-firewall.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "luci-app-firewall",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/firewall.user"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-firewall",
+            "methods": [
+              "read"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-firewall",
+            "methods": [
+              "getConntrackHelpers"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-firewall",
+            "methods": [
+              "firewall"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-app-firewall",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/firewall.user"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-firewall",
+            "methods": [
+              "write"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-firewall",
+            "methods": [
+              "firewall"
+            ],
+            "scope": "uci",
+            "target": null
+          }
+        ],
+        "sha256": "6ccca3e3c7c4e7dfc3ba5836fe11bf8f0f786e8eca7814e6eba7095a36641c08"
+      },
+      {
+        "groups": [
+          "luci-app-package-manager"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-app-package-manager.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call list-installed"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call list-available"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/opkg.conf"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/opkg/*.conf"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/repositories"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/repositories.d/distfeeds.list"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/repositories.d/customfeeds.list"
+          },
+          {
+            "access": "read",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "getMountPoints"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call install"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call install *"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call remove *"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call update"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call upgrade"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/package-manager-call upgrade *"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/opkg.conf"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/opkg/*.conf"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/repositories"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/repositories.d/distfeeds.list"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/repositories.d/customfeeds.list"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/tmp/upload.ipk"
+          },
+          {
+            "access": "write",
+            "group": "luci-app-package-manager",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/tmp/upload.apk"
+          }
+        ],
+        "sha256": "f9fe60400cecbbaa92430183e5b1505a523de0ccf17960022b6c298d4b44ea49"
+      },
+      {
+        "groups": [
+          "luci-base",
+          "luci-base-network-status",
+          "unauthenticated"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-base.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "unauthenticated",
+            "methods": [
+              "getFeatures"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-base",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/"
+          },
+          {
+            "access": "read",
+            "group": "luci-base",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/*"
+          },
+          {
+            "access": "read",
+            "group": "luci-base",
+            "methods": [
+              "list"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-base",
+            "methods": [
+              "changes",
+              "get"
+            ],
+            "scope": "ubus",
+            "target": "uci"
+          },
+          {
+            "access": "read",
+            "group": "luci-base",
+            "methods": [
+              "system",
+              "luci"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-base",
+            "methods": [
+              "upload"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-base",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/luci-uploads/*"
+          },
+          {
+            "access": "write",
+            "group": "luci-base",
+            "methods": [
+              "remove"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-base",
+            "methods": [
+              "add",
+              "apply",
+              "confirm",
+              "delete",
+              "order",
+              "rename",
+              "set"
+            ],
+            "scope": "ubus",
+            "target": "uci"
+          },
+          {
+            "access": "read",
+            "group": "luci-base-network-status",
+            "methods": [
+              "getBoardJSON",
+              "getHostHints",
+              "getNetworkDevices",
+              "getWirelessDevices"
+            ],
+            "scope": "ubus",
+            "target": "luci-rpc"
+          },
+          {
+            "access": "read",
+            "group": "luci-base-network-status",
+            "methods": [
+              "get_proto_handlers"
+            ],
+            "scope": "ubus",
+            "target": "network"
+          },
+          {
+            "access": "read",
+            "group": "luci-base-network-status",
+            "methods": [
+              "status"
+            ],
+            "scope": "ubus",
+            "target": "network.device"
+          },
+          {
+            "access": "read",
+            "group": "luci-base-network-status",
+            "methods": [
+              "dump"
+            ],
+            "scope": "ubus",
+            "target": "network.interface"
+          },
+          {
+            "access": "read",
+            "group": "luci-base-network-status",
+            "methods": [
+              "luci",
+              "network",
+              "wireless"
+            ],
+            "scope": "uci",
+            "target": null
+          }
+        ],
+        "sha256": "1e571671df667e8cdb09e4905f47bce0a37b81d8166d6bc654c155bb30e8f4c3"
+      },
+      {
+        "groups": [
+          "luci-mod-network-config",
+          "luci-mod-network-dhcp",
+          "luci-mod-network-diagnostics",
+          "luci-mod-network-dns"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/iproute2/rt_tables"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/sys/net/ipv6/conf/*/mtu"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/sys/net/ipv6/conf/*/hop_limit"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/luci-peeraddr"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/sys/net/ipv[46]/conf/*"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/sys/class/net/*/brport/*"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "assoclist",
+              "countrylist",
+              "freqlist",
+              "txpowerlist"
+            ],
+            "scope": "ubus",
+            "target": "iwinfo"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "getSwconfigFeatures",
+              "getSwconfigPortState"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "dhcp",
+              "firewall",
+              "network",
+              "wireless",
+              "system"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ifup"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ifdown"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/wifi"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "exec"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "del_client"
+            ],
+            "scope": "ubus",
+            "target": "hostapd.*"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "scan"
+            ],
+            "scope": "ubus",
+            "target": "iwinfo"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-config",
+            "methods": [
+              "dhcp",
+              "firewall",
+              "network",
+              "wireless"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-dns",
+            "methods": [
+              "getHostHints"
+            ],
+            "scope": "ubus",
+            "target": "luci-rpc"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-dns",
+            "methods": [
+              "dhcp"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-dns",
+            "methods": [
+              "dhcp"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-dhcp",
+            "methods": [
+              "getDHCPLeases",
+              "getDUIDHints",
+              "getHostHints",
+              "getNetworkDevices"
+            ],
+            "scope": "ubus",
+            "target": "luci-rpc"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-dhcp",
+            "methods": [
+              "fingerprint"
+            ],
+            "scope": "ubus",
+            "target": "fingerprint"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-dhcp",
+            "methods": [
+              "list"
+            ],
+            "scope": "ubus",
+            "target": "service"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-dhcp",
+            "methods": [
+              "dhcp"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-network-dhcp",
+            "methods": [
+              "dhcp"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/bin/ping"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec",
+              "list"
+            ],
+            "scope": "file",
+            "target": "/bin/ping6"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/bin/traceroute"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec",
+              "list"
+            ],
+            "scope": "file",
+            "target": "/bin/traceroute6"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/nslookup"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/ping"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec",
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/ping6"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/traceroute"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec",
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/traceroute6"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec",
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/arp-scan"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "exec",
+              "stat"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-network-diagnostics",
+            "methods": [
+              "luci"
+            ],
+            "scope": "uci",
+            "target": null
+          }
+        ],
+        "sha256": "38ba28adae3cfd5fc9241b7abacc8b441078cc9ff57da70a85241fdaa63b426b"
+      },
+      {
+        "groups": [
+          "luci-mod-status-index",
+          "luci-mod-status-index-dhcp",
+          "luci-mod-status-index-dsl",
+          "luci-mod-status-index-ports",
+          "luci-mod-status-index-storage",
+          "luci-mod-status-index-wifi"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-mod-status-index.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/board.json"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/sys/net/netfilter/nf_conntrack_count"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/sys/net/netfilter/nf_conntrack_max"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/www/luci-static/resources/view/status/include"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "getVersion",
+              "getUnixtime",
+              "getOdhcp6cStats"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "list",
+              "read"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "board",
+              "info"
+            ],
+            "scope": "ubus",
+            "target": "system"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-index",
+            "methods": [
+              "dhcp"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index-storage",
+            "methods": [
+              "getMountPoints"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index-storage",
+            "methods": [
+              "info"
+            ],
+            "scope": "ubus",
+            "target": "system"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index-dhcp",
+            "methods": [
+              "getDHCPLeases"
+            ],
+            "scope": "ubus",
+            "target": "luci-rpc"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index-dhcp",
+            "methods": [
+              "fingerprint"
+            ],
+            "scope": "ubus",
+            "target": "fingerprint"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index-dsl",
+            "methods": [
+              "metrics"
+            ],
+            "scope": "ubus",
+            "target": "dsl"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index-ports",
+            "methods": [
+              "getBuiltinEthernetPorts"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-index-wifi",
+            "methods": [
+              "assoclist"
+            ],
+            "scope": "ubus",
+            "target": "iwinfo"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-index-wifi",
+            "methods": [
+              "del_client",
+              "wps_start",
+              "wps_cancel",
+              "wps_status"
+            ],
+            "scope": "ubus",
+            "target": "hostapd.*"
+          }
+        ],
+        "sha256": "38fefe76231d53eb236940b83ef7eabd5cceb70164f1245ad0dd45251abebb61"
+      },
+      {
+        "groups": [
+          "luci-mod-status-channel_analysis",
+          "luci-mod-status-firewall",
+          "luci-mod-status-logs",
+          "luci-mod-status-processes",
+          "luci-mod-status-realtime",
+          "luci-mod-status-routes",
+          "luci-mod-status-routes-json"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-mod-status.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "luci-mod-status-realtime",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/services"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-realtime",
+            "methods": [
+              "getConntrackList",
+              "getRealtimeStats"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-realtime",
+            "methods": [
+              "getHostHints",
+              "getNetworkDevices",
+              "getDHCPLeases"
+            ],
+            "scope": "ubus",
+            "target": "luci-rpc"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-realtime",
+            "methods": [
+              "lookup"
+            ],
+            "scope": "ubus",
+            "target": "network.rrdns"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-processes",
+            "methods": [
+              "getProcessList"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-processes",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/bin/kill"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-processes",
+            "methods": [
+              "exec"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-logs",
+            "methods": [
+              "exec"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-logs",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/bin/dmesg -r"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-logs",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/libexec/syslog-wrapper"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-logs",
+            "methods": [
+              "read"
+            ],
+            "scope": "ubus",
+            "target": "log"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-logs",
+            "methods": [
+              "stat"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ip -[46] neigh show"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ip -[46] route show table all"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ip -[46] rule show"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes",
+            "methods": [
+              "exec"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes",
+            "methods": [
+              "fingerprint"
+            ],
+            "scope": "ubus",
+            "target": "fingerprint"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes-json",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ip -[46] -j neigh show"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes-json",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ip -[46] -j route show table all"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes-json",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/ip -[46] -j rule show"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes-json",
+            "methods": [
+              "exec"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-routes-json",
+            "methods": [
+              "fingerprint"
+            ],
+            "scope": "ubus",
+            "target": "fingerprint"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-channel_analysis",
+            "methods": [
+              "info",
+              "freqlist",
+              "scan"
+            ],
+            "scope": "ubus",
+            "target": "iwinfo"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/nft --terse --json list ruleset"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/iptables --line-numbers -w -nvxL -t *"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/ip6tables --line-numbers -w -nvxL -t *"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/ip6tables"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/iptables-save"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/ip6tables-save"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "stat"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/etc/init.d/firewall restart"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/iptables -Z"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/ip6tables -Z"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-status-firewall",
+            "methods": [
+              "exec"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          }
+        ],
+        "sha256": "be0441526a4e288399f80f0f081722ddf188932a4bf33f3cbe7044f694036851"
+      },
+      {
+        "groups": [
+          "luci-mod-system-config",
+          "luci-mod-system-cron",
+          "luci-mod-system-flash",
+          "luci-mod-system-init",
+          "luci-mod-system-mounts",
+          "luci-mod-system-reboot",
+          "luci-mod-system-repokeys",
+          "luci-mod-system-ssh",
+          "luci-mod-system-uhttpd"
+        ],
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "luci-mod-system-config",
+            "methods": [
+              "getLEDs",
+              "getTimezones",
+              "getUSBDevices",
+              "getUnixtime"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-config",
+            "methods": [
+              "list"
+            ],
+            "scope": "ubus",
+            "target": "rc"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-config",
+            "methods": [
+              "luci",
+              "system"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-config",
+            "methods": [
+              "setLocaltime",
+              "setPassword"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-config",
+            "methods": [
+              "init"
+            ],
+            "scope": "ubus",
+            "target": "rc"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-config",
+            "methods": [
+              "luci",
+              "system"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-ssh",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/dropbear/authorized_keys"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-ssh",
+            "methods": [
+              "read"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-ssh",
+            "methods": [
+              "dropbear"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-ssh",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/dropbear/authorized_keys"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-ssh",
+            "methods": [
+              "write"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-ssh",
+            "methods": [
+              "setLocaltime"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-ssh",
+            "methods": [
+              "dropbear"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-repokeys",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/opkg/keys/*"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-repokeys",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/keys/*"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-repokeys",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/opkg/keys/*"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-repokeys",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/apk/keys/*"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-uhttpd",
+            "methods": [
+              "uhttpd"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-uhttpd",
+            "methods": [
+              "uhttpd"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-init",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/rc.local"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-init",
+            "methods": [
+              "read"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-init",
+            "methods": [
+              "list"
+            ],
+            "scope": "ubus",
+            "target": "rc"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-init",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/rc.local"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-init",
+            "methods": [
+              "write"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-init",
+            "methods": [
+              "init"
+            ],
+            "scope": "ubus",
+            "target": "rc"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-cron",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/crontabs/root"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-cron",
+            "methods": [
+              "read"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-cron",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/crontabs/root"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-cron",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/etc/init.d/cron reload"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-cron",
+            "methods": [
+              "write"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/filesystems"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/filesystems"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/btrfsck"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/bin/ntfsfix"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/e2fsck"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/fsck.f2fs"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/usr/sbin/fsck.fat"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "read",
+              "stat"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "getBlockDevices",
+              "getMountPoints"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "fstab"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/crontabs/root"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/bin/umount"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/block"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "exec",
+              "write"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "setBlockDetect"
+            ],
+            "scope": "ubus",
+            "target": "luci"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-mounts",
+            "methods": [
+              "fstab"
+            ],
+            "scope": "uci",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "backup",
+              "download"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/dev/mtdblock[0-9]*"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/etc/sysupgrade.conf"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "list"
+            ],
+            "scope": "file",
+            "target": "/lib/upgrade/platform.sh"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/mounts"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/mtd"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/partitions"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "read"
+            ],
+            "scope": "file",
+            "target": "/proc/sys/kernel/hostname"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade --list-backup"
+          },
+          {
+            "access": "read",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec",
+              "read",
+              "stat"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "upload"
+            ],
+            "scope": "cgi-io",
+            "target": null
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/bin/tar -tzf /tmp/backup.tar.gz"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/etc/sysupgrade.conf"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/firstboot -r -y"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/reboot"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade --force /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade -n --force /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade --force -k /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade --force -u /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade --force -u -k /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade -n /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade -k /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade -u /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade -u -k /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade --restore-backup /tmp/backup.tar.gz"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade --test /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/sysupgrade /tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/tmp/backup.tar.gz"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "write"
+            ],
+            "scope": "file",
+            "target": "/tmp/firmware.bin"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "exec",
+              "remove",
+              "write"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-flash",
+            "methods": [
+              "validate_firmware_image"
+            ],
+            "scope": "ubus",
+            "target": "system"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-reboot",
+            "methods": [
+              "exec"
+            ],
+            "scope": "file",
+            "target": "/sbin/reboot"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-reboot",
+            "methods": [
+              "exec"
+            ],
+            "scope": "ubus",
+            "target": "file"
+          },
+          {
+            "access": "write",
+            "group": "luci-mod-system-reboot",
+            "methods": [
+              "reboot"
+            ],
+            "scope": "ubus",
+            "target": "system"
+          }
+        ],
+        "sha256": "6c27959d5d4a7f1bb86ab09fe8365b563a715f6a778324bf17a02849aaf96769"
+      },
+      {
+        "groups": [
+          "unauthenticated"
+        ],
+        "path": "/usr/share/rpcd/acl.d/unauthenticated.json",
+        "scopes": [
+          {
+            "access": "read",
+            "group": "unauthenticated",
+            "methods": [
+              "access",
+              "login"
+            ],
+            "scope": "ubus",
+            "target": "session"
+          }
+        ],
+        "sha256": "f9ffec0554e0dd2e429f7c1fc843393c6bd97c4af843ba8f4c0d1020a7d22a67"
+      }
+    ],
+    "acl_ubus_target_coverage": [
+      {
+        "has_deployed_provider": false,
+        "target": "dsl"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "file"
+      },
+      {
+        "has_deployed_provider": false,
+        "target": "fingerprint"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "hostapd.*"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "iwinfo"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "log"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "luci"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "luci-rpc"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "network"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "network.device"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "network.interface"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "network.rrdns"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "rc"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "rpc-sys"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "service"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "session"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "system"
+      },
+      {
+        "has_deployed_provider": true,
+        "target": "uci"
+      }
+    ],
+    "binary_plugins": [
+      {
+        "path": "/usr/lib/rpcd/file.so",
+        "sha256": "f181c959ff0c44db1a9f2d96d053646fd6bf4d38426edc37702764a6e993584f"
+      },
+      {
+        "path": "/usr/lib/rpcd/iwinfo.so",
+        "sha256": "c8bcd7bc4057b023ed9eb955a3fa157bacba39820906e3859999f112e20ce77f"
+      },
+      {
+        "path": "/usr/lib/rpcd/luci.so",
+        "sha256": "3f877f74b15e081723986d7d06b8e27a072bd8be92539dbee533623d0b18ef22"
+      },
+      {
+        "path": "/usr/lib/rpcd/rpcsys.so",
+        "sha256": "378375e5198dad1fa5ca05ca9095d725fef33062cb1423c77e8ab57f9fba9774"
+      },
+      {
+        "path": "/usr/lib/rpcd/rrdns.so",
+        "sha256": "22c42f2de25a7670b2dd81fbcec1874a3ab166b2536ddc447b5f9a42d9f94e47"
+      },
+      {
+        "path": "/usr/lib/rpcd/ucode.so",
+        "sha256": "591c21eee13dcae91b75d039719e5733bcd2e1eeec7d0466104b1d2aa8d6c220"
+      }
+    ],
+    "ucode_plugins": [
+      {
+        "path": "/usr/share/rpcd/ucode/luci",
+        "registered_objects": [
+          {
+            "line": 686,
+            "object_name": "luci"
+          }
+        ],
+        "sha256": "6f9d972958d9cfb8a7ba421f38f0a5b03718ffeb0e30d460b64c9faf725fc54e"
+      }
+    ]
+  },
+  "schema_version": 1,
+  "stage": "I0.5",
+  "status": "complete",
+  "ubus_dynamic_objects": [
+    {
+      "component": "netifd",
+      "deployed_artifact": "/sbin/netifd",
+      "name_rule": "network.interface.<interface name from /etc/config/network>",
+      "resolved_statically": false,
+      "source_symbol": "netifd_ubus_add_interface",
+      "source_unit": "sources/components/netifd/ubus.c"
+    },
+    {
+      "component": "procd",
+      "deployed_artifact": "/sbin/procd",
+      "name_rule": "hotplug.<subsystem registered by procd>",
+      "resolved_statically": false,
+      "source_symbol": "add_subsystem / HOTPLUG_OBJECT_PREFIX",
+      "source_unit": "sources/components/procd/hotplug-dispatch.c"
+    },
+    {
+      "component": "procd",
+      "deployed_artifact": "/sbin/ujail",
+      "name_rule": "container (registered only when procd runs the ujail container path)",
+      "resolved_statically": false,
+      "source_symbol": "container_object",
+      "source_unit": "sources/components/procd/jail/jail.c"
+    },
+    {
+      "component": "dnsmasq",
+      "deployed_artifact": "/usr/sbin/dnsmasq",
+      "name_rule": "dnsmasq instance name from --ubus option, default DNSMASQ_UBUS_NAME",
+      "resolved_statically": false,
+      "source_symbol": "ubus_object.name = daemon->ubus_name",
+      "source_unit": "sources/components/dnsmasq/src/ubus.c"
+    },
+    {
+      "component": "odhcp6c",
+      "deployed_artifact": "/usr/sbin/odhcp6c",
+      "name_rule": "odhcp6c.<interface>",
+      "resolved_statically": false,
+      "source_symbol": "snprintf(ubus_name, 24, \"odhcp6c.%s\", interface)",
+      "source_unit": "sources/components/odhcp6c/src/ubus.c"
+    },
+    {
+      "component": "wpad",
+      "deployed_artifact": "/usr/share/hostap/wpa_supplicant.uc",
+      "name_rule": "wpa_supplicant.<ifname>",
+      "resolved_statically": false,
+      "source_symbol": "ubus.publish(`wpa_supplicant.${ifname}`)",
+      "source_unit": "deployed ucode"
+    }
+  ],
+  "ubus_linked_artifacts": [
+    {
+      "dynamic_symbol_names": [
+        "ubus_connect",
+        "ubus_invoke",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": false,
+      "path": "/bin/ubus"
+    },
+    {
+      "dynamic_symbol_names": [],
+      "has_resolved_object_set": false,
+      "path": "/sbin/init"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/sbin/logd"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect",
+        "ubus_invoke",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/sbin/netifd"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/sbin/procd"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect",
+        "ubus_invoke"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/sbin/rpcd"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect",
+        "ubus_invoke",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/sbin/ujail"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_connect",
+        "ubus_invoke"
+      ],
+      "has_resolved_object_set": false,
+      "path": "/usr/lib/libiwinfo.so.20230701"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_invoke",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": false,
+      "path": "/usr/lib/libudebug.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/lib/rpcd/file.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/lib/rpcd/iwinfo.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_invoke"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/lib/rpcd/luci.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/lib/rpcd/rpcsys.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/lib/rpcd/rrdns.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect",
+        "ubus_invoke",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": false,
+      "path": "/usr/lib/ucode/ubus.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_connect",
+        "ubus_invoke",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": false,
+      "path": "/usr/lib/uhttpd_ubus.so"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_connect",
+        "ubus_invoke"
+      ],
+      "has_resolved_object_set": false,
+      "path": "/usr/libexec/cgi-io"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_connect",
+        "ubus_invoke"
+      ],
+      "has_resolved_object_set": false,
+      "path": "/usr/libexec/logread-ubox"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/sbin/dnsmasq"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/sbin/odhcp6c"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect",
+        "ubus_invoke",
+        "ubus_register_subscriber"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/sbin/odhcpd"
+    },
+    {
+      "dynamic_symbol_names": [
+        "ubus_add_object",
+        "ubus_connect"
+      ],
+      "has_resolved_object_set": true,
+      "path": "/usr/sbin/wpad"
+    }
+  ],
+  "ubus_objects": [
+    {
+      "artifact_present_in_image": true,
+      "component": "procd",
+      "deployed_artifact": "/sbin/procd",
+      "method_table": "main_object_methods",
+      "methods": [
+        "set",
+        "add",
+        "list",
+        "delete",
+        "signal",
+        "update_start",
+        "update_complete",
+        "event",
+        "validate",
+        "get_data",
+        "set_data",
+        "state",
+        "watchdog"
+      ],
+      "object_name": "service",
+      "object_type": "service",
+      "source": "sources/components/procd/service/service.c:1093",
+      "source_sha256": "ef9791040e938f72528a472a1198f1ea9e641d7815d8537ff7a98fe7fcbd76d3",
+      "source_unit": "sources/components/procd/service/service.c",
+      "variable": "main_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "procd",
+      "deployed_artifact": "/sbin/procd",
+      "method_table": "container_object_methods",
+      "methods": [
+        "set",
+        "add",
+        "list",
+        "delete",
+        "state",
+        "get_features",
+        "console_set",
+        "console_attach"
+      ],
+      "object_name": "container",
+      "object_type": "container",
+      "source": "sources/components/procd/service/service.c:1169",
+      "source_sha256": "ef9791040e938f72528a472a1198f1ea9e641d7815d8537ff7a98fe7fcbd76d3",
+      "source_unit": "sources/components/procd/service/service.c",
+      "variable": "container_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "procd",
+      "deployed_artifact": "/sbin/procd",
+      "method_table": "system_methods",
+      "methods": [
+        "board",
+        "info",
+        "reboot",
+        "watchdog",
+        "signal",
+        "validate_firmware_image",
+        "sysupgrade"
+      ],
+      "object_name": "system",
+      "object_type": "system",
+      "source": "sources/components/procd/system.c:857",
+      "source_sha256": "1737fce3221cd6bbfebfd19c23503649a03ffd13eea32ce9a31190cc54e888da",
+      "source_unit": "sources/components/procd/system.c",
+      "variable": "system_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "netifd",
+      "deployed_artifact": "/sbin/netifd",
+      "method_table": "main_object_methods",
+      "methods": [
+        "restart",
+        "reload",
+        "add_host_route",
+        "get_proto_handlers",
+        "add_dynamic",
+        "netns_updown"
+      ],
+      "object_name": "network",
+      "object_type": "netifd",
+      "source": "sources/components/netifd/ubus.c:217",
+      "source_sha256": "3ae2788070d1b0160ffaca536d33bf7514c7c1c546e3067fc975173ab0646205",
+      "source_unit": "sources/components/netifd/ubus.c",
+      "variable": "main_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "netifd",
+      "deployed_artifact": "/sbin/netifd",
+      "method_table": "dev_object_methods",
+      "methods": [
+        "status",
+        "set_alias",
+        "set_state",
+        "hotplug_event",
+        "stp_init"
+      ],
+      "object_name": "network.device",
+      "object_type": "device",
+      "source": "sources/components/netifd/ubus.c:408",
+      "source_sha256": "3ae2788070d1b0160ffaca536d33bf7514c7c1c546e3067fc975173ab0646205",
+      "source_unit": "sources/components/netifd/ubus.c",
+      "variable": "dev_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "netifd",
+      "deployed_artifact": "/sbin/netifd",
+      "method_table": "iface_object_methods",
+      "methods": [
+        "up",
+        "down",
+        "renew",
+        "status",
+        "prepare",
+        "dump",
+        "add_device",
+        "remove_device",
+        "notify_proto",
+        "remove",
+        "set_data"
+      ],
+      "object_name": "network.interface",
+      "object_type": "netifd_iface",
+      "source": "sources/components/netifd/ubus.c:1116",
+      "source_sha256": "3ae2788070d1b0160ffaca536d33bf7514c7c1c546e3067fc975173ab0646205",
+      "source_unit": "sources/components/netifd/ubus.c",
+      "variable": "iface_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd",
+      "deployed_artifact": "/sbin/rpcd",
+      "method_table": "session_methods",
+      "methods": [
+        "create",
+        "list",
+        "grant",
+        "revoke",
+        "access",
+        "set",
+        "get",
+        "unset",
+        "destroy",
+        "login"
+      ],
+      "object_name": "session",
+      "object_type": "rpcd-plugin-session",
+      "source": "sources/components/rpcd/session.c:1371",
+      "source_sha256": "dad7c03d143d9ea324ea13c3f9e699a1c67df196217f943a6bd4a150d8db9a49",
+      "source_unit": "sources/components/rpcd/session.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd",
+      "deployed_artifact": "/sbin/rpcd",
+      "method_table": "uci_methods",
+      "methods": [
+        "configs",
+        "get",
+        "state",
+        "add",
+        "set",
+        "delete",
+        "rename",
+        "order",
+        "changes",
+        "revert",
+        "commit",
+        "apply",
+        "confirm",
+        "rollback",
+        "reload_config"
+      ],
+      "object_name": "uci",
+      "object_type": "rpcd-plugin-uci",
+      "source": "sources/components/rpcd/uci.c:1789",
+      "source_sha256": "8fa99ea940d1a2c799a975d0e4d56019ec753f5011e6a793276a74f782c54620",
+      "source_unit": "sources/components/rpcd/uci.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd",
+      "deployed_artifact": "/sbin/rpcd",
+      "method_table": "rc_methods",
+      "methods": [
+        "list",
+        "init"
+      ],
+      "object_name": "rc",
+      "object_type": "rc",
+      "source": "sources/components/rpcd/rc.c:409",
+      "source_sha256": "86358cab44dcad555f36671c87d2020de85437b4c66a148fbc1efae2f9f4203c",
+      "source_unit": "sources/components/rpcd/rc.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd",
+      "deployed_artifact": "/usr/lib/rpcd/file.so",
+      "method_table": "file_methods",
+      "methods": [
+        "read",
+        "write",
+        "list",
+        "lstat",
+        "stat",
+        "md5",
+        "remove",
+        "exec"
+      ],
+      "object_name": "file",
+      "object_type": "rpcd-plugin-file",
+      "source": "sources/components/rpcd/file.c:1117",
+      "source_sha256": "d502a3f89a11024711a696c4154c2337a7ce7a275b5aa9889a563241b21a10eb",
+      "source_unit": "sources/components/rpcd/file.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd",
+      "deployed_artifact": "/usr/lib/rpcd/iwinfo.so",
+      "method_table": "iwinfo_methods",
+      "methods": [
+        "devices",
+        "info",
+        "scan",
+        "assoclist",
+        "freqlist",
+        "txpowerlist",
+        "countrylist",
+        "survey",
+        "phyname"
+      ],
+      "object_name": "iwinfo",
+      "object_type": "rpcd-plugin-iwinfo",
+      "source": "sources/components/rpcd/iwinfo.c:943",
+      "source_sha256": "0fd26292e4239831c08dd042b4322833c04d3334bec07f24fdb9722c0ceafede",
+      "source_unit": "sources/components/rpcd/iwinfo.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd",
+      "deployed_artifact": "/usr/lib/rpcd/rpcsys.so",
+      "method_table": "sys_methods",
+      "methods": [
+        "packagelist",
+        "password_set",
+        "upgrade_test",
+        "upgrade_start",
+        "upgrade_clean",
+        "factory",
+        "reboot"
+      ],
+      "object_name": "rpc-sys",
+      "object_type": "rpcd-plugin-sys",
+      "source": "sources/components/rpcd/sys.c:488",
+      "source_sha256": "8419e1b1115b5423b5638c74caecbb4abaf2f63692faf2268f0392adf5c081e5",
+      "source_unit": "sources/components/rpcd/sys.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "odhcpd",
+      "deployed_artifact": "/usr/sbin/odhcpd",
+      "method_table": "main_object_methods",
+      "methods": [
+        "ipv4leases",
+        "ipv6leases",
+        "ipv6ra",
+        "add_lease"
+      ],
+      "object_name": "dhcp",
+      "object_type": "dhcp",
+      "source": "sources/components/odhcpd/src/ubus.c:259",
+      "source_sha256": "fc5cb86cdd9e3bb15b6f73aeb8bf19c6b0513d95265abbf9893a731a0bf97d43",
+      "source_unit": "sources/components/odhcpd/src/ubus.c",
+      "variable": "main_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd-mod-luci",
+      "deployed_artifact": "/usr/lib/rpcd/luci.so",
+      "method_table": "luci_methods",
+      "methods": [
+        "getNetworkDevices",
+        "getWirelessDevices",
+        "getHostHints",
+        "getDUIDHints",
+        "getBoardJSON",
+        "getDHCPLeases"
+      ],
+      "object_name": "luci-rpc",
+      "object_type": "rpcd-luci",
+      "source": "sources/luci/libs/rpcd-mod-luci/src/luci.c:2045",
+      "source_sha256": "9e3f80d2f58580bba6d38c44565ac1737edf7c6c55f1cf26e6e275ddc27f7a0b",
+      "source_unit": "sources/luci/libs/rpcd-mod-luci/src/luci.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "rpcd-mod-rrdns",
+      "deployed_artifact": "/usr/lib/rpcd/rrdns.so",
+      "method_table": "rrdns_methods",
+      "methods": [
+        "lookup"
+      ],
+      "object_name": "network.rrdns",
+      "object_type": "rpcd-rrdns",
+      "source": "sources/luci/libs/rpcd-mod-rrdns/src/rrdns.c:377",
+      "source_sha256": "a4be34e3cfe40198d2995241b5ec469f77949775db81c25222936234680681cc",
+      "source_unit": "sources/luci/libs/rpcd-mod-rrdns/src/rrdns.c",
+      "variable": "obj"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "ubox-log",
+      "deployed_artifact": "/sbin/logd",
+      "method_table": "log_methods",
+      "methods": [
+        "read",
+        "write"
+      ],
+      "object_name": "log",
+      "object_type": "log",
+      "source": "sources/components/ubox/log/logd.c:200",
+      "source_sha256": "03745705928d46d563c923a05886c04d88e3698ecca8f5f9be8ddf9836643488",
+      "source_unit": "sources/components/ubox/log/logd.c",
+      "variable": "log_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "dnsmasq",
+      "deployed_artifact": "/usr/sbin/dnsmasq",
+      "method_table": "ubus_object_methods",
+      "methods": [
+        "metrics",
+        "set_connmark_allowlist"
+      ],
+      "object_name": null,
+      "object_type": "dnsmasq",
+      "source": "sources/components/dnsmasq/src/ubus.c:67",
+      "source_sha256": "cdbfeea66ce93cc3406bba238dd3103eac64a7a330e9471328da6276888035a3",
+      "source_unit": "sources/components/dnsmasq/src/ubus.c",
+      "variable": "ubus_object"
+    },
+    {
+      "artifact_present_in_image": true,
+      "component": "odhcp6c",
+      "deployed_artifact": "/usr/sbin/odhcp6c",
+      "method_table": "odhcp6c_object_methods",
+      "methods": [
+        "get_state",
+        "get_statistics",
+        "reset_statistics",
+        "reconfigure_dhcp",
+        "renew",
+        "release"
+      ],
+      "object_name": null,
+      "object_type": "odhcp6c",
+      "source": "sources/components/odhcp6c/src/ubus.c:184",
+      "source_sha256": "3d03cdc6f23798627635818e8807c4d3f61c6244436cf0508a375410acec5866",
+      "source_unit": "sources/components/odhcp6c/src/ubus.c",
+      "variable": "odhcp6c_object"
+    }
+  ],
+  "ubus_objects_from_deployed_ucode": [
+    {
+      "line": 573,
+      "name_is_literal": true,
+      "object_name": "network.wireless",
+      "path": "/lib/netifd/wireless.uc",
+      "sha256": "e369670e9b92d0cdef5b116570be21d952b4f58fa462fc95e58a4f717b662738",
+      "text": "wireless.obj = ubus.publish(\"network.wireless\", ubus_obj);"
+    },
+    {
+      "line": 1368,
+      "name_is_literal": true,
+      "object_name": "hostapd",
+      "path": "/usr/share/hostap/hostapd.uc",
+      "sha256": "05f8881eb9f3d4458a7d5143f26396822fc43e8b560f1ee456de0480fa0694aa",
+      "text": "hostapd.data.obj = ubus.publish(\"hostapd\", main_obj);"
+    },
+    {
+      "line": 1372,
+      "name_is_literal": true,
+      "object_name": "hostapd-auth",
+      "path": "/usr/share/hostap/hostapd.uc",
+      "sha256": "05f8881eb9f3d4458a7d5143f26396822fc43e8b560f1ee456de0480fa0694aa",
+      "text": "hostapd.data.auth_obj = ubus.publish(\"hostapd-auth\", auth_obj);"
+    },
+    {
+      "line": 625,
+      "name_is_literal": true,
+      "object_name": "wpa_supplicant",
+      "path": "/usr/share/hostap/wpa_supplicant.uc",
+      "sha256": "d6726b52e3825489ce267e3aaea2fa0c3aa23daad5b6affcc7384e68d6bf0b66",
+      "text": "wpas.data.obj = ubus.publish(\"wpa_supplicant\", main_obj);"
+    },
+    {
+      "line": 752,
+      "name_is_literal": false,
+      "object_name": "wpa_supplicant.${ifname}",
+      "path": "/usr/share/hostap/wpa_supplicant.uc",
+      "sha256": "d6726b52e3825489ce267e3aaea2fa0c3aa23daad5b6affcc7384e68d6bf0b66",
+      "text": "let obj = ubus.publish(`wpa_supplicant.${ifname}`, {"
+    }
+  ],
+  "ubus_role_note": "dynamic_symbol_names records which libubus entry-point names appear in the stripped artifact's dynamic string data.  It shows the linked interface, not that the code path runs on this device.",
+  "ubus_socket_evidence": {
+    "consumer_statements": [
+      {
+        "line": 2,
+        "path": "/etc/config/rpcd",
+        "text": "option socket /var/run/ubus/ubus.sock"
+      },
+      {
+        "line": 10,
+        "path": "/etc/init.d/rpcd",
+        "text": "local socket=$(uci -q get rpcd.@rpcd[0].socket)"
+      },
+      {
+        "line": 14,
+        "path": "/etc/init.d/rpcd",
+        "text": "procd_set_param command \"$PROG\" ${socket:+-s \"$socket\"} ${timeout:+-t \"$timeout\"}"
+      },
+      {
+        "line": 155,
+        "path": "/etc/init.d/uhttpd",
+        "text": "append_arg \"$cfg\" ubus_socket \"-U\""
+      },
+      {
+        "line": 47,
+        "path": "/etc/init.d/log",
+        "text": "local pid_file=\"/var/run/logread.${PIDCOUNT}.pid\""
+      },
+      {
+        "line": 73,
+        "path": "/etc/init.d/log",
+        "text": "local pid_file=\"/var/run/logread.${PIDCOUNT}.pid\""
+      },
+      {
+        "line": 19,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "BASEDHCPSTAMPFILE=\"/var/run/dnsmasq\""
+      },
+      {
+        "line": 927,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "mkdir -p /var/run/dnsmasq/"
+      },
+      {
+        "line": 931,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "chown dnsmasq:dnsmasq /var/run/dnsmasq"
+      },
+      {
+        "line": 1267,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "procd_set_param command $PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq.\"${cfg}\".pid"
+      },
+      {
+        "line": 1282,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "procd_add_jail_mount_rw /var/run/dnsmasq/ $leasefile"
+      }
+    ],
+    "ubusd_source_statements": []
+  },
+  "ubusd_acl": [
+    {
+      "access": {
+        "hotplug.dhcp": [
+          "call"
+        ],
+        "hotplug.neigh": [
+          "call"
+        ],
+        "hotplug.tftp": [
+          "call"
+        ]
+      },
+      "group": null,
+      "path": "/usr/share/acl.d/dnsmasq_acl.json",
+      "publish": [
+        "dnsmasq"
+      ],
+      "send": [],
+      "sha256": "2d412bf29ea25d9dd51dcdc77884e3fe21b91e4ce3e0125ec8749d1799aca39d",
+      "subscribe": [],
+      "user": "dnsmasq"
+    },
+    {
+      "access": {},
+      "group": null,
+      "path": "/usr/share/acl.d/logd.json",
+      "publish": [
+        "log"
+      ],
+      "send": [],
+      "sha256": "ea96ec489bff2eca2883ace5482d68248991e8549c369148d35f0ec7a8e78167",
+      "subscribe": [],
+      "user": "logd"
+    },
+    {
+      "access": {
+        "system": [
+          "board",
+          "info"
+        ]
+      },
+      "group": null,
+      "path": "/usr/share/acl.d/luci-base.json",
+      "publish": [],
+      "send": [],
+      "sha256": "6e721dcc59cb96de30abce6aca712752c3fbee4c57e0b556b8eb2434b645590c",
+      "subscribe": [],
+      "user": "nobody"
+    },
+    {
+      "access": {
+        "hotplug.ntp": [
+          "call"
+        ]
+      },
+      "group": null,
+      "path": "/usr/share/acl.d/ntpd.json",
+      "publish": [],
+      "send": [],
+      "sha256": "647d0eba0d614e5be1631cfe7af98dce5453f7cdd57e3088dc2655249634bd1e",
+      "subscribe": [],
+      "user": "ntp"
+    },
+    {
+      "access": {
+        "hostapd": [
+          "apsta_state"
+        ],
+        "service": [
+          "event"
+        ],
+        "udebug": [
+          "get_config"
+        ],
+        "wpa_supplicant": [
+          "phy_set_state",
+          "phy_set_macaddr_list",
+          "phy_status"
+        ]
+      },
+      "group": null,
+      "path": "/usr/share/acl.d/wpad_acl.json",
+      "publish": [
+        "hostapd",
+        "hostapd.*",
+        "wpa_supplicant",
+        "wpa_supplicant.*",
+        "hostapd-auth"
+      ],
+      "send": [
+        "bss.*",
+        "wps_credentials"
+      ],
+      "sha256": "f0c216e04533dd12aa92606726cb0426eea31233da783bbb7ad7f56e5eb5d12b",
+      "subscribe": [
+        "udebug"
+      ],
+      "user": "network"
+    }
+  ],
+  "ucode_object_hosts": [
+    {
+      "artifact": "/sbin/netifd",
+      "artifact_string_references_directory": true,
+      "publisher_files": [
+        "/lib/netifd/wireless.uc"
+      ],
+      "ucode_directory": "/lib/netifd"
+    },
+    {
+      "artifact": "/usr/sbin/wpad",
+      "artifact_string_references_directory": true,
+      "publisher_files": [
+        "/usr/share/hostap/hostapd.uc",
+        "/usr/share/hostap/wpa_supplicant.uc"
+      ],
+      "ucode_directory": "/usr/share/hostap"
+    }
+  ],
+  "ucode_publisher_files": [
+    "/lib/netifd/wireless.uc",
+    "/usr/share/hostap/hostapd.uc",
+    "/usr/share/hostap/wpa_supplicant.uc"
+  ]
+}

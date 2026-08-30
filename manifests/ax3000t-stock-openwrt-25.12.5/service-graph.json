@@ -1,0 +1,2469 @@
+{
+  "counts": {
+    "declared_instances": 16,
+    "init_scripts": 25,
+    "procd_services": 18,
+    "triggers": 31,
+    "ucitrack_files": 8,
+    "validations": 8
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "method": {
+    "executes_target_content": false,
+    "reads_only": true,
+    "rootfs": "extracted squashfs root, read-only",
+    "sources": "pinned OpenWrt buildroot, feeds and component checkouts"
+  },
+  "recorded_at": "2026-08-31",
+  "schema_version": 1,
+  "services": [
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K90boot",
+        "/etc/rc.d/S10boot"
+      ],
+      "defined_functions": [
+        "uci_apply_defaults",
+        "boot"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "boot",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/boot",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "d46ef875240d6ed2d82b6c4c0d7852ba6b8677c9aa07bab0b202101b1f1c8e58",
+      "source_key": "feeds/base/base-files",
+      "start": "10",
+      "stop": "90",
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": false,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S99bootcount"
+      ],
+      "defined_functions": [
+        "boot"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "bootcount",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/bootcount",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "fe6e18a37531de608315c592b39f36da1a9c68e9f108aa5f5af152a42e9b27e3",
+      "source_key": "feeds/base/base-files",
+      "start": "99",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": false,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S50cron"
+      ],
+      "defined_functions": [
+        "validate_cron_section",
+        "start_service",
+        "service_triggers"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/usr/sbin/crond\" -f -c /etc/crontabs -l \"${loglevel:-7}\""
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 36,
+            "path": "/etc/init.d/cron",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 30,
+            "path": "/etc/init.d/cron",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/usr/sbin/crond\" -f -c /etc/crontabs -l \"${loglevel:-7}\"",
+              "key": "command",
+              "line": 31,
+              "path": "/etc/init.d/cron",
+              "raw_value": "\"$PROG\" -f -c /etc/crontabs -l \"${loglevel:-7}\"",
+              "text": "procd_set_param command \"$PROG\" -f -c /etc/crontabs -l \"${loglevel:-7}\""
+            },
+            {
+              "append": false,
+              "expanded_value": "\"$crontab\"",
+              "key": "file",
+              "line": 33,
+              "path": "/etc/init.d/cron",
+              "raw_value": "\"$crontab\"",
+              "text": "procd_set_param file \"$crontab\""
+            },
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 35,
+              "path": "/etc/init.d/cron",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            }
+          ]
+        }
+      ],
+      "name": "cron",
+      "owner_package": "busybox",
+      "path": "/etc/init.d/cron",
+      "procd_signals": [],
+      "referenced_configs": [
+        "system"
+      ],
+      "sha256": "70f43b1ea4305e7e31be9180adbe3386e56defd10ceb9d1f85af06b515db8a06",
+      "source_key": "feeds/base/utils/busybox",
+      "start": "50",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "validation",
+          "line": 40,
+          "path": "/etc/init.d/cron",
+          "raw_value": "validate_cron_section",
+          "text": "procd_add_validation validate_cron_section"
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": [
+        {
+          "config": "system",
+          "line": 10,
+          "path": "/etc/init.d/cron",
+          "section_type": "system",
+          "text": "uci_validate_section system system \"${1}\"  'cronloglevel:uinteger'"
+        }
+      ]
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S19dnsmasq"
+      ],
+      "defined_functions": [
+        "dnsmasq_ignore_opt",
+        "xappend",
+        "hex_to_hostid",
+        "dhcp_calc",
+        "dhcp_check",
+        "log_once",
+        "has_handler",
+        "append_bool",
+        "append_parm",
+        "append_server",
+        "append_rev_server",
+        "append_address",
+        "append_connmark_allowlist",
+        "append_interface",
+        "append_listenaddress",
+        "append_notinterface",
+        "ismounted",
+        "append_extramount",
+        "append_addnhosts",
+        "append_bogusnxdomain",
+        "append_pxe_service",
+        "append_interface_name",
+        "append_filter_rr",
+        "append_cache_rr",
+        "filter_dnsmasq",
+        "dhcp_subscrid_add",
+        "dhcp_remoteid_add",
+        "dhcp_circuitid_add",
+        "dhcp_userclass_add",
+        "dhcp_vendorclass_add",
+        "dhcp_match_add",
+        "dhcp_host_add",
+        "add_tag",
+        "dhcp_this_host_add",
+        "dhcp_tag_add",
+        "dhcp_mac_add",
+        "dhcp_boot_add",
+        "dhcp_add",
+        "add_tag",
+        "dhcp_option_append",
+        "dhcp_option_add",
+        "dhcp_domain_add",
+        "dhcp_srv_add",
+        "dhcp_mx_add",
+        "dhcp_cname_add",
+        "dhcp_hostrecord_add",
+        "dhcp_dnsrr_add",
+        "dhcp_relay_add",
+        "dnsmasq_ipset_add",
+        "add_ipset",
+        "add_nftset",
+        "add_domain",
+        "dnsmasq_start",
+        "append_rebind_domain",
+        "dnsmasq_stop",
+        "add_interface_trigger",
+        "service_triggers",
+        "boot",
+        "start_service",
+        "config_cb",
+        "reload_service",
+        "stop_service",
+        "config_cb"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.${cfg} -k -x /var/run/dnsmasq/dnsmasq.\"${cfg}\".pid"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 1289,
+            "path": "/etc/init.d/dnsmasq",
+            "text": "procd_close_instance"
+          },
+          "declared_name": "$cfg",
+          "jail": [
+            {
+              "kind": "jail",
+              "line": 1277,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "dnsmasq ubus log",
+              "text": "procd_add_jail dnsmasq ubus log"
+            },
+            {
+              "kind": "jail_mount",
+              "line": 1278,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "$CONFIGFILE $DHCPBOGUSHOSTNAMEFILE $DHCPSCRIPT $DHCPSCRIPT_DEPENDS",
+              "text": "procd_add_jail_mount $CONFIGFILE $DHCPBOGUSHOSTNAMEFILE $DHCPSCRIPT $DHCPSCRIPT_DEPENDS"
+            },
+            {
+              "kind": "jail_mount",
+              "line": 1279,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "$EXTRA_MOUNT $RFC6761FILE $TRUSTANCHORSFILE",
+              "text": "procd_add_jail_mount $EXTRA_MOUNT $RFC6761FILE $TRUSTANCHORSFILE"
+            },
+            {
+              "kind": "jail_mount",
+              "line": 1280,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "$dnsmasqconffile $dnsmasqconfdir $resolvdir $user_dhcpscript",
+              "text": "procd_add_jail_mount $dnsmasqconffile $dnsmasqconfdir $resolvdir $user_dhcpscript"
+            },
+            {
+              "kind": "jail_mount",
+              "line": 1281,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "/etc/passwd /etc/group /etc/TZ /etc/hosts /etc/ethers",
+              "text": "procd_add_jail_mount /etc/passwd /etc/group /etc/TZ /etc/hosts /etc/ethers"
+            },
+            {
+              "kind": "jail_mount",
+              "line": 1282,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "_rw /var/run/dnsmasq/ $leasefile",
+              "text": "procd_add_jail_mount_rw /var/run/dnsmasq/ $leasefile"
+            },
+            {
+              "kind": "jail_mount",
+              "line": 1285,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "_rw \"$logfacility\"",
+              "text": "procd_add_jail_mount_rw \"$logfacility\""
+            },
+            {
+              "kind": "jail_mount",
+              "line": 1287,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "$hostsfile",
+              "text": "[ -e \"$hostsfile\" ] && procd_add_jail_mount $hostsfile"
+            }
+          ],
+          "opened_at": {
+            "line": 1266,
+            "path": "/etc/init.d/dnsmasq",
+            "text": "procd_open_instance $cfg"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "/usr/sbin/dnsmasq -C /var/etc/dnsmasq.conf.${cfg} -k -x /var/run/dnsmasq/dnsmasq.\"${cfg}\".pid",
+              "key": "command",
+              "line": 1267,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "$PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq.\"${cfg}\".pid",
+              "text": "procd_set_param command $PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq.\"${cfg}\".pid"
+            },
+            {
+              "append": false,
+              "expanded_value": "/var/etc/dnsmasq.conf.${cfg}",
+              "key": "file",
+              "line": 1268,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "$CONFIGFILE",
+              "text": "procd_set_param file $CONFIGFILE"
+            },
+            {
+              "append": false,
+              "expanded_value": "USER_DHCPSCRIPT=\"$user_dhcpscript\"",
+              "key": "env",
+              "line": 1269,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "USER_DHCPSCRIPT=\"$user_dhcpscript\"",
+              "text": "[ -n \"$user_dhcpscript\" ] && procd_set_param env USER_DHCPSCRIPT=\"$user_dhcpscript\""
+            },
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 1270,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            },
+            {
+              "append": false,
+              "expanded_value": "$instance_netdev",
+              "key": "netdev",
+              "line": 1275,
+              "path": "/etc/init.d/dnsmasq",
+              "raw_value": "$instance_netdev",
+              "text": "[ -n \"$instance_netdev\" ] && procd_set_param netdev $instance_netdev"
+            }
+          ]
+        }
+      ],
+      "name": "dnsmasq",
+      "owner_package": "dnsmasq",
+      "path": "/etc/init.d/dnsmasq",
+      "procd_signals": [
+        {
+          "line": 1379,
+          "path": "/etc/init.d/dnsmasq",
+          "raw_value": "dnsmasq \"$@\"",
+          "text": "procd_send_signal dnsmasq \"$@\""
+        }
+      ],
+      "referenced_configs": [
+        "dhcp",
+        "system"
+      ],
+      "sha256": "610f043921f86083ef8e28f34acc2f853145469c6ae4f2994670916bb4062a7f",
+      "source_key": "feeds/base/network/services/dnsmasq",
+      "start": "19",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "interface_trigger",
+          "line": 1315,
+          "path": "/etc/init.d/dnsmasq",
+          "raw_value": "\"interface.*\" \"$interface\" /etc/init.d/dnsmasq reload",
+          "text": "[ -n \"$interface\" ] && [ $ignore -eq 0 ] && procd_add_interface_trigger \"interface.*\" \"$interface\" /etc/init.d/dnsmasq reload"
+        },
+        {
+          "kind": "reload_trigger",
+          "line": 1320,
+          "path": "/etc/init.d/dnsmasq",
+          "raw_value": "\"dhcp\" \"system\"",
+          "text": "procd_add_reload_trigger \"dhcp\" \"system\""
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S95done"
+      ],
+      "defined_functions": [
+        "boot"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "done",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/done",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "5e1a170f7855f5294fb2c026301d7165695a081dca095780a0b898319c6b6252",
+      "source_key": "feeds/base/base-files",
+      "start": "95",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": false,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K50dropbear",
+        "/etc/rc.d/S19dropbear"
+      ],
+      "defined_functions": [
+        "real_stat",
+        "dumb_stat",
+        "stat_perm",
+        "stat_owner",
+        "_dropbearkey",
+        "file_verify",
+        "file_errmsg",
+        "hk_config",
+        "hk_config__keyfile",
+        "hk_generate_as_needed",
+        "normalize_list",
+        "warn_multiple_interfaces",
+        "validate_section_dropbear",
+        "dropbear_instance",
+        "load_interfaces",
+        "boot",
+        "start_service",
+        "service_triggers",
+        "shutdown",
+        "killclients"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/usr/sbin/dropbear\" -F -P \"$pid_file\"",
+        "-I \"${IdleTimeout}\"",
+        "-K \"${SSHKeepAlive}\"",
+        "-T \"${MaxAuthTries}\"",
+        "-W \"${MAX_RECV_WINDOW}\"",
+        "-a",
+        "-b \"${BannerFile}\"",
+        "-c \"${ForceCommand}\"",
+        "-g",
+        "-j",
+        "-k",
+        "-l \"${ndev}\" -p \"${Port}\"",
+        "-p \"$a:${Port}\"",
+        "-p \"${Port}\"",
+        "-s",
+        "-w"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 360,
+            "path": "/etc/init.d/dropbear",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 304,
+            "path": "/etc/init.d/dropbear",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/usr/sbin/dropbear\" -F -P \"$pid_file\"",
+              "key": "command",
+              "line": 305,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "\"$PROG\" -F -P \"$pid_file\"",
+              "text": "procd_set_param command \"$PROG\" -F -P \"$pid_file\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-l \"${ndev}\" -p \"${Port}\"",
+              "key": "command",
+              "line": 308,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-l \"${ndev}\" -p \"${Port}\"",
+              "text": "procd_append_param command -l \"${ndev}\" -p \"${Port}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-p \"${Port}\"",
+              "key": "command",
+              "line": 311,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-p \"${Port}\"",
+              "text": "procd_append_param command -p \"${Port}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-p \"$a:${Port}\"",
+              "key": "command",
+              "line": 316,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-p \"$a:${Port}\"",
+              "text": "procd_append_param command -p \"$a:${Port}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-s",
+              "key": "command",
+              "line": 320,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-s",
+              "text": "[ \"${PasswordAuth}\" -eq 0 ] && procd_append_param command -s"
+            },
+            {
+              "append": true,
+              "expanded_value": "-a",
+              "key": "command",
+              "line": 321,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-a",
+              "text": "[ \"${GatewayPorts}\" -eq 1 ] && procd_append_param command -a"
+            },
+            {
+              "append": true,
+              "expanded_value": "-j",
+              "key": "command",
+              "line": 322,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-j",
+              "text": "[ \"${LocalPortForward}\" -eq 0 ] && procd_append_param command -j"
+            },
+            {
+              "append": true,
+              "expanded_value": "-k",
+              "key": "command",
+              "line": 323,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-k",
+              "text": "[ \"${RemotePortForward}\" -eq 0 ] && procd_append_param command -k"
+            },
+            {
+              "append": true,
+              "expanded_value": "-c \"${ForceCommand}\"",
+              "key": "command",
+              "line": 324,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-c \"${ForceCommand}\"",
+              "text": "[ -n \"${ForceCommand}\" ] && procd_append_param command -c \"${ForceCommand}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-g",
+              "key": "command",
+              "line": 325,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-g",
+              "text": "[ \"${RootPasswordAuth}\" -eq 0 ] && procd_append_param command -g"
+            },
+            {
+              "append": true,
+              "expanded_value": "-w",
+              "key": "command",
+              "line": 326,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-w",
+              "text": "[ \"${RootLogin}\" -eq 0 ] && procd_append_param command -w"
+            },
+            {
+              "append": true,
+              "expanded_value": "-b \"${BannerFile}\"",
+              "key": "command",
+              "line": 337,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-b \"${BannerFile}\"",
+              "text": "[ -n \"${BannerFile}\" ] && procd_append_param command -b \"${BannerFile}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-I \"${IdleTimeout}\"",
+              "key": "command",
+              "line": 338,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-I \"${IdleTimeout}\"",
+              "text": "[ \"${IdleTimeout}\" -ne 0 ] && procd_append_param command -I \"${IdleTimeout}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-K \"${SSHKeepAlive}\"",
+              "key": "command",
+              "line": 339,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-K \"${SSHKeepAlive}\"",
+              "text": "[ \"${SSHKeepAlive}\" -ne 0 ] && procd_append_param command -K \"${SSHKeepAlive}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-T \"${MaxAuthTries}\"",
+              "key": "command",
+              "line": 340,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-T \"${MaxAuthTries}\"",
+              "text": "[ \"${MaxAuthTries}\" -ne 0 ] && procd_append_param command -T \"${MaxAuthTries}\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-W \"${MAX_RECV_WINDOW}\"",
+              "key": "command",
+              "line": 356,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "-W \"${RecvWindowSize}\"",
+              "text": "procd_append_param command -W \"${RecvWindowSize}\""
+            },
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 359,
+              "path": "/etc/init.d/dropbear",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            }
+          ]
+        }
+      ],
+      "name": "dropbear",
+      "owner_package": "dropbear",
+      "path": "/etc/init.d/dropbear",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "2bed21dcd3c6324c1ebfb75cf3c76952c0d258f33feacc675aec200e64a63ab1",
+      "source_key": "feeds/base/network/services/dropbear",
+      "start": "19",
+      "stop": "50",
+      "triggers": [
+        {
+          "kind": "config_trigger",
+          "line": 404,
+          "path": "/etc/init.d/dropbear",
+          "raw_value": "\"config.change\" \"${NAME}\" /etc/init.d/dropbear reload",
+          "text": "procd_add_config_trigger \"config.change\" \"${NAME}\" /etc/init.d/dropbear reload"
+        },
+        {
+          "kind": "interface_trigger",
+          "line": 412,
+          "path": "/etc/init.d/dropbear",
+          "raw_value": "\"interface.*\" $n /etc/init.d/dropbear reload",
+          "text": "procd_add_interface_trigger \"interface.*\" $n /etc/init.d/dropbear reload"
+        },
+        {
+          "kind": "validation",
+          "line": 416,
+          "path": "/etc/init.d/dropbear",
+          "raw_value": "validate_section_dropbear",
+          "text": "procd_add_validation validate_section_dropbear"
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S19firewall"
+      ],
+      "defined_functions": [
+        "service_triggers",
+        "restart",
+        "start_service",
+        "stop_service",
+        "reload_service",
+        "boot"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "firewall",
+      "owner_package": "firewall4",
+      "path": "/etc/init.d/firewall",
+      "procd_signals": [],
+      "referenced_configs": [
+        "firewall"
+      ],
+      "sha256": "72977b5e4aab0e2eacaebeb47978c7da27ea08742919773c13a81bf8bb170621",
+      "source_key": "feeds/base/network/config/firewall4",
+      "start": "19",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "reload_trigger",
+          "line": 8,
+          "path": "/etc/init.d/firewall",
+          "raw_value": "firewall",
+          "text": "procd_add_reload_trigger firewall"
+        },
+        {
+          "kind": "reload_data_trigger",
+          "line": 9,
+          "path": "/etc/init.d/firewall",
+          "raw_value": "firewall",
+          "text": "procd_add_reload_data_trigger firewall"
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K10gpio_switch",
+        "/etc/rc.d/S94gpio_switch"
+      ],
+      "defined_functions": [
+        "load_gpio_switch",
+        "service_triggers",
+        "start_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "gpio_switch",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/gpio_switch",
+      "procd_signals": [],
+      "referenced_configs": [
+        "system"
+      ],
+      "sha256": "02f382d7cc0b538a38d314be346c5d752bcdc9434c4c8481026ce3a991dd7ea4",
+      "source_key": "feeds/base/base-files",
+      "start": "94",
+      "stop": "10",
+      "triggers": [
+        {
+          "kind": "reload_trigger",
+          "line": 57,
+          "path": "/etc/init.d/gpio_switch",
+          "raw_value": "\"system\"",
+          "text": "procd_add_reload_trigger \"system\""
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S96led"
+      ],
+      "defined_functions": [
+        "led_color_set",
+        "load_led",
+        "turnoff",
+        "turnon",
+        "blink",
+        "start"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "led",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/led",
+      "procd_signals": [],
+      "referenced_configs": [
+        "system"
+      ],
+      "sha256": "fad92d8c5cee73748034969acfb67ed9822683b840829cc6071185bd26863e3b",
+      "source_key": "feeds/base/base-files",
+      "start": "96",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": false,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K89log",
+        "/etc/rc.d/S12log"
+      ],
+      "defined_functions": [
+        "validate_log_section",
+        "validate_log_daemon",
+        "start_service_daemon",
+        "start_service_file",
+        "start_service_remote",
+        "register_mount_trigger",
+        "service_triggers",
+        "start_service",
+        "boot"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/sbin/logd\"",
+        "\"/sbin/logread\" -f -F \"$log_file\" -p \"$pid_file\"",
+        "\"/sbin/logread\" -f -h \"$log_hostname\" -r \"$log_ip\" \"${log_port}\" -p \"$pid_file\"",
+        "-0;;",
+        "-P \"${log_prefix}\"",
+        "-S \"$log_size\"",
+        "-S \"${log_buffer_size}\"",
+        "-u;;"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 41,
+            "path": "/etc/init.d/log",
+            "text": "procd_close_instance"
+          },
+          "declared_name": "logd",
+          "jail": [],
+          "opened_at": {
+            "line": 37,
+            "path": "/etc/init.d/log",
+            "text": "procd_open_instance logd"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/sbin/logd\"",
+              "key": "command",
+              "line": 38,
+              "path": "/etc/init.d/log",
+              "raw_value": "\"/sbin/logd\"",
+              "text": "procd_set_param command \"/sbin/logd\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-S \"${log_buffer_size}\"",
+              "key": "command",
+              "line": 39,
+              "path": "/etc/init.d/log",
+              "raw_value": "-S \"${log_buffer_size}\"",
+              "text": "procd_append_param command -S \"${log_buffer_size}\""
+            },
+            {
+              "append": false,
+              "expanded_value": "5 1 -1",
+              "key": "respawn",
+              "line": 40,
+              "path": "/etc/init.d/log",
+              "raw_value": "5 1 -1",
+              "text": "procd_set_param respawn 5 1 -1"
+            }
+          ]
+        },
+        {
+          "closed_at": {
+            "line": 67,
+            "path": "/etc/init.d/log",
+            "text": "procd_close_instance"
+          },
+          "declared_name": "logfile",
+          "jail": [],
+          "opened_at": {
+            "line": 64,
+            "path": "/etc/init.d/log",
+            "text": "procd_open_instance logfile"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/sbin/logread\" -f -F \"$log_file\" -p \"$pid_file\"",
+              "key": "command",
+              "line": 65,
+              "path": "/etc/init.d/log",
+              "raw_value": "\"$PROG\" -f -F \"$log_file\" -p \"$pid_file\"",
+              "text": "procd_set_param command \"$PROG\" -f -F \"$log_file\" -p \"$pid_file\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-S \"$log_size\"",
+              "key": "command",
+              "line": 66,
+              "path": "/etc/init.d/log",
+              "raw_value": "-S \"$log_size\"",
+              "text": "[ -n \"${log_size}\" ] && procd_append_param command -S \"$log_size\""
+            }
+          ]
+        },
+        {
+          "closed_at": {
+            "line": 90,
+            "path": "/etc/init.d/log",
+            "text": "procd_close_instance"
+          },
+          "declared_name": "logremote",
+          "jail": [],
+          "opened_at": {
+            "line": 83,
+            "path": "/etc/init.d/log",
+            "text": "procd_open_instance logremote"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/sbin/logread\" -f -h \"$log_hostname\" -r \"$log_ip\" \"${log_port}\" -p \"$pid_file\"",
+              "key": "command",
+              "line": 84,
+              "path": "/etc/init.d/log",
+              "raw_value": "\"$PROG\" -f -h \"$log_hostname\" -r \"$log_ip\" \"${log_port}\" -p \"$pid_file\"",
+              "text": "procd_set_param command \"$PROG\" -f -h \"$log_hostname\" -r \"$log_ip\" \"${log_port}\" -p \"$pid_file\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-u;;",
+              "key": "command",
+              "line": 86,
+              "path": "/etc/init.d/log",
+              "raw_value": "-u;;",
+              "text": "\"udp\") procd_append_param command -u;;"
+            },
+            {
+              "append": true,
+              "expanded_value": "-0;;",
+              "key": "command",
+              "line": 87,
+              "path": "/etc/init.d/log",
+              "raw_value": "-0;;",
+              "text": "\"tcp\") [ \"${log_trailer_null}\" -eq 1 ] && procd_append_param command -0;;"
+            },
+            {
+              "append": true,
+              "expanded_value": "-P \"${log_prefix}\"",
+              "key": "command",
+              "line": 89,
+              "path": "/etc/init.d/log",
+              "raw_value": "-P \"${log_prefix}\"",
+              "text": "[ -z \"${log_prefix}\" ] || procd_append_param command -P \"${log_prefix}\""
+            }
+          ]
+        }
+      ],
+      "name": "log",
+      "owner_package": "logd",
+      "path": "/etc/init.d/log",
+      "procd_signals": [],
+      "referenced_configs": [
+        "system"
+      ],
+      "sha256": "1b55669f104750bc34ca66c0efa42b7b327e5c1f404018d4f58d4d2f8e0c33b5",
+      "source_key": "feeds/base/system/ubox",
+      "start": "12",
+      "stop": "89",
+      "triggers": [
+        {
+          "kind": "action_mount_trigger",
+          "line": 95,
+          "path": "/etc/init.d/log",
+          "raw_value": "start \"${log_file}\"",
+          "text": "[ -n \"${log_file}\" ] && procd_add_action_mount_trigger start \"${log_file}\""
+        },
+        {
+          "kind": "reload_trigger",
+          "line": 101,
+          "path": "/etc/init.d/log",
+          "raw_value": "\"system\"",
+          "text": "procd_add_reload_trigger \"system\""
+        },
+        {
+          "kind": "validation",
+          "line": 102,
+          "path": "/etc/init.d/log",
+          "raw_value": "validate_log_section",
+          "text": "procd_add_validation validate_log_section"
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K90network",
+        "/etc/rc.d/S20network"
+      ],
+      "defined_functions": [
+        "init_switch",
+        "setup_switch",
+        "start_service",
+        "reload_service",
+        "stop_service",
+        "validate_atm_bridge_section",
+        "validate_route_section",
+        "validate_route6_section",
+        "validate_rule_section",
+        "validate_rule6_section",
+        "validate_switch_section",
+        "validate_switch_vlan",
+        "service_triggers",
+        "shutdown"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "/sbin/netifd"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 25,
+            "path": "/etc/init.d/network",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 18,
+            "path": "/etc/init.d/network",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "/sbin/netifd",
+              "key": "command",
+              "line": 19,
+              "path": "/etc/init.d/network",
+              "raw_value": "/sbin/netifd",
+              "text": "procd_set_param command /sbin/netifd"
+            },
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 20,
+              "path": "/etc/init.d/network",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            },
+            {
+              "append": false,
+              "expanded_value": "network.interface",
+              "key": "watch",
+              "line": 21,
+              "path": "/etc/init.d/network",
+              "raw_value": "network.interface",
+              "text": "procd_set_param watch network.interface"
+            },
+            {
+              "append": false,
+              "expanded_value": "core=\"unlimited\"",
+              "key": "limits",
+              "line": 23,
+              "path": "/etc/init.d/network",
+              "raw_value": "core=\"unlimited\"",
+              "text": "procd_set_param limits core=\"unlimited\""
+            }
+          ]
+        }
+      ],
+      "name": "network",
+      "owner_package": "netifd",
+      "path": "/etc/init.d/network",
+      "procd_signals": [],
+      "referenced_configs": [
+        "network",
+        "wireless"
+      ],
+      "sha256": "1c27ae29b6702f51e96d1aacd5181f0041e3672635ed9026fae179afa4e94b6e",
+      "source_key": "feeds/base/network/config/netifd",
+      "start": "20",
+      "stop": "90",
+      "triggers": [
+        {
+          "kind": "reload_trigger",
+          "line": 127,
+          "path": "/etc/init.d/network",
+          "raw_value": "network wireless",
+          "text": "procd_add_reload_trigger network wireless"
+        }
+      ],
+      "ubus_calls": [
+        {
+          "line": 32,
+          "method": "reload",
+          "object": "network",
+          "path": "/etc/init.d/network",
+          "text": "ubus call network reload || rv=1",
+          "verb": "call"
+        }
+      ],
+      "uses_procd": true,
+      "validations": [
+        {
+          "config": "network",
+          "line": 44,
+          "path": "/etc/init.d/network",
+          "section_type": "atm-bridge",
+          "text": "uci_validate_section network \"atm-bridge\" \"${1}\"  'unit:uinteger:0'  'vci:range(32, 65535):35'  'vpi:range(0, 255):8'  'atmdev:uinteger:0'  'encaps:or(\"llc\", \"vc\"):llc'  'payload:or(\"bridged\", \"routed\"):bridged'"
+        },
+        {
+          "config": "network",
+          "line": 55,
+          "path": "/etc/init.d/network",
+          "section_type": "route",
+          "text": "uci_validate_section network route \"${1}\"  'interface:string'  'target:cidr4'  'netmask:netmask4'  'gateway:ip4addr'  'metric:uinteger'  'mtu:uinteger'  'table:or(range(0,65535),string)'"
+        },
+        {
+          "config": "network",
+          "line": 67,
+          "path": "/etc/init.d/network",
+          "section_type": "route6",
+          "text": "uci_validate_section network route6 \"${1}\"  'interface:string'  'target:cidr6'  'gateway:ip6addr'  'metric:uinteger'  'mtu:uinteger'  'table:or(range(0,65535),string)'"
+        },
+        {
+          "config": "network",
+          "line": 78,
+          "path": "/etc/init.d/network",
+          "section_type": "rule",
+          "text": "uci_validate_section network rule \"${1}\"  'in:string'  'out:string'  'src:cidr4'  'dest:cidr4'  'tos:range(0,31)'  'mark:string'  'invert:bool'  'lookup:or(range(0,65535),string)'  'goto:range(0,65535)'  'action:or(\"prohibit\", \"unreachable\", \"blackhole\", \"throw\")'"
+        },
+        {
+          "config": "network",
+          "line": 93,
+          "path": "/etc/init.d/network",
+          "section_type": "rule6",
+          "text": "uci_validate_section network rule6 \"${1}\"  'in:string'  'out:string'  'src:cidr6'  'dest:cidr6'  'tos:range(0,31)'  'mark:string'  'invert:bool'  'lookup:or(range(0,65535),string)'  'goto:range(0,65535)'  'action:or(\"prohibit\", \"unreachable\", \"blackhole\", \"throw\")'"
+        },
+        {
+          "config": "network",
+          "line": 108,
+          "path": "/etc/init.d/network",
+          "section_type": "switch",
+          "text": "uci_validate_section network switch \"${1}\"  'name:string'  'enable:bool'  'enable_vlan:bool'  'reset:bool'  'ar8xxx_mib_poll_interval:uinteger'  'ar8xxx_mib_type:range(0,1)'"
+        },
+        {
+          "config": "network",
+          "line": 119,
+          "path": "/etc/init.d/network",
+          "section_type": "switch_vlan",
+          "text": "uci_validate_section network switch_vlan \"${1}\"  'device:string'  'vlan:uinteger'  'ports:list(ports)'"
+        }
+      ]
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K85odhcpd",
+        "/etc/rc.d/S35odhcpd"
+      ],
+      "defined_functions": [
+        "start_service",
+        "reload_service",
+        "service_triggers"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "/usr/sbin/odhcpd"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 11,
+            "path": "/etc/init.d/odhcpd",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 8,
+            "path": "/etc/init.d/odhcpd",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "/usr/sbin/odhcpd",
+              "key": "command",
+              "line": 9,
+              "path": "/etc/init.d/odhcpd",
+              "raw_value": "/usr/sbin/odhcpd",
+              "text": "procd_set_param command /usr/sbin/odhcpd"
+            },
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 10,
+              "path": "/etc/init.d/odhcpd",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            }
+          ]
+        }
+      ],
+      "name": "odhcpd",
+      "owner_package": "odhcpd-ipv6only",
+      "path": "/etc/init.d/odhcpd",
+      "procd_signals": [
+        {
+          "line": 15,
+          "path": "/etc/init.d/odhcpd",
+          "raw_value": "odhcpd",
+          "text": "procd_send_signal odhcpd"
+        }
+      ],
+      "referenced_configs": [
+        "dhcp",
+        "network",
+        "system"
+      ],
+      "sha256": "4d59c3687e7cacee9e7b82ba9433fa815aafeb8f94af4c6926993653009e0fa4",
+      "source_key": "feeds/base/network/services/odhcpd",
+      "start": "35",
+      "stop": "85",
+      "triggers": [
+        {
+          "kind": "reload_trigger",
+          "line": 20,
+          "path": "/etc/init.d/odhcpd",
+          "raw_value": "\"dhcp\" \"network\" \"system\"",
+          "text": "procd_add_reload_trigger \"dhcp\" \"network\" \"system\""
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S25packet_steering"
+      ],
+      "defined_functions": [
+        "start_service",
+        "service_triggers",
+        "reload_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "packet_steering",
+      "owner_package": "netifd",
+      "path": "/etc/init.d/packet_steering",
+      "procd_signals": [],
+      "referenced_configs": [
+        "firewall",
+        "network"
+      ],
+      "sha256": "a684596526de45c920382086413542ede5447bc153a99dccca7873c56e62a43e",
+      "source_key": "feeds/base/network/config/netifd",
+      "start": "25",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "reload_trigger",
+          "line": 11,
+          "path": "/etc/init.d/packet_steering",
+          "raw_value": "\"network\"",
+          "text": "procd_add_reload_trigger \"network\""
+        },
+        {
+          "kind": "reload_trigger",
+          "line": 12,
+          "path": "/etc/init.d/packet_steering",
+          "raw_value": "\"firewall\"",
+          "text": "procd_add_reload_trigger \"firewall\""
+        },
+        {
+          "kind": "raw_trigger",
+          "line": 13,
+          "path": "/etc/init.d/packet_steering",
+          "raw_value": "\"interface.*\" 1000 /etc/init.d/packet_steering reload",
+          "text": "procd_add_raw_trigger \"interface.*\" 1000 /etc/init.d/packet_steering reload"
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S12rpcd"
+      ],
+      "defined_functions": [
+        "start_service",
+        "reload_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/sbin/rpcd\" ${socket:+-s \"$socket\"} ${timeout:+-t \"$timeout\"}"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 16,
+            "path": "/etc/init.d/rpcd",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 13,
+            "path": "/etc/init.d/rpcd",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/sbin/rpcd\" ${socket:+-s \"$socket\"} ${timeout:+-t \"$timeout\"}",
+              "key": "command",
+              "line": 14,
+              "path": "/etc/init.d/rpcd",
+              "raw_value": "\"$PROG\" ${socket:+-s \"$socket\"} ${timeout:+-t \"$timeout\"}",
+              "text": "procd_set_param command \"$PROG\" ${socket:+-s \"$socket\"} ${timeout:+-t \"$timeout\"}"
+            },
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 15,
+              "path": "/etc/init.d/rpcd",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            }
+          ]
+        }
+      ],
+      "name": "rpcd",
+      "owner_package": "rpcd",
+      "path": "/etc/init.d/rpcd",
+      "procd_signals": [
+        {
+          "line": 20,
+          "path": "/etc/init.d/rpcd",
+          "raw_value": "rpcd",
+          "text": "procd_send_signal rpcd"
+        }
+      ],
+      "referenced_configs": [],
+      "sha256": "2a71c360ab2c42cb8e0dd99dd779b72c171a708d943da529f2d1d2a411d093e3",
+      "source_key": "feeds/base/system/rpcd",
+      "start": "12",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S11sysctl"
+      ],
+      "defined_functions": [
+        "apply_defaults",
+        "start"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "sysctl",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/sysctl",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "4cf88ade47f2fb71c8ad5db9f605e20a8d1cf64d28e1934da75c8b19a17d7584",
+      "source_key": "feeds/base/base-files",
+      "start": "11",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": false,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K90sysfixtime",
+        "/etc/rc.d/S00sysfixtime"
+      ],
+      "defined_functions": [
+        "boot",
+        "start",
+        "stop",
+        "hwclock_load",
+        "hwclock_save",
+        "find_max_time"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "sysfixtime",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/sysfixtime",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "7c3b11838615f0b91d4972250a06615c63fa8f59c8d59a8bf84e07f1562795b3",
+      "source_key": "feeds/base/base-files",
+      "start": "00",
+      "stop": "90",
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": false,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S98sysntpd"
+      ],
+      "defined_functions": [
+        "get_dhcp_ntp_servers",
+        "validate_ntp_section",
+        "start_ntpd_instance",
+        "start_service",
+        "service_triggers"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/usr/sbin/ntpd\" -n -N",
+        "-I \"$ifname\"",
+        "-S \"/usr/sbin/ntpd-hotplug\"",
+        "-l",
+        "-p $peer"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 85,
+            "path": "/etc/init.d/sysntpd",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [
+            {
+              "kind": "jail",
+              "line": 74,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "ntpd ubus",
+              "text": "procd_add_jail ntpd ubus"
+            },
+            {
+              "kind": "jail_mount",
+              "line": 75,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "\"$HOTPLUG_SCRIPT\"",
+              "text": "procd_add_jail_mount \"$HOTPLUG_SCRIPT\""
+            },
+            {
+              "kind": "jail_mount",
+              "line": 76,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "\"/usr/share/libubox/jshn.sh\"",
+              "text": "procd_add_jail_mount \"/usr/share/libubox/jshn.sh\""
+            },
+            {
+              "kind": "jail_mount",
+              "line": 77,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "\"/usr/bin/env\"",
+              "text": "procd_add_jail_mount \"/usr/bin/env\""
+            },
+            {
+              "kind": "jail_mount",
+              "line": 78,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "\"/usr/bin/jshn\"",
+              "text": "procd_add_jail_mount \"/usr/bin/jshn\""
+            },
+            {
+              "kind": "jail_mount",
+              "line": 79,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "\"/bin/ubus\"",
+              "text": "procd_add_jail_mount \"/bin/ubus\""
+            }
+          ],
+          "opened_at": {
+            "line": 55,
+            "path": "/etc/init.d/sysntpd",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/usr/sbin/ntpd\" -n -N",
+              "key": "command",
+              "line": 56,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "\"$PROG\" -n -N",
+              "text": "procd_set_param command \"$PROG\" -n -N"
+            },
+            {
+              "append": true,
+              "expanded_value": "-l",
+              "key": "command",
+              "line": 58,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "-l",
+              "text": "procd_append_param command -l"
+            },
+            {
+              "append": true,
+              "expanded_value": "-I \"$ifname\"",
+              "key": "command",
+              "line": 64,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "-I \"$ifname\"",
+              "text": "procd_append_param command -I \"$ifname\""
+            },
+            {
+              "append": true,
+              "expanded_value": "\"$ifname\"",
+              "key": "netdev",
+              "line": 65,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "\"$ifname\"",
+              "text": "procd_append_param netdev \"$ifname\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-S \"/usr/sbin/ntpd-hotplug\"",
+              "key": "command",
+              "line": 68,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "-S \"$HOTPLUG_SCRIPT\"",
+              "text": "[ -x \"$HOTPLUG_SCRIPT\" ] && procd_append_param command -S \"$HOTPLUG_SCRIPT\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-p $peer",
+              "key": "command",
+              "line": 70,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "-p $peer",
+              "text": "procd_append_param command -p $peer"
+            },
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 72,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            },
+            {
+              "append": false,
+              "expanded_value": "/etc/capabilities/ntpd.json",
+              "key": "capabilities",
+              "line": 80,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "/etc/capabilities/ntpd.json",
+              "text": "procd_set_param capabilities /etc/capabilities/ntpd.json"
+            },
+            {
+              "append": false,
+              "expanded_value": "ntp",
+              "key": "user",
+              "line": 81,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "ntp",
+              "text": "procd_set_param user ntp"
+            },
+            {
+              "append": false,
+              "expanded_value": "ntp",
+              "key": "group",
+              "line": 82,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "ntp",
+              "text": "procd_set_param group ntp"
+            },
+            {
+              "append": false,
+              "expanded_value": "1",
+              "key": "no_new_privs",
+              "line": 83,
+              "path": "/etc/init.d/sysntpd",
+              "raw_value": "1",
+              "text": "procd_set_param no_new_privs 1"
+            }
+          ]
+        }
+      ],
+      "name": "sysntpd",
+      "owner_package": "busybox",
+      "path": "/etc/init.d/sysntpd",
+      "procd_signals": [],
+      "referenced_configs": [
+        "system"
+      ],
+      "sha256": "f4ae98536711bbaf5cd1e8de5154d1e654ebf88af6cc07d003119b0571745c0d",
+      "source_key": "feeds/base/utils/busybox",
+      "start": "98",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "config_trigger",
+          "line": 99,
+          "path": "/etc/init.d/sysntpd",
+          "raw_value": "\"config.change\" \"system\" /etc/init.d/$name reload",
+          "text": "procd_add_config_trigger \"config.change\" \"system\" /etc/init.d/$name reload"
+        },
+        {
+          "kind": "interface_trigger",
+          "line": 110,
+          "path": "/etc/init.d/sysntpd",
+          "raw_value": "\"interface.*\" $n /etc/init.d/$name reload",
+          "text": "procd_add_interface_trigger \"interface.*\" $n /etc/init.d/$name reload"
+        },
+        {
+          "kind": "raw_trigger",
+          "line": 113,
+          "path": "/etc/init.d/sysntpd",
+          "raw_value": "\"interface.*\" 1000 /etc/init.d/$name reload",
+          "text": "procd_add_raw_trigger \"interface.*\" 1000 /etc/init.d/$name reload"
+        },
+        {
+          "kind": "interface_trigger",
+          "line": 125,
+          "path": "/etc/init.d/sysntpd",
+          "raw_value": "\"interface.*\" \"$ifname\"  /etc/init.d/\"$name\" reload",
+          "text": "procd_add_interface_trigger \"interface.*\" \"$ifname\"  /etc/init.d/\"$name\" reload"
+        },
+        {
+          "kind": "validation",
+          "line": 129,
+          "path": "/etc/init.d/sysntpd",
+          "raw_value": "validate_ntp_section",
+          "text": "procd_add_validation validate_ntp_section"
+        }
+      ],
+      "ubus_calls": [
+        {
+          "line": 19,
+          "method": "dump",
+          "object": "network.interface",
+          "path": "/etc/init.d/sysntpd",
+          "text": "ntpservers=$(ubus call network.interface dump | jsonfilter -e \"@.interface[$filter]['data']['ntpserver']\")",
+          "verb": "call"
+        }
+      ],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S10system"
+      ],
+      "defined_functions": [
+        "validate_system_section",
+        "system_config",
+        "reload_service",
+        "service_triggers",
+        "start_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "system",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/system",
+      "procd_signals": [],
+      "referenced_configs": [
+        "system"
+      ],
+      "sha256": "794d5e58fead1111cdc9d9a48854a92427a81c7baf514900c5be99c2d522e445",
+      "source_key": "feeds/base/base-files",
+      "start": "10",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "reload_trigger",
+          "line": 39,
+          "path": "/etc/init.d/system",
+          "raw_value": "\"system\"",
+          "text": "procd_add_reload_trigger \"system\""
+        },
+        {
+          "kind": "validation",
+          "line": 40,
+          "path": "/etc/init.d/system",
+          "raw_value": "validate_system_section",
+          "text": "procd_add_validation validate_system_section"
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S99ubihealthd"
+      ],
+      "defined_functions": [
+        "ubihealthd_instance",
+        "start_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/usr/sbin/ubihealthd\" -f -d \"$device\"",
+        "-i \"$interval\""
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 21,
+            "path": "/etc/init.d/ubihealthd",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 18,
+            "path": "/etc/init.d/ubihealthd",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/usr/sbin/ubihealthd\" -f -d \"$device\"",
+              "key": "command",
+              "line": 19,
+              "path": "/etc/init.d/ubihealthd",
+              "raw_value": "\"$PROG\" -f -d \"$device\"",
+              "text": "procd_set_param command \"$PROG\" -f -d \"$device\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-i \"$interval\"",
+              "key": "command",
+              "line": 20,
+              "path": "/etc/init.d/ubihealthd",
+              "raw_value": "-i \"$interval\"",
+              "text": "[ -n \"$interval\" ] && procd_append_param command -i \"$interval\""
+            }
+          ]
+        }
+      ],
+      "name": "ubihealthd",
+      "owner_package": "ubi-utils",
+      "path": "/etc/init.d/ubihealthd",
+      "procd_signals": [],
+      "referenced_configs": [
+        "ubihealthd"
+      ],
+      "sha256": "26d2c25539e037a7aaa3ed9c47ee0ba8d0d29032584bd74b092e934f3ba40416",
+      "source_key": "feeds/base/utils/mtd-utils",
+      "start": "99",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S80ucitrack"
+      ],
+      "defined_functions": [
+        "register_init",
+        "register_trigger",
+        "service_triggers"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "ucitrack",
+      "owner_package": "luci-base",
+      "path": "/etc/init.d/ucitrack",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "3f655d29cfc14f3d2db03c3e97f3a61f8825e49541405d0ea05387d980272a27",
+      "source_key": "feeds/luci/feeds/luci/modules/luci-base",
+      "start": "80",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "config_trigger",
+          "line": 15,
+          "path": "/etc/init.d/ucitrack",
+          "raw_value": "\"config.change\" \"$config\" \"$init\" \"$@\"",
+          "text": "procd_add_config_trigger \"config.change\" \"$config\" \"$init\" \"$@\""
+        },
+        {
+          "kind": "config_trigger",
+          "line": 47,
+          "path": "/etc/init.d/ucitrack",
+          "raw_value": "\"config.change\" \"$config\" $exec",
+          "text": "procd_add_config_trigger \"config.change\" \"$config\" $exec"
+        },
+        {
+          "kind": "config_trigger",
+          "line": 54,
+          "path": "/etc/init.d/ucitrack",
+          "raw_value": "\"config.change\" \"$config\"  ubus call service event  \"$(printf '{\"type\":\"config.change\",\"data\":{\"package\":\"%s\"}}' $affected)\"",
+          "text": "procd_add_config_trigger \"config.change\" \"$config\"  ubus call service event  \"$(printf '{\"type\":\"config.change\",\"data\":{\"package\":\"%s\"}}' $affected)\""
+        }
+      ],
+      "ubus_calls": [
+        {
+          "line": 54,
+          "method": "event",
+          "object": "service",
+          "path": "/etc/init.d/ucitrack",
+          "text": "procd_add_config_trigger \"config.change\" \"$config\"  ubus call service event  \"$(printf '{\"type\":\"config.change\",\"data\":{\"package\":\"%s\"}}' $affected)\"",
+          "verb": "call"
+        }
+      ],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S50uhttpd"
+      ],
+      "defined_functions": [
+        "append_arg",
+        "append_bool",
+        "generate_keys",
+        "create_httpauth",
+        "append_lua_prefix",
+        "append_ucode_prefix",
+        "start_instance",
+        "uhttpd_interfaces",
+        "resolve_iface",
+        "get_interface_by_ip",
+        "service_triggers",
+        "start_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/usr/sbin/uhttpd\" -f",
+        "-H \"$file\"",
+        "-I \"$path\"",
+        "-c /var/etc/uhttpd/httpd.${cfg}.conf",
+        "-i \"$path\"",
+        "-p \"${listen:1}\"",
+        "-s \"${listen:1}\"",
+        "-y \"$alias\""
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 223,
+            "path": "/etc/init.d/uhttpd",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 120,
+            "path": "/etc/init.d/uhttpd",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "",
+              "key": "respawn",
+              "line": 121,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "",
+              "text": "procd_set_param respawn"
+            },
+            {
+              "append": false,
+              "expanded_value": "1",
+              "key": "stderr",
+              "line": 122,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "1",
+              "text": "procd_set_param stderr 1"
+            },
+            {
+              "append": false,
+              "expanded_value": "\"/usr/sbin/uhttpd\" -f",
+              "key": "command",
+              "line": 123,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "\"$UHTTPD_BIN\" -f",
+              "text": "procd_set_param command \"$UHTTPD_BIN\" -f"
+            },
+            {
+              "append": true,
+              "expanded_value": "-c /var/etc/uhttpd/httpd.${cfg}.conf",
+              "key": "command",
+              "line": 132,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "-c ${httpdconf}",
+              "text": "procd_append_param command -c ${httpdconf}"
+            },
+            {
+              "append": true,
+              "expanded_value": "-y \"$alias\"",
+              "key": "command",
+              "line": 176,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "-y \"$alias\"",
+              "text": "procd_append_param command -y \"$alias\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-p \"${listen:1}\"",
+              "key": "command",
+              "line": 181,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "-p \"$listen\"",
+              "text": "procd_append_param command -p \"$listen\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-i \"$path\"",
+              "key": "command",
+              "line": 186,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "-i \"$path\"",
+              "text": "procd_append_param command -i \"$path\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-I \"$path\"",
+              "key": "command",
+              "line": 191,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "-I \"$path\"",
+              "text": "procd_append_param command -I \"$path\""
+            },
+            {
+              "append": true,
+              "expanded_value": "\"\"",
+              "key": "file",
+              "line": 207,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "\"$UHTTPD_CERT\"",
+              "text": "procd_append_param file \"$UHTTPD_CERT\""
+            },
+            {
+              "append": true,
+              "expanded_value": "\"\"",
+              "key": "file",
+              "line": 208,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "\"$UHTTPD_KEY\"",
+              "text": "procd_append_param file \"$UHTTPD_KEY\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-s \"${listen:1}\"",
+              "key": "command",
+              "line": 211,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "-s \"$listen\"",
+              "text": "procd_append_param command -s \"$listen\""
+            },
+            {
+              "append": true,
+              "expanded_value": "-H \"$file\"",
+              "key": "command",
+              "line": 220,
+              "path": "/etc/init.d/uhttpd",
+              "raw_value": "-H \"$file\"",
+              "text": "[ -s \"$file\" ] && procd_append_param command -H \"$file\""
+            }
+          ]
+        }
+      ],
+      "name": "uhttpd",
+      "owner_package": "uhttpd",
+      "path": "/etc/init.d/uhttpd",
+      "procd_signals": [],
+      "referenced_configs": [
+        "network",
+        "uhttpd"
+      ],
+      "sha256": "f87e3c58bf1eb78a6eb52643ef974ba6f2eddbfa103b5acb333bb77d53c534b9",
+      "source_key": "feeds/base/network/services/uhttpd",
+      "start": "50",
+      "stop": null,
+      "triggers": [
+        {
+          "kind": "reload_trigger",
+          "line": 276,
+          "path": "/etc/init.d/uhttpd",
+          "raw_value": "\"uhttpd\"",
+          "text": "procd_add_reload_trigger \"uhttpd\""
+        },
+        {
+          "kind": "raw_trigger",
+          "line": 277,
+          "path": "/etc/init.d/uhttpd",
+          "raw_value": "acme.renew 5000 /etc/init.d/uhttpd reload",
+          "text": "procd_add_raw_trigger acme.renew 5000 /etc/init.d/uhttpd reload"
+        },
+        {
+          "kind": "raw_trigger",
+          "line": 290,
+          "path": "/etc/init.d/uhttpd",
+          "raw_value": "\"interface.*.up\" 1000 /etc/init.d/uhttpd start",
+          "text": "procd_add_raw_trigger \"interface.*.up\" 1000 /etc/init.d/uhttpd start"
+        },
+        {
+          "kind": "raw_trigger",
+          "line": 293,
+          "path": "/etc/init.d/uhttpd",
+          "raw_value": "\"interface.$iface.up\" 1000 /etc/init.d/uhttpd start",
+          "text": "procd_add_raw_trigger \"interface.$iface.up\" 1000 /etc/init.d/uhttpd start"
+        }
+      ],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K90umount"
+      ],
+      "defined_functions": [
+        "restart",
+        "stop"
+      ],
+      "extra_commands": null,
+      "instance_commands": [],
+      "instances": [],
+      "name": "umount",
+      "owner_package": "base-files",
+      "path": "/etc/init.d/umount",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "b7e3dbb6d8d8c2f2fad0468bc1d4c0ad833adec164d701a7e59e2b579db9c2ce",
+      "source_key": "feeds/base/base-files",
+      "start": null,
+      "stop": "90",
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": false,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S99urandom_seed"
+      ],
+      "defined_functions": [
+        "start_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/sbin/urandom_seed\""
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 11,
+            "path": "/etc/init.d/urandom_seed",
+            "text": "procd_close_instance"
+          },
+          "declared_name": "urandom_seed",
+          "jail": [],
+          "opened_at": {
+            "line": 7,
+            "path": "/etc/init.d/urandom_seed",
+            "text": "procd_open_instance \"urandom_seed\""
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/sbin/urandom_seed\"",
+              "key": "command",
+              "line": 8,
+              "path": "/etc/init.d/urandom_seed",
+              "raw_value": "\"/sbin/urandom_seed\"",
+              "text": "procd_set_param command \"/sbin/urandom_seed\""
+            },
+            {
+              "append": false,
+              "expanded_value": "1",
+              "key": "stdout",
+              "line": 9,
+              "path": "/etc/init.d/urandom_seed",
+              "raw_value": "1",
+              "text": "procd_set_param stdout 1"
+            },
+            {
+              "append": false,
+              "expanded_value": "1",
+              "key": "stderr",
+              "line": 10,
+              "path": "/etc/init.d/urandom_seed",
+              "raw_value": "1",
+              "text": "procd_set_param stderr 1"
+            }
+          ]
+        }
+      ],
+      "name": "urandom_seed",
+      "owner_package": "urandom-seed",
+      "path": "/etc/init.d/urandom_seed",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "9954389574f10d45d2f8f8d4f736cce55eae506c6ef2803c249bd864b734af05",
+      "source_key": "feeds/base/system/urandom-seed",
+      "start": "99",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/S00urngd"
+      ],
+      "defined_functions": [
+        "start_service",
+        "reload_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "\"/sbin/urngd\""
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 12,
+            "path": "/etc/init.d/urngd",
+            "text": "procd_close_instance"
+          },
+          "declared_name": null,
+          "jail": [],
+          "opened_at": {
+            "line": 10,
+            "path": "/etc/init.d/urngd",
+            "text": "procd_open_instance"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "\"/sbin/urngd\"",
+              "key": "command",
+              "line": 11,
+              "path": "/etc/init.d/urngd",
+              "raw_value": "\"$PROG\"",
+              "text": "procd_set_param command \"$PROG\""
+            }
+          ]
+        }
+      ],
+      "name": "urngd",
+      "owner_package": "urngd",
+      "path": "/etc/init.d/urngd",
+      "procd_signals": [
+        {
+          "line": 16,
+          "path": "/etc/init.d/urngd",
+          "raw_value": "$PROG",
+          "text": "procd_send_signal $PROG"
+        }
+      ],
+      "referenced_configs": [],
+      "sha256": "acf65a0a31973b594dd4b717a10e0ea06e220af71ec3250f14468919dc6792e3",
+      "source_key": "feeds/base/system/urngd",
+      "start": "00",
+      "stop": null,
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    },
+    {
+      "boot_enabled_links": [
+        "/etc/rc.d/K21wpad",
+        "/etc/rc.d/S19wpad"
+      ],
+      "defined_functions": [
+        "start_service"
+      ],
+      "extra_commands": null,
+      "instance_commands": [
+        "/usr/sbin/hostapd -s -g /var/run/hostapd/global",
+        "/usr/sbin/wpa_supplicant -n -s -g /var/run/wpa_supplicant/global"
+      ],
+      "instances": [
+        {
+          "closed_at": {
+            "line": 24,
+            "path": "/etc/init.d/wpad",
+            "text": "procd_close_instance"
+          },
+          "declared_name": "hostapd",
+          "jail": [
+            {
+              "kind": "jail",
+              "line": 18,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "hostapd",
+              "text": "procd_add_jail hostapd"
+            }
+          ],
+          "opened_at": {
+            "line": 13,
+            "path": "/etc/init.d/wpad",
+            "text": "procd_open_instance hostapd"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "/usr/sbin/hostapd -s -g /var/run/hostapd/global",
+              "key": "command",
+              "line": 14,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "/usr/sbin/hostapd -s -g /var/run/hostapd/global",
+              "text": "procd_set_param command /usr/sbin/hostapd -s -g /var/run/hostapd/global"
+            },
+            {
+              "append": false,
+              "expanded_value": "3600 1 0",
+              "key": "respawn",
+              "line": 15,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "3600 1 0",
+              "text": "procd_set_param respawn 3600 1 0"
+            },
+            {
+              "append": false,
+              "expanded_value": "core=\"unlimited\"",
+              "key": "limits",
+              "line": 16,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "core=\"unlimited\"",
+              "text": "procd_set_param limits core=\"unlimited\""
+            },
+            {
+              "append": false,
+              "expanded_value": "/etc/capabilities/wpad.json",
+              "key": "capabilities",
+              "line": 19,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "/etc/capabilities/wpad.json",
+              "text": "procd_set_param capabilities /etc/capabilities/wpad.json"
+            },
+            {
+              "append": false,
+              "expanded_value": "network",
+              "key": "user",
+              "line": 20,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "network",
+              "text": "procd_set_param user network"
+            },
+            {
+              "append": false,
+              "expanded_value": "network",
+              "key": "group",
+              "line": 21,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "network",
+              "text": "procd_set_param group network"
+            },
+            {
+              "append": false,
+              "expanded_value": "1",
+              "key": "no_new_privs",
+              "line": 22,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "1",
+              "text": "procd_set_param no_new_privs 1"
+            }
+          ]
+        },
+        {
+          "closed_at": {
+            "line": 41,
+            "path": "/etc/init.d/wpad",
+            "text": "procd_close_instance"
+          },
+          "declared_name": "supplicant",
+          "jail": [
+            {
+              "kind": "jail",
+              "line": 35,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "wpa_supplicant",
+              "text": "procd_add_jail wpa_supplicant"
+            }
+          ],
+          "opened_at": {
+            "line": 30,
+            "path": "/etc/init.d/wpad",
+            "text": "procd_open_instance supplicant"
+          },
+          "params": [
+            {
+              "append": false,
+              "expanded_value": "/usr/sbin/wpa_supplicant -n -s -g /var/run/wpa_supplicant/global",
+              "key": "command",
+              "line": 31,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "/usr/sbin/wpa_supplicant -n -s -g /var/run/wpa_supplicant/global",
+              "text": "procd_set_param command /usr/sbin/wpa_supplicant -n -s -g /var/run/wpa_supplicant/global"
+            },
+            {
+              "append": false,
+              "expanded_value": "3600 1 0",
+              "key": "respawn",
+              "line": 32,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "3600 1 0",
+              "text": "procd_set_param respawn 3600 1 0"
+            },
+            {
+              "append": false,
+              "expanded_value": "core=\"unlimited\"",
+              "key": "limits",
+              "line": 33,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "core=\"unlimited\"",
+              "text": "procd_set_param limits core=\"unlimited\""
+            },
+            {
+              "append": false,
+              "expanded_value": "/etc/capabilities/wpad.json",
+              "key": "capabilities",
+              "line": 36,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "/etc/capabilities/wpad.json",
+              "text": "procd_set_param capabilities /etc/capabilities/wpad.json"
+            },
+            {
+              "append": false,
+              "expanded_value": "network",
+              "key": "user",
+              "line": 37,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "network",
+              "text": "procd_set_param user network"
+            },
+            {
+              "append": false,
+              "expanded_value": "network",
+              "key": "group",
+              "line": 38,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "network",
+              "text": "procd_set_param group network"
+            },
+            {
+              "append": false,
+              "expanded_value": "1",
+              "key": "no_new_privs",
+              "line": 39,
+              "path": "/etc/init.d/wpad",
+              "raw_value": "1",
+              "text": "procd_set_param no_new_privs 1"
+            }
+          ]
+        }
+      ],
+      "name": "wpad",
+      "owner_package": "hostapd-common",
+      "path": "/etc/init.d/wpad",
+      "procd_signals": [],
+      "referenced_configs": [],
+      "sha256": "b6679419287fa73cfbf808a5330ee329a246af17efbb5d9ab31a1647743d3855",
+      "source_key": "feeds/base/network/services/hostapd",
+      "start": "19",
+      "stop": "21",
+      "triggers": [],
+      "ubus_calls": [],
+      "uses_procd": true,
+      "validations": []
+    }
+  ],
+  "stage": "I0.5",
+  "status": "complete",
+  "ucitrack_registrations": [
+    {
+      "entries": [
+        {
+          "affects": [
+            "luci-splash",
+            "qos",
+            "miniupnpd"
+          ],
+          "config": "firewall",
+          "init": "firewall"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-app-firewall.json",
+      "sha256": "8e28fdba88654a75c180774b616d79efa04d98f4697a9e07935f681d519c2e93"
+    },
+    {
+      "entries": [
+        {
+          "affects": [
+            "odhcpd"
+          ],
+          "config": "dhcp",
+          "init": "dnsmasq"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-mod-network-dnsmasq.json",
+      "sha256": "1348c28806be47f96caf5818930af9d8ffe38ffab830a9b81254df807c2a95e0"
+    },
+    {
+      "entries": [
+        {
+          "affects": [
+            "dhcp"
+          ],
+          "config": "network",
+          "init": "network"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-mod-network-interfaces.json",
+      "sha256": "9ba829cc03f0b4165fef4cea2b46eddd3c0a6f8d1b249676184a5896c2a465bb"
+    },
+    {
+      "entries": [
+        {
+          "config": "odhcpd",
+          "init": "odhcpd"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-mod-network-odhcpd.json",
+      "sha256": "7a4a38ddce5f308760b284aac772f73b1dcac3d71835c3608a1b5473d59145ef"
+    },
+    {
+      "entries": [
+        {
+          "affects": [
+            "network"
+          ],
+          "config": "wireless"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-mod-network-wireless.json",
+      "sha256": "69404e8c9df9baa5966b25b72edaf30d193b52c2863f56d0d8ff974c6a223e19"
+    },
+    {
+      "entries": [
+        {
+          "config": "dropbear",
+          "init": "dropbear"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-mod-system-dropbear.json",
+      "sha256": "fcdf5a51db4af515d38c82bab206ab3395df6a88b03d7fa6fb3bf16ee9a904c6"
+    },
+    {
+      "entries": [
+        {
+          "config": "fstab",
+          "exec": "/sbin/block mount"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-mod-system-mounts.json",
+      "sha256": "bc4423a77d3636e63df5992b552fbac295e03daae989d1ba5d6739e124d9efc4"
+    },
+    {
+      "entries": [
+        {
+          "affects": [
+            "luci_statistics",
+            "dhcp"
+          ],
+          "config": "system",
+          "exec": "/etc/init.d/log reload",
+          "init": "led"
+        }
+      ],
+      "path": "/usr/share/ucitrack/luci-mod-system-system.json",
+      "sha256": "63293bf10db6594e365a605ef9991f6efcca87be403701cc30f9a35afa17c878"
+    }
+  ]
+}

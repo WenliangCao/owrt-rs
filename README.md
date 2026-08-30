@@ -66,3 +66,13 @@ I0.4 已完成 159-package SBOM、全文件/ELF/service 归属、权限面和 ex
 [PATCH_MAP.md](reports/ax3000t-stock-openwrt-25.12.5/PATCH_MAP.md)。可重复生成器是
 [i0_4_inventory.py](tools/i0_4_inventory.py)；固件、解包树和 source checkout 仍只保存在 Git
 外的 evidence 目录。
+
+I0.5 已完成启动链、服务图、配置链和 IPC 目录：
+[BOOT_CHAIN.md](reports/ax3000t-stock-openwrt-25.12.5/BOOT_CHAIN.md)、
+[SERVICE_GRAPH.md](reports/ax3000t-stock-openwrt-25.12.5/SERVICE_GRAPH.md)、
+[CONFIG_FLOW.md](reports/ax3000t-stock-openwrt-25.12.5/CONFIG_FLOW.md) 与
+[IPC_CATALOG.md](reports/ax3000t-stock-openwrt-25.12.5/IPC_CATALOG.md)。可重复生成器是
+[i0_5_controlplane.py](tools/i0_5_controlplane.py)。三条最重要的部署事实：`/etc/init.d/rcS`
+不存在于镜像（`sysinit` 由 procd 内建 `rcS()` 处理）；`network`/`system`/`wireless`/
+`board.json` 都不随镜像发布、在首次启动生成；ubus 有 ubusd 与 rpcd 两层独立 ACL，
+socket 本身是 0666。

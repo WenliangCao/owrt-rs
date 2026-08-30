@@ -1,0 +1,4491 @@
+{
+  "board_d": [
+    {
+      "board_config_statements": [
+        {
+          "line": 6,
+          "path": "/etc/board.d/01_leds",
+          "text": "board_config_update"
+        },
+        {
+          "line": 10,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan2g\" \"WLAN2G\" \"orange:wlan-2ghz\" \"phy0-ap0\" \"link tx rx\""
+        },
+        {
+          "line": 11,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5g\" \"WLAN5G\" \"white:wlan-5ghz\" \"phy1-ap0\" \"link tx rx\""
+        },
+        {
+          "line": 14,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"green:wan\" \"eth1\""
+        },
+        {
+          "line": 15,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan2g\" \"WLAN2G\" \"green:wlan-2ghz\" \"phy0-ap0\""
+        },
+        {
+          "line": 16,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5g\" \"WLAN5G\" \"green:wlan-5ghz\" \"phy1-ap0\""
+        },
+        {
+          "line": 20,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"INTERNET\" \"mdio-bus:06:amber:wan\" \"eth1\" \"link_10 link_100 link_1000 tx rx\""
+        },
+        {
+          "line": 21,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"INTERNET\" \"mdio-bus:06:green:wan\" \"eth1\" \"link_2500 tx rx\""
+        },
+        {
+          "line": 25,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"rgb:status\" \"eth1\""
+        },
+        {
+          "line": 30,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 33,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:white:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 37,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan5\" \"LAN5\" \"mdio-bus:05:white:lan\" \"lan5\" \"link tx rx\""
+        },
+        {
+          "line": 38,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:white:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 41,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"lan1\" \"blue:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 42,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan2\" \"lan2\" \"blue:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 43,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan3\" \"lan3\" \"blue:lan-3\" \"lan3\" \"link tx rx\""
+        },
+        {
+          "line": 44,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 47,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"LAN\" \"mdio-bus:0e:green:lan\" \"eth0\" \"link_2500 link_1000 tx rx\""
+        },
+        {
+          "line": 48,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan2\" \"LAN\" \"mdio-bus:0e:yellow:lan\" \"eth0\" \"link_2500 link_100 tx rx\""
+        },
+        {
+          "line": 49,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan1\" \"WAN\" \"mdio-bus:0f:green:wan\" \"eth1\" \"link_2500 link_1000 tx rx\""
+        },
+        {
+          "line": 50,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan2\" \"WAN\" \"mdio-bus:0f:yellow:wan\" \"eth1\" \"link_2500 link_100 tx rx\""
+        },
+        {
+          "line": 51,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan2g\" \"WLAN2G\" \"blue:wlan-1\" \"phy0-ap0\""
+        },
+        {
+          "line": 52,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5g\" \"WLAN5G\" \"blue:wlan-2\" \"phy1-ap0\""
+        },
+        {
+          "line": 57,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"mt7530-0:00:green:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 58,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"lan1\" \"mt7530-0:01:green:lan\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 59,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan2\" \"lan2\" \"mt7530-0:02:green:lan\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 60,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan3\" \"lan3\" \"mt7530-0:03:green:lan\" \"lan3\" \"link tx rx\""
+        },
+        {
+          "line": 63,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"sfp0\" \"sfp0\" \"green:sfp\" \"sfp0\" \"link tx rx\""
+        },
+        {
+          "line": 66,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanact\" \"WANACT\" \"mdio-bus:05:amber:wan\" \"eth0\" \"rx tx\""
+        },
+        {
+          "line": 67,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanlink\" \"WANLINK\" \"mdio-bus:05:green:wan\" \"eth0\" \"link\""
+        },
+        {
+          "line": 68,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lanlink\" \"LANLINK\" \"green:lan\" \"eth1\" \"link\""
+        },
+        {
+          "line": 69,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"internet\" \"blue:wan-online\" \"wan\" \"link\""
+        },
+        {
+          "line": 74,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"lan\" \"green:lan\" \"eth0\" \"link tx rx\""
+        },
+        {
+          "line": 79,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"wan\""
+        },
+        {
+          "line": 85,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"lan1\" \"white:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 86,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan2\" \"lan2\" \"white:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 87,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan3\" \"lan3\" \"white:lan-3\" \"lan3\" \"link tx rx\""
+        },
+        {
+          "line": 88,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"lan4\" \"white:lan-4\" \"lan4\" \"link tx rx\""
+        },
+        {
+          "line": 89,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"white:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 90,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"internet\" \"white:wan-online\" \"wan\" \"link\""
+        },
+        {
+          "line": 94,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_default \"internet_off\" \"internet_off\" \"red:fault\" \"1\""
+        },
+        {
+          "line": 95,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"internet\" \"blue:wan-online\" \"wan\" \"link\""
+        },
+        {
+          "line": 96,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"wan\" \"tx rx\""
+        },
+        {
+          "line": 97,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_default \"lan_off\" \"lan_off\" \"red:wps\" \"1\""
+        },
+        {
+          "line": 98,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"lan\" \"blue:lan\" \"br-lan\" \"link tx rx\""
+        },
+        {
+          "line": 101,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"green:wan\" \"wan\""
+        },
+        {
+          "line": 105,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_default \"power\" \"POWER\" \"green:power\" \"1\""
+        },
+        {
+          "line": 106,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"green:wan\" \"eth0\""
+        },
+        {
+          "line": 107,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"5g_1\" \"5G_1\" \"green:5g:led1\" \"wwan0\""
+        },
+        {
+          "line": 108,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"5g_2\" \"5G_2\" \"green:5g:led2\" \"wwan0\""
+        },
+        {
+          "line": 109,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"5g_3\" \"5G_3\" \"green:5g:led3\" \"wwan0\""
+        },
+        {
+          "line": 110,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"5g_4\" \"5G_4\" \"green:5g:led4\" \"wwan0\""
+        },
+        {
+          "line": 111,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan2g\" \"WLAN2G\" \"green:wifi2g\" \"phy0-ap0\""
+        },
+        {
+          "line": 112,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5g\" \"WLAN5G\" \"green:wifi5g\" \"phy1-ap0\""
+        },
+        {
+          "line": 115,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"red:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 118,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"blue:wan-online\" \"wan\" \"link\""
+        },
+        {
+          "line": 121,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"amber:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 124,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan\" \"WLAN\" \"blue:wlan\" \"phy1-ap0\""
+        },
+        {
+          "line": 127,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"amber:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 130,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"mdio-bus:06:blue:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 134,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan2g\" \"WLAN2G\" \"green:indicator-1\" \"phy0.0-ap0\""
+        },
+        {
+          "line": 135,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5g\" \"WLAN5G\" \"green:wlan\" \"phy0.1-ap0\""
+        },
+        {
+          "line": 136,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"internet\" \"green:wan-online\" \"wan\" \"link\""
+        },
+        {
+          "line": 140,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"internet\" \"green:wan\" \"wan\" \"link\""
+        },
+        {
+          "line": 143,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"lan-1\" \"green:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 144,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan2\" \"lan-2\" \"green:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 145,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan3\" \"lan-3\" \"green:lan-3\" \"lan3\" \"link tx rx\""
+        },
+        {
+          "line": 146,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"green:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 149,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_switch \"lan0\" \"lan-0\" \"green:lan-0\" \"switch0\" \"0x01\""
+        },
+        {
+          "line": 150,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_switch \"lan1\" \"lan-1\" \"green:lan-1\" \"switch0\" \"0x02\""
+        },
+        {
+          "line": 151,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_switch \"lan2\" \"lan-2\" \"green:lan-2\" \"switch0\" \"0x04\""
+        },
+        {
+          "line": 152,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"green:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 156,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-0\" \"lan-0\" \"green:lan-0\" \"lan0\" \"link tx rx\""
+        },
+        {
+          "line": 157,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1\" \"lan-1\" \"green:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 158,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2\" \"lan-2\" \"green:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 159,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"green:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 162,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:green:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 165,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"LAN1\" \"mdio-bus:05:green:lan\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 166,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanact\" \"WANACT\" \"mdio-bus:06:green:wan\" \"eth1\" \"tx rx\""
+        },
+        {
+          "line": 167,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanlink\" \"WANLINK\" \"blue:wan\" \"eth1\" \"link\""
+        },
+        {
+          "line": 170,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_default power_green \"Power (green)\" green:power 1"
+        },
+        {
+          "line": 171,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_default power_red   \"Power (red)\"   red:power   0"
+        },
+        {
+          "line": 172,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_default rlink_red   \"Client (red)\"  red:lan     0"
+        },
+        {
+          "line": 173,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_default clink_red   \"Router (red)\"  red:wan     0"
+        },
+        {
+          "line": 174,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_wps     wps_green   \"WPS (green)\"   green:wps"
+        },
+        {
+          "line": 175,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev  lan_speed_fast  \"LAN Link (green)\"     green:status  eth0"
+        },
+        {
+          "line": 177,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev  lan_speed_slow  \"LAN Activity (yellow)\" yellow:status eth0"
+        },
+        {
+          "line": 181,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"eth0\" \"LAN\" \"green:lan\" \"eth0\""
+        },
+        {
+          "line": 184,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanlink\" \"WANLINK\" \"blue:wan\" \"eth1\" \"link\""
+        },
+        {
+          "line": 185,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanact\" \"WANACT\" \"blue:wan-online\" \"eth1\" \"tx rx\""
+        },
+        {
+          "line": 188,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 191,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"internet\" \"green:wan-online\" \"wan\" \"link\""
+        },
+        {
+          "line": 195,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"green:wan\" \"eth1\" \"link\""
+        },
+        {
+          "line": 196,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"LAN\" \"green:lan\" \"br-lan\" \"link\""
+        },
+        {
+          "line": 197,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan\" \"WLAN\" \"green:wlan\" \"phy1-ap0\" \"link\""
+        },
+        {
+          "line": 200,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wifi\" \"WIFI\" \"blue:wlan\" \"phy1-ap0\" \"link\""
+        },
+        {
+          "line": 201,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"5g\" \"5G\" \"blue:indicator-0\" \"eth1\" \"link\""
+        },
+        {
+          "line": 204,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lanact\" \"LANACT\" \"amber:lan\" \"eth1\" \"rx tx\""
+        },
+        {
+          "line": 205,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lanlink\" \"LANLINK\" \"green:lan\" \"eth1\" \"link\""
+        },
+        {
+          "line": 208,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"LAN\" \"green:lan\" \"eth0\" \"link tx rx\""
+        },
+        {
+          "line": 211,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanact\" \"WANACT\" \"mdio-bus:0f:green:wan\" \"eth0\" \"rx tx\""
+        },
+        {
+          "line": 212,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wanlink\" \"WANLINK\" \"mdio-bus:0f:amber:wan\" \"eth0\" \"link\""
+        },
+        {
+          "line": 213,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lanact\" \"LANACT\" \"green:lan\" \"eth1\" \"rx tx\""
+        },
+        {
+          "line": 214,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lanlink\" \"LANLINK\" \"amber:lan\" \"eth1\" \"link\""
+        },
+        {
+          "line": 218,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1\" \"lan-1\" \"blue:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 219,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2\" \"lan-2\" \"blue:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 220,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-3\" \"lan-3\" \"blue:lan-3\" \"lan3\" \"link tx rx\""
+        },
+        {
+          "line": 221,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 222,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-off\" \"wan-off\" \"red:wan\" \"wan\" \"link\""
+        },
+        {
+          "line": 225,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1\" \"lan-1\" \"blue:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 226,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2\" \"lan-2\" \"blue:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 227,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-3\" \"lan-3\" \"blue:lan-3\" \"lan3\" \"link tx rx\""
+        },
+        {
+          "line": 228,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 229,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-off\" \"wan-off\" \"red:wan\" \"eth1\" \"link\""
+        },
+        {
+          "line": 232,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1\" \"lan-1\" \"blue:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 233,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2\" \"lan-2\" \"blue:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 234,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-3\" \"lan-3\" \"blue:lan-3\" \"lan3\" \"link tx rx\""
+        },
+        {
+          "line": 235,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 236,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-off\" \"wan-off\" \"red:wan\" \"wan\" \"link\""
+        },
+        {
+          "line": 237,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5g\" \"wlan-5ghz\" \"blue:wlan-5ghz\" \"phy0.1-ap0\" \"link tx rx\""
+        },
+        {
+          "line": 240,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:amber:lan\" \"lan4\" \"link_10 link_100\""
+        },
+        {
+          "line": 241,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:green:lan-0\" \"lan4\" \"link_1000\""
+        },
+        {
+          "line": 242,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:green:lan-1\" \"lan4\" \"link_2500\""
+        },
+        {
+          "line": 243,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:amber:wan\" \"eth1\" \"link_10 link_100\""
+        },
+        {
+          "line": 244,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:green:wan-0\" \"eth1\" \"link_1000\""
+        },
+        {
+          "line": 245,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:green:wan-1\" \"eth1\" \"link_2500\""
+        },
+        {
+          "line": 248,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:amber:lan\" \"lan4\" \"link_10 link_100\""
+        },
+        {
+          "line": 249,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:green:lan-0\" \"lan4\" \"link_1000\""
+        },
+        {
+          "line": 250,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:green:lan-1\" \"lan4\" \"link_2500\""
+        },
+        {
+          "line": 254,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"LAN\" \"mdio-bus:05:amber:lan\" \"lan\" \"link_10 link_100\""
+        },
+        {
+          "line": 255,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"LAN\" \"mdio-bus:05:green:lan-0\" \"lan\" \"link_1000\""
+        },
+        {
+          "line": 256,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"LAN\" \"mdio-bus:05:green:lan-1\" \"lan\" \"link_2500\""
+        },
+        {
+          "line": 257,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:amber:wan\" \"eth1\" \"link_10 link_100\""
+        },
+        {
+          "line": 258,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:green:wan-0\" \"eth1\" \"link_1000\""
+        },
+        {
+          "line": 259,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:green:wan-1\" \"eth1\" \"link_2500\""
+        },
+        {
+          "line": 263,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1-green\" \"LAN1\" \"mdio-bus:08:green:lan\" \"lan1\" \"link_2500 link_5000\""
+        },
+        {
+          "line": 264,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1-orange\" \"LAN1\" \"mdio-bus:08:orange:lan\" \"lan1\" \"link_100 link_1000\""
+        },
+        {
+          "line": 265,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1-white\" \"LAN1\" \"mdio-bus:08:white:lan\" \"lan1\" \"link_10000\""
+        },
+        {
+          "line": 266,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2-green\" \"LAN2\" \"mt7530-0:01:green:lan\" \"lan2\" \"link_1000\""
+        },
+        {
+          "line": 267,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2-amber\" \"LAN2\" \"mt7530-0:01:amber:lan\" \"lan2\" \"link_100 link_10\""
+        },
+        {
+          "line": 268,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-3-green\" \"LAN3\" \"mt7530-0:02:green:lan\" \"lan3\" \"link_1000\""
+        },
+        {
+          "line": 269,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-3-amber\" \"LAN3\" \"mt7530-0:02:amber:lan\" \"lan3\" \"link_100 link_10\""
+        },
+        {
+          "line": 270,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-4-green\" \"LAN4\" \"mt7530-0:03:green:lan\" \"lan4\" \"link_1000\""
+        },
+        {
+          "line": 271,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-4-amber\" \"LAN4\" \"mt7530-0:03:amber:lan\" \"lan4\" \"link_100 link_10\""
+        },
+        {
+          "line": 272,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-green\" \"WAN\" \"mdio-bus:00:green:wan\" \"wan\" \"link_2500 link_5000\""
+        },
+        {
+          "line": 273,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-orange\" \"WAN\" \"mdio-bus:00:orange:wan\" \"wan\" \"link_100 link_1000\""
+        },
+        {
+          "line": 274,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-white\" \"WAN\" \"mdio-bus:00:white:wan\" \"wan\" \"link_10000\""
+        },
+        {
+          "line": 277,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-green-act\" \"LAN\" \"mdio-bus:0f:green:lan\" \"lan\" \"link_2500\""
+        },
+        {
+          "line": 278,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-amber\" \"LAN\" \"amber:lan\" \"lan\" \"link_100\""
+        },
+        {
+          "line": 279,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-green\" \"LAN\" \"green:lan\" \"lan\" \"link_1000\""
+        },
+        {
+          "line": 280,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-green\" \"WAN\" \"mdio-bus:08:green:wan\" \"wan\" \"link_2500 link_5000\""
+        },
+        {
+          "line": 281,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-orange\" \"WAN\" \"mdio-bus:08:orange:wan\" \"wan\" \"link_100 link_1000\""
+        },
+        {
+          "line": 282,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-white\" \"WAN\" \"mdio-bus:08:white:wan\" \"wan\" \"link_10000\""
+        },
+        {
+          "line": 285,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-green\" \"WAN\" \"mdio-bus:00:green:wan\" \"wan\" \"link_1000 tx rx\""
+        },
+        {
+          "line": 286,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan-amber\" \"WAN\" \"mdio-bus:00:amber:wan\" \"wan\" \"link_100 link_10 tx rx\""
+        },
+        {
+          "line": 289,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"green:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 292,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"LAN\" \"white:lan\" \"br-lan\" \"link tx rx\""
+        },
+        {
+          "line": 295,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"br-lan\" \"lan\" \"blue:lan\" \"br-lan\" \"link tx rx\""
+        },
+        {
+          "line": 296,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan2g\" \"WLAN2G\" \"blue:wlan-2ghz\" \"phy0.0-ap0\""
+        },
+        {
+          "line": 297,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5g\" \"WLAN5G\" \"blue:wlan-5ghz\" \"phy0.1-ap0\""
+        },
+        {
+          "line": 300,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"port2-green-act\" \"port-2\" \"green:port2_act\" \"port2\" \"link tx rx\""
+        },
+        {
+          "line": 301,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"port1-green-act\" \"port-1\" \"green:sfp\" \"port1\" \"link tx rx\""
+        },
+        {
+          "line": 302,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan\" \"wlan\" \"green:wlan\" \"phy1-ap0\""
+        },
+        {
+          "line": 305,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1\" \"lan-1\" \"blue:lan-0\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 306,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2\" \"lan-2\" \"blue:lan-1\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 307,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"eth1\" \"lan-3\" \"blue:lan-2\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 310,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 313,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1\" \"lan-1\" \"green:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 314,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2\" \"lan-2\" \"green:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 315,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"green:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 319,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-1\" \"lan-1\" \"blue:lan-1\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 320,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan-2\" \"lan-2\" \"blue:lan-2\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 321,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 325,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"blue:wan\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 329,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"rgb:network\" \"wan\""
+        },
+        {
+          "line": 333,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"green:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 337,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"wan\" \"amber:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 338,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"mobile\" \"mobile\" \"green:mobile\" \"wwan\" \"link tx rx\""
+        },
+        {
+          "line": 342,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"LAN1\" \"mdio-bus:05:green:lan\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 343,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"2.5G-WAN\" \"mdio-bus:06:green:wan\" \"wan\" \"link_2500\""
+        },
+        {
+          "line": 344,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan\" \"LAN\" \"green:lan\" \"eth0\" \"link tx rx\""
+        },
+        {
+          "line": 345,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"internet\" \"INTERNET\" \"green:inet\" \"wan\" \"link tx rx\""
+        },
+        {
+          "line": 346,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wifi-24g\" \"WIFI-2.4G\" \"green:wifi24g\" \"phy0-ap0\" \"link tx rx\""
+        },
+        {
+          "line": 347,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wifi-5g\" \"WIFI-5G\" \"green:wifi5g\" \"phy1-ap0\" \"link tx rx\""
+        },
+        {
+          "line": 350,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"uplink\" \"UPLINK\" \"mdio-bus:05:amber:wan\" \"eth0\" \"link_10 link_100 link_2500 tx rx\""
+        },
+        {
+          "line": 351,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"uplink\" \"UPLINK\" \"mdio-bus:05:green:wan\" \"eth0\" \"link_1000 link_2500 tx rx\""
+        },
+        {
+          "line": 354,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:amber:lan\" \"lan4\" \"link_10 link_100 tx rx\""
+        },
+        {
+          "line": 355,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan4\" \"LAN4\" \"mdio-bus:05:green:lan\" \"lan4\" \"link tx rx\""
+        },
+        {
+          "line": 356,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:amber:wan\" \"eth1\" \"link_10 link_100 tx rx\""
+        },
+        {
+          "line": 357,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wan\" \"WAN\" \"mdio-bus:06:green:wan\" \"eth1\" \"link tx rx\""
+        },
+        {
+          "line": 360,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan1\" \"LAN1\" \"mdio-bus:06:green:lan\" \"lan1\" \"link tx rx\""
+        },
+        {
+          "line": 361,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"lan2\" \"LAN2\" \"mdio-bus:05:green:lan\" \"lan2\" \"link tx rx\""
+        },
+        {
+          "line": 362,
+          "path": "/etc/board.d/01_leds",
+          "text": "ucidef_set_led_netdev \"wlan5\" \"wlan5\" \"green:wlan-0\" \"phy1-ap0\" \"link tx rx\""
+        },
+        {
+          "line": 366,
+          "path": "/etc/board.d/01_leds",
+          "text": "board_config_flush"
+        }
+      ],
+      "defined_functions": [],
+      "owner_package": null,
+      "path": "/etc/board.d/01_leds",
+      "sha256": "605ab36f4da257524a5c43bb68dce67f43bfc4c0359aed88409fc29a5f2bd390"
+    },
+    {
+      "board_config_statements": [
+        {
+          "line": 24,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3\" eth1"
+        },
+        {
+          "line": 28,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interface_lan \"eth0\" \"dhcp\""
+        },
+        {
+          "line": 32,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 game\" eth1"
+        },
+        {
+          "line": 36,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4\" eth1"
+        },
+        {
+          "line": 39,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3\" internet"
+        },
+        {
+          "line": 42,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan0 eth1\" eth2"
+        },
+        {
+          "line": 67,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3\" wan"
+        },
+        {
+          "line": 83,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4\" \"eth1\""
+        },
+        {
+          "line": 86,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4\" \"eth1 wwan\""
+        },
+        {
+          "line": 95,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4 lan5\" eth1"
+        },
+        {
+          "line": 98,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4 sfp2\" \"sfp1 wan\""
+        },
+        {
+          "line": 101,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 sfp-lan\" \"wan sfp-wan\""
+        },
+        {
+          "line": 104,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4 sfp-lan\" wan"
+        },
+        {
+          "line": 108,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4\" \"wan sfp-wan\""
+        },
+        {
+          "line": 111,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1\" eth1"
+        },
+        {
+          "line": 114,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interface_lan \"lan1 lan2 lan3 lan4 lan5\""
+        },
+        {
+          "line": 130,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interface_lan \"eth0\""
+        },
+        {
+          "line": 138,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan eth0 eth1"
+        },
+        {
+          "line": 154,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan eth1 eth0"
+        },
+        {
+          "line": 158,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interface_lan \"lan\""
+        },
+        {
+          "line": 162,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4\" internet"
+        },
+        {
+          "line": 171,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan lan wan"
+        },
+        {
+          "line": 175,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4 lan5\" \"wan\""
+        },
+        {
+          "line": 178,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4 lan6\" \"eth1 wan\""
+        },
+        {
+          "line": 181,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan0 lan1 lan2 lan3 lan4\" eth1"
+        },
+        {
+          "line": 184,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan0 lan1 lan2 lan3 eth2\" eth1"
+        },
+        {
+          "line": 187,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_add_switch \"switch0\" \"0:lan0\" \"1:lan1\" \"2:lan2\" \"6@eth0\""
+        },
+        {
+          "line": 188,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"eth0.1 eth0.2 eth0.3\" eth1"
+        },
+        {
+          "line": 192,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan0 lan1 lan2\" eth1"
+        },
+        {
+          "line": 195,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"port1 port3 port4 port5 port6\" \"port2\""
+        },
+        {
+          "line": 201,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2\" eth1"
+        },
+        {
+          "line": 205,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan0 lan1 lan2 lan3\" eth1"
+        },
+        {
+          "line": 208,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 eth2\" eth1"
+        },
+        {
+          "line": 211,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interface_lan \"lan1 lan2 eth1\""
+        },
+        {
+          "line": 219,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan2 lan3 lan4\" wan"
+        },
+        {
+          "line": 222,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interface_lan \"lan1 lan2\""
+        },
+        {
+          "line": 225,
+          "path": "/etc/board.d/02_network",
+          "text": "ucidef_set_interfaces_lan_wan \"lan1 lan2 lan3 lan4\" wan"
+        },
+        {
+          "line": 327,
+          "path": "/etc/board.d/02_network",
+          "text": "[ -n \"$lan_mac\" ] && ucidef_set_interface_macaddr \"lan\" $lan_mac"
+        },
+        {
+          "line": 328,
+          "path": "/etc/board.d/02_network",
+          "text": "[ -n \"$wan_mac\" ] && ucidef_set_interface_macaddr \"wan\" $wan_mac"
+        },
+        {
+          "line": 329,
+          "path": "/etc/board.d/02_network",
+          "text": "[ -n \"$label_mac\" ] && ucidef_set_label_macaddr $label_mac"
+        },
+        {
+          "line": 332,
+          "path": "/etc/board.d/02_network",
+          "text": "board_config_update"
+        },
+        {
+          "line": 336,
+          "path": "/etc/board.d/02_network",
+          "text": "board_config_flush"
+        }
+      ],
+      "defined_functions": [
+        "mediatek_setup_interfaces",
+        "mediatek_setup_macs"
+      ],
+      "owner_package": null,
+      "path": "/etc/board.d/02_network",
+      "sha256": "98ffaa4e12a2304d1cf9c2a1a80789d707c0c63d3b1ba17fde9ca39d8aa8b15a"
+    },
+    {
+      "board_config_statements": [
+        {
+          "line": 3,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "board_config_update"
+        },
+        {
+          "line": 10,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"modem_power\" \"Modem power\" \"modem_power\" \"0\""
+        },
+        {
+          "line": 13,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"modem_power\" \"Modem power button\" \"modem_power\" \"1\""
+        },
+        {
+          "line": 14,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"modem_reset\" \"Modem reset\" \"modem_reset\" \"0\""
+        },
+        {
+          "line": 18,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"5g1\" \"Power 1st modem\" \"5g1\" \"1\""
+        },
+        {
+          "line": 19,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"5g2\" \"Power 2nd modem\" \"5g2\" \"1\""
+        },
+        {
+          "line": 20,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"pcie\" \"Power PCIe port\" \"pcie\" \"1\""
+        },
+        {
+          "line": 21,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"sim1\" \"SIM 1\" \"sim1\" \"1\""
+        },
+        {
+          "line": 22,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"sim2\" \"SIM 2\" \"sim2\" \"1\""
+        },
+        {
+          "line": 26,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"4g\" \"Power modem\" \"4g\" \"1\""
+        },
+        {
+          "line": 27,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "ucidef_add_gpio_switch \"sim\" \"SIM\" \"sim\" \"1\""
+        },
+        {
+          "line": 31,
+          "path": "/etc/board.d/03_gpio_switches",
+          "text": "board_config_flush"
+        }
+      ],
+      "defined_functions": [],
+      "owner_package": null,
+      "path": "/etc/board.d/03_gpio_switches",
+      "sha256": "314909c404a426f06b75477c3c0d033d36c55e7c2303ba58df8288869f6f992b"
+    },
+    {
+      "board_config_statements": [
+        {
+          "line": 5,
+          "path": "/etc/board.d/04_defaults",
+          "text": "board_config_update"
+        },
+        {
+          "line": 9,
+          "path": "/etc/board.d/04_defaults",
+          "text": "ucidef_set_wireless_mac_count 2g 7"
+        },
+        {
+          "line": 10,
+          "path": "/etc/board.d/04_defaults",
+          "text": "ucidef_set_wireless_mac_count 5g 7"
+        },
+        {
+          "line": 14,
+          "path": "/etc/board.d/04_defaults",
+          "text": "board_config_flush"
+        }
+      ],
+      "defined_functions": [],
+      "owner_package": null,
+      "path": "/etc/board.d/04_defaults",
+      "sha256": "d9ccd3eec285c9f288d6d19162c36c45d1fe3561e005087040db91b07a7bb23f"
+    },
+    {
+      "board_config_statements": [
+        {
+          "line": 5,
+          "path": "/etc/board.d/05_compat-version",
+          "text": "board_config_update"
+        },
+        {
+          "line": 9,
+          "path": "/etc/board.d/05_compat-version",
+          "text": "ucidef_set_compat_version \"1.3\""
+        },
+        {
+          "line": 16,
+          "path": "/etc/board.d/05_compat-version",
+          "text": "ucidef_set_compat_version \"1.1\""
+        },
+        {
+          "line": 20,
+          "path": "/etc/board.d/05_compat-version",
+          "text": "board_config_flush"
+        }
+      ],
+      "defined_functions": [],
+      "owner_package": null,
+      "path": "/etc/board.d/05_compat-version",
+      "sha256": "c442c320b82228ef0dbcf8835d454b2e2bc6d21d7ff42f70760d728130d381e8"
+    },
+    {
+      "board_config_statements": [
+        {
+          "line": 5,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "board_config_update"
+        },
+        {
+          "line": 8,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "ucidef_set_wireless all \"$(cat /var/run/uboot-env/owrt_ssid)\" sae-mixed \"$(cat /var/run/uboot-env/owrt_wifi_key)\""
+        },
+        {
+          "line": 9,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "[ -f /var/run/uboot-env/owrt_country ] && ucidef_set_country \"$(cat /var/run/uboot-env/owrt_country)\""
+        },
+        {
+          "line": 10,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "[ -f /var/run/uboot-env/owrt_ssh_auth_key ] && ucidef_set_ssh_authorized_key \"$(cat /var/run/uboot-env/owrt_ssh_auth_key)\""
+        },
+        {
+          "line": 11,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "[ -f /var/run/uboot-env/owrt_root_password_plain ] && ucidef_set_root_password_plain \"$(cat /var/run/uboot-env/owrt_root_password_plain)\""
+        },
+        {
+          "line": 12,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "[ -f /var/run/uboot-env/owrt_root_password_hash ] && ucidef_set_root_password_hash \"$(cat /var/run/uboot-env/owrt_root_password_hash)\""
+        },
+        {
+          "line": 13,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "[ -f /var/run/uboot-env/owrt_timezone ] && ucidef_set_timezone \"$(cat /var/run/uboot-env/owrt_timezone)\""
+        },
+        {
+          "line": 15,
+          "path": "/etc/board.d/05_fw_defaults",
+          "text": "board_config_flush"
+        }
+      ],
+      "defined_functions": [],
+      "owner_package": null,
+      "path": "/etc/board.d/05_fw_defaults",
+      "sha256": "310656eca7048ea83d4a66eceb5467ff473bcdaddea43a90148acf322dbac621"
+    },
+    {
+      "board_config_statements": [
+        {
+          "line": 7,
+          "path": "/etc/board.d/99-default_network",
+          "text": "board_config_update"
+        },
+        {
+          "line": 11,
+          "path": "/etc/board.d/99-default_network",
+          "text": "ucidef_set_interface_lan 'eth0'"
+        },
+        {
+          "line": 12,
+          "path": "/etc/board.d/99-default_network",
+          "text": "[ -d /sys/class/net/eth1 ] && ucidef_set_interface_wan 'eth1'"
+        },
+        {
+          "line": 14,
+          "path": "/etc/board.d/99-default_network",
+          "text": "board_config_flush"
+        }
+      ],
+      "defined_functions": [],
+      "owner_package": null,
+      "path": "/etc/board.d/99-default_network",
+      "sha256": "86b966006324cffab7c9b948d77f42ab1ae8d85e0ba01bd9d7e6337fe7cc2668"
+    }
+  ],
+  "config_packages": [
+    {
+      "config": "dhcp",
+      "consumer_evidence_count": 40,
+      "consumer_files": [
+        "/bin/config_generate",
+        "/etc/init.d/dnsmasq",
+        "/etc/uci-defaults/15_odhcpd",
+        "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+        "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+        "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "/usr/share/rpcd/acl.d/luci-mod-status-index.json"
+      ],
+      "owner_package": "dnsmasq",
+      "path": "/etc/config/dhcp",
+      "section_types": [
+        "dhcp",
+        "dnsmasq"
+      ],
+      "sha256": "a3ab720d8cd674dced9d6c22963a900e700480d9e666285c52c0cf0a418ba5bb",
+      "shipped_in_image": true
+    },
+    {
+      "config": "dropbear",
+      "consumer_evidence_count": 5,
+      "consumer_files": [
+        "/etc/init.d/dropbear",
+        "/etc/uci-defaults/50-dropbear",
+        "/usr/share/rpcd/acl.d/luci-mod-system.json"
+      ],
+      "owner_package": "dropbear",
+      "path": "/etc/config/dropbear",
+      "section_types": [
+        "dropbear"
+      ],
+      "sha256": "b80472937a530c79953f9f84168ed58aa8a7af2aa083ebba71f68488bf9f87a3",
+      "shipped_in_image": true
+    },
+    {
+      "config": "firewall",
+      "consumer_evidence_count": 16,
+      "consumer_files": [
+        "/usr/share/rpcd/acl.d/luci-app-firewall.json",
+        "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "/usr/share/ucode/fw4.uc"
+      ],
+      "owner_package": "firewall4",
+      "path": "/etc/config/firewall",
+      "section_types": [
+        "defaults",
+        "forwarding",
+        "rule",
+        "zone"
+      ],
+      "sha256": "7ec1d9cd5cf448cf26e1360b9fb23f59f60c40cd40a65da6a7d8a162b61af2c5",
+      "shipped_in_image": true
+    },
+    {
+      "config": "fstab",
+      "consumer_evidence_count": 3,
+      "consumer_files": [
+        "/lib/functions/procd.sh",
+        "/usr/share/rpcd/acl.d/luci-mod-system.json"
+      ],
+      "owner_package": null,
+      "path": "/etc/config/fstab",
+      "section_types": [],
+      "sha256": null,
+      "shipped_in_image": false
+    },
+    {
+      "config": "luci",
+      "consumer_evidence_count": 22,
+      "consumer_files": [
+        "/etc/uci-defaults/30_luci-theme-bootstrap",
+        "/etc/uci-defaults/50_luci-mod-admin-full",
+        "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+        "/usr/share/rpcd/acl.d/luci-base.json",
+        "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "/usr/share/ucode/luci/dispatcher.uc",
+        "/usr/share/ucode/luci/runtime.uc"
+      ],
+      "owner_package": "luci-base",
+      "path": "/etc/config/luci",
+      "section_types": [
+        "core",
+        "extern",
+        "internal"
+      ],
+      "sha256": "60078f7c02ed91d23092c9b75cb9ea5c8ee39f7727def813c8201f8e48a296f4",
+      "shipped_in_image": true
+    },
+    {
+      "config": "network",
+      "consumer_evidence_count": 19,
+      "consumer_files": [
+        "/bin/config_generate",
+        "/etc/init.d/packet_steering",
+        "/etc/init.d/uhttpd",
+        "/etc/uci-defaults/11_network-migrate-bridges",
+        "/etc/uci-defaults/12_network-generate-ula",
+        "/etc/uci-defaults/14_migrate-dhcp-release",
+        "/etc/uci-defaults/14_network-generate-duid",
+        "/usr/libexec/luci-peeraddr",
+        "/usr/share/rpcd/acl.d/luci-base.json",
+        "/usr/share/rpcd/acl.d/luci-mod-network.json"
+      ],
+      "owner_package": null,
+      "path": "/etc/config/network",
+      "section_types": [],
+      "sha256": null,
+      "shipped_in_image": false
+    },
+    {
+      "config": "rpcd",
+      "consumer_evidence_count": 5,
+      "consumer_files": [
+        "/etc/init.d/rpcd",
+        "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh"
+      ],
+      "owner_package": "rpcd",
+      "path": "/etc/config/rpcd",
+      "section_types": [
+        "login",
+        "rpcd"
+      ],
+      "sha256": "1a40da0ebe45b1afd131dfc4650592913e38445e7fe42f96d3b95ad5151ac0e6",
+      "shipped_in_image": true
+    },
+    {
+      "config": "system",
+      "consumer_evidence_count": 40,
+      "consumer_files": [
+        "/bin/config_generate",
+        "/etc/board.d/01_leds",
+        "/etc/init.d/gpio_switch",
+        "/etc/init.d/led",
+        "/etc/init.d/log",
+        "/etc/init.d/sysntpd",
+        "/etc/init.d/system",
+        "/etc/uci-defaults/05_fix-compat-version",
+        "/etc/uci-defaults/15_migrate-time-zonename",
+        "/lib/functions/migrations.sh",
+        "/lib/preinit/81_urandom_seed",
+        "/sbin/led.sh",
+        "/sbin/urandom_seed",
+        "/usr/libexec/login.sh",
+        "/usr/share/rpcd/acl.d/luci-base.json",
+        "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "/usr/share/rpcd/ucode/luci"
+      ],
+      "owner_package": null,
+      "path": "/etc/config/system",
+      "section_types": [],
+      "sha256": null,
+      "shipped_in_image": false
+    },
+    {
+      "config": "ucitrack",
+      "consumer_evidence_count": 3,
+      "consumer_files": [
+        "/etc/init.d/ucitrack"
+      ],
+      "owner_package": null,
+      "path": "/etc/config/ucitrack",
+      "section_types": [],
+      "sha256": null,
+      "shipped_in_image": false
+    },
+    {
+      "config": "uhttpd",
+      "consumer_evidence_count": 11,
+      "consumer_files": [
+        "/etc/init.d/uhttpd",
+        "/etc/uci-defaults/00_uhttpd_ubus",
+        "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "/usr/share/ucode/luci/template/sysauth.ut"
+      ],
+      "owner_package": "uhttpd",
+      "path": "/etc/config/uhttpd",
+      "section_types": [
+        "cert",
+        "uhttpd"
+      ],
+      "sha256": "4bb87a8ccfa98d9c7be831b4bb4f2895c4f188802a185bc5126d78ebdc3c7532",
+      "shipped_in_image": true
+    },
+    {
+      "config": "wireless",
+      "consumer_evidence_count": 9,
+      "consumer_files": [
+        "/etc/hotplug.d/ieee80211/05-wifi-migrate",
+        "/lib/netifd/wireless.uc",
+        "/lib/wifi/mac80211.uc",
+        "/usr/bin/iwinfo",
+        "/usr/share/rpcd/acl.d/luci-base.json",
+        "/usr/share/rpcd/acl.d/luci-mod-network.json"
+      ],
+      "owner_package": null,
+      "path": "/etc/config/wireless",
+      "section_types": [],
+      "sha256": null,
+      "shipped_in_image": false
+    }
+  ],
+  "consumer_evidence": {
+    "dhcp": [
+      {
+        "line": 609,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "logger -t dnsmasq  \"unable to set dhcp-range for dhcp uci config section '$cfg'\"  \"on interface '$ifname', please check your config\""
+      },
+      {
+        "line": 1231,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "[ -n \"$BOOT\" ] || config_foreach filter_dnsmasq dhcp dhcp_add \"$cfg\""
+      },
+      {
+        "line": 1237,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "[ -n \"$BOOT\" ] || config_foreach filter_dnsmasq dhcp dhcp_add \"$cfg\""
+      },
+      {
+        "line": 1322,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "config_load dhcp"
+      },
+      {
+        "line": 1323,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "config_foreach add_interface_trigger dhcp"
+      },
+      {
+        "line": 1364,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "config_load dhcp"
+      },
+      {
+        "line": 1396,
+        "path": "/etc/init.d/dnsmasq",
+        "text": "config_load dhcp"
+      },
+      {
+        "line": 46,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "if [ -n \"$(uci -q get dhcp.odhcpd)\" ]; then"
+      },
+      {
+        "line": 51,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "piodir=$(uci -q get dhcp.odhcpd.piodir)"
+      },
+      {
+        "line": 54,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci set dhcp.odhcpd.piodir=$piodir"
+      },
+      {
+        "line": 58,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "piofolder=$(uci -q get dhcp.odhcpd.piofolder)"
+      },
+      {
+        "line": 61,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci delete dhcp.odhcpd.piofolder"
+      },
+      {
+        "line": 65,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "if [ -n \"$(uci -q get dhcp.odhcpd.legacy)\" ]; then"
+      },
+      {
+        "line": 66,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci delete dhcp.odhcpd.legacy"
+      },
+      {
+        "line": 70,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "hostsfile=$(uci -q get dhcp.odhcpd.hostsfile)"
+      },
+      {
+        "line": 72,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci delete dhcp.odhcpd.hostsfile"
+      },
+      {
+        "line": 73,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci set dhcp.odhcpd.hostsdir=\"$(dirname $hostsfile)\""
+      },
+      {
+        "line": 75,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "elif [ -z \"$(uci -q get dhcp.odhcpd.hostsdir)\" ]; then"
+      },
+      {
+        "line": 76,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci set dhcp.odhcpd.hostsdir=/tmp/hosts"
+      },
+      {
+        "line": 80,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "if [ \"$(uci -q get dhcp.odhcpd.leasefile)\" == \"/tmp/hosts/odhcpd\" ]; then"
+      },
+      {
+        "line": 81,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci set dhcp.odhcpd.leasefile=/tmp/odhcpd.leases"
+      },
+      {
+        "line": 85,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "[ \"$commit\" -eq 1 ] && uci commit dhcp"
+      },
+      {
+        "line": 113,
+        "path": "/etc/uci-defaults/15_odhcpd",
+        "text": "uci -q get dhcp.lan || {"
+      },
+      {
+        "line": 3,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+        "text": "ipsets=$(uci -q get dhcp.@dnsmasq[0].ipset)"
+      },
+      {
+        "line": 12,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+        "text": "uci add dhcp ipset"
+      },
+      {
+        "line": 18,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+        "text": "uci add_list dhcp.@ipset[-1].name=\"$name\""
+      },
+      {
+        "line": 23,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+        "text": "uci add_list dhcp.@ipset[-1].domain=\"$domain\""
+      },
+      {
+        "line": 28,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+        "text": "uci del_list dhcp.@dnsmasq[0].ipset=\"$ipset\""
+      },
+      {
+        "line": 31,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+        "text": "uci commit dhcp"
+      },
+      {
+        "line": 3,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+        "text": "[ \"$(uci get dhcp.@dnsmasq[0].resolvfile)\" = \"/tmp/resolv.conf.auto\" ] && {"
+      },
+      {
+        "line": 4,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+        "text": "uci set dhcp.@dnsmasq[0].resolvfile=\"/tmp/resolv.conf.d/resolv.conf.auto\""
+      },
+      {
+        "line": 5,
+        "path": "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+        "text": "uci commit dhcp"
+      },
+      {
+        "line": 19,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\", \"system\" ]"
+      },
+      {
+        "line": 33,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\" ]"
+      },
+      {
+        "line": 43,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\" ]"
+      },
+      {
+        "line": 46,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\" ]"
+      },
+      {
+        "line": 58,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\" ]"
+      },
+      {
+        "line": 61,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\" ]"
+      },
+      {
+        "line": 18,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-status-index.json",
+        "text": "\"uci\": [ \"dhcp\" ]"
+      },
+      {
+        "line": 185,
+        "path": "/bin/config_generate",
+        "text": "uci set network.$1.proto='dhcp'"
+      }
+    ],
+    "dropbear": [
+      {
+        "line": 397,
+        "path": "/etc/init.d/dropbear",
+        "text": "config_foreach validate_section_dropbear dropbear dropbear_instance"
+      },
+      {
+        "line": 11,
+        "path": "/etc/uci-defaults/50-dropbear",
+        "text": "uci set dropbear.@dropbear[-1].PasswordAuth='off'"
+      },
+      {
+        "line": 12,
+        "path": "/etc/uci-defaults/50-dropbear",
+        "text": "uci set dropbear.@dropbear[-1].RootPasswordAuth='off'"
+      },
+      {
+        "line": 29,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"dropbear\" ]"
+      },
+      {
+        "line": 39,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"dropbear\" ]"
+      }
+    ],
+    "firewall": [
+      {
+        "line": 12,
+        "path": "/usr/share/rpcd/acl.d/luci-app-firewall.json",
+        "text": "\"uci\": [ \"firewall\" ]"
+      },
+      {
+        "line": 21,
+        "path": "/usr/share/rpcd/acl.d/luci-app-firewall.json",
+        "text": "\"uci\": [ \"firewall\" ]"
+      },
+      {
+        "line": 19,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\", \"system\" ]"
+      },
+      {
+        "line": 33,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\" ]"
+      },
+      {
+        "line": 731,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.load(\"firewall\");"
+      },
+      {
+        "line": 751,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"defaults\", d => self.parse_defaults(d));"
+      },
+      {
+        "line": 763,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"ipset\", s => self.parse_ipset(s));"
+      },
+      {
+        "line": 772,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"zone\", z => self.parse_zone(z));"
+      },
+      {
+        "line": 780,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"rule\", r => self.parse_rule(r));"
+      },
+      {
+        "line": 787,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"forwarding\", f => self.parse_forwarding(f));"
+      },
+      {
+        "line": 795,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"redirect\", r => self.parse_redirect(r));"
+      },
+      {
+        "line": 803,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"nat\", n => self.parse_nat(n));"
+      },
+      {
+        "line": 810,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", \"include\", i => self.parse_include(i));"
+      },
+      {
+        "line": 859,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "return this.cursor.get(\"firewall\", sid, opt);"
+      },
+      {
+        "line": 863,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "return this.cursor.get_all(\"firewall\", sid);"
+      },
+      {
+        "line": 1011,
+        "path": "/usr/share/ucode/fw4.uc",
+        "text": "this.cursor.foreach(\"firewall\", s[\".type\"], function(ss) {"
+      }
+    ],
+    "fstab": [
+      {
+        "line": 422,
+        "path": "/lib/functions/procd.sh",
+        "text": "config_load fstab"
+      },
+      {
+        "line": 129,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"fstab\" ]"
+      },
+      {
+        "line": 141,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"fstab\" ]"
+      }
+    ],
+    "luci": [
+      {
+        "line": 9,
+        "path": "/etc/uci-defaults/30_luci-theme-bootstrap",
+        "text": "if ! uci -q get \"luci.$key\" 2>/dev/null; then"
+      },
+      {
+        "line": 10,
+        "path": "/etc/uci-defaults/30_luci-theme-bootstrap",
+        "text": "uci set \"luci.$key=$val\""
+      },
+      {
+        "line": 25,
+        "path": "/etc/uci-defaults/30_luci-theme-bootstrap",
+        "text": "uci commit luci"
+      },
+      {
+        "line": 3,
+        "path": "/etc/uci-defaults/50_luci-mod-admin-full",
+        "text": "if [ \"$(uci -q get luci.diag)\" != \"internal\" ]; then"
+      },
+      {
+        "line": 2,
+        "path": "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+        "text": "check=\"$(uci -q get luci.main.check_for_newer_firmwares)\""
+      },
+      {
+        "line": 7,
+        "path": "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+        "text": "uci -q delete luci.main.check_for_newer_firmwares"
+      },
+      {
+        "line": 22,
+        "path": "/usr/share/rpcd/acl.d/luci-base.json",
+        "text": "\"uci\": [ \"system\", \"luci\" ]"
+      },
+      {
+        "line": 45,
+        "path": "/usr/share/rpcd/acl.d/luci-base.json",
+        "text": "\"uci\": [ \"luci\", \"network\", \"wireless\" ]"
+      },
+      {
+        "line": 83,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"luci\" ]"
+      },
+      {
+        "line": 9,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"luci\", \"system\" ]"
+      },
+      {
+        "line": 16,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"luci\", \"system\" ]"
+      },
+      {
+        "line": 84,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "let lang = uci.get('luci', 'main', 'lang') || 'auto';"
+      },
+      {
+        "line": 93,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "if (cc && uci.get('luci', 'languages', cc)) {"
+      },
+      {
+        "line": 97,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "else if (uci.get('luci', 'languages', tag[0])) {"
+      },
+      {
+        "line": 498,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "let timeout = uci.get('luci', 'sauth', 'sessiontime');"
+      },
+      {
+        "line": 895,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "main: uci.get_all('luci', 'main') ?? {},"
+      },
+      {
+        "line": 896,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "apply: uci.get_all('luci', 'apply') ?? {}"
+      },
+      {
+        "line": 988,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "runtime.L.invoke('require', 'luci.model.uci');"
+      },
+      {
+        "line": 989,
+        "path": "/usr/share/ucode/luci/dispatcher.uc",
+        "text": "runtime.L.get('luci', 'model', 'uci').invoke('set_session_id', session.sid);"
+      },
+      {
+        "line": 157,
+        "path": "/usr/share/ucode/luci/runtime.uc",
+        "text": "let media = uci.get('luci', 'main', 'mediaurlbase');"
+      },
+      {
+        "line": 164,
+        "path": "/usr/share/ucode/luci/runtime.uc",
+        "text": "for (let k, v in uci.get_all('luci', 'themes')) {"
+      },
+      {
+        "line": 181,
+        "path": "/usr/share/ucode/luci/runtime.uc",
+        "text": "self.env.resource = uci.get('luci', 'main', 'resourcebase');"
+      }
+    ],
+    "network": [
+      {
+        "line": 17,
+        "path": "/etc/init.d/packet_steering",
+        "text": "packet_steering=\"$(uci -q get \"network.@globals[0].packet_steering\")\""
+      },
+      {
+        "line": 18,
+        "path": "/etc/init.d/packet_steering",
+        "text": "steering_flows=\"$(uci -q get \"network.@globals[0].steering_flows\")\""
+      },
+      {
+        "line": 268,
+        "path": "/etc/init.d/uhttpd",
+        "text": "config_load network"
+      },
+      {
+        "line": 17,
+        "path": "/etc/uci-defaults/11_network-migrate-bridges",
+        "text": "uci add_list network.$config.ports=\"$port\""
+      },
+      {
+        "line": 19,
+        "path": "/etc/uci-defaults/11_network-migrate-bridges",
+        "text": "uci delete network.$config.ifname"
+      },
+      {
+        "line": 37,
+        "path": "/etc/uci-defaults/11_network-migrate-bridges",
+        "text": "uci add_list network.@device[-1].ports=\"$port\""
+      },
+      {
+        "line": 47,
+        "path": "/etc/uci-defaults/11_network-migrate-bridges",
+        "text": "config_load network"
+      },
+      {
+        "line": 1,
+        "path": "/etc/uci-defaults/12_network-generate-ula",
+        "text": "[ \"$(uci -q get network.globals.ula_prefix)\" != \"auto\" ] && exit 0"
+      },
+      {
+        "line": 19,
+        "path": "/etc/uci-defaults/14_migrate-dhcp-release",
+        "text": "config_load network"
+      },
+      {
+        "line": 21,
+        "path": "/etc/uci-defaults/14_migrate-dhcp-release",
+        "text": "uci commit network"
+      },
+      {
+        "line": 1,
+        "path": "/etc/uci-defaults/14_network-generate-duid",
+        "text": "[ \"$(uci -q get network.globals.dhcp_default_duid || echo \"auto\")\" != \"auto\" ] && exit 0"
+      },
+      {
+        "line": 45,
+        "path": "/usr/share/rpcd/acl.d/luci-base.json",
+        "text": "\"uci\": [ \"luci\", \"network\", \"wireless\" ]"
+      },
+      {
+        "line": 19,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\", \"system\" ]"
+      },
+      {
+        "line": 33,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\" ]"
+      },
+      {
+        "line": 23,
+        "path": "/usr/libexec/luci-peeraddr",
+        "text": "for peeraddr in $(uci get \"network.$iface.peeraddr\"); do"
+      },
+      {
+        "line": 119,
+        "path": "/bin/config_generate",
+        "text": "for port in $ports; do uci add_list network.@device[-1].ports=\"$port\"; done"
+      },
+      {
+        "line": 178,
+        "path": "/bin/config_generate",
+        "text": "[ -e /proc/sys/net/ipv6 ] && uci set network.$1.ip6assign='60'"
+      },
+      {
+        "line": 185,
+        "path": "/bin/config_generate",
+        "text": "uci set network.$1.proto='dhcp'"
+      },
+      {
+        "line": 276,
+        "path": "/bin/config_generate",
+        "text": "uci -q set network.@switch_port[-1].$attr=\"$val\""
+      }
+    ],
+    "rpcd": [
+      {
+        "line": 10,
+        "path": "/etc/init.d/rpcd",
+        "text": "local socket=$(uci -q get rpcd.@rpcd[0].socket)"
+      },
+      {
+        "line": 11,
+        "path": "/etc/init.d/rpcd",
+        "text": "local timeout=$(uci -q get rpcd.@rpcd[0].timeout)"
+      },
+      {
+        "line": 3,
+        "path": "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh",
+        "text": "[ \"$(uci get rpcd.@rpcd[0].socket)\" = \"/var/run/ubus.sock\" ] || exit 0"
+      },
+      {
+        "line": 5,
+        "path": "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh",
+        "text": "uci set rpcd.@rpcd[0].socket='/var/run/ubus/ubus.sock'"
+      },
+      {
+        "line": 6,
+        "path": "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh",
+        "text": "uci commit rpcd"
+      }
+    ],
+    "system": [
+      {
+        "line": 63,
+        "path": "/etc/init.d/gpio_switch",
+        "text": "config_load system"
+      },
+      {
+        "line": 200,
+        "path": "/etc/init.d/led",
+        "text": "[ \"$(uci -q get system.@system[-1].leds_off)\" = '1' ] && {"
+      },
+      {
+        "line": 227,
+        "path": "/etc/init.d/led",
+        "text": "config_load system"
+      },
+      {
+        "line": 100,
+        "path": "/etc/init.d/log",
+        "text": "config_load system"
+      },
+      {
+        "line": 103,
+        "path": "/etc/init.d/log",
+        "text": "config_foreach validate_log_section system register_mount_trigger"
+      },
+      {
+        "line": 108,
+        "path": "/etc/init.d/log",
+        "text": "config_load system"
+      },
+      {
+        "line": 109,
+        "path": "/etc/init.d/log",
+        "text": "config_foreach validate_log_daemon system start_service_daemon"
+      },
+      {
+        "line": 110,
+        "path": "/etc/init.d/log",
+        "text": "config_foreach validate_log_section system start_service_file"
+      },
+      {
+        "line": 111,
+        "path": "/etc/init.d/log",
+        "text": "config_foreach validate_log_section system start_service_remote"
+      },
+      {
+        "line": 101,
+        "path": "/etc/init.d/sysntpd",
+        "text": "config_load system"
+      },
+      {
+        "line": 34,
+        "path": "/etc/init.d/system",
+        "text": "config_load system"
+      },
+      {
+        "line": 35,
+        "path": "/etc/init.d/system",
+        "text": "config_foreach validate_system_section system system_config"
+      },
+      {
+        "line": 5,
+        "path": "/etc/uci-defaults/05_fix-compat-version",
+        "text": "compat_version=\"$(uci get system.@system[0].compat_version)\""
+      },
+      {
+        "line": 7,
+        "path": "/etc/uci-defaults/05_fix-compat-version",
+        "text": "uci set system.@system[0].compat_version=\"1.2\""
+      },
+      {
+        "line": 8,
+        "path": "/etc/uci-defaults/05_fix-compat-version",
+        "text": "uci commit system"
+      },
+      {
+        "line": 1,
+        "path": "/etc/uci-defaults/15_migrate-time-zonename",
+        "text": "zonename=\"$(uci -q get system.@system[0].zonename)\""
+      },
+      {
+        "line": 3,
+        "path": "/etc/uci-defaults/15_migrate-time-zonename",
+        "text": "*[[:space:]]*) uci set system.@system[0].zonename=\"${zonename// /_}\" ;;"
+      },
+      {
+        "line": 176,
+        "path": "/etc/board.d/01_leds",
+        "text": "uci -q set system.lan_speed_fast.mode='link'"
+      },
+      {
+        "line": 178,
+        "path": "/etc/board.d/01_leds",
+        "text": "uci -q set system.lan_speed_slow.mode='tx rx'"
+      },
+      {
+        "line": 18,
+        "path": "/lib/preinit/81_urandom_seed",
+        "text": "SEED=\"$(uci -q get system.@system[0].urandom_seed)\""
+      },
+      {
+        "line": 23,
+        "path": "/lib/functions/migrations.sh",
+        "text": "uci set system.${cfg}.sysfs=\"${new_sysfs}\""
+      },
+      {
+        "line": 49,
+        "path": "/lib/functions/migrations.sh",
+        "text": "uci set system.${cfg}.sysfs=\"${new_sysfs}\""
+      },
+      {
+        "line": 55,
+        "path": "/lib/functions/migrations.sh",
+        "text": "config_load system"
+      },
+      {
+        "line": 60,
+        "path": "/lib/functions/migrations.sh",
+        "text": "config_load system"
+      },
+      {
+        "line": 22,
+        "path": "/usr/share/rpcd/acl.d/luci-base.json",
+        "text": "\"uci\": [ \"system\", \"luci\" ]"
+      },
+      {
+        "line": 19,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\", \"system\" ]"
+      },
+      {
+        "line": 9,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"luci\", \"system\" ]"
+      },
+      {
+        "line": 16,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"luci\", \"system\" ]"
+      },
+      {
+        "line": 122,
+        "path": "/usr/share/rpcd/ucode/luci",
+        "text": "let zn = cursor()?.get?.('system', '@system[0]', 'zonename');"
+      },
+      {
+        "line": 15,
+        "path": "/usr/libexec/login.sh",
+        "text": "[ \"$(uci -q get system.@system[0].ttylogin)\" = 1 ] || exec /bin/login -f root"
+      },
+      {
+        "line": 22,
+        "path": "/sbin/led.sh",
+        "text": "config_load system"
+      },
+      {
+        "line": 15,
+        "path": "/sbin/urandom_seed",
+        "text": "SEED=\"$(uci -q get system.@system[0].urandom_seed || true)\""
+      },
+      {
+        "line": 337,
+        "path": "/bin/config_generate",
+        "text": "uci -q set \"system.@system[-1].hostname=$hostname\""
+      },
+      {
+        "line": 342,
+        "path": "/bin/config_generate",
+        "text": "uci -q set \"system.@system[-1].compat_version=$compat_version\""
+      },
+      {
+        "line": 344,
+        "path": "/bin/config_generate",
+        "text": "uci -q set \"system.@system[-1].compat_version=1.0\""
+      },
+      {
+        "line": 349,
+        "path": "/bin/config_generate",
+        "text": "uci -q set \"system.@system[-1].timezone=$timezone\""
+      },
+      {
+        "line": 356,
+        "path": "/bin/config_generate",
+        "text": "uci -q delete \"system.ntp.server\""
+      },
+      {
+        "line": 361,
+        "path": "/bin/config_generate",
+        "text": "uci -q add_list \"system.ntp.server=$server\""
+      },
+      {
+        "line": 441,
+        "path": "/bin/config_generate",
+        "text": "uci set system.$cfg.trigger='usbport'"
+      },
+      {
+        "line": 443,
+        "path": "/bin/config_generate",
+        "text": "uci add_list system.$cfg.port=$port"
+      }
+    ],
+    "ucitrack": [
+      {
+        "line": 14,
+        "path": "/etc/init.d/ucitrack",
+        "text": "logger -t \"ucitrack\" \"Setting up /etc/config/$config reload trigger for non-procd $init\""
+      },
+      {
+        "line": 46,
+        "path": "/etc/init.d/ucitrack",
+        "text": "logger -t \"ucitrack\" \"Setting up non-init /etc/config/$config reload handler: $exec\""
+      },
+      {
+        "line": 53,
+        "path": "/etc/init.d/ucitrack",
+        "text": "logger -t \"ucitrack\" \"Setting up /etc/config/$affected reload dependency on /etc/config/$config\""
+      }
+    ],
+    "uhttpd": [
+      {
+        "line": 279,
+        "path": "/etc/init.d/uhttpd",
+        "text": "config_load uhttpd"
+      },
+      {
+        "line": 280,
+        "path": "/etc/init.d/uhttpd",
+        "text": "ips=\"$(config_foreach uhttpd_interfaces uhttpd)\""
+      },
+      {
+        "line": 299,
+        "path": "/etc/init.d/uhttpd",
+        "text": "config_load uhttpd"
+      },
+      {
+        "line": 300,
+        "path": "/etc/init.d/uhttpd",
+        "text": "config_foreach start_instance uhttpd"
+      },
+      {
+        "line": 3,
+        "path": "/etc/uci-defaults/00_uhttpd_ubus",
+        "text": "if [ -z \"$(uci -q get uhttpd.main.ubus_prefix)\" ]; then"
+      },
+      {
+        "line": 4,
+        "path": "/etc/uci-defaults/00_uhttpd_ubus",
+        "text": "uci set uhttpd.main.ubus_prefix=/ubus"
+      },
+      {
+        "line": 7,
+        "path": "/etc/uci-defaults/00_uhttpd_ubus",
+        "text": "[ \"$(uci -q get uhttpd.main.ubus_socket)\" = \"/var/run/ubus.sock\" ] && {"
+      },
+      {
+        "line": 8,
+        "path": "/etc/uci-defaults/00_uhttpd_ubus",
+        "text": "uci set uhttpd.main.ubus_socket='/var/run/ubus/ubus.sock'"
+      },
+      {
+        "line": 62,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"uhttpd\" ]"
+      },
+      {
+        "line": 65,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-system.json",
+        "text": "\"uci\": [ \"uhttpd\" ]"
+      },
+      {
+        "line": 43,
+        "path": "/usr/share/ucode/luci/template/sysauth.ut",
+        "text": "let https_ports = uci.get('uhttpd', 'main', 'listen_https') ?? [];"
+      }
+    ],
+    "wireless": [
+      {
+        "line": 29,
+        "path": "/etc/hotplug.d/ieee80211/05-wifi-migrate",
+        "text": "uci set \"wireless.${cfg}.path=${to}\""
+      },
+      {
+        "line": 39,
+        "path": "/etc/hotplug.d/ieee80211/05-wifi-migrate",
+        "text": "config_load wireless"
+      },
+      {
+        "line": 61,
+        "path": "/etc/hotplug.d/ieee80211/05-wifi-migrate",
+        "text": "$WIRELESS_CHANGED && uci commit wireless"
+      },
+      {
+        "line": 113,
+        "path": "/lib/netifd/wireless.uc",
+        "text": "let config = uci.get_all(\"wireless\");"
+      },
+      {
+        "line": 15,
+        "path": "/lib/wifi/mac80211.uc",
+        "text": "let config = uci.cursor().get_all(\"wireless\") ?? {};"
+      },
+      {
+        "line": 45,
+        "path": "/usr/share/rpcd/acl.d/luci-base.json",
+        "text": "\"uci\": [ \"luci\", \"network\", \"wireless\" ]"
+      },
+      {
+        "line": 19,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\", \"system\" ]"
+      },
+      {
+        "line": 33,
+        "path": "/usr/share/rpcd/acl.d/luci-mod-network.json",
+        "text": "\"uci\": [ \"dhcp\", \"firewall\", \"network\", \"wireless\" ]"
+      },
+      {
+        "line": 153,
+        "path": "/usr/bin/iwinfo",
+        "text": "let sec = uci.cursor(null, null, null, { strict: false }).get_all('wireless', sec_name);"
+      }
+    ]
+  },
+  "counts": {
+    "board_d_scripts": 7,
+    "config_packages_tracked": 11,
+    "deployed_configs": 6,
+    "generators": 8,
+    "uci_defaults": 22
+  },
+  "deployed_configs": [
+    {
+      "owner_package": "dnsmasq",
+      "path": "/etc/config/dhcp",
+      "sections": [
+        {
+          "line": 1,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "domainneeded"
+            },
+            {
+              "kind": "option",
+              "name": "boguspriv"
+            },
+            {
+              "kind": "option",
+              "name": "filterwin2k"
+            },
+            {
+              "kind": "option",
+              "name": "localise_queries"
+            },
+            {
+              "kind": "option",
+              "name": "rebind_protection"
+            },
+            {
+              "kind": "option",
+              "name": "rebind_localhost"
+            },
+            {
+              "kind": "option",
+              "name": "local"
+            },
+            {
+              "kind": "option",
+              "name": "domain"
+            },
+            {
+              "kind": "option",
+              "name": "expandhosts"
+            },
+            {
+              "kind": "option",
+              "name": "nonegcache"
+            },
+            {
+              "kind": "option",
+              "name": "cachesize"
+            },
+            {
+              "kind": "option",
+              "name": "authoritative"
+            },
+            {
+              "kind": "option",
+              "name": "readethers"
+            },
+            {
+              "kind": "option",
+              "name": "leasefile"
+            },
+            {
+              "kind": "option",
+              "name": "resolvfile"
+            },
+            {
+              "kind": "option",
+              "name": "nonwildcard"
+            },
+            {
+              "kind": "option",
+              "name": "localservice"
+            },
+            {
+              "kind": "option",
+              "name": "ednspacket_max"
+            },
+            {
+              "kind": "option",
+              "name": "filter_aaaa"
+            },
+            {
+              "kind": "option",
+              "name": "filter_a"
+            }
+          ],
+          "type": "dnsmasq"
+        },
+        {
+          "line": 29,
+          "name": "lan",
+          "options": [
+            {
+              "kind": "option",
+              "name": "interface"
+            },
+            {
+              "kind": "option",
+              "name": "start"
+            },
+            {
+              "kind": "option",
+              "name": "limit"
+            },
+            {
+              "kind": "option",
+              "name": "leasetime"
+            }
+          ],
+          "type": "dhcp"
+        },
+        {
+          "line": 35,
+          "name": "wan",
+          "options": [
+            {
+              "kind": "option",
+              "name": "interface"
+            },
+            {
+              "kind": "option",
+              "name": "ignore"
+            }
+          ],
+          "type": "dhcp"
+        }
+      ],
+      "sha256": "a3ab720d8cd674dced9d6c22963a900e700480d9e666285c52c0cf0a418ba5bb"
+    },
+    {
+      "owner_package": "dropbear",
+      "path": "/etc/config/dropbear",
+      "sections": [
+        {
+          "line": 2,
+          "name": "main",
+          "options": [
+            {
+              "kind": "option",
+              "name": "enable"
+            },
+            {
+              "kind": "option",
+              "name": "PasswordAuth"
+            },
+            {
+              "kind": "option",
+              "name": "RootPasswordAuth"
+            },
+            {
+              "kind": "option",
+              "name": "Port"
+            }
+          ],
+          "type": "dropbear"
+        }
+      ],
+      "sha256": "b80472937a530c79953f9f84168ed58aa8a7af2aa083ebba71f68488bf9f87a3"
+    },
+    {
+      "owner_package": "firewall4",
+      "path": "/etc/config/firewall",
+      "sections": [
+        {
+          "line": 1,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "syn_flood"
+            },
+            {
+              "kind": "option",
+              "name": "input"
+            },
+            {
+              "kind": "option",
+              "name": "output"
+            },
+            {
+              "kind": "option",
+              "name": "forward"
+            }
+          ],
+          "type": "defaults"
+        },
+        {
+          "line": 9,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "list",
+              "name": "network"
+            },
+            {
+              "kind": "option",
+              "name": "input"
+            },
+            {
+              "kind": "option",
+              "name": "output"
+            },
+            {
+              "kind": "option",
+              "name": "forward"
+            }
+          ],
+          "type": "zone"
+        },
+        {
+          "line": 16,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "list",
+              "name": "network"
+            },
+            {
+              "kind": "list",
+              "name": "network"
+            },
+            {
+              "kind": "option",
+              "name": "input"
+            },
+            {
+              "kind": "option",
+              "name": "output"
+            },
+            {
+              "kind": "option",
+              "name": "forward"
+            },
+            {
+              "kind": "option",
+              "name": "masq"
+            },
+            {
+              "kind": "option",
+              "name": "mtu_fix"
+            }
+          ],
+          "type": "zone"
+        },
+        {
+          "line": 26,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "dest"
+            }
+          ],
+          "type": "forwarding"
+        },
+        {
+          "line": 32,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "option",
+              "name": "dest_port"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            },
+            {
+              "kind": "option",
+              "name": "family"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 41,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "option",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "option",
+              "name": "family"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 49,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "option",
+              "name": "family"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 58,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "option",
+              "name": "dest_port"
+            },
+            {
+              "kind": "option",
+              "name": "family"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 66,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "option",
+              "name": "src_ip"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "option",
+              "name": "family"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 79,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "option",
+              "name": "limit"
+            },
+            {
+              "kind": "option",
+              "name": "family"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 99,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "dest"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "list",
+              "name": "icmp_type"
+            },
+            {
+              "kind": "option",
+              "name": "limit"
+            },
+            {
+              "kind": "option",
+              "name": "family"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 115,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "dest"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        },
+        {
+          "line": 122,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "name"
+            },
+            {
+              "kind": "option",
+              "name": "src"
+            },
+            {
+              "kind": "option",
+              "name": "dest"
+            },
+            {
+              "kind": "option",
+              "name": "dest_port"
+            },
+            {
+              "kind": "option",
+              "name": "proto"
+            },
+            {
+              "kind": "option",
+              "name": "target"
+            }
+          ],
+          "type": "rule"
+        }
+      ],
+      "sha256": "7ec1d9cd5cf448cf26e1360b9fb23f59f60c40cd40a65da6a7d8a162b61af2c5"
+    },
+    {
+      "owner_package": "luci-base",
+      "path": "/etc/config/luci",
+      "sections": [
+        {
+          "line": 1,
+          "name": "main",
+          "options": [
+            {
+              "kind": "option",
+              "name": "lang"
+            },
+            {
+              "kind": "option",
+              "name": "mediaurlbase"
+            },
+            {
+              "kind": "option",
+              "name": "resourcebase"
+            },
+            {
+              "kind": "option",
+              "name": "ubuspath"
+            }
+          ],
+          "type": "core"
+        },
+        {
+          "line": 7,
+          "name": "flash_keep",
+          "options": [
+            {
+              "kind": "option",
+              "name": "uci"
+            },
+            {
+              "kind": "option",
+              "name": "dropbear"
+            },
+            {
+              "kind": "option",
+              "name": "openvpn"
+            },
+            {
+              "kind": "option",
+              "name": "passwd"
+            },
+            {
+              "kind": "option",
+              "name": "opkg"
+            },
+            {
+              "kind": "option",
+              "name": "firewall"
+            },
+            {
+              "kind": "option",
+              "name": "uploads"
+            }
+          ],
+          "type": "extern"
+        },
+        {
+          "line": 16,
+          "name": "languages",
+          "options": [],
+          "type": "internal"
+        },
+        {
+          "line": 18,
+          "name": "sauth",
+          "options": [
+            {
+              "kind": "option",
+              "name": "sessionpath"
+            },
+            {
+              "kind": "option",
+              "name": "sessiontime"
+            }
+          ],
+          "type": "internal"
+        },
+        {
+          "line": 22,
+          "name": "ccache",
+          "options": [
+            {
+              "kind": "option",
+              "name": "enable"
+            }
+          ],
+          "type": "internal"
+        },
+        {
+          "line": 25,
+          "name": "themes",
+          "options": [],
+          "type": "internal"
+        },
+        {
+          "line": 27,
+          "name": "apply",
+          "options": [
+            {
+              "kind": "option",
+              "name": "rollback"
+            },
+            {
+              "kind": "option",
+              "name": "holdoff"
+            },
+            {
+              "kind": "option",
+              "name": "timeout"
+            },
+            {
+              "kind": "option",
+              "name": "display"
+            }
+          ],
+          "type": "internal"
+        }
+      ],
+      "sha256": "60078f7c02ed91d23092c9b75cb9ea5c8ee39f7727def813c8201f8e48a296f4"
+    },
+    {
+      "owner_package": "rpcd",
+      "path": "/etc/config/rpcd",
+      "sections": [
+        {
+          "line": 1,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "socket"
+            },
+            {
+              "kind": "option",
+              "name": "timeout"
+            }
+          ],
+          "type": "rpcd"
+        },
+        {
+          "line": 5,
+          "name": null,
+          "options": [
+            {
+              "kind": "option",
+              "name": "username"
+            },
+            {
+              "kind": "option",
+              "name": "password"
+            },
+            {
+              "kind": "list",
+              "name": "read"
+            },
+            {
+              "kind": "list",
+              "name": "write"
+            }
+          ],
+          "type": "login"
+        }
+      ],
+      "sha256": "1a40da0ebe45b1afd131dfc4650592913e38445e7fe42f96d3b95ad5151ac0e6"
+    },
+    {
+      "owner_package": "uhttpd",
+      "path": "/etc/config/uhttpd",
+      "sections": [
+        {
+          "line": 2,
+          "name": "main",
+          "options": [
+            {
+              "kind": "list",
+              "name": "listen_http"
+            },
+            {
+              "kind": "list",
+              "name": "listen_http"
+            },
+            {
+              "kind": "list",
+              "name": "listen_https"
+            },
+            {
+              "kind": "list",
+              "name": "listen_https"
+            },
+            {
+              "kind": "option",
+              "name": "redirect_https"
+            },
+            {
+              "kind": "option",
+              "name": "home"
+            },
+            {
+              "kind": "option",
+              "name": "rfc1918_filter"
+            },
+            {
+              "kind": "option",
+              "name": "max_requests"
+            },
+            {
+              "kind": "option",
+              "name": "max_connections"
+            },
+            {
+              "kind": "option",
+              "name": "cert"
+            },
+            {
+              "kind": "option",
+              "name": "key"
+            },
+            {
+              "kind": "option",
+              "name": "cgi_prefix"
+            },
+            {
+              "kind": "list",
+              "name": "lua_prefix"
+            },
+            {
+              "kind": "option",
+              "name": "script_timeout"
+            },
+            {
+              "kind": "option",
+              "name": "network_timeout"
+            },
+            {
+              "kind": "option",
+              "name": "http_keepalive"
+            },
+            {
+              "kind": "option",
+              "name": "tcp_keepalive"
+            }
+          ],
+          "type": "uhttpd"
+        },
+        {
+          "line": 124,
+          "name": "defaults",
+          "options": [
+            {
+              "kind": "option",
+              "name": "days"
+            },
+            {
+              "kind": "option",
+              "name": "key_type"
+            },
+            {
+              "kind": "option",
+              "name": "bits"
+            },
+            {
+              "kind": "option",
+              "name": "ec_curve"
+            },
+            {
+              "kind": "option",
+              "name": "country"
+            },
+            {
+              "kind": "option",
+              "name": "state"
+            },
+            {
+              "kind": "option",
+              "name": "location"
+            },
+            {
+              "kind": "option",
+              "name": "commonname"
+            }
+          ],
+          "type": "cert"
+        }
+      ],
+      "sha256": "4bb87a8ccfa98d9c7be831b4bb4f2895c4f188802a185bc5126d78ebdc3c7532"
+    }
+  ],
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "generators": [
+    {
+      "owner_package": "base-files",
+      "path": "/bin/config_generate",
+      "sha256": "01166088aee15fc77c31249be3fd1e79a851c5541dc54652b1d4a70a28ec0174",
+      "writes_config_evidence": [
+        {
+          "line": 3,
+          "path": "/bin/config_generate",
+          "text": "CFG=/etc/board.json"
+        },
+        {
+          "line": 9,
+          "path": "/bin/config_generate",
+          "text": "[ -s /etc/config/network -a -s /etc/config/system ] && exit 0"
+        },
+        {
+          "line": 14,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 20,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 32,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 41,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 52,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 63,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 79,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 114,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 122,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 146,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 153,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 174,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 187,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 197,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 203,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 216,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 241,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 268,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 276,
+          "path": "/bin/config_generate",
+          "text": "uci -q set network.@switch_port[-1].$attr=\"$val\""
+        },
+        {
+          "line": 296,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 313,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 337,
+          "path": "/bin/config_generate",
+          "text": "uci -q set \"system.@system[-1].hostname=$hostname\""
+        },
+        {
+          "line": 342,
+          "path": "/bin/config_generate",
+          "text": "uci -q set \"system.@system[-1].compat_version=$compat_version\""
+        },
+        {
+          "line": 344,
+          "path": "/bin/config_generate",
+          "text": "uci -q set \"system.@system[-1].compat_version=1.0\""
+        },
+        {
+          "line": 349,
+          "path": "/bin/config_generate",
+          "text": "uci -q set \"system.@system[-1].timezone=$timezone\""
+        },
+        {
+          "line": 356,
+          "path": "/bin/config_generate",
+          "text": "uci -q delete \"system.ntp.server\""
+        },
+        {
+          "line": 361,
+          "path": "/bin/config_generate",
+          "text": "uci -q add_list \"system.ntp.server=$server\""
+        },
+        {
+          "line": 381,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 398,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 411,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 421,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 431,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 450,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 463,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 473,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 481,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 500,
+          "path": "/bin/config_generate",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 511,
+          "path": "/bin/config_generate",
+          "text": "json_init"
+        }
+      ]
+    },
+    {
+      "owner_package": "procd",
+      "path": "/sbin/reload_config",
+      "sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+      "writes_config_evidence": [
+        {
+          "line": 4,
+          "path": "/sbin/reload_config",
+          "text": "for config in /var/run/uci/* /etc/config/*; do"
+        }
+      ]
+    },
+    {
+      "owner_package": "wifi-scripts",
+      "path": "/sbin/wifi",
+      "sha256": "44e8d36504c097484a6053a5d7b5604e33a2116be2c4ac12f2e799eaa37cd8c9",
+      "writes_config_evidence": [
+        {
+          "line": 19,
+          "path": "/sbin/wifi",
+          "text": "json_init"
+        },
+        {
+          "line": 66,
+          "path": "/sbin/wifi",
+          "text": "[ ! -f /etc/config/wireless ] && touch /etc/config/wireless"
+        },
+        {
+          "line": 67,
+          "path": "/sbin/wifi",
+          "text": "ucode /lib/wifi/mac80211.uc | uci -q batch"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/init.d/boot",
+      "sha256": "d46ef875240d6ed2d82b6c4c0d7852ba6b8677c9aa07bab0b202101b1f1c8e58",
+      "writes_config_evidence": [
+        {
+          "line": 48,
+          "path": "/etc/init.d/boot",
+          "text": "[ -f /etc/board.json ] && /sbin/wifi config"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/lib/functions/uci-defaults.sh",
+      "sha256": "83b61f6e3c70c6e463640126f342ed4841c460a6a92b64d5b1163b41200c94d3",
+      "writes_config_evidence": [
+        {
+          "line": 28,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface() {"
+        },
+        {
+          "line": 63,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_board_id() {"
+        },
+        {
+          "line": 69,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_model_name() {"
+        },
+        {
+          "line": 75,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_compat_version() {"
+        },
+        {
+          "line": 81,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface_lan() {"
+        },
+        {
+          "line": 82,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface \"lan\" device \"$1\" protocol \"${2:-static}\""
+        },
+        {
+          "line": 85,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface_wan() {"
+        },
+        {
+          "line": 86,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface \"wan\" device \"$1\" protocol \"${2:-dhcp}\""
+        },
+        {
+          "line": 89,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interfaces_lan_wan() {"
+        },
+        {
+          "line": 93,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface_lan \"$lan_if\""
+        },
+        {
+          "line": 94,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface_wan \"$wan_if\""
+        },
+        {
+          "line": 97,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_bridge_device() {"
+        },
+        {
+          "line": 103,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_bridge_mac() {"
+        },
+        {
+          "line": 109,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_set_network_device_common() {"
+        },
+        {
+          "line": 117,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_network_device_mac() {"
+        },
+        {
+          "line": 118,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_set_network_device_common $1 macaddr $2"
+        },
+        {
+          "line": 121,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_network_device_path() {"
+        },
+        {
+          "line": 122,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_set_network_device_common $1 path $2"
+        },
+        {
+          "line": 125,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_network_device_path_port() {"
+        },
+        {
+          "line": 126,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_set_network_device_common $1 path $2"
+        },
+        {
+          "line": 127,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_set_network_device_common $1 port $3"
+        },
+        {
+          "line": 130,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_network_device_gro() {"
+        },
+        {
+          "line": 131,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_set_network_device_common $1 gro $2"
+        },
+        {
+          "line": 134,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_network_device_conduit() {"
+        },
+        {
+          "line": 135,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_set_network_device_common $1 conduit $2"
+        },
+        {
+          "line": 138,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_add_switch_port() {"
+        },
+        {
+          "line": 184,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_finish_switch_roles() {"
+        },
+        {
+          "line": 232,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface \"$role\" device \"$devices\""
+        },
+        {
+          "line": 236,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_ar8xxx_switch_mib() {"
+        },
+        {
+          "line": 249,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_add_switch() {"
+        },
+        {
+          "line": 288,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_add_switch_port"
+        },
+        {
+          "line": 296,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "_ucidef_finish_switch_roles"
+        },
+        {
+          "line": 299,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_add_switch_attr() {"
+        },
+        {
+          "line": 317,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_add_switch_port_attr() {"
+        },
+        {
+          "line": 354,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface_macaddr() {"
+        },
+        {
+          "line": 358,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_interface \"$network\" macaddr \"$macaddr\""
+        },
+        {
+          "line": 361,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_set_label_macaddr() {"
+        },
+        {
+          "line": 369,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_add_atm_bridge() {"
+        },
+        {
+          "line": 387,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_add_adsl_modem() {"
+        },
+        {
+          "line": 400,
+          "path": "/lib/functions/uci-defaults.sh",
+          "text": "ucidef_add_vdsl_modem() {"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/lib/functions/migrations.sh",
+      "sha256": "b6f53a8b934ef1a559eeac599ed9de29a019897a5bce206f7183f752966bf478",
+      "writes_config_evidence": [
+        {
+          "line": 66,
+          "path": "/lib/functions/migrations.sh",
+          "text": "[ -n \"$(uci changes ${realm})\" ] && uci -q commit ${realm}"
+        }
+      ]
+    },
+    {
+      "owner_package": "wifi-scripts",
+      "path": "/etc/hotplug.d/ieee80211/10-wifi-detect",
+      "sha256": "0f8f0830ce3f7708505596b6b933e6ec6bc1156af26ae890ba4b69ae015abdfb",
+      "writes_config_evidence": [
+        {
+          "line": 3,
+          "path": "/etc/hotplug.d/ieee80211/10-wifi-detect",
+          "text": "[ \"${ACTION}\" = \"add\" ] && [ -f /etc/board.json ] && {"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/hotplug.d/ieee80211/05-wifi-migrate",
+      "sha256": "2c189ad0258b94bab4a4873b8c91e5b964db2dd087dcb7c74f389a94417c9144",
+      "writes_config_evidence": []
+    }
+  ],
+  "method": {
+    "executes_target_content": false,
+    "reads_only": true,
+    "rootfs": "extracted squashfs root, read-only",
+    "sources": "pinned OpenWrt buildroot, feeds and component checkouts"
+  },
+  "recorded_at": "2026-08-31",
+  "schema_version": 1,
+  "stage": "I0.5",
+  "status": "complete",
+  "uci_defaults": [
+    {
+      "owner_package": "uhttpd-mod-ubus",
+      "path": "/etc/uci-defaults/00_uhttpd_ubus",
+      "self_deleting": true,
+      "sha256": "4cae1c943a1efc41449c377db3e2b5338b36cbcb815f388fea6d86c972b3927d",
+      "touched_configs": [
+        "uhttpd"
+      ],
+      "uci_statements": [
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/00_uhttpd_ubus",
+          "text": "if [ -z \"$(uci -q get uhttpd.main.ubus_prefix)\" ]; then"
+        },
+        {
+          "line": 4,
+          "path": "/etc/uci-defaults/00_uhttpd_ubus",
+          "text": "uci set uhttpd.main.ubus_prefix=/ubus"
+        },
+        {
+          "line": 7,
+          "path": "/etc/uci-defaults/00_uhttpd_ubus",
+          "text": "[ \"$(uci -q get uhttpd.main.ubus_socket)\" = \"/var/run/ubus.sock\" ] && {"
+        },
+        {
+          "line": 8,
+          "path": "/etc/uci-defaults/00_uhttpd_ubus",
+          "text": "uci set uhttpd.main.ubus_socket='/var/run/ubus/ubus.sock'"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/05_fix-compat-version",
+      "self_deleting": true,
+      "sha256": "1b01dd78f51d31fbe622e378d8f7b71fd3766d416fd30a66b113801bc591a54f",
+      "touched_configs": [
+        "system"
+      ],
+      "uci_statements": [
+        {
+          "line": 5,
+          "path": "/etc/uci-defaults/05_fix-compat-version",
+          "text": "compat_version=\"$(uci get system.@system[0].compat_version)\""
+        },
+        {
+          "line": 7,
+          "path": "/etc/uci-defaults/05_fix-compat-version",
+          "text": "uci set system.@system[0].compat_version=\"1.2\""
+        },
+        {
+          "line": 8,
+          "path": "/etc/uci-defaults/05_fix-compat-version",
+          "text": "uci commit system"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/10_migrate-shadow",
+      "self_deleting": true,
+      "sha256": "2e15b0ec33535a6576e847de7185535aa8233b1f24b3ea2039c8cf2876b7db10",
+      "touched_configs": [],
+      "uci_statements": []
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/11_network-migrate-bridges",
+      "self_deleting": false,
+      "sha256": "4b1630f0e50dd5c036a34eba0da519c466debddc0b4ff467470546ed23db37b4",
+      "touched_configs": [
+        "network"
+      ],
+      "uci_statements": [
+        {
+          "line": 17,
+          "path": "/etc/uci-defaults/11_network-migrate-bridges",
+          "text": "uci add_list network.$config.ports=\"$port\""
+        },
+        {
+          "line": 19,
+          "path": "/etc/uci-defaults/11_network-migrate-bridges",
+          "text": "uci delete network.$config.ifname"
+        },
+        {
+          "line": 31,
+          "path": "/etc/uci-defaults/11_network-migrate-bridges",
+          "text": "uci -q batch <<-EOF"
+        },
+        {
+          "line": 37,
+          "path": "/etc/uci-defaults/11_network-migrate-bridges",
+          "text": "uci add_list network.@device[-1].ports=\"$port\""
+        },
+        {
+          "line": 40,
+          "path": "/etc/uci-defaults/11_network-migrate-bridges",
+          "text": "uci -q batch <<-EOF"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/12_network-generate-ula",
+      "self_deleting": true,
+      "sha256": "417f4a86d125e1c0814da711f6f7217b3dd450e275b5d03da20db5dbdc242cd5",
+      "touched_configs": [
+        "network"
+      ],
+      "uci_statements": [
+        {
+          "line": 1,
+          "path": "/etc/uci-defaults/12_network-generate-ula",
+          "text": "[ \"$(uci -q get network.globals.ula_prefix)\" != \"auto\" ] && exit 0"
+        },
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/12_network-generate-ula",
+          "text": "uci -q batch <<-EOF >/dev/null"
+        }
+      ]
+    },
+    {
+      "owner_package": "netifd",
+      "path": "/etc/uci-defaults/14_migrate-dhcp-release",
+      "self_deleting": true,
+      "sha256": "214613d601d01ed5dd33124890a6b6ff645d59c5d07ce8f080c24dcf18098cd1",
+      "touched_configs": [],
+      "uci_statements": [
+        {
+          "line": 21,
+          "path": "/etc/uci-defaults/14_migrate-dhcp-release",
+          "text": "uci commit network"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/14_network-generate-duid",
+      "self_deleting": true,
+      "sha256": "47d93886f6828678fd5c5ff9963842468e20cc80ec9d64f99cdd7a093abdc928",
+      "touched_configs": [
+        "network"
+      ],
+      "uci_statements": [
+        {
+          "line": 1,
+          "path": "/etc/uci-defaults/14_network-generate-duid",
+          "text": "[ \"$(uci -q get network.globals.dhcp_default_duid || echo \"auto\")\" != \"auto\" ] && exit 0"
+        },
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/14_network-generate-duid",
+          "text": "uci -q batch <<-EOF >/dev/null"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/15_migrate-time-zonename",
+      "self_deleting": true,
+      "sha256": "b9369763cd23660ba04bd632ebc689bd2cf60d54eb0a2c7ea18b5c9f174df8c1",
+      "touched_configs": [
+        "system"
+      ],
+      "uci_statements": [
+        {
+          "line": 1,
+          "path": "/etc/uci-defaults/15_migrate-time-zonename",
+          "text": "zonename=\"$(uci -q get system.@system[0].zonename)\""
+        },
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/15_migrate-time-zonename",
+          "text": "*[[:space:]]*) uci set system.@system[0].zonename=\"${zonename// /_}\" ;;"
+        }
+      ]
+    },
+    {
+      "owner_package": "odhcpd-ipv6only",
+      "path": "/etc/uci-defaults/15_odhcpd",
+      "self_deleting": true,
+      "sha256": "74127917302aef81ef1edee7088345314a9e40dbcd3e4ae0a422a70f36ef4e8a",
+      "touched_configs": [
+        "dhcp"
+      ],
+      "uci_statements": [
+        {
+          "line": 46,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "if [ -n \"$(uci -q get dhcp.odhcpd)\" ]; then"
+        },
+        {
+          "line": 51,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "piodir=$(uci -q get dhcp.odhcpd.piodir)"
+        },
+        {
+          "line": 54,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci set dhcp.odhcpd.piodir=$piodir"
+        },
+        {
+          "line": 58,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "piofolder=$(uci -q get dhcp.odhcpd.piofolder)"
+        },
+        {
+          "line": 61,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci delete dhcp.odhcpd.piofolder"
+        },
+        {
+          "line": 65,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "if [ -n \"$(uci -q get dhcp.odhcpd.legacy)\" ]; then"
+        },
+        {
+          "line": 66,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci delete dhcp.odhcpd.legacy"
+        },
+        {
+          "line": 70,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "hostsfile=$(uci -q get dhcp.odhcpd.hostsfile)"
+        },
+        {
+          "line": 72,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci delete dhcp.odhcpd.hostsfile"
+        },
+        {
+          "line": 73,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci set dhcp.odhcpd.hostsdir=\"$(dirname $hostsfile)\""
+        },
+        {
+          "line": 75,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "elif [ -z \"$(uci -q get dhcp.odhcpd.hostsdir)\" ]; then"
+        },
+        {
+          "line": 76,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci set dhcp.odhcpd.hostsdir=/tmp/hosts"
+        },
+        {
+          "line": 80,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "if [ \"$(uci -q get dhcp.odhcpd.leasefile)\" == \"/tmp/hosts/odhcpd\" ]; then"
+        },
+        {
+          "line": 81,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci set dhcp.odhcpd.leasefile=/tmp/odhcpd.leases"
+        },
+        {
+          "line": 85,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "[ \"$commit\" -eq 1 ] && uci commit dhcp"
+        },
+        {
+          "line": 113,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci -q get dhcp.lan || {"
+        },
+        {
+          "line": 114,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci batch <<EOF"
+        },
+        {
+          "line": 124,
+          "path": "/etc/uci-defaults/15_odhcpd",
+          "text": "uci batch <<EOF"
+        }
+      ]
+    },
+    {
+      "owner_package": "luci-theme-bootstrap",
+      "path": "/etc/uci-defaults/30_luci-theme-bootstrap",
+      "self_deleting": true,
+      "sha256": "ffd921e58b89734e55012ca0e4c4820dab4b332bd4658513fdc306545df33afe",
+      "touched_configs": [
+        "luci"
+      ],
+      "uci_statements": [
+        {
+          "line": 9,
+          "path": "/etc/uci-defaults/30_luci-theme-bootstrap",
+          "text": "if ! uci -q get \"luci.$key\" 2>/dev/null; then"
+        },
+        {
+          "line": 10,
+          "path": "/etc/uci-defaults/30_luci-theme-bootstrap",
+          "text": "uci set \"luci.$key=$val\""
+        },
+        {
+          "line": 25,
+          "path": "/etc/uci-defaults/30_luci-theme-bootstrap",
+          "text": "uci commit luci"
+        }
+      ]
+    },
+    {
+      "owner_package": "uboot-envtools",
+      "path": "/etc/uci-defaults/30_uboot-envtools",
+      "self_deleting": true,
+      "sha256": "bad297e3e28eb25f5cea937cdc6dd1d685511bf02fd149aaa175f216e94f3e9f",
+      "touched_configs": [],
+      "uci_statements": []
+    },
+    {
+      "owner_package": "attendedsysupgrade-common",
+      "path": "/etc/uci-defaults/50-attendedsysupgrade",
+      "self_deleting": false,
+      "sha256": "4303b6a602e3fffade48ef43e17cb2d9d668006baf869c6f4f3019cda52806e4",
+      "touched_configs": [],
+      "uci_statements": [
+        {
+          "line": 7,
+          "path": "/etc/uci-defaults/50-attendedsysupgrade",
+          "text": "uci -q batch <<EOF"
+        }
+      ]
+    },
+    {
+      "owner_package": "dnsmasq",
+      "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+      "self_deleting": true,
+      "sha256": "6affb223dd5a143f9d7f2a5b1284e16a851731d706b71e5dd016f2c010a702f2",
+      "touched_configs": [
+        "dhcp"
+      ],
+      "uci_statements": [
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+          "text": "ipsets=$(uci -q get dhcp.@dnsmasq[0].ipset)"
+        },
+        {
+          "line": 12,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+          "text": "uci add dhcp ipset"
+        },
+        {
+          "line": 18,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+          "text": "uci add_list dhcp.@ipset[-1].name=\"$name\""
+        },
+        {
+          "line": 23,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+          "text": "uci add_list dhcp.@ipset[-1].domain=\"$domain\""
+        },
+        {
+          "line": 28,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+          "text": "uci del_list dhcp.@dnsmasq[0].ipset=\"$ipset\""
+        },
+        {
+          "line": 31,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-ipset.sh",
+          "text": "uci commit dhcp"
+        }
+      ]
+    },
+    {
+      "owner_package": "dnsmasq",
+      "path": "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+      "self_deleting": true,
+      "sha256": "8e373e9c7f4e2684a694b1aa0443dc81e47eebb124d9040cb7c2fbd22fad71d4",
+      "touched_configs": [
+        "dhcp"
+      ],
+      "uci_statements": [
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+          "text": "[ \"$(uci get dhcp.@dnsmasq[0].resolvfile)\" = \"/tmp/resolv.conf.auto\" ] && {"
+        },
+        {
+          "line": 4,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+          "text": "uci set dhcp.@dnsmasq[0].resolvfile=\"/tmp/resolv.conf.d/resolv.conf.auto\""
+        },
+        {
+          "line": 5,
+          "path": "/etc/uci-defaults/50-dnsmasq-migrate-resolv-conf-auto.sh",
+          "text": "uci commit dhcp"
+        }
+      ]
+    },
+    {
+      "owner_package": "dropbear",
+      "path": "/etc/uci-defaults/50-dropbear",
+      "self_deleting": true,
+      "sha256": "4f8f948fba8fef0af18dbd3c18c8efdf668c45884c6a4839622458069e69653a",
+      "touched_configs": [
+        "dropbear"
+      ],
+      "uci_statements": [
+        {
+          "line": 11,
+          "path": "/etc/uci-defaults/50-dropbear",
+          "text": "uci set dropbear.@dropbear[-1].PasswordAuth='off'"
+        },
+        {
+          "line": 12,
+          "path": "/etc/uci-defaults/50-dropbear",
+          "text": "uci set dropbear.@dropbear[-1].RootPasswordAuth='off'"
+        }
+      ]
+    },
+    {
+      "owner_package": "rpcd",
+      "path": "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh",
+      "self_deleting": true,
+      "sha256": "6649018dc746c571c558685b06ec7a2b3bfab721b96d46a40e0ff54865e81b7e",
+      "touched_configs": [
+        "rpcd"
+      ],
+      "uci_statements": [
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh",
+          "text": "[ \"$(uci get rpcd.@rpcd[0].socket)\" = \"/var/run/ubus.sock\" ] || exit 0"
+        },
+        {
+          "line": 5,
+          "path": "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh",
+          "text": "uci set rpcd.@rpcd[0].socket='/var/run/ubus/ubus.sock'"
+        },
+        {
+          "line": 6,
+          "path": "/etc/uci-defaults/50-migrate-rpcd-ubus-sock.sh",
+          "text": "uci commit rpcd"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/50-root-passwd",
+      "self_deleting": false,
+      "sha256": "d1d30f39b912f16bf9abe693da2cdd311df2f4c7f1621370732f75daf46c45f8",
+      "touched_configs": [],
+      "uci_statements": []
+    },
+    {
+      "owner_package": "luci-mod-network",
+      "path": "/etc/uci-defaults/50_luci-mod-admin-full",
+      "self_deleting": true,
+      "sha256": "7f331ebd9f2a9f5fa0bdc799ee7058d0c627df35fa02e6a6691ab18064834783",
+      "touched_configs": [
+        "luci"
+      ],
+      "uci_statements": [
+        {
+          "line": 3,
+          "path": "/etc/uci-defaults/50_luci-mod-admin-full",
+          "text": "if [ \"$(uci -q get luci.diag)\" != \"internal\" ]; then"
+        },
+        {
+          "line": 13,
+          "path": "/etc/uci-defaults/50_luci-mod-admin-full",
+          "text": "uci -q batch <<-EOF >/dev/null"
+        }
+      ]
+    },
+    {
+      "owner_package": "owut",
+      "path": "/etc/uci-defaults/51-attendedsysupgrade-owut",
+      "self_deleting": false,
+      "sha256": "b6b4ddb9ff4ef2dfe81027286ad2460ad49f07fbc9997b2d5ef8fa50e3c2ab7e",
+      "touched_configs": [
+        "attendedsysupgrade"
+      ],
+      "uci_statements": [
+        {
+          "line": 8,
+          "path": "/etc/uci-defaults/51-attendedsysupgrade-owut",
+          "text": ". /etc/uci-defaults/50-attendedsysupgrade"
+        },
+        {
+          "line": 11,
+          "path": "/etc/uci-defaults/51-attendedsysupgrade-owut",
+          "text": "if [ -z \"$(uci get attendedsysupgrade.owut 2> /dev/null)\" ]; then"
+        }
+      ]
+    },
+    {
+      "owner_package": "luci-app-attendedsysupgrade",
+      "path": "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+      "self_deleting": true,
+      "sha256": "90dd519a4e40c47e8645f580836aaace0879697813ce91fea7d351523c6f3228",
+      "touched_configs": [
+        "attendedsysupgrade",
+        "luci"
+      ],
+      "uci_statements": [
+        {
+          "line": 2,
+          "path": "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+          "text": "check=\"$(uci -q get luci.main.check_for_newer_firmwares)\""
+        },
+        {
+          "line": 4,
+          "path": "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+          "text": "if ! uci -q get attendedsysupgrade.client.login_check_for_upgrades >/dev/null; then"
+        },
+        {
+          "line": 5,
+          "path": "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+          "text": "uci set attendedsysupgrade.client.login_check_for_upgrades=\"$check\""
+        },
+        {
+          "line": 7,
+          "path": "/etc/uci-defaults/95-luci-app-attendedsysupgrade-housekeeping",
+          "text": "uci -q delete luci.main.check_for_newer_firmwares"
+        }
+      ]
+    },
+    {
+      "owner_package": "base-files",
+      "path": "/etc/uci-defaults/99_fwenv-store-ethaddr.sh",
+      "self_deleting": true,
+      "sha256": "0635034dc8dbf9b230ea546eb7db9fa3d47954c6941d1124f1fd6b70f27db853",
+      "touched_configs": [],
+      "uci_statements": []
+    },
+    {
+      "owner_package": "ubi-utils",
+      "path": "/etc/uci-defaults/ubihealthd",
+      "self_deleting": true,
+      "sha256": "3da4d14312f0dca15263313d4b9d5cfdd131f100e0d77c584125fa2436fdf752",
+      "touched_configs": [],
+      "uci_statements": [
+        {
+          "line": 11,
+          "path": "/etc/uci-defaults/ubihealthd",
+          "text": "uci batch <<EOF"
+        },
+        {
+          "line": 18,
+          "path": "/etc/uci-defaults/ubihealthd",
+          "text": "uci commit ubihealthd"
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：I0.1、I0.2、I0.3、I0.4 完成
-> 版本：0.6
-> 日期：2026-08-30
+> 状态：I0.1、I0.2、I0.3、I0.4、I0.5 完成
+> 版本：0.7
+> 日期：2026-08-31
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
 
@@ -177,8 +177,8 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | I0.2 | 锁定匹配源码、设备定义和构建配方 | 完成：精确 revisions、设备配方、源码接口/失败边界已登记 | 否 |
 | I0.3 | 按源码预期只读验证镜像结构和文件系统 | 完成：全字节、DTB、属性和偏差 gate 通过 | 否 |
 | I0.4 | 建立部署物料、文件归属和精确源码映射 | 完成：159 packages、全文件/ELF/service ownership 和 exact source/patch map gate 通过 | 否 |
-| I0.5 | 还原启动、服务、配置和 IPC 链 | 待执行 | 否 |
-| I0.6 | 建立运行态问题清单 | 阻塞于 I0.5 | 否 |
+| I0.5 | 还原启动、服务、配置和 IPC 链 | 完成：启动链、25 服务、配置生成链和两层 ubus ACL gate 通过 | 否 |
+| I0.6 | 建立运行态问题清单 | 待执行 | 否 |
 | I0.7 | 经单独批准采集必要运行态 | 未授权 | 否，只读观察 |
 | I0.8 | 形成五类替换边界并通过 I0 gate | 阻塞 | 否 |
 | C1 | 冻结第一个兼容合同和参考 oracle | 阻塞于 I0 | 否 |
@@ -507,10 +507,50 @@ reports/<image-id>/IPC_CATALOG.md
 
 ### 退出门
 
-- 每条关键图边都能指向 DEP 或 SRC 证据；
-- 静态无法证明的 object、instance、时序和错误被转入 I0.6；
-- 没有把 grep 命中数量当作接口合同；
-- 没有因为源码存在某路径就声称目标运行时一定走该路径。
+- [x] 每条关键图边都能指向 DEP 或 SRC 证据；
+- [x] 静态无法证明的 object、instance、时序和错误被转入 I0.6；
+- [x] 没有把 grep 命中数量当作接口合同；
+- [x] 没有因为源码存在某路径就声称目标运行时一定走该路径。
+
+### 执行记录
+
+| 项 | 值 |
+|---|---|
+| 日期 | 2026-08-31 |
+| 工具 | [tools/i0_5_controlplane.py](../tools/i0_5_controlplane.py)，Python 3.12.3 |
+| 输入 | `extracted/rootfs-files`（只读）、`sources/`（固定 revision）、`manifests/…/executables.json` |
+| 命令 | `i0_5_controlplane.py --rootfs … --sources … --executables … --output … --image-id ax3000t-stock-openwrt-25.12.5 --recorded-at 2026-08-31` |
+| 输出 | `boot-chain.json`、`service-graph.json`、`config-flow.json`、`ipc-catalog.json` |
+| 执行目标二进制 | 无 |
+| 设备连接 | 无 |
+
+I0.5 期间为闭合 IPC 缺口，按 recipe 固定 revision 新增 5 个源码 checkout：
+`ubox` `6f78fa49…`、`libubox` `7dd12784…`、`hostap` `ca266cc2…`、`odhcp6c` `07d324ee…`、
+以及按 `PKG_HASH` `0c00d4e5…bc19` 校验的 `dnsmasq-2.93` 源码包。全部位于 Git 之外的
+evidence 目录。
+
+### 主要结论
+
+1. `/etc/init.d/rcS` 不存在于镜像；`sysinit` 由 procd 内建 `rcS()` 处理。
+2. `preinit_essential` hook namespace 无注册项；早期挂载在 procd `initd/early.c`。
+3. `network`、`system`、`wireless`、`board.json` 均不随镜像发布，首次启动生成。
+4. 25 个 init script = 13 长驻 procd + 5 一次性 procd + 7 非 procd。
+5. 只有 8 个服务实现 `reload_service`，其余 `reload` 退化为重新提交服务定义。
+6. ubus 有两层 ACL：ubusd 的 `/usr/share/acl.d/`（按 unix 用户）与 rpcd 的
+   `/usr/share/rpcd/acl.d/`（按会话组）；socket 本身是 0666，不构成访问控制。
+7. 部署侧交叉检查发现 3 类悬空边：ucitrack `affects`/`exec` 指向未安装包、
+   `acme.renew` trigger 无发送方、rpcd ACL 授权了 `dsl` 与 `fingerprint` 两个无提供方对象。
+
+### 遗留至 I0.6 的静态不可判定项
+
+- kernel command line（DTS `chosen` 无 `bootargs`），影响 rootfs 挂载选项；
+- 实际启动顺序、并发与失败传播；
+- 实际 instance 数量与 shell 变量取值；
+- `ubus list` 的实际对象集合，含 `network.interface.*`、`hotplug.*`、`odhcp6c.*`、
+  `wpa_supplicant.*` 的实例名；
+- `udebug` 对象的提供方；
+- 设备当前 UCI 内容、迁移进度与是否有用户修改；
+- 方法级 blobmsg policy 字段与类型（留待 C1 冻结合同时逐方法提取）。
 
 ## 14. I0.6：候选职责和运行态问题设计
 
@@ -779,7 +819,7 @@ interface discovery
 
 1. [ ] 执行 I0.0 的 evidence schema、工具锁和 Git admission check。
 2. [x] 完成 I0.4 的 159-package source map、ELF inventory、service/privilege surface。
-3. [ ] 执行 I0.5，建立启动、配置、生成器、IPC 和失败传播图。
+3. [x] 完成 I0.5，建立启动链、服务图、配置链和 IPC 目录。
 4. [ ] 只为静态证据不能回答的问题设计 I0.6 运行态问题单。
 5. [ ] I0 gate 通过以前不创建替代组件 crate。
 
