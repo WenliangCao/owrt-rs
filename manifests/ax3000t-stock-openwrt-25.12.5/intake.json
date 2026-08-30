@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-08-30",
+  "device": {
+    "vendor": "Xiaomi",
+    "model": "Mi Router AX3000T",
+    "compatible": "xiaomi,mi-router-ax3000t",
+    "layout": "stock"
+  },
+  "firmware": {
+    "distribution": "OpenWrt",
+    "version": "25.12.5",
+    "revision": "r33051-f5dae5ece4",
+    "target": "mediatek/filogic",
+    "kernel": "6.12.94",
+    "filename": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+    "type": "sysupgrade",
+    "filesystem": "squashfs",
+    "size": 9400608,
+    "sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+    "url": "https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin"
+  },
+  "release_provenance": {
+    "directory": "https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/",
+    "sha256sums_signature": "good",
+    "signature_time_utc": "2026-06-30T06:09:24Z",
+    "primary_key_fingerprint": "8A8BC12F46B836C0F9CDB36F1D53D1877742E911",
+    "signature_subkey_fingerprint": "92C561DE55AE6552F3C736B82B0151090606D1D9",
+    "profiles_sha256": "a1c448c58e8a1cca016ae0ce0d0d02e5f53b97e3b67a8d9e2ee4aee34e602dd2",
+    "version_buildinfo_sha256": "80987aafdf5a7f03f7c534a27c78b5cc2a190af05e46e8bcd8a854c2a93c4001",
+    "feeds_buildinfo_sha256": "e11279b01e7fea7f7d399e25e969d9382be6891071cbc1225804195224b27b52",
+    "config_buildinfo_sha256": "d79d1c4b3a18dac919371f8d9f1a9350363d9b94261744bd2cc2f5c3e4c17115",
+    "manifest_sha256": "9131221a4d3017e33a1d6f96e1c92e7b9fdc5698f91736dcab967482d4b0b88d",
+    "cyclonedx_bom_sha256": "e2150abcc0f1b709f4695a18735678a5cbd0f0f26b8c0096e6e864a7b5e4df77"
+  },
+  "metadata": {
+    "metadata_version": "1.1",
+    "compat_version": "1.0",
+    "supported_devices": [
+      "xiaomi,mi-router-ax3000t"
+    ],
+    "board": "xiaomi_mi-router-ax3000t"
+  },
+  "excluded_image": {
+    "reason": "different OpenWrt U-Boot layout",
+    "filename": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-ubootmod-squashfs-sysupgrade.itb",
+    "sha256": "ff34acec7a915e0ccf47fb7a1a156e0042194e02c0ae3c4f404911b447ec36d3"
+  },
+  "confidence": {
+    "deployment_identity": "A-user-attested",
+    "digital_provenance": "verified",
+    "runtime_observation": "not-collected"
+  }
+}

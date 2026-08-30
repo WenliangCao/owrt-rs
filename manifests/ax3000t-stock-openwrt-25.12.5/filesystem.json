@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-08-30",
+  "stage": "I0.3",
+  "status": "complete",
+  "rootfs": {
+    "payload_sha256": "3f315cf686c9cd951b24881a3a8e0c78448acaad6fd20d2ab6f1003a0e85b1cc",
+    "payload_size": 5052416,
+    "filesystem_type": "SquashFS 4.0",
+    "filesystem_size": 5051406,
+    "trailing_zero_bytes": 1010,
+    "compression": "xz",
+    "block_size": 262144,
+    "created_utc": "2026-06-29T12:59:20Z",
+    "exportable": true,
+    "inodes_compressed": true,
+    "data_compressed": true,
+    "ids_compressed": true,
+    "fragments_compressed": true,
+    "always_use_fragments": false,
+    "duplicates_removed": true,
+    "fragments": 37,
+    "inodes": 1223,
+    "id_count": 1,
+    "xattrs_stored": false
+  },
+  "numeric_inventory": {
+    "entry_count": 1223,
+    "sha256": "af940a8b8a4a003858a63f13e623d72200fe80321c4ac67cab078fa054c7fc37",
+    "location": "private evidence run artifact",
+    "full_precision_timestamps": true,
+    "type_counts": {
+      "directory": 128,
+      "regular_file": 881,
+      "symlink": 213,
+      "char_device": 1,
+      "block_device": 0,
+      "fifo": 0,
+      "socket": 0
+    },
+    "uid_gid_counts": {
+      "0/0": 1223
+    },
+    "mtime_counts": {
+      "2026-06-29T12:59:20Z": 1223
+    },
+    "mode_counts": {
+      "-rw-------": 14,
+      "-rw-r--r--": 693,
+      "-rwxr-xr-x": 174,
+      "crw-------": 1,
+      "drwxr-x---": 1,
+      "drwxr-xr-x": 127,
+      "lrwxrwxrwx": 213
+    }
+  },
+  "privileged_attributes": {
+    "setuid_entries": [],
+    "setgid_entries": [],
+    "sticky_entries": [],
+    "file_capabilities": [],
+    "file_capability_scan_status": 0,
+    "file_capability_scan_lines": 0,
+    "reason_no_capabilities_expected": "SquashFS superblock records no xattrs"
+  },
+  "special_nodes": [
+    {
+      "path": "/dev/console",
+      "type": "character-device",
+      "mode": "0600",
+      "uid": 0,
+      "gid": 0,
+      "major": 5,
+      "minor": 1,
+      "mtime_utc": "2026-06-29T12:59:20Z",
+      "extracted": false,
+      "reason": "deliberately excluded from unprivileged regular extraction"
+    }
+  ],
+  "restricted_regular_files": [
+    "/etc/config/dhcp",
+    "/etc/config/dropbear",
+    "/etc/config/rpcd",
+    "/etc/config/uhttpd",
+    "/etc/dnsmasq.conf",
+    "/etc/hotplug-preinit.json",
+    "/etc/hotplug.json",
+    "/etc/odhcp6c.user",
+    "/etc/ppp/chap-secrets",
+    "/etc/shadow",
+    "/etc/uci-defaults/51-attendedsysupgrade-owut",
+    "/lib/apk/db/lock",
+    "/usr/share/dnsmasq/dhcpbogushostname.conf",
+    "/usr/share/dnsmasq/rfc6761.conf"
+  ],
+  "restricted_directories": [
+    {
+      "path": "/root",
+      "mode": "0750",
+      "uid": 0,
+      "gid": 0
+    }
+  ],
+  "extraction": {
+    "method": "unprivileged unsquashfs with dev/* excluded",
+    "regular_files": 881,
+    "directories": 128,
+    "symlinks": 213,
+    "block_devices": 0,
+    "char_devices": 0,
+    "fifos": 0,
+    "sockets": 0,
+    "matches_inventory_after_special_node_exclusion": true,
+    "contents_committed_to_git": false
+  },
+  "failed_attempts": [
+    {
+      "operation": "unsquashfs extraction",
+      "cause": "-e was interpreted as extract-file instead of exclude",
+      "result": "non-zero; attempted special node creation; no completed extraction"
+    },
+    {
+      "operation": "unsquashfs extraction",
+      "cause": "-excludes was placed after the filesystem argument",
+      "result": "non-zero; attempted special node creation; no completed extraction"
+    }
+  ],
+  "evidence_boundary": {
+    "proves": [
+      "static SquashFS metadata",
+      "path/type/uid/gid/mode/mtime inventory",
+      "absence of stored xattrs and setid entries",
+      "special-node inventory",
+      "regular extraction completeness"
+    ],
+    "does_not_prove": [
+      "overlay contents after first boot",
+      "runtime ownership or tmpfs state",
+      "device UBI volume layout",
+      "runtime file mutations"
+    ],
+    "full_per_file_package_ownership": {
+      "stage": "I0.4",
+      "status": "complete",
+      "manifest": "packages.json",
+      "report": "../../reports/ax3000t-stock-openwrt-25.12.5/FILE_OWNERSHIP.md"
+    }
+  }
+}

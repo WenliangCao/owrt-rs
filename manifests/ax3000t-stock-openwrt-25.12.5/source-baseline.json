@@ -1,0 +1,223 @@
+{
+  "schema_version": 2,
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-08-30",
+  "stage": "I0.2",
+  "status": "complete",
+  "evidence_boundary": {
+    "deployment_static": "partially-verified-in-I0.3",
+    "source": "exact-release-buildinfo-and-component-revisions",
+    "runtime": "not-collected",
+    "physical_device_access": false
+  },
+  "buildroot": {
+    "url": "https://git.openwrt.org/openwrt/openwrt.git",
+    "tag": "v25.12.5",
+    "tag_object": "e20bc3ec9eb9e3dbd0519ddc18f81f3eedc0f45e",
+    "commit": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "tree": "4ac64a90c5cd190209b4a9428fc34f12e6c87d4b",
+    "version_code": "r33051-f5dae5ece4",
+    "image_revision_commit": "f5dae5ece4805730c5e2850f8aa84765af2f6b32",
+    "source_date_epoch": 1782737960,
+    "source_date_utc": "2026-06-29T12:59:20Z",
+    "kernel": "6.12.94",
+    "verification": [
+      "detached-head",
+      "git-fsck-connectivity-only",
+      "release-buildinfo-matched"
+    ]
+  },
+  "feeds": {
+    "packages": {
+      "url": "https://git.openwrt.org/feed/packages.git",
+      "commit": "5caa62e0bc9f7fb9b0c12a23267bceb7724214dd"
+    },
+    "luci": {
+      "url": "https://git.openwrt.org/project/luci.git",
+      "commit": "128a7812f4be233c5dd7f7466f534fd888785caf"
+    },
+    "routing": {
+      "url": "https://git.openwrt.org/feed/routing.git",
+      "commit": "3d7d0dc7fa43d3eb09498417407e95a6552e5312"
+    },
+    "telephony": {
+      "url": "https://git.openwrt.org/feed/telephony.git",
+      "commit": "2618106d5846a4a542fdf5809f0d3ed228ce439b"
+    },
+    "video": {
+      "url": "https://git.openwrt.org/feed/video.git",
+      "commit": "094bf58da6682f895255a35a84349a79dab4bf95"
+    },
+    "verification": [
+      "commits-from-feeds.buildinfo",
+      "detached-head",
+      "git-fsck-connectivity-only"
+    ]
+  },
+  "device": {
+    "vendor": "Xiaomi",
+    "model": "Mi Router AX3000T",
+    "profile": "xiaomi_mi-router-ax3000t",
+    "compatible": "xiaomi,mi-router-ax3000t",
+    "layout": "stock",
+    "target": "mediatek/filogic",
+    "architecture": "aarch64_cortex-a53",
+    "erase_block_bytes": 131072,
+    "page_bytes": 2048,
+    "ubinize_opts": "-E 5",
+    "image_recipe": "sysupgrade-tar | append-metadata",
+    "image_types": [
+      "squashfs-sysupgrade.bin"
+    ],
+    "device_packages": [
+      "kmod-mt7915e",
+      "kmod-mt7981-firmware",
+      "mt7981-wo-firmware"
+    ],
+    "partitions": [
+      { "label": "BL2", "offset": "0x0000000", "size": "0x0100000", "read_only": true },
+      { "label": "Nvram", "offset": "0x0100000", "size": "0x0040000", "read_only": false },
+      { "label": "Bdata", "offset": "0x0140000", "size": "0x0040000", "read_only": false },
+      { "label": "Factory", "offset": "0x0180000", "size": "0x0200000", "read_only": true },
+      { "label": "FIP", "offset": "0x0380000", "size": "0x0200000", "read_only": true },
+      { "label": "crash", "offset": "0x0580000", "size": "0x0040000", "read_only": true },
+      { "label": "crash_log", "offset": "0x05c0000", "size": "0x0040000", "read_only": true },
+      { "label": "ubi_kernel", "offset": "0x0600000", "size": "0x2200000", "read_only": false },
+      { "label": "ubi", "offset": "0x2800000", "size": "0x4e00000", "read_only": false },
+      { "label": "KF", "offset": "0x7600000", "size": "0x0040000", "read_only": true }
+    ],
+    "source_files": {
+      "image_recipe": "target/linux/mediatek/image/filogic.mk",
+      "dts": "target/linux/mediatek/dts/mt7981b-xiaomi-mi-router-ax3000t.dts",
+      "dtsi": "target/linux/mediatek/dts/mt7981b-xiaomi-mi-router-ax3000t.dtsi",
+      "common_dtsi": "target/linux/mediatek/dts/mt7981b-xiaomi-mi-router-common.dtsi",
+      "upgrade": "target/linux/mediatek/filogic/base-files/lib/upgrade/platform.sh",
+      "bootcount": "target/linux/mediatek/filogic/base-files/etc/init.d/bootcount",
+      "network_defaults": "target/linux/mediatek/filogic/base-files/etc/board.d/02_network"
+    },
+    "upgrade": {
+      "check": "nand_do_platform_check",
+      "kernel_ubipart": "ubi_kernel",
+      "root_ubipart": "ubi",
+      "apply": "nand_do_upgrade",
+      "initial_setup": "initramfs-only-destructive-not-authorized"
+    },
+    "excluded_variant": {
+      "profile": "xiaomi_mi-router-ax3000t-ubootmod",
+      "artifact_type": "squashfs-sysupgrade.itb",
+      "reason": "incompatible-boot-and-flash-layout"
+    }
+  },
+  "components": {
+    "procd": {
+      "package_version": "2026.03.13~58eb263d-r1",
+      "url": "https://git.openwrt.org/project/procd.git",
+      "commit": "58eb263d5abe03f8c1280bdfa65a3b052614215d",
+      "recipe": "package/system/procd/Makefile",
+      "build": ["lto", "pie", "jail", "seccomp", "utrace", "EARLY_PATH=/usr/sbin:/usr/bin:/sbin:/bin"],
+      "patches": []
+    },
+    "ubus": {
+      "package_version": "2026.06.28~24864e78-r2",
+      "url": "https://git.openwrt.org/project/ubus.git",
+      "commit": "24864e7840b3a02a9ef76284a373f6b2f00b8a9b",
+      "recipe": "package/system/ubus/Makefile",
+      "abi": "20251202",
+      "build": ["lto", "pie"],
+      "patches": []
+    },
+    "uci": {
+      "package_version": "2025.12.02~66127cd7-r1",
+      "url": "https://git.openwrt.org/project/uci.git",
+      "commit": "66127cd76c5d0bd46d5a90302cc6110f53a4e2f8",
+      "recipe": "package/system/uci/Makefile",
+      "abi": "20250120",
+      "build": ["non-debug"],
+      "patches": []
+    },
+    "rpcd": {
+      "package_version": "2026.06.04~28faf640-r1",
+      "url": "https://git.openwrt.org/project/rpcd.git",
+      "commit": "28faf6403792d25b9826043aaf37880624c19568",
+      "recipe": "package/system/rpcd/Makefile",
+      "build": ["pie", "target-ldflags=-lcrypt"],
+      "selected_modules": ["file", "iwinfo", "luci", "rpcsys", "rrdns", "ucode"],
+      "patches": []
+    },
+    "netifd": {
+      "package_version": "2026.02.26~cbb83a18-r1",
+      "url": "https://git.openwrt.org/project/netifd.git",
+      "commit": "cbb83a1857407a28a63dc09412a1f209195914ef",
+      "recipe": "package/network/config/netifd/Makefile",
+      "build": ["lto", "libnl-tiny", "DEBUG=1"],
+      "patches": []
+    },
+    "firewall4": {
+      "package_version": "2025.03.17~b6e51575-r2",
+      "url": "https://git.openwrt.org/project/firewall4.git",
+      "commit": "b6e5157527d361f99ad52eaa6da273cb0f2dfd59",
+      "recipe": "package/network/config/firewall4/Makefile",
+      "build": ["no-c-compile", "install-upstream-root-tree"],
+      "patches": []
+    },
+    "odhcpd": {
+      "package_version": "2026.06.29~5d7be43f-r1",
+      "package_variant": "odhcpd-ipv6only",
+      "url": "https://git.openwrt.org/project/odhcpd.git",
+      "commit": "5d7be43f8b9dec0eb47e245cfab81108bb131273",
+      "recipe": "package/network/services/odhcpd/Makefile",
+      "build": ["pie", "UBUS=1", "DHCPV4_SUPPORT-not-defined"],
+      "patches": []
+    },
+    "uhttpd": {
+      "package_version": "2026.06.16~7b1bec45-r1",
+      "url": "https://git.openwrt.org/project/uhttpd.git",
+      "commit": "7b1bec45826bd78c8afc993435bdc0f1df2fe399",
+      "recipe": "package/network/services/uhttpd/Makefile",
+      "build": ["pie", "ubus-plugin", "no-lua-plugin", "no-ucode-plugin"],
+      "patches": []
+    },
+    "ucode": {
+      "package_version": "2026.01.16~85922056-r1",
+      "url": "https://github.com/jow-/ucode.git",
+      "commit": "85922056ef7abeace3cca3ab28bc1ac2d88e31b1",
+      "recipe": "package/utils/ucode/Makefile",
+      "abi": "20230711",
+      "patches": [
+        "100-add-include-for-older-kernels.patch",
+        "110-uloop-allow-reusing-the-existing-environment.patch",
+        "111-uloop-add-optional-setup-callback-to-process.patch",
+        "120-ubus-fix-refcounting-bug.patch",
+        "121-ubus-avoid-double-close-of-externally-owned-channel-.patch"
+      ]
+    },
+    "luci": {
+      "package_version": "luci-base 26.180.75667~128a781",
+      "url": "https://git.openwrt.org/project/luci.git",
+      "commit": "128a7812f4be233c5dd7f7466f534fd888785caf",
+      "recipe": "modules/luci-base/Makefile",
+      "build": ["luci-base-no-lto", "ucode-cgi-entry", "rpcd-backend"]
+    }
+  },
+  "source_expectations": {
+    "configuration": ["uci-delta-save-commit-revert", "rpcd-session-scoped-uci", "service-reload-triggers"],
+    "ipc": ["ubus-unix-socket", "rpcd-session-and-acl", "netifd-objects-and-events", "uhttpd-ubus-json-rpc"],
+    "generators": ["board-network-defaults", "procd-service-state", "netifd-runtime-state", "fw4-nft-ruleset", "rpcd-session-and-uci-state"],
+    "failure_boundaries": ["ubus-reconnect-and-status", "uci-parse-io-and-commit", "rpcd-plugin-and-apply-rollback", "netifd-partial-state", "fw4-check-before-apply", "http-auth-timeout-and-parse"],
+    "luci_entry": "/www/cgi-bin/luci via #!/usr/bin/env ucode",
+    "details": "reports/ax3000t-stock-openwrt-25.12.5/SOURCE_EXPECTATIONS.md"
+  },
+  "i0_2_exit": {
+    "immutable_revisions": "pass",
+    "unique_device_profile_and_layout": "pass",
+    "revision_and_tag_commit_separated": "pass",
+    "next_phase_checklist": "pass",
+    "main_not_used_as_target_fact": "pass"
+  },
+  "deferred": {
+    "I0.3": ["complete-dtb-and-filesystem-expected-observed-delta"],
+    "I0.4": ["map-all-159-packages", "kernel-target-patch-map", "installed-file-ownership"],
+    "I0.5": ["method-policies-and-reply-schemas", "init-lifecycle", "event-payloads", "partial-failure-semantics"],
+    "I0.6_plus": ["runtime-questions-and-separately-authorized-observation"]
+  }
+}

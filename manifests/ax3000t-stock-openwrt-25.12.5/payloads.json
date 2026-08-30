@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-08-30",
+  "stage": "I0.3",
+  "status": "complete",
+  "input": {
+    "filename": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+    "size": 9400608,
+    "sha256_before": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+    "sha256_after": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+    "mode_during_analysis": "0400",
+    "modified": false
+  },
+  "source_expectation": {
+    "profile": "xiaomi_mi-router-ax3000t",
+    "layout": "stock",
+    "recipe": "sysupgrade-tar | append-metadata",
+    "recipe_file": "target/linux/mediatek/image/filogic.mk"
+  },
+  "container": {
+    "type": "GNU/POSIX tar followed by fwtool metadata",
+    "base_tar": {
+      "offset": 0,
+      "size": 9400320,
+      "sha256": "53bed6fab0af0f390e011d20aed305a01b04eadfb65a8840a7ab9923c6a2a8a0"
+    },
+    "fwtool_metadata_chunk": {
+      "offset": 9400320,
+      "size": 288,
+      "sha256": "ec7c61b336c50142ddba6422a80b2a3f093097cc3206c9e2cd12a37cca34a579",
+      "header_size": 8,
+      "json_size": 264,
+      "trailer_size": 16,
+      "trailer_hex": "4657783072f23d040100000000000120",
+      "stored_crc32": "72f23d04",
+      "crc_validation": "pass-via-fwtool",
+      "type": "FWIMAGE_INFO",
+      "total_size_field": 288
+    },
+    "firmware_signature_chunk": {
+      "present": false,
+      "extraction_status": 1,
+      "message": "Data not found",
+      "note": "append-metadata only adds this chunk when a build key and certificate are supplied"
+    },
+    "unknown_regions": [],
+    "accounted_bytes": 9400608
+  },
+  "byte_layout": [
+    { "name": "tar-directory-header", "offset": 0, "size": 512 },
+    { "name": "tar-control-header", "offset": 512, "size": 512 },
+    { "name": "control-data", "offset": 1024, "size": 31, "sha256": "eac9cd7ec16d41df0afeb935a037e44f57fb9dc83e8d9662bd74a543cb70b9e1" },
+    { "name": "control-padding", "offset": 1055, "size": 481, "all_zero": true },
+    { "name": "tar-kernel-header", "offset": 1536, "size": 512 },
+    { "name": "kernel-data", "offset": 2048, "size": 4336328, "sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6" },
+    { "name": "kernel-padding", "offset": 4338376, "size": 312, "all_zero": true },
+    { "name": "tar-root-header", "offset": 4338688, "size": 512 },
+    { "name": "root-data", "offset": 4339200, "size": 5052416, "sha256": "3f315cf686c9cd951b24881a3a8e0c78448acaad6fd20d2ab6f1003a0e85b1cc" },
+    { "name": "tar-end-and-record-padding", "offset": 9391616, "size": 8704, "all_zero": true },
+    { "name": "fwtool-info-header", "offset": 9400320, "size": 8, "hex": "0000000000000000" },
+    { "name": "fwtool-info-json", "offset": 9400328, "size": 264, "sha256": "b716a46d599ebe2ecee399ba321c23742cb1d7171a0475a763abc2a1448ef9b2" },
+    { "name": "fwtool-info-trailer", "offset": 9400592, "size": 16, "hex": "4657783072f23d040100000000000120" }
+  ],
+  "tar": {
+    "parser_status": 0,
+    "record_size": 10240,
+    "records": 918,
+    "members": [
+      {
+        "name": "sysupgrade-xiaomi_mi-router-ax3000t/",
+        "type": "directory",
+        "mode": "0755",
+        "uid": 0,
+        "gid": 0,
+        "mtime_utc": "2026-06-29T12:59:20Z",
+        "size": 0
+      },
+      {
+        "name": "sysupgrade-xiaomi_mi-router-ax3000t/CONTROL",
+        "type": "regular",
+        "mode": "0644",
+        "uid": 0,
+        "gid": 0,
+        "mtime_utc": "2026-06-29T12:59:20Z",
+        "size": 31,
+        "sha256": "eac9cd7ec16d41df0afeb935a037e44f57fb9dc83e8d9662bd74a543cb70b9e1",
+        "content": "BOARD=xiaomi_mi-router-ax3000t"
+      },
+      {
+        "name": "sysupgrade-xiaomi_mi-router-ax3000t/kernel",
+        "type": "regular",
+        "mode": "0644",
+        "uid": 0,
+        "gid": 0,
+        "mtime_utc": "2026-06-29T12:59:20Z",
+        "size": 4336328,
+        "sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6"
+      },
+      {
+        "name": "sysupgrade-xiaomi_mi-router-ax3000t/root",
+        "type": "regular",
+        "mode": "0644",
+        "uid": 0,
+        "gid": 0,
+        "mtime_utc": "2026-06-29T12:59:20Z",
+        "size": 5052416,
+        "sha256": "3f315cf686c9cd951b24881a3a8e0c78448acaad6fd20d2ab6f1003a0e85b1cc"
+      }
+    ]
+  },
+  "fwtool_metadata": {
+    "metadata_version": "1.1",
+    "compat_version": "1.0",
+    "supported_devices": ["xiaomi,mi-router-ax3000t"],
+    "version": {
+      "dist": "OpenWrt",
+      "version": "25.12.5",
+      "revision": "r33051-f5dae5ece4",
+      "target": "mediatek/filogic",
+      "board": "xiaomi_mi-router-ax3000t"
+    }
+  },
+  "fit": {
+    "description": "ARM64 OpenWrt FIT (Flattened Image Tree)",
+    "size": 4336328,
+    "totalsize": 4336328,
+    "sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6",
+    "created_utc": "2026-06-29T12:59:20Z",
+    "default_configuration": "config-1",
+    "configuration": {
+      "description": "OpenWrt xiaomi_mi-router-ax3000t",
+      "kernel": "kernel-1",
+      "fdt": "fdt-1"
+    },
+    "images": {
+      "kernel-1": {
+        "description": "ARM64 OpenWrt Linux-6.12.94",
+        "type": "kernel",
+        "architecture": "AArch64",
+        "os": "Linux",
+        "compression": "lzma",
+        "data_size": 4307090,
+        "load_address": "0x48000000",
+        "entry_point": "0x48000000",
+        "crc32": "d86b7f68",
+        "sha1_stored": "a422b6a6bfff051626511cdaf910bdae50365105",
+        "sha1_computed": "a422b6a6bfff051626511cdaf910bdae50365105",
+        "sha256": "dfbdb4c21690003e466959b136b6188c554e4e9be6750f9fa4183174ac1fc98e",
+        "decompressed_size": 13271048,
+        "decompressed_sha256": "b8e5fda8bb59d20fe047e9068813e325a68cb00bf07813a7e88e82976f51dbe8"
+      },
+      "fdt-1": {
+        "description": "ARM64 OpenWrt xiaomi_mi-router-ax3000t device tree blob",
+        "type": "flat-device-tree",
+        "architecture": "AArch64",
+        "compression": "none",
+        "data_size": 27827,
+        "crc32": "26662d72",
+        "sha1_stored": "13b5a711a2ab5deb4474ead2bbc44870cbc28c50",
+        "sha1_computed": "13b5a711a2ab5deb4474ead2bbc44870cbc28c50",
+        "sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0"
+      }
+    }
+  },
+  "dtb": {
+    "size": 27827,
+    "sha256": "adcd474fcad52f62b210e87bcbc97b6f6486810d1807e7728fca6c247989faf0",
+    "decompiled_dts_sha256": "10260a8001b89f8bdcaa66d3ef2eb4193507c0afcf1737b2f1636e5acf63f64b",
+    "model": "Xiaomi Mi Router AX3000T",
+    "compatible": ["xiaomi,mi-router-ax3000t", "mediatek,mt7981"],
+    "semantic_checks": 148,
+    "semantic_check_status": "pass",
+    "decompiled_node_lines": 166,
+    "decompiled_property_lines": 935,
+    "dtc_status": 0,
+    "dtc_warnings": [
+      "/soc/ice_debug: missing or empty reg/ranges property",
+      "/soc/ap2woccif@151a5000: duplicate unit-address with /soc/syscon@151a5000",
+      "/soc/efuse@11f20000/usb3-rx-imp@8c8: duplicate unit-address with usb3-tx-imp@8c8"
+    ],
+    "source_deviation_count": 0
+  },
+  "rootfs": {
+    "type": "SquashFS 4.0",
+    "member_size": 5052416,
+    "sha256": "3f315cf686c9cd951b24881a3a8e0c78448acaad6fd20d2ab6f1003a0e85b1cc",
+    "filesystem_size": 5051406,
+    "trailing_zero_bytes": 1010,
+    "compression": "xz",
+    "block_size": 262144,
+    "created_utc": "2026-06-29T12:59:20Z",
+    "inodes": 1223,
+    "fragments": 37,
+    "ids": 1,
+    "xattrs_stored": false,
+    "duplicates_removed": true,
+    "exportable": true,
+    "filesystem_manifest": "manifests/ax3000t-stock-openwrt-25.12.5/filesystem.json"
+  },
+  "run_artifacts": {
+    "byte_layout_sha256": "06582da6e236f5066ac36ae9b78d05fa8920e2a6f911da0b4267f1223eed9530",
+    "dtb_semantic_check_sha256": "96024144fd890c09402128aeb87dcd13fe9ad3308485a85d7788ad5dc950ef31",
+    "rootfs_inventory_sha256": "af940a8b8a4a003858a63f13e623d72200fe80321c4ac67cab078fa054c7fc37",
+    "squashfs_superblock_sha256": "bf7aa0ec8216a6aa41d9cfe7c46bf87c6c521d26c0ca0d6bde3ff892d857a991",
+    "fit_list_sha256": "2348bcd2bbd650364c9cd7d1072984f53814fdeea73b46252e3d0bf3c2492b7b",
+    "tool_versions_sha256": "1ed3541ea0516b47b3617a7c7b2037ea0e5c2546a27df2590d77b904eb6fd8b0",
+    "fwtool_status_sha256": "004a2f1eb6024ba66daaa4a815594cb1b8936ac1b54d9c997887cc770c8142e6"
+  },
+  "analysis_tools": {
+    "host": "Ubuntu 24.04.4 LTS aarch64",
+    "file": "5.45",
+    "tar": "GNU tar 1.35",
+    "dumpimage": "2025.10",
+    "dtc": "1.7.0",
+    "unsquashfs": "4.6.1",
+    "sha256sum": "GNU coreutils 9.4",
+    "fwtool_source_commit": "04cd252e4e9394ffacd51f56f1f124abc534f715",
+    "fwtool_binary_sha256": "e3ee49244916a108db750771e4614ce5f3aaad49636ce6793ca0acbabef6aa33"
+  },
+  "result": {
+    "all_bytes_accounted": true,
+    "unknown_bytes": 0,
+    "source_image_deviations": 0,
+    "warnings_and_failed_analysis_attempts_documented": true
+  }
+}

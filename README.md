@@ -22,8 +22,12 @@ OpenWrt control plane 项目。
 这是一个全新的干净项目，没有复制旧仓库的代码、抽象或阶段结论。旧项目只能作为比较
 材料；任何内容进入这里前，都必须重新通过镜像和源码证据验证。
 
-第一个阶段是 **I0：镜像接收与系统解剖**。它只做只读分析：确认镜像身份、拆解容器和
-文件系统、建立软件物料清单、还原启动与服务关系，并形成五类边界：
+当前目标已经固定为 Xiaomi Mi Router AX3000T 的 stock 布局，部署规格是 OpenWrt 25.12.5
+`r33051-f5dae5ece4` 的官方 `sysupgrade.bin`。`-ubootmod` profile 和 `.itb` 镜像明确排除。
+
+第一个阶段是 **I0：匹配源码基线与部署验证**。先用固件身份锁定准确的 OpenWrt release、
+feeds、设备定义、DTS 和镜像配方；再只读检查实际镜像，验证部署内容并找出定制差异；最后
+用必要的脱敏运行态观察裁决动态行为。I0 将形成五类边界：
 
 - 保留；
 - Rust 接入或包装；
@@ -38,3 +42,27 @@ OpenWrt control plane 项目。
 镜像和运行态材料的准备要求见 [docs/IMAGE_INTAKE.md](docs/IMAGE_INTAKE.md)。原始镜像、
 解包目录、分区内容、配置备份和任何可能包含设备秘密的文件都不得提交 Git。
 
+执行计划见 [docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md)。计划形成前完成的方法、环境和
+官方源码映射与镜像验证记录在 [docs/L0_DISCOVERY.md](docs/L0_DISCOVERY.md)。L0 使用的公开
+镜像只验证分析方法，不代表本项目的目标设备或部署版本。
+
+目标部署身份和匹配源码基线分别见
+[IMAGE_IDENTITY.md](reports/ax3000t-stock-openwrt-25.12.5/IMAGE_IDENTITY.md) 与
+[SOURCE_BASELINE.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_BASELINE.md)。I0.2 已完成；其
+设备构建/升级基线和控制面源码检查清单见
+[DEVICE_BUILD_RECIPE.md](reports/ax3000t-stock-openwrt-25.12.5/DEVICE_BUILD_RECIPE.md) 与
+[SOURCE_EXPECTATIONS.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_EXPECTATIONS.md)。
+
+I0.3 的全字节、FIT/DTB、SquashFS、文件属性和偏差验证见
+[DEPLOYMENT_VERIFICATION.md](reports/ax3000t-stock-openwrt-25.12.5/DEPLOYMENT_VERIFICATION.md)、
+[PARTITION_EXPECTATION.md](reports/ax3000t-stock-openwrt-25.12.5/PARTITION_EXPECTATION.md) 与
+[SOURCE_IMAGE_DEVIATIONS.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_IMAGE_DEVIATIONS.md)。
+
+I0.4 已完成 159-package SBOM、全文件/ELF/service 归属、权限面和 exact source/patch map：
+[SBOM.md](reports/ax3000t-stock-openwrt-25.12.5/SBOM.md)、
+[FILE_OWNERSHIP.md](reports/ax3000t-stock-openwrt-25.12.5/FILE_OWNERSHIP.md)、
+[PRIVILEGE_SURFACE.md](reports/ax3000t-stock-openwrt-25.12.5/PRIVILEGE_SURFACE.md)、
+[SOURCE_MAP.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_MAP.md) 与
+[PATCH_MAP.md](reports/ax3000t-stock-openwrt-25.12.5/PATCH_MAP.md)。可重复生成器是
+[i0_4_inventory.py](tools/i0_4_inventory.py)；固件、解包树和 source checkout 仍只保存在 Git
+外的 evidence 目录。
