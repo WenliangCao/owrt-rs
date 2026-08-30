@@ -52,7 +52,7 @@
 | `system` | `/sbin/procd` | `board` `info` `reboot` `watchdog` `signal` `validate_firmware_image` `sysupgrade` |
 | `container` | `/sbin/procd`、`/sbin/ujail` | `set` `add` `list` `delete` `state` `get_features` `console_set` `console_attach` |
 | `network` | `/sbin/netifd` | `restart` `reload` `add_host_route` `get_proto_handlers` `add_dynamic` `netns_updown` |
-| `network.device` | `/sbin/netifd` | `status` `set_alias` `set_state` `hotplug_event` `stp_init` |
+| `network.device` | `/sbin/netifd` | `status` `set_alias` `set_state` `stp_init`（**不含 `hotplug_event`**，见下） |
 | `network.interface` | `/sbin/netifd` | `up` `down` `renew` `status` `prepare` `dump` `add_device` `remove_device` `notify_proto` `remove` `set_data` |
 | `session` | `/sbin/rpcd` | `create` `list` `grant` `revoke` `access` `set` `get` `unset` `destroy` `login` |
 | `uci` | `/sbin/rpcd` | `configs` `get` `state` `add` `set` `delete` `rename` `order` `changes` `revert` `commit` `apply` `confirm` `rollback` `reload_config` |
@@ -72,16 +72,25 @@
 
 `file.exec` 同样值得单独指出：它提供通过 ubus 执行程序的能力，受 rpcd 会话 ACL 约束。
 
-**`dhcp.ipv4leases` 不在本部署中。** `odhcpd/src/ubus.c:249` 把该方法包在
-`#ifdef DHCPV4_SUPPORT` 内，而 recipe 只在完整 `odhcpd` 变体上加
-`-DDHCPV4_SUPPORT=1`（`package/network/services/odhcpd/Makefile:71`）。本镜像安装的是
-`odhcpd-ipv6only`，其部署二进制的字符串数据中只有 `ipv6leases`、`ipv6ra`、`add_lease`。
-这是"源码方法表 ≠ 本 build 方法集"的实例：方法级的 build gating 必须回到 recipe 读，
-不能只读方法表。
+### 三个方法在源码方法表里，但不在本 build 里
+
+工具扫描全部 ubus 方法表中的预处理条件，共找到 3 个受 build 宏控制的方法。逐个用
+recipe 和部署二进制裁决后，**三个全部不在本部署中**：
+
+| 对象 | 方法 | 源码条件 | 本 build 的裁决依据 |
+|---|---|---|---|
+| `dhcp` | `ipv4leases` | `#ifdef DHCPV4_SUPPORT` | recipe 只对完整 `odhcpd` 变体加 `-DDHCPV4_SUPPORT=1`（`odhcpd/Makefile:71`）；本镜像装的是 `odhcpd-ipv6only`，二进制里只有 `ipv6leases`/`ipv6ra`/`add_lease` |
+| `network.device` | `hotplug_event` | `#ifdef DUMMY_MODE` | `netifd/CMakeLists.txt:60-64` 只在**非 Linux** 时定义 `DUMMY_MODE`；recipe 也未设置；部署二进制中 `hotplug_event` 独立字符串命中数为 0，而 `set_alias`/`set_state`/`stp_init` 均命中 |
+| `dnsmasq` | `set_connmark_allowlist` | `#ifdef HAVE_CONNTRACK` | `dnsmasq/Makefile:152` 只在 `CONFIG_PACKAGE_dnsmasq_<variant>_conntrack` 时加 `-DHAVE_CONNTRACK`；本镜像装的是基础 `dnsmasq` 变体；二进制里有 `metrics`、无 `set_connmark_allowlist` |
+
+因此本部署的 `dnsmasq` 对象只有 **1 个方法**：`metrics`。
+
+这是"源码方法表 ≠ 本 build 方法集"的三个实例。方法级 build gating 必须回到 recipe 读。
 
 JSON 的 `methods_confirmed_in_artifact` 记录了在部署文件字节中确认到的方法名字面量，
 共 97 条。它是**正向证据**：命中说明该字面量存在；未命中什么也不说明——链接器会合并
-字符串常量，`up`、`set`、`info` 这类短名通常作为更长字符串的尾部存放。
+字符串常量，`up`、`set`、`info` 这类短名通常作为更长字符串的尾部存放。上表的三条否定
+结论不是靠字节缺失得出的，而是靠 recipe 的 build 条件。
 
 ### 3.2 由 ucode 脚本发布（DEP，5 处）
 

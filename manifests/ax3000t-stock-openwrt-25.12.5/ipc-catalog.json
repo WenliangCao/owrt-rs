@@ -9,6 +9,7 @@
     "ubus_linked_artifacts": 22,
     "ubus_linked_artifacts_without_resolved_objects": 8,
     "ubus_method_names_confirmed_in_artifacts": 97,
+    "ubus_methods_behind_build_conditionals": 3,
     "ubus_objects_from_deployed_ucode": 5,
     "ubus_objects_source": 18,
     "ubus_objects_with_deployed_artifact": 18,
@@ -2684,6 +2685,7 @@
     {
       "artifact_present_in_image": true,
       "component": "procd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/procd",
       "method_table": "main_object_methods",
       "methods": [
@@ -2723,6 +2725,7 @@
     {
       "artifact_present_in_image": true,
       "component": "procd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/procd",
       "method_table": "container_object_methods",
       "methods": [
@@ -2753,6 +2756,7 @@
     {
       "artifact_present_in_image": true,
       "component": "procd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/procd",
       "method_table": "system_methods",
       "methods": [
@@ -2780,6 +2784,7 @@
     {
       "artifact_present_in_image": true,
       "component": "netifd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/netifd",
       "method_table": "main_object_methods",
       "methods": [
@@ -2808,6 +2813,9 @@
     {
       "artifact_present_in_image": true,
       "component": "netifd",
+      "conditional_methods": {
+        "hotplug_event": "#ifdef DUMMY_MODE"
+      },
       "deployed_artifact": "/sbin/netifd",
       "method_table": "dev_object_methods",
       "methods": [
@@ -2832,6 +2840,7 @@
     {
       "artifact_present_in_image": true,
       "component": "netifd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/netifd",
       "method_table": "iface_object_methods",
       "methods": [
@@ -2866,6 +2875,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/rpcd",
       "method_table": "session_methods",
       "methods": [
@@ -2901,6 +2911,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/rpcd",
       "method_table": "uci_methods",
       "methods": [
@@ -2943,6 +2954,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/rpcd",
       "method_table": "rc_methods",
       "methods": [
@@ -2963,6 +2975,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd",
+      "conditional_methods": {},
       "deployed_artifact": "/usr/lib/rpcd/file.so",
       "method_table": "file_methods",
       "methods": [
@@ -2994,6 +3007,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd",
+      "conditional_methods": {},
       "deployed_artifact": "/usr/lib/rpcd/iwinfo.so",
       "method_table": "iwinfo_methods",
       "methods": [
@@ -3027,6 +3041,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd",
+      "conditional_methods": {},
       "deployed_artifact": "/usr/lib/rpcd/rpcsys.so",
       "method_table": "sys_methods",
       "methods": [
@@ -3057,6 +3072,9 @@
     {
       "artifact_present_in_image": true,
       "component": "odhcpd",
+      "conditional_methods": {
+        "ipv4leases": "#ifdef DHCPV4_SUPPORT"
+      },
       "deployed_artifact": "/usr/sbin/odhcpd",
       "method_table": "main_object_methods",
       "methods": [
@@ -3080,6 +3098,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd-mod-luci",
+      "conditional_methods": {},
       "deployed_artifact": "/usr/lib/rpcd/luci.so",
       "method_table": "luci_methods",
       "methods": [
@@ -3108,6 +3127,7 @@
     {
       "artifact_present_in_image": true,
       "component": "rpcd-mod-rrdns",
+      "conditional_methods": {},
       "deployed_artifact": "/usr/lib/rpcd/rrdns.so",
       "method_table": "rrdns_methods",
       "methods": [
@@ -3126,6 +3146,7 @@
     {
       "artifact_present_in_image": true,
       "component": "ubox-log",
+      "conditional_methods": {},
       "deployed_artifact": "/sbin/logd",
       "method_table": "log_methods",
       "methods": [
@@ -3146,6 +3167,9 @@
     {
       "artifact_present_in_image": true,
       "component": "dnsmasq",
+      "conditional_methods": {
+        "set_connmark_allowlist": "#ifdef HAVE_CONNTRACK"
+      },
       "deployed_artifact": "/usr/sbin/dnsmasq",
       "method_table": "ubus_object_methods",
       "methods": [
@@ -3165,6 +3189,7 @@
     {
       "artifact_present_in_image": true,
       "component": "odhcp6c",
+      "conditional_methods": {},
       "deployed_artifact": "/usr/sbin/odhcp6c",
       "method_table": "odhcp6c_object_methods",
       "methods": [

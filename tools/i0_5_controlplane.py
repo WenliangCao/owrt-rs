@@ -721,15 +721,34 @@ def parse_c_ubus(path: Path, label: str) -> dict[str, Any]:
         start_line = text[: match.start()].count("\n") + 1
         depth = 0
         methods: list[str] = []
+        # Methods inside a preprocessor conditional exist only in builds that
+        # define the macro.  Record the guard so the recipe, not the method
+        # table, decides whether this build has the method.
+        gated: dict[str, str] = {}
+        guards: list[str] = []
         for index in range(start_line - 1, len(lines)):
             line = lines[index]
+            directive = re.match(r"\s*#\s*(ifdef|ifndef|if|else|elif|endif)\b\s*(.*)", line)
+            if directive:
+                kind = directive.group(1)
+                if kind in ("ifdef", "ifndef", "if"):
+                    guards.append(f"#{kind} {directive.group(2).strip()}".strip())
+                elif kind in ("else", "elif") and guards:
+                    guards[-1] = f"!({guards[-1]})"
+                elif kind == "endif" and guards:
+                    guards.pop()
+                continue
             depth += line.count("{") - line.count("}")
             for entry in UBUS_METHOD_ENTRY_RE.finditer(line):
-                methods.append(entry.group(1) or entry.group(2))
+                name = entry.group(1) or entry.group(2)
+                methods.append(name)
+                if guards:
+                    gated[name] = " && ".join(guards)
             if index > start_line - 1 and depth <= 0:
                 break
         method_tables[match.group(1)] = {
             "methods": methods,
+            "conditional_methods": gated,
             "line": start_line,
         }
 
@@ -769,6 +788,9 @@ def parse_c_ubus(path: Path, label: str) -> dict[str, Any]:
                 else None,
                 "method_table": table,
                 "methods": method_tables.get(table, {}).get("methods", []),
+                "conditional_methods": method_tables.get(table, {}).get(
+                    "conditional_methods", {}
+                ),
                 "source": f"{label}:{start_line}",
             }
         )
@@ -1293,6 +1315,9 @@ def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) ->
             ),
             "ubus_method_names_confirmed_in_artifacts": sum(
                 len(item["methods_confirmed_in_artifact"]) for item in ubus_objects
+            ),
+            "ubus_methods_behind_build_conditionals": sum(
+                len(item.get("conditional_methods", {})) for item in ubus_objects
             ),
             "ubus_objects_from_deployed_ucode": len(ucode_publishers),
             "ubus_dynamic_object_rules": len(DYNAMIC_UBUS_OBJECTS),
