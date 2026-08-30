@@ -62,7 +62,7 @@
 | `rpc-sys` | `/usr/lib/rpcd/rpcsys.so` | `packagelist` `password_set` `upgrade_test` `upgrade_start` `upgrade_clean` `factory` `reboot` |
 | `luci-rpc` | `/usr/lib/rpcd/luci.so` | `getNetworkDevices` `getWirelessDevices` `getHostHints` `getDUIDHints` `getBoardJSON` `getDHCPLeases` |
 | `network.rrdns` | `/usr/lib/rpcd/rrdns.so` | `lookup` |
-| `dhcp` | `/usr/sbin/odhcpd` | `ipv4leases` `ipv6leases` `ipv6ra` `add_lease` |
+| `dhcp` | `/usr/sbin/odhcpd` | `ipv6leases` `ipv6ra` `add_lease`（**不含 `ipv4leases`**，见下） |
 | `log` | `/sbin/logd` | `read` `write` |
 | `luci` | `/usr/share/rpcd/ucode/luci`（经 `ucode.so` 插件） | 由脚本 `return { luci: methods }` 导出 |
 | `network.wireless` | `/lib/netifd/wireless.uc`（宿主 `/sbin/netifd`） | 由 ucode 对象定义 |
@@ -71,6 +71,17 @@
 **编进 rpcd 主程序**，不是可选插件。它提供通过 ubus 启停任意 init script 的能力。
 
 `file.exec` 同样值得单独指出：它提供通过 ubus 执行程序的能力，受 rpcd 会话 ACL 约束。
+
+**`dhcp.ipv4leases` 不在本部署中。** `odhcpd/src/ubus.c:249` 把该方法包在
+`#ifdef DHCPV4_SUPPORT` 内，而 recipe 只在完整 `odhcpd` 变体上加
+`-DDHCPV4_SUPPORT=1`（`package/network/services/odhcpd/Makefile:71`）。本镜像安装的是
+`odhcpd-ipv6only`，其部署二进制的字符串数据中只有 `ipv6leases`、`ipv6ra`、`add_lease`。
+这是"源码方法表 ≠ 本 build 方法集"的实例：方法级的 build gating 必须回到 recipe 读，
+不能只读方法表。
+
+JSON 的 `methods_confirmed_in_artifact` 记录了在部署文件字节中确认到的方法名字面量，
+共 97 条。它是**正向证据**：命中说明该字面量存在；未命中什么也不说明——链接器会合并
+字符串常量，`up`、`set`、`info` 这类短名通常作为更长字符串的尾部存放。
 
 ### 3.2 由 ucode 脚本发布（DEP，5 处）
 

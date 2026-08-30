@@ -8,6 +8,7 @@
     "ubus_dynamic_object_rules": 6,
     "ubus_linked_artifacts": 22,
     "ubus_linked_artifacts_without_resolved_objects": 8,
+    "ubus_method_names_confirmed_in_artifacts": 97,
     "ubus_objects_from_deployed_ucode": 5,
     "ubus_objects_source": 18,
     "ubus_objects_with_deployed_artifact": 18,
@@ -2678,6 +2679,7 @@
       "path": "/usr/sbin/wpad"
     }
   ],
+  "ubus_method_confirmation_note": "methods_confirmed_in_artifact lists method-name literals found in the deployed artifact's bytes.  It is positive evidence only: linker string merging makes absence undecidable, so a method missing from this list is not evidence that the build lacks it.  Build-time method gating must be read from the recipe (see sources.json build option evidence).",
   "ubus_objects": [
     {
       "artifact_present_in_image": true,
@@ -2698,6 +2700,18 @@
         "set_data",
         "state",
         "watchdog"
+      ],
+      "methods_confirmed_in_artifact": [
+        "delete",
+        "event",
+        "get_data",
+        "list",
+        "set_data",
+        "signal",
+        "state",
+        "update_complete",
+        "update_start",
+        "validate"
       ],
       "object_name": "service",
       "object_type": "service",
@@ -2721,6 +2735,14 @@
         "console_set",
         "console_attach"
       ],
+      "methods_confirmed_in_artifact": [
+        "console_attach",
+        "console_set",
+        "delete",
+        "get_features",
+        "list",
+        "state"
+      ],
       "object_name": "container",
       "object_type": "container",
       "source": "sources/components/procd/service/service.c:1169",
@@ -2740,6 +2762,12 @@
         "watchdog",
         "signal",
         "validate_firmware_image",
+        "sysupgrade"
+      ],
+      "methods_confirmed_in_artifact": [
+        "board",
+        "reboot",
+        "signal",
         "sysupgrade"
       ],
       "object_name": "system",
@@ -2762,6 +2790,14 @@
         "add_dynamic",
         "netns_updown"
       ],
+      "methods_confirmed_in_artifact": [
+        "add_dynamic",
+        "add_host_route",
+        "get_proto_handlers",
+        "netns_updown",
+        "reload",
+        "restart"
+      ],
       "object_name": "network",
       "object_type": "netifd",
       "source": "sources/components/netifd/ubus.c:217",
@@ -2779,6 +2815,11 @@
         "set_alias",
         "set_state",
         "hotplug_event",
+        "stp_init"
+      ],
+      "methods_confirmed_in_artifact": [
+        "set_alias",
+        "set_state",
         "stp_init"
       ],
       "object_name": "network.device",
@@ -2806,6 +2847,15 @@
         "remove",
         "set_data"
       ],
+      "methods_confirmed_in_artifact": [
+        "add_device",
+        "notify_proto",
+        "prepare",
+        "remove",
+        "remove_device",
+        "renew",
+        "set_data"
+      ],
       "object_name": "network.interface",
       "object_type": "netifd_iface",
       "source": "sources/components/netifd/ubus.c:1116",
@@ -2829,6 +2879,17 @@
         "unset",
         "destroy",
         "login"
+      ],
+      "methods_confirmed_in_artifact": [
+        "access",
+        "create",
+        "destroy",
+        "get",
+        "grant",
+        "list",
+        "login",
+        "revoke",
+        "unset"
       ],
       "object_name": "session",
       "object_type": "rpcd-plugin-session",
@@ -2859,6 +2920,19 @@
         "rollback",
         "reload_config"
       ],
+      "methods_confirmed_in_artifact": [
+        "apply",
+        "changes",
+        "commit",
+        "configs",
+        "confirm",
+        "delete",
+        "get",
+        "order",
+        "rename",
+        "revert",
+        "rollback"
+      ],
       "object_name": "uci",
       "object_type": "rpcd-plugin-uci",
       "source": "sources/components/rpcd/uci.c:1789",
@@ -2874,6 +2948,10 @@
       "methods": [
         "list",
         "init"
+      ],
+      "methods_confirmed_in_artifact": [
+        "init",
+        "list"
       ],
       "object_name": "rc",
       "object_type": "rc",
@@ -2896,6 +2974,15 @@
         "md5",
         "remove",
         "exec"
+      ],
+      "methods_confirmed_in_artifact": [
+        "exec",
+        "list",
+        "lstat",
+        "md5",
+        "read",
+        "remove",
+        "write"
       ],
       "object_name": "file",
       "object_type": "rpcd-plugin-file",
@@ -2920,6 +3007,16 @@
         "survey",
         "phyname"
       ],
+      "methods_confirmed_in_artifact": [
+        "assoclist",
+        "countrylist",
+        "devices",
+        "freqlist",
+        "phyname",
+        "scan",
+        "survey",
+        "txpowerlist"
+      ],
       "object_name": "iwinfo",
       "object_type": "rpcd-plugin-iwinfo",
       "source": "sources/components/rpcd/iwinfo.c:943",
@@ -2941,6 +3038,15 @@
         "factory",
         "reboot"
       ],
+      "methods_confirmed_in_artifact": [
+        "factory",
+        "packagelist",
+        "password_set",
+        "reboot",
+        "upgrade_clean",
+        "upgrade_start",
+        "upgrade_test"
+      ],
       "object_name": "rpc-sys",
       "object_type": "rpcd-plugin-sys",
       "source": "sources/components/rpcd/sys.c:488",
@@ -2958,6 +3064,11 @@
         "ipv6leases",
         "ipv6ra",
         "add_lease"
+      ],
+      "methods_confirmed_in_artifact": [
+        "add_lease",
+        "ipv6leases",
+        "ipv6ra"
       ],
       "object_name": "dhcp",
       "object_type": "dhcp",
@@ -2979,6 +3090,14 @@
         "getBoardJSON",
         "getDHCPLeases"
       ],
+      "methods_confirmed_in_artifact": [
+        "getBoardJSON",
+        "getDHCPLeases",
+        "getDUIDHints",
+        "getHostHints",
+        "getNetworkDevices",
+        "getWirelessDevices"
+      ],
       "object_name": "luci-rpc",
       "object_type": "rpcd-luci",
       "source": "sources/luci/libs/rpcd-mod-luci/src/luci.c:2045",
@@ -2992,6 +3111,9 @@
       "deployed_artifact": "/usr/lib/rpcd/rrdns.so",
       "method_table": "rrdns_methods",
       "methods": [
+        "lookup"
+      ],
+      "methods_confirmed_in_artifact": [
         "lookup"
       ],
       "object_name": "network.rrdns",
@@ -3010,6 +3132,10 @@
         "read",
         "write"
       ],
+      "methods_confirmed_in_artifact": [
+        "read",
+        "write"
+      ],
       "object_name": "log",
       "object_type": "log",
       "source": "sources/components/ubox/log/logd.c:200",
@@ -3025,6 +3151,9 @@
       "methods": [
         "metrics",
         "set_connmark_allowlist"
+      ],
+      "methods_confirmed_in_artifact": [
+        "metrics"
       ],
       "object_name": null,
       "object_type": "dnsmasq",
@@ -3045,6 +3174,12 @@
         "reconfigure_dhcp",
         "renew",
         "release"
+      ],
+      "methods_confirmed_in_artifact": [
+        "get_state",
+        "get_statistics",
+        "reconfigure_dhcp",
+        "reset_statistics"
       ],
       "object_name": null,
       "object_type": "odhcp6c",

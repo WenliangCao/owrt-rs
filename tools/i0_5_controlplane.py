@@ -893,6 +893,26 @@ RPCD_UCODE_KEY_RE = re.compile(r"^['\"]?([A-Za-z_][A-Za-z0-9_.-]*)['\"]?$")
 UBUS_ENTRY_POINTS = ("ubus_add_object", "ubus_connect", "ubus_invoke", "ubus_register_subscriber")
 
 
+def method_names_present(path: Path, methods: Iterable[str]) -> list[str]:
+    """Report which method-name literals occur as standalone strings in an artifact.
+
+    Method tables can be guarded by build-time #ifdef (odhcpd's DHCPV4_SUPPORT
+    is the case that matters here), so the source table alone can name methods a
+    given build does not contain.
+
+    This is POSITIVE EVIDENCE ONLY.  A hit means the literal is in the artifact.
+    A miss means nothing: the linker merges string constants, so a short name
+    such as "up" or "set" is usually stored as the tail of a longer string and
+    carries no leading NUL.  Absence is therefore never reported.
+    """
+    if not path.is_file():
+        return []
+    data = path.read_bytes()
+    return sorted(
+        name for name in methods if (b"\x00" + name.encode() + b"\x00") in data
+    )
+
+
 def classify_ubus_role(path: Path) -> list[str]:
     """Report which libubus entry-point names occur in an artifact's bytes.
 
@@ -923,12 +943,18 @@ def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) ->
                 continue
             parsed = parse_c_ubus(path, f"sources/{unit}")
             artifact = UBUS_UNIT_ARTIFACT.get(unit)
+            artifact_path = root / artifact.lstrip("/") if artifact else None
             for obj in parsed["objects"]:
                 obj["component"] = component
                 obj["source_unit"] = f"sources/{unit}"
                 obj["source_sha256"] = sha256_file(path)
                 obj["deployed_artifact"] = artifact
                 obj["artifact_present_in_image"] = artifact in deployed_paths
+                obj["methods_confirmed_in_artifact"] = (
+                    method_names_present(artifact_path, obj["methods"])
+                    if artifact_path is not None
+                    else []
+                )
                 ubus_objects.append(obj)
 
     ucode_publishers = []
@@ -1230,6 +1256,13 @@ def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) ->
             }
             for path in ubus_linked_artifacts
         ],
+        "ubus_method_confirmation_note": (
+            "methods_confirmed_in_artifact lists method-name literals found in the "
+            "deployed artifact's bytes.  It is positive evidence only: linker string "
+            "merging makes absence undecidable, so a method missing from this list is "
+            "not evidence that the build lacks it.  Build-time method gating must be "
+            "read from the recipe (see sources.json build option evidence)."
+        ),
         "ubus_role_note": (
             "dynamic_symbol_names records which libubus entry-point names appear in the "
             "stripped artifact's dynamic string data.  It shows the linked interface, not "
@@ -1257,6 +1290,9 @@ def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) ->
             "ubus_objects_source": len(ubus_objects),
             "ubus_objects_with_deployed_artifact": sum(
                 1 for item in ubus_objects if item["artifact_present_in_image"]
+            ),
+            "ubus_method_names_confirmed_in_artifacts": sum(
+                len(item["methods_confirmed_in_artifact"]) for item in ubus_objects
             ),
             "ubus_objects_from_deployed_ucode": len(ucode_publishers),
             "ubus_dynamic_object_rules": len(DYNAMIC_UBUS_OBJECTS),
