@@ -1,0 +1,19 @@
+.DS_Store
+
+# Private or generated analysis material
+/artifacts/
+/private/
+/work/
+/tmp/
+
+# Router images, dumps and backups must never enter Git
+*.bin
+*.ubi
+*.itb
+*.img
+*.dump
+*.backup
+*.sysupgrade.tar
+
+# Rust build output
+/target/
