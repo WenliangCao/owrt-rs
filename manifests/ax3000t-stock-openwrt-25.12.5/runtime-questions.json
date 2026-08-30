@@ -1,0 +1,484 @@
+{
+  "authorization": {
+    "collector_approved": false,
+    "device_access_approved": false,
+    "note": "Obtaining shell or ubus access to the device is a separate authorization, not part of a read-only observation. Enabling SSH, setting a root password or changing dropbear state all modify the device."
+  },
+  "counts": {
+    "approved_commands": 19,
+    "excluded_commands": 11,
+    "questions": 13
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "excluded_commands": [
+    {
+      "class": "executes-code",
+      "command": "ubus call rc list",
+      "review": "rc_list forks and execl()s every /etc/init.d script with the 'running' action",
+      "source": "sources/components/rpcd/rc.c:122-172,251-255"
+    },
+    {
+      "class": "disrupts-service",
+      "command": "ubus call iwinfo scan",
+      "review": "calls iw->scanlist, which triggers an active nl80211 scan on the radio",
+      "source": "sources/components/rpcd/iwinfo.c:377-396"
+    },
+    {
+      "class": "executes-code",
+      "command": "ubus call luci getFeatures",
+      "review": "runs hostapd -v, wpa_supplicant -v, dnsmasq --version, odhcpd -h and ipset --help",
+      "source": "/usr/share/rpcd/ucode/luci:268,275,278,294,315"
+    },
+    {
+      "class": "mutates-state",
+      "command": "ubus call luci setBlockDetect",
+      "review": "system('/sbin/block detect > /etc/config/fstab') overwrites a config file",
+      "source": "/usr/share/rpcd/ucode/luci:532"
+    },
+    {
+      "class": "mutates-state",
+      "command": "ubus call luci setLocaltime",
+      "review": "sets the system clock and restarts /etc/init.d/sysfixtime",
+      "source": "/usr/share/rpcd/ucode/luci:111-112"
+    },
+    {
+      "class": "mutates-state",
+      "command": "ubus call luci setPassword",
+      "review": "pipes a new password into busybox passwd",
+      "source": "/usr/share/rpcd/ucode/luci:474"
+    },
+    {
+      "class": "executes-code",
+      "command": "ubus call luci setInitAction",
+      "review": "init_action runs env -i /etc/init.d/<name> <action>",
+      "source": "/usr/share/ucode/luci/sys.uc:153-159"
+    },
+    {
+      "class": "disrupts-service",
+      "command": "ubus call network.interface.<name> up|down|renew",
+      "review": "changes interface state; renew restarts the protocol handler",
+      "source": "sources/components/netifd/ubus.c:1096-1101"
+    },
+    {
+      "class": "mutates-state",
+      "command": "ubus call uci get|configs|changes",
+      "review": "every uci method requires ubus_rpc_session, so calling it means creating an rpcd session first; read the files directly instead",
+      "source": "sources/components/rpcd/uci.c:52,612-615"
+    },
+    {
+      "class": "executes-code",
+      "command": "ubus call file read|exec",
+      "review": "file.exec runs arbitrary programs; both need an rpcd session",
+      "source": "sources/components/rpcd/file.c:1115-1126"
+    },
+    {
+      "class": "mutates-state",
+      "command": "ubus call system reboot | rpc-sys upgrade_start | rpc-sys factory",
+      "review": "terminal operations on the device",
+      "source": "sources/components/procd/system.c:855-862; sources/components/rpcd/sys.c:486-497"
+    }
+  ],
+  "method": {
+    "contacts_device": false,
+    "emits_runnable_collector": false,
+    "input": "I0.5 manifests",
+    "reads_only": true
+  },
+  "questions": [
+    {
+      "closes": "BOOT_CHAIN.md \u00a78 kernel command line unknown",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "cat /proc/cmdline",
+          "expected_status": 0,
+          "review": "procfs read; no kernel state change",
+          "source": "REF: Linux procfs",
+          "timeout_s": 5
+        }
+      ],
+      "fields": [
+        "full /proc/cmdline string"
+      ],
+      "id": "Q01",
+      "question": "What is the actual kernel command line?",
+      "redaction": "none needed; record verbatim, but review for any vendor serial before commit",
+      "responsibility_ids": [
+        "R03"
+      ],
+      "why_static_is_insufficient": "the device tree chosen node carries only stdout-path; bootargs come from the bootloader and are absent from the image"
+    },
+    {
+      "closes": "BOOT_CHAIN.md \u00a78 actual boot order and failsafe unknown",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "logread -l 400",
+          "expected_status": 0,
+          "review": "log.read walks the ring buffer without consuming it; pass an explicit line bound so the call is not a stream subscription",
+          "source": "sources/components/ubox/log/logd.c:96-141",
+          "timeout_s": 20
+        },
+        {
+          "class": "read-only",
+          "command": "test -e /tmp/.failsafe; echo $?",
+          "expected_status": 0,
+          "review": "stat only",
+          "source": "/etc/init.d/boot:47",
+          "timeout_s": 5
+        }
+      ],
+      "fields": [
+        "boot-time log lines from procd and preinit",
+        "presence of /tmp/.failsafe"
+      ],
+      "id": "Q02",
+      "question": "Which boot stage did this device actually take, and did failsafe trigger?",
+      "redaction": "log lines may contain client MAC addresses, hostnames and SSIDs; redact before commit",
+      "responsibility_ids": [
+        "R03",
+        "R15"
+      ],
+      "why_static_is_insufficient": "hook order is static but branch outcomes, timing and failsafe entry are not"
+    },
+    {
+      "closes": "CONFIG_FLOW.md \u00a77 which uci-defaults ran; BOOT_CHAIN.md \u00a78 first versus subsequent boot",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "ls -la /etc/uci-defaults/ /etc/board.json /etc/rc.local",
+          "expected_status": 0,
+          "review": "directory and stat reads only",
+          "source": "/etc/init.d/boot:8-19",
+          "timeout_s": 5
+        }
+      ],
+      "fields": [
+        "listing of /etc/uci-defaults",
+        "existence of /etc/board.json",
+        "existence of /etc/rc.local"
+      ],
+      "id": "Q03",
+      "question": "Is this device past first boot, and which uci-defaults remain?",
+      "redaction": "none",
+      "responsibility_ids": [
+        "R03",
+        "R06"
+      ],
+      "why_static_is_insufficient": "uci_apply_defaults deletes each file it applies successfully, so the outcome is only visible on the device"
+    },
+    {
+      "closes": "CONFIG_FLOW.md \u00a77 generated config content unknown",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "cat /etc/board.json",
+          "expected_status": 0,
+          "review": "plain file read; config_generate only writes it when absent",
+          "source": "/lib/preinit/82_config_generate",
+          "timeout_s": 5
+        },
+        {
+          "class": "read-only",
+          "command": "cat /etc/config/network /etc/config/system /etc/config/wireless",
+          "expected_status": 0,
+          "review": "plain file read; deliberately not 'uci show', which would need an rpcd session or would read the tmpfs delta",
+          "source": "CONFIG_FLOW.md \u00a74",
+          "timeout_s": 5
+        }
+      ],
+      "fields": [
+        "/etc/board.json",
+        "/etc/config/network",
+        "/etc/config/system",
+        "/etc/config/wireless"
+      ],
+      "id": "Q04",
+      "question": "What are the generated network, system and wireless configurations, and the board.json they came from?",
+      "redaction": "MANDATORY. Remove wireless keys and passphrases, MAC addresses, ULA prefix, DUID, hostname and any WAN credentials before anything is committed.",
+      "responsibility_ids": [
+        "R04",
+        "R06",
+        "R07",
+        "R08"
+      ],
+      "why_static_is_insufficient": "none of these files ship in the image; they are produced from board.json and MTD-sourced MAC values"
+    },
+    {
+      "closes": "IPC_CATALOG.md \u00a710 actual object list and dynamic instance names",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "ubus list",
+          "expected_status": 0,
+          "review": "a lookup request against ubusd; it returns the object table and does not create, notify or subscribe",
+          "source": "sources/components/ubus/libubus-obj.c lookup path",
+          "timeout_s": 10
+        },
+        {
+          "class": "read-only",
+          "command": "ubus -v list",
+          "expected_status": 0,
+          "review": "same lookup with signatures included",
+          "source": "same",
+          "timeout_s": 10
+        }
+      ],
+      "fields": [
+        "object names",
+        "per-method argument names and types from the verbose listing"
+      ],
+      "id": "Q05",
+      "question": "Which ubus objects are actually registered, and what are their method signatures?",
+      "redaction": "object names embed interface and PHY names; keep them, but check for SSIDs in wpa_supplicant.* names",
+      "responsibility_ids": [
+        "R12",
+        "R07",
+        "R08",
+        "R11",
+        "R16"
+      ],
+      "why_static_is_insufficient": "six object families are named at run time, and registration depends on which daemons started"
+    },
+    {
+      "closes": "SERVICE_GRAPH.md \u00a77 actual instance count and ucitrack registration result",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "ubus call service list '{\"verbose\":true}'",
+          "expected_status": 0,
+          "review": "service_handle_list walks the service avl tree and serialises it; no fork, no exec, no state change. This is the safe counterpart to the excluded rc.list.",
+          "source": "sources/components/procd/service/service.c:515-543",
+          "timeout_s": 15
+        }
+      ],
+      "fields": [
+        "service names",
+        "instance names",
+        "running flag",
+        "pid",
+        "registered triggers",
+        "validate registrations"
+      ],
+      "id": "Q06",
+      "question": "Which services and instances does procd actually supervise, and with which triggers?",
+      "redaction": "instance command lines contain interface names and file paths; review for credentials passed as arguments",
+      "responsibility_ids": [
+        "R01",
+        "R02",
+        "R05"
+      ],
+      "why_static_is_insufficient": "instance counts come from config_foreach over run-time UCI, and ucitrack registration depends on a run-time 'enabled' test"
+    },
+    {
+      "closes": "SERVICE_GRAPH.md \u00a77 and IPC_CATALOG.md \u00a710 network.interface.* instance set",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "ubus call network.interface dump",
+          "expected_status": 0,
+          "review": "netifd_handle_dump serialises the interface vlist; it is the one iface method not rewritten to the per-interface handler and it mutates nothing",
+          "source": "sources/components/netifd/ubus.c:956-974,1178-1179",
+          "timeout_s": 15
+        },
+        {
+          "class": "read-only",
+          "command": "ubus call network.device status",
+          "expected_status": 0,
+          "review": "netifd_dev_status serialises device state",
+          "source": "sources/components/netifd/ubus.c:396",
+          "timeout_s": 15
+        }
+      ],
+      "fields": [
+        "interface names",
+        "up/pending/available/autostart flags",
+        "proto",
+        "device",
+        "l3_device"
+      ],
+      "id": "Q07",
+      "question": "What is the actual interface and device state netifd exposes?",
+      "redaction": "MANDATORY. Addresses, prefixes, DNS servers, MAC addresses and the WAN peer must be redacted.",
+      "responsibility_ids": [
+        "R07",
+        "R11"
+      ],
+      "why_static_is_insufficient": "per-interface objects are created from run-time config; protocol state is not derivable from the image"
+    },
+    {
+      "closes": "SERVICE_GRAPH.md \u00a77 fw4 generated ruleset unknown",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "nft -a list ruleset",
+          "expected_status": 0,
+          "review": "netlink dump of the current ruleset; no commit transaction is issued",
+          "source": "REF: nftables list semantics",
+          "timeout_s": 20
+        }
+      ],
+      "fields": [
+        "table, chain, and rule structure",
+        "which chains hotplug adds to"
+      ],
+      "id": "Q08",
+      "notes": "fw4 print is deliberately NOT used: it regenerates from config and would answer a different question than what is loaded.",
+      "question": "What nftables ruleset does fw4 actually produce?",
+      "redaction": "MANDATORY. Rules embed addresses, prefixes and possibly client identifiers.",
+      "responsibility_ids": [
+        "R09"
+      ],
+      "why_static_is_insufficient": "firewall4 is one-shot with no resident state; the ruleset is the only evidence of what it built"
+    },
+    {
+      "closes": "IPC_CATALOG.md \u00a710 dnsmasq registered name; confirms the build-gating conclusions",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "ubus -v list dnsmasq",
+          "expected_status": 0,
+          "review": "lookup only",
+          "source": "sources/components/dnsmasq/src/ubus.c:113",
+          "timeout_s": 10
+        },
+        {
+          "class": "read-only",
+          "command": "ubus -v list dhcp",
+          "expected_status": 0,
+          "review": "lookup only; confirms whether ipv4leases is absent as the recipe predicts",
+          "source": "sources/components/odhcpd/src/ubus.c:247-254",
+          "timeout_s": 10
+        }
+      ],
+      "fields": [
+        "presence of a dnsmasq object in ubus list",
+        "method list of the dhcp object"
+      ],
+      "id": "Q09",
+      "question": "Does dnsmasq register its ubus object under the default name, and is odhcpd the ipv6only build?",
+      "redaction": "none",
+      "responsibility_ids": [
+        "R10",
+        "R11"
+      ],
+      "why_static_is_insufficient": "the name comes from a run-time option; the build conclusion should be confirmed rather than assumed"
+    },
+    {
+      "closes": "IPC_CATALOG.md \u00a710 udebug provider unknown",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "ubus -v list udebug",
+          "expected_status": 0,
+          "review": "lookup only",
+          "source": "/usr/share/acl.d/wpad_acl.json",
+          "timeout_s": 10
+        }
+      ],
+      "fields": [
+        "whether a udebug object exists",
+        "its methods"
+      ],
+      "id": "Q10",
+      "question": "Which artifact provides the udebug ubus object?",
+      "redaction": "none",
+      "responsibility_ids": [
+        "R12",
+        "R08"
+      ],
+      "why_static_is_insufficient": "the wpad ubusd ACL grants access to and subscription on udebug, but no deployed binary was resolved as its provider"
+    },
+    {
+      "closes": "SERVICE_GRAPH.md \u00a77 whether jail takes effect",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "for p in $(pgrep -f 'hostapd|wpa_supplicant|ntpd|dnsmasq|logd'); do echo \"== $p\"; cat /proc/$p/status | grep -E '^(Name|Uid|Gid|CapEff|NoNewPrivs|Seccomp)'; ls -l /proc/$p/ns; done",
+          "expected_status": 0,
+          "review": "procfs reads only; no signal is sent and pgrep does not modify process state",
+          "source": "SERVICE_GRAPH.md \u00a76",
+          "timeout_s": 20
+        }
+      ],
+      "fields": [
+        "uid and gid of wpad, ntpd, dnsmasq and logd processes",
+        "namespace links for those pids"
+      ],
+      "id": "Q11",
+      "question": "Are the declared jails and capability drops actually in effect?",
+      "redaction": "process arguments may contain paths and interface names; review before commit",
+      "responsibility_ids": [
+        "R01",
+        "R08",
+        "R10",
+        "R15"
+      ],
+      "why_static_is_insufficient": "procd_add_jail depends on ujail and kernel namespace support at run time"
+    },
+    {
+      "closes": "CONFIG_FLOW.md \u00a77 whether migrations ran and whether the user modified configs; IPC_CATALOG.md \u00a77 actual uhttpd ubus settings",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "sha256sum /etc/config/dhcp /etc/config/dropbear /etc/config/firewall /etc/config/luci /etc/config/rpcd /etc/config/uhttpd",
+          "expected_status": 0,
+          "review": "hash only, so drift is detected without exporting content; compare against the image hashes in config-flow.json",
+          "source": "CONFIG_FLOW.md \u00a71",
+          "timeout_s": 10
+        },
+        {
+          "class": "read-only",
+          "command": "cat /etc/config/uhttpd /etc/config/rpcd",
+          "expected_status": 0,
+          "review": "plain file read; these two decide the HTTP-to-ubus and RPC surface, so their content is needed, not just a hash",
+          "source": "IPC_CATALOG.md \u00a76 and \u00a77",
+          "timeout_s": 5
+        }
+      ],
+      "fields": [
+        "sha256 of each /etc/config file shipped in the image",
+        "uhttpd.main.ubus_prefix and ubus_socket and no_ubusauth",
+        "rpcd socket and timeout and the login section shape"
+      ],
+      "id": "Q13",
+      "question": "Do the six shipped UCI configs still match the image, and what did the uci-defaults migrations write?",
+      "redaction": "MANDATORY. /etc/config/rpcd carries the login section; drop the password field entirely, never record its value even if it is still the $p$root placeholder.",
+      "responsibility_ids": [
+        "R04",
+        "R13",
+        "R14"
+      ],
+      "why_static_is_insufficient": "the shipped files are a build artifact; uci-defaults rewrite uhttpd.main.ubus_prefix and rpcd.@rpcd.socket on first boot, and the user may have edited anything"
+    },
+    {
+      "closes": "CONFIG_FLOW.md \u00a77 /var/run/config.md5 baseline and user modification unknown",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "ls -la /tmp/.uci /var/run/uci 2>&1; cut -c35- /var/run/config.md5 2>&1",
+          "expected_status": 0,
+          "review": "directory listing and a field-limited read of the md5 baseline; the hashes themselves are not needed, only which packages are tracked",
+          "source": "/sbin/reload_config",
+          "timeout_s": 5
+        }
+      ],
+      "fields": [
+        "existence and file list of /var/run/config.md5",
+        "listing of /tmp/.uci and /var/run/uci"
+      ],
+      "id": "Q12",
+      "question": "What is the current config change baseline, and are there uncommitted UCI deltas?",
+      "redaction": "session directory names under /tmp/.uci are session identifiers; drop them",
+      "responsibility_ids": [
+        "R04",
+        "R05"
+      ],
+      "why_static_is_insufficient": "the baseline lives in tmpfs and the delta directory only exists at run time"
+    }
+  ],
+  "recorded_at": "2026-08-31",
+  "schema_version": 1,
+  "stage": "I0.6",
+  "status": "complete"
+}

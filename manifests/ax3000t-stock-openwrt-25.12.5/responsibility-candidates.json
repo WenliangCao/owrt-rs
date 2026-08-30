@@ -1,0 +1,917 @@
+{
+  "counts": {
+    "responsibilities": 17,
+    "responsibilities_with_open_run_questions": 16,
+    "responsibilities_without_run_questions": 1
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "method": {
+    "contacts_device": false,
+    "emits_runnable_collector": false,
+    "input": "I0.5 manifests",
+    "reads_only": true
+  },
+  "ranking": "none. I0.6 assesses evidence completeness and risk only.",
+  "recorded_at": "2026-08-31",
+  "responsibilities": [
+    {
+      "artifacts": [
+        "/sbin/procd",
+        "/sbin/init",
+        "/sbin/ujail"
+      ],
+      "compatibility_requirements": [
+        "ubus service object method set and blobmsg policy",
+        "instance definition semantics including respawn, watch, netdev, file, limits",
+        "trigger registration and delivery ordering",
+        "inittab handler set and built-in rcS"
+      ],
+      "configs": [],
+      "consumes": [],
+      "current_implementation": "procd",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/procd",
+          "/sbin/init",
+          "/sbin/ujail"
+        ],
+        "ubus_objects_resolved": [
+          "service",
+          "system"
+        ],
+        "ubus_objects_runtime_named": [
+          "container (registered only when procd runs the ujail container path)",
+          "hotplug.<subsystem registered by procd>"
+        ]
+      },
+      "failure_boundary": "PID 1. Failure is a device reboot.",
+      "id": "R01",
+      "init_services": [],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/ucitrack"
+        ],
+        "rpcd_acl_grants": [
+          "/usr/share/rpcd/acl.d/luci-app-attendedsysupgrade.json",
+          "/usr/share/rpcd/acl.d/luci-mod-network.json",
+          "/usr/share/rpcd/acl.d/luci-mod-status-index.json",
+          "/usr/share/rpcd/acl.d/luci-mod-system.json"
+        ]
+      },
+      "missing_run_evidence": [
+        "Q06",
+        "Q11"
+      ],
+      "persistent_side_effects": "none of its own; owns child process state and /var/run pidfiles",
+      "provides": [
+        "service",
+        "system"
+      ],
+      "provides_runtime_named": [
+        "container (registered only when procd runs the ujail container path)",
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "recovery": "none in-band; failure requires bootloader or power cycle",
+      "responsibility": "service supervision and process lifecycle",
+      "timing_notes": "runqueue-ordered rcS; respawn windows per instance; watchdog kicked from STATE_EARLY"
+    },
+    {
+      "artifacts": [
+        "/etc/rc.common",
+        "/lib/functions/procd.sh",
+        "/lib/functions/service.sh"
+      ],
+      "compatibility_requirements": [
+        "START/STOP ordering and rc.d link naming",
+        "reload falling back to start when reload_service is undefined",
+        "EXTRA_COMMANDS surface",
+        "validate section registration"
+      ],
+      "configs": [],
+      "consumes": [
+        "service"
+      ],
+      "current_implementation": "/etc/rc.common + /lib/functions/procd.sh shell",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/etc/rc.common",
+          "/lib/functions/procd.sh",
+          "/lib/functions/service.sh"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "one service per invocation; a failing script leaves procd definition unchanged",
+      "id": "R02",
+      "init_services": [
+        "*"
+      ],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q06"
+      ],
+      "persistent_side_effects": "creates and removes /etc/rc.d symlinks on enable/disable",
+      "provides": [],
+      "recovery": "re-run the init script; no automatic rollback",
+      "responsibility": "init script framework and service definition",
+      "timing_notes": "synchronous shell; reload semantics differ per service"
+    },
+    {
+      "artifacts": [
+        "/sbin/init",
+        "/etc/preinit",
+        "/sbin/mount_root",
+        "/sbin/kmodloader"
+      ],
+      "compatibility_requirements": [
+        "hook namespace names and execution order",
+        "overlay mount and config restore behaviour",
+        "kernel command line consumption in 80_mount_root"
+      ],
+      "configs": [],
+      "consumes": [],
+      "current_implementation": "procd initd + /etc/preinit + /lib/preinit hooks",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/init",
+          "/etc/preinit",
+          "/sbin/mount_root",
+          "/sbin/kmodloader"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "whole device; a failure here yields an unbootable or failsafe-only system",
+      "id": "R03",
+      "init_services": [
+        "boot",
+        "done"
+      ],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q01",
+        "Q02",
+        "Q03"
+      ],
+      "persistent_side_effects": "mounts overlay; restores sysupgrade.tgz; writes /etc/board.json and first UCI set",
+      "provides": [],
+      "recovery": "failsafe mode and TFTP/bootloader recovery only",
+      "responsibility": "boot orchestration and early root filesystem setup",
+      "timing_notes": "strictly sequential hook order; failsafe window is 4 s by 00_preinit.conf"
+    },
+    {
+      "artifacts": [
+        "/sbin/uci",
+        "/lib/libuci.so.20250120"
+      ],
+      "compatibility_requirements": [
+        "unknown option preservation on read-modify-write",
+        "section ordering and anonymous section naming",
+        "changes/revert/commit semantics against the delta directory",
+        "exact uci show output shape, because reload_config compares it"
+      ],
+      "configs": [
+        "*"
+      ],
+      "consumes": [],
+      "current_implementation": "uci / libuci",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/uci",
+          "/lib/libuci.so.20250120"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "one config package per commit; partial writes possible on power loss",
+      "id": "R04",
+      "init_services": [],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q04",
+        "Q12",
+        "Q13"
+      ],
+      "persistent_side_effects": "writes /etc/config/*; session deltas in /tmp/.uci and /var/run/uci",
+      "provides": [],
+      "recovery": "uci revert before commit; no post-commit rollback outside rpcd apply/confirm",
+      "responsibility": "configuration storage and transactions",
+      "timing_notes": "no cross-process write lock; shell, ucode and C writers coexist"
+    },
+    {
+      "artifacts": [
+        "/sbin/reload_config"
+      ],
+      "compatibility_requirements": [
+        "uci show normalisation used for the md5 baseline",
+        "config.change event payload shape",
+        "trigger matching including ucitrack affects fan-out"
+      ],
+      "configs": [
+        "*"
+      ],
+      "consumes": [
+        "service"
+      ],
+      "current_implementation": "/sbin/reload_config + procd config.change triggers",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/reload_config"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "a missed event leaves a service running stale config with no error",
+      "id": "R05",
+      "init_services": [
+        "ucitrack"
+      ],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q06",
+        "Q12"
+      ],
+      "persistent_side_effects": "rewrites /var/run/config.md5 baseline in tmpfs",
+      "provides": [],
+      "recovery": "next reload_config run re-detects; no explicit retry",
+      "responsibility": "configuration change detection and dispatch",
+      "timing_notes": "whole-file granularity; baseline lost on reboot; upstream calls it a temporary hack"
+    },
+    {
+      "artifacts": [
+        "/bin/board_detect",
+        "/bin/config_generate"
+      ],
+      "compatibility_requirements": [
+        "ucidef_* accumulation format and board.json schema",
+        "MTD-sourced MAC derivation for this board",
+        "the guard conditions that make generation idempotent"
+      ],
+      "configs": [
+        "network",
+        "system"
+      ],
+      "consumes": [],
+      "current_implementation": "board_detect + config_generate + /etc/board.d",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/bin/board_detect",
+          "/bin/config_generate"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "device has no network configuration; recoverable only via failsafe",
+      "id": "R06",
+      "init_services": [
+        "boot"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/cron",
+          "/etc/init.d/dnsmasq",
+          "/etc/init.d/gpio_switch",
+          "/etc/init.d/led",
+          "/etc/init.d/log",
+          "/etc/init.d/network",
+          "/etc/init.d/odhcpd",
+          "/etc/init.d/packet_steering",
+          "/etc/init.d/sysntpd",
+          "/etc/init.d/system",
+          "/etc/init.d/uhttpd"
+        ],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q03",
+        "Q04"
+      ],
+      "persistent_side_effects": "creates /etc/board.json, /etc/config/network and /etc/config/system",
+      "provides": [],
+      "recovery": "delete board.json and regenerate; destroys user network config",
+      "responsibility": "first-boot configuration generation",
+      "timing_notes": "runs once, guarded by /etc/board.json presence and non-empty network+system"
+    },
+    {
+      "artifacts": [
+        "/sbin/netifd"
+      ],
+      "compatibility_requirements": [
+        "per-interface ubus object naming and method set",
+        "interface event names consumed by hotplug and raw triggers",
+        "proto handler contract in /lib/netifd/proto",
+        "wireless ucode object contract"
+      ],
+      "configs": [
+        "network"
+      ],
+      "consumes": [
+        "service"
+      ],
+      "current_implementation": "netifd",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/netifd"
+        ],
+        "ubus_objects_resolved": [
+          "network",
+          "network.device",
+          "network.interface"
+        ],
+        "ubus_objects_runtime_named": [
+          "network.interface.<interface name from /etc/config/network>"
+        ]
+      },
+      "failure_boundary": "all connectivity; watch network.interface makes procd restart it",
+      "id": "R07",
+      "init_services": [
+        "network"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/network",
+          "/etc/init.d/odhcpd",
+          "/etc/init.d/packet_steering",
+          "/etc/init.d/sysntpd",
+          "/etc/init.d/uhttpd"
+        ],
+        "rpcd_acl_grants": [
+          "/usr/share/rpcd/acl.d/luci-base.json"
+        ]
+      },
+      "missing_run_evidence": [
+        "Q04",
+        "Q05",
+        "Q07"
+      ],
+      "persistent_side_effects": "kernel link, address, route and rule state; resolv.conf.auto",
+      "provides": [
+        "network",
+        "network.device",
+        "network.interface"
+      ],
+      "provides_runtime_named": [
+        "network.interface.<interface name from /etc/config/network>"
+      ],
+      "recovery": "procd respawn; ifup/ifdown; no config rollback",
+      "responsibility": "network interface and device management",
+      "timing_notes": "asynchronous protocol handlers; interface events drive downstream triggers"
+    },
+    {
+      "artifacts": [
+        "/sbin/wifi",
+        "/lib/netifd/wireless.uc",
+        "/usr/sbin/wpad",
+        "/usr/share/hostap/hostapd.uc"
+      ],
+      "compatibility_requirements": [
+        "ubusd ACL publish list for hostapd.* and wpa_supplicant.*",
+        "netifd wireless notify protocol",
+        "wifi detect output format written into /etc/config/wireless"
+      ],
+      "configs": [
+        "wireless"
+      ],
+      "consumes": [
+        "network.wireless",
+        "service"
+      ],
+      "current_implementation": "wifi-scripts + netifd wireless.uc + hostapd/wpa_supplicant ucode",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/wifi",
+          "/lib/netifd/wireless.uc",
+          "/usr/sbin/wpad",
+          "/usr/share/hostap/hostapd.uc"
+        ],
+        "ubus_objects_resolved": [
+          "network.wireless",
+          "hostapd",
+          "hostapd-auth",
+          "wpa_supplicant"
+        ],
+        "ubus_objects_runtime_named": [
+          "wpa_supplicant.<ifname>"
+        ]
+      },
+      "failure_boundary": "all wireless clients; wpad runs as user network under a jail",
+      "id": "R08",
+      "init_services": [
+        "wpad"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/network"
+        ],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q04",
+        "Q05",
+        "Q10",
+        "Q11"
+      ],
+      "persistent_side_effects": "writes /etc/config/wireless on detect; radio state",
+      "provides": [
+        "network.wireless",
+        "hostapd",
+        "hostapd-auth",
+        "wpa_supplicant"
+      ],
+      "provides_runtime_named": [
+        "wpa_supplicant.<ifname>"
+      ],
+      "recovery": "wifi reload; procd respawn 3600 1 0",
+      "responsibility": "wireless configuration and AP/STA management",
+      "timing_notes": "ieee80211 hotplug driven; wifi config runs before kmodloader in /etc/init.d/boot"
+    },
+    {
+      "artifacts": [
+        "/sbin/fw4"
+      ],
+      "compatibility_requirements": [
+        "generated ruleset structure that hotplug and reload assume",
+        "reload versus restart versus flush semantics",
+        "interaction with the 20-firewall iface hotplug handler"
+      ],
+      "configs": [
+        "firewall"
+      ],
+      "consumes": [
+        "service"
+      ],
+      "current_implementation": "firewall4 (fw4, ucode) targeting nftables",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/fw4"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "whole packet path; a flush leaves the device open or unreachable",
+      "id": "R09",
+      "init_services": [
+        "firewall"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/firewall",
+          "/etc/init.d/packet_steering"
+        ],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q08"
+      ],
+      "persistent_side_effects": "the entire nftables ruleset",
+      "provides": [],
+      "recovery": "fw4 restart; no rollback of an intermediate ruleset",
+      "responsibility": "firewall rule generation",
+      "timing_notes": "one-shot; no resident process; also invoked from the iface hotplug handler"
+    },
+    {
+      "artifacts": [
+        "/usr/sbin/dnsmasq"
+      ],
+      "compatibility_requirements": [
+        "the generated config file format consumed by the binary",
+        "lease file format read by luci-rpc getDHCPLeases",
+        "ubusd ACL publish name and hotplug call rights"
+      ],
+      "configs": [
+        "dhcp"
+      ],
+      "consumes": [
+        "hotplug.dhcp",
+        "hotplug.neigh",
+        "hotplug.tftp"
+      ],
+      "current_implementation": "dnsmasq",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/usr/sbin/dnsmasq"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": [
+          "dnsmasq instance name from --ubus option, default DNSMASQ_UBUS_NAME"
+        ]
+      },
+      "failure_boundary": "name resolution and IPv4 address assignment for all clients",
+      "id": "R10",
+      "init_services": [
+        "dnsmasq"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/dnsmasq",
+          "/etc/init.d/odhcpd"
+        ],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q09",
+        "Q11"
+      ],
+      "persistent_side_effects": "lease file, generated /var/etc/dnsmasq.conf.*, DNS cache",
+      "provides": [],
+      "provides_runtime_named": [
+        "dnsmasq instance name from --ubus option, default DNSMASQ_UBUS_NAME"
+      ],
+      "recovery": "procd respawn; leases persist in the lease file",
+      "responsibility": "DNS and DHCPv4 service",
+      "timing_notes": "instance per UCI section; file trigger restarts the instance on config change"
+    },
+    {
+      "artifacts": [
+        "/usr/sbin/odhcpd",
+        "/usr/sbin/odhcp6c"
+      ],
+      "compatibility_requirements": [
+        "this build has no dhcp.ipv4leases method",
+        "odhcp6c.<interface> object naming",
+        "netifd protocol handler integration"
+      ],
+      "configs": [
+        "dhcp",
+        "network"
+      ],
+      "consumes": [],
+      "current_implementation": "odhcpd (ipv6only variant) and odhcp6c",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/usr/sbin/odhcpd",
+          "/usr/sbin/odhcp6c"
+        ],
+        "ubus_objects_resolved": [
+          "dhcp"
+        ],
+        "ubus_objects_runtime_named": [
+          "odhcp6c.<interface>"
+        ]
+      },
+      "failure_boundary": "all IPv6 connectivity",
+      "id": "R11",
+      "init_services": [
+        "odhcpd"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/dnsmasq",
+          "/etc/init.d/network",
+          "/etc/init.d/odhcpd",
+          "/etc/init.d/packet_steering",
+          "/etc/init.d/uhttpd"
+        ],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q05",
+        "Q07",
+        "Q09"
+      ],
+      "persistent_side_effects": "IPv6 addresses, routes and RA state; lease state",
+      "provides": [
+        "dhcp"
+      ],
+      "provides_runtime_named": [
+        "odhcp6c.<interface>"
+      ],
+      "recovery": "procd respawn",
+      "responsibility": "IPv6 RA, DHCPv6 and prefix delegation",
+      "timing_notes": "reacts to network and dhcp config change; odhcp6c is spawned per WAN interface"
+    },
+    {
+      "artifacts": [
+        "/sbin/ubusd",
+        "/lib/libubus.so.20251202"
+      ],
+      "compatibility_requirements": [
+        "socket path /var/run/ubus/ubus.sock created with umask 0111",
+        "ACL evaluation from /usr/share/acl.d by unix user",
+        "wire format, object lookup, notify and subscribe semantics"
+      ],
+      "configs": [],
+      "consumes": [],
+      "current_implementation": "ubusd",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/ubusd",
+          "/lib/libubus.so.20251202"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "every control-plane interaction on the device",
+      "id": "R12",
+      "init_services": [],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q05",
+        "Q10"
+      ],
+      "persistent_side_effects": "none; all state is in-memory and lost on restart",
+      "provides": [],
+      "recovery": "restart loses every registered object; every daemon must reconnect",
+      "responsibility": "IPC bus",
+      "timing_notes": "started by procd in STATE_UBUS as user ubus, before any init script"
+    },
+    {
+      "artifacts": [
+        "/sbin/rpcd",
+        "/usr/lib/rpcd/file.so",
+        "/usr/lib/rpcd/luci.so",
+        "/usr/lib/uhttpd_ubus.so"
+      ],
+      "compatibility_requirements": [
+        "session ACL evaluation against /usr/share/rpcd/acl.d",
+        "uci apply/confirm/rollback semantics",
+        "the LuCI client depends on exact method and field names"
+      ],
+      "configs": [
+        "rpcd"
+      ],
+      "consumes": [
+        "uci",
+        "session"
+      ],
+      "current_implementation": "rpcd plus its plugins, fronted by uhttpd_ubus",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/rpcd",
+          "/usr/lib/rpcd/file.so",
+          "/usr/lib/rpcd/luci.so",
+          "/usr/lib/uhttpd_ubus.so"
+        ],
+        "ubus_objects_resolved": [
+          "session",
+          "uci",
+          "rc",
+          "file",
+          "iwinfo",
+          "rpc-sys",
+          "luci-rpc",
+          "network.rrdns",
+          "luci"
+        ],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "remote administration and, through file.exec and rc.init, the whole device",
+      "id": "R13",
+      "init_services": [
+        "rpcd"
+      ],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": [
+          "/usr/share/rpcd/acl.d/luci-app-attendedsysupgrade.json",
+          "/usr/share/rpcd/acl.d/luci-app-firewall.json",
+          "/usr/share/rpcd/acl.d/luci-app-package-manager.json",
+          "/usr/share/rpcd/acl.d/luci-base.json",
+          "/usr/share/rpcd/acl.d/luci-mod-network.json",
+          "/usr/share/rpcd/acl.d/luci-mod-status-index.json",
+          "/usr/share/rpcd/acl.d/luci-mod-status.json",
+          "/usr/share/rpcd/acl.d/luci-mod-system.json",
+          "/usr/share/rpcd/acl.d/unauthenticated.json"
+        ]
+      },
+      "missing_run_evidence": [
+        "Q13"
+      ],
+      "persistent_side_effects": "uci.apply writes config; file.write and file.exec are arbitrary write and execute",
+      "provides": [
+        "session",
+        "uci",
+        "rc",
+        "file",
+        "iwinfo",
+        "rpc-sys",
+        "luci-rpc",
+        "network.rrdns",
+        "luci"
+      ],
+      "recovery": "procd respawn; uci rollback within the confirm window",
+      "responsibility": "RPC gateway, sessions and access control",
+      "timing_notes": "30 s session timeout from /etc/config/rpcd; apply/confirm has a rollback window"
+    },
+    {
+      "artifacts": [
+        "/usr/sbin/uhttpd",
+        "/usr/lib/uhttpd_ubus.so"
+      ],
+      "compatibility_requirements": [
+        "ubus_prefix default /ubus written by a uci-default, not by the shipped config",
+        "session cookie and authentication flow expected by LuCI"
+      ],
+      "configs": [
+        "uhttpd",
+        "network"
+      ],
+      "consumes": [
+        "session",
+        "uci",
+        "file",
+        "luci-rpc"
+      ],
+      "current_implementation": "uhttpd with uhttpd_ubus and ucode handlers",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/usr/sbin/uhttpd",
+          "/usr/lib/uhttpd_ubus.so"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "the web administration surface; runs as root",
+      "id": "R14",
+      "init_services": [
+        "uhttpd"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/network",
+          "/etc/init.d/odhcpd",
+          "/etc/init.d/packet_steering",
+          "/etc/init.d/uhttpd"
+        ],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q13"
+      ],
+      "persistent_side_effects": "generates TLS keys on first start; writes /var/etc/uhttpd/httpd.*.conf",
+      "provides": [],
+      "recovery": "procd respawn",
+      "responsibility": "HTTP server and ubus-over-HTTP bridge",
+      "timing_notes": "raw interface.*.up triggers a start with 1000 ms delay"
+    },
+    {
+      "artifacts": [
+        "/sbin/logd",
+        "/sbin/logread",
+        "/usr/libexec/logread-ubox"
+      ],
+      "compatibility_requirements": [
+        "log.read stream and oneshot semantics",
+        "ubusd ACL publish right for user logd",
+        "ring buffer sizing from log_buffer_size"
+      ],
+      "configs": [
+        "system"
+      ],
+      "consumes": [],
+      "current_implementation": "logd and logread from ubox",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/logd",
+          "/sbin/logread",
+          "/usr/libexec/logread-ubox"
+        ],
+        "ubus_objects_resolved": [
+          "log"
+        ],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "observability only; loss is silent",
+      "id": "R15",
+      "init_services": [
+        "log"
+      ],
+      "known_callers": {
+        "init_scripts": [
+          "/etc/init.d/cron",
+          "/etc/init.d/dnsmasq",
+          "/etc/init.d/gpio_switch",
+          "/etc/init.d/led",
+          "/etc/init.d/log",
+          "/etc/init.d/odhcpd",
+          "/etc/init.d/sysntpd",
+          "/etc/init.d/system"
+        ],
+        "rpcd_acl_grants": [
+          "/usr/share/rpcd/acl.d/luci-mod-status.json"
+        ]
+      },
+      "missing_run_evidence": [
+        "Q02",
+        "Q11"
+      ],
+      "persistent_side_effects": "optional log file when log_file is configured; otherwise memory ring only",
+      "provides": [
+        "log"
+      ],
+      "recovery": "procd respawn; buffered messages are lost",
+      "responsibility": "system logging",
+      "timing_notes": "three instances: logd, logfile, logremote; respawn 5 1 -1"
+    },
+    {
+      "artifacts": [
+        "/sbin/procd",
+        "/etc/hotplug.json"
+      ],
+      "compatibility_requirements": [
+        "hotplug.json rule language",
+        "environment variable names each handler reads",
+        "hotplug.<subsystem> call rights in the ubusd ACL"
+      ],
+      "configs": [],
+      "consumes": [],
+      "current_implementation": "procd hotplug with /etc/hotplug.json and /etc/hotplug.d",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/procd",
+          "/etc/hotplug.json"
+        ],
+        "ubus_objects_resolved": [],
+        "ubus_objects_runtime_named": [
+          "hotplug.<subsystem registered by procd>"
+        ]
+      },
+      "failure_boundary": "device node creation and every downstream handler",
+      "id": "R16",
+      "init_services": [],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": []
+      },
+      "missing_run_evidence": [
+        "Q05"
+      ],
+      "persistent_side_effects": "creates device nodes; the handlers themselves change network and firewall state",
+      "provides": [],
+      "provides_runtime_named": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "recovery": "none; a missed event is not retried",
+      "responsibility": "hotplug event dispatch",
+      "timing_notes": "kernel uevents plus injected iface and ntp events; handlers run as root"
+    },
+    {
+      "artifacts": [
+        "/sbin/procd",
+        "/usr/lib/rpcd/rpcsys.so",
+        "/sbin/sysupgrade"
+      ],
+      "compatibility_requirements": [
+        "image validation before write",
+        "config preservation list and sysupgrade.tgz handling"
+      ],
+      "configs": [],
+      "consumes": [],
+      "current_implementation": "procd system object and rpcd rpcsys plugin",
+      "dep_src_evidence": {
+        "artifacts_in_image": [
+          "/sbin/procd",
+          "/usr/lib/rpcd/rpcsys.so",
+          "/sbin/sysupgrade"
+        ],
+        "ubus_objects_resolved": [
+          "system",
+          "rpc-sys"
+        ],
+        "ubus_objects_runtime_named": []
+      },
+      "failure_boundary": "the device itself; a failed sysupgrade can brick it",
+      "id": "R17",
+      "init_services": [],
+      "known_callers": {
+        "init_scripts": [],
+        "rpcd_acl_grants": [
+          "/usr/share/rpcd/acl.d/luci-app-attendedsysupgrade.json",
+          "/usr/share/rpcd/acl.d/luci-mod-status-index.json",
+          "/usr/share/rpcd/acl.d/luci-mod-system.json"
+        ]
+      },
+      "missing_run_evidence": [],
+      "no_run_question_justification": "Every method on this responsibility is terminal: reboot, sysupgrade, factory. There is no read-only observation of it beyond the method list, which Q05 already collects. Exercising it belongs to H1 behind a recovery gate, not to a read-only observation.",
+      "persistent_side_effects": "sysupgrade rewrites flash; factory erases the overlay",
+      "provides": [
+        "system",
+        "rpc-sys"
+      ],
+      "recovery": "bootloader recovery only; this is the recovery gate the project reserves",
+      "responsibility": "system information, upgrade and reboot",
+      "timing_notes": "one-shot, terminal operations"
+    }
+  ],
+  "responsibilities_without_run_questions": [
+    "R17"
+  ],
+  "schema_version": 1,
+  "stage": "I0.6",
+  "status": "complete"
+}

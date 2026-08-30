@@ -76,3 +76,10 @@ I0.5 已完成启动链、服务图、配置链和 IPC 目录：
 不存在于镜像（`sysinit` 由 procd 内建 `rcS()` 处理）；`network`/`system`/`wireless`/
 `board.json` 都不随镜像发布、在首次启动生成；ubus 有 ubusd 与 rpcd 两层独立 ACL，
 socket 本身是 0666。
+
+I0.6 已完成 17 项控制面职责候选表和运行态问题单：
+[RESPONSIBILITY_CANDIDATES.md](reports/ax3000t-stock-openwrt-25.12.5/RESPONSIBILITY_CANDIDATES.md) 与
+[RUNTIME_QUESTIONS.md](reports/ax3000t-stock-openwrt-25.12.5/RUNTIME_QUESTIONS.md)，生成器是
+[i0_6_candidates.py](tools/i0_6_candidates.py)。13 个问题、19 条经源码审查的只读命令；
+11 条"看起来像读"的命令被排除，其中 `ubus call rc list` 会对每个 init 脚本 fork+exec。
+本阶段不排名替换候选。**设备接入与采集执行都尚未授权**，I0.7 需要用户分别批准。

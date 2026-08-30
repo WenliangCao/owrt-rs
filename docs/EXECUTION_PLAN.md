@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：I0.1、I0.2、I0.3、I0.4、I0.5 完成
-> 版本：0.7
+> 状态：I0.1、I0.2、I0.3、I0.4、I0.5、I0.6 完成
+> 版本：0.8
 > 日期：2026-08-31
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -178,7 +178,7 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | I0.3 | 按源码预期只读验证镜像结构和文件系统 | 完成：全字节、DTB、属性和偏差 gate 通过 | 否 |
 | I0.4 | 建立部署物料、文件归属和精确源码映射 | 完成：159 packages、全文件/ELF/service ownership 和 exact source/patch map gate 通过 | 否 |
 | I0.5 | 还原启动、服务、配置和 IPC 链 | 完成：启动链、25 服务、配置生成链和两层 ubus ACL gate 通过 | 否 |
-| I0.6 | 建立运行态问题清单 | 待执行 | 否 |
+| I0.6 | 建立运行态问题清单 | 完成：17 项职责、13 个问题、19 条已批准命令、11 条排除命令 | 否 |
 | I0.7 | 经单独批准采集必要运行态 | 未授权 | 否，只读观察 |
 | I0.8 | 形成五类替换边界并通过 I0 gate | 阻塞 | 否 |
 | C1 | 冻结第一个兼容合同和参考 oracle | 阻塞于 I0 | 否 |
@@ -591,10 +591,37 @@ recovery and fallback
 
 ### 退出门
 
-- 不存在“顺便把所有状态 dump 一遍”的采集项；
-- 每个命令已经过源码审查，确认读取不会触发 reload/scan/renew/reconnect；
-- 未经批准不能执行 collector；
-- 取得 shell、连接设备或改变 stock SSH 状态不被包装成“只读采集”。
+- [x] 不存在“顺便把所有状态 dump 一遍”的采集项；
+- [x] 每个命令已经过源码审查，确认读取不会触发 reload/scan/renew/reconnect；
+- [x] 未经批准不能执行 collector；
+- [x] 取得 shell、连接设备或改变 stock SSH 状态不被包装成“只读采集”。
+
+### 执行记录
+
+| 项 | 值 |
+|---|---|
+| 日期 | 2026-08-31 |
+| 工具 | [tools/i0_6_candidates.py](../tools/i0_6_candidates.py)，Python 3.14.7 |
+| 输入 | I0.5 manifests（`service-graph`、`config-flow`、`ipc-catalog`、`executables`） |
+| 输出 | `responsibility-candidates.json`、`runtime-questions.json` |
+| 设备连接 | 无 |
+| collector | 未生成、未批准 |
+
+生成器把每条职责声明（artifact 路径、init 服务名、config 名、ubus 对象名）与 I0.5
+manifest 交叉校验，并强制：非 `read-only` 命令不得出现在已批准问题中；每条命令必须有
+源码审查依据、期望状态码和超时；每个没有运行态问题的职责必须给出书面理由。首次运行时
+该校验拦截了 5 处声明错误，全部修正后才产出。
+
+### 主要结论
+
+1. 17 项职责中 16 项有明确的运行态问题；R17（升级/重启/恢复出厂）没有任何安全的只读
+   观察，全部方法都是终止性操作，已记入书面理由并推迟到 H1 的 recovery gate。
+2. 11 条"看起来像读"的命令经源码审查后被排除。最重要的一条是 `ubus call rc list`：
+   它对每个 `/etc/init.d` 脚本 fork + execl。与之对照，`ubus call service list` 只遍历
+   avl 树，安全。
+3. 同一 ubus 对象内部安全性不一致（`luci.getInitList` 安全，`luci.setInitAction` 不安全），
+   因此授权必须按方法而不是按对象。
+4. 取得设备 shell 或 ubus 访问本身是状态变更，已作为与采集授权分离的独立授权项记录。
 
 ## 15. I0.7：经批准的脱敏运行态采集
 
@@ -820,7 +847,7 @@ interface discovery
 1. [ ] 执行 I0.0 的 evidence schema、工具锁和 Git admission check。
 2. [x] 完成 I0.4 的 159-package source map、ELF inventory、service/privilege surface。
 3. [x] 完成 I0.5，建立启动链、服务图、配置链和 IPC 目录。
-4. [ ] 只为静态证据不能回答的问题设计 I0.6 运行态问题单。
+4. [x] 完成 I0.6 候选职责表与运行态问题单；等待用户对设备接入和采集分别授权。
 5. [ ] I0 gate 通过以前不创建替代组件 crate。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
