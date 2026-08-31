@@ -366,7 +366,7 @@
         "verification": "manifest-derived"
       },
       {
-        "evidence": "I0.7 identity/collector validation, 23 of 23 commands, and follow-up closure of OQ-01/OQ-07",
+        "evidence": "I0.7 identity/collector validation, all I0.7-stage commands collected, and follow-up closure of OQ-01/OQ-07",
         "item": "\u5173\u952e\u884c\u4e3a\u53d6\u5f97\u5fc5\u8981\u8fd0\u884c\u6001\u8bc1\u636e",
         "satisfied": true,
         "verification": "manifest-derived"

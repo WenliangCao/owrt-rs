@@ -548,6 +548,7 @@ QUESTIONS: list[dict[str, Any]] = [
         ],
         "redaction": "mask date-like digit runs in backup file names; never emit config content",
         "responsibility_ids": ["R05", "R04"],
+        "collected_in_stage": "C1",
     },
     {
         "id": "Q01",
@@ -1017,8 +1018,16 @@ def build(manifests: Path) -> tuple[dict[str, Any], dict[str, Any], list[str]]:
         "responsibilities_without_run_questions": uncovered,
         "ranking": "none. I0.6 assesses evidence completeness and risk only.",
     }
+    for question in QUESTIONS:
+        question.setdefault("collected_in_stage", "I0.7")
+    stage_commands: dict[str, int] = {}
+    for question in QUESTIONS:
+        stage = question["collected_in_stage"]
+        stage_commands[stage] = stage_commands.get(stage, 0) + len(question["commands"])
+
     questions = {
         "questions": QUESTIONS,
+        "approved_commands_by_stage": stage_commands,
         "excluded_commands": EXCLUDED_COMMANDS,
         "authorization": {
             "collector_approved": False,

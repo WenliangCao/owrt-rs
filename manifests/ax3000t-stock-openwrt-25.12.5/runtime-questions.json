@@ -1,4 +1,8 @@
 {
+  "approved_commands_by_stage": {
+    "C1": 2,
+    "I0.7": 23
+  },
   "authorization": {
     "collector_approved": false,
     "device_access_approved": false,
@@ -87,6 +91,7 @@
   "questions": [
     {
       "closes": "I0.7 precondition: prove device, running system and image identity before any other observation",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -129,6 +134,7 @@
     },
     {
       "closes": "PROVENANCE_GAPS.md open item: whether packages were added, removed or upgraded after flashing",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -154,6 +160,7 @@
     },
     {
       "closes": "C1 precondition for R05: the exact scan set and per-file outcome of the config-change baseline",
+      "collected_in_stage": "C1",
       "commands": [
         {
           "class": "read-only",
@@ -187,6 +194,7 @@
     },
     {
       "closes": "BOOT_CHAIN.md \u00a78 kernel command line unknown",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -210,6 +218,7 @@
     },
     {
       "closes": "BOOT_CHAIN.md \u00a78 actual boot order and failsafe unknown",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -243,6 +252,7 @@
     },
     {
       "closes": "CONFIG_FLOW.md \u00a77 which uci-defaults ran; BOOT_CHAIN.md \u00a78 first versus subsequent boot",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -269,6 +279,7 @@
     },
     {
       "closes": "CONFIG_FLOW.md \u00a77 generated config content unknown",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -306,6 +317,7 @@
     },
     {
       "closes": "IPC_CATALOG.md \u00a710 actual object list and dynamic instance names",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -342,6 +354,7 @@
     },
     {
       "closes": "SERVICE_GRAPH.md \u00a77 actual instance count and ucitrack registration result",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -372,6 +385,7 @@
     },
     {
       "closes": "SERVICE_GRAPH.md \u00a77 and IPC_CATALOG.md \u00a710 network.interface.* instance set",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -408,6 +422,7 @@
     },
     {
       "closes": "SERVICE_GRAPH.md \u00a77 fw4 generated ruleset unknown",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -433,6 +448,7 @@
     },
     {
       "closes": "IPC_CATALOG.md \u00a710 dnsmasq registered name; confirms the build-gating conclusions",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -466,6 +482,7 @@
     },
     {
       "closes": "IPC_CATALOG.md \u00a710 udebug provider unknown",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -494,6 +511,7 @@
     },
     {
       "closes": "SERVICE_GRAPH.md \u00a77 whether jail takes effect",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -521,6 +539,7 @@
     },
     {
       "closes": "CONFIG_FLOW.md \u00a77 whether migrations ran and whether the user modified configs; IPC_CATALOG.md \u00a77 actual uhttpd ubus settings",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",
@@ -556,6 +575,7 @@
     },
     {
       "closes": "CONFIG_FLOW.md \u00a77 /var/run/config.md5 baseline and user modification unknown",
+      "collected_in_stage": "I0.7",
       "commands": [
         {
           "class": "read-only",

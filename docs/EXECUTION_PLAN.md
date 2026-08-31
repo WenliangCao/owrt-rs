@@ -790,7 +790,8 @@ tests/reference/<responsibility>/
 | 合同 | [docs/contracts/config-change-dispatch.md](contracts/config-change-dispatch.md) |
 | 决策 | [docs/decisions/0001-first-contract-is-config-change-dispatch.md](decisions/0001-first-contract-is-config-change-dispatch.md) |
 | 参考测试 | `tests/reference/config-change-dispatch/`，10 个用例，参考模型 `tools/c1_reference_check.py` |
-| 新增运行态问题 | Q15（含点文件名的基线处理），只读，已批准并执行 |
+| 新增运行态问题 | Q15（含点文件名的基线处理），只读，已批准并执行；标记 `collected_in_stage: C1` |
+| 对 I0 gate 的影响 | 无。加入 Q15 曾使 gate 转为不通过，因为 I0.7 完整性检查按"已批准命令总数"比对；已把该检查改为只统计 `I0.7` 阶段的命令。gate 恢复通过，且对篡改与缺失仍会失败 |
 | 设备写入 | 无 |
 
 ### C1 期间取得的关键行为证据

@@ -590,7 +590,11 @@ def build(manifests: Path) -> tuple[dict[str, Any], list[str]]:
         followup_resolved.get(qid, {}).get("status") == "resolved"
         for qid in ("OQ-01", "OQ-07")
     )
-    expected_command_count = questions.get("counts", {}).get("approved_commands")
+    # Count only the questions collected in the I0.7 run. A question declared later
+    # for another stage must not make this gate item fail or pass.
+    expected_command_count = questions.get("approved_commands_by_stage", {}).get(
+        "I0.7", questions.get("counts", {}).get("approved_commands")
+    )
     observed_command_count = collector_validation.get("required_files")
     expected_added_packages = {
         "luci-i18n-attendedsysupgrade-zh-cn",
@@ -661,8 +665,8 @@ def build(manifests: Path) -> tuple[dict[str, Any], list[str]]:
             and expected_command_count == observed_command_count
             and oq_followup_complete,
             "evidence": (
-                "I0.7 identity/collector validation, 23 of 23 commands, and follow-up "
-                "closure of OQ-01/OQ-07"
+                "I0.7 identity/collector validation, all I0.7-stage commands collected, "
+                "and follow-up closure of OQ-01/OQ-07"
             ),
             "verification": "manifest-derived",
         },
