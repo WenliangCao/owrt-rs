@@ -15,6 +15,12 @@
 | 一次性 procd 服务（`USE_PROCD=1` 但无 instance） | 5 | `firewall`、`gpio_switch`、`packet_steering`、`system`、`ucitrack` |
 | 非 procd 服务 | 7 | `boot`、`bootcount`、`done`、`led`、`sysctl`、`sysfixtime`、`umount` |
 
+还有 **1 个 procd 服务没有 init 脚本**：`ubus`。procd 在 `STATE_UBUS` 通过
+`service_start_early("ubus", "/sbin/ubusd", "ubus", "ubus")` 直接注册它
+（`sources/components/procd/state.c:157`）。以 `/etc/init.d/*` 为枚举起点的服务图必然漏掉
+它，因此本报告的服务集合改为"init 脚本 + procd 内部注册"。运行态实测确认设备上共 19 个
+procd 服务（25 个 init 脚本中 18 个声明 `USE_PROCD=1`，加上 `ubus`）。
+
 一次性 procd 服务借用 procd 的 trigger/validate 框架，但 `start_service` 同步执行完就
 退出，procd 不监管长驻进程。它们没有"运行中"这个状态，全部效果落在它们写出的内核或
 文件系统状态上。`firewall` 是这一类里影响面最大的：它的全部状态就是 nftables ruleset。

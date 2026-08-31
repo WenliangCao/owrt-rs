@@ -890,6 +890,16 @@
   },
   "recorded_at": "2026-08-31",
   "schema_version": 1,
+  "services_registered_without_init_script": [
+    {
+      "command_expression": "ubus_cmd",
+      "has_init_script": false,
+      "line": 157,
+      "path": "sources/components/procd/state.c",
+      "service": "ubus",
+      "text": "service_start_early(\"ubus\", ubus_cmd, p?\"ubus\":NULL, p?\"ubus\":NULL);"
+    }
+  ],
   "stage": "I0.5",
   "status": "complete"
 }

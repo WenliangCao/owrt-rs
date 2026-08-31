@@ -431,6 +431,9 @@
         "source_condition": "#ifdef DUMMY_MODE"
       }
     ],
+    "dynamic_rules_with_no_instance": [
+      "wpa_supplicant.<ifname>"
+    ],
     "method_signatures": {
       "container": [
         "add",
@@ -766,29 +769,69 @@
         "phy_status"
       ]
     },
-    "objects_matching_a_dynamic_rule": [
-      "dnsmasq",
-      "hostapd.phy0-ap0",
-      "hostapd.phy1-ap0",
-      "hotplug.button",
-      "hotplug.dhcp",
-      "hotplug.firmware",
-      "hotplug.ieee80211",
-      "hotplug.iface",
-      "hotplug.leds",
-      "hotplug.neigh",
-      "hotplug.net",
-      "hotplug.ntp",
-      "hotplug.tftp",
-      "network.interface.lan",
-      "network.interface.loopback",
-      "network.interface.wan",
-      "network.interface.wan6",
-      "odhcp6c.wan"
-    ],
-    "objects_not_predicted": [
-      "dnsmasq.dns"
-    ],
+    "objects_matching_a_dynamic_rule": {
+      "container": [
+        "container (registered only when procd runs the ujail container path)"
+      ],
+      "dnsmasq": [
+        "dnsmasq instance name from --ubus option, default DNSMASQ_UBUS_NAME"
+      ],
+      "dnsmasq.dns": [
+        "<dnsmasq ubus_name>.dns (notification-only, no methods)"
+      ],
+      "hostapd.phy0-ap0": [
+        "hostapd.<bss interface>"
+      ],
+      "hostapd.phy1-ap0": [
+        "hostapd.<bss interface>"
+      ],
+      "hotplug.button": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.dhcp": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.firmware": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.ieee80211": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.iface": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.leds": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.neigh": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.net": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.ntp": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "hotplug.tftp": [
+        "hotplug.<subsystem registered by procd>"
+      ],
+      "network.interface.lan": [
+        "network.interface.<interface name from /etc/config/network>"
+      ],
+      "network.interface.loopback": [
+        "network.interface.<interface name from /etc/config/network>"
+      ],
+      "network.interface.wan": [
+        "network.interface.<interface name from /etc/config/network>"
+      ],
+      "network.interface.wan6": [
+        "network.interface.<interface name from /etc/config/network>"
+      ],
+      "odhcp6c.wan": [
+        "odhcp6c.<interface>"
+      ]
+    },
+    "objects_not_predicted": [],
     "objects_predicted_by_static_literal": [
       "container",
       "dhcp",

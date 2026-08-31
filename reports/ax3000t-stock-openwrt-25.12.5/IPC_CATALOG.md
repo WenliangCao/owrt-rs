@@ -105,7 +105,24 @@ JSON 的 `methods_confirmed_in_artifact` 记录了在部署文件字节中确认
 宿主归属不是猜的：`/sbin/netifd` 和 `/usr/sbin/wpad` 的字符串数据里分别含有
 `/lib/netifd` 和 `/usr/share/hostap`。
 
-### 3.3 运行时拼装名（静态只能给出规则，6 条）
+### 3.2b 由 recipe 补丁引入（1 处）
+
+component checkout 固定在**未打补丁**的上游 revision，因此补丁新增的注册点对只读上游树
+的解析器不可见。工具现在单独扫描 recipe patch stack：
+
+| 项 | 值 |
+|---|---:|
+| 扫描的 patch 文件 | 1075 |
+| 含 `ubus_add_object` 新增行的 patch | **1** |
+
+唯一一处是 `openwrt/package/network/services/dnsmasq/patches/200-ubus_dns.patch`，
+它注册 `<dnsmasq ubus_name>.dns`（默认 `dnsmasq.dns`）。该对象**没有方法**，只用于
+DNS 事件订阅——patch 中的 `ubus_object` 结构没有 `.methods` 字段，运行态实测方法数也是 0。
+
+注意 hostapd 的 ubus 支持虽然同样来自补丁（`600-ubus_support.patch`），但其对象由
+部署的 ucode 文件发布，已在 §3.2 覆盖，不依赖补丁解析。
+
+### 3.3 运行时拼装名（静态只能给出规则，8 条）
 
 | 命名规则 | 提供方 | 源码依据 |
 |---|---|---|
@@ -114,9 +131,11 @@ JSON 的 `methods_confirmed_in_artifact` 记录了在部署文件字节中确认
 | `container` | `/sbin/ujail` | `jail/jail.c:container_object`，仅走容器路径时注册 |
 | `dnsmasq`（默认名，可被 `--ubus` 覆盖） | `/usr/sbin/dnsmasq` | `src/ubus.c:113` `ubus_object.name = daemon->ubus_name` |
 | `odhcp6c.<接口名>` | `/usr/sbin/odhcp6c` | `src/ubus.c:209` `snprintf(ubus_name, 24, "odhcp6c.%s", interface)` |
+| `hostapd.<bss interface>` | `/usr/sbin/wpad` | 部署二进制字符串 `hostapd.%s` |
 | `wpa_supplicant.<ifname>` | `/usr/sbin/wpad` | `wpa_supplicant.uc:752` |
+| `<dnsmasq ubus_name>.dns` | `/usr/sbin/dnsmasq` | `200-ubus_dns.patch:176` |
 
-**这六条只能给出名字的形状，给不出实例集合。** 具体有哪些接口、哪些 subsystem，
+**这八条只能给出名字的形状，给不出实例集合。** 具体有哪些接口、哪些 subsystem，
 必须由运行态观察回答（I0.6）。
 
 ubusd ACL 为其中三条提供了独立的部署侧佐证：`/usr/share/acl.d/dnsmasq_acl.json`
@@ -269,3 +288,18 @@ config login
 - **观察这些对象的采集命令必须逐条审查副作用**：`iwinfo.scan`、`network.interface.up/down`、
   `rc.init`、`rpc-sys.upgrade_*`、`system.reboot`、`file.write/remove/exec`、
   `uci.apply/commit` 都有副作用，**不得**进入只读采集清单。
+
+
+## 11. 运行态核对（I0.7）
+
+设备实测 40 个 ubus 对象。与本目录双向核对的结果：
+
+| 检查 | 结果 |
+|---|---|
+| 运行态对象未被本目录预测 | **0** |
+| 本目录的字面量对象未注册 | **0** |
+| 动态规则无实例 | 1（`wpa_supplicant.<ifname>`，本设备未配置 STA） |
+| build gating 三条结论 | 全部证实 |
+
+详见 [RUNTIME_OBSERVATIONS.md](RUNTIME_OBSERVATIONS.md) 与
+[STATIC_RUNTIME_DIFF.md](STATIC_RUNTIME_DIFF.md)。

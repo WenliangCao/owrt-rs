@@ -1,11 +1,13 @@
 {
   "counts": {
     "hotplug_handlers": 10,
+    "patch_files_scanned": 1075,
+    "patches_registering_ubus_objects": 1,
     "rpcd_acl_files": 9,
     "rpcd_acl_ubus_targets": 18,
     "rpcd_acl_ubus_targets_without_provider": 2,
     "rpcd_binary_plugins": 6,
-    "ubus_dynamic_object_rules": 6,
+    "ubus_dynamic_object_rules": 8,
     "ubus_linked_artifacts": 22,
     "ubus_linked_artifacts_without_resolved_objects": 8,
     "ubus_method_names_confirmed_in_artifacts": 97,
@@ -144,6 +146,27 @@
       }
     }
   ],
+  "patch_introduced_registrations": {
+    "note": "A patch that registers an object is reported with every .name literal it adds; those literals may be object names, object-type names or blobmsg policy fields, so each site needs reading before its objects are claimed.",
+    "patch_files_scanned": 1075,
+    "patches_registering_ubus_objects": [
+      {
+        "added_name_literals": [
+          {
+            "line": 76,
+            "name": "address"
+          },
+          {
+            "line": 176,
+            "name": "dnsmasq.dns"
+          }
+        ],
+        "adds_ubus_add_object": true,
+        "patch": "openwrt/package/network/services/dnsmasq/patches/200-ubus_dns.patch",
+        "sha256": "c1aaa1b2bec2d2519f40f3754a2c53be6fc1c213a17cd6a566116a3f109d7ed2"
+      }
+    ]
+  },
   "recorded_at": "2026-08-31",
   "rpcd": {
     "acl_files": [
@@ -2452,6 +2475,7 @@
     {
       "component": "netifd",
       "deployed_artifact": "/sbin/netifd",
+      "name_pattern": "^network\\.interface\\.[^.]+$",
       "name_rule": "network.interface.<interface name from /etc/config/network>",
       "resolved_statically": false,
       "source_symbol": "netifd_ubus_add_interface",
@@ -2460,6 +2484,7 @@
     {
       "component": "procd",
       "deployed_artifact": "/sbin/procd",
+      "name_pattern": "^hotplug\\.[^.]+$",
       "name_rule": "hotplug.<subsystem registered by procd>",
       "resolved_statically": false,
       "source_symbol": "add_subsystem / HOTPLUG_OBJECT_PREFIX",
@@ -2468,6 +2493,7 @@
     {
       "component": "procd",
       "deployed_artifact": "/sbin/ujail",
+      "name_pattern": "^container$",
       "name_rule": "container (registered only when procd runs the ujail container path)",
       "resolved_statically": false,
       "source_symbol": "container_object",
@@ -2476,14 +2502,26 @@
     {
       "component": "dnsmasq",
       "deployed_artifact": "/usr/sbin/dnsmasq",
+      "name_pattern": "^dnsmasq$",
       "name_rule": "dnsmasq instance name from --ubus option, default DNSMASQ_UBUS_NAME",
       "resolved_statically": false,
       "source_symbol": "ubus_object.name = daemon->ubus_name",
       "source_unit": "sources/components/dnsmasq/src/ubus.c"
     },
     {
+      "component": "dnsmasq",
+      "deployed_artifact": "/usr/sbin/dnsmasq",
+      "introduced_by_patch": true,
+      "name_pattern": "^dnsmasq\\.dns$",
+      "name_rule": "<dnsmasq ubus_name>.dns (notification-only, no methods)",
+      "resolved_statically": false,
+      "source_symbol": "sprintf(dns_name, \"%s.dns\", daemon->ubus_name)",
+      "source_unit": "openwrt/package/network/services/dnsmasq/patches/200-ubus_dns.patch"
+    },
+    {
       "component": "odhcp6c",
       "deployed_artifact": "/usr/sbin/odhcp6c",
+      "name_pattern": "^odhcp6c\\.[^.]+$",
       "name_rule": "odhcp6c.<interface>",
       "resolved_statically": false,
       "source_symbol": "snprintf(ubus_name, 24, \"odhcp6c.%s\", interface)",
@@ -2491,7 +2529,17 @@
     },
     {
       "component": "wpad",
+      "deployed_artifact": "/usr/sbin/wpad",
+      "name_pattern": "^hostapd\\.[^.]+$",
+      "name_rule": "hostapd.<bss interface>",
+      "resolved_statically": false,
+      "source_symbol": "hostapd.%s",
+      "source_unit": "deployed binary string table"
+    },
+    {
+      "component": "wpad",
       "deployed_artifact": "/usr/share/hostap/wpa_supplicant.uc",
+      "name_pattern": "^wpa_supplicant\\.[^.]+$",
       "name_rule": "wpa_supplicant.<ifname>",
       "resolved_statically": false,
       "source_symbol": "ubus.publish(`wpa_supplicant.${ifname}`)",

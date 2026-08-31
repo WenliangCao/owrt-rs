@@ -137,18 +137,20 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
         | {o["object_name"] for o in ipc["ubus_objects_from_deployed_ucode"] if o["name_is_literal"]}
         | {n["object_name"] for p in ipc["rpcd"]["ucode_plugins"] for n in p["registered_objects"]}
     )
-    dynamic_prefixes = ("network.interface.", "hotplug.", "odhcp6c.", "wpa_supplicant.", "hostapd.")
-    # names a dynamic rule predicts exactly rather than by prefix
-    dynamic_defaults = {"dnsmasq"}
-    predicted_dynamic = sorted(
-        o for o in listed if o.startswith(dynamic_prefixes) or o in dynamic_defaults
-    )
+    # Match runtime names against the rules the catalog declares, rather than
+    # against prefixes retyped here: a rule added upstream must show up in this
+    # comparison without editing this tool.
+    dynamic_rules = [
+        (rule["name_rule"], re.compile(rule["name_pattern"]))
+        for rule in ipc["ubus_dynamic_objects"]
+        if rule.get("name_pattern")
+    ]
+    matched_by_rule = {
+        obj: [name for name, pattern in dynamic_rules if pattern.match(obj)] for obj in listed
+    }
+    predicted_dynamic = sorted(o for o in listed if matched_by_rule[o])
     unpredicted = sorted(
-        o
-        for o in listed
-        if o not in static_literal
-        and o not in dynamic_defaults
-        and not o.startswith(dynamic_prefixes)
+        o for o in listed if o not in static_literal and not matched_by_rule[o]
     )
 
     # build-gated methods the recipes said this build should not have
@@ -244,7 +246,14 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
             "runtime_object_count": len(listed),
             "runtime_objects": listed,
             "objects_predicted_by_static_literal": sorted(o for o in listed if o in static_literal),
-            "objects_matching_a_dynamic_rule": predicted_dynamic,
+            "objects_matching_a_dynamic_rule": {
+                obj: matched_by_rule[obj] for obj in predicted_dynamic
+            },
+            "dynamic_rules_with_no_instance": sorted(
+                name
+                for name, _ in dynamic_rules
+                if not any(name in rules for rules in matched_by_rule.values())
+            ),
             "objects_not_predicted": unpredicted,
             "static_literals_not_registered": sorted(static_literal - set(listed)),
             "build_gating_checks": gating_checks,

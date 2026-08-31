@@ -236,6 +236,24 @@ def build_boot_chain(root: Path, sources: Path) -> dict[str, Any]:
                 }
             )
 
+    early_services = []
+    for name in ("state.c", "service/service.c"):
+        path = sources / "components/procd" / name
+        if not path.is_file():
+            continue
+        text = read_text(path)
+        for number, line in enumerate(text.splitlines(), start=1):
+            match = re.search(r"service_start_early\(\s*\"([^\"]+)\"\s*,\s*([^,)]+)", line)
+            if match:
+                early_services.append(
+                    {
+                        "service": match.group(1),
+                        "command_expression": match.group(2).strip(),
+                        "has_init_script": False,
+                        **evidence(f"sources/components/procd/{name}", number, line),
+                    }
+                )
+
     procd_state = []
     state_path = sources / "components/procd/state.c"
     state_text = read_text(state_path)
@@ -284,6 +302,7 @@ def build_boot_chain(root: Path, sources: Path) -> dict[str, Any]:
             for hook, items in sorted(registrations.items())
         },
         "procd_states": procd_state,
+        "services_registered_without_init_script": early_services,
         "inittab": inittab,
         "rc_common": {
             "path": rc_common.rel,
@@ -847,6 +866,7 @@ UBUS_UNIT_ARTIFACT = {
 DYNAMIC_UBUS_OBJECTS = [
     {
         "name_rule": "network.interface.<interface name from /etc/config/network>",
+        "name_pattern": r"^network\.interface\.[^.]+$",
         "component": "netifd",
         "deployed_artifact": "/sbin/netifd",
         "source_unit": "sources/components/netifd/ubus.c",
@@ -855,6 +875,7 @@ DYNAMIC_UBUS_OBJECTS = [
     },
     {
         "name_rule": "hotplug.<subsystem registered by procd>",
+        "name_pattern": r"^hotplug\.[^.]+$",
         "component": "procd",
         "deployed_artifact": "/sbin/procd",
         "source_unit": "sources/components/procd/hotplug-dispatch.c",
@@ -863,6 +884,7 @@ DYNAMIC_UBUS_OBJECTS = [
     },
     {
         "name_rule": "container (registered only when procd runs the ujail container path)",
+        "name_pattern": r"^container$",
         "component": "procd",
         "deployed_artifact": "/sbin/ujail",
         "source_unit": "sources/components/procd/jail/jail.c",
@@ -871,6 +893,7 @@ DYNAMIC_UBUS_OBJECTS = [
     },
     {
         "name_rule": "dnsmasq instance name from --ubus option, default DNSMASQ_UBUS_NAME",
+        "name_pattern": r"^dnsmasq$",
         "component": "dnsmasq",
         "deployed_artifact": "/usr/sbin/dnsmasq",
         "source_unit": "sources/components/dnsmasq/src/ubus.c",
@@ -878,7 +901,18 @@ DYNAMIC_UBUS_OBJECTS = [
         "resolved_statically": False,
     },
     {
+        "name_rule": "<dnsmasq ubus_name>.dns (notification-only, no methods)",
+        "name_pattern": r"^dnsmasq\.dns$",
+        "component": "dnsmasq",
+        "deployed_artifact": "/usr/sbin/dnsmasq",
+        "source_unit": "openwrt/package/network/services/dnsmasq/patches/200-ubus_dns.patch",
+        "source_symbol": "sprintf(dns_name, \"%s.dns\", daemon->ubus_name)",
+        "resolved_statically": False,
+        "introduced_by_patch": True,
+    },
+    {
         "name_rule": "odhcp6c.<interface>",
+        "name_pattern": r"^odhcp6c\.[^.]+$",
         "component": "odhcp6c",
         "deployed_artifact": "/usr/sbin/odhcp6c",
         "source_unit": "sources/components/odhcp6c/src/ubus.c",
@@ -886,7 +920,17 @@ DYNAMIC_UBUS_OBJECTS = [
         "resolved_statically": False,
     },
     {
+        "name_rule": "hostapd.<bss interface>",
+        "name_pattern": r"^hostapd\.[^.]+$",
+        "component": "wpad",
+        "deployed_artifact": "/usr/sbin/wpad",
+        "source_unit": "deployed binary string table",
+        "source_symbol": "hostapd.%s",
+        "resolved_statically": False,
+    },
+    {
         "name_rule": "wpa_supplicant.<ifname>",
+        "name_pattern": r"^wpa_supplicant\.[^.]+$",
         "component": "wpad",
         "deployed_artifact": "/usr/share/hostap/wpa_supplicant.uc",
         "source_unit": "deployed ucode",
@@ -947,6 +991,57 @@ def classify_ubus_role(path: Path) -> list[str]:
         return []
     data = path.read_bytes()
     return [name for name in UBUS_ENTRY_POINTS if name.encode() in data]
+
+
+PATCH_ROOTS = ("openwrt/package", "luci")
+PATCH_ADDED_REGISTER_RE = re.compile(r"^\+.*\bubus_add_object\s*\(")
+PATCH_ADDED_NAME_RE = re.compile(r"^\+.*\.name\s*=\s*\"([^\"]+)\"")
+PATCH_ADDED_PUBLISH_RE = re.compile(r"^\+.*\.publish\(\s*[`'\"]([^`'\"]+)")
+
+
+def scan_patch_registrations(sources: Path) -> dict[str, Any]:
+    """Find ubus registrations introduced by recipe patches, not upstream source.
+
+    The component checkouts are pinned to the unpatched upstream revision, so a
+    parser that reads only those trees cannot see an object a patch adds.  This
+    scans the recipe patch stack for added lines that register a ubus object.
+    """
+    patch_files = 0
+    sites = []
+    for base in PATCH_ROOTS:
+        root_dir = sources / base
+        if not root_dir.is_dir():
+            continue
+        for path in sorted(root_dir.rglob("*.patch")):
+            patch_files += 1
+            added_names: list[dict[str, Any]] = []
+            registers = False
+            for number, line in enumerate(read_text(path).splitlines(), start=1):
+                if PATCH_ADDED_REGISTER_RE.match(line):
+                    registers = True
+                for regex in (PATCH_ADDED_NAME_RE, PATCH_ADDED_PUBLISH_RE):
+                    match = regex.match(line)
+                    if match:
+                        added_names.append({"name": match.group(1), "line": number})
+            if not registers:
+                continue
+            sites.append(
+                {
+                    "patch": str(path.relative_to(sources)),
+                    "sha256": sha256_file(path),
+                    "adds_ubus_add_object": True,
+                    "added_name_literals": added_names,
+                }
+            )
+    return {
+        "patch_files_scanned": patch_files,
+        "patches_registering_ubus_objects": sites,
+        "note": (
+            "A patch that registers an object is reported with every .name literal it "
+            "adds; those literals may be object names, object-type names or blobmsg "
+            "policy fields, so each site needs reading before its objects are claimed."
+        ),
+    }
 
 
 def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) -> dict[str, Any]:
@@ -1195,6 +1290,8 @@ def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) ->
             "top_level_rules": len(payload) if isinstance(payload, list) else None,
         }
 
+    patch_registrations = scan_patch_registrations(sources)
+
     netlink_evidence = []
     for unit, label in (
         ("components/netifd", "netifd"),
@@ -1308,6 +1405,7 @@ def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) ->
             "script_handlers": hotplug_dirs,
         },
         "netlink_symbol_evidence": netlink_evidence,
+        "patch_introduced_registrations": patch_registrations,
         "counts": {
             "ubus_objects_source": len(ubus_objects),
             "ubus_objects_with_deployed_artifact": sum(
@@ -1333,6 +1431,10 @@ def build_ipc_catalog(root: Path, sources: Path, executables: dict[str, Any]) ->
             ),
             "rpcd_binary_plugins": len(plugins),
             "hotplug_handlers": len(hotplug_dirs),
+            "patch_files_scanned": patch_registrations["patch_files_scanned"],
+            "patches_registering_ubus_objects": len(
+                patch_registrations["patches_registering_ubus_objects"]
+            ),
         },
     }
 
