@@ -789,35 +789,43 @@ tests/reference/<responsibility>/
 | 对象 | R05 配置变更检测与分发（`/sbin/reload_config`） |
 | 合同 | [docs/contracts/config-change-dispatch.md](contracts/config-change-dispatch.md) |
 | 决策 | [docs/decisions/0001-first-contract-is-config-change-dispatch.md](decisions/0001-first-contract-is-config-change-dispatch.md) |
-| 参考测试 | `tests/reference/config-change-dispatch/`，10 个用例，参考模型 `tools/c1_reference_check.py` |
+| 参考测试 | `tests/reference/config-change-dispatch/`，11 个用例，参考模型 `tools/c1_reference_check.py` |
 | 新增运行态问题 | Q15（含点文件名的基线处理），只读，已批准并执行；标记 `collected_in_stage: C1` |
 | 对 I0 gate 的影响 | 无。加入 Q15 曾使 gate 转为不通过，因为 I0.7 完整性检查按"已批准命令总数"比对；已把该检查改为只统计 `I0.7` 阶段的命令。gate 恢复通过，且对篡改与缺失仍会失败 |
 | 设备写入 | 无 |
 
 ### C1 期间取得的关键行为证据
 
-1. **含点文件名产出空基线条目。** `uci show` 把 `dhcp.bak-x` 解析为「包 `dhcp` 的
+1. **本设备 7 个含点文件名产出空基线条目。** `uci show` 把 `dhcp.bak-x` 解析为「包 `dhcp` 的
    section `bak-x`」，查找失败但 shell 重定向仍创建文件。设备实测：`/etc/config/`
-   有 7 个含点文件，基线中恰有 7 条等于空文件 md5。**这 7 个文件的改动永远不会
-   触发事件。**
+   有 7 个含点文件，基线中恰有 7 条等于空文件 md5。只要相应 tuple 继续不存在，
+   修改这些文件自身的内容不会触发事件。含点 tuple 若能解析则会产生非空输出，
+   由 SRC-only 反例 c11 固定，禁止实现成简单的含点判断。
 2. **新增静默、删除与修改同信号。** busybox `md5sum -c` 对缺失文件同样打印
    `FAILED`，因此删除与修改不可区分；而新增文件不在基线遍历范围内，完全静默。
 3. **事件顺序确定。** 按基线文件行序，即 glob 字典序。合同要求复刻。
 
 ### 合同刻意不修的行为
 
-含点文件名的空条目行为**必须复刻**。修好它会让 7 个历史备份文件突然变为可检测，
+当前 7 个无法解析的含点文件名所产生的空条目行为**必须复刻**。改成读取备份文件内容会让
+这些历史文件突然变为可检测，
 改变 procd trigger 的触发面——那是行为变更，不是兼容实现。
 
 ## 18. R1：参考 oracle 和最小 Rust 实现
 
 ### 先建立 oracle
 
-- [ ] 使用匹配版本的现有实现运行正常、错误和边界输入。
-- [ ] 录制脱敏 golden traces。
-- [ ] 覆盖 malformed input、超时、依赖消失、部分成功、并发和重复调用。
-- [ ] 覆盖进程崩溃、service restart 和 reboot 语义。
-- [ ] 区分 reference implementation bug 和兼容要求，禁止无记录地“修正行为”。
+- [x] 使用匹配版本的现有实现运行正常、错误和边界输入。
+- [x] 录制脱敏 golden traces。
+- [x] 覆盖 malformed input、超时、依赖消失、部分成功、并发边界和重复调用。
+- [x] 覆盖进程中断、重复运行与 tmpfs 基线消失所代表的 reboot 语义。
+- [x] 区分 reference implementation bug 和兼容要求，禁止无记录地“修正行为”。
+
+R1.1 在一次性精确 rootfs chroot 中执行原 `/sbin/reload_config`，只把副本里的 `ubus`
+替换成记录退出状态的 test adapter。11 个合同用例和 4 个故障 trace 全部通过；并发调用因
+共享 `config.check` 仍明确保持未定义。机器记录与审查见
+[R1_REFERENCE_ORACLE.md](../reports/ax3000t-stock-openwrt-25.12.5/R1_REFERENCE_ORACLE.md)。
+该门通过前没有 crate；通过后才允许执行下节。
 
 ### 再实现 Rust
 

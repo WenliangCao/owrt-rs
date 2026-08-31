@@ -3,7 +3,7 @@
     "C-03",
     "C-03a"
   ],
-  "description": "Editing a dotted file changes nothing observable: its entry is empty either way.",
+  "description": "Editing this non-resolving dotted file changes nothing observable: its entry is empty either way.",
   "evidence": "RUN",
   "evidence_ref": "C1 Q15 plus C-03; empty compares equal to empty",
   "expect": {

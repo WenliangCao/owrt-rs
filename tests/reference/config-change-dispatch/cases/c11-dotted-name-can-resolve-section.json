@@ -1,0 +1,27 @@
+{
+  "contract": [
+    "C-03c"
+  ],
+  "description": "A dotted filename is a UCI tuple, not an automatic empty-entry marker; if the tuple resolves, its normalised entry is non-empty.",
+  "evidence": "SRC",
+  "evidence_ref": "uci cli.c package_cmd: a complete ptr.s is rendered by uci_show_section",
+  "expect": {
+    "baseline": {
+      "dhcp": "A",
+      "dhcp.state": "SECTION"
+    },
+    "events": []
+  },
+  "given": {
+    "baseline": null,
+    "etc_config": {
+      "dhcp": "A",
+      "dhcp.state": "IGNORED_FILE_CONTENT"
+    },
+    "uci_lookups": {
+      "dhcp.state": "SECTION"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c11-dotted-name-can-resolve-section"
+}

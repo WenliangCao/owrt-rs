@@ -116,13 +116,19 @@ I0 follow-up 已关闭 OQ-01 与 OQ-07：rcS 顺序/失败传播已确定，设�
 配置变更检测与分发。合同见
 [config-change-dispatch.md](docs/contracts/config-change-dispatch.md)，决策见
 [0001](docs/decisions/0001-first-contract-is-config-change-dispatch.md)，
-10 个参考用例见 [tests/reference/config-change-dispatch/](tests/reference/config-change-dispatch/)。
+11 个参考用例见 [tests/reference/config-change-dispatch/](tests/reference/config-change-dispatch/)。
 
-C1 期间在设备上取得三条关键行为证据：`/etc/config/` 中**含点文件名会产出空基线条目**
-（实测 7 个文件、7 条空哈希），因此它们的改动**永远不会触发事件**；删除与修改在
+C1 期间在设备上取得三条关键行为证据：`/etc/config/` 中 7 个含点文件名对应的 UCI
+tuple 均无法解析并产出空基线条目，因此只要 tuple 继续不存在，修改这些文件自身的内容
+不会触发事件；删除与修改在
 `md5sum -c` 下是同一个 `FAILED` 信号，而新增完全静默；事件顺序按基线字典序确定。
-合同要求**复刻**这些行为——修好含点文件名的处理会改变 procd trigger 的触发面，
+合同要求**复刻**这些行为——把当前 7 个空条目改成读取备份文件内容会改变 procd trigger 的触发面，
 那是行为变更而不是兼容实现。
 
 下一步是 R1，但必须先按合同 §9 让投递结果可观测并证明新旧事件集合相同，
 之后才实现最小 Rust 切片。**在此之前仍不创建任何替代组件 crate。**
+
+**R1.1 可观测 oracle 已通过。** 精确镜像 rootfs 中的原始 17 行实现通过 11 个合同用例
+和 4 个故障场景；每轮比较数、变更条目与逐条 ubus 调用结果已经可观察。报告见
+[R1_REFERENCE_ORACLE.md](reports/ax3000t-stock-openwrt-25.12.5/R1_REFERENCE_ORACLE.md)。
+这一门通过后，下一提交才允许创建唯一的 R05 Rust crate；仍不授权部署或切换设备调用方。

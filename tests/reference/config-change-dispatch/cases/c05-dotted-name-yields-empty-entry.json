@@ -2,7 +2,7 @@
   "contract": [
     "C-03"
   ],
-  "description": "uci show parses a dotted filename as package.section, the lookup fails, and the entry is empty.",
+  "description": "uci show parses this dotted filename as package.section; because that section is absent, the entry is empty.",
   "evidence": "RUN",
   "evidence_ref": "C1 Q15: 7 dotted filenames, 7 baseline entries equal to the empty-file md5",
   "expect": {

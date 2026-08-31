@@ -105,7 +105,9 @@ CLASSIFICATION: list[dict[str, Any]] = [
             "baseline, so a wrong version is recoverable by deleting that file."
         ),
         "dep": ["/sbin/reload_config, 17 lines, read in full"],
-        "src": ["base-files recipe; upstream comment naming it a temporary hack"],
+        "src": [
+            "procd package install recipe; base-files boot call-site comment names it a temporary hack"
+        ],
         "run": [
             "Q12: /var/run/config.md5 baseline observed with its tracked package list",
             "Q06: config.change triggers observed on the consuming services",

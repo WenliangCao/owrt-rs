@@ -22,28 +22,32 @@ EMPTY = "<EMPTY>"
 EVIDENCE_LEVELS = {"DEP", "SRC", "RUN"}
 
 
-def normalise(name: str, content: str) -> str:
+def normalise(name: str, content: str, uci_lookups: dict[str, str]) -> str:
     """Model `uci show <name>` for one directory entry.
 
-    A name containing a dot is parsed by uci as package.section.option, so the
-    lookup fails and the shell redirection leaves an empty file behind.
+    A name containing a dot is parsed by uci as package.section.option.  The
+    seven dotted names observed on the device do not resolve and therefore
+    leave an empty file behind, but a tuple naming an existing section or
+    option produces that element's output instead.
     """
-    return EMPTY if "." in name else content
+    return uci_lookups.get(name, EMPTY) if "." in name else content
 
 
 def reload_config(
     etc_config: dict[str, str],
     var_run_uci: dict[str, str],
     baseline: dict[str, str] | None,
+    uci_lookups: dict[str, str] | None = None,
 ) -> tuple[list[str], dict[str, str]]:
     """Return (events, new_baseline) for one run."""
     check: dict[str, str] = {}
+    lookups = uci_lookups or {}
     # glob order puts /var/run/uci first, and the first entry for a name wins
     for source in (var_run_uci, etc_config):
         for name in sorted(source):
             if name in check:
                 continue
-            check[name] = normalise(name, source[name])
+            check[name] = normalise(name, source[name], lookups)
 
     events: list[str] = []
     if baseline is not None:
@@ -56,7 +60,10 @@ def reload_config(
 
 def run_cases(case_dir: Path) -> tuple[list[dict[str, Any]], list[str]]:
     results, problems = [], []
-    for path in sorted(case_dir.glob("*.json")):
+    paths = sorted(case_dir.glob("*.json"))
+    if not paths:
+        return [], [f"no reference cases found in {case_dir}"]
+    for path in paths:
         case = json.loads(path.read_text())
         for field in ("id", "contract", "evidence", "evidence_ref", "description", "given", "expect"):
             if field not in case:
@@ -66,7 +73,10 @@ def run_cases(case_dir: Path) -> tuple[list[dict[str, Any]], list[str]]:
             continue
         given = case["given"]
         events, baseline = reload_config(
-            given["etc_config"], given["var_run_uci"], given["baseline"]
+            given["etc_config"],
+            given["var_run_uci"],
+            given["baseline"],
+            given.get("uci_lookups"),
         )
         expected = case["expect"]
         ok_events = events == expected["events"]

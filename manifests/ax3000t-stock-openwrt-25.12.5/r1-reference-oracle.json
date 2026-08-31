@@ -1,0 +1,280 @@
+{
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "fault_cases": [
+    {
+      "baseline_advanced_after_failure": true,
+      "compared_entry_count": 2,
+      "deliveries": [
+        {
+          "outcome": "exited",
+          "package": "alpha",
+          "status": 7
+        },
+        {
+          "outcome": "exited",
+          "package": "beta",
+          "status": 0
+        }
+      ],
+      "id": "f01-partial-delivery-is-absorbed",
+      "passed": true,
+      "repeat_deliveries": []
+    },
+    {
+      "changed_entries": [
+        "alpha",
+        "beta"
+      ],
+      "compared_entry_count": 2,
+      "empty_baseline_entries": [
+        "alpha",
+        "beta"
+      ],
+      "failure_is_silent": true,
+      "id": "f02-missing-uci-poisons-baseline",
+      "passed": true,
+      "process_still_exits_zero": true
+    },
+    {
+      "baseline_unchanged": true,
+      "compared_entry_count": 1,
+      "delivery": [
+        {
+          "outcome": "pending",
+          "package": "alpha",
+          "status": null
+        }
+      ],
+      "id": "f03-hung-delivery-blocks-baseline-rewrite",
+      "passed": true,
+      "retry_changed_entries": [
+        "alpha"
+      ],
+      "timed_process_exit_status": -9
+    },
+    {
+      "changed_entries": [
+        "alpha"
+      ],
+      "compared_entry_count": 1,
+      "empty_baseline_entries": [
+        "alpha"
+      ],
+      "id": "f04-malformed-uci-becomes-empty-baseline",
+      "passed": true
+    }
+  ],
+  "gate": {
+    "delivery_is_observable": true,
+    "fault_cases_recorded": true,
+    "passed": true,
+    "reference_cases_passed": true,
+    "rust_crate_creation_allowed": true
+  },
+  "method": {
+    "delivery_adapter": "test-only /bin/ubus shim in the disposable rootfs copy",
+    "detector_modified": false,
+    "device_access": false,
+    "device_writes": false,
+    "rootfs_copy_is_disposable": true
+  },
+  "observability": {
+    "changed_entries": true,
+    "compared_entry_count": true,
+    "per_delivery_result": true,
+    "subscriber_confirmation": false
+  },
+  "recorded_at": "2026-08-31",
+  "reference_cases": [
+    {
+      "changed_entries": [],
+      "compared_entry_count": 0,
+      "deliveries": [],
+      "empty_baseline_entries": [],
+      "evidence": "DEP",
+      "id": "c01-first-run-emits-nothing",
+      "new_baseline_entries": [
+        "dhcp",
+        "network"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [
+        "dhcp"
+      ],
+      "compared_entry_count": 2,
+      "deliveries": [
+        {
+          "outcome": "exited",
+          "package": "dhcp",
+          "status": 0
+        }
+      ],
+      "empty_baseline_entries": [],
+      "evidence": "DEP",
+      "id": "c02-modified-config-emits",
+      "new_baseline_entries": [
+        "dhcp",
+        "network"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [],
+      "compared_entry_count": 2,
+      "deliveries": [],
+      "empty_baseline_entries": [],
+      "evidence": "DEP",
+      "id": "c03-new-config-is-silent",
+      "new_baseline_entries": [
+        "dhcp",
+        "network",
+        "newpkg"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [
+        "network"
+      ],
+      "compared_entry_count": 2,
+      "deliveries": [
+        {
+          "outcome": "exited",
+          "package": "network",
+          "status": 0
+        }
+      ],
+      "empty_baseline_entries": [],
+      "evidence": "SRC",
+      "id": "c04-deleted-config-emits-once",
+      "new_baseline_entries": [
+        "dhcp"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [],
+      "compared_entry_count": 0,
+      "deliveries": [],
+      "empty_baseline_entries": [
+        "dhcp.bak-x"
+      ],
+      "evidence": "RUN",
+      "id": "c05-dotted-name-yields-empty-entry",
+      "new_baseline_entries": [
+        "dhcp",
+        "dhcp.bak-x"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [],
+      "compared_entry_count": 2,
+      "deliveries": [],
+      "empty_baseline_entries": [
+        "dhcp.bak-x"
+      ],
+      "evidence": "RUN",
+      "id": "c06-dotted-name-change-never-emits",
+      "new_baseline_entries": [
+        "dhcp",
+        "dhcp.bak-x"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [
+        "dhcp.bak-x"
+      ],
+      "compared_entry_count": 2,
+      "deliveries": [
+        {
+          "outcome": "exited",
+          "package": "dhcp.bak-x",
+          "status": 0
+        }
+      ],
+      "empty_baseline_entries": [],
+      "evidence": "SRC",
+      "id": "c07-dotted-rename-to-valid-becomes-live",
+      "new_baseline_entries": [
+        "bakx",
+        "dhcp"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [
+        "dhcp"
+      ],
+      "compared_entry_count": 1,
+      "deliveries": [
+        {
+          "outcome": "exited",
+          "package": "dhcp",
+          "status": 0
+        }
+      ],
+      "empty_baseline_entries": [],
+      "evidence": "SRC",
+      "id": "c08-var-run-uci-takes-precedence",
+      "new_baseline_entries": [
+        "dhcp"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [],
+      "compared_entry_count": 1,
+      "deliveries": [],
+      "empty_baseline_entries": [],
+      "evidence": "DEP",
+      "id": "c09-comment-only-change-is-invisible",
+      "new_baseline_entries": [
+        "dhcp"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [],
+      "compared_entry_count": 3,
+      "deliveries": [],
+      "empty_baseline_entries": [
+        "dhcp.bak-x"
+      ],
+      "evidence": "DEP",
+      "id": "c10-switchover-must-be-silent",
+      "new_baseline_entries": [
+        "dhcp",
+        "dhcp.bak-x",
+        "network"
+      ],
+      "passed": true
+    },
+    {
+      "changed_entries": [],
+      "compared_entry_count": 0,
+      "deliveries": [],
+      "empty_baseline_entries": [],
+      "evidence": "SRC",
+      "id": "c11-dotted-name-can-resolve-section",
+      "new_baseline_entries": [
+        "dhcp",
+        "dhcp.state"
+      ],
+      "passed": true
+    }
+  ],
+  "schema_version": 1,
+  "source_artifacts": {
+    "bin/busybox": "54d4139265132254e5601cb65d8617a928d5d5867c044ef701d53b973daafe09",
+    "bin/ubus": "9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb",
+    "sbin/reload_config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "sbin/uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+  },
+  "stage": "R1.1",
+  "status": "complete",
+  "undefined_concurrency": "Concurrent reload_config invocations share and delete the same config.check directory. C1 does not define that race; R1 must not claim compatibility for it."
+}

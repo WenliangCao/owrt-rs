@@ -35,12 +35,14 @@ python3 tools/c1_reference_check.py --cases tests/reference/config-change-dispat
 |---|---:|---|
 | RUN | 2 | 本设备只读观察已证实 |
 | DEP | 5 | 由 `/sbin/reload_config` 全文直接得出 |
-| SRC | 3 | 由固定 revision 源码推导，**尚未在设备上观察** |
+| SRC | 4 | 由固定 revision 源码推导，**尚未在设备上观察** |
 
-三个 SRC-only 用例不得被当作已验证行为：
+四个 SRC-only 用例不得被当作已验证行为：
 
 - `c04-deleted-config-emits-once` —— 依据 busybox 1.37.0 对缺失文件返回 FAILED；
 - `c07-dotted-rename-to-valid-becomes-live` —— C-03 的逆向推论；
 - `c08-var-run-uci-takes-precedence` —— 本设备 `/var/run/uci` 不存在，分支未被走到。
+- `c11-dotted-name-can-resolve-section` —— `package.section` 成功解析时会输出该 section；
+  这是防止把本设备 7 个空条目错误泛化为“所有含点文件均为空”的源码反例。
 
 它们各自需要的验证方式记在合同 §8。

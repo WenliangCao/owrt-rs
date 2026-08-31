@@ -113,7 +113,7 @@
         "Q06: config.change triggers observed on the consuming services"
       ],
       "src": [
-        "base-files recipe; upstream comment naming it a temporary hack"
+        "procd package install recipe; base-files boot call-site comment names it a temporary hack"
       ]
     },
     {

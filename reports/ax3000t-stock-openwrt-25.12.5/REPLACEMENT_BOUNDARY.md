@@ -35,13 +35,13 @@ follow-up 后，十项 I0 gate 中七项直接由 manifest 推导；报告分层
 
 | 维度 | 内容 |
 |---|---|
-| 现状 | 17 行 shell。上游注释自称 `temporary hack until configd exists` |
+| 现状 | `procd` package 安装的 17 行 shell；base-files 的 boot 调用点注释称其为 `temporary hack until configd exists` |
 | 合同 | 对每个 config 包比较规范化 `uci show` 输出与 `/var/run/config.md5` 基线，对每个不一致的包发一条 `config.change` 事件 |
 | 失败模式 | **静默**。漏发事件不报错，服务继续用旧配置运行 |
 | 持久副作用 | 仅 tmpfs 中可重建的基线文件 |
 | 恢复 | 删除基线文件即可重建；错误版本不会留下不可逆状态 |
 | DEP | `/sbin/reload_config` 全文已读 |
-| SRC | base-files recipe；上游注释 |
+| SRC | procd package install recipe；base-files boot 调用点注释 |
 | RUN | Q12 观察到基线及其跟踪的包列表；Q06 观察到消费方服务上的 config.change trigger |
 
 选它不是因为"可以用 Rust 写"，而是因为四个条件同时成立：静态接口面窄、运行态基线与

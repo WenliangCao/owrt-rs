@@ -2,9 +2,12 @@
 
 > 状态：冻结
 > 日期：2026-08-31
-> 现有实现：`/sbin/reload_config`（base-files，17 行 shell）
+> 现有实现：`/sbin/reload_config`（`procd` package，17 行 shell）
 > 分类依据：[REPLACEMENT_BOUNDARY.md](../../reports/ax3000t-stock-openwrt-25.12.5/REPLACEMENT_BOUNDARY.md) §3
-> 实现授权：**无**。本合同不授权创建 crate。
+> C1 原始实现授权：**无**。R1.1 门通过后仅授权仓库内实现；不授权部署或设备切换。
+
+> R1 勘误：C-03 已按 [决策 0002](../decisions/0002-correct-dotted-name-contract-boundary.md)
+> 收窄；R1.1 可观测 oracle 通过后，后续提交可创建唯一的 R05 crate。
 
 ## 0. 合同来源声明
 
@@ -59,9 +62,9 @@
 - 证据：DEP 第 2 步的 `[ -f … ] && continue`。
 - RUN 限制：本设备 `/var/run/uci` **不存在**，该分支未被观察。标为 SRC-only。
 
-### C-03 文件名含点号者，基线条目必为空
+### C-03 本设备 7 个无法解析的含点文件名产出空条目
 
-`uci show <name>` 把参数当作 `package.section.option` 元组解析。名为
+`uci show <name>` 把含点参数当作 `package.section.option` 元组解析。名为
 `dhcp.bak-codex-disable-ipv6-…` 的文件被解析为「包 `dhcp` 的 section
 `bak-codex-disable-ipv6-…`」，查找失败，`UCI_LOOKUP_COMPLETE` 未设置，
 返回 `UCI_ERR_NOTFOUND`；但 shell 重定向**无论退出码都会创建文件**，
@@ -72,11 +75,19 @@
 - 证据：**RUN（C1 Q15）**——`/etc/config/` 有 **7** 个含点文件，基线中恰有 **7** 条
   哈希等于空文件 md5 `d41d8cd9…427e`，其余 12 条各不相同。
 
-**推论 C-03a：这 7 个文件的任何改动都永远不会触发事件**（空 vs 空恒等）。
-**推论 C-03b：若其中之一被改名为合法包名，它会立刻变为可检测。**
+**推论 C-03a：在对应 tuple 继续无法解析的条件下，这 7 个文件自身的任何内容改动都
+不会触发事件**（它们的内容根本没有被读取，空 vs 空恒等）。
+**推论 C-03b：若其中之一被改名为合法包名，它会作为新增包静默进入下一份基线；
+此后的内容变化才可检测。旧的含点条目则按删除发一次事件。**
+
+**边界 C-03c：含点号本身不等于空条目。** 如果 `package.section` 或
+`package.section.option` 能完整解析，`uci show` 会输出对应元素。例如已有 section
+`dhcp.state` 时，同名目录项会得到非空规范化输出。源码反例由参考用例 c11 固定。
+替换实现必须复刻 `uci show` 的查找结果，禁止把 `"." in filename` 当成空条目判据。
 
 这是本组件"静默失败"的具体形态，也是选它作为替换候选的直接理由。
-替换实现**必须复刻这一行为**，不得"顺手修好"——修好会改变 procd trigger 的触发面。
+替换实现**必须复刻当前 7 个 tuple 的查找失败与空输出**，不得改成直接读取备份文件内容；
+否则会改变 procd trigger 的触发面。
 
 ### C-04 新增、修改、删除三者不对称
 
@@ -176,7 +187,7 @@
 |---|---|
 | 目标 | `aarch64_cortex-a53`，musl |
 | 兼容版本 | OpenWrt 25.12.5 `r33051-f5dae5ece4`，busybox 1.37.0，uci `66127cd7` |
-| 体积预算 | 现有实现 17 行 shell；替换实现不得超过 base-files 中同类工具的量级，具体阈值在 R1 定 |
+| 体积预算 | 现有实现 17 行 shell；替换实现不得超过 OpenWrt 同类单用途工具的量级，具体阈值在 R1 定 |
 | 运行频率 | 每次启动一次，加每次配置提交一次 |
 
 ## 8. 明确保持未定义的行为
@@ -209,3 +220,6 @@ RK-01 要求：**替换实现必须先让"变更已送达"可观测，再改变�
 
 见 [tests/reference/config-change-dispatch/](../../tests/reference/config-change-dispatch/)。
 每个用例标注证据等级，SRC-only 的用例不得被当作已验证行为。
+
+R1.1 的精确 rootfs oracle、golden traces 与故障观察见
+[R1_REFERENCE_ORACLE.md](../../reports/ax3000t-stock-openwrt-25.12.5/R1_REFERENCE_ORACLE.md)。
