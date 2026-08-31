@@ -107,7 +107,7 @@
         "/sbin/reload_config, 17 lines, read in full"
       ],
       "id": "R05",
-      "rationale": "reload_config is 17 lines of shell whose own upstream comment calls it a temporary hack until configd exists. Its contract is narrow and fully observed: compare normalised uci show output per package against a tmpfs md5 baseline and emit one config.change event per differing package. Its failure mode is silent, which is exactly the class of defect a typed implementation removes. It has no persistent state beyond a regenerable baseline, so a wrong version is recoverable by deleting that file.",
+      "rationale": "reload_config is 17 lines of shell whose own upstream comment calls it a temporary hack until configd exists. Its static surface is narrow and its runtime baseline and trigger registrations are observed: compare normalised uci show output per package against a tmpfs md5 baseline and emit one config.change event per differing package. Delivery itself still needs the RK-01 oracle before C1 can freeze the contract. Its failure mode is silent, which is exactly the class of defect a typed implementation removes. It has no persistent state beyond a regenerable baseline, so a wrong version is recoverable by deleting that file.",
       "run": [
         "Q12: /var/run/config.md5 baseline observed with its tracked package list",
         "Q06: config.change triggers observed on the consuming services"
@@ -132,7 +132,6 @@
     },
     {
       "blocking_questions": [
-        "OQ-01",
         "OQ-06"
       ],
       "category": "defer",
@@ -169,12 +168,12 @@
       ],
       "category": "defer",
       "dep": [
-        "/sbin/fw4; table inet fw4 with 24 chains observed"
+        "/sbin/fw4 is present in the exact image"
       ],
       "id": "R09",
       "rationale": "firewall4 is already ucode rather than C, is one-shot, and its entire output is an nftables ruleset that can be diffed. That makes it unusually testable. But its compatibility contract is the generated ruleset, and no differential comparison has been run yet, so it cannot move further than defer.",
       "run": [
-        "Q08: full ruleset captured, structure recorded"
+        "Q08: table inet fw4 captured with 28 chains and one flowtable"
       ],
       "src": [
         "firewall4 pinned at b6e51575"
@@ -301,13 +300,28 @@
       ]
     }
   ],
+  "closed_questions": [
+    {
+      "closed_by": "I0 follow-up source and runtime review",
+      "evidence": "boot-chain.json rcS_scheduling; i0-followup-review.json",
+      "finding": "rcS is strictly serial in glob order (max_running_tasks=1); ordinary child exit status is discarded and the queue continues; pipe/fork failure before child registration stalls the queue. Exact duration moved to non-blocking OQ-09.",
+      "id": "OQ-01"
+    },
+    {
+      "closed_by": "separately redacted read-only configuration review",
+      "evidence": "i0-followup-review.json",
+      "finding": "DHCP equals the image plus expected 15_odhcpd first-boot semantics and old DNS overrides are inactive. Firewall adds active software flow offloading. The reviewed current configuration is valid as oracle input.",
+      "id": "OQ-07"
+    }
+  ],
   "counts": {
     "category_defer": 4,
     "category_do-not-touch": 5,
     "category_keep": 5,
     "category_rust-replace": 1,
     "category_rust-wrap": 2,
-    "open_questions": 8,
+    "closed_questions": 2,
+    "open_questions": 7,
     "responsibilities": 17,
     "risks": 7,
     "runtime_objects_verified": 40
@@ -316,71 +330,71 @@
   "i0_gate": {
     "checklist": [
       {
-        "evidence": "IMAGE_IDENTITY.md; signed sha256sums, profiles.json, buildinfo; Q00 confirms the device runs it",
+        "evidence": "source-baseline.json plus the enforced I0.7 identity gate",
         "item": "\u955c\u50cf\u8eab\u4efd\u548c\u6765\u6e90\u53ef\u72ec\u7acb\u590d\u6838",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest-derived"
       },
       {
-        "evidence": "DEPLOYMENT_VERIFICATION.md, PARTITION_EXPECTATION.md, SOURCE_IMAGE_DEVIATIONS.md",
+        "evidence": "payloads.json and filesystem.json",
         "item": "\u5bb9\u5668\u3001payload\u3001rootfs \u548c\u5206\u533a\u9884\u671f\u5df2\u89e3\u91ca",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest-derived"
       },
       {
-        "evidence": "SBOM.md, FILE_OWNERSHIP.md; Q14 shows device drift of +4 translation packages only",
+        "evidence": "packages.json, executables.json and I0.7 package drift",
         "item": "\u8f6f\u4ef6\u7269\u6599\u548c\u6587\u4ef6\u5f52\u5c5e\u5b8c\u6574",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest-derived"
       },
       {
-        "evidence": "BOOT_CHAIN, SERVICE_GRAPH, CONFIG_FLOW, IPC_CATALOG; both static misses fixed and re-verified",
+        "evidence": "four I0.5 manifests plus bidirectional runtime catalog closure",
         "item": "\u542f\u52a8\u3001\u670d\u52a1\u3001\u914d\u7f6e\u548c IPC \u94fe\u5df2\u6210\u56fe",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest-derived"
       },
       {
-        "evidence": "SOURCE_MAP.md, PATCH_MAP.md; 14 pinned checkouts plus a verified dnsmasq tarball",
+        "evidence": "sources.json",
         "item": "\u5173\u952e\u7ec4\u4ef6\u5747\u6709\u7cbe\u786e\u6e90\u7801\u6620\u5c04\u6216\u660e\u786e\u963b\u585e",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest-derived"
       },
       {
-        "evidence": "RESPONSIBILITY_CANDIDATES.md; 17 responsibilities with the full template",
+        "evidence": "17 responsibility records with required template fields",
         "item": "\u6bcf\u4e2a\u5019\u9009\u90fd\u6709\u63a5\u53e3\u3001\u8c03\u7528\u8005\u3001\u5931\u8d25\u8fb9\u754c\u548c\u517c\u5bb9\u8981\u6c42",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest-derived"
       },
       {
-        "evidence": "RUNTIME_OBSERVATIONS.md; 15 questions, 23 commands; OQ-01 remains open and blocks only R07",
+        "evidence": "I0.7 identity/collector validation, 23 of 23 commands, and follow-up closure of OQ-01/OQ-07",
         "item": "\u5173\u952e\u884c\u4e3a\u53d6\u5f97\u5fc5\u8981\u8fd0\u884c\u6001\u8bc1\u636e",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest-derived"
       },
       {
-        "evidence": "every report carries an explicit evidence-boundary section; OPEN_QUESTIONS.md holds the unknowns",
+        "evidence": "non-overlapping open/closed question registers; report review",
         "item": "\u4e8b\u5b9e\u3001\u63a8\u65ad\u3001\u672a\u77e5\u548c\u51b2\u7a81\u5206\u79bb",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest invariant plus human report review"
       },
       {
-        "evidence": "firmware, extracted trees, source checkouts and raw collector output live outside Git; redaction self-check passes with 0 findings",
+        "evidence": "both redaction assertions; repository admission scan remains external",
         "item": "\u539f\u59cb\u6750\u6599\u548c\u79d8\u5bc6\u672a\u8fdb\u5165 Git",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "manifest assertion plus commit-time repository scan"
       },
       {
-        "evidence": "I0.7 ran read-only commands over SSH; no UCI write, commit, reload, restart or MTD read",
+        "evidence": "I0.7 and follow-up collector method records",
         "item": "\u672a\u63a5\u89e6\u7269\u7406\u673a\u6301\u4e45\u72b6\u6001",
-        "satisfied": true
+        "satisfied": true,
+        "verification": "collector attestation"
       }
     ],
     "passed": true,
-    "scope_limit": "The gate is passed for this image on this device in this configuration. OQ-01 remains open and blocks R07 only; it does not block the gate because no responsibility depending on it is classified for replacement.",
+    "scope_limit": "The gate is passed for this image on this device in this configuration. OQ-01 and OQ-07 are closed by the follow-up. Exact boot duration remains open as non-blocking OQ-09. No classification authorizes implementation.",
     "unsatisfied": []
   },
   "open_questions": [
-    {
-      "blocks": [
-        "R07"
-      ],
-      "closable_by": "observing a real boot, which is not a read-only observation",
-      "id": "OQ-01",
-      "question": "What is the observable boot ordering, timing and failure propagation?",
-      "stage": "H1 or a separately authorised experiment",
-      "why_open": "the log ring buffer holds about 93 minutes and the boot record was already overwritten; no line count recovers it"
-    },
     {
       "blocks": [
         "R09"
@@ -433,19 +447,19 @@
     },
     {
       "blocks": [],
-      "closable_by": "a separately redacted review of those two files",
-      "id": "OQ-07",
-      "question": "What changed /etc/config/dhcp and /etc/config/firewall from the image, and is any of it still load-bearing?",
-      "stage": "I0 follow-up before C1 uses this device as an oracle",
-      "why_open": "config.md5 shows backups from an earlier tool and both files differ from the image; content was deliberately not read into the report"
-    },
-    {
-      "blocks": [],
       "closable_by": "re-running the comparison after a configuration change, or bounding the claim to this configuration",
       "id": "OQ-08",
       "question": "Would the ubus catalog stay complete under a different configuration?",
       "stage": "V1",
       "why_open": "completeness was verified against one configuration; wpa_supplicant.<ifname> already has no instance here"
+    },
+    {
+      "blocks": [],
+      "closable_by": "an explicitly authorised instrumented or serial-console boot; an ordinary logread capture is insufficient",
+      "id": "OQ-09",
+      "question": "What is the exact wall-clock duration of each rcS step on a real boot?",
+      "stage": "H1 performance baseline",
+      "why_open": "the current boot record is gone and default procd debug level 0 suppresses the CLOCK_MONOTONIC_RAW duration messages guarded by DEBUG(2)"
     }
   ],
   "recorded_at": "2026-08-31",
@@ -489,10 +503,10 @@
         "R09",
         "R10"
       ],
-      "detail": "config.md5 tracks bak-codex-* backups and dnsproxy remnants dated before the current firmware, preserved across sysupgrade.",
-      "evidence": "Q12 config.md5 tracked list",
+      "detail": "The historical DNS override is inactive and DHCP now matches expected first-boot semantics, but backup files remain in /etc/config and therefore remain visible to reload_config's all-file scan. Firewall software flow offloading is an active device-specific delta.",
+      "evidence": "Q12 config.md5 tracked list; i0-followup-review.json",
       "id": "RK-04",
-      "mitigation": "Do not treat this device's config as stock. Any oracle use must take its current config as input.",
+      "mitigation": "Use the reviewed current config and full observed /etc/config file set as the C1 fixture; never substitute image defaults.",
       "risk": "Device carries configuration history from an earlier tool"
     },
     {
@@ -523,10 +537,10 @@
         "R03",
         "R15"
       ],
-      "detail": "The default log buffer cannot hold a boot record, so boot-order regressions would be undetectable after the fact.",
-      "evidence": "Q02: buffer covers about 93 minutes",
+      "detail": "The default log buffer cannot hold a boot record, and default procd debug level 0 does not emit its per-script DEBUG(2) duration records.",
+      "evidence": "Q02 plus boot-chain.json rcS_scheduling",
       "id": "RK-07",
-      "mitigation": "Any boot-path work needs a console or a larger buffer arranged in advance.",
+      "mitigation": "Any boot-path work needs a serial console or instrumented lab boot arranged in advance.",
       "risk": "Boot evidence is not retained"
     }
   ],

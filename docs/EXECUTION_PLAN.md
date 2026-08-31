@@ -178,10 +178,11 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | I0.3 | 按源码预期只读验证镜像结构和文件系统 | 完成：全字节、DTB、属性和偏差 gate 通过 | 否 |
 | I0.4 | 建立部署物料、文件归属和精确源码映射 | 完成：159 packages、全文件/ELF/service ownership 和 exact source/patch map gate 通过 | 否 |
 | I0.5 | 还原启动、服务、配置和 IPC 链 | 完成：启动链、25 服务、配置生成链和两层 ubus ACL gate 通过 | 否 |
-| I0.6 | 建立运行态问题清单 | 完成：17 项职责、13 个问题、19 条已批准命令、11 条排除命令 | 否 |
-| I0.7 | 经单独批准采集必要运行态 | 完成：用户授权后执行 23 条只读命令，40 个 ubus 对象、包/配置偏移与特权实测已记录 | 否，只读观察 |
-| I0.8 | 形成五类替换边界并通过 I0 gate | 完成：17 项分类（10 项停在默认类）、8 个未解问题、7 条风险；gate 通过 | 否 |
-| C1 | 冻结第一个兼容合同和参考 oracle | 待执行：目标 R05，前置 RK-01 与 OQ-07 | 否 |
+| I0.6 | 建立运行态问题清单 | 完成：17 项职责、15 个问题、23 条已批准命令、11 条排除命令 | 否 |
+| I0.7 | 经单独批准采集必要运行态 | 完成：用户授权后执行 23 条只读命令，40 个 ubus 对象、包/配置偏移与特权实测已记录；follow-up 后强制 23/23 输入与身份门 | 否，只读观察 |
+| I0.8 | 形成五类替换边界并通过 I0 gate | 完成：17 项分类（10 项停在默认类）、7 个开放问题、7 条风险；gate 由 manifest 推导并通过 | 否 |
+| I0.F | 关闭 OQ-01/OQ-07 并审查 I0.5–I0.8 | 完成：rcS 合同、配置漂移和 gate 工具缺口已修正 | 否，只读观察 |
+| C1 | 冻结第一个兼容合同和参考 oracle | 待执行：目标 R05，前置仅 RK-01 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 阻塞于 C1 | 否 |
 | V1 | release-matched 集成和差分验证 | 阻塞于 R1 | 否 |
 | H1 | 物理设备准入和 canary | 需要新授权 | 另行决定 |
@@ -544,7 +545,7 @@ evidence 目录。
 ### 遗留至 I0.6 的静态不可判定项
 
 - kernel command line（DTS `chosen` 无 `bootargs`），影响 rootfs 挂载选项；
-- 实际启动顺序、并发与失败传播；
+- rcS 顺序、并发与失败传播（follow-up 已由精确 procd/libubox 源码关闭；逐项耗时转 OQ-09）；
 - 实际 instance 数量与 shell 变量取值；
 - `ubus list` 的实际对象集合，含 `network.interface.*`、`hotplug.*`、`odhcp6c.*`、
   `wpa_supplicant.*` 的实例名；
@@ -661,8 +662,8 @@ manifest 交叉校验，并强制：非 `read-only` 命令不得出现在已批�
 5. kernel command line 实测无 `rootfs_mount_options.*`，I0.5 标记的 rootfs 挂载风险确认为无影响。
 6. jail 声明不等于生效：`ntpd`、`dnsmasq` 获得独立 ipc/mnt/pid namespace，`wpad` 没有任何
    namespace 隔离——因为它的 `procd_add_jail` 没有 flag 也没有 mount。
-7. 启动顺序仍未获答案：日志环形缓冲区只覆盖约 93 分钟，早于启动的记录已被覆盖，
-   加大行数无法取回。该问题需要观察一次真实启动，不属于只读观察。
+7. 本次启动日志未保留。follow-up 已由源码证明 rcS 全队列严格串行及普通失败继续语义；
+   精确逐项耗时仍未取得，因为默认 procd debug 0 不输出 `DEBUG(2)` duration，转非阻塞 OQ-09。
 
 输出：
 
@@ -715,12 +716,14 @@ reports/<image-id>/RISK_REGISTER.md
 |---|---|
 | 日期 | 2026-08-31 |
 | 工具 | [tools/i0_8_boundary.py](../tools/i0_8_boundary.py) |
-| 输入 | I0.4–I0.7 manifests |
+| 输入 | I0.2–I0.7 manifests + I0 follow-up review |
 | 输出 | `manifests/<id>/replacement-boundary.json` + 四份报告 |
 | 实现授权 | 无 |
 
 生成器强制：每项职责恰好分类一次；离开默认类必须有书面理由和 DEP/SRC/RUN 三类证据；
 `禁止触碰`必须写明恢复约束；有未解阻塞问题的职责不得进入`优先用 Rust 替换`。
+十项 gate 中七项直接由 manifest 推导；报告分层、Git admission 与设备无写入分别保留
+human review、commit-time scan 与 collector attestation 标签，不再由预填布尔值冒充自动证明。
 
 ### 分类结果
 
@@ -734,8 +737,8 @@ reports/<image-id>/RISK_REGISTER.md
 
 ### gate 范围限定
 
-本 gate 针对**这一个镜像、这一台设备、这一种配置**通过。OQ-01（启动顺序）仍开放，
-但只阻塞 R07，而 R07 已分类为延后评估——没有任何依赖它的职责进入替换范围。
+本 gate 针对**这一个镜像、这一台设备、这一种配置**通过。OQ-01 与 OQ-07 已由 follow-up
+关闭；精确启动耗时作为不阻塞职责的 OQ-09 开放。分类结果仍不授权实现。
 
 ## 17. C1：第一个职责的兼容合同
 
@@ -902,9 +905,10 @@ interface discovery
 3. [x] 完成 I0.5，建立启动链、服务图、配置链和 IPC 目录。
 4. [x] 完成 I0.6 候选职责表与运行态问题单；等待用户对设备接入和采集分别授权。
 5. [x] 完成 I0.8，形成五类替换边界，I0 gate 通过。
-6. [ ] 执行 C1：为 R05 冻结兼容合同与参考 oracle；前置 RK-01 与 OQ-07。
-7. [ ] C1 通过以前不创建替代组件 crate。
+6. [x] 完成 I0 follow-up：关闭 OQ-01/OQ-07，审查并修复 I0.5–I0.8 验收缺口。
+7. [ ] 执行 C1：为 R05 冻结兼容合同与参考 oracle；前置仅 RK-01。
+8. [ ] C1 通过以前不创建替代组件 crate。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
-manager 和 SquashFS rootfs。仍不能提前确定：替换候选、Rust 进程边界、IPC 技术选择和最终
-部署方式；这些必须等待接口、调用者和失败边界证据。
+manager、SquashFS rootfs 与第一候选 R05。仍未冻结：R05 兼容合同、oracle 的事件投递
+可观测性、Rust 进程边界、IPC 技术选择和最终部署方式；这些必须由 C1 及后续 gate 决定。

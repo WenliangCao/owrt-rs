@@ -80,7 +80,7 @@ socket 本身是 0666。
 I0.6 已完成 17 项控制面职责候选表和运行态问题单：
 [RESPONSIBILITY_CANDIDATES.md](reports/ax3000t-stock-openwrt-25.12.5/RESPONSIBILITY_CANDIDATES.md) 与
 [RUNTIME_QUESTIONS.md](reports/ax3000t-stock-openwrt-25.12.5/RUNTIME_QUESTIONS.md)，生成器是
-[i0_6_candidates.py](tools/i0_6_candidates.py)。13 个问题、19 条经源码审查的只读命令；
+[i0_6_candidates.py](tools/i0_6_candidates.py)。15 个问题、23 条经源码审查的只读命令；
 11 条"看起来像读"的命令被排除，其中 `ubus call rc list` 会对每个 init 脚本 fork+exec。
 本阶段不排名替换候选。**设备接入与采集执行都尚未授权**，I0.7 需要用户分别批准。
 
@@ -99,11 +99,15 @@ I0.7 已在用户授权下完成只读运行态采集：
 分类见 [REPLACEMENT_BOUNDARY.md](reports/ax3000t-stock-openwrt-25.12.5/REPLACEMENT_BOUNDARY.md)，
 未解问题与风险见 [OPEN_QUESTIONS.md](reports/ax3000t-stock-openwrt-25.12.5/OPEN_QUESTIONS.md)
 与 [RISK_REGISTER.md](reports/ax3000t-stock-openwrt-25.12.5/RISK_REGISTER.md)。
+OQ-01/OQ-07 的关闭证据与四阶段审查见
+[I0_FOLLOWUP_REVIEW.md](reports/ax3000t-stock-openwrt-25.12.5/I0_FOLLOWUP_REVIEW.md)。
 
 17 项控制面职责中 **10 项停在默认类**（保留或禁止触碰），4 项延后，3 项进入 Rust
 工作范围：R13 rpcd 与 R15 logd 为包装，**唯一的完整替换候选是 R05 配置变更检测与分发**
-（`/sbin/reload_config`，17 行 shell，上游自称临时方案）。它入选的理由是合同窄且已完整
-观察、失败静默、无持久副作用、恢复代价为零——不是因为"可以用 Rust 写"。
+（`/sbin/reload_config`，17 行 shell，上游自称临时方案）。它入选的理由是静态接口面窄、
+运行态基线与 trigger 注册已观察、失败静默、无持久副作用、恢复代价为零——不是因为
+"可以用 Rust 写"。事件投递 oracle 仍由 RK-01 阻塞。
 
-下一步是 C1：为 R05 冻结兼容合同与参考 oracle。前置条件是 RK-01（先让"变更已送达"
-可观测）与 OQ-07（审查本设备已偏离镜像的配置）。**C1 通过前不创建任何替代组件 crate。**
+I0 follow-up 已关闭 OQ-01 与 OQ-07：rcS 顺序/失败传播已确定，设备当前 DHCP/firewall
+配置也已脱敏审查，可作为固定当前配置的 C1 oracle。下一步是 C1；剩余前置条件只有 RK-01
+（先让"变更已送达"可观测）。**C1 通过前不创建任何替代组件 crate。**

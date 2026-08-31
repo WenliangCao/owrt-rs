@@ -32,6 +32,32 @@ SECRET_PATTERNS = [
 # Addresses that ship in the public image and carry no device information.
 REDACTION_ALLOWLIST = {"127.0.0.1", "0.0.0.0", "255.255.255.0", "192.168.1.1", "192.168.1.255"}
 
+EXPECTED_RAW_FILES = {
+    "Q00_release.txt": ("Q00", 0),
+    "Q00_sysinfo.txt": ("Q00", 1),
+    "Q00_systemboard.txt": ("Q00", 2),
+    "Q01_cmdline.txt": ("Q01", 0),
+    "Q02_failsafe.txt": ("Q02", 1),
+    "Q02_logread.txt": ("Q02", 0),
+    "Q03_firstboot.txt": ("Q03", 0),
+    "Q04_boardjson.txt": ("Q04", 0),
+    "Q04_genconfigs.txt": ("Q04", 1),
+    "Q05_ubuslist.txt": ("Q05", 0),
+    "Q05_ubuslistv.txt": ("Q05", 1),
+    "Q06_servicelist.txt": ("Q06", 0),
+    "Q07_devstatus.txt": ("Q07", 1),
+    "Q07_ifdump.txt": ("Q07", 0),
+    "Q08_nftruleset.txt": ("Q08", 0),
+    "Q09_dhcpobj.txt": ("Q09", 1),
+    "Q09_dnsmasqobj.txt": ("Q09", 0),
+    "Q10_udebug.txt": ("Q10", 0),
+    "Q11_privproc.txt": ("Q11", 0),
+    "Q12_ucidelta.txt": ("Q12", 0),
+    "Q13_confighashes.txt": ("Q13", 0),
+    "Q13_uhttpdrpcd.txt": ("Q13", 1),
+    "Q14_apkdb.txt": ("Q14", 0),
+}
+
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
@@ -44,7 +70,16 @@ def sha256_file(path: Path) -> str:
 def body(raw: Path, name: str) -> str:
     """Strip the collector's command header and exit footer."""
     lines = (raw / name).read_text(errors="replace").splitlines()
+    if len(lines) < 2 or not lines[0].startswith("### command:"):
+        raise ValueError(f"{name}: missing collector command header")
+    if not lines[-1].startswith("### exit:"):
+        raise ValueError(f"{name}: missing collector exit footer")
     return "\n".join(lines[1:-1])
+
+
+def command_header(raw: Path, name: str) -> str:
+    first = (raw / name).read_text(errors="replace").splitlines()[0]
+    return first.removeprefix("### command:").strip()
 
 
 def exit_code(raw: Path, name: str) -> int | None:
@@ -52,6 +87,108 @@ def exit_code(raw: Path, name: str) -> int | None:
         if line.startswith("### exit:"):
             return int(line.split(":", 1)[1])
     return None
+
+
+def validate_raw(raw: Path, runtime_questions: dict[str, Any]) -> dict[str, Any]:
+    present = {path.name for path in raw.glob("*.txt")}
+    expected = set(EXPECTED_RAW_FILES)
+    missing = sorted(expected - present)
+    unexpected = sorted(present - expected)
+    command_mismatches = []
+    exit_mismatches = []
+    questions = {item["id"]: item for item in runtime_questions["questions"]}
+    declared_commands = {
+        (question_id, command_index)
+        for question_id, question in questions.items()
+        for command_index, _ in enumerate(question["commands"])
+    }
+    mapped_commands = set(EXPECTED_RAW_FILES.values())
+    if mapped_commands != declared_commands:
+        raise ValueError(
+            "collector mapping does not cover the I0.6 command list exactly: "
+            f"unmapped={sorted(declared_commands - mapped_commands)}, "
+            f"undeclared={sorted(mapped_commands - declared_commands)}"
+        )
+    for name, (question_id, command_index) in EXPECTED_RAW_FILES.items():
+        if name not in present:
+            continue
+        try:
+            declaration = questions[question_id]["commands"][command_index]
+            declared = declaration["expected_status"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ValueError(f"{name}: no matching I0.6 command declaration") from exc
+        allowed = {declared} if isinstance(declared, int) else set(declared)
+        # body() validates the framing even for inputs not otherwise parsed.
+        body(raw, name)
+        observed_command = command_header(raw, name)
+        if observed_command != declaration["command"]:
+            command_mismatches.append(
+                {
+                    "file": name,
+                    "declared": declaration["command"],
+                    "observed": observed_command,
+                }
+            )
+        observed = exit_code(raw, name)
+        if observed not in allowed:
+            exit_mismatches.append(
+                {"file": name, "observed": observed, "allowed": sorted(allowed)}
+            )
+    if missing or unexpected or command_mismatches or exit_mismatches:
+        raise ValueError(
+            f"collector input invalid: missing={missing}, unexpected={unexpected}, "
+            f"command_mismatches={command_mismatches}, "
+            f"exit_mismatches={exit_mismatches}"
+        )
+    return {
+        "required_files": len(expected),
+        "missing_files": missing,
+        "unexpected_files": unexpected,
+        "command_mismatches": command_mismatches,
+        "exit_status_mismatches": exit_mismatches,
+        "passed": True,
+    }
+
+
+def parse_release(text: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line in text.splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key] = value.strip().strip("'\"")
+    return values
+
+
+def parse_identity(raw: Path, manifests: Path) -> dict[str, Any]:
+    intake = json.loads((manifests / "intake.json").read_text())
+    expected_firmware = intake["firmware"]
+    expected_device = intake["device"]
+    release = parse_release(body(raw, "Q00_release.txt"))
+    sysinfo_lines = body(raw, "Q00_sysinfo.txt").splitlines()
+    board = json.loads(body(raw, "Q00_systemboard.txt"))
+    checks = {
+        "release": release.get("DISTRIB_RELEASE") == expected_firmware["version"],
+        "revision": release.get("DISTRIB_REVISION") == expected_firmware["revision"],
+        "target": release.get("DISTRIB_TARGET") == expected_firmware["target"],
+        "board_name": bool(sysinfo_lines)
+        and sysinfo_lines[0] == expected_device["compatible"]
+        and board.get("board_name") == expected_device["compatible"],
+        "kernel": board.get("kernel") == expected_firmware["kernel"],
+        "rootfs_type": board.get("rootfs_type") == expected_firmware["filesystem"],
+    }
+    if not all(checks.values()):
+        raise ValueError(f"device identity gate failed: {checks}")
+    return {
+        "matched": True,
+        "checks": checks,
+        "release": expected_firmware["version"],
+        "revision": expected_firmware["revision"],
+        "target": expected_firmware["target"],
+        "board_name": expected_device["compatible"],
+        "kernel": expected_firmware["kernel"],
+        "rootfs_type": expected_firmware["filesystem"],
+    }
 
 
 def parse_ubus_verbose(text: str) -> dict[str, dict[str, Any]]:
@@ -69,7 +206,7 @@ def parse_ubus_verbose(text: str) -> dict[str, dict[str, Any]]:
                 signature = json.loads(method.group(2))
             except json.JSONDecodeError:
                 signature = {}
-            objects[current]["methods"][method.group(1)] = sorted(signature)
+            objects[current]["methods"][method.group(1)] = dict(sorted(signature.items()))
     return objects
 
 
@@ -123,6 +260,9 @@ def parse_privileges(text: str) -> list[dict[str, Any]]:
 
 
 def build(raw: Path, manifests: Path) -> dict[str, Any]:
+    runtime_questions = json.loads((manifests / "runtime-questions.json").read_text())
+    collector_validation = validate_raw(raw, runtime_questions)
+    identity = parse_identity(raw, manifests)
     ipc = json.loads((manifests / "ipc-catalog.json").read_text())
     services_static = json.loads((manifests / "service-graph.json").read_text())
     configs_static = json.loads((manifests / "config-flow.json").read_text())
@@ -131,6 +271,13 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
     # --- ubus ---------------------------------------------------------------
     runtime_objects = parse_ubus_verbose(body(raw, "Q05_ubuslistv.txt"))
     listed = [line.strip() for line in body(raw, "Q05_ubuslist.txt").splitlines() if line.strip()]
+    object_lists_match = set(runtime_objects) == set(listed)
+    if not object_lists_match:
+        raise ValueError(
+            "plain and verbose ubus inventories differ: "
+            f"plain_only={sorted(set(listed) - set(runtime_objects))}, "
+            f"verbose_only={sorted(set(runtime_objects) - set(listed))}"
+        )
 
     static_literal = (
         {o["object_name"] for o in ipc["ubus_objects"] if o["object_name"]}
@@ -228,6 +375,45 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
     cmdline = body(raw, "Q01_cmdline.txt").strip()
     rootfs_mount_options = [t for t in cmdline.split() if t.startswith("rootfs_mount_options.")]
 
+    firstboot = body(raw, "Q03_firstboot.txt")
+    uci_defaults_listing = firstboot.split("/etc/uci-defaults/:", 1)[-1]
+    uci_defaults_entries = [
+        line
+        for line in uci_defaults_listing.splitlines()
+        if line.startswith("-") and not line.rstrip().endswith((" .", " .."))
+    ]
+
+    log_text = body(raw, "Q02_logread.txt")
+    boot_markers = [
+        marker
+        for marker in ("procd: - early -", "procd: - init -", "procd: - init complete -")
+        if marker in log_text
+    ]
+
+    # --- other redacted structural observations ----------------------------
+    interface_dump = json.loads(body(raw, "Q07_ifdump.txt"))
+    device_status = json.loads(body(raw, "Q07_devstatus.txt"))
+    nft_text = body(raw, "Q08_nftruleset.txt")
+
+    baseline_paths = [
+        line.strip()
+        for line in body(raw, "Q12_ucidelta.txt").splitlines()
+        if line.startswith("/var/run/config.check/")
+    ]
+    rpc_http = body(raw, "Q13_uhttpdrpcd.txt")
+    http_rpc_surface = {
+        "uhttpd_ubus_prefix_is_slash_ubus": bool(
+            re.search(r"option\s+ubus_prefix\s+['\"]?/ubus['\"]?", rpc_http)
+        ),
+        "uhttpd_no_ubusauth_set": bool(re.search(r"option\s+no_ubusauth\b", rpc_http)),
+        "uhttpd_ubus_cors_set": bool(re.search(r"option\s+ubus_cors\b", rpc_http)),
+        "rpcd_socket_is_default": "/var/run/ubus/ubus.sock" in rpc_http,
+        "rpcd_timeout_is_30": bool(re.search(r"option\s+timeout\s+['\"]?30['\"]?", rpc_http)),
+        "login_read_scope_is_wildcard": bool(re.search(r"list\s+read\s+['\"]\*['\"]", rpc_http)),
+        "login_write_scope_is_wildcard": bool(re.search(r"list\s+write\s+['\"]\*['\"]", rpc_http)),
+        "password_value_copied": False,
+    }
+
     # --- privilege ----------------------------------------------------------
     privileges = parse_privileges(body(raw, "Q11_privproc.txt"))
     host_ns = {}
@@ -242,9 +428,11 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
         del record["namespaces"]
 
     return {
+        "identity": identity,
         "ubus": {
             "runtime_object_count": len(listed),
             "runtime_objects": listed,
+            "plain_and_verbose_inventories_match": object_lists_match,
             "objects_predicted_by_static_literal": sorted(o for o in listed if o in static_literal),
             "objects_matching_a_dynamic_rule": {
                 obj: matched_by_rule[obj] for obj in predicted_dynamic
@@ -258,7 +446,11 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
             "static_literals_not_registered": sorted(static_literal - set(listed)),
             "build_gating_checks": gating_checks,
             "method_signatures": {
-                name: sorted(data["methods"]) for name, data in sorted(runtime_objects.items())
+                name: {
+                    method: signature
+                    for method, signature in sorted(data["methods"].items())
+                }
+                for name, data in sorted(runtime_objects.items())
             },
         },
         "services": {
@@ -275,12 +467,32 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
             "kernel_cmdline_tokens": sorted(cmdline.split()),
             "rootfs_mount_options_tokens": rootfs_mount_options,
             "failsafe_marker_present": body(raw, "Q02_failsafe.txt").strip() == "0",
-            "uci_defaults_remaining": [
-                line.split()[-1]
-                for line in body(raw, "Q03_firstboot.txt").splitlines()
-                if line.startswith("-") and "uci-defaults" in line
-            ],
+            "uci_defaults_remaining_count": len(uci_defaults_entries),
+            "board_json_present": "/etc/board.json" in firstboot,
+            "rc_local_present": "/etc/rc.local" in firstboot,
+            "retained_log_lines": len(log_text.splitlines()),
+            "retained_boot_markers": boot_markers,
         },
+        "network_state": {
+            "interface_count": len(interface_dump.get("interface") or []),
+            "device_count": len(device_status),
+            "addresses_copied": False,
+        },
+        "firewall_state": {
+            "table_count": len(re.findall(r"^table\s+", nft_text, flags=re.MULTILINE)),
+            "chain_count": len(re.findall(r"^\s*chain\s+", nft_text, flags=re.MULTILINE)),
+            "flowtable_count": len(
+                re.findall(r"^\s*flowtable\s+", nft_text, flags=re.MULTILINE)
+            ),
+            "rules_copied": False,
+        },
+        "config_baseline": {
+            "tracked_file_count": len(baseline_paths),
+            "historical_backup_count": sum("bak-codex-" in path for path in baseline_paths),
+            "dnsproxy_remnant_count": sum("dnsproxy" in path for path in baseline_paths),
+            "tracked_paths_copied": False,
+        },
+        "http_rpc_surface": http_rpc_surface,
         "privileges": privileges,
         "collector": {
             "commands_run": sorted(p.name for p in raw.glob("*.txt")),
@@ -289,6 +501,7 @@ def build(raw: Path, manifests: Path) -> dict[str, Any]:
                 for p in sorted(raw.glob("*.txt"))
                 if exit_code(raw, p.name) not in (0, None)
             },
+            "validation": collector_validation,
         },
     }
 

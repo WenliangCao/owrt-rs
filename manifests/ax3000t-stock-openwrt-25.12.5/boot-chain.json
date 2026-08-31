@@ -858,6 +858,192 @@
     }
   ],
   "rcS": null,
+  "rcS_scheduling": {
+    "evidence": {
+      "libubox_runqueue": {
+        "path": "sources/components/libubox/runqueue.c",
+        "sha256": "84a2e9b080e7004e198ab6f2d0d60a85150223485d865369dae7b754d3920dec",
+        "statements": [
+          {
+            "line": 49,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "if (q->max_running_tasks && q->running_tasks >= q->max_running_tasks)"
+          },
+          {
+            "line": 52,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "t = list_first_entry(&q->tasks_inactive.list, struct runqueue_task, list.list);"
+          },
+          {
+            "line": 113,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "t = list_first_entry(&q->tasks_active.list, struct runqueue_task, list.list);"
+          },
+          {
+            "line": 126,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "runqueue_task_complete(t);"
+          },
+          {
+            "line": 202,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "runqueue_task_complete(t);"
+          },
+          {
+            "line": 216,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "void runqueue_task_complete(struct runqueue_task *t)"
+          },
+          {
+            "line": 238,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "__runqueue_proc_cb(struct uloop_process *p, int ret)"
+          },
+          {
+            "line": 242,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "runqueue_task_complete(&t->task);"
+          },
+          {
+            "line": 275,
+            "path": "sources/components/libubox/runqueue.c",
+            "text": "p->proc.cb = __runqueue_proc_cb;"
+          }
+        ]
+      },
+      "procd_debug_default": {
+        "paths": [
+          "sources/components/procd/procd.c",
+          "sources/components/procd/log.h"
+        ],
+        "sha256": {
+          "log.h": "f9889133eb141fabd42d1eb0b0c39c69ff09aff0f92d5a3103b1762323778324",
+          "procd.c": "ad3ed849bb24ab2d0e1bd5e4c7bc3ffa0e0f30f5e4fa80c56e8201379aa02d25"
+        },
+        "statements": [
+          {
+            "line": 28,
+            "path": "sources/components/procd/procd.c",
+            "text": "unsigned int debug;"
+          },
+          {
+            "line": 96,
+            "path": "sources/components/procd/procd.c",
+            "text": "char *dbglvl = getenv(\"DBGLVL\");"
+          },
+          {
+            "line": 101,
+            "path": "sources/components/procd/procd.c",
+            "text": "unsetenv(\"DBGLVL\");"
+          },
+          {
+            "line": 111,
+            "path": "sources/components/procd/procd.c",
+            "text": "case 'd':"
+          },
+          {
+            "line": 20,
+            "path": "sources/components/procd/log.h",
+            "text": "#define DEBUG(level, fmt, ...) do { \\"
+          },
+          {
+            "line": 21,
+            "path": "sources/components/procd/log.h",
+            "text": "if (debug >= level) { \\"
+          },
+          {
+            "line": 26,
+            "path": "sources/components/procd/log.h",
+            "text": "if (debug >= level) { \\"
+          }
+        ]
+      },
+      "procd_rcs": {
+        "path": "sources/components/procd/rcS.c",
+        "sha256": "df984d314770ee32db8a6ca5425bcd8cc0438c776dfdb9cb9e204e5930d8efdf",
+        "statements": [
+          {
+            "line": 78,
+            "path": "sources/components/procd/rcS.c",
+            "text": "clock_gettime(CLOCK_MONOTONIC_RAW, &s->ts_start);"
+          },
+          {
+            "line": 79,
+            "path": "sources/components/procd/rcS.c",
+            "text": "DEBUG(2, \"start %s %s \\n\", s->file, s->param);"
+          },
+          {
+            "line": 80,
+            "path": "sources/components/procd/rcS.c",
+            "text": "if (pipe(pipefd) == -1) {"
+          },
+          {
+            "line": 85,
+            "path": "sources/components/procd/rcS.c",
+            "text": "pid = fork();"
+          },
+          {
+            "line": 94,
+            "path": "sources/components/procd/rcS.c",
+            "text": "runqueue_process_add(q, &s->proc, pid);"
+          },
+          {
+            "line": 117,
+            "path": "sources/components/procd/rcS.c",
+            "text": "clock_gettime(CLOCK_MONOTONIC_RAW, &ts_stop);"
+          },
+          {
+            "line": 125,
+            "path": "sources/components/procd/rcS.c",
+            "text": "DEBUG(2, \"stop %s %s - took %\" PRId64 \".%09\" PRId64 \"s\\n\", s->file, s->param, (int64_t)ts_res.tv_sec, (int64_t)ts_res.tv_nsec);"
+          },
+          {
+            "line": 164,
+            "path": "sources/components/procd/rcS.c",
+            "text": "s->proc.task.run_timeout = 15000;"
+          },
+          {
+            "line": 165,
+            "path": "sources/components/procd/rcS.c",
+            "text": "s->proc.task.cancel_timeout = 10000;"
+          },
+          {
+            "line": 185,
+            "path": "sources/components/procd/rcS.c",
+            "text": "DEBUG(2, \"running %s/%s%s %s\\n\", path, file, pattern, param);"
+          },
+          {
+            "line": 188,
+            "path": "sources/components/procd/rcS.c",
+            "text": "DEBUG(2, \"glob failed on %s\\n\", dir);"
+          },
+          {
+            "line": 204,
+            "path": "sources/components/procd/rcS.c",
+            "text": "q.max_running_tasks = 1;"
+          },
+          {
+            "line": 222,
+            "path": "sources/components/procd/rcS.c",
+            "text": "r.max_running_tasks = 8;"
+          }
+        ]
+      }
+    },
+    "max_running_tasks": 1,
+    "ordering": "strictly serial in glob insertion order",
+    "ordinary_exit_status_policy": "child exit status is discarded by the runqueue process callback; the next script is started",
+    "pre_spawn_failure_policy": "pipe or fork failure returns before a child is registered, leaving the active task incomplete and stalling rcS",
+    "start_timeout_s": null,
+    "stop_shutdown_cancel_timeout_s": 10,
+    "stop_shutdown_timeout_s": 15,
+    "timing_log": {
+      "clock": "CLOCK_MONOTONIC_RAW",
+      "debug_level_required": 2,
+      "default_debug_level": 0,
+      "emitted_by_default": false
+    }
+  },
   "rc_common": {
     "defined_functions": [
       "start",

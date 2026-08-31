@@ -1,0 +1,108 @@
+{
+  "boot_review": {
+    "pid1_dbglvl_present": false,
+    "pid1_is_plain_procd": true,
+    "pstore_entries": 0,
+    "retained_log_lines": 1130,
+    "retained_rcs_debug_lines": 0,
+    "source_contract": {
+      "ordering": "strictly serial in glob insertion order",
+      "ordinary_exit_status_policy": "child exit status is discarded by the runqueue process callback; the next script is started",
+      "pre_spawn_failure_policy": "pipe or fork failure returns before a child is registered, leaving the active task incomplete and stalling rcS",
+      "timing_log": {
+        "clock": "CLOCK_MONOTONIC_RAW",
+        "debug_level_required": 2,
+        "default_debug_level": 0,
+        "emitted_by_default": false
+      }
+    },
+    "uptime_days_floor": 29
+  },
+  "config_review": {
+    "dhcp": {
+      "active_dnsproxy_config_present": false,
+      "current_custom_server_value_count": 0,
+      "current_has_noresolv": false,
+      "current_uses_image_default_resolver_path": true,
+      "dnsproxy_process_count": 0,
+      "historical_dns_override_still_load_bearing": false,
+      "historical_dnsproxy_backups_byte_identical": true,
+      "matches_image_plus_15_odhcpd_semantics": true,
+      "old_disable_ipv6_backup_matches_current_semantics": true,
+      "old_nextdns_backup_matches_current_semantics": true,
+      "rollback_backup_delta_to_current": {
+        "options_added": [
+          "dnsmasq:@0.resolvfile"
+        ],
+        "options_changed": [],
+        "options_removed": [
+          "dnsmasq:@0.noresolv",
+          "dnsmasq:@0.server"
+        ],
+        "sections_added": [],
+        "sections_removed": []
+      }
+    },
+    "firewall": {
+      "active_flowtable_present": true,
+      "hardware_flow_offloading_enabled": false,
+      "only_expected_reviewed_delta": true,
+      "rendered_flowtable_present": true,
+      "semantic_delta_from_image": {
+        "options_added": [
+          "defaults:@0.flow_offloading",
+          "defaults:@0.flow_offloading_hw"
+        ],
+        "options_changed": [],
+        "options_removed": [],
+        "sections_added": [],
+        "sections_removed": []
+      },
+      "software_flow_offloading_enabled": true,
+      "software_flow_offloading_is_load_bearing": true
+    },
+    "reload_config_scope": {
+      "c1_fixture_must_preserve_this_observed_file_set": true,
+      "historical_backup_files_are_inert_to_dns_firewall_consumers": true,
+      "historical_backup_files_remain_visible_to_reload_config_scan": true
+    }
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "identity_gate": {
+    "fields": {
+      "board_name": true,
+      "release": true,
+      "revision": true,
+      "target": true
+    },
+    "matched": true
+  },
+  "method": {
+    "device_access": "approved read-only SSH",
+    "device_writes": false,
+    "raw_config_location": "private evidence directory outside Git",
+    "redaction_asserted": true
+  },
+  "recorded_at": "2026-08-31",
+  "resolved_questions": {
+    "OQ-01": {
+      "exact_boot_duration_observed": false,
+      "max_running_tasks": 1,
+      "ordinary_nonzero_exit_continues": true,
+      "pre_spawn_pipe_or_fork_failure_stalls_queue": true,
+      "rcs_is_strictly_serial": true,
+      "residual_question": "OQ-09 (non-blocking exact boot-duration baseline)",
+      "status": "resolved"
+    },
+    "OQ-07": {
+      "actor_provenance_required_for_oracle": false,
+      "historical_actor_fully_reconstructable": false,
+      "oracle_input": "reviewed current configuration, never the image defaults",
+      "oracle_use_allowed": true,
+      "status": "resolved"
+    }
+  },
+  "schema_version": 1,
+  "stage": "I0 follow-up",
+  "status": "complete"
+}

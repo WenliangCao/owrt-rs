@@ -637,7 +637,7 @@ QUESTIONS: list[dict[str, Any]] = [
         "fields": ["service names", "instance names", "running flag", "pid", "registered triggers", "validate registrations"],
         "commands": [
             {
-                "command": "ubus call service list '{\"verbose\":true}'",
+                "command": 'ubus call service list "{\\"verbose\\":true}"',
                 "class": "read-only",
                 "review": "service_handle_list walks the service avl tree and serialises it; no fork, no exec, no state change. This is the safe counterpart to the excluded rc.list.",
                 "source": "sources/components/procd/service/service.c:515-543",
@@ -734,7 +734,7 @@ QUESTIONS: list[dict[str, Any]] = [
                 "class": "read-only",
                 "review": "lookup only",
                 "source": "/usr/share/acl.d/wpad_acl.json",
-                "expected_status": 0,
+                "expected_status": [0, 4],
                 "timeout_s": 10,
             }
         ],
@@ -749,7 +749,7 @@ QUESTIONS: list[dict[str, Any]] = [
         "fields": ["uid and gid of wpad, ntpd, dnsmasq and logd processes", "namespace links for those pids"],
         "commands": [
             {
-                "command": "for p in $(pgrep -f 'hostapd|wpa_supplicant|ntpd|dnsmasq|logd'); do echo \"== $p\"; cat /proc/$p/status | grep -E '^(Name|Uid|Gid|CapEff|NoNewPrivs|Seccomp)'; ls -l /proc/$p/ns; done",
+                "command": 'for p in $(pgrep -f "hostapd|wpa_supplicant|ntpd|dnsmasq|logd"); do echo "== $p"; grep -E "^(Name|Uid|Gid|CapEff|NoNewPrivs|Seccomp)" /proc/$p/status; ls -l /proc/$p/ns; done',
                 "class": "read-only",
                 "review": "procfs reads only; no signal is sent and pgrep does not modify process state",
                 "source": "SERVICE_GRAPH.md §6",
@@ -799,7 +799,7 @@ QUESTIONS: list[dict[str, Any]] = [
         "fields": ["existence and file list of /var/run/config.md5", "listing of /tmp/.uci and /var/run/uci"],
         "commands": [
             {
-                "command": "ls -la /tmp/.uci /var/run/uci 2>&1; cut -c35- /var/run/config.md5 2>&1",
+                "command": 'ls -la /tmp/.uci /var/run/uci 2>&1; echo "--- config.md5 ---"; cut -c35- /var/run/config.md5 2>&1',
                 "class": "read-only",
                 "review": "directory listing and a field-limited read of the md5 baseline; the hashes themselves are not needed, only which packages are tracked",
                 "source": "/sbin/reload_config",

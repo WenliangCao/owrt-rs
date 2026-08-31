@@ -95,9 +95,11 @@ CLASSIFICATION: list[dict[str, Any]] = [
         "category": "rust-replace",
         "rationale": (
             "reload_config is 17 lines of shell whose own upstream comment calls it a "
-            "temporary hack until configd exists. Its contract is narrow and fully "
-            "observed: compare normalised uci show output per package against a tmpfs "
-            "md5 baseline and emit one config.change event per differing package. Its "
+            "temporary hack until configd exists. Its static surface is narrow and its "
+            "runtime baseline and trigger registrations are observed: compare normalised "
+            "uci show output per package against a tmpfs md5 baseline and emit one "
+            "config.change event per differing package. Delivery itself still needs the "
+            "RK-01 oracle before C1 can freeze the contract. Its "
             "failure mode is silent, which is exactly the class of defect a typed "
             "implementation removes. It has no persistent state beyond a regenerable "
             "baseline, so a wrong version is recoverable by deleting that file."
@@ -134,7 +136,7 @@ CLASSIFICATION: list[dict[str, Any]] = [
         "dep": ["/sbin/netifd; 4 interface objects observed"],
         "src": ["netifd pinned at cbb83a18; ubus.c object tables parsed"],
         "run": ["Q05 and Q07: 4 interfaces, 9 devices, method signatures captured"],
-        "blocking_questions": ["OQ-01", "OQ-06"],
+        "blocking_questions": ["OQ-06"],
     },
     {
         "id": "R08",
@@ -159,9 +161,9 @@ CLASSIFICATION: list[dict[str, Any]] = [
             "But its compatibility contract is the generated ruleset, and no differential "
             "comparison has been run yet, so it cannot move further than defer."
         ),
-        "dep": ["/sbin/fw4; table inet fw4 with 24 chains observed"],
+        "dep": ["/sbin/fw4 is present in the exact image"],
         "src": ["firewall4 pinned at b6e51575"],
-        "run": ["Q08: full ruleset captured, structure recorded"],
+        "run": ["Q08: table inet fw4 captured with 28 chains and one flowtable"],
         "blocking_questions": ["OQ-02"],
     },
     {
@@ -284,14 +286,6 @@ CLASSIFICATION: list[dict[str, Any]] = [
 
 OPEN_QUESTIONS: list[dict[str, Any]] = [
     {
-        "id": "OQ-01",
-        "question": "What is the observable boot ordering, timing and failure propagation?",
-        "why_open": "the log ring buffer holds about 93 minutes and the boot record was already overwritten; no line count recovers it",
-        "closable_by": "observing a real boot, which is not a read-only observation",
-        "blocks": ["R07"],
-        "stage": "H1 or a separately authorised experiment",
-    },
-    {
         "id": "OQ-02",
         "question": "Does a replacement produce a byte-equivalent nftables ruleset from the same config?",
         "why_open": "firewall4's compatibility contract is its output, and no differential comparison has been run",
@@ -332,20 +326,49 @@ OPEN_QUESTIONS: list[dict[str, Any]] = [
         "stage": "C1",
     },
     {
-        "id": "OQ-07",
-        "question": "What changed /etc/config/dhcp and /etc/config/firewall from the image, and is any of it still load-bearing?",
-        "why_open": "config.md5 shows backups from an earlier tool and both files differ from the image; content was deliberately not read into the report",
-        "closable_by": "a separately redacted review of those two files",
-        "blocks": [],
-        "stage": "I0 follow-up before C1 uses this device as an oracle",
-    },
-    {
         "id": "OQ-08",
         "question": "Would the ubus catalog stay complete under a different configuration?",
         "why_open": "completeness was verified against one configuration; wpa_supplicant.<ifname> already has no instance here",
         "closable_by": "re-running the comparison after a configuration change, or bounding the claim to this configuration",
         "blocks": [],
         "stage": "V1",
+    },
+    {
+        "id": "OQ-09",
+        "question": "What is the exact wall-clock duration of each rcS step on a real boot?",
+        "why_open": (
+            "the current boot record is gone and default procd debug level 0 suppresses "
+            "the CLOCK_MONOTONIC_RAW duration messages guarded by DEBUG(2)"
+        ),
+        "closable_by": (
+            "an explicitly authorised instrumented or serial-console boot; an ordinary "
+            "logread capture is insufficient"
+        ),
+        "blocks": [],
+        "stage": "H1 performance baseline",
+    },
+]
+
+CLOSED_QUESTIONS: list[dict[str, Any]] = [
+    {
+        "id": "OQ-01",
+        "closed_by": "I0 follow-up source and runtime review",
+        "finding": (
+            "rcS is strictly serial in glob order (max_running_tasks=1); ordinary child "
+            "exit status is discarded and the queue continues; pipe/fork failure before "
+            "child registration stalls the queue. Exact duration moved to non-blocking OQ-09."
+        ),
+        "evidence": "boot-chain.json rcS_scheduling; i0-followup-review.json",
+    },
+    {
+        "id": "OQ-07",
+        "closed_by": "separately redacted read-only configuration review",
+        "finding": (
+            "DHCP equals the image plus expected 15_odhcpd first-boot semantics and old "
+            "DNS overrides are inactive. Firewall adds active software flow offloading. "
+            "The reviewed current configuration is valid as oracle input."
+        ),
+        "evidence": "i0-followup-review.json",
     },
 ]
 
@@ -377,10 +400,18 @@ RISKS: list[dict[str, Any]] = [
     {
         "id": "RK-04",
         "risk": "Device carries configuration history from an earlier tool",
-        "detail": "config.md5 tracks bak-codex-* backups and dnsproxy remnants dated before the current firmware, preserved across sysupgrade.",
+        "detail": (
+            "The historical DNS override is inactive and DHCP now matches expected "
+            "first-boot semantics, but backup files remain in /etc/config and therefore "
+            "remain visible to reload_config's all-file scan. Firewall software flow "
+            "offloading is an active device-specific delta."
+        ),
         "affects": ["R04", "R09", "R10"],
-        "mitigation": "Do not treat this device's config as stock. Any oracle use must take its current config as input.",
-        "evidence": "Q12 config.md5 tracked list",
+        "mitigation": (
+            "Use the reviewed current config and full observed /etc/config file set as the "
+            "C1 fixture; never substitute image defaults."
+        ),
+        "evidence": "Q12 config.md5 tracked list; i0-followup-review.json",
     },
     {
         "id": "RK-05",
@@ -401,25 +432,14 @@ RISKS: list[dict[str, Any]] = [
     {
         "id": "RK-07",
         "risk": "Boot evidence is not retained",
-        "detail": "The default log buffer cannot hold a boot record, so boot-order regressions would be undetectable after the fact.",
+        "detail": (
+            "The default log buffer cannot hold a boot record, and default procd debug "
+            "level 0 does not emit its per-script DEBUG(2) duration records."
+        ),
         "affects": ["R03", "R15"],
-        "mitigation": "Any boot-path work needs a console or a larger buffer arranged in advance.",
-        "evidence": "Q02: buffer covers about 93 minutes",
+        "mitigation": "Any boot-path work needs a serial console or instrumented lab boot arranged in advance.",
+        "evidence": "Q02 plus boot-chain.json rcS_scheduling",
     },
-]
-
-# I0 completion checklist from the plan, with the evidence that satisfies each.
-I0_CHECKLIST = [
-    ("镜像身份和来源可独立复核", True, "IMAGE_IDENTITY.md; signed sha256sums, profiles.json, buildinfo; Q00 confirms the device runs it"),
-    ("容器、payload、rootfs 和分区预期已解释", True, "DEPLOYMENT_VERIFICATION.md, PARTITION_EXPECTATION.md, SOURCE_IMAGE_DEVIATIONS.md"),
-    ("软件物料和文件归属完整", True, "SBOM.md, FILE_OWNERSHIP.md; Q14 shows device drift of +4 translation packages only"),
-    ("启动、服务、配置和 IPC 链已成图", True, "BOOT_CHAIN, SERVICE_GRAPH, CONFIG_FLOW, IPC_CATALOG; both static misses fixed and re-verified"),
-    ("关键组件均有精确源码映射或明确阻塞", True, "SOURCE_MAP.md, PATCH_MAP.md; 14 pinned checkouts plus a verified dnsmasq tarball"),
-    ("每个候选都有接口、调用者、失败边界和兼容要求", True, "RESPONSIBILITY_CANDIDATES.md; 17 responsibilities with the full template"),
-    ("关键行为取得必要运行态证据", True, "RUNTIME_OBSERVATIONS.md; 15 questions, 23 commands; OQ-01 remains open and blocks only R07"),
-    ("事实、推断、未知和冲突分离", True, "every report carries an explicit evidence-boundary section; OPEN_QUESTIONS.md holds the unknowns"),
-    ("原始材料和秘密未进入 Git", True, "firmware, extracted trees, source checkouts and raw collector output live outside Git; redaction self-check passes with 0 findings"),
-    ("未接触物理机持久状态", True, "I0.7 ran read-only commands over SSH; no UCI write, commit, reload, restart or MTD read"),
 ]
 
 
@@ -431,11 +451,76 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def load_manifest(manifests: Path, name: str, problems: list[str]) -> dict[str, Any]:
+    path = manifests / name
+    if not path.is_file():
+        problems.append(f"missing required manifest: {name}")
+        return {}
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        problems.append(f"invalid required manifest {name}: {exc}")
+        return {}
+    return payload
+
+
+def complete_for(
+    payload: dict[str, Any], stage: str, evidence_id: str, name: str, problems: list[str]
+) -> bool:
+    ok = (
+        payload.get("stage") == stage
+        and payload.get("status") == "complete"
+        and payload.get("evidence_id") == evidence_id
+    )
+    if not ok:
+        problems.append(
+            f"{name}: expected stage={stage!r}, status='complete', "
+            f"evidence_id={evidence_id!r}"
+        )
+    return ok
+
+
 def build(manifests: Path) -> tuple[dict[str, Any], list[str]]:
-    candidates = json.loads((manifests / "responsibility-candidates.json").read_text())
-    observations = json.loads((manifests / "runtime-observations.json").read_text())
-    known = {item["id"] for item in candidates["responsibilities"]}
     problems: list[str] = []
+    candidates = load_manifest(manifests, "responsibility-candidates.json", problems)
+    observations = load_manifest(manifests, "runtime-observations.json", problems)
+    questions = load_manifest(manifests, "runtime-questions.json", problems)
+    followup = load_manifest(manifests, "i0-followup-review.json", problems)
+    evidence_id = candidates.get("evidence_id", "")
+
+    required_stages = {
+        "source-baseline.json": "I0.2",
+        "payloads.json": "I0.3",
+        "filesystem.json": "I0.3",
+        "packages.json": "I0.4",
+        "executables.json": "I0.4",
+        "sources.json": "I0.4",
+        "boot-chain.json": "I0.5",
+        "service-graph.json": "I0.5",
+        "config-flow.json": "I0.5",
+        "ipc-catalog.json": "I0.5",
+    }
+    required = {
+        name: load_manifest(manifests, name, problems) for name in required_stages
+    }
+    stage_complete = {
+        name: complete_for(payload, required_stages[name], evidence_id, name, problems)
+        for name, payload in required.items()
+    }
+    candidates_complete = complete_for(
+        candidates, "I0.6", evidence_id, "responsibility-candidates.json", problems
+    )
+    questions_complete = complete_for(
+        questions, "I0.6", evidence_id, "runtime-questions.json", problems
+    )
+    observations_complete = complete_for(
+        observations, "I0.7", evidence_id, "runtime-observations.json", problems
+    )
+    followup_complete = complete_for(
+        followup, "I0 follow-up", evidence_id, "i0-followup-review.json", problems
+    )
+
+    known = {item["id"] for item in candidates.get("responsibilities", [])}
 
     seen = [item["id"] for item in CLASSIFICATION]
     if sorted(seen) != sorted(known):
@@ -444,6 +529,13 @@ def build(manifests: Path) -> tuple[dict[str, Any], list[str]]:
         problems.append("a responsibility is classified more than once")
 
     question_ids = {q["id"] for q in OPEN_QUESTIONS}
+    if len(question_ids) != len(OPEN_QUESTIONS):
+        problems.append("an open question is declared more than once")
+    closed_question_ids = {q["id"] for q in CLOSED_QUESTIONS}
+    if question_ids & closed_question_ids:
+        problems.append(
+            f"questions are both open and closed: {sorted(question_ids & closed_question_ids)}"
+        )
     for item in CLASSIFICATION:
         if item["category"] not in CATEGORIES:
             problems.append(f"{item['id']}: unknown category {item['category']}")
@@ -472,7 +564,130 @@ def build(manifests: Path) -> tuple[dict[str, Any], list[str]]:
             if rid not in known:
                 problems.append(f"{risk['id']}: affects unknown responsibility {rid}")
 
-    gate_open = [name for name, ok, _ in I0_CHECKLIST if not ok]
+    candidate_template_fields = {
+        "artifacts",
+        "failure_boundary",
+        "compatibility_requirements",
+        "recovery",
+        "known_callers",
+    }
+    candidate_templates_complete = len(candidates.get("responsibilities", [])) == 17 and all(
+        candidate_template_fields <= set(item)
+        for item in candidates.get("responsibilities", [])
+    )
+    collector_validation = observations.get("collector", {}).get("validation", {})
+    identity_gate_passed = observations.get("identity", {}).get("matched") is True
+    build_gating_checks = observations.get("ubus", {}).get("build_gating_checks", [])
+    runtime_catalog_closed = (
+        observations.get("ubus", {}).get("plain_and_verbose_inventories_match") is True
+        and observations.get("ubus", {}).get("objects_not_predicted") == []
+        and observations.get("ubus", {}).get("static_literals_not_registered") == []
+        and len(build_gating_checks) == 3
+        and all(check.get("prediction_held") for check in build_gating_checks)
+    )
+    followup_resolved = followup.get("resolved_questions", {})
+    oq_followup_complete = all(
+        followup_resolved.get(qid, {}).get("status") == "resolved"
+        for qid in ("OQ-01", "OQ-07")
+    )
+    expected_command_count = questions.get("counts", {}).get("approved_commands")
+    observed_command_count = collector_validation.get("required_files")
+    expected_added_packages = {
+        "luci-i18n-attendedsysupgrade-zh-cn",
+        "luci-i18n-base-zh-cn",
+        "luci-i18n-firewall-zh-cn",
+        "luci-i18n-package-manager-zh-cn",
+    }
+    observed_added_packages = set(observations.get("packages", {}).get("added", []))
+
+    checklist = [
+        {
+            "item": "镜像身份和来源可独立复核",
+            "satisfied": stage_complete.get("source-baseline.json", False)
+            and identity_gate_passed,
+            "evidence": "source-baseline.json plus the enforced I0.7 identity gate",
+            "verification": "manifest-derived",
+        },
+        {
+            "item": "容器、payload、rootfs 和分区预期已解释",
+            "satisfied": stage_complete.get("payloads.json", False)
+            and stage_complete.get("filesystem.json", False),
+            "evidence": "payloads.json and filesystem.json",
+            "verification": "manifest-derived",
+        },
+        {
+            "item": "软件物料和文件归属完整",
+            "satisfied": stage_complete.get("packages.json", False)
+            and stage_complete.get("executables.json", False)
+            and observations.get("packages", {}).get("removed") == []
+            and observations.get("packages", {}).get("version_changed") == []
+            and observed_added_packages == expected_added_packages,
+            "evidence": "packages.json, executables.json and I0.7 package drift",
+            "verification": "manifest-derived",
+        },
+        {
+            "item": "启动、服务、配置和 IPC 链已成图",
+            "satisfied": all(
+                stage_complete.get(name, False)
+                for name in (
+                    "boot-chain.json",
+                    "service-graph.json",
+                    "config-flow.json",
+                    "ipc-catalog.json",
+                )
+            )
+            and runtime_catalog_closed,
+            "evidence": "four I0.5 manifests plus bidirectional runtime catalog closure",
+            "verification": "manifest-derived",
+        },
+        {
+            "item": "关键组件均有精确源码映射或明确阻塞",
+            "satisfied": stage_complete.get("sources.json", False),
+            "evidence": "sources.json",
+            "verification": "manifest-derived",
+        },
+        {
+            "item": "每个候选都有接口、调用者、失败边界和兼容要求",
+            "satisfied": candidates_complete and candidate_templates_complete,
+            "evidence": "17 responsibility records with required template fields",
+            "verification": "manifest-derived",
+        },
+        {
+            "item": "关键行为取得必要运行态证据",
+            "satisfied": observations_complete
+            and questions_complete
+            and followup_complete
+            and collector_validation.get("passed") is True
+            and expected_command_count == observed_command_count
+            and oq_followup_complete,
+            "evidence": (
+                "I0.7 identity/collector validation, 23 of 23 commands, and follow-up "
+                "closure of OQ-01/OQ-07"
+            ),
+            "verification": "manifest-derived",
+        },
+        {
+            "item": "事实、推断、未知和冲突分离",
+            "satisfied": not problems and not (question_ids & closed_question_ids),
+            "evidence": "non-overlapping open/closed question registers; report review",
+            "verification": "manifest invariant plus human report review",
+        },
+        {
+            "item": "原始材料和秘密未进入 Git",
+            "satisfied": observations.get("method", {}).get("redaction_asserted") is True
+            and followup.get("method", {}).get("redaction_asserted") is True,
+            "evidence": "both redaction assertions; repository admission scan remains external",
+            "verification": "manifest assertion plus commit-time repository scan",
+        },
+        {
+            "item": "未接触物理机持久状态",
+            "satisfied": observations.get("method", {}).get("device_writes") is False
+            and followup.get("method", {}).get("device_writes") is False,
+            "evidence": "I0.7 and follow-up collector method records",
+            "verification": "collector attestation",
+        },
+    ]
+    gate_open = [item["item"] for item in checklist if not item["satisfied"]]
 
     by_category: dict[str, list[str]] = {name: [] for name in CATEGORIES}
     for item in CLASSIFICATION:
@@ -483,25 +698,27 @@ def build(manifests: Path) -> tuple[dict[str, Any], list[str]]:
         "classification": CLASSIFICATION,
         "by_category": by_category,
         "open_questions": OPEN_QUESTIONS,
+        "closed_questions": CLOSED_QUESTIONS,
         "risks": RISKS,
         "i0_gate": {
-            "checklist": [
-                {"item": name, "satisfied": ok, "evidence": ev} for name, ok, ev in I0_CHECKLIST
-            ],
+            "checklist": checklist,
             "unsatisfied": gate_open,
             "passed": not gate_open,
             "scope_limit": (
                 "The gate is passed for this image on this device in this configuration. "
-                "OQ-01 remains open and blocks R07 only; it does not block the gate because "
-                "no responsibility depending on it is classified for replacement."
+                "OQ-01 and OQ-07 are closed by the follow-up. Exact boot duration remains "
+                "open as non-blocking OQ-09. No classification authorizes implementation."
             ),
         },
         "counts": {
             "responsibilities": len(CLASSIFICATION),
             **{f"category_{name}": len(ids) for name, ids in by_category.items()},
             "open_questions": len(OPEN_QUESTIONS),
+            "closed_questions": len(CLOSED_QUESTIONS),
             "risks": len(RISKS),
-            "runtime_objects_verified": observations["ubus"]["runtime_object_count"],
+            "runtime_objects_verified": observations.get("ubus", {}).get(
+                "runtime_object_count", 0
+            ),
         },
     }
     return payload, problems

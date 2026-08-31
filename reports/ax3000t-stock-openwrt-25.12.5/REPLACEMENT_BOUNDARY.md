@@ -10,7 +10,10 @@
 DEP、SRC、RUN 三类证据引用；`禁止触碰`还必须写明恢复约束；有未解阻塞问题的职责
 **不得**进入`优先用 Rust 替换`。
 
-这些规则由 [i0_8_boundary.py](../../tools/i0_8_boundary.py) 强制，违反即生成失败。
+这些分类不变量由 [i0_8_boundary.py](../../tools/i0_8_boundary.py) 强制，违反即生成失败。
+follow-up 后，十项 I0 gate 中七项直接由 manifest 推导；报告分层、原始材料不入 Git和
+设备无写入三项分别明确标为“manifest + 人工审查”“commit-time scan”“collector attestation”，
+不再伪装成纯自动证明。
 机器记录见
 [replacement-boundary.json](../../manifests/ax3000t-stock-openwrt-25.12.5/replacement-boundary.json)。
 
@@ -41,11 +44,13 @@ DEP、SRC、RUN 三类证据引用；`禁止触碰`还必须写明恢复约束�
 | SRC | base-files recipe；上游注释 |
 | RUN | Q12 观察到基线及其跟踪的包列表；Q06 观察到消费方服务上的 config.change trigger |
 
-选它不是因为"可以用 Rust 写"，而是因为四个条件同时成立：合同窄且已完整观察、
+选它不是因为"可以用 Rust 写"，而是因为四个条件同时成立：静态接口面窄、运行态基线与
+trigger 注册已观察、
 失败是静默的（正是类型化实现能消除的缺陷类）、无持久副作用、恢复代价为零。
 
 **先决条件**：替换实现必须先让"变更已送达"可观测，再改变检测方式。见
-[RISK_REGISTER.md](RISK_REGISTER.md) RK-01。
+[RISK_REGISTER.md](RISK_REGISTER.md) RK-01。事件投递本身尚未被主动触发验证，不能称为
+“合同已完整观察”；这正是 C1 oracle 要补的部分。
 
 ## 4. 两项包装候选
 
@@ -62,7 +67,8 @@ rpcd 是远程管理边界，经 `file.exec` 与 `rc.init` 等价于远程代码
 logd 只有两个方法，失败仅影响可观测性。它是把「ubus 对象注册 + ubusd ACL + procd
 instance」三条契约端到端跑通的最低风险场所。
 
-选包装而非替换的理由：环形缓冲区正是导致启动证据不可得的机制（见 OQ-01），
+选包装而非替换的理由：环形缓冲区没有保留启动记录，默认 procd 又不输出逐项 duration
+（见 RK-07、OQ-09），
 重写不应以改变保留语义开场。
 
 ## 5. 五项禁止触碰及其恢复约束
@@ -82,7 +88,7 @@ R12 还有一条顺序性理由：**在任何客户端被替换之前替换总�
 | 职责 | 阻塞问题 | 为什么现在不能定级 |
 |---|---|---|
 | R04 UCI | OQ-04、OQ-05 | 约束条件是未建模字段的保留和三类写入方的并发窗口，两者都不能被动观察 |
-| R07 netifd | OQ-01、OQ-06 | 接口面已完整并经运行态验证，但 proto handler 与 wireless notify 契约从未被执行 |
+| R07 netifd | OQ-06 | rcS 顺序与失败传播已关闭；剩余阻塞是 proto handler 与 wireless notify 契约从未被执行 |
 | R09 firewall4 | OQ-02 | 兼容合同是生成的 ruleset，尚无差分比较 |
 | R14 uhttpd | OQ-03 | 以 root 运行且终结 TLS，是可信的 Rust 目标，但 LuCI 耦合路径未被执行 |
 

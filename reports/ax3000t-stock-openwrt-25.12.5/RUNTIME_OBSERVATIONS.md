@@ -16,6 +16,7 @@
 | 原始输出 | Git 之外的私有 evidence 目录 |
 | 非零退出 | 1 条：`ubus -v list udebug` 退出 4（Not found），见 §4 |
 | 脱敏 | [i0_7_observation.py](../../tools/i0_7_observation.py) 生成派生 manifest 后自检地址/MAC/口令形状字符串，**0 命中**才写出 |
+| 采集验收 | 23/23 个预期文件齐全；header/footer、允许的退出码和设备身份全部由生成器强制检查 |
 
 机器记录见
 [runtime-observations.json](../../manifests/ax3000t-stock-openwrt-25.12.5/runtime-observations.json)。
@@ -222,17 +223,19 @@ I0.5 标记的"cmdline 未知会直接影响 rootfs 挂载选项"这一风险，
 
 `logd` 以 uid 514 运行，证实 `ubox/log/logd.c:267-275` 的进程内 `getpwnam("logd")` 降权。
 
-## 7. 本次观察未能回答的问题
+## 7. 本次观察当时未能回答的问题及后续状态
 
-- **Q02 启动顺序只得到部分答案。** `logread` 的环形缓冲区只覆盖采集前约 93 分钟，
-  最早一条早于设备启动时刻。**缓冲区容量不足以保留启动记录**，因此加大 `-l` 行数也
-  无法取回。启动顺序与耗时只能通过观察一次真实启动获得，而那不是只读观察。
+- **Q02 没有取得本次启动的日志。** `logread` 的环形缓冲区只覆盖采集前约 93 分钟，
+  启动记录已被覆盖，加大 `-l` 行数也无法取回。后续源码审查已经证明 rcS 严格串行及其
+  失败传播，关闭 OQ-01；只有真实逐项耗时仍作为非阻塞 OQ-09 开放。默认 procd debug 0
+  不输出 `DEBUG(2)` duration，因此普通重启后读 `logread` 仍不够。
 - **`reload` 的实际中断行为、服务失败传播、UCI 并发写入**：I0.6 已说明这三项需要主动
   触发或注入故障，不属于只读观察，本次未做也不应做。
-- **`/etc/config/{dhcp,firewall}` 的具体改动内容**：本报告只记录"已偏离镜像"这一事实。
-  内容含地址与策略，属 I0.8 风险登记范围，需要单独的脱敏审查后才可引用。
-- **设备历史修改的来源与影响**：`config.md5` 中的备份文件名只证明存在更早的修改，
-  不能证明其内容或当前是否仍生效。
+- **`/etc/config/{dhcp,firewall}` 的具体改动内容**：已在后续独立、脱敏、只读审查中关闭
+  OQ-07。DHCP 现值等价于镜像加 `15_odhcpd` 的预期首启结果；旧 DNS override 已失效；
+  firewall 的软件 flow offloading 正在生效。见 [I0_FOLLOWUP_REVIEW.md](I0_FOLLOWUP_REVIEW.md)。
+- **设备历史修改的操作者**：现存元数据不足以完全重建，但 C1 oracle 只需要经审查的当前
+  输入与行为，不依赖操作者身份，因此不再构成阻塞项。
 
 ## 8. 观察边界
 

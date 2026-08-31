@@ -140,6 +140,24 @@ procd 支持的 action 集合为 `sysinit`、`shutdown`、`askfirst`、`askconso
 
 `umount` 只有 K 链接，没有 S 链接：它只参与关机路径。
 
+### 5.1 rcS 调度与失败传播
+
+后续审查补齐了 `procd/rcS.c` 与 `libubox/runqueue.c` 的组合语义：
+
+- `rcS()` 明确设置 `q.max_running_tasks = 1`，所以**全部 S 脚本按 glob 顺序严格串行**；
+  同一 `START` 编号不会并发，完成顺序也不是未知项。
+- 子进程退出后，libubox 的 runqueue callback 不读取或传播 `waitpid()` 的退出状态，
+  只把任务标记完成并启动下一项。因此普通非零退出（包括 `exec` 失败后的 exit 1）
+  **不会阻止后续脚本**。
+- `pipe()` 或 `fork()` 在子进程登记前失败时，`q_initd_run()` 直接返回，活动任务没有完成
+  路径，队列会停住。启动脚本没有 timeout；15 秒运行 timeout 只用于 `stop`/`shutdown`。
+- 每项耗时用 `CLOCK_MONOTONIC_RAW` 计算，但 start/stop 记录受 `DEBUG(2)` 保护；本设备 PID 1
+  是无 `-d`、无 `DBGLVL` 的普通 `/sbin/procd`，默认 debug level 为 0，因此这些耗时记录
+  默认不写入日志。
+
+机器记录见 `boot-chain.json.rcS_scheduling`。这关闭了原 OQ-01 的顺序和失败传播部分；
+真实启动的逐项耗时另列为非阻塞 OQ-09。
+
 ## 6. `S10boot` 在启动中的额外职责
 
 `/etc/init.d/boot` 的 `boot()` 是本镜像里唯一一处把"目录创建 + 模块加载 + 配置生成 +
@@ -178,8 +196,9 @@ procd STATE_HALT     → kill(-1,SIGTERM) → sync → sleep 1 → kill(-1,SIGKI
   没有 `bootargs`。实际 cmdline 由 bootloader 传入，静态镜像无法确定。
   `80_mount_root` 会读 `/proc/cmdline` 里的 `rootfs_mount_options.*`，因此这条未知会
   直接影响 rootfs 挂载选项。
-- **实际启动顺序与耗时**：本报告是静态图。procd 的 `rcS` 使用 runqueue，同一编号内的
-  实际并发与完成顺序未观察。
+- **实际逐项耗时**：顺序和普通失败传播已由源码确定，但本次启动的逐项 wall-clock
+  耗时没有记录。默认 debug level 又不会输出 `DEBUG(2)` 的 duration；需要串口或经单独
+  授权的 instrumented boot，普通 `logread` 不足以回答。
 - **failsafe 是否被触发**：`30_failsafe_wait` 的 4 秒窗口是否被使用未知。
 - **首次启动与后续启动的差异**：`uci_apply_defaults` 会删除已执行的 uci-defaults 文件，
   `82_config_generate` 只在 `/etc/board.json` 缺失时运行。设备当前处于哪一侧未知。

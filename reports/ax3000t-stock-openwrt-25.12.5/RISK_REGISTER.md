@@ -50,12 +50,14 @@
 
 `/var/run/config.md5` 跟踪了 `dhcp.bak-codex-*`、`network.bak-codex-*`、
 `wireless.bak-codex-*` 以及 `dnsproxy` 残留，时间戳早于当前固件，经 sysupgrade
-配置保留延续至今。`/etc/config/dhcp` 与 `/etc/config/firewall` 都已偏离镜像。
+配置保留延续至今。后续 OQ-07 审查确认：当前 DHCP 语义等价于镜像加预期首启变换，
+旧 DNS override 和 dnsproxy 已不生效；firewall 则启用了正在生效的软件 flow offloading。
+备份文件虽然不被 dnsmasq/fw4 当作主配置读取，却仍会被 `reload_config` 的全文件扫描跟踪。
 
-**缓解**：**不要把本设备的配置当作出厂配置。** 任何 oracle 用法必须以设备当前配置
-为输入。相关审查见 [OPEN_QUESTIONS.md](OPEN_QUESTIONS.md) OQ-07。
+**缓解**：C1 可以使用本设备，但必须把**经审查的当前配置与完整 `/etc/config` 文件集**
+固定为 fixture，不能替换成镜像默认值。详见 [I0_FOLLOWUP_REVIEW.md](I0_FOLLOWUP_REVIEW.md)。
 
-**证据**：Q12 `config.md5` 跟踪列表；Q13 配置哈希比对（6 个中 4 个已改）。
+**证据**：Q12 跟踪列表；Q13 哈希比对；`i0-followup-review.json` 的脱敏 UCI AST 差分。
 
 ## RK-05 静态目录的完整性只针对已观察的那一种配置
 
@@ -86,12 +88,14 @@ ubus 目录与运行态双向闭合，但那是**针对一种配置**验证的�
 
 **影响**：R03、R15
 
-默认日志缓冲区容量不足以保留一次启动记录（实测覆盖约 93 分钟）。这意味着**启动顺序
-的回归在事后无法被发现**。
+默认日志缓冲区容量不足以保留一次启动记录（实测覆盖约 93 分钟）。此外 procd 的逐脚本
+耗时日志受 `DEBUG(2)` 保护，而 PID 1 默认 debug level 为 0。顺序本身已由源码证明为
+严格串行，但真实逐项耗时和启动期回归仍无法靠事后 `logread` 重建。
 
-**缓解**：任何涉及启动路径的工作都需要事先安排串口控制台或加大缓冲区。
+**缓解**：任何涉及启动路径的工作都需要事先安排串口控制台或 instrumented lab boot；
+仅加大 `logread -l` 无法补出默认未发出的 duration。
 
-**证据**：Q02 缓冲区覆盖范围；`log_buffer_size` 默认 64。
+**证据**：Q02；`boot-chain.json.rcS_scheduling`；本设备 PID 1 无 `-d`/`DBGLVL`。
 
 ## 风险与分类的对应
 
@@ -100,7 +104,7 @@ ubus 目录与运行态双向闭合，但那是**针对一种配置**验证的�
 | RK-01 | R05 进入替换范围的前置条件 |
 | RK-02 | R08 列入禁止触碰的支撑理由之一 |
 | RK-03 | R12、R13 的接口边界定义方式 |
-| RK-04 | 本设备作为 C1 oracle 的使用前提 |
+| RK-04 | C1 oracle fixture 必须使用经审查的当前配置和完整文件集 |
 | RK-05 | 所有完整性主张的范围声明 |
 | RK-06 | R13 选择包装而非替换的直接原因 |
 | RK-07 | R15 选择包装而非替换的直接原因 |

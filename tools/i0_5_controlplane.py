@@ -285,6 +285,94 @@ def build_boot_chain(root: Path, sources: Path) -> dict[str, Any]:
         if re.search(r"(kmodloader|uci_apply_defaults|reload_config|/sbin/wifi|mount_root|/etc/board\.json)", line)
     ]
 
+    # rcS execution semantics matter to every service ordered by /etc/rc.d.
+    # Keep them machine-readable instead of leaving concurrency and failure
+    # propagation as prose inferred from the runqueue API.
+    rcs_source = sources / "components/procd/rcS.c"
+    runqueue_source = sources / "components/libubox/runqueue.c"
+    procd_main_source = sources / "components/procd/procd.c"
+    log_header_source = sources / "components/procd/log.h"
+
+    def source_matches(path: Path, label: str, pattern: str) -> list[dict[str, Any]]:
+        return [
+            evidence(label, number, line)
+            for number, line in enumerate(read_text(path).splitlines(), start=1)
+            if re.search(pattern, line)
+        ]
+
+    max_running_match = re.search(
+        r"q\.max_running_tasks\s*=\s*(\d+)", read_text(rcs_source)
+    )
+    if not max_running_match:
+        raise ValueError("procd rcS.c does not declare q.max_running_tasks")
+    max_running_tasks = int(max_running_match.group(1))
+
+    rcs_scheduling = {
+        "max_running_tasks": max_running_tasks,
+        "ordering": (
+            "strictly serial in glob insertion order"
+            if max_running_tasks == 1
+            else "bounded runqueue concurrency"
+        ),
+        "ordinary_exit_status_policy": (
+            "child exit status is discarded by the runqueue process callback; "
+            "the next script is started"
+        ),
+        "pre_spawn_failure_policy": (
+            "pipe or fork failure returns before a child is registered, leaving the "
+            "active task incomplete and stalling rcS"
+        ),
+        "start_timeout_s": None,
+        "stop_shutdown_timeout_s": 15,
+        "stop_shutdown_cancel_timeout_s": 10,
+        "timing_log": {
+            "clock": "CLOCK_MONOTONIC_RAW",
+            "debug_level_required": 2,
+            "default_debug_level": 0,
+            "emitted_by_default": False,
+        },
+        "evidence": {
+            "procd_rcs": {
+                "path": "sources/components/procd/rcS.c",
+                "sha256": sha256_file(rcs_source),
+                "statements": source_matches(
+                    rcs_source,
+                    "sources/components/procd/rcS.c",
+                    r"max_running_tasks|clock_gettime|DEBUG\(2|run_timeout|cancel_timeout|pipe\(|fork\(|runqueue_process_add",
+                ),
+            },
+            "libubox_runqueue": {
+                "path": "sources/components/libubox/runqueue.c",
+                "sha256": sha256_file(runqueue_source),
+                "statements": source_matches(
+                    runqueue_source,
+                    "sources/components/libubox/runqueue.c",
+                    r"running_tasks >=|list_first_entry|__runqueue_proc_cb|runqueue_task_complete",
+                ),
+            },
+            "procd_debug_default": {
+                "paths": [
+                    "sources/components/procd/procd.c",
+                    "sources/components/procd/log.h",
+                ],
+                "sha256": {
+                    "procd.c": sha256_file(procd_main_source),
+                    "log.h": sha256_file(log_header_source),
+                },
+                "statements": source_matches(
+                    procd_main_source,
+                    "sources/components/procd/procd.c",
+                    r"unsigned int debug|DBGLVL|case 'd'",
+                )
+                + source_matches(
+                    log_header_source,
+                    "sources/components/procd/log.h",
+                    r"#define DEBUG|debug >= level",
+                ),
+            },
+        },
+    }
+
     return {
         "entry_point": {
             "kernel_init": "/etc/preinit is reached only when PREINIT is set; otherwise /sbin/init runs directly",
@@ -310,6 +398,7 @@ def build_boot_chain(root: Path, sources: Path) -> dict[str, Any]:
             "defined_functions": rc_common.functions,
         },
         "rcS": None if rcS is None else {"path": rcS.rel, "sha256": rcS.sha256},
+        "rcS_scheduling": rcs_scheduling,
         "boot_service_actions": boot_actions,
     }
 

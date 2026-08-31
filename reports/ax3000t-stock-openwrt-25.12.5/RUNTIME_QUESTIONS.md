@@ -84,13 +84,13 @@
 | Q03 | 是否已过首启，剩余 uci-defaults | CONFIG_FLOW §7、BOOT_CHAIN §8 | `ls -la /etc/uci-defaults/ /etc/board.json /etc/rc.local` | 无 |
 | Q04 | 生成后的 network/system/wireless 与 board.json | CONFIG_FLOW §7 | `cat /etc/board.json`；`cat /etc/config/{network,system,wireless}` | **必须**：无线密钥、MAC、ULA、DUID、WAN 凭据 |
 | Q05 | 实际注册的 ubus 对象与方法签名 | IPC_CATALOG §10 | `ubus list`；`ubus -v list` | 检查 `wpa_supplicant.*` 名中的 SSID |
-| Q06 | procd 实际监管的服务与实例、触发器 | SERVICE_GRAPH §7 | `ubus call service list '{"verbose":true}'` | 检查命令行中的凭据 |
+| Q06 | procd 实际监管的服务与实例、触发器 | SERVICE_GRAPH §7 | `ubus call service list "{\"verbose\":true}"` | 检查命令行中的凭据 |
 | Q07 | netifd 实际接口与设备状态 | SERVICE_GRAPH §7、IPC_CATALOG §10 | `ubus call network.interface dump`；`ubus call network.device status` | **必须**：地址、前缀、DNS、MAC、WAN 对端 |
 | Q08 | fw4 实际生成的 nftables ruleset | SERVICE_GRAPH §7 | `nft -a list ruleset` | **必须**：地址与前缀 |
 | Q09 | dnsmasq 是否用默认对象名；odhcpd 是否 ipv6only | IPC_CATALOG §10 与 build gating 结论 | `ubus -v list dnsmasq`；`ubus -v list dhcp` | 无 |
 | Q10 | `udebug` 对象由谁提供 | IPC_CATALOG §10 | `ubus -v list udebug` | 无 |
 | Q11 | 声明的 jail 与降权是否真的生效 | SERVICE_GRAPH §7 | 对 hostapd/wpa_supplicant/ntpd/dnsmasq/logd 的 pid 读 `/proc/<pid>/status` 与 `/proc/<pid>/ns` | 检查进程参数中的路径 |
-| Q12 | 当前配置变更基线与未提交 delta | CONFIG_FLOW §7 | `ls -la /tmp/.uci /var/run/uci`；`cut -c35- /var/run/config.md5` | 丢弃 `/tmp/.uci` 下的会话标识 |
+| Q12 | 当前配置变更基线与未提交 delta | CONFIG_FLOW §7 | `ls -la /tmp/.uci /var/run/uci`；打印固定分隔行；`cut -c35- /var/run/config.md5` | 丢弃 `/tmp/.uci` 下的会话标识 |
 | Q13 | 六个随镜像发布的配置是否已漂移；uhttpd/rpcd 实际设置 | CONFIG_FLOW §7、IPC_CATALOG §7 | `sha256sum` 六个 config；`cat /etc/config/{uhttpd,rpcd}` | **必须**：丢弃 rpcd login 段的 password 字段，即使仍是 `$p$root` 占位符也不记录 |
 
 ### 3.1 几处刻意的取舍
@@ -103,6 +103,8 @@
   混用会把不一致掩盖掉。
 - **Q12 只取 `/var/run/config.md5` 的文件名列，不取哈希。** 问题是"哪些包在基线里被
   跟踪"，不需要哈希值本身。
+- **Q10 允许退出 0 或 4。** 0 表示对象存在并可列出，4 是 ubus 对不存在对象的
+  `Not found`；两者都是该问题要区分的有效观察，不应把 4 当成采集失败。
 - **Q13 六个配置只取 sha256，只有 uhttpd 和 rpcd 取全文。** 这两个决定 HTTP→ubus 和
   RPC 的暴露面，需要内容；其余用哈希就能回答漂移问题，不必导出内容。
 - **Q14 用 `cat /lib/apk/db/installed` 而不是 `apk list`。** 后者是包管理器调用，可能触碰
