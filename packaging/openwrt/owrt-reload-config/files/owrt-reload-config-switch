@@ -1,0 +1,88 @@
+#!/bin/sh
+set -eu
+
+CANDIDATE=/usr/sbin/reload_config_rs
+TARGET=/sbin/reload_config
+ORIGINAL_SHA256=f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15
+MOUNTINFO=/proc/self/mountinfo
+
+usage() {
+	printf '%s\n' 'usage: owrt-reload-config-switch enable|disable|status' >&2
+	exit 64
+}
+
+is_enabled() {
+	[ -r "$MOUNTINFO" ] || return 1
+	awk -v target="$TARGET" '$5 == target { found = 1 } END { exit !found }' "$MOUNTINFO"
+}
+
+sha256_of() {
+	sha256sum "$1" | awk '{ print $1 }'
+}
+
+verify_original() {
+	[ -f "$TARGET" ] || {
+		printf 'missing original dispatcher: %s\n' "$TARGET" >&2
+		return 1
+	}
+	actual=$(sha256_of "$TARGET")
+	[ "$actual" = "$ORIGINAL_SHA256" ] || {
+		printf 'original dispatcher identity mismatch: %s\n' "$actual" >&2
+		return 1
+	}
+}
+
+verify_candidate_mount() {
+	[ -x "$CANDIDATE" ] && [ -x "$TARGET" ] && cmp -s "$CANDIDATE" "$TARGET"
+}
+
+enable_dispatcher() {
+	if is_enabled; then
+		verify_candidate_mount
+		printf '%s\n' enabled
+		return
+	fi
+	[ -x "$CANDIDATE" ] || {
+		printf 'missing candidate dispatcher: %s\n' "$CANDIDATE" >&2
+		return 1
+	}
+	verify_original
+	mount -o bind "$CANDIDATE" "$TARGET"
+	if ! is_enabled || ! verify_candidate_mount; then
+		umount "$TARGET" 2>/dev/null || true
+		printf '%s\n' 'candidate activation verification failed' >&2
+		return 1
+	fi
+	printf '%s\n' enabled
+}
+
+disable_dispatcher() {
+	if is_enabled; then
+		umount "$TARGET"
+	fi
+	if is_enabled; then
+		printf '%s\n' 'candidate dispatcher is still mounted' >&2
+		return 1
+	fi
+	verify_original
+	printf '%s\n' disabled
+}
+
+status_dispatcher() {
+	if is_enabled; then
+		verify_candidate_mount
+		printf '%s\n' enabled
+		return 0
+	fi
+	verify_original
+	printf '%s\n' disabled
+	return 3
+}
+
+[ "$#" -eq 1 ] || usage
+case "$1" in
+	enable) enable_dispatcher ;;
+	disable) disable_dispatcher ;;
+	status) status_dispatcher ;;
+	*) usage ;;
+esac

@@ -1,0 +1,75 @@
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=owrt-reload-config
+PKG_VERSION:=0.1.0
+PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),1)
+
+PKG_MAINTAINER:=owrt-control-plane-rs project
+PKG_LICENSE:=MIT OR Apache-2.0
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_PARALLEL:=1
+
+V1_CARGO?=cargo
+V1_CARGO_HOME?=
+V1_RUSTUP_HOME?=
+RELOAD_CONFIG_RS_SOURCE?=$(CURDIR)/../../../components/reload-config
+RUST_TARGET:=aarch64-unknown-linux-musl
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/owrt-reload-config
+  SECTION:=base
+  CATEGORY:=Base system
+  TITLE:=Observable OpenWrt config change dispatcher
+  DEPENDS:=@(aarch64) +procd +uci +ubus
+endef
+
+define Package/owrt-reload-config/description
+ Contract C1-01 compatible config change dispatcher. Installation is inert;
+ an explicit, reboot-volatile bind-mount switch is required to activate it.
+endef
+
+define Build/Prepare
+	rm -rf $(PKG_BUILD_DIR)
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/src
+	test -f $(RELOAD_CONFIG_RS_SOURCE)/Cargo.toml
+	test -f $(RELOAD_CONFIG_RS_SOURCE)/Cargo.lock
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/Cargo.toml $(PKG_BUILD_DIR)/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/Cargo.lock $(PKG_BUILD_DIR)/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/src/*.rs $(PKG_BUILD_DIR)/src/
+endef
+
+define Build/Configure
+endef
+
+define Build/Compile
+	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
+	CARGO_HOME="$(V1_CARGO_HOME)" \
+	CARGO_BUILD_TARGET="$(RUST_TARGET)" \
+	CARGO_PROFILE_RELEASE_PANIC=abort \
+	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
+	RUSTFLAGS="-Ctarget-cpu=cortex-a53 -Ctarget-feature=-crt-static -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+	$(V1_CARGO) build --release --locked --manifest-path $(PKG_BUILD_DIR)/Cargo.toml
+endef
+
+define Package/owrt-reload-config/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/target/$(RUST_TARGET)/release/reload-config-rs \
+		$(1)/usr/sbin/reload_config_rs
+	$(INSTALL_BIN) ./files/owrt-reload-config-switch \
+		$(1)/usr/sbin/owrt-reload-config-switch
+endef
+
+define Package/owrt-reload-config/postinst
+#!/bin/sh
+set -eu
+[ -n "$${IPKG_INSTROOT:-}" ] || /usr/sbin/owrt-reload-config-switch disable
+endef
+
+define Package/owrt-reload-config/prerm
+#!/bin/sh
+set -eu
+[ -n "$${IPKG_INSTROOT:-}" ] || /usr/sbin/owrt-reload-config-switch disable
+endef
+
+$(eval $(call BuildPackage,owrt-reload-config))

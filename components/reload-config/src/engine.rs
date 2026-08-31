@@ -396,17 +396,32 @@ fn write_baseline(
     names: &[String],
     current: &HashMap<String, String>,
 ) -> Result<(), Error> {
-    let mut output = File::create(path).map_err(|error| Error::Io("create baseline", error))?;
-    for name in names {
-        let digest = current
-            .get(name)
-            .ok_or_else(|| Error::Dependency(format!("missing digest for {name:?}")))?;
-        writeln!(output, "{digest}  /var/run/config.check/{name}")
-            .map_err(|error| Error::Io("write baseline", error))?;
+    let mut temporary_name = path
+        .file_name()
+        .unwrap_or_else(|| std::ffi::OsStr::new("config.md5"))
+        .to_os_string();
+    temporary_name.push(".reload-config-rs.tmp");
+    let temporary = path.with_file_name(temporary_name);
+    let result = (|| {
+        let mut output = File::create(&temporary)
+            .map_err(|error| Error::Io("create temporary baseline", error))?;
+        for name in names {
+            let digest = current
+                .get(name)
+                .ok_or_else(|| Error::Dependency(format!("missing digest for {name:?}")))?;
+            writeln!(output, "{digest}  /var/run/config.check/{name}")
+                .map_err(|error| Error::Io("write temporary baseline", error))?;
+        }
+        output
+            .sync_all()
+            .map_err(|error| Error::Io("sync temporary baseline", error))?;
+        drop(output);
+        fs::rename(&temporary, path).map_err(|error| Error::Io("commit temporary baseline", error))
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(&temporary);
     }
-    output
-        .sync_all()
-        .map_err(|error| Error::Io("sync baseline", error))
+    result
 }
 
 fn json_escape(value: &str) -> String {
@@ -420,7 +435,7 @@ fn format_exit(code: Option<i32>) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        changed_entries, read_baseline, scan_config_names, BaselineEntry, Settings,
+        changed_entries, read_baseline, scan_config_names, write_baseline, BaselineEntry, Settings,
         MAX_BASELINE_BYTES, MAX_CONFIG_SOURCE_BYTES,
     };
     use std::collections::HashMap;
@@ -511,5 +526,24 @@ mod tests {
         };
         assert!(scan_config_names(&settings).is_err());
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn failed_temporary_baseline_write_preserves_previous_bytes() {
+        let directory = std::env::temp_dir().join(format!(
+            "reload-config-rs-baseline-atomic-test-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&directory);
+        fs::create_dir_all(&directory).unwrap();
+        let path = directory.join("baseline");
+        fs::write(&path, "previous baseline\n").unwrap();
+        fs::create_dir(directory.join("baseline.reload-config-rs.tmp")).unwrap();
+        let names = vec!["alpha".to_owned()];
+        let current = HashMap::from([("alpha".to_owned(), "a".repeat(32))]);
+
+        assert!(write_baseline(&path, &names, &current).is_err());
+        assert_eq!(fs::read_to_string(&path).unwrap(), "previous baseline\n");
+        fs::remove_dir_all(directory).unwrap();
     }
 }

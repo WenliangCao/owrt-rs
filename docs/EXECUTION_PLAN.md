@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：R1 完成并通过 gate；下一阶段 V1
-> 版本：1.2
+> 状态：V1 完成并通过 gate；下一阶段 H1 需要新的实体设备授权
+> 版本：1.3
 > 日期：2026-08-31
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -184,7 +184,7 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | I0.F | 关闭 OQ-01/OQ-07 并审查 I0.5–I0.8 | 完成：rcS 合同、配置漂移和 gate 工具缺口已修正 | 否，只读观察 |
 | C1 | 冻结第一个兼容合同和参考 oracle | 完成：C1-01，11 个参考用例 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 完成：11/11 差分、6/6 故障、gate 通过 | 否 |
-| V1 | release-matched 集成和差分验证 | 可开始；尚未建立 OpenWrt package | 否 |
+| V1 | release-matched 集成和差分验证 | 完成：匹配 SDK package、11/11 + 6/6 差分/故障、4 项 V1 注入、gate 通过 | 否 |
 | H1 | 物理设备准入和 canary | 需要新授权 | 另行决定 |
 | N1 | 按同一闭环处理下一个职责 | 阻塞于 H1 结论 | 另行决定 |
 
@@ -870,20 +870,41 @@ R1.1 在一次性精确 rootfs chroot 中执行原 `/sbin/reload_config`，只�
 
 ### 构建
 
-- [ ] 使用目标 release 匹配的 SDK/toolchain。
-- [ ] 固定 target triple、linker、sysroot、CPU features 和 Cargo.lock。
-- [ ] 验证 dynamic/static linkage、SONAME 和 libc ABI。
-- [ ] 生成目标 package，但不生成或刷写整机镜像，除非后续证据要求。
-- [ ] 默认 disabled/fail-closed；install 不改变 owner 或运行配置。
-- [ ] disable、uninstall、upgrade 和 downgrade 均有测试。
+- [x] 使用目标 release 匹配的 SDK/toolchain。
+- [x] 固定 target triple、linker、sysroot、CPU features 和 Cargo.lock。
+- [x] 验证 dynamic/static linkage、SONAME 和 libc ABI。
+- [x] 生成目标 package，但不生成或刷写整机镜像。
+- [x] 默认 disabled/fail-closed；install 不取得控制权或改变运行配置。
+- [x] disable、uninstall、upgrade 和 downgrade 均有测试。
 
 ### 隔离运行
 
-- [ ] 在 QEMU/namespace/container 中运行匹配的 OpenWrt userspace/kernel 场景。
-- [ ] reference 和 Rust 对相同输入执行差分。
-- [ ] 注入 daemon kill、依赖 restart、I/O error、disk full、timeout 和 reboot。
-- [ ] 验证日志、资源上限和长期循环无增长。
-- [ ] 明确 QEMU 未覆盖的硬件、driver、flash 和时序。
+- [x] 在 binfmt/QEMU + mount namespace 中运行精确 OpenWrt userspace；明确没有使用目标 kernel。
+- [x] reference 和 package 实际安装出的 Rust binary 对相同输入执行差分。
+- [x] 注入 SIGTERM、依赖 restart、I/O error、disk full、timeout 和 reboot namespace。
+- [x] 验证 JSONL trace、资源上限和 100 次 one-shot 循环持久状态无增长。
+- [x] 明确未覆盖硬件、driver、flash、bootloader、radio 和真实时序。
+
+### V1 执行记录
+
+| 项 | 值 |
+|---|---|
+| SDK | OpenWrt 25.12.5 filogic 官方 SDK；SHA-256 `ff4a38a3…e3ec4c25` |
+| toolchain | Rust 1.94.0；`aarch64-unknown-linux-musl`；OpenWrt GCC 14.3.0；binutils 2.44 |
+| package | `owrt-reload-config`；r1 184,099 bytes；clean repeat byte-identical |
+| 安装 binary | 346,531 bytes；SHA-256 `b49b054f…0515f75`；dynamic musl PIE |
+| ABI/hardening | AArch64、4 KiB LOAD、NOW/RELRO/RELR、NX stack、无 RPATH/RUNPATH |
+| 生命周期 | install 默认禁用；enable、upgrade、downgrade、uninstall、reboot 回退全通过 |
+| 精确差分 | 11/11；真实镜像 UCI + BusyBox；事件集合、顺序和基线字节一致 |
+| 故障 | R1 6/6；V1 只读 I/O、磁盘满、依赖恢复、100 次循环 4/4 |
+| 设备操作 | 无；只使用服务器的一次性 rootfs 副本和 namespace |
+
+机器记录与审查见
+[v1-validation.json](../manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json) 和
+[V1_VALIDATION.md](../reports/ax3000t-stock-openwrt-25.12.5/V1_VALIDATION.md)。V1 实测纠正了
+两个缺陷：apk upgrade 不执行旧包 `prerm`，因此增加 post-upgrade 强制回退；磁盘满会使
+直接写正式基线留下半截文件，因此改为临时文件 + `sync_all` + 原子 rename。修正后从干净
+环境重建并重跑全部 gate。
 
 ### 退出门
 
@@ -967,9 +988,10 @@ interface discovery
 7. [x] 执行 C1：为 R05 冻结兼容合同与参考 oracle。
 8. [x] R1.1 先建立投递可观测 oracle；门通过后才创建唯一 R05 crate。
 9. [x] 完成 R1.2 最小实现、精确差分、故障注入和体积门。
-10. [ ] 执行 V1：使用匹配 OpenWrt SDK 建 package，默认禁用并做隔离集成验证。
+10. [x] 完成 V1：匹配 SDK package、默认禁用切换、ABI、生命周期、隔离差分和故障 gate。
+11. [ ] 等待用户另行授权 H1；在 recovery gate 前不得接触或安装物理设备。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
-manager、SquashFS rootfs、R05 合同、可观测 reference oracle 和最小 Rust 进程边界。仍未冻结：
-OpenWrt package 集成、调用方切换机制与最终部署方式；这些由 V1 gate 决定。H1 设备部署仍需
-新的明确授权。
+manager、SquashFS rootfs、R05 合同、可观测 reference oracle、最小 Rust 进程边界、匹配 SDK
+package 和重启即失的显式切换机制。仍未冻结的是物理部署、recovery runbook 与 canary 范围；
+这些只能在用户另行授权 H1 后决定。

@@ -142,5 +142,16 @@ tuple 均无法解析并产出空基线条目，因此只要 tuple 继续不存�
 [R1_IMPLEMENTATION.md](reports/ax3000t-stock-openwrt-25.12.5/R1_IMPLEMENTATION.md)，机器记录见
 [r1-candidate.json](manifests/ax3000t-stock-openwrt-25.12.5/r1-candidate.json)。
 
-下一阶段是 V1：使用匹配 OpenWrt SDK 建立默认禁用的 package 与显式切换机制，并做隔离
-集成验证。当前实现未安装、未改变任何调用方，也未访问路由器；物理设备 H1 仍需新的明确授权。
+**V1 已完成并通过 gate。** 匹配 OpenWrt 25.12.5 filogic 官方 SDK 的 package 位于
+[packaging/openwrt/owrt-reload-config](packaging/openwrt/owrt-reload-config/)。安装默认不取得
+控制权；只有显式 `enable` 才以重启即失的 bind mount 接管原调用路径，upgrade、downgrade、
+uninstall 和新 mount namespace 都会恢复原实现。
+
+APK 实际安装出的 346,531-byte dynamic musl PIE 再次通过 **11/11** 合同差分和 **6/6**
+原故障，并通过只读 I/O、磁盘满、依赖恢复和 100 次循环四项 V1 检查。V1 同时发现并修复了
+upgrade 未回退和磁盘满截断基线两个真实缺陷。报告见
+[V1_VALIDATION.md](reports/ax3000t-stock-openwrt-25.12.5/V1_VALIDATION.md)，机器记录见
+[v1-validation.json](manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json)。
+
+下一阶段是 H1，但它不是 V1 的自动延续：当前 package 从未安装到物理路由器，也没有修改
+任何真实调用方。实体设备 disabled install、观察或切换都需要用户新的明确授权与 recovery gate。

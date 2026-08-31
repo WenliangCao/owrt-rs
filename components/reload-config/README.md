@@ -10,9 +10,12 @@ R05 配置变更检测与分发的最小 Rust 候选实现。行为边界由
 - 按旧基线顺序调用 `ubus call service event`；
 - 将比较、规范化异常、每次投递和完成/致命错误写为 stderr JSONL；
 - 对依赖超时、SIGINT/SIGTERM 与并发运行 fail-closed。
+- 通过同目录临时文件、`sync_all` 和原子 rename 提交基线，I/O 失败时保留旧基线。
 
 默认路径均位于 `/`。`--root` 只用于隔离测试，`--timeout-ms` 控制每个子进程的等待上限。
-当前阶段没有安装规则，也不切换 `/sbin/reload_config` 的任何调用方。
+V1 package recipe 位于
+[packaging/openwrt/owrt-reload-config](../../packaging/openwrt/owrt-reload-config/)；安装默认禁用，
+显式开关使用重启即失的 bind mount，原 `/sbin/reload_config` 文件保持不变。
 
 本机验证：
 
@@ -22,5 +25,6 @@ cargo test --locked
 cargo clippy --all-targets --locked -- -D warnings
 ```
 
-R1 使用 Rust 1.78.0 将其构建为 stripped、静态的
-`aarch64-unknown-linux-musl` ELF。release-matched OpenWrt SDK package 属于 V1。
+R1 的独立体积门使用 Rust 1.78.0 静态构建。V1 正式 package 使用 matching packages feed
+的 Rust 1.94.0 和 OpenWrt 25.12.5 filogic SDK，产出 dynamic musl AArch64 PIE；验证结果见
+[V1_VALIDATION.md](../../reports/ax3000t-stock-openwrt-25.12.5/V1_VALIDATION.md)。

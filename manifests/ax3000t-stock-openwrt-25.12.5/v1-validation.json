@@ -1,0 +1,363 @@
+{
+  "additional_isolation": {
+    "dependency_restart": {
+      "failure_exit_status": 2,
+      "failure_outcomes": [
+        "spawn_error"
+      ],
+      "passed": true,
+      "recovery_events": [
+        "alpha"
+      ]
+    },
+    "disk_full": {
+      "baseline_preserved": true,
+      "exit_status": 70,
+      "passed": true
+    },
+    "initial_entry_count": 1,
+    "long_loop": {
+      "iterations": 100,
+      "passed": true,
+      "persistent_state_byte_equivalent": true,
+      "process_model": "one-shot; no resident daemon heap exists"
+    },
+    "read_only_io": {
+      "baseline_preserved": true,
+      "exit_status": 70,
+      "passed": true
+    }
+  },
+  "differential": {
+    "baseline_bytes_equivalent": true,
+    "event_sets_equivalent": true,
+    "fault_case_count": 6,
+    "fault_cases": [
+      {
+        "baseline_advanced": true,
+        "compared_entry_count": 2,
+        "delivery_outcomes": [
+          "exit_nonzero",
+          "success"
+        ],
+        "exit_status": 2,
+        "id": "f01-partial-delivery-is-visible-and-absorbed",
+        "passed": true,
+        "repeat_events": []
+      },
+      {
+        "baseline_unchanged": true,
+        "compared_entry_count": 1,
+        "exit_status": 70,
+        "fatal_class": "dependency",
+        "id": "f02-missing-uci-is-visible-and-preserves-baseline",
+        "passed": true
+      },
+      {
+        "baseline_unchanged": true,
+        "compared_entry_count": 1,
+        "exit_status": 75,
+        "id": "f03-hung-delivery-times-out-with-retryable-baseline",
+        "passed": true,
+        "retry_events": [
+          "alpha"
+        ]
+      },
+      {
+        "compared_entry_count": 1,
+        "empty_baseline_entry": true,
+        "exit_status": 0,
+        "id": "f04-malformed-uci-remains-compatible-but-visible",
+        "normalization_trace_present": true,
+        "passed": true
+      },
+      {
+        "baseline_unchanged_while_locked": true,
+        "compared_entry_count": 1,
+        "first_exit_status": 0,
+        "id": "f05-concurrent-run-is-rejected",
+        "passed": true,
+        "second_exit_status": 75
+      },
+      {
+        "baseline_unchanged": true,
+        "compared_entry_count": 1,
+        "exit_status": 75,
+        "id": "f06-sigterm-cancels-with-retryable-baseline",
+        "passed": true
+      }
+    ],
+    "reference_case_count": 11,
+    "reference_cases": [
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [],
+        "compared_entry_count": 0,
+        "evidence": "DEP",
+        "id": "c01-first-run-emits-nothing",
+        "passed": true,
+        "reference_events": [],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [
+          "dhcp"
+        ],
+        "compared_entry_count": 2,
+        "evidence": "DEP",
+        "id": "c02-modified-config-emits",
+        "passed": true,
+        "reference_events": [
+          "dhcp"
+        ],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [],
+        "compared_entry_count": 2,
+        "evidence": "DEP",
+        "id": "c03-new-config-is-silent",
+        "passed": true,
+        "reference_events": [],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [
+          "network"
+        ],
+        "compared_entry_count": 2,
+        "evidence": "SRC",
+        "id": "c04-deleted-config-emits-once",
+        "passed": true,
+        "reference_events": [
+          "network"
+        ],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [],
+        "compared_entry_count": 0,
+        "evidence": "RUN",
+        "id": "c05-dotted-name-yields-empty-entry",
+        "passed": true,
+        "reference_events": [],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [],
+        "compared_entry_count": 2,
+        "evidence": "RUN",
+        "id": "c06-dotted-name-change-never-emits",
+        "passed": true,
+        "reference_events": [],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [
+          "dhcp.bak-x"
+        ],
+        "compared_entry_count": 2,
+        "evidence": "SRC",
+        "id": "c07-dotted-rename-to-valid-becomes-live",
+        "passed": true,
+        "reference_events": [
+          "dhcp.bak-x"
+        ],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [
+          "dhcp"
+        ],
+        "compared_entry_count": 1,
+        "evidence": "SRC",
+        "id": "c08-var-run-uci-takes-precedence",
+        "passed": true,
+        "reference_events": [
+          "dhcp"
+        ],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [],
+        "compared_entry_count": 1,
+        "evidence": "DEP",
+        "id": "c09-comment-only-change-is-invisible",
+        "passed": true,
+        "reference_events": [],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [],
+        "compared_entry_count": 3,
+        "evidence": "DEP",
+        "id": "c10-switchover-must-be-silent",
+        "passed": true,
+        "reference_events": [],
+        "trace_delivery_equivalent": true
+      },
+      {
+        "baseline_byte_equivalent": true,
+        "candidate_events": [],
+        "compared_entry_count": 0,
+        "evidence": "SRC",
+        "id": "c11-dotted-name-can-resolve-section",
+        "passed": true,
+        "reference_events": [],
+        "trace_delivery_equivalent": true
+      }
+    ]
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gate": {
+    "abi_and_hardening": true,
+    "default_install_has_no_control": true,
+    "package_identity_and_reproducibility": true,
+    "passed": true,
+    "reference_and_fault_suites": true,
+    "rollback_paths": true,
+    "v1_faults_and_long_loop": true,
+    "within_size_budget": true
+  },
+  "installed_binary": {
+    "checks": {
+      "aarch64": true,
+      "bind_now": true,
+      "load_alignment_4k": true,
+      "musl_interpreter": true,
+      "needed_exact": true,
+      "no_rpath_or_runpath": true,
+      "non_executable_stack": true,
+      "pie": true,
+      "relr": true,
+      "relro": true
+    },
+    "file": "ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-musl-aarch64.so.1, no section header",
+    "load_alignments": [
+      "0x1000",
+      "0x1000"
+    ],
+    "needed": [
+      "libc.so",
+      "libgcc_s.so.1"
+    ],
+    "passed": true,
+    "sha256": "b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75",
+    "size_bytes": 346531
+  },
+  "lifecycle": {
+    "activation_was_observed": true,
+    "config_tree_unchanged": true,
+    "enable_disable_upgrade_downgrade_uninstall": true,
+    "install_default_disabled": true,
+    "installed_candidate_matches_tested_binary": true,
+    "missing_candidate_fail_closed": true,
+    "original_identity_fail_closed": true,
+    "reboot_volatile": true
+  },
+  "limitations": [
+    "Mount namespaces use the Ubuntu host kernel, not the target OpenWrt kernel.",
+    "No hardware, driver, flash, bootloader, radio, timing, or physical recovery path was exercised.",
+    "The component is one-shot; the 100-cycle check proves stable persistent state, not resident-heap behaviour.",
+    "No physical router was contacted or modified."
+  ],
+  "packages": {
+    "checks": {
+      "arch": true,
+      "dependencies": true,
+      "files_root_0755": true,
+      "license": true,
+      "lifecycle_scripts_fail_closed": true,
+      "name": true,
+      "origin": true,
+      "r1_repeat_byte_identical": true,
+      "r1_version": true,
+      "r2_version": true
+    },
+    "r1": {
+      "metadata": {
+        "arch": "aarch64_cortex-a53",
+        "dependencies": [
+          "libc",
+          "procd",
+          "ubus",
+          "uci"
+        ],
+        "disable_in_all_lifecycle_scripts": true,
+        "files_root_0755": true,
+        "installed_size": "348430",
+        "license": "MIT OR Apache-2.0",
+        "lifecycle_scripts": [
+          "post-install",
+          "post-upgrade",
+          "pre-deinstall"
+        ],
+        "name": "owrt-reload-config",
+        "origin": "feeds/base/owrt-reload-config",
+        "version": "0.1.0-r1"
+      },
+      "path_basename": "owrt-reload-config-0.1.0-r1.apk",
+      "sha256": "02d0c977d68192c28d0ef537a704435d9814fb8e04763cd67d73e00e41e5d9b1",
+      "size_bytes": 184099
+    },
+    "r1_repeat": {
+      "path_basename": "owrt-reload-config-0.1.0-r1.apk",
+      "sha256": "02d0c977d68192c28d0ef537a704435d9814fb8e04763cd67d73e00e41e5d9b1",
+      "size_bytes": 184099
+    },
+    "r2": {
+      "metadata": {
+        "arch": "aarch64_cortex-a53",
+        "dependencies": [
+          "libc",
+          "procd",
+          "ubus",
+          "uci"
+        ],
+        "disable_in_all_lifecycle_scripts": true,
+        "files_root_0755": true,
+        "installed_size": "348430",
+        "license": "MIT OR Apache-2.0",
+        "lifecycle_scripts": [
+          "post-install",
+          "post-upgrade",
+          "pre-deinstall"
+        ],
+        "name": "owrt-reload-config",
+        "origin": "feeds/base/owrt-reload-config",
+        "version": "0.1.0-r2"
+      },
+      "path_basename": "owrt-reload-config-0.1.0-r2.apk",
+      "sha256": "d29f5c76ee1a3a579214cb96fe053cf52cef5eb216dba1556a1e451d1ef0b5ae",
+      "size_bytes": 184099
+    }
+  },
+  "recorded_at": "2026-08-31",
+  "schema_version": 1,
+  "scope": {
+    "device_access": false,
+    "device_writes": false,
+    "libc": "musl",
+    "package_arch": "aarch64_cortex-a53",
+    "release": "OpenWrt 25.12.5 r33051-f5dae5ece4",
+    "rootfs_copies_disposable": true,
+    "target": "mediatek/filogic"
+  },
+  "source_artifacts": {
+    "bin/busybox": "54d4139265132254e5601cb65d8617a928d5d5867c044ef701d53b973daafe09",
+    "bin/ubus": "9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb",
+    "sbin/reload_config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "sbin/uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+  },
+  "stage": "V1",
+  "status": "complete"
+}
