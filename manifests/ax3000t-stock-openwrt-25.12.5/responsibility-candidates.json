@@ -1,8 +1,8 @@
 {
   "counts": {
     "responsibilities": 17,
-    "responsibilities_with_open_run_questions": 16,
-    "responsibilities_without_run_questions": 1
+    "responsibilities_with_open_run_questions": 17,
+    "responsibilities_without_run_questions": 0
   },
   "evidence_id": "ax3000t-stock-openwrt-25.12.5",
   "method": {
@@ -155,6 +155,7 @@
         "rpcd_acl_grants": []
       },
       "missing_run_evidence": [
+        "Q00",
         "Q01",
         "Q02",
         "Q03"
@@ -896,8 +897,11 @@
           "/usr/share/rpcd/acl.d/luci-mod-system.json"
         ]
       },
-      "missing_run_evidence": [],
-      "no_run_question_justification": "Every method on this responsibility is terminal: reboot, sysupgrade, factory. There is no read-only observation of it beyond the method list, which Q05 already collects. Exercising it belongs to H1 behind a recovery gate, not to a read-only observation.",
+      "missing_run_evidence": [
+        "Q00",
+        "Q14"
+      ],
+      "no_run_question_justification": "Split responsibility. Its system-information half is observable read-only and is covered by Q00 and Q14. Its upgrade and reboot half has no read-only observation at all: reboot, sysupgrade and factory are terminal. Exercising those belongs to H1 behind a recovery gate, not to an observation.",
       "persistent_side_effects": "sysupgrade rewrites flash; factory erases the overlay",
       "provides": [
         "system",
@@ -908,9 +912,7 @@
       "timing_notes": "one-shot, terminal operations"
     }
   ],
-  "responsibilities_without_run_questions": [
-    "R17"
-  ],
+  "responsibilities_without_run_questions": [],
   "schema_version": 1,
   "stage": "I0.6",
   "status": "complete"

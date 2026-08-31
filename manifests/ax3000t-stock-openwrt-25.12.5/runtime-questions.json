@@ -5,9 +5,9 @@
     "note": "Obtaining shell or ubus access to the device is a separate authorization, not part of a read-only observation. Enabling SSH, setting a root password or changing dropbear state all modify the device."
   },
   "counts": {
-    "approved_commands": 19,
+    "approved_commands": 23,
     "excluded_commands": 11,
-    "questions": 13
+    "questions": 15
   },
   "evidence_id": "ax3000t-stock-openwrt-25.12.5",
   "excluded_commands": [
@@ -85,6 +85,73 @@
     "reads_only": true
   },
   "questions": [
+    {
+      "closes": "I0.7 precondition: prove device, running system and image identity before any other observation",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "cat /etc/openwrt_release /etc/os-release",
+          "expected_status": 0,
+          "review": "plain file read of build metadata",
+          "source": "DEP: both files ship in the image",
+          "timeout_s": 5
+        },
+        {
+          "class": "read-only",
+          "command": "cat /tmp/sysinfo/board_name /tmp/sysinfo/model",
+          "expected_status": 0,
+          "review": "plain file read; these are written once by the 02_sysinfo preinit hook",
+          "source": "/lib/preinit/02_sysinfo",
+          "timeout_s": 5
+        },
+        {
+          "class": "read-only",
+          "command": "ubus call system board",
+          "expected_status": 0,
+          "review": "system_board only calls uname() and reads /proc/cpuinfo, /etc/openwrt_release and /tmp/sysinfo; it serialises and mutates nothing",
+          "source": "sources/components/procd/system.c:122-175",
+          "timeout_s": 10
+        }
+      ],
+      "fields": [
+        "DISTRIB_RELEASE, DISTRIB_REVISION, DISTRIB_TARGET, DISTRIB_ARCH, DISTRIB_TAINTS",
+        "board_name and model from /tmp/sysinfo",
+        "kernel release and rootfs_type"
+      ],
+      "id": "Q00",
+      "question": "Is the device running exactly the image this project is baselined on?",
+      "redaction": "hostname may be user-chosen; check before commit. Nothing else here is device-specific.",
+      "responsibility_ids": [
+        "R03",
+        "R17"
+      ],
+      "why_static_is_insufficient": "the image proves what was published, not what is installed; the operator's recollection of the version can be stale"
+    },
+    {
+      "closes": "PROVENANCE_GAPS.md open item: whether packages were added, removed or upgraded after flashing",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "cat /lib/apk/db/installed",
+          "expected_status": 0,
+          "review": "plain file read of the apk database. Deliberately not 'apk list', which is a package-manager invocation that may touch indexes or the network.",
+          "source": "DEP: same database format parsed by i0_4_inventory.py",
+          "timeout_s": 15
+        }
+      ],
+      "fields": [
+        "installed package names and versions",
+        "count",
+        "any package absent from or additional to the image manifest"
+      ],
+      "id": "Q14",
+      "question": "Has the installed package set drifted from the published image?",
+      "redaction": "package names and versions are not device-specific; commit the derived diff, not the raw database",
+      "responsibility_ids": [
+        "R17"
+      ],
+      "why_static_is_insufficient": "I0.4 enumerated the image's 159 packages; only the device can show what is installed now, and every I0.5 conclusion assumes that set"
+    },
     {
       "closes": "BOOT_CHAIN.md \u00a78 kernel command line unknown",
       "commands": [

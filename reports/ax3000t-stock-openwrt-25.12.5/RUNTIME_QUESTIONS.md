@@ -68,7 +68,7 @@
 - 每个问题必须写明 `closes`、`why_static_is_insufficient`、`fields`、`redaction`；
 - 任何"没有运行态问题"的职责必须给出书面理由，否则失败。
 
-## 3. 问题清单（13 项，19 条已批准命令）
+## 3. 问题清单（15 项，23 条已批准命令）
 
 完整机器记录见
 [runtime-questions.json](../../manifests/ax3000t-stock-openwrt-25.12.5/runtime-questions.json)。
@@ -77,6 +77,8 @@
 
 | ID | 问题 | 关闭的静态边界 | 已批准命令 | 脱敏 |
 |---|---|---|---|---|
+| Q00 | 设备运行的是否正是本项目基线镜像 | I0.7 前置门 | `cat /etc/openwrt_release /etc/os-release`；`cat /tmp/sysinfo/{board_name,model}`；`ubus call system board` | 主机名可能是用户自定义，提交前检查 |
+| Q14 | 安装包集合是否已偏离发布镜像 | PROVENANCE_GAPS 未验证项 | `cat /lib/apk/db/installed` | 提交派生 diff，不提交原始数据库 |
 | Q01 | 实际 kernel command line | BOOT_CHAIN §8 | `cat /proc/cmdline` | 提交前检查厂商序列号 |
 | Q02 | 实际走过的启动分支，failsafe 是否触发 | BOOT_CHAIN §8 | `logread -l 400`；`test -e /tmp/.failsafe` | **必须**：日志含 MAC、主机名、SSID |
 | Q03 | 是否已过首启，剩余 uci-defaults | CONFIG_FLOW §7、BOOT_CHAIN §8 | `ls -la /etc/uci-defaults/ /etc/board.json /etc/rc.local` | 无 |
@@ -103,6 +105,8 @@
   跟踪"，不需要哈希值本身。
 - **Q13 六个配置只取 sha256，只有 uhttpd 和 rpcd 取全文。** 这两个决定 HTTP→ubus 和
   RPC 的暴露面，需要内容；其余用哈希就能回答漂移问题，不必导出内容。
+- **Q14 用 `cat /lib/apk/db/installed` 而不是 `apk list`。** 后者是包管理器调用，可能触碰
+  索引或网络；前者是纯文件读，且格式与 I0.4 解析的一致。
 - **Q11 不用 `ps w`。** 早期草稿里有一条全量 `ps w`，那正是退出门禁止的"顺便把所有
   状态 dump 一遍"。改为只读取五个目标进程的 `/proc/<pid>/status` 与 ns 链接。
 

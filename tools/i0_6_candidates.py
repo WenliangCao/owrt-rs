@@ -365,10 +365,10 @@ RESPONSIBILITIES: list[dict[str, Any]] = [
         ],
         "recovery": "bootloader recovery only; this is the recovery gate the project reserves",
         "no_run_question_justification": (
-            "Every method on this responsibility is terminal: reboot, sysupgrade, factory. "
-            "There is no read-only observation of it beyond the method list, which Q05 "
-            "already collects. Exercising it belongs to H1 behind a recovery gate, not to "
-            "a read-only observation."
+            "Split responsibility. Its system-information half is observable read-only "
+            "and is covered by Q00 and Q14. Its upgrade and reboot half has no read-only "
+            "observation at all: reboot, sysupgrade and factory are terminal. Exercising "
+            "those belongs to H1 behind a recovery gate, not to an observation."
         ),
     },
 ]
@@ -452,6 +452,64 @@ EXCLUDED_COMMANDS: list[dict[str, Any]] = [
 ]
 
 QUESTIONS: list[dict[str, Any]] = [
+    {
+        "id": "Q00",
+        "question": "Is the device running exactly the image this project is baselined on?",
+        "closes": "I0.7 precondition: prove device, running system and image identity before any other observation",
+        "why_static_is_insufficient": "the image proves what was published, not what is installed; the operator's recollection of the version can be stale",
+        "fields": [
+            "DISTRIB_RELEASE, DISTRIB_REVISION, DISTRIB_TARGET, DISTRIB_ARCH, DISTRIB_TAINTS",
+            "board_name and model from /tmp/sysinfo",
+            "kernel release and rootfs_type",
+        ],
+        "commands": [
+            {
+                "command": "cat /etc/openwrt_release /etc/os-release",
+                "class": "read-only",
+                "review": "plain file read of build metadata",
+                "source": "DEP: both files ship in the image",
+                "expected_status": 0,
+                "timeout_s": 5,
+            },
+            {
+                "command": "cat /tmp/sysinfo/board_name /tmp/sysinfo/model",
+                "class": "read-only",
+                "review": "plain file read; these are written once by the 02_sysinfo preinit hook",
+                "source": "/lib/preinit/02_sysinfo",
+                "expected_status": 0,
+                "timeout_s": 5,
+            },
+            {
+                "command": "ubus call system board",
+                "class": "read-only",
+                "review": "system_board only calls uname() and reads /proc/cpuinfo, /etc/openwrt_release and /tmp/sysinfo; it serialises and mutates nothing",
+                "source": "sources/components/procd/system.c:122-175",
+                "expected_status": 0,
+                "timeout_s": 10,
+            },
+        ],
+        "redaction": "hostname may be user-chosen; check before commit. Nothing else here is device-specific.",
+        "responsibility_ids": ["R03", "R17"],
+    },
+    {
+        "id": "Q14",
+        "question": "Has the installed package set drifted from the published image?",
+        "closes": "PROVENANCE_GAPS.md open item: whether packages were added, removed or upgraded after flashing",
+        "why_static_is_insufficient": "I0.4 enumerated the image's 159 packages; only the device can show what is installed now, and every I0.5 conclusion assumes that set",
+        "fields": ["installed package names and versions", "count", "any package absent from or additional to the image manifest"],
+        "commands": [
+            {
+                "command": "cat /lib/apk/db/installed",
+                "class": "read-only",
+                "review": "plain file read of the apk database. Deliberately not 'apk list', which is a package-manager invocation that may touch indexes or the network.",
+                "source": "DEP: same database format parsed by i0_4_inventory.py",
+                "expected_status": 0,
+                "timeout_s": 15,
+            }
+        ],
+        "redaction": "package names and versions are not device-specific; commit the derived diff, not the raw database",
+        "responsibility_ids": ["R17"],
+    },
     {
         "id": "Q01",
         "question": "What is the actual kernel command line?",

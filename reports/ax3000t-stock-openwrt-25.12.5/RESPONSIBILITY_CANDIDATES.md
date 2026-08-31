@@ -41,7 +41,7 @@
 | R14 | HTTP 服务与 ubus 桥 | uhttpd + uhttpd_ubus | — | 0 | 4 / 0 | Q13 |
 | R15 | 系统日志 | logd / logread | `log` | 0 | 8 / 1 | Q02、Q11 |
 | R16 | hotplug 事件分发 | procd hotplug + /etc/hotplug.d | — | 1 | 0 / 0 | Q05 |
-| R17 | 系统信息、升级与重启 | procd system + rpcsys | `system`、`rpc-sys` | 0 | 0 / 3 | 无（见 §5） |
+| R17 | 系统信息、升级与重启 | procd system + rpcsys | `system`、`rpc-sys` | 0 | 0 / 3 | Q00、Q14（见 §5） |
 
 "已知调用方"是从 I0.5 manifest 反查出来的：init 脚本里对该对象的 `ubus call`、
 对该 config 的引用，以及 rpcd ACL 中授权该对象的文件数。它是**下界**，不是完整调用方
@@ -117,14 +117,18 @@ R17。见 §5。
    必须先解决"如何证明变更已送达"，这比复刻 md5 比较逻辑重要得多。
 2. **R16 没有重试。** hotplug 事件丢失即永久丢失。
 
-## 5. R17：没有安全的只读观察
+## 5. R17：一半可观察，一半完全不可观察
 
-R17（`system.reboot`、`rpc-sys.upgrade_start`、`rpc-sys.factory`、`sysupgrade`）的
-每个方法都是终止性操作。除了 Q05 已经采集的方法列表以外，**不存在**对它的只读观察。
+R17 是一项被拆开的职责：
 
-真正行使它属于 H1，必须在独立的 recovery gate 之后，不属于本阶段的只读采集。
-这条已作为 `no_run_question_justification` 记入 JSON，生成器要求任何"没有运行态问题"
-的职责必须给出这样的理由，否则直接失败。
+- **系统信息半边**可以只读观察，由 Q00（`system board` 与发布元数据）和
+  Q14（已安装包集合）覆盖；
+- **升级与重启半边**（`system.reboot`、`rpc-sys.upgrade_start`、`rpc-sys.factory`、
+  `sysupgrade`）的每个方法都是终止性操作，**不存在**任何只读观察。
+
+真正行使后者属于 H1，必须在独立的 recovery gate 之后。这条已作为
+`no_run_question_justification` 记入 JSON；生成器要求任何"没有运行态问题"的职责必须
+给出这样的理由，否则直接失败。
 
 ## 6. 与 I0.7 的关系
 
