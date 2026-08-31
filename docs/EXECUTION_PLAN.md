@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：I0.1、I0.2、I0.3、I0.4、I0.5、I0.6 完成
-> 版本：0.8
+> 状态：I0.1–I0.7 完成
+> 版本：0.9
 > 日期：2026-08-31
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -179,8 +179,8 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | I0.4 | 建立部署物料、文件归属和精确源码映射 | 完成：159 packages、全文件/ELF/service ownership 和 exact source/patch map gate 通过 | 否 |
 | I0.5 | 还原启动、服务、配置和 IPC 链 | 完成：启动链、25 服务、配置生成链和两层 ubus ACL gate 通过 | 否 |
 | I0.6 | 建立运行态问题清单 | 完成：17 项职责、13 个问题、19 条已批准命令、11 条排除命令 | 否 |
-| I0.7 | 经单独批准采集必要运行态 | 未授权 | 否，只读观察 |
-| I0.8 | 形成五类替换边界并通过 I0 gate | 阻塞 | 否 |
+| I0.7 | 经单独批准采集必要运行态 | 完成：用户授权后执行 23 条只读命令，40 个 ubus 对象、包/配置偏移与特权实测已记录 | 否，只读观察 |
+| I0.8 | 形成五类替换边界并通过 I0 gate | 待执行 | 否 |
 | C1 | 冻结第一个兼容合同和参考 oracle | 阻塞于 I0 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 阻塞于 C1 | 否 |
 | V1 | release-matched 集成和差分验证 | 阻塞于 R1 | 否 |
@@ -625,19 +625,44 @@ manifest 交叉校验，并强制：非 `read-only` 命令不得出现在已批�
 
 ## 15. I0.7：经批准的脱敏运行态采集
 
-本阶段需要单独明确授权；当前计划不授权执行。
+用户已于 2026-08-31 明确授权设备接入与采集执行。
 
-执行时：
+- [x] 先证明精确设备、当前系统和镜像身份。
+- [x] 只运行 I0.6 已批准命令。
+- [x] 设置单命令超时和总采集超时。
+- [x] 不写 UCI、不 commit、不 reload、不重启服务。
+- [x] 不读取 NAND/MTD/UBI dump。
+- [x] 不导出秘密配置或私钥。
+- [x] 原始输出只进入私有 evidence 目录。
+- [x] 脱敏结果经过人工复核后才进入 Git。
+- [x] 记录一次观察不能外推到未观察时序或故障状态。
 
-- [ ] 先证明精确设备、当前系统和镜像身份。
-- [ ] 只运行 I0.6 已批准命令。
-- [ ] 设置单命令超时和总采集超时。
-- [ ] 不写 UCI、不 commit、不 reload、不重启服务。
-- [ ] 不读取 NAND/MTD/UBI dump。
-- [ ] 不导出秘密配置或私钥。
-- [ ] 原始输出只进入私有 evidence 目录。
-- [ ] 脱敏结果经过人工复核后才进入 Git。
-- [ ] 记录一次观察不能外推到未观察时序或故障状态。
+### 执行记录
+
+| 项 | 值 |
+|---|---|
+| 日期 | 2026-08-31 |
+| 接入 | SSH 公钥（ed25519）；口令未出现在任何命令行 |
+| 命令 | 仅 `runtime-questions.json` 的 23 条只读命令，单命令超时 30 s |
+| 派生工具 | [tools/i0_7_observation.py](../tools/i0_7_observation.py) |
+| 输出 | `manifests/<id>/runtime-observations.json`（脱敏自检 0 命中才写出） |
+| 原始输出 | Git 之外的私有 evidence 目录 |
+| 设备写入 | 无 |
+
+### 主要结论
+
+1. 身份门通过：25.12.5 `r33051-f5dae5ece4`、filogic、`xiaomi,mi-router-ax3000t`、
+   kernel 6.12.94、squashfs，与 I0.1 基线逐项一致。用户初报的 25.12.4 已澄清为滞后信息。
+2. 部署偏移已量化：包 +4/-0/版本变更 0，四个全部是 LuCI 中文语言包，不引入守护进程或
+   ubus 对象，因此 I0.4/I0.5 基于 159 包的结论继续成立。这关闭了 PROVENANCE_GAPS 的相应缺口。
+3. 40 个 ubus 对象；静态字面量对象**零漏注册**，三条 build gating 结论全部证实。
+4. 两处静态漏报，均为方法缺陷而非笔误：`dnsmasq.dns` 只在 OpenWrt 补丁中定义（上游 0 次），
+   IPC 目录未消费 patch stack；`ubus` 伪服务由 `service_start_early` 注册，没有 init 脚本。
+5. kernel command line 实测无 `rootfs_mount_options.*`，I0.5 标记的 rootfs 挂载风险确认为无影响。
+6. jail 声明不等于生效：`ntpd`、`dnsmasq` 获得独立 ipc/mnt/pid namespace，`wpad` 没有任何
+   namespace 隔离——因为它的 `procd_add_jail` 没有 flag 也没有 mount。
+7. 启动顺序仍未获答案：日志环形缓冲区只覆盖约 93 分钟，早于启动的记录已被覆盖，
+   加大行数无法取回。该问题需要观察一次真实启动，不属于只读观察。
 
 输出：
 
@@ -848,7 +873,8 @@ interface discovery
 2. [x] 完成 I0.4 的 159-package source map、ELF inventory、service/privilege surface。
 3. [x] 完成 I0.5，建立启动链、服务图、配置链和 IPC 目录。
 4. [x] 完成 I0.6 候选职责表与运行态问题单；等待用户对设备接入和采集分别授权。
-5. [ ] I0 gate 通过以前不创建替代组件 crate。
+5. [ ] 执行 I0.8，形成五类替换边界并通过 I0 gate。
+6. [ ] I0 gate 通过以前不创建替代组件 crate。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
 manager 和 SquashFS rootfs。仍不能提前确定：替换候选、Rust 进程边界、IPC 技术选择和最终

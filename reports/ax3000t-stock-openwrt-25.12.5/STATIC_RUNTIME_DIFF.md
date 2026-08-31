@@ -1,0 +1,123 @@
+# AX3000T stock / OpenWrt 25.12.5：静态预测与运行态实测差异
+
+> I0.7 状态：完成
+> 日期：2026-08-31
+> 用途：逐条裁决 I0.5 的静态结论；差异按"方法缺陷"还是"设备状态"分类。
+
+## 1. 总体结果
+
+| 类别 | 数量 | 说明 |
+|---|---:|---|
+| 静态预测被证实 | 14 | 见 §2 |
+| 静态**漏报** | 2 | `dnsmasq.dns` 对象、`ubus` 伪服务，见 §3 |
+| 静态**误判** | 0 | 没有"源码里有但设备上不存在"的对象或方法 |
+| 静态无法判定、运行态给出答案 | 5 | 见 §4 |
+| 运行态也未能回答 | 1 | 启动顺序，见 §5 |
+
+没有出现需要标记 `contradicted` 的冲突。两处漏报都指向同一类**方法缺陷**，
+不是个别笔误。
+
+## 2. 被证实的静态结论（14 条）
+
+| # | I0.5 结论 | 实测 |
+|---:|---|---|
+| 1 | `dhcp` 对象无 `ipv4leases`（`#ifdef DHCPV4_SUPPORT`，本镜像装 `odhcpd-ipv6only`） | 证实：只有 `ipv6leases`、`ipv6ra`、`add_lease` |
+| 2 | `network.device` 无 `hotplug_event`（`#ifdef DUMMY_MODE` 仅非 Linux 定义） | 证实：只有 `status`、`set_alias`、`set_state`、`stp_init` |
+| 3 | `dnsmasq` 对象无 `set_connmark_allowlist`（`#ifdef HAVE_CONNTRACK`，基础变体） | 证实：只有 `metrics` |
+| 4 | 5 个"一次性 procd 服务"无 instance | 证实：`firewall`、`gpio_switch`、`packet_steering`、`system`、`ucitrack` 运行实例均为 0 |
+| 5 | ucitrack 不为 procd 服务的 `init` 字段注册 trigger | 证实：`firewall`/`dnsmasq`/`network`/`odhcpd`/`dropbear` 均未出现在 10 条 trigger 中 |
+| 6 | ucitrack 会为非 procd 的 `init: led` 注册 | 证实：`run_script /etc/init.d/led reload` 已注册 |
+| 7 | `exec: /sbin/block mount` 会注册但悬空 | 证实：已注册；`/sbin/block`、`block-mount` 均不存在 |
+| 8 | `affects` 指向未安装包仍注册且无订阅者 | 证实：`luci-splash`、`qos`、`miniupnpd`、`luci_statistics` 四条事件已注册 |
+| 9 | `wpa_supplicant.<ifname>` 只在配置 STA 时出现 | 证实：本设备无 STA，无该实例；`wpa_supplicant` 基对象存在 |
+| 10 | `hostapd.<iface>`、`odhcp6c.<interface>`、`network.interface.<name>`、`hotplug.<subsystem>` 四条命名规则 | 证实：分别得到 2、1、4、10 个实例 |
+| 11 | `dnsmasq` 使用运行时对象名，默认为 `DNSMASQ_UBUS_NAME` | 证实：注册名就是 `dnsmasq`，未被 `--ubus` 覆盖 |
+| 12 | ubusd ACL 授权的对象不等于存在提供方 | 证实：`udebug` 被 `wpad_acl.json` 授权，设备上 `Not found` |
+| 13 | `logd` 靠进程内 `getpwnam("logd")` 降权 | 证实：uid/gid 均为 514 |
+| 14 | `dnsmasq` 靠自身 `--user=` 降权，不走 procd `user` 参数 | 证实：`NoNewPrivs=0`，而走 procd 参数的 wpad/ntpd 均为 1 |
+
+第 1–3 条尤其值得记下：它们是 I0.5 之后为 I0.6 做命令审查时才发现并修正的
+build gating 结论，**三条全部经运行态证实**。当时依据的是 recipe 的 build 条件，
+而不是二进制里方法名的字节缺失——后者被同期证伪（见 §3.3）。
+
+## 3. 静态漏报（2 条）——两处方法缺陷
+
+### 3.1 `dnsmasq.dns`：补丁引入的 ubus 对象对上游解析器不可见
+
+设备上存在 `dnsmasq.dns`，I0.5 的 IPC 目录没有它。
+
+| 位置 | `dnsmasq.dns` 出现次数 |
+|---|---:|
+| OpenWrt `200-ubus_dns.patch` | 1（第 176 行 `{ .name = "dnsmasq.dns" }`） |
+| 上游 `dnsmasq-2.93/src/ubus.c` | **0** |
+
+`i0_5_controlplane.py` 只解析固定 revision 的**未打补丁**上游 checkout，
+因此结构上不可能看到补丁新增的注册点。
+
+**影响范围不止这一个对象。** I0.4 已登记 313 个 recipe patch 资产
+（其中 hostapd 63 个、dnsmasq 2 个、ucode 5 个），IPC 目录从未消费它们。
+要得到完整的 ubus 注册面，源码解析必须同时覆盖 patch stack。
+
+本次只漏了 1 个对象（40 分之 1），但这是运气而非方法保证：本镜像里向 ubus 注册的
+补丁很少。hostapd 的 ubus 支持整个来自 `600-ubus_support.patch`，I0.5 之所以没漏，
+是因为改从**部署的 ucode 文件**和二进制字符串取证，绕开了补丁问题。
+
+### 3.2 `ubus` 伪服务：procd 内部注册的服务没有 init 脚本
+
+设备上 procd 管理 19 个服务，镜像只有 18 个 init 脚本声明 `USE_PROCD=1`。
+
+多出的 `ubus` 由 procd 在 `STATE_UBUS` 通过
+`service_start_early("ubus", "/sbin/ubusd", "ubus", "ubus")` 直接注册
+（`procd/state.c:155`）。任何以 `/etc/init.d/*` 为枚举起点的服务图都必然漏掉它。
+
+I0.5 的 BOOT_CHAIN 正确记录了这行调用，但 SERVICE_GRAPH 的服务集合是从 init 脚本
+构建的，两份报告之间没有交叉核对。**服务图的枚举起点应当是"procd 会注册什么"，
+而不是"有哪些 init 脚本"。**
+
+### 3.3 一处被及时废弃的错误判据
+
+I0.5 的一个中间版本用"方法名字面量是否出现在部署二进制的字节里"来判定方法缺失，
+产出 12 条"缺失"。运行态证明这 12 条**全部是假阳性**：`iwinfo.info`、`file.stat`、
+`uci.{add,set,state,reload_config}`、`network.interface.{up,down,status,dump}`、
+`service.{add,set,watchdog}`、`session.set`、`system.{info,validate_firmware_image,watchdog}`
+在设备上均存在。
+
+原因是链接器会合并字符串常量，短名通常作为更长字符串的尾部存放，没有独立的
+`\0name\0`。该判据在 I0.5 阶段就已被废弃并改为**只报正向证据**，最终 build gating
+结论改为依据 recipe 条件——这个选择被运行态证明是正确的。
+
+## 4. 静态无法判定、运行态给出答案（5 条）
+
+| # | I0.5 标记为未知 | 运行态答案 |
+|---:|---|---|
+| 1 | kernel command line（DTS `chosen` 无 `bootargs`） | `console=ttyS0,115200n1 loglevel=8 swiotlb=512 rootfstype=squashfs firmware=0 mtd=ubi uart_en=1`；**无 `rootfs_mount_options.*`**，故 `80_mount_root` 不附加挂载选项 |
+| 2 | `hotplug.<subsystem>` 的实例集合（静态只能从 ACL 推出 4 个） | 完整 10 个：`button`、`dhcp`、`firmware`、`ieee80211`、`iface`、`leds`、`neigh`、`net`、`ntp`、`tftp` |
+| 3 | 声明实例数 ≠ 运行实例数 | `log` 声明 3 实际 1（未配 `log_file`/`log_ip`）；`dnsmasq` 实例名为匿名 section 名 `cfg01411c` |
+| 4 | `uhttpd.main.ubus_prefix` 实际值（镜像中该行是注释） | `/ubus`，由 `00_uhttpd_ubus` 首启写入；`no_ubusauth` 与 `ubus_cors` 均未设置（默认关） |
+| 5 | 声明的 jail 是否生效 | **分化**：`ntpd`、`dnsmasq` 获得独立 ipc/mnt/pid namespace；`wpad` **没有任何 namespace 隔离** |
+
+第 5 条的机制可以完全用静态证据解释，只是此前没有推到底：
+`_procd_add_jail`（`/lib/functions/procd.sh`）只在有 flag 或 mount 时才产生隔离内容，
+而 `/etc/init.d/wpad` 写的是 `procd_add_jail hostapd`——只有名字。
+**"声明了 jail"和"获得了 namespace 隔离"是两件事**，I0.5 的特权表把两者并列为
+"jail=是"，这一列现已按运行态修正理解。
+
+## 5. 运行态也未能回答（1 条）
+
+**启动顺序与时序。** `logread` 的环形缓冲区只覆盖采集前约 93 分钟，最早一条记录晚于
+本次启动。缓冲区容量（`log_buffer_size` 默认 64 KiB）不足以保留启动记录，
+**加大 `-l` 行数无法取回已被覆盖的内容**。
+
+要获得启动顺序必须观察一次真实启动，那不是只读观察，属于 H1 或独立授权的实验。
+
+## 6. 对后续阶段的影响
+
+1. **I0.5 的 IPC 目录需要在 C1 之前补齐 patch stack 解析。** 这不影响本次结论的正确性
+   （没有误判），但影响完整性保证。
+2. **服务图的枚举起点要改。** 从"init 脚本"改为"procd 注册的服务"，否则永远漏掉
+   `service_start_early` 一类。
+3. **特权面必须区分"声明"与"生效"。** 替换设计若假设 wpad 在 namespace 内运行，
+   会在本设备上失配。
+4. **本设备可作为 C1 的参考 oracle**，因为包集合只比镜像多 4 个纯翻译包，且身份完全
+   匹配基线。但 `/etc/config/{dhcp,firewall}` 已偏离镜像，任何差分测试必须以设备当前
+   配置为输入，而不是以镜像里的配置为输入。

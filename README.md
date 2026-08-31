@@ -83,3 +83,13 @@ I0.6 已完成 17 项控制面职责候选表和运行态问题单：
 [i0_6_candidates.py](tools/i0_6_candidates.py)。13 个问题、19 条经源码审查的只读命令；
 11 条"看起来像读"的命令被排除，其中 `ubus call rc list` 会对每个 init 脚本 fork+exec。
 本阶段不排名替换候选。**设备接入与采集执行都尚未授权**，I0.7 需要用户分别批准。
+
+I0.7 已在用户授权下完成只读运行态采集：
+[RUNTIME_OBSERVATIONS.md](reports/ax3000t-stock-openwrt-25.12.5/RUNTIME_OBSERVATIONS.md) 与
+[STATIC_RUNTIME_DIFF.md](reports/ax3000t-stock-openwrt-25.12.5/STATIC_RUNTIME_DIFF.md)，
+派生工具是 [i0_7_observation.py](tools/i0_7_observation.py)（脱敏自检 0 命中才写出 manifest）。
+设备身份与基线逐项一致，包集合只比镜像多 4 个 LuCI 中文语言包。40 个 ubus 对象中静态
+字面量零漏注册，三条 build gating 结论全部证实；两处漏报都是方法缺陷：`dnsmasq.dns`
+只存在于 OpenWrt 补丁中，`ubus` 伪服务没有 init 脚本。kernel command line 实测不含
+`rootfs_mount_options.*`。jail 声明不等于生效——`wpad` 没有获得任何 namespace 隔离。
+原始输出只留在 Git 之外的 evidence 目录。

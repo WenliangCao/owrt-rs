@@ -1,0 +1,860 @@
+{
+  "boot": {
+    "failsafe_marker_present": false,
+    "kernel_cmdline_tokens": [
+      "console=ttyS0,115200n1",
+      "firmware=0",
+      "loglevel=8",
+      "mtd=ubi",
+      "rootfstype=squashfs",
+      "swiotlb=512",
+      "uart_en=1"
+    ],
+    "rootfs_mount_options_tokens": [],
+    "uci_defaults_remaining": []
+  },
+  "collector": {
+    "commands_run": [
+      "Q00_release.txt",
+      "Q00_sysinfo.txt",
+      "Q00_systemboard.txt",
+      "Q01_cmdline.txt",
+      "Q02_failsafe.txt",
+      "Q02_logread.txt",
+      "Q03_firstboot.txt",
+      "Q04_boardjson.txt",
+      "Q04_genconfigs.txt",
+      "Q05_ubuslist.txt",
+      "Q05_ubuslistv.txt",
+      "Q06_servicelist.txt",
+      "Q07_devstatus.txt",
+      "Q07_ifdump.txt",
+      "Q08_nftruleset.txt",
+      "Q09_dhcpobj.txt",
+      "Q09_dnsmasqobj.txt",
+      "Q10_udebug.txt",
+      "Q11_privproc.txt",
+      "Q12_ucidelta.txt",
+      "Q13_confighashes.txt",
+      "Q13_uhttpdrpcd.txt",
+      "Q14_apkdb.txt"
+    ],
+    "nonzero_exit": {
+      "Q10_udebug.txt": 4
+    }
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "method": {
+    "device_writes": false,
+    "raw_output_location": "private evidence directory outside Git",
+    "redaction_asserted": true,
+    "source": "approved read-only command list from runtime-questions.json"
+  },
+  "packages": {
+    "added": [
+      "luci-i18n-attendedsysupgrade-zh-cn",
+      "luci-i18n-base-zh-cn",
+      "luci-i18n-firewall-zh-cn",
+      "luci-i18n-package-manager-zh-cn"
+    ],
+    "device_count": 163,
+    "image_count": 159,
+    "removed": [],
+    "version_changed": []
+  },
+  "privileges": [
+    {
+      "cap_eff": "0000000000000000",
+      "gid": "514",
+      "isolated_namespaces": [],
+      "name": "logd",
+      "no_new_privs": "0",
+      "seccomp": "0",
+      "uid": "514"
+    },
+    {
+      "cap_eff": "000001ffffffffff",
+      "gid": "0",
+      "isolated_namespaces": [],
+      "name": "hostapd",
+      "no_new_privs": "0",
+      "seccomp": "0",
+      "uid": "0"
+    },
+    {
+      "cap_eff": "000001ffffffffff",
+      "gid": "0",
+      "isolated_namespaces": [],
+      "name": "wpa_supplicant",
+      "no_new_privs": "0",
+      "seccomp": "0",
+      "uid": "0"
+    },
+    {
+      "cap_eff": "0000000000003400",
+      "gid": "101",
+      "isolated_namespaces": [],
+      "name": "wpa_supplicant",
+      "no_new_privs": "1",
+      "seccomp": "0",
+      "uid": "101"
+    },
+    {
+      "cap_eff": "0000000000003400",
+      "gid": "101",
+      "isolated_namespaces": [],
+      "name": "hostapd",
+      "no_new_privs": "1",
+      "seccomp": "0",
+      "uid": "101"
+    },
+    {
+      "cap_eff": "000001ffffffffff",
+      "gid": "0",
+      "isolated_namespaces": [],
+      "name": "ntpd",
+      "no_new_privs": "0",
+      "seccomp": "0",
+      "uid": "0"
+    },
+    {
+      "cap_eff": "0000000002000400",
+      "gid": "123",
+      "isolated_namespaces": [
+        "ipc",
+        "mnt",
+        "pid",
+        "pid_for_children"
+      ],
+      "name": "ntpd",
+      "no_new_privs": "1",
+      "seccomp": "0",
+      "uid": "123"
+    },
+    {
+      "cap_eff": "000001ffffffffff",
+      "gid": "0",
+      "isolated_namespaces": [],
+      "name": "dnsmasq",
+      "no_new_privs": "0",
+      "seccomp": "0",
+      "uid": "0"
+    },
+    {
+      "cap_eff": "0000000000003400",
+      "gid": "453",
+      "isolated_namespaces": [
+        "ipc",
+        "mnt",
+        "pid",
+        "pid_for_children"
+      ],
+      "name": "dnsmasq",
+      "no_new_privs": "0",
+      "seccomp": "0",
+      "uid": "453"
+    },
+    {
+      "cap_eff": "000001ffffffffff",
+      "gid": "0",
+      "isolated_namespaces": [],
+      "name": "ash",
+      "no_new_privs": "0",
+      "seccomp": "0",
+      "uid": "0"
+    }
+  ],
+  "recorded_at": "2026-08-31",
+  "schema_version": 1,
+  "scope_limit": "One observation of one device at one moment. It does not describe untested timing, failure states, or any boot other than the one running.",
+  "services": {
+    "rows": [
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 0,
+        "service": "cron"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "cfg01411c"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 3,
+        "service": "dnsmasq"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 1,
+        "service": "dropbear"
+      },
+      {
+        "declared_instances": 0,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [],
+        "runtime_instances": 0,
+        "runtime_triggers": 2,
+        "service": "firewall"
+      },
+      {
+        "declared_instances": 0,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [],
+        "runtime_instances": 0,
+        "runtime_triggers": 1,
+        "service": "gpio_switch"
+      },
+      {
+        "declared_instances": 3,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "logd"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 1,
+        "service": "log"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 2,
+        "service": "network"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 3,
+        "service": "odhcpd"
+      },
+      {
+        "declared_instances": 0,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [],
+        "runtime_instances": 0,
+        "runtime_triggers": 3,
+        "service": "packet_steering"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 0,
+        "service": "rpcd"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 2,
+        "service": "sysntpd"
+      },
+      {
+        "declared_instances": 0,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [],
+        "runtime_instances": 0,
+        "runtime_triggers": 1,
+        "service": "system"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 0,
+        "service": "ubihealthd"
+      },
+      {
+        "declared_instances": null,
+        "has_init_script": false,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 0,
+        "service": "ubus"
+      },
+      {
+        "declared_instances": 0,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [],
+        "runtime_instances": 0,
+        "runtime_triggers": 10,
+        "service": "ucitrack"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 2,
+        "service": "uhttpd"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [
+          "urandom_seed"
+        ],
+        "running": [],
+        "runtime_instances": 1,
+        "runtime_triggers": 0,
+        "service": "urandom_seed"
+      },
+      {
+        "declared_instances": 1,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "instance1"
+        ],
+        "runtime_instances": 1,
+        "runtime_triggers": 0,
+        "service": "urngd"
+      },
+      {
+        "declared_instances": 2,
+        "has_init_script": true,
+        "not_running": [],
+        "running": [
+          "hostapd",
+          "supplicant"
+        ],
+        "runtime_instances": 2,
+        "runtime_triggers": 0,
+        "service": "wpad"
+      }
+    ],
+    "runtime_service_count": 19,
+    "services_without_init_script": [
+      "ubus"
+    ],
+    "static_init_script_count": 25
+  },
+  "shipped_config_drift": [
+    {
+      "config": "dhcp",
+      "matches_image": false
+    },
+    {
+      "config": "dropbear",
+      "matches_image": true
+    },
+    {
+      "config": "firewall",
+      "matches_image": false
+    },
+    {
+      "config": "luci",
+      "matches_image": false
+    },
+    {
+      "config": "rpcd",
+      "matches_image": true
+    },
+    {
+      "config": "uhttpd",
+      "matches_image": false
+    }
+  ],
+  "stage": "I0.7",
+  "status": "complete",
+  "ubus": {
+    "build_gating_checks": [
+      {
+        "method": "ipv4leases",
+        "object": "dhcp",
+        "observed_present": false,
+        "prediction_held": true,
+        "recipe_prediction": "absent",
+        "source_condition": "#ifdef DHCPV4_SUPPORT"
+      },
+      {
+        "method": "set_connmark_allowlist",
+        "object": "dnsmasq",
+        "observed_present": false,
+        "prediction_held": true,
+        "recipe_prediction": "absent",
+        "source_condition": "#ifdef HAVE_CONNTRACK"
+      },
+      {
+        "method": "hotplug_event",
+        "object": "network.device",
+        "observed_present": false,
+        "prediction_held": true,
+        "recipe_prediction": "absent",
+        "source_condition": "#ifdef DUMMY_MODE"
+      }
+    ],
+    "method_signatures": {
+      "container": [
+        "add",
+        "console_attach",
+        "console_set",
+        "delete",
+        "get_features",
+        "list",
+        "set",
+        "state"
+      ],
+      "dhcp": [
+        "add_lease",
+        "ipv6leases",
+        "ipv6ra"
+      ],
+      "dnsmasq": [
+        "metrics"
+      ],
+      "dnsmasq.dns": [],
+      "file": [
+        "exec",
+        "list",
+        "lstat",
+        "md5",
+        "read",
+        "remove",
+        "stat",
+        "write"
+      ],
+      "hostapd": [
+        "apsta_state",
+        "bss_info",
+        "config_add",
+        "config_get_macaddr_list",
+        "config_remove",
+        "config_reset",
+        "config_set",
+        "mld_set",
+        "reload",
+        "switch_channel"
+      ],
+      "hostapd-auth": [],
+      "hostapd.phy0-ap0": [
+        "bss_mgmt_enable",
+        "del_client",
+        "get_clients",
+        "get_features",
+        "get_status",
+        "link_measurement_req",
+        "list_bans",
+        "notify_response",
+        "reload",
+        "rrm_beacon_req",
+        "rrm_nr_get_own",
+        "rrm_nr_list",
+        "rrm_nr_set",
+        "set_vendor_elements",
+        "switch_chan",
+        "update_airtime",
+        "update_beacon"
+      ],
+      "hostapd.phy1-ap0": [
+        "bss_mgmt_enable",
+        "del_client",
+        "get_clients",
+        "get_features",
+        "get_status",
+        "link_measurement_req",
+        "list_bans",
+        "notify_response",
+        "reload",
+        "rrm_beacon_req",
+        "rrm_nr_get_own",
+        "rrm_nr_list",
+        "rrm_nr_set",
+        "set_vendor_elements",
+        "switch_chan",
+        "update_airtime",
+        "update_beacon"
+      ],
+      "hotplug.button": [
+        "call"
+      ],
+      "hotplug.dhcp": [
+        "call"
+      ],
+      "hotplug.firmware": [
+        "call"
+      ],
+      "hotplug.ieee80211": [
+        "call"
+      ],
+      "hotplug.iface": [
+        "call"
+      ],
+      "hotplug.leds": [
+        "call"
+      ],
+      "hotplug.neigh": [
+        "call"
+      ],
+      "hotplug.net": [
+        "call"
+      ],
+      "hotplug.ntp": [
+        "call"
+      ],
+      "hotplug.tftp": [
+        "call"
+      ],
+      "iwinfo": [
+        "assoclist",
+        "countrylist",
+        "devices",
+        "freqlist",
+        "info",
+        "phyname",
+        "scan",
+        "survey",
+        "txpowerlist"
+      ],
+      "log": [
+        "read",
+        "write"
+      ],
+      "luci": [
+        "getBlockDevices",
+        "getBuiltinEthernetPorts",
+        "getConntrackHelpers",
+        "getConntrackList",
+        "getFeatures",
+        "getInitList",
+        "getLEDs",
+        "getMountPoints",
+        "getOdhcp6cStats",
+        "getProcessList",
+        "getRealtimeStats",
+        "getSwconfigFeatures",
+        "getSwconfigPortState",
+        "getTimezones",
+        "getUSBDevices",
+        "getUnixtime",
+        "getVersion",
+        "setBlockDetect",
+        "setInitAction",
+        "setLocaltime",
+        "setPassword"
+      ],
+      "luci-rpc": [
+        "getBoardJSON",
+        "getDHCPLeases",
+        "getDUIDHints",
+        "getHostHints",
+        "getNetworkDevices",
+        "getWirelessDevices"
+      ],
+      "network": [
+        "add_dynamic",
+        "add_host_route",
+        "get_proto_handlers",
+        "netns_updown",
+        "reload",
+        "restart"
+      ],
+      "network.device": [
+        "set_alias",
+        "set_state",
+        "status",
+        "stp_init"
+      ],
+      "network.interface": [
+        "add_device",
+        "down",
+        "dump",
+        "notify_proto",
+        "prepare",
+        "remove",
+        "remove_device",
+        "renew",
+        "set_data",
+        "status",
+        "up"
+      ],
+      "network.interface.lan": [
+        "add_device",
+        "down",
+        "dump",
+        "notify_proto",
+        "prepare",
+        "remove",
+        "remove_device",
+        "renew",
+        "set_data",
+        "status",
+        "up"
+      ],
+      "network.interface.loopback": [
+        "add_device",
+        "down",
+        "dump",
+        "notify_proto",
+        "prepare",
+        "remove",
+        "remove_device",
+        "renew",
+        "set_data",
+        "status",
+        "up"
+      ],
+      "network.interface.wan": [
+        "add_device",
+        "down",
+        "dump",
+        "notify_proto",
+        "prepare",
+        "remove",
+        "remove_device",
+        "renew",
+        "set_data",
+        "status",
+        "up"
+      ],
+      "network.interface.wan6": [
+        "add_device",
+        "down",
+        "dump",
+        "notify_proto",
+        "prepare",
+        "remove",
+        "remove_device",
+        "renew",
+        "set_data",
+        "status",
+        "up"
+      ],
+      "network.rrdns": [
+        "lookup"
+      ],
+      "network.wireless": [
+        "down",
+        "get_validate",
+        "notify",
+        "reconf",
+        "retry",
+        "status",
+        "up"
+      ],
+      "odhcp6c.wan": [
+        "get_state",
+        "get_statistics",
+        "reconfigure_dhcp",
+        "release",
+        "renew",
+        "reset_statistics"
+      ],
+      "rc": [
+        "init",
+        "list"
+      ],
+      "rpc-sys": [
+        "factory",
+        "packagelist",
+        "password_set",
+        "reboot",
+        "upgrade_clean",
+        "upgrade_start",
+        "upgrade_test"
+      ],
+      "service": [
+        "add",
+        "delete",
+        "event",
+        "get_data",
+        "list",
+        "set",
+        "set_data",
+        "signal",
+        "state",
+        "update_complete",
+        "update_start",
+        "validate",
+        "watchdog"
+      ],
+      "session": [
+        "access",
+        "create",
+        "destroy",
+        "get",
+        "grant",
+        "list",
+        "login",
+        "revoke",
+        "set",
+        "unset"
+      ],
+      "system": [
+        "board",
+        "info",
+        "reboot",
+        "signal",
+        "sysupgrade",
+        "validate_firmware_image",
+        "watchdog"
+      ],
+      "uci": [
+        "add",
+        "apply",
+        "changes",
+        "commit",
+        "configs",
+        "confirm",
+        "delete",
+        "get",
+        "order",
+        "reload_config",
+        "rename",
+        "revert",
+        "rollback",
+        "set",
+        "state"
+      ],
+      "wpa_supplicant": [
+        "bss_info",
+        "config_add",
+        "config_remove",
+        "config_set",
+        "iface_status",
+        "mld_set",
+        "mld_start",
+        "phy_set_macaddr_list",
+        "phy_set_state",
+        "phy_status"
+      ]
+    },
+    "objects_matching_a_dynamic_rule": [
+      "dnsmasq",
+      "hostapd.phy0-ap0",
+      "hostapd.phy1-ap0",
+      "hotplug.button",
+      "hotplug.dhcp",
+      "hotplug.firmware",
+      "hotplug.ieee80211",
+      "hotplug.iface",
+      "hotplug.leds",
+      "hotplug.neigh",
+      "hotplug.net",
+      "hotplug.ntp",
+      "hotplug.tftp",
+      "network.interface.lan",
+      "network.interface.loopback",
+      "network.interface.wan",
+      "network.interface.wan6",
+      "odhcp6c.wan"
+    ],
+    "objects_not_predicted": [
+      "dnsmasq.dns"
+    ],
+    "objects_predicted_by_static_literal": [
+      "container",
+      "dhcp",
+      "file",
+      "hostapd",
+      "hostapd-auth",
+      "iwinfo",
+      "log",
+      "luci",
+      "luci-rpc",
+      "network",
+      "network.device",
+      "network.interface",
+      "network.rrdns",
+      "network.wireless",
+      "rc",
+      "rpc-sys",
+      "service",
+      "session",
+      "system",
+      "uci",
+      "wpa_supplicant"
+    ],
+    "runtime_object_count": 40,
+    "runtime_objects": [
+      "container",
+      "dhcp",
+      "dnsmasq",
+      "dnsmasq.dns",
+      "file",
+      "hostapd",
+      "hostapd-auth",
+      "hostapd.phy0-ap0",
+      "hostapd.phy1-ap0",
+      "hotplug.button",
+      "hotplug.dhcp",
+      "hotplug.firmware",
+      "hotplug.ieee80211",
+      "hotplug.iface",
+      "hotplug.leds",
+      "hotplug.neigh",
+      "hotplug.net",
+      "hotplug.ntp",
+      "hotplug.tftp",
+      "iwinfo",
+      "log",
+      "luci",
+      "luci-rpc",
+      "network",
+      "network.device",
+      "network.interface",
+      "network.interface.lan",
+      "network.interface.loopback",
+      "network.interface.wan",
+      "network.interface.wan6",
+      "network.rrdns",
+      "network.wireless",
+      "odhcp6c.wan",
+      "rc",
+      "rpc-sys",
+      "service",
+      "session",
+      "system",
+      "uci",
+      "wpa_supplicant"
+    ],
+    "static_literals_not_registered": []
+  }
+}
