@@ -1,0 +1,27 @@
+{
+  "contract": [
+    "C-04"
+  ],
+  "description": "A removed package emits once, then leaves the baseline. Indistinguishable from a modification.",
+  "evidence": "SRC",
+  "evidence_ref": "busybox 1.37.0 coreutils/md5_sha1_sum.c:322-330, hash_file NULL -> FAILED",
+  "expect": {
+    "baseline": {
+      "dhcp": "A"
+    },
+    "events": [
+      "network"
+    ]
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A",
+      "network": "B"
+    },
+    "etc_config": {
+      "dhcp": "A"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c04-deleted-config-emits-once"
+}

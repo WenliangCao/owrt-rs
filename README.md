@@ -111,3 +111,18 @@ OQ-01/OQ-07 的关闭证据与四阶段审查见
 I0 follow-up 已关闭 OQ-01 与 OQ-07：rcS 顺序/失败传播已确定，设备当前 DHCP/firewall
 配置也已脱敏审查，可作为固定当前配置的 C1 oracle。下一步是 C1；剩余前置条件只有 RK-01
 （先让"变更已送达"可观测）。**C1 通过前不创建任何替代组件 crate。**
+
+**C1 已完成：第一个兼容合同 C1-01 已冻结**，对象是 I0 唯一的替换候选 R05
+配置变更检测与分发。合同见
+[config-change-dispatch.md](docs/contracts/config-change-dispatch.md)，决策见
+[0001](docs/decisions/0001-first-contract-is-config-change-dispatch.md)，
+10 个参考用例见 [tests/reference/config-change-dispatch/](tests/reference/config-change-dispatch/)。
+
+C1 期间在设备上取得三条关键行为证据：`/etc/config/` 中**含点文件名会产出空基线条目**
+（实测 7 个文件、7 条空哈希），因此它们的改动**永远不会触发事件**；删除与修改在
+`md5sum -c` 下是同一个 `FAILED` 信号，而新增完全静默；事件顺序按基线字典序确定。
+合同要求**复刻**这些行为——修好含点文件名的处理会改变 procd trigger 的触发面，
+那是行为变更而不是兼容实现。
+
+下一步是 R1，但必须先按合同 §9 让投递结果可观测并证明新旧事件集合相同，
+之后才实现最小 Rust 切片。**在此之前仍不创建任何替代组件 crate。**

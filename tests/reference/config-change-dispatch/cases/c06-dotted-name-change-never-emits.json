@@ -1,0 +1,28 @@
+{
+  "contract": [
+    "C-03",
+    "C-03a"
+  ],
+  "description": "Editing a dotted file changes nothing observable: its entry is empty either way.",
+  "evidence": "RUN",
+  "evidence_ref": "C1 Q15 plus C-03; empty compares equal to empty",
+  "expect": {
+    "baseline": {
+      "dhcp": "A",
+      "dhcp.bak-x": "<EMPTY>"
+    },
+    "events": []
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A",
+      "dhcp.bak-x": "<EMPTY>"
+    },
+    "etc_config": {
+      "dhcp": "A",
+      "dhcp.bak-x": "DIFFERENT_CONTENT"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c06-dotted-name-change-never-emits"
+}

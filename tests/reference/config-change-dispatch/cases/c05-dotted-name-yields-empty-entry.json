@@ -1,0 +1,24 @@
+{
+  "contract": [
+    "C-03"
+  ],
+  "description": "uci show parses a dotted filename as package.section, the lookup fails, and the entry is empty.",
+  "evidence": "RUN",
+  "evidence_ref": "C1 Q15: 7 dotted filenames, 7 baseline entries equal to the empty-file md5",
+  "expect": {
+    "baseline": {
+      "dhcp": "A",
+      "dhcp.bak-x": "<EMPTY>"
+    },
+    "events": []
+  },
+  "given": {
+    "baseline": null,
+    "etc_config": {
+      "dhcp": "A",
+      "dhcp.bak-x": "IGNORED_CONTENT"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c05-dotted-name-yields-empty-entry"
+}

@@ -1,0 +1,29 @@
+{
+  "contract": [
+    "C-03b"
+  ],
+  "description": "Renaming a dotted file to a valid package name makes it newly tracked; per C-04 the first appearance is silent.",
+  "evidence": "SRC",
+  "evidence_ref": "C-03 inverted: a valid package name resolves and produces real output",
+  "expect": {
+    "baseline": {
+      "bakx": "D",
+      "dhcp": "A"
+    },
+    "events": [
+      "dhcp.bak-x"
+    ]
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A",
+      "dhcp.bak-x": "<EMPTY>"
+    },
+    "etc_config": {
+      "bakx": "D",
+      "dhcp": "A"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c07-dotted-rename-to-valid-becomes-live"
+}

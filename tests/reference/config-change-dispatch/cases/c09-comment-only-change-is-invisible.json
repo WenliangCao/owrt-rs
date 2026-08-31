@@ -1,0 +1,24 @@
+{
+  "contract": [
+    "C-06"
+  ],
+  "description": "A change that does not alter the normalised form produces no event.",
+  "evidence": "DEP",
+  "evidence_ref": "comparison is over uci show output, not file bytes",
+  "expect": {
+    "baseline": {
+      "dhcp": "A"
+    },
+    "events": []
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A"
+    },
+    "etc_config": {
+      "dhcp": "A"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c09-comment-only-change-is-invisible"
+}

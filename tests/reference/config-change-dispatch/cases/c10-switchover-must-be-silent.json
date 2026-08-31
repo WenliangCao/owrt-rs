@@ -1,0 +1,31 @@
+{
+  "contract": [
+    "C-06",
+    "fallback"
+  ],
+  "description": "Fallback safety: swapping implementations against an unchanged config set must emit zero events.",
+  "evidence": "DEP",
+  "evidence_ref": "contract \u00a76 item 4: a replacement sharing the baseline format emits nothing on first run",
+  "expect": {
+    "baseline": {
+      "dhcp": "A",
+      "dhcp.bak-x": "<EMPTY>",
+      "network": "B"
+    },
+    "events": []
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A",
+      "dhcp.bak-x": "<EMPTY>",
+      "network": "B"
+    },
+    "etc_config": {
+      "dhcp": "A",
+      "dhcp.bak-x": "X",
+      "network": "B"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c10-switchover-must-be-silent"
+}

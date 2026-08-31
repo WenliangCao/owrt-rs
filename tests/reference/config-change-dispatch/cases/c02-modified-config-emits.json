@@ -1,0 +1,29 @@
+{
+  "contract": [
+    "C-04"
+  ],
+  "description": "A changed package emits exactly one event.",
+  "evidence": "DEP",
+  "evidence_ref": "md5sum -c FAILED path -> basename -> ubus event",
+  "expect": {
+    "baseline": {
+      "dhcp": "A2",
+      "network": "B"
+    },
+    "events": [
+      "dhcp"
+    ]
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A",
+      "network": "B"
+    },
+    "etc_config": {
+      "dhcp": "A2",
+      "network": "B"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c02-modified-config-emits"
+}

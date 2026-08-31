@@ -511,6 +511,45 @@ QUESTIONS: list[dict[str, Any]] = [
         "responsibility_ids": ["R17"],
     },
     {
+        "id": "Q15",
+        "question": "How does reload_config's baseline treat /etc/config files whose name contains a dot?",
+        "closes": "C1 precondition for R05: the exact scan set and per-file outcome of the config-change baseline",
+        "why_static_is_insufficient": (
+            "uci show takes a package.section.option tuple, so a file named dhcp.bak-x is "
+            "parsed as package 'dhcp', section 'bak-x'. The source makes the lookup failure "
+            "certain but not the resulting baseline entry, because the shell redirection "
+            "creates the check file regardless of exit status."
+        ),
+        "fields": [
+            "which baseline entries hash to the md5 of an empty file",
+            "the count of dotted names in /etc/config",
+        ],
+        "commands": [
+            {
+                "command": "cut -c1-32 /var/run/config.md5 | sort | uniq -c | sort -rn",
+                "class": "read-only",
+                "review": (
+                    "reads only the hash column of an existing baseline file and aggregates it. "
+                    "No config content is exported: a repeated hash equal to the well-known "
+                    "empty-file md5 answers the question by itself."
+                ),
+                "source": "/sbin/reload_config",
+                "expected_status": 0,
+                "timeout_s": 5,
+            },
+            {
+                "command": "ls /etc/config | grep -c '\\.' ; ls /etc/config | sed 's/[0-9]\\{6,\\}/<DATE>/g'",
+                "class": "read-only",
+                "review": "directory listing only; timestamps in backup names are masked at the source",
+                "source": "CONFIG_FLOW.md §1",
+                "expected_status": 0,
+                "timeout_s": 5,
+            },
+        ],
+        "redaction": "mask date-like digit runs in backup file names; never emit config content",
+        "responsibility_ids": ["R05", "R04"],
+    },
+    {
         "id": "Q01",
         "question": "What is the actual kernel command line?",
         "closes": "BOOT_CHAIN.md §8 kernel command line unknown",

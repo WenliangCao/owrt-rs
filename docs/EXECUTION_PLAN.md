@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：I0 全部完成，I0 gate 通过
-> 版本：1.0
+> 状态：I0 完成并通过 gate；C1-01 合同已冻结
+> 版本：1.1
 > 日期：2026-08-31
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -776,10 +776,37 @@ docs/decisions/<decision>.md
 tests/reference/<responsibility>/
 ```
 
-- [ ] 合同由现有实现证据生成，不是 Rust API 反推。
-- [ ] 所有调用者都有测试场景。
-- [ ] 未定义行为明确保持未定义，不擅自标准化。
-- [ ] 回退到原实现的机制已经设计并可测试。
+- [x] 合同由现有实现证据生成，不是 Rust API 反推。
+- [x] 所有调用者都有测试场景。
+- [x] 未定义行为明确保持未定义，不擅自标准化。
+- [x] 回退到原实现的机制已经设计并可测试。
+
+### C1 执行记录
+
+| 项 | 值 |
+|---|---|
+| 日期 | 2026-08-31 |
+| 对象 | R05 配置变更检测与分发（`/sbin/reload_config`） |
+| 合同 | [docs/contracts/config-change-dispatch.md](contracts/config-change-dispatch.md) |
+| 决策 | [docs/decisions/0001-first-contract-is-config-change-dispatch.md](decisions/0001-first-contract-is-config-change-dispatch.md) |
+| 参考测试 | `tests/reference/config-change-dispatch/`，10 个用例，参考模型 `tools/c1_reference_check.py` |
+| 新增运行态问题 | Q15（含点文件名的基线处理），只读，已批准并执行 |
+| 设备写入 | 无 |
+
+### C1 期间取得的关键行为证据
+
+1. **含点文件名产出空基线条目。** `uci show` 把 `dhcp.bak-x` 解析为「包 `dhcp` 的
+   section `bak-x`」，查找失败但 shell 重定向仍创建文件。设备实测：`/etc/config/`
+   有 7 个含点文件，基线中恰有 7 条等于空文件 md5。**这 7 个文件的改动永远不会
+   触发事件。**
+2. **新增静默、删除与修改同信号。** busybox `md5sum -c` 对缺失文件同样打印
+   `FAILED`，因此删除与修改不可区分；而新增文件不在基线遍历范围内，完全静默。
+3. **事件顺序确定。** 按基线文件行序，即 glob 字典序。合同要求复刻。
+
+### 合同刻意不修的行为
+
+含点文件名的空条目行为**必须复刻**。修好它会让 7 个历史备份文件突然变为可检测，
+改变 procd trigger 的触发面——那是行为变更，不是兼容实现。
 
 ## 18. R1：参考 oracle 和最小 Rust 实现
 

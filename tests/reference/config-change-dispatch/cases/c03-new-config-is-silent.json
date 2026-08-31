@@ -1,0 +1,29 @@
+{
+  "contract": [
+    "C-04"
+  ],
+  "description": "A newly created package is NOT reported; it only enters the baseline.",
+  "evidence": "DEP",
+  "evidence_ref": "md5sum -c only walks baseline entries",
+  "expect": {
+    "baseline": {
+      "dhcp": "A",
+      "network": "B",
+      "newpkg": "C"
+    },
+    "events": []
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A",
+      "network": "B"
+    },
+    "etc_config": {
+      "dhcp": "A",
+      "network": "B",
+      "newpkg": "C"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c03-new-config-is-silent"
+}

@@ -200,7 +200,8 @@
       "missing_run_evidence": [
         "Q04",
         "Q12",
-        "Q13"
+        "Q13",
+        "Q15"
       ],
       "persistent_side_effects": "writes /etc/config/*; session deltas in /tmp/.uci and /var/run/uci",
       "provides": [],
@@ -242,7 +243,8 @@
       },
       "missing_run_evidence": [
         "Q06",
-        "Q12"
+        "Q12",
+        "Q15"
       ],
       "persistent_side_effects": "rewrites /var/run/config.md5 baseline in tmpfs",
       "provides": [],

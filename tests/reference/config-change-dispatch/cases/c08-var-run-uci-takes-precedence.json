@@ -1,0 +1,28 @@
+{
+  "contract": [
+    "C-02"
+  ],
+  "description": "A session delta shadows the persistent file of the same name.",
+  "evidence": "SRC",
+  "evidence_ref": "/sbin/reload_config first-wins guard; NOT observed, /var/run/uci absent on this device",
+  "expect": {
+    "baseline": {
+      "dhcp": "SESSION"
+    },
+    "events": [
+      "dhcp"
+    ]
+  },
+  "given": {
+    "baseline": {
+      "dhcp": "A"
+    },
+    "etc_config": {
+      "dhcp": "A"
+    },
+    "var_run_uci": {
+      "dhcp": "SESSION"
+    }
+  },
+  "id": "c08-var-run-uci-takes-precedence"
+}

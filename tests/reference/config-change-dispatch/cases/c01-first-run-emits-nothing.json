@@ -1,0 +1,24 @@
+{
+  "contract": [
+    "C-05"
+  ],
+  "description": "With no prior baseline, the run only establishes one.",
+  "evidence": "DEP",
+  "evidence_ref": "/sbin/reload_config: [ -f $MD5FILE ] && { ... }",
+  "expect": {
+    "baseline": {
+      "dhcp": "A",
+      "network": "B"
+    },
+    "events": []
+  },
+  "given": {
+    "baseline": null,
+    "etc_config": {
+      "dhcp": "A",
+      "network": "B"
+    },
+    "var_run_uci": {}
+  },
+  "id": "c01-first-run-emits-nothing"
+}

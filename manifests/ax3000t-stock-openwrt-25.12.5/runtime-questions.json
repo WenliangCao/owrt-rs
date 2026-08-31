@@ -5,9 +5,9 @@
     "note": "Obtaining shell or ubus access to the device is a separate authorization, not part of a read-only observation. Enabling SSH, setting a root password or changing dropbear state all modify the device."
   },
   "counts": {
-    "approved_commands": 23,
+    "approved_commands": 25,
     "excluded_commands": 11,
-    "questions": 15
+    "questions": 16
   },
   "evidence_id": "ax3000t-stock-openwrt-25.12.5",
   "excluded_commands": [
@@ -151,6 +151,39 @@
         "R17"
       ],
       "why_static_is_insufficient": "I0.4 enumerated the image's 159 packages; only the device can show what is installed now, and every I0.5 conclusion assumes that set"
+    },
+    {
+      "closes": "C1 precondition for R05: the exact scan set and per-file outcome of the config-change baseline",
+      "commands": [
+        {
+          "class": "read-only",
+          "command": "cut -c1-32 /var/run/config.md5 | sort | uniq -c | sort -rn",
+          "expected_status": 0,
+          "review": "reads only the hash column of an existing baseline file and aggregates it. No config content is exported: a repeated hash equal to the well-known empty-file md5 answers the question by itself.",
+          "source": "/sbin/reload_config",
+          "timeout_s": 5
+        },
+        {
+          "class": "read-only",
+          "command": "ls /etc/config | grep -c '\\.' ; ls /etc/config | sed 's/[0-9]\\{6,\\}/<DATE>/g'",
+          "expected_status": 0,
+          "review": "directory listing only; timestamps in backup names are masked at the source",
+          "source": "CONFIG_FLOW.md \u00a71",
+          "timeout_s": 5
+        }
+      ],
+      "fields": [
+        "which baseline entries hash to the md5 of an empty file",
+        "the count of dotted names in /etc/config"
+      ],
+      "id": "Q15",
+      "question": "How does reload_config's baseline treat /etc/config files whose name contains a dot?",
+      "redaction": "mask date-like digit runs in backup file names; never emit config content",
+      "responsibility_ids": [
+        "R05",
+        "R04"
+      ],
+      "why_static_is_insufficient": "uci show takes a package.section.option tuple, so a file named dhcp.bak-x is parsed as package 'dhcp', section 'bak-x'. The source makes the lookup failure certain but not the resulting baseline entry, because the shell redirection creates the check file regardless of exit status."
     },
     {
       "closes": "BOOT_CHAIN.md \u00a78 kernel command line unknown",
