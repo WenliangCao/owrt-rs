@@ -1,0 +1,536 @@
+{
+  "authorization": {
+    "implementation_authorized": false
+  },
+  "by_category": {
+    "defer": [
+      "R04",
+      "R07",
+      "R09",
+      "R14"
+    ],
+    "do-not-touch": [
+      "R01",
+      "R03",
+      "R08",
+      "R12",
+      "R17"
+    ],
+    "keep": [
+      "R02",
+      "R06",
+      "R10",
+      "R11",
+      "R16"
+    ],
+    "rust-replace": [
+      "R05"
+    ],
+    "rust-wrap": [
+      "R13",
+      "R15"
+    ]
+  },
+  "categories": {
+    "defer": "\u5ef6\u540e\u8bc4\u4f30",
+    "do-not-touch": "\u7981\u6b62\u89e6\u78b0",
+    "keep": "\u4fdd\u7559",
+    "rust-replace": "\u4f18\u5148\u7528 Rust \u66ff\u6362",
+    "rust-wrap": "Rust \u63a5\u5165\u6216\u5305\u88c5"
+  },
+  "classification": [
+    {
+      "category": "do-not-touch",
+      "dep": [
+        "/sbin/procd and /sbin/init present; 19 supervised services observed"
+      ],
+      "id": "R01",
+      "rationale": "procd is PID 1. Its failure mode is a device reboot and there is no in-band recovery. It also owns the service, system and hotplug object families that every other responsibility depends on.",
+      "recovery_constraint": "No in-band recovery exists; only the bootloader or a power cycle.",
+      "run": [
+        "Q06 service list: 19 services, instance and trigger state matches the static graph"
+      ],
+      "src": [
+        "procd state machine and inittab handler pinned at 58eb263d"
+      ]
+    },
+    {
+      "category": "keep",
+      "dep": [
+        "/etc/rc.common and /lib/functions/procd.sh in the image"
+      ],
+      "id": "R02",
+      "rationale": "The init framework is shell that procd interprets by convention. Replacing it means reimplementing procd's expectations without changing procd, which buys nothing until a specific service is replaced.",
+      "run": [
+        "Q06: reload semantics per service confirmed by which services expose reload_service"
+      ],
+      "src": [
+        "rc.common dispatch table read in full"
+      ]
+    },
+    {
+      "category": "do-not-touch",
+      "dep": [
+        "21 preinit hook files; inittab with 3 entries"
+      ],
+      "id": "R03",
+      "rationale": "Boot orchestration decides whether the device boots at all. A failure here is recoverable only through failsafe or the bootloader, and this project has no recovery gate.",
+      "recovery_constraint": "Failsafe or TFTP/bootloader recovery only; needs physical access.",
+      "run": [
+        "Q01 kernel cmdline has no rootfs_mount_options.*; Q02 failsafe not entered"
+      ],
+      "src": [
+        "procd initd early/preinit path pinned"
+      ]
+    },
+    {
+      "blocking_questions": [
+        "OQ-04",
+        "OQ-05"
+      ],
+      "category": "defer",
+      "dep": [
+        "6 shipped configs; /etc/config content and hashes observed"
+      ],
+      "id": "R04",
+      "rationale": "UCI is a plausible Rust target and its format is small, but the binding constraint is unknown-field preservation on read-modify-write across three concurrent writer families (shell, ucode, C) with no cross-process lock. That cannot be settled by observation; it needs a differential experiment, which is a C1/V1 activity.",
+      "run": [
+        "Q12: no uncommitted delta at observation time; Q13: 4 of 6 shipped configs drifted"
+      ],
+      "src": [
+        "libuci pinned at 66127cd7"
+      ]
+    },
+    {
+      "category": "rust-replace",
+      "dep": [
+        "/sbin/reload_config, 17 lines, read in full"
+      ],
+      "id": "R05",
+      "rationale": "reload_config is 17 lines of shell whose own upstream comment calls it a temporary hack until configd exists. Its contract is narrow and fully observed: compare normalised uci show output per package against a tmpfs md5 baseline and emit one config.change event per differing package. Its failure mode is silent, which is exactly the class of defect a typed implementation removes. It has no persistent state beyond a regenerable baseline, so a wrong version is recoverable by deleting that file.",
+      "run": [
+        "Q12: /var/run/config.md5 baseline observed with its tracked package list",
+        "Q06: config.change triggers observed on the consuming services"
+      ],
+      "src": [
+        "base-files recipe; upstream comment naming it a temporary hack"
+      ]
+    },
+    {
+      "category": "keep",
+      "dep": [
+        "/bin/board_detect, /bin/config_generate, 7 board.d scripts"
+      ],
+      "id": "R06",
+      "rationale": "First-boot generation runs once and depends on MTD-sourced MAC values for this board. Its blast radius is a device with no network configuration, and it is not on any hot path afterwards. There is no operational gain from rewriting it.",
+      "run": [
+        "Q03: /etc/uci-defaults empty and board.json present, so generation already ran"
+      ],
+      "src": [
+        "02_network case for xiaomi,mi-router-ax3000t; mtd_get_mac_ascii Bdata"
+      ]
+    },
+    {
+      "blocking_questions": [
+        "OQ-01",
+        "OQ-06"
+      ],
+      "category": "defer",
+      "dep": [
+        "/sbin/netifd; 4 interface objects observed"
+      ],
+      "id": "R07",
+      "rationale": "netifd is the largest single control-plane surface: 3 base objects plus one object per interface, its own protocol handler contract, and a ucode wireless sub-API. The interface is now fully catalogued and verified against runtime, but a replacement would have to reproduce the proto handler and wireless notify contracts, neither of which has been exercised.",
+      "run": [
+        "Q05 and Q07: 4 interfaces, 9 devices, method signatures captured"
+      ],
+      "src": [
+        "netifd pinned at cbb83a18; ubus.c object tables parsed"
+      ]
+    },
+    {
+      "category": "do-not-touch",
+      "dep": [
+        "/usr/sbin/wpad; hostapd.phy0-ap0 and hostapd.phy1-ap0 observed"
+      ],
+      "id": "R08",
+      "rationale": "Wireless spans hostapd, wpa_supplicant, a ucode layer and mt76 driver behaviour. The project's non-goals exclude rewriting drivers and mature execution-plane components, and a wireless fault is not remotely recoverable on a device administered over its own LAN.",
+      "recovery_constraint": "A wireless fault can remove the only administrative path for a wireless-only client.",
+      "run": [
+        "Q11: wpad runs as uid 101 with capabilities but no namespace isolation"
+      ],
+      "src": [
+        "hostap pinned at ca266cc2; ubus support is patch plus ucode"
+      ]
+    },
+    {
+      "blocking_questions": [
+        "OQ-02"
+      ],
+      "category": "defer",
+      "dep": [
+        "/sbin/fw4; table inet fw4 with 24 chains observed"
+      ],
+      "id": "R09",
+      "rationale": "firewall4 is already ucode rather than C, is one-shot, and its entire output is an nftables ruleset that can be diffed. That makes it unusually testable. But its compatibility contract is the generated ruleset, and no differential comparison has been run yet, so it cannot move further than defer.",
+      "run": [
+        "Q08: full ruleset captured, structure recorded"
+      ],
+      "src": [
+        "firewall4 pinned at b6e51575"
+      ]
+    },
+    {
+      "category": "keep",
+      "dep": [
+        "/usr/sbin/dnsmasq; dnsmasq and dnsmasq.dns objects observed"
+      ],
+      "id": "R10",
+      "rationale": "dnsmasq is a mature execution-plane daemon serving DNS and DHCPv4 for every client. The project explicitly preserves such components. Its ubus surface is one method.",
+      "run": [
+        "Q09: object registered under the default name with only the metrics method"
+      ],
+      "src": [
+        "dnsmasq 2.93 verified against PKG_HASH; ubus object via upstream plus patch"
+      ]
+    },
+    {
+      "category": "keep",
+      "dep": [
+        "/usr/sbin/odhcpd and odhcp6c; dhcp and odhcp6c.wan objects observed"
+      ],
+      "id": "R11",
+      "rationale": "odhcpd and odhcp6c are execution-plane IPv6 daemons. Same reasoning as R10, and this build is the reduced ipv6only variant with a three-method surface.",
+      "run": [
+        "Q09: dhcp has no ipv4leases, confirming the ipv6only build"
+      ],
+      "src": [
+        "odhcpd pinned at 5d7be43f; odhcp6c at 07d324ee"
+      ]
+    },
+    {
+      "category": "do-not-touch",
+      "dep": [
+        "/sbin/ubusd; socket at /var/run/ubus/ubus.sock; 40 objects observed"
+      ],
+      "id": "R12",
+      "rationale": "ubusd is the transport every other responsibility uses. It has no persistent state, but restarting it drops every registered object and forces every daemon to reconnect. Replacing the bus before any client is replaced inverts the dependency order.",
+      "recovery_constraint": "A restart loses all 40 registered objects at once; recovery depends on every daemon reconnecting.",
+      "run": [
+        "Q05: 40 objects; Q06: ubus supervised as a procd service with user ubus"
+      ],
+      "src": [
+        "ubus pinned at 24864e78; umask 0111 giving a 0666 socket"
+      ]
+    },
+    {
+      "category": "rust-wrap",
+      "dep": [
+        "/sbin/rpcd plus 6 plugins; 9 ACL files; session timeout 30 observed"
+      ],
+      "id": "R13",
+      "rationale": "rpcd is the remote-administration boundary and, through file.exec and rc.init, is equivalent to remote code execution. Its ACL model is per-method and its session semantics are observable. The useful first move is not to replace it but to put a typed Rust layer in front of the ACL and session decision, where a mistake is contained and auditable. A full replacement would have to reproduce nine object families that LuCI depends on by exact field name.",
+      "run": [
+        "Q05: full method signatures for session, uci, rc, file, rpc-sys, luci-rpc",
+        "Q13: rpcd config unchanged from the image; login scope is read/write '*'"
+      ],
+      "src": [
+        "rpcd pinned at 28faf640; per-method ACL evaluation read"
+      ]
+    },
+    {
+      "blocking_questions": [
+        "OQ-03"
+      ],
+      "category": "defer",
+      "dep": [
+        "/usr/sbin/uhttpd; listens on :80 and :443 v4 and v6"
+      ],
+      "id": "R14",
+      "rationale": "uhttpd runs as root and terminates TLS on all interfaces. It is a credible Rust target on memory-safety grounds alone, but its LuCI coupling runs through lua_prefix and ubus_prefix handlers that have not been exercised, and no differential test exists.",
+      "run": [
+        "Q13: ubus_prefix /ubus, no_ubusauth unset, ubus_cors unset"
+      ],
+      "src": [
+        "uhttpd pinned at 7b1bec45"
+      ]
+    },
+    {
+      "category": "rust-wrap",
+      "dep": [
+        "/sbin/logd; log object with read and write"
+      ],
+      "id": "R15",
+      "rationale": "logd has a two-method surface and a failure mode confined to observability. That makes it the lowest-risk place to prove the ubus object, ACL and procd instance contracts end to end. Wrapping, not replacing, because the ring buffer is already the mechanism that made boot evidence unavailable and a rewrite should not start by changing retention semantics.",
+      "run": [
+        "Q11: runs as uid 514",
+        "Q06: 1 of 3 declared instances active",
+        "Q02: ring buffer covers about 93 minutes"
+      ],
+      "src": [
+        "ubox pinned at 6f78fa49; in-process getpwnam drop"
+      ]
+    },
+    {
+      "category": "keep",
+      "dep": [
+        "/etc/hotplug.json; 10 handlers; 10 hotplug.* objects observed"
+      ],
+      "id": "R16",
+      "rationale": "hotplug dispatch is procd-internal plus 10 shell handlers. It cannot be separated from R01 without replacing procd, and a missed event is never retried, so the failure mode is silent and unrecoverable.",
+      "run": [
+        "Q05: 10 hotplug subsystems, against 4 inferable from the ACL alone"
+      ],
+      "src": [
+        "procd hotplug-dispatch.c; HOTPLUG_OBJECT_PREFIX"
+      ]
+    },
+    {
+      "category": "do-not-touch",
+      "dep": [
+        "/sbin/sysupgrade; rpc-sys and system objects observed"
+      ],
+      "id": "R17",
+      "rationale": "sysupgrade, factory and reboot are terminal. A defect here bricks the device. The project reserves this as the recovery gate and has no authorization to exercise it.",
+      "recovery_constraint": "A failed sysupgrade requires bootloader recovery and physical access.",
+      "run": [
+        "Q00 and Q14: identity and package set confirmed; no terminal method exercised"
+      ],
+      "src": [
+        "procd system.c and rpcd sys.c pinned"
+      ]
+    }
+  ],
+  "counts": {
+    "category_defer": 4,
+    "category_do-not-touch": 5,
+    "category_keep": 5,
+    "category_rust-replace": 1,
+    "category_rust-wrap": 2,
+    "open_questions": 8,
+    "responsibilities": 17,
+    "risks": 7,
+    "runtime_objects_verified": 40
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "i0_gate": {
+    "checklist": [
+      {
+        "evidence": "IMAGE_IDENTITY.md; signed sha256sums, profiles.json, buildinfo; Q00 confirms the device runs it",
+        "item": "\u955c\u50cf\u8eab\u4efd\u548c\u6765\u6e90\u53ef\u72ec\u7acb\u590d\u6838",
+        "satisfied": true
+      },
+      {
+        "evidence": "DEPLOYMENT_VERIFICATION.md, PARTITION_EXPECTATION.md, SOURCE_IMAGE_DEVIATIONS.md",
+        "item": "\u5bb9\u5668\u3001payload\u3001rootfs \u548c\u5206\u533a\u9884\u671f\u5df2\u89e3\u91ca",
+        "satisfied": true
+      },
+      {
+        "evidence": "SBOM.md, FILE_OWNERSHIP.md; Q14 shows device drift of +4 translation packages only",
+        "item": "\u8f6f\u4ef6\u7269\u6599\u548c\u6587\u4ef6\u5f52\u5c5e\u5b8c\u6574",
+        "satisfied": true
+      },
+      {
+        "evidence": "BOOT_CHAIN, SERVICE_GRAPH, CONFIG_FLOW, IPC_CATALOG; both static misses fixed and re-verified",
+        "item": "\u542f\u52a8\u3001\u670d\u52a1\u3001\u914d\u7f6e\u548c IPC \u94fe\u5df2\u6210\u56fe",
+        "satisfied": true
+      },
+      {
+        "evidence": "SOURCE_MAP.md, PATCH_MAP.md; 14 pinned checkouts plus a verified dnsmasq tarball",
+        "item": "\u5173\u952e\u7ec4\u4ef6\u5747\u6709\u7cbe\u786e\u6e90\u7801\u6620\u5c04\u6216\u660e\u786e\u963b\u585e",
+        "satisfied": true
+      },
+      {
+        "evidence": "RESPONSIBILITY_CANDIDATES.md; 17 responsibilities with the full template",
+        "item": "\u6bcf\u4e2a\u5019\u9009\u90fd\u6709\u63a5\u53e3\u3001\u8c03\u7528\u8005\u3001\u5931\u8d25\u8fb9\u754c\u548c\u517c\u5bb9\u8981\u6c42",
+        "satisfied": true
+      },
+      {
+        "evidence": "RUNTIME_OBSERVATIONS.md; 15 questions, 23 commands; OQ-01 remains open and blocks only R07",
+        "item": "\u5173\u952e\u884c\u4e3a\u53d6\u5f97\u5fc5\u8981\u8fd0\u884c\u6001\u8bc1\u636e",
+        "satisfied": true
+      },
+      {
+        "evidence": "every report carries an explicit evidence-boundary section; OPEN_QUESTIONS.md holds the unknowns",
+        "item": "\u4e8b\u5b9e\u3001\u63a8\u65ad\u3001\u672a\u77e5\u548c\u51b2\u7a81\u5206\u79bb",
+        "satisfied": true
+      },
+      {
+        "evidence": "firmware, extracted trees, source checkouts and raw collector output live outside Git; redaction self-check passes with 0 findings",
+        "item": "\u539f\u59cb\u6750\u6599\u548c\u79d8\u5bc6\u672a\u8fdb\u5165 Git",
+        "satisfied": true
+      },
+      {
+        "evidence": "I0.7 ran read-only commands over SSH; no UCI write, commit, reload, restart or MTD read",
+        "item": "\u672a\u63a5\u89e6\u7269\u7406\u673a\u6301\u4e45\u72b6\u6001",
+        "satisfied": true
+      }
+    ],
+    "passed": true,
+    "scope_limit": "The gate is passed for this image on this device in this configuration. OQ-01 remains open and blocks R07 only; it does not block the gate because no responsibility depending on it is classified for replacement.",
+    "unsatisfied": []
+  },
+  "open_questions": [
+    {
+      "blocks": [
+        "R07"
+      ],
+      "closable_by": "observing a real boot, which is not a read-only observation",
+      "id": "OQ-01",
+      "question": "What is the observable boot ordering, timing and failure propagation?",
+      "stage": "H1 or a separately authorised experiment",
+      "why_open": "the log ring buffer holds about 93 minutes and the boot record was already overwritten; no line count recovers it"
+    },
+    {
+      "blocks": [
+        "R09"
+      ],
+      "closable_by": "a differential harness comparing fw4 output against a candidate on the same input",
+      "id": "OQ-02",
+      "question": "Does a replacement produce a byte-equivalent nftables ruleset from the same config?",
+      "stage": "C1 oracle plus V1",
+      "why_open": "firewall4's compatibility contract is its output, and no differential comparison has been run"
+    },
+    {
+      "blocks": [
+        "R14"
+      ],
+      "closable_by": "recording a LuCI session against the reference device",
+      "id": "OQ-03",
+      "question": "What exactly does LuCI require from uhttpd's lua_prefix and ubus_prefix handlers?",
+      "stage": "C1",
+      "why_open": "the coupling was catalogued but never exercised; no request-level trace exists"
+    },
+    {
+      "blocks": [
+        "R04"
+      ],
+      "closable_by": "byte and AST round-trip tests over the device's own configs",
+      "id": "OQ-04",
+      "question": "Does a read-modify-write cycle preserve UCI options the implementation does not model?",
+      "stage": "C1",
+      "why_open": "unknown-field preservation is the binding constraint on any UCI replacement and cannot be observed passively"
+    },
+    {
+      "blocks": [
+        "R04"
+      ],
+      "closable_by": "a controlled concurrency experiment on a non-production device",
+      "id": "OQ-05",
+      "question": "What happens when shell, ucode and C writers touch one config concurrently?",
+      "stage": "V1 on a lab device",
+      "why_open": "there is no cross-process write lock and the window cannot be observed without creating it"
+    },
+    {
+      "blocks": [
+        "R07"
+      ],
+      "closable_by": "enumerating handlers per configuration, or scoping the contract to the observed set",
+      "id": "OQ-06",
+      "question": "Which netifd proto handlers and wireless notify paths does this deployment actually exercise?",
+      "stage": "C1",
+      "why_open": "only the dhcp, dhcpv6 and static protos are configured here; the handler contract is broader than what runs"
+    },
+    {
+      "blocks": [],
+      "closable_by": "a separately redacted review of those two files",
+      "id": "OQ-07",
+      "question": "What changed /etc/config/dhcp and /etc/config/firewall from the image, and is any of it still load-bearing?",
+      "stage": "I0 follow-up before C1 uses this device as an oracle",
+      "why_open": "config.md5 shows backups from an earlier tool and both files differ from the image; content was deliberately not read into the report"
+    },
+    {
+      "blocks": [],
+      "closable_by": "re-running the comparison after a configuration change, or bounding the claim to this configuration",
+      "id": "OQ-08",
+      "question": "Would the ubus catalog stay complete under a different configuration?",
+      "stage": "V1",
+      "why_open": "completeness was verified against one configuration; wpa_supplicant.<ifname> already has no instance here"
+    }
+  ],
+  "recorded_at": "2026-08-31",
+  "risks": [
+    {
+      "affects": [
+        "R05",
+        "R04"
+      ],
+      "detail": "R05's failure mode is a missed event; the service keeps running stale config and nothing reports an error.",
+      "evidence": "reload_config read in full; whole-file md5 granularity; tmpfs baseline",
+      "id": "RK-01",
+      "mitigation": "Any replacement must make delivery observable before it changes detection.",
+      "risk": "Silent config-change delivery failure"
+    },
+    {
+      "affects": [
+        "R01",
+        "R08"
+      ],
+      "detail": "wpad declares procd_add_jail but gets no namespace isolation, because the call passes a name with no flags or mounts.",
+      "evidence": "Q11 namespace inodes; _procd_add_jail in procd.sh",
+      "id": "RK-02",
+      "mitigation": "Treat the declaration and the observed namespace set as separate facts in any design.",
+      "risk": "Declared isolation is not effective isolation"
+    },
+    {
+      "affects": [
+        "R12",
+        "R13"
+      ],
+      "detail": "Both ACL layers authorise absent objects: udebug in the ubusd layer, dsl and fingerprint in the rpcd layer.",
+      "evidence": "Q10 udebug Not found; rpcd ACL coverage check",
+      "id": "RK-03",
+      "mitigation": "Never treat an ACL as an interface inventory; it is an intent declaration.",
+      "risk": "ACL grants objects that do not exist"
+    },
+    {
+      "affects": [
+        "R04",
+        "R09",
+        "R10"
+      ],
+      "detail": "config.md5 tracks bak-codex-* backups and dnsproxy remnants dated before the current firmware, preserved across sysupgrade.",
+      "evidence": "Q12 config.md5 tracked list",
+      "id": "RK-04",
+      "mitigation": "Do not treat this device's config as stock. Any oracle use must take its current config as input.",
+      "risk": "Device carries configuration history from an earlier tool"
+    },
+    {
+      "affects": [
+        "R07",
+        "R08",
+        "R15"
+      ],
+      "detail": "The ubus catalog closes bidirectionally against one configuration; a STA interface or a log_file setting would create objects and instances never seen.",
+      "evidence": "wpa_supplicant.<ifname> has no instance; log has 1 of 3 declared instances",
+      "id": "RK-05",
+      "mitigation": "State the configuration scope alongside any completeness claim.",
+      "risk": "Static catalogs are complete only for the observed configuration"
+    },
+    {
+      "affects": [
+        "R13",
+        "R14"
+      ],
+      "detail": "rc.init and file.exec execute arbitrary programs, gated only by rpcd session ACL, and the shipped login grants read/write '*'.",
+      "evidence": "Q05 method signatures; Q13 rpcd login scope",
+      "id": "RK-06",
+      "mitigation": "Any wrapper must preserve or tighten the ACL decision, never widen it.",
+      "risk": "Remote code execution paths are reachable by design"
+    },
+    {
+      "affects": [
+        "R03",
+        "R15"
+      ],
+      "detail": "The default log buffer cannot hold a boot record, so boot-order regressions would be undetectable after the fact.",
+      "evidence": "Q02: buffer covers about 93 minutes",
+      "id": "RK-07",
+      "mitigation": "Any boot-path work needs a console or a larger buffer arranged in advance.",
+      "risk": "Boot evidence is not retained"
+    }
+  ],
+  "schema_version": 1,
+  "stage": "I0.8",
+  "status": "complete"
+}
