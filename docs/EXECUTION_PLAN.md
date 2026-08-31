@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：I0 完成并通过 gate；C1-01 合同已冻结
-> 版本：1.1
+> 状态：R1 完成并通过 gate；下一阶段 V1
+> 版本：1.2
 > 日期：2026-08-31
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -182,9 +182,9 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | I0.7 | 经单独批准采集必要运行态 | 完成：用户授权后执行 23 条只读命令，40 个 ubus 对象、包/配置偏移与特权实测已记录；follow-up 后强制 23/23 输入与身份门 | 否，只读观察 |
 | I0.8 | 形成五类替换边界并通过 I0 gate | 完成：17 项分类（10 项停在默认类）、7 个开放问题、7 条风险；gate 由 manifest 推导并通过 | 否 |
 | I0.F | 关闭 OQ-01/OQ-07 并审查 I0.5–I0.8 | 完成：rcS 合同、配置漂移和 gate 工具缺口已修正 | 否，只读观察 |
-| C1 | 冻结第一个兼容合同和参考 oracle | 待执行：目标 R05，前置仅 RK-01 | 否 |
-| R1 | 实现第一个最小 Rust 切片 | 阻塞于 C1 | 否 |
-| V1 | release-matched 集成和差分验证 | 阻塞于 R1 | 否 |
+| C1 | 冻结第一个兼容合同和参考 oracle | 完成：C1-01，11 个参考用例 | 否 |
+| R1 | 实现第一个最小 Rust 切片 | 完成：11/11 差分、6/6 故障、gate 通过 | 否 |
+| V1 | release-matched 集成和差分验证 | 可开始；尚未建立 OpenWrt package | 否 |
 | H1 | 物理设备准入和 canary | 需要新授权 | 另行决定 |
 | N1 | 按同一闭环处理下一个职责 | 阻塞于 H1 结论 | 另行决定 |
 
@@ -829,13 +829,35 @@ R1.1 在一次性精确 rootfs chroot 中执行原 `/sbin/reload_config`，只�
 
 ### 再实现 Rust
 
-- [ ] 只创建满足第一个合同所需的 crate/binary。
-- [ ] 不创建通用 control-plane framework。
-- [ ] 依赖少而固定；记录 license、source 和 binary-size 影响。
-- [ ] 所有外部输入有长度、类型和资源限制。
-- [ ] 显式处理 signal、timeout、cancellation 和 child process。
-- [ ] privilege 最小化；默认不写配置、不取得资源 owner。
-- [ ] adapter/protocol 层保持窄，便于和 reference 差分。
+- [x] 只创建满足第一个合同所需的 crate/binary。
+- [x] 不创建通用 control-plane framework。
+- [x] 依赖少而固定；记录 license、source 和 binary-size 影响。
+- [x] 所有外部输入有长度、类型和资源限制。
+- [x] 显式处理 signal、timeout、cancellation 和 child process。
+- [x] privilege 最小化；默认不写配置、不取得资源 owner。
+- [x] adapter/protocol 层保持窄，便于和 reference 差分。
+
+### R1.2 执行记录
+
+| 项 | 值 |
+|---|---|
+| crate | `components/reload-config`；单一 binary `reload-config-rs` |
+| toolchain | Rust 1.78.0；`aarch64-unknown-linux-musl`；`rust-lld`；静态、strip、LTO |
+| 依赖 | 第三方 crate 0；license `MIT OR Apache-2.0` |
+| 目标产物 | 432,248 bytes；SHA-256 `854d5ca0…a7a8c61`；预算 524,288 bytes |
+| 单元/property | 5/5；其中穷举 81 个双 package 前后状态组合，并覆盖输入上限 |
+| 精确差分 | 11/11；真实镜像 `uci` + BusyBox `md5sum`；事件顺序/集合与完整基线一致 |
+| 故障注入 | 6/6：部分失败、缺失 uci、投递超时、畸形 UCI、并发、SIGTERM |
+| 重复性 | 两次完整差分生成逐字节相同 manifest |
+| 设备操作 | 无；仅服务器一次性 rootfs 副本 |
+
+实现继续委托精确 `/sbin/uci` 做规范化、委托 BusyBox `md5sum` 生成共享基线，不重写 UCI
+解析器。它复刻合同内的事件语义，同时把投递状态、依赖失败、超时和取消变成 JSONL trace
+与非零退出码。未安装、未切换任何调用方，原 `/sbin/reload_config` 路径从未改变。
+
+机器记录和审查见
+[r1-candidate.json](../manifests/ax3000t-stock-openwrt-25.12.5/r1-candidate.json) 与
+[R1_IMPLEMENTATION.md](../reports/ax3000t-stock-openwrt-25.12.5/R1_IMPLEMENTATION.md)。
 
 ### 退出门
 
@@ -942,9 +964,12 @@ interface discovery
 4. [x] 完成 I0.6 候选职责表与运行态问题单；等待用户对设备接入和采集分别授权。
 5. [x] 完成 I0.8，形成五类替换边界，I0 gate 通过。
 6. [x] 完成 I0 follow-up：关闭 OQ-01/OQ-07，审查并修复 I0.5–I0.8 验收缺口。
-7. [ ] 执行 C1：为 R05 冻结兼容合同与参考 oracle；前置仅 RK-01。
-8. [ ] C1 通过以前不创建替代组件 crate。
+7. [x] 执行 C1：为 R05 冻结兼容合同与参考 oracle。
+8. [x] R1.1 先建立投递可观测 oracle；门通过后才创建唯一 R05 crate。
+9. [x] 完成 R1.2 最小实现、精确差分、故障注入和体积门。
+10. [ ] 执行 V1：使用匹配 OpenWrt SDK 建 package，默认禁用并做隔离集成验证。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
-manager、SquashFS rootfs 与第一候选 R05。仍未冻结：R05 兼容合同、oracle 的事件投递
-可观测性、Rust 进程边界、IPC 技术选择和最终部署方式；这些必须由 C1 及后续 gate 决定。
+manager、SquashFS rootfs、R05 合同、可观测 reference oracle 和最小 Rust 进程边界。仍未冻结：
+OpenWrt package 集成、调用方切换机制与最终部署方式；这些由 V1 gate 决定。H1 设备部署仍需
+新的明确授权。

@@ -1,0 +1,220 @@
+{
+  "candidate": {
+    "sha256": "854d5ca02276afc9f2485f9b9567ad701515ee2a33330bb7a06598ab2a7a8c61",
+    "size_budget_bytes": 524288,
+    "size_bytes": 432248,
+    "within_size_budget": true
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "fault_cases": [
+    {
+      "baseline_advanced": true,
+      "compared_entry_count": 2,
+      "delivery_outcomes": [
+        "exit_nonzero",
+        "success"
+      ],
+      "exit_status": 2,
+      "id": "f01-partial-delivery-is-visible-and-absorbed",
+      "passed": true,
+      "repeat_events": []
+    },
+    {
+      "baseline_unchanged": true,
+      "compared_entry_count": 1,
+      "exit_status": 70,
+      "fatal_class": "dependency",
+      "id": "f02-missing-uci-is-visible-and-preserves-baseline",
+      "passed": true
+    },
+    {
+      "baseline_unchanged": true,
+      "compared_entry_count": 1,
+      "exit_status": 75,
+      "id": "f03-hung-delivery-times-out-with-retryable-baseline",
+      "passed": true,
+      "retry_events": [
+        "alpha"
+      ]
+    },
+    {
+      "compared_entry_count": 1,
+      "empty_baseline_entry": true,
+      "exit_status": 0,
+      "id": "f04-malformed-uci-remains-compatible-but-visible",
+      "normalization_trace_present": true,
+      "passed": true
+    },
+    {
+      "baseline_unchanged_while_locked": true,
+      "compared_entry_count": 1,
+      "first_exit_status": 0,
+      "id": "f05-concurrent-run-is-rejected",
+      "passed": true,
+      "second_exit_status": 75
+    },
+    {
+      "baseline_unchanged": true,
+      "compared_entry_count": 1,
+      "exit_status": 75,
+      "id": "f06-sigterm-cancels-with-retryable-baseline",
+      "passed": true
+    }
+  ],
+  "gate": {
+    "all_11_reference_cases_passed": true,
+    "baseline_bytes_equivalent": true,
+    "delivery_results_observable": true,
+    "event_sets_equivalent": true,
+    "fault_cases_passed": true,
+    "passed": true,
+    "within_size_budget": true
+  },
+  "method": {
+    "candidate_and_reference_inputs_are_identical": true,
+    "delivery_adapter": "test-only /bin/ubus shim in disposable rootfs",
+    "device_access": false,
+    "device_writes": false,
+    "digest_tool": "exact image BusyBox md5sum",
+    "normalizer": "exact image /sbin/uci",
+    "rootfs_copy_is_disposable": true
+  },
+  "recorded_at": "2026-08-31T12:47:45Z",
+  "reference_cases": [
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [],
+      "compared_entry_count": 0,
+      "evidence": "DEP",
+      "id": "c01-first-run-emits-nothing",
+      "passed": true,
+      "reference_events": [],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [
+        "dhcp"
+      ],
+      "compared_entry_count": 2,
+      "evidence": "DEP",
+      "id": "c02-modified-config-emits",
+      "passed": true,
+      "reference_events": [
+        "dhcp"
+      ],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [],
+      "compared_entry_count": 2,
+      "evidence": "DEP",
+      "id": "c03-new-config-is-silent",
+      "passed": true,
+      "reference_events": [],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [
+        "network"
+      ],
+      "compared_entry_count": 2,
+      "evidence": "SRC",
+      "id": "c04-deleted-config-emits-once",
+      "passed": true,
+      "reference_events": [
+        "network"
+      ],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [],
+      "compared_entry_count": 0,
+      "evidence": "RUN",
+      "id": "c05-dotted-name-yields-empty-entry",
+      "passed": true,
+      "reference_events": [],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [],
+      "compared_entry_count": 2,
+      "evidence": "RUN",
+      "id": "c06-dotted-name-change-never-emits",
+      "passed": true,
+      "reference_events": [],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [
+        "dhcp.bak-x"
+      ],
+      "compared_entry_count": 2,
+      "evidence": "SRC",
+      "id": "c07-dotted-rename-to-valid-becomes-live",
+      "passed": true,
+      "reference_events": [
+        "dhcp.bak-x"
+      ],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [
+        "dhcp"
+      ],
+      "compared_entry_count": 1,
+      "evidence": "SRC",
+      "id": "c08-var-run-uci-takes-precedence",
+      "passed": true,
+      "reference_events": [
+        "dhcp"
+      ],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [],
+      "compared_entry_count": 1,
+      "evidence": "DEP",
+      "id": "c09-comment-only-change-is-invisible",
+      "passed": true,
+      "reference_events": [],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [],
+      "compared_entry_count": 3,
+      "evidence": "DEP",
+      "id": "c10-switchover-must-be-silent",
+      "passed": true,
+      "reference_events": [],
+      "trace_delivery_equivalent": true
+    },
+    {
+      "baseline_byte_equivalent": true,
+      "candidate_events": [],
+      "compared_entry_count": 0,
+      "evidence": "SRC",
+      "id": "c11-dotted-name-can-resolve-section",
+      "passed": true,
+      "reference_events": [],
+      "trace_delivery_equivalent": true
+    }
+  ],
+  "schema_version": 1,
+  "source_artifacts": {
+    "bin/busybox": "54d4139265132254e5601cb65d8617a928d5d5867c044ef701d53b973daafe09",
+    "bin/ubus": "9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb",
+    "sbin/reload_config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "sbin/uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+  },
+  "stage": "R1.2",
+  "status": "complete"
+}

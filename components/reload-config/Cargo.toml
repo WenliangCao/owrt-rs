@@ -1,0 +1,19 @@
+[package]
+name = "owrt-reload-config"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+license = "MIT OR Apache-2.0"
+description = "Contract C1-01 compatible OpenWrt config change dispatcher"
+publish = false
+
+[[bin]]
+name = "reload-config-rs"
+path = "src/main.rs"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+panic = "abort"
+strip = true

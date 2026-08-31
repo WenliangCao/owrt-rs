@@ -187,7 +187,7 @@
 |---|---|
 | 目标 | `aarch64_cortex-a53`，musl |
 | 兼容版本 | OpenWrt 25.12.5 `r33051-f5dae5ece4`，busybox 1.37.0，uci `66127cd7` |
-| 体积预算 | 现有实现 17 行 shell；替换实现不得超过 OpenWrt 同类单用途工具的量级，具体阈值在 R1 定 |
+| 体积预算 | R1 冻结为 **512 KiB** 的 stripped AArch64 静态 ELF；当前产物 432,248 bytes |
 | 运行频率 | 每次启动一次，加每次配置提交一次 |
 
 ## 8. 明确保持未定义的行为
@@ -223,3 +223,7 @@ RK-01 要求：**替换实现必须先让"变更已送达"可观测，再改变�
 
 R1.1 的精确 rootfs oracle、golden traces 与故障观察见
 [R1_REFERENCE_ORACLE.md](../../reports/ax3000t-stock-openwrt-25.12.5/R1_REFERENCE_ORACLE.md)。
+
+R1.2 候选用同一精确 rootfs 的真实 `uci` 与 BusyBox `md5sum` 对跑：11/11 用例的事件
+顺序、事件集合和完整基线字节均与原实现一致；6/6 故障注入通过。见
+[R1_IMPLEMENTATION.md](../../reports/ax3000t-stock-openwrt-25.12.5/R1_IMPLEMENTATION.md)。

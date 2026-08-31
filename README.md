@@ -109,8 +109,8 @@ OQ-01/OQ-07 的关闭证据与四阶段审查见
 "可以用 Rust 写"。事件投递 oracle 仍由 RK-01 阻塞。
 
 I0 follow-up 已关闭 OQ-01 与 OQ-07：rcS 顺序/失败传播已确定，设备当前 DHCP/firewall
-配置也已脱敏审查，可作为固定当前配置的 C1 oracle。下一步是 C1；剩余前置条件只有 RK-01
-（先让"变更已送达"可观测）。**C1 通过前不创建任何替代组件 crate。**
+配置也已脱敏审查，可作为固定当前配置的 C1 oracle。当时剩余前置条件只有 RK-01
+（先让"变更已送达"可观测），并且严格保持了 **C1/R1.1 门通过前不创建替代 crate** 的顺序。
 
 **C1 已完成：第一个兼容合同 C1-01 已冻结**，对象是 I0 唯一的替换候选 R05
 配置变更检测与分发。合同见
@@ -125,10 +125,22 @@ tuple 均无法解析并产出空基线条目，因此只要 tuple 继续不存�
 合同要求**复刻**这些行为——把当前 7 个空条目改成读取备份文件内容会改变 procd trigger 的触发面，
 那是行为变更而不是兼容实现。
 
-下一步是 R1，但必须先按合同 §9 让投递结果可观测并证明新旧事件集合相同，
-之后才实现最小 Rust 切片。**在此之前仍不创建任何替代组件 crate。**
-
 **R1.1 可观测 oracle 已通过。** 精确镜像 rootfs 中的原始 17 行实现通过 11 个合同用例
 和 4 个故障场景；每轮比较数、变更条目与逐条 ubus 调用结果已经可观察。报告见
 [R1_REFERENCE_ORACLE.md](reports/ax3000t-stock-openwrt-25.12.5/R1_REFERENCE_ORACLE.md)。
-这一门通过后，下一提交才允许创建唯一的 R05 Rust crate；仍不授权部署或切换设备调用方。
+这一门先以独立 commit 固化，之后才创建唯一的 R05 crate。
+
+**R1 已完成并通过 gate。** 最小实现位于
+[components/reload-config](components/reload-config/)，没有第三方 crate，也没有通用框架。
+它继续使用精确系统 `uci` 做规范化、BusyBox `md5sum` 保持共享基线，只把扫描/比较/顺序、
+子进程边界和 JSONL 可观测性显式化。目标 AArch64 静态 binary 为 432,248 bytes，低于
+512 KiB 的 R1 预算。
+
+在服务器的一次性精确 rootfs 中，候选与原实现 **11/11** 合同案例的事件顺序、事件集合和
+完整基线字节一致；部分投递失败、依赖消失、超时、畸形 UCI、并发与 SIGTERM 共 **6/6**
+故障案例通过。审查见
+[R1_IMPLEMENTATION.md](reports/ax3000t-stock-openwrt-25.12.5/R1_IMPLEMENTATION.md)，机器记录见
+[r1-candidate.json](manifests/ax3000t-stock-openwrt-25.12.5/r1-candidate.json)。
+
+下一阶段是 V1：使用匹配 OpenWrt SDK 建立默认禁用的 package 与显式切换机制，并做隔离
+集成验证。当前实现未安装、未改变任何调用方，也未访问路由器；物理设备 H1 仍需新的明确授权。
