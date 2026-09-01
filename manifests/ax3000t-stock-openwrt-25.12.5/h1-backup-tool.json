@@ -1,0 +1,64 @@
+{
+  "artifact": {
+    "abi": {
+      "architecture": "AArch64",
+      "elf_class": "ELF64",
+      "executable_stack": false,
+      "interpreter": "/lib/ld-musl-aarch64.so.1",
+      "needed": [
+        "libc.so",
+        "libgcc_s.so.1"
+      ],
+      "relro": true,
+      "type": "EXEC"
+    },
+    "name": "nanddump",
+    "sha256": "21d7c3daa9e792a9b892af956ce64c59c4588c99eb7084b93ef5ee6f4bd47b92",
+    "size_bytes": 28677,
+    "source_path": "/usr/sbin/nanddump"
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "extraction": {
+    "apk_tool": "apk-tools 3.0.5 from the OpenWrt 25.12.5 mediatek/filogic SDK",
+    "direct_apk_verify_result": "UNTRUSTED signature; expected because package trust is bound to the signed repository index, not a standalone APK signature",
+    "method": "trusted repository install into a disposable usermode root, scripts disabled; retain nanddump only",
+    "package_file_entry_hash_matched": true,
+    "repository_install_allow_untrusted": false,
+    "repository_install_passed": true
+  },
+  "limitations": [
+    "The target image does not contain /usr/sbin/nanddump; H1-RO-08 will reconfirm the runtime state.",
+    "No binary or APK was transferred to or executed on the router.",
+    "H1.2 must still approve the exact nanddump flags and explain NMBM/OOB output-size semantics.",
+    "Destructive sibling tools from nand-utils (flash_erase, nandwrite, nandtest and nandbiterrs) are not admitted for transfer."
+  ],
+  "package": {
+    "arch": "aarch64_cortex-a53",
+    "depends": [
+      "libc"
+    ],
+    "file_size_from_signed_index": 55459,
+    "filename": "nand-utils-2.3.0-r1.apk",
+    "license": "GPLv2",
+    "origin": "feeds/base/utils/mtd-utils",
+    "sha256": "a889a18c410b464dd0ec1538b0595d0566c921a16bd3dbeaf2b7f75a6efbcbca",
+    "url": "https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/nand-utils-2.3.0-r1.apk",
+    "version": "2.3.0-r1"
+  },
+  "recorded_at": "2026-09-01",
+  "repository": {
+    "index_sha256": "92a21556949408177649e0030f303cbc2771d98386cfe1d5e11a6c200ebc1f72",
+    "index_signature": "verified with the exact image /etc/apk/keys/openwrt-25.12.pem",
+    "index_url": "https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/packages/packages.adb",
+    "package_entry_present": true
+  },
+  "schema_version": 1,
+  "scope": {
+    "device_execution": false,
+    "device_transfer": false,
+    "device_writes": false,
+    "private_storage": "read-only private evidence outside Git"
+  },
+  "stage": "H1.0",
+  "status": "prepared_not_authorized_for_device"
+}

@@ -1,0 +1,129 @@
+{
+  "authorization": {
+    "collector_approved": false,
+    "device_access_approved": false,
+    "h1_1a_approved": false,
+    "h1_1b_approved": false,
+    "note": "H1.0 freezes commands only. SSH and each command batch require a new explicit authorization."
+  },
+  "batches": [
+    {
+      "commands": [
+        {
+          "command": "cat /etc/openwrt_release /tmp/sysinfo/board_name /tmp/sysinfo/model /proc/sys/kernel/osrelease; ubus call system board",
+          "expected_status": 0,
+          "id": "H1-RO-00",
+          "review": "Plain metadata reads plus procd system_board, whose fixed-source implementation reads uname/proc/release/sysinfo only.",
+          "timeout_s": 10
+        },
+        {
+          "command": "sha256sum /sbin/reload_config; awk '$5 == \"/sbin/reload_config\" { print }' /proc/self/mountinfo; for path in /usr/sbin/reload_config_rs /usr/sbin/owrt-reload-config-switch; do if [ -e \"$path\" ]; then sha256sum \"$path\"; else printf '%s absent\\n' \"$path\"; fi; done",
+          "expected_status": 0,
+          "id": "H1-RO-01",
+          "review": "Hashes files and reads mountinfo; it does not invoke the switch or mutate a mount.",
+          "timeout_s": 10
+        },
+        {
+          "command": "cat /proc/cmdline /proc/mtd /proc/mounts",
+          "expected_status": 0,
+          "id": "H1-RO-02",
+          "review": "Procfs metadata read; no MTD payload is opened.",
+          "timeout_s": 5
+        },
+        {
+          "command": "for path in /sys/class/mtd/mtd[0-9]*; do printf 'mtd=%s\\n' \"${path##*/}\"; for field in name size erasesize writesize type; do printf '%s=' \"$field\"; cat \"$path/$field\"; done; done",
+          "expected_status": 0,
+          "id": "H1-RO-03",
+          "review": "Reads sysfs MTD label and geometry only; it does not open /dev/mtdX.",
+          "timeout_s": 10
+        },
+        {
+          "command": "ubinfo -a",
+          "expected_status": 0,
+          "id": "H1-RO-04",
+          "review": "ubi-utils information command; reports attached UBI devices and volume metadata without update/create/remove ioctls.",
+          "timeout_s": 15
+        },
+        {
+          "command": "for path in /sys/bus/mdio_bus/devices/*/driver /sys/bus/spi/devices/*/driver; do [ -L \"$path\" ] || continue; printf '%s=' \"$path\"; readlink \"$path\"; done",
+          "expected_status": 0,
+          "id": "H1-RO-05",
+          "review": "Reads driver symlink targets to identify the runtime NAND/switch variants.",
+          "timeout_s": 10
+        },
+        {
+          "command": "dmesg | grep -Ei 'nmbm|spi.?nand|ubi|bad block|ecc|mt7531|an8855' || :",
+          "expected_status": 0,
+          "id": "H1-RO-06",
+          "review": "Reads and filters the kernel ring buffer; deliberately omits dmesg -c and retains raw output privately.",
+          "timeout_s": 10
+        },
+        {
+          "command": "df -Pk /overlay /tmp; df -Pi /overlay /tmp",
+          "expected_status": 0,
+          "id": "H1-RO-07",
+          "review": "Filesystem capacity and inode queries only.",
+          "timeout_s": 5
+        },
+        {
+          "command": "for name in ubinfo nanddump fw_printenv sha256sum tar sysupgrade; do printf '%s=' \"$name\"; command -v \"$name\" || :; done",
+          "expected_status": 0,
+          "id": "H1-RO-08",
+          "review": "Shell path lookup only; none of the discovered programs is executed.",
+          "timeout_s": 5
+        },
+        {
+          "command": "cat /lib/apk/db/installed",
+          "expected_status": 0,
+          "id": "H1-RO-09",
+          "review": "Reads the local APK database directly; no package-manager process, index write or network access.",
+          "timeout_s": 15
+        },
+        {
+          "command": "cat /etc/fw_env.config",
+          "expected_status": 0,
+          "id": "H1-RO-10",
+          "review": "Reads only the environment layout configuration. H1-RO-11 remains blocked until this is matched to /proc/mtd and exact source.",
+          "timeout_s": 5
+        }
+      ],
+      "id": "H1.1a",
+      "status": "not_authorized"
+    },
+    {
+      "commands": [
+        {
+          "command": "for name in boot_wait uart_en flag_boot_rootfs flag_last_success flag_boot_success flag_ota_reboot flag_try_sys1_failed flag_try_sys2_failed; do fw_printenv \"$name\" || :; done",
+          "expected_status": 0,
+          "id": "H1-RO-11",
+          "review": "Reads only eight exact-source boot variables after the fw_env layout review; never calls fw_setenv or dumps the complete environment.",
+          "timeout_s": 15
+        }
+      ],
+      "id": "H1.1b",
+      "requires": [
+        "H1.1a passed",
+        "observed /proc/mtd matches stock source",
+        "observed /etc/fw_env.config matches exact source",
+        "separate explicit authorization"
+      ],
+      "status": "not_authorized"
+    }
+  ],
+  "counts": {
+    "approved_commands": 0,
+    "commands": 12
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "method": {
+    "contacts_device": false,
+    "device_writes": false,
+    "emits_runnable_collector": false,
+    "raw_output_location": "private evidence directory outside Git",
+    "redaction_required": true
+  },
+  "recorded_at": "2026-09-01",
+  "schema_version": 1,
+  "stage": "H1.0",
+  "status": "commands_frozen_not_authorized"
+}

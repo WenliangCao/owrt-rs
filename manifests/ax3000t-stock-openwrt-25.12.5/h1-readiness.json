@@ -1,0 +1,238 @@
+{
+  "authorizations": {
+    "H1.0": {
+      "basis": "User requested work to begin. Per the project safety rule, this authorization was constrained to offline preparation only.",
+      "status": "completed"
+    },
+    "H1.1a": {
+      "scope": "fresh read-only identity and storage metadata",
+      "status": "not_authorized"
+    },
+    "H1.1b": {
+      "scope": "whitelisted fw_printenv reads after layout review",
+      "status": "not_authorized"
+    },
+    "H1.2": {
+      "scope": "private device-specific backup reads",
+      "status": "not_authorized"
+    },
+    "H1.3": {
+      "scope": "disruptive reboot and failsafe rehearsal",
+      "status": "not_authorized"
+    },
+    "H1.4": {
+      "scope": "candidate transfer and tmpfs-only shadow execution",
+      "status": "not_authorized"
+    },
+    "H1.5": {
+      "scope": "offline APK transfer and disabled overlay installation",
+      "status": "not_authorized"
+    },
+    "H1.6": {
+      "scope": "bounded reboot-volatile bind-mount canary",
+      "status": "not_authorized"
+    }
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "device_writes_allowed": false,
+    "firmware_flash_allowed": false,
+    "h1_0_offline_planning": true,
+    "h1_1a_read_only_observation": false,
+    "h1_1b_boot_environment_read": false,
+    "h1_2_private_backup": false,
+    "h1_3_recovery_rehearsal": false,
+    "h1_4_tmpfs_shadow": false,
+    "h1_5_disabled_install": false,
+    "h1_6_canary": false
+  },
+  "inputs": {
+    "backup_tool": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-backup-tool.json",
+      "sha256": "38496e4a1d1b526a4c9a1b15370baf567a836ca4db3f33d309c73dd382a64ec6"
+    },
+    "commands": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json",
+      "sha256": "f9971c6dab381f46ac4359e18e353ba8ce779013e2e2c4c0d5054f7993d90b8b"
+    },
+    "intake": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/intake.json",
+      "sha256": "a5a280e4bd9410fd529e227464a760b0f710d28bf16f99dddf9e2251565b25fd"
+    },
+    "read_only_plan": {
+      "path": "docs/H1_READ_ONLY_PLAN.md",
+      "sha256": "313c6b91743c7bc1f7bf8e0a82001516a322d330885fb8d6c8e7c09cf369fd28"
+    },
+    "runbook": {
+      "path": "docs/H1_RUNBOOK.md",
+      "sha256": "e70493c439abccaaa8bf13de0123023718033a28d85bf0daaca10eb4f0dee64b"
+    },
+    "runtime": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/runtime-observations.json",
+      "sha256": "2a5c726de53b5dac745ea166ef50533fd0083edd222bb5699bf9a8b5d4f38c2e"
+    },
+    "v1": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json",
+      "sha256": "7acd6d3cd26cec7aa7be32e71b6e617bbc739b0fbc1c9c0a4b4a8ae0ba62fb8d"
+    }
+  },
+  "offline_controls": [
+    {
+      "evidence": [
+        "intake.json",
+        "IMAGE_IDENTITY.md"
+      ],
+      "id": "exact_image_pinned",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "DEVICE_BUILD_RECIPE.md",
+        "PARTITION_EXPECTATION.md",
+        "H1_RUNBOOK.md section 2"
+      ],
+      "id": "stock_layout_exclusion",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "v1-validation.json",
+        "V1_VALIDATION.md"
+      ],
+      "id": "v1_gate_passed",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "H1_RUNBOOK.md section 1",
+        "h1-readiness.json authorizations"
+      ],
+      "id": "stage_authorization_boundary",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "H1_READ_ONLY_PLAN.md",
+        "h1-read-only-commands.json"
+      ],
+      "id": "read_only_commands_reviewed",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "H1_READ_ONLY_PLAN.md section 4",
+        ".gitignore"
+      ],
+      "id": "private_evidence_boundary",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "H1_RUNBOOK.md section 9",
+        "H1_READ_ONLY_PLAN.md section 3"
+      ],
+      "id": "stop_and_rollback_defined",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "H1_RUNBOOK.md sections 4-5"
+      ],
+      "id": "recovery_scope_separated",
+      "status": "verified"
+    },
+    {
+      "evidence": [
+        "h1-backup-tool.json",
+        "H1_RUNBOOK.md section 4"
+      ],
+      "id": "backup_tool_prepared",
+      "status": "verified"
+    }
+  ],
+  "open_prerequisites": [
+    {
+      "id": "physical_variant_and_sku",
+      "required_for": "H1.1a",
+      "status": "pending"
+    },
+    {
+      "id": "fresh_runtime_identity",
+      "required_for": "H1.1a",
+      "status": "pending"
+    },
+    {
+      "id": "storage_geometry_and_nmbm",
+      "required_for": "H1.1a",
+      "status": "pending"
+    },
+    {
+      "id": "overlay_headroom",
+      "required_for": "H1.1a",
+      "status": "pending"
+    },
+    {
+      "id": "boot_environment_branch",
+      "required_for": "H1.1b",
+      "status": "pending"
+    },
+    {
+      "id": "known_good_artifacts_offline",
+      "required_for": "H1.2",
+      "status": "pending"
+    },
+    {
+      "id": "private_device_backups",
+      "required_for": "H1.2",
+      "status": "pending"
+    },
+    {
+      "id": "independent_backup_copies",
+      "required_for": "H1.2",
+      "status": "pending"
+    },
+    {
+      "id": "wired_independent_management",
+      "required_for": "H1.3",
+      "status": "pending"
+    },
+    {
+      "id": "power_cycle_rehearsal",
+      "required_for": "H1.3",
+      "status": "pending"
+    },
+    {
+      "id": "failsafe_rehearsal",
+      "required_for": "H1.3",
+      "status": "pending"
+    },
+    {
+      "id": "tmpfs_shadow",
+      "required_for": "H1.4",
+      "status": "pending"
+    },
+    {
+      "id": "disabled_install",
+      "required_for": "H1.5",
+      "status": "pending"
+    },
+    {
+      "id": "canary_window",
+      "required_for": "H1.6",
+      "status": "pending"
+    }
+  ],
+  "recorded_at": "2026-09-01",
+  "schema_version": 1,
+  "scope": {
+    "device_contact": false,
+    "device_writes": false,
+    "firmware_flash": false,
+    "package_install": false,
+    "package_transfer": false,
+    "router_reboot": false,
+    "runtime_mount_change": false
+  },
+  "stage": "H1.0",
+  "status": "complete_offline_only"
+}
