@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：H1.1a 设备只读准入完成并通过 gate；H1.1b 未授权
-> 版本：1.5
+> 状态：H1.1a/H1.1b 只读准入完成；H1.2 未授权
+> 版本：1.6
 > 日期：2026-09-01
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -185,7 +185,7 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | C1 | 冻结第一个兼容合同和参考 oracle | 完成：C1-01，11 个参考用例 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 完成：11/11 差分、6/6 故障、gate 通过 | 否 |
 | V1 | release-matched 集成和差分验证 | 完成：匹配 SDK package、11/11 + 6/6 差分/故障、4 项 V1 注入、gate 通过 | 否 |
-| H1 | 物理设备准入和 canary | H1.1a 只读准入完成；H1.1b 未授权 | 当前否；后续逐阶段决定 |
+| H1 | 物理设备准入和 canary | H1.1a/H1.1b 只读准入完成；H1.2 未授权 | 当前否；后续逐阶段决定 |
 | N1 | 按同一闭环处理下一个职责 | 阻塞于 H1 结论 | 另行决定 |
 
 ## 7. L0：计划前置探索
@@ -918,14 +918,16 @@ R1.1 在一次性精确 rootfs chroot 中执行原 `/sbin/reload_config`，只�
 
 H1 需要新的明确请求和授权。I0–V1 完成不自动授权 H1。
 
-H1.0 已在不连接设备的前提下完成；H1.1a 随后经单独授权执行并通过。准入与恢复 runbook、两批只读命令、matching-feed
+H1.0 已在不连接设备的前提下完成；H1.1a 与 H1.1b 随后分别经单独授权执行并通过。准入与
+恢复 runbook、两批只读命令、matching-feed
 `nanddump` 备份工具、私有证据边界、停止条件和机器 gate 见
 [H1_RUNBOOK.md](H1_RUNBOOK.md)、
 [H1_READ_ONLY_PLAN.md](H1_READ_ONLY_PLAN.md) 与
-[H1_READINESS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_READINESS.md) 与
-[H1_1A_OBSERVATIONS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1A_OBSERVATIONS.md)。
-H1.1a gate 只证明只读身份/存储准入闭合；H1.1b、备份、reboot/failsafe、tmpfs shadow、APK
-安装、canary、device write 和 firmware flash 仍全部为 false。
+[H1_READINESS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_READINESS.md)、
+[H1_1A_OBSERVATIONS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1A_OBSERVATIONS.md)、
+[H1_1B_BOOT_FLAGS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1B_BOOT_FLAGS.md)。H1.1 gate
+只证明只读身份/存储/boot branch 准入闭合；备份、reboot/failsafe、tmpfs shadow、APK 安装、
+canary、device write 和 firmware flash 仍全部为 false。
 
 进入物理设备写入、安装或 canary 以前必须证明；其中缺失的运行态事实只能通过另行授权的
 H1.1 只读观察补齐：
@@ -1009,9 +1011,11 @@ interface discovery
     和机器 gate。
 12. [x] 经用户单独授权完成 H1.1a：11/11 只读命令、stock MTD/NMBM/UBI、空间、工具与
     package drift gate 全部通过，零设备写入。
-13. [ ] H1.1b 尚未授权；其八个白名单 boot flag 读取不得继承 H1.1a 授权。
+13. [x] 经用户单独授权完成 H1.1b：八个白名单变量全部存在，active rootfs 与 cmdline 一致，
+    OpenWrt bootcount 分支闭合；H1-OQ-01 保留为不阻断只读备份的 bootloader 语义未知项。
+14. [ ] H1.2 尚未授权；私有设备备份不得继承 H1.1b 授权。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
 manager、SquashFS rootfs、R05 合同、可观测 reference oracle、最小 Rust 进程边界、匹配 SDK
 package 和重启即失的显式切换机制。H1 的物理准入顺序、recovery runbook 与首个 canary 范围
-已经冻结；H1.1a 现场证据已取得，仍未取得的是 H1.1b 以后各阶段的现场证据与逐项授权。
+已经冻结；H1.1a/H1.1b 现场证据已取得，仍未取得的是 H1.2 以后各阶段的现场证据与逐项授权。

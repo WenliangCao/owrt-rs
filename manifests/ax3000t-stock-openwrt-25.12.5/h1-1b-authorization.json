@@ -1,0 +1,57 @@
+{
+  "approved_command_ids": [
+    "H1-RO-11"
+  ],
+  "authorization": {
+    "basis": "User explicitly requested the next stage on 2026-09-01 after H1.1b was named as the next separately authorized stage.",
+    "single_run": true,
+    "status": "approved"
+  },
+  "command": {
+    "id": "H1-RO-11",
+    "sha256": "cbf3b3ad9b3e22685cbf5e1ef2a1e35891aee2daa1cfd8c7d92b7018bfaeab48"
+  },
+  "command_plan": {
+    "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json",
+    "sha256": "ab37f0c8c4ac37ceb392bebe78dd0f460bca83bf83d2532a46436aa1af5b3b65"
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "preconditions": {
+    "h1_1a_observations": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-1a-observations.json",
+      "sha256": "f6f51c1c8f675b8fc4fdd992b232ad27bc238e2b4d61d53a563f3a3d89a7e1b9"
+    },
+    "h1_1a_passed": true,
+    "h1_1b_layout_precondition_passed": true,
+    "source_baseline": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/source-baseline.json",
+      "sha256": "0601e0a2f160a2deadce26f4453ac3d0307bec8f0aeebb26dbcd69e40adfdc1d"
+    }
+  },
+  "recorded_at": "2026-09-01",
+  "schema_version": 1,
+  "scope": {
+    "approved_variable_count": 8,
+    "boot_environment_read": true,
+    "complete_environment_read": false,
+    "device_writes": false,
+    "firmware_flash": false,
+    "package_install": false,
+    "package_transfer": false,
+    "raw_mtd_payload_read": false,
+    "router_reboot": false,
+    "service_or_network_change": false
+  },
+  "stage": "H1.1b",
+  "status": "consumed_complete",
+  "variables": [
+    "boot_wait",
+    "uart_en",
+    "flag_boot_rootfs",
+    "flag_last_success",
+    "flag_boot_success",
+    "flag_ota_reboot",
+    "flag_try_sys1_failed",
+    "flag_try_sys2_failed"
+  ]
+}

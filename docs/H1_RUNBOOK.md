@@ -1,19 +1,20 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.1a 只读准入通过；H1.1b 及后续阶段未授权
+> 状态：H1.1a/H1.1b 只读准入通过；H1.2 及后续阶段未授权
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
 ## 1. 本轮结论
 
-H1 不是“把 APK 装上试试”，而是一组互不继承授权的 gate。H1.1a 已用 11 条只读命令完成
-身份、存储、空间和工具观察；没有写入、上传、安装、重启或 mount。对本项目的 R05 canary，
-不需要也不允许刷 firmware；候选默认禁用，最终切换是 RAM 中的 bind mount，重启即失。
+H1 不是“把 APK 装上试试”，而是一组互不继承授权的 gate。H1.1a/H1.1b 已用 12 条只读命令
+完成身份、存储、空间、工具和白名单 boot flag 观察；没有写入、上传、安装、重启或 mount。
+对本项目的 R05 canary，不需要也不允许刷 firmware；候选默认禁用，最终切换是 RAM 中的
+bind mount，重启即失。
 
 ```text
 H1.0 离线准入设计（已完成）
   → H1.1a 只读身份/存储元数据（已完成）
-  → H1.1b 白名单 boot flags
+  → H1.1b 白名单 boot flags（已完成，1 个受限开放问题）
   → H1.2 私有备份验收
   → H1.3 恢复演练
   → H1.4 tmpfs shadow
@@ -61,6 +62,11 @@ H1.0 离线准入设计（已完成）
 - H1.1b 只读的 boot flags 能解释当前 stock 双固件 slot 分支，且没有触发写入。
 
 本 gate 失败时设备仍未被修改。不要安装工具来补命令；缺少工具本身就是观察结果。
+
+H1.1b 已确认：八个白名单变量全部可读，active rootfs 与 cmdline 一致，exact OpenWrt
+`bootcount` 走 early-exit 分支。H1-OQ-01 保留一个 bootloader-owned counter 的未知转换语义；
+由于 OpenWrt 没有读取该 counter 的 caller，它不阻断 H1.2 只读备份，但继续阻断所有 boot
+flag 写入、slot switch 和 firmware upgrade。
 
 ## 4. H1.2：私有备份验收
 

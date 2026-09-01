@@ -1,6 +1,6 @@
 # H1 物理设备只读观察计划
 
-> 状态：H1.1a 已完成并通过；H1.1b 未授权
+> 状态：H1.1a/H1.1b 已完成；H1.1b 带一个受限开放问题通过
 > 目标：Xiaomi Mi Router AX3000T，stock layout，OpenWrt 25.12.5
 > 机器清单：
 > [h1-read-only-commands.json](../manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json)
@@ -9,7 +9,7 @@
 
 本计划只补齐物理准入需要的身份、存储元数据、空间和恢复前提。它不是部署授权。
 
-- H1.1a 的单次授权已经消费完毕，不自动延续到 H1.1b 或其他阶段；
+- H1.1a/H1.1b 的单次授权均已消费完毕，不自动延续到 H1.2 或其他阶段；
 - 不安装 package，不上传文件，不创建临时文件，不重启，不改变服务或网络；
 - 不读取 MTD/UBI payload、校准、MAC、密钥或配置内容；
 - 原始输出只进入仓库外的私有 evidence 目录；Git 只接收脱敏派生结论；
@@ -66,6 +66,12 @@ flag_try_sys2_failed
 这些名称来自固定 revision 的 AX3000T `bootcount` 与 `xiaomi_initial_setup`。本批明确禁止
 `fw_setenv`、`nvram set/commit` 和任何 MTD write。输出只保留“存在/缺失、值是否符合源码
 定义域、active branch 推断”，不保留其他 environment。
+
+2026-09-01 已完成 H1-RO-11：八个变量全部存在，当前 rootfs 分支与 kernel cmdline 一致，
+OpenWrt `bootcount` 会走不写 environment 的 early-exit 分支。一个 failure counter 的值超出
+exact OpenWrt source 会写入的 0/8 集合；exact source 没有读取它的 OpenWrt caller，因此记为
+H1-OQ-01，只阻断 boot-flag mutation、slot switching 和 firmware upgrade，不阻断 H1.2 的
+只读私有备份准备。原值只保留在 Git 外。
 
 ## 3. 逐批停止条件
 

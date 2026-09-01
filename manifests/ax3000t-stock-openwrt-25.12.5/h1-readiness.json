@@ -61,11 +61,11 @@
     },
     "read_only_plan": {
       "path": "docs/H1_READ_ONLY_PLAN.md",
-      "sha256": "97a90e911d60f38036b539372f851452c85bde6b7e4e3be7d4ac98c429b24f00"
+      "sha256": "8ababbcfb29e1df1bf7d66fe05c29b9658900f0f52d0aee1bec15829419367db"
     },
     "runbook": {
       "path": "docs/H1_RUNBOOK.md",
-      "sha256": "988b8cdd374977fe12bb73e1983255b2bc2dc1f102ff719a6e3fb40addffce8f"
+      "sha256": "d96a3b0e400a144239be218fa339d87aa70859bbfb53ae7b96d37ae0f12e3c0e"
     },
     "runtime": {
       "path": "manifests/ax3000t-stock-openwrt-25.12.5/runtime-observations.json",

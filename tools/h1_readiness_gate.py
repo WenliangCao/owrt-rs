@@ -96,7 +96,7 @@ REQUIRED_RUNBOOK_MARKERS = (
     "不因 canary 失败自动进入 TFTP、UART、sysupgrade 或 raw flash",
 )
 REQUIRED_READ_ONLY_MARKERS = (
-    "H1.1a 的单次授权已经消费完毕",
+    "H1.1a/H1.1b 的单次授权均已消费完毕",
     "H1.1a：只读身份与元数据",
     "H1.1b：白名单 U-Boot 环境读取",
     "明确不在本计划内",

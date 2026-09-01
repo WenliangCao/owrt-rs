@@ -1,0 +1,115 @@
+{
+  "authorization": {
+    "approved": true,
+    "authorization_manifest_sha256": "89a60cb6e61a9f05eb1b7b715891f9ee2b4d8f32dc1463aec2545ff8338f094c",
+    "command_id": "H1-RO-11",
+    "command_plan_sha256": "ab37f0c8c4ac37ceb392bebe78dd0f460bca83bf83d2532a46436aa1af5b3b65",
+    "command_sha256": "cbf3b3ad9b3e22685cbf5e1ef2a1e35891aee2daa1cfd8c7d92b7018bfaeab48",
+    "single_run_consumed": true
+  },
+  "collection": {
+    "command_count": 1,
+    "ended_at": "2026-09-01T07:39:04Z",
+    "raw_evidence_committed": false,
+    "started_at": "2026-09-01T07:39:04Z",
+    "stderr_empty": true,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_sha256": "6a9b850529bd2f473130c8ae530bbb0dddb894a67ed0ad4ae56e03a0f99b96e5",
+    "successful_commands": 1
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "boot_branch_explained_for_openwrt_callers": true,
+    "bootloader_counter_semantics_complete": false,
+    "device_writes_allowed": false,
+    "firmware_flash_allowed": false,
+    "h1_1a_read_only_observation": true,
+    "h1_1b_boot_environment_read": true,
+    "h1_1b_whitelist_complete": true,
+    "h1_2_private_backup": false,
+    "h1_3_recovery_rehearsal": false,
+    "h1_4_tmpfs_shadow": false,
+    "h1_5_disabled_install": false,
+    "h1_6_canary": false
+  },
+  "observations": {
+    "active_rootfs_matches_kernel_command_line": true,
+    "active_rootfs_slot": 0,
+    "all_whitelisted_variables_present": true,
+    "boot_success_asserted": true,
+    "boot_wait_enabled": true,
+    "bootcount_early_exit_branch": true,
+    "last_success_asserted": true,
+    "ota_reboot_clear": true,
+    "system_1_counter_matches_openwrt_written_values": false,
+    "system_1_counter_numeric": true,
+    "system_2_counter_matches_openwrt_sentinel": true,
+    "uart_enabled": true,
+    "unapproved_variables_observed": false
+  },
+  "open_questions": [
+    {
+      "blocks": [
+        "boot-flag mutation",
+        "slot switching",
+        "firmware upgrade"
+      ],
+      "does_not_block": [
+        "H1.2 read-only private backup preparation"
+      ],
+      "id": "H1-OQ-01",
+      "raw_value_committed": false,
+      "statement": "The system-1 failure counter is numeric but outside the values written by the exact OpenWrt source. No exact-source OpenWrt caller reads this variable; bootloader ownership and transition semantics remain unknown.",
+      "status": "open_scoped"
+    }
+  ],
+  "recorded_at": "2026-09-01",
+  "redaction": {
+    "approved_variable_names_committed": true,
+    "asserted": true,
+    "raw_output_location": "private evidence outside Git",
+    "raw_values_committed": false
+  },
+  "schema_version": 1,
+  "scope": {
+    "boot_environment_values_read": true,
+    "complete_environment_read": false,
+    "device_contact": true,
+    "device_writes": false,
+    "firmware_flash": false,
+    "package_install": false,
+    "package_transfer": false,
+    "raw_mtd_payload_read": false,
+    "router_reboot": false,
+    "runtime_mount_change": false,
+    "service_or_network_change": false
+  },
+  "source_contract": {
+    "bootcount_lines": "6-24",
+    "bootcount_path": "target/linux/mediatek/filogic/base-files/etc/init.d/bootcount",
+    "bootcount_sha256": "fe6e18a37531de608315c592b39f36da1a9c68e9f108aa5f5af152a42e9b27e3",
+    "buildroot_commit": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "counter_values_written_by_openwrt": [
+      0,
+      8
+    ],
+    "openwrt_reads": [
+      "flag_try_sys2_failed"
+    ],
+    "openwrt_writes": [
+      "boot_wait",
+      "uart_en",
+      "flag_boot_rootfs",
+      "flag_last_success",
+      "flag_boot_success",
+      "flag_ota_reboot",
+      "flag_try_sys1_failed",
+      "flag_try_sys2_failed"
+    ],
+    "platform_lines": "48-90",
+    "platform_path": "target/linux/mediatek/filogic/base-files/lib/upgrade/platform.sh",
+    "platform_sha256": "72c75ab0ee140e4f543fa0c30becb265f529ec87657961803f981bbf96f3dc7f"
+  },
+  "stage": "H1.1b",
+  "status": "passed_with_open_question"
+}
