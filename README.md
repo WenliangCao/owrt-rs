@@ -157,5 +157,8 @@ H1 已完成无拆机边界重规划。用户只提供 Wi-Fi、Ethernet 和现�
 主板测试点、raw NAND 和刷机永久退出当前执行路径。H1.2/H1.3b 保留为未执行的历史 false
 gate，不再错误阻断只涉及 R05 tmpfs 状态的验证。报告见
 [H1_NO_DISASSEMBLY_REPLAN.md](reports/ax3000t-stock-openwrt-25.12.5/H1_NO_DISASSEMBLY_REPLAN.md)，
-决策见 [0006](docs/decisions/0006-use-a-no-disassembly-device-validation-profile.md)。下一阶段仅是
-H1.4 offline preflight：冻结 SSH/tmpfs shadow harness；仍不授权连接、传输或执行设备命令。
+决策见 [0006](docs/decisions/0006-use-a-no-disassembly-device-validation-profile.md)。H1.4 offline
+preflight 已冻结并验证 SSH/tmpfs shadow harness，见
+[H1_4_PREFLIGHT.md](reports/ax3000t-stock-openwrt-25.12.5/H1_4_PREFLIGHT.md)。它纠正了 synthetic
+package 新增应保持静默、修改才发事件的三步序列。本轮用户已明确授权一个真实设备 shadow
+run；上限仍是固定 `/tmp` 路径和 fake ubus，不安装、mount、重启或刷写。

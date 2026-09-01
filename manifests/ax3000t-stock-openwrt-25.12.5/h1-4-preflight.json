@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "authorization": {
+    "basis": "The user explicitly challenged device-free progress, asked for a wider span and requested continuation after stating that Ethernet or Wi-Fi plus the existing OpenWrt access are the only permitted device paths.",
+    "device_contact_authorized": true,
+    "device_execution_authorized": true,
+    "device_transfer_authorized": true,
+    "h1_4_device_run_authorized": true,
+    "scope_limit": "H1.4 fixed-path SSH transfer and tmpfs shadow execution only",
+    "separate_h1_5_authorization_required": true
+  },
+  "candidate": {
+    "local_private_mode": "0500",
+    "local_private_path": "private/h1-4-20260901/reload_config_rs",
+    "sha256": "b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75",
+    "size_bytes": 346531,
+    "source": "exact file installed by the V1 APK in an isolated OpenWrt 25.12.5 rootfs"
+  },
+  "contract_sequence": [
+    {
+      "expected_events": [],
+      "id": "run1-shared-baseline",
+      "operation": "run the candidate on copied live config, UCI overlay and baseline",
+      "required_baseline_result": "byte-identical"
+    },
+    {
+      "expected_events": [],
+      "id": "run2-creation-silent",
+      "operation": "create h1_shadow_probe only in the shadow config tree and run the candidate",
+      "required_baseline_result": "advanced-in-shadow"
+    },
+    {
+      "expected_events": [
+        "h1_shadow_probe"
+      ],
+      "id": "run3-modification-event",
+      "operation": "modify h1_shadow_probe only in the shadow config tree and run the candidate",
+      "required_delivery": "one exact fake-ubus call"
+    }
+  ],
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "candidate_identity": true,
+    "cleanup_frozen": true,
+    "contract_sequence_review": true,
+    "exact_busybox_ash_syntax": true,
+    "h1_4_device_run": false,
+    "h1_4_offline_preflight": true,
+    "router_contact_during_preflight": false,
+    "script_identity": true
+  },
+  "inputs": {
+    "contract": {
+      "path": "docs/contracts/config-change-dispatch.md",
+      "sha256": "10c9f7de0e517e734e4cb4e6ccd44c832f4cae207303211a72ae02c7786a5318"
+    },
+    "h1_no_disassembly_policy": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-no-disassembly-policy.json",
+      "sha256": "e0d4cfac65fcd2c16fe79bc527aa4aaaac5431eebc8da06a1b7ff5b8ed5e1393"
+    },
+    "v1_validation": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json",
+      "sha256": "7acd6d3cd26cec7aa7be32e71b6e617bbc739b0fbc1c9c0a4b4a8ae0ba62fb8d"
+    }
+  },
+  "preflight_validation": {
+    "candidate_hash_and_size_matched": true,
+    "candidate_kept_out_of_git": true,
+    "runner_python_compiled": true,
+    "shell_local_syntax_passed": true,
+    "shell_target_busybox_ash_syntax_passed": true,
+    "target_rootfs": "exact OpenWrt 25.12.5 AX3000T rootfs copy on the analysis server"
+  },
+  "recorded_at": "2026-09-01",
+  "remote_plan": {
+    "cleanup_paths": [
+      "/tmp/owrt-r05-shadow-20260901",
+      "/tmp/owrt-h1-4-reload-config-rs",
+      "/tmp/owrt-h1-4-shadow.sh"
+    ],
+    "execution_timeout_seconds": 120,
+    "harness_path": "/tmp/owrt-h1-4-shadow.sh",
+    "identity_timeout_seconds": 30,
+    "run_root": "/tmp/owrt-r05-shadow-20260901",
+    "ssh_alias": "openwrt",
+    "transfer_timeout_seconds": 60
+  },
+  "scripts": {
+    "harness": {
+      "path": "tools/h1_4_shadow_device.sh",
+      "sha256": "1e187b214cd2529bfd04c2edca9b9c45e996493b2c6b8ef5ed1d42211f4eee39"
+    },
+    "runner": {
+      "path": "tools/h1_4_run.py",
+      "sha256": "6e77b7aeef28365183d827b11583d9b0ae5be19fe18a74fef70d299a80fe6c78"
+    }
+  },
+  "scope": {
+    "device_contact": false,
+    "device_execution": false,
+    "device_transfer": false,
+    "firmware_flash": false,
+    "host_network_changes": false,
+    "package_install": false,
+    "persistent_device_writes": false,
+    "preflight_server_read_and_ephemeral_syntax_check": true,
+    "real_ubus_calls": false,
+    "router_reboot": false,
+    "runtime_mount_changes": false
+  },
+  "stage": "H1.4-preflight",
+  "status": "passed_offline_ready_for_authorized_device_run",
+  "stop_conditions": [
+    "identity or candidate hash mismatch",
+    "original dispatcher, live baseline, package database, config tree or UCI tree changes",
+    "any real ubus call",
+    "any runtime mount change",
+    "any unexpected event or baseline result",
+    "cleanup cannot remove all three exact tmpfs paths"
+  ]
+}

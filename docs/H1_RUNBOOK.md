@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1 无拆机边界重规划已完成；下一阶段是 H1.4 offline preflight，尚未授权设备操作
+> 状态：H1.4 offline preflight 已完成；本轮已明确授权一个 tmpfs shadow device run
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -25,8 +25,8 @@ H1.0 离线准入设计（已完成）
   → H1.3a 离线只读 recovery candidate（已完成）
   → H1.3b RAM boot（历史 preflight；按用户边界不再执行）
   → H1 无拆机边界重规划（已完成，离线 policy only）
-  → H1.4 offline preflight（下一阶段；不接触设备）
-  → H1.4 tmpfs shadow run（需另行授权）
+  → H1.4 offline preflight（已完成；未接触设备）
+  → H1.4 tmpfs shadow run（本轮已明确授权，尚未执行）
   → H1.5 默认禁用 APK 安装（需另行授权）
   → H1.6 短时 bind-mount canary（需另行授权）
 ```
@@ -230,10 +230,10 @@ H1.4 offline preflight 或 tmpfs shadow 的组成部分。
 
 H1.4 分成两个互不继承授权的步骤：
 
-1. **offline preflight**：只在仓库/服务器冻结 harness、命令、hash、timeout、停止条件和
-   清理证明；不连接设备。当前只开放这一项作为 next stage。
-2. **device run**：必须在 preflight gate 通过后另行授权，才允许 SSH transfer 和 `/tmp`
-   执行。
+1. **offline preflight**：已在仓库/服务器冻结 harness、命令、hash、timeout、停止条件和
+   清理证明；没有连接设备，机器 gate 已通过。
+2. **device run**：本轮用户明确要求扩大跨度、接触路由器并继续；该授权只允许固定路径的
+   SSH transfer 和 `/tmp` shadow 执行，不延伸到 H1.5。
 
 H1.4 device run 不安装 APK。把 V1 已验证的 candidate binary 临时传到 `/tmp`，先核对
 `b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75`，再使用独立
@@ -241,9 +241,11 @@ H1.4 device run 不安装 APK。把 V1 已验证的 candidate binary 临时传�
 
 - 配置副本和 `/var/run/uci` 副本只存在 tmpfs，不离开设备；
 - PATH 最前放置 fake `ubus`，只记录参数并返回，绝不调用真实 `service.event`；
-- 复制原实现生成的当前 baseline，第一次 candidate run 必须零 event 且 baseline
+- `run1-shared-baseline`：复制原实现生成的当前 baseline，candidate 必须零 event 且 baseline
   byte-identical；
-- 只在 shadow tree 新建 synthetic package，第二次必须只产生一个 synthetic event；
+- `run2-creation-silent`：只在 shadow tree 新建 synthetic package，必须零 event，并只推进
+  shadow baseline；
+- `run3-modification-event`：再修改该 synthetic package，必须只产生一个 synthetic event；
 - 删除整个 tmpfs run 目录后确认设备配置、baseline、mount 和进程集合未变。
 
 任何真实 ubus delivery、真实 `/var/run/config.md5` 变化、配置 hash 变化或网络状态变化都使
