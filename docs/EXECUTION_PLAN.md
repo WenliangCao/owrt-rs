@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：H1.3a 离线只读 recovery candidate 已通过；H1.3b RAM boot 未授权
-> 版本：1.8
+> 状态：H1.3b preflight 已授权；因缺少 USB-UART、独立有线管理和已确认供电回退而阻断
+> 版本：1.9
 > 日期：2026-09-01
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -185,7 +185,7 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | C1 | 冻结第一个兼容合同和参考 oracle | 完成：C1-01，11 个参考用例 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 完成：11/11 差分、6/6 故障、gate 通过 | 否 |
 | V1 | release-matched 集成和差分验证 | 完成：匹配 SDK package、11/11 + 6/6 差分/故障、4 项 V1 注入、gate 通过 | 否 |
-| H1 | 物理设备准入和 canary | H1.3a 离线 candidate 已通过；H1.3b RAM boot 未授权，备份未执行 | 当前否；后续逐阶段决定 |
+| H1 | 物理设备准入和 canary | H1.3b preflight 正确阻断现场执行；RAM boot/备份均未执行 | 当前否；后续逐阶段决定 |
 | N1 | 按同一闭环处理下一个职责 | 阻塞于 H1 结论 | 另行决定 |
 
 ## 7. L0：计划前置探索
@@ -922,7 +922,8 @@ H1.0 已在不连接设备的前提下完成；H1.1a 与 H1.1b 随后分别经�
 随后获准进入，但 exact-source 预检证明 NMBM 包装后的 MTD 读路径可条件性地擦除/复制备用块
 并持久化映射，因此在接触设备前暂停。H1.3a 随后只在服务器完成：基于 exact source 构建
 stock-layout initramfs recovery candidate，并通过重复构建和 FIT/DTB/initramfs 静态审计；
-它没有接触路由器，也没有授权 H1.3b RAM boot。准入与
+它没有接触路由器。H1.3b 随后获准开始，但本机没有 USB-UART、有线 link 或已确认的可控供电，
+而当前管理依赖 candidate 会禁用的 Wi-Fi，因此 preflight 在接触设备前阻断 RAM boot。准入与
 恢复 runbook、两批只读命令、matching-feed
 `nanddump` 备份工具、私有证据边界、停止条件和机器 gate 见
 [H1_RUNBOOK.md](H1_RUNBOOK.md)、
@@ -931,7 +932,8 @@ stock-layout initramfs recovery candidate，并通过重复构建和 FIT/DTB/ini
 [H1_1A_OBSERVATIONS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1A_OBSERVATIONS.md)、
 [H1_1B_BOOT_FLAGS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1B_BOOT_FLAGS.md)、
 [H1_2_PREFLIGHT.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_2_PREFLIGHT.md)、
-[H1_3A_RECOVERY_DESIGN.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3A_RECOVERY_DESIGN.md)。H1.1 gate
+[H1_3A_RECOVERY_DESIGN.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3A_RECOVERY_DESIGN.md)、
+[H1_3B_PREFLIGHT.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3B_PREFLIGHT.md)。H1.1 gate
 只证明只读身份/存储/boot branch 准入闭合；备份、reboot/failsafe、tmpfs shadow、APK 安装、
 canary、device write 和 firmware flash 仍全部为 false。
 
@@ -1026,14 +1028,17 @@ interface discovery
     已固定；发现 MTD 读取可条件触发 NMBM flash remap，故在连接设备前 fail-closed。
 15. [x] 完成 H1.3a：exact stock profile 的 forced-read-only BMT/NMBM patch、无自动 mutation
     overlay、两次 byte-identical initramfs FIT 构建和静态 audit 全部通过；零设备接触。
-16. [ ] H1.3b 尚未授权；下一步只能在新的明确授权、物理 UART/独立管理/可控供电同时具备时，
-    对固定 hash candidate 做 RAM boot 运行态验证。不得刷写，`recovery_boot_verified=false`。
-17. [ ] H1.2 私有备份仍未执行；只有 H1.3b 证明内核运行态拒写和读取路径无自动 mutation 后，
+16. [x] 完成 H1.3b preflight：用户已请求该阶段，candidate 已复制到 Git 外私有 staging；地址
+    边界和 proposed command 已审核，但本机无 USB-UART、无 active wired link，现场供电/独立
+    联网未确认，因此在设备接触前 fail-closed。
+17. [ ] H1.3b RAM boot 未执行；用户需先连接 3.3 V USB-UART（不接 VCC）、直连中间 LAN 口，
+    准备独立联网设备并确认人在路由器旁可立即断电。`recovery_boot_verified=false`。
+18. [ ] H1.2 私有备份仍未执行；只有 H1.3b 证明内核运行态拒写和读取路径无自动 mutation 后，
     才能重新冻结采集参数并单独授权。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
 manager、SquashFS rootfs、R05 合同、可观测 reference oracle、最小 Rust 进程边界、匹配 SDK
 package 和重启即失的显式切换机制。H1 的物理准入顺序、recovery runbook 与首个 canary 范围
 已经冻结；H1.1a/H1.1b 现场证据已取得。H1.2 只完成了服务器源码预检，没有再次接触设备，
-H1.3a 也只完成服务器构建与静态审计。私有 raw/config 备份、H1.3b 及以后各阶段的现场证据
-与逐项授权仍未取得。
+H1.3a 只完成服务器构建与静态审计，H1.3b 只完成离线/本机 preflight。私有 raw/config 备份、
+RAM boot 及以后各阶段的现场证据仍未取得。

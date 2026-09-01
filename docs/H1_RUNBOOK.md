@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.3a 离线 recovery candidate 已通过；H1.3b RAM boot 未授权
+> 状态：H1.3b preflight 已授权，但因 USB-UART/独立有线管理/可控供电未闭合而阻断
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -17,7 +17,7 @@ H1.0 离线准入设计（已完成）
   → H1.1b 白名单 boot flags（已完成，1 个受限开放问题）
   → H1.2 私有备份验收（预检完成，设备接触前暂停）
   → H1.3a 离线只读 recovery candidate（已完成）
-  → H1.3b RAM boot 运行态验证（未授权）
+  → H1.3b RAM boot 运行态验证（preflight 已授权，执行被现场条件阻断）
   → H1.3c 普通 reboot/failsafe 恢复演练（未授权）
   → H1.4 tmpfs shadow
   → H1.5 默认禁用 APK 安装
@@ -146,9 +146,37 @@ repeat build: byte-identical
 
 ### H1.3b：RAM boot 运行态验证
 
-当前固定 `recovery_boot_verified=false`，且 bootloader commands、device transfer、router
-reboot、RAM boot 和 device write 均未授权。H1.3b 不继承 H1.3a 的服务器授权，必须在新的明确
-请求下逐字冻结命令，并同时具备物理 UART、独立有线管理、可控供电和停止条件。
+#### H1.3b preflight：已授权但被现场恢复条件阻断
+
+用户已经在 H1.3b 被明确列为下一阶段后要求继续；该授权只在所有恢复前提闭合时才允许
+消费。2026-09-01 的本机脱敏 inventory 没有发现 USB-UART，有线接口 `en2`/`en3` 都是
+inactive，当前管理依赖 Wi-Fi，而 recovery candidate 禁用 Wi-Fi。可控供电、现场操作者和
+独立联网设备也未确认。因此当前固定：
+
+```text
+commands_authorized=false
+router_reboot=false
+h1_3b_ram_boot=false
+recovery_boot_verified=false
+device_writes=false
+firmware_flash=false
+```
+
+candidate 已只读复制到 Git 外的本地私有 staging，尚未进入系统 TFTP root，也未传入设备：
+
+```text
+SHA-256: c9ce88f597dea3e552c05cdcf9ed2d3f9683161731dc12747cc7627783247a5a
+size: 8762644 bytes
+mode: 0444
+```
+
+官方 UART 参考为 115200、8N1、3.3 V；只连接 GND 并交叉 TX/RX，禁止连接 VCC。TFTP FIT
+buffer 为 `0x46000000`，本 candidate 到 `0x4685b514` 结束；FIT 内部 kernel load/entry 为
+`0x48000000`，两段不重叠。完整阻断证据见
+[H1_3B_PREFLIGHT.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3B_PREFLIGHT.md)。
+
+H1.3b 当前仍禁止 bootloader command、device transfer、router reboot、RAM boot 和 device
+write。执行前必须逐字冻结命令，并同时具备物理 UART、独立有线管理、可控供电和停止条件。
 
 H1.3b 只允许把已固定 hash 的 FIT load 到 RAM 并运行；不允许 `.itb`、factory/OEM recovery、
 `sysupgrade`、boot flag update、partition erase/write 或任何自动转入 flash recovery。运行后先

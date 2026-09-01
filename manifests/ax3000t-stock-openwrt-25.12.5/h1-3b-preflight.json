@@ -1,0 +1,228 @@
+{
+  "address_model": {
+    "fit_buffer_end_exclusive": "0x4685b514",
+    "fit_buffer_kernel_gap_bytes": 24791788,
+    "fit_buffer_start": "0x46000000",
+    "fit_kernel_entry": "0x48000000",
+    "fit_kernel_load": "0x48000000",
+    "fit_size_bytes": 8762644,
+    "overlap": false
+  },
+  "authorization": {
+    "basis": "The user requested continuation on 2026-09-01 immediately after H1.3b was named as the next separately authorized stage.",
+    "commands_authorized": false,
+    "consumed": false,
+    "preflight_authorized": true,
+    "requested_stage": "H1.3b",
+    "router_reboot_admitted": false,
+    "status": "approved_pending_preconditions"
+  },
+  "candidate": {
+    "filename": "openwrt-mediatek-filogic-xiaomi_mi-router-ax3000t-initramfs-kernel.bin",
+    "local_private_copy": true,
+    "local_private_mode": "0444",
+    "local_private_path": "private/h1-3b-20260901/tftp/openwrt-mediatek-filogic-xiaomi_mi-router-ax3000t-initramfs-kernel.bin",
+    "sha256": "c9ce88f597dea3e552c05cdcf9ed2d3f9683161731dc12747cc7627783247a5a",
+    "size_bytes": 8762644
+  },
+  "decision": {
+    "commands_executed": false,
+    "next_action": "Connect a 3.3 V USB-UART adapter without VCC, connect one isolated wired interface to a middle LAN port, arrange independent Internet and controlled power, then explicitly confirm physical readiness.",
+    "reason_ids": [
+      "usb-uart-not-present",
+      "wired-link-not-active",
+      "management-would-not-survive-wifi-disabled-boot",
+      "controlled-power-unverified",
+      "stock-uboot-capabilities-unobserved",
+      "host-command-plan-not-frozen"
+    ],
+    "status": "blocked_missing_physical_recovery_controls"
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "bootloader_commands_authorized": false,
+    "candidate_transfer_to_router": false,
+    "device_writes_allowed": false,
+    "firmware_flash_allowed": false,
+    "h1_2_private_backup": false,
+    "h1_3b_preflight_review": true,
+    "h1_3b_ram_boot": false,
+    "host_network_change_allowed": false,
+    "recovery_boot_verified": false,
+    "router_contact_allowed": false,
+    "router_reboot_allowed": false
+  },
+  "host_observation": {
+    "candidate_serial_nodes": [],
+    "controlled_power_verified": false,
+    "ethernet_devices": [
+      "en2",
+      "en3"
+    ],
+    "ethernet_link_active": false,
+    "independent_management_survives_candidate_boot": false,
+    "management_transport": "wifi",
+    "physical_operator_confirmed": false,
+    "serial_clients": [
+      "/usr/bin/cu",
+      "/usr/bin/screen"
+    ],
+    "tftp_daemon": "/usr/libexec/tftpd",
+    "tftp_daemon_configured": false,
+    "tftp_daemon_present": true,
+    "tftp_udp_69_listening": false,
+    "usb_uart_adapter_present": false
+  },
+  "inputs": {
+    "h1_3a_manifest": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-3a-recovery-design.json",
+      "sha256": "e1d21793e0235656f1ff1d40ec52b9ebe08572f15573bcc5f0e455f265a25c66"
+    },
+    "h1_3a_patch_sha256": "e4e2051510864c6fdd18ff0db6b3aa792b75398d9fd1ca51e0b7bf1eeed9454e",
+    "host_preflight": {
+      "path": "private/h1-3b-20260901/host-preflight.json",
+      "sha256": "344d26bc6c724dbe2bc37b72cf7e2e9683ea8315c1d80f0176a1b41f398e17ee"
+    },
+    "official_device_page": {
+      "facts": {
+        "ram_load_command_buffer": "0x46000000",
+        "ram_start_address_reference": "0x48000000",
+        "serial": "115200 8N1 3.3V",
+        "stock_bootloader_uart_initramfs_documented": true
+      },
+      "raw_sha256": "113cb5ac44d1611a7a670bdeaac71b36f186cad2e51115b97df3d13fecbb97f6",
+      "url": "https://openwrt.org/toh/xiaomi/ax3000t"
+    },
+    "official_techdata": {
+      "raw_sha256": "23a57ea45ce9e7e86abb42af7f9b597a0fc0ff41c27127ca452b486573205067",
+      "url": "https://openwrt.org/toh/hwdata/xiaomi/xiaomi_mi_router_ax3000t"
+    },
+    "official_uart_photo": {
+      "facts": {
+        "pin_order_top_to_bottom": [
+          "VCC",
+          "RX",
+          "GND",
+          "TX"
+        ],
+        "vcc_must_not_be_connected": true
+      },
+      "sha256": "5cfdbd542b03acf7ac11f76ec5629f471c496fd686a72c9c4b5a3f7c40de2784",
+      "url": "https://openwrt.org/_media/media/xiaomi/xiaomi_ax3000t_uart.jpg"
+    }
+  },
+  "method_corrections": [
+    {
+      "id": "official-export-raw",
+      "result": "The normal OpenWrt wiki page was protected by Anubis, so the review used the official DokuWiki export_raw representation and pinned its SHA-256 instead of relying on a search snippet."
+    },
+    {
+      "id": "address-role-distinction",
+      "result": "The official page mentions both 0x46000000 and 0x48000000; the former is the FIT buffer used by tftpboot/bootm, while the latter is the FIT kernel load/entry address. The calculated regions do not overlap."
+    },
+    {
+      "id": "candidate-mode-negative-test-variable",
+      "result": "The first combined negative-test script referenced an unset filename variable after eight earlier cases had already rejected. The candidate-mode case was rerun independently and rejected as intended."
+    }
+  ],
+  "preconditions": {
+    "candidate_hash_matched": true,
+    "candidate_private_copy_ready": true,
+    "controlled_power_verified": false,
+    "exact_bootloader_commands_frozen": false,
+    "h1_3a_offline_candidate_passed": true,
+    "host_tftp_plan_frozen": false,
+    "independent_internet_available": false,
+    "independent_wired_management_active": false,
+    "physical_operator_present": false,
+    "stock_bootloader_bootm_help_observed": false,
+    "stock_bootloader_identity_observed": false,
+    "stock_bootloader_setenv_volatile_semantics_observed": false,
+    "stock_bootloader_tftp_help_observed": false,
+    "uart_3v3_adapter_connected": false,
+    "uart_console_observed": false
+  },
+  "proposed_bootloader_commands": [
+    {
+      "command": "version",
+      "id": "H1-3B-OBS-00",
+      "status": "not_authorized"
+    },
+    {
+      "command": "bdinfo",
+      "id": "H1-3B-OBS-01",
+      "status": "not_authorized"
+    },
+    {
+      "command": "help tftpboot",
+      "id": "H1-3B-OBS-02",
+      "status": "not_authorized"
+    },
+    {
+      "command": "help bootm",
+      "id": "H1-3B-OBS-03",
+      "status": "not_authorized"
+    },
+    {
+      "command": "help iminfo",
+      "id": "H1-3B-OBS-04",
+      "status": "not_authorized"
+    },
+    {
+      "command": "help setenv",
+      "id": "H1-3B-OBS-05",
+      "status": "not_authorized"
+    },
+    {
+      "command": "printenv ipaddr serverip loadaddr bootfile",
+      "id": "H1-3B-OBS-06",
+      "status": "not_authorized"
+    },
+    {
+      "command": "setenv ipaddr 192.168.1.1",
+      "id": "H1-3B-LOAD-00",
+      "status": "not_authorized"
+    },
+    {
+      "command": "setenv serverip 192.168.1.254",
+      "id": "H1-3B-LOAD-01",
+      "status": "not_authorized"
+    },
+    {
+      "command": "tftpboot 0x46000000 openwrt-mediatek-filogic-xiaomi_mi-router-ax3000t-initramfs-kernel.bin",
+      "id": "H1-3B-LOAD-02",
+      "status": "not_authorized"
+    },
+    {
+      "command": "printenv filesize",
+      "id": "H1-3B-LOAD-03",
+      "status": "not_authorized"
+    },
+    {
+      "command": "iminfo 0x46000000",
+      "id": "H1-3B-LOAD-04",
+      "status": "not_authorized"
+    },
+    {
+      "command": "bootm 0x46000000",
+      "id": "H1-3B-BOOT-00",
+      "status": "not_authorized"
+    }
+  ],
+  "recorded_at": "2026-09-01",
+  "schema_version": 1,
+  "scope": {
+    "candidate_copied_server_to_local_private_storage": true,
+    "device_contact": false,
+    "device_execution": false,
+    "device_transfer": false,
+    "device_writes": false,
+    "firmware_flash": false,
+    "host_network_changes": false,
+    "local_host_read_only_inventory": true,
+    "router_reboot": false,
+    "server_read": true
+  },
+  "stage": "H1.3b-preflight",
+  "status": "authorized_but_blocked_before_device_contact"
+}

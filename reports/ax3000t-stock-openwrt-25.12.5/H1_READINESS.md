@@ -3,7 +3,7 @@
 > H1.0 状态：通过
 > 物理设备状态：未准入
 > 日期：2026-09-01
-> 历史快照：当前进度已完成 H1.3a 离线 recovery candidate；H1.3b 未授权，见 `H1_3A_RECOVERY_DESIGN.md`
+> 历史快照：当前进度已完成 H1.3b preflight，并因现场恢复条件缺失而阻断，见 `H1_3B_PREFLIGHT.md`
 
 ## 1. 判定
 
