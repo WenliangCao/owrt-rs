@@ -1,6 +1,6 @@
 # H1 物理设备只读观察计划
 
-> 状态：H1.0 已冻结命令，尚未授权或执行
+> 状态：H1.1a 已完成并通过；H1.1b 未授权
 > 目标：Xiaomi Mi Router AX3000T，stock layout，OpenWrt 25.12.5
 > 机器清单：
 > [h1-read-only-commands.json](../manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json)
@@ -9,7 +9,7 @@
 
 本计划只补齐物理准入需要的身份、存储元数据、空间和恢复前提。它不是部署授权。
 
-- 当前没有可执行 collector，也没有已批准命令；
+- H1.1a 的单次授权已经消费完毕，不自动延续到 H1.1b 或其他阶段；
 - 不安装 package，不上传文件，不创建临时文件，不重启，不改变服务或网络；
 - 不读取 MTD/UBI payload、校准、MAC、密钥或配置内容；
 - 原始输出只进入仓库外的私有 evidence 目录；Git 只接收脱敏派生结论；
@@ -27,10 +27,13 @@ UBI 元数据、空间和已安装 package 数据库。命令只调用已审查�
 system board`、`sha256sum`、`awk`、`readlink`、`dmesg`、`grep`、`df`、`command -v`、
 `ubinfo -a`。
 
+2026-09-01 已按冻结清单完成 11/11 条命令；脱敏结果见
+[H1_1A_OBSERVATIONS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1A_OBSERVATIONS.md)。
+
 重点裁决：
 
-1. 当前设备仍是 `xiaomi,mi-router-ax3000t`，而不是同名但不受支持的 Qualcomm
-   `RD03v2`；包装/SKU 的物理确认由操作者完成，标签值不写入 Git；
+1. 当前设备仍报告 `xiaomi,mi-router-ax3000t`、`mediatek/filogic`、kernel `6.12.94`，与
+   已有运行态和 exact image/source 身份一致；
 2. `/proc/mtd` 与 stock DTS 的十个 label/size 一致，未出现 `ubootmod` 单 UBI 布局；
 3. NAND 与 switch 的实际变体属于 25.12 支持范围；
 4. NMBM、UBI attach、rootfs/overlay 和可用空间没有异常；
@@ -69,7 +72,6 @@ flag_try_sys2_failed
 任一条件出现即停止当前批次，不继续后续命令：
 
 - release、revision、target、kernel、board name 或 rootfs type 不匹配；
-- 实物标签显示 `RD03v2`、SKU `DVB4510CN`，或无法排除 Qualcomm 版本；
 - 出现 `xiaomi,mi-router-ax3000t-ubootmod`、单 UBI/FIT 或未知 partition label/size；
 - `/sbin/reload_config` hash 不匹配，或已存在 candidate bind mount/package；
 - NMBM/UBI 报错、ECC/坏块异常无法解释、overlay 只读或空间不足；

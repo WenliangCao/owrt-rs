@@ -1,0 +1,68 @@
+{
+  "approved_command_ids": [
+    "H1-RO-00",
+    "H1-RO-01",
+    "H1-RO-02",
+    "H1-RO-03",
+    "H1-RO-04",
+    "H1-RO-05",
+    "H1-RO-06",
+    "H1-RO-07",
+    "H1-RO-08",
+    "H1-RO-09",
+    "H1-RO-10"
+  ],
+  "authorization": {
+    "basis": "User explicitly instructed execution to begin on 2026-09-01 after H1.1a was named as the next separately authorized stage.",
+    "single_run": true,
+    "status": "approved"
+  },
+  "command_plan": {
+    "initial_sha256": "f9971c6dab381f46ac4359e18e353ba8ce779013e2e2c4c0d5054f7993d90b8b",
+    "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json",
+    "sha256": "ab37f0c8c4ac37ceb392bebe78dd0f460bca83bf83d2532a46436aa1af5b3b65"
+  },
+  "corrections": [
+    {
+      "additional_capability": false,
+      "id": "H1-RO-03-glob",
+      "reason": "BusyBox glob mtd[0-9]* also matched mtdXro symlinks. The corrected command skips names ending in ro and reads the same five sysfs metadata fields from the same MTD class.",
+      "rerun_scope": "H1-RO-03 then continue H1-RO-04 through H1-RO-10",
+      "status": "approved_within_existing_read_only_scope"
+    },
+    {
+      "additional_capability": false,
+      "id": "H1-RO-07-busybox-df",
+      "reason": "BusyBox 1.37 df does not implement -i. The corrected command retains the supported capacity query and drops the unsupported inode query.",
+      "rerun_scope": "H1-RO-07 then continue H1-RO-08 through H1-RO-10",
+      "status": "approved_within_existing_read_only_scope"
+    },
+    {
+      "additional_capability": false,
+      "id": "H1-RO-08-missing-newline",
+      "reason": "The missing-tool branch emitted no line terminator, joining nanddump and fw_printenv labels. The corrected command prints an explicit absent marker and performs the same shell path lookups.",
+      "rerun_scope": "H1-RO-08 only",
+      "status": "approved_within_existing_read_only_scope"
+    }
+  ],
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "excluded_command_ids": [
+    "H1-RO-11"
+  ],
+  "recorded_at": "2026-09-01",
+  "schema_version": 1,
+  "scope": {
+    "approved_commands": 11,
+    "boot_environment_read": false,
+    "device_access": "existing SSH only",
+    "device_writes": false,
+    "firmware_flash": false,
+    "package_install": false,
+    "package_transfer": false,
+    "raw_mtd_payload_read": false,
+    "router_reboot": false,
+    "service_or_network_change": false
+  },
+  "stage": "H1.1a",
+  "status": "consumed_complete"
+}

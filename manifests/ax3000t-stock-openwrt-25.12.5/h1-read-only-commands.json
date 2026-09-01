@@ -31,10 +31,10 @@
           "timeout_s": 5
         },
         {
-          "command": "for path in /sys/class/mtd/mtd[0-9]*; do printf 'mtd=%s\\n' \"${path##*/}\"; for field in name size erasesize writesize type; do printf '%s=' \"$field\"; cat \"$path/$field\"; done; done",
+          "command": "for path in /sys/class/mtd/mtd[0-9]*; do case \"${path##*/}\" in *ro) continue ;; esac; printf 'mtd=%s\\n' \"${path##*/}\"; for field in name size erasesize writesize type; do printf '%s=' \"$field\"; cat \"$path/$field\"; done; done",
           "expected_status": 0,
           "id": "H1-RO-03",
-          "review": "Reads sysfs MTD label and geometry only; it does not open /dev/mtdX.",
+          "review": "Reads sysfs MTD label and geometry only; skips mtdXro compatibility symlinks and does not open /dev/mtdX.",
           "timeout_s": 10
         },
         {
@@ -59,17 +59,17 @@
           "timeout_s": 10
         },
         {
-          "command": "df -Pk /overlay /tmp; df -Pi /overlay /tmp",
+          "command": "df -Pk /overlay /tmp",
           "expected_status": 0,
           "id": "H1-RO-07",
-          "review": "Filesystem capacity and inode queries only.",
+          "review": "BusyBox-supported filesystem capacity query only; UBIFS does not expose a fixed inode budget through this df applet.",
           "timeout_s": 5
         },
         {
-          "command": "for name in ubinfo nanddump fw_printenv sha256sum tar sysupgrade; do printf '%s=' \"$name\"; command -v \"$name\" || :; done",
+          "command": "for name in ubinfo nanddump fw_printenv sha256sum tar sysupgrade; do printf '%s=' \"$name\"; command -v \"$name\" || printf 'absent\\n'; done",
           "expected_status": 0,
           "id": "H1-RO-08",
-          "review": "Shell path lookup only; none of the discovered programs is executed.",
+          "review": "Shell path lookup only; absent programs get an explicit marker and none of the discovered programs is executed.",
           "timeout_s": 5
         },
         {

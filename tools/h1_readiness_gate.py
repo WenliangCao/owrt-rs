@@ -49,7 +49,6 @@ EXPECTED_CONTROL_IDS = {
     "backup_tool_prepared",
 }
 EXPECTED_PENDING_IDS = {
-    "physical_variant_and_sku",
     "fresh_runtime_identity",
     "storage_geometry_and_nmbm",
     "overlay_headroom",
@@ -79,25 +78,25 @@ EXPECTED_COMMAND_SHA256 = {
     "H1-RO-00": "912ff740fbb643ca8ea1fcb9d8603c98270fc27c5970520de48a0c6cd867a78d",
     "H1-RO-01": "73599403bbe60b01816f5eafd4b121973389ffa7c28a764aec6076a58f1c7cca",
     "H1-RO-02": "d87ad9a63922b615dfa32e4c064982e8b1a68854e3c0de21c38b9baf7c27832b",
-    "H1-RO-03": "76dae5d694e38dc9ebc32554d712de3fe0c826395d470ea0b35daf2098834d45",
+    "H1-RO-03": "4f6b1e73d5fc858302479abc44edeb67e0ead2c6a84b7cbd3e29e9ca8f0a1282",
     "H1-RO-04": "10d8d9d0805da468d3351ca3115c4670781a5c1796c612531d15d4abc40f2f3e",
     "H1-RO-05": "e56dfabe2e4c729510d44a3089565a043213459e4f435debb9dbe3b70aeab671",
     "H1-RO-06": "d1adcfd319acd02918a905e082c9bf95262b90559a49e92193ca191f6fc7fad1",
-    "H1-RO-07": "99c20ad247526b6e9ae094665e93b7d79106c659e7b40328ef66ff689f65fb24",
-    "H1-RO-08": "f30d2edbff3fd3b75f1866c38b90e2c75084388d2255913c9908e7d831d69ae5",
+    "H1-RO-07": "cac3fb9604b7718f3e34fcaef30fe47aea378893e6d8130b5c734ded55bccb35",
+    "H1-RO-08": "16669d81fe68102f3f3448735bb70a8f1cee690661a3fbffaceee24f3d4d4955",
     "H1-RO-09": "add76de5adb585a586f968858159e2f159183edee401618dc5bc6c98e5762a9a",
     "H1-RO-10": "eb85fa3897dda9ed42903fa2c878dc8d67b525d3d3d571540ba81104fc7bd71a",
     "H1-RO-11": "cbf3b3ad9b3e22685cbf5e1ef2a1e35891aee2daa1cfd8c7d92b7018bfaeab48",
 }
 REQUIRED_RUNBOOK_MARKERS = (
-    "H1.0 离线准入设计（当前完成）",
+    "H1.0 离线准入设计（已完成）",
     "H1.1a 只读身份/存储元数据",
     "H1.6 短时 bind-mount canary",
     "全 H1 永久禁止",
     "不因 canary 失败自动进入 TFTP、UART、sysupgrade 或 raw flash",
 )
 REQUIRED_READ_ONLY_MARKERS = (
-    "当前没有可执行 collector，也没有已批准命令",
+    "H1.1a 的单次授权已经消费完毕",
     "H1.1a：只读身份与元数据",
     "H1.1b：白名单 U-Boot 环境读取",
     "明确不在本计划内",

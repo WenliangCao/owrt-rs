@@ -53,7 +53,7 @@
     },
     "commands": {
       "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json",
-      "sha256": "f9971c6dab381f46ac4359e18e353ba8ce779013e2e2c4c0d5054f7993d90b8b"
+      "sha256": "ab37f0c8c4ac37ceb392bebe78dd0f460bca83bf83d2532a46436aa1af5b3b65"
     },
     "intake": {
       "path": "manifests/ax3000t-stock-openwrt-25.12.5/intake.json",
@@ -61,11 +61,11 @@
     },
     "read_only_plan": {
       "path": "docs/H1_READ_ONLY_PLAN.md",
-      "sha256": "313c6b91743c7bc1f7bf8e0a82001516a322d330885fb8d6c8e7c09cf369fd28"
+      "sha256": "97a90e911d60f38036b539372f851452c85bde6b7e4e3be7d4ac98c429b24f00"
     },
     "runbook": {
       "path": "docs/H1_RUNBOOK.md",
-      "sha256": "e70493c439abccaaa8bf13de0123023718033a28d85bf0daaca10eb4f0dee64b"
+      "sha256": "988b8cdd374977fe12bb73e1983255b2bc2dc1f102ff719a6e3fb40addffce8f"
     },
     "runtime": {
       "path": "manifests/ax3000t-stock-openwrt-25.12.5/runtime-observations.json",
@@ -151,11 +151,6 @@
     }
   ],
   "open_prerequisites": [
-    {
-      "id": "physical_variant_and_sku",
-      "required_for": "H1.1a",
-      "status": "pending"
-    },
     {
       "id": "fresh_runtime_identity",
       "required_for": "H1.1a",

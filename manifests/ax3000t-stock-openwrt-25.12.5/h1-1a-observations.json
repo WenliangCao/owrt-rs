@@ -1,0 +1,347 @@
+{
+  "authorization": {
+    "approved": true,
+    "approved_command_ids": [
+      "H1-RO-00",
+      "H1-RO-01",
+      "H1-RO-02",
+      "H1-RO-03",
+      "H1-RO-04",
+      "H1-RO-05",
+      "H1-RO-06",
+      "H1-RO-07",
+      "H1-RO-08",
+      "H1-RO-09",
+      "H1-RO-10"
+    ],
+    "authorization_manifest_sha256": "b67ed1f8defd3d8ab5232a1923ddc3ed0d2ab9d1633c3d348374864bfc6bdeed",
+    "command_plan_sha256": "ab37f0c8c4ac37ceb392bebe78dd0f460bca83bf83d2532a46436aa1af5b3b65",
+    "excluded_command_ids": [
+      "H1-RO-11"
+    ],
+    "single_run_consumed": true
+  },
+  "boot_environment_layout": {
+    "environment_values_read": false,
+    "fw_env_config": "/dev/mtd1 0x0 0x10000 0x20000",
+    "h1_1b_layout_precondition_passed": true,
+    "image_revision_commit": "f5dae5ece4805730c5e2850f8aa84765af2f6b32",
+    "matched_exact_source": true,
+    "source_baseline_sha256": "0601e0a2f160a2deadce26f4453ac3d0307bec8f0aeebb26dbcd69e40adfdc1d",
+    "source_buildroot_commit": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "source_file_sha256": "bad297e3e28eb25f5cea937cdc6dd1d685511bf02fd149aaa175f216e94f3e9f",
+    "source_lines": "164-168",
+    "source_path": "package/boot/uboot-tools/uboot-envtools/files/mediatek_filogic"
+  },
+  "collection": {
+    "command_count": 11,
+    "ended_at": "2026-09-01T06:18:06Z",
+    "raw_evidence_committed": false,
+    "started_at": "2026-09-01T06:13:45Z",
+    "stderr_files_nonempty": 0,
+    "stdout_sha256": {
+      "H1-RO-00": "7b7773118764aed02719808c7bee31f209fa5cede07d00a086771e3a6aac3fe7",
+      "H1-RO-01": "0ef4e70f47fded6770abae9adbf203aeb6ed9cd9331666f3936e04aa400eed8b",
+      "H1-RO-02": "c7bbff14670245012b95f7d5c19845c7984d65cd21565a4508c6c47a7a9da9ba",
+      "H1-RO-03": "2c121cff516bbe7d3eefdb12f648ddc06d0165ba09ca18cbed12c0ed5b599ccb",
+      "H1-RO-04": "2cc84cc103296d89f4be32853a45e57ddd89902f9611218c5be6070004939378",
+      "H1-RO-05": "a9ffa10d87670ebf600afd9fc0d6b63501bfb79b53c5e177ad7a217e9452736a",
+      "H1-RO-06": "fd31f57b96ce34641767d460129c71ce493f0980dd4e67b8563caa349a8c1273",
+      "H1-RO-07": "425029a481f0d5b6125039a5a4298c932d4fcba5f6358430ebaedf87930cc03b",
+      "H1-RO-08": "4fa29d07f7da3ea9a1c29070eca7362b67f91f6590563212926783000d8b0279",
+      "H1-RO-09": "6149a91ae1efa348b3e56d08ef13f844ecee6288a78448749519682a9e8cb5fc",
+      "H1-RO-10": "3ef120cd883e38edf1b4b1886cbc3f43f7fe9b77ed7f783beba502ca73dfd8b4"
+    },
+    "successful_commands": 11
+  },
+  "dispatcher": {
+    "bind_mount_active": false,
+    "candidate_present": false,
+    "original_path": "/sbin/reload_config",
+    "original_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "switch_present": false
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "filesystems": {
+    "overlay": {
+      "available_kib": 58768,
+      "capacity_percent": 0,
+      "total_kib": 62044,
+      "used_kib": 68
+    },
+    "overlay_minimum_available_kib": 8192,
+    "tmp": {
+      "available_kib": 119040,
+      "capacity_percent": 0,
+      "total_kib": 119512,
+      "used_kib": 472
+    }
+  },
+  "gates": {
+    "device_writes_allowed": false,
+    "dispatcher_pristine": true,
+    "firmware_flash_allowed": false,
+    "fresh_runtime_identity": true,
+    "h1_1a_read_only_observation": true,
+    "h1_1b_boot_environment_read": false,
+    "h1_1b_layout_precondition": true,
+    "h1_2_private_backup": false,
+    "h1_3_recovery_rehearsal": false,
+    "h1_4_tmpfs_shadow": false,
+    "h1_5_disabled_install": false,
+    "h1_6_canary": false,
+    "nmbm_attached": true,
+    "overlay_headroom": true,
+    "package_drift_unchanged": true,
+    "stock_storage_layout": true,
+    "ubi_metadata_healthy": true
+  },
+  "identity": {
+    "architecture": "aarch64_cortex-a53",
+    "board_name": "xiaomi,mi-router-ax3000t",
+    "kernel": "6.12.94",
+    "layout": "stock",
+    "matched_exact_image_identity": true,
+    "model": "Xiaomi Mi Router AX3000T",
+    "release": "25.12.5",
+    "revision": "r33051-f5dae5ece4",
+    "rootfs_type": "squashfs",
+    "target": "mediatek/filogic"
+  },
+  "method_corrections": [
+    {
+      "additional_capability": false,
+      "id": "H1-RO-03-glob",
+      "reason": "BusyBox glob mtd[0-9]* also matched mtdXro symlinks. The corrected command skips names ending in ro and reads the same five sysfs metadata fields from the same MTD class.",
+      "rerun_scope": "H1-RO-03 then continue H1-RO-04 through H1-RO-10",
+      "status": "approved_within_existing_read_only_scope"
+    },
+    {
+      "additional_capability": false,
+      "id": "H1-RO-07-busybox-df",
+      "reason": "BusyBox 1.37 df does not implement -i. The corrected command retains the supported capacity query and drops the unsupported inode query.",
+      "rerun_scope": "H1-RO-07 then continue H1-RO-08 through H1-RO-10",
+      "status": "approved_within_existing_read_only_scope"
+    },
+    {
+      "additional_capability": false,
+      "id": "H1-RO-08-missing-newline",
+      "reason": "The missing-tool branch emitted no line terminator, joining nanddump and fw_printenv labels. The corrected command prints an explicit absent marker and performs the same shell path lookups.",
+      "rerun_scope": "H1-RO-08 only",
+      "status": "approved_within_existing_read_only_scope"
+    }
+  ],
+  "mounts": {
+    "overlay": {
+      "filesystem": "ubifs",
+      "read_write": true,
+      "source": "/dev/ubi0_1"
+    },
+    "rom": {
+      "filesystem": "squashfs",
+      "read_only": true
+    },
+    "root": {
+      "filesystem": "overlay",
+      "read_write": true
+    }
+  },
+  "packages": {
+    "added": [
+      {
+        "name": "luci-i18n-attendedsysupgrade-zh-cn",
+        "version": "26.180.75667~128a781"
+      },
+      {
+        "name": "luci-i18n-base-zh-cn",
+        "version": "26.180.75667~128a781"
+      },
+      {
+        "name": "luci-i18n-firewall-zh-cn",
+        "version": "26.180.75667~128a781"
+      },
+      {
+        "name": "luci-i18n-package-manager-zh-cn",
+        "version": "26.180.75667~128a781"
+      }
+    ],
+    "device_count": 163,
+    "image_count": 159,
+    "matches_prior_runtime_drift": true,
+    "removed": [],
+    "version_changed": []
+  },
+  "recorded_at": "2026-09-01",
+  "redaction": {
+    "asserted": true,
+    "device_addresses_omitted": true,
+    "device_hostname_omitted": true,
+    "filesystem_uuid_omitted": true,
+    "mac_addresses_omitted": true,
+    "raw_output_location": "private evidence outside Git"
+  },
+  "schema_version": 1,
+  "scope": {
+    "boot_environment_values_read": false,
+    "device_contact": true,
+    "device_writes": false,
+    "firmware_flash": false,
+    "package_install": false,
+    "package_transfer": false,
+    "raw_mtd_payload_read": false,
+    "router_reboot": false,
+    "runtime_mount_change": false,
+    "service_or_network_change": false
+  },
+  "stage": "H1.1a",
+  "status": "passed_read_only",
+  "storage": {
+    "command_line_boot_branch": {
+      "firmware": 0,
+      "mtd": "ubi"
+    },
+    "mtd": [
+      {
+        "device": "mtd0",
+        "erase_size_bytes": 131072,
+        "name": "BL2",
+        "size_bytes": 1048576,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd1",
+        "erase_size_bytes": 131072,
+        "name": "Nvram",
+        "size_bytes": 262144,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd2",
+        "erase_size_bytes": 131072,
+        "name": "Bdata",
+        "size_bytes": 262144,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd3",
+        "erase_size_bytes": 131072,
+        "name": "Factory",
+        "size_bytes": 2097152,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd4",
+        "erase_size_bytes": 131072,
+        "name": "FIP",
+        "size_bytes": 2097152,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd5",
+        "erase_size_bytes": 131072,
+        "name": "crash",
+        "size_bytes": 262144,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd6",
+        "erase_size_bytes": 131072,
+        "name": "crash_log",
+        "size_bytes": 262144,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd7",
+        "erase_size_bytes": 131072,
+        "name": "KF",
+        "size_bytes": 262144,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd8",
+        "erase_size_bytes": 131072,
+        "name": "ubi_kernel",
+        "size_bytes": 35651584,
+        "type": "nand",
+        "write_size_bytes": 2048
+      },
+      {
+        "device": "mtd9",
+        "erase_size_bytes": 131072,
+        "name": "ubi",
+        "size_bytes": 81788928,
+        "type": "nand",
+        "write_size_bytes": 2048
+      }
+    ],
+    "mtd_index_is_not_physical_offset": true,
+    "nand": {
+      "capacity_mib": 128,
+      "driver": "spi-nand",
+      "erase_block_kib": 128,
+      "manufacturer_string": "FORESEE SPI NAND",
+      "oob_size_bytes": 64,
+      "page_size_bytes": 2048
+    },
+    "nmbm": {
+      "attached": true,
+      "management_region_start_block": 960,
+      "management_region_start_hex": "0x07800000"
+    },
+    "switch": {
+      "driver": "an8855",
+      "phy_driver": "Airoha AN8855 internal PHY"
+    },
+    "ubi": {
+      "attached_mtd": "mtd9",
+      "attached_mtd_name": "ubi",
+      "available_logical_eraseblocks": 0,
+      "bad_physical_eraseblocks": 0,
+      "device": "ubi0",
+      "logical_eraseblock_size_bytes": 126976,
+      "maximum_erase_counter": 13,
+      "reserved_physical_eraseblocks": 19,
+      "total_logical_eraseblocks": 624,
+      "volumes": [
+        {
+          "id": 0,
+          "logical_eraseblocks": 41,
+          "name": "rootfs",
+          "state": "OK"
+        },
+        {
+          "id": 1,
+          "logical_eraseblocks": 558,
+          "name": "rootfs_data",
+          "state": "OK"
+        }
+      ]
+    },
+    "ubi_kernel_scan": {
+      "bad_pebs": 0,
+      "corrupted_pebs": 0,
+      "good_pebs": 624
+    },
+    "ubifs_boot_recovery": {
+      "completed": true,
+      "current_error_observed": false,
+      "needed": true
+    }
+  },
+  "tools": {
+    "fw_printenv": "/usr/sbin/fw_printenv",
+    "nanddump": null,
+    "sha256sum": "/usr/bin/sha256sum",
+    "sysupgrade": "/sbin/sysupgrade",
+    "tar": "/bin/tar",
+    "ubinfo": "/usr/sbin/ubinfo"
+  }
+}

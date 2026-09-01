@@ -3,6 +3,7 @@
 > H1.0 状态：通过
 > 物理设备状态：未准入
 > 日期：2026-09-01
+> 历史快照：当前进度已进入 H1.1a，见 `H1_1A_OBSERVATIONS.md`
 
 ## 1. 判定
 
@@ -39,9 +40,9 @@ rootfs 和 mount namespace 中完成，没有覆盖硬件、driver、bootloader 
 
 ## 4. 当前开放项
 
-机器 manifest 保留 14 个 pending prerequisite：
+H1.0 的机器 manifest 保留 13 个 pending prerequisite：
 
-- H1.1a：实物 variant/SKU、新鲜运行身份、MTD/NMBM、overlay headroom；
+- H1.1a：新鲜运行身份、MTD/NMBM、overlay headroom；
 - H1.1b：boot environment branch；
 - H1.2：known-good artifacts 离线副本、本机私有备份、第二份 hash 一致的副本；
 - H1.3：独立有线管理、power-cycle、failsafe；
@@ -54,7 +55,7 @@ rootfs 和 mount namespace 中完成，没有覆盖硬件、driver、bootloader 
 ## 5. Gate 验证
 
 正向运行输出：`h1_0_gate_passed=true`、`physical_device_admitted=false`、
-`approved_device_commands=0`、`open_prerequisites=14`。
+`approved_device_commands=0`、`open_prerequisites=13`。
 
 负向测试全部被拒绝：
 
@@ -74,9 +75,9 @@ apk-tools 从该 repository 安装到 disposable usermode root，且没有使用
 
 ## 6. 下一步
 
-下一次可请求的是 **H1.1a**，只执行十一个 identity/storage/tool metadata 命令（H1.1b 的
-第十二条 `fw_printenv` 仍不执行）。执行前要让用户确认：可以连接现有 SSH、无需更改设备
-登录配置、原始输出只私存、任一停止条件触发即终止。
+H1.0 当时的下一步是 **H1.1a**，只执行十一个 identity/storage/tool metadata 命令（H1.1b
+的第十二条 `fw_printenv` 不执行）。该阶段现已另行授权并完成；本报告保留 H1.0 结算时的
+gate 状态，当前结论见 `H1_1A_OBSERVATIONS.md`。
 
 H1.1a 不上传 APK、不读 raw MTD payload、不重启、不安装工具、不 mount，也不刷 firmware。
 
@@ -89,6 +90,6 @@ H1.1a 不上传 APK、不读 raw MTD payload、不重启、不安装工具、不
 - [H1 backup-tool manifest](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-backup-tool.json)
 - [H1 gate](../../tools/h1_readiness_gate.py)
 
-官方恢复资料仅作为 REF：AX3000T 设备页区分 RD03/RD23 与不支持的 RD03v2，并描述 stock
-bootloader TFTP、UART/initramfs 和 device-specific backup；failsafe 文档明确其用途是配置/
-overlay 恢复，不能修复 broken kernel。runbook 不把这些 REF 冒充本机已演练的 RUN 证据。
+官方恢复资料仅作为 REF：AX3000T 设备页描述 stock bootloader TFTP、UART/initramfs 和
+device-specific backup；failsafe 文档明确其用途是配置/overlay 恢复，不能修复 broken
+kernel。runbook 不把这些 REF 冒充本机已演练的 RUN 证据。
