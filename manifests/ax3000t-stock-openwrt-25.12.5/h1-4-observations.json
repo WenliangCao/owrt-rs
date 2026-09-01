@@ -1,0 +1,190 @@
+{
+  "attempts": [
+    {
+      "cleanup_verified": true,
+      "id": "run-01",
+      "private_manifest_path": "private/h1-4-20260901/run/run.json",
+      "private_manifest_sha256": "981322f948aba4469862fe849ed7ffe54dd6d216c9c295995dffc9aaa38bf2a2",
+      "result": "legacy_scp_required",
+      "status": "failed_closed"
+    },
+    {
+      "cleanup_verified": true,
+      "id": "run-02",
+      "private_manifest_path": "private/h1-4-20260901/run-02/run.json",
+      "private_manifest_sha256": "e0c9422e045a89dfd630bc006782c387283abc46a393a1e2801afb196731822d",
+      "result": "failure_step_not_observable",
+      "status": "failed_closed"
+    },
+    {
+      "cleanup_verified": true,
+      "id": "run-03",
+      "private_manifest_path": "private/h1-4-20260901/run-03/run.json",
+      "private_manifest_sha256": "67489da4a00ee034bd53b12fad03309a35f43d5152e3cfa8b5f7ed8bcae03418",
+      "result": "run1_group_failed",
+      "status": "failed_closed"
+    },
+    {
+      "cleanup_verified": true,
+      "id": "run-04",
+      "private_manifest_path": "private/h1-4-20260901/run-04/run.json",
+      "private_manifest_sha256": "2fa6614cea50b8b01c6f827ddfaf2743a3b81636a5e6e5ddf7379d1800d5a589",
+      "result": "shared_baseline_was_not_silent",
+      "status": "failed_closed"
+    },
+    {
+      "cleanup_verified": true,
+      "id": "run-05",
+      "private_manifest_path": "private/h1-4-20260901/run-05/run.json",
+      "private_manifest_sha256": "50b66225f92c1376d9b86d8f2810ba789bff752b3bd3efffa474f54a16f32ec0",
+      "result": "network_drift_identified",
+      "status": "failed_closed"
+    },
+    {
+      "cleanup_verified": true,
+      "id": "run-06",
+      "private_manifest_path": "private/h1-4-20260901/run-06/run.json",
+      "private_manifest_sha256": "fe845cb7a0e83bcdf046f9b4be44a1ae2436f49ed25f20ef348c673aa1cbd271",
+      "result": "four_step_shadow_passed",
+      "status": "passed"
+    }
+  ],
+  "device_effects": {
+    "candidate_installed": false,
+    "device_contact": true,
+    "device_execution": true,
+    "device_transfer": true,
+    "firmware_flash": false,
+    "package_database_changed": false,
+    "package_install": false,
+    "persistent_writes": false,
+    "real_ubus_calls": 0,
+    "router_reboot": false,
+    "runtime_mount_changes": 0,
+    "tmpfs_writes": true
+  },
+  "device_identity": {
+    "board": "xiaomi,mi-router-ax3000t",
+    "kernel": "6.12.94",
+    "layout": "stock",
+    "release": "25.12.5",
+    "revision": "r33051-f5dae5ece4",
+    "target": "mediatek/filogic"
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "candidate_hardware_abi": true,
+    "cleanup_verified": true,
+    "config_tree_unchanged": true,
+    "contract_shadow_sequence": true,
+    "h1_4_device_run": true,
+    "h1_5_disabled_install": false,
+    "h1_6_canary_ready": false,
+    "live_baseline_unchanged": true,
+    "package_database_unchanged": true,
+    "real_delivery_exercised": false,
+    "runtime_mount_unchanged": true
+  },
+  "inputs": {
+    "candidate": {
+      "path": "private/h1-4-20260901/reload_config_rs",
+      "sha256": "b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75",
+      "size_bytes": 346531
+    },
+    "contract": {
+      "path": "docs/contracts/config-change-dispatch.md",
+      "sha256": "10c9f7de0e517e734e4cb4e6ccd44c832f4cae207303211a72ae02c7786a5318"
+    },
+    "harness": {
+      "path": "tools/h1_4_shadow_device.sh",
+      "sha256": "cfe8bc2754f37fbd644f74c456728aa1ebb5350a9a441cd6a358473852e420e0"
+    },
+    "preflight": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-4-preflight.json",
+      "sha256": "94ed9d5e099ee132320d071c94668a082d172312fb1f65240b9c1f6142a87e0a"
+    },
+    "runner": {
+      "path": "tools/h1_4_run.py",
+      "sha256": "b3f517e740c398684f11d958fdbf9dc340e6c2b352a5e3684b227eebbafdceeb"
+    }
+  },
+  "live_invariants": {
+    "baseline_sha256": "b77e0e99672ee504d1ee1183f14b8ba8cfe92f6c546aa585f7efc784d2b0c163",
+    "config_tree_sha256": "c571059487c486dc8f255228f49ab558092a50ee22c0845c91ed4839a0ded44a",
+    "dispatcher_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "mount_count": 0,
+    "package_database_sha256": "6149a91ae1efa348b3e56d08ef13f844ecee6288a78448749519682a9e8cb5fc",
+    "uci_tree_sha256": "absent"
+  },
+  "method_corrections": [
+    {
+      "id": "legacy-scp",
+      "result": "OpenSSH default SFTP failed closed because the router has no sftp-server; the frozen runner now uses the present legacy /usr/bin/scp via scp -O."
+    },
+    {
+      "id": "failure-step-observability",
+      "result": "The harness added fixed, content-free failure-step labels and candidate trace output after an undiagnosable assertion failure."
+    },
+    {
+      "id": "shared-baseline-drift",
+      "result": "The zero-event assumption was rejected rather than relaxed: the live baseline currently differs from normalized network, so shared drift and post-absorption steady state are separate cases."
+    },
+    {
+      "id": "commit-precheck-fail-fast",
+      "result": "A combined final-check command lacked shell fail-fast, so a provisional commit ran after the preflight report-marker gate failed. The marker was restored, all gates were rerun under set -e, and the same stage commit was amended."
+    }
+  ],
+  "next_stage": {
+    "blocker": "H1.5 writes the overlay/package database and therefore requires a new explicit authorization; H1.6 additionally requires resolving the observed network baseline drift without silently changing device state.",
+    "id": "H1.5-disabled-install",
+    "status": "not_authorized"
+  },
+  "observations": {
+    "dotted_normalization_exit_count_each_run": 7,
+    "run0_shared_drift": {
+      "changed_entries": [
+        "network"
+      ],
+      "compared_count": 19,
+      "fake_deliveries": 1,
+      "new_baseline_count": 19,
+      "passed": true
+    },
+    "run1_steady_state": {
+      "baseline_byte_equivalent": true,
+      "changed_entries": [],
+      "compared_count": 19,
+      "fake_deliveries": 0,
+      "new_baseline_count": 19,
+      "passed": true
+    },
+    "run2_creation_silent": {
+      "changed_entries": [],
+      "compared_count": 19,
+      "fake_deliveries": 0,
+      "new_baseline_count": 20,
+      "passed": true
+    },
+    "run3_modification_event": {
+      "changed_entries": [
+        "h1_shadow_probe"
+      ],
+      "compared_count": 20,
+      "fake_deliveries": 1,
+      "new_baseline_count": 20,
+      "passed": true
+    }
+  },
+  "private_successful_run": {
+    "completed_at": "2026-09-01T20:18:02Z",
+    "identity_stdout_sha256": "952a5688348410c63dc2dee4c1efa110b6ef2bb30b6c867d5cb1162c271be317",
+    "shadow_stdout_sha256": "fd22c31f01efa9c70baec2cd9852e1232bd8fc80f9fca96716277796e3556378",
+    "started_at": "2026-09-01T20:17:59Z",
+    "stderr_all_empty": true,
+    "verify_stdout_sha256": "f2f2231fc00bdc1064e12e6eb7743c8ef40305a149b1e103c032851f50dace39"
+  },
+  "recorded_at": "2026-09-01",
+  "schema_version": 1,
+  "stage": "H1.4-device-shadow",
+  "status": "complete_passed_with_live_baseline_drift"
+}

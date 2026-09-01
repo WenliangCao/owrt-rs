@@ -1,6 +1,6 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：H1.4 offline preflight 完成；本轮已授权 tmpfs-only device run
+> 状态：H1.4 真实设备 tmpfs-only shadow 完成；H1.5 disabled install 尚未授权
 > 版本：2.0
 > 日期：2026-09-01
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
@@ -187,8 +187,8 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | C1 | 冻结第一个兼容合同和参考 oracle | 完成：C1-01，11 个参考用例 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 完成：11/11 差分、6/6 故障、gate 通过 | 否 |
 | V1 | release-matched 集成和差分验证 | 完成：匹配 SDK package、11/11 + 6/6 差分/故障、4 项 V1 注入、gate 通过 | 否 |
-| H1 | 物理设备准入和 canary | H1.4 offline preflight 完成；本轮授权 tmpfs-only shadow run | 仅 `/tmp`；禁止持久写入 |
-| N1 | 按同一闭环处理下一个职责 | 等待 R05 的 H1.4 结论；可继续离线研究，实体 canary 另行授权 | 另行决定 |
+| H1 | 物理设备准入和 canary | H1.4 shadow 完成；发现 live `network` baseline drift；H1.5 未授权 | H1.4 仅 `/tmp`；后续另行授权 |
+| N1 | 按同一闭环处理下一个职责 | R05 实机 ABI/shadow 合同已证实；真实接管仍等待 H1.5/H1.6 | 另行决定 |
 
 ## 7. L0：计划前置探索
 
@@ -1043,15 +1043,18 @@ interface discovery
 19. [x] 完成 H1 无拆机边界重规划：只允许 Wi-Fi/Ethernet/SSH，证明 R05 的 tmpfs/volatile
     失败层与 UART/NAND 恢复不相交，所有设备 gate 仍关闭。
 20. [x] 完成 H1.4 offline preflight：冻结 SSH/tmpfs shadow harness、命令、hash、timeout、
-    fake ubus、清理与负向 gate；纠正“新增应发事件”为 creation-silent 三步序列；本阶段没有
-    连接设备。
-21. [ ] 消耗本轮明确授权执行一次 H1.4 tmpfs-only shadow run，并审查真实设备证据与清理结果。
+    fake ubus、清理与负向 gate；纠正“新增应发事件”为 creation-silent，并在 fail-closed
+    probe 后加入共享 baseline drift 与稳态的分离验证。
+21. [x] H1.4 tmpfs-only shadow run 已完成：精确 candidate 在真实 AX3000T 上通过共享 drift、
+    稳态、新增静默和修改单事件四步；零真实 ubus、零持久写入、零 mount，清理通过。
+22. [ ] H1.5 disabled install 尚未授权；即使以后安装通过，H1.6 仍须先明确处理已观察到的
+    `network` baseline drift，不能让首次真实接管意外投递该事件。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
 manager、SquashFS rootfs、R05 合同、可观测 reference oracle、最小 Rust 进程边界、匹配 SDK
 package 和重启即失的显式切换机制。H1 的物理准入顺序、recovery runbook 与首个 canary 范围
 已经冻结；H1.1a/H1.1b 现场证据已取得。H1.2 只完成服务器源码预检，H1.3a 只完成服务器构建
 与静态审计，H1.3b 只完成离线/本机 preflight；三者没有产生新的设备操作。无拆机策略现已
-把 raw backup/RAM boot 从 R05 前置链移除，但没有伪造其完成。H1.4 offline preflight 已通过；
-下一项是本轮已授权的固定路径 SSH/tmpfs shadow run。APK install、真实 ubus、mount、reboot 和
-flash 仍全部禁止。
+把 raw backup/RAM boot 从 R05 前置链移除，但没有伪造其完成。H1.4 实机 shadow 已通过，并
+发现 live baseline 中单独的 `network` drift；真实状态未被修改。下一项 H1.5 会写 overlay 和
+package database，必须得到新的明确授权。真实 ubus、mount、reboot 和 flash 仍全部禁止。

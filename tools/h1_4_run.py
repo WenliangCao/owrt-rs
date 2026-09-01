@@ -154,7 +154,7 @@ def main() -> None:
             # A failed scp can still leave a partial file at the fixed target.
             transferred = True
             result = run(
-                ["scp", *SSH_OPTIONS, str(source), f"{args.ssh_target}:{destination}"],
+                ["scp", "-O", *SSH_OPTIONS, str(source), f"{args.ssh_target}:{destination}"],
                 60,
             )
             records.append(write_result(evidence_dir, label, result))
@@ -176,7 +176,8 @@ def main() -> None:
         shadow_text = shadow.stdout.decode("utf-8", errors="strict")
         for marker in (
             "h1_4_shadow=PASS",
-            "run1_shared_baseline=PASS",
+            "run0_shared_drift_network=PASS",
+            "run1_steady_state=PASS",
             "run2_creation_silent=PASS",
             "run3_modification_event=PASS",
             "real_ubus_calls=0",

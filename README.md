@@ -160,5 +160,9 @@ gate，不再错误阻断只涉及 R05 tmpfs 状态的验证。报告见
 决策见 [0006](docs/decisions/0006-use-a-no-disassembly-device-validation-profile.md)。H1.4 offline
 preflight 已冻结并验证 SSH/tmpfs shadow harness，见
 [H1_4_PREFLIGHT.md](reports/ax3000t-stock-openwrt-25.12.5/H1_4_PREFLIGHT.md)。它纠正了 synthetic
-package 新增应保持静默、修改才发事件的三步序列。本轮用户已明确授权一个真实设备 shadow
-run；上限仍是固定 `/tmp` 路径和 fake ubus，不安装、mount、重启或刷写。
+package 新增应保持静默、修改才发事件的语义，并在首次实机 probe 中发现当前 baseline 与
+`network` 规范化结果存在 drift。最终 shadow 序列先隔离观察并吸收该 drift，再检查稳态零事件、
+新增静默和修改单事件；真实设备 H1.4 已全部通过，见
+[H1_4_SHADOW.md](reports/ax3000t-stock-openwrt-25.12.5/H1_4_SHADOW.md)。执行上限是固定 `/tmp`
+路径和 fake ubus，结果为零持久写入、零真实 ubus、零 mount、清理完成。H1.5 默认禁用安装
+会写 overlay/package database，尚未授权；H1.6 还被未处理的 `network` drift 阻断。

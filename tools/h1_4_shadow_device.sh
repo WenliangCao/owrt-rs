@@ -12,12 +12,31 @@ CANDIDATE=/tmp/owrt-h1-4-reload-config-rs
 HARNESS=/tmp/owrt-h1-4-shadow.sh
 EXPECTED_CANDIDATE_SHA256=b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75
 EXPECTED_DISPATCHER_SHA256=f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15
+EXPECTED_BASELINE_SHA256=b77e0e99672ee504d1ee1183f14b8ba8cfe92f6c546aa585f7efc784d2b0c163
 SYNTHETIC_PACKAGE=h1_shadow_probe
+current_step=entry
 
 cleanup() {
     saved_status=$?
     trap - EXIT HUP INT TERM
     cleanup_status=0
+
+    if [ "$saved_status" -ne 0 ]; then
+        for trace in run0_shared_drift run1_steady_state run2_creation_silent \
+            run3_modification_event; do
+            trace_path=$EVIDENCE_DIR/$trace.jsonl
+            if [ -f "$trace_path" ]; then
+                printf 'diagnostic_%s_begin\n' "$trace"
+                cat "$trace_path"
+                printf 'diagnostic_%s_end\n' "$trace"
+            fi
+        done
+        if [ -f "$FAKE_UBUS_LOG" ]; then
+            printf '%s\n' 'diagnostic_fake_ubus_begin'
+            cat "$FAKE_UBUS_LOG"
+            printf '%s\n' 'diagnostic_fake_ubus_end'
+        fi
+    fi
 
     if [ "$RUN_ROOT" != /tmp/owrt-r05-shadow-20260901 ]; then
         cleanup_status=1
@@ -39,6 +58,9 @@ cleanup() {
 
     if [ "$cleanup_status" -eq 0 ] && [ ! -e "$RUN_ROOT" ] &&
         [ ! -e "$CANDIDATE" ] && [ ! -e "$HARNESS" ]; then
+        if [ "$saved_status" -ne 0 ]; then
+            printf 'failed_step=%s\n' "$current_step"
+        fi
         printf '%s\n' 'cleanup=PASS'
     else
         printf '%s\n' 'cleanup=FAIL'
@@ -80,16 +102,19 @@ run_candidate() {
         2>"$EVIDENCE_DIR/$label.jsonl"
 }
 
+current_step=identity-guards
 [ "$0" = "$HARNESS" ]
 [ ! -e "$RUN_ROOT" ]
 [ -f "$CANDIDATE" ]
 [ "$(sha256_file "$CANDIDATE")" = "$EXPECTED_CANDIDATE_SHA256" ]
 [ "$(sha256_file /sbin/reload_config)" = "$EXPECTED_DISPATCHER_SHA256" ]
 [ -f /var/run/config.md5 ]
+[ "$(sha256_file /var/run/config.md5)" = "$EXPECTED_BASELINE_SHA256" ]
 [ ! -e /usr/sbin/reload_config_rs ]
 [ ! -e /usr/sbin/owrt-reload-config-switch ]
 [ "$(mount_count)" -eq 0 ]
 
+current_step=live-snapshot
 live_config_before=$(tree_digest /etc/config)
 live_uci_before=$(tree_digest /var/run/uci)
 live_baseline_before=$(sha256_file /var/run/config.md5)
@@ -97,6 +122,7 @@ dispatcher_before=$(sha256_file /sbin/reload_config)
 package_db_before=$(sha256_file /lib/apk/db/installed)
 mount_before=$(mount_count)
 
+current_step=shadow-copy
 mkdir -p "$SHADOW_ROOT/etc/config" "$SHADOW_ROOT/var/run" \
     "$EVIDENCE_DIR" "$FAKE_BIN"
 cp -a /etc/config/. "$SHADOW_ROOT/etc/config/"
@@ -111,6 +137,7 @@ cp /var/run/config.md5 "$SHADOW_ROOT/var/run/config.md5"
 shadow_baseline_initial=$(sha256_file "$SHADOW_ROOT/var/run/config.md5")
 [ "$shadow_baseline_initial" = "$live_baseline_before" ]
 
+current_step=fake-ubus
 cat >"$FAKE_BIN/ubus" <<'FAKE_UBUS'
 #!/bin/sh
 set -eu
@@ -129,38 +156,69 @@ chmod 0500 "$FAKE_BIN/ubus"
 : >"$FAKE_UBUS_LOG"
 [ "$(PATH="$FAKE_BIN:/usr/sbin:/usr/bin:/sbin:/bin" command -v ubus)" = "$FAKE_BIN/ubus" ]
 
-run_candidate run1_shared_baseline
-[ "$(line_count "$FAKE_UBUS_LOG")" -eq 0 ]
-grep -Fq '"changed_entries":[]' "$EVIDENCE_DIR/run1_shared_baseline.jsonl"
-grep -Fq '"delivery_failures":0' "$EVIDENCE_DIR/run1_shared_baseline.jsonl"
-shadow_baseline_after_run1=$(sha256_file "$SHADOW_ROOT/var/run/config.md5")
-[ "$shadow_baseline_after_run1" = "$shadow_baseline_initial" ]
+current_step=run0-execute
+run_candidate run0_shared_drift
+current_step=run0-one-network-event
+[ "$(line_count "$FAKE_UBUS_LOG")" -eq 1 ]
+grep -Fq '"changed_entries":["network"]' "$EVIDENCE_DIR/run0_shared_drift.jsonl"
+grep -Fq '"package":"network","outcome":"success","status":0' \
+    "$EVIDENCE_DIR/run0_shared_drift.jsonl"
+grep -Fq '"delivery_failures":0' "$EVIDENCE_DIR/run0_shared_drift.jsonl"
+expected_drift_call=$(printf '%s\t%s\t%s\t%s' call service event \
+    '{ "type": "config.change", "data": { "package": "network" } }')
+[ "$(cat "$FAKE_UBUS_LOG")" = "$expected_drift_call" ]
+cp "$FAKE_UBUS_LOG" "$EVIDENCE_DIR/run0-fake-ubus.log"
+shadow_baseline_after_run0=$(sha256_file "$SHADOW_ROOT/var/run/config.md5")
+[ "$shadow_baseline_after_run0" != "$shadow_baseline_initial" ]
+: >"$FAKE_UBUS_LOG"
 
+current_step=run1-execute
+run_candidate run1_steady_state
+current_step=run1-zero-events
+[ "$(line_count "$FAKE_UBUS_LOG")" -eq 0 ]
+current_step=run1-changed-trace
+grep -Fq '"changed_entries":[]' "$EVIDENCE_DIR/run1_steady_state.jsonl"
+current_step=run1-delivery-trace
+grep -Fq '"delivery_failures":0' "$EVIDENCE_DIR/run1_steady_state.jsonl"
+current_step=run1-baseline-bytes
+shadow_baseline_after_run1=$(sha256_file "$SHADOW_ROOT/var/run/config.md5")
+[ "$shadow_baseline_after_run1" = "$shadow_baseline_after_run0" ]
+
+current_step=run2-creation-silent
 [ ! -e "$SHADOW_ROOT/etc/config/$SYNTHETIC_PACKAGE" ]
 cat >"$SHADOW_ROOT/etc/config/$SYNTHETIC_PACKAGE" <<'SYNTHETIC_ONE'
 config probe 'main'
         option value 'one'
 SYNTHETIC_ONE
 run_candidate run2_creation_silent
+current_step=run2-zero-events
 [ "$(line_count "$FAKE_UBUS_LOG")" -eq 0 ]
+current_step=run2-changed-trace
 grep -Fq '"changed_entries":[]' "$EVIDENCE_DIR/run2_creation_silent.jsonl"
+current_step=run2-delivery-trace
 grep -Fq '"delivery_failures":0' "$EVIDENCE_DIR/run2_creation_silent.jsonl"
 
+current_step=run3-modification-event
 cat >"$SHADOW_ROOT/etc/config/$SYNTHETIC_PACKAGE" <<'SYNTHETIC_TWO'
 config probe 'main'
         option value 'two'
 SYNTHETIC_TWO
 run_candidate run3_modification_event
+current_step=run3-one-event
 [ "$(line_count "$FAKE_UBUS_LOG")" -eq 1 ]
+current_step=run3-changed-trace
 grep -Fq '"changed_entries":["h1_shadow_probe"]' \
     "$EVIDENCE_DIR/run3_modification_event.jsonl"
+current_step=run3-delivery-trace
 grep -Fq '"package":"h1_shadow_probe","outcome":"success","status":0' \
     "$EVIDENCE_DIR/run3_modification_event.jsonl"
 grep -Fq '"delivery_failures":0' "$EVIDENCE_DIR/run3_modification_event.jsonl"
+current_step=run3-fake-call
 expected_fake_call=$(printf '%s\t%s\t%s\t%s' call service event \
     '{ "type": "config.change", "data": { "package": "h1_shadow_probe" } }')
 [ "$(cat "$FAKE_UBUS_LOG")" = "$expected_fake_call" ]
 
+current_step=live-invariants
 live_config_after=$(tree_digest /etc/config)
 live_uci_after=$(tree_digest /var/run/uci)
 live_baseline_after=$(sha256_file /var/run/config.md5)
@@ -177,6 +235,7 @@ mount_after=$(mount_count)
 [ ! -e /usr/sbin/reload_config_rs ]
 [ ! -e /usr/sbin/owrt-reload-config-switch ]
 
+current_step=emit-summary
 printf '%s\n' \
     'h1_4_shadow=PASS' \
     "candidate_sha256=$EXPECTED_CANDIDATE_SHA256" \
@@ -186,7 +245,8 @@ printf '%s\n' \
     "live_baseline_sha256=$live_baseline_after" \
     "package_db_sha256=$package_db_after" \
     "mount_count=$mount_after" \
-    'run1_shared_baseline=PASS' \
+    'run0_shared_drift_network=PASS' \
+    'run1_steady_state=PASS' \
     'run2_creation_silent=PASS' \
     'run3_modification_event=PASS' \
     'real_ubus_calls=0' \
@@ -196,11 +256,15 @@ printf '%s\n' \
     'router_reboot=false' \
     'firmware_flash=false'
 
-for trace in run1_shared_baseline run2_creation_silent run3_modification_event; do
+for trace in run0_shared_drift run1_steady_state run2_creation_silent \
+    run3_modification_event; do
     printf 'trace_%s_begin\n' "$trace"
     cat "$EVIDENCE_DIR/$trace.jsonl"
     printf 'trace_%s_end\n' "$trace"
 done
+printf '%s\n' 'drift_fake_ubus_begin'
+cat "$EVIDENCE_DIR/run0-fake-ubus.log"
+printf '%s\n' 'drift_fake_ubus_end'
 printf '%s\n' 'fake_ubus_begin'
 cat "$FAKE_UBUS_LOG"
 printf '%s\n' 'fake_ubus_end'

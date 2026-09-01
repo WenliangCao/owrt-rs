@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.4 offline preflight 已完成；本轮已明确授权一个 tmpfs shadow device run
+> 状态：H1.4 真实设备 tmpfs shadow 已完成；H1.5 尚未授权
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -26,7 +26,7 @@ H1.0 离线准入设计（已完成）
   → H1.3b RAM boot（历史 preflight；按用户边界不再执行）
   → H1 无拆机边界重规划（已完成，离线 policy only）
   → H1.4 offline preflight（已完成；未接触设备）
-  → H1.4 tmpfs shadow run（本轮已明确授权，尚未执行）
+  → H1.4 tmpfs shadow run（已完成；发现 live `network` baseline drift）
   → H1.5 默认禁用 APK 安装（需另行授权）
   → H1.6 短时 bind-mount canary（需另行授权）
 ```
@@ -241,8 +241,9 @@ H1.4 device run 不安装 APK。把 V1 已验证的 candidate binary 临时传�
 
 - 配置副本和 `/var/run/uci` 副本只存在 tmpfs，不离开设备；
 - PATH 最前放置 fake `ubus`，只记录参数并返回，绝不调用真实 `service.event`；
-- `run1-shared-baseline`：复制原实现生成的当前 baseline，candidate 必须零 event 且 baseline
-  byte-identical；
+- `run0-shared-drift`：复制原实现生成的当前 baseline；已观察该 baseline 与当前 `network`
+  规范化结果存在 drift，因此必须恰好产生一个 fake `network` event，并只推进 shadow baseline；
+- `run1-steady-state`：不改变 shadow tree 再运行，必须零 event 且 baseline byte-identical；
 - `run2-creation-silent`：只在 shadow tree 新建 synthetic package，必须零 event，并只推进
   shadow baseline；
 - `run3-modification-event`：再修改该 synthetic package，必须只产生一个 synthetic event；
@@ -251,6 +252,11 @@ H1.4 device run 不安装 APK。把 V1 已验证的 candidate binary 临时传�
 任何真实 ubus delivery、真实 `/var/run/config.md5` 变化、配置 hash 变化或网络状态变化都使
 gate 失败。H1.4 的具体 harness 必须由 offline preflight 按 H1.1 的 BusyBox/工具结果冻结；
 在该 gate 通过以前没有可执行设备命令。
+
+H1.4 实机结果为 `complete_passed_with_live_baseline_drift`。精确 candidate 在真实 AX3000T 上
+完成四步 shadow 合同；真实 ubus、持久写入和 mount 均为零，所有固定 `/tmp` 路径已清理。
+共享 baseline 副本准确报告一个既有 `network` drift，shadow 内吸收后稳态为零事件。真实
+baseline 没有修改，因此 H1.6 在另行决定如何处理该 drift 前保持不准入。
 
 ## 7. H1.5：默认禁用安装
 

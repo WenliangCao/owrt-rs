@@ -21,8 +21,8 @@ INPUT_HASHES = {
         "e0d4cfac65fcd2c16fe79bc527aa4aaaac5431eebc8da06a1b7ff5b8ed5e1393"
     ),
     "v1_validation": "7acd6d3cd26cec7aa7be32e71b6e617bbc739b0fbc1c9c0a4b4a8ae0ba62fb8d",
-    "harness": "1e187b214cd2529bfd04c2edca9b9c45e996493b2c6b8ef5ed1d42211f4eee39",
-    "runner": "6e77b7aeef28365183d827b11583d9b0ae5be19fe18a74fef70d299a80fe6c78",
+    "harness": "cfe8bc2754f37fbd644f74c456728aa1ebb5350a9a441cd6a358473852e420e0",
+    "runner": "b3f517e740c398684f11d958fdbf9dc340e6c2b352a5e3684b227eebbafdceeb",
 }
 REMOTE_PATHS = [
     "/tmp/owrt-r05-shadow-20260901",
@@ -50,7 +50,7 @@ EXPECTED_STOP_CONDITIONS = {
     "cleanup cannot remove all three exact tmpfs paths",
 }
 REPORT_MARKERS = (
-    "passed_offline_ready_for_authorized_device_run",
+    "corrected_ready_for_authorized_device_run",
     "新建 `h1_shadow_probe`：仍然零事件",
     "不安装 APK",
     "不执行 bind mount",
@@ -59,6 +59,8 @@ REPORT_MARKERS = (
 )
 RUNBOOK_MARKERS = (
     "H1.4：下一条可执行路径——tmpfs shadow",
+    "run0-shared-drift",
+    "run1-steady-state",
     "run2-creation-silent",
     "run3-modification-event",
     "H1.5 默认禁用 APK 安装（需另行授权）",
@@ -109,7 +111,7 @@ def main() -> None:
     require(manifest.get("evidence_id") == IMAGE_ID, "evidence id mismatch")
     require(manifest.get("stage") == "H1.4-preflight", "stage mismatch")
     require(
-        manifest.get("status") == "passed_offline_ready_for_authorized_device_run",
+        manifest.get("status") == "corrected_ready_for_authorized_device_run",
         "preflight status mismatch",
     )
 
@@ -159,7 +161,8 @@ def main() -> None:
             == "tools/h1_4_run.py", "runner path mismatch")
 
     expected_sequence = [
-        ("run1-shared-baseline", [], "byte-identical"),
+        ("run0-shared-drift", ["network"], "advanced-in-shadow"),
+        ("run1-steady-state", [], "byte-identical"),
         ("run2-creation-silent", [], "advanced-in-shadow"),
         ("run3-modification-event", ["h1_shadow_probe"], None),
     ]
@@ -169,7 +172,10 @@ def main() -> None:
         for item in sequence
     ]
     require(observed_sequence == expected_sequence, "contract sequence changed")
-    require(sequence[2].get("required_delivery") == "one exact fake-ubus call",
+    require(sequence[0].get("state_basis")
+            == "frozen live baseline b77e0e99... currently differs from normalized network",
+            "shared drift basis changed")
+    require(sequence[3].get("required_delivery") == "one exact fake-ubus call",
             "modification delivery requirement changed")
 
     plan = manifest.get("remote_plan", {})
@@ -262,17 +268,21 @@ def main() -> None:
     harness = args.harness.read_text(encoding="utf-8")
     runner = args.runner.read_text(encoding="utf-8")
     for marker in (
-        "run1_shared_baseline",
+        "run0_shared_drift",
+        "run1_steady_state",
         "run2_creation_silent",
         "run3_modification_event",
         "real_ubus_calls=0",
         "persistent_writes=0",
         "runtime_mount_changes=0",
+        "failed_step=%s",
+        "diagnostic_fake_ubus_begin",
         "cleanup=PASS",
     ):
         require(marker in harness, f"harness marker missing: {marker}")
     require('args.ssh_target != "openwrt"' in runner, "runner SSH alias guard missing")
     require("StrictHostKeyChecking=yes" in runner, "strict host-key check missing")
+    require('["scp", "-O", *SSH_OPTIONS' in runner, "legacy SCP mode missing")
     require("if transferred:" in runner, "emergency cleanup missing")
     combined_scripts = (harness + runner).lower()
     for forbidden in (

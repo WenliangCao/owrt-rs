@@ -18,9 +18,18 @@
   },
   "contract_sequence": [
     {
-      "expected_events": [],
-      "id": "run1-shared-baseline",
+      "expected_events": [
+        "network"
+      ],
+      "id": "run0-shared-drift",
       "operation": "run the candidate on copied live config, UCI overlay and baseline",
+      "required_baseline_result": "advanced-in-shadow",
+      "state_basis": "frozen live baseline b77e0e99... currently differs from normalized network"
+    },
+    {
+      "expected_events": [],
+      "id": "run1-steady-state",
+      "operation": "rerun without changing the shadow tree after absorbing observed drift",
       "required_baseline_result": "byte-identical"
     },
     {
@@ -88,11 +97,11 @@
   "scripts": {
     "harness": {
       "path": "tools/h1_4_shadow_device.sh",
-      "sha256": "1e187b214cd2529bfd04c2edca9b9c45e996493b2c6b8ef5ed1d42211f4eee39"
+      "sha256": "cfe8bc2754f37fbd644f74c456728aa1ebb5350a9a441cd6a358473852e420e0"
     },
     "runner": {
       "path": "tools/h1_4_run.py",
-      "sha256": "6e77b7aeef28365183d827b11583d9b0ae5be19fe18a74fef70d299a80fe6c78"
+      "sha256": "b3f517e740c398684f11d958fdbf9dc340e6c2b352a5e3684b227eebbafdceeb"
     }
   },
   "scope": {
@@ -109,7 +118,7 @@
     "runtime_mount_changes": false
   },
   "stage": "H1.4-preflight",
-  "status": "passed_offline_ready_for_authorized_device_run",
+  "status": "corrected_ready_for_authorized_device_run",
   "stop_conditions": [
     "identity or candidate hash mismatch",
     "original dispatcher, live baseline, package database, config tree or UCI tree changes",
