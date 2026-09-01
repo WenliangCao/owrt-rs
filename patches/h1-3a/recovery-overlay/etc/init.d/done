@@ -1,0 +1,8 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+
+boot() {
+	logger -t done "H1 recovery: persistent overlay finalization is disabled"
+	return 0
+}

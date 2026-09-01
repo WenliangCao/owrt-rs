@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.1a/H1.1b 只读准入通过；H1.2 已授权但因 NMBM 读侧写入风险在设备接触前暂停
+> 状态：H1.3a 离线 recovery candidate 已通过；H1.3b RAM boot 未授权
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -16,7 +16,9 @@ H1.0 离线准入设计（已完成）
   → H1.1a 只读身份/存储元数据（已完成）
   → H1.1b 白名单 boot flags（已完成，1 个受限开放问题）
   → H1.2 私有备份验收（预检完成，设备接触前暂停）
-  → H1.3 恢复演练
+  → H1.3a 离线只读 recovery candidate（已完成）
+  → H1.3b RAM boot 运行态验证（未授权）
+  → H1.3c 普通 reboot/failsafe 恢复演练（未授权）
   → H1.4 tmpfs shadow
   → H1.5 默认禁用 APK 安装
   → H1.6 短时 bind-mount canary
@@ -120,6 +122,45 @@ flash mutation，或先进入 H1.3 级恢复设计，从 RAM 启动一个禁用�
 
 ## 5. H1.3：恢复演练
 
+### H1.3a：离线只读 recovery candidate
+
+H1.3a 已在服务器完成，没有再次接触路由器。exact OpenWrt 25.12.5 source 上的专用 patch
+从 attach 前清除 MTD writeable，并在 BMT/NMBM write、erase、markbad、remap、attach repair
+层同时 fail closed；stock DTS 的十个 partition 均为 read-only，Wi-Fi disabled。recovery
+overlay 还禁用了 boot environment update、persistent mount、`mount_root done`、UBI health scan
+和 FIP read-trigger scrub 的自动入口。
+
+最终只生成 stock `xiaomi,mi-router-ax3000t` 的 RAM-loadable initramfs FIT，不生成
+`initramfs-factory.ubi` 或 `ubootmod` `.itb`：
+
+```text
+filename: openwrt-mediatek-filogic-xiaomi_mi-router-ax3000t-initramfs-kernel.bin
+size: 8762644 bytes
+SHA-256: c9ce88f597dea3e552c05cdcf9ed2d3f9683161731dc12747cc7627783247a5a
+repeat build: byte-identical
+```
+
+这只通过了离线 source/build/FIT/DTB/initramfs 静态 gate，不是运行态零写入证明。artifact
+保留在服务器私有 evidence，不进入 Git，也未传入设备。详见
+[H1_3A_RECOVERY_DESIGN.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3A_RECOVERY_DESIGN.md)。
+
+### H1.3b：RAM boot 运行态验证
+
+当前固定 `recovery_boot_verified=false`，且 bootloader commands、device transfer、router
+reboot、RAM boot 和 device write 均未授权。H1.3b 不继承 H1.3a 的服务器授权，必须在新的明确
+请求下逐字冻结命令，并同时具备物理 UART、独立有线管理、可控供电和停止条件。
+
+H1.3b 只允许把已固定 hash 的 FIT load 到 RAM 并运行；不允许 `.itb`、factory/OEM recovery、
+`sysupgrade`、boot flag update、partition erase/write 或任何自动转入 flash recovery。运行后先
+验证 RAM root、Wi-Fi disabled、persistent partitions 未挂载，再验证 mutation 接口由 kernel
+拒绝。任一身份、地址、console、FIT acceptance、guard 或网络可达性异常立即断电回到原固件，
+不得临场扩大操作。
+
+### H1.3c：普通 reboot/failsafe 恢复演练
+
+H1.3c 与 RAM boot 仍是不同授权。它解决 overlay/canary 回退，不用于证明 bootloader 或 raw
+flash 恢复。
+
 恢复能力按故障层分开：
 
 | 层 | 本 canary 的用途 | 证明方式 | 不能证明 |
@@ -136,7 +177,7 @@ OpenWrt 官方设备页说明：stock bootloader 的 TFTP soft-brick 流程会�
 overlay 的 failsafe 进入/退出。更深恢复保留为禁止升级 blast radius 的边界，不用刷机来
 “提前证明”。
 
-恢复演练本身会中断网络并重启，必须预约窗口并得到单独授权。演练期间 WAN 断开，电脑只
+任何运行态恢复演练都会中断网络并重启，必须预约窗口并得到单独授权。演练期间 WAN 断开，电脑只
 通过一根网线直连 LAN；另有独立互联网/通信设备查看资料。
 
 参考资料：

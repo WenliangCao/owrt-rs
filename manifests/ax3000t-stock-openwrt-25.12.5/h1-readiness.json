@@ -65,7 +65,7 @@
     },
     "runbook": {
       "path": "docs/H1_RUNBOOK.md",
-      "sha256": "6287336f75caf14e4e1859a73fadb6146f2e20783bd9be3e729a9021084c7eb2"
+      "sha256": "96fe211d1a62b9251cf57ae1034fcefa67f487d557aacca07d6461f936c1b69f"
     },
     "runtime": {
       "path": "manifests/ax3000t-stock-openwrt-25.12.5/runtime-observations.json",

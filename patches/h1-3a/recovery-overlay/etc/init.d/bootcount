@@ -1,0 +1,8 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+boot() {
+	logger -t bootcount "H1 recovery: boot environment updates are disabled"
+	return 0
+}

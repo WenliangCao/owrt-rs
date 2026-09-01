@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# H1 recovery never creates or enables an automatic UBI health scan.
+exit 0

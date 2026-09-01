@@ -1,0 +1,208 @@
+{
+  "artifact": {
+    "filename": "openwrt-mediatek-filogic-xiaomi_mi-router-ax3000t-initramfs-kernel.bin",
+    "format": "FIT",
+    "private_not_git": true,
+    "repeat_sha256": "c9ce88f597dea3e552c05cdcf9ed2d3f9683161731dc12747cc7627783247a5a",
+    "sha256": "c9ce88f597dea3e552c05cdcf9ed2d3f9683161731dc12747cc7627783247a5a",
+    "size_bytes": 8762644
+  },
+  "build": {
+    "checkpatch_checks": 0,
+    "checkpatch_errors": 0,
+    "checkpatch_lines": 206,
+    "checkpatch_warnings": 0,
+    "clean_rebuild_exit_code": 0,
+    "final_build_log_sha256": "dc84ff7e2599e5f18c57902311f21e2090e2f2239d9acb610c585df497c8d06b",
+    "initramfs": true,
+    "kmod_mtd_rw": false,
+    "profile_symbol": "CONFIG_TARGET_mediatek_filogic_DEVICE_xiaomi_mi-router-ax3000t",
+    "repeat_build_exit_code": 0,
+    "repeat_build_log_sha256": "3bbc824b0206a56d5dc707004ccd510d1962b13a2aeef2d5c40616a04546ecb8",
+    "resolved_profile": "DEVICE_xiaomi_mi-router-ax3000t",
+    "source_diff_paths": [
+      "target/linux/generic/files/drivers/mtd/nand/mtk_bmt.c",
+      "target/linux/generic/files/drivers/mtd/nand/mtk_bmt.h",
+      "target/linux/generic/files/drivers/mtd/nand/mtk_bmt_nmbm.c",
+      "target/linux/mediatek/dts/mt7981b-xiaomi-mi-router-ax3000t.dts",
+      "target/linux/mediatek/image/filogic.mk"
+    ],
+    "target_install_log_sha256": "23ccddae6f3b5e12fb217dd0cfae06159a6aabdfed9a6585aab95e0b35c8ec6c",
+    "ubootmod_selected": false
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "candidate_eligible_for_separate_h1_3b": true,
+    "commands_authorized": false,
+    "device_writes_allowed": false,
+    "firmware_flash_allowed": false,
+    "h1_2_private_backup": false,
+    "h1_3a_offline_candidate": true,
+    "h1_3b_ram_boot": false,
+    "recovery_boot_verified": false,
+    "router_contact_allowed": false,
+    "router_reboot_allowed": false
+  },
+  "inputs": {
+    "config_fragment_sha256": "570242ff4fba6485b8a12b15834a38a52f3413ec4f680f58d13306aa256b39d2",
+    "nanddump_sha256": "21d7c3daa9e792a9b892af956ce64c59c4588c99eb7084b93ef5ee6f4bd47b92",
+    "overlay_sha256": {
+      "etc/init.d/bootcount": "8885cf1df3ea8724a41dbddbe7bd14e5f534de56ace06631634fd78c7bcd07e7",
+      "etc/init.d/done": "c12ef41bc3b2dcba6753d8844be456fb5dae39d268d91669c46e724b1009e1bf",
+      "etc/init.d/ubihealthd": "ef0c9cb8d5d08f5db8a73598f9d8534ce0d4cfc45516491a2847ea96c752e5b6",
+      "etc/uci-defaults/ubihealthd": "6d4021868f566c89c2fb4f2328d34f3983c22acd3b7a9fe679097fe0652bb4cb",
+      "lib/preinit/07_trigger_fip_scrubbing": "ee91d8a8e4531acdc2c14ae25d1696374d41ededaeb254ed216dd19910fe57e0",
+      "lib/preinit/80_mount_root": "cdb85e48bd14be15bf2a07594678b8f480d14252aed96f922c9b44ccdb1caab5"
+    },
+    "patch_sha256": "e4e2051510864c6fdd18ff0db6b3aa792b75398d9fd1ca51e0b7bf1eeed9454e",
+    "resolved_config_sha256": "b19c3ebb08e68c86d98bce271f5d5a0f6fb5f8bf5d7b65998ac5eeb7121afe4e"
+  },
+  "limitations": {
+    "bootloader_acceptance_unverified": true,
+    "ram_boot_unverified": true,
+    "runtime_zero_write_unverified": true,
+    "uart_recovery_unverified": true
+  },
+  "method_corrections": [
+    {
+      "id": "wrong-profile-symbol",
+      "result": "The malformed symbol silently selected DEVICE_openwrt_one; the fragment was corrected and the resolved profile was rechecked before the accepted build."
+    },
+    {
+      "id": "attach-error-fail-closed",
+      "result": "The exact SPI-NAND probe ignores mtk_bmt_attach()'s return value, so MTD_WRITEABLE is cleared before attach and missing NMBM tables fail closed."
+    },
+    {
+      "id": "interrupted-generated-dependencies",
+      "result": "An interrupted serial diagnostic left truncated generated dependency files; target/linux/clean restored a known build state before the accepted builds."
+    },
+    {
+      "id": "flashable-factory-recipe",
+      "result": "The stock initramfs factory recipe depended on an unavailable helper and would produce a flash wrapper; the recovery profile now emits only the RAM-loadable initramfs kernel."
+    },
+    {
+      "id": "audit-tool-paths",
+      "result": "The first audit assumed build-local dumpimage and dtc paths; the final audit used the installed pinned host tools and a fresh extraction directory."
+    },
+    {
+      "id": "source-path-attestation",
+      "result": "A draft manifest placed the generic BMT sources under the target-specific tree; a remote git diff and object lookup corrected the source paths to target/linux/generic and the object paths to drivers/mtd/nand before the gate was accepted."
+    }
+  ],
+  "recorded_at": "2026-09-01",
+  "schema_version": 1,
+  "scope": {
+    "bootloader_commands": false,
+    "device_contact": false,
+    "device_execution": false,
+    "device_transfer": false,
+    "device_writes": false,
+    "firmware_flash": false,
+    "router_reboot": false,
+    "server_only": true
+  },
+  "source": {
+    "buildroot_commit": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+    "feeds": {
+      "luci": "128a7812f4be233c5dd7f7466f534fd888785caf",
+      "packages": "5caa62e0bc9f7fb9b0c12a23267bceb7724214dd",
+      "routing": "3d7d0dc7fa43d3eb09498417407e95a6552e5312",
+      "telephony": "2618106d5846a4a542fdf5809f0d3ed228ce439b",
+      "video": "094bf58da6682f895255a35a84349a79dab4bf95"
+    },
+    "kernel": "6.12.94",
+    "release": "25.12.5",
+    "revision": "r33051-f5dae5ece4",
+    "target": "mediatek/filogic"
+  },
+  "stage": "H1.3a",
+  "static_audit": {
+    "automatic_mutation_paths_disabled": [
+      "boot_environment_update",
+      "persistent_overlay_mount",
+      "mount_root_done",
+      "ubi_health_scan",
+      "fip_read_scrub"
+    ],
+    "bmt_read_only": true,
+    "compatible": [
+      "xiaomi,mi-router-ax3000t",
+      "mediatek,mt7981"
+    ],
+    "compiled_sha256": {
+      "mtk_bmt.o": "dbd88d739ca958f33030f7cf377438ad759e5ca63a45473f81ce5829cb43900f",
+      "mtk_bmt_nmbm.o": "7ebaa9bce7d2567c88d73fd0b28468b584396368ee3cca09214256eb54205816",
+      "vmlinux": "73fffdaa4444d29bc94c0ae1da27829eae8270eabbd93ff648d186b16b99242a"
+    },
+    "compiled_paths": {
+      "mtk_bmt.o": "drivers/mtd/nand/mtk_bmt.o",
+      "mtk_bmt_nmbm.o": "drivers/mtd/nand/mtk_bmt_nmbm.o",
+      "vmlinux": "vmlinux"
+    },
+    "entry_address": "0x48000000",
+    "fit_node_sha256": {
+      "dtb_sha256": "24baeee85660620f97323ad76b8fcb0527985c279bb8f26872bf67719a9d1717",
+      "initrd_sha256": "33342a60726c7d080bcc90b241203d356ac5c76bfc4bcae2c76d1ebdaab15831",
+      "kernel_sha256": "21ecd3cfdd065d29c3952085da6cc4c3215ceaa07f5d6ad71196869d68498cc8"
+    },
+    "fit_valid": true,
+    "fit_config_links_exact_nodes": true,
+    "flashable_device_artifacts_found": 0,
+    "forbidden_helpers_absent": [
+      "flash_erase",
+      "nandbiterrs",
+      "nandtest",
+      "nandwrite"
+    ],
+    "guard_warning_in_vmlinux": true,
+    "kernel_arch": "AArch64",
+    "kernel_guards": [
+      "mtd_master_writeable_cleared_before_attach",
+      "bmt_write_returns_erofs",
+      "bmt_erase_returns_erofs",
+      "bmt_markbad_returns_erofs",
+      "bmt_read_remap_disabled",
+      "bmt_badblock_remap_disabled",
+      "bmt_debugfs_disabled",
+      "nmbm_phys_write_disabled",
+      "nmbm_phys_erase_disabled",
+      "nmbm_phys_markbad_disabled",
+      "nmbm_map_and_remap_disabled",
+      "nmbm_attach_repair_disabled",
+      "nmbm_create_fails_closed"
+    ],
+    "kernel_version": "6.12.94",
+    "load_address": "0x48000000",
+    "nanddump_mode": "0755",
+    "nanddump_sha256": "21d7c3daa9e792a9b892af956ce64c59c4588c99eb7084b93ef5ee6f4bd47b92",
+    "nanddump_size_bytes": 28677,
+    "partition_count": 10,
+    "potential_mutators_present_but_kernel_blocked": [
+      "sbin/mtd",
+      "sbin/sysupgrade",
+      "usr/sbin/ubiattach",
+      "usr/sbin/ubidetach",
+      "usr/sbin/ubiformat",
+      "usr/sbin/ubimkvol",
+      "usr/sbin/ubirename",
+      "usr/sbin/ubirmvol",
+      "usr/sbin/ubirsvol",
+      "usr/sbin/ubiupdatevol"
+    ],
+    "read_only_partitions": [
+      "BL2",
+      "Nvram",
+      "Bdata",
+      "Factory",
+      "FIP",
+      "crash",
+      "crash_log",
+      "ubi_kernel",
+      "ubi",
+      "KF"
+    ],
+    "ubootmod_strings_found": 0,
+    "wifi_disabled": true
+  },
+  "status": "passed_offline_static_only"
+}

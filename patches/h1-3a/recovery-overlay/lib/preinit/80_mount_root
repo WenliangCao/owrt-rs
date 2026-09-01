@@ -1,0 +1,3 @@
+#!/bin/sh
+
+# H1 recovery never registers a persistent rootfs/overlay mount hook.

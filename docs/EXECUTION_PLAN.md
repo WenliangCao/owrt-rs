@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：H1.2 源码预检完成；因 NMBM 读侧写入风险在设备接触前暂停
-> 版本：1.7
+> 状态：H1.3a 离线只读 recovery candidate 已通过；H1.3b RAM boot 未授权
+> 版本：1.8
 > 日期：2026-09-01
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -185,7 +185,7 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | C1 | 冻结第一个兼容合同和参考 oracle | 完成：C1-01，11 个参考用例 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 完成：11/11 差分、6/6 故障、gate 通过 | 否 |
 | V1 | release-matched 集成和差分验证 | 完成：匹配 SDK package、11/11 + 6/6 差分/故障、4 项 V1 注入、gate 通过 | 否 |
-| H1 | 物理设备准入和 canary | H1.2 源码预检完成；备份未执行，等待新的风险/恢复授权 | 当前否；后续逐阶段决定 |
+| H1 | 物理设备准入和 canary | H1.3a 离线 candidate 已通过；H1.3b RAM boot 未授权，备份未执行 | 当前否；后续逐阶段决定 |
 | N1 | 按同一闭环处理下一个职责 | 阻塞于 H1 结论 | 另行决定 |
 
 ## 7. L0：计划前置探索
@@ -920,7 +920,9 @@ H1 需要新的明确请求和授权。I0–V1 完成不自动授权 H1。
 
 H1.0 已在不连接设备的前提下完成；H1.1a 与 H1.1b 随后分别经单独授权执行并通过。H1.2
 随后获准进入，但 exact-source 预检证明 NMBM 包装后的 MTD 读路径可条件性地擦除/复制备用块
-并持久化映射，因此在接触设备前暂停。准入与
+并持久化映射，因此在接触设备前暂停。H1.3a 随后只在服务器完成：基于 exact source 构建
+stock-layout initramfs recovery candidate，并通过重复构建和 FIT/DTB/initramfs 静态审计；
+它没有接触路由器，也没有授权 H1.3b RAM boot。准入与
 恢复 runbook、两批只读命令、matching-feed
 `nanddump` 备份工具、私有证据边界、停止条件和机器 gate 见
 [H1_RUNBOOK.md](H1_RUNBOOK.md)、
@@ -928,7 +930,8 @@ H1.0 已在不连接设备的前提下完成；H1.1a 与 H1.1b 随后分别经�
 [H1_READINESS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_READINESS.md)、
 [H1_1A_OBSERVATIONS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1A_OBSERVATIONS.md)、
 [H1_1B_BOOT_FLAGS.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_1B_BOOT_FLAGS.md)、
-[H1_2_PREFLIGHT.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_2_PREFLIGHT.md)。H1.1 gate
+[H1_2_PREFLIGHT.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_2_PREFLIGHT.md)、
+[H1_3A_RECOVERY_DESIGN.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3A_RECOVERY_DESIGN.md)。H1.1 gate
 只证明只读身份/存储/boot branch 准入闭合；备份、reboot/failsafe、tmpfs shadow、APK 安装、
 canary、device write 和 firmware flash 仍全部为 false。
 
@@ -949,6 +952,9 @@ H1.1 只读观察补齐：
 ```text
 fresh read-only identity/storage metadata
   → separately approved boot-flag reads
+  → H1.2 source preflight (blocked on conditional NMBM mutation)
+  → H1.3a offline read-only recovery candidate
+  → separately approved H1.3b RAM-boot runtime verification
   → private device backup acceptance
   → reboot/failsafe recovery rehearsal
   → tmpfs-only shadow comparison
@@ -1018,11 +1024,16 @@ interface discovery
     OpenWrt bootcount 分支闭合；H1-OQ-01 保留为不阻断只读备份的 bootloader 语义未知项。
 14. [x] 完成 H1.2 exact-source 预检：`nanddump`、DTS、BMT/NMBM 路径与 known-good artifact
     已固定；发现 MTD 读取可条件触发 NMBM flash remap，故在连接设备前 fail-closed。
-15. [ ] H1.2 私有备份尚未执行；下一步必须单独选择并授权“接受 NMBM 条件写入风险”或
-    “先设计/演练 RAM-only 无自动 remap 的恢复采集路径”。
+15. [x] 完成 H1.3a：exact stock profile 的 forced-read-only BMT/NMBM patch、无自动 mutation
+    overlay、两次 byte-identical initramfs FIT 构建和静态 audit 全部通过；零设备接触。
+16. [ ] H1.3b 尚未授权；下一步只能在新的明确授权、物理 UART/独立管理/可控供电同时具备时，
+    对固定 hash candidate 做 RAM boot 运行态验证。不得刷写，`recovery_boot_verified=false`。
+17. [ ] H1.2 私有备份仍未执行；只有 H1.3b 证明内核运行态拒写和读取路径无自动 mutation 后，
+    才能重新冻结采集参数并单独授权。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
 manager、SquashFS rootfs、R05 合同、可观测 reference oracle、最小 Rust 进程边界、匹配 SDK
 package 和重启即失的显式切换机制。H1 的物理准入顺序、recovery runbook 与首个 canary 范围
 已经冻结；H1.1a/H1.1b 现场证据已取得。H1.2 只完成了服务器源码预检，没有再次接触设备，
-私有 raw/config 备份、H1.3 以后各阶段的现场证据与逐项授权仍未取得。
+H1.3a 也只完成服务器构建与静态审计。私有 raw/config 备份、H1.3b 及以后各阶段的现场证据
+与逐项授权仍未取得。
