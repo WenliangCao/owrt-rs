@@ -3,7 +3,8 @@
 > H1.0 状态：通过
 > 物理设备状态：未准入
 > 日期：2026-09-01
-> 历史快照：当前进度已完成 H1.3b preflight，并因现场恢复条件缺失而阻断，见 `H1_3B_PREFLIGHT.md`
+> 历史快照：此报告形成于 H1.3b preflight；当前已由 `H1_NO_DISASSEMBLY_REPLAN.md` 取代为
+> Wi-Fi/Ethernet/SSH-only 路径，H1.2/H1.3b 保持未执行且不再是 R05 前置
 
 ## 1. 判定
 

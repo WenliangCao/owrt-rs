@@ -4,6 +4,8 @@
 > 日期：2026-09-01
 > 设备接触：无
 > 设备写入 / firmware flash：无 / 无
+> 后续处置：用户固定无拆机边界后，本阶段为 `not_applicable_under_no_disassembly_policy`；
+> raw backup 未执行，也不再作为 R05 H1.4 的前置
 
 ## 1. 判定
 

@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：证据驱动执行计划
 
-> 状态：H1.3b preflight 已授权；因缺少 USB-UART、独立有线管理和已确认供电回退而阻断
-> 版本：1.9
+> 状态：H1 无拆机边界重规划完成；下一阶段 H1.4 offline preflight 尚未执行
+> 版本：2.0
 > 日期：2026-09-01
 > 前置探索：[L0_DISCOVERY.md](L0_DISCOVERY.md)
 > 输入规范：[IMAGE_INTAKE.md](IMAGE_INTAKE.md)
@@ -44,6 +44,8 @@
 - 不以 QEMU 成功代替真实设备兼容性。
 - 不在本计划中授权连接、刷写或修改物理路由器。
 - 不提交镜像、解包目录、设备 dump、备份或秘密。
+- 实体设备只允许 Wi-Fi、Ethernet 和现有 OpenWrt SSH；不拆机、不接 UART、不焊接或接触
+  主板测试点。该边界只能由用户新的明确决定撤销。
 
 ## 4. 证据模型
 
@@ -185,8 +187,8 @@ tests/fixtures/     # 人工构造或确认脱敏的 fixture
 | C1 | 冻结第一个兼容合同和参考 oracle | 完成：C1-01，11 个参考用例 | 否 |
 | R1 | 实现第一个最小 Rust 切片 | 完成：11/11 差分、6/6 故障、gate 通过 | 否 |
 | V1 | release-matched 集成和差分验证 | 完成：匹配 SDK package、11/11 + 6/6 差分/故障、4 项 V1 注入、gate 通过 | 否 |
-| H1 | 物理设备准入和 canary | H1.3b preflight 正确阻断现场执行；RAM boot/备份均未执行 | 当前否；后续逐阶段决定 |
-| N1 | 按同一闭环处理下一个职责 | 阻塞于 H1 结论 | 另行决定 |
+| H1 | 物理设备准入和 canary | 无拆机重规划完成；H1.2/H1.3b 不适用，下一步 H1.4 offline preflight | 当前否；后续逐阶段决定 |
+| N1 | 按同一闭环处理下一个职责 | 等待 R05 的 H1.4 结论；可继续离线研究，实体 canary 另行授权 | 另行决定 |
 
 ## 7. L0：计划前置探索
 
@@ -916,14 +918,18 @@ R1.1 在一次性精确 rootfs chroot 中执行原 `/sbin/reload_config`，只�
 
 ## 20. H1：物理设备准入
 
-H1 需要新的明确请求和授权。I0–V1 完成不自动授权 H1。
+H1 需要新的明确请求和授权。I0–V1 完成不自动授权 H1。2026-09-01 用户进一步固定：实体设备
+只允许 Wi-Fi、Ethernet 和现有 OpenWrt SSH，不拆机、不购买/连接 UART、不焊接或接触主板。
+该边界见[决策 0006](decisions/0006-use-a-no-disassembly-device-validation-profile.md)与
+[重规划报告](../reports/ax3000t-stock-openwrt-25.12.5/H1_NO_DISASSEMBLY_REPLAN.md)。
 
 H1.0 已在不连接设备的前提下完成；H1.1a 与 H1.1b 随后分别经单独授权执行并通过。H1.2
 随后获准进入，但 exact-source 预检证明 NMBM 包装后的 MTD 读路径可条件性地擦除/复制备用块
 并持久化映射，因此在接触设备前暂停。H1.3a 随后只在服务器完成：基于 exact source 构建
 stock-layout initramfs recovery candidate，并通过重复构建和 FIT/DTB/initramfs 静态审计；
-它没有接触路由器。H1.3b 随后获准开始，但本机没有 USB-UART、有线 link 或已确认的可控供电，
-而当前管理依赖 candidate 会禁用的 Wi-Fi，因此 preflight 在接触设备前阻断 RAM boot。准入与
+它没有接触路由器。H1.3b 随后获准开始，但 preflight 在接触设备前正确阻断 RAM boot。用户
+明确无拆机边界后，H1.2 raw backup 与 H1.3b UART RAM boot 均改为
+`not_applicable_under_no_disassembly_policy`：保留历史 false gate，不再是 R05 前置。准入与
 恢复 runbook、两批只读命令、matching-feed
 `nanddump` 备份工具、私有证据边界、停止条件和机器 gate 见
 [H1_RUNBOOK.md](H1_RUNBOOK.md)、
@@ -937,15 +943,14 @@ stock-layout initramfs recovery candidate，并通过重复构建和 FIT/DTB/ini
 只证明只读身份/存储/boot branch 准入闭合；备份、reboot/failsafe、tmpfs shadow、APK 安装、
 canary、device write 和 firmware flash 仍全部为 false。
 
-进入物理设备写入、安装或 canary 以前必须证明；其中缺失的运行态事实只能通过另行授权的
-H1.1 只读观察补齐：
+无拆机路径严格按实际失败层分段，不再要求 R05 先证明它无法触发的 bootloader/NAND 恢复。
+进入物理设备写入、安装或 canary 以前仍必须证明：
 
 - 精确 board、target、storage 和当前 layout；（H1.1a 已闭合）
 - 当前运行镜像与 I0 样本一致；
-- 设备专属校准、MAC、密钥和配置备份私下保存并验证；
 - 官方 known-good image 和 hash 已离线保存；
-- 该设备具体的 console、failsafe、TFTP/initramfs 或其他恢复链已演练；
-- 操作期间存在独立管理和联网手段；
+- 当前阶段的状态变化能由 SSH 清理，或由普通 reboot 清除且已经单独批准；
+- H1.4/H1.5/H1.6 分别具备与自身失败层匹配的停止和回退步骤；
 - 失败条件、停止条件和恢复步骤已写成 runbook；
 - 首次部署不接管 WAN、LAN 管理路径、默认路由、现有 Wi-Fi 或 firewall。
 
@@ -954,14 +959,14 @@ H1.1 只读观察补齐：
 ```text
 fresh read-only identity/storage metadata
   → separately approved boot-flag reads
-  → H1.2 source preflight (blocked on conditional NMBM mutation)
-  → H1.3a offline read-only recovery candidate
-  → separately approved H1.3b RAM-boot runtime verification
-  → private device backup acceptance
-  → reboot/failsafe recovery rehearsal
-  → tmpfs-only shadow comparison
-  → disabled install
-  → bounded bind-mount canary
+  → H1.2 source preflight (complete; raw backup not applicable under no-disassembly policy)
+  → H1.3a offline recovery research (complete; artifact remains unused)
+  → H1.3b historical preflight (RAM boot not applicable under no-disassembly policy)
+  → H1 no-disassembly policy replan (complete offline only)
+  → H1.4 offline preflight
+  → separately approved H1.4 tmpfs-only shadow comparison
+  → separately approved disabled install
+  → separately approved bounded bind-mount canary
   → single approved resource ownership
 ```
 
@@ -969,7 +974,7 @@ fresh read-only identity/storage metadata
 
 当前 R05 canary 不包含 firmware flash。`ubootmod` `.itb`、OpenWrt U-Boot conversion、
 `xiaomi_initial_setup`、`sysupgrade` 和所有 MTD/UBI write 在整个 H1 都明确禁止；如果未来需要
-刷写，必须创建新的恢复 gate 和新的授权，不能继承 H1。
+刷写，必须先由用户明确撤销无拆机边界，再创建新的恢复 gate 和新的授权，不能继承 H1。
 
 ## 21. N1：按证据闭环扩展
 
@@ -1031,14 +1036,19 @@ interface discovery
 16. [x] 完成 H1.3b preflight：用户已请求该阶段，candidate 已复制到 Git 外私有 staging；地址
     边界和 proposed command 已审核，但本机无 USB-UART、无 active wired link，现场供电/独立
     联网未确认，因此在设备接触前 fail-closed。
-17. [ ] H1.3b RAM boot 未执行；用户需先连接 3.3 V USB-UART（不接 VCC）、直连中间 LAN 口，
-    准备独立联网设备并确认人在路由器旁可立即断电。`recovery_boot_verified=false`。
-18. [ ] H1.2 私有备份仍未执行；只有 H1.3b 证明内核运行态拒写和读取路径无自动 mutation 后，
-    才能重新冻结采集参数并单独授权。
+17. [x] H1.3b RAM boot 未执行并按用户固定边界关闭为
+    `not_applicable_under_no_disassembly_policy`；这不是“已验证恢复”。
+18. [x] H1.2 raw 私有备份未执行并退出 R05 前置链；NMBM 条件写入风险保持原判，不放宽成
+    “安全只读”。
+19. [x] 完成 H1 无拆机边界重规划：只允许 Wi-Fi/Ethernet/SSH，证明 R05 的 tmpfs/volatile
+    失败层与 UART/NAND 恢复不相交，所有设备 gate 仍关闭。
+20. [ ] 执行 H1.4 offline preflight：冻结 SSH/tmpfs shadow harness、命令、hash、timeout、
+    fake ubus、清理与负向 gate；本阶段仍不连接设备。
 
 已经确定：目标设备、stock 布局、OpenWrt 版本、release/build/feeds revisions、APK package
 manager、SquashFS rootfs、R05 合同、可观测 reference oracle、最小 Rust 进程边界、匹配 SDK
 package 和重启即失的显式切换机制。H1 的物理准入顺序、recovery runbook 与首个 canary 范围
-已经冻结；H1.1a/H1.1b 现场证据已取得。H1.2 只完成了服务器源码预检，没有再次接触设备，
-H1.3a 只完成服务器构建与静态审计，H1.3b 只完成离线/本机 preflight。私有 raw/config 备份、
-RAM boot 及以后各阶段的现场证据仍未取得。
+已经冻结；H1.1a/H1.1b 现场证据已取得。H1.2 只完成服务器源码预检，H1.3a 只完成服务器构建
+与静态审计，H1.3b 只完成离线/本机 preflight；三者没有产生新的设备操作。无拆机策略现已
+把 raw backup/RAM boot 从 R05 前置链移除，但没有伪造其完成。下一项只有 H1.4 offline
+preflight，设备 transfer、execution、install、mount、reboot 和 flash 全部仍为 false。

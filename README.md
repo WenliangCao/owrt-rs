@@ -153,5 +153,9 @@ upgrade 未回退和磁盘满截断基线两个真实缺陷。报告见
 [V1_VALIDATION.md](reports/ax3000t-stock-openwrt-25.12.5/V1_VALIDATION.md)，机器记录见
 [v1-validation.json](manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json)。
 
-下一阶段是 H1，但它不是 V1 的自动延续：当前 package 从未安装到物理路由器，也没有修改
-任何真实调用方。实体设备 disabled install、观察或切换都需要用户新的明确授权与 recovery gate。
+H1 已完成无拆机边界重规划。用户只提供 Wi-Fi、Ethernet 和现有 OpenWrt SSH；UART、拆机、
+主板测试点、raw NAND 和刷机永久退出当前执行路径。H1.2/H1.3b 保留为未执行的历史 false
+gate，不再错误阻断只涉及 R05 tmpfs 状态的验证。报告见
+[H1_NO_DISASSEMBLY_REPLAN.md](reports/ax3000t-stock-openwrt-25.12.5/H1_NO_DISASSEMBLY_REPLAN.md)，
+决策见 [0006](docs/decisions/0006-use-a-no-disassembly-device-validation-profile.md)。下一阶段仅是
+H1.4 offline preflight：冻结 SSH/tmpfs shadow harness；仍不授权连接、传输或执行设备命令。

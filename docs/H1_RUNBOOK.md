@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.3b preflight 已授权，但因 USB-UART/独立有线管理/可控供电未闭合而阻断
+> 状态：H1 无拆机边界重规划已完成；下一阶段是 H1.4 offline preflight，尚未授权设备操作
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -11,21 +11,28 @@ H1 不是“把 APK 装上试试”，而是一组互不继承授权的 gate。H
 对本项目的 R05 canary，不需要也不允许刷 firmware；候选默认禁用，最终切换是 RAM 中的
 bind mount，重启即失。
 
+用户已经固定**不拆机执行边界**：只允许 Wi-Fi、Ethernet 和现有 OpenWrt SSH；不拆机、
+不购买或连接 UART、不接触主板测试点。该边界使 raw NAND/bootloader 恢复验证不适用，但不
+阻断只在 `/tmp` 中运行、使用 fake ubus 且不取得真实控制权的 R05 shadow 验证。详见
+[决策 0006](decisions/0006-use-a-no-disassembly-device-validation-profile.md) 与
+[H1 无拆机重规划报告](../reports/ax3000t-stock-openwrt-25.12.5/H1_NO_DISASSEMBLY_REPLAN.md)。
+
 ```text
 H1.0 离线准入设计（已完成）
   → H1.1a 只读身份/存储元数据（已完成）
   → H1.1b 白名单 boot flags（已完成，1 个受限开放问题）
-  → H1.2 私有备份验收（预检完成，设备接触前暂停）
+  → H1.2 私有备份预检（已完成；raw backup 在无拆机策略下不适用）
   → H1.3a 离线只读 recovery candidate（已完成）
-  → H1.3b RAM boot 运行态验证（preflight 已授权，执行被现场条件阻断）
-  → H1.3c 普通 reboot/failsafe 恢复演练（未授权）
-  → H1.4 tmpfs shadow
-  → H1.5 默认禁用 APK 安装
-  → H1.6 短时 bind-mount canary
+  → H1.3b RAM boot（历史 preflight；按用户边界不再执行）
+  → H1 无拆机边界重规划（已完成，离线 policy only）
+  → H1.4 offline preflight（下一阶段；不接触设备）
+  → H1.4 tmpfs shadow run（需另行授权）
+  → H1.5 默认禁用 APK 安装（需另行授权）
+  → H1.6 短时 bind-mount canary（需另行授权）
 ```
 
 每一箭头都要：上一 gate 通过、报告已审查、用户对下一阶段作出新的明确授权。授权不能从
-“继续”外推到多个阶段；没有授权时 gate 必须保持 false。
+“继续”外推到多个阶段；没有授权时 gate 必须保持 false。普通“继续”也不能撤销无拆机边界。
 
 ## 2. 固定身份和禁止项
 
@@ -43,6 +50,7 @@ H1.0 离线准入设计（已完成）
 
 全 H1 永久禁止：
 
+- 拆机、主板测试点、焊接、USB-UART、TFTP/U-Boot 操作；
 - `ubootmod` `.itb`、OpenWrt U-Boot conversion、`kmod-mtd-rw`；
 - `xiaomi_initial_setup`、`sysupgrade`、`mtd write/erase`、`ubiformat`、`ubiupdatevol`；
 - 写 BL2、FIP、Nvram、Bdata、Factory、`ubi_kernel`、`ubi` 或 boot flags；
@@ -70,7 +78,10 @@ H1.1b 已确认：八个白名单变量全部可读，active rootfs 与 cmdline 
 由于 OpenWrt 没有读取该 counter 的 caller，它不阻断 H1.2 只读备份，但继续阻断所有 boot
 flag 写入、slot switch 和 firmware upgrade。
 
-## 4. H1.2：私有备份验收
+## 4. H1.2：私有备份预检（历史路径，不再是 R05 前置）
+
+> 当前处置：`not_applicable_under_no_disassembly_policy`。以下内容保留为当时的证据和阻断
+> 逻辑，不再构成 H1.4 的前置条件，也不表示 H1.2 已执行。
 
 H1.2 是新的授权。它允许读取设备专属数据并流式保存到仓库外，不允许写 flash。具体
 `/dev/mtdX` 只能由刚观测的 label 动态解析，不能沿用网页、另一台设备或旧 run 的编号。
@@ -144,7 +155,7 @@ repeat build: byte-identical
 保留在服务器私有 evidence，不进入 Git，也未传入设备。详见
 [H1_3A_RECOVERY_DESIGN.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3A_RECOVERY_DESIGN.md)。
 
-### H1.3b：RAM boot 运行态验证
+### H1.3b：历史记录，按无拆机边界不再执行
 
 #### H1.3b preflight：已授权但被现场恢复条件阻断
 
@@ -176,7 +187,9 @@ buffer 为 `0x46000000`，本 candidate 到 `0x4685b514` 结束；FIT 内部 ker
 [H1_3B_PREFLIGHT.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_3B_PREFLIGHT.md)。
 
 H1.3b 当前仍禁止 bootloader command、device transfer、router reboot、RAM boot 和 device
-write。执行前必须逐字冻结命令，并同时具备物理 UART、独立有线管理、可控供电和停止条件。
+write。2026-09-01 用户随后明确拒绝拆机和 UART，因此本路径处置为
+`not_applicable_under_no_disassembly_policy`；此前 preflight 继续作为历史上正确的 fail-closed
+证据，但其“连接 UART”不再是项目 next action。
 
 H1.3b 只允许把已固定 hash 的 FIT load 到 RAM 并运行；不允许 `.itb`、factory/OEM recovery、
 `sysupgrade`、boot flag update、partition erase/write 或任何自动转入 flash recovery。运行后先
@@ -184,7 +197,7 @@ H1.3b 只允许把已固定 hash 的 FIT load 到 RAM 并运行；不允许 `.it
 拒绝。任一身份、地址、console、FIT acceptance、guard 或网络可达性异常立即断电回到原固件，
 不得临场扩大操作。
 
-### H1.3c：普通 reboot/failsafe 恢复演练
+### H1.3c：普通 reboot/failsafe 恢复演练（不作为 H1.4 前置）
 
 H1.3c 与 RAM boot 仍是不同授权。它解决 overlay/canary 回退，不用于证明 bootloader 或 raw
 flash 恢复。
@@ -200,22 +213,29 @@ flash 恢复。
 
 OpenWrt 官方设备页说明：stock bootloader 的 TFTP soft-brick 流程会获取 OEM image 并写入；
 因此不能把一次网络连通测试伪装成无写入演练。官方 failsafe 只覆盖配置/overlay 问题，不能
-修复 broken kernel。对当前只写 overlay、默认禁用、RAM 切换的 R05 canary，H1.3 的最低
-通过线是：独立有线管理、可控供电、未启用 candidate 时的正常 reboot，以及一次不擦除
-overlay 的 failsafe 进入/退出。更深恢复保留为禁止升级 blast radius 的边界，不用刷机来
-“提前证明”。
+修复 broken kernel。对当前 R05，H1.4 shadow 不写 overlay、不 mount、不调用真实 ubus，
+因此不以任何 reboot 或 failsafe 为前置。H1.5/H1.6 若以后获准，分别按 package-disabled 与
+reboot-volatile mount 的实际失败层设计带内回退；普通 power cycle rehearsal 是否需要，由
+H1.6 独立 gate 决定。更深恢复只作为禁止扩大 blast radius 的边界，不用刷机来“提前证明”。
 
-任何运行态恢复演练都会中断网络并重启，必须预约窗口并得到单独授权。演练期间 WAN 断开，电脑只
-通过一根网线直连 LAN；另有独立互联网/通信设备查看资料。
+任何运行态 reboot/failsafe 演练都会中断网络，必须预约窗口并得到单独授权。它不是当前
+H1.4 offline preflight 或 tmpfs shadow 的组成部分。
 
 参考资料：
 
 - <https://openwrt.org/toh/xiaomi/ax3000t>
 - <https://openwrt.org/docs/guide-user/troubleshooting/failsafe_and_factory_reset>
 
-## 6. H1.4：tmpfs shadow
+## 6. H1.4：下一条可执行路径——tmpfs shadow
 
-H1.4 不安装 APK。把 V1 已验证的 candidate binary 临时传到 `/tmp`，先核对
+H1.4 分成两个互不继承授权的步骤：
+
+1. **offline preflight**：只在仓库/服务器冻结 harness、命令、hash、timeout、停止条件和
+   清理证明；不连接设备。当前只开放这一项作为 next stage。
+2. **device run**：必须在 preflight gate 通过后另行授权，才允许 SSH transfer 和 `/tmp`
+   执行。
+
+H1.4 device run 不安装 APK。把 V1 已验证的 candidate binary 临时传到 `/tmp`，先核对
 `b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75`，再使用独立
 `--root /tmp/<run-id>`：
 
@@ -227,8 +247,8 @@ H1.4 不安装 APK。把 V1 已验证的 candidate binary 临时传到 `/tmp`，
 - 删除整个 tmpfs run 目录后确认设备配置、baseline、mount 和进程集合未变。
 
 任何真实 ubus delivery、真实 `/var/run/config.md5` 变化、配置 hash 变化或网络状态变化都使
-gate 失败。H1.4 的具体 harness 要在 H1.1 的 BusyBox/工具结果后冻结，不能现在假定设备命令
-能力。
+gate 失败。H1.4 的具体 harness 必须由 offline preflight 按 H1.1 的 BusyBox/工具结果冻结；
+在该 gate 通过以前没有可执行设备命令。
 
 ## 7. H1.5：默认禁用安装
 
@@ -248,7 +268,8 @@ index update 或其他变更。通过条件：
 - `/sbin/reload_config` hash 仍是 original；
 - `/proc/self/mountinfo` 没有 `/sbin/reload_config` bind mount；
 - `/etc/config`、网络/无线/firewall 状态和真实 baseline 均未改变；
-- 卸载命令与私有备份已经预置但不因“以防万一”提前执行。
+- 卸载命令、package file list、original dispatcher hash 和 package DB 回退检查已经冻结；
+  不以未执行的 raw NAND 备份冒充本阶段恢复前提。
 
 本阶段只允许 APK 安装产生的 overlay/package DB 写入。不能 enable candidate。
 
@@ -256,7 +277,8 @@ index update 或其他变更。通过条件：
 
 H1.6 是独立授权，且必须由用户在路由器旁操作。第一次窗口：
 
-- WAN 断开；一台有线管理电脑直连 LAN，另有独立联网/通信设备；
+- 优先使用已验证的有线管理；用户在电源旁，必要时可普通 power cycle；本阶段不开 TFTP，
+  不要求拆机、UART 或断开 WAN；
 - 先记录 original hash、mount、baseline、核心网络可达性和恢复步骤；
 - enable 只建立 `/usr/sbin/reload_config_rs` 到 `/sbin/reload_config` 的 bind mount；
 - 只执行一次“配置未变化”的 dispatcher 调用；event 集合必须为空，不创建或修改任何 UCI
@@ -283,9 +305,9 @@ H1.6 是独立授权，且必须由用户在路由器旁操作。第一次窗口
 1. H1.4：终止进程并删除 tmpfs shadow；
 2. H1.5：保持 disabled；必要时按预批准命令卸载 package；
 3. H1.6：`owrt-reload-config-switch disable` 并验证 original；
-4. 无法 SSH 时才用已演练的 power cycle；bind mount 随 reboot 消失；
-5. 配置/overlay 锁死才进入已演练的 failsafe；
-6. 不因 canary 失败自动进入 TFTP、UART、sysupgrade 或 raw flash。
+4. H1.6 若已单独演练并批准普通 power cycle，无法 SSH 时才可使用；bind mount 随 reboot 消失；
+5. 无拆机边界下没有自动 failsafe、TFTP、UART、sysupgrade 或 raw flash 回退；超出已批准的
+   带内/普通重启恢复能力时停止并如实报告，不能临场扩大操作。
 
 ## 10. 操作记录
 

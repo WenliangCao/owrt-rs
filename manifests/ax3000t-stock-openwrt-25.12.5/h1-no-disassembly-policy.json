@@ -1,0 +1,120 @@
+{
+  "authorization": {
+    "basis": "The user explicitly limited all physical-device work to Wi-Fi, Ethernet and the existing OpenWrt SSH service, and then requested continuation of the plan correction.",
+    "device_contact_authorized": false,
+    "device_execution_authorized": false,
+    "device_transfer_authorized": false,
+    "policy_replan_authorized": true,
+    "router_reboot_authorized": false
+  },
+  "candidate_scope": {
+    "allowed_responsibilities": [
+      "R05"
+    ],
+    "candidate_sha256": "b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75",
+    "dispatcher": "/sbin/reload_config",
+    "persistent_state": false,
+    "runtime_state": "regenerable tmpfs baseline",
+    "switch": "reboot-volatile bind mount"
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "device_contact": false,
+    "device_writes": false,
+    "firmware_flash": false,
+    "h1_2_raw_backup": false,
+    "h1_3b_ram_boot": false,
+    "h1_4_device_run": false,
+    "h1_4_offline_preflight_ready": true,
+    "h1_5_disabled_install": false,
+    "h1_6_canary": false,
+    "no_disassembly_policy_review": true,
+    "router_reboot": false
+  },
+  "historical_disposition": [
+    {
+      "device_execution": false,
+      "disposition": "not_applicable_under_no_disassembly_policy",
+      "reason": "Raw NAND backup cannot retain a zero-write claim through the live NMBM read path and the user does not authorize a UART RAM-boot alternative.",
+      "stage": "H1.2-private-backup"
+    },
+    {
+      "device_execution": false,
+      "disposition": "not_applicable_under_no_disassembly_policy",
+      "reason": "The RAM-boot runtime check requires opening the case and attaching UART, which is outside the permanent user boundary.",
+      "stage": "H1.3b-ram-boot"
+    }
+  ],
+  "inputs": {
+    "h1_2_preflight": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-2-preflight.json",
+      "sha256": "7b1ffa8b087e4f6e9c2134540cc30177c9df36f6d0842bcb77711b77790d5b58"
+    },
+    "h1_3b_preflight": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-3b-preflight.json",
+      "sha256": "3da993dea02b1f48b06ff63064fd5a5ad94f8c0881abd7b3a7d377a74741dd42"
+    },
+    "replacement_boundary": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/replacement-boundary.json",
+      "sha256": "9bf838a7d6a913384cdb40118289c249f28eac0d75f865ec0bd6d3e7739fc92b"
+    },
+    "v1_validation": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json",
+      "sha256": "7acd6d3cd26cec7aa7be32e71b6e617bbc739b0fbc1c9c0a4b4a8ae0ba62fb8d"
+    }
+  },
+  "next_stage": {
+    "commands": [],
+    "device_authorization_inherited": false,
+    "id": "H1.4-preflight",
+    "purpose": "Freeze a tmpfs-only SSH shadow harness without contacting the router.",
+    "status": "ready_for_offline_preflight_only"
+  },
+  "physical_access_policy": {
+    "permitted": [
+      "ethernet",
+      "wifi",
+      "existing-openwrt-ssh"
+    ],
+    "prohibited": [
+      "case-disassembly",
+      "mainboard-test-points",
+      "soldering",
+      "usb-uart",
+      "tftp-bootloader",
+      "raw-nand-read",
+      "firmware-flash"
+    ],
+    "source": "explicit-user-constraint",
+    "status": "fixed"
+  },
+  "recorded_at": "2026-09-01",
+  "recovery_alignment": {
+    "excluded_failure_layers": [
+      "bootloader",
+      "kernel",
+      "ubi",
+      "raw-nand",
+      "network-ownership"
+    ],
+    "h1_4": "terminate candidate and remove the isolated /tmp run directory",
+    "h1_5": "not authorized; if later admitted, package remains disabled and must preserve the original dispatcher path",
+    "h1_6": "not authorized; if later admitted, explicit disable is primary and ordinary power cycle clears the volatile bind mount",
+    "uart_required_for_current_candidate": false
+  },
+  "schema_version": 1,
+  "scope": {
+    "bootloader_commands": false,
+    "device_contact": false,
+    "device_execution": false,
+    "device_transfer": false,
+    "device_writes": false,
+    "firmware_flash": false,
+    "host_network_changes": false,
+    "package_install": false,
+    "router_reboot": false,
+    "runtime_mount_change": false
+  },
+  "stage": "H1-no-disassembly-replan",
+  "status": "complete_offline_policy_only"
+}

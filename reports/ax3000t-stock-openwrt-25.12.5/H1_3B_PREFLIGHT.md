@@ -4,6 +4,8 @@
 > 日期：2026-09-01
 > 设备操作：没有连接、重启或修改路由器
 > 执行门：`commands_authorized=false`、`router_reboot=false`
+> 后续处置：用户固定无拆机边界后，本阶段为 `not_applicable_under_no_disassembly_policy`；
+> 本报告保留为历史 fail-closed 证据，不再要求用户准备 UART
 
 ## 1. 判定
 
