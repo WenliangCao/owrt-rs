@@ -1,0 +1,164 @@
+{
+  "authorization": {
+    "approved": true,
+    "interpretation": "The user's next-stage instruction authorizes H1.2 only, under the already frozen no-flash-write boundary.",
+    "scope_expansion_required": "Accept conditional NMBM flash mutation, or separately authorize a reboot/recovery design that bypasses the live wrapped MTD path.",
+    "scope_satisfied": false,
+    "stage": "H1.2"
+  },
+  "decision": {
+    "collector_emitted": false,
+    "exact_nanddump_flags_approved": false,
+    "next_authorization_required": true,
+    "reason": "The exact deployed MediaTek BMT/NMBM read path can remap a block and persist the new mapping while servicing an MTD read.",
+    "status": "blocked_before_device_contact",
+    "zero_flash_write_guarantee": false
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "device_writes_allowed": false,
+    "firmware_flash_allowed": false,
+    "h1_1a_read_only_observation": true,
+    "h1_1b_boot_environment_read": true,
+    "h1_2_preflight_review": true,
+    "h1_2_private_backup": false,
+    "h1_3_recovery_rehearsal": false,
+    "h1_4_tmpfs_shadow": false,
+    "h1_5_disabled_install": false,
+    "h1_6_canary": false
+  },
+  "inputs": {
+    "backup_tool": {
+      "manifest_sha256": "38496e4a1d1b526a4c9a1b15370baf567a836ca4db3f33d309c73dd382a64ec6",
+      "nanddump_sha256": "21d7c3daa9e792a9b892af956ce64c59c4588c99eb7084b93ef5ee6f4bd47b92",
+      "nanddump_size_bytes": 28677,
+      "package": "nand-utils-2.3.0-r1.apk",
+      "package_sha256": "a889a18c410b464dd0ec1538b0595d0566c921a16bd3dbeaf2b7f75a6efbcbca"
+    },
+    "h1_1a": {
+      "manifest_sha256": "f6f51c1c8f675b8fc4fdd992b232ad27bc238e2b4d61d53a563f3a3d89a7e1b9",
+      "nmbm_attached": true,
+      "status": "passed_read_only"
+    },
+    "h1_1b": {
+      "manifest_sha256": "1fa992a121be28d2c86d3df7e2031497389e9a1cf8cd6e8f0951a2bab0efc087",
+      "status": "passed_with_open_question"
+    },
+    "known_good_firmware": {
+      "available_offline": true,
+      "filename": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+      "size_bytes": 9400608
+    },
+    "source_baseline": {
+      "buildroot_commit": "f0a60eee2fe051741c643ea6118718aae1ef17fb",
+      "manifest_sha256": "0601e0a2f160a2deadce26f4453ac3d0307bec8f0aeebb26dbcd69e40adfdc1d"
+    }
+  },
+  "nanddump_review": {
+    "candidate_flags_before_kernel_review": [
+      "--bb=padbad",
+      "--omitoob",
+      "--length=<observed-logical-partition-size>"
+    ],
+    "mtd_utils_source_sha256": "825e761d54f43aff729025b35c952a2625117d652ddad70c2f7a659fec144135",
+    "mtd_utils_tar_sha256": "2db102908b232406ccb20719c0f43b61196aef4534493419fbf98a273c598c10",
+    "path": "nand-utils/nanddump.c",
+    "reviewed_lines": [
+      "45-62",
+      "80-99",
+      "361-400",
+      "440-509",
+      "511-575"
+    ],
+    "semantics": {
+      "default_bad_block_method": "skipbad",
+      "default_ecc": true,
+      "default_omits_oob": true,
+      "open_mode": "O_RDONLY"
+    },
+    "version": "2.3.0"
+  },
+  "recorded_at": "2026-09-01",
+  "rejected_workarounds": [
+    {
+      "method": "/dev/mtdXro",
+      "reason": "The read-only character node blocks userspace writes but still dispatches reads through the replaced mtd->_read_oob operation."
+    },
+    {
+      "method": "nanddump --noecc --bb=dumpbad",
+      "reason": "It avoids the bad-block ioctl path and ECC-threshold remap, but a negative non-bitflip read result still invokes remap; it also forfeits a corrected logical backup."
+    },
+    {
+      "method": "MTD block or UBI reads",
+      "reason": "They remain above the same wrapped MTD read operation and cannot establish a zero-write guarantee."
+    },
+    {
+      "method": "runtime BMT detach or debugfs repair",
+      "reason": "It changes live kernel mapping state and is outside the authorized backup scope."
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "config_backup_read": false,
+    "device_contact": false,
+    "device_execution": false,
+    "device_transfer": false,
+    "device_writes": false,
+    "firmware_flash": false,
+    "raw_mtd_payload_read": false,
+    "router_reboot": false,
+    "server_only_source_review": true
+  },
+  "source_review": {
+    "device_tree": {
+      "facts": [
+        "mediatek,nmbm",
+        "mediatek,bmt-max-ratio = 1",
+        "mediatek,bmt-max-reserved-blocks = 64",
+        "mediatek,bmt-mtd-overridden-oobsize = 64"
+      ],
+      "lines": "11-16",
+      "path": "target/linux/mediatek/dts/mt7981b-xiaomi-mi-router-ax3000t.dts",
+      "sha256": "d53b906ef826a5e6065643e115211da1a8f1d97abcc9ba61888082e523ac6632"
+    },
+    "mtk_bmt": {
+      "conditional_read_side_mutations": [
+        {
+          "action": "mtk_bmt_remap_block(block, cur_block, mtd->erasesize)",
+          "condition": "negative read result that is not a bitflip status",
+          "lines": "136-146"
+        },
+        {
+          "action": "mtk_bmt_remap_block(block, cur_block, mtd->erasesize)",
+          "condition": "corrected bitflips reach mtd->bitflip_threshold",
+          "lines": "149-150"
+        },
+        {
+          "action": "mtk_bmt_remap_block(orig_block, block, bmtd.blk_size)",
+          "condition": "the wrapped bad-block query reports a bad block",
+          "lines": "263-279"
+        }
+      ],
+      "operation_replacement_lines": "297-310,405-465",
+      "path": "target/linux/generic/files/drivers/mtd/nand/mtk_bmt.c",
+      "sha256": "39420c4d7e5c99ce144dff039aed141b00533594c89f098167c871bb1af0b639"
+    },
+    "nmbm": {
+      "attach_can_repair_tables_lines": "1941-1967",
+      "info_table_write_lines": "1515-1540",
+      "path": "target/linux/generic/files/drivers/mtd/nand/mtk_bmt_nmbm.c",
+      "remap_flash_actions": [
+        "mark old mapped block bad",
+        "allocate a spare mapping",
+        "erase the new physical block",
+        "copy the old block when copy_len is positive",
+        "persist NMBM information tables"
+      ],
+      "remap_lines": "2215-2233",
+      "sha256": "3643fed920f6f26c07bdc1c5618a20aa147fc11e066d3533ab72fa4507d55249"
+    }
+  },
+  "stage": "H1.2-preflight",
+  "status": "blocked_before_device_contact"
+}

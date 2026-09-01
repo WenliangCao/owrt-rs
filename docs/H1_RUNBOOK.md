@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.1a/H1.1b 只读准入通过；H1.2 及后续阶段未授权
+> 状态：H1.1a/H1.1b 只读准入通过；H1.2 已授权但因 NMBM 读侧写入风险在设备接触前暂停
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -15,7 +15,7 @@ bind mount，重启即失。
 H1.0 离线准入设计（已完成）
   → H1.1a 只读身份/存储元数据（已完成）
   → H1.1b 白名单 boot flags（已完成，1 个受限开放问题）
-  → H1.2 私有备份验收
+  → H1.2 私有备份验收（预检完成，设备接触前暂停）
   → H1.3 恢复演练
   → H1.4 tmpfs shadow
   → H1.5 默认禁用 APK 安装
@@ -102,6 +102,21 @@ APK SHA-256: a889a18c410b464dd0ec1538b0595d0566c921a16bd3dbeaf2b7f75a6efbcbca
 H1.2 如获授权，只把 `nanddump` 放入 `/tmp` 并复算 hash；不安装 APK，也不传输同包中的
 `flash_erase`、`nandwrite`、`nandtest` 或 `nandbiterrs`。如果 hash/ABI/依赖不匹配，或还没
 冻结 NMBM/OOB 对应的 exact flags，立即停止；不改用未经审查的 `dd`。
+
+### H1.2 预检纠正
+
+2026-09-01 的 exact-source 预检推翻了“用户态只读打开即可保证 flash 零写入”这一前提。
+本机 DTS 启用 `mediatek,nmbm`，H1.1a 也确认运行态 NMBM attached。精确
+`mtk_bmt.c` 将 MTD read/bad-block ops 替换成 wrapper；读失败或 corrected bitflip 达阈值时，
+wrapper 会调用 NMBM remap。后端会擦除备用块、复制旧块并持久化映射表。`/dev/mtdXro`、
+UBI/MTD block 读取不能绕过它；`nanddump --noecc --bb=dumpbad` 仍保留负 I/O 错误的 remap
+入口，且不是可靠的 ECC-corrected 逻辑备份。
+
+所以 H1.2 已在**连接设备、上传 binary 和读取任何设备数据之前**暂停；它没有产出 collector，
+也没有执行配置备份。只有以下任一路线获得新的明确授权后才能继续：接受条件性的 NMBM
+flash mutation，或先进入 H1.3 级恢复设计，从 RAM 启动一个禁用自动 remap 的审核环境。
+详细证据见
+[H1_2_PREFLIGHT.md](../reports/ax3000t-stock-openwrt-25.12.5/H1_2_PREFLIGHT.md)。
 
 ## 5. H1.3：恢复演练
 
