@@ -14,7 +14,6 @@ define Package/owrt-switch
   SECTION:=utils
   CATEGORY:=Utilities
   TITLE:=One switch for the five Rust control-plane components
-  DEPENDS:=+owrt-reload-config +owrt-logd +owrt-httpd +owrt-fw4 +owrt-rpcd
 endef
 
 define Package/owrt-switch/description
