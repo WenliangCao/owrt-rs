@@ -173,7 +173,8 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 
 2026-09-02 阶段审计：H1.2/H1.3 物理恢复链假设了用户从未提供的拆机和 UART，每阶段一套 gate
 脚本与四处复写的状态文字也与 R05 的实际爆炸半径不成比例，均已移入 [archive/](archive/README.md)。
-只读探针确认 `network` drift 只有一项 `packet_steering`，成因是 LuCI/rpcd 路径不经过
-`reload_config`，见 [H1_6_DRIFT_PROBE.md](reports/ax3000t-stock-openwrt-25.12.5/H1_6_DRIFT_PROBE.md)。
-下一步是用原始实现执行一次 `reload_config` 收口 baseline，再单独授权 H1.6 canary；两步都尚未
-授权，计划见 [docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md)。
+同日完成了两步实机操作：用原始实现收口 `network` baseline drift（成因是 LuCI/rpcd 路径不经过
+`reload_config`，见 [H1_6_DRIFT_PROBE.md](reports/ax3000t-stock-openwrt-25.12.5/H1_6_DRIFT_PROBE.md)），
+以及 **H1.6 canary 通过**：候选真实接管约一分钟，稳态零事件、修改与删除各恰好一次真实 ubus 投递，
+切回后静默，见 [H1_6_CANARY.md](reports/ax3000t-stock-openwrt-25.12.5/H1_6_CANARY.md)。R05 实机验证
+完成。后续五阶段计划见 [docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md)。
