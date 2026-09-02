@@ -203,3 +203,6 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 沙箱 63 个请求与原插件相同；`owrt-rpcd 0.1.0-r2` 以裁剪插件目录 bind mount + procd 服务上线，`boot-enable on`。
 `session`/`uci`/`rc` 与 iwinfo/luci-rpc/rpc-sys/rrdns 保留在原 rpcd（决策 0011）。`owrt-switch` 一处操作五个组件。
 最终报告：`reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md`；报告 `R13_RPCD.md`，清单 `r13-rpcd.json`。
+
+收官（2026-09-02）：`owrt-switch status` 显示五个组件 enabled / boot-enable on；四次综合探测不变；用户登录 LuCI 浏览期间
+`file`/`luci` 的 71 次调用全部由 rpcd-rs 应答。清单 `manifests/ax3000t-stock-openwrt-25.12.5/final-window.json`。

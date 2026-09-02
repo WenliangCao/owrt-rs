@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "stage": 5,
+  "evidence_id": "final-window",
+  "recorded_at": "2026-09-02T14:53:56Z",
+  "status": "complete",
+  "owrt_switch": {
+    "version": "0.1.0-r1",
+    "apk_sha256": "5cc2ca5155623dc0c2497a05fd098b1324b5427945281553a5bc12750df63e44",
+    "script_sha256": "b53f996f44ebf07903a46a0a36858fbc71f214a5df6cef4382e16b9f00e893cb"
+  },
+  "components": {
+    "reload-config": {
+      "switch": "enabled",
+      "boot_enable": "on",
+      "version": "0.2.0-r1"
+    },
+    "logd": {
+      "switch": "enabled",
+      "boot_enable": "on",
+      "pid": 19348,
+      "version": "0.1.0-r1"
+    },
+    "httpd": {
+      "switch": "enabled",
+      "boot_enable": "on",
+      "pid": 22540,
+      "version": "0.1.1-r1"
+    },
+    "fw4": {
+      "switch": "enabled",
+      "boot_enable": "on",
+      "version": "0.1.0-r1"
+    },
+    "rpcd": {
+      "switch": "enabled",
+      "boot_enable": "on",
+      "pid": 28544,
+      "version": "0.1.0-r2"
+    }
+  },
+  "probe_window": {
+    "started_utc": "2026-09-02T14:49:47Z",
+    "ended_utc": "2026-09-02T14:52:50Z",
+    "probes": 4,
+    "result": "identical_all_probes",
+    "invariants": {
+      "mounts": {
+        "/sbin/reload_config": 1,
+        "/sbin/fw4": 1,
+        "/usr/lib/rpcd": 1
+      },
+      "original_logd_running": false,
+      "original_uhttpd_running": false,
+      "listen": [
+        "0.0.0.0:80",
+        "0.0.0.0:443",
+        "[::]:80",
+        "[::]:443"
+      ],
+      "fw4_print_sha256_prefix": "6d2fb60313bcba1e",
+      "ruleset_sha256_prefix_nocounters": "49e8ed95c7f729c6",
+      "ruleset_lines": 152,
+      "ubus_objects": 40,
+      "file_acl_denied_rc": 6,
+      "config_tree_sha256_prefix": "c571059487c486dc",
+      "host_luci_http": 403,
+      "host_internet_https": 200,
+      "rust_component_log_errors": 0
+    }
+  },
+  "luci_ubus_calls_during_window": {
+    "file": {
+      "list": 5,
+      "read": 26,
+      "stat": 1
+    },
+    "luci": {
+      "getBuiltinEthernetPorts": 7,
+      "getFeatures": 2,
+      "getMountPoints": 8,
+      "getOdhcp6cStats": 7,
+      "getTimezones": 1,
+      "getUnixtime": 9,
+      "getVersion": 7
+    },
+    "luci-rpc": {
+      "getBoardJSON": 11,
+      "getDHCPLeases": 7,
+      "getHostHints": 11,
+      "getNetworkDevices": 11,
+      "getWirelessDevices": 11
+    },
+    "iwinfo": {
+      "assoclist": 14
+    },
+    "network": {
+      "get_proto_handlers": 11
+    },
+    "network.device": {
+      "status": 28
+    },
+    "network.interface": {
+      "dump": 11
+    },
+    "rc": {
+      "list": 2
+    },
+    "session": {
+      "access": 22
+    },
+    "system": {
+      "board": 14,
+      "info": 21
+    },
+    "uci": {
+      "changes": 56,
+      "get": 43
+    }
+  },
+  "served_by_rust": {
+    "file_and_luci_calls": 71,
+    "http_front_end": "httpd-rs"
+  },
+  "retained_in_c": [
+    "rpcd core (session, uci, rc)",
+    "iwinfo",
+    "luci-rpc",
+    "rpc-sys",
+    "network.rrdns",
+    "procd",
+    "netifd",
+    "ubusd",
+    "wireless",
+    "sysupgrade"
+  ]
+}

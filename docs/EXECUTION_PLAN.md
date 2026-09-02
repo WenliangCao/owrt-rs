@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：五阶段执行计划
 
 > 版本：4.0，2026-09-02
-> 状态：阶段 1–5 组件全部上线（R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动）；收官综合窗口待执行，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)
+> 状态：**完成**（2026-09-02）。R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动；收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
 ## 0. 终点是什么，以及能否在五个阶段内到达

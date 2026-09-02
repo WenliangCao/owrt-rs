@@ -55,6 +55,33 @@ boot-enable` 显式切换；`owrt-switch` 一处查看/操作全部五个。
 - 任一组件出现异常：`owrt-switch disable-all` 或对应 `owrt-<name>-switch disable` 一步回到原实现，
   再 `boot-enable off`；都不需要重启。
 
-## 5. 综合监测窗口
+## 5. 综合监测窗口（2026-09-02，用户授权并同时登录 LuCI 浏览）
 
-（待执行：安装 `owrt-switch`，`owrt-switch status`，五个组件约 3 分钟只读探测。）
+`owrt-switch 0.1.0-r1` 安装后 `owrt-switch status`：
+
+| component | switch | boot-enable | pid | version |
+|---|---|---|---|---|
+| reload-config | enabled | on | -（一次性程序） | 0.2.0-r1 |
+| logd | enabled | on | 19348 | 0.1.0-r1 |
+| httpd | enabled | on | 22540 | 0.1.1-r1 |
+| fw4 | enabled | on | -（一次性程序） | 0.1.0-r1 |
+| rpcd | enabled | on | 28544 | 0.1.0-r2 |
+
+14:49:47Z 至 14:52:50Z 四次只读探测，间隔一分钟，全部相同：三个 bind mount 在位；logd-rs/httpd-rs/rpcd-rs
+与原 rpcd 的 pid 不变，原 logd 与 uhttpd 不在运行；80/443 由 httpd-rs 监听；`fw4 print` 哈希 `6d2fb603…`、
+去计数器规则集 `49e8ed95…`（152 行）不变；ubus 对象 40；伪会话 `file read` 被拒（rc 6）；
+`/etc/config` 树哈希不变；主机访问 LuCI 登录页 403、互联网 200；日志中没有任何 Rust 组件的错误或 respawn。
+
+窗口期间用户登录并浏览了 LuCI，httpd-rs 记录到的真实 `/ubus` 调用（对象 方法 次数）：
+
+```
+file list 5; file read 26; file stat 1
+luci getBuiltinEthernetPorts 7; getFeatures 2; getMountPoints 8; getOdhcp6cStats 7; getTimezones 1; getUnixtime 9; getVersion 7
+luci-rpc getBoardJSON 11; getDHCPLeases 7; getHostHints 11; getNetworkDevices 11; getWirelessDevices 11
+iwinfo assoclist 14; network get_proto_handlers 11; network.device status 28; network.interface dump 11
+rc list 2; session access 22; system board 14; system info 21; uci changes 56; uci get 43
+```
+
+其中 `file` 与 `luci` 的全部 71 次调用由 rpcd-rs 应答，页面正常；`uci`/`session`/`rc`/`luci-rpc`/`iwinfo`
+由原 rpcd 应答。这份清单也是"完整替换 rpcd"的范围依据：`uci get/changes` 与 `session access` 是下一
+个必须覆盖的对象。
