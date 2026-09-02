@@ -2,7 +2,10 @@
 //! object server next to the original rpcd, which keeps session/uci/rc.
 
 mod file;
+mod glob;
+mod ip;
 mod luci;
+mod uci;
 mod util;
 
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
@@ -106,7 +109,7 @@ fn main() {
         let result = if req.objid == file_id {
             file::call(&ctx, &req.method, &args)
         } else if req.objid == luci_id {
-            luci::call(&ctx, &req.method, &args)
+            luci::call(&ctx, &req.method, &req.data)
         } else {
             Err(status::NOT_FOUND)
         };
