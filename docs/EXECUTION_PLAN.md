@@ -1,7 +1,8 @@
-# Rust-native OpenWrt Control Plane：五阶段执行计划
+# Rust-native OpenWrt Control Plane：执行计划
 
-> 版本：4.0，2026-09-02
-> 状态：**完成**（2026-09-02）。R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动；收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)
+> 版本：5.0，2026-09-02
+> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）**待开始**，先做 §11.0 的代码自检。
+> v4→v5 变更：只新增 §11；§0–§10 保持第一轮原文，作为已完成工作的记录。
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
 ## 0. 终点是什么，以及能否在五个阶段内到达
@@ -233,3 +234,92 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
 
 拆机、UART、TFTP/U-Boot、raw NAND、固件写入、为本项目主动重启设备；替换或修改 procd、ubusd、
 netifd、无线栈、sysupgrade 路径。这些不随"继续"解除。
+
+## 11. 第二轮（v5）：管理层全 Rust，执行层全保留
+
+**出发点**：用户的原始愿景是"不重写 OpenWrt，做 Rust-native control plane"：kernel、驱动、nftables、
+hostapd、dnsmasq、package/build system 全部保留，重新实现其上的管理层（ubus 库、UCI 库、网络状态、
+服务管理、管理 API），最后再逐步替换 netifd/procd/ubusd 的一部分，始终保持 `/etc/config` 格式与
+软件生态兼容。第一轮完成后，愿景里的前两项已各有一半：
+
+- ubus client/server 库：`components/ubus`，四个组件共用（对象注册、invoke、notify、fd 传递）。
+  缺 ubusd 侧的注册表、ACL、事件广播。
+- UCI 解析器：fw4 与 rpcd 各有一份只读文本解析，没有 delta、commit、序列化。
+- 强类型配置：fw4 的 firewall 配置模型已是强类型，可作模板。
+
+**第二轮终点**：LuCI 之下从配置（UCI 读写）到状态（netlink）到管理 API（rpcd 全部对象）全是 Rust；
+procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变）。到达这一点后，"新的管理 API"
+才有实体可架，在此之前不做 API 层。
+
+### 11.0 前置：第一轮代码自检（不接触设备）
+
+按用户给出的 15 项迁移自检清单对 `components/` 全部代码做一次对抗式审查：架构/数据结构是否擅改、
+是否有 stub/`unwrap()`/绕过逻辑、共享类型是否一致、`unsafe` 边界、整数与边界语义、异常行为、测试
+是否被削弱、release 行为、跨 crate 接口漂移、可审计性、重构与迁移是否分离、重复错误模式、测试
+执行路径。发现即修，按 `cargo check → smoke → 上游 regression → release → differential` 重验。
+产出：一份报告 `reports/ax3000t-stock-openwrt-25.12.5/AUDIT_ROUND1.md`，列出行为差异、修复、
+未能确认的风险、为 Rust 化而改变原行为之处。
+
+### 11.1 阶段 6：`components/uci` 库 + `/sbin/uci` CLI
+
+- **替换**：libuci 的读、写、delta（`/tmp/.uci` savedir）、commit、revert、`export`/`show` 序列化；
+  `/sbin/uci` CLI 以 bind mount 接管，形态同 fw4。
+- **为什么先做**：是愿景"字符串配置变强类型"的根，也是阶段 7 `uci` 对象的前提；CLI 有字节级 oracle。
+- **oracle**：同一组命令序列（get/set/add/delete/rename/reorder/commit/revert/changes/show/export，
+  含 `-P /var/state`、`-c`、`-q`、`-S`、`-n` 等选项）跑在精确 rootfs 的设备配置上，比较 stdout、
+  stderr、退出码、落盘文件与 savedir 内容；上游 libuci 的 tests/ 作只读 oracle。
+- **退路**：`disable` 卸载 bind mount；门禁是 `uci show` 全库逐字节相同。
+- **合并**：fw4、rpcd 里的两份解析器改为依赖本 crate（属迁移后的重构，单独 commit，单独重验）。
+- **规模**：约 2500 行；一份决策记录、合同 C6、报告、manifest。
+
+### 11.2 阶段 7：rpcd 完整替换
+
+- **替换**：`session`（登录经 `/etc/shadow` crypt、ACL 合并 `/usr/share/rpcd/acl.d`、超时、
+  `/var/run/rpcd/sessions` 持久化与 SIGHUP 保活）、`uci` 对象（get/set/add/delete/changes/commit/
+  revert/apply 回滚计时器/confirm/rollback/reload_config）、`rc`、`rpc-sys`、`rrdns`；并入现有
+  rpcd-rs 的 `file`/`luci`；原 rpcd 进程不再运行。
+- **oracle**：阶段 5 的双 ubusd 沙箱 harness 扩展到全部对象；用户浏览 LuCI 时记录的调用集
+  （`uci get`/`uci changes`/`session access` 为主）是必须覆盖的最小集。
+- **退路**：`disable` 回到原 rpcd（S12 init）。rpcd 重启会使 LuCI 会话失效，窗口内告知。
+- **依赖**：阶段 6 的 uci crate；crypt（md5crypt/sha256crypt/sha512crypt）自研或引入一个小 crate，
+  在决策记录里记账。
+- **规模**：约 4000 行。
+
+### 11.3 阶段 8：netlink 客户端（只读）+ `luci-rpc`/`iwinfo`
+
+- **替换**：`luci-rpc`（getNetworkDevices/getWirelessDevices/getHostHints/getDHCPLeases/
+  getBoardJSON/getDUIDHints/getConntrackHelpers）与 `iwinfo` 对象；这是"网络状态 daemon"的读侧：
+  设备、地址、路由、邻居、无线状态的强类型模型。
+- **oracle**：与 `ip -j link/addr/route/neigh`、`iwinfo`、原 luci-rpc 输出结构比较；只读，无爆炸半径。
+- **规模**：rtnetlink + nl80211 约 2500 行；不引入 netlink crate（协议面小且需与内核头精确对应）。
+
+### 11.4 阶段 9（有条件）：ubusd
+
+- **替换**：`/sbin/ubusd`（对象注册表、`/usr/share/acl.d` ACL、事件、monitor、invoke 转发）。
+- **前置条件**：先在精确 rootfs 沙箱验证每个 libubus 客户端（procd、netifd、hostapd、dnsmasq、
+  odhcpd、rpcd-rs、logd-rs、httpd-rs 桥）在 ubusd 消失后确实重连并重新注册对象；我们自己的三个
+  daemon 目前不重连，须先补上。条件不满足则本阶段不做，理由写入决策记录。
+- **退路**：重启 C ubusd，客户端重连。dropbear 不依赖 ubus，SSH 不受影响。
+- **规模**：约 2000 行。
+
+### 11.5 继续不做，以及解除条件
+
+- netifd 写路径、procd（PID 1 与实例管理）、无线栈启停：单台生产路由器无恢复路径。有第二台
+  同型号实验机即可开始，顺序是先 `network.interface` 状态读侧（阶段 8 已铺路），再 proto handler。
+- sysupgrade、kernel、驱动、nftables、hostapd、dnsmasq、odhcpd：与愿景一致，保留。
+
+### 11.6 两个收口（随阶段 6–9 顺带完成）
+
+- 六个 crate 收成一个 Cargo workspace，抽出共享的 `uci`、`json`、`netlink`；合并 logd/httpd/fw4/
+  rpcd 中的重复解析器。每次合并单独 commit，重跑该组件的 oracle。
+- 给 logd-rs、rpcd-rs、httpd-rs 的 ubus 连接补重连逻辑（阶段 9 的前置）。
+
+### 11.7 顺序与依赖
+
+```text
+11.0 自检 ──► 阶段 6 uci 库/CLI ──► 阶段 7 rpcd 完整 ──► 阶段 9 ubusd（有条件）
+                                └► 阶段 8 netlink/luci-rpc/iwinfo（可与阶段 7 并行）
+```
+
+§1 工作方式、§9 每阶段固定要求、§10 禁止事项全部沿用；每阶段两次设备授权（安装不启用 / 启用与
+开机接管），监测窗口约 3 分钟。
