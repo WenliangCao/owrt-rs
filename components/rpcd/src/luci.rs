@@ -404,21 +404,17 @@ fn get_init_list(args: &Json) -> Json {
             }
         }
         let idx = init_index(&name);
+        let enabled = init_enabled(&name);
         scripts.push((
             name,
             obj(vec![
                 ("index", idx.and_then(|(a, _)| a).map(Json::Int).unwrap_or(Json::Null)),
                 ("stop", idx.and_then(|(_, b)| b).map(Json::Int).unwrap_or(Json::Null)),
-                ("enabled", Json::Bool(init_enabled(&scripts_name(&scripts)))),
+                ("enabled", Json::Bool(enabled)),
             ]),
         ));
     }
     if scripts.is_empty() { error("No such init script") } else { Json::Object(scripts) }
-}
-
-// enabled is computed for the script being pushed; helper keeps borrowck simple
-fn scripts_name(scripts: &[(String, Json)]) -> String {
-    scripts.last().map(|(n, _)| n.clone()).unwrap_or_default()
 }
 
 fn set_init_action(args: &Json) -> Json {
