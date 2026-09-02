@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：五阶段执行计划
 
 > 版本：4.0，2026-09-02
-> 状态：阶段 1 完成（R05 0.2.0 已转正，boot-enable on）；进入阶段 2
+> 状态：阶段 1、2 完成（R05 与 logd 均由 Rust 实现接管并开机启动）；进入阶段 3
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
 ## 0. 终点是什么，以及能否在五个阶段内到达
@@ -55,6 +55,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | drift | `network` drift 成因与收口 | [H1_6_DRIFT_PROBE](../reports/ax3000t-stock-openwrt-25.12.5/H1_6_DRIFT_PROBE.md) |
 | H1.6 | 候选真实接管、真实 ubus 投递、切回静默 | [H1_6_CANARY](../reports/ax3000t-stock-openwrt-25.12.5/H1_6_CANARY.md) |
 | 阶段 1 | R05 0.2.0 转正：syslog trace、S11 开机重新接管、boot-enable on | [R05_GO_LIVE](../reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)、[决策 0007](decisions/0007-r05-boot-enable-and-syslog-trace.md) |
+| 阶段 2 | Rust ubus 库 + logd 替换，并排比对 10/10，boot-enable on | [R15_LOGD](../reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)、[合同 C2](contracts/logd.md)、[决策 0008](decisions/0008-replace-logd-with-rust-and-own-ubus-library.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
@@ -87,7 +88,7 @@ syslog；候选 R05 package 已安装且 disabled。
 
 **规模**：Rust 改动约 100 行；package 改动约 60 行 shell；两个设备窗口。
 
-## 4. 阶段 2：R15 logd 替换，并建立 Rust ubus 库
+## 4. 阶段 2：R15 logd 替换，并建立 Rust ubus 库（已完成 2026-09-02）
 
 **目标**：`logd` 由 Rust 实现替代并开机运行；`logread`、`logread -f`、`logger`、`log.read`/`log.write`
 行为与原实现一致；产出可复用的 `components/ubus` 库（连接、lookup、invoke、注册对象、回复、

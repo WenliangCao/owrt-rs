@@ -182,4 +182,9 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 **阶段 1 完成：R05 Rust dispatcher 已转正。** 0.2.0 把 trace 改写 syslog、增加开机重新接管的 init 脚本，
 离线 R1/V1 harness 全部通过后升级到设备，canary 通过，`boot-enable` 已打开，候选当前接管
 `/sbin/reload_config`。报告见 [R05_GO_LIVE.md](reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)，
-决策见 [0007](docs/decisions/0007-r05-boot-enable-and-syslog-trace.md)。下一阶段：R15 logd 与 Rust ubus 库。
+决策见 [0007](docs/decisions/0007-r05-boot-enable-and-syslog-trace.md)。
+
+**阶段 2 完成：logd 已由 Rust 实现接管。** `components/ubus` 是纯 Rust 的 ubus 线协议库，`components/logd`
+在精确 rootfs 中与原 logd 并排比对 10 项输出全部一致，设备上 canary 通过后 `boot-enable` 已打开。报告见
+[R15_LOGD.md](reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)，合同见 [logd.md](docs/contracts/logd.md)，
+决策见 [0008](docs/decisions/0008-replace-logd-with-rust-and-own-ubus-library.md)。下一阶段：uhttpd 替换。

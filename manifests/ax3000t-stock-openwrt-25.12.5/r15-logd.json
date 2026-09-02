@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "stage": "2-r15-logd",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "status": "complete_live_boot_enabled",
+  "candidate": {
+    "package": "owrt-logd",
+    "version": "0.1.0-r1",
+    "apk_sha256": "719fa135f39131ce0667310338f395a9a958e0dfccc6e7dfb9afeeab8a800544",
+    "apk_size_bytes": 157297,
+    "logd_rs_sha256": "235a78a267f46df06359a6df5e1c42d13c94fc527c04817b3bb40f640d8f1a28",
+    "switch_sha256": "e068d9166d5653ec6d560a2e7366cf92aa695edab120c05574690aea793d4d07",
+    "init_sha256": "12101ff68e5a96526e7ba45f298d8582de7cabc7b9f131bb61554b74a17e540e",
+    "components": [
+      "components/ubus (pure Rust ubus wire protocol, fd passing)",
+      "components/logd"
+    ],
+    "third_party_crates": 0,
+    "toolchain": "rustc 1.94.0 via OpenWrt 25.12.5 filogic SDK, aarch64-unknown-linux-musl"
+  },
+  "offline": {
+    "harness": "tools/r15_logd_check.py",
+    "static_musl_candidate_sha256": "7ad6ae316480a6f933685dc4a5af935ea2655e454258ddba236848a2661fb176",
+    "gate": {
+      "all_outputs_identical": true
+    },
+    "compared_outputs": [
+      "follow.txt",
+      "read-all-after-wrap.txt",
+      "read-all-before-wrap.txt",
+      "read-last-5.txt",
+      "read-regex.txt",
+      "signature.txt",
+      "steps.txt",
+      "ubus-read-0.json",
+      "ubus-read-3.json",
+      "ubus-read-4.json"
+    ],
+    "masked": [
+      "logread timestamp prefix",
+      "[pid]",
+      "json time",
+      "json id",
+      "object id"
+    ],
+    "upstream_quirks_reproduced": [
+      "16-byte syslog timestamp strip also applies to ubus log.write payloads",
+      "stock logread segfaults on a 1500-byte record (long case reduced to 900 bytes)"
+    ]
+  },
+  "device": {
+    "install": {
+      "files_match": true,
+      "stock_logd_untouched_pid": 1267,
+      "rc_links_after_install": "S12log only",
+      "switch": "disabled",
+      "boot_enable": "off"
+    },
+    "canary": {
+      "enable": "stock instance stopped, logd-rs published log",
+      "logger_dev_log": true,
+      "ubus_write": true,
+      "logread_l": true,
+      "ubus_read": true,
+      "follow_stream": true,
+      "disable": "stock logd restarted and served logread"
+    },
+    "go_live": {
+      "boot_enable": "on",
+      "rc_links": "S12owrt-logd K89owrt-logd (log links removed)",
+      "logd_rs_pid": 19348,
+      "round_trip": true
+    },
+    "probe_window": {
+      "probes": 3,
+      "span": "2026-09-02T12:33:14Z..12:35:05Z",
+      "logd_rs_pid_stable": 19348,
+      "rss_kb": [
+        1004,
+        1012,
+        1012
+      ],
+      "logread_lines": [
+        12,
+        20,
+        26
+      ],
+      "probe_lines_visible": true,
+      "switch": "enabled",
+      "boot_enable": "on"
+    }
+  },
+  "not_done": [
+    "kmsg ingestion not observed live (no kernel message during window)",
+    "boot-time start not observed (no reboot)"
+  ]
+}
