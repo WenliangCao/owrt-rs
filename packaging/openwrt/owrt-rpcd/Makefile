@@ -20,26 +20,31 @@ include $(INCLUDE_DIR)/package.mk
 define Package/owrt-rpcd
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=Contract C5 compatible rpcd plugin layer (Rust file and luci objects)
+  TITLE:=rpcd core and plugin objects in Rust (session, uci, rc, file, luci)
   DEPENDS:=@(aarch64) +rpcd +ubus
 endef
 
 define Package/owrt-rpcd/description
- Rust implementation of the rpcd `file` and `luci` ubus objects as a standalone
- object server. Installation is inert; owrt-rpcd-switch enable bind-mounts a
- plugin directory without file.so/ucode.so over /usr/lib/rpcd, restarts rpcd and
- starts rpcd-rs; disable reverses it. boot-enable makes the switch persistent.
+ Rust implementation of the rpcd core objects `session`, `uci`, `rc` (contract
+ C7, decision 0013) and the plugin-layer objects `file`, `luci` (contract C5) as
+ one ubus object server. Installation is inert; owrt-rpcd-switch enable stops
+ rpcd, bind-mounts a plugin directory without file.so/ucode.so over
+ /usr/lib/rpcd, starts rpcd-rs and then rpcd (which keeps only its plugins);
+ disable reverses it. boot-enable makes the switch persistent (S11 before S12).
 endef
 
 define Build/Prepare
 	rm -rf $(PKG_BUILD_DIR)
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/rpcd/src $(PKG_BUILD_DIR)/ubus/src
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/rpcd/src $(PKG_BUILD_DIR)/ubus/src $(PKG_BUILD_DIR)/uci/src/bin
 	test -f $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.toml
 	test -f $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.lock
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.lock $(PKG_BUILD_DIR)/rpcd/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/rpcd/src/*.rs $(PKG_BUILD_DIR)/rpcd/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/*.rs $(PKG_BUILD_DIR)/ubus/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml $(PKG_BUILD_DIR)/uci/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/*.rs $(PKG_BUILD_DIR)/uci/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/bin/*.rs $(PKG_BUILD_DIR)/uci/src/bin/
 endef
 
 define Build/Configure

@@ -278,18 +278,20 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 - **合并**：fw4、rpcd 里的两份解析器改为依赖本 crate（属迁移后的重构，单独 commit，单独重验）。
 - **规模**：约 2500 行；一份决策记录、合同 C6、报告、manifest。
 
-### 11.2 阶段 7：rpcd 完整替换
+### 11.2 阶段 7：rpcd 核心对象（session/uci/rc）
 
-- **替换**：`session`（登录经 `/etc/shadow` crypt、ACL 合并 `/usr/share/rpcd/acl.d`、超时、
-  `/var/run/rpcd/sessions` 持久化与 SIGHUP 保活）、`uci` 对象（get/set/add/delete/changes/commit/
-  revert/apply 回滚计时器/confirm/rollback/reload_config）、`rc`、`rpc-sys`、`rrdns`；并入现有
-  rpcd-rs 的 `file`/`luci`；原 rpcd 进程不再运行。
-- **oracle**：阶段 5 的双 ubusd 沙箱 harness 扩展到全部对象；用户浏览 LuCI 时记录的调用集
-  （`uci get`/`uci changes`/`session access` 为主）是必须覆盖的最小集。
-- **退路**：`disable` 回到原 rpcd（S12 init）。rpcd 重启会使 LuCI 会话失效，窗口内告知。
-- **依赖**：阶段 6 的 uci crate；crypt（md5crypt/sha256crypt/sha512crypt）自研或引入一个小 crate，
-  在决策记录里记账。
-- **规模**：约 4000 行。
+- **替换**：`session`（登录经 `/etc/shadow` + libc `crypt`、ACL 合并 `/usr/share/rpcd/acl.d`、
+  超时、冻结/解冻与 SIGHUP 再执行）、`uci` 对象（get/state/add/set/delete/rename/order/changes/
+  commit/revert/apply 回滚计时器/confirm/rollback/reload_config，基于阶段 6 的 uci crate）、`rc`；
+  并入现有 rpcd-rs 的 `file`/`luci`（ACL 检查改为进程内）。运行时状态放 `/var/run/rpcd-rs`。
+- **混合形态**（决策 0013）：原 rpcd 的 `main.c` 忽略核心对象注册失败，因此 rpcd-rs 先注册
+  （S11），原 rpcd 后启动（S12）只剩插件 `luci-rpc`/`iwinfo`/`rpc-sys`/`network.rrdns`；这四个
+  对象与原 rpcd 进程的退出归阶段 8。
+- **oracle**：`tools/r17_rpcd_core_check.py`，精确 rootfs 双沙箱（原：完整 rpcd；候选：rpcd-rs +
+  插件裁剪的 rpcd），会话 id/expires 遮罩，272 步。
+- **退路**：`owrt-rpcd-switch disable` 停 rpcd-rs、卸载裁剪目录、重启原 rpcd。enable/disable 都会
+  使 LuCI 会话失效（需重新登录），窗口内告知。
+- **依赖**：阶段 6 的 uci crate；crypt 直接用 musl libc 的 `crypt()`（无新 crate）。
 
 ### 11.3 阶段 8：netlink 客户端（只读）+ `luci-rpc`/`iwinfo`
 

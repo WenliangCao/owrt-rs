@@ -9,6 +9,8 @@ UCODE_SO_SHA256=591c21eee13dcae91b75d039719e5733bcd2e1eeec7d0466104b1d2aa8d6c220
 MOUNTINFO=/proc/self/mountinfo
 BOOT_FLAG=/etc/owrt-rpcd.boot-enable
 MARKER=/var/run/owrt-rpcd.enabled
+# objects rpcd-rs must own (contract C7 + C5)
+CORE_OBJECTS="session uci rc file luci"
 
 usage() {
 	printf '%s\n' 'usage: owrt-rpcd-switch enable|disable|status|boot-enable on|off|status' >&2
@@ -63,23 +65,58 @@ rs_running() {
 	pidof rpcd-rs >/dev/null 2>&1
 }
 
+objects_present() {
+	for o in "$@"; do
+		ubus list "$o" >/dev/null 2>&1 || return 1
+	done
+}
+
+wait_objects() {
+	for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+		objects_present "$@" && return 0
+		sleep 1
+	done
+	return 1
+}
+
+wait_objects_gone() {
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+		objects_present "$@" || return 0
+		sleep 1
+	done
+	return 1
+}
+
+# Decision 0013: rpcd-rs registers session/uci/rc/file/luci first; the original
+# rpcd, started afterwards, keeps only its plugins (its own core registrations
+# fail silently). Order matters, so rpcd is stopped while rpcd-rs comes up.
 enable_layer() {
 	[ -x "$CANDIDATE" ] || {
 		printf 'missing candidate: %s\n' "$CANDIDATE" >&2
 		return 1
 	}
-	if is_mounted && rs_running; then
+	if is_mounted && rs_running && [ -e "$MARKER" ]; then
 		printf '%s\n' enabled
 		return
 	fi
 	: > "$MARKER"
+	/etc/init.d/rpcd stop
+	wait_objects_gone session || {
+		printf '%s\n' 'original rpcd still owns the core objects' >&2
+		rm -f "$MARKER"
+		/etc/init.d/rpcd start
+		return 1
+	}
 	/etc/init.d/owrt-rpcd start
-	/etc/init.d/rpcd restart
-	for i in 1 2 3 4 5 6 7 8 9 10; do
-		ubus list file >/dev/null 2>&1 && ubus list luci >/dev/null 2>&1 && ubus list session >/dev/null 2>&1 && break
-		sleep 1
-	done
-	if ! is_mounted || ! rs_running || ! ubus call luci getVersion >/dev/null 2>&1; then
+	if ! wait_objects $CORE_OBJECTS; then
+		printf '%s\n' 'rpcd-rs did not register the core objects, reverting' >&2
+		disable_layer >/dev/null 2>&1 || true
+		return 1
+	fi
+	/etc/init.d/rpcd start
+	wait_objects luci-rpc || true
+	if ! is_mounted || ! rs_running || ! ubus call luci getVersion >/dev/null 2>&1 ||
+	   ! ubus call session list '{"ubus_rpc_session":"00000000000000000000000000000000"}' >/dev/null 2>&1; then
 		printf '%s\n' 'activation verification failed, reverting' >&2
 		disable_layer >/dev/null 2>&1 || true
 		return 1
@@ -88,14 +125,12 @@ enable_layer() {
 }
 
 disable_layer() {
+	/etc/init.d/rpcd stop
 	/etc/init.d/owrt-rpcd stop
 	rm -f "$MARKER"
 	do_umount
-	/etc/init.d/rpcd restart
-	for i in 1 2 3 4 5 6 7 8 9 10; do
-		ubus list file >/dev/null 2>&1 && ubus list luci >/dev/null 2>&1 && break
-		sleep 1
-	done
+	/etc/init.d/rpcd start
+	wait_objects $CORE_OBJECTS || true
 	verify_original
 	printf '%s\n' disabled
 }
