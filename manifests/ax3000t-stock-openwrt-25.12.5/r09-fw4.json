@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "stage": 4,
+  "evidence_id": "r09-fw4",
+  "recorded_at": "2026-09-02T14:07:06Z",
+  "status": "offline_verified_awaiting_device_window",
+  "candidate": {
+    "package": "owrt-fw4",
+    "version": "0.1.0-r1",
+    "apk_sha256": "084aeb543df3d6bb3454114d83d791a4498c526d205b42567b1765ebafa39a25",
+    "files": {
+      "/usr/sbin/fw4-rs": "10c9f916fa9182dd9239588a914dc8ce0ed78695009849b72fc992e0a0c3c904",
+      "/usr/sbin/owrt-fw4-switch": "b593079900c0c95d05b62cf7ebd4bc3591264028cd4d87e212847d4cd0bf22b5",
+      "/etc/init.d/owrt-fw4": "26fcba28ee4a8bb69413e9e2b7fa20ecf00b37dcc72be6b3c6c17b8ee0393c4a"
+    },
+    "original_sbin_fw4_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+    "binary_bytes": 706963,
+    "third_party_crates": 0,
+    "source": "components/fw4 + components/ubus (json, convert)"
+  },
+  "offline": {
+    "upstream_firewall4_tests": {
+      "files": 31,
+      "passed": 31,
+      "compares": [
+        "stdout",
+        "stderr incl. [call] trace"
+      ],
+      "harness": "tools/r09_fw4_check.py",
+      "reference_runner": "ucode built from source on oracle; original implementation 31/31"
+    },
+    "unit_tests": {
+      "passed": 11,
+      "failed": 0
+    },
+    "device_config_offline_diff": {
+      "captured_utc": "2026-09-02",
+      "capture": "private/stage4/device/capture-20260902.txt",
+      "fixture_builder": "tools/r09_device_fixtures.py",
+      "result": "identical",
+      "lines": 203
+    }
+  },
+  "device": null,
+  "not_done": [
+    "device window (install, gate, enable, boot-enable, ~3 min probe) awaiting authorization"
+  ]
+}
