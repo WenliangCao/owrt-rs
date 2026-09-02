@@ -1,0 +1,88 @@
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=owrt-fw4
+PKG_VERSION:=0.1.0
+PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),1)
+
+PKG_MAINTAINER:=owrt-control-plane-rs project
+PKG_LICENSE:=MIT OR Apache-2.0
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_PARALLEL:=1
+
+V1_CARGO?=cargo
+V1_CARGO_HOME?=
+V1_RUSTUP_HOME?=
+OWRT_COMPONENTS_SOURCE?=$(CURDIR)/../../../components
+RUST_TARGET:=aarch64-unknown-linux-musl
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/owrt-fw4
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=Contract C4 compatible nftables ruleset generator (Rust firewall4 replacement)
+  DEPENDS:=@(aarch64) +firewall4 +ubus
+endef
+
+define Package/owrt-fw4/description
+ Rust replacement for the firewall4 ucode generator behind /sbin/fw4. Installation
+ is inert; owrt-fw4-switch enable first proves that fw4-rs renders the same
+ ruleset as the original (byte-identical `print`) and only then bind-mounts it
+ over /sbin/fw4; disable unmounts. boot-enable makes the mount persistent.
+endef
+
+define Build/Prepare
+	rm -rf $(PKG_BUILD_DIR)
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/fw4/src $(PKG_BUILD_DIR)/ubus/src
+	test -f $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.toml
+	test -f $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.lock
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.lock $(PKG_BUILD_DIR)/fw4/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/fw4/src/*.rs $(PKG_BUILD_DIR)/fw4/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/*.rs $(PKG_BUILD_DIR)/ubus/src/
+endef
+
+define Build/Configure
+endef
+
+define Build/Compile
+	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
+	CARGO_HOME="$(V1_CARGO_HOME)" \
+	CARGO_BUILD_TARGET="$(RUST_TARGET)" \
+	CARGO_PROFILE_RELEASE_PANIC=abort \
+	CC_aarch64_unknown_linux_musl="$(TARGET_CC_NOCACHE)" \
+	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
+	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
+	RUSTFLAGS="-Ctarget-cpu=cortex-a53 -Ctarget-feature=-crt-static -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+	$(V1_CARGO) build --release --locked --manifest-path $(PKG_BUILD_DIR)/fw4/Cargo.toml
+endef
+
+define Package/owrt-fw4/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/target/$(RUST_TARGET)/release/fw4-rs \
+		$(1)/usr/sbin/fw4-rs
+	$(INSTALL_BIN) ./files/owrt-fw4-switch $(1)/usr/sbin/owrt-fw4-switch
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/owrt-fw4.init $(1)/etc/init.d/owrt-fw4
+endef
+
+define Package/owrt-fw4/postinst
+#!/bin/sh
+set -eu
+[ -n "$${IPKG_INSTROOT:-}" ] || {
+	/usr/sbin/owrt-fw4-switch disable
+	/etc/init.d/owrt-fw4 enable
+}
+endef
+
+define Package/owrt-fw4/prerm
+#!/bin/sh
+set -eu
+[ -n "$${IPKG_INSTROOT:-}" ] || {
+	/usr/sbin/owrt-fw4-switch disable
+	/usr/sbin/owrt-fw4-switch boot-enable off >/dev/null
+	/etc/init.d/owrt-fw4 disable
+}
+endef
+
+$(eval $(call BuildPackage,owrt-fw4))

@@ -1,0 +1,16 @@
+#!/bin/sh /etc/rc.common
+# Re-apply the fw4-rs bind mount after boot when boot-enable is on. Runs at S18,
+# before S19 firewall, so the boot-time `fw4 start` already uses the candidate.
+START=18
+STOP=89
+
+SWITCH=/usr/sbin/owrt-fw4-switch
+
+start() {
+	"$SWITCH" boot-enable status >/dev/null 2>&1 || return 0
+	"$SWITCH" enable
+}
+
+stop() {
+	"$SWITCH" disable
+}
