@@ -163,7 +163,7 @@ impl Daemon {
                 pending,
                 oneshot,
             };
-            self.conn.reply_status(req, 0, Some(read_end.as_raw_fd()))?;
+            self.conn.reply_status(req, owrt_ubus::status::OK, Some(read_end.as_raw_fd()))?;
             drop(read_end);
             if client.flush() || !client.pending.is_empty() {
                 self.clients.push(client);
@@ -179,7 +179,7 @@ impl Daemon {
         }
         b.msg_close(array);
         self.conn.reply_data(req, b.payload())?;
-        self.conn.reply_status(req, 0, None)
+        self.conn.reply_status(req, owrt_ubus::status::OK, None)
     }
 
     fn handle_write(&mut self, req: &Request) -> io::Result<()> {
@@ -197,7 +197,7 @@ impl Daemon {
             }
             self.add(event.as_bytes(), SOURCE_SYSLOG);
         }
-        self.conn.reply_status(req, 0, None)
+        self.conn.reply_status(req, owrt_ubus::status::OK, None)
     }
 
     fn handle_incoming(&mut self, incoming: Incoming) -> io::Result<()> {

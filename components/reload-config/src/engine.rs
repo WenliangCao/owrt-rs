@@ -187,6 +187,12 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<String>, Error> {
         let mut source_names = Vec::new();
         for entry in entries {
             let entry = entry.map_err(|error| Error::Io("read config entry", error))?;
+            // The shell original iterates `/var/run/uci/* /etc/config/*`; a
+            // shell glob never matches a leading dot, so editor swap files and
+            // other dotfiles are outside the scanned set.
+            if entry.file_name().as_bytes().first() == Some(&b'.') {
+                continue;
+            }
             if entry.path().is_file() {
                 source_names.push(entry.file_name());
             }
@@ -507,6 +513,26 @@ mod tests {
             .unwrap();
         assert!(read_baseline(&path).is_err());
         fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn scanner_skips_dotfiles_like_the_shell_glob() {
+        let root = std::env::temp_dir().join(format!(
+            "reload-config-rs-dotfile-test-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        let directory = root.join("etc/config");
+        fs::create_dir_all(&directory).unwrap();
+        for name in [".network.swp", "network", ".hidden", "dhcp.bak"] {
+            File::create(directory.join(name)).unwrap();
+        }
+        let settings = Settings {
+            root: root.clone(),
+            timeout: Duration::from_secs(1),
+        };
+        assert_eq!(scan_config_names(&settings).unwrap(), ["dhcp.bak", "network"]);
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
