@@ -21,7 +21,7 @@ printf 'config dnsmasq\n\toption domain lan\n\toption leasefile /tmp/dhcp.leases
 /sbin/ubusd >/tmp/out/ubusd1.log 2>&1 & u=$!
 sleep 1
 /sbin/netifd >/tmp/out/netifd.log 2>&1 & n=$!
-/usr/sbin/dnsmasq -k --ubus --no-resolv --no-hosts --port=0 --leasefile-ro --user=root --pid-file=/tmp/dnsmasq.pid >/tmp/out/dnsmasq.log 2>&1 & d=$!
+/usr/sbin/dnsmasq -k --enable-ubus --no-resolv --no-hosts --port=0 --leasefile-ro --user=root --pid-file=/tmp/dnsmasq.pid >/tmp/out/dnsmasq.log 2>&1 & d=$!
 sleep 1; echo "dnsmasq_start_log: $(tr '\n' '|' < /tmp/out/dnsmasq.log | cut -c1-300)"
 /usr/sbin/odhcpd >/tmp/out/odhcpd.log 2>&1 & o=$!
 /tmp/logd-rs -S 16 --kmsg none --no-drop-privileges >/tmp/out/logd.log 2>&1 & l=$!
@@ -32,9 +32,8 @@ kill $u; sleep 2
 echo "ubusd_down: $(ubus list >/dev/null 2>&1 && echo still-up || echo gone)"
 echo "pids_during: netifd=$(kill -0 $n 2>/dev/null && echo up || echo down) dnsmasq=$(kill -0 $d 2>/dev/null && echo up || echo down) odhcpd=$(kill -0 $o 2>/dev/null && echo up || echo down) logd=$(kill -0 $l 2>/dev/null && echo up || echo down)"
 /sbin/ubusd >/tmp/out/ubusd2.log 2>&1 & u=$!
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do have network && have network.wireless && have dnsmasq && have log && break; sleep 1; done
-echo "reregistered_after_s: $i"
-sleep 5
+i=0; while [ $i -lt 60 ]; do i=$((i+1)); have network && have network.wireless && have dnsmasq && have dhcp && have log && break; [ $i -eq 5 ] && echo "at_5s: $(objs)"; [ $i -eq 20 ] && echo "at_20s: $(objs)"; sleep 1; done
+echo "waited_s: $i"
 echo "after: $(objs)"
 echo "pids_after: netifd=$(kill -0 $n 2>/dev/null && echo up || echo down) dnsmasq=$(kill -0 $d 2>/dev/null && echo up || echo down) odhcpd=$(kill -0 $o 2>/dev/null && echo up || echo down) logd=$(kill -0 $l 2>/dev/null && echo up || echo down)"
 echo "netifd_call: $(ubus -S call network.interface dump 2>&1 | cut -c1-60) rc=$?"
