@@ -371,7 +371,7 @@ dd if=/dev/zero of="$root/var/run/v1-fill" bs=4096 status=none 2>/dev/null
 set -e
 before=$(sha256sum "$root/var/run/config.md5" | awk '{print $1}')
 set +e
-chroot "$root" /bin/sh -c 'PATH=/usr/sbin:/usr/bin:/sbin:/bin /sbin/reload_config_rs' \
+chroot "$root" /bin/sh -c 'PATH=/usr/sbin:/usr/bin:/sbin:/bin /sbin/reload_config_rs --trace-stderr' \
   2>"$root/tmp/v1-disk-full.stderr"
 rc=$?
 set -e
@@ -392,7 +392,7 @@ mount -o remount,bind,ro "$root/var/run"
 trap 'umount "$root/var/run" 2>/dev/null || true' EXIT
 before=$(sha256sum "$root/var/run/config.md5" | awk '{print $1}')
 set +e
-chroot "$root" /bin/sh -c 'PATH=/usr/sbin:/usr/bin:/sbin:/bin /sbin/reload_config_rs' \
+chroot "$root" /bin/sh -c 'PATH=/usr/sbin:/usr/bin:/sbin:/bin /sbin/reload_config_rs --trace-stderr' \
   2>"$root/tmp/v1-read-only.stderr"
 rc=$?
 set -e

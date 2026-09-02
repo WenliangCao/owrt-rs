@@ -56,7 +56,7 @@ def candidate_command(root: Path, timeout_ms: int) -> list[str]:
         "-c",
         (
             "PATH=/usr/sbin:/usr/bin:/sbin:/bin "
-            f"/sbin/reload_config_rs --timeout-ms {timeout_ms}"
+            f"/sbin/reload_config_rs --trace-stderr --timeout-ms {timeout_ms}"
         ),
     ]
 
@@ -362,7 +362,7 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
             (
                 "echo $$ > /tmp/r1-candidate.pid; "
                 "export PATH=/usr/sbin:/usr/bin:/sbin:/bin; "
-                "exec /sbin/reload_config_rs --timeout-ms 5000"
+                "exec /sbin/reload_config_rs --trace-stderr --timeout-ms 5000"
             ),
         ],
         stdout=subprocess.PIPE,

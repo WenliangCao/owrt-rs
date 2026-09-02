@@ -1,9 +1,11 @@
 mod engine;
 mod process;
+mod syslog;
 mod trace;
 mod unix;
 
 use engine::{Error, Settings};
+use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -30,13 +32,14 @@ fn install_signal_handlers() -> Result<(), std::io::Error> {
 }
 
 fn usage() -> &'static str {
-    "usage: reload-config-rs [--root PATH] [--timeout-ms 1..60000]\n\
-     defaults: --root / --timeout-ms 10000"
+    "usage: reload-config-rs [--root PATH] [--timeout-ms 1..60000] [--trace-stderr]\n\
+     defaults: --root / --timeout-ms 10000, JSONL trace to syslog (daemon.info, tag reload_config)"
 }
 
-fn parse_args() -> Result<Settings, String> {
+fn parse_args() -> Result<(Settings, bool), String> {
     let mut root = PathBuf::from("/");
     let mut timeout_ms = DEFAULT_TIMEOUT_MS;
+    let mut trace_stderr = false;
     let mut arguments = std::env::args().skip(1);
     while let Some(argument) = arguments.next() {
         match argument.as_str() {
@@ -60,6 +63,7 @@ fn parse_args() -> Result<Settings, String> {
                     return Err("--timeout-ms must be between 1 and 60000".into());
                 }
             }
+            "--trace-stderr" => trace_stderr = true,
             "-h" | "--help" => {
                 println!("{}", usage());
                 std::process::exit(EX_OK);
@@ -67,15 +71,18 @@ fn parse_args() -> Result<Settings, String> {
             value => return Err(format!("unknown argument {value:?}")),
         }
     }
-    Ok(Settings {
-        root,
-        timeout: Duration::from_millis(timeout_ms),
-    })
+    Ok((
+        Settings {
+            root,
+            timeout: Duration::from_millis(timeout_ms),
+        },
+        trace_stderr,
+    ))
 }
 
 fn main() {
-    let settings = match parse_args() {
-        Ok(settings) => settings,
+    let (settings, trace_stderr) = match parse_args() {
+        Ok(parsed) => parsed,
         Err(error) => {
             eprintln!("{error}\n{}", usage());
             std::process::exit(EX_USAGE);
@@ -86,7 +93,12 @@ fn main() {
         std::process::exit(EX_SOFTWARE);
     }
 
-    let mut trace = Trace::new(std::io::stderr());
+    let writer: Box<dyn Write> = if trace_stderr {
+        Box::new(std::io::stderr())
+    } else {
+        Box::new(syslog::SyslogWriter::open())
+    };
+    let mut trace = Trace::new(writer);
     let exit = match engine::run(&settings, &CANCELLED, &mut trace) {
         Ok(outcome) if outcome.delivery_failures == 0 => EX_OK,
         Ok(_) => EX_DELIVERY,

@@ -8,7 +8,9 @@ R05 配置变更检测与分发的最小 Rust 候选实现。行为边界由
 - 调用目标系统的 `uci show` 得到与原实现相同的规范化内容；
 - 调用目标系统的 BusyBox `md5sum`，保持 `/var/run/config.md5` 可互换；
 - 按旧基线顺序调用 `ubus call service event`；
-- 将比较、规范化异常、每次投递和完成/致命错误写为 stderr JSONL；
+- 将比较、规范化异常、每次投递和完成/致命错误写为 JSONL；默认发往本机 syslog（`/dev/log`，daemon.info，
+  tag `reload_config`，致命错误为 daemon.err），`--trace-stderr` 改写到 stderr。syslog 不可用时只有致命行
+  回落到 stderr，其余静默，与原实现的 stderr 行为一致；
 - 对依赖超时、SIGINT/SIGTERM 与并发运行 fail-closed。
 - 通过同目录临时文件、`sync_all` 和原子 rename 提交基线，I/O 失败时保留旧基线。
 
