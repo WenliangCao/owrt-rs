@@ -4,10 +4,10 @@
 # Steps: install (APK must already be at /tmp) | gate-before | enable | gate-after | scan | probe | disable | rollback
 set -u
 APK=/tmp/owrt-rpcd-0.1.0-r4.apk
-APK_SHA=__APK_SHA__
-CAND_SHA=__CAND_SHA__
-SWITCH_SHA=__SWITCH_SHA__
-INIT_SHA=__INIT_SHA__
+APK_SHA=dfaaf9648f937d188fbfa6bbe0eed2bdbdc455a1325319e0e6b63ca6d24ed720
+CAND_SHA=76e720e4a0315620383923db88a0cb0909caf9336dcdedf66c1a92bcd807f125
+SWITCH_SHA=e1ec940ad043757ebcfbd1dbaf654f9fccf370c03d694f889773b288c46642ec
+INIT_SHA=685108834bdeb8622cd311f2c58b2be7eac6158354bc9389c40a0f33712d4341
 SWITCH=/usr/sbin/owrt-rpcd-switch
 GATE_BEFORE=/tmp/r20-gate-before.txt
 GATE_AFTER=/tmp/r20-gate-after.txt
