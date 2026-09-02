@@ -60,7 +60,7 @@ do_umount() {
 }
 
 rs_running() {
-	pgrep -x rpcd-rs >/dev/null 2>&1
+	pidof rpcd-rs >/dev/null 2>&1
 }
 
 enable_layer() {
