@@ -59,7 +59,7 @@ endef
 
 define Package/owrt-fw4/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/target/$(RUST_TARGET)/release/fw4-rs \
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/fw4/target/$(RUST_TARGET)/release/fw4-rs \
 		$(1)/usr/sbin/fw4-rs
 	$(INSTALL_BIN) ./files/owrt-fw4-switch $(1)/usr/sbin/owrt-fw4-switch
 	$(INSTALL_DIR) $(1)/etc/init.d
