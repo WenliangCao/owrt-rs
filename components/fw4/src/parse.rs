@@ -977,15 +977,25 @@ impl Fw4 {
     }
 
     pub fn parse_ipsetentry(&self, val: &str, set: &Ipset) -> Option<Vec<String>> {
-        let values: Vec<&str> = val.split(|c| c == ' ' || c == '\t').fold(Vec::new(), |mut acc, p| {
-            // split on /[ \t]+/: consecutive separators count once
-            if p.is_empty() && acc.last().map(|l: &&str| l.is_empty()).unwrap_or(false) {
-                acc
-            } else {
-                acc.push(p);
-                acc
+        fn split_ws_runs(val: &str) -> Vec<&str> {
+            let b = val.as_bytes();
+            let n = b.len();
+            let mut parts = Vec::new();
+            let mut i = 0;
+            loop {
+                let start = i;
+                while i < n && b[i] != b' ' && b[i] != b'\t' { i += 1; }
+                parts.push(&val[start..i]);
+                if i >= n { break; }
+                while i < n && (b[i] == b' ' || b[i] == b'\t') { i += 1; }
+                if i >= n { parts.push(""); break; }
             }
-        });
+            parts
+        }
+        // ucode split(val, /[ \t]+/): split on maximal whitespace runs. A
+        // leading or trailing run yields one empty element; runs between
+        // tokens collapse to a single boundary.
+        let values: Vec<&str> = split_ws_runs(val);
         if values.len() != set.types.len() {
             return None;
         }

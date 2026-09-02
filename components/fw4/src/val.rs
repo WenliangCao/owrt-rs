@@ -41,14 +41,14 @@ fn fmt_double(d: f64) -> String {
     if d.is_infinite() {
         return if d > 0.0 { "Infinity".into() } else { "-Infinity".into() };
     }
-    if d == d.trunc() && d.abs() < 1e15 {
+    if d == d.trunc() && d.abs() < 1e14 {
         return format!("{}", d as i64);
     }
     // %.14g
     let s = format!("{:.13e}", d);
     let (mant, exp) = s.split_once('e').unwrap_or((&s, "0"));
     let exp: i32 = exp.parse().unwrap_or(0);
-    if !(-5..14).contains(&exp) {
+    if !(-4..14).contains(&exp) {
         let mant = mant.trim_end_matches('0').trim_end_matches('.');
         return format!("{}e{}{:02}", mant, if exp < 0 { '-' } else { '+' }, exp.abs());
     }
@@ -239,6 +239,12 @@ mod tests {
         assert!(parse_num_str("Infinity").is_nan());
         assert_eq!(Num::Dbl(1000.0).to_ucode_string(), "1000");
         assert_eq!(Num::Dbl(1.5).to_ucode_string(), "1.5");
+        // ucode %.14g: switches to exponent at exp >= 14 or < -4.
+        assert_eq!(Num::Dbl(1e14).to_ucode_string(), "1e+14");
+        assert_eq!(Num::Dbl(-1e14).to_ucode_string(), "-1e+14");
+        assert_eq!(Num::Dbl(1e13).to_ucode_string(), "10000000000000");
+        assert_eq!(Num::Dbl(0.00001).to_ucode_string(), "1e-05");
+        assert_eq!(Num::Dbl(0.0001).to_ucode_string(), "0.0001");
     }
 
     #[test]

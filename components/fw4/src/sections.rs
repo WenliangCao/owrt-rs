@@ -513,7 +513,8 @@ impl Fw4 {
             if device.invert && name == "+" {
                 device.device = Some("/never/".into());
                 device.invert = false;
-                wildcard = false;
+                // ucode sets device.wildcard = !!m[2]; for "!+" the "+"
+                // survives the rewrite, so /never/ stays a wildcard group.
             } else if plus {
                 device.device = Some(format!("{stem}*"));
             }
@@ -634,7 +635,8 @@ impl Fw4 {
             match_devices: match_devices
                 .iter()
                 .filter(|d| !d.invert)
-                .map(|d| d.device.clone().unwrap_or_else(|| "null".into()))
+                // fw4.set() drops null items (e.g. an any-device "*").
+                .filter_map(|d| d.device.clone())
                 .collect(),
             match_subnets: related_subnets
                 .iter()
@@ -686,7 +688,7 @@ impl Fw4 {
         };
         let (src, dest) = (src.unwrap(), dest.unwrap());
         let fam = family.unwrap_or(0);
-        let name = name.unwrap_or_else(|| {
+        let name = name.filter(|s| !s.is_empty()).unwrap_or_else(|| {
             format!(
                 "Accept {} to {} {}forwarding",
                 if src.any { "any".into() } else { self.zone_name(Some(src)) },
@@ -1896,7 +1898,9 @@ impl Fw4 {
                 let timeout = o.opt("timeout", s("-1"), 0, |f, v| f.parse_int(v))?.unwrap_or(Num::Int(-1));
                 o.opt("external", None, UNSUPPORTED, |f, v| f.parse_string(v))?;
                 let entry = o.list("entry", None, PARSE_LIST, |f, v| f.parse_string(v).map(|d| vec![d]))?;
-                let loadfile = o.opt("loadfile", None, 0, |f, v| f.parse_string(v))?;
+                let loadfile = o
+            .opt("loadfile", None, 0, |f, v| f.parse_string(v))?
+            .filter(|s: &String| !s.is_empty());
                 Ok::<_, ()>((enabled, comment, name, family, matches, maxelem, timeout, entry, loadfile))
             })();
             if r.is_ok() {
