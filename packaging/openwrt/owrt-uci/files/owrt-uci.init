@@ -1,0 +1,18 @@
+#!/bin/sh /etc/rc.common
+# Re-apply the uci-rs bind mount after boot when boot-enable is on. Runs at
+# S00 and sorts before S00sysfixtime/S00urandom_seed, i.e. before the first
+# init script that calls /sbin/uci. preinit (/lib/preinit) still uses the
+# original binary; that is documented in decision 0012.
+START=00
+STOP=99
+
+SWITCH=/usr/sbin/owrt-uci-switch
+
+start() {
+	"$SWITCH" boot-enable status >/dev/null 2>&1 || return 0
+	"$SWITCH" enable
+}
+
+stop() {
+	"$SWITCH" disable
+}

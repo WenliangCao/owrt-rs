@@ -1,0 +1,89 @@
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=owrt-uci
+PKG_VERSION:=0.1.0
+PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),1)
+
+PKG_MAINTAINER:=owrt-control-plane-rs project
+PKG_LICENSE:=MIT OR Apache-2.0
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_PARALLEL:=1
+
+V1_CARGO?=cargo
+V1_CARGO_HOME?=
+V1_RUSTUP_HOME?=
+OWRT_COMPONENTS_SOURCE?=$(CURDIR)/../../../components
+RUST_TARGET:=aarch64-unknown-linux-musl
+
+include $(INCLUDE_DIR)/package.mk
+
+define Package/owrt-uci
+  SECTION:=net
+  CATEGORY:=Network
+  TITLE:=Contract C6 compatible uci CLI and libuci semantics (Rust /sbin/uci replacement)
+  DEPENDS:=@(aarch64) +uci
+endef
+
+define Package/owrt-uci/description
+ Rust replacement for /sbin/uci with libuci-compatible read/write/delta
+ semantics (shares /etc/config, /tmp/.uci and /var/state with libuci users).
+ Installation is inert; owrt-uci-switch enable first proves that uci-rs
+ produces byte-identical export/show/changes for the live configuration and
+ only then bind-mounts it over /sbin/uci; disable unmounts. boot-enable makes
+ the mount persistent (S00, before any init script calls uci).
+endef
+
+define Build/Prepare
+	rm -rf $(PKG_BUILD_DIR)
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/uci/src/bin
+	test -f $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml
+	test -f $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.lock
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.lock $(PKG_BUILD_DIR)/uci/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/*.rs $(PKG_BUILD_DIR)/uci/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/bin/*.rs $(PKG_BUILD_DIR)/uci/src/bin/
+endef
+
+define Build/Configure
+endef
+
+define Build/Compile
+	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
+	CARGO_HOME="$(V1_CARGO_HOME)" \
+	CARGO_BUILD_TARGET="$(RUST_TARGET)" \
+	CARGO_PROFILE_RELEASE_PANIC=abort \
+	CC_aarch64_unknown_linux_musl="$(TARGET_CC_NOCACHE)" \
+	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
+	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
+	RUSTFLAGS="-Ctarget-cpu=cortex-a53 -Ctarget-feature=-crt-static -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+	$(V1_CARGO) build --release --locked --manifest-path $(PKG_BUILD_DIR)/uci/Cargo.toml
+endef
+
+define Package/owrt-uci/install
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uci/target/$(RUST_TARGET)/release/uci-rs \
+		$(1)/usr/sbin/uci-rs
+	$(INSTALL_BIN) ./files/owrt-uci-switch $(1)/usr/sbin/owrt-uci-switch
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/owrt-uci.init $(1)/etc/init.d/owrt-uci
+endef
+
+define Package/owrt-uci/postinst
+#!/bin/sh
+set -eu
+[ -n "$${IPKG_INSTROOT:-}" ] || {
+	/usr/sbin/owrt-uci-switch disable
+	/etc/init.d/owrt-uci enable
+}
+endef
+
+define Package/owrt-uci/prerm
+#!/bin/sh
+set -eu
+[ -n "$${IPKG_INSTROOT:-}" ] || {
+	/usr/sbin/owrt-uci-switch disable
+	/usr/sbin/owrt-uci-switch boot-enable off >/dev/null
+	/etc/init.d/owrt-uci disable
+}
+endef
+
+$(eval $(call BuildPackage,owrt-uci))

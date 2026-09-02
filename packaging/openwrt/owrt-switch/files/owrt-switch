@@ -1,11 +1,11 @@
 #!/bin/sh
-# One place for the five Rust control-plane components' switches.
+# One place for the six Rust control-plane components' switches.
 #   owrt-switch status              table: component, switch, boot-enable, candidate pid/version
 #   owrt-switch enable-all|disable-all
 #   owrt-switch boot-enable on|off|status
 # Order matters: enable in dependency order, disable in reverse.
 set -u
-COMPONENTS="reload-config logd httpd fw4 rpcd"
+COMPONENTS="uci reload-config logd httpd fw4 rpcd"
 
 sw() { printf '/usr/sbin/owrt-%s-switch' "$1"; }
 ver() { apk query --from installed --fields version "owrt-$1" 2>/dev/null | awk '/^Version:/ { print $2 }'; }
@@ -17,7 +17,7 @@ bin() {
 }
 run_pid() {
 	case "$1" in
-		reload-config|fw4) echo - ;;   # one-shot programs, no daemon
+		uci|reload-config|fw4) echo - ;;   # one-shot programs, no daemon
 		*) pidof "$(bin "$1")" 2>/dev/null || echo none ;;
 	esac
 }

@@ -1,0 +1,136 @@
+#!/bin/sh
+set -eu
+
+CANDIDATE=/usr/sbin/uci-rs
+TARGET=/sbin/uci
+ORIGINAL_SHA256=050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278
+MOUNTINFO=/proc/self/mountinfo
+BOOT_FLAG=/etc/owrt-uci.boot-enable
+
+usage() {
+	printf '%s\n' 'usage: owrt-uci-switch enable|disable|status|gate|boot-enable on|off|status' >&2
+	exit 64
+}
+
+is_enabled() {
+	[ -r "$MOUNTINFO" ] || return 1
+	awk -v target="$TARGET" '$5 == target { found = 1 } END { exit !found }' "$MOUNTINFO"
+}
+
+sha256_of() {
+	sha256sum "$1" | awk '{ print $1 }'
+}
+
+verify_original() {
+	[ -f "$TARGET" ] || {
+		printf 'missing original uci: %s\n' "$TARGET" >&2
+		return 1
+	}
+	actual=$(sha256_of "$TARGET")
+	[ "$actual" = "$ORIGINAL_SHA256" ] || {
+		printf 'original uci identity mismatch: %s\n' "$actual" >&2
+		return 1
+	}
+}
+
+# Contract C6 go-live condition: for the live configuration the candidate must
+# produce byte-identical `export` (all packages), `show` (all, extended
+# syntax) and `changes` output with the same exit codes, and the read-only run
+# must leave /tmp/.uci untouched. Only stdout is compared: stderr would carry
+# argv[0] (/sbin/uci vs /usr/sbin/uci-rs) in any error prefix.
+gate() {
+	d=$(mktemp -d) || return 1
+	before=$(ls -la /tmp/.uci 2>/dev/null | sha256sum | awk '{ print $1 }')
+	rc=0
+	for cmd in export show changes; do
+		"$TARGET" $cmd >"$d/o.$cmd" 2>/dev/null; ra=$?
+		"$CANDIDATE" $cmd >"$d/c.$cmd" 2>/dev/null; rb=$?
+		if [ "$ra" = "$rb" ] && cmp -s "$d/o.$cmd" "$d/c.$cmd"; then
+			printf 'gate %s: identical (%s lines, rc %s)\n' "$cmd" "$(wc -l <"$d/o.$cmd")" "$ra"
+		else
+			printf 'gate %s: DIFFERENT (rc %s vs %s)\n' "$cmd" "$ra" "$rb" >&2
+			diff "$d/o.$cmd" "$d/c.$cmd" | head -n 40 >&2
+			rc=2
+		fi
+	done
+	after=$(ls -la /tmp/.uci 2>/dev/null | sha256sum | awk '{ print $1 }')
+	[ "$before" = "$after" ] || {
+		printf '%s\n' 'gate: /tmp/.uci changed during read-only gate' >&2
+		rc=2
+	}
+	rm -rf "$d"
+	return $rc
+}
+
+verify_candidate_mount() {
+	[ -x "$CANDIDATE" ] && [ -x "$TARGET" ] && cmp -s "$CANDIDATE" "$TARGET"
+}
+
+enable_uci() {
+	if is_enabled; then
+		verify_candidate_mount
+		printf '%s\n' enabled
+		return
+	fi
+	[ -x "$CANDIDATE" ] || {
+		printf 'missing candidate: %s\n' "$CANDIDATE" >&2
+		return 1
+	}
+	verify_original
+	gate || return 2
+	mount -o bind "$CANDIDATE" "$TARGET"
+	if ! is_enabled || ! verify_candidate_mount; then
+		umount "$TARGET" 2>/dev/null || true
+		printf '%s\n' 'candidate activation verification failed' >&2
+		return 1
+	fi
+	printf '%s\n' enabled
+}
+
+disable_uci() {
+	if is_enabled; then
+		umount "$TARGET"
+	fi
+	if is_enabled; then
+		printf '%s\n' 'candidate is still mounted' >&2
+		return 1
+	fi
+	verify_original
+	printf '%s\n' disabled
+}
+
+status_uci() {
+	if is_enabled; then
+		verify_candidate_mount
+		printf '%s\n' enabled
+		return 0
+	fi
+	verify_original
+	printf '%s\n' disabled
+	return 3
+}
+
+boot_enable() {
+	case "${1:-}" in
+		on) : > "$BOOT_FLAG"; printf '%s\n' on ;;
+		off) rm -f "$BOOT_FLAG"; printf '%s\n' off ;;
+		status)
+			if [ -e "$BOOT_FLAG" ]; then
+				printf '%s\n' on
+			else
+				printf '%s\n' off
+				return 3
+			fi
+			;;
+		*) usage ;;
+	esac
+}
+
+case "$#:$1" in
+	1:enable) enable_uci ;;
+	1:disable) disable_uci ;;
+	1:status) status_uci ;;
+	1:gate) [ -x "$CANDIDATE" ] || exit 1; is_enabled && { printf '%s\n' 'already enabled; gate needs the original at /sbin/uci' >&2; exit 1; }; verify_original; gate ;;
+	2:boot-enable) boot_enable "$2" ;;
+	*) usage ;;
+esac
