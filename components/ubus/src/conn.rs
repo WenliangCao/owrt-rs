@@ -32,6 +32,15 @@ impl Reply {
     }
 }
 
+/// One object returned by `lookup`.
+#[derive(Debug, Default, Clone)]
+pub struct LookupEntry {
+    pub path: String,
+    pub id: u32,
+    /// Packed blobmsg fields: one table per method, each field name -> type id.
+    pub signature: Vec<u8>,
+}
+
 /// An invoke received for one of our objects.
 #[derive(Debug)]
 pub struct Request {
@@ -195,6 +204,48 @@ impl Connection {
             }
         }
         Err(ubus_error(status::NOT_FOUND))
+    }
+
+    /// List objects (all when `path` is None) with id and raw signature fields.
+    pub fn lookup(&mut self, path: Option<&str>, timeout_ms: i32) -> io::Result<Vec<LookupEntry>> {
+        let mut b = BlobBuf::new();
+        if let Some(path) = path {
+            b.put_string(attr::OBJPATH, path);
+        }
+        let reply = self.request(ty::LOOKUP, 0, &mut b, None, timeout_ms)?;
+        if reply.status != status::OK {
+            return Err(ubus_error(reply.status));
+        }
+        let mut out = Vec::new();
+        for payload in &reply.data {
+            let mut entry = LookupEntry::default();
+            for a in blob::iter(payload) {
+                match a.id {
+                    attr::OBJID => entry.id = a.as_u32().unwrap_or(0),
+                    attr::OBJPATH => entry.path = a.as_str().unwrap_or("").to_owned(),
+                    attr::SIGNATURE => entry.signature = a.payload.to_vec(),
+                    _ => {}
+                }
+            }
+            if !entry.path.is_empty() {
+                out.push(entry);
+            }
+        }
+        Ok(out)
+    }
+
+    /// Like `invoke` but returns the ubus status instead of an io::Error.
+    pub fn invoke_status(
+        &mut self,
+        objid: u32,
+        method: &str,
+        args: &[u8],
+        timeout_ms: i32,
+    ) -> io::Result<Reply> {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, objid).put_string(attr::METHOD, method);
+        b.put(attr::DATA, args);
+        self.request(ty::INVOKE, objid, &mut b, None, timeout_ms)
     }
 
     /// Invoke `method` on object `objid`; `args` are packed blobmsg fields.

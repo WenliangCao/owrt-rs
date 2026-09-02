@@ -155,6 +155,13 @@ impl<'a> Field<'a> {
         self.as_u32().map(|v| v != 0)
     }
 
+    pub fn as_f64(&self) -> Option<f64> {
+        if self.ty == MsgType::Double as u32 && self.data.len() == 8 {
+            return Some(f64::from_bits(u64::from_be_bytes(self.data.try_into().unwrap())));
+        }
+        None
+    }
+
     /// Nested table/array contents.
     pub fn children(&self) -> impl Iterator<Item = Field<'a>> + 'a {
         fields(self.data)
@@ -264,6 +271,20 @@ impl BlobBuf {
     pub fn msg_u64(&mut self, name: &str, value: u64) -> &mut Self {
         let offset = self.msg_open(MsgType::Int64, name);
         self.data.extend_from_slice(&value.to_be_bytes());
+        self.close(offset);
+        self
+    }
+
+    pub fn msg_i64(&mut self, name: &str, value: i64) -> &mut Self {
+        let offset = self.msg_open(MsgType::Int64, name);
+        self.data.extend_from_slice(&value.to_be_bytes());
+        self.close(offset);
+        self
+    }
+
+    pub fn msg_double(&mut self, name: &str, value: f64) -> &mut Self {
+        let offset = self.msg_open(MsgType::Double, name);
+        self.data.extend_from_slice(&value.to_bits().to_be_bytes());
         self.close(offset);
         self
     }

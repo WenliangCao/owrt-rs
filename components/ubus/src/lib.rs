@@ -9,5 +9,5 @@ pub mod msg;
 pub mod sys;
 
 pub use blob::{Attr, BlobBuf, Field, MsgType};
-pub use conn::{Connection, Incoming, Reply, Request};
+pub use conn::{Connection, Incoming, LookupEntry, Reply, Request};
 pub use msg::{attr, status, ty, Header, Message};
