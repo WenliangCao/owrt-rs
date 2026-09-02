@@ -63,7 +63,7 @@ syslog；候选 R05 package 已安装且 disabled。
 ## 3. 阶段 1：R05 收官——Rust dispatcher 成为开机默认路径
 
 **目标**：每次启动后，`/sbin/reload_config` 的所有调用都由 Rust 候选处理；原实现文件保留为
-`disable` 后的回退；连续 7 天零投递失败。
+`disable` 后的回退；一个约 3 分钟的启用窗口内零投递失败。
 
 **工作项**
 1. 候选 0.2.0：trace 从 stderr 改为写 syslog（`/dev/log`，tag `reload_config`），stderr 与原实现一样
@@ -75,13 +75,13 @@ syslog；候选 R05 package 已安装且 disabled。
    之外的显式 `enable-on-boot` 开关，默认关闭，安装后不改变行为。
 4. 设备：升级到 0.2.0（disabled），窗口内 `enable` 复跑 H1.6 三批；然后打开 `enable-on-boot`。
    下一次用户自然重启后（不为此重启）复核 mount、trace 进 logread、baseline 一致。
-5. 7 天软监测：每日一次只读探针（mount、baseline drift、logread 中的 delivery 失败计数）。
+5. 约 3 分钟监测窗口：启用后一次只读探针（mount、baseline drift、logread 中的 delivery 失败计数）。
 6. 仓库瘦身：README 收成索引；`tools/` 只留可重复运行的脚本。
 
 **爆炸半径**：事件漏发（原实现同样静默）。**退路**：`switch disable` 或关闭 `enable-on-boot`；
 最坏断电重启回到原实现。
 
-**退出条件**：开机接管已发生一次；7 天内 `delivery_failures` 总计 0；drift 复核 0；报告
+**退出条件**：开机接管已发生一次；窗口内 `delivery_failures` 总计 0；drift 复核 0；报告
 `R05_GO_LIVE.md`。
 
 **规模**：Rust 改动约 100 行；package 改动约 60 行 shell；两个设备窗口。
@@ -107,12 +107,12 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
 4. package `owrt-logd`：自带 init 脚本，默认 disabled；`enable` = 停原 `log` 服务并启动本实现；
    `disable` 反向。开机顺序与原 `log`（START=12）相同。
 5. 设备：安装 disabled → 5 分钟窗口并排验证（`logger` 写入、`logread` 读出、`logread -f` 流式、
-   `ubus call log read`）→ disable → 打开开机启用 → 7 天软监测。
+   `ubus call log read`）→ disable → 打开开机启用 → 约 3 分钟监测窗口。
 
 **爆炸半径**：切换瞬间丢失环形缓冲区内容（原实现重启同样如此）；失效时无日志但设备与 SSH 正常。
 **退路**：`disable` 回到原 `log` 服务。
 
-**退出条件**：C2 全部用例通过；开机由 Rust logd 服务；7 天内 `logread` 无缺失、无崩溃重启；
+**退出条件**：C2 全部用例通过；开机由 Rust logd 服务；窗口内 `logread` 无缺失、无崩溃重启；
 `components/ubus` 有对照测试。报告 `R15_LOGD.md`。
 
 **规模**：ubus 库约 800 行，logd 约 700 行；两个设备窗口。
@@ -134,12 +134,12 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
 4. 对照测试：在精确 rootfs harness 中用同一组 HTTP 请求（LuCI 登录、状态页、网络页、防火墙页、
    `/ubus` 批量调用、静态资源、404、大文件）比较原 uhttpd 与本实现的状态码、关键 header、body 哈希。
 5. 设备：安装 disabled → 窗口内先在 8080/8443 并排运行，用真实浏览器走完 LuCI 主要页面 →
-   disable → 再一次窗口交换端口（停 uhttpd、本实现占 80/443）→ 开机启用 → 7 天软监测，其间
-   `/ubus` 调用清单持续累积。
+   disable → 再一次窗口交换端口（停 uhttpd、本实现占 80/443）→ 开机启用 → 约 3 分钟监测窗口；`/ubus` 调用清单在
+   窗口内走完 LuCI 主要页面后导出。
 
 **爆炸半径**：LuCI 不可用；SSH 不受影响。**退路**：`disable` 恢复 uhttpd。
 
-**退出条件**：C3 通过；LuCI 主要页面在本实现下可用；开机由 Rust 服务监听；7 天无崩溃；产出
+**退出条件**：C3 通过；LuCI 主要页面在本实现下可用；开机由 Rust 服务监听；窗口内无崩溃；产出
 `/ubus` 调用清单（对象 × 方法 × 次数）。报告 `R14_HTTPD.md`。
 
 **规模**：约 2500 行（含 TLS 集成）；三个设备窗口。
@@ -163,12 +163,12 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
    `nft -c -f` 检查。
 4. package：bind mount 到 `/sbin/fw4`（与 R05 同一切换机制），默认 disabled。
 5. 设备：安装 disabled → 窗口内 `print` 差分为空 → `enable` 后执行一次 `fw4 reload`（规则不变，
-   `nft list ruleset` 前后哈希一致）→ 开机启用 → 7 天软监测（每次 `reload` 后 ruleset 哈希）。
+   `nft list ruleset` 前后哈希一致）→ 开机启用 → 约 3 分钟监测窗口（每次 `reload` 后 ruleset 哈希）。
 
 **爆炸半径**：若 diff 不为空则不上线，因此上线不改变规则。理论最坏是运行时崩溃导致 reload 失败，
 此时旧规则仍在内核中生效。**退路**：`disable`；断电重启由原 fw4 重建规则。
 
-**退出条件**：C4 通过；设备配置差分为空；开机由 Rust fw4 生成；7 天 reload 哈希不变。报告
+**退出条件**：C4 通过；设备配置差分为空；开机由 Rust fw4 生成；窗口内 reload 哈希不变。报告
 `R09_FW4.md`。
 
 **规模**：约 2000 行；两个设备窗口。
@@ -176,7 +176,7 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
 ## 7. 阶段 5：R13 rpcd 替换与收官
 
 **目标**：管理 API 由 Rust 提供，范围以阶段 3 记录的真实 LuCI 调用清单为准；所有 Rust 组件开机
-默认运行 30 天；写出最终报告：哪些职责已是 Rust、哪些保留及理由、后续条件。
+默认运行并通过一次综合窗口；写出最终报告：哪些职责已是 Rust、哪些保留及理由、后续条件。
 
 **两种落点**
 - **A（完整）**：Rust rpcd 提供 `session`、`file`、`uci`、`rpc-sys`、`iwinfo`、`luci`、`luci-rpc`
@@ -193,12 +193,12 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
    login/access/set/get/destroy 与超时。
 3. 对照：同一组 JSON-RPC 请求在原 rpcd 与本实现下响应一致（字段、顺序不敏感的结构比较、错误码）。
 4. 设备：安装 disabled → 窗口内并排（本实现以临时对象名注册，或停原 rpcd 5 分钟）→ 开机启用。
-5. 收官：合并五个 package 的启用开关为一处；30 天软监测；最终报告 `FINAL_REPORT.md`；更新
+5. 收官：合并五个 package 的启用开关为一处；约 3 分钟综合监测窗口；最终报告 `FINAL_REPORT.md`；更新
    README 为最终索引。
 
 **爆炸半径**：LuCI 登录或操作失败；SSH 不受影响。**退路**：`disable` 恢复原 rpcd。
 
-**退出条件**：C5 通过；LuCI 全部页面在 Rust rpcd 下可用；五个组件开机运行 30 天无回退；最终报告。
+**退出条件**：C5 通过；LuCI 全部页面在 Rust rpcd 下可用；五个组件开机运行且综合窗口内无回退；最终报告。
 
 **规模**：A 约 3500 行，B 约 2000 行；两到三个设备窗口。
 
@@ -210,7 +210,7 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
                         └► 阶段 4 fw4（只用 ubus 库的 invoke，可与阶段 3 并行）
 ```
 
-阶段 1 与阶段 2 的证据工作可以并行；阶段 4 可以插在阶段 3 的软监测期内。
+阶段 1 与阶段 2 的证据工作可以并行；阶段 4 可以与阶段 3 并行推进。
 
 ## 9. 每阶段固定要求
 
@@ -221,7 +221,7 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
 | 代码 | `components/<name>`，无通用框架；`packaging/openwrt/owrt-<name>` |
 | 验证 | 精确 rootfs harness 对照 + 设备窗口；报告一份，manifest 一份 |
 | 上线形态 | 默认 disabled 安装；显式 enable；开机启用有独立开关；`disable` 先于 `enable` 被证明 |
-| 监测 | 7 天只读探针（阶段 5 为 30 天） |
+| 监测 | 用户要求每次约 3 分钟：启用后一个只读探针窗口，不做多日 soak |
 | 提交 | 每个任务一次 commit |
 
 ## 10. 仍然禁止
