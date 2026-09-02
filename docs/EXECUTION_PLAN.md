@@ -57,6 +57,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | 阶段 1 | R05 0.2.0 转正：syslog trace、S11 开机重新接管、boot-enable on | [R05_GO_LIVE](../reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)、[决策 0007](decisions/0007-r05-boot-enable-and-syslog-trace.md) |
 | 阶段 2 | Rust ubus 库 + logd 替换，并排比对 10/10，boot-enable on | [R15_LOGD](../reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)、[合同 C2](contracts/logd.md)、[决策 0008](decisions/0008-replace-logd-with-rust-and-own-ubus-library.md) |
 | 阶段 3 | httpd 替换（静态/CGI/ubus 桥/TLS），并排 38/38，设备并排+canary 一致，boot-enable on | [R14_HTTPD](../reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)、[合同 C3](contracts/httpd.md)、[决策 0009](decisions/0009-replace-uhttpd-with-rust-httpd.md) |
+| 阶段 4 | fw4 生成器 Rust 化，上游 31/31 逐字节，设备 print 门禁相同后接管 `/sbin/fw4`，经候选 reload 规则集不变，boot-enable on | [R09_FW4](../reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md)、[合同 C4](contracts/fw4.md)、[决策 0010](decisions/0010-port-firewall4-to-rust.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，

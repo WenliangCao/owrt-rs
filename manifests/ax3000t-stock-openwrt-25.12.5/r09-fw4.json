@@ -80,9 +80,30 @@
       "boot_enable": "on",
       "wan_up": true
     },
-    "probe_window": null
+    "probe_window": {
+      "started_utc": "2026-09-02T14:10:12Z",
+      "ended_utc": "2026-09-02T14:12:03Z",
+      "probes": 3,
+      "result": "identical_all_probes",
+      "each_probe": {
+        "sbin_fw4_sha256": "10c9f916fa9182dd9239588a914dc8ce0ed78695009849b72fc992e0a0c3c904",
+        "mounts": 1,
+        "ruleset_sha256_nocounters": "49e8ed95c7f729c6639d3bbca8bbd035c813c371d20548df814e77926f644436",
+        "ruleset_lines": 152,
+        "switch": "enabled",
+        "boot_enable": "on",
+        "state_file_sha256": "376f9f67fd6fedd62e83e9f9a30fe330d7fd01a965f14be84f55b4767086de9d",
+        "lookups_ok": true,
+        "wan_up": true,
+        "host_internet_https": 200,
+        "host_luci_http": 403
+      },
+      "hotplug_path": {
+        "fw4 -q network wan": "wan",
+        "fw4 -q zone wan": "wan",
+        "rc": 0
+      }
+    }
   },
-  "not_done": [
-    "probe window results pending"
-  ]
+  "not_done": []
 }
