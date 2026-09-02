@@ -7,7 +7,6 @@ mod bridge;
 mod cgi;
 mod files;
 mod http;
-mod json;
 mod tls;
 
 use bridge::Bridge;

@@ -5,6 +5,8 @@
 
 pub mod blob;
 pub mod conn;
+pub mod convert;
+pub mod json;
 pub mod msg;
 pub mod sys;
 

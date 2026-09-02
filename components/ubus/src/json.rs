@@ -1,8 +1,6 @@
 //! Minimal JSON value with parser and compact serializer (RFC 8259 subset,
 //! output format matches libubox blobmsg_format_json: no whitespace).
 
-use std::collections::BTreeMap;
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum Json {
     Null,
@@ -311,9 +309,6 @@ fn utf8_len(first: u8) -> usize {
         _ => 4,
     }
 }
-
-#[allow(dead_code)]
-pub type Map = BTreeMap<String, Json>;
 
 #[cfg(test)]
 mod tests {
