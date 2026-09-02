@@ -268,6 +268,13 @@ impl BlobBuf {
         self
     }
 
+    pub fn msg_u16(&mut self, name: &str, value: u16) -> &mut Self {
+        let offset = self.msg_open(MsgType::Int16, name);
+        self.data.extend_from_slice(&value.to_be_bytes());
+        self.close(offset);
+        self
+    }
+
     pub fn msg_u64(&mut self, name: &str, value: u64) -> &mut Self {
         let offset = self.msg_open(MsgType::Int64, name);
         self.data.extend_from_slice(&value.to_be_bytes());
@@ -300,6 +307,21 @@ impl BlobBuf {
     pub fn msg_bool(&mut self, name: &str, value: bool) -> &mut Self {
         let offset = self.msg_open(MsgType::Int8, name);
         self.data.push(value as u8);
+        self.close(offset);
+        self
+    }
+
+    /// blobmsg_add_field(ty, name, data): append a field with an arbitrary
+    /// blobmsg type and already-encoded payload (used to re-emit stored
+    /// session data with its original type).
+    pub fn msg_field(&mut self, ty: u32, name: &str, data: &[u8]) -> &mut Self {
+        let offset = self.open(ty, true);
+        self.data.extend_from_slice(&(name.len() as u16).to_be_bytes());
+        self.data.extend_from_slice(name.as_bytes());
+        self.data.push(0);
+        let hdr_end = offset + 4 + pad4(2 + name.len() + 1);
+        self.data.resize(hdr_end, 0);
+        self.data.extend_from_slice(data);
         self.close(offset);
         self
     }

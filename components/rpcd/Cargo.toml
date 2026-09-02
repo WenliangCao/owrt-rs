@@ -13,6 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 owrt-ubus = { path = "../ubus" }
+owrt-uci = { path = "../uci" }
 
 [profile.release]
 codegen-units = 1

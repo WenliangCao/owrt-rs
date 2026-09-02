@@ -1,0 +1,1091 @@
+//! rpcd uci.c port on top of `owrt_uci` (contract C7). Each ubus call gets a
+//! fresh uci context whose delta path is set the way `rpc_uci_set_savedir`
+//! does; `ctx.err` tracking mirrors the C cursor so status mapping (including
+//! the places where a trailing `uci_unload` resets the error) stays literal.
+
+use crate::session::{arg, arg_str, Reply};
+use crate::Ctx;
+use owrt_ubus::blob::{self, Field, MsgType};
+use owrt_ubus::{status, BlobBuf, Connection};
+use owrt_uci::model::{LOOKUP_COMPLETE, LOOKUP_EXTENDED};
+use owrt_uci::{delta, file, ops, Cmd, Context, Error, OptionValue, Ptr};
+use std::fs;
+use std::io::{Read, Write};
+use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt};
+use std::time::{Duration, Instant};
+
+pub const RUN_DIR: &str = crate::session::RUN_DIR;
+pub const SNAPSHOT_FILES: &str = "/var/run/rpcd-rs/snapshot-files/";
+pub const SNAPSHOT_DELTA: &str = "/var/run/rpcd-rs/snapshot-delta/";
+pub const UCI_DIR: &str = "/etc/config/";
+pub const APPLY_TIMEOUT: i32 = 60;
+
+fn savedir_of(sid: &str) -> String {
+    format!("{RUN_DIR}/uci-{sid}")
+}
+
+/// Pending rollback state (`apply_sid` lives in the session store; the timer here).
+#[derive(Default)]
+pub struct Apply {
+    pub deadline: Option<Instant>,
+}
+
+pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
+    use MsgType::*;
+    let get = vec![("config", String), ("section", String), ("option", String), ("type", String), ("match", Table), ("ubus_rpc_session", String)];
+    vec![
+        ("configs", vec![]),
+        ("get", get.clone()),
+        ("state", get),
+        ("add", vec![("config", String), ("type", String), ("name", String), ("values", Table), ("ubus_rpc_session", String)]),
+        ("set", vec![("config", String), ("section", String), ("type", String), ("match", Table), ("values", Table), ("ubus_rpc_session", String)]),
+        ("delete", vec![("config", String), ("section", String), ("type", String), ("match", Table), ("option", String), ("options", Array), ("ubus_rpc_session", String)]),
+        ("rename", vec![("config", String), ("section", String), ("option", String), ("name", String), ("ubus_rpc_session", String)]),
+        ("order", vec![("config", String), ("sections", Array), ("ubus_rpc_session", String)]),
+        ("changes", vec![("config", String), ("ubus_rpc_session", String)]),
+        ("revert", vec![("config", String), ("ubus_rpc_session", String)]),
+        ("commit", vec![("config", String), ("ubus_rpc_session", String)]),
+        ("apply", vec![("rollback", Int8), ("timeout", Int32), ("ubus_rpc_session", String)]),
+        ("confirm", vec![("ubus_rpc_session", String)]),
+        ("rollback", vec![("ubus_rpc_session", String)]),
+        ("reload_config", vec![]),
+    ]
+}
+
+// ------------------------------------------------------------ helpers
+
+/// rpc_uci_verify_str
+fn verify_str(name: &str, mut extended: bool, ty: bool) -> bool {
+    let b = name.as_bytes();
+    if b.is_empty() {
+        return false;
+    }
+    if extended && b[0] != b'@' {
+        extended = false;
+    }
+    let mut i = if extended { 1 } else { 0 };
+    while i < b.len() {
+        let c = b[i];
+        if !c.is_ascii_alphanumeric() && c != b'_' && ((!ty && !extended) || c != b'-') {
+            break;
+        }
+        i += 1;
+    }
+    if extended {
+        if b.get(i) != Some(&b'[') {
+            return false;
+        }
+        i += 1;
+        // strtol(++c, &e, 10): optional whitespace/sign then digits
+        let start = i;
+        let mut j = i;
+        while j < b.len() && b[j].is_ascii_whitespace() {
+            j += 1;
+        }
+        if j < b.len() && (b[j] == b'-' || b[j] == b'+') {
+            j += 1;
+        }
+        let d0 = j;
+        while j < b.len() && b[j].is_ascii_digit() {
+            j += 1;
+        }
+        let e = if j > d0 { j } else { start };
+        return e > start && b.get(e) == Some(&b']') && e + 1 == b.len();
+    }
+    i == b.len()
+}
+fn verify_name(s: &str) -> bool {
+    verify_str(s, false, false)
+}
+fn verify_type(s: &str) -> bool {
+    verify_str(s, false, true)
+}
+fn verify_section(s: &str) -> bool {
+    verify_str(s, true, false)
+}
+
+/// Record a libuci call result the way UCI_HANDLE_ERR / the error path do.
+macro_rules! tr {
+    ($ctx:expr, $e:expr) => {{
+        let r = $e;
+        $ctx.err = r.as_ref().err().copied();
+        r
+    }};
+}
+
+/// rpc_uci_status
+fn uci_status(ctx: &Context) -> i32 {
+    match ctx.err {
+        None => status::OK,
+        Some(Error::Inval) => status::INVALID_ARGUMENT,
+        Some(Error::NotFound) => status::NOT_FOUND,
+        Some(_) => status::UNKNOWN_ERROR,
+    }
+}
+
+/// rpc_uci_replace_savedir: drop every delta path, then uci_set_savedir(path).
+fn replace_savedir(ctx: &mut Context, path: Option<&str>) {
+    ctx.delta_path.clear();
+    if let Some(p) = path {
+        delta::set_savedir(ctx, p);
+    }
+}
+
+/// rpc_uci_set_savedir
+fn set_savedir(ctx: &mut Context, sid: Option<&str>) {
+    match sid {
+        None => replace_savedir(ctx, Some("/tmp/.uci")),
+        Some(sid) => replace_savedir(ctx, Some(&savedir_of(sid))),
+    }
+}
+
+fn read_access(rctx: &Ctx, ctx: &mut Context, sid: Option<&str>, config: &str) -> bool {
+    set_savedir(ctx, sid);
+    match sid {
+        None => true,
+        Some(sid) => rctx.sessions.borrow_mut().access(sid, "uci", config, "read"),
+    }
+}
+
+fn write_access(rctx: &Ctx, ctx: &mut Context, sid: Option<&str>, config: &str) -> bool {
+    set_savedir(ctx, sid);
+    match sid {
+        None => true,
+        Some(sid) => rctx.sessions.borrow_mut().access(sid, "uci", config, "write"),
+    }
+}
+
+/// rpc_uci_format_blob
+fn format_blob(v: &Field) -> Option<String> {
+    match v.ty {
+        t if t == MsgType::String as u32 => v.as_str().map(str::to_owned),
+        t if t == MsgType::Int64 as u32 => Some(u64::from_be_bytes(v.data.get(..8)?.try_into().ok()?).to_string()),
+        t if t == MsgType::Int32 as u32 => Some(u32::from_be_bytes(v.data.get(..4)?.try_into().ok()?).to_string()),
+        t if t == MsgType::Int16 as u32 => Some(u16::from_be_bytes(v.data.get(..2)?.try_into().ok()?).to_string()),
+        t if t == MsgType::Int8 as u32 => Some(if *v.data.first()? != 0 { "1" } else { "0" }.to_owned()),
+        _ => None,
+    }
+}
+
+/// rpc_uci_lookup
+fn lookup(ctx: &mut Context, ptr: &mut Ptr) -> owrt_uci::Result<()> {
+    let mut l = ptr.clone();
+    if l.s.is_none() && l.section.as_deref().map_or(false, |s| s.starts_with('@')) {
+        l.flags |= LOOKUP_EXTENDED;
+    }
+    let r = tr!(ctx, ops::lookup_ptr(ctx, &mut l, None, true));
+    if r.is_ok() {
+        *ptr = l;
+    }
+    r
+}
+
+/// rpc_uci_match_option
+fn match_option(o: &OptionValue, cmp: &str) -> bool {
+    match o {
+        OptionValue::List(items) => items.iter().any(|e| e == cmp),
+        OptionValue::Str(s) => s.split([' ', '\t']).filter(|t| !t.is_empty()).any(|t| t == cmp),
+    }
+}
+
+/// rpc_uci_match_section
+fn match_section(s: &owrt_uci::Section, ty: Option<&str>, matches: Option<&[u8]>) -> bool {
+    if let Some(t) = ty {
+        if s.ty != t {
+            return false;
+        }
+    }
+    let Some(matches) = matches else { return true };
+    let mut matched = false;
+    let mut empty = true;
+    for cur in blob::fields(matches) {
+        let Some(cmp) = format_blob(&cur) else { continue };
+        for o in &s.options {
+            if o.name != cur.name {
+                continue;
+            }
+            if !match_option(&o.value, &cmp) {
+                return false;
+            }
+            matched = true;
+        }
+        empty = false;
+    }
+    empty || matched
+}
+
+fn dump_option(b: &mut BlobBuf, o: &OptionValue, name: &str) {
+    match o {
+        OptionValue::Str(s) => {
+            b.msg_string(name, s);
+        }
+        OptionValue::List(items) => {
+            let c = b.msg_open_array(name);
+            for e in items {
+                b.msg_string("", e);
+            }
+            b.msg_close(c);
+        }
+    }
+}
+
+fn dump_section(b: &mut BlobBuf, s: &owrt_uci::Section, name: &str, index: i32) {
+    let c = b.msg_open_table(name);
+    b.msg_bool(".anonymous", s.anonymous);
+    b.msg_string(".type", &s.ty);
+    b.msg_string(".name", &s.name);
+    if index >= 0 {
+        b.msg_u32(".index", index as u32);
+    }
+    for o in &s.options {
+        dump_option(b, &o.value, &o.name);
+    }
+    b.msg_close(c);
+}
+
+fn dump_package(b: &mut BlobBuf, p: &owrt_uci::Package, name: &str, ty: Option<&str>, matches: Option<&[u8]>) {
+    let c = b.msg_open_table(name);
+    for (i, s) in p.sections.iter().enumerate() {
+        if !match_section(s, ty, matches) {
+            continue;
+        }
+        dump_section(b, s, &s.name, i as i32);
+    }
+    b.msg_close(c);
+}
+
+fn code(c: i32) -> Reply {
+    Reply { code: c, data: vec![] }
+}
+fn with(c: i32, d: Vec<u8>) -> Reply {
+    Reply { code: c, data: vec![d] }
+}
+
+fn field_data<'a>(raw: &'a [u8], name: &str, ty: MsgType) -> Option<&'a [u8]> {
+    arg(raw, name, ty).map(|f| f.data)
+}
+
+// ------------------------------------------------------------ methods
+
+fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
+    let Some(config) = arg_str(raw, "config") else { return code(status::INVALID_ARGUMENT) };
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if !read_access(rctx, &mut ctx, sid, config) {
+        return code(status::PERMISSION_DENIED);
+    }
+    let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
+    if use_state {
+        delta::set_savedir(&mut ctx, "/var/state");
+    }
+    let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+        return code(uci_status(&ctx));
+    };
+    if let Some(section) = arg_str(raw, "section") {
+        ptr.section = Some(section.to_owned());
+        if let Some(option) = arg_str(raw, "option") {
+            ptr.option = Some(option.to_owned());
+        }
+    }
+    let mut data = Vec::new();
+    if lookup(&mut ctx, &mut ptr).is_ok() && ptr.flags & LOOKUP_COMPLETE != 0 {
+        let mut b = BlobBuf::new();
+        let p = &ctx.root[pidx];
+        match (ptr.s, ptr.o) {
+            (None, _) => dump_package(&mut b, p, "values", arg_str(raw, "type"), field_data(raw, "match", MsgType::Table)),
+            (Some(s), None) => dump_section(&mut b, &p.sections[s], "values", -1),
+            (Some(s), Some(o)) => dump_option(&mut b, &p.sections[s].options[o].value, "value"),
+        }
+        data.push(b.into_payload());
+    }
+    // out: uci_unload resets the cursor error before rpc_uci_status()
+    ctx.unload(pidx);
+    ctx.err = None;
+    Reply { code: uci_status(&ctx), data }
+}
+
+fn add(rctx: &Ctx, raw: &[u8]) -> Reply {
+    let (Some(config), Some(ty)) = (arg_str(raw, "config"), arg_str(raw, "type")) else {
+        return code(status::INVALID_ARGUMENT);
+    };
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if !write_access(rctx, &mut ctx, sid, config) {
+        return code(status::PERMISSION_DENIED);
+    }
+    if !verify_type(ty) {
+        return code(status::INVALID_ARGUMENT);
+    }
+    let name = arg_str(raw, "name");
+    if let Some(n) = name {
+        if !verify_name(n) {
+            return code(status::INVALID_ARGUMENT);
+        }
+    }
+    let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
+    let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+        return code(uci_status(&ctx));
+    };
+    let mut err = 0;
+    'body: {
+        if let Some(n) = name {
+            ptr.section = Some(n.to_owned());
+            ptr.value = Some(ty.to_owned());
+            ptr.option = None;
+            if lookup(&mut ctx, &mut ptr).is_err() {
+                break 'body;
+            }
+            if tr!(ctx, ops::set(&mut ctx, &mut ptr, false)).is_err() {
+                break 'body;
+            }
+        } else {
+            match tr!(ctx, ops::add_section(&mut ctx, pidx, ty, false)) {
+                Ok(sidx) => ptr.section = Some(ctx.root[pidx].sections[sidx].name.clone()),
+                Err(_) => break 'body,
+            }
+        }
+        if let Some(values) = field_data(raw, "values", MsgType::Table) {
+            for cur in blob::fields(values) {
+                ptr.flags = 0;
+                ptr.o = None;
+                ptr.option = Some(cur.name.to_owned());
+                if !verify_name(cur.name) {
+                    if err == 0 {
+                        err = status::INVALID_ARGUMENT;
+                    }
+                    continue;
+                }
+                if lookup(&mut ctx, &mut ptr).is_err() || ptr.s.is_none() {
+                    if err == 0 {
+                        err = status::NOT_FOUND;
+                    }
+                    continue;
+                }
+                if cur.ty == MsgType::Array as u32 {
+                    for elem in cur.children() {
+                        match format_blob(&elem) {
+                            None => {
+                                if err == 0 {
+                                    err = status::INVALID_ARGUMENT;
+                                }
+                            }
+                            Some(v) => {
+                                ptr.value = Some(v);
+                                let _ = tr!(ctx, ops::add_list(&mut ctx, &mut ptr, false));
+                            }
+                        }
+                    }
+                } else {
+                    match format_blob(&cur) {
+                        None => {
+                            if err == 0 {
+                                err = status::INVALID_ARGUMENT;
+                            }
+                        }
+                        Some(v) => {
+                            ptr.value = Some(v);
+                            let _ = tr!(ctx, ops::set(&mut ctx, &mut ptr, false));
+                        }
+                    }
+                }
+            }
+        }
+        if err == 0 {
+            let _ = tr!(ctx, delta::save(&mut ctx, pidx));
+            let mut b = BlobBuf::new();
+            b.msg_string("section", ptr.section.as_deref().unwrap_or(""));
+            ctx.unload(pidx);
+            ctx.err = None;
+            return with(uci_status(&ctx), b.into_payload());
+        }
+    }
+    ctx.unload(pidx);
+    ctx.err = None;
+    code(if err != 0 { err } else { uci_status(&ctx) })
+}
+
+/// rpc_uci_merge_set
+fn merge_set(ctx: &mut Context, opt: &Field, ptr: &mut Ptr) -> i32 {
+    ptr.flags = 0;
+    ptr.o = None;
+    ptr.option = Some(opt.name.to_owned());
+    ptr.value = None;
+    if !verify_name(opt.name) {
+        return status::INVALID_ARGUMENT;
+    }
+    if lookup(ctx, ptr).is_err() || ptr.s.is_none() {
+        return status::NOT_FOUND;
+    }
+    if opt.ty == MsgType::Array as u32 {
+        if ptr.o.is_some() {
+            let _ = tr!(ctx, ops::delete(ctx, ptr, false));
+            ptr.flags = 0;
+        }
+        let mut rv = status::INVALID_ARGUMENT;
+        for cur in opt.children() {
+            let Some(v) = format_blob(&cur) else { continue };
+            ptr.value = Some(v);
+            let _ = tr!(ctx, ops::add_list(ctx, ptr, false));
+            rv = 0;
+        }
+        return rv;
+    }
+    let existing_list = match (ptr.p, ptr.s, ptr.o) {
+        (Some(p), Some(s), Some(o)) => matches!(ctx.root[p].sections[s].options[o].value, OptionValue::List(_)),
+        _ => false,
+    };
+    if existing_list {
+        let _ = tr!(ctx, ops::delete(ctx, ptr, false));
+        ptr.flags = 0;
+        let Some(v) = format_blob(opt) else { return status::INVALID_ARGUMENT };
+        ptr.value = Some(v);
+        let _ = tr!(ctx, ops::set(ctx, ptr, false));
+    } else {
+        let Some(v) = format_blob(opt) else { return status::INVALID_ARGUMENT };
+        let same = match (ptr.p, ptr.s, ptr.o) {
+            (Some(p), Some(s), Some(o)) => match &ctx.root[p].sections[s].options[o].value {
+                OptionValue::Str(cur) => *cur == v,
+                OptionValue::List(_) => false,
+            },
+            _ => false,
+        };
+        ptr.value = Some(v);
+        if !same {
+            let _ = tr!(ctx, ops::set(ctx, ptr, false));
+        }
+    }
+    0
+}
+
+fn set(rctx: &Ctx, raw: &[u8]) -> Reply {
+    let config = arg_str(raw, "config");
+    let values = field_data(raw, "values", MsgType::Table);
+    let section = arg_str(raw, "section");
+    let ty = arg_str(raw, "type");
+    let matches = field_data(raw, "match", MsgType::Table);
+    let (Some(config), Some(values)) = (config, values) else { return code(status::INVALID_ARGUMENT) };
+    if section.is_none() && ty.is_none() && matches.is_none() {
+        return code(status::INVALID_ARGUMENT);
+    }
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if !write_access(rctx, &mut ctx, sid, config) {
+        return code(status::PERMISSION_DENIED);
+    }
+    if let Some(s) = section {
+        if !verify_section(s) {
+            return code(status::INVALID_ARGUMENT);
+        }
+    }
+    let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
+    let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+        return code(uci_status(&ctx));
+    };
+    let mut err = 0;
+    if let Some(s) = section {
+        ptr.section = Some(s.to_owned());
+        for cur in blob::fields(values) {
+            let rv = merge_set(&mut ctx, &cur, &mut ptr);
+            if rv != 0 {
+                err = rv;
+            }
+        }
+    } else {
+        let names: Vec<(String, bool)> = ctx.root[pidx]
+            .sections
+            .iter()
+            .map(|s| (s.name.clone(), match_section(s, ty, matches)))
+            .collect();
+        for (name, ok) in names {
+            if !ok {
+                continue;
+            }
+            ptr.s = None;
+            ptr.section = Some(name);
+            for cur in blob::fields(values) {
+                let rv = merge_set(&mut ctx, &cur, &mut ptr);
+                if rv != 0 {
+                    err = rv;
+                }
+            }
+        }
+    }
+    if err == 0 && ptr.s.is_none() {
+        err = status::NOT_FOUND;
+    }
+    if err == 0 {
+        let _ = tr!(ctx, delta::save(&mut ctx, pidx));
+    }
+    ctx.unload(pidx);
+    ctx.err = None;
+    code(if err != 0 { err } else { uci_status(&ctx) })
+}
+
+/// rpc_uci_merge_delete; `opt` is the "options" array or the "option" string.
+fn merge_delete(ctx: &mut Context, opt: Option<&Field>, ptr: &mut Ptr) -> i32 {
+    if lookup(ctx, ptr).is_err() || ptr.s.is_none() {
+        return status::NOT_FOUND;
+    }
+    let Some(opt) = opt else {
+        ptr.o = None;
+        ptr.option = None;
+        let _ = tr!(ctx, ops::delete(ctx, ptr, false));
+        return 0;
+    };
+    if opt.ty == MsgType::Array as u32 {
+        let mut rv = status::NOT_FOUND;
+        for cur in opt.children() {
+            if cur.ty != MsgType::String as u32 {
+                continue;
+            }
+            let Some(name) = cur.as_str() else { continue };
+            ptr.o = None;
+            ptr.option = Some(name.to_owned());
+            if lookup(ctx, ptr).is_err() || ptr.o.is_none() {
+                continue;
+            }
+            let _ = tr!(ctx, ops::delete(ctx, ptr, false));
+            ptr.flags = 0;
+            rv = 0;
+        }
+        return rv;
+    }
+    if opt.ty == MsgType::String as u32 {
+        ptr.o = None;
+        ptr.option = opt.as_str().map(str::to_owned);
+        if lookup(ctx, ptr).is_err() || ptr.o.is_none() {
+            return status::NOT_FOUND;
+        }
+        let _ = tr!(ctx, ops::delete(ctx, ptr, false));
+        return 0;
+    }
+    status::INVALID_ARGUMENT
+}
+
+fn delete(rctx: &Ctx, raw: &[u8]) -> Reply {
+    let Some(config) = arg_str(raw, "config") else { return code(status::INVALID_ARGUMENT) };
+    let section = arg_str(raw, "section");
+    let ty = arg_str(raw, "type");
+    let matches = field_data(raw, "match", MsgType::Table);
+    if section.is_none() && ty.is_none() && matches.is_none() {
+        return code(status::INVALID_ARGUMENT);
+    }
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if !write_access(rctx, &mut ctx, sid, config) {
+        return code(status::PERMISSION_DENIED);
+    }
+    if let Some(t) = ty {
+        if !verify_type(t) {
+            return code(status::INVALID_ARGUMENT);
+        }
+    }
+    if let Some(s) = section {
+        if !verify_section(s) {
+            return code(status::INVALID_ARGUMENT);
+        }
+    }
+    let options = arg(raw, "options", MsgType::Array);
+    let option = arg(raw, "option", MsgType::String);
+    let opt = options.as_ref().or(option.as_ref());
+    let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
+    let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+        return code(uci_status(&ctx));
+    };
+    let mut err = 0;
+    if let Some(s) = section {
+        ptr.section = Some(s.to_owned());
+        err = merge_delete(&mut ctx, opt, &mut ptr);
+    } else {
+        let names: Vec<(String, bool)> = ctx.root[pidx]
+            .sections
+            .iter()
+            .map(|s| (s.name.clone(), match_section(s, ty, matches)))
+            .collect();
+        for (name, ok) in names {
+            if !ok {
+                continue;
+            }
+            ptr.s = None;
+            ptr.section = Some(name);
+            err = merge_delete(&mut ctx, opt, &mut ptr);
+        }
+        if err == 0 && ptr.section.is_none() {
+            err = status::NOT_FOUND;
+        }
+    }
+    if err == 0 {
+        let _ = tr!(ctx, delta::save(&mut ctx, pidx));
+    }
+    ctx.unload(pidx);
+    ctx.err = None;
+    code(if err != 0 { err } else { uci_status(&ctx) })
+}
+
+fn rename(rctx: &Ctx, raw: &[u8]) -> Reply {
+    let (Some(config), Some(section), Some(name)) = (arg_str(raw, "config"), arg_str(raw, "section"), arg_str(raw, "name")) else {
+        return code(status::INVALID_ARGUMENT);
+    };
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if !write_access(rctx, &mut ctx, sid, config) {
+        return code(status::PERMISSION_DENIED);
+    }
+    if !verify_name(name) {
+        return code(status::INVALID_ARGUMENT);
+    }
+    let mut ptr = Ptr {
+        package: Some(config.to_owned()),
+        section: Some(section.to_owned()),
+        value: Some(name.to_owned()),
+        option: arg_str(raw, "option").map(str::to_owned),
+        ..Ptr::default()
+    };
+    let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+        return code(uci_status(&ctx));
+    };
+    'body: {
+        if tr!(ctx, ops::lookup_ptr(&mut ctx, &mut ptr, None, true)).is_err() {
+            break 'body;
+        }
+        if (ptr.option.is_some() && ptr.o.is_none()) || ptr.s.is_none() {
+            ctx.err = Some(Error::NotFound);
+            break 'body;
+        }
+        if tr!(ctx, ops::rename(&mut ctx, &mut ptr, false)).is_err() {
+            break 'body;
+        }
+        let _ = tr!(ctx, delta::save(&mut ctx, pidx));
+    }
+    ctx.unload(pidx);
+    ctx.err = None;
+    code(uci_status(&ctx))
+}
+
+fn order(rctx: &Ctx, raw: &[u8]) -> Reply {
+    let (Some(config), Some(sections)) = (arg_str(raw, "config"), field_data(raw, "sections", MsgType::Array)) else {
+        return code(status::INVALID_ARGUMENT);
+    };
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if !write_access(rctx, &mut ctx, sid, config) {
+        return code(status::PERMISSION_DENIED);
+    }
+    let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
+    let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+        return code(uci_status(&ctx));
+    };
+    let mut err = 0;
+    let mut i: i32 = 0;
+    for cur in blob::fields(sections) {
+        if cur.ty != MsgType::String as u32 {
+            if err == 0 {
+                err = status::INVALID_ARGUMENT;
+            }
+            continue;
+        }
+        ptr.s = None;
+        ptr.section = cur.as_str().map(str::to_owned);
+        if tr!(ctx, ops::lookup_ptr(&mut ctx, &mut ptr, None, true)).is_err() || ptr.s.is_none() {
+            if err == 0 {
+                err = status::NOT_FOUND;
+            }
+            continue;
+        }
+        let sidx = ptr.s.unwrap();
+        let _ = tr!(ctx, ops::reorder_section(&mut ctx, pidx, sidx, i, false));
+        i += 1;
+    }
+    if err == 0 {
+        let _ = tr!(ctx, delta::save(&mut ctx, pidx));
+    }
+    ctx.unload(pidx);
+    ctx.err = None;
+    code(if err != 0 { err } else { uci_status(&ctx) })
+}
+
+/// rpc_uci_dump_change
+fn dump_change(b: &mut BlobBuf, d: &owrt_uci::Delta) {
+    let ty = match d.cmd {
+        Cmd::Reorder => "order",
+        Cmd::Remove => "remove",
+        Cmd::Rename => "rename",
+        Cmd::Add => "add",
+        Cmd::ListAdd => "list-add",
+        Cmd::ListDel => "list-del",
+        Cmd::Change => "set",
+    };
+    let c = b.msg_open_array("");
+    b.msg_string("", ty);
+    b.msg_string("", &d.section);
+    if let Some(name) = &d.option {
+        b.msg_string("", name);
+    }
+    if let Some(v) = &d.value {
+        if d.cmd == Cmd::Reorder {
+            b.msg_u32("", strtoul10(v) as u32);
+        } else {
+            b.msg_string("", v);
+        }
+    }
+    b.msg_close(c);
+}
+
+/// strtoul(s, NULL, 10) (unsigned long, saturating on overflow like glibc/musl)
+fn strtoul10(s: &str) -> u64 {
+    let b = s.as_bytes();
+    let mut i = 0;
+    while i < b.len() && b[i].is_ascii_whitespace() {
+        i += 1;
+    }
+    let mut neg = false;
+    if i < b.len() && (b[i] == b'-' || b[i] == b'+') {
+        neg = b[i] == b'-';
+        i += 1;
+    }
+    let mut v: u64 = 0;
+    let mut overflow = false;
+    while i < b.len() && b[i].is_ascii_digit() {
+        match v.checked_mul(10).and_then(|x| x.checked_add((b[i] - b'0') as u64)) {
+            Some(x) => v = x,
+            None => overflow = true,
+        }
+        i += 1;
+    }
+    if overflow {
+        return u64::MAX;
+    }
+    if neg { v.wrapping_neg() } else { v }
+}
+
+fn changes(rctx: &Ctx, raw: &[u8]) -> Reply {
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if let Some(config) = arg_str(raw, "config") {
+        if !read_access(rctx, &mut ctx, sid, config) {
+            return code(status::PERMISSION_DENIED);
+        }
+        let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+            return code(uci_status(&ctx));
+        };
+        let mut b = BlobBuf::new();
+        let c = b.msg_open_array("changes");
+        for d in &ctx.root[pidx].saved_delta {
+            dump_change(&mut b, d);
+        }
+        b.msg_close(c);
+        ctx.unload(pidx);
+        ctx.err = None;
+        return with(uci_status(&ctx), b.into_payload());
+    }
+    set_savedir(&mut ctx, sid);
+    let Ok(configs) = tr!(ctx, file::list_config_files(&ctx)) else {
+        return code(uci_status(&ctx));
+    };
+    let mut b = BlobBuf::new();
+    let c = b.msg_open_table("changes");
+    for name in &configs {
+        if let Some(sid) = sid {
+            if !rctx.sessions.borrow_mut().access(sid, "uci", name, "read") {
+                continue;
+            }
+        }
+        let Ok(pidx) = tr!(ctx, file::load(&mut ctx, name)) else { continue };
+        if !ctx.root[pidx].saved_delta.is_empty() {
+            let d = b.msg_open_array(name);
+            for delta in &ctx.root[pidx].saved_delta {
+                dump_change(&mut b, delta);
+            }
+            b.msg_close(d);
+        }
+        ctx.unload(pidx);
+        ctx.err = None;
+    }
+    b.msg_close(c);
+    with(0, b.into_payload())
+}
+
+/// rpc_uci_trigger_event: `service event {type: config.change, data:{package}}`
+fn trigger_event(conn: &mut Connection, config: &str) {
+    let Ok(id) = conn.lookup_id("service", 1000) else { return };
+    let mut b = BlobBuf::new();
+    b.msg_string("type", "config.change");
+    let c = b.msg_open_table("data");
+    b.msg_string("package", config);
+    b.msg_close(c);
+    let _ = conn.invoke_status(id, "event", b.payload(), 1000);
+}
+
+fn revert_commit(rctx: &Ctx, conn: &mut Connection, raw: &[u8], commit: bool) -> Reply {
+    if rctx.sessions.borrow().apply_sid.is_some() {
+        return code(status::PERMISSION_DENIED);
+    }
+    let Some(config) = arg_str(raw, "config") else { return code(status::INVALID_ARGUMENT) };
+    let sid = arg_str(raw, "ubus_rpc_session");
+    let mut ctx = Context::new();
+    if !write_access(rctx, &mut ctx, sid, config) {
+        return code(status::PERMISSION_DENIED);
+    }
+    if commit {
+        if let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) {
+            let _ = tr!(ctx, file::commit(&mut ctx, pidx, false));
+            ctx.unload(pidx);
+            ctx.err = None;
+            trigger_event(conn, config);
+        }
+    } else {
+        let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
+        if tr!(ctx, ops::lookup_ptr(&mut ctx, &mut ptr, None, true)).is_ok() {
+            if let Some(pidx) = ptr.p {
+                let _ = tr!(ctx, delta::revert(&mut ctx, &mut ptr));
+                ctx.unload(pidx);
+                ctx.err = None;
+            }
+        }
+    }
+    code(uci_status(&ctx))
+}
+
+fn configs() -> Reply {
+    let mut ctx = Context::new();
+    match tr!(ctx, file::list_config_files(&ctx)) {
+        Ok(list) => {
+            let mut b = BlobBuf::new();
+            let c = b.msg_open_array("configs");
+            for name in &list {
+                b.msg_string("", name);
+            }
+            b.msg_close(c);
+            with(uci_status(&ctx), b.into_payload())
+        }
+        Err(_) => code(uci_status(&ctx)),
+    }
+}
+
+/// rpc_uci_purge_dir: unlink the regular files in `path`, then rmdir it.
+pub fn purge_dir(path: &str) {
+    let Ok(m) = fs::metadata(path) else { return };
+    if !m.is_dir() {
+        return;
+    }
+    if let Ok(rd) = fs::read_dir(path) {
+        for e in rd.flatten() {
+            let p = e.path();
+            if fs::metadata(&p).map(|m| m.is_file()).unwrap_or(false) {
+                let _ = fs::remove_file(&p);
+            }
+        }
+        let _ = fs::remove_dir(path);
+    }
+}
+
+/// rpc_uci_purge_savedirs: glob(RUN_DIR/uci-*) at startup.
+pub fn purge_savedirs() {
+    let Ok(rd) = fs::read_dir(RUN_DIR) else { return };
+    for e in rd.flatten() {
+        let name = e.file_name().to_string_lossy().into_owned();
+        if name.starts_with("uci-") {
+            purge_dir(&format!("{RUN_DIR}/{name}"));
+        }
+    }
+}
+
+/// rpc_uci_apply_config (cursor state is whatever the caller set up)
+fn apply_config(ctx: &mut Context, conn: &mut Connection, config: &str) {
+    if let Ok(pidx) = tr!(ctx, file::load(ctx, config)) {
+        let _ = tr!(ctx, file::commit(ctx, pidx, false));
+        ctx.unload(pidx);
+        ctx.err = None;
+    }
+    trigger_event(conn, config);
+}
+
+/// rpc_uci_copy_file: the target is created (truncated) even when the source
+/// cannot be opened.
+fn copy_file(src: &str, target: &str, file: &str) {
+    let input = fs::File::open(format!("{src}{file}")).ok();
+    let out = fs::OpenOptions::new().write(true).read(true).create(true).truncate(true).mode(0o666).open(format!("{target}{file}")).ok();
+    if let (Some(mut i), Some(mut o)) = (input, out) {
+        let mut buf = Vec::new();
+        if i.read_to_end(&mut buf).is_ok() {
+            let _ = o.write_all(&buf);
+        }
+    }
+}
+
+/// glob("<dir>/*", GLOB_PERIOD): sorted names including "." and "..".
+fn glob_period(dir: &str) -> Vec<String> {
+    let Ok(rd) = fs::read_dir(dir) else { return vec![] };
+    let mut names: Vec<String> = vec![".".to_owned(), "..".to_owned()];
+    names.extend(rd.flatten().map(|e| e.file_name().to_string_lossy().into_owned()));
+    names.sort_by(|a, b| a.as_bytes().cmp(b.as_bytes()));
+    names
+}
+
+fn file_size(path: &str) -> Option<u64> {
+    fs::metadata(path).ok().map(|m| m.size())
+}
+
+/// rpc_uci_apply_access
+fn apply_access(rctx: &Ctx, sid: &str, dir: &str, names: &[String]) -> i32 {
+    if names.len() < 3 {
+        return status::NO_DATA;
+    }
+    let mut c = 0;
+    for config in names {
+        if config.starts_with('.') {
+            continue;
+        }
+        match file_size(&format!("{dir}/{config}")) {
+            Some(n) if n > 0 => {}
+            _ => continue,
+        }
+        if !rctx.sessions.borrow_mut().access(sid, "uci", config, "write") {
+            return status::PERMISSION_DENIED;
+        }
+        c += 1;
+    }
+    if c == 0 {
+        return status::NO_DATA;
+    }
+    0
+}
+
+/// rpc_uci_do_rollback over the snapshot-files listing.
+pub fn do_rollback(rctx: &Ctx, conn: &mut Connection, names: &[String]) {
+    let apply_sid = rctx.sessions.borrow().apply_sid.clone();
+    let deny = match &apply_sid {
+        Some(sid) => apply_access(rctx, sid, SNAPSHOT_FILES.trim_end_matches('/'), names),
+        None => status::NOT_FOUND,
+    };
+    let tmp = apply_sid.as_deref().map(|sid| format!("{}/", savedir_of(sid))).unwrap_or_default();
+    if deny == 0 {
+        let _ = fs::DirBuilder::new().mode(0o700).create(tmp.trim_end_matches('/'));
+    }
+    let mut ctx = Context::new();
+    replace_savedir(&mut ctx, Some("/dev/null"));
+    for config in names {
+        if config.starts_with('.') {
+            continue;
+        }
+        copy_file(SNAPSHOT_FILES, UCI_DIR, config);
+        apply_config(&mut ctx, conn, config);
+        if deny != 0 {
+            continue;
+        }
+        copy_file(SNAPSHOT_DELTA, &tmp, config);
+    }
+    purge_dir(SNAPSHOT_FILES);
+    purge_dir(SNAPSHOT_DELTA);
+    rctx.apply.borrow_mut().deadline = None;
+    rctx.sessions.borrow_mut().apply_sid = None;
+}
+
+/// The apply rollback timer fired.
+pub fn apply_timeout(rctx: &Ctx, conn: &mut Connection) {
+    let names = glob_period(SNAPSHOT_FILES.trim_end_matches('/'));
+    do_rollback(rctx, conn, &names);
+}
+
+fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
+    let rollback = arg(raw, "rollback", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);
+    let has_apply = rctx.sessions.borrow().apply_sid.is_some();
+    if has_apply && rollback {
+        return code(status::PERMISSION_DENIED);
+    }
+    let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(APPLY_TIMEOUT);
+    purge_dir(SNAPSHOT_FILES);
+    purge_dir(SNAPSHOT_DELTA);
+    if !has_apply {
+        let mut ctx = Context::new();
+        set_savedir(&mut ctx, Some(sid));
+        let _ = fs::DirBuilder::new().mode(0o700).create(SNAPSHOT_FILES.trim_end_matches('/'));
+        let _ = fs::DirBuilder::new().mode(0o700).create(SNAPSHOT_DELTA.trim_end_matches('/'));
+        let dir = savedir_of(sid);
+        let names = glob_period(&dir);
+        let tmp = format!("{dir}/");
+        let ret = apply_access(rctx, sid, &dir, &names);
+        if ret != 0 {
+            return code(ret);
+        }
+        if rollback {
+            rctx.sessions.borrow_mut().apply_sid = Some(sid.to_owned());
+        }
+        for config in &names {
+            if config.starts_with('.') {
+                continue;
+            }
+            match file_size(&format!("{dir}/{config}")) {
+                Some(n) if n > 0 => {}
+                _ => continue,
+            }
+            copy_file(UCI_DIR, SNAPSHOT_FILES, config);
+            copy_file(&tmp, SNAPSHOT_DELTA, config);
+            apply_config(&mut ctx, conn, config);
+        }
+        if rollback {
+            let msecs: i64 = if timeout > 0 && timeout <= i32::MAX / 1000 { timeout as i64 * 1000 } else { i32::MAX as i64 };
+            rctx.apply.borrow_mut().deadline = Some(Instant::now() + Duration::from_millis(msecs as u64));
+        }
+    }
+    code(0)
+}
+
+fn confirm(rctx: &Ctx, raw: &[u8]) -> Reply {
+    let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    let apply_sid = rctx.sessions.borrow().apply_sid.clone();
+    let Some(apply_sid) = apply_sid else { return code(status::NO_DATA) };
+    if apply_sid != sid {
+        return code(status::PERMISSION_DENIED);
+    }
+    purge_dir(SNAPSHOT_FILES);
+    purge_dir(SNAPSHOT_DELTA);
+    rctx.apply.borrow_mut().deadline = None;
+    rctx.sessions.borrow_mut().apply_sid = None;
+    code(0)
+}
+
+fn rollback(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
+    let apply_sid = rctx.sessions.borrow().apply_sid.clone();
+    let Some(apply_sid) = apply_sid else { return code(status::NO_DATA) };
+    let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return code(status::INVALID_ARGUMENT) };
+    if apply_sid != sid {
+        return code(status::PERMISSION_DENIED);
+    }
+    let names = glob_period(SNAPSHOT_FILES.trim_end_matches('/'));
+    do_rollback(rctx, conn, &names);
+    code(0)
+}
+
+/// rpc_uci_reload: `/sbin/reload_config` two seconds after the reply.
+fn reload_config() -> Reply {
+    std::thread::spawn(|| {
+        std::thread::sleep(Duration::from_secs(2));
+        if let Ok(mut child) = std::process::Command::new("/sbin/reload_config").spawn() {
+            let _ = child.wait();
+        }
+    });
+    code(0)
+}
+
+pub fn call(rctx: &Ctx, conn: &mut Connection, method: &str, raw: &[u8]) -> Reply {
+    match method {
+        "configs" => configs(),
+        "get" => get_common(rctx, raw, false),
+        "state" => get_common(rctx, raw, true),
+        "add" => add(rctx, raw),
+        "set" => set(rctx, raw),
+        "delete" => delete(rctx, raw),
+        "rename" => rename(rctx, raw),
+        "order" => order(rctx, raw),
+        "changes" => changes(rctx, raw),
+        "revert" => revert_commit(rctx, conn, raw, false),
+        "commit" => revert_commit(rctx, conn, raw, true),
+        "apply" => apply(rctx, conn, raw),
+        "confirm" => confirm(rctx, raw),
+        "rollback" => rollback(rctx, conn, raw),
+        "reload_config" => reload_config(),
+        _ => code(status::METHOD_NOT_FOUND),
+    }
+}
