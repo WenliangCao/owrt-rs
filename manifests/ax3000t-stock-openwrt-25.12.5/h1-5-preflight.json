@@ -1,0 +1,116 @@
+{
+  "authorization": {
+    "basis": "The user explicitly said they agree and requested continuation immediately after H1.5 disabled installation was identified as requiring separate authorization.",
+    "h1_5_disabled_install_authorized": true,
+    "persistent_package_writes_authorized": true,
+    "scope_limit": "install the exact r1 APK offline and leave it disabled",
+    "separate_h1_6_authorization_required": true
+  },
+  "device_snapshot": {
+    "apk_tools": "3.0.5",
+    "baseline_sha256": "b77e0e99672ee504d1ee1183f14b8ba8cfe92f6c546aa585f7efc784d2b0c163",
+    "candidate_files_absent": true,
+    "candidate_package_absent": true,
+    "config_tree_sha256": "c571059487c486dc8f255228f49ab558092a50ee22c0845c91ed4839a0ded44a",
+    "dependencies_installed": [
+      "libc",
+      "procd",
+      "uci",
+      "ubus"
+    ],
+    "dispatcher_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "mount_count": 0,
+    "overlay_available_kib": 58768,
+    "package_db_sha256": "6149a91ae1efa348b3e56d08ef13f844ecee6288a78448749519682a9e8cb5fc",
+    "scripts_sha256": "4a5fd6b59a9eadd3b27dd31fd4d79b622083b0a11d966a8c2dd5916c1b945bfc",
+    "triggers_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "world_sha256": "906eb5cf1013afd8e8ff97b486175fa77a97a2a2437d640a1c4fdc4dd9eab69b"
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "execution": {
+    "actual_command": "/usr/bin/apk --no-network add --allow-untrusted /tmp/owrt-h1-5-r1.apk",
+    "install_timeout_seconds": 180,
+    "package": "owrt-reload-config",
+    "remote_apk": "/tmp/owrt-h1-5-r1.apk",
+    "remote_harness": "/tmp/owrt-h1-5-disabled-install.sh",
+    "remote_run_root": "/tmp/owrt-h1-5-install-20260902",
+    "simulation_command": "/usr/bin/apk --no-network add --simulate --allow-untrusted /tmp/owrt-h1-5-r1.apk",
+    "ssh_alias": "openwrt"
+  },
+  "gates": {
+    "artifact_identity": true,
+    "device_state_frozen": true,
+    "h1_5_disabled_install": false,
+    "h1_5_preflight": true,
+    "h1_6_canary": false,
+    "rollback_frozen": true,
+    "target_busybox_ash_syntax": true
+  },
+  "inputs": {
+    "apk": {
+      "local_private_mode": "0400",
+      "local_private_path": "private/h1-5-20260902/owrt-reload-config-0.1.0-r1.apk",
+      "sha256": "02d0c977d68192c28d0ef537a704435d9814fb8e04763cd67d73e00e41e5d9b1",
+      "size_bytes": 184099
+    },
+    "h1_4_observations": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-4-observations.json",
+      "sha256": "b4ab763ddea8357af777cfb360d7d41c2284f2b91df33496c7cb0ec7ea69dc26"
+    },
+    "v1_validation": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json",
+      "sha256": "7acd6d3cd26cec7aa7be32e71b6e617bbc739b0fbc1c9c0a4b4a8ae0ba62fb8d"
+    }
+  },
+  "required_postconditions": {
+    "baseline_unchanged": true,
+    "candidate_activation": false,
+    "config_tree_unchanged": true,
+    "dispatcher_unchanged": true,
+    "installed_files_exact": [
+      "/lib/apk/packages/owrt-reload-config.list",
+      "/usr/sbin/owrt-reload-config-switch",
+      "/usr/sbin/reload_config_rs"
+    ],
+    "mount_count": 0,
+    "package_version": "0.1.0-r1",
+    "real_ubus_calls": 0,
+    "switch_status": "disabled",
+    "switch_status_exit_code": 3
+  },
+  "rollback": {
+    "command": "/usr/bin/apk --no-network del owrt-reload-config",
+    "precondition": "any failure after the package becomes installed",
+    "required_result": "package and both installed executables absent; original dispatcher visible; mount count zero"
+  },
+  "schema_version": 1,
+  "scope": {
+    "candidate_activation": false,
+    "device_contact": true,
+    "device_execution": true,
+    "device_transfer": false,
+    "firmware_flash": false,
+    "h1_5_read_only_preflight": true,
+    "host_network_changes": false,
+    "overlay_writes": false,
+    "package_database_writes": false,
+    "package_install": false,
+    "persistent_writes": false,
+    "real_ubus_calls": false,
+    "router_reboot": false,
+    "runtime_mount_changes": false,
+    "server_read_and_private_copy": true
+  },
+  "scripts": {
+    "device_harness": {
+      "path": "tools/h1_5_disabled_install_device.sh",
+      "sha256": "404592c75fc5c1f42fcf2b4e7f749328112e6b5cfaa594f5a64473df98108283"
+    },
+    "runner": {
+      "path": "tools/h1_5_run.py",
+      "sha256": "67a7874f93fd94a8a049b8af361400d373912f86956e9af2a66699113808e4ca"
+    }
+  },
+  "stage": "H1.5-preflight",
+  "status": "passed_ready_for_authorized_disabled_install"
+}

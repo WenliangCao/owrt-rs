@@ -165,4 +165,5 @@ package 新增应保持静默、修改才发事件的语义，并在首次实机
 新增静默和修改单事件；真实设备 H1.4 已全部通过，见
 [H1_4_SHADOW.md](reports/ax3000t-stock-openwrt-25.12.5/H1_4_SHADOW.md)。执行上限是固定 `/tmp`
 路径和 fake ubus，结果为零持久写入、零真实 ubus、零 mount、清理完成。H1.5 默认禁用安装
-会写 overlay/package database，尚未授权；H1.6 还被未处理的 `network` drift 阻断。
+会写 overlay/package database；用户已单独授权且 preflight 已通过，但实际安装尚未执行。
+H1.6 仍被未处理的 `network` drift 阻断，不能继承 H1.5 授权。

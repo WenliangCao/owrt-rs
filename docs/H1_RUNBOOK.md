@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.4 真实设备 tmpfs shadow 已完成；H1.5 尚未授权
+> 状态：H1.5 preflight 已完成且本轮已授权；disabled install 尚未执行
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -27,7 +27,7 @@ H1.0 离线准入设计（已完成）
   → H1 无拆机边界重规划（已完成，离线 policy only）
   → H1.4 offline preflight（已完成；未接触设备）
   → H1.4 tmpfs shadow run（已完成；发现 live `network` baseline drift）
-  → H1.5 默认禁用 APK 安装（需另行授权）
+  → H1.5 默认禁用 APK 安装（preflight 已完成；本轮已授权，尚未执行）
   → H1.6 短时 bind-mount canary（需另行授权）
 ```
 
@@ -259,6 +259,9 @@ H1.4 实机结果为 `complete_passed_with_live_baseline_drift`。精确 candida
 baseline 没有修改，因此 H1.6 在另行决定如何处理该 drift 前保持不准入。
 
 ## 7. H1.5：默认禁用安装
+
+H1.5 preflight 已完成。用户已在被明确告知 overlay/package database 持久写入后单独授权本
+阶段；授权上限是精确 r1 APK 的 offline install 并保持 disabled，不延伸到 H1.6。
 
 安装前再次核对 APK：
 
