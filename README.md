@@ -228,3 +228,7 @@ libiwinfo nl80211 后端复刻），沙箱 r18 74/74、并排 r19 11/11、回归
 
 §11.6 合并（2026-09-02）：fw4-rs 与 rpcd-rs 的内嵌 UCI 解析器均改为 `components/uci`；owrt-fw4 r2 上线（门禁 203 行相同，
 规则集不变）。logd-rs 补上 ubus 重连。
+
+第二轮收官（2026-09-02）：阶段 6/7/8 上线，阶段 9（ubusd）经 `tools/r22_ubus_clients_reconnect.sh` 前置检验判定不执行
+（决策 0015）。设备上 uci/reload_config/logd/uhttpd/fw4/rpcd 六个控制面组件均为 Rust；procd/ubusd/netifd/无线/DHCP
+栈保持原样。汇总见 `reports/ax3000t-stock-openwrt-25.12.5/REPORT_ROUND2.md`。

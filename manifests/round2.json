@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "round": 2,
+  "status": "complete",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "report": "reports/ax3000t-stock-openwrt-25.12.5/REPORT_ROUND2.md",
+  "stages": {
+    "11.0_audit": {"status": "done", "manifest": "manifests/audit-round1.json"},
+    "6_uci": {"status": "live", "manifest": "manifests/r16-uci.json", "package": "owrt-uci 0.1.0-r2"},
+    "7_rpcd_core": {"status": "live (superseded by r4)", "manifest": "manifests/r17-rpcd-core.json"},
+    "8_rpcd_plugins": {"status": "live", "manifest": "manifests/r18-rpcd-plugins.json", "package": "owrt-rpcd 0.1.0-r4"},
+    "9_ubusd": {"status": "not executed", "decision": "docs/decisions/0015-ubusd-replacement-not-executed.md", "check": "tools/r22_ubus_clients_reconnect.sh"},
+    "11.6_merges": {"rpcd_uci_parser": "done (stage 7)", "fw4_uci_parser": "done, owrt-fw4 0.1.0-r2 live", "logd_reconnect": "done in sandbox, device still r1"}
+  },
+  "device_components": {"uci": "owrt-uci 0.1.0-r2", "reload-config": "owrt-reload-config 0.2.0-r1", "logd": "owrt-logd 0.1.0-r1", "httpd": "owrt-httpd 0.1.1-r1", "fw4": "owrt-fw4 0.1.0-r2", "rpcd": "owrt-rpcd 0.1.0-r4"},
+  "not_verified": ["boot path of stages 6-8 and fw4 r2 (no reboot)", "logd-rs reconnect on device (r1 installed)", "rpc-sys upgrade/factory/reboot", "uci apply real service event", "LuCI login with user password"]
+}
