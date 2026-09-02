@@ -225,3 +225,6 @@ logd read 类型策略、httpd 413/MIME、fw4 ipset 空白与 `%.14g` 等），�
 libiwinfo nl80211 后端复刻），沙箱 r18 74/74、并排 r19 11/11、回归 r13/r17 不变；设备只读门禁 49 项在原 rpcd 与 rpcd-rs
 下相同（含两个 radio 的 iwinfo 与 luci-rpc 无线状态）；原 rpcd 进程停止、S12 移除，rpcd-rs 成为唯一 rpcd。
 报告 `R18_RPCD_PLUGINS.md`，合同 `docs/contracts/rpcd-plugins-stage8.md`，决策 0014，清单 `manifests/r18-rpcd-plugins.json`。
+
+§11.6 合并（2026-09-02）：fw4-rs 与 rpcd-rs 的内嵌 UCI 解析器均改为 `components/uci`；owrt-fw4 r2 上线（门禁 203 行相同，
+规则集不变）。logd-rs 补上 ubus 重连。

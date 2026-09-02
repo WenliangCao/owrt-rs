@@ -277,7 +277,7 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
   含 `-P /var/state`、`-c`、`-q`、`-S`、`-n` 等选项）跑在精确 rootfs 的设备配置上，比较 stdout、
   stderr、退出码、落盘文件与 savedir 内容；上游 libuci 的 tests/ 作只读 oracle。
 - **退路**：`disable` 卸载 bind mount；门禁是 `uci show` 全库逐字节相同。
-- **合并**：fw4、rpcd 里的两份解析器改为依赖本 crate（属迁移后的重构，单独 commit，单独重验）。
+- **合并**：fw4、rpcd 里的两份解析器改为依赖本 crate（属迁移后的重构，单独 commit，单独重验）。rpcd 侧随阶段 7 完成；fw4 侧 2026-09-02 完成（上游 31/31、设备差分 203 行相同、owrt-fw4 r2 上线，见 R09 补记）。
 - **规模**：约 2500 行；一份决策记录、合同 C6、报告、manifest。
 
 ### 11.2 阶段 7：rpcd 核心对象（session/uci/rc）——已完成 2026-09-02
