@@ -95,9 +95,33 @@
       "boot_enable": "on",
       "other_components_untouched": true
     },
-    "probe_window": null
+    "probe_window": {
+      "started_utc": "2026-09-02T14:39:52Z",
+      "ended_utc": "2026-09-02T14:41:45Z",
+      "probes": 3,
+      "result": "identical_all_probes",
+      "each_probe": {
+        "rpcd_pid": 28509,
+        "rpcd_rs_pid": 28544,
+        "mounted": 1,
+        "plugins": [
+          "iwinfo.so",
+          "luci.so",
+          "rpcsys.so",
+          "rrdns.so"
+        ],
+        "ubus_objects": 40,
+        "switch": "enabled",
+        "boot_enable": "on",
+        "samples_identical": true,
+        "acl_denied_rc": 6,
+        "httpd_rs_pid": 22540,
+        "logd_rs_pid": 19348,
+        "host_luci_http": 403,
+        "host_internet_https": 200
+      },
+      "dynamic_call_inventory": "session access only (user has not logged into LuCI yet)"
+    }
   },
-  "not_done": [
-    "probe window results pending"
-  ]
+  "not_done": []
 }

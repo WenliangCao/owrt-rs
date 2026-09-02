@@ -51,3 +51,29 @@ ACL 通过原 rpcd 的 `session access`（scope=file）完成，路径规范化�
 | 对象抽样（启用前后） | `luci getVersion`/`getInitList firewall`/`getBuiltinEthernetPorts` 相同；`getFeatures`、`getConntrackHelpers`、`getTimezones` 输出哈希相同；`file stat/list/md5/exec` 相同；带伪会话的 `file read` 仍被拒绝（rc 6）；`getMountPoints` 多出一条即新增的 bind mount |
 | boot-enable on | 成功 |
 | 其余 Rust 组件 | httpd-rs 22540、logd-rs 19348 未受影响；reload_config 与 fw4 的 bind mount 仍在 |
+
+## 监测窗口（约 3 分钟）
+
+2026-09-02T14:39:52Z 至 14:41:45Z，三次只读探测，间隔约一分钟。每次结果相同：
+
+| 项 | 值 |
+|---|---|
+| rpcd / rpcd-rs pid | 28509 / 28544（未重启） |
+| `/usr/lib/rpcd` 挂载 | 1（iwinfo.so luci.so rpcsys.so rrdns.so） |
+| ubus 对象数 | 40 |
+| switch / boot-enable | enabled / on |
+| `luci getVersion`、`getInitList firewall`、`getFeatures` 哈希、`file md5`、`file exec echo` | 与启用前相同 |
+| 伪会话 `file read` | 拒绝（rc 6）；`session access` → false |
+| 其余组件 | httpd-rs 22540、logd-rs 19348、reload_config/fw4 挂载在位 |
+| 主机访问 LuCI 登录页 / 互联网 | 403 / 200 |
+
+httpd-rs 的 `/ubus` 调用清单在窗口内仍只有 `session access`：用户尚未登录 LuCI，动态调用集要等用户
+自己浏览之后再读取（`/tmp/owrt-httpd-calls.txt`）。
+
+## 最终状态与退路
+
+- 设备现状：`file` 与 `luci` 由 rpcd-rs 0.1.0 提供（procd 服务 `owrt-rpcd`，respawn），原 rpcd 以裁剪
+  后的插件目录运行，`boot-enable on`（S11 先挂载并启动 rpcd-rs，S12 rpcd 加载裁剪目录）。
+- 退路：`owrt-rpcd-switch disable`（停 rpcd-rs、卸载挂载、重启 rpcd 回到原插件）；`boot-enable off`；
+  `apk del owrt-rpcd`。rpcd 重启会使当前 LuCI 会话失效，其余不需要重启设备。
+- 原始输出：`private/stage5/device/`（不入库）。
