@@ -99,16 +99,60 @@ pub enum ParseOutcome {
     Bad(u16, &'static str),
 }
 
+/// Outcome of a bounded head-line read.
+enum HeadLine {
+    /// A complete line (its trailing CRLF/LF included), within the cap.
+    Line,
+    /// Peer closed before any bytes of this line.
+    Eof,
+    /// The line exceeded the cap before a newline arrived.
+    TooLong,
+}
+
+/// Read one line (up to and including LF) into `line`, buffering at most
+/// `max` bytes. uhttpd caps the request/header buffer at 4 KiB and answers
+/// 413 rather than reading an unbounded line into memory.
+fn read_head_line<R: BufRead>(reader: &mut R, line: &mut String, max: usize) -> io::Result<HeadLine> {
+    line.clear();
+    let mut raw: Vec<u8> = Vec::new();
+    loop {
+        let chunk = reader.fill_buf()?;
+        if chunk.is_empty() {
+            if raw.is_empty() {
+                return Ok(HeadLine::Eof);
+            }
+            break;
+        }
+        if let Some(pos) = chunk.iter().position(|&b| b == b'\n') {
+            if raw.len() + pos + 1 > max {
+                return Ok(HeadLine::TooLong);
+            }
+            raw.extend_from_slice(&chunk[..=pos]);
+            reader.consume(pos + 1);
+            break;
+        }
+        let n = chunk.len();
+        if raw.len() + n > max {
+            reader.consume(n);
+            return Ok(HeadLine::TooLong);
+        }
+        raw.extend_from_slice(chunk);
+        reader.consume(n);
+    }
+    *line = String::from_utf8_lossy(&raw).into_owned();
+    Ok(HeadLine::Line)
+}
+
 /// Read and parse one request head from `reader`.
 pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<ParseOutcome> {
     let mut line = String::new();
     loop {
-        line.clear();
-        if reader.read_line(&mut line)? == 0 {
-            return Ok(ParseOutcome::Eof);
-        }
-        if line.len() > 4096 {
-            return Ok(ParseOutcome::Bad(400, "Bad Request"));
+        match read_head_line(reader, &mut line, 4096)? {
+            HeadLine::Eof => return Ok(ParseOutcome::Eof),
+            HeadLine::TooLong => {
+                return Ok(ParseOutcome::Bad(413, "Request Entity Too Large"))
+            }
+            HeadLine::Line => {}
         }
         if line == "\r\n" || line == "\n" {
             continue;
@@ -136,12 +180,12 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
     let mut content_lengths = 0;
     let mut transfer_encodings = 0;
     loop {
-        line.clear();
-        if reader.read_line(&mut line)? == 0 {
-            return Ok(ParseOutcome::Bad(400, "Bad Request"));
-        }
-        if line.len() > 4096 {
-            return Ok(ParseOutcome::Bad(400, "Bad Request"));
+        match read_head_line(reader, &mut line, 4096)? {
+            HeadLine::Eof => return Ok(ParseOutcome::Bad(400, "Bad Request")),
+            HeadLine::TooLong => {
+                return Ok(ParseOutcome::Bad(413, "Request Entity Too Large"))
+            }
+            HeadLine::Line => {}
         }
         let trimmed = line.trim_end_matches(['\r', '\n']);
         if trimmed.is_empty() {

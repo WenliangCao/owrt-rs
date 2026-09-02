@@ -135,17 +135,29 @@ impl Daemon {
     }
 
     fn handle_read(&mut self, req: &Request) -> io::Result<()> {
-        let mut lines: Option<u32> = None;
+        // logd read_policy is strict: lines is INT32, stream/oneshot BOOL
+        // (INT8). blobmsg_parse drops attributes of any other type, so a
+        // wrong-typed field leaves the default in place (as in logd.c).
+        let mut lines: Option<i64> = None;
         let mut stream = true;
         let mut oneshot = false;
         for field in blob::fields(&req.data) {
             match field.name {
-                "lines" => lines = field.as_u32(),
-                "stream" => stream = field.as_bool().unwrap_or(true),
-                "oneshot" => oneshot = field.as_bool().unwrap_or(false),
+                "lines" if field.ty == MsgType::Int32 as u32 => {
+                    // blobmsg_get_u32 into an int: reinterpret as signed.
+                    lines = field.as_u32().map(|v| v as i32 as i64);
+                }
+                "stream" if field.ty == MsgType::Int8 as u32 => {
+                    stream = field.as_bool().unwrap_or(true);
+                }
+                "oneshot" if field.ty == MsgType::Int8 as u32 => {
+                    oneshot = field.as_bool().unwrap_or(false);
+                }
                 _ => {}
             }
         }
+        // log_list(count): a present lines==0 yields no backlog, absent
+        // yields all, otherwise the C min window applies.
         let backlog: Vec<&Entry> = match lines {
             Some(0) => Vec::new(),
             Some(count) => self.ring.list(count).collect(),

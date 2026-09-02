@@ -45,6 +45,14 @@ fn usage() -> &'static str {
      accepted: -f -h -x -u -U -a -X -t -T -k -A -n -N -R -D -S -E -I -r -p -s -C -K -q -i -y -e --call-log FILE"
 }
 
+/// uhttpd fixup_prefix: drop a single trailing slash (keep a bare "/").
+fn trim_prefix(mut p: String) -> String {
+    if p.len() > 1 && p.ends_with('/') {
+        p.pop();
+    }
+    p
+}
+
 fn parse_args() -> Result<Config, String> {
     let mut c = Config {
         docroot: ".".into(),
@@ -80,8 +88,11 @@ fn parse_args() -> Result<Config, String> {
                 _ => {}
             },
             "-h" => c.docroot = value("-h")?.trim_end_matches('/').to_owned(),
-            "-x" => c.cgi_prefix = Some(value("-x")?),
-            "-u" => c.ubus_prefix = Some(value("-u")?),
+            // uhttpd fixup_prefix strips a trailing slash so the prefix
+            // still matches; without it "/cgi-bin/" would serve the script
+            // source instead of executing it.
+            "-x" => c.cgi_prefix = Some(trim_prefix(value("-x")?)),
+            "-u" => c.ubus_prefix = Some(trim_prefix(value("-u")?)),
             "-U" => c.ubus_socket = Some(value("-U")?),
             "-t" => c.script_timeout = value("-t")?.parse().map_err(|_| "-t must be a number")?,
             "-T" => c.network_timeout = value("-T")?.parse().map_err(|_| "-T must be a number")?,

@@ -94,14 +94,18 @@ impl Ring {
         entry
     }
 
-    /// Entries with id >= current_id - count (all when count == 0), oldest first.
-    pub fn list(&self, count: u32) -> impl Iterator<Item = &Entry> {
-        let min = if count == 0 {
-            0
+    /// Entries with id >= min, oldest first, where `min` follows C log_list:
+    /// `min = count ? (count < current_id ? current_id - count : 0) : 0`.
+    /// `count` is signed: 0 or a value >= current_id yields all entries; a
+    /// negative count yields none (min = current_id - count > current_id).
+    pub fn list(&self, count: i64) -> impl Iterator<Item = &Entry> {
+        let cur = self.next_id as i64;
+        let min = if count != 0 {
+            if count < cur { cur - count } else { 0 }
         } else {
-            self.next_id.saturating_sub(count)
+            0
         };
-        self.entries.iter().filter(move |e| e.id >= min)
+        self.entries.iter().filter(move |e| (e.id as i64) >= min)
     }
 
     #[cfg(test)]
@@ -182,5 +186,8 @@ mod tests {
         r.add("d".into(), 0, 1, 0); // @36, no wrap
         assert_eq!(r.list(0).map(|e| e.id).collect::<Vec<_>>(), vec![2, 3]);
         assert_eq!(r.list(1).map(|e| e.id).collect::<Vec<_>>(), vec![3]);
+        // C log_list: count 0 or >= current_id -> all; negative -> none.
+        assert_eq!(r.list(100).map(|e| e.id).collect::<Vec<_>>(), vec![2, 3]);
+        assert_eq!(r.list(-1).map(|e| e.id).count(), 0);
     }
 }
