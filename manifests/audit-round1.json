@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "stage": "audit-round1",
+  "status": "complete",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "device_access": false,
+  "method": "15-point self-check + 4 adversarial reviewers; pinned upstream + exact-rootfs sandbox oracle",
+  "upstream_pins": {
+    "firewall4": "b6e51575",
+    "rpcd": "28faf640",
+    "ubox": "6f78fa49",
+    "uhttpd": "7b1bec45"
+  },
+  "verification": {
+    "cargo_check_all_targets": "6/6 crates",
+    "unit_debug": "34 tests, 6/6 crates",
+    "unit_release_panic_abort": "identical",
+    "fw4_upstream": "31/31 byte-exact",
+    "rpcd_differential": "63/63 + 16 audit probes",
+    "httpd_differential": "38/38",
+    "logd_differential": "10/10"
+  },
+  "fixed_count": 20,
+  "deferred_count": 9,
+  "commits": ["d351b2b", "31d4fdb", "6e296e4", "75d3dc5", "12aab09"],
+  "report": "reports/ax3000t-stock-openwrt-25.12.5/AUDIT_ROUND1.md"
+}

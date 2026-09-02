@@ -251,7 +251,10 @@ hostapd、dnsmasq、package/build system 全部保留，重新实现其上的管
 procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变）。到达这一点后，"新的管理 API"
 才有实体可架，在此之前不做 API 层。
 
-### 11.0 前置：第一轮代码自检（不接触设备）
+### 11.0 前置：第一轮代码自检（不接触设备）——已完成 2026-09-02
+
+结论见 [AUDIT_ROUND1](../reports/ax3000t-stock-openwrt-25.12.5/AUDIT_ROUND1.md)：修复 20 处行为差异（含 rpcd file.write 的 umask 模式、ubus 有符号整数、logd read 类型策略、httpd 413/MIME、fw4 ipset 空白与 %.14g），全部按 `cargo check → 单元 → 上游 31/31 → release → differential（rpcd 63/63+16、httpd 38/38、logd 10/10）` 重验通过；其余为不触发本设备且高风险的边缘行为，记录待阶段 6–9 收口。
+
 
 按用户给出的 15 项迁移自检清单对 `components/` 全部代码做一次对抗式审查：架构/数据结构是否擅改、
 是否有 stub/`unwrap()`/绕过逻辑、共享类型是否一致、`unsafe` 边界、整数与边界语义、异常行为、测试
