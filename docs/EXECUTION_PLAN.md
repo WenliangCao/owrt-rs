@@ -296,7 +296,12 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
   使 LuCI 会话失效（需重新登录），窗口内告知。
 - **依赖**：阶段 6 的 uci crate；crypt 直接用 musl libc 的 `crypt()`（无新 crate）。
 
-### 11.3 阶段 8：netlink 客户端（只读）+ `luci-rpc`/`iwinfo`
+### 11.3 阶段 8：netlink 客户端（只读）+ `luci-rpc`/`iwinfo`——进行中（决策 0014，两步）
+
+- 8a 完成于 2026-09-02（沙箱）：`rpc-sys`、`network.rrdns` 移植，r18 58/58；`luci-rpc` 非无线方法
+  （rtnetlink getifaddrs/邻居表、租约、主机提示、DUID、board）以测试名并排差分 r19 11/11。
+- 8b：nl80211 后端（libiwinfo f5dd57a8 复刻）→ `iwinfo` 对象 + `getWirelessDevices` → 打包 r4 →
+  设备只读门禁（`tools/r20_go_live_device.sh`）→ 原 rpcd 停止并移除 S12。
 
 - **替换**：`luci-rpc`（getNetworkDevices/getWirelessDevices/getHostHints/getDHCPLeases/
   getBoardJSON/getDUIDHints/getConntrackHelpers）与 `iwinfo` 对象；这是"网络状态 daemon"的读侧：
