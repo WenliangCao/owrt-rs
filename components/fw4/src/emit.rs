@@ -304,7 +304,8 @@ mod tests {
         assert_eq!(quote("a\"b", true), "\"a'b\"");
         assert_eq!(set(&["a".into(), "a".into()], false), "a");
         assert_eq!(set(&["lan".into(), "lan".into()], false), "\"lan\"");
-        assert_eq!(set(&["a".into(), "b".into()], false), "{ \"a\", \"b\" }");
+        assert_eq!(set(&["a".into(), "b".into()], false), "{ a, b }");
+        assert_eq!(set(&["lan".into(), "wan".into()], false), "{ \"lan\", \"wan\" }");
         assert_eq!(set(&["eth0".into()], true), "{ \"eth0\" }");
         assert_eq!(set(&[], true), "{  }");
         let a = Addr { family: 4, addr: "10.0.0.5".into(), mask: Some("255.255.255.0".into()), bits: Some(24), addr2: None, range: false, invert: false };

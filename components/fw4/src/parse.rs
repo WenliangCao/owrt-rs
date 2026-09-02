@@ -900,9 +900,13 @@ impl Fw4 {
         };
         // (0?x?[0-9a-f]+) case-insensitive
         let markish = |s: &str| {
-            let t = s.strip_prefix('0').unwrap_or(s);
-            let t = t.strip_prefix(['x', 'X']).unwrap_or(t);
-            hexdigits(t)
+            if hexdigits(s) {
+                return true;
+            }
+            let t1 = s.strip_prefix('0');
+            let t2 = s.strip_prefix(['x', 'X']);
+            let t3 = t1.and_then(|t| t.strip_prefix(['x', 'X']));
+            [t1, t2, t3].iter().any(|t| t.map(hexdigits).unwrap_or(false))
         };
         if !markish(m1) || m3.map(|m| !markish(m)).unwrap_or(false) {
             return None;
@@ -1112,6 +1116,8 @@ mod tests {
         let m = f.parse_mark(&js("0x10/0xff")).unwrap();
         assert_eq!((m.mark, m.mask), (16, 255));
         assert_eq!(f.parse_mark(&js("ff")), None);
+        let m = f.parse_mark(&js("0/0xffffff51")).unwrap();
+        assert_eq!((m.mark, m.mask), (0, 0xffffff51));
         assert_eq!(f.parse_dscp(&js("af11")).unwrap().dscp, 0x0a);
         let d = f.parse_date(&js("2021-03-04T05:06")).unwrap();
         assert_eq!((d.year, d.month, d.day, d.hour, d.min, d.sec), (2021, 3, 4, 5, 6, 0));

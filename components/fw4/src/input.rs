@@ -113,8 +113,12 @@ impl Inputs {
     pub fn uci_load(&self, name: &str) -> Config {
         let base = name.rsplit('/').next().unwrap_or(name);
         if self.is_mock() {
-            return match self.mock_json(&format!("uci/{base}.json")) {
-                Some(j) => Config::from_mock(&j),
+            if let Some(j) = self.mock_json(&format!("uci/{base}.json")) {
+                return Config::from_mock(&j);
+            }
+            // plain UCI text fixture (device captures)
+            return match self.mock_read(&format!("uci/{base}")) {
+                Some(text) => Config::parse_text(&text),
                 None => Config::empty(),
             };
         }

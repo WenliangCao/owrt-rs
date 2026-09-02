@@ -1,5 +1,6 @@
-//! Minimal JSON value with parser and compact serializer (RFC 8259 subset,
-//! output format matches libubox blobmsg_format_json: no whitespace).
+//! Minimal JSON value with parser and compact serializer. The parser accepts
+//! the json-c leniencies OpenWrt relies on (trailing commas, C/C++ comments);
+//! output format matches libubox blobmsg_format_json: no whitespace.
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Json {
@@ -121,10 +122,25 @@ struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     fn skip_ws(&mut self) {
-        while self.pos < self.bytes.len()
-            && matches!(self.bytes[self.pos], b' ' | b'\t' | b'\n' | b'\r')
-        {
-            self.pos += 1;
+        loop {
+            while self.pos < self.bytes.len()
+                && matches!(self.bytes[self.pos], b' ' | b'\t' | b'\n' | b'\r')
+            {
+                self.pos += 1;
+            }
+            if self.bytes[self.pos..].starts_with(b"//") {
+                while self.pos < self.bytes.len() && self.bytes[self.pos] != b'\n' {
+                    self.pos += 1;
+                }
+            } else if self.bytes[self.pos..].starts_with(b"/*") {
+                self.pos += 2;
+                while self.pos < self.bytes.len() && !self.bytes[self.pos..].starts_with(b"*/") {
+                    self.pos += 1;
+                }
+                self.pos = (self.pos + 2).min(self.bytes.len());
+            } else {
+                return;
+            }
         }
     }
 
@@ -163,6 +179,10 @@ impl<'a> Parser<'a> {
                 }
                 loop {
                     self.skip_ws();
+                    if self.peek() == Some(b']') {
+                        self.pos += 1;
+                        break;
+                    }
                     items.push(self.value()?);
                     self.skip_ws();
                     match self.peek() {
@@ -189,6 +209,10 @@ impl<'a> Parser<'a> {
                 }
                 loop {
                     self.skip_ws();
+                    if self.peek() == Some(b'}') {
+                        self.pos += 1;
+                        break;
+                    }
                     if self.peek() != Some(b'"') {
                         return Err("expected string key".into());
                     }
@@ -322,7 +346,10 @@ mod tests {
             v.to_compact(),
             r#"{"jsonrpc":"2.0","id":1,"method":"call","params":["0000",{"a":[true,null,-2,1.5,"x\"y"]}]}"#
         );
-        assert!(parse("[1,]").is_err());
+        assert_eq!(parse("[1,]").unwrap(), Json::Array(vec![Json::Int(1)]));
+        assert_eq!(parse("{\"a\":1,}").unwrap().get("a"), Some(&Json::Int(1)));
+        assert_eq!(parse("/* c */ [1, // x\n 2]").unwrap(), Json::Array(vec![Json::Int(1), Json::Int(2)]));
+        assert!(parse("[1,,]").is_err());
         assert_eq!(parse(r#""é😀""#).unwrap(), Json::Str("é😀".into()));
     }
 }
