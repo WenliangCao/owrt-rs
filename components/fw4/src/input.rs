@@ -303,6 +303,32 @@ impl Inputs {
         }
     }
 
+    /// `system([argv...], timeout_ms)` exit code (no shell).
+    pub fn system_argv(&self, argv: &[String], timeout_ms: u64) -> i32 {
+        if self.is_mock() {
+            let arr = Json::Array(argv.iter().map(|a| Json::Str(a.clone())).collect());
+            self.trace(&format!("system command <{}> timeout <{timeout_ms}>", format_json(&arr)));
+            return 0;
+        }
+        let Some((prog, rest)) = argv.split_first() else { return -1 };
+        let Ok(mut child) = Command::new(prog).args(rest).spawn() else { return -1 };
+        let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
+        loop {
+            match child.try_wait() {
+                Ok(Some(st)) => return st.code().unwrap_or(-1),
+                Ok(None) => {
+                    if std::time::Instant::now() >= deadline {
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        return -1;
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(20));
+                }
+                Err(_) => return -1,
+            }
+        }
+    }
+
     /// `fs.open(path, "w")` + write; used for the state file.
     pub fn write_file(&self, path: &str, data: &str) -> bool {
         if self.is_mock() {

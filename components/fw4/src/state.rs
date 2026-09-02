@@ -326,8 +326,10 @@ pub struct Ipset {
 
 #[derive(Clone, Debug)]
 pub struct Include {
+    pub enabled: bool,
     pub path: String,
     pub ty: String,
+    pub fw4_compatible: bool,
     pub position: String,
     pub chain: Option<String>,
 }
