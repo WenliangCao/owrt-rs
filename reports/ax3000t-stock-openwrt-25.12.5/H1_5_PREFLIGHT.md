@@ -2,7 +2,8 @@
 
 > 日期：2026-09-02
 > 状态：`passed_ready_for_authorized_disabled_install`
-> 当前设备变化：首轮 fail-closed 后已恢复全部冻结哈希；候选仍未安装
+> preflight 快照：首轮 fail-closed 后已恢复全部冻结哈希；第二轮执行前候选未安装
+> 最终状态：H1.5 随后已通过，见 `H1_5_DISABLED_INSTALL.md`
 
 ## 判定
 
@@ -88,8 +89,8 @@ sysupgrade 或 flash 命令。
 机器 gate 的九类负向篡改全部拒绝：删除授权、伪造 H1.6、伪造已安装、移除 offline 限制、
 强制 rollback、授权 activation、扩大清理路径、篡改 APK hash 和篡改归档修正记录。
 
-`h1_5_disabled_install=false` 在本报告中表示实际安装尚未执行。当前授权允许 preflight gate
-通过后执行这一轮 H1.5，但 `h1_6_canary=false` 始终保持关闭。
+`h1_5_disabled_install=false` 是本 preflight manifest 在第二轮执行前冻结的历史门值，不是当前
+设备终态。第二轮结果记录在 H1.5 observations/report 中；`h1_6_canary=false` 始终保持关闭。
 
 ## 证据
 

@@ -248,7 +248,7 @@ def main() -> None:
         "h1_6_canary=false",
     ):
         require(marker in report, f"report marker missing: {marker}")
-    for marker in ("H1.5：默认禁用安装", "H1.5 preflight 已完成"):
+    for marker in ("H1.5：默认禁用安装", "H1.5 已完成"):
         require(marker in runbook, f"runbook marker missing: {marker}")
     require("H1.5 preflight 已完成" in plan, "plan marker missing")
 

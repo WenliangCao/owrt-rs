@@ -1,6 +1,6 @@
 # H1 物理设备准入与 canary runbook
 
-> 状态：H1.5 preflight 已完成且本轮已授权；disabled install 尚未执行
+> 状态：H1.5 已完成；精确 package 已安装并保持 disabled，H1.6 未授权且仍被 drift 阻断
 > 适用范围：`xiaomi,mi-router-ax3000t` stock layout，OpenWrt 25.12.5
 > 不适用：`xiaomi,mi-router-ax3000t-ubootmod`、任何 `.itb`
 
@@ -27,7 +27,7 @@ H1.0 离线准入设计（已完成）
   → H1 无拆机边界重规划（已完成，离线 policy only）
   → H1.4 offline preflight（已完成；未接触设备）
   → H1.4 tmpfs shadow run（已完成；发现 live `network` baseline drift）
-  → H1.5 默认禁用 APK 安装（preflight 已完成；本轮已授权，尚未执行）
+  → H1.5 默认禁用 APK 安装（已完成；package installed、candidate disabled）
   → H1.6 短时 bind-mount canary（需另行授权）
 ```
 
@@ -260,8 +260,8 @@ baseline 没有修改，因此 H1.6 在另行决定如何处理该 drift 前保�
 
 ## 7. H1.5：默认禁用安装
 
-H1.5 preflight 已完成。用户已在被明确告知 overlay/package database 持久写入后单独授权本
-阶段；授权上限是精确 r1 APK 的 offline install 并保持 disabled，不延伸到 H1.6。
+H1.5 已完成。用户在被明确告知 overlay/package database 持久写入后单独授权本阶段；授权
+上限是精确 r1 APK 的 offline install 并保持 disabled，不延伸到 H1.6。
 
 安装前再次核对 APK：
 
@@ -283,6 +283,13 @@ index update 或其他变更。通过条件：
   不以未执行的 raw NAND 备份冒充本阶段恢复前提。
 
 本阶段只允许 APK 安装产生的 overlay/package DB 写入。不能 enable candidate。
+
+最终设备状态满足全部条件：`owrt-reload-config` `0.1.0-r1` 已安装，switch 为 disabled/exit 3，
+original dispatcher、配置树、baseline 和 triggers 不变，mount count 与真实 ubus call count 都
+为 0。首轮因目标 BusyBox 没有 `stat` 而 fail-closed；offline uninstall 后又识别出 apk 会把
+scripts archive 的 6 个重复成员规范化。执行工具现已改用 `ls -ldn`，并从哈希固定的不可变
+`/rom` 原子恢复该归档后验证全部冻结状态。详见
+[H1.5 实机报告](../reports/ax3000t-stock-openwrt-25.12.5/H1_5_DISABLED_INSTALL.md)。
 
 ## 8. H1.6：短时 canary
 

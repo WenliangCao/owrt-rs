@@ -165,5 +165,8 @@ package 新增应保持静默、修改才发事件的语义，并在首次实机
 新增静默和修改单事件；真实设备 H1.4 已全部通过，见
 [H1_4_SHADOW.md](reports/ax3000t-stock-openwrt-25.12.5/H1_4_SHADOW.md)。执行上限是固定 `/tmp`
 路径和 fake ubus，结果为零持久写入、零真实 ubus、零 mount、清理完成。H1.5 默认禁用安装
-会写 overlay/package database；用户已单独授权且 preflight 已通过，但实际安装尚未执行。
-H1.6 仍被未处理的 `network` drift 阻断，不能继承 H1.5 授权。
+已经完成：精确 `0.1.0-r1` package 已 offline 安装，switch 保持 disabled，original dispatcher、
+配置、baseline、triggers 和 mount 不变；详见
+[H1_5_DISABLED_INSTALL.md](reports/ax3000t-stock-openwrt-25.12.5/H1_5_DISABLED_INSTALL.md)。首轮
+fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会规范化 scripts archive 的
+两个方法缺口。H1.6 仍被未处理的 `network` drift 阻断，且不能继承 H1.5 授权。

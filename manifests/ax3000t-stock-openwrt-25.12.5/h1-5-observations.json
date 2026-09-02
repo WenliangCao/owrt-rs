@@ -1,0 +1,173 @@
+{
+  "archive_recovery": {
+    "canonicalized_sha256": "9cf4b34384d30cf3628e626aa9f1b03ca8824bff75291a84cea0331c313f321e",
+    "canonicalized_tar_members": 327,
+    "duplicate_members_removed": [
+      "urngd-2025.10.03~f17e33d9-r1.X1bec1fbed4e5fc945a33ccb0e940fedf04e3b4c2d.pre-deinstall",
+      "urngd-2025.10.03~f17e33d9-r1.X1bec1fbed4e5fc945a33ccb0e940fedf04e3b4c2d.post-upgrade",
+      "usign-2025.10.03~c4c72b1b-r1.X135aa2f333a0310436eb9a0551c187516dbee97f1.pre-deinstall",
+      "usign-2025.10.03~c4c72b1b-r1.X135aa2f333a0310436eb9a0551c187516dbee97f1.post-upgrade",
+      "wifi-scripts-1.0-r1.X140c51d1f782828658eee577e3ea845e6cf9d455a.pre-deinstall",
+      "wifi-scripts-1.0-r1.X140c51d1f782828658eee577e3ea845e6cf9d455a.post-upgrade"
+    ],
+    "exact_pre_state_restored": true,
+    "immutable_rom_sha256": "4a5fd6b59a9eadd3b27dd31fd4d79b622083b0a11d966a8c2dd5916c1b945bfc",
+    "immutable_rom_tar_members": 333,
+    "private_canonicalized_archive_path": "private/h1-5-20260902/archive-analysis/scripts-current.tar.gz",
+    "private_rom_archive_path": "private/h1-5-20260902/archive-analysis/scripts-rom.tar.gz",
+    "recovery_method": "copy immutable /rom archive to a fixed same-directory temporary path, verify SHA-256, then atomically rename",
+    "restoration_proof": "run-02 identity gate observed the immutable ROM SHA-256 before the successful install"
+  },
+  "attempts": [
+    {
+      "candidate_activation": false,
+      "cleanup_verified": true,
+      "failure_step": "installed-files",
+      "id": "run-01",
+      "package_install_reached_disabled_state": true,
+      "private_install_stdout_sha256": "5aa4e866da2bb8b9ff73621be6c0ace384c310de86f465b1705dd38aa2085d06",
+      "private_manifest_path": "private/h1-5-20260902/run-01/run.json",
+      "private_manifest_sha256": "5b2bf2199b751783c644a534beb0d60693b2a40c895a1c14108a6e68a116b77e",
+      "private_verify_stdout_sha256": "73c1c5fd85b98acd5f1de8a16a45abdcb626f8a5134a5b7b609fa696728834f5",
+      "result": "target_stat_command_absent",
+      "status": "failed_closed"
+    },
+    {
+      "candidate_activation": false,
+      "cleanup_verified": true,
+      "id": "run-02",
+      "package_install_reached_disabled_state": true,
+      "private_identity_stdout_sha256": "bb791bf6d7b41475eb5adeb5d823d72e6c79ba42abf1a162c579e901e94e6b5a",
+      "private_install_stdout_sha256": "5b2978c93d6c0f3ed1820ce6ff8168659d754165f70af260ed7d3789c67bf833",
+      "private_manifest_path": "private/h1-5-20260902/run-02/run.json",
+      "private_manifest_sha256": "69e60ed3e6a1bda92ee703b8983613a8756cdc25e7d527ef883cfe0253a4e4ca",
+      "private_verify_stdout_sha256": "818a6bb1e8b82ba994fe81bf73a5e3e3b144b136fe5744a0c4f0b3a9f3e919d2",
+      "result": "exact_package_installed_disabled",
+      "status": "passed"
+    }
+  ],
+  "authorization": {
+    "candidate_activation_authorized": false,
+    "h1_5_disabled_install_authorized": true,
+    "h1_6_authorized": false,
+    "package_only_persistent_writes_authorized": true
+  },
+  "device_effects": {
+    "candidate_activation": false,
+    "candidate_installed": true,
+    "device_contact": true,
+    "device_execution": true,
+    "device_transfer": true,
+    "firmware_flash": false,
+    "overlay_writes": true,
+    "package_database_changed": true,
+    "package_install": true,
+    "persistent_writes": "package-only",
+    "real_ubus_calls": 0,
+    "router_reboot": false,
+    "runtime_mount_changes": 0,
+    "tmpfs_artifacts_remaining": 0
+  },
+  "device_identity": {
+    "board": "xiaomi,mi-router-ax3000t",
+    "kernel": "6.12.94",
+    "layout": "stock",
+    "release": "25.12.5",
+    "revision": "r33051-f5dae5ece4",
+    "target": "mediatek/filogic"
+  },
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "gates": {
+    "artifact_identity": true,
+    "candidate_activation": false,
+    "config_tree_unchanged": true,
+    "default_disabled": true,
+    "dispatcher_unchanged": true,
+    "failure_recovery_exact": true,
+    "h1_5_disabled_install": true,
+    "h1_6_canary": false,
+    "installed_files_exact": true,
+    "live_baseline_unchanged": true,
+    "real_ubus_calls": false,
+    "runtime_mount_unchanged": true,
+    "temporary_cleanup": true,
+    "triggers_unchanged": true
+  },
+  "inputs": {
+    "apk": {
+      "path": "private/h1-5-20260902/owrt-reload-config-0.1.0-r1.apk",
+      "sha256": "02d0c977d68192c28d0ef537a704435d9814fb8e04763cd67d73e00e41e5d9b1",
+      "size_bytes": 184099
+    },
+    "device_harness": {
+      "path": "tools/h1_5_disabled_install_device.sh",
+      "sha256": "69ea54de29232d0f626d9ad9258b428e6362c7d92888721b25d77f2d7c2a1b69"
+    },
+    "preflight": {
+      "path": "manifests/ax3000t-stock-openwrt-25.12.5/h1-5-preflight.json",
+      "sha256": "f9a1dd895eea13fbad1b6fade2a12b4a3fcb5305715bd76f1a12fd70f569e453"
+    },
+    "runner": {
+      "path": "tools/h1_5_run.py",
+      "sha256": "f301b08cee3d5d18d5e750a6e7d3869fc88def21ca4f2d41c6922970449b49d1"
+    }
+  },
+  "live_invariants": {
+    "baseline_sha256_after": "b77e0e99672ee504d1ee1183f14b8ba8cfe92f6c546aa585f7efc784d2b0c163",
+    "baseline_sha256_before": "b77e0e99672ee504d1ee1183f14b8ba8cfe92f6c546aa585f7efc784d2b0c163",
+    "config_tree_sha256_after": "c571059487c486dc8f255228f49ab558092a50ee22c0845c91ed4839a0ded44a",
+    "config_tree_sha256_before": "c571059487c486dc8f255228f49ab558092a50ee22c0845c91ed4839a0ded44a",
+    "dispatcher_sha256_after": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "dispatcher_sha256_before": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "mount_count_after": 0,
+    "mount_count_before": 0,
+    "overlay_available_kib_after": 58480,
+    "overlay_available_kib_before_run_02": 58692,
+    "package_db_sha256_after": "442b79537bad77999f273ca6ea8442bf9ba4478f303566103bf6d8692225490d",
+    "package_db_sha256_before": "6149a91ae1efa348b3e56d08ef13f844ecee6288a78448749519682a9e8cb5fc",
+    "scripts_sha256_after": "993b4360bd6e79f870c3db78e040430ec1a5b12757d881ffdc98dac4b6c21b7c",
+    "scripts_sha256_before": "4a5fd6b59a9eadd3b27dd31fd4d79b622083b0a11d966a8c2dd5916c1b945bfc",
+    "triggers_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "triggers_sha256_before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "world_sha256_after": "3320ec84c2c7b1fd969dc8caa5da0b05a6afcb15448c62862ff34e9dc32d6419",
+    "world_sha256_before": "906eb5cf1013afd8e8ff97b486175fa77a97a2a2437d640a1c4fdc4dd9eab69b"
+  },
+  "next_stage": {
+    "blocker": "The live baseline still has the H1.4 network drift; activation could emit a real network config.change event.",
+    "id": "H1.6-bind-mount-canary",
+    "requires_separate_explicit_authorization": true,
+    "status": "blocked_not_authorized"
+  },
+  "package": {
+    "arch": "aarch64_cortex-a53",
+    "candidate": {
+      "metadata": "-rwxr-xr-x:0:0",
+      "path": "/usr/sbin/reload_config_rs",
+      "sha256": "b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75",
+      "size_bytes": 346531
+    },
+    "installed_file_list": [
+      "/lib/apk/packages/owrt-reload-config.list",
+      "/usr/sbin/owrt-reload-config-switch",
+      "/usr/sbin/reload_config_rs"
+    ],
+    "installed_size_bytes": 348430,
+    "name": "owrt-reload-config",
+    "origin": "feeds/base/owrt-reload-config",
+    "package_list_sha256": "af14000e540921eb9b9baeb504b25ca9e2806b62a62e5977c649ca0488ce4559",
+    "switch": {
+      "metadata": "-rwxr-xr-x:0:0",
+      "path": "/usr/sbin/owrt-reload-config-switch",
+      "sha256": "ce7ef65892c69d1900ee0f626183bcae5a42b3ccd1f18f706ab496703b990bdf",
+      "size_bytes": 1836,
+      "status": "disabled",
+      "status_exit_code": 3
+    },
+    "version": "0.1.0-r1"
+  },
+  "recorded_at": "2026-09-02",
+  "schema_version": 1,
+  "scope_limit": "This gate passes only for the exact image, device and observed configuration; it proves installed-but-disabled state, not active replacement behaviour.",
+  "stage": "H1.5-disabled-install",
+  "status": "complete_installed_disabled"
+}
