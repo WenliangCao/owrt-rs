@@ -1,0 +1,29 @@
+#!/bin/sh /etc/rc.common
+# rpcd-rs service. Runs at S11, before S12 rpcd, so that with boot-enable on
+# the trimmed plugin directory is already mounted when rpcd loads its plugins.
+# Without boot-enable (or the runtime marker) this service does nothing.
+START=11
+STOP=89
+USE_PROCD=1
+
+SWITCH=/usr/sbin/owrt-rpcd-switch
+MARKER=/var/run/owrt-rpcd.enabled
+
+start_service() {
+	if [ ! -e "$MARKER" ]; then
+		"$SWITCH" boot-enable status >/dev/null 2>&1 || return 0
+		: > "$MARKER"
+	fi
+	"$SWITCH" mount || return 1
+	local socket=$(uci -q get rpcd.@rpcd[0].socket)
+	local timeout=$(uci -q get rpcd.@rpcd[0].timeout)
+	procd_open_instance
+	procd_set_param command /usr/sbin/rpcd-rs ${socket:+-s "$socket"} ${timeout:+-t "$timeout"}
+	procd_set_param respawn
+	procd_close_instance
+}
+
+stop_service() {
+	"$SWITCH" umount
+	rm -f "$MARKER"
+}

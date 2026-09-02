@@ -1,0 +1,141 @@
+#!/bin/sh
+set -eu
+
+CANDIDATE=/usr/sbin/rpcd-rs
+PLUGIN_DIR=/usr/lib/rpcd
+TRIMMED=/tmp/owrt-rpcd-plugins
+FILE_SO_SHA256=f181c959ff0c44db1a9f2d96d053646fd6bf4d38426edc37702764a6e993584f
+UCODE_SO_SHA256=591c21eee13dcae91b75d039719e5733bcd2e1eeec7d0466104b1d2aa8d6c220
+MOUNTINFO=/proc/self/mountinfo
+BOOT_FLAG=/etc/owrt-rpcd.boot-enable
+MARKER=/var/run/owrt-rpcd.enabled
+
+usage() {
+	printf '%s\n' 'usage: owrt-rpcd-switch enable|disable|status|boot-enable on|off|status' >&2
+	exit 64
+}
+
+is_mounted() {
+	[ -r "$MOUNTINFO" ] || return 1
+	awk -v target="$PLUGIN_DIR" '$5 == target { found = 1 } END { exit !found }' "$MOUNTINFO"
+}
+
+sha256_of() {
+	sha256sum "$1" | awk '{ print $1 }'
+}
+
+verify_original() {
+	[ -f "$PLUGIN_DIR/file.so" ] && [ -f "$PLUGIN_DIR/ucode.so" ] || {
+		printf 'original rpcd plugins missing under %s\n' "$PLUGIN_DIR" >&2
+		return 1
+	}
+	[ "$(sha256_of "$PLUGIN_DIR/file.so")" = "$FILE_SO_SHA256" ] &&
+	[ "$(sha256_of "$PLUGIN_DIR/ucode.so")" = "$UCODE_SO_SHA256" ] || {
+		printf '%s\n' 'original rpcd plugin identity mismatch' >&2
+		return 1
+	}
+}
+
+# Bind-mount a copy of the plugin directory without file.so and ucode.so.
+do_mount() {
+	is_mounted && return 0
+	verify_original
+	rm -rf "$TRIMMED"
+	mkdir -p "$TRIMMED"
+	for f in "$PLUGIN_DIR"/*.so; do
+		case "$(basename "$f")" in
+			file.so|ucode.so) ;;
+			*) cp "$f" "$TRIMMED/" ;;
+		esac
+	done
+	mount -o bind "$TRIMMED" "$PLUGIN_DIR"
+	is_mounted && [ ! -e "$PLUGIN_DIR/file.so" ]
+}
+
+do_umount() {
+	if is_mounted; then
+		umount "$PLUGIN_DIR"
+	fi
+	! is_mounted
+}
+
+rs_running() {
+	pgrep -x rpcd-rs >/dev/null 2>&1
+}
+
+enable_layer() {
+	[ -x "$CANDIDATE" ] || {
+		printf 'missing candidate: %s\n' "$CANDIDATE" >&2
+		return 1
+	}
+	if is_mounted && rs_running; then
+		printf '%s\n' enabled
+		return
+	fi
+	: > "$MARKER"
+	/etc/init.d/owrt-rpcd start
+	/etc/init.d/rpcd restart
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+		ubus list file >/dev/null 2>&1 && ubus list luci >/dev/null 2>&1 && ubus list session >/dev/null 2>&1 && break
+		sleep 1
+	done
+	if ! is_mounted || ! rs_running || ! ubus call luci getVersion >/dev/null 2>&1; then
+		printf '%s\n' 'activation verification failed, reverting' >&2
+		disable_layer >/dev/null 2>&1 || true
+		return 1
+	fi
+	printf '%s\n' enabled
+}
+
+disable_layer() {
+	/etc/init.d/owrt-rpcd stop
+	rm -f "$MARKER"
+	do_umount
+	/etc/init.d/rpcd restart
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+		ubus list file >/dev/null 2>&1 && ubus list luci >/dev/null 2>&1 && break
+		sleep 1
+	done
+	verify_original
+	printf '%s\n' disabled
+}
+
+status_layer() {
+	if is_mounted && rs_running; then
+		printf '%s\n' enabled
+		return 0
+	fi
+	if is_mounted || rs_running; then
+		printf 'partial: mounted=%s rpcd-rs=%s\n' "$(is_mounted && echo yes || echo no)" "$(rs_running && echo yes || echo no)" >&2
+		return 1
+	fi
+	verify_original
+	printf '%s\n' disabled
+	return 3
+}
+
+boot_enable() {
+	case "${1:-}" in
+		on) : > "$BOOT_FLAG"; printf '%s\n' on ;;
+		off) rm -f "$BOOT_FLAG"; printf '%s\n' off ;;
+		status)
+			if [ -e "$BOOT_FLAG" ]; then
+				printf '%s\n' on
+			else
+				printf '%s\n' off
+				return 3
+			fi
+			;;
+		*) usage ;;
+	esac
+}
+
+case "$#:$1" in
+	1:enable) enable_layer ;;
+	1:disable) disable_layer ;;
+	1:status) status_layer ;;
+	1:mount) do_mount ;;
+	1:umount) do_umount ;;
+	2:boot-enable) boot_enable "$2" ;;
+	*) usage ;;
+esac
