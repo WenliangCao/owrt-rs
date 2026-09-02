@@ -193,3 +193,8 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 38/38 请求一致，设备上并排、canary 均与原服务一致，`boot-enable` 已打开。报告见
 [R14_HTTPD.md](reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)，合同见 [httpd.md](docs/contracts/httpd.md)，
 决策见 [0009](docs/decisions/0009-replace-uhttpd-with-rust-httpd.md)。下一阶段：firewall4 生成器。
+
+阶段 4（2026-09-02）：R09 firewall4 生成器 Rust 化。`components/fw4` 逐函数移植 fw4.uc 与模板，上游 31 个测试文件
+逐字节通过（stdout+stderr），设备配置离线渲染与设备 `fw4 print` 相同；`owrt-fw4 0.1.0-r1` 的 `owrt-fw4-switch enable`
+以两种实现 `print` 相同为门禁后 bind mount 到 `/sbin/fw4`，经候选 reload 后内核规则集不变，`boot-enable on`。
+报告 `reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md`，清单 `manifests/ax3000t-stock-openwrt-25.12.5/r09-fw4.json`。

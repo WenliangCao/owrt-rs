@@ -3,7 +3,7 @@
   "stage": 4,
   "evidence_id": "r09-fw4",
   "recorded_at": "2026-09-02T14:07:06Z",
-  "status": "offline_verified_awaiting_device_window",
+  "status": "complete_live_boot_enabled",
   "candidate": {
     "package": "owrt-fw4",
     "version": "0.1.0-r1",
@@ -41,8 +41,48 @@
       "lines": 203
     }
   },
-  "device": null,
+  "device": {
+    "authorization": "user answered 全部授权（1-4） on 2026-09-02",
+    "install": {
+      "utc": "2026-09-02T14:09:26Z",
+      "apk_rc": 0,
+      "files_match": true,
+      "switch": "disabled",
+      "boot_enable": "off",
+      "rc_links": [
+        "S18owrt-fw4",
+        "K89owrt-fw4"
+      ],
+      "ruleset_sha256_nocounters": "49e8ed95c7f729c6639d3bbca8bbd035c813c371d20548df814e77926f644436",
+      "ruleset_lines": 152,
+      "print_sha256": "6d2fb60313bcba1e06bb2078c2272b1521803ec5e4b6607a79f34d841cc525c6",
+      "print_lines": 203
+    },
+    "gate": {
+      "result": "identical",
+      "lines": 203,
+      "candidate_check_rc": 0
+    },
+    "enable": {
+      "utc": "2026-09-02T14:09:51Z",
+      "enable_rc": 0,
+      "live_sbin_fw4_sha256": "10c9f916fa9182dd9239588a914dc8ce0ed78695009849b72fc992e0a0c3c904",
+      "ruleset_same_after_enable": true,
+      "check_via_mount_rc": 0,
+      "reload_via_candidate_rc": 0,
+      "ruleset_same_after_reload": true,
+      "state_file_rewritten": true,
+      "lookups": {
+        "zone lan": "br-lan",
+        "network wan": "wan",
+        "device br-lan": "lan"
+      },
+      "boot_enable": "on",
+      "wan_up": true
+    },
+    "probe_window": null
+  },
   "not_done": [
-    "device window (install, gate, enable, boot-enable, ~3 min probe) awaiting authorization"
+    "probe window results pending"
   ]
 }

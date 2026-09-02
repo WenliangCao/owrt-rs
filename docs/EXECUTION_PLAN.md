@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：五阶段执行计划
 
 > 版本：4.0，2026-09-02
-> 状态：阶段 1、2、3 完成（R05、logd、uhttpd 均由 Rust 实现接管并开机启动）；进入阶段 4
+> 状态：阶段 1、2、3、4 完成（R05、logd、uhttpd 均由 Rust 实现接管并开机启动）；进入阶段 5
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
 ## 0. 终点是什么，以及能否在五个阶段内到达
