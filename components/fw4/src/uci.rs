@@ -1,9 +1,12 @@
-//! UCI section access: parses `/etc/config/*` text files and the upstream
-//! test-suite JSON fixtures into the same shape ucode's `uci.cursor()` yields:
-//! one JSON object per section carrying `.type`, `.name`, `.anonymous`,
-//! `.index` and the option values (string or array of strings).
+//! UCI section access in the shape ucode's `uci.cursor()` yields: one JSON
+//! object per section carrying `.anonymous`, `.type`, `.name`, `.index` and
+//! the option values (string or array of strings). Real configs are loaded
+//! through `owrt_uci` (libuci semantics: confdir, `/var/run/uci` override,
+//! `/tmp/.uci` deltas, `cfgXXXXXX` anonymous names); the upstream test-suite
+//! JSON fixtures keep their own loader.
 
 use owrt_ubus::json::Json;
+use owrt_uci::{Context, OptionValue, Package};
 
 pub struct Config {
     pub sections: Vec<Json>,
@@ -35,56 +38,51 @@ impl Config {
             .find(|s| s.get(".name").and_then(Json::as_str) == Some(name))
     }
 
-    /// Parse UCI config file text.
-    pub fn parse_text(text: &str) -> Config {
-        let mut sections: Vec<Vec<(String, Json)>> = Vec::new();
-        let mut anon = 0usize;
-        for line in text.lines() {
-            let toks = tokenize(line);
-            if toks.is_empty() {
-                continue;
-            }
-            match toks[0].as_str() {
-                "config" | "c" if toks.len() >= 2 => {
-                    let ty = toks[1].clone();
-                    let (name, anonymous) = match toks.get(2) {
-                        Some(n) if !n.is_empty() => (n.clone(), false),
-                        _ => {
-                            anon += 1;
-                            (format!("cfg{:06x}", anon), true)
-                        }
+    /// uc_uci_to_section() over every section of a loaded package.
+    pub fn from_package(p: &Package) -> Config {
+        let sections = p
+            .sections
+            .iter()
+            .enumerate()
+            .map(|(i, s)| {
+                let mut o: Vec<(String, Json)> = vec![
+                    (".anonymous".into(), Json::Bool(s.anonymous)),
+                    (".type".into(), Json::Str(s.ty.clone())),
+                    (".name".into(), Json::Str(s.name.clone())),
+                    (".index".into(), Json::Int(i as i64)),
+                ];
+                for opt in &s.options {
+                    let v = match &opt.value {
+                        OptionValue::Str(v) => Json::Str(v.clone()),
+                        OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(v.clone())).collect()),
                     };
-                    sections.push(vec![
-                        (".index".into(), Json::Int(sections.len() as i64)),
-                        (".type".into(), Json::Str(ty)),
-                        (".name".into(), Json::Str(name)),
-                        (".anonymous".into(), Json::Bool(anonymous)),
-                    ]);
+                    o.push((opt.name.clone(), v));
                 }
-                "option" | "o" if toks.len() >= 2 => {
-                    if let Some(sec) = sections.last_mut() {
-                        let v = toks.get(2).cloned().unwrap_or_default();
-                        set_key(sec, &toks[1], Json::Str(v));
-                    }
-                }
-                "list" | "l" if toks.len() >= 2 => {
-                    if let Some(sec) = sections.last_mut() {
-                        let v = Json::Str(toks.get(2).cloned().unwrap_or_default());
-                        match sec.iter_mut().find(|(k, _)| k == &toks[1]) {
-                            Some((_, Json::Array(items))) => items.push(v),
-                            Some(slot) => {
-                                let old = std::mem::replace(&mut slot.1, Json::Null);
-                                slot.1 = Json::Array(vec![old, v]);
-                            }
-                            None => sec.push((toks[1].clone(), Json::Array(vec![v]))),
-                        }
-                    }
-                }
-                _ => {}
-            }
+                Json::Object(o)
+            })
+            .collect();
+        Config { sections }
+    }
+
+    /// `cursor.load(name)`: uci_load with `confdir`; `name` may be a path.
+    /// A failed load leaves the cursor without the package, so `foreach`
+    /// yields nothing: the empty config.
+    pub fn load(confdir: &str, name: &str) -> Config {
+        let mut ctx = Context::new();
+        ctx.set_confdir(confdir);
+        match owrt_uci::file::load(&mut ctx, name) {
+            Ok(idx) => Config::from_package(&ctx.root[idx]),
+            Err(_) => Config::empty(),
         }
-        Config {
-            sections: sections.into_iter().map(Json::Object).collect(),
+    }
+
+    /// Parse UCI config text with libuci's parser (fixture files).
+    pub fn parse_text(name: &str, text: &str) -> Config {
+        let mut ctx = Context::new();
+        let mut reader = std::io::Cursor::new(text.as_bytes());
+        match owrt_uci::parse::import(&mut ctx, &mut reader, Some(name), None, true) {
+            Ok(Some(idx)) => Config::from_package(&ctx.root[idx]),
+            _ => Config::empty(),
         }
     }
 
@@ -130,47 +128,6 @@ impl Config {
     }
 }
 
-/// Split one UCI line into tokens honouring single/double quotes and
-/// backslash escapes; `#` at token start begins a comment.
-fn tokenize(line: &str) -> Vec<String> {
-    let mut toks = Vec::new();
-    let mut chars = line.chars().peekable();
-    loop {
-        while matches!(chars.peek(), Some(c) if c.is_whitespace()) {
-            chars.next();
-        }
-        match chars.peek() {
-            None | Some('#') => break,
-            _ => {}
-        }
-        let mut tok = String::new();
-        let mut quote: Option<char> = None;
-        while let Some(c) = chars.next() {
-            match quote {
-                Some(q) if c == q => quote = None,
-                Some('"') if c == '\\' => {
-                    if let Some(n) = chars.next() {
-                        tok.push(n);
-                    }
-                }
-                Some(_) => tok.push(c),
-                None => match c {
-                    '\'' | '"' => quote = Some(c),
-                    '\\' => {
-                        if let Some(n) = chars.next() {
-                            tok.push(n);
-                        }
-                    }
-                    c if c.is_whitespace() => break,
-                    _ => tok.push(c),
-                },
-            }
-        }
-        toks.push(tok);
-    }
-    toks
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -178,6 +135,7 @@ mod tests {
     #[test]
     fn text() {
         let c = Config::parse_text(
+            "firewall",
             "\nconfig defaults\n\toption input 'REJECT'\n\n# c\nconfig zone 'lan'\n\toption name 'lan'\n\tlist network 'lan'\n\tlist network 'guest'\n\toption x \"a\\\"b c\"\n",
         );
         assert_eq!(c.sections.len(), 2);
@@ -187,7 +145,12 @@ mod tests {
         assert_eq!(z.get("x").and_then(Json::as_str), Some("a\"b c"));
         let d = &c.sections[0];
         assert_eq!(d.get(".anonymous"), Some(&Json::Bool(true)));
+        // libuci's cfg%02x%04x name for the first anonymous section
+        assert_eq!(d.get(".name").and_then(Json::as_str), Some("cfg01e63d"));
+        assert_eq!(d.get(".index"), Some(&Json::Int(0)));
         assert_eq!(c.of_type("zone").count(), 1);
+        // strict parser: a malformed line makes the whole load fail
+        assert!(Config::parse_text("x", "config zone\n\toption\n").sections.is_empty());
     }
 
     #[test]

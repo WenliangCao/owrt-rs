@@ -118,19 +118,11 @@ impl Inputs {
             }
             // plain UCI text fixture (device captures)
             return match self.mock_read(&format!("uci/{base}")) {
-                Some(text) => Config::parse_text(&text),
+                Some(text) => Config::parse_text(base, &text),
                 None => Config::empty(),
             };
         }
-        let path = if name.contains('/') {
-            name.to_owned()
-        } else {
-            format!("{}/{}", self.uci_dir, name)
-        };
-        match std::fs::read_to_string(&path) {
-            Ok(text) => Config::parse_text(&text),
-            Err(_) => Config::empty(),
-        }
+        Config::load(&self.uci_dir, name)
     }
 
     /// `ubus.connect().call(object, method, args)`; None on failure.

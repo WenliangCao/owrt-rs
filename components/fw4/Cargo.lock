@@ -7,8 +7,13 @@ name = "owrt-fw4"
 version = "0.1.0"
 dependencies = [
  "owrt-ubus",
+ "owrt-uci",
 ]
 
 [[package]]
 name = "owrt-ubus"
+version = "0.1.0"
+
+[[package]]
+name = "owrt-uci"
 version = "0.1.0"

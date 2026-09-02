@@ -33,13 +33,16 @@ endef
 
 define Build/Prepare
 	rm -rf $(PKG_BUILD_DIR)
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/fw4/src $(PKG_BUILD_DIR)/ubus/src
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/fw4/src $(PKG_BUILD_DIR)/ubus/src $(PKG_BUILD_DIR)/uci/src/bin
 	test -f $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.toml
 	test -f $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.lock
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/fw4/Cargo.lock $(PKG_BUILD_DIR)/fw4/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/fw4/src/*.rs $(PKG_BUILD_DIR)/fw4/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/*.rs $(PKG_BUILD_DIR)/ubus/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml $(PKG_BUILD_DIR)/uci/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/*.rs $(PKG_BUILD_DIR)/uci/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/bin/*.rs $(PKG_BUILD_DIR)/uci/src/bin/
 endef
 
 define Build/Configure
