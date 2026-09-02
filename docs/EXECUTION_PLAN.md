@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：五阶段执行计划
 
 > 版本：4.0，2026-09-02
-> 状态：R05 实机验证完成（H1.4 shadow、H1.5 disabled install、H1.6 canary 全部通过）；进入阶段 1
+> 状态：阶段 1 完成（R05 0.2.0 已转正，boot-enable on）；进入阶段 2
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
 ## 0. 终点是什么，以及能否在五个阶段内到达
@@ -54,13 +54,14 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | H1.5 | APK 已安装，disabled | [H1_5_DISABLED_INSTALL](../reports/ax3000t-stock-openwrt-25.12.5/H1_5_DISABLED_INSTALL.md) |
 | drift | `network` drift 成因与收口 | [H1_6_DRIFT_PROBE](../reports/ax3000t-stock-openwrt-25.12.5/H1_6_DRIFT_PROBE.md) |
 | H1.6 | 候选真实接管、真实 ubus 投递、切回静默 | [H1_6_CANARY](../reports/ax3000t-stock-openwrt-25.12.5/H1_6_CANARY.md) |
+| 阶段 1 | R05 0.2.0 转正：syslog trace、S11 开机重新接管、boot-enable on | [R05_GO_LIVE](../reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)、[决策 0007](decisions/0007-r05-boot-enable-and-syslog-trace.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
 ubus 共 40 个对象；fw4 生成 203 行 ruleset，含一个默认 include；logd 以 `-S 128` 运行，未配置远程
 syslog；候选 R05 package 已安装且 disabled。
 
-## 3. 阶段 1：R05 收官——Rust dispatcher 成为开机默认路径
+## 3. 阶段 1：R05 收官——Rust dispatcher 成为开机默认路径（已完成 2026-09-02）
 
 **目标**：每次启动后，`/sbin/reload_config` 的所有调用都由 Rust 候选处理；原实现文件保留为
 `disable` 后的回退；一个约 3 分钟的启用窗口内零投递失败。

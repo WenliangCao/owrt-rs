@@ -178,3 +178,8 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 以及 **H1.6 canary 通过**：候选真实接管约一分钟，稳态零事件、修改与删除各恰好一次真实 ubus 投递，
 切回后静默，见 [H1_6_CANARY.md](reports/ax3000t-stock-openwrt-25.12.5/H1_6_CANARY.md)。R05 实机验证
 完成。后续五阶段计划见 [docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md)。
+
+**阶段 1 完成：R05 Rust dispatcher 已转正。** 0.2.0 把 trace 改写 syslog、增加开机重新接管的 init 脚本，
+离线 R1/V1 harness 全部通过后升级到设备，canary 通过，`boot-enable` 已打开，候选当前接管
+`/sbin/reload_config`。报告见 [R05_GO_LIVE.md](reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)，
+决策见 [0007](docs/decisions/0007-r05-boot-enable-and-syslog-trace.md)。下一阶段：R15 logd 与 Rust ubus 库。

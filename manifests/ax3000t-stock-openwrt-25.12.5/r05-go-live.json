@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "stage": "1-r05-go-live",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "status": "complete_live_boot_enabled",
+  "candidate": {
+    "package": "owrt-reload-config",
+    "version": "0.2.0-r1",
+    "apk_sha256": "ae525f6c7db7756b987d32e375f490023c85ec5cfdc904df407fd9e0284f70d6",
+    "apk_size_bytes": 187640,
+    "reload_config_rs_sha256": "a209dedb57d96a5fa5085c670402a0ca42f71e1aa774ab3d412dc57f6ae19ec6",
+    "reload_config_rs_size_bytes": 354723,
+    "switch_sha256": "6a9be25c735ea554a63acd396e4b54e4db03c71f0b7fa58e220697d723ab9061",
+    "init_sha256": "d84c4caffa1537726f635b48979718d7f8748c2c279398b50a09a325bcbd51af",
+    "toolchain": "rustc 1.94.0 (4a4ef493e 2026-03-02) via OpenWrt 25.12.5 filogic SDK, aarch64-unknown-linux-musl",
+    "third_party_crates": 0,
+    "change": "trace to syslog by default (--trace-stderr keeps stderr); /etc/init.d/owrt-reload-config START=11 re-applies bind mount when boot-enable flag is on"
+  },
+  "offline": {
+    "r1_gate": {
+      "all_11_reference_cases_passed": true,
+      "baseline_bytes_equivalent": true,
+      "delivery_results_observable": true,
+      "event_sets_equivalent": true,
+      "fault_cases_passed": true,
+      "passed": true,
+      "within_size_budget": true
+    },
+    "v1_gate": {
+      "abi_and_hardening": true,
+      "default_install_has_no_control": true,
+      "package_identity_and_reproducibility": true,
+      "passed": true,
+      "reference_and_fault_suites": true,
+      "rollback_paths": true,
+      "v1_faults_and_long_loop": true,
+      "within_size_budget": true
+    },
+    "v1_lifecycle": {
+      "activation_was_observed": true,
+      "config_tree_unchanged": true,
+      "enable_disable_upgrade_downgrade_uninstall": true,
+      "install_default_disabled": true,
+      "installed_candidate_matches_tested_binary": true,
+      "missing_candidate_fail_closed": true,
+      "original_identity_fail_closed": true,
+      "reboot_volatile": true
+    },
+    "r1_repeat_byte_identical": true,
+    "v1_packages": {
+      "checks": {
+        "arch": true,
+        "dependencies": true,
+        "files_root_0755": true,
+        "license": true,
+        "lifecycle_scripts_fail_closed": true,
+        "name": true,
+        "origin": true,
+        "r1_repeat_byte_identical": true,
+        "r1_version": true,
+        "r2_version": true
+      },
+      "r1": {
+        "metadata": {
+          "arch": "aarch64_cortex-a53",
+          "dependencies": [
+            "libc",
+            "procd",
+            "ubus",
+            "uci"
+          ],
+          "disable_in_all_lifecycle_scripts": true,
+          "files_root_0755": true,
+          "installed_size": "357454",
+          "license": "MIT OR Apache-2.0",
+          "lifecycle_scripts": [
+            "post-install",
+            "post-upgrade",
+            "pre-deinstall"
+          ],
+          "name": "owrt-reload-config",
+          "origin": "feeds/base/owrt-reload-config",
+          "version": "0.2.0-r1"
+        },
+        "path_basename": "owrt-reload-config-0.2.0-r1.apk",
+        "sha256": "ae525f6c7db7756b987d32e375f490023c85ec5cfdc904df407fd9e0284f70d6",
+        "size_bytes": 187640
+      },
+      "r1_repeat": {
+        "path_basename": "owrt-reload-config-0.2.0-r1.apk",
+        "sha256": "ae525f6c7db7756b987d32e375f490023c85ec5cfdc904df407fd9e0284f70d6",
+        "size_bytes": 187640
+      },
+      "r2": {
+        "metadata": {
+          "arch": "aarch64_cortex-a53",
+          "dependencies": [
+            "libc",
+            "procd",
+            "ubus",
+            "uci"
+          ],
+          "disable_in_all_lifecycle_scripts": true,
+          "files_root_0755": true,
+          "installed_size": "357454",
+          "license": "MIT OR Apache-2.0",
+          "lifecycle_scripts": [
+            "post-install",
+            "post-upgrade",
+            "pre-deinstall"
+          ],
+          "name": "owrt-reload-config",
+          "origin": "feeds/base/owrt-reload-config",
+          "version": "0.2.0-r2"
+        },
+        "path_basename": "owrt-reload-config-0.2.0-r2.apk",
+        "sha256": "e94cfdf3b28673caa5a25ba3bc31660527beaf180bcd8f0e978f35c1cb55b938",
+        "size_bytes": 187640
+      }
+    }
+  },
+  "device": {
+    "install": {
+      "from": "0.1.0-r1",
+      "to": "0.2.0-r1",
+      "files_match": true,
+      "switch_after": "disabled",
+      "boot_enable_after": "off",
+      "rc_link": "/etc/rc.d/S11owrt-reload-config",
+      "dispatcher_baseline_config_tree_unchanged": true
+    },
+    "canary": {
+      "steady_runs": 3,
+      "steady_events": 0,
+      "synthetic_modify_deliveries": 1,
+      "synthetic_delete_deliveries": 1,
+      "delivery_failures": 0,
+      "trace_via_syslog": true,
+      "baseline_restored_byte_identical": true,
+      "disable_restored_original": true
+    },
+    "go_live": {
+      "boot_enable": "on",
+      "init_start_rc": 0,
+      "mounts": 1,
+      "live_dispatcher_sha256": "a209dedb57d96a5fa5085c670402a0ca42f71e1aa774ab3d412dc57f6ae19ec6",
+      "first_run_events": 0,
+      "drift": 0
+    },
+    "probe_window": {
+      "probes": 3,
+      "span": "2026-09-02T11:17:59Z..11:19:50Z",
+      "mounts": [
+        1,
+        1,
+        1
+      ],
+      "switch": "enabled",
+      "baseline_sha256_stable": true,
+      "drift": 0,
+      "delivery_failures_nonzero": 0,
+      "fatal": 0
+    }
+  },
+  "not_done": [
+    "boot-time re-apply not yet observed (no reboot performed for this project)"
+  ]
+}
