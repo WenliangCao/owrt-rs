@@ -198,3 +198,8 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 逐字节通过（stdout+stderr），设备配置离线渲染与设备 `fw4 print` 相同；`owrt-fw4 0.1.0-r1` 的 `owrt-fw4-switch enable`
 以两种实现 `print` 相同为门禁后 bind mount 到 `/sbin/fw4`，经候选 reload 后内核规则集不变，`boot-enable on`。
 报告 `reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md`，清单 `manifests/ax3000t-stock-openwrt-25.12.5/r09-fw4.json`。
+
+阶段 5（2026-09-02）：R13 rpcd 插件层 Rust 化。`components/rpcd` 提供 `file` 与 `luci` 两个 ubus 对象，精确 rootfs
+沙箱 63 个请求与原插件相同；`owrt-rpcd 0.1.0-r2` 以裁剪插件目录 bind mount + procd 服务上线，`boot-enable on`。
+`session`/`uci`/`rc` 与 iwinfo/luci-rpc/rpc-sys/rrdns 保留在原 rpcd（决策 0011）。`owrt-switch` 一处操作五个组件。
+最终报告：`reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md`；报告 `R13_RPCD.md`，清单 `r13-rpcd.json`。

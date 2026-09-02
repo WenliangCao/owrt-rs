@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：五阶段执行计划
 
 > 版本：4.0，2026-09-02
-> 状态：阶段 1、2、3、4 完成（R05、logd、uhttpd、fw4 均由 Rust 实现接管并开机启动）；进入阶段 5
+> 状态：阶段 1–5 组件全部上线（R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动）；收官综合窗口待执行，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
 ## 0. 终点是什么，以及能否在五个阶段内到达
@@ -58,6 +58,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | 阶段 2 | Rust ubus 库 + logd 替换，并排比对 10/10，boot-enable on | [R15_LOGD](../reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)、[合同 C2](contracts/logd.md)、[决策 0008](decisions/0008-replace-logd-with-rust-and-own-ubus-library.md) |
 | 阶段 3 | httpd 替换（静态/CGI/ubus 桥/TLS），并排 38/38，设备并排+canary 一致，boot-enable on | [R14_HTTPD](../reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)、[合同 C3](contracts/httpd.md)、[决策 0009](decisions/0009-replace-uhttpd-with-rust-httpd.md) |
 | 阶段 4 | fw4 生成器 Rust 化，上游 31/31 逐字节，设备 print 门禁相同后接管 `/sbin/fw4`，经候选 reload 规则集不变，boot-enable on | [R09_FW4](../reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md)、[合同 C4](contracts/fw4.md)、[决策 0010](decisions/0010-port-firewall4-to-rust.md) |
+| 阶段 5（rpcd） | rpcd 插件层 `file`/`luci` Rust 化，沙箱 63/63 相同，裁剪插件目录 + rpcd-rs 服务上线，boot-enable on；session/uci/rc 保留 C | [R13_RPCD](../reports/ax3000t-stock-openwrt-25.12.5/R13_RPCD.md)、[合同 C5](contracts/rpcd-plugins.md)、[决策 0011](decisions/0011-rpcd-plugin-layer-in-rust.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
