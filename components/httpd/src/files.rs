@@ -242,13 +242,13 @@ fn preconditions<W: Write>(
             return Ok(false);
         }
     }
-    if let Some(h) = request.header("if-range") {
-        if h != tag {
-            resp.status(412, "Precondition Failed")?;
-            resp.end_headers()?;
-            resp.finish()?;
-            return Ok(false);
-        }
+    // uh_file_if_range: any If-Range header is answered with 412, the value
+    // is never compared (uhttpd does not implement ranges).
+    if request.header("if-range").is_some() {
+        resp.status(412, "Precondition Failed")?;
+        resp.end_headers()?;
+        resp.finish()?;
+        return Ok(false);
     }
     if let Some(h) = request.header("if-none-match") {
         if tag_matches(h, &tag) {

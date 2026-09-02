@@ -37,7 +37,8 @@ pub const POLLHUP: i16 = 0x010;
 const SOL_SOCKET: i32 = 1;
 const SCM_RIGHTS: i32 = 1;
 const CMSG_HDR: usize = 16; // sizeof(struct cmsghdr) on 64-bit Linux
-const CMSG_SPACE_FD: usize = 24; // CMSG_SPACE(sizeof(int))
+const CMSG_SPACE_FD: usize = 24; // CMSG_SPACE(sizeof(int)) buffer size
+const CMSG_LEN_FD: usize = 20; // CMSG_LEN(sizeof(int)); one fd, as libubus asks
 const O_CLOEXEC: i32 = 0o2000000;
 
 extern "C" {
@@ -164,7 +165,7 @@ pub fn recv_exact(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Opti
             } else {
                 std::ptr::null_mut()
             },
-            controllen: if first { CMSG_SPACE_FD } else { 0 },
+            controllen: if first { CMSG_LEN_FD } else { 0 },
             flags: 0,
         };
         let got = unsafe { recvmsg(sock, &mut hdr, 0) };

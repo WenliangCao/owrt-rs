@@ -91,7 +91,6 @@ fn write_string(out: &mut String, s: &str) {
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
             '\u{08}' => out.push_str("\\b"),
-            '\u{0c}' => out.push_str("\\f"),
             c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
             c => out.push(c),
         }
@@ -224,7 +223,13 @@ impl<'a> Parser<'a> {
                     self.pos += 1;
                     self.skip_ws();
                     let value = self.value()?;
-                    items.push((key, value));
+                    // json-c keeps a single entry per key (last value wins),
+                    // preserving the first occurrence's position.
+                    if let Some(slot) = items.iter_mut().find(|(k, _)| *k == key) {
+                        slot.1 = value;
+                    } else {
+                        items.push((key, value));
+                    }
                     self.skip_ws();
                     match self.peek() {
                         Some(b',') => self.pos += 1,
@@ -351,5 +356,10 @@ mod tests {
         assert_eq!(parse("/* c */ [1, // x\n 2]").unwrap(), Json::Array(vec![Json::Int(1), Json::Int(2)]));
         assert!(parse("[1,,]").is_err());
         assert_eq!(parse(r#""é😀""#).unwrap(), Json::Str("é😀".into()));
+        // libubox emits \u000c for form feed, not \f
+        assert_eq!(Json::Str("a\u{0c}b".into()).to_compact(), r#""a\u000cb""#);
+        // json-c keeps one entry per key, last value wins, first position
+        let dup = parse(r#"{"a":1,"b":2,"a":3}"#).unwrap();
+        assert_eq!(dup.to_compact(), r#"{"a":3,"b":2}"#);
     }
 }

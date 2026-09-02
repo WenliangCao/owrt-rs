@@ -7,6 +7,7 @@ use std::collections::VecDeque;
 use std::io;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixStream;
+use std::time::{Duration, Instant};
 
 /// Result of a completed request: status code, DATA payloads (each the packed
 /// top-level attrs of one DATA message) and an fd delivered with the STATUS.
@@ -158,8 +159,23 @@ impl Connection {
             data: Vec::new(),
             fd: None,
         };
+        // libubus fixes the deadline once (libubus-req.c: time_end), so
+        // unrelated traffic cannot keep restarting the timeout. A
+        // non-positive timeout means wait forever, as poll(-1) does.
+        let deadline = (timeout_ms > 0)
+            .then(|| Instant::now() + Duration::from_millis(timeout_ms as u64));
         loop {
-            if !sys::wait_readable(self.stream.as_raw_fd(), timeout_ms)? {
+            let remaining = match deadline {
+                None => -1,
+                Some(end) => {
+                    let now = Instant::now();
+                    if now >= end {
+                        return Err(ubus_error(status::TIMEOUT));
+                    }
+                    (end - now).as_millis().min(i32::MAX as u128) as i32
+                }
+            };
+            if !sys::wait_readable(self.stream.as_raw_fd(), remaining)? {
                 return Err(ubus_error(status::TIMEOUT));
             }
             let mut message = self.recv()?;
@@ -170,7 +186,9 @@ impl Connection {
             match message.header.ty {
                 ty::DATA => reply.data.push(message.blob[4..].to_vec()),
                 ty::STATUS => {
-                    reply.status = message.status().unwrap_or(status::UNKNOWN_ERROR);
+                    // libubus-req.c defaults a STATUS without a status attr
+                    // to UBUS_STATUS_INVALID_ARGUMENT.
+                    reply.status = message.status().unwrap_or(status::INVALID_ARGUMENT);
                     reply.fd = message.fd.take();
                     return Ok(reply);
                 }

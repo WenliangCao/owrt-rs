@@ -50,9 +50,18 @@ pub mod status {
     pub const NOT_SUPPORTED: i32 = 8;
     pub const UNKNOWN_ERROR: i32 = 9;
     pub const CONNECTION_FAILED: i32 = 10;
+    pub const NO_MEMORY: i32 = 11;
+    pub const PARSE_ERROR: i32 = 12;
+    pub const SYSTEM_ERROR: i32 = 13;
 
-    pub fn name(code: i32) -> &'static str {
-        match code {
+    pub fn name(code: i32) -> String {
+        static_name(code)
+            .map(str::to_owned)
+            .unwrap_or_else(|| format!("Unknown error: {code}"))
+    }
+
+    fn static_name(code: i32) -> Option<&'static str> {
+        Some(match code {
             OK => "Success",
             INVALID_COMMAND => "Invalid command",
             INVALID_ARGUMENT => "Invalid argument",
@@ -64,8 +73,11 @@ pub mod status {
             NOT_SUPPORTED => "Operation not supported",
             UNKNOWN_ERROR => "Unknown error",
             CONNECTION_FAILED => "Connection failed",
-            _ => "Unknown status",
-        }
+            NO_MEMORY => "Out of memory",
+            PARSE_ERROR => "Parsing message data failed",
+            SYSTEM_ERROR => "System error",
+            _ => return None,
+        })
     }
 }
 
