@@ -79,10 +79,12 @@ pub fn b64_decode(data: &[u8]) -> Option<Vec<u8>> {
     let mut acc = 0u32;
     let mut bits = 0;
     let mut pad = 0;
+    let mut ndigit = 0usize; // non-whitespace chars, incl. padding
     for &c in data {
         if c.is_ascii_whitespace() {
             continue;
         }
+        ndigit += 1;
         if c == b'=' {
             pad += 1;
             continue;
@@ -98,6 +100,11 @@ pub fn b64_decode(data: &[u8]) -> Option<Vec<u8>> {
             out.push((acc >> bits) as u8);
             acc &= (1 << bits) - 1;
         }
+    }
+    // libubox b64_decode consumes whole quartets: the non-whitespace
+    // length must be a multiple of 4 and at most two `=` may pad the tail.
+    if pad > 2 || ndigit % 4 != 0 {
+        return None;
     }
     Some(out)
 }
@@ -193,6 +200,7 @@ extern "C" {
     fn statvfs(path: *const std::os::raw::c_char, buf: *mut StatVfs) -> i32;
     fn uname(buf: *mut [u8; 6 * 65]) -> i32;
     fn sync();
+    fn umask(mask: u32) -> u32;
 }
 
 pub fn statvfs_of(path: &str) -> Option<StatVfs> {
@@ -216,6 +224,18 @@ pub fn machine() -> String {
     String::from_utf8_lossy(&m[..end]).into_owned()
 }
 
+/// Set the process umask to 0, returning the previous value. Mirrors the
+/// `umask(0)` rpcd wraps around `open()` so `file write` honours the exact
+/// requested mode. The rpcd-rs request loop is single-threaded, so the
+/// paired restore runs before any other file operation.
+pub fn umask_zero() -> u32 {
+    unsafe { umask(0) }
+}
+
+pub fn umask_restore(prev: u32) {
+    unsafe { umask(prev); }
+}
+
 pub fn sync_all() {
     unsafe { sync() }
 }
@@ -236,8 +256,15 @@ mod tests {
         assert_eq!(b64_encode(b"hello"), "aGVsbG8=");
         assert_eq!(b64_encode(b""), "");
         assert_eq!(b64_decode(b"aGVsbG8=").unwrap(), b"hello");
-        assert_eq!(b64_decode(b"aGVs\nbG8").unwrap(), b"hello");
+        // libubox consumes whole quartets: whitespace is skipped but the
+        // non-whitespace length must stay a multiple of 4.
+        assert_eq!(b64_decode(b"aGVs\nbG8=").unwrap(), b"hello");
         assert!(b64_decode(b"a$").is_none());
+        assert!(b64_decode(b"aGVsbG8").is_none()); // 7 chars, unpadded
+        assert!(b64_decode(b"Q").is_none()); // single char
+        assert!(b64_decode(b"QQ=").is_none()); // incomplete quartet
+        assert_eq!(b64_decode(b"QQ==").unwrap(), b"A");
+        assert_eq!(b64_decode(b"QU JD").unwrap(), b"ABC"); // embedded ws
     }
 
     #[test]

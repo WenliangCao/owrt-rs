@@ -453,15 +453,19 @@ struct Tm {
 }
 extern "C" {
     fn localtime_r(t: *const i64, tm: *mut Tm) -> *mut Tm;
+    fn time(t: *mut i64) -> i64;
 }
 
 fn set_localtime(args: &Json) -> Json {
-    let ts = match args.get("localtime") {
-        Some(Json::Int(i)) => *i,
-        _ => 0,
+    // ucode: localtime(request.args.localtime). ucode.so does not inject the
+    // policy default, so an omitted arg is null -> localtime(null) uses the
+    // current time, and the reply echoes request.args.localtime (null).
+    let provided = match args.get("localtime") {
+        Some(Json::Int(i)) => Some(*i),
+        _ => None,
     };
+    let t: i64 = provided.unwrap_or_else(|| unsafe { time(std::ptr::null_mut()) });
     let mut tm = Tm { sec: 0, min: 0, hour: 0, mday: 0, mon: 0, year: 0, wday: 0, yday: 0, isdst: 0, gmtoff: 0, zone: std::ptr::null() };
-    let t = ts;
     if !unsafe { localtime_r(&t, &mut tm) }.is_null() {
         system(&format!(
             "date -s \"{:04}-{:02}-{:02} {:02}:{:02}:{:02}\" >/dev/null",
@@ -469,7 +473,7 @@ fn set_localtime(args: &Json) -> Json {
         ));
         system("/etc/init.d/sysfixtime restart >/dev/null");
     }
-    result(Json::Int(ts))
+    result(provided.map(Json::Int).unwrap_or(Json::Null))
 }
 
 fn get_timezones() -> Json {

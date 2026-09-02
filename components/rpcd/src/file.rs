@@ -133,13 +133,19 @@ pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
         _ => 0o666,
     };
     let mut opts = fs::OpenOptions::new();
+    // rpc_file_write: umask(0) around open(path, O_CREAT | O_WRONLY | flag,
+    // mode), where flag defaults to O_TRUNC and becomes O_APPEND only when
+    // "append" is set.
     opts.create(true).write(true).mode(mode);
     if arg_bool(args, "append") {
         opts.append(true);
     } else {
         opts.truncate(true);
     }
-    let mut f = opts.open(&path).map_err(|e| errno_status(&e))?;
+    let prev_umask = util::umask_zero();
+    let opened = opts.open(&path);
+    util::umask_restore(prev_umask);
+    let mut f = opened.map_err(|e| errno_status(&e))?;
     let bytes: Vec<u8> = if !data.is_empty() && arg_bool(args, "base64") {
         util::b64_decode(data.as_bytes()).ok_or(status::UNKNOWN_ERROR)?
     } else {
@@ -276,8 +282,10 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
             return Err(status::PERMISSION_DENIED);
         }
     }
+    // The forked child in rpc_file_exec_run hits arglen==255 and _exit(127)
+    // once argv (executable + params + NULL) would exceed 255 entries.
     if params.len() > 253 {
-        return Err(status::UNKNOWN_ERROR);
+        return Ok(Some(Json::Object(vec![("code".into(), Json::Int(127))])));
     }
     let mut command = Command::new(&executable);
     command.arg0(&executable);
@@ -286,7 +294,13 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
         command.env(k, v);
     }
     command.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
-    let mut child = command.spawn().map_err(|e| errno_status(&e))?;
+    // The child _exit(127)s if execv fails (non-executable, bad interpreter),
+    // so a spawn failure after a successful lookup is reported as code 127,
+    // not as a ubus status. Pre-fork failures (lookup/ACL) already returned.
+    let mut child = match command.spawn() {
+        Ok(child) => child,
+        Err(_) => return Ok(Some(Json::Object(vec![("code".into(), Json::Int(127))]))),
+    };
     let out_pipe = child.stdout.take().unwrap();
     let err_pipe = child.stderr.take().unwrap();
     fn reader(mut pipe: Box<dyn Read + Send>) -> std::thread::JoinHandle<(Vec<u8>, bool)> {
@@ -299,7 +313,7 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
                     Ok(0) | Err(_) => break,
                     Ok(n) => {
                         buf.extend_from_slice(&chunk[..n]);
-                        if buf.len() > FILE_MAX_SIZE as usize {
+                        if buf.len() >= FILE_MAX_SIZE as usize {
                             overflow = true;
                             break;
                         }
@@ -332,8 +346,9 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     if o_over || e_over {
         return Err(status::NOT_SUPPORTED);
     }
-    use std::os::unix::process::ExitStatusExt;
-    let exit_code = st.code().unwrap_or_else(|| st.signal().map(|s| 128 + s).unwrap_or(-1)) as u32 & 0xff;
+    // rpc_file_exec_write emits WEXITSTATUS(stat): the exit code for a normal
+    // exit, and 0 when the child was killed by a signal (st.code() is None).
+    let exit_code = st.code().unwrap_or(0) as u32 & 0xff;
     let mut o = vec![("code".into(), Json::Int(exit_code as i64))];
     if !stdout.is_empty() {
         o.push(("stdout".into(), Json::Str(String::from_utf8_lossy(&stdout).into_owned())));
