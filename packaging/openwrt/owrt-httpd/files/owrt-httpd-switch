@@ -1,0 +1,107 @@
+#!/bin/sh
+set -eu
+
+CANDIDATE=/usr/sbin/httpd-rs
+BOOT_FLAG=/etc/owrt-httpd.boot-enable
+RUN_MARKER=/var/run/owrt-httpd.enabled
+
+usage() {
+	printf '%s\n' 'usage: owrt-httpd-switch enable|disable|status|boot-enable on|off|status' >&2
+	exit 64
+}
+
+running() {
+	ubus call service list '{"name":"owrt-httpd"}' 2>/dev/null | grep -q '"running": true'
+}
+
+listening() {
+	# wait until something answers on the first configured HTTP port
+	port=$(uci -q get uhttpd.main.listen_http | sed 's/.*://; s/ .*//')
+	[ -n "$port" ] || port=80
+	i=0
+	while [ $i -lt 20 ]; do
+		if wget -q -O /dev/null -T 2 "http://127.0.0.1:$port/index.html" 2>/dev/null; then
+			return 0
+		fi
+		i=$((i + 1)); sleep 1
+	done
+	return 1
+}
+
+enable_daemon() {
+	if running; then
+		printf '%s\n' enabled
+		return
+	fi
+	[ -x "$CANDIDATE" ] || {
+		printf 'missing candidate: %s\n' "$CANDIDATE" >&2
+		return 1
+	}
+	: > "$RUN_MARKER"
+	/etc/init.d/uhttpd stop
+	/etc/init.d/owrt-httpd start
+	if ! listening || ! running; then
+		/etc/init.d/owrt-httpd stop || true
+		rm -f "$RUN_MARKER"
+		/etc/init.d/uhttpd start
+		printf '%s\n' 'candidate activation failed, stock uhttpd restarted' >&2
+		return 1
+	fi
+	printf '%s\n' enabled
+}
+
+disable_daemon() {
+	rm -f "$RUN_MARKER"
+	if running; then
+		/etc/init.d/owrt-httpd stop
+	fi
+	/etc/init.d/uhttpd start
+	listening || {
+		printf '%s\n' 'stock uhttpd did not come back' >&2
+		return 1
+	}
+	printf '%s\n' disabled
+}
+
+status_daemon() {
+	if running; then
+		printf '%s\n' enabled
+		return 0
+	fi
+	printf '%s\n' disabled
+	return 3
+}
+
+boot_enable() {
+	case "${1:-}" in
+		on)
+			: > "$BOOT_FLAG"
+			/etc/init.d/uhttpd disable
+			/etc/init.d/owrt-httpd enable
+			printf '%s\n' on
+			;;
+		off)
+			rm -f "$BOOT_FLAG"
+			/etc/init.d/owrt-httpd disable
+			/etc/init.d/uhttpd enable
+			printf '%s\n' off
+			;;
+		status)
+			if [ -e "$BOOT_FLAG" ]; then
+				printf '%s\n' on
+			else
+				printf '%s\n' off
+				return 3
+			fi
+			;;
+		*) usage ;;
+	esac
+}
+
+case "$#:$1" in
+	1:enable) enable_daemon ;;
+	1:disable) disable_daemon ;;
+	1:status) status_daemon ;;
+	2:boot-enable) boot_enable "$2" ;;
+	*) usage ;;
+esac

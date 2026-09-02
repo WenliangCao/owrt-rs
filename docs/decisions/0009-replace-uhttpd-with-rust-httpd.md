@@ -19,7 +19,9 @@ R14 uhttpd 以 root 运行、终结 TLS、执行 CGI（LuCI 本身），并把 `
    去掉），并在报告里标为缺口。
 3. **JSON**：自写最小 JSON 解析/序列化（RFC 8259 子集，含转义与数字），不引入 serde；输出格式与
    `blobmsg_format_json` 一致（紧凑、无空格）。
-4. **进程模型**：单进程、`poll` 事件循环、非阻塞 socket；CGI 子进程通过管道中继；不使用线程。
+4. **进程模型**：单进程、每连接一个 std 线程、阻塞 I/O（含 rustls `StreamOwned`）；CGI 子进程通过管道
+   中继。选线程而不是单线程 `poll`，是因为 rpcd 调用与 CGI 都可能阻塞数秒，线程模型让一次慢调用
+   不拖住其他页面请求，代码也更短。连接数上限沿用 `-N 100`。
 5. **切换**：package `owrt-httpd` 默认 disabled；`enable` 停原 `uhttpd` 服务并以相同配置启动候选（读
    `/etc/config/uhttpd`），`disable` 反向；`boot-enable` 交换 rc 链接，形式同 0007/0008。
 6. **验证**：在精确 rootfs 中用 ubusd + rpcd + 原 uhttpd 与候选并排跑同一组请求（含 LuCI CGI 登录页）；
