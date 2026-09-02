@@ -289,6 +289,14 @@ impl BlobBuf {
         self
     }
 
+    /// Null field (BLOBMSG_TYPE_UNSPEC, empty payload), as libubox emits for
+    /// JSON null.
+    pub fn msg_null(&mut self, name: &str) -> &mut Self {
+        let offset = self.msg_open(MsgType::Unspec, name);
+        self.close(offset);
+        self
+    }
+
     pub fn msg_bool(&mut self, name: &str, value: bool) -> &mut Self {
         let offset = self.msg_open(MsgType::Int8, name);
         self.data.push(value as u8);

@@ -8,16 +8,16 @@
 
 | 方法 | 参数（类型） | ACL（scope `file`） | 回复 / 状态码 |
 |---|---|---|---|
-| read | path S, base64 B, ubus_rpc_session S | read | `{data}`；文件 ≥ 262144 字节 → NOT_SUPPORTED(8)；读到 0 字节 → NO_DATA(6)；sysfs 大小 0 按 4096 读 |
+| read | path S, base64 B, ubus_rpc_session S | read | `{data}`；文件 ≥ 262144 字节 → NOT_SUPPORTED(8)；读到 0 字节 → NO_DATA(5)；sysfs 大小 0 按 4096 读 |
 | write | path S, data S, append B, mode I32, base64 B, ubus_rpc_session S | write | 无数据；缺 data → INVALID_ARGUMENT(2)；`open(O_CREAT|O_WRONLY|O_TRUNC/APPEND, mode 默认 0666, umask 0)`，写后 fsync + sync |
 | list | path S, ubus_rpc_session S | list | `{entries:[{name, type,size,mode,atime,mtime,ctime,inode,uid,gid,user?,group?, target?:{name,…}}]}`，用 lstat；符号链接附 target（stat 失败则 `type:"broken"`） |
 | stat / lstat | path S, ubus_rpc_session S | list | `{path, type,size,mode,atime,mtime,ctime,inode,uid,gid,user?,group?}` |
 | md5 | path S, ubus_rpc_session S | read | `{md5}`；非普通文件 → NOT_SUPPORTED |
 | remove | path S, ubus_rpc_session S | write | 目录递归删除；无数据 |
-| exec | command S, params A, env T, ubus_rpc_session S | exec：先查规范化可执行路径，再查 "路径 参数..."（≤1024 字节，≤253 个参数） | `{code, stdout?, stderr?}`；有会话且带 env → PERMISSION_DENIED(4)；命令不存在 → NOT_FOUND(5)；单流 > 262144 字节 → NOT_SUPPORTED；超时（rpcd `-t`，设备 30 s）→ TIMEOUT(7) |
+| exec | command S, params A, env T, ubus_rpc_session S | exec：先查规范化可执行路径，再查 "路径 参数..."（≤1024 字节，≤253 个参数） | `{code, stdout?, stderr?}`；有会话且带 env → PERMISSION_DENIED(6)；命令不存在 → NOT_FOUND(4)；单流 > 262144 字节 → NOT_SUPPORTED；超时（rpcd `-t`，设备 30 s）→ TIMEOUT(7) |
 
 通用：path 先按 file.c 规则规范化（合并 `/`、消解 `.`/`..`、去尾 `/`）；无 `ubus_rpc_session` 时不做 ACL
-检查（本机 root 调用）；errno → 状态码：EACCES→4、ENOENT→5、ENOTDIR/EINVAL→2、其它→9。参数类型不符
+检查（本机 root 调用）；errno → 状态码：EACCES→6、ENOENT→4、ENOTDIR/EINVAL→2、其它→9。参数类型不符
 或未知参数由 ubusd/调用方约定，本实现按 blobmsg 策略只取已知字段。
 
 ## 2. `luci` 对象（21 方法）

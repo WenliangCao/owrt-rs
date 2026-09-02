@@ -38,7 +38,9 @@ pub fn field_to_json(field: &Field) -> Json {
 /// Append one JSON value as a named blobmsg field.
 pub fn json_to_fields(b: &mut BlobBuf, name: &str, value: &Json) {
     match value {
-        Json::Null => {}
+        Json::Null => {
+            b.msg_null(name);
+        }
         Json::Bool(v) => {
             b.msg_bool(name, *v);
         }
