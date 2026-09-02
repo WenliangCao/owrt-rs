@@ -6,9 +6,11 @@ mod file;
 mod glob;
 mod ip;
 mod luci;
+mod lucirpc;
 mod rc;
 mod rpcsys;
 mod rrdns;
+mod rtnl;
 mod session;
 mod uciobj;
 mod util;
@@ -117,6 +119,9 @@ struct Ids {
     luci: u32,
     sys: u32,
     rrdns: u32,
+    /// luci-rpc (stage 8b); until the wireless half lands it is registered
+    /// only under a test name given by OWRT_RPCD_LUCI_RPC_NAME (r19 harness).
+    lucirpc: Option<u32>,
 }
 
 fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> u32 {
@@ -151,6 +156,10 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
         }
     } else if req.objid == ids.rrdns {
         if let rrdns::Outcome::Now(req, r) = rrdns::call(req, deferrer) {
+            reply(conn, &req, r);
+        }
+    } else if Some(req.objid) == ids.lucirpc {
+        if let lucirpc::Outcome::Now(req, r) = lucirpc::call(ctx, req, deferrer) {
             reply(conn, &req, r);
         }
     } else if req.objid == ids.file || req.objid == ids.luci {
@@ -247,6 +256,7 @@ fn main() {
         luci: register(&mut conn, "luci", &luci::signature()),
         sys: register(&mut conn, "rpc-sys", &rpcsys::signature()),
         rrdns: register(&mut conn, "network.rrdns", &rrdns::signature()),
+        lucirpc: std::env::var("OWRT_RPCD_LUCI_RPC_NAME").ok().map(|n| register(&mut conn, &n, &lucirpc::signature())),
     };
     if std::env::var("RPC_HANGUP").ok().as_deref() != Some("1") {
         uciobj::purge_savedirs();
