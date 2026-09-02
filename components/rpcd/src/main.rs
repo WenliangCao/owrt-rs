@@ -8,7 +8,6 @@ mod ip;
 mod luci;
 mod rc;
 mod session;
-mod uci;
 mod uciobj;
 mod util;
 

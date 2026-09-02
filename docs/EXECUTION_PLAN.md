@@ -281,7 +281,7 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 
 ### 11.2 阶段 7：rpcd 核心对象（session/uci/rc）——已完成 2026-09-02
 
-结论见 [R17_RPCD_CORE](../reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)。
+结论见 [R17_RPCD_CORE](../reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)。§11.6 的 rpcd 内嵌解析器合并已随本阶段完成（沙箱 r13 63/63、r17 272/272）；fw4 的合并留待阶段 8。
 
 - **替换**：`session`（登录经 `/etc/shadow` + libc `crypt`、ACL 合并 `/usr/share/rpcd/acl.d`、
   超时、冻结/解冻与 SIGHUP 再执行）、`uci` 对象（get/state/add/set/delete/rename/order/changes/

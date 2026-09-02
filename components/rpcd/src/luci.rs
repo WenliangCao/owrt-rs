@@ -1,7 +1,7 @@
 //! The `luci` object: a port of LuCI's rpcd ucode plugin
 //! (`/usr/share/rpcd/ucode/luci`) and the `luci.sys` helpers it uses.
 
-use crate::{glob, ip, uci, util, Ctx};
+use crate::{glob, ip, util, Ctx};
 use owrt_ubus::blob;
 use owrt_ubus::convert::fields_to_json;
 use owrt_ubus::json::{self, Json};
@@ -567,11 +567,24 @@ fn get_usb_devices() -> Json {
 }
 
 fn get_conntrack_helpers() -> Json {
-    let text = readfile("/usr/share/firewall4/helpers").or_else(|| readfile("/usr/share/fw3/helpers.conf"));
+    // ucode: cursor().load('/usr/share/firewall4/helpers') || load('/usr/share/fw3/helpers.conf'),
+    // then foreach(package, 'helper'): libuci semantics via owrt_uci (absolute path load,
+    // strict parse, list options as arrays, missing options as null).
+    let mut ctx = owrt_uci::Context::new();
+    let mut pidx = owrt_uci::file::load(&mut ctx, "/usr/share/firewall4/helpers").ok();
+    if pidx.is_none() {
+        pidx = owrt_uci::file::load(&mut ctx, "/usr/share/fw3/helpers.conf").ok();
+    }
     let mut helpers = Vec::new();
-    if let Some(text) = text {
-        for sec in uci::parse(&text).iter().filter(|s| s.ty == "helper") {
-            let g = |k: &str| sec.get(k).map(s).unwrap_or(Json::Null);
+    if let Some(pidx) = pidx {
+        for sec in ctx.root[pidx].sections.iter().filter(|s| s.ty == "helper") {
+            let g = |k: &str| match sec.find_option(k) {
+                Some(i) => match &sec.options[i].value {
+                    owrt_uci::OptionValue::Str(v) => Json::Str(v.clone()),
+                    owrt_uci::OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(v.clone())).collect()),
+                },
+                None => Json::Null,
+            };
             helpers.push(obj(vec![
                 ("name", g("name")),
                 ("description", g("description")),

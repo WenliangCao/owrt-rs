@@ -6,7 +6,7 @@ and runs rpcd-rs next to rpcd, exactly like owrt-rpcd-switch enable does.
 
 Usage: r13_rpcd_check.py <rootfs-files> <rpcd-rs-musl-binary> [--report out.json]
 """
-import json, os, shutil, subprocess, sys, tempfile
+import json, os, subprocess, sys, tempfile
 
 SCENARIO = r"""
 set -eu
@@ -28,13 +28,15 @@ exec 2>/tmp/out/trace.txt
 /sbin/ubusd >/tmp/out/ubusd.log 2>&1 &
 ubusd_pid=$!
 sleep 1
-/sbin/rpcd -s /var/run/ubus/ubus.sock -t 30 >/tmp/out/rpcd.log 2>&1 &
-rpcd_pid=$!
 rs_pid=
 if [ "$impl" = candidate ]; then
+  # since stage 7 rpcd-rs also owns session/uci/rc: it must register first
   /tmp/rpcd-rs -s /var/run/ubus/ubus.sock -t 30 >/tmp/out/rpcd-rs.log 2>&1 &
   rs_pid=$!
+  for i in 1 2 3 4 5 6 7 8 9 10; do ubus list session >/dev/null 2>&1 && break; sleep 1; done
 fi
+/sbin/rpcd -s /var/run/ubus/ubus.sock -t 30 >/tmp/out/rpcd.log 2>&1 &
+rpcd_pid=$!
 for i in 1 2 3 4 5 6 7 8 9 10; do ubus list file >/dev/null 2>&1 && ubus list luci >/dev/null 2>&1 && break; sleep 1; done
 ubus list > /tmp/out/objects.txt 2>&1
 while IFS="	" read -r id obj method args; do
@@ -159,20 +161,20 @@ def normalize(rid, text):
 def run_side(rootfs, impl, binary):
     temp = tempfile.mkdtemp(prefix="owrt-r13-")
     root = os.path.join(temp, "rootfs")
-    shutil.copytree(rootfs, root, symlinks=True)
-    os.makedirs(os.path.join(root, "tmp/out"), exist_ok=True)
+    subprocess.run(["sudo", "-n", "cp", "-a", rootfs, root], check=True)
+    subprocess.run(["sudo", "-n", "mkdir", "-p", os.path.join(root, "tmp/out")], check=True)
+    subprocess.run(["sudo", "-n", "chmod", "1777", os.path.join(root, "tmp"), os.path.join(root, "tmp/out")], check=True)
     if impl == "candidate":
-        for so in ("file.so", "ucode.so"):
-            os.remove(os.path.join(root, "usr/lib/rpcd", so))
-        shutil.copy2(binary, os.path.join(root, "tmp/rpcd-rs"))
-        os.chmod(os.path.join(root, "tmp/rpcd-rs"), 0o755)
+        subprocess.run(["sudo", "-n", "rm", "-f", os.path.join(root, "usr/lib/rpcd/file.so"), os.path.join(root, "usr/lib/rpcd/ucode.so")], check=True)
+        subprocess.run(["sudo", "-n", "cp", binary, os.path.join(root, "tmp/rpcd-rs")], check=True)
+        subprocess.run(["sudo", "-n", "chmod", "755", os.path.join(root, "tmp/rpcd-rs")], check=True)
     with open(os.path.join(root, "tmp/out/requests.txt"), "w") as f:
         for rid, obj, method, args in REQUESTS:
             f.write("%s\t%s\t%s\t%s\n" % (rid, obj, method, json.dumps(args)))
     subprocess.run(["sudo", "-n", "setsid", "-w", "unshare", "--mount", "--fork", "sh", "-c", SCENARIO, "scenario", root, impl], check=False, timeout=600)
     results = {}
     try:
-        for line in open(os.path.join(root, "tmp/out/results.txt")):
+        for line in subprocess.run(["sudo", "-n", "cat", os.path.join(root, "tmp/out/results.txt")], capture_output=True, text=True, check=True).stdout.splitlines(True):
             parts = line.rstrip("\n").split("\t", 2)
             if len(parts) == 3:
                 results[parts[0]] = (int(parts[1]), parts[2])
@@ -181,8 +183,9 @@ def run_side(rootfs, impl, binary):
     logs = {}
     for name in ("objects.txt", "rpcd.log", "rpcd-rs.log", "ubusd.log", "trace.txt"):
         p = os.path.join(root, "tmp/out", name)
-        if os.path.exists(p):
-            logs[name] = open(p, errors="replace").read()[-2000:]
+        r = subprocess.run(["sudo", "-n", "cat", p], capture_output=True, check=False)
+        if r.returncode == 0:
+            logs[name] = r.stdout.decode(errors="replace")[-2000:]
     subprocess.run(["sudo", "-n", "rm", "-rf", "--", temp], check=False)
     return results, logs
 

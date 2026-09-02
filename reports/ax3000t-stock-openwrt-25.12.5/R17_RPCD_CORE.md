@@ -49,8 +49,10 @@
 - 沙箱里没有 `service` 对象，`commit`/`apply` 触发 `config.change` 事件的分支只在设备上被真实路径覆盖
   （LuCI 保存并应用）；本窗口未用用户口令登录 LuCI，`uci apply` 的设备端首次真实触发留给日常使用。
 - 开机路径（S11 `boot()` 等待）本次未验证（不重启设备），与前几阶段同样待下一次自然重启。
-- `rpc-sys`、`luci-rpc`、`iwinfo`、`network.rrdns` 仍由裁剪后的 C rpcd 提供，归阶段 8；fw4 内嵌只读解析器的
-  合并留到与 netlink 阶段一起。
+- `rpc-sys`、`luci-rpc`、`iwinfo`、`network.rrdns` 仍由裁剪后的 C rpcd 提供，归阶段 8。
+- §11.6 合并：rpcd 内嵌的只读 UCI 文本解析器（`getConntrackHelpers` 用）已删除，改用 `owrt_uci` 按 ucode 插件的
+  `cursor().load(绝对路径)` 语义加载（列表选项输出数组、缺失为 null）；沙箱重验 r13 63/63（harness 起动顺序改为
+  rpcd-rs 先于 rpcd）与 r17 272/272。该二进制随下一版包发货，设备当前为合并前的 r3。fw4 的内嵌解析器留待阶段 8。
 
 ## 5. 退路
 
