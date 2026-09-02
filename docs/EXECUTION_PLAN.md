@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：五阶段执行计划
 
 > 版本：4.0，2026-09-02
-> 状态：阶段 1、2 完成（R05 与 logd 均由 Rust 实现接管并开机启动）；进入阶段 3
+> 状态：阶段 1、2、3 完成（R05、logd、uhttpd 均由 Rust 实现接管并开机启动）；进入阶段 4
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
 ## 0. 终点是什么，以及能否在五个阶段内到达
@@ -56,6 +56,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | H1.6 | 候选真实接管、真实 ubus 投递、切回静默 | [H1_6_CANARY](../reports/ax3000t-stock-openwrt-25.12.5/H1_6_CANARY.md) |
 | 阶段 1 | R05 0.2.0 转正：syslog trace、S11 开机重新接管、boot-enable on | [R05_GO_LIVE](../reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)、[决策 0007](decisions/0007-r05-boot-enable-and-syslog-trace.md) |
 | 阶段 2 | Rust ubus 库 + logd 替换，并排比对 10/10，boot-enable on | [R15_LOGD](../reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)、[合同 C2](contracts/logd.md)、[决策 0008](decisions/0008-replace-logd-with-rust-and-own-ubus-library.md) |
+| 阶段 3 | httpd 替换（静态/CGI/ubus 桥/TLS），并排 38/38，设备并排+canary 一致，boot-enable on | [R14_HTTPD](../reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)、[合同 C3](contracts/httpd.md)、[决策 0009](decisions/0009-replace-uhttpd-with-rust-httpd.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
@@ -119,7 +120,7 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
 
 **规模**：ubus 库约 800 行，logd 约 700 行；两个设备窗口。
 
-## 5. 阶段 3：R14 uhttpd 替换——Rust HTTP/TLS 前端与 `/ubus` 桥
+## 5. 阶段 3：R14 uhttpd 替换——Rust HTTP/TLS 前端与 `/ubus` 桥（已完成 2026-09-02）
 
 **目标**：80/443 由 Rust 服务提供：静态文件、CGI（`/www/cgi-bin/luci` 与 cgi-io 四个入口）、
 `/ubus` JSON-RPC 桥（会话与 ACL 判定走 `session.access`，复用阶段 2 的 ubus 库）、TLS。LuCI 全部

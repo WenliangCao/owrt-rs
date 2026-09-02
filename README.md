@@ -187,4 +187,9 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 **阶段 2 完成：logd 已由 Rust 实现接管。** `components/ubus` 是纯 Rust 的 ubus 线协议库，`components/logd`
 在精确 rootfs 中与原 logd 并排比对 10 项输出全部一致，设备上 canary 通过后 `boot-enable` 已打开。报告见
 [R15_LOGD.md](reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)，合同见 [logd.md](docs/contracts/logd.md)，
-决策见 [0008](docs/decisions/0008-replace-logd-with-rust-and-own-ubus-library.md)。下一阶段：uhttpd 替换。
+决策见 [0008](docs/decisions/0008-replace-logd-with-rust-and-own-ubus-library.md)。
+
+**阶段 3 完成：uhttpd 已由 Rust 实现接管（含 HTTPS）。** `components/httpd` 在精确 rootfs 中与原 uhttpd 并排
+38/38 请求一致，设备上并排、canary 均与原服务一致，`boot-enable` 已打开。报告见
+[R14_HTTPD.md](reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)，合同见 [httpd.md](docs/contracts/httpd.md)，
+决策见 [0009](docs/decisions/0009-replace-uhttpd-with-rust-httpd.md)。下一阶段：firewall4 生成器。

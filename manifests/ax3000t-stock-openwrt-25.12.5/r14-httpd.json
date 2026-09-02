@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "stage": "3-r14-httpd",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "status": "complete_live_boot_enabled",
+  "candidate": {
+    "package": "owrt-httpd",
+    "version": "0.1.1-r1",
+    "apk_sha256": "bafb4e112a9a4d236b438535c29f9d75dfc294559d9ed736fbf45c8c8f337081",
+    "apk_size_bytes": 671320,
+    "httpd_rs_sha256": "c5231ddeaf39b7e4fc2e2d3c0c482ecbe2549c0adbd2114b8fcc0e4b1fb9de7a",
+    "switch_sha256": "fc5b5839c3307d8bb987c48c7c2e297c8420528e4bb649d375fd9232caab4c70",
+    "init_sha256": "12d18c52809c3bd6c9a16b63f946518b47ff7215e7f3065ac27f3104daade093",
+    "components": [
+      "components/httpd",
+      "components/ubus"
+    ],
+    "third_party_crates": [
+      "rustls 0.23 (ring provider) and its dependency tree"
+    ],
+    "toolchain": "rustc 1.94.0 via OpenWrt 25.12.5 filogic SDK, aarch64-unknown-linux-musl",
+    "static_musl_size_bytes": 1249416
+  },
+  "offline": {
+    "harness": "tools/r14_httpd_check.py",
+    "requests": 38,
+    "gate": {
+      "all_requests_identical": true
+    },
+    "masked": [
+      "date",
+      "etag",
+      "keep-alive",
+      "set-cookie",
+      "cgi body (length bucket only)",
+      "dirlist mtimes",
+      "json key order"
+    ],
+    "upstream_quirks_reproduced": [
+      "If-Modified-Since/If-Unmodified-Since never match on musl (strptime %Z)",
+      "unparseable /ubus body keeps the connection alive",
+      "symlinked directories are listed as files in directory listings"
+    ]
+  },
+  "device": {
+    "install": {
+      "first": "0.1.0-r1",
+      "upgraded_to": "0.1.1-r1",
+      "files_match": true,
+      "stock_uhttpd_untouched_pid": 2016,
+      "switch": "disabled",
+      "boot_enable": "off"
+    },
+    "side_by_side": {
+      "0.1.0_failure": "[::]:8080 conflicted with 0.0.0.0:8080 (missing IPV6_V6ONLY); stock unaffected",
+      "0.1.1": "8080/8443 alongside stock; 13 probe requests x http+https identical to stock 80/443; TLS handshake with device DER cert; call inventory recorded"
+    },
+    "canary": {
+      "enable": "stock stopped, candidate on 80/443 (pid 22111)",
+      "probe_identical_to_stock_baseline": true,
+      "disable": "stock uhttpd restarted (pid 22323/22324), http 200"
+    },
+    "go_live": {
+      "boot_enable": "on",
+      "rc_links": "S50owrt-httpd K50owrt-httpd (uhttpd links removed)",
+      "httpd_rs_pid": 22540,
+      "probe_identical_to_stock_baseline": true
+    },
+    "probe_window": {
+      "started_utc": "2026-09-02T13:10:49Z",
+      "ended_utc": "2026-09-02T13:12:40Z",
+      "probes": 3,
+      "result": "identical_all_probes",
+      "each_probe": {
+        "httpd_rs_pid": 22540,
+        "uhttpd_pid": null,
+        "listening": [
+          "0.0.0.0:80",
+          "0.0.0.0:443",
+          "[::]:80",
+          "[::]:443"
+        ],
+        "switch": "enabled",
+        "boot_enable": "on",
+        "rss_kb": 1840,
+        "threads": 5,
+        "luci_http": 403,
+        "luci_https": 200
+      }
+    }
+  },
+  "not_done": [
+    "boot-time start not observed (no reboot)",
+    "browser walk-through of all LuCI pages not performed by me; user may verify in the live window"
+  ]
+}
