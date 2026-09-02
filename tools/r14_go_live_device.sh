@@ -1,11 +1,11 @@
 #!/bin/sh
-# Stage 3 device steps for owrt-httpd 0.1.0-r1 on the AX3000T.
+# Stage 3 device steps for owrt-httpd 0.1.1-r1 on the AX3000T.
 # Run one step per SSH call:  ssh openwrt 'sh -s <step>' < tools/r14_go_live_device.sh
 # Steps: install (APK at /tmp) | side-start | side-stop | canary-enable | canary-disable | go-live | probe | rollback
 set -u
-APK=/tmp/owrt-httpd-0.1.0-r1.apk
-APK_SHA=9582799bcf5a6f75350cc3e9d8d44880504e2c612c2060eee10f864c691685e5
-CAND_SHA=d00505a215a05700deeff358985079a7b2b6e6f9f70f15bfb79232d7e344f85d
+APK=/tmp/owrt-httpd-0.1.1-r1.apk
+APK_SHA=bafb4e112a9a4d236b438535c29f9d75dfc294559d9ed736fbf45c8c8f337081
+CAND_SHA=c5231ddeaf39b7e4fc2e2d3c0c482ecbe2549c0adbd2114b8fcc0e4b1fb9de7a
 SWITCH_SHA=fc5b5839c3307d8bb987c48c7c2e297c8420528e4bb649d375fd9232caab4c70
 INIT_SHA=12d18c52809c3bd6c9a16b63f946518b47ff7215e7f3065ac27f3104daade093
 SWITCH=/usr/sbin/owrt-httpd-switch
