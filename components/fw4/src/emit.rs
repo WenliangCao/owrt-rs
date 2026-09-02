@@ -85,11 +85,12 @@ pub fn concat(v: &[String]) -> String {
     v.join(" . ")
 }
 
+/// `{{ fw4.ipproto(family) }}`: expression tags print nothing for null.
 pub fn ipproto(family: i64) -> &'static str {
     match family {
         4 => "ip",
         6 => "ip6",
-        _ => "null",
+        _ => "",
     }
 }
 
@@ -97,7 +98,7 @@ pub fn nfproto(family: i64, human: bool) -> String {
     match family {
         4 => if human { "IPv4" } else { "ipv4" }.into(),
         6 => if human { "IPv6" } else { "ipv6" }.into(),
-        _ => if human { "IPv4/IPv6" } else { "null" }.into(),
+        _ => if human { "IPv4/IPv6" } else { "" }.into(),
     }
 }
 
