@@ -328,7 +328,12 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 
 - 六个 crate 收成一个 Cargo workspace，抽出共享的 `uci`、`json`、`netlink`；合并 logd/httpd/fw4/
   rpcd 中的重复解析器。每次合并单独 commit，重跑该组件的 oracle。
-- 给 logd-rs、rpcd-rs、httpd-rs 的 ubus 连接补重连逻辑（阶段 9 的前置）。
+- 给 logd-rs、rpcd-rs、httpd-rs 的 ubus 连接补重连逻辑（阶段 9 的前置）。进展 2026-09-02：logd-rs 已按
+  libubus `ubus_auto_connect` 语义重连（每秒重试、重新注册 `log`、环形缓冲与流客户端保留），沙箱
+  `tools/r21_logd_reconnect_check.sh` 验证 ubusd 重启后 2 秒内恢复；httpd-rs 每次请求新建连接，无需改动；
+  rpcd-rs 待阶段 8b 收尾后加。顺带发现：ubusd 只加载 root:root 属主的 acl.d 文件，oracle 上的 rootfs
+  副本属主是 ubuntu，之前所有沙箱都在无 ACL 状态下运行（root 客户端不受影响；harness 已改为 chown，
+  r17/r18/r19 重跑结果不变）。
 
 ### 11.7 顺序与依赖
 
