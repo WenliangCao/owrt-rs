@@ -215,3 +215,8 @@ logd read 类型策略、httpd 413/MIME、fw4 ipset 空白与 `%.14g` 等），�
 精确 rootfs 差分 175/175（含 apk 发货二进制）；设备门禁 export/show/changes 逐字节相同后 bind mount 接管 `/sbin/uci`，
 `reload_config` 经候选规范化 19 个包与 C 版基线 0 差异，`boot-enable on`（S00）。`owrt-switch` 现管理六个组件。
 报告 `R16_UCI.md`，合同 `docs/contracts/uci.md`，决策 0012，清单 `manifests/r16-uci.json`。
+
+阶段 7（2026-09-02）：rpcd 核心对象 `session`/`uci`/`rc` 迁入 rpcd-rs（`uci` 对象基于 `components/uci`），精确 rootfs 双沙箱差分
+272/272（含 apk 发货二进制，含 SIGHUP 冻结/解冻）；设备只读门禁 51 项在原 rpcd 与 rpcd-rs 下逐字节相同；`owrt-rpcd-switch enable`
+按"停 rpcd → 起 rpcd-rs → 起 rpcd（只剩插件）"接管，`boot-enable on`（S11 先于 S12）。报告 `R17_RPCD_CORE.md`，合同
+`docs/contracts/rpcd-core.md`，决策 0013，清单 `manifests/r17-rpcd-core.json`。

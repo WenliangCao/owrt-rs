@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "stage": "7-r17-rpcd-core",
+  "status": "complete",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "decision": "docs/decisions/0013-rpcd-core-objects-in-rust.md",
+  "contract": "docs/contracts/rpcd-core.md",
+  "report": "reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md",
+  "upstream": {"project": "rpcd", "commit": "28faf640", "objects_taken_over": ["session", "uci", "rc"], "objects_kept_by_c_rpcd": ["luci-rpc", "iwinfo", "rpc-sys", "network.rrdns"]},
+  "verification": {
+    "rootfs_differential_steps": 272,
+    "rootfs_differential_identical": 272,
+    "rootfs_differential_apk_binary": "272/272",
+    "device_gate": {"lines": 51, "identical": true},
+    "device_http_jsonrpc": {"session_access": true, "luci_getFeatures": "ok", "uci_get_default_session": "Access denied", "bad_login_code": 6},
+    "probe_window_minutes": 3,
+    "probes": 3,
+    "unit_tests": "4/4 (rpcd), release + musl builds"
+  },
+  "packages": {
+    "owrt-rpcd": {"version": "0.1.0-r3", "apk_sha256": "b7b83504495287c87acf2b195232bd7eca193dcc5ff9a57c0b44dc044d1b7f8b",
+      "rpcd_rs_sha256": "573e69658bef477585f64dfb761fc78f54ab626d4acf413514bf1aa8c7fc3cc5", "rpcd_rs_bytes": 625115,
+      "switch_sha256": "659999f4b0bcce3401b0e3219546b523e173071ade5847ab663b2724185b0dcd", "init_sha256": "4985c6f9c45a5f1b46e8600dba5477ca3918e7e6c9be22e52e4a1f2636453b2b"}
+  },
+  "device_state": {"rpcd_rs": "owns session uci rc file luci", "c_rpcd": "running, plugins only (trimmed /usr/lib/rpcd bind mount)",
+    "runtime_dir": "/var/run/rpcd-rs", "boot_enable": "on", "init": "S11owrt-rpcd (boot() waits for core objects before S12)"},
+  "not_verified": ["boot path (no reboot)", "uci apply with real procd service event (sandbox has no service object)", "LuCI login with the user's password"]
+}

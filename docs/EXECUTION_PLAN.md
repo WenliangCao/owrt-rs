@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：执行计划
 
 > 版本：5.0，2026-09-02
-> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检与阶段 6（uci-rs 接管 `/sbin/uci`）已完成 2026-09-02。
+> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）与阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）已完成 2026-09-02。
 > v4→v5 变更：只新增 §11；§0–§10 保持第一轮原文，作为已完成工作的记录。
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
@@ -61,6 +61,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | 阶段 4 | fw4 生成器 Rust 化，上游 31/31 逐字节，设备 print 门禁相同后接管 `/sbin/fw4`，经候选 reload 规则集不变，boot-enable on | [R09_FW4](../reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md)、[合同 C4](contracts/fw4.md)、[决策 0010](decisions/0010-port-firewall4-to-rust.md) |
 | 阶段 5（rpcd） | rpcd 插件层 `file`/`luci` Rust 化，沙箱 63/63 相同，裁剪插件目录 + rpcd-rs 服务上线，boot-enable on；session/uci/rc 保留 C | [R13_RPCD](../reports/ax3000t-stock-openwrt-25.12.5/R13_RPCD.md)、[合同 C5](contracts/rpcd-plugins.md)、[决策 0011](decisions/0011-rpcd-plugin-layer-in-rust.md) |
 | 阶段 6（uci） | libuci 语义 + `uci-rs` CLI，上游 112/112，rootfs 差分 175/175，设备门禁 export/show/changes 相同后 bind mount 接管 `/sbin/uci`，reload_config 经候选 0 差异，boot-enable on（S00） | [R16_UCI](../reports/ax3000t-stock-openwrt-25.12.5/R16_UCI.md)、[合同 C6](contracts/uci.md)、[决策 0012](decisions/0012-uci-library-and-cli-in-rust.md) |
+| 阶段 7（rpcd 核心） | `session`/`uci`/`rc` 迁入 rpcd-rs（`uci` 对象基于阶段 6 库），rootfs 双沙箱差分 272/272，设备只读门禁 51 项相同，enable 顺序"停 rpcd → 起 rpcd-rs → 起 rpcd（只剩插件）"，boot-enable on（S11） | [R17_RPCD_CORE](../reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)、[合同 C7](contracts/rpcd-core.md)、[决策 0013](decisions/0013-rpcd-core-objects-in-rust.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
@@ -278,7 +279,9 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 - **合并**：fw4、rpcd 里的两份解析器改为依赖本 crate（属迁移后的重构，单独 commit，单独重验）。
 - **规模**：约 2500 行；一份决策记录、合同 C6、报告、manifest。
 
-### 11.2 阶段 7：rpcd 核心对象（session/uci/rc）
+### 11.2 阶段 7：rpcd 核心对象（session/uci/rc）——已完成 2026-09-02
+
+结论见 [R17_RPCD_CORE](../reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)。
 
 - **替换**：`session`（登录经 `/etc/shadow` + libc `crypt`、ACL 合并 `/usr/share/rpcd/acl.d`、
   超时、冻结/解冻与 SIGHUP 再执行）、`uci` 对象（get/state/add/set/delete/rename/order/changes/
