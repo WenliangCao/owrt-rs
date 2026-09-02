@@ -82,5 +82,5 @@ aggregate：`ea9f9c352e6aae1fbf78dc998c637dded78778611f752891727701504b8ceee7`�
 
 - [H1.1b observations](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-1b-observations.json)
 - [H1.1b authorization](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-1b-authorization.json)
-- [H1.1b gate](../../tools/h1_1b_review.py)
+- [H1.1b gate](../../archive/stage-gates/h1_1b_review.py)
 - [冻结命令](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json)

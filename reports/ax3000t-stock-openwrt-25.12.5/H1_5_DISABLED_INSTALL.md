@@ -83,8 +83,8 @@ baseline、dispatcher、triggers、mount、清理和失败恢复 gate 均通过�
 ## 证据
 
 - [H1.5 observations](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-5-observations.json)
-- [H1.5 preflight](H1_5_PREFLIGHT.md)
+- [H1.5 preflight](../../archive/stage-gates/H1_5_PREFLIGHT.md)（已归档）
 - [H1.4 device shadow](H1_4_SHADOW.md)
-- [H1 runbook](../../docs/H1_RUNBOOK.md)
+- [H1 runbook](../../archive/stage-gates/H1_RUNBOOK_2026-09-02.md)（已归档）
 - [device harness](../../tools/h1_5_disabled_install_device.sh)
 - [SSH runner](../../tools/h1_5_run.py)

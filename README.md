@@ -159,7 +159,7 @@ gate，不再错误阻断只涉及 R05 tmpfs 状态的验证。报告见
 [H1_NO_DISASSEMBLY_REPLAN.md](reports/ax3000t-stock-openwrt-25.12.5/H1_NO_DISASSEMBLY_REPLAN.md)，
 决策见 [0006](docs/decisions/0006-use-a-no-disassembly-device-validation-profile.md)。H1.4 offline
 preflight 已冻结并验证 SSH/tmpfs shadow harness，见
-[H1_4_PREFLIGHT.md](reports/ax3000t-stock-openwrt-25.12.5/H1_4_PREFLIGHT.md)。它纠正了 synthetic
+[H1_4_PREFLIGHT.md](archive/stage-gates/H1_4_PREFLIGHT.md)（已归档）。它纠正了 synthetic
 package 新增应保持静默、修改才发事件的语义，并在首次实机 probe 中发现当前 baseline 与
 `network` 规范化结果存在 drift。最终 shadow 序列先隔离观察并吸收该 drift，再检查稳态零事件、
 新增静默和修改单事件；真实设备 H1.4 已全部通过，见
@@ -169,4 +169,11 @@ package 新增应保持静默、修改才发事件的语义，并在首次实机
 配置、baseline、triggers 和 mount 不变；详见
 [H1_5_DISABLED_INSTALL.md](reports/ax3000t-stock-openwrt-25.12.5/H1_5_DISABLED_INSTALL.md)。首轮
 fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会规范化 scripts archive 的
-两个方法缺口。H1.6 仍被未处理的 `network` drift 阻断，且不能继承 H1.5 授权。
+两个方法缺口。
+
+2026-09-02 阶段审计：H1.2/H1.3 物理恢复链假设了用户从未提供的拆机和 UART，每阶段一套 gate
+脚本与四处复写的状态文字也与 R05 的实际爆炸半径不成比例，均已移入 [archive/](archive/README.md)。
+只读探针确认 `network` drift 只有一项 `packet_steering`，成因是 LuCI/rpcd 路径不经过
+`reload_config`，见 [H1_6_DRIFT_PROBE.md](reports/ax3000t-stock-openwrt-25.12.5/H1_6_DRIFT_PROBE.md)。
+下一步是用原始实现执行一次 `reload_config` 收口 baseline，再单独授权 H1.6 canary；两步都尚未
+授权，计划见 [docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md)。

@@ -118,5 +118,5 @@ SSH 连接信息和逐命令原文保留在 Git 外私有 evidence；Git 只保�
 
 - [H1.1a observation manifest](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-1a-observations.json)
 - [H1.1a authorization](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-1a-authorization.json)
-- [H1.1a review tool](../../tools/h1_1a_review.py)
+- [H1.1a review tool](../../archive/stage-gates/h1_1a_review.py)
 - [H1 只读命令](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-read-only-commands.json)

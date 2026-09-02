@@ -78,6 +78,6 @@ ubus、持久写入、H1.5/H1.6 gate、新建事件、cleanup、下一阶段授�
 ## 证据
 
 - [H1.4 observations](../../manifests/ax3000t-stock-openwrt-25.12.5/h1-4-observations.json)
-- [H1.4 preflight](H1_4_PREFLIGHT.md)
-- [H1 runbook](../../docs/H1_RUNBOOK.md)
+- [H1.4 preflight](../../archive/stage-gates/H1_4_PREFLIGHT.md)（已归档）
+- [H1 runbook](../../archive/stage-gates/H1_RUNBOOK_2026-09-02.md)（已归档）
 - [compatibility contract](../../docs/contracts/config-change-dispatch.md)

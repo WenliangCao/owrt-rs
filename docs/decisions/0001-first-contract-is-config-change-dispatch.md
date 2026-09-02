@@ -14,7 +14,7 @@ R05 配置变更检测与分发（`/sbin/reload_config`）。C1 只为**一个**
 **C1 的对象是 R05。** 合同见
 [docs/contracts/config-change-dispatch.md](../contracts/config-change-dispatch.md)。
 
-## 依据（对照 EXECUTION_PLAN §17 的选择标准）
+## 依据（对照 archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md §17 的选择标准）
 
 | 标准 | R05 的情况 |
 |---|---|

@@ -70,7 +70,7 @@ H1.4 run 的上限是：临时传入已固定 hash 的 candidate，在独立 `/t
 
 ## 6. Gate
 
-`tools/h1_no_disassembly_gate.py` 固定四份历史输入的 SHA-256，核对 R05 与五项禁止触碰职责、
+`archive/stage-gates/h1_no_disassembly_gate.py`（已归档）固定四份历史输入的 SHA-256，核对 R05 与五项禁止触碰职责、
 V1 的默认禁用/重启即失语义、H1.2/H1.3b 仍未执行、用户物理边界、空命令集和所有关闭 gate。
 正向 gate 通过；8 类负向篡改全部拒绝：伪造 device contact、伪造 H1.4 device run、移除
 USB-UART 禁止项、加入 device command、扩大到 R01、伪造 RAM boot 完成、授权 reboot、授权
