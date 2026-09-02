@@ -1,0 +1,75 @@
+#!/bin/sh
+# One place for the five Rust control-plane components' switches.
+#   owrt-switch status              table: component, switch, boot-enable, candidate pid/version
+#   owrt-switch enable-all|disable-all
+#   owrt-switch boot-enable on|off|status
+# Order matters: enable in dependency order, disable in reverse.
+set -u
+COMPONENTS="reload-config logd httpd fw4 rpcd"
+
+sw() { printf '/usr/sbin/owrt-%s-switch' "$1"; }
+ver() { apk query --from installed --fields version "owrt-$1" 2>/dev/null | awk '/^Version:/ { print $2 }'; }
+bin() {
+	case "$1" in
+		reload-config) echo reload_config_rs ;;
+		*) echo "$1-rs" ;;
+	esac
+}
+run_pid() {
+	case "$1" in
+		reload-config|fw4) echo - ;;   # one-shot programs, no daemon
+		*) pidof "$(bin "$1")" 2>/dev/null || echo none ;;
+	esac
+}
+
+status_all() {
+	printf '%-14s %-9s %-11s %-8s %s\n' component switch boot-enable pid version
+	rc=0
+	for c in $COMPONENTS; do
+		s=$(sw "$c")
+		if [ -x "$s" ]; then
+			st=$("$s" status 2>/dev/null | head -n1); [ -n "$st" ] || st=error
+			be=$("$s" boot-enable status 2>/dev/null); [ -n "$be" ] || be=error
+		else
+			st=missing; be=missing; rc=1
+		fi
+		printf '%-14s %-9s %-11s %-8s %s\n' "$c" "$st" "$be" "$(run_pid "$c")" "$(ver "$c")"
+	done
+	return $rc
+}
+
+all() {
+	action=$1
+	list=$COMPONENTS
+	[ "$action" = disable ] && list=$(printf '%s\n' $COMPONENTS | sed '1!G;h;$!d')
+	rc=0
+	for c in $list; do
+		s=$(sw "$c")
+		[ -x "$s" ] || { printf '%s: switch missing\n' "$c" >&2; rc=1; continue; }
+		printf '%s: ' "$c"
+		"$s" "$action" || rc=$?
+	done
+	return $rc
+}
+
+boot_all() {
+	rc=0
+	for c in $COMPONENTS; do
+		s=$(sw "$c")
+		[ -x "$s" ] || { printf '%s: switch missing\n' "$c" >&2; rc=1; continue; }
+		printf '%s: ' "$c"
+		"$s" boot-enable "$1" || rc=$?
+	done
+	return $rc
+}
+
+case "$#:${1:-}" in
+	1:status) status_all ;;
+	1:enable-all) all enable ;;
+	1:disable-all) all disable ;;
+	2:boot-enable) case "$2" in on|off|status) boot_all "$2" ;; *) exit 64 ;; esac ;;
+	*)
+		printf '%s\n' 'usage: owrt-switch status|enable-all|disable-all|boot-enable on|off|status' >&2
+		exit 64
+		;;
+esac
