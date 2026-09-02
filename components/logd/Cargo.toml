@@ -1,0 +1,22 @@
+[package]
+name = "owrt-logd"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+license = "MIT OR Apache-2.0"
+description = "Contract C2 compatible OpenWrt system log daemon (logd replacement)"
+publish = false
+
+[[bin]]
+name = "logd-rs"
+path = "src/main.rs"
+
+[dependencies]
+owrt-ubus = { path = "../ubus" }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+panic = "abort"
+strip = true

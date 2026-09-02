@@ -1,0 +1,97 @@
+#!/bin/sh
+set -eu
+
+CANDIDATE=/usr/sbin/logd-rs
+BOOT_FLAG=/etc/owrt-logd.boot-enable
+RUN_MARKER=/var/run/owrt-logd.enabled
+
+usage() {
+	printf '%s\n' 'usage: owrt-logd-switch enable|disable|status|boot-enable on|off|status' >&2
+	exit 64
+}
+
+running() {
+	ubus call service list '{"name":"owrt-logd"}' 2>/dev/null | grep -q '"running": true'
+}
+
+wait_log_object() {
+	ubus -t 10 wait_for log >/dev/null 2>&1
+}
+
+enable_daemon() {
+	if running; then
+		printf '%s\n' enabled
+		return
+	fi
+	[ -x "$CANDIDATE" ] || {
+		printf 'missing candidate: %s\n' "$CANDIDATE" >&2
+		return 1
+	}
+	: > "$RUN_MARKER"
+	/etc/init.d/log stop
+	/etc/init.d/owrt-logd start
+	if ! wait_log_object || ! running; then
+		/etc/init.d/owrt-logd stop || true
+		rm -f "$RUN_MARKER"
+		/etc/init.d/log start
+		printf '%s\n' 'candidate activation failed, stock logd restarted' >&2
+		return 1
+	fi
+	printf '%s\n' enabled
+}
+
+disable_daemon() {
+	rm -f "$RUN_MARKER"
+	if running; then
+		/etc/init.d/owrt-logd stop
+	fi
+	/etc/init.d/log start
+	wait_log_object || {
+		printf '%s\n' 'stock logd did not come back' >&2
+		return 1
+	}
+	printf '%s\n' disabled
+}
+
+status_daemon() {
+	if running; then
+		printf '%s\n' enabled
+		return 0
+	fi
+	printf '%s\n' disabled
+	return 3
+}
+
+boot_enable() {
+	case "${1:-}" in
+		on)
+			: > "$BOOT_FLAG"
+			/etc/init.d/log disable
+			/etc/init.d/owrt-logd enable
+			printf '%s\n' on
+			;;
+		off)
+			rm -f "$BOOT_FLAG"
+			/etc/init.d/owrt-logd disable
+			/etc/init.d/log enable
+			printf '%s\n' off
+			;;
+		status)
+			if [ -e "$BOOT_FLAG" ]; then
+				printf '%s\n' on
+			else
+				printf '%s\n' off
+				return 3
+			fi
+			;;
+		*) usage ;;
+	esac
+}
+
+case "$#:$1" in
+	1:enable) enable_daemon ;;
+	1:disable) disable_daemon ;;
+	1:status) status_daemon ;;
+	2:boot-enable) boot_enable "$2" ;;
+	*) usage ;;
+esac
