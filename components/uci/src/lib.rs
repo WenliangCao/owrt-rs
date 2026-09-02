@@ -1,0 +1,17 @@
+//! libuci semantics in Rust (contract C6). Module names follow the C units:
+//! `parse` = file.c parser, `export` = file.c export, `file` = file.c backend
+//! (load/commit/list), `delta` = delta.c, `ops` = list.c + util.c lookup.
+
+pub mod context;
+pub mod delta;
+pub mod error;
+pub mod export;
+pub mod file;
+pub mod model;
+pub mod ops;
+pub mod parse;
+pub mod sys;
+
+pub use context::Context;
+pub use error::{Error, Result};
+pub use model::{Cmd, Delta, Opt, OptionValue, Package, Ptr, Section};
