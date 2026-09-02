@@ -220,3 +220,8 @@ logd read 类型策略、httpd 413/MIME、fw4 ipset 空白与 `%.14g` 等），�
 272/272（含 apk 发货二进制，含 SIGHUP 冻结/解冻）；设备只读门禁 51 项在原 rpcd 与 rpcd-rs 下逐字节相同；`owrt-rpcd-switch enable`
 按"停 rpcd → 起 rpcd-rs → 起 rpcd（只剩插件）"接管，`boot-enable on`（S11 先于 S12）。报告 `R17_RPCD_CORE.md`，合同
 `docs/contracts/rpcd-core.md`，决策 0013，清单 `manifests/r17-rpcd-core.json`。
+
+阶段 8（2026-09-02）：rpcd 余下对象 `rpc-sys`、`network.rrdns`、`luci-rpc`、`iwinfo` 迁入 rpcd-rs（纯 Rust rtnetlink 与
+libiwinfo nl80211 后端复刻），沙箱 r18 74/74、并排 r19 11/11、回归 r13/r17 不变；设备只读门禁 49 项在原 rpcd 与 rpcd-rs
+下相同（含两个 radio 的 iwinfo 与 luci-rpc 无线状态）；原 rpcd 进程停止、S12 移除，rpcd-rs 成为唯一 rpcd。
+报告 `R18_RPCD_PLUGINS.md`，合同 `docs/contracts/rpcd-plugins-stage8.md`，决策 0014，清单 `manifests/r18-rpcd-plugins.json`。

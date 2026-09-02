@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "stage": "8-r18-rpcd-plugins",
+  "status": "complete",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "decision": "docs/decisions/0014-rpcd-plugin-objects-and-netlink-read-side.md",
+  "contract": "docs/contracts/rpcd-plugins-stage8.md",
+  "report": "reports/ax3000t-stock-openwrt-25.12.5/R18_RPCD_PLUGINS.md",
+  "upstream": {"rpcd": "28faf640 (sys.c, iwinfo.c)", "rpcd-mod-luci": "20240305 luci-rpc.c", "rpcd-mod-rrdns": "20170710 rrdns.c", "libiwinfo": "f5dd57a8 (nl80211 backend)"},
+  "verification": {
+    "r18_sandbox_steps": 74, "r18_identical": 74,
+    "r19_side_by_side_pairs": 11, "r19_identical": 11,
+    "r17_regression": "272/272", "r13_regression": "63/63",
+    "apk_binary": {"r17": "272/272", "r18": "74/74", "r19": "11/11"},
+    "device_gate": {"lines": 49, "identical": true, "masked": ["signal", "noise", "bitrate", "counters", "expires", "survey times"]},
+    "device_scan": "one per radio, recorded",
+    "probe_window_minutes": 3, "probes": 3,
+    "unit_tests": "30/30 (rpcd)"
+  },
+  "packages": {
+    "owrt-rpcd": {"version": "0.1.0-r4", "apk_sha256": "dfaaf9648f937d188fbfa6bbe0eed2bdbdc455a1325319e0e6b63ca6d24ed720",
+      "rpcd_rs_sha256": "76e720e4a0315620383923db88a0cb0909caf9336dcdedf66c1a92bcd807f125", "rpcd_rs_bytes": 780763,
+      "switch_sha256": "e1ec940ad043757ebcfbd1dbaf654f9fccf370c03d694f889773b288c46642ec", "init_sha256": "685108834bdeb8622cd311f2c58b2be7eac6158354bc9389c40a0f33712d4341"}
+  },
+  "device_state": {"rpcd_rs": "sole rpcd; owns session uci rc file luci rpc-sys network.rrdns luci-rpc iwinfo", "c_rpcd": "stopped, /etc/init.d/rpcd disabled (S12 link removed)",
+    "plugin_dir_mount": "none", "boot_enable": "on", "init": "S11owrt-rpcd"},
+  "not_verified": ["boot path (no reboot)", "iwinfo scan/assoclist beyond one recorded run", "rpc-sys upgrade_start/factory/reboot (never invoked)", "fw4 embedded UCI parser merge (11.6) pending"]
+}

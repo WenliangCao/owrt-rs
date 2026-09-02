@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：执行计划
 
 > 版本：5.0，2026-09-02
-> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）与阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）已完成 2026-09-02。
+> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）、阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）与阶段 8（rpcd-rs 接管全部 rpcd 对象，原 rpcd 停止）已完成 2026-09-02。
 > v4→v5 变更：只新增 §11；§0–§10 保持第一轮原文，作为已完成工作的记录。
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
@@ -62,6 +62,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | 阶段 5（rpcd） | rpcd 插件层 `file`/`luci` Rust 化，沙箱 63/63 相同，裁剪插件目录 + rpcd-rs 服务上线，boot-enable on；session/uci/rc 保留 C | [R13_RPCD](../reports/ax3000t-stock-openwrt-25.12.5/R13_RPCD.md)、[合同 C5](contracts/rpcd-plugins.md)、[决策 0011](decisions/0011-rpcd-plugin-layer-in-rust.md) |
 | 阶段 6（uci） | libuci 语义 + `uci-rs` CLI，上游 112/112，rootfs 差分 175/175，设备门禁 export/show/changes 相同后 bind mount 接管 `/sbin/uci`，reload_config 经候选 0 差异，boot-enable on（S00） | [R16_UCI](../reports/ax3000t-stock-openwrt-25.12.5/R16_UCI.md)、[合同 C6](contracts/uci.md)、[决策 0012](decisions/0012-uci-library-and-cli-in-rust.md) |
 | 阶段 7（rpcd 核心） | `session`/`uci`/`rc` 迁入 rpcd-rs（`uci` 对象基于阶段 6 库），rootfs 双沙箱差分 272/272，设备只读门禁 51 项相同，enable 顺序"停 rpcd → 起 rpcd-rs → 起 rpcd（只剩插件）"，boot-enable on（S11） | [R17_RPCD_CORE](../reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)、[合同 C7](contracts/rpcd-core.md)、[决策 0013](decisions/0013-rpcd-core-objects-in-rust.md) |
+| 阶段 8（rpcd 插件 + netlink 读侧） | `rpc-sys`/`network.rrdns`/`luci-rpc`/`iwinfo` 迁入 rpcd-rs，libiwinfo nl80211 后端与 rtnetlink 读侧纯 Rust 复刻；沙箱 r18 74/74、并排 r19 11/11；设备只读门禁 49 项相同；原 rpcd 停止、S12 移除 | [R18_RPCD_PLUGINS](../reports/ax3000t-stock-openwrt-25.12.5/R18_RPCD_PLUGINS.md)、[合同 C8](contracts/rpcd-plugins-stage8.md)、[决策 0014](decisions/0014-rpcd-plugin-objects-and-netlink-read-side.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
@@ -296,12 +297,15 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
   使 LuCI 会话失效（需重新登录），窗口内告知。
 - **依赖**：阶段 6 的 uci crate；crypt 直接用 musl libc 的 `crypt()`（无新 crate）。
 
-### 11.3 阶段 8：netlink 客户端（只读）+ `luci-rpc`/`iwinfo`——进行中（决策 0014，两步）
+### 11.3 阶段 8：netlink 客户端（只读）+ `luci-rpc`/`iwinfo`——已完成 2026-09-02（决策 0014，两步）
+
+结论见 [R18_RPCD_PLUGINS](../reports/ax3000t-stock-openwrt-25.12.5/R18_RPCD_PLUGINS.md)。
 
 - 8a 完成于 2026-09-02（沙箱）：`rpc-sys`、`network.rrdns` 移植，r18 58/58；`luci-rpc` 非无线方法
   （rtnetlink getifaddrs/邻居表、租约、主机提示、DUID、board）以测试名并排差分 r19 11/11。
-- 8b：nl80211 后端（libiwinfo f5dd57a8 复刻）→ `iwinfo` 对象 + `getWirelessDevices` → 打包 r4 →
-  设备只读门禁（`tools/r20_go_live_device.sh`）→ 原 rpcd 停止并移除 S12。
+- 8b 完成于 2026-09-02：nl80211 后端（libiwinfo f5dd57a8 复刻，5.8k 行）→ `iwinfo` 对象 + `getWirelessDevices`
+  → 打包 r4 → 设备只读门禁 49 项相同（`tools/r20_go_live_device.sh`）→ 原 rpcd 停止并移除 S12。
+- rpcd-rs 的 ubus 断连处理与 C rpcd 一致（退出，procd respawn），不另做重连；阶段 9 的前置以此计。
 
 - **替换**：`luci-rpc`（getNetworkDevices/getWirelessDevices/getHostHints/getDHCPLeases/
   getBoardJSON/getDUIDHints/getConntrackHelpers）与 `iwinfo` 对象；这是"网络状态 daemon"的读侧：
