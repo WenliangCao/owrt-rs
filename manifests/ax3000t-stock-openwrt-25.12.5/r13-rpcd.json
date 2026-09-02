@@ -3,14 +3,14 @@
   "stage": 5,
   "evidence_id": "r13-rpcd",
   "recorded_at": "2026-09-02T14:36:34Z",
-  "status": "offline_verified_awaiting_device_window",
+  "status": "complete_live_boot_enabled",
   "candidate": {
     "package": "owrt-rpcd",
-    "version": "0.1.0-r1",
-    "apk_sha256": "7c664b75af62dad422fd2a26c7a1783dbc70d90475e1afcdeee412c1c84d91a1",
+    "version": "0.1.0-r2",
+    "apk_sha256": "04c12e29df3a4c03de8e7e65ec590e0e4fcd180ea325396e477a99f03d47c307",
     "files": {
       "/usr/sbin/rpcd-rs": "e34bb92d18eb0f62948406317d53dc1423d5cf4b56272f9b9b97a08da46b4f27",
-      "/usr/sbin/owrt-rpcd-switch": "2184d7d05b3e68882fdebf80bb3b1c540889b140a151bb752f49feb676993851",
+      "/usr/sbin/owrt-rpcd-switch": "a77965a6e2fc8880ee6dcee67a69a45505847ce7a5fa2809b169093f08343f34",
       "/etc/init.d/owrt-rpcd": "3ddd28f0d4eb35e934d77f23d2bd503f6173d58314a389664faca71390343433"
     },
     "original_plugins_sha256": {
@@ -31,7 +31,13 @@
       "network.rrdns"
     ],
     "binary_bytes": 477619,
-    "third_party_crates": 0
+    "third_party_crates": 0,
+    "superseded": {
+      "0.1.0-r1": {
+        "apk_sha256": "7c664b75af62dad422fd2a26c7a1783dbc70d90475e1afcdeee412c1c84d91a1",
+        "reason": "switch used pgrep -x; BusyBox pgrep -x matches nothing"
+      }
+    }
   },
   "offline": {
     "sandbox_differential": {
@@ -47,8 +53,51 @@
       "failed": 0
     }
   },
-  "device": null,
+  "device": {
+    "authorization": "user answered 全部授权（1-3） on 2026-09-02",
+    "install": {
+      "utc": "2026-09-02T14:37:43Z",
+      "apk_rc": 0,
+      "files_match": true,
+      "switch": "disabled",
+      "boot_enable": "off",
+      "rc_links": [
+        "S11owrt-rpcd",
+        "K89owrt-rpcd"
+      ],
+      "upgraded_to_r2_utc": "2026-09-02T14:38Z"
+    },
+    "enable": {
+      "utc": "2026-09-02T14:39:26Z",
+      "enable_rc": 0,
+      "mounted_plugins": [
+        "iwinfo.so",
+        "luci.so",
+        "rpcsys.so",
+        "rrdns.so"
+      ],
+      "rpcd_pid": 28509,
+      "rpcd_rs_pid": 28544,
+      "ubus_objects": 40,
+      "samples_identical": [
+        "luci getVersion",
+        "luci getInitList firewall",
+        "luci getBuiltinEthernetPorts",
+        "luci getFeatures (sha)",
+        "luci getConntrackHelpers (sha)",
+        "luci getTimezones (sha)",
+        "file stat",
+        "file list",
+        "file md5",
+        "file exec echo"
+      ],
+      "acl_denied_rc": 6,
+      "boot_enable": "on",
+      "other_components_untouched": true
+    },
+    "probe_window": null
+  },
   "not_done": [
-    "device window (install, enable, boot-enable, ~3 min probe) awaiting authorization"
+    "probe window results pending"
   ]
 }

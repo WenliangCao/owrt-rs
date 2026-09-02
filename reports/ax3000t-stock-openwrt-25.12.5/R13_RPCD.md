@@ -1,6 +1,6 @@
 # R13：rpcd 插件层 Rust 化（rpcd-rs：`file`、`luci`）
 
-> 状态：offline_verified — 等待设备窗口授权
+> 状态：complete_live_boot_enabled（监测窗口见下）
 > 合同：C5（`docs/contracts/rpcd-plugins.md`）；决策：0011
 
 ## 范围与不做的部分
@@ -24,13 +24,13 @@ ACL 通过原 rpcd 的 `session access`（scope=file）完成，路径规范化�
 
 ## 包
 
-`owrt-rpcd 0.1.0-r1`（`packaging/openwrt/owrt-rpcd`）：
+`owrt-rpcd 0.1.0-r2`（`packaging/openwrt/owrt-rpcd`）：
 
 | 文件 | sha256 |
 |---|---|
-| `owrt-rpcd-0.1.0-r1.apk` | `7c664b75af62dad422fd2a26c7a1783dbc70d90475e1afcdeee412c1c84d91a1` |
+| `owrt-rpcd-0.1.0-r2.apk`（r1 `7c664b75…` 先装后升级） | `04c12e29df3a4c03de8e7e65ec590e0e4fcd180ea325396e477a99f03d47c307` |
 | `/usr/sbin/rpcd-rs`（477619 字节，零第三方 crate） | `e34bb92d18eb0f62948406317d53dc1423d5cf4b56272f9b9b97a08da46b4f27` |
-| `/usr/sbin/owrt-rpcd-switch` | `2184d7d05b3e68882fdebf80bb3b1c540889b140a151bb752f49feb676993851` |
+| `/usr/sbin/owrt-rpcd-switch`（r2：`pidof` 代替 BusyBox 不支持的 `pgrep -x`） | `a77965a6e2fc8880ee6dcee67a69a45505847ce7a5fa2809b169093f08343f34` |
 | `/etc/init.d/owrt-rpcd`（S11/K89，procd 服务） | `3ddd28f0d4eb35e934d77f23d2bd503f6173d58314a389664faca71390343433` |
 | 原 `file.so` / `ucode.so`（rootfs 与设备一致） | `f181c959…` / `591c21ee…` |
 
@@ -39,7 +39,15 @@ ACL 通过原 rpcd 的 `session access`（scope=file）完成，路径规范化�
 `boot-enable on` 让 S11 在 S12 rpcd 之前完成挂载并启动 rpcd-rs。rpcd 重启会清空现有 LuCI 会话（用户需
 重新登录），这是原 rpcd 的固有行为。
 
-## 设备步骤（待授权）
+## 设备步骤（2026-09-02，用户授权 1-3）
 
-`tools/r13_go_live_device.sh`：`install` → `enable`（含 boot-enable on）→ `probe`（约 3 分钟，只读；含
-`luci`/`file` 抽样与 ACL 拒绝检查）。退路：`disable` 恢复原插件并重启 rpcd；`rollback` 卸包。
+`tools/r13_go_live_device.sh`，每步一次 SSH，原始输出在 `private/stage5/device/r13-*.txt`。
+
+| 步骤 | 结果 |
+|---|---|
+| install r1 14:37:43Z | `apk add` 成功，文件哈希一致（FILES_OK），switch=disabled，rc 链接 S11/K89；原插件哈希与 rootfs 一致 |
+| 发现并修正 | 探针显示 BusyBox `pgrep -x` 匹配不到任何进程，而 switch 用它验证 rpcd-rs 是否在跑；改用 `pidof`，重建 r2 并升级（`apk add` 升级；升级过程中 prerm 的 `disable` 重启了一次 rpcd） |
+| enable 14:39:26Z | `owrt-rpcd-switch enable` 成功：`/usr/lib/rpcd` 挂载为 4 个插件（iwinfo/luci/rpcsys/rrdns），rpcd 重启（pid 28509），rpcd-rs pid 28544，ubus 对象数不变（40） |
+| 对象抽样（启用前后） | `luci getVersion`/`getInitList firewall`/`getBuiltinEthernetPorts` 相同；`getFeatures`、`getConntrackHelpers`、`getTimezones` 输出哈希相同；`file stat/list/md5/exec` 相同；带伪会话的 `file read` 仍被拒绝（rc 6）；`getMountPoints` 多出一条即新增的 bind mount |
+| boot-enable on | 成功 |
+| 其余 Rust 组件 | httpd-rs 22540、logd-rs 19348 未受影响；reload_config 与 fw4 的 bind mount 仍在 |
