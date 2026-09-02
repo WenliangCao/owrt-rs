@@ -14,8 +14,8 @@
 | 设备门禁（只读，49 项，原 rpcd 与 rpcd-rs 各一次，遮罩信号/计数器/expires） | `GATE_IDENTICAL`：9 个对象签名、`iwinfo` devices/info（两个 radio：phy、ssid、bssid、country、mode、channel、center_chan、frequency、encryption、htmodes/hwmodes、hardware id/name）/freqlist/txpowerlist/countrylist（16,510 字节）/assoclist（已连接站点，rate 表结构）/survey/phyname；`luci-rpc` 全部 6 个方法（真实 radio 状态转发 + iwinfo 子表、真实 DHCP/DHCPv6 租约、56 个主机提示、DUID）；`rpc-sys` packagelist 两种；`network.rrdns` 反查网关得 `OpenWrt.lan`；核心对象抽样 |
 | 设备接管 | `owrt-rpcd-switch enable`：停原 rpcd → 起 rpcd-rs（9/9 对象）→ 校验 luci/session/luci-rpc/iwinfo → `/etc/init.d/rpcd disable`（S12 链接移除）；`boot-enable on`；`owrt-switch status` 六组件 enabled/on；系统上不再有 C rpcd 进程，`/usr/lib/rpcd` 不再被挂载覆盖 |
 | `iwinfo scan`（每 radio 一次，只记录） | 两个 radio 均返回邻居 AP 列表（ssid/bssid/band/channel/signal/quality/ht_operation/vht_operation/encryption） |
-| LuCI 路径（httpd-rs `/ubus` JSON-RPC） | 见 `private/stage8/device/r20-http-jsonrpc.txt`：默认会话对 luci-rpc/iwinfo 按 ACL 拒绝、`luci getFeatures` 正常 |
-| 探针窗口（3 次） | 见 §3 |
+| LuCI 路径（httpd-rs `/ubus` JSON-RPC） | 默认会话对 `luci-rpc getBoardJSON`/`iwinfo devices` 按 ACL 拒绝（-32002）、`session access iwinfo/info` → false、`luci getFeatures` 正常；rpcd-rs 单线程常驻、RSS 1.5 MB |
+| 探针窗口（20:25:19、20:26:40、20:27:56 UTC，3 次） | rpcd-rs pid 15345 不变、无 C rpcd 进程、`objects=9/9`、`recent_rpcd_log=0`、快速探针答案不变 |
 
 ## 2. 结构
 
@@ -35,7 +35,7 @@
 
 ## 3. 探针窗口
 
-`private/stage8/device/r20-probe-window.txt`：enable 于 20:24:46 UTC 完成；3 次 `state`（20:25:19 起，间隔约 75 秒）
+`private/stage8/device/r20-probe-window.txt`：enable 于 20:24:46 UTC 完成；3 次 `state`（20:25:19、20:26:40、20:27:56 UTC）
 rpcd-rs pid 15345 不变、`rpcd_pid` 为空、`objects=9/9`、六组件 enabled/on、`recent_rpcd_log=0`、
 快速探针（ssid、2 个无线接口、56 个主机提示、session access、uci get）答案不变。
 
