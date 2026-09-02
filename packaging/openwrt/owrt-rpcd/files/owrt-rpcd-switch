@@ -2,67 +2,23 @@
 set -eu
 
 CANDIDATE=/usr/sbin/rpcd-rs
-PLUGIN_DIR=/usr/lib/rpcd
-TRIMMED=/tmp/owrt-rpcd-plugins
-FILE_SO_SHA256=f181c959ff0c44db1a9f2d96d053646fd6bf4d38426edc37702764a6e993584f
-UCODE_SO_SHA256=591c21eee13dcae91b75d039719e5733bcd2e1eeec7d0466104b1d2aa8d6c220
-MOUNTINFO=/proc/self/mountinfo
 BOOT_FLAG=/etc/owrt-rpcd.boot-enable
 MARKER=/var/run/owrt-rpcd.enabled
-# objects rpcd-rs must own (contract C7 + C5)
-CORE_OBJECTS="session uci rc file luci"
+RPCD_INIT=/etc/init.d/rpcd
+# every ubus object rpcd-rs must own (contracts C5, C7, C8)
+OBJECTS="session uci rc file luci rpc-sys network.rrdns luci-rpc iwinfo"
 
 usage() {
 	printf '%s\n' 'usage: owrt-rpcd-switch enable|disable|status|boot-enable on|off|status' >&2
 	exit 64
 }
 
-is_mounted() {
-	[ -r "$MOUNTINFO" ] || return 1
-	awk -v target="$PLUGIN_DIR" '$5 == target { found = 1 } END { exit !found }' "$MOUNTINFO"
-}
-
-sha256_of() {
-	sha256sum "$1" | awk '{ print $1 }'
-}
-
-verify_original() {
-	[ -f "$PLUGIN_DIR/file.so" ] && [ -f "$PLUGIN_DIR/ucode.so" ] || {
-		printf 'original rpcd plugins missing under %s\n' "$PLUGIN_DIR" >&2
-		return 1
-	}
-	[ "$(sha256_of "$PLUGIN_DIR/file.so")" = "$FILE_SO_SHA256" ] &&
-	[ "$(sha256_of "$PLUGIN_DIR/ucode.so")" = "$UCODE_SO_SHA256" ] || {
-		printf '%s\n' 'original rpcd plugin identity mismatch' >&2
-		return 1
-	}
-}
-
-# Bind-mount a copy of the plugin directory without file.so and ucode.so.
-do_mount() {
-	is_mounted && return 0
-	verify_original
-	rm -rf "$TRIMMED"
-	mkdir -p "$TRIMMED"
-	for f in "$PLUGIN_DIR"/*.so; do
-		case "$(basename "$f")" in
-			file.so|ucode.so) ;;
-			*) cp "$f" "$TRIMMED/" ;;
-		esac
-	done
-	mount -o bind "$TRIMMED" "$PLUGIN_DIR"
-	is_mounted && [ ! -e "$PLUGIN_DIR/file.so" ]
-}
-
-do_umount() {
-	if is_mounted; then
-		umount "$PLUGIN_DIR"
-	fi
-	! is_mounted
-}
-
 rs_running() {
 	pidof rpcd-rs >/dev/null 2>&1
+}
+
+c_running() {
+	pidof rpcd >/dev/null 2>&1
 }
 
 objects_present() {
@@ -87,64 +43,61 @@ wait_objects_gone() {
 	return 1
 }
 
-# Decision 0013: rpcd-rs registers session/uci/rc/file/luci first; the original
-# rpcd, started afterwards, keeps only its plugins (its own core registrations
-# fail silently). Order matters, so rpcd is stopped while rpcd-rs comes up.
+# Decision 0014: rpcd-rs serves every rpcd object; the original rpcd is
+# stopped and its S12 boot link removed (disable re-enables it). Nothing under
+# /usr/lib/rpcd is touched or mounted over any more.
 enable_layer() {
 	[ -x "$CANDIDATE" ] || {
 		printf 'missing candidate: %s\n' "$CANDIDATE" >&2
 		return 1
 	}
-	if is_mounted && rs_running && [ -e "$MARKER" ]; then
+	if rs_running && ! c_running && [ -e "$MARKER" ]; then
 		printf '%s\n' enabled
 		return
 	fi
 	: > "$MARKER"
-	/etc/init.d/rpcd stop
-	wait_objects_gone session || {
-		printf '%s\n' 'original rpcd still owns the core objects' >&2
+	"$RPCD_INIT" stop
+	wait_objects_gone session luci-rpc || {
+		printf '%s\n' 'original rpcd still owns objects' >&2
 		rm -f "$MARKER"
-		/etc/init.d/rpcd start
+		"$RPCD_INIT" start
 		return 1
 	}
 	/etc/init.d/owrt-rpcd start
-	if ! wait_objects $CORE_OBJECTS; then
-		printf '%s\n' 'rpcd-rs did not register the core objects, reverting' >&2
+	if ! wait_objects $OBJECTS; then
+		printf '%s\n' 'rpcd-rs did not register every object, reverting' >&2
 		disable_layer >/dev/null 2>&1 || true
 		return 1
 	fi
-	/etc/init.d/rpcd start
-	wait_objects luci-rpc || true
-	if ! is_mounted || ! rs_running || ! ubus call luci getVersion >/dev/null 2>&1 ||
-	   ! ubus call session list '{"ubus_rpc_session":"00000000000000000000000000000000"}' >/dev/null 2>&1; then
+	if ! rs_running || ! ubus call luci getVersion >/dev/null 2>&1 ||
+	   ! ubus call session list '{"ubus_rpc_session":"00000000000000000000000000000000"}' >/dev/null 2>&1 ||
+	   ! ubus call luci-rpc getBoardJSON >/dev/null 2>&1 || ! ubus call iwinfo devices >/dev/null 2>&1; then
 		printf '%s\n' 'activation verification failed, reverting' >&2
 		disable_layer >/dev/null 2>&1 || true
 		return 1
 	fi
+	"$RPCD_INIT" disable
 	printf '%s\n' enabled
 }
 
 disable_layer() {
-	/etc/init.d/rpcd stop
 	/etc/init.d/owrt-rpcd stop
 	rm -f "$MARKER"
-	do_umount
-	/etc/init.d/rpcd start
-	wait_objects $CORE_OBJECTS || true
-	verify_original
+	"$RPCD_INIT" enable
+	"$RPCD_INIT" start
+	wait_objects $OBJECTS || true
 	printf '%s\n' disabled
 }
 
 status_layer() {
-	if is_mounted && rs_running; then
+	if rs_running && ! c_running; then
 		printf '%s\n' enabled
 		return 0
 	fi
-	if is_mounted || rs_running; then
-		printf 'partial: mounted=%s rpcd-rs=%s\n' "$(is_mounted && echo yes || echo no)" "$(rs_running && echo yes || echo no)" >&2
+	if rs_running || [ -e "$MARKER" ]; then
+		printf 'partial: rpcd-rs=%s rpcd=%s marker=%s\n' "$(rs_running && echo yes || echo no)" "$(c_running && echo yes || echo no)" "$([ -e "$MARKER" ] && echo yes || echo no)" >&2
 		return 1
 	fi
-	verify_original
 	printf '%s\n' disabled
 	return 3
 }
@@ -169,8 +122,6 @@ case "$#:$1" in
 	1:enable) enable_layer ;;
 	1:disable) disable_layer ;;
 	1:status) status_layer ;;
-	1:mount) do_mount ;;
-	1:umount) do_umount ;;
 	2:boot-enable) boot_enable "$2" ;;
 	*) usage ;;
 esac

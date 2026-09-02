@@ -20,17 +20,17 @@ include $(INCLUDE_DIR)/package.mk
 define Package/owrt-rpcd
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=rpcd core and plugin objects in Rust (session, uci, rc, file, luci)
-  DEPENDS:=@(aarch64) +rpcd +ubus
+  TITLE:=rpcd replacement in Rust (session, uci, rc, file, luci, rpc-sys, rrdns, luci-rpc, iwinfo)
+  DEPENDS:=@(aarch64) +ubus
 endef
 
 define Package/owrt-rpcd/description
- Rust implementation of the rpcd core objects `session`, `uci`, `rc` (contract
- C7, decision 0013) and the plugin-layer objects `file`, `luci` (contract C5) as
- one ubus object server. Installation is inert; owrt-rpcd-switch enable stops
- rpcd, bind-mounts a plugin directory without file.so/ucode.so over
- /usr/lib/rpcd, starts rpcd-rs and then rpcd (which keeps only its plugins);
- disable reverses it. boot-enable makes the switch persistent (S11 before S12).
+ Rust implementation of every rpcd ubus object: `session`, `uci`, `rc`
+ (contract C7), `file`, `luci` (C5), `rpc-sys`, `network.rrdns`, `luci-rpc`,
+ `iwinfo` (C8) as one object server, with its own rtnetlink and nl80211
+ clients. Installation is inert; owrt-rpcd-switch enable stops the original
+ rpcd, starts rpcd-rs and removes rpcd's boot link; disable reverses it.
+ boot-enable makes the switch persistent.
 endef
 
 define Build/Prepare
