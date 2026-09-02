@@ -35,11 +35,12 @@ endef
 
 define Build/Prepare
 	rm -rf $(PKG_BUILD_DIR)
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/rpcd/src $(PKG_BUILD_DIR)/ubus/src $(PKG_BUILD_DIR)/uci/src/bin
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/rpcd/src/iwinfo $(PKG_BUILD_DIR)/ubus/src $(PKG_BUILD_DIR)/uci/src/bin
 	test -f $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.toml
 	test -f $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.lock
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/rpcd/Cargo.lock $(PKG_BUILD_DIR)/rpcd/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/rpcd/src/*.rs $(PKG_BUILD_DIR)/rpcd/src/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/rpcd/src/iwinfo/*.rs $(PKG_BUILD_DIR)/rpcd/src/iwinfo/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/ubus/src/*.rs $(PKG_BUILD_DIR)/ubus/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml $(PKG_BUILD_DIR)/uci/

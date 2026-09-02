@@ -6,7 +6,8 @@ use crate::session::{arg, Reply};
 use crate::{rrdns, rtnl, Ctx, Deferrer};
 use owrt_ubus::blob::MsgType;
 use owrt_ubus::json::Json;
-use owrt_ubus::{status, BlobBuf, Request};
+use owrt_ubus::blob;
+use owrt_ubus::{status, BlobBuf, Connection, Request};
 use std::collections::BTreeMap;
 use std::fs;
 use std::net::{Ipv4Addr, Ipv6Addr};
@@ -861,6 +862,71 @@ mod tests {
     }
 }
 
+// ------------------------------------------------------------ wireless
+
+/// rpc_luci_get_wireless_devices(_cb): `network.wireless status`, every radio
+/// table forwarded field by field with an `iwinfo` table per interface and a
+/// phy-only one per radio. Only the first DATA reply is processed (the C
+/// invoke context clears its callback after one message); a failed lookup is
+/// NOT_FOUND, a missing/late reply an empty table.
+pub fn get_wireless_devices(socket: Option<&str>) -> Reply {
+    let Ok(mut conn) = Connection::connect(socket) else { return Reply { code: status::NOT_FOUND, data: vec![] } };
+    let Ok(id) = conn.lookup_id("network.wireless", 2000) else { return Reply { code: status::NOT_FOUND, data: vec![] } };
+    let msg: Vec<u8> = match conn.invoke_status(id, "status", &[], 2000) {
+        Ok(reply) => reply
+            .data
+            .first()
+            .map(|payload| blob::iter(payload).filter(|a| a.id == owrt_ubus::attr::DATA).map(|a| a.payload.to_vec()).next().unwrap_or_default())
+            .unwrap_or_default(),
+        Err(_) => Vec::new(),
+    };
+    let mut b = BlobBuf::new();
+    for wifi in blob::fields(&msg) {
+        if wifi.ty != MsgType::Table as u32 || wifi.name.is_empty() {
+            continue;
+        }
+        let o = b.msg_open_table(wifi.name);
+        let mut first_ifname: Option<String> = None;
+        for cur in wifi.children() {
+            if cur.name == "iwinfo" {
+                continue;
+            } else if cur.name == "interfaces" {
+                if cur.ty != MsgType::Array as u32 {
+                    continue;
+                }
+                let a = b.msg_open_array("interfaces");
+                for iface in cur.children() {
+                    if iface.ty != MsgType::Table as u32 {
+                        continue;
+                    }
+                    let o2 = b.msg_open_table("");
+                    let mut name: Option<String> = None;
+                    for cur2 in iface.children() {
+                        if cur2.name == "ifname" {
+                            name = cur2.as_str().map(str::to_owned);
+                        } else if cur2.name == "iwinfo" {
+                            continue;
+                        }
+                        b.msg_field(cur2.ty, cur2.name, cur2.data);
+                    }
+                    if let Some(n) = &name {
+                        if crate::iwinfoobj::luci_iwinfo(&mut b, n, false) && first_ifname.is_none() {
+                            first_ifname = Some(n.clone());
+                        }
+                    }
+                    b.msg_close(o2);
+                }
+                b.msg_close(a);
+            } else {
+                b.msg_field(cur.ty, cur.name, cur.data);
+            }
+        }
+        crate::iwinfoobj::luci_iwinfo(&mut b, first_ifname.as_deref().unwrap_or(wifi.name), true);
+        b.msg_close(o);
+    }
+    Reply { code: 0, data: vec![b.into_payload()] }
+}
+
 // ------------------------------------------------------------ dispatch
 
 pub enum Outcome {
@@ -870,7 +936,7 @@ pub enum Outcome {
 
 /// getHostHints (rrdns round trip) and getWirelessDevices (ubus round trip)
 /// are deferred in C; they run on worker threads here.
-pub fn call(_ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
+pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
     match req.method.as_str() {
         "getNetworkDevices" => Outcome::Now(req, get_network_devices()),
         "getHostHints" => {
@@ -884,7 +950,12 @@ pub fn call(_ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
             let r = get_dhcp_leases(&req.data);
             Outcome::Now(req, r)
         }
-        "getWirelessDevices" => Outcome::Now(req, Reply { code: status::NOT_SUPPORTED, data: vec![] }), // stage 8b
+        "getWirelessDevices" => {
+            let d = deferrer.clone();
+            let socket = ctx.socket.clone();
+            std::thread::spawn(move || d.finish(req, get_wireless_devices(socket.as_deref())));
+            Outcome::Deferred
+        }
         _ => Outcome::Now(req, Reply { code: status::METHOD_NOT_FOUND, data: vec![] }),
     }
 }

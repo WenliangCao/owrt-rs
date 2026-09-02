@@ -5,6 +5,8 @@
 mod file;
 mod glob;
 mod ip;
+mod iwinfo;
+mod iwinfoobj;
 mod luci;
 mod lucirpc;
 mod rc;
@@ -119,9 +121,10 @@ struct Ids {
     luci: u32,
     sys: u32,
     rrdns: u32,
-    /// luci-rpc (stage 8b); until the wireless half lands it is registered
-    /// only under a test name given by OWRT_RPCD_LUCI_RPC_NAME (r19 harness).
-    lucirpc: Option<u32>,
+    /// luci-rpc; OWRT_RPCD_LUCI_RPC_NAME overrides the object name so the r19
+    /// harness can run it next to the C plugin in one sandbox.
+    lucirpc: u32,
+    iwinfo: u32,
 }
 
 fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> u32 {
@@ -158,10 +161,13 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
         if let rrdns::Outcome::Now(req, r) = rrdns::call(req, deferrer) {
             reply(conn, &req, r);
         }
-    } else if Some(req.objid) == ids.lucirpc {
+    } else if req.objid == ids.lucirpc {
         if let lucirpc::Outcome::Now(req, r) = lucirpc::call(ctx, req, deferrer) {
             reply(conn, &req, r);
         }
+    } else if req.objid == ids.iwinfo {
+        let r = iwinfoobj::call(&req.method, &req.data);
+        reply(conn, &req, r);
     } else if req.objid == ids.file || req.objid == ids.luci {
         let result = if req.objid == ids.file {
             let args = fields_to_json(&req.data);
@@ -256,7 +262,11 @@ fn main() {
         luci: register(&mut conn, "luci", &luci::signature()),
         sys: register(&mut conn, "rpc-sys", &rpcsys::signature()),
         rrdns: register(&mut conn, "network.rrdns", &rrdns::signature()),
-        lucirpc: std::env::var("OWRT_RPCD_LUCI_RPC_NAME").ok().map(|n| register(&mut conn, &n, &lucirpc::signature())),
+        lucirpc: {
+            let name = std::env::var("OWRT_RPCD_LUCI_RPC_NAME").unwrap_or_else(|_| "luci-rpc".to_owned());
+            register(&mut conn, &name, &lucirpc::signature())
+        },
+        iwinfo: register(&mut conn, "iwinfo", &iwinfoobj::signature()),
     };
     if std::env::var("RPC_HANGUP").ok().as_deref() != Some("1") {
         uciobj::purge_savedirs();
