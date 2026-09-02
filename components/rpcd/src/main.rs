@@ -7,6 +7,8 @@ mod glob;
 mod ip;
 mod luci;
 mod rc;
+mod rpcsys;
+mod rrdns;
 mod session;
 mod uciobj;
 mod util;
@@ -113,6 +115,8 @@ struct Ids {
     rc: u32,
     file: u32,
     luci: u32,
+    sys: u32,
+    rrdns: u32,
 }
 
 fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> u32 {
@@ -139,6 +143,14 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
         reply(conn, &req, r);
     } else if req.objid == ids.rc {
         if let rc::Outcome::Now(req, r) = rc::call(req, deferrer) {
+            reply(conn, &req, r);
+        }
+    } else if req.objid == ids.sys {
+        if let rpcsys::Outcome::Now(req, r) = rpcsys::call(req, ctx.exec_timeout_ms, deferrer) {
+            reply(conn, &req, r);
+        }
+    } else if req.objid == ids.rrdns {
+        if let rrdns::Outcome::Now(req, r) = rrdns::call(req, deferrer) {
             reply(conn, &req, r);
         }
     } else if req.objid == ids.file || req.objid == ids.luci {
@@ -233,6 +245,8 @@ fn main() {
         rc: register(&mut conn, "rc", &rc::signature()),
         file: register(&mut conn, "file", &file::signature()),
         luci: register(&mut conn, "luci", &luci::signature()),
+        sys: register(&mut conn, "rpc-sys", &rpcsys::signature()),
+        rrdns: register(&mut conn, "network.rrdns", &rrdns::signature()),
     };
     if std::env::var("RPC_HANGUP").ok().as_deref() != Some("1") {
         uciobj::purge_savedirs();

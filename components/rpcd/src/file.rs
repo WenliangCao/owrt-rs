@@ -232,7 +232,7 @@ pub fn remove(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
 }
 
 /// file.c `rpc_file_exec_lookup`: as given if a regular file, else PATH search.
-fn exec_lookup(cmd: &str) -> Option<String> {
+pub fn exec_lookup(cmd: &str) -> Option<String> {
     if fs::metadata(cmd).map(|m| m.is_file()).unwrap_or(false) {
         return Some(cmd.to_owned());
     }
@@ -287,10 +287,18 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     if params.len() > 253 {
         return Ok(Some(Json::Object(vec![("code".into(), Json::Int(127))])));
     }
-    let mut command = Command::new(&executable);
-    command.arg0(&executable);
-    command.args(&params);
-    for (k, v) in &env {
+    run_command(&executable, &params, &env, ctx.exec_timeout_ms).map(Some)
+}
+
+/// rpc_exec with the default callbacks (exec.c): run `executable` with
+/// `params`, collect stdout/stderr (64 KiB cap each -> NOT_SUPPORTED), kill on
+/// timeout (-> TIMEOUT), reply {code, stdout?, stderr?}. A failed exec in the
+/// child is code 127.
+pub fn run_command(executable: &str, params: &[String], env: &[(String, String)], timeout_ms: i32) -> Result<Json, i32> {
+    let mut command = Command::new(executable);
+    command.arg0(executable);
+    command.args(params);
+    for (k, v) in env {
         command.env(k, v);
     }
     command.stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
@@ -299,7 +307,7 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     // not as a ubus status. Pre-fork failures (lookup/ACL) already returned.
     let mut child = match command.spawn() {
         Ok(child) => child,
-        Err(_) => return Ok(Some(Json::Object(vec![("code".into(), Json::Int(127))]))),
+        Err(_) => return Ok(Json::Object(vec![("code".into(), Json::Int(127))])),
     };
     let out_pipe = child.stdout.take().unwrap();
     let err_pipe = child.stderr.take().unwrap();
@@ -325,7 +333,7 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     }
     let out_t = reader(Box::new(out_pipe));
     let err_t = reader(Box::new(err_pipe));
-    let deadline = Instant::now() + Duration::from_millis(ctx.exec_timeout_ms as u64);
+    let deadline = Instant::now() + Duration::from_millis(timeout_ms as u64);
     let code = loop {
         match child.try_wait() {
             Ok(Some(st)) => break Ok(st),
@@ -356,7 +364,7 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     if !stderr.is_empty() {
         o.push(("stderr".into(), Json::Str(String::from_utf8_lossy(&stderr).into_owned())));
     }
-    Ok(Some(Json::Object(o)))
+    Ok(Json::Object(o))
 }
 
 /// Dispatch one `file` method.
