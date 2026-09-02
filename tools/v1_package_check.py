@@ -112,6 +112,11 @@ def parse_apk_metadata(text: str) -> dict[str, Any]:
         "          mode: 0755\n"
         "          user: root\n"
         "          group: root",
+        "- name: owrt-reload-config\n"
+        "        acl:\n"
+        "          mode: 0755\n"
+        "          user: root\n"
+        "          group: root",
     ]
     files_root_0755 = all(fragment in text for fragment in expected_file_fragments)
     script_names = set(re.findall(r"^  (post-install|post-upgrade|pre-deinstall):", text, re.MULTILINE))
@@ -258,27 +263,48 @@ expect_disabled() {
 config_before=$(find /etc/config -type f -exec sha256sum {} \; | sort | sha256sum | awk '{print $1}')
 test "$(sha256sum /sbin/reload_config | awk '{print $1}')" = "$expected"
 $apk --no-network add --allow-untrusted /tmp/r1.apk >/tmp/v1-install.log 2>&1
-[ "$(installed_version)" = '0.1.0-r1' ]
+[ "$(installed_version)" = '__VERSION__-r1' ]
 test -x /usr/sbin/reload_config_rs
 test -x /usr/sbin/owrt-reload-config-switch
+test -x /etc/init.d/owrt-reload-config
+test -L /etc/rc.d/S11owrt-reload-config
 candidate_sha256=$(sha256sum /usr/sbin/reload_config_rs | awk '{print $1}')
 expect_disabled
+if /usr/sbin/owrt-reload-config-switch boot-enable status >/dev/null; then
+  echo 'boot-enable unexpectedly on after install' >&2
+  exit 1
+fi
+/etc/init.d/owrt-reload-config start
+expect_disabled
+/usr/sbin/owrt-reload-config-switch boot-enable on >/dev/null
+test -e /etc/owrt-reload-config.boot-enable
+/etc/init.d/owrt-reload-config start
+/usr/sbin/owrt-reload-config-switch status >/dev/null
+cmp -s /usr/sbin/reload_config_rs /sbin/reload_config
+/etc/init.d/owrt-reload-config stop
+expect_disabled
+/usr/sbin/owrt-reload-config-switch boot-enable off >/dev/null
+test ! -e /etc/owrt-reload-config.boot-enable
 /usr/sbin/reload_config_rs --help >/dev/null
 /usr/sbin/owrt-reload-config-switch enable >/dev/null
 /usr/sbin/owrt-reload-config-switch status >/dev/null
 cmp -s /usr/sbin/reload_config_rs /sbin/reload_config
 /sbin/reload_config --help >/dev/null
 $apk --no-network add --allow-untrusted /tmp/r2.apk >/tmp/v1-upgrade.log 2>&1
-[ "$(installed_version)" = '0.1.0-r2' ]
+[ "$(installed_version)" = '__VERSION__-r2' ]
 expect_disabled
 /usr/sbin/owrt-reload-config-switch enable >/dev/null
 $apk --no-network add --allow-untrusted /tmp/r1.apk >/tmp/v1-downgrade.log 2>&1
-[ "$(installed_version)" = '0.1.0-r1' ]
+[ "$(installed_version)" = '__VERSION__-r1' ]
 expect_disabled
 /usr/sbin/owrt-reload-config-switch enable >/dev/null
+/usr/sbin/owrt-reload-config-switch boot-enable on >/dev/null
 $apk --no-network del owrt-reload-config >/tmp/v1-remove.log 2>&1
 test ! -e /usr/sbin/reload_config_rs
 test ! -e /usr/sbin/owrt-reload-config-switch
+test ! -e /etc/init.d/owrt-reload-config
+test ! -e /etc/rc.d/S11owrt-reload-config
+test ! -e /etc/owrt-reload-config.boot-enable
 test "$(sha256sum /sbin/reload_config | awk '{print $1}')" = "$expected"
 config_after=$(find /etc/config -type f -exec sha256sum {} \; | sort | sha256sum | awk '{print $1}')
 [ "$config_before" = "$config_after" ]
@@ -405,12 +431,18 @@ printf 'read_only_io=PASS\nexit_status=%s\nbaseline_sha256=%s\n' "$rc" "$after"
 
 
 def package_lifecycle(
-    rootfs: Path, r1_apk: Path, r2_apk: Path, candidate_sha256: str
+    rootfs: Path,
+    r1_apk: Path,
+    r2_apk: Path,
+    candidate_sha256: str,
+    expect_version: str,
 ) -> dict[str, Any]:
     with package_rootfs(rootfs, "owrt-v1-lifecycle-") as root:
         shutil.copy2(r1_apk, root / "tmp/r1.apk")
         shutil.copy2(r2_apk, root / "tmp/r2.apk")
-        lifecycle = run_namespace(root, LIFECYCLE_SCRIPT)
+        lifecycle = run_namespace(
+            root, LIFECYCLE_SCRIPT.replace("__VERSION__", expect_version)
+        )
 
     with package_rootfs(rootfs, "owrt-v1-reboot-") as root:
         shutil.copy2(r1_apk, root / "tmp/r1.apk")
@@ -537,6 +569,7 @@ def main() -> None:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--image-id", required=True)
     parser.add_argument("--recorded-at", required=True)
+    parser.add_argument("--expect-version", default="0.2.0")
     args = parser.parse_args()
 
     paths = [
@@ -562,8 +595,8 @@ def main() -> None:
     package_checks = {
         "r1_repeat_byte_identical": args.r1_apk.read_bytes()
         == args.r1_repeat_apk.read_bytes(),
-        "r1_version": r1_meta["version"] == "0.1.0-r1",
-        "r2_version": r2_meta["version"] == "0.1.0-r2",
+        "r1_version": r1_meta["version"] == f"{args.expect_version}-r1",
+        "r2_version": r2_meta["version"] == f"{args.expect_version}-r2",
         "name": r1_meta["name"] == r2_meta["name"] == "owrt-reload-config",
         "arch": r1_meta["arch"] == r2_meta["arch"] == "aarch64_cortex-a53",
         "dependencies": set(r1_meta["dependencies"])
@@ -588,6 +621,7 @@ def main() -> None:
         args.r1_apk.resolve(),
         args.r2_apk.resolve(),
         binary["sha256"],
+        args.expect_version,
     )
 
     with tempfile.TemporaryDirectory(prefix="owrt-v1-candidate-") as temp:

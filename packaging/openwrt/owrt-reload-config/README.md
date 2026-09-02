@@ -14,6 +14,21 @@ owrt-reload-config-switch status
 owrt-reload-config-switch disable
 ```
 
+Version 0.2.0 adds `/etc/init.d/owrt-reload-config` (START=11, after the S10
+`boot` script has run the original dispatcher once). It does nothing unless the
+operator turns on the persistent flag:
+
+```sh
+owrt-reload-config-switch boot-enable on      # creates /etc/owrt-reload-config.boot-enable
+owrt-reload-config-switch boot-enable status  # on (0) / off (3)
+owrt-reload-config-switch boot-enable off
+```
+
+With the flag on, every boot re-applies the bind mount so all later callers use
+the Rust dispatcher. Removing the package turns the flag off and disables the
+init script. The 0.2.0 dispatcher writes its JSONL trace to syslog by default
+(`daemon.info`, tag `reload_config`); `--trace-stderr` restores the stderr trace.
+
 `enable` first verifies the exact deployed `/sbin/reload_config` SHA-256, then
 bind-mounts the candidate over that path. `disable` unmounts it and verifies
 that the exact original is visible again. A reboot also removes the bind mount.

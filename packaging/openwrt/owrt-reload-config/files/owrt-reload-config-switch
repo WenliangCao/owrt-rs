@@ -5,9 +5,10 @@ CANDIDATE=/usr/sbin/reload_config_rs
 TARGET=/sbin/reload_config
 ORIGINAL_SHA256=f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15
 MOUNTINFO=/proc/self/mountinfo
+BOOT_FLAG=/etc/owrt-reload-config.boot-enable
 
 usage() {
-	printf '%s\n' 'usage: owrt-reload-config-switch enable|disable|status' >&2
+	printf '%s\n' 'usage: owrt-reload-config-switch enable|disable|status|boot-enable on|off|status' >&2
 	exit 64
 }
 
@@ -79,10 +80,26 @@ status_dispatcher() {
 	return 3
 }
 
-[ "$#" -eq 1 ] || usage
-case "$1" in
-	enable) enable_dispatcher ;;
-	disable) disable_dispatcher ;;
-	status) status_dispatcher ;;
+boot_enable() {
+	case "${1:-}" in
+		on) : > "$BOOT_FLAG"; printf '%s\n' on ;;
+		off) rm -f "$BOOT_FLAG"; printf '%s\n' off ;;
+		status)
+			if [ -e "$BOOT_FLAG" ]; then
+				printf '%s\n' on
+			else
+				printf '%s\n' off
+				return 3
+			fi
+			;;
+		*) usage ;;
+	esac
+}
+
+case "$#:$1" in
+	1:enable) enable_dispatcher ;;
+	1:disable) disable_dispatcher ;;
+	1:status) status_dispatcher ;;
+	2:boot-enable) boot_enable "$2" ;;
 	*) usage ;;
 esac

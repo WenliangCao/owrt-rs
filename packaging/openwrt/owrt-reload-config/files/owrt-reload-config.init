@@ -1,0 +1,17 @@
+#!/bin/sh /etc/rc.common
+# Activate the Rust reload_config dispatcher after boot when the operator has
+# turned boot-enable on. S10 boot runs the original /sbin/reload_config first;
+# this script runs after it and only installs the reboot-volatile bind mount.
+START=11
+STOP=89
+
+SWITCH=/usr/sbin/owrt-reload-config-switch
+
+start() {
+	"$SWITCH" boot-enable status >/dev/null 2>&1 || return 0
+	"$SWITCH" enable
+}
+
+stop() {
+	"$SWITCH" disable
+}

@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=owrt-reload-config
-PKG_VERSION:=0.1.0
+PKG_VERSION:=0.2.0
 PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),1)
 
 PKG_MAINTAINER:=owrt-control-plane-rs project
@@ -26,7 +26,8 @@ endef
 
 define Package/owrt-reload-config/description
  Contract C1-01 compatible config change dispatcher. Installation is inert;
- an explicit, reboot-volatile bind-mount switch is required to activate it.
+ an explicit, reboot-volatile bind-mount switch is required to activate it;
+ boot-enable re-applies that switch after every boot when turned on.
 endef
 
 define Build/Prepare
@@ -58,18 +59,28 @@ define Package/owrt-reload-config/install
 		$(1)/usr/sbin/reload_config_rs
 	$(INSTALL_BIN) ./files/owrt-reload-config-switch \
 		$(1)/usr/sbin/owrt-reload-config-switch
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/owrt-reload-config.init \
+		$(1)/etc/init.d/owrt-reload-config
 endef
 
 define Package/owrt-reload-config/postinst
 #!/bin/sh
 set -eu
-[ -n "$${IPKG_INSTROOT:-}" ] || /usr/sbin/owrt-reload-config-switch disable
+[ -n "$${IPKG_INSTROOT:-}" ] || {
+	/usr/sbin/owrt-reload-config-switch disable
+	/etc/init.d/owrt-reload-config enable
+}
 endef
 
 define Package/owrt-reload-config/prerm
 #!/bin/sh
 set -eu
-[ -n "$${IPKG_INSTROOT:-}" ] || /usr/sbin/owrt-reload-config-switch disable
+[ -n "$${IPKG_INSTROOT:-}" ] || {
+	/usr/sbin/owrt-reload-config-switch disable
+	/usr/sbin/owrt-reload-config-switch boot-enable off >/dev/null
+	/etc/init.d/owrt-reload-config disable
+}
 endef
 
 $(eval $(call BuildPackage,owrt-reload-config))
