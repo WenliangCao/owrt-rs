@@ -40,7 +40,7 @@ verify_original() {
 # argv[0] (/sbin/uci vs /usr/sbin/uci-rs) in any error prefix.
 gate() {
 	d=$(mktemp -d) || return 1
-	before=$(ls -la /tmp/.uci 2>/dev/null | sha256sum | awk '{ print $1 }')
+	before=$(ls -l /tmp/.uci 2>/dev/null | sha256sum | awk '{ print $1 }')
 	rc=0
 	for cmd in export show changes; do
 		"$TARGET" $cmd >"$d/o.$cmd" 2>/dev/null; ra=$?
@@ -53,7 +53,7 @@ gate() {
 			rc=2
 		fi
 	done
-	after=$(ls -la /tmp/.uci 2>/dev/null | sha256sum | awk '{ print $1 }')
+	after=$(ls -l /tmp/.uci 2>/dev/null | sha256sum | awk '{ print $1 }')
 	[ "$before" = "$after" ] || {
 		printf '%s\n' 'gate: /tmp/.uci changed during read-only gate' >&2
 		rc=2

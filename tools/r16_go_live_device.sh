@@ -1,14 +1,14 @@
 #!/bin/sh
-# R16 go-live device steps for owrt-uci 0.1.0-r1 (+ owrt-switch r2) on the AX3000T.
+# R16 go-live device steps for owrt-uci 0.1.0-r2 (+ owrt-switch r2) on the AX3000T.
 # Run one step per SSH call:  ssh openwrt 'sh -s <step>' < tools/r16_go_live_device.sh
 # Steps: install (APKs must already be at /tmp) | gate | enable | probe | disable | rollback
 set -u
-APK=/tmp/owrt-uci-0.1.0-r1.apk
-APK_SHA=4cb5dbf59e4e03339ce803cf0f75284b5f2a361162299ebcec60b593c8d6a1a1
+APK=/tmp/owrt-uci-0.1.0-r2.apk
+APK_SHA=2fbe9cd4a9f3a51fff03abb8a2c2cd91959e55a469666e089867d3d473e911e9
 SW_APK=/tmp/owrt-switch-0.1.0-r2.apk
 SW_APK_SHA=2814f8fc5fcc2f4d19dc2781bc763689bcbf400a0d42fd0781d154650a8cd94b
 CAND_SHA=f4b4e28c32051f8c2aa2e684339a1198a6cbe7b66bd52a30caa922819213ccfb
-SWITCH_SHA=f3dc48711fbe60a52db3f76524b6d5550cbc8fe4e6ffba7e2665fd32179e4b12
+SWITCH_SHA=f8ced182be3c095b182deefee80e0e8e828f0bb66db8e2ea31c3fa72fbc71bba
 INIT_SHA=736ee9a244e0c909cd49e71635524d9cc51e4af8b516d8f7e26e1650bf37e3e7
 ORIG_UCI_SHA=050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278
 SWITCH=/usr/sbin/owrt-uci-switch
@@ -24,7 +24,7 @@ probe_uci() {
 	echo "uci_get_missing_rc=$(uci -q get nonexist.a.b >/dev/null 2>&1; echo $?)"
 	echo "uci_state_export=$(uci -P /var/state -S -n export network 2>/dev/null | sha256sum | cut -c1-16)"
 	echo "uci_bin_size=$(wc -c < /sbin/uci)"
-	echo "tmp_uci=$(ls -la /tmp/.uci 2>/dev/null | sha256sum | cut -c1-16) var_state=$(ls /var/state 2>/dev/null | tr '\n' ' ')"
+	echo "tmp_uci=$(ls -l /tmp/.uci 2>/dev/null | sha256sum | cut -c1-16) var_state=$(ls /var/state 2>/dev/null | tr '\n' ' ')"
 }
 state() {
 	echo "== state $(date -u +%Y-%m-%dT%H:%M:%SZ)"
