@@ -104,7 +104,27 @@ impl Client {
     }
 }
 
+/// ubus_add_object("log", ...)
+fn register_log(conn: &mut Connection) -> io::Result<u32> {
+    conn.add_object(
+        "log",
+        &[
+            (
+                "read",
+                &[
+                    ("lines", MsgType::Int32),
+                    ("stream", MsgType::Int8),
+                    ("oneshot", MsgType::Int8),
+                ],
+            ),
+            ("write", &[("event", MsgType::String)]),
+        ],
+        5_000,
+    )
+}
+
 struct Daemon {
+    ubus_socket: Option<String>,
     conn: Connection,
     objid: u32,
     ring: Ring,
@@ -259,7 +279,58 @@ impl Daemon {
         }
     }
 
+    /// libubus ubus_auto_connect(): after the connection to ubusd is lost,
+    /// retry every second and register the object again; the ring buffer and
+    /// the stream clients survive (C logd behaves the same way).
+    fn reconnect(&mut self) {
+        loop {
+            // keep collecting syslog/kmsg while ubusd is away (uloop keeps
+            // servicing those fds in C logd too)
+            let mut fds = vec![sys::PollFd {
+                fd: self.syslog.as_raw_fd(),
+                events: sys::POLLIN,
+                revents: 0,
+            }];
+            if let Some(kmsg) = &self.kmsg {
+                fds.push(sys::PollFd {
+                    fd: kmsg.as_raw_fd(),
+                    events: sys::POLLIN,
+                    revents: 0,
+                });
+            }
+            if sys::poll_fds(&mut fds, 1000).is_ok() {
+                if fds[0].revents & sys::POLLIN != 0 {
+                    self.drain_syslog();
+                }
+                if fds.len() > 1 && fds[1].revents & sys::POLLIN != 0 {
+                    self.drain_kmsg();
+                }
+            }
+            match Connection::connect(self.ubus_socket.as_deref()) {
+                Ok(mut conn) => match register_log(&mut conn) {
+                    Ok(id) => {
+                        self.conn = conn;
+                        self.objid = id;
+                        self.has_subscribers = false;
+                        return;
+                    }
+                    Err(error) => eprintln!("logd-rs: failed to add object: {error}"),
+                },
+                Err(_) => {}
+            }
+        }
+    }
+
     fn run(&mut self) -> io::Result<()> {
+        loop {
+            if let Err(error) = self.run_connected() {
+                eprintln!("logd-rs: ubus connection lost: {error}");
+                self.reconnect();
+            }
+        }
+    }
+
+    fn run_connected(&mut self) -> io::Result<()> {
         loop {
             while self.conn.has_pending() {
                 let incoming = self.conn.read_incoming()?;
@@ -390,21 +461,7 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let objid = match conn.add_object(
-        "log",
-        &[
-            (
-                "read",
-                &[
-                    ("lines", MsgType::Int32),
-                    ("stream", MsgType::Int8),
-                    ("oneshot", MsgType::Int8),
-                ],
-            ),
-            ("write", &[("event", MsgType::String)]),
-        ],
-        5_000,
-    ) {
+    let objid = match register_log(&mut conn) {
         Ok(id) => id,
         Err(error) => {
             eprintln!("logd-rs: failed to add object: {error}");
@@ -423,6 +480,7 @@ fn main() {
         }
     }
     let mut daemon = Daemon {
+        ubus_socket: options.ubus_socket.clone(),
         conn,
         objid,
         ring: Ring::new(options.log_size),

@@ -208,7 +208,7 @@ def run_side(rootfs, impl, binary):
     tmp = tempfile.mkdtemp(prefix="owrt-r18-")
     root = os.path.join(tmp, "root")
     sudo("cp", "-a", rootfs, root)
-    sudo("chown", "-R", "root:root", os.path.join(root, "etc/init.d"), os.path.join(root, "etc/rc.d"), os.path.join(root, "etc/config"))
+    sudo("chown", "-R", "root:root", os.path.join(root, "etc/init.d"), os.path.join(root, "etc/rc.d"), os.path.join(root, "etc/config"), os.path.join(root, "usr/share/acl.d"))
     if impl == "candidate":
         sudo("rm", "-f", os.path.join(root, "usr/lib/rpcd/file.so"), os.path.join(root, "usr/lib/rpcd/ucode.so"))
         sudo("cp", binary, os.path.join(root, "tmp/rpcd-rs"))

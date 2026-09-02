@@ -433,7 +433,7 @@ def run_side(rootfs, impl, binary):
     tmp = tempfile.mkdtemp(prefix="owrt-r17-")
     root = os.path.join(tmp, "root")
     sudo("cp", "-a", rootfs, root)
-    sudo("chown", "-R", "root:root", os.path.join(root, "etc/init.d"), os.path.join(root, "etc/rc.d"), os.path.join(root, "etc/config"))
+    sudo("chown", "-R", "root:root", os.path.join(root, "etc/init.d"), os.path.join(root, "etc/rc.d"), os.path.join(root, "etc/config"), os.path.join(root, "usr/share/acl.d"))
     sudo("sh", "-c", "cp %s/etc/config/firewall %s/etc/config/fwtest && cp %s/etc/config/dhcp %s/etc/config/dhcptest && chmod 0600 %s/etc/config/fwtest %s/etc/config/dhcptest" % ((root,) * 6))
     sudo("sh", "-c", "cat >> %s/etc/config/rpcd" % root, input=RPCD_LOGINS.encode())
     sudo("sh", "-c", "printf '%%s\\n' 'r17shadow:%s:0:0:99999:7:::' >> %s/etc/shadow" % (SHADOW_HASH, root))

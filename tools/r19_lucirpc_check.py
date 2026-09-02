@@ -194,7 +194,7 @@ def main():
     root = os.path.join(tmp, "root")
     try:
         sudo("cp", "-a", rootfs, root)
-        sudo("chown", "-R", "root:root", os.path.join(root, "etc/config"))
+        sudo("chown", "-R", "root:root", os.path.join(root, "etc/config"), os.path.join(root, "usr/share/acl.d"))
         sudo("cp", binary, os.path.join(root, "tmp/rpcd-rs"))
         sudo("chmod", "755", os.path.join(root, "tmp/rpcd-rs"))
         for name, content in (("steps.sh", build_steps()), ("fixtures.sh", FIXTURES)):
