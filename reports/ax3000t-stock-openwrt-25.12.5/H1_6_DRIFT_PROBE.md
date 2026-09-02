@@ -36,3 +36,23 @@ packet_steering 幂等重写，不会改变接口状态。
 
 H1.6 之前先用**原始**实现执行一次 `/sbin/reload_config` 收口 baseline，这是设备管理员的常规
 操作，预期恰好一个 `network` 事件、零接口变化。收口后再单独授权 canary。两步都尚未授权。
+
+## 2026-09-02 10:29Z：用原始实现收口 drift（已授权，已执行）
+
+在 switch 仍为 `disabled`、mount count 0、`/sbin/reload_config` 为原始 SHA-256 的状态下执行一次
+`/sbin/reload_config`，退出码 0。
+
+| 项目 | 前 | 后 |
+|---|---|---|
+| baseline SHA-256 | `b77e0e99…c163` | `da010536…39d0c` |
+| baseline 条目 | 19 | 19 |
+| `network` 条目 md5 | `01940b21…` | `7bde7b1d…`，等于当前 `uci show network` |
+| drift 复核 | 1 项 | 0 项 |
+| netifd / odhcpd / dnsmasq pid 与启动时间 | 1764/1369、1882/1414、3148/2090 | 完全相同，无重启 |
+| 接口 uptime | 连续 | 连续，lan/wan/wan6 均未重启 |
+| `eth0` rps_cpus | 2 | 2 |
+
+响应 `network` config.change 的 procd 服务实测为 network、odhcpd、packet_steering、ucitrack。
+日志中可见的效果只有 hostapd "Reload all interfaces / Reloaded settings for phy0, phy1"（netifd
+reload 连带重读 wireless 配置，无 station 断连记录）和 dnsmasq 重读 hosts 文件（SIGHUP，pid
+不变）。SSH 会话全程保持。
