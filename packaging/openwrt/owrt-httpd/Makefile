@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=owrt-httpd
-PKG_VERSION:=0.1.0
+PKG_VERSION:=0.1.1
 PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),1)
 
 PKG_MAINTAINER:=owrt-control-plane-rs project

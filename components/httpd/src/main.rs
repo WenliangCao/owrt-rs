@@ -134,18 +134,64 @@ fn bind(spec: &str) -> io::Result<TcpListener> {
         spec.parse()
             .map_err(|_| io::Error::other(format!("bad listen spec {spec}")))?
     };
-    let listener = if addr.is_ipv6() {
-        // bind v6-only so v4 and v6 sockets on the same port coexist like uhttpd
-        let domain_listener = std::net::TcpListener::bind(addr);
-        match domain_listener {
-            Ok(l) => l,
-            Err(e) if e.kind() == io::ErrorKind::AddrInUse => return Err(e),
-            Err(e) => return Err(e),
-        }
-    } else {
-        TcpListener::bind(addr)?
+    match addr {
+        SocketAddr::V4(_) => TcpListener::bind(addr),
+        SocketAddr::V6(v6) => bind_v6only(v6),
+    }
+}
+
+/// Like uhttpd (usock with USOCK_IPV6ONLY): a v6 listener that does not claim
+/// the v4 wildcard, so "-p 0.0.0.0:80 -p [::]:80" can coexist.
+fn bind_v6only(addr: std::net::SocketAddrV6) -> io::Result<TcpListener> {
+    use std::os::fd::FromRawFd;
+    #[repr(C)]
+    struct SockAddrIn6 {
+        family: u16,
+        port: u16,
+        flowinfo: u32,
+        addr: [u8; 16],
+        scope_id: u32,
+    }
+    extern "C" {
+        fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
+        fn setsockopt(fd: i32, level: i32, name: i32, value: *const i32, len: u32) -> i32;
+        fn bind(fd: i32, addr: *const SockAddrIn6, len: u32) -> i32;
+        fn listen(fd: i32, backlog: i32) -> i32;
+        fn close(fd: i32) -> i32;
+    }
+    const AF_INET6: i32 = 10;
+    const SOCK_STREAM: i32 = 1;
+    const SOCK_CLOEXEC: i32 = 0o2000000;
+    const SOL_SOCKET: i32 = 1;
+    const SO_REUSEADDR: i32 = 2;
+    const IPPROTO_IPV6: i32 = 41;
+    const IPV6_V6ONLY: i32 = 26;
+    let fd = unsafe { socket(AF_INET6, SOCK_STREAM | SOCK_CLOEXEC, 0) };
+    if fd < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    let one: i32 = 1;
+    let sa = SockAddrIn6 {
+        family: AF_INET6 as u16,
+        port: addr.port().to_be(),
+        flowinfo: 0,
+        addr: addr.ip().octets(),
+        scope_id: addr.scope_id(),
     };
-    Ok(listener)
+    let ok = unsafe {
+        setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &one, 4) == 0
+            && setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, 4) == 0
+            && bind(fd, &sa, std::mem::size_of::<SockAddrIn6>() as u32) == 0
+            && listen(fd, 128) == 0
+    };
+    if !ok {
+        let error = io::Error::last_os_error();
+        unsafe {
+            close(fd);
+        }
+        return Err(error);
+    }
+    Ok(unsafe { TcpListener::from_raw_fd(fd) })
 }
 
 fn is_rfc1918(ip: IpAddr) -> bool {
