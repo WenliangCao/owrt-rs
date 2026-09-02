@@ -1,0 +1,256 @@
+//! ucode value semantics needed for a faithful port: loose equality, numeric
+//! and string coercion, truthiness, `to_array`.
+
+use owrt_ubus::json::Json;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Num {
+    Int(i64),
+    Dbl(f64),
+}
+
+impl Num {
+    pub fn is_nan(self) -> bool {
+        matches!(self, Num::Dbl(d) if d.is_nan())
+    }
+    pub fn as_f64(self) -> f64 {
+        match self {
+            Num::Int(i) => i as f64,
+            Num::Dbl(d) => d,
+        }
+    }
+    pub fn as_i64(self) -> i64 {
+        match self {
+            Num::Int(i) => i,
+            Num::Dbl(d) => d as i64,
+        }
+    }
+    /// ucode string conversion of a number ("" + n).
+    pub fn to_ucode_string(self) -> String {
+        match self {
+            Num::Int(i) => i.to_string(),
+            Num::Dbl(d) => fmt_double(d),
+        }
+    }
+}
+
+fn fmt_double(d: f64) -> String {
+    if d.is_nan() {
+        return "NaN".into();
+    }
+    if d.is_infinite() {
+        return if d > 0.0 { "Infinity".into() } else { "-Infinity".into() };
+    }
+    if d == d.trunc() && d.abs() < 1e15 {
+        return format!("{}", d as i64);
+    }
+    // %.14g
+    let s = format!("{:.13e}", d);
+    let (mant, exp) = s.split_once('e').unwrap_or((&s, "0"));
+    let exp: i32 = exp.parse().unwrap_or(0);
+    if !(-5..14).contains(&exp) {
+        let mant = mant.trim_end_matches('0').trim_end_matches('.');
+        return format!("{}e{}{:02}", mant, if exp < 0 { '-' } else { '+' }, exp.abs());
+    }
+    let mut s = format!("{:.*}", (13 - exp).max(0) as usize, d);
+    if s.contains('.') {
+        s = s.trim_end_matches('0').trim_end_matches('.').to_owned();
+    }
+    s
+}
+
+/// ucode `+str` conversion.
+pub fn parse_num_str(s: &str) -> Num {
+    let t = s.trim_matches(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r');
+    if t.is_empty() {
+        return Num::Int(0);
+    }
+    let (neg, body) = match t.as_bytes()[0] {
+        b'-' => (true, &t[1..]),
+        b'+' => (false, &t[1..]),
+        _ => (false, t),
+    };
+    if body.is_empty() {
+        return Num::Dbl(f64::NAN);
+    }
+    let radix = if body.len() > 2 {
+        match &body[..2] {
+            "0x" | "0X" => Some((16, &body[2..])),
+            "0b" | "0B" => Some((2, &body[2..])),
+            "0o" | "0O" => Some((8, &body[2..])),
+            _ => None,
+        }
+    } else {
+        None
+    };
+    if let Some((radix, digits)) = radix {
+        if !digits.is_empty() && digits.chars().all(|c| c.is_digit(radix)) {
+            return match i64::from_str_radix(digits, radix) {
+                Ok(v) => Num::Int(if neg { -v } else { v }),
+                Err(_) => match u64::from_str_radix(digits, radix) {
+                    Ok(v) => Num::Dbl(if neg { -(v as f64) } else { v as f64 }),
+                    Err(_) => Num::Dbl(f64::NAN),
+                },
+            };
+        }
+        return Num::Dbl(f64::NAN);
+    }
+    if body.bytes().all(|b| b.is_ascii_digit()) {
+        return match body.parse::<i64>() {
+            Ok(v) => Num::Int(if neg { -v } else { v }),
+            Err(_) => Num::Dbl(body.parse::<f64>().map(|v| if neg { -v } else { v }).unwrap_or(f64::NAN)),
+        };
+    }
+    // double: digits [. digits*] [e[+-]digits]
+    let bytes = body.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() && bytes[i].is_ascii_digit() {
+        i += 1;
+    }
+    if i == 0 {
+        return Num::Dbl(f64::NAN);
+    }
+    if i < bytes.len() && bytes[i] == b'.' {
+        i += 1;
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+    }
+    if i < bytes.len() && (bytes[i] == b'e' || bytes[i] == b'E') {
+        let mut j = i + 1;
+        if j < bytes.len() && (bytes[j] == b'+' || bytes[j] == b'-') {
+            j += 1;
+        }
+        let ds = j;
+        while j < bytes.len() && bytes[j].is_ascii_digit() {
+            j += 1;
+        }
+        if j == ds {
+            return Num::Dbl(f64::NAN);
+        }
+        i = j;
+    }
+    if i != bytes.len() {
+        return Num::Dbl(f64::NAN);
+    }
+    match body.parse::<f64>() {
+        Ok(v) => Num::Dbl(if neg { -v } else { v }),
+        Err(_) => Num::Dbl(f64::NAN),
+    }
+}
+
+/// ucode `+val`.
+pub fn to_num(v: &Json) -> Num {
+    match v {
+        Json::Null => Num::Int(0),
+        Json::Bool(b) => Num::Int(*b as i64),
+        Json::Int(i) => Num::Int(*i),
+        Json::Float(f) => Num::Dbl(*f),
+        Json::Str(s) => parse_num_str(s),
+        Json::Array(_) | Json::Object(_) => Num::Dbl(f64::NAN),
+    }
+}
+
+/// ucode `"" + val`.
+pub fn to_str(v: &Json) -> String {
+    match v {
+        Json::Null => "null".into(),
+        Json::Bool(b) => if *b { "true".into() } else { "false".into() },
+        Json::Int(i) => i.to_string(),
+        Json::Float(f) => fmt_double(*f),
+        Json::Str(s) => s.clone(),
+        Json::Array(_) | Json::Object(_) => v.to_compact(),
+    }
+}
+
+/// ucode loose `==` against a string literal.
+pub fn loose_eq_str(v: &Json, s: &str) -> bool {
+    match v {
+        Json::Str(x) => x == s,
+        Json::Null => false,
+        Json::Array(_) | Json::Object(_) => false,
+        _ => {
+            let a = to_num(v);
+            let b = parse_num_str(s);
+            !a.is_nan() && !b.is_nan() && a.as_f64() == b.as_f64()
+        }
+    }
+}
+
+/// ucode truthiness.
+pub fn truthy(v: &Json) -> bool {
+    match v {
+        Json::Null => false,
+        Json::Bool(b) => *b,
+        Json::Int(i) => *i != 0,
+        Json::Float(f) => *f != 0.0 && !f.is_nan(),
+        Json::Str(s) => !s.is_empty(),
+        Json::Array(_) | Json::Object(_) => true,
+    }
+}
+
+/// fw4.uc `to_array(x)`.
+pub fn to_array(v: &Json) -> Vec<Json> {
+    match v {
+        Json::Array(a) => a.clone(),
+        Json::Null => Vec::new(),
+        Json::Object(_) => vec![v.clone()],
+        _ => {
+            let s = to_str(v);
+            let t = s.trim_matches(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r');
+            if t.is_empty() {
+                Vec::new()
+            } else {
+                t.split(|c| c == ' ' || c == '\t')
+                    .filter(|p| !p.is_empty())
+                    .map(|p| Json::Str(p.to_owned()))
+                    .collect()
+            }
+        }
+    }
+}
+
+/// ucode `trim()` (space, tab, CR, LF).
+pub fn trim(s: &str) -> &str {
+    s.trim_matches(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r')
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn numbers() {
+        assert_eq!(parse_num_str("0x10"), Num::Int(16));
+        assert_eq!(parse_num_str("010"), Num::Int(10));
+        assert_eq!(parse_num_str(" 5 "), Num::Int(5));
+        assert!(parse_num_str("abc").is_nan());
+        assert_eq!(parse_num_str(""), Num::Int(0));
+        assert_eq!(parse_num_str("1.5"), Num::Dbl(1.5));
+        assert_eq!(parse_num_str("1e3"), Num::Dbl(1000.0));
+        assert_eq!(parse_num_str("-5"), Num::Int(-5));
+        assert!(parse_num_str("12abc").is_nan());
+        assert_eq!(parse_num_str("0X1f"), Num::Int(31));
+        assert_eq!(parse_num_str("+7"), Num::Int(7));
+        assert_eq!(parse_num_str("0b11"), Num::Int(3));
+        assert_eq!(parse_num_str("0o17"), Num::Int(15));
+        assert_eq!(parse_num_str("1."), Num::Dbl(1.0));
+        assert!(parse_num_str(".5").is_nan());
+        assert!(parse_num_str("Infinity").is_nan());
+        assert_eq!(Num::Dbl(1000.0).to_ucode_string(), "1000");
+        assert_eq!(Num::Dbl(1.5).to_ucode_string(), "1.5");
+    }
+
+    #[test]
+    fn loose() {
+        assert!(loose_eq_str(&Json::Int(0), "0"));
+        assert!(loose_eq_str(&Json::Bool(true), "1"));
+        assert!(loose_eq_str(&Json::Bool(false), "0"));
+        assert!(loose_eq_str(&Json::Int(0), ""));
+        assert!(!loose_eq_str(&Json::Int(1), "on"));
+        assert!(loose_eq_str(&Json::Str("on".into()), "on"));
+        assert_eq!(to_array(&Json::Str(" a  b\tc ".into())).len(), 3);
+        assert_eq!(to_array(&Json::Int(0)), vec![Json::Str("0".into())]);
+        assert_eq!(to_str(&Json::Float(100.0)), "100");
+    }
+}
