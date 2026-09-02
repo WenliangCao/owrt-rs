@@ -17,8 +17,8 @@ APK_SHA256 = "02d0c977d68192c28d0ef537a704435d9814fb8e04763cd67d73e00e41e5d9b1"
 APK_SIZE = 184_099
 H1_4_SHA256 = "b4ab763ddea8357af777cfb360d7d41c2284f2b91df33496c7cb0ec7ea69dc26"
 V1_SHA256 = "7acd6d3cd26cec7aa7be32e71b6e617bbc739b0fbc1c9c0a4b4a8ae0ba62fb8d"
-HARNESS_SHA256 = "404592c75fc5c1f42fcf2b4e7f749328112e6b5cfaa594f5a64473df98108283"
-RUNNER_SHA256 = "67a7874f93fd94a8a049b8af361400d373912f86956e9af2a66699113808e4ca"
+HARNESS_SHA256 = "69ea54de29232d0f626d9ad9258b428e6362c7d92888721b25d77f2d7c2a1b69"
+RUNNER_SHA256 = "f301b08cee3d5d18d5e750a6e7d3869fc88def21ca4f2d41c6922970449b49d1"
 REMOTE_PATHS = {
     "/tmp/owrt-h1-5-r1.apk",
     "/tmp/owrt-h1-5-disabled-install.sh",
@@ -155,6 +155,21 @@ def main() -> None:
     rollback = manifest.get("rollback", {})
     require(rollback.get("command") == "/usr/bin/apk --no-network del owrt-reload-config",
             "rollback command changed")
+    require("immutable /rom scripts archive restored" in rollback.get("required_result", ""),
+            "exact scripts archive rollback missing")
+
+    corrections = manifest.get("method_corrections", [])
+    require(len(corrections) == 1, "run-01 correction missing")
+    correction = corrections[0]
+    require(correction.get("attempt") == "run-01", "correction attempt mismatch")
+    require(correction.get("failed_step") == "installed-files",
+            "correction failure boundary mismatch")
+    require(correction.get("package_install_reached_disabled_state") is True,
+            "disabled install observation missing")
+    require(correction.get("candidate_activation") is False,
+            "correction admits candidate activation")
+    require("333 tar members to 327" in correction.get("scripts_archive_observation", ""),
+            "scripts archive canonicalization missing")
 
     post = manifest.get("required_postconditions", {})
     require(post.get("package_version") == "0.1.0-r1", "package version changed")
@@ -192,6 +207,8 @@ def main() -> None:
         '"$APK_TOOL" --no-network add --simulate --allow-untrusted "$APK_PATH"',
         '"$APK_TOOL" --no-network add --allow-untrusted "$APK_PATH"',
         '"$APK_TOOL" --no-network del "$PACKAGE"',
+        'LC_ALL=C ls -ldn "$1"',
+        "restore_scripts_archive",
         "switch_status=disabled",
         "candidate_activation=false",
         "runtime_mount_changes=0",
@@ -224,6 +241,8 @@ def main() -> None:
 
     for marker in (
         "passed_ready_for_authorized_disabled_install",
+        "首轮 fail-closed 实证与修正",
+        "333 个 tar 成员变为 327 个",
         "安装结束时保持 disabled",
         "不允许 enable",
         "h1_6_canary=false",

@@ -20,7 +20,10 @@ EXPECTED_PACKAGE_DB_SHA256=6149a91ae1efa348b3e56d08ef13f844ecee6288a784487495196
 EXPECTED_WORLD_SHA256=906eb5cf1013afd8e8ff97b486175fa77a97a2a2437d640a1c4fdc4dd9eab69b
 EXPECTED_SCRIPTS_SHA256=4a5fd6b59a9eadd3b27dd31fd4d79b622083b0a11d966a8c2dd5916c1b945bfc
 EXPECTED_TRIGGERS_SHA256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+ROM_SCRIPTS=/rom/lib/apk/db/scripts.tar.gz
+SCRIPTS_RESTORE=/lib/apk/db/.scripts.tar.gz.h1-5-restore
 current_step=entry
+restore_temp_created=0
 
 sha256_file() {
     sha256sum "$1" | awk '{print $1}'
@@ -43,29 +46,63 @@ package_installed() {
     "$APK_TOOL" info -e "$PACKAGE" >/dev/null 2>&1
 }
 
+file_metadata() {
+    LC_ALL=C ls -ldn "$1" | awk '{ print $1 ":" $3 ":" $4 }'
+}
+
+restore_scripts_archive() {
+    [ -f "$ROM_SCRIPTS" ] || return 1
+    [ "$(sha256_file "$ROM_SCRIPTS")" = "$EXPECTED_SCRIPTS_SHA256" ] || return 1
+    [ ! -e "$SCRIPTS_RESTORE" ] || return 1
+    restore_temp_created=1
+    cp "$ROM_SCRIPTS" "$SCRIPTS_RESTORE" || return 1
+    [ "$(sha256_file "$SCRIPTS_RESTORE")" = "$EXPECTED_SCRIPTS_SHA256" ] || return 1
+    chmod 0644 "$SCRIPTS_RESTORE" || return 1
+    mv -f "$SCRIPTS_RESTORE" /lib/apk/db/scripts.tar.gz || return 1
+    restore_temp_created=0
+    [ "$(sha256_file /lib/apk/db/scripts.tar.gz)" = "$EXPECTED_SCRIPTS_SHA256" ]
+}
+
 cleanup() {
     saved_status=$?
     trap - EXIT HUP INT TERM
     cleanup_status=0
     rollback_status=not-needed
 
-    if [ "$saved_status" -ne 0 ] && package_installed; then
-        rollback_status=attempted
-        if [ -x "$SWITCH" ]; then
-            "$SWITCH" disable >"$RUN_ROOT/rollback-disable.log" 2>&1 || cleanup_status=1
+    if [ "$saved_status" -ne 0 ]; then
+        if package_installed; then
+            rollback_status=attempted
+            if [ -x "$SWITCH" ]; then
+                "$SWITCH" disable >"$RUN_ROOT/rollback-disable.log" 2>&1 || cleanup_status=1
+            fi
+            if ! "$APK_TOOL" --no-network del "$PACKAGE" \
+                >"$RUN_ROOT/rollback-delete.log" 2>&1; then
+                cleanup_status=1
+            fi
         fi
-        if ! "$APK_TOOL" --no-network del "$PACKAGE" \
-            >"$RUN_ROOT/rollback-delete.log" 2>&1; then
-            cleanup_status=1
+        if [ "$(sha256_file /lib/apk/db/scripts.tar.gz)" != "$EXPECTED_SCRIPTS_SHA256" ]; then
+            rollback_status=attempted
+            restore_scripts_archive || cleanup_status=1
         fi
         if package_installed || [ -e "$CANDIDATE" ] || [ -e "$SWITCH" ]; then
             cleanup_status=1
         elif [ "$(sha256_file /sbin/reload_config)" != "$EXPECTED_DISPATCHER_SHA256" ] ||
+            [ "$(sha256_file /var/run/config.md5)" != "$EXPECTED_BASELINE_SHA256" ] ||
+            [ "$(tree_digest /etc/config)" != "$EXPECTED_CONFIG_TREE_SHA256" ] ||
+            [ "$(sha256_file /lib/apk/db/installed)" != "$EXPECTED_PACKAGE_DB_SHA256" ] ||
+            [ "$(sha256_file /etc/apk/world)" != "$EXPECTED_WORLD_SHA256" ] ||
+            [ "$(sha256_file /lib/apk/db/scripts.tar.gz)" != "$EXPECTED_SCRIPTS_SHA256" ] ||
+            [ "$(sha256_file /lib/apk/db/triggers)" != "$EXPECTED_TRIGGERS_SHA256" ] ||
             [ "$(mount_count)" -ne 0 ]; then
             cleanup_status=1
-        else
+        elif [ "$rollback_status" = attempted ]; then
             rollback_status=passed
         fi
+    fi
+
+    if [ "$restore_temp_created" -eq 1 ] && [ -e "$SCRIPTS_RESTORE" ]; then
+        busybox rm "$SCRIPTS_RESTORE" || cleanup_status=1
+        restore_temp_created=0
     fi
 
     if [ "$saved_status" -ne 0 ] && [ -d "$RUN_ROOT" ]; then
@@ -126,6 +163,8 @@ current_step=identity-guards
 [ "$(sha256_file /etc/apk/world)" = "$EXPECTED_WORLD_SHA256" ]
 [ "$(sha256_file /lib/apk/db/scripts.tar.gz)" = "$EXPECTED_SCRIPTS_SHA256" ]
 [ "$(sha256_file /lib/apk/db/triggers)" = "$EXPECTED_TRIGGERS_SHA256" ]
+[ "$(sha256_file "$ROM_SCRIPTS")" = "$EXPECTED_SCRIPTS_SHA256" ]
+[ ! -e "$SCRIPTS_RESTORE" ]
 [ "$(mount_count)" -eq 0 ]
 ! package_installed
 [ ! -e "$CANDIDATE" ]
@@ -173,8 +212,8 @@ current_step=installed-files
 [ -x "$SWITCH" ]
 [ "$(sha256_file "$CANDIDATE")" = "$EXPECTED_CANDIDATE_SHA256" ]
 [ "$(sha256_file "$SWITCH")" = "$EXPECTED_SWITCH_SHA256" ]
-[ "$(stat -c '%a:%u:%g' "$CANDIDATE")" = 755:0:0 ]
-[ "$(stat -c '%a:%u:%g' "$SWITCH")" = 755:0:0 ]
+[ "$(file_metadata "$CANDIDATE")" = '-rwxr-xr-x:0:0' ]
+[ "$(file_metadata "$SWITCH")" = '-rwxr-xr-x:0:0' ]
 
 current_step=disabled-state
 set +e

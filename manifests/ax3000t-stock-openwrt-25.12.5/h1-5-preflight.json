@@ -62,6 +62,18 @@
       "sha256": "7acd6d3cd26cec7aa7be32e71b6e617bbc739b0fbc1c9c0a4b4a8ae0ba62fb8d"
     }
   },
+  "method_corrections": [
+    {
+      "attempt": "run-01",
+      "candidate_activation": false,
+      "failed_step": "installed-files",
+      "issue": "The exact target BusyBox image has neither a stat command nor a stat applet.",
+      "package_install_reached_disabled_state": true,
+      "recovery": "Offline package deletion followed by a hash-checked atomic restore of scripts.tar.gz from immutable /rom returned every frozen pre-state hash.",
+      "scripts_archive_observation": "apk canonicalized 333 tar members to 327 by removing six duplicate historical entries during install/delete.",
+      "tool_fix": "Use ls -ldn for owner/mode checks and restore the exact /rom scripts archive in both rollback layers."
+    }
+  ],
   "required_postconditions": {
     "baseline_unchanged": true,
     "candidate_activation": false,
@@ -81,7 +93,7 @@
   "rollback": {
     "command": "/usr/bin/apk --no-network del owrt-reload-config",
     "precondition": "any failure after the package becomes installed",
-    "required_result": "package and both installed executables absent; original dispatcher visible; mount count zero"
+    "required_result": "package and both installed executables absent; immutable /rom scripts archive restored when apk canonicalizes it; all frozen package DB, config, baseline and dispatcher hashes exact; mount count zero"
   },
   "schema_version": 1,
   "scope": {
@@ -104,11 +116,11 @@
   "scripts": {
     "device_harness": {
       "path": "tools/h1_5_disabled_install_device.sh",
-      "sha256": "404592c75fc5c1f42fcf2b4e7f749328112e6b5cfaa594f5a64473df98108283"
+      "sha256": "69ea54de29232d0f626d9ad9258b428e6362c7d92888721b25d77f2d7c2a1b69"
     },
     "runner": {
       "path": "tools/h1_5_run.py",
-      "sha256": "67a7874f93fd94a8a049b8af361400d373912f86956e9af2a66699113808e4ca"
+      "sha256": "f301b08cee3d5d18d5e750a6e7d3869fc88def21ca4f2d41c6922970449b49d1"
     }
   },
   "stage": "H1.5-preflight",

@@ -17,9 +17,17 @@ APK_SHA256 = "02d0c977d68192c28d0ef537a704435d9814fb8e04763cd67d73e00e41e5d9b1"
 APK_SIZE = 184_099
 DISPATCHER_SHA256 = "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15"
 BASELINE_SHA256 = "b77e0e99672ee504d1ee1183f14b8ba8cfe92f6c546aa585f7efc784d2b0c163"
+CONFIG_TREE_SHA256 = "c571059487c486dc8f255228f49ab558092a50ee22c0845c91ed4839a0ded44a"
+PACKAGE_DB_SHA256 = "6149a91ae1efa348b3e56d08ef13f844ecee6288a78448749519682a9e8cb5fc"
+WORLD_SHA256 = "906eb5cf1013afd8e8ff97b486175fa77a97a2a2437d640a1c4fdc4dd9eab69b"
+SCRIPTS_SHA256 = "4a5fd6b59a9eadd3b27dd31fd4d79b622083b0a11d966a8c2dd5916c1b945bfc"
+TRIGGERS_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+CANDIDATE_SHA256 = "b49b054fb1eaf75a767356ec12270e11a9949777e4a59168a0cfb3aa60515f75"
+SWITCH_SHA256 = "ce7ef65892c69d1900ee0f626183bcae5a42b3ccd1f18f706ab496703b990bdf"
 REMOTE_APK = "/tmp/owrt-h1-5-r1.apk"
 REMOTE_HARNESS = "/tmp/owrt-h1-5-disabled-install.sh"
 REMOTE_RUN_ROOT = "/tmp/owrt-h1-5-install-20260902"
+REMOTE_RESTORE = "/lib/apk/db/.scripts.tar.gz.h1-5-restore"
 SSH_OPTIONS = [
     "-o",
     "BatchMode=yes",
@@ -35,9 +43,12 @@ SSH_OPTIONS = [
 IDENTITY_COMMAND = (
     "set -eu; "
     "cat /etc/openwrt_release /tmp/sysinfo/board_name /proc/sys/kernel/osrelease; "
-    "sha256sum /sbin/reload_config /var/run/config.md5 /lib/apk/db/installed; "
+    "sha256sum /sbin/reload_config /var/run/config.md5 /lib/apk/db/installed "
+    "/etc/apk/world /lib/apk/db/scripts.tar.gz /lib/apk/db/triggers; "
+    "(cd /etc/config; find . -type f -exec sha256sum '{}' ';' | sort | sha256sum); "
     "test ! -e /usr/sbin/reload_config_rs; "
     "test ! -e /usr/sbin/owrt-reload-config-switch; "
+    f"test ! -e {REMOTE_RESTORE}; "
     "if /usr/bin/apk info -e owrt-reload-config >/dev/null 2>&1; then exit 1; fi; "
     "awk '$5 == \"/sbin/reload_config\" { found=1 } "
     "END { exit found ? 1 : 0 }' /proc/self/mountinfo"
@@ -57,6 +68,14 @@ ROLLBACK_COMMAND = (
     "|| status=1; fi; "
     "/usr/bin/apk --no-network del owrt-reload-config "
     ">/tmp/h1-5-emergency-delete.log 2>&1 || status=1; fi; "
+    f"if [ \"$(sha256sum /lib/apk/db/scripts.tar.gz | awk '{{print $1}}')\" != {SCRIPTS_SHA256} ]; then "
+    f"if [ \"$(sha256sum /rom/lib/apk/db/scripts.tar.gz | awk '{{print $1}}')\" != {SCRIPTS_SHA256} ]; then status=1; "
+    f"elif [ -e {REMOTE_RESTORE} ]; then status=1; "
+    f"else cp /rom/lib/apk/db/scripts.tar.gz {REMOTE_RESTORE} || status=1; "
+    f"if [ \"$(sha256sum {REMOTE_RESTORE} | awk '{{print $1}}')\" != {SCRIPTS_SHA256} ]; then status=1; "
+    f"else chmod 0644 {REMOTE_RESTORE} || status=1; "
+    f"mv -f {REMOTE_RESTORE} /lib/apk/db/scripts.tar.gz || status=1; fi; fi; fi; "
+    f"if [ -e {REMOTE_RESTORE} ]; then busybox rm {REMOTE_RESTORE} || status=1; fi; "
     "busybox rm /tmp/h1-5-emergency-disable.log /tmp/h1-5-emergency-delete.log "
     "2>/dev/null || true; "
     "exit $status"
@@ -67,10 +86,18 @@ VERIFY_SUCCESS_COMMAND = (
     "/usr/bin/apk info -e owrt-reload-config >/dev/null; "
     "test -x /usr/sbin/reload_config_rs; "
     "test -x /usr/sbin/owrt-reload-config-switch; "
+    f"test \"$(sha256sum /usr/sbin/reload_config_rs | awk '{{print $1}}')\" = {CANDIDATE_SHA256}; "
+    f"test \"$(sha256sum /usr/sbin/owrt-reload-config-switch | awk '{{print $1}}')\" = {SWITCH_SHA256}; "
     "set +e; output=$(/usr/sbin/owrt-reload-config-switch status 2>&1); rc=$?; set -e; "
     "test \"$rc\" -eq 3; test \"$output\" = disabled; "
     f"test \"$(sha256sum /sbin/reload_config | awk '{{print $1}}')\" = {DISPATCHER_SHA256}; "
     f"test \"$(sha256sum /var/run/config.md5 | awk '{{print $1}}')\" = {BASELINE_SHA256}; "
+    f"test \"$(cd /etc/config; find . -type f -exec sha256sum '{{}}' ';' | sort | sha256sum | awk '{{print $1}}')\" = {CONFIG_TREE_SHA256}; "
+    f"test \"$(sha256sum /lib/apk/db/installed | awk '{{print $1}}')\" != {PACKAGE_DB_SHA256}; "
+    f"test \"$(sha256sum /etc/apk/world | awk '{{print $1}}')\" != {WORLD_SHA256}; "
+    f"test \"$(sha256sum /lib/apk/db/scripts.tar.gz | awk '{{print $1}}')\" != {SCRIPTS_SHA256}; "
+    f"test \"$(sha256sum /lib/apk/db/triggers | awk '{{print $1}}')\" = {TRIGGERS_SHA256}; "
+    f"test ! -e {REMOTE_RESTORE}; "
     "awk '$5 == \"/sbin/reload_config\" { found=1 } "
     "END { exit found ? 1 : 0 }' /proc/self/mountinfo; "
     "printf 'post_install_verify=PASS\\n'"
@@ -83,6 +110,12 @@ VERIFY_ROLLBACK_COMMAND = (
     "test ! -e /usr/sbin/owrt-reload-config-switch; "
     f"test \"$(sha256sum /sbin/reload_config | awk '{{print $1}}')\" = {DISPATCHER_SHA256}; "
     f"test \"$(sha256sum /var/run/config.md5 | awk '{{print $1}}')\" = {BASELINE_SHA256}; "
+    f"test \"$(cd /etc/config; find . -type f -exec sha256sum '{{}}' ';' | sort | sha256sum | awk '{{print $1}}')\" = {CONFIG_TREE_SHA256}; "
+    f"test \"$(sha256sum /lib/apk/db/installed | awk '{{print $1}}')\" = {PACKAGE_DB_SHA256}; "
+    f"test \"$(sha256sum /etc/apk/world | awk '{{print $1}}')\" = {WORLD_SHA256}; "
+    f"test \"$(sha256sum /lib/apk/db/scripts.tar.gz | awk '{{print $1}}')\" = {SCRIPTS_SHA256}; "
+    f"test \"$(sha256sum /lib/apk/db/triggers | awk '{{print $1}}')\" = {TRIGGERS_SHA256}; "
+    f"test ! -e {REMOTE_RESTORE}; "
     "awk '$5 == \"/sbin/reload_config\" { found=1 } "
     "END { exit found ? 1 : 0 }' /proc/self/mountinfo; "
     "printf 'post_rollback_verify=PASS\\n'"
@@ -173,6 +206,11 @@ def main() -> None:
             "6.12.94",
             DISPATCHER_SHA256,
             BASELINE_SHA256,
+            CONFIG_TREE_SHA256,
+            PACKAGE_DB_SHA256,
+            WORLD_SHA256,
+            SCRIPTS_SHA256,
+            TRIGGERS_SHA256,
         ):
             if marker not in identity_text:
                 raise RunError(f"identity marker missing: {marker}")
