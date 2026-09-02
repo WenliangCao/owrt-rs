@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：执行计划
 
 > 版本：5.0，2026-09-02
-> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）、阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）与阶段 8（rpcd-rs 接管全部 rpcd 对象，原 rpcd 停止）已完成 2026-09-02。
+> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）、阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）与阶段 8（rpcd-rs 接管全部 rpcd 对象，原 rpcd 停止）已完成 2026-09-02；阶段 9（ubusd）经前置检验判定不执行（决策 0015）。第二轮收官见 [REPORT_ROUND2](../reports/ax3000t-stock-openwrt-25.12.5/REPORT_ROUND2.md)。
 > v4→v5 变更：只新增 §11；§0–§10 保持第一轮原文，作为已完成工作的记录。
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
@@ -63,6 +63,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | 阶段 6（uci） | libuci 语义 + `uci-rs` CLI，上游 112/112，rootfs 差分 175/175，设备门禁 export/show/changes 相同后 bind mount 接管 `/sbin/uci`，reload_config 经候选 0 差异，boot-enable on（S00） | [R16_UCI](../reports/ax3000t-stock-openwrt-25.12.5/R16_UCI.md)、[合同 C6](contracts/uci.md)、[决策 0012](decisions/0012-uci-library-and-cli-in-rust.md) |
 | 阶段 7（rpcd 核心） | `session`/`uci`/`rc` 迁入 rpcd-rs（`uci` 对象基于阶段 6 库），rootfs 双沙箱差分 272/272，设备只读门禁 51 项相同，enable 顺序"停 rpcd → 起 rpcd-rs → 起 rpcd（只剩插件）"，boot-enable on（S11） | [R17_RPCD_CORE](../reports/ax3000t-stock-openwrt-25.12.5/R17_RPCD_CORE.md)、[合同 C7](contracts/rpcd-core.md)、[决策 0013](decisions/0013-rpcd-core-objects-in-rust.md) |
 | 阶段 8（rpcd 插件 + netlink 读侧） | `rpc-sys`/`network.rrdns`/`luci-rpc`/`iwinfo` 迁入 rpcd-rs，libiwinfo nl80211 后端与 rtnetlink 读侧纯 Rust 复刻；沙箱 r18 74/74、并排 r19 11/11；设备只读门禁 49 项相同；原 rpcd 停止、S12 移除 | [R18_RPCD_PLUGINS](../reports/ax3000t-stock-openwrt-25.12.5/R18_RPCD_PLUGINS.md)、[合同 C8](contracts/rpcd-plugins-stage8.md)、[决策 0014](decisions/0014-rpcd-plugin-objects-and-netlink-read-side.md) |
+| 阶段 9（ubusd，有条件） | 不执行：r22 沙箱显示 odhcpd/dnsmasq/netifd.wireless 在 ubusd 重启后不恢复，在线切换需重启 netifd 等禁区组件 | [决策 0015](decisions/0015-ubusd-replacement-not-executed.md)、`tools/r22_ubus_clients_reconnect.sh` |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
@@ -313,7 +314,11 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 - **oracle**：与 `ip -j link/addr/route/neigh`、`iwinfo`、原 luci-rpc 输出结构比较；只读，无爆炸半径。
 - **规模**：rtnetlink + nl80211 约 2500 行；不引入 netlink crate（协议面小且需与内核头精确对应）。
 
-### 11.4 阶段 9（有条件）：ubusd
+### 11.4 阶段 9（有条件）：ubusd——不执行，2026-09-02（决策 0015）
+
+前置条件检验未通过：`tools/r22_ubus_clients_reconnect.sh` 显示 ubusd 重启后 odhcpd 永不恢复、dnsmasq 空闲时不恢复、netifd 丢失 `network.wireless`；补救须重启 netifd/dnsmasq/odhcpd，触及 §11.5 的禁区。理由与解除条件见 [0015](decisions/0015-ubusd-replacement-not-executed.md)。
+
+原文：
 
 - **替换**：`/sbin/ubusd`（对象注册表、`/usr/share/acl.d` ACL、事件、monitor、invoke 转发）。
 - **前置条件**：先在精确 rootfs 沙箱验证每个 libubus 客户端（procd、netifd、hostapd、dnsmasq、
