@@ -206,3 +206,12 @@ fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会�
 
 收官（2026-09-02）：`owrt-switch status` 显示五个组件 enabled / boot-enable on；四次综合探测不变；用户登录 LuCI 浏览期间
 `file`/`luci` 的 71 次调用全部由 rpcd-rs 应答。清单 `manifests/ax3000t-stock-openwrt-25.12.5/final-window.json`。
+
+第二轮 §11.0 自检（2026-09-02）：15 项迁移自检 + 四路对抗审查，修复 20 处行为差异（rpcd `file.write` umask、ubus 有符号整数、
+logd read 类型策略、httpd 413/MIME、fw4 ipset 空白与 `%.14g` 等），全部按 check→单元→上游→release→差分重验。
+报告 `reports/ax3000t-stock-openwrt-25.12.5/AUDIT_ROUND1.md`，清单 `manifests/audit-round1.json`。
+
+阶段 6（2026-09-02）：`components/uci` 以 Rust 复刻 libuci 读写/delta 语义并提供 `uci-rs` CLI；上游 shunit2 112/112，
+精确 rootfs 差分 175/175（含 apk 发货二进制）；设备门禁 export/show/changes 逐字节相同后 bind mount 接管 `/sbin/uci`，
+`reload_config` 经候选规范化 19 个包与 C 版基线 0 差异，`boot-enable on`（S00）。`owrt-switch` 现管理六个组件。
+报告 `R16_UCI.md`，合同 `docs/contracts/uci.md`，决策 0012，清单 `manifests/r16-uci.json`。

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "stage": "6-r16-uci",
+  "status": "complete",
+  "evidence_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_at": "2026-09-02",
+  "decision": "docs/decisions/0012-uci-library-and-cli-in-rust.md",
+  "contract": "docs/contracts/uci.md",
+  "report": "reports/ax3000t-stock-openwrt-25.12.5/R16_UCI.md",
+  "upstream": {"project": "uci", "commit": "66127cd7", "device_package": "uci 2025.12.02~66127cd7-r1"},
+  "verification": {
+    "upstream_shunit2": "112/112 (C reference also 112/112)",
+    "rootfs_differential_steps": 175,
+    "rootfs_differential_identical": 175,
+    "rootfs_differential_apk_binary": "175/175",
+    "device_gate": {"export_lines": 400, "show_lines": 299, "changes_lines": 0, "identical": true},
+    "device_integration": {"config_load": "ok", "uci_get_state": "ok", "wifi_status": "ok", "reload_config_changed_entries": 0},
+    "probe_window_minutes": 3,
+    "probes_identical": 3
+  },
+  "packages": {
+    "owrt-uci": {"version": "0.1.0-r2", "apk_sha256": "2fbe9cd4a9f3a51fff03abb8a2c2cd91959e55a469666e089867d3d473e911e9",
+      "uci_rs_sha256": "f4b4e28c32051f8c2aa2e684339a1198a6cbe7b66bd52a30caa922819213ccfb", "uci_rs_bytes": 354795},
+    "owrt-switch": {"version": "0.1.0-r2", "apk_sha256": "2814f8fc5fcc2f4d19dc2781bc763689bcbf400a0d42fd0781d154650a8cd94b"}
+  },
+  "device_state": {"sbin_uci": "bind mount of /usr/sbin/uci-rs", "boot_enable": "on", "init": "S00owrt-uci",
+    "original_sbin_uci_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"},
+  "not_replaced": ["libuci.so and its library users (netifd, rpcd uci/session, odhcpd, ucode uci.so, libiwinfo, ujail, validate_data)", "preinit-stage uci calls (before S00)"]
+}

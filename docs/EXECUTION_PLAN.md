@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：执行计划
 
 > 版本：5.0，2026-09-02
-> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）**待开始**，先做 §11.0 的代码自检。
+> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检与阶段 6（uci-rs 接管 `/sbin/uci`）已完成 2026-09-02。
 > v4→v5 变更：只新增 §11；§0–§10 保持第一轮原文，作为已完成工作的记录。
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
@@ -60,6 +60,7 @@ LuCI 调用集，可能是完整替换，也可能收在 `session`/`file`/`luci`
 | 阶段 3 | httpd 替换（静态/CGI/ubus 桥/TLS），并排 38/38，设备并排+canary 一致，boot-enable on | [R14_HTTPD](../reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)、[合同 C3](contracts/httpd.md)、[决策 0009](decisions/0009-replace-uhttpd-with-rust-httpd.md) |
 | 阶段 4 | fw4 生成器 Rust 化，上游 31/31 逐字节，设备 print 门禁相同后接管 `/sbin/fw4`，经候选 reload 规则集不变，boot-enable on | [R09_FW4](../reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md)、[合同 C4](contracts/fw4.md)、[决策 0010](decisions/0010-port-firewall4-to-rust.md) |
 | 阶段 5（rpcd） | rpcd 插件层 `file`/`luci` Rust 化，沙箱 63/63 相同，裁剪插件目录 + rpcd-rs 服务上线，boot-enable on；session/uci/rc 保留 C | [R13_RPCD](../reports/ax3000t-stock-openwrt-25.12.5/R13_RPCD.md)、[合同 C5](contracts/rpcd-plugins.md)、[决策 0011](decisions/0011-rpcd-plugin-layer-in-rust.md) |
+| 阶段 6（uci） | libuci 语义 + `uci-rs` CLI，上游 112/112，rootfs 差分 175/175，设备门禁 export/show/changes 相同后 bind mount 接管 `/sbin/uci`，reload_config 经候选 0 差异，boot-enable on（S00） | [R16_UCI](../reports/ax3000t-stock-openwrt-25.12.5/R16_UCI.md)、[合同 C6](contracts/uci.md)、[决策 0012](decisions/0012-uci-library-and-cli-in-rust.md) |
 
 设备实测事实（2026-09-02 只读探针）：uhttpd 监听 80/443，`/ubus` 由 `uhttpd-mod-ubus` 提供，LuCI
 以 CGI 方式运行 `/www/cgi-bin/luci`（ucode，无 Lua）；rpcd 插件 file/iwinfo/luci/rpcsys/rrdns/ucode，
@@ -263,7 +264,9 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 产出：一份报告 `reports/ax3000t-stock-openwrt-25.12.5/AUDIT_ROUND1.md`，列出行为差异、修复、
 未能确认的风险、为 Rust 化而改变原行为之处。
 
-### 11.1 阶段 6：`components/uci` 库 + `/sbin/uci` CLI
+### 11.1 阶段 6：`components/uci` 库 + `/sbin/uci` CLI——已完成 2026-09-02
+
+结论见 [R16_UCI](../reports/ax3000t-stock-openwrt-25.12.5/R16_UCI.md)。合并 fw4/rpcd 内嵌解析器（下文"合并"项）推迟到阶段 7 与 rpcd `uci` 对象一起做。
 
 - **替换**：libuci 的读、写、delta（`/tmp/.uci` savedir）、commit、revert、`export`/`show` 序列化；
   `/sbin/uci` CLI 以 bind mount 接管，形态同 fw4。
