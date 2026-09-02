@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "stage": 5,
+  "evidence_id": "r13-rpcd",
+  "recorded_at": "2026-09-02T14:36:34Z",
+  "status": "offline_verified_awaiting_device_window",
+  "candidate": {
+    "package": "owrt-rpcd",
+    "version": "0.1.0-r1",
+    "apk_sha256": "7c664b75af62dad422fd2a26c7a1783dbc70d90475e1afcdeee412c1c84d91a1",
+    "files": {
+      "/usr/sbin/rpcd-rs": "e34bb92d18eb0f62948406317d53dc1423d5cf4b56272f9b9b97a08da46b4f27",
+      "/usr/sbin/owrt-rpcd-switch": "2184d7d05b3e68882fdebf80bb3b1c540889b140a151bb752f49feb676993851",
+      "/etc/init.d/owrt-rpcd": "3ddd28f0d4eb35e934d77f23d2bd503f6173d58314a389664faca71390343433"
+    },
+    "original_plugins_sha256": {
+      "file.so": "f181c959ff0c44db1a9f2d96d053646fd6bf4d38426edc37702764a6e993584f",
+      "ucode.so": "591c21eee13dcae91b75d039719e5733bcd2e1eeec7d0466104b1d2aa8d6c220"
+    },
+    "objects": [
+      "file",
+      "luci"
+    ],
+    "retained_in_c": [
+      "session",
+      "uci",
+      "rc",
+      "iwinfo",
+      "luci-rpc",
+      "rpc-sys",
+      "network.rrdns"
+    ],
+    "binary_bytes": 477619,
+    "third_party_crates": 0
+  },
+  "offline": {
+    "sandbox_differential": {
+      "requests": 63,
+      "identical": 63,
+      "harness": "tools/r13_rpcd_check.py",
+      "notes": [
+        "original file.so exec exit-code race observed in sandbox (code 0 for exit 3); candidate reports 3"
+      ]
+    },
+    "unit_tests": {
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "device": null,
+  "not_done": [
+    "device window (install, enable, boot-enable, ~3 min probe) awaiting authorization"
+  ]
+}
