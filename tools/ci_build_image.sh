@@ -77,16 +77,20 @@ cp "$img" "$OUT/"
 log "offline validation"
 cd "$WORK"; rm -rf verify; mkdir verify; cd verify
 tar -xf "$img"
-ls -la
+# the sysupgrade tar unpacks into sysupgrade-<profile>/{CONTROL,kernel,root}
+sq=$(find . -type f -name root | head -1)
+[ -n "$sq" ] || { echo "no root squashfs inside the sysupgrade tar"; find . -type f; exit 1; }
+ls -la "$(dirname "$sq")"
 UNSQ=$(command -v unsquashfs || ls "$IB"/staging_dir/host/bin/unsquashfs4 2>/dev/null | head -1 || true)
 if [ -n "$UNSQ" ]; then
-	"$UNSQ" -d root -n root 2>&1 | tail -1 || "$UNSQ" -d root root >/dev/null
+	"$UNSQ" -n -d rootfs "$sq" >/dev/null
 	fail=0
-	for p in $PKGS; do ls root/lib/apk/packages/ 2>/dev/null | grep -q "^$p\.list$" || { echo "MISSING package $p"; fail=1; }; done
-	for c in uci reload-config logd httpd fw4 rpcd; do [ -f "root/etc/owrt-$c.boot-enable" ] || { echo "MISSING marker $c"; fail=1; }; done
-	for s in rpcd uhttpd log; do ls root/etc/rc.d/ | grep -q "^S..$s$" && { echo "service $s NOT disabled"; fail=1; }; done
-	for b in uci-rs fw4-rs reload_config_rs logd-rs httpd-rs rpcd-rs; do [ -x "root/usr/sbin/$b" ] || { echo "MISSING binary $b"; fail=1; }; done
-	ls root/etc/apk/keys/ | grep -q . || { echo "MISSING local apk key"; fail=1; }
+	for p in $PKGS; do ls rootfs/lib/apk/packages/ 2>/dev/null | grep -q "^$p\.list$" || { echo "MISSING package $p"; fail=1; }; done
+	for c in uci reload-config logd httpd fw4 rpcd; do [ -f "rootfs/etc/owrt-$c.boot-enable" ] || { echo "MISSING marker $c"; fail=1; }; done
+	for s in rpcd uhttpd log; do ls rootfs/etc/rc.d/ | grep -q "^S..$s$" && { echo "service $s NOT disabled"; fail=1; }; done
+	for b in uci-rs fw4-rs reload_config_rs logd-rs httpd-rs rpcd-rs; do [ -x "rootfs/usr/sbin/$b" ] || { echo "MISSING binary $b"; fail=1; }; done
+	ls rootfs/etc/apk/keys/ | grep -q . || { echo "MISSING local apk key"; fail=1; }
+	ls rootfs/etc/rc.d/ | grep -E "owrt" | tr "\n" " "; echo
 	[ $fail = 0 ] && echo "image content OK: 7 packages, 6 markers, 3 services disabled, local key present"
 	[ $fail = 0 ] || exit 1
 else
