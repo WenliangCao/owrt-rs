@@ -39,7 +39,7 @@ r21、r22；设备脚本 r16/r17/r20/r09b。
 - **开机路径**：**已于 2026-09-03 验证通过**（决策 0016 受控重启，[R23_BOOT_PATH](R23_BOOT_PATH.md)：15/15 状态相同）。原文：阶段 6–8 与 fw4 r2 的 boot-enable 均未经重启验证（决策 0006 不重启）；下次自然重启后按
   `owrt-switch status` 与各 `probe` 步骤核对。S11 `owrt-rpcd` 现在是系统唯一 rpcd，若它开机失败，LuCI 不可用
   但 SSH 不受影响，`owrt-rpcd-switch disable` 可恢复原 rpcd。
-- logd-rs 的 ubus 重连已在沙箱验证但设备仍运行 r1；升级需一次 logd 重启（丢失内存日志环），留待下一次窗口。
+- logd-rs 的 ubus 重连：**2026-09-03 已上线 r2**（[R15 附录](R15_LOGD.md)）。原文：已在沙箱验证但设备仍运行 r1；升级需一次 logd 重启（丢失内存日志环），留待下一次窗口。
 - `rpc-sys` 的 upgrade_start/factory/reboot、`uci apply` 的真实 procd 事件路径、LuCI 用用户口令登录：未在任何
   验证中触发。
 - fw4 r2 的 enable 步骤沿用阶段 4 校验，经挂载做了一次 `fw4 reload`（规则集与状态文件哈希前后不变）；报告已记。

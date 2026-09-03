@@ -1,0 +1,25 @@
+{
+ "id": "r24-logd-r2",
+ "date": "2026-09-03",
+ "package": "owrt-logd-0.1.0-r2.apk",
+ "apk_sha256": "ac0b528e724cc7bbb9a5088dfccca085d81e992df4135d91119a848857dd79ed",
+ "files": {
+  "usr/sbin/logd-rs": "4e78e469f169cfa0 (prefix)",
+  "etc/init.d/owrt-logd": "12101ff68e5a9652 (unchanged)",
+  "usr/sbin/owrt-logd-switch": "e068d9166d5653ec (unchanged)"
+ },
+ "source_commit": "6042436",
+ "gate": "tools/r21_logd_reconnect_check.sh with the shipped aarch64 binary: reregistered_after_s=2, ring kept, alive",
+ "device": {
+  "restart": "2026-09-03T20:20:20+02:00",
+  "pid": 8397,
+  "probes": [
+   "logger",
+   "/dev/kmsg write",
+   "logread -f"
+  ],
+  "stability_s": 190,
+  "respawn": 0
+ },
+ "report": "reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md#附录2026-09-03"
+}

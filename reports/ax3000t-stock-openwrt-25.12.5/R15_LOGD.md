@@ -54,3 +54,17 @@ boot-enable `on`。
 - 未观察：开机启动本身；内核消息摄入（窗口内没有新的 kmsg）。
 
 机器记录：[r15-logd.json](../../manifests/ax3000t-stock-openwrt-25.12.5/r15-logd.json)。
+
+## 附录（2026-09-03）：owrt-logd 0.1.0-r2（ubus 重连）上线
+
+- 变更：§11.6 的 ubus 重连（`ubus_auto_connect` 语义：断连后每秒重连并重注册 `log`，断连期间继续收 syslog/kmsg，
+  环形缓冲保留）。代码提交 6042436；SDK 构建 `owrt-logd-0.1.0-r2.apk`
+  SHA-256 `ac0b528e724cc7bbb9a5088dfccca085d81e992df4135d91119a848857dd79ed`，其中 `logd-rs`
+  `4e78e469f169cfa0…`；init 与 switch 脚本与 r1 逐字节相同。
+- 上线前门禁：`tools/r21_logd_reconnect_check.sh` 用**同一个 aarch64 二进制**在精确 rootfs 沙箱中重跑：ubusd 杀死
+  再启动后 2 秒重注册，`before/during/after` 三条日志全部保留，进程存活。
+- 设备（决策 0016 之后的授权窗口，重启验证 R23 通过后）：`apk add --allow-untrusted` 升级 r1→r2，
+  `/etc/init.d/owrt-logd restart`（20:20:20），`log` 对象 2 秒内出现，pid 8397，`owrt-switch status` 显示 0.1.0-r2；
+  `logger` 探针、`/dev/kmsg` 写入探针、`logread -f` 流式探针均到达；3 分钟后 pid 不变、无 respawn。
+- 说明：重启后 `logread` 没有开机内核日志——logd-rs 与 C logd 一样读 `/proc/kmsg`，被前一实例消费过的记录不会重放；
+  这与原实现一致，不是回归。内存日志环随重启清空，与 C logd 重启相同（REPORT_ROUND2 §4 已预告）。

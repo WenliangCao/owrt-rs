@@ -357,7 +357,7 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 | 1 | 备份：`sysupgrade -b`、overlay 全量、mtd0–7 只读转储、fw_printenv、系统事实 → `private/backup/2026-09-03/`；官方 25.12.5 镜像与 RD03 原厂 1.0.47 固件下载校验 → `private/images/` | 完成 2026-09-03 |
 | 2 | 预检：bootloader 选槽逻辑核实（只看 `flag_last_success`/`flag_try_sys2_failed`，计数不参与）；uci-rs 与 `/rom/sbin/uci` 的开机路径 export/show/get 19 包相同；`tools/r23_reboot_gate.sh pre` 参考态 | 完成 2026-09-03 |
 | 3 | 受控重启一次：用户在设备旁、网线接 `lan4`、电脑另有上网途径；`reboot` → `r23 post` 逐文件 diff → 约 3 分钟观察；失败按 0016 §5 处置 | **完成 2026-09-03**：SSH 39 s 恢复，15/15 结构化状态相同，标志仅 sys1 计数 +1，4 分钟无 respawn；[R23_BOOT_PATH](../reports/ax3000t-stock-openwrt-25.12.5/R23_BOOT_PATH.md) |
-| 4 | 部署 logd-rs r2（ubus 重连）；补 REPORT_ROUND2 §4 遗留 | 待 3 通过 |
+| 4 | 部署 logd-rs r2（ubus 重连）；补 REPORT_ROUND2 §4 遗留 | **完成 2026-09-03**：r21 以同一二进制重跑通过，设备升级并重启 logd，3 分钟稳定；[R15 附录](../reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md) |
 | 5 | ubusd：仅在 1–4 全部通过后单独评估；0015 技术结论不变，默认建议不做 | 排最后 |
 
 ### 11.7 顺序与依赖

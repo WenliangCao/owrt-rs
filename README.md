@@ -239,3 +239,4 @@ bootloader 选槽逻辑核实、uci-rs 开机路径预检、`tools/r23_reboot_ga
 ubusd 仍排最后，默认建议不做。
 2026-09-03 受控重启通过：SSH 39 秒恢复，六个组件按 boot-enable 接管，重启前后 15 组结构化状态相同，bootloader 标志仅计数 +1，
 四分钟无 respawn（`reports/.../R23_BOOT_PATH.md`，`manifests/r23-boot-path.json`）。
+同日 logd-rs r2（ubus 重连）上线：r21 以同一二进制重跑通过后升级并重启 logd，3 分钟稳定（`R15_LOGD.md` 附录，`manifests/r24-logd-r2.json`）。
