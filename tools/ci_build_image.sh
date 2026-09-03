@@ -83,7 +83,9 @@ sq=$(find . -type f -name root | head -1)
 ls -la "$(dirname "$sq")"
 UNSQ=$(command -v unsquashfs || ls "$IB"/staging_dir/host/bin/unsquashfs4 2>/dev/null | head -1 || true)
 if [ -n "$UNSQ" ]; then
-	"$UNSQ" -n -d rootfs "$sq" >/dev/null
+	# device nodes in the rootfs need root to recreate; GitHub runners have passwordless sudo
+	SUDO=""; [ "$(id -u)" = 0 ] || ! command -v sudo >/dev/null || SUDO="sudo -n"
+	$SUDO "$UNSQ" -n -d rootfs "$sq" >/dev/null || $SUDO "$UNSQ" -n -ig -d rootfs "$sq" >/dev/null
 	fail=0
 	for p in $PKGS; do ls rootfs/lib/apk/packages/ 2>/dev/null | grep -q "^$p\.list$" || { echo "MISSING package $p"; fail=1; }; done
 	for c in uci reload-config logd httpd fw4 rpcd; do [ -f "rootfs/etc/owrt-$c.boot-enable" ] || { echo "MISSING marker $c"; fail=1; }; done
