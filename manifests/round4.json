@@ -9,7 +9,9 @@
   "try_wait+sleep child polling in reload_config, rpcd file exec, rc list (reload-config r3/r4, rpcd r6)",
   "per-recv zeroed 64 KiB netlink buffer in rpcd iwinfo (rpcd r6)"
  ],
- "not_bugs": ["logread full-output gap: ring line-count artefact, equal-content 0.44 s vs 0.44 s"],
+ "not_bugs": [
+  "logread full-output gap: ring line-count artefact, equal-content 0.44 s vs 0.44 s"
+ ],
  "gates": {
   "r24_uci_fuzz": "300/300 identical (seeds 1,2) after fix; 6/150 differing before",
   "r16_uci_check": "175/175",
@@ -38,16 +40,59 @@
     "rpcd_objects": 9,
     "rpcd_pid": 12656,
     "logd_pid_after_swap": 13458,
-    "logread_l400_x20": {"c_logd_s": 0.44, "logd_rs_s": 0.44, "lines": [500, 503]},
+    "logread_l400_x20": {
+     "c_logd_s": 0.44,
+     "logd_rs_s": 0.44,
+     "lines": [
+      500,
+      503
+     ]
+    },
     "stability_s": 180,
     "respawn": 0,
     "ubus_objects": 40
    }
+  },
+  {
+   "when": "2026-09-03T22:40+02:00",
+   "decision": "0017",
+   "packages": {
+    "owrt-uci-0.1.0-r4.apk": "11a2e6e9d57e9f5fc1d18e9f08e9608cfa34db97348440e278cd03ec161f1cca",
+    "owrt-fw4-0.1.0-r4.apk": "9005912ef48e676e36a11fa2072d4a16a6efc888b8dc04ef41d433b088f82a0c",
+    "owrt-reload-config-0.2.0-r5.apk": "d7a4da43dfb5b9883a1313561697313df19c2e5431e9460a634a113232696909",
+    "owrt-logd-0.1.0-r4.apk": "0fa64ae021171e6b8a288b619c595e4787c26a94e51c31e4c088786e90bb2b02",
+    "owrt-httpd-0.1.1-r2.apk": "c314c8196121aff84a625ccf1ce092d1f45b8ae3602fb230a45bf8baddb0a00b",
+    "owrt-rpcd-0.1.0-r8.apk": "b893efa090006d640e3c501782d9569b7f333e266e139a2532ced1739119a714"
+   },
+   "checks": {
+    "uci_export_hash": "0f160a8175289da1",
+    "fw4_print_hash": "89eb87653020584d",
+    "rpcd_objects": 9,
+    "pids": {
+     "rpcd": 13797,
+     "logd": 13166,
+     "httpd": 13486
+    },
+    "luci_http": 403,
+    "overlay_mib": "21.9 -> 23.1"
+   }
   }
  ],
  "device_versions": {
-  "uci": "0.1.0-r3", "reload-config": "0.2.0-r4", "logd": "0.1.0-r3",
-  "httpd": "0.1.1-r1", "fw4": "0.1.0-r3", "rpcd": "0.1.0-r7", "switch": "0.1.0-r2"
+  "uci": "0.1.0-r4",
+  "reload-config": "0.2.0-r5",
+  "logd": "0.1.0-r4",
+  "httpd": "0.1.1-r2",
+  "fw4": "0.1.0-r4",
+  "rpcd": "0.1.0-r8",
+  "switch": "0.1.0-r2"
  },
- "open": ["A5 uci parse/show +36%/+44%", "A4 iwinfo +25% (htmodelist, noise)", "B4 byte reads for ethers/board.json/resolv.conf", "B5 fuzz fw4/rpcd/httpd/logd", "B2 clippy", "B6 resources", "release image rebuild with current package set"]
+ "open": [
+  "A4 iwinfo +25% (htmodelist, noise)",
+  "B4 byte reads for ethers/board.json/resolv.conf",
+  "B5 fuzz fw4/rpcd/httpd/logd",
+  "B2 clippy",
+  "B6 resources",
+  "release image rebuild with current package set"
+ ]
 }

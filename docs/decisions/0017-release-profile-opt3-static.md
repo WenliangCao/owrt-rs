@@ -54,5 +54,5 @@
 | owrt-httpd-0.1.1-r2 | c314c8196121aff84a625ccf1ce092d1f45b8ae3602fb230a45bf8baddb0a00b |
 | owrt-rpcd-0.1.0-r8 | b893efa090006d640e3c501782d9569b7f333e266e139a2532ced1739119a714 |
 
-二进制体积（sstrip 后）：uci 355→494 KB、fw4 744→? 、reload-config 396→490 KB、logd 293→?、httpd 1,108→1,486 KB、rpcd 814→1,170 KB。
+二进制体积（sstrip 后）：uci 355→494 KB、fw4 744→1,084 KB、reload-config 396→490 KB、logd 293→408 KB、httpd 1,108→1,486 KB、rpcd 814→1,170 KB。
 overlay 剩余 55 MB。

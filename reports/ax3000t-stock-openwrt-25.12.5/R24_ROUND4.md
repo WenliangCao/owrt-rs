@@ -60,3 +60,18 @@ netlink 请求计数）、`private/bench/iwbench.c`（同机 C libiwinfo 逐 op 
 | uci r3 重测 | BENCHMARK §9 |
 
 设备当前：uci 0.1.0-r3、reload-config 0.2.0-r4、logd 0.1.0-r3、httpd 0.1.1-r1、fw4 0.1.0-r3、rpcd 0.1.0-r7、switch 0.1.0-r2。
+
+## 7. 部署记录（第三个窗口，2026-09-03 22:4x，用户授权"六件部署 + benchmark"，决策 0017）
+
+六个包按 uci → fw4 → reload-config → logd → httpd → rpcd 顺序 `apk add`，每个升完即查，全部通过：
+
+| 包 | postinst 行为 | 检查 |
+|---|---|---|
+| uci r3 → r4 | 重挂载，enable 门禁 export/show/changes 全部 identical | `uci export` 哈希 `0f160a8175289da1` 不变；`/sbin/uci` 已是 494,339 B 的静态二进制 |
+| fw4 r3 → r4 | 重挂载，enable 门禁 identical（203 行，sha256 89eb8765…） | `fw4 print` 哈希不变 |
+| reload-config r4 → r5 | 重挂载 | `/sbin/reload_config` 490,215 B；无变更一次 30 ms |
+| logd r3 → r4 | enable + restart | 新 pid 13166；`logger` 一条后 `logread` 可读 |
+| httpd r1 → r2 | enable + restart | 新 pid 13486；LuCI 登录页 403+表单，79 ms |
+| rpcd r7 → r8 | enable + restart | 新 pid 13797，单进程，9 个对象，`luci getFeatures` 正常 |
+
+overlay 用量 21.9 → 23.1 MiB。3 分钟探针与 side-by-side benchmark 见 BENCHMARK §11。
