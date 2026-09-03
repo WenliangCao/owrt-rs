@@ -86,3 +86,20 @@ macOS 自带的 `ab` 对这台设备每请求卡 140 ms（客户端问题），�
 - iwinfo/nl80211 路径每次调用多花约 9 ms：对照 C 的 netlink 请求次数，找多余的 dump（怀疑 phy 查询未复用）。
 - `logread` 全量流式输出慢 2.3×：检查每条记录是否单独 `notify`，C 是否批量。
 - `uci export` 全量慢 36%：19 个文件的读解析，看是否有多余的拷贝或未缓冲写。
+
+## 8. 第四轮修复后（2026-09-03 晚，rpcd r6 / logd r3 / reload-config r4 上线）
+
+| 用例 | 原版 | 修复前 Rust | 修复后 Rust | 改动 |
+|---|---|---|---|---|
+| `reload_config` 无变更（N=100） | 77.6 ms | 404 → 96 ms | **64.9 ms** | 一次 `md5sum` 处理全部文件（C 脚本也是一次，但 Rust 少一层 shell） |
+| `ubus call file exec /bin/true`（N=50） | — | 轮询 10 ms 粒度 | 6.0 ms（≈ ubus CLI 3.8 ms + fork/exec） | 阻塞等待 |
+| `ubus call iwinfo info`（N=50） | 19.0 ms | 28.2 ms | **24.0 ms** | 每线程复用 netlink 接收缓冲（原来每次 recv 分配并清零 64 KiB） |
+| `ubus call luci-rpc getWirelessDevices` | 48.8 ms | 73.0 ms | **60.0 ms** | 同上 |
+| `logread` 全量（约 820 行） | 26 ms | 60 ms | 41 ms（未达标） | 流式改 socketpair + 复用 BlobBuf；每行仍约 50 µs，非流式 `log read` 只需 14 µs/行，差距在流式路径或客户端读取，**待查** |
+
+进程内逐 op 对照（`rpcd-rs --iwinfo-bench` vs 同机 C libiwinfo 计时程序 `private/bench/iwbench.c`）：24 个 op 总计 Rust 28.1 / C 26.1 ms
+（phy0），32.0 / 29.2 ms（phy1）；请求数相同（42 次 netlink），剩余差距集中在 `htmodelist`（1.25 vs 0.53 ms）与 `noise`（2.0 vs 1.5 ms）。
+
+**顺带发现的非性能 bug**：apk 升级 owrt-rpcd 时，包的 postinst（设计为"安装即惰性"的 `switch disable`）被 apk 当作 post-upgrade
+再次执行，设备静默切回 C rpcd、rpcd-rs 进入 crash loop（对象重复注册）。已用 `owrt-rpcd-switch enable` 恢复，并把六个包的 postinst
+改为"boot-enable 打开时保持接管并重启/重挂载"（提交 9259153）。
