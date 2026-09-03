@@ -56,7 +56,7 @@ define Build/Compile
 	CC_aarch64_unknown_linux_musl="$(TARGET_CC_NOCACHE)" \
 	AR_aarch64_unknown_linux_musl="$(TARGET_AR)" \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
-	RUSTFLAGS="-Ctarget-cpu=cortex-a53 -Ctarget-feature=-crt-static -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+	RUSTFLAGS="-Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
 	$(V1_CARGO) build --release --locked --manifest-path $(PKG_BUILD_DIR)/fw4/Cargo.toml
 endef
 

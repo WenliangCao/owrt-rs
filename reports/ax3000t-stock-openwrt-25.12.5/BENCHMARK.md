@@ -114,3 +114,17 @@ macOS 自带的 `ab` 对这台设备每请求卡 140 ms（客户端问题），�
 
 字节保真改造没有改变性能。`get` 显示进程启动开销两边相同（+0.2 ms），差距全在解析/导出：export 全量的工作量 5.2 vs 3.3 ms，
 `show firewall` 1.8 vs 0.6 ms（show 路径整包 clone）。这是计划 A5 的剩余项。
+
+## 10. A5 的答案：构建配置，不是解析器（2026-09-03 夜）
+
+构建机上同源的静态 cargo 构建与 C uci 持平；设备上的差距来自 `opt-level = "z"` 与 `-crt-static` 关闭（动态链接）。
+改为 opt-level 3 + 静态后（决策 0017），SDK 产出的 uci r4 在设备上从 `/tmp` 实测（N=100，含进程启动）：
+
+| 用例 | C | r3（现网） | **r4** |
+|---|---|---|---|
+| `export`（19 包） | 5.9 ms | 7.2 ms | **5.5 ms** |
+| `show firewall` | 3.1 ms | 4.0 ms | **2.7 ms** |
+| `export network` | 2.7 ms | 2.9 ms | **1.9 ms** |
+| `get network.lan.ipaddr` | 2.6 ms | 2.8 ms | **1.9 ms** |
+
+输出哈希与 C 相同。六个组件同一改法重建，等待部署窗口。

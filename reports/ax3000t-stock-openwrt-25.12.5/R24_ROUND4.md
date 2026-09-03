@@ -42,7 +42,7 @@ netlink 请求计数）、`private/bench/iwbench.c`（同机 C libiwinfo 逐 op 
 
 ## 5. 未完成 / 待办
 
-- A5：`uci export`/`show` 的分配与 clone 优化（字节改造未改变性能，差距仍是 +36% / +44%）。
+- A5：**已解决（决策 0017）**——差距是 `opt-level z` + 动态链接造成的，不是解析器；opt-level 3 + 静态的 uci r4 在设备上全面快于 C（BENCHMARK §10）。六组件同改（uci r4、fw4 r4、reload-config r5、logd r4、httpd r2、rpcd r8），待部署窗口。
 - B4 余项：rpcd 里 `read_to_string` 读 `/etc/ethers`、`/etc/board.json`、`/etc/resolv.conf` 等的地方遇到非 UTF-8 会整文件放弃（C 逐行按字节），改为按字节读。
 - B5 余项：fw4（变异防火墙配置 → `print` 差分）、rpcd（随机参数）、httpd（畸形请求）、logd（畸形报文）的模糊。
 - B2：clippy 清零。
