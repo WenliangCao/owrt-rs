@@ -37,6 +37,15 @@ enum CliCmd {
     Help,
 }
 
+/// one command-line argument, byte for byte
+type Arg = Vec<u8>;
+
+/// argument as text where libuci uses it as a C string for names, paths and
+/// commands (those are validated to ASCII-only sets, so lossy is exact there)
+fn s(a: &[u8]) -> String {
+    String::from_utf8_lossy(a).into_owned()
+}
+
 struct Cli {
     ctx: Context,
     flags: u32,
@@ -149,9 +158,9 @@ Options:\n\
         eprint!("{msg}");
     }
 
-    fn print_value(out: &mut impl Write, v: &str) {
+    fn print_value(out: &mut impl Write, v: &[u8]) {
         let _ = out.write_all(b"'");
-        for c in v.bytes() {
+        for &c in v {
             if c != b'\'' {
                 let _ = out.write_all(&[c]);
             } else {
@@ -168,7 +177,7 @@ Options:\n\
                 if quote {
                     Self::print_value(out, s);
                 } else {
-                    let _ = out.write_all(s.as_bytes());
+                    let _ = out.write_all(s);
                 }
                 let _ = out.write_all(b"\n");
             }
@@ -178,9 +187,9 @@ Options:\n\
                     if sep {
                         let _ = out.write_all(self.delimiter.as_bytes());
                     }
-                    let space = item.bytes().any(|b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'));
+                    let space = item.iter().any(|&b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'));
                     if !space && !quote {
-                        let _ = out.write_all(item.as_bytes());
+                        let _ = out.write_all(item);
                     } else {
                         Self::print_value(out, item);
                     }
@@ -230,13 +239,13 @@ Options:\n\
             }
             if h.cmd != Cmd::Remove {
                 let _ = out.write_all(op.as_bytes());
-                Self::print_value(out, h.value.as_deref().unwrap_or(""));
+                Self::print_value(out, h.value.as_deref().unwrap_or(b""));
             }
             let _ = out.write_all(b"\n");
         }
     }
 
-    fn lookup(&mut self, ptr: &mut Ptr, tuple: &str) -> bool {
+    fn lookup(&mut self, ptr: &mut Ptr, tuple: &[u8]) -> bool {
         match ops::lookup_ptr(&mut self.ctx, ptr, Some(tuple), true) {
             Ok(()) => true,
             Err(e) => {
@@ -247,7 +256,7 @@ Options:\n\
     }
 
     /// package_cmd
-    fn package_cmd(&mut self, cmd: CliCmd, tuple: &str) -> i32 {
+    fn package_cmd(&mut self, cmd: CliCmd, tuple: &[u8]) -> i32 {
         let mut ptr = Ptr::default();
         if !self.lookup(&mut ptr, tuple) {
             self.cli_perror();
@@ -324,13 +333,13 @@ Options:\n\
     }
 
     /// uci_do_import
-    fn do_import(&mut self, argv: &[String]) -> i32 {
+    fn do_import(&mut self, argv: &[Arg]) -> i32 {
         let argc = argv.len();
         if argc > 2 {
             return 255;
         }
         let name = if argc == 2 {
-            Some(argv[1].clone())
+            Some(s(&argv[1]))
         } else if self.flags & FLAG_MERGE != 0 {
             return 255;
         } else {
@@ -374,7 +383,7 @@ Options:\n\
     }
 
     /// uci_do_package_cmd
-    fn do_package_cmd(&mut self, cmd: CliCmd, argv: &[String]) -> i32 {
+    fn do_package_cmd(&mut self, cmd: CliCmd, argv: &[Arg]) -> i32 {
         let argc = argv.len();
         if argc > 2 {
             return 255;
@@ -391,19 +400,19 @@ Options:\n\
             }
         };
         for c in configs {
-            self.package_cmd(cmd, &c);
+            self.package_cmd(cmd, c.as_bytes());
         }
         0
     }
 
     /// uci_do_add
-    fn do_add(&mut self, argv: &[String]) -> i32 {
+    fn do_add(&mut self, argv: &[Arg]) -> i32 {
         if argv.len() != 3 {
             return 255;
         }
         let result: Result<String, Error> = (|| {
-            let pidx = file::load(&mut self.ctx, &argv[1])?;
-            let sidx = ops::add_section(&mut self.ctx, pidx, &argv[2], false)?;
+            let pidx = file::load(&mut self.ctx, &s(&argv[1]))?;
+            let sidx = ops::add_section(&mut self.ctx, pidx, &s(&argv[2]), false)?;
             let name = self.ctx.root[pidx].sections[sidx].name.clone();
             delta::save(&mut self.ctx, pidx)?;
             Ok(name)
@@ -422,7 +431,7 @@ Options:\n\
     }
 
     /// uci_do_section_cmd
-    fn do_section_cmd(&mut self, cmd: CliCmd, argv: &[String]) -> i32 {
+    fn do_section_cmd(&mut self, cmd: CliCmd, argv: &[Arg]) -> i32 {
         if argv.len() != 2 {
             return 255;
         }
@@ -470,11 +479,11 @@ Options:\n\
                     return 1;
                 };
                 let pidx = ptr.p.expect("package");
-                ret = ops::reorder_section(&mut self.ctx, pidx, sidx, delta::strtoul_int(&value), false);
+                ret = ops::reorder_section(&mut self.ctx, pidx, sidx, delta::strtoul_int(&String::from_utf8_lossy(&value)), false);
             }
             CliCmd::Del => {
                 if let Some(v) = &ptr.value {
-                    if ops::sscanf_int(v).is_none() {
+                    if std::str::from_utf8(v).ok().and_then(ops::sscanf_int).is_none() {
                         return 1;
                     }
                 }
@@ -502,7 +511,7 @@ Options:\n\
 
     /// uci_batch_cmd
     fn batch_cmd(&mut self) -> i32 {
-        let mut argv: Vec<String> = Vec::new();
+        let mut argv: Vec<Arg> = Vec::new();
         let mut input = std::mem::replace(&mut self.input, Box::new(BufReader::new(io::empty())));
         let mut pctx = Pctx::new(&mut *input);
         parse::parse_argument_line(&mut pctx);
@@ -515,7 +524,7 @@ Options:\n\
                 self.cli_error("Too many arguments\n");
                 return 1;
             }
-            match parse::parse_argument(&mut pctx) {
+            match parse::parse_argument_bytes(&mut pctx) {
                 Ok(arg) => {
                     if arg.is_empty() {
                         break;
@@ -542,7 +551,7 @@ Options:\n\
             self.batch_eof = true;
         }
         if !argv.is_empty() {
-            if argv[0].eq_ignore_ascii_case("exit") {
+            if argv[0].eq_ignore_ascii_case(b"exit") {
                 return 254;
             }
             self.uci_cmd(&argv)
@@ -569,8 +578,8 @@ Options:\n\
     }
 
     /// uci_cmd
-    fn uci_cmd(&mut self, argv: &[String]) -> i32 {
-        let c = argv[0].to_ascii_lowercase();
+    fn uci_cmd(&mut self, argv: &[Arg]) -> i32 {
+        let c = s(&argv[0]).to_ascii_lowercase();
         let cmd = match c.as_str() {
             "batch" if self.flags & FLAG_BATCH == 0 => return self.batch(),
             "show" => CliCmd::Show,
@@ -611,7 +620,10 @@ Options:\n\
 }
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
+    // argv as bytes: values in `set`/`add_list` tuples may hold any byte (libuci
+    // does not assume UTF-8); names, paths and commands are converted where needed
+    let raw: Vec<Arg> = std::env::args_os().map(std::os::unix::ffi::OsStringExt::into_vec).collect();
+    let args: Vec<String> = raw.iter().map(|a| s(a)).collect();
     let appname = args.first().cloned().unwrap_or_else(|| "uci".into());
     let mut cli = Cli {
         ctx: Context::new(),
@@ -717,7 +729,7 @@ fn main() {
         }
     }
 
-    let rest: Vec<String> = args[optind..].to_vec();
+    let rest: Vec<Arg> = raw[optind..].to_vec();
     if rest.is_empty() {
         cli.usage();
         std::process::exit(0);

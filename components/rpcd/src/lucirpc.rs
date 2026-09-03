@@ -225,8 +225,9 @@ fn lease_files() -> Vec<(String, bool)> {
             for s in ctx.root[pidx].sections.iter().filter(|s| s.ty == ty) {
                 if let Some(i) = s.find_option("leasefile") {
                     if let owrt_uci::OptionValue::Str(path) = &s.options[i].value {
-                        if fs::File::open(path).is_ok() {
-                            files.push((path.clone(), odhcpd));
+                        let path = String::from_utf8_lossy(path).into_owned();
+                        if fs::File::open(&path).is_ok() {
+                            files.push((path, odhcpd));
                             found = true;
                         }
                     }
@@ -578,13 +579,16 @@ fn hints_uci(hints: &mut Hints) {
             // (`ptr.o->type != UCI_TYPE_STRING`), so a static lease never
             // contributes its address; the name still does.
             let name = s.find_option("name").and_then(|i| match &s.options[i].value {
-                owrt_uci::OptionValue::Str(v) => Some(v.clone()),
+                owrt_uci::OptionValue::Str(v) => Some(String::from_utf8_lossy(v).into_owned()),
                 _ => None,
             });
             let Some(mi) = s.find_option("mac") else { continue };
             let macs: Vec<String> = match &s.options[mi].value {
-                owrt_uci::OptionValue::Str(v) => strtok(v, " \t").map(str::to_owned).collect(),
-                owrt_uci::OptionValue::List(items) => items.clone(),
+                owrt_uci::OptionValue::Str(v) => {
+                    let text = String::from_utf8_lossy(v);
+                    strtok(&text, " \t").map(str::to_owned).collect()
+                }
+                owrt_uci::OptionValue::List(items) => items.iter().map(|v| String::from_utf8_lossy(v).into_owned()).collect(),
             };
             for m in macs {
                 let Some(ea) = ether_aton(&m) else { continue };

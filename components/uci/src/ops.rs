@@ -43,8 +43,8 @@ pub fn validate_name(s: &str) -> bool {
 }
 
 /// uci_validate_text
-pub fn validate_text(s: &str) -> bool {
-    !s.bytes().any(|c| c < 32 && c != b'\t' && c != b'\n' && c != b'\r')
+pub fn validate_text(s: &[u8]) -> bool {
+    !s.iter().any(|&c| c < 32 && c != b'\t' && c != b'\n' && c != b'\r')
 }
 
 /// strsep(&str, ".") over an Option<&str> cursor: returns None once the
@@ -64,13 +64,16 @@ fn strsep_dot<'a>(cur: &mut Option<&'a str>) -> Option<&'a str> {
 }
 
 /// uci_parse_ptr: split `pkg[.section[.option]][=value]`.
-pub fn parse_ptr(ptr: &mut Ptr, str_: &str) -> Result<()> {
+pub fn parse_ptr(ptr: &mut Ptr, str_: &[u8]) -> Result<()> {
     *ptr = Ptr::default();
-    let (tuple, value) = match str_.find('=') {
+    let (tuple, value) = match str_.iter().position(|&b| b == b'=') {
         Some(i) => (&str_[..i], Some(&str_[i + 1..])),
         None => (str_, None),
     };
-    ptr.value = value.map(str::to_owned);
+    ptr.value = value.map(<[u8]>::to_vec);
+    // names are validated below and cannot contain bytes that are not UTF-8,
+    // so libuci's UCI_ERR_INVAL is the outcome for such a tuple
+    let tuple = std::str::from_utf8(tuple).map_err(|_| Error::Inval)?;
 
     let mut cur = Some(tuple);
     let Some(package) = strsep_dot(&mut cur) else {
@@ -212,7 +215,7 @@ fn strtol(s: &str) -> Option<i64> {
 }
 
 /// uci_lookup_ptr(ctx, ptr, str, extended)
-pub fn lookup_ptr(ctx: &mut Context, ptr: &mut Ptr, str_: Option<&str>, extended: bool) -> Result<()> {
+pub fn lookup_ptr(ctx: &mut Context, ptr: &mut Ptr, str_: Option<&[u8]>, extended: bool) -> Result<()> {
     if let Some(s) = str_ {
         parse_ptr(ptr, s)?;
     }
@@ -296,11 +299,11 @@ pub fn expand_ptr(ctx: &mut Context, ptr: &mut Ptr, complete: bool) -> Result<()
 // ------------------------------------------------------------ list.c alloc
 
 /// djbhash over `str`, seeded with 5381 when hash == ~0.
-fn djbhash(mut hash: u32, s: &str) -> u32 {
+fn djbhash(mut hash: u32, s: &[u8]) -> u32 {
     if hash == !0u32 {
         hash = 5381;
     }
-    for b in s.bytes() {
+    for b in s.iter().copied() {
         // char is unsigned on aarch64
         hash = (hash << 5).wrapping_add(hash).wrapping_add(b as u32);
     }
@@ -309,9 +312,9 @@ fn djbhash(mut hash: u32, s: &str) -> u32 {
 
 /// uci_fixup_section: name an anonymous section `cfg%02x%04x`.
 fn fixup_section(p: &Package, s: &Section) -> String {
-    let mut hash = djbhash(!0u32, &s.ty);
+    let mut hash = djbhash(!0u32, s.ty.as_bytes());
     for o in &s.options {
-        hash = djbhash(hash, &o.name);
+        hash = djbhash(hash, o.name.as_bytes());
         if let OptionValue::Str(v) = &o.value {
             hash = djbhash(hash, v);
         }
@@ -358,12 +361,12 @@ fn alloc_option(s: &mut Section, name: &str, value: OptionValue, after: Option<u
     }
 }
 
-fn add_delta(p: &mut Package, cmd: Cmd, section: &str, option: Option<&str>, value: Option<&str>) {
+fn add_delta(p: &mut Package, cmd: Cmd, section: &str, option: Option<&str>, value: Option<&[u8]>) {
     p.delta.push(Delta {
         cmd,
         section: section.to_owned(),
         option: option.map(str::to_owned),
-        value: value.map(str::to_owned),
+        value: value.map(<[u8]>::to_vec),
     });
 }
 
@@ -378,6 +381,8 @@ pub fn rename(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     let Some(value) = ptr.value.clone() else {
         return Err(Error::Inval);
     };
+    // a new name must be a valid identifier, so it is ASCII
+    let name = String::from_utf8(value.clone()).map_err(|_| Error::Inval)?;
     let p = &mut ctx.root[pidx];
     if !internal && p.has_delta {
         add_delta(
@@ -385,14 +390,14 @@ pub fn rename(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
             Cmd::Rename,
             ptr.section.as_deref().unwrap_or(""),
             ptr.option.as_deref(),
-            Some(&value),
+            Some(value.as_slice()),
         );
     }
     let s = &mut p.sections[sidx];
     match ptr.o {
-        Some(oidx) => s.options[oidx].name = value,
+        Some(oidx) => s.options[oidx].name = name,
         None => {
-            s.name = value;
+            s.name = name;
             s.anonymous = false;
         }
     }
@@ -420,7 +425,7 @@ pub fn reorder_section(ctx: &mut Context, pidx: usize, sidx: usize, pos: i32, in
     let changed = old_head != new_head;
     if !internal && p.has_delta && changed {
         let name = p.sections[insert_at].name.clone();
-        add_delta(p, Cmd::Reorder, &name, None, Some(&pos.to_string()));
+        add_delta(p, Cmd::Reorder, &name, None, Some(pos.to_string().as_bytes()));
     }
     Ok(())
 }
@@ -432,7 +437,7 @@ pub fn add_section(ctx: &mut Context, pidx: usize, ty: &str, internal: bool) -> 
     let name = fixup_section(p, &p.sections[sidx]);
     p.sections[sidx].name = name.clone();
     if !internal && p.has_delta {
-        add_delta(p, Cmd::Add, &name, None, Some(ty));
+        add_delta(p, Cmd::Add, &name, None, Some(ty.as_bytes()));
     }
     Ok(sidx)
 }
@@ -449,7 +454,7 @@ pub fn delete(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     if let (Some(oidx), Some(value)) = (ptr.o, ptr.value.as_deref().filter(|v| !v.is_empty())) {
         if let OptionValue::List(items) = &mut p.sections[sidx].options[oidx].value {
             // sscanf(value, "%d", &index)
-            let Some(mut index) = sscanf_int(value) else {
+            let Some(mut index) = std::str::from_utf8(value).ok().and_then(sscanf_int) else {
                 return Ok(()); // C returns 1, but the CLI already rejected it
             };
             let mut i = 0;
@@ -541,7 +546,7 @@ pub fn add_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> 
             Cmd::ListAdd,
             ptr.section.as_deref().unwrap_or(""),
             Some(&option),
-            Some(&value),
+            Some(value.as_slice()),
         );
     }
     Ok(())
@@ -569,7 +574,7 @@ pub fn del_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> 
             Cmd::ListDel,
             ptr.section.as_deref().unwrap_or(""),
             Some(&option),
-            Some(&value),
+            Some(value.as_slice()),
         );
     }
     if let OptionValue::List(items) = &mut p.sections[sidx].options[oidx].value {
@@ -587,7 +592,7 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     if !(ptr.s.is_some() || (ptr.option.is_none() && ptr.section.is_some())) {
         return Err(Error::Inval);
     }
-    if ptr.option.is_none() && !value.is_empty() && !validate_type(&value) {
+    if ptr.option.is_none() && !value.is_empty() && !std::str::from_utf8(&value).map_or(false, validate_type) {
         return Err(Error::Inval);
     }
     let pidx = ptr.p.ok_or(Error::Inval)?;
@@ -615,7 +620,7 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
         }
         (_, None, None, Some(sec)) => {
             // new section
-            let sidx = alloc_section(p, &value, Some(sec), None);
+            let sidx = alloc_section(p, std::str::from_utf8(&value).unwrap_or(""), Some(sec), None);
             ptr.s = Some(sidx);
         }
         (Some(oidx), Some(sidx), Some(_), _) => {
@@ -631,10 +636,10 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
         (None, Some(sidx), None, Some(_)) => {
             // update section type
             let s = &mut p.sections[sidx];
-            if s.ty == value {
+            if s.ty.as_bytes() == value.as_slice() {
                 return Ok(());
             }
-            s.ty = value.clone();
+            s.ty = String::from_utf8(value.clone()).unwrap_or_default();
             // C: alloc new section after old, transfer options, free old,
             // n_section-- (alloc had incremented it). Net effect: type
             // changes in place and n_section is unchanged.
@@ -648,7 +653,7 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
             Cmd::Change,
             ptr.section.as_deref().unwrap_or(""),
             ptr.option.as_deref(),
-            Some(&value),
+            Some(value.as_slice()),
         );
     }
     Ok(())
@@ -661,21 +666,21 @@ mod tests {
     #[test]
     fn parse_ptr_cases() {
         let mut p = Ptr::default();
-        parse_ptr(&mut p, "net.lan.ipaddr=1.2.3.4").unwrap();
+        parse_ptr(&mut p, b"net.lan.ipaddr=1.2.3.4").unwrap();
         assert_eq!(p.package.as_deref(), Some("net"));
         assert_eq!(p.section.as_deref(), Some("lan"));
         assert_eq!(p.option.as_deref(), Some("ipaddr"));
-        assert_eq!(p.value.as_deref(), Some("1.2.3.4"));
+        assert_eq!(p.value.as_deref(), Some(&b"1.2.3.4"[..]));
         // first '=' splits: value keeps later '='
-        parse_ptr(&mut p, "a.b.c=x=y").unwrap();
-        assert_eq!(p.value.as_deref(), Some("x=y"));
+        parse_ptr(&mut p, b"a.b.c=x=y").unwrap();
+        assert_eq!(p.value.as_deref(), Some(&b"x=y"[..]));
         // "test." -> section "" -> extended flag, not an error
-        parse_ptr(&mut p, "test.").unwrap();
+        parse_ptr(&mut p, b"test.").unwrap();
         assert!(p.flags & LOOKUP_EXTENDED != 0);
         // "test.section." -> option "" -> parse error
-        assert_eq!(parse_ptr(&mut p, "test.section."), Err(Error::Parse));
-        assert_eq!(parse_ptr(&mut p, "test.s.o.x"), Err(Error::Parse));
-        parse_ptr(&mut p, "test.@iface[-1].name").unwrap();
+        assert_eq!(parse_ptr(&mut p, b"test.section."), Err(Error::Parse));
+        assert_eq!(parse_ptr(&mut p, b"test.s.o.x"), Err(Error::Parse));
+        parse_ptr(&mut p, b"test.@iface[-1].name").unwrap();
         assert!(p.flags & LOOKUP_EXTENDED != 0);
         assert!(validate_package("fire-wall"));
         assert!(!validate_name("fire-wall"));

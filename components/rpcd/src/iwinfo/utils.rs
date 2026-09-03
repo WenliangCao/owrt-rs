@@ -852,7 +852,7 @@ pub fn iwinfo_parse_rsn(c: &mut CryptoEntry, data: &[u8], defcipher: u16, defaut
 pub fn uci_lookup_option_string<'a>(s: &'a Section, name: &str) -> Option<&'a str> {
     let o = &s.options[s.find_option(name)?];
     match &o.value {
-        OptionValue::Str(v) => Some(v.as_str()),
+        OptionValue::Str(v) => std::str::from_utf8(v).ok(),
         OptionValue::List(_) => None,
     }
 }

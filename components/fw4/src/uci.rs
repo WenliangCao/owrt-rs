@@ -53,8 +53,9 @@ impl Config {
                 ];
                 for opt in &s.options {
                     let v = match &opt.value {
-                        OptionValue::Str(v) => Json::Str(v.clone()),
-                        OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(v.clone())).collect()),
+                        // libuci values are raw bytes; the ruleset is text (DEVIATION: non-UTF-8 -> U+FFFD)
+                        OptionValue::Str(v) => Json::Str(String::from_utf8_lossy(v).into_owned()),
+                        OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(String::from_utf8_lossy(v).into_owned())).collect()),
                     };
                     o.push((opt.name.clone(), v));
                 }

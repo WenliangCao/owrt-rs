@@ -46,14 +46,16 @@ pub struct Delta {
     pub cmd: Cmd,
     pub section: String,
     pub option: Option<String>,
-    pub value: Option<String>,
+    pub value: Option<Vec<u8>>,
 }
 
 /// struct uci_option: UCI_TYPE_STRING or UCI_TYPE_LIST.
 #[derive(Clone, Debug, PartialEq, Eq)]
+/// option/list values are bytes: libuci keeps them byte for byte (any byte >= 0x20 plus
+/// tab/CR/LF) and never assumes UTF-8
 pub enum OptionValue {
-    Str(String),
-    List(Vec<String>),
+    Str(Vec<u8>),
+    List(Vec<Vec<u8>>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -141,7 +143,7 @@ pub struct Ptr {
     pub package: Option<String>,
     pub section: Option<String>,
     pub option: Option<String>,
-    pub value: Option<String>,
+    pub value: Option<Vec<u8>>,
 }
 
 impl Ptr {

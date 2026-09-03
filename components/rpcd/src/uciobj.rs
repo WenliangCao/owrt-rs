@@ -183,8 +183,8 @@ fn lookup(ctx: &mut Context, ptr: &mut Ptr) -> owrt_uci::Result<()> {
 /// rpc_uci_match_option
 fn match_option(o: &OptionValue, cmp: &str) -> bool {
     match o {
-        OptionValue::List(items) => items.iter().any(|e| e == cmp),
-        OptionValue::Str(s) => s.split([' ', '\t']).filter(|t| !t.is_empty()).any(|t| t == cmp),
+        OptionValue::List(items) => items.iter().any(|e| e.as_slice() == cmp.as_bytes()),
+        OptionValue::Str(s) => s.split(|&b| b == b' ' || b == b'\t').filter(|t| !t.is_empty()).any(|t| t == cmp.as_bytes()),
     }
 }
 
@@ -216,13 +216,15 @@ fn match_section(s: &owrt_uci::Section, ty: Option<&str>, matches: Option<&[u8]>
 
 fn dump_option(b: &mut BlobBuf, o: &OptionValue, name: &str) {
     match o {
+        // blobmsg strings are UTF-8 here; libuci values are raw bytes (DEVIATION: a
+        // non-UTF-8 byte reaches the bus as U+FFFD instead of the raw byte)
         OptionValue::Str(s) => {
-            b.msg_string(name, s);
+            b.msg_string(name, &String::from_utf8_lossy(s));
         }
         OptionValue::List(items) => {
             let c = b.msg_open_array(name);
             for e in items {
-                b.msg_string("", e);
+                b.msg_string("", &String::from_utf8_lossy(e));
             }
             b.msg_close(c);
         }
@@ -330,7 +332,7 @@ fn add(rctx: &Ctx, raw: &[u8]) -> Reply {
     'body: {
         if let Some(n) = name {
             ptr.section = Some(n.to_owned());
-            ptr.value = Some(ty.to_owned());
+            ptr.value = Some(ty.as_bytes().to_vec());
             ptr.option = None;
             if lookup(&mut ctx, &mut ptr).is_err() {
                 break 'body;
@@ -370,7 +372,7 @@ fn add(rctx: &Ctx, raw: &[u8]) -> Reply {
                                 }
                             }
                             Some(v) => {
-                                ptr.value = Some(v);
+                                ptr.value = Some(v.into_bytes());
                                 let _ = tr!(ctx, ops::add_list(&mut ctx, &mut ptr, false));
                             }
                         }
@@ -383,7 +385,7 @@ fn add(rctx: &Ctx, raw: &[u8]) -> Reply {
                             }
                         }
                         Some(v) => {
-                            ptr.value = Some(v);
+                            ptr.value = Some(v.into_bytes());
                             let _ = tr!(ctx, ops::set(&mut ctx, &mut ptr, false));
                         }
                     }
@@ -424,7 +426,7 @@ fn merge_set(ctx: &mut Context, opt: &Field, ptr: &mut Ptr) -> i32 {
         let mut rv = status::INVALID_ARGUMENT;
         for cur in opt.children() {
             let Some(v) = format_blob(&cur) else { continue };
-            ptr.value = Some(v);
+            ptr.value = Some(v.into_bytes());
             let _ = tr!(ctx, ops::add_list(ctx, ptr, false));
             rv = 0;
         }
@@ -438,18 +440,18 @@ fn merge_set(ctx: &mut Context, opt: &Field, ptr: &mut Ptr) -> i32 {
         let _ = tr!(ctx, ops::delete(ctx, ptr, false));
         ptr.flags = 0;
         let Some(v) = format_blob(opt) else { return status::INVALID_ARGUMENT };
-        ptr.value = Some(v);
+        ptr.value = Some(v.into_bytes());
         let _ = tr!(ctx, ops::set(ctx, ptr, false));
     } else {
         let Some(v) = format_blob(opt) else { return status::INVALID_ARGUMENT };
         let same = match (ptr.p, ptr.s, ptr.o) {
             (Some(p), Some(s), Some(o)) => match &ctx.root[p].sections[s].options[o].value {
-                OptionValue::Str(cur) => *cur == v,
+                OptionValue::Str(cur) => cur.as_slice() == v.as_bytes(),
                 OptionValue::List(_) => false,
             },
             _ => false,
         };
-        ptr.value = Some(v);
+        ptr.value = Some(v.into_bytes());
         if !same {
             let _ = tr!(ctx, ops::set(ctx, ptr, false));
         }
@@ -637,7 +639,7 @@ fn rename(rctx: &Ctx, raw: &[u8]) -> Reply {
     let mut ptr = Ptr {
         package: Some(config.to_owned()),
         section: Some(section.to_owned()),
-        value: Some(name.to_owned()),
+        value: Some(name.as_bytes().to_vec()),
         option: arg_str(raw, "option").map(str::to_owned),
         ..Ptr::default()
     };
@@ -723,9 +725,9 @@ fn dump_change(b: &mut BlobBuf, d: &owrt_uci::Delta) {
     }
     if let Some(v) = &d.value {
         if d.cmd == Cmd::Reorder {
-            b.msg_u32("", strtoul10(v) as u32);
+            b.msg_u32("", strtoul10(&String::from_utf8_lossy(v)) as u32);
         } else {
-            b.msg_string("", v);
+            b.msg_string("", &String::from_utf8_lossy(v));
         }
     }
     b.msg_close(c);

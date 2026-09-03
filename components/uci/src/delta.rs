@@ -23,9 +23,9 @@ pub fn delta_save<W: Write>(w: &mut W, name: &str, h: &Delta) -> io::Result<()> 
     if h.cmd == Cmd::Remove && h.value.is_none() {
         writeln!(w)
     } else {
-        let v = h.value.as_deref().unwrap_or("");
+        let v = h.value.as_deref().unwrap_or(b"");
         write!(w, "='")?;
-        for c in v.bytes() {
+        for &c in v {
             if c != b'\'' {
                 w.write_all(&[c])?;
             } else {
@@ -73,11 +73,11 @@ pub fn strtoul_int(s: &str) -> i32 {
 
 /// uci_parse_delta_tuple
 pub fn parse_delta_tuple(pctx: &mut Pctx) -> Result<(Cmd, Ptr)> {
-    let arg = parse::parse_argument(pctx)?;
+    let arg = parse::parse_argument_bytes(pctx)?;
     if !pctx.cur_str_is_empty() {
         return Err(Error::Inval);
     }
-    let first = arg.as_bytes().first().copied().unwrap_or(0);
+    let first = arg.first().copied().unwrap_or(0);
     let c = Cmd::ALL
         .iter()
         .copied()
@@ -102,7 +102,7 @@ pub fn parse_delta_tuple(pctx: &mut Pctx) -> Result<(Cmd, Ptr)> {
             }
         }
         Cmd::Rename => {
-            if !ptr.value.as_deref().map_or(false, ops::validate_name) {
+            if !ptr.value.as_deref().and_then(|v| std::str::from_utf8(v).ok()).map_or(false, ops::validate_name) {
                 return Err(Error::Inval);
             }
         }
@@ -137,7 +137,7 @@ fn parse_delta_line(ctx: &mut Context, pidx: usize, pctx: &mut Pctx) -> Result<(
             let Some(sidx) = ptr.s else {
                 return Err(Error::NotFound);
             };
-            let pos = strtoul_int(ptr.value.as_deref().unwrap_or(""));
+            let pos = strtoul_int(&String::from_utf8_lossy(ptr.value.as_deref().unwrap_or(b"")));
             ops::reorder_section(ctx, pidx, sidx, pos, true)
         }
         Cmd::Rename => ops::rename(ctx, &mut ptr, true),

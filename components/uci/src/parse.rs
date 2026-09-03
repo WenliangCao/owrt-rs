@@ -82,6 +82,12 @@ impl<'r> Pctx<'r> {
             .unwrap_or(self.buf.len());
         String::from_utf8_lossy(&self.buf[i.min(self.buf.len())..end]).into_owned()
     }
+    /// the NUL-terminated C string at offset i, as bytes (values are not UTF-8 validated)
+    pub fn bytes_at(&self, i: usize) -> Vec<u8> {
+        let start = i.min(self.buf.len());
+        let end = self.buf[start..].iter().position(|&b| b == 0).map(|p| start + p).unwrap_or(self.buf.len());
+        self.buf[start..end].to_vec()
+    }
     /// strlen(pctx_cur_str(pctx))
     fn cur_strlen(&self) -> usize {
         self.buf[self.pos.min(self.buf.len())..]
@@ -292,7 +298,7 @@ impl<'r> Pctx<'r> {
     }
 
     /// strtok(pctx_cur_str(pctx), " \t") without moving `pos`.
-    fn strtok_word(&mut self) -> Option<String> {
+    fn strtok_word(&mut self) -> Option<Vec<u8>> {
         let mut i = self.pos;
         while matches!(self.char_at(i), b' ' | b'\t') {
             i += 1;
@@ -304,7 +310,7 @@ impl<'r> Pctx<'r> {
         while self.char_at(i) != 0 && !matches!(self.char_at(i), b' ' | b'\t') {
             i += 1;
         }
-        let word = String::from_utf8_lossy(&self.buf[start..i]).into_owned();
+        let word = self.buf[start..i].to_vec();
         if self.char_at(i) != 0 {
             self.set_char(i, 0);
         }
@@ -385,7 +391,7 @@ impl<'r> Pctx<'r> {
                 s: existing,
                 package: Some(ctx.root[pidx].name.clone()),
                 section: Some(name),
-                value: Some(ty),
+                value: Some(ty.as_bytes().to_vec()),
                 ..Ptr::default()
             };
             ops::set(ctx, &mut ptr, internal)?;
@@ -406,7 +412,7 @@ impl<'r> Pctx<'r> {
         let ofs_value = self.next_arg(false, false, false)?;
         self.assert_eol(ctx.flags)?;
         let name = self.str_at(ofs_name);
-        let value = self.str_at(ofs_value);
+        let value = self.bytes_at(ofs_value);
         let pidx = self.package.expect("package set");
         let internal = !self.merge;
         let s = &ctx.root[pidx].sections[sidx];
@@ -436,12 +442,12 @@ impl<'r> Pctx<'r> {
                 return Ok(());
             };
             let rest = &word[1..];
-            match word.as_bytes()[0] {
+            match word[0] {
                 b'#' => return Ok(()),
-                b'p' if rest.is_empty() || rest == "ackage" => self.parse_package(ctx, single)?,
-                b'c' if rest.is_empty() || rest == "onfig" => self.parse_config(ctx)?,
-                b'o' if rest.is_empty() || rest == "ption" => self.parse_option(ctx, false)?,
-                b'l' if rest.is_empty() || rest == "ist" => self.parse_option(ctx, true)?,
+                b'p' if rest.is_empty() || rest == b"ackage" => self.parse_package(ctx, single)?,
+                b'c' if rest.is_empty() || rest == b"onfig" => self.parse_config(ctx)?,
+                b'o' if rest.is_empty() || rest == b"ption" => self.parse_option(ctx, false)?,
+                b'l' if rest.is_empty() || rest == b"ist" => self.parse_option(ctx, true)?,
                 _ => return self.parse_error("invalid command"),
             }
         }
@@ -516,6 +522,12 @@ pub fn parse_argument_line(pctx: &mut Pctx) {
 pub fn parse_argument(pctx: &mut Pctx) -> Result<String> {
     let ofs = pctx.next_arg(false, false, false)?;
     Ok(pctx.str_at(ofs))
+}
+
+/// parse_argument, but returning the raw bytes (delta values are not UTF-8 validated).
+pub fn parse_argument_bytes(pctx: &mut Pctx) -> Result<Vec<u8>> {
+    let ofs = pctx.next_arg(false, false, false)?;
+    Ok(pctx.bytes_at(ofs))
 }
 
 /// The static `error_info[128]` buffer of uci_get_errorstr. It is only

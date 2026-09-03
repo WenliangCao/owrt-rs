@@ -411,7 +411,7 @@ pub fn test_login(username: &str, password: Option<&str>) -> Option<Login> {
         }
         let Some(u) = s.find_option("username") else { continue };
         let owrt_uci::OptionValue::Str(u) = &s.options[u].value else { continue };
-        if u != username {
+        if u.as_slice() != username.as_bytes() {
             continue;
         }
         let login = Login {
@@ -420,7 +420,7 @@ pub fn test_login(username: &str, password: Option<&str>) -> Option<Login> {
         let Some(password) = password else { return Some(login) };
         let Some(pw) = s.find_option("password") else { continue };
         let owrt_uci::OptionValue::Str(hash) = &s.options[pw].value else { continue };
-        if test_password(hash, password) {
+        if test_password(&String::from_utf8_lossy(hash), password) {
             return Some(login);
         }
     }
@@ -439,20 +439,25 @@ fn test_permission(login: Option<&Login>, perm: &str, group: &str) -> bool {
         }
         // negative expressions first
         for item in items {
-            let Some(mut p) = item.strip_prefix('!') else { continue };
-            p = p.trim_start_matches(|c: char| c.is_ascii_whitespace());
+            let Some(mut p) = item.strip_prefix(b"!") else { continue };
+            while let [first, rest @ ..] = p {
+                if !first.is_ascii_whitespace() {
+                    break;
+                }
+                p = rest;
+            }
             if p.is_empty() {
                 continue;
             }
-            if fnmatch(p.as_bytes(), group.as_bytes()) {
+            if fnmatch(p, group.as_bytes()) {
                 return false;
             }
         }
         for item in items {
-            if item.is_empty() || item.starts_with('!') {
+            if item.is_empty() || item.starts_with(b"!") {
                 continue;
             }
-            if fnmatch(item.as_bytes(), group.as_bytes()) {
+            if fnmatch(item, group.as_bytes()) {
                 return true;
             }
         }

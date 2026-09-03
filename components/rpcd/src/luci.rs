@@ -580,8 +580,8 @@ fn get_conntrack_helpers() -> Json {
         for sec in ctx.root[pidx].sections.iter().filter(|s| s.ty == "helper") {
             let g = |k: &str| match sec.find_option(k) {
                 Some(i) => match &sec.options[i].value {
-                    owrt_uci::OptionValue::Str(v) => Json::Str(v.clone()),
-                    owrt_uci::OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(v.clone())).collect()),
+                    owrt_uci::OptionValue::Str(v) => Json::Str(String::from_utf8_lossy(v).into_owned()),
+                    owrt_uci::OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(String::from_utf8_lossy(v).into_owned())).collect()),
                 },
                 None => Json::Null,
             };
