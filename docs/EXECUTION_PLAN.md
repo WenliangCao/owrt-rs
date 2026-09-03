@@ -363,6 +363,34 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 | 7 | 收尾·Benchmark：一次性程序并排、httpd 并排（uhttpd 临时 8080）、logd/rpcd 切换窗口；发现并修复 reload_config 10 ms 轮询（r3 上线） | 完成 2026-09-03，[BENCHMARK](../reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md) |
 | 8 | 收尾·发布流水线：`tools/release.sh fetch/apk/image` + ImageBuilder（本地包索引、`DISABLED_SERVICES`、`FILES` 标记），对 25.12.5 产出自定义 sysupgrade 镜像并离线验证，不刷写 | [RELEASE](RELEASE.md)、`manifests/release-25.12.5.json` |
 
+### 11.9 第四轮（2026-09-03 起）：找 bug，追性能
+
+**用户目标**：① 找出已存在或可能存在的 bug；② 性能输给原版的地方查找、打磨，追平或超过。
+两条线并行，每项都要有"发现 → 修复 → 沙箱差分不变 → 设备窗口重测"的闭环；修复合并进各包的下一个 release。
+
+**A. 性能（以 [BENCHMARK](../reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md) 为基线）**
+
+| # | 项 | 嫌疑/根因 | 处置 |
+|---|---|---|---|
+| A1 | rpcd `file exec` 每次多至 10 ms、`rc list` 每脚本多至 5 ms | `try_wait` + `sleep` 轮询（与 reload_config r1 同一类） | 改为阻塞等待 + 超时线程（复用 reload-config r3 的模式） |
+| A2 | reload_config 96 vs 79 ms | 19 次 `md5sum` fork，C 脚本只 fork 一次 | 一次 `md5sum` 处理全部规范化文件，逐行解析 |
+| A3 | `logread` 全量 60 vs 26 ms，且与条数线性（约 50 µs/条） | 环缓冲 `list()` 或每条 frame 构造的 O(n) 开销；管道 64 KB vs C 的 socketpair | 读代码定位，改为一次线性遍历、复用 BlobBuf、必要时 socketpair |
+| A4 | `iwinfo info` 28 vs 19 ms、`getWirelessDevices` 73 vs 49 ms；CPU 时间≈0，纯等待 | 每个 op 独立 netlink/固件往返，可能比 C 多发请求（重复 wiphy dump / survey） | 对照 C 的 op 序列数请求；合并或缓存同一请求内的 wiphy/station dump |
+| A5 | `uci export`（19 包）8.0 vs 5.9 ms、`show` 4.0 vs 3.5 ms | show 路径整包 clone；解析器每 token 分配 | 去掉 clone，解析器借用切片；以 175/175 差分为门禁 |
+
+**B. bug**
+
+| # | 项 | 方法 |
+|---|---|---|
+| B1 | 时序类缺陷普查 | 全部 `sleep`/轮询/超时点列表（已找到：rpcd file.rs、rc.rs；reload_config 已修） |
+| B2 | clippy | 六个 crate 全部 clippy 清零，逐条判断是否真 bug（已跑：uci 9、logd 2、httpd 1、fw4 21、rpcd 23 条） |
+| B3 | panic 面 | `unwrap`/`expect`/切片索引/`as` 截断对外部输入的暴露点逐个复核（rpcd 46 unwrap、473 as 转换是重点） |
+| B4 | 非 UTF-8 | `read_to_string`/`from_utf8` 用在配置、路径、日志、HTTP 的地方，与 C 的字节语义对照；差分用非 UTF-8 输入 |
+| B5 | 差分模糊 | 沙箱里对 uci（变异配置）、fw4（变异防火墙配置）、rpcd uci/file/session（随机参数）、httpd（畸形请求）、logd（畸形报文）做随机输入差分，任何不一致或崩溃即 bug |
+| B6 | 资源 | daemon 在压测前后 fd 数、RSS 不增长；rpcd 会话过期、logd 环大小上限 |
+
+**边界不变**：设备窗口仍是 disable/enable 切换 + 约 3 分钟探针；不刷机、不动 nvram；每个修复一次 commit。
+
 ### 11.7 顺序与依赖
 
 ```text
