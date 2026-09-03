@@ -48,4 +48,4 @@ ssh root@192.168.1.1 'sysupgrade -v /tmp/<image>-squashfs-sysupgrade.bin'   # �
 
 | OpenWrt | 设备状态 | 包 | 镜像 |
 |---|---|---|---|
-| 25.12.5 | 现役（apk 逐个安装 + boot-enable；R23 重启验证通过） | uci r2、reload-config r3、logd r2、httpd 0.1.1-r1、fw4 r2、rpcd r4、switch r2 | 见 `manifests/release-25.12.5.json`（离线验证，未刷写） |
+| 25.12.5 | 现役（apk 逐个安装 + boot-enable；R23 重启验证通过） | uci r2、reload-config r3、logd r2、httpd 0.1.1-r1、fw4 r2、rpcd r4、switch r2 | 已生成并离线验证，**未刷写**：`…-squashfs-sysupgrade.bin` 11 079 968 B，sha256 `fffb1589…5cd6`；六个二进制与设备现役逐字节相同，六个标记、S 链接、本地 apk 公钥、全部 root:root；见 `manifests/release-25.12.5.json` |

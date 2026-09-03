@@ -1,0 +1,59 @@
+{
+ "id": "release-25.12.5",
+ "date": "2026-09-03",
+ "status": "built and validated offline; NOT flashed (flashing needs a new decision, see RELEASE.md)",
+ "inputs": {
+  "sdk": "openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64.tar.zst sha256 ff4a38a397caa2cfe1c39e18f84ddede14878221b3593c3f2c4cfe24e3ec4c25",
+  "imagebuilder": "openwrt-imagebuilder-25.12.5-mediatek-filogic.Linux-x86_64.tar.zst sha256 7fb6cf626582ebcbfb46974da48c1eae577213f38879eaf6b1d982041e843461",
+  "package_list": "apk info of the device on 2026-09-03 (170 packages) + owrt-*",
+  "imagebuilder_args": {
+   "PROFILE": "xiaomi_mi-router-ax3000t",
+   "DISABLED_SERVICES": "rpcd uhttpd log",
+   "FILES": "etc/owrt-{uci,reload-config,logd,httpd,fw4,rpcd}.boot-enable",
+   "ADD_LOCAL_KEY": 1
+  }
+ },
+ "packages": {
+  "owrt-uci": "0.1.0-r2",
+  "owrt-reload-config": "0.2.0-r3",
+  "owrt-logd": "0.1.0-r2",
+  "owrt-httpd": "0.1.1-r1",
+  "owrt-fw4": "0.1.0-r2",
+  "owrt-rpcd": "0.1.0-r4",
+  "owrt-switch": "0.1.0-r2"
+ },
+ "output": {
+  "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+  "size": 11079968,
+  "sha256": "fffb15893d77666c5fa2d46fdb63dd8a65ad61a3ceadbdb714f8b74f65e95cd6",
+  "format": "sysupgrade tar (CONTROL, kernel 4336328 B, root squashfs 6737920 B)",
+  "local_copy": "private/images/custom-25.12.5/",
+  "build_host_dir": "/home/ubuntu/release/25.12.5/bin/"
+ },
+ "offline_validation": {
+  "binaries_identical_to_device": {
+   "rpcd-rs": "76e720e4a0315620",
+   "httpd-rs": "c5231ddeaf39b7e4",
+   "logd-rs": "4e78e469f169cfa0",
+   "fw4-rs": "4474f87dfbd84727",
+   "uci-rs": "f4b4e28c32051f8c",
+   "reload_config_rs": "3bf4e97f556530f7"
+  },
+  "boot_enable_markers": 6,
+  "rc_d": "S00owrt-uci S11owrt-reload-config S11owrt-rpcd S12owrt-logd S18owrt-fw4 S50owrt-httpd present; no S12rpcd/S12log/S50uhttpd",
+  "apk_keys": [
+   "local-public-key.pem",
+   "openwrt-25.12.pem"
+  ],
+  "file_ownership": "all 1279 entries root/root (acl.d included)",
+  "apk_db_owrt_lines": 54,
+  "not_done": "boot test of this image (would require flashing)"
+ },
+ "scripts": {
+  "release": "tools/release.sh",
+  "make_targets": [
+   "make apk VERSION=25.12.5",
+   "make image VERSION=25.12.5"
+  ]
+ }
+}
