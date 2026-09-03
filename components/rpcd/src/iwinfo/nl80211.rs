@@ -1420,11 +1420,7 @@ pub fn quality(ifname: &str) -> Result<i32, ()> {
     if sig >= 0 {
         Ok(sig)
     } else {
-        if sig < -110 {
-            sig = -110;
-        } else if sig > -40 {
-            sig = -40;
-        }
+        sig = sig.clamp(-110, -40);
         Ok(sig + 110)
     }
 }
@@ -2225,11 +2221,7 @@ fn nl80211_get_scanlist_cb(msg: &Nlmsg, sl: &mut Vec<ScanlistEntry>) {
     if let Some(s) = at(&bss, NL80211_BSS_SIGNAL_MBM) {
         e.signal = ((s.get_u32() as i32) / 100) as u8;
         let mut rssi = (e.signal as i32 - 0x100) as i8;
-        if rssi < -110 {
-            rssi = -110;
-        } else if rssi > -40 {
-            rssi = -40;
-        }
+        rssi = rssi.clamp(-110, -40);
         e.quality = (rssi as i32 + 110) as u8;
         e.quality_max = 70;
     }
@@ -2378,11 +2370,7 @@ pub fn wpactl_scan_line(line: &[u8], qmax: i32) -> Option<ScanlistEntry> {
 
     /* Quality */
     if rssi < 0 {
-        if rssi < -110 {
-            rssi = -110;
-        } else if rssi > -40 {
-            rssi = -40;
-        }
+        rssi = rssi.clamp(-110, -40);
         e.quality = (rssi + 110) as u8;
     } else {
         e.quality = rssi as u8;
@@ -2439,30 +2427,33 @@ fn nl80211_get_scanlist_wpactl(ifname: &str) -> Result<Vec<ScanlistEntry>, i32> 
         tries += 1;
     }
 
-    /* receive and parse scan results if the wait above didn't time out */
-    while ready {
-        let (n, reply) = nl80211_wpactl_recv(sock, 4096);
-        if n <= 0 {
-            break;
-        }
-        let reply = cstr(&reply);
-        /* received an event notification, receive again */
-        if reply.first() == Some(&b'<') {
-            continue;
-        }
-        let qmax = quality_max(ifname).unwrap_or(70);
-        for line in strtok_all(reply, b"\n") {
-            /* skip header line */
-            if count < 0 {
-                count += 1;
+    /* receive and parse scan results if the wait above didn't time out
+     * (C: `while (ready)`; the body always breaks except on event lines) */
+    if ready {
+        loop {
+            let (n, reply) = nl80211_wpactl_recv(sock, 4096);
+            if n <= 0 {
+                break;
+            }
+            let reply = cstr(&reply);
+            /* received an event notification, receive again */
+            if reply.first() == Some(&b'<') {
                 continue;
             }
-            if let Some(e) = wpactl_scan_line(line, qmax) {
-                list.push(e);
-                count += 1;
+            let qmax = quality_max(ifname).unwrap_or(70);
+            for line in strtok_all(reply, b"\n") {
+                /* skip header line */
+                if count < 0 {
+                    count += 1;
+                    continue;
+                }
+                if let Some(e) = wpactl_scan_line(line, qmax) {
+                    list.push(e);
+                    count += 1;
+                }
             }
+            break;
         }
-        break;
     }
 
     wpactl_close(sock, &local);
@@ -2987,6 +2978,7 @@ pub fn hardware_id(ifname: &str) -> Result<HardwareId, ()> {
         None => format!("/sys/class/net/{ifname}/device"),
     };
 
+    #[allow(clippy::type_complexity)]
     let lookup: [(&str, fn(&mut HardwareId) -> &mut u16); 6] = [
         ("vendor", |id| &mut id.vendor_id),
         ("device", |id| &mut id.device_id),

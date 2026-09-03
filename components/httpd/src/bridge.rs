@@ -202,7 +202,7 @@ fn do_call(
                             ("code".into(), Json::Int(reply.status as i64)),
                             (
                                 "message".into(),
-                                Json::Str(owrt_ubus::status::name(reply.status).into()),
+                                Json::Str(owrt_ubus::status::name(reply.status)),
                             ),
                         ]),
                     ),

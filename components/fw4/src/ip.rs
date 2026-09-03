@@ -67,7 +67,6 @@ fn parse_v6(s: &str) -> Option<[u8; 16]> {
             let v4 = parse_v4(&s[start..])?;
             out[pos..pos + 4].copy_from_slice(&v4);
             pos += 4;
-            i = bytes.len();
             break;
         }
         if group.is_empty() || group.len() > 4 {
@@ -219,7 +218,7 @@ pub fn to_bits(mask: &str) -> Option<i64> {
     for byte in a.iter_mut() {
         z = z || *byte == 0;
         while !z && (*byte & 0x80) != 0 {
-            *byte = (*byte << 1) & 0xff;
+            *byte <<= 1;
             bits += 1;
         }
         if *byte != 0 {

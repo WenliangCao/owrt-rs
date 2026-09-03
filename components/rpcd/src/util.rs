@@ -60,7 +60,7 @@ pub fn hex(bytes: &[u8]) -> String {
 const B64: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 pub fn b64_encode(data: &[u8]) -> String {
-    let mut out = String::with_capacity((data.len() + 2) / 3 * 4);
+    let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
         let b = [chunk[0], *chunk.get(1).unwrap_or(&0), *chunk.get(2).unwrap_or(&0)];
         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
@@ -156,10 +156,18 @@ pub fn canonicalize(path: &str) -> Option<String> {
     Some(String::from_utf8_lossy(&out).into_owned())
 }
 
+/// Read a text file the way the C code consumes it with fgets/strtok: byte
+/// by byte, so one non-UTF-8 byte does not make the whole file unreadable.
+/// Invalid sequences become U+FFFD (DEVIATION: C keeps the raw bytes; they
+/// cannot be carried in blobmsg strings anyway).
+pub fn read_lossy(path: &str) -> std::io::Result<String> {
+    std::fs::read(path).map(|b| String::from_utf8_lossy(&b).into_owned())
+}
+
 // ---------------------------------------------------- passwd / group
 
 fn lookup_name(file: &str, id: u32) -> Option<String> {
-    let text = std::fs::read_to_string(file).ok()?;
+    let text = read_lossy(file).ok()?;
     for line in text.lines() {
         let f: Vec<&str> = line.split(':').collect();
         if f.len() >= 3 && f[2].parse::<u32>().ok() == Some(id) {

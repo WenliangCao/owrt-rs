@@ -29,7 +29,7 @@ extern "C" {
 struct Lock(#[allow(dead_code)] std::fs::File);
 
 fn lock() -> Option<Lock> {
-    let f = std::fs::OpenOptions::new().create(true).write(true).open(LOCK).ok()?;
+    let f = std::fs::OpenOptions::new().create(true).truncate(false).write(true).open(LOCK).ok()?;
     use std::os::unix::io::AsRawFd;
     // LOCK_EX == 2
     if unsafe { flock(f.as_raw_fd(), 2) } != 0 {

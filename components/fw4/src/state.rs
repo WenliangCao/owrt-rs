@@ -189,6 +189,10 @@ pub struct Zone {
     pub log: Option<Num>,
     pub log_limit: Option<Limit>,
     pub auto_helper: bool,
+    /// zone.helper as fw4.uc keeps it in state; the ruleset uses the derived
+    /// helper match rules, and the state file writes the fields `fw4 zone`
+    /// reads, so nothing reads this back
+    #[allow(dead_code)]
     pub helper: Option<Vec<CtHelper>>,
     pub counter: bool,
     pub network: Vec<Device>,

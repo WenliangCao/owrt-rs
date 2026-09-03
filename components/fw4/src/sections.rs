@@ -328,6 +328,7 @@ impl Fw4 {
         }
         let parsed = {
             let mut o = Opts::new(self, data);
+            #[allow(clippy::field_reassign_with_default)] // mirrors the option-by-option ucode parse
             let r = (|| {
                 let mut d = Defaults::default();
                 d.input = o.opt("input", s("drop"), 0, |f, v| f.parse_policy(v))?;
@@ -509,7 +510,7 @@ impl Fw4 {
             if !device.invert && name == "+" {
                 continue;
             }
-            let mut wildcard = plus;
+            let wildcard = plus;
             if device.invert && name == "+" {
                 device.device = Some("/never/".into());
                 device.invert = false;
@@ -529,6 +530,7 @@ impl Fw4 {
                 plain_invert.push(devname);
             }
         }
+        #[allow(clippy::type_complexity)]
         let mut devices: Vec<(Option<Vec<String>>, Vec<String>, Vec<String>)> = wildcard_groups
             .into_iter()
             .map(|d| (Some(vec![d]), plain_invert.clone(), wildcard_invert.clone()))
@@ -880,6 +882,7 @@ impl Fw4 {
                 }
                 Some(f) => f,
             };
+            #[allow(clippy::type_complexity)]
             let mut emitted: Vec<(i64, SubnetGroup, SubnetGroup, Option<Vec<IcmpType>>, Option<Vec<IcmpType>>)> = Vec::new();
             if family == 0 && target != "dscp" && !has4 && !has6 {
                 emitted.push((0, empty_group(), empty_group(), None, None));
@@ -1493,8 +1496,8 @@ impl Fw4 {
             // reflection rules
             let src_zone = rd.src.and_then(|z| z.zone);
             let dest_zone = rd.dest.and_then(|z| z.zone);
-            if rd.target == "dnat" && rd.reflection && (rip.len(0) > 0 || rip.len(1) > 0) && src_zone.is_some() && dest_zone.is_some() {
-                let src_zone = src_zone.unwrap();
+            let reflect = rd.target == "dnat" && rd.reflection && (rip.len(0) > 0 || rip.len(1) > 0) && dest_zone.is_some();
+            if let (true, Some(src_zone)) = (reflect, src_zone) {
                 let refbase = RedirBase {
                     name: format!("{name} (reflection)"),
                     helper: rd.helper.clone(),
@@ -1545,12 +1548,14 @@ impl Fw4 {
                             }
                         }
                         let fam = if i == 1 { 6 } else { 4 };
-                        if snat_addr.is_none() {
+                        let Some(snat_addr) = snat_addr.as_ref() else {
                             self.warn_section(data, &format!(
                                 "{} rewrite IP cannot be determined, disabling reflection",
                                 rd.reflection_src.clone().unwrap_or_else(|| "external".into())
                             ));
-                        } else if iaddrs.len(i) == 0 {
+                            continue;
+                        };
+                        if iaddrs.len(i) == 0 {
                             self.warn_section(data, "internal address range cannot be determined, disabling reflection");
                         } else if eaddrs.len(i) == 0 {
                             self.warn_section(data, "external address range cannot be determined, disabling reflection");
@@ -1567,7 +1572,7 @@ impl Fw4 {
                             rb.src = None;
                             rb.dest = Some(rzone);
                             rb.target = "snat".into();
-                            let snat = vec![to_hostaddr(snat_addr.as_ref().unwrap())];
+                            let snat = vec![to_hostaddr(snat_addr)];
                             for daddrs in subnets_group_by_masking(Some(ripi)) {
                                 for saddrs in subnets_group_by_masking(iaddrs.get(i)) {
                                     self.add_redirect(data, &rb, fam, proto, &saddrs, &daddrs, Some(&snat), None, rport, None, None);
@@ -1776,7 +1781,7 @@ impl Fw4 {
                 }
                 Some(f) => f,
             };
-            let mut push = |this: &mut Fw4, fam: i64, saddrs: &SubnetGroup, daddrs: &SubnetGroup, raddrs: Option<&Vec<Addr>>| {
+            let push = |this: &mut Fw4, fam: i64, saddrs: &SubnetGroup, daddrs: &SubnetGroup, raddrs: Option<&Vec<Addr>>| {
                 let has_ports = sport.is_some() || dport.is_some();
                 let mut r = build_redirect(&base, fam, proto, saddrs, daddrs, raddrs, sport, dport, rport, has_ports);
                 r.chain = chain.clone();

@@ -25,7 +25,7 @@ pub fn validate_str(s: &str, name: bool, package: bool) -> bool {
         if c == b'-' && package {
             continue;
         }
-        if name || c < 33 || c > 126 {
+        if name || !(33..=126).contains(&c) {
             return false;
         }
     }
@@ -189,7 +189,7 @@ fn lookup_ext_section(ctx: &Context, ptr: &mut Ptr) -> Result<Option<usize>> {
 /// strtol(s, &end, 10) requiring the whole string to be consumed; the empty
 /// string yields 0 like the C code (end == s, *end == 0).
 fn strtol(s: &str) -> Option<i64> {
-    let t = s.trim_start_matches(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\x0b' || c == '\x0c');
+    let t = s.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
     let (neg, digits) = match t.as_bytes().first() {
         Some(b'-') => (true, &t[1..]),
         Some(b'+') => (false, &t[1..]),
@@ -231,8 +231,8 @@ pub fn lookup_ptr(ctx: &mut Context, ptr: &mut Ptr, str_: Option<&[u8]>, extende
         None => {
             let name = ptr.package.clone().unwrap_or_default();
             // UCI_INTERNAL(uci_load): errors propagate
-            let i = crate::file::load(ctx, &name)?;
-            i
+            
+            crate::file::load(ctx, &name)?
         }
     };
     ptr.p = Some(pidx);
@@ -592,7 +592,7 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     if !(ptr.s.is_some() || (ptr.option.is_none() && ptr.section.is_some())) {
         return Err(Error::Inval);
     }
-    if ptr.option.is_none() && !value.is_empty() && !std::str::from_utf8(&value).map_or(false, validate_type) {
+    if ptr.option.is_none() && !value.is_empty() && !std::str::from_utf8(&value).is_ok_and(validate_type) {
         return Err(Error::Inval);
     }
     let pidx = ptr.p.ok_or(Error::Inval)?;

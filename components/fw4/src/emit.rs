@@ -238,7 +238,7 @@ impl Fw4 {
 
     /// `parse_setfile(set, cb)`: entries from `loadfile`.
     pub fn parse_setfile(&self, set: &Ipset, cb: &mut dyn FnMut(&[String])) -> Option<usize> {
-        let Some(path) = set.loadfile.as_deref() else { return None };
+        let path = set.loadfile.as_deref()?;
         let Some(data) = self.inputs.read_all(path) else {
             self.raw_warn(&format!(
                 "Unable to load file '{}' for set '{}': {}\n",

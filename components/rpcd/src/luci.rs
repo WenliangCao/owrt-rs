@@ -50,7 +50,7 @@ fn error(msg: &str) -> Json {
     obj(vec![("error", s(msg))])
 }
 fn readfile(path: &str) -> Option<String> {
-    std::fs::read_to_string(path).ok()
+    util::read_lossy(path).ok()
 }
 fn trim(v: &str) -> &str {
     v.trim_matches(|c: char| c == ' ' || c == '\t' || c == '\n' || c == '\r')
@@ -110,7 +110,7 @@ fn unescape_octal(v: &str) -> String {
     let mut out = Vec::new();
     let mut i = 0;
     while i < b.len() {
-        if b[i] == b'\\' && i + 3 < b.len() + 0 && b[i + 1..].len() >= 3 && b[i + 1..i + 4].iter().all(|c| (b'0'..=b'7').contains(c)) {
+        if b[i] == b'\\' && i + 3 < b.len() && b[i + 1..].len() >= 3 && b[i + 1..i + 4].iter().all(|c| (b'0'..=b'7').contains(c)) {
             let n = u8::from_str_radix(std::str::from_utf8(&b[i + 1..i + 4]).unwrap(), 8).unwrap_or(b'\\');
             out.push(n);
             i += 4;
@@ -212,7 +212,7 @@ fn conntrack_list() -> Vec<Json> {
     let mut protos: Vec<(String, String)> = Vec::new();
     if let Some(text) = readfile("/etc/protocols") {
         for line in text.lines() {
-            let mut it = line.split(|c| c == ' ' || c == '\t').filter(|p| !p.is_empty());
+            let mut it = line.split([' ', '\t']).filter(|p| !p.is_empty());
             if let (Some(name), Some(num)) = (it.next(), it.next()) {
                 if !name.starts_with('#') && num.bytes().all(|b| b.is_ascii_digit()) && !num.is_empty() {
                     protos.push((num.to_owned(), name.to_owned()));
@@ -227,7 +227,7 @@ fn conntrack_list() -> Vec<Json> {
         // ^(ipv[46]) +([0-9]+) +\S+ +([0-9]+)( +.+)\n$
         let Some(line) = line.strip_suffix('\n') else { continue };
         let mut rest = line;
-        let mut take = |rest: &mut &str| -> Option<String> {
+        let take = |rest: &mut &str| -> Option<String> {
             let t = rest.trim_start_matches(' ');
             let end = t.find(' ').unwrap_or(t.len());
             if end == 0 {
@@ -707,11 +707,11 @@ fn get_swconfig_features(args: &Json) -> Json {
     let sw = shellquote(arg_str(args, "switch").unwrap_or("switch0"));
     let out = popen(&format!("swconfig dev {sw} help 2>/dev/null"));
     let (mut is_vlan_attr, mut r): (bool, Vec<(String, Json)>) = (false, Vec::new());
-    let mut set = |r: &mut Vec<(String, Json)>, k: &str, v: Json| {
+    let set = |r: &mut Vec<(String, Json)>, k: &str, v: Json| {
         if let Some(slot) = r.iter_mut().find(|(key, _)| key == k) { slot.1 = v } else { r.push((k.to_owned(), v)) }
     };
     for line in out.lines() {
-        let t = line.trim_start_matches(|c| c == ' ' || c == '\t');
+        let t = line.trim_start_matches([' ', '\t']);
         let indented = t.len() != line.len();
         if indented && t.starts_with("--vlan") {
             is_vlan_attr = true;

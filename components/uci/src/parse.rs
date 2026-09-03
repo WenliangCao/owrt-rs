@@ -105,10 +105,7 @@ impl<'r> Pctx<'r> {
         self.buf.truncate(offset);
         loop {
             let mut chunk = Vec::new();
-            let n = match self.reader.read_until(b'\n', &mut chunk) {
-                Ok(n) => n,
-                Err(_) => 0,
-            };
+            let n = self.reader.read_until(b'\n', &mut chunk).unwrap_or(0);
             if n == 0 {
                 self.eof = true;
                 return;
@@ -252,7 +249,7 @@ impl<'r> Pctx<'r> {
                 }
                 _ => self.addc(target),
             }
-            if !(self.cur() != 0 && !isspace(self.cur())) {
+            if self.cur() == 0 || isspace(self.cur()) {
                 break;
             }
         }

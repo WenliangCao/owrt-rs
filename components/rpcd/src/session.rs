@@ -273,7 +273,7 @@ impl Store {
         let dead: Vec<String> = self
             .sessions
             .values()
-            .filter(|s| s.expires.map_or(false, |e| e <= now))
+            .filter(|s| s.expires.is_some_and(|e| e <= now))
             .map(|s| s.id.clone())
             .collect();
         for id in dead {
@@ -318,6 +318,7 @@ impl Store {
     }
 
     /// rpc_session_from_blob
+    #[allow(clippy::wrong_self_convention)] // C name; fills an existing session
     fn from_blob(&mut self, bytes: &[u8]) -> bool {
         let Some((head, _)) = blob::attr_at(bytes, 0) else { return false };
         let mut sid = None;
@@ -377,7 +378,7 @@ fn test_password(hash: &str, password: &str) -> bool {
     }
     if let Some(user) = hash.strip_prefix("$p$") {
         // getspnam(user)->sp_pwdp
-        let Ok(shadow) = fs::read_to_string("/etc/shadow") else { return false };
+        let Ok(shadow) = crate::util::read_lossy("/etc/shadow") else { return false };
         for line in shadow.lines() {
             let mut it = line.splitn(3, ':');
             let (Some(name), Some(pw)) = (it.next(), it.next()) else { continue };
@@ -494,7 +495,7 @@ fn setup_acl_scope(ses: &mut Session, perm: &str, scope: &str, value: &Json) {
 
 /// rpc_login_setup_acl_file
 fn setup_acl_file(ses: &mut Session, login: Option<&Login>, path: &str) {
-    let text = fs::read_to_string(path).unwrap_or_default();
+    let text = crate::util::read_lossy(path).unwrap_or_default();
     let Ok(Json::Object(groups)) = owrt_ubus::json::parse(&text) else {
         eprintln!("Failed to parse {path}");
         return;

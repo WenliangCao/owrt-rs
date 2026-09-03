@@ -188,6 +188,6 @@ mod tests {
         assert_eq!(r.list(1).map(|e| e.id).collect::<Vec<_>>(), vec![3]);
         // C log_list: count 0 or >= current_id -> all; negative -> none.
         assert_eq!(r.list(100).map(|e| e.id).collect::<Vec<_>>(), vec![2, 3]);
-        assert_eq!(r.list(-1).map(|e| e.id).count(), 0);
+        assert_eq!(r.list(-1).count(), 0);
     }
 }

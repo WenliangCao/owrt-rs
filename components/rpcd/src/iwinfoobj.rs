@@ -4,7 +4,7 @@
 //! the reply in the C field order and ends with `rpc_iwinfo_close()`.
 
 use crate::iwinfo::{self as iw, nl80211, utils, CryptoEntry, RateEntry};
-use crate::session::{arg, arg_str, Reply};
+use crate::session::{arg_str, Reply};
 use owrt_ubus::blob::MsgType;
 use owrt_ubus::{status, BlobBuf};
 

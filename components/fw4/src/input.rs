@@ -172,7 +172,10 @@ impl Inputs {
             self.trace(&format!("fs.open path <{path}> mode <r>"));
             return Some(data);
         }
-        std::fs::read_to_string(path).ok()
+        // fs.readfile returns raw bytes; one stray non-UTF-8 byte in an include
+        // file must not make the whole file vanish (DEVIATION: invalid bytes
+        // become U+FFFD instead of being copied through).
+        std::fs::read(path).ok().map(|b| String::from_utf8_lossy(&b).into_owned())
     }
 
     /// `fs.readfile(path)`.
@@ -182,7 +185,10 @@ impl Inputs {
             self.trace(&format!("fs.readfile path <{path}> limit <null>"));
             return Some(data);
         }
-        std::fs::read_to_string(path).ok()
+        // fs.readfile returns raw bytes; one stray non-UTF-8 byte in an include
+        // file must not make the whole file vanish (DEVIATION: invalid bytes
+        // become U+FFFD instead of being copied through).
+        std::fs::read(path).ok().map(|b| String::from_utf8_lossy(&b).into_owned())
     }
 
     /// `fs.access(path)`.

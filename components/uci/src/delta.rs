@@ -102,7 +102,7 @@ pub fn parse_delta_tuple(pctx: &mut Pctx) -> Result<(Cmd, Ptr)> {
             }
         }
         Cmd::Rename => {
-            if !ptr.value.as_deref().and_then(|v| std::str::from_utf8(v).ok()).map_or(false, ops::validate_name) {
+            if !ptr.value.as_deref().and_then(|v| std::str::from_utf8(v).ok()).is_some_and(ops::validate_name) {
                 return Err(Error::Inval);
             }
         }
@@ -317,7 +317,7 @@ pub fn revert(ctx: &mut Context, ptr: &mut Ptr) -> Result<()> {
     filter_delta(ctx, &package, section.as_deref(), option.as_deref());
     let newidx = file::load(ctx, &package)?;
     // keep the caller's index stable
-    if newidx != pidx && pidx <= ctx.root.len() - 1 {
+    if newidx != pidx && pidx < ctx.root.len() {
         let p = ctx.root.remove(newidx);
         ctx.root.insert(pidx, p);
     }

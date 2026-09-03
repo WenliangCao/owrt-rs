@@ -23,7 +23,7 @@ pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
 /// rrdns_find_nameserver: first `nameserver` line of /etc/resolv.conf that
 /// parses as an IPv6 or IPv4 address.
 fn find_nameserver() -> Option<String> {
-    let text = std::fs::read_to_string("/etc/resolv.conf").ok()?;
+    let text = crate::util::read_lossy("/etc/resolv.conf").ok()?;
     for line in text.split_inclusive('\n') {
         let mut it = line.split([' ', '\t']).filter(|t| !t.is_empty());
         if it.next() != Some("nameserver") {

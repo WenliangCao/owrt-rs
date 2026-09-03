@@ -170,7 +170,7 @@ fn format_blob(v: &Field) -> Option<String> {
 /// rpc_uci_lookup
 fn lookup(ctx: &mut Context, ptr: &mut Ptr) -> owrt_uci::Result<()> {
     let mut l = ptr.clone();
-    if l.s.is_none() && l.section.as_deref().map_or(false, |s| s.starts_with('@')) {
+    if l.s.is_none() && l.section.as_deref().is_some_and(|s| s.starts_with('@')) {
         l.flags |= LOOKUP_EXTENDED;
     }
     let r = tr!(ctx, ops::lookup_ptr(ctx, &mut l, None, true));

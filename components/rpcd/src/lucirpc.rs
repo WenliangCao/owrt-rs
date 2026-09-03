@@ -40,7 +40,7 @@ pub fn readstr(path: &str) -> String {
         }
         data.extend_from_slice(&buf[..got]);
     }
-    while data.last().map_or(false, |c| c.is_ascii_whitespace()) {
+    while data.last().is_some_and(|c| c.is_ascii_whitespace()) {
         data.pop();
     }
     String::from_utf8_lossy(&data).into_owned()
@@ -122,6 +122,7 @@ pub fn ether_aton(s: &str) -> Option<[u8; 6]> {
     let b = s.as_bytes();
     let mut out = [0u8; 6];
     let mut i = 0;
+    #[allow(clippy::needless_range_loop)] // index walk mirrors ether_aton's byte cursor
     for oct in 0..6 {
         if oct != 0 {
             if b.get(i) != Some(&b':') {
@@ -487,7 +488,7 @@ pub fn get_network_devices() -> Reply {
         let ifaddr = rtnl::getifaddrs().unwrap_or_default();
         for e in rd.flatten() {
             let ft = e.file_type().ok();
-            if ft.map_or(false, |t| t.is_dir() || t.is_file()) {
+            if ft.is_some_and(|t| t.is_dir() || t.is_file()) {
                 continue;
             }
             network_device(&mut b, &e.file_name().to_string_lossy(), &ifaddr);
@@ -557,7 +558,7 @@ fn hints_nl(hints: &mut Hints) {
 }
 
 fn hints_ether(hints: &mut Hints) {
-    let Ok(text) = fs::read_to_string("/etc/ethers") else { return };
+    let Ok(text) = crate::util::read_lossy("/etc/ethers") else { return };
     for line in text.split_inclusive('\n') {
         let mut t = strtok(line, " \t\n");
         let Some(ea) = t.next().and_then(ether_aton) else { continue };
@@ -624,6 +625,7 @@ fn hints_uci(hints: &mut Hints) {
 fn hints_ifaddrs(hints: &mut Hints) {
     let Ok(ifaddr) = rtnl::getifaddrs() else { return };
     // per device name (avl strcmp order): mac, last IPv4, last IPv6 seen
+    #[allow(clippy::type_complexity)]
     let mut devices: BTreeMap<String, ([u8; 6], [u8; 4], [u8; 16])> = BTreeMap::new();
     for ifa in &ifaddr {
         let d = devices.entry(ifa.name.clone()).or_insert(([0; 6], [0; 4], [0; 16]));
@@ -778,7 +780,7 @@ pub fn get_duid_hints() -> Reply {
 }
 
 pub fn get_board_json() -> Reply {
-    let Ok(text) = fs::read_to_string("/etc/board.json") else {
+    let Ok(text) = crate::util::read_lossy("/etc/board.json") else {
         return Reply { code: status::UNKNOWN_ERROR, data: vec![] };
     };
     match owrt_ubus::json::parse(&text) {
@@ -837,33 +839,6 @@ pub fn get_dhcp_leases(raw: &[u8]) -> Reply {
         b.msg_close(a);
     }
     Reply { code: 0, data: vec![b.into_payload()] }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn mac_and_duid() {
-        assert_eq!(ether_aton("0:1:2:a:b:ff"), Some([0, 1, 2, 10, 11, 255]));
-        assert_eq!(ether_aton("00:11:22:33:44:55"), Some([0, 0x11, 0x22, 0x33, 0x44, 0x55]));
-        assert!(ether_aton("00:11:22:33:44").is_none());
-        assert!(ether_aton("00:11:22:33:44:555").is_none());
-        assert_eq!(duid2ea("000100011234567800112233aabb"), Some([0, 0x11, 0x22, 0x33, 0xaa, 0xbb]));
-        assert_eq!(duid2ea("00030001aabbccddeeff"), Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]));
-        assert_eq!(duid2ea("aabbccddeeff"), Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]));
-        assert!(duid2ea("zz").is_none());
-    }
-
-    #[test]
-    fn prio_order() {
-        let mut v: Vec<(i32, [u8; 4])> = Vec::new();
-        add_sorted(&mut v, 10, [10, 0, 0, 2]);
-        add_sorted(&mut v, 100, [10, 0, 0, 9]);
-        add_sorted(&mut v, 10, [10, 0, 0, 1]);
-        add_sorted(&mut v, 200, [10, 0, 0, 2]); // upgrade
-        assert_eq!(v, vec![(200, [10, 0, 0, 2]), (100, [10, 0, 0, 9]), (10, [10, 0, 0, 1])]);
-    }
 }
 
 // ------------------------------------------------------------ wireless
@@ -961,5 +936,32 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
             Outcome::Deferred
         }
         _ => Outcome::Now(req, Reply { code: status::METHOD_NOT_FOUND, data: vec![] }),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn mac_and_duid() {
+        assert_eq!(ether_aton("0:1:2:a:b:ff"), Some([0, 1, 2, 10, 11, 255]));
+        assert_eq!(ether_aton("00:11:22:33:44:55"), Some([0, 0x11, 0x22, 0x33, 0x44, 0x55]));
+        assert!(ether_aton("00:11:22:33:44").is_none());
+        assert!(ether_aton("00:11:22:33:44:555").is_none());
+        assert_eq!(duid2ea("000100011234567800112233aabb"), Some([0, 0x11, 0x22, 0x33, 0xaa, 0xbb]));
+        assert_eq!(duid2ea("00030001aabbccddeeff"), Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]));
+        assert_eq!(duid2ea("aabbccddeeff"), Some([0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff]));
+        assert!(duid2ea("zz").is_none());
+    }
+
+    #[test]
+    fn prio_order() {
+        let mut v: Vec<(i32, [u8; 4])> = Vec::new();
+        add_sorted(&mut v, 10, [10, 0, 0, 2]);
+        add_sorted(&mut v, 100, [10, 0, 0, 9]);
+        add_sorted(&mut v, 10, [10, 0, 0, 1]);
+        add_sorted(&mut v, 200, [10, 0, 0, 2]); // upgrade
+        assert_eq!(v, vec![(200, [10, 0, 0, 2]), (100, [10, 0, 0, 9]), (10, [10, 0, 0, 1])]);
     }
 }

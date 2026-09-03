@@ -159,8 +159,61 @@ pub fn to_str(v: &Json) -> String {
         Json::Int(i) => i.to_string(),
         Json::Float(f) => fmt_double(*f),
         Json::Str(s) => s.clone(),
-        Json::Array(_) | Json::Object(_) => v.to_compact(),
+        Json::Array(_) | Json::Object(_) => {
+            let mut out = String::new();
+            ucode_json(v, &mut out);
+            out
+        }
     }
+}
+
+/// ucv_to_string for arrays/objects: JSON with ucode's spacing
+/// (`[ "a", "b" ]`, `{ "k": "v" }`, `[ ]`), strings JSON-escaped, non-ASCII raw.
+fn ucode_json(v: &Json, out: &mut String) {
+    match v {
+        Json::Array(a) => {
+            out.push_str("[ ");
+            for (i, item) in a.iter().enumerate() {
+                if i > 0 {
+                    out.push_str(", ");
+                }
+                ucode_json(item, out);
+            }
+            out.push_str(" ]");
+        }
+        Json::Object(o) => {
+            out.push_str("{ ");
+            for (i, (k, item)) in o.iter().enumerate() {
+                if i > 0 {
+                    out.push_str(", ");
+                }
+                ucode_quote(k, out);
+                out.push_str(": ");
+                ucode_json(item, out);
+            }
+            out.push_str(" }");
+        }
+        Json::Str(s) => ucode_quote(s, out),
+        other => out.push_str(&to_str(other)),
+    }
+}
+
+fn ucode_quote(s: &str, out: &mut String) {
+    out.push('"');
+    for c in s.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\u{8}' => out.push_str("\\b"),
+            '\u{c}' => out.push_str("\\f"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
 }
 
 /// ucode loose `==` against a string literal.
@@ -201,7 +254,7 @@ pub fn to_array(v: &Json) -> Vec<Json> {
             if t.is_empty() {
                 Vec::new()
             } else {
-                t.split(|c| c == ' ' || c == '\t')
+                t.split([' ', '\t'])
                     .filter(|p| !p.is_empty())
                     .map(|p| Json::Str(p.to_owned()))
                     .collect()

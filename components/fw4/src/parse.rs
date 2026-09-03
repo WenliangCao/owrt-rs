@@ -2,7 +2,7 @@
 //! acceptance rules and warning texts.
 
 use crate::input::Inputs;
-use crate::ip::{self, Mask};
+use crate::ip::{self};
 use crate::state::*;
 use crate::uci::Config;
 use crate::val::{loose_eq_str, to_array, to_num, to_str, trim, truthy, Num};
@@ -367,9 +367,9 @@ impl Fw4 {
         }
         let mut err = std::io::stderr();
         if self.tty {
-            let _ = write!(err, "\x1b[33m{msg}\x1b[m\n");
+            let _ = writeln!(err, "\x1b[33m{msg}\x1b[m");
         } else {
-            let _ = write!(err, "[!] {msg}\n");
+            let _ = writeln!(err, "[!] {msg}");
         }
     }
 
@@ -423,7 +423,7 @@ impl Fw4 {
             return None;
         }
         let s = to_str(val);
-        let t = s.trim_start_matches(|c| c == ' ' || c == '\t');
+        let t = s.trim_start_matches([' ', '\t']);
         let (invert, rest) = match t.strip_prefix('!') {
             Some(r) => (true, r),
             None => (false, s.as_str()),
@@ -517,12 +517,12 @@ impl Fw4 {
 
     pub fn parse_setmatch(&self, val: &Json) -> Option<SetMatch> {
         let rv = self.parse_invert(val)?;
-        let (name, rest) = match rv.val.find(|c| c == ' ' || c == '\t') {
+        let (name, rest) = match rv.val.find([' ', '\t']) {
             Some(i) => (rv.val[..i].to_owned(), trim(&rv.val[i..]).to_owned()),
             None => (rv.val.clone(), String::new()),
         };
         let mut dir: Vec<Option<String>> = Vec::new();
-        for (i, tok) in rest.split(|c| c == ' ' || c == '\t' || c == ',').enumerate() {
+        for (i, tok) in rest.split([' ', '\t', ',']).enumerate() {
             if i >= 3 {
                 break;
             }
@@ -567,7 +567,7 @@ impl Fw4 {
 
     pub fn parse_mac(&self, val: &Json) -> Option<Mac> {
         let mac = self.parse_invert(val)?;
-        let parts: Vec<&str> = mac.val.split(|c| c == ':' || c == '-').collect();
+        let parts: Vec<&str> = mac.val.split([':', '-']).collect();
         if parts.len() != 6 || parts.iter().any(|p| p.is_empty() || p.len() > 2 || !hexdigits(p)) {
             return None;
         }
@@ -580,7 +580,7 @@ impl Fw4 {
 
     pub fn parse_port(&self, val: &Json) -> Option<Port> {
         let port = self.parse_invert(val)?;
-        let (lo, hi) = match port.val.find(|c| c == '-' || c == ':') {
+        let (lo, hi) = match port.val.find(['-', ':']) {
             Some(i) => (&port.val[..i], Some(&port.val[i + 1..])),
             None => (port.val.as_str(), None),
         };

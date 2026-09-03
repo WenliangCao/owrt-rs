@@ -63,6 +63,8 @@ extern "C" {
 /// One netlink message of a dump: type, flags, payload after the 16-byte header.
 pub struct Msg {
     pub ty: u16,
+    /// nlmsg_flags, kept for completeness of the header decode
+    #[allow(dead_code)]
     pub flags: u16,
     pub payload: Vec<u8>,
 }

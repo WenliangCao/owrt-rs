@@ -42,11 +42,11 @@ pub fn mkstemp(template: &str) -> io::Result<(File, String)> {
     };
     const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let mut seed = std::process::id() as u64 ^ {
-        let t = std::time::SystemTime::now()
+        
+        std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_nanos() as u64)
-            .unwrap_or(0);
-        t
+            .unwrap_or(0)
     };
     for _ in 0..100 {
         let mut suffix = String::with_capacity(6);

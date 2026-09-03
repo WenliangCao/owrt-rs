@@ -311,8 +311,8 @@ impl Daemon {
                     self.drain_kmsg();
                 }
             }
-            match Connection::connect(self.ubus_socket.as_deref()) {
-                Ok(mut conn) => match register_log(&mut conn) {
+            if let Ok(mut conn) = Connection::connect(self.ubus_socket.as_deref()) {
+                match register_log(&mut conn) {
                     Ok(id) => {
                         self.conn = conn;
                         self.objid = id;
@@ -320,8 +320,7 @@ impl Daemon {
                         return;
                     }
                     Err(error) => eprintln!("logd-rs: failed to add object: {error}"),
-                },
-                Err(_) => {}
+                }
             }
         }
     }
@@ -409,7 +408,8 @@ impl Daemon {
 }
 
 fn lookup_user(name: &str) -> Option<(u32, u32)> {
-    let passwd = std::fs::read_to_string("/etc/passwd").ok()?;
+    // getpwnam is byte-based: a non-UTF-8 comment field elsewhere in the file must not hide the user
+    let passwd = std::fs::read("/etc/passwd").ok().map(|b| String::from_utf8_lossy(&b).into_owned())?;
     passwd.lines().find_map(|line| {
         let mut parts = line.split(':');
         if parts.next()? != name {

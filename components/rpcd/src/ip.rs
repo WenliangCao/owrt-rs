@@ -67,7 +67,6 @@ fn parse_v6(s: &str) -> Option<[u8; 16]> {
             let v4 = parse_v4(&s[start..])?;
             out[pos..pos + 4].copy_from_slice(&v4);
             pos += 4;
-            i = bytes.len();
             break;
         }
         if group.is_empty() || group.len() > 4 {

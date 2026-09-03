@@ -830,7 +830,7 @@ pub fn iwinfo_parse_rsn(c: &mut CryptoEntry, data: &[u8], defcipher: u16, defaut
                     c.wpa_version |= 4;
                     c.auth_suites |= IWINFO_KMGMT_SAE as u8;
                 }
-                11 | 12 | 13 => {
+                11..=13 => {
                     /* 802.1x Suite-B / Suite-B-192 / FT SHA-384 */
                     c.wpa_version |= 4;
                     c.auth_suites |= IWINFO_KMGMT_8021X as u8;

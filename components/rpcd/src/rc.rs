@@ -44,7 +44,7 @@ fn strtoul0(b: &[u8]) -> u64 {
         i += 1;
     }
     let mut base = 10u64;
-    if i + 1 < b.len() && b[i] == b'0' && (b[i + 1] == b'x' || b[i + 1] == b'X') && b.get(i + 2).map_or(false, |c| c.is_ascii_hexdigit()) {
+    if i + 1 < b.len() && b[i] == b'0' && (b[i + 1] == b'x' || b[i + 1] == b'X') && b.get(i + 2).is_some_and(|c| c.is_ascii_hexdigit()) {
         base = 16;
         i += 2;
     } else if i < b.len() && b[i] == b'0' {

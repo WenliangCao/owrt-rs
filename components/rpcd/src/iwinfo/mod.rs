@@ -125,6 +125,7 @@ pub struct RateEntry {
 /// struct iwinfo_assoclist_entry; the `char[16]` fields keep their C layout
 /// (NUL-terminated, see `cstr`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Default)]
 pub struct AssoclistEntry {
     pub mac: [u8; 6],
     pub signal: i8,
@@ -157,41 +158,6 @@ pub struct AssoclistEntry {
     pub nonpeer_ps: [u8; 16],
 }
 
-impl Default for AssoclistEntry {
-    fn default() -> Self {
-        AssoclistEntry {
-            mac: [0; 6],
-            signal: 0,
-            signal_avg: 0,
-            noise: 0,
-            inactive: 0,
-            connected_time: 0,
-            rx_packets: 0,
-            tx_packets: 0,
-            rx_drop_misc: 0,
-            rx_rate: RateEntry::default(),
-            tx_rate: RateEntry::default(),
-            rx_bytes: 0,
-            tx_bytes: 0,
-            tx_retries: 0,
-            tx_failed: 0,
-            t_offset: 0,
-            is_authorized: false,
-            is_authenticated: false,
-            is_preamble_short: false,
-            is_wme: false,
-            is_mfp: false,
-            is_tdls: false,
-            thr: 0,
-            llid: 0,
-            plid: 0,
-            plink_state: [0; 16],
-            local_ps: [0; 16],
-            peer_ps: [0; 16],
-            nonpeer_ps: [0; 16],
-        }
-    }
-}
 
 /// struct iwinfo_survey_entry
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

@@ -290,7 +290,7 @@ fn main() {
     loop {
         // timers
         ctx.sessions.borrow_mut().expire();
-        let apply_due = ctx.apply.borrow().deadline.map_or(false, |d| d <= Instant::now());
+        let apply_due = ctx.apply.borrow().deadline.is_some_and(|d| d <= Instant::now());
         if apply_due {
             uciobj::apply_timeout(&ctx, &mut conn);
         }
