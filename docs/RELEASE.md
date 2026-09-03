@@ -47,8 +47,10 @@
 `openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin`（11 643 168 B，sha256 `ba28ef40…a0a2`），内容检查通过。
 
 可复现性：打包 Makefile 的 RUSTFLAGS 带 `--remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo`，
-去掉二进制里的构建路径（path 依赖 `ubus`/`uci` 的 panic 位置字符串曾让 CI 与构建机产物相差几个路径串）；加了之后 CI 与构建机
-对同一提交产出的二进制应逐字节相同（见下方验证记录）。
+去掉二进制里的构建路径；并且 cargo 在 `/tmp/owrt-build/<pkg>` 这个固定路径下构建（cargo 把 path 依赖的绝对路径算进 crate 元数据哈希，
+进而进符号名，所以仅 remap 不够）。验证（run `33811595718`，2026-09-03 22:0xZ，镜像 sha256 `a302bd5f…`）：**uci、fw4、reload-config、
+logd、rpcd 五个二进制 CI 与构建机逐字节相同**；httpd-rs 仍不同（1.48 MB 里 81 万字节位置不同、大小相同、无路径串——来自 ring 的 C/汇编
+由 `cc` crate 编译链接的顺序，待查），是唯一的可复现性缺口。
 
 **刷写仍是手工步骤**，见下一节。
 
