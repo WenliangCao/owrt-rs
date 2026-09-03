@@ -30,6 +30,21 @@
 - `FILES=` 只放六个 `/etc/owrt-*.boot-enable` 空文件：owrt-\* 的 init 脚本看到标记才接管。
 - 输出在构建机 `/home/ubuntu/release/<ver>/bin/`，附 sha256。
 
+## GitHub Actions：`release-image`（2026-09-04 起）
+
+`.github/workflows/release-image.yml` 在 GitHub 的 ubuntu runner 上跑 `tools/ci_build_image.sh`，与上面第 0、3、4、5 步等价，不需要构建机、不碰路由器：
+
+1. 下载该版本官方 SDK 与 ImageBuilder，按官方 `sha256sums` 校验（下载缓存按版本键）；
+2. Rust 1.94.0 + `aarch64-unknown-linux-musl`，用 SDK 的 `make package/owrt-*/compile` 构建七个 apk（`PKG_RELEASE` 默认值现在写在各包 Makefile 里，与设备现役一致；`V1_PACKAGE_RELEASE` 可覆盖）；
+3. ImageBuilder 生成 `xiaomi_mi-router-ax3000t` sysupgrade 镜像，软件包清单来自仓库里的 `packaging/image/packages-<ver>.txt`（设备 `apk info` 的快照，170 个）；
+4. 离线验证：解开 sysupgrade tar 与 root squashfs，确认七个包、六个 `boot-enable` 标记、三个被禁用的服务、六个二进制、本地 apk 公钥；
+5. 产物（apk、镜像、`SHA256SUMS`、`manifest.json`、构建日志）作为 workflow artifact 保留 90 天；推 `v*` 标签时另建 GitHub Release 并附上同一批文件。
+
+触发：Actions 页面 "Run workflow"（可填 OpenWrt 版本），或 `gh workflow run release-image.yml -f openwrt_version=25.12.5`，或 `git tag v0.5.0 && git push --tags`。
+支持新版本只需要：把新版设备的 `apk info` 存为 `packaging/image/packages-<ver>.txt`，并先在构建机上用新 rootfs 跑完第 2 步的差分回归（这一步仍在构建机，CI 不做）。
+
+**刷写仍是手工步骤**，见下一节。
+
 ## 刷写（每次升级真正的风险点）
 
 刷写是 flash 写入，目前仍在 §10 禁止项里；真要升级时按决策 0016 的条件（到场、网线接 `lan4`、电脑另有上网途径、
@@ -48,4 +63,4 @@ ssh root@192.168.1.1 'sysupgrade -v /tmp/<image>-squashfs-sysupgrade.bin'   # �
 
 | OpenWrt | 设备状态 | 包 | 镜像 |
 |---|---|---|---|
-| 25.12.5 | 现役（apk 逐个安装 + boot-enable；R23 重启验证通过） | uci r2、reload-config r3、logd r2、httpd 0.1.1-r1、fw4 r2、rpcd r4、switch r2 | 已生成并离线验证，**未刷写**：`…-squashfs-sysupgrade.bin` 11 079 968 B，sha256 `fffb1589…5cd6`；六个二进制与设备现役逐字节相同，六个标记、S 链接、本地 apk 公钥、全部 root:root；见 `manifests/release-25.12.5.json` |
+| 25.12.5 | 现役（apk 逐个安装 + boot-enable；R23 重启验证通过） | uci r5、reload-config r5、logd r5、httpd 0.1.1-r3、fw4 r5、rpcd r9、switch r2（2026-09-03 夜） | 首个镜像（r2/r3/r2/r1/r2/r4，sha256 `fffb1589…5cd6`）已离线验证、**未刷写**（`manifests/release-25.12.5.json`）；当前包集的镜像由 `release-image` workflow 生成 |

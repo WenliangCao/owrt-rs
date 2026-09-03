@@ -253,3 +253,4 @@ reload_config 64.9 vs 77.6 ms 已快于原脚本，iwinfo 24 vs 19 ms；logread 
 
 第五轮（2026-09-03 夜，`reports/.../R25_ROUND5.md`）：所有用户文件按字节读取；clippy 七个 crate 清零；新增 fw4/rpcd/logd/httpd 差分模糊器
 （`tools/r26`–`r29`），找到并修了 fw4 非 ASCII 值的 panic（abort → 无防火墙）与 httpd 两处静默断开；设备：uci r5 / reload-config r5 / logd r5 / httpd r3 / fw4 r5 / rpcd r9。
+发布镜像现由 GitHub Actions `release-image` 生成（`docs/RELEASE.md`）：官方 SDK/ImageBuilder + 仓库里的包清单，产物为 artifact / Release，不刷写。

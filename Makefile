@@ -4,7 +4,7 @@
 COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd
 VERSION ?= 25.12.5
 
-.PHONY: test check-tools build apk image
+.PHONY: test check-tools build apk image ci-image
 
 test:
 	@for c in $(COMPONENTS); do \
@@ -29,3 +29,7 @@ apk:
 
 image:
 	sh tools/release.sh image $(VERSION)
+
+# Same as the release-image GitHub workflow, on this machine (x86_64 Linux with rustup):
+ci-image:
+	OPENWRT_VERSION=$(VERSION) sh tools/ci_build_image.sh work
