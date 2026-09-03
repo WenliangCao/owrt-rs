@@ -1,7 +1,7 @@
 # Rust-native OpenWrt Control Plane：执行计划
 
 > 版本：5.0，2026-09-02
-> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）、阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）与阶段 8（rpcd-rs 接管全部 rpcd 对象，原 rpcd 停止）已完成 2026-09-02；阶段 9（ubusd）经前置检验判定不执行（决策 0015）。第二轮收官见 [REPORT_ROUND2](../reports/ax3000t-stock-openwrt-25.12.5/REPORT_ROUND2.md)。
+> 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）、阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）与阶段 8（rpcd-rs 接管全部 rpcd 对象，原 rpcd 停止）已完成 2026-09-02；阶段 9（ubusd）经前置检验判定不执行（决策 0015）。第二轮收官见 [REPORT_ROUND2](../reports/ax3000t-stock-openwrt-25.12.5/REPORT_ROUND2.md)。 第三轮（§11.8，2026-09-03 起）：用户放宽设备边界（有线可达、接受崩溃、要求完整备份与救援机制），决策 0016 允许一次受控重启验证开机路径；ubusd 排最后。
 > v4→v5 变更：只新增 §11；§0–§10 保持第一轮原文，作为已完成工作的记录。
 > 历史：v2（1066 行）见 [archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md](../archive/stage-gates/EXECUTION_PLAN_v2_2026-09-02.md)
 
@@ -236,8 +236,10 @@ ACL + 作为 procd instance 运行"三条契约一次跑通。阶段 3、4、5 �
 
 ## 10. 仍然禁止
 
-拆机、UART、TFTP/U-Boot、raw NAND、固件写入、为本项目主动重启设备；替换或修改 procd、ubusd、
-netifd、无线栈、sysupgrade 路径。这些不随"继续"解除。
+拆机、UART、TFTP/U-Boot、raw NAND、固件写入；替换或修改 procd、ubusd、netifd、无线栈、sysupgrade
+路径。这些不随"继续"解除。**2026-09-03 决策 0016 修订**：为验证开机路径的受控重启、OpenWrt failsafe、
+恢复出厂三项从禁止项移出（前置条件与失败处置见该决策）；raw NAND 只读转储作为备份允许；TFTP 原厂
+救援只作为用户操作的最后手段，不是计划步骤。
 
 ## 11. 第二轮（v5）：管理层全 Rust，执行层全保留
 
@@ -343,6 +345,20 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
   rpcd-rs 待阶段 8b 收尾后加。顺带发现：ubusd 只加载 root:root 属主的 acl.d 文件，oracle 上的 rootfs
   副本属主是 ubuntu，之前所有沙箱都在无 ACL 状态下运行（root 客户端不受影响；harness 已改为 chown，
   r17/r18/r19 重跑结果不变）。
+
+### 11.8 第三轮（2026-09-03 起）：开机路径验证与收口
+
+**触发**：用户 2026-09-03 提出可用网线直连、接受崩溃、要求完整备份与救援机制，并问"下一步是 ubusd 吗"。
+回答：不是；先验证从未跑过的开机路径。边界修订见 [决策 0016](decisions/0016-reboot-verification-and-rescue-boundary.md)，
+救援手册见 [RUNBOOK_AX3000T_RECOVERY](RUNBOOK_AX3000T_RECOVERY.md)。
+
+| 步 | 内容 | 状态 |
+|---|---|---|
+| 1 | 备份：`sysupgrade -b`、overlay 全量、mtd0–7 只读转储、fw_printenv、系统事实 → `private/backup/2026-09-03/`；官方 25.12.5 镜像与 RD03 原厂 1.0.47 固件下载校验 → `private/images/` | 完成 2026-09-03 |
+| 2 | 预检：bootloader 选槽逻辑核实（只看 `flag_last_success`/`flag_try_sys2_failed`，计数不参与）；uci-rs 与 `/rom/sbin/uci` 的开机路径 export/show/get 19 包相同；`tools/r23_reboot_gate.sh pre` 参考态 | 完成 2026-09-03 |
+| 3 | 受控重启一次：用户在设备旁、网线接 `lan4`、电脑另有上网途径；`reboot` → `r23 post` 逐文件 diff → 约 3 分钟观察；失败按 0016 §5 处置 | 待用户到场授权 |
+| 4 | 部署 logd-rs r2（ubus 重连）；补 REPORT_ROUND2 §4 遗留 | 待 3 通过 |
+| 5 | ubusd：仅在 1–4 全部通过后单独评估；0015 技术结论不变，默认建议不做 | 排最后 |
 
 ### 11.7 顺序与依赖
 
