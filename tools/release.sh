@@ -46,7 +46,8 @@ apk() {
 		R "cd $sdk && make package/$p/compile V=s -j1 \
 		   V1_CARGO='env RUSTUP_TOOLCHAIN=${RUST_TOOLCHAIN:-1.94.0-aarch64-unknown-linux-gnu} /home/ubuntu/.cargo/bin/cargo' \
 		   V1_CARGO_HOME=/home/ubuntu/.cargo V1_RUSTUP_HOME=/home/ubuntu/.rustup \
-		   OWRT_COMPONENTS_SOURCE=$COMPONENTS_DIR > /tmp/release-$p.log 2>&1 || { tail -30 /tmp/release-$p.log; exit 1; }"
+		   OWRT_COMPONENTS_SOURCE=$COMPONENTS_DIR RELOAD_CONFIG_RS_SOURCE=$COMPONENTS_DIR/reload-config \
+		   ${PACKAGE_RELEASE:+V1_PACKAGE_RELEASE=$PACKAGE_RELEASE} > /tmp/release-$p.log 2>&1 || { tail -30 /tmp/release-$p.log; exit 1; }"
 	done
 	R "cd $sdk/bin/packages/$ARCH/base && sha256sum owrt-*.apk"
 }

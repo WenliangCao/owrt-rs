@@ -358,7 +358,10 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 | 2 | 预检：bootloader 选槽逻辑核实（只看 `flag_last_success`/`flag_try_sys2_failed`，计数不参与）；uci-rs 与 `/rom/sbin/uci` 的开机路径 export/show/get 19 包相同；`tools/r23_reboot_gate.sh pre` 参考态 | 完成 2026-09-03 |
 | 3 | 受控重启一次：用户在设备旁、网线接 `lan4`、电脑另有上网途径；`reboot` → `r23 post` 逐文件 diff → 约 3 分钟观察；失败按 0016 §5 处置 | **完成 2026-09-03**：SSH 39 s 恢复，15/15 结构化状态相同，标志仅 sys1 计数 +1，4 分钟无 respawn；[R23_BOOT_PATH](../reports/ax3000t-stock-openwrt-25.12.5/R23_BOOT_PATH.md) |
 | 4 | 部署 logd-rs r2（ubus 重连）；补 REPORT_ROUND2 §4 遗留 | **完成 2026-09-03**：r21 以同一二进制重跑通过，设备升级并重启 logd，3 分钟稳定；[R15 附录](../reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md) |
-| 5 | ubusd：仅在 1–4 全部通过后单独评估；0015 技术结论不变，默认建议不做 | 排最后 |
+| 5 | ubusd：仅在 1–4 全部通过后单独评估；0015 技术结论不变，默认建议不做 | **用户 2026-09-03 决定不做**；项目进入收尾 |
+| 6 | 收尾·仓库：GitHub 私有仓库 `WenliangCao/owrt-control-plane-rs`，124 个历史提交作者/提交者邮箱重写为 noreply（tag `pre-rewrite` 保留原历史）；根 `Makefile`（test/check-tools/apk/image）+ GitHub Actions host 测试 | 完成 2026-09-03，CI 绿 |
+| 7 | 收尾·Benchmark：一次性程序并排、httpd 并排（uhttpd 临时 8080）、logd/rpcd 切换窗口；发现并修复 reload_config 10 ms 轮询（r3 上线） | 完成 2026-09-03，[BENCHMARK](../reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md) |
+| 8 | 收尾·发布流水线：`tools/release.sh fetch/apk/image` + ImageBuilder（本地包索引、`DISABLED_SERVICES`、`FILES` 标记），对 25.12.5 产出自定义 sysupgrade 镜像并离线验证，不刷写 | [RELEASE](RELEASE.md)、`manifests/release-25.12.5.json` |
 
 ### 11.7 顺序与依赖
 

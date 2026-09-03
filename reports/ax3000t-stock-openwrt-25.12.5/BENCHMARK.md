@@ -1,0 +1,88 @@
+# Benchmark：Rust 实现 vs 原 C/ucode/shell 实现（AX3000T，2026-09-03）
+
+> 同一台设备、同一时刻、同样输入。一次性程序并排跑（原版在 `/rom`），daemon 用 `owrt-*-switch` 短窗口切换。
+> 脚本：`tools/bench_device_side_by_side.sh`（设备上）、`tools/bench_httpd.sh` + `tools/bench_http_client.py`（Mac 发压）、
+> `tools/bench_swap_windows.sh`（logd/rpcd 切换）。原始输出 `private/bench/`。MT7981B 双核 A53，busybox `time` 计时。
+
+## 1. 先说结论
+
+- **fw4 规则生成快 10 倍**（205 → 19.5 ms）：原版是 ucode 解释器跑脚本，Rust 是原生二进制。这是唯一有"量级"差别的地方。
+- **httpd 全面更快**：静态 +18–24%，`/ubus` JSON-RPC +18%，TLS +80%（rustls vs mbedtls），CGI 持平（瓶颈在 LuCI 本身）。
+- **uci / rpcd 核心对象 / logd 写入：持平**。每次调用 3–5 ms，绝大部分是进程启动与 ubus 往返，两边一样。
+- **Rust 慢的地方**：rpcd 的 `iwinfo info`（28 vs 19 ms）与 `luci-rpc getWirelessDevices`（73 vs 49 ms），`logread` 全量输出
+  （60 vs 26 ms），`uci export` 全量（8.0 vs 5.9 ms）。都是毫秒级、非热路径，但是真实差距，记入待办。
+- **reload_config 一开始慢 5.4 倍**（404 vs 75 ms）——benchmark 找出的真 bug：子进程等待用 10 ms 轮询，38 个子进程各吃掉
+  一个时钟片。已改为阻塞等待（提交 bfc0645，owrt-reload-config r3），修复后数据见 §3。
+- **体积**：Rust 二进制大一个量级（rpcd-rs 781 KB vs rpcd 62 KB + 6 插件 + libiwinfo ≈ 250 KB；httpd-rs 1.1 MB vs uhttpd 78 KB；
+  fw4-rs 744 KB vs 3 KB 脚本 + ucode 运行时）。overlay 共用 2.4 MB / 60 MB，不是约束。
+- **内存**：daemon RSS 同量级：rpcd-rs 1.46 MB **小于** rpcd 2.03 MB；httpd-rs 1.98 vs uhttpd 1.77 MB；logd-rs 1.16 vs logd 0.95 MB。
+
+## 2. 一次性程序（N=100，fw4 N=20；per_op = 墙钟 / N）
+
+| 用例 | 原版 | Rust | 比值 |
+|---|---|---|---|
+| `uci -S -n export network` | 2.60 ms | 2.80 ms | 1.08× |
+| `uci -S -n export`（19 包） | 5.90 ms | 8.00 ms | 1.36× |
+| `uci show firewall` | 3.50 ms | 4.00 ms | 1.14× |
+| `uci get network.lan.ipaddr` | 2.80 ms | 2.80 ms | 1.00× |
+| `uci set` + `commit`（scratch 目录） | 5.30 ms | 5.90 ms | 1.11× |
+| `fw4 print` | 205.0 ms | 19.5 ms | **0.10×** |
+| `fw4 check` | 263.5 ms | 74.0 ms | **0.28×** |
+| `reload_config`（无变更，r1：10 ms 轮询） | 74.6 ms | 404.0 ms | 5.42× |
+
+## 3. reload_config 修复后（owrt-reload-config r3，2026-09-03 已部署）
+
+| 用例（N=100） | 原版 shell 脚本 | r1（10 ms 轮询） | r3（阻塞等待） |
+|---|---|---|---|
+| `reload_config` 无变更 | 78.5 ms | 404.0 ms | 96.1 ms |
+
+r3 上线方式：`owrt-reload-config-switch disable` → `apk add` → `enable`；上线前后用 C 脚本与 r3 各跑一次无变更 run，
+`/var/run/config.md5` 逐字节相同，trace 显示 19 个包比较、0 变更。剩余 18 ms 差距是 19 次 `uci show` + 19 次 `md5sum`
+的 fork/exec 由 Rust 进程逐个等待（C 脚本同样 fork，但 shell 内建的管道少一次拷贝）；可以在进程内算 MD5 消掉 19 个 fork，
+但那会偏离"与原脚本同一路径"的原则，暂不做。
+
+## 4. httpd（Mac 发压，4 并发 × 400 请求，keep-alive；uhttpd 临时起在 8080/8443，参数与 httpd-rs 完全相同）
+
+| 用例 | uhttpd req/s | httpd-rs req/s | uhttpd p50 | httpd-rs p50 |
+|---|---|---|---|---|
+| 静态 44 KB CSS | 1124 | 1326 | 3.41 ms | 2.74 ms |
+| 静态 `/`（index） | 3355 | 4165 | 1.14 ms | 0.87 ms |
+| CGI `/cgi-bin/luci/`（登录页 403） | 31.5 | 31.9 | 127 ms | 124 ms |
+| `/ubus` JSON-RPC（getBoardJSON） | 987 | 1163 | 3.93 ms | 3.28 ms |
+| TLS 静态 CSS | 528 | 949 | 7.08 ms | 3.63 ms |
+
+macOS 自带的 `ab` 对这台设备每请求卡 140 ms（客户端问题），故改用 `tools/bench_http_client.py`。
+
+## 5. logd（切换窗口）
+
+| 用例 | C logd | logd-rs |
+|---|---|---|
+| 500 条 `logger` 写入 | 1.11 s | 1.12 s |
+| `logread` 全量（约 750 行） | 26 ms | 60 ms |
+| `ubus call log read lines=100` | 5.4 ms | 5.2 ms |
+| RSS | 952 kB | 1156 kB |
+
+## 6. rpcd（切换窗口，N=50；`ubus` CLI 往返约 3.8 ms 是下限）
+
+| 方法 | C rpcd | rpcd-rs |
+|---|---|---|
+| `session list` | 3.8 ms | 3.8 ms |
+| `uci get network` | 4.2 ms | 4.6 ms |
+| `uci configs` | 3.8 ms | 4.2 ms |
+| `file stat` / `file read board.json` | 4.0 / 3.8 ms | 4.0 / 4.0 ms |
+| `luci getFeatures`（spawn 外部程序） | 227 ms | 204 ms |
+| `luci-rpc getBoardJSON` | 4.0 ms | 4.0 ms |
+| `luci-rpc getNetworkDevices` | 11.8 ms | 13.2 ms |
+| `luci-rpc getDHCPLeases` | 4.6 ms | 5.6 ms |
+| `luci-rpc getWirelessDevices` | 48.8 ms | 73.0 ms |
+| `iwinfo info phy0-ap0` | 19.0 ms | 28.2 ms |
+| `iwinfo assoclist phy0-ap0` | 6.8 ms | 7.2 ms |
+| `network.rrdns lookup` | 4.0 ms | 4.0 ms |
+| `rc list`（跑 31 个 init 脚本） | 1127 ms | 1137 ms |
+| RSS | 2028 kB | 1464 kB |
+
+## 7. 待办（性能，不是正确性）
+
+- iwinfo/nl80211 路径每次调用多花约 9 ms：对照 C 的 netlink 请求次数，找多余的 dump（怀疑 phy 查询未复用）。
+- `logread` 全量流式输出慢 2.3×：检查每条记录是否单独 `notify`，C 是否批量。
+- `uci export` 全量慢 36%：19 个文件的读解析，看是否有多余的拷贝或未缓冲写。

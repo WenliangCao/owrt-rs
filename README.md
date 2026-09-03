@@ -240,3 +240,8 @@ ubusd 仍排最后，默认建议不做。
 2026-09-03 受控重启通过：SSH 39 秒恢复，六个组件按 boot-enable 接管，重启前后 15 组结构化状态相同，bootloader 标志仅计数 +1，
 四分钟无 respawn（`reports/.../R23_BOOT_PATH.md`，`manifests/r23-boot-path.json`）。
 同日 logd-rs r2（ubus 重连）上线：r21 以同一二进制重跑通过后升级并重启 logd，3 分钟稳定（`R15_LOGD.md` 附录，`manifests/r24-logd-r2.json`）。
+
+收尾（2026-09-03）：ubusd 按用户决定不做。代码全部推到私有仓库 `github.com/WenliangCao/owrt-control-plane-rs`（noreply 邮箱，
+根 `Makefile` + GitHub Actions）。Benchmark 见 `reports/.../BENCHMARK.md`：fw4 生成快 10 倍、httpd 快 18–80%、uci/rpcd/logd 持平，
+iwinfo 与 logread 全量略慢；顺带发现并修复 reload_config 的 10 ms 轮询（r3 上线）。后续 OpenWrt 升级的维护路径见
+`docs/RELEASE.md`（`make apk/image VERSION=…`，ImageBuilder 自定义镜像；刷写另需决策）。
