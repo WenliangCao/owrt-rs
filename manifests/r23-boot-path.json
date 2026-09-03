@@ -1,0 +1,74 @@
+{
+ "id": "r23-boot-path",
+ "date": "2026-09-03",
+ "decision": "docs/decisions/0016-reboot-verification-and-rescue-boundary.md",
+ "report": "reports/ax3000t-stock-openwrt-25.12.5/R23_BOOT_PATH.md",
+ "runbook": "docs/RUNBOOK_AX3000T_RECOVERY.md",
+ "gate_script": {
+  "path": "tools/r23_reboot_gate.sh",
+  "sha256": "dbd7ab1e0cccca041d88d6a28b1501f8989a5bde7cb78a22ec1386ba5c7f74b8"
+ },
+ "device": {
+  "board": "xiaomi,mi-router-ax3000t",
+  "release": "25.12.5 r33051-f5dae5ece4",
+  "kernel": "6.12.94",
+  "bootloader": "stock Xiaomi U-Boot",
+  "cmdline_firmware": 0
+ },
+ "boot_flags": {
+  "pre": {
+   "flag_boot_rootfs": 0,
+   "flag_boot_success": 1,
+   "flag_last_success": 1,
+   "flag_try_sys1_failed": 22,
+   "flag_try_sys2_failed": 8,
+   "flag_ota_reboot": 0
+  },
+  "post": {
+   "flag_boot_rootfs": 0,
+   "flag_boot_success": 1,
+   "flag_last_success": 1,
+   "flag_try_sys1_failed": 23,
+   "flag_try_sys2_failed": 8,
+   "flag_ota_reboot": 0
+  }
+ },
+ "reboot": {
+  "issued": "2026-09-03T20:11:54+02:00",
+  "ssh_back_after_s": 39,
+  "device_uptime_at_ssh_s": 21.9,
+  "post_gate_uptime_s": 90,
+  "stability_probe_uptime_s": 240
+ },
+ "gate": {
+  "files_compared": 15,
+  "identical": 15,
+  "note": "owrt-switch-status differed only in pid column on the first run; pid masking added to the script, re-diff identical"
+ },
+ "components_boot_enabled": [
+  "uci 0.1.0-r2 (S00 bind mount)",
+  "reload-config 0.2.0-r1 (S11 bind mount)",
+  "rpcd 0.1.0-r4 (S11 procd)",
+  "logd 0.1.0-r1 (S12 procd)",
+  "fw4 0.1.0-r2 (S18 bind mount)",
+  "httpd 0.1.1-r1 (S50 procd)"
+ ],
+ "private_evidence": {
+  "pre_dir": "private/backup/2026-09-03/r23/pre",
+  "post_dir": "private/backup/2026-09-03/r23/post",
+  "pre_concat_sha256_16": "e944c48f8d07e359",
+  "post_concat_sha256_16": "514ec61e456488d9",
+  "backup_dir": "private/backup/2026-09-03",
+  "images_dir": "private/images"
+ },
+ "images_verified": {
+  "openwrt-25.12.5-...-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+  "openwrt-25.12.5-...-xiaomi_mi-router-ax3000t-initramfs-factory.ubi": "b5e075d74c6d74958d6e92800f52c6a2b73115948a71fcc63fdf77ca822517e8",
+  "miwifi_rd03_firmware_ef0ee_1.0.47.bin": "77bf35b27b6ec29fbfe2c3f4280618cd70bade5e9998d407b634ce8a12825cc6"
+ },
+ "unverified": [
+  "power cycle (only soft reboot done)",
+  "failsafe entry never rehearsed",
+  "sysupgrade path and rpc-sys upgrade/factory/reboot"
+ ]
+}

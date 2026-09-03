@@ -237,3 +237,5 @@ libiwinfo nl80211 后端复刻），沙箱 r18 74/74、并排 r19 11/11、回归
 boot-enable on 但机器 33 天未重启）。已完成备份（配置、overlay、mtd0–7 只读转储）、官方镜像与原厂固件下载校验、
 bootloader 选槽逻辑核实、uci-rs 开机路径预检、`tools/r23_reboot_gate.sh pre`；救援手册 `docs/RUNBOOK_AX3000T_RECOVERY.md`。
 ubusd 仍排最后，默认建议不做。
+2026-09-03 受控重启通过：SSH 39 秒恢复，六个组件按 boot-enable 接管，重启前后 15 组结构化状态相同，bootloader 标志仅计数 +1，
+四分钟无 respawn（`reports/.../R23_BOOT_PATH.md`，`manifests/r23-boot-path.json`）。

@@ -14,7 +14,7 @@ r() { ssh -o ConnectTimeout=10 "$HOST" "$@"; }
 r 'ubus list' | sort > "$d/ubus-list.txt"
 r 'for s in /etc/init.d/*; do n=${s##*/}; if $s enabled 2>/dev/null; then echo "$n enabled"; else echo "$n disabled"; fi; done' > "$d/init-enabled.txt"
 r 'grep -E " /sbin/(uci|reload_config|fw4) " /proc/mounts | cut -d" " -f2 | sort' > "$d/bind-mounts.txt"
-r 'owrt-switch status 2>&1' > "$d/owrt-switch-status.txt"
+r 'owrt-switch status 2>&1' | awk 'NR==1 || $4=="-" {print; next} {$4="PID"; print}' > "$d/owrt-switch-status.txt"
 r 'ps w | awk "NR>1 {print \$5}" | grep -E "^/?(usr/)?(sbin|bin)/(rpcd-rs|httpd-rs|logd-rs|rpcd|uhttpd|logd|dropbear|netifd|hostapd|wpa_supplicant|dnsmasq|odhcpd|ubusd|procd|urngd|ntpd|crond)$" | sort | uniq -c | awk "{print \$2, \$1}"' > "$d/processes.txt"
 r 'nft list ruleset' | sed -E 's/packets [0-9]+ bytes [0-9]+/packets N bytes N/g; s/(expires|timeout) [0-9smhd]+/\1 T/g' > "$d/nft-ruleset.txt"
 r 'for p in /etc/config/*; do printf "%s %s\n" "$(sha256sum $p | cut -c1-16)" "${p##*/}"; done' > "$d/config-hashes.txt"
