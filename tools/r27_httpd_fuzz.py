@@ -236,6 +236,8 @@ def normalize(data, closed):
             out += rest[:n]
             rest = rest[n + 2:]
         body = out
+    # pipelined cases carry a second response inside "body": mask its volatile headers too
+    body = re.sub(rb"(?im)^(date|etag|keep-alive|last-modified): .*$", rb"\1: <masked>", body)
     try:
         js = json.loads(body.decode("utf-8"))
         js = re.sub(r'"(time|expires|uptime|localtime)":\s*-?\d+', r'"\1":0', json.dumps(js, sort_keys=True))

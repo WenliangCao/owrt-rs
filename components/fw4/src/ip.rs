@@ -9,6 +9,9 @@ pub fn iptoarr(s: &str) -> Option<Vec<u8>> {
 }
 
 fn parse_v4(s: &str) -> Option<[u8; 4]> {
+    if !s.is_ascii() {
+        return None; // inet_pton: not an address; keeps the byte-index slicing below on char boundaries
+    }
     let mut out = [0u8; 4];
     let mut n = 0;
     for part in s.split('.') {
@@ -34,6 +37,9 @@ fn parse_v4(s: &str) -> Option<[u8; 4]> {
 }
 
 fn parse_v6(s: &str) -> Option<[u8; 16]> {
+    if !s.is_ascii() {
+        return None;
+    }
     let bytes = s.as_bytes();
     if bytes.is_empty() {
         return None;

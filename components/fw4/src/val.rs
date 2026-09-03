@@ -73,15 +73,13 @@ pub fn parse_num_str(s: &str) -> Num {
     if body.is_empty() {
         return Num::Dbl(f64::NAN);
     }
-    let radix = if body.len() > 2 {
-        match &body[..2] {
-            "0x" | "0X" => Some((16, &body[2..])),
-            "0b" | "0B" => Some((2, &body[2..])),
-            "0o" | "0O" => Some((8, &body[2..])),
-            _ => None,
-        }
-    } else {
-        None
+    // prefix test on bytes: `body` may start with a multi-byte character and
+    // slicing a &str at byte 2 would panic (found by r29 with '名字')
+    let radix = match body.as_bytes().get(..2) {
+        Some(b"0x" | b"0X") if body.len() > 2 => Some((16, &body[2..])),
+        Some(b"0b" | b"0B") if body.len() > 2 => Some((2, &body[2..])),
+        Some(b"0o" | b"0O") if body.len() > 2 => Some((8, &body[2..])),
+        _ => None,
     };
     if let Some((radix, digits)) = radix {
         if !digits.is_empty() && digits.chars().all(|c| c.is_digit(radix)) {

@@ -234,23 +234,8 @@ impl Server {
             let request = match http::read_request(&mut reader, self.config.http_keepalive > 0) {
                 Ok(ParseOutcome::Request(r)) => r,
                 Ok(ParseOutcome::Eof) | Err(_) => return,
-                Ok(ParseOutcome::Bad(code, summary)) => {
-                    let dummy = Request {
-                        method: Method::Get,
-                        version: http::Version::V1_0,
-                        url: String::new(),
-                        headers: Vec::new(),
-                        content_length: None,
-                        transfer_chunked: false,
-                        connection_close: true,
-                        expect_continue: false,
-                    };
-                    let mut out = Vec::new();
-                    {
-                        let mut resp = Response::new(&mut out, &dummy, self.config.http_keepalive);
-                        let _ = resp.error(code, summary, None);
-                    }
-                    let _ = reader.get_mut().write_all(&out);
+                Ok(ParseOutcome::Bad { code, summary, version, body }) => {
+                    self.reject(reader.get_mut(), code, summary, version, body);
                     return;
                 }
             };
@@ -261,6 +246,12 @@ impl Server {
             let body = if body_needed {
                 match http::read_body(&mut reader, &request, 4 * 1024 * 1024) {
                     Ok(Some(b)) => Some(b),
+                    Err(e) if e.kind() == io::ErrorKind::InvalidData => {
+                        // DEVIATION: uhttpd feeds a malformed chunk size line to the
+                        // handler as body; answering 400 and closing is the safe reading
+                        self.reject(reader.get_mut(), 400, "Bad Request", request.version, false);
+                        return;
+                    }
                     _ => return,
                 }
             } else {
@@ -284,6 +275,26 @@ impl Server {
                 return;
             }
         }
+    }
+
+    /// Error response for a request that never reached a handler.
+    fn reject(&self, out: &mut dyn Write, code: u16, summary: &str, version: http::Version, body: bool) {
+        let dummy = Request {
+            method: Method::Get,
+            version,
+            url: String::new(),
+            headers: Vec::new(),
+            content_length: None,
+            transfer_chunked: false,
+            connection_close: true,
+            expect_continue: false,
+        };
+        let mut buf = Vec::new();
+        {
+            let mut resp = Response::new(&mut buf, &dummy, self.config.http_keepalive);
+            let _ = if body { resp.error(code, summary, None) } else { resp.error_no_body(code, summary) };
+        }
+        let _ = out.write_all(&buf);
     }
 
     fn dispatch<W: Write>(

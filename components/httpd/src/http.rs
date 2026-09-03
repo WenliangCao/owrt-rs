@@ -95,8 +95,20 @@ pub enum ParseOutcome {
     Request(Request),
     /// Client closed before sending anything (keep-alive idle).
     Eof,
-    /// Malformed request; respond with this status and close.
-    Bad(u16, &'static str),
+    /// Malformed request; respond with this status and close. `version` is
+    /// the one uhttpd would put on the status line (1.0 when the request line
+    /// itself was bad, else the parsed one); `body` says whether uhttpd sends
+    /// the `<h1>summary</h1>` body (request-line errors) or none (header
+    /// errors, `uh_header_error`).
+    Bad { code: u16, summary: &'static str, version: Version, body: bool },
+}
+
+fn bad_line(code: u16, summary: &'static str) -> ParseOutcome {
+    ParseOutcome::Bad { code, summary, version: Version::V1_0, body: true }
+}
+
+fn bad_header(code: u16, summary: &'static str, version: Version) -> ParseOutcome {
+    ParseOutcome::Bad { code, summary, version, body: false }
 }
 
 /// Outcome of a bounded head-line read.
@@ -150,7 +162,7 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
         match read_head_line(reader, &mut line, 4096)? {
             HeadLine::Eof => return Ok(ParseOutcome::Eof),
             HeadLine::TooLong => {
-                return Ok(ParseOutcome::Bad(413, "Request Entity Too Large"))
+                return Ok(bad_line(413, "Request Entity Too Large"))
             }
             HeadLine::Line => {}
         }
@@ -159,14 +171,21 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
         }
         break;
     }
-    let mut parts = line.trim_end_matches(['\r', '\n']).split(' ');
+    // strtok(data, " "): runs of spaces separate the three tokens, extra tokens are ignored
+    let mut parts = line.trim_end_matches(['\r', '\n']).split(' ').filter(|t| !t.is_empty());
     let (Some(method), Some(url), Some(version)) = (parts.next(), parts.next(), parts.next())
     else {
-        return Ok(ParseOutcome::Bad(400, "Bad Request"));
+        return Ok(bad_line(400, "Bad Request"));
     };
     let (Some(method), Some(version)) = (Method::parse(method), Version::parse(version)) else {
-        return Ok(ParseOutcome::Bad(400, "Bad Request"));
+        return Ok(bad_line(400, "Bad Request"));
     };
+    // DEVIATION: uhttpd decodes %00 into a NUL that silently truncates the path
+    // (C string); a NUL cannot be passed to the CGI environment or the file
+    // lookup, so it is rejected instead of truncated.
+    if url_decode(url.split('?').next().unwrap_or("")).is_some_and(|d| d.contains(&0)) {
+        return Ok(bad_line(400, "Bad Request"));
+    }
     let mut request = Request {
         method,
         version,
@@ -181,9 +200,9 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
     let mut transfer_encodings = 0;
     loop {
         match read_head_line(reader, &mut line, 4096)? {
-            HeadLine::Eof => return Ok(ParseOutcome::Bad(400, "Bad Request")),
+            HeadLine::Eof => return Ok(bad_header(400, "Bad Request", version)),
             HeadLine::TooLong => {
-                return Ok(ParseOutcome::Bad(413, "Request Entity Too Large"))
+                return Ok(bad_header(413, "Request Entity Too Large", version))
             }
             HeadLine::Line => {}
         }
@@ -192,7 +211,7 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
             break;
         }
         let Some((name, value)) = trimmed.split_once(':') else {
-            return Ok(ParseOutcome::Bad(400, "Bad Request"));
+            return Ok(bad_header(400, "Bad Request", version));
         };
         let name = name.trim().to_ascii_lowercase();
         let value = value.trim().to_owned();
@@ -201,14 +220,14 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
                 if value.eq_ignore_ascii_case("100-continue") {
                     request.expect_continue = true;
                 } else {
-                    return Ok(ParseOutcome::Bad(412, "Precondition Failed"));
+                    return Ok(bad_header(412, "Precondition Failed", version));
                 }
             }
             "content-length" => {
                 content_lengths += 1;
                 match value.parse::<usize>() {
                     Ok(n) if n <= i32::MAX as usize => request.content_length = Some(n),
-                    _ => return Ok(ParseOutcome::Bad(400, "Bad Request")),
+                    _ => return Ok(bad_header(400, "Bad Request", version)),
                 }
             }
             "transfer-encoding" => {
@@ -216,7 +235,7 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
                 if value.eq_ignore_ascii_case("chunked") {
                     request.transfer_chunked = true;
                 } else {
-                    return Ok(ParseOutcome::Bad(501, "Not Implemented"));
+                    return Ok(bad_header(501, "Not Implemented", version));
                 }
             }
             "connection" => {
@@ -232,7 +251,8 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
         request.headers.push((name, value));
     }
     if content_lengths > 1 || (content_lengths > 0 && transfer_encodings > 0) {
-        return Ok(ParseOutcome::Bad(400, "Bad Request"));
+        // uhttpd reports conflicting framing through uh_client_error, i.e. with a body
+        return Ok(ParseOutcome::Bad { code: 400, summary: "Bad Request", version, body: true });
     }
     Ok(ParseOutcome::Request(request))
 }
@@ -250,8 +270,8 @@ pub fn read_body<R: BufRead>(
             line.clear();
             reader.read_line(&mut line)?;
             let size_text = line.trim().split(';').next().unwrap_or("");
-            let size =
-                usize::from_str_radix(size_text, 16).map_err(|_| io::Error::other("bad chunk"))?;
+            let size = usize::from_str_radix(size_text, 16)
+                .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad chunk size"))?;
             if size == 0 {
                 // trailer + final CRLF
                 loop {
@@ -405,6 +425,14 @@ impl<'a, W: Write> Response<'a, W> {
     }
 
     /// uhttpd's error page.
+    /// uh_header_error: status + Content-Type, no body.
+    pub fn error_no_body(&mut self, code: u16, summary: &str) -> io::Result<()> {
+        self.status(code, summary)?;
+        self.header("Content-Type", "text/html")?;
+        self.end_headers()?;
+        self.finish()
+    }
+
     pub fn error(&mut self, code: u16, summary: &str, detail: Option<&str>) -> io::Result<()> {
         self.status(code, summary)?;
         self.header("Content-Type", "text/html")?;
@@ -567,7 +595,7 @@ mod tests {
     fn parses_request_and_rejects_conflicting_framing() {
         let mut input = io::Cursor::new(b"GET /a?b=1 HTTP/1.1\r\nHost: x\r\nContent-Length: 3\r\nTransfer-Encoding: chunked\r\n\r\n".to_vec());
         match read_request(&mut input, true).unwrap() {
-            ParseOutcome::Bad(400, _) => {}
+            ParseOutcome::Bad { code: 400, .. } => {}
             other => panic!("unexpected {:?}", matches!(other, ParseOutcome::Eof)),
         }
         let mut input = io::Cursor::new(b"HEAD /x HTTP/1.0\r\nHost: y\r\n\r\n".to_vec());

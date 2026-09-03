@@ -113,6 +113,18 @@ pub fn parse(input: &str) -> Result<Json, String> {
     Ok(value)
 }
 
+/// json_tokener_parse in its default (non-strict) mode: the first complete
+/// value is returned and whatever follows it is ignored.
+pub fn parse_prefix(input: &str) -> Result<Json, String> {
+    let mut p = Parser {
+        bytes: input.as_bytes(),
+        pos: 0,
+        depth: 0,
+    };
+    p.skip_ws();
+    p.value()
+}
+
 struct Parser<'a> {
     bytes: &'a [u8],
     pos: usize,

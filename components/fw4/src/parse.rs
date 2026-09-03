@@ -782,6 +782,10 @@ impl Fw4 {
     pub fn parse_date(&self, val: &Json) -> Option<DateTime> {
         let s = to_str(val);
         // ^([0-9]{4})(-([0-9]{1,2})(-([0-9]{1,2})(T([0-9:]+))?)?)?$
+        if !s.is_ascii() {
+            // the regex cannot match, and split_at below must not land inside a character
+            return None;
+        }
         let (year, rest) = s.split_at(s.len().min(4));
         if year.len() != 4 || !digits(year) {
             return None;

@@ -400,3 +400,18 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 
 §1 工作方式、§9 每阶段固定要求、§10 禁止事项全部沿用；每阶段两次设备授权（安装不启用 / 启用与
 开机接管），监测窗口约 3 分钟。
+
+### 11.10 第五轮（2026-09-03 夜起）：字节读取、差分模糊、clippy 清零
+
+用户指令："rpcd 里 read_to_string 读 ethers/board.json/resolv.conf 改按字节读；fw4/rpcd/httpd/logd 的差分模糊；clippy 清零；做完了直接替换到路由器里。"
+报告 `reports/.../R25_ROUND5.md`。
+
+| # | 项 | 状态 |
+|---|---|---|
+| C1 | 字节读取：rpcd 7 处（shadow/passwd/group/ethers/board.json/resolv.conf/ACL/`luci` 读文件）、fw4 include 与 /proc /sys 读、logd passwd | **完成**（`util::read_lossy`） |
+| C2 | clippy 清零（七个 crate，含 1 个 deny 级 `while_immutable_condition`——与 C 同义的 `while (ready)`，改 `if ready { loop }`） | **完成**：全部 0 |
+| C3 | 差分模糊 fw4（`r29`）：ucode fw4 vs fw4-rs 同一变异配置 | **完成**：找到并修 2 处——列表值在警告里的字符串化、非 ASCII 值的 char-boundary panic（abort → 无防火墙）；ucode 自身在 defaults/include 非法时崩溃（每 200 例约 25 次）记为不复刻的 DEVIATION |
+| C4 | 差分模糊 rpcd（`r26`）：63 方法 × 随机参数 | **完成**：4 种子 × 615 步 0 差异 |
+| C5 | 差分模糊 logd（`r28`）：原始 syslog 报文 + 坏 ubus 参数 | **完成**：0 差异 |
+| C6 | 差分模糊 httpd（`r27`）：畸形请求 133 例 | **完成**：修 6 处（`%00` 与坏 chunk 长度不再静默断开、错误状态行版本与正文按 uhttpd、请求行空格折叠、JSON 尾部垃圾）；其余 ~25 例是有意的错误路径偏差（R25 §3.3） |
+| C7 | 重建并部署 uci r5、fw4 r5、logd r5、rpcd r9、httpd r3（reload-config 无改动） | 进行中 |

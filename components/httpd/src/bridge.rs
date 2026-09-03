@@ -411,9 +411,11 @@ pub fn handle<W: Write>(
                     &error_only(RpcError::Parse),
                 );
             }
+            // uhttpd hands the body to json_tokener_parse: trailing data after the
+            // first value is ignored
             let parsed = std::str::from_utf8(body)
                 .ok()
-                .and_then(|s| json::parse(s).ok());
+                .and_then(|s| json::parse_prefix(s).ok());
             if rest.is_empty() || rest == "/" {
                 return match parsed {
                     Some(obj @ Json::Object(_)) => {
