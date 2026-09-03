@@ -214,7 +214,8 @@ def build_steps_script():
 
 
 def run(rootfs, impl, binary):
-    with tempfile.TemporaryDirectory() as tmp:
+    tmp = tempfile.mkdtemp(prefix="r16-")
+    try:
         root = os.path.join(tmp, "root")
         subprocess.run(["sudo", "-n", "cp", "-a", rootfs, root], check=True)
         if impl == "candidate":
@@ -234,6 +235,8 @@ def run(rootfs, impl, binary):
             data = subprocess.run(["sudo", "-n", "cat", os.path.join(outdir, name)], capture_output=True).stdout
             out[name] = data
         return out
+    finally:
+        subprocess.run(["sudo", "-n", "rm", "-rf", tmp], check=False)
 
 
 def main():
