@@ -44,13 +44,17 @@ define Build/Configure
 endef
 
 define Build/Compile
+	# build from a host-independent path: cargo hashes the absolute path of path
+	# dependencies into symbol names, so this is what makes CI and build-host
+	# binaries byte-identical (target dir stays under PKG_BUILD_DIR for install)
+	rm -rf /tmp/owrt-build/$(PKG_NAME) && mkdir -p /tmp/owrt-build && cp -a $(PKG_BUILD_DIR) /tmp/owrt-build/$(PKG_NAME)
 	+RUSTUP_HOME="$(V1_RUSTUP_HOME)" \
 	CARGO_HOME="$(V1_CARGO_HOME)" \
 	CARGO_BUILD_TARGET="$(RUST_TARGET)" \
 	CARGO_PROFILE_RELEASE_PANIC=abort \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
-	RUSTFLAGS="--remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
-	$(V1_CARGO) build --release --locked --manifest-path $(PKG_BUILD_DIR)/Cargo.toml
+	RUSTFLAGS="--remap-path-prefix=/tmp/owrt-build/$(PKG_NAME)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/Cargo.toml --target-dir $(PKG_BUILD_DIR)/target
 endef
 
 define Package/owrt-reload-config/install

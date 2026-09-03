@@ -43,6 +43,13 @@
 触发：Actions 页面 "Run workflow"（可填 OpenWrt 版本），或 `gh workflow run release-image.yml -f openwrt_version=25.12.5`，或 `git tag v0.5.0 && git push --tags`。
 支持新版本只需要：把新版设备的 `apk info` 存为 `packaging/image/packages-<ver>.txt`，并先在构建机上用新 rootfs 跑完第 2 步的差分回归（这一步仍在构建机，CI 不做）。
 
+首次成功运行：`actions/runs/33810286174`（2026-09-03 21:53Z，整个 job 约 6 分钟，其中构建步骤 4 分 43 秒）：七个 apk（uci r5、reload-config r5、logd r5、httpd r3、fw4 r5、rpcd r9、switch r2）+
+`openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin`（11 643 168 B，sha256 `ba28ef40…a0a2`），内容检查通过。
+
+可复现性：打包 Makefile 的 RUSTFLAGS 带 `--remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo`，
+去掉二进制里的构建路径（path 依赖 `ubus`/`uci` 的 panic 位置字符串曾让 CI 与构建机产物相差几个路径串）；加了之后 CI 与构建机
+对同一提交产出的二进制应逐字节相同（见下方验证记录）。
+
 **刷写仍是手工步骤**，见下一节。
 
 ## 刷写（每次升级真正的风险点）
