@@ -414,4 +414,4 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 | C4 | 差分模糊 rpcd（`r26`）：63 方法 × 随机参数 | **完成**：4 种子 × 615 步 0 差异 |
 | C5 | 差分模糊 logd（`r28`）：原始 syslog 报文 + 坏 ubus 参数 | **完成**：0 差异 |
 | C6 | 差分模糊 httpd（`r27`）：畸形请求 133 例 | **完成**：修 6 处（`%00` 与坏 chunk 长度不再静默断开、错误状态行版本与正文按 uhttpd、请求行空格折叠、JSON 尾部垃圾）；其余 ~25 例是有意的错误路径偏差（R25 §3.3） |
-| C7 | 重建并部署 uci r5、fw4 r5、logd r5、rpcd r9、httpd r3（reload-config 无改动） | 进行中 |
+| C7 | 重建并部署 uci r5、fw4 r5、logd r5、rpcd r9、httpd r3（reload-config 无改动） | **完成**（2026-09-03 23:22，全部门禁通过，3 分钟探针干净） |

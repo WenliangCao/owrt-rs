@@ -250,3 +250,6 @@ iwinfo 与 logread 全量略慢；顺带发现并修复 reload_config 的 10 ms 
 apk 升级钩子会把设备切回 C 实现（修，rpcd r7 验证）；去掉 reload_config/rpcd 的子进程轮询与 netlink 每次 64 KiB 分配，
 reload_config 64.9 vs 77.6 ms 已快于原脚本，iwinfo 24 vs 19 ms；logread 差距证实为测量假象。最后剩下的 uci/iwinfo 差距是构建配置（`opt-level z` + 动态链接，决策 0017）：改 opt-level 3 + 静态后
 六件重建上线，全量重测没有慢于原版的用例（`BENCHMARK.md` §11）。设备：uci r4 / reload-config r5 / logd r4 / httpd r2 / fw4 r4 / rpcd r8。
+
+第五轮（2026-09-03 夜，`reports/.../R25_ROUND5.md`）：所有用户文件按字节读取；clippy 七个 crate 清零；新增 fw4/rpcd/logd/httpd 差分模糊器
+（`tools/r26`–`r29`），找到并修了 fw4 非 ASCII 值的 panic（abort → 无防火墙）与 httpd 两处静默断开；设备：uci r5 / reload-config r5 / logd r5 / httpd r3 / fw4 r5 / rpcd r9。

@@ -77,6 +77,23 @@ C 端读取这些文件用 fgets/getspnam/getpwnam，逐字节处理；Rust 用 
 - JSON：json-c 接受字符串里的非法 UTF-8、把 `1e400` 解析成 inf 并原样输出 `"id":inf`（非法 JSON）、5000 层嵌套按批量请求处理；
   httpd-rs 分别返回 parse error / `id: null` / parse error。
 
-## 4. 版本与门禁
+## 4. 版本、门禁与部署（2026-09-03 23:22）
 
-（部署窗口后填写）
+SDK 产出的静态二进制全部重新过门禁后，按 uci → fw4 → logd → httpd → rpcd 顺序 `apk add`（用户预授权："做完了之后直接替换到路由器里"）：
+
+| 包 | sha256（apk） | 门禁 | 部署检查 |
+|---|---|---|---|
+| owrt-uci 0.1.0-r5 | 5793f214…d026d | r16 175/175；r24 种子 4 150/150 | postinst 门禁 export/show/changes identical；`uci export` 哈希不变 |
+| owrt-fw4 0.1.0-r5 | 916e9dcd…95eb4 | r09 31/31；r29 种子 3–6 全 0（每种子 12–29 例 ucode 崩溃） | postinst 门禁 identical（203 行）；`fw4 print` 哈希不变 |
+| owrt-logd 0.1.0-r5 | 3dcb67b4…504f0 | r15 passed；r21 重注册 2 s；r28 0 差异 | 新 pid 28368；`logger` 后 `logread` 可读 |
+| owrt-httpd 0.1.1-r3 | 04cc91fa…55a7b8 | r14 38/38；r27 25 个有意偏差（§3.3），服务在 133 例后全部存活 | 新 pid 28711；`/ubus` JSON-RPC 与 LuCI 登录页正常 |
+| owrt-rpcd 0.1.0-r9 | 200aeb90…8cf58 | r17 272/272、r18 74/74、r19 11/11；r26 种子 3、4 0 差异（种子 4 的 1 例是提交时刻 mtime，已加掩码） | 新 pid 29021，单进程，9 对象，`getFeatures`/`getHostHints` 正常 |
+
+reload-config 0.2.0-r5 无代码改动，未重建。overlay 用量不变（23.1 MiB）。3 分钟探针见部署日志 `private/bench/deploy_round5_*.txt`：
+pid 不变、无 crash/respawn、ubus 40 对象、LuCI 403+登录表单。
+
+## 5. 剩余
+
+- fw4 的 ucode 在 `defaults`/`include` 非法时崩溃的行为不复刻（记录在 §3.1）；如需"和原版一样失败"再议。
+- httpd 的 25 个错误路径偏差（§3.3）保持。
+- 发布镜像需用当前包集重建（`docs/RELEASE.md`）。

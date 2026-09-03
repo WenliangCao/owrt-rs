@@ -163,7 +163,7 @@ def main():
 
     def norm(sid, data, sids):
         text = base.normalize(sid, data, sids)
-        text = re.sub(r'"(remaining|timeout|expires|time|uptime|localtime|idletime|atime|ctime)":\s*-?\d+', r'"\1":<N>', text)
+        text = re.sub(r'"(remaining|timeout|expires|time|uptime|localtime|idletime|atime|mtime|ctime)":\s*-?\d+', r'"\1":<N>', text)
         # sessions created by fuzz calls are not captured; any session id is random
         text = re.sub(r"[0-9a-f]{32}", "<SID>", text)
         if "_session_list" in sid:

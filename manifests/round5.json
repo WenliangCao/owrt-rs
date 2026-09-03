@@ -1,0 +1,55 @@
+{
+ "id": "round5",
+ "date": "2026-09-03",
+ "report": "reports/ax3000t-stock-openwrt-25.12.5/R25_ROUND5.md",
+ "fixed": [
+  "byte-faithful reads: rpcd shadow/passwd/group/ethers/board.json/resolv.conf/acl/luci files, fw4 includes+/proc+/sys, logd passwd",
+  "clippy: 0 warnings across 7 crates (1 deny-level while_immutable_condition rewritten, behaviour unchanged)",
+  "fw4: non-ASCII option values panicked (abort) in parse_num_str/parse_date/parse_v4/parse_v6 -> invalid-value warning like ucode; rpcd ip.rs same guard",
+  "fw4: list values in warning text stringified ucode-style [ \"a\", \"b\" ]",
+  "httpd: %00 CGI path and bad chunk size no longer drop the connection silently (400); uhttpd-style error status version/body; strtok-like space runs; JSON-RPC body trailing data ignored"
+ ],
+ "fuzzers": {
+  "r29_fw4": "seeds 1-6, 0 differing after fixes; ucode crashes on invalid defaults/include bucketed (deviation: not reproduced)",
+  "r26_rpcd": "seeds 1-4 x 615 steps, 0 differing (normalizer masks sids/atime/mtime/ctime)",
+  "r28_logd": "780 datagrams + 27 ubus calls, 33 outputs, 0 differing",
+  "r27_httpd": "133 cases, 35 -> 25 differing, remaining are documented error-path deviations; server alive after every case"
+ },
+ "device_window": {
+  "when": "2026-09-03T23:22+02:00",
+  "authorization": "pre-authorized by the user in the round-5 instruction",
+  "packages": {
+   "owrt-uci-0.1.0-r5.apk": "5793f21405355ef6af2028eca06a9d8f39de315ac1f2a46514f884063a6d026d",
+   "owrt-fw4-0.1.0-r5.apk": "916e9dcd2a49bc23317dc5dd5554c995b5a02fe36add13c8dc491ba2fc095eb4",
+   "owrt-logd-0.1.0-r5.apk": "3dcb67b4d09fdb468e054f022a01074dfa626e4b19b3a871b74887fc6ba504f0",
+   "owrt-httpd-0.1.1-r3.apk": "04cc91faddcb424da053cc7af088414e7433fc6a4878723fb9f2e4d98755a7b8",
+   "owrt-rpcd-0.1.0-r9.apk": "200aeb90fadb5b6bd2d7e81aabefbdd391e6507a05c6661f7593c71e0228cf58"
+  },
+  "checks": {
+   "uci_export_hash": "0f160a8175289da1",
+   "fw4_print_hash": "1753c30a6cfe83b9",
+   "rpcd_objects": 9,
+   "pids": {
+    "rpcd": 29021,
+    "logd": 28368,
+    "httpd": 28711
+   },
+   "luci_http": 403,
+   "overlay_mib": 23.1
+  }
+ },
+ "device_versions": {
+  "uci": "0.1.0-r5",
+  "reload-config": "0.2.0-r5",
+  "logd": "0.1.0-r5",
+  "httpd": "0.1.1-r3",
+  "fw4": "0.1.0-r5",
+  "rpcd": "0.1.0-r9",
+  "switch": "0.1.0-r2"
+ },
+ "open": [
+  "release image rebuild with current package set",
+  "fw4: ucode crash on invalid defaults/include not reproduced (deviation)",
+  "httpd: 25 documented error-path deviations"
+ ]
+}
