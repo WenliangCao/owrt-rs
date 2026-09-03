@@ -11,7 +11,7 @@ use std::io::{Read, Write};
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
 use std::os::unix::process::CommandExt;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 pub const FILE_MIN_SIZE: u64 = 4096;
 pub const FILE_MAX_SIZE: u64 = 4096 * 64;
@@ -333,20 +333,10 @@ pub fn run_command(executable: &str, params: &[String], env: &[(String, String)]
     }
     let out_t = reader(Box::new(out_pipe));
     let err_t = reader(Box::new(err_pipe));
-    let deadline = Instant::now() + Duration::from_millis(timeout_ms as u64);
-    let code = loop {
-        match child.try_wait() {
-            Ok(Some(st)) => break Ok(st),
-            Ok(None) => {
-                if Instant::now() >= deadline {
-                    let _ = child.kill();
-                    let _ = child.wait();
-                    break Err(status::TIMEOUT);
-                }
-                std::thread::sleep(Duration::from_millis(10));
-            }
-            Err(_) => break Err(status::UNKNOWN_ERROR),
-        }
+    let code = match crate::procwait::wait(&mut child, Duration::from_millis(timeout_ms as u64)) {
+        Ok(crate::procwait::Outcome::Exited(st)) => Ok(st),
+        Ok(crate::procwait::Outcome::TimedOut) => Err(status::TIMEOUT),
+        Err(_) => Err(status::UNKNOWN_ERROR),
     };
     let (stdout, o_over) = out_t.join().unwrap_or((Vec::new(), false));
     let (stderr, e_over) = err_t.join().unwrap_or((Vec::new(), false));

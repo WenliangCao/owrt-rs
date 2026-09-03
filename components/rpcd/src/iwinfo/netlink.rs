@@ -432,7 +432,11 @@ fn send_on(st: &mut Nls, mut msg: Msg, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
 
 /// nl80211_send: 0 on success, the kernel's negative errno on NLMSG_ERROR,
 /// a negative errno if the send itself failed.
+/// Number of nl80211_send() calls in this process (profiling aid for `--iwinfo-bench`).
+pub static SENDS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
 pub fn nl80211_send(msg: Msg, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
+    SENDS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     let Some(mut st) = nls() else {
         return -ENOLINK;
     };

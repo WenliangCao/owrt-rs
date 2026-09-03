@@ -593,3 +593,61 @@ pub fn luci_iwinfo(b: &mut BlobBuf, dev: &str, phy_only: bool) -> bool {
     utils::iwinfo_close();
     true
 }
+
+/// `rpcd-rs --iwinfo-bench <ifname>`: run the `info` op sequence once per op,
+/// print wall time and the number of nl80211 requests each op issued.
+pub fn bench(dev: &str) {
+    use crate::iwinfo::netlink::SENDS;
+    use std::sync::atomic::Ordering;
+    use std::time::Instant;
+    if iw::iwinfo_type(dev).is_none() {
+        eprintln!("{dev}: nl80211 probe failed");
+        return;
+    }
+    macro_rules! op {
+        ($name:expr, $e:expr) => {{
+            let s0 = SENDS.load(Ordering::Relaxed);
+            let t = Instant::now();
+            let ok = $e.is_ok();
+            println!(
+                "{:<18} {:>8.2} ms  nl_sends={:<3} {}",
+                $name,
+                t.elapsed().as_secs_f64() * 1000.0,
+                SENDS.load(Ordering::Relaxed) - s0,
+                if ok { "ok" } else { "err" }
+            );
+        }};
+    }
+    let t_all = Instant::now();
+    let s_all = SENDS.load(Ordering::Relaxed);
+    op!("phyname", nl80211::phyname(dev));
+    op!("ssid", nl80211::ssid(dev));
+    op!("bssid", nl80211::bssid(dev));
+    op!("country", nl80211::country(dev));
+    op!("mode", nl80211::mode(dev));
+    op!("channel", nl80211::channel(dev));
+    op!("center_chan1", nl80211::center_chan1(dev));
+    op!("center_chan2", nl80211::center_chan2(dev));
+    op!("frequency", nl80211::frequency(dev));
+    op!("frequency_offset", nl80211::frequency_offset(dev));
+    op!("txpower", nl80211::txpower(dev));
+    op!("txpower_offset", nl80211::txpower_offset(dev));
+    op!("quality", nl80211::quality(dev));
+    op!("quality_max", nl80211::quality_max(dev));
+    op!("signal", nl80211::signal(dev));
+    op!("noise", nl80211::noise(dev));
+    op!("bitrate", nl80211::bitrate(dev));
+    op!("encryption", nl80211::encryption(dev));
+    op!("htmodelist", nl80211::htmodelist(dev));
+    op!("hwmodelist", nl80211::hwmodelist(dev));
+    op!("htmode", nl80211::htmode(dev));
+    op!("hardware_id", nl80211::hardware_id(dev));
+    op!("hardware_name", nl80211::hardware_name(dev));
+    op!("assoclist", nl80211::assoclist(dev));
+    println!(
+        "total              {:>8.2} ms  nl_sends={}",
+        t_all.elapsed().as_secs_f64() * 1000.0,
+        SENDS.load(Ordering::Relaxed) - s_all
+    );
+    iw::iwinfo_finish();
+}

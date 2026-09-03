@@ -8,6 +8,7 @@ mod ip;
 mod iwinfo;
 mod iwinfoobj;
 mod luci;
+mod procwait;
 mod lucirpc;
 mod rc;
 mod rpcsys;
@@ -197,6 +198,15 @@ fn exec_self() {
 fn main() {
     // getopt "s:t:" (musl: no argument permutation)
     let argv: Vec<String> = std::env::args().skip(1).collect();
+    if argv.first().map(String::as_str) == Some("--iwinfo-bench") {
+        // profiling aid: time every `info` op for one interface and count netlink sends
+        let Some(dev) = argv.get(1) else {
+            eprintln!("usage: rpcd-rs --iwinfo-bench <ifname>");
+            std::process::exit(2);
+        };
+        iwinfoobj::bench(dev);
+        return;
+    }
     let mut socket = None;
     let mut exec_timeout: i64 = 120_000;
     let mut i = 0;

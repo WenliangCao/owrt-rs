@@ -46,6 +46,8 @@ extern "C" {
     fn recvmsg(fd: i32, msg: *mut MsgHdr, flags: i32) -> isize;
     fn poll(fds: *mut PollFd, nfds: u64, timeout: i32) -> i32;
     fn pipe2(fds: *mut i32, flags: i32) -> i32;
+    #[link_name = "socketpair"]
+    fn libc_socketpair(domain: i32, ty: i32, protocol: i32, fds: *mut i32) -> i32;
     fn setuid(uid: u32) -> i32;
     fn setgid(gid: u32) -> i32;
     fn signal(signum: i32, handler: usize) -> usize;
@@ -237,6 +239,20 @@ pub fn wait_readable(fd: RawFd, timeout_ms: i32) -> io::Result<bool> {
 pub fn pipe() -> io::Result<(OwnedFd, OwnedFd)> {
     let mut fds = [-1i32; 2];
     if unsafe { pipe2(fds.as_mut_ptr(), O_CLOEXEC) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(unsafe { (OwnedFd::from_raw_fd(fds[0]), OwnedFd::from_raw_fd(fds[1])) })
+}
+
+/// socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC): what logd uses for stream
+/// clients (a unix stream socket's send buffer, ~200 KiB by default, takes a
+/// whole ring-buffer backlog in one write; a pipe holds 64 KiB).
+pub fn socketpair() -> io::Result<(OwnedFd, OwnedFd)> {
+    const AF_UNIX: i32 = 1;
+    const SOCK_STREAM: i32 = 1;
+    const SOCK_CLOEXEC: i32 = 0o2000000;
+    let mut fds = [-1i32; 2];
+    if unsafe { libc_socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds.as_mut_ptr()) } < 0 {
         return Err(io::Error::last_os_error());
     }
     Ok(unsafe { (OwnedFd::from_raw_fd(fds[0]), OwnedFd::from_raw_fd(fds[1])) })

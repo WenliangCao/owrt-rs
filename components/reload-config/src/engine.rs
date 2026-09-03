@@ -1,6 +1,6 @@
 use crate::process::{self, WaitResult};
 use crate::{trace::Trace, unix};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::ffi::OsString;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
@@ -115,6 +115,7 @@ pub fn run<W: Write>(
 
     let names = scan_config_names(settings)?;
     let mut current = HashMap::with_capacity(names.len());
+    let mut normalized: Vec<(String, PathBuf)> = Vec::with_capacity(names.len());
     for name in &names {
         if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
             return Err(Error::Cancelled);
@@ -134,7 +135,16 @@ pub fn run<W: Write>(
                 "normalized package {name:?} is {size} bytes; limit is {MAX_NORMALIZED_BYTES}"
             )));
         }
-        current.insert(name.clone(), md5(settings, &output, cancelled)?);
+        normalized.push((name.clone(), output));
+    }
+    // One md5sum over every normalized file, as the shell script does
+    // (`md5sum /var/run/config.check/*`), instead of one process per package.
+    let digests = md5_all(settings, &normalized, cancelled)?;
+    for (name, output) in &normalized {
+        let digest = digests
+            .get(output)
+            .ok_or_else(|| Error::Dependency(format!("md5sum returned no digest for {name:?}")))?;
+        current.insert(name.clone(), digest.clone());
     }
 
     let baseline_path = settings.path("/var/run/config.md5");
@@ -264,13 +274,35 @@ fn normalize(
     }
 }
 
-fn md5(settings: &Settings, path: &Path, cancelled: &AtomicBool) -> Result<String, Error> {
-    let mut child = Command::new("md5sum")
-        .arg(path)
+fn md5_all(
+    settings: &Settings,
+    files: &[(String, PathBuf)],
+    cancelled: &AtomicBool,
+) -> Result<BTreeMap<PathBuf, String>, Error> {
+    let mut digests = BTreeMap::new();
+    if files.is_empty() {
+        return Ok(digests);
+    }
+    let mut command = Command::new("md5sum");
+    for (_, path) in files {
+        command.arg(path);
+    }
+    let mut child = command
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
         .map_err(|error| Error::Dependency(format!("spawn md5sum: {error}")))?;
+    let mut stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| Error::Dependency("md5sum stdout unavailable".into()))?;
+    // read while the child runs: 19 lines fit the pipe, larger sets must not deadlock
+    let mut output = Vec::new();
+    stdout
+        .by_ref()
+        .take((MAX_COMMAND_OUTPUT_BYTES + 1) as u64)
+        .read_to_end(&mut output)
+        .map_err(|error| Error::Io("read md5sum output", error))?;
     let status = process::wait(&mut child, settings.timeout, cancelled)
         .map_err(|error| Error::Io("wait for md5sum", error))?;
     match status {
@@ -281,29 +313,23 @@ fn md5(settings: &Settings, path: &Path, cancelled: &AtomicBool) -> Result<Strin
         }
         WaitResult::Exited(_) => {}
     }
-    let mut output = Vec::new();
-    child
-        .stdout
-        .take()
-        .ok_or_else(|| Error::Dependency("md5sum stdout unavailable".into()))?
-        .take((MAX_COMMAND_OUTPUT_BYTES + 1) as u64)
-        .read_to_end(&mut output)
-        .map_err(|error| Error::Io("read md5sum output", error))?;
     if output.len() > MAX_COMMAND_OUTPUT_BYTES {
         return Err(Error::Dependency("md5sum output exceeded limit".into()));
     }
     let text = std::str::from_utf8(&output)
         .map_err(|_| Error::Dependency("md5sum output was not UTF-8".into()))?;
-    let digest = text
-        .split_whitespace()
-        .next()
-        .ok_or_else(|| Error::Dependency("md5sum returned no digest".into()))?;
-    if digest.len() != 32 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        return Err(Error::Dependency(format!(
-            "md5sum returned invalid digest {digest:?}"
-        )));
+    for line in text.lines() {
+        let mut parts = line.splitn(2, ' ');
+        let digest = parts.next().unwrap_or("");
+        let path = parts.next().unwrap_or("").trim_start_matches([' ', '*']);
+        if digest.len() != 32 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            return Err(Error::Dependency(format!(
+                "md5sum returned invalid digest {digest:?}"
+            )));
+        }
+        digests.insert(PathBuf::from(path), digest.to_ascii_lowercase());
     }
-    Ok(digest.to_ascii_lowercase())
+    Ok(digests)
 }
 
 enum Delivery {

@@ -10,7 +10,7 @@ use std::fs;
 use std::io::{BufRead, BufReader};
 use std::os::unix::fs::MetadataExt;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 const LIST_EXEC_TIMEOUT_MS: u64 = 3000;
 
@@ -139,26 +139,18 @@ fn scan(path: &str, name: &str, skip_running_check: bool) -> Option<Entry> {
         e.running = false;
         return Some(e);
     };
-    let deadline = Instant::now() + Duration::from_millis(LIST_EXEC_TIMEOUT_MS);
-    loop {
-        match child.try_wait() {
-            Ok(Some(st)) => {
-                e.running = st.success();
-                return Some(e);
-            }
-            Ok(None) => {
-                if Instant::now() >= deadline {
-                    eprintln!("Timeout waiting for {path}");
-                    let _ = child.kill();
-                    let _ = child.wait();
-                    return None;
-                }
-                std::thread::sleep(Duration::from_millis(5));
-            }
-            Err(_) => {
-                e.running = false;
-                return Some(e);
-            }
+    match crate::procwait::wait(&mut child, Duration::from_millis(LIST_EXEC_TIMEOUT_MS)) {
+        Ok(crate::procwait::Outcome::Exited(st)) => {
+            e.running = st.success();
+            Some(e)
+        }
+        Ok(crate::procwait::Outcome::TimedOut) => {
+            eprintln!("Timeout waiting for {path}");
+            None
+        }
+        Err(_) => {
+            e.running = false;
+            Some(e)
         }
     }
 }

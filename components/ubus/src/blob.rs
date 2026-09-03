@@ -187,6 +187,12 @@ impl BlobBuf {
         }
     }
 
+    /// blob_buf_init(): drop everything but the empty head, keeping the allocation.
+    pub fn reset(&mut self) {
+        self.data.clear();
+        self.data.extend_from_slice(&[0, 0, 0, 4]);
+    }
+
     fn set_raw_len(&mut self, offset: usize, raw_len: usize) {
         let id_len = u32::from_be_bytes(self.data[offset..offset + 4].try_into().unwrap());
         let value = (id_len & !LEN_MASK) | (raw_len as u32 & LEN_MASK);

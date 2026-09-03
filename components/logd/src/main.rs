@@ -184,11 +184,16 @@ impl Daemon {
             None => self.ring.list(0).collect(),
         };
         if stream {
-            let (read_end, write_end) = sys::pipe()?;
+            // unix stream socket like C logd (a pipe would hand the backlog over
+            // in 64 KiB pieces); one BlobBuf reused for every frame
+            let (read_end, write_end) = sys::socketpair()?;
             sys::set_nonblocking(write_end.as_raw_fd())?;
-            let mut pending = Vec::new();
+            let mut pending = Vec::with_capacity(backlog.len() * 96);
+            let mut b = BlobBuf::new();
             for entry in backlog {
-                pending.extend_from_slice(&frame(entry));
+                b.reset();
+                entry_fields(&mut b, entry);
+                pending.extend_from_slice(b.as_bytes());
             }
             let mut client = Client {
                 fd: write_end,
