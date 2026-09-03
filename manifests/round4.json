@@ -1,0 +1,53 @@
+{
+ "id": "round4",
+ "date": "2026-09-03",
+ "report": "reports/ax3000t-stock-openwrt-25.12.5/R24_ROUND4.md",
+ "benchmark": "reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md#8",
+ "bugs_fixed": [
+  "uci-rs non-UTF-8 bytes replaced by U+FFFD on commit and char-boundary panic (byte-faithful values, uci r3)",
+  "apk postinst ran as post-upgrade and switched the device back to the C implementation (rpcd r7 hooks)",
+  "try_wait+sleep child polling in reload_config, rpcd file exec, rc list (reload-config r3/r4, rpcd r6)",
+  "per-recv zeroed 64 KiB netlink buffer in rpcd iwinfo (rpcd r6)"
+ ],
+ "not_bugs": ["logread full-output gap: ring line-count artefact, equal-content 0.44 s vs 0.44 s"],
+ "gates": {
+  "r24_uci_fuzz": "300/300 identical (seeds 1,2) after fix; 6/150 differing before",
+  "r16_uci_check": "175/175",
+  "r09_fw4_upstream": "31/31",
+  "r17_r18_r19_rpcd": "272/74/11"
+ },
+ "device_windows": [
+  {
+   "when": "2026-09-03T21:47+02:00",
+   "packages": {
+    "owrt-rpcd-0.1.0-r6.apk": "postinst bug hit: device flipped to C rpcd, restored with owrt-rpcd-switch enable",
+    "owrt-logd-0.1.0-r3.apk": "addb722738f9f378d501ba07df316a324d0a568f20d3ca1d2184eeeffb66f95c",
+    "owrt-reload-config-0.2.0-r4.apk": "1e19eb5b9a052b7a3b440db7fcd93ced82e4617564807e6ab0ff1ab99b11cf85"
+   }
+  },
+  {
+   "when": "2026-09-03T22:04+02:00",
+   "packages": {
+    "owrt-uci-0.1.0-r3.apk": "f397e1dcac53d259ab4ef0cc20b13dccf16dbc9e645e6397105373b0f631aefc",
+    "owrt-fw4-0.1.0-r3.apk": "9d433a55b07ba1b2f542ac063e3f86ff2c0e40248c804f61c1ce33f451f1be2b",
+    "owrt-rpcd-0.1.0-r7.apk": "87f939d0a9070005bbdfcd307e297d485013a8e350b7427c06966dfbd9396309"
+   },
+   "checks": {
+    "uci_export_hash_before_after_and_rom": "a53947a0e80f7ed8",
+    "fw4_print_hash_rs_vs_rom": "d756aeddbdf70786",
+    "rpcd_objects": 9,
+    "rpcd_pid": 12656,
+    "logd_pid_after_swap": 13458,
+    "logread_l400_x20": {"c_logd_s": 0.44, "logd_rs_s": 0.44, "lines": [500, 503]},
+    "stability_s": 180,
+    "respawn": 0,
+    "ubus_objects": 40
+   }
+  }
+ ],
+ "device_versions": {
+  "uci": "0.1.0-r3", "reload-config": "0.2.0-r4", "logd": "0.1.0-r3",
+  "httpd": "0.1.1-r1", "fw4": "0.1.0-r3", "rpcd": "0.1.0-r7", "switch": "0.1.0-r2"
+ },
+ "open": ["A5 uci parse/show +36%/+44%", "A4 iwinfo +25% (htmodelist, noise)", "B4 byte reads for ethers/board.json/resolv.conf", "B5 fuzz fw4/rpcd/httpd/logd", "B2 clippy", "B6 resources", "release image rebuild with current package set"]
+}

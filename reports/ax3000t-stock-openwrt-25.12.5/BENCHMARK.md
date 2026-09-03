@@ -84,8 +84,7 @@ macOS 自带的 `ab` 对这台设备每请求卡 140 ms（客户端问题），�
 ## 7. 待办（性能，不是正确性）
 
 - iwinfo/nl80211 路径每次调用多花约 9 ms：对照 C 的 netlink 请求次数，找多余的 dump（怀疑 phy 查询未复用）。
-- `logread` 全量流式输出慢 2.3×：检查每条记录是否单独 `notify`，C 是否批量。
-- `uci export` 全量慢 36%：19 个文件的读解析，看是否有多余的拷贝或未缓冲写。
+- `uci export` 全量慢 36%：19 个文件的读解析，看是否有多余的拷贝或未缓冲写（uci r3 后重测仍在，见 §9）。
 
 ## 8. 第四轮修复后（2026-09-03 晚，rpcd r6 / logd r3 / reload-config r4 上线）
 
@@ -95,7 +94,7 @@ macOS 自带的 `ab` 对这台设备每请求卡 140 ms（客户端问题），�
 | `ubus call file exec /bin/true`（N=50） | — | 轮询 10 ms 粒度 | 6.0 ms（≈ ubus CLI 3.8 ms + fork/exec） | 阻塞等待 |
 | `ubus call iwinfo info`（N=50） | 19.0 ms | 28.2 ms | **24.0 ms** | 每线程复用 netlink 接收缓冲（原来每次 recv 分配并清零 64 KiB） |
 | `ubus call luci-rpc getWirelessDevices` | 48.8 ms | 73.0 ms | **60.0 ms** | 同上 |
-| `logread` 全量（约 820 行） | 26 ms | 60 ms | 41 ms（未达标） | 流式改 socketpair + 复用 BlobBuf；每行仍约 50 µs，非流式 `log read` 只需 14 µs/行，差距在流式路径或客户端读取，**待查** |
+| `logread -l 400`（两边环内各 500 行，N=20） | 22 ms | — | **22 ms（相同）** | 原 60 vs 26 ms 是环内行数不同造成的假差距（每行约 50 µs 全在 logread 客户端自身）；沙箱 strace 帧长/系统调用相同。socketpair + BlobBuf 复用（logd r3）保留 |
 
 进程内逐 op 对照（`rpcd-rs --iwinfo-bench` vs 同机 C libiwinfo 计时程序 `private/bench/iwbench.c`）：24 个 op 总计 Rust 28.1 / C 26.1 ms
 （phy0），32.0 / 29.2 ms（phy1）；请求数相同（42 次 netlink），剩余差距集中在 `htmodelist`（1.25 vs 0.53 ms）与 `noise`（2.0 vs 1.5 ms）。
@@ -103,3 +102,15 @@ macOS 自带的 `ab` 对这台设备每请求卡 140 ms（客户端问题），�
 **顺带发现的非性能 bug**：apk 升级 owrt-rpcd 时，包的 postinst（设计为"安装即惰性"的 `switch disable`）被 apk 当作 post-upgrade
 再次执行，设备静默切回 C rpcd、rpcd-rs 进入 crash loop（对象重复注册）。已用 `owrt-rpcd-switch enable` 恢复，并把六个包的 postinst
 改为"boot-enable 打开时保持接管并重启/重挂载"（提交 9259153）。
+
+## 9. uci r3（字节保真改造）上线后重测（2026-09-03 夜，N=100，含进程启动）
+
+| 用例 | `/rom/sbin/uci` | `uci-rs` r3 | r2 时 |
+|---|---|---|---|
+| `export network` | 2.7 ms | 2.9 ms | — |
+| `export`（19 包） | 5.9 ms | 8.0 ms | 8.0 ms |
+| `show firewall` | 3.2 ms | 4.6 ms | — |
+| `get network.lan.ipaddr` | 2.6 ms | 2.8 ms | — |
+
+字节保真改造没有改变性能。`get` 显示进程启动开销两边相同（+0.2 ms），差距全在解析/导出：export 全量的工作量 5.2 vs 3.3 ms，
+`show firewall` 1.8 vs 0.6 ms（show 路径整包 clone）。这是计划 A5 的剩余项。

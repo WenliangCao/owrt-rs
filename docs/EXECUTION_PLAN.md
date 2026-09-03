@@ -374,9 +374,9 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 |---|---|---|---|
 | A1 | rpcd `file exec` 每次多至 10 ms、`rc list` 每脚本多至 5 ms | `try_wait` + `sleep` 轮询（与 reload_config r1 同一类） | **完成**：`procwait`（阻塞等待 + 超时线程），rpcd r6 上线，`file exec /bin/true` 6.0 ms |
 | A2 | reload_config 96 vs 79 ms | 19 次 `md5sum` fork，C 脚本只 fork 一次 | **完成**：r4 上线，64.9 vs 77.6 ms，已快于原脚本 |
-| A3 | `logread` 全量 60 vs 26 ms，且与条数线性（约 50 µs/条） | 环缓冲 `list()` 或每条 frame 构造的 O(n) 开销；管道 64 KB vs C 的 socketpair | **部分**：socketpair + BlobBuf 复用（logd r3）后 41 ms；测得 80% 时间是 logread 客户端自身 CPU，服务端 3 ms——帧内容或到达模式与 C 不同，待用 strace（qemu 沙箱）比对原始字节流 |
+| A3 | `logread` 全量 60 vs 26 ms，且与条数线性（约 50 µs/条） | 环缓冲 `list()` 或每条 frame 构造的 O(n) 开销；管道 64 KB vs C 的 socketpair | **完成（无差距）**：控制环内行数后（各 500 行，`logread -l 400` ×20）C 0.44 s、logd-rs 0.44 s 相同；沙箱 strace 帧长与客户端系统调用相同。原差距是环内行数不同的测量假象。socketpair + BlobBuf 复用（logd r3）保留 |
 | A4 | `iwinfo info` 28 vs 19 ms、`getWirelessDevices` 73 vs 49 ms；CPU 时间≈0，纯等待 | 每个 op 独立 netlink/固件往返，可能比 C 多发请求（重复 wiphy dump / survey） | **大部分完成**：逐 op 对照（`--iwinfo-bench` vs 同机 C 计时程序）显示请求数相同（42 次）；每次 recv 分配并清零 64 KiB 是主因，改为每线程复用后 24.0 / 60.0 ms（C 19.0 / 48.8）；剩余差距在 `htmodelist`/`noise` |
-| A5 | `uci export`（19 包）8.0 vs 5.9 ms、`show` 4.0 vs 3.5 ms | show 路径整包 clone；解析器每 token 分配 | 未动（先做 B4/B5 的字节修复；uci r3 上线后重测） |
+| A5 | `uci export`（19 包）8.0 vs 5.9 ms、`show` 4.0 vs 3.5 ms | show 路径整包 clone；解析器每 token 分配 | uci r3 上线后重测：`export` 全量 8.0 vs 5.9、`show firewall` 4.6 vs 3.2、`get` 2.8 vs 2.6 ms——字节改造未改变性能，差距在解析/show 的 clone；**待做** |
 
 **B. bug**
 
@@ -385,7 +385,7 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 | B1 | 时序类缺陷普查 | **完成**：rpcd file.rs / rc.rs 轮询已改（r6）；其余 sleep 均对应 C 的原有 sleep（rpc-sys 延迟重启、passwd 管道、uci apply 回滚） |
 | B2 | clippy | 已跑（uci 9、logd 2、httpd 1、fw4 21、rpcd 23 条）：全部为风格类，无真 bug；清零待做 |
 | B3 | panic 面 | **复核完成**：125 处 unwrap/expect 中非测试代码的每一处都有前置守卫（fw4 sections.rs 10 处、rpcd rtnl/lucirpc/luci、ubus blob.rs）；真正的 panic 来自 B4 的字符边界索引，已修 |
-| B4 | 非 UTF-8 | **修复中（uci r3）**：uci-rs 把非 UTF-8 字节替换成 U+FFFD 且遇到行首高位字节会 panic（abort，波及 rpcd-rs 的 `uci` 对象与 fw4-rs 开机）；值改为字节保真，CLI argv 走 `args_os`；rpcd/fw4 在 blobmsg/JSON 边界有损转换（DEVIATION 注释）。其余 `read_to_string` 点（ethers/board.json/resolv.conf 等）待改为按字节读 |
+| B4 | 非 UTF-8 | **uci 修复并上线（r3，设备 export 哈希前后不变）**：uci-rs 把非 UTF-8 字节替换成 U+FFFD 且遇到行首高位字节会 panic（abort，波及 rpcd-rs 的 `uci` 对象与 fw4-rs 开机）；值改为字节保真，CLI argv 走 `args_os`；rpcd/fw4 在 blobmsg/JSON 边界有损转换（DEVIATION 注释）。其余 `read_to_string` 点（ethers/board.json/resolv.conf 等）待改为按字节读 |
 | B5 | 差分模糊 | **uci 完成**：`tools/r24_uci_fuzz.py`（150 例/种子）找到 B4 的 panic 与字节替换，其余 144 例与 C 逐字节相同；fw4/rpcd/httpd/logd 的模糊待做 |
 | B6 | 资源 | daemon 在压测前后 fd 数、RSS 不增长；rpcd 会话过期、logd 环大小上限 |
 

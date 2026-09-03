@@ -245,3 +245,7 @@ ubusd 仍排最后，默认建议不做。
 根 `Makefile` + GitHub Actions）。Benchmark 见 `reports/.../BENCHMARK.md`：fw4 生成快 10 倍、httpd 快 18–80%、uci/rpcd/logd 持平，
 iwinfo 与 logread 全量略慢；顺带发现并修复 reload_config 的 10 ms 轮询（r3 上线）。后续 OpenWrt 升级的维护路径见
 `docs/RELEASE.md`（`make apk/image VERSION=…`，ImageBuilder 自定义镜像；刷写另需决策）。
+
+第四轮（2026-09-03，`reports/.../R24_ROUND4.md`）：差分模糊找出 uci-rs 非 UTF-8 字节替换与 panic（修为字节保真，uci r3）；
+apk 升级钩子会把设备切回 C 实现（修，rpcd r7 验证）；去掉 reload_config/rpcd 的子进程轮询与 netlink 每次 64 KiB 分配，
+reload_config 64.9 vs 77.6 ms 已快于原脚本，iwinfo 24 vs 19 ms；logread 差距证实为测量假象。设备：uci r3 / reload-config r4 / logd r3 / fw4 r3 / rpcd r7。
