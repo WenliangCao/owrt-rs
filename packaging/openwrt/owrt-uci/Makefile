@@ -71,8 +71,17 @@ define Package/owrt-uci/postinst
 #!/bin/sh
 set -eu
 [ -n "$${IPKG_INSTROOT:-}" ] || {
-	/usr/sbin/owrt-uci-switch disable
-	/etc/init.d/owrt-uci enable
+	# fresh install: stay inert. Upgrade with boot-enable on: keep the layer
+	# active and restart the service so the new binary runs (apk runs this
+	# hook as post-upgrade too; the old hook flipped the device back to C).
+	if /usr/sbin/owrt-uci-switch boot-enable status >/dev/null 2>&1; then
+		/etc/init.d/owrt-uci enable
+		/usr/sbin/owrt-uci-switch disable >/dev/null 2>&1 || true
+		/usr/sbin/owrt-uci-switch enable
+	else
+		/usr/sbin/owrt-uci-switch disable
+		/etc/init.d/owrt-uci enable
+	fi
 }
 endef
 
