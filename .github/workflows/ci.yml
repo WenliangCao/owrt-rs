@@ -1,0 +1,24 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: host deps (libcrypt for rpcd session tests, nft for fw4 tests)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables
+      - name: cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            components/*/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('components/*/Cargo.lock') }}
+      - run: make check-tools
+      - run: make test
