@@ -54,7 +54,7 @@
    }
   },
   {
-   "when": "2026-09-03T22:40+02:00",
+   "when": "2026-09-03T22:28+02:00",
    "decision": "0017",
    "packages": {
     "owrt-uci-0.1.0-r4.apk": "11a2e6e9d57e9f5fc1d18e9f08e9608cfa34db97348440e278cd03ec161f1cca",
@@ -74,8 +74,11 @@
      "httpd": 13486
     },
     "luci_http": 403,
-    "overlay_mib": "21.9 -> 23.1"
-   }
+    "overlay_mib": "21.9 -> 23.1",
+    "stability_s": 210,
+    "respawn": 0
+   },
+   "benchmark": "BENCHMARK.md#11 (private/bench/sbs_0017_*, httpd_0017b_*, swap_0017_*)"
   }
  ],
  "device_versions": {
@@ -88,7 +91,6 @@
   "switch": "0.1.0-r2"
  },
  "open": [
-  "A4 iwinfo +25% (htmodelist, noise)",
   "B4 byte reads for ethers/board.json/resolv.conf",
   "B5 fuzz fw4/rpcd/httpd/logd",
   "B2 clippy",

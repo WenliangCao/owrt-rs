@@ -375,8 +375,8 @@ procd/netifd 的写路径、无线栈、sysupgrade 继续保留 C（§10 不变�
 | A1 | rpcd `file exec` 每次多至 10 ms、`rc list` 每脚本多至 5 ms | `try_wait` + `sleep` 轮询（与 reload_config r1 同一类） | **完成**：`procwait`（阻塞等待 + 超时线程），rpcd r6 上线，`file exec /bin/true` 6.0 ms |
 | A2 | reload_config 96 vs 79 ms | 19 次 `md5sum` fork，C 脚本只 fork 一次 | **完成**：r4 上线，64.9 vs 77.6 ms，已快于原脚本 |
 | A3 | `logread` 全量 60 vs 26 ms，且与条数线性（约 50 µs/条） | 环缓冲 `list()` 或每条 frame 构造的 O(n) 开销；管道 64 KB vs C 的 socketpair | **完成（无差距）**：控制环内行数后（各 500 行，`logread -l 400` ×20）C 0.44 s、logd-rs 0.44 s 相同；沙箱 strace 帧长与客户端系统调用相同。原差距是环内行数不同的测量假象。socketpair + BlobBuf 复用（logd r3）保留 |
-| A4 | `iwinfo info` 28 vs 19 ms、`getWirelessDevices` 73 vs 49 ms；CPU 时间≈0，纯等待 | 每个 op 独立 netlink/固件往返，可能比 C 多发请求（重复 wiphy dump / survey） | **大部分完成**：逐 op 对照（`--iwinfo-bench` vs 同机 C 计时程序）显示请求数相同（42 次）；每次 recv 分配并清零 64 KiB 是主因，改为每线程复用后 24.0 / 60.0 ms（C 19.0 / 48.8）；剩余差距在 `htmodelist`/`noise` |
-| A5 | `uci export`（19 包）8.0 vs 5.9 ms、`show` 4.0 vs 3.5 ms | show 路径整包 clone；解析器每 token 分配 | **根因找到并修复（决策 0017）**：构建机上同源静态构建与 C 持平；差距来自 `opt-level z` + 动态链接。改 opt-level 3 + 静态后 uci r4 设备实测 `export` 5.5 vs 5.9、`show firewall` 2.7 vs 3.1、`get` 1.9 vs 2.6 ms，全部快于 C。六组件同改，待部署 |
+| A4 | `iwinfo info` 28 vs 19 ms、`getWirelessDevices` 73 vs 49 ms；CPU 时间≈0，纯等待 | 每个 op 独立 netlink/固件往返，可能比 C 多发请求（重复 wiphy dump / survey） | **大部分完成**：逐 op 对照（`--iwinfo-bench` vs 同机 C 计时程序）显示请求数相同（42 次）；每次 recv 分配并清零 64 KiB 是主因，改为每线程复用后 24.0 / 60.0 ms（C 19.0 / 48.8）；剩余差距在 `htmodelist`/`noise`。**决策 0017 后关闭**：rpcd r8 `iwinfo info` 16.8 vs C 18.4、`getWirelessDevices` 46.0 vs 50.2 ms |
+| A5 | `uci export`（19 包）8.0 vs 5.9 ms、`show` 4.0 vs 3.5 ms | show 路径整包 clone；解析器每 token 分配 | **根因找到并修复（决策 0017）**：构建机上同源静态构建与 C 持平；差距来自 `opt-level z` + 动态链接。改 opt-level 3 + 静态后 uci r4 设备实测 `export` 5.5 vs 5.9、`show firewall` 2.7 vs 3.1、`get` 1.9 vs 2.6 ms，全部快于 C。六组件同改并已上线（第三个窗口），全量重测见 BENCHMARK §11：uci 五项、fw4、reload_config、iwinfo、getWirelessDevices 全部快于原版 |
 
 **B. bug**
 

@@ -9,8 +9,8 @@
 - **fw4 规则生成快 10 倍**（205 → 19.5 ms）：原版是 ucode 解释器跑脚本，Rust 是原生二进制。这是唯一有"量级"差别的地方。
 - **httpd 全面更快**：静态 +18–24%，`/ubus` JSON-RPC +18%，TLS +80%（rustls vs mbedtls），CGI 持平（瓶颈在 LuCI 本身）。
 - **uci / rpcd 核心对象 / logd 写入：持平**。每次调用 3–5 ms，绝大部分是进程启动与 ubus 往返，两边一样。
-- **Rust 慢的地方**：rpcd 的 `iwinfo info`（28 vs 19 ms）与 `luci-rpc getWirelessDevices`（73 vs 49 ms），`logread` 全量输出
-  （60 vs 26 ms），`uci export` 全量（8.0 vs 5.9 ms）。都是毫秒级、非热路径，但是真实差距，记入待办。
+- **Rust 慢的地方（第三轮时）**：rpcd 的 `iwinfo info`（28 vs 19 ms）与 `luci-rpc getWirelessDevices`（73 vs 49 ms），`logread` 全量输出
+  （60 vs 26 ms），`uci export` 全量（8.0 vs 5.9 ms）。第四轮后全部消失：logread 是测量假象，其余由决策 0017（opt-level 3 + 静态）与 netlink 缓冲复用解决，见 §11。
 - **reload_config 一开始慢 5.4 倍**（404 vs 75 ms）——benchmark 找出的真 bug：子进程等待用 10 ms 轮询，38 个子进程各吃掉
   一个时钟片。已改为阻塞等待（提交 bfc0645，owrt-reload-config r3），修复后数据见 §3。
 - **体积**：Rust 二进制大一个量级（rpcd-rs 781 KB vs rpcd 62 KB + 6 插件 + libiwinfo ≈ 250 KB；httpd-rs 1.1 MB vs uhttpd 78 KB；
@@ -128,3 +128,49 @@ macOS 自带的 `ab` 对这台设备每请求卡 140 ms（客户端问题），�
 | `get network.lan.ipaddr` | 2.6 ms | 2.8 ms | **1.9 ms** |
 
 输出哈希与 C 相同。六个组件同一改法重建，等待部署窗口。
+
+## 11. 决策 0017 六件上线后的全量重测（2026-09-03 22:36–22:45，设备）
+
+一次性程序（`tools/bench_device_side_by_side.sh`，N=100，fw4 N=20，含进程启动）：
+
+| 用例 | 原版 | Rust（0017 前） | **Rust（0017 后）** |
+|---|---|---|---|
+| `uci export network` | 2.70 ms | 2.9 | **2.00** |
+| `uci export`（19 包） | 6.00 ms | 7.2 | **5.30** |
+| `uci show firewall` | 3.10 ms | 4.0 | **2.70** |
+| `uci get network.lan.ipaddr` | 2.60 ms | 2.8 | **1.80** |
+| `uci set` + `commit`（scratch 副本） | 5.20 ms | — | **3.90** |
+| `fw4 print` | 203 ms | 19.5 | **17.0** |
+| `fw4 check` | 261 ms | — | **72** |
+| `reload_config` 无变更 | 55.7 ms | 64.9 | **36.2** |
+
+httpd（`tools/bench_httpd.sh`，400 请求 ×4 并发，同参数 uhttpd 镜像在 8080/8443；两次运行取第二次）：
+
+| 用例 | uhttpd req/s | httpd-rs r2 req/s | uhttpd p50 | httpd-rs p50 |
+|---|---|---|---|---|
+| 静态 44 KB CSS | 1436 | 1384 | 2.62 ms | 2.64 ms |
+| 静态 `/` | 3390 | 4364 | 1.11 ms | 0.85 ms |
+| CGI LuCI 登录页 | 30.4 | 31.8 | 131.8 ms | 125.8 ms |
+| `/ubus` JSON-RPC | 1005 | 1153 | 3.91 ms | 3.35 ms |
+| TLS 静态 CSS | 531 | 1005 | 7.04 ms | 3.42 ms |
+
+大 CSS 一项两边持平（两次运行 1312/1384 vs 1519/1436，第三轮记的 +18% 里 C 那次偏低）；其余不变或更快。
+
+rpcd（`tools/bench_swap_windows.sh`，N=50，同一会话内切到 C rpcd 再切回）：
+
+| ubus 调用 | C rpcd | rpcd-rs r7（0017 前） | **rpcd-rs r8** |
+|---|---|---|---|
+| `session list` | 4.0 ms | — | 3.8 |
+| `uci get network` | 4.2 | — | 4.4 |
+| `file stat` / `read board.json` | 3.8 / 3.8 | — | 3.8 / 4.0 |
+| `luci getFeatures`（fork opkg/apk 探测） | 227.8 | — | **202.6** |
+| `luci-rpc getNetworkDevices` | 12.2 | — | 12.4 |
+| `luci-rpc getDHCPLeases` | 4.6 | — | 5.0 |
+| `luci-rpc getWirelessDevices` | 50.2 | 60.0 | **46.0** |
+| `iwinfo info phy0-ap0` | 18.4 | 24.0 | **16.8** |
+| `iwinfo assoclist` | 6.4 | — | **5.8** |
+| `rc list`（3 次，跑全部 init 脚本） | 1137 | — | 1253 |
+| RSS | 2016 kB | — | 1224 kB |
+
+A4（iwinfo）随 0017 一并关闭：剩余的 +25% 也是 opt-level z 的代价。logd 窗口里 `logread` 全量 54 vs 26.5 ms 又是环内行数不同
+（rs 环里多了部署与 500 条 logger 消息），§8 的等行数对照仍然成立；`ubus call log read` 5.0 vs 5.4 ms，RSS 568 vs 952 kB。

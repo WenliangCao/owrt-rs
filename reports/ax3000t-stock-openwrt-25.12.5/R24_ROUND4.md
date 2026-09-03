@@ -33,7 +33,7 @@
 | `fw4 print` | 205 ms | 19.5 ms | 不变 |
 | httpd 静态/JSON-RPC/TLS | — | +18% / +18% / +80% | 不变 |
 
-仍慢于原版：iwinfo（约 +25%，剩余在 `htmodelist` 2 次请求 vs 1 次、`noise`）、uci 解析/导出（r3 重测：`export` 全量 8.0 vs 5.9、`show firewall` 4.6 vs 3.2 ms；进程启动相同，见 BENCHMARK §9）。
+决策 0017（opt-level 3 + 静态链接）上线后没有慢于原版的用例了（BENCHMARK §11）：uci 五项快 12–31%，`reload_config` 36 vs 56 ms，`iwinfo info` 16.8 vs 18.4，`getWirelessDevices` 46 vs 50，httpd 大 CSS 持平、其余快 15–89%。
 
 ## 4. 工具新增
 
@@ -42,11 +42,11 @@ netlink 请求计数）、`private/bench/iwbench.c`（同机 C libiwinfo 逐 op 
 
 ## 5. 未完成 / 待办
 
-- A5：**已解决（决策 0017）**——差距是 `opt-level z` + 动态链接造成的，不是解析器；opt-level 3 + 静态的 uci r4 在设备上全面快于 C（BENCHMARK §10）。六组件同改（uci r4、fw4 r4、reload-config r5、logd r4、httpd r2、rpcd r8），待部署窗口。
+- A5、A4：**已解决并上线（决策 0017）**——差距是 `opt-level z` + 动态链接造成的，不是解析器/netlink；六组件重建后全量重测见 BENCHMARK §11。
 - B4 余项：rpcd 里 `read_to_string` 读 `/etc/ethers`、`/etc/board.json`、`/etc/resolv.conf` 等的地方遇到非 UTF-8 会整文件放弃（C 逐行按字节），改为按字节读。
 - B5 余项：fw4（变异防火墙配置 → `print` 差分）、rpcd（随机参数）、httpd（畸形请求）、logd（畸形报文）的模糊。
 - B2：clippy 清零。
-- 设备当前版本：uci r3、reload-config r4、logd r3、httpd 0.1.1-r1、fw4 r3、rpcd r7；发布镜像需按 `docs/RELEASE.md` 重新生成。
+- 设备当前版本：uci r4、reload-config r5、logd r4、httpd 0.1.1-r2、fw4 r4、rpcd r8（全部静态、opt-level 3，reload-config 为 s）；发布镜像需按 `docs/RELEASE.md` 重新生成。
 
 ## 6. 部署记录（第二个窗口，2026-09-03 22:04，用户授权"三件部署 + logd 短测"）
 
@@ -61,7 +61,7 @@ netlink 请求计数）、`private/bench/iwbench.c`（同机 C libiwinfo 逐 op 
 
 设备当前：uci 0.1.0-r3、reload-config 0.2.0-r4、logd 0.1.0-r3、httpd 0.1.1-r1、fw4 0.1.0-r3、rpcd 0.1.0-r7、switch 0.1.0-r2。
 
-## 7. 部署记录（第三个窗口，2026-09-03 22:4x，用户授权"六件部署 + benchmark"，决策 0017）
+## 7. 部署记录（第三个窗口，2026-09-03 22:28–22:33，用户授权"六件部署 + benchmark"，决策 0017）
 
 六个包按 uci → fw4 → reload-config → logd → httpd → rpcd 顺序 `apk add`，每个升完即查，全部通过：
 

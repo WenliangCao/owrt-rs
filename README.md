@@ -248,4 +248,5 @@ iwinfo 与 logread 全量略慢；顺带发现并修复 reload_config 的 10 ms 
 
 第四轮（2026-09-03，`reports/.../R24_ROUND4.md`）：差分模糊找出 uci-rs 非 UTF-8 字节替换与 panic（修为字节保真，uci r3）；
 apk 升级钩子会把设备切回 C 实现（修，rpcd r7 验证）；去掉 reload_config/rpcd 的子进程轮询与 netlink 每次 64 KiB 分配，
-reload_config 64.9 vs 77.6 ms 已快于原脚本，iwinfo 24 vs 19 ms；logread 差距证实为测量假象。设备：uci r3 / reload-config r4 / logd r3 / fw4 r3 / rpcd r7。
+reload_config 64.9 vs 77.6 ms 已快于原脚本，iwinfo 24 vs 19 ms；logread 差距证实为测量假象。最后剩下的 uci/iwinfo 差距是构建配置（`opt-level z` + 动态链接，决策 0017）：改 opt-level 3 + 静态后
+六件重建上线，全量重测没有慢于原版的用例（`BENCHMARK.md` §11）。设备：uci r4 / reload-config r5 / logd r4 / httpd r2 / fw4 r4 / rpcd r8。
