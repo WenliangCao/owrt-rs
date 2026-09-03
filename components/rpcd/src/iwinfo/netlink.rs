@@ -359,8 +359,19 @@ pub fn nl80211_close() {
 /// `expect_seq` None disables the sequence check (nl80211_wait_seq_check).
 /// Returns libnl's nl_recvmsgs() result, which the callers ignore.
 pub fn recvmsgs(st: &Nls, expect_seq: Option<u32>, err: &mut i32, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
-    let mut buf = vec![0u8; 65536];
-    // SAFETY: recv into an owned buffer of the stated length.
+    thread_local! {
+        // One receive buffer per thread, allocated once: a fresh zeroed 64 KiB
+        // vector per recv() cost measurably on the router (two recvs per request).
+        static RECV_BUF: std::cell::RefCell<Vec<u8>> = std::cell::RefCell::new(vec![0u8; 65536]);
+    }
+    RECV_BUF.with(|cell| {
+        let mut buf = cell.borrow_mut();
+        recvmsgs_into(&mut buf, st, expect_seq, err, cb)
+    })
+}
+
+fn recvmsgs_into(buf: &mut [u8], st: &Nls, expect_seq: Option<u32>, err: &mut i32, cb: &mut dyn FnMut(&Nlmsg)) -> i32 {
+    // SAFETY: recv into a live buffer of the stated length.
     let n = unsafe { sys::recv(st.fd, buf.as_mut_ptr(), buf.len(), 0) };
     if n < 0 {
         return -sys::errno();
