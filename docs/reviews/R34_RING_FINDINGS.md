@@ -50,7 +50,7 @@ off 0x1612: CI   ...\x02\x01\x00\x01\x01/home/runner/.cargo/registry/s
 ring 的 C/汇编由 SDK 的 gcc 编译，**没有拿到任何 `-ffile-prefix-map` / `-fdebug-prefix-map`**，
 于是把真实路径写进 DWARF。这正是指导 §3.A 列的候选，现在是证据而不是猜测。
 
-## 5. 但路径不是唯一原因——所以本轮不改
+## 5. （已被 R35/E0 更正，见 R35_RING_E0_RESULTS.md）原措辞：路径不是唯一原因
 
 三条反证，说明"加个 `-ffile-prefix-map` 就完事"还不能承诺：
 

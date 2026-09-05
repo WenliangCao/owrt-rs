@@ -40,7 +40,14 @@ build)
 	SDK=$(sdk_dir); SDK=${SDK%/}
 	[ -n "$SDK" ] || { echo "no SDK in $WORK; run fetch first" >&2; exit 1; }
 	OUT=$WORK/diag
-	rm -rf "$OUT" /tmp/owrt-build/owrt-httpd
+	# Never destroy a previous baseline in place: archive it first. A0/A1 use
+	# the same physical build path on purpose, so only the archive name varies.
+	if [ -d "$OUT" ]; then
+		keep=$WORK/diag-$(date -u +%Y%m%dT%H%M%SZ)
+		mv "$OUT" "$keep"
+		echo "previous diag archived to $keep"
+	fi
+	rm -rf /tmp/owrt-build/owrt-httpd
 	mkdir -p "$OUT" /tmp/owrt-build
 
 	# Same host-independent source path the packaging recipe uses.
@@ -80,32 +87,71 @@ build)
 
 	rel=$OUT/target/$RUST_TARGET/release
 	mkdir -p "$OUT/collect"
-	cp "$rel/httpd-rs" "$OUT/collect/httpd-rs.unstripped"
-	# ring's OUT_DIR: the .a, its objects, generated headers, build-script output
-	ringout=$(ls -d "$rel"/build/ring-*/out 2>/dev/null | head -1 || true)
-	if [ -n "$ringout" ]; then
-		mkdir -p "$OUT/collect/ring-out"
-		cp -a "$ringout"/. "$OUT/collect/ring-out/" 2>/dev/null || true
-		bs=$(dirname "$ringout")/../output
-		[ -f "$bs" ] && cp "$bs" "$OUT/collect/ring-build-script-output" || true
-	fi
+	# The release profile already strips this; name it for what it is.
+	cp "$rel/httpd-rs" "$OUT/collect/httpd-rs.release"
+	"$tc/$(basename "$CC" -gcc)-readelf" -W -S "$rel/httpd-rs" > "$OUT/collect/httpd-rs.sections.txt" 2>/dev/null ||
+		"${CC%-gcc}-readelf" -W -S "$rel/httpd-rs" > "$OUT/collect/httpd-rs.sections.txt" 2>/dev/null || true
+
+	# Every ring build dir, labelled by its hash -- there can be a host
+	# build-script dir and a target one, and taking the first hides that.
+	found_out=0
+	for d in "$rel"/build/ring-*/; do
+		[ -d "$d" ] || continue
+		tag=$(basename "$d")
+		if [ -d "$d/out" ]; then
+			mkdir -p "$OUT/collect/$tag-out"
+			cp -a "$d/out"/. "$OUT/collect/$tag-out/"
+			found_out=1
+		fi
+		# build-script stdout lives beside out/, not a level above it
+		for f in output root-output stderr invoked.timestamp; do
+			[ -f "$d/$f" ] && cp "$d/$f" "$OUT/collect/$tag-$f"
+		done
+	done
+	[ "$found_out" = 1 ] || { echo "no ring OUT_DIR found under $rel/build -- evidence missing, refusing to report" >&2; exit 1; }
+	ls -d "$rel"/build/ring-*/ | sed "s#$rel/build/##" > "$OUT/collect/ring-build-dirs.txt"
 	for f in "$rel"/deps/*.rlib; do [ -f "$f" ] && cp "$f" "$OUT/collect/"; done
 
 	# identities of the tools that actually ran
 	{
 		echo "pin=$PIN"
 		echo "cargo=$(sh -c "$CARGO -V")"
-		echo "rustc=$(sh -c "$CARGO rustc -V" 2>/dev/null || env RUSTUP_TOOLCHAIN=$PIN rustc -vV | tr '\n' ';')"
+		# The compiler Cargo actually invoked, taken from the -vv log rather
+		# than from PATH, then asked for its own identity.
+		real_rustc=$(grep -oE "[^ ']*/bin/rustc" "$OUT/cargo-vv.log" | sort -u | head -1)
+		echo "rustc_path=${real_rustc:-<not found in log>}"
+		[ -n "$real_rustc" ] && echo "rustc=$("$real_rustc" -vV | tr '\n' ';')"
+		echo "rustc_paths_seen=$(grep -oE "[^ ']*/bin/rustc" "$OUT/cargo-vv.log" | sort -u | wc -l)"
 		echo "cc=$CC"; "$CC" --version | head -1
+		echo "cc_sha256=$(sha256sum "$(command -v "$CC")" | cut -d" " -f1)"
 		echo "ar=$AR"; "$AR" --version | head -1
+		echo "ar_sha256=$(sha256sum "$(command -v "$AR")" | cut -d" " -f1)"
+		# The build host runs the x86_64 SDK under emulation; record how.
+		echo "cc_file=$(file -b "$(command -v "$CC")" | cut -c1-80)"
+		echo "qemu=$(qemu-x86_64 -version 2>/dev/null | head -1 || echo native)"
 		echo "fuse_ld=${LD:-<default>}"
 		echo "sdk=$(basename "$SDK")"
 		echo "host_uname=$(uname -m)"
 		echo "src=$src"
+		echo "git_rev=$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo unknown)"
+		echo "git_dirty=$(git -C "$REPO" status --porcelain 2>/dev/null | wc -l)"
+		echo "lock_sha256=$(sha256sum "$src/httpd/Cargo.lock" | cut -d" " -f1)"
+		echo "sdk_dir=$(basename "$SDK")"
+		# compiler-override variables, named individually (never a full dump)
+		for v in RUSTC CARGO_BUILD_RUSTC RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER \
+		         CARGO_BUILD_RUSTC_WRAPPER CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER \
+		         CFLAGS CPPFLAGS ARFLAGS SOURCE_DATE_EPOCH; do
+			eval "val=\${$v:-}"
+			echo "$v=${val:-<unset>}"
+		done
 		echo "cargo_home=$CARGO_HOME_DIR"
 		echo "umask=$(umask)"; echo "TZ=${TZ:-unset}"; echo "LC_ALL=${LC_ALL:-unset}"
 		echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-unset}"
 	} > "$OUT/collect/tools.txt"
+
+	# the actual C/assembler invocations, so a flag can be shown to have landed
+	grep -oE "\"?[^ \"']*-openwrt-linux-musl-(gcc|ar)\"?[^\n]*" "$OUT/cargo-vv.log" \
+		> "$OUT/collect/cc-commands.txt" 2>/dev/null || echo "<none captured>" > "$OUT/collect/cc-commands.txt"
 
 	( cd "$OUT/collect" && find . -type f | sort | xargs sha256sum ) > "$OUT/collect-sha256.txt"
 	echo "collected into $OUT"
