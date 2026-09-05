@@ -12,6 +12,7 @@ mod tls;
 use bridge::Bridge;
 use http::{Method, ParseOutcome, Request, Response};
 use std::io::{self, BufReader, Read, Write};
+use std::cell::RefCell;
 use std::os::fd::{AsRawFd, RawFd};
 use std::net::{IpAddr, SocketAddr, TcpListener};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -231,6 +232,33 @@ struct Conn {
 trait Stream: Read + Write + Send {}
 impl<T: Read + Write + Send> Stream for T {}
 
+type Client = BufReader<Box<dyn Stream>>;
+
+/// Write half of the client, shared with `http::BodyReader`. One stream carries
+/// both directions and a CGI relay alternates between them, so the borrow is
+/// taken per operation and never held across one.
+struct SharedWriter<'a>(&'a RefCell<Client>);
+
+impl Write for SharedWriter<'_> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        borrow(self.0)?.get_mut().write(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        borrow(self.0)?.get_mut().flush()
+    }
+}
+
+/// A failed borrow would mean read and write nested, which is a bug here. Turn
+/// it into an I/O error rather than panicking a connection thread.
+fn borrow(cell: &RefCell<Client>) -> io::Result<std::cell::RefMut<'_, Client>> {
+    cell.try_borrow_mut().map_err(|_| io::Error::other("client stream already borrowed"))
+}
+
+/// Most a keep-alive connection will discard from an unwanted body before
+/// closing instead.
+const MAX_DRAIN: usize = 64 * 1024;
+
 struct Server {
     config: Config,
     bridge: Bridge,
@@ -240,46 +268,36 @@ struct Server {
 
 impl Server {
     fn serve(&self, stream: Box<dyn Stream>, conn: Conn) {
-        let mut reader = BufReader::new(stream);
+        let client = RefCell::new(BufReader::new(stream));
         loop {
-            let request = match http::read_request(&mut reader, self.config.http_keepalive > 0) {
+            // Bind the outcome first: a `borrow_mut()` in the scrutinee stays
+            // alive for the whole match, and the reject arm needs the stream.
+            let outcome = http::read_request(&mut *client.borrow_mut(), self.config.http_keepalive > 0);
+            let request = match outcome {
                 Ok(ParseOutcome::Request(r)) => r,
                 Ok(ParseOutcome::Eof) | Err(_) => return,
                 Ok(ParseOutcome::Bad { code, summary, version, body }) => {
-                    self.reject(reader.get_mut(), code, summary, version, body);
+                    let mut w = SharedWriter(&client);
+                    self.reject(&mut w, code, summary, version, body);
                     return;
                 }
             };
-            if request.expect_continue {
-                let _ = reader.get_mut().write_all(b"HTTP/1.1 100 Continue\r\n\r\n");
+            if request.expect_continue && client.borrow_mut().get_mut().write_all(b"HTTP/1.1 100 Continue\r\n\r\n").is_err() {
+                return;
             }
-            let body_needed = request.content_length.unwrap_or(0) > 0 || request.transfer_chunked;
-            let body = if body_needed {
-                match http::read_body(&mut reader, &request, 4 * 1024 * 1024) {
-                    Ok(Some(b)) => Some(b),
-                    Err(e) if e.kind() == io::ErrorKind::InvalidData => {
-                        // DEVIATION: uhttpd feeds a malformed chunk size line to the
-                        // handler as body; answering 400 and closing is the safe reading
-                        self.reject(reader.get_mut(), 400, "Bad Request", request.version, false);
-                        return;
-                    }
-                    _ => return,
-                }
-            } else {
-                None
-            };
+            // The body is decoded on demand: CGI streams it straight to the
+            // script's stdin, so an upload never has to fit in memory first.
+            let mut body = http::BodyReader::new(&client, &request);
             // uhttpd streams every response through the client ustream. Keep
             // one 16 KiB window instead of collecting the whole body first, so
             // a large file or a slow CGI cannot grow RSS by its own size and
             // the first byte reaches the client while the handler still runs.
             let close;
             {
-                let mut out = io::BufWriter::with_capacity(16 * 1024, reader.get_mut());
+                let mut out = io::BufWriter::with_capacity(16 * 1024, SharedWriter(&client));
                 {
                     let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
-                    if let Err(_e) =
-                        self.dispatch(&request, body.as_deref(), &mut resp, conn)
-                    {
+                    if self.dispatch(&request, &mut body, &mut resp, conn).is_err() {
                         return;
                     }
                     close = resp.connection_close();
@@ -288,7 +306,12 @@ impl Server {
                     return;
                 }
             }
-            if close || self.config.http_keepalive == 0 {
+            // A handler that ignored the body leaves the connection out of sync
+            // unless the rest is drained; give up on anything larger.
+            if close
+                || self.config.http_keepalive == 0
+                || (!body.reusable() && !body.drain(MAX_DRAIN))
+            {
                 return;
             }
         }
@@ -317,7 +340,7 @@ impl Server {
     fn dispatch<W: Write>(
         &self,
         request: &Request,
-        body: Option<&[u8]>,
+        body: &mut http::BodyReader<'_, Client>,
         resp: &mut Response<W>,
         conn: Conn,
     ) -> io::Result<()> {
@@ -332,13 +355,24 @@ impl Server {
                 Some("Rejected request from RFC1918 IP to public server address"),
             );
         }
-        if body.is_some() && request.method != Method::Post {
-            // uhttpd drains bodies for any method; we only forward them to POST handlers
-        }
         let path = request.url.split('?').next().unwrap_or("");
         if let Some(prefix) = &self.config.ubus_prefix {
             if path == prefix || path.starts_with(&format!("{prefix}/")) {
-                let result = bridge::handle(&self.bridge, prefix, request, body, resp);
+                // UH_UBUS_MAX_POST_SIZE: /ubus keeps its own small cap and its
+                // own error, rather than inheriting whatever CGI allows.
+                let collected = match body.read_all(bridge::MAX_POST) {
+                    Ok(Some(b)) => b,
+                    Ok(None) => {
+                        resp.force_close();
+                        return resp.error(413, "Payload Too Large", Some("Message too big"));
+                    }
+                    Err(_) => {
+                        resp.force_close();
+                        return resp.error(400, "Bad Request", Some("Malformed request body"));
+                    }
+                };
+                let slice = if body.present() { Some(collected.as_slice()) } else { None };
+                let result = bridge::handle(&self.bridge, prefix, request, slice, resp);
                 self.flush_inventory();
                 return result;
             }
@@ -380,7 +414,7 @@ impl Server {
                         network_timeout: self.config.network_timeout,
                         client_fd: conn.fd,
                     };
-                    return cgi::run(&ctx, request, body.unwrap_or(&[]), resp, &pi);
+                    return cgi::run(&ctx, request, body, resp, &pi);
                 }
                 files::serve(request, resp, &pi, self.config.no_dirlists)
             }

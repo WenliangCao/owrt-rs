@@ -82,10 +82,10 @@ pub fn is_executable(pi: &PathInfo) -> bool {
     pi.meta.is_file() && pi.meta.permissions().mode() & 0o001 != 0
 }
 
-pub fn run<W: Write>(
+pub fn run<W: Write, R: io::BufRead>(
     ctx: &CgiContext,
     request: &Request,
-    body: &[u8],
+    body: &mut crate::http::BodyReader<'_, R>,
     resp: &mut Response<W>,
     pi: &PathInfo,
 ) -> io::Result<()> {
@@ -136,7 +136,13 @@ pub fn run<W: Write>(
         .map(|s| File::from(OwnedFd::from(s)))
         .ok_or_else(|| io::Error::other("no stdout"))?;
     let deadline = Instant::now() + Duration::from_secs(ctx.script_timeout.max(1));
-    let mut sent = 0usize;
+    // One small staging window between the client and the script: the body is
+    // pulled only when the script's stdin has room, so an upload of any size
+    // costs this buffer, and a script that stops reading back-pressures the
+    // client instead of being buffered in our memory.
+    let mut stage = [0u8; 4096];
+    let mut staged = 0usize;
+    let mut stage_pos = 0usize;
     let mut status_code = 200u16;
     let mut status_text = String::from("OK");
     let mut headers: Vec<(String, String)> = Vec::new();
@@ -189,14 +195,19 @@ pub fn run<W: Write>(
         // write cannot block. A script that never reads gets EPIPE and we
         // simply close stdin, as uhttpd's relay does.
         if count == 2 && fds[1].revents != 0 {
-            let end = body.len().min(sent + 4096);
-            match stdin.as_mut().expect("polled").write(&body[sent..end]) {
-                Ok(0) | Err(_) => stdin = None,
-                Ok(n) => {
-                    sent += n;
-                    if sent == body.len() {
-                        stdin = None;
-                    }
+            if stage_pos == staged {
+                stage_pos = 0;
+                // a truncated or malformed body ends the upload as EOF; the
+                // script decides what to do with what it got
+                staged = body.read(&mut stage).unwrap_or(0);
+            }
+            if staged == 0 {
+                // whole body delivered: closing stdin is the script's EOF
+                stdin = None;
+            } else {
+                match stdin.as_mut().expect("polled").write(&stage[stage_pos..staged]) {
+                    Ok(0) | Err(_) => stdin = None,
+                    Ok(n) => stage_pos += n,
                 }
             }
         }
@@ -335,6 +346,12 @@ mod tests {
         (dir, pi)
     }
 
+    type TestSource = std::cell::RefCell<io::BufReader<io::Cursor<Vec<u8>>>>;
+
+    fn empty_source() -> TestSource {
+        std::cell::RefCell::new(io::BufReader::new(io::Cursor::new(Vec::new())))
+    }
+
     fn get_request() -> Request {
         Request {
             method: Method::Get,
@@ -364,10 +381,11 @@ mod tests {
             client_fd: -1,
         };
         let mut out: Vec<u8> = Vec::new();
+        let src = empty_source();
         let started = Instant::now();
         {
             let mut resp = Response::new(&mut out, &request, 0);
-            run(&ctx, &request, b"", &mut resp, &pi).unwrap();
+            run(&ctx, &request, &mut crate::http::BodyReader::new(&src, &request), &mut resp, &pi).unwrap();
         }
         let elapsed = started.elapsed().as_millis();
         let _ = fs::remove_dir_all(&dir);
@@ -442,10 +460,11 @@ mod tests {
             network_timeout: 30,
             client_fd: fd,
         };
+        let src = empty_source();
         let started = Instant::now();
         {
             let mut resp = Response::new(&mut sock, &request, 0);
-            let _ = run(&ctx, &request, b"", &mut resp, &pi);
+            let _ = run(&ctx, &request, &mut crate::http::BodyReader::new(&src, &request), &mut resp, &pi);
         }
         let ms = started.elapsed().as_millis();
         let _ = fs::remove_dir_all(&dir);

@@ -169,3 +169,61 @@ overflow 在循环内即刻 `break`：另一条管道可能永远不到 EOF（�
 - **工具链统一到 1.98.1**，按 RUST_1_98_1_UPGRADE.md 单独提交。
 - 需要更正的旧表述已在本节改写：R30 报告里"deadline 覆盖整个请求"和"脚本不读 stdin 会 EPIPE"（不读但持有读端只反压，
   关闭读端才 EPIPE）两处不准确。
+
+---
+
+# 执行记录 E — 请求体流式上传 — 2026-09-05
+
+4 MiB 上限已移除，改为按端点分流 + 增量解码。仅 host 验证：`make test` **77/77**，httpd clippy **0 告警**，
+新增 `tests/review/httpd_upload_probe.py` 全部通过。未做设备验证、精确 rootfs 对照，也没有执行任何真实 sysupgrade。
+
+## 验收矩阵结果（`tests/review/httpd_upload_probe.py`）
+
+| 用例 | 结果 |
+| --- | --- |
+| Content-Length 0 / 1 KiB / 4 MiB−1 / **4 MiB+1** / **5 MiB** / **32 MiB** | 全部 200，CGI 收到的字节数与 sha256 完全一致 |
+| chunked 6 MiB | ok |
+| `Expect: 100-continue` + 6 MiB | ok |
+| `/ubus` 65536 字节（正好到上限） | 正常处理，不是 413 |
+| `/ubus` 65537 字节（超一字节） | **413**，不再静默断连 |
+| keep-alive 上连续两个 POST | 各自 sha256 正确，不串包 |
+| 畸形请求（冲突 framing / 垃圾请求行） | 各自拿到 **400** |
+| httpd RSS（跑完整个矩阵，含 32 MiB） | idle 2592 → peak 3392 KiB，**delta 800 KiB** |
+
+修复前：5 MiB → connection reset，25 MiB → broken pipe，客户端拿不到任何状态码。
+
+TLS 单独验证（自签 DER 证书，`-s`）：静态 5000 B 字节一致；**8 MiB 上传** sha256 一致，200 OK；server RSS 4304 KiB。
+即 TLS 路径同样不再随上传大小占用内存。
+
+## 怎么改的
+
+**`http::BodyReader`**（新）：增量解码 Content-Length 与 chunked，一次只交出调用方缓冲区那么多字节。
+chunk size / trailer 行有 4096 字节上限；chunk 长度用 `u64` 计数，**从不按 size 预分配**，所以上一轮的 `checked_add`
+保护变成结构性的——没有可以溢出的分配点。畸形终止符、截断 body、超长 size 行都是 `InvalidData`，
+并把 `bad` 置位使连接不可复用。旧的 `read_body()` 整体删除（已被完全取代），其覆盖迁移到新测试。
+
+**分端点策略**（R31 §E.2）：路由先于读 body。
+- CGI：`&mut BodyReader` 直接传进 `cgi::run`，边写 stdin 边拉取；
+- `/ubus`：保留自己的 `MAX_POST = 65536`（= `UH_UBUS_MAX_POST_SIZE`），超限回 **413** 并关连接，不再继承 CGI 的策略；
+- 其他路由：handler 不消费时，keep-alive 前最多 drain 64 KiB，超出就关连接，绝不带着未消费 body 去解析下一个请求。
+
+**CGI stdin 供给**：4 KiB staging window。只在 stdin POLLOUT 时才向 `BodyReader` 拉取，
+所以脚本停止读取会自然反压到客户端，而不是在我们内存里堆积。body 读完即关闭 stdin（脚本看到 EOF）。
+
+**读写共用一条流**：response 与 body 是同一个 socket/TLS 流，改用 `RefCell<BufReader<Box<dyn Stream>>>`，
+写侧是 `SharedWriter`。每次借用只覆盖一次读或一次写，从不跨越；借用失败转成 io error 而不是 panic 掉连接线程。
+
+## 过程中自己引入又修掉的一个回归
+
+改完 `serve()` 后，畸形请求返回**空响应**：`match http::read_request(&mut *client.borrow_mut(), ..)` 里，
+scrutinee 的 `RefMut` 存活到整个 `match` 结束，于是 reject 分支借不到流。先把结果 bind 成变量再 match 即可。
+已加进 upload probe 作为回归项（冲突 framing / 垃圾请求行都必须拿到 400）。
+
+## 明确的限制（未做，不宣称）
+
+- **socket 是阻塞的**：一个在读完 stdin 之前就输出超过 socket 缓冲区的 CGI，遇上"先上传完再读响应"的客户端，
+  会互相等待到 `-T` 超时，而不是死锁不返回。uhttpd 是全非阻塞事件循环，不存在这个窗口。
+  真实上传 handler（`cgi-upload` 先读完 stdin 再回小 JSON）不触发。**这是已知差异，不是已解决**。
+- `bad chunk size` 这类 body 层错误现在发生在路由之后：不存在的路径会先返回 404 再暴露 framing 问题（连接仍会关闭）。
+- 未做：LuCI `flash.js` → 上传 API → handler 的合同逐条核对；精确 rootfs 中与原 uhttpd 的行为对照；设备端真实镜像上传。
+  这三项都需要设备/镜像环境，本轮授权范围之外。

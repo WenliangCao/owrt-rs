@@ -1,6 +1,7 @@
 //! HTTP/1.x request parsing and response writing with uhttpd's exact header
 //! conventions (status line, Connection/Keep-Alive, chunked encoding, Date).
 
+use std::cell::RefCell;
 use std::io::{self, BufRead, Write};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -257,63 +258,166 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
     Ok(ParseOutcome::Request(request))
 }
 
-/// Read the request body (Content-Length or chunked) fully, bounded by `limit`.
-pub fn read_body<R: BufRead>(
-    reader: &mut R,
-    request: &Request,
-    limit: usize,
-) -> io::Result<Option<Vec<u8>>> {
-    if request.transfer_chunked {
-        let mut body = Vec::new();
-        let mut line = String::new();
-        loop {
-            match read_head_line(reader, &mut line, 4096)? {
-                HeadLine::Line => {}
-                HeadLine::Eof | HeadLine::TooLong => {
-                    return Err(io::Error::new(io::ErrorKind::InvalidData, "chunk line too long or truncated"))
-                }
-            }
-            let size_text = line.trim().split(';').next().unwrap_or("");
-            let size = usize::from_str_radix(size_text, 16)
-                .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad chunk size"))?;
-            if size == 0 {
-                // trailer + final CRLF
-                loop {
-                    match read_head_line(reader, &mut line, 4096)? {
-                        HeadLine::Line if line == "\r\n" || line == "\n" => break,
-                        HeadLine::Line => {}
-                        HeadLine::Eof | HeadLine::TooLong => {
-                            return Err(io::Error::new(io::ErrorKind::InvalidData, "chunk trailer too long or truncated"))
-                        }
-                    }
-                }
-                return Ok(Some(body));
-            }
-            match body.len().checked_add(size) {
-                Some(total) if total <= limit => {}
-                _ => return Ok(None),
-            }
-            let mut chunk = vec![0u8; size];
-            reader.read_exact(&mut chunk)?;
-            body.extend_from_slice(&chunk);
-            match read_head_line(reader, &mut line, 4096)? {
-                HeadLine::Line if line == "\r\n" || line == "\n" => {}
-                HeadLine::Line | HeadLine::Eof | HeadLine::TooLong => {
-                    return Err(io::Error::new(io::ErrorKind::InvalidData, "missing chunk terminator"))
-                }
-            }
-        }
-    }
-    let length = request.content_length.unwrap_or(0);
-    if length > limit {
-        return Ok(None);
-    }
-    let mut body = vec![0u8; length];
-    reader.read_exact(&mut body)?;
-    Ok(Some(body))
+/// Incremental request-body decoder: Content-Length or chunked, pulled in
+/// bounded steps so a large upload never has to sit in memory.
+///
+/// It borrows the client through a `RefCell` because the same stream carries
+/// the response: the CGI relay alternates between pulling body bytes and
+/// pushing relayed output, and each borrow lasts only for one read.
+pub struct BodyReader<'a, R: BufRead> {
+    src: &'a RefCell<R>,
+    framing: Framing,
+    /// Bytes still owed by the current chunk (chunked framing only).
+    chunk_left: u64,
+    done: bool,
+    /// Set when framing turned out to be malformed; the connection cannot be
+    /// reused because we no longer know where the next request starts.
+    bad: bool,
 }
 
-/// Response writer following uhttpd's framing rules.
+enum Framing {
+    None,
+    Length(u64),
+    Chunked,
+}
+
+/// Cap on a chunk size line or a trailer line.
+const CHUNK_LINE_MAX: usize = 4096;
+
+impl<'a, R: BufRead> BodyReader<'a, R> {
+    pub fn new(src: &'a RefCell<R>, request: &Request) -> Self {
+        let framing = if request.transfer_chunked {
+            Framing::Chunked
+        } else {
+            match request.content_length.unwrap_or(0) {
+                0 => Framing::None,
+                n => Framing::Length(n as u64),
+            }
+        };
+        let done = matches!(framing, Framing::None);
+        BodyReader { src, framing, chunk_left: 0, done, bad: false }
+    }
+
+    /// Whether the request carries a body at all.
+    pub fn present(&self) -> bool {
+        !matches!(self.framing, Framing::None)
+    }
+
+    /// Body fully read and framing intact, i.e. the connection may be reused.
+    pub fn reusable(&self) -> bool {
+        self.done && !self.bad
+    }
+
+    /// Next slice of decoded body, or `Ok(0)` at the end. Never blocks longer
+    /// than the socket's own read timeout.
+    pub fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        if self.done || buf.is_empty() {
+            return Ok(0);
+        }
+        match self.framing {
+            Framing::None => Ok(0),
+            Framing::Length(left) => {
+                let want = buf.len().min(left as usize);
+                let mut src = self.src.borrow_mut();
+                let n = src.read(&mut buf[..want])?;
+                if n == 0 {
+                    self.bad = true;
+                    self.done = true;
+                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "short body"));
+                }
+                let left = left - n as u64;
+                self.framing = Framing::Length(left);
+                self.done = left == 0;
+                Ok(n)
+            }
+            Framing::Chunked => self.read_chunked(buf),
+        }
+    }
+
+    fn read_chunked(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let mut src = self.src.borrow_mut();
+        let mut line = String::new();
+        if self.chunk_left == 0 {
+            match read_head_line(&mut *src, &mut line, CHUNK_LINE_MAX)? {
+                HeadLine::Line => {}
+                HeadLine::Eof | HeadLine::TooLong => return Err(self.fail("bad chunk size line")),
+            }
+            let size_text = line.trim().split(';').next().unwrap_or("");
+            let Ok(size) = u64::from_str_radix(size_text, 16) else {
+                return Err(self.fail("bad chunk size"));
+            };
+            if size == 0 {
+                // trailer section, then the final CRLF
+                loop {
+                    match read_head_line(&mut *src, &mut line, CHUNK_LINE_MAX)? {
+                        HeadLine::Line if line == "\r\n" || line == "\n" => break,
+                        HeadLine::Line => {}
+                        HeadLine::Eof | HeadLine::TooLong => return Err(self.fail("bad chunk trailer")),
+                    }
+                }
+                self.done = true;
+                return Ok(0);
+            }
+            self.chunk_left = size;
+        }
+        let want = buf.len().min(self.chunk_left as usize);
+        let n = src.read(&mut buf[..want])?;
+        if n == 0 {
+            return Err(self.fail("truncated chunk"));
+        }
+        self.chunk_left -= n as u64;
+        if self.chunk_left == 0 {
+            match read_head_line(&mut *src, &mut line, CHUNK_LINE_MAX)? {
+                HeadLine::Line if line == "\r\n" || line == "\n" => {}
+                _ => return Err(self.fail("missing chunk terminator")),
+            }
+        }
+        Ok(n)
+    }
+
+    fn fail(&mut self, what: &'static str) -> io::Error {
+        self.bad = true;
+        self.done = true;
+        io::Error::new(io::ErrorKind::InvalidData, what)
+    }
+
+    /// Collect the whole body, refusing anything over `limit`. For the small
+    /// fixed-size endpoints (`/ubus`); CGI streams instead.
+    pub fn read_all(&mut self, limit: usize) -> io::Result<Option<Vec<u8>>> {
+        let mut out = Vec::new();
+        let mut buf = [0u8; 8192];
+        loop {
+            let n = self.read(&mut buf)?;
+            if n == 0 {
+                return Ok(Some(out));
+            }
+            if out.len() + n > limit {
+                // keep reading is pointless: the framing stays unfinished, so
+                // the caller must close the connection
+                self.bad = true;
+                self.done = true;
+                return Ok(None);
+            }
+            out.extend_from_slice(&buf[..n]);
+        }
+    }
+
+    /// Read and discard the rest, up to `limit`, so a keep-alive connection can
+    /// survive a body the handler did not want. Returns false if it did not fit.
+    pub fn drain(&mut self, limit: usize) -> bool {
+        let mut left = limit;
+        let mut buf = [0u8; 8192];
+        while !self.done {
+            match self.read(&mut buf) {
+                Ok(0) => break,
+                Ok(n) if n <= left => left -= n,
+                _ => return false,
+            }
+        }
+        self.reusable()
+    }
+}
+
 pub struct Response<'a, W: Write> {
     out: &'a mut W,
     version: Version,
@@ -627,24 +731,62 @@ mod tests {
     }
 
     #[test]
-    fn chunked_body_requires_bounded_lines_and_terminators() {
+    fn chunked_body_is_decoded_incrementally_and_rejects_bad_framing() {
+        fn drain(input: &[u8], chunked: bool, len: Option<usize>) -> io::Result<Vec<u8>> {
+            let request = Request {
+                method: Method::Post,
+                version: Version::V1_1,
+                url: "/".into(),
+                headers: Vec::new(),
+                content_length: len,
+                transfer_chunked: chunked,
+                connection_close: false,
+                expect_continue: false,
+            };
+            let cell = RefCell::new(io::BufReader::new(io::Cursor::new(input.to_vec())));
+            let mut body = BodyReader::new(&cell, &request);
+            let mut out = Vec::new();
+            let mut buf = [0u8; 2];
+            loop {
+                let n = body.read(&mut buf)?;
+                if n == 0 {
+                    return Ok(out);
+                }
+                out.extend_from_slice(&buf[..n]);
+            }
+        }
+
+        assert_eq!(drain(b"3\r\nabc\r\n0\r\n\r\n", true, None).unwrap(), b"abc");
+        assert_eq!(drain(b"hello", false, Some(5)).unwrap(), b"hello");
+        // several chunks, read through a 2-byte window
+        assert_eq!(drain(b"4\r\nabcd\r\n2\r\nef\r\n0\r\n\r\n", true, None).unwrap(), b"abcdef");
+        // trailers before the final CRLF
+        assert_eq!(drain(b"1\r\nz\r\n0\r\nX-T: v\r\n\r\n", true, None).unwrap(), b"z");
+
+        assert!(drain(b"3\r\nabcX\r\n0\r\n\r\n", true, None).is_err());
+        assert!(drain(&format!("{}\n", "a".repeat(CHUNK_LINE_MAX + 1)).into_bytes(), true, None).is_err());
+        assert!(drain(b"zz\r\n", true, None).is_err());
+        // a Content-Length body that ends early is an error, not a short read
+        assert!(drain(b"abc", false, Some(10)).is_err());
+    }
+
+    /// A body larger than the caller's limit is refused without collecting it,
+    /// and the connection is marked unusable because framing is left mid-body.
+    #[test]
+    fn read_all_refuses_over_the_limit_and_poisons_reuse() {
         let request = Request {
             method: Method::Post,
             version: Version::V1_1,
             url: "/".into(),
             headers: Vec::new(),
-            content_length: None,
-            transfer_chunked: true,
+            content_length: Some(100),
+            transfer_chunked: false,
             connection_close: false,
             expect_continue: false,
         };
-        let mut ok = io::Cursor::new(b"3\r\nabc\r\n0\r\n\r\n".to_vec());
-        assert_eq!(read_body(&mut ok, &request, 16).unwrap(), Some(b"abc".to_vec()));
-
-        let mut bad_terminator = io::Cursor::new(b"3\r\nabcX\r\n0\r\n\r\n".to_vec());
-        assert!(read_body(&mut bad_terminator, &request, 16).is_err());
-
-        let mut too_long = io::Cursor::new(format!("{}\n", "a".repeat(4097)).into_bytes());
-        assert!(read_body(&mut too_long, &request, usize::MAX).is_err());
+        let cell = RefCell::new(io::BufReader::new(io::Cursor::new(vec![b'x'; 100])));
+        let mut body = BodyReader::new(&cell, &request);
+        assert!(body.read_all(16).unwrap().is_none());
+        assert!(!body.reusable());
     }
 }
