@@ -6,8 +6,9 @@ use crate::http::{Request, Response};
 use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::net::SocketAddr;
-use std::os::fd::{AsRawFd, OwnedFd};
+use std::mem::ManuallyDrop;
+use std::net::{SocketAddr, TcpStream};
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::fs::PermissionsExt;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
@@ -16,6 +17,10 @@ use std::time::{Duration, Instant};
 /// DEVIATION: a bound keeps a runaway script from consuming router RAM, and no
 /// real CGI emits 64 KiB of headers.
 const MAX_HEADER_BYTES: usize = 64 * 1024;
+
+/// Upper bound on how late we notice the direct script exiting while a
+/// descendant still holds stdout. Only reached when the pipe is quiet.
+const CHILD_TICK_MS: u64 = 50;
 
 /// uh_relay_free() SIGKILLs a script that is still running when the relay is
 /// torn down, and uloop_process reaps it. Do both on every exit from `run`, so
@@ -37,6 +42,21 @@ pub struct CgiContext<'a> {
     pub remote: SocketAddr,
     pub tls: bool,
     pub script_timeout: u64,
+    pub network_timeout: u64,
+    /// Client TCP socket, for bounding a relay write by the script deadline.
+    pub client_fd: RawFd,
+}
+
+/// Set SO_SNDTIMEO on the borrowed client socket. `ManuallyDrop` because the
+/// fd stays owned by the connection.
+fn set_send_timeout(fd: RawFd, timeout: Duration) {
+    if fd < 0 {
+        return;
+    }
+    // SAFETY: `fd` is the live client socket owned by the calling connection;
+    // ManuallyDrop keeps this borrow from closing it.
+    let sock = ManuallyDrop::new(unsafe { TcpStream::from_raw_fd(fd) });
+    let _ = sock.set_write_timeout(Some(timeout.max(Duration::from_millis(1))));
 }
 
 const HEADER_ENV: &[(&str, &str)] = &[
@@ -125,8 +145,16 @@ pub fn run<W: Write>(
     let mut header_bytes = 0usize;
     let mut headers_done = false;
     let mut timed_out = false;
+    let mut script_done = false;
     let mut buf = [0u8; 16384];
     loop {
+        // relay_proc_cb() marks process_done and schedules relay_close_if_done,
+        // so the *direct* script exiting ends the request even while a
+        // descendant still holds stdout. Without this, such a request ran to
+        // the deadline and answered 504 for a script that succeeded.
+        if !script_done && matches!(child.0.try_wait(), Ok(Some(_))) {
+            script_done = true;
+        }
         let remaining = deadline.saturating_duration_since(Instant::now());
         if remaining.is_zero() {
             timed_out = true;
@@ -143,9 +171,19 @@ pub fn run<W: Write>(
             }
             None => 1,
         };
-        let wait_ms = remaining.as_millis().min(i32::MAX as u128) as i32;
-        if poll_fds(&mut fds[..count], wait_ms).is_err() {
-            break;
+        // A finished script gets one non-blocking drain pass (the ustream_poll
+        // in relay_proc_cb), never a wait on a descendant's EOF. Otherwise cap
+        // the wait at one tick: uloop learns of the exit from SIGCHLD, we
+        // re-check try_wait instead, so the exit is noticed within CHILD_TICK_MS.
+        let wait_ms = if script_done {
+            0
+        } else {
+            remaining.as_millis().min(CHILD_TICK_MS as u128) as i32
+        };
+        match poll_fds(&mut fds[..count], wait_ms) {
+            Ok(0) if script_done => break,
+            Ok(_) => {}
+            Err(_) => break,
         }
         // POLLOUT on a pipe means at least PIPE_BUF is writable, so a bounded
         // write cannot block. A script that never reads gets EPIPE and we
@@ -176,19 +214,29 @@ pub fn run<W: Write>(
         let chunk = &buf[..n];
         if headers_done {
             if !resp.is_head() {
-                resp.body(chunk)?;
-                resp.flush()?;
+                // uhttpd's script timeout runs on uloop, so a client that stops
+                // reading cannot keep the script alive. Our write is blocking,
+                // so shrink the socket's send timeout to what is left of the
+                // script budget: a stalled client then fails the write instead
+                // of parking the relay (and the child) for -T seconds.
+                set_send_timeout(ctx.client_fd, deadline.saturating_duration_since(Instant::now()));
+                let sent = resp.body(chunk).and_then(|()| resp.flush());
+                set_send_timeout(ctx.client_fd, Duration::from_secs(ctx.network_timeout.max(1)));
+                sent?;
             }
             continue;
         }
-        header_bytes += n;
-        if header_bytes > MAX_HEADER_BYTES {
+        header_buf.extend_from_slice(chunk);
+        // Count only bytes that are actually part of the header block: the read
+        // that carries the terminating blank line usually carries body too, and
+        // charging that to the header made the cap depend on pipe chunking.
+        if header_bytes + header_buf.len() > MAX_HEADER_BYTES {
             return resp.error(500, "Internal Server Error", Some("CGI header block too large"));
         }
-        header_buf.extend_from_slice(chunk);
         // parse complete lines
         while let Some(pos) = header_buf.iter().position(|&b| b == b'\n') {
             let mut line: Vec<u8> = header_buf.drain(..=pos).collect();
+            header_bytes += line.len();
             line.pop();
             if line.last() == Some(&b'\r') {
                 line.pop();
@@ -237,7 +285,7 @@ pub fn run<W: Write>(
         }
     }
     if !headers_done {
-        if timed_out {
+        if timed_out && !script_done {
             return resp.error(
                 504,
                 "Gateway Timeout",
@@ -267,8 +315,7 @@ mod tests {
 
     static SEQ: AtomicU32 = AtomicU32::new(0);
 
-    /// Run one throwaway CGI script and report (response bytes, elapsed ms).
-    fn run_script(script: &str, script_timeout: u64) -> (String, u128) {
+    fn script_fixture(script: &str) -> (std::path::PathBuf, PathInfo) {
         let dir = std::env::temp_dir().join(format!(
             "owrt-cgi-test-{}-{}",
             std::process::id(),
@@ -285,7 +332,11 @@ mod tests {
             info: None,
             query: None,
         };
-        let request = Request {
+        (dir, pi)
+    }
+
+    fn get_request() -> Request {
+        Request {
             method: Method::Get,
             version: Version::V1_0,
             url: "/script".into(),
@@ -294,7 +345,13 @@ mod tests {
             transfer_chunked: false,
             connection_close: true,
             expect_continue: false,
-        };
+        }
+    }
+
+    /// Run one throwaway CGI script and report (response bytes, elapsed ms).
+    fn run_script(script: &str, script_timeout: u64) -> (String, u128) {
+        let (dir, pi) = script_fixture(script);
+        let request = get_request();
         let local = "127.0.0.1:80".parse().unwrap();
         let ctx = CgiContext {
             docroot: dir.to_str().unwrap(),
@@ -303,6 +360,8 @@ mod tests {
             remote: local,
             tls: false,
             script_timeout,
+            network_timeout: 5,
+            client_fd: -1,
         };
         let mut out: Vec<u8> = Vec::new();
         let started = Instant::now();
@@ -331,6 +390,66 @@ mod tests {
         let (out, ms) = run_script("sleep 5 &\nwait\n", 1);
         assert!(out.starts_with("HTTP/1.0 504 Gateway Timeout"), "{out:?}");
         assert!((900..3000).contains(&ms), "took {ms} ms, expected ~1000");
+    }
+
+    /// relay_proc_cb(): the direct script exiting ends the request, even with a
+    /// descendant still holding stdout. This used to answer 504 at the deadline
+    /// for a script that had already succeeded.
+    #[test]
+    fn direct_exit_with_a_descendant_on_stdout_is_not_a_timeout() {
+        let (out, ms) = run_script("sleep 5 &\nprintf 'Content-Type: text/plain\\r\\n\\r\\nok'\nexit 0\n", 1);
+        assert!(out.starts_with("HTTP/1.0 200 OK"), "{out:?}");
+        assert!(out.ends_with("ok"), "{out:?}");
+        assert!(ms < 900, "took {ms} ms, should end when the script exits");
+    }
+
+    /// The header cap must not count body bytes that share the final read.
+    #[test]
+    fn body_arriving_with_the_last_header_line_is_not_charged_to_the_header_cap() {
+        let (out, _) = run_script(
+            "i=0; while [ $i -lt 700 ]; do printf 'X-Pad-%s: %s\\r\\n' $i              aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;              i=$((i+1)); done\nprintf '\\r\\n'\nhead -c 16384 /dev/zero | tr '\\0' 'b'\n",
+            5,
+        );
+        assert!(out.starts_with("HTTP/1.0 200 OK"), "{}", &out[..out.len().min(120)]);
+        assert!(out.contains('b'), "body missing");
+    }
+
+    /// uhttpd's script timeout runs on uloop, so a client that stops reading
+    /// cannot extend the script's life. Ours writes synchronously, so the send
+    /// timeout has to shrink to the remaining script budget.
+    #[test]
+    fn a_client_that_never_reads_cannot_outlive_the_script_timeout() {
+        use std::net::{TcpListener, TcpStream};
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+        // held open, never read from
+        let _client = TcpStream::connect(addr).unwrap();
+        let (mut sock, _) = listener.accept().unwrap();
+        sock.set_write_timeout(Some(Duration::from_secs(30))).unwrap();
+        let fd = sock.as_raw_fd();
+        let (dir, pi) = script_fixture(
+            "printf 'Content-Type: application/octet-stream\\r\\n\\r\\n'\nhead -c 33554432 /dev/zero\n",
+        );
+        let request = get_request();
+        let local = "127.0.0.1:80".parse().unwrap();
+        let ctx = CgiContext {
+            docroot: dir.to_str().unwrap(),
+            cgi_path: "/bin:/usr/bin",
+            local,
+            remote: local,
+            tls: false,
+            script_timeout: 1,
+            network_timeout: 30,
+            client_fd: fd,
+        };
+        let started = Instant::now();
+        {
+            let mut resp = Response::new(&mut sock, &request, 0);
+            let _ = run(&ctx, &request, b"", &mut resp, &pi);
+        }
+        let ms = started.elapsed().as_millis();
+        let _ = fs::remove_dir_all(&dir);
+        assert!(ms < 4000, "took {ms} ms with -t 1 / -T 30; the stalled client held the script");
     }
 
     #[test]

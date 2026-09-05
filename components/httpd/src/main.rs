@@ -12,6 +12,7 @@ mod tls;
 use bridge::Bridge;
 use http::{Method, ParseOutcome, Request, Response};
 use std::io::{self, BufReader, Read, Write};
+use std::os::fd::{AsRawFd, RawFd};
 use std::net::{IpAddr, SocketAddr, TcpListener};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -217,6 +218,16 @@ fn is_rfc1918(ip: IpAddr) -> bool {
     }
 }
 
+/// Everything about the accepted connection that a handler may need. Kept
+/// together so `serve`/`dispatch` take one parameter instead of four.
+#[derive(Clone, Copy)]
+struct Conn {
+    local: SocketAddr,
+    remote: SocketAddr,
+    tls: bool,
+    fd: RawFd,
+}
+
 trait Stream: Read + Write + Send {}
 impl<T: Read + Write + Send> Stream for T {}
 
@@ -228,7 +239,7 @@ struct Server {
 }
 
 impl Server {
-    fn serve(&self, stream: Box<dyn Stream>, local: SocketAddr, remote: SocketAddr, is_tls: bool) {
+    fn serve(&self, stream: Box<dyn Stream>, conn: Conn) {
         let mut reader = BufReader::new(stream);
         loop {
             let request = match http::read_request(&mut reader, self.config.http_keepalive > 0) {
@@ -267,7 +278,7 @@ impl Server {
                 {
                     let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
                     if let Err(_e) =
-                        self.dispatch(&request, body.as_deref(), &mut resp, local, remote, is_tls)
+                        self.dispatch(&request, body.as_deref(), &mut resp, conn)
                     {
                         return;
                     }
@@ -308,14 +319,12 @@ impl Server {
         request: &Request,
         body: Option<&[u8]>,
         resp: &mut Response<W>,
-        local: SocketAddr,
-        remote: SocketAddr,
-        is_tls: bool,
+        conn: Conn,
     ) -> io::Result<()> {
         if self.config.rfc1918_filter
-            && is_rfc1918(remote.ip())
-            && !is_rfc1918(local.ip())
-            && !local.ip().is_loopback()
+            && is_rfc1918(conn.remote.ip())
+            && !is_rfc1918(conn.local.ip())
+            && !conn.local.ip().is_loopback()
         {
             return resp.error(
                 403,
@@ -364,10 +373,12 @@ impl Server {
                     let ctx = cgi::CgiContext {
                         docroot: &self.config.docroot,
                         cgi_path: &self.config.cgi_path,
-                        local,
-                        remote,
-                        tls: is_tls,
+                        local: conn.local,
+                        remote: conn.remote,
+                        tls: conn.tls,
                         script_timeout: self.config.script_timeout,
+                        network_timeout: self.config.network_timeout,
+                        client_fd: conn.fd,
                     };
                     return cgi::run(&ctx, request, body.unwrap_or(&[]), resp, &pi);
                 }
@@ -420,16 +431,17 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
             .unwrap_or_else(|_| SocketAddr::from(([0, 0, 0, 0], 0)));
         server.connections.fetch_add(1, Ordering::Relaxed);
         std::thread::spawn(move || {
+            let fd = stream.as_raw_fd();
             let timeout = Duration::from_secs(server.config.network_timeout.max(1));
             let _ = stream.set_read_timeout(Some(timeout));
             let _ = stream.set_write_timeout(Some(timeout));
             let _ = stream.set_nodelay(true);
             match tls {
-                None => server.serve(Box::new(stream), local, remote, false),
+                None => server.serve(Box::new(stream), Conn { local, remote, tls: false, fd }),
                 Some(config) => {
                     if let Ok(conn) = rustls::ServerConnection::new(config) {
                         let tls_stream = rustls::StreamOwned::new(conn, stream);
-                        server.serve(Box::new(tls_stream), local, remote, true);
+                        server.serve(Box::new(tls_stream), Conn { local, remote, tls: true, fd });
                     }
                 }
             }

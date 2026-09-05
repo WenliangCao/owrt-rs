@@ -322,7 +322,7 @@ pub fn run_command(executable: &str, params: &[String], env: &[(String, String)]
     // on a daemonising command would stall every other request and timer.
     let mut exited = None;
     let mut timed_out = false;
-    while out.open || err.open {
+    while out.open() || err.open() {
         if let Ok(Some(st)) = child.try_wait() {
             exited = Some(st);
             break;
@@ -334,6 +334,20 @@ pub fn run_command(executable: &str, params: &[String], env: &[(String, String)]
         }
         let wait_ms = remaining.as_millis().min(EXEC_TICK_MS as u128) as i32;
         poll_pipes(&mut out, &mut err, wait_ms);
+        // Overflow ends the call on its own; the other pipe may never reach EOF
+        // (a script that keeps producing on the one still open).
+        if out.overflow || err.overflow {
+            break;
+        }
+    }
+    if out.overflow || err.overflow {
+        // The read callbacks schedule NOT_SUPPORTED the moment
+        // ustream_read_buf_full() trips. Both capture fds are already closed
+        // (Pipe::read_ready drops the File on overflow), so the child gets
+        // EPIPE rather than blocking on a pipe nobody drains; the grace here
+        // only covers a child that ignores SIGPIPE.
+        let _ = crate::procwait::wait(&mut child, Duration::from_millis(EXEC_TICK_MS));
+        return Err(status::NOT_SUPPORTED);
     }
     // Both pipes at EOF does not mean the child is gone; procwait bounds that
     // wait and SIGKILLs on expiry. A zero budget (we already timed out) kills
@@ -351,11 +365,11 @@ pub fn run_command(executable: &str, params: &[String], env: &[(String, String)]
     };
     // ustream_poll() before the reply: take what is already in the pipes.
     while poll_pipes(&mut out, &mut err, 0) {}
-    let code = if timed_out { Err(status::TIMEOUT) } else { code };
-    let st = code?;
     if out.overflow || err.overflow {
         return Err(status::NOT_SUPPORTED);
     }
+    let code = if timed_out { Err(status::TIMEOUT) } else { code };
+    let st = code?;
     // rpc_file_exec_write emits WEXITSTATUS(stat): the exit code for a normal
     // exit, and 0 when the child was killed by a signal (st.code() is None).
     let exit_code = st.code().unwrap_or(0) as u32 & 0xff;
@@ -373,34 +387,40 @@ pub fn run_command(executable: &str, params: &[String], env: &[(String, String)]
 /// child exited; only reached when a descendant holds a pipe open.
 const EXEC_TICK_MS: u64 = 50;
 
-/// One capture pipe: `open` clears at EOF, on error, or once the 256 KiB cap
-/// (`FILE_MAX_SIZE`, -> NOT_SUPPORTED) is hit.
+/// One capture pipe. Closing means dropping the `File`: a bool alone would
+/// leave the write end open and block a child that keeps producing output.
 struct Pipe {
-    file: fs::File,
+    file: Option<fs::File>,
     data: Vec<u8>,
-    open: bool,
     overflow: bool,
 }
 
 impl Pipe {
     fn new(file: fs::File) -> Self {
-        Pipe { file, data: Vec::new(), open: true, overflow: false }
+        Pipe { file: Some(file), data: Vec::new(), overflow: false }
     }
 
-    /// One bounded read; poll(2) already said the fd is ready, so it cannot block.
+    fn open(&self) -> bool {
+        self.file.is_some()
+    }
+
+    /// One bounded read; poll(2) already said the fd is ready, so it cannot
+    /// block. Hitting the 256 KiB cap (`FILE_MAX_SIZE`) closes the fd, which is
+    /// what makes the child stop instead of filling a pipe nobody reads.
     fn read_ready(&mut self) {
         let mut chunk = [0u8; 4096];
-        match self.file.read(&mut chunk) {
-            Ok(0) => self.open = false,
+        let Some(file) = self.file.as_mut() else { return };
+        match file.read(&mut chunk) {
+            Ok(0) => self.file = None,
             Ok(n) => {
                 self.data.extend_from_slice(&chunk[..n]);
                 if self.data.len() >= FILE_MAX_SIZE as usize {
                     self.overflow = true;
-                    self.open = false;
+                    self.file = None;
                 }
             }
             Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
-            Err(_) => self.open = false,
+            Err(_) => self.file = None,
         }
     }
 }
@@ -408,11 +428,11 @@ impl Pipe {
 /// Poll the still-open pipes and read the ready ones. Returns whether anything
 /// was ready, so a 0 ms drain can loop until the pipes are quiet.
 fn poll_pipes(out: &mut Pipe, err: &mut Pipe, timeout_ms: i32) -> bool {
-    let (out_polled, err_polled) = (out.open, err.open);
+    let (out_polled, err_polled) = (out.open(), err.open());
     let mut fds: Vec<PollFd> = Vec::with_capacity(2);
     for pipe in [&*out, &*err] {
-        if pipe.open {
-            fds.push(PollFd { fd: pipe.file.as_raw_fd(), events: POLLIN, revents: 0 });
+        if let Some(file) = pipe.file.as_ref() {
+            fds.push(PollFd { fd: file.as_raw_fd(), events: POLLIN, revents: 0 });
         }
     }
     if fds.is_empty() || poll_fds(&mut fds, timeout_ms).unwrap_or(0) == 0 {
@@ -469,6 +489,44 @@ mod tests {
         let (r, ms) = sh("sleep 5 & wait", 200);
         assert_eq!(r.unwrap_err(), status::TIMEOUT);
         assert!(ms < 1000, "took {ms} ms, should return at the timeout");
+    }
+
+    /// The read callbacks reply NOT_SUPPORTED as soon as the capture buffer is
+    /// full. Closing the fd is what stops the child; a bool alone left it
+    /// blocked on a full pipe until the exec timeout, which then masked the
+    /// real status.
+    #[test]
+    fn output_over_the_cap_reports_not_supported_without_burning_the_timeout() {
+        for redirect in ["", " >&2"] {
+            let (r, ms) = sh(&format!("head -c 1048576 /dev/zero{redirect}"), 2000);
+            assert_eq!(r.unwrap_err(), status::NOT_SUPPORTED, "redirect {redirect:?}");
+            assert!(ms < 1500, "took {ms} ms with redirect {redirect:?}");
+        }
+        // both pipes over the cap at once
+        let (r, ms) = sh("head -c 1048576 /dev/zero; head -c 1048576 /dev/zero >&2", 2000);
+        assert_eq!(r.unwrap_err(), status::NOT_SUPPORTED);
+        assert!(ms < 1500, "took {ms} ms");
+    }
+
+    /// Just under the cap must still be delivered in full, not truncated.
+    #[test]
+    fn output_just_under_the_cap_is_returned_whole() {
+        let n = super::FILE_MAX_SIZE - 1;
+        let (r, _) = sh(&format!("head -c {n} /dev/zero | tr '\\0' 'a'"), 5000);
+        let Ok(crate::Json::Object(o)) = r else { panic!("unexpected reply: {r:?}") };
+        let Some((_, crate::Json::Str(s))) = o.iter().find(|(k, _)| k == "stdout") else {
+            panic!("no stdout in {o:?}")
+        };
+        assert_eq!(s.len() as u64, n);
+    }
+
+    /// A script that keeps writing after its output is discarded must not hold
+    /// the call open either.
+    #[test]
+    fn a_producer_that_ignores_sigpipe_still_ends_at_the_cap() {
+        let (r, ms) = sh("trap '' PIPE; while :; do head -c 65536 /dev/zero; done", 2000);
+        assert_eq!(r.unwrap_err(), status::NOT_SUPPORTED);
+        assert!(ms < 1500, "took {ms} ms");
     }
 
     #[test]
