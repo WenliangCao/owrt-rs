@@ -52,7 +52,10 @@ build)
 	tc=$(ls -d "$SDK"/staging_dir/toolchain-*/bin | head -1)
 	CC=$(ls "$tc"/*-openwrt-linux-musl-gcc | head -1)
 	AR=$(ls "$tc"/*-openwrt-linux-musl-ar | head -1)
-	LD=$(ls "$tc"/*-openwrt-linux-musl-ld 2>/dev/null | head -1 || echo "$tc/ld")
+	# TARGET_LINKER is a linker *name* for -fuse-ld (mold when the SDK enables
+	# it, empty otherwise) -- not a path. The recipe passes the flag even when
+	# empty, so pass it the same way: the goal is to reproduce that build.
+	LD=${TARGET_LINKER-$(grep -q "^CONFIG_USE_MOLD=y" "$SDK/.config" 2>/dev/null && echo mold || echo "")}
 	CARGO=${CARGO:-"env RUSTUP_TOOLCHAIN=$PIN cargo"}
 	CARGO_HOME_DIR=${CARGO_HOME:-$HOME/.cargo}
 
@@ -91,7 +94,7 @@ build)
 		echo "rustc=$(sh -c "$CARGO rustc -V" 2>/dev/null || env RUSTUP_TOOLCHAIN=$PIN rustc -vV | tr '\n' ';')"
 		echo "cc=$CC"; "$CC" --version | head -1
 		echo "ar=$AR"; "$AR" --version | head -1
-		echo "ld=$LD"; "$LD" --version 2>/dev/null | head -1 || true
+		echo "fuse_ld=${LD:-<default>}"
 		echo "sdk=$(basename "$SDK")"
 		echo "host_uname=$(uname -m)"
 		echo "src=$src"
