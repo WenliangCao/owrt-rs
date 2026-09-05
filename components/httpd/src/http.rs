@@ -267,29 +267,42 @@ pub fn read_body<R: BufRead>(
         let mut body = Vec::new();
         let mut line = String::new();
         loop {
-            line.clear();
-            reader.read_line(&mut line)?;
+            match read_head_line(reader, &mut line, 4096)? {
+                HeadLine::Line => {}
+                HeadLine::Eof | HeadLine::TooLong => {
+                    return Err(io::Error::new(io::ErrorKind::InvalidData, "chunk line too long or truncated"))
+                }
+            }
             let size_text = line.trim().split(';').next().unwrap_or("");
             let size = usize::from_str_radix(size_text, 16)
                 .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "bad chunk size"))?;
             if size == 0 {
                 // trailer + final CRLF
                 loop {
-                    line.clear();
-                    if reader.read_line(&mut line)? == 0 || line == "\r\n" || line == "\n" {
-                        break;
+                    match read_head_line(reader, &mut line, 4096)? {
+                        HeadLine::Line if line == "\r\n" || line == "\n" => break,
+                        HeadLine::Line => {}
+                        HeadLine::Eof | HeadLine::TooLong => {
+                            return Err(io::Error::new(io::ErrorKind::InvalidData, "chunk trailer too long or truncated"))
+                        }
                     }
                 }
                 return Ok(Some(body));
             }
-            if body.len() + size > limit {
-                return Ok(None);
+            // (Option::is_none_or would need Rust 1.82; this crate builds on 1.78)
+            match body.len().checked_add(size) {
+                Some(total) if total <= limit => {}
+                _ => return Ok(None),
             }
             let mut chunk = vec![0u8; size];
             reader.read_exact(&mut chunk)?;
             body.extend_from_slice(&chunk);
-            line.clear();
-            reader.read_line(&mut line)?;
+            match read_head_line(reader, &mut line, 4096)? {
+                HeadLine::Line if line == "\r\n" || line == "\n" => {}
+                HeadLine::Line | HeadLine::Eof | HeadLine::TooLong => {
+                    return Err(io::Error::new(io::ErrorKind::InvalidData, "missing chunk terminator"))
+                }
+            }
         }
     }
     let length = request.content_length.unwrap_or(0);
@@ -414,6 +427,13 @@ impl<'a, W: Write> Response<'a, W> {
         } else {
             self.out.write_all(data)
         }
+    }
+
+    /// Push what is buffered to the socket. Handlers that relay a live stream
+    /// (CGI) call this per chunk so the client sees output while the producer
+    /// is still running, the way uhttpd's client ustream does.
+    pub fn flush(&mut self) -> io::Result<()> {
+        self.out.flush()
     }
 
     /// Finish the response.
@@ -605,5 +625,27 @@ mod tests {
         assert_eq!(r.method, Method::Head);
         assert!(r.connection_close);
         assert_eq!(r.header("host"), Some("y"));
+    }
+
+    #[test]
+    fn chunked_body_requires_bounded_lines_and_terminators() {
+        let request = Request {
+            method: Method::Post,
+            version: Version::V1_1,
+            url: "/".into(),
+            headers: Vec::new(),
+            content_length: None,
+            transfer_chunked: true,
+            connection_close: false,
+            expect_continue: false,
+        };
+        let mut ok = io::Cursor::new(b"3\r\nabc\r\n0\r\n\r\n".to_vec());
+        assert_eq!(read_body(&mut ok, &request, 16).unwrap(), Some(b"abc".to_vec()));
+
+        let mut bad_terminator = io::Cursor::new(b"3\r\nabcX\r\n0\r\n\r\n".to_vec());
+        assert!(read_body(&mut bad_terminator, &request, 16).is_err());
+
+        let mut too_long = io::Cursor::new(format!("{}\n", "a".repeat(4097)).into_bytes());
+        assert!(read_body(&mut too_long, &request, usize::MAX).is_err());
     }
 }

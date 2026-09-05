@@ -4,18 +4,16 @@
 > 脚本：`tools/bench_device_side_by_side.sh`（设备上）、`tools/bench_httpd.sh` + `tools/bench_http_client.py`（Mac 发压）、
 > `tools/bench_swap_windows.sh`（logd/rpcd 切换）。原始输出 `private/bench/`。MT7981B 双核 A53，busybox `time` 计时。
 
-## 1. 先说结论
+## 1. 先说结论（以 §11 最新完整重测为准）
 
-- **fw4 规则生成快 10 倍**（205 → 19.5 ms）：原版是 ucode 解释器跑脚本，Rust 是原生二进制。这是唯一有"量级"差别的地方。
-- **httpd 全面更快**：静态 +18–24%，`/ubus` JSON-RPC +18%，TLS +80%（rustls vs mbedtls），CGI 持平（瓶颈在 LuCI 本身）。
-- **uci / rpcd 核心对象 / logd 写入：持平**。每次调用 3–5 ms，绝大部分是进程启动与 ubus 往返，两边一样。
-- **Rust 慢的地方（第三轮时）**：rpcd 的 `iwinfo info`（28 vs 19 ms）与 `luci-rpc getWirelessDevices`（73 vs 49 ms），`logread` 全量输出
-  （60 vs 26 ms），`uci export` 全量（8.0 vs 5.9 ms）。第四轮后全部消失：logread 是测量假象，其余由决策 0017（opt-level 3 + 静态）与 netlink 缓冲复用解决，见 §11。
-- **reload_config 一开始慢 5.4 倍**（404 vs 75 ms）——benchmark 找出的真 bug：子进程等待用 10 ms 轮询，38 个子进程各吃掉
-  一个时钟片。已改为阻塞等待（提交 bfc0645，owrt-reload-config r3），修复后数据见 §3。
-- **体积**：Rust 二进制大一个量级（rpcd-rs 781 KB vs rpcd 62 KB + 6 插件 + libiwinfo ≈ 250 KB；httpd-rs 1.1 MB vs uhttpd 78 KB；
-  fw4-rs 744 KB vs 3 KB 脚本 + ucode 运行时）。overlay 共用 2.4 MB / 60 MB，不是约束。
-- **内存**：daemon RSS 同量级：rpcd-rs 1.46 MB **小于** rpcd 2.03 MB；httpd-rs 1.98 vs uhttpd 1.77 MB；logd-rs 1.16 vs logd 0.95 MB。
+- **fw4 提升最大**：`print` 203 → 17 ms，约快 11.9 倍；`check` 261 → 72 ms，约快 3.6 倍。
+- **httpd 部分路径更快**：TLS CSS 吞吐 531 → 1005 req/s（+89%），首页 +29%，`/ubus` +15%；大 CSS 1436 → 1384 req/s，不能称“全面更快”；CGI 接近持平。
+- **uci 与 reload_config 有提升**：uci 全量 export 6.0 → 5.3 ms，get 2.6 → 1.8 ms；reload_config 55.7 → 36.2 ms。后者两边仍使用当前接管的 UCI，是 dispatcher 对比，不能解读为完整 stock 栈与完整 Rust 栈的对比。
+- **rpcd 混合结果**：无线设备查询与 iwinfo 更快，多数短调用接近原版；`rc list` 1137 → 1253 ms（仅 3 次），尚不能说所有慢项都消失。logd 等行数读取与原版相同，不能比较不同环内条数的全量读取。
+- 以上是 2026-09-03 的设备记录，不是每次后续修订的重新认证，也不代表转发吞吐或无线数据面性能。小幅差异需要多轮交替测试、错误计数和分位数支持。
+- **资源代价**：Rust 二进制更大；§11 的 rpcd/logd RSS 分别为 1224/568 kB（原版 2016/952 kB）。这些点测不覆盖大响应、慢客户端、异常子进程等峰值场景；2026-09-05 的资源边界审查见 [R30_STABILITY_REVIEW.md](R30_STABILITY_REVIEW.md)。
+
+下文 §2–§10 保留各轮历史数据和当时判断；其中已被后续实验推翻的根因假设，不应继续作为当前结论。
 
 ## 2. 一次性程序（N=100，fw4 N=20；per_op = 墙钟 / N）
 

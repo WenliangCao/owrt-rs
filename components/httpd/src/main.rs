@@ -257,19 +257,25 @@ impl Server {
             } else {
                 None
             };
-            let mut out = Vec::new();
+            // uhttpd streams every response through the client ustream. Keep
+            // one 16 KiB window instead of collecting the whole body first, so
+            // a large file or a slow CGI cannot grow RSS by its own size and
+            // the first byte reaches the client while the handler still runs.
             let close;
             {
-                let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
-                if let Err(_e) =
-                    self.dispatch(&request, body.as_deref(), &mut resp, local, remote, is_tls)
+                let mut out = io::BufWriter::with_capacity(16 * 1024, reader.get_mut());
                 {
+                    let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
+                    if let Err(_e) =
+                        self.dispatch(&request, body.as_deref(), &mut resp, local, remote, is_tls)
+                    {
+                        return;
+                    }
+                    close = resp.connection_close();
+                }
+                if out.flush().is_err() {
                     return;
                 }
-                close = resp.connection_close();
-            }
-            if reader.get_mut().write_all(&out).is_err() || reader.get_mut().flush().is_err() {
-                return;
             }
             if close || self.config.http_keepalive == 0 {
                 return;

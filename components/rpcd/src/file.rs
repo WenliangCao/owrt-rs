@@ -9,9 +9,11 @@ use owrt_ubus::status;
 use std::fs;
 use std::io::{Read, Write};
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
+use owrt_ubus::sys::{poll_fds, PollFd, POLLIN};
+use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::process::CommandExt;
 use std::process::{Command, Stdio};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 pub const FILE_MIN_SIZE: u64 = 4096;
 pub const FILE_MAX_SIZE: u64 = 4096 * 64;
@@ -309,52 +311,124 @@ pub fn run_command(executable: &str, params: &[String], env: &[(String, String)]
         Ok(child) => child,
         Err(_) => return Ok(Json::Object(vec![("code".into(), Json::Int(127))])),
     };
-    let out_pipe = child.stdout.take().unwrap();
-    let err_pipe = child.stderr.take().unwrap();
-    fn reader(mut pipe: Box<dyn Read + Send>) -> std::thread::JoinHandle<(Vec<u8>, bool)> {
-        std::thread::spawn(move || {
-            let mut buf = Vec::new();
-            let mut chunk = [0u8; 4096];
-            let mut overflow = false;
-            loop {
-                match pipe.read(&mut chunk) {
-                    Ok(0) | Err(_) => break,
-                    Ok(n) => {
-                        buf.extend_from_slice(&chunk[..n]);
-                        if buf.len() >= FILE_MAX_SIZE as usize {
-                            overflow = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            (buf, overflow)
-        })
+    let mut out = Pipe::new(fs::File::from(OwnedFd::from(child.stdout.take().unwrap())));
+    let mut err = Pipe::new(fs::File::from(OwnedFd::from(child.stderr.take().unwrap())));
+    let deadline = Instant::now() + Duration::from_millis(timeout_ms.max(0) as u64);
+    // exec.c drives both pipes from uloop and replies as soon as the direct
+    // child exits (rpc_exec_process_cb: one last ustream_poll, then close) or
+    // the timeout fires (rpc_exec_timeout_cb: SIGKILL, reply with whatever is
+    // buffered). It never waits for a descendant that inherited the pipes --
+    // and neither may we: `file exec` runs on the rpcd main loop, so blocking
+    // on a daemonising command would stall every other request and timer.
+    let mut exited = None;
+    let mut timed_out = false;
+    while out.open || err.open {
+        if let Ok(Some(st)) = child.try_wait() {
+            exited = Some(st);
+            break;
+        }
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            timed_out = true;
+            break;
+        }
+        let wait_ms = remaining.as_millis().min(EXEC_TICK_MS as u128) as i32;
+        poll_pipes(&mut out, &mut err, wait_ms);
     }
-    let out_t = reader(Box::new(out_pipe));
-    let err_t = reader(Box::new(err_pipe));
-    let code = match crate::procwait::wait(&mut child, Duration::from_millis(timeout_ms as u64)) {
-        Ok(crate::procwait::Outcome::Exited(st)) => Ok(st),
-        Ok(crate::procwait::Outcome::TimedOut) => Err(status::TIMEOUT),
-        Err(_) => Err(status::UNKNOWN_ERROR),
+    // Both pipes at EOF does not mean the child is gone; procwait bounds that
+    // wait and SIGKILLs on expiry. A zero budget (we already timed out) kills
+    // right away.
+    let code = match exited {
+        Some(st) => Ok(st),
+        None => match crate::procwait::wait(&mut child, deadline.saturating_duration_since(Instant::now())) {
+            Ok(crate::procwait::Outcome::Exited(st)) => Ok(st),
+            Ok(crate::procwait::Outcome::TimedOut) => {
+                timed_out = true;
+                Err(status::TIMEOUT)
+            }
+            Err(_) => Err(status::UNKNOWN_ERROR),
+        },
     };
-    let (stdout, o_over) = out_t.join().unwrap_or((Vec::new(), false));
-    let (stderr, e_over) = err_t.join().unwrap_or((Vec::new(), false));
+    // ustream_poll() before the reply: take what is already in the pipes.
+    while poll_pipes(&mut out, &mut err, 0) {}
+    let code = if timed_out { Err(status::TIMEOUT) } else { code };
     let st = code?;
-    if o_over || e_over {
+    if out.overflow || err.overflow {
         return Err(status::NOT_SUPPORTED);
     }
     // rpc_file_exec_write emits WEXITSTATUS(stat): the exit code for a normal
     // exit, and 0 when the child was killed by a signal (st.code() is None).
     let exit_code = st.code().unwrap_or(0) as u32 & 0xff;
     let mut o = vec![("code".into(), Json::Int(exit_code as i64))];
-    if !stdout.is_empty() {
-        o.push(("stdout".into(), Json::Str(String::from_utf8_lossy(&stdout).into_owned())));
+    if !out.data.is_empty() {
+        o.push(("stdout".into(), Json::Str(String::from_utf8_lossy(&out.data).into_owned())));
     }
-    if !stderr.is_empty() {
-        o.push(("stderr".into(), Json::Str(String::from_utf8_lossy(&stderr).into_owned())));
+    if !err.data.is_empty() {
+        o.push(("stderr".into(), Json::Str(String::from_utf8_lossy(&err.data).into_owned())));
     }
     Ok(Json::Object(o))
+}
+
+/// How long a poll(2) round may block before we re-check whether the direct
+/// child exited; only reached when a descendant holds a pipe open.
+const EXEC_TICK_MS: u64 = 50;
+
+/// One capture pipe: `open` clears at EOF, on error, or once the 256 KiB cap
+/// (`FILE_MAX_SIZE`, -> NOT_SUPPORTED) is hit.
+struct Pipe {
+    file: fs::File,
+    data: Vec<u8>,
+    open: bool,
+    overflow: bool,
+}
+
+impl Pipe {
+    fn new(file: fs::File) -> Self {
+        Pipe { file, data: Vec::new(), open: true, overflow: false }
+    }
+
+    /// One bounded read; poll(2) already said the fd is ready, so it cannot block.
+    fn read_ready(&mut self) {
+        let mut chunk = [0u8; 4096];
+        match self.file.read(&mut chunk) {
+            Ok(0) => self.open = false,
+            Ok(n) => {
+                self.data.extend_from_slice(&chunk[..n]);
+                if self.data.len() >= FILE_MAX_SIZE as usize {
+                    self.overflow = true;
+                    self.open = false;
+                }
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
+            Err(_) => self.open = false,
+        }
+    }
+}
+
+/// Poll the still-open pipes and read the ready ones. Returns whether anything
+/// was ready, so a 0 ms drain can loop until the pipes are quiet.
+fn poll_pipes(out: &mut Pipe, err: &mut Pipe, timeout_ms: i32) -> bool {
+    let (out_polled, err_polled) = (out.open, err.open);
+    let mut fds: Vec<PollFd> = Vec::with_capacity(2);
+    for pipe in [&*out, &*err] {
+        if pipe.open {
+            fds.push(PollFd { fd: pipe.file.as_raw_fd(), events: POLLIN, revents: 0 });
+        }
+    }
+    if fds.is_empty() || poll_fds(&mut fds, timeout_ms).unwrap_or(0) == 0 {
+        return false;
+    }
+    let mut i = 0;
+    if out_polled {
+        if fds[i].revents != 0 {
+            out.read_ready();
+        }
+        i += 1;
+    }
+    if err_polled && fds[i].revents != 0 {
+        err.read_ready();
+    }
+    true
 }
 
 /// Dispatch one `file` method.
@@ -369,5 +443,41 @@ pub fn call(ctx: &Ctx, method: &str, args: &Json) -> Result<Option<Json>, i32> {
         "remove" => remove(ctx, args),
         "exec" => exec(ctx, args),
         _ => Err(status::METHOD_NOT_FOUND),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::run_command;
+    use owrt_ubus::status;
+    use std::time::Instant;
+
+    fn sh(script: &str, timeout_ms: i32) -> (Result<crate::Json, i32>, u128) {
+        let started = Instant::now();
+        let r = run_command("/bin/sh", &["-c".into(), script.into()], &[], timeout_ms);
+        (r, started.elapsed().as_millis())
+    }
+
+    /// exec.c replies when the *direct* child exits; a descendant that
+    /// inherited stdout/stderr must not hold the rpcd main loop hostage.
+    #[test]
+    fn descendant_holding_the_pipes_does_not_extend_the_call() {
+        let (r, ms) = sh("sleep 5 & exit 0", 200);
+        assert!(r.is_ok(), "expected a normal reply, got {r:?}");
+        assert!(ms < 1000, "took {ms} ms, should return with the direct child");
+
+        let (r, ms) = sh("sleep 5 & wait", 200);
+        assert_eq!(r.unwrap_err(), status::TIMEOUT);
+        assert!(ms < 1000, "took {ms} ms, should return at the timeout");
+    }
+
+    #[test]
+    fn output_and_exit_code_still_come_back() {
+        let (r, _) = sh("printf out; printf err >&2; exit 3", 5000);
+        let Ok(crate::Json::Object(o)) = r else { panic!("unexpected reply: {r:?}") };
+        let get = |k: &str| o.iter().find(|(n, _)| n == k).map(|(_, v)| v.clone());
+        assert!(matches!(get("code"), Some(crate::Json::Int(3))));
+        assert!(matches!(get("stdout"), Some(crate::Json::Str(ref s)) if s == "out"));
+        assert!(matches!(get("stderr"), Some(crate::Json::Str(ref s)) if s == "err"));
     }
 }
