@@ -50,12 +50,14 @@ build)
 	cp "$REPO"/components/ubus/src/*.rs "$src/ubus/src/"
 
 	tc=$(ls -d "$SDK"/staging_dir/toolchain-*/bin | head -1)
-	CC=$(ls "$tc"/*-openwrt-linux-musl-gcc | head -1)
-	AR=$(ls "$tc"/*-openwrt-linux-musl-ar | head -1)
-	# TARGET_LINKER is a linker *name* for -fuse-ld (mold when the SDK enables
-	# it, empty otherwise) -- not a path. The recipe passes the flag even when
-	# empty, so pass it the same way: the goal is to reproduce that build.
-	LD=${TARGET_LINKER-$(grep -q "^CONFIG_USE_MOLD=y" "$SDK/.config" 2>/dev/null && echo mold || echo "")}
+	# The recipe passes bare tool names and lets the SDK's PATH resolve them.
+	PATH=$tc:$PATH
+	export PATH
+	CC=$(basename "$(ls "$tc"/*-openwrt-linux-musl-gcc | head -1)")
+	AR=$(basename "$(ls "$tc"/*-openwrt-linux-musl-ar | head -1)")
+	# -fuse-ld takes a linker *name*, not a path. Taken from the real build log
+	# of this SDK rather than re-derived: `grep -o "fuse-ld=[^ ]*"` shows bfd.
+	LD=${TARGET_LINKER:-bfd}
 	CARGO=${CARGO:-"env RUSTUP_TOOLCHAIN=$PIN cargo"}
 	CARGO_HOME_DIR=${CARGO_HOME:-$HOME/.cargo}
 
