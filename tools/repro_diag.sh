@@ -264,6 +264,15 @@ fn main() {
     println!("{}", mix(seed, 1000));
 }
 EOF
+	# No dependencies at all, so the lockfile is a fixed two-line constant
+	# rather than something resolved differently per host.
+	cat > "$src/Cargo.lock" <<'EOF'
+version = 3
+
+[[package]]
+name = "repro-min"
+version = "0.1.0"
+EOF
 	tc=$(ls -d "$SDK"/staging_dir/toolchain-*/bin | head -1)
 	PATH=$tc:$PATH
 	export PATH
