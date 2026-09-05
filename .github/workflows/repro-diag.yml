@@ -17,6 +17,9 @@ on:
       mode:
         description: "build (full httpd) or minimal (dependency-free fixture)"
         default: "build"
+      min_build_script:
+        description: "0 or 1 -- add a no-op build script to the minimal fixture"
+        default: "0"
 
 jobs:
   diag:
@@ -52,11 +55,12 @@ jobs:
         env:
           REPRO_CC_MAP: ${{ github.event.inputs.cc_map || 'none' }}
           REPRO_RUSTC_MAP: ${{ github.event.inputs.rustc_map || 'none' }}
+          REPRO_MIN_BUILD_SCRIPT: ${{ github.event.inputs.min_build_script || '0' }}
         run: sh tools/repro_diag.sh "${{ github.event.inputs.mode || 'build' }}" "$GITHUB_WORKSPACE/work"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: repro-diag-ci-${{ github.event.inputs.mode || 'build' }}-cc${{ github.event.inputs.cc_map || 'none' }}-rustc${{ github.event.inputs.rustc_map || 'none' }}-${{ github.sha }}
+          name: repro-diag-ci-${{ github.event.inputs.mode || 'build' }}-cc${{ github.event.inputs.cc_map || 'none' }}-rustc${{ github.event.inputs.rustc_map || 'none' }}-bs${{ github.event.inputs.min_build_script || '0' }}-${{ github.sha }}
           path: |
             work/diag/**
             work/minimal/**

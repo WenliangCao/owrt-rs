@@ -13,6 +13,13 @@
 # the same profile and linker flags as the real thing. If its binary differs
 # across hosts, nothing downstream needs explaining.
 #
+# REPRO_MIN_BUILD_SCRIPT=1 adds one thing to that fixture: a build script that
+# does nothing. It emits no flags, no generated code and no link inputs, so the
+# only thing it can change is Cargo's unit hashing -- a build script is compiled
+# for the HOST, and its unit metadata therefore carries the host triple into
+# -C metadata for the library that owns it. Whether the binary changes is the
+# whole question.
+#
 # REPRO_RUSTC_MAP=target_dir adds exactly one factor on the rustc side:
 #   --remap-path-prefix=<this host's diagnostic target dir>=/target
 # The recipe already remaps the source dir and CARGO_HOME but not this one, and
@@ -228,6 +235,13 @@ panic = "abort"
 strip = true
 EOF
 	# Enough code to exercise the optimiser and LTO without any dependency.
+	if [ "${REPRO_MIN_BUILD_SCRIPT:-0}" = 1 ]; then
+		cat > "$src/build.rs" <<'EOF'
+// Deliberately does nothing: emits no cfg, no flags, no generated source and
+// no link inputs. Its only effect is on how Cargo hashes this crate's unit.
+fn main() {}
+EOF
+	fi
 	cat > "$src/src/main.rs" <<'EOF'
 //! Dependency-free fixture for the cross-host codegen question. No C, no
 //! assembly, no build script, no registry crate: whatever differs here is
@@ -299,8 +313,10 @@ EOF
 		echo "rustc_path=${real_rustc:-<none>}"
 		[ -n "$real_rustc" ] && echo "rustc=$("$real_rustc" -vV | tr '\n' ';')"
 		echo "host_uname=$(uname -m)"
+		echo "build_script=${REPRO_MIN_BUILD_SCRIPT:-0}"
 		echo "src=$src"
 		echo "target_dir=$OUT/target"
+		echo "metadata_hashes=$(grep -oE "CARGO_CRATE_NAME=[a-z_0-9]+ .*-C metadata=[0-9a-f]+" "$OUT/cargo-vv.log" | sed -E "s/CARGO_CRATE_NAME=([a-z_0-9]+).*-C metadata=([0-9a-f]+)/\1:\2/" | sort -u | tr "\n" " ")"
 	} > "$OUT/collect/tools.txt"
 	( cd "$OUT/collect" && find . -type f | sort | xargs sha256sum ) > "$OUT/collect-sha256.txt"
 	cat "$OUT/collect-sha256.txt"
