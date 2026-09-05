@@ -11,13 +11,16 @@
 
 ## 流水线（`tools/release.sh`，通过根 `Makefile` 调用）
 
+> **正式发布产物由 `release-image` GitHub Actions workflow 生成**（决策 0018）。
+> 下面这条构建主机流水线保留给第 1、2 步的差分回归和跨宿主对照；第 3、4 步的产物不作为发布物。
+
 | 步 | 命令 | 做什么 |
 |---|---|---|
 | 0 | `sh tools/release.sh fetch <ver>` | 在构建机下载该版本的 SDK 与 ImageBuilder，按官方 `sha256sums` 校验并解包 |
 | 1 | （手工）IMAGE_INTAKE | 从新版官方 sysupgrade 镜像提取 rootfs 到构建机（`reports/.../IMAGE_INTAKE.md` 的流程），作为差分沙箱 |
 | 2 | 差分回归 | 用新 rootfs 重跑 harness：r09（fw4 print 逐字节）、r13/r17/r18/r19（rpcd 对象）、r16（uci）、r15/r21（logd）、r14（httpd）、r1（reload_config）。任何差异先修代码 |
-| 3 | `make apk VERSION=<ver>` | 新 SDK 构建七个 owrt-\* 包（`V1_PACKAGE_RELEASE` 按需递增） |
-| 4 | `make image VERSION=<ver>` | ImageBuilder 生成 `xiaomi_mi-router-ax3000t` 的 sysupgrade 镜像 |
+| 3 | `make apk VERSION=<ver>` | 新 SDK 构建七个 owrt-\* 包（`V1_PACKAGE_RELEASE` 按需递增）。**非 canonical**，见决策 0018 |
+| 4 | `make image VERSION=<ver>` | ImageBuilder 生成 `xiaomi_mi-router-ax3000t` 的 sysupgrade 镜像。**非 canonical** |
 | 5 | 离线验证 | 从生成的镜像提取 rootfs，确认七个包、六个标记、三个 disabled 服务都在；再跑一次 harness |
 | 6 | 刷写 | 见下一节 |
 
@@ -37,8 +40,8 @@
 1. 下载该版本官方 SDK 与 ImageBuilder，按官方 `sha256sums` 校验（下载缓存按版本键）；
 2. Rust 1.98.1 + `aarch64-unknown-linux-musl`（版本只写在根 `rust-toolchain.toml`，CI、`tools/release.sh`、`tools/ci_build_image.sh` 都从那里读；`make check-toolchain` 校验七个 crate 的 `rust-version` 与它一致），用 SDK 的 `make package/owrt-*/compile` 构建七个 apk（`PKG_RELEASE` 默认值现在写在各包 Makefile 里，与设备现役一致；`V1_PACKAGE_RELEASE` 可覆盖）；
 3. ImageBuilder 生成 `xiaomi_mi-router-ax3000t` sysupgrade 镜像，软件包清单来自仓库里的 `packaging/image/packages-<ver>.txt`（设备 `apk info` 的快照，170 个）；
-4. 离线验证：解开 sysupgrade tar 与 root squashfs，确认七个包、六个 `boot-enable` 标记、三个被禁用的服务、六个二进制、本地 apk 公钥；
-5. 产物（apk、镜像、`SHA256SUMS`、`manifest.json`、构建日志）作为 workflow artifact 保留 90 天；推 `v*` 标签时另建 GitHub Release 并附上同一批文件。
+4. 离线验证：解开 sysupgrade tar 与 root squashfs，确认七个包、六个 `boot-enable` 标记、三个被禁用的服务、六个二进制、本地 apk 公钥，并 sha256 这六个发货二进制（`binary-sha256.txt`）；
+5. 产物（apk、镜像、`SHA256SUMS`、`binary-sha256.txt`、`manifest.json`、构建日志）作为 workflow artifact 保留 90 天；推 `v*` 标签时另建 GitHub Release 并附上同一批文件。
 
 触发：Actions 页面 "Run workflow"（可填 OpenWrt 版本），或 `gh workflow run release-image.yml -f openwrt_version=25.12.5`，或 `git tag v0.5.0 && git push --tags`。
 支持新版本只需要：把新版设备的 `apk info` 存为 `packaging/image/packages-<ver>.txt`，并先在构建机上用新 rootfs 跑完第 2 步的差分回归（这一步仍在构建机，CI 不做）。
@@ -46,11 +49,25 @@
 首次成功运行：`actions/runs/33810286174`（2026-09-03 21:53Z，整个 job 约 6 分钟，其中构建步骤 4 分 43 秒）：七个 apk（uci r5、reload-config r5、logd r5、httpd r3、fw4 r5、rpcd r9、switch r2）+
 `openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin`（11 643 168 B，sha256 `ba28ef40…a0a2`），内容检查通过。
 
-可复现性：打包 Makefile 的 RUSTFLAGS 带 `--remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo`，
+### 可复现性与 canonical builder（决策 0018）
+
+打包 Makefile 的 RUSTFLAGS 带 `--remap-path-prefix=$(PKG_BUILD_DIR)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo`，
 去掉二进制里的构建路径；并且 cargo 在 `/tmp/owrt-build/<pkg>` 这个固定路径下构建（cargo 把 path 依赖的绝对路径算进 crate 元数据哈希，
-进而进符号名，所以仅 remap 不够）。验证（run `33811595718`，2026-09-03 22:0xZ，镜像 sha256 `a302bd5f…`）：**uci、fw4、reload-config、
-logd、rpcd 五个二进制 CI 与构建机逐字节相同**；httpd-rs 仍不同（1.48 MB 里 81 万字节位置不同、大小相同、无路径串——来自 ring 的 C/汇编
-由 `cc` crate 编译链接的顺序，待查），是唯一的可复现性缺口。
+进而进符号名，所以仅 remap 不够）。验证（run `33811595718`）：**uci、fw4、reload-config、logd、rpcd 五个二进制 CI 与构建机逐字节相同**。
+
+`httpd-rs` 跨宿主不一致，根因已查清（[R35_RING_INVESTIGATION](reviews/R35_RING_INVESTIGATION.md)，E0–E8 八组实验）：
+cargo 把宿主三元组算进「依赖图经过 build script 的 crate」的 `-C metadata`（libc / ring / rustls 及其下游），
+该值进 `StableCrateId` → v0 符号消歧串 → LTO 位码 → 最终布局。只有 httpd 链接 ring/rustls，所以只有它受影响。
+E8 单变量实测闭环：同一宿主只改 `-C metadata` → 三个不同的发货二进制。
+
+这**不是**配方能修的：`-ffile-prefix-map`（E1）、`--remap-path-prefix`（E2）、ar/链接顺序（E0）都已被实验证伪。
+两个二进制语义等价——总大小、section 表、program header 完全相同，`.text` 261898 条指令、助记符直方图逐项一致，
+`.gcc_except_table` 逐字节相同，CI 产物 r14 差分 38/38 全过。
+
+**因此正式发布固定在 CI：`release-image` workflow 是 canonical builder，构建主机只做差分回归与对照。**
+每次构建把六个发货二进制的 sha256 写进 `binary-sha256.txt` 与 `manifest.json` 的 `binary_sha256`（APK 与镜像哈希
+还覆盖打包元数据，二进制哈希才是真正跑起来的代码）。核验方法：同一 commit 跑两次 `release-image`，
+两份 `binary-sha256.txt` 六行应完全相同。
 
 **刷写仍是手工步骤**，见下一节。
 

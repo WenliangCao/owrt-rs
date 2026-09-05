@@ -63,7 +63,7 @@ jobs:
 
       - name: summary
         run: |
-          { echo '### owrt-control-plane-rs image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/out/SHA256SUMS; echo '```'; echo; echo '```json'; cat work/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          { echo '### owrt-control-plane-rs image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -72,6 +72,7 @@ jobs:
             work/out/*.apk
             work/out/*-sysupgrade.bin
             work/out/SHA256SUMS
+            work/out/binary-sha256.txt
             work/out/manifest.json
             work/out/*.log
           if-no-files-found: error
@@ -84,4 +85,4 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME} (OpenWrt ${OPENWRT_VERSION})" \
             --notes "Built by release-image from ${GITHUB_SHA}. Not flashed; see docs/RELEASE.md." \
-            work/out/*.apk work/out/*-sysupgrade.bin work/out/SHA256SUMS work/out/manifest.json
+            work/out/*.apk work/out/*-sysupgrade.bin work/out/SHA256SUMS work/out/binary-sha256.txt work/out/manifest.json

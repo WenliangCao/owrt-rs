@@ -105,6 +105,13 @@ if [ -n "$UNSQ" ]; then
 	ls rootfs/etc/rc.d/ | grep -E "owrt" | tr "\n" " "; echo
 	[ $fail = 0 ] && echo "image content OK: 7 packages, 6 markers, 3 services disabled, local key present"
 	[ $fail = 0 ] || exit 1
+	# Provenance anchor: hash the shipped binaries themselves. APK and image
+	# hashes also cover packaging metadata; these six are the code that runs.
+	# Reproducible only on the canonical builder (decision 0018) -- cargo hashes
+	# the host triple into build-script crates' -C metadata, which reaches symbol
+	# names and therefore the layout of anything linking ring/rustls.
+	(cd rootfs/usr/sbin && sha256sum uci-rs fw4-rs reload_config_rs logd-rs httpd-rs rpcd-rs) > "$OUT/binary-sha256.txt"
+	cat "$OUT/binary-sha256.txt"
 else
 	echo "unsquashfs not available; content check skipped"
 fi
@@ -123,6 +130,10 @@ python3 - "$ver" "$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo unknown)" 
 import json, os, sys, hashlib, re
 ver, commit, rustc_id, cargo_id, gcc_id, lockhash, toolchain, official, override = sys.argv[1:10]
 sums = dict(line.split()[::-1] for line in open("SHA256SUMS") if line.strip())
+# the six shipped binaries, when the rootfs could be unpacked (see decision 0018)
+binsums = {}
+if os.path.exists("binary-sha256.txt"):
+    binsums = {n: h for h, n in (l.split() for l in open("binary-sha256.txt") if l.strip())}
 pkgs = {}
 for f in sorted(sums):
     m = re.match(r"(owrt-[a-z-]+)-(\d+\.\d+\.\d+-r\d+)\.apk$", f)
@@ -132,6 +143,7 @@ img = [f for f in sums if f.endswith("-sysupgrade.bin")][0]
 json.dump({"openwrt": ver, "profile": "xiaomi_mi-router-ax3000t", "source_commit": commit,
            "packages": pkgs, "image": {"file": img, "size": os.path.getsize(img), "sha256": sums[img]},
            "apk_sha256": {f: s for f, s in sums.items() if f.endswith(".apk")},
+           "binary_sha256": binsums,
            "imagebuilder_args": {"DISABLED_SERVICES": "rpcd uhttpd log", "ADD_LOCAL_KEY": 1,
                                  "FILES": "etc/owrt-{uci,reload-config,logd,httpd,fw4,rpcd}.boot-enable"},
            "toolchain": {"requested": toolchain, "rustc": rustc_id.strip("; "),

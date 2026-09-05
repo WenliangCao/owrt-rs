@@ -4,6 +4,14 @@
 #   release.sh image <version>   build a xiaomi_mi-router-ax3000t sysupgrade image that
 #                                contains them (ImageBuilder), packages list = the device's
 #   release.sh fetch <version>   download + verify SDK and ImageBuilder on the build host
+#
+# NOT the canonical release path since decision 0018: the canonical builder is
+# the `release-image` GitHub Actions workflow. Binaries built here are correct
+# and pass the differential harnesses, but they are byte-different from the
+# canonical ones -- cargo hashes the host triple into the -C metadata of every
+# crate whose unit graph touches a build script (libc, ring, rustls and their
+# dependents), which reaches v0 symbol names and therefore the final layout.
+# Use `apk`/`image` here for differential regression and comparison only.
 # Everything heavy runs on the build host ($BUILD_HOST, ssh alias). Nothing here
 # touches the router except `image`, which reads `apk info` for the package list
 # when PKGLIST is not given.
@@ -43,6 +51,8 @@ sync_sources() {
 }
 
 apk() {
+	echo "NOTE: build-host output is not canonical (decision 0018); the release" >&2
+	echo "      builder is the release-image workflow. This is for regression use." >&2
 	# Bare version number, not a full toolchain name: the build host picks its
 	# own host triple. The package recipes build outside the repo, so the
 	# version has to travel explicitly rather than via rust-toolchain.toml.
