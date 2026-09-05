@@ -9,7 +9,10 @@ on:
       openwrt_version:
         default: "25.12.5"
       cc_map:
-        description: "none (baseline) or cargo_home (the single experimental factor)"
+        description: "none or cargo_home (E1's single factor, target CC)"
+        default: "none"
+      rustc_map:
+        description: "none or target_dir (E2's single factor, rustc)"
         default: "none"
 
 jobs:
@@ -45,9 +48,10 @@ jobs:
       - name: diagnostic build
         env:
           REPRO_CC_MAP: ${{ github.event.inputs.cc_map || 'none' }}
+          REPRO_RUSTC_MAP: ${{ github.event.inputs.rustc_map || 'none' }}
         run: sh tools/repro_diag.sh build "$GITHUB_WORKSPACE/work"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: repro-diag-ci-${{ github.event.inputs.cc_map || 'none' }}-${{ github.sha }}
+          name: repro-diag-ci-cc${{ github.event.inputs.cc_map || 'none' }}-rustc${{ github.event.inputs.rustc_map || 'none' }}-${{ github.sha }}
           path: work/diag/**

@@ -6,6 +6,11 @@
 #   repro_diag.sh fetch <workdir>   download + unpack the SDK
 #   repro_diag.sh build <workdir>   build and collect into <workdir>/diag
 #
+# REPRO_RUSTC_MAP=target_dir adds exactly one factor on the rustc side:
+#   --remap-path-prefix=<this host's diagnostic target dir>=/target
+# The recipe already remaps the source dir and CARGO_HOME but not this one, and
+# it differs greatly in length between hosts.
+#
 # REPRO_CC_MAP=cargo_home adds exactly one factor to the diagnostic build:
 #   -ffile-prefix-map=<this host's CARGO_HOME>=/cargo
 # on the *target* C compiler. Nothing else changes -- not the source path, not
@@ -79,6 +84,12 @@ build)
 	# The one experimental factor, off unless asked for. cc appends the
 	# target-prefixed CFLAGS to the flags it computes, so this is additive --
 	# verified afterwards from collect/cc-commands.txt, not assumed.
+	case "${REPRO_RUSTC_MAP:-none}" in
+	target_dir) rustc_extra=" --remap-path-prefix=$OUT/target=/target" ;;
+	none)       rustc_extra="" ;;
+	*)          echo "unknown REPRO_RUSTC_MAP=$REPRO_RUSTC_MAP" >&2; exit 1 ;;
+	esac
+
 	case "${REPRO_CC_MAP:-none}" in
 	cargo_home) cc_extra="-ffile-prefix-map=$CARGO_HOME_DIR=/cargo" ;;
 	none)       cc_extra="" ;;
@@ -94,7 +105,7 @@ build)
 		CC_aarch64_unknown_linux_musl="$CC" \
 		AR_aarch64_unknown_linux_musl="$AR" \
 		CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$CC" \
-		RUSTFLAGS="--remap-path-prefix=$src=/build --remap-path-prefix=$CARGO_HOME_DIR=/cargo -Clink-arg=-fuse-ld=$LD -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+		RUSTFLAGS="--remap-path-prefix=$src=/build --remap-path-prefix=$CARGO_HOME_DIR=/cargo -Clink-arg=-fuse-ld=$LD -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs$rustc_extra" \
 		$CARGO build --release --locked -vv \
 		--manifest-path "$src/httpd/Cargo.toml" --target-dir "$OUT/target" > "$OUT/cargo-vv.log" 2>&1
 	rc=$?
@@ -162,6 +173,9 @@ build)
 		done
 		echo "cargo_home=$CARGO_HOME_DIR"
 		echo "repro_cc_map=${REPRO_CC_MAP:-none}"
+		echo "repro_rustc_map=${REPRO_RUSTC_MAP:-none}"
+		echo "rustc_extra_flags=${rustc_extra:-<none>}"
+		echo "target_dir=$OUT/target"
 		echo "cc_extra_flags=${cc_extra:-<none>}"
 		echo "umask=$(umask)"; echo "TZ=${TZ:-unset}"; echo "LC_ALL=${LC_ALL:-unset}"
 		echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-unset}"
