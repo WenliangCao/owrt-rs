@@ -28,6 +28,17 @@ printf 'Status: 403 Forbidden\\r\\nContent-Type: text/plain\\r\\n\\r\\nrejected\
 """
 
 
+def cpu_ms(pid):
+    """Process CPU time. /proc on Linux, ps elsewhere."""
+    stat = pathlib.Path(f'/proc/{pid}/stat')
+    if stat.exists():
+        d = stat.read_text().split()
+        return (int(d[13]) + int(d[14])) * 10
+    out = subprocess.run(['ps', '-o', 'time=', '-p', str(pid)], capture_output=True, text=True).stdout.strip()
+    m, sec = out.split(':')[-2:]
+    return int(float(m) * 60000 + float(sec) * 1000)
+
+
 def rss_kib(pid):
     out = subprocess.run(['ps', '-o', 'rss=', '-p', str(pid)], capture_output=True, text=True).stdout
     return int(out.strip() or 0)
@@ -214,6 +225,25 @@ def main():
                     ok = want in line and took < limit
                     results[f'stalled upload -> /cgi-bin/{path}'] = (
                         'ok' if ok else f'got {line or "EMPTY"} after {took:.3f}s')
+                # Several idle uploads at once: waiting must cost almost no CPU.
+                # Registering stdin for POLLOUT with nothing to write used to
+                # spin, burning ~1 core per stalled connection.
+                before, t0 = cpu_ms(srv2.pid), time.monotonic()
+                idle = []
+                for _ in range(3):
+                    s = socket.create_connection(('127.0.0.1', port2), timeout=30)
+                    s.sendall(b'POST /cgi-bin/sink HTTP/1.0\r\nContent-Length: 100\r\n\r\n')
+                    idle.append(s)
+                for s in idle:
+                    try:
+                        s.recv(200)
+                    except OSError:
+                        pass
+                    s.close()
+                wall = time.monotonic() - t0
+                cpu = (cpu_ms(srv2.pid) - before) / 1000
+                results['3 stalled uploads: cpu/wall'] = (
+                    'ok' if cpu < wall * 0.25 else f'{cpu:.3f}s cpu over {wall:.3f}s wall (busy-wait)')
             finally:
                 srv2.terminate()
                 srv2.wait(timeout=10)

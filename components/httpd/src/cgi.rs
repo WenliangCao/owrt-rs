@@ -190,8 +190,32 @@ pub fn run<W: Sink, R: io::BufRead>(
         // Read the script only while the response window has room: that is the
         // back-pressure path from a slow client all the way to the script.
         let want_stdout = !relay_eof && resp.sink().pending() < OUT_WINDOW;
-        // Pull more body only when the script's stdin has somewhere to put it.
-        let want_body = stdin.is_some() && stage_pos == staged && !body_failed;
+        // Refill the stage before choosing what to wait on. Doing it here also
+        // consumes what BufReader (or rustls) already holds, which no socket
+        // event would ever announce.
+        if stdin.is_some() && stage_pos == staged && !body_failed {
+            stage_pos = 0;
+            staged = 0;
+            match body.read(&mut stage) {
+                // whole body delivered: closing stdin is the script's EOF
+                Ok(0) => stdin = None,
+                Ok(got) => staged = got,
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {}
+                Err(_) => {
+                    // truncated or malformed upload: the script sees EOF and
+                    // decides, but the connection is no longer reusable
+                    body_failed = true;
+                    stdin = None;
+                }
+            }
+        }
+        let have_staged = stage_pos < staged;
+        // Waiting for stdin to be writable when we have nothing to write spins:
+        // a pipe with room is always writable, so poll returns at once and the
+        // loop burns a core until the deadline. Register it for writability
+        // only with bytes in hand; otherwise keep it in the set with no events
+        // so HUP/ERR still arrive, and wait on the client instead.
+        let want_body = stdin.is_some() && !have_staged && !body_failed;
         let want_write = resp.sink().pending() > 0;
         let mut fds = [PollFd { fd: -1, events: 0, revents: 0 }; 4];
         let mut slot = [usize::MAX; 4];
@@ -205,7 +229,8 @@ pub fn run<W: Sink, R: io::BufRead>(
             add(stdout.as_raw_fd(), POLLIN, OUT_PIPE, &mut fds, &mut slot, &mut n);
         }
         if let Some(f) = &stdin {
-            add(f.as_raw_fd(), POLLOUT, IN_PIPE, &mut fds, &mut slot, &mut n);
+            let events = if have_staged { POLLOUT } else { 0 };
+            add(f.as_raw_fd(), events, IN_PIPE, &mut fds, &mut slot, &mut n);
         }
         if want_body || want_write {
             let events = (if want_body { POLLIN } else { 0 }) | (if want_write { POLLOUT } else { 0 });
@@ -247,31 +272,16 @@ pub fn run<W: Sink, R: io::BufRead>(
         if client_ready & POLLOUT != 0 && resp.sink().drain_ready().is_err() {
             break;
         }
-        // Feed stdin. A pull that would block just leaves the stage empty.
-        if stdin.is_some() && fds[..n].iter().any(|f| f.fd == stdin.as_ref().map_or(-1, |s| s.as_raw_fd()) && f.revents & POLLOUT != 0) {
-            if stage_pos == staged && !body_failed {
-                stage_pos = 0;
-                staged = 0;
-                match body.read(&mut stage) {
-                    Ok(0) => {
-                        // whole body delivered: closing stdin is the script's EOF
-                        stdin = None;
-                    }
-                    Ok(got) => staged = got,
-                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => {}
-                    Err(_) => {
-                        // truncated or malformed upload: the script sees EOF and
-                        // decides, but the connection is no longer reusable
-                        body_failed = true;
-                        stdin = None;
-                    }
-                }
-            }
-            if staged > stage_pos {
-                match stdin.as_mut().expect("checked").write(&stage[stage_pos..staged]) {
-                    Ok(0) | Err(_) => stdin = None,
-                    Ok(w) => stage_pos += w,
-                }
+        // Feed stdin with what the refill above staged.
+        if have_staged
+            && stdin.is_some()
+            && fds[..n].iter().any(|f| {
+                f.fd == stdin.as_ref().map_or(-1, |s| s.as_raw_fd()) && f.revents & POLLOUT != 0
+            })
+        {
+            match stdin.as_mut().expect("checked").write(&stage[stage_pos..staged]) {
+                Ok(0) | Err(_) => stdin = None,
+                Ok(w) => stage_pos += w,
             }
         }
         // Consume the script's output. This happens in the same round as the

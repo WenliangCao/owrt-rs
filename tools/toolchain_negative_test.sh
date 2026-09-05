@@ -19,23 +19,42 @@ expect() { # expect <want-exit> <name> <cmd...>
 }
 
 pin=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
-old=$(rustup toolchain list 2>/dev/null | sed 's/ .*//' | grep -v "^$pin" | grep -E '^[0-9]' | head -1 || true)
+
+# Absolute paths to a second, known-different compiler. Do NOT switch versions
+# with RUSTUP_TOOLCHAIN here: that only works when the entry point is a rustup
+# proxy, and PATH may point straight at one toolchain's own cargo.
+old=$(rustup toolchain list 2>/dev/null | sed 's/ .*//' | grep -E '^[0-9]' | grep -v "^$pin" | head -1 || true)
+old_rustc=; old_cargo=
+if [ -n "$old" ]; then
+	old_rustc=$(rustup which --toolchain "$old" rustc 2>/dev/null || true)
+	old_cargo=$(rustup which --toolchain "$old" cargo 2>/dev/null || true)
+	[ -x "$old_rustc" ] || old_rustc=
+	[ -x "$old_cargo" ] || old_cargo=
+fi
 
 expect 0 "pinned toolchain accepted" sh tools/toolchain_identity.sh
 expect 0 "CARGO pinned to the same version accepted" \
 	env CARGO="env RUSTUP_TOOLCHAIN=$pin cargo" sh tools/toolchain_identity.sh
-expect 1 "RUSTC_WRAPPER refused" env RUSTC_WRAPPER=/usr/bin/true sh tools/toolchain_identity.sh
-expect 0 "RUSTC_WRAPPER allowed when explicitly unofficial" \
-	env OWRT_ALLOW_TOOLCHAIN_OVERRIDE=1 RUSTC_WRAPPER=/usr/bin/true sh tools/toolchain_identity.sh
 expect 1 "RUSTC pointing at a missing binary refused" \
 	env RUSTC=/nonexistent/rustc sh tools/toolchain_identity.sh
+for v in RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER CARGO_BUILD_RUSTC_WRAPPER CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER; do
+	expect 1 "$v refused" env "$v=/usr/bin/true" sh tools/toolchain_identity.sh
+done
+expect 0 "wrapper allowed when explicitly unofficial" \
+	env OWRT_ALLOW_TOOLCHAIN_OVERRIDE=1 RUSTC_WRAPPER=/usr/bin/true sh tools/toolchain_identity.sh
+expect 1 "cargo --config override refused" \
+	env CARGO="cargo --config build.rustc=\"/usr/bin/true\"" sh tools/toolchain_identity.sh
 
-if [ -n "$old" ]; then
-	expect 1 "CARGO on $old refused" env CARGO="env RUSTUP_TOOLCHAIN=$old cargo" sh tools/toolchain_identity.sh
-	rustc_old=$(rustup which --toolchain "$old" rustc 2>/dev/null || true)
-	[ -n "$rustc_old" ] && expect 1 "RUSTC on $old refused" env RUSTC="$rustc_old" sh tools/toolchain_identity.sh
+if [ -n "$old_rustc" ]; then
+	expect 1 "RUSTC on $old refused" env RUSTC="$old_rustc" sh tools/toolchain_identity.sh
+	expect 1 "CARGO_BUILD_RUSTC on $old refused" env CARGO_BUILD_RUSTC="$old_rustc" sh tools/toolchain_identity.sh
 else
-	echo "skip     no second toolchain installed; version-mismatch cases not exercised"
+	echo "skip     no second toolchain rustc; version-mismatch cases not exercised"
+fi
+if [ -n "$old_cargo" ]; then
+	expect 1 "CARGO on $old refused" env CARGO="$old_cargo" sh tools/toolchain_identity.sh
+else
+	echo "skip     no second toolchain cargo; CARGO mismatch case not exercised"
 fi
 
 tmp=$(mktemp -d)

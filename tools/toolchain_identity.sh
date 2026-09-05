@@ -28,26 +28,47 @@ channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' "$pin")
 override=
 note() { override=${override:+$override, }$1; }
 
-# Cargo honours $CARGO for the entry point and $RUSTC / the wrappers for the
-# compiler; checking `rustc` on PATH would miss every one of them.
+# Cargo picks the entry point from $CARGO and the compiler from $RUSTC,
+# $CARGO_BUILD_RUSTC (the env form of build.rustc), a wrapper, or a config file.
+# Checking `rustc` on PATH would miss every one of them.
 #
-# $CARGO and $RUSTC are legitimate pinning mechanisms (the release pipeline uses
-# `env RUSTUP_TOOLCHAIN=<pin> cargo`), so they are resolved and version-checked
-# rather than rejected outright. A wrapper cannot be version-checked -- it can
-# substitute flags or the compiler itself -- so it marks the build unofficial.
+# $CARGO, $RUSTC and $CARGO_BUILD_RUSTC are legitimate pinning mechanisms (the
+# release pipeline uses `env RUSTUP_TOOLCHAIN=<pin> cargo`), so they are
+# resolved and version-checked rather than rejected outright. A wrapper cannot
+# be version-checked -- it can substitute flags or the compiler itself -- so it
+# marks the build unofficial.
 cargo_bin=${CARGO:-cargo}
+# Precedence follows Cargo: RUSTC beats build.rustc / CARGO_BUILD_RUSTC.
 if [ -n "${RUSTC:-}" ]; then
 	rustc_bin=$RUSTC
+elif [ -n "${CARGO_BUILD_RUSTC:-}" ]; then
+	rustc_bin=$CARGO_BUILD_RUSTC
 else
 	# Ask through the same entry point, so `env RUSTUP_TOOLCHAIN=x cargo`
 	# is answered by that toolchain's rustc and not by whatever PATH has.
 	rustc_bin=$(printf '%s' "$cargo_bin" | sed 's/cargo$/rustc/')
 	[ "$rustc_bin" = "$cargo_bin" ] && rustc_bin=rustc
 fi
-[ -n "${RUSTC_WRAPPER:-}" ] && note "RUSTC_WRAPPER=$RUSTC_WRAPPER"
-[ -n "${RUSTC_WORKSPACE_WRAPPER:-}" ] && note "RUSTC_WORKSPACE_WRAPPER=$RUSTC_WORKSPACE_WRAPPER"
-for cfg in "$repo/.cargo/config.toml" "$repo/.cargo/config" \
-           "${CARGO_HOME:-$HOME/.cargo}/config.toml" "${CARGO_HOME:-$HOME/.cargo}/config"; do
+for v in RUSTC_WRAPPER RUSTC_WORKSPACE_WRAPPER CARGO_BUILD_RUSTC_WRAPPER CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER; do
+	eval "val=\${$v:-}"
+	[ -n "$val" ] && note "$v=$val"
+done
+# `cargo --config build.rustc=...` bypasses every variable above.
+case "$cargo_bin" in
+*--config*) note "--config in CARGO" ;;
+esac
+# Cargo reads .cargo/config.toml from the working directory upward, then
+# $CARGO_HOME; a build.rustc there overrides the compiler silently.
+dir=$repo
+while :; do
+	for cfg in "$dir/.cargo/config.toml" "$dir/.cargo/config"; do
+		[ -f "$cfg" ] || continue
+		grep -qE '^[[:space:]]*(rustc|rustc-wrapper|rustc-workspace-wrapper)[[:space:]]*=' "$cfg" && note "compiler override in $cfg"
+	done
+	[ "$dir" = "/" ] && break
+	dir=$(dirname "$dir")
+done
+for cfg in "${CARGO_HOME:-$HOME/.cargo}/config.toml" "${CARGO_HOME:-$HOME/.cargo}/config"; do
 	[ -f "$cfg" ] || continue
 	grep -qE '^[[:space:]]*(rustc|rustc-wrapper|rustc-workspace-wrapper)[[:space:]]*=' "$cfg" && note "compiler override in $cfg"
 done
