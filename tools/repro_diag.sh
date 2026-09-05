@@ -167,9 +167,15 @@ build)
 		echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-unset}"
 	} > "$OUT/collect/tools.txt"
 
-	# the actual C/assembler invocations, so a flag can be shown to have landed
-	grep -oE "\"?[^ \"']*-openwrt-linux-musl-(gcc|ar)\"?[^\n]*" "$OUT/cargo-vv.log" \
-		> "$OUT/collect/cc-commands.txt" 2>/dev/null || echo "<none captured>" > "$OUT/collect/cc-commands.txt"
+	# NOTE: cargo -vv does NOT print the cc crate's own compiler invocations
+	# (only rustc's), so this file holds rustc command lines and cannot be used
+	# to prove a C flag landed. Prove that from the objects instead: check that
+	# the mapped prefix replaced the real one (strings on a .o). Capturing the
+	# real cc commands needs CC_ENABLE_DEBUG_OUTPUT=1, which is a separate
+	# diagnostic factor and is deliberately not enabled here.
+	grep -oE "[^ ']*-openwrt-linux-musl-(gcc|ar)[^\n]*" "$OUT/cargo-vv.log" \
+		> "$OUT/collect/rustc-linker-commands.txt" 2>/dev/null || \
+		echo "<none captured>" > "$OUT/collect/rustc-linker-commands.txt"
 
 	( cd "$OUT/collect" && find . -type f | sort | xargs sha256sum ) > "$OUT/collect-sha256.txt"
 	echo "collected into $OUT"
