@@ -5,6 +5,13 @@
 #
 #   repro_diag.sh fetch <workdir>   download + unpack the SDK
 #   repro_diag.sh build <workdir>   build and collect into <workdir>/diag
+#   repro_diag.sh minimal <workdir>  build a dependency-free crate the same way
+#
+# `minimal` exists to answer one question on its own: is rustc's own output for
+# this target identical across hosts? It has no C, no assembly, no build script
+# and no registry dependency, and it is built from a fixed absolute path with
+# the same profile and linker flags as the real thing. If its binary differs
+# across hosts, nothing downstream needs explaining.
 #
 # REPRO_RUSTC_MAP=target_dir adds exactly one factor on the rustc side:
 #   --remap-path-prefix=<this host's diagnostic target dir>=/target
@@ -195,6 +202,100 @@ build)
 	echo "collected into $OUT"
 	cat "$OUT/collect-sha256.txt"
 	;;
+minimal)
+	SDK=$(sdk_dir); SDK=${SDK%/}
+	[ -n "$SDK" ] || { echo "no SDK in $WORK; run fetch first" >&2; exit 1; }
+	OUT=$WORK/minimal
+	rm -rf "$OUT" /tmp/owrt-build/repro-min
+	mkdir -p "$OUT/collect" /tmp/owrt-build
+	src=/tmp/owrt-build/repro-min
+	mkdir -p "$src/src"
+	cat > "$src/Cargo.toml" <<'EOF'
+[package]
+name = "repro-min"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "repro-min"
+path = "src/main.rs"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true
+EOF
+	# Enough code to exercise the optimiser and LTO without any dependency.
+	cat > "$src/src/main.rs" <<'EOF'
+//! Dependency-free fixture for the cross-host codegen question. No C, no
+//! assembly, no build script, no registry crate: whatever differs here is
+//! rustc's own output.
+use std::collections::HashMap;
+
+fn mix(seed: u64, rounds: u32) -> u64 {
+    let mut v = seed;
+    for i in 0..rounds {
+        v = v.rotate_left(7) ^ (v.wrapping_mul(0x9E37_79B9_7F4A_7C15) >> 13);
+        v = v.wrapping_add(i as u64);
+    }
+    v
+}
+
+fn tally(words: &[&str]) -> HashMap<String, usize> {
+    let mut m = HashMap::new();
+    for w in words {
+        *m.entry(w.to_string()).or_insert(0) += 1;
+    }
+    m
+}
+
+fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let seed = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(1u64);
+    let words = ["alpha", "beta", "alpha", "gamma"];
+    let t = tally(&words);
+    let mut keys: Vec<_> = t.keys().cloned().collect();
+    keys.sort();
+    for k in keys {
+        println!("{k}={}", t[&k]);
+    }
+    println!("{}", mix(seed, 1000));
+}
+EOF
+	tc=$(ls -d "$SDK"/staging_dir/toolchain-*/bin | head -1)
+	PATH=$tc:$PATH
+	export PATH
+	CC=$(basename "$(ls "$tc"/*-openwrt-linux-musl-gcc | head -1)")
+	CARGO=${CARGO:-"env RUSTUP_TOOLCHAIN=$PIN cargo"}
+	CARGO_HOME_DIR=${CARGO_HOME:-$HOME/.cargo}
+	set +e
+	env \
+		CARGO_HOME="$CARGO_HOME_DIR" \
+		CARGO_BUILD_TARGET="$RUST_TARGET" \
+		CARGO_PROFILE_RELEASE_PANIC=abort \
+		CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$CC" \
+		RUSTFLAGS="--remap-path-prefix=$src=/build --remap-path-prefix=$CARGO_HOME_DIR=/cargo -Clink-arg=-fuse-ld=bfd -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
+		$CARGO build --release --locked -vv \
+		--manifest-path "$src/Cargo.toml" --target-dir "$OUT/target" > "$OUT/cargo-vv.log" 2>&1
+	rc=$?
+	set -e
+	[ "$rc" = 0 ] || { tail -20 "$OUT/cargo-vv.log"; exit 1; }
+	cp "$OUT/target/$RUST_TARGET/release/repro-min" "$OUT/collect/repro-min"
+	for f in "$OUT/target/$RUST_TARGET/release/deps"/*.rlib; do [ -f "$f" ] && cp "$f" "$OUT/collect/"; done
+	real_rustc=$(grep -oE "[^ ']*/bin/rustc" "$OUT/cargo-vv.log" | sort -u | head -1)
+	{
+		echo "pin=$PIN"
+		echo "rustc_path=${real_rustc:-<none>}"
+		[ -n "$real_rustc" ] && echo "rustc=$("$real_rustc" -vV | tr '\n' ';')"
+		echo "host_uname=$(uname -m)"
+		echo "src=$src"
+		echo "target_dir=$OUT/target"
+	} > "$OUT/collect/tools.txt"
+	( cd "$OUT/collect" && find . -type f | sort | xargs sha256sum ) > "$OUT/collect-sha256.txt"
+	cat "$OUT/collect-sha256.txt"
+	;;
 *)
-	echo "usage: repro_diag.sh fetch|build <workdir>" >&2; exit 1 ;;
+	echo "usage: repro_diag.sh fetch|build|minimal <workdir>" >&2; exit 1 ;;
 esac

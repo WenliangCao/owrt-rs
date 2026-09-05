@@ -14,6 +14,9 @@ on:
       rustc_map:
         description: "none or target_dir (E2's single factor, rustc)"
         default: "none"
+      mode:
+        description: "build (full httpd) or minimal (dependency-free fixture)"
+        default: "build"
 
 jobs:
   diag:
@@ -49,9 +52,11 @@ jobs:
         env:
           REPRO_CC_MAP: ${{ github.event.inputs.cc_map || 'none' }}
           REPRO_RUSTC_MAP: ${{ github.event.inputs.rustc_map || 'none' }}
-        run: sh tools/repro_diag.sh build "$GITHUB_WORKSPACE/work"
+        run: sh tools/repro_diag.sh "${{ github.event.inputs.mode || 'build' }}" "$GITHUB_WORKSPACE/work"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: repro-diag-ci-cc${{ github.event.inputs.cc_map || 'none' }}-rustc${{ github.event.inputs.rustc_map || 'none' }}-${{ github.sha }}
-          path: work/diag/**
+          name: repro-diag-ci-${{ github.event.inputs.mode || 'build' }}-cc${{ github.event.inputs.cc_map || 'none' }}-rustc${{ github.event.inputs.rustc_map || 'none' }}-${{ github.sha }}
+          path: |
+            work/diag/**
+            work/minimal/**
