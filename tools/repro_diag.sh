@@ -27,8 +27,10 @@ fetch)
 	cd "$WORK/dl"
 	curl -sSfLO "$BASE/sha256sums"
 	f=$(grep -oE "openwrt-sdk-$ver-[^ ]*\.tar\.(zst|xz)" sha256sums | sort -u | head -1)
+	[ -n "$f" ] || { echo "no SDK in sha256sums" >&2; exit 1; }
 	[ -f "$f" ] || curl -sSfLO "$BASE/$f"
-	grep " $f\$" sha256sums | sha256sum -c
+	# OpenWrt writes "<hash> *<name>"; keep the whole line so sha256sum -c parses it
+	grep -F "$f" sha256sums | sha256sum -c
 	cd "$WORK"
 	d=$(basename "${f%.tar.*}")
 	[ -d "$d" ] || tar -xf "dl/$f"
