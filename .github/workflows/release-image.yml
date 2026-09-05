@@ -26,13 +26,16 @@ jobs:
     timeout-minutes: 120
     env:
       OPENWRT_VERSION: ${{ github.event.inputs.openwrt_version || '25.12.5' }}
-      RUST_TOOLCHAIN: "1.94.0"
     steps:
       - uses: actions/checkout@v4
 
+      - name: rust toolchain (pinned by rust-toolchain.toml)
+        id: rust
+        run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.94.0"
+          toolchain: ${{ steps.rust.outputs.channel }}
           targets: aarch64-unknown-linux-musl
 
       - name: host packages for the SDK / ImageBuilder

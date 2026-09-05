@@ -12,6 +12,9 @@ cmd=${1:?apk|image|fetch}; ver=${2:?openwrt version, e.g. 25.12.5}
 BUILD_HOST=${BUILD_HOST:-oracle}
 ROUTER=${ROUTER:-openwrt}
 REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+
+# The one place the Rust version is written down.
+rust_channel() { sed -n 's/^channel = "\(.*\)"/\1/p' "$REPO_ROOT/rust-toolchain.toml"; }
 TARGET=mediatek/filogic; ARCH=aarch64_cortex-a53; PROFILE=xiaomi_mi-router-ax3000t
 BASE="https://downloads.openwrt.org/releases/$ver/targets/$TARGET"
 REMOTE_ROOT=/home/ubuntu/release/$ver
@@ -40,11 +43,15 @@ sync_sources() {
 }
 
 apk() {
+	# Bare version number, not a full toolchain name: the build host picks its
+	# own host triple. The package recipes build outside the repo, so the
+	# version has to travel explicitly rather than via rust-toolchain.toml.
+	toolchain=${RUST_TOOLCHAIN:-$(rust_channel)}
 	sdk=$(sync_sources)
 	for p in $PKGS; do
 		echo "== $p"
 		R "cd $sdk && make package/$p/compile V=s -j1 \
-		   V1_CARGO='env RUSTUP_TOOLCHAIN=${RUST_TOOLCHAIN:-1.94.0-aarch64-unknown-linux-gnu} /home/ubuntu/.cargo/bin/cargo' \
+		   V1_CARGO='env RUSTUP_TOOLCHAIN=$toolchain /home/ubuntu/.cargo/bin/cargo' \
 		   V1_CARGO_HOME=/home/ubuntu/.cargo V1_RUSTUP_HOME=/home/ubuntu/.rustup \
 		   OWRT_COMPONENTS_SOURCE=$COMPONENTS_DIR RELOAD_CONFIG_RS_SOURCE=$COMPONENTS_DIR/reload-config \
 		   ${PACKAGE_RELEASE:+V1_PACKAGE_RELEASE=$PACKAGE_RELEASE} > /tmp/release-$p.log 2>&1 || { tail -30 /tmp/release-$p.log; exit 1; }"

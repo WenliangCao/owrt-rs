@@ -35,7 +35,7 @@
 `.github/workflows/release-image.yml` 在 GitHub 的 ubuntu runner 上跑 `tools/ci_build_image.sh`，与上面第 0、3、4、5 步等价，不需要构建机、不碰路由器：
 
 1. 下载该版本官方 SDK 与 ImageBuilder，按官方 `sha256sums` 校验（下载缓存按版本键）；
-2. Rust 1.94.0 + `aarch64-unknown-linux-musl`，用 SDK 的 `make package/owrt-*/compile` 构建七个 apk（`PKG_RELEASE` 默认值现在写在各包 Makefile 里，与设备现役一致；`V1_PACKAGE_RELEASE` 可覆盖）；
+2. Rust 1.98.1 + `aarch64-unknown-linux-musl`（版本只写在根 `rust-toolchain.toml`，CI、`tools/release.sh`、`tools/ci_build_image.sh` 都从那里读；`make check-toolchain` 校验七个 crate 的 `rust-version` 与它一致），用 SDK 的 `make package/owrt-*/compile` 构建七个 apk（`PKG_RELEASE` 默认值现在写在各包 Makefile 里，与设备现役一致；`V1_PACKAGE_RELEASE` 可覆盖）；
 3. ImageBuilder 生成 `xiaomi_mi-router-ax3000t` sysupgrade 镜像，软件包清单来自仓库里的 `packaging/image/packages-<ver>.txt`（设备 `apk info` 的快照，170 个）；
 4. 离线验证：解开 sysupgrade tar 与 root squashfs，确认七个包、六个 `boot-enable` 标记、三个被禁用的服务、六个二进制、本地 apk 公钥；
 5. 产物（apk、镜像、`SHA256SUMS`、`manifest.json`、构建日志）作为 workflow artifact 保留 90 天；推 `v*` 标签时另建 GitHub Release 并附上同一批文件。

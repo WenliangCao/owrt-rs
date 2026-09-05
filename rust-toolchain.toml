@@ -1,0 +1,11 @@
+# Single source of truth for the Rust version: host development, CI and the
+# release pipeline all read `channel` from here (see docs/RELEASE.md).
+#
+# Note: package recipes build from /tmp/owrt-build/<pkg>, which is outside this
+# directory, so rustup's directory override does not reach them. tools/*.sh pass
+# the version explicitly through V1_CARGO / RUSTUP_TOOLCHAIN instead.
+[toolchain]
+channel = "1.98.1"
+profile = "minimal"
+components = ["rustfmt", "clippy"]
+targets = ["aarch64-unknown-linux-musl"]

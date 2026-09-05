@@ -289,7 +289,6 @@ pub fn read_body<R: BufRead>(
                 }
                 return Ok(Some(body));
             }
-            // (Option::is_none_or would need Rust 1.82; this crate builds on 1.78)
             match body.len().checked_add(size) {
                 Some(total) if total <= limit => {}
                 _ => return Ok(None),

@@ -101,3 +101,65 @@ CI 缓存至少把精确 Rust 版本纳入 key；带 target 产物的缓存还�
 - [aarch64-unknown-linux-musl 平台支持](https://doc.rust-lang.org/rustc/platform-support/aarch64-unknown-linux-musl.html)
 - 仓库 Cargo.lock + `cargo metadata --locked`：zeroize 1.9.0，MSRV 1.85、edition 2024。
 - 本机 Cargo 1.78 实际失败：zeroize Cargo.toml 需要尚未稳定的 edition2024；本机 1.98.1 实际 70/70 host tests 通过。
+
+---
+
+# 执行记录 — 2026-09-05
+
+已统一到 **1.98.1**。本机验证：七个 crate `cargo test --locked` **76/76**，`make check-toolchain`、`make check-tools` 通过。
+未跑 SDK 构建、Linux/rootfs 差分或设备验证 —— 这三项仍是发布前的必要门。
+
+## 先更正一处依据
+
+指导里"修掉 `is_none_or` 后 httpd 仍不能用 1.78 构建（zeroize 1.9.0 要求 1.85 / edition 2024）"**在本机复现不出来**：
+
+```
+RUSTUP_TOOLCHAIN=1.78.0 cargo check --locked   # 七个 crate 全部通过（干净 target-dir）
+RUSTUP_TOOLCHAIN=1.78.0 cargo metadata --locked # exit 0
+```
+
+`zeroize 1.9.0` 确实在 `Cargo.lock` 和 `cargo tree` 里（rustls → zeroize），但当前 feature 组合下**不参与构建**，
+所以 1.78 的门槛没有被触发。也就是说：升级前 MSRV 1.78 的声明是**成立**的，只是 CI 从来没验证过它。
+
+因此本次升级的理由是"用户要求最新工具链 + 消除无人验证的声明"，不是"1.78 已经坏了"。结论不变，依据换掉。
+
+## 改了什么
+
+| 位置 | 之前 | 现在 |
+| --- | --- | --- |
+| 仓库根 | 无 | `rust-toolchain.toml`：channel 1.98.1、profile minimal、rustfmt+clippy、musl target |
+| 七个 `Cargo.toml` | `rust-version = "1.78"` | `"1.98.1"` |
+| `ci.yml` | `rust-toolchain@stable` | 从根文件读 channel 并显式 pin；cache key 含该版本；新增 `make check-toolchain` |
+| `release-image.yml` | env + action input 两处硬编码 `1.94.0` | 两处都删掉，统一从根文件读 |
+| `ci_build_image.sh` | `RUST_TOOLCHAIN:-1.94.0` | 默认从根文件读 |
+| `release.sh` | `1.94.0-aarch64-unknown-linux-gnu` | `rust_channel()` 读根文件；只传裸版本号，由远端 rustup 选宿主 triple |
+| `Makefile` | — | 新增 `check-toolchain`；`cargo test` 加 `--locked` |
+| `ci_build_image.sh` manifest | 无编译器身份 | 新增 `toolchain` 段：实际 `rustc -Vv`、`cargo -V`、SDK 交叉 gcc、target triple、Cargo.lock 哈希 |
+
+`/tmp/owrt-build/<pkg>` 那个坑按指导处理了：根文件管不到那里，版本继续走 `V1_CARGO` / `RUSTUP_TOOLCHAIN` 显式传递。
+`rust-toolchain.toml` 里写了注释说明这一点，免得后来人以为加个文件就够了。
+
+没做的：edition 迁移、`cargo update`、workspace 化、格式化、依赖升级。Cargo.lock 未变动。
+opt-level 3 / LTO / codegen-units / panic=abort / strip / linker 与 remap 参数全部保留。
+
+## 验证结果
+
+- `rustc 1.98.1 (48a229cea 2026-09-01)` / `cargo 1.98.1`；rustup 依据根文件自动装好了工具链与 musl target。
+- 七个 crate `cargo test --quiet --locked`：**76/76**。
+- `make check-toolchain`：根文件 = 1.98.1，PATH 上的 rustc 一致，七个 `rust-version` 一致。
+- clippy（1.98.1 自带的新版本）新报了若干既有代码的风格 lint（`is_multiple_of`、`map_or` 化简、`collapsible_match`、
+  `arglen` loop counter）。按指导**没有**为升级顺手大改源码；本次改动引入的代码本身零告警。
+- `cargo check --target aarch64-unknown-linux-musl`：ubus/uci/reload-config/logd/fw4/rpcd 通过；
+  httpd 在本机失败于 `ring` 的 build script（macOS 上没有 aarch64-linux-musl 的 C 交叉编译器），
+  这是宿主限制而非代码问题，真正的验证在 SDK 构建里。
+
+## 发布前仍需（未做）
+
+1. Linux 主机上跑同样的 `--locked` 测试与 R31 生命周期/上传回归；
+2. 同一 SDK clean 重建六个 Rust 包，确认 aarch64 musl ELF、静态链接、hardening 参数与 ring 的 C/汇编目标；
+3. 精确 rootfs 差分（用 apk 实际发货的 binary）；
+4. 1.94.0 vs 1.98.1 的体积/RSS/代表路径对照——对照侧要用独立临时 checkout，否则会被新的 MSRV 门槛挡住；
+5. 可重复性：CI 与构建机在新工具链下对比产物（旧基线是 5/6 一致，httpd/ring 未解决）；
+6. 六个 Rust 包的 `PKG_RELEASE` 按仓库策略递增；`owrt-switch` 是脚本包，内容不变则不递增。
+
+设备刷写不在本次范围。

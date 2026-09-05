@@ -9,7 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: rust toolchain (pinned by rust-toolchain.toml)
+        id: rust
+        run: echo "channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.rust.outputs.channel }}
       - name: host deps (libcrypt for rpcd session tests, nft for fw4 tests)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libcrypt-dev nftables
       - name: cache cargo
@@ -19,6 +24,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             components/*/target
-          key: cargo-${{ runner.os }}-${{ hashFiles('components/*/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/*/Cargo.lock') }}
       - run: make check-tools
+      - run: make check-toolchain
       - run: make test

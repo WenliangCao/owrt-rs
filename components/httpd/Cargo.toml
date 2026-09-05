@@ -2,7 +2,7 @@
 name = "owrt-httpd"
 version = "0.1.1"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.98.1"
 license = "MIT OR Apache-2.0"
 description = "Contract C3 compatible HTTP front end (uhttpd replacement): static files, CGI, /ubus JSON-RPC bridge, TLS"
 publish = false

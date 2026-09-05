@@ -2,7 +2,7 @@
 name = "owrt-reload-config"
 version = "0.2.0"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.98.1"
 license = "MIT OR Apache-2.0"
 description = "Contract C1-01 compatible OpenWrt config change dispatcher"
 publish = false

@@ -6,7 +6,8 @@
 #   OPENWRT_VERSION=25.12.5 sh tools/ci_build_image.sh [workdir]
 #
 # Needs: curl, tar+zstd, make, gcc, python3, rsync, file, rustup with the
-# toolchain in RUST_TOOLCHAIN (default 1.94.0) and target aarch64-unknown-linux-musl.
+# toolchain in RUST_TOOLCHAIN (default: channel from rust-toolchain.toml) and
+# target aarch64-unknown-linux-musl.
 # Output: <workdir>/out/{owrt-*.apk, *-sysupgrade.bin, SHA256SUMS, manifest.json, *.log}
 set -eu
 ver=${OPENWRT_VERSION:?set OPENWRT_VERSION, e.g. 25.12.5}
@@ -17,7 +18,7 @@ TARGET=mediatek/filogic; ARCH=aarch64_cortex-a53; PROFILE=xiaomi_mi-router-ax300
 BASE="https://downloads.openwrt.org/releases/$ver/targets/$TARGET"
 PKGS="owrt-uci owrt-reload-config owrt-logd owrt-httpd owrt-fw4 owrt-rpcd owrt-switch"
 PKGLIST=$REPO/packaging/image/packages-$ver.txt
-RUST_TOOLCHAIN=${RUST_TOOLCHAIN:-1.94.0}
+RUST_TOOLCHAIN=${RUST_TOOLCHAIN:-$(sed -n 's/^channel = "\(.*\)"/\1/p' "$REPO/rust-toolchain.toml")}
 CARGO=${CARGO:-"env RUSTUP_TOOLCHAIN=$RUST_TOOLCHAIN cargo"}
 NPROC=$(nproc 2>/dev/null || echo 2)
 
@@ -102,9 +103,17 @@ fi
 log "manifest"
 cd "$OUT"
 sha256sum owrt-*.apk *-sysupgrade.bin > SHA256SUMS
-python3 - "$ver" "$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo unknown)" <<'EOF'
+# Record the compiler that actually ran, not just the version we asked for: an
+# explicit RUSTC or a non-rustup cargo can bypass the pin.
+rustc_id=$(env RUSTUP_TOOLCHAIN="$RUST_TOOLCHAIN" rustc -Vv | tr '\n' ';')
+cargo_id=$(env RUSTUP_TOOLCHAIN="$RUST_TOOLCHAIN" cargo -V)
+gcc=$(ls "$SDK"/staging_dir/toolchain-*/bin/*-openwrt-linux-*gcc 2>/dev/null | head -1)
+gcc_id=$([ -n "$gcc" ] && "$gcc" --version 2>/dev/null | head -1 || echo unknown)
+lockhash=$(cd "$REPO/components" && sha256sum */Cargo.lock 2>/dev/null | sha256sum | cut -d" " -f1)
+python3 - "$ver" "$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo unknown)" \
+	"$rustc_id" "$cargo_id" "$gcc_id" "$lockhash" "$RUST_TOOLCHAIN" <<'EOF'
 import json, os, sys, hashlib, re
-ver, commit = sys.argv[1], sys.argv[2]
+ver, commit, rustc_id, cargo_id, gcc_id, lockhash, toolchain = sys.argv[1:8]
 sums = dict(line.split()[::-1] for line in open("SHA256SUMS") if line.strip())
 pkgs = {}
 for f in sorted(sums):
@@ -117,6 +126,10 @@ json.dump({"openwrt": ver, "profile": "xiaomi_mi-router-ax3000t", "source_commit
            "apk_sha256": {f: s for f, s in sums.items() if f.endswith(".apk")},
            "imagebuilder_args": {"DISABLED_SERVICES": "rpcd uhttpd log", "ADD_LOCAL_KEY": 1,
                                  "FILES": "etc/owrt-{uci,reload-config,logd,httpd,fw4,rpcd}.boot-enable"},
+           "toolchain": {"requested": toolchain, "rustc": rustc_id.strip(";").replace(";", " | "),
+                         "cargo": cargo_id, "target_gcc": gcc_id,
+                         "target": "aarch64-unknown-linux-musl",
+                         "cargo_lock_sha256": lockhash},
            "flashed": False}, open("manifest.json", "w"), indent=1)
 print(open("manifest.json").read())
 EOF
