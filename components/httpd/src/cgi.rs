@@ -2,25 +2,51 @@
 //! forwarding. One child per request; stdin gets the request body.
 
 use crate::files::PathInfo;
-use crate::http::{Request, Response};
-use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
+use crate::http::{Request, Response, Sink};
+use owrt_ubus::sys::{poll_fds, PollFd, POLLERR, POLLHUP, POLLIN, POLLOUT};
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::mem::ManuallyDrop;
-use std::net::{SocketAddr, TcpStream};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
+use std::net::SocketAddr;
+use std::os::fd::{AsRawFd, OwnedFd, RawFd};
 use std::os::unix::fs::PermissionsExt;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
-/// Cap on the CGI header block. uhttpd lets the relay ustream grow instead;
-/// DEVIATION: a bound keeps a runaway script from consuming router RAM, and no
-/// real CGI emits 64 KiB of headers.
+/// Cap on the CGI header block, counting every byte up to and including the
+/// terminating blank line, and nothing after it. uhttpd lets the relay ustream
+/// grow instead; DEVIATION: a bound keeps a runaway script from consuming
+/// router RAM, and no real CGI emits 64 KiB of headers.
 const MAX_HEADER_BYTES: usize = 64 * 1024;
 
 /// Upper bound on how late we notice the direct script exiting while a
-/// descendant still holds stdout. Only reached when the pipe is quiet.
+/// descendant still holds stdout. Only reached when the pipes are quiet.
 const CHILD_TICK_MS: u64 = 50;
+
+/// Queued response bytes above which we stop reading the script: back-pressure
+/// from a slow client through to the CGI.
+const OUT_WINDOW: usize = 16 * 1024;
+
+// poll slots
+const OUT_PIPE: usize = 0;
+const IN_PIPE: usize = 1;
+const CLIENT: usize = 2;
+
+/// Puts the client socket in non-blocking mode while a handler drives its own
+/// readiness, and restores blocking mode on every exit path.
+struct NonBlockingFor(RawFd);
+
+impl NonBlockingFor {
+    fn new(fd: RawFd) -> io::Result<Self> {
+        crate::set_nonblocking(fd, true)?;
+        Ok(NonBlockingFor(fd))
+    }
+}
+
+impl Drop for NonBlockingFor {
+    fn drop(&mut self) {
+        let _ = crate::set_nonblocking(self.0, false);
+    }
+}
 
 /// uh_relay_free() SIGKILLs a script that is still running when the relay is
 /// torn down, and uloop_process reaps it. Do both on every exit from `run`, so
@@ -42,21 +68,6 @@ pub struct CgiContext<'a> {
     pub remote: SocketAddr,
     pub tls: bool,
     pub script_timeout: u64,
-    pub network_timeout: u64,
-    /// Client TCP socket, for bounding a relay write by the script deadline.
-    pub client_fd: RawFd,
-}
-
-/// Set SO_SNDTIMEO on the borrowed client socket. `ManuallyDrop` because the
-/// fd stays owned by the connection.
-fn set_send_timeout(fd: RawFd, timeout: Duration) {
-    if fd < 0 {
-        return;
-    }
-    // SAFETY: `fd` is the live client socket owned by the calling connection;
-    // ManuallyDrop keeps this borrow from closing it.
-    let sock = ManuallyDrop::new(unsafe { TcpStream::from_raw_fd(fd) });
-    let _ = sock.set_write_timeout(Some(timeout.max(Duration::from_millis(1))));
 }
 
 const HEADER_ENV: &[(&str, &str)] = &[
@@ -82,7 +93,7 @@ pub fn is_executable(pi: &PathInfo) -> bool {
     pi.meta.is_file() && pi.meta.permissions().mode() & 0o001 != 0
 }
 
-pub fn run<W: Write, R: io::BufRead>(
+pub fn run<W: Sink, R: io::BufRead>(
     ctx: &CgiContext,
     request: &Request,
     body: &mut crate::http::BodyReader<'_, R>,
@@ -125,9 +136,11 @@ pub fn run<W: Write, R: io::BufRead>(
         }
     }
     let mut child = ChildGuard(command.spawn()?);
-    // ChildStdin/ChildStdout as plain files so both sides can be driven by one
-    // poll(2) loop on this thread: no relay threads to join, and the deadline
-    // below bounds the whole request the way proc.c's script_timeout does.
+    // ChildStdin/ChildStdout as plain files so both ends, plus the client
+    // socket, can be driven by one poll(2) loop on this thread. uhttpd runs the
+    // whole exchange on one uloop; anything that blocks here -- a stalled
+    // uploader, a client that stopped reading -- would otherwise outlive the
+    // script timeout and hide output the script already produced.
     let mut stdin = child.0.stdin.take().map(|s| File::from(OwnedFd::from(s)));
     let mut stdout = child
         .0
@@ -135,6 +148,12 @@ pub fn run<W: Write, R: io::BufRead>(
         .take()
         .map(|s| File::from(OwnedFd::from(s)))
         .ok_or_else(|| io::Error::other("no stdout"))?;
+    let client_fd = resp.sink().fd();
+    // Everything below polls for readiness, so the socket must not block. The
+    // guard restores the connection's normal mode on every exit path.
+    let _blocking = NonBlockingFor::new(client_fd)?;
+    // From here the relay owns readiness: `write` only queues.
+    resp.sink().set_deferred(true);
     let deadline = Instant::now() + Duration::from_secs(ctx.script_timeout.max(1));
     // One small staging window between the client and the script: the body is
     // pulled only when the script's stdin has room, so an upload of any size
@@ -152,12 +171,14 @@ pub fn run<W: Write, R: io::BufRead>(
     let mut headers_done = false;
     let mut timed_out = false;
     let mut script_done = false;
+    let mut relay_eof = false;
+    let mut body_failed = false;
+    let mut aborted = false;
     let mut buf = [0u8; 16384];
     loop {
         // relay_proc_cb() marks process_done and schedules relay_close_if_done,
         // so the *direct* script exiting ends the request even while a
-        // descendant still holds stdout. Without this, such a request ran to
-        // the deadline and answered 504 for a script that succeeded.
+        // descendant still holds stdout.
         if !script_done && matches!(child.0.try_wait(), Ok(Some(_))) {
             script_done = true;
         }
@@ -166,156 +187,276 @@ pub fn run<W: Write, R: io::BufRead>(
             timed_out = true;
             break;
         }
-        let mut fds = [
-            PollFd { fd: stdout.as_raw_fd(), events: POLLIN, revents: 0 },
-            PollFd { fd: -1, events: POLLOUT, revents: 0 },
-        ];
-        let count = match &stdin {
-            Some(f) => {
-                fds[1].fd = f.as_raw_fd();
-                2
-            }
-            None => 1,
+        // Read the script only while the response window has room: that is the
+        // back-pressure path from a slow client all the way to the script.
+        let want_stdout = !relay_eof && resp.sink().pending() < OUT_WINDOW;
+        // Pull more body only when the script's stdin has somewhere to put it.
+        let want_body = stdin.is_some() && stage_pos == staged && !body_failed;
+        let want_write = resp.sink().pending() > 0;
+        let mut fds = [PollFd { fd: -1, events: 0, revents: 0 }; 4];
+        let mut slot = [usize::MAX; 4];
+        let mut n = 0;
+        let add = |fd: RawFd, events: i16, which: usize, fds: &mut [PollFd; 4], slot: &mut [usize; 4], n: &mut usize| {
+            fds[*n] = PollFd { fd, events, revents: 0 };
+            slot[*n] = which;
+            *n += 1;
         };
-        // A finished script gets one non-blocking drain pass (the ustream_poll
-        // in relay_proc_cb), never a wait on a descendant's EOF. Otherwise cap
-        // the wait at one tick: uloop learns of the exit from SIGCHLD, we
-        // re-check try_wait instead, so the exit is noticed within CHILD_TICK_MS.
-        let wait_ms = if script_done {
+        if want_stdout {
+            add(stdout.as_raw_fd(), POLLIN, OUT_PIPE, &mut fds, &mut slot, &mut n);
+        }
+        if let Some(f) = &stdin {
+            add(f.as_raw_fd(), POLLOUT, IN_PIPE, &mut fds, &mut slot, &mut n);
+        }
+        if want_body || want_write {
+            let events = (if want_body { POLLIN } else { 0 }) | (if want_write { POLLOUT } else { 0 });
+            add(client_fd, events, CLIENT, &mut fds, &mut slot, &mut n);
+        }
+        if n == 0 {
+            break;
+        }
+        // A finished script gets one non-blocking pass (the ustream_poll in
+        // relay_proc_cb), never a wait on a descendant's EOF. Otherwise cap the
+        // wait at one tick: uloop learns of the exit from SIGCHLD, we re-check
+        // try_wait, so the exit is noticed within CHILD_TICK_MS.
+        let wait_ms = if script_done && !want_write {
             0
         } else {
             remaining.as_millis().min(CHILD_TICK_MS as u128) as i32
         };
-        match poll_fds(&mut fds[..count], wait_ms) {
-            Ok(0) if script_done => break,
-            Ok(_) => {}
-            Err(_) => break,
+        if poll_fds(&mut fds[..n], wait_ms).is_err() {
+            break;
         }
-        // POLLOUT on a pipe means at least PIPE_BUF is writable, so a bounded
-        // write cannot block. A script that never reads gets EPIPE and we
-        // simply close stdin, as uhttpd's relay does.
-        if count == 2 && fds[1].revents != 0 {
-            if stage_pos == staged {
-                stage_pos = 0;
-                // a truncated or malformed body ends the upload as EOF; the
-                // script decides what to do with what it got
-                staged = body.read(&mut stage).unwrap_or(0);
-            }
-            if staged == 0 {
-                // whole body delivered: closing stdin is the script's EOF
-                stdin = None;
-            } else {
-                match stdin.as_mut().expect("polled").write(&stage[stage_pos..staged]) {
-                    Ok(0) | Err(_) => stdin = None,
-                    Ok(n) => stage_pos += n,
-                }
-            }
-        }
-        if fds[0].revents == 0 {
-            continue;
-        }
-        let n = match stdout.read(&mut buf) {
-            // relay EOF: relay_close_if_done() finishes the request here even
-            // when the script is still alive; the guard kills it.
-            Ok(0) => break,
-            Ok(n) => n,
-            Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-            Err(_) => break,
-        };
-        let chunk = &buf[..n];
-        if headers_done {
-            if !resp.is_head() {
-                // uhttpd's script timeout runs on uloop, so a client that stops
-                // reading cannot keep the script alive. Our write is blocking,
-                // so shrink the socket's send timeout to what is left of the
-                // script budget: a stalled client then fails the write instead
-                // of parking the relay (and the child) for -T seconds.
-                set_send_timeout(ctx.client_fd, deadline.saturating_duration_since(Instant::now()));
-                let sent = resp.body(chunk).and_then(|()| resp.flush());
-                set_send_timeout(ctx.client_fd, Duration::from_secs(ctx.network_timeout.max(1)));
-                sent?;
-            }
-            continue;
-        }
-        header_buf.extend_from_slice(chunk);
-        // Count only bytes that are actually part of the header block: the read
-        // that carries the terminating blank line usually carries body too, and
-        // charging that to the header made the cap depend on pipe chunking.
-        if header_bytes + header_buf.len() > MAX_HEADER_BYTES {
-            return resp.error(500, "Internal Server Error", Some("CGI header block too large"));
-        }
-        // parse complete lines
-        while let Some(pos) = header_buf.iter().position(|&b| b == b'\n') {
-            let mut line: Vec<u8> = header_buf.drain(..=pos).collect();
-            header_bytes += line.len();
-            line.pop();
-            if line.last() == Some(&b'\r') {
-                line.pop();
-            }
-            if line.is_empty() {
-                headers_done = true;
-                if disable_chunked {
-                    resp.disable_chunked();
-                }
-                resp.status(status_code, &status_text)?;
-                for (name, value) in &headers {
-                    resp.header(name, value)?;
-                }
-                resp.end_headers()?;
-                if !resp.is_head() && !header_buf.is_empty() {
-                    let rest = std::mem::take(&mut header_buf);
-                    resp.body(&rest)?;
-                }
-                resp.flush()?;
-                break;
-            }
-            let text = String::from_utf8_lossy(&line).into_owned();
-            let Some((name, value)) = text.split_once(':') else {
-                // malformed header: uhttpd aborts the relay
-                return resp.error(500, "Internal Server Error", Some("Invalid CGI response header"));
-            };
-            let name = name.trim();
-            let value = value.trim();
-            if name == "Status" {
-                if let Some((code, text)) = value.split_once(' ') {
-                    if code.len() == 3 {
-                        if let Ok(code) = code.parse() {
-                            status_code = code;
-                            status_text = text.to_owned();
-                        }
-                    }
-                }
+        let mut ready = 0;
+        let mut client_ready = 0i16;
+        for i in 0..n {
+            if fds[i].revents == 0 {
                 continue;
             }
-            if name.eq_ignore_ascii_case("Content-Length")
-                || name.eq_ignore_ascii_case("Transfer-Encoding")
-            {
-                disable_chunked = true;
+            ready += 1;
+            match slot[i] {
+                CLIENT => client_ready = fds[i].revents,
+                // HUP/ERR: the script closed stdin. Drop the write end first,
+                // so we never read the client on its behalf.
+                IN_PIPE if fds[i].revents & (POLLERR | POLLHUP) != 0 => stdin = None,
+                _ => {}
             }
-            headers.push((name.to_owned(), value.to_owned()));
+        }
+        // Push queued response bytes first: it frees the window that gates
+        // reading the script, and it is what an early rejection needs to reach
+        // a client that is still uploading.
+        if client_ready & POLLOUT != 0 && resp.sink().drain_ready().is_err() {
+            break;
+        }
+        // Feed stdin. A pull that would block just leaves the stage empty.
+        if stdin.is_some() && fds[..n].iter().any(|f| f.fd == stdin.as_ref().map_or(-1, |s| s.as_raw_fd()) && f.revents & POLLOUT != 0) {
+            if stage_pos == staged && !body_failed {
+                stage_pos = 0;
+                staged = 0;
+                match body.read(&mut stage) {
+                    Ok(0) => {
+                        // whole body delivered: closing stdin is the script's EOF
+                        stdin = None;
+                    }
+                    Ok(got) => staged = got,
+                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => {}
+                    Err(_) => {
+                        // truncated or malformed upload: the script sees EOF and
+                        // decides, but the connection is no longer reusable
+                        body_failed = true;
+                        stdin = None;
+                    }
+                }
+            }
+            if staged > stage_pos {
+                match stdin.as_mut().expect("checked").write(&stage[stage_pos..staged]) {
+                    Ok(0) | Err(_) => stdin = None,
+                    Ok(w) => stage_pos += w,
+                }
+            }
+        }
+        // Consume the script's output. This happens in the same round as the
+        // upload, so an early "Status: 403" is never lost behind a stalled body.
+        let stdout_ready = fds[..n]
+            .iter()
+            .any(|f| f.fd == stdout.as_raw_fd() && f.revents != 0);
+        if want_stdout && stdout_ready {
+            let got = match stdout.read(&mut buf) {
+                // relay EOF: relay_close_if_done() finishes the request here
+                // even when the script is still alive; the guard kills it.
+                Ok(0) => {
+                    relay_eof = true;
+                    0
+                }
+                Ok(got) => got,
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(_) => {
+                    relay_eof = true;
+                    0
+                }
+            };
+            if got > 0
+                && !relay(
+                    &buf[..got],
+                    resp,
+                    &mut headers_done,
+                    &mut header_buf,
+                    &mut header_bytes,
+                    &mut headers,
+                    &mut status_code,
+                    &mut status_text,
+                    &mut disable_chunked,
+                )?
+            {
+                // the relay wrote its own error page and is finished
+                aborted = true;
+                break;
+            }
+        }
+        if relay_eof && resp.sink().pending() == 0 {
+            break;
+        }
+        if script_done && ready == 0 && resp.sink().pending() == 0 {
+            break;
         }
     }
-    if !headers_done {
-        if timed_out && !script_done {
-            return resp.error(
-                504,
-                "Gateway Timeout",
-                Some("The CGI script did not respond in time"),
-            );
+    // One exit: whatever the tail decides, the queued bytes still have to reach
+    // the client and the sink has to go back to draining itself. An early
+    // `return` here would leave a 504 sitting in the buffer.
+    let outcome = (|| -> io::Result<()> {
+        if aborted {
+            return Ok(());
         }
-        // script exited without producing a header block
-        resp.status(status_code, &status_text)?;
-        for (name, value) in &headers {
-            resp.header(name, value)?;
+        if !headers_done {
+            if timed_out && !script_done {
+                return resp.error(
+                    504,
+                    "Gateway Timeout",
+                    Some("The CGI script did not respond in time"),
+                );
+            }
+            // script exited without producing a header block
+            resp.status(status_code, &status_text)?;
+            for (name, value) in &headers {
+                resp.header(name, value)?;
+            }
+            resp.end_headers()?;
+            if !header_buf.is_empty() && !resp.is_head() {
+                resp.body(&header_buf)?;
+            }
         }
-        resp.end_headers()?;
-        if !header_buf.is_empty() && !resp.is_head() {
-            resp.body(&header_buf)?;
-        }
-    }
-    resp.finish()
+        resp.finish()
+    })();
+    // Bounded by whatever is left of the script budget, with a floor so a
+    // response that is ready right at the deadline still gets out.
+    let left = deadline
+        .saturating_duration_since(Instant::now())
+        .max(Duration::from_millis(CHILD_TICK_MS));
+    let flushed = outcome.and_then(|()| flush_within(resp.sink(), left));
+    resp.sink().set_deferred(false);
+    flushed
 }
 
+/// Push the queued response out, polling for writability, within `budget`.
+fn flush_within<S: Sink>(sink: &mut S, budget: Duration) -> io::Result<()> {
+    let deadline = Instant::now() + budget;
+    while sink.pending() > 0 {
+        let before = sink.pending();
+        sink.drain_ready()?;
+        if sink.pending() == before {
+            let left = deadline.saturating_duration_since(Instant::now());
+            if left.is_zero() {
+                return Err(io::Error::new(io::ErrorKind::TimedOut, "client stopped reading"));
+            }
+            let mut pfd = [PollFd { fd: sink.fd(), events: POLLOUT, revents: 0 }];
+            if poll_fds(&mut pfd, left.as_millis().min(i32::MAX as u128) as i32)? == 0 {
+                return Err(io::Error::new(io::ErrorKind::TimedOut, "client stopped reading"));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// One chunk of script output: parse the header block, then relay the body.
+/// `Ok(false)` means the relay wrote an error page and the request is over.
+#[allow(clippy::too_many_arguments)]
+fn relay<W: Write>(
+    chunk: &[u8],
+    resp: &mut Response<W>,
+    headers_done: &mut bool,
+    header_buf: &mut Vec<u8>,
+    header_bytes: &mut usize,
+    headers: &mut Vec<(String, String)>,
+    status_code: &mut u16,
+    status_text: &mut String,
+    disable_chunked: &mut bool,
+) -> io::Result<bool> {
+    if *headers_done {
+        if !resp.is_head() {
+            resp.body(chunk)?;
+        }
+        return Ok(true);
+    }
+    header_buf.extend_from_slice(chunk);
+    while let Some(pos) = header_buf.iter().position(|&b| b == b'\n') {
+        let mut line: Vec<u8> = header_buf.drain(..=pos).collect();
+        // Only bytes up to and including the terminating blank line are header;
+        // body sharing that read must never count against the cap.
+        *header_bytes += line.len();
+        if *header_bytes > MAX_HEADER_BYTES {
+            resp.error(500, "Internal Server Error", Some("CGI header block too large"))?;
+            return Ok(false);
+        }
+        line.pop();
+        if line.last() == Some(&b'\r') {
+            line.pop();
+        }
+        if line.is_empty() {
+            *headers_done = true;
+            if *disable_chunked {
+                resp.disable_chunked();
+            }
+            resp.status(*status_code, status_text)?;
+            for (name, value) in headers.iter() {
+                resp.header(name, value)?;
+            }
+            resp.end_headers()?;
+            if !resp.is_head() && !header_buf.is_empty() {
+                let rest = std::mem::take(header_buf);
+                resp.body(&rest)?;
+            }
+            return Ok(true);
+        }
+        let text = String::from_utf8_lossy(&line).into_owned();
+        let Some((name, value)) = text.split_once(':') else {
+            // malformed header: uhttpd aborts the relay
+            resp.error(500, "Internal Server Error", Some("Invalid CGI response header"))?;
+            return Ok(false);
+        };
+        let name = name.trim();
+        let value = value.trim();
+        if name == "Status" {
+            if let Some((code, rest)) = value.split_once(' ') {
+                if code.len() == 3 {
+                    if let Ok(code) = code.parse() {
+                        *status_code = code;
+                        *status_text = rest.to_owned();
+                    }
+                }
+            }
+            continue;
+        }
+        if name.eq_ignore_ascii_case("Content-Length") || name.eq_ignore_ascii_case("Transfer-Encoding") {
+            *disable_chunked = true;
+        }
+        headers.push((name.to_owned(), value.to_owned()));
+    }
+    // Headers still unfinished: what is buffered is all header, so it counts.
+    if *header_bytes + header_buf.len() > MAX_HEADER_BYTES {
+        resp.error(500, "Internal Server Error", Some("CGI header block too large"))?;
+        return Ok(false);
+    }
+    Ok(true)
+}
 
 #[cfg(test)]
 mod tests {
@@ -348,6 +489,33 @@ mod tests {
 
     type TestSource = std::cell::RefCell<io::BufReader<io::Cursor<Vec<u8>>>>;
 
+    /// Sink that keeps everything in memory: fd -1 is ignored by poll(2), so
+    /// the relay simply never sees the client as ready.
+    struct VecSink(Vec<u8>);
+
+    impl Write for VecSink {
+        fn write(&mut self, b: &[u8]) -> io::Result<usize> {
+            self.0.extend_from_slice(b);
+            Ok(b.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl Sink for VecSink {
+        fn pending(&self) -> usize {
+            0
+        }
+        fn drain_ready(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+        fn set_deferred(&mut self, _on: bool) {}
+        fn fd(&self) -> RawFd {
+            -1
+        }
+    }
+
     fn empty_source() -> TestSource {
         std::cell::RefCell::new(io::BufReader::new(io::Cursor::new(Vec::new())))
     }
@@ -377,10 +545,8 @@ mod tests {
             remote: local,
             tls: false,
             script_timeout,
-            network_timeout: 5,
-            client_fd: -1,
         };
-        let mut out: Vec<u8> = Vec::new();
+        let mut out = VecSink(Vec::new());
         let src = empty_source();
         let started = Instant::now();
         {
@@ -389,7 +555,7 @@ mod tests {
         }
         let elapsed = started.elapsed().as_millis();
         let _ = fs::remove_dir_all(&dir);
-        (String::from_utf8_lossy(&out).into_owned(), elapsed)
+        (String::from_utf8_lossy(&out.0).into_owned(), elapsed)
     }
 
     /// relay_close_if_done() finishes on stdout EOF and uh_relay_free() kills
@@ -432,9 +598,35 @@ mod tests {
         assert!(out.contains('b'), "body missing");
     }
 
+    /// The cap counts header bytes only. 65535/65536/65537 must land on the
+    /// right side of it regardless of how the pipe split the writes, and a body
+    /// sharing the terminator's read must never count.
+    #[test]
+    fn header_cap_counts_only_header_bytes() {
+        // one padding header line of `pad` bytes plus CRLFCRLF, then a body
+        let build = |pad: usize, body: usize| {
+            format!(
+                "printf 'X-Pad: %s\\r\\n' {}\nsleep 0.1\nprintf '\\r\\n'\nhead -c {body} /dev/zero | tr '\\0' 'b'\n",
+                "a".repeat(pad)
+            )
+        };
+        // "X-Pad: " (7) + pad + CRLF (2) + CRLF (2) == total header bytes
+        for (total, want_ok) in [(super::MAX_HEADER_BYTES - 1, true), (super::MAX_HEADER_BYTES, true), (super::MAX_HEADER_BYTES + 1, false)] {
+            let pad = total - 11;
+            let (out, _) = run_script(&build(pad, 16384), 5);
+            let line = out.lines().next().unwrap_or("");
+            if want_ok {
+                assert!(line.starts_with("HTTP/1.0 200"), "header total {total}: {line}");
+                assert!(out.contains('b'), "header total {total}: body missing");
+            } else {
+                assert!(line.starts_with("HTTP/1.0 500"), "header total {total}: {line}");
+            }
+        }
+    }
+
     /// uhttpd's script timeout runs on uloop, so a client that stops reading
-    /// cannot extend the script's life. Ours writes synchronously, so the send
-    /// timeout has to shrink to the remaining script budget.
+    /// cannot extend the script's life. The relay drives the socket through the
+    /// same poll loop, so the write never outlasts the budget.
     #[test]
     fn a_client_that_never_reads_cannot_outlive_the_script_timeout() {
         use std::net::{TcpListener, TcpStream};
@@ -442,9 +634,10 @@ mod tests {
         let addr = listener.local_addr().unwrap();
         // held open, never read from
         let _client = TcpStream::connect(addr).unwrap();
-        let (mut sock, _) = listener.accept().unwrap();
+        let (sock, _) = listener.accept().unwrap();
         sock.set_write_timeout(Some(Duration::from_secs(30))).unwrap();
         let fd = sock.as_raw_fd();
+        let cell = std::cell::RefCell::new(io::BufReader::new(sock));
         let (dir, pi) = script_fixture(
             "printf 'Content-Type: application/octet-stream\\r\\n\\r\\n'\nhead -c 33554432 /dev/zero\n",
         );
@@ -457,18 +650,17 @@ mod tests {
             remote: local,
             tls: false,
             script_timeout: 1,
-            network_timeout: 30,
-            client_fd: fd,
         };
         let src = empty_source();
         let started = Instant::now();
         {
-            let mut resp = Response::new(&mut sock, &request, 0);
+            let mut out = crate::http::Out::new(&cell, fd, 16 * 1024, Duration::from_secs(30));
+            let mut resp = Response::new(&mut out, &request, 0);
             let _ = run(&ctx, &request, &mut crate::http::BodyReader::new(&src, &request), &mut resp, &pi);
         }
         let ms = started.elapsed().as_millis();
         let _ = fs::remove_dir_all(&dir);
-        assert!(ms < 4000, "took {ms} ms with -t 1 / -T 30; the stalled client held the script");
+        assert!(ms < 2500, "took {ms} ms with -t 1; the stalled client held the script");
     }
 
     #[test]

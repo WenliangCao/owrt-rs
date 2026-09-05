@@ -2,8 +2,10 @@
 //! conventions (status line, Connection/Keep-Alive, chunked encoding, Date).
 
 use std::cell::RefCell;
-use std::io::{self, BufRead, Write};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use owrt_ubus::sys::{poll_fds, PollFd, POLLOUT};
+use std::io::{self, BufRead, BufReader, Read, Write};
+use std::os::fd::RawFd;
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Method {
@@ -258,17 +260,157 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
     Ok(ParseOutcome::Request(request))
 }
 
+/// Response transport. `Response` itself only needs `Write`; the CGI relay
+/// also drives readiness and deadlines itself, so it needs the rest: uhttpd
+/// runs the whole exchange on one uloop, and a blocking write anywhere in the
+/// relay is what let a stalled client outlive the script timeout.
+pub trait Sink: Write {
+    /// Bytes buffered here that the transport has not accepted yet.
+    fn pending(&self) -> usize;
+    /// Hand the transport whatever it will take right now. Never blocks.
+    fn drain_ready(&mut self) -> io::Result<()>;
+    /// While set, `write` only buffers: the caller owns readiness and calls
+    /// `drain_ready` itself. The CGI relay needs this, because a drain inside
+    /// `write` is exactly the blocking step that outlives the script deadline.
+    fn set_deferred(&mut self, on: bool);
+    /// Transport descriptor, for readiness polling.
+    fn fd(&self) -> RawFd;
+}
+
+/// Response transport: a bounded window in front of the client. One stream
+/// carries both directions and the CGI relay alternates between them, so the
+/// borrow is taken per operation and never held across one.
+///
+/// `Write` keeps the window bounded by draining when it fills, which is what
+/// the ordinary handlers want. The CGI relay instead polls and calls
+/// `drain_ready`, so no write of its can outlast the script deadline.
+pub struct Out<'a, T: Read + Write> {
+    client: &'a RefCell<BufReader<T>>,
+    fd: RawFd,
+    buf: Vec<u8>,
+    window: usize,
+    /// Budget for one blocking drain, from the configured network timeout.
+    timeout: Duration,
+    deferred: bool,
+}
+
+impl<'a, T: Read + Write> Out<'a, T> {
+    pub fn new(client: &'a RefCell<BufReader<T>>, fd: RawFd, window: usize, timeout: Duration) -> Self {
+        Out { client, fd, buf: Vec::new(), window, timeout, deferred: false }
+    }
+
+    /// Push until the window is empty, waiting for writability as needed.
+    /// Push until the window is empty. The budget covers the whole drain, not
+    /// one write, so many small partial writes cannot extend it.
+    fn drain_blocking(&mut self) -> io::Result<()> {
+        let deadline = Instant::now() + self.timeout;
+        while !self.buf.is_empty() {
+            let before = self.buf.len();
+            self.drain_ready()?;
+            if self.buf.len() == before {
+                let left = deadline.saturating_duration_since(Instant::now());
+                if left.is_zero() {
+                    return Err(io::Error::new(io::ErrorKind::TimedOut, "response write deadline"));
+                }
+                let mut pfd = [PollFd { fd: self.fd, events: POLLOUT, revents: 0 }];
+                if poll_fds(&mut pfd, left.as_millis().min(i32::MAX as u128) as i32)? == 0 {
+                    return Err(io::Error::new(io::ErrorKind::TimedOut, "response write deadline"));
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl<T: Read + Write> Sink for Out<'_, T> {
+    fn pending(&self) -> usize {
+        self.buf.len()
+    }
+
+    fn drain_ready(&mut self) -> io::Result<()> {
+        while !self.buf.is_empty() {
+            match borrow(self.client)?.get_mut().write(&self.buf) {
+                Ok(0) => return Err(io::Error::new(io::ErrorKind::WriteZero, "client accepted nothing")),
+                Ok(n) => {
+                    self.buf.drain(..n);
+                }
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(()),
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) => return Err(e),
+            }
+        }
+        Ok(())
+    }
+
+    fn set_deferred(&mut self, on: bool) {
+        self.deferred = on;
+    }
+
+    fn fd(&self) -> RawFd {
+        self.fd
+    }
+}
+
+impl<T: Read + Write> Write for Out<'_, T> {
+    fn write(&mut self, data: &[u8]) -> io::Result<usize> {
+        self.buf.extend_from_slice(data);
+        if !self.deferred && self.buf.len() >= self.window {
+            self.drain_blocking()?;
+        }
+        Ok(data.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        if self.deferred {
+            return Ok(());
+        }
+        self.drain_blocking()?;
+        borrow(self.client)?.get_mut().flush()
+    }
+}
+
+
+/// A failed borrow would mean read and write nested, which is a bug here. Turn
+/// it into an I/O error rather than panicking a connection thread.
+fn borrow<T>(cell: &RefCell<T>) -> io::Result<std::cell::RefMut<'_, T>> {
+    cell.try_borrow_mut().map_err(|_| io::Error::other("client stream already borrowed"))
+}
+
+/// Where the chunked decoder is between calls, so a client that stops
+/// mid-framing pauses the decoder instead of blocking inside it.
+enum Stage {
+    /// Reading the "<hex>\r\n" size line.
+    Size,
+    /// Passing chunk data through.
+    Data,
+    /// Consuming the CRLF that closes a chunk.
+    AfterChunk,
+    /// Reading the trailer section that follows the 0-size chunk.
+    Trailer,
+}
+
 /// Incremental request-body decoder: Content-Length or chunked, pulled in
 /// bounded steps so a large upload never has to sit in memory.
 ///
+/// Every call is resumable. When the client has sent nothing more, the
+/// underlying non-blocking read surfaces as `WouldBlock` and the decoder keeps
+/// its partial state, so the caller can go do something else (consume the
+/// script's output, check the deadline) and come back.
+///
 /// It borrows the client through a `RefCell` because the same stream carries
-/// the response: the CGI relay alternates between pulling body bytes and
-/// pushing relayed output, and each borrow lasts only for one read.
+/// the response: the relay alternates between pulling body bytes and pushing
+/// relayed output, and each borrow lasts only for one operation.
 pub struct BodyReader<'a, R: BufRead> {
     src: &'a RefCell<R>,
     framing: Framing,
     /// Bytes still owed by the current chunk (chunked framing only).
     chunk_left: u64,
+    stage: Stage,
+    /// Partial size or trailer line carried between calls.
+    line: Vec<u8>,
+    /// Total trailer bytes and lines, so endless short trailers cannot stall us.
+    trailer_bytes: usize,
+    trailer_lines: usize,
     done: bool,
     /// Set when framing turned out to be malformed; the connection cannot be
     /// reused because we no longer know where the next request starts.
@@ -281,8 +423,11 @@ enum Framing {
     Chunked,
 }
 
-/// Cap on a chunk size line or a trailer line.
+/// Cap on one chunk size line or trailer line.
 const CHUNK_LINE_MAX: usize = 4096;
+/// Cap on the whole trailer section.
+const TRAILER_MAX: usize = 8192;
+const TRAILER_LINES_MAX: usize = 64;
 
 impl<'a, R: BufRead> BodyReader<'a, R> {
     pub fn new(src: &'a RefCell<R>, request: &Request) -> Self {
@@ -295,7 +440,17 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
             }
         };
         let done = matches!(framing, Framing::None);
-        BodyReader { src, framing, chunk_left: 0, done, bad: false }
+        BodyReader {
+            src,
+            framing,
+            chunk_left: 0,
+            stage: Stage::Size,
+            line: Vec::new(),
+            trailer_bytes: 0,
+            trailer_lines: 0,
+            done,
+            bad: false,
+        }
     }
 
     /// Whether the request carries a body at all.
@@ -308,8 +463,8 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
         self.done && !self.bad
     }
 
-    /// Next slice of decoded body, or `Ok(0)` at the end. Never blocks longer
-    /// than the socket's own read timeout.
+    /// Next slice of decoded body. `Ok(0)` is the end of the body;
+    /// `WouldBlock` means "nothing more from the client yet, ask again".
     pub fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         if self.done || buf.is_empty() {
             return Ok(0);
@@ -318,12 +473,12 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
             Framing::None => Ok(0),
             Framing::Length(left) => {
                 let want = buf.len().min(left as usize);
-                let mut src = self.src.borrow_mut();
-                let n = src.read(&mut buf[..want])?;
+                let n = {
+                    let mut src = self.src.borrow_mut();
+                    src.read(&mut buf[..want])?
+                };
                 if n == 0 {
-                    self.bad = true;
-                    self.done = true;
-                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "short body"));
+                    return Err(self.fail(io::ErrorKind::UnexpectedEof, "body ended early"));
                 }
                 let left = left - n as u64;
                 self.framing = Framing::Length(left);
@@ -335,54 +490,108 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
     }
 
     fn read_chunked(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let mut src = self.src.borrow_mut();
-        let mut line = String::new();
-        if self.chunk_left == 0 {
-            match read_head_line(&mut *src, &mut line, CHUNK_LINE_MAX)? {
-                HeadLine::Line => {}
-                HeadLine::Eof | HeadLine::TooLong => return Err(self.fail("bad chunk size line")),
-            }
-            let size_text = line.trim().split(';').next().unwrap_or("");
-            let Ok(size) = u64::from_str_radix(size_text, 16) else {
-                return Err(self.fail("bad chunk size"));
-            };
-            if size == 0 {
-                // trailer section, then the final CRLF
-                loop {
-                    match read_head_line(&mut *src, &mut line, CHUNK_LINE_MAX)? {
-                        HeadLine::Line if line == "\r\n" || line == "\n" => break,
-                        HeadLine::Line => {}
-                        HeadLine::Eof | HeadLine::TooLong => return Err(self.fail("bad chunk trailer")),
+        loop {
+            match self.stage {
+                Stage::Size => {
+                    let Some(line) = self.take_line(CHUNK_LINE_MAX)? else { continue };
+                    let text = String::from_utf8_lossy(&line).into_owned();
+                    let size_text = text.trim().split(';').next().unwrap_or("");
+                    let Ok(size) = u64::from_str_radix(size_text, 16) else {
+                        return Err(self.fail(io::ErrorKind::InvalidData, "bad chunk size"));
+                    };
+                    if size == 0 {
+                        self.stage = Stage::Trailer;
+                    } else {
+                        self.chunk_left = size;
+                        self.stage = Stage::Data;
                     }
                 }
-                self.done = true;
-                return Ok(0);
+                Stage::Data => {
+                    let want = buf.len().min(self.chunk_left as usize);
+                    let n = {
+                        let mut src = self.src.borrow_mut();
+                        src.read(&mut buf[..want])?
+                    };
+                    if n == 0 {
+                        return Err(self.fail(io::ErrorKind::UnexpectedEof, "truncated chunk"));
+                    }
+                    self.chunk_left -= n as u64;
+                    if self.chunk_left == 0 {
+                        self.stage = Stage::AfterChunk;
+                    }
+                    return Ok(n);
+                }
+                Stage::AfterChunk => {
+                    let Some(line) = self.take_line(2)? else { continue };
+                    if !line.is_empty() {
+                        return Err(self.fail(io::ErrorKind::InvalidData, "missing chunk terminator"));
+                    }
+                    self.stage = Stage::Size;
+                }
+                Stage::Trailer => {
+                    let Some(line) = self.take_line(CHUNK_LINE_MAX)? else { continue };
+                    if line.is_empty() {
+                        self.done = true;
+                        return Ok(0);
+                    }
+                    self.trailer_lines += 1;
+                    self.trailer_bytes += line.len();
+                    if self.trailer_lines > TRAILER_LINES_MAX || self.trailer_bytes > TRAILER_MAX {
+                        return Err(self.fail(io::ErrorKind::InvalidData, "trailer section too large"));
+                    }
+                }
             }
-            self.chunk_left = size;
         }
-        let want = buf.len().min(self.chunk_left as usize);
-        let n = src.read(&mut buf[..want])?;
-        if n == 0 {
-            return Err(self.fail("truncated chunk"));
-        }
-        self.chunk_left -= n as u64;
-        if self.chunk_left == 0 {
-            match read_head_line(&mut *src, &mut line, CHUNK_LINE_MAX)? {
-                HeadLine::Line if line == "\r\n" || line == "\n" => {}
-                _ => return Err(self.fail("missing chunk terminator")),
-            }
-        }
-        Ok(n)
     }
 
-    fn fail(&mut self, what: &'static str) -> io::Error {
+    /// Pull one CRLF-terminated line without blocking, resuming across calls.
+    /// `Ok(None)` means the line is complete and the loop should re-dispatch
+    /// (it is returned through `self.line` being taken); `WouldBlock` means the
+    /// client owes us more bytes.
+    #[allow(clippy::type_complexity)]
+    fn take_line(&mut self, max: usize) -> io::Result<Option<Vec<u8>>> {
+        loop {
+            let (found, used) = {
+                let mut src = self.src.borrow_mut();
+                let available = src.fill_buf()?;
+                if available.is_empty() {
+                    return Err(self.fail(io::ErrorKind::UnexpectedEof, "body ended inside framing"));
+                }
+                match available.iter().position(|&b| b == b'\n') {
+                    Some(pos) => {
+                        self.line.extend_from_slice(&available[..pos]);
+                        (true, pos + 1)
+                    }
+                    None => {
+                        let take = available.len();
+                        self.line.extend_from_slice(available);
+                        (false, take)
+                    }
+                }
+            };
+            self.src.borrow_mut().consume(used);
+            if self.line.len() > max {
+                return Err(self.fail(io::ErrorKind::InvalidData, "framing line too long"));
+            }
+            if found {
+                let mut line = std::mem::take(&mut self.line);
+                if line.last() == Some(&b'\r') {
+                    line.pop();
+                }
+                return Ok(Some(line));
+            }
+        }
+    }
+
+    fn fail(&mut self, kind: io::ErrorKind, what: &'static str) -> io::Error {
         self.bad = true;
         self.done = true;
-        io::Error::new(io::ErrorKind::InvalidData, what)
+        io::Error::new(kind, what)
     }
 
     /// Collect the whole body, refusing anything over `limit`. For the small
-    /// fixed-size endpoints (`/ubus`); CGI streams instead.
+    /// fixed-size endpoints (`/ubus`); CGI streams instead. Blocking: only used
+    /// on paths where the socket is still in blocking mode.
     pub fn read_all(&mut self, limit: usize) -> io::Result<Option<Vec<u8>>> {
         let mut out = Vec::new();
         let mut buf = [0u8; 8192];
@@ -392,8 +601,8 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
                 return Ok(Some(out));
             }
             if out.len() + n > limit {
-                // keep reading is pointless: the framing stays unfinished, so
-                // the caller must close the connection
+                // reading on is pointless: framing stays unfinished, so the
+                // caller must close the connection
                 self.bad = true;
                 self.done = true;
                 return Ok(None);
@@ -532,11 +741,9 @@ impl<'a, W: Write> Response<'a, W> {
         }
     }
 
-    /// Push what is buffered to the socket. Handlers that relay a live stream
-    /// (CGI) call this per chunk so the client sees output while the producer
-    /// is still running, the way uhttpd's client ustream does.
-    pub fn flush(&mut self) -> io::Result<()> {
-        self.out.flush()
+    /// The transport underneath, for a handler that drives readiness itself.
+    pub fn sink(&mut self) -> &mut W {
+        self.out
     }
 
     /// Finish the response.
@@ -768,6 +975,112 @@ mod tests {
         assert!(drain(b"zz\r\n", true, None).is_err());
         // a Content-Length body that ends early is an error, not a short read
         assert!(drain(b"abc", false, Some(10)).is_err());
+    }
+
+    /// Reader that hands over exactly the pieces it was given, returning
+    /// WouldBlock in between: the shape a non-blocking socket produces, so the
+    /// decoder's resume path is exercised at every split the client can pick.
+    struct Segments {
+        pieces: std::collections::VecDeque<Vec<u8>>,
+        eof_after: bool,
+    }
+
+    impl io::Read for Segments {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            match self.pieces.pop_front() {
+                Some(p) => {
+                    let n = p.len().min(buf.len());
+                    buf[..n].copy_from_slice(&p[..n]);
+                    if n < p.len() {
+                        self.pieces.push_front(p[n..].to_vec());
+                    }
+                    Ok(n)
+                }
+                None if self.eof_after => Ok(0),
+                None => Err(io::Error::new(io::ErrorKind::WouldBlock, "no more yet")),
+            }
+        }
+    }
+
+    fn chunked_request() -> Request {
+        Request {
+            method: Method::Post,
+            version: Version::V1_1,
+            url: "/".into(),
+            headers: Vec::new(),
+            content_length: None,
+            transfer_chunked: true,
+            connection_close: false,
+            expect_continue: false,
+        }
+    }
+
+    /// Feed `pieces` one at a time; between pieces the decoder must report
+    /// WouldBlock and keep its partial state, never lose or duplicate a byte.
+    fn decode_in_pieces(pieces: &[&[u8]]) -> io::Result<Vec<u8>> {
+        let src = RefCell::new(io::BufReader::with_capacity(
+            16,
+            Segments { pieces: pieces.iter().map(|p| p.to_vec()).collect(), eof_after: false },
+        ));
+        let request = chunked_request();
+        let mut body = BodyReader::new(&src, &request);
+        let mut out = Vec::new();
+        let mut buf = [0u8; 3];
+        let mut stalls = 0;
+        loop {
+            match body.read(&mut buf) {
+                Ok(0) => return Ok(out),
+                Ok(n) => out.extend_from_slice(&buf[..n]),
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    stalls += 1;
+                    assert!(stalls < 1000, "decoder spun without progress");
+                    // a real relay would poll here; the pieces are already queued
+                    if src.borrow().get_ref().pieces.is_empty() {
+                        return Err(e);
+                    }
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
+    /// The client picks the split points, not us: size line, data, CRLF and
+    /// trailer must each survive being cut anywhere.
+    #[test]
+    fn chunked_decoding_resumes_across_every_split() {
+        let whole = b"4\r\nabcd\r\n2\r\nef\r\n0\r\n\r\n";
+        assert_eq!(decode_in_pieces(&[whole]).unwrap(), b"abcdef");
+        // size line cut in half, CRLF cut from its chunk, trailer cut in half
+        assert_eq!(
+            decode_in_pieces(&[b"4", b"\r\nab", b"cd\r", b"\n2\r\nef\r\n0\r\n\r\n"]).unwrap(),
+            b"abcdef"
+        );
+        assert_eq!(
+            decode_in_pieces(&[b"4\r\nabcd\r\n2\r\nef\r\n0\r\nX-A: 1\r", b"\n\r\n"]).unwrap(),
+            b"abcdef"
+        );
+        // one byte at a time
+        let single: Vec<&[u8]> = whole.chunks(1).collect();
+        assert_eq!(decode_in_pieces(&single).unwrap(), b"abcdef");
+    }
+
+    /// A client that keeps sending short trailers must not hold the decoder.
+    #[test]
+    fn endless_trailers_are_bounded() {
+        let mut input = b"1\r\nz\r\n0\r\n".to_vec();
+        for i in 0..(TRAILER_LINES_MAX + 5) {
+            input.extend_from_slice(format!("X-{i}: v\r\n").as_bytes());
+        }
+        input.extend_from_slice(b"\r\n");
+        let err = decode_in_pieces(&[&input]).unwrap_err();
+        assert_eq!(err.kind(), io::ErrorKind::InvalidData, "{err}");
+
+        let mut big = b"1\r\nz\r\n0\r\n".to_vec();
+        for i in 0..20 {
+            big.extend_from_slice(format!("X-{i}: {}\r\n", "v".repeat(600)).as_bytes());
+        }
+        big.extend_from_slice(b"\r\n");
+        assert_eq!(decode_in_pieces(&[&big]).unwrap_err().kind(), io::ErrorKind::InvalidData);
     }
 
     /// A body larger than the caller's limit is refused without collecting it,

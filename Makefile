@@ -4,7 +4,7 @@
 COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd
 VERSION ?= 25.12.5
 
-.PHONY: test check-tools check-toolchain build apk image ci-image
+.PHONY: test check-tools check-toolchain check-toolchain-negative build apk image ci-image
 
 test:
 	@for c in $(COMPONENTS); do \
@@ -18,19 +18,22 @@ build:
 		(cd components/$$c && cargo build --quiet --release) || exit 1; \
 	done
 
-# rust-toolchain.toml is the single source of truth; keep the seven MSRV
-# declarations from drifting away from it, and report the compiler actually on
-# PATH (an explicit RUSTC or a non-rustup cargo can bypass the pin).
+# rust-toolchain.toml is the single source of truth. tools/toolchain_identity.sh
+# resolves the compiler Cargo will actually use -- $CARGO, $RUSTC, the wrappers
+# and config overrides included -- and fails if it is not the pinned one.
 check-toolchain:
-	@channel=$$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml); \
-	echo "rust-toolchain.toml: $$channel"; \
-	echo "on PATH: $$(rustc -V) / $$(cargo -V)"; \
-	rustc -V | grep -q " $$channel " || { echo "rustc on PATH is not $$channel" >&2; exit 1; }; \
+	@id=$$(sh tools/toolchain_identity.sh) || exit 1; \
+	echo "$$id" | grep -E '^(channel|cargo_version|rustc_version|official)=' | sed 's/=/: /'; \
+	channel=$$(echo "$$id" | sed -n 's/^channel=//p'); \
 	for c in $(COMPONENTS); do \
 		have=$$(sed -n 's/^rust-version = "\(.*\)"/\1/p' components/$$c/Cargo.toml); \
 		[ "$$have" = "$$channel" ] || { echo "components/$$c: rust-version $$have != $$channel" >&2; exit 1; }; \
 	done; \
 	echo "toolchain: pinned and consistent"
+
+# Negative half of the pin: overrides a release must refuse. No SDK, no device.
+check-toolchain-negative:
+	@sh tools/toolchain_negative_test.sh
 
 check-tools:
 	@for f in tools/*.sh; do sh -n "$$f" || exit 1; done

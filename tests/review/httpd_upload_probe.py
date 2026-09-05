@@ -14,12 +14,17 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 BIN = pathlib.Path('components/httpd/target/debug/httpd-rs').resolve()
 SINK = """#!/bin/sh
 sum=$(sha256sum | cut -d' ' -f1)
 printf 'Content-Type: text/plain\\r\\n\\r\\n%s %s\\n' "$CONTENT_LENGTH" "$sum"
+"""
+# rejects before reading a byte of the body
+DENY = """#!/bin/sh
+printf 'Status: 403 Forbidden\\r\\nContent-Type: text/plain\\r\\n\\r\\nrejected\\n'
 """
 
 
@@ -108,16 +113,31 @@ def main():
         sink = root / 'cgi-bin' / 'sink'
         sink.write_text(SINK)
         sink.chmod(0o755)
+        deny = root / 'cgi-bin' / 'deny'
+        deny.write_text(DENY)
+        deny.chmod(0o755)
         (root / 'static.txt').write_text('static\n')
         with socket.socket() as k:
             k.bind(('127.0.0.1', 0))
             port = k.getsockname()[1]
         srv = subprocess.Popen([str(BIN), '-p', f'127.0.0.1:{port}', '-h', tmp,
-                                '-t', '60', '-T', '60', '-u', '/ubus'],
+                                '-t', '5', '-T', '60', '-u', '/ubus'],
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(0.5)
         base_rss = rss_kib(srv.pid)
-        peak = base_rss
+        # Sample continuously, not once per request: a per-request sample can
+        # miss the transfer itself, which is exactly where growth would show.
+        peak = [base_rss]
+        watching = threading.Event()
+        watching.set()
+
+        def watch():
+            while watching.is_set():
+                peak[0] = max(peak[0], rss_kib(srv.pid))
+                time.sleep(0.01)
+
+        watcher = threading.Thread(target=watch, daemon=True)
+        watcher.start()
         try:
             sizes = [0, 1024, 4 * 1024 * 1024 - 1, 4 * 1024 * 1024 + 1,
                      5 * 1024 * 1024, 32 * 1024 * 1024]
@@ -128,7 +148,6 @@ def main():
                 got = body.decode(errors='replace').split()
                 ok = head.startswith('HTTP/1.1 200') and len(got) == 2 and got[1] == want
                 ok = ok and (got[0] == str(n) if n else True)
-                peak = max(peak, rss_kib(srv.pid))
                 results[f'content-length {n}'] = 'ok' if ok else f'MISMATCH head={head.splitlines()[0]} got={got[:1]}'
             # chunked, and chunked + Expect: 100-continue
             payload = os.urandom(6 * 1024 * 1024)
@@ -137,7 +156,6 @@ def main():
             results['chunked 6 MiB'] = 'ok' if want in body.decode(errors='replace') else f'MISMATCH {head.splitlines()[0]}'
             head, body = post(port, '/cgi-bin/sink', payload, expect100=True, extra='Expect: 100-continue\r\n')
             results['expect-100 6 MiB'] = 'ok' if want in body.decode(errors='replace') else f'MISMATCH {head.splitlines()[0]}'
-            peak = max(peak, rss_kib(srv.pid))
             # /ubus keeps its own 65536 cap
             # at the cap the bridge answers normally (a JSON-RPC parse error);
             # one byte over must be refused by the transport, not silently dropped
@@ -173,8 +191,49 @@ def main():
                     except OSError as e:
                         line = f'<{e}>'
                 results[f'reject: {name}'] = 'ok' if '400' in line else f'got {line or "EMPTY"}'
-            results['rss_kib'] = {'idle': base_rss, 'peak': peak, 'delta': peak - base_rss}
+            # A client that sends headers then stops. Its own server with a
+            # tight script timeout and a long network timeout, so the result
+            # shows which of the two actually bounded the request.
+            with socket.socket() as k:
+                k.bind(('127.0.0.1', 0))
+                port2 = k.getsockname()[1]
+            srv2 = subprocess.Popen([str(BIN), '-p', f'127.0.0.1:{port2}', '-h', tmp,
+                                     '-t', '1', '-T', '30'],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(0.5)
+            try:
+                for path, want, limit in (('sink', '504', 2.5), ('deny', '403', 2.5)):
+                    with socket.create_connection(('127.0.0.1', port2), timeout=30) as s:
+                        s.sendall(f'POST /cgi-bin/{path} HTTP/1.0\r\nContent-Length: 100\r\n\r\n'.encode())
+                        t0 = time.monotonic()
+                        try:
+                            line = s.recv(200).split(b'\r\n')[0].decode()
+                        except OSError as e:
+                            line = f'<{e}>'
+                        took = time.monotonic() - t0
+                    ok = want in line and took < limit
+                    results[f'stalled upload -> /cgi-bin/{path}'] = (
+                        'ok' if ok else f'got {line or "EMPTY"} after {took:.3f}s')
+            finally:
+                srv2.terminate()
+                srv2.wait(timeout=10)
+            # a slow drip must still arrive byte-exact
+            payload = os.urandom(300 * 1024)
+            with socket.create_connection(('127.0.0.1', port), timeout=60) as s:
+                s.sendall(f'POST /cgi-bin/sink HTTP/1.0\r\nContent-Length: {len(payload)}\r\n\r\n'.encode())
+                for i in range(0, len(payload), 4096):
+                    s.sendall(payload[i:i + 4096])
+                    time.sleep(0.002)
+                _, body = read_response(s)
+            got = body.decode(errors='replace').split()
+            want = hashlib.sha256(payload).hexdigest()
+            results['slow drip 300 KiB'] = 'ok' if len(got) == 2 and got[1] == want else f'MISMATCH {got}'
+            watching.clear()
+            watcher.join(timeout=2)
+            results['rss_kib'] = {'idle': base_rss, 'peak_sampled_during_transfer': peak[0],
+                                  'delta': peak[0] - base_rss}
         finally:
+            watching.clear()
             srv.terminate()
             srv.wait(timeout=10)
     print(json.dumps(results, indent=2))

@@ -26,6 +26,15 @@ log() { printf '\n== %s\n' "$*"; }
 [ -f "$PKGLIST" ] || { echo "no package list for $ver: $PKGLIST (capture it with: ssh router 'apk info' | sort)" >&2; exit 1; }
 mkdir -p "$WORK/dl" "$OUT"
 
+# Prove the compiler before downloading an SDK: a version problem should not
+# surface an hour into a build. Same script the Makefile check uses, and its
+# output is what the manifest records -- verified identity == recorded identity.
+log "toolchain"
+TOOLCHAIN_ID=$(CARGO="$CARGO" sh "$REPO/tools/toolchain_identity.sh")
+echo "$TOOLCHAIN_ID"
+tc() { echo "$TOOLCHAIN_ID" | sed -n "s/^$1=//p"; }
+[ "$(tc official)" = yes ] || echo "WARNING: unofficial toolchain ($(tc override))" >&2
+
 log "fetch SDK + ImageBuilder $ver"
 cd "$WORK/dl"
 curl -sSfLO "$BASE/sha256sums"
@@ -103,17 +112,16 @@ fi
 log "manifest"
 cd "$OUT"
 sha256sum owrt-*.apk *-sysupgrade.bin > SHA256SUMS
-# Record the compiler that actually ran, not just the version we asked for: an
-# explicit RUSTC or a non-rustup cargo can bypass the pin.
-rustc_id=$(env RUSTUP_TOOLCHAIN="$RUST_TOOLCHAIN" rustc -Vv | tr '\n' ';')
-cargo_id=$(env RUSTUP_TOOLCHAIN="$RUST_TOOLCHAIN" cargo -V)
+# Identity comes from the verified TOOLCHAIN_ID above, not from a fresh lookup
+# of whatever happens to be on PATH after the build.
 gcc=$(ls "$SDK"/staging_dir/toolchain-*/bin/*-openwrt-linux-*gcc 2>/dev/null | head -1)
 gcc_id=$([ -n "$gcc" ] && "$gcc" --version 2>/dev/null | head -1 || echo unknown)
 lockhash=$(cd "$REPO/components" && sha256sum */Cargo.lock 2>/dev/null | sha256sum | cut -d" " -f1)
 python3 - "$ver" "$(git -C "$REPO" rev-parse HEAD 2>/dev/null || echo unknown)" \
-	"$rustc_id" "$cargo_id" "$gcc_id" "$lockhash" "$RUST_TOOLCHAIN" <<'EOF'
+	"$(tc rustc_verbose)" "$(tc cargo_version)" "$gcc_id" "$lockhash" "$RUST_TOOLCHAIN" \
+	"$(tc official)" "$(tc override)" <<'EOF'
 import json, os, sys, hashlib, re
-ver, commit, rustc_id, cargo_id, gcc_id, lockhash, toolchain = sys.argv[1:8]
+ver, commit, rustc_id, cargo_id, gcc_id, lockhash, toolchain, official, override = sys.argv[1:10]
 sums = dict(line.split()[::-1] for line in open("SHA256SUMS") if line.strip())
 pkgs = {}
 for f in sorted(sums):
@@ -126,10 +134,12 @@ json.dump({"openwrt": ver, "profile": "xiaomi_mi-router-ax3000t", "source_commit
            "apk_sha256": {f: s for f, s in sums.items() if f.endswith(".apk")},
            "imagebuilder_args": {"DISABLED_SERVICES": "rpcd uhttpd log", "ADD_LOCAL_KEY": 1,
                                  "FILES": "etc/owrt-{uci,reload-config,logd,httpd,fw4,rpcd}.boot-enable"},
-           "toolchain": {"requested": toolchain, "rustc": rustc_id.strip(";").replace(";", " | "),
+           "toolchain": {"requested": toolchain, "rustc": rustc_id.strip("; "),
                          "cargo": cargo_id, "target_gcc": gcc_id,
                          "target": "aarch64-unknown-linux-musl",
-                         "cargo_lock_sha256": lockhash},
+                         "cargo_lock_sha256": lockhash,
+                         "official": official == "yes",
+                         "override": override or None},
            "flashed": False}, open("manifest.json", "w"), indent=1)
 print(open("manifest.json").read())
 EOF

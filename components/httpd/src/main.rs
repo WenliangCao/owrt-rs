@@ -13,7 +13,7 @@ use bridge::Bridge;
 use http::{Method, ParseOutcome, Request, Response};
 use std::io::{self, BufReader, Read, Write};
 use std::cell::RefCell;
-use std::os::fd::{AsRawFd, RawFd};
+use std::os::fd::{AsRawFd, FromRawFd, RawFd};
 use std::net::{IpAddr, SocketAddr, TcpListener};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -234,30 +234,27 @@ impl<T: Read + Write + Send> Stream for T {}
 
 type Client = BufReader<Box<dyn Stream>>;
 
-/// Write half of the client, shared with `http::BodyReader`. One stream carries
-/// both directions and a CGI relay alternates between them, so the borrow is
-/// taken per operation and never held across one.
-struct SharedWriter<'a>(&'a RefCell<Client>);
-
-impl Write for SharedWriter<'_> {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        borrow(self.0)?.get_mut().write(buf)
+/// Put the client socket in (non-)blocking mode for the duration of a handler
+/// that drives readiness itself. The fd stays owned by the connection.
+fn set_nonblocking(fd: RawFd, on: bool) -> io::Result<()> {
+    if fd < 0 {
+        return Ok(());
     }
-
-    fn flush(&mut self) -> io::Result<()> {
-        borrow(self.0)?.get_mut().flush()
-    }
+    // SAFETY: `fd` is the live client socket owned by this connection;
+    // ManuallyDrop keeps this borrow from closing it.
+    let sock = std::mem::ManuallyDrop::new(unsafe { std::net::TcpStream::from_raw_fd(fd) });
+    sock.set_nonblocking(on)
 }
 
-/// A failed borrow would mean read and write nested, which is a bug here. Turn
-/// it into an I/O error rather than panicking a connection thread.
-fn borrow(cell: &RefCell<Client>) -> io::Result<std::cell::RefMut<'_, Client>> {
-    cell.try_borrow_mut().map_err(|_| io::Error::other("client stream already borrowed"))
-}
+
 
 /// Most a keep-alive connection will discard from an unwanted body before
 /// closing instead.
 const MAX_DRAIN: usize = 64 * 1024;
+
+/// Response bytes held before the transport has to take some. Also the CGI
+/// relay's back-pressure mark: above it we stop reading the script's stdout.
+const OUT_WINDOW: usize = 16 * 1024;
 
 struct Server {
     config: Config,
@@ -277,8 +274,9 @@ impl Server {
                 Ok(ParseOutcome::Request(r)) => r,
                 Ok(ParseOutcome::Eof) | Err(_) => return,
                 Ok(ParseOutcome::Bad { code, summary, version, body }) => {
-                    let mut w = SharedWriter(&client);
+                    let mut w = http::Out::new(&client, conn.fd, OUT_WINDOW, Duration::from_secs(self.config.network_timeout.max(1)));
                     self.reject(&mut w, code, summary, version, body);
+                    let _ = Write::flush(&mut w);
                     return;
                 }
             };
@@ -294,7 +292,7 @@ impl Server {
             // the first byte reaches the client while the handler still runs.
             let close;
             {
-                let mut out = io::BufWriter::with_capacity(16 * 1024, SharedWriter(&client));
+                let mut out = http::Out::new(&client, conn.fd, OUT_WINDOW, Duration::from_secs(self.config.network_timeout.max(1)));
                 {
                     let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
                     if self.dispatch(&request, &mut body, &mut resp, conn).is_err() {
@@ -302,7 +300,7 @@ impl Server {
                     }
                     close = resp.connection_close();
                 }
-                if out.flush().is_err() {
+                if Write::flush(&mut out).is_err() {
                     return;
                 }
             }
@@ -337,7 +335,7 @@ impl Server {
         let _ = out.write_all(&buf);
     }
 
-    fn dispatch<W: Write>(
+    fn dispatch<W: http::Sink>(
         &self,
         request: &Request,
         body: &mut http::BodyReader<'_, Client>,
@@ -411,8 +409,6 @@ impl Server {
                         remote: conn.remote,
                         tls: conn.tls,
                         script_timeout: self.config.script_timeout,
-                        network_timeout: self.config.network_timeout,
-                        client_fd: conn.fd,
                     };
                     return cgi::run(&ctx, request, body, resp, &pi);
                 }
