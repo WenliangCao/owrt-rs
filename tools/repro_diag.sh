@@ -6,6 +6,12 @@
 #   repro_diag.sh fetch <workdir>   download + unpack the SDK
 #   repro_diag.sh build <workdir>   build and collect into <workdir>/diag
 #
+# REPRO_CC_MAP=cargo_home adds exactly one factor to the diagnostic build:
+#   -ffile-prefix-map=<this host's CARGO_HOME>=/cargo
+# on the *target* C compiler. Nothing else changes -- not the source path, not
+# OUT_DIR, not strip, LTO, linker or profile. This is a diagnostic variable, not
+# a release-recipe change; the recipe is untouched until an experiment earns it.
+#
 # Collects (never secrets, never a full environment dump): the unstripped ELF,
 # ring's OUT_DIR (.a/.o/generated headers/build-script output), every .rlib, the
 # cargo -vv log, and the identities of the tools that actually ran.
@@ -70,8 +76,18 @@ build)
 	CARGO=${CARGO:-"env RUSTUP_TOOLCHAIN=$PIN cargo"}
 	CARGO_HOME_DIR=${CARGO_HOME:-$HOME/.cargo}
 
+	# The one experimental factor, off unless asked for. cc appends the
+	# target-prefixed CFLAGS to the flags it computes, so this is additive --
+	# verified afterwards from collect/cc-commands.txt, not assumed.
+	case "${REPRO_CC_MAP:-none}" in
+	cargo_home) cc_extra="-ffile-prefix-map=$CARGO_HOME_DIR=/cargo" ;;
+	none)       cc_extra="" ;;
+	*)          echo "unknown REPRO_CC_MAP=$REPRO_CC_MAP" >&2; exit 1 ;;
+	esac
+
 	set +e
 	env \
+		${cc_extra:+CFLAGS_aarch64_unknown_linux_musl="$cc_extra"} \
 		CARGO_HOME="$CARGO_HOME_DIR" \
 		CARGO_BUILD_TARGET="$RUST_TARGET" \
 		CARGO_PROFILE_RELEASE_PANIC=abort \
@@ -145,6 +161,8 @@ build)
 			echo "$v=${val:-<unset>}"
 		done
 		echo "cargo_home=$CARGO_HOME_DIR"
+		echo "repro_cc_map=${REPRO_CC_MAP:-none}"
+		echo "cc_extra_flags=${cc_extra:-<none>}"
 		echo "umask=$(umask)"; echo "TZ=${TZ:-unset}"; echo "LC_ALL=${LC_ALL:-unset}"
 		echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-unset}"
 	} > "$OUT/collect/tools.txt"
