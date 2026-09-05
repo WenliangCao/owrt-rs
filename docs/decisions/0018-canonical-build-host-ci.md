@@ -51,7 +51,39 @@ runner 由 GitHub 提供、SDK 与 ImageBuilder 按官方 `sha256sums` 校验，
 2. `.github/workflows/release-image.yml`：`binary-sha256.txt` 进 artifact、job summary 和 GitHub Release。
 3. `tools/release.sh`：`apk` 开头打印非 canonical 提示，文件头说明用途限于差分回归。
 
-## 核验方法
+## 核验结果（2026-09-06，commit `daef6ee`，runs 33995307108 / 33995487475）
+
+同一 commit 跑两次 `release-image`，**六个发货二进制逐字节相同**：
+
+```
+ebf62134ce52264c2d9b170221b1ca62d37215833a7d7679d32ee2c6072edbde  uci-rs
+3f29fb7a9234dddfd863f59a51838af181c197653c259ce55c1bd2b0a8e77d9a  fw4-rs
+424cf7190ebf7ae0041b74d93fe2a646f35c2e81631a045b5a4c96d5a4dc67e7  reload_config_rs
+092da339dfe4631f969aadaaf3d9dcdce5b1734c7740bb933c81f5c6352759a9  logd-rs
+3af335b1682926cd6481e7fc2fccdbd227d855cdf7345041e6fbe31ab92d6b34  httpd-rs
+95af6169fd7c14b8e0738bcc082630b588f484112fc15296f8421540cabd607f  rpcd-rs
+```
+
+**七个 APK 也逐字节相同。** 只有 sysupgrade 镜像不同，原因已查清并且只有一个：
+
+解开两个镜像的 root squashfs，**926 个普通文件里只有 1 个不同**，221 个符号链接全部相同。
+不同的那个是 `/etc/apk/keys/local-public-key.pem`——ImageBuilder 的 `ADD_LOCAL_KEY=1`
+每次运行现生成一对 ECDSA 密钥。六个二进制在两个镜像里逐字节相同。
+
+要让镜像也可复现，需要把本地签名私钥固定下来（例如存成 Actions secret 复用）。
+那是引入一个长期签名密钥的安全决策，本决策不含这一步；发布来源核验以二进制哈希为锚点。
+
+### 关于 httpd-rs 的哈希与诊断产物不同
+
+canonical 发货哈希是 `3af335b1…`，诊断脚本 `repro_diag.sh` 收到的 CI 产物是 `a56ef067…`。
+差别是打包的 `INSTALL_BIN` 又做了一次 strip：镜像里的 ELF `e_shnum=0`（section header
+表整个去掉），比 cargo 直接产出小 1425 字节 = section header 表 1152 + `.comment` 112 +
+`.shstrtab` 154 + 对齐。**按同样的文件偏移逐段比对，`.text` / `.rodata` / `.eh_frame` /
+`.gcc_except_table` / `.data.rel.ro` / `.got` / `.data` 全部逐字节相同**，两个文件在较短者
+长度内只有 6 个字节不同，全在 ELF header 的 `e_shoff` / `e_shnum` / `e_shstrndx`。
+即：同一份代码，多脱了一层元数据。
+
+## 核验方法（复用）
 
 跑两次 `release-image`（同一 commit），比较两次的 `binary-sha256.txt`：六行应完全相同。
 构建主机产物用于比对时，预期只有 `httpd-rs` 一行不同，其余五行相同。
