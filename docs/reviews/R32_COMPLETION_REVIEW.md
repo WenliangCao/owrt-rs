@@ -227,3 +227,31 @@ idle 2560 → 传输期间峰值 3792 KiB，**delta 1232 KiB**，与文件大小
 Linux 测试、SDK clean 重建、APK 实际 binary 的精确 rootfs 差分、离线镜像、
 1.94 vs 1.98.1 的性能/体积对照、CI/构建机可重复性、发布前 PKG_RELEASE 更新 —— 全部保持未完成。
 host 测试不替代这些。这些需要 Linux 构建主机或 CI 运行，已单独向用户确认授权。
+
+## 补：只读核对（设备 SSH，未写入）
+
+R32 指出上一轮把"核对 LuCI 合同"泛化成需要设备写权限是不准确的。已用**只读** SSH 完成核对，
+未上传、未替换、未刷写、未重启，只执行了 `ls` / `ps` / `uci show` / `strings` / `apk list` / `free` / `df`。
+
+**上传合同**（`/www/luci-static/resources/{view/system/flash.js,ui.js}`）：
+
+- 固件：`ui.uploadFile('/tmp/firmware.bin', …)`；备份恢复：`ui.uploadFile('/tmp/backup.tar.gz', …)`。
+- `ui.uploadFile` 用 `FormData` POST 到 `` `${cgi_base}/cgi-upload` ``，`timeout: 0`（客户端不设超时），带 progress 事件。
+- `/www/cgi-bin/{cgi-upload,cgi-backup,cgi-download,cgi-exec}` 都是 `../../usr/libexec/cgi-io` 的符号链接；
+  `cgi-io` 里可见 `multipart/form-data;` 与 `Content-Length: %llu`，即它自己解析 multipart 并输出自己的 Content-Length。
+- 备份下载与 mtd 下载走 `cgi-backup` / `cgi-download`，是 `application/x-www-form-urlencoded` 的表单 POST，不是上传。
+
+结论：httpd 的职责就是把 multipart 原样喂给 stdin，并给出 `CONTENT_TYPE`（含 boundary）与 `CONTENT_LENGTH`；
+业务字段与 session 校验都在 `cgi-io` 里。本轮的流式 stdin 正是这个形状，没有另造上传 API。
+
+**设备现状**（数字更正）：
+
+- 现役 `owrt-httpd 0.1.1-r3`，进程 `/usr/sbin/httpd-rs -f --call-log … -h /www -r OpenWrt -x /cgi-bin -u /ubus -t 60`，
+  未传 `-T`（即 network_timeout 取默认 30）。`uci show uhttpd` 里 `script_timeout=60` / `network_timeout=30` / `max_connections=100`。
+- **r3 就是带 4 MiB 上限的版本**，所以设备上经 LuCI 的固件上传目前应当失败。
+- 实际镜像大小是 **9400608 字节 = 8.97 MiB**（`private/images/25.12.5/…-squashfs-sysupgrade.bin`），
+  不是我上一轮写的"20–30 MB"。R32 对这一点的批评成立，已按实测更正。
+- 设备内存 239 MB 总量 / 114 MB 可用，overlay 60.6 MB 用了 3.4 MB。
+
+未在设备上验证修复：那需要安装新 APK 并真实上传（写 `/tmp/firmware.bin`），属于写操作，等待单独授权。
+本地已用同一份代码覆盖到 32 MiB，远超 8.97 MiB 的实际镜像。
