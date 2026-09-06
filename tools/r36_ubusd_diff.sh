@@ -14,7 +14,9 @@ mkdir -p "$out"
 [ -x "$HELPERS/busprobe" ] || sh "$(dirname "$0")/r36_build_helpers.sh" "$HELPERS"
 
 run_one() {
-	# $1 = tag (c|rs), $2 = daemon path inside the rootfs
+	# $1 = tag (c|rs), $2 = daemon path inside the rootfs.
+	# DAEMON_USER (default root) picks the uid the daemon runs as; the device
+	# runs it as `ubus`, so that variant has to be exercised too.
 	tag=$1; daemon=$2
 	tmp=$(mktemp -d /tmp/owrt-r36-XXXXXX); root=$tmp/root
 	sudo -n cp -a "$rootfs" "$root"
@@ -35,7 +37,7 @@ run_one() {
 		mknod -m 666 "$root/dev/urandom" c 1 9
 		mknod -m 666 "$root/dev/zero" c 1 5
 		trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
-		chroot "$root" /bin/sh /tmp/inner.sh "$daemon"' sh "$root" "$daemon" > "$out/$tag.txt" 2>&1 || true
+		DAEMON_USER="$3" chroot "$root" /bin/sh /tmp/inner.sh "$daemon"' sh "$root" "$daemon" "${DAEMON_USER:-root}" > "$out/$tag.txt" 2>&1 || true
 	sudo -n cp "$root/diagnostics.txt" "$out/$tag-diagnostics.txt" 2>/dev/null || true
 	sudo -n chown "$(id -u):$(id -g)" "$out/$tag-diagnostics.txt" 2>/dev/null || true
 	sudo -n rm -rf "$tmp"

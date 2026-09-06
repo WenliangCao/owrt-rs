@@ -4,11 +4,21 @@
 # by construction (pids, random ids, timings) may be printed raw.
 set -u
 daemon=$1
+# On the device procd starts the bus with service_start_early("ubus",
+# "/sbin/ubusd", "ubus", "ubus"), i.e. as uid/gid 81, not as root. Set
+# DAEMON_USER=ubus to reproduce that; the directory is pre-created and owned
+# the way procd leaves it.
+DAEMON_USER=${DAEMON_USER:-root}
 mkdir -p /var/run/ubus /var/lock /var/state /tmp/out
 chmod 1777 /var/run/ubus
 ip link set lo up 2>/dev/null || true
 
-"$daemon" >/tmp/out/ubusd.log 2>&1 &
+if [ "$DAEMON_USER" = root ]; then
+	"$daemon" >/tmp/out/ubusd.log 2>&1 &
+else
+	chown "$DAEMON_USER" /var/run/ubus 2>/dev/null || true
+	/tmp/asuser "$DAEMON_USER" "$daemon" >/tmp/out/ubusd.log 2>&1 &
+fi
 bus=$!
 i=0; while [ $i -lt 10 ]; do ubus list >/dev/null 2>&1 && break; i=$((i+1)); sleep 1; done
 
