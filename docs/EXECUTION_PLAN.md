@@ -1,5 +1,10 @@
 # Rust-native OpenWrt Control Plane：执行计划
 
+> 2026-09-06 新阶段：用户明确项目是单用户、单设备的个人实验，后续按
+> [个人设备核心控制面计划](RUST_CORE_CONTROL_PLAN.md) 推进 ubusd → netifd → procd。
+> 下文保留历史过程；其中“不开发这三个组件”与“需要第二台设备”的规划限制由新计划替代。
+> 历史重连缺陷和具体设备授权范围仍按新计划区分处理。
+
 > 版本：5.0，2026-09-02
 > 状态：第一轮（阶段 1–5）**完成**（2026-09-02），R05、logd、uhttpd、fw4、rpcd 插件层由 Rust 实现接管并开机启动，收官综合窗口通过，见 [FINAL_REPORT](../reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)。第二轮（阶段 6–9，§11）进行中：§11.0 自检、阶段 6（uci-rs 接管 `/sbin/uci`）、阶段 7（rpcd-rs 接管 `session`/`uci`/`rc`）与阶段 8（rpcd-rs 接管全部 rpcd 对象，原 rpcd 停止）已完成 2026-09-02；阶段 9（ubusd）经前置检验判定不执行（决策 0015）。第二轮收官见 [REPORT_ROUND2](../reports/ax3000t-stock-openwrt-25.12.5/REPORT_ROUND2.md)。 第三轮（§11.8，2026-09-03 起）：用户放宽设备边界（有线可达、接受崩溃、要求完整备份与救援机制），决策 0016 允许一次受控重启验证开机路径；ubusd 排最后。
 > v4→v5 变更：只新增 §11；§0–§10 保持第一轮原文，作为已完成工作的记录。
