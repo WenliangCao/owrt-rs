@@ -58,14 +58,34 @@ boot() { # $1 = commands, $2 = logfile
 	sed -n '/=====R44/,$p' "$2" | grep -E '^(r44|=====)' || true
 }
 
-echo "== boot 1: write the candidate into the overlay"
-boot 'mkdir -p /mnt/p && mount /dev/vdb /mnt/p && cp /mnt/p/ubusd-rs /sbin/ubusd && sync && echo "=====R44 install" && echo "r44 installed_size=$(wc -c < /sbin/ubusd)" && echo "r44 overlay_has_it=$(ls /overlay/upper/sbin/ubusd >/dev/null 2>&1 && echo yes || echo no)"' "$out/boot1.log"
+# Each phase writes its verdict to the payload disk; the host reads it back.
+# The serial console wraps long lines, so nothing important is printed there.
+say_to_payload='mkdir -p /mnt/p && mount /dev/vdb /mnt/p'
 
-echo "== boot 2: which binary did procd start?"
-boot 'echo "=====R44 check" && bp=$(pgrep -f "^/sbin/ubusd" | head -1) && echo "r44 bus_size=$(wc -c < /proc/$bp/exe)" && echo "r44 bus_is_candidate=$(grep -qa ubusd-rs /proc/$bp/exe && echo yes || echo no)" && echo "r44 bus_uid=$(awk "/^Uid:/{print \$2}" /proc/$bp/status)" && echo "r44 objects=$(ubus list | wc -l)" && echo "r44 service_rc=$(ubus -S call service list "{}" >/dev/null 2>&1; echo $?)" && echo "r44 network_rc=$(ubus -S call network.interface dump >/dev/null 2>&1; echo $?)" && echo "r44 pid1=$(cat /proc/1/comm)"' "$out/boot2.log"
+report() { sudo -n mount -o loop "$payload" /mnt 2>/dev/null || true; }
 
-echo "== boot 3: remove the overlay file, the read-only original comes back"
-boot 'echo "=====R44 revert" && rm -f /sbin/ubusd && sync && echo "r44 removed_rc=$?" && echo "r44 now_size=$(wc -c < /sbin/ubusd)"' "$out/boot3.log"
+phase() { # $1 = label, $2 = script, $3 = logfile
+	echo "== $1"
+	boot "$say_to_payload && { $2 ; } > /mnt/p/verdict.txt 2>&1 && sync" "$3"
+	m=$(mktemp -d)
+	sudo -n mount -o loop "$payload" "$m"
+	sudo -n cat "$m/verdict.txt" 2>/dev/null | sed 's/^/   /' || echo "   (no verdict written)"
+	sudo -n rm -f "$m/verdict.txt"
+	sudo -n umount "$m"; rmdir "$m"
+}
 
-echo "== boot 4: confirm the original is serving again"
-boot 'echo "=====R44 confirm" && bp=$(pgrep -f "^/sbin/ubusd" | head -1) && echo "r44 bus_size=$(wc -c < /proc/$bp/exe)" && echo "r44 bus_is_candidate=$(grep -qa ubusd-rs /proc/$bp/exe && echo yes || echo no)" && echo "r44 objects=$(ubus list | wc -l)" && echo "r44 service_rc=$(ubus -S call service list "{}" >/dev/null 2>&1; echo $?)"' "$out/boot4.log"
+phase "boot 1: write the candidate into the overlay" \
+	'cp /mnt/p/ubusd-rs /sbin/ubusd; sync; echo "installed_size=$(wc -c < /sbin/ubusd)"; echo "in_overlay_upper=$(ls /overlay/upper/sbin/ubusd >/dev/null 2>&1 && echo yes || echo no)"; echo "rom_original_size=$(wc -c < /rom/sbin/ubusd)"' \
+	"$out/boot1.log"
+
+phase "boot 2: which binary did procd start?" \
+	'b=$(pgrep -f "^/sbin/ubusd" | head -1); echo "bus_size=$(wc -c < /proc/$b/exe)"; echo "is_candidate=$(grep -qa ubusd-rs /proc/$b/exe && echo yes || echo no)"; echo "bus_uid=$(awk "/^Uid:/{print \$2}" /proc/$b/status)"; echo "objects=$(ubus list | wc -l)"; echo "service_rc=$(ubus -S call service list "{}" >/dev/null 2>&1; echo $?)"; echo "network_rc=$(ubus -S call network.interface dump >/dev/null 2>&1; echo $?)"; echo "pid1=$(cat /proc/1/comm)"' \
+	"$out/boot2.log"
+
+phase "boot 3: revert by copying the rom original back over the overlay file" \
+	'cp /rom/sbin/ubusd /sbin/ubusd; sync; echo "reverted_size=$(wc -c < /sbin/ubusd)"; echo "still_in_overlay=$(ls /overlay/upper/sbin/ubusd >/dev/null 2>&1 && echo yes || echo no)"' \
+	"$out/boot3.log"
+
+phase "boot 4: confirm the original is serving again" \
+	'b=$(pgrep -f "^/sbin/ubusd" | head -1); echo "bus_size=$(wc -c < /proc/$b/exe)"; echo "is_candidate=$(grep -qa ubusd-rs /proc/$b/exe && echo yes || echo no)"; echo "objects=$(ubus list | wc -l)"; echo "service_rc=$(ubus -S call service list "{}" >/dev/null 2>&1; echo $?)"' \
+	"$out/boot4.log"

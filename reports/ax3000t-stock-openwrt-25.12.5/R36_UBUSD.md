@@ -236,7 +236,25 @@ netifd 的 `network*`、dnsmasq、odhcpd 的 `dhcp`、rpcd 的九个、以及七
 `service`/`system`/`container`——两端行为相同，其余客户端的部分恢复情况也相同。
 这一条此前只有源码依据（50 ms→1 s 退避），现在有实测。
 
-### 这台虚拟机不能证明什么
+### r44：squashfs + overlay 布局，以及一个会导致开不了机的陷阱
+
+r43 用的是可写 ext4，没有 overlay 那一层。r44 换成官方的 squashfs-combined 镜像，
+走的是设备同款的 `mount_root` → overlay 路径，通过串口控制台操作，一共四次启动、同一块磁盘。
+
+- 启动 1：`cp` 候选到 `/sbin/ubusd`，确认它落在 **`/overlay/upper/sbin/ubusd`**，
+  即 overlay 遮住只读 squashfs——这正是切换方案依赖的机制，现在有实测。
+- 启动 3 的第一版用了 `rm -f /sbin/ubusd` 来撤销，**这是错的**：overlay 对下层已存在的
+  文件执行删除会产生 **whiteout**，文件是彻底消失而不是恢复成原版。
+- 启动 4 于是**卡在 `procd: - ubus -` 再也不往下走**——没有 init、没有 shell、没有网络。
+  在设备上这等于变砖到只能进 failsafe。
+
+正确的撤销是 `cp /rom/sbin/ubusd /sbin/ubusd`（OpenWrt 把只读层挂在 `/rom`），
+不是 `rm`。切换分析文档已按此更正。
+
+**这条是这轮虚拟机工作最有价值的产出**：属于只有真的做一次才会发现的东西，
+而代价如果发生在设备上是开不了机。
+
+### 这两台虚拟机不能证明什么
 
 - **不是设备的 target**：armsr/armv8，内核与虚拟硬件都不同；无无线、无交换芯片、无 flash 布局。
 - **rootfs 是可写 ext4，不是 squashfs + overlay**。这里是直接替换 `/sbin/ubusd`；
