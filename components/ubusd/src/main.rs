@@ -21,6 +21,10 @@ use server::Server;
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 
+/// Identifies this binary in a running process, which matters when it is
+/// installed at the same path as the daemon it replaces.
+pub const BUILD_ID: &str = "ubusd-rs (owrt-control-plane-rs)";
+
 const DEFAULT_SOCKET: &str = "/var/run/ubus/ubus.sock";
 const DEFAULT_ACL_DIR: &str = "/usr/share/acl.d";
 
@@ -47,6 +51,7 @@ fn wake() {
 }
 
 fn usage(program: &str) -> ! {
+    eprintln!("{BUILD_ID}");
     eprintln!(
         "Usage: {program} [<options>]\n\
          Options: \n\
@@ -76,6 +81,11 @@ fn main() {
         }
     }
 
+    // keep BUILD_ID in the binary even when usage() is never reached
+    if std::env::var_os("UBUSD_RS_VERSION").is_some() {
+        println!("{BUILD_ID}");
+        return;
+    }
     if let Err(e) = run(&socket, &acl_dir) {
         eprintln!("ubusd-rs: {e}");
         std::process::exit(1);

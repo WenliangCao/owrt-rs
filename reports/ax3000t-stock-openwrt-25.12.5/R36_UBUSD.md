@@ -170,15 +170,53 @@ ubusd-rs 每个对象新建一个 `BlobBuf`，从 4 字节起反复 realloc。�
 顺带记一条测量方法上的教训：单次运行的噪声足以让 C 自己在两轮之间从 40.3 µs 变到 43.9 µs。
 第一次"修完更慢了"的结论就是这么来的。改成每组 5 次取中位数之后信号才稳定。
 
-## 6. 尚未覆盖
+## 6. r43：虚拟机里以真实 procd 作为 PID 1 启动
 
-- **procd**：沙箱里必须是 PID 1 才能跑，本轮无证据。它的 50 ms→1 s 退避重连只有源码依据。
+构建主机上本来就装了 `qemu-system-aarch64`（没有新装任何系统组件）。用官方
+OpenWrt 25.12.5 **armsr/armv8** 内核 + ext4 rootfs 起一台虚拟机，procd 就是真正的 PID 1，
+总线由它在 `STATE_UBUS` 自己拉起——这是 chroot 沙箱做不到的，之前关于 procd 的一切只有源码依据。
+
+把候选装到 `/sbin/ubusd`（procd 按绝对路径启动的位置），与原版各启动一次：
+
+| | C ubusd | ubusd-rs |
+|---|---|---|
+| PID 1 | `/sbin/procd` | `/sbin/procd` |
+| 实际运行的总线二进制 | 32962 字节 | **528440 字节，字符串确认是候选** |
+| 对象数 | 31 | 31，**逐项相同** |
+| procd `service list` / `system board` | rc 0 | rc 0 |
+| `network.interface dump` | rc 0 | rc 0 |
+| 运行中的服务 | 9 | 9 |
+| socket | `srw-rw-rw- ubus ubus` | 同 |
+| 总线进程 uid | 81 | 81 |
+
+对象集合两端完全一致，包含 procd 自己的 `service`、`system`、`container`，
+netifd 的 `network*`、dnsmasq、odhcpd 的 `dhcp`、rpcd 的九个、以及七个 `hotplug.*`。
+**19 行启动 transcript 逐字节相同**（除去用于区分二进制的三行）。
+
+顺带补上了 0015 里一直缺的一项：**procd 自己作为 ubus 客户端，杀掉总线后能重连并重新注册**
+`service`/`system`/`container`——两端行为相同，其余客户端的部分恢复情况也相同。
+这一条此前只有源码依据（50 ms→1 s 退避），现在有实测。
+
+### 这台虚拟机不能证明什么
+
+- **不是设备的 target**：armsr/armv8，内核与虚拟硬件都不同；无无线、无交换芯片、无 flash 布局。
+- **rootfs 是可写 ext4，不是 squashfs + overlay**。这里是直接替换 `/sbin/ubusd`；
+  设备上要靠 overlay 遮住 squashfs 里的同名文件，**那一层没有在这里验证**，
+  failsafe 不挂 overlay 这条救援出口也没有在这里演练。
+- 因此这轮结果支持"候选能在真实 procd 下当系统总线跑起来"，**不等于**设备上的开机选择方案已验证。
+
+## 7. 尚未覆盖
+
+- ~~procd~~：已由 r43 虚拟机覆盖（见 §6），但仅限 armsr 目标。
 - **hostapd / wpa_supplicant**：沙箱无无线硬件。它们的订阅路径（`hostapd.*`、`wpa_supplicant`）
   只在 r37 的启动阶段间接证明过 `network.wireless` 注册成功，没有单独验证。
 
-- **发送队列溢出**：慢客户端用例证明了不会拖垮 daemon，但没有构造出足以超过 1 MiB 上限、
-  真正触发"静默丢消息"的负载。
-- **`UBUS_MAX_MSGLEN`**：仍取上游 CMake 默认 1048576，未从设备构建独立确认。
+- ~~发送队列溢出~~：r41 用 200 个 6.6 KB 签名的对象（约 1.3 MiB 的 lookup 回复）压给一个
+  只发不读的客户端，两端都 RSS 有界、fd 有界、继续为其他客户端服务。
+- ~~`UBUS_MAX_MSGLEN`~~：r41 用设备自带的 C ubusd 二分确认为 **1048576**（1048576 接受、
+  1048577 断开），两端一致。
+- **设备上的 overlay 遮蔽与 failsafe 分支**：r43 的虚拟机是可写 ext4，没有 squashfs+overlay
+  这一层，这条仍未验证。
 - 打包已完成（`packaging/openwrt/owrt-ubusd`，`owrt-ubusd-0.1.0-r1.apk`，sha256 `0b36bde5`，
   r38 证明它对运行中的总线完全无影响）；切换路径分析见
   [UBUSD_SWITCH_ANALYSIS.md](../../docs/reviews/UBUSD_SWITCH_ANALYSIS.md)，**未执行**。

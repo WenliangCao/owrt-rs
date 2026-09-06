@@ -52,13 +52,20 @@
 
 **代价**：必须重启才能验证，也必须重启才能撤销。重启本身受决策 0016 约束。
 
-**已知未验证点**（真要做之前必须先关掉）：
+**已验证的部分**（r43，构建主机上的 qemu，armsr/armv8，未装任何新组件）：
 
-- overlay 覆盖 `/sbin/ubusd` 是否真的被 procd 的 early service 取到（需要在一个
-  能跑 PID 1 的环境里演练，容器不算）。
-- 候选以 **uid 81** 启动是否一切正常。见 §3，这一条我正在补测。
-- procd 自己是 ubus 客户端（50 ms→1 s 退避重连，只有源码依据）。开机路径下它是
-  先起总线再连，与重启总线不同，但没有实测。
+- **procd 的 early service 确实会启动放在 `/sbin/ubusd` 的候选**，并且整个系统正常起来：
+  31 个对象与原版逐项相同，含 procd 自己的 `service`/`system`/`container`；
+  socket `srw-rw-rw- ubus ubus`，总线 uid 81。运行的确实是候选（528440 字节，字符串确认）。
+- **候选以 uid 81 启动一切正常**（另见 §3 的 rootfs 沙箱差分）。
+- **procd 作为 ubus 客户端能在总线被杀后重连并重新注册**——此前只有源码依据。
+
+**仍未验证的部分**：
+
+- **overlay 遮蔽**：r43 的 rootfs 是可写 ext4，是直接替换 `/sbin/ubusd`。设备上是
+  squashfs + overlay，要靠 overlay 里的同名文件遮住只读层，**这一层没有演练过**。
+- **failsafe 分支**：同理，救援出口（failsafe 不挂 overlay）也没有在虚拟机里走过。
+- 设备的无线、交换芯片、flash 布局，虚拟机一概不涉及。
 - `/etc/init.d/rcS` 不在镜像里、由 procd 内建处理；启动脚本串行执行、普通非零退出
   不阻断后续（`BOOT_CHAIN.md`）。选择机制不能破坏这一点。
 
