@@ -33,8 +33,14 @@ define Package/owrt-ubusd/description
  removing this package never touch the running bus.
 
  owrt-ubusd-verify runs the candidate on a separate socket and exercises it,
- which is isolated verification only -- it is not a system takeover. Taking
- over the real bus is a separate, separately authorized step.
+ which is isolated verification only -- it is not a system takeover.
+
+ owrt-ubusd-boot-switch prepares (or undoes) which daemon the NEXT boot starts,
+ and never touches the running bus. Its `off` restores /sbin/ubusd from /rom
+ rather than removing it: on an overlay, removing a file that exists in the
+ read-only layer writes a whiteout, and the next boot then stops at
+ "procd: - ubus -" with no init and no shell. Neither script runs by itself --
+ installing, upgrading and removing this package leave the bus alone.
 endef
 
 define Build/Prepare
@@ -69,6 +75,7 @@ define Package/owrt-ubusd/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/ubusd/target/$(RUST_TARGET)/release/ubusd-rs $(1)/usr/sbin/ubusd-rs
 	$(INSTALL_BIN) ./files/owrt-ubusd-verify $(1)/usr/sbin/owrt-ubusd-verify
+	$(INSTALL_BIN) ./files/owrt-ubusd-boot-switch $(1)/usr/sbin/owrt-ubusd-boot-switch
 endef
 
 # No postinst and no prerm hook on purpose: nothing this package does may stop,

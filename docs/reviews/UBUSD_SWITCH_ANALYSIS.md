@@ -60,12 +60,25 @@
 - **候选以 uid 81 启动一切正常**（另见 §3 的 rootfs 沙箱差分）。
 - **procd 作为 ubus 客户端能在总线被杀后重连并重新注册**——此前只有源码依据。
 
+**overlay 遮蔽也已验证**（r44，官方 squashfs-combined 镜像，与设备同款布局）：
+
+| 步骤 | 结果 |
+|---|---|
+| `cp` 候选到 `/sbin/ubusd` | 落在 `/overlay/upper/sbin/ubusd`，`upper=yes` |
+| 下次开机 | **procd 启动的就是候选**（528440 字节、`cand=yes`、uid 81、`pid1=procd`） |
+| 系统状态 | 29 个对象、`service list` rc 0、`network.interface dump` rc 0 |
+| `cp /rom/sbin/ubusd /sbin/ubusd` 撤销 | 回到原版 32962 字节、29 个对象、rc 0 |
+
 **仍未验证的部分**：
 
-- **overlay 遮蔽**：r43 的 rootfs 是可写 ext4，是直接替换 `/sbin/ubusd`。设备上是
-  squashfs + overlay，要靠 overlay 里的同名文件遮住只读层，**这一层没有演练过**。
-- **failsafe 分支**：同理，救援出口（failsafe 不挂 overlay）也没有在虚拟机里走过。
+- **failsafe 分支**：救援出口（failsafe 不挂 overlay）没有在虚拟机里走过。armsr 的
+  preinit 钩子与设备的 target 专有钩子不同，就算走通也不能外推，所以这一条只能留在设备上。
 - 设备的无线、交换芯片、flash 布局，虚拟机一概不涉及。
+
+**已经准备好、但没有执行的产物**：包里的 `owrt-ubusd-boot-switch`
+（`status` / `check` / `on` / `off`）。它只改下次开机启动哪个二进制，从不碰运行中的总线；
+`off` 用 `cp /rom/...` 恢复而不是 `rm`；`on` 之前会先做 preflight（候选能跑、`/rom` 原件在、
+确实是 overlay 根），复制后校验哈希，任何一步不对就要求立刻 `off`。
 - `/etc/init.d/rcS` 不在镜像里、由 procd 内建处理；启动脚本串行执行、普通非零退出
   不阻断后续（`BOOT_CHAIN.md`）。选择机制不能破坏这一点。
 

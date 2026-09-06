@@ -1,0 +1,78 @@
+#!/bin/sh
+# Prepare (or undo) the next boot's system bus. This does NOT change the
+# running bus: procd starts /sbin/ubusd once, at STATE_UBUS, and nothing can
+# swap it afterwards without leaving clients that do not reconnect off the bus.
+#
+#   owrt-ubusd-boot-switch status     what the next boot will start
+#   owrt-ubusd-boot-switch on         next boot uses ubusd-rs
+#   owrt-ubusd-boot-switch off        next boot uses the stock daemon
+#   owrt-ubusd-boot-switch check      preflight only, changes nothing
+#
+# Everything here was worked out in a VM with the same squashfs+overlay layout
+# (tools/r44_overlay_switch.sh), including one way to get it badly wrong:
+#
+#   NEVER `rm /sbin/ubusd`. On an overlay, deleting a file that exists in the
+#   read-only layer writes a whiteout: the file does not revert, it disappears,
+#   and the next boot stops at "procd: - ubus -" with no init, no shell and no
+#   network. `off` restores from /rom instead, which is verified below.
+set -eu
+
+CAND=/usr/sbin/ubusd-rs
+LIVE=/sbin/ubusd
+ROM=/rom/sbin/ubusd
+UPPER=/overlay/upper/sbin/ubusd
+
+die() { echo "owrt-ubusd-boot-switch: $*" >&2; exit 1; }
+
+same() { [ -f "$1" ] && [ -f "$2" ] && [ "$(sha256sum < "$1")" = "$(sha256sum < "$2")" ]; }
+
+preflight() {
+	[ -x "$CAND" ] || die "$CAND is missing"
+	[ -f "$ROM" ] || die "$ROM is missing: this root is not squashfs+overlay, so
+	there is no read-only original to fall back to. Refusing to touch the bus."
+	[ -d /overlay/upper ] || die "no /overlay/upper: not an overlay root"
+	"$CAND" --help >/dev/null 2>&1 || true
+	# the candidate must at least run here
+	UBUSD_RS_VERSION=1 "$CAND" >/dev/null 2>&1 || die "$CAND does not run on this system"
+	echo "preflight: candidate runs, /rom original present ($(wc -c < "$ROM") bytes)"
+}
+
+state() {
+	if same "$LIVE" "$CAND"; then echo candidate
+	elif same "$LIVE" "$ROM"; then echo stock
+	else echo unknown
+	fi
+}
+
+case "${1:-status}" in
+status)
+	echo "next boot: $(state)"
+	echo "running now: $(readlink /proc/"$(pgrep -f "^$LIVE" | head -1)"/exe 2>/dev/null || echo unknown)"
+	echo "overlay copy present: $([ -f "$UPPER" ] && echo yes || echo no)"
+	;;
+check)
+	preflight
+	echo "next boot would be: $(state)"
+	;;
+on)
+	preflight
+	[ "$(state)" = candidate ] && { echo "already set for the next boot"; exit 0; }
+	cp "$CAND" "$LIVE.new"
+	mv "$LIVE.new" "$LIVE"
+	sync
+	same "$LIVE" "$CAND" || die "verification failed after the copy; run 'off' now"
+	echo "next boot will start ubusd-rs. The running bus is unchanged."
+	echo "to undo: owrt-ubusd-boot-switch off   (never rm $LIVE)"
+	;;
+off)
+	[ -f "$ROM" ] || die "$ROM missing; cannot restore"
+	cp "$ROM" "$LIVE.new"
+	mv "$LIVE.new" "$LIVE"
+	sync
+	same "$LIVE" "$ROM" || die "verification failed after restoring from /rom"
+	echo "next boot will start the stock daemon. The running bus is unchanged."
+	;;
+*)
+	die "usage: owrt-ubusd-boot-switch [status|check|on|off]"
+	;;
+esac

@@ -241,8 +241,16 @@ netifd 的 `network*`、dnsmasq、odhcpd 的 `dhcp`、rpcd 的九个、以及七
 r43 用的是可写 ext4，没有 overlay 那一层。r44 换成官方的 squashfs-combined 镜像，
 走的是设备同款的 `mount_root` → overlay 路径，通过串口控制台操作，一共四次启动、同一块磁盘。
 
-- 启动 1：`cp` 候选到 `/sbin/ubusd`，确认它落在 **`/overlay/upper/sbin/ubusd`**，
-  即 overlay 遮住只读 squashfs——这正是切换方案依赖的机制，现在有实测。
+完整链路四步全部实测通过：
+
+| 步骤 | 结果 |
+|---|---|
+| 装：`cp` 候选到 `/sbin/ubusd` | `size=528440`、**`upper=yes`**（确实落在 `/overlay/upper/sbin/ubusd`） |
+| 下次开机 | **procd 启动的就是候选**：`size=528440`、`cand=yes`、`uid=81`、`pid1=procd` |
+| 该次开机的系统 | 29 个对象、`service list` rc 0、`network.interface dump` rc 0 |
+| 撤销：`cp /rom/sbin/ubusd /sbin/ubusd` | 回到 32962 字节、`is_candidate=no`、29 个对象、rc 0 |
+
+这就是切换分析里"路径 B（开机时选择）"的全部机制，在与设备同款的 squashfs+overlay 布局上跑通了。
 - 启动 3 的第一版用了 `rm -f /sbin/ubusd` 来撤销，**这是错的**：overlay 对下层已存在的
   文件执行删除会产生 **whiteout**，文件是彻底消失而不是恢复成原版。
 - 启动 4 于是**卡在 `procd: - ubus -` 再也不往下走**——没有 init、没有 shell、没有网络。
