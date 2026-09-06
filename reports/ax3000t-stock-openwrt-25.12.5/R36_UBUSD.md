@@ -170,7 +170,46 @@ ubusd-rs 每个对象新建一个 `BlobBuf`，从 4 字节起反复 realloc。�
 顺带记一条测量方法上的教训：单次运行的噪声足以让 C 自己在两轮之间从 40.3 µs 变到 43.9 µs。
 第一次"修完更慢了"的结论就是这么来的。改成每组 5 次取中位数之后信号才稳定。
 
-## 6. r43：虚拟机里以真实 procd 作为 PID 1 启动
+## 6. r41 / r42：两处限制与线协议模糊测试
+
+### r41：消息大小上限与发送队列上限
+
+`UBUS_MAX_MSGLEN` 一直是"上游默认 1048576，未确认"。用设备自带的 `/sbin/ubusd` 二分：
+
+```
+1048572 接受   1048576 接受   1048577 断开   1048580 断开   2097152 断开
+```
+
+两端逐项相同。**这个常量现在是实测确认的，不是抄来的。**
+
+发送队列上限（超限静默丢消息）此前也没被真正触发过。用 200 个各带 64 个方法的对象
+（单个签名 6617 字节，一次全量 lookup 约 1.3 MiB 回复）压给一个只发不读的客户端：
+两端都是 daemon 存活、RSS 增长有界、fd 有界、期间其他客户端 `list`/`call` 正常，
+之后再来 10 个立刻断开的客户端也没有残留。
+
+### r42：线协议模糊测试，抓到四个保真度缺陷
+
+`components/ubusd/examples/fuzz.rs` 用固定表 + 定种子变异发同样的字节给两个 daemon，
+比对每个用例的判定。**第一次运行就差了四处，全部是候选错了**：
+
+1. **协议版本字节**。`ubusd_main.c` 根本不看 `hdr.version`——只有 libubus 客户端侧看。
+   发 `version != 0` 的客户端在 C 下被正常服务，ubusd-rs 用了共享 crate 的严格
+   `Header::decode`，直接断开。改成自己解析头（不动共享 crate）。
+2. **属性策略**。`ubus_parse_msg` 是 `blob_parse_untrusted` 加 `ubus_policy`，
+   **不合类型的属性被静默丢弃**，handler 看到的是"该属性不存在"。ubusd-rs 之前来者不拒。
+   最直观的一例：把 `OBJPATH` 的 NUL 结尾改掉，C 因 STRING 检查丢掉整个属性，
+   LOOKUP 于是走无路径分支**把所有对象发出去**；不做过滤的实现拿着没结尾的字符串去查，
+   回 `NOT_FOUND`。600 个变异里有 32 个正好打中这里。
+3. **`blobmsg_check_attr`**。方法签名检查既比 libubox 严（要求 payload ≥ 3、忽略补齐规则）
+   又比它松（不检查 blobmsg 类型范围、不做按类型的长度检查）。照 `blobmsg.c` 逐条重写。
+4. **签名不合格不是错误**。`ubus_create_obj_type` 返回 NULL，C 继续创建一个
+   **没有类型的对象**——有 id、可以 remove，但永远不出现在 lookup 里。
+   ubusd-rs 之前回 `INVALID_ARGUMENT`。
+
+修完之后 **664 行逐字节相同**（固定表 + 600 个变异 + 健康检查），
+daemon 存活、对象集合未变、fd 有界。
+
+## 7. r43：虚拟机里以真实 procd 作为 PID 1 启动
 
 构建主机上本来就装了 `qemu-system-aarch64`（没有新装任何系统组件）。用官方
 OpenWrt 25.12.5 **armsr/armv8** 内核 + ext4 rootfs 起一台虚拟机，procd 就是真正的 PID 1，
@@ -205,7 +244,7 @@ netifd 的 `network*`、dnsmasq、odhcpd 的 `dhcp`、rpcd 的九个、以及七
   failsafe 不挂 overlay 这条救援出口也没有在这里演练。
 - 因此这轮结果支持"候选能在真实 procd 下当系统总线跑起来"，**不等于**设备上的开机选择方案已验证。
 
-## 7. 尚未覆盖
+## 8. 尚未覆盖
 
 - ~~procd~~：已由 r43 虚拟机覆盖（见 §6），但仅限 armsr 目标。
 - **hostapd / wpa_supplicant**：沙箱无无线硬件。它们的订阅路径（`hostapd.*`、`wpa_supplicant`）
