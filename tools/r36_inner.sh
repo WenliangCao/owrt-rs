@@ -13,6 +13,18 @@ bus=$!
 i=0; while [ $i -lt 10 ]; do ubus list >/dev/null 2>&1 && break; i=$((i+1)); sleep 1; done
 
 say() { printf '%s\n' "$*"; }
+# No `timeout` applet in this rootfs: run in the background, kill after N secs.
+run_for() {
+	secs=$1; shift
+	"$@" &
+	rp=$!
+	( sleep "$secs"; kill "$rp" 2>/dev/null ) &
+	kp=$!
+	wait "$rp" 2>/dev/null
+	kill "$kp" 2>/dev/null
+	wait "$kp" 2>/dev/null
+	return 0
+}
 # ubus prints ids as hex; mask them so only structure is compared.
 mask() { sed -e 's/@[0-9a-f]\{8\}/@ID/g' -e 's/"id": *[0-9]*/"id":ID/g'; }
 
@@ -61,17 +73,19 @@ sleep 1
 kill $lp 2>/dev/null
 say "listen_got: [$(cat /tmp/out/listen.txt | tr -d '\n\t ' )]"
 
-say "--- 8. object add/remove seen as events"
+say "--- 8. object add/remove events (kill the provider, then bring it back)"
 ( ubus listen 'ubus.object.*' > /tmp/out/objev.txt 2>&1 ) &
 op=$!
 sleep 1
-/sbin/rpcd -s /var/run/ubus/ubus.sock >/dev/null 2>&1 &
-extra=$!
-sleep 1
-kill $extra 2>/dev/null
+killall rpcd 2>/dev/null
+sleep 2
+say "removes_seen: $(grep -c 'ubus.object.remove' /tmp/out/objev.txt || true)"
+say "objects_after_kill: [$(ubus list | sort | tr '\n' ' ')]"
+/sbin/rpcd >/tmp/out/rpcd2.log 2>&1 &
+i=0; while [ $i -lt 15 ]; do ubus list | grep -q '^uci$' && break; i=$((i+1)); sleep 1; done
 sleep 1
 kill $op 2>/dev/null
-say "object_events_seen: $(grep -c 'ubus.object' /tmp/out/objev.txt || true)"
+say "adds_seen: $(grep -c 'ubus.object.add' /tmp/out/objev.txt || true)"
 
 say "--- 9. non-root access (luci-base.json grants nobody only system.board/info)"
 if [ -x /tmp/asuser ]; then
@@ -82,12 +96,99 @@ else
 	say "nobody: helper missing, skipped"
 fi
 
-say "--- 10. malformed input"
-# a length field far beyond the cap must get the connection dropped, not crash
-printf '\x00\x04\x00\x01\x00\x00\x00\x00\xff\xff\xff\xff' | timeout 2 nc -U /var/run/ubus/ubus.sock >/dev/null 2>&1
-say "oversize_len_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
-printf '\x00\x04\x00\x01' | timeout 2 nc -U /var/run/ubus/ubus.sock >/dev/null 2>&1
-say "short_header_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
+# Absolute counts differ legitimately between the two daemons; only the change
+# across the churn below is comparable.
+fdcount() { ls /proc/$bus/fd 2>/dev/null | wc -l; }
+fd_base=$(fdcount)
+
+say "--- 10. malformed input and antisocial clients"
+if [ -x /tmp/busprobe ]; then
+	S=/var/run/ubus/ubus.sock
+	# length field past the cap: the connection must be dropped, not the daemon
+	/tmp/busprobe raw $S 000400010000000000ffffff >/dev/null 2>&1; say "oversize_len probe_rc=$?"
+	say "oversize_len_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
+	# a blob header shorter than a blob_attr
+	/tmp/busprobe raw $S 000400010000000000000002 >/dev/null 2>&1; say "undersize_len probe_rc=$?"
+	say "undersize_len_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
+	# truncated header, then EOF
+	/tmp/busprobe raw $S 00040001 >/dev/null 2>&1; say "short_header probe_rc=$?"
+	say "short_header_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
+	# a body that never arrives
+	/tmp/busprobe half $S >/dev/null 2>&1; say "half_message probe_rc=$?"
+	say "half_message_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
+	# a client that asks for everything and never reads the answer
+	/tmp/busprobe slow $S 3 >/dev/null 2>&1 & sp=$!
+	sleep 1
+	say "during_slow_client_list: [$(ubus list | sort | tr '\n' ' ')]"
+	say "during_slow_client_call_rc: $(ubus -S call session list '{}' >/dev/null 2>&1; echo $?)"
+	wait $sp 2>/dev/null
+	say "after_slow_client_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
+	# a caller that vanishes without reading its reply
+	/tmp/busprobe drop $S >/dev/null 2>&1; say "drop probe_rc=$?"
+	say "drop_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
+else
+	say "probe: helper missing, skipped"
+fi
+
+say "--- 12. subscribe and notify"
+ubus -S subscribe nosuchobject >/dev/null 2>&1; say "subscribe_missing_rc=$?"
+ubus subscribe uci > /tmp/out/sub.txt 2>&1 &
+sb=$!
+sleep 1
+say "subscribe_alive: $(kill -0 $sb 2>/dev/null && echo yes || echo no)"
+say "during_subscribe_list_rc: $(ubus list >/dev/null 2>&1; echo $?)"
+say "during_subscribe_call_rc: $(ubus -S call session list '{}' >/dev/null 2>&1; echo $?)"
+say "subscribe_stderr: [$(tr -d '\n\t ' < /tmp/out/sub.txt)]"
+kill $sb 2>/dev/null; wait $sb 2>/dev/null
+say "after_subscribe_list_rc: $(ubus list >/dev/null 2>&1; echo $?)"
+
+say "--- 13. wait_for: present returns at once, absent blocks on the add event"
+ubus wait_for luci > /tmp/out/wait.txt 2>&1 &
+wf=$!
+sleep 2
+say "wait_for_present_finished: $(kill -0 $wf 2>/dev/null && echo no || echo yes)"
+kill $wf 2>/dev/null; wait $wf 2>/dev/null
+ubus wait_for never.appears > /tmp/out/wait2.txt 2>&1 &
+wf2=$!
+sleep 2
+say "wait_for_absent_still_waiting: $(kill -0 $wf2 2>/dev/null && echo yes || echo no)"
+kill $wf2 2>/dev/null; wait $wf2 2>/dev/null
+
+say "--- 14. an fd rides on the reply (logd stream)"
+/sbin/logd -S 16 >/tmp/out/logd.log 2>&1 &
+i=0; while [ $i -lt 10 ]; do ubus list | grep -q '^log$' && break; i=$((i+1)); sleep 1; done
+say "log_object: [$(ubus list | grep '^log$')]"
+ubus -S call log write '{"event":"r36-probe"}' >/dev/null 2>&1; say "log_write_rc=$?"
+# plain read: an ordinary invoke whose reply carries no descriptor
+/usr/libexec/logread-ubox > /tmp/out/logread.txt 2>&1
+say "logread_rc=$?"
+say "logread_saw_probe: $(grep -c 'r36-probe' /tmp/out/logread.txt || true)"
+
+# `-f` is the real SCM_RIGHTS path: logd.c creates a pipe and attaches the read
+# end with ubus_request_set_fd, which libubus sends on the STATUS reply -- the
+# one message type ubusd must not close the descriptor on. The follower only
+# sees messages written after it connects, so it has to start first.
+/usr/libexec/logread-ubox -f > /tmp/out/logfollow.txt 2>&1 &
+f1=$!
+sleep 2
+ubus -S call log write '{"event":"r36-stream-one"}' >/dev/null 2>&1
+sleep 2
+say "follow_saw_stream_one: $(grep -c 'r36-stream-one' /tmp/out/logfollow.txt || true)"
+
+# two followers at once: two descriptors alive through the daemon
+/usr/libexec/logread-ubox -f > /tmp/out/logfollow2.txt 2>&1 &
+f2=$!
+sleep 2
+ubus -S call log write '{"event":"r36-stream-two"}' >/dev/null 2>&1
+sleep 2
+say "follow1_saw_stream_two: $(grep -c 'r36-stream-two' /tmp/out/logfollow.txt || true)"
+say "follow2_saw_stream_two: $(grep -c 'r36-stream-two' /tmp/out/logfollow2.txt || true)"
+kill $f1 $f2 2>/dev/null; wait $f1 2>/dev/null; wait $f2 2>/dev/null
+
+# the bus is still healthy after descriptors have travelled through it
+say "after_streams_list_rc: $(ubus list >/dev/null 2>&1; echo $?)"
+say "after_streams_call_rc: $(ubus -S call log read '{"lines":1,"stream":false}' >/dev/null 2>&1; echo $?)"
+killall logd 2>/dev/null
 
 # Diagnostics, not part of the compared transcript.
 {
@@ -97,6 +198,14 @@ say "short_header_survived: $(ubus list >/dev/null 2>&1 && echo yes || echo no)"
   echo "=== objev.txt"; cat /tmp/out/objev.txt 2>/dev/null
 } > /tmp/out/diagnostics.txt 2>&1
 cp /tmp/out/diagnostics.txt /diagnostics.txt 2>/dev/null || true
+
+say "--- 15. no descriptor or client leak across all of the above"
+fd_now=$(fdcount)
+say "fd_delta_since_probe_start: $((fd_now - fd_base))"
+# churn: 20 connect/disconnect cycles must leave nothing behind
+i=0; while [ $i -lt 20 ]; do ubus list >/dev/null 2>&1; i=$((i+1)); done
+say "fd_delta_after_20_clients: $(( $(fdcount) - fd_base ))"
+say "still_serving: $(ubus -S call session list '{}' >/dev/null 2>&1; echo $?)"
 
 say "--- 11. still healthy at the end"
 say "final_objects: [$(ubus list | sort | tr '\n' ' ')]"

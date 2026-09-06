@@ -9,7 +9,9 @@
 # Usage: r36_ubusd_diff.sh <rootfs-files> <ubusd-rs-musl-binary> [outdir]
 set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r36-out}
+HELPERS=${HELPERS:-/tmp/r36-helpers}
 mkdir -p "$out"
+[ -x "$HELPERS/busprobe" ] || sh "$(dirname "$0")/r36_build_helpers.sh" "$HELPERS"
 
 run_one() {
 	# $1 = tag (c|rs), $2 = daemon path inside the rootfs
@@ -20,8 +22,10 @@ run_one() {
 	sudo -n chown -R root:root "$root/usr/share/acl.d"
 	sudo -n cp "$cand" "$root/sbin/ubusd-rs"; sudo -n chmod 755 "$root/sbin/ubusd-rs"
 	sudo -n cp "$(dirname "$0")/r36_inner.sh" "$root/tmp/inner.sh"
-	# test-only uid dropper: this rootfs's busybox has no `su`
-	[ -x /tmp/asuser ] && { sudo -n cp /tmp/asuser "$root/tmp/asuser"; sudo -n chmod 755 "$root/tmp/asuser"; }
+	# test-only helpers: this rootfs's busybox has neither `su` nor `nc`
+	for h in asuser busprobe; do
+		[ -x "$HELPERS/$h" ] && { sudo -n cp "$HELPERS/$h" "$root/tmp/$h"; sudo -n chmod 755 "$root/tmp/$h"; }
+	done
 	sudo -n setsid -w unshare --mount --net --fork /bin/sh -c '
 		root=$1; daemon=$2
 		mount --make-rprivate /
