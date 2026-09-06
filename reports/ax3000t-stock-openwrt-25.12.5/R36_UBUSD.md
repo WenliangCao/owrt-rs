@@ -29,6 +29,16 @@
 | `wait_for` | 已存在的对象立即返回；不存在的对象持续等待 |
 | **传 fd（SCM_RIGHTS）** | 两个并发 `logread-ubox -f` 各自拿到自己的管道描述符，都收到之后写入的日志行 |
 | 描述符泄漏 | 整段探测后 delta 0；再做 20 次连接/断开后 delta 仍为 0 |
+| **monitor 流量镜像** | 一次 `session list` 调用产生 12 条镜像，方向+类型序列逐项相同：`->status ->hello <-lookup ->data ->status <-invoke ->invoke <-data ->data <-status ->status <-invoke`；非 root 开 monitor 被拒（rc 6） |
+
+### monitor 比对当场抓到的第二个缺陷
+
+加上逐条镜像比对后，第一次运行就差了一条：C 是 12 行、以 `->status ->hello` 开头，
+ubusd-rs 只有 11 行、**没有 `->hello`**。原因是 `add_client` 直接调用 `Client::send`
+发 HELLO，绕过了镜像；C 的 `ubusd_send_hello` 走 `ubus_msg_send`，是会镜像的。
+改成先插入客户端再经 `Server::send` 发出，两端就完全一致了。
+
+这条只有做逐条镜像比对才看得见——之前只验证了 monitor `add`/`remove` 的权限判定。
 
 ### 本轮修掉的一个真实缺陷
 
@@ -165,8 +175,7 @@ ubusd-rs 每个对象新建一个 `BlobBuf`，从 4 字节起反复 realloc。�
 - **procd**：沙箱里必须是 PID 1 才能跑，本轮无证据。它的 50 ms→1 s 退避重连只有源码依据。
 - **hostapd / wpa_supplicant**：沙箱无无线硬件。它们的订阅路径（`hostapd.*`、`wpa_supplicant`）
   只在 r37 的启动阶段间接证明过 `network.wireless` 注册成功，没有单独验证。
-- **monitor 对象**：已加一步逐条比对（方向 + 类型序列、消息条数、非 root 被拒），
-  待下一轮运行确认。
+
 - **发送队列溢出**：慢客户端用例证明了不会拖垮 daemon，但没有构造出足以超过 1 MiB 上限、
   真正触发"静默丢消息"的负载。
 - **`UBUS_MAX_MSGLEN`**：仍取上游 CMake 默认 1048576，未从设备构建独立确认。

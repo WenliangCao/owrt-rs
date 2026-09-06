@@ -103,11 +103,13 @@ impl Server {
             .ok_or_else(|| std::io::Error::other("no group entry for peer gid"))?;
 
         let id = Registry::alloc_id(|id| self.clients.contains_key(&id))?;
-        let mut client = Client::new(sock, cred, user, group);
-        // HELLO carries an empty blob and the client's own id as peer.
+        self.clients.insert(id, Client::new(sock, cred, user, group));
+        // HELLO carries an empty blob and the client's own id as peer. It goes
+        // out through Server::send so that it reaches any monitor, which is
+        // what ubusd_send_hello -> ubus_msg_send does.
         let mut b = BlobBuf::new();
-        client.send(OutMsg::new(ty::HELLO, 0, id, b.as_bytes().to_vec()));
-        self.clients.insert(id, client);
+        let hello = OutMsg::new(ty::HELLO, 0, id, b.as_bytes().to_vec());
+        self.send(id, hello);
         Ok(id)
     }
 

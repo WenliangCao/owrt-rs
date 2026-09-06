@@ -189,6 +189,7 @@ type = `UBUS_MSG_MONITOR`，seq = 每个监听者自己的 `++m->seq`。
 退出时 `unlink` socket。
 
 新连接：`accept` 循环直到 `EAGAIN`；建立 client 后**立即发 `HELLO`**（seq=0、peer=client id、空 payload）。
+这条 HELLO 走的是普通发送路径，因此**同样会被镜像给 monitor**（`ubusd_send_hello` → `ubus_msg_send`）。
 
 ## 12. 实现注记
 

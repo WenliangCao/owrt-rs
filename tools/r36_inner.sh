@@ -221,8 +221,8 @@ sleep 2
 kill $mp 2>/dev/null; wait $mp 2>/dev/null
 say "monitor_lines: $(grep -c . /tmp/out/monitor.txt || true)"
 say "monitor_sequence: [$(sed -n 's/^\(->\|<-\) [0-9a-f]* #[0-9a-f]* *\([A-Za-z]*\):.*/\1\2/p' /tmp/out/monitor.txt | tr '\n' ' ')]"
-say "monitor_saw_invoke: $(grep -c 'INVOKE' /tmp/out/monitor.txt || true)"
-say "monitor_saw_lookup: $(grep -c 'LOOKUP' /tmp/out/monitor.txt || true)"
+say "monitor_saw_invoke: $(grep -ci 'invoke' /tmp/out/monitor.txt || true)"
+say "monitor_saw_hello: $(grep -ci 'hello' /tmp/out/monitor.txt || true)"
 say "monitor_nonroot_denied: $([ -x /tmp/asuser ] && { /tmp/asuser nobody /bin/ubus monitor >/dev/null 2>&1; echo $?; } || echo skipped)"
 
 say "--- 15. no descriptor or client leak across all of the above"
