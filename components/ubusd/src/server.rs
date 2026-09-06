@@ -50,6 +50,11 @@ pub struct Server {
     obj_event_seq: u32,
     /// Clients running `ubus monitor`, with their own sequence counters.
     monitors: Vec<(u32, u16)>,
+    /// Reusable assembly buffer, the equivalent of the C daemon's static
+    /// `blob_buf b`. A fresh BlobBuf starts at a 4-byte allocation and has to
+    /// grow repeatedly for a multi-kilobyte object signature; keeping one
+    /// around means that growth happens once.
+    scratch: BlobBuf,
 }
 
 impl Server {
@@ -67,6 +72,7 @@ impl Server {
             event_seq: 0,
             obj_event_seq: 0,
             monitors: Vec::new(),
+            scratch: BlobBuf::new(),
         })
     }
 
@@ -131,6 +137,17 @@ impl Server {
         }
         if let Some(c) = self.clients.get_mut(&client) {
             c.send(msg);
+        }
+    }
+
+    /// Same as `send`, but the payload is borrowed: nothing is copied when the
+    /// socket takes it all. Used on the paths where the blob was just built.
+    fn send_blob(&mut self, client: u32, header: Header, blob: &[u8]) {
+        if header.ty != ty::MONITOR {
+            self.mirror(client, &header, blob, true);
+        }
+        if let Some(c) = self.clients.get_mut(&client) {
+            c.send_borrowed(header, blob, None);
         }
     }
 
@@ -403,12 +420,13 @@ impl Server {
         let Some(path) = o.path.clone() else { return };
         let Some(t) = self.reg.types.get(&type_id) else { return };
 
-        let mut b = BlobBuf::new();
-        b.put(attr::OBJPATH, &{
-            let mut v = path.clone();
-            v.push(0);
-            v
-        });
+        // Take the shared buffer out of self so the rest of the method can
+        // still borrow the registry and the ACL table; it goes back at the end.
+        let mut b = std::mem::take(&mut self.scratch);
+        b.reset();
+        let mut path_z = path.clone();
+        path_z.push(0);
+        b.put(attr::OBJPATH, &path_z);
         b.put_u32(attr::OBJID, id);
         b.put_u32(attr::OBJTYPE, type_id);
         let s = b.nest_start(attr::SIGNATURE);
@@ -424,9 +442,12 @@ impl Server {
         }
         b.nest_end(s);
         if visible > 0 || all == 0 {
-            let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
-            self.send(client, out);
+            // borrow rather than copy: this blob is a whole object signature,
+            // the largest thing the daemon routinely sends
+            let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
+            self.send_blob(client, header, b.as_bytes());
         }
+        self.scratch = b;
     }
 
     // --------------------------------------------------------------- invoke

@@ -5,7 +5,8 @@
 //! recipe copies only src/*.rs.
 //!
 //! Usage: bench <socket> <mode> <iterations>
-//!   mode = lookup | lookup_all | invoke | notify | serve
+//!   mode = lookup | lookup_all | invoke | notify | serve | serve_many:<n>
+//!        | serve_wide:<n>   one object carrying n methods (large signature)
 //! `serve` registers an object and answers invokes until killed, so the other
 //! modes have something real to call.
 
@@ -46,7 +47,13 @@ fn main() -> std::io::Result<()> {
     let iters: usize = args.get(3).and_then(|s| s.parse().ok()).unwrap_or(2000);
 
     if mode == "serve" {
-        return serve(&sock);
+        return serve(&sock, 1);
+    }
+    if let Some(n) = mode.strip_prefix("serve_many:") {
+        return serve(&sock, n.parse().unwrap_or(1));
+    }
+    if let Some(n) = mode.strip_prefix("serve_wide:") {
+        return serve_wide(&sock, n.parse().unwrap_or(1));
     }
 
     let mut c = Connection::connect(Some(&sock))?;
@@ -91,11 +98,36 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-/// Register `bench.target` with a `ping` method and answer every call.
-fn serve(sock: &str) -> std::io::Result<()> {
+/// One object with `methods` methods: a large signature, which is what the real
+/// rpcd objects have and what `serve_many` deliberately does not.
+fn serve_wide(sock: &str, methods: usize) -> std::io::Result<()> {
+    let mut c = Connection::connect(Some(sock))?;
+    let names: Vec<String> = (0..methods).map(|i| format!("method_number_{i:04}")).collect();
+    let policy: &[(&str, MsgType)] = &[
+        ("first_argument", MsgType::String),
+        ("second_argument", MsgType::Int32),
+        ("third_argument", MsgType::Table),
+    ];
+    let spec: Vec<(&str, &[(&str, MsgType)])> = names.iter().map(|n| (n.as_str(), policy)).collect();
+    let objid = c.add_object("bench.target", &spec, 3000)?;
+    println!("serving bench.target id={objid} methods={methods}");
+    answer_forever(&mut c)
+}
+
+/// Register `bench.target` (plus `count-1` extra objects, so lookup_all has a
+/// wider tree to walk) and answer every call.
+fn serve(sock: &str, count: usize) -> std::io::Result<()> {
     let mut c = Connection::connect(Some(sock))?;
     let objid = c.add_object("bench.target", &[("ping", &[("n", MsgType::Int32)])], 3000)?;
-    println!("serving bench.target id={objid}");
+    for i in 1..count {
+        let path = format!("bench.filler{i:04}");
+        c.add_object(&path, &[("ping", &[("n", MsgType::Int32)])], 3000)?;
+    }
+    println!("serving bench.target id={objid} objects={count}");
+    answer_forever(&mut c)
+}
+
+fn answer_forever(c: &mut Connection) -> std::io::Result<()> {
     loop {
         match c.read_incoming() {
             Ok(Incoming::Invoke(req)) => {

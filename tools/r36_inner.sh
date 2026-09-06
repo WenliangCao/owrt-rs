@@ -209,6 +209,22 @@ killall logd 2>/dev/null
 } > /tmp/out/diagnostics.txt 2>&1
 cp /tmp/out/diagnostics.txt /diagnostics.txt 2>/dev/null || true
 
+say "--- 16. monitor mirrors the traffic of one call, message for message"
+# `ubus monitor` prints: direction, client id, peer id, type name, data.
+# The two ids are random per run, so only the direction/type sequence and the
+# message count can be compared; the data is masked the same way on both sides.
+ubus monitor > /tmp/out/monitor.txt 2>&1 &
+mp=$!
+sleep 2
+ubus -S call session list '{}' >/dev/null 2>&1
+sleep 2
+kill $mp 2>/dev/null; wait $mp 2>/dev/null
+say "monitor_lines: $(grep -c . /tmp/out/monitor.txt || true)"
+say "monitor_sequence: [$(sed -n 's/^\(->\|<-\) [0-9a-f]* #[0-9a-f]* *\([A-Za-z]*\):.*/\1\2/p' /tmp/out/monitor.txt | tr '\n' ' ')]"
+say "monitor_saw_invoke: $(grep -c 'INVOKE' /tmp/out/monitor.txt || true)"
+say "monitor_saw_lookup: $(grep -c 'LOOKUP' /tmp/out/monitor.txt || true)"
+say "monitor_nonroot_denied: $([ -x /tmp/asuser ] && { /tmp/asuser nobody /bin/ubus monitor >/dev/null 2>&1; echo $?; } || echo skipped)"
+
 say "--- 15. no descriptor or client leak across all of the above"
 fd_now=$(fdcount)
 say "fd_delta_since_probe_start: $((fd_now - fd_base))"

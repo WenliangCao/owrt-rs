@@ -126,6 +126,32 @@ impl Client {
         self.tx.push_back(msg);
     }
 
+    /// Send without owning the payload. When nothing is queued the bytes go
+    /// straight from the caller's buffer to the socket, and an allocation only
+    /// happens for whatever the socket did not take -- which is what the C
+    /// daemon gets from its shared-buffer msg_buf. Worth using wherever the
+    /// payload was just assembled and would otherwise be copied, notably the
+    /// lookup replies that carry a whole object signature.
+    pub fn send_borrowed(&mut self, header: Header, blob: &[u8], fd: Option<OwnedFd>) -> bool {
+        if self.tx.is_empty() {
+            let head = header.encode();
+            let total = Header::LEN + blob.len();
+            let raw_fd = fd.as_ref().map(|f| f.as_raw_fd());
+            let written = match sys::sendmsg_two(self.fd(), &head, blob, raw_fd) {
+                Ok(n) => n,
+                Err(e) if would_block(&e) => 0,
+                Err(_) => 0,
+            };
+            if written >= total {
+                return true;
+            }
+            self.txq_ofs = written;
+            self.txq_len = -(written as i64);
+        }
+        self.enqueue(OutMsg { header, blob: blob.to_vec(), fd });
+        true
+    }
+
     /// Send a message: try the socket directly when nothing is queued, then
     /// queue whatever is left. Returns false when the connection is dead.
     pub fn send(&mut self, msg: OutMsg) -> bool {

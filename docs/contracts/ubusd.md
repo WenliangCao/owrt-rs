@@ -48,6 +48,10 @@
 - 部分写：`txq_ofs = written`、`txq_len = -written`，注册 `ULOOP_WRITE|EDGE_TRIGGER`，再入队。
 - 入队上限：`txq_len + 8 + len > UBUS_CLIENT_MAX_TXQ_LEN`（= `UBUS_MAX_MSGLEN`）时
   **静默丢弃该消息**，不报错、不断开。慢读客户端因此会丢消息——这是原版行为，必须复刻。
+- **已知共有缺陷**：如果一次直接写只写了一部分、随后 `ubus_msg_enqueue` 又因为超限把这条
+  消息丢掉，`txq_ofs` 会留下一个非零残值而队列是空的。下一条消息若一次写完，这个残值不会被
+  清掉，再下一条进队列的消息就会从错误的偏移续传。只有单条消息接近 1 MiB 时才可能触发。
+  ubusd-rs 与 C 行为一致（未擅自偏离），记录在此。
 - 队列排空且收到 `ULOOP_WRITE` 时处理 `cmd_queue`（见 §4 lookup），空了就退回只监听 READ。
 
 ## 3. ID 分配
@@ -186,7 +190,18 @@ type = `UBUS_MSG_MONITOR`，seq = 每个监听者自己的 `++m->seq`。
 
 新连接：`accept` 循环直到 `EAGAIN`；建立 client 后**立即发 `HELLO`**（seq=0、peer=client id、空 payload）。
 
-## 12. 已知缺口与有意差异
+## 12. 实现注记
+
+`ubusd_send_obj` 是这个 daemon 例行发送的最大消息（一个对象的完整签名，rpcd 的 `uci`
+约 1.6 KB、更大的可到 6 KB+）。C 版用一个**静态 `blob_buf b`** 反复复用，缓冲区只增长一次；
+一个每次新建的缓冲区要从 4 字节起反复 realloc。实测（5 次取中位数）：每次新建时
+1.6 KB 签名慢 13.5%、6.6 KB 签名慢 19.1%；改成复用一个 `scratch` 缓冲区后变成 -4.8% / -5.1%。
+对象数量本身不是因素（10/160 个小对象两端持平）。
+
+回复也按 C 的做法**借用而不是拷贝**：队列为空时直接从装配缓冲区写进 socket，
+只有 socket 没收完的部分才分配。
+
+## 13. 已知缺口与有意差异
 
 | 项 | 状态 |
 |---|---|
