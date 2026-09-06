@@ -1,7 +1,7 @@
 # Single entry point for the repository. Each crate stays independent (the
 # OpenWrt package Makefiles copy crate directories one by one), so there is no
 # root Cargo workspace on purpose.
-COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd
+COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd
 VERSION ?= 25.12.5
 
 .PHONY: test check-tools check-toolchain check-toolchain-negative build apk image ci-image

@@ -1,0 +1,22 @@
+[package]
+name = "owrt-ubusd"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.98.1"
+license = "MIT OR Apache-2.0"
+description = "ubusd replacement: the system message bus daemon (see docs/contracts/ubusd.md)"
+publish = false
+
+[[bin]]
+name = "ubusd-rs"
+path = "src/main.rs"
+
+[dependencies]
+owrt-ubus = { path = "../ubus" }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true
