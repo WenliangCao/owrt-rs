@@ -3,6 +3,13 @@
 //! Behaviour is specified by docs/contracts/ubusd.md, which is derived from
 //! the pinned ubus 24864e78 source. Single-threaded poll loop, no async
 //! runtime, no third-party crates.
+//!
+//! Every `unsafe` block here is a syscall the standard library does not
+//! expose, and each one has to say why it is sound: the lint below makes that
+//! a build error rather than a convention.
+
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 mod acl;
 mod client;

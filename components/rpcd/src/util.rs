@@ -214,6 +214,8 @@ extern "C" {
 pub fn statvfs_of(path: &str) -> Option<StatVfs> {
     let c = CString::new(path).ok()?;
     let mut st = StatVfs::default();
+    // SAFETY: a NUL-terminated path and a live, correctly sized struct. The
+    // layout is asserted against the target's headers by `make check-abi`.
     if unsafe { statvfs(c.as_ptr(), &mut st) } == 0 {
         Some(st)
     } else {
@@ -224,6 +226,8 @@ pub fn statvfs_of(path: &str) -> Option<StatVfs> {
 /// `uname().machine`
 pub fn machine() -> String {
     let mut buf = [0u8; 6 * 65];
+    // SAFETY: buf is exactly sizeof(struct utsname) for this target, which
+    // `make check-abi` asserts.
     if unsafe { uname(&mut buf) } != 0 {
         return String::new();
     }
@@ -237,14 +241,19 @@ pub fn machine() -> String {
 /// requested mode. The rpcd-rs request loop is single-threaded, so the
 /// paired restore runs before any other file operation.
 pub fn umask_zero() -> u32 {
+    // SAFETY: umask(2) has no preconditions. It is process-global, so the
+    // paired restore below must run before any other file operation; the rpcd
+    // request loop is single-threaded, which is what makes that hold.
     unsafe { umask(0) }
 }
 
 pub fn umask_restore(prev: u32) {
+    // SAFETY: restoring the value umask_zero returned.
     unsafe { umask(prev); }
 }
 
 pub fn sync_all() {
+    // SAFETY: sync(2) takes no arguments and touches no memory of ours.
     unsafe { sync() }
 }
 

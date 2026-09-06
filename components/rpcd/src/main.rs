@@ -2,6 +2,9 @@
 //! plugin-layer objects (`file`, `luci`; contract C5) as one ubus object server.
 //! Runtime state lives under /var/run/rpcd-rs (decision 0013).
 
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 mod file;
 mod glob;
 mod ip;

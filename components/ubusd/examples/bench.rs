@@ -6,7 +6,9 @@
 //!
 //! Usage: bench <socket> <mode> <iterations>
 //!   mode = lookup | lookup_all | invoke | notify | serve | serve_many:<n>
-//!        | serve_wide:<n>   one object carrying n methods (large signature)
+//!        | serve_wide:<n>            one object with n methods (large signature)
+//!        | serve_wide_many:<o>:<m>   o objects of m methods each, to put more
+//!                                    than the 1 MiB transmit cap on the bus
 //! `serve` registers an object and answers invokes until killed, so the other
 //! modes have something real to call.
 
@@ -54,6 +56,12 @@ fn main() -> std::io::Result<()> {
     }
     if let Some(n) = mode.strip_prefix("serve_wide:") {
         return serve_wide(&sock, n.parse().unwrap_or(1));
+    }
+    if let Some(rest) = mode.strip_prefix("serve_wide_many:") {
+        let mut it = rest.split(':');
+        let objs = it.next().and_then(|v| v.parse().ok()).unwrap_or(1);
+        let methods = it.next().and_then(|v| v.parse().ok()).unwrap_or(1);
+        return serve_wide_many(&sock, objs, methods);
     }
 
     let mut c = Connection::connect(Some(&sock))?;
@@ -111,6 +119,27 @@ fn serve_wide(sock: &str, methods: usize) -> std::io::Result<()> {
     let spec: Vec<(&str, &[(&str, MsgType)])> = names.iter().map(|n| (n.as_str(), policy)).collect();
     let objid = c.add_object("bench.target", &spec, 3000)?;
     println!("serving bench.target id={objid} methods={methods}");
+    answer_forever(&mut c)
+}
+
+/// `objs` objects, each with `methods` methods. Enough of these make one
+/// lookup reply set exceed the client transmit cap, which is the only way to
+/// reach the daemon's silent-drop path.
+fn serve_wide_many(sock: &str, objs: usize, methods: usize) -> std::io::Result<()> {
+    let mut c = Connection::connect(Some(sock))?;
+    let names: Vec<String> = (0..methods).map(|i| format!("method_number_{i:04}")).collect();
+    let policy: &[(&str, MsgType)] = &[
+        ("first_argument", MsgType::String),
+        ("second_argument", MsgType::Int32),
+        ("third_argument", MsgType::Table),
+    ];
+    let spec: Vec<(&str, &[(&str, MsgType)])> = names.iter().map(|n| (n.as_str(), policy)).collect();
+    c.add_object("bench.target", &spec, 3000)?;
+    for i in 1..objs {
+        let path = format!("bench.wide{i:04}");
+        c.add_object(&path, &spec, 3000)?;
+    }
+    println!("serving objects={objs} methods={methods}");
     answer_forever(&mut c)
 }
 

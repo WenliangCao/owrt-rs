@@ -94,8 +94,12 @@ pub fn dump(ty: u16, hdr: &[u8]) -> io::Result<Vec<Msg>> {
     if fd < 0 {
         return Err(io::Error::last_os_error());
     }
+    // SAFETY: socket(2) just returned this descriptor and nothing else holds
+    // it, so OwnedFd may take over closing it.
     let fd = unsafe { OwnedFd::from_raw_fd(fd) };
     let sa = SockaddrNl { family: AF_NETLINK as u16, pad: 0, pid: 0, groups: 0 };
+    // SAFETY: bind(2) with an address that lives across the call and a length
+    // that describes it.
     if unsafe { bind(fd.as_raw_fd(), &sa, std::mem::size_of::<SockaddrNl>() as u32) } < 0 {
         return Err(io::Error::last_os_error());
     }
@@ -109,12 +113,14 @@ pub fn dump(ty: u16, hdr: &[u8]) -> io::Result<Vec<Msg>> {
     req.extend_from_slice(&0u32.to_le_bytes());
     req.extend_from_slice(hdr);
     req.resize(total, 0);
+    // SAFETY: req is live and its length is passed alongside.
     if unsafe { send(fd.as_raw_fd(), req.as_ptr(), req.len(), 0) } < 0 {
         return Err(io::Error::last_os_error());
     }
     let mut out = Vec::new();
     let mut buf = vec![0u8; 65536];
     loop {
+        // SAFETY: buf is live and its length bounds what the kernel may write.
         let n = unsafe { recv(fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), 0) };
         if n < 0 {
             let e = io::Error::last_os_error();

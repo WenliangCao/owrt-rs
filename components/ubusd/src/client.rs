@@ -243,11 +243,15 @@ impl Client {
                     if raw_len < 4 || pad4(raw_len) > MAX_MSGLEN {
                         return Err(io::Error::new(io::ErrorKind::InvalidData, "bad message length"));
                     }
-                    let head: [u8; 8] = self.prefix[..Header::LEN].try_into().unwrap();
-                    let Some(header) = Header::decode(&head) else {
-                        return Err(io::Error::new(io::ErrorKind::InvalidData, "bad header"));
+                    // ubusd_main.c never looks at hdr.version: it reads the
+                    // prefix, checks the blob length and dispatches on the type.
+                    // A client sending a nonzero version is served, not dropped.
+                    let p = &self.prefix;
+                    self.header = Header {
+                        ty: p[1],
+                        seq: u16::from_be_bytes([p[2], p[3]]),
+                        peer: u32::from_be_bytes([p[4], p[5], p[6], p[7]]),
                     };
-                    self.header = header;
                     self.blob = vec![0u8; raw_len];
                     self.blob[..4].copy_from_slice(&self.prefix[Header::LEN..]);
                     self.state = ReadState::Body { got: 4 };

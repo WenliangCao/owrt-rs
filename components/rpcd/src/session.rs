@@ -396,6 +396,9 @@ fn test_password(hash: &str, password: &str) -> bool {
     if out.is_null() {
         return false;
     }
+    // SAFETY: crypt returned non-null (checked above); the string it points at
+    // is NUL-terminated and stays valid until the next crypt call, and it is
+    // compared before anything else can call crypt.
     let s = unsafe { CStr::from_ptr(out) };
     s.to_bytes() == hash.as_bytes()
 }

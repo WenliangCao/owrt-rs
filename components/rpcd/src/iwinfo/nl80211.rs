@@ -771,6 +771,8 @@ fn nl80211_wpactl_recv(sock: i32, blen: usize) -> (isize, Vec<u8>) {
     if !rfds.is_set(sock) {
         return (-1, buf);
     }
+    // SAFETY: buf is live and `blen - 1` is within it, leaving room for the
+    // terminator the caller appends.
     let n = unsafe { sys::recv(sock, buf.as_mut_ptr(), blen - 1, 0) };
     (n, buf)
 }

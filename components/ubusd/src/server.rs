@@ -222,11 +222,15 @@ impl Server {
                     }
                 }
             }
-            if !ok {
-                return Outcome::Status(status::INVALID_ARGUMENT);
+            if ok {
+                created_type = true;
+                self.reg.new_type(methods).ok()
+            } else {
+                // ubus_create_obj_type returns NULL on a bad signature and the
+                // C daemon carries on, creating an object with no type: it gets
+                // an id and can be removed, but never appears in a lookup.
+                None
             }
-            created_type = true;
-            self.reg.new_type(methods).ok()
         } else {
             None
         };
@@ -906,13 +910,52 @@ impl Server {
     }
 }
 
-/// Top-level attributes of a message payload, indexed by attribute id.
+/// The type each ubus attribute must have, from `ubus_policy` in
+/// ubusd_proto.c. Anything not listed is unconstrained.
+fn policy_type(id: u32) -> Option<u32> {
+    Some(match id {
+        attr::SIGNATURE => 1,                                  // NESTED
+        attr::OBJTYPE | attr::OBJID | attr::STATUS => 6,       // INT32
+        attr::OBJPATH | attr::METHOD | attr::USER | attr::GROUP => 3, // STRING
+        _ => return None,
+    })
+}
+
+/// `blob_check_type` for the types the ubus policy uses.
+fn check_policy(ty: u32, payload: &[u8]) -> bool {
+    match ty {
+        3 => !payload.is_empty() && payload[payload.len() - 1] == 0, // STRING
+        6 => payload.len() == 4,                                     // INT32
+        _ => true, // NESTED and the unconstrained ones have minlen 0
+    }
+}
+
+/// Top-level attributes of a message payload, indexed by attribute id --
+/// `ubus_parse_msg`, i.e. `blob_parse_untrusted` under `ubus_policy`.
+///
+/// Attributes that fail the policy are *dropped*, not rejected: the handler
+/// then sees the attribute as absent and usually answers INVALID_ARGUMENT.
+/// Skipping this filter would let, for example, an OBJPATH that is not
+/// NUL-terminated reach a handler that the C daemon never lets it reach.
 fn attrs_of(payload: &[u8]) -> [Option<blob::Attr<'_>>; attr::MAX] {
     let mut out: [Option<blob::Attr<'_>>; attr::MAX] = Default::default();
-    for item in blob::iter(payload) {
-        if (item.id as usize) < attr::MAX {
-            out[item.id as usize] = Some(item);
+    let mut offset = 0usize;
+    while let Some((item, next)) = blob::attr_at(payload, offset) {
+        // blob_for_each_attr_len stops unless the PADDED length still fits
+        if next > payload.len() {
+            break;
         }
+        offset = next;
+        if (item.id as usize) >= attr::MAX {
+            continue;
+        }
+        if let Some(ty) = policy_type(item.id) {
+            if !check_policy(ty, item.payload) {
+                continue;
+            }
+        }
+        // a later attribute of the same id replaces an earlier one
+        out[item.id as usize] = Some(item);
     }
     out
 }
@@ -944,18 +987,51 @@ fn raw_attr(a: &blob::Attr) -> Vec<u8> {
     v
 }
 
-/// A method signature attribute must be a named (extended) blobmsg whose name
-/// fits inside it -- `blobmsg_check_attr(attr, true)`. Returns the name.
+/// `blobmsg_check_attr(attr, true)` from libubox, rule for rule: the attribute
+/// must be extended, carry a non-empty NUL-terminated name that fits inside the
+/// padded blobmsg header, and hold a payload consistent with its blobmsg type.
+/// Returns the name.
 fn check_method(a: &blob::Attr) -> Option<Vec<u8>> {
-    if !a.extended || a.payload.len() < 3 {
+    if !a.extended {
+        return None;
+    }
+    // blobmsg_check_name: at least a blobmsg_hdr (a 2-byte name length)
+    if a.payload.len() < 2 {
         return None;
     }
     let name_len = u16::from_be_bytes(a.payload[..2].try_into().ok()?) as usize;
-    let end = 2 + name_len;
-    if end >= a.payload.len() || a.payload[end] != 0 {
+    // a name is required here, so a zero length is a failure
+    if name_len == 0 {
         return None;
     }
-    Some(a.payload[2..end].to_vec())
+    // blobmsg_hdrlen(namelen): the header plus the name plus its NUL, padded
+    let hdrlen = (2 + name_len + 1 + 3) & !3;
+    if a.payload.len() < hdrlen || a.payload[2 + name_len] != 0 {
+        return None;
+    }
+    // blobmsg types run 0..=8; anything above is rejected outright
+    let ty = a.id;
+    if ty > 8 {
+        return None;
+    }
+    // blob_check_type against blob_type[]: array and table map to 0, which
+    // libubox treats as "no further check"
+    let data_len = a.payload.len() - hdrlen;
+    let ok = match ty {
+        1 | 2 => true,                                     // ARRAY, TABLE
+        0 => true,                                         // UNSPEC -> BINARY, minlen 0
+        3 => data_len >= 1 && a.payload[a.payload.len() - 1] == 0, // STRING
+        4 => data_len == 8,                                // INT64
+        5 => data_len == 4,                                // INT32
+        6 => data_len == 2,                                // INT16
+        7 => data_len == 1,                                // INT8 / BOOL
+        8 => data_len >= 8,                                // DOUBLE
+        _ => false,
+    };
+    if !ok {
+        return None;
+    }
+    Some(a.payload[2..2 + name_len].to_vec())
 }
 
 /// Re-encode a JSON value from an ACL file as a blobmsg field.
@@ -991,5 +1067,74 @@ fn append_json(b: &mut BlobBuf, name: &str, value: &owrt_ubus::json::Json) {
             }
             b.msg_close(c);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn attr_bytes(id: u32, payload: &[u8]) -> Vec<u8> {
+        let raw = 4 + payload.len();
+        let mut v = (((id << 24) & 0x7f00_0000) | raw as u32).to_be_bytes().to_vec();
+        v.extend_from_slice(payload);
+        while !v.len().is_multiple_of(4) {
+            v.push(0);
+        }
+        v
+    }
+
+    #[test]
+    fn string_attrs_must_be_nul_terminated() {
+        let good = attr_bytes(attr::OBJPATH, b"session\0");
+        assert!(attrs_of(&good)[attr::OBJPATH as usize].is_some());
+        // the terminator mutated away: libubox drops the attribute, so the
+        // handler sees no path at all and dumps every object instead
+        let bad = attr_bytes(attr::OBJPATH, b"session\xe4");
+        assert!(attrs_of(&bad)[attr::OBJPATH as usize].is_none());
+        let empty = attr_bytes(attr::OBJPATH, b"");
+        assert!(attrs_of(&empty)[attr::OBJPATH as usize].is_none());
+    }
+
+    #[test]
+    fn int32_attrs_must_be_exactly_four_bytes() {
+        assert!(attrs_of(&attr_bytes(attr::OBJID, &[0, 0, 0, 1]))[attr::OBJID as usize].is_some());
+        assert!(attrs_of(&attr_bytes(attr::OBJID, &[0, 1]))[attr::OBJID as usize].is_none());
+        assert!(attrs_of(&attr_bytes(attr::OBJID, &[0, 0, 0, 0, 1]))[attr::OBJID as usize].is_none());
+    }
+
+    #[test]
+    fn unconstrained_attrs_pass_any_payload() {
+        assert!(attrs_of(&attr_bytes(attr::DATA, &[1, 2, 3]))[attr::DATA as usize].is_some());
+        assert!(attrs_of(&attr_bytes(attr::NO_REPLY, &[]))[attr::NO_REPLY as usize].is_some());
+    }
+
+    #[test]
+    fn a_later_attribute_replaces_an_earlier_one() {
+        let mut buf = attr_bytes(attr::OBJID, &[0, 0, 0, 1]);
+        buf.extend_from_slice(&attr_bytes(attr::OBJID, &[0, 0, 0, 2]));
+        let got = attrs_of(&buf)[attr::OBJID as usize].unwrap();
+        assert_eq!(got.as_u32(), Some(2));
+    }
+
+    #[test]
+    fn method_signature_check_matches_blobmsg_check_attr() {
+        // extended, name "ping", table type: accepted
+        let mut payload = 4u16.to_be_bytes().to_vec();
+        payload.extend_from_slice(b"ping\0");
+        payload.resize(8, 0); // pad4(2 + 4 + 1)
+        let a = blob::Attr { id: 2, extended: true, payload: &payload };
+        assert_eq!(check_method(&a).as_deref(), Some(&b"ping"[..]));
+        // a zero-length name is refused when a name is required
+        let mut zero = 0u16.to_be_bytes().to_vec();
+        zero.resize(8, 0);
+        let a = blob::Attr { id: 2, extended: true, payload: &zero };
+        assert!(check_method(&a).is_none());
+        // not extended: no name at all
+        let a = blob::Attr { id: 2, extended: false, payload: &payload };
+        assert!(check_method(&a).is_none());
+        // a blobmsg type beyond the last one
+        let a = blob::Attr { id: 9, extended: true, payload: &payload };
+        assert!(check_method(&a).is_none());
     }
 }

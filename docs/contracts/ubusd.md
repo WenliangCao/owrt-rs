@@ -22,7 +22,24 @@
 `wpad_acl.json`、`luci-base.json`。socket 是 0666，文件权限不构成访问控制——两层
 授权全在 ubusd ACL 和 rpcd 会话里。
 
-## 1. 线格式
+## 1. 属性解析：`ubus_parse_msg` 会**丢弃**不合策略的属性
+
+`ubus_parse_msg` = `blob_parse_untrusted(msg, len, attrbuf, ubus_policy, UBUS_ATTR_MAX)`。
+策略是：`SIGNATURE` NESTED、`OBJTYPE`/`OBJID`/`STATUS` INT32、
+`OBJPATH`/`METHOD`/`USER`/`GROUP` STRING，其余不约束。
+
+不合规的属性**被静默丢弃**（`blob_parse_attr` 返回 0，不写进 attrbuf），于是 handler
+看到的是"该属性不存在"，通常回 `INVALID_ARGUMENT`——或者走"没有该属性"的那条分支。
+
+这条很容易漏。例如把 `OBJPATH` 的 NUL 结尾改掉：C 因为 `blob_check_type` 的
+STRING 检查把整个属性丢掉，LOOKUP 于是走**无路径分支、把所有对象都发出去**；
+不做这个过滤的实现会拿着一个没有结尾的字符串去查找，回 `NOT_FOUND`。r42 的随机变异
+一次就打出 32 个这样的用例。
+
+其他细节：id ≥ 14 的属性忽略；同 id 的**后一个覆盖前一个**；
+遍历时要求**补齐后的长度**仍然放得下，否则停止。
+
+## 2. 线格式
 
 头 8 字节：`version:u8 = 0`、`type:u8`、`seq:be16`、`peer:be32`。紧跟一个 blob_attr：
 `id_len:be32`（高位 `0x8000_0000` = extended，`0x7f00_0000` = id，低 24 位 = 含 4 字节头的长度），
@@ -30,19 +47,21 @@
 
 读侧（`ubusd_main.c: client_cb`）：
 
+0. **`version` 字节完全不检查**：`ubusd_main.c` 读完前缀、校验 blob 长度就按 type 分派。
+   一个发 `version != 0` 的客户端会被正常服务，不是被断开。（只有 libubus 客户端侧检查它。）
 1. 先读满 12 字节（8 头 + 4 blob 头）到 `hdrbuf`，期间 `recvmsg` 带 `SCM_RIGHTS` 控制块；
    收到 fd 就存进 `pending_msg_fd`（**已持有一个未消费的 fd 时不再接收**，控制块置空）。
 2. `raw_len < 4` → 断开；`pad_len(raw_len) > UBUS_MAX_MSGLEN` → 断开。
 3. 再 `read()` 剩下的 `raw_len - 4` 字节。
 4. 收齐后 `ub.fd = pending_msg_fd`，`pending_msg_fd = -1`，派发，然后**立刻重试下一条**。
 
-`UBUS_MAX_MSGLEN` 是编译期常量，上游 CMake 默认 `1048576`。本项目沿用该值。
-**未从设备构建独立确认**——它只影响拒绝阈值和发送队列上限，记为已知缺口。
+`UBUS_MAX_MSGLEN` 是编译期常量，上游 CMake 默认 `1048576`。**已用设备自带的 `/sbin/ubusd`
+二分确认**（r41）：声明 1048576 字节的消息被接受，1048577 被断开。两端一致。
 
 写侧（`ubusd.c: ubus_msg_writev`）：`sendmsg` 两段 iovec（头 + data），头里 seq/peer 转大端。
 **只有 `offset == 0` 且 `fd >= 0` 时才附 `SCM_RIGHTS`**；续传不带 fd。
 
-## 2. 发送队列
+## 3. 发送队列
 
 - 直接写：`tx_queue` 为空时先试一次 `writev`。全部写完就结束。
 - 部分写：`txq_ofs = written`、`txq_len = -written`，注册 `ULOOP_WRITE|EDGE_TRIGGER`，再入队。
@@ -54,14 +73,14 @@
   ubusd-rs 与 C 行为一致（未擅自偏离），记录在此。
 - 队列排空且收到 `ULOOP_WRITE` 时处理 `cmd_queue`（见 §4 lookup），空了就退回只监听 READ。
 
-## 3. ID 分配
+## 4. ID 分配
 
 `ubusd_id.c`：`getrandom(GRND_INSECURE)` 取 u32，**必须 ≥ 1024**（`UBUS_SYSTEM_OBJECT_MAX`），
 冲突就重取。client id 与 object id 用同一套规则、各自独立的表。
 
 系统对象固定 id：`EVENT=1`、`ACL=2`、`MONITOR=3`。它们 `client == NULL`，走内建 `recv_msg`。
 
-## 4. 消息处理
+## 5. 消息处理
 
 派发前：`type != STATUS && type != INVOKE` 时关闭随消息到达的 fd。
 `retmsg` 的 seq/peer 从入站消息复制。返回值语义：
@@ -96,10 +115,18 @@ libubus 的请求不会完成，调用方一路超时（`UBUS_STATUS_TIMEOUT`）
 `cnt || !all_cnt` 才发送（一个方法都看不见且该类型有方法时，整个对象对该客户端不可见）。
 payload：`OBJPATH`、`OBJID`、`OBJTYPE`、嵌套 `SIGNATURE`。
 
-## 5. 对象生命周期
+## 6. 对象生命周期
 
 **ADD_OBJECT**：有 `OBJTYPE` → 复用已有类型（refcount++）；否则有 `SIGNATURE` → 新建类型，
-每个方法过 `blobmsg_check_attr(pos, true)`，任一失败则整个类型失败。
+每个方法过 `blobmsg_check_attr(pos, true)`。
+**任一方法不合格时不是报错**：`ubus_create_obj_type` 返回 NULL，C 继续往下走，
+创建一个**没有类型的对象**——它有 id、可以被 remove，但永远不出现在 lookup 里
+（`ubusd_send_obj` 对无类型对象直接返回）。回复仍是 `DATA`，只是不带 `OBJTYPE`。
+
+`blobmsg_check_attr(attr, true)` 的完整规则（libubox `blobmsg.c`）：必须 extended；
+payload ≥ 2；名字长度字段非 0；payload ≥ `pad4(2 + namelen + 1)`；名字后一字节为 NUL；
+blobmsg 类型 ≤ 8；再按类型做长度检查（STRING 末字节为 NUL、INT32 恰好 4 字节等，
+ARRAY/TABLE 不额外检查）。
 有 `OBJPATH` → 先过 ACL `PUBLISH`；`strdup` 后插入 path 树，**重名插入失败即整个对象创建失败**
 （回 `INVALID_ARGUMENT`）；成功则发 `ubus.object.add` 事件。
 回复：总是 `OBJID`；只有当请求带 `SIGNATURE` 且类型创建成功时才带 `OBJTYPE`。
@@ -112,7 +139,7 @@ payload：`OBJPATH`、`OBJID`、`OBJTYPE`、嵌套 `SIGNATURE`。
 发一条 `UNSUBSCRIBE`（seq = `++subscriber->invoke_seq`，peer = 0）后解除；清理事件注册；
 有 path 则发 `ubus.object.remove` 并从 path 树摘除。
 
-## 6. 调用与回复
+## 7. 调用与回复
 
 **INVOKE**：需要 `METHOD` + `OBJID`。ACL `ACCESS` 不过 → `PERMISSION_DENIED`。
 对象无 client（系统对象）→ 走内建 handler。否则：`hdr.peer = 调用方 client id`，
@@ -123,7 +150,7 @@ payload：`OBJPATH`、`OBJID`、`OBJTYPE`、嵌套 `SIGNATURE`。
 `DATA` 属性；对象必须存在且属于发送方；按 `hdr.peer` 找回原调用方，找不到就静默丢弃。
 然后 `hdr.peer = OBJID`，原样转发。任何一步失败都只是 `goto out` → 返回 `-1`，**不产生错误回复**。
 
-## 7. 订阅与通知
+## 8. 订阅与通知
 
 **SUBSCRIBE**：`OBJID`（自己的对象）+ `TARGET`。目标必须存在且有 client；不能订阅自己客户端的对象。
 目标**没有 path** 时：只有同 user 或同 group 才允许，否则 `NOT_FOUND`（不是 PERMISSION_DENIED）。
@@ -137,7 +164,7 @@ payload：`OBJPATH`、`OBJID`、`OBJTYPE`、嵌套 `SIGNATURE`。
 （每个订阅者 id，attr id = 0）+ `STATUS=0`。然后对每个订阅者转发一条 `INVOKE`
 （`no_reply` 时 payload 带 `NO_REPLY=1`）。返回 `-1`。
 
-## 8. 事件对象（id 1）
+## 9. 事件对象（id 1）
 
 `register`：`{pattern: string, object: u32}`。`object < 1024` → `PERMISSION_DENIED`；
 对象不存在 → `NOT_FOUND`；非属主 → `PERMISSION_DENIED`；空 pattern → `PERMISSION_DENIED`。
@@ -156,7 +183,7 @@ payload：`OBJPATH`、`OBJID`、`OBJTYPE`、嵌套 `SIGNATURE`。
 内部事件：`ubus.object.add` / `ubus.object.remove`（data = `{id, path}`）、
 `ubus.acl.sequence`（data = `{sequence}`），以 `cl = NULL` 发送，因此不受 ACL 限制也不回环。
 
-## 9. ACL 对象（id 2）与 ACL 裁决
+## 10. ACL 对象（id 2）与 ACL 裁决
 
 **裁决**（`ubusd_acl_check`）：`cl == NULL || cl->uid == 0 || obj == NULL` → **直接放行**。
 root 完全不受 ACL 约束。其余按字典序遍历 acl 树，同样的单调匹配长度提前退出；
@@ -174,14 +201,14 @@ root 完全不受 ACL 约束。其余按字典序遍历 acl 树，同样的单�
 **客户端凭据**：`SO_PEERCRED` 拿 uid/gid/pid；`getpwuid`/`getgrgid` 任一失败则**拒绝该连接**。
 附加组从 `/proc/<pid>/status` 的 `Groups:` 行读，最多 64 个。
 
-## 10. monitor 对象（id 3）
+## 11. monitor 对象（id 3）
 
 `add` / `remove`，**仅 uid == 0 且 gid == 0**，否则 `PERMISSION_DENIED`。
 有监听者时，每条收到的消息（派发前）和每条发出的消息（`type != MONITOR` 时）都镜像一份：
 `MONITOR_CLIENT`、`MONITOR_PEER`、`MONITOR_SEQ`、`MONITOR_TYPE`、`MONITOR_SEND`、`MONITOR_DATA`，
 type = `UBUS_MSG_MONITOR`，seq = 每个监听者自己的 `++m->seq`。
 
-## 11. 进程与 socket
+## 12. 进程与 socket
 
 `-s <socket>`（默认 `/var/run/ubus/ubus.sock`）、`-A <acl 目录>`（默认 `/usr/share/acl.d`）。
 启动：忽略 `SIGPIPE`；`SIGHUP` 经 self-pipe 触发 ACL 重载；创建 socket 目录 0755；
@@ -191,7 +218,7 @@ type = `UBUS_MSG_MONITOR`，seq = 每个监听者自己的 `++m->seq`。
 新连接：`accept` 循环直到 `EAGAIN`；建立 client 后**立即发 `HELLO`**（seq=0、peer=client id、空 payload）。
 这条 HELLO 走的是普通发送路径，因此**同样会被镜像给 monitor**（`ubusd_send_hello` → `ubus_msg_send`）。
 
-## 12. 实现注记
+## 13. 实现注记
 
 `ubusd_send_obj` 是这个 daemon 例行发送的最大消息（一个对象的完整签名，rpcd 的 `uci`
 约 1.6 KB、更大的可到 6 KB+）。C 版用一个**静态 `blob_buf b`** 反复复用，缓冲区只增长一次；
@@ -202,11 +229,11 @@ type = `UBUS_MSG_MONITOR`，seq = 每个监听者自己的 `++m->seq`。
 回复也按 C 的做法**借用而不是拷贝**：队列为空时直接从装配缓冲区写进 socket，
 只有 socket 没收完的部分才分配。
 
-## 13. 已知缺口与有意差异
+## 14. 已知缺口与有意差异
 
 | 项 | 状态 |
 |---|---|
-| `UBUS_MAX_MSGLEN` 取上游默认 1048576 | 未从设备构建独立确认 |
+| `UBUS_MAX_MSGLEN` = 1048576 | **已用设备的 C ubusd 二分确认**（r41） |
 | 慢客户端超限静默丢消息 | 复刻原版；如改为断开需单独记录并验证调用方 |
 | 客户端断连后在途请求 | 原版靠对象释放时的 UNSUBSCRIBE + 调用方超时；不新增机制 |
 | 0015 记录的重连缺陷（odhcpd/dnsmasq/netifd.wireless） | **是客户端侧问题，不由 ubusd-rs 修复**；切换方案必须给出需重启的客户端名单与顺序 |

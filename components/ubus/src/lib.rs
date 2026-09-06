@@ -3,6 +3,9 @@
 //! server (add_object, receive invokes, reply with data/status and an optional
 //! file descriptor). No libubus, no third-party crates. Linux only.
 
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 pub mod blob;
 pub mod conn;
 pub mod convert;

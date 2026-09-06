@@ -3,6 +3,9 @@
 //! Accepts uhttpd's command line so the stock init script arguments work
 //! unchanged. One thread per connection; blocking I/O; TLS via rustls.
 
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 mod bridge;
 mod cgi;
 mod files;
@@ -178,6 +181,7 @@ fn bind_v6only(addr: std::net::SocketAddrV6) -> io::Result<TcpListener> {
     const SO_REUSEADDR: i32 = 2;
     const IPPROTO_IPV6: i32 = 41;
     const IPV6_V6ONLY: i32 = 26;
+    // SAFETY: plain socket(2); it touches no memory of ours.
     let fd = unsafe { socket(AF_INET6, SOCK_STREAM | SOCK_CLOEXEC, 0) };
     if fd < 0 {
         return Err(io::Error::last_os_error());
@@ -190,6 +194,8 @@ fn bind_v6only(addr: std::net::SocketAddrV6) -> io::Result<TcpListener> {
         addr: addr.ip().octets(),
         scope_id: addr.scope_id(),
     };
+    // SAFETY: setsockopt(2) with a live i32 and its exact size. IPV6_V6ONLY has
+    // to be set before bind, which is why std's TcpListener cannot be used here.
     let ok = unsafe {
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &one, 4) == 0
             && setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &one, 4) == 0
@@ -198,11 +204,15 @@ fn bind_v6only(addr: std::net::SocketAddrV6) -> io::Result<TcpListener> {
     };
     if !ok {
         let error = io::Error::last_os_error();
+        // SAFETY: fd came from socket(2) above, setup failed, and nothing else has
+        // taken ownership of it yet.
         unsafe {
             close(fd);
         }
         return Err(error);
     }
+    // SAFETY: fd is a bound, listening socket this function owns and does not
+    // use again; TcpListener takes over closing it.
     Ok(unsafe { TcpListener::from_raw_fd(fd) })
 }
 

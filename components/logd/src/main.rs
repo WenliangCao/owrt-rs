@@ -5,6 +5,9 @@
 //! `logread` over a pipe passed with the STATUS reply, and notifies
 //! subscribers. Drops privileges to user `logd` after binding sockets.
 
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 mod ring;
 
 use owrt_ubus::{blob, sys, BlobBuf, Connection, Incoming, MsgType, Request};
@@ -88,6 +91,9 @@ impl Client {
     /// Write what we can; Ok(false) when the client must be dropped.
     fn flush(&mut self) -> bool {
         while !self.pending.is_empty() {
+            // SAFETY: borrowing our own still-open descriptor to get at
+            // File's write(). ManuallyDrop keeps the File from closing it --
+            // self.fd remains the owner.
             let mut file =
                 std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(self.fd.as_raw_fd()) });
             match file.write(&self.pending) {

@@ -2,6 +2,9 @@
 //! `/sbin/fw4`; `FW4_MOCK_DIRS=dir1:dir2` switches all inputs to the upstream
 //! test-suite fixture layout and `FW4_TRACE=stderr` emits the `[call]` trace.
 
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 mod emit;
 mod input;
 mod ip;
@@ -31,7 +34,8 @@ struct Lock(#[allow(dead_code)] std::fs::File);
 fn lock() -> Option<Lock> {
     let f = std::fs::OpenOptions::new().create(true).truncate(false).write(true).open(LOCK).ok()?;
     use std::os::unix::io::AsRawFd;
-    // LOCK_EX == 2
+    // SAFETY: flock(2) on a descriptor this function just opened and still
+    // owns. LOCK_EX == 2.
     if unsafe { flock(f.as_raw_fd(), 2) } != 0 {
         return None;
     }

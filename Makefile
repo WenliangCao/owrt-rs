@@ -4,7 +4,7 @@
 COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd
 VERSION ?= 25.12.5
 
-.PHONY: test check-tools check-toolchain check-toolchain-negative build apk image ci-image
+.PHONY: test check-tools check-toolchain check-toolchain-negative check-abi build apk image ci-image
 
 test:
 	@for c in $(COMPONENTS); do \
@@ -34,6 +34,12 @@ check-toolchain:
 # Negative half of the pin: overrides a release must refuse. No SDK, no device.
 check-toolchain-negative:
 	@sh tools/toolchain_negative_test.sh
+
+# The FFI structs are the one thing here that can be wrong without the compiler
+# noticing: a layout mismatch just reads and writes the wrong offsets. Needs an
+# OpenWrt SDK present; skips cleanly when there is none.
+check-abi:
+	@sh tools/check_abi.sh
 
 check-tools:
 	@for f in tools/*.sh; do sh -n "$$f" || exit 1; done

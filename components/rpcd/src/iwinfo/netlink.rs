@@ -324,12 +324,17 @@ pub fn nl80211_init() -> i32 {
         return -ENOMEM;
     }
     let addr = SockaddrNl { family: AF_NETLINK as u16, pad: 0, pid: 0, groups: 0 };
+    // SAFETY: addr lives across the call and the length describes it.
     let rc = unsafe { sys::bind(fd, &addr as *const SockaddrNl, std::mem::size_of::<SockaddrNl>() as u32) };
     if rc < 0 {
+        // SAFETY: setup failed; fd came from socket(2) here and nothing else
+        // has taken ownership of it.
         unsafe { sys::close(fd) };
         return -ENOLINK;
     }
     if sys::set_cloexec(fd) < 0 {
+        // SAFETY: setup failed; fd came from socket(2) here and nothing else
+        // has taken ownership of it.
         unsafe { sys::close(fd) };
         return -EINVAL;
     }
@@ -337,7 +342,9 @@ pub fn nl80211_init() -> i32 {
     match genl_ctrl_resolve(&mut st, "nl80211") {
         Some(id) => st.nl80211 = id,
         None => {
-            unsafe { sys::close(fd) };
+            // SAFETY: setup failed; fd came from socket(2) here and nothing else
+        // has taken ownership of it.
+        unsafe { sys::close(fd) };
             return -ENOENT;
         }
     }

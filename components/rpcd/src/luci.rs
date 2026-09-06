@@ -464,8 +464,11 @@ fn set_localtime(args: &Json) -> Json {
         Some(Json::Int(i)) => Some(*i),
         _ => None,
     };
+    // SAFETY: time(2) with a null pointer just returns the value.
     let t: i64 = provided.unwrap_or_else(|| unsafe { time(std::ptr::null_mut()) });
     let mut tm = Tm { sec: 0, min: 0, hour: 0, mday: 0, mon: 0, year: 0, wday: 0, yday: 0, isdst: 0, gmtoff: 0, zone: std::ptr::null() };
+    // SAFETY: the reentrant form writes into `tm`, which is live and correctly
+    // sized; both pointers are valid for the call.
     if !unsafe { localtime_r(&t, &mut tm) }.is_null() {
         system(&format!(
             "date -s \"{:04}-{:02}-{:02} {:02}:{:02}:{:02}\" >/dev/null",

@@ -1,3 +1,6 @@
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 mod engine;
 mod process;
 mod syslog;

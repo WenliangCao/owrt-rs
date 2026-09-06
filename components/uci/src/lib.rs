@@ -2,6 +2,9 @@
 //! `parse` = file.c parser, `export` = file.c export, `file` = file.c backend
 //! (load/commit/list), `delta` = delta.c, `ops` = list.c + util.c lookup.
 
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 pub mod context;
 pub mod delta;
 pub mod error;
