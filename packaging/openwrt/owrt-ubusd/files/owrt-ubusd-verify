@@ -1,0 +1,101 @@
+#!/bin/sh
+# Run ubusd-rs on its own socket and exercise it with the system's real ubus
+# client. This is isolated verification: the running system bus is never
+# touched, and nothing here takes anything over.
+#
+#   owrt-ubusd-verify            run the checks, print a report, exit non-zero on failure
+#   owrt-ubusd-verify start      leave a candidate bus running on the alt socket
+#   owrt-ubusd-verify stop       stop it
+#   owrt-ubusd-verify status     is one running?
+#
+# The alternate socket is deliberately outside /var/run/ubus so that nothing
+# looking for the system bus can find it by accident.
+set -eu
+
+BIN=/usr/sbin/ubusd-rs
+DIR=/var/run/ubus-rs
+SOCK=$DIR/ubus.sock
+PIDFILE=/var/run/owrt-ubusd-verify.pid
+ACL=${ACL:-/usr/share/acl.d}
+
+die() { echo "owrt-ubusd-verify: $*" >&2; exit 1; }
+
+running() {
+	[ -f "$PIDFILE" ] || return 1
+	pid=$(cat "$PIDFILE" 2>/dev/null) || return 1
+	[ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+}
+
+guard() {
+	# Refuse to run if the alternate socket would collide with the real one.
+	case "$SOCK" in
+		/var/run/ubus/*) die "alternate socket must not live in the system bus directory" ;;
+	esac
+	[ -x "$BIN" ] || die "$BIN missing"
+	command -v ubus >/dev/null 2>&1 || die "the ubus client is required"
+}
+
+start() {
+	guard
+	running && { echo "already running on $SOCK"; return 0; }
+	mkdir -p "$DIR"
+	"$BIN" -s "$SOCK" -A "$ACL" &
+	echo $! > "$PIDFILE"
+	i=0
+	while [ $i -lt 50 ]; do
+		[ -S "$SOCK" ] && return 0
+		i=$((i + 1))
+		sleep 1
+	done
+	die "candidate did not create $SOCK"
+}
+
+stop() {
+	running || { rm -f "$PIDFILE"; return 0; }
+	kill "$(cat "$PIDFILE")" 2>/dev/null || true
+	rm -f "$PIDFILE"
+}
+
+check() {
+	start
+	trap stop EXIT
+	fail=0
+	u() { ubus -s "$SOCK" "$@"; }
+
+	# an empty bus answers a lookup
+	u list >/dev/null 2>&1 || { echo "FAIL: list on an empty candidate bus"; fail=1; }
+	# a missing object is reported as not found, not as a hang
+	u -S list nosuchobject >/dev/null 2>&1 && { echo "FAIL: lookup of a missing object succeeded"; fail=1; }
+	# the reserved event namespace is refused
+	u -S send ubus.reserved '{}' >/dev/null 2>&1 && { echo "FAIL: reserved event namespace accepted"; fail=1; }
+	# a normal event is accepted
+	u -S send owrt.verify '{"k":"v"}' >/dev/null 2>&1 || { echo "FAIL: sending an event"; fail=1; }
+
+	# a real provider registers, is listed with its signature, and answers
+	if [ -x /sbin/rpcd ]; then
+		rpcd -s "$SOCK" >/dev/null 2>&1 &
+		rp=$!
+		i=0
+		while [ $i -lt 15 ]; do
+			u list 2>/dev/null | grep -q '^session$' && break
+			i=$((i + 1)); sleep 1
+		done
+		u list 2>/dev/null | grep -q '^session$' || { echo "FAIL: rpcd did not register"; fail=1; }
+		u -v list session >/dev/null 2>&1 || { echo "FAIL: reading a signature"; fail=1; }
+		u -S call session list '{}' >/dev/null 2>&1 || { echo "FAIL: invoking a method"; fail=1; }
+		kill $rp 2>/dev/null || true
+	else
+		echo "note: no /sbin/rpcd, provider checks skipped"
+	fi
+
+	[ $fail = 0 ] && echo "owrt-ubusd-verify: OK (candidate bus on $SOCK, system bus untouched)"
+	return $fail
+}
+
+case "${1:-check}" in
+	check) check ;;
+	start) start; echo "candidate bus on $SOCK (system bus untouched)" ;;
+	stop) stop ;;
+	status) running && echo "running on $SOCK" || { echo "not running"; exit 1; } ;;
+	*) die "usage: owrt-ubusd-verify [check|start|stop|status]" ;;
+esac
