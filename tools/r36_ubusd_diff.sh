@@ -37,9 +37,13 @@ run_one() {
 		mknod -m 666 "$root/dev/urandom" c 1 9
 		mknod -m 666 "$root/dev/zero" c 1 5
 		trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
-		DAEMON_USER="$3" chroot "$root" /bin/sh /tmp/inner.sh "$daemon"' sh "$root" "$daemon" "${DAEMON_USER:-root}" > "$out/$tag.txt" 2>&1 || true
+		DAEMON_USER="$3" chroot "$root" /bin/sh -x /tmp/inner.sh "$daemon"' sh "$root" "$daemon" "${DAEMON_USER:-root}" > "$out/$tag.txt" 2> "$out/$tag-trace.log" || true
 	sudo -n cp "$root/diagnostics.txt" "$out/$tag-diagnostics.txt" 2>/dev/null || true
-	sudo -n chown "$(id -u):$(id -g)" "$out/$tag-diagnostics.txt" 2>/dev/null || true
+	# keep the sandbox's own logs: when a transcript ends early these are the
+	# only way to see why
+	sudo -n rm -rf "$out/$tag-logs"
+	sudo -n cp -a "$root/tmp/out" "$out/$tag-logs" 2>/dev/null || true
+	sudo -n chown -R "$(id -u):$(id -g)" "$out/$tag-diagnostics.txt" "$out/$tag-logs" "$out/$tag-trace.log" 2>/dev/null || true
 	sudo -n rm -rf "$tmp"
 }
 

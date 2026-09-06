@@ -79,7 +79,40 @@ libubus 的请求就永远不完成：rpcd 每注册一个对象都要等满一�
 logd-rs、rpcd（断连即退、由 procd respawn）、每次调用新建连接的那些客户端不需要额外处理。
 procd 与 hostapd/wpad 在这个沙箱里跑不起来，仍只有源码依据，与 0015 的边界一致。
 
-## 3. 尚未覆盖
+## 3. r39：性能对照 —— 内存约一半，`lookup_all` 慢 14%
+
+同一沙箱、同一份负载、同一个客户端（`components/ubusd/examples/bench.rs`）分别打两个 daemon。
+构建主机 aarch64，10 个对象在总线上（9 个 rpcd + 1 个 bench provider）。
+
+| 项目 | C ubusd | ubusd-rs | 差异 |
+|---|---|---|---|
+| lookup（按名，n=3000） | 18.6 µs | **17.4 µs** | 快 6% |
+| lookup_all（全量，n=300） | **57.4 µs** | 65.4 µs | **慢 14%** |
+| invoke（n=3000） | 36.0 µs | 36.3 µs | 持平 |
+| notify（n=3000） | 1.2 µs | 1.4 µs | 持平 |
+| 8 并发 invoke（每个 750） | ~107 µs | ~111 µs | 慢 4% |
+| daemon CPU（顺序阶段） | 10 ticks | 10 ticks | 持平 |
+| daemon CPU（并发阶段） | 8 ticks | 9 ticks | 持平 |
+| daemon RSS | 856 → 868 KiB | **452 → 468 KiB** | **少 47%** |
+| 描述符 delta | 0 | 0 | 持平 |
+
+**不能说"全面更快"。** 唯一明确的优势是常驻内存约为一半；唯一明确的劣势是全量 lookup
+慢 14%（57 → 65 µs）。可疑原因：`path_order()` 每次调用都分配一个 `Vec<u32>`，
+`send_obj` 每个对象克隆一次 path 并新建一个 BlobBuf，而 C 版在 avl 树上原地遍历、
+复用一个静态 `blob_buf`。尚未验证，也尚未优化——先保证兼容，再按实测改。
+
+### 这一轮的两个 harness bug（不是 daemon bug）
+
+1. 并发阶段用了裸 `wait`，它会连 daemon、provider 和 rpcd 一起等，而这三个都不退出。
+   两端**同样**卡死，C 的 transcript 也停在同一行。这一度看起来像"Rust 在高负载下死锁"，
+   是 C 基线同样卡住才排除的。现在只等 8 个负载客户端，并且每个阶段都有硬超时，
+   卡住会表现为少一行而不是永不结束。
+2. 顺序阶段从来不是问题：3000 次的 lookup / invoke / notify 在两端都正常，延迟接近。
+
+顺带记一个操作教训：清理远端进程时用 `pkill -f <模式>` 两次杀掉了我自己的 ssh 会话
+（模式出现在我自己的命令行里）。之后只按明确 pid 清理。
+
+## 4. 尚未覆盖
 
 - **procd**：沙箱里必须是 PID 1 才能跑，本轮无证据。它的 50 ms→1 s 退避重连只有源码依据。
 - **hostapd / wpa_supplicant**：沙箱无无线硬件。它们的订阅路径（`hostapd.*`、`wpa_supplicant`）
@@ -89,5 +122,9 @@ procd 与 hostapd/wpad 在这个沙箱里跑不起来，仍只有源码依据，
 - **发送队列溢出**：慢客户端用例证明了不会拖垮 daemon，但没有构造出足以超过 1 MiB 上限、
   真正触发"静默丢消息"的负载。
 - **`UBUS_MAX_MSGLEN`**：仍取上游 CMake 默认 1048576，未从设备构建独立确认。
-- 性能对照（延迟、CPU、RSS、并发客户端）尚未做。
-- 打包（`packaging/openwrt/owrt-ubusd`）与切换/恢复方案尚未写。
+- **`lookup_all` 慢 14% 的根因未定位，也未优化。**
+- 打包已完成（`packaging/openwrt/owrt-ubusd`，`owrt-ubusd-0.1.0-r1.apk`，sha256 `0b36bde5`，
+  r38 证明它对运行中的总线完全无影响）；切换路径分析见
+  [UBUSD_SWITCH_ANALYSIS.md](../../docs/reviews/UBUSD_SWITCH_ANALYSIS.md)，**未执行**。
+- **daemon 以 uid 81（`ubus`）运行的差分**：设备上 procd 就是这样启动它的，
+  而本报告前面所有运行都是 root。已加 `DAEMON_USER`，补测进行中。
