@@ -63,14 +63,18 @@
 `retmsg` 的 seq/peer 从入站消息复制。返回值语义：
 
 - `-2`：命令已入队，**不回状态、不释放消息**；
-- `-1`：不回状态（转发类）；
+- `-1`：不回状态（只有转发类走这条：INVOKE、NOTIFY、STATUS/DATA 回复）；
 - 其他：回 `UBUS_MSG_STATUS`，payload 是 `STATUS=htonl(ret)`。
+
+**易错点**：`PING`、`ADD_OBJECT`、`REMOVE_OBJECT`、acl `query` 都先发一条 `DATA`
+**然后 return 0**，所以客户端会收到 `DATA` 再收到 `STATUS(0)`。少发这条 STATUS，
+libubus 的请求不会完成，调用方一路超时（`UBUS_STATUS_TIMEOUT`）。
 
 未知 type → `INVALID_COMMAND`。
 
 | type | 行为 |
 |---|---|
-| `PING` | 原消息改成 `DATA` 回给自己 |
+| `PING` | 原消息改成 `DATA` 回给自己，再回 `STATUS(0)` |
 | `ADD_OBJECT` | 见 §5 |
 | `REMOVE_OBJECT` | 见 §5 |
 | `LOOKUP` | 见下 |

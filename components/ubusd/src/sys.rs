@@ -6,6 +6,7 @@
 //! real musl headers by `tools/abi_assert.c` (see `make check-abi`).
 
 use std::ffi::CStr;
+use std::os::raw::c_char;
 use std::io;
 use std::os::fd::{FromRawFd, OwnedFd, RawFd};
 
@@ -75,22 +76,22 @@ pub const POLLHUP: i16 = 0x010;
 /// struct passwd -- only pw_name is read.
 #[repr(C)]
 struct Passwd {
-    name: *const i8,
-    passwd: *const i8,
+    name: *const c_char,
+    passwd: *const c_char,
     uid: u32,
     gid: u32,
-    gecos: *const i8,
-    dir: *const i8,
-    shell: *const i8,
+    gecos: *const c_char,
+    dir: *const c_char,
+    shell: *const c_char,
 }
 
 /// struct group -- only gr_name is read.
 #[repr(C)]
 struct Group {
-    name: *const i8,
-    passwd: *const i8,
+    name: *const c_char,
+    passwd: *const c_char,
     gid: u32,
-    mem: *const *const i8,
+    mem: *const *const c_char,
 }
 
 /// struct stat, aarch64/musl. Only mode/uid/gid are read; the tail is padding.

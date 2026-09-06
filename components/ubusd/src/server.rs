@@ -168,7 +168,9 @@ impl Server {
             ty::PING => {
                 let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, msg.blob);
                 self.send(client, out);
-                Outcome::NoStatus
+                // The handler returns 0 in the C daemon, so a STATUS follows
+                // the echo; libubus waits for it to complete the request.
+                Outcome::Status(status::OK)
             }
             ty::ADD_OBJECT => self.add_object(client, &msg),
             ty::REMOVE_OBJECT => self.remove_object(client, &msg),
@@ -248,7 +250,7 @@ impl Server {
         }
         let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
         self.send(client, out);
-        Outcome::NoStatus
+        Outcome::Status(status::OK)
     }
 
     fn remove_object(&mut self, client: u32, msg: &InMsg) -> Outcome {
@@ -273,7 +275,7 @@ impl Server {
         let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
         self.send(client, out);
         self.free_object(id);
-        Outcome::NoStatus
+        Outcome::Status(status::OK)
     }
 
     /// Tear an object down: unsubscribe both directions (telling every
@@ -849,7 +851,7 @@ impl Server {
         b.nest_end(d);
         let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
         self.send(client, out);
-        Outcome::NoStatus
+        Outcome::Status(status::OK)
     }
 
     // -------------------------------------------------------------- monitor
