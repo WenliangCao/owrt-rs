@@ -90,6 +90,37 @@ fn config_changed(a: &config::InterfaceConfig, b: &config::InterfaceConfig) -> b
     strip(a) != strip(b)
 }
 
+/// One entry of a protocol's `state->deps`.
+struct HostDep {
+    /// The interface whose protocol declared the dependency.
+    owner: String,
+    /// `dep->interface`: an interface that must be up, if given.
+    interface: String,
+    /// `dep->host`: a host that must be reachable, if given.
+    host: Option<IpAddr>,
+    /// `dep->any`: an interface dependency with no host.
+    any: bool,
+    /// The interface that satisfies it, or `None` while it does not.
+    satisfied_by: Option<String>,
+}
+
+/// Whether `addr` falls inside `prefix/len`.
+fn in_prefix(addr: IpAddr, prefix: IpAddr, len: u8) -> bool {
+    match (addr, prefix) {
+        (IpAddr::V4(a), IpAddr::V4(p)) => {
+            let (a, p) = (u32::from_be_bytes(a.octets()), u32::from_be_bytes(p.octets()));
+            let m = if len == 0 { 0 } else { u32::MAX << (32 - len.min(32)) };
+            a & m == p & m
+        }
+        (IpAddr::V6(a), IpAddr::V6(p)) => {
+            let (a, p) = (u128::from_be_bytes(a.octets()), u128::from_be_bytes(p.octets()));
+            let m = if len == 0 { 0 } else { u128::MAX << (128 - len.min(128)) };
+            a & m == p & m
+        }
+        _ => false,
+    }
+}
+
 fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
@@ -115,6 +146,10 @@ struct Netifd {
     hotplug: process::Slot,
     hotplug_current: Option<(String, Event)>,
     hotplug_queue: Vec<(String, Event)>,
+    /// `state->deps`: what each interface's protocol said it depends on
+    /// being able to reach. An unsatisfied dependency makes the interface
+    /// unavailable.
+    host_deps: Vec<HostDep>,
     /// Interfaces whose `remove` timer is armed.
     remove_pending: Vec<String>,
     /// The bus socket, kept so the connection can be remade.
@@ -173,6 +208,7 @@ impl Netifd {
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
+            host_deps: Vec::new(),
             remove_pending: Vec::new(),
             socket: socket.map(|s| s.to_string()),
             bus_down: false,
@@ -351,6 +387,29 @@ impl Netifd {
         }
     }
 
+    /// `__device_free_unused`: a device object with no users and no config
+    /// section of its own is freed. Without this, an object created by
+    /// `set_alias` for a device nothing references would linger and keep
+    /// showing up in `network.device status`.
+    fn free_unused_devices(&mut self) {
+        let configured = self.known_device_names();
+        let claimed: Vec<String> = self.claims.iter().map(|(n, _)| n.clone()).collect();
+        let parents: Vec<String> = self.parents.iter().map(|(_, p)| p.clone()).collect();
+        let doomed: Vec<String> = self
+            .device_objects
+            .iter()
+            .filter(|n| {
+                !configured.contains(n) && !claimed.contains(n) && !parents.contains(n)
+            })
+            .cloned()
+            .collect();
+        for name in doomed {
+            self.device_objects.retain(|n| *n != name);
+            self.devices.remove(&name);
+            self.present.retain(|n| *n != name);
+        }
+    }
+
     /// `device_claim`: one more user of a device. The device is brought up
     /// only by the first claim, and `simple_device_set_state` claims its
     /// parent first -- `iflink`, which is the DSA conduit for a user port and
@@ -445,6 +504,11 @@ impl Netifd {
         let Some(pos) = slot.iter().position(|(i, _)| i == iface) else { return };
         let (_, dev) = slot.remove(pos);
         self.device_release(&dev);
+        // `device_remove_user` ends with `device_free_unused()`. That is the
+        // only ordinary place the C collects them -- NOT periodically, and
+        // not after a successful `set_alias`, which is why a device named
+        // there stays visible until some user goes away.
+        self.free_unused_devices();
     }
 
 
@@ -1046,6 +1110,12 @@ impl Netifd {
                 let _ = st.task.signal(process::SIGTERM as u32);
             }
             proto::Action::Run { action, env } => {
+                // `proto_ext_clear_host_dep` runs when a SETUP starts, not on
+                // teardown -- so a dependency that went unsatisfied keeps the
+                // interface unavailable until the protocol is set up again.
+                if action == "setup" {
+                    self.host_deps.retain(|d| d.owner != name);
+                }
                 let opts: Vec<(String, Vec<String>)> =
                     ic.raw.iter().map(|r| (r.name.clone(), r.values.clone())).collect();
                 let config = proto::config_json(&handler, &opts);
@@ -1102,6 +1172,23 @@ impl Netifd {
     /// reports success after netifd decided to tear down must not be able to
     /// bring the interface back up.
     fn notify_proto(&mut self, name: &str, data: &[u8]) -> i32 {
+        // `netifd_iface_notify_proto`: `if (!iface->proto->notify) return
+        // NOT_SUPPORTED`. Only an external protocol has a notify callback, so
+        // every action on a built-in one -- static, none -- is refused,
+        // whatever the action number says.
+        let external = self
+            .cfg
+            .interfaces
+            .iter()
+            .find(|i| i.name == name)
+            .map(|ic| {
+                !IMPLEMENTED_PROTOS.contains(&ic.proto.as_str())
+                    && self.handler_for(&ic.proto).is_some()
+            })
+            .unwrap_or(false);
+        if !external {
+            return status::NOT_SUPPORTED;
+        }
         let fields: Vec<blob::Field> = blob::fields(data).collect();
         let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
         let Some(action) = find("action").and_then(|f| f.as_u32()) else {
@@ -1212,13 +1299,7 @@ impl Netifd {
                 if tearing {
                     return status::PERMISSION_DENIED;
                 }
-                // No interface-to-host dependency tracking in this build.
-                // Refusing is honest; accepting and not tracking it would let
-                // an interface come up whose dependency is unreachable.
-                eprintln!(
-                    "netifd-rs: {name}: add_host_dependency is not implemented by this build"
-                );
-                status::NOT_SUPPORTED
+                self.add_host_dependency(name, &fields)
             }
             7 => match sm {
                 proto::Sm::Idle => {
@@ -1981,6 +2062,8 @@ impl Netifd {
         };
         for a in alias.children() {
             if a.ty != MsgType::String as u32 || a.as_str().is_none_or(|s| s.is_empty()) {
+                // the C's `error:` path is the one that collects
+                self.free_unused_devices();
                 return status::INVALID_ARGUMENT;
             }
         }
@@ -2094,6 +2177,178 @@ impl Netifd {
             self.link_state.retain(|(n, _)| *n != name);
             self.protos.retain(|(n, _)| *n != name);
         }
+    }
+
+    /// `proto_ext_add_host_dependency`: the protocol says this interface is
+    /// only usable while some host, or some other interface, is reachable.
+    fn add_host_dependency(&mut self, name: &str, fields: &[blob::Field]) -> i32 {
+        let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
+        let ifname = find("ifname").and_then(|f| f.as_str()).unwrap_or("").to_string();
+        let host = find("host").and_then(|f| f.as_str()).unwrap_or("").to_string();
+
+        // "no host but an interface" is a dependency on that interface alone
+        let mut dep = HostDep {
+            owner: name.to_string(),
+            interface: ifname.clone(),
+            host: None,
+            any: false,
+            satisfied_by: None,
+        };
+        if host.is_empty() && !ifname.is_empty() {
+            dep.any = true;
+        } else {
+            match host.parse::<std::net::Ipv4Addr>() {
+                Ok(a) => dep.host = Some(IpAddr::V4(a)),
+                Err(_) => match host.parse::<Ipv6Addr>() {
+                    Ok(a) => dep.host = Some(IpAddr::V6(a)),
+                    Err(_) => return status::INVALID_ARGUMENT,
+                },
+            }
+        }
+        self.resolve_host_dep(&mut dep);
+        let satisfied = dep.satisfied_by.is_some();
+        self.host_deps.push(dep);
+        self.check_dependencies(name);
+        if satisfied {
+            status::OK
+        } else {
+            status::NOT_FOUND
+        }
+    }
+
+    /// `proto_ext_update_host_dep`: a named interface must exist and be up;
+    /// a host must be reachable through some interface.
+    fn resolve_host_dep(&mut self, dep: &mut HostDep) {
+        let mut via: Option<String> = None;
+        if !dep.interface.is_empty() {
+            let up = self
+                .iface_index(&dep.interface)
+                .map(|i| self.interfaces[i].state == State::Up)
+                .unwrap_or(false);
+            if !up {
+                dep.satisfied_by = None;
+                return;
+            }
+            via = Some(dep.interface.clone());
+        }
+        if dep.any {
+            dep.satisfied_by = via;
+            return;
+        }
+        let Some(host) = dep.host else {
+            dep.satisfied_by = None;
+            return;
+        };
+        let v6 = host.is_ipv6();
+        dep.satisfied_by = self.target_route(host, v6, via, None).ok();
+    }
+
+    /// `proto_ext_check_dependencies`: the interface is available only while
+    /// every dependency it declared is satisfied.
+    fn check_dependencies(&mut self, name: &str) {
+        let all = self
+            .host_deps
+            .iter()
+            .filter(|d| d.owner == name)
+            .all(|d| d.satisfied_by.is_some());
+        self.set_available(name, all);
+    }
+
+    /// `netifd_add_host_route` -> `interface_ip_add_target_route`: which
+    /// interface would carry traffic to this host, adding a host route when
+    /// one is needed. A target that is already on one of an interface's own
+    /// subnets needs no route at all -- the answer is just that interface's
+    /// name, which is what the callers (a tunnel keeping its endpoint
+    /// reachable) are asking for.
+    fn add_host_route(&mut self, data: &[u8]) -> Result<String, i32> {
+        let fields: Vec<blob::Field> = blob::fields(data).collect();
+        let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
+        let Some(target) = find("target").and_then(|f| f.as_str()) else {
+            return Err(status::INVALID_ARGUMENT);
+        };
+        let v6 = find("v6").and_then(|f| f.as_bool()).unwrap_or(false);
+        let exclude = find("exclude").and_then(|f| f.as_bool()).unwrap_or(false);
+        let named = find("interface").and_then(|f| f.as_str()).map(|s| s.to_string());
+
+        let addr: IpAddr = match v6 {
+            false => target.parse::<std::net::Ipv4Addr>().map(IpAddr::V4),
+            true => target.parse::<Ipv6Addr>().map(IpAddr::V6),
+        }
+        .map_err(|_| status::INVALID_ARGUMENT)?;
+
+        // `exclude` turns the named interface from the one to search into the
+        // one to skip
+        let (only, skip) = if exclude { (None, named) } else { (named, None) };
+        self.target_route(addr, v6, only, skip)
+    }
+
+    /// Which interface can reach `addr`, adding a host route if one is
+    /// needed. `only` restricts the search to a single interface; `skip`
+    /// excludes one.
+    fn target_route(
+        &mut self,
+        addr: IpAddr,
+        v6: bool,
+        only: Option<String>,
+        skip: Option<String>,
+    ) -> Result<String, i32> {
+        let names: Vec<String> = match &only {
+            Some(n) => vec![n.clone()],
+            None => self.interfaces.iter().map(|i| i.name.clone()).collect(),
+        };
+        let mut best: Option<(u8, String, IpAddr)> = None;
+        for name in names {
+            if Some(&name) == skip.as_ref() {
+                continue;
+            }
+            let Some(idx) = self.iface_index(&name) else { continue };
+            let i = &self.interfaces[idx];
+            // "look for locally addressable target first": an address whose
+            // own subnet covers the target answers immediately
+            if i.proto_ip.addresses.iter().any(|a| {
+                a.enabled && a.addr.is_ipv6() == v6 && in_prefix(addr, a.addr, a.mask)
+            }) {
+                return Ok(name);
+            }
+            // otherwise keep the longest-prefix route across every interface
+            for r in &i.proto_ip.routes {
+                if !r.enabled || r.target.is_ipv6() != v6 || !in_prefix(addr, r.target, r.mask) {
+                    continue;
+                }
+                if best.as_ref().is_none_or(|(m, _, _)| r.mask > *m) {
+                    best = Some((r.mask, name.clone(), r.nexthop));
+                }
+            }
+        }
+        let Some((_, name, nexthop)) = best else { return Err(status::NOT_FOUND) };
+        // the unspecified address is a request for "who has the default
+        // route", and gets no host route of its own
+        let unspecified = match addr {
+            IpAddr::V4(a) => a.is_unspecified(),
+            IpAddr::V6(a) => a.is_unspecified(),
+        };
+        if unspecified {
+            return Ok(name);
+        }
+        let mask = if v6 { 128 } else { 32 };
+        let mut r = interface::Route::new(addr, mask, nexthop);
+        r.flags = 0;
+        if let Some(idx) = self.iface_index(&name) {
+            let dev = self.interfaces[idx].l3_device.clone();
+            if let Some(dev) = dev {
+                if let Ok(di) = self.sys.if_index(&dev) {
+                    if di != 0 {
+                        let mut ipset = self.interfaces[idx].proto_ip.clone();
+                        self.add_iface_route(&name, di, &r, &mut ipset);
+                        if let Some(idx) = self.iface_index(&name) {
+                            self.interfaces[idx].proto_ip = ipset;
+                            self.interfaces[idx].proto_ip.routes.sort_by(interface::route_order);
+                        }
+                    }
+                }
+            }
+        }
+        Ok(name)
     }
 
     /// `interface_parse_data`: merge a table of named values into the
@@ -2220,6 +2475,7 @@ impl Netifd {
         // `interface_flush_state` calls `interface_data_flush`, so the data a
         // protocol reported does not survive its interface going down
         i.data.clear();
+
         self.start_time.retain(|(n, _)| n != name);
 
         let _ = released;
@@ -2433,6 +2689,21 @@ impl Netifd {
                 }
                 self.reload();
                 self.conn.reply_status(&req, status::OK, None)
+            }
+            // `netifd_add_host_route`
+            (ubus::Target::Network, "add_host_route") => {
+                match self.add_host_route(&req.data) {
+                    Ok(iface) => {
+                        let mut b = BlobBuf::new();
+                        b.msg_string("interface", &iface);
+                        let fields = b.payload().to_vec();
+                        if let Err(e) = self.conn.reply_data(&req, &fields) {
+                            eprintln!("netifd-rs: cannot reply to add_host_route: {e}");
+                        }
+                        self.conn.reply_status(&req, status::OK, None)
+                    }
+                    Err(code) => self.conn.reply_status(&req, code, None),
+                }
             }
             // `netifd_netns_updown` needs a netns fd passed by the caller
             // (`ubus_request_get_caller_fd`) and answers INVALID_ARGUMENT

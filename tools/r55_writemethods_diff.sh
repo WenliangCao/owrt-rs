@@ -31,6 +31,10 @@ config interface "wired"
 	option device "veth2"
 	option proto "static"
 	option ipaddr "10.0.0.1/24"
+
+config interface "shell"
+	option device "veth4"
+	option proto "dhcp"
 '
 
 # One call per line: <label> <object> <method> <json>
@@ -46,7 +50,21 @@ setstate_down|network.device|set_state|{"name":"veth6","defer":true}
 setstate_up|network.device|set_state|{"name":"veth6","defer":false}
 stpinit|network.device|stp_init|{}
 adddynamic|network|add_dynamic|{"name":"dyn0"}
-netns_updown|network|netns_updown|{"jail":"j0","start":true}'
+netns_updown|network|netns_updown|{"jail":"j0","start":true}
+hostroute_none|network|add_host_route|{}
+hostroute_bad|network|add_host_route|{"target":"not-an-address"}
+hostroute_local|network|add_host_route|{"target":"10.0.0.99"}
+hostroute_again|network|add_host_route|{"target":"10.0.0.99"}
+hostroute_lan|network|add_host_route|{"target":"192.168.1.50"}
+hostroute_unreachable|network|add_host_route|{"target":"8.8.8.8"}
+hostroute_iface|network|add_host_route|{"target":"10.0.0.77","interface":"wired"}
+hostroute_exclude|network|add_host_route|{"target":"10.0.0.66","exclude":true}
+hostroute_v6|network|add_host_route|{"target":"fd00::1","v6":true}
+hostdep_bad|network.interface.shell|notify_proto|{"action":6,"host":"not-an-address"}
+hostdep_reachable|network.interface.shell|notify_proto|{"action":6,"host":"192.168.1.60"}
+hostdep_unreachable|network.interface.shell|notify_proto|{"action":6,"host":"8.8.4.4"}
+hostdep_iface|network.interface.shell|notify_proto|{"action":6,"ifname":"loopback"}
+hostdep_iface_gone|network.interface.shell|notify_proto|{"action":6,"ifname":"nosuch"}'
 
 run_one() {
 	tag=$1
@@ -139,6 +157,10 @@ DR
 			ip -o addr show | sed -E "s/^[0-9]+: //"
 			echo "--- ip link"
 			ip -o link show | sed -E -e "s/^[0-9]+: //" -e "s/qdisc [a-z_]+/qdisc Q/"
+			echo "--- ip route"
+			ip -4 route show table all | sort
+			echo "--- ip -6 route"
+			ip -6 route show table all | sort
 		} > "$out/$tag-kernel.txt" 2>&1 || true
 		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		cp "$root/tmp/out/hotplug.txt" "$out/$tag-hotplug.txt" 2>/dev/null || \
