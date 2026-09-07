@@ -16,6 +16,7 @@ mod ip;
 mod netdev_types;
 mod netlink;
 mod sys;
+mod ubus;
 
 fn main() {
     eprintln!("netifd-rs: not yet a daemon");
