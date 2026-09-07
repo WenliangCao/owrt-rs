@@ -159,7 +159,7 @@ pub fn assign(prefix: &DevicePrefix, requests: &[AssignRequest]) -> Vec<Assignme
         if r.length < 48 || r.length > 64 {
             continue;
         }
-        if !r.classes.is_empty() && !r.classes.iter().any(|c| *c == prefix.class) {
+        if !r.classes.is_empty() && !r.classes.contains(&prefix.class) {
             continue;
         }
         let mut e = Entry {

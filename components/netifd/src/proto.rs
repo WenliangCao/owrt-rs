@@ -73,7 +73,7 @@ pub fn parse_dump(script: &Path, text: &str) -> Result<Vec<Handler>, String> {
     let mut rest = text.trim_start();
     while !rest.is_empty() {
         let (j, used) =
-            owrt_ubus::json::parse_prefix(rest).map(|j| (j, 0)).map_err(|e| format!("{e}"))?;
+            owrt_ubus::json::parse_prefix(rest).map(|j| (j, 0)).map_err(|e| e.to_string())?;
         // parse_prefix does not tell us how much it consumed, so find the end
         // of this object by matching braces outside strings
         let end = if used == 0 { object_end(rest).ok_or("unterminated JSON object")? } else { used };
@@ -122,7 +122,7 @@ fn object_end(s: &str) -> Option<usize> {
 impl Handler {
     /// Parse one `dump` document.
     pub fn parse(script: &Path, text: &str) -> Result<Self, String> {
-        let j = owrt_ubus::json::parse(text).map_err(|e| format!("{e}"))?;
+        let j = owrt_ubus::json::parse(text).map_err(|e| e.to_string())?;
         Self::from_json(script, &j)
     }
 

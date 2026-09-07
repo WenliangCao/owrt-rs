@@ -73,8 +73,6 @@ fn string_list(f: &blob::Field) -> Vec<String> {
     f.as_str().map(|s| vec![s.to_string()]).unwrap_or_default()
 }
 
-/// `1.2.3.4/24`, or a bare address with a separate netmask.
-
 fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
@@ -189,7 +187,7 @@ impl Netifd {
     /// device that is up and configured.
     fn clear_new_device_state(&mut self) {
         for name in self.known_device_names() {
-            if self.cleared.iter().any(|n| *n == name) {
+            if self.cleared.contains(&name) {
                 continue;
             }
             self.cleared.push(name.clone());
@@ -208,7 +206,7 @@ impl Netifd {
         if self.parents.iter().any(|(c, _)| c == name) {
             return;
         }
-        if !self.cleared.iter().any(|n| *n == parent) {
+        if !self.cleared.contains(&parent) {
             self.cleared.push(parent.clone());
             self.sys.clear_state(&parent, false);
         }

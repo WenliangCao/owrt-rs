@@ -143,7 +143,7 @@ impl Attrs {
         self.buf.extend_from_slice(&(len as u16).to_le_bytes());
         self.buf.extend_from_slice(&ty.to_le_bytes());
         self.buf.extend_from_slice(v);
-        while self.buf.len() % 4 != 0 {
+        while !self.buf.len().is_multiple_of(4) {
             self.buf.push(0);
         }
         self
