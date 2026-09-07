@@ -108,7 +108,16 @@ pub const RT_SCOPE_HOST: u8 = 254;
 pub const RT_SCOPE_NOWHERE: u8 = 255;
 
 pub const RTN_UNICAST: u8 = 1;
+pub const RTN_LOCAL: u8 = 2;
+pub const RTN_BROADCAST: u8 = 3;
+pub const RTN_ANYCAST: u8 = 4;
+pub const RTN_MULTICAST: u8 = 5;
+pub const RTN_BLACKHOLE: u8 = 6;
 pub const RTN_UNREACHABLE: u8 = 7;
+pub const RTN_PROHIBIT: u8 = 8;
+pub const RTN_THROW: u8 = 9;
+pub const RTN_NAT: u8 = 10;
+pub const RTN_FAILED_POLICY: u8 = 12;
 pub const RTPROT_KERNEL: u8 = 2;
 pub const RTPROT_STATIC: u8 = 4;
 pub const RTNH_F_ONLINK: u32 = 4;
@@ -264,11 +273,18 @@ pub struct Route {
     pub mtu: Option<u32>,
     pub onlink: bool,
     pub proto: Option<u8>,
+    /// `RTN_*`. `None` is netifd's default `RTN_UNICAST`; a set value also
+    /// moves the route to the local table and picks its scope.
+    pub ty: Option<u8>,
     /// No output device: an unreachable route.
     pub nodev: bool,
 }
 
 impl Route {
+    pub fn v4(target: Ipv4Addr, mask: u8) -> Self {
+        Self { target: IpAddr::V4(target), mask, ..Self::v4_default(Ipv4Addr::UNSPECIFIED) }
+    }
+
     pub fn v4_default(nexthop: Ipv4Addr) -> Self {
         Self {
             target: IpAddr::V4(Ipv4Addr::UNSPECIFIED),
@@ -281,6 +297,7 @@ impl Route {
             mtu: None,
             onlink: false,
             proto: None,
+            ty: None,
             nodev: false,
         }
     }
@@ -297,6 +314,7 @@ impl Route {
             mtu: None,
             onlink: false,
             proto: None,
+            ty: None,
             nodev: false,
         }
     }
@@ -344,6 +362,27 @@ pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec
             ty = RTN_UNREACHABLE;
         }
     }
+    // An explicit route type overrides the type, and can move the route to
+    // the local table and change its scope -- and for the reject types it
+    // drops the output device, which is how netifd writes a null route.
+    let mut table_byte = if table < 256 { table as u8 } else { RT_TABLE_UNSPEC };
+    if let Some(t) = route.ty {
+        ty = t;
+        if table == RT_TABLE_MAIN
+            && matches!(t, RTN_LOCAL | RTN_BROADCAST | RTN_NAT | RTN_ANYCAST)
+        {
+            table_byte = RT_TABLE_LOCAL;
+        }
+        match t {
+            RTN_LOCAL | RTN_NAT => scope = RT_SCOPE_HOST,
+            RTN_BROADCAST | RTN_MULTICAST | RTN_ANYCAST => scope = RT_SCOPE_LINK,
+            RTN_BLACKHOLE | RTN_UNREACHABLE | RTN_PROHIBIT | RTN_FAILED_POLICY | RTN_THROW => {
+                scope = RT_SCOPE_UNIVERSE;
+                with_dev = false;
+            }
+            _ => {}
+        }
+    }
     if route.nodev {
         with_dev = false;
     }
@@ -352,7 +391,7 @@ pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec
         route.mask,
         route.sourcemask,
         0,
-        if table < 256 { table as u8 } else { RT_TABLE_UNSPEC },
+        table_byte,
         route.proto.unwrap_or(RTPROT_STATIC),
         scope,
         ty,
@@ -709,6 +748,7 @@ pub fn subnet_route(addr: &Address, metric: u32, table: u32) -> Route {
         mtu: None,
         onlink: false,
         proto: None,
+        ty: None,
         nodev: false,
     }
 }

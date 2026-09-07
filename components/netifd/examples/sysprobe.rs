@@ -108,6 +108,7 @@ fn main() {
                 mtu: None,
                 onlink: false,
                 proto: None,
+                ty: None,
                 nodev: false,
             };
             // iproute2 defaults to proto boot (3) for a manually added route;

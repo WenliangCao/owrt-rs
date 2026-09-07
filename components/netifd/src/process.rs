@@ -13,17 +13,25 @@
 //!     and stderr are separate pipes and stdin is /dev/null. Script output
 //!     still reaches the log; a script that read stdin would see EOF rather
 //!     than a pipe, and none of the handlers on this device do.
+//!
+//! Output is read line by line while the child runs, as `netifd_process_cb`
+//! does. Waiting for exit instead is not an option: `udhcpc -f -t 0` never
+//! exits, so everything `dhcp.script` printed -- including its errors -- would
+//! sit unread in the pipe, and a full pipe would then block the helper.
 //!   * Children are reaped by polling `try_wait` from the event loop rather
 //!     than from a SIGCHLD handler, so an exit is noticed within one loop
 //!     iteration instead of immediately.
 
 use std::io::{self, Read};
+use std::os::fd::AsRawFd;
 use std::process::{Child, Command, Stdio};
 
 /// One supervised child. Dropping this does NOT kill the child; call `kill`.
 pub struct Process {
     child: Child,
     argv0: String,
+    /// Output read but not yet ending in a newline.
+    partial: String,
 }
 
 impl Process {
@@ -49,7 +57,65 @@ impl Process {
         if let Some(d) = dir {
             c.current_dir(d);
         }
-        Ok(Self { child: c.spawn()?, argv0: cmd.clone() })
+        let child = c.spawn()?;
+        // non-blocking, so reading while the child runs cannot stall the loop
+        for fd in [
+            child.stdout.as_ref().map(|p| p.as_raw_fd()),
+            child.stderr.as_ref().map(|p| p.as_raw_fd()),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            // SAFETY: fcntl on a pipe fd this Child owns and keeps open.
+            unsafe {
+                let f = fcntl(fd, F_GETFL, 0);
+                if f >= 0 {
+                    fcntl(fd, F_SETFL, f | O_NONBLOCK);
+                }
+            }
+        }
+        Ok(Self { child, argv0: cmd.clone(), partial: String::new() })
+    }
+
+    /// Complete lines the child has printed since the last call. Partial
+    /// output is held back until its newline arrives, so a line is never
+    /// logged in halves.
+    pub fn poll_lines(&mut self) -> Vec<String> {
+        let fresh = self.read_available();
+        self.partial.push_str(&fresh);
+        let mut lines: Vec<String> = Vec::new();
+        while let Some(nl) = self.partial.find('\n') {
+            let line = self.partial[..nl].to_string();
+            self.partial.drain(..nl + 1);
+            if !line.trim().is_empty() {
+                lines.push(line);
+            }
+        }
+        lines
+    }
+
+    /// Read whatever is buffered in either pipe right now.
+    fn read_available(&mut self) -> String {
+        let mut out = String::new();
+        for pipe in [
+            self.child.stdout.as_mut().map(|p| p as &mut dyn Read),
+            self.child.stderr.as_mut().map(|p| p as &mut dyn Read),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            let mut buf = [0u8; 4096];
+            loop {
+                match pipe.read(&mut buf) {
+                    Ok(0) => break,
+                    Ok(n) => out.push_str(&String::from_utf8_lossy(&buf[..n])),
+                    // WouldBlock is the normal "nothing more for now"; any
+                    // other error means this pipe is done.
+                    Err(_) => break,
+                }
+            }
+        }
+        out
     }
 
     #[cfg(test)]
@@ -66,22 +132,12 @@ impl Process {
         Ok(self.child.try_wait()?.map(|s| s.code().unwrap_or(-1)))
     }
 
-    /// Whatever the child has written so far, for the log. Reading here is
-    /// non-destructive to the process; it just drains the pipes.
+    /// Everything left in the pipes, including a last line with no newline.
+    /// Called once the child has exited, so the pipes are at EOF.
     pub fn drain_output(&mut self) -> String {
-        let mut out = String::new();
-        for pipe in [
-            self.child.stdout.as_mut().map(|p| p as &mut dyn Read),
-            self.child.stderr.as_mut().map(|p| p as &mut dyn Read),
-        ]
-        .into_iter()
-        .flatten()
-        {
-            let mut buf = Vec::new();
-            // a closed pipe or a partial read are both fine: this is logging
-            let _ = pipe.read_to_end(&mut buf);
-            out.push_str(&String::from_utf8_lossy(&buf));
-        }
+        let rest = self.read_available();
+        let mut out = std::mem::take(&mut self.partial);
+        out.push_str(&rest);
         out
     }
 
@@ -110,8 +166,13 @@ impl Process {
 pub const SIGTERM: i32 = 15;
 pub const SIGKILL: i32 = 9;
 
+const F_GETFL: i32 = 3;
+const F_SETFL: i32 = 4;
+const O_NONBLOCK: i32 = 0o4000;
+
 extern "C" {
     fn kill(pid: i32, sig: i32) -> i32;
+    fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
 }
 
 /// A process slot: at most one child, replaced rather than accumulated.
@@ -160,6 +221,14 @@ impl Slot {
     pub fn terminate(&mut self) {
         if let Some(mut p) = self.proc.take() {
             p.terminate();
+        }
+    }
+
+    /// Lines a running child has printed, for the log.
+    pub fn poll_lines(&mut self) -> Vec<String> {
+        match &mut self.proc {
+            Some(p) => p.poll_lines(),
+            None => Vec::new(),
         }
     }
 
@@ -280,6 +349,46 @@ mod tests {
         let mut s = Slot::default();
         assert!(s.start(&[], &[]).is_err());
         assert!(!s.is_running());
+    }
+
+    #[test]
+    fn output_is_readable_while_the_child_still_runs() {
+        let mut s = Slot::default();
+        // the shape that matters: a helper that prints and then keeps running,
+        // like `udhcpc -f -t 0` after dhcp.script has reported a lease
+        s.start(&sh("echo early; echo late >&2; sleep 30"), &[]).unwrap();
+        let mut seen: Vec<String> = Vec::new();
+        for _ in 0..300 {
+            seen.extend(s.poll_lines());
+            if seen.len() >= 2 {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert!(s.is_running(), "the child must not have to exit first");
+        assert!(seen.iter().any(|l| l == "early"), "{seen:?}");
+        assert!(seen.iter().any(|l| l == "late"), "{seen:?}");
+        s.terminate();
+    }
+
+    #[test]
+    fn a_partial_line_is_held_back_until_its_newline() {
+        let mut s = Slot::default();
+        s.start(&sh("printf half; sleep 0.4; printf 'done\n'; sleep 30"), &[]).unwrap();
+        // "half" alone must never be logged as a line of its own
+        let mut seen: Vec<String> = Vec::new();
+        for _ in 0..200 {
+            for l in s.poll_lines() {
+                assert_eq!(l, "halfdone", "a line was logged in halves: {l:?}");
+                seen.push(l);
+            }
+            if !seen.is_empty() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert_eq!(seen, vec!["halfdone".to_string()]);
+        s.terminate();
     }
 
     #[test]

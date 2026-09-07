@@ -11,12 +11,14 @@
 //!     (action 1). A helper the shell backgrounded would be invisible to us.
 
 use std::io;
+use std::net::IpAddr;
 use std::path::{Path, PathBuf};
 
-use owrt_ubus::blob::{BlobBuf, MsgType};
+use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::json::Json;
 
 use crate::process::Slot;
+use crate::{interface, sys};
 
 /// `state->sm`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -788,5 +790,460 @@ mod tests {
     fn an_empty_dump_is_an_error_not_an_empty_handler() {
         assert!(Handler::parse(Path::new("/x.sh"), "").is_err());
         assert!(Handler::parse(Path::new("/x.sh"), "{}").is_err());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// notify_proto action 0: the payload the handler scripts actually send.
+//
+// The shapes here are `notify_attr` in proto-ext.c plus `proto_ip_attributes`,
+// `proto_ip_addr` and `route_attr`. They are NOT the flat UCI shape that
+// proto-static reads: `ipaddr` is an array of tables, and the addresses and
+// routes carry their own masks.
+
+/// `parse_netmask_string`. Returns `u32::MAX` for a string it rejects, as the
+/// C's `~0` does, so a caller's single "greater than 32/128" check covers both
+/// a rejected string and an out-of-range number.
+pub fn parse_netmask(s: &str, v6: bool) -> u32 {
+    if !s.contains('.') {
+        return strtoul0(s).unwrap_or(u32::MAX);
+    }
+    if v6 {
+        return u32::MAX;
+    }
+    match dotted_quad(s) {
+        // 32 - fls(~mask). Deliberately not a contiguity check: the C gives a
+        // defined answer for a non-contiguous mask rather than refusing it.
+        Some(m) => 32 - fls(!m),
+        None => u32::MAX,
+    }
+}
+
+/// `fls`: 0 for zero, else the 1-based index of the highest set bit.
+fn fls(x: u32) -> u32 {
+    if x == 0 {
+        0
+    } else {
+        32 - x.leading_zeros()
+    }
+}
+
+/// `strtoul(s, &err, 0)` with the C's "reject only trailing garbage" rule.
+/// Base 0 means `0x` is hex and a leading `0` is octal; an empty string is
+/// accepted as 0, because strtoul leaves `*endptr` at the terminator.
+fn strtoul0(s: &str) -> Option<u32> {
+    let t = s.trim_start();
+    let (digits, radix) = if let Some(h) = t.strip_prefix("0x").or_else(|| t.strip_prefix("0X")) {
+        (h, 16)
+    } else if t.len() > 1 && t.starts_with('0') {
+        (&t[1..], 8)
+    } else {
+        (t, 10)
+    };
+    if digits.is_empty() {
+        // "" and "0" both land here; strtoul returns 0 for both
+        return Some(0);
+    }
+    let end = digits
+        .find(|c: char| !c.is_digit(radix))
+        .unwrap_or(digits.len());
+    if end != digits.len() {
+        return None; // trailing garbage
+    }
+    u32::from_str_radix(digits, radix).ok()
+}
+
+/// Dotted-quad only. `inet_aton` also takes "10", "10.1" and hex octets; the
+/// scripts on this device always send four decimal octets, and the difference
+/// is recorded in docs/contracts/netifd-proto-shell.md.
+fn dotted_quad(s: &str) -> Option<u32> {
+    let ip: std::net::Ipv4Addr = s.trim().parse().ok()?;
+    Some(u32::from_be_bytes(ip.octets()))
+}
+
+/// One entry of `ipaddr` / `ip6addr`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NotifyAddr {
+    pub ip: IpAddr,
+    pub mask: u8,
+    pub broadcast: Option<std::net::Ipv4Addr>,
+    pub point_to_point: Option<IpAddr>,
+    pub offlink: bool,
+    pub class: Option<String>,
+    pub preferred: Option<u32>,
+    pub valid: Option<u32>,
+}
+
+/// `parse_address_item`. `None` is the C's `goto error`, which makes
+/// `parse_address_list` return -1 and abandons the rest of the IP settings --
+/// but does NOT stop the interface coming up, because
+/// `proto_ext_update_link` ignores `proto_apply_ip_settings`'s return value.
+pub fn parse_addr_item(f: &blob::Field, v6: bool) -> Option<NotifyAddr> {
+    if f.ty != MsgType::Table as u32 {
+        return None;
+    }
+    let kids: Vec<blob::Field> = f.children().collect();
+    let get = |n: &str| kids.iter().find(|k| k.name == n).copied();
+
+    let max = if v6 { 128 } else { 32 };
+    let mut mask = max;
+    if let Some(c) = get("mask") {
+        let m = parse_netmask(c.as_str()?, v6);
+        if m > max as u32 {
+            return None;
+        }
+        mask = m as u8;
+    }
+    let ip: IpAddr = match v6 {
+        false => IpAddr::V4(get("ipaddr")?.as_str()?.parse().ok()?),
+        true => IpAddr::V6(get("ipaddr")?.as_str()?.parse().ok()?),
+    };
+    let mut a = NotifyAddr {
+        ip,
+        mask,
+        broadcast: None,
+        point_to_point: None,
+        offlink: get("offlink").and_then(|c| c.as_bool()).unwrap_or(false),
+        class: None,
+        preferred: None,
+        valid: None,
+    };
+    if !v6 {
+        if let Some(c) = get("broadcast") {
+            a.broadcast = Some(c.as_str()?.parse().ok()?);
+        }
+        if let Some(c) = get("ptp") {
+            a.point_to_point = Some(IpAddr::V4(c.as_str()?.parse().ok()?));
+        }
+    } else {
+        // 0xffffffff is "infinite" and is dropped rather than stored
+        a.preferred = get("preferred").and_then(|c| c.as_u32()).filter(|v| *v != u32::MAX);
+        a.valid = get("valid").and_then(|c| c.as_u32()).filter(|v| *v != u32::MAX);
+        if let (Some(p), Some(v)) = (a.preferred, a.valid) {
+            if p > v {
+                return None;
+            }
+        }
+        if a.valid.is_some() && a.preferred.is_none() {
+            a.preferred = a.valid;
+        }
+        a.class = get("class").and_then(|c| c.as_str()).map(|s| s.to_string());
+    }
+    Some(a)
+}
+
+/// `interface_ip_add_route` for one table of `routes` / `routes6`. `None`
+/// means the C's `goto error`, which drops just this route.
+pub fn parse_route_item(f: &blob::Field, v6: bool) -> Option<interface::Route> {
+    if f.ty != MsgType::Table as u32 {
+        return None;
+    }
+    let kids: Vec<blob::Field> = f.children().collect();
+    let get = |n: &str| kids.iter().find(|k| k.name == n).copied();
+
+    if get("disabled").and_then(|c| c.as_bool()).unwrap_or(false) {
+        return None;
+    }
+    let max: u8 = if v6 { 128 } else { 32 };
+    let unspec: IpAddr = if v6 {
+        IpAddr::V6(std::net::Ipv6Addr::UNSPECIFIED)
+    } else {
+        IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED)
+    };
+    let mut mask = max;
+    if let Some(c) = get("netmask") {
+        let m = parse_netmask(c.as_str()?, v6);
+        if m > max as u32 {
+            return None;
+        }
+        mask = m as u8;
+    }
+    let mut target = unspec;
+    if let Some(c) = get("target") {
+        let s = c.as_str()?;
+        // parse_ip_and_netmask: an inline "/len" overrides `netmask`
+        let (astr, m) = match s.split_once('/') {
+            Some((a, m)) => {
+                let m = parse_netmask(m, v6);
+                if m > max as u32 {
+                    return None;
+                }
+                (a, m as u8)
+            }
+            None => (s, mask),
+        };
+        mask = m;
+        target = match v6 {
+            false => IpAddr::V4(astr.parse().ok()?),
+            true => IpAddr::V6(astr.parse().ok()?),
+        };
+        // "Mask out IPv4 host bits" -- v4 only, and only below /32
+        if let (IpAddr::V4(v4), true) = (target, !v6 && mask < 32) {
+            let bits = u32::from_be_bytes(v4.octets());
+            let keep = if mask == 0 { 0 } else { u32::MAX << (32 - mask) };
+            target = IpAddr::V4(std::net::Ipv4Addr::from(bits & keep));
+        }
+    }
+    let mut r = interface::Route::new(target, mask, unspec);
+    if let Some(c) = get("gateway") {
+        r.nexthop = match v6 {
+            false => IpAddr::V4(c.as_str()?.parse().ok()?),
+            true => IpAddr::V6(c.as_str()?.parse().ok()?),
+        };
+    }
+    if let Some(c) = get("metric") {
+        r.metric = c.as_u32()?;
+        r.flags |= interface::devroute::METRIC;
+    }
+    if let Some(c) = get("mtu") {
+        r.mtu = c.as_u32()?;
+        r.flags |= interface::devroute::MTU;
+    }
+    if let Some(c) = get("source") {
+        let s = c.as_str()?;
+        let (astr, m) = match s.split_once('/') {
+            Some((a, m)) => (a, m.parse::<u8>().ok().filter(|v| *v <= max)?),
+            None => (s, max),
+        };
+        r.source = match v6 {
+            false => IpAddr::V4(astr.parse().ok()?),
+            true => IpAddr::V6(astr.parse().ok()?),
+        };
+        r.sourcemask = m;
+    }
+    if get("onlink").and_then(|c| c.as_bool()).unwrap_or(false) {
+        r.flags |= interface::devroute::ONLINK;
+    }
+    if let Some(c) = get("table") {
+        let t = resolve_rt_table(c.as_str()?)?;
+        // the main table is not flagged, so it is not printed
+        if t != sys::RT_TABLE_MAIN {
+            r.table = t;
+            r.flags |= interface::devroute::TABLE;
+        }
+    }
+    r.valid = get("valid").and_then(|c| c.as_u32()).filter(|v| *v != u32::MAX);
+    if let Some(c) = get("type") {
+        r.ty = resolve_rt_type(c.as_str()?)?;
+        r.flags |= interface::devroute::TYPE;
+    }
+    if let Some(c) = get("proto") {
+        r.proto = resolve_rt_proto(c.as_str()?)?;
+        r.flags |= interface::devroute::PROTO;
+    }
+    Some(r)
+}
+
+/// `system_resolve_rt_table`: a name from /etc/iproute2/rt_tables or a number.
+/// Only the names the kernel always defines are built in; the file is read
+/// when it exists.
+fn resolve_rt_table(s: &str) -> Option<u32> {
+    match s {
+        "default" => return Some(253),
+        "main" => return Some(sys::RT_TABLE_MAIN),
+        "local" => return Some(255),
+        _ => {}
+    }
+    if let Ok(n) = s.parse::<u32>() {
+        return (n != 0).then_some(n);
+    }
+    let text = std::fs::read_to_string("/etc/iproute2/rt_tables").ok()?;
+    for line in text.lines() {
+        let line = line.split('#').next().unwrap_or("").trim();
+        let mut it = line.split_whitespace();
+        let (Some(id), Some(name)) = (it.next(), it.next()) else { continue };
+        if name == s {
+            return id.parse::<u32>().ok().filter(|n| *n != 0);
+        }
+    }
+    None
+}
+
+/// `system_resolve_rt_type`, the subset the kernel names.
+fn resolve_rt_type(s: &str) -> Option<u32> {
+    Some(match s {
+        "unspec" => 0,
+        "unicast" => 1,
+        "local" => 2,
+        "broadcast" => 3,
+        "anycast" => 4,
+        "multicast" => 5,
+        "blackhole" => 6,
+        "unreachable" => 7,
+        "prohibit" => 8,
+        "throw" => 9,
+        "nat" => 10,
+        "xresolve" => 11,
+        _ => return None,
+    })
+}
+
+/// `system_resolve_rt_proto`: a name, or a number 0..=255.
+fn resolve_rt_proto(s: &str) -> Option<u32> {
+    match s {
+        "unspec" => return Some(0),
+        "kernel" => return Some(2),
+        "boot" => return Some(3),
+        "static" => return Some(4),
+        _ => {}
+    }
+    s.parse::<u32>().ok().filter(|n| *n <= 255)
+}
+
+#[cfg(test)]
+mod notify_tests {
+    use super::*;
+
+    #[test]
+    fn a_netmask_is_a_length_or_a_dotted_quad() {
+        assert_eq!(parse_netmask("24", false), 24);
+        assert_eq!(parse_netmask("255.255.255.0", false), 24);
+        assert_eq!(parse_netmask("255.255.255.255", false), 32);
+        assert_eq!(parse_netmask("0.0.0.0", false), 0);
+        assert_eq!(parse_netmask("64", true), 64);
+        // a dotted quad is meaningless for v6 and is refused
+        assert_eq!(parse_netmask("255.255.255.0", true), u32::MAX);
+        // base 0, so hex works, as strtoul does
+        assert_eq!(parse_netmask("0x18", false), 24);
+        // out of range is returned as-is; the caller range-checks
+        assert_eq!(parse_netmask("200", false), 200);
+        assert_eq!(parse_netmask("24x", false), u32::MAX);
+    }
+
+    #[test]
+    fn a_non_contiguous_netmask_is_not_refused() {
+        // 32 - fls(~mask): the C computes a defined answer rather than
+        // rejecting the mask, and a rewrite that "fixes" this diverges.
+        assert_eq!(parse_netmask("255.0.255.0", false), 8);
+    }
+
+    fn table(fields: &[(&str, &str)]) -> Vec<u8> {
+        let mut b = blob::BlobBuf::new();
+        let c = b.msg_open_table("x");
+        for (k, v) in fields {
+            b.msg_string(k, v);
+        }
+        b.msg_close(c);
+        b.payload().to_vec()
+    }
+
+    fn one(buf: &[u8]) -> blob::Field<'_> {
+        blob::fields(buf).next().unwrap()
+    }
+
+    #[test]
+    fn an_address_item_is_a_table_with_its_own_mask() {
+        // exactly what dhcp.script sends
+        let buf = table(&[("ipaddr", "10.0.0.100"), ("mask", "255.255.255.0")]);
+        let a = parse_addr_item(&one(&buf), false).unwrap();
+        assert_eq!(a.ip, "10.0.0.100".parse::<IpAddr>().unwrap());
+        assert_eq!(a.mask, 24);
+        assert_eq!(a.broadcast, None);
+    }
+
+    #[test]
+    fn an_address_item_without_an_ipaddr_is_refused() {
+        let buf = table(&[("mask", "24")]);
+        assert!(parse_addr_item(&one(&buf), false).is_none());
+    }
+
+    #[test]
+    fn an_address_mask_wider_than_the_family_is_refused() {
+        let buf = table(&[("ipaddr", "10.0.0.1"), ("mask", "33")]);
+        assert!(parse_addr_item(&one(&buf), false).is_none());
+    }
+
+    #[test]
+    fn a_v6_address_keeps_its_class_and_lifetimes() {
+        let mut b = blob::BlobBuf::new();
+        let c = b.msg_open_table("x");
+        b.msg_string("ipaddr", "2001:db8::1");
+        b.msg_string("mask", "64");
+        b.msg_string("class", "wan6");
+        b.msg_u32("preferred", 100);
+        b.msg_u32("valid", 200);
+        b.msg_close(c);
+        let buf = b.payload().to_vec();
+        let a = parse_addr_item(&one(&buf), true).unwrap();
+        assert_eq!(a.mask, 64);
+        assert_eq!(a.class.as_deref(), Some("wan6"));
+        assert_eq!((a.preferred, a.valid), (Some(100), Some(200)));
+    }
+
+    #[test]
+    fn a_v6_address_preferred_beyond_valid_is_refused() {
+        let mut b = blob::BlobBuf::new();
+        let c = b.msg_open_table("x");
+        b.msg_string("ipaddr", "2001:db8::1");
+        b.msg_u32("preferred", 300);
+        b.msg_u32("valid", 200);
+        b.msg_close(c);
+        let buf = b.payload().to_vec();
+        assert!(parse_addr_item(&one(&buf), true).is_none());
+    }
+
+    #[test]
+    fn a_route_item_carries_target_mask_gateway_and_source() {
+        // exactly what dhcp.script sends for the default route
+        let buf = table(&[
+            ("target", "0.0.0.0"),
+            ("netmask", "0"),
+            ("gateway", "10.0.0.1"),
+            ("source", "10.0.0.100"),
+        ]);
+        let r = parse_route_item(&one(&buf), false).unwrap();
+        assert_eq!(r.target, "0.0.0.0".parse::<IpAddr>().unwrap());
+        assert_eq!(r.mask, 0);
+        assert_eq!(r.nexthop, "10.0.0.1".parse::<IpAddr>().unwrap());
+        assert_eq!(r.source, "10.0.0.100".parse::<IpAddr>().unwrap());
+        // no explicit mask on the source means a host route
+        assert_eq!(r.sourcemask, 32);
+        // no metric, table, type or proto was sent, so none is flagged
+        assert_eq!(r.flags, 0);
+        assert_eq!(r.metric, 0);
+    }
+
+    #[test]
+    fn a_route_target_masks_out_its_host_bits() {
+        let buf = table(&[("target", "10.1.2.3/24")]);
+        let r = parse_route_item(&one(&buf), false).unwrap();
+        assert_eq!(r.target, "10.1.2.0".parse::<IpAddr>().unwrap());
+        assert_eq!(r.mask, 24);
+    }
+
+    #[test]
+    fn a_disabled_route_is_dropped() {
+        let mut b = blob::BlobBuf::new();
+        let c = b.msg_open_table("x");
+        b.msg_string("target", "10.0.0.0");
+        b.msg_bool("disabled", true);
+        b.msg_close(c);
+        let buf = b.payload().to_vec();
+        assert!(parse_route_item(&one(&buf), false).is_none());
+    }
+
+    #[test]
+    fn the_main_table_is_not_flagged() {
+        let buf = table(&[("target", "10.0.0.0"), ("netmask", "8"), ("table", "main")]);
+        let r = parse_route_item(&one(&buf), false).unwrap();
+        assert_eq!(r.table, 0);
+        assert_eq!(r.flags & interface::devroute::TABLE, 0);
+    }
+
+    #[test]
+    fn a_named_route_type_becomes_its_number_and_is_flagged() {
+        let buf = table(&[("target", "10.0.0.0"), ("netmask", "8"), ("type", "unreachable")]);
+        let r = parse_route_item(&one(&buf), false).unwrap();
+        assert_eq!(r.ty, 7);
+        assert_ne!(r.flags & interface::devroute::TYPE, 0);
+    }
+
+    #[test]
+    fn a_non_table_entry_is_not_a_route_or_an_address() {
+        let mut b = blob::BlobBuf::new();
+        b.msg_string("x", "10.0.0.1");
+        let buf = b.payload().to_vec();
+        assert!(parse_route_item(&one(&buf), false).is_none());
+        assert!(parse_addr_item(&one(&buf), false).is_none());
     }
 }

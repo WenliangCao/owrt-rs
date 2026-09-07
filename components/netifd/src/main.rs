@@ -514,11 +514,14 @@ impl Netifd {
         // using it. A device named by a config section that never came up is
         // exactly that case, and leaving it up would be a visible difference.
         for ic in &cfgs {
-            let up = self
+            // An interface still setting up is using its device: taking it
+            // down here left udhcpc with no link and the interface stuck in
+            // SETUP until the lease attempt timed out.
+            let in_use = self
                 .iface_index(&ic.name)
-                .map(|i| self.interfaces[i].state == State::Up)
+                .map(|i| self.interfaces[i].state != State::Down)
                 .unwrap_or(false);
-            if up {
+            if in_use {
                 continue;
             }
             let Some(dev) = &ic.device else { continue };
@@ -527,7 +530,7 @@ impl Netifd {
                 o.device.as_deref() == Some(dev.as_str())
                     && self
                         .iface_index(&o.name)
-                        .map(|i| self.interfaces[i].state == State::Up)
+                        .map(|i| self.interfaces[i].state != State::Down)
                         .unwrap_or(false)
             }) {
                 continue;
@@ -783,11 +786,14 @@ impl Netifd {
                 if tearing {
                     return status::PERMISSION_DENIED;
                 }
-                let Some(link_up) = find("link_up").and_then(|f| f.as_bool()) else {
+                // "link-up", with a hyphen: `notify_attr` in proto-ext.c.
+                // `link_up` matches nothing, so every update the scripts sent
+                // came back INVALID_ARGUMENT.
+                let Some(link_up) = find("link-up").and_then(|f| f.as_bool()) else {
                     return status::INVALID_ARGUMENT;
                 };
                 if !link_up {
-                    self.iface_down(name);
+                    self.link_lost(name);
                     return status::OK;
                 }
                 self.apply_proto_link(name, &fields)
@@ -907,89 +913,153 @@ impl Netifd {
         let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
             return status::NOT_FOUND;
         };
+
+        // `keep` asks netifd to add to what is already applied rather than
+        // replace it. It is forced off unless the interface is already up with
+        // an L3 device, and forced off again if the script named a device.
+        let mut keep = find("keep").and_then(|f| f.as_bool()).unwrap_or(false);
+        if find("address-external").and_then(|f| f.as_bool()).unwrap_or(false) {
+            eprintln!("netifd-rs: {name}: address-external is not implemented by this build");
+            return status::NOT_SUPPORTED;
+        }
+        if find("tunnel").is_some() {
+            eprintln!("netifd-rs: {name}: proto-created tunnels are out of scope");
+            return status::NOT_SUPPORTED;
+        }
+        let already_up = self
+            .iface_index(name)
+            .map(|i| self.interfaces[i].state == State::Up && self.interfaces[i].l3_device.is_some())
+            .unwrap_or(false);
+        if !already_up {
+            keep = false;
+        }
+
         // the script may name its own L3 device (ppp0); otherwise main_dev
-        let l3 = find("ifname")
-            .and_then(|f| f.as_str().map(|s| s.to_string()))
-            .or_else(|| ic.device.clone());
+        let named = find("ifname").and_then(|f| f.as_str().map(|s| s.to_string()));
+        if named.is_some() {
+            keep = false;
+        }
+        let l3 = named.or_else(|| ic.device.clone());
         let Some(l3) = l3 else { return status::INVALID_ARGUMENT };
         let devidx = self.sys.if_index(&l3).unwrap_or(0);
         if devidx == 0 {
             eprintln!("netifd-rs: {name}: proto reported device {l3}, which does not exist");
             return status::INVALID_ARGUMENT;
         }
-        let _ = self.sys.set_link_up(devidx, true);
+        if !keep {
+            let _ = self.sys.set_link_up(devidx, true);
+        }
 
-        let mut ipset = interface::IpSettings::default();
-        let netmask = find("netmask").and_then(|f| f.as_str().map(|s| s.to_string()));
-        for spec in find("ipaddr").map(|f| string_list(&f)).unwrap_or_default() {
-            match parse_v4_spec(&spec, netmask.as_deref()) {
-                Some((ip, mask)) => {
-                    let sa = sys::Address::new(IpAddr::V4(ip), mask).with_default_broadcast();
-                    if let Err(e) = self.sys.add_address(devidx, &sa) {
-                        eprintln!("netifd-rs: {name}: cannot add {ip}/{mask}: {e}");
-                        continue;
-                    }
+        // `interface_update_start(iface, keep)`
+        let mut ipset = if keep {
+            self.iface_index(name)
+                .map(|i| self.interfaces[i].proto_ip.clone())
+                .unwrap_or_default()
+        } else {
+            interface::IpSettings::default()
+        };
+
+        // proto_apply_ip_settings: `ipaddr`/`ip6addr` are arrays of tables,
+        // each carrying its own mask. A rejected item abandons the remaining
+        // IP settings but still lets the interface come up, because
+        // proto_ext_update_link ignores this function's return value.
+        let mut counts = [0usize, 0usize];
+        let mut bad = false;
+        for (key, v6) in [("ipaddr", false), ("ip6addr", true)] {
+            let Some(list) = find(key) else { continue };
+            for item in list.children() {
+                let Some(a) = proto::parse_addr_item(&item, v6) else {
+                    eprintln!("netifd-rs: {name}: proto sent an address this build rejects");
+                    bad = true;
+                    break;
+                };
+                let mut sa = sys::Address::new(a.ip, a.mask);
+                sa.broadcast = a.broadcast;
+                sa = sa.with_default_broadcast();
+                if let Err(e) = self.sys.add_address(devidx, &sa) {
+                    eprintln!("netifd-rs: {name}: cannot add {}/{}: {e}", a.ip, a.mask);
+                    continue;
+                }
+                if !a.offlink {
                     self.replace_subnet_route(devidx, &sa, &ic);
-                    ipset.addresses.push(Address::new(IpAddr::V4(ip), mask));
                 }
-                None => eprintln!("netifd-rs: {name}: proto sent a bad ipaddr '{spec}'"),
+                let mut ia = Address::new(a.ip, a.mask);
+                ia.point_to_point = a.point_to_point;
+                ia.class = a.class.clone();
+                ia.preferred = a.preferred;
+                ia.valid = a.valid;
+                ipset.addresses.push(ia);
+                counts[v6 as usize] += 1;
+            }
+            if bad {
+                break;
             }
         }
-        for spec in find("ip6addr").map(|f| string_list(&f)).unwrap_or_default() {
-            match parse_v6_spec(&spec) {
-                Some((ip, mask)) => {
-                    let sa = sys::Address::new(IpAddr::V6(ip), mask);
-                    if let Err(e) = self.sys.add_address(devidx, &sa) {
-                        eprintln!("netifd-rs: {name}: cannot add {ip}/{mask}: {e}");
-                        continue;
-                    }
-                    self.replace_subnet_route(devidx, &sa, &ic);
-                    ipset.addresses.push(Address::new(IpAddr::V6(ip), mask));
+        // `gateway`/`ip6gw` are applied only when that family got an address
+        if !bad {
+            for (key, v6) in [("gateway", false), ("ip6gw", true)] {
+                if counts[v6 as usize] == 0 {
+                    continue;
                 }
-                None => eprintln!("netifd-rs: {name}: proto sent a bad ip6addr '{spec}'"),
+                let Some(gw) = find(key).and_then(|f| f.as_str()) else { continue };
+                let Ok(nexthop) = gw.parse::<IpAddr>() else {
+                    eprintln!("netifd-rs: {name}: proto sent a bad {key} '{gw}'");
+                    self.iface_error(name, "proto", "INVALID_GATEWAY", &[gw]);
+                    break;
+                };
+                if nexthop.is_ipv6() != v6 {
+                    break;
+                }
+                let target: IpAddr = if v6 {
+                    IpAddr::V6(Ipv6Addr::UNSPECIFIED)
+                } else {
+                    IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED)
+                };
+                // parse_gateway_option sets neither DEVROUTE_METRIC nor
+                // DEVROUTE_TABLE, so neither field is printed
+                let mut r = interface::Route::new(target, 0, nexthop);
+                r.metric = ic.metric;
+                let t = if v6 { ic.ip6table } else { ic.ip4table };
+                if let Some(t) = t.filter(|t| *t != 0) {
+                    r.table = t;
+                    r.flags |= interface::devroute::SRCTABLE;
+                }
+                self.add_iface_route(name, devidx, &r, &mut ipset);
             }
         }
-        for (key, v6) in [("gateway", false), ("ip6gw", true)] {
-            let Some(gw) = find(key).and_then(|f| f.as_str().map(|s| s.to_string())) else {
-                continue;
-            };
-            let Ok(nexthop) = gw.parse::<IpAddr>() else {
-                eprintln!("netifd-rs: {name}: proto sent a bad {key} '{gw}'");
-                continue;
-            };
-            if nexthop.is_ipv6() != v6 {
-                continue;
+
+        // `routes`/`routes6`: tables parsed by interface_ip_add_route
+        for (key, v6) in [("routes", false), ("routes6", true)] {
+            let Some(list) = find(key) else { continue };
+            for item in list.children() {
+                let Some(r) = proto::parse_route_item(&item, v6) else { continue };
+                self.add_iface_route(name, devidx, &r, &mut ipset);
             }
-            let mut r = match nexthop {
-                IpAddr::V4(a) => sys::Route::v4_default(a),
-                IpAddr::V6(_) => {
-                    let mut r = sys::Route::v6(Ipv6Addr::UNSPECIFIED, 0);
-                    r.nexthop = nexthop;
-                    r
-                }
-            };
-            r.metric = ic.metric;
-            let t = if v6 { ic.ip6table } else { ic.ip4table };
-            r.table = t.unwrap_or(sys::RT_TABLE_MAIN);
-            if let Err(e) = self.sys.add_route(devidx, &r) {
-                eprintln!("netifd-rs: {name}: cannot add the {key} route: {e}");
-                continue;
-            }
-            let target: IpAddr =
-                if v6 { "::".parse().unwrap() } else { "0.0.0.0".parse().unwrap() };
-            let mut ir = interface::Route::new(target, 0, nexthop);
-            ir.metric = ic.metric;
-            ir.table = t.unwrap_or(0);
-            ipset.routes.push(ir);
         }
+        if find("neighbor").is_some() || find("neighbor6").is_some() {
+            eprintln!("netifd-rs: {name}: proto-supplied neighbours are not implemented");
+        }
+
         for d in find("dns").map(|f| string_list(&f)).unwrap_or_default() {
             match d.parse::<IpAddr>() {
                 Ok(a) => ipset.dns_servers.push(a),
                 Err(_) => eprintln!("netifd-rs: {name}: proto sent a bad dns '{d}'"),
             }
         }
-        ipset.dns_search = find("dns_search").map(|f| string_list(&f)).unwrap_or_default();
+        ipset
+            .dns_search
+            .extend(find("dns_search").map(|f| string_list(&f)).unwrap_or_default());
         ipset.no_delegation = ic.delegate == Some(false);
+
+        // `data` is one table; each member is stored under its own name in an
+        // avl tree, so the status prints them sorted, not in arrival order.
+        let mut newdata: Vec<(String, owrt_ubus::json::Json)> = Vec::new();
+        if let Some(t) = find("data") {
+            for m in t.children() {
+                let j = owrt_ubus::convert::field_to_json(&m);
+                newdata.push((m.name.to_string(), j));
+            }
+        }
 
         if let Some(idx) = self.iface_index(name) {
             let i = &mut self.interfaces[idx];
@@ -999,9 +1069,30 @@ impl Netifd {
             i.device = ic.device.clone();
             i.proto_ip = ipset;
             i.proto_ip.routes.sort_by(interface::route_order);
-            i.updated = interface::updated::ADDRESS;
+            i.updated = 0;
+            if !i.proto_ip.addresses.is_empty() {
+                i.updated |= interface::updated::ADDRESS;
+            }
             if !i.proto_ip.routes.is_empty() {
                 i.updated |= interface::updated::ROUTE;
+            }
+            if !newdata.is_empty() {
+                for (k, v) in newdata {
+                    // avl_find_element + replace: same name replaces
+                    match i.data.iter_mut().find(|(n, _)| *n == k) {
+                        Some(slot) => {
+                            if slot.1 != v {
+                                slot.1 = v;
+                                i.updated |= interface::updated::DATA;
+                            }
+                        }
+                        None => {
+                            i.data.push((k, v));
+                            i.updated |= interface::updated::DATA;
+                        }
+                    }
+                }
+                i.data.sort_by(|a, b| a.0.cmp(&b.0));
             }
             i.errors.clear();
         }
@@ -1013,8 +1104,94 @@ impl Netifd {
         status::OK
     }
 
+    /// `IFPEV_LINK_LOST`. Only an interface that is already up loses
+    /// anything: `dhcp.script` reports link-up false from its `deconfig` case
+    /// before the lease exists, and that must be a no-op, not a teardown. When
+    /// it does fire, the interface goes back to SETUP -- not DOWN -- because
+    /// the helper is still running and may get a lease.
+    fn link_lost(&mut self, name: &str) {
+        let Some(idx) = self.iface_index(name) else { return };
+        if self.interfaces[idx].state != State::Up {
+            return;
+        }
+        eprintln!("netifd-rs: Interface '{name}' has lost the connection");
+        self.mark_interface_down(name, true);
+        if let Some(idx) = self.iface_index(name) {
+            self.interfaces[idx].state = State::Setup;
+        }
+    }
+
+    /// Apply one route to the kernel and record it for the status.
+    fn add_iface_route(
+        &mut self,
+        name: &str,
+        devidx: u32,
+        r: &interface::Route,
+        ipset: &mut interface::IpSettings,
+    ) {
+        let mut k = match r.target {
+            IpAddr::V4(a) => sys::Route::v4(a, r.mask),
+            IpAddr::V6(a) => sys::Route::v6(a, r.mask),
+        };
+        k.nexthop = r.nexthop;
+        k.metric = r.metric;
+        k.table = if r.table != 0 { r.table } else { sys::RT_TABLE_MAIN };
+        k.mtu = (r.flags & interface::devroute::MTU != 0).then_some(r.mtu);
+        if r.flags & interface::devroute::ONLINK != 0 {
+            k.onlink = true;
+        }
+        if r.flags & interface::devroute::TYPE != 0 {
+            k.ty = Some(r.ty as u8);
+        }
+        if r.flags & interface::devroute::PROTO != 0 {
+            k.proto = Some(r.proto as u8);
+        }
+        if r.sourcemask != 0 {
+            k.source = Some(r.source);
+            k.sourcemask = r.sourcemask;
+        }
+        if let Err(e) = self.sys.add_route(devidx, &k) {
+            eprintln!("netifd-rs: {name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
+            return;
+        }
+        ipset.routes.push(r.clone());
+    }
+
+    fn iface_error(&mut self, name: &str, subsystem: &str, code: &str, data: &[&str]) {
+        if let Some(idx) = self.iface_index(name) {
+            self.interfaces[idx].errors.push(interface::IfaceError {
+                subsystem: subsystem.into(),
+                code: code.into(),
+                data: data.iter().map(|s| s.to_string()).collect(),
+            });
+        }
+    }
+
     /// Poll both slots of every protocol state and apply the effects.
+    /// Log what the children have printed so far. The C reads each process's
+    /// pipe from uloop and logs whole lines as they arrive; without this a
+    /// helper that never exits -- `udhcpc -f -t 0` is the normal case -- keeps
+    /// everything it printed, errors included, in an unread pipe.
+    fn poll_child_output(&mut self) {
+        for line in self.hotplug.poll_lines() {
+            eprintln!("netifd-rs: hotplug: {line}");
+        }
+        let names: Vec<String> = self.protos.iter().map(|(n, _)| n.clone()).collect();
+        for name in names {
+            let lines = {
+                let st = self.proto_state(&name);
+                let mut l = st.script.poll_lines();
+                l.extend(st.task.poll_lines());
+                l
+            };
+            for line in lines {
+                eprintln!("netifd-rs: {name}: {line}");
+            }
+        }
+    }
+
     fn reap_children(&mut self) {
+        self.poll_child_output();
         if let Some((_, _, output)) = self.hotplug.reap() {
             for line in output.lines().filter(|l| !l.trim().is_empty()) {
                 eprintln!("netifd-rs: hotplug: {line}");
@@ -1208,10 +1385,29 @@ impl Netifd {
         }
     }
 
+    /// `__interface_set_down`, followed by the teardown completing. Static
+    /// interfaces have nothing asynchronous to wait for, so both halves happen
+    /// here.
     fn iface_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
-        // `mark_interface_down` returns early when already down, so no event
-        let was_up = self.interfaces[idx].state == State::Up;
+        // IFEV_DOWN on entering teardown, and only from IFS_UP
+        if self.interfaces[idx].state == State::Up {
+            self.emit_event(name, Event::Down);
+        }
+        // the second IFEV_DOWN comes from mark_interface_down; hotplug.d has
+        // already been called, so it goes out on the ubus channels only
+        self.mark_interface_down(name, false);
+    }
+
+    /// `mark_interface_down`: flush everything the protocol applied, release
+    /// the L3 device and emit the state's event. Returns early when already
+    /// down, so a second call emits nothing.
+    fn mark_interface_down(&mut self, name: &str, hotplug: bool) {
+        let Some(idx) = self.iface_index(name) else { return };
+        let prev = self.interfaces[idx].state;
+        if prev == State::Down {
+            return;
+        }
         let l3 = self.interfaces[idx].l3_device.clone();
         let addrs: Vec<Address> = self.interfaces[idx].proto_ip.addresses.clone();
         let routes: Vec<interface::Route> = self.interfaces[idx].proto_ip.routes.clone();
@@ -1257,7 +1453,9 @@ impl Netifd {
         // does not have.
         if let Some(dev) = released {
             let still_used = self.interfaces.iter().any(|o| {
-                o.name != name && o.state == State::Up && o.l3_device.as_deref() == Some(dev.as_str())
+                o.name != name
+                    && o.state != State::Down
+                    && o.l3_device.as_deref() == Some(dev.as_str())
             });
             if !still_used {
                 if let Ok(di) = self.sys.if_index(&dev) {
@@ -1268,12 +1466,10 @@ impl Netifd {
             }
         }
         self.rescan_devices();
-        if was_up {
-            // entering teardown
-            self.emit_event(name, Event::Down);
-            // teardown complete: `mark_interface_down` emits it again, on
-            // both ubus channels, but hotplug.d has already been called
-            self.emit(name, Event::Down, false);
+        match prev {
+            State::Up | State::Teardown => self.emit(name, Event::Down, hotplug),
+            State::Setup => self.emit(name, Event::UpFailed, hotplug),
+            State::Down => {}
         }
     }
 
@@ -1418,8 +1614,35 @@ impl Netifd {
     }
 
     fn handle(&mut self, req: Request) {
-        let target = self.objects.route(req.objid);
+        let mut target = self.objects.route(req.objid);
         let method = req.method.clone();
+
+        // `netifd_add_iface_object` replaces every method of the shared
+        // `network.interface` object except `dump` with a resolver that reads
+        // the interface name out of the payload and then calls the
+        // per-interface handler. `netifd-proto.sh` relies on this: it always
+        // calls `ubus call network.interface notify_proto {..., "interface":
+        // "<name>"}`, never the per-interface object. Registration is
+        // unaffected -- `ubus -v list` shows the object TYPE's signature,
+        // which still carries each method's own policy.
+        let mut resolved: Option<String> = None;
+        if target == ubus::Target::Interface(None) && method != "dump" {
+            let name = blob::fields(&req.data)
+                .find(|f| f.name == "interface" && f.ty == MsgType::String as u32)
+                .and_then(|f| f.as_str().map(|s| s.to_string()));
+            let Some(name) = name else {
+                let _ = self.conn.reply_status(&req, status::INVALID_ARGUMENT, None);
+                return;
+            };
+            if !self.interfaces.iter().any(|i| i.name == name) {
+                let _ = self.conn.reply_status(&req, status::NOT_FOUND, None);
+                return;
+            }
+            resolved = Some(name);
+        }
+        if let Some(name) = &resolved {
+            target = ubus::Target::Interface(Some(name));
+        }
         let r = match (target, method.as_str()) {
             (ubus::Target::Network, "reload") | (ubus::Target::Network, "restart") => {
                 for name in
