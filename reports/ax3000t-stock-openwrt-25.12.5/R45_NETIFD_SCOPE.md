@@ -220,3 +220,47 @@ reload 的变更检测（现在是全拆全建）、ubus 事件（`interface.<na
 r47/r48 里 `up`/`available`/`autostart`/`uptime`/`l3_device` 是从 C 的输出里取的
 （它们是 netifd 自己的簿记而不是内核状态）；**r49 不是**——r49 里这些字段由
 netifd-rs 自己产生，两边一致。
+
+### r52：真实 DHCP 交换 + 一次 ifdown/ifup 循环
+
+`tools/r52_dhcp_diff.sh`：veth 对端跑 `busybox udhcpd`（单地址池，两边必然拿到
+`10.0.0.100`），两侧各跑一次完整的 `proto dhcp`——netifd 起 `dhcp.sh`，脚本用
+`notify_proto` action 1 让 netifd 拉 `udhcpc`，`udhcpc` 跟真服务器要地址，
+`dhcp.script` 再用 action 0 把结果报回来。没有任何一环是桩。
+
+比较七项，现在**全部一致**：拿到 lease 的耗时、内核状态（地址/路由/link）、
+未被配置的对端设备 `veth0` 的地址被清掉的时机、`ifdown` 之后的现场
+（helper 是否还在、设备是否还 up、`wan status`）、再 `ifup` 之后的
+`wan status`、`network.interface dump`、hotplug.d 序列。
+
+这一轮抓到的缺陷（每一条都不是单元测试能发现的）：
+
+1. `link-up` 是连字符。写成 `link_up` 的表现不是报错而是接口永远不 up。
+2. action 0 的载荷是嵌套表，不是 proto-static 的扁平 UCI 形状。
+3. helper 输出只在退出时才读，而 `udhcpc -f -t 0` 不退出——所以前三次跑
+   看起来像"什么都没发生"。
+4. `link-up:false` 是 `IFPEV_LINK_LOST`，接口不 up 时是空操作；当成 ifdown
+   会在启动时就把接口拆掉。
+5. 正在 setup 的接口仍在用它的设备，"把没用的设备拉下去"那一趟把 udhcpc 的链路
+   抽掉了。
+6. `device_init` 会对每个新建的 device 对象清一次内核状态——包括只作为父设备
+   被创建的那些。
+7. `ifdown` 没有跑 teardown 命令（门槛条件把 `S_IDLE` 排除了，而那正是它该
+   出发的状态），helper 因此活过了 ifdown。
+8. 设备状态是 claim 计数而不是布尔量；接口持 main_dev 和 l3_dev 两个 claim，
+   只在 autostart 被清掉时才释放 main_dev。
+9. `ifup`/`ifdown` 要改 `autostart`；`interface_flush_state` 要清 `data`。
+10. hotplug.d 用真的排队规则，不能用"这次要不要调"的布尔量——布尔量在 static
+    上碰巧对，在 shell 协议上少一次调用。
+11. 子进程退出只靠轮询发现，最多晚一个 poll 超时；改成 SIGCHLD self-pipe。
+
+细节记在 `docs/contracts/netifd-proto-shell.md` §4/§4b/§4c/§7。
+
+### 仍然没有验证的（更新）
+
+`network.wireless`（需要 netifd 进程内的 ucode 虚拟机）、`network.device` 的写方法
+（`set_alias`/`set_state`/`stp_init`）、`network` 的
+`add_host_route`/`add_dynamic`/`netns_updown`/`add_device`/`remove_device`、
+载波驱动的 setup/teardown、reload 的变更检测（现在是全拆全建）、checkup 定时器、
+主机依赖（action 6 目前返回 `NOT_SUPPORTED`）、`address-external` 与协议自建隧道
+（都返回 `NOT_SUPPORTED`）、协议上报的邻居，以及计划 §2.3 的故障用例。

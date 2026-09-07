@@ -115,8 +115,15 @@ setup 期间收到 teardown 则进 `S_SETUP_ABORT`：
 
 ### action 0 的细节
 
-- 没有 `link_up` 返回 `INVALID_ARGUMENT`；`link_up=false` 触发
+- 属性名是 **`link-up`（连字符）**，不是 `link_up`。名字写错的后果不是报错而是
+  「什么都没发生」：脚本每次上报都拿到 `INVALID_ARGUMENT`，接口一直不 up。
+  r52 第一次跑出来就是这个（见 §7）。
+- 没有 `link-up` 返回 `INVALID_ARGUMENT`；`link-up=false` 触发
   `IFPEV_LINK_LOST` 并返回 0（**不碰地址**）。
+- `IFPEV_LINK_LOST` 的语义容易看反：**接口不是 `IFS_UP` 时它直接 return**，
+  什么都不做。`dhcp.script` 的 `deconfig` 分支在拿到 lease 之前就会发一次
+  `link-up:false`，把它当 ifdown 处理会在启动时就把接口拆掉。真的触发时接口回到
+  `IFS_SETUP`（不是 `IFS_DOWN`），因为 helper 还在跑，还可能拿到地址。
 - `keep=true` 表示保留现有 L3 设备与地址；但如果接口不是 `IFS_UP` 或没有
   `l3_dev`，`keep` 被强制为 false。
 - `ifname` 存在时 `keep` 也被强制为 false，并按 `ifname` 取/建设备
@@ -124,8 +131,72 @@ setup 期间收到 teardown 则进 `S_SETUP_ABORT`：
 - 随后 `interface_set_l3_dev` + `device_claim` + `device_set_present(true)`，
   再 `interface_update_start(iface, keep)` 走地址/路由/DNS 的增量更新。
 
-19 个属性：`action error command env signal available link_up ifname address_ext
-routes routes6 tunnel data keep host dns dns_search neighbors neighbors6`。
+19 个属性（`notify_attr`，proto-ext.c；名字照抄，注意混用连字符和下划线）：
+
+```
+action error command env signal available link-up ifname address-external
+routes routes6 tunnel data keep host dns dns_search neighbor neighbor6
+```
+
+### action 0 的载荷形状（**不是** proto-static 读的那套扁平 UCI 形状）
+
+地址和路由都不在 `notify_attr` 里，而是由另外两张策略表解析同一个顶层 blob：
+
+- `ipaddr` / `ip6addr` 是**表的数组**，每个表自带掩码
+  （`proto_ip_addr`：`ipaddr mask broadcast ptp preferred valid offlink class`）。
+  缺 `ipaddr` 或掩码超出族上限就丢弃这一条。
+- `gateway` / `ip6gw` 是字符串，且**只有该族拿到过地址才会被应用**。
+- `routes` / `routes6` 是表的数组，走 `interface_ip_add_route`
+  （`route_attr`：`interface target netmask gateway metric mtu table valid
+  source onlink type proto disabled`）。`target` 里的 `/len` 会覆盖 `netmask`；
+  IPv4 且掩码 < 32 时主机位被清零。`source` 无掩码时按主机路由（v4 走
+  `RTA_PREFSRC`）。
+- `data` 是一个表，每个成员按名字存进一棵 avl 树 —— 所以 status 里 `data`
+  是**按名字排序**的，不是到达顺序。
+- `metric`/`mtu`/`table`/`type`/`proto` 只有显式给了才置对应的 `DEVROUTE_*` 标志，
+  也只有置了标志才会打印出来。主表（`main`）不置 `DEVROUTE_TABLE`。
+
+`parse_netmask_string` 的两个细节都是可观测的：不含 `.` 时走
+`strtoul(str, &err, 0)`（**基数 0**，所以 `0x18` 是 24；只有尾部有垃圾才算错，
+空串是 0）；含 `.` 时 v6 直接报错，v4 用 `32 - fls(~mask)`——**没有连续性检查**，
+`255.0.255.0` 会得到 8 而不是被拒绝。改成"更正确"的写法就是偏离。
+
+## 4b. 设备的 claim 计数与 `system_if_clear_state`
+
+链路状态跟的是 `dev->active` 这个**计数**，不是某个接口的状态：
+
+- `device_claim` 只在计数 0→1 时真的把设备拉起来，`device_release` 只在归零时
+  拉下去。
+- `simple_device_set_state(dev, true)` 会先 claim 设备的**父设备**——
+  `system_if_get_parent` 读 `/sys/class/net/<dev>/iflink`，对 DSA user port 是
+  conduit，对 veth 是对端。这就是 conduit 被自动拉起来的机制。
+- 一个接口持**两个** claim：ifup 时的 `main_dev`（`interface_set_up` 里
+  `device_claim(&iface->main_dev)`）和协议上报时的 `l3_dev`。`IFPEV_DOWN` 只在
+  `!(config_state 正常 && autostart && available)` 时释放 `main_dev`——所以
+  「清掉 autostart」才是让设备真的落下去的那一步，链路丢失则不会。
+- `device_init` 对**每个**新建的 device 对象跑一次 `system_if_clear_state`：
+  拉下链路、退出网桥（同名网桥直接删掉）、清掉两个族的地址/路由/永久邻居、
+  再把 `disable_ipv6` 写回 0。这不只发生在配置里出现的设备上：只作为别人的父设备
+  被创建也算。别人放在这种设备上的地址会在 netifd 启动时消失。
+- 清理是「dump 一遍，把命中的报文改成 DEL 再发回去」，而且**必须等 dump 结束再发**
+  ——带着 dump 序列号的错误应答会中断 dump。过滤条件：地址比 `ifa_index`；路由要求
+  `RTA_OIF` 命中且**跳过内核自己的 IPv6 路由**；邻居只删 `NUD_PERMANENT` 或
+  `NTF_PROXY` 的，而且代理项要**单独发第二次 dump** 才会被内核列出来。
+
+## 4c. hotplug.d 的排队规则
+
+`interface_queue_event` 每次都发 ubus 广播和通知，**只有 hotplug.d 调用会被合并**。
+一个接口最多有一个"排队中"事件和一个"正在处理"事件：
+
+- 正在处理这个接口时：队列里已有一条就覆盖它（`IFEV_UPDATE` 除外）；队列里没有，
+  则只有 `ev != current_ev` 或 `ev == IFEV_UPDATE` 才入队。
+- 处理别的接口（或空闲）时：队列里已有一条就覆盖（除了「排队的是 ifup、来的是
+  ifupdate」），没有就入队。
+
+后果：**static 拆接口的两次 `IFEV_DOWN` 只有一次 hotplug 调用**（第二次紧跟第一次，
+落在"正在处理且事件相同"上被丢掉），而**shell 协议的两次是两次**——中间隔着
+teardown 脚本和 helper 退出的时间，第一次调用早就结束了。这不是可以用一个
+"这次要不要调 hotplug" 的布尔量表达的，用布尔量在 static 上碰巧对、在 shell 上错。
 
 ## 5. 本机实际用到的 handler
 
@@ -135,3 +206,22 @@ routes routes6 tunnel data keep host dns dns_search neighbors neighbors6`。
 `get_proto_handlers` 每个 handler 报一张 `validate` 表加 8 个布尔
 （`immediate no_device init_available renew_available force_link_default
 last_error teardown_on_l3_link_down no_task`）。`static` 的值已在 R45 §2 记录。
+
+## 7. r52 的教训：沉默不等于成功
+
+r52 用 `busybox udhcpd` 在 veth 对端起一台真的 DHCP 服务器，跟设备自己的 C netifd
+比整条 proto-shell 路径。前三次跑，候选侧的 daemon 日志里**只有一行** handler 发现
+信息——看起来像"脚本根本没跑"，其实脚本一直在报错。
+
+原因：helper 的输出只在它退出时才被读。`udhcpc -f -t 0` 永远不退出，所以
+`dhcp.script` 打的每一行——包括那句 `notify_proto ... (Invalid argument)`——都躺在
+一个没人读的管道里。C 是从 uloop 逐行读的（`netifd_process_cb`），改成逐行读之后，
+真正的错误第一时间就出来了。管道写满还会把 helper 卡住。
+
+同一条教训的第二次：`ifdown` 之后 helper 还活着、hotplug 少一次调用，两个现象都指向
+teardown 命令从来没跑过——门槛条件要求状态机不在 `S_IDLE`，而协议跑通之后正好停在
+`S_IDLE`，也就是 teardown 命令**应该**从那里出发的状态。
+
+第三次：子进程退出原来只靠轮询发现，最多晚一个 poll 超时。这是能看见的——`ifdown`
+之后 lease 还在设备上待那么久，而 C 已经删掉了。现在用 SIGCHLD self-pipe 唤醒循环,
+超时只当兜底。

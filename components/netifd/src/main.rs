@@ -476,7 +476,7 @@ impl Netifd {
                         // claiming it also claims its parent, which is how a
                         // DSA conduit comes up behind its user ports
                         let _ = pi;
-                        self.device_claim(&port);
+                        self.device_claim(port);
                         // bridge_enable_member turns IPv6 off on a member
                         // unless a `config device` section set it explicitly,
                         // so the member has no link-local of its own
