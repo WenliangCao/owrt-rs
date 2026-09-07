@@ -52,6 +52,30 @@ config wifi-iface 'default_radio0'
 	option mode 'ap'
 	option ssid 'probe'
 	option encryption 'none'
+
+config wifi-vlan 'v1'
+	option iface 'default_radio0'
+	option name 'guest'
+	option vid '10'
+	list network 'guest'
+
+config wifi-vlan 'v_all'
+	option vid '20'
+	option name 'everywhere'
+
+config wifi-vlan 'v_off'
+	option iface 'default_radio0'
+	option vid '30'
+	option disabled '1'
+
+config wifi-station 's1'
+	option iface 'default_radio0'
+	option mac '02:00:00:00:00:aa'
+	option key 'k1'
+
+config wifi-station 's_other'
+	option iface 'nosuchiface'
+	option mac '02:00:00:00:00:bb'
 X
 	sudo -n CMDS="$CMDS" unshare --mount --net --pid --fork --mount-proc=/proc sh -c '
 	  m=$1; t=$2; o=$3
@@ -101,7 +125,7 @@ cat > /tmp/r60-stub.sh <<STUB
 #!/bin/sh
 echo "ARGV: \$*" >> /tmp/out/handler.log
 if [ "\${2:-}" = "dump" ] || [ "\${1:-}" = "dump" ]; then
-	echo '{ "name": "mac80211", "device": [ [ "channel", 3 ], [ "band", 3 ], [ "path", 3 ] ], "iface": [ [ "ssid", 3 ], [ "encryption", 3 ] ] }'
+	echo '{ "name": "mac80211", "device": [ [ "channel", 3 ], [ "band", 3 ], [ "path", 3 ] ], "iface": [ [ "ssid", 3 ], [ "encryption", 3 ] ], "vlan": [ [ "name", 3 ], [ "vid", 3 ] ], "station": [ [ "mac", 3 ], [ "key", 3 ] ] }'
 	exit 0
 fi
 if [ "\$2" = setup ] && [ "$MODE" = up ]; then

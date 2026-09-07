@@ -774,3 +774,28 @@ setup 之后 16/16。
 顺带修了 harness 的一个采集缺陷：`calls.txt` 是在命令执行**之前**采的，
 命令触发的 setup 根本不在里面。现在命令之后再采一次——那 16/12 就是这么露出来的。
 一个断言只有在采集范围覆盖到被测行为时才算数。
+
+### vlan 和 station
+
+`status` 里那两个空数组补上了，r60 的配置也加了真实用例，两边一致：
+
+```
+vlans:    [{"section":"v1","config":{"network":["guest"],"iface":"default_radio0",
+            "name":"guest","vid":"10"}},
+           {"section":"v_all","config":{"name":"everywhere","vid":"20"}}]
+stations: [{"section":"s1","config":{"iface":"default_radio0",
+            "mac":"02:00:00:00:00:aa","key":"k1"}}]
+```
+
+规则（`wireless.uc` 207-250）：
+
+- `wifi-vlan` / `wifi-station` 用 `iface` **数组**指名它属于哪些 wifi-iface
+  **section**；**列表为空表示挂到所有 vif**（用例 `v_all` 覆盖了这条）。
+- 指向不存在的 iface 就哪儿都不挂（`s_other`）。
+- `disabled` 为真的照样按"非 wifi-device 的 section 一律跳过"丢掉（`v_off`）。
+- handler JSON 里 vlans / stas 是对象，键是 `%02d`，而且**计数器跨 vif 累加**，
+  不是每个 vif 从 1 开始（`wdev_config_init` 里 `vlan_idx` / `sta_idx`
+  声明在 vif 循环之外）。
+- `status` 里则是数组，条目是 `{section, config}`。
+
+四个配置组合（up/fail × 带命令/不带）连跑都干净。

@@ -464,11 +464,20 @@ pub fn attribute_list(
         .collect()
 }
 
+/// One `config wifi-vlan` or `config wifi-station`, attached to a vif.
+#[derive(Clone, Debug, Default)]
+pub struct Sub {
+    pub section: String,
+    pub opts: Vec<(String, Val)>,
+}
+
 /// One `config wifi-iface`.
 #[derive(Clone, Debug, Default)]
 pub struct Vif {
     pub section: String,
     pub opts: Vec<(String, Val)>,
+    pub vlans: Vec<Sub>,
+    pub stas: Vec<Sub>,
     /// `config.radios`: the `option radio` index of each device the iface
     /// names. Set unconditionally after the schema attributes, so it is the
     /// last key in the reply even when it is empty.
@@ -584,7 +593,35 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
                 section: s.name.clone(),
                 opts: opts.clone(),
                 radios: radios_of.clone(),
+                vlans: Vec::new(),
+                stas: Vec::new(),
             });
+        }
+    }
+
+    // `wifi-vlan` and `wifi-station` name the wifi-iface SECTIONS they belong
+    // to in `iface`, as an array; an empty list means every vif. A disabled
+    // one is dropped like any non-device section.
+    for s in pkg.sections.iter().filter(|s| s.ty == "wifi-vlan" || s.ty == "wifi-station") {
+        let opts = opts_of(s);
+        if raw_disabled(&opts) {
+            continue;
+        }
+        let want: Vec<String> = scalar(&opts, "iface")
+            .map(|v| v.split_whitespace().map(|x| x.to_string()).collect())
+            .unwrap_or_default();
+        for r in radios.iter_mut() {
+            for v in r.vifs.iter_mut() {
+                if !want.is_empty() && !want.iter().any(|w| *w == v.section) {
+                    continue;
+                }
+                let sub = Sub { section: s.name.clone(), opts: opts.clone() };
+                if s.ty == "wifi-vlan" {
+                    v.vlans.push(sub);
+                } else {
+                    v.stas.push(sub);
+                }
+            }
         }
     }
     radios
@@ -673,8 +710,8 @@ pub fn status_json(
         let h = r.kind().and_then(|k| handlers.iter().find(|h| h.name == k));
         let dev_spec = h.map(|h| h.attrs_of("device")).unwrap_or(&[]);
         let if_spec = h.map(|h| h.attrs_of("iface")).unwrap_or(&[]);
-        // `vlans` and `stations` come from the handler's notify data, so
-        // they are empty until a radio has actually come up.
+        let vlan_spec = h.map(|h| h.attrs_of("vlan")).unwrap_or(&[]);
+        let sta_spec = h.map(|h| h.attrs_of("station")).unwrap_or(&[]);
 
         let ifaces: Vec<String> = r
             .vifs
@@ -696,8 +733,20 @@ pub fn status_json(
                 if let Some((_, n)) = ifnames.iter().find(|(sec, _)| *sec == v.section) {
                     fields.push(("ifname".into(), format!("\"{}\"", esc(n))));
                 }
-                fields.push(("vlans".into(), "[]".into()));
-                fields.push(("stations".into(), "[]".into()));
+                let sub_list = |subs: &[Sub], spec: &[(String, u32)]| -> String {
+                    let items: Vec<String> = subs
+                        .iter()
+                        .map(|sub| {
+                            obj(&[
+                                ("section".into(), format!("\"{}\"", esc(&sub.section))),
+                                ("config".into(), attr_obj(&sub.opts, spec)),
+                            ])
+                        })
+                        .collect();
+                    format!("[{}]", items.join(","))
+                };
+                fields.push(("vlans".into(), sub_list(&v.vlans, vlan_spec)));
+                fields.push(("stations".into(), sub_list(&v.stas, sta_spec)));
                 obj(&fields)
             })
             .collect();
@@ -786,6 +835,12 @@ pub fn handler_json(radio: &Radio, handlers: &[Handler]) -> String {
     let dev_spec = h.map(|h| h.attrs_of("device")).unwrap_or(&[]);
     let if_spec = h.map(|h| h.attrs_of("iface")).unwrap_or(&[]);
 
+    let vlan_spec = h.map(|h| h.attrs_of("vlan")).unwrap_or(&[]);
+    let sta_spec = h.map(|h| h.attrs_of("station")).unwrap_or(&[]);
+    // the %02d counters run across every vif, not per vif
+    let mut vlan_idx = 0usize;
+    let mut sta_idx = 0usize;
+
     let mut ifaces: Vec<(String, String)> = Vec::new();
     for (n, v) in radio.vifs.iter().enumerate() {
         let mut cfg: Vec<(String, String)> = attribute_list(&v.opts, if_spec)
@@ -795,13 +850,35 @@ pub fn handler_json(radio: &Radio, handlers: &[Handler]) -> String {
         let list: Vec<String> = v.radios.iter().map(|x| x.to_string()).collect();
         cfg.retain(|(k, _)| k != "radios");
         cfg.push(("radios".into(), format!("[{}]", list.join(","))));
+        let mut vlans: Vec<(String, String)> = Vec::new();
+        for sub in &v.vlans {
+            vlan_idx += 1;
+            vlans.push((
+                format!("{vlan_idx:02}"),
+                obj(&[
+                    ("name".into(), format!("\"{}\"", esc(&sub.section))),
+                    ("config".into(), attr_obj(&sub.opts, vlan_spec)),
+                ]),
+            ));
+        }
+        let mut stas: Vec<(String, String)> = Vec::new();
+        for sub in &v.stas {
+            sta_idx += 1;
+            stas.push((
+                format!("{sta_idx:02}"),
+                obj(&[
+                    ("name".into(), format!("\"{}\"", esc(&sub.section))),
+                    ("config".into(), attr_obj(&sub.opts, sta_spec)),
+                ]),
+            ));
+        }
         ifaces.push((
             format!("{:02}", n + 1),
             obj(&[
                 ("name".into(), format!("\"{}\"", esc(&v.section))),
                 ("config".into(), obj(&cfg)),
-                ("vlans".into(), "{}".into()),
-                ("stas".into(), "{}".into()),
+                ("vlans".into(), obj(&vlans)),
+                ("stas".into(), obj(&stas)),
             ]),
         ));
     }
