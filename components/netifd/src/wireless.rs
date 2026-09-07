@@ -359,7 +359,7 @@ mod tests {
         assert!(!r[0].disabled());
         assert_eq!(r[0].vifs.len(), 1, "the iface survives an unparsable disabled");
         // and it reaches the caller as a present-but-empty key
-        assert!(status_json(&r, &hs, RadioState::default()).contains("\"disabled\":null"));
+        assert!(status_json(&r, &hs, RadioState::default(), &[]).contains("\"disabled\":null"));
     }
 
     #[test]
@@ -386,7 +386,7 @@ mod tests {
             "config wifi-device 'radio0'\n\toption type 'mac80211'\n\n\
              config wifi-iface 'ap'\n\toption device 'radio0'\n\toption ssid 'x'\n",
         );
-        let j = status_json(&load(&c, &hs), &hs, RadioState::default());
+        let j = status_json(&load(&c, &hs), &hs, RadioState::default(), &[]);
         assert!(j.contains(r#""ssid":"x","radios":[]"#), "{j}");
     }
 
@@ -662,7 +662,12 @@ impl Default for RadioState {
 
 /// `status`, as compact JSON. `interfaces[].ifname` is omitted: it comes from
 /// the handler's notify data, which needs the radio to have come up.
-pub fn status_json(radios: &[Radio], handlers: &[Handler], st: RadioState) -> String {
+pub fn status_json(
+    radios: &[Radio],
+    handlers: &[Handler],
+    st: RadioState,
+    ifnames: &[(String, String)],
+) -> String {
     let mut out: Vec<(String, String)> = Vec::new();
     for r in radios {
         let h = r.kind().and_then(|k| handlers.iter().find(|h| h.name == k));
@@ -682,12 +687,18 @@ pub fn status_json(radios: &[Radio], handlers: &[Handler], st: RadioState) -> St
                 let list: Vec<String> = v.radios.iter().map(|n| n.to_string()).collect();
                 cfg.retain(|(k, _)| k != "radios");
                 cfg.push(("radios".into(), format!("[{}]", list.join(","))));
-                obj(&[
+                let mut fields: Vec<(String, String)> = vec![
                     ("section".into(), format!("\"{}\"", esc(&v.section))),
                     ("config".into(), obj(&cfg)),
-                    ("vlans".into(), "[]".into()),
-                    ("stations".into(), "[]".into()),
-                ])
+                ];
+                // `get_status_data` appends `ifname` only once the handler has
+                // reported one, so it is absent until a radio comes up
+                if let Some((_, n)) = ifnames.iter().find(|(sec, _)| *sec == v.section) {
+                    fields.push(("ifname".into(), format!("\"{}\"", esc(n))));
+                }
+                fields.push(("vlans".into(), "[]".into()));
+                fields.push(("stations".into(), "[]".into()));
+                obj(&fields)
             })
             .collect();
 
@@ -738,7 +749,7 @@ pub fn dump(confdir: &str, handlerdir: &str) -> String {
     let radios = load(confdir, &handlers);
     format!(
         "{{\"status\":{},\"get_validate\":{}}}",
-        status_json(&radios, &handlers, RadioState::default()),
+        status_json(&radios, &handlers, RadioState::default(), &[]),
         get_validate_json(&radios, &handlers)
     )
 }
@@ -854,5 +865,52 @@ mod handler_tests {
     #[test]
     fn the_retry_budget_is_three_so_four_setups() {
         assert_eq!(DEFAULT_RETRY, 3);
+    }
+}
+
+/// Write a parsed JSON value into a blobmsg buffer under `name`. The status
+/// and get_validate projections are built and tested as JSON text against the
+/// C's replies, so this converts that verified text rather than duplicating
+/// the ordering logic in blobmsg calls.
+pub fn json_into_blob(b: &mut owrt_ubus::blob::BlobBuf, name: &str, v: &Json) {
+    match v {
+        Json::Null => {
+            b.msg_null(name);
+        }
+        Json::Bool(x) => {
+            b.msg_bool(name, *x);
+        }
+        Json::Int(n) => {
+            b.msg_i64(name, *n);
+        }
+        Json::Float(f) => {
+            b.msg_double(name, *f);
+        }
+        Json::Str(s) => {
+            b.msg_string(name, s);
+        }
+        Json::Array(items) => {
+            let c = b.msg_open_array(name);
+            for it in items {
+                json_into_blob(b, "", it);
+            }
+            b.msg_close(c);
+        }
+        Json::Object(items) => {
+            let c = b.msg_open_table(name);
+            for (k, it) in items {
+                json_into_blob(b, k, it);
+            }
+            b.msg_close(c);
+        }
+    }
+}
+
+/// Parse one of this module's JSON emitters and write its fields at the top
+/// level of `b`.
+pub fn json_text_into_blob(b: &mut owrt_ubus::blob::BlobBuf, text: &str) {
+    let Ok(Json::Object(items)) = json::parse(text) else { return };
+    for (k, v) in &items {
+        json_into_blob(b, k, v);
     }
 }

@@ -1,22 +1,26 @@
 #!/bin/sh
-# R60: the wireless handler protocol, C against netifd-rs, with no radios.
+# R60: the wireless handler protocol and the radio state machine, C against
+# netifd-rs, with no radios and no device involved.
 #
-# `/lib/netifd/wireless/mac80211.sh` is replaced by a stub that answers `dump`
-# and otherwise only records how it was called. Both daemons then drive the
-# same stub, and what they hand it is compared: the sequence of setup and
-# teardown calls, and the JSON of the first setup.
+# `/lib/netifd/wireless/mac80211.sh` is replaced by a stub. Both daemons drive
+# the same stub and are compared on: the sequence of setup/teardown calls, the
+# JSON of the first setup, the registered ubus signature, and `status`.
 #
-# That covers the part of the orchestration a sandbox can reach. A stub that
-# never reports its interfaces up makes netifd retry, so the retry budget and
-# the ordering are exercised too -- four setups, then the radio gives up.
-# Bringing a real radio up is the handler's job and needs hardware.
+# MODE=fail (default) -- the stub answers `dump` and otherwise does nothing.
+#   netifd sees a handler that never reported its interfaces up, so the retry
+#   budget and the setup/teardown ordering are exercised: four setups, then the
+#   radio gives up.
+# MODE=up -- the stub calls back the way netifd-wireless.sh does, first
+#   `_wireless_add_vif` (command 1, with an ifname) and then `_wireless_set_up`
+#   (command 0). That drives the radio to `up` and puts `ifname` in `status`,
+#   which is the part a stub can reach without hardware.
 #
-# The JSON is compared as parsed JSON: the C pretty-prints and this build does
-# not, and the whitespace is not part of the contract. Key order is.
+# The setup JSON is compared parsed AND re-serialised, so key order counts.
 #
-# Usage: r60_wireless_handler_diff.sh <rootfs-files> <netifd-rs musl binary> [outdir]
+# Usage: [MODE=up] r60_wireless_handler_diff.sh <rootfs> <netifd-rs musl> [outdir]
 set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r60-out}
+MODE=${MODE:-fail}
 mkdir -p "$out"
 
 run() {
@@ -24,15 +28,7 @@ run() {
 	w=$(mktemp -d /tmp/r60.XXXXXX); sudo -n cp -a "$rootfs"/. "$w"/ 2>/dev/null || true
 	sudo -n mkdir -p "$w/etc/config" "$w/var/run" "$w/tmp/out"
 	sudo -n chown -R root:root "$w/usr/share/acl.d" 2>/dev/null || true
-	sudo -n tee "$w/lib/netifd/wireless/mac80211.sh" >/dev/null <<'STUB'
-#!/bin/sh
-echo "ARGV: $*" >> /tmp/out/handler.log
-if [ "${2:-}" = "dump" ] || [ "${1:-}" = "dump" ]; then
-	echo '{ "name": "mac80211", "device": [ [ "channel", 3 ], [ "band", 3 ], [ "path", 3 ] ], "iface": [ [ "ssid", 3 ], [ "encryption", 3 ] ] }'
-	exit 0
-fi
-exit 0
-STUB
+	sudo -n cp /tmp/r60-stub.sh "$w/lib/netifd/wireless/mac80211.sh"
 	sudo -n chmod 755 "$w/lib/netifd/wireless/mac80211.sh"
 	[ "$tag" = rs ] && { sudo -n cp "$cand" "$w/sbin/netifd-rs"; sudo -n chmod 755 "$w/sbin/netifd-rs"; }
 	sudo -n tee "$w/etc/config/network" >/dev/null <<'X'
@@ -66,19 +62,37 @@ X
 	  if [ "$t" = c ]; then chroot "$m" /sbin/netifd >"$m/tmp/out/n.log" 2>&1 &
 	  else chroot "$m" /sbin/netifd-rs >"$m/tmp/out/n.log" 2>&1 & fi
 	  sleep 7
-	  sed -E "s/ \\{.*//" "$m/tmp/out/handler.log" > "$o/$t-calls.txt" 2>/dev/null || true
+	  sed -E "s/ \{.*//" "$m/tmp/out/handler.log" > "$o/$t-calls.txt" 2>/dev/null || true
 	  grep -m1 " setup " "$m/tmp/out/handler.log" 2>/dev/null \
 		| sed -E "s/^ARGV: [a-z0-9]+ setup [a-z0-9]+ //" > "$o/$t-json.txt" || true
+	  chroot "$m" ubus call network.wireless status > "$o/$t-status.json" 2>&1 || true
+	  chroot "$m" ubus -v list network.wireless > "$o/$t-sig.txt" 2>&1 || true
+	  cp "$m/tmp/out/n.log" "$o/$t-daemon.log" 2>/dev/null || true
 	  pkill -9 -f "netifd|ubusd" 2>/dev/null || true
 	' sh "$w" "$tag" "$out"
 	sudo -n rm -rf "$w"
 }
 
+# the stub, written once so both runs get exactly the same bytes
+cat > /tmp/r60-stub.sh <<STUB
+#!/bin/sh
+echo "ARGV: \$*" >> /tmp/out/handler.log
+if [ "\${2:-}" = "dump" ] || [ "\${1:-}" = "dump" ]; then
+	echo '{ "name": "mac80211", "device": [ [ "channel", 3 ], [ "band", 3 ], [ "path", 3 ] ], "iface": [ [ "ssid", 3 ], [ "encryption", 3 ] ] }'
+	exit 0
+fi
+if [ "\$2" = setup ] && [ "$MODE" = up ]; then
+	ubus call network.wireless notify "{\"command\":1,\"device\":\"\$3\",\"interface\":\"01\",\"data\":{\"ifname\":\"stub-ap0\"}}" >> /tmp/out/handler.log 2>&1
+	ubus call network.wireless notify "{\"command\":0,\"device\":\"\$3\",\"data\":{}}" >> /tmp/out/handler.log 2>&1
+fi
+exit 0
+STUB
+
 run c
 run rs
 
 rc=0
-echo "=== handler call sequence"
+echo "=== handler call sequence (MODE=$MODE)"
 if diff -u "$out/c-calls.txt" "$out/rs-calls.txt" > "$out/calls.diff"; then
 	echo "RESULT(calls): identical -- $(grep -c setup "$out/c-calls.txt") setups, $(grep -c teardown "$out/c-calls.txt") teardowns"
 else
@@ -94,13 +108,44 @@ def load(p):
 a, b = load(sys.argv[1]), load(sys.argv[2])
 if a is None or b is None:
 	print(f"payload: MISSING (c={a is not None}, rs={b is not None})"); sys.exit(1)
-# key order is part of the contract, so compare the re-serialised form too
 if a == b and json.dumps(a) == json.dumps(b):
-	print("RESULT(payload): identical, key order included")
-	sys.exit(0)
+	print("RESULT(payload): identical, key order included"); sys.exit(0)
 print("payload: DIFFERS")
 print("  C:  " + json.dumps(a)[:600])
 print("  rs: " + json.dumps(b)[:600])
+sys.exit(1)
+PY
+
+echo "=== registered signature"
+# the @id is assigned per registration and is not part of the contract
+sed -i -E "s/@[0-9a-f]+/@ID/" "$out/c-sig.txt" "$out/rs-sig.txt" 2>/dev/null || true
+if diff -u "$out/c-sig.txt" "$out/rs-sig.txt" > "$out/sig.diff" 2>/dev/null; then
+	echo "RESULT(signature): identical"
+else
+	echo "signature: DIFFERS"; sed -n '1,24p' "$out/sig.diff"; rc=1
+fi
+
+echo "=== status"
+python3 - "$out/c-status.json" "$out/rs-status.json" <<'PY' || rc=1
+import json, sys
+def load(p):
+	try:
+		return json.load(open(p))
+	except Exception:
+		return {"__raw__": open(p).read().strip()[:200]}
+a, b = load(sys.argv[1]), load(sys.argv[2])
+def show(tag, o):
+	if not isinstance(o, dict): return
+	for radio, body in o.items():
+		if isinstance(body, dict):
+			ifn = [i.get("ifname") for i in body.get("interfaces", [])]
+			print(f"  {tag} {radio}: up={body.get('up')} pending={body.get('pending')} "
+			      f"retry_setup_failed={body.get('retry_setup_failed')} ifname={ifn}")
+if a == b and json.dumps(a) == json.dumps(b):
+	print("RESULT(status): identical, key order included"); show("  ", a); sys.exit(0)
+print("status: DIFFERS"); show("C ", a); show("rs", b)
+print("  C:  " + json.dumps(a)[:700])
+print("  rs: " + json.dumps(b)[:700])
 sys.exit(1)
 PY
 

@@ -702,6 +702,44 @@ RESULT(payload): identical, key order included
 
 handler 串行执行，一次只跑一个。
 
-**对象还是没注册。** 现在只是把编排跑起来并对上了调用序列；`notify`
-（脚本回调报告接口起来、设置 data、加进程）还没做，没有它 `status` 里的
-`up` / `ifname` 仍然出不来。等那部分也对上再谈注册。
+**对象现在注册了**，因为 `notify` 也做完并对上了——见下一节。
+
+### notify 走通，状态推进和 status 与 C 一致
+
+给桩加了真实的回调（就是 `netifd-wireless.sh` 里 `_wireless_add_vif` 和
+`_wireless_set_up` 发的那两条），r60 因此有两种模式：
+
+- `MODE=fail`：桩只应答 dump，什么都不报告 → 重试路径，4 setup / 4 teardown。
+- `MODE=up`：桩先发 `command:1`（带 `ifname`）再发 `command:0` → radio 起来。
+
+两种模式四项全部一致：
+
+```
+MODE=up    调用序列 1 setup / 0 teardown   （报告 up 之后不再重试）
+MODE=fail  调用序列 4 setup / 4 teardown
+签名       一致（7 个方法）
+payload    一致（含键序）
+status     一致（含键序）
+           up=True pending=False retry_setup_failed=False ifname=["stub-ap0"]
+```
+
+notify 的四个命令：
+
+- `UP=0`：带 interface 或 vlan 一律 INVALID_ARGUMENT；state 不是 setup 也拒绝
+  （`wdev_mark_up` 的两道门）。
+- `SET_DATA=1`：**notify 里的 `interface` 是 handler JSON 里的键（`"01"`），
+  不是 section 名**；`handler_data` 却按 section 名索引（`key = cur.name`）。
+  这就是设备上 `ifname` 和 `section` 并排出现的原因。目前只保留 `ifname`
+  ——它是 `status` 唯一会报的 handler 数据。
+- `PROCESS_ADD=2` / `SET_RETRY=4`：接受，SET_RETRY 会改重试预算。
+
+`status` 的四个状态位现在来自真实状态机而不是"没硬件"的默认值，
+`ifname` 只在 handler 报告之后才出现（`get_status_data` 就是这么做的）。
+
+写回复时踩了一个坑：用 `as_bytes()` 而不是 `payload()`，并且漏了数据之后
+那条 status，结果调用方拿到一段乱码然后超时。这类错误单元测试看不见，
+只有真的用 `ubus call` 打一次才会暴露。
+
+**还没做的**：vlan 和 station 的 notify 数据（`status` 里那两个数组还是空的）、
+`up`/`down`/`retry`/`reconf` 的完整语义（目前是最直接的实现，还没和 C 逐一比过）、
+以及真硬件上的编排。设备替换在这些都对上、并且再过一轮之前不会发生。

@@ -2869,6 +2869,34 @@ impl Netifd {
             // anything down. Only `netifd_restart` does, and it uses
             // `interface_set_down(NULL)`, which does NOT clear autostart --
             // so everything comes back up afterwards.
+            (ubus::Target::Wireless, "status") => {
+                let mut b = BlobBuf::new();
+                wireless::json_text_into_blob(&mut b, &self.wireless_status_json());
+                let fields = b.payload().to_vec();
+                self.conn
+                    .reply_data(&req, &fields)
+                    .and_then(|()| self.conn.reply_status(&req, status::OK, None))
+            }
+            (ubus::Target::Wireless, "get_validate") => {
+                let mut b = BlobBuf::new();
+                let text = wireless::get_validate_json(&self.wconfig, &self.whandlers);
+                wireless::json_text_into_blob(&mut b, &text);
+                let fields = b.payload().to_vec();
+                self.conn
+                    .reply_data(&req, &fields)
+                    .and_then(|()| self.conn.reply_status(&req, status::OK, None))
+            }
+            (ubus::Target::Wireless, "notify") => {
+                let st = self.wireless_notify(&blob::fields(&req.data).collect::<Vec<_>>());
+                self.conn.reply_status(&req, st, None)
+            }
+            (ubus::Target::Wireless, m @ ("up" | "down" | "retry" | "reconf")) => {
+                let st = self.wireless_command(m, &blob::fields(&req.data).collect::<Vec<_>>());
+                self.conn.reply_status(&req, st, None)
+            }
+            (ubus::Target::Wireless, _) => {
+                self.conn.reply_status(&req, status::METHOD_NOT_FOUND, None)
+            }
             (ubus::Target::Network, "reload") => {
                 self.reload();
                 self.conn.reply_status(&req, status::OK, None)
@@ -3383,6 +3411,149 @@ impl Netifd {
             self.wireless_setup(&name);
         }
         self.wireless_pump();
+    }
+}
+
+impl Netifd {
+    /// `status`, from the live radio state rather than the no-hardware
+    /// defaults: `up`/`pending` follow the state machine, and `ifname` comes
+    /// from whatever the handler reported through `notify`.
+    fn wireless_status_json(&self) -> String {
+        let mut out: Vec<(String, String)> = Vec::new();
+        for cfg in &self.wconfig {
+            let Some(r) = self.wradios.iter().find(|r| r.name == cfg.name) else { continue };
+            let st = wireless::RadioState {
+                up: r.state == wireless::WState::Up,
+                pending: matches!(
+                    r.state,
+                    wireless::WState::Setup | wireless::WState::Teardown
+                ),
+                autostart: r.autostart,
+                retry_setup_failed: r.retry_setup_failed,
+            };
+            let one =
+                wireless::status_json(std::slice::from_ref(cfg), &self.whandlers, st, &r.ifnames);
+            // status_json returns a whole object keyed by radio; take the body
+            let body = one
+                .find(':')
+                .map(|i| one[i + 1..one.len() - 1].to_string())
+                .unwrap_or_else(|| "{}".to_string());
+            out.push((cfg.name.clone(), body));
+        }
+        format!("{{{}}}", out.iter().map(|(k, v)| format!("\"{k}\":{v}")).collect::<Vec<_>>().join(","))
+    }
+
+    /// `notify`. The handler scripts call this back while their setup runs.
+    fn wireless_notify(&mut self, fields: &[blob::Field]) -> i32 {
+        let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
+        let dev = find("device").and_then(|f| f.as_str()).unwrap_or("").to_string();
+        if self.wradios.iter().all(|r| r.name != dev) {
+            return status::NOT_FOUND;
+        }
+        let cmd = find("command").and_then(|f| f.as_u32()).map(|n| n as i64).unwrap_or(-1);
+        let vif = find("interface").and_then(|f| f.as_str()).map(|s| s.to_string());
+        let vlan = find("vlan").and_then(|f| f.as_str()).map(|s| s.to_string());
+        match cmd {
+            wireless::NOTIFY_UP => {
+                // `wdev_mark_up` refuses unless this is a plain device-level
+                // notify and the radio is still setting up.
+                if vif.is_some() || vlan.is_some() {
+                    return status::INVALID_ARGUMENT;
+                }
+                let Some(r) = self.wradio(&dev) else { return status::NOT_FOUND };
+                if r.state != wireless::WState::Setup {
+                    return status::INVALID_ARGUMENT;
+                }
+                r.state = wireless::WState::Up;
+                status::OK
+            }
+            wireless::NOTIFY_SET_DATA => {
+                // Only the per-interface `ifname` is kept: that is the one
+                // piece of handler data `status` reports.
+                let Some(key) = vif else { return status::OK };
+                let cfg = self.wconfig.iter().find(|c| c.name == dev);
+                // the notify names the interface by its key in the handler
+                // JSON ("01"), and handler_data is keyed by the section name
+                let section = key
+                    .parse::<usize>()
+                    .ok()
+                    .and_then(|n| cfg.and_then(|c| c.vifs.get(n.wrapping_sub(1))))
+                    .map(|v| v.section.clone());
+                let Some(section) = section else { return status::NOT_FOUND };
+                if vlan.is_some() {
+                    return status::OK;
+                }
+                let ifname = find("data")
+                    .and_then(|f| f.children().into_iter().find(|c| c.name == "ifname"))
+                    .and_then(|c| c.as_str().map(|s| s.to_string()));
+                let Some(ifname) = ifname else { return status::OK };
+                if let Some(r) = self.wradio(&dev) {
+                    match r.ifnames.iter_mut().find(|(s, _)| *s == section) {
+                        Some(slot) => slot.1 = ifname,
+                        None => r.ifnames.push((section, ifname)),
+                    }
+                }
+                status::OK
+            }
+            wireless::NOTIFY_PROCESS_ADD => status::OK,
+            wireless::NOTIFY_SET_RETRY => {
+                let retry = find("data")
+                    .and_then(|f| f.children().into_iter().find(|c| c.name == "retry"))
+                    .and_then(|c| c.as_u32());
+                if let Some(r) = self.wradio(&dev) {
+                    r.retry = retry.unwrap_or(wireless::DEFAULT_RETRY);
+                }
+                status::OK
+            }
+            _ => status::INVALID_ARGUMENT,
+        }
+    }
+
+    /// `up` / `down` / `retry` / `reconf`. With no `device` the C applies the
+    /// command to every radio.
+    fn wireless_command(&mut self, cmd: &str, fields: &[blob::Field]) -> i32 {
+        let dev = fields
+            .iter()
+            .find(|f| f.name == "device")
+            .and_then(|f| f.as_str())
+            .map(|s| s.to_string());
+        let names: Vec<String> = match &dev {
+            Some(d) => {
+                if self.wradios.iter().all(|r| r.name != *d) {
+                    return status::NOT_FOUND;
+                }
+                vec![d.clone()]
+            }
+            None => self.wradios.iter().map(|r| r.name.clone()).collect(),
+        };
+        for name in names {
+            match cmd {
+                "up" => {
+                    if let Some(r) = self.wradio(&name) {
+                        r.autostart = true;
+                    }
+                    self.wireless_setup(&name);
+                }
+                "down" => {
+                    if let Some(r) = self.wradio(&name) {
+                        r.autostart = false;
+                    }
+                    self.wireless_teardown(&name);
+                }
+                "retry" => {
+                    if let Some(r) = self.wradio(&name) {
+                        r.retry = wireless::DEFAULT_RETRY;
+                        r.retry_setup_failed = false;
+                    }
+                    self.wireless_setup(&name);
+                }
+                "reconf" => {
+                    self.wireless_teardown(&name);
+                }
+                _ => {}
+            }
+        }
+        status::OK
     }
 }
 

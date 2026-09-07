@@ -54,6 +54,28 @@ pub const DEVICE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("stp_init", &[]),
 ];
 
+/// `wireless.uc`'s `ubus_obj`, in its key order. Measured from the device:
+/// every method takes `device`, and `notify` carries the callback payload the
+/// handler scripts send.
+pub const WIRELESS_METHODS: &[(&str, &[(&str, MsgType)])] = &[
+    ("up", &[("device", MsgType::String)]),
+    ("down", &[("device", MsgType::String)]),
+    ("retry", &[("device", MsgType::String)]),
+    ("reconf", &[("device", MsgType::String)]),
+    ("status", &[("device", MsgType::String)]),
+    (
+        "notify",
+        &[
+            ("device", MsgType::String),
+            ("command", MsgType::Int32),
+            ("interface", MsgType::String),
+            ("vlan", MsgType::String),
+            ("data", MsgType::Table),
+        ],
+    ),
+    ("get_validate", &[("device", MsgType::String)]),
+];
+
 /// `iface_object_methods`.
 pub const IFACE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("up", &[]),
@@ -81,6 +103,7 @@ pub struct Objects {
     pub network: u32,
     pub device: u32,
     pub interface: u32,
+    pub wireless: u32,
     /// One per interface, in registration order.
     pub per_interface: Vec<(String, u32)>,
 }
@@ -94,6 +117,7 @@ impl Objects {
             network: conn.add_object("network", NETWORK_METHODS, 5000)?,
             device: conn.add_object("network.device", DEVICE_METHODS, 5000)?,
             interface: conn.add_object("network.interface", IFACE_METHODS, 5000)?,
+            wireless: conn.add_object("network.wireless", WIRELESS_METHODS, 5000)?,
             per_interface: Vec::new(),
         })
     }
@@ -125,6 +149,9 @@ impl Objects {
         if objid == self.interface {
             return Target::Interface(None);
         }
+        if objid == self.wireless {
+            return Target::Wireless;
+        }
         match self.per_interface.iter().find(|(_, id)| *id == objid) {
             Some((name, _)) => Target::Interface(Some(name)),
             None => Target::Unknown,
@@ -134,6 +161,7 @@ impl Objects {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Target<'a> {
+    Wireless,
     Network,
     Device,
     /// `None` for the shared object, `Some(name)` for a per-interface one.
@@ -238,6 +266,7 @@ mod tests {
             network: 1,
             device: 2,
             interface: 3,
+            wireless: 9,
             per_interface: vec![("lan".into(), 4), ("wan".into(), 5)],
         };
         assert_eq!(o.route(1), Target::Network);
