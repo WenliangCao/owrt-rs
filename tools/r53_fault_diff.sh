@@ -26,6 +26,11 @@ CFG='config interface "loopback"
 config interface "wan"
 	option device "veth1"
 	option proto "dhcp"
+
+config interface "checkup"
+	option device "veth3"
+	option proto "dhcp"
+	option checkup_interval "3"
 '
 
 run_one() {
@@ -96,6 +101,11 @@ UD
 		ip link add veth0 address 02:00:00:00:00:00 type veth \
 			peer name veth1 address 02:00:00:00:00:01
 		ip link set veth0 up; ip link set veth1 up
+		# no server on this pair: `checkup` never comes up, and the
+		# checkup interval is what decides what happens next
+		ip link add veth2 address 02:00:00:00:00:02 type veth \
+			peer name veth3 address 02:00:00:00:00:03
+		ip link set veth2 up; ip link set veth3 up
 		ip addr add 10.0.0.1/24 dev veth0
 
 		start_server() {
@@ -136,6 +146,19 @@ UD
 		}
 
 		wait_lease || true
+
+		# E: an interface that never comes up, with a checkup interval
+		{
+			echo "--- checkup status"
+			chroot "$root" ubus call network.interface.checkup status 2>/dev/null
+			echo "--- is odhcp6c/udhcpc still running for it"
+			p=$(cat "$root/var/run/udhcpc-veth3.pid" 2>/dev/null || true)
+			if [ -n "$p" ] && [ -d "/proc/$p" ]; then
+				echo "helper still running"
+			else
+				echo "helper gone"
+			fi
+		} > "$out/$tag-E-checkup.txt" 2>&1 || true
 
 		mark "A helper killed"
 		# ---- A: the helper dies on its own
@@ -235,7 +258,7 @@ case "$(cat "$out/c-A-kill.txt" 2>/dev/null)" in
 	*) echo "RESULT(A): the reference never lost its helper -- case A is untested"; rc=1 ;;
 esac
 
-for case in A-helper-killed A2-after-wait B-carrier-lost B2-carrier-back \
+for case in E-checkup A-helper-killed A2-after-wait B-carrier-lost B2-carrier-back \
 	    C-device-gone C2-device-back D-repeated; do
 	echo "=== $case"
 	if [ ! -s "$out/c-$case.txt" ]; then

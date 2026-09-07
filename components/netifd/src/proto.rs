@@ -245,6 +245,8 @@ pub struct ProtoState {
     pub task_killed: bool,
     pub available: bool,
     pub block_restart: bool,
+    /// Seconds-since-boot at which the checkup fires, while it is armed.
+    pub checkup_at: Option<u64>,
 }
 
 impl ProtoState {
@@ -409,7 +411,7 @@ pub fn task_finish(
 /// union of these and the handler's own `config` list, so an option that is in
 /// neither is not passed at all — matching `uci_to_blob`, which only copies
 /// what a parameter list names.
-const IFACE_ATTRS: &[(&str, MsgType)] = &[
+pub const IFACE_ATTRS: &[(&str, MsgType)] = &[
     ("device", MsgType::String),
     ("proto", MsgType::String),
     ("ifname", MsgType::String),

@@ -80,6 +80,9 @@ pub struct InterfaceConfig {
     pub ip6hint: Option<u32>,
     pub metric: u32,
     pub dns_metric: u32,
+    /// `checkup_interval`: seconds after the setup script exits before an
+    /// interface that is still setting up is torn down again.
+    pub checkup_interval: Option<u32>,
     pub dns: Vec<IpAddr>,
     pub dns_search: Vec<String>,
     pub ip4table: Option<u32>,
@@ -219,7 +222,8 @@ fn parse_v6(spec: &str) -> Option<(Ipv6Addr, u8)> {
 /// Anything else goes into `extra` for the proto handler.
 const KNOWN_IFACE_OPTS: &[&str] = &[
     "device", "ifname", "proto", "auto", "disabled", "ipaddr", "netmask", "ip6addr", "gateway",
-    "ip6gw", "ip6assign", "ip6hint", "metric", "dns_metric", "dns", "dns_search", "ip4table",
+    "ip6gw", "ip6assign", "ip6hint", "metric", "dns_metric", "checkup_interval",
+    "dns", "dns_search", "ip4table",
     "ip6table", "delegate", "force_link", "defaultroute", "peerdns", "type",
 ];
 
@@ -359,6 +363,7 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
     i.ip6hint = s_opt(s, "ip6hint").and_then(|v| u32::from_str_radix(v.trim(), 16).ok());
     i.metric = n_opt(s, "metric").unwrap_or(0);
     i.dns_metric = n_opt(s, "dns_metric").unwrap_or(0);
+    i.checkup_interval = n_opt(s, "checkup_interval");
     for d in l_opt(s, "dns") {
         match d.parse::<IpAddr>() {
             Ok(a) => i.dns.push(a),

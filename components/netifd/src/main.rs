@@ -387,6 +387,27 @@ impl Netifd {
         }
     }
 
+    /// `proto_ext_checkup_timeout_cb`: the setup script finished but the
+    /// interface never came up, so tear it down again. Cancelled whenever the
+    /// state machine leaves SETUP, exactly as the C cancels the timeout.
+    fn pump_checkups(&mut self) {
+        let names: Vec<String> = self
+            .protos
+            .iter()
+            .filter(|(_, st)| st.checkup_at.is_some_and(|at| now() >= at))
+            .map(|(n, _)| n.clone())
+            .collect();
+        for name in names {
+            self.proto_state(&name).checkup_at = None;
+            let Some(idx) = self.iface_index(&name) else { continue };
+            if !self.interfaces[idx].autostart || self.interfaces[idx].state == State::Up {
+                continue;
+            }
+            eprintln!("netifd-rs: Interface '{name}' is not up after the checkup interval");
+            self.proto_cmd(&name, proto::Cmd::Teardown);
+        }
+    }
+
     /// `__device_free_unused`: a device object with no users and no config
     /// section of its own is freed. Without this, an object created by
     /// `set_alias` for a device nothing references would linger and keep
@@ -1110,6 +1131,11 @@ impl Netifd {
                 let _ = st.task.signal(process::SIGTERM as u32);
             }
             proto::Action::Run { action, env } => {
+                if action != "setup" {
+                    // `uloop_timeout_cancel(&state->checkup_timeout)` on
+                    // teardown and on abort
+                    self.proto_state(name).checkup_at = None;
+                }
                 // `proto_ext_clear_host_dep` runs when a SETUP starts, not on
                 // teardown -- so a dependency that went unsatisfied keeps the
                 // interface unavailable until the protocol is set up again.
@@ -1647,9 +1673,20 @@ impl Netifd {
                     continue;
                 };
                 let Some(handler) = self.handler_for(&ic.proto).cloned() else { continue };
+                // `proto_ext_checkup_attach` reads `checkup_interval` out of
+                // the config blob handed to the protocol -- which carries
+                // only the parameters the handler declares. No handler on
+                // this device declares it, so the timer is never armed, and
+                // setting the option in UCI has no effect. Reading it
+                // straight from UCI instead armed a teardown the C never
+                // performs, and the interface then retried in a loop.
+                let declared = proto::IFACE_ATTRS.iter().any(|(n, _)| *n == "checkup_interval")
+                    || handler.config.iter().any(|(n, _)| n == "checkup_interval");
+                let checkup =
+                    if declared { ic.checkup_interval.unwrap_or(0) } else { 0 };
                 let effects = {
                     let st = self.proto_state(&name);
-                    proto::task_finish(st, which, &handler, 0)
+                    proto::task_finish(st, which, &handler, checkup)
                 };
                 for e in effects {
                     match e {
@@ -1673,9 +1710,10 @@ impl Netifd {
                             st.task_killed = true;
                             let _ = st.task.signal(sig);
                         }
-                        // no checkup timer in this build: the script's own
-                        // exit already drives the teardown
-                        proto::Finish::ArmCheckup => {}
+                        proto::Finish::ArmCheckup => {
+                            let at = now() + checkup as u64;
+                            self.proto_state(&name).checkup_at = Some(at);
+                        }
                     }
                 }
             }
@@ -2986,6 +3024,7 @@ impl Netifd {
             }
             self.reap_children();
             self.pump_removals();
+            self.pump_checkups();
             if fds[1].revents & POLLIN != 0 {
                 self.drain_netlink();
             }
