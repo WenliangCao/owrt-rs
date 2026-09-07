@@ -286,3 +286,26 @@ r43 用的是可写 ext4，没有 overlay 那一层。r44 换成官方的 squash
   r38 证明它对运行中的总线完全无影响）；切换路径分析见
   [UBUSD_SWITCH_ANALYSIS.md](../../docs/reviews/UBUSD_SWITCH_ANALYSIS.md)，**未执行**。
 - procd 自己作为 ubus 客户端的行为（它必须是 PID 1，沙箱跑不了）。
+
+## 9. 打包产物的行为验证（r2）
+
+r1 只装二进制和 verify 脚本；r2 增加了 `owrt-ubusd-boot-switch`。r2 第一次构建出来的
+二进制是**旧源码**：我把保真度修复（版本字节、属性策略过滤、`check_method`、畸形签名）、
+性能修复和 HELLO 镜像修复同步到了工作目录，但打包配方读的是 `release/25.12.5/components/`，
+那份还是修复之前的（17:12 对 20:35）。所以我最初说"r2 已验证"（sha256 `e1a21b32`）
+是错的——那个产物不含任何修复。同步两个组件目录、删掉旧 apk 与 build_dir 后重建：
+apk sha256 `9823f8b3`，包内二进制 `60ab6e69` / 502475 字节（比测试用的 `ce62c9256`
+/ 528440 字节小，差值是 `INSTALL_BIN` 多做的一次 strip）。
+
+**教训**：源码时间戳不是证据。所以不是"看日期推断"，而是把**包里解出来的那个二进制**
+重新跑一遍差分：
+
+| 复跑（对象是包内二进制，不是构建目录里的） | 结果 |
+|---|---|
+| r42 线格式模糊测试，664 例（含 600 个变异） | identical |
+| r36 行为差分 | identical transcripts |
+| r41 上限（消息上限、队列压力） | identical |
+| r38 惰性（对运行中的系统总线的影响） | 9 个对象前后不变、pid 不变、socket 未被替换、provider 存活；备用总线 0 对象即确实分离 |
+
+`owrt-ubusd-boot-switch` 的包内副本与仓库副本逐字节相同（`b0e58f8b`）；包内无 postinst /
+prerm / init 脚本（钩子数 0），装上不会自己启动，也不会碰 `/sbin/ubusd`。
