@@ -23,6 +23,7 @@ mod interface;
 mod ip;
 mod netdev_types;
 mod netlink;
+mod process;
 mod sys;
 mod ubus;
 
