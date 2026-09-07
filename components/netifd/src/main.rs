@@ -3375,6 +3375,7 @@ impl Netifd {
                 self.sigchld.drain();
             }
             self.reap_children();
+            self.pump_wireless_procs();
             self.pump_removals();
             self.pump_checkups();
             if fds[1].revents & POLLIN != 0 {
