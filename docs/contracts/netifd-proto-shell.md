@@ -4,8 +4,14 @@
 以及设备上的 `/lib/netifd/netifd-proto.sh`（484 行）与
 `/lib/netifd/proto/{dhcp,dhcpv6,ppp}.sh`。
 
-本文是**实现前的合同记录**，不是已实现的说明。netifd-rs 目前不跑 proto-shell，
-`get_proto_handlers` 只报 `static`（见 R45 §"两个已知缺口"）。
+本文是**实现前的合同记录**，不是已实现的说明。当前状态：
+
+- **已实现**：受监管子进程子系统（`components/netifd/src/process.rs`，
+  7 个单元测试）——§1 说的那个前提。
+- **未实现**：handler 发现（§1c 的 `dump`）、§3 的状态机、§4 的 8 个 action。
+  因此 netifd-rs 的 `get_proto_handlers` 仍只报 `static`，
+  遇到 `dhcp`/`dhcpv6` 的接口发 `ifup-failed` 并**保持 down**，
+  不做半套配置（见 R45 §"两个已知缺口"）。
 
 ## 1. 最关键的一点：netifd 是协议 helper 的进程监管者
 
@@ -16,6 +22,48 @@
 也就是说：实现 proto-shell **必须**先实现一个受监管子进程子系统
 （启动、SIGTERM/SIGKILL、退出回调、pid 记账），不能把 helper 交给 shell 自己去
 `&` 后台化——那样 netifd 就不知道 helper 死了。
+
+## 1b. 脚本必须以 proto 目录为工作目录执行
+
+`/lib/netifd/proto/dhcp.sh` 第 7 行是 `. ../netifd-proto.sh`——**相对路径**。
+直接 `chroot ... /lib/netifd/proto/dhcp.sh dhcp dump` 会立刻失败：
+
+```
+/lib/netifd/proto/dhcp.sh: .: line 7: can't open '../netifd-proto.sh'
+```
+
+而且失败时**退出码仍是 0**，所以"脚本跑过了"不能当成"脚本成功了"。
+`netifd_start_process` 里的 `fchdir(proc->dir_fd)` 就是为此存在的：
+必须先 `chdir` 到 `/lib/netifd/proto`，再以 `./dhcp.sh` 执行。
+
+## 1c. `dump` 的输出格式
+
+```json
+{ "name": "dhcp",
+  "config": [ ["ipaddr:ipaddr", 3], ["broadcast:bool", 7], ["mtu_dslite", 5],
+              ["sendopts:list(string)", 1] ],
+  "no-device": false, "no-device-config": false, "no-proto-task": false,
+  "available": false, "renew-handler": true, "lasterror": false,
+  "teardown-on-l3-link-down": false }
+```
+
+`config` 每项是 `["名字[:校验式]", blobmsg 类型]`。`get_proto_handlers` 的
+`validate` 表取冒号后的校验式；**没有冒号时按类型给默认名**——实测
+3 → `string`、5 → `uinteger`、7 → `bool`（例如 `clientid` 是 3 报 `string`，
+`delegate` 是 7 报 `bool`，`skpriority` 是 5 报 `uinteger`）。
+
+八个布尔的对应关系（`static` 的值见 R45 §2，shell handler 的 `immediate` 与
+`force_link_default` 都是 false）：
+
+| `get_proto_handlers` | `dump` |
+|---|---|
+| `no_device` | `no-device` |
+| `init_available` | `available` |
+| `renew_available` | `renew-handler` |
+| `last_error` | `lasterror` |
+| `teardown_on_l3_link_down` | `teardown-on-l3-link-down` |
+| `no_task` | `no-proto-task` |
+| `immediate` / `force_link_default` | 不在 dump 里，shell handler 均为 false |
 
 ## 2. 脚本调用形式
 
