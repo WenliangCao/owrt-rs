@@ -96,6 +96,9 @@ while IFS='|' read -r label obj method args; do
 	echo "--- call"
 	ubus call "$obj" "$method" "$args" 2>&1
 	echo "--- status $?"
+	# let anything the call armed actually happen before looking: `remove`
+	# runs off a 100ms timer, and reading before it fires reads nothing
+	sleep 2
 	echo "--- interface dump"
 	ubus call network.interface dump 2>&1
 	echo "--- device status veth6"

@@ -115,6 +115,8 @@ struct Netifd {
     hotplug: process::Slot,
     hotplug_current: Option<(String, Event)>,
     hotplug_queue: Vec<(String, Event)>,
+    /// Interfaces whose `remove` timer is armed.
+    remove_pending: Vec<String>,
     /// The bus socket, kept so the connection can be remade.
     socket: Option<String>,
     /// Set when the bus connection is gone; the loop keeps running on netlink
@@ -129,8 +131,11 @@ struct Netifd {
     /// A child's exit wakes the loop through this, rather than waiting for
     /// the poll timeout.
     sigchld: process::ChildSignal,
-    /// Devices whose `device_init` has run, so their state is cleared once.
-    cleared: Vec<String>,
+    /// Every device netifd has an object for. An entry means `device_init`
+    /// has run -- its state was cleared once -- and it means the device is
+    /// reported by `network.device status`, which lists every present object,
+    /// not just the ones the config names.
+    device_objects: Vec<String>,
     /// `dev->active`: how many users have claimed each device. The link state
     /// follows this count, not any single interface's state.
     claims: Vec<(String, i32)>,
@@ -168,13 +173,14 @@ impl Netifd {
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
+            remove_pending: Vec::new(),
             socket: socket.map(|s| s.to_string()),
             bus_down: false,
             bus_retry_at: 0,
             link_state: Vec::new(),
             present: Vec::new(),
             sigchld: process::ChildSignal::install()?,
-            cleared: Vec::new(),
+            device_objects: Vec::new(),
             claims: Vec::new(),
             parents: Vec::new(),
             claimed_main: Vec::new(),
@@ -335,10 +341,10 @@ impl Netifd {
     /// device that is up and configured.
     fn clear_new_device_state(&mut self) {
         for name in self.known_device_names() {
-            if self.cleared.contains(&name) {
+            if self.device_objects.contains(&name) {
                 continue;
             }
-            self.cleared.push(name.clone());
+            self.device_objects.push(name.clone());
             // a bridge this daemon is about to create is cleared when it
             // exists; one left over from a previous run is deleted
             self.sys.clear_state(&name, false);
@@ -365,8 +371,8 @@ impl Netifd {
             return;
         }
         if let Some(p) = self.sys.parent_of(name) {
-            if !self.cleared.contains(&p) {
-                self.cleared.push(p.clone());
+            if !self.device_objects.contains(&p) {
+                self.device_objects.push(p.clone());
                 self.sys.clear_state(&p, false);
             }
             self.parents.push((name.to_string(), p.clone()));
@@ -479,7 +485,10 @@ impl Netifd {
 
     /// Refresh the registry from the kernel, for the named devices only.
     fn rescan_devices(&mut self) {
-        let known = self.known_device_names();
+        // every device object, not just the config-named ones: a parent
+        // claimed through `iflink` has an object too, and the C's
+        // `network.device status` lists it
+        let known = self.device_objects.clone();
         let msgs = match self.sys.dump_links() {
             Ok(m) => m,
             Err(e) => {
@@ -507,7 +516,10 @@ impl Netifd {
                 .cloned()
                 .unwrap_or_else(|| Device::new(name, kind));
             d.type_name = kind.to_string();
-            d.present = true;
+            // `device_refresh_present`: present is the kernel's view minus
+            // anything `set_state {"defer":true}` has held back
+            d.sys_present = true;
+            d.present = !d.deferred;
             d.active = flags & sys::IFF_UP != 0;
             d.link_active = flags & sys::IFF_LOWER_UP != 0;
             d.orig_settings = device::read_settings(name, &self.ethtool, &self.ifioctl);
@@ -994,7 +1006,12 @@ impl Netifd {
         i.device = Some(devname);
         i.proto_ip = ipset;
         i.proto_ip.routes.sort_by(interface::route_order);
-        i.updated = interface::updated::ADDRESS;
+        // only what was actually applied: an interface that came up with no
+        // addresses has `updated` empty, and the status omits the key
+        i.updated = 0;
+        if !i.proto_ip.addresses.is_empty() {
+            i.updated |= interface::updated::ADDRESS;
+        }
         if !i.proto_ip.routes.is_empty() {
             i.updated |= interface::updated::ROUTE;
         }
@@ -1931,6 +1948,154 @@ impl Netifd {
         }
     }
 
+    /// `netifd_handle_set_state`.
+    fn device_set_state(&mut self, data: &[u8]) -> i32 {
+        let fields: Vec<blob::Field> = blob::fields(data).collect();
+        let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
+        let Some(name) = find("name").and_then(|f| f.as_str()).map(|s| s.to_string()) else {
+            return status::INVALID_ARGUMENT;
+        };
+        if self.devices.get(&name).is_none() {
+            return status::NOT_FOUND;
+        }
+        if let Some(defer) = find("defer").and_then(|f| f.as_bool()) {
+            if let Some(d) = self.devices.get_mut(&name) {
+                d.deferred = defer;
+                // `device_refresh_present`
+                d.present = d.sys_present && !d.deferred;
+            }
+        }
+        if let Some(a) = find("auth_status").and_then(|f| f.as_bool()) {
+            if let Some(d) = self.devices.get_mut(&name) {
+                d.auth_status = a;
+            }
+        }
+        status::OK
+    }
+
+    /// `netifd_handle_alias`.
+    fn device_set_alias(&mut self, data: &[u8]) -> i32 {
+        let fields: Vec<blob::Field> = blob::fields(data).collect();
+        let Some(alias) = fields.iter().find(|f| f.name == "alias") else {
+            return status::INVALID_ARGUMENT;
+        };
+        for a in alias.children() {
+            if a.ty != MsgType::String as u32 || a.as_str().is_none_or(|s| s.is_empty()) {
+                return status::INVALID_ARGUMENT;
+            }
+        }
+        if let Some(dev) = fields
+            .iter()
+            .find(|f| f.name == "device")
+            .and_then(|f| f.as_str())
+            .map(|s| s.to_string())
+        {
+            // `device_get(name, true)` creates the object, and `device_init`
+            // clears the device's kernel state exactly once
+            if !self.device_objects.contains(&dev) {
+                self.device_objects.push(dev.clone());
+                self.sys.clear_state(&dev, false);
+            }
+            self.rescan_devices();
+        }
+        status::OK
+    }
+
+    /// `netifd_add_dynamic`: an interface created at runtime rather than from
+    /// the config, with the request itself as its config.
+    fn add_dynamic(&mut self, data: &[u8]) -> i32 {
+        let fields: Vec<blob::Field> = blob::fields(data).collect();
+        let Some(name) = fields
+            .iter()
+            .find(|f| f.name == "name")
+            .and_then(|f| f.as_str())
+            .map(|s| s.to_string())
+        else {
+            return status::INVALID_ARGUMENT;
+        };
+        if self.interfaces.iter().any(|i| i.name == name) {
+            return status::OK;
+        }
+        // `get_proto_handler`: no `proto` in the config means the "none"
+        // handler, and the status prints that name
+        let mut ic = config::InterfaceConfig {
+            name: name.clone(),
+            proto: "none".to_string(),
+            ..Default::default()
+        };
+        for f in &fields {
+            match f.name {
+                "proto" => ic.proto = f.as_str().unwrap_or_default().to_string(),
+                "device" | "ifname" => ic.device = f.as_str().map(|s| s.to_string()),
+                "auto" => ic.auto = f.as_bool(),
+                "metric" => ic.metric = f.as_u32().unwrap_or(0),
+                _ => {}
+            }
+        }
+        self.cfg.interfaces.push(ic.clone());
+        // `interface_claim_device`: `device_get(iface->device, true)` creates
+        // the device object -- and with it its parent's -- so both show up in
+        // `network.device status`
+        if let Some(dev) = ic.device.clone() {
+            if !self.device_objects.contains(&dev) {
+                self.device_objects.push(dev.clone());
+                self.sys.clear_state(&dev, false);
+            }
+            self.rescan_devices();
+        }
+        let mut i = self.new_interface(&ic);
+        i.dynamic = true;
+        // available is set by `interface_set_main_dev`, which is what starts
+        // the interface -- so go through `set_available` rather than setting
+        // the field, or a dynamic interface with a real device never comes up
+        let present = i.available;
+        i.available = false;
+        self.interfaces.push(i);
+        self.interfaces.sort_by(|a, b| a.name.cmp(&b.name));
+        if let Err(e) = self.register_interface(&name) {
+            eprintln!("netifd-rs: cannot register {name}: {e}");
+            return status::UNKNOWN_ERROR;
+        }
+        eprintln!("netifd-rs: Create interface '{name}'");
+        if present {
+            self.set_available(&name, true);
+        }
+        // `interface_update`'s create branch does NOT start the interface --
+        // it creates it, claims its device and registers the object. It comes
+        // up when `interface_set_available(true)` fires, which is why the C
+        // leaves a device-less dynamic interface down with no error.
+        status::OK
+    }
+
+    /// The `remove` timer firing: `vlist_delete`. It takes the interface out
+    /// whether it came from the config or from `add_dynamic` -- r55 seemed to
+    /// show a config interface surviving, but that dump was taken before the
+    /// 100ms timer fired; given two seconds, the C removes it and its
+    /// address.
+    fn pump_removals(&mut self) {
+        if self.remove_pending.is_empty() {
+            return;
+        }
+        for name in std::mem::take(&mut self.remove_pending) {
+            if self.iface_index(&name).is_none() {
+                continue;
+            }
+            eprintln!("netifd-rs: Remove interface '{name}'");
+            // Exactly one ifdown. `mark_interface_down` flushes the state,
+            // releases the claims and emits a single IFEV_DOWN; adding
+            // `set_down` first emitted a second one, and skipping both
+            // emitted none. The C emits one.
+            self.mark_interface_down(&name);
+            self.interfaces.retain(|i| i.name != name);
+            self.cfg.interfaces.retain(|c| c.name != name);
+            if let Err(e) = self.objects.remove_interface(&mut self.conn, &name) {
+                eprintln!("netifd-rs: cannot unregister {name}: {e}");
+            }
+            self.link_state.retain(|(n, _)| *n != name);
+            self.protos.retain(|(n, _)| *n != name);
+        }
+    }
+
     /// `interface_parse_data`: merge a table of named values into the
     /// interface's data. Note that it clears `updated` FIRST -- so a second
     /// call with the same values leaves the status with no `updated` key at
@@ -2269,6 +2434,19 @@ impl Netifd {
                 self.reload();
                 self.conn.reply_status(&req, status::OK, None)
             }
+            // `netifd_netns_updown` needs a netns fd passed by the caller
+            // (`ubus_request_get_caller_fd`) and answers INVALID_ARGUMENT
+            // without one. This build never receives fds and does not do
+            // jails, so that is the only answer it can give -- the same one
+            // the C gives to the same call.
+            (ubus::Target::Network, "netns_updown") => {
+                self.conn.reply_status(&req, status::INVALID_ARGUMENT, None)
+            }
+            // `netifd_add_dynamic`: the whole request is the config.
+            (ubus::Target::Network, "add_dynamic") => {
+                let code = self.add_dynamic(&req.data);
+                self.conn.reply_status(&req, code, None)
+            }
             (ubus::Target::Network, "get_proto_handlers") => {
                 let mut b = BlobBuf::new();
                 self.dump_proto_handlers(&mut b);
@@ -2302,6 +2480,24 @@ impl Netifd {
                 self.conn
                     .reply_data(&req, &fields)
                     .and_then(|()| self.conn.reply_status(&req, status::OK, None))
+            }
+            // `netifd_handle_set_state`
+            (ubus::Target::Device, "set_state") => {
+                let code = self.device_set_state(&req.data);
+                self.conn.reply_status(&req, code, None)
+            }
+            // `netifd_handle_alias`. Alias devices themselves are out of
+            // scope (R45), so nothing is notified -- but the side effect that
+            // r55 saw is real: naming a device here creates a device object
+            // for it, which is then reported by `network.device status`.
+            (ubus::Target::Device, "set_alias") => {
+                let code = self.device_set_alias(&req.data);
+                self.conn.reply_status(&req, code, None)
+            }
+            // `netifd_handle_stp_init` has nothing to initialise without an
+            // STP daemon to talk to, and answers OK.
+            (ubus::Target::Device, "stp_init") => {
+                self.conn.reply_status(&req, status::OK, None)
             }
             (ubus::Target::Device, m) => ubus::not_supported(&mut self.conn, &req, m),
             (ubus::Target::Interface(_), "dump") => {
@@ -2349,6 +2545,38 @@ impl Netifd {
                 self.conn.reply_status(&req, status::OK, None)
             }
             // `netifd_handle_set_data` -> `interface_parse_data`
+            // `netifd_iface_handle_device` -> `interface_handle_link`.
+            // Assigning a device to an interface by hotplug needs the device
+            // type's hotplug ops, which nothing in this build has, so `add`
+            // is NOT_SUPPORTED -- the same answer the C gives here. `remove`
+            // reports that the named device is not linked to this interface.
+            (ubus::Target::Interface(Some(name)), m @ ("add_device" | "remove_device")) => {
+                let name = name.to_string();
+                let has_name = blob::fields(&req.data)
+                    .any(|f| f.name == "name" && f.ty == MsgType::String as u32);
+                let code = if !has_name {
+                    status::INVALID_ARGUMENT
+                } else if m == "add_device" {
+                    status::NOT_SUPPORTED
+                } else {
+                    let _ = &name;
+                    status::INVALID_ARGUMENT
+                };
+                self.conn.reply_status(&req, code, None)
+            }
+            // `netifd_iface_remove`: arms a 100ms timer that deletes the
+            // interface from the vlist. A second call while one is pending is
+            // INVALID_ARGUMENT.
+            (ubus::Target::Interface(Some(name)), "remove") => {
+                let name = name.to_string();
+                let code = if self.remove_pending.contains(&name) {
+                    status::INVALID_ARGUMENT
+                } else {
+                    self.remove_pending.push(name);
+                    status::OK
+                };
+                self.conn.reply_status(&req, code, None)
+            }
             (ubus::Target::Interface(Some(name)), "set_data") => {
                 let name = name.to_string();
                 let code = self.set_data(&name, &req.data);
@@ -2486,6 +2714,7 @@ impl Netifd {
                 self.sigchld.drain();
             }
             self.reap_children();
+            self.pump_removals();
             if fds[1].revents & POLLIN != 0 {
                 self.drain_netlink();
             }

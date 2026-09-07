@@ -256,6 +256,11 @@ pub struct Device {
     pub type_name: String,
     pub external: bool,
     pub present: bool,
+    /// `dev->sys_present`: the kernel has this device. `present` is this and
+    /// not deferred, as `device_refresh_present` computes it.
+    pub sys_present: bool,
+    /// `dev->deferred`, set by `network.device set_state {"defer":true}`.
+    pub deferred: bool,
     /// `dev->active`: brought up by netifd
     pub active: bool,
     /// `dev->link_active`: carrier
@@ -274,6 +279,8 @@ impl Device {
             ifname: ifname.to_string(),
             type_name: type_name.to_string(),
             external: false,
+            sys_present: false,
+            deferred: false,
             present: false,
             active: false,
             link_active: false,
