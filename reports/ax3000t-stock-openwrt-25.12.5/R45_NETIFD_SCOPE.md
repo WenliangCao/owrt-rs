@@ -97,7 +97,8 @@ Rust 侧的探针跑在 chroot 外、同一组 namespace 内，所以它看到�
 | r46 | 同一串操作分别由 iproute2 和 netifd-rs 的 netlink 编码执行，比内核状态 | identical，57 行 `ip -d link` / `ip addr` / `ip route show table all` / `bridge link` |
 | r47 | `network.device status` 逐字段 | identical，6 个设备 234 个字段 |
 | r48 | `network.interface dump` 逐字段（8 个接口的 static 配置） | identical |
-| — | `tools/check_netlink_consts.sh` | 105 个内核常量全部与头文件一致 |
+| r49 | **两个 daemon 各自跑起来**：同 rootfs、同配置、同一个 libubus 客户端逐项询问，再用 iproute2 比内核状态 | ubus 面 identical，内核状态 identical |
+| — | `tools/check_netlink_consts.sh` | 106 个内核常量全部与头文件一致 |
 
 ### 这几轮各自抓到了什么
 
@@ -122,8 +123,44 @@ Rust 侧的探针跑在 chroot 外、同一组 namespace 内，所以它看到�
   三者与 C 完全一致；`multi` 实际拿到 3 个 v4 + 2 个 v6 地址和两张路由表，
   `nodev` 报 1 个 `NO_DEVICE`，`manual` 保持 down，`nodeleg` 的 `delegation` 为 false。
 
+### r49 抓到的八个缺陷
+
+全部先在 C 源码里定位成因，再改，不靠猜：
+
+1. **IPv4 地址要自己算广播地址**，内核不会推。`/31`、`/32` 用 `255.255.255.255`，
+   更短的用"地址或上主机位"（`interface-ip.c:667`）。少了它 `ip addr` 里没有 `brd`。
+2. **前缀路由要接管**：先按内核的样子（`proto kernel`、**metric 0**、main 表）删掉自动
+   路由，再加上带接口 metric/表的自己的那条。删除必须发生在
+   `interface_set_route_info` 之前——带着接口 metric 去删，什么都匹配不到。
+   而且只在 `iface->metric` 或策略表非零时才接管，否则 netifd 根本不动内核那条。
+3. **网桥成员要关掉 IPv6**（`bridge_enable_member`），所以成员自己没有链路本地地址。
+4. **配置提到但接口没起来的设备要被拉下来**（`set_device_state(dev,false)` →
+   `system_if_down`）。
+5. **每个委派前缀要加一条 `unreachable` 路由**，metric `INT32_MAX`，避免路由回环。
+6. **每个前缀分配要加一条在链路路由**，掩码不短于 `/64`。
+7. **`device` 字段按配置报，即使设备不存在**；`available` 跟随设备是否存在，
+   与接口有没有起来无关。
+8. **设备表只装配置提到的设备**。netifd **不枚举内核链路**：我一开始把
+   `/sys/class/net` 全枚举进去，于是一个没人提到的 veth 对端出现在
+   `network.device status` 里——C 没有它。
+
+### 两个已知缺口（在比较脚本里单独报告，不混进"差异"）
+
+- `network.wireless`：由 netifd 进程内的 ucode 虚拟机里的 `wireless.uc` 注册，
+  本 build 不托管 ucode，所以没有这个对象。
+- `get_proto_handlers`：本 build 只报它真的能跑的 handler（只有 `static`）。
+  报一个跑不了的 `dhcp` 会让调用方以为能用。
+
 ### 还没有验证的
 
-状态机本身（`up`/`available`/`autostart`/`uptime`/`l3_device` 在 r47/r48 里是从 C 的
-输出里取的，因为它们是 netifd 自己的簿记而不是内核状态）、proto-shell、无线编排、
-`network` 与 `network.device` 的写方法、以及 ubus 侧的对象注册与事件。
+proto-shell（`dhcp`/`dhcpv6`/`ppp`/`pppoe`，本机 WAN 真正需要）、无线编排、
+`network.device` 的写方法（`set_alias`/`set_state`/`stp_init`）、
+`network.interface` 除 `up`/`down` 以外的写方法、`network` 的
+`add_host_route`/`add_dynamic`/`netns_updown`、载波驱动的 setup/teardown、
+reload 的变更检测（现在是全拆全建）、ubus 事件（`interface.<name>` 的 ifup/ifdown
+通知）、以及计划 §2.3 要求的故障用例（WAN 失联、helper 退出、netlink 失败、
+重复/乱序事件、接口删除重建、ubus 重连）。
+
+r47/r48 里 `up`/`available`/`autostart`/`uptime`/`l3_device` 是从 C 的输出里取的
+（它们是 netifd 自己的簿记而不是内核状态）；**r49 不是**——r49 里这些字段由
+netifd-rs 自己产生，两边一致。
