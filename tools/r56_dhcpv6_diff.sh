@@ -147,6 +147,17 @@ PROBE
 		done
 		echo "waited: ${i}s" > "$out/$tag-wait.txt"
 
+		# Wait for duplicate address detection to finish. A `tentative`
+		# address has no `local` route yet, so sampling mid-DAD produces a
+		# difference that is kernel timing and nothing to do with netifd --
+		# it showed up on either side depending on the run.
+		i=0
+		while [ $i -lt 15 ]; do
+			ip -o -6 addr show dev veth1 | grep -q tentative || break
+			i=$((i+1)); sleep 1
+		done
+		echo "dad settle: ${i}s" >> "$out/$tag-wait.txt"
+
 		chroot "$root" /bin/sh /tmp/probe.sh > "$out/$tag-ubus.txt" 2>&1 || true
 		{
 			echo "--- ip -6 addr veth1"

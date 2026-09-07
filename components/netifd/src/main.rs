@@ -1361,6 +1361,53 @@ impl Netifd {
     }
 
     /// The address, route and DNS half of action 0.
+    /// `vlist_flush` for the three applied lists: anything the previous
+    /// update put on the device and this one did not repeat comes off again.
+    /// With `keep` the new set starts as a copy of the old, so nothing here
+    /// matches and nothing is removed -- which is what `keep` means.
+    fn flush_stale_ip(
+        &mut self,
+        name: &str,
+        devidx: u32,
+        old: &interface::IpSettings,
+        new: &interface::IpSettings,
+    ) {
+        // The comparisons are the vlist keys, not the whole struct: an address
+        // is its prefix, a route its destination and nexthop, a neighbour its
+        // address. A renewal that only changes a lifetime is the same entry
+        // and must not be removed and re-added.
+        for a in &old.addresses {
+            if new.addresses.iter().any(|n| n.addr == a.addr && n.mask == a.mask) {
+                continue;
+            }
+            let sa = sys::Address::new(a.addr, a.mask);
+            if let Err(e) = self.sys.del_address(devidx, &sa) {
+                eprintln!("netifd-rs: {name}: cannot remove {}/{}: {e}", a.addr, a.mask);
+            }
+        }
+        for r in &old.routes {
+            if new.routes.iter().any(|n| {
+                n.target == r.target && n.mask == r.mask && n.nexthop == r.nexthop
+                    && n.table == r.table && n.metric == r.metric
+            }) {
+                continue;
+            }
+            let _ = self.sys.del_route(devidx, &sys_route(r));
+        }
+        for n in &old.neighbors {
+            if new.neighbors.iter().any(|x| x.addr == n.addr && x.proxy == n.proxy) {
+                continue;
+            }
+            let sn = sys::Neighbor {
+                addr: n.addr,
+                mac: n.mac,
+                proxy: n.proxy != 0,
+                router: n.router != 0,
+            };
+            let _ = self.sys.neighbor(devidx, &sn, false);
+        }
+    }
+
     fn apply_proto_link(&mut self, name: &str, fields: &[blob::Field]) -> i32 {
         let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
         let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
@@ -1405,7 +1452,13 @@ impl Netifd {
             self.iface_claim(name, &l3, true);
         }
 
-        // `interface_update_start(iface, keep)`
+        // `interface_update_start(iface, keep)` marks the applied entries
+        // stale unless `keep`; whatever this update does not re-add is
+        // removed from the kernel by `interface_update_complete` below.
+        let previous = self
+            .iface_index(name)
+            .map(|i| self.interfaces[i].proto_ip.clone())
+            .unwrap_or_default();
         let mut ipset = if keep {
             self.iface_index(name)
                 .map(|i| self.interfaces[i].proto_ip.clone())
@@ -1539,6 +1592,13 @@ impl Netifd {
             }
         }
 
+        // `interface_update_complete`: vlist_flush drops the entries this
+        // update did not renew, and their free callbacks take them out of the
+        // kernel. Without this a protocol that reports a new address on every
+        // renewal accumulates them all on the device -- r55 caught exactly
+        // that, three addresses on veth4 where the C had one.
+        self.flush_stale_ip(name, devidx, &previous, &ipset);
+
         // `IFPEV_UP`: the interface only completes its bring-up from SETUP.
         // One that is already up gets an IFEV_UPDATE; one that is DOWN --
         // because something took it down while the protocol was still
@@ -1634,27 +1694,7 @@ impl Netifd {
         r: &interface::Route,
         ipset: &mut interface::IpSettings,
     ) {
-        let mut k = match r.target {
-            IpAddr::V4(a) => sys::Route::v4(a, r.mask),
-            IpAddr::V6(a) => sys::Route::v6(a, r.mask),
-        };
-        k.nexthop = r.nexthop;
-        k.metric = r.metric;
-        k.table = if r.table != 0 { r.table } else { sys::RT_TABLE_MAIN };
-        k.mtu = (r.flags & interface::devroute::MTU != 0).then_some(r.mtu);
-        if r.flags & interface::devroute::ONLINK != 0 {
-            k.onlink = true;
-        }
-        if r.flags & interface::devroute::TYPE != 0 {
-            k.ty = Some(r.ty as u8);
-        }
-        if r.flags & interface::devroute::PROTO != 0 {
-            k.proto = Some(r.proto as u8);
-        }
-        if r.sourcemask != 0 {
-            k.source = Some(r.source);
-            k.sourcemask = r.sourcemask;
-        }
+        let k = sys_route(r);
         if let Err(e) = self.sys.add_route(devidx, &k) {
             eprintln!("netifd-rs: {name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
             return;
@@ -3113,6 +3153,33 @@ impl Netifd {
             }
         }
     }
+}
+
+/// One applied route as the kernel wants it. Shared by the add path and the
+/// flush below, so a route is removed with exactly the key it was added with.
+fn sys_route(r: &interface::Route) -> sys::Route {
+    let mut k = match r.target {
+        IpAddr::V4(a) => sys::Route::v4(a, r.mask),
+        IpAddr::V6(a) => sys::Route::v6(a, r.mask),
+    };
+    k.nexthop = r.nexthop;
+    k.metric = r.metric;
+    k.table = if r.table != 0 { r.table } else { sys::RT_TABLE_MAIN };
+    k.mtu = (r.flags & interface::devroute::MTU != 0).then_some(r.mtu);
+    if r.flags & interface::devroute::ONLINK != 0 {
+        k.onlink = true;
+    }
+    if r.flags & interface::devroute::TYPE != 0 {
+        k.ty = Some(r.ty as u8);
+    }
+    if r.flags & interface::devroute::PROTO != 0 {
+        k.proto = Some(r.proto as u8);
+    }
+    if r.sourcemask != 0 {
+        k.source = Some(r.source);
+        k.sourcemask = r.sourcemask;
+    }
+    k
 }
 
 fn main() {
