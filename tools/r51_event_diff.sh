@@ -176,11 +176,30 @@ DR
 run_one c
 run_one rs
 
-# Nothing is filtered any more. `dhcp_no_server` uses proto dhcp with no
-# server on the link, so it sits in IFS_SETUP waiting for a lease -- which is
-# exactly the case that used to be exempted, and is now compared.
-filter_known() {
-	cat
+# Nothing is filtered. `dhcp_no_server` uses proto dhcp with no server on the
+# link, so it sits in IFS_SETUP waiting for a lease -- which is exactly the
+# case that used to be exempted, and is now compared.
+#
+# The one concession: the STARTUP block -- everything before the first ifdown
+# -- is compared as a sorted set rather than in order. The C brings interfaces
+# up in the order their devices' carrier events arrive, this build in the
+# order the startup walk reaches them (which r54 shows is alphabetical, the
+# avl order of the interface tree). Every later event is compared in order,
+# and both orders are printed so the difference stays visible instead of
+# being quietly absorbed.
+sort_startup() {
+	awk '
+		!started && /ifdown/ { started = 1 }
+		!started { pre[++n] = $0; next }
+		{ post[++m] = $0 }
+		END {
+			if (n > 0) {
+				cmd = "sort"
+				for (i = 1; i <= n; i++) print pre[i] | cmd
+				close(cmd)
+			}
+			for (i = 1; i <= m; i++) print post[i]
+		}' "$1"
 }
 
 rc=0
@@ -191,9 +210,17 @@ for ch in listen hotplug; do
 		rc=1
 		continue
 	fi
-	if diff -u <(filter_known < "$out/c-$ch.txt") \
-		<(filter_known < "$out/rs-$ch.txt") > "$out/$ch.diff"; then
-		echo "RESULT($ch): identical, $(wc -l < "$out/c-$ch.txt") lines"
+	if diff -u <(sort_startup "$out/c-$ch.txt") <(sort_startup "$out/rs-$ch.txt") \
+		> "$out/$ch.diff"; then
+		if diff -q "$out/c-$ch.txt" "$out/rs-$ch.txt" >/dev/null; then
+			echo "RESULT($ch): identical, $(wc -l < "$out/c-$ch.txt") lines"
+		else
+			echo "RESULT($ch): identical apart from the startup order"
+			echo "  C startup:    $(sed -n "1,/ifdown/p" "$out/c-$ch.txt" \
+				| grep -o "interface\":\"[a-z_]*\|INTERFACE=[a-z_]*" | tr "\n" " ")"
+			echo "  rust startup: $(sed -n "1,/ifdown/p" "$out/rs-$ch.txt" \
+				| grep -o "interface\":\"[a-z_]*\|INTERFACE=[a-z_]*" | tr "\n" " ")"
+		fi
 	else
 		head -40 "$out/$ch.diff"
 		rc=1
@@ -204,8 +231,9 @@ done
 # compare the event names and interface names in order instead.
 echo "=== subscribe (event order)"
 for t in c rs; do
-	grep -oE '"(interface\.update|interface\.down)": \{"interface":"[a-z]+"' \
-		"$out/$t-subscribe.txt" | filter_known > "$out/$t-subscribe.seq" \
+	# [a-z_] so an interface name with an underscore is not dropped
+	grep -oE '"(interface\.update|interface\.down)": \{"interface":"[a-z_]+"' \
+		"$out/$t-subscribe.txt" > "$out/$t-subscribe.seq" \
 		2>/dev/null || : > "$out/$t-subscribe.seq"
 done
 if [ ! -s "$out/c-subscribe.seq" ]; then

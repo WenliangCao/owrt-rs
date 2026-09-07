@@ -98,6 +98,15 @@ impl Objects {
         })
     }
 
+    /// `netifd_ubus_remove_interface`.
+    pub fn remove_interface(&mut self, conn: &mut Connection, name: &str) -> io::Result<()> {
+        let Some(pos) = self.per_interface.iter().position(|(n, _)| n == name) else {
+            return Ok(());
+        };
+        let (_, id) = self.per_interface.remove(pos);
+        conn.remove_object(id, 5000)
+    }
+
     pub fn add_interface(&mut self, conn: &mut Connection, name: &str) -> io::Result<u32> {
         let path = format!("network.interface.{name}");
         let id = conn.add_object(&path, IFACE_METHODS, 5000)?;

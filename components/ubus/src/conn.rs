@@ -285,6 +285,19 @@ impl Connection {
         Ok(reply)
     }
 
+    /// Unregister an object by the id `add_object` returned. Needed when a
+    /// config section goes away: leaving the object registered would keep
+    /// answering for something that no longer exists.
+    pub fn remove_object(&mut self, id: u32, timeout_ms: i32) -> io::Result<()> {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, id);
+        let reply = self.request(ty::REMOVE_OBJECT, 0, &mut b, None, timeout_ms)?;
+        if reply.status != status::OK {
+            return Err(ubus_error(reply.status));
+        }
+        Ok(())
+    }
+
     /// Register an object. `methods` lists (name, [(arg name, arg type)]).
     /// Returns the object id assigned by ubusd.
     pub fn add_object(

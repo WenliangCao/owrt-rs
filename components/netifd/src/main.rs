@@ -73,6 +73,20 @@ fn string_list(f: &blob::Field) -> Vec<String> {
     f.as_str().map(|s| vec![s.to_string()]).unwrap_or_default()
 }
 
+/// Whether a config change needs the interface reloaded. This is
+/// `interface_change_config`'s `reload` decision: the device, the protocol
+/// and the protocol's own parameters. `raw` is deliberately not compared --
+/// `uci_blob_check_equal` only looks at the parameters the protocol declares,
+/// so an option nothing reads changing is not a reason to bounce the link.
+fn config_changed(a: &config::InterfaceConfig, b: &config::InterfaceConfig) -> bool {
+    let strip = |c: &config::InterfaceConfig| {
+        let mut c = c.clone();
+        c.raw.clear();
+        c
+    };
+    strip(a) != strip(b)
+}
+
 fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
@@ -170,6 +184,8 @@ impl Netifd {
     /// Load the config and bring up what it asks for. Called at startup and by
     /// `network.reload`.
     fn reload(&mut self) {
+        let first = self.interfaces.is_empty();
+        let old = self.cfg.clone();
         match config::load(&self.confdir) {
             Ok(c) => self.cfg = c,
             Err(e) => {
@@ -187,11 +203,13 @@ impl Netifd {
             eprintln!("netifd-rs: shell protocol handlers: {}", names.join(" "));
         }
 
-        for (_, st) in &mut self.protos {
-            st.script.terminate();
-            st.task.terminate();
+        if first {
+            for (_, st) in &mut self.protos {
+                st.script.terminate();
+                st.task.terminate();
+            }
+            self.protos.clear();
         }
-        self.protos.clear();
 
         self.clear_new_device_state();
         self.rescan_devices();
@@ -203,7 +221,98 @@ impl Netifd {
         }
         self.create_devices();
         self.build_prefixes();
-        self.setup_interfaces();
+        if first {
+            self.setup_interfaces();
+        } else {
+            self.apply_config_change(&old);
+        }
+    }
+
+    /// `vlist_update` over the interface tree: a section that is gone is
+    /// removed, a new one is created and started, and one that is still there
+    /// is reloaded only if its config actually changed.
+    ///
+    /// This is the difference between a reload and a restart. Rebuilding
+    /// everything reaches the same final state, so the state afterwards
+    /// cannot tell the two apart -- but every interface bounces, and anything
+    /// watching hotplug.d or the ubus events sees it.
+    fn apply_config_change(&mut self, old: &config::Config) {
+        let new = self.cfg.interfaces.clone();
+
+        // gone
+        for oc in &old.interfaces {
+            if new.iter().any(|n| n.name == oc.name) {
+                continue;
+            }
+            eprintln!("netifd-rs: Remove interface '{}'", oc.name);
+            self.set_down(&oc.name);
+            self.mark_interface_down(&oc.name);
+            self.interfaces.retain(|i| i.name != oc.name);
+            if let Err(e) = self.objects.remove_interface(&mut self.conn, &oc.name) {
+                eprintln!("netifd-rs: cannot unregister {}: {e}", oc.name);
+            }
+            self.link_state.retain(|(n, _)| *n != oc.name);
+            self.protos.retain(|(n, _)| *n != oc.name);
+        }
+
+        // new, then changed -- both in name order, as the vlist walk is
+        let mut names: Vec<String> = new.iter().map(|c| c.name.clone()).collect();
+        names.sort();
+        for name in names {
+            let nc = new.iter().find(|c| c.name == name).cloned().unwrap();
+            match old.interfaces.iter().find(|o| o.name == name) {
+                None => {
+                    eprintln!("netifd-rs: Create interface '{name}'");
+                    let i = self.new_interface(&nc);
+                    self.interfaces.push(i);
+                    self.interfaces.sort_by(|a, b| a.name.cmp(&b.name));
+                    if let Err(e) = self.register_interface(&name) {
+                        eprintln!("netifd-rs: cannot register {name}: {e}");
+                    }
+                    if nc.auto.unwrap_or(true) && !nc.disabled {
+                        self.iface_up(&name);
+                    }
+                }
+                Some(oc) => {
+                    if !config_changed(oc, &nc) {
+                        // the cheap fields are updated in place, as
+                        // `interface_change_config` does for everything that
+                        // does not need a reload
+                        if let Some(i) = self.iface_index(&name) {
+                            let iface = &mut self.interfaces[i];
+                            iface.metric = nc.metric;
+                            iface.dns_metric = nc.dns_metric;
+                            iface.ip4table = nc.ip4table.unwrap_or(0);
+                            iface.ip6table = nc.ip6table.unwrap_or(0);
+                        }
+                        continue;
+                    }
+                    eprintln!(
+                        "netifd-rs: Reload interface '{name}' because of config changes"
+                    );
+                    self.do_reload(&name);
+                }
+            }
+        }
+    }
+
+    /// `interface_do_reload`: down, then up again with the new config.
+    fn do_reload(&mut self, name: &str) {
+        let Some(nc) = self.cfg.interfaces.iter().find(|c| c.name == name).cloned() else {
+            return;
+        };
+        // `interface_do_reload` is a teardown, not an ifdown: autostart
+        // survives it, which is what brings the interface back up
+        self.set_down(name);
+        self.mark_interface_down(name);
+        if let Some(i) = self.iface_index(name) {
+            let fresh = self.new_interface(&nc);
+            self.interfaces[i] = fresh;
+        }
+        self.link_state.retain(|(n, _)| n != name);
+        if nc.auto.unwrap_or(true) && !nc.disabled {
+            self.iface_up(name);
+        }
     }
 
     /// `device_init` runs `system_if_clear_state` once per device object, so
@@ -581,28 +690,31 @@ impl Netifd {
         }
     }
 
+    /// One interface's bookkeeping, from its config section.
+    fn new_interface(&mut self, ic: &config::InterfaceConfig) -> Interface {
+        let mut i = Interface::new(&ic.name);
+        i.proto = Some(ic.proto.clone());
+        // `main_dev` is set from the config whether or not the device
+        // exists, so `device` is reported even for an absent one.
+        i.device = ic.device.clone();
+        // `available` reflects whether the device is present, not whether
+        // the interface was started.
+        i.available =
+            ic.device.as_deref().map(|d| self.sys.if_index(d).unwrap_or(0) != 0).unwrap_or(false);
+        i.autostart = ic.auto.unwrap_or(true) && !ic.disabled;
+        i.metric = ic.metric;
+        i.dns_metric = ic.dns_metric;
+        i.ip4table = ic.ip4table.unwrap_or(0);
+        i.ip6table = ic.ip6table.unwrap_or(0);
+        i.proto_ip.no_delegation = ic.delegate == Some(false);
+        i
+    }
+
     fn setup_interfaces(&mut self) {
         let cfgs = self.cfg.interfaces.clone();
         self.interfaces.clear();
         for ic in &cfgs {
-            let mut i = Interface::new(&ic.name);
-            i.proto = Some(ic.proto.clone());
-            // `main_dev` is set from the config whether or not the device
-            // exists, so `device` is reported even for an absent one.
-            i.device = ic.device.clone();
-            // `available` reflects whether the device is present, not whether
-            // the interface was started.
-            i.available = ic
-                .device
-                .as_deref()
-                .map(|d| self.sys.if_index(d).unwrap_or(0) != 0)
-                .unwrap_or(false);
-            i.autostart = ic.auto.unwrap_or(true) && !ic.disabled;
-            i.metric = ic.metric;
-            i.dns_metric = ic.dns_metric;
-            i.ip4table = ic.ip4table.unwrap_or(0);
-            i.ip6table = ic.ip6table.unwrap_or(0);
-            i.proto_ip.no_delegation = ic.delegate == Some(false);
+            let i = self.new_interface(ic);
             self.interfaces.push(i);
         }
         // netifd keeps interfaces in a vlist keyed by name
@@ -613,15 +725,22 @@ impl Netifd {
                 eprintln!("netifd-rs: cannot register {name}: {e}");
             }
         }
-        // `config_init_interfaces` prepends each parsed interface onto
-        // `config_ifaces` with `list_add` and then pops from the head, so
-        // `interface_add` -- and with it the ifup and its event -- runs in
-        // REVERSE config order. Hotplug consumers see that order, so it is
-        // part of the interface, not an implementation detail.
-        for ic in cfgs.iter().rev() {
-            let autostart = ic.auto.unwrap_or(true) && !ic.disabled;
+        // `interface_start_pending` walks the interface vlist, which is an
+        // avl tree keyed by name, so the startup order is ALPHABETICAL -- not
+        // config order and not its reverse. Four independent static
+        // interfaces come up in name order, which is how r54 caught this;
+        // earlier harnesses agreed by accident because their interfaces
+        // finished coming up in a different order anyway.
+        for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
+            let autostart = self
+                .cfg
+                .interfaces
+                .iter()
+                .find(|ic| ic.name == name)
+                .map(|ic| ic.auto.unwrap_or(true) && !ic.disabled)
+                .unwrap_or(false);
             if autostart {
-                self.iface_up(&ic.name);
+                self.iface_up(&name);
             }
         }
 
@@ -706,8 +825,6 @@ impl Netifd {
             match main {
                 Some(dev) => {
                     self.iface_claim(name, &dev, false);
-                    // the claim brought the link up; pick up the carrier it
-                    // now reports rather than waiting for the netlink event
                     self.rescan_devices();
                     // `device_add_user` replays the device's current state to
                     // a new user. Without that, an interface whose device was
@@ -719,6 +836,13 @@ impl Netifd {
                     if let Some(i) = self.iface_index(name) {
                         self.interfaces[i].enabled = up;
                     }
+                    // Complete here rather than waiting for the carrier
+                    // event. Leaving it to the event path was tried and is
+                    // worse: a later event re-read a device as momentarily
+                    // without carrier and tore the interface straight back
+                    // down. The cost is the startup ifup ORDER -- the C comes
+                    // up in the order its carrier events arrive, this build
+                    // in the order the walk starts them. See R45.
                     self.update_link_state(name);
                     self.check_state(name);
                     None
@@ -1574,8 +1698,16 @@ impl Netifd {
     fn iface_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
         // `interface_set_down` clears autostart first, which is what stops
-        // `interface_handle_config_change` bringing it straight back up
+        // `interface_handle_config_change` bringing it straight back up.
+        // `interface_set_down(NULL)` -- what a restart uses -- does not, so
+        // that path goes through `set_down` instead.
         self.interfaces[idx].autostart = false;
+        self.set_down(name);
+    }
+
+    /// `__interface_set_down`, without touching autostart.
+    fn set_down(&mut self, name: &str) {
+        let Some(idx) = self.iface_index(name) else { return };
         let prev = self.interfaces[idx].state;
         // "case IFS_DOWN / case IFS_TEARDOWN: break" -- nothing to do
         if prev == State::Down || prev == State::Teardown {
@@ -1734,17 +1866,16 @@ impl Netifd {
     /// `interface_set_link_state`. `carrier_loss_delay` is not configured on
     /// this device, so there is no grace window: the check runs immediately.
     fn set_link_state(&mut self, name: &str, new_state: bool) {
+        // `iface->link_state` starts false, so the first time a link is seen
+        // up that IS a transition -- swallowing it left the interface waiting
+        // for a second carrier event that never came.
         let prev = self.link_state.iter().find(|(n, _)| n == name).map(|(_, s)| *s);
-        if prev == Some(new_state) {
+        if prev.unwrap_or(false) == new_state {
             return;
         }
         match self.link_state.iter_mut().find(|(n, _)| n == name) {
             Some(slot) => slot.1 = new_state,
             None => self.link_state.push((name.to_string(), new_state)),
-        }
-        // the first observation of a link that is already up is not an event
-        if prev.is_none() && new_state {
-            return;
         }
         eprintln!(
             "netifd-rs: Interface '{name}' has link connectivity {}",
@@ -2068,11 +2199,19 @@ impl Netifd {
             target = ubus::Target::Interface(Some(name));
         }
         let r = match (target, method.as_str()) {
-            (ubus::Target::Network, "reload") | (ubus::Target::Network, "restart") => {
+            // `netifd_reload` is just `config_init_all`: it does not take
+            // anything down. Only `netifd_restart` does, and it uses
+            // `interface_set_down(NULL)`, which does NOT clear autostart --
+            // so everything comes back up afterwards.
+            (ubus::Target::Network, "reload") => {
+                self.reload();
+                self.conn.reply_status(&req, status::OK, None)
+            }
+            (ubus::Target::Network, "restart") => {
                 for name in
                     self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>()
                 {
-                    self.iface_down(&name);
+                    self.set_down(&name);
                 }
                 self.reload();
                 self.conn.reply_status(&req, status::OK, None)
@@ -2285,4 +2424,24 @@ fn main() {
     };
     n.reload();
     n.run()
+}
+
+#[cfg(test)]
+mod reload_tests {
+    use super::*;
+#[test]
+fn loading_the_same_config_twice_reports_no_change() {
+    let dir = std::env::temp_dir().join(format!("r54test{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(
+        dir.join("network"),
+        "config interface 'one'\n\toption device 'veth1'\n\toption proto 'static'\n\toption ipaddr '10.1.1.1/24'\n",
+    )
+    .unwrap();
+    let a = config::load(dir.to_str().unwrap()).unwrap();
+    let b = config::load(dir.to_str().unwrap()).unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+    let (x, y) = (&a.interfaces[0], &b.interfaces[0]);
+    assert!(!config_changed(x, y), "\nA: {x:#?}\nB: {y:#?}");
+}
 }
