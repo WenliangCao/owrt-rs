@@ -1765,6 +1765,16 @@ impl Netifd {
         for line in self.hotplug.poll_lines() {
             eprintln!("netifd-rs: hotplug: {line}");
         }
+        // The wireless handler has to be drained while it runs, like the
+        // protocol scripts. Reading only at reap deadlocks a handler whose
+        // output fills the pipe: the child blocks writing, the parent waits
+        // for an exit that cannot come, and because handlers are serialised
+        // every other radio is stuck behind it. The r60 stub prints almost
+        // nothing, so it never showed this.
+        let who = self.wcur.as_ref().map(|(n, _)| n.clone()).unwrap_or_default();
+        for line in self.wslot.poll_lines() {
+            eprintln!("netifd-rs: {who}: {line}");
+        }
         let names: Vec<String> = self.protos.iter().map(|(n, _)| n.clone()).collect();
         for name in names {
             let lines = {

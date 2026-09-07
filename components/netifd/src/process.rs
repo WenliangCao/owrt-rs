@@ -27,6 +27,13 @@ use std::os::fd::AsRawFd;
 use std::process::{Child, Command, Stdio};
 
 /// One supervised child. Dropping this does NOT kill the child; call `kill`.
+/// How much of a child's output one poll round will take. A child that
+/// outruns the loop leaves the rest in the pipe for the next round.
+const READ_BUDGET: usize = 256 * 1024;
+
+/// The cap on output held while waiting for a newline.
+const PARTIAL_MAX: usize = 256 * 1024;
+
 pub struct Process {
     child: Child,
     argv0: String,
@@ -91,12 +98,31 @@ impl Process {
                 lines.push(line);
             }
         }
+        // A child that writes without ever sending a newline must not grow
+        // this buffer without limit. Past the cap the oldest half goes and the
+        // loss is reported, which is a bounded lie rather than an unbounded
+        // one -- draining the pipe is what keeps the child from deadlocking,
+        // and that has to keep happening whatever it writes.
+        if self.partial.len() > PARTIAL_MAX {
+            let cut = self.partial.len() - PARTIAL_MAX / 2;
+            let cut = (cut..=self.partial.len())
+                .find(|i| self.partial.is_char_boundary(*i))
+                .unwrap_or(self.partial.len());
+            self.partial.drain(..cut);
+            lines.push(format!("[{cut} bytes of unterminated output dropped]"));
+        }
         lines
     }
 
-    /// Read whatever is buffered in either pipe right now.
+    /// Read what is buffered in either pipe right now, up to a budget.
+    ///
+    /// The budget matters: a child writing faster than the loop reads would
+    /// otherwise keep this function going and nothing else in the daemon would
+    /// run. Whatever is left stays in the pipe for the next round, which still
+    /// keeps the child unblocked.
     fn read_available(&mut self) -> String {
         let mut out = String::new();
+        let mut budget = READ_BUDGET;
         for pipe in [
             self.child.stdout.as_mut().map(|p| p as &mut dyn Read),
             self.child.stderr.as_mut().map(|p| p as &mut dyn Read),
@@ -105,10 +131,13 @@ impl Process {
         .flatten()
         {
             let mut buf = [0u8; 4096];
-            loop {
+            while budget > 0 {
                 match pipe.read(&mut buf) {
                     Ok(0) => break,
-                    Ok(n) => out.push_str(&String::from_utf8_lossy(&buf[..n])),
+                    Ok(n) => {
+                        out.push_str(&String::from_utf8_lossy(&buf[..n]));
+                        budget = budget.saturating_sub(n);
+                    }
                     // WouldBlock is the normal "nothing more for now"; any
                     // other error means this pipe is done.
                     Err(_) => break,

@@ -10,6 +10,10 @@
 #   netifd sees a handler that never reported its interfaces up, so the retry
 #   budget and the setup/teardown ordering are exercised: four setups, then the
 #   radio gives up.
+# MODE=flood -- two radios; radio0's handler writes far more than a pipe holds
+#   on both streams, including a long run with no newline, before reporting up.
+#   A handler read only at exit deadlocks there and radio1 never starts, because
+#   handlers are serialised. Both radios reaching up is the assertion.
 # MODE=up -- the stub calls back the way netifd-wireless.sh does, first
 #   `_wireless_add_vif` (command 1, with an ifname) and then `_wireless_set_up`
 #   (command 0). That drives the radio to `up` and puts `ifname` in `status`,
@@ -45,6 +49,19 @@ config wifi-device 'radio0'
 	option path 'platform/soc/18000000.wifi'
 	option band '2g'
 	option channel '1'
+
+config wifi-device 'radio1'
+	option type 'mac80211'
+	option path 'platform/soc/18000000.wifi+1'
+	option band '5g'
+	option channel '36'
+
+config wifi-iface 'default_radio1'
+	option device 'radio1'
+	option network 'lan'
+	option mode 'ap'
+	option ssid 'probe5'
+	option encryption 'none'
 
 config wifi-iface 'default_radio0'
 	option device 'radio0'
@@ -128,7 +145,22 @@ if [ "\${2:-}" = "dump" ] || [ "\${1:-}" = "dump" ]; then
 	echo '{ "name": "mac80211", "device": [ [ "channel", 3 ], [ "band", 3 ], [ "path", 3 ] ], "iface": [ [ "ssid", 3 ], [ "encryption", 3 ] ], "vlan": [ [ "name", 3 ], [ "vid", 3 ] ], "station": [ [ "mac", 3 ], [ "key", 3 ] ] }'
 	exit 0
 fi
-if [ "\$2" = setup ] && [ "$MODE" = up ]; then
+if [ "\$2" = setup ] && [ "$MODE" = flood ] && [ "\$3" = radio0 ]; then
+	# more than a pipe holds, on both streams, plus a long line with no
+	# newline at all -- a handler that is only read at exit deadlocks here
+	# 2000 lines of ~90 bytes is ~180 KiB per stream, comfortably past the
+	# 64 KiB a Linux pipe holds. 400 lines was ~36 KiB and would not have
+	# blocked at all -- the case has to exceed the buffer to test anything.
+	i=0
+	while [ \$i -lt 2000 ]; do
+		echo "stdout flood line \$i 0123456789012345678901234567890123456789012345678901234567890123456789"
+		echo "stderr flood line \$i 0123456789012345678901234567890123456789012345678901234567890123456789" >&2
+		i=\$((i+1))
+	done
+	j=0
+	while [ \$j -lt 4000 ]; do printf "no-newline-chunk-%s" "\$j"; j=\$((j+1)); done
+fi
+if [ "\$2" = setup ] && { [ "$MODE" = up ] || [ "$MODE" = flood ]; }; then
 	ubus call network.wireless notify "{\"command\":1,\"device\":\"\$3\",\"interface\":\"01\",\"data\":{\"ifname\":\"stub-ap0\"}}" >> /tmp/out/handler.log 2>&1
 	ubus call network.wireless notify "{\"command\":0,\"device\":\"\$3\",\"data\":{}}" >> /tmp/out/handler.log 2>&1
 fi
