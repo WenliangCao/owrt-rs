@@ -31,6 +31,7 @@ config device
 	list ports 'veth0'
 	list ports 'veth2'
 
+# the main case: one /60 out of the ULA /48
 config interface 'lan'
 	option device 'br-lan'
 	option proto 'static'
@@ -38,7 +39,15 @@ config interface 'lan'
 	option ip6addr 'fd11:2233:4455::1/60'
 	option ip6assign '60'
 
-config interface 'wired'
+# a second claimant on the same prefix, so the placement has to step
+config interface 'guest'
+	option device 'veth3'
+	option proto 'static'
+	option ipaddr '192.168.9.1/24'
+	option ip6assign '60'
+
+# a claimant with an explicit hint that must be honoured verbatim
+config interface 'hinted'
 	option device 'veth1'
 	option proto 'static'
 	option ipaddr '10.0.0.1'
@@ -46,14 +55,46 @@ config interface 'wired'
 	option gateway '10.0.0.254'
 	option metric '13'
 	option dns_metric '7'
+	option ip6assign '62'
+	option ip6hint '30'
 	list dns '10.0.0.53'
 	list dns '10.0.0.54'
 	list dns_search 'example.invalid'
+	list dns_search 'second.invalid'
 
+# several addresses of both families on one interface, and a routing table
+config interface 'multi'
+	option device 'veth5'
+	option proto 'static'
+	list ipaddr '172.16.0.1/24'
+	list ipaddr '172.16.1.1/24'
+	list ipaddr '172.16.2.1/30'
+	list ip6addr 'fd11:2233:4455:9000::1/64'
+	list ip6addr 'fd11:2233:4455:9001::1/64'
+	option ip6gw 'fd11:2233:4455:9000::ffff'
+	option ip6table '42'
+	option ip4table '43'
+	option metric '99'
+
+# no device at all: the NO_DEVICE error path
 config interface 'nodev'
 	option device 'missing0'
 	option proto 'static'
 	option ipaddr '10.9.9.1/24'
+
+# delegation turned off, so the delegation flag flips
+config interface 'nodeleg'
+	option device 'veth7'
+	option proto 'static'
+	option ipaddr '10.8.8.1/24'
+	option delegate '0'
+
+# not started automatically
+config interface 'manual'
+	option device 'veth9'
+	option proto 'static'
+	option ipaddr '10.7.7.1/24'
+	option auto '0'
 CFG
 
 sudo -n tee "$root/tmp/inner.sh" >/dev/null <<'INNER'
@@ -82,13 +123,14 @@ sudo -n unshare --mount --net --fork /bin/sh -c '
 	trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 
 	ip link set lo up
-	ip link add veth0 type veth peer name veth1
-	ip link add veth2 type veth peer name veth3
-	ip link set veth0 address 02:00:00:00:00:0a
-	ip link set veth1 address 02:00:00:00:00:0b
-	ip link set veth2 address 02:00:00:00:00:0c
-	ip link set veth3 address 02:00:00:00:00:0d
-	ip link set veth1 up; ip link set veth3 up
+	i=0
+	while [ $i -lt 10 ]; do
+		ip link add veth$i type veth peer name veth$((i+1))
+		ip link set veth$i address 02:00:00:00:00:0$i
+		ip link set veth$((i+1)) address 02:00:00:00:00:1$i
+		ip link set veth$i up; ip link set veth$((i+1)) up
+		i=$((i+2))
+	done
 
 	chroot "$root" /bin/sh /tmp/inner.sh &
 	inner=$!

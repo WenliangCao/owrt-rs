@@ -84,3 +84,46 @@ phy0-ap0 phy1-ap0 wan`。这一整套字段是 LuCI 状态页和 `ubus call` 调
 `extdev.c`（外部设备 handler，无配置使用）、`bonding.c`、`vrf.c`、`macvlan.c`、`veth.c`、
 `vlan.c`/`vlandev.c`、`tunnel.c`、`alias.c`、`iprule.c`、`system-dummy.c`。
 遇到这些段落时**明确报错**，不静默忽略（计划 §2 的要求）。
+
+## 7. 已完成的离线验证（r46–r48）
+
+C 侧的 oracle 是**设备自己的 `/sbin/netifd`**：构建机是 aarch64，把精确 rootfs 拷一份，
+在 `unshare --mount --net` 里 chroot 跑 `ubusd` + `netifd`，veth 由外层 iproute2 造。
+Rust 侧的探针跑在 chroot 外、同一组 namespace 内，所以它看到的 `/proc/sys/net` 和 netlink
+就是 C daemon 刚配好的那一份。
+
+| 轮次 | 比什么 | 结果 |
+|---|---|---|
+| r46 | 同一串操作分别由 iproute2 和 netifd-rs 的 netlink 编码执行，比内核状态 | identical，57 行 `ip -d link` / `ip addr` / `ip route show table all` / `bridge link` |
+| r47 | `network.device status` 逐字段 | identical，6 个设备 234 个字段 |
+| r48 | `network.interface dump` 逐字段（8 个接口的 static 配置） | identical |
+| — | `tools/check_netlink_consts.sh` | 105 个内核常量全部与头文件一致 |
+
+### 这几轮各自抓到了什么
+
+- **常量检查器第一次运行就抓到 12 个抄错的常量**：7 个 `IFLA_BR_*` 和 5 个
+  `IFLA_BRPORT_*` 全都差 1。内核对此只回一个 `ERANGE`（`max_age` 被当成 `hello_time`
+  读成 2 秒，低于 6 秒下限），不看头文件根本定位不到。
+- **r46 之前我猜的网桥默认值是错的**：真值来自 `bridge_config_init`
+  （`forward_delay 8`、`hello_time 1`、`max_age 10`、`igmp_snoop false`），
+  不是内核默认值，也不是 iproute2 的默认值。
+- **r47 抓到三处必须照抄而不是"顺手修正"的行为**：`devtype` 只看 uevent 第一行、
+  `flow-control` 的 `rx`/`tx` 标签上游是反的、`negotiated` 是数组不是两个布尔。
+  详见 [docs/contracts/netifd.md](../../docs/contracts/netifd.md)。
+- **r47 一开始"只差 devtype"是假的**：sysfs 是按挂载时的 netns 呈现设备的，
+  外层 `/sys` 早于这个 netns，探针其实在读**构建机自己的**网卡。补一次
+  `mount -t sysfs sysfs /sys` 之后，差异才真实。比较脚本当时还会在第一处差异就
+  `continue`，把后面的差异全遮住了——两处都已修。
+- **r48 抓到两个真缺陷**：`proto_apply_ip_settings` 的网关路由**只带族标志**
+  （所以不打印 `proto`，`metric` 也不打印，因为 `DEVROUTE_METRIC` 没置上）；
+  以及 ULA 前缀分配整个没实现。
+- **r48 的用例不是空跑**：`ip6hint '30'` 按**十六进制**解析（0x30，地址里是 `:30::`），
+  带 hint 的接口先就位，随后 `guest`（offset 0）和 `lan`（offset 0x10）按名字顺序排，
+  三者与 C 完全一致；`multi` 实际拿到 3 个 v4 + 2 个 v6 地址和两张路由表，
+  `nodev` 报 1 个 `NO_DEVICE`，`manual` 保持 down，`nodeleg` 的 `delegation` 为 false。
+
+### 还没有验证的
+
+状态机本身（`up`/`available`/`autostart`/`uptime`/`l3_device` 在 r47/r48 里是从 C 的
+输出里取的，因为它们是 netifd 自己的簿记而不是内核状态）、proto-shell、无线编排、
+`network` 与 `network.device` 的写方法、以及 ubus 侧的对象注册与事件。
