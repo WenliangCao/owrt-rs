@@ -1563,6 +1563,31 @@ impl Netifd {
                 break;
             }
         }
+        // `ip6prefix`: the delegated prefixes, pushed by netifd-proto.sh as
+        // plain strings. Until this existed the global prefix list only ever
+        // held the ULA, so a LAN whose GUA comes from WAN6 delegation -- which
+        // is how this device is actually addressed -- got nothing.
+        //
+        // They are replaced wholesale for this interface on every update, the
+        // same shape as the address and route flush above: whatever the
+        // protocol no longer reports has been withdrawn.
+        let mut delegated: Vec<ip::DevicePrefix> = Vec::new();
+        if let Some(list) = find("ip6prefix") {
+            for item in list.children() {
+                let Some(text) = item.as_str() else { continue };
+                let Some(p) = proto::parse_prefix6(text) else {
+                    eprintln!("netifd-rs: {name}: proto sent a prefix this build rejects: {text}");
+                    continue;
+                };
+                let mut dp = ip::DevicePrefix::new(p.addr, p.length, name, Some(name));
+                dp.preferred_until = p.preferred;
+                dp.valid_until = p.valid;
+                dp.excl = p.excl;
+                delegated.push(dp);
+            }
+        }
+        self.set_delegated_prefixes(name, delegated);
+
         // `gateway`/`ip6gw` are applied only when that family got an address
         if !bad {
             for (key, v6) in [("gateway", false), ("ip6gw", true)] {
@@ -1983,37 +2008,21 @@ impl Netifd {
                             if di != 0 {
                                 let mut sa =
                                     sys::Address::new(IpAddr::V6(local), a.length);
-                                // the prefix route is netifd's, not the kernel's
-                                sa.offlink = true;
+                                // NOT offlink, and no route of our own. This
+                                // used to set NOPREFIXROUTE and add an explicit
+                                // route, on the assumption that netifd owns the
+                                // prefix route here. Measured against the C with
+                                // a real delegated prefix (r62), it does not:
+                                // the C leaves the address on-link and the
+                                // kernel's own route is what appears --
+                                // `proto kernel metric 256`, where this build
+                                // was producing `proto static metric 1024`.
                                 sa.preferred = p.preferred_until;
                                 sa.valid = p.valid_until;
                                 if let Err(e) = self.sys.add_address(di, &sa) {
                                     eprintln!(
                                         "netifd-rs: {}: cannot add {local}/{}: {e}",
                                         a.name, a.length
-                                    );
-                                }
-                                // `interface_set_prefix_address` also installs
-                                // the on-link route for the assignment, never
-                                // narrower than a /64.
-                                let rmask = a.length.max(64);
-                                let mut pr = sys::Route::v6(
-                                    ip::clear_if_addr(local, rmask),
-                                    rmask,
-                                );
-                                let ic = self
-                                    .cfg
-                                    .interfaces
-                                    .iter()
-                                    .find(|i| i.name == a.name);
-                                pr.metric = ic.map(|i| i.metric).unwrap_or(0);
-                                let t = ic.and_then(|i| i.ip6table).unwrap_or(0);
-                                pr.table =
-                                    if t != 0 { t } else { sys::RT_TABLE_MAIN };
-                                if let Err(e) = self.sys.add_route(di, &pr) {
-                                    eprintln!(
-                                        "netifd-rs: {}: cannot add the {}/{rmask} route: {e}",
-                                        a.name, pr.target
                                     );
                                 }
                             }
@@ -2709,6 +2718,10 @@ impl Netifd {
         i.data.clear();
 
         self.start_time.retain(|(n, _)| n != name);
+        // A prefix is only delegated while the uplink that carries it is up.
+        // Leaving it behind would keep handing the LAN addresses that no
+        // longer route.
+        self.set_delegated_prefixes(name, Vec::new());
 
         let _ = released;
         // `IFPEV_DOWN`: main_dev is kept only while the interface would come
@@ -3372,6 +3385,20 @@ impl Netifd {
         r.state = wireless::WState::Setup;
         self.wqueue.push_back((name.to_string(), "setup"));
         self.wireless_pump();
+    }
+
+    /// Replace the prefixes delegated to one interface. `class` and `iface`
+    /// are the uplink's name, which is what the C reports and what the
+    /// assignments are keyed by; the ULA keeps `local`.
+    fn set_delegated_prefixes(&mut self, iface: &str, mut fresh: Vec<ip::DevicePrefix>) {
+        let before = self.prefixes.len();
+        self.prefixes.retain(|p| p.iface.as_deref() != Some(iface));
+        let removed = before - self.prefixes.len();
+        let added = fresh.len();
+        self.prefixes.append(&mut fresh);
+        if removed != 0 || added != 0 {
+            self.apply_prefix_assignments();
+        }
     }
 
     /// `start()`: the retry budget resets whatever the state, and a radio

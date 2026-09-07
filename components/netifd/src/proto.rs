@@ -1287,3 +1287,97 @@ mod notify_tests {
         assert!(parse_addr_item(&one(&buf), false).is_none());
     }
 }
+
+
+/// One `ip6prefix` entry: a delegated prefix, pushed by `netifd-proto.sh` as a
+/// plain string, `<prefix>/<length>[,<preferred>[,<valid>[,excluded=<p>/<l>]]]`.
+/// `proto_add_ipv6_prefix` builds it from what odhcp6c reported.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Prefix6 {
+    pub addr: std::net::Ipv6Addr,
+    pub length: u8,
+    pub preferred: Option<u32>,
+    pub valid: Option<u32>,
+    pub excl: Option<(std::net::Ipv6Addr, u8)>,
+}
+
+/// Parse one such string. An entry this build cannot read is dropped rather
+/// than guessed at -- a wrong prefix hands the LAN addresses that do not route.
+pub fn parse_prefix6(text: &str) -> Option<Prefix6> {
+    let mut parts = text.split(',');
+    let net = parts.next()?.trim();
+    let (a, l) = net.split_once('/')?;
+    let addr: std::net::Ipv6Addr = a.trim().parse().ok()?;
+    let length: u8 = l.trim().parse().ok()?;
+    if length > 128 {
+        return None;
+    }
+    let num = |p: Option<&str>| -> Option<u32> {
+        let v = p?.trim();
+        if v.is_empty() {
+            return None;
+        }
+        v.parse().ok()
+    };
+    let mut out = Prefix6 { addr, length, preferred: None, valid: None, excl: None };
+    let mut rest: Vec<&str> = parts.collect();
+    // `excluded=` can be anywhere after the network, and `class=` is stripped
+    // by the script before it gets here, so an unknown key is ignored rather
+    // than eaten as a lifetime.
+    rest.retain(|p| {
+        if let Some(v) = p.trim().strip_prefix("excluded=") {
+            if let Some((ea, el)) = v.split_once('/') {
+                if let (Ok(ea), Ok(el)) = (ea.trim().parse(), el.trim().parse::<u8>()) {
+                    if el <= 128 {
+                        out.excl = Some((ea, el));
+                    }
+                }
+            }
+            return false;
+        }
+        !p.contains('=')
+    });
+    out.preferred = num(rest.first().copied());
+    out.valid = num(rest.get(1).copied());
+    Some(out)
+}
+
+#[cfg(test)]
+mod prefix6_tests {
+    use super::*;
+    use std::net::Ipv6Addr;
+
+    #[test]
+    fn the_plain_form_is_prefix_preferred_valid() {
+        let p = parse_prefix6("2001:db8:1:2::/60,3600,7200").unwrap();
+        assert_eq!(p.addr, "2001:db8:1:2::".parse::<Ipv6Addr>().unwrap());
+        assert_eq!(p.length, 60);
+        assert_eq!(p.preferred, Some(3600));
+        assert_eq!(p.valid, Some(7200));
+        assert_eq!(p.excl, None);
+    }
+
+    #[test]
+    fn the_lifetimes_are_optional() {
+        let p = parse_prefix6("2001:db8::/48").unwrap();
+        assert_eq!(p.length, 48);
+        assert_eq!(p.preferred, None);
+        assert_eq!(p.valid, None);
+    }
+
+    #[test]
+    fn an_excluded_prefix_is_kept_and_does_not_shift_the_lifetimes() {
+        let p = parse_prefix6("2001:db8:1::/48,600,1200,excluded=2001:db8:1:5::/64").unwrap();
+        assert_eq!(p.preferred, Some(600));
+        assert_eq!(p.valid, Some(1200));
+        assert_eq!(p.excl, Some(("2001:db8:1:5::".parse().unwrap(), 64)));
+    }
+
+    #[test]
+    fn rubbish_is_dropped_rather_than_guessed() {
+        assert!(parse_prefix6("").is_none());
+        assert!(parse_prefix6("2001:db8::").is_none(), "no length");
+        assert!(parse_prefix6("not-an-address/64").is_none());
+        assert!(parse_prefix6("2001:db8::/129").is_none());
+    }
+}
