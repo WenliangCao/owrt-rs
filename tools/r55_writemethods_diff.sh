@@ -51,6 +51,12 @@ setstate_up|network.device|set_state|{"name":"veth6","defer":false}
 stpinit|network.device|stp_init|{}
 adddynamic|network|add_dynamic|{"name":"dyn0"}
 netns_updown|network|netns_updown|{"jail":"j0","start":true}
+# The link_* cases go BEFORE the hostdep ones on purpose: an unsatisfied host
+# dependency makes `shell` unavailable, and a notify cannot bring an unavailable
+# interface up, so run here they were only ever exercising the not-up path.
+link_with_neighbors|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.1","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.9","mac":"02:00:00:00:00:99"},{"ipaddr":"10.5.5.10","proxy":true}],"dns":["10.5.5.53"]}
+link_addr_external|network.interface.shell|notify_proto|{"action":0,"link-up":true,"address-external":true,"ipaddr":[{"ipaddr":"10.5.5.2","mask":"255.255.255.0"}]}
+link_bad_neighbor|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.3","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.11","mac":"nonsense"}]}
 hostroute_none|network|add_host_route|{}
 hostroute_bad|network|add_host_route|{"target":"not-an-address"}
 hostroute_local|network|add_host_route|{"target":"10.0.0.99"}
@@ -65,9 +71,6 @@ hostdep_reachable|network.interface.shell|notify_proto|{"action":6,"host":"192.1
 hostdep_unreachable|network.interface.shell|notify_proto|{"action":6,"host":"8.8.4.4"}
 hostdep_iface|network.interface.shell|notify_proto|{"action":6,"ifname":"loopback"}
 hostdep_iface_gone|network.interface.shell|notify_proto|{"action":6,"ifname":"nosuch"}
-link_with_neighbors|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.1","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.9","mac":"02:00:00:00:00:99"},{"ipaddr":"10.5.5.10","proxy":true}],"dns":["10.5.5.53"]}
-link_addr_external|network.interface.shell|notify_proto|{"action":0,"link-up":true,"address-external":true,"ipaddr":[{"ipaddr":"10.5.5.2","mask":"255.255.255.0"}]}
-link_bad_neighbor|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.3","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.11","mac":"nonsense"}]}
 # The six upd_* cases below run against a `shell` that never reaches SETUP --
 # its DHCP client finds no server here -- so it is never `up`, and netifd
 # prints `updated` only for an interface that is up. What they cover is the

@@ -180,12 +180,22 @@ UD
 		done
 		{
 			echo "--- after ifdown: is the DHCP helper still alive"
-			# by pid file, not by parsing ps: busybox ps repeats lines
+			# What matters is whether the teardown stops the helper AT ALL --
+			# a teardown command that never runs leaves it alive forever.
+			# Sampling the instant is a race: the address goes first and the
+			# process exits shortly after, so one side can be caught
+			# mid-exit. Wait a bounded time and report the property, not the
+			# moment. By pid file, not by parsing ps: busybox ps repeats lines.
 			p=$(cat "$root/var/run/udhcpc-veth1.pid" 2>/dev/null || true)
+			k=0
+			while [ $k -lt 10 ]; do
+				[ -n "$p" ] && [ -d "/proc/$p" ] || break
+				k=$((k+1)); sleep 1
+			done
 			if [ -n "$p" ] && [ -d "/proc/$p" ]; then
-				echo "udhcpc still running"
+				echo "udhcpc still running after 10s"
 			else
-				echo "udhcpc gone"
+				echo "udhcpc stopped by the teardown"
 			fi
 			echo "--- after ifdown: veth1"
 			# the C sets the state and emits the event before it touches the

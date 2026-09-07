@@ -631,3 +631,51 @@ C 那边的值是会动的。前面已经写过"这几个位在沙箱里一致�
 
 现在把这四个位从比较里摘出去，两边的值照样打印（`state (not compared)`），
 连跑四次干净。摘掉的东西是明说的，不是悄悄过滤掉的。
+
+### 拿真机核对：两个读方法都对得上
+
+用户授权只读采集之后，从设备上取了 `network.wireless status` / `get_validate`
+和它真实的 `/etc/config/wireless`（两个 radio 都在跑，`up: true`），
+再把同一份配置喂给 `netifd-rs --dump-wireless`（在 chroot 里）比对。
+
+- **config 投影完全一致**：radio0 九项、radio1 八项，两个 wifi-iface 各九项，
+  连键的顺序都一样。设备侧唯一多出来的顶层字段是 `ifname`（`phy0-ap0`），
+  那来自 handler 的 notify 数据，没有硬件就没有。
+- **`get_validate` 完全一致**：每个 radio 四类共 444 个属性，顺序也一致。
+
+也就是说这个对象一旦注册，`get_validate` 和 config 投影在真机上就是对的。
+还差的只有那四个状态位和 `ifname`——它们都要真的把 radio 拉起来才有。
+
+（采集下来的东西含 WiFi 密码，放在 `private/`，不进 Git。）
+
+顺带把一直拿不到的东西也取到了：真实的前缀委派长这样
+
+```json
+"ipv6-prefix": [{"address": "2001:...:608f::", "mask": 64,
+                 "preferred": 2339, "valid": 5939, "class": "wan6",
+                 "assigned": {"lan": {"address": "2001:...:608f::", "mask": 64}}}]
+```
+
+`assigned` 是按接口名索引的子对象。沙箱里 odhcpd 没有上游可再委派，
+这个形状之前只能靠猜。
+
+### wireless handler 的调用协议（用记录桩量出来的）
+
+把沙箱 rootfs 里的 `mac80211.sh` 换成一个只记录不做事的桩，让 C 去驱动它：
+
+```
+<script>  dump
+<script> mac80211 setup    radio0 {"config":{...},"interfaces":{"01":{"name":"default_radio0",
+                                   "config":{...},"vlans":{},"stas":{}}},"data":{}}
+<script> mac80211 teardown radio0 {...同上...}
+```
+
+脚本退出而没有报告接口起来，C 就 teardown 再 setup，**一共试四轮**，
+然后置 `retry_setup_failed: true`。
+
+注意 handler JSON 里 `device` 是字符串 `"radio0"`，不是 status 投影里的
+`["radio0"]`——因为这个桩的 dump 没有声明 `device`，走的是 iface 默认的
+TYPE_STRING。两边规则一致，只是数据不同。
+
+**这条路的价值在于：整套编排可以用这个桩在沙箱里做完整 differential，
+完全不碰设备。** 用户要求"失败也不能伤到使用"，这个方案的设备风险是零。
