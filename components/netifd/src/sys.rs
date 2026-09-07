@@ -33,6 +33,9 @@ pub const RTM_GETADDR: u16 = 22;
 pub const RTM_NEWROUTE: u16 = 24;
 pub const RTM_DELROUTE: u16 = 25;
 pub const RTM_GETROUTE: u16 = 26;
+pub const RTM_NEWNEIGH: u16 = 28;
+pub const RTM_DELNEIGH: u16 = 29;
+pub const RTM_GETNEIGH: u16 = 30;
 
 pub const IFLA_ADDRESS: u16 = 1;
 pub const IFLA_IFNAME: u16 = 3;
@@ -121,6 +124,9 @@ pub const RTN_FAILED_POLICY: u8 = 12;
 pub const RTPROT_KERNEL: u8 = 2;
 pub const RTPROT_STATIC: u8 = 4;
 pub const RTNH_F_ONLINK: u32 = 4;
+pub const RTM_F_CLONED: u32 = 0x200;
+pub const NUD_PERMANENT: u16 = 0x80;
+pub const NTF_PROXY: u8 = 0x08;
 
 pub const SIOCGIFFLAGS: u64 = 0x8913;
 pub const SIOCGIFMTU: u64 = 0x8921;
@@ -180,6 +186,48 @@ pub fn rtmsg(
     b[7] = ty;
     b[8..12].copy_from_slice(&flags.to_le_bytes());
     b
+}
+
+/// `struct ndmsg` — 12 bytes.
+pub fn ndmsg(family: u8, index: u32, flags: u8) -> [u8; 12] {
+    let mut b = [0u8; 12];
+    b[0] = family;
+    b[4..8].copy_from_slice(&index.to_le_bytes());
+    b[10] = flags;
+    b
+}
+
+/// `check_ifaddr`: the address is on this device.
+fn check_ifaddr(payload: &[u8], index: u32) -> bool {
+    payload.len() >= 8 && u32::from_le_bytes(payload[4..8].try_into().unwrap()) == index
+}
+
+/// `check_route`: on this device, and never an IPv6 route the kernel owns.
+fn check_route(payload: &[u8], index: u32) -> bool {
+    if payload.len() < 12 {
+        return false;
+    }
+    if payload[5] == RTPROT_KERNEL && payload[0] == AF_INET6 {
+        return false;
+    }
+    netlink::parse_attrs(&payload[12..])
+        .into_iter()
+        .find(|(t, _)| *t == RTA_OIF)
+        .and_then(|(_, v)| v.get(..4).map(|b| u32::from_le_bytes(b.try_into().unwrap())))
+        == Some(index)
+}
+
+/// `check_neigh`: on this device, and only entries netifd could have
+/// installed itself.
+fn check_neigh(payload: &[u8], index: u32) -> bool {
+    if payload.len() < 12 {
+        return false;
+    }
+    if u32::from_le_bytes(payload[4..8].try_into().unwrap()) != index {
+        return false;
+    }
+    let state = u16::from_le_bytes(payload[8..10].try_into().unwrap());
+    state & NUD_PERMANENT != 0 || payload[10] & NTF_PROXY != 0
 }
 
 /// `struct ifa_cacheinfo` — 16 bytes; only the two lifetimes are written.
@@ -625,6 +673,113 @@ impl System {
     }
 
     /// Every link, for the device registry's initial scan.
+    /// `system_if_get_parent`: the device `iflink` names, when it is not the
+    /// device itself. For a DSA user port that is the conduit; for a veth it
+    /// is the peer.
+    pub fn parent_of(&mut self, name: &str) -> Option<String> {
+        let text = std::fs::read_to_string(format!("/sys/class/net/{name}/iflink")).ok()?;
+        let iflink: u32 = text.trim().parse().ok()?;
+        let own = self.if_index(name).unwrap_or(0);
+        if iflink == 0 || iflink == own {
+            return None;
+        }
+        // if_indextoname, via the only name the kernel exports for an index
+        for e in std::fs::read_dir("/sys/class/net").ok()?.flatten() {
+            let n = e.file_name().to_string_lossy().to_string();
+            let Ok(t) = std::fs::read_to_string(format!("/sys/class/net/{n}/ifindex")) else {
+                continue;
+            };
+            if t.trim().parse::<u32>() == Ok(iflink) {
+                return Some(n);
+            }
+        }
+        None
+    }
+
+    /// `system_if_clear_state`: bring the device down, take it out of any
+    /// bridge and flush the addresses, routes and permanent neighbours on it.
+    ///
+    /// netifd runs this from `device_init`, so it happens once for every
+    /// device it creates an object for -- including a device it only touches
+    /// as another device's parent. That is why an address someone else put on
+    /// such a device disappears when netifd starts.
+    pub fn clear_state(&mut self, name: &str, external: bool) {
+        let index = self.if_index(name).unwrap_or(0);
+        if external || index == 0 {
+            return;
+        }
+        let _ = self.set_link_up(index, false);
+        if std::path::Path::new(&format!("/sys/class/net/{name}/bridge")).exists() {
+            // an existing bridge of this name is deleted, and nothing else
+            let _ = self.bridge_delbr(name);
+            return;
+        }
+        if std::path::Path::new(&format!("/sys/class/net/{name}/brport")).exists() {
+            let _ = self.bridge_setmaster(index, 0);
+        }
+        // this order is the C's
+        for (kind, af) in [
+            (RTM_GETROUTE, AF_INET),
+            (RTM_GETADDR, AF_INET),
+            (RTM_GETROUTE, AF_INET6),
+            (RTM_GETADDR, AF_INET6),
+            (RTM_GETNEIGH, AF_INET),
+            (RTM_GETNEIGH, AF_INET6),
+        ] {
+            self.clear_entries(index, kind, af);
+        }
+        let _ = std::fs::write(
+            format!("/proc/sys/net/ipv6/conf/{name}/disable_ipv6"),
+            "0",
+        );
+    }
+
+    /// `system_if_clear_entries`: dump, keep what belongs to this device, and
+    /// re-send each kept message with the matching delete type. Deletions are
+    /// queued until the dump has finished, because an error reply carrying the
+    /// dump's sequence number aborts the dump.
+    fn clear_entries(&mut self, index: u32, kind: u16, af: u8) {
+        let (del_ty, dumps): (u16, usize) = match kind {
+            RTM_GETADDR => (RTM_DELADDR, 1),
+            RTM_GETROUTE => (RTM_DELROUTE, 1),
+            // the kernel dumps proxy entries only when asked for them
+            RTM_GETNEIGH => (RTM_DELNEIGH, 2),
+            _ => return,
+        };
+        let new_ty = match kind {
+            RTM_GETADDR => RTM_NEWADDR,
+            RTM_GETROUTE => RTM_NEWROUTE,
+            _ => RTM_NEWNEIGH,
+        };
+        let mut queued: Vec<Vec<u8>> = Vec::new();
+        for pass in 0..dumps {
+            let hdr: Vec<u8> = match kind {
+                // sizeof(struct rtgenmsg): the family byte alone
+                RTM_GETADDR => vec![af],
+                RTM_GETROUTE => rtmsg(af, 0, 0, 0, 0, 0, 0, 0, RTM_F_CLONED).to_vec(),
+                _ => ndmsg(af, 0, if pass == 0 { 0 } else { NTF_PROXY }).to_vec(),
+            };
+            let Ok(msgs) = self.nl.dump(kind, &hdr) else { continue };
+            for m in msgs {
+                if m.ty != new_ty {
+                    continue;
+                }
+                let keep = match kind {
+                    RTM_GETADDR => check_ifaddr(&m.payload, index),
+                    RTM_GETROUTE => check_route(&m.payload, index),
+                    _ => check_neigh(&m.payload, index),
+                };
+                if keep {
+                    queued.push(m.payload);
+                }
+            }
+        }
+        for payload in queued {
+            // an entry that is already gone is not an error worth reporting
+            let _ = self.nl.request(del_ty, netlink::NLM_F_REQUEST, &payload, &[]);
+        }
+    }
+
     pub fn dump_links(&mut self) -> io::Result<Vec<netlink::Msg>> {
         self.nl.dump(RTM_GETLINK, &ifinfomsg(AF_UNSPEC, 0, 0, 0))
     }

@@ -74,39 +74,6 @@ fn string_list(f: &blob::Field) -> Vec<String> {
 }
 
 /// `1.2.3.4/24`, or a bare address with a separate netmask.
-fn parse_v4_spec(spec: &str, netmask: Option<&str>) -> Option<(std::net::Ipv4Addr, u8)> {
-    let (addr, mask) = match spec.split_once('/') {
-        Some((a, m)) => (a, Some(m.to_string())),
-        None => (spec, netmask.map(|s| s.to_string())),
-    };
-    let ip: std::net::Ipv4Addr = addr.trim().parse().ok()?;
-    let len = match mask {
-        None => 32,
-        Some(m) if m.contains('.') => {
-            let nm: std::net::Ipv4Addr = m.parse().ok()?;
-            let bits = u32::from_be_bytes(nm.octets());
-            if bits.leading_ones() + bits.trailing_zeros() != 32 {
-                return None;
-            }
-            bits.leading_ones() as u8
-        }
-        Some(m) => {
-            let n: u8 = m.trim().parse().ok()?;
-            (n <= 32).then_some(n)?
-        }
-    };
-    Some((ip, len))
-}
-
-fn parse_v6_spec(spec: &str) -> Option<(Ipv6Addr, u8)> {
-    match spec.split_once('/') {
-        Some((a, m)) => {
-            let n: u8 = m.trim().parse().ok()?;
-            (n <= 128).then_some((a.trim().parse().ok()?, n))
-        }
-        None => Some((spec.trim().parse().ok()?, 128)),
-    }
-}
 
 fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
@@ -133,6 +100,10 @@ struct Netifd {
     hotplug: process::Slot,
     hotplug_current: Option<(String, Event)>,
     hotplug_queue: Vec<(String, Event)>,
+    /// Devices whose `device_init` has run, so their state is cleared once.
+    cleared: Vec<String>,
+    /// `dev->parent`: the device claimed on another device's behalf.
+    parents: Vec<(String, String)>,
     handlers: Vec<proto::Handler>,
     /// Per-interface protocol state, for the shell handlers only.
     protos: Vec<(String, proto::ProtoState)>,
@@ -161,6 +132,8 @@ impl Netifd {
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
+            cleared: Vec::new(),
+            parents: Vec::new(),
             ethtool: ethtool::Ethtool::open()?,
             ifioctl: sys::IfIoctl::open()?,
             conn,
@@ -202,10 +175,77 @@ impl Netifd {
         }
         self.protos.clear();
 
+        self.clear_new_device_state();
         self.rescan_devices();
         self.create_devices();
         self.build_prefixes();
         self.setup_interfaces();
+    }
+
+    /// `device_init` runs `system_if_clear_state` once per device object, so
+    /// every device netifd names for the first time is brought down and has
+    /// its addresses, routes and permanent neighbours flushed. Tracking which
+    /// names have already been through this keeps a reload from re-clearing a
+    /// device that is up and configured.
+    fn clear_new_device_state(&mut self) {
+        for name in self.known_device_names() {
+            if self.cleared.iter().any(|n| *n == name) {
+                continue;
+            }
+            self.cleared.push(name.clone());
+            // a bridge this daemon is about to create is cleared when it
+            // exists; one left over from a previous run is deleted
+            self.sys.clear_state(&name, false);
+        }
+    }
+
+    /// `system_if_get_parent`: a simple device's parent is whatever its
+    /// `iflink` points at -- the DSA conduit for a user port, the peer for a
+    /// veth. netifd creates a device object for it (which clears its state)
+    /// and claims it, which is what brings a conduit up.
+    fn claim_parent(&mut self, name: &str) {
+        let Some(parent) = self.sys.parent_of(name) else { return };
+        if self.parents.iter().any(|(c, _)| c == name) {
+            return;
+        }
+        if !self.cleared.iter().any(|n| *n == parent) {
+            self.cleared.push(parent.clone());
+            self.sys.clear_state(&parent, false);
+        }
+        self.parents.push((name.to_string(), parent.clone()));
+        if let Ok(pi) = self.sys.if_index(&parent) {
+            if pi != 0 {
+                let _ = self.sys.set_link_up(pi, true);
+            }
+        }
+    }
+
+    /// Bring a device up, claiming its parent first, as
+    /// `simple_device_set_state(dev, true)` does.
+    fn device_up(&mut self, name: &str, index: u32) -> io::Result<()> {
+        self.claim_parent(name);
+        self.sys.set_link_up(index, true)
+    }
+
+    /// The reverse: down, then release the parent.
+    fn device_down(&mut self, name: &str, index: u32) {
+        let _ = self.sys.set_link_up(index, false);
+        self.release_parent(name);
+    }
+
+    /// `device_release(&dev->parent)`: the parent goes back down when its last
+    /// user does, unless another claimed device still needs it.
+    fn release_parent(&mut self, name: &str) {
+        let Some(pos) = self.parents.iter().position(|(c, _)| c == name) else { return };
+        let (_, parent) = self.parents.remove(pos);
+        if self.parents.iter().any(|(_, p)| *p == parent) {
+            return;
+        }
+        if let Ok(pi) = self.sys.if_index(&parent) {
+            if pi != 0 {
+                let _ = self.sys.set_link_up(pi, false);
+            }
+        }
     }
 
     fn handler_for(&self, proto: &str) -> Option<&proto::Handler> {
@@ -393,8 +433,10 @@ impl Netifd {
                             continue;
                         }
                         // a bridge member has to be up for the bridge to
-                        // forward, which is what device_claim does
-                        let _ = self.sys.set_link_up(pi, true);
+                        // forward, which is what device_claim does -- and
+                        // claiming it also claims its parent, which is how a
+                        // DSA conduit comes up behind its user ports
+                        let _ = self.device_up(&port, pi);
                         // bridge_enable_member turns IPv6 off on a member
                         // unless a `config device` section set it explicitly,
                         // so the member has no link-local of its own
@@ -541,7 +583,7 @@ impl Netifd {
             }
             if let Ok(idx) = self.sys.if_index(dev) {
                 if idx != 0 {
-                    let _ = self.sys.set_link_up(idx, false);
+                    self.device_down(dev, idx);
                 }
             }
         }
@@ -607,7 +649,7 @@ impl Netifd {
             return;
         }
 
-        if let Err(e) = self.sys.set_link_up(devidx, true) {
+        if let Err(e) = self.device_up(&devname, devidx) {
             eprintln!("netifd-rs: cannot bring {devname} up: {e}");
             return;
         }
@@ -757,7 +799,8 @@ impl Netifd {
             }
             return;
         }
-        let _ = self.sys.set_link_up(devidx, true);
+        let dev = ic.device.clone().unwrap_or_default();
+        let _ = self.device_up(&dev, devidx);
         if let Some(idx) = self.iface_index(name) {
             self.interfaces[idx].state = State::Setup;
             self.interfaces[idx].available = true;
@@ -947,7 +990,7 @@ impl Netifd {
             return status::INVALID_ARGUMENT;
         }
         if !keep {
-            let _ = self.sys.set_link_up(devidx, true);
+            let _ = self.device_up(&l3, devidx);
         }
 
         // `interface_update_start(iface, keep)`
@@ -1460,7 +1503,7 @@ impl Netifd {
             if !still_used {
                 if let Ok(di) = self.sys.if_index(&dev) {
                     if di != 0 {
-                        let _ = self.sys.set_link_up(di, false);
+                        self.device_down(&dev, di);
                     }
                 }
             }
