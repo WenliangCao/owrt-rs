@@ -1,0 +1,23 @@
+[package]
+name = "owrt-netifd"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.98.1"
+license = "MIT OR Apache-2.0"
+description = "netifd replacement: network device and interface management (see docs/contracts/netifd.md)"
+publish = false
+
+[[bin]]
+name = "netifd-rs"
+path = "src/main.rs"
+
+[dependencies]
+owrt-ubus = { path = "../ubus" }
+owrt-uci = { path = "../uci" }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

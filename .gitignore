@@ -23,3 +23,4 @@
 # Python analysis-tool cache
 __pycache__/
 *.pyc
+components/netifd/target/
