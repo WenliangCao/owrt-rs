@@ -27,6 +27,7 @@ mod process;
 mod proto;
 mod sys;
 mod ubus;
+mod wireless;
 
 use std::io;
 use std::net::{IpAddr, Ipv6Addr};

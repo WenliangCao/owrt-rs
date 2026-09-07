@@ -408,3 +408,31 @@ odhcpd 的 IA_NA 地址是按客户端 DUID 哈希出来的，每次跑都不一
 试过让 odhcpd 下发 IA_PD（给 `srv` 配 `ip6assign 60` 和一个 ULA），
 `ipv6-prefix` 两边都是空——odhcpd 手里没有可以再分的上游前缀，真要测得再加一个第三方
 上游。所以 `ip6prefix` 这条路径目前仍然只有 r49 的 ULA 分配那一半是被验证过的。
+
+### `network.wireless`：现在知道它到底是什么，以及还差什么
+
+之前只写着"需要 ucode 虚拟机"。实测之后清楚多了：
+
+- 对象有 7 个方法：`up down retry reconf status notify get_validate`。
+- 没有 `/etc/config/wireless` 时，`status` 和 `get_validate` 都返回 `{}`。
+- 有一个配了但没有硬件的 radio 时，`status` 会把它报出来
+  （`up:false, retry_setup_failed:true` 加上 config 投影和 interfaces 列表），
+  `get_validate` 返回整张 hostapd/mac80211 校验表。
+- 这张表**不是写死的**：它来自 `/lib/netifd/wireless/mac80211.sh` 的 `dump`
+  ——跟协议 handler 完全一样的模式（`cd` 到脚本目录，跑 `./x.sh "" dump`，
+  逐行当 JSON 解析），条目是 `[名字, 类型码]`，类型码就是 utils.uc 里的
+  `TYPE_ARRAY=1 / TYPE_STRING=3 / TYPE_INT=5 / TYPE_BOOL=7`，再和
+  `default_config_attr` 的四类（device / iface→interface / station / vlan）合并。
+
+所以它是**可以做的**，不需要嵌 ucode：ucode 那 1400 行里，真正决定这个对象长相的
+部分就是上面这套。已经落地的是 `components/netifd/src/wireless.rs`：handler 发现、
+类型码到名字的映射、四类默认属性的合并（handler 声明的覆盖默认的），带单元测试。
+
+还没接上的是 `status` / `get_validate` 两个读方法的输出投影和对象注册。
+`status` 的字段**顺序**要按 handler dump 的顺序（不是字母序）——
+`config` 里先是 `default_config_attr` 里出现且 UCI 里设了的，再是 handler 声明的，
+都按各自的声明顺序。把 radio 编排（`up`/`down` 真的去拉 hostapd）做出来需要真硬件，
+沙箱里验证不了。
+
+在此之前**不注册这个对象**：报一个空的 `status` 比没有这个对象更糟，
+调用方会以为这台机器没有无线电。r49 和 r57 都把它单独列为已知缺口并打印说明。
