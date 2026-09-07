@@ -49,6 +49,9 @@ pub const BUILD_ID: &str = concat!("netifd-rs ", env!("CARGO_PKG_VERSION"));
 /// look like a working daemon with no hotplug integration.
 const DEFAULT_HOTPLUG_PATH: &str = "/sbin/hotplug-call";
 
+/// Where the shell protocol handlers live; overridable with `-p`.
+const DEFAULT_PROTO_DIR: &str = "/lib/netifd/proto";
+
 /// The interface events this build produces, named as `eventnames[]` names
 /// them in interface-event.c.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -61,6 +64,49 @@ enum Event {
 
 /// The protocols this build can actually run.
 const IMPLEMENTED_PROTOS: &[&str] = &["static", "none"];
+
+/// A blobmsg array of strings, or a single string as a one-element list.
+fn string_list(f: &blob::Field) -> Vec<String> {
+    if f.ty == MsgType::Array as u32 {
+        return f.children().filter_map(|c| c.as_str().map(|s| s.to_string())).collect();
+    }
+    f.as_str().map(|s| vec![s.to_string()]).unwrap_or_default()
+}
+
+/// `1.2.3.4/24`, or a bare address with a separate netmask.
+fn parse_v4_spec(spec: &str, netmask: Option<&str>) -> Option<(std::net::Ipv4Addr, u8)> {
+    let (addr, mask) = match spec.split_once('/') {
+        Some((a, m)) => (a, Some(m.to_string())),
+        None => (spec, netmask.map(|s| s.to_string())),
+    };
+    let ip: std::net::Ipv4Addr = addr.trim().parse().ok()?;
+    let len = match mask {
+        None => 32,
+        Some(m) if m.contains('.') => {
+            let nm: std::net::Ipv4Addr = m.parse().ok()?;
+            let bits = u32::from_be_bytes(nm.octets());
+            if bits.leading_ones() + bits.trailing_zeros() != 32 {
+                return None;
+            }
+            bits.leading_ones() as u8
+        }
+        Some(m) => {
+            let n: u8 = m.trim().parse().ok()?;
+            (n <= 32).then_some(n)?
+        }
+    };
+    Some((ip, len))
+}
+
+fn parse_v6_spec(spec: &str) -> Option<(Ipv6Addr, u8)> {
+    match spec.split_once('/') {
+        Some((a, m)) => {
+            let n: u8 = m.trim().parse().ok()?;
+            (n <= 128).then_some((a.trim().parse().ok()?, n))
+        }
+        None => Some((spec.trim().parse().ok()?, 128)),
+    }
+}
 
 fn now() -> u64 {
     SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
@@ -81,10 +127,24 @@ struct Netifd {
     objects: ubus::Objects,
     confdir: String,
     hotplug_path: String,
+    /// `/lib/netifd/proto`; the scripts there are run with it as cwd.
+    protodir: String,
+    /// One hotplug.d call at a time, as `interface_queue_event` does.
+    hotplug: process::Slot,
+    hotplug_current: Option<(String, Event)>,
+    hotplug_queue: Vec<(String, Event)>,
+    handlers: Vec<proto::Handler>,
+    /// Per-interface protocol state, for the shell handlers only.
+    protos: Vec<(String, proto::ProtoState)>,
 }
 
 impl Netifd {
-    fn new(confdir: &str, socket: Option<&str>, hotplug: &str) -> io::Result<Self> {
+    fn new(
+        confdir: &str,
+        socket: Option<&str>,
+        hotplug: &str,
+        protodir: &str,
+    ) -> io::Result<Self> {
         let events = netlink::Netlink::open(
             netlink::grp(netlink::RTNLGRP_LINK)
                 | netlink::grp(netlink::RTNLGRP_IPV4_IFADDR)
@@ -107,6 +167,12 @@ impl Netifd {
             objects,
             confdir: confdir.to_string(),
             hotplug_path: hotplug.to_string(),
+            protodir: protodir.to_string(),
+            hotplug: process::Slot::default(),
+            hotplug_current: None,
+            hotplug_queue: Vec::new(),
+            handlers: Vec::new(),
+            protos: Vec::new(),
         })
     }
 
@@ -124,10 +190,34 @@ impl Netifd {
             eprintln!("netifd-rs: config: {e}");
         }
 
+        if self.handlers.is_empty() {
+            self.handlers = proto::discover(std::path::Path::new(&self.protodir));
+            let names: Vec<&str> = self.handlers.iter().map(|h| h.name.as_str()).collect();
+            eprintln!("netifd-rs: shell protocol handlers: {}", names.join(" "));
+        }
+
+        for (_, st) in &mut self.protos {
+            st.script.terminate();
+            st.task.terminate();
+        }
+        self.protos.clear();
+
         self.rescan_devices();
         self.create_devices();
         self.build_prefixes();
         self.setup_interfaces();
+    }
+
+    fn handler_for(&self, proto: &str) -> Option<&proto::Handler> {
+        self.handlers.iter().find(|h| h.name == proto)
+    }
+
+    fn proto_state(&mut self, name: &str) -> &mut proto::ProtoState {
+        if !self.protos.iter().any(|(n, _)| n == name) {
+            self.protos.push((name.to_string(), proto::ProtoState::new()));
+        }
+        let i = self.protos.iter().position(|(n, _)| n == name).unwrap();
+        &mut self.protos[i].1
     }
 
     /// The devices the config names: every interface's device, every
@@ -477,6 +567,10 @@ impl Netifd {
         let Some(idx) = self.iface_index(name) else { return };
 
         if !IMPLEMENTED_PROTOS.contains(&ic.proto.as_str()) {
+            if self.handler_for(&ic.proto).is_some() {
+                self.proto_setup(name);
+                return;
+            }
             self.interfaces[idx].errors.push(interface::IfaceError {
                 subsystem: "proto".into(),
                 code: "PROTO_NOT_SUPPORTED".into(),
@@ -597,6 +691,392 @@ impl Netifd {
 
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
+    }
+
+    /// Run one protocol command for an interface, honouring the state machine.
+    fn proto_cmd(&mut self, name: &str, cmd: proto::Cmd) {
+        let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
+            return;
+        };
+        let Some(handler) = self.handler_for(&ic.proto).cloned() else { return };
+        let plan = {
+            let st = self.proto_state(name);
+            proto::plan(st, cmd, &handler)
+        };
+        match plan {
+            proto::Action::Nothing => {}
+            proto::Action::Refuse => {
+                eprintln!("netifd-rs: {name}: {cmd:?} refused in this state");
+            }
+            proto::Action::Abort => {
+                // SIGTERM both children and wait for them; the abort completes
+                // in `reap_children`.
+                let st = self.proto_state(name);
+                let _ = st.script.signal(process::SIGTERM as u32);
+                let _ = st.task.signal(process::SIGTERM as u32);
+            }
+            proto::Action::Run { action, env } => {
+                let opts: Vec<(String, Vec<String>)> =
+                    ic.raw.iter().map(|r| (r.name.clone(), r.values.clone())).collect();
+                let config = proto::config_json(&handler, &opts);
+                let argv = proto::argv(
+                    &handler,
+                    action,
+                    name,
+                    &config,
+                    ic.device.as_deref(),
+                );
+                let dir = self.protodir.clone();
+                let st = self.proto_state(name);
+                // the scripts source ../netifd-proto.sh, so cwd matters
+                if let Err(e) = st.script.start_in(&argv, &env, &dir) {
+                    eprintln!("netifd-rs: {name}: cannot run {action}: {e}");
+                }
+            }
+        }
+    }
+
+    /// Begin setup for a shell protocol: the interface goes pending, and the
+    /// script decides when (and whether) it comes up.
+    fn proto_setup(&mut self, name: &str) {
+        let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
+            return;
+        };
+        let devidx = ic.device.as_deref().map(|d| self.sys.if_index(d).unwrap_or(0)).unwrap_or(0);
+        if devidx == 0 {
+            if let Some(idx) = self.iface_index(name) {
+                self.interfaces[idx].errors.push(interface::IfaceError {
+                    subsystem: "interface".into(),
+                    code: "NO_DEVICE".into(),
+                    data: vec![],
+                });
+                self.interfaces[idx].available = false;
+            }
+            return;
+        }
+        let _ = self.sys.set_link_up(devidx, true);
+        if let Some(idx) = self.iface_index(name) {
+            self.interfaces[idx].state = State::Setup;
+            self.interfaces[idx].available = true;
+            self.interfaces[idx].errors.clear();
+        }
+        self.proto_cmd(name, proto::Cmd::Setup);
+    }
+
+    /// `proto_shell_notify`: the eight callbacks a handler script uses.
+    ///
+    /// A missing or unknown `action` is `INVALID_ARGUMENT`, and actions 0, 1
+    /// and 6 are `PERMISSION_DENIED` during teardown or abort -- a script that
+    /// reports success after netifd decided to tear down must not be able to
+    /// bring the interface back up.
+    fn notify_proto(&mut self, name: &str, data: &[u8]) -> i32 {
+        let fields: Vec<blob::Field> = blob::fields(data).collect();
+        let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
+        let Some(action) = find("action").and_then(|f| f.as_u32()) else {
+            return status::INVALID_ARGUMENT;
+        };
+        let sm = self.proto_state(name).sm;
+        let tearing = matches!(sm, proto::Sm::Teardown | proto::Sm::SetupAbort);
+
+        match action {
+            0 => {
+                if tearing {
+                    return status::PERMISSION_DENIED;
+                }
+                let Some(link_up) = find("link_up").and_then(|f| f.as_bool()) else {
+                    return status::INVALID_ARGUMENT;
+                };
+                if !link_up {
+                    self.iface_down(name);
+                    return status::OK;
+                }
+                self.apply_proto_link(name, &fields)
+            }
+            1 => {
+                if tearing {
+                    return status::PERMISSION_DENIED;
+                }
+                let Some(argv) = find("command").map(|f| string_list(&f)) else {
+                    return status::INVALID_ARGUMENT;
+                };
+                if argv.is_empty() {
+                    return status::INVALID_ARGUMENT;
+                }
+                let env: Vec<(String, String)> = find("env")
+                    .map(|f| string_list(&f))
+                    .unwrap_or_default()
+                    .into_iter()
+                    .filter_map(|e| {
+                        e.split_once('=').map(|(k, v)| (k.to_string(), v.to_string()))
+                    })
+                    .collect();
+                let st = self.proto_state(name);
+                match st.task.start(&argv, &env) {
+                    Ok(()) => status::OK,
+                    Err(e) => {
+                        eprintln!("netifd-rs: {name}: cannot run {}: {e}", argv[0]);
+                        status::UNKNOWN_ERROR
+                    }
+                }
+            }
+            2 => {
+                let sig = find("signal").and_then(|f| f.as_u32()).unwrap_or(u32::MAX);
+                let st = self.proto_state(name);
+                if st.task.is_running() {
+                    let effective = if sig > 31 { process::SIGTERM as u32 } else { sig };
+                    if effective == process::SIGTERM as u32
+                        || effective == process::SIGKILL as u32
+                    {
+                        st.task_killed = true;
+                    }
+                    let _ = st.task.signal(sig);
+                }
+                status::OK
+            }
+            3 => {
+                let Some(list) = find("error").map(|f| string_list(&f)) else {
+                    return status::INVALID_ARGUMENT;
+                };
+                if list.is_empty() {
+                    return status::INVALID_ARGUMENT;
+                }
+                let subsystem = self
+                    .cfg
+                    .interfaces
+                    .iter()
+                    .find(|i| i.name == name)
+                    .map(|i| i.proto.clone())
+                    .unwrap_or_default();
+                if let Some(idx) = self.iface_index(name) {
+                    self.interfaces[idx].errors.push(interface::IfaceError {
+                        subsystem,
+                        code: list[0].clone(),
+                        data: list[1..].to_vec(),
+                    });
+                }
+                status::OK
+            }
+            4 => {
+                if let Some(idx) = self.iface_index(name) {
+                    self.interfaces[idx].autostart = false;
+                }
+                self.proto_state(name).block_restart = true;
+                status::OK
+            }
+            5 => {
+                let Some(av) = find("available").and_then(|f| f.as_bool()) else {
+                    return status::INVALID_ARGUMENT;
+                };
+                if let Some(idx) = self.iface_index(name) {
+                    self.interfaces[idx].available = av;
+                }
+                self.proto_state(name).available = av;
+                status::OK
+            }
+            6 => {
+                if tearing {
+                    return status::PERMISSION_DENIED;
+                }
+                // No interface-to-host dependency tracking in this build.
+                // Refusing is honest; accepting and not tracking it would let
+                // an interface come up whose dependency is unreachable.
+                eprintln!(
+                    "netifd-rs: {name}: add_host_dependency is not implemented by this build"
+                );
+                status::NOT_SUPPORTED
+            }
+            7 => match sm {
+                proto::Sm::Idle => {
+                    self.iface_down(name);
+                    self.proto_cmd(name, proto::Cmd::Teardown);
+                    status::OK
+                }
+                proto::Sm::Setup => {
+                    self.proto_cmd(name, proto::Cmd::Teardown);
+                    status::OK
+                }
+                _ => status::PERMISSION_DENIED,
+            },
+            _ => status::INVALID_ARGUMENT,
+        }
+    }
+
+    /// The address, route and DNS half of action 0.
+    fn apply_proto_link(&mut self, name: &str, fields: &[blob::Field]) -> i32 {
+        let find = |n: &str| fields.iter().find(|f| f.name == n).copied();
+        let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
+            return status::NOT_FOUND;
+        };
+        // the script may name its own L3 device (ppp0); otherwise main_dev
+        let l3 = find("ifname")
+            .and_then(|f| f.as_str().map(|s| s.to_string()))
+            .or_else(|| ic.device.clone());
+        let Some(l3) = l3 else { return status::INVALID_ARGUMENT };
+        let devidx = self.sys.if_index(&l3).unwrap_or(0);
+        if devidx == 0 {
+            eprintln!("netifd-rs: {name}: proto reported device {l3}, which does not exist");
+            return status::INVALID_ARGUMENT;
+        }
+        let _ = self.sys.set_link_up(devidx, true);
+
+        let mut ipset = interface::IpSettings::default();
+        let netmask = find("netmask").and_then(|f| f.as_str().map(|s| s.to_string()));
+        for spec in find("ipaddr").map(|f| string_list(&f)).unwrap_or_default() {
+            match parse_v4_spec(&spec, netmask.as_deref()) {
+                Some((ip, mask)) => {
+                    let sa = sys::Address::new(IpAddr::V4(ip), mask).with_default_broadcast();
+                    if let Err(e) = self.sys.add_address(devidx, &sa) {
+                        eprintln!("netifd-rs: {name}: cannot add {ip}/{mask}: {e}");
+                        continue;
+                    }
+                    self.replace_subnet_route(devidx, &sa, &ic);
+                    ipset.addresses.push(Address::new(IpAddr::V4(ip), mask));
+                }
+                None => eprintln!("netifd-rs: {name}: proto sent a bad ipaddr '{spec}'"),
+            }
+        }
+        for spec in find("ip6addr").map(|f| string_list(&f)).unwrap_or_default() {
+            match parse_v6_spec(&spec) {
+                Some((ip, mask)) => {
+                    let sa = sys::Address::new(IpAddr::V6(ip), mask);
+                    if let Err(e) = self.sys.add_address(devidx, &sa) {
+                        eprintln!("netifd-rs: {name}: cannot add {ip}/{mask}: {e}");
+                        continue;
+                    }
+                    self.replace_subnet_route(devidx, &sa, &ic);
+                    ipset.addresses.push(Address::new(IpAddr::V6(ip), mask));
+                }
+                None => eprintln!("netifd-rs: {name}: proto sent a bad ip6addr '{spec}'"),
+            }
+        }
+        for (key, v6) in [("gateway", false), ("ip6gw", true)] {
+            let Some(gw) = find(key).and_then(|f| f.as_str().map(|s| s.to_string())) else {
+                continue;
+            };
+            let Ok(nexthop) = gw.parse::<IpAddr>() else {
+                eprintln!("netifd-rs: {name}: proto sent a bad {key} '{gw}'");
+                continue;
+            };
+            if nexthop.is_ipv6() != v6 {
+                continue;
+            }
+            let mut r = match nexthop {
+                IpAddr::V4(a) => sys::Route::v4_default(a),
+                IpAddr::V6(_) => {
+                    let mut r = sys::Route::v6(Ipv6Addr::UNSPECIFIED, 0);
+                    r.nexthop = nexthop;
+                    r
+                }
+            };
+            r.metric = ic.metric;
+            let t = if v6 { ic.ip6table } else { ic.ip4table };
+            r.table = t.unwrap_or(sys::RT_TABLE_MAIN);
+            if let Err(e) = self.sys.add_route(devidx, &r) {
+                eprintln!("netifd-rs: {name}: cannot add the {key} route: {e}");
+                continue;
+            }
+            let target: IpAddr =
+                if v6 { "::".parse().unwrap() } else { "0.0.0.0".parse().unwrap() };
+            let mut ir = interface::Route::new(target, 0, nexthop);
+            ir.metric = ic.metric;
+            ir.table = t.unwrap_or(0);
+            ipset.routes.push(ir);
+        }
+        for d in find("dns").map(|f| string_list(&f)).unwrap_or_default() {
+            match d.parse::<IpAddr>() {
+                Ok(a) => ipset.dns_servers.push(a),
+                Err(_) => eprintln!("netifd-rs: {name}: proto sent a bad dns '{d}'"),
+            }
+        }
+        ipset.dns_search = find("dns_search").map(|f| string_list(&f)).unwrap_or_default();
+        ipset.no_delegation = ic.delegate == Some(false);
+
+        if let Some(idx) = self.iface_index(name) {
+            let i = &mut self.interfaces[idx];
+            i.state = State::Up;
+            i.available = true;
+            i.l3_device = Some(l3.clone());
+            i.device = ic.device.clone();
+            i.proto_ip = ipset;
+            i.proto_ip.routes.sort_by(interface::route_order);
+            i.updated = interface::updated::ADDRESS;
+            if !i.proto_ip.routes.is_empty() {
+                i.updated |= interface::updated::ROUTE;
+            }
+            i.errors.clear();
+        }
+        self.start_time.retain(|(n, _)| n != name);
+        self.start_time.push((name.to_string(), now()));
+        self.proto_state(name).sm = proto::Sm::Idle;
+        self.apply_prefix_assignments();
+        self.emit_event(name, Event::Up);
+        status::OK
+    }
+
+    /// Poll both slots of every protocol state and apply the effects.
+    fn reap_children(&mut self) {
+        if let Some((_, _, output)) = self.hotplug.reap() {
+            for line in output.lines().filter(|l| !l.trim().is_empty()) {
+                eprintln!("netifd-rs: hotplug: {line}");
+            }
+            self.hotplug_current = None;
+            self.pump_hotplug();
+        }
+        let names: Vec<String> = self.protos.iter().map(|(n, _)| n.clone()).collect();
+        for name in names {
+            for which in [proto::Which::Script, proto::Which::Task] {
+                let exited = {
+                    let st = self.proto_state(&name);
+                    match which {
+                        proto::Which::Script => st.script.reap(),
+                        proto::Which::Task => st.task.reap(),
+                    }
+                };
+                let Some((argv0, status, output)) = exited else { continue };
+                for line in output.lines().filter(|l| !l.trim().is_empty()) {
+                    eprintln!("netifd-rs: {name}: {line}");
+                }
+                if status != 0 {
+                    eprintln!("netifd-rs: {name}: {argv0} exited {status}");
+                }
+                if which == proto::Which::Task {
+                    let st = self.proto_state(&name);
+                    if matches!(st.sm, proto::Sm::Idle | proto::Sm::Setup) {
+                        st.last_error = status;
+                    }
+                }
+                let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned()
+                else {
+                    continue;
+                };
+                let Some(handler) = self.handler_for(&ic.proto).cloned() else { continue };
+                let effects = {
+                    let st = self.proto_state(&name);
+                    proto::task_finish(st, which, &handler, 0)
+                };
+                for e in effects {
+                    match e {
+                        proto::Finish::LinkLost | proto::Finish::Down => {
+                            self.iface_down(&name);
+                        }
+                        proto::Finish::Teardown => {
+                            self.proto_cmd(&name, proto::Cmd::Teardown);
+                        }
+                        proto::Finish::Renew => {
+                            self.proto_cmd(&name, proto::Cmd::Renew);
+                        }
+                        proto::Finish::SignalTask(sig) => {
+                            let st = self.proto_state(&name);
+                            st.task_killed = true;
+                            let _ = st.task.signal(sig);
+                        }
+                        // no checkup timer in this build: the script's own
+                        // exit already drives the teardown
+                        proto::Finish::ArmCheckup => {}
+                    }
+                }
+            }
+        }
     }
 
     /// `interface_handle_subnet_route`: take over the prefix route. The
@@ -848,49 +1328,78 @@ impl Netifd {
     }
 
     /// `run_cmd`: fork `/sbin/hotplug-call iface` with the event in the
-    /// environment. Synchronous here rather than queued -- the C serialises
-    /// these one at a time anyway, and waiting keeps the ordering the scripts
-    /// expect without a queue this build has no other use for.
+    /// environment.
+    ///
+    /// This must NOT wait for the child. The hotplug scripts call back into
+    /// `network.interface.<name> status` over ubus, so a daemon blocked in
+    /// `wait()` deadlocks against its own hotplug handler -- which is exactly
+    /// what happened: every ubus call timed out and the scripts reported
+    /// "Request timed out". `interface_queue_event` runs one at a time and
+    /// returns to the event loop, so the queue below does the same.
     fn call_hotplug(&mut self, name: &str, ev: Event) {
+        if !std::path::Path::new(&self.hotplug_path).exists() {
+            return;
+        }
+        // `interface_queue_event` drops a queued event that repeats the one
+        // being handled, which is why a doubled IFEV_DOWN calls hotplug once.
+        if self.hotplug_current.as_ref() == Some(&(name.to_string(), ev)) {
+            return;
+        }
+        if self.hotplug_queue.last() == Some(&(name.to_string(), ev)) {
+            return;
+        }
+        self.hotplug_queue.push((name.to_string(), ev));
+        self.pump_hotplug();
+    }
+
+    /// Start the next queued hotplug call if none is running.
+    fn pump_hotplug(&mut self) {
+        if self.hotplug.is_running() || self.hotplug_queue.is_empty() {
+            return;
+        }
+        let (name, ev) = self.hotplug_queue.remove(0);
+        let (argv, env) = self.hotplug_argv(&name, ev);
+        match self.hotplug.start(&argv, &env) {
+            Ok(()) => self.hotplug_current = Some((name, ev)),
+            Err(e) => {
+                eprintln!("netifd-rs: cannot run {} for {name}: {e}", self.hotplug_path);
+                self.hotplug_current = None;
+            }
+        }
+    }
+
+    fn hotplug_argv(&self, name: &str, ev: Event) -> (Vec<String>, Vec<(String, String)>) {
         let action = match ev {
             Event::Up => "ifup",
             Event::Down => "ifdown",
             Event::UpFailed => "ifup-failed",
             Event::Update => "ifupdate",
         };
-        let path = std::path::Path::new(&self.hotplug_path);
-        if !path.exists() {
-            return;
-        }
-        let mut cmd = std::process::Command::new(&self.hotplug_path);
-        cmd.arg("iface").env("ACTION", action).env("INTERFACE", name);
+        let argv = vec![self.hotplug_path.clone(), "iface".to_string()];
+        let mut env = vec![
+            ("ACTION".to_string(), action.to_string()),
+            ("INTERFACE".to_string(), name.to_string()),
+        ];
         if matches!(ev, Event::Up | Event::Update) {
             if let Some(i) = self.interfaces.iter().find(|i| i.name == name) {
                 if let Some(d) = &i.l3_device {
-                    cmd.env("DEVICE", d);
+                    env.push(("DEVICE".to_string(), d.clone()));
                 }
                 if matches!(ev, Event::Update) {
-                    if i.updated & interface::updated::ADDRESS != 0 {
-                        cmd.env("IFUPDATE_ADDRESSES", "1");
-                    }
-                    if i.updated & interface::updated::ROUTE != 0 {
-                        cmd.env("IFUPDATE_ROUTES", "1");
-                    }
-                    if i.updated & interface::updated::PREFIX != 0 {
-                        cmd.env("IFUPDATE_PREFIXES", "1");
-                    }
-                    if i.updated & interface::updated::DATA != 0 {
-                        cmd.env("IFUPDATE_DATA", "1");
+                    for (flag, var) in [
+                        (interface::updated::ADDRESS, "IFUPDATE_ADDRESSES"),
+                        (interface::updated::ROUTE, "IFUPDATE_ROUTES"),
+                        (interface::updated::PREFIX, "IFUPDATE_PREFIXES"),
+                        (interface::updated::DATA, "IFUPDATE_DATA"),
+                    ] {
+                        if i.updated & flag != 0 {
+                            env.push((var.to_string(), "1".to_string()));
+                        }
                     }
                 }
             }
         }
-        match cmd.status() {
-            Ok(_) => {}
-            Err(e) => {
-                eprintln!("netifd-rs: cannot run {} for {name}: {e}", self.hotplug_path)
-            }
-        }
+        (argv, env)
     }
 
     fn uptime_of(&self, name: &str) -> u32 {
@@ -990,6 +1499,16 @@ impl Netifd {
                 self.iface_down(&name);
                 self.conn.reply_status(&req, status::OK, None)
             }
+            (ubus::Target::Interface(Some(name)), "renew") => {
+                let name = name.to_string();
+                self.proto_cmd(&name, proto::Cmd::Renew);
+                self.conn.reply_status(&req, status::OK, None)
+            }
+            (ubus::Target::Interface(Some(name)), "notify_proto") => {
+                let name = name.to_string();
+                let code = self.notify_proto(&name, &req.data);
+                self.conn.reply_status(&req, code, None)
+            }
             (ubus::Target::Interface(_), m) => ubus::not_supported(&mut self.conn, &req, m),
             (ubus::Target::Unknown, _) => {
                 self.conn.reply_status(&req, status::NOT_FOUND, None)
@@ -1000,9 +1519,12 @@ impl Netifd {
         }
     }
 
-    /// `get_proto_handlers`. Only handlers this build can run are listed: a
-    /// caller that sees `dhcp` here would reasonably expect it to work.
+    /// `get_proto_handlers`: the discovered shell handlers plus the built-in
+    /// `static`. A handler is only listed once it can actually be run.
     fn dump_proto_handlers(&self, b: &mut BlobBuf) {
+        for h in &self.handlers {
+            h.dump_info(b);
+        }
         let t = b.msg_open_table("static");
         let v = b.msg_open_table("validate");
         for (k, ty) in [
@@ -1057,6 +1579,7 @@ impl Netifd {
                     std::process::exit(1);
                 }
             }
+            self.reap_children();
             if fds[1].revents & POLLIN != 0 {
                 self.drain_netlink();
             }
@@ -1077,6 +1600,7 @@ impl Netifd {
 fn main() {
     let mut confdir = "/etc/config".to_string();
     let mut hotplug = DEFAULT_HOTPLUG_PATH.to_string();
+    let mut protodir = DEFAULT_PROTO_DIR.to_string();
     let mut socket: Option<String> = None;
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
@@ -1084,6 +1608,7 @@ fn main() {
             "-c" => confdir = args.next().unwrap_or(confdir),
             "-s" => socket = args.next(),
             "-h" => hotplug = args.next().unwrap_or(hotplug),
+            "-p" => protodir = args.next().unwrap_or(protodir),
             "-V" | "--version" => {
                 println!("{BUILD_ID}");
                 return;
@@ -1095,7 +1620,7 @@ fn main() {
         }
     }
 
-    let mut n = match Netifd::new(&confdir, socket.as_deref(), &hotplug) {
+    let mut n = match Netifd::new(&confdir, socket.as_deref(), &hotplug, &protodir) {
         Ok(n) => n,
         Err(e) => {
             eprintln!("netifd-rs: startup failed: {e}");

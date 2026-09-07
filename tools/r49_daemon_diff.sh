@@ -3,11 +3,15 @@
 #
 # Two runs, each in its own mount+network namespace with its own copy of the
 # exact device rootfs and the same /etc/config/network. Run "c" starts the C
-# netifd inside the chroot; run "rs" starts netifd-rs outside the chroot but in
-# the same namespaces, pointed at the chroot's ubus socket and config. Both
-# runs are then interrogated identically -- the ubus object list, the full
-# signatures, both status objects -- and the resulting kernel state is dumped
-# with iproute2.
+# netifd inside the chroot; run "rs" copies the musl-built netifd-rs into the
+# same rootfs and starts it the same way -- it has to be inside, because the
+# protocol scripts source /lib/functions.sh by absolute path and live in
+# /lib/netifd/proto. Both runs are then interrogated identically -- the ubus
+# object list, the full signatures, both status objects -- and the resulting
+# kernel state is dumped with iproute2.
+#
+# The candidate must therefore be a musl binary for this target:
+#   cargo build --release --target aarch64-unknown-linux-musl
 #
 # A difference here is a real behavioural difference: same kernel, same rootfs,
 # same config, same clients.
@@ -111,6 +115,18 @@ set -u
 echo $! > /tmp/out/netifd.pid
 CN
 
+	# The candidate runs inside the rootfs too: the protocol scripts source
+	# /lib/functions.sh by absolute path and live in /lib/netifd/proto, so a
+	# daemon outside the chroot finds neither and silently discovers no
+	# handlers at all.
+	sudo -n cp "$cand" "$root/sbin/netifd-rs"
+	sudo -n chmod 755 "$root/sbin/netifd-rs"
+	sudo -n tee "$root/tmp/rsnetifd.sh" >/dev/null <<'RN'
+set -u
+/sbin/netifd-rs > /tmp/out/netifd.log 2>&1 &
+echo $! > /tmp/out/cand.pid
+RN
+
 	sudo -n unshare --mount --net --fork /bin/sh -c '
 		root=$1; tag=$2; cand=$3; out=$4
 		mount --make-rprivate /
@@ -137,14 +153,12 @@ CN
 		if [ "$tag" = c ]; then
 			chroot "$root" /bin/sh /tmp/cnetifd.sh
 		else
-			"$cand" -c "$root/etc/config" \
-				-s "$root/var/run/ubus/ubus.sock" \
-				> "$out/rs-daemon.log" 2>&1 &
-			echo $! > "$root/tmp/out/cand.pid"
+			chroot "$root" /bin/sh /tmp/rsnetifd.sh
 		fi
 		sleep 5
 
 		chroot "$root" /bin/sh /tmp/probe.sh > "$out/$tag-ubus.txt" 2>&1 || true
+		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		{
 			echo "--- ip -d link"
 			ip -d link show
@@ -245,7 +259,6 @@ def mask(o):
 
 KNOWN_GAPS = {
     "ubus list": ["network.wireless"],
-    "get_proto_handlers": None,
 }
 gaps = []
 
@@ -273,7 +286,8 @@ for name in c:
             if extra: print(f"  only in rust: {extra}", file=report)
             bad += 1
         continue
-    if name in ("interface dump", "device status", "interface lan status"):
+    if name in ("get_proto_handlers", "interface dump", "device status",
+                "interface lan status"):
         try:
             ja, jb = json.loads(a, object_pairs_hook=collections.OrderedDict), \
                      json.loads(b, object_pairs_hook=collections.OrderedDict)

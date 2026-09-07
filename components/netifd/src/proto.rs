@@ -1,14 +1,6 @@
 //! Shell protocol handlers: discovery, invocation, and the `notify_proto`
 //! callbacks they use to report back.
 //!
-//! **Staged, not yet wired into the daemon.** Discovery, the state machine and
-//! the argv construction are implemented and unit-tested here; the
-//! `notify_proto` callbacks that let an interface actually reach IFS_UP are
-//! not. Until those exist the daemon keeps reporting only `static` from
-//! `get_proto_handlers` and refuses a shell proto outright, because a handler
-//! that is advertised but cannot finish setup would leave an interface in
-//! SETUP forever with no indication why.
-//!
 //! The contract is recorded in docs/contracts/netifd-proto-shell.md. Two parts
 //! of it are easy to get wrong and fail silently:
 //!
@@ -17,10 +9,6 @@
 //!     they fail on line 7 **and still exit 0**.
 //!   * netifd starts the protocol helper itself, on the script's request
 //!     (action 1). A helper the shell backgrounded would be invisible to us.
-
-// Staged: the daemon does not call into this module yet. The lint would
-// otherwise bury the fact that it is complete and tested.
-#![allow(dead_code)]
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -74,10 +62,69 @@ fn json_bool(v: &Json, key: &str) -> bool {
     matches!(v.get(key), Some(Json::Bool(true)))
 }
 
+/// Parse every document in a `dump`. One script may register more than one
+/// protocol — `ppp.sh` emits both `ppp` and `pppoe`, back to back with no
+/// separator — so a parser that reads a single object drops the second and
+/// then fails on the "trailing characters".
+pub fn parse_dump(script: &Path, text: &str) -> Result<Vec<Handler>, String> {
+    let mut out = Vec::new();
+    let mut rest = text.trim_start();
+    while !rest.is_empty() {
+        let (j, used) =
+            owrt_ubus::json::parse_prefix(rest).map(|j| (j, 0)).map_err(|e| format!("{e}"))?;
+        // parse_prefix does not tell us how much it consumed, so find the end
+        // of this object by matching braces outside strings
+        let end = if used == 0 { object_end(rest).ok_or("unterminated JSON object")? } else { used };
+        out.push(Handler::from_json(script, &j)?);
+        rest = rest[end..].trim_start();
+    }
+    if out.is_empty() {
+        return Err("no documents in dump".into());
+    }
+    Ok(out)
+}
+
+/// The byte offset just past the first complete `{...}`, ignoring braces
+/// inside strings and after a backslash.
+fn object_end(s: &str) -> Option<usize> {
+    let b = s.as_bytes();
+    let mut depth = 0usize;
+    let mut in_str = false;
+    let mut escaped = false;
+    for (i, &c) in b.iter().enumerate() {
+        if in_str {
+            if escaped {
+                escaped = false;
+            } else if c == b'\\' {
+                escaped = true;
+            } else if c == b'"' {
+                in_str = false;
+            }
+            continue;
+        }
+        match c {
+            b'"' => in_str = true,
+            b'{' => depth += 1,
+            b'}' => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some(i + 1);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
 impl Handler {
     /// Parse one `dump` document.
     pub fn parse(script: &Path, text: &str) -> Result<Self, String> {
         let j = owrt_ubus::json::parse(text).map_err(|e| format!("{e}"))?;
+        Self::from_json(script, &j)
+    }
+
+    fn from_json(script: &Path, j: &owrt_ubus::json::Json) -> Result<Self, String> {
         let Some(Json::Str(name)) = j.get("name") else {
             return Err("dump has no name".into());
         };
@@ -100,13 +147,13 @@ impl Handler {
             name: name.clone(),
             script: script.to_path_buf(),
             config,
-            no_device: json_bool(&j, "no-device"),
-            no_device_config: json_bool(&j, "no-device-config"),
-            no_task: json_bool(&j, "no-proto-task"),
-            init_available: json_bool(&j, "available"),
-            renew_available: json_bool(&j, "renew-handler"),
-            last_error: json_bool(&j, "lasterror"),
-            teardown_on_l3_link_down: json_bool(&j, "teardown-on-l3-link-down"),
+            no_device: json_bool(j, "no-device"),
+            no_device_config: json_bool(j, "no-device-config"),
+            no_task: json_bool(j, "no-proto-task"),
+            init_available: json_bool(j, "available"),
+            renew_available: json_bool(j, "renew-handler"),
+            last_error: json_bool(j, "lasterror"),
+            teardown_on_l3_link_down: json_bool(j, "teardown-on-l3-link-down"),
         })
     }
 
@@ -152,8 +199,8 @@ pub fn discover(dir: &Path) -> Vec<Handler> {
     for path in names {
         let Some(stem) = path.file_stem().and_then(|s| s.to_str()) else { continue };
         match run_dump(dir, &path, stem) {
-            Ok(text) => match Handler::parse(&path, &text) {
-                Ok(h) => out.push(h),
+            Ok(text) => match parse_dump(&path, &text) {
+                Ok(hs) => out.extend(hs),
                 Err(e) => eprintln!("netifd-rs: {} dump is not usable: {e}", path.display()),
             },
             Err(e) => eprintln!("netifd-rs: cannot run {} dump: {e}", path.display()),
@@ -713,6 +760,28 @@ mod tests {
         let h = dhcp();
         let opts = vec![("wombat".to_string(), vec!["x".to_string()])];
         assert_eq!(config_json(&h, &opts), "{}");
+    }
+
+    #[test]
+    fn one_script_may_register_two_protocols() {
+        // ppp.sh emits both documents back to back with no separator
+        let text = format!(
+            "{}\n{}",
+            DHCP_DUMP,
+            DHCP_DUMP.replace("\"name\": \"dhcp\"", "\"name\": \"dhcpv6\"")
+        );
+        let hs = parse_dump(Path::new("/lib/netifd/proto/ppp.sh"), &text).unwrap();
+        assert_eq!(hs.len(), 2);
+        assert_eq!(hs[0].name, "dhcp");
+        assert_eq!(hs[1].name, "dhcpv6");
+    }
+
+    #[test]
+    fn a_brace_inside_a_string_does_not_end_the_object() {
+        let text = r#"{ "name": "x", "config": [ [ "a:or(\"{\",\"}\")", 3 ] ] }"#;
+        let hs = parse_dump(Path::new("/x.sh"), text).unwrap();
+        assert_eq!(hs.len(), 1);
+        assert_eq!(hs[0].config[0].1, "or(\"{\",\"}\")");
     }
 
     #[test]

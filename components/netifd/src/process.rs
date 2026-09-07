@@ -28,21 +28,31 @@ pub struct Process {
 
 impl Process {
     /// `netifd_start_process`: exec `argv`, with `env` added on top of the
-    /// inherited environment (the C uses `putenv`, which does not clear).
-    pub fn start(argv: &[String], env: &[(String, String)]) -> io::Result<Self> {
+    /// inherited environment (the C uses `putenv`, which does not clear), and
+    /// with a working directory — `fchdir(proc->dir_fd)`. The
+    /// protocol scripts source `../netifd-proto.sh`, so running one without
+    /// this fails on its seventh line and still exits 0.
+    pub fn start_in(
+        argv: &[String],
+        env: &[(String, String)],
+        dir: Option<&str>,
+    ) -> io::Result<Self> {
         let Some((cmd, args)) = argv.split_first() else {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty argv"));
         };
-        let child = Command::new(cmd)
-            .args(args)
+        let mut c = Command::new(cmd);
+        c.args(args)
             .envs(env.iter().map(|(k, v)| (k.clone(), v.clone())))
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-        Ok(Self { child, argv0: cmd.clone() })
+            .stderr(Stdio::piped());
+        if let Some(d) = dir {
+            c.current_dir(d);
+        }
+        Ok(Self { child: c.spawn()?, argv0: cmd.clone() })
     }
 
+    #[cfg(test)]
     pub fn pid(&self) -> u32 {
         self.child.id()
     }
@@ -115,16 +125,28 @@ impl Slot {
         self.proc.is_some()
     }
 
+    #[cfg(test)]
     pub fn pid(&self) -> Option<u32> {
         self.proc.as_ref().map(|p| p.pid())
     }
 
     /// Start a process here, terminating whatever was in the slot first.
     pub fn start(&mut self, argv: &[String], env: &[(String, String)]) -> io::Result<()> {
+        self.start_in(argv, env, "")
+    }
+
+    /// The same, in `dir`. An empty `dir` inherits ours.
+    pub fn start_in(
+        &mut self,
+        argv: &[String],
+        env: &[(String, String)],
+        dir: &str,
+    ) -> io::Result<()> {
         if let Some(mut old) = self.proc.take() {
             old.terminate();
         }
-        self.proc = Some(Process::start(argv, env)?);
+        let d = if dir.is_empty() { None } else { Some(dir) };
+        self.proc = Some(Process::start_in(argv, env, d)?);
         Ok(())
     }
 
@@ -159,16 +181,6 @@ impl Slot {
             }
         }
     }
-}
-
-/// Run a command to completion and return its stdout. Used for the one-shot
-/// `dump` that registers a protocol handler.
-pub fn run_capture(argv: &[String]) -> io::Result<(i32, String)> {
-    let Some((cmd, args)) = argv.split_first() else {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty argv"));
-    };
-    let out = Command::new(cmd).args(args).stdin(Stdio::null()).output()?;
-    Ok((out.status.code().unwrap_or(-1), String::from_utf8_lossy(&out.stdout).into_owned()))
 }
 
 #[cfg(test)]
@@ -271,9 +283,18 @@ mod tests {
     }
 
     #[test]
-    fn run_capture_returns_stdout_and_status() {
-        let (status, out) = run_capture(&sh("echo hello; exit 0")).unwrap();
-        assert_eq!(status, 0);
-        assert_eq!(out.trim(), "hello");
+    fn a_working_directory_is_honoured() {
+        let mut s = Slot::default();
+        s.start_in(&sh("pwd"), &[], "/tmp").unwrap();
+        let mut out = String::new();
+        for _ in 0..200 {
+            if let Some((_, _, o)) = s.reap() {
+                out = o;
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        // the proto scripts source ../netifd-proto.sh, so this is load-bearing
+        assert!(out.trim().ends_with("tmp"), "{out:?}");
     }
 }
