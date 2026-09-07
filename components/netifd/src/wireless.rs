@@ -612,7 +612,7 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
             .unwrap_or_default();
         for r in radios.iter_mut() {
             for v in r.vifs.iter_mut() {
-                if !want.is_empty() && !want.iter().any(|w| *w == v.section) {
+                if !want.is_empty() && !want.contains(&v.section) {
                     continue;
                 }
                 let sub = Sub { section: s.name.clone(), opts: opts.clone() };
