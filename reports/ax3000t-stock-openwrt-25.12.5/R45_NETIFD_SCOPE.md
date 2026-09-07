@@ -466,3 +466,51 @@ radio 到底起没起来。沙箱里没有硬件，C 那边 setup 也失败，�
 所以 r59 是通过 `netifd-rs --dump-wireless`（一个诊断开关，不是守护进程的一部分）
 比对的，而不是通过注册对象。等编排那半边做出来，schema 和投影这半边已经是验证过的了。
 r49 和 r57 继续把这个对象单独列为已知缺口并打印说明。
+
+### 阻塞请求期间排队的消息，必须主动去取
+
+r55 偶发地在 `remove` 之后 `ubus call network.interface dump` 超时——同一个二进制，
+有时过有时不过。不是竞态难查，是循环少了一步。
+
+`add_object` / `remove_object` / `send_event` 都是**同步**请求：发出去，然后一直读
+socket 直到读到自己那条回复。期间读到的别人的消息不会丢，会进 `pending` 队列。
+问题在主循环：它只在 `poll()` 报告 socket 可读时才调 `read_incoming()`。
+排在 `pending` 里的那条 invoke 不会让 socket 再次可读——**没有新数据了**——
+于是它就一直躺在那儿，等到下一次别的事件把循环叫醒。调用方那边就是超时。
+
+`send_event` 每次接口事件都会调一次，所以这个窗口比 `remove_object` 频繁得多。
+
+libubus 是在等待里就地派发的（`ubus_complete_request` 会处理收到的 invoke）。
+这里改成推迟到循环里派发，效果一样，前提是循环真的去取——所以 `drain_bus()`
+在 poll 之前和每次读之后各跑一遍，把 `pending` 抽干。
+
+### `updated` 到底什么时候置位、什么时候清零
+
+之前这个字段一直是猜的。实测下来规则很窄，而且只有两处清零：
+
+- **`interface_update_start()` 开头无条件清零整个 mask**。全树只有一个调用者：
+  `notify_proto` 的 action-0 处理函数。所以静态接口永远走不到这里——它的
+  `["addresses"]` 会一直挂着，只要接口不下线。
+- **`interface_parse_data()` 开头也无条件清零**，调用者只有 `set_data`。
+  所以对一个已经是 `["addresses"]` 的静态接口做 `set_data`，结果是
+  `["data"]` 而不是 `["addresses","data"]`。
+
+置位只发生在 vlist 回调里，而且带 `if (!node_new || !node_old)` 的门槛——
+**只有真的新增或删除才置位**，原样重放同一条不置位。所以：
+
+- 网关变了、目的地没变 → **不置 ROUTE**。route 的 vlist key 不含 nexthop，
+  这是同一条被就地替换（`add_route` 带 `NLM_F_REPLACE`，内核一步换掉）。
+  这一条对实现有直接后果：flush 的比较**也不能带 nexthop**，否则会在
+  add 之后把刚替换上去的那条删掉。
+- 事件也跟着这个 mask：`if (state == IFS_UP && iface->updated)` 才发
+  IFEV_UPDATE，mask 为零就什么都不发。
+- 字段本身只在接口 up 时打印。
+
+这解释了 r56 为什么会飘：真实的 DHCPv6 交换里 odhcp6c 会连着发好几条
+（bound → informed / ra-updated），每条都清一次零、又几乎什么都不重置，
+所以 `updated` 大概只活两秒。同一个 harness，C 自己一次报三个 flag、
+下一次一个都没有。r56 因此**显式排除** `updated` 和它驱动的 `ifupdate`
+并打印说明；语义改在 r55 里断言，那里的 notify 是按已知时刻手动发的。
+
+（r55 那六个用例目前是两边一致，但 C 在整段序列里一直报 `["addresses"]`，
+所以它们证明的是"一致"，还没证明"清零那一跳"。这一点没有夸大。）

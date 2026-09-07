@@ -127,6 +127,19 @@ PROBE
 			peer name veth1 address 02:00:00:00:00:01
 		ip link set veth0 up; ip link set veth1 up
 		sysctl -qw net.ipv6.conf.veth0.forwarding=1 2>/dev/null || true
+		# Both link-local addresses must have finished DAD before anything
+		# starts. Without this the client can reach SOLICIT before its own
+		# LLA is usable -- "Failed to send SOLICIT (Address not available)"
+		# -- and the protocol reports a lost link, which costs an ifdown and
+		# an ifup that the other side, having lost the race differently,
+		# never produces. The race is in the sandbox, not in netifd.
+		i=0
+		while [ $i -lt 15 ]; do
+			t=$(ip -o -6 addr show scope link | grep -c tentative || true)
+			n=$(ip -o -6 addr show scope link | grep -c "veth[01]" || true)
+			[ "$t" = 0 ] && [ "$n" -ge 2 ] && break
+			i=$((i+1)); sleep 1
+		done
 
 		chroot "$root" /bin/sh /tmp/bus.sh
 		if [ "$tag" = c ]; then
@@ -209,6 +222,15 @@ for t in c rs; do
 	echo "$t leased $lease"
 	for f in "$out/$t-kernel.txt" "$out/$t-ubus.txt"; do
 		sed -i "s/$lease/fd00:5678::LEASE/g" "$f"
+		# `updated` and the `ifupdate` it drives are excluded here, and only
+		# here. netifd clears the whole mask at the top of every action-0
+		# notify and re-sets a bit only for an entry genuinely added or
+		# removed, so after a real DHCPv6 exchange the field says which of
+		# odhcp6c's follow-up messages the sample happened to land between --
+		# the C itself reported all three flags in one run of this harness and
+		# none in the next. The semantics are asserted in r55 instead, where
+		# the notifies are sent by hand at known times.
+		sed -i -E "s/\"updated\": \[[^]]*\], //g" "$f"
 	done
 done
 
@@ -269,6 +291,13 @@ sys.exit(1 if bad else 0)
 PY
 
 echo "=== hotplug"
+# same reason as `updated`: an ifupdate fires exactly when that mask is
+# non-zero, so its presence tracks odhcp6c's message timing, not netifd
+grep -v "ACTION=ifupdate" "$out/c-hotplug.txt" > "$out/c-hotplug.f" 2>/dev/null || true
+grep -v "ACTION=ifupdate" "$out/rs-hotplug.txt" > "$out/rs-hotplug.f" 2>/dev/null || true
+mv "$out/c-hotplug.f" "$out/c-hotplug.txt" 2>/dev/null || true
+mv "$out/rs-hotplug.f" "$out/rs-hotplug.txt" 2>/dev/null || true
+echo "NOTE: r56 excludes \`updated\` and \`ifupdate\`; both are asserted in r55"
 if diff -u "$out/c-hotplug.txt" "$out/rs-hotplug.txt" > "$out/hotplug.diff"; then
 	echo "RESULT(hotplug): identical, $(wc -l < "$out/c-hotplug.txt") lines"
 else

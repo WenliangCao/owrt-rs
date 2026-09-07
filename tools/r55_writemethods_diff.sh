@@ -67,7 +67,13 @@ hostdep_iface|network.interface.shell|notify_proto|{"action":6,"ifname":"loopbac
 hostdep_iface_gone|network.interface.shell|notify_proto|{"action":6,"ifname":"nosuch"}
 link_with_neighbors|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.1","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.9","mac":"02:00:00:00:00:99"},{"ipaddr":"10.5.5.10","proxy":true}],"dns":["10.5.5.53"]}
 link_addr_external|network.interface.shell|notify_proto|{"action":0,"link-up":true,"address-external":true,"ipaddr":[{"ipaddr":"10.5.5.2","mask":"255.255.255.0"}]}
-link_bad_neighbor|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.3","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.11","mac":"nonsense"}]}'
+link_bad_neighbor|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.3","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.11","mac":"nonsense"}]}
+upd_change|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.6.6.1","mask":"255.255.255.0"}],"routes":[{"target":"10.9.0.0","netmask":"255.255.255.0","gateway":"10.6.6.1"}]}
+upd_repeat|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.6.6.1","mask":"255.255.255.0"}],"routes":[{"target":"10.9.0.0","netmask":"255.255.255.0","gateway":"10.6.6.1"}]}
+upd_gateway_only|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.6.6.1","mask":"255.255.255.0"}],"routes":[{"target":"10.9.0.0","netmask":"255.255.255.0","gateway":"10.6.6.2"}]}
+upd_addr_change|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.6.6.7","mask":"255.255.255.0"}],"routes":[{"target":"10.9.0.0","netmask":"255.255.255.0","gateway":"10.6.6.2"}]}
+upd_data|network.interface.shell|set_data|{"probe":"one"}
+upd_data_repeat|network.interface.shell|set_data|{"probe":"one"}'
 
 run_one() {
 	tag=$1

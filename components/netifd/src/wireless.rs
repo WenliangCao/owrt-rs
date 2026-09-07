@@ -668,9 +668,8 @@ pub fn status_json(radios: &[Radio], handlers: &[Handler], st: RadioState) -> St
         let h = r.kind().and_then(|k| handlers.iter().find(|h| h.name == k));
         let dev_spec = h.map(|h| h.attrs_of("device")).unwrap_or(&[]);
         let if_spec = h.map(|h| h.attrs_of("iface")).unwrap_or(&[]);
-        let vlan_spec = h.map(|h| h.attrs_of("vlan")).unwrap_or(&[]);
-        let sta_spec = h.map(|h| h.attrs_of("station")).unwrap_or(&[]);
-        let _ = (vlan_spec, sta_spec);
+        // `vlans` and `stations` come from the handler's notify data, so
+        // they are empty until a radio has actually come up.
 
         let ifaces: Vec<String> = r
             .vifs

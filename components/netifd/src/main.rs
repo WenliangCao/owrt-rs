@@ -1361,6 +1361,16 @@ impl Netifd {
     }
 
     /// The address, route and DNS half of action 0.
+    /// Two routes the vlist would treat as one entry. The nexthop is
+    /// deliberately NOT part of this: netifd's key is the destination, and a
+    /// route whose gateway changed is the same entry replaced in place --
+    /// `add_route` carries NLM_F_REPLACE, so the kernel does that in one
+    /// step. Treating it as a different route would delete the replacement
+    /// immediately after adding it.
+    ///
+    /// This is also the rule for `updated`: changing only a gateway sets no
+    /// IUF_ROUTE bit, which is measurable on the C.
+    ///
     /// `vlist_flush` for the three applied lists: anything the previous
     /// update put on the device and this one did not repeat comes off again.
     /// With `keep` the new set starts as a copy of the old, so nothing here
@@ -1377,7 +1387,7 @@ impl Netifd {
         // address. A renewal that only changes a lifetime is the same entry
         // and must not be removed and re-added.
         for a in &old.addresses {
-            if new.addresses.iter().any(|n| n.addr == a.addr && n.mask == a.mask) {
+            if new.addresses.iter().any(|n| same_address(n, a)) {
                 continue;
             }
             let sa = sys::Address::new(a.addr, a.mask);
@@ -1386,10 +1396,7 @@ impl Netifd {
             }
         }
         for r in &old.routes {
-            if new.routes.iter().any(|n| {
-                n.target == r.target && n.mask == r.mask && n.nexthop == r.nexthop
-                    && n.table == r.table && n.metric == r.metric
-            }) {
+            if new.routes.iter().any(|n| same_route(n, r)) {
                 continue;
             }
             let _ = self.sys.del_route(devidx, &sys_route(r));
@@ -1599,6 +1606,29 @@ impl Netifd {
         // that, three addresses on veth4 where the C had one.
         self.flush_stale_ip(name, devidx, &previous, &ipset);
 
+        // `interface_update_start` zeroes `updated` unconditionally, and the
+        // vlist callbacks set a bit only when an entry is genuinely added or
+        // removed -- `if (!node_new || !node_old)`. Re-applying an identical
+        // entry sets nothing. So a protocol that renews with the same
+        // settings clears the field and leaves it clear, which is why the C's
+        // `wan6` shows `updated` for about two seconds after it comes up and
+        // then never again, while a static interface keeps its
+        // `["addresses"]` forever: nothing a static interface does ever
+        // reaches `interface_update_start`.
+        let changed_addrs = previous.addresses.len() != ipset.addresses.len()
+            || !previous.addresses.iter().all(|a| ipset.addresses.iter().any(|n| same_address(n, a)))
+            || !ipset.addresses.iter().all(|a| previous.addresses.iter().any(|n| same_address(n, a)));
+        let changed_routes = previous.routes.len() != ipset.routes.len()
+            || !previous.routes.iter().all(|r| ipset.routes.iter().any(|n| same_route(n, r)))
+            || !ipset.routes.iter().all(|r| previous.routes.iter().any(|n| same_route(n, r)));
+        let mut new_updated = 0;
+        if changed_addrs {
+            new_updated |= interface::updated::ADDRESS;
+        }
+        if changed_routes {
+            new_updated |= interface::updated::ROUTE;
+        }
+
         // `IFPEV_UP`: the interface only completes its bring-up from SETUP.
         // One that is already up gets an IFEV_UPDATE; one that is DOWN --
         // because something took it down while the protocol was still
@@ -1610,13 +1640,7 @@ impl Netifd {
                 let i = &mut self.interfaces[idx];
                 i.proto_ip = ipset;
                 i.proto_ip.routes.sort_by(interface::route_order);
-                i.updated = 0;
-                if !i.proto_ip.addresses.is_empty() {
-                    i.updated |= interface::updated::ADDRESS;
-                }
-                if !i.proto_ip.routes.is_empty() {
-                    i.updated |= interface::updated::ROUTE;
-                }
+                i.updated = new_updated;
                 let update = i.state == State::Up && i.updated != 0;
                 if update {
                     self.emit_event(name, Event::Update);
@@ -1633,13 +1657,7 @@ impl Netifd {
             i.device = ic.device.clone();
             i.proto_ip = ipset;
             i.proto_ip.routes.sort_by(interface::route_order);
-            i.updated = 0;
-            if !i.proto_ip.addresses.is_empty() {
-                i.updated |= interface::updated::ADDRESS;
-            }
-            if !i.proto_ip.routes.is_empty() {
-                i.updated |= interface::updated::ROUTE;
-            }
+            i.updated = new_updated;
             if !newdata.is_empty() {
                 for (k, v) in newdata {
                     // avl_find_element + replace: same name replaces
@@ -3105,11 +3123,35 @@ impl Netifd {
         eprintln!("netifd-rs: reconnected to ubus");
     }
 
+    /// Messages that arrive while a blocking request is waiting for its own
+    /// reply are queued rather than dropped. Nothing new will land on the
+    /// socket to wake the loop, so they have to be drained deliberately --
+    /// otherwise an invoke that arrived during an `add_object` or
+    /// `remove_object` sits until some unrelated event comes in, and its
+    /// caller times out. r55 hit exactly that: `network.interface dump`
+    /// timing out right after `remove`, intermittently, depending on whether
+    /// the dump landed inside that window.
+    fn drain_bus(&mut self) {
+        while !self.bus_down && self.conn.has_pending() {
+            match self.conn.read_incoming() {
+                Ok(Incoming::Invoke(req)) => self.handle(req),
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("netifd-rs: bus connection lost: {e}");
+                    self.bus_down = true;
+                    self.bus_retry_at = now() + BUS_RETRY_SECS;
+                    break;
+                }
+            }
+        }
+    }
+
     fn run(&mut self) -> ! {
         loop {
             if self.bus_down {
                 self.retry_bus();
             }
+            self.drain_bus();
             // While the bus is gone its fd is not polled -- it is closed, and
             // polling it would spin. Everything else keeps running.
             let ubus_fd = if self.bus_down { -1 } else { self.conn.as_raw_fd() };
@@ -3150,9 +3192,28 @@ impl Netifd {
                         self.bus_retry_at = now() + BUS_RETRY_SECS;
                     }
                 }
+                // one read can leave more than one message buffered
+                self.drain_bus();
             }
         }
     }
+}
+
+/// The vlist key of a route: its destination and where it sits, not how it
+/// gets there. See the note on `flush_stale_ip`.
+fn same_route(a: &interface::Route, b: &interface::Route) -> bool {
+    a.target == b.target
+        && a.mask == b.mask
+        && a.table == b.table
+        && a.metric == b.metric
+        && a.source == b.source
+        && a.sourcemask == b.sourcemask
+}
+
+/// The vlist key of an address: its prefix. A renewal that only moves a
+/// lifetime is the same address, replaced in place.
+fn same_address(a: &interface::Address, b: &interface::Address) -> bool {
+    a.addr == b.addr && a.mask == b.mask
 }
 
 /// One applied route as the kernel wants it. Shared by the add path and the
