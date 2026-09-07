@@ -334,3 +334,33 @@ r51 里 C 的启动顺序是 `wired, lan, loopback`，本 build 是 `lan, loopba
 r51 因此把**启动块**（第一个 ifdown 之前的部分）按集合比，其余严格按顺序比，并且把
 两边的顺序都打印出来——这是一个写在报告里的已知差异，不是一个悄悄的过滤器。事件集合、
 之后的全部顺序、以及 r54 的遍历顺序都是一致的。
+
+### r55：那些还没实现的写方法，先测再说
+
+`tools/r55_writemethods_diff.sh`：把每个"声明了但没实现"的方法在两侧用同样的参数各
+调一次，比返回状态、`network.interface dump` 和 `network.device status`。目的是**先
+搞清楚哪些真的会做事**，再决定实现哪些——而不是照着方法名一个个写。
+
+先测出来的事实：
+
+| 方法 | C 的行为 |
+|---|---|
+| `set_data` | 存进 `data`，置 `updated:["data"]`；**先清 `updated` 再合并**，所以同样的值再发一次，status 里连 `updated` 这个键都没有；值真的变了才算变 |
+| `prepare` | 回 `{}`（主设备没有 hotplug ops 时；有的话回 `{"bridge":...}`） |
+| `add_device` | 两侧本来就一致 |
+| `remove_device`（设备不存在） | `INVALID_ARGUMENT` |
+| `remove` | 回 OK，但配置里的接口**不会消失**（只挂一个 100ms 的定时器） |
+| `set_alias` | 回 OK，并且**给那个名字建了 device 对象**——之后 `network.device status veth6` 就能查了 |
+| `set_state {"defer":true}` | 设备变成 `present:false`；`defer:false` 再变回来 |
+| `stp_init` | 回 OK |
+| `add_dynamic {"name":"dyn0"}` | **真的建出一条 `dyn0` 接口**，出现在 dump 里 |
+| `netns_updown` | 这组参数下 `INVALID_ARGUMENT` |
+| `network.device status <未知设备>` | `INVALID_ARGUMENT`，不是 `NOT_FOUND`；而且 `device_find` **不看 present**，没有内核设备的 device 对象照样 dump |
+
+这一轮实现并验证一致的：`set_data`（三个用例）、`prepare`、`network.device status`
+的错误码。
+
+剩下的都归到同一件事上——**给任意名字建 device 对象的生命周期**
+（`set_alias`/`set_state`/`add_dynamic`/`remove`）。本 build 的 device 注册表只装配置
+里出现过的设备，要做这些得先把它改成 C 那样的对象树。没做，也没有用一个假的 OK 糊过去：
+这些方法现在仍然返回 `NOT_SUPPORTED`，调用方能看出来它没被支持。

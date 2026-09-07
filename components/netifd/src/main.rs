@@ -1910,6 +1910,38 @@ impl Netifd {
         }
     }
 
+    /// `interface_parse_data`: merge a table of named values into the
+    /// interface's data. Note that it clears `updated` FIRST -- so a second
+    /// call with the same values leaves the status with no `updated` key at
+    /// all, which is how r55 caught this -- and only counts as a change when
+    /// a value actually differs.
+    fn set_data(&mut self, name: &str, data: &[u8]) -> i32 {
+        let Some(idx) = self.iface_index(name) else { return status::NOT_FOUND };
+        self.interfaces[idx].updated = 0;
+        for f in blob::fields(data) {
+            let v = owrt_ubus::convert::field_to_json(&f);
+            let key = f.name.to_string();
+            match self.interfaces[idx].data.iter_mut().find(|(n, _)| *n == key) {
+                Some(slot) => {
+                    if slot.1 != v {
+                        slot.1 = v;
+                        self.interfaces[idx].updated |= interface::updated::DATA;
+                    }
+                }
+                None => {
+                    self.interfaces[idx].data.push((key, v));
+                    self.interfaces[idx].updated |= interface::updated::DATA;
+                }
+            }
+        }
+        // an avl tree keyed by name, so the status prints them sorted
+        self.interfaces[idx].data.sort_by(|a, b| a.0.cmp(&b.0));
+        if self.interfaces[idx].updated != 0 && self.interfaces[idx].state == State::Up {
+            self.emit_event(name, Event::Update);
+        }
+        status::OK
+    }
+
     /// `interface_handle_config_change`, reached from every `IFPEV_DOWN`. Its
     /// last line is what makes netifd self-healing: an interface that is still
     /// set to autostart comes straight back up. That is how a protocol whose
@@ -2231,10 +2263,15 @@ impl Netifd {
                     .and_then(|f| f.as_str().map(|s| s.to_string()));
                 let mut b = BlobBuf::new();
                 match name {
+                    // `netifd_dev_status`: `device_find` misses -> the C
+                    // answers INVALID_ARGUMENT, not NOT_FOUND, and it does
+                    // not check whether the device is present -- a device
+                    // object with no kernel device is still dumped
                     Some(n) => match self.devices.get(&n) {
-                        Some(d) if d.present => d.dump_status(&mut b, Some(&self.ethtool)),
-                        _ => {
-                            let _ = self.conn.reply_status(&req, status::NOT_FOUND, None);
+                        Some(d) => d.dump_status(&mut b, Some(&self.ethtool)),
+                        None => {
+                            let _ =
+                                self.conn.reply_status(&req, status::INVALID_ARGUMENT, None);
                             return;
                         }
                     },
@@ -2288,6 +2325,24 @@ impl Netifd {
             (ubus::Target::Interface(Some(name)), "renew") => {
                 let name = name.to_string();
                 self.proto_cmd(&name, proto::Cmd::Renew);
+                self.conn.reply_status(&req, status::OK, None)
+            }
+            // `netifd_handle_set_data` -> `interface_parse_data`
+            (ubus::Target::Interface(Some(name)), "set_data") => {
+                let name = name.to_string();
+                let code = self.set_data(&name, &req.data);
+                self.conn.reply_status(&req, code, None)
+            }
+            // `netifd_handle_iface_prepare`: it asks the main device's
+            // hotplug ops to prepare, and replies with the bridge they
+            // report. No device type in this build has hotplug ops, so the
+            // reply is the empty table the C sends in that case.
+            (ubus::Target::Interface(Some(name)), "prepare") => {
+                let _ = name;
+                let b = BlobBuf::new();
+                if let Err(e) = self.conn.reply_data(&req, b.payload()) {
+                    eprintln!("netifd-rs: cannot reply to prepare: {e}");
+                }
                 self.conn.reply_status(&req, status::OK, None)
             }
             (ubus::Target::Interface(Some(name)), "notify_proto") => {
