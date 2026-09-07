@@ -258,18 +258,47 @@ impl Netifd {
     /// Load the config and bring up what it asks for. Called at startup and by
     /// `network.reload`.
     fn reload(&mut self) {
+        let _ = self.reload_checked();
+    }
+
+    /// Load the config and bring up what it asks for.
+    ///
+    /// A DELIBERATE DIVERGENCE from the C, and the reason is in the failure
+    /// mode. The parser records what it cannot represent in `Config.errors`
+    /// and still returns a config -- so a working `static` LAN whose address
+    /// was just made invalid parses into an interface with no address, and
+    /// applying that tears down a LAN that was carrying traffic in order to
+    /// replace it with nothing. The C applies what it understood and logs the
+    /// rest; a log line is not what the plan asks for.
+    ///
+    /// So: at startup the config is applied whatever it says, because
+    /// refusing there leaves the box with no network at all and nothing is
+    /// running yet to protect. On any later reload a config with errors is
+    /// REFUSED whole -- the running state stays exactly as it was and the
+    /// caller is told. Fix the config and reload again.
+    fn reload_checked(&mut self) -> Result<(), String> {
         let first = self.interfaces.is_empty();
         let old = self.cfg.clone();
-        match config::load(&self.confdir) {
-            Ok(c) => self.cfg = c,
+        let new = match config::load(&self.confdir) {
+            Ok(c) => c,
             Err(e) => {
                 eprintln!("netifd-rs: cannot load network config: {e}");
-                return;
+                return Err(format!("cannot load network config: {e}"));
             }
-        }
-        for e in &self.cfg.errors {
+        };
+        for e in &new.errors {
             eprintln!("netifd-rs: config: {e}");
         }
+        if !first && !new.errors.is_empty() {
+            let what: Vec<String> = new.errors.iter().map(|e| e.to_string()).collect();
+            eprintln!(
+                "netifd-rs: refusing this reload -- {} problem(s); the running \
+                 configuration is untouched",
+                what.len()
+            );
+            return Err(format!("configuration refused: {}", what.join("; ")));
+        }
+        self.cfg = new;
 
         if self.handlers.is_empty() {
             self.handlers = proto::discover(std::path::Path::new(&self.protodir));
@@ -300,6 +329,7 @@ impl Netifd {
         } else {
             self.apply_config_change(&old);
         }
+        Ok(())
     }
 
     /// `vlist_update` over the interface tree: a section that is gone is
@@ -2908,8 +2938,13 @@ impl Netifd {
                 self.conn.reply_status(&req, status::METHOD_NOT_FOUND, None)
             }
             (ubus::Target::Network, "reload") => {
-                self.reload();
-                self.conn.reply_status(&req, status::OK, None)
+                // A refused reload has to be visible to the caller, not just
+                // in the log -- that is the whole point of refusing.
+                let code = match self.reload_checked() {
+                    Ok(()) => status::OK,
+                    Err(_) => status::INVALID_ARGUMENT,
+                };
+                self.conn.reply_status(&req, code, None)
             }
             (ubus::Target::Network, "restart") => {
                 for name in
