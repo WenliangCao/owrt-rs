@@ -69,10 +69,14 @@ run() {
 
 	  # the return code and any error text are evidence, not noise: swallowing
 	  # them hid whether a first notify was refused or accepted
+	  # `|| true` resets $?, so the rc printed after it was ALWAYS 0 -- the
+	  # column said nothing and I read the refusal out of the text instead.
+	  # Capture the status in the failure branch itself.
 	  notify() {
+	    rc=0
 	    r=$(chroot "$m" ubus call network.interface.wan6 notify_proto \
-	      "{\"action\":0,\"link-up\":true,\"ifname\":\"veth0\",\"ip6addr\":[{\"ipaddr\":\"2001:db8:ffff::2\",\"mask\":128}],\"ip6prefix\":[$1]}" 2>&1) || true
-	    echo "--- notify rc=$? out=[$r]"
+	      "{\"action\":0,\"link-up\":true,\"ifname\":\"veth0\",\"ip6addr\":[{\"ipaddr\":\"2001:db8:ffff::2\",\"mask\":128}],\"ip6prefix\":[$1]}" 2>&1) || rc=$?
+	    echo "--- notify rc=$rc out=[$r]"
 	  }
 	  snap() {
 	    echo "--- $1 lan v6 addr"
@@ -83,6 +87,12 @@ run() {
 	      | sort
 	    echo "--- $1 lan v6 route"
 	    ip -6 route show dev veth2 | grep -v "^fe80" | sed -E "s/expires [0-9]+sec//" | sort
+	    # netifd installs an unreachable route for the whole delegated prefix
+	    # at the lowest priority, on no device -- looking only at veth2 missed
+	    # it, and withdrawing a prefix has to remove it
+	    echo "--- $1 prefix null route"
+	    ip -6 route show table all type unreachable 2>/dev/null \
+	      | sed -E "s/expires [0-9]+sec//" | sort
 	    echo "--- $1 wan6 prefix"
 	    chroot "$m" ubus call network.interface.wan6 status 2>/dev/null \
 	      | tr -d " \t\n" \

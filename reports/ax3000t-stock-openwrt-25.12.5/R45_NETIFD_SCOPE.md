@@ -1032,3 +1032,60 @@ assignment 走一遍 `interface_set_prefix_address(add=false)`，`setup` 为假�
 一个还没证伪的取舍：我的 assignment 没记录来自哪个前缀，撤回是按"这个 local
 地址还在不在"判断的，C 是按前缀归属。目前测到的场景两者等价，但我还没想出
 反例，也就还没资格写"等价"。已列为待确认。
+
+### 已确认的缺陷：按 local 地址判断撤回是错的
+
+顾问在隔离命名空间里用发货 rootfs 的原版 netifd **实测复现了反例**
+（完整回答见 `docs/reviews/R64_ASTRA_PD_WIRELESS.md`）：
+
+只改父前缀的**长度**，就能让父前缀不同而 local 地址完全相同，不需要双上行：
+
+```
+LAN: ip6assign=64, ip6ifaceid=::1
+旧委派 2001:db8:100::/56,300,600     两次分配都是
+新委派 2001:db8:100::/60,1200,2400   2001:db8:100::1/64
+```
+
+`prefix_cmp()`（interface-ip.c:588）比的是父前缀的**地址和长度**，
+所以 `/56` 和 `/60` 是两个不同的 vlist 节点。真实顺序：
+
+1. 新 `/60` 建自己的 assignment，把同一个地址刷成新生命周期；
+2. flush 旧 `/56`，撤回它拥有的 assignment；
+3. 撤回作用在**同一个内核地址**上——删显式路由、preferred=0、
+   用的是**旧前缀**的 valid deadline。
+
+原版实测：
+
+| 阶段 | 内核 preferred/valid | 地址与 /64 路由 |
+|---|---|---|
+| 首次 `/56` | 300 / 600 | `noprefixroute`，`proto static metric 1024` |
+| 换 `/60` | **0 / 约 599** | **`deprecated`，`proto kernel metric 256`** |
+
+而此时 ubus 的 `ipv6-prefix-assignment` 仍显示新的 ~1199/2399——
+**只比 ubus 列表看不出内核状态的差异**，r62 现在正是只比这些。
+
+我的实现会发现 local 还在、跳过撤回，于是留着新生命周期和显式路由。
+**把 `/64` 长度加进比较也救不了。**
+
+修法（尚未实施）：给 assignment 保留父前缀身份
+`PrefixId = (来源上行或 ULA, 规范化父前缀地址, 父前缀长度)`；
+续租沿用该父前缀的 assignment，父前缀消失时撤回它拥有的那些。
+另一个父前缀恰好产出同一 local，不构成跳过撤回的理由。
+
+顾问还纠正了我对三分支的两处过度概括：
+**同 key 分支在 `new_valid=false` 时也会撤回**；
+「先 add 后 flush」只适用于这条协议更新流程，不能推广到 ULA 直接替换
+或 `interface_refresh_assignments()` 的全部路径。
+
+### PROCESS_ADD：实现与发货版逐条吻合
+
+顾问逐条核对，我的实现全中：登记只在 setup/up、其他状态返回成功但忽略、
+falsy pid/exe 忽略、无去重、首次登记建 1000ms interval、
+`required`/`keep` 保存但不读、`PROCESS_KILL_ALL=3` 在这版 ucode 无分支
+（返回 INVALID_ARGUMENT）。**死亡路径本身不扣 retry**——扣在
+`wdev_setup_cb`，只有 setup handler 完成时 radio 仍停在 setup 才扣。
+清空 procs **不发任何 kill 信号**。
+
+它还指出 r60 的 proc 桩应该用 `readlink /proc/$pid/exe` 取真实路径而不是
+写死 `/bin/busybox`，且后台进程要重定向 stdio，否则会一直占着 handler
+的输出管道——这一条对刚修完管道死锁的这份实现尤其要紧。（待改）
