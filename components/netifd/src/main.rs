@@ -1979,6 +1979,53 @@ impl Netifd {
 
     /// Place every interface's `ip6assign` request in every known prefix, then
     /// add the resulting local address to each interface's L3 device.
+    /// Recompute the assignments, then withdraw whatever the new set no longer
+    /// produces.
+    ///
+    /// `interface_update_prefix` drives this from the prefix vlist: a prefix
+    /// that is still there splices its assignments over and only refreshes the
+    /// lifetimes, while one that has gone runs
+    /// `interface_update_prefix_assignments(prefix_old, false)`, which walks
+    /// every assignment through the withdrawal path and does not rebuild. The
+    /// order follows vlist -- entries are added first and stale ones flushed
+    /// afterwards -- so a replacement installs the new address before
+    /// deprecating the old.
+    fn refresh_prefix_assignments(&mut self) {
+        let before: Vec<(String, Ipv6Addr, u8, Option<u32>)> = self
+            .interfaces
+            .iter()
+            .flat_map(|i| {
+                i.prefix_assignments.iter().filter_map(move |a| {
+                    a.local.map(|(l, len)| (i.name.clone(), l, len, a.valid))
+                })
+            })
+            .collect();
+
+        self.apply_prefix_assignments();
+
+        for (name, local, len, valid) in before {
+            let still = self
+                .iface_index(&name)
+                .map(|i| {
+                    self.interfaces[i]
+                        .prefix_assignments
+                        .iter()
+                        .any(|a| a.local.map(|(l, _)| l) == Some(local))
+                })
+                .unwrap_or(false);
+            if still {
+                continue;
+            }
+            let dev = self.iface_index(&name).and_then(|i| self.interfaces[i].l3_device.clone());
+            let Some(dev) = dev else { continue };
+            let Ok(di) = self.sys.if_index(&dev) else { continue };
+            if di == 0 {
+                continue;
+            }
+            self.withdraw_assignment(di, local, len, valid);
+        }
+    }
+
     fn apply_prefix_assignments(&mut self) {
         let mut reqs: Vec<ip::AssignRequest> = self
             .cfg
@@ -2737,40 +2784,7 @@ impl Netifd {
                     }
                     for a in &assigns {
                         if let Some((local, len)) = a.local {
-                            // `interface_set_prefix_address`, remove path: the
-                            // address is NOT deleted. RFC 7084 L-14 -- hand it
-                            // to the kernel deprecated so connections using it
-                            // survive a renumber, and let it age out. netifd's
-                            // own route goes first; re-adding without OFFLINK
-                            // is what makes the kernel install its own.
-                            let rmask = len.max(64);
-                            let pr = sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
-                            let _ = self.sys.del_route(di, &pr);
-
-                            let base = now();
-                            let mut sa = sys::Address::new(IpAddr::V6(local), len);
-                            // `a.valid` is a deadline; the C compares
-                            // `valid_until - 1 <= now`
-                            let expired =
-                                a.valid.is_some_and(|v| (v as u64).saturating_sub(1) <= base);
-                            if expired {
-                                let _ = self.sys.del_address(di, &sa);
-                            } else {
-                                // preferred_until = now, i.e. zero lifetime
-                                sa.preferred = Some(0);
-                                let cap = 7200u32;
-                                sa.valid = Some(match a.valid {
-                                    Some(v) if (v as u64) <= base + cap as u64 => {
-                                        (v as u64).saturating_sub(base) as u32
-                                    }
-                                    _ => cap,
-                                });
-                                if let Err(e) = self.sys.add_address(di, &sa) {
-                                    eprintln!(
-                                        "netifd-rs: {name}: cannot deprecate {local}/{len}: {e}"
-                                    );
-                                }
-                            }
+                            self.withdraw_assignment(di, local, len, a.valid);
                         }
                     }
                 }
@@ -3456,6 +3470,34 @@ impl Netifd {
         self.wireless_pump();
     }
 
+    /// `interface_set_prefix_address(..., add=false)` on an assignment that was
+    /// live. The address is NOT deleted: RFC 7084 L-14 hands it to the kernel
+    /// deprecated, so connections still using it survive a renumber and it
+    /// ages out on its own. Our own route goes first, and re-adding without
+    /// NOPREFIXROUTE is what makes the kernel install one of its own.
+    fn withdraw_assignment(&mut self, di: u32, local: Ipv6Addr, len: u8, valid: Option<u32>) {
+        let rmask = len.max(64);
+        let pr = sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
+        let _ = self.sys.del_route(di, &pr);
+
+        let base = now();
+        let mut sa = sys::Address::new(IpAddr::V6(local), len);
+        // `valid` is a deadline; the C compares `valid_until - 1 <= now`
+        if valid.is_some_and(|v| (v as u64).saturating_sub(1) <= base) {
+            let _ = self.sys.del_address(di, &sa);
+            return;
+        }
+        sa.preferred = Some(0); // preferred_until = now
+        let cap = 7200u32;
+        sa.valid = Some(match valid {
+            Some(v) if (v as u64) <= base + cap as u64 => (v as u64).saturating_sub(base) as u32,
+            _ => cap,
+        });
+        if let Err(e) = self.sys.add_address(di, &sa) {
+            eprintln!("netifd-rs: cannot deprecate {local}/{len}: {e}");
+        }
+    }
+
     /// Replace the prefixes delegated to one interface. `class` and `iface`
     /// are the uplink's name, which is what the C reports and what the
     /// assignments are keyed by; the ULA keeps `local`.
@@ -3466,7 +3508,7 @@ impl Netifd {
         let added = fresh.len();
         self.prefixes.append(&mut fresh);
         if removed != 0 || added != 0 {
-            self.apply_prefix_assignments();
+            self.refresh_prefix_assignments();
         }
     }
 

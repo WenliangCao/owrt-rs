@@ -990,7 +990,7 @@ first-grant  两边一致
 renewal      两边一致
 ```
 
-**唯一剩下的差异**：换前缀时，C 把旧前缀的分配**撤回**
+**（已解决，见下节。）** 换前缀时，C 把旧前缀的分配**撤回**
 （`2001:db8:1::1` 变 deprecated + `proto kernel metric 256`）、新的保持活跃；
 我这边旧的仍是活跃的。也就是说 `set_delegated_prefixes` 替换列表之后，
 没有对"前缀已消失"的旧分配走撤回路径。这是下一步。
@@ -999,3 +999,36 @@ renewal      两边一致
 `wdev.handler_config.data = wdev.handler_data[wdev.name] ?? {}` 回传给
 setup 和 teardown，配置重建时保留，但 `wdev_teardown_cb()` L168 在
 teardown 完成后清空整个 handler_data。这条还没实现。）
+
+### 换前缀时的撤回：r62 全绿
+
+从源码读出规则（`interface_update_prefix`，interface-ip.c:1310-1331）：
+
+```c
+if (node_old && node_new) {          /* 同一前缀续租 */
+        list_splice(&prefix_old->assignments, &prefix_new->assignments);
+        ... interface_set_prefix_address(c, prefix_new, iface, new_valid);   /* 只刷新 */
+} else if (node_new) {               /* 新前缀 */
+        system_add_route(NULL, &route);
+        interface_update_prefix_assignments(prefix_new, new_valid);
+} else if (node_old) {               /* 前缀消失 */
+        interface_update_prefix_assignments(prefix_old, false);              /* 撤回 */
+        system_del_route(NULL, &route);
+}
+```
+
+而 `interface_update_prefix_assignments`（L1115）**总是**先把该前缀的每个
+assignment 走一遍 `interface_set_prefix_address(add=false)`，`setup` 为假就不重建。
+
+两个推论直接决定实现：
+
+1. **续租不撤回**——走的是 splice + 刷新那条，所以我 renewal 一直是一致的。
+2. **顺序是先装新、后撤旧**——vlist 是先 add 后 flush，撤回发生在 flush 阶段。
+
+照此加了 `refresh_prefix_assignments`：先重算，再对"重算后不再产出的旧 local
+地址"走撤回路径。r62 四个阶段（首次委派 / 续租 / 换前缀 / 上行下线）
+**退出码 0，逐字节一致**。
+
+一个还没证伪的取舍：我的 assignment 没记录来自哪个前缀，撤回是按"这个 local
+地址还在不在"判断的，C 是按前缀归属。目前测到的场景两者等价，但我还没想出
+反例，也就还没资格写"等价"。已列为待确认。
