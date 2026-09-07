@@ -143,6 +143,46 @@ UD
 		echo "waited: ${i}s" > "$out/$tag-wait.txt"
 
 		chroot "$root" /bin/sh /tmp/probe.sh > "$out/$tag-ubus.txt" 2>&1 || true
+
+		# ifdown must stop the helper and take the lease off the device, and
+		# ifup must get it back. A teardown command that never runs leaves
+		# udhcpc alive, which only a real cycle shows.
+		chroot "$root" ubus call network.interface.wan down >/dev/null 2>&1 || true
+		j=0
+		while [ $j -lt 15 ]; do
+			chroot "$root" ubus call network.interface.wan status 2>/dev/null \
+				| grep -q "10.0.0.100" || break
+			j=$((j+1)); sleep 1
+		done
+		{
+			echo "--- after ifdown: is the DHCP helper still alive"
+			# by pid file, not by parsing ps: busybox ps repeats lines
+			p=$(cat "$root/var/run/udhcpc-veth1.pid" 2>/dev/null || true)
+			if [ -n "$p" ] && [ -d "/proc/$p" ]; then
+				echo "udhcpc still running"
+			else
+				echo "udhcpc gone"
+			fi
+			echo "--- after ifdown: veth1"
+			# the C sets the state and emits the event before it touches the
+			# kernel, so give both sides the same chance to finish
+			sleep 1
+			ip -o link show dev veth1 | sed -E -e "s/^[0-9]+: //" -e "s/qdisc [a-z_]+/qdisc Q/"
+			ip -o addr show dev veth1 | sed -E "s/^[0-9]+: //"
+			echo "--- after ifdown: wan status"
+			chroot "$root" ubus call network.interface.wan status 2>/dev/null
+		} > "$out/$tag-down.txt" 2>&1 || true
+
+		chroot "$root" ubus call network.interface.wan up >/dev/null 2>&1 || true
+		j=0
+		while [ $j -lt 20 ]; do
+			chroot "$root" ubus call network.interface.wan status 2>/dev/null \
+				| grep -q "10.0.0.100" && break
+			j=$((j+1)); sleep 1
+		done
+		echo "reup: ${j}s" > "$out/$tag-reup.txt"
+		chroot "$root" ubus call network.interface.wan status \
+			> "$out/$tag-reup-status.txt" 2>&1 || true
 		{
 			echo "--- ip addr"
 			ip -o addr show
@@ -191,6 +231,42 @@ for t in c rs; do
 	printf '%-3s before: %s\n' "$t" "$(cat "$out/$t-veth0-before.txt" 2>/dev/null | tr '\n' ' ')"
 	printf '%-3s after:  %s\n' "$t" "$(cat "$out/$t-veth0-after.txt" 2>/dev/null | tr '\n' ' ')"
 done
+
+echo "=== ifdown, then ifup again"
+for t in c rs; do printf '%-3s %s\n' "$t" "$(cat "$out/$t-reup.txt" 2>/dev/null)"; done
+if diff -u "$out/c-down.txt" "$out/rs-down.txt" > "$out/down.diff"; then
+	echo "RESULT(after ifdown): identical"
+else
+	head -30 "$out/down.diff"; rc=1
+fi
+python3 - "$out/c-reup-status.txt" "$out/rs-reup-status.txt" <<'REUP' || rc=1
+import json, sys, collections
+
+def mask(o):
+    if isinstance(o, dict):
+        return collections.OrderedDict(
+            (k, "N" if k in ("uptime", "leasetime") else mask(v)) for k, v in o.items())
+    if isinstance(o, list):
+        return [mask(x) for x in o]
+    return o
+
+try:
+    a = mask(json.load(open(sys.argv[1]), object_pairs_hook=collections.OrderedDict))
+    b = mask(json.load(open(sys.argv[2]), object_pairs_hook=collections.OrderedDict))
+except Exception as e:
+    print(f"re-up status: cannot parse both sides ({e})")
+    sys.exit(1)
+if not a:
+    print("re-up status: NOTHING CAPTURED from the reference -- untested")
+    sys.exit(1)
+if a == b:
+    print("RESULT(status after ifup): identical")
+    sys.exit(0)
+print("status after ifup: DIFFERS")
+print("  C:    " + json.dumps(a)[:1200])
+print("  rust: " + json.dumps(b)[:1200])
+sys.exit(1)
+REUP
 
 echo "=== interface dump"
 python3 - "$out/c-ubus.txt" "$out/rs-ubus.txt" <<'PY' || rc=1

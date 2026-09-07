@@ -407,3 +407,80 @@ mod tests {
         assert!(out.trim().ends_with("tmp"), "{out:?}");
     }
 }
+
+/// A SIGCHLD self-pipe, so a child's exit wakes the event loop at once.
+///
+/// The C reaps from a SIGCHLD handler through uloop, so a helper's death is
+/// noticed immediately. Polling alone made it up to one poll timeout late,
+/// which is observable: an `ifdown` of a DHCP interface left the lease on the
+/// device for that long, where the C had already removed it.
+pub struct ChildSignal {
+    read: i32,
+}
+
+static mut CHILD_PIPE_W: i32 = -1;
+
+extern "C" {
+    fn pipe(fds: *mut i32) -> i32;
+    fn signal(sig: i32, handler: extern "C" fn(i32)) -> usize;
+    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
+    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
+}
+
+const SIGCHLD: i32 = 17;
+
+extern "C" fn on_sigchld(_sig: i32) {
+    // async-signal-safe: one byte down a non-blocking pipe, errors ignored
+    // SAFETY: reading a fd set once before any child exists, and write(2) is
+    // on the list of functions safe to call from a signal handler.
+    unsafe {
+        let w = CHILD_PIPE_W;
+        if w >= 0 {
+            let byte = 1u8;
+            let _ = write(w, &byte, 1);
+        }
+    }
+}
+
+impl ChildSignal {
+    pub fn install() -> io::Result<Self> {
+        let mut fds = [0i32; 2];
+        // SAFETY: pipe(2) writes exactly two fds into the array provided.
+        if unsafe { pipe(fds.as_mut_ptr()) } < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        for fd in fds {
+            // SAFETY: fcntl on a pipe fd this function owns.
+            unsafe {
+                let f = fcntl(fd, F_GETFL, 0);
+                if f >= 0 {
+                    fcntl(fd, F_SETFL, f | O_NONBLOCK);
+                }
+            }
+        }
+        // SAFETY: single-threaded startup, before any child is spawned, so no
+        // handler can observe a partially written value.
+        unsafe {
+            CHILD_PIPE_W = fds[1];
+            signal(SIGCHLD, on_sigchld);
+        }
+        Ok(Self { read: fds[0] })
+    }
+
+    pub fn as_raw_fd(&self) -> i32 {
+        self.read
+    }
+
+    /// Drain the pipe. Any number of signals collapses into one wake-up; the
+    /// caller then polls every slot, so nothing is missed.
+    pub fn drain(&self) {
+        let mut buf = [0u8; 64];
+        loop {
+            // SAFETY: our own read end, non-blocking.
+            let n = unsafe { read(self.read, buf.as_mut_ptr(), buf.len()) };
+            if n <= 0 {
+                break;
+            }
+        }
+    }
+}

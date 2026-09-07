@@ -98,10 +98,20 @@ struct Netifd {
     hotplug: process::Slot,
     hotplug_current: Option<(String, Event)>,
     hotplug_queue: Vec<(String, Event)>,
+    /// A child's exit wakes the loop through this, rather than waiting for
+    /// the poll timeout.
+    sigchld: process::ChildSignal,
     /// Devices whose `device_init` has run, so their state is cleared once.
     cleared: Vec<String>,
-    /// `dev->parent`: the device claimed on another device's behalf.
+    /// `dev->active`: how many users have claimed each device. The link state
+    /// follows this count, not any single interface's state.
+    claims: Vec<(String, i32)>,
+    /// `dev->parent`: the device a claimed device claimed in turn.
     parents: Vec<(String, String)>,
+    /// `iface->main_dev` and `iface->l3_dev`, the two claims an interface
+    /// holds, so each is released exactly once.
+    claimed_main: Vec<(String, String)>,
+    claimed_l3: Vec<(String, String)>,
     handlers: Vec<proto::Handler>,
     /// Per-interface protocol state, for the shell handlers only.
     protos: Vec<(String, proto::ProtoState)>,
@@ -130,8 +140,12 @@ impl Netifd {
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
+            sigchld: process::ChildSignal::install()?,
             cleared: Vec::new(),
+            claims: Vec::new(),
             parents: Vec::new(),
+            claimed_main: Vec::new(),
+            claimed_l3: Vec::new(),
             ethtool: ethtool::Ethtool::open()?,
             ifioctl: sys::IfIoctl::open()?,
             conn,
@@ -197,54 +211,81 @@ impl Netifd {
         }
     }
 
-    /// `system_if_get_parent`: a simple device's parent is whatever its
-    /// `iflink` points at -- the DSA conduit for a user port, the peer for a
-    /// veth. netifd creates a device object for it (which clears its state)
-    /// and claims it, which is what brings a conduit up.
-    fn claim_parent(&mut self, name: &str) {
-        let Some(parent) = self.sys.parent_of(name) else { return };
-        if self.parents.iter().any(|(c, _)| c == name) {
+    /// `device_claim`: one more user of a device. The device is brought up
+    /// only by the first claim, and `simple_device_set_state` claims its
+    /// parent first -- `iflink`, which is the DSA conduit for a user port and
+    /// the peer for a veth. The count is what makes a mutual parent
+    /// relationship terminate instead of recursing.
+    fn device_claim(&mut self, name: &str) {
+        let count = match self.claims.iter_mut().find(|(n, _)| n == name) {
+            Some(slot) => {
+                slot.1 += 1;
+                slot.1
+            }
+            None => {
+                self.claims.push((name.to_string(), 1));
+                1
+            }
+        };
+        if count != 1 {
             return;
         }
-        if !self.cleared.contains(&parent) {
-            self.cleared.push(parent.clone());
-            self.sys.clear_state(&parent, false);
+        if let Some(p) = self.sys.parent_of(name) {
+            if !self.cleared.contains(&p) {
+                self.cleared.push(p.clone());
+                self.sys.clear_state(&p, false);
+            }
+            self.parents.push((name.to_string(), p.clone()));
+            self.device_claim(&p);
         }
-        self.parents.push((name.to_string(), parent.clone()));
-        if let Ok(pi) = self.sys.if_index(&parent) {
-            if pi != 0 {
-                let _ = self.sys.set_link_up(pi, true);
+        if let Ok(i) = self.sys.if_index(name) {
+            if i != 0 {
+                let _ = self.sys.set_link_up(i, true);
             }
         }
     }
 
-    /// Bring a device up, claiming its parent first, as
-    /// `simple_device_set_state(dev, true)` does.
-    fn device_up(&mut self, name: &str, index: u32) -> io::Result<()> {
-        self.claim_parent(name);
-        self.sys.set_link_up(index, true)
-    }
-
-    /// The reverse: down, then release the parent.
-    fn device_down(&mut self, name: &str, index: u32) {
-        let _ = self.sys.set_link_up(index, false);
-        self.release_parent(name);
-    }
-
-    /// `device_release(&dev->parent)`: the parent goes back down when its last
-    /// user does, unless another claimed device still needs it.
-    fn release_parent(&mut self, name: &str) {
-        let Some(pos) = self.parents.iter().position(|(c, _)| c == name) else { return };
-        let (_, parent) = self.parents.remove(pos);
-        if self.parents.iter().any(|(_, p)| *p == parent) {
+    /// `device_release`: the device goes down when the last user lets go, and
+    /// its parent is released before it does.
+    fn device_release(&mut self, name: &str) {
+        let Some(pos) = self.claims.iter().position(|(n, _)| n == name) else { return };
+        self.claims[pos].1 -= 1;
+        if self.claims[pos].1 > 0 {
             return;
         }
-        if let Ok(pi) = self.sys.if_index(&parent) {
-            if pi != 0 {
-                let _ = self.sys.set_link_up(pi, false);
+        self.claims.remove(pos);
+        if let Some(pp) = self.parents.iter().position(|(c, _)| c == name) {
+            let (_, p) = self.parents.remove(pp);
+            self.device_release(&p);
+        }
+        if let Ok(i) = self.sys.if_index(name) {
+            if i != 0 {
+                let _ = self.sys.set_link_up(i, false);
             }
         }
     }
+
+    /// Claim `dev` on `iface`'s behalf, as its main or L3 device. Re-claiming
+    /// the same device in the same slot is not a second claim.
+    fn iface_claim(&mut self, iface: &str, dev: &str, l3: bool) {
+        let held = if l3 { &self.claimed_l3 } else { &self.claimed_main };
+        if held.iter().any(|(i, d)| i == iface && d == dev) {
+            return;
+        }
+        // a slot that held a different device releases it first
+        self.iface_unclaim(iface, l3);
+        let slot = if l3 { &mut self.claimed_l3 } else { &mut self.claimed_main };
+        slot.push((iface.to_string(), dev.to_string()));
+        self.device_claim(dev);
+    }
+
+    fn iface_unclaim(&mut self, iface: &str, l3: bool) {
+        let slot = if l3 { &mut self.claimed_l3 } else { &mut self.claimed_main };
+        let Some(pos) = slot.iter().position(|(i, _)| i == iface) else { return };
+        let (_, dev) = slot.remove(pos);
+        self.device_release(&dev);
+    }
+
 
     fn handler_for(&self, proto: &str) -> Option<&proto::Handler> {
         self.handlers.iter().find(|h| h.name == proto)
@@ -434,7 +475,8 @@ impl Netifd {
                         // forward, which is what device_claim does -- and
                         // claiming it also claims its parent, which is how a
                         // DSA conduit comes up behind its user ports
-                        let _ = self.device_up(&port, pi);
+                        let _ = pi;
+                        self.device_claim(&port);
                         // bridge_enable_member turns IPv6 off on a member
                         // unless a `config device` section set it explicitly,
                         // so the member has no link-local of its own
@@ -581,7 +623,10 @@ impl Netifd {
             }
             if let Ok(idx) = self.sys.if_index(dev) {
                 if idx != 0 {
-                    self.device_down(dev, idx);
+                    let _ = idx;
+                    // never claimed, so `system_if_clear_state` already left
+                    // it down; releasing an unclaimed device is a no-op
+                    self.device_release(dev);
                 }
             }
         }
@@ -647,10 +692,10 @@ impl Netifd {
             return;
         }
 
-        if let Err(e) = self.device_up(&devname, devidx) {
-            eprintln!("netifd-rs: cannot bring {devname} up: {e}");
-            return;
-        }
+        // `interface_set_up`: `device_claim(&iface->main_dev)`
+        self.iface_claim(name, &devname, false);
+        // static has no protocol script, so the main device is the L3 device
+        self.iface_claim(name, &devname, true);
 
         // proto static: addresses, then the gateway route
         let mut applied_any = false;
@@ -798,7 +843,8 @@ impl Netifd {
             return;
         }
         let dev = ic.device.clone().unwrap_or_default();
-        let _ = self.device_up(&dev, devidx);
+        let _ = devidx;
+        self.iface_claim(name, &dev, false);
         if let Some(idx) = self.iface_index(name) {
             self.interfaces[idx].state = State::Setup;
             self.interfaces[idx].available = true;
@@ -988,7 +1034,8 @@ impl Netifd {
             return status::INVALID_ARGUMENT;
         }
         if !keep {
-            let _ = self.device_up(&l3, devidx);
+            let _ = devidx;
+            self.iface_claim(name, &l3, true);
         }
 
         // `interface_update_start(iface, keep)`
@@ -1142,6 +1189,7 @@ impl Netifd {
         self.proto_state(name).sm = proto::Sm::Idle;
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
+        eprintln!("netifd-rs: Interface '{name}' is now up");
         status::OK
     }
 
@@ -1156,7 +1204,7 @@ impl Netifd {
             return;
         }
         eprintln!("netifd-rs: Interface '{name}' has lost the connection");
-        self.mark_interface_down(name, true);
+        self.mark_interface_down(name);
         if let Some(idx) = self.iface_index(name) {
             self.interfaces[idx].state = State::Setup;
         }
@@ -1274,8 +1322,13 @@ impl Netifd {
                 };
                 for e in effects {
                     match e {
-                        proto::Finish::LinkLost | proto::Finish::Down => {
-                            self.iface_down(&name);
+                        proto::Finish::LinkLost => {
+                            self.link_lost(&name);
+                        }
+                        // teardown is complete: this is the second IFEV_DOWN,
+                        // and hotplug.d already ran on the first
+                        proto::Finish::Down => {
+                            self.mark_interface_down(&name);
                         }
                         proto::Finish::Teardown => {
                             self.proto_cmd(&name, proto::Cmd::Teardown);
@@ -1431,24 +1484,61 @@ impl Netifd {
     /// here.
     fn iface_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
+        let prev = self.interfaces[idx].state;
+        // "case IFS_DOWN / case IFS_TEARDOWN: break" -- nothing to do
+        if prev == State::Down || prev == State::Teardown {
+            return;
+        }
+        self.interfaces[idx].state = State::Teardown;
         // IFEV_DOWN on entering teardown, and only from IFS_UP
-        if self.interfaces[idx].state == State::Up {
+        if prev == State::Up {
             self.emit_event(name, Event::Down);
+        }
+        // A shell protocol's teardown is a script, so the interface stays in
+        // TEARDOWN until it exits and `Finish::Down` arrives. Without this the
+        // helper -- udhcpc, pppd -- would outlive an ifdown.
+        // An interface whose protocol has settled sits in S_IDLE, and S_IDLE
+        // is exactly the state the teardown command runs from, so the state
+        // machine must not be part of this test.
+        let shell = match self.cfg.interfaces.iter().find(|i| i.name == name) {
+            Some(ic) => {
+                !IMPLEMENTED_PROTOS.contains(&ic.proto.as_str())
+                    && self.handler_for(&ic.proto).is_some()
+            }
+            None => false,
+        };
+        if shell {
+            self.proto_cmd(name, proto::Cmd::Teardown);
+            return;
         }
         // the second IFEV_DOWN comes from mark_interface_down; hotplug.d has
         // already been called, so it goes out on the ubus channels only
-        self.mark_interface_down(name, false);
+        self.mark_interface_down(name);
     }
 
     /// `mark_interface_down`: flush everything the protocol applied, release
     /// the L3 device and emit the state's event. Returns early when already
     /// down, so a second call emits nothing.
-    fn mark_interface_down(&mut self, name: &str, hotplug: bool) {
+    fn mark_interface_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
         let prev = self.interfaces[idx].state;
         if prev == State::Down {
             return;
         }
+        // The C's order: the state and the event first, the kernel afterwards.
+        // A subscriber that reads the status on the event therefore sees a
+        // DOWN interface whose addresses are still on the device.
+        // `IFPEV_DOWN` logs before it marks the interface down
+        if prev != State::Setup {
+            eprintln!("netifd-rs: Interface '{name}' is now down");
+        }
+        self.interfaces[idx].state = State::Down;
+        match prev {
+            State::Up | State::Teardown => self.emit_event(name, Event::Down),
+            State::Setup => self.emit_event(name, Event::UpFailed),
+            State::Down => {}
+        }
+
         let l3 = self.interfaces[idx].l3_device.clone();
         let addrs: Vec<Address> = self.interfaces[idx].proto_ip.addresses.clone();
         let routes: Vec<interface::Route> = self.interfaces[idx].proto_ip.routes.clone();
@@ -1463,11 +1553,21 @@ impl Netifd {
                         sr.nexthop = r.nexthop;
                         sr.metric = r.metric;
                         sr.table = if r.table != 0 { r.table } else { sys::RT_TABLE_MAIN };
-                        let _ = self.sys.del_route(di, &sr);
+                        if let Err(e) = self.sys.del_route(di, &sr) {
+                            eprintln!(
+                                "netifd-rs: {name}: cannot remove the route to {}/{}: {e}",
+                                r.target, r.mask
+                            );
+                        }
                     }
                     for a in &addrs {
                         let sa = sys::Address::new(a.addr, a.mask);
-                        let _ = self.sys.del_address(di, &sa);
+                        if let Err(e) = self.sys.del_address(di, &sa) {
+                            eprintln!(
+                                "netifd-rs: {name}: cannot remove {}/{}: {e}",
+                                a.addr, a.mask
+                            );
+                        }
                     }
                     for a in &assigns {
                         if let Some((local, len)) = a.local {
@@ -1480,38 +1580,29 @@ impl Netifd {
             }
         }
         let i = &mut self.interfaces[idx];
-        i.state = State::Down;
         let released = i.l3_device.take();
         // `device` is main_dev and survives the interface going down
         i.updated = 0;
         i.proto_ip = interface::IpSettings::default();
         i.prefix_assignments.clear();
+        // `interface_flush_state` calls `interface_data_flush`, so the data a
+        // protocol reported does not survive its interface going down
+        i.data.clear();
         self.start_time.retain(|(n, _)| n != name);
 
-        // `interface_flush_state` releases the L3 device, and releasing the
-        // last user brings it down. Without this the device stays up with no
-        // configuration on it, which is visible as a link-local address the C
-        // does not have.
-        if let Some(dev) = released {
-            let still_used = self.interfaces.iter().any(|o| {
-                o.name != name
-                    && o.state != State::Down
-                    && o.l3_device.as_deref() == Some(dev.as_str())
-            });
-            if !still_used {
-                if let Ok(di) = self.sys.if_index(&dev) {
-                    if di != 0 {
-                        self.device_down(&dev, di);
-                    }
-                }
-            }
+        let _ = released;
+        // `IFPEV_DOWN`: main_dev is kept only while the interface would come
+        // straight back up, so `ifdown` (which clears autostart) releases it
+        // and a lost link does not.
+        let keep_main = self
+            .iface_index(name)
+            .map(|i| self.interfaces[i].autostart && self.interfaces[i].available)
+            .unwrap_or(false);
+        if !keep_main {
+            self.iface_unclaim(name, false);
         }
+        self.iface_unclaim(name, true);
         self.rescan_devices();
-        match prev {
-            State::Up | State::Teardown => self.emit(name, Event::Down, hotplug),
-            State::Setup => self.emit(name, Event::UpFailed, hotplug),
-            State::Down => {}
-        }
     }
 
     /// `interface_queue_event`, for the events this build produces.
@@ -1521,15 +1612,9 @@ impl Netifd {
     /// `interface.update` / `interface.down` notification on both the shared
     /// and the per-interface object (what subscribers get), and the
     /// hotplug.d call (what reconfigures the firewall, DNS and DHCP).
+    /// `interface_queue_event`: the broadcast and the notification go out
+    /// every time; whether hotplug.d runs is decided by the queue.
     fn emit_event(&mut self, name: &str, ev: Event) {
-        self.emit(name, ev, true)
-    }
-
-    /// `interface_queue_event` sends the broadcast and the notification every
-    /// time; only the hotplug.d call is collapsed when the event repeats the
-    /// one already being handled. So the second IFEV_DOWN of a teardown is
-    /// visible on both ubus channels but runs hotplug once.
-    fn emit(&mut self, name: &str, ev: Event, hotplug: bool) {
         let up = matches!(ev, Event::Up);
         if matches!(ev, Event::Up | Event::Down) {
             if let Err(e) = ubus::interface_event(&mut self.conn, name, up) {
@@ -1559,9 +1644,7 @@ impl Netifd {
             }
         }
 
-        if hotplug {
-            self.call_hotplug(name, ev);
-        }
+        self.call_hotplug(name, ev);
     }
 
     /// `run_cmd`: fork `/sbin/hotplug-call iface` with the event in the
@@ -1577,15 +1660,32 @@ impl Netifd {
         if !std::path::Path::new(&self.hotplug_path).exists() {
             return;
         }
-        // `interface_queue_event` drops a queued event that repeats the one
-        // being handled, which is why a doubled IFEV_DOWN calls hotplug once.
-        if self.hotplug_current.as_ref() == Some(&(name.to_string(), ev)) {
-            return;
+        // An interface holds at most one queued event and one being handled.
+        // Repeating the event already running drops the new one -- which is
+        // why a static teardown's two IFEV_DOWNs are one hotplug call, while
+        // a shell protocol's two, separated by the teardown script, are two.
+        let queued = self.hotplug_queue.iter().position(|(n, _)| n == name);
+        let running = self.hotplug_current.as_ref().filter(|(n, _)| n == name).map(|(_, e)| *e);
+        match (running, queued) {
+            (Some(_), Some(i)) => {
+                // an update never displaces a real state change
+                if ev != Event::Update {
+                    self.hotplug_queue[i].1 = ev;
+                }
+            }
+            (Some(cur), None) => {
+                if ev != cur || ev == Event::Update {
+                    self.hotplug_queue.push((name.to_string(), ev));
+                }
+            }
+            (None, Some(i)) => {
+                // an ifupdate does not displace a queued ifup
+                if !(self.hotplug_queue[i].1 == Event::Up && ev == Event::Update) {
+                    self.hotplug_queue[i].1 = ev;
+                }
+            }
+            (None, None) => self.hotplug_queue.push((name.to_string(), ev)),
         }
-        if self.hotplug_queue.last() == Some(&(name.to_string(), ev)) {
-            return;
-        }
-        self.hotplug_queue.push((name.to_string(), ev));
         self.pump_hotplug();
     }
 
@@ -1755,11 +1855,20 @@ impl Netifd {
             }
             (ubus::Target::Interface(Some(name)), "up") => {
                 let name = name.to_string();
+                // `interface_set_up` sets autostart before anything else, so
+                // it flips even for an interface that then fails to come up
+                if let Some(i) = self.iface_index(&name) {
+                    self.interfaces[i].autostart = true;
+                }
                 self.iface_up(&name);
                 self.conn.reply_status(&req, status::OK, None)
             }
             (ubus::Target::Interface(Some(name)), "down") => {
                 let name = name.to_string();
+                // `interface_set_down`
+                if let Some(i) = self.iface_index(&name) {
+                    self.interfaces[i].autostart = false;
+                }
                 self.iface_down(&name);
                 self.conn.reply_status(&req, status::OK, None)
             }
@@ -1834,7 +1943,9 @@ impl Netifd {
             let mut fds = [
                 PollFd { fd: ubus_fd, events: POLLIN, revents: 0 },
                 PollFd { fd: nl_fd, events: POLLIN, revents: 0 },
+                PollFd { fd: self.sigchld.as_raw_fd(), events: POLLIN, revents: 0 },
             ];
+            // the timeout is only a backstop now that SIGCHLD wakes us
             match owrt_ubus::sys::poll_fds(&mut fds, 1000) {
                 Ok(_) => {}
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
@@ -1842,6 +1953,9 @@ impl Netifd {
                     eprintln!("netifd-rs: poll failed: {e}");
                     std::process::exit(1);
                 }
+            }
+            if fds[2].revents & POLLIN != 0 {
+                self.sigchld.drain();
             }
             self.reap_children();
             if fds[1].revents & POLLIN != 0 {
