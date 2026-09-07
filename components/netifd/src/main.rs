@@ -12,6 +12,7 @@ mod device;
 mod ethtool;
 mod ethtool_modes;
 mod interface;
+mod ip;
 mod netdev_types;
 mod netlink;
 mod sys;

@@ -43,17 +43,19 @@ config interface plain
 	option ipaddr 10.0.0.1/24
 CFG
 /sbin/ubusd >/tmp/out/ubusd.log 2>&1 &
+echo $! > /tmp/out/ubusd.pid
 sleep 1
 /sbin/netifd >/tmp/out/netifd.log 2>&1 &
+echo $! > /tmp/out/netifd.pid
 sleep 4
 ubus call network.device status > /tmp/out/c-status.json 2>/tmp/out/c-status.err
 echo done > /tmp/out/ready
 # hold the namespace open while the outside probe runs
-sleep 60
+sleep 15
 INNER
 
 self_probe=$probe
-sudo -n setsid -w unshare --mount --net --fork /bin/sh -c '
+sudo -n unshare --mount --net --fork /bin/sh -c '
 	root=$1; probe=$2; out=$3
 	mount --make-rprivate /
 	# sysfs shows the network devices of the namespace it was mounted in, and
@@ -86,8 +88,14 @@ sudo -n setsid -w unshare --mount --net --fork /bin/sh -c '
 	if [ -s "$out/c-status.json" ]; then
 		"$probe" "$out/c-status.json" > "$out/rs-status.json" 2> "$out/rs.err" || true
 	fi
+	# the daemons hold the namespace open; kill them by the pids they
+	# recorded, never by pattern -- a pattern kill here has matched the
+	# harness'"'"'s own command line before
+	for f in netifd ubusd; do
+		p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
+		[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
+	done
 	kill $inner 2>/dev/null || true
-	pkill -P $inner 2>/dev/null || true
 	' sh "$root" "$self_probe" "$out" > "$out/outer.log" 2>&1 || true
 
 sudo -n chown "$(id -u):$(id -g)" "$out"/*.json 2>/dev/null || true
