@@ -99,6 +99,7 @@ Rust 侧的探针跑在 chroot 外、同一组 namespace 内，所以它看到�
 | r48 | `network.interface dump` 逐字段（8 个接口的 static 配置） | identical |
 | r49 | **两个 daemon 各自跑起来**：同 rootfs、同配置、同一个 libubus 客户端逐项询问，再用 iproute2 比内核状态 | ubus 面 identical，内核状态 identical |
 | r50 | 对两个 daemon 各跑 600 / 1800 轮 `ifdown`+`ifup`，比资源占用与最终状态 | 无失败调用、无 fd 泄漏、最终内核状态与 dump 均 identical |
+| r51 | 三条事件通道：`ubus listen` 广播、`ubus subscribe` 通知、hotplug.d 调用 | 三条全部 identical（10 / 8 / 6 条） |
 | — | `tools/check_netlink_consts.sh` | 106 个内核常量全部与头文件一致 |
 
 ### 这几轮各自抓到了什么
@@ -168,6 +169,31 @@ settle 之后稳定为 8。
 r50 还抓到一个真缺陷：**ifdown 要释放 L3 设备**（`interface_flush_state` →
 `device_release` → `system_if_down`）。不释放的话设备一直 UP 且没有配置，
 表现为 C 没有而候选有的一个链路本地地址。
+
+### r51：事件通道，以及它抓到的四件事
+
+事件在 `network.interface dump` 里**看不见**，只有单独抓才能比。三条通道各自都要：
+广播是脚本监听的，通知是订阅者收的，hotplug.d 是真正去重配防火墙、DNS 和 DHCP 的。
+
+1. **ifup 顺序是"配置顺序的倒序"**，不是名字序也不是配置序。
+   `config_init_interfaces` 用 `list_add`（头插）把解析出的接口挂到 `config_ifaces`，
+   再从头 `list_first_entry` 弹出，于是 `interface_add`——连同 ifup 和它的事件——
+   按倒序发生。两次独立运行的 C 顺序完全一致，所以这是合同而不是抖动。
+2. **一次 ifdown 会发两条广播**：`__interface_set_down` 进入 `IFS_TEARDOWN` 时发一条，
+   proto handler 回 `IFPEV_DOWN` 后 `mark_interface_down` 再发一条。
+   两条 ubus 通道都各发两次，**只有 hotplug.d 被去重**（队列折叠掉与正在处理的
+   同一个事件）。
+3. **`ifdown` 事件一开始整个丢了**：我加发射点的那次编辑锚点已经被前面的插入挪走，
+   补丁没落地，编译和测试都不报错。是差分把它抓出来的。
+4. **hotplug recorder 一开始两边都没抓到**：C 的 netifd 在 chroot 内 fork，候选在
+   chroot 外，一个绝对路径不可能同时对；改成从 `$0` 推导日志路径才两边都写得进。
+   更早还有一次**假通过**：`ubus subscribe` 在对象注册之前启动，两边都返回
+   `Not found`，于是"0 条通知，两边一致"——比较脚本现在把"参考侧什么都没抓到"
+   直接判为失败。
+
+`unsupported`（`proto dhcp`）那条在比较里被单独过滤并注明：C 里它会进 `IFS_SETUP`
+等 udhcpc，所以之后的 `down` 是一次真的 `IFEV_DOWN`；本 build 一开始就拒绝这个 proto，
+发的是 `ifup-failed`。这是 proto-shell 缺口的**下游后果**，不是另一个缺陷。
 
 ### 两个已知缺口（在比较脚本里单独报告，不混进"差异"）
 

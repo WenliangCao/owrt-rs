@@ -41,6 +41,22 @@ use interface::{Address, Interface, State};
 
 pub const BUILD_ID: &str = concat!("netifd-rs ", env!("CARGO_PKG_VERSION"));
 
+/// `DEFAULT_HOTPLUG_PATH`; overridable with `-h`, as the C's `hotplug_cmd_path`
+/// is. A harness that runs the daemon outside the rootfs needs this, and
+/// silently skipping the call because the default path does not exist would
+/// look like a working daemon with no hotplug integration.
+const DEFAULT_HOTPLUG_PATH: &str = "/sbin/hotplug-call";
+
+/// The interface events this build produces, named as `eventnames[]` names
+/// them in interface-event.c.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Event {
+    Up,
+    Down,
+    UpFailed,
+    Update,
+}
+
 /// The protocols this build can actually run.
 const IMPLEMENTED_PROTOS: &[&str] = &["static", "none"];
 
@@ -62,10 +78,11 @@ struct Netifd {
     conn: Connection,
     objects: ubus::Objects,
     confdir: String,
+    hotplug_path: String,
 }
 
 impl Netifd {
-    fn new(confdir: &str, socket: Option<&str>) -> io::Result<Self> {
+    fn new(confdir: &str, socket: Option<&str>, hotplug: &str) -> io::Result<Self> {
         let events = netlink::Netlink::open(
             netlink::grp(netlink::RTNLGRP_LINK)
                 | netlink::grp(netlink::RTNLGRP_IPV4_IFADDR)
@@ -87,6 +104,7 @@ impl Netifd {
             conn,
             objects,
             confdir: confdir.to_string(),
+            hotplug_path: hotplug.to_string(),
         })
     }
 
@@ -388,7 +406,12 @@ impl Netifd {
                 eprintln!("netifd-rs: cannot register {name}: {e}");
             }
         }
-        for ic in &cfgs {
+        // `config_init_interfaces` prepends each parsed interface onto
+        // `config_ifaces` with `list_add` and then pops from the head, so
+        // `interface_add` -- and with it the ifup and its event -- runs in
+        // REVERSE config order. Hotplug consumers see that order, so it is
+        // part of the interface, not an implementation detail.
+        for ic in cfgs.iter().rev() {
             let autostart = ic.auto.unwrap_or(true) && !ic.disabled;
             if autostart {
                 self.iface_up(&ic.name);
@@ -462,6 +485,7 @@ impl Netifd {
                  leaving it down",
                 ic.proto
             );
+            self.emit_event(name, Event::UpFailed);
             return;
         }
 
@@ -570,6 +594,7 @@ impl Netifd {
         self.start_time.push((name.to_string(), now()));
 
         self.apply_prefix_assignments();
+        self.emit_event(name, Event::Up);
     }
 
     /// `interface_handle_subnet_route`: take over the prefix route. The
@@ -703,6 +728,8 @@ impl Netifd {
 
     fn iface_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
+        // `mark_interface_down` returns early when already down, so no event
+        let was_up = self.interfaces[idx].state == State::Up;
         let l3 = self.interfaces[idx].l3_device.clone();
         let addrs: Vec<Address> = self.interfaces[idx].proto_ip.addresses.clone();
         let routes: Vec<interface::Route> = self.interfaces[idx].proto_ip.routes.clone();
@@ -759,6 +786,109 @@ impl Netifd {
             }
         }
         self.rescan_devices();
+        if was_up {
+            // entering teardown
+            self.emit_event(name, Event::Down);
+            // teardown complete: `mark_interface_down` emits it again, on
+            // both ubus channels, but hotplug.d has already been called
+            self.emit(name, Event::Down, false);
+        }
+    }
+
+    /// `interface_queue_event`, for the events this build produces.
+    ///
+    /// Three things happen, and all three matter to a live system: the
+    /// `network.interface` broadcast (what scripts listen for), the
+    /// `interface.update` / `interface.down` notification on both the shared
+    /// and the per-interface object (what subscribers get), and the
+    /// hotplug.d call (what reconfigures the firewall, DNS and DHCP).
+    fn emit_event(&mut self, name: &str, ev: Event) {
+        self.emit(name, ev, true)
+    }
+
+    /// `interface_queue_event` sends the broadcast and the notification every
+    /// time; only the hotplug.d call is collapsed when the event repeats the
+    /// one already being handled. So the second IFEV_DOWN of a teardown is
+    /// visible on both ubus channels but runs hotplug once.
+    fn emit(&mut self, name: &str, ev: Event, hotplug: bool) {
+        let up = matches!(ev, Event::Up);
+        if matches!(ev, Event::Up | Event::Down) {
+            if let Err(e) = ubus::interface_event(&mut self.conn, name, up) {
+                eprintln!("netifd-rs: cannot send the {name} interface event: {e}");
+            }
+        }
+
+        // `netifd_ubus_interface_notify(iface, ev != IFEV_DOWN)`
+        let method = if matches!(ev, Event::Down) { "interface.down" } else { "interface.update" };
+        let Some(i) = self.interfaces.iter().find(|i| i.name == name).cloned() else { return };
+        let mut b = BlobBuf::new();
+        b.msg_string("interface", name);
+        let mut snapshot = i;
+        snapshot.uptime = self.uptime_of(name);
+        snapshot.dump_status(&mut b);
+        let fields = b.payload().to_vec();
+        let shared = self.objects.interface;
+        let own = self
+            .objects
+            .per_interface
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, id)| *id);
+        for id in [Some(shared), own].into_iter().flatten() {
+            if let Err(e) = self.conn.notify(id, method, &fields) {
+                eprintln!("netifd-rs: cannot notify {method} for {name}: {e}");
+            }
+        }
+
+        if hotplug {
+            self.call_hotplug(name, ev);
+        }
+    }
+
+    /// `run_cmd`: fork `/sbin/hotplug-call iface` with the event in the
+    /// environment. Synchronous here rather than queued -- the C serialises
+    /// these one at a time anyway, and waiting keeps the ordering the scripts
+    /// expect without a queue this build has no other use for.
+    fn call_hotplug(&mut self, name: &str, ev: Event) {
+        let action = match ev {
+            Event::Up => "ifup",
+            Event::Down => "ifdown",
+            Event::UpFailed => "ifup-failed",
+            Event::Update => "ifupdate",
+        };
+        let path = std::path::Path::new(&self.hotplug_path);
+        if !path.exists() {
+            return;
+        }
+        let mut cmd = std::process::Command::new(&self.hotplug_path);
+        cmd.arg("iface").env("ACTION", action).env("INTERFACE", name);
+        if matches!(ev, Event::Up | Event::Update) {
+            if let Some(i) = self.interfaces.iter().find(|i| i.name == name) {
+                if let Some(d) = &i.l3_device {
+                    cmd.env("DEVICE", d);
+                }
+                if matches!(ev, Event::Update) {
+                    if i.updated & interface::updated::ADDRESS != 0 {
+                        cmd.env("IFUPDATE_ADDRESSES", "1");
+                    }
+                    if i.updated & interface::updated::ROUTE != 0 {
+                        cmd.env("IFUPDATE_ROUTES", "1");
+                    }
+                    if i.updated & interface::updated::PREFIX != 0 {
+                        cmd.env("IFUPDATE_PREFIXES", "1");
+                    }
+                    if i.updated & interface::updated::DATA != 0 {
+                        cmd.env("IFUPDATE_DATA", "1");
+                    }
+                }
+            }
+        }
+        match cmd.status() {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("netifd-rs: cannot run {} for {name}: {e}", self.hotplug_path)
+            }
+        }
     }
 
     fn uptime_of(&self, name: &str) -> u32 {
@@ -944,12 +1074,14 @@ impl Netifd {
 
 fn main() {
     let mut confdir = "/etc/config".to_string();
+    let mut hotplug = DEFAULT_HOTPLUG_PATH.to_string();
     let mut socket: Option<String> = None;
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
         match a.as_str() {
             "-c" => confdir = args.next().unwrap_or(confdir),
             "-s" => socket = args.next(),
+            "-h" => hotplug = args.next().unwrap_or(hotplug),
             "-V" | "--version" => {
                 println!("{BUILD_ID}");
                 return;
@@ -961,7 +1093,7 @@ fn main() {
         }
     }
 
-    let mut n = match Netifd::new(&confdir, socket.as_deref()) {
+    let mut n = match Netifd::new(&confdir, socket.as_deref(), &hotplug) {
         Ok(n) => n,
         Err(e) => {
             eprintln!("netifd-rs: startup failed: {e}");

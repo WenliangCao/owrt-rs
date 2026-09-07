@@ -146,6 +146,33 @@ pub fn proto_handlers(b: &mut BlobBuf, names: &[(&str, bool)]) {
     }
 }
 
+/// ubusd's built-in event object. `ubus_send_event` is an invoke of `send` on
+/// it, carrying `{id: <event name>, data: <table>}`.
+pub const SYSTEM_OBJECT_EVENT: u32 = 1;
+
+/// `ubus_send_event`: a broadcast to whoever registered for the name.
+/// A failure is reported rather than swallowed -- hotplug consumers are
+/// downstream of this, so a lost event is a lost reconfiguration.
+pub fn send_event(conn: &mut Connection, id: &str, fields: &[u8]) -> io::Result<()> {
+    let mut b = BlobBuf::new();
+    b.msg_string("id", id);
+    let t = b.msg_open_table("data");
+    b.put_raw_fields(fields);
+    b.msg_close(t);
+    let payload = b.payload().to_vec();
+    conn.invoke(SYSTEM_OBJECT_EVENT, "send", &payload, 5000).map(|_| ())
+}
+
+/// `netifd_ubus_interface_event`: the `network.interface` broadcast, with the
+/// two field names in the C's order.
+pub fn interface_event(conn: &mut Connection, name: &str, up: bool) -> io::Result<()> {
+    let mut b = BlobBuf::new();
+    b.msg_string("action", if up { "ifup" } else { "ifdown" });
+    b.msg_string("interface", name);
+    let fields = b.payload().to_vec();
+    send_event(conn, "network.interface", &fields)
+}
+
 /// A refusal that names the method, so a caller sees which call it was.
 pub fn not_supported(conn: &mut Connection, req: &Request, what: &str) -> io::Result<()> {
     eprintln!("netifd-rs: {what} is not implemented by this build");
