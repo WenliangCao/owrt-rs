@@ -743,3 +743,34 @@ notify 的四个命令：
 **还没做的**：vlan 和 station 的 notify 数据（`status` 里那两个数组还是空的）、
 `up`/`down`/`retry`/`reconf` 的完整语义（目前是最直接的实现，还没和 C 逐一比过）、
 以及真硬件上的编排。设备替换在这些都对上、并且再过一轮之前不会发生。
+
+### up / down / retry / reconf：语义对齐，以及一个只有数次数才看得见的差异
+
+r60 加了 `CMDS=yes`，走一遍 `down → retry → up → reconf → down → up`，
+每一步之后读回四个状态位，最后再打一个不存在的设备。两种模式全绿：
+
+```
+MODE=fail  calls 4 setup/4 teardown · calls after 16 setup · commands 一致 · status 一致
+MODE=up    calls 1 setup/0 teardown · calls after  4 setup · commands 一致 · status 一致
+```
+
+四个命令的语义（`wireless-device.uc`）：
+
+- **up → `start()`**：`autostart = true`，然后**无条件** `wdev_reset`
+  （retry 归 3、清掉 `retry_setup_failed`），最后只有 state 是 down 才 setup。
+- **down → `stop()`**：`autostart = false`；state 是 up 才 teardown。
+  正在 setup 的**不动**——它自己跑完发现 autostart 没了就停在 down。
+  （C 在这里设 `cancel_setup`，但这个版本里**没有任何地方读它**。）
+- **retry → `retry_setup()`**：只有 state 是 down **且 autostart 还在**才动作。
+  所以 `down` 之后紧跟 `retry` 什么都不会发生——这条两边都对上了。
+- **reconf → `update(null)`**：重置预算，然后 `check()` **会再跑一轮 setup**。
+
+最后这条是量出来的，不是读出来的。原本我以为 `check()` 里
+`wdev_update_disabled_vifs` 没变化就提前返回，所以 reconf 只重置标志。
+状态位上看起来就差一个 `retry_setup_failed`，很容易当成小问题；
+**数 setup 次数才看清**：C 16 次、我 12 次，正好差一整轮。改成 reconf 也走
+setup 之后 16/16。
+
+顺带修了 harness 的一个采集缺陷：`calls.txt` 是在命令执行**之前**采的，
+命令触发的 setup 根本不在里面。现在命令之后再采一次——那 16/12 就是这么露出来的。
+一个断言只有在采集范围覆盖到被测行为时才算数。

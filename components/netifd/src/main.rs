@@ -3329,6 +3329,23 @@ impl Netifd {
         self.wireless_pump();
     }
 
+    /// `start()`: the retry budget resets whatever the state, and a radio
+    /// that is not down is left where it is.
+    fn wireless_start(&mut self, name: &str) {
+        let down = match self.wradio(name) {
+            Some(r) => {
+                r.autostart = true;
+                r.retry = wireless::DEFAULT_RETRY;
+                r.retry_setup_failed = false;
+                r.state == wireless::WState::Down
+            }
+            None => return,
+        };
+        if down {
+            self.wireless_setup(name);
+        }
+    }
+
     /// `wdev.teardown()`.
     fn wireless_teardown(&mut self, name: &str) {
         let Some(r) = self.wradio(name) else { return };
@@ -3528,27 +3545,45 @@ impl Netifd {
         };
         for name in names {
             match cmd {
-                "up" => {
-                    if let Some(r) = self.wradio(&name) {
-                        r.autostart = true;
-                    }
-                    self.wireless_setup(&name);
-                }
+                "up" => self.wireless_start(&name),
                 "down" => {
-                    if let Some(r) = self.wradio(&name) {
+                    // `stop()`: autostart goes, and only an interface that is
+                    // already up is torn down here. One still in setup is left
+                    // alone -- its setup completes, finds autostart gone and
+                    // settles at down on its own. (The C sets `cancel_setup`
+                    // at this point, but nothing in this version ever reads
+                    // it.)
+                    let state = self.wradio(&name).map(|r| {
                         r.autostart = false;
+                        r.state
+                    });
+                    if state == Some(wireless::WState::Up) {
+                        self.wireless_teardown(&name);
                     }
-                    self.wireless_teardown(&name);
                 }
                 "retry" => {
+                    // `retry_setup()`: only a radio that is down and still
+                    // wants to start. That is the recovery path out of
+                    // `retry_setup_failed`, because `start` resets the budget.
+                    let ok = self
+                        .wradio(&name)
+                        .map(|r| r.state == wireless::WState::Down && r.autostart)
+                        .unwrap_or(false);
+                    if ok {
+                        self.wireless_start(&name);
+                    }
+                }
+                "reconf" => {
+                    // `update(null)`: reset the budget, then `check()`, which
+                    // sets up again. Measured rather than assumed -- a reconf
+                    // on a radio that had given up produces another full round
+                    // of setups (16 against 12 in r60 when this only reset the
+                    // flag), and `retry_setup_failed` therefore comes back.
                     if let Some(r) = self.wradio(&name) {
                         r.retry = wireless::DEFAULT_RETRY;
                         r.retry_setup_failed = false;
                     }
                     self.wireless_setup(&name);
-                }
-                "reconf" => {
-                    self.wireless_teardown(&name);
                 }
                 _ => {}
             }

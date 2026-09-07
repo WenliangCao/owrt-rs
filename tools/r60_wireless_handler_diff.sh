@@ -21,6 +21,8 @@
 set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r60-out}
 MODE=${MODE:-fail}
+# CMDS=yes also walks up/down/retry/reconf and reads the state after each
+CMDS=${CMDS:-no}
 mkdir -p "$out"
 
 run() {
@@ -51,7 +53,7 @@ config wifi-iface 'default_radio0'
 	option ssid 'probe'
 	option encryption 'none'
 X
-	sudo -n unshare --mount --net --pid --fork --mount-proc=/proc sh -c '
+	sudo -n CMDS="$CMDS" unshare --mount --net --pid --fork --mount-proc=/proc sh -c '
 	  m=$1; t=$2; o=$3
 	  mount --bind "$m" "$m"; mount --make-private "$m"
 	  mount -t proc proc "$m/proc" 2>/dev/null || true
@@ -65,6 +67,27 @@ X
 	  sed -E "s/ \{.*//" "$m/tmp/out/handler.log" > "$o/$t-calls.txt" 2>/dev/null || true
 	  grep -m1 " setup " "$m/tmp/out/handler.log" 2>/dev/null \
 		| sed -E "s/^ARGV: [a-z0-9]+ setup [a-z0-9]+ //" > "$o/$t-json.txt" || true
+	  if [ "$CMDS" = yes ]; then
+	    # Each command, with the state after it. The state machine is what is
+	    # being compared, so the radio is walked through down -> retry -> up
+	    # -> reconf and read back at every step.
+	    for c in down retry up reconf down up; do
+	      echo "--- after $c" >> "$o/$t-cmds.txt"
+	      chroot "$m" ubus call network.wireless $c "{\"device\":\"radio0\"}" >> "$o/$t-cmds.txt" 2>&1
+	      sleep 2
+	      chroot "$m" ubus call network.wireless status 2>/dev/null \
+		| tr -d " \t\n" \
+		| grep -oE "\"(up|pending|autostart|retry_setup_failed)\":(true|false)" \
+		| tr "\n" " " >> "$o/$t-cmds.txt"
+	      echo "" >> "$o/$t-cmds.txt"
+	    done
+	    echo "--- bad device" >> "$o/$t-cmds.txt"
+	    chroot "$m" ubus call network.wireless up "{\"device\":\"nosuch\"}" >> "$o/$t-cmds.txt" 2>&1
+	    echo "" >> "$o/$t-cmds.txt"
+	  fi
+	  # calls again, AFTER the commands: the first capture only covers
+	  # startup, so a setup a command triggers is invisible there
+	  sed -E "s/ \{.*//" "$m/tmp/out/handler.log" > "$o/$t-calls-after.txt" 2>/dev/null || true
 	  chroot "$m" ubus call network.wireless status > "$o/$t-status.json" 2>&1 || true
 	  chroot "$m" ubus -v list network.wireless > "$o/$t-sig.txt" 2>&1 || true
 	  cp "$m/tmp/out/n.log" "$o/$t-daemon.log" 2>/dev/null || true
@@ -123,6 +146,22 @@ if diff -u "$out/c-sig.txt" "$out/rs-sig.txt" > "$out/sig.diff" 2>/dev/null; the
 	echo "RESULT(signature): identical"
 else
 	echo "signature: DIFFERS"; sed -n '1,24p' "$out/sig.diff"; rc=1
+fi
+
+if [ "$CMDS" = yes ]; then
+	echo "=== handler calls after the commands"
+	if diff -u "$out/c-calls-after.txt" "$out/rs-calls-after.txt" > "$out/calls-after.diff" 2>/dev/null; then
+		echo "RESULT(calls after): identical -- $(grep -c setup "$out/c-calls-after.txt") setups total"
+	else
+		echo "calls after: DIFFERS"; sed -n '1,30p' "$out/calls-after.diff"; rc=1
+	fi
+	echo "=== command state machine"
+	if diff -u "$out/c-cmds.txt" "$out/rs-cmds.txt" > "$out/cmds.diff" 2>/dev/null; then
+		echo "RESULT(commands): identical"
+		sed -n '1,40p' "$out/c-cmds.txt" | sed 's/^/  /'
+	else
+		echo "commands: DIFFERS"; sed -n '1,40p' "$out/cmds.diff"; rc=1
+	fi
 fi
 
 echo "=== status"
