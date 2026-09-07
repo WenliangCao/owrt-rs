@@ -204,6 +204,10 @@ pub struct Interface {
     pub state: State,
     pub available: bool,
     pub autostart: bool,
+    /// `iface->enabled`: whether the main device is claimed and up. It comes
+    /// from `DEV_EVENT_UP`/`DOWN`, not from the `disabled` option, and
+    /// `interface_check_state` tears the interface down when it goes false.
+    pub enabled: bool,
     pub dynamic: bool,
     /// Seconds since the interface came up; only printed while up.
     pub uptime: u32,

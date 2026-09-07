@@ -98,6 +98,10 @@ struct Netifd {
     hotplug: process::Slot,
     hotplug_current: Option<(String, Event)>,
     hotplug_queue: Vec<(String, Event)>,
+    /// `iface->link_state`: whether the interface's main device has carrier.
+    link_state: Vec<(String, bool)>,
+    /// `dev->sys_present`: the device names the kernel currently has.
+    present: Vec<String>,
     /// A child's exit wakes the loop through this, rather than waiting for
     /// the poll timeout.
     sigchld: process::ChildSignal,
@@ -140,6 +144,8 @@ impl Netifd {
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
+            link_state: Vec::new(),
+            present: Vec::new(),
             sigchld: process::ChildSignal::install()?,
             cleared: Vec::new(),
             claims: Vec::new(),
@@ -189,6 +195,12 @@ impl Netifd {
 
         self.clear_new_device_state();
         self.rescan_devices();
+        self.present.clear();
+        for name in self.known_device_names() {
+            if self.sys.if_index(&name).unwrap_or(0) != 0 {
+                self.present.push(name);
+            }
+        }
         self.create_devices();
         self.build_prefixes();
         self.setup_interfaces();
@@ -243,6 +255,25 @@ impl Netifd {
                 let _ = self.sys.set_link_up(i, true);
             }
         }
+        // `DEV_EVENT_UP` -> `interface_set_enabled(iface, true)`
+        self.set_enabled(name, true);
+    }
+
+    /// `interface_set_enabled` for every interface whose main device this is.
+    /// The C re-checks the state from here; this build re-checks it at the
+    /// explicit call sites instead, which covers every case it reaches.
+    fn set_enabled(&mut self, dev: &str, enabled: bool) {
+        for name in self.ifaces_using(dev) {
+            if let Some(i) = self.iface_index(&name) {
+                if self.interfaces[i].enabled != enabled {
+                    self.interfaces[i].enabled = enabled;
+                    eprintln!(
+                        "netifd-rs: Interface '{name}' is {}",
+                        if enabled { "enabled" } else { "disabled" }
+                    );
+                }
+            }
+        }
     }
 
     /// `device_release`: the device goes down when the last user lets go, and
@@ -263,6 +294,8 @@ impl Netifd {
                 let _ = self.sys.set_link_up(i, false);
             }
         }
+        // `DEV_EVENT_DOWN`
+        self.set_enabled(name, false);
     }
 
     /// Claim `dev` on `iface`'s behalf, as its main or L3 device. Re-claiming
@@ -648,7 +681,62 @@ impl Netifd {
     /// Bring an interface up. For an unimplemented protocol this records an
     /// error and leaves the interface down; it never applies a partial
     /// configuration.
+    /// `interface_set_up`: claim the main device, then let
+    /// `interface_check_state` decide. The bring-up is carrier-driven -- the
+    /// claim brings the link up, and the interface only follows once the
+    /// device reports carrier -- which is why an interface whose peer is down
+    /// stays in DOWN rather than sitting in SETUP forever.
     fn iface_up(&mut self, name: &str) {
+        let Some(idx) = self.iface_index(name) else { return };
+        // autostart is set by every caller, before the state check
+        self.interfaces[idx].autostart = true;
+        if self.interfaces[idx].state != State::Down {
+            return;
+        }
+        self.interfaces[idx].errors.clear();
+        let main = self
+            .cfg
+            .interfaces
+            .iter()
+            .find(|i| i.name == name)
+            .and_then(|ic| ic.device.clone());
+        let error = if !self.interfaces[idx].available {
+            Some("NO_DEVICE")
+        } else {
+            match main {
+                Some(dev) => {
+                    self.iface_claim(name, &dev, false);
+                    // the claim brought the link up; pick up the carrier it
+                    // now reports rather than waiting for the netlink event
+                    self.rescan_devices();
+                    // `device_add_user` replays the device's current state to
+                    // a new user. Without that, an interface whose device was
+                    // already claimed by someone else -- a bridge member's
+                    // parent, say -- never sees DEV_EVENT_UP, so `enabled`
+                    // stays false and `interface_check_state` refuses to
+                    // bring it up.
+                    let up = self.devices.get(&dev).map(|d| d.active).unwrap_or(false);
+                    if let Some(i) = self.iface_index(name) {
+                        self.interfaces[i].enabled = up;
+                    }
+                    self.update_link_state(name);
+                    self.check_state(name);
+                    None
+                }
+                // no device at all: nothing to claim, so go straight to setup
+                None => {
+                    self.set_up_now(name);
+                    None
+                }
+            }
+        };
+        if let Some(e) = error {
+            self.iface_error(name, "interface", e, &[]);
+        }
+    }
+
+    /// `__interface_set_up`: the protocol's own setup.
+    fn set_up_now(&mut self, name: &str) {
         let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
             return;
         };
@@ -1329,6 +1417,7 @@ impl Netifd {
                         // and hotplug.d already ran on the first
                         proto::Finish::Down => {
                             self.mark_interface_down(&name);
+                            self.handle_config_change(&name);
                         }
                         proto::Finish::Teardown => {
                             self.proto_cmd(&name, proto::Cmd::Teardown);
@@ -1484,14 +1573,26 @@ impl Netifd {
     /// here.
     fn iface_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
+        // `interface_set_down` clears autostart first, which is what stops
+        // `interface_handle_config_change` bringing it straight back up
+        self.interfaces[idx].autostart = false;
         let prev = self.interfaces[idx].state;
         // "case IFS_DOWN / case IFS_TEARDOWN: break" -- nothing to do
         if prev == State::Down || prev == State::Teardown {
             return;
         }
-        self.interfaces[idx].state = State::Teardown;
         // IFEV_DOWN on entering teardown, and only from IFS_UP
-        if prev == State::Up {
+        self.begin_teardown(name, prev == State::Up);
+    }
+
+    /// The teardown half of `__interface_set_down`, also reached from
+    /// `interface_check_state` when the carrier goes -- which does NOT emit
+    /// IFEV_DOWN on the way in, so a carrier loss produces one ifdown where
+    /// an explicit ifdown of an up interface produces two.
+    fn begin_teardown(&mut self, name: &str, emit_down: bool) {
+        let Some(idx) = self.iface_index(name) else { return };
+        self.interfaces[idx].state = State::Teardown;
+        if emit_down {
             self.emit_event(name, Event::Down);
         }
         // A shell protocol's teardown is a script, so the interface stays in
@@ -1514,6 +1615,188 @@ impl Netifd {
         // the second IFEV_DOWN comes from mark_interface_down; hotplug.d has
         // already been called, so it goes out on the ubus channels only
         self.mark_interface_down(name);
+        self.handle_config_change(name);
+    }
+
+    /// `_device_set_present`, for every device this daemon has an object for.
+    /// A device that disappears takes its claims with it, so a device that
+    /// comes back under the same name is claimed again rather than being
+    /// assumed to still be up.
+    fn update_presence(&mut self) {
+        let mut watch: Vec<String> = self.known_device_names();
+        for (n, _) in &self.claims {
+            if !watch.contains(n) {
+                watch.push(n.clone());
+            }
+        }
+        for name in watch {
+            let now = self.sys.if_index(&name).unwrap_or(0) != 0;
+            let was = self.present.contains(&name);
+            if now == was {
+                continue;
+            }
+            if now {
+                self.present.push(name.clone());
+                eprintln!("netifd-rs: device '{name}' is now present");
+                self.device_added(&name);
+            } else {
+                self.present.retain(|n| *n != name);
+                eprintln!("netifd-rs: device '{name}' is no longer present");
+                self.device_removed(&name);
+            }
+        }
+    }
+
+    /// `DEV_EVENT_ADD` reaching the interfaces that use this device.
+    fn device_added(&mut self, dev: &str) {
+        for name in self.ifaces_using(dev) {
+            self.set_available(&name, true);
+        }
+    }
+
+    /// `DEV_EVENT_REMOVE`, followed by `device_release_cb` over every user.
+    fn device_removed(&mut self, dev: &str) {
+        for name in self.ifaces_using(dev) {
+            self.set_available(&name, false);
+        }
+        // the claims cannot be released through the kernel any more, so drop
+        // them without trying to change a link that no longer exists
+        self.claims.retain(|(n, _)| n != dev);
+        self.claimed_main.retain(|(_, d)| d != dev);
+        self.claimed_l3.retain(|(_, d)| d != dev);
+        if let Some(pos) = self.parents.iter().position(|(c, _)| c == dev) {
+            let (_, p) = self.parents.remove(pos);
+            self.device_release(&p);
+        }
+        self.parents.retain(|(_, p)| p != dev);
+    }
+
+    fn ifaces_using(&self, dev: &str) -> Vec<String> {
+        self.cfg
+            .interfaces
+            .iter()
+            .filter(|ic| ic.device.as_deref() == Some(dev))
+            .map(|ic| ic.name.clone())
+            .collect()
+    }
+
+    /// `interface_set_available`. Losing the device is a forced teardown: the
+    /// state is flushed at once rather than waiting for the script, because
+    /// there is nothing left to tear down on.
+    fn set_available(&mut self, name: &str, avail: bool) {
+        let Some(idx) = self.iface_index(name) else { return };
+        if self.interfaces[idx].available == avail {
+            return;
+        }
+        self.interfaces[idx].available = avail;
+        if avail {
+            if self.interfaces[idx].autostart {
+                self.iface_up(name);
+            }
+            return;
+        }
+        let prev = self.interfaces[idx].state;
+        if prev == State::Up || prev == State::Setup {
+            self.begin_teardown(name, prev == State::Up);
+            // `if (force) interface_flush_state(iface)`: release the L3
+            // device and drop the protocol's data, but leave the interface in
+            // TEARDOWN. Marking it down here instead collapsed the two
+            // IFEV_DOWNs into one hotplug call, because the second landed
+            // while the first was still running.
+            self.iface_unclaim(name, true);
+            if let Some(i) = self.iface_index(name) {
+                self.interfaces[i].data.clear();
+            }
+        }
+        self.link_state.retain(|(n, _)| n != name);
+    }
+
+    /// Refresh every interface's link state from its main device's carrier.
+    /// Used on netlink events, where the C is also reacting to whatever the
+    /// kernel just reported.
+    fn update_link_states(&mut self) {
+        for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
+            self.update_link_state(&name);
+        }
+    }
+
+    /// The same for one interface. A device event in the C reaches only that
+    /// device's users, so claiming one device must not re-evaluate every
+    /// interface: doing that let a later interface come up during an earlier
+    /// one's bring-up, which reordered the startup ifup sequence.
+    fn update_link_state(&mut self, name: &str) {
+        let Some(idx) = self.iface_index(name) else { return };
+        let Some(dev) = self.interfaces[idx].device.clone() else { return };
+        let active = self.devices.get(&dev).map(|d| d.link_active).unwrap_or(false);
+        self.set_link_state(name, active);
+    }
+
+    /// `interface_set_link_state`. `carrier_loss_delay` is not configured on
+    /// this device, so there is no grace window: the check runs immediately.
+    fn set_link_state(&mut self, name: &str, new_state: bool) {
+        let prev = self.link_state.iter().find(|(n, _)| n == name).map(|(_, s)| *s);
+        if prev == Some(new_state) {
+            return;
+        }
+        match self.link_state.iter_mut().find(|(n, _)| n == name) {
+            Some(slot) => slot.1 = new_state,
+            None => self.link_state.push((name.to_string(), new_state)),
+        }
+        // the first observation of a link that is already up is not an event
+        if prev.is_none() && new_state {
+            return;
+        }
+        eprintln!(
+            "netifd-rs: Interface '{name}' has link connectivity {}",
+            if new_state { "" } else { "loss" }
+        );
+        self.check_state(name);
+    }
+
+    /// `interface_check_state`: losing the link tears the interface down, and
+    /// getting it back brings the interface up again if it is still set to
+    /// autostart.
+    fn check_state(&mut self, name: &str) {
+        let Some(idx) = self.iface_index(name) else { return };
+        let link =
+            self.link_state.iter().find(|(n, _)| n == name).map(|(_, s)| *s).unwrap_or(false);
+        let enabled = self.interfaces[idx].enabled;
+        match self.interfaces[idx].state {
+            State::Up | State::Setup => {
+                if !enabled || !link {
+                    self.begin_teardown(name, false);
+                }
+            }
+            State::Down => {
+                if !self.interfaces[idx].available {
+                    return;
+                }
+                if self.interfaces[idx].autostart && enabled && link {
+                    self.set_up_now(name);
+                }
+            }
+            State::Teardown => {}
+        }
+    }
+
+    /// `interface_handle_config_change`, reached from every `IFPEV_DOWN`. Its
+    /// last line is what makes netifd self-healing: an interface that is still
+    /// set to autostart comes straight back up. That is how a protocol whose
+    /// helper was killed recovers -- link lost, teardown, down, and then up
+    /// again with a new helper -- and it is why `ifdown` clearing autostart is
+    /// the step that actually keeps an interface down.
+    ///
+    /// Only a completed teardown gets here. A failed *setup* ends in
+    /// IFEV_UP_FAILED, which does not, so a protocol that cannot come up does
+    /// not spin.
+    fn handle_config_change(&mut self, name: &str) {
+        let autostart = self
+            .iface_index(name)
+            .map(|i| self.interfaces[i].autostart)
+            .unwrap_or(false);
+        if autostart {
+            self.iface_up(name);
+        }
     }
 
     /// `mark_interface_down`: flush everything the protocol applied, release
@@ -1855,20 +2138,11 @@ impl Netifd {
             }
             (ubus::Target::Interface(Some(name)), "up") => {
                 let name = name.to_string();
-                // `interface_set_up` sets autostart before anything else, so
-                // it flips even for an interface that then fails to come up
-                if let Some(i) = self.iface_index(&name) {
-                    self.interfaces[i].autostart = true;
-                }
                 self.iface_up(&name);
                 self.conn.reply_status(&req, status::OK, None)
             }
             (ubus::Target::Interface(Some(name)), "down") => {
                 let name = name.to_string();
-                // `interface_set_down`
-                if let Some(i) = self.iface_index(&name) {
-                    self.interfaces[i].autostart = false;
-                }
                 self.iface_down(&name);
                 self.conn.reply_status(&req, status::OK, None)
             }
@@ -1930,7 +2204,11 @@ impl Netifd {
     /// not implemented, and pretending otherwise would half-configure.
     fn drain_netlink(&mut self) {
         match self.events.recv_events() {
-            Ok(msgs) if !msgs.is_empty() => self.rescan_devices(),
+            Ok(msgs) if !msgs.is_empty() => {
+                self.rescan_devices();
+                self.update_presence();
+                self.update_link_states();
+            }
             Ok(_) => {}
             Err(e) => eprintln!("netifd-rs: netlink event read failed: {e}"),
         }
