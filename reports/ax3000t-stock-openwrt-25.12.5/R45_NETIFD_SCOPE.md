@@ -428,11 +428,41 @@ odhcpd 的 IA_NA 地址是按客户端 DUID 哈希出来的，每次跑都不一
 部分就是上面这套。已经落地的是 `components/netifd/src/wireless.rs`：handler 发现、
 类型码到名字的映射、四类默认属性的合并（handler 声明的覆盖默认的），带单元测试。
 
-还没接上的是 `status` / `get_validate` 两个读方法的输出投影和对象注册。
+r59 把两个读方法都比对完了：三种配置（没有 wireless 配置 / 一个 radio 一个 iface /
+两个 radio 加上各种边角），`status` 和 `get_validate` 两边**逐字节相同**。
+
+第一次跑出来 `get_validate` 就全对了——schema 合并那套是对的——但 `status` 有五处不一样，
+每一处都是 wireless.uc 里一行代码：
+
+- **`radios: []` 少了**。`config.radios = radios` 是在 `parse_attribute_list` **之后**
+  无条件赋的，所以它永远在最后一个，哪怕是空的。
+- **`disabled: null`**。`option disabled 'on'` 走 `parse_bool` 返回 undefined，
+  ucode 照样 `ret[name] = undefined`，键还在，值是 null。
+  顺带一提这是 netifd 里少见的：UCI 平时认的 `on`/`yes`/`enabled` 这里都不算真。
+- **radio1 的 iface 被丢掉了**。`if (!dev || dev.config.disabled) continue`
+  ——看的是 radio **投影后**的 disabled。所以 `disabled 'true'` 的 radio 下面的 iface 没了，
+  `disabled 'on'` 的还在。
+- **`unknown_type` 这个 radio 整个不存在**。没有 `type`、或者没有 handler 认领这个 type，
+  就根本不建 radio。
+- 另外 `wifi-iface` 自己 `disabled` 为真时直接跳过，但 `wifi-device` 不跳过（第 131 行的
+  `&& type != "wifi-device"`）。
+
+这五条现在都有单元测试兜着，不依赖 oracle。
+
+还没接上的是**对象注册**。
 `status` 的字段**顺序**要按 handler dump 的顺序（不是字母序）——
 `config` 里先是 `default_config_attr` 里出现且 UCI 里设了的，再是 handler 声明的，
 都按各自的声明顺序。把 radio 编排（`up`/`down` 真的去拉 hostapd）做出来需要真硬件，
 沙箱里验证不了。
 
-在此之前**不注册这个对象**：报一个空的 `status` 比没有这个对象更糟，
-调用方会以为这台机器没有无线电。r49 和 r57 都把它单独列为已知缺口并打印说明。
+**故意不注册这个对象**，而且理由比之前想的更硬：读方法现在是对的，但
+`status` 里 `up`/`pending`/`autostart`/`retry_setup_failed` 这四个状态位来自
+radio 到底起没起来。沙箱里没有硬件，C 那边 setup 也失败，所以两边都报
+`up:false, retry_setup_failed:true`，**一致**——但这个一致只说明"都没起来"，
+对一台真有无线电的机器什么都不能证明。真设备上 C 会报 `up:true`，
+而现在这套只会报 `up:false`。注册一个把已经工作的无线电报成没起来的对象，
+比没有这个对象更糟。
+
+所以 r59 是通过 `netifd-rs --dump-wireless`（一个诊断开关，不是守护进程的一部分）
+比对的，而不是通过注册对象。等编排那半边做出来，schema 和投影这半边已经是验证过的了。
+r49 和 r57 继续把这个对象单独列为已知缺口并打印说明。

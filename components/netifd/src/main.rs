@@ -51,6 +51,9 @@ pub const BUILD_ID: &str = concat!("netifd-rs ", env!("CARGO_PKG_VERSION"));
 const DEFAULT_HOTPLUG_PATH: &str = "/sbin/hotplug-call";
 
 /// Where the shell protocol handlers live; overridable with `-p`.
+/// Where wireless.uc looks for handler scripts.
+const DEFAULT_WIRELESS_DIR: &str = "/lib/netifd/wireless";
+
 const DEFAULT_PROTO_DIR: &str = "/lib/netifd/proto";
 
 /// The interface events this build produces, named as `eventnames[]` names
@@ -3126,6 +3129,15 @@ fn main() {
             "-p" => protodir = args.next().unwrap_or(protodir),
             "-V" | "--version" => {
                 println!("{BUILD_ID}");
+                return;
+            }
+            // Diagnostic, not part of the daemon: print what `network.wireless`
+            // WOULD answer for this config, so a differential can compare it
+            // with the C's replies. The object itself is not registered -- see
+            // the note in wireless.rs.
+            "--dump-wireless" => {
+                let dir = args.next().unwrap_or_else(|| DEFAULT_WIRELESS_DIR.to_string());
+                println!("{}", wireless::dump(&confdir, &dir));
                 return;
             }
             other => {
