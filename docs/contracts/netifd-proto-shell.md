@@ -225,3 +225,17 @@ teardown 命令从来没跑过——门槛条件要求状态机不在 `S_IDLE`�
 第三次：子进程退出原来只靠轮询发现，最多晚一个 poll 超时。这是能看见的——`ifdown`
 之后 lease 还在设备上待那么久，而 C 已经删掉了。现在用 SIGCHLD self-pipe 唤醒循环,
 超时只当兜底。
+
+## 8. 第三次同一个陷阱：候选跑在 chroot 外面
+
+r51 一直报"一致"，但候选侧的 daemon 日志第一行是
+`shell protocol handlers: `（空）——它跑在 chroot **外面**，`/lib/netifd/proto`
+不存在，所以一个 handler 都没发现，于是把 `proto dhcp` 当成"这个 build 跑不了"，
+发 `ifup-failed`。而 harness 里正好有一条注释说这是"已知缺口"，把这些行过滤掉了。
+两边都"一致"，但被比较的是一个功能被关掉的 build。
+
+现在 r49/r50/r51/r52 都在 rootfs 里跑候选，r51 的过滤器也删掉了——那条
+`proto dhcp` 且链路上没有服务器的接口（一直停在 `IFS_SETUP`）现在是被比较的，
+它的 `ifdown` 也一致。
+
+结论跟 §7 是同一条：**harness 自己也要被怀疑**。一个"一致"的结果，先问它到底比了什么。

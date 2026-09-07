@@ -34,7 +34,7 @@ config interface "wired"
 	option gateway "10.0.0.254"
 	option metric "13"
 
-config interface "unsupported"
+config interface "dhcp_no_server"
 	option device "veth2"
 	option proto "dhcp"
 '
@@ -87,6 +87,14 @@ set -u
 echo $! > /tmp/out/netifd.pid
 CN
 
+	sudo -n cp "$cand" "$root/sbin/netifd-rs"
+	sudo -n chmod 755 "$root/sbin/netifd-rs"
+	sudo -n tee "$root/tmp/rsnetifd.sh" >/dev/null <<'RN'
+set -u
+/sbin/netifd-rs > /tmp/out/netifd.log 2>&1 &
+echo $! > /tmp/out/cand.pid
+RN
+
 	# One deliberate sequence: two clean cycles on each of two interfaces,
 	# plus a down on an interface that is already down.
 	sudo -n tee "$root/tmp/drive.sh" >/dev/null <<'DR'
@@ -98,7 +106,7 @@ for f in lan wired; do
 	sleep 1
 done
 # already down: must produce no second ifdown
-ubus call network.interface.unsupported down >/dev/null 2>&1
+ubus call network.interface.dhcp_no_server down >/dev/null 2>&1
 sleep 1
 DR
 
@@ -131,11 +139,12 @@ DR
 		if [ "$tag" = c ]; then
 			chroot "$root" /bin/sh /tmp/cnetifd.sh
 		else
-			"$cand" -c "$root/etc/config" \
-				-s "$root/var/run/ubus/ubus.sock" \
-				-h "$root/sbin/hotplug-call" \
-				> "$out/$tag-daemon.log" 2>&1 &
-			echo $! > "$root/tmp/out/cand.pid"
+			# inside the chroot, like the C: the protocol scripts live at
+			# /lib/netifd/proto and source each other by absolute path, so a
+			# candidate running outside it discovers no handlers at all --
+			# which used to make this harness compare a build that refused
+			# every shell protocol
+			chroot "$root" /bin/sh /tmp/rsnetifd.sh
 		fi
 		sleep 4
 		chroot "$root" /bin/sh -c "ubus subscribe network.interface > /tmp/out/subscribe.txt 2>&1 & echo \$! > /tmp/out/subscribe.pid"
@@ -153,6 +162,7 @@ DR
 				: > "$out/$tag-$f.txt"
 		done
 
+		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		for f in netifd ubusd cand; do
 			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
 			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
@@ -166,17 +176,12 @@ DR
 run_one c
 run_one rs
 
-# `unsupported` uses proto dhcp. In the C it reaches IFS_SETUP waiting for
-# udhcpc, so a later `down` is a real IFEV_DOWN; this build refuses the proto
-# up front, which is an IFEV_UP_FAILED and then nothing to take down. Both
-# lines are downstream of the proto-shell gap, not separate defects, so they
-# are filtered out with a note rather than silently ignored.
+# Nothing is filtered any more. `dhcp_no_server` uses proto dhcp with no
+# server on the link, so it sits in IFS_SETUP waiting for a lease -- which is
+# exactly the case that used to be exempted, and is now compared.
 filter_known() {
-	grep -v '"interface":"unsupported"' | grep -v 'INTERFACE=unsupported'
+	cat
 }
-echo "NOTE: lines naming the 'unsupported' interface are filtered: it uses"
-echo "      proto dhcp, which this build refuses, so its event sequence differs"
-echo "      as a consequence of that documented gap."
 
 rc=0
 for ch in listen hotplug; do

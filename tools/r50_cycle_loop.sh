@@ -66,6 +66,14 @@ set -u
 echo $! > /tmp/out/netifd.pid
 CN
 
+	sudo -n cp "$cand" "$root/sbin/netifd-rs"
+	sudo -n chmod 755 "$root/sbin/netifd-rs"
+	sudo -n tee "$root/tmp/rsnetifd.sh" >/dev/null <<'RN'
+set -u
+/sbin/netifd-rs > /tmp/out/netifd.log 2>&1 &
+echo $! > /tmp/out/cand.pid
+RN
+
 	# The cycle: down then up, every interface, N times. Errors are counted
 	# rather than ignored -- a call that starts failing halfway through is
 	# exactly the kind of thing this is looking for.
@@ -103,11 +111,12 @@ FIN
 			chroot "$root" /bin/sh /tmp/cnetifd.sh
 			pid=$(cat "$root/tmp/out/netifd.pid")
 		else
-			"$cand" -c "$root/etc/config" \
-				-s "$root/var/run/ubus/ubus.sock" \
-				> "$out/$tag-daemon.log" 2>&1 &
-			pid=$!
-			echo $pid > "$root/tmp/out/cand.pid"
+			# inside the rootfs, like the C. This config is all `static`, so
+			# nothing here needs the protocol scripts -- but a candidate
+			# started outside the chroot finds no handlers at all, and a
+			# config change would then silently test nothing.
+			chroot "$root" /bin/sh /tmp/rsnetifd.sh
+			pid=$(cat "$root/tmp/out/cand.pid")
 		fi
 		sleep 4
 
@@ -146,6 +155,7 @@ FIN
 			ip -6 route show table all
 		} > "$out/$tag-kernel.txt" 2>&1 || true
 
+		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		for f in netifd ubusd cand; do
 			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
 			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
