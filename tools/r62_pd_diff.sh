@@ -11,6 +11,12 @@
 # down. After each step both sides are read for the LAN's addresses and
 # routes, the uplink's `ipv6-prefix`, and the assignment.
 #
+# wan6 is `auto 0` on purpose: with it starting normally the real odhcp6c runs,
+# finds no server, and its exit takes the interface down -- which withdraws the
+# assignment and leaves the C showing a DEPRECATED address from the first grant
+# onward. That is the protocol process interfering, not the delegation path.
+# Held down, the injected notify is the only thing acting on it.
+#
 # Usage: r62_pd_diff.sh <rootfs-files> <netifd-rs musl binary> [outdir]
 set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r62-out}
@@ -31,6 +37,7 @@ config interface "lan"
 config interface "wan6"
 	option device "veth0"
 	option proto "dhcpv6"
+	option auto "0"
 '
 
 run() {
@@ -53,14 +60,19 @@ run() {
 	  sysctl -qw net.ipv6.conf.veth0.accept_dad=0 2>/dev/null || true
 	  sysctl -qw net.ipv6.conf.veth2.accept_dad=0 2>/dev/null || true
 	  chroot "$m" /sbin/ubusd >/dev/null 2>&1 & sleep 1
-	  if [ "$t" = c ]; then chroot "$m" /sbin/netifd >"$m/tmp/n.log" 2>&1 &
+	  # -S -l 7 on the C so its own view of the prefix path is on record;
+	  # netifd-rs logs to stderr already
+	  ip monitor address route > /tmp/mon.txt 2>&1 &
+	  if [ "$t" = c ]; then chroot "$m" /sbin/netifd -S -l 7 >"$m/tmp/n.log" 2>&1 &
 	  else chroot "$m" /sbin/netifd-rs >"$m/tmp/n.log" 2>&1 & fi
 	  sleep 4
 
+	  # the return code and any error text are evidence, not noise: swallowing
+	  # them hid whether a first notify was refused or accepted
 	  notify() {
-	    chroot "$m" ubus call network.interface.wan6 notify_proto \
-	      "{\"action\":0,\"link-up\":true,\"ifname\":\"veth0\",\"ip6addr\":[{\"ipaddr\":\"2001:db8:ffff::2\",\"mask\":128}],\"ip6prefix\":[$1]}" \
-	      >/dev/null 2>&1 || true
+	    r=$(chroot "$m" ubus call network.interface.wan6 notify_proto \
+	      "{\"action\":0,\"link-up\":true,\"ifname\":\"veth0\",\"ip6addr\":[{\"ipaddr\":\"2001:db8:ffff::2\",\"mask\":128}],\"ip6prefix\":[$1]}" 2>&1) || true
+	    echo "--- notify rc=$? out=[$r]"
 	  }
 	  snap() {
 	    echo "--- $1 lan v6 addr"
@@ -84,6 +96,8 @@ run() {
 	  notify "\"2001:db8:5:0::/60,1800,3600\"" ; sleep 3; snap replaced
 	  chroot "$m" ubus call network.interface.wan6 down >/dev/null 2>&1 || true
 	  sleep 3; snap after-down
+	  cp "$m/tmp/n.log" "$o/$t-daemon.log" 2>/dev/null || true
+	  cp /tmp/mon.txt "$o/$t-monitor.txt" 2>/dev/null || true
 	' sh "$w" "$tag" "$out" > "$out/$tag.txt" 2>&1
 	sudo -n rm -rf "$w"
 }

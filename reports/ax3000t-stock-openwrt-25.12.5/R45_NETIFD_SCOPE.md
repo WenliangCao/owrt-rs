@@ -955,3 +955,47 @@ system_add_address(l3_downlink, &addr);           // 不带 OFFLINK 重新加回
 一个活跃的 `2001:db8:5::1/64`。也就是说 C 在这个注入场景下始终处于撤销态，
 而我这边分配被延后了。延后的原因还没定位——r62 没有把守护进程日志留下来，
 下一步先给它加上。
+
+### Astra 的回复：两处纠正 + 控制实验，首次委派和续租对上了
+
+**它纠正了我一个参照错误**：`/lib/netifd/wireless-device.uc` 来自 OpenWrt 的
+`wifi-scripts` 包（与 v25.12.5 的 SHA256 一致），**不是**
+`netifd@cbb83a18/examples/` 里那份。我读的是 rootfs 里的实际文件，引用没错，
+但这个区分要记住。
+
+**它证伪了我"上行没 up 所以 deprecated"的猜测**，理由是源码级的：
+`interface_set_prefix_address` 的 add 路径（L1022）检查的是**下游**
+（这里是 LAN）处于 IFS_UP/IFS_SETUP，**从不检查 `prefix->iface->state`**。
+所以 deprecated 只可能来自撤回路径。这和我自己读到的一致。
+
+**它给了我一条我漏掉的关键事实**：`parse_prefix_option`（proto.c:375-386）
+把生命周期转成**绝对时间** `pref + now`，`system_addr`（system-linux.c:3269）
+再减回去下发 IFA_CACHEINFO；`0xffffffff` 表示无限、存为 0。
+
+我存的是原始相对值。单看第一次下发的地址是对的，**但之后每一个针对它的比较
+都是错的**——撤回路径里的 `valid_until - 1 <= now`、7200 秒封顶、到期判断。
+已改成绝对 deadline 模型，下发时再换算回 lifetime。
+
+**它指出 r62 把证据吞了**：notify 的返回码和错误全丢进 `/dev/null`，
+而且只看 3 秒后的末态。补上之后立刻看到一件事——换前缀那一条
+**两边都返回 `Permission denied`**，之前完全不可见。
+
+**它建议的控制实验直接解决了主要谜团**：给 wan6 加 `option auto 0`。
+原来 wan6 是 `proto dhcpv6`，真的 odhcp6c 在跑、找不到服务器、退出，
+于是链路丢失 → teardown → 分配被撤回，C 才会从第一次委派起就是 deprecated。
+**那是协议进程在干扰，不是委派路径本身。** 把它按住之后：
+
+```
+first-grant  两边一致
+renewal      两边一致
+```
+
+**唯一剩下的差异**：换前缀时，C 把旧前缀的分配**撤回**
+（`2001:db8:1::1` 变 deprecated + `proto kernel metric 256`）、新的保持活跃；
+我这边旧的仍是活跃的。也就是说 `set_delegated_prefixes` 替换列表之后，
+没有对"前缀已消失"的旧分配走撤回路径。这是下一步。
+
+（Astra 还确认了第三问：设备级 data 会通过 `__run_next_handler()`
+`wdev.handler_config.data = wdev.handler_data[wdev.name] ?? {}` 回传给
+setup 和 teardown，配置重建时保留，但 `wdev_teardown_cb()` L168 在
+teardown 完成后清空整个 handler_data。这条还没实现。）

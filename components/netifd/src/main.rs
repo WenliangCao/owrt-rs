@@ -1579,9 +1579,23 @@ impl Netifd {
                     eprintln!("netifd-rs: {name}: proto sent a prefix this build rejects: {text}");
                     continue;
                 };
+                // netifd stores DEADLINES, not lifetimes: `parse_prefix_option`
+                // keeps `pref + now` and `system_addr` subtracts `now` again on
+                // the way to IFA_CACHEINFO. 0xffffffff is infinite and becomes
+                // no deadline at all. Keeping the raw lifetime here happens to
+                // produce the right first address and then makes every
+                // comparison against it wrong -- expiry, and the cap in the
+                // withdrawal path.
+                let base = now();
+                let deadline = |v: Option<u32>| -> Option<u32> {
+                    match v {
+                        None | Some(u32::MAX) => None,
+                        Some(x) => Some((base + x as u64).min(u32::MAX as u64) as u32),
+                    }
+                };
                 let mut dp = ip::DevicePrefix::new(p.addr, p.length, name, Some(name));
-                dp.preferred_until = p.preferred;
-                dp.valid_until = p.valid;
+                dp.preferred_until = deadline(p.preferred);
+                dp.valid_until = deadline(p.valid);
                 dp.excl = p.excl;
                 delegated.push(dp);
             }
@@ -2019,8 +2033,14 @@ impl Netifd {
                                 // the assignment is live means matching the
                                 // wrong half.
                                 sa.offlink = true;
-                                sa.preferred = p.preferred_until;
-                                sa.valid = p.valid_until;
+                                // deadlines back to lifetimes, as `system_addr`
+                                // does; a deadline already past means zero
+                                let base = now();
+                                let left = |d: Option<u32>| -> Option<u32> {
+                                    d.map(|x| (x as u64).saturating_sub(base).min(u32::MAX as u64) as u32)
+                                };
+                                sa.preferred = left(p.preferred_until);
+                                sa.valid = left(p.valid_until);
                                 if let Err(e) = self.sys.add_address(di, &sa) {
                                     eprintln!(
                                         "netifd-rs: {}: cannot add {local}/{}: {e}",
@@ -2727,16 +2747,23 @@ impl Netifd {
                             let pr = sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
                             let _ = self.sys.del_route(di, &pr);
 
-                            let now = now() as u32;
+                            let base = now();
                             let mut sa = sys::Address::new(IpAddr::V6(local), len);
-                            let expired = a.valid.is_some_and(|v| v.saturating_sub(1) <= now);
+                            // `a.valid` is a deadline; the C compares
+                            // `valid_until - 1 <= now`
+                            let expired =
+                                a.valid.is_some_and(|v| (v as u64).saturating_sub(1) <= base);
                             if expired {
                                 let _ = self.sys.del_address(di, &sa);
                             } else {
-                                sa.preferred = Some(now);
+                                // preferred_until = now, i.e. zero lifetime
+                                sa.preferred = Some(0);
+                                let cap = 7200u32;
                                 sa.valid = Some(match a.valid {
-                                    Some(v) if v <= now + 7200 => v,
-                                    _ => now + 7200,
+                                    Some(v) if (v as u64) <= base + cap as u64 => {
+                                        (v as u64).saturating_sub(base) as u32
+                                    }
+                                    _ => cap,
                                 });
                                 if let Err(e) = self.sys.add_address(di, &sa) {
                                     eprintln!(
