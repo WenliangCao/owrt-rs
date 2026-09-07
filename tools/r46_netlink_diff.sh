@@ -76,9 +76,9 @@ run_iproute2() {
 	scaffold
 	# netifd's bridge defaults, in the kernel's own units
 	ip link add name br0 address $MAC_BR type bridge \
-		stp_state 0 forward_delay 400 mcast_snooping 1 mcast_querier 0 \
+		stp_state 0 forward_delay 800 mcast_snooping 0 mcast_querier 0 \
 		mcast_hash_max 512 vlan_filtering 0 priority 32767 \
-		hello_time 200 max_age 2000
+		hello_time 100 max_age 1000
 	ip link set veth0 master br0
 	ip link set veth2 master br0
 	ip link set br0 up

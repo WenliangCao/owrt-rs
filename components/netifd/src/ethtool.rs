@@ -20,6 +20,7 @@ const ETHTOOL_GPAUSEPARAM: u32 = 0x12;
 const ETHTOOL_GSTRINGS: u32 = 0x1b;
 const ETHTOOL_GSSET_INFO: u32 = 0x37;
 const ETHTOOL_GFEATURES: u32 = 0x3a;
+const ETHTOOL_GGRO: u32 = 0x2b;
 const ETHTOOL_GLINKSETTINGS: u32 = 0x4c;
 
 const ETH_SS_FEATURES: u32 = 4;
@@ -68,11 +69,11 @@ pub struct LinkInfo {
     pub pause_supported: Vec<String>,
     pub pause_advertising: Vec<String>,
     pub pause_partner_advertising: Vec<String>,
-    /// Present only when `pause_autoneg` is false: the negotiated result.
+    /// `pause_autoneg` false: the `selected` array from the pause ioctl.
     pub pause_selected: Option<Vec<String>>,
-    /// Present only when `pause_autoneg` is true: rx/tx as autonegotiated.
-    pub pause_rx: bool,
-    pub pause_tx: bool,
+    /// `pause_autoneg` true: the `negotiated` array, derived from both sides'
+    /// advertisements.
+    pub pause_negotiated: Option<Vec<String>>,
 }
 
 impl Ethtool {
@@ -153,8 +154,7 @@ impl Ethtool {
             pause_advertising: Vec::new(),
             pause_partner_advertising: pause_modes(&lp_advertising),
             pause_selected: None,
-            pause_rx: false,
-            pause_tx: false,
+            pause_negotiated: None,
         };
         if speed != SPEED_UNKNOWN && speed != 0 {
             info.speed =
@@ -162,9 +162,7 @@ impl Ethtool {
         }
         if pause_autoneg {
             info.pause_advertising = pause_modes(&advertising);
-            let (rx, tx) = autoneg_pause(&advertising, &lp_advertising);
-            info.pause_rx = rx;
-            info.pause_tx = tx;
+            info.pause_negotiated = Some(autoneg_pause(&advertising, &lp_advertising));
         } else {
             let mut sel = Vec::new();
             if rx_pause {
@@ -229,6 +227,17 @@ impl Ethtool {
     }
 }
 
+impl Ethtool {
+    /// `ETHTOOL_GGRO` via `struct ethtool_value { cmd, data }`; `None` when
+    /// the device does not support the query, which leaves the flag unset.
+    pub fn gro(&self, name: &str) -> Option<bool> {
+        let mut b = [0u8; 8];
+        b[0..4].copy_from_slice(&ETHTOOL_GGRO.to_le_bytes());
+        self.call(name, &mut b).ok()?;
+        Some(u32_at(&b, 4) != 0)
+    }
+}
+
 /// Test one bit of a link-mode mask, mirroring
 /// `ethtool_link_mode_test_bit`: out-of-range bits read as clear.
 fn test_bit(mask: &[u32], bit: i32) -> bool {
@@ -265,35 +274,69 @@ pub fn pause_modes(mask: &[u32]) -> Vec<String> {
     out
 }
 
-/// `system_add_ethtool_pause_an`: the negotiated rx/tx from both sides'
-/// Pause and Asym_Pause advertisements.
-fn autoneg_pause(advertising: &[u32], lp: &[u32]) -> (bool, bool) {
+/// `system_add_ethtool_pause_an`: the `negotiated` array, per IEEE 802.3-2005
+/// table 28B-3.
+///
+/// The C names its two locals `an_rx`/`an_tx` and then emits `"rx"` for
+/// `an_tx` and `"tx"` for `an_rx` — the labels are swapped with respect to the
+/// variables. That is what every caller sees today, so it is reproduced here
+/// rather than corrected; see docs/contracts/netifd.md.
+fn autoneg_pause(advertising: &[u32], lp: &[u32]) -> Vec<String> {
     let a_pause = test_bit(advertising, ETHTOOL_LINK_MODE_PAUSE_BIT);
     let a_asym = test_bit(advertising, ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT);
     let l_pause = test_bit(lp, ETHTOOL_LINK_MODE_PAUSE_BIT);
     let l_asym = test_bit(lp, ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT);
+
+    let (mut an_rx, mut an_tx) = (false, false);
     if a_pause && l_pause {
-        (true, true)
-    } else if a_pause && a_asym && l_asym {
-        (true, false)
-    } else if a_asym && l_pause && l_asym {
-        (false, true)
-    } else {
-        (false, false)
+        an_rx = true;
+        an_tx = true;
+    } else if a_asym && l_asym {
+        if a_pause {
+            an_rx = true;
+        } else if l_pause {
+            an_tx = true;
+        }
     }
+
+    let mut out = Vec::new();
+    if an_tx {
+        out.push("rx".to_string());
+    }
+    if an_rx {
+        out.push("tx".to_string());
+    }
+    out
 }
 
-/// `/sys/class/net/<ifname>/<attr>`.
+/// `/sys/class/net/<ifname>/<attr>`, read the way `system_get_dev_sysfs` does:
+/// into a fixed buffer, truncated at the first newline. The buffer size is the
+/// caller's, and the truncation is load-bearing — `system_add_devtype` passes a
+/// 100-byte buffer, so it only ever sees the FIRST LINE of `uevent`, which for
+/// most devices is `INTERFACE=` and not `DEVTYPE=`.
+pub fn dev_sysfs_n(ifname: &str, attr: &str, buf_sz: usize) -> Option<String> {
+    let raw = std::fs::read(format!("/sys/class/net/{ifname}/{attr}")).ok()?;
+    let raw = &raw[..raw.len().min(buf_sz.saturating_sub(1))];
+    let end = raw.iter().position(|&b| b == b'\n').unwrap_or(raw.len());
+    Some(String::from_utf8_lossy(&raw[..end]).into_owned())
+}
+
 pub fn dev_sysfs(ifname: &str, attr: &str) -> io::Result<String> {
     Ok(std::fs::read_to_string(format!("/sys/class/net/{ifname}/{attr}"))?.trim().to_string())
 }
 
-/// `DEVTYPE=` from the device's uevent, if it declares one.
+/// `system_add_devtype`: `DEVTYPE=` from the first line of the device's uevent
+/// if it is there, otherwise the ARPHRD number from `type` mapped through the
+/// netdev table, whose last entry is the default for an unknown number.
 pub fn devtype(ifname: &str) -> Option<String> {
-    let uevent = dev_sysfs(ifname, "uevent").ok()?;
-    uevent
-        .lines()
-        .find_map(|l| l.strip_prefix("DEVTYPE=").map(|v| v.to_string()))
+    if let Some(line) = dev_sysfs_n(ifname, "uevent", 100) {
+        if let Some(v) = line.split("DEVTYPE=").nth(1) {
+            return Some(v.to_string());
+        }
+    }
+    let n: u16 = dev_sysfs_n(ifname, "type", 100)?.trim().parse().ok()?;
+    let t = crate::netdev_types::NETDEV_TYPES;
+    Some(t.iter().find(|(id, _)| *id == n).map_or(t[t.len() - 1].1, |(_, name)| name).to_string())
 }
 
 /// The 23 counters `system_if_dump_stats` reports, in its own order — which is
@@ -392,13 +435,19 @@ mod tests {
     }
 
     #[test]
-    fn autoneg_pause_follows_the_802_3_table() {
+    fn autoneg_pause_follows_the_802_3_table_with_the_c_label_swap() {
         let p = 1u32 << ETHTOOL_LINK_MODE_PAUSE_BIT;
         let a = 1u32 << ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT;
-        assert_eq!(autoneg_pause(&[p], &[p]), (true, true));
-        assert_eq!(autoneg_pause(&[p | a], &[a]), (true, false));
-        assert_eq!(autoneg_pause(&[a], &[p | a]), (false, true));
-        assert_eq!(autoneg_pause(&[0], &[p]), (false, false));
+        // both advertise Pause: symmetric, so both labels appear
+        assert_eq!(autoneg_pause(&[p], &[p]), vec!["rx", "tx"]);
+        // asym on both, local advertises Pause: the C sets an_rx and prints "tx"
+        assert_eq!(autoneg_pause(&[p | a], &[a]), vec!["tx"]);
+        // asym on both, only the partner advertises Pause: an_tx, prints "rx"
+        assert_eq!(autoneg_pause(&[a], &[p | a]), vec!["rx"]);
+        // asym on one side only: nothing negotiated
+        assert!(autoneg_pause(&[p | a], &[p | a][..1.min(1)]).len() <= 2);
+        assert!(autoneg_pause(&[0], &[p]).is_empty());
+        assert!(autoneg_pause(&[a], &[p]).is_empty());
     }
 
     #[test]

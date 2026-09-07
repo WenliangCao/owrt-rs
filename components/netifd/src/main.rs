@@ -7,8 +7,10 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 
+mod device;
 mod ethtool;
 mod ethtool_modes;
+mod netdev_types;
 mod netlink;
 mod sys;
 

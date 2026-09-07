@@ -10,7 +10,14 @@
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
+use std::os::fd::{AsRawFd, FromRawFd};
+
 use crate::netlink::{self, Attrs, Netlink};
+
+extern "C" {
+    fn socket(domain: i32, ty: i32, proto: i32) -> i32;
+    fn ioctl(fd: i32, req: u64, arg: *mut u8) -> i32;
+}
 
 pub const AF_UNSPEC: u8 = 0;
 pub const AF_INET: u8 = 2;
@@ -104,6 +111,11 @@ pub const RTN_UNICAST: u8 = 1;
 pub const RTN_UNREACHABLE: u8 = 7;
 pub const RTPROT_STATIC: u8 = 4;
 pub const RTNH_F_ONLINK: u32 = 4;
+
+pub const SIOCGIFFLAGS: u64 = 0x8913;
+pub const SIOCGIFMTU: u64 = 0x8921;
+pub const SIOCGIFHWADDR: u64 = 0x8927;
+pub const SIOCGIFTXQLEN: u64 = 0x8942;
 
 pub const IFF_UP: u32 = 0x1;
 pub const IFF_LOOPBACK: u32 = 0x8;
@@ -362,6 +374,7 @@ pub fn encode_route(index: u32, route: &Route, add: bool) -> (u16, [u8; 12], Vec
 #[derive(Clone, Debug)]
 pub struct BridgeConfig {
     pub stp: bool,
+    pub stp_kernel: bool,
     pub forward_delay: u32,
     pub hello_time: u32,
     pub max_age: u32,
@@ -369,24 +382,36 @@ pub struct BridgeConfig {
     pub igmp_snoop: bool,
     pub multicast_querier: bool,
     pub hash_max: u32,
+    pub robustness: u32,
+    pub query_interval: u32,
+    pub query_response_interval: u32,
+    pub last_member_interval: u32,
+    pub bridge_empty: bool,
     pub priority: u16,
     pub vlan_filtering: bool,
 }
 
 impl Default for BridgeConfig {
-    /// netifd's own defaults (`bridge.c` `bridge_attr_defaults`): STP off,
-    /// forward delay 4 s, hello 2 s, max age 20 s, snooping on, hash max 512,
-    /// priority 0x7FFF.
+    /// netifd's own defaults, from `bridge_config_init` in bridge.c: STP off,
+    /// forward delay 8 s, hello 1 s, max age 10 s, snooping **off**, hash max
+    /// 512, priority 0x7FFF, ageing time unset. These are not the kernel's
+    /// bridge defaults and not iproute2's.
     fn default() -> Self {
         Self {
             stp: false,
-            forward_delay: 4,
-            hello_time: 2,
-            max_age: 20,
+            stp_kernel: false,
+            forward_delay: 8,
+            hello_time: 1,
+            max_age: 10,
             ageing_time: None,
-            igmp_snoop: true,
+            igmp_snoop: false,
             multicast_querier: false,
             hash_max: 512,
+            robustness: 2,
+            query_interval: 12500,
+            query_response_interval: 1000,
+            last_member_interval: 100,
+            bridge_empty: false,
             priority: 0x7FFF,
             vlan_filtering: false,
         }
@@ -554,6 +579,56 @@ impl System {
     }
 }
 
+/// The `SIOCGIF*` half of `system_if_get_settings`: an AF_INET datagram socket
+/// used only as an ioctl handle, which is what netifd's `sock_ioctl` is.
+pub struct IfIoctl {
+    fd: std::os::fd::OwnedFd,
+}
+
+impl IfIoctl {
+    pub fn open() -> io::Result<Self> {
+        const SOCK_DGRAM: i32 = 2;
+        const SOCK_CLOEXEC: i32 = 0o2000000;
+        // SAFETY: socket(2) with constant arguments; checked before use.
+        let raw = unsafe { socket(AF_INET as i32, SOCK_DGRAM | SOCK_CLOEXEC, 0) };
+        if raw < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        // SAFETY: socket(2) just returned this descriptor; nothing else holds it.
+        Ok(Self { fd: unsafe { std::os::fd::OwnedFd::from_raw_fd(raw) } })
+    }
+
+    /// `struct ifreq`: 16 bytes of name then a 24-byte union.
+    fn call(&self, ifname: &str, req: u64) -> io::Result<[u8; 40]> {
+        let mut r = [0u8; 40];
+        let n = ifname.as_bytes();
+        let len = n.len().min(15);
+        r[..len].copy_from_slice(&n[..len]);
+        // SAFETY: ioctl(2) on our own socket with a 40-byte `struct ifreq`
+        // buffer that lives across the call; these SIOCGIF* commands read the
+        // name and write inside the same struct.
+        if unsafe { ioctl(self.fd.as_raw_fd(), req, r.as_mut_ptr()) } < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(r)
+    }
+
+    /// A numeric field of the ifreq union, at `off` bytes into the struct.
+    pub fn ioctl_u32(&self, ifname: &str, req: u64, off: usize) -> io::Result<u32> {
+        let r = self.call(ifname, req)?;
+        Ok(u32::from_le_bytes([r[off], r[off + 1], r[off + 2], r[off + 3]]))
+    }
+
+    /// `SIOCGIFHWADDR`: `struct sockaddr` at offset 16, so the six address
+    /// bytes start at 18 after the two-byte family.
+    pub fn get_hwaddr(&self, ifname: &str) -> io::Result<[u8; 6]> {
+        let r = self.call(ifname, SIOCGIFHWADDR)?;
+        let mut mac = [0u8; 6];
+        mac.copy_from_slice(&r[18..24]);
+        Ok(mac)
+    }
+}
+
 /// `/proc/sys/net/...` — netifd reads and writes these per device. Errors are
 /// returned rather than swallowed; callers decide whether a missing knob (an
 /// interface without IPv6, say) is fatal.
@@ -700,10 +775,12 @@ mod tests {
         assert_eq!(crate::netlink::attr_str(&lip, IFLA_INFO_KIND), Some("bridge"));
         let data =
             parse_attrs(attr(&lip, IFLA_INFO_DATA | crate::netlink::NLA_F_NESTED).unwrap());
-        assert_eq!(attr_u32(&data, IFLA_BR_FORWARD_DELAY), Some(400));
-        assert_eq!(attr_u32(&data, IFLA_BR_HELLO_TIME), Some(200));
-        assert_eq!(attr_u32(&data, IFLA_BR_MAX_AGE), Some(2000));
-        assert_eq!(crate::netlink::attr_u8(&data, IFLA_BR_MCAST_SNOOPING), Some(1));
+        // netifd's defaults are 8 s / 1 s / 10 s, in hundredths of a second,
+        // and snooping is off unless configured
+        assert_eq!(attr_u32(&data, IFLA_BR_FORWARD_DELAY), Some(800));
+        assert_eq!(attr_u32(&data, IFLA_BR_HELLO_TIME), Some(100));
+        assert_eq!(attr_u32(&data, IFLA_BR_MAX_AGE), Some(1000));
+        assert_eq!(crate::netlink::attr_u8(&data, IFLA_BR_MCAST_SNOOPING), Some(0));
         assert_eq!(attr_u32(&data, IFLA_BR_MCAST_HASH_MAX), Some(512));
         // ageing_time is absent unless configured, matching BRIDGE_OPT_AGEING_TIME
         assert!(attr(&data, IFLA_BR_AGEING_TIME).is_none());

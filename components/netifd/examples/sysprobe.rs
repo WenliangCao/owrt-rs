@@ -7,6 +7,8 @@
 
 use std::net::IpAddr;
 
+#[path = "../src/netdev_types.rs"]
+mod netdev_types;
 #[path = "../src/netlink.rs"]
 mod netlink;
 #[path = "../src/sys.rs"]
