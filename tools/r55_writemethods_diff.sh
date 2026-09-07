@@ -68,6 +68,13 @@ hostdep_iface_gone|network.interface.shell|notify_proto|{"action":6,"ifname":"no
 link_with_neighbors|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.1","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.9","mac":"02:00:00:00:00:99"},{"ipaddr":"10.5.5.10","proxy":true}],"dns":["10.5.5.53"]}
 link_addr_external|network.interface.shell|notify_proto|{"action":0,"link-up":true,"address-external":true,"ipaddr":[{"ipaddr":"10.5.5.2","mask":"255.255.255.0"}]}
 link_bad_neighbor|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.3","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.11","mac":"nonsense"}]}
+# The six upd_* cases below drive the `updated` mask. NOTE what they can and
+# cannot show: `shell` never reaches SETUP in this sandbox -- its DHCP client
+# finds no server -- so it is never `up`, and netifd only prints `updated` for
+# an interface that is up. Both sides agree on all six, which covers the
+# not-up notify path (the IFPEV_UP gate) and nothing more. The clearing
+# transition itself is measured on the C but is NOT yet covered by any
+# differential; see R45.
 upd_change|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.6.6.1","mask":"255.255.255.0"}],"routes":[{"target":"10.9.0.0","netmask":"255.255.255.0","gateway":"10.6.6.1"}]}
 upd_repeat|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.6.6.1","mask":"255.255.255.0"}],"routes":[{"target":"10.9.0.0","netmask":"255.255.255.0","gateway":"10.6.6.1"}]}
 upd_gateway_only|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.6.6.1","mask":"255.255.255.0"}],"routes":[{"target":"10.9.0.0","netmask":"255.255.255.0","gateway":"10.6.6.2"}]}

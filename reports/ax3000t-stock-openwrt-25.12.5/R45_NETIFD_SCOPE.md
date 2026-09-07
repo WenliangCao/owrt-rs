@@ -512,5 +512,17 @@ libubus 是在等待里就地派发的（`ubus_complete_request` 会处理收到
 下一次一个都没有。r56 因此**显式排除** `updated` 和它驱动的 `ifupdate`
 并打印说明；语义改在 r55 里断言，那里的 notify 是按已知时刻手动发的。
 
-（r55 那六个用例目前是两边一致，但 C 在整段序列里一直报 `["addresses"]`，
-所以它们证明的是"一致"，还没证明"清零那一跳"。这一点没有夸大。）
+**r55 那六个用例覆盖到哪儿，说清楚**：两边六个全一致，但 `shell` 在这个
+沙箱里从头到尾都没 up——它的 DHCP 客户端找不到服务器，进不了 SETUP——
+而 netifd 只在接口 up 时才打印 `updated`。所以这六个用例覆盖的是
+"接口不在 SETUP 时收到 notify"这条路径（也就是 IFPEV_UP 那道闸），
+**不是**清零那一跳。清零的语义是在 C 上量出来的、也照着实现了，
+但目前**还没有任何 differential 覆盖它**。
+
+（顺带查出来的：r55 原有的 `link_with_neighbors` / `link_addr_external` /
+`link_bad_neighbor` 也一样，`shell` 全程 up=false。地址确实落到 veth4 上了，
+两边也一致，但这几个用例一直以来测的都是"没起来的接口收到 notify"，
+不是完整的 apply+up。这是 r55 一直存在的覆盖缺口，不是这次改出来的。）
+
+要补上它，需要一个真的能起来的 proto-shell 接口——r52 有真 DHCP 服务器，
+是最合适的落点。
