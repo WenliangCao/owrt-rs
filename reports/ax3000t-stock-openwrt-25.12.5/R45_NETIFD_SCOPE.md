@@ -679,3 +679,29 @@ TYPE_STRING。两边规则一致，只是数据不同。
 
 **这条路的价值在于：整套编排可以用这个桩在沙箱里做完整 differential，
 完全不碰设备。** 用户要求"失败也不能伤到使用"，这个方案的设备风险是零。
+
+### 编排第一步：setup / teardown / 重试，和 C 一致
+
+按记录桩的方案做了 `wdev` 的状态机，r60 比对下来两边一致：
+
+```
+=== handler call sequence
+RESULT(calls): identical -- 4 setups, 4 teardowns
+=== first setup payload
+RESULT(payload): identical, key order included
+```
+
+状态机（`wireless-device.uc`）：
+
+- `setup()` 只从 up / down 进入，且要 `autostart` 且没有 `retry_setup_failed`；
+  置 state=setup，跑 handler。
+- handler 退出时，如果 state 还是 setup（说明脚本没有报告接口起来），
+  `retry` 减一；减到 0 就置 `retry_setup_failed`；然后 `teardown()`。
+- teardown 退出 → state=down → 再 `setup()`。
+- `DEFAULT_RETRY = 3`，所以一共四轮 setup，之后 `setup()` 直接返回。
+
+handler 串行执行，一次只跑一个。
+
+**对象还是没注册。** 现在只是把编排跑起来并对上了调用序列；`notify`
+（脚本回调报告接口起来、设置 data、加进程）还没做，没有它 `status` 里的
+`up` / `ifname` 仍然出不来。等那部分也对上再谈注册。

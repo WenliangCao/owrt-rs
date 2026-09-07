@@ -170,6 +170,14 @@ struct Netifd {
     /// A child's exit wakes the loop through this, rather than waiting for
     /// the poll timeout.
     sigchld: process::ChildSignal,
+    /// `network.wireless`. Handlers run one at a time, as `run_handler` does.
+    wirelessdir: String,
+    whandlers: Vec<wireless::Handler>,
+    wconfig: Vec<wireless::Radio>,
+    wradios: Vec<WRadio>,
+    wslot: process::Slot,
+    wcur: Option<(String, &'static str)>,
+    wqueue: std::collections::VecDeque<(String, &'static str)>,
     /// Every device netifd has an object for. An entry means `device_init`
     /// has run -- its state was cleared once -- and it means the device is
     /// reported by `network.device status`, which lists every present object,
@@ -217,6 +225,13 @@ impl Netifd {
             socket: socket.map(|s| s.to_string()),
             bus_down: false,
             bus_retry_at: 0,
+            wirelessdir: DEFAULT_WIRELESS_DIR.to_string(),
+            whandlers: Vec::new(),
+            wconfig: Vec::new(),
+            wradios: Vec::new(),
+            wslot: process::Slot::default(),
+            wcur: None,
+            wqueue: std::collections::VecDeque::new(),
             link_state: Vec::new(),
             present: Vec::new(),
             sigchld: process::ChildSignal::install()?,
@@ -1766,6 +1781,7 @@ impl Netifd {
 
     fn reap_children(&mut self) {
         self.poll_child_output();
+        self.wireless_reap();
         if let Some((_, _, output)) = self.hotplug.reap() {
             for line in output.lines().filter(|l| !l.trim().is_empty()) {
                 eprintln!("netifd-rs: hotplug: {line}");
@@ -3227,6 +3243,149 @@ fn same_address(a: &interface::Address, b: &interface::Address) -> bool {
     a.addr == b.addr && a.mask == b.mask
 }
 
+// ---------------------------------------------------------------------------
+// network.wireless: driving the radios
+// ---------------------------------------------------------------------------
+
+/// One radio's live state, mirroring `wdev` in wireless-device.uc.
+#[derive(Clone, Debug)]
+struct WRadio {
+    name: String,
+    state: wireless::WState,
+    retry: u32,
+    retry_setup_failed: bool,
+    autostart: bool,
+    /// `handler_data[section].ifname`, reported by the handler through notify.
+    ifnames: Vec<(String, String)>,
+}
+
+impl Netifd {
+    fn wradio(&mut self, name: &str) -> Option<&mut WRadio> {
+        self.wradios.iter_mut().find(|r| r.name == name)
+    }
+
+    /// Discover the handlers, read the config, and start every radio. Handlers
+    /// run one at a time, the way `run_handler` serialises them.
+    fn wireless_load(&mut self) {
+        self.whandlers = wireless::discover(std::path::Path::new(&self.wirelessdir));
+        self.wconfig = wireless::load(&self.confdir, &self.whandlers);
+        self.wradios = self
+            .wconfig
+            .iter()
+            .map(|r| WRadio {
+                name: r.name.clone(),
+                state: wireless::WState::Down,
+                retry: wireless::DEFAULT_RETRY,
+                retry_setup_failed: false,
+                autostart: true,
+                ifnames: Vec::new(),
+            })
+            .collect();
+        for name in self.wradios.iter().map(|r| r.name.clone()).collect::<Vec<_>>() {
+            self.wireless_setup(&name);
+        }
+    }
+
+    /// `wdev.setup()`: only from up or down, and only while the radio is
+    /// allowed to start.
+    fn wireless_setup(&mut self, name: &str) {
+        let Some(r) = self.wradio(name) else { return };
+        if !matches!(r.state, wireless::WState::Up | wireless::WState::Down) {
+            return;
+        }
+        if !r.autostart || r.retry_setup_failed {
+            return;
+        }
+        r.state = wireless::WState::Setup;
+        self.wqueue.push_back((name.to_string(), "setup"));
+        self.wireless_pump();
+    }
+
+    /// `wdev.teardown()`.
+    fn wireless_teardown(&mut self, name: &str) {
+        let Some(r) = self.wradio(name) else { return };
+        if matches!(r.state, wireless::WState::Teardown | wireless::WState::Down) {
+            return;
+        }
+        r.state = wireless::WState::Teardown;
+        self.wqueue.push_back((name.to_string(), "teardown"));
+        self.wireless_pump();
+    }
+
+    fn wireless_pump(&mut self) {
+        if self.wcur.is_some() {
+            return;
+        }
+        let Some((name, op)) = self.wqueue.pop_front() else { return };
+        let Some(cfg) = self.wconfig.iter().find(|r| r.name == name).cloned() else {
+            return;
+        };
+        let Some(h) = cfg.kind().and_then(|k| self.whandlers.iter().find(|h| h.name == k))
+        else {
+            return;
+        };
+        let script = h.script.clone();
+        let hname = h.name.clone();
+        let file = script
+            .file_name()
+            .map(|f| f.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let dir = script
+            .parent()
+            .map(|d| d.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let argv = vec![
+            format!("./{file}"),
+            hname,
+            op.to_string(),
+            name.clone(),
+            wireless::handler_json(&cfg, &self.whandlers),
+        ];
+        if let Err(e) = self.wslot.start_in(&argv, &[], &dir) {
+            eprintln!("netifd-rs: {name}: cannot run the wireless handler: {e}");
+            return;
+        }
+        self.wcur = Some((name, op));
+    }
+
+    /// The handler exited. `wdev_setup_cb` / `wdev_teardown_cb`.
+    fn wireless_reap(&mut self) {
+        let Some((argv0, status, output)) = self.wslot.reap() else { return };
+        let Some((name, op)) = self.wcur.take() else { return };
+        for line in output.lines().filter(|l| !l.trim().is_empty()) {
+            eprintln!("netifd-rs: {name}: {line}");
+        }
+        if status != 0 {
+            eprintln!("netifd-rs: {name}: {argv0} exited {status}");
+        }
+        if op == "setup" {
+            // A handler that reported its interfaces up left the state at Up,
+            // and there is nothing to retry.
+            let still_setting_up = self
+                .wradios
+                .iter()
+                .any(|r| r.name == name && r.state == wireless::WState::Setup);
+            if still_setting_up {
+                if let Some(r) = self.wradio(&name) {
+                    if r.retry > 0 {
+                        r.retry -= 1;
+                    } else {
+                        r.retry_setup_failed = true;
+                    }
+                }
+                self.wireless_teardown(&name);
+            }
+        } else {
+            if let Some(r) = self.wradio(&name) {
+                r.state = wireless::WState::Down;
+                r.ifnames.clear();
+            }
+            self.wireless_setup(&name);
+        }
+        self.wireless_pump();
+    }
+}
+
 /// One applied route as the kernel wants it. Shared by the add path and the
 /// flush below, so a route is removed with exactly the key it was added with.
 fn sys_route(r: &interface::Route) -> sys::Route {
@@ -3294,6 +3453,7 @@ fn main() {
         }
     };
     n.reload();
+    n.wireless_load();
     n.run()
 }
 

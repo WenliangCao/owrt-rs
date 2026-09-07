@@ -742,3 +742,117 @@ pub fn dump(confdir: &str, handlerdir: &str) -> String {
         get_validate_json(&radios, &handlers)
     )
 }
+
+// ---------------------------------------------------------------------------
+// Driving the handler script
+// ---------------------------------------------------------------------------
+
+/// `wireless.uc`'s notify commands.
+pub const NOTIFY_UP: i64 = 0;
+pub const NOTIFY_SET_DATA: i64 = 1;
+pub const NOTIFY_PROCESS_ADD: i64 = 2;
+pub const NOTIFY_SET_RETRY: i64 = 4;
+
+/// `DEFAULT_RETRY`. A radio gets this many retries after its first setup, so
+/// four setup attempts in all before `retry_setup_failed` sticks.
+pub const DEFAULT_RETRY: u32 = 3;
+
+/// `wdev.state`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WState {
+    Down,
+    Setup,
+    Teardown,
+    Up,
+}
+
+/// The JSON handed to the handler as its fourth argument. Same projections as
+/// `status`, arranged the way `wdev_config_init` arranges them: interfaces
+/// keyed by a two-digit index from 1, and `vlans`/`stas` as objects rather
+/// than the arrays `status` reports.
+pub fn handler_json(radio: &Radio, handlers: &[Handler]) -> String {
+    let h = radio.kind().and_then(|k| handlers.iter().find(|h| h.name == k));
+    let dev_spec = h.map(|h| h.attrs_of("device")).unwrap_or(&[]);
+    let if_spec = h.map(|h| h.attrs_of("iface")).unwrap_or(&[]);
+
+    let mut ifaces: Vec<(String, String)> = Vec::new();
+    for (n, v) in radio.vifs.iter().enumerate() {
+        let mut cfg: Vec<(String, String)> = attribute_list(&v.opts, if_spec)
+            .into_iter()
+            .filter_map(|(k, p)| projected(&p).map(|p| (k, p)))
+            .collect();
+        let list: Vec<String> = v.radios.iter().map(|x| x.to_string()).collect();
+        cfg.retain(|(k, _)| k != "radios");
+        cfg.push(("radios".into(), format!("[{}]", list.join(","))));
+        ifaces.push((
+            format!("{:02}", n + 1),
+            obj(&[
+                ("name".into(), format!("\"{}\"", esc(&v.section))),
+                ("config".into(), obj(&cfg)),
+                ("vlans".into(), "{}".into()),
+                ("stas".into(), "{}".into()),
+            ]),
+        ));
+    }
+
+    obj(&[
+        ("config".into(), attr_obj(&radio.opts, dev_spec)),
+        ("interfaces".into(), obj(&ifaces)),
+        ("data".into(), "{}".into()),
+    ])
+}
+
+#[cfg(test)]
+mod handler_tests {
+    use super::*;
+
+    fn setup_case() -> (Vec<Handler>, Vec<Radio>) {
+        let hs = vec![handler_from(
+            Path::new("/x.sh"),
+            &json::parse(
+                r#"{"name":"mac80211","device":[["channel",3],["band",3],["path",3]],
+                    "iface":[["ssid",3],["encryption",3]]}"#,
+            )
+            .unwrap(),
+        )
+        .unwrap()];
+        let dir = std::env::temp_dir().join(format!("netifd-hj-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
+            dir.join("wireless"),
+            "config wifi-device 'radio0'\n\toption type 'mac80211'\n\
+             \toption path 'platform/soc/18000000.wifi'\n\toption band '2g'\n\
+             \toption channel '1'\n\n\
+             config wifi-iface 'default_radio0'\n\toption device 'radio0'\n\
+             \toption network 'lan'\n\toption mode 'ap'\n\toption ssid 'probe'\n\
+             \toption encryption 'none'\n",
+        )
+        .unwrap();
+        let radios = load(&dir.to_string_lossy(), &hs);
+        (hs, radios)
+    }
+
+    // Byte for byte what the C hands the handler, measured with a recording
+    // stub in place of mac80211.sh. The whitespace differs (the C pretty-prints
+    // with spaces); everything else -- key order, the two-digit interface key,
+    // `vlans`/`stas` as objects, `device` as a bare string here where `status`
+    // reports an array -- is asserted.
+    #[test]
+    fn the_handler_json_matches_what_the_c_sends() {
+        let (hs, radios) = setup_case();
+        let got = handler_json(&radios[0], &hs);
+        let want = concat!(
+            r#"{"config":{"type":"mac80211","channel":"1","band":"2g","#,
+            r#""path":"platform/soc/18000000.wifi"},"#,
+            r#""interfaces":{"01":{"name":"default_radio0","config":{"network":["lan"],"#,
+            r#""device":"radio0","mode":"ap","ssid":"probe","encryption":"none","#,
+            r#""radios":[]},"vlans":{},"stas":{}}},"data":{}}"#
+        );
+        assert_eq!(got, want);
+    }
+
+    #[test]
+    fn the_retry_budget_is_three_so_four_setups() {
+        assert_eq!(DEFAULT_RETRY, 3);
+    }
+}
