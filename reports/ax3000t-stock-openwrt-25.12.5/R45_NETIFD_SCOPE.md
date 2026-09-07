@@ -264,3 +264,31 @@ netifd-rs 自己产生，两边一致。
 载波驱动的 setup/teardown、reload 的变更检测（现在是全拆全建）、checkup 定时器、
 主机依赖（action 6 目前返回 `NOT_SUPPORTED`）、`address-external` 与协议自建隧道
 （都返回 `NOT_SUPPORTED`）、协议上报的邻居，以及计划 §2.3 的故障用例。
+
+### r53：计划 §2.3 的故障用例
+
+`tools/r53_fault_diff.sh`：一条真的 `proto dhcp` 接口（对端有真的 udhcpd），
+四个故障各写一份现场，差异能落到具体某一个用例上：
+
+| 用例 | 做什么 | 关键发现 |
+|---|---|---|
+| A | `kill -9` 掉 udhcpc | C **会自愈**：helper 死是 `IFPEV_LINK_LOST`，走完 teardown 后 `interface_handle_config_change` 最后一行 `if (autostart) interface_set_up(iface)` 把接口重新拉起来 |
+| B | 对端 `ip link set down` | 起接口是**载波驱动**的：`interface_set_up` 只 claim 主设备，之后由 `interface_check_state` 在有载波时才真的 setup、没载波就拆掉。对端没起来的接口停在 `IFS_DOWN` 而不是 `IFS_SETUP` |
+| C | 删掉设备再建回来 | `_device_set_present(false)` 会把每个 user 的 claim 都释放掉；接口变 unavailable 并记一条 `NO_DEVICE`；这是**强制** teardown：立刻 flush L3 设备和 `data`，但接口留在 `IFS_TEARDOWN` |
+| D | 连续两次 ifup、连续两次 ifdown | `autostart` 由 `interface_set_up`/`_set_down` 自己设，所以每个调用点都会设，不只是 ubus 那个 |
+
+顺手在"已经一致"的路径上抓到两条：
+
+- `device_add_user` 会把设备**当前**状态回放给新 user。少了这一步，一个设备已经
+  被别人 claim 过的接口（网桥成员的父设备就是这种）永远收不到 `DEV_EVENT_UP`，
+  `enabled` 一直是 false，`interface_check_state` 就不肯把它拉起来。
+- C 里一个设备事件只送给**这个设备的** user。claim 一个设备之后去轮询所有接口的
+  载波，会让后面的接口在前面那个还在起的过程中就先起来——启动时的 ifup 顺序因此
+  变了（C 是 vlist 顺序，也就是配置的倒序）。
+
+`iface->enabled` 的含义也纠正了：它是"主设备被 claim 且 up"（`DEV_EVENT_UP`/`DOWN`），
+跟 `disabled` 选项无关。
+
+r53 的 hotplug 比较会把连续重复行合并：一次重复的 `IFEV_DOWN` 变成一次还是两次
+hotplug 调用，取决于第二次是否落在第一次还在跑的时候，而**C 自己三次里有一次
+落到了另一边**。顺序不同照样失败，只是同一行的次数不同不算。
