@@ -76,6 +76,28 @@ echo "--- interface dump"
 ubus call network.interface dump
 echo "--- wan status"
 ubus call network.interface.wan status
+
+# `updated` on an interface that is genuinely up. netifd clears the whole
+# mask at the top of every action-0 notify and re-sets a bit only for an
+# entry actually added or removed, so an identical repeat must leave the
+# field absent. This is the one place in the suite where a proto-shell
+# interface really comes up -- r55's `shell` never leaves SETUP, so its
+# notify cases cannot show this.
+upd() { ubus call network.interface.wan status | tr -d " \t\n" \
+	| grep -oE '"updated":\[[^]]*\]' || echo '"updated":ABSENT'; }
+IP=$(ubus call network.interface.wan status | tr -d ' "' \
+	| grep -oE 'address:[0-9.]+' | head -1 | cut -d: -f2)
+echo "--- upd baseline"; upd
+ubus call network.interface.wan notify_proto \
+	"{\"action\":0,\"link-up\":true,\"ifname\":\"veth1\",\"ipaddr\":[{\"ipaddr\":\"$IP\",\"mask\":24}]}" \
+	>/dev/null 2>&1
+sleep 1
+echo "--- upd after first notify"; upd
+ubus call network.interface.wan notify_proto \
+	"{\"action\":0,\"link-up\":true,\"ifname\":\"veth1\",\"ipaddr\":[{\"ipaddr\":\"$IP\",\"mask\":24}]}" \
+	>/dev/null 2>&1
+sleep 1
+echo "--- upd after identical repeat"; upd
 PROBE
 
 	# A single-address pool: both runs must get 10.0.0.100.
@@ -295,6 +317,17 @@ def mask(o):
 
 c, r = sections(sys.argv[1]), sections(sys.argv[2])
 bad = 0
+# plain-text sections: compared verbatim, no JSON masking
+for name in ("upd baseline", "upd after first notify", "upd after identical repeat"):
+    x, y = c.get(name, "<missing>").strip(), r.get(name, "<missing>").strip()
+    if x == y:
+        print(f"RESULT({name}): identical -- {x}")
+    else:
+        print(f"{name}: DIFFERS")
+        print(f"  C:    {x}")
+        print(f"  rust: {y}")
+        bad += 1
+
 for name in ("interface dump", "wan status"):
     if name not in c or not c[name].strip():
         print(f"{name}: NOTHING CAPTURED from the reference -- untested")

@@ -526,3 +526,28 @@ libubus 是在等待里就地派发的（`ubus_complete_request` 会处理收到
 
 要补上它，需要一个真的能起来的 proto-shell 接口——r52 有真 DHCP 服务器，
 是最合适的落点。
+
+### 补上 `updated` 的覆盖，然后立刻发现一个真差异
+
+r55 覆盖不到清零那一跳，因为它的 `shell` 起不来。r52 有真的 DHCP 服务器、
+`wan` 是真的通过 proto-shell 起来的，所以探针加在那里：拿到租约之后，
+手动发两条**完全相同**的 action-0 notify，中间各看一次 `updated`。
+
+第一次跑，harness 报 0 差异——但两边的输出明明不一样。原因是 r52 的比较
+只看 `interface dump` 和 `wan status` 两个 section，我新加的三段被采集了
+但从来没被比过。**这就是"绿灯但根本没在看"**。修好之后：
+
+```
+upd baseline              两边一致  "updated":["addresses","routes","data"]
+upd after first notify    C   "updated":["addresses","routes"]
+                          rs  "updated":ABSENT            <- 真差异
+upd after identical repeat 两边一致  "updated":ABSENT
+```
+
+**这是一个未修复的真差异。** 手发的那条 notify 只带 `ipaddr`、不带 routes，
+所以相对于之前的状态：路由被全删了（C 置 ROUTE），地址那条 C 也置了 ADDRESS。
+本实现两个都没置，说明 `previous` 和新集合的比较没看出变化——要么
+`previous.routes` 本来就是空的（DHCP 装的路由没记在 `proto_ip.routes` 里），
+要么地址的比较键比 C 的 `addr_cmp` 宽。还没定位到，先记在这里。
+
+第三次（原样重放）两边都是 ABSENT，说明清零那一跳本身是对的。
