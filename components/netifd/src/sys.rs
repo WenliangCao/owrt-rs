@@ -109,6 +109,7 @@ pub const RT_SCOPE_NOWHERE: u8 = 255;
 
 pub const RTN_UNICAST: u8 = 1;
 pub const RTN_UNREACHABLE: u8 = 7;
+pub const RTPROT_KERNEL: u8 = 2;
 pub const RTPROT_STATIC: u8 = 4;
 pub const RTNH_F_ONLINK: u32 = 4;
 
@@ -217,6 +218,25 @@ pub struct Address {
 }
 
 impl Address {
+    /// `interface_update_proto_addr`: every IPv4 address without an explicit
+    /// broadcast gets one computed here, not by the kernel. A /31 or /32 gets
+    /// 255.255.255.255, anything shorter gets the address with the host bits
+    /// set. Without this the kernel leaves the broadcast unset, which is
+    /// visible as a missing `brd` in `ip addr`.
+    pub fn with_default_broadcast(mut self) -> Self {
+        if let IpAddr::V4(v4) = self.ip {
+            if self.broadcast.is_none() {
+                self.broadcast = Some(if self.mask >= 31 {
+                    Ipv4Addr::new(255, 255, 255, 255)
+                } else {
+                    let bits = u32::from_be_bytes(v4.octets());
+                    Ipv4Addr::from(bits | (u32::MAX >> self.mask))
+                });
+            }
+        }
+        self
+    }
+
     pub fn new(ip: IpAddr, mask: u8) -> Self {
         Self {
             ip,
@@ -644,6 +664,55 @@ pub fn sysctl_set(path: &str, val: &str) -> io::Result<()> {
     std::fs::write(path, val)
 }
 
+/// Zero every bit below the prefix length; the same rule as
+/// `clear_if_addr`, kept here so this module stands alone.
+fn clear_v6(addr: Ipv6Addr, length: u8) -> Ipv6Addr {
+    let mut o = addr.octets();
+    let len = length.min(128) as usize;
+    for (i, b) in o.iter_mut().enumerate() {
+        let bit = i * 8;
+        if bit >= len {
+            *b = 0;
+        } else if bit + 8 > len {
+            *b &= !0u8 << (8 - (len - bit));
+        }
+    }
+    Ipv6Addr::from(o)
+}
+
+/// The prefix route an on-link address implies.
+/// `interface_handle_subnet_route` does two operations, in this order:
+/// delete the route as if the kernel had installed it (`proto kernel`), which
+/// removes the automatic prefix route, then add netifd's own with the
+/// interface's metric and table. Both are needed: without the delete the
+/// kernel route stays and shadows netifd's.
+pub fn subnet_route(addr: &Address, metric: u32, table: u32) -> Route {
+    let target = match addr.ip {
+        IpAddr::V4(v) => {
+            let bits = u32::from_be_bytes(v.octets());
+            let mask = if addr.mask == 0 { 0 } else { u32::MAX << (32 - addr.mask.min(32)) };
+            IpAddr::V4(Ipv4Addr::from(bits & mask))
+        }
+        IpAddr::V6(v) => IpAddr::V6(clear_v6(v, addr.mask)),
+    };
+    Route {
+        target,
+        mask: addr.mask,
+        source: None,
+        sourcemask: 0,
+        nexthop: match addr.ip {
+            IpAddr::V4(_) => IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+            IpAddr::V6(_) => IpAddr::V6(Ipv6Addr::UNSPECIFIED),
+        },
+        metric,
+        table: if table != 0 { table } else { RT_TABLE_MAIN },
+        mtu: None,
+        onlink: false,
+        proto: None,
+        nodev: false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -784,6 +853,59 @@ mod tests {
         assert_eq!(attr_u32(&data, IFLA_BR_MCAST_HASH_MAX), Some(512));
         // ageing_time is absent unless configured, matching BRIDGE_OPT_AGEING_TIME
         assert!(attr(&data, IFLA_BR_AGEING_TIME).is_none());
+    }
+
+    #[test]
+    fn a_v4_address_gets_a_computed_broadcast() {
+        let a = Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 24)
+            .with_default_broadcast();
+        assert_eq!(a.broadcast, Some(Ipv4Addr::new(10, 0, 0, 255)));
+        let (_, _, attrs) = encode_addr(3, &a, true);
+        assert_eq!(attr(&parse_attrs(&attrs), IFA_BROADCAST).unwrap(), &[10, 0, 0, 255]);
+    }
+
+    #[test]
+    fn a_31_or_32_broadcasts_to_all_ones() {
+        for mask in [31u8, 32] {
+            let a = Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), mask)
+                .with_default_broadcast();
+            assert_eq!(a.broadcast, Some(Ipv4Addr::new(255, 255, 255, 255)), "/{mask}");
+        }
+    }
+
+    #[test]
+    fn a_v6_address_gets_no_broadcast() {
+        let a = Address::new("fd00::1".parse().unwrap(), 64).with_default_broadcast();
+        assert!(a.broadcast.is_none());
+    }
+
+    #[test]
+    fn an_explicit_broadcast_is_not_overwritten() {
+        let mut a = Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 24);
+        a.broadcast = Some(Ipv4Addr::new(10, 0, 0, 200));
+        let a = a.with_default_broadcast();
+        assert_eq!(a.broadcast, Some(Ipv4Addr::new(10, 0, 0, 200)));
+    }
+
+    #[test]
+    fn the_subnet_route_clears_the_host_part_and_takes_the_interface_metric() {
+        let a = Address::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)), 24);
+        let r = subnet_route(&a, 13, 0);
+        assert_eq!(r.target, IpAddr::V4(Ipv4Addr::new(10, 0, 0, 0)));
+        assert_eq!(r.mask, 24);
+        assert_eq!(r.metric, 13);
+        assert_eq!(r.table, RT_TABLE_MAIN);
+        assert!(r.nexthop.is_ipv4());
+        // no gateway, so the encoded route is link-scoped
+        let (_, hdr, _) = encode_route(3, &r, true);
+        assert_eq!(hdr[6], RT_SCOPE_LINK);
+    }
+
+    #[test]
+    fn a_v6_subnet_route_clears_below_the_prefix() {
+        let a = Address::new("fd00:1:2:3::5".parse().unwrap(), 60);
+        let r = subnet_route(&a, 0, 0);
+        assert_eq!(r.target, "fd00:1:2::".parse::<IpAddr>().unwrap());
     }
 
     #[test]
