@@ -143,7 +143,8 @@ impl Netifd {
                 return;
             }
         };
-        for m in msgs {
+        let mut pending: Vec<Device> = Vec::new();
+        for m in &msgs {
             let attrs = m.attrs(16);
             let Some(name) = netlink::attr_str(&attrs, sys::IFLA_IFNAME) else { continue };
             if !known.iter().any(|k| k == name) {
@@ -166,7 +167,10 @@ impl Netifd {
             d.active = flags & sys::IFF_UP != 0;
             d.link_active = flags & sys::IFF_LOWER_UP != 0;
             d.orig_settings = device::read_settings(name, &self.ethtool, &self.ifioctl);
-            if let Some(idx) = self.dsa_conduit(name) {
+            pending.push(d);
+        }
+        for mut d in pending {
+            if let Some(idx) = self.dsa_conduit(&d.ifname.clone()) {
                 d.orig_settings.master_ifindex = idx;
                 d.orig_settings.flags |= device::opt::MASTER;
             }
@@ -188,13 +192,15 @@ impl Netifd {
         }
     }
 
-    fn dsa_conduit(&self, ifname: &str) -> Option<u32> {
+    /// The DSA conduit, on the command socket. Opening a socket per device per
+    /// rescan would be one syscall pair per device per event, for a value that
+    /// almost never changes.
+    fn dsa_conduit(&mut self, ifname: &str) -> Option<u32> {
         const IFLA_DSA_MASTER: u16 = 1;
-        let mut nl = netlink::Netlink::open(0).ok()?;
         let hdr = sys::ifinfomsg(sys::AF_UNSPEC, 0, 0, 0);
         let mut a = netlink::Attrs::new();
         a.str0(sys::IFLA_IFNAME, ifname);
-        let msg = nl.dump_one(sys::RTM_GETLINK, &hdr, a.as_bytes()).ok()??;
+        let msg = self.sys.nl.dump_one(sys::RTM_GETLINK, &hdr, a.as_bytes()).ok()??;
         let attrs = msg.attrs(16);
         let li = netlink::attr(&attrs, sys::IFLA_LINKINFO)
             .or_else(|| netlink::attr(&attrs, sys::IFLA_LINKINFO | netlink::NLA_F_NESTED))?;
@@ -729,12 +735,30 @@ impl Netifd {
         }
         let i = &mut self.interfaces[idx];
         i.state = State::Down;
-        i.l3_device = None;
+        let released = i.l3_device.take();
         // `device` is main_dev and survives the interface going down
         i.updated = 0;
         i.proto_ip = interface::IpSettings::default();
         i.prefix_assignments.clear();
         self.start_time.retain(|(n, _)| n != name);
+
+        // `interface_flush_state` releases the L3 device, and releasing the
+        // last user brings it down. Without this the device stays up with no
+        // configuration on it, which is visible as a link-local address the C
+        // does not have.
+        if let Some(dev) = released {
+            let still_used = self.interfaces.iter().any(|o| {
+                o.name != name && o.state == State::Up && o.l3_device.as_deref() == Some(dev.as_str())
+            });
+            if !still_used {
+                if let Ok(di) = self.sys.if_index(&dev) {
+                    if di != 0 {
+                        let _ = self.sys.set_link_up(di, false);
+                    }
+                }
+            }
+        }
+        self.rescan_devices();
     }
 
     fn uptime_of(&self, name: &str) -> u32 {

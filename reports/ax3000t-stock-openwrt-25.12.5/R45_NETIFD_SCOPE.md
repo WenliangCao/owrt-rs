@@ -98,6 +98,7 @@ Rust 侧的探针跑在 chroot 外、同一组 namespace 内，所以它看到�
 | r47 | `network.device status` 逐字段 | identical，6 个设备 234 个字段 |
 | r48 | `network.interface dump` 逐字段（8 个接口的 static 配置） | identical |
 | r49 | **两个 daemon 各自跑起来**：同 rootfs、同配置、同一个 libubus 客户端逐项询问，再用 iproute2 比内核状态 | ubus 面 identical，内核状态 identical |
+| r50 | 对两个 daemon 各跑 600 / 1800 轮 `ifdown`+`ifup`，比资源占用与最终状态 | 无失败调用、无 fd 泄漏、最终内核状态与 dump 均 identical |
 | — | `tools/check_netlink_consts.sh` | 106 个内核常量全部与头文件一致 |
 
 ### 这几轮各自抓到了什么
@@ -143,6 +144,30 @@ Rust 侧的探针跑在 chroot 外、同一组 namespace 内，所以它看到�
 8. **设备表只装配置提到的设备**。netifd **不枚举内核链路**：我一开始把
    `/sys/class/net` 全枚举进去，于是一个没人提到的 veth 对端出现在
    `network.device status` 里——C 没有它。
+
+### r50：1800 轮开关之后
+
+| | C netifd | netifd-rs |
+|---|---|---|
+| 失败调用 | 0 / 1800 轮 | 0 / 1800 轮 |
+| fd | 19 → 19 | 8 → 8 |
+| 线程 | 1 | 1 |
+| RSS | 2144 → 2160 KiB | 2064 → 2200 KiB |
+| 最终 `network.interface dump` | — | identical |
+| 最终内核状态 | — | identical |
+
+RSS 那 +136 KiB **不是泄漏**：600 轮涨 124 KiB，1800 轮涨 136 KiB——三倍轮次只多涨
+12 KiB，是分配器 arena 的一次性增长，已经平台化。起点比 C 低 80 KiB，1800 轮之后
+比 C 高 40 KiB，同一量级。
+
+fd 计数一度显示 8 → 9，逐个 `readlink` 之后定位为
+`/proc/sys/net/ipv4/neigh/br-lan/locktime`——采样正好撞上一次 `rescan_devices` 里的
+sysctl 读。**"数量变了"不等于"泄漏了"**，把描述符逐个列出来才能定性。采样点加了
+settle 之后稳定为 8。
+
+r50 还抓到一个真缺陷：**ifdown 要释放 L3 设备**（`interface_flush_state` →
+`device_release` → `system_if_down`）。不释放的话设备一直 UP 且没有配置，
+表现为 C 没有而候选有的一个链路本地地址。
 
 ### 两个已知缺口（在比较脚本里单独报告，不混进"差异"）
 
