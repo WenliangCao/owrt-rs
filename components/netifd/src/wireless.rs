@@ -826,11 +826,30 @@ pub enum WState {
     Up,
 }
 
+/// `is_equal(this.data, data)`: whether a radio's configuration is unchanged,
+/// including the interfaces, vlans and stations hanging off it. Anything this
+/// says is equal must be left completely alone by a reload.
+pub fn same_config(a: &Radio, b: &Radio) -> bool {
+    let subs = |x: &[Sub]| -> Vec<(String, Vec<(String, Val)>)> {
+        x.iter().map(|s| (s.section.clone(), s.opts.clone())).collect()
+    };
+    a.name == b.name
+        && a.opts == b.opts
+        && a.vifs.len() == b.vifs.len()
+        && a.vifs.iter().zip(b.vifs.iter()).all(|(x, y)| {
+            x.section == y.section
+                && x.opts == y.opts
+                && x.radios == y.radios
+                && subs(&x.vlans) == subs(&y.vlans)
+                && subs(&x.stas) == subs(&y.stas)
+        })
+}
+
 /// The JSON handed to the handler as its fourth argument. Same projections as
 /// `status`, arranged the way `wdev_config_init` arranges them: interfaces
 /// keyed by a two-digit index from 1, and `vlans`/`stas` as objects rather
 /// than the arrays `status` reports.
-pub fn handler_json(radio: &Radio, handlers: &[Handler]) -> String {
+pub fn handler_json(radio: &Radio, handlers: &[Handler], device_data: &str) -> String {
     let h = radio.kind().and_then(|k| handlers.iter().find(|h| h.name == k));
     let dev_spec = h.map(|h| h.attrs_of("device")).unwrap_or(&[]);
     let if_spec = h.map(|h| h.attrs_of("iface")).unwrap_or(&[]);
@@ -886,8 +905,28 @@ pub fn handler_json(radio: &Radio, handlers: &[Handler]) -> String {
     obj(&[
         ("config".into(), attr_obj(&radio.opts, dev_spec)),
         ("interfaces".into(), obj(&ifaces)),
-        ("data".into(), "{}".into()),
+        // `__run_next_handler`: `wdev.handler_config.data =
+        // wdev.handler_data[wdev.name] ?? {}`. The device-level record the
+        // handler set through notify comes back to it on the next setup AND on
+        // teardown, which is how a handler keeps a token across a reconf.
+        ("data".into(), device_data.to_string()),
     ])
+}
+
+/// The device-level `handler_data` record, in `wdev_set_data`'s shape:
+/// `{...cur, ...data, type, config}` where `cur` is `{name: wdev.name}` for a
+/// device-level notify, so `config` comes out null.
+pub fn device_data_record(radio: &str, fields: &[(String, String)]) -> String {
+    let mut out: Vec<(String, String)> = vec![("name".into(), format!("\"{}\"", esc(radio)))];
+    for (k, v) in fields {
+        if k == "name" {
+            continue;
+        }
+        out.push((k.clone(), v.clone()));
+    }
+    out.push(("type".into(), "\"device\"".into()));
+    out.push(("config".into(), "null".into()));
+    obj(&out)
 }
 
 #[cfg(test)]
@@ -928,7 +967,7 @@ mod handler_tests {
     #[test]
     fn the_handler_json_matches_what_the_c_sends() {
         let (hs, radios) = setup_case();
-        let got = handler_json(&radios[0], &hs);
+        let got = handler_json(&radios[0], &hs, "{}");
         let want = concat!(
             r#"{"config":{"type":"mac80211","channel":"1","band":"2g","#,
             r#""path":"platform/soc/18000000.wifi"},"#,

@@ -178,6 +178,7 @@ struct Netifd {
     wslot: process::Slot,
     wcur: Option<(String, &'static str)>,
     wqueue: std::collections::VecDeque<(String, &'static str)>,
+    wproc_checked: u64,
     /// Every device netifd has an object for. An entry means `device_init`
     /// has run -- its state was cleared once -- and it means the device is
     /// reported by `network.device status`, which lists every present object,
@@ -232,6 +233,7 @@ impl Netifd {
             wslot: process::Slot::default(),
             wcur: None,
             wqueue: std::collections::VecDeque::new(),
+            wproc_checked: 0,
             link_state: Vec::new(),
             present: Vec::new(),
             sigchld: process::ChildSignal::install()?,
@@ -328,6 +330,9 @@ impl Netifd {
             self.setup_interfaces();
         } else {
             self.apply_config_change(&old);
+            // `network.reload` re-reads the wireless config too; it used to be
+            // read once at startup and never again
+            self.wireless_reload();
         }
         Ok(())
     }
@@ -3426,6 +3431,13 @@ struct WRadio {
     autostart: bool,
     /// `handler_data[section].ifname`, reported by the handler through notify.
     ifnames: Vec<(String, String)>,
+    /// `wdev.procs`: processes the handler registered. A registered process
+    /// disappearing tears the radio down.
+    procs: Vec<(i64, String)>,
+    /// `handler_data[wdev.name]`: the device-level record, handed back to the
+    /// handler on its next setup and on teardown. Cleared when a teardown
+    /// completes, the way `wdev_teardown_cb` empties the whole map.
+    device_data: Vec<(String, String)>,
 }
 
 impl Netifd {
@@ -3448,10 +3460,79 @@ impl Netifd {
                 retry_setup_failed: false,
                 autostart: true,
                 ifnames: Vec::new(),
+                device_data: Vec::new(),
+                procs: Vec::new(),
             })
             .collect();
         for name in self.wradios.iter().map(|r| r.name.clone()).collect::<Vec<_>>() {
             self.wireless_setup(&name);
+        }
+    }
+
+    /// `update_config`: reconcile the radios against a freshly read
+    /// `/etc/config/wireless`. A radio that is gone is destroyed, one whose
+    /// config is unchanged is left completely alone -- `update()` returns at
+    /// `is_equal(this.data, data)` -- and a changed one resets its budget and
+    /// sets up again. A reload must not restart radios nothing asked about.
+    fn wireless_reload(&mut self) {
+        if self.whandlers.is_empty() {
+            return;
+        }
+        let fresh = wireless::load(&self.confdir, &self.whandlers);
+
+        // gone: destroy
+        let gone: Vec<String> = self
+            .wconfig
+            .iter()
+            .filter(|c| !fresh.iter().any(|f| f.name == c.name))
+            .map(|c| c.name.clone())
+            .collect();
+        for name in &gone {
+            if let Some(r) = self.wradio(name) {
+                r.autostart = false;
+            }
+            self.wireless_teardown(name);
+        }
+
+        // which of the survivors actually changed
+        let changed: Vec<String> = fresh
+            .iter()
+            .filter(|f| {
+                self.wconfig
+                    .iter()
+                    .find(|c| c.name == f.name)
+                    .map(|c| !wireless::same_config(c, f))
+                    .unwrap_or(false)
+            })
+            .map(|f| f.name.clone())
+            .collect();
+        let added: Vec<String> = fresh
+            .iter()
+            .filter(|f| !self.wconfig.iter().any(|c| c.name == f.name))
+            .map(|f| f.name.clone())
+            .collect();
+
+        self.wconfig = fresh;
+        self.wradios.retain(|r| self.wconfig.iter().any(|c| c.name == r.name));
+        for name in &added {
+            self.wradios.push(WRadio {
+                name: name.clone(),
+                state: wireless::WState::Down,
+                retry: wireless::DEFAULT_RETRY,
+                retry_setup_failed: false,
+                autostart: true,
+                ifnames: Vec::new(),
+                device_data: Vec::new(),
+                procs: Vec::new(),
+            });
+        }
+        for name in added.iter().chain(changed.iter()) {
+            // `update()`: reset, then `check()` sets up again
+            if let Some(r) = self.wradio(name) {
+                r.retry = wireless::DEFAULT_RETRY;
+                r.retry_setup_failed = false;
+            }
+            self.wireless_setup(name);
         }
     }
 
@@ -3466,6 +3547,7 @@ impl Netifd {
             return;
         }
         r.state = wireless::WState::Setup;
+        r.procs.clear(); // `wdev_proc_reset`
         self.wqueue.push_back((name.to_string(), "setup"));
         self.wireless_pump();
     }
@@ -3512,6 +3594,33 @@ impl Netifd {
         }
     }
 
+    /// `wdev_proc_check`, on the one-second interval `wdev_proc_add` starts.
+    /// The first registered process that is gone tears its radio down and the
+    /// rest of that radio's list is not examined -- the C breaks out of the
+    /// loop there too.
+    fn pump_wireless_procs(&mut self) {
+        if now() <= self.wproc_checked {
+            return;
+        }
+        self.wproc_checked = now();
+        let watched: Vec<(String, Vec<(i64, String)>)> = self
+            .wradios
+            .iter()
+            .filter(|r| !r.procs.is_empty())
+            .map(|r| (r.name.clone(), r.procs.clone()))
+            .collect();
+        for (name, procs) in watched {
+            for (pid, exe) in procs {
+                if process_alive(pid, &exe) {
+                    continue;
+                }
+                eprintln!("netifd-rs: {name}: process {exe}({pid}) no longer active");
+                self.wireless_teardown(&name);
+                break;
+            }
+        }
+    }
+
     /// `start()`: the retry budget resets whatever the state, and a radio
     /// that is not down is left where it is.
     fn wireless_start(&mut self, name: &str) {
@@ -3536,6 +3645,7 @@ impl Netifd {
             return;
         }
         r.state = wireless::WState::Teardown;
+        r.procs.clear(); // `wdev_proc_reset`
         self.wqueue.push_back((name.to_string(), "teardown"));
         self.wireless_pump();
     }
@@ -3567,7 +3677,16 @@ impl Netifd {
             hname,
             op.to_string(),
             name.clone(),
-            wireless::handler_json(&cfg, &self.whandlers),
+            {
+                let d = self
+                    .wradios
+                    .iter()
+                    .find(|r| r.name == name)
+                    .filter(|r| !r.device_data.is_empty())
+                    .map(|r| wireless::device_data_record(&r.name, &r.device_data))
+                    .unwrap_or_else(|| "{}".to_string());
+                wireless::handler_json(&cfg, &self.whandlers, &d)
+            },
         ];
         if let Err(e) = self.wslot.start_in(&argv, &[], &dir) {
             eprintln!("netifd-rs: {name}: cannot run the wireless handler: {e}");
@@ -3606,7 +3725,10 @@ impl Netifd {
         } else {
             if let Some(r) = self.wradio(&name) {
                 r.state = wireless::WState::Down;
+                // `wdev_teardown_cb` empties handler_data wholesale, so a
+                // token only survives a reconf, never a completed teardown
                 r.ifnames.clear();
+                r.device_data.clear();
             }
             self.wireless_setup(&name);
         }
@@ -3670,7 +3792,24 @@ impl Netifd {
             wireless::NOTIFY_SET_DATA => {
                 // Only the per-interface `ifname` is kept: that is the one
                 // piece of handler data `status` reports.
-                let Some(key) = vif else { return status::OK };
+                let Some(key) = vif else {
+                    // no `interface`: this is the device-level record
+                    let fields: Vec<(String, String)> = find("data")
+                        .map(|f| {
+                            f.children()
+                                .into_iter()
+                                .filter_map(|c| {
+                                    let v = c.as_str()?;
+                                    Some((c.name.to_string(), format!("\"{v}\"")))
+                                })
+                                .collect()
+                        })
+                        .unwrap_or_default();
+                    if let Some(r) = self.wradio(&dev) {
+                        r.device_data = fields;
+                    }
+                    return status::OK;
+                };
                 let cfg = self.wconfig.iter().find(|c| c.name == dev);
                 // the notify names the interface by its key in the handler
                 // JSON ("01"), and handler_data is keyed by the section name
@@ -3695,7 +3834,35 @@ impl Netifd {
                 }
                 status::OK
             }
-            wireless::NOTIFY_PROCESS_ADD => status::OK,
+            wireless::NOTIFY_PROCESS_ADD => {
+                // `wdev_proc_add`: only `pid` and `exe` are read. The shipped
+                // ucode also accepts `required` and `keep` and never looks at
+                // them, so neither does this.
+                let st = self.wradio(&dev).map(|r| r.state);
+                if !matches!(st, Some(wireless::WState::Setup) | Some(wireless::WState::Up)) {
+                    return status::OK;
+                }
+                let data = find("data");
+                let pid = data
+                    .and_then(|f| f.children().into_iter().find(|c| c.name == "pid"))
+                    .and_then(|c| c.as_u32())
+                    .map(|v| v as i64);
+                let exe = data
+                    .and_then(|f| f.children().into_iter().find(|c| c.name == "exe"))
+                    .and_then(|c| c.as_str().map(|s| s.to_string()));
+                match (pid, exe) {
+                    (Some(pid), Some(exe)) => {
+                        eprintln!("netifd-rs: {dev}: watching {exe}({pid})");
+                        if let Some(r) = self.wradio(&dev) {
+                            r.procs.push((pid, exe));
+                        }
+                    }
+                    _ => eprintln!(
+                        "netifd-rs: {dev}: process_add without a usable pid and exe"
+                    ),
+                }
+                status::OK
+            }
             wireless::NOTIFY_SET_RETRY => {
                 let retry = find("data")
                     .and_then(|f| f.children().into_iter().find(|c| c.name == "retry"))
@@ -3773,6 +3940,21 @@ impl Netifd {
         }
         status::OK
     }
+}
+
+/// `check_pid_path`: the process is the one that was registered if
+/// `/proc/<pid>/exe` still points at that path. A path the kernel marks
+/// `(deleted)` still counts -- the binary was replaced under a running
+/// process, which is not the process going away.
+///
+/// The C reads the link into a buffer exactly as long as `exe`, so a longer
+/// real path compares equal on its prefix. That quirk is not reproduced.
+fn process_alive(pid: i64, exe: &str) -> bool {
+    let Ok(link) = std::fs::read_link(format!("/proc/{pid}/exe")) else {
+        return false;
+    };
+    let path = link.to_string_lossy();
+    path == exe || path == format!("{exe} (deleted)")
 }
 
 /// One applied route as the kernel wants it. Shared by the add path and the

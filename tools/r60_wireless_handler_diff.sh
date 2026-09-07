@@ -94,7 +94,7 @@ config wifi-station 's_other'
 	option iface 'nosuchiface'
 	option mac '02:00:00:00:00:bb'
 X
-	sudo -n CMDS="$CMDS" unshare --mount --net --pid --fork --mount-proc=/proc sh -c '
+	sudo -n CMDS="$CMDS" MODE="$MODE" unshare --mount --net --pid --fork --mount-proc=/proc sh -c '
 	  m=$1; t=$2; o=$3
 	  mount --bind "$m" "$m"; mount --make-private "$m"
 	  mount -t proc proc "$m/proc" 2>/dev/null || true
@@ -108,6 +108,25 @@ X
 	  sed -E "s/ \{.*//" "$m/tmp/out/handler.log" > "$o/$t-calls.txt" 2>/dev/null || true
 	  grep -m1 " setup " "$m/tmp/out/handler.log" 2>/dev/null \
 		| sed -E "s/^ARGV: [a-z0-9]+ setup [a-z0-9]+ //" > "$o/$t-json.txt" || true
+	  if [ "$MODE" = token ]; then
+	    chroot "$m" ubus call network.wireless reconf "{\"device\":\"radio0\"}" >/dev/null 2>&1
+	    sleep 3
+	    chroot "$m" ubus call network.wireless down "{\"device\":\"radio0\"}" >/dev/null 2>&1
+	    sleep 3
+	    chroot "$m" ubus call network.wireless up "{\"device\":\"radio0\"}" >/dev/null 2>&1
+	    sleep 3
+	  fi
+	  if [ "$MODE" = proc ]; then
+	    cp "$m/tmp/out/data.log" /dev/null 2>/dev/null || true
+	    echo "--- before kill" >> "$o/$t-proc.txt"
+	    chroot "$m" ubus call network.wireless status 2>/dev/null | tr -d " \t\n" \
+	      | grep -oE "\"up\":(true|false)" >> "$o/$t-proc.txt"
+	    kill -9 "$(cat "$m/tmp/out/child.pid" 2>/dev/null)" 2>/dev/null || true
+	    sleep 4
+	    echo "--- after killing the registered process" >> "$o/$t-proc.txt"
+	    grep -c "teardown" "$m/tmp/out/handler.log" | sed "s/^/teardowns=/" >> "$o/$t-proc.txt"
+	  fi
+	  cp "$m/tmp/out/data.log" "$o/$t-data.txt" 2>/dev/null || true
 	  if [ "$CMDS" = yes ]; then
 	    # Each command, with the state after it. The state machine is what is
 	    # being compared, so the radio is walked through down -> retry -> up
@@ -141,6 +160,9 @@ X
 cat > /tmp/r60-stub.sh <<STUB
 #!/bin/sh
 echo "ARGV: \$*" >> /tmp/out/handler.log
+# the LAST "data": in the payload, whitespace squeezed, so the C's pretty
+# printing and this build's compact form compare as the same value
+echo "CALL \$2 data=\$(printf '%s' "\$4" | sed -E 's/.*"data":[[:space:]]*(\{[^{}]*\}).*/\1/; t; s/.*/NOMATCH/' | tr -d ' \t')" >> /tmp/out/data.log
 if [ "\${2:-}" = "dump" ] || [ "\${1:-}" = "dump" ]; then
 	echo '{ "name": "mac80211", "device": [ [ "channel", 3 ], [ "band", 3 ], [ "path", 3 ] ], "iface": [ [ "ssid", 3 ], [ "encryption", 3 ] ], "vlan": [ [ "name", 3 ], [ "vid", 3 ] ], "station": [ [ "mac", 3 ], [ "key", 3 ] ] }'
 	exit 0
@@ -160,7 +182,22 @@ if [ "\$2" = setup ] && [ "$MODE" = flood ] && [ "\$3" = radio0 ]; then
 	j=0
 	while [ \$j -lt 4000 ]; do printf "no-newline-chunk-%s" "\$j"; j=\$((j+1)); done
 fi
-if [ "\$2" = setup ] && { [ "$MODE" = up ] || [ "$MODE" = flood ]; }; then
+if [ "\$2" = setup ] && [ "$MODE" = token ]; then
+	# a device-level record on the FIRST setup only; it must come back on a
+	# later setup and on teardown, and be gone after a completed teardown
+	if [ ! -f /tmp/out/token-sent ]; then
+		: > /tmp/out/token-sent
+		ubus call network.wireless notify "{\"command\":1,\"device\":\"\$3\",\"data\":{\"token\":\"T1\"}}" >> /tmp/out/handler.log 2>&1
+	fi
+fi
+if [ "\$2" = setup ] && [ "$MODE" = proc ]; then
+	# a controlled process the radio depends on; killing it must tear down
+	sleep 600 &
+	cpid=\$!
+	echo "\$cpid" > /tmp/out/child.pid
+	ubus call network.wireless notify "{\"command\":2,\"device\":\"\$3\",\"data\":{\"pid\":\$cpid,\"exe\":\"/bin/busybox\"}}" >> /tmp/out/handler.log 2>&1
+fi
+if [ "\$2" = setup ] && { [ "$MODE" = up ] || [ "$MODE" = flood ] || [ "$MODE" = token ] || [ "$MODE" = proc ]; }; then
 	ubus call network.wireless notify "{\"command\":1,\"device\":\"\$3\",\"interface\":\"01\",\"data\":{\"ifname\":\"stub-ap0\"}}" >> /tmp/out/handler.log 2>&1
 	ubus call network.wireless notify "{\"command\":0,\"device\":\"\$3\",\"data\":{}}" >> /tmp/out/handler.log 2>&1
 fi
@@ -217,6 +254,26 @@ if [ "$CMDS" = yes ]; then
 		sed -n '1,40p' "$out/c-cmds.txt" | sed 's/^/  /'
 	else
 		echo "commands: DIFFERS"; sed -n '1,40p' "$out/cmds.diff"; rc=1
+	fi
+fi
+
+if [ "$MODE" = token ]; then
+	echo "=== handler data round-trip"
+	if diff -u "$out/c-data.txt" "$out/rs-data.txt" > "$out/data.diff" 2>/dev/null; then
+		echo "RESULT(handler data): identical"
+		sed 's/^/  /' "$out/c-data.txt"
+	else
+		echo "handler data: DIFFERS"; cat "$out/data.diff"; rc=1
+	fi
+fi
+
+if [ "$MODE" = proc ]; then
+	echo "=== registered process death"
+	if diff -u "$out/c-proc.txt" "$out/rs-proc.txt" > "$out/proc.diff" 2>/dev/null; then
+		echo "RESULT(process death): identical"
+		sed 's/^/  /' "$out/c-proc.txt"
+	else
+		echo "process death: DIFFERS"; cat "$out/proc.diff"; rc=1
 	fi
 fi
 
