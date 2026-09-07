@@ -91,6 +91,19 @@ pub struct InterfaceConfig {
     /// Options this build does not interpret but the proto handler might;
     /// passed through to proto-shell verbatim.
     pub extra: BTreeMap<String, Vec<String>>,
+    /// Every option of the section, in file order, with whether it was written
+    /// as a `list`. proto-shell needs this to rebuild the config document the
+    /// C hands its scripts.
+    pub raw: Vec<RawOpt>,
+}
+
+/// One option as it appeared in the file.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RawOpt {
+    pub name: String,
+    pub values: Vec<String>,
+    /// `list foo 'x'` rather than `option foo 'x'`.
+    pub is_list: bool,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -364,6 +377,12 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
     i.peerdns = b_opt(s, "peerdns");
 
     for o in &s.options {
+        let is_list = matches!(o.value, OptionValue::List(_));
+        i.raw.push(RawOpt {
+            name: o.name.clone(),
+            values: l_opt(s, &o.name),
+            is_list,
+        });
         if KNOWN_IFACE_OPTS.contains(&o.name.as_str()) {
             continue;
         }
@@ -511,6 +530,22 @@ mod tests {
         assert_eq!(e.get("hostname").unwrap(), &vec!["router".to_string()]);
         assert_eq!(e.get("reqopts").unwrap(), &vec!["43".to_string(), "121".to_string()]);
         assert!(!e.contains_key("proto"));
+    }
+
+    #[test]
+    fn the_raw_options_keep_file_order_and_the_list_flag() {
+        let c = parse(&pkg(
+            "config interface wan\n\toption proto 'dhcp'\n\toption hostname 'r'\n\
+             \tlist reqopts '43'\n\tlist reqopts '121'\n",
+        ));
+        let raw = &c.interfaces[0].raw;
+        assert_eq!(
+            raw.iter().map(|r| r.name.as_str()).collect::<Vec<_>>(),
+            vec!["proto", "hostname", "reqopts"]
+        );
+        assert!(!raw[1].is_list);
+        assert!(raw[2].is_list);
+        assert_eq!(raw[2].values, vec!["43", "121"]);
     }
 
     #[test]

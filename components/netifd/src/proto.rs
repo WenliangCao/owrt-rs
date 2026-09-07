@@ -276,6 +276,169 @@ pub enum Cmd {
     Teardown,
 }
 
+/// Which of the two slots exited.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Which {
+    Script,
+    Task,
+}
+
+/// What has to happen after a child exits, from `proto_shell_task_finish`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Finish {
+    /// `IFPEV_LINK_LOST`: the helper died while the interface was up.
+    LinkLost,
+    Teardown,
+    Renew,
+    /// Arm the checkup timer: the setup script finished but the interface is
+    /// not up yet.
+    ArmCheckup,
+    /// The helper is still running during teardown and has not been signalled.
+    SignalTask(u32),
+    /// `IFPEV_DOWN`: teardown is complete.
+    Down,
+}
+
+/// `proto_shell_task_finish`, as a list of effects. The state machine moves
+/// here; the caller performs the effects.
+///
+/// The C's `S_IDLE` case falls through into `S_SETUP`, so a script exit is
+/// handled the same way in both — that fallthrough is easy to miss and decides
+/// whether a finished setup script tears the interface back down.
+pub fn task_finish(
+    state: &mut ProtoState,
+    which: Which,
+    handler: &Handler,
+    checkup_interval: u32,
+) -> Vec<Finish> {
+    let mut out = Vec::new();
+    match state.sm {
+        Sm::Idle | Sm::Setup => {
+            if which == Which::Task {
+                if state.sm == Sm::Idle {
+                    out.push(Finish::LinkLost);
+                }
+                out.push(Finish::Teardown);
+                return out;
+            }
+            // the script exited
+            if state.renew_pending {
+                out.push(Finish::Renew);
+            } else if !handler.no_task && !state.task.is_running() && state.sm == Sm::Setup {
+                out.push(Finish::Teardown);
+            }
+            if state.sm == Sm::Setup && checkup_interval > 0 {
+                out.push(Finish::ArmCheckup);
+            }
+        }
+        Sm::SetupAbort => {
+            if state.script.is_running() || state.task.is_running() {
+                return out;
+            }
+            state.sm = Sm::Idle;
+            out.push(Finish::Teardown);
+        }
+        Sm::Teardown => {
+            if state.script.is_running() {
+                return out;
+            }
+            if state.task.is_running() {
+                if !state.task_killed {
+                    out.push(Finish::SignalTask(crate::process::SIGTERM as u32));
+                }
+                return out;
+            }
+            state.sm = Sm::Idle;
+            out.push(Finish::Down);
+        }
+    }
+    out
+}
+
+/// The interface options netifd itself declares (`iface_attrs`), with the
+/// blobmsg type each carries. The config document handed to a script is the
+/// union of these and the handler's own `config` list, so an option that is in
+/// neither is not passed at all — matching `uci_to_blob`, which only copies
+/// what a parameter list names.
+const IFACE_ATTRS: &[(&str, MsgType)] = &[
+    ("device", MsgType::String),
+    ("proto", MsgType::String),
+    ("ifname", MsgType::String),
+    ("auto", MsgType::Int8),
+    ("zone", MsgType::String),
+    ("jail", MsgType::String),
+    ("jail_device", MsgType::String),
+    ("jail_ifname", MsgType::String),
+    ("host_device", MsgType::String),
+    ("defaultroute", MsgType::Int8),
+    ("peerdns", MsgType::Int8),
+    ("metric", MsgType::Int32),
+    ("dns", MsgType::Array),
+    ("renew", MsgType::Int8),
+    ("dns_search", MsgType::Array),
+    ("dns_metric", MsgType::Int32),
+    ("interface", MsgType::String),
+    ("ip6assign", MsgType::Int32),
+    ("ip6hint", MsgType::String),
+    ("ip4table", MsgType::String),
+    ("ip6table", MsgType::String),
+    ("ip6class", MsgType::Array),
+    ("delegate", MsgType::Int8),
+    ("ip6ifaceid", MsgType::String),
+    ("force_link", MsgType::Int8),
+    ("ip6weight", MsgType::Int32),
+    ("tags", MsgType::Array),
+];
+
+/// The blobmsg type an option is carried as: the handler's declaration wins,
+/// then netifd's own interface attributes, otherwise it is not passed.
+fn option_type(handler: &Handler, name: &str) -> Option<MsgType> {
+    if let Some((_, spec)) = handler.config.iter().find(|(n, _)| n == name) {
+        return Some(if spec.starts_with("list(") {
+            MsgType::Array
+        } else if spec == "bool" {
+            MsgType::Int8
+        } else if spec == "uinteger" || spec.starts_with("range(") {
+            MsgType::Int32
+        } else {
+            MsgType::String
+        });
+    }
+    IFACE_ATTRS.iter().find(|(n, _)| *n == name).map(|(_, t)| *t)
+}
+
+/// The config document a script receives as its fourth argument, built the way
+/// `blobmsg_format_json(state->config, true)` renders the blob: a JSON object
+/// whose values carry the declared types, not the raw strings.
+pub fn config_json(handler: &Handler, opts: &[(String, Vec<String>)]) -> String {
+    let mut b = BlobBuf::new();
+    for (name, values) in opts {
+        let Some(ty) = option_type(handler, name) else { continue };
+        match ty {
+            MsgType::Array => {
+                let a = b.msg_open_array(name);
+                for v in values {
+                    b.msg_string("", v);
+                }
+                b.msg_close(a);
+            }
+            MsgType::Int8 => {
+                let v = values.first().map(|s| s.as_str()).unwrap_or("");
+                b.msg_bool(name, matches!(v, "1" | "on" | "true" | "enabled" | "yes"));
+            }
+            MsgType::Int32 => {
+                let v: i64 = values.first().and_then(|s| s.parse().ok()).unwrap_or(0);
+                b.msg_u32(name, v as u32);
+            }
+            _ => {
+                // a scalar written as a list is joined, as uci_to_blob does
+                b.msg_string(name, &values.join(" "));
+            }
+        }
+    }
+    owrt_ubus::convert::fields_to_json(b.payload()).to_compact()
+}
+
 /// The argv `proto_shell_handler` builds:
 /// `<script> <proto> <action> <interface> <config-json> [<main-device>]`.
 pub fn argv(
@@ -434,6 +597,122 @@ mod tests {
         let without = argv(&h, "teardown", "wan", "{}", None);
         assert_eq!(without.len(), 5);
         assert_eq!(without[4], "{}");
+    }
+
+    #[test]
+    fn a_helper_dying_while_idle_reports_the_link_lost_then_tears_down() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        assert_eq!(
+            task_finish(&mut s, Which::Task, &h, 0),
+            vec![Finish::LinkLost, Finish::Teardown]
+        );
+    }
+
+    #[test]
+    fn a_helper_dying_during_setup_tears_down_without_a_link_lost() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        s.sm = Sm::Setup;
+        assert_eq!(task_finish(&mut s, Which::Task, &h, 0), vec![Finish::Teardown]);
+    }
+
+    #[test]
+    fn a_setup_script_that_started_no_helper_tears_the_interface_back_down() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        s.sm = Sm::Setup;
+        // no helper running and the handler is not NO_TASK: nothing is going
+        // to bring the interface up, so netifd gives up
+        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Teardown]);
+    }
+
+    #[test]
+    fn a_setup_script_that_started_a_helper_waits_for_it() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        s.sm = Sm::Setup;
+        s.task.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        assert!(task_finish(&mut s, Which::Script, &h, 0).is_empty());
+        s.task.terminate();
+    }
+
+    #[test]
+    fn a_pending_renew_wins_over_the_teardown() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        s.sm = Sm::Setup;
+        s.renew_pending = true;
+        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Renew]);
+    }
+
+    #[test]
+    fn the_checkup_timer_is_armed_only_while_still_setting_up() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        s.sm = Sm::Setup;
+        s.task.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        assert_eq!(task_finish(&mut s, Which::Script, &h, 10), vec![Finish::ArmCheckup]);
+        s.task.terminate();
+        // idle: no checkup
+        let mut s2 = ProtoState::new();
+        assert!(task_finish(&mut s2, Which::Script, &h, 10).is_empty());
+    }
+
+    #[test]
+    fn an_abort_becomes_idle_and_then_tears_down_once_both_children_are_gone() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        s.sm = Sm::SetupAbort;
+        s.script.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        assert!(task_finish(&mut s, Which::Script, &h, 0).is_empty());
+        assert_eq!(s.sm, Sm::SetupAbort);
+        s.script.terminate();
+        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Teardown]);
+        assert_eq!(s.sm, Sm::Idle);
+    }
+
+    #[test]
+    fn teardown_signals_a_surviving_helper_once_and_only_once() {
+        let h = dhcp();
+        let mut s = ProtoState::new();
+        s.sm = Sm::Teardown;
+        s.task.start(&["/bin/sh".into(), "-c".into(), "sleep 30".into()], &[]).unwrap();
+        assert_eq!(
+            task_finish(&mut s, Which::Script, &h, 0),
+            vec![Finish::SignalTask(crate::process::SIGTERM as u32)]
+        );
+        s.task_killed = true;
+        assert!(task_finish(&mut s, Which::Script, &h, 0).is_empty());
+        s.task.terminate();
+        assert_eq!(task_finish(&mut s, Which::Script, &h, 0), vec![Finish::Down]);
+        assert_eq!(s.sm, Sm::Idle);
+    }
+
+    #[test]
+    fn the_config_document_carries_the_declared_types() {
+        let h = dhcp();
+        let opts = vec![
+            ("proto".to_string(), vec!["dhcp".to_string()]),
+            ("clientid".to_string(), vec!["abc".to_string()]),
+            ("broadcast".to_string(), vec!["1".to_string()]),
+            ("mtu6rd".to_string(), vec!["1400".to_string()]),
+            ("sendopts".to_string(), vec!["a".to_string(), "b".to_string()]),
+            ("metric".to_string(), vec!["13".to_string()]),
+        ];
+        let j = config_json(&h, &opts);
+        assert!(j.contains("\"proto\":\"dhcp\""), "{j}");
+        assert!(j.contains("\"broadcast\":true"), "{j}");
+        assert!(j.contains("\"mtu6rd\":1400"), "{j}");
+        assert!(j.contains("\"sendopts\":[\"a\",\"b\"]"), "{j}");
+        assert!(j.contains("\"metric\":13"), "{j}");
+    }
+
+    #[test]
+    fn an_option_neither_side_declares_is_not_passed() {
+        let h = dhcp();
+        let opts = vec![("wombat".to_string(), vec!["x".to_string()])];
+        assert_eq!(config_json(&h, &opts), "{}");
     }
 
     #[test]
