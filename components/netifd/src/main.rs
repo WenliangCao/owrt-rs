@@ -65,6 +65,9 @@ enum Event {
 /// The protocols this build can actually run.
 const IMPLEMENTED_PROTOS: &[&str] = &["static", "none"];
 
+/// `netifd_ubus_reconnect_timer`'s `int t = 2`.
+const BUS_RETRY_SECS: u64 = 2;
+
 /// A blobmsg array of strings, or a single string as a one-element list.
 fn string_list(f: &blob::Field) -> Vec<String> {
     if f.ty == MsgType::Array as u32 {
@@ -112,6 +115,13 @@ struct Netifd {
     hotplug: process::Slot,
     hotplug_current: Option<(String, Event)>,
     hotplug_queue: Vec<(String, Event)>,
+    /// The bus socket, kept so the connection can be remade.
+    socket: Option<String>,
+    /// Set when the bus connection is gone; the loop keeps running on netlink
+    /// and retries the connection.
+    bus_down: bool,
+    /// Seconds-since-boot at which to try connecting again.
+    bus_retry_at: u64,
     /// `iface->link_state`: whether the interface's main device has carrier.
     link_state: Vec<(String, bool)>,
     /// `dev->sys_present`: the device names the kernel currently has.
@@ -158,6 +168,9 @@ impl Netifd {
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
+            socket: socket.map(|s| s.to_string()),
+            bus_down: false,
+            bus_retry_at: 0,
             link_state: Vec::new(),
             present: Vec::new(),
             sigchld: process::ChildSignal::install()?,
@@ -2416,9 +2429,44 @@ impl Netifd {
         }
     }
 
+    /// `netifd_ubus_reconnect_timer`: every two seconds until it succeeds.
+    /// libubus re-registers every object on the new connection, so this does
+    /// the same -- the three fixed objects and one per interface.
+    fn retry_bus(&mut self) {
+        if now() < self.bus_retry_at {
+            return;
+        }
+        self.bus_retry_at = now() + BUS_RETRY_SECS;
+        let conn = match Connection::connect(self.socket.as_deref()) {
+            Ok(c) => c,
+            Err(_) => return,
+        };
+        self.conn = conn;
+        let objects = match ubus::Objects::register(&mut self.conn) {
+            Ok(o) => o,
+            Err(e) => {
+                eprintln!("netifd-rs: reconnected but cannot register: {e}");
+                return;
+            }
+        };
+        self.objects = objects;
+        for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
+            if let Err(e) = self.objects.add_interface(&mut self.conn, &name) {
+                eprintln!("netifd-rs: reconnected but cannot register {name}: {e}");
+            }
+        }
+        self.bus_down = false;
+        eprintln!("netifd-rs: reconnected to ubus");
+    }
+
     fn run(&mut self) -> ! {
         loop {
-            let ubus_fd = self.conn.as_raw_fd();
+            if self.bus_down {
+                self.retry_bus();
+            }
+            // While the bus is gone its fd is not polled -- it is closed, and
+            // polling it would spin. Everything else keeps running.
+            let ubus_fd = if self.bus_down { -1 } else { self.conn.as_raw_fd() };
             let nl_fd = self.events.as_raw_fd();
             let mut fds = [
                 PollFd { fd: ubus_fd, events: POLLIN, revents: 0 },
@@ -2441,13 +2489,17 @@ impl Netifd {
             if fds[1].revents & POLLIN != 0 {
                 self.drain_netlink();
             }
-            if fds[0].revents & (POLLIN | POLLHUP) != 0 {
+            if !self.bus_down && fds[0].revents & (POLLIN | POLLHUP) != 0 {
                 match self.conn.read_incoming() {
                     Ok(Incoming::Invoke(req)) => self.handle(req),
                     Ok(_) => {}
                     Err(e) => {
+                        // `netifd_ubus_connection_lost`: retry, do not exit.
+                        // Exiting only looks survivable because procd restarts
+                        // the daemon -- and that loses every interface.
                         eprintln!("netifd-rs: bus connection lost: {e}");
-                        std::process::exit(1);
+                        self.bus_down = true;
+                        self.bus_retry_at = now() + BUS_RETRY_SECS;
                     }
                 }
             }

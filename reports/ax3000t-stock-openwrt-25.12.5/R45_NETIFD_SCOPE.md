@@ -385,3 +385,26 @@ r52 只走了 IPv4。
 现在内核状态、`wan6 status`、`network.interface dump`、hotplug 四项全一致。
 odhcpd 的 IA_NA 地址是按客户端 DUID 哈希出来的，每次跑都不一样，所以比较前把**各自那
 一侧**的租约地址换成同一个占位符（同一个 token 全局替换，真差异照样露出来）。
+
+### r57：ubusd 消失又回来
+
+计划 §2.3 要求的最后一条比较好测的故障。C 的答案很清楚：
+`ubus_ctx->connection_lost = netifd_ubus_connection_lost`，每 2 秒重试一次
+`ubus_reconnect`，成功之后 libubus 会把所有对象在新连接上重新注册。
+
+测出来：C **活着**并且重连，所有对象都回来了；本 build 之前是**直接退出**。退出之所以
+看起来"能用"，只是因为 procd 会把它拉起来——代价是所有接口状态全丢。
+
+现在也重连了：总线断了不退出，事件循环继续跑 netlink（断线期间不 poll 那个 fd，否则
+会空转），每 2 秒重连一次，成功后重新注册三个固定对象加每条接口一个。
+重启前后的对象列表、`network.interface dump`、内核状态三项都一致。
+
+`network.wireless` 在比较里被单独排除并打印一行说明——它由 netifd 进程内 ucode 虚拟机
+里的 `wireless.uc` 注册，本 build 不托管 ucode。这是记录在案的缺口，不是静默过滤：
+它要是哪天出现了，或者别的地方不一样，比较照样会失败。
+
+### PD 没测成：记录一下为什么
+
+试过让 odhcpd 下发 IA_PD（给 `srv` 配 `ip6assign 60` 和一个 ULA），
+`ipv6-prefix` 两边都是空——odhcpd 手里没有可以再分的上游前缀，真要测得再加一个第三方
+上游。所以 `ip6prefix` 这条路径目前仍然只有 r49 的 ULA 分配那一半是被验证过的。
