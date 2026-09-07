@@ -1276,6 +1276,14 @@ impl Netifd {
                 let mut sa = sys::Address::new(a.ip, a.mask);
                 sa.broadcast = a.broadcast;
                 sa = sa.with_default_broadcast();
+                // v6 carries the lifetimes the protocol reported, and
+                // `offlink` becomes IFA_F_NOPREFIXROUTE -- netifd manages the
+                // prefix route itself. Without the flag the kernel adds its
+                // own host route for a /128, which is visible in `ip -6
+                // route` and is how r56 found this.
+                sa.preferred = a.preferred;
+                sa.valid = a.valid;
+                sa.offlink = a.offlink;
                 if let Err(e) = self.sys.add_address(devidx, &sa) {
                     eprintln!("netifd-rs: {name}: cannot add {}/{}: {e}", a.ip, a.mask);
                     continue;

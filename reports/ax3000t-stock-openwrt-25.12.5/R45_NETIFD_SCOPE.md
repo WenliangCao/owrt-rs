@@ -364,3 +364,24 @@ r51 因此把**启动块**（第一个 ifdown 之前的部分）按集合比，�
 （`set_alias`/`set_state`/`add_dynamic`/`remove`）。本 build 的 device 注册表只装配置
 里出现过的设备，要做这些得先把它改成 C 那样的对象树。没做，也没有用一个假的 OK 糊过去：
 这些方法现在仍然返回 `NOT_SUPPORTED`，调用方能看出来它没被支持。
+
+### r56：真的 DHCPv6
+
+`tools/r56_dhcpv6_diff.sh`。`apply_proto_link` 的 IPv6 那一半——`ip6addr` 的表数组
+（带生命期和 class）、v6 网关、v6 子网路由——都是照着 C 的源码写的，**从来没跑过**：
+r52 只走了 IPv4。
+
+服务端用 rootfs 里的 **odhcpd**（镜像里的 dnsmasq 编译时关掉了 DHCPv6）。odhcpd 正是
+设备上真正的 DHCPv6 服务端，而且它靠调 `network.interface dump` 找接口——所以这一轮
+顺带测了一个**真实的下游消费者**在用被测守护进程的接口。服务端那一侧
+（`srv` 跑在对端 veth 上）自己也是一条 netifd 接口，这样就不用绕开
+`system_if_clear_state` 把别人放的地址抹掉的问题（见 r52）——这个地址本来就是 netifd 的。
+
+抓到一条：**协议上报的 v6 地址要带上生命期和 `IFA_F_NOPREFIXROUTE`**。
+`parse_addr_item` 已经把 `preferred`/`valid`/`offlink` 解出来了，但
+`apply_proto_link` 没往 `sys::Address` 上放。少了这个标志，内核会自己给 /128 加一条
+主机路由，在 `ip -6 route` 里看得见——r56 就是这么发现的。
+
+现在内核状态、`wan6 status`、`network.interface dump`、hotplug 四项全一致。
+odhcpd 的 IA_NA 地址是按客户端 DUID 哈希出来的，每次跑都不一样，所以比较前把**各自那
+一侧**的租约地址换成同一个占位符（同一个 token 全局替换，真差异照样露出来）。
