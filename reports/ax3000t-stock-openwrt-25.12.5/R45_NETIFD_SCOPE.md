@@ -596,10 +596,27 @@ sysctl -qw net.ipv6.conf.veth1.accept_dad=0
 连跑四次干净。（采样前那个"等 tentative 消失"的循环留着，现在它一进去就
 退出来，当保险。）
 
-顺带记一句还没查清的：**为什么只有 netifd-rs 这边撞得上**。同样的等待、
-同样的 rootfs，C 那边一次都没撞过。可能是启动协议脚本的时机相对设备就绪
-早了一点。DAD 关掉之后两边都不撞了，所以差异被消掉而不是被解释——
-如果以后在真设备上看到协议脚本起得过早，先回来看这一条。
+**订正：并没有"只有 netifd-rs 撞得上"这回事。** 当时那么写是因为我只见过
+rust 那边坏，样本量的结论，不是真的不对称。
+
+量了一下就清楚了：在同一个 netns 里分别起 C 和 netifd-rs，记录
+"协议脚本起来的时刻"和"veth1 的 link-local 变得可用的时刻"（都相对
+守护进程启动）：
+
+```
+c : lla_usable_at=1.69  helper_spawned_at=0.03
+rs: lla_usable_at=2.23  helper_spawned_at=0.01
+c : lla_usable_at=1.80  helper_spawned_at=0.01
+rs: lla_usable_at=1.92  helper_spawned_at=0.03
+```
+
+**两边都在 LLA 可用之前大约 1.7 秒就把 odhcp6c 起来了。** 时机上没有差别。
+谁的第一发 SOLICIT 恰好落在那段窗口里，谁就坏——是个硬币，两边都可能输，
+我只是碰巧只见过 rust 输。所以关掉 DAD 是**对症**的：消掉的是沙箱的窗口，
+不是掩盖了某一边的行为差异。
+
+（也就是说 netifd 本来就不等 LLA 就绪才起协议脚本——C 也一样。真设备上
+这没问题，因为物理接口的 DAD 早在 netifd 起来之前就做完了。）
 
 ### r59 也一样：那四个状态位不该拿来比
 
