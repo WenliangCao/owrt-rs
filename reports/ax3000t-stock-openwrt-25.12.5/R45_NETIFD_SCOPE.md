@@ -799,3 +799,34 @@ stations: [{"section":"s1","config":{"iface":"default_radio0",
 - `status` 里则是数组，条目是 `{section, config}`。
 
 四个配置组合（up/fail × 带命令/不带）连跑都干净。
+
+### 一个**故意的**差异：总线重连之后 C 会丢掉 network.wireless
+
+把 r49 和 r57 里对 `network.wireless` 的排除去掉之后，r57 立刻红了，
+而且是反方向的——**多出来的那一边是我**：
+
+```
+c-before   有 wireless   217 个对象
+c-after    没有          216
+rs-before  有            217
+rs-after   有            217
+```
+
+原因：这个对象是从 ucode 虚拟机里注册的，而 C 的重连路径只重新注册它自己
+那几个对象，所以 ubusd 重启之后它**悄悄消失、再也不回来**。
+
+这里**不跟**。netifd-rs 重连时会把它一起注册回去，理由：
+
+1. 这不可能弄坏调用方——参照实现丢了一个对象，这边还在。
+2. 用户的底线是"失败也不能伤到使用"，少一个对象才是伤。
+
+所以 r57 只在 **after 阶段**排除它，并把两边的数字打印出来：
+
+```
+NOTE: network.wireless after the restart -- C:0 netifd-rs:1
+      the C does not re-register it (registered from ucode);
+      netifd-rs does. Excluded from this phase only.
+```
+
+before 阶段照常严格比较。这是本项目里第一个"明知不同、选择不跟"的地方，
+所以写在这里而不是埋在过滤器里。

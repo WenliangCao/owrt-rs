@@ -257,9 +257,10 @@ def mask(o):
         return [mask(x) for x in o]
     return o
 
-KNOWN_GAPS = {
-    "ubus list": ["network.wireless"],
-}
+# `network.wireless` used to sit here: this build did not register it, so the
+# object list differed by that one name. It is registered now and compared
+# like everything else.
+KNOWN_GAPS = {}
 gaps = []
 
 for name in c:

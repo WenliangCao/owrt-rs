@@ -161,19 +161,36 @@ if [ ! -s "$out/c-before.txt" ]; then
 	echo "RESULT: NOTHING CAPTURED from the reference -- untested"
 	exit 1
 fi
-# `network.wireless` is registered by wireless.uc inside the ucode VM netifd
-# hosts; this build does not host ucode, so the object is absent. That is a
-# recorded gap (see R45), named here rather than filtered silently -- if it
-# ever appears, or anything else differs, the comparison still fails.
+# A DELIBERATE DIVERGENCE, named here rather than filtered silently.
+#
+# Before the bus restart both daemons publish `network.wireless`. After it,
+# the C does NOT: that object is registered from inside the ucode VM, and the
+# C's reconnect path re-registers only its own objects, so it silently
+# disappears and never comes back. Measured, not assumed -- 217 objects before
+# and 216 after on the C, 217 both times here.
+#
+# netifd-rs re-registers it, which is strictly the better behaviour and cannot
+# break a caller: an object that exists where the reference lost one. It is
+# excluded from the AFTER comparison only, and the exclusion is printed.
 norm() {
-	sed -E 's/"uptime": [0-9]+/"uptime": N/' "$1" | grep -v '^network\.wireless$'
+	sed -E 's/"uptime": [0-9]+/"uptime": N/' "$1"
 }
-if grep -q '^network\.wireless$' "$out/c-before.txt"; then
-	echo "NOTE: network.wireless is excluded -- it needs the ucode VM (R45)"
-fi
+norm_after() {
+	norm "$1" | grep -v '^network\.wireless$'
+}
 for phase in before after; do
 	echo "=== $phase the bus restart"
-	if diff -u <(norm "$out/c-$phase.txt") <(norm "$out/rs-$phase.txt") \
+	if [ "$phase" = after ]; then
+		cw=$(grep -c '^network\.wireless$' "$out/c-after.txt" || true)
+		rw=$(grep -c '^network\.wireless$' "$out/rs-after.txt" || true)
+		echo "NOTE: network.wireless after the restart -- C:$cw netifd-rs:$rw"
+		echo "      the C does not re-register it (registered from ucode);"
+		echo "      netifd-rs does. Excluded from this phase only."
+		f() { norm_after "$1"; }
+	else
+		f() { norm "$1"; }
+	fi
+	if diff -u <(f "$out/c-$phase.txt") <(f "$out/rs-$phase.txt") \
 		> "$out/$phase.diff"; then
 		echo "RESULT($phase): identical"
 	else
