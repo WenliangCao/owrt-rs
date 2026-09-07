@@ -38,6 +38,8 @@ r60_up|r60_wireless_handler_diff.sh|netifd|MODE=up CMDS=no
 r60_fail_cmds|r60_wireless_handler_diff.sh|netifd|MODE=fail CMDS=yes
 r60_fail|r60_wireless_handler_diff.sh|netifd|MODE=fail CMDS=no
 r60_flood|r60_wireless_handler_diff.sh|netifd|MODE=flood CMDS=no
+r60_token|r60_wireless_handler_diff.sh|netifd|MODE=token CMDS=no
+r60_proc|r60_wireless_handler_diff.sh|netifd|MODE=proc CMDS=no
 r61|r61_badconfig_diff.sh|netifd|
 r62|r62_pd_diff.sh|netifd|
 '
