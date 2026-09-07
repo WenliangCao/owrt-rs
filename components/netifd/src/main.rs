@@ -416,11 +416,24 @@ impl Netifd {
         let configured = self.known_device_names();
         let claimed: Vec<String> = self.claims.iter().map(|(n, _)| n.clone()).collect();
         let parents: Vec<String> = self.parents.iter().map(|(_, p)| p.clone()).collect();
+        // "no users" also covers an interface still pointing at the device,
+        // even one whose config section has just gone: dropping the object
+        // out from under it made the interface look like it had lost its
+        // device, and it churned up and down.
+        let used: Vec<String> = self
+            .interfaces
+            .iter()
+            .flat_map(|i| [i.device.clone(), i.l3_device.clone()])
+            .flatten()
+            .collect();
         let doomed: Vec<String> = self
             .device_objects
             .iter()
             .filter(|n| {
-                !configured.contains(n) && !claimed.contains(n) && !parents.contains(n)
+                !configured.contains(n)
+                    && !claimed.contains(n)
+                    && !parents.contains(n)
+                    && !used.contains(n)
             })
             .cloned()
             .collect();
@@ -1354,10 +1367,11 @@ impl Netifd {
         // replace it. It is forced off unless the interface is already up with
         // an L3 device, and forced off again if the script named a device.
         let mut keep = find("keep").and_then(|f| f.as_bool()).unwrap_or(false);
-        if find("address-external").and_then(|f| f.as_bool()).unwrap_or(false) {
-            eprintln!("netifd-rs: {name}: address-external is not implemented by this build");
-            return status::NOT_SUPPORTED;
-        }
+        // `address-external` only changes how the L3 device is looked up
+        // (`dev_create` 2 rather than 1, i.e. create it as an external
+        // device). This build does not create devices on demand here, so it
+        // has no further effect and is accepted rather than refused.
+        let _addr_ext = find("address-external").and_then(|f| f.as_bool()).unwrap_or(false);
         if find("tunnel").is_some() {
             eprintln!("netifd-rs: {name}: proto-created tunnels are out of scope");
             return status::NOT_SUPPORTED;
@@ -1481,8 +1495,23 @@ impl Netifd {
                 self.add_iface_route(name, devidx, &r, &mut ipset);
             }
         }
-        if find("neighbor").is_some() || find("neighbor6").is_some() {
-            eprintln!("netifd-rs: {name}: proto-supplied neighbours are not implemented");
+        // `neighbor`/`neighbor6`: permanent entries the protocol asks for
+        for (key, v6) in [("neighbor", false), ("neighbor6", true)] {
+            let Some(list) = find(key) else { continue };
+            for item in list.children() {
+                let Some(n) = proto::parse_neighbor_item(&item, v6) else { continue };
+                let sn = sys::Neighbor {
+                    addr: n.addr,
+                    mac: n.mac,
+                    proxy: n.proxy != 0,
+                    router: n.router != 0,
+                };
+                if let Err(e) = self.sys.neighbor(devidx, &sn, true) {
+                    eprintln!("netifd-rs: {name}: cannot add the neighbour {}: {e}", n.addr);
+                    continue;
+                }
+                ipset.neighbors.push(n);
+            }
         }
 
         for d in find("dns").map(|f| string_list(&f)).unwrap_or_default() {
@@ -1506,6 +1535,32 @@ impl Netifd {
             }
         }
 
+        // `IFPEV_UP`: the interface only completes its bring-up from SETUP.
+        // One that is already up gets an IFEV_UPDATE; one that is DOWN --
+        // because something took it down while the protocol was still
+        // talking -- keeps what was applied but does NOT come up. Setting the
+        // state unconditionally brought an unavailable interface back up.
+        let prev_state = self.iface_index(name).map(|i| self.interfaces[i].state);
+        if prev_state != Some(State::Setup) {
+            if let Some(idx) = self.iface_index(name) {
+                let i = &mut self.interfaces[idx];
+                i.proto_ip = ipset;
+                i.proto_ip.routes.sort_by(interface::route_order);
+                i.updated = 0;
+                if !i.proto_ip.addresses.is_empty() {
+                    i.updated |= interface::updated::ADDRESS;
+                }
+                if !i.proto_ip.routes.is_empty() {
+                    i.updated |= interface::updated::ROUTE;
+                }
+                let update = i.state == State::Up && i.updated != 0;
+                if update {
+                    self.emit_event(name, Event::Update);
+                }
+            }
+            self.proto_state(name).sm = proto::Sm::Idle;
+            return status::OK;
+        }
         if let Some(idx) = self.iface_index(name) {
             let i = &mut self.interfaces[idx];
             i.state = State::Up;
@@ -2467,6 +2522,7 @@ impl Netifd {
         let l3 = self.interfaces[idx].l3_device.clone();
         let addrs: Vec<Address> = self.interfaces[idx].proto_ip.addresses.clone();
         let routes: Vec<interface::Route> = self.interfaces[idx].proto_ip.routes.clone();
+        let neighs: Vec<interface::Neighbor> = self.interfaces[idx].proto_ip.neighbors.clone();
         let assigns = self.interfaces[idx].prefix_assignments.clone();
         if let Some(dev) = l3 {
             if let Ok(di) = self.sys.if_index(&dev) {
@@ -2484,6 +2540,15 @@ impl Netifd {
                                 r.target, r.mask
                             );
                         }
+                    }
+                    for n in &neighs {
+                        let sn = sys::Neighbor {
+                            addr: n.addr,
+                            mac: n.mac,
+                            proxy: n.proxy != 0,
+                            router: n.router != 0,
+                        };
+                        let _ = self.sys.neighbor(di, &sn, false);
                     }
                     for a in &addrs {
                         let sa = sys::Address::new(a.addr, a.mask);

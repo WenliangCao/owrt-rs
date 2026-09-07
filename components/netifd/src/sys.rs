@@ -126,6 +126,9 @@ pub const RTPROT_STATIC: u8 = 4;
 pub const RTNH_F_ONLINK: u32 = 4;
 pub const RTM_F_CLONED: u32 = 0x200;
 pub const NUD_PERMANENT: u16 = 0x80;
+pub const NDA_DST: u16 = 1;
+pub const NDA_LLADDR: u16 = 2;
+pub const NTF_ROUTER: u8 = 0x80;
 pub const NTF_PROXY: u8 = 0x08;
 
 pub const SIOCGIFFLAGS: u64 = 0x8913;
@@ -305,6 +308,15 @@ impl Address {
             offlink: false,
         }
     }
+}
+
+/// A permanent neighbour entry.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Neighbor {
+    pub addr: IpAddr,
+    pub mac: Option<[u8; 6]>,
+    pub proxy: bool,
+    pub router: bool,
 }
 
 /// A route. `nexthop` unspecified means "no gateway", which is what decides
@@ -694,6 +706,24 @@ impl System {
             }
         }
         None
+    }
+
+    /// `system_add_neighbor` / `system_del_neighbor`: a permanent neighbour
+    /// entry, optionally a proxy or a router.
+    pub fn neighbor(&mut self, index: u32, n: &Neighbor, add: bool) -> io::Result<()> {
+        let v4 = n.addr.is_ipv4();
+        let alen = if v4 { 4 } else { 16 };
+        let mut hdr = ndmsg(if v4 { AF_INET } else { AF_INET6 }, index, 0);
+        hdr[8..10].copy_from_slice(&NUD_PERMANENT.to_le_bytes());
+        hdr[10] = if n.proxy { NTF_PROXY } else { 0 } | if n.router { NTF_ROUTER } else { 0 };
+        let mut a = Attrs::new();
+        a.bytes(NDA_DST, &addr_bytes(n.addr)[..alen]);
+        if let Some(mac) = n.mac {
+            a.bytes(NDA_LLADDR, &mac);
+        }
+        let ty = if add { RTM_NEWNEIGH } else { RTM_DELNEIGH };
+        let flags = if add { netlink::NLM_F_CREATE | netlink::NLM_F_REPLACE } else { 0 };
+        self.nl.request(ty, netlink::NLM_F_REQUEST | flags, &hdr, a.as_bytes())
     }
 
     /// `system_if_clear_state`: bring the device down, take it out of any

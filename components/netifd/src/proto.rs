@@ -1036,6 +1036,44 @@ pub fn parse_route_item(f: &blob::Field, v6: bool) -> Option<interface::Route> {
     Some(r)
 }
 
+/// `interface_ip_add_neighbor` for one entry of `neighbor` / `neighbor6`.
+/// `ipaddr` is required; a `mac` that will not parse rejects the entry.
+pub fn parse_neighbor_item(f: &blob::Field, v6: bool) -> Option<interface::Neighbor> {
+    if f.ty != MsgType::Table as u32 {
+        return None;
+    }
+    let kids: Vec<blob::Field> = f.children().collect();
+    let get = |n: &str| kids.iter().find(|k| k.name == n).copied();
+    let addr: IpAddr = match v6 {
+        false => IpAddr::V4(get("ipaddr")?.as_str()?.parse().ok()?),
+        true => IpAddr::V6(get("ipaddr")?.as_str()?.parse().ok()?),
+    };
+    let mut n = interface::Neighbor {
+        addr,
+        mac: None,
+        proxy: get("proxy").and_then(|c| c.as_bool()).unwrap_or(false) as u32,
+        router: get("router").and_then(|c| c.as_bool()).unwrap_or(false) as u32,
+        enabled: true,
+    };
+    if let Some(c) = get("mac") {
+        n.mac = Some(parse_mac(c.as_str()?)?);
+    }
+    Some(n)
+}
+
+/// `ether_aton`, for the six-octet colon form the scripts send.
+fn parse_mac(s: &str) -> Option<[u8; 6]> {
+    let mut out = [0u8; 6];
+    let mut parts = s.split(':');
+    for slot in out.iter_mut() {
+        *slot = u8::from_str_radix(parts.next()?, 16).ok()?;
+    }
+    if parts.next().is_some() {
+        return None;
+    }
+    Some(out)
+}
+
 /// `system_resolve_rt_table`: a name from /etc/iproute2/rt_tables or a number.
 /// Only the names the kernel always defines are built in; the file is read
 /// when it exists.

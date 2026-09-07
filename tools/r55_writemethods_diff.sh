@@ -64,7 +64,10 @@ hostdep_bad|network.interface.shell|notify_proto|{"action":6,"host":"not-an-addr
 hostdep_reachable|network.interface.shell|notify_proto|{"action":6,"host":"192.168.1.60"}
 hostdep_unreachable|network.interface.shell|notify_proto|{"action":6,"host":"8.8.4.4"}
 hostdep_iface|network.interface.shell|notify_proto|{"action":6,"ifname":"loopback"}
-hostdep_iface_gone|network.interface.shell|notify_proto|{"action":6,"ifname":"nosuch"}'
+hostdep_iface_gone|network.interface.shell|notify_proto|{"action":6,"ifname":"nosuch"}
+link_with_neighbors|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.1","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.9","mac":"02:00:00:00:00:99"},{"ipaddr":"10.5.5.10","proxy":true}],"dns":["10.5.5.53"]}
+link_addr_external|network.interface.shell|notify_proto|{"action":0,"link-up":true,"address-external":true,"ipaddr":[{"ipaddr":"10.5.5.2","mask":"255.255.255.0"}]}
+link_bad_neighbor|network.interface.shell|notify_proto|{"action":0,"link-up":true,"ipaddr":[{"ipaddr":"10.5.5.3","mask":"255.255.255.0"}],"neighbor":[{"ipaddr":"10.5.5.11","mac":"nonsense"}]}'
 
 run_one() {
 	tag=$1
@@ -116,7 +119,7 @@ while IFS='|' read -r label obj method args; do
 	echo "--- status $?"
 	# let anything the call armed actually happen before looking: `remove`
 	# runs off a 100ms timer, and reading before it fires reads nothing
-	sleep 2
+	sleep 1
 	echo "--- interface dump"
 	ubus call network.interface dump 2>&1
 	echo "--- device status veth6"
@@ -161,6 +164,8 @@ DR
 			ip -4 route show table all | sort
 			echo "--- ip -6 route"
 			ip -6 route show table all | sort
+			echo "--- ip neigh"
+			ip -4 neigh show | sort
 		} > "$out/$tag-kernel.txt" 2>&1 || true
 		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		cp "$root/tmp/out/hotplug.txt" "$out/$tag-hotplug.txt" 2>/dev/null || \
@@ -204,9 +209,13 @@ def parse(text):
     except Exception:
         return t
 
+# uptime moves, and the traffic counters depend on how many packets each run
+# happened to send
+SKIP = ("uptime", "rx_packets", "tx_packets", "rx_bytes", "tx_bytes",
+        "rx_dropped", "tx_dropped", "multicast", "collisions")
+
 def walk(a, b, path, hits):
-    # uptime moves between the two runs and is not a difference
-    if path.endswith(".uptime"):
+    if path.rsplit(".", 1)[-1] in SKIP:
         return
     if isinstance(a, dict) and isinstance(b, dict):
         for k in list(a.keys()) + [k for k in b if k not in a]:
