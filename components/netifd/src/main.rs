@@ -11,6 +11,7 @@ mod config;
 mod device;
 mod ethtool;
 mod ethtool_modes;
+mod interface;
 mod netdev_types;
 mod netlink;
 mod sys;
