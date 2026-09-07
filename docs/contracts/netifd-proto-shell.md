@@ -8,10 +8,15 @@
 
 - **已实现**：受监管子进程子系统（`components/netifd/src/process.rs`，
   7 个单元测试）——§1 说的那个前提。
-- **未实现**：handler 发现（§1c 的 `dump`）、§3 的状态机、§4 的 8 个 action。
-  因此 netifd-rs 的 `get_proto_handlers` 仍只报 `static`，
-  遇到 `dhcp`/`dhcpv6` 的接口发 `ifup-failed` 并**保持 down**，
-  不做半套配置（见 R45 §"两个已知缺口"）。
+- **已实现但**未接入 daemon（`components/netifd/src/proto.rs`，12 个单元测试）：
+  §1c 的 handler 发现（含"以 proto 目录为 cwd"和"空 dump 视为失败"）、
+  §3 的状态机（`plan()`，含 setup 只在 IDLE 接受、setup 中 teardown 走 abort、
+  teardown 幂等、renew 记住而不排队、`ERROR=` 的传递）、以及 §2 的 argv 构造。
+- **未实现**：§4 的 8 个 `notify_proto` action。
+  没有 action 0，接口即使脚本成功也永远到不了 `IFS_UP`。因此 daemon **故意还没有
+  接线**：`get_proto_handlers` 仍只报 `static`，遇到 `dhcp`/`dhcpv6` 的接口发
+  `ifup-failed` 并**保持 down**。报一个 handler 却让接口卡在 SETUP，比明确拒绝更糟
+  （见 R45 §"两个已知缺口"）。
 
 ## 1. 最关键的一点：netifd 是协议 helper 的进程监管者
 

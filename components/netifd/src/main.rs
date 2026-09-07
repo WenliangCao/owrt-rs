@@ -24,6 +24,7 @@ mod ip;
 mod netdev_types;
 mod netlink;
 mod process;
+mod proto;
 mod sys;
 mod ubus;
 
