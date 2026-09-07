@@ -77,28 +77,30 @@ ubus call network.interface dump
 echo "--- wan status"
 ubus call network.interface.wan status
 
-# `updated` on an interface that is genuinely up. netifd clears the whole
-# mask at the top of every action-0 notify and re-sets a bit only for an
-# entry actually added or removed, so an identical repeat must leave the
-# field absent. This is the one place in the suite where a proto-shell
-# interface really comes up -- r55's `shell` never leaves SETUP, so its
-# notify cases cannot show this.
+PROBE
+
+	# `updated` on an interface that is genuinely up, driven only by notifies
+	# sent from here. This runs last, after everything that depends on the
+	# DHCP client, and stops that client first: while udhcpc is alive its own
+	# notifies interleave with these two and the answer depends on which one
+	# landed last. That cost one spurious failure in about eight runs before
+	# it was pinned down.
+	sudo -n tee "$root/tmp/updprobe.sh" >/dev/null <<'UPROBE'
+set -u
+p=$(cat /var/run/udhcpc-veth1.pid 2>/dev/null || true)
+[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
+sleep 1
 upd() { ubus call network.interface.wan status | tr -d " \t\n" \
 	| grep -oE '"updated":\[[^]]*\]' || echo '"updated":ABSENT'; }
-IP=$(ubus call network.interface.wan status | tr -d ' "' \
-	| grep -oE 'address:[0-9.]+' | head -1 | cut -d: -f2)
+N='{"action":0,"link-up":true,"ifname":"veth1","ipaddr":[{"ipaddr":"10.0.0.100","mask":24}]}'
 echo "--- upd baseline"; upd
-ubus call network.interface.wan notify_proto \
-	"{\"action\":0,\"link-up\":true,\"ifname\":\"veth1\",\"ipaddr\":[{\"ipaddr\":\"$IP\",\"mask\":24}]}" \
-	>/dev/null 2>&1
+ubus call network.interface.wan notify_proto "$N" >/dev/null 2>&1
 sleep 1
 echo "--- upd after first notify"; upd
-ubus call network.interface.wan notify_proto \
-	"{\"action\":0,\"link-up\":true,\"ifname\":\"veth1\",\"ipaddr\":[{\"ipaddr\":\"$IP\",\"mask\":24}]}" \
-	>/dev/null 2>&1
+ubus call network.interface.wan notify_proto "$N" >/dev/null 2>&1
 sleep 1
 echo "--- upd after identical repeat"; upd
-PROBE
+UPROBE
 
 	# A single-address pool: both runs must get 10.0.0.100.
 	cat > "$tmp/udhcpd.conf" <<UD
@@ -220,6 +222,8 @@ UD
 		chroot "$root" /bin/sh -c "ps 2>/dev/null | grep -c udhcpc" \
 			> "$out/$tag-udhcpc-count.txt" 2>&1 || true
 
+		chroot "$root" /bin/sh /tmp/updprobe.sh > "$out/$tag-upd.txt" 2>&1 || true
+
 		p=$(cat "$tmp/udhcpd.hostpid" 2>/dev/null || true)
 		[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
 		for f in netifd ubusd cand; do
@@ -239,6 +243,16 @@ echo "=== lease acquired after"
 for t in c rs; do printf '%-3s %s\n' "$t" "$(cat "$out/$t-wait.txt" 2>/dev/null)"; done
 
 rc=0
+echo "=== updated mask"
+if diff -u "$out/c-upd.txt" "$out/rs-upd.txt" > "$out/upd.diff"; then
+	echo "RESULT(updated): identical"
+	sed -n "s/^--- //p;s/^\"updated\"/  \"updated\"/p" "$out/c-upd.txt"
+else
+	echo "updated: DIFFERS"
+	cat "$out/upd.diff"
+	rc=1
+fi
+
 echo "=== kernel state"
 norm() { sed -E -e 's/^[0-9]+: /N: /' -e 's/valid_lft [0-9]+sec/valid_lft Lsec/g' \
 	-e 's/preferred_lft [0-9]+sec/preferred_lft Lsec/g'; }
@@ -317,17 +331,6 @@ def mask(o):
 
 c, r = sections(sys.argv[1]), sections(sys.argv[2])
 bad = 0
-# plain-text sections: compared verbatim, no JSON masking
-for name in ("upd baseline", "upd after first notify", "upd after identical repeat"):
-    x, y = c.get(name, "<missing>").strip(), r.get(name, "<missing>").strip()
-    if x == y:
-        print(f"RESULT({name}): identical -- {x}")
-    else:
-        print(f"{name}: DIFFERS")
-        print(f"  C:    {x}")
-        print(f"  rust: {y}")
-        bad += 1
-
 for name in ("interface dump", "wan status"):
     if name not in c or not c[name].strip():
         print(f"{name}: NOTHING CAPTURED from the reference -- untested")

@@ -524,10 +524,10 @@ libubus 是在等待里就地派发的（`ubus_complete_request` 会处理收到
 两边也一致，但这几个用例一直以来测的都是"没起来的接口收到 notify"，
 不是完整的 apply+up。这是 r55 一直存在的覆盖缺口，不是这次改出来的。）
 
-要补上它，需要一个真的能起来的 proto-shell 接口——r52 有真 DHCP 服务器，
-是最合适的落点。
+补它的地方是 r52——那里有真 DHCP 服务器、`wan` 是真的起来的。已经补上了，
+见下一节。
 
-### 补上 `updated` 的覆盖，然后立刻发现一个真差异
+### 补上 `updated` 的覆盖：一个"绿灯没在看"，一个我自己的竞态
 
 r55 覆盖不到清零那一跳，因为它的 `shell` 起不来。r52 有真的 DHCP 服务器、
 `wan` 是真的通过 proto-shell 起来的，所以探针加在那里：拿到租约之后，
@@ -544,10 +544,73 @@ upd after first notify    C   "updated":["addresses","routes"]
 upd after identical repeat 两边一致  "updated":ABSENT
 ```
 
-**这是一个未修复的真差异。** 手发的那条 notify 只带 `ipaddr`、不带 routes，
-所以相对于之前的状态：路由被全删了（C 置 ROUTE），地址那条 C 也置了 ADDRESS。
-本实现两个都没置，说明 `previous` 和新集合的比较没看出变化——要么
-`previous.routes` 本来就是空的（DHCP 装的路由没记在 `proto_ip.routes` 里），
-要么地址的比较键比 C 的 `addr_cmp` 宽。还没定位到，先记在这里。
+**订正：这不是实现的差异，是我自己探针里的竞态。** 当时的判断写错了。
 
-第三次（原样重放）两边都是 ABSENT，说明清零那一跳本身是对的。
+探针原本放在 `probe.sh` 里，那时候 udhcpc 还活着，它自己也在发 notify，
+和我手发的那两条交错。哪一条最后落地决定了采样看到什么——所以那次
+`ABSENT` 是采样点的问题，不是没置位。加了一行调试输出（打印 `previous`
+和新集合的条数）之后就清楚了：
+
+```
+DBG wan: keep=false prev a=1 r=1 new a=0 r=0 ca=true cr=true
+```
+
+手发的那条 notify 里 `"mask":24` 是整数，地址项被拒了，所以新集合是空的，
+等于把地址和路由全删——ADDRESS 和 ROUTE 都该置，C 也确实都置了。逻辑是对的。
+
+修法是让探针本身确定：整段挪到 r52 最后、所有依赖 udhcpc 的断言都跑完之后，
+先把 udhcpc 杀掉，再发那两条。这样状态只由手发的 notify 驱动。
+连跑四次稳定：
+
+```
+upd baseline               "updated":["addresses","routes","data"]
+upd after first notify     "updated":["addresses","routes"]
+upd after identical repeat "updated":ABSENT
+```
+
+置位和清零两跳现在都真的被覆盖了，两边一致。
+
+教训和前面 r56、r51 那几次是同一个：**一个会飘的断言比没有断言更糟**，
+因为它一次红就会被当成真差异去追。在把飘的东西当结论之前，先把它变确定。
+
+
+### r56 那个 ifdown/ifup 的真正来源：DAD 本身
+
+之前给 r56 加了"等两边 link-local 都不 tentative 再启动"，跑三次都过，
+以为解决了。全套再跑一次又红了——`Failed to send RS (Address not available)`、
+`error connecting LLA socket`，然后 wan6 掉一次再起来，多出一对
+ifdown/ifup。大概八次里坏一次。
+
+等待不够，是因为窗口不在启动那一刻：DAD 让 link-local 地址在头一秒左右
+**不可用**，odhcp6c 在那段时间里去发 SOLICIT 就会拿不到源地址。哪一边
+恰好撞上，哪一边就多出那对 hotplug。
+
+veth pair 上根本不存在"重复地址"，这个窗口纯粹是沙箱产物。所以在把链路
+拉起来**之前**关掉 DAD：
+
+```sh
+sysctl -qw net.ipv6.conf.veth0.accept_dad=0
+sysctl -qw net.ipv6.conf.veth1.accept_dad=0
+```
+
+连跑四次干净。（采样前那个"等 tentative 消失"的循环留着，现在它一进去就
+退出来，当保险。）
+
+顺带记一句还没查清的：**为什么只有 netifd-rs 这边撞得上**。同样的等待、
+同样的 rootfs，C 那边一次都没撞过。可能是启动协议脚本的时机相对设备就绪
+早了一点。DAD 关掉之后两边都不撞了，所以差异被消掉而不是被解释——
+如果以后在真设备上看到协议脚本起得过早，先回来看这一条。
+
+### r59 也一样：那四个状态位不该拿来比
+
+全套再跑一次，r59 红了：case C 里 `radio1` 的 `pending`，C 是 true，
+本实现是 false。`pending` 的定义是 `state == "setup" || state == "teardown"`
+——C 那边采样的时候那个 radio 正在 setup 里。
+
+这四个位（`up` / `pending` / `autostart` / `retry_setup_failed）说的是
+"这个 radio 起来了没有"。本实现根本不做编排，永远报那组"没硬件"的值；
+C 那边的值是会动的。前面已经写过"这几个位在沙箱里一致也证明不了什么"，
+但 harness 只是把这句话**打印**出来，比较的时候照比不误。之前一直过是运气。
+
+现在把这四个位从比较里摘出去，两边的值照样打印（`state (not compared)`），
+连跑四次干净。摘掉的东西是明说的，不是悄悄过滤掉的。

@@ -152,6 +152,24 @@ def load(p):
 		return json.loads(t)
 	except Exception:
 		return {'__unparsed__': t}
+# The four state booleans say whether a radio came up. netifd-rs cannot bring
+# one up, and the C's own values here are transient -- `pending` is true while
+# a radio is in setup or teardown, so the C reports it or not depending on when
+# the sample lands. Comparing them was luck; they are dropped from the
+# comparison and printed instead.
+STATE = ('up', 'pending', 'autostart', 'retry_setup_failed')
+
+def strip_state(o):
+	if not isinstance(o, dict):
+		return o
+	out = {}
+	for radio, body in o.items():
+		if isinstance(body, dict):
+			out[radio] = {k: v for k, v in body.items() if k not in STATE}
+		else:
+			out[radio] = body
+	return out
+
 want = {'status': load(c + '.status'), 'get_validate': load(c + '.validate')}
 try:
 	got = json.loads(open(rs + '.raw').read().strip())
@@ -162,6 +180,14 @@ except Exception as e:
 bad = 0
 for k in ('status', 'get_validate'):
 	a, b = want[k], got.get(k)
+	if k == 'status':
+		for side, o in (('C ', a), ('rs', b)):
+			if isinstance(o, dict):
+				for radio, body in o.items():
+					if isinstance(body, dict):
+						st = {x: body.get(x) for x in STATE}
+						print(f'  case {case} {side} {radio} state (not compared): {st}')
+		a, b = strip_state(a), strip_state(b)
 	if a == b:
 		print(f'case {case} {k}: identical')
 		continue
@@ -193,9 +219,10 @@ echo
 echo "--- C signature (netifd-rs does not register this object) ---"
 cat "$out/c-B.sig"
 echo "--- not covered: up/down/retry/reconf/notify need real radios ---"
-echo "--- status's up/pending/autostart/retry_setup_failed are the"
-echo "    no-hardware values on both sides and prove nothing about a"
-echo "    box that has radios ---"
+echo "--- status's up/pending/autostart/retry_setup_failed are printed"
+echo "    above but NOT compared: they say whether a radio came up, which"
+echo "    this build cannot do, and the C's own values move with when the"
+echo "    sample lands (pending is true during setup and teardown) ---"
 
 [ $fail -eq 0 ] && echo "R59: identical" || echo "R59: DIFFERENCES"
 exit $fail

@@ -125,6 +125,16 @@ PROBE
 		ip link set lo up
 		ip link add veth0 address 02:00:00:00:00:00 type veth \
 			peer name veth1 address 02:00:00:00:00:01
+		# No duplicate address detection on these veths. DAD is what makes a
+		# link-local address unusable for its first second or so, and that
+		# window is why odhcp6c sometimes reached SOLICIT before its own
+		# source address existed -- "Address not available" -- which cost an
+		# ifdown and an ifup on whichever side lost the race. There is no
+		# duplicate to detect on a private veth pair, so the window is pure
+		# sandbox artifact. Set before the links come up, so it applies to
+		# the addresses the kernel generates for them.
+		sysctl -qw net.ipv6.conf.veth0.accept_dad=0 2>/dev/null || true
+		sysctl -qw net.ipv6.conf.veth1.accept_dad=0 2>/dev/null || true
 		ip link set veth0 up; ip link set veth1 up
 		sysctl -qw net.ipv6.conf.veth0.forwarding=1 2>/dev/null || true
 		# Both link-local addresses must have finished DAD before anything

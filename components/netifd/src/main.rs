@@ -1621,6 +1621,17 @@ impl Netifd {
         let changed_routes = previous.routes.len() != ipset.routes.len()
             || !previous.routes.iter().all(|r| ipset.routes.iter().any(|n| same_route(n, r)))
             || !ipset.routes.iter().all(|r| previous.routes.iter().any(|n| same_route(n, r)));
+        if std::env::var_os("NETIFD_RS_DEBUG_UPDATED").is_some() {
+            eprintln!(
+                "DBG {name}: keep={keep} prev a={} r={} new a={} r={} ca={} cr={}",
+                previous.addresses.len(),
+                previous.routes.len(),
+                ipset.addresses.len(),
+                ipset.routes.len(),
+                changed_addrs,
+                changed_routes
+            );
+        }
         let mut new_updated = 0;
         if changed_addrs {
             new_updated |= interface::updated::ADDRESS;
