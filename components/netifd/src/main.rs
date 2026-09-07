@@ -2008,21 +2008,39 @@ impl Netifd {
                             if di != 0 {
                                 let mut sa =
                                     sys::Address::new(IpAddr::V6(local), a.length);
-                                // NOT offlink, and no route of our own. This
-                                // used to set NOPREFIXROUTE and add an explicit
-                                // route, on the assumption that netifd owns the
-                                // prefix route here. Measured against the C with
-                                // a real delegated prefix (r62), it does not:
-                                // the C leaves the address on-link and the
-                                // kernel's own route is what appears --
-                                // `proto kernel metric 256`, where this build
-                                // was producing `proto static metric 1024`.
+                                // `interface_set_prefix_address`, add path:
+                                // DEVADDR_OFFLINK plus netifd's own route. I
+                                // briefly removed both after r62 showed the C
+                                // with `proto kernel metric 256` -- but that
+                                // was the C's WITHDRAWN state, not its live
+                                // one. Withdrawal drops the explicit route and
+                                // re-adds the address without OFFLINK, so the
+                                // kernel makes that route. Matching it while
+                                // the assignment is live means matching the
+                                // wrong half.
+                                sa.offlink = true;
                                 sa.preferred = p.preferred_until;
                                 sa.valid = p.valid_until;
                                 if let Err(e) = self.sys.add_address(di, &sa) {
                                     eprintln!(
                                         "netifd-rs: {}: cannot add {local}/{}: {e}",
                                         a.name, a.length
+                                    );
+                                }
+                                // the on-link route for the assignment, never
+                                // narrower than a /64
+                                let rmask = a.length.max(64);
+                                let mut pr =
+                                    sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
+                                let ic =
+                                    self.cfg.interfaces.iter().find(|i| i.name == a.name);
+                                pr.metric = ic.map(|i| i.metric).unwrap_or(0);
+                                let t = ic.and_then(|i| i.ip6table).unwrap_or(0);
+                                pr.table = if t != 0 { t } else { sys::RT_TABLE_MAIN };
+                                if let Err(e) = self.sys.add_route(di, &pr) {
+                                    eprintln!(
+                                        "netifd-rs: {}: cannot add the {}/{rmask} route: {e}",
+                                        a.name, pr.target
                                     );
                                 }
                             }
@@ -2699,9 +2717,33 @@ impl Netifd {
                     }
                     for a in &assigns {
                         if let Some((local, len)) = a.local {
+                            // `interface_set_prefix_address`, remove path: the
+                            // address is NOT deleted. RFC 7084 L-14 -- hand it
+                            // to the kernel deprecated so connections using it
+                            // survive a renumber, and let it age out. netifd's
+                            // own route goes first; re-adding without OFFLINK
+                            // is what makes the kernel install its own.
+                            let rmask = len.max(64);
+                            let pr = sys::Route::v6(ip::clear_if_addr(local, rmask), rmask);
+                            let _ = self.sys.del_route(di, &pr);
+
+                            let now = now() as u32;
                             let mut sa = sys::Address::new(IpAddr::V6(local), len);
-                            sa.offlink = true;
-                            let _ = self.sys.del_address(di, &sa);
+                            let expired = a.valid.is_some_and(|v| v.saturating_sub(1) <= now);
+                            if expired {
+                                let _ = self.sys.del_address(di, &sa);
+                            } else {
+                                sa.preferred = Some(now);
+                                sa.valid = Some(match a.valid {
+                                    Some(v) if v <= now + 7200 => v,
+                                    _ => now + 7200,
+                                });
+                                if let Err(e) = self.sys.add_address(di, &sa) {
+                                    eprintln!(
+                                        "netifd-rs: {name}: cannot deprecate {local}/{len}: {e}"
+                                    );
+                                }
+                            }
                         }
                     }
                 }

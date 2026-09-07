@@ -917,3 +917,41 @@ r61 覆盖三种坏配置（非法地址、不支持的段落 `route`、不支�
 
 r62 已加进套件并**保持红色**。把它排除掉或者只比对已经对上的部分，
 就又是一个"绿灯但没在看"。
+
+### 读源码推翻了我自己的"修复"：差点匹配上错误的那一半
+
+上游 netifd（cbb83a18）`interface-ip.c` 的 `interface_set_prefix_address`
+有两条路径，规则完全不同：
+
+**活跃分配（add）**：
+```c
+addr.flags |= DEVADDR_OFFLINK;      // 即 NOPREFIXROUTE
+system_add_address(...);
+clear_if_addr(&route.addr, route.mask);   // route.mask = max(addr.mask, 64)
+system_add_route(l3_downlink, &route);    // netifd 自己的路由
+```
+
+**撤销分配（!add 且之前 enabled）**：
+```c
+addr.preferred_until = now;                       // → deprecated
+if (!addr.valid_until || addr.valid_until > now + 7200)
+        addr.valid_until = now + 7200;
+system_del_route(l3_downlink, &route);            // 先删掉自己那条
+system_add_address(l3_downlink, &addr);           // 不带 OFFLINK 重新加回
+```
+注释写着 `pass its ownership to kernel (see L-14 RFC 7084)`——**地址不删**，
+交给内核并标记 deprecated，让还在用它的连接活过一次重新编号，再自然老化。
+
+所以我上一轮看到的 C 的 `proto kernel metric 256` + `deprecated`，
+是 C 的**撤销态**，不是活跃态。我把自己的**活跃态**改成了它的**撤销态**，
+"对上了"——匹配的是错误的那一半。已撤回，并把真正的撤销路径实现出来。
+
+这是这一轮里最值得记的一次：两个状态在 `ip -6 addr` 里长得很像，
+只差一个 `deprecated` 和路由的 proto/metric，而**只看差异不看语义**
+就会朝错误的方向收敛。源码在 oracle 的 `/tmp/nfd`，下次先读它。
+
+**r62 仍然是红的**，剩余现象：C 从第一次委派起就是 deprecated 且一直保持
+`2001:db8:1::`（换前缀后也没换过去）；我这边前两次什么都没有、第三次才出现
+一个活跃的 `2001:db8:5::1/64`。也就是说 C 在这个注入场景下始终处于撤销态，
+而我这边分配被延后了。延后的原因还没定位——r62 没有把守护进程日志留下来，
+下一步先给它加上。
