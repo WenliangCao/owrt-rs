@@ -10,9 +10,10 @@
 > **2026-09-08 晚间恢复标题——但只恢复到"门槛已重建并通过"，不是"验收通过"。**
 > 恢复的依据只有一条：**同一次故障注入现在会红。**
 >
-> 关键证据不是"绿了"，而是那次注入的 **`calls.diff` 依然是 0 行**——
-> 正是当初让旧 harness 打印 `r65: ok` 的那个条件。diff 这一侧的证据一个字没变，
-> 判决却翻了过来，因为它不再只看 diff：
+> （**R70 更正**：我原来把「注入下 `calls.diff` 依然是 0 行」写成证据链的一环。
+> 那不对——注入让两侧按构造相同，diff=0 是必然的，不携带信息。它只说明旧门槛的
+> 唯一检查在垃圾运行下也被满足，是关于旧门槛有多差的陈述。新门槛的证据是下面
+> 这些判红本身：）
 >
 > ```
 > r65: c/rs never reported a pid at all -- nothing was running
@@ -29,7 +30,10 @@
 > 两侧各 32 条 pid 行与 11 次预期内的失败调用、`expect.err` 与 `ready.err`
 > 两侧都不存在**，四条 PID 断言 `same/same`、`same/same`、`differs/differs`、
 > `differs/differs`，jail 用例两侧都是"never ran unconfined"。
-> 连续多次运行结果逐字节一致，候选二进制带 md5 戳且可重现构建。
+> 连续多次运行结果逐字节一致，候选二进制带 md5 戳。「可重现构建」有一个 R70
+> 查出的前提：release 二进制嵌了源码绝对路径（`strings` 可见），所以 md5 只在
+> **同一 checkout 路径**下可复现——R70 从干净 `git archive` 重建同一提交得到的
+> 是另一个 md5（5cb1455b…，大小相同）。
 >
 > **证据全部来自已提交的那一份脚本**（这一条是这一晚学到的：我曾经部署并跑了
 > 旧拷贝、提交了新拷贝、引用了旧拷贝的结果，而新拷贝其实根本跑不起来）：
@@ -42,6 +46,22 @@
 >
 > 部署时按 md5 逐个核对过；`_v2.sh` 走独立路径，因为覆盖一个**正在执行**的
 > 脚本会让 `sh` 按字节偏移接着读新文件，跑出半个词来。
+>
+> **2026-09-08 R70 后基线（当前）。** R70 复审（[docs/reviews/R70_FABLE_P31_REVIEW.md](../../docs/reviews/R70_FABLE_P31_REVIEW.md)）
+> 之后的修复全部落地：proc.pending 五处（f473c23）、F04 删除路径、include 语义
+> （6f500d8）、rcS 串行队列（10a5175）、列表 avl 序 + verbose triggers + setns
+> dump（d5c9941）、`service` 对象通知面（1413f88）。当前证据，全部来自
+> oracle:/tmp/rv/r65-v8{a,b}，候选 `9ccd8f5578937c1f7d5134b65eef9b0e`
+> （构建于 /home/ubuntu/rv-procd，运行前 1 分钟）：
+>
+> | | md5 | 结果 |
+> |---|---|---|
+> | `tools/r65_procd_diff.sh` | `415d232927484154e6cbe42775f517bb` | 两次连续运行 `r65: ok`，`EXIT=0`，0 行 diff，**1848 行被比较**，两侧各 42 条 pid 行、236 个用例标记、13 次预期内失败，scrub 后输出跨运行逐字节一致 |
+> | `tools/r65_selftest.sh` | `fcbd6e38d38996b83597f36f90a9f0d7` | `r65-selftest: ok`，经由就绪门判红 |
+>
+> 五条 PID 断言 `same/same`、`same/same`、`differs/differs`、`differs/differs`、
+> `same/same`（最后一条是 R70 新增的「重排列表不算配置变化」）。新增的比较面：
+> `service` 对象的全部通知（排序多重集 + 计数，两侧 160 条相等）。
 >
 > **仍然不能称为"P3.1 验收通过"，因为：**
 >
