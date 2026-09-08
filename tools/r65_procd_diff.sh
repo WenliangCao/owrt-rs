@@ -388,8 +388,10 @@ call service set '{"name":"twd","instances":{"one":{"command":["/bin/sleep","300
 sleep 1
 printf -- '--- reads back the configured mode/timeout\n'
 call service watchdog '{"name":"twd","instance":"one"}'
-printf -- '--- setting mode marks it self-managed\n'
-call service watchdog '{"name":"twd","instance":"one","mode":2,"timeout":45}'
+printf -- '--- setting mode marks it self-managed (timeout is long on\n'
+printf -- '    purpose: this case is about arming and the self-managed bit,\n'
+printf -- '    not about the timer firing -- F16 covers that separately)\n'
+call service watchdog '{"name":"twd","instance":"one","mode":2,"timeout":3600}'
 call service watchdog '{"name":"twd","instance":"one"}'
 printf -- '--- a set carrying the ORIGINAL watchdog must not restart it now\n'
 ubus call service list '{"name":"twd"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/wdpid1=\1/p"
@@ -546,10 +548,16 @@ sleep 3
 call service list '{"name":"fw"}'
 
 printf -- '--- F17: rc running must also run after a respawn\n'
+# The instance exits instantly and respawns once a second, so sampling
+# mid-loop compares two crash counters that were never going to agree. Give
+# it a retry budget of 1 and wait past the point where BOTH sides have
+# certainly given up, then look only at whether the hook ran again.
 rm -f /tmp/out/initd.txt
-call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/sh","-c","exit 0"],"respawn":["3600","1","5"]}}}'
-sleep 4
-must_have /tmp/out/initd.txt
+call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/sh","-c","exit 0"],"respawn":["3600","1","1"]}}}'
+sleep 8
+printf -- '--- the hook must have run more than once\n'
+c=$(grep -c "hasinit ran" /tmp/out/initd.txt 2>/dev/null || echo 0)
+[ "$c" -gt 1 ] && echo "hook ran repeatedly" || echo "HOOK RAN ONLY $c TIME(S)"
 
 printf -- '--- F18: merged validators keep insertion order, not global sort\n'
 call service set '{"name":"fz","validate":[{"package":"same","type":"same","data":{"z":"string"}}]}'

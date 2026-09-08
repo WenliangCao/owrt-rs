@@ -288,10 +288,11 @@ impl Instance {
             self.halt,
             self.deadline,
         );
-        let (self_managed, wd_mode, wd_freq) = (
+        let (self_managed, wd_mode, wd_freq, wd_deadline) = (
             self.watchdog_self_managed,
             self.watchdog_mode,
             self.watchdog_freq,
+            self.watchdog_deadline,
         );
         *self = new;
         self.state = state;
@@ -309,6 +310,10 @@ impl Instance {
             self.watchdog_freq = wd_freq;
             self.watchdog_self_managed = true;
         }
+        // The armed watchdog belongs to the running child, like `deadline`.
+        // Letting the new config's None overwrite it silently disarmed the
+        // timer on the next `set` -- which is every reload.
+        self.watchdog_deadline = wd_deadline;
         // `respawn_active` follows the NEW config: the C sets in->respawn in
         // instance_config_parse, so a config that dropped `respawn` stops
         // respawning even though the running child predates the change.
