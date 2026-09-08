@@ -32,6 +32,10 @@ mkdir -p "$out"
 
 work=$(mktemp -d /tmp/owrt-r65-XXXXXX)
 trap 'rm -rf "$work"' EXIT
+# One rootfs per side. Sharing a copy and clearing /tmp/out between runs was
+# not enough once cases started writing outside it -- the late-exec case
+# creates /tmp/late-exec, so the C run would have handed the Rust run a
+# command that already existed and the case would have tested nothing.
 cp -a "$root" "$work/root"
 cp "$cand" "$work/root/sbin/procd-rs"
 chmod 0755 "$work/root/sbin/procd-rs"
@@ -556,11 +560,15 @@ call service validate '{"package":"same"}'
 # 27. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
+
+# Last line: proves the drive script ran to the end.
+echo done > /tmp/out/drive.done
 X
 
 run() {
 	tag=$1
-	starter=$2
+	rootdir=$2
+	starter=$3
 	sudo -n unshare --mount --net --pid --fork /bin/sh -c '
 		root=$1; tag=$2; out=$3; starter=$4
 		mount --make-rprivate /
@@ -577,6 +585,10 @@ run() {
 		# supervisor never started must fail, not produce comparable text.
 		chroot "$root" /bin/sh /tmp/ready.sh
 		chroot "$root" /bin/sh /tmp/drive.sh > "$out/$tag-calls.txt" 2>&1 || true
+		# `|| true` keeps a failing call from aborting the run, but it would
+		# also hide a drive script that died halfway. The last line of the
+		# script writes this marker; its absence fails the run.
+		cp "$root/tmp/out/drive.done" "$out/$tag-drive.done" 2>/dev/null || true
 		cp "$root/tmp/out/procd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		cp "$root/tmp/out/bus.err" "$out/$tag-bus.err" 2>/dev/null || true
 		cp "$root/tmp/out/ready.err" "$out/$tag-ready.err" 2>/dev/null || true
@@ -586,14 +598,14 @@ run() {
 			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
 			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
 		done
-	' sh "$work/root" "$tag" "$out" "$starter"
+	' sh "$rootdir" "$tag" "$out" "$starter"
 }
 
-run c /tmp/cproc.sh
-# The second run needs a clean rootfs state: the first left pidfiles and
-# whatever the instances wrote.
-rm -rf "$work/root/tmp/out"; mkdir -p "$work/root/tmp/out"
-run rs /tmp/rsproc.sh
+# A pristine second copy, taken before either side runs.
+cp -a "$work/root" "$work/root-rs"
+
+run c "$work/root" /tmp/cproc.sh
+run rs "$work/root-rs" /tmp/rsproc.sh
 
 # pids never match between two runs; compare their identity, not their value.
 scrub() {
@@ -683,6 +695,10 @@ for t in c rs; do
 	if [ -s "$out/$t-ready.err" ]; then
 		echo "r65: $t supervisor was not ready:" >&2
 		sed "s/^/  $t: /" "$out/$t-ready.err" >&2
+		rc=1
+	fi
+	if [ ! -s "$out/$t-drive.done" ]; then
+		echo "r65: $t drive script did not run to completion" >&2
 		rc=1
 	fi
 	if [ ! -s "$out/$t-ready.txt" ]; then
