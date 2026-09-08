@@ -12,6 +12,7 @@
 mod instance;
 mod jsonscript;
 mod proc;
+mod rcs;
 mod service;
 mod trigger;
 mod sys;
@@ -45,6 +46,10 @@ struct Procd {
     base: Instant,
     /// Next `Validator::seq`; see its doc comment.
     validator_seq: u64,
+    /// `rc()`'s run queue, and where its scripts live. `-I` overrides the
+    /// path exactly as the C's option does.
+    rc: rcs::RunQueue,
+    init_d: String,
     triggers: trigger::Triggers,
 }
 
@@ -262,6 +267,9 @@ impl Procd {
                     c.finished = true;
                     continue;
                 }
+                if self.rc.reaped(pid) {
+                    continue;
+                }
                 // Otherwise an orphan we never started. PID 1 must reap
                 // these; as an ordinary daemon we rarely see them.
                 let _ = wstatus;
@@ -459,6 +467,9 @@ impl Procd {
             if data_changed {
                 self.data_trigger(&name);
             }
+            if init {
+                self.run_init_script(&name);
+            }
             return status::OK;
         }
 
@@ -504,6 +515,12 @@ impl Procd {
         if data_changed {
             self.data_trigger(&name);
         }
+        // service_update() ends with
+        //   if (init || tb[SERVICE_SET_INSTANCES]) rc(s->name, "running");
+        // This is the `instances` half; the `init` half is at the early
+        // return above, so between them the two paths cover the same
+        // condition as the single C call.
+        self.run_init_script(&name);
         status::OK
     }
 
@@ -530,6 +547,15 @@ impl Procd {
         } else if data_changed {
             self.data_trigger(svc);
         }
+    }
+
+    /// `rc(name, "running")`: queue `<init.d>/<name> running` if that script
+    /// exists. A service with no init script queues nothing, which is the
+    /// normal case for anything registered straight over the bus.
+    fn run_init_script(&mut self, name: &str) {
+        let now = self.now_ms();
+        let dir = self.init_d.clone();
+        self.rc.queue(&dir, name, "running", now);
     }
 
     /// `service_data_trigger()`: one `service.data.update` per data key.
@@ -1006,6 +1032,19 @@ fn main() {
     }
 }
 
+/// The C's `-I <path>`, defaulting to `/etc/init.d`.
+fn init_d_path() -> String {
+    let mut args = std::env::args().skip(1);
+    while let Some(a) = args.next() {
+        if a == "-I" {
+            if let Some(p) = args.next() {
+                return p;
+            }
+        }
+    }
+    "/etc/init.d".to_string()
+}
+
 fn run() -> io::Result<()> {
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
 
@@ -1016,6 +1055,8 @@ fn run() -> io::Result<()> {
         services: BTreeMap::new(),
         base: Instant::now(),
         validator_seq: 0,
+        rc: rcs::RunQueue::default(),
+        init_d: init_d_path(),
         triggers: trigger::Triggers::default(),
     };
 
@@ -1036,6 +1077,8 @@ fn run() -> io::Result<()> {
         p.reap();
         p.fire_timeouts();
         p.pump_triggers();
+        let now = p.now_ms();
+        p.rc.pump(now);
 
         match p.conn.next_incoming(200) {
             Ok(Some(msg)) => p.dispatch(msg),

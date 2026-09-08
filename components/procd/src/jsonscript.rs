@@ -308,7 +308,7 @@ impl Ctx<'_> {
         let segs: Vec<&str> = pattern.split('%').collect();
         let mut out = String::new();
         for (i, seg) in segs.iter().enumerate() {
-            if i % 2 == 0 {
+            if i.is_multiple_of(2) {
                 out.push_str(seg);
                 continue;
             }
@@ -322,7 +322,7 @@ impl Ctx<'_> {
         }
         // n segments means n-1 delimiters, and the C's flag ends set when
         // that count is odd -- an unterminated reference.
-        if segs.len() % 2 == 0 {
+        if segs.len().is_multiple_of(2) {
             return Err(());
         }
         Ok(out)

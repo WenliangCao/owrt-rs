@@ -25,6 +25,14 @@ chown -R 0:0 "$work/root/usr/share/acl.d" 2>/dev/null || true
 
 mkdir -p "$work/root/tmp/out" "$work/root/tmp/initd" "$work/root/tmp/rcd"
 
+# rc(name, "running") globs <init.d>/<name>, so a service whose name matches
+# a script here must run it -- and one whose name does not must run nothing.
+cat > "$work/root/tmp/initd/hasinit" <<'X'
+#!/bin/sh
+echo "hasinit ran with: $*" >> /tmp/out/initd.txt
+X
+chmod 0755 "$work/root/tmp/initd/hasinit"
+
 cat > "$work/root/tmp/bus.sh" <<'X'
 #!/bin/sh
 mkdir -p /var/run/ubus /var/lock /var/state /tmp/out
@@ -52,7 +60,7 @@ X
 
 cat > "$work/root/tmp/rsproc.sh" <<'X'
 #!/bin/sh
-/sbin/procd-rs > /tmp/out/procd.log 2>&1 &
+/sbin/procd-rs -I /tmp/initd > /tmp/out/procd.log 2>&1 &
 echo $! > /tmp/out/procd.pid
 X
 
@@ -249,7 +257,21 @@ call service validate '{"service":"tf"}'
 printf -- '--- verbose list shows the validators inline\n'
 call service list '{"name":"tf","verbose":true}'
 
-# 20. the whole table, so ordering is compared too
+# 20. rc(name, "running"): a service whose name matches an init.d script
+printf -- '--- a service with a matching init script\n'
+call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/true"]}}}'
+sleep 2
+cat /tmp/out/initd.txt 2>&1 || echo "(no file)"
+printf -- '--- a second set with instances runs it again\n'
+call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/true"]}}}'
+sleep 2
+cat /tmp/out/initd.txt 2>&1 || echo "(no file)"
+printf -- '--- a service with no matching script runs nothing\n'
+call service set '{"name":"noinit","instances":{"one":{"command":["/bin/true"]}}}'
+sleep 2
+cat /tmp/out/initd.txt 2>&1 || echo "(no file)"
+
+# 21. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X
