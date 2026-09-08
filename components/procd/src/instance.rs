@@ -19,6 +19,9 @@ pub const RESPAWN_DEFAULTS: [u32; 3] = [3600, 5, 5];
 /// `instance_init`: term_timeout before any config sets it.
 pub const DEFAULT_TERM_TIMEOUT: u32 = 5;
 
+/// `__INSTANCE_WATCHDOG_MODE_MAX`: 0 disabled, 1 passive, 2 active.
+pub const WATCHDOG_MODE_MAX: u32 = 3;
+
 /// A `respawn` policy. `retry == 0` means "never give up" -- the crash-loop
 /// test in `instance_exit` is `count > retry && retry > 0`, so a zero retry
 /// disables the give-up branch entirely rather than disabling respawn.
@@ -82,7 +85,15 @@ pub struct Instance {
     pub overlaydir: Option<String>,
     pub tmpoverlaysize: Option<String>,
     pub triggers: Option<Vec<u8>>,
-    pub watchdog: Option<(u32, u32)>,
+    /// `watchdog.mode` and `watchdog.freq`. Mode 0 disabled, 1 passive,
+    /// 2 active; anything outside that range falls back to 0. A freq of 0
+    /// or less falls back to 30, which is why this is not an Option.
+    pub watchdog_mode: u32,
+    pub watchdog_freq: u32,
+    /// Set by the `watchdog` ubus method. While true, a config update no
+    /// longer compares mode/freq, so the service keeps the values it chose
+    /// instead of being reset by the next `set`.
+    pub watchdog_self_managed: bool,
 
     // Runtime, not config.
     pub state: Run,
@@ -142,7 +153,9 @@ impl Instance {
             overlaydir: None,
             tmpoverlaysize: None,
             triggers: None,
-            watchdog: None,
+            watchdog_mode: 0,
+            watchdog_freq: 30,
+            watchdog_self_managed: false,
             state: Run::Stopped,
             pid: 0,
             exit_code: 0,
@@ -190,7 +203,12 @@ impl Instance {
             || self.trace != new.trace
             || self.no_new_privs != new.no_new_privs
             || self.jail != new.jail
-            || self.watchdog != new.watchdog
+            // A self-managed watchdog is excluded from the comparison, so a
+            // service that set its own mode/timeout is not restarted by the
+            // next `set` carrying the original values.
+            || (!self.watchdog_self_managed
+                && (self.watchdog_mode != new.watchdog_mode
+                    || self.watchdog_freq != new.watchdog_freq))
     }
 
     /// Move the new config onto a live instance, keeping the runtime state.
@@ -207,6 +225,11 @@ impl Instance {
             self.halt,
             self.deadline,
         );
+        let (self_managed, wd_mode, wd_freq) = (
+            self.watchdog_self_managed,
+            self.watchdog_mode,
+            self.watchdog_freq,
+        );
         *self = new;
         self.state = state;
         self.pid = pid;
@@ -216,6 +239,13 @@ impl Instance {
         self.restart = restart;
         self.halt = halt;
         self.deadline = deadline;
+        // instance_config_move keeps the self-managed watchdog values: they
+        // belong to the running service, not to the config that replaced it.
+        if self_managed {
+            self.watchdog_mode = wd_mode;
+            self.watchdog_freq = wd_freq;
+            self.watchdog_self_managed = true;
+        }
         // `respawn_active` follows the NEW config: the C sets in->respawn in
         // instance_config_parse, so a config that dropped `respawn` stops
         // respawning even though the running child predates the change.
@@ -332,6 +362,24 @@ impl Instance {
         if let Some(v) = &self.group {
             b.msg_string("group", v);
         }
+        // The jail block, extroot/overlaydir/tmpoverlaysize and the verbose
+        // trigger blob sit here in the C; none is produced by this build yet.
+        if let Some(v) = &self.extroot {
+            b.msg_string("extroot", v);
+        }
+        if let Some(v) = &self.overlaydir {
+            b.msg_string("overlaydir", v);
+        }
+        if let Some(v) = &self.tmpoverlaysize {
+            b.msg_string("tmpoverlaysize", v);
+        }
+        // Last, and only when the mode is not disabled.
+        if self.watchdog_mode != 0 {
+            let w = b.msg_open_table("watchdog");
+            b.msg_u32("mode", self.watchdog_mode);
+            b.msg_u32("timeout", self.watchdog_freq);
+            b.msg_close(w);
+        }
         b.msg_close(t);
     }
 }
@@ -441,13 +489,19 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             }
             "triggers" => i.triggers = Some(f.data.to_vec()),
             "watchdog" => {
-                let v: Vec<u32> = f
-                    .children()
-                    .filter_map(|c| c.as_str().and_then(|s| s.parse().ok()).or_else(|| c.as_u32()))
-                    .collect();
-                if v.len() >= 2 {
-                    i.watchdog = Some((v[0], v[1]));
+                // vals[] seeds {0, 30} and only the first two entries are
+                // read, so a short array keeps the remaining default.
+                let mut vals: [u32; 2] = [0, 30];
+                for (n, c) in f.children().take(2).enumerate() {
+                    if let Some(s) = c.as_str() {
+                        vals[n] = s.parse().unwrap_or(0);
+                    } else if let Some(u) = c.as_u32() {
+                        vals[n] = u;
+                    }
                 }
+                // Mode out of range falls back to 0, freq of 0 to 30.
+                i.watchdog_mode = if vals[0] < WATCHDOG_MODE_MAX { vals[0] } else { 0 };
+                i.watchdog_freq = if vals[1] > 0 { vals[1] } else { 30 };
             }
             _ => {}
         }

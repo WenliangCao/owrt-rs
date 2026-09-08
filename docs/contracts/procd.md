@@ -150,7 +150,22 @@ if (wildcard)
 `set_data` 带 `instance` 时**不触发任何 trigger**；不带时走
 `service_update_data()`，先为**旧键**触发一轮，再为新键触发一轮。
 
-## 10. 本实现与原版的已知差异
+## 10. 每实例 watchdog 的两个默认值和一个"自管理"位
+
+`instance_config_parse` 里 `uint32_t vals[2] = { 0, 30 }`，只读前两个元素：
+
+- mode 超出 `[0, __INSTANCE_WATCHDOG_MODE_MAX)` 就**回落到 0**（disabled）；
+- freq **不大于 0 就回落到 30**。
+
+`service watchdog` 方法：`name` 和 `instance` 缺任一个都是 **NOT_FOUND**
+（不是 INVALID_ARGUMENT），而且在查服务之前就判。传了 `mode` 或 `timeout`
+任一个，就把实例标成 `self_managed`——之后 `instance_config_changed()`
+**不再比较** mode/freq，所以再来一次带原始值的 `set` 不会重启它。
+r65 用两次 `service list` 取 pid 比过这条。
+
+`instance_dump()` 的 `watchdog` 表在**最后**，而且只在 mode 非 disabled 时出现。
+
+## 11. 本实现与原版的已知差异
 
 - **子进程回收**用事件循环里的 `waitpid(WNOHANG)` 轮询，不是 SIGCHLD 处理器，
   所以退出会在一轮循环内被发现而不是立刻。netifd-rs 也是这样。
@@ -159,6 +174,9 @@ if (wildcard)
 - **实例日志 FD**：原版在实例声明 `stdout`/`stderr` 时把它们接到自己读的管道。
   这里两个都指向 `/dev/null`。没人消费的管道正是被监管进程死锁的方式，
   所以在日志通路落地前不接管道。
+- **每实例 watchdog 定时器不会触发。** `service watchdog` 的取值、
+  `self_managed` 位和 `list` 输出都对齐了，但定时器本身属于 P3.2，
+  所以 mode=active 的实例不会因为超时被重启。
 - **container 对象**只为签名对齐而注册，容器方法一律拒绝；本机
   `ubus call service list` 没有任何容器。
 - **`sysupgrade` / `validate_firmware_image`** 按真实签名注册并**拒绝**。

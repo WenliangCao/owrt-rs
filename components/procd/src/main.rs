@@ -345,6 +345,7 @@ impl Procd {
             (Target::Service, "set_data") => self.handle_set_data(&req),
             (Target::Service, "event") => self.handle_event(&req),
             (Target::Service, "validate") => self.handle_validate(&req),
+            (Target::Service, "watchdog") => self.handle_watchdog(&req),
             _ => status::NOT_SUPPORTED,
         };
         let _ = self.conn.reply_status(&req, code, None);
@@ -638,6 +639,57 @@ impl Procd {
                 }
             }
         }
+        status::OK
+    }
+
+    /// `service_handle_watchdog()`. Both `name` and `instance` are required
+    /// and a missing one is NOT_FOUND, not INVALID_ARGUMENT. Supplying
+    /// either `mode` or `timeout` marks the instance self-managed, which
+    /// takes those two fields out of the config-change comparison.
+    fn handle_watchdog(&mut self, req: &Request) -> i32 {
+        let mut name: Option<String> = None;
+        let mut instance: Option<String> = None;
+        let mut mode: Option<u32> = None;
+        let mut timeout: Option<u32> = None;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "name" => name = f.as_str().map(str::to_string),
+                "instance" => instance = f.as_str().map(str::to_string),
+                "mode" => mode = f.as_u32(),
+                "timeout" => timeout = f.as_u32(),
+                _ => {}
+            }
+        }
+        let (Some(name), Some(instance)) = (name, instance) else {
+            return status::NOT_FOUND;
+        };
+        let Some(inst) = self
+            .services
+            .get_mut(&name)
+            .and_then(|s| s.instances.get_mut(&instance))
+        else {
+            return status::NOT_FOUND;
+        };
+        if let Some(m) = mode {
+            inst.watchdog_mode = m;
+        }
+        if let Some(t) = timeout {
+            inst.watchdog_freq = t;
+        }
+        // The C arms or cancels the per-instance timer here. This build has
+        // no per-instance watchdog timer yet (P3.2), so the values are
+        // stored and reported but nothing fires. Recorded as a gap.
+        let (m, t) = (inst.watchdog_mode, inst.watchdog_freq);
+        if mode.is_some() || timeout.is_some() {
+            inst.watchdog_self_managed = true;
+        }
+
+        let mut b = BlobBuf::new();
+        b.msg_string("name", &name);
+        b.msg_string("instance", &instance);
+        b.msg_u32("mode", m);
+        b.msg_u32("timeout", t);
+        let _ = self.conn.reply_data(req, b.payload());
         status::OK
     }
 

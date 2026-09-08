@@ -24,15 +24,16 @@ harness：[tools/r65_procd_diff.sh](../../tools/r65_procd_diff.sh)。
 ## 结果
 
 ```
-r65: ok        762 行对比，0 行 diff       连跑 3 次全绿
+r65: ok        874 行对比，0 行 diff       连跑 3 次全绿
 ```
 
-20 个用例，覆盖：签名（三个对象全部方法的 policy）、退出码、无效实例、
+22 个用例，覆盖：签名（三个对象全部方法的 policy）、退出码、无效实例、
 `set` 与 `add` 的差别、delete、signal、state、update_start/complete、
 get_data/set_data、autostart=false、触发器实际执行了什么、validate 的两种顺序。
 
-`service` 的 13 个方法实现了 12 个。没实现的是 `watchdog`（每实例看门狗定时器），
-它要和 P3.2 的真实 watchdog 一起做。`container` 和 `system` 按真实签名注册，
+`service` 的 **13 个方法全部实现**。`watchdog` 的取值、`self_managed` 位和
+`list` 输出都对齐了；**定时器本身**属于 P3.2，所以 mode=active 的实例
+现在不会因为超时被重启——这是已知缺口，不是差异。`container` 和 `system` 按真实签名注册，
 方法拒绝——`sysupgrade` 尤其：本项目不刷设备，静默成功是最坏的失败模式。
 
 ## 差分抓到的东西
@@ -74,15 +75,32 @@ rootfs 副本被两次运行共用，**上一轮的 ubus socket 文件还在**�
 
 ## 已知缺口（不是决定，是还没做）
 
-- `rc(name, "running")`：`service_update()` 会 glob `/etc/init.d/<name>` 并用
-  `running` 参数排队执行。runqueue 属于 P3.2。
 - 实例日志 FD 两个都指向 `/dev/null`。没人消费的管道正是被监管进程死锁的方式。
-- 每实例 `watchdog` 方法。
-- `watch.c` 的文件/netdev 监视。
+- 每实例 watchdog **定时器**（取值和 `list` 输出已对齐）。
+- **`watch.c`**——这条我一开始写错了，它不是"文件/netdev 监视"，
+  而是**ubus 对象订阅**：实例的 `watch` 数组列的是 ubus 路径，procd 订阅它们，
+  被订阅对象发来的每条 notification 都进 `trigger_event(method, msg)`。
+  本机只有一个使用者，但很关键：`/etc/init.d/network:21` 的
+  `procd_set_param watch network.interface`——**这是 netifd 的接口事件进入
+  procd 触发器的那条线**。实现它需要给 `owrt-ubus` 加订阅者支持
+  （`ubus_register_subscriber` / `ubus_subscribe`），目前那个 crate 没有。
+- `rcS()` 的串行队列（`rc()` 已经做了，见下）。
+- 实例的 `netdev` / `file` 属性只参与配置比较，没有做 ifindex 解析和 md5 检查。
+
+## 已经补上的
+
+- **`rc(name, "running")`**：`service_update()` 结尾的
+  `if (init || tb[SERVICE_SET_INSTANCES]) rc(s->name, "running")`。
+  这条从普通 `ubus call service set` 就能走到，不必是 PID 1，所以属于 P3.1。
+  r65 用一个真实 init 脚本验过：带 instances 的 `set` 会跑它，
+  名字不匹配的服务什么都不跑。
+- **`service watchdog`**：`name`/`instance` 缺任一个是 NOT_FOUND；
+  传 mode 或 timeout 会置 `self_managed`，之后带原始值的 `set` **不重启**实例。
+  r65 用两次 `service list` 取 pid 比过这条。
 
 ## 单元测试
 
-17 个，跑在 `cargo test`。值得点名的是 `exit_code_of` 对着 C 的宏顺序、
+20 个，跑在 `cargo test`；全仓库 `make test` 264 个全绿。值得点名的是 `exit_code_of` 对着 C 的宏顺序、
 `%` 展开的全部边界、以及 `regex` 走平台自己的 `regcomp/regexec`——
 和 C 调用的是同一份实现，没有第二套正则方言要同步。
 

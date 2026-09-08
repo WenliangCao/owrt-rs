@@ -271,7 +271,29 @@ call service set '{"name":"noinit","instances":{"one":{"command":["/bin/true"]}}
 sleep 2
 cat /tmp/out/initd.txt 2>&1 || echo "(no file)"
 
-# 21. the whole table, so ordering is compared too
+# 21. the per-instance watchdog method
+call service set '{"name":"twd","instances":{"one":{"command":["/bin/sleep","300"],"watchdog":["1","20"]}}}'
+sleep 1
+printf -- '--- reads back the configured mode/timeout\n'
+call service watchdog '{"name":"twd","instance":"one"}'
+printf -- '--- setting mode marks it self-managed\n'
+call service watchdog '{"name":"twd","instance":"one","mode":2,"timeout":45}'
+call service watchdog '{"name":"twd","instance":"one"}'
+printf -- '--- a set carrying the ORIGINAL watchdog must not restart it now\n'
+ubus call service list '{"name":"twd"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/wdpid1=\1/p"
+call service set '{"name":"twd","instances":{"one":{"command":["/bin/sleep","300"],"watchdog":["1","20"]}}}'
+sleep 2
+ubus call service list '{"name":"twd"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/wdpid2=\1/p"
+printf -- '--- out-of-range mode falls back to 0, zero timeout to 30\n'
+call service set '{"name":"twd2","instances":{"one":{"command":["/bin/sleep","300"],"watchdog":["99","0"]}}}'
+sleep 1
+call service watchdog '{"name":"twd2","instance":"one"}'
+printf -- '--- watchdog argument errors are NOT_FOUND, not INVALID_ARGUMENT\n'
+call service watchdog '{"name":"twd"}'
+call service watchdog '{"instance":"one"}'
+call service watchdog '{"name":"twd","instance":"nope"}'
+
+# 22. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X
@@ -318,6 +340,8 @@ scrub() {
 		-e 's/"pid": [0-9]+/"pid": PID/' \
 		-e 's/pid1=[0-9]+/pid1=P1/' \
 		-e 's/pid2=[0-9]+/pid2=P2/' \
+		-e 's/wdpid1=[0-9]+/wdpid1=W1/' \
+		-e 's/wdpid2=[0-9]+/wdpid2=W2/' \
 		"$1"
 }
 scrub "$out/c-calls.txt" > "$out/c-calls.scrubbed"
@@ -328,8 +352,13 @@ same_pid() {
 	a=$(sed -n 's/^pid1=//p' "$1"); b=$(sed -n 's/^pid2=//p' "$1")
 	[ -n "$a" ] && [ "$a" = "$b" ] && echo same || echo differs
 }
+same_wdpid() {
+	a=$(sed -n 's/^wdpid1=//p' "$1"); b=$(sed -n 's/^wdpid2=//p' "$1")
+	[ -n "$a" ] && [ "$a" = "$b" ] && echo same || echo differs
+}
 {
 	echo "identical-set-keeps-pid c=$(same_pid "$out/c-calls.txt") rs=$(same_pid "$out/rs-calls.txt")"
+	echo "self-managed-watchdog-keeps-pid c=$(same_wdpid "$out/c-calls.txt") rs=$(same_wdpid "$out/rs-calls.txt")"
 } > "$out/pid-identity.txt"
 
 rc=0
@@ -343,10 +372,15 @@ if ! diff -u "$out/c-calls.scrubbed" "$out/rs-calls.scrubbed" > "$out/calls.diff
 	echo "r65: ubus replies differ" >&2
 	rc=1
 fi
-if ! grep -q 'c=same rs=same' "$out/pid-identity.txt" \
-	&& ! grep -q 'c=differs rs=differs' "$out/pid-identity.txt"; then
-	echo "r65: identical-set pid behaviour differs: $(cat "$out/pid-identity.txt")" >&2
-	rc=1
-fi
+# Each line must agree between the two sides; the VALUES never match across
+# runs, so only the same/differs verdict is compared.
+while read -r line; do
+	c=${line#*c=}; c=${c%% *}
+	r=${line#*rs=}
+	if [ "$c" != "$r" ]; then
+		echo "r65: pid behaviour differs: $line" >&2
+		rc=1
+	fi
+done < "$out/pid-identity.txt"
 [ $rc -eq 0 ] && echo "r65: ok"
 exit $rc
