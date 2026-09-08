@@ -661,7 +661,8 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 let mut vals = RESPAWN_DEFAULTS;
                 for (n, c) in f.children().take(3).enumerate() {
                     if let Some(s) = c.as_str() {
-                        vals[n] = s.parse().unwrap_or(0);
+                        // atoi(): "5x" is 5, "" is 0 -- not a parse failure.
+                        vals[n] = crate::sys::atoi_u32(s);
                     } else if let Some(u) = c.as_u32() {
                         vals[n] = u;
                     }
@@ -761,13 +762,8 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                     if let Some(s) = c.as_str() {
                         // atoi() into a uint32_t: "-1" becomes 0xffffffff,
                         // which then passes the `> 0` test and does NOT fall
-                        // back to 30. Parsing as u32 and defaulting to 0
-                        // would have fallen back.
-                        vals[n] = s
-                            .trim()
-                            .parse::<i64>()
-                            .map(|v| v as u32)
-                            .unwrap_or(0);
+                        // back to 30; "5x" is 5, not a parse failure.
+                        vals[n] = crate::sys::atoi_u32(s);
                     } else if let Some(u) = c.as_u32() {
                         vals[n] = u;
                     }

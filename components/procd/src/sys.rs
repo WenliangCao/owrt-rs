@@ -117,7 +117,29 @@ pub fn init_groups(user: &str, gid: u32) -> bool {
         return false;
     };
     // SAFETY: `c` is a NUL-terminated string that outlives the call.
-    unsafe { initgroups(c.as_ptr() as *const u8, gid) == 0 }
+    unsafe { initgroups(c.as_ptr().cast(), gid) == 0 }
+}
+
+/// C `atoi()`, which procd uses for the respawn and watchdog string
+/// arrays: optional leading whitespace, optional sign, then the longest
+/// digit prefix -- "5x" is 5, "" is 0 -- returned as `int` and stored into
+/// a `uint32_t`, so "-1" becomes 0xffffffff.
+pub fn atoi_u32(s: &str) -> u32 {
+    let t = s.trim_start();
+    let (neg, t) = match t.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, t.strip_prefix('+').unwrap_or(t)),
+    };
+    let mut v: i64 = 0;
+    for c in t.chars().take_while(|c| c.is_ascii_digit()) {
+        v = v * 10 + (c as i64 - '0' as i64);
+        if v > i64::from(i32::MAX) {
+            v = i64::from(i32::MAX);
+            break;
+        }
+    }
+    let v = if neg { -v } else { v };
+    v as i32 as u32
 }
 
 /// `getpwnam()` -> (uid, gid). None when the user does not exist.
@@ -125,7 +147,7 @@ pub fn lookup_user(name: &str) -> Option<(u32, u32)> {
     let c = CString::new(name).ok()?;
     // SAFETY: `c` outlives the call. getpwnam returns a pointer into a static
     // buffer, read immediately and not retained.
-    let p = unsafe { getpwnam(c.as_ptr() as *const u8) };
+    let p = unsafe { getpwnam(c.as_ptr().cast()) };
     if p.is_null() {
         return None;
     }
@@ -139,7 +161,7 @@ pub fn lookup_group(name: &str) -> Option<u32> {
     let c = CString::new(name).ok()?;
     // SAFETY: `c` outlives the call. getgrnam returns a pointer into a static
     // buffer, read immediately and not retained.
-    let p = unsafe { getgrnam(c.as_ptr() as *const u8) };
+    let p = unsafe { getgrnam(c.as_ptr().cast()) };
     if p.is_null() {
         return None;
     }
@@ -230,10 +252,10 @@ pub fn log_instance_line(ident: &str, facility: i32, priority: i32, line: &str) 
     // openlog retains `cid`'s pointer until the next openlog, which is why
     // the restore below happens before this function returns.
     unsafe {
-        openlog(cid.as_ptr() as *const u8, 0, facility);
-        syslog(priority, fmt.as_ptr() as *const u8, cline.as_ptr() as *const u8);
+        openlog(cid.as_ptr().cast(), 0, facility);
+        syslog(priority, fmt.as_ptr().cast(), cline.as_ptr().cast());
         closelog();
-        openlog(c"procd".as_ptr() as *const u8, 0, LOG_DAEMON);
+        openlog(c"procd".as_ptr().cast(), 0, LOG_DAEMON);
     }
 }
 
@@ -264,7 +286,7 @@ pub fn if_nametoindex(name: &str) -> u32 {
         return 0;
     };
     // SAFETY: `c` is NUL-terminated and outlives the call.
-    unsafe { if_nametoindex_c(c.as_ptr() as *const u8) }
+    unsafe { if_nametoindex_c(c.as_ptr().cast()) }
 }
 
 /// MD5 of a file's contents, as `instance_file_update` computes with
@@ -398,4 +420,19 @@ pub fn set_uid(uid: u32) -> io::Result<()> {
         return Err(io::Error::last_os_error());
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod atoi_tests {
+    use super::*;
+
+    #[test]
+    fn atoi_prefix_semantics() {
+        assert_eq!(atoi_u32("3600"), 3600);
+        assert_eq!(atoi_u32("5x"), 5, "digits before the first non-digit");
+        assert_eq!(atoi_u32(""), 0);
+        assert_eq!(atoi_u32("x5"), 0);
+        assert_eq!(atoi_u32("  7"), 7);
+        assert_eq!(atoi_u32("-1"), 0xffff_ffff, "atoi -> int -> uint32_t");
+    }
 }

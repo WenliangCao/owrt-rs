@@ -396,7 +396,7 @@ fn eq_or_regex(s: &str, pattern: &str, regex: bool) -> bool {
     let mut reg = [0u8; REGEX_T_SIZE];
     // SAFETY: `reg` is a zeroed buffer at least as large as regex_t on this
     // platform, and `cpat` is a NUL-terminated string that outlives the call.
-    if unsafe { regcomp(reg.as_mut_ptr(), cpat.as_ptr() as *const u8, REG_EXTENDED | REG_NOSUB) }
+    if unsafe { regcomp(reg.as_mut_ptr(), cpat.as_ptr().cast(), REG_EXTENDED | REG_NOSUB) }
         != 0
     {
         return false;
@@ -404,7 +404,7 @@ fn eq_or_regex(s: &str, pattern: &str, regex: bool) -> bool {
     // SAFETY: `reg` was successfully compiled above; nmatch 0 with a null
     // pmatch is what REG_NOSUB expects.
     let hit = unsafe {
-        regexec(reg.as_ptr(), cs.as_ptr() as *const u8, 0, std::ptr::null_mut(), 0) == 0
+        regexec(reg.as_ptr(), cs.as_ptr().cast(), 0, std::ptr::null_mut(), 0) == 0
     };
     // SAFETY: frees the compiled regex exactly once.
     unsafe { regfree(reg.as_mut_ptr()) };
