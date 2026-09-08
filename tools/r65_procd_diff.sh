@@ -712,11 +712,13 @@ scrub() {
 	# ubusd hands out object ids at random, and they differ even between two
 	# runs of the same binary -- checked, the C's own ids changed run to run.
 	# The signature text after the id is the part that carries meaning.
+	#
+	# The "pid" rule below is anchored to an indented JSON field, so
+	# `"pidfile": ...` is safe. It would still catch a business `"pid": N`
+	# inside `data` -- no case has one today; a case that adds one must scrub
+	# differently rather than lose the comparison silently.
 	sed -E \
 		-e "s/^'([a-z]+)' @[0-9a-f]+$/'\\1' @ID/" \
-		# Anchored to an indented JSON field, so `"pidfile": ...` is safe. It
-		# would still catch a business `"pid": N` inside `data` -- no case has
-		# one today; a case that adds one must scrub differently, not silently.
 		-e 's/^(\t+)"pid": [0-9]+/\1"pid": PID/' \
 		-e 's/^pid1=[0-9]+$/pid1=P1/' \
 		-e 's/^pid2=[0-9]+$/pid2=P2/' \
