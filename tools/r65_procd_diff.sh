@@ -139,36 +139,45 @@ cat > "$work/root/tmp/drive.sh" <<'X'
 # so case 2 was two mutual failures compared equal. Now a missing third
 # argument is genuinely absent.
 #
-# ok  <obj> <method> [json]   -- must succeed; a failure fails the run
-# err <obj> <method> [json]   -- must fail; a success fails the run
+# Every `call` must SUCCEED. Recording rc= into the compared text is not an
+# assertion: if a bug in this script breaks a call, it breaks it identically
+# on both sides, the diff stays empty and the run passes -- which is exactly
+# how case 2 hid two mutual parse failures. So `call` now fails the run on a
+# non-zero status, and the deliberate bad-argument cases say so with `callx`.
+#
+# call  <obj> <method> [json]   -- must succeed; a failure fails the run
+# callx <obj> <method> [json]   -- must fail; a success fails the run
+#
+# Both print exactly what the old `call` printed, so the comparable text --
+# and therefore the baseline -- is unchanged.
 call() {
-	printf -- '--- %s %s\n' "$1" "$2"
-	if [ $# -ge 3 ]; then
-		ubus call "$1" "$2" "$3" 2>&1 || printf 'rc=%s\n' "$?"
-	else
-		ubus call "$1" "$2" 2>&1 || printf 'rc=%s\n' "$?"
-	fi
-}
-
-# Record what each call was SUPPOSED to do, so "both sides failed" stops
-# counting as agreement.
-expect() {
-	want=$1; shift
 	printf -- '--- %s %s\n' "$1" "$2"
 	rc=0
 	if [ $# -ge 3 ]; then
-		out=$(ubus call "$1" "$2" "$3" 2>&1) || rc=$?
+		ubus call "$1" "$2" "$3" 2>&1 || rc=$?
 	else
-		out=$(ubus call "$1" "$2" 2>&1) || rc=$?
+		ubus call "$1" "$2" 2>&1 || rc=$?
 	fi
-	printf '%s\n' "$out"
-	if [ "$want" = ok ] && [ "$rc" != 0 ]; then
+	if [ "$rc" != 0 ]; then
+		printf 'rc=%s\n' "$rc"
 		echo "EXPECT-FAIL: $1 $2 should have succeeded, rc=$rc" >> /tmp/out/expect.err
 	fi
-	if [ "$want" = err ] && [ "$rc" = 0 ]; then
-		echo "EXPECT-FAIL: $1 $2 should have failed" >> /tmp/out/expect.err
+	return 0
+}
+
+callx() {
+	printf -- '--- %s %s\n' "$1" "$2"
+	rc=0
+	if [ $# -ge 3 ]; then
+		ubus call "$1" "$2" "$3" 2>&1 || rc=$?
+	else
+		ubus call "$1" "$2" 2>&1 || rc=$?
 	fi
-	[ "$want" = err ] && printf 'rc=%s\n' "$rc"
+	if [ "$rc" = 0 ]; then
+		echo "EXPECT-FAIL: $1 $2 should have failed but succeeded" >> /tmp/out/expect.err
+	else
+		printf 'rc=%s\n' "$rc"
+	fi
 	return 0
 }
 
@@ -192,7 +201,7 @@ ubus -v list system 2>&1
 # 2. empty list -- with no third argument at all, so the CLI does not choke
 #    on an empty-string JSON. This is the case Astra found was two mutual
 #    parse failures compared equal.
-expect ok service list
+call service list
 
 # 3. one instance that exits immediately -- exit_code, running=false
 call service set '{"name":"t1","instances":{"one":{"command":["/bin/true"]}}}'
@@ -271,9 +280,9 @@ call service state '{"name":"t9","spawn":true}'
 sleep 1
 call service list '{"name":"t9"}'
 printf -- '--- state argument errors\n'
-call service state '{"name":"t9"}'
-call service state '{"spawn":true}'
-call service state '{"name":"nope","spawn":true}'
+callx service state '{"name":"t9"}'
+callx service state '{"spawn":true}'
+callx service state '{"name":"nope","spawn":true}'
 
 # 14. update_start / add / update_complete: only the re-added survive
 call service set '{"name":"ta","instances":{"x":{"command":["/bin/sleep","300"]},"y":{"command":["/bin/sleep","300"]}}}'
@@ -284,7 +293,7 @@ call service update_complete '{"name":"ta"}'
 sleep 2
 printf -- '--- after update window, ta should have only y\n'
 call service list '{"name":"ta"}'
-call service update_start '{"name":"nope"}'
+callx service update_start '{"name":"nope"}'
 
 # 15. get_data: service data under "*", instance data under its own name
 call service set '{"name":"tb","data":{"sv":"1","other":"2"},"instances":{"one":{"command":["/bin/sleep","300"],"data":{"iv":"3"}}}}'
@@ -302,8 +311,8 @@ call service get_data '{"name":"tb"}'
 call service set_data '{"name":"tb","instance":"one","data":{"iv":"changed"}}'
 sleep 1
 call service get_data '{"name":"tb","instance":"one"}'
-call service set_data '{"name":"tb","instance":"nope","data":{"a":"b"}}'
-call service set_data '{"name":"tb"}'
+callx service set_data '{"name":"tb","instance":"nope","data":{"a":"b"}}'
+callx service set_data '{"name":"tb"}'
 
 # 17. autostart=false is the only case where the flag is printed
 call service set '{"name":"tc","autostart":false,"instances":{"one":{"command":["/bin/sleep","300"]}}}'
@@ -342,8 +351,8 @@ sleep 2
 must_have /tmp/out/fired.txt
 
 printf -- '--- event argument errors\n'
-call service event '{"type":"mytrig.now"}'
-call service event '{"data":{"ACT":"go"}}'
+callx service event '{"type":"mytrig.now"}'
+callx service event '{"data":{"ACT":"go"}}'
 
 printf -- '--- a case arm, and a command other than run_script (must be dropped)\n'
 call service set '{"name":"te","triggers":[["ev2",[["case","K",{"a":[["run_script","/bin/sh","-c","echo caseA >> /tmp/out/fired.txt"]],"b":[["exec","/bin/sh","-c","echo SHOULD-NOT-RUN >> /tmp/out/fired.txt"]]}]]]]}'
@@ -403,9 +412,9 @@ call service set '{"name":"twd2","instances":{"one":{"command":["/bin/sleep","30
 sleep 1
 call service watchdog '{"name":"twd2","instance":"one"}'
 printf -- '--- watchdog argument errors are NOT_FOUND, not INVALID_ARGUMENT\n'
-call service watchdog '{"name":"twd"}'
-call service watchdog '{"instance":"one"}'
-call service watchdog '{"name":"twd","instance":"nope"}'
+callx service watchdog '{"name":"twd"}'
+callx service watchdog '{"instance":"one"}'
+callx service watchdog '{"name":"twd","instance":"nope"}'
 
 # 22. watch: an instance names a ubus path; that object's notifications must
 #     become trigger events. This is the netifd -> procd line
