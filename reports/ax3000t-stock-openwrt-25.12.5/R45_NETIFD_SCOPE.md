@@ -1109,3 +1109,36 @@ falsy pid/exe 忽略、无去重、首次登记建 1000ms interval、
 
 r62 现在退出码 0，六个阶段（首次委派 / 续租 / 换前缀 / 反例 /56→/60 /
 上行下线）连同内核生命周期和 null route 全部一致。
+
+## 差分全套：22/22（2026-09-08 07:5x，oracle）
+
+同一次运行，同一个候选二进制，对照都是发货 rootfs 里那份 musl netifd：
+
+```
+r45..r59  ok                r60_up_cmds  ok   MODE=up   CMDS=yes
+                            r60_up       ok   MODE=up   CMDS=no
+                            r60_fail_cmds ok  MODE=fail CMDS=yes
+                            r60_fail     ok   MODE=fail CMDS=no
+                            r60_flood    ok   MODE=flood
+                            r60_token    ok   MODE=token
+                            r60_proc     ok   MODE=proc
+r61       ok  坏配置        r62          ok   PD 六个阶段
+SUITE: 22 of 22 run -- 22 passed, 0 failed, 0 not selected
+```
+
+`r60_proc` 这次是用改好的桩跑的（exe 取自 readlink，背景进程重定向 stdio，
+断言加到四条）。两边完全一致：
+
+```
+--- after killing the registered process
+teardowns=1   setups=3   "up":true   "retry_setup_failed":false
+```
+
+`setups=3` 是关键：一次初始 setup、一次死亡后的 setup、加上 handler 自己那次，
+说明注册进程死亡确实走了 teardown → 下一代 setup → 回到 up，**并且没有扣 retry**。
+`retry_setup_failed` 只在 setup handler 结束时 radio 仍停在 setup 才置位
+（`wdev_setup_cb`），已经报过 UP 的这条路不该碰它——两边都没碰。
+
+`r62` 六个阶段全过，含顾问给的那个反例（父前缀 `/56` → `/60`、local 地址不变）：
+内核 preferred 从非零变 0、显式路由换成 kernel/256、旧父前缀的 unreachable 路由
+被删除，四项都对上。
