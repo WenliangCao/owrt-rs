@@ -48,7 +48,7 @@ pub enum Run {
 /// Only the fields this build acts on are broken out. `raw` keeps the
 /// original blob so `list` can echo back what it was given and so an
 /// unhandled attribute is not silently dropped from the diff.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Instance {
     pub name: String,
     /// argv. Empty means the config was rejected -- see `valid`.
@@ -61,6 +61,9 @@ pub struct Instance {
     pub limits: BTreeMap<String, String>,
     pub netdev: Vec<String>,
     pub file: Vec<String>,
+    /// `watch`: ubus object paths whose notifications become trigger events.
+    /// See watch.c -- this is a subscription list, not a file watch.
+    pub watch: Vec<String>,
     pub errors: Vec<String>,
     pub respawn: Option<Respawn>,
     pub term_timeout: u32,
@@ -114,6 +117,10 @@ pub struct Instance {
     /// timer per instance, as in the C: SIGKILL when halting, otherwise the
     /// respawn delay.
     pub deadline: Option<i64>,
+    /// Captured stdout/stderr, read every loop round and logged line by
+    /// line. Not part of the config diff -- they belong to the child.
+    pub log_out: Option<crate::proc::LogPipe>,
+    pub log_err: Option<crate::proc::LogPipe>,
     /// The vlist version bit `update_start` sets and a re-add clears.
     /// `update_complete` stops whatever is still marked -- that is what
     /// vlist_update/vlist_flush do across a multi-call update.
@@ -131,6 +138,7 @@ impl Instance {
             limits: BTreeMap::new(),
             netdev: Vec::new(),
             file: Vec::new(),
+            watch: Vec::new(),
             errors: Vec::new(),
             respawn: None,
             term_timeout: DEFAULT_TERM_TIMEOUT,
@@ -166,6 +174,8 @@ impl Instance {
             respawn_active: false,
             deadline: None,
             stale: false,
+            log_out: None,
+            log_err: None,
         }
     }
 
@@ -445,6 +455,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             "file" => {
                 i.file = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
             }
+            "watch" => {
+                i.watch = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+            }
             "error" => {
                 i.errors = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
             }
@@ -560,7 +573,11 @@ mod tests {
         let mut old = Instance::new("a");
         old.valid = true;
         old.command = vec!["/bin/true".into()];
-        let mut new = old.clone();
+        // Rebuilt rather than cloned: an Instance owns live pipe fds, so it
+        // is deliberately not Clone.
+        let mut new = Instance::new("a");
+        new.valid = true;
+        new.command = vec!["/bin/true".into()];
         new.data.insert("k".into(), "v".into());
         assert!(!old.config_changed(&new));
     }

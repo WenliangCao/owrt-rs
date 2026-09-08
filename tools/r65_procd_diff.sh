@@ -8,11 +8,16 @@
 # inittab, no watchdog: those are P3.2 and this harness deliberately does
 # not pretend to cover them.
 #
-# Usage: r65_procd_diff.sh <rootfs> <candidate> <outdir>
+# Usage: r65_procd_diff.sh <rootfs> <candidate> <outdir> [examples dir]
+#
+# The examples dir supplies `notifier`, which r65 needs because the `ubus`
+# CLI cannot register an object and notify from it -- and procd's `watch` is
+# a subscription to another object's notifications.
 set -eu
 root=$1
 cand=$2
 out=$3
+examples=${4:-}
 mkdir -p "$out"
 
 work=$(mktemp -d /tmp/owrt-r65-XXXXXX)
@@ -20,6 +25,10 @@ trap 'rm -rf "$work"' EXIT
 cp -a "$root" "$work/root"
 cp "$cand" "$work/root/sbin/procd-rs"
 chmod 0755 "$work/root/sbin/procd-rs"
+if [ -n "$examples" ] && [ -x "$examples/notifier" ]; then
+	cp "$examples/notifier" "$work/root/sbin/notifier"
+	chmod 0755 "$work/root/sbin/notifier"
+fi
 # ubusd refuses acl.d files it does not own; every rootfs copy needs this.
 chown -R 0:0 "$work/root/usr/share/acl.d" 2>/dev/null || true
 
@@ -41,7 +50,7 @@ mkdir -p /var/run/ubus /var/lock /var/state /tmp/out
 # instantly and the daemon would connect to a dead socket -- which is exactly
 # what happened once the build host got busy. Remove it, and wait for a real
 # round trip rather than for the inode.
-rm -f /var/run/ubus/ubus.sock
+rm -f /var/run/ubus/ubus.sock /dev/log
 /sbin/ubusd -s /var/run/ubus/ubus.sock &
 echo $! > /tmp/out/ubusd.pid
 i=0
@@ -50,6 +59,15 @@ while ! ubus list >/dev/null 2>&1 && [ $i -lt 20 ]; do
 	i=$((i+1))
 done
 ubus list >/dev/null 2>&1 || echo "bus.sh: ubusd never answered" >> /tmp/out/bus.err
+# An instance declaring stdout/stderr sends its output to syslog, so the
+# differential needs a real log daemon to read it back from.
+/sbin/logd -S 32 &
+echo $! > /tmp/out/logd.pid
+i=0
+while [ ! -S /dev/log ] && [ $i -lt 10 ]; do
+	sleep 1
+	i=$((i+1))
+done
 X
 
 cat > "$work/root/tmp/cproc.sh" <<'X'
@@ -293,7 +311,32 @@ call service watchdog '{"name":"twd"}'
 call service watchdog '{"instance":"one"}'
 call service watchdog '{"name":"twd","instance":"nope"}'
 
-# 22. the whole table, so ordering is compared too
+# 22. watch: an instance names a ubus path; that object's notifications must
+#     become trigger events. This is the netifd -> procd line
+#     (/etc/init.d/network:21 does exactly this with network.interface), so
+#     it is driven with a real second object rather than asserted.
+#
+#     The watched object is registered AFTER the watch is declared, which is
+#     the real ordering: netifd comes up after procd. If ubus.object.add is
+#     not handled, nothing fires.
+call service set '{"name":"tw","triggers":[["iface.up",[["run_script","/bin/sh","-c","echo watched:%ifname% >> /tmp/out/watched.txt"]]]],"instances":{"one":{"command":["/bin/sleep","300"],"watch":["fake.iface"]}}}'
+sleep 1
+printf -- '--- publish the watched object, then notify from it\n'
+/sbin/notifier fake.iface iface.up ifname=eth9 >/dev/null 2>&1 &
+sleep 5
+cat /tmp/out/watched.txt 2>&1 || echo "(no file)"
+
+# 23. instance stdout/stderr -> syslog, with the C's ident format
+call service set '{"name":"tlog","instances":{"one":{"command":["/bin/sh","-c","echo hello-stdout; echo hello-stderr >&2; sleep 300"],"stdout":true,"stderr":true}}}'
+sleep 3
+printf -- '--- the instance lines must reach the log, ident basename[pid]\n'
+logread 2>&1 | grep -E "hello-stdout|hello-stderr" | sed -E "s/^[A-Z][a-z]{2} +[0-9]+ [0-9:]+ //; s/\[[0-9]+\]/[PID]/" || echo "(nothing logged)"
+printf -- '--- an instance NOT asking for stdout must log nothing\n'
+call service set '{"name":"tquiet","instances":{"one":{"command":["/bin/sh","-c","echo should-not-be-logged; sleep 300"]}}}'
+sleep 3
+logread 2>&1 | grep -c "should-not-be-logged" | sed "s/^/quiet_matches=/"
+
+# 24. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X
@@ -317,7 +360,7 @@ run() {
 		chroot "$root" /bin/sh /tmp/drive.sh > "$out/$tag-calls.txt" 2>&1 || true
 		cp "$root/tmp/out/procd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		cp "$root/tmp/out/bus.err" "$out/$tag-bus.err" 2>/dev/null || true
-		for f in procd ubusd; do
+		for f in procd ubusd logd; do
 			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
 			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
 		done

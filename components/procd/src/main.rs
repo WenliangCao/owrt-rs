@@ -50,6 +50,13 @@ struct Procd {
     /// path exactly as the C's option does.
     rc: rcs::RunQueue,
     init_d: String,
+    /// `watch.c`: an anonymous object that exists only to receive other
+    /// objects' notifications, plus the ubus paths instances asked to watch.
+    watch_obj: u32,
+    /// Watched path -> which service asked for it. `watch_add`/`watch_del`.
+    watches: BTreeMap<String, Vec<String>>,
+    /// Paths we have already subscribed to, so a re-announce is a no-op.
+    subscribed: BTreeMap<String, u32>,
     triggers: trigger::Triggers,
 }
 
@@ -91,8 +98,10 @@ impl Procd {
         inst.halt = false;
         inst.restart = false;
         match proc::start(inst) {
-            Ok(pid) => {
+            Ok((pid, out, err)) => {
                 inst.pid = pid;
+                inst.log_out = out;
+                inst.log_err = err;
                 inst.state = Run::Running;
                 inst.started = now;
                 inst.deadline = None;
@@ -170,6 +179,10 @@ impl Procd {
         inst.pid = 0;
         inst.state = Run::Stopped;
         inst.deadline = None;
+        // pump_logs ran just before the reap, so anything left here is a
+        // pipe whose writer is gone; dropping it closes our read end.
+        inst.log_out = None;
+        inst.log_err = None;
 
         let mut restart = false;
         let mut event: Option<&'static str> = None;
@@ -241,6 +254,39 @@ impl Procd {
         }
         for (s, i) in start {
             self.instance_start(&s, &i);
+        }
+    }
+
+    /// Drain every live instance's captured output. `instance_stdio` builds
+    /// the ident as `basename(argv[0])[pid]` and logs with the instance's
+    /// own facility, restoring procd/LOG_DAEMON afterwards.
+    fn pump_logs(&mut self) {
+        for s in self.services.values_mut() {
+            for inst in s.instances.values_mut() {
+                if inst.log_out.is_none() && inst.log_err.is_none() {
+                    continue;
+                }
+                let arg0 = inst
+                    .command
+                    .first()
+                    .map(|c| c.rsplit('/').next().unwrap_or(c))
+                    .unwrap_or("");
+                let ident = format!("{arg0}[{}]", inst.pid);
+                let facility = inst
+                    .facility
+                    .as_deref()
+                    .map(sys::facility_from_str)
+                    .unwrap_or(sys::LOG_DAEMON);
+                for pipe in [&mut inst.log_out, &mut inst.log_err] {
+                    let Some(p) = pipe.as_mut() else { continue };
+                    let alive = p.poll_lines(|prio, line| {
+                        sys::log_instance_line(&ident, facility, prio, line);
+                    });
+                    if !alive {
+                        *pipe = None;
+                    }
+                }
+            }
         }
     }
 
@@ -318,6 +364,26 @@ impl Procd {
 
     fn dispatch(&mut self, msg: Incoming) {
         let Incoming::Invoke(req) = msg else { return };
+        // watch_notify_cb(): a notification delivered to our subscriber
+        // object arrives as an INVOKE whose method is the notification type.
+        // ubusd's own event object announces new objects the same way.
+        if req.objid == self.watch_obj {
+            let now = self.now_ms();
+            let mut vars: BTreeMap<String, String> = BTreeMap::new();
+            for f in owrt_ubus::blob::fields(&req.data) {
+                if let Some(v) = f.as_str() {
+                    vars.insert(f.name.to_string(), v.to_string());
+                }
+            }
+            if req.method == "ubus.object.add" {
+                // A watched path may have just appeared.
+                self.resubscribe();
+            } else {
+                self.triggers.fire(&req.method, &vars, now);
+            }
+            let _ = self.conn.reply_status(&req, status::OK, None);
+            return;
+        }
         let target = if req.objid == self.objects.service {
             Target::Service
         } else if req.objid == self.objects.container {
@@ -516,6 +582,7 @@ impl Procd {
         if data_changed {
             self.data_trigger(&name);
         }
+        self.refresh_watches(&name);
         // service_update() ends with
         //   if (init || tb[SERVICE_SET_INSTANCES]) rc(s->name, "running");
         // This is the `instances` half; the `init` half is at the early
@@ -547,6 +614,69 @@ impl Procd {
             self.instance_restart(svc, name);
         } else if data_changed {
             self.data_trigger(svc);
+        }
+    }
+
+    /// `watch_add()`: remember which ubus paths a service's instances want,
+    /// and subscribe to any that already exist. `watch_del()` first, so a
+    /// `set` replaces rather than accumulates.
+    fn refresh_watches(&mut self, svc: &str) {
+        self.watches.remove(svc);
+        let mut paths: Vec<String> = Vec::new();
+        if let Some(s) = self.services.get(svc) {
+            for i in s.instances.values() {
+                for w in &i.watch {
+                    if !paths.contains(w) {
+                        paths.push(w.clone());
+                    }
+                }
+            }
+        }
+        if paths.is_empty() {
+            self.resubscribe();
+            return;
+        }
+        self.watches.insert(svc.to_string(), paths);
+        self.resubscribe();
+    }
+
+    /// Subscribe to every watched path that exists and is not already
+    /// subscribed. Called after a config change and again whenever ubusd
+    /// announces a new object.
+    fn resubscribe(&mut self) {
+        let wanted: Vec<String> = {
+            let mut v: Vec<String> = self.watches.values().flatten().cloned().collect();
+            v.sort();
+            v.dedup();
+            v
+        };
+        // Drop subscriptions nothing wants any more.
+        let stale: Vec<String> = self
+            .subscribed
+            .keys()
+            .filter(|p| !wanted.contains(p))
+            .cloned()
+            .collect();
+        for p in stale {
+            if let Some(id) = self.subscribed.remove(&p) {
+                let _ = self.conn.unsubscribe(self.watch_obj, id, 1000);
+            }
+        }
+        for path in wanted {
+            if self.subscribed.contains_key(&path) {
+                continue;
+            }
+            // A path that does not exist yet is not an error: the
+            // ubus.object.add event brings us back here when it appears.
+            let Ok(id) = self.conn.lookup_id(&path, 1000) else {
+                continue;
+            };
+            match self.conn.subscribe(self.watch_obj, id, 1000) {
+                Ok(()) => {
+                    self.subscribed.insert(path, id);
+                }
+                Err(e) => eprintln!("procd-rs: failed to subscribe {path}: {e}"),
+            }
         }
     }
 
@@ -1109,12 +1239,27 @@ fn run() -> io::Result<()> {
         validator_seq: 0,
         rc: rcs::RunQueue::default(),
         init_d: init_d_path(),
+        watch_obj: 0,
+        watches: BTreeMap::new(),
+        subscribed: BTreeMap::new(),
         triggers: trigger::Triggers::default(),
     };
 
     p.objects.service = p.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
     p.objects.container = p.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
     p.objects.system = p.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
+
+    // watch_ubus(): an anonymous subscriber object, then a subscription to
+    // ubusd's event object so `ubus.object.add` tells us when a watched path
+    // finally appears. netifd registers network.interface after procd is
+    // already running, so without this the watch would never attach.
+    p.watch_obj = p.conn.add_anonymous_object(1000)?;
+    if let Err(e) = p
+        .conn
+        .register_event_handler(p.watch_obj, Some("ubus.object.add"), 1000)
+    {
+        eprintln!("procd-rs: failed to add ubus event handler: {e}");
+    }
 
     loop {
         // Drain anything already buffered before blocking: a poll on the
@@ -1126,6 +1271,10 @@ fn run() -> io::Result<()> {
                 Err(_) => break,
             }
         }
+        // Drain output BEFORE reaping: a child that just exited may have
+        // left its last lines in the pipe, and closing it on reap would
+        // lose them.
+        p.pump_logs();
         p.reap();
         p.fire_timeouts();
         p.pump_triggers();

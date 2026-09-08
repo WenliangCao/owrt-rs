@@ -163,3 +163,89 @@ mod tests {
         assert_eq!(uid, 0);
     }
 }
+
+extern "C" {
+    fn openlog(ident: *const u8, option: i32, facility: i32);
+    fn syslog(priority: i32, format: *const u8, arg: *const u8);
+    fn closelog();
+}
+
+/// `LOG_INFO` and `LOG_ERR`: an instance's stdout is logged at info, its
+/// stderr at error (`instance_stdout` / `instance_stderr`).
+pub const LOG_ERR: i32 = 3;
+pub const LOG_INFO: i32 = 6;
+/// `LOG_DAEMON`, the facility procd restores after each instance line.
+pub const LOG_DAEMON: i32 = 3 << 3;
+
+/// `facilitynames` from <syslog.h>, which `syslog_facility_str_to_int()`
+/// walks. An unmatched name yields the terminator's value, -1, and the C
+/// stores that verbatim -- so an unknown facility is -1, not a default.
+pub const FACILITY_NAMES: &[(&str, i32)] = &[
+    ("auth", 4 << 3),
+    ("authpriv", 10 << 3),
+    ("cron", 9 << 3),
+    ("daemon", 3 << 3),
+    ("ftp", 11 << 3),
+    ("kern", 0),
+    ("lpr", 6 << 3),
+    ("mail", 2 << 3),
+    ("mark", 24 << 3),
+    ("news", 7 << 3),
+    ("security", 4 << 3),
+    ("syslog", 5 << 3),
+    ("user", 1 << 3),
+    ("uucp", 8 << 3),
+    ("local0", 16 << 3),
+    ("local1", 17 << 3),
+    ("local2", 18 << 3),
+    ("local3", 19 << 3),
+    ("local4", 20 << 3),
+    ("local5", 21 << 3),
+    ("local6", 22 << 3),
+    ("local7", 23 << 3),
+];
+
+/// `syslog_facility_str_to_int()`. Case-insensitive; -1 when nothing matches.
+pub fn facility_from_str(name: &str) -> i32 {
+    FACILITY_NAMES
+        .iter()
+        .find(|(n, _)| n.eq_ignore_ascii_case(name))
+        .map(|(_, v)| *v)
+        .unwrap_or(-1)
+}
+
+/// One line of an instance's output, logged the way `instance_stdio` does:
+/// reopen the log with the instance's ident and facility, write, then put the
+/// log back to `procd`/LOG_DAEMON so procd's own messages are unaffected.
+///
+/// Using the platform's syslog(3) rather than formatting a datagram by hand
+/// is deliberate: libubox's ulog calls the same function, so the framing,
+/// timestamp and truncation behaviour cannot drift apart.
+pub fn log_instance_line(ident: &str, facility: i32, priority: i32, line: &str) {
+    let (Ok(cid), Ok(cline)) = (CString::new(ident), CString::new(line)) else {
+        return;
+    };
+    let fmt = c"%s";
+    // SAFETY: all three strings are NUL-terminated and outlive the calls.
+    // openlog retains `cid`'s pointer until the next openlog, which is why
+    // the restore below happens before this function returns.
+    unsafe {
+        openlog(cid.as_ptr() as *const u8, 0, facility);
+        syslog(priority, fmt.as_ptr() as *const u8, cline.as_ptr() as *const u8);
+        closelog();
+        openlog(c"procd".as_ptr() as *const u8, 0, LOG_DAEMON);
+    }
+}
+
+#[cfg(test)]
+mod log_tests {
+    use super::*;
+
+    #[test]
+    fn an_unknown_facility_is_minus_one_not_a_default() {
+        assert_eq!(facility_from_str("daemon"), LOG_DAEMON);
+        assert_eq!(facility_from_str("DAEMON"), LOG_DAEMON);
+        assert_eq!(facility_from_str("local3"), 19 << 3);
+        assert_eq!(facility_from_str("no-such-facility"), -1);
+    }
+}

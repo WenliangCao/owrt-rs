@@ -12,6 +12,7 @@
 //! of immediately. netifd-rs already works this way.
 
 use std::io;
+use std::os::fd::AsRawFd;
 use std::os::unix::process::CommandExt;
 use std::process::{Command, Stdio};
 
@@ -28,6 +29,76 @@ const WNOHANG: i32 = 1;
 pub const SIGTERM: i32 = 15;
 pub const SIGKILL: i32 = 9;
 
+/// A child's captured output pipe plus the tail of a line that has not
+/// arrived in full yet.
+#[derive(Debug)]
+pub struct LogPipe {
+    pub fd: std::os::fd::OwnedFd,
+    partial: String,
+    priority: i32,
+}
+
+/// How much of one pipe a single poll round will take. Unbounded reading
+/// lets a chatty service starve the rest of the loop; netifd-rs uses the
+/// same budget for the same reason.
+const READ_BUDGET: usize = 64 * 1024;
+/// A line this long without a newline is logged as-is rather than buffered
+/// forever, so a service printing endless output cannot grow this process.
+const PARTIAL_MAX: usize = 64 * 1024;
+
+impl LogPipe {
+    pub fn new(fd: std::os::fd::OwnedFd, priority: i32) -> io::Result<Self> {
+        owrt_ubus::sys::set_nonblocking(fd.as_raw_fd())?;
+        Ok(LogPipe { fd, partial: String::new(), priority })
+    }
+
+    /// Read what is available and hand each complete line to `emit`.
+    /// Returns false once the write end is closed and nothing is left.
+    pub fn poll_lines(&mut self, mut emit: impl FnMut(i32, &str)) -> bool {
+        let mut buf = [0u8; 4096];
+        let mut taken = 0;
+        loop {
+            if taken >= READ_BUDGET {
+                return true;
+            }
+            // SAFETY: read(2) into a buffer we own, with its real length.
+            let n = unsafe {
+                libc_read(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len())
+            };
+            if n > 0 {
+                taken += n as usize;
+                self.partial.push_str(&String::from_utf8_lossy(&buf[..n as usize]));
+                while let Some(at) = self.partial.find('\n') {
+                    let line: String = self.partial.drain(..=at).collect();
+                    emit(self.priority, line.trim_end_matches('\n'));
+                }
+                if self.partial.len() > PARTIAL_MAX {
+                    let line = std::mem::take(&mut self.partial);
+                    emit(self.priority, &line);
+                }
+                continue;
+            }
+            if n == 0 {
+                // Write end closed. Flush whatever is left, as the C's
+                // ustream does when the buffer is full without a newline.
+                if !self.partial.is_empty() {
+                    let line = std::mem::take(&mut self.partial);
+                    emit(self.priority, &line);
+                }
+                return false;
+            }
+            // n < 0: EAGAIN means "nothing right now", anything else ends it.
+            let e = io::Error::last_os_error();
+            return e.kind() == io::ErrorKind::WouldBlock;
+        }
+    }
+}
+
+extern "C" {
+    #[link_name = "read"]
+    fn libc_read(fd: i32, buf: *mut u8, count: usize) -> isize;
+}
+
 /// Start the instance's command. Returns the child pid.
 ///
 /// The order inside the child follows `instance_run()`: nice, env, limits,
@@ -36,7 +107,7 @@ pub const SIGKILL: i32 = 9;
 ///
 /// A jailed instance skips the privilege drop entirely -- ujail does it, and
 /// doing it here as well would leave ujail unable to set up the sandbox.
-pub fn start(inst: &Instance) -> io::Result<i32> {
+pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPipe>)> {
     if inst.command.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
     }
@@ -61,13 +132,21 @@ pub fn start(inst: &Instance) -> io::Result<i32> {
         }
     }
 
-    // The C sends stdout/stderr to a log pipe when the instance asked for it,
-    // and to /dev/null otherwise. Nothing consumes the pipe in this stage, and
-    // an unread pipe is how a supervised process deadlocks, so both go to
-    // /dev/null until the log path lands. Recorded as a gap, not a decision.
+    // The C sends stdout/stderr to a pipe it reads when the instance asked
+    // for it, and to /dev/null otherwise. The pipes here are read every loop
+    // round with a budget: an unread pipe is exactly how a supervised
+    // process deadlocks once it fills the 64 KiB buffer.
     cmd.stdin(Stdio::null());
-    cmd.stdout(Stdio::null());
-    cmd.stderr(Stdio::null());
+    if inst.stdout_to_log {
+        cmd.stdout(Stdio::piped());
+    } else {
+        cmd.stdout(Stdio::null());
+    }
+    if inst.stderr_to_log {
+        cmd.stderr(Stdio::piped());
+    } else {
+        cmd.stderr(Stdio::null());
+    }
 
     let nice = inst.nice;
     let limits = inst.limits.clone();
@@ -111,8 +190,20 @@ pub fn start(inst: &Instance) -> io::Result<i32> {
         });
     }
 
-    let child = cmd.spawn()?;
-    Ok(child.id() as i32)
+    let mut child = cmd.spawn()?;
+    let pid = child.id() as i32;
+    let out = match child.stdout.take() {
+        Some(p) => Some(LogPipe::new(std::os::fd::OwnedFd::from(p), crate::sys::LOG_INFO)?),
+        None => None,
+    };
+    let err = match child.stderr.take() {
+        Some(p) => Some(LogPipe::new(std::os::fd::OwnedFd::from(p), crate::sys::LOG_ERR)?),
+        None => None,
+    };
+    // `child` is dropped here without waiting; the loop reaps by pid the way
+    // the rest of this supervisor does.
+    std::mem::forget(child);
+    Ok((pid, out, err))
 }
 
 /// `waitpid(pid, &status, WNOHANG)`. `Some(status)` when the child reaped,

@@ -306,8 +306,26 @@ impl Connection {
         methods: &[(&str, &[(&str, MsgType)])],
         timeout_ms: i32,
     ) -> io::Result<u32> {
+        self.add_object_maybe_anonymous(Some(path), methods, timeout_ms)
+    }
+
+    /// Register an object with no path. ubusd assigns an id but the object is
+    /// not listed and cannot be invoked by name -- which is what a subscriber
+    /// is. `ubus_register_subscriber` does exactly this before subscribing.
+    pub fn add_anonymous_object(&mut self, timeout_ms: i32) -> io::Result<u32> {
+        self.add_object_maybe_anonymous(None, &[], timeout_ms)
+    }
+
+    fn add_object_maybe_anonymous(
+        &mut self,
+        path: Option<&str>,
+        methods: &[(&str, &[(&str, MsgType)])],
+        timeout_ms: i32,
+    ) -> io::Result<u32> {
         let mut b = BlobBuf::new();
-        b.put_string(attr::OBJPATH, path);
+        if let Some(path) = path {
+            b.put_string(attr::OBJPATH, path);
+        }
         let sig = b.nest_start(attr::SIGNATURE);
         for (name, policy) in methods {
             let table = b.msg_open_table(name);
@@ -331,6 +349,66 @@ impl Connection {
             }
         }
         Err(ubus_error(status::NO_DATA))
+    }
+
+    /// ubusd's built-in event object. Subscribing to it is how libubus
+    /// implements `ubus_register_event_handler`.
+    pub const SYSTEM_OBJECT_EVENT: u32 = 1;
+
+    /// `ubus_register_event_handler`: ask ubusd to deliver events matching
+    /// `pattern` (or every event when None) to our object `objid`.
+    ///
+    /// This is NOT a subscribe -- it is an invoke of `register` on ubusd's
+    /// event object, and the events then arrive as INVOKEs on `objid` whose
+    /// method is the event name. Subscribing to object 1 instead silently
+    /// delivers nothing.
+    pub fn register_event_handler(
+        &mut self,
+        objid: u32,
+        pattern: Option<&str>,
+        timeout_ms: i32,
+    ) -> io::Result<()> {
+        let mut b = BlobBuf::new();
+        b.msg_u32("object", objid);
+        if let Some(p) = pattern {
+            b.msg_string("pattern", p);
+        }
+        let fields = b.payload().to_vec();
+        let reply =
+            self.invoke_status(Self::SYSTEM_OBJECT_EVENT, "register", &fields, timeout_ms)?;
+        if reply.status != status::OK {
+            return Err(ubus_error(reply.status));
+        }
+        Ok(())
+    }
+
+    /// Subscribe our object `objid` to notifications from `target`.
+    /// `ubus_subscribe(ctx, sub, target)`.
+    ///
+    /// A notification then arrives as an ordinary INVOKE addressed to
+    /// `objid`, with the notification type in the method field -- which is
+    /// why a subscriber needs no methods of its own.
+    pub fn subscribe(&mut self, objid: u32, target: u32, timeout_ms: i32) -> io::Result<()> {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, objid);
+        b.put_u32(attr::TARGET, target);
+        let reply = self.request(ty::SUBSCRIBE, 0, &mut b, None, timeout_ms)?;
+        if reply.status != status::OK {
+            return Err(ubus_error(reply.status));
+        }
+        Ok(())
+    }
+
+    /// Ask ubusd to stop sending `target`'s notifications to `objid`.
+    pub fn unsubscribe(&mut self, objid: u32, target: u32, timeout_ms: i32) -> io::Result<()> {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, objid);
+        b.put_u32(attr::TARGET, target);
+        let reply = self.request(ty::UNSUBSCRIBE, 0, &mut b, None, timeout_ms)?;
+        if reply.status != status::OK {
+            return Err(ubus_error(reply.status));
+        }
+        Ok(())
     }
 
     /// Send a notification to subscribers of our object (no reply requested).
