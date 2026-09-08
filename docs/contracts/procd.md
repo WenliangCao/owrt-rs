@@ -51,9 +51,10 @@ if (in->respawn_count > in->respawn_retry && in->respawn_retry > 0)
 
 `term_timeout` 的默认值 5 在 `instance_init` 里，不在解析里。
 
-> **2026-09-08：以下第 3 条和第 10 条已被 [R68](../reviews/R68_ASTRA_P31_REVIEW.md)
-> 的反例推翻，第 1、4、5、6、7、8、9 条条件写宽了。逐条修订前不要引用本文件
-> 作为合同依据。**
+> **2026-09-08 修订。** [R68](../reviews/R68_ASTRA_P31_REVIEW.md) 推翻了原第 3
+> 和第 10 条，其余多条条件写宽了。第 3、10 条已按反例改写，并补了第 12 节
+> 记录 R68 复现出来、原文完全没写的行为。仍未逐条收窄的是第 1、4、5、6、
+> 8、9 条的边界条件——它们的主体结论有源码依据，但**不要把它们当成完整定义**。
 
 ## 3. reload_signal 让 restart 不再是 restart（**这一条是错的**）
 
@@ -175,6 +176,39 @@ r65 用两次 `service list` 取 pid 比过这条。
 
 `instance_dump()` 的 `watchdog` 表在**最后**，而且只在 mode 非 disabled 时出现。
 
+## 12. R68 复现出来、原文没写的行为
+
+这些是外部审查用实测反例确立的，不是从一次运行反推的：
+
+- **`instance_update` 的顺序**：运行中的实例先按**旧配置**处理旧进程
+  （`instance_restart`），再搬新配置。所以一次"加上 `reload_signal`"的更新，
+  发的是旧配置的信号——也就是没有信号，走正常重启。
+- **exec 失败是子进程的事**：C 先 fork，`execvp` 失败由子进程 `exit(127)`，
+  因此走完整的 `instance_exit`，**respawn 预算生效**，一个稍后才出现的命令
+  会被重试成功。父进程记个 127 就停下，在 `list` 里看起来一样，行为完全不同。
+- **崩溃预算耗尽后实例保留**：`running=false`、带最后的 `exit_code`、
+  **不再输出 `respawn`**（因为 dump 看的是当前预算，不是存下来的策略）。
+- **`running` 是 `proc.pending`**：SIGTERM 宽限期内进程还活着，
+  `running` 仍是 true、`pid` 仍在。用"打算停了"代替"进程还在"会让调用方
+  以为进程已经没了。
+- **没有显式 `group` 时主 GID 来自 passwd**，不是 UID。
+- **`file`/`netdev` 比的是内容和身份**：`file` 存 MD5、`netdev` 存 ifindex，
+  都是在**解析新配置时取快照**再和旧快照比。同路径文件被重新生成、
+  同名接口被重建，都算变化。这不是持续监视器。
+- **trigger 的 requeue 条件是 `!delay.pending`**，包含"延迟已到、
+  已入队但还没拿到运行槽位"。只看"正在跑"会丢掉一次执行。
+- **规则按对象归属**：服务的规则和它每个实例的规则是分开释放的；
+  实例的 `triggers` 也要注册，不注册就永远不触发。
+- **`service.data.update` 走内部规则引擎**，不是往 ubus 对象发通知；
+  并且按**旧键、新键**两轮触发。
+- **jail 的三个前置条件**：`trace` 会取消 jail；`/sbin/ujail` 不存在时，
+  声明了 `require` 的实例**整个无效**，没声明的**静默失去沙箱照常运行**。
+- **每实例 watchdog 是软件定时器**，`getpid() != 1` 时同样会动：超时后
+  有 respawn 的重启、没有的直接停掉。配置值经 `atoi` 存进 `uint32_t`，
+  `"-1"` 变成 `0xffffffff` 并**不会**回落到 30。
+- **validate 合并不重排**：多个 validator 合进同一个 package/type 时，
+  各自的 rules 按自己的 avl 顺序加入，先加的在前。
+
 ## 11. 本实现与原版的已知差异
 
 - **子进程回收**用事件循环里的 `waitpid(WNOHANG)` 轮询，不是 SIGCHLD 处理器，
@@ -184,9 +218,9 @@ r65 用两次 `service list` 取 pid 比过这条。
 - **实例日志 FD**：原版在实例声明 `stdout`/`stderr` 时把它们接到自己读的管道。
   这里两个都指向 `/dev/null`。没人消费的管道正是被监管进程死锁的方式，
   所以在日志通路落地前不接管道。
-- **每实例 watchdog 定时器不会触发。** 取值、`self_managed` 位和 `list` 输出
-  对齐了，但定时器没做。**把它整个归到 P3.2 是错的**——R68/F16 实测 C 在
-  `getpid() != 1` 下同样会在超时时停掉实例，所以这是 P3.1 的范围，
+- ~~每实例 watchdog 定时器不会触发~~ **已实现**（软件定时器，超时后
+  按 respawn 决定重启还是停止）。系统 `/dev/watchdog`、`WDTFD` 继承和
+  magic close 仍属于 P3.2，
   所以 mode=active 的实例不会因为超时被重启。
 - **container 对象**只为签名对齐而注册，容器方法一律拒绝；本机
   `ubus call service list` 没有任何容器。
