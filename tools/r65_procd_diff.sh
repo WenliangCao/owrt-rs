@@ -793,7 +793,9 @@ for t in c rs; do
 		echo "r65: $t reported a running instance with a non-positive pid" >&2
 		rc=1
 	fi
-	n=$(grep -c '"pid":' "$out/$t-calls.txt" || true)
+	# An absent calls file makes grep print nothing, and `[ "" -lt 1 ]` is an
+	# error rather than true -- which would skip this check instead of firing it.
+	n=$(grep -c '"pid":' "$out/$t-calls.txt" 2>/dev/null || true); [ -n "$n" ] || n=0
 	if [ "$n" -lt 1 ]; then
 		echo "r65: $t never reported a pid at all -- nothing was running" >&2
 		rc=1
@@ -829,7 +831,7 @@ done
 # A run where almost everything failed would still diff clean. Count the
 # failures and refuse a run that is mostly errors.
 for t in c rs; do
-	f=$(grep -c "Command failed" "$out/$t-calls.txt" || true)
+	f=$(grep -c "Command failed" "$out/$t-calls.txt" 2>/dev/null || true); [ -n "$f" ] || f=0
 	echo "$t: $f failed calls" >> "$out/coverage.txt"
 	if [ "$f" -gt 12 ]; then
 		echo "r65: $t had $f failed calls -- the run is mostly errors" >&2
