@@ -10,8 +10,10 @@
 //! `service/instance.c`.
 
 mod instance;
+mod jsonscript;
 mod proc;
 mod service;
+mod trigger;
 mod sys;
 mod ubus;
 
@@ -41,6 +43,7 @@ struct Procd {
     objects: Objects,
     services: BTreeMap<String, Service>,
     base: Instant,
+    triggers: trigger::Triggers,
 }
 
 impl Procd {
@@ -246,8 +249,20 @@ impl Procd {
                 }
             }
             let Some((sname, iname)) = found else {
-                // An orphan we never started. PID 1 must reap these; as an
-                // ordinary daemon we simply will not see many of them.
+                // Not an instance. It may be a trigger command -- reap_any()
+                // consumes the status for the whole process, so the trigger
+                // table has to be told here rather than polling waitpid
+                // itself, or the exit would be lost.
+                if let Some(c) =
+                    self.triggers.pending.iter_mut().find(|c| c.pid == Some(pid))
+                {
+                    c.pid = None;
+                    c.finished = true;
+                    continue;
+                }
+                // Otherwise an orphan we never started. PID 1 must reap
+                // these; as an ordinary daemon we rarely see them.
+                let _ = wstatus;
                 continue;
             };
             if self.instance_exited(&sname, &iname, wstatus) {
@@ -318,6 +333,7 @@ impl Procd {
             (Target::Service, "update_complete") => self.handle_update(&req, false),
             (Target::Service, "get_data") => self.handle_get_data(&req),
             (Target::Service, "set_data") => self.handle_set_data(&req),
+            (Target::Service, "event") => self.handle_event(&req),
             _ => status::NOT_SUPPORTED,
         };
         let _ = self.conn.reply_status(&req, code, None);
@@ -372,9 +388,23 @@ impl Procd {
         } else if init {
             s.autostart = true;
         }
-        if trigger.is_some() {
-            s.trigger = trigger;
+        if let Some(t) = trigger {
+            // service_update(): the old rules go before the new ones are
+            // added, so a `set` that changes triggers does not accumulate.
+            s.trigger = Some(t);
+            let raw = s.trigger.clone().expect("just assigned");
+            self.triggers.del(&name);
+            let f = owrt_ubus::blob::Field {
+                name: "",
+                ty: owrt_ubus::blob::MsgType::Array as u32,
+                data: &raw,
+            };
+            self.triggers.add(f, &name);
+            // Re-borrow: the trigger update needed `self`.
+            let s = self.services.get_mut(&name).expect("service exists");
+            let _ = s;
         }
+        let s = self.services.get_mut(&name).expect("service exists");
         let data_changed = saw_data && s.data != data;
         if saw_data {
             s.data = data;
@@ -540,6 +570,100 @@ impl Procd {
             }
         }
         status::OK
+    }
+
+    /// `service_handle_event()`. Both `type` and `data` are required. The
+    /// event fires matching triggers, then goes out as an `event.trigger`
+    /// notification; a `config.change` additionally broadcasts on the bus so
+    /// non-procd listeners see it.
+    fn handle_event(&mut self, req: &Request) -> i32 {
+        let now = self.now_ms();
+        let mut kind: Option<String> = None;
+        let mut vars: BTreeMap<String, String> = BTreeMap::new();
+        let mut data: Option<Vec<u8>> = None;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "type" => kind = f.as_str().map(str::to_string),
+                "data" => {
+                    data = Some(f.data.to_vec());
+                    for c in f.children() {
+                        if let Some(v) = c.as_str() {
+                            vars.insert(c.name.to_string(), v.to_string());
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        let (Some(kind), Some(data)) = (kind, data) else {
+            return status::INVALID_ARGUMENT;
+        };
+
+        self.triggers.fire(&kind, &vars, now);
+
+        let mut b = BlobBuf::new();
+        b.msg_string("type", &kind);
+        b.msg_field(owrt_ubus::blob::MsgType::Table as u32, "data", &data);
+        let _ = self.conn.notify(self.objects.service, "event.trigger", b.payload());
+        status::OK
+    }
+
+    /// Start whatever queued trigger commands are due, and reap the ones
+    /// that finished. The runqueue is width one, so at most one command runs
+    /// at a time and an identical command that arrived meanwhile requeues.
+    fn pump_triggers(&mut self) {
+        let now = self.now_ms();
+
+        // `reap()` has already cleared `pid` and set `finished` for anything
+        // that exited. A finished command either requeues once or goes away.
+        let mut i = 0;
+        while i < self.triggers.pending.len() {
+            if !self.triggers.pending[i].finished {
+                i += 1;
+                continue;
+            }
+            if self.triggers.pending[i].requeue {
+                let c = &mut self.triggers.pending[i];
+                c.requeue = false;
+                c.finished = false;
+                c.due = now;
+                i += 1;
+            } else {
+                self.triggers.pending.remove(i);
+            }
+        }
+
+        if self.triggers.pending.iter().any(|c| c.pid.is_some()) {
+            return;
+        }
+        let Some(slot) = self
+            .triggers
+            .pending
+            .iter()
+            .position(|c| c.pid.is_none() && now >= c.due)
+        else {
+            return;
+        };
+        let argv = self.triggers.pending[slot].argv.clone();
+        if argv.is_empty() {
+            self.triggers.pending.remove(slot);
+            return;
+        }
+        // stdio to /dev/null, as trigger_command_run does below debug level 3.
+        match std::process::Command::new(&argv[0])
+            .args(&argv[1..])
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+        {
+            Ok(child) => self.triggers.pending[slot].pid = Some(child.id() as i32),
+            // The C forks and the child exits 1 when exec fails; either way
+            // the queue entry goes away.
+            Err(_) => {
+                self.triggers.pending.remove(slot);
+            }
+        }
     }
 
     /// `service_handle_state()`. `spawn` is a target state for every
@@ -781,6 +905,7 @@ fn run() -> io::Result<()> {
         objects: Objects::default(),
         services: BTreeMap::new(),
         base: Instant::now(),
+        triggers: trigger::Triggers::default(),
     };
 
     p.objects.service = p.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
@@ -799,6 +924,7 @@ fn run() -> io::Result<()> {
         }
         p.reap();
         p.fire_timeouts();
+        p.pump_triggers();
 
         match p.conn.next_incoming(200) {
             Ok(Some(msg)) => p.dispatch(msg),

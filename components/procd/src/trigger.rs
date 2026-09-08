@@ -1,0 +1,215 @@
+//! procd's triggers: rules from `service set`, matched against events, that
+//! run `run_script` commands.
+//!
+//! Source of truth is `service/trigger.c`. Three things there are easy to
+//! miss and all of them are observable:
+//!
+//! - `trigger_match` truncates the pattern at `.*` and prefix-compares. The
+//!   dot is NOT part of the prefix -- `strncmp(event, match, wildcard - match)`
+//!   with `match = "interface.*"` compares nine characters, so `interfaceX`
+//!   matches too. There is no glob engine and no separator handling.
+//! - `rule_handle_command` honours exactly one command name, `run_script`.
+//!   Every other command the rule produces is silently dropped.
+//! - commands are deduplicated by their whole expanded argv while pending,
+//!   and run through a runqueue of width one, so two events that produce the
+//!   same command coalesce into a single run.
+
+use std::collections::BTreeMap;
+
+use owrt_ubus::blob::{Field, MsgType};
+
+use crate::jsonscript;
+
+/// One `[type, script, timeout?]` triple from a service's `triggers` array.
+#[derive(Debug)]
+pub struct Trigger {
+    pub kind: String,
+    /// The script array, kept encoded so it can be re-walked per event.
+    pub script: Vec<u8>,
+    pub timeout_ms: u32,
+    /// Which service registered it, so `trigger_del` can drop the right ones.
+    pub owner: String,
+}
+
+/// A command waiting to run. Keyed by its argv, which is how the C's
+/// `trigger_pending` avl tree deduplicates.
+#[derive(Debug)]
+pub struct Pending {
+    pub argv: Vec<String>,
+    /// Monotonic ms at which it should start.
+    pub due: i64,
+    /// Set when an identical command arrives while this one is running.
+    pub requeue: bool,
+    /// Live child, once started.
+    pub pid: Option<i32>,
+    /// The child has been reaped by the main loop's waitpid and this entry
+    /// is waiting to be requeued or dropped.
+    pub finished: bool,
+}
+
+#[derive(Debug, Default)]
+pub struct Triggers {
+    pub list: Vec<Trigger>,
+    pub pending: Vec<Pending>,
+}
+
+/// `trigger_match()`. A `.*` anywhere in the pattern truncates it there and
+/// turns the comparison into a prefix test on what came before -- the dot is
+/// dropped with the star. Otherwise it is exact equality.
+pub fn matches(event: &str, pattern: &str) -> bool {
+    match pattern.find(".*") {
+        Some(at) => event.starts_with(&pattern[..at]),
+        None => event == pattern,
+    }
+}
+
+impl Triggers {
+    /// `trigger_add()`. Entries that are not arrays, or whose first two
+    /// elements are not a string and an array, are skipped without comment --
+    /// the C's switch simply leaves `type` or `script` null.
+    pub fn add(&mut self, rule: Field<'_>, owner: &str) {
+        for cur in rule.children() {
+            if cur.ty != MsgType::Array as u32 {
+                continue;
+            }
+            let mut kind: Option<String> = None;
+            let mut script: Option<Vec<u8>> = None;
+            let mut timeout: u32 = 0;
+            for (i, e) in cur.children().enumerate() {
+                match i {
+                    0 => kind = e.as_str().map(str::to_string),
+                    1 => {
+                        if e.ty == MsgType::Array as u32 {
+                            script = Some(e.data.to_vec());
+                        }
+                    }
+                    2 if e.ty == MsgType::Int32 as u32 => {
+                        timeout = e.as_u32().unwrap_or(0);
+                    }
+                    _ => {}
+                }
+            }
+            if let (Some(kind), Some(script)) = (kind, script) {
+                self.list.push(Trigger {
+                    kind,
+                    script,
+                    timeout_ms: timeout,
+                    owner: owner.to_string(),
+                });
+            }
+        }
+    }
+
+    /// `trigger_del()`: drop every trigger a given service registered.
+    pub fn del(&mut self, owner: &str) {
+        self.list.retain(|t| t.owner != owner);
+    }
+
+    /// `trigger_event()`: run every matching trigger's script with the event
+    /// data as variables, and queue the `run_script` commands it produced.
+    pub fn fire(&mut self, event: &str, vars: &BTreeMap<String, String>, now: i64) {
+        let mut queued: Vec<(Vec<String>, u32)> = Vec::new();
+        for t in self.list.iter() {
+            if !matches(event, &t.kind) {
+                continue;
+            }
+            // The stored script payload is an array body; wrap it back into a
+            // Field so the engine sees the same shape json_script_run does.
+            let block = Field {
+                name: "",
+                ty: MsgType::Array as u32,
+                data: &t.script,
+            };
+            let out = jsonscript::run(block, vars);
+            for (name, args) in out.commands {
+                // rule_handle_command honours run_script and nothing else.
+                if name == "run_script" {
+                    queued.push((args, t.timeout_ms));
+                }
+            }
+            for e in out.errors {
+                eprintln!("procd-rs: trigger {}: {e}", t.kind);
+            }
+        }
+        for (argv, timeout) in queued {
+            self.queue(argv, timeout, now);
+        }
+    }
+
+    /// `trigger_command_add()`. A pending copy has its timer extended, never
+    /// shortened; a running copy is marked for one requeue; otherwise a new
+    /// entry is created with a delay of at least 1 ms.
+    fn queue(&mut self, argv: Vec<String>, timeout_ms: u32, now: i64) {
+        if let Some(cmd) = self.pending.iter_mut().find(|c| c.argv == argv) {
+            if cmd.pid.is_some() {
+                cmd.requeue = true;
+                return;
+            }
+            let want = now + timeout_ms as i64;
+            if cmd.due < want {
+                cmd.due = want;
+            }
+            return;
+        }
+        let delay = if timeout_ms > 0 { timeout_ms as i64 } else { 1 };
+        self.pending.push(Pending {
+            argv,
+            due: now + delay,
+            requeue: false,
+            pid: None,
+            finished: false,
+        });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_dot_star_suffix_is_a_prefix_match_and_nothing_else() {
+        assert!(matches("interface.up", "interface.*"));
+        assert!(matches("interface.", "interface.*"));
+        // strncmp compares only what precedes ".*", so the dot is not part
+        // of the prefix and an event with no separator matches as well.
+        // This assertion was originally the other way round and the test
+        // caught it.
+        assert!(matches("interfaceX", "interface.*"));
+        assert!(!matches("interfac", "interface.*"));
+        // Without a wildcard it is exact.
+        assert!(matches("config.change", "config.change"));
+        assert!(!matches("config.changed", "config.change"));
+    }
+
+    #[test]
+    fn an_identical_pending_command_extends_but_never_shortens() {
+        let mut t = Triggers::default();
+        t.queue(vec!["a".into()], 5000, 0);
+        assert_eq!(t.pending.len(), 1);
+        assert_eq!(t.pending[0].due, 5000);
+        // A shorter timeout must not pull the deadline in.
+        t.queue(vec!["a".into()], 100, 0);
+        assert_eq!(t.pending.len(), 1);
+        assert_eq!(t.pending[0].due, 5000);
+        // A longer one pushes it out.
+        t.queue(vec!["a".into()], 9000, 0);
+        assert_eq!(t.pending[0].due, 9000);
+    }
+
+    #[test]
+    fn a_running_command_is_requeued_once_rather_than_duplicated() {
+        let mut t = Triggers::default();
+        t.queue(vec!["a".into()], 0, 0);
+        t.pending[0].pid = Some(1234);
+        t.queue(vec!["a".into()], 0, 0);
+        assert_eq!(t.pending.len(), 1);
+        assert!(t.pending[0].requeue);
+    }
+
+    #[test]
+    fn a_zero_timeout_still_gets_a_one_millisecond_delay() {
+        let mut t = Triggers::default();
+        t.queue(vec!["a".into()], 0, 100);
+        assert_eq!(t.pending[0].due, 101);
+    }
+}

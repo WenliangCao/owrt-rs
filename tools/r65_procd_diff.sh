@@ -184,7 +184,50 @@ sleep 1
 printf -- '--- autostart false: flag printed, instance must NOT be running\n'
 call service list '{"name":"tc"}'
 
-# 18. the whole table, so ordering is compared too
+# 18. triggers: a rule that fires run_script on a matching event.
+#     The command writes a file, so what actually ran is observable rather
+#     than inferred from a log line.
+call service set '{"name":"td","triggers":[["mytrig.*",[["if",["eq","ACT","go"],[["run_script","/bin/sh","-c","echo %WHO% >> /tmp/out/fired.txt"]]]]]],"instances":{"one":{"command":["/bin/sleep","300"]}}}'
+sleep 1
+call service event '{"type":"mytrig.now","data":{"ACT":"go","WHO":"first"}}'
+sleep 2
+printf -- '--- fired after a matching event\n'
+cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+
+printf -- '--- an event whose expression is false must not fire\n'
+call service event '{"type":"mytrig.now","data":{"ACT":"stop","WHO":"second"}}'
+sleep 2
+cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+
+printf -- '--- a non-matching event type must not fire\n'
+call service event '{"type":"other.now","data":{"ACT":"go","WHO":"third"}}'
+sleep 2
+cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+
+printf -- '--- .* truncates before the dot: "mytrigX" matches too\n'
+call service event '{"type":"mytrigX","data":{"ACT":"go","WHO":"fourth"}}'
+sleep 2
+cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+
+printf -- '--- an unset variable expands to nothing\n'
+call service event '{"type":"mytrig.now","data":{"ACT":"go"}}'
+sleep 2
+cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+
+printf -- '--- event argument errors\n'
+call service event '{"type":"mytrig.now"}'
+call service event '{"data":{"ACT":"go"}}'
+
+printf -- '--- a case arm, and a command other than run_script (must be dropped)\n'
+call service set '{"name":"te","triggers":[["ev2",[["case","K",{"a":[["run_script","/bin/sh","-c","echo caseA >> /tmp/out/fired.txt"]],"b":[["exec","/bin/sh","-c","echo SHOULD-NOT-RUN >> /tmp/out/fired.txt"]]}]]]]}'
+sleep 1
+call service event '{"type":"ev2","data":{"K":"a"}}'
+sleep 2
+call service event '{"type":"ev2","data":{"K":"b"}}'
+sleep 2
+cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+
+# 19. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X
