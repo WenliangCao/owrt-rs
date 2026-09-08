@@ -303,7 +303,7 @@ fn md5(input: &[u8]) -> [u8; 16] {
     let (mut a0, mut b0, mut c0, mut d0) =
         (0x67452301u32, 0xefcdab89u32, 0x98badcfeu32, 0x10325476u32);
 
-    for chunk in msg.chunks_exact(64) {
+    for chunk in msg.as_chunks::<64>().0 {
         let m: [u32; 16] = core::array::from_fn(|i| {
             u32::from_le_bytes([
                 chunk[i * 4],

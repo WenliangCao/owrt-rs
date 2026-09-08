@@ -157,6 +157,10 @@ pub struct Instance {
     /// line. Not part of the config diff -- they belong to the child.
     pub log_out: Option<crate::proc::LogPipe>,
     pub log_err: Option<crate::proc::LogPipe>,
+    /// Monotonic ms at which the per-instance watchdog fires. Separate from
+    /// `deadline`, which is the stop/respawn timer -- the C keeps two
+    /// uloop_timeouts and both can be armed at once.
+    pub watchdog_deadline: Option<i64>,
     /// Set when the respawn budget ran out. Such an instance stays listed
     /// with its last exit code; only a deliberate stop or delete removes it.
     pub crash_looped: bool,
@@ -213,6 +217,7 @@ impl Instance {
             respawn_active: false,
             deadline: None,
             stale: false,
+            watchdog_deadline: None,
             crash_looped: false,
             log_out: None,
             log_err: None,
@@ -489,10 +494,18 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     let mut i = Instance::new(name);
     let mut saw_command = false;
     let mut command_ok = true;
+    // Any element-level type violation in a list the C checks with
+    // blobmsg_check_attr_list, or an out-of-range nice, invalidates the
+    // whole instance rather than being quietly dropped.
+    let mut bad_field = false;
 
     for f in entry.children() {
         match f.name {
-            "command" => {
+            // blobmsg_parse drops a field whose top-level type does not
+            // match the policy, so `command: "/bin/true"` (a string, not an
+            // array) is not "an empty command" -- it is no command at all,
+            // and the instance stays valid but never starts.
+            "command" if f.ty == owrt_ubus::blob::MsgType::Array as u32 => {
                 saw_command = true;
                 let mut any = false;
                 for c in f.children() {
@@ -513,9 +526,17 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 }
             }
             "env" => {
+                // blobmsg_check_attr_list(..., BLOBMSG_TYPE_STRING): ONE
+                // non-string element rejects the whole instance. Dropping
+                // the bad element and running anyway is the difference
+                // between "config refused" and "service started with half
+                // its environment".
                 for c in f.children() {
-                    if let Some(v) = c.as_str() {
-                        i.env.insert(c.name.to_string(), v.to_string());
+                    match c.as_str() {
+                        Some(v) => {
+                            i.env.insert(c.name.to_string(), v.to_string());
+                        }
+                        None => bad_field = true,
                     }
                 }
             }
@@ -526,8 +547,11 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             }
             "limits" => {
                 for c in f.children() {
-                    if let Some(v) = c.as_str() {
-                        i.limits.insert(c.name.to_string(), v.to_string());
+                    match c.as_str() {
+                        Some(v) => {
+                            i.limits.insert(c.name.to_string(), v.to_string());
+                        }
+                        None => bad_field = true,
                     }
                 }
             }
@@ -549,7 +573,12 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 i.watch = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
             }
             "error" => {
-                i.errors = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+                for c in f.children() {
+                    match c.as_str() {
+                        Some(v) => i.errors.push(v.to_string()),
+                        None => bad_field = true,
+                    }
+                }
             }
             "respawn" => {
                 // The C seeds vals[] with the defaults and overwrites only as
@@ -571,7 +600,15 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             }
             "term_timeout" => i.term_timeout = f.as_u32().unwrap_or(DEFAULT_TERM_TIMEOUT),
             "reload_signal" => i.reload_signal = f.as_u32().unwrap_or(0) as i32,
-            "nice" => i.nice = f.as_u32().unwrap_or(0) as i32,
+            "nice" => {
+                // instance_config_parse rejects the whole instance when
+                // nice is outside [-20, 20]; it does not clamp.
+                let n = f.as_u32().unwrap_or(0) as i32;
+                if !(-20..=20).contains(&n) {
+                    bad_field = true;
+                }
+                i.nice = n;
+            }
             "user" => i.user = f.as_str().map(str::to_string),
             "group" => i.group = f.as_str().map(str::to_string),
             "pidfile" => i.pidfile = f.as_str().map(str::to_string),
@@ -623,7 +660,15 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 let mut vals: [u32; 2] = [0, 30];
                 for (n, c) in f.children().take(2).enumerate() {
                     if let Some(s) = c.as_str() {
-                        vals[n] = s.parse().unwrap_or(0);
+                        // atoi() into a uint32_t: "-1" becomes 0xffffffff,
+                        // which then passes the `> 0` test and does NOT fall
+                        // back to 30. Parsing as u32 and defaulting to 0
+                        // would have fallen back.
+                        vals[n] = s
+                            .trim()
+                            .parse::<i64>()
+                            .map(|v| v as u32)
+                            .unwrap_or(0);
                     } else if let Some(u) = c.as_u32() {
                         vals[n] = u;
                     }
@@ -643,7 +688,7 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     // instance invalid, and an invalid instance is not listed at all.
     //
     // A bundle skips the command parse entirely.
-    i.valid = i.bundle.is_some() || !saw_command || command_ok;
+    i.valid = (i.bundle.is_some() || !saw_command || command_ok) && !bad_field;
     i
 }
 
@@ -696,5 +741,85 @@ mod tests {
         new.command = vec!["/bin/true".into()];
         new.data.insert("k".into(), (3, b"v\0".to_vec()));
         assert!(!old.config_changed(&new));
+    }
+}
+
+#[cfg(test)]
+mod validity_tests {
+    use super::*;
+    use owrt_ubus::blob::BlobBuf;
+
+    /// Build one `instances` entry and parse it, so these exercise the real
+    /// blobmsg path rather than a hand-built struct.
+    fn parse_entry(build: impl FnOnce(&mut BlobBuf)) -> Instance {
+        let mut b = BlobBuf::new();
+        let t = b.msg_open_table("one");
+        build(&mut b);
+        b.msg_close(t);
+        let f = owrt_ubus::blob::fields(b.payload()).next().expect("one entry");
+        parse("one", f)
+    }
+
+    #[test]
+    fn a_non_string_env_value_invalidates_the_whole_instance() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            let e = b.msg_open_table("env");
+            b.msg_string("A", "ok");
+            b.msg_u32("B", 7);
+            b.msg_close(e);
+        });
+        assert!(
+            !i.valid,
+            "the C rejects the instance; dropping B and running is worse than refusing"
+        );
+    }
+
+    #[test]
+    fn a_command_of_the_wrong_type_reads_as_absent_not_empty() {
+        let i = parse_entry(|b| {
+            b.msg_string("command", "/bin/true");
+        });
+        // The policy drops it, so this is "no command": valid, listed, never
+        // started -- not an empty command, which would be invalid.
+        assert!(i.valid);
+        assert!(i.command.is_empty());
+    }
+
+    #[test]
+    fn an_out_of_range_nice_invalidates_rather_than_clamping() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            b.msg_u32("nice", 21);
+        });
+        assert!(!i.valid);
+    }
+
+    #[test]
+    fn a_negative_watchdog_timeout_does_not_fall_back_to_thirty() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            let w = b.msg_open_array("watchdog");
+            b.msg_string("", "0");
+            b.msg_string("", "-1");
+            b.msg_close(w);
+        });
+        // atoi("-1") into a uint32_t is 0xffffffff, which passes `> 0`.
+        assert_eq!(i.watchdog_freq, u32::MAX);
+    }
+
+    #[test]
+    fn an_empty_command_array_is_still_invalid() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_close(c);
+        });
+        assert!(!i.valid);
     }
 }

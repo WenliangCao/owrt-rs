@@ -21,14 +21,33 @@ use owrt_ubus::blob::{Field, MsgType};
 use crate::jsonscript;
 
 /// One `[type, script, timeout?]` triple from a service's `triggers` array.
+/// Who a rule belongs to. `trigger_del` takes one of these, not a name.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Owner {
+    Service(String),
+    Instance(String, String),
+}
+
+impl Owner {
+    /// Every rule that dies with a service: its own, and its instances'.
+    fn belongs_to_service(&self, svc: &str) -> bool {
+        match self {
+            Owner::Service(s) => s == svc,
+            Owner::Instance(s, _) => s == svc,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Trigger {
     pub kind: String,
     /// The script array, kept encoded so it can be re-walked per event.
     pub script: Vec<u8>,
     pub timeout_ms: u32,
-    /// Which service registered it, so `trigger_del` can drop the right ones.
-    pub owner: String,
+    /// Which object registered it. The C keys trigger_del on the `id`
+    /// pointer -- a service or an instance -- so a service's rules and its
+    /// instances' rules are released independently.
+    pub owner: Owner,
 }
 
 /// A command waiting to run. Keyed by its argv, which is how the C's
@@ -67,7 +86,7 @@ impl Triggers {
     /// `trigger_add()`. Entries that are not arrays, or whose first two
     /// elements are not a string and an array, are skipped without comment --
     /// the C's switch simply leaves `type` or `script` null.
-    pub fn add(&mut self, rule: Field<'_>, owner: &str) {
+    pub fn add(&mut self, rule: Field<'_>, owner: Owner) {
         for cur in rule.children() {
             if cur.ty != MsgType::Array as u32 {
                 continue;
@@ -94,15 +113,22 @@ impl Triggers {
                     kind,
                     script,
                     timeout_ms: timeout,
-                    owner: owner.to_string(),
+                    owner: owner.clone(),
                 });
             }
         }
     }
 
-    /// `trigger_del()`: drop every trigger a given service registered.
-    pub fn del(&mut self, owner: &str) {
-        self.list.retain(|t| t.owner != owner);
+    /// `trigger_del(id)` for one exact owner.
+    pub fn del(&mut self, owner: &Owner) {
+        self.list.retain(|t| &t.owner != owner);
+    }
+
+    /// Everything that dies when a service is released: its own rules and
+    /// all of its instances'. The C reaches this through service_delete ->
+    /// trigger_del(s) plus each instance_free -> trigger_del(in).
+    pub fn del_service(&mut self, svc: &str) {
+        self.list.retain(|t| !t.owner.belongs_to_service(svc));
     }
 
     /// `trigger_event()`: run every matching trigger's script with the event
@@ -141,7 +167,12 @@ impl Triggers {
     /// entry is created with a delay of at least 1 ms.
     fn queue(&mut self, argv: Vec<String>, timeout_ms: u32, now: i64) {
         if let Some(cmd) = self.pending.iter_mut().find(|c| c.argv == argv) {
-            if cmd.pid.is_some() {
+            // The C tests `!cmd->delay.pending`, which is true for a command
+            // that is RUNNING *and* for one whose delay already elapsed and
+            // is queued behind another task. Only a delay still counting
+            // down gets extended. Treating "queued but not yet running" as
+            // still-pending drops the second trigger entirely.
+            if cmd.pid.is_some() || now >= cmd.due {
                 cmd.requeue = true;
                 return;
             }
@@ -194,6 +225,21 @@ mod tests {
         // A longer one pushes it out.
         t.queue(vec!["a".into()], 9000, 0);
         assert_eq!(t.pending[0].due, 9000);
+    }
+
+    #[test]
+    fn a_queued_command_whose_delay_elapsed_is_also_requeued() {
+        let mut t = Triggers::default();
+        // Delay 0 -> due at now+1, so at now+5 it has elapsed but has not
+        // been given a slot yet (no pid).
+        t.queue(vec!["a".into()], 0, 0);
+        assert!(t.pending[0].pid.is_none());
+        t.queue(vec!["a".into()], 0, 5);
+        assert_eq!(t.pending.len(), 1);
+        assert!(
+            t.pending[0].requeue,
+            "an elapsed-but-unstarted command must requeue, not be swallowed"
+        );
     }
 
     #[test]

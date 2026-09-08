@@ -71,6 +71,7 @@ impl Procd {
     /// instance that already has a child is left alone.
     fn instance_start(&mut self, svc: &str, name: &str) {
         let now = self.now_ms();
+        let mut failed_exec = false;
         let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) else {
             return;
         };
@@ -102,18 +103,46 @@ impl Procd {
                 inst.pid = pid;
                 inst.log_out = out;
                 inst.log_err = err;
+                // instance_writepid(): the parent writes the child's pid
+                // once it has it. External callers read this file, so
+                // parsing `pidfile` and never writing it is a silent
+                // interface break rather than a missing nicety.
+                if let Some(path) = &inst.pidfile {
+                    if let Err(e) = std::fs::write(path, format!("{pid}\n")) {
+                        eprintln!("procd-rs: could not write pidfile {path}: {e}");
+                    }
+                }
+                // instance_start() arms the watchdog timer whenever the mode
+                // is not disabled.
+                inst.watchdog_deadline = if inst.watchdog_mode != 0 {
+                    Some(now + inst.watchdog_freq as i64 * 1000)
+                } else {
+                    None
+                };
                 inst.state = Run::Running;
                 inst.started = now;
                 inst.deadline = None;
                 self.service_event("instance.start", svc, name);
             }
             Err(e) => {
-                // The C's fork/exec failure surfaces as the child exiting 127.
-                // Reproduce the observable part rather than inventing a state.
+                // The C forks first, so an exec failure is the CHILD exiting
+                // 127 and it goes through instance_exit -- which means the
+                // respawn budget applies and a command that appears later is
+                // retried. Recording 127 and stopping there looks identical
+                // in `list` and behaves completely differently.
+                eprintln!("procd-rs: {svc}::{name} failed to start: {e}");
                 inst.pid = 0;
                 inst.state = Run::Stopped;
-                inst.exit_code = 127;
-                eprintln!("procd-rs: {svc}::{name} failed to start: {e}");
+                inst.started = now;
+                failed_exec = true;
+            }
+        }
+        if failed_exec {
+            // WIFEXITED with status 127, the way the C's child reports it.
+            if self.instance_exited(svc, name, 127 << 8) {
+                self.instance_start(svc, name);
+            } else {
+                self.collect_stopped(svc, name);
             }
         }
     }
@@ -183,11 +212,17 @@ impl Procd {
         // pipe whose writer is gone; dropping it closes our read end.
         inst.log_out = None;
         inst.log_err = None;
+        inst.watchdog_deadline = None;
 
         let mut restart = false;
         let mut event: Option<&'static str> = None;
 
         if inst.halt {
+            // instance_removepid() runs on the halt path only, not on every
+            // exit -- a respawning instance keeps its file across restarts.
+            if let Some(path) = &inst.pidfile {
+                let _ = std::fs::remove_file(path);
+            }
             if inst.restart {
                 restart = true;
             }
@@ -240,6 +275,33 @@ impl Procd {
         let mut kill: Vec<(String, i32)> = Vec::new();
         let mut start: Vec<(String, String)> = Vec::new();
 
+        // instance_watchdog(): on expiry, restart when the instance respawns
+        // and stop it outright otherwise.
+        let mut wd_restart: Vec<(String, String)> = Vec::new();
+        let mut wd_stop: Vec<(String, String)> = Vec::new();
+        for (sname, s) in self.services.iter_mut() {
+            for (iname, inst) in s.instances.iter_mut() {
+                let Some(wd) = inst.watchdog_deadline else { continue };
+                if now < wd {
+                    continue;
+                }
+                inst.watchdog_deadline = None;
+                if inst.respawn_active {
+                    wd_restart.push((sname.clone(), iname.clone()));
+                } else {
+                    wd_stop.push((sname.clone(), iname.clone()));
+                }
+            }
+        }
+        for (s, i) in wd_restart {
+            eprintln!("procd-rs: instance {s}::{i} watchdog timer expired");
+            self.instance_restart(&s, &i);
+        }
+        for (s, i) in wd_stop {
+            eprintln!("procd-rs: instance {s}::{i} watchdog timer expired");
+            self.instance_stop(&s, &i, true);
+        }
+
         for (sname, s) in self.services.iter_mut() {
             for (iname, inst) in s.instances.iter_mut() {
                 let Some(d) = inst.deadline else { continue };
@@ -261,6 +323,9 @@ impl Procd {
         }
         for (s, i) in start {
             self.instance_start(&s, &i);
+            // instance_timeout()'s respawn branch calls rc(srv, "running")
+            // after starting, exactly as the direct-restart path does.
+            self.run_init_script(&s);
         }
     }
 
@@ -330,6 +395,8 @@ impl Procd {
             };
             if self.instance_exited(&sname, &iname, wstatus) {
                 self.instance_start(&sname, &iname);
+                // instance_exit()'s restart branch calls rc(srv, "running").
+                self.run_init_script(&sname);
             } else {
                 self.collect_stopped(&sname, &iname);
             }
@@ -361,12 +428,19 @@ impl Procd {
             if let Some(s) = self.services.get_mut(svc) {
                 s.instances.remove(name);
             }
+            // instance_free() -> trigger_del(in)
+            self.triggers
+                .del(&trigger::Owner::Instance(svc.to_string(), name.to_string()));
             self.data_trigger_keys(&keys);
         }
         let Some(s) = self.services.get_mut(svc) else {
             return;
         };
         if s.can_be_freed() {
+            // service_delete() -> trigger_del(s); the instances' rules go
+            // with their instances, but a service freed while some were
+            // never individually collected must not leave rules behind.
+            self.triggers.del_service(svc);
             self.services.remove(svc);
         }
     }
@@ -380,6 +454,27 @@ impl Procd {
         b.msg_string("service", svc);
         b.msg_string("instance", name);
         let _ = self.conn.notify(self.objects.service, kind, b.payload());
+    }
+
+    /// Re-open the bus and re-register everything that lived on it: the
+    /// three objects, the event handler and every watch subscription. An
+    /// object id is only meaningful to one connection, so the old ids and
+    /// the subscription set have to be discarded first.
+    fn reconnect(&mut self) -> io::Result<()> {
+        let conn = Connection::connect(None)?;
+        self.conn = conn;
+        self.objects.service = self.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
+        self.objects.container =
+            self.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
+        self.objects.system = self.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
+        self.watch_obj = self.conn.add_anonymous_object(1000)?;
+        self.conn
+            .register_event_handler(self.watch_obj, Some("ubus.object.add"), 1000)?;
+        // Subscriptions belonged to the old connection; re-establish them
+        // against whatever exists on the new bus.
+        self.subscribed.clear();
+        self.resubscribe();
+        Ok(())
     }
 
     // -- ubus --------------------------------------------------------------
@@ -530,13 +625,13 @@ impl Procd {
             // added, so a `set` that changes triggers does not accumulate.
             s.trigger = Some(t);
             let raw = s.trigger.clone().expect("just assigned");
-            self.triggers.del(&name);
+            self.triggers.del(&trigger::Owner::Service(name.clone()));
             let f = owrt_ubus::blob::Field {
                 name: "",
                 ty: owrt_ubus::blob::MsgType::Array as u32,
                 data: &raw,
             };
-            self.triggers.add(f, &name);
+            self.triggers.add(f, trigger::Owner::Service(name.clone()));
         }
         // Re-borrowed: the trigger update above needed `self`, not just `s`.
         let s = self.services.get_mut(&name).expect("service exists");
@@ -586,6 +681,7 @@ impl Procd {
                     if autostart && valid {
                         self.instance_start(&name, &iname);
                     }
+                    self.register_instance_triggers(&name, &iname);
                 }
                 service::InstanceChange::Stop => {
                     // `add` leaves untouched names alone; only `set` flushes.
@@ -604,6 +700,7 @@ impl Procd {
                     {
                         i.stale = false;
                     }
+                    self.register_instance_triggers(&name, &iname);
                 }
             }
         }
@@ -725,6 +822,27 @@ impl Procd {
         }
     }
 
+    /// `trigger_add(in->trigger, in)`: an instance's own `triggers` array is
+    /// registered with the instance as owner, so it is released when the
+    /// instance is, independently of the service's rules. This was parsed
+    /// and then dropped on the floor.
+    fn register_instance_triggers(&mut self, svc: &str, name: &str) {
+        let owner = trigger::Owner::Instance(svc.to_string(), name.to_string());
+        self.triggers.del(&owner);
+        let raw = self
+            .services
+            .get(svc)
+            .and_then(|s| s.instances.get(name))
+            .and_then(|i| i.triggers.clone());
+        let Some(raw) = raw else { return };
+        let f = owrt_ubus::blob::Field {
+            name: "",
+            ty: owrt_ubus::blob::MsgType::Array as u32,
+            data: &raw,
+        };
+        self.triggers.add(f, owner);
+    }
+
     /// `rc(name, "running")`: queue `<init.d>/<name> running` if that script
     /// exists. A service with no init script queues nothing, which is the
     /// normal case for anything registered straight over the bus.
@@ -831,6 +949,7 @@ impl Procd {
                     self.collect_stopped(&name, &i);
                 }
                 if self.services.get(&name).is_some_and(|s| s.can_be_freed()) {
+                    self.triggers.del_service(&name);
                     self.services.remove(&name);
                 }
             }
@@ -843,6 +962,7 @@ impl Procd {
     /// either `mode` or `timeout` marks the instance self-managed, which
     /// takes those two fields out of the config-change comparison.
     fn handle_watchdog(&mut self, req: &Request) -> i32 {
+        let now = self.now_ms();
         let mut name: Option<String> = None;
         let mut instance: Option<String> = None;
         let mut mode: Option<u32> = None;
@@ -872,9 +992,15 @@ impl Procd {
         if let Some(t) = timeout {
             inst.watchdog_freq = t;
         }
-        // The C arms or cancels the per-instance timer here. This build has
-        // no per-instance watchdog timer yet (P3.2), so the values are
-        // stored and reported but nothing fires. Recorded as a gap.
+        // service_handle_watchdog arms or cancels the per-instance timer
+        // right here. This is a software timer in the supervisor, reachable
+        // when getpid() != 1 -- it is not the system /dev/watchdog, and
+        // deferring it to the PID 1 stage was wrong.
+        if inst.watchdog_mode == 0 {
+            inst.watchdog_deadline = None;
+        } else {
+            inst.watchdog_deadline = Some(now + inst.watchdog_freq as i64 * 1000);
+        }
         let (m, t) = (inst.watchdog_mode, inst.watchdog_freq);
         if mode.is_some() || timeout.is_some() {
             inst.watchdog_self_managed = true;
@@ -937,16 +1063,23 @@ impl Procd {
             }
             for ty in seen {
                 let t = b.msg_open_table(ty);
-                let mut opts: BTreeMap<&str, &str> = BTreeMap::new();
+                // Each validator contributes its OWN rules in avl (name)
+                // order; merging several into one json_object keeps the
+                // order keys were first added, it does not re-sort globally.
+                // A second validator's `a` therefore lands after the first's
+                // `z`.
+                let mut emitted: Vec<&str> = Vec::new();
                 for v in &all[start..i] {
-                    if v.kind == ty {
-                        for (o, r) in &v.rules {
-                            opts.insert(o.as_str(), r.as_str());
-                        }
+                    if v.kind != ty {
+                        continue;
                     }
-                }
-                for (o, r) in opts {
-                    b.msg_string(o, r);
+                    for (o, r) in &v.rules {
+                        if emitted.contains(&o.as_str()) {
+                            continue;
+                        }
+                        emitted.push(o.as_str());
+                        b.msg_string(o, r);
+                    }
                 }
                 b.msg_close(t);
             }
@@ -1327,7 +1460,36 @@ fn run() -> io::Result<()> {
         eprintln!("procd-rs: failed to add ubus event handler: {e}");
     }
 
+    // Bus connection state, kept separate from supervision state. procd
+    // reconnects with a 50ms..1s backoff (ubus.c); losing ubusd must not
+    // take the supervisor -- and every child it is responsible for -- down
+    // with it.
+    let mut backoff_ms: i32 = 50;
+    let mut connected = true;
+
     loop {
+        if !connected {
+            // Keep supervising while the bus is gone: children still exit,
+            // stop timeouts still expire, respawns still come due.
+            p.reap();
+            p.fire_timeouts();
+            p.pump_triggers();
+            let now = p.now_ms();
+            p.rc.pump(now);
+            std::thread::sleep(std::time::Duration::from_millis(backoff_ms as u64));
+            match p.reconnect() {
+                Ok(()) => {
+                    eprintln!("procd-rs: reconnected to ubus");
+                    connected = true;
+                    backoff_ms = 50;
+                }
+                Err(_) => {
+                    backoff_ms = (backoff_ms * 2).min(1000);
+                }
+            }
+            continue;
+        }
+
         // Drain anything already buffered before blocking: a poll on the
         // socket does not see bytes already read out of it. The netifd loop
         // needed exactly this fix.
@@ -1351,7 +1513,11 @@ fn run() -> io::Result<()> {
             Ok(Some(msg)) => p.dispatch(msg),
             Ok(None) => {}
             Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
-            Err(e) => return Err(e),
+            Err(e) => {
+                eprintln!("procd-rs: lost the ubus connection ({e}); reconnecting");
+                connected = false;
+                backoff_ms = 50;
+            }
         }
     }
 }
