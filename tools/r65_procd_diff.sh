@@ -20,6 +20,16 @@ out=$3
 examples=${4:-}
 mkdir -p "$out"
 
+# A build flag that quietly stops rebuilding the candidate (--examples
+# without --bins does exactly that) produces a green run against an old
+# binary. Record what was actually tested so that is visible afterwards.
+{
+	echo "candidate: $cand"
+	ls -la --time-style=+%Y-%m-%dT%H:%M:%S "$cand" 2>/dev/null || true
+	md5sum "$cand" 2>/dev/null || true
+	echo "now: $(date +%Y-%m-%dT%H:%M:%S)"
+} > "$out/candidate.txt"
+
 work=$(mktemp -d /tmp/owrt-r65-XXXXXX)
 trap 'rm -rf "$work"' EXIT
 cp -a "$root" "$work/root"
