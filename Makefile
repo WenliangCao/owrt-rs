@@ -1,7 +1,7 @@
 # Single entry point for the repository. Each crate stays independent (the
 # OpenWrt package Makefiles copy crate directories one by one), so there is no
 # root Cargo workspace on purpose.
-COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd netifd
+COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd
 VERSION ?= 25.12.5
 
 .PHONY: check-netlink-consts test check-tools check-toolchain check-toolchain-negative check-abi build apk image ci-image
@@ -44,6 +44,11 @@ check-toolchain-negative:
 # match the target; pass CC="gcc -I<sdk include>" on a build host.
 check-netlink-consts:
 	sh tools/check_netlink_consts.sh components/netifd/src "$(CC)"
+
+# The RLIMIT_* numbers procd-rs hard-codes. Same failure mode, and these are
+# architecture-dependent, so the CC must be the target's.
+check-rlimit-consts:
+	sh tools/check_rlimit_consts.sh components/procd/src/sys.rs "$(CC)"
 
 check-abi:
 	@sh tools/check_abi.sh

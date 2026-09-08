@@ -5,6 +5,7 @@
 //! hotplug and the watchdog are P3.2, and the on-device PID 1 switch is P3.3.
 
 mod instance;
+mod sys;
 mod service;
 mod ubus;
 
