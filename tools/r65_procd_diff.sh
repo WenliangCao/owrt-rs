@@ -46,7 +46,18 @@ fi
 # ubusd refuses acl.d files it does not own; every rootfs copy needs this.
 chown -R 0:0 "$work/root/usr/share/acl.d" 2>/dev/null || true
 
+# F12 needs an account whose UID differs from its primary GID, plus a
+# supplementary group. Without one the bug is invisible: C takes the primary
+# GID from passwd, the old Rust code passed the UID in its place, and if
+# UID == GID the two are indistinguishable. Added to the disposable copy
+# only -- the shipping rootfs is never modified.
+printf 'p31user:x:1234:2345:p31:/tmp:/bin/sh\n' >> "$work/root/etc/passwd"
+printf 'p31group:x:2345:\np31extra:x:3456:p31user\n' >> "$work/root/etc/group"
+
 mkdir -p "$work/root/tmp/out" "$work/root/tmp/initd" "$work/root/tmp/rcd"
+# The F12 case drops to uid 1234, so the effect directory has to be writable
+# by a non-root child. Sticky, like a real /tmp.
+chmod 1777 "$work/root/tmp/out"
 
 # rc(name, "running") globs <init.d>/<name>, so a service whose name matches
 # a script here must run it -- and one whose name does not must run nothing.
@@ -560,6 +571,15 @@ sleep 1
 call service event '{"type":"inst.ev","data":{"k":"v"}}'
 sleep 2
 must_have /tmp/out/instfired.txt
+
+# F12: with `user` set and no `group`, C takes the primary GID from passwd.
+# The old code passed the UID in its place. p31user is UID 1234 / GID 2345
+# with supplementary group 3456, so uid, gid and groups are all distinct and
+# a wrong primary GID cannot hide behind a matching UID.
+printf -- '--- F12: primary gid comes from passwd, not from the uid\n'
+call service set '{"name":"fu","instances":{"one":{"command":["/bin/sh","-c","id > /tmp/out/identity.txt"],"user":"p31user"}}}'
+sleep 2
+must_have /tmp/out/identity.txt
 
 printf -- '--- F13: pidfile must be written\n'
 call service set '{"name":"fp","instances":{"one":{"command":["/bin/sleep","300"],"pidfile":"/tmp/out/managed.pid"}}}'
