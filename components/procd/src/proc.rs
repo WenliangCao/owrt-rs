@@ -163,6 +163,10 @@ pub fn jail_argv(inst: &Instance) -> Vec<String> {
         a.push(if mode.starts_with('1') { "-w".into() } else { "-r".into() });
         a.push(path.clone());
     }
+    for arg in &j.setns {
+        a.push("-j".into());
+        a.push(arg.clone());
+    }
     a.push("--".into());
     a
 }

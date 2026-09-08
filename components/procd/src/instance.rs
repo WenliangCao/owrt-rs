@@ -55,6 +55,12 @@ pub struct Jail {
     /// path -> "1" for writable, anything else read-only. The C stores the
     /// flag as the value and tests `*type == '1'`.
     pub mount: BTreeMap<String, String>,
+    /// `setns` entries, already rendered as ujail's `-j pid:ns,ns`
+    /// argument. An entry missing `pid` or `namespaces`, or holding a
+    /// non-string namespace, yields nothing at all --
+    /// `instance_gen_setns_argstr` returns NULL and the C skips that
+    /// `-j` pair entirely.
+    pub setns: Vec<String>,
 }
 
 /// What an instance is doing right now.
@@ -490,6 +496,33 @@ impl Instance {
 /// `command` that is missing or empty leaves the instance *invalid* rather
 /// than failing the whole `set`, and an invalid instance is neither started
 /// nor listed.
+/// `instance_gen_setns_argstr()`: render one `setns` entry as ujail's
+/// `<pid>:<ns>,<ns>` argument. Returns None -- and the C then omits the
+/// whole `-j` pair -- when `pid` or `namespaces` is absent, or when any
+/// namespace element is not a string.
+fn setns_argstr(entry: owrt_ubus::blob::Field<'_>) -> Option<String> {
+    let mut pid: Option<u32> = None;
+    let mut names: Vec<String> = Vec::new();
+    let mut saw_ns = false;
+    for f in entry.children() {
+        match f.name {
+            "pid" => pid = f.as_u32(),
+            "namespaces" => {
+                saw_ns = true;
+                for c in f.children() {
+                    names.push(c.as_str()?.to_string());
+                }
+            }
+            _ => {}
+        }
+    }
+    let pid = pid?;
+    if !saw_ns {
+        return None;
+    }
+    Some(format!("{pid}:{}", names.join(",")))
+}
+
 pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     let mut i = Instance::new(name);
     let mut saw_command = false;
@@ -867,5 +900,55 @@ mod jail_gate_tests {
         // it a missing ujail drops the sandbox and runs anyway.
         let missing = std::fs::metadata("/definitely/no/ujail/here").is_err();
         assert!(missing);
+    }
+}
+
+#[cfg(test)]
+mod setns_tests {
+    use super::*;
+    use owrt_ubus::blob::BlobBuf;
+
+    fn one_entry(build: impl FnOnce(&mut BlobBuf)) -> Option<String> {
+        let mut b = BlobBuf::new();
+        let t = b.msg_open_table("e");
+        build(&mut b);
+        b.msg_close(t);
+        let f = owrt_ubus::blob::fields(b.payload()).next().unwrap();
+        setns_argstr(f)
+    }
+
+    #[test]
+    fn a_complete_entry_renders_pid_colon_comma_list() {
+        let got = one_entry(|b| {
+            b.msg_u32("pid", 42);
+            let a = b.msg_open_array("namespaces");
+            b.msg_string("", "net");
+            b.msg_string("", "user");
+            b.msg_close(a);
+        });
+        assert_eq!(got.as_deref(), Some("42:net,user"));
+    }
+
+    #[test]
+    fn a_missing_half_yields_nothing_so_the_flag_is_omitted() {
+        assert!(one_entry(|b| { b.msg_u32("pid", 42); }).is_none());
+        assert!(one_entry(|b| {
+            let a = b.msg_open_array("namespaces");
+            b.msg_string("", "net");
+            b.msg_close(a);
+        })
+        .is_none());
+    }
+
+    #[test]
+    fn a_non_string_namespace_rejects_the_whole_entry() {
+        let got = one_entry(|b| {
+            b.msg_u32("pid", 42);
+            let a = b.msg_open_array("namespaces");
+            b.msg_string("", "net");
+            b.msg_u32("", 7);
+            b.msg_close(a);
+        });
+        assert!(got.is_none());
     }
 }
