@@ -293,6 +293,20 @@ pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPip
 
 /// Reap any exited child, whoever it is. PID 1 has to do this for orphans it
 /// never started; the supervisor uses it to notice its own children too.
+/// `waitpid(pid, WNOHANG)` for one specific child. The run queue's tests use
+/// this rather than `reap_any`, which would steal other tests' children.
+#[allow(dead_code)]
+pub fn try_reap(pid: i32) -> Option<i32> {
+    let mut status: i32 = 0;
+    // SAFETY: waitpid(2) on one pid, writing one int.
+    let r = unsafe { waitpid(pid, &mut status, WNOHANG) };
+    if r == pid {
+        Some(status)
+    } else {
+        None
+    }
+}
+
 pub fn reap_any() -> Option<(i32, i32)> {
     let mut status: i32 = 0;
     // SAFETY: waitpid(2) with -1 waits for any child and writes one int.
