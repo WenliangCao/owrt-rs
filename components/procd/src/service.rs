@@ -53,8 +53,11 @@ pub struct Service {
     pub trigger: Option<Vec<u8>>,
     /// `validate` entries, parsed.
     pub validate: Vec<Validator>,
-    /// `data` table, flattened. A change here fires `service.data.update`.
-    pub data: BTreeMap<String, String>,
+    /// `data`, keeping each field's blobmsg type and payload for the same
+    /// reason as the instance's: `blobmsg_add_blob` re-emits the original
+    /// type, so flattening to strings drops non-string fields. A change here
+    /// fires `service.data.update`.
+    pub data: BTreeMap<String, (u32, Vec<u8>)>,
     /// Set by `service_delete`; the service is gone once every instance has
     /// stopped (`service_stopped`).
     pub deleted: bool,
@@ -117,8 +120,8 @@ impl Service {
         }
         if !self.data.is_empty() {
             let d = b.msg_open_table("data");
-            for (k, v) in &self.data {
-                b.msg_string(k, v);
+            for (k, (ty, payload)) in &self.data {
+                b.msg_field(*ty, k, payload);
             }
             b.msg_close(d);
         }

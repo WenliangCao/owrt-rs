@@ -336,7 +336,31 @@ call service set '{"name":"tquiet","instances":{"one":{"command":["/bin/sh","-c"
 sleep 3
 logread 2>&1 | grep -c "should-not-be-logged" | sed "s/^/quiet_matches=/"
 
-# 24. the whole table, so ordering is compared too
+# 24. structured data must keep its type. A flattening implementation drops
+#     the integer and the boolean entirely, which `list` and `get_data` show.
+call service set '{"name":"tdata","data":{"s":"str","n":42,"b":true},"instances":{"one":{"command":["/bin/sleep","300"],"data":{"in":7,"is":"x"}}}}'
+sleep 1
+printf -- '--- typed data survives list\n'
+call service list '{"name":"tdata"}'
+printf -- '--- and get_data\n'
+call service get_data '{"name":"tdata"}'
+
+# 25. a jailed instance must exec ujail, not the bare command. ujail is not
+#     runnable in this namespace, so what is compared is the OBSERVABLE
+#     consequence: both sides must fail to start it the same way, and
+#     neither may end up running the raw command as root.
+cat > /tmp/initd/showargv <<'Y'
+#!/bin/sh
+Y
+chmod 0755 /tmp/initd/showargv
+call service set '{"name":"tjail","instances":{"one":{"command":["/bin/sleep","300"],"jail":{"name":"tj","procfs":true,"ubus":true},"user":"nobody","no_new_privs":true}}}'
+sleep 2
+printf -- '--- a jailed instance: running state and exit code\n'
+call service list '{"name":"tjail"}'
+printf -- '--- nothing named /bin/sleep may be running unconfined for it\n'
+ps 2>/dev/null | grep -c "[u]jail" | sed "s/^/ujail_procs=/"
+
+# 26. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X
@@ -405,9 +429,34 @@ same_wdpid() {
 } > "$out/pid-identity.txt"
 
 rc=0
+# The pid scrub maps every "pid": N to a constant, which would also hide a
+# nonsense pid. Check the raw output separately: a running instance must
+# have a positive pid on both sides.
+for t in c rs; do
+	if grep -qE '"pid": (0|-[0-9]+)' "$out/$t-calls.txt"; then
+		echo "r65: $t reported a running instance with a non-positive pid" >&2
+		rc=1
+	fi
+	n=$(grep -c '"pid":' "$out/$t-calls.txt" || true)
+	if [ "$n" -lt 1 ]; then
+		echo "r65: $t never reported a pid at all -- nothing was running" >&2
+		rc=1
+	fi
+	echo "$t: $n pid lines" >> "$out/coverage.txt"
+done
 for t in c rs; do
 	if [ -s "$out/$t-bus.err" ]; then
 		echo "r65: $t run never got a working bus: $(cat "$out/$t-bus.err")" >&2
+		rc=1
+	fi
+done
+# A run where almost everything failed would still diff clean. Count the
+# failures and refuse a run that is mostly errors.
+for t in c rs; do
+	f=$(grep -c "Command failed" "$out/$t-calls.txt" || true)
+	echo "$t: $f failed calls" >> "$out/coverage.txt"
+	if [ "$f" -gt 12 ]; then
+		echo "r65: $t had $f failed calls -- the run is mostly errors" >&2
 		rc=1
 	fi
 done

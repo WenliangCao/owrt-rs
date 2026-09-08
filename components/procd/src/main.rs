@@ -425,7 +425,7 @@ impl Procd {
         let mut fresh: BTreeMap<String, Instance> = BTreeMap::new();
         let mut trigger: Option<Vec<u8>> = None;
         let mut validate: Option<Vec<service::Validator>> = None;
-        let mut data: BTreeMap<String, String> = BTreeMap::new();
+        let mut data: BTreeMap<String, (u32, Vec<u8>)> = BTreeMap::new();
         let mut saw_instances = false;
         let mut saw_data = false;
 
@@ -482,9 +482,7 @@ impl Procd {
                 "data" => {
                     saw_data = true;
                     for c in f.children() {
-                        if let Some(v) = c.as_str() {
-                            data.insert(c.name.to_string(), v.to_string());
-                        }
+                        data.insert(c.name.to_string(), (c.ty, c.data.to_vec()));
                     }
                 }
                 _ => {}
@@ -1086,14 +1084,14 @@ impl Procd {
             if name.as_ref().is_some_and(|n| n != sname) {
                 continue;
             }
-            let svc_hits: Vec<(&String, &String)> =
+            let svc_hits: Vec<(&String, &(u32, Vec<u8>))> =
                 s.data.iter().filter(|(k, _)| want(k)).collect();
             let mut cs = None;
             if !svc_hits.is_empty() {
                 cs = Some(b.msg_open_table(sname));
                 let ci = b.msg_open_table("*");
-                for (k, v) in svc_hits {
-                    b.msg_string(k, v);
+                for (k, (ty, payload)) in svc_hits {
+                    b.msg_field(*ty, k, payload);
                 }
                 b.msg_close(ci);
             }
@@ -1101,7 +1099,7 @@ impl Procd {
                 if instance.as_ref().is_some_and(|n| n != iname) {
                     continue;
                 }
-                let hits: Vec<(&String, &String)> =
+                let hits: Vec<(&String, &(u32, Vec<u8>))> =
                     inst.data.iter().filter(|(k, _)| want(k)).collect();
                 if hits.is_empty() {
                     continue;
@@ -1110,8 +1108,8 @@ impl Procd {
                     cs = Some(b.msg_open_table(sname));
                 }
                 let ci = b.msg_open_table(iname);
-                for (k, v) in hits {
-                    b.msg_string(k, v);
+                for (k, (ty, payload)) in hits {
+                    b.msg_field(*ty, k, payload);
                 }
                 b.msg_close(ci);
             }
@@ -1130,7 +1128,7 @@ impl Procd {
     fn handle_set_data(&mut self, req: &Request) -> i32 {
         let mut name: Option<String> = None;
         let mut instance: Option<String> = None;
-        let mut data: BTreeMap<String, String> = BTreeMap::new();
+        let mut data: BTreeMap<String, (u32, Vec<u8>)> = BTreeMap::new();
         let mut saw_data = false;
         for f in owrt_ubus::blob::fields(&req.data) {
             match f.name {
@@ -1139,9 +1137,7 @@ impl Procd {
                 "data" => {
                     saw_data = true;
                     for c in f.children() {
-                        if let Some(v) = c.as_str() {
-                            data.insert(c.name.to_string(), v.to_string());
-                        }
+                        data.insert(c.name.to_string(), (c.ty, c.data.to_vec()));
                     }
                 }
                 _ => {}

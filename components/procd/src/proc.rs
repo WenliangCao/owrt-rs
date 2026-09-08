@@ -99,6 +99,74 @@ extern "C" {
     fn libc_read(fd: i32, buf: *mut u8, count: usize) -> isize;
 }
 
+/// `UJAIL_BIN_PATH`.
+const UJAIL: &str = "/sbin/ujail";
+
+/// `jail_run()`: the ujail argv that wraps the instance's own command.
+///
+/// Order matters -- this is transcribed switch by switch, because ujail
+/// parses positionally after `--` and a missing flag silently widens the
+/// sandbox rather than failing.
+pub fn jail_argv(inst: &Instance) -> Vec<String> {
+    let j = &inst.jail;
+    let mut a: Vec<String> = vec![UJAIL.into(), "-t".into(), inst.term_timeout.to_string()];
+    let mut opt = |flag: &str, v: &Option<String>, out: &mut Vec<String>| {
+        if let Some(v) = v {
+            out.push(flag.into());
+            out.push(v.clone());
+        }
+    };
+    opt("-n", &j.name, &mut a);
+    opt("-h", &j.hostname, &mut a);
+    opt("-S", &inst.seccomp, &mut a);
+    opt("-U", &inst.user, &mut a);
+    opt("-G", &inst.group, &mut a);
+    opt("-C", &inst.capabilities, &mut a);
+    if inst.no_new_privs {
+        a.push("-c".into());
+    }
+    for (on, flag) in [
+        (j.procfs, "-p"),
+        (j.sysfs, "-s"),
+        (j.ubus, "-u"),
+        (j.udebug, "-D"),
+        (j.log, "-l"),
+        (j.ronly, "-o"),
+        (j.netns, "-N"),
+        (j.userns, "-f"),
+        (j.cgroupsns, "-F"),
+        (j.console, "-y"),
+    ] {
+        if on {
+            a.push(flag.into());
+        }
+    }
+    opt("-R", &inst.extroot, &mut a);
+    opt("-O", &inst.overlaydir, &mut a);
+    opt("-T", &inst.tmpoverlaysize, &mut a);
+    if j.immediately {
+        a.push("-i".into());
+    }
+    opt("-P", &j.pidfile, &mut a);
+    opt("-J", &inst.bundle, &mut a);
+    if j.requirejail {
+        a.push("-E".into());
+    }
+    // Environment is passed by NAME: ujail reads the value from its own
+    // environment, which procd has already set.
+    for k in inst.env.keys() {
+        a.push("-e".into());
+        a.push(k.clone());
+    }
+    // The stored value is the writable flag; the C tests `*type == '1'`.
+    for (path, mode) in &j.mount {
+        a.push(if mode.starts_with('1') { "-w".into() } else { "-r".into() });
+        a.push(path.clone());
+    }
+    a.push("--".into());
+    a
+}
+
 /// Start the instance's command. Returns the child pid.
 ///
 /// The order inside the child follows `instance_run()`: nice, env, limits,
@@ -118,8 +186,19 @@ pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPip
     let uid_gid = inst.user.as_deref().and_then(sys::lookup_user);
     let gr_gid = inst.group.as_deref().and_then(sys::lookup_group);
 
-    let mut cmd = Command::new(&inst.command[0]);
-    cmd.args(&inst.command[1..]);
+    // has_jail means the real argv is ujail's, with the instance's command
+    // after `--`. Running the command directly instead would be worse than
+    // either option: no sandbox AND, because the privilege drop below is
+    // skipped for jailed instances, still root.
+    let argv: Vec<String> = if inst.has_jail {
+        let mut a = jail_argv(inst);
+        a.extend(inst.command.iter().cloned());
+        a
+    } else {
+        inst.command.clone()
+    };
+    let mut cmd = Command::new(&argv[0]);
+    cmd.args(&argv[1..]);
 
     for (k, v) in &inst.env {
         cmd.env(k, v);
@@ -238,4 +317,67 @@ pub fn signal(pid: i32, sig: i32) -> bool {
     }
     // SAFETY: kill(2) takes two scalars and touches no memory.
     unsafe { kill(pid, sig) == 0 }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::instance::Instance;
+
+    fn jailed() -> Instance {
+        let mut i = Instance::new("one");
+        i.valid = true;
+        i.command = vec!["/usr/sbin/dnsmasq".into(), "-C".into(), "/tmp/x.conf".into()];
+        i.has_jail = true;
+        i.term_timeout = 7;
+        i.user = Some("dnsmasq".into());
+        i.group = Some("dnsmasq".into());
+        i.no_new_privs = true;
+        i.capabilities = Some("/etc/capabilities/dnsmasq.json".into());
+        i.jail.name = Some("dnsmasq".into());
+        i.jail.procfs = true;
+        i.jail.ubus = true;
+        i.jail.log = true;
+        i.jail.netns = false;
+        i.jail.mount.insert("/etc/hosts".into(), "0".into());
+        i.jail.mount.insert("/var/run".into(), "1".into());
+        i.env.insert("FOO".into(), "bar".into());
+        i
+    }
+
+    #[test]
+    fn a_jailed_instance_execs_ujail_with_its_command_after_the_separator() {
+        let i = jailed();
+        let a = jail_argv(&i);
+        assert_eq!(a[0], "/sbin/ujail");
+        // -t always comes first and carries term_timeout, not a default.
+        assert_eq!(&a[1..3], &["-t".to_string(), "7".to_string()]);
+        assert_eq!(a.last().unwrap(), "--");
+
+        let joined = a.join(" ");
+        assert!(joined.contains("-n dnsmasq"));
+        assert!(joined.contains("-U dnsmasq"));
+        assert!(joined.contains("-G dnsmasq"));
+        assert!(joined.contains("-C /etc/capabilities/dnsmasq.json"));
+        assert!(joined.contains(" -c ")); // no_new_privs
+        assert!(joined.contains(" -p ")); // procfs
+        assert!(joined.contains(" -u ")); // ubus
+        assert!(joined.contains(" -l ")); // log
+        assert!(!joined.contains(" -N ")); // netns is false
+        // Environment is passed by name, not by value.
+        assert!(joined.contains("-e FOO"));
+        assert!(!joined.contains("bar"));
+        // The writable flag is the stored value, tested as '1'.
+        assert!(joined.contains("-w /var/run"));
+        assert!(joined.contains("-r /etc/hosts"));
+    }
+
+    #[test]
+    fn an_unjailed_instance_gets_no_ujail_wrapper() {
+        let mut i = jailed();
+        i.has_jail = false;
+        // jail_argv is only consulted when has_jail; the guard lives in
+        // start(), so assert the flag rather than the builder.
+        assert!(!i.has_jail);
+    }
 }

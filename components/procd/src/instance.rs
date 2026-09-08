@@ -33,6 +33,31 @@ pub struct Respawn {
 }
 
 /// What an instance is doing right now.
+/// The `jail` table, as `jail_attr` parses it. Every flag maps to one ujail
+/// switch in `jail_run()`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Jail {
+    pub name: Option<String>,
+    pub hostname: Option<String>,
+    pub pidfile: Option<String>,
+    pub procfs: bool,
+    pub sysfs: bool,
+    pub ubus: bool,
+    pub udebug: bool,
+    pub log: bool,
+    pub ronly: bool,
+    pub netns: bool,
+    pub userns: bool,
+    pub cgroupsns: bool,
+    pub console: bool,
+    pub requirejail: bool,
+    pub immediately: bool,
+    /// path -> "1" for writable, anything else read-only. The C stores the
+    /// flag as the value and tests `*type == '1'`.
+    pub mount: BTreeMap<String, String>,
+}
+
+/// What an instance is doing right now.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Run {
     /// Not started, or exited and not respawning.
@@ -57,7 +82,11 @@ pub struct Instance {
     /// and `instance_dump` skips it entirely.
     pub valid: bool,
     pub env: BTreeMap<String, String>,
-    pub data: BTreeMap<String, String>,
+    /// `data`, keeping each field's blobmsg type and payload. The C stores
+    /// the blob and re-emits it with `blobmsg_add_blob`, so an integer stays
+    /// an integer; flattening to strings silently drops non-string fields.
+    /// BTreeMap because blobmsg_list_fill builds an avl ordered by name.
+    pub data: BTreeMap<String, (u32, Vec<u8>)>,
     pub limits: BTreeMap<String, String>,
     pub netdev: Vec<String>,
     pub file: Vec<String>,
@@ -80,9 +109,9 @@ pub struct Instance {
     pub no_new_privs: bool,
     pub trace: bool,
     pub has_jail: bool,
-    /// The `jail` table verbatim; this build hands it to ujail rather than
-    /// implementing the sandbox, so it is carried, compared and echoed.
-    pub jail: Option<Vec<u8>>,
+    /// The parsed `jail` table. The sandbox itself is ujail's job; procd
+    /// only builds its argv (`jail_run`).
+    pub jail: Jail,
     pub bundle: Option<String>,
     pub extroot: Option<String>,
     pub overlaydir: Option<String>,
@@ -155,7 +184,7 @@ impl Instance {
             no_new_privs: false,
             trace: false,
             has_jail: false,
-            jail: None,
+            jail: Jail::default(),
             bundle: None,
             extroot: None,
             overlaydir: None,
@@ -213,6 +242,7 @@ impl Instance {
             || self.trace != new.trace
             || self.no_new_privs != new.no_new_privs
             || self.jail != new.jail
+            || self.jail.mount != new.jail.mount
             // A self-managed watchdog is excluded from the comparison, so a
             // service that set its own mode/timeout is not restarted by the
             // next `set` carrying the original values.
@@ -322,8 +352,8 @@ impl Instance {
         }
         if !self.data.is_empty() {
             let e = b.msg_open_table("data");
-            for (k, v) in &self.data {
-                b.msg_string(k, v);
+            for (k, (ty, payload)) in &self.data {
+                b.msg_field(*ty, k, payload);
             }
             b.msg_close(e);
         }
@@ -437,9 +467,7 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             }
             "data" => {
                 for c in f.children() {
-                    if let Some(v) = c.as_str() {
-                        i.data.insert(c.name.to_string(), v.to_string());
-                    }
+                    i.data.insert(c.name.to_string(), (c.ty, c.data.to_vec()));
                 }
             }
             "limits" => {
@@ -498,7 +526,33 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             "trace" => i.trace = f.as_bool().unwrap_or(false),
             "jail" => {
                 i.has_jail = true;
-                i.jail = Some(f.data.to_vec());
+                for a in f.children() {
+                    match a.name {
+                        "name" => i.jail.name = a.as_str().map(str::to_string),
+                        "hostname" => i.jail.hostname = a.as_str().map(str::to_string),
+                        "pidfile" => i.jail.pidfile = a.as_str().map(str::to_string),
+                        "procfs" => i.jail.procfs = a.as_bool().unwrap_or(false),
+                        "sysfs" => i.jail.sysfs = a.as_bool().unwrap_or(false),
+                        "ubus" => i.jail.ubus = a.as_bool().unwrap_or(false),
+                        "udebug" => i.jail.udebug = a.as_bool().unwrap_or(false),
+                        "log" => i.jail.log = a.as_bool().unwrap_or(false),
+                        "ronly" => i.jail.ronly = a.as_bool().unwrap_or(false),
+                        "netns" => i.jail.netns = a.as_bool().unwrap_or(false),
+                        "userns" => i.jail.userns = a.as_bool().unwrap_or(false),
+                        "cgroupsns" => i.jail.cgroupsns = a.as_bool().unwrap_or(false),
+                        "console" => i.jail.console = a.as_bool().unwrap_or(false),
+                        "requirejail" => i.jail.requirejail = a.as_bool().unwrap_or(false),
+                        "immediately" => i.jail.immediately = a.as_bool().unwrap_or(false),
+                        "mount" => {
+                            for m in a.children() {
+                                if let Some(v) = m.as_str() {
+                                    i.jail.mount.insert(m.name.to_string(), v.to_string());
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
             }
             "triggers" => i.triggers = Some(f.data.to_vec()),
             "watchdog" => {
@@ -578,7 +632,7 @@ mod tests {
         let mut new = Instance::new("a");
         new.valid = true;
         new.command = vec!["/bin/true".into()];
-        new.data.insert("k".into(), "v".into());
+        new.data.insert("k".into(), (3, b"v\0".to_vec()));
         assert!(!old.config_changed(&new));
     }
 }
