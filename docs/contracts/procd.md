@@ -51,7 +51,11 @@ if (in->respawn_count > in->respawn_retry && in->respawn_retry > 0)
 
 `term_timeout` 的默认值 5 在 `instance_init` 里，不在解析里。
 
-## 3. reload_signal 让 restart 不再是 restart
+> **2026-09-08：以下第 3 条和第 10 条已被 [R68](../reviews/R68_ASTRA_P31_REVIEW.md)
+> 的反例推翻，第 1、4、5、6、7、8、9 条条件写宽了。逐条修订前不要引用本文件
+> 作为合同依据。**
+
+## 3. reload_signal 让 restart 不再是 restart（**这一条是错的**）
 
 `instance_restart()`：
 
@@ -62,8 +66,12 @@ if (in->reload_signal) {
 }
 ```
 
-发完信号**直接返回**。所以声明了 `reload_signal` 的服务在配置变更后
-**pid 不变**。r65 的第 10 例就是比这个：两边都必须"相同 set 保持同一个 pid"。
+发完信号**直接返回**。
+
+**但"所以 pid 不变"是错的**，而且 r65 第 10 例并不证明它——那一例只发了两次
+完全相同的 `set`，根本没有配置 `reload_signal`。R68/F07 的实测是：C 在一次更新里
+**先按旧配置处理旧进程、再搬新配置**；被信号通知的进程本身也可能因此退出。
+（本实现顺序反了，用新的 `reload_signal` 去打旧进程，实测把进程打死了。）
 
 `instance_stop()` 里 `uloop_timeout_set(&in->timeout, ...)` 被
 `if (!in->has_jail)` 包着——**jail 实例不会收到 SIGKILL**，ujail 自己负责收尾。
@@ -155,7 +163,9 @@ if (wildcard)
 `instance_config_parse` 里 `uint32_t vals[2] = { 0, 30 }`，只读前两个元素：
 
 - mode 超出 `[0, __INSTANCE_WATCHDOG_MODE_MAX)` 就**回落到 0**（disabled）；
-- freq **不大于 0 就回落到 30**。
+- freq **只有 atoi 之后为 0 才回落到 30**。写"不大于 0 就回落"是错的：
+  值先经 `atoi` 再存进 `uint32_t`，`"-1"` 变成 `0xffffffff`，`> 0` 成立，
+  不回落。R68/F16 实测 C 的 getter 显示 `timeout:-1`（CLI 对该 32 位值的表示）。
 
 `service watchdog` 方法：`name` 和 `instance` 缺任一个都是 **NOT_FOUND**
 （不是 INVALID_ARGUMENT），而且在查服务之前就判。传了 `mode` 或 `timeout`
@@ -174,8 +184,9 @@ r65 用两次 `service list` 取 pid 比过这条。
 - **实例日志 FD**：原版在实例声明 `stdout`/`stderr` 时把它们接到自己读的管道。
   这里两个都指向 `/dev/null`。没人消费的管道正是被监管进程死锁的方式，
   所以在日志通路落地前不接管道。
-- **每实例 watchdog 定时器不会触发。** `service watchdog` 的取值、
-  `self_managed` 位和 `list` 输出都对齐了，但定时器本身属于 P3.2，
+- **每实例 watchdog 定时器不会触发。** 取值、`self_managed` 位和 `list` 输出
+  对齐了，但定时器没做。**把它整个归到 P3.2 是错的**——R68/F16 实测 C 在
+  `getpid() != 1` 下同样会在超时时停掉实例，所以这是 P3.1 的范围，
   所以 mode=active 的实例不会因为超时被重启。
 - **container 对象**只为签名对齐而注册，容器方法一律拒绝；本机
   `ubus call service list` 没有任何容器。
