@@ -181,6 +181,20 @@ callx() {
 	return 0
 }
 
+# For a positive result whose exact text must NOT enter the diff -- it holds
+# a pid, a count, or a timestamp. `gate yes|no <text> <why>` prints the same
+# constant the case printed before, and fails the run when the positive
+# result did not happen, so "both sides produced nothing" stops being
+# agreement in the five places that still allowed it.
+gate() {
+	if [ "$1" = yes ]; then
+		echo "$2"
+	else
+		echo "$3"
+		echo "EXPECT-FAIL: $4" >> /tmp/out/expect.err
+	fi
+}
+
 # A positive effect file must exist and be non-empty. Its CONTENT still goes
 # into the diff; this only stops "neither side produced anything" passing.
 must_have() {
@@ -435,7 +449,11 @@ must_have /tmp/out/watched.txt
 call service set '{"name":"tlog","instances":{"one":{"command":["/bin/sh","-c","echo hello-stdout; echo hello-stderr >&2; sleep 300"],"stdout":true,"stderr":true}}}'
 sleep 3
 printf -- '--- the instance lines must reach the log, ident basename[pid]\n'
-logread 2>&1 | grep -E "hello-stdout|hello-stderr" | sed -E "s/^[A-Z][a-z]{2} [A-Z][a-z]{2} +[0-9]+ [0-9:]+ [0-9]{4} //; s/\[[0-9]+\]/[PID]/" || echo "(nothing logged)"
+logged=$(logread 2>&1 | grep -E "hello-stdout|hello-stderr" | sed -E "s/^[A-Z][a-z]{2} [A-Z][a-z]{2} +[0-9]+ [0-9:]+ [0-9]{4} //; s/\[[0-9]+\]/[PID]/")
+if [ -n "$logged" ]; then printf '%s\n' "$logged"; else
+	echo "(nothing logged)"
+	echo "EXPECT-FAIL: instance stdout/stderr never reached the log" >> /tmp/out/expect.err
+fi
 printf -- '--- an instance NOT asking for stdout must log nothing\n'
 call service set '{"name":"tquiet","instances":{"one":{"command":["/bin/sh","-c","echo should-not-be-logged; sleep 300"]}}}'
 sleep 3
@@ -546,7 +564,8 @@ must_have /tmp/out/instfired.txt
 printf -- '--- F13: pidfile must be written\n'
 call service set '{"name":"fp","instances":{"one":{"command":["/bin/sleep","300"],"pidfile":"/tmp/out/managed.pid"}}}'
 sleep 2
-[ -s /tmp/out/managed.pid ] && echo "pidfile written" || echo "PIDFILE MISSING"
+[ -s /tmp/out/managed.pid ] && w=yes || w=no
+gate "$w" "pidfile written" "PIDFILE MISSING" "pidfile was never written"
 
 printf -- '--- F14: during the TERM grace period it is still running\n'
 call service set '{"name":"fh","instances":{"one":{"command":["/bin/sh","-c","trap \"\" TERM; while :; do sleep 1; done"],"term_timeout":5}}}'
@@ -580,8 +599,9 @@ rm -f /tmp/out/initd.txt
 call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/sh","-c","exit 0"],"respawn":["3600","1","1"]}}}'
 sleep 8
 printf -- '--- the hook must have run more than once\n'
-c=$(grep -c "hasinit ran" /tmp/out/initd.txt 2>/dev/null || echo 0)
-[ "$c" -gt 1 ] && echo "hook ran repeatedly" || echo "HOOK RAN ONLY $c TIME(S)"
+c=$(grep -c "hasinit ran" /tmp/out/initd.txt 2>/dev/null || true); [ -n "$c" ] || c=0
+[ "$c" -gt 1 ] && w=yes || w=no
+gate "$w" "hook ran repeatedly" "HOOK RAN ONLY $c TIME(S)" "rc running hook ran $c time(s), expected more than one"
 
 printf -- '--- F18: merged validators keep insertion order, not global sort\n'
 call service set '{"name":"fz","validate":[{"package":"same","type":"same","data":{"z":"string"}}]}'
@@ -610,7 +630,9 @@ sleep 1
 call service event '{"type":"fast.ev","data":{"k":"v"}}'
 sleep 6
 printf -- '--- fast must appear twice: once queued behind slow, once requeued\n'
-grep -c "^fast$" /tmp/out/q.txt 2>/dev/null | sed "s/^/fast_runs=/" || echo "fast_runs=0"
+c=$(grep -c "^fast$" /tmp/out/q.txt 2>/dev/null || true); [ -n "$c" ] || c=0
+[ "$c" -ge 2 ] && w=yes || w=no
+gate "$w" "fast_runs=$c" "fast_runs=$c" "queued trigger ran $c time(s), expected the requeue to make it two"
 
 printf -- '--- F06: the supervisor must survive ubusd going away\n'
 call service set '{"name":"fb","instances":{"one":{"command":["/bin/sleep","300"]}}}'
@@ -629,7 +651,11 @@ while ! ubus list >/dev/null 2>&1 && [ $i -lt 15 ]; do sleep 1; i=$((i+1)); done
 sleep 4
 printf 'supervisor after a new ubusd: %s\n' "$(kill -0 "$sup" 2>/dev/null && echo alive || echo gone)"
 printf -- '--- and it must be back on the bus with its instance\n'
-ubus call service list '{"name":"fb"}' 2>&1 | grep -E '"running"' | head -1 || echo "NOT BACK"
+back=$(ubus call service list '{"name":"fb"}' 2>&1 | grep -E '"running"' | head -1)
+if [ -n "$back" ]; then printf '%s\n' "$back"; else
+	echo "NOT BACK"
+	echo "EXPECT-FAIL: supervisor did not come back on the bus after a new ubusd" >> /tmp/out/expect.err
+fi
 
 # 27. the whole table, so ordering is compared too
 printf -- '--- full list\n'
