@@ -565,6 +565,48 @@ call service set '{"name":"fa","validate":[{"package":"same","type":"same","data
 sleep 1
 call service validate '{"package":"same"}'
 
+printf -- '--- F05b: a recreated interface with the SAME name must restart it\n'
+ip link add p31dummy type dummy 2>/dev/null || true
+call service set '{"name":"fn","instances":{"one":{"command":["/bin/sleep","300"],"netdev":["p31dummy"]}}}'
+sleep 1
+ubus call service list '{"name":"fn"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/netpid1=\1/p"
+ip link del p31dummy 2>/dev/null || true
+ip link add p31dummy type dummy 2>/dev/null || true
+call service set '{"name":"fn","instances":{"one":{"command":["/bin/sleep","300"],"netdev":["p31dummy"]}}}'
+sleep 2
+ubus call service list '{"name":"fn"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/netpid2=\1/p"
+
+printf -- '--- F11: an identical command triggered while one is queued must run twice\n'
+rm -f /tmp/out/q.txt
+call service set '{"name":"fq","triggers":[["slow.ev",[["run_script","/bin/sh","-c","sleep 2; echo slow >> /tmp/out/q.txt"]]],["fast.ev",[["run_script","/bin/sh","-c","echo fast >> /tmp/out/q.txt"]]]]}'
+sleep 1
+call service event '{"type":"slow.ev","data":{"k":"v"}}'
+call service event '{"type":"fast.ev","data":{"k":"v"}}'
+sleep 1
+call service event '{"type":"fast.ev","data":{"k":"v"}}'
+sleep 6
+printf -- '--- fast must appear twice: once queued behind slow, once requeued\n'
+grep -c "^fast$" /tmp/out/q.txt 2>/dev/null | sed "s/^/fast_runs=/" || echo "fast_runs=0"
+
+printf -- '--- F06: the supervisor must survive ubusd going away\n'
+call service set '{"name":"fb","instances":{"one":{"command":["/bin/sleep","300"]}}}'
+sleep 1
+sup=$(cat /tmp/out/procd.pid)
+old=$(kill -0 "$sup" 2>/dev/null && echo alive || echo gone)
+printf 'supervisor before: %s\n' "$old"
+kill -9 "$(cat /tmp/out/ubusd.pid)" 2>/dev/null || true
+sleep 2
+printf 'supervisor after ubusd died: %s\n' "$(kill -0 "$sup" 2>/dev/null && echo alive || echo gone)"
+rm -f /var/run/ubus/ubus.sock
+/sbin/ubusd -s /var/run/ubus/ubus.sock &
+echo $! > /tmp/out/ubusd.pid
+i=0
+while ! ubus list >/dev/null 2>&1 && [ $i -lt 15 ]; do sleep 1; i=$((i+1)); done
+sleep 4
+printf 'supervisor after a new ubusd: %s\n' "$(kill -0 "$sup" 2>/dev/null && echo alive || echo gone)"
+printf -- '--- and it must be back on the bus with its instance\n'
+ubus call service list '{"name":"fb"}' 2>&1 | grep -E '"running"' | head -1 || echo "NOT BACK"
+
 # 27. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
@@ -629,6 +671,9 @@ scrub() {
 		-e 's/^wdpid2=[0-9]+$/wdpid2=W2/' \
 		-e 's/^filepid1=[0-9]+$/filepid1=F1/' \
 		-e 's/^filepid2=[0-9]+$/filepid2=F2/' \
+		-e 's/^netpid1=[0-9]+$/netpid1=N1/' \
+		-e 's/^netpid2=[0-9]+$/netpid2=N2/' \
+		-e 's/^supervisor before: .*/supervisor before: STATE/' \
 		"$1"
 }
 scrub "$out/c-calls.txt" > "$out/c-calls.scrubbed"
@@ -641,6 +686,17 @@ scrub "$out/rs-calls.txt" > "$out/rs-calls.scrubbed"
 same_pid() {
 	a=$(sed -n 's/^pid1=\([0-9][0-9]*\)$/\1/p' "$1")
 	b=$(sed -n 's/^pid2=\([0-9][0-9]*\)$/\1/p' "$1")
+	if [ -z "$a" ] || [ -z "$b" ]; then
+		echo missing
+	elif [ "$a" = "$b" ]; then
+		echo same
+	else
+		echo differs
+	fi
+}
+same_netpid() {
+	a=$(sed -n 's/^netpid1=\([0-9][0-9]*\)$/\1/p' "$1")
+	b=$(sed -n 's/^netpid2=\([0-9][0-9]*\)$/\1/p' "$1")
 	if [ -z "$a" ] || [ -z "$b" ]; then
 		echo missing
 	elif [ "$a" = "$b" ]; then
@@ -675,6 +731,7 @@ same_wdpid() {
 	echo "identical-set-keeps-pid c=$(same_pid "$out/c-calls.txt") rs=$(same_pid "$out/rs-calls.txt")"
 	echo "self-managed-watchdog-keeps-pid c=$(same_wdpid "$out/c-calls.txt") rs=$(same_wdpid "$out/rs-calls.txt")"
 	echo "changed-file-restarts c=$(same_filepid "$out/c-calls.txt") rs=$(same_filepid "$out/rs-calls.txt")"
+	echo "recreated-netdev-restarts c=$(same_netpid "$out/c-calls.txt") rs=$(same_netpid "$out/rs-calls.txt")"
 } > "$out/pid-identity.txt"
 
 rc=0
