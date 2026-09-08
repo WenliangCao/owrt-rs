@@ -43,6 +43,8 @@ struct Procd {
     objects: Objects,
     services: BTreeMap<String, Service>,
     base: Instant,
+    /// Next `Validator::seq`; see its doc comment.
+    validator_seq: u64,
     triggers: trigger::Triggers,
 }
 
@@ -334,6 +336,7 @@ impl Procd {
             (Target::Service, "get_data") => self.handle_get_data(&req),
             (Target::Service, "set_data") => self.handle_set_data(&req),
             (Target::Service, "event") => self.handle_event(&req),
+            (Target::Service, "validate") => self.handle_validate(&req),
             _ => status::NOT_SUPPORTED,
         };
         let _ = self.conn.reply_status(&req, code, None);
@@ -346,6 +349,7 @@ impl Procd {
         let mut autostart: Option<bool> = None;
         let mut fresh: BTreeMap<String, Instance> = BTreeMap::new();
         let mut trigger: Option<Vec<u8>> = None;
+        let mut validate: Option<Vec<service::Validator>> = None;
         let mut data: BTreeMap<String, String> = BTreeMap::new();
         let mut saw_instances = false;
         let mut saw_data = false;
@@ -355,6 +359,44 @@ impl Procd {
                 "name" => name = f.as_str().map(str::to_string),
                 "autostart" => autostart = f.as_bool(),
                 "triggers" => trigger = Some(f.data.to_vec()),
+                "validate" => {
+                    // service_validate_del() then one add per entry, so a
+                    // `set` carrying `validate` replaces the whole set.
+                    let mut v = Vec::new();
+                    for e in f.children() {
+                        let mut package = None;
+                        let mut kind = None;
+                        let mut rules = BTreeMap::new();
+                        let mut saw_data = false;
+                        for a in e.children() {
+                            match a.name {
+                                "package" => package = a.as_str().map(str::to_string),
+                                "type" => kind = a.as_str().map(str::to_string),
+                                "data" => {
+                                    saw_data = true;
+                                    for r in a.children() {
+                                        if let Some(rv) = r.as_str() {
+                                            rules.insert(r.name.to_string(), rv.to_string());
+                                        }
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                        // All three are required; the C returns early
+                        // without adding anything otherwise.
+                        if let (Some(package), Some(kind), true) = (package, kind, saw_data) {
+                            v.push(service::Validator {
+                                package,
+                                kind,
+                                seq: self.validator_seq,
+                                rules,
+                            });
+                            self.validator_seq += 1;
+                        }
+                    }
+                    validate = Some(v);
+                }
                 "instances" => {
                     saw_instances = true;
                     for e in f.children() {
@@ -400,11 +442,12 @@ impl Procd {
                 data: &raw,
             };
             self.triggers.add(f, &name);
-            // Re-borrow: the trigger update needed `self`.
-            let s = self.services.get_mut(&name).expect("service exists");
-            let _ = s;
         }
+        // Re-borrowed: the trigger update above needed `self`, not just `s`.
         let s = self.services.get_mut(&name).expect("service exists");
+        if let Some(v) = validate {
+            s.validate = v;
+        }
         let data_changed = saw_data && s.data != data;
         if saw_data {
             s.data = data;
@@ -569,6 +612,73 @@ impl Procd {
                 }
             }
         }
+        status::OK
+    }
+
+    /// `service_handle_validate()`. Grouped package -> type -> option -> rule
+    /// across every service, filtered by `package` and `type`. A `service`
+    /// argument short-circuits with an empty reply, which is what the C does
+    /// before it looks at anything else.
+    fn handle_validate(&mut self, req: &Request) -> i32 {
+        let mut package: Option<String> = None;
+        let mut kind: Option<String> = None;
+        let mut saw_service = false;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "package" => package = f.as_str().map(str::to_string),
+                "type" => kind = f.as_str().map(str::to_string),
+                "service" => saw_service = true,
+                _ => {}
+            }
+        }
+        if saw_service {
+            return status::OK;
+        }
+        // The C walks one global avl keyed by package (duplicates allowed)
+        // and builds a json_object, so: packages in strcmp order, types in
+        // insertion order within a package, options in strcmp order (their
+        // own avl). Sorting by (package, seq) reproduces that walk.
+        let mut all: Vec<&service::Validator> = self
+            .services
+            .values()
+            .flat_map(|s| s.validate.iter())
+            .filter(|v| package.as_ref().is_none_or(|p| *p == v.package))
+            .filter(|v| kind.as_ref().is_none_or(|t| *t == v.kind))
+            .collect();
+        all.sort_by(|a, b| a.package.cmp(&b.package).then(a.seq.cmp(&b.seq)));
+
+        let mut b = BlobBuf::new();
+        let mut i = 0;
+        while i < all.len() {
+            let pkg = &all[i].package;
+            let p = b.msg_open_table(pkg);
+            // Types in first-seen order; a repeated type merges its options.
+            let mut seen: Vec<&str> = Vec::new();
+            let start = i;
+            while i < all.len() && all[i].package == *pkg {
+                if !seen.contains(&all[i].kind.as_str()) {
+                    seen.push(all[i].kind.as_str());
+                }
+                i += 1;
+            }
+            for ty in seen {
+                let t = b.msg_open_table(ty);
+                let mut opts: BTreeMap<&str, &str> = BTreeMap::new();
+                for v in &all[start..i] {
+                    if v.kind == ty {
+                        for (o, r) in &v.rules {
+                            opts.insert(o.as_str(), r.as_str());
+                        }
+                    }
+                }
+                for (o, r) in opts {
+                    b.msg_string(o, r);
+                }
+                b.msg_close(t);
+            }
+            b.msg_close(p);
+        }
+        let _ = self.conn.reply_data(req, b.payload());
         status::OK
     }
 
@@ -905,6 +1015,7 @@ fn run() -> io::Result<()> {
         objects: Objects::default(),
         services: BTreeMap::new(),
         base: Instant::now(),
+        validator_seq: 0,
         triggers: trigger::Triggers::default(),
     };
 

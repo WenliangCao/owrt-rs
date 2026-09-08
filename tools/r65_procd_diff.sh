@@ -27,14 +27,21 @@ mkdir -p "$work/root/tmp/out" "$work/root/tmp/initd" "$work/root/tmp/rcd"
 
 cat > "$work/root/tmp/bus.sh" <<'X'
 #!/bin/sh
-mkdir -p /var/run /var/lock /var/state /tmp/out
+mkdir -p /var/run/ubus /var/lock /var/state /tmp/out
+# The rootfs copy is shared by both runs, so the previous run's socket file
+# is still sitting there. Waiting for the path to EXIST would then return
+# instantly and the daemon would connect to a dead socket -- which is exactly
+# what happened once the build host got busy. Remove it, and wait for a real
+# round trip rather than for the inode.
+rm -f /var/run/ubus/ubus.sock
 /sbin/ubusd -s /var/run/ubus/ubus.sock &
 echo $! > /tmp/out/ubusd.pid
 i=0
-while [ ! -S /var/run/ubus/ubus.sock ] && [ $i -lt 10 ]; do
+while ! ubus list >/dev/null 2>&1 && [ $i -lt 20 ]; do
 	sleep 1
 	i=$((i+1))
 done
+ubus list >/dev/null 2>&1 || echo "bus.sh: ubusd never answered" >> /tmp/out/bus.err
 X
 
 cat > "$work/root/tmp/cproc.sh" <<'X'
@@ -227,7 +234,22 @@ call service event '{"type":"ev2","data":{"K":"b"}}'
 sleep 2
 cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
 
-# 19. the whole table, so ordering is compared too
+# 19. validate: grouped package -> type -> option -> rule across services
+call service set '{"name":"tf","validate":[{"package":"network","type":"interface","data":{"proto":"string","ifname":"string"}},{"package":"network","type":"device","data":{"name":"string"}}]}'
+call service set '{"name":"tg","validate":[{"package":"dhcp","type":"host","data":{"mac":"string"}},{"package":"bogus","data":{"x":"y"}}]}'
+sleep 1
+printf -- '--- all validators (the entry missing `type` must be dropped)\n'
+call service validate '{}'
+printf -- '--- filtered by package\n'
+call service validate '{"package":"network"}'
+printf -- '--- filtered by package and type\n'
+call service validate '{"package":"network","type":"device"}'
+printf -- '--- a `service` argument short-circuits to an empty reply\n'
+call service validate '{"service":"tf"}'
+printf -- '--- verbose list shows the validators inline\n'
+call service list '{"name":"tf","verbose":true}'
+
+# 20. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X
@@ -250,6 +272,7 @@ run() {
 		sleep 2
 		chroot "$root" /bin/sh /tmp/drive.sh > "$out/$tag-calls.txt" 2>&1 || true
 		cp "$root/tmp/out/procd.log" "$out/$tag-daemon.log" 2>/dev/null || true
+		cp "$root/tmp/out/bus.err" "$out/$tag-bus.err" 2>/dev/null || true
 		for f in procd ubusd; do
 			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
 			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
@@ -288,6 +311,12 @@ same_pid() {
 } > "$out/pid-identity.txt"
 
 rc=0
+for t in c rs; do
+	if [ -s "$out/$t-bus.err" ]; then
+		echo "r65: $t run never got a working bus: $(cat "$out/$t-bus.err")" >&2
+		rc=1
+	fi
+done
 if ! diff -u "$out/c-calls.scrubbed" "$out/rs-calls.scrubbed" > "$out/calls.diff"; then
 	echo "r65: ubus replies differ" >&2
 	rc=1

@@ -14,6 +14,23 @@ use owrt_ubus::blob::{BlobBuf, MsgType};
 use crate::instance::{Instance, Run};
 
 /// What `service_instance_update` decides for one name in the vlist diff.
+/// One `validate` entry: a uci package and section type plus the option
+/// rules for it. `service_validate_add()` drops any entry missing one of
+/// package, type or data.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Validator {
+    pub package: String,
+    pub kind: String,
+    /// Registration order. The C keeps every validator in one global avl
+    /// keyed by package with duplicates allowed, so a walk yields packages in
+    /// strcmp order and, within one package, in insertion order. Sorting by
+    /// (package, seq) reproduces that walk without a second tree.
+    pub seq: u64,
+    /// option -> rule. BTreeMap because the C keeps them in an avl tree
+    /// ordered by option name, and `validate` prints them in that order.
+    pub rules: BTreeMap<String, String>,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum InstanceChange {
     /// Present on both sides: keep the running child, move the config on,
@@ -34,8 +51,8 @@ pub struct Service {
     pub autostart: bool,
     /// `triggers` verbatim; the rule engine reads it.
     pub trigger: Option<Vec<u8>>,
-    /// `validate` entries, verbatim.
-    pub validate: Vec<Vec<u8>>,
+    /// `validate` entries, parsed.
+    pub validate: Vec<Validator>,
     /// `data` table, flattened. A change here fires `service.data.update`.
     pub data: BTreeMap<String, String>,
     /// Set by `service_delete`; the service is gone once every instance has
@@ -119,9 +136,23 @@ impl Service {
                 b.msg_field(MsgType::Array as u32, "triggers", t);
             }
             if !self.validate.is_empty() {
+                // service_validate_dump(): an array of tables, each named
+                // "validate" -- the name is repeated inside an array, which
+                // libubox permits and `ubus` prints as a plain list.
                 let a = b.msg_open_array("validate");
-                for v in &self.validate {
-                    b.put_raw_fields(v);
+                // `list_add` prepends, so the per-service list walks in
+                // REVERSE declaration order -- the opposite of the grouping
+                // that `service validate` prints.
+                for v in self.validate.iter().rev() {
+                    let j = b.msg_open_table("validate");
+                    b.msg_string("package", &v.package);
+                    b.msg_string("type", &v.kind);
+                    let k = b.msg_open_table("rules");
+                    for (opt, rule) in &v.rules {
+                        b.msg_string(opt, rule);
+                    }
+                    b.msg_close(k);
+                    b.msg_close(j);
                 }
                 b.msg_close(a);
             }
