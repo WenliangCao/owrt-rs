@@ -221,6 +221,10 @@ r65 用两次 `service list` 取 pid 比过这条。
   管道，逐行以 `basename(argv0)[pid]` 为 ident 进 syslog（r65 第 23 例）。
 - **ubusd 重连后 watch 是否恢复**：**有意偏离**，见第 13 节。这是本合同里
   唯一一处候选故意不等于 C 的行为。
+- **PID 1 状态机与 inittab 已实现**（R71，隔离命名空间内完整启动+关机已验）：
+  EARLY→UBUS→INIT→RUNNING、早期 ubus 服务、rcS 串行、respawn/askfirst/
+  askconsole、SHUTDOWN/HALT。**仍缺**：hotplug/coldplug（EARLY 只打日志）、
+  watchdog 的 WDIOC 面（只有 open+5 s 喂狗）。设备上的 PID 1 对照属 P3.3。
 - ~~每实例 watchdog 定时器不会触发~~ **已实现**（软件定时器，超时后
   按 respawn 决定重启还是停止）。系统 `/dev/watchdog`、`WDTFD` 继承和
   magic close 仍属于 P3.2，
