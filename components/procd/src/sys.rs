@@ -463,6 +463,9 @@ mod atoi_tests {
 // -- PID 1 plumbing (state.c, inittab.c, signal.c helpers) -------------------
 
 extern "C" {
+    /// Variadic, like the real prototype, so one declaration serves the
+    /// int-argument (TIOCSCTTY) and pointer-argument (WDIOC) callers.
+    pub fn ioctl(fd: i32, req: u64, ...) -> i32;
     fn open(path: *const u8, flags: i32, mode: u32) -> i32;
     fn close(fd: i32) -> i32;
     fn dup2(old: i32, new: i32) -> i32;
@@ -553,6 +556,14 @@ pub fn set_console() {
     if let Some(t) = tty {
         set_stdio(&t);
     }
+}
+
+/// `close(2)` for a raw fd whose ownership was just taken back.
+///
+/// # Safety
+/// `fd` must be open and not owned by anything that will close it again.
+pub unsafe fn close_fd(fd: i32) -> i32 {
+    close(fd)
 }
 
 /// `dev_exist()`: can the name be opened under /dev? An empty id cannot,
@@ -676,29 +687,4 @@ pub fn procd_signal_pid1() {
     extern "C" fn dummy(_sig: i32) {}
     set_signal_handler(1, dummy);
     reboot_cmd(RB_DISABLE_CAD);
-}
-
-/// Minimal /dev/watchdog keep-alive: open once, write a byte every `freq`
-/// seconds from the main loop. The full WDIOC ioctl surface (timeout
-/// configuration, magic close, the `system watchdog` method backing store)
-/// is the remaining P3.2 item and is deliberately absent.
-pub fn watchdog_open() -> Option<std::os::fd::OwnedFd> {
-    use std::os::fd::FromRawFd;
-    let Ok(c) = CString::new("/dev/watchdog") else { return None };
-    // SAFETY: NUL-terminated path; the fd is immediately owned.
-    let fd = unsafe { open(c.as_ptr().cast(), O_WRONLY | O_NOCTTY, 0) };
-    if fd < 0 {
-        return None;
-    }
-    // SAFETY: fd is a fresh, open descriptor.
-    Some(unsafe { std::os::fd::OwnedFd::from_raw_fd(fd) })
-}
-
-pub fn watchdog_feed(fd: &std::os::fd::OwnedFd) {
-    use std::os::fd::AsRawFd;
-    extern "C" {
-        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-    }
-    // SAFETY: one byte from a live buffer to an open fd.
-    unsafe { write(fd.as_raw_fd(), [0u8].as_ptr(), 1) };
 }

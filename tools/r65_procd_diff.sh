@@ -831,6 +831,28 @@ if [ -n "$back" ]; then printf '%s\n' "$back"; else
 	echo "EXPECT-FAIL: supervisor did not come back on the bus after a new ubusd" >> /tmp/out/expect.err
 fi
 
+# 26b. the system object's readable methods. All four answer OUTSIDE PID 1
+#      on the shipping procd, so they are directly comparable. `info`'s
+#      values move between runs; only its SHAPE is compared (numbers
+#      scrubbed). `board` is deterministic inside one rootfs: same kernel,
+#      hostname, cpuinfo and os-release on both sides.
+printf -- '--- system board\n'
+call system board
+printf -- '--- system info, numbers scrubbed to N\n'
+ubus call system info 2>&1 | sed -E 's/[0-9]+/N/g'
+printf -- '--- system watchdog: read, reconfigure, clamp, read back\n'
+call system watchdog
+call system watchdog '{"timeout":60,"frequency":10}'
+printf -- '--- frequency above timeout/2 is clamped to timeout/2\n'
+call system watchdog '{"frequency":40}'
+printf -- '--- magicclose is echoed\n'
+call system watchdog '{"magicclose":true}'
+call system watchdog '{"magicclose":false,"timeout":30,"frequency":5}'
+printf -- '--- system signal: missing fields are INVALID_ARGUMENT, a bad pid is fine\n'
+callx system signal '{"pid":99999}'
+callx system signal '{"signum":15}'
+call system signal '{"pid":99999,"signum":15}'
+
 # 27. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
@@ -1042,13 +1064,14 @@ done
 # diff is clean and every other check still passes -- drive.done can even
 # have been written if the truncation is after it. The only thing that
 # notices is how much was actually compared, so require a floor on the number
-# of case markers. Measured, not guessed: a full run emits 193-197 of them
-# (the spread is cases added during this session), so 150 leaves room to add
-# or drop cases while still catching a drive that died part-way.
+# of case markers. Measured, not guessed -- and re-measured when cases are
+# added, because the floor must sit ABOVE the self-test's truncation point or
+# the injection goes red for an unrelated reason instead of this one: a full
+# run currently emits 251 markers and the F13-truncated run 199, so 225.
 for t in c rs; do
 	m=$(grep -c '^--- ' "$out/$t-calls.txt" 2>/dev/null || true); [ -n "$m" ] || m=0
 	echo "$t: $m case markers" >> "$out/coverage.txt"
-	if [ "$m" -lt 150 ]; then
+	if [ "$m" -lt 225 ]; then
 		echo "r65: $t only reached $m case markers -- the drive stopped early" >&2
 		rc=1
 	fi

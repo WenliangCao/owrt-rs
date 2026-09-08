@@ -15,6 +15,8 @@ mod jsonscript;
 mod proc;
 mod rcs;
 mod service;
+mod sysobj;
+mod watchdog;
 mod trigger;
 mod sys;
 mod ubus;
@@ -88,9 +90,7 @@ struct Procd {
     console: Option<String>,
     rc_d: String,
     reboot_event: i32,
-    watchdog: Option<std::os::fd::OwnedFd>,
-    /// Next monotonic ms at which the watchdog is fed (5 s cadence).
-    watchdog_next: i64,
+    wdt: watchdog::Wdt,
 }
 
 impl Procd {
@@ -715,12 +715,7 @@ impl Procd {
             return;
         }
         let now = self.now_ms();
-        if let Some(fd) = &self.watchdog {
-            if now >= self.watchdog_next {
-                sys::watchdog_feed(fd);
-                self.watchdog_next = now + 5000;
-            }
-        }
+        self.wdt.pump(now);
         let event = sys::SHUTDOWN_EVENT.swap(0, std::sync::atomic::Ordering::SeqCst);
         if event != 0 {
             self.procd_shutdown(event);
@@ -741,6 +736,61 @@ impl Procd {
             self.serial_awaited = false;
             self.state_next();
         }
+    }
+
+    /// `watchdog_set()`: the clamp arithmetic runs on the METHOD side; the
+    /// module stores what it is finally told.
+    fn handle_system_watchdog(&mut self, req: &Request) -> i32 {
+        let now = self.now_ms();
+        let mut frequency: Option<u32> = None;
+        let mut timeout: Option<u32> = None;
+        let mut magicclose: Option<bool> = None;
+        let mut stop: Option<bool> = None;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "frequency" => frequency = f.as_u32(),
+                "timeout" => timeout = f.as_u32(),
+                "magicclose" => magicclose = f.as_bool(),
+                "stop" => stop = f.as_bool(),
+                _ => {}
+            }
+        }
+        if let Some(freq) = frequency {
+            if freq != 0 {
+                let t = timeout.unwrap_or(self.wdt.timeout(0) as u32);
+                let freq = freq.min(t / 2);
+                if freq != 0 {
+                    self.wdt.frequency(freq as i32);
+                }
+            }
+        }
+        if let Some(mut t) = timeout {
+            let freq = self.wdt.frequency(0) as u32;
+            if t <= freq {
+                t = freq * 2;
+            }
+            self.wdt.timeout(t as i32);
+        }
+        if let Some(v) = magicclose {
+            self.wdt.set_magicclose(v);
+        }
+        if let Some(v) = stop {
+            self.wdt.set_stopped(v, now);
+        }
+        let status_str = if !self.wdt.is_open() {
+            "offline"
+        } else if self.wdt.stopped() {
+            "stopped"
+        } else {
+            "running"
+        };
+        let mut b = BlobBuf::new();
+        b.msg_string("status", status_str);
+        b.msg_u32("timeout", self.wdt.timeout(0) as u32);
+        b.msg_u32("frequency", self.wdt.frequency(0) as u32);
+        b.msg_bool("magicclose", self.wdt.magicclose());
+        let _ = self.conn.reply_data(req, b.payload());
+        status::OK
     }
 
     // -- events ------------------------------------------------------------
@@ -839,6 +889,42 @@ impl Procd {
             // machine to advance; the supervisor-only mode keeps rejecting.
             (Target::System, "reboot") if self.boot != Boot::NotPid1 => {
                 self.procd_shutdown(sys::RB_AUTOBOOT);
+                status::OK
+            }
+            (Target::System, "board") => {
+                let mut b = BlobBuf::new();
+                sysobj::build_board(&mut b);
+                let _ = self.conn.reply_data(&req, b.payload());
+                status::OK
+            }
+            (Target::System, "info") => {
+                let mut b = BlobBuf::new();
+                if !sysobj::build_info(&mut b) {
+                    status::UNKNOWN_ERROR
+                } else {
+                    let _ = self.conn.reply_data(&req, b.payload());
+                    status::OK
+                }
+            }
+            (Target::System, "watchdog") => self.handle_system_watchdog(&req),
+            (Target::System, "signal") => {
+                // proc_signal(): both fields required, the kill() result is
+                // deliberately not checked.
+                let mut pid: Option<u32> = None;
+                let mut signum: Option<u32> = None;
+                for f in owrt_ubus::blob::fields(&req.data) {
+                    match f.name {
+                        "pid" => pid = f.as_u32(),
+                        "signum" => signum = f.as_u32(),
+                        _ => {}
+                    }
+                }
+                let (Some(pid), Some(signum)) = (pid, signum) else {
+                    return {
+                        let _ = self.conn.reply_status(&req, status::INVALID_ARGUMENT, None);
+                    };
+                };
+                proc::signal(pid as i32, signum as i32);
                 status::OK
             }
             _ => status::NOT_SUPPORTED,
@@ -1784,7 +1870,7 @@ fn run() -> io::Result<()> {
 
     let pid1 = std::process::id() == 1;
     let base = Instant::now();
-    let mut watchdog = None;
+    let mut wdt = watchdog::Wdt::default();
     let mut early_ubus: Option<(instance::Instance, i32)> = None;
 
     let conn = if pid1 {
@@ -1797,8 +1883,8 @@ fn run() -> io::Result<()> {
         // keep-alive; hotplug("/etc/hotplug.json") and procd_coldplug() are
         // the remaining P3.2 pieces and their absence is logged, not hidden.
         eprintln!("procd: - early -");
-        watchdog = sys::watchdog_open();
-        if watchdog.is_none() {
+        wdt.init(base.elapsed().as_millis() as i64, false);
+        if !wdt.is_open() {
             eprintln!("procd-rs: no /dev/watchdog");
         }
         eprintln!("procd-rs: hotplug/coldplug are not implemented in this build");
@@ -1847,9 +1933,7 @@ fn run() -> io::Result<()> {
                             pid = proc::start(&inst).map(|(p, _, _)| p).unwrap_or(0);
                         }
                     }
-                    if let Some(fd) = &watchdog {
-                        sys::watchdog_feed(fd);
-                    }
+                    wdt.pump(base.elapsed().as_millis() as i64);
                     std::thread::sleep(std::time::Duration::from_millis(50));
                 }
             }
@@ -1882,8 +1966,7 @@ fn run() -> io::Result<()> {
         console: None,
         rc_d: arg_path("-R", "/etc/rc.d"),
         reboot_event: 0,
-        watchdog,
-        watchdog_next: 0,
+        wdt,
     };
     if let Some((inst, _)) = early_ubus.take() {
         let mut svc = Service::new("ubus");

@@ -420,10 +420,10 @@ mod tests {
 pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     extern "C" {
         fn setsid() -> i32;
-        fn ioctl(fd: i32, req: u64, arg: i32) -> i32;
         fn tcsetpgrp(fd: i32, pgrp: i32) -> i32;
         fn getpid() -> i32;
     }
+    use crate::sys::ioctl;
     const TIOCSCTTY: u64 = 0x540E;
 
     if argv.is_empty() {
