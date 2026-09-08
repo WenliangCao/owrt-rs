@@ -612,9 +612,10 @@ chmod 0755 /tmp/initd/showargv
 # namespace (both sides report exit_code 1), which means the inner command
 # must never have been reached.
 rm -f /tmp/out/unconfined.txt
-call service set '{"name":"tjail","instances":{"one":{"command":["/bin/sh","-c","echo ran-unconfined >> /tmp/out/unconfined.txt; sleep 300"],"jail":{"name":"tj","procfs":true,"ubus":true},"user":"nobody","no_new_privs":true}}}'
+call service set '{"name":"tjail","instances":{"one":{"command":["/bin/sh","-c","echo ran-unconfined >> /tmp/out/unconfined.txt; sleep 300"],"jail":{"name":"tj","procfs":true,"ubus":true,"setns":[{"pid":1,"namespaces":["net","ipc"]},{"namespaces":["uts"]}]},"user":"nobody","no_new_privs":true}}}'
 sleep 3
-printf -- '--- a jailed instance: running state and exit code\n'
+printf -- '--- a jailed instance: running state and exit code, and every setns\n'
+printf -- '    entry echoed raw -- including the one without a pid that ujail never sees\n'
 call service list '{"name":"tjail"}'
 printf -- '--- its command must NOT have run outside the jail\n'
 if [ -s /tmp/out/unconfined.txt ]; then
@@ -623,6 +624,27 @@ if [ -s /tmp/out/unconfined.txt ]; then
 else
 	echo "never ran unconfined"
 fi
+
+# 25b. array-valued fields come back in the C's avl order. blobmsg_list_fill()
+#      keys an ARRAY element by blobmsg_data() as a C string under avl_strcmp
+#      with duplicates refused: netdev sorted by name with the repeat dropped;
+#      env/limits by name; and setns -- tables -- by the raw payload bytes up
+#      to the first NUL, so the three entries whose payload starts with a
+#      `pid` attr collapse to the first (pid 3) and the pid-less one sorts in
+#      front of it. Measured on the shipping procd before being asserted.
+printf -- '--- 25b: netdev/env/limits echo back in avl order, duplicates dropped\n'
+call service set '{"name":"tord","instances":{"one":{"command":["/bin/sleep","300"],"netdev":["zeth","aeth","meth","aeth"],"env":{"ZZ":"1","A":"22","MM":"333"},"limits":{"nofile":"1024","core":"0"}}}}'
+sleep 2
+call service list '{"name":"tord"}'
+printf -- '--- and an identical set with the lists in another order is NOT a config change\n'
+ubus call service list '{"name":"tord"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/ordpid1=\1/p" | head -1
+call service set '{"name":"tord","instances":{"one":{"command":["/bin/sleep","300"],"netdev":["aeth","meth","zeth"],"env":{"A":"22","MM":"333","ZZ":"1"},"limits":{"core":"0","nofile":"1024"}}}}'
+sleep 2
+ubus call service list '{"name":"tord"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/ordpid2=\1/p" | head -1
+printf -- '--- setns: tables keyed by their leading bytes, so three pid-first entries collapse to the first\n'
+call service set '{"name":"tord2","instances":{"one":{"command":["/bin/sleep","300"],"jail":{"name":"jo","setns":[{"pid":3,"namespaces":["c"]},{"pid":1,"namespaces":["a"]},{"pid":2,"namespaces":["b"]},{"namespaces":["zz"]}]}}}}'
+sleep 2
+call service list '{"name":"tord2"}'
 
 # 26. R68's counter-examples. Each of these was red on the candidate that
 #     passed the old gate, which is the point: they test behaviour the
@@ -690,6 +712,8 @@ sleep 1
 call service event '{"type":"inst.ev","data":{"k":"v"}}'
 sleep 2
 must_have /tmp/out/instfired.txt
+printf -- '--- verbose list shows the instance-level triggers (instance_dump: verbose && in->trigger)\n'
+call service list '{"name":"fi","verbose":true}'
 
 # F12: with `user` set and no `group`, C takes the primary GID from passwd.
 # The old code passed the UID in its place. p31user is UID 1234 / GID 2345
@@ -869,6 +893,8 @@ scrub() {
 		-e 's/^filepid2=[0-9]+$/filepid2=F2/' \
 		-e 's/^netpid1=[0-9]+$/netpid1=N1/' \
 		-e 's/^netpid2=[0-9]+$/netpid2=N2/' \
+		-e 's/^ordpid1=[0-9]+$/ordpid1=O1/' \
+		-e 's/^ordpid2=[0-9]+$/ordpid2=O2/' \
 		-e 's/^supervisor before: .*/supervisor before: STATE/' \
 		"$1"
 }
@@ -912,6 +938,17 @@ same_filepid() {
 		echo differs
 	fi
 }
+same_ordpid() {
+	a=$(sed -n 's/^ordpid1=\([0-9][0-9]*\)$/\1/p' "$1")
+	b=$(sed -n 's/^ordpid2=\([0-9][0-9]*\)$/\1/p' "$1")
+	if [ -z "$a" ] || [ -z "$b" ]; then
+		echo missing
+	elif [ "$a" = "$b" ]; then
+		echo same
+	else
+		echo differs
+	fi
+}
 same_wdpid() {
 	a=$(sed -n 's/^wdpid1=\([0-9][0-9]*\)$/\1/p' "$1")
 	b=$(sed -n 's/^wdpid2=\([0-9][0-9]*\)$/\1/p' "$1")
@@ -928,6 +965,7 @@ same_wdpid() {
 	echo "self-managed-watchdog-keeps-pid c=$(same_wdpid "$out/c-calls.txt") rs=$(same_wdpid "$out/rs-calls.txt")"
 	echo "changed-file-restarts c=$(same_filepid "$out/c-calls.txt") rs=$(same_filepid "$out/rs-calls.txt")"
 	echo "recreated-netdev-restarts c=$(same_netpid "$out/c-calls.txt") rs=$(same_netpid "$out/rs-calls.txt")"
+	echo "reordered-lists-keep-pid c=$(same_ordpid "$out/c-calls.txt") rs=$(same_ordpid "$out/rs-calls.txt")"
 } > "$out/pid-identity.txt"
 
 rc=0

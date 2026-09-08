@@ -61,6 +61,10 @@ pub struct Jail {
     /// `instance_gen_setns_argstr` returns NULL and the C skips that
     /// `-j` pair entirely.
     pub setns: Vec<String>,
+    /// The same `setns` entries as given, type and payload, because the C
+    /// keeps the raw blobs: `instance_dump` re-emits every one of them
+    /// (valid or not) and `instance_config_changed` compares them as blobs.
+    pub setns_raw: Vec<(u32, Vec<u8>)>,
 }
 
 /// What an instance is doing right now.
@@ -341,7 +345,7 @@ impl Instance {
 
     /// `instance_dump()`, in its field order. An invalid instance emits
     /// nothing at all, not an empty table.
-    pub fn dump(&self, b: &mut BlobBuf, _verbose: bool) {
+    pub fn dump(&self, b: &mut BlobBuf, verbose: bool) {
         if !self.valid {
             return;
         }
@@ -474,6 +478,15 @@ impl Instance {
                 }
                 b.msg_close(e);
             }
+            // blobmsg_add_blob() of each stored entry: the raw tables, in
+            // order, including ones ujail's argv skipped as malformed.
+            if !self.jail.setns_raw.is_empty() {
+                let a = b.msg_open_array("setns");
+                for (ty, payload) in &self.jail.setns_raw {
+                    b.msg_field(*ty, "", payload);
+                }
+                b.msg_close(a);
+            }
         }
         if let Some(v) = &self.extroot {
             b.msg_string("extroot", v);
@@ -483,6 +496,13 @@ impl Instance {
         }
         if let Some(v) = &self.tmpoverlaysize {
             b.msg_string("tmpoverlaysize", v);
+        }
+        // `if (verbose && in->trigger) blobmsg_add_blob(b, in->trigger);` --
+        // the instance's own rules, under the attr's own name, verbose only.
+        if verbose {
+            if let Some(t) = &self.triggers {
+                b.msg_field(owrt_ubus::blob::MsgType::Array as u32, "triggers", t);
+            }
         }
         // Last, and only when the mode is not disabled.
         if self.watchdog_mode != 0 {
@@ -573,7 +593,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 for c in f.children() {
                     match c.as_str() {
                         Some(v) => {
-                            i.env.insert(c.name.to_string(), v.to_string());
+                            // avl_insert() refuses a duplicate key: the FIRST
+                            // entry under a name wins, later ones are dropped.
+                            i.env.entry(c.name.to_string()).or_insert_with(|| v.to_string());
                         }
                         None => bad_field = true,
                     }
@@ -581,43 +603,57 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             }
             "data" => {
                 for c in f.children() {
-                    i.data.insert(c.name.to_string(), (c.ty, c.data.to_vec()));
+                    i.data.entry(c.name.to_string()).or_insert_with(|| (c.ty, c.data.to_vec()));
                 }
             }
             "limits" => {
                 for c in f.children() {
                     match c.as_str() {
                         Some(v) => {
-                            i.limits.insert(c.name.to_string(), v.to_string());
+                            // avl_insert() refuses a duplicate key: the FIRST
+                            // entry under a name wins, later ones are dropped.
+                            i.limits.entry(c.name.to_string()).or_insert_with(|| v.to_string());
                         }
                         None => bad_field = true,
                     }
                 }
             }
+            // blobmsg_list_fill(l, ..., array=true): the avl key of an array
+            // element is blobmsg_data(cur) -- the string itself -- under
+            // avl_strcmp with duplicates refused. So `list` echoes these
+            // sorted by value with repeats dropped, and blobmsg_list_equal()
+            // compares them in that order, which is why a reordered `netdev`
+            // is NOT a config change in the C.
             "netdev" => {
-                i.netdev = f
-                    .children()
-                    .filter_map(|c| c.as_str())
-                    .map(|n| (n.to_string(), crate::sys::if_nametoindex(n)))
-                    .collect();
+                let mut by_name: BTreeMap<String, u32> = BTreeMap::new();
+                for n in f.children().filter_map(|c| c.as_str()) {
+                    by_name.entry(n.to_string()).or_insert_with(|| crate::sys::if_nametoindex(n));
+                }
+                i.netdev = by_name.into_iter().collect();
             }
             "file" => {
-                i.file = f
-                    .children()
-                    .filter_map(|c| c.as_str())
-                    .map(|p| (p.to_string(), crate::sys::file_md5(p)))
-                    .collect();
+                let mut by_path: BTreeMap<String, [u8; 16]> = BTreeMap::new();
+                for p in f.children().filter_map(|c| c.as_str()) {
+                    by_path.entry(p.to_string()).or_insert_with(|| crate::sys::file_md5(p));
+                }
+                i.file = by_path.into_iter().collect();
             }
             "watch" => {
                 i.watch = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
             }
             "error" => {
+                // Same array rule: sorted by the string, duplicates dropped.
                 for c in f.children() {
                     match c.as_str() {
-                        Some(v) => i.errors.push(v.to_string()),
+                        Some(v) => {
+                            if !i.errors.iter().any(|e| e == v) {
+                                i.errors.push(v.to_string());
+                            }
+                        }
                         None => bad_field = true,
                     }
                 }
+                i.errors.sort();
             }
             "respawn" => {
                 // The C seeds vals[] with the defaults and overwrites only as
@@ -689,10 +725,27 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                             }
                         }
                         "setns" => {
+                            // blobmsg_list_fill(&jail->setns, ..., true): the
+                            // avl key is blobmsg_data(cur) read as a C STRING
+                            // even though each element is a table -- i.e. the
+                            // raw payload bytes up to the first NUL. Entries
+                            // whose payload begins identically (a `pid` first,
+                            // say) collide and all but the first are dropped;
+                            // the survivors come back in strcmp order of that
+                            // prefix. Measured against the shipping procd:
+                            // [pid3, pid1, pid2, nopid] lists as [nopid, pid3].
+                            let mut kept: BTreeMap<Vec<u8>, (u32, Vec<u8>)> = BTreeMap::new();
                             for e in a.children() {
+                                let key: Vec<u8> =
+                                    e.data.iter().take_while(|b| **b != 0).copied().collect();
+                                kept.entry(key).or_insert_with(|| (e.ty, e.data.to_vec()));
+                            }
+                            for (ty, payload) in kept.into_values() {
+                                let e = owrt_ubus::blob::Field { name: "", ty, data: &payload };
                                 if let Some(arg) = setns_argstr(e) {
                                     i.jail.setns.push(arg);
                                 }
+                                i.jail.setns_raw.push((ty, payload));
                             }
                         }
                         _ => {}
@@ -963,5 +1016,196 @@ mod setns_tests {
             b.msg_close(a);
         });
         assert!(got.is_none());
+    }
+}
+
+#[cfg(test)]
+mod dump_tests {
+    use super::*;
+    use owrt_ubus::blob::{fields, BlobBuf};
+
+    fn parse_entry(build: impl FnOnce(&mut BlobBuf)) -> Instance {
+        let mut b = BlobBuf::new();
+        let t = b.msg_open_table("one");
+        build(&mut b);
+        b.msg_close(t);
+        let f = fields(b.payload()).next().expect("one entry");
+        parse("one", f)
+    }
+
+    /// The dumped instance table's field names, in order, one level deep;
+    /// `path` descends into a named child first.
+    fn dumped_names(i: &Instance, verbose: bool, path: &[&str]) -> Vec<String> {
+        let mut b = BlobBuf::new();
+        i.dump(&mut b, verbose);
+        let table = fields(b.payload()).next().expect("instance table");
+        let mut data = table.data;
+        for want in path {
+            let child = owrt_ubus::blob::fields(data)
+                .find(|f| f.name == *want)
+                .unwrap_or_else(|| panic!("no field {want}"));
+            data = child.data;
+        }
+        owrt_ubus::blob::fields(data).map(|f| f.name.to_string()).collect()
+    }
+
+    fn with_triggers_and_setns() -> Instance {
+        parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            let t = b.msg_open_array("triggers");
+            {
+                let r = b.msg_open_array("");
+                b.msg_string("", "x.ev");
+                let cmds = b.msg_open_array("");
+                let cmd = b.msg_open_array("");
+                b.msg_string("", "run_script");
+                b.msg_string("", "/bin/true");
+                b.msg_close(cmd);
+                b.msg_close(cmds);
+                b.msg_close(r);
+            }
+            b.msg_close(t);
+            let j = b.msg_open_table("jail");
+            b.msg_string("name", "j");
+            let s = b.msg_open_array("setns");
+            {
+                let e = b.msg_open_table("");
+                b.msg_u32("pid", 1);
+                let ns = b.msg_open_array("namespaces");
+                b.msg_string("", "net");
+                b.msg_close(ns);
+                b.msg_close(e);
+            }
+            {
+                // No pid: ujail gets no -j for it, but the dump still shows it.
+                let e = b.msg_open_table("");
+                let ns = b.msg_open_array("namespaces");
+                b.msg_string("", "ipc");
+                b.msg_close(ns);
+                b.msg_close(e);
+            }
+            b.msg_close(s);
+            b.msg_close(j);
+        })
+    }
+
+    #[test]
+    fn instance_triggers_are_dumped_only_when_verbose() {
+        let i = with_triggers_and_setns();
+        assert!(i.triggers.is_some());
+        let plain = dumped_names(&i, false, &[]);
+        assert!(!plain.iter().any(|n| n == "triggers"), "{plain:?}");
+        let verbose = dumped_names(&i, true, &[]);
+        let pos = verbose.iter().position(|n| n == "triggers").expect("triggers in verbose dump");
+        // C emits it after the jail block and before watchdog: last here.
+        assert_eq!(pos, verbose.len() - 1, "{verbose:?}");
+    }
+
+    #[test]
+    fn every_setns_entry_is_dumped_raw_even_when_ujail_skips_it() {
+        let mut i = with_triggers_and_setns();
+        assert_eq!(i.jail.setns, vec!["1:net".to_string()], "only the valid one renders");
+        // Two distinct key prefixes (an array attr vs an int attr first), so
+        // both survive, and the pid-less one sorts first.
+        assert_eq!(i.jail.setns_raw.len(), 2);
+        assert!(i.jail.setns_raw[0].1.len() < i.jail.setns_raw[1].1.len(), "nopid entry first");
+        // The build host has no /sbin/ujail, so parse() cleared has_jail the
+        // way the C does without require_jail. The dump path under test is
+        // the one a rootfs WITH ujail takes, so put the flag back.
+        i.has_jail = true;
+        // Like `mount`, the C emits `setns` as a SIBLING of the jail table,
+        // after closing it -- not inside it.
+        let top = dumped_names(&i, false, &[]);
+        let jail = top.iter().position(|n| n == "jail").expect("jail table");
+        let setns = top.iter().position(|n| n == "setns").expect("setns array");
+        assert!(setns > jail, "{top:?}");
+        let entries = dumped_names(&i, false, &["setns"]);
+        assert_eq!(entries.len(), 2, "both entries, valid or not");
+    }
+}
+
+#[cfg(test)]
+mod list_order_tests {
+    use super::*;
+    use owrt_ubus::blob::{fields, BlobBuf};
+
+    fn parse_entry(build: impl FnOnce(&mut BlobBuf)) -> Instance {
+        let mut b = BlobBuf::new();
+        let t = b.msg_open_table("one");
+        build(&mut b);
+        b.msg_close(t);
+        let f = fields(b.payload()).next().expect("one entry");
+        parse("one", f)
+    }
+
+    #[test]
+    fn array_lists_come_back_sorted_and_deduplicated() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            let n = b.msg_open_array("netdev");
+            for d in ["zeth", "aeth", "meth", "aeth"] {
+                b.msg_string("", d);
+            }
+            b.msg_close(n);
+            let e = b.msg_open_array("error");
+            for d in ["late", "early", "late"] {
+                b.msg_string("", d);
+            }
+            b.msg_close(e);
+        });
+        let names: Vec<&str> = i.netdev.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, vec!["aeth", "meth", "zeth"]);
+        assert_eq!(i.errors, vec!["early".to_string(), "late".to_string()]);
+    }
+
+    #[test]
+    fn a_duplicate_name_in_a_table_keeps_the_first_value() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            let e = b.msg_open_table("env");
+            b.msg_string("K", "first");
+            b.msg_string("K", "second");
+            b.msg_close(e);
+        });
+        assert_eq!(i.env.get("K").map(String::as_str), Some("first"));
+    }
+
+    #[test]
+    fn setns_entries_with_the_same_leading_bytes_collapse_to_the_first() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            let j = b.msg_open_table("jail");
+            let s = b.msg_open_array("setns");
+            for (pid, ns) in [(3u32, "c"), (1, "a"), (2, "b")] {
+                let e = b.msg_open_table("");
+                b.msg_u32("pid", pid);
+                let a = b.msg_open_array("namespaces");
+                b.msg_string("", ns);
+                b.msg_close(a);
+                b.msg_close(e);
+            }
+            {
+                let e = b.msg_open_table("");
+                let a = b.msg_open_array("namespaces");
+                b.msg_string("", "zz");
+                b.msg_close(a);
+                b.msg_close(e);
+            }
+            b.msg_close(s);
+            b.msg_close(j);
+        });
+        // Three entries start with the same `pid` attr header -> one survives
+        // (the first, pid 3); the pid-less one has a different first byte and
+        // sorts before it. Exactly what the shipping procd lists.
+        assert_eq!(i.jail.setns, vec!["3:c".to_string()]);
+        assert_eq!(i.jail.setns_raw.len(), 2);
     }
 }
