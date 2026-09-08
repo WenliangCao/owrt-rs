@@ -853,6 +853,35 @@ callx system signal '{"pid":99999}'
 callx system signal '{"signum":15}'
 call system signal '{"pid":99999,"signum":15}'
 
+# 26c. the hotplug.<subsystem> objects (hotplug-dispatch.c). One per
+#      /etc/hotplug.d directory plus `button`, present in the SUPERVISOR
+#      mode too; `call` sources the directory's scripts with the given env
+#      merged under procd's own; inotify tracks directory creation live.
+printf -- '--- the hotplug objects on the bus, and one signature\n'
+ubus list "hotplug.*" 2>&1
+ubus -v list hotplug.button 2>&1
+mkdir -p /etc/hotplug.d/p31sub
+cat > /etc/hotplug.d/p31sub/10-mark <<'Y'
+echo "ran with FOO=$FOO INTERFACE=$INTERFACE" >> /tmp/out/hpcall.txt
+Y
+cat > /etc/hotplug.d/p31sub/20-mark <<'Y'
+echo "second script" >> /tmp/out/hpcall.txt
+Y
+printf -- '--- a created directory appears as an object (inotify)\n'
+sleep 2
+ubus list "hotplug.p31sub" 2>&1
+printf -- '--- call runs every script, in order, with the merged env\n'
+call hotplug.p31sub call '{"env":["FOO=bar","INTERFACE=lan","LD_PRELOAD=/evil","9BAD=x"]}'
+sleep 2
+must_have /tmp/out/hpcall.txt 2
+printf -- '--- env is required, and ASYNC=0 is refused\n'
+callx hotplug.p31sub call
+callx hotplug.p31sub call '{"env":["ASYNC=0"]}'
+printf -- '--- an empty directory is a successful no-op\n'
+mkdir -p /etc/hotplug.d/p31empty
+sleep 2
+call hotplug.p31empty call '{"env":["X=1"]}'
+
 # 27. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
@@ -931,7 +960,7 @@ scrub() {
 	# inside `data` -- no case has one today; a case that adds one must scrub
 	# differently rather than lose the comparison silently.
 	sed -E \
-		-e "s/^'([a-z]+)' @[0-9a-f]+$/'\\1' @ID/" \
+		-e "s/^'([a-z.0-9]+)' @[0-9a-f]+$/'\\1' @ID/" \
 		-e 's/^(\t+)"pid": [0-9]+/\1"pid": PID/' \
 		-e 's/^pid1=[0-9]+$/pid1=P1/' \
 		-e 's/^pid2=[0-9]+$/pid2=P2/' \

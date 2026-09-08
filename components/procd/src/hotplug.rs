@@ -346,10 +346,12 @@ impl Hotplug {
     }
 
     /// Drain the socket, run rules, fire button timeouts, start queue work.
-    /// Returns true when a `start-console` command asked for the inittab
-    /// console handlers to run again.
-    pub fn pump(&mut self, now: i64) -> bool {
+    /// Returns whether a `start-console` command asked for the inittab
+    /// console handlers, and the events received (for `hotplug_ubus_event`'s
+    /// per-subsystem notification).
+    pub fn pump(&mut self, now: i64) -> (bool, Vec<BTreeMap<String, String>>) {
         let mut console_request = false;
+        let mut events = Vec::new();
         let mut buf = [0u8; 4096];
         loop {
             use std::os::fd::AsRawFd;
@@ -360,6 +362,7 @@ impl Hotplug {
             }
             let vars = parse_uevent(&buf[..n as usize]);
             self.run_rules(&vars, now);
+            events.push(vars);
         }
         // Button timers: arm the fresh ones, fire the due ones.
         for b in self.buttons.iter_mut() {
@@ -396,7 +399,7 @@ impl Hotplug {
                 break;
             }
         }
-        console_request
+        (console_request, events)
     }
 
     fn touch_quiet(&mut self, now: i64) {

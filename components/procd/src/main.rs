@@ -9,6 +9,7 @@
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
 //! `service/instance.c`.
 
+mod dispatch;
 mod hotplug;
 mod inittab;
 mod instance;
@@ -94,6 +95,8 @@ struct Procd {
     wdt: watchdog::Wdt,
     /// The uevent listener + rule queue; PID 1 only.
     hotplug: Option<hotplug::Hotplug>,
+    /// The `hotplug.<subsys>` objects; registered in BOTH modes, like the C.
+    dispatch: dispatch::Dispatch,
 }
 
 impl Procd {
@@ -456,6 +459,12 @@ impl Procd {
                 if self.hotplug.as_mut().is_some_and(|h| h.reaped(pid, wstatus)) {
                     continue;
                 }
+                {
+                    let now = self.now_ms();
+                    if self.dispatch.reaped(pid, now) {
+                        continue;
+                    }
+                }
                 // Otherwise an orphan we never started. PID 1 must reap
                 // these; as an ordinary daemon we rarely see them.
                 let _ = wstatus;
@@ -717,18 +726,38 @@ impl Procd {
     /// The per-loop PID 1 work: respawn timers, the serial queue, and its
     /// state advance; plus the shutdown signals and the watchdog feed.
     fn pump_pid1(&mut self) {
+        // The hotplug.<subsys> script queue and the /etc/hotplug.d inotify
+        // run in BOTH modes -- the supervisor answers `hotplug.* call` too.
+        {
+            let now = self.now_ms();
+            let mut d = std::mem::take(&mut self.dispatch);
+            d.pump(&mut self.conn, now);
+            self.dispatch = d;
+        }
         if self.boot == Boot::NotPid1 {
             return;
         }
         let now = self.now_ms();
         self.wdt.pump(now);
         if let Some(mut hp) = self.hotplug.take() {
-            if hp.pump(now) {
+            let (console, events) = hp.pump(now);
+            if console {
                 // start-console: run the console handlers again for a tty
                 // that appeared late (ttyGS). Done here, in the parent, so
                 // the respawn pids stay supervised.
                 self.inittab_run(inittab::Kind::Respawn);
                 self.inittab_run(inittab::Kind::Askfirst);
+            }
+            // hotplug_ubus_event(): a uevent whose SUBSYSTEM has a
+            // hotplug.<subsys> object is notified to its subscribers.
+            for vars in events {
+                let Some(subsys) = vars.get("SUBSYSTEM") else { continue };
+                let Some(id) = self.dispatch.objects.get(subsys).copied() else { continue };
+                let mut b = BlobBuf::new();
+                for (k, v) in &vars {
+                    b.msg_string(k, v);
+                }
+                let _ = self.conn.notify(id, "event", b.payload());
             }
             self.hotplug = Some(hp);
         }
@@ -839,6 +868,11 @@ impl Procd {
         self.objects.container =
             self.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
         self.objects.system = self.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
+        {
+            let mut d = std::mem::take(&mut self.dispatch);
+            d.reregister(&mut self.conn);
+            self.dispatch = d;
+        }
         self.watch_obj = self.conn.add_anonymous_object(1000)?;
         self.conn
             .register_event_handler(self.watch_obj, Some("ubus.object.add"), 1000)?;
@@ -871,6 +905,18 @@ impl Procd {
                 self.triggers.fire(&req.method, &vars, now);
             }
             let _ = self.conn.reply_status(&req, status::OK, None);
+            return;
+        }
+        if let Some(subsys) = self.dispatch.subsystem_of(req.objid).map(str::to_string) {
+            let now = self.now_ms();
+            let mut d = std::mem::take(&mut self.dispatch);
+            let code = if req.method == "call" {
+                d.call(&subsys, &req.data, now)
+            } else {
+                status::NOT_SUPPORTED
+            };
+            self.dispatch = d;
+            let _ = self.conn.reply_status(&req, code, None);
             return;
         }
         let target = if req.objid == self.objects.service {
@@ -1881,7 +1927,38 @@ fn arg_path(flag: &str, default: &str) -> String {
     default.to_string()
 }
 
+/// `procd -h <rules>`: the standalone hotplug daemon preinit runs
+/// (`hotplug_run()`) -- the uevent loop and nothing else, no ubus, no
+/// supervision, until the parent kills it.
+fn run_hotplug_daemon(rules: &str) -> io::Result<()> {
+    owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
+    let base = Instant::now();
+    let Some(mut hp) = hotplug::Hotplug::new(rules) else {
+        // hotplug() exits 1 when the socket or rules cannot be had.
+        std::process::exit(1);
+    };
+    loop {
+        let now = base.elapsed().as_millis() as i64;
+        let _ = hp.pump(now);
+        while let Some((pid, st)) = proc::reap_any() {
+            hp.reaped(pid, st);
+        }
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+}
+
 fn run() -> io::Result<()> {
+    // `-h <path>`: run as hotplug daemon (procd.c's getopt case 'h').
+    {
+        let mut args = std::env::args().skip(1);
+        while let Some(a) = args.next() {
+            if a == "-h" {
+                if let Some(rules) = args.next() {
+                    return run_hotplug_daemon(&rules);
+                }
+            }
+        }
+    }
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
 
     let pid1 = std::process::id() == 1;
@@ -1915,7 +1992,7 @@ fn run() -> io::Result<()> {
                 h.coldplug(sys::is_container());
                 loop {
                     let now = base.elapsed().as_millis() as i64;
-                    h.pump(now);
+                    let _ = h.pump(now);
                     while let Some((pid, st)) = proc::reap_any() {
                         h.reaped(pid, st);
                     }
@@ -2008,6 +2085,7 @@ fn run() -> io::Result<()> {
         reboot_event: 0,
         wdt,
         hotplug: hp,
+        dispatch: dispatch::Dispatch::new(),
     };
     if let Some((inst, _)) = early_ubus.take() {
         let mut svc = Service::new("ubus");
@@ -2018,6 +2096,13 @@ fn run() -> io::Result<()> {
     p.objects.service = p.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
     p.objects.container = p.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
     p.objects.system = p.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
+    // ubus_init_hotplug(): the hotplug.<subsys> objects exist in the
+    // supervisor mode too.
+    {
+        let mut d = std::mem::take(&mut p.dispatch);
+        d.register_all(&mut p.conn);
+        p.dispatch = d;
+    }
 
     // watch_ubus(): an anonymous subscriber object, then a subscription to
     // ubusd's event object so `ubus.object.add` tells us when a watched path
