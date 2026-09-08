@@ -223,8 +223,13 @@ r65 用两次 `service list` 取 pid 比过这条。
   唯一一处候选故意不等于 C 的行为。
 - **PID 1 状态机与 inittab 已实现**（R71，隔离命名空间内完整启动+关机已验）：
   EARLY→UBUS→INIT→RUNNING、早期 ubus 服务、rcS 串行、respawn/askfirst/
-  askconsole、SHUTDOWN/HALT。**仍缺**：hotplug/coldplug（EARLY 只打日志）、
-  watchdog 的 WDIOC 面（只有 open+5 s 喂狗）。设备上的 PID 1 对照属 P3.3。
+  askconsole、SHUTDOWN/HALT。**hotplug/coldplug 已实现**（uevent 监听 +
+  hotplug.json 规则 + makedev/rm/exec/button/load-firmware 队列 +
+  udevtrigger 冷插；start-console 在父进程跑 inittab 处理器，注释里标了
+  与 C 的差异）；**watchdog 完整面已实现**（WDTFD 交接、WDIOC_SETTIMEOUT、
+  magicclose、system watchdog 方法后备）。**仍缺**：hotplug-dispatch 的
+  `hotplug.*` ubus 对象（C 在监管模式也注册它们，r65 的签名例尚未比较）、
+  有真 tty 时 askfirst/askconsole 的交互路径。设备上的 PID 1 对照属 P3.3。
 - ~~每实例 watchdog 定时器不会触发~~ **已实现**（软件定时器，超时后
   按 respawn 决定重启还是停止）。系统 `/dev/watchdog`、`WDTFD` 继承和
   magic close 仍属于 P3.2，
