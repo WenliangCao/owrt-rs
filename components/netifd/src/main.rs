@@ -3836,7 +3836,6 @@ impl Netifd {
                     let fields: Vec<(String, String)> = find("data")
                         .map(|f| {
                             f.children()
-                                .into_iter()
                                 .filter_map(|c| {
                                     let v = c.as_str()?;
                                     Some((c.name.to_string(), format!("\"{v}\"")))

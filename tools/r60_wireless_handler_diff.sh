@@ -125,6 +125,11 @@ X
 	    sleep 4
 	    echo "--- after killing the registered process" >> "$o/$t-proc.txt"
 	    grep -c "teardown" "$m/tmp/out/handler.log" | sed "s/^/teardowns=/" >> "$o/$t-proc.txt"
+	    # the review checklist: a teardown, a next-generation setup, back to
+	    # up, and the failure flag still clear -- a death must not spend retry
+	    grep -c " setup " "$m/tmp/out/handler.log" | sed "s/^/setups=/" >> "$o/$t-proc.txt"
+	    chroot "$m" ubus call network.wireless status 2>/dev/null | tr -d " \t\n" \
+	      | grep -oE "\"(up|retry_setup_failed)\":(true|false)" >> "$o/$t-proc.txt"
 	  fi
 	  cp "$m/tmp/out/data.log" "$o/$t-data.txt" 2>/dev/null || true
 	  if [ "$CMDS" = yes ]; then
@@ -192,10 +197,15 @@ if [ "\$2" = setup ] && [ "$MODE" = token ]; then
 fi
 if [ "\$2" = setup ] && [ "$MODE" = proc ]; then
 	# a controlled process the radio depends on; killing it must tear down
-	sleep 600 &
+	# stdio redirected: a background process inheriting the handler's pipes
+	# holds them open, which is exactly what the pipe-deadlock fix cares
+	# about. The exe comes from readlink, not an assumption: the real
+	# callers resolve it with fs.realpath() before registering.
+	/bin/busybox sleep 300 </dev/null >/dev/null 2>&1 &
 	cpid=\$!
+	cexe=\$(readlink "/proc/\$cpid/exe")
 	echo "\$cpid" > /tmp/out/child.pid
-	ubus call network.wireless notify "{\"command\":2,\"device\":\"\$3\",\"data\":{\"pid\":\$cpid,\"exe\":\"/bin/busybox\"}}" >> /tmp/out/handler.log 2>&1
+	ubus call network.wireless notify "{\"command\":2,\"device\":\"\$3\",\"data\":{\"pid\":\$cpid,\"exe\":\"\$cexe\",\"required\":false,\"keep\":true}}" >> /tmp/out/handler.log 2>&1
 fi
 if [ "\$2" = setup ] && { [ "$MODE" = up ] || [ "$MODE" = flood ] || [ "$MODE" = token ] || [ "$MODE" = proc ]; }; then
 	ubus call network.wireless notify "{\"command\":1,\"device\":\"\$3\",\"interface\":\"01\",\"data\":{\"ifname\":\"stub-ap0\"}}" >> /tmp/out/handler.log 2>&1
