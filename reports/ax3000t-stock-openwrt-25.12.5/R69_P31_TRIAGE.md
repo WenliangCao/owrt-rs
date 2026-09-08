@@ -90,7 +90,29 @@ scrub 也有两处实际问题：`"pid": N` 的规则会把 `data` 里的业务�
 | F17 | respawn/restart 后也调 `rc(name,"running")` |
 | F18 | 合并 validator 保留插入顺序，不再全局重排 |
 
-r65 另加 13 个用例，直接取自 R68 的反例。单测 31 个。
+r65 另加 17 个用例，直接取自 R68 的反例和它结尾那份"下一轮最小验收增量"清单：
+内部 data trigger、同路径文件变化、**同名接口重建**、旧配置决定 reload、
+ENOENT 后重试、崩溃预算耗尽后保留**且仍可删除**、规则删除、实例级规则、
+pidfile、TERM 宽限期、三条有效性、watchdog 到时动作、respawn 后 hook、
+validator 合并顺序、**排队中的同名命令重触发**、**ubusd 被杀后监管器存活并重新注册**。
+
+单测 36 个（含 MD5 的 RFC 1321 向量、setns 渲染的三种情况、有效性五条）。
+全仓库 `make test` 13 个二进制、280 个用例。
+
+修复过程中差分自己又抓到四处，其中三处是这一轮引入的：
+
+- 给事件处理器传 `None` pattern 被 ubusd 拒绝（`Invalid argument`），
+  等于**根本没有事件处理器**，watch 永远挂不上。改回 `ubus.object.add`，
+  对象重建改在 `resubscribe()` 里按 id 变化处理。
+- `take_config` 把已武装的 watchdog deadline 丢了——它和 `deadline` 一样属于
+  正在跑的子进程，被新配置的 None 覆盖等于**每次 reload 都会解除武装**。
+- `crash_looped` 没有任何地方清除，于是崩溃循环之后的实例**删不掉**。
+- 两个用例在比时序而不是行为（respawn 计数中途采样、45 秒 watchdog 在
+  一次同样长的运行里只在一边触发），已改成确定性断言。
+
+最后一处 `ujail_procs` 的差异是**断言本身不好**：它自己的明细行没有输出，
+计数却是 1，两次 `ps` 之间的竞态。换成 F01 真正关心的性质——
+被 jail 的命令有没有在沙箱外跑起来。
 
 ## 原计划的顺序（已执行）
 
