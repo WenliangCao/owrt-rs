@@ -24,14 +24,17 @@ harness：[tools/r65_procd_diff.sh](../../tools/r65_procd_diff.sh)。
 ## 结果
 
 ```
-r65: ok        874 行对比，0 行 diff       连跑 3 次全绿
+r65: ok        1050 行对比，0 行 diff
+候选二进制 md5 a68748ea21a75b84d4fce6fd7b83bdae，构建于运行前 2 分钟
 ```
 
-22 个用例，覆盖：签名（三个对象全部方法的 policy）、退出码、无效实例、
+26 个用例，覆盖：签名（三个对象全部方法的 policy）、退出码、无效实例、
 `set` 与 `add` 的差别、delete、signal、state、update_start/complete、
 get_data/set_data、autostart=false、触发器实际执行了什么、validate 的两种顺序。
 
-`service` 的 **13 个方法全部实现**。`watchdog` 的取值、`self_managed` 位和
+`service` 的 **13 个方法全部实现**，另外 `watch`（ubus 订阅）、
+`rc(name, "running")`、实例 stdout/stderr 进 syslog、jail 的 ujail argv、
+以及带类型的 `data` 都已对齐。`watchdog` 的取值、`self_managed` 位和
 `list` 输出都对齐了；**定时器本身**属于 P3.2，所以 mode=active 的实例
 现在不会因为超时被重启——这是已知缺口，不是差异。`container` 和 `system` 按真实签名注册，
 方法拒绝——`sysupgrade` 尤其：本项目不刷设备，静默成功是最坏的失败模式。
@@ -90,11 +93,12 @@ rootfs 副本被两次运行共用，**上一轮的 ubus socket 文件还在**�
 
 ## 已知缺口（不是决定，是还没做）
 
-- 实例日志 FD 两个都指向 `/dev/null`。没人消费的管道正是被监管进程死锁的方式。
 - 每实例 watchdog **定时器**（取值和 `list` 输出已对齐）。
-- **`watch.c`**——这条我一开始写错了，它不是"文件/netdev 监视"，
+- ~~实例日志 FD~~、~~`watch.c`~~、~~jail argv~~、~~带类型的 data~~ 已补上，
+  见下面"已经补上的"。原来这一段对 `watch.c` 的描述是错的————这条我一开始写错了，它不是"文件/netdev 监视"，
   而是**ubus 对象订阅**：实例的 `watch` 数组列的是 ubus 路径，procd 订阅它们，
   被订阅对象发来的每条 notification 都进 `trigger_event(method, msg)`。
+  它不是"文件/netdev 监视"而是 ubus 对象订阅。
   本机只有一个使用者，但很关键：`/etc/init.d/network:21` 的
   `procd_set_param watch network.interface`——**这是 netifd 的接口事件进入
   procd 触发器的那条线**。实现它需要给 `owrt-ubus` 加订阅者支持
@@ -113,9 +117,23 @@ rootfs 副本被两次运行共用，**上一轮的 ubus socket 文件还在**�
   传 mode 或 timeout 会置 `self_managed`，之后带原始值的 `set` **不重启**实例。
   r65 用两次 `service list` 取 pid 比过这条。
 
+- **`watch`**：实例的 `watch` 数组列 ubus 路径，被订阅对象的每条 notification
+  都进 `trigger_event`。r65 在**声明 watch 之后**才发布被订阅对象——这就是设备上
+  的真实顺序（netifd 比 procd 起得晚），所以只在配置时订阅一次的实现会永远挂不上。
+  用一个新的 `notifier` example 驱动，因为 `ubus` 命令行只能 invoke 和 listen，
+  不能"成为一个会发 notification 的对象"。
+- **实例 stdout/stderr**：接到 procd-rs 自己读的管道，逐行按 C 的 ident
+  （`basename(argv0)[pid]`）和实例自己的 facility 写 syslog。读有预算、
+  半行有上限——没人消费的管道正是被监管进程死锁的方式；而且**排空发生在收尸之前**，
+  否则子进程最后几行会跟着管道一起丢掉。
+- **jail**：`jail_run()` 的 ujail argv 逐个开关转写。原来的实现直接 exec 了
+  实例自己的命令——**既没有沙箱，又因为 jail 实例本来就跳过降权而仍然是 root**，
+  比两种选择都糟。
+- **带类型的 `data`**：原来压成了字符串表，整数和布尔字段被整个丢掉。
+
 ## 单元测试
 
-20 个，跑在 `cargo test`；全仓库 `make test` 264 个全绿。值得点名的是 `exit_code_of` 对着 C 的宏顺序、
+23 个，跑在 `cargo test`；全仓库 `make test` 13 个测试二进制、267 个用例全绿。值得点名的是 `exit_code_of` 对着 C 的宏顺序、
 `%` 展开的全部边界、以及 `regex` 走平台自己的 `regcomp/regexec`——
 和 C 调用的是同一份实现，没有第二套正则方言要同步。
 
