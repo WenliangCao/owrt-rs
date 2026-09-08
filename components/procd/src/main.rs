@@ -27,7 +27,7 @@ use owrt_ubus::conn::{Connection, Incoming, Request};
 use owrt_ubus::msg::status;
 
 use instance::{Instance, Run};
-use proc::{SIGKILL, SIGTERM};
+use proc::{SIGHUP, SIGKILL, SIGTERM};
 use service::Service;
 use ubus::Target;
 
@@ -159,7 +159,12 @@ impl Procd {
         let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) else {
             return;
         };
-        if inst.state != Run::Running {
+        // C tests `in->proc.pending` -- the child still exists -- which is
+        // true in the TERM grace period too. Testing Run::Running instead
+        // returned early for a Halting instance and left `restart` set, so
+        // deleting a service while one of its instances was restarting had
+        // the instance come back with a new pid instead of going away.
+        if inst.state != Run::Running && inst.state != Run::Halting {
             if halt {
                 inst.halt = true;
                 // Already stopped and being deleted: let it be collected.
@@ -168,6 +173,7 @@ impl Procd {
             return;
         }
         inst.halt = halt;
+        // `in->restart = in->respawn = false` -- both, in one statement.
         inst.restart = false;
         // A deliberate stop outranks the crash-loop state: the instance was
         // asked to go away, so it goes.
@@ -192,7 +198,8 @@ impl Procd {
         let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) else {
             return;
         };
-        if inst.state != Run::Running {
+        // `if (!in->proc.pending) return;` -- Halting counts as pending.
+        if inst.state != Run::Running && inst.state != Run::Halting {
             return;
         }
         if inst.reload_signal != 0 {
@@ -447,12 +454,22 @@ impl Procd {
         let Some(s) = self.services.get_mut(svc) else {
             return;
         };
-        if s.can_be_freed() {
+        let freed_service = s.can_be_freed();
+        if freed_service {
             // service_delete() -> trigger_del(s); the instances' rules go
             // with their instances, but a service freed while some were
             // never individually collected must not leave rules behind.
             self.triggers.del_service(svc);
             self.services.remove(svc);
+        }
+        // instance_free() -> watch_del(in), and a freed service takes its
+        // instances' watches with it. Without this the ubus subscription and
+        // the path mapping outlive the thing that asked for them: a deleted
+        // service kept firing its rules, and a reconnect resubscribed a
+        // watch nothing wanted any more. refresh_watches() rebuilds from
+        // whatever is left, so an emptied service drops out on its own.
+        if (drop_instance || freed_service) && self.watches.contains_key(svc) {
+            self.refresh_watches(svc);
         }
     }
 
@@ -738,8 +755,14 @@ impl Procd {
         let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) else {
             return;
         };
-        let running = inst.state == Run::Running;
-        let stopping = inst.state == Run::Halting;
+        // C: `running = in->proc.pending; stopping = in->halt;`
+        // Both were wrong here. `running` excluded the TERM grace period, and
+        // `stopping` read the state instead of the halt flag -- an instance
+        // stopped with state(spawn=false) has halt set but is NOT Halting, so
+        // a config change during that window took the running branch and
+        // killed it dead instead of restarting it into the new config.
+        let running = inst.state == Run::Running || inst.state == Run::Halting;
+        let stopping = inst.halt;
         let changed = inst.config_changed(&new);
         let data_changed = inst.data != new.data;
 
@@ -803,18 +826,21 @@ impl Procd {
             v.dedup();
             v
         };
-        // Drop subscriptions nothing wants any more.
-        let stale: Vec<String> = self
-            .subscribed
-            .keys()
-            .filter(|p| !wanted.contains(p))
-            .cloned()
-            .collect();
-        for p in stale {
-            if let Some(id) = self.subscribed.remove(&p) {
-                let _ = self.conn.unsubscribe(self.watch_obj, id, 1000);
-            }
-        }
+        // NOT unsubscribing here is deliberate, and it is what C does.
+        // watch.c's watch_del() only unlinks the entry from watch_objects --
+        // it never calls ubus_unsubscribe. So after an instance is freed:
+        //
+        //   * the object is RECREATED with a new id -> nothing re-attaches
+        //     to it, because the path is no longer wanted, and no rule fires;
+        //   * the object is STILL ALIVE and keeps notifying -> the old
+        //     subscription is still registered with ubusd, watch_notify_cb
+        //     still turns the notification into a trigger event, and another
+        //     service's rule for that type still fires.
+        //
+        // Dropping the subscription here would make the second case fire
+        // less often than C. The stale entry in `subscribed` is harmless: it
+        // is only consulted if the path becomes wanted again, and then a
+        // recreated object's new id makes it resubscribe anyway.
         for path in wanted {
             // A path that does not exist yet is not an error: the
             // ubus.object.add event brings us back here when it appears.
@@ -1225,7 +1251,7 @@ impl Procd {
         let todo: Vec<(String, bool)> = s
             .instances
             .iter()
-            .map(|(n, i)| (n.clone(), i.state == Run::Running))
+            .map(|(n, i)| (n.clone(), i.state == Run::Running || i.state == Run::Halting))
             .filter(|(_, running)| *running != spawn)
             .collect();
         for (iname, running) in todo {
@@ -1393,30 +1419,46 @@ impl Procd {
     fn handle_signal(&mut self, req: &Request) -> i32 {
         let mut name: Option<String> = None;
         let mut inst: Option<String> = None;
-        let mut sig = SIGKILL;
+        // `int sig = SIGHUP;` -- not SIGKILL. Getting this wrong turns every
+        // unqualified `ubus call service signal` into a kill.
+        let mut sig = SIGHUP;
         for f in owrt_ubus::blob::fields(&req.data) {
             match f.name {
                 "name" => name = f.as_str().map(str::to_string),
                 "instance" => inst = f.as_str().map(str::to_string),
-                "signal" => sig = f.as_u32().unwrap_or(SIGKILL as u32) as i32,
+                "signal" => sig = f.as_u32().unwrap_or(SIGHUP as u32) as i32,
                 _ => {}
             }
         }
+        // A missing `name` is NOT_FOUND here, not INVALID_ARGUMENT: this
+        // handler returns UBUS_STATUS_NOT_FOUND for it, unlike its siblings.
         let Some(name) = name else {
-            return status::INVALID_ARGUMENT;
+            return status::NOT_FOUND;
         };
         let Some(s) = self.services.get(&name) else {
             return status::NOT_FOUND;
         };
-        for (iname, i) in s.instances.iter() {
-            if inst.as_ref().is_some_and(|want| want != iname) {
-                continue;
-            }
-            if i.state == Run::Running {
-                proc::signal(i.pid, sig);
+        // A named instance that does not exist is NOT_FOUND.
+        if let Some(want) = inst.as_ref() {
+            if !s.instances.contains_key(want) {
+                return status::NOT_FOUND;
             }
         }
-        status::OK
+        // service_handle_kill() does NOT test proc.pending -- it calls kill()
+        // and maps errno. So signalling an instance whose child is gone gives
+        // ESRCH -> NOT_FOUND, where filtering on state silently returned OK.
+        // With no instance named, the LAST instance's result is returned.
+        let targets: Vec<(String, i32)> = s
+            .instances
+            .iter()
+            .filter(|(iname, _)| inst.as_ref().is_none_or(|want| want == *iname))
+            .map(|(iname, i)| (iname.clone(), i.pid))
+            .collect();
+        let mut rv = status::OK;
+        for (_, pid) in targets {
+            rv = proc::signal_status(pid, sig);
+        }
+        rv
     }
 }
 

@@ -208,9 +208,22 @@ gate() {
 
 # A positive effect file must exist and be non-empty. Its CONTENT still goes
 # into the diff; this only stops "neither side produced anything" passing.
+#
+# `must_have <file> [lines]` -- with an expected line count, it also asserts
+# the file is that long. Six trigger sub-cases appended to one shared
+# fired.txt with no rm between them, so from the second one on `must_have`
+# was satisfied by the PREVIOUS step's content: the three "must not fire"
+# steps could not fail, and the later "must fire" steps did not have to fire.
+# The count is what distinguishes "grew" from "unchanged".
 must_have() {
 	if [ -s "$1" ]; then
 		cat "$1"
+		if [ -n "${2:-}" ]; then
+			n=$(wc -l < "$1")
+			if [ "$n" -ne "$2" ]; then
+				echo "EXPECT-FAIL: $1 has $n line(s), expected $2" >> /tmp/out/expect.err
+			fi
+		fi
 	else
 		echo "(no file)"
 		echo "EXPECT-FAIL: $1 should exist and be non-empty" >> /tmp/out/expect.err
@@ -353,27 +366,28 @@ sleep 1
 call service event '{"type":"mytrig.now","data":{"ACT":"go","WHO":"first"}}'
 sleep 2
 printf -- '--- fired after a matching event\n'
-must_have /tmp/out/fired.txt
+must_have /tmp/out/fired.txt 1
 
 printf -- '--- an event whose expression is false must not fire\n'
 call service event '{"type":"mytrig.now","data":{"ACT":"stop","WHO":"second"}}'
 sleep 2
-must_have /tmp/out/fired.txt
+must_have /tmp/out/fired.txt 1
 
 printf -- '--- a non-matching event type must not fire\n'
 call service event '{"type":"other.now","data":{"ACT":"go","WHO":"third"}}'
 sleep 2
-must_have /tmp/out/fired.txt
+must_have /tmp/out/fired.txt 1
 
 printf -- '--- .* truncates before the dot: "mytrigX" matches too\n'
 call service event '{"type":"mytrigX","data":{"ACT":"go","WHO":"fourth"}}'
 sleep 2
-must_have /tmp/out/fired.txt
+must_have /tmp/out/fired.txt 2
 
 printf -- '--- an unset variable expands to nothing\n'
 call service event '{"type":"mytrig.now","data":{"ACT":"go"}}'
 sleep 2
-must_have /tmp/out/fired.txt
+# %WHO% unset -> `echo` with no argument -> an EMPTY line is appended.
+must_have /tmp/out/fired.txt 3
 
 printf -- '--- event argument errors\n'
 callx service event '{"type":"mytrig.now"}'
@@ -386,7 +400,9 @@ call service event '{"type":"ev2","data":{"K":"a"}}'
 sleep 2
 call service event '{"type":"ev2","data":{"K":"b"}}'
 sleep 2
-must_have /tmp/out/fired.txt
+# The `a` arm appended one line; the `b` arm's `exec` is not run_script and
+# must be dropped, so this is 4 and not 5.
+must_have /tmp/out/fired.txt 4
 
 # 19. validate: grouped package -> type -> option -> rule across services
 call service set '{"name":"tf","validate":[{"package":"network","type":"interface","data":{"proto":"string","ifname":"string"}},{"package":"network","type":"device","data":{"name":"string"}}]}'
@@ -455,6 +471,102 @@ printf -- '--- publish the watched object, then notify from it\n'
 /sbin/notifier fake.iface iface.up ifname=eth9 >/dev/null 2>&1 &
 sleep 5
 must_have /tmp/out/watched.txt
+
+# F04b: a watch must not outlive the thing that asked for it.
+#
+#     Delete only the INSTANCE. The service and its iface.up rule stay --
+#     can_be_freed() needs `deleted`, which an instance delete does not set
+#     -- so the rule is still armed and able to fire. Only the `watch` went
+#     away with the instance.
+#
+#     C: instance_free() -> watch_del(), the subscription is dropped, the
+#     notification never reaches procd, nothing fires.
+#     Rust before the fix: refresh_watches() had ONE call site (the `set`
+#     path), so nothing freed the subscription or the watches[] mapping when
+#     the instance was freed -- the notification still arrived and the rule
+#     still ran.
+#
+#     Deleting the whole SERVICE does not test this: that also deletes the
+#     rules, so nothing fires either way and the case proves nothing. The
+#     first version of this case did exactly that and passed on both
+#     binaries -- a non-assertion.
+printf -- '--- delete only the watching instance; the rule stays armed\n'
+call service delete '{"name":"tw","instance":"one"}'
+sleep 2
+rm -f /tmp/out/watched.txt
+printf -- '--- publish the object again and notify from it\n'
+/sbin/notifier fake.iface iface.up ifname=eth9 >/dev/null 2>&1 &
+sleep 5
+printf -- '--- the watch died with its instance: nothing may appear here\n'
+cat /tmp/out/watched.txt 2>&1 || echo "(correctly absent)"
+
+# F19: the TERM grace window. C tests `in->proc.pending` -- the child still
+#     exists -- where this used Run::Running, which excludes the window
+#     between SIGTERM and reap. Three consequences, all reproduced on
+#     845b7b43 before the fix:
+#
+#     (A) delete the whole service while an instance is restarting. C stops
+#         and deletes it. instance_stop returned early for a Halting
+#         instance and never cleared `restart`, so the instance came back
+#         with a NEW pid -- a deleted service revived itself.
+printf -- '--- F19a: delete a service whose instance is mid-restart\n'
+call service set '{"name":"fw1","instances":{"one":{"command":["/bin/sh","-c","trap \"\" TERM; while :; do sleep 1; done"],"term_timeout":6}}}'
+sleep 2
+call service set '{"name":"fw1","instances":{"one":{"command":["/bin/sh","-c","trap \"\" TERM; echo v2 > /tmp/out/fw1-v2; while :; do sleep 1; done"],"term_timeout":6}}}'
+sleep 1
+call service delete '{"name":"fw1"}'
+sleep 8
+printf -- '--- deleted mid-restart: it must be gone, not back with a new pid\n'
+call service list '{"name":"fw1"}'
+
+#     (B) delete, then state(spawn=true) inside the grace window. C leaves it
+#         deleted. The Halting instance took instance_start and revived.
+printf -- '--- F19b: state spawn=true inside the TERM window of a delete\n'
+call service set '{"name":"fw2","instances":{"one":{"command":["/bin/sh","-c","trap \"\" TERM; while :; do sleep 1; done"],"term_timeout":6}}}'
+sleep 2
+call service delete '{"name":"fw2"}'
+sleep 1
+callx service state '{"name":"fw2","spawn":true}'
+sleep 8
+printf -- '--- must stay deleted\n'
+call service list '{"name":"fw2"}'
+
+#     (C) state(spawn=false), then a config change inside the window. C
+#         restarts into the new config. `stopping` read the STATE instead of
+#         the halt FLAG -- a stopped-by-state instance has halt set but is
+#         not Halting -- so the running branch killed it dead (exit 137).
+printf -- '--- F19c: config change while stopped by state(spawn=false)\n'
+call service set '{"name":"fw3","instances":{"one":{"command":["/bin/sleep","300"]}}}'
+sleep 2
+call service state '{"name":"fw3","spawn":false}'
+sleep 1
+call service set '{"name":"fw3","instances":{"one":{"command":["/bin/sleep","301"]}}}'
+sleep 3
+printf -- '--- must be running the new config, not dead\n'
+call service list '{"name":"fw3"}'
+
+# F20: `service signal`. Read out of service.c rather than assumed:
+#     `int sig = SIGHUP` (not SIGKILL); a missing `name` returns NOT_FOUND
+#     (not INVALID_ARGUMENT, unlike its sibling handlers); and
+#     service_handle_kill() does NOT test proc.pending -- it calls kill() and
+#     maps errno, so an instance whose child is gone gives ESRCH -> NOT_FOUND
+#     where filtering on state silently returned OK.
+printf -- '--- F20a: the default signal is SIGHUP, so a plain signal is not a kill\n'
+call service set '{"name":"fs1","instances":{"one":{"command":["/bin/sh","-c","trap \"echo got-hup >> /tmp/out/fs1.txt\" HUP; while :; do sleep 1; done"]}}}'
+sleep 2
+call service signal '{"name":"fs1"}'
+sleep 2
+must_have /tmp/out/fs1.txt
+printf -- '--- and it must still be running: SIGHUP was handled, not fatal\n'
+call service list '{"name":"fs1"}'
+
+printf -- '--- F20b: signalling an instance whose child is gone is NOT_FOUND\n'
+call service set '{"name":"fs2","instances":{"one":{"command":["/bin/true"]}}}'
+sleep 2
+callx service signal '{"name":"fs2","instance":"one","signal":15}'
+
+printf -- '--- F20c: a missing name is NOT_FOUND here, not INVALID_ARGUMENT\n'
+callx service signal '{"signal":15}'
 
 # 23. instance stdout/stderr -> syslog, with the C's ident format
 call service set '{"name":"tlog","instances":{"one":{"command":["/bin/sh","-c","echo hello-stdout; echo hello-stderr >&2; sleep 300"],"stdout":true,"stderr":true}}}'
@@ -671,7 +783,9 @@ while ! ubus list >/dev/null 2>&1 && [ $i -lt 15 ]; do sleep 1; i=$((i+1)); done
 sleep 4
 printf 'supervisor after a new ubusd: %s\n' "$(kill -0 "$sup" 2>/dev/null && echo alive || echo gone)"
 printf -- '--- and it must be back on the bus with its instance\n'
-back=$(ubus call service list '{"name":"fb"}' 2>&1 | grep -E '"running"' | head -1)
+# `"running"` alone also matches `"running": false` -- the supervisor coming
+# back with a DEAD instance would have passed.
+back=$(ubus call service list '{"name":"fb"}' 2>&1 | grep -E '"running": true' | head -1)
 if [ -n "$back" ]; then printf '%s\n' "$back"; else
 	echo "NOT BACK"
 	echo "EXPECT-FAIL: supervisor did not come back on the bus after a new ubusd" >> /tmp/out/expect.err
@@ -850,6 +964,21 @@ for t in c rs; do
 	if [ -s "$out/$t-expect.err" ]; then
 		echo "r65: $t had calls that did not do what the case expected:" >&2
 		sed "s/^/  $t: /" "$out/$t-expect.err" >&2
+		rc=1
+	fi
+done
+# A drive script that stops early truncates BOTH sides identically, so the
+# diff is clean and every other check still passes -- drive.done can even
+# have been written if the truncation is after it. The only thing that
+# notices is how much was actually compared, so require a floor on the number
+# of case markers. Measured, not guessed: a full run emits 193-197 of them
+# (the spread is cases added during this session), so 150 leaves room to add
+# or drop cases while still catching a drive that died part-way.
+for t in c rs; do
+	m=$(grep -c '^--- ' "$out/$t-calls.txt" 2>/dev/null || true); [ -n "$m" ] || m=0
+	echo "$t: $m case markers" >> "$out/coverage.txt"
+	if [ "$m" -lt 150 ]; then
+		echo "r65: $t only reached $m case markers -- the drive stopped early" >&2
 		rc=1
 	fi
 done

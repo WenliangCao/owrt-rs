@@ -18,6 +18,7 @@ use std::process::{Command, Stdio};
 
 use crate::instance::Instance;
 use crate::sys;
+use owrt_ubus::msg::status;
 
 extern "C" {
     fn waitpid(pid: i32, status: *mut i32, options: i32) -> i32;
@@ -28,6 +29,7 @@ const WNOHANG: i32 = 1;
 
 pub const SIGTERM: i32 = 15;
 pub const SIGKILL: i32 = 9;
+pub const SIGHUP: i32 = 1;
 
 /// A child's captured output pipe plus the tail of a line that has not
 /// arrived in full yet.
@@ -308,6 +310,31 @@ pub fn signal(pid: i32, sig: i32) -> bool {
     }
     // SAFETY: kill(2) takes two scalars and touches no memory.
     unsafe { kill(pid, sig) == 0 }
+}
+
+/// `service_handle_kill()`: kill(2) with errno mapped to a ubus status. It
+/// does NOT check whether the child is still around first -- that is the
+/// point, because ESRCH is how the caller learns the instance is gone.
+pub fn signal_status(pid: i32, sig: i32) -> i32 {
+    // A pid of 0 or -1 would signal the process group or everything; C never
+    // reaches kill() with one because a fresh instance has proc.pid == 0 and
+    // kill(0, sig) hits the caller's own group. Report it as ESRCH would be.
+    if pid <= 0 {
+        return status::NOT_FOUND;
+    }
+    // SAFETY: kill(2) takes two scalars and touches no memory.
+    if unsafe { kill(pid, sig) } == 0 {
+        return status::OK;
+    }
+    const EPERM: i32 = 1;
+    const ESRCH: i32 = 3;
+    const EINVAL: i32 = 22;
+    match io::Error::last_os_error().raw_os_error().unwrap_or(0) {
+        EINVAL => status::INVALID_ARGUMENT,
+        EPERM => status::PERMISSION_DENIED,
+        ESRCH => status::NOT_FOUND,
+        _ => status::UNKNOWN_ERROR,
+    }
 }
 
 #[cfg(test)]

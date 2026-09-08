@@ -1,0 +1,44 @@
+--- tools/r65_procd_diff.sh (73ef160, md5 73c2a10a6f2b396ff1488137be04fb92)
++++ r65_inj_stale.sh (md5 fb59dc9d777c19a6cdda68425110e0dc)
+@@ -366,12 +366,12 @@
+ must_have /tmp/out/fired.txt
+ 
+ printf -- '--- .* truncates before the dot: "mytrigX" matches too\n'
+-call service event '{"type":"mytrigX","data":{"ACT":"go","WHO":"fourth"}}'
++call service event '{"type":"zzX","data":{"ACT":"go","WHO":"fourth"}}'
+ sleep 2
+ must_have /tmp/out/fired.txt
+ 
+ printf -- '--- an unset variable expands to nothing\n'
+-call service event '{"type":"mytrig.now","data":{"ACT":"go"}}'
++call service event '{"type":"zz.now","data":{"ACT":"go"}}'
+ sleep 2
+ must_have /tmp/out/fired.txt
+ 
+@@ -382,7 +382,7 @@
+ printf -- '--- a case arm, and a command other than run_script (must be dropped)\n'
+ call service set '{"name":"te","triggers":[["ev2",[["case","K",{"a":[["run_script","/bin/sh","-c","echo caseA >> /tmp/out/fired.txt"]],"b":[["exec","/bin/sh","-c","echo SHOULD-NOT-RUN >> /tmp/out/fired.txt"]]}]]]]}'
+ sleep 1
+-call service event '{"type":"ev2","data":{"K":"a"}}'
++call service event '{"type":"zz2","data":{"K":"a"}}'
+ sleep 2
+ call service event '{"type":"ev2","data":{"K":"b"}}'
+ sleep 2
+@@ -409,7 +409,7 @@
+ sleep 2
+ must_have /tmp/out/initd.txt
+ printf -- '--- a second set with instances runs it again\n'
+-call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/true"]}}}'
++call service set '{"name":"noinit0","instances":{"one":{"command":["/bin/true"]}}}'
+ sleep 2
+ must_have /tmp/out/initd.txt
+ printf -- '--- a service with no matching script runs nothing\n'
+@@ -655,7 +655,7 @@
+ gate "$w" "fast_runs=$c" "fast_runs=$c" "queued trigger ran $c time(s), expected the requeue to make it two"
+ 
+ printf -- '--- F06: the supervisor must survive ubusd going away\n'
+-call service set '{"name":"fb","instances":{"one":{"command":["/bin/sleep","300"]}}}'
++call service set '{"name":"fb","instances":{"one":{"command":["/bin/sleep","3"]}}}'
+ sleep 1
+ sup=$(cat /tmp/out/procd.pid)
+ old=$(kill -0 "$sup" 2>/dev/null && echo alive || echo gone)

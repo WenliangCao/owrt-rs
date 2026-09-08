@@ -77,3 +77,31 @@ fi
 
 echo "r65-selftest: ok (harness correctly failed with no supervisor, rc=$rc)"
 echo "r65-selftest:    and it failed via the readiness gate, not by falling over"
+
+# Second injection: a drive script that stops part-way. This is the failure
+# the no-supervisor injection CANNOT catch, because the supervisor is fine --
+# both sides simply run fewer cases, identically, so the diff is clean and
+# the readiness gate is satisfied. Truncating after drive.done is written
+# defeats the completion marker too. Only the case-marker floor sees it.
+sed -e 's#^printf -- .--- F13: pidfile must be written.*#echo "TRUNCATED-HERE" > /tmp/out/drive.done; exit 0#' \
+	"$here/r65_procd_diff.sh" > "$out/r65-truncated.sh"
+if ! grep -q 'TRUNCATED-HERE' "$out/r65-truncated.sh"; then
+	echo "r65-selftest: could not inject the truncation -- the anchor moved" >&2
+	exit 2
+fi
+
+trc=0
+sh "$out/r65-truncated.sh" "$root" "$cand" "$out/truncated" $ex \
+	> "$out/truncated.log" 2>&1 || trc=$?
+
+if [ "$trc" = 0 ]; then
+	echo "r65-selftest: FAILED -- a drive that stopped part-way still passed" >&2
+	echo "  see $out/truncated.log" >&2
+	exit 1
+fi
+if ! grep -q 'the drive stopped early' "$out/truncated.log"; then
+	echo "r65-selftest: FAILED -- the truncated run went red for another reason" >&2
+	echo "  expected the case-marker floor to fire; see $out/truncated.log" >&2
+	exit 1
+fi
+echo "r65-selftest: ok (a truncated drive is caught by the case-marker floor, rc=$trc)"
