@@ -133,7 +133,58 @@ call service signal '{"name":"t5","instance":"one","signal":15}'
 sleep 2
 call service list '{"name":"t5"}'
 
-# 13. the whole table, so ordering is compared too
+# 13. state: spawn=false stops without deleting, spawn=true brings back
+call service set '{"name":"t9","instances":{"one":{"command":["/bin/sleep","300"]}}}'
+sleep 1
+call service state '{"name":"t9","spawn":false}'
+sleep 2
+printf -- '--- t9 stopped by state, must still be listed\n'
+call service list '{"name":"t9"}'
+call service state '{"name":"t9","spawn":true}'
+sleep 1
+call service list '{"name":"t9"}'
+printf -- '--- state argument errors\n'
+call service state '{"name":"t9"}'
+call service state '{"spawn":true}'
+call service state '{"name":"nope","spawn":true}'
+
+# 14. update_start / add / update_complete: only the re-added survive
+call service set '{"name":"ta","instances":{"x":{"command":["/bin/sleep","300"]},"y":{"command":["/bin/sleep","300"]}}}'
+sleep 1
+call service update_start '{"name":"ta"}'
+call service add '{"name":"ta","instances":{"y":{"command":["/bin/sleep","300"]}}}'
+call service update_complete '{"name":"ta"}'
+sleep 2
+printf -- '--- after update window, ta should have only y\n'
+call service list '{"name":"ta"}'
+call service update_start '{"name":"nope"}'
+
+# 15. get_data: service data under "*", instance data under its own name
+call service set '{"name":"tb","data":{"sv":"1","other":"2"},"instances":{"one":{"command":["/bin/sleep","300"],"data":{"iv":"3"}}}}'
+sleep 1
+call service get_data '{"name":"tb"}'
+call service get_data '{"name":"tb","type":"sv"}'
+call service get_data '{"name":"tb","instance":"one"}'
+printf -- '--- get_data across every service\n'
+call service get_data '{"type":"iv"}'
+
+# 16. set_data at both levels
+call service set_data '{"name":"tb","data":{"sv":"changed"}}'
+sleep 1
+call service get_data '{"name":"tb"}'
+call service set_data '{"name":"tb","instance":"one","data":{"iv":"changed"}}'
+sleep 1
+call service get_data '{"name":"tb","instance":"one"}'
+call service set_data '{"name":"tb","instance":"nope","data":{"a":"b"}}'
+call service set_data '{"name":"tb"}'
+
+# 17. autostart=false is the only case where the flag is printed
+call service set '{"name":"tc","autostart":false,"instances":{"one":{"command":["/bin/sleep","300"]}}}'
+sleep 1
+printf -- '--- autostart false: flag printed, instance must NOT be running\n'
+call service list '{"name":"tc"}'
+
+# 18. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X

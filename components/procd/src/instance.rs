@@ -103,6 +103,10 @@ pub struct Instance {
     /// timer per instance, as in the C: SIGKILL when halting, otherwise the
     /// respawn delay.
     pub deadline: Option<i64>,
+    /// The vlist version bit `update_start` sets and a re-add clears.
+    /// `update_complete` stops whatever is still marked -- that is what
+    /// vlist_update/vlist_flush do across a multi-call update.
+    pub stale: bool,
 }
 
 impl Instance {
@@ -148,6 +152,7 @@ impl Instance {
             halt: false,
             respawn_active: false,
             deadline: None,
+            stale: false,
         }
     }
 

@@ -313,6 +313,11 @@ impl Procd {
             (Target::Service, "list") => self.handle_list(&req),
             (Target::Service, "delete") => self.handle_delete(&req),
             (Target::Service, "signal") => self.handle_signal(&req),
+            (Target::Service, "state") => self.handle_state(&req),
+            (Target::Service, "update_start") => self.handle_update(&req, true),
+            (Target::Service, "update_complete") => self.handle_update(&req, false),
+            (Target::Service, "get_data") => self.handle_get_data(&req),
+            (Target::Service, "set_data") => self.handle_set_data(&req),
             _ => status::NOT_SUPPORTED,
         };
         let _ = self.conn.reply_status(&req, code, None);
@@ -412,6 +417,13 @@ impl Procd {
                 service::InstanceChange::Update => {
                     let new = fresh.remove(&iname).expect("plan named a fresh instance");
                     self.instance_update(&name, &iname, new);
+                    // A re-add during an update_start/update_complete window
+                    // is what keeps the instance alive past the flush.
+                    if let Some(i) =
+                        self.services.get_mut(&name).and_then(|s| s.instances.get_mut(&iname))
+                    {
+                        i.stale = false;
+                    }
                 }
             }
         }
@@ -525,6 +537,197 @@ impl Procd {
                 if self.services.get(&name).is_some_and(|s| s.can_be_freed()) {
                     self.services.remove(&name);
                 }
+            }
+        }
+        status::OK
+    }
+
+    /// `service_handle_state()`. `spawn` is a target state for every
+    /// instance of the service: those already in it are skipped, the rest are
+    /// started or stopped. The stop is `halt = false`, so the instance stays
+    /// in the list rather than being deleted.
+    fn handle_state(&mut self, req: &Request) -> i32 {
+        let mut spawn: Option<bool> = None;
+        let mut name: Option<String> = None;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "spawn" => spawn = f.as_bool(),
+                "name" => name = f.as_str().map(str::to_string),
+                _ => {}
+            }
+        }
+        // The order matters: a missing `spawn` is INVALID_ARGUMENT, a missing
+        // `name` is NOT_FOUND. Both are checked before the lookup.
+        let Some(spawn) = spawn else {
+            return status::INVALID_ARGUMENT;
+        };
+        let Some(name) = name else {
+            return status::NOT_FOUND;
+        };
+        let Some(s) = self.services.get(&name) else {
+            return status::NOT_FOUND;
+        };
+        let todo: Vec<(String, bool)> = s
+            .instances
+            .iter()
+            .map(|(n, i)| (n.clone(), i.state == Run::Running))
+            .filter(|(_, running)| *running != spawn)
+            .collect();
+        for (iname, running) in todo {
+            if running {
+                self.instance_stop(&name, &iname, false);
+            } else {
+                self.instance_start(&name, &iname);
+            }
+        }
+        status::OK
+    }
+
+    /// `service_handle_update()`: `update_start` is vlist_update (mark every
+    /// instance stale) and `update_complete` is vlist_flush (stop whatever is
+    /// still marked). A `set` or `add` in between clears the mark for the
+    /// names it names, which is how a multi-call update expresses "these are
+    /// the instances that survive".
+    fn handle_update(&mut self, req: &Request, start: bool) -> i32 {
+        let mut name: Option<String> = None;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            if f.name == "name" {
+                name = f.as_str().map(str::to_string);
+            }
+        }
+        let Some(name) = name else {
+            return status::INVALID_ARGUMENT;
+        };
+        let Some(s) = self.services.get_mut(&name) else {
+            return status::NOT_FOUND;
+        };
+        if start {
+            s.update_pending = true;
+            for i in s.instances.values_mut() {
+                i.stale = true;
+            }
+            return status::OK;
+        }
+        s.update_pending = false;
+        let doomed: Vec<String> = s
+            .instances
+            .iter()
+            .filter(|(_, i)| i.stale)
+            .map(|(n, _)| n.clone())
+            .collect();
+        for iname in doomed {
+            self.instance_stop(&name, &iname, true);
+            self.collect_stopped(&name, &iname);
+        }
+        status::OK
+    }
+
+    /// `service_get_data()`. Service-level data is reported under the
+    /// instance key `*`; instance data under the instance's own name. A
+    /// service or instance with nothing matching emits no table at all.
+    fn handle_get_data(&mut self, req: &Request) -> i32 {
+        let mut name: Option<String> = None;
+        let mut instance: Option<String> = None;
+        let mut ty: Option<String> = None;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "name" => name = f.as_str().map(str::to_string),
+                "instance" => instance = f.as_str().map(str::to_string),
+                "type" => ty = f.as_str().map(str::to_string),
+                _ => {}
+            }
+        }
+        let want = |k: &str| ty.as_ref().is_none_or(|t| t == k);
+
+        let mut b = BlobBuf::new();
+        for (sname, s) in self.services.iter() {
+            if name.as_ref().is_some_and(|n| n != sname) {
+                continue;
+            }
+            let svc_hits: Vec<(&String, &String)> =
+                s.data.iter().filter(|(k, _)| want(k)).collect();
+            let mut cs = None;
+            if !svc_hits.is_empty() {
+                cs = Some(b.msg_open_table(sname));
+                let ci = b.msg_open_table("*");
+                for (k, v) in svc_hits {
+                    b.msg_string(k, v);
+                }
+                b.msg_close(ci);
+            }
+            for (iname, inst) in s.instances.iter() {
+                if instance.as_ref().is_some_and(|n| n != iname) {
+                    continue;
+                }
+                let hits: Vec<(&String, &String)> =
+                    inst.data.iter().filter(|(k, _)| want(k)).collect();
+                if hits.is_empty() {
+                    continue;
+                }
+                if cs.is_none() {
+                    cs = Some(b.msg_open_table(sname));
+                }
+                let ci = b.msg_open_table(iname);
+                for (k, v) in hits {
+                    b.msg_string(k, v);
+                }
+                b.msg_close(ci);
+            }
+            if let Some(c) = cs {
+                b.msg_close(c);
+            }
+        }
+        let _ = self.conn.reply_data(req, b.payload());
+        status::OK
+    }
+
+    /// `service_handle_set_data()`. With `instance`, the instance's data is
+    /// replaced and NO trigger fires; without it, the service's data is
+    /// replaced through service_update_data, which fires the data triggers
+    /// for the old keys and then for the new.
+    fn handle_set_data(&mut self, req: &Request) -> i32 {
+        let mut name: Option<String> = None;
+        let mut instance: Option<String> = None;
+        let mut data: BTreeMap<String, String> = BTreeMap::new();
+        let mut saw_data = false;
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "name" => name = f.as_str().map(str::to_string),
+                "instance" => instance = f.as_str().map(str::to_string),
+                "data" => {
+                    saw_data = true;
+                    for c in f.children() {
+                        if let Some(v) = c.as_str() {
+                            data.insert(c.name.to_string(), v.to_string());
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        let (Some(name), true) = (name, saw_data) else {
+            return status::INVALID_ARGUMENT;
+        };
+        let Some(s) = self.services.get_mut(&name) else {
+            return status::NOT_FOUND;
+        };
+        match instance {
+            Some(i) => {
+                let Some(inst) = s.instances.get_mut(&i) else {
+                    return status::NOT_FOUND;
+                };
+                inst.data = data;
+            }
+            None => {
+                if s.data == data {
+                    return status::OK;
+                }
+                // service_update_data fires for the OLD keys, then the new.
+                self.data_trigger(&name);
+                if let Some(s) = self.services.get_mut(&name) {
+                    s.data = data;
+                }
+                self.data_trigger(&name);
             }
         }
         status::OK

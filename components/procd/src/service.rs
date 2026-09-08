@@ -9,7 +9,7 @@
 
 use std::collections::BTreeMap;
 
-use owrt_ubus::blob::BlobBuf;
+use owrt_ubus::blob::{BlobBuf, MsgType};
 
 use crate::instance::{Instance, Run};
 
@@ -94,12 +94,9 @@ impl Service {
     /// is compared against the C's byte for byte.
     pub fn dump(&self, b: &mut BlobBuf, verbose: bool) {
         let s = b.msg_open_table(&self.name);
-        if !self.instances.is_empty() {
-            let i = b.msg_open_table("instances");
-            for inst in self.instances.values() {
-                inst.dump(b, verbose);
-            }
-            b.msg_close(i);
+        // autostart appears ONLY when it is false; the default is silent.
+        if !self.autostart {
+            b.msg_bool("autostart", false);
         }
         if !self.data.is_empty() {
             let d = b.msg_open_table("data");
@@ -108,19 +105,26 @@ impl Service {
             }
             b.msg_close(d);
         }
-        if let Some(t) = &self.trigger {
-            if verbose {
-                let a = b.msg_open_array("triggers");
-                b.put_raw_fields(t);
+        if !self.instances.is_empty() {
+            let i = b.msg_open_table("instances");
+            for inst in self.instances.values() {
+                inst.dump(b, verbose);
+            }
+            b.msg_close(i);
+        }
+        if verbose {
+            // blobmsg_add_blob() re-emits the stored attr with its own name,
+            // so the array is not re-wrapped here either.
+            if let Some(t) = &self.trigger {
+                b.msg_field(MsgType::Array as u32, "triggers", t);
+            }
+            if !self.validate.is_empty() {
+                let a = b.msg_open_array("validate");
+                for v in &self.validate {
+                    b.put_raw_fields(v);
+                }
                 b.msg_close(a);
             }
-        }
-        if verbose && !self.validate.is_empty() {
-            let a = b.msg_open_array("validate");
-            for v in &self.validate {
-                b.put_raw_fields(v);
-            }
-            b.msg_close(a);
         }
         b.msg_close(s);
     }
