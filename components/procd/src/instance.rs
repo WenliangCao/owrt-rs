@@ -88,8 +88,15 @@ pub struct Instance {
     /// BTreeMap because blobmsg_list_fill builds an avl ordered by name.
     pub data: BTreeMap<String, (u32, Vec<u8>)>,
     pub limits: BTreeMap<String, String>,
-    pub netdev: Vec<String>,
-    pub file: Vec<String>,
+    /// `netdev` names AND the ifindex each had when this config was parsed.
+    /// The C compares `if_nametoindex()` results (instance_netdev_cmp), so a
+    /// same-named interface that was destroyed and recreated counts as a
+    /// change. Comparing names alone silently keeps the old process.
+    pub netdev: Vec<(String, u32)>,
+    /// `file` paths AND the content digest each had when parsed
+    /// (instance_file_cmp compares MD5). A regenerated config file with the
+    /// same path is exactly the case this exists for.
+    pub file: Vec<(String, [u8; 16])>,
     /// `watch`: ubus object paths whose notifications become trigger events.
     /// See watch.c -- this is a subscription list, not a file watch.
     pub watch: Vec<String>,
@@ -150,6 +157,9 @@ pub struct Instance {
     /// line. Not part of the config diff -- they belong to the child.
     pub log_out: Option<crate::proc::LogPipe>,
     pub log_err: Option<crate::proc::LogPipe>,
+    /// Set when the respawn budget ran out. Such an instance stays listed
+    /// with its last exit code; only a deliberate stop or delete removes it.
+    pub crash_looped: bool,
     /// The vlist version bit `update_start` sets and a re-add clears.
     /// `update_complete` stops whatever is still marked -- that is what
     /// vlist_update/vlist_flush do across a multi-call update.
@@ -203,6 +213,7 @@ impl Instance {
             respawn_active: false,
             deadline: None,
             stale: false,
+            crash_looped: false,
             log_out: None,
             log_err: None,
         }
@@ -318,8 +329,12 @@ impl Instance {
             return;
         }
         let t = b.msg_open_table(&self.name);
-        b.msg_bool("running", self.state == Run::Running);
-        if self.state == Run::Running {
+        // `running` is proc.pending in the C: it stays true until the child
+        // is reaped, INCLUDING the SIGTERM grace period. Reporting the stop
+        // intent instead makes a still-live process look gone.
+        let alive = self.state == Run::Running || self.state == Run::Halting;
+        b.msg_bool("running", alive);
+        if alive {
             b.msg_u32("pid", self.pid as u32);
         }
         if !self.command.is_empty() {
@@ -333,7 +348,7 @@ impl Instance {
             b.msg_string("bundle", v);
         }
         b.msg_u32("term_timeout", self.term_timeout);
-        if self.state != Run::Running {
+        if !alive {
             b.msg_u32("exit_code", self.exit_code as u32);
         }
         if !self.errors.is_empty() {
@@ -366,7 +381,7 @@ impl Instance {
         }
         if !self.netdev.is_empty() {
             let a = b.msg_open_array("netdev");
-            for n in &self.netdev {
+            for (n, _) in &self.netdev {
                 b.msg_string("", n);
             }
             b.msg_close(a);
@@ -374,7 +389,10 @@ impl Instance {
         if self.reload_signal != 0 {
             b.msg_u32("reload_signal", self.reload_signal as u32);
         }
-        if let Some(r) = &self.respawn {
+        // instance_dump prints respawn from in->respawn -- the live budget.
+        // A crash-looped instance has had it cleared, so keeping a stored
+        // policy in the output would claim supervision that stopped.
+        if let (true, Some(r)) = (self.respawn_active, &self.respawn) {
             let t = b.msg_open_table("respawn");
             b.msg_u32("threshold", r.threshold);
             b.msg_u32("timeout", r.timeout);
@@ -514,10 +532,18 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                 }
             }
             "netdev" => {
-                i.netdev = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+                i.netdev = f
+                    .children()
+                    .filter_map(|c| c.as_str())
+                    .map(|n| (n.to_string(), crate::sys::if_nametoindex(n)))
+                    .collect();
             }
             "file" => {
-                i.file = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+                i.file = f
+                    .children()
+                    .filter_map(|c| c.as_str())
+                    .map(|p| (p.to_string(), crate::sys::file_md5(p)))
+                    .collect();
             }
             "watch" => {
                 i.watch = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();

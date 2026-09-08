@@ -80,6 +80,40 @@ while [ ! -S /dev/log ] && [ $i -lt 10 ]; do
 done
 X
 
+# The supervisor readiness gate. Astra's review proved the old harness
+# passed with BOTH supervisors replaced by /bin/false: it only ever checked
+# that ubusd answered. This checks the thing under test is present, is the
+# binary we meant, owns the `service` object with its methods, and answers a
+# real round trip. Anything missing is written to ready.err, which fails the
+# run outright rather than becoming comparable text.
+cat > "$work/root/tmp/ready.sh" <<'X'
+#!/bin/sh
+err() { echo "$1" >> /tmp/out/ready.err; }
+pid=$(cat /tmp/out/procd.pid 2>/dev/null || true)
+[ -n "$pid" ] || err "no supervisor pid recorded"
+i=0
+while [ $i -lt 20 ]; do
+	kill -0 "$pid" 2>/dev/null || break
+	ubus list 2>/dev/null | grep -qx service && break
+	sleep 1
+	i=$((i+1))
+done
+kill -0 "$pid" 2>/dev/null || err "supervisor pid $pid is not alive"
+exe=$(readlink "/proc/$pid/exe" 2>/dev/null || true)
+echo "supervisor exe: $exe" >> /tmp/out/ready.txt
+case "$exe" in
+	*/procd|*/procd-rs) ;;
+	*) err "supervisor exe is not a procd: $exe" ;;
+esac
+ubus list 2>/dev/null | grep -qx service || err "no `service` object on the bus"
+for m in set add list delete signal update_start update_complete event 	 validate get_data set_data state watchdog; do
+	ubus -v list service 2>/dev/null | grep -q "\"$m\":" || err "service has no method $m"
+done
+# A real round trip through the supervisor, not just through ubusd.
+ubus call service list >/tmp/out/ready-list.txt 2>&1 || err "service list round trip failed"
+grep -q "^{" /tmp/out/ready-list.txt 2>/dev/null || err "service list did not return an object"
+X
+
 cat > "$work/root/tmp/cproc.sh" <<'X'
 #!/bin/sh
 DBGLVL=0 /sbin/procd -S -I /tmp/initd -R /tmp/rcd > /tmp/out/procd.log 2>&1 &
@@ -96,9 +130,53 @@ X
 # waits are explicit so a timing difference shows up as a diff, not a flake.
 cat > "$work/root/tmp/drive.sh" <<'X'
 #!/bin/sh
+# `call` used to pass "${3:-}", which turns a no-argument call into an
+# explicit empty-string JSON and makes the shipping CLI fail to parse it --
+# so case 2 was two mutual failures compared equal. Now a missing third
+# argument is genuinely absent.
+#
+# ok  <obj> <method> [json]   -- must succeed; a failure fails the run
+# err <obj> <method> [json]   -- must fail; a success fails the run
 call() {
 	printf -- '--- %s %s\n' "$1" "$2"
-	ubus call "$1" "$2" "${3:-}" 2>&1 || printf 'rc=%s\n' "$?"
+	if [ $# -ge 3 ]; then
+		ubus call "$1" "$2" "$3" 2>&1 || printf 'rc=%s\n' "$?"
+	else
+		ubus call "$1" "$2" 2>&1 || printf 'rc=%s\n' "$?"
+	fi
+}
+
+# Record what each call was SUPPOSED to do, so "both sides failed" stops
+# counting as agreement.
+expect() {
+	want=$1; shift
+	printf -- '--- %s %s\n' "$1" "$2"
+	rc=0
+	if [ $# -ge 3 ]; then
+		out=$(ubus call "$1" "$2" "$3" 2>&1) || rc=$?
+	else
+		out=$(ubus call "$1" "$2" 2>&1) || rc=$?
+	fi
+	printf '%s\n' "$out"
+	if [ "$want" = ok ] && [ "$rc" != 0 ]; then
+		echo "EXPECT-FAIL: $1 $2 should have succeeded, rc=$rc" >> /tmp/out/expect.err
+	fi
+	if [ "$want" = err ] && [ "$rc" = 0 ]; then
+		echo "EXPECT-FAIL: $1 $2 should have failed" >> /tmp/out/expect.err
+	fi
+	[ "$want" = err ] && printf 'rc=%s\n' "$rc"
+	return 0
+}
+
+# A positive effect file must exist and be non-empty. Its CONTENT still goes
+# into the diff; this only stops "neither side produced anything" passing.
+must_have() {
+	if [ -s "$1" ]; then
+		cat "$1"
+	else
+		echo "(no file)"
+		echo "EXPECT-FAIL: $1 should exist and be non-empty" >> /tmp/out/expect.err
+	fi
 }
 
 # 1. signature: what `ubus -v list` prints is part of the interface
@@ -107,8 +185,10 @@ ubus -v list service 2>&1
 ubus -v list container 2>&1
 ubus -v list system 2>&1
 
-# 2. empty list
-call service list
+# 2. empty list -- with no third argument at all, so the CLI does not choke
+#    on an empty-string JSON. This is the case Astra found was two mutual
+#    parse failures compared equal.
+expect ok service list
 
 # 3. one instance that exits immediately -- exit_code, running=false
 call service set '{"name":"t1","instances":{"one":{"command":["/bin/true"]}}}'
@@ -235,27 +315,27 @@ sleep 1
 call service event '{"type":"mytrig.now","data":{"ACT":"go","WHO":"first"}}'
 sleep 2
 printf -- '--- fired after a matching event\n'
-cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/fired.txt
 
 printf -- '--- an event whose expression is false must not fire\n'
 call service event '{"type":"mytrig.now","data":{"ACT":"stop","WHO":"second"}}'
 sleep 2
-cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/fired.txt
 
 printf -- '--- a non-matching event type must not fire\n'
 call service event '{"type":"other.now","data":{"ACT":"go","WHO":"third"}}'
 sleep 2
-cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/fired.txt
 
 printf -- '--- .* truncates before the dot: "mytrigX" matches too\n'
 call service event '{"type":"mytrigX","data":{"ACT":"go","WHO":"fourth"}}'
 sleep 2
-cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/fired.txt
 
 printf -- '--- an unset variable expands to nothing\n'
 call service event '{"type":"mytrig.now","data":{"ACT":"go"}}'
 sleep 2
-cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/fired.txt
 
 printf -- '--- event argument errors\n'
 call service event '{"type":"mytrig.now"}'
@@ -268,7 +348,7 @@ call service event '{"type":"ev2","data":{"K":"a"}}'
 sleep 2
 call service event '{"type":"ev2","data":{"K":"b"}}'
 sleep 2
-cat /tmp/out/fired.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/fired.txt
 
 # 19. validate: grouped package -> type -> option -> rule across services
 call service set '{"name":"tf","validate":[{"package":"network","type":"interface","data":{"proto":"string","ifname":"string"}},{"package":"network","type":"device","data":{"name":"string"}}]}'
@@ -289,15 +369,15 @@ call service list '{"name":"tf","verbose":true}'
 printf -- '--- a service with a matching init script\n'
 call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/true"]}}}'
 sleep 2
-cat /tmp/out/initd.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/initd.txt
 printf -- '--- a second set with instances runs it again\n'
 call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/true"]}}}'
 sleep 2
-cat /tmp/out/initd.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/initd.txt
 printf -- '--- a service with no matching script runs nothing\n'
 call service set '{"name":"noinit","instances":{"one":{"command":["/bin/true"]}}}'
 sleep 2
-cat /tmp/out/initd.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/initd.txt
 
 # 21. the per-instance watchdog method
 call service set '{"name":"twd","instances":{"one":{"command":["/bin/sleep","300"],"watchdog":["1","20"]}}}'
@@ -334,7 +414,7 @@ sleep 1
 printf -- '--- publish the watched object, then notify from it\n'
 /sbin/notifier fake.iface iface.up ifname=eth9 >/dev/null 2>&1 &
 sleep 5
-cat /tmp/out/watched.txt 2>&1 || echo "(no file)"
+must_have /tmp/out/watched.txt
 
 # 23. instance stdout/stderr -> syslog, with the C's ident format
 call service set '{"name":"tlog","instances":{"one":{"command":["/bin/sh","-c","echo hello-stdout; echo hello-stderr >&2; sleep 300"],"stdout":true,"stderr":true}}}'
@@ -391,10 +471,15 @@ run() {
 		ip link set lo up
 		chroot "$root" /bin/sh /tmp/bus.sh
 		chroot "$root" /bin/sh "$starter"
-		sleep 2
+		# Prove the supervisor is there BEFORE driving it. A run whose
+		# supervisor never started must fail, not produce comparable text.
+		chroot "$root" /bin/sh /tmp/ready.sh
 		chroot "$root" /bin/sh /tmp/drive.sh > "$out/$tag-calls.txt" 2>&1 || true
 		cp "$root/tmp/out/procd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		cp "$root/tmp/out/bus.err" "$out/$tag-bus.err" 2>/dev/null || true
+		cp "$root/tmp/out/ready.err" "$out/$tag-ready.err" 2>/dev/null || true
+		cp "$root/tmp/out/ready.txt" "$out/$tag-ready.txt" 2>/dev/null || true
+		cp "$root/tmp/out/expect.err" "$out/$tag-expect.err" 2>/dev/null || true
 		for f in procd ubusd logd; do
 			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
 			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
@@ -415,24 +500,41 @@ scrub() {
 	# The signature text after the id is the part that carries meaning.
 	sed -E \
 		-e "s/^'([a-z]+)' @[0-9a-f]+$/'\\1' @ID/" \
-		-e 's/"pid": [0-9]+/"pid": PID/' \
-		-e 's/pid1=[0-9]+/pid1=P1/' \
-		-e 's/pid2=[0-9]+/pid2=P2/' \
-		-e 's/wdpid1=[0-9]+/wdpid1=W1/' \
-		-e 's/wdpid2=[0-9]+/wdpid2=W2/' \
+		-e 's/^(\t+)"pid": [0-9]+/\1"pid": PID/' \
+		-e 's/^pid1=[0-9]+$/pid1=P1/' \
+		-e 's/^pid2=[0-9]+$/pid2=P2/' \
+		-e 's/^wdpid1=[0-9]+$/wdpid1=W1/' \
+		-e 's/^wdpid2=[0-9]+$/wdpid2=W2/' \
 		"$1"
 }
 scrub "$out/c-calls.txt" > "$out/c-calls.scrubbed"
 scrub "$out/rs-calls.txt" > "$out/rs-calls.scrubbed"
 
 # ... but whether pid1 and pid2 are equal IS the assertion for case 10.
+# "differs" used to cover both "the pid really changed" and "there was no
+# pid at all". Report those separately so a missing pid can never satisfy an
+# assertion that two pids matched.
 same_pid() {
-	a=$(sed -n 's/^pid1=//p' "$1"); b=$(sed -n 's/^pid2=//p' "$1")
-	[ -n "$a" ] && [ "$a" = "$b" ] && echo same || echo differs
+	a=$(sed -n 's/^pid1=\([0-9][0-9]*\)$/\1/p' "$1")
+	b=$(sed -n 's/^pid2=\([0-9][0-9]*\)$/\1/p' "$1")
+	if [ -z "$a" ] || [ -z "$b" ]; then
+		echo missing
+	elif [ "$a" = "$b" ]; then
+		echo same
+	else
+		echo differs
+	fi
 }
 same_wdpid() {
-	a=$(sed -n 's/^wdpid1=//p' "$1"); b=$(sed -n 's/^wdpid2=//p' "$1")
-	[ -n "$a" ] && [ "$a" = "$b" ] && echo same || echo differs
+	a=$(sed -n 's/^wdpid1=\([0-9][0-9]*\)$/\1/p' "$1")
+	b=$(sed -n 's/^wdpid2=\([0-9][0-9]*\)$/\1/p' "$1")
+	if [ -z "$a" ] || [ -z "$b" ]; then
+		echo missing
+	elif [ "$a" = "$b" ]; then
+		echo same
+	else
+		echo differs
+	fi
 }
 {
 	echo "identical-set-keeps-pid c=$(same_pid "$out/c-calls.txt") rs=$(same_pid "$out/rs-calls.txt")"
@@ -460,6 +562,22 @@ for t in c rs; do
 		echo "r65: $t run never got a working bus: $(cat "$out/$t-bus.err")" >&2
 		rc=1
 	fi
+	# THE gate. Astra proved the old harness passed with both supervisors
+	# replaced by /bin/false; this is what makes that impossible.
+	if [ -s "$out/$t-ready.err" ]; then
+		echo "r65: $t supervisor was not ready:" >&2
+		sed "s/^/  $t: /" "$out/$t-ready.err" >&2
+		rc=1
+	fi
+	if [ ! -s "$out/$t-ready.txt" ]; then
+		echo "r65: $t produced no readiness evidence at all" >&2
+		rc=1
+	fi
+	if [ -s "$out/$t-expect.err" ]; then
+		echo "r65: $t had calls that did not do what the case expected:" >&2
+		sed "s/^/  $t: /" "$out/$t-expect.err" >&2
+		rc=1
+	fi
 done
 # A run where almost everything failed would still diff clean. Count the
 # failures and refuse a run that is mostly errors.
@@ -482,6 +600,12 @@ while read -r line; do
 	r=${line#*rs=}
 	if [ "$c" != "$r" ]; then
 		echo "r65: pid behaviour differs: $line" >&2
+		rc=1
+	fi
+	# Both sides agreeing on "missing" is not agreement about behaviour --
+	# it means neither run produced a pid the case needed.
+	if [ "$c" = missing ]; then
+		echo "r65: pid assertion had no pid to compare: $line" >&2
 		rc=1
 	fi
 done < "$out/pid-identity.txt"

@@ -209,8 +209,15 @@ impl Procd {
                     "procd-rs: {svc}::{name} is in a crash loop, {} crashes, {runtime}s since last",
                     inst.respawn_count
                 );
+                inst.restart = false;
                 inst.respawn_active = false;
-                inst.halt = true;
+                // The C sets in->halt here too, but that flag is read by
+                // instance_exit's ALREADY-TAKEN branch; it does not send the
+                // instance back through the delete path in this callback.
+                // Deleting it loses the last failure -- the C keeps it
+                // listed as running=false with its exit_code, minus the
+                // respawn block.
+                inst.crash_looped = true;
                 event = Some("instance.fail");
             } else {
                 event = Some("instance.respawn");
@@ -336,14 +343,29 @@ impl Procd {
         let Some(s) = self.services.get_mut(svc) else {
             return;
         };
+        // A crash-looped instance stays listed: it was never asked to go
+        // away, it just ran out of retries.
         let drop_instance = s
             .instances
             .get(name)
-            .map(|i| i.halt && i.state == Run::Stopped)
+            .map(|i| i.halt && !i.crash_looped && i.state == Run::Stopped)
             .unwrap_or(false);
         if drop_instance {
-            s.instances.remove(name);
+            // instance_free() calls service_data_trigger on the instance's
+            // own data before releasing it.
+            let keys: Vec<String> = s
+                .instances
+                .get(name)
+                .map(|i| i.data.keys().cloned().collect())
+                .unwrap_or_default();
+            if let Some(s) = self.services.get_mut(svc) {
+                s.instances.remove(name);
+            }
+            self.data_trigger_keys(&keys);
         }
+        let Some(s) = self.services.get_mut(svc) else {
+            return;
+        };
         if s.can_be_freed() {
             self.services.remove(svc);
         }
@@ -522,6 +544,13 @@ impl Procd {
             s.validate = v;
         }
         let data_changed = saw_data && s.data != data;
+        // service_update_data() fires for the OLD keys before replacing, and
+        // for the new ones after. Capture the old snapshot first.
+        let old_data_keys: Vec<String> = if data_changed {
+            s.data.keys().cloned().collect()
+        } else {
+            Vec::new()
+        };
         if saw_data {
             s.data = data;
         }
@@ -530,7 +559,9 @@ impl Procd {
 
         if !saw_instances {
             if data_changed {
-                self.data_trigger(&name);
+                self.data_trigger_keys(&old_data_keys);
+                let fresh = self.data_keys(&name);
+                self.data_trigger_keys(&fresh);
             }
             if init {
                 self.run_init_script(&name);
@@ -578,7 +609,9 @@ impl Procd {
         }
 
         if data_changed {
-            self.data_trigger(&name);
+            self.data_trigger_keys(&old_data_keys);
+            let fresh = self.data_keys(&name);
+            self.data_trigger_keys(&fresh);
         }
         self.refresh_watches(&name);
         // service_update() ends with
@@ -607,11 +640,25 @@ impl Procd {
             self.instance_start(svc, name);
             return;
         }
-        inst.take_config(new);
+        // instance_update() calls instance_restart() FIRST and moves the
+        // config afterwards, so the stop uses the OLD reload_signal,
+        // term_timeout and has_jail. Doing it the other way round sends a
+        // signal the running process was never configured for -- measured:
+        // it kills it.
+        // The data-only branch fires for the OLD instance data and then the
+        // NEW instance data. Passing the service's keys was wrong twice
+        // over: wrong owner, and taken after the swap.
+        let old_keys: Vec<String> = inst.data.keys().cloned().collect();
+        let new_keys: Vec<String> = new.data.keys().cloned().collect();
         if changed {
             self.instance_restart(svc, name);
-        } else if data_changed {
-            self.data_trigger(svc);
+        }
+        if let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) {
+            inst.take_config(new);
+        }
+        if !changed && data_changed {
+            self.data_trigger_keys(&old_keys);
+            self.data_trigger_keys(&new_keys);
         }
     }
 
@@ -687,20 +734,41 @@ impl Procd {
         self.rc.queue(&dir, name, "running", now);
     }
 
-    /// `service_data_trigger()`: one `service.data.update` per data key.
-    fn data_trigger(&mut self, svc: &str) {
-        let keys: Vec<String> = self
-            .services
-            .get(svc)
-            .map(|s| s.data.keys().cloned().collect())
-            .unwrap_or_default();
+    /// `service_data_trigger()`: one `service.data.update` event per key in
+    /// the GIVEN snapshot.
+    ///
+    /// Two things here are easy to get wrong and both were:
+    ///
+    /// - it runs the INTERNAL rule engine (`trigger_event`), not a ubus
+    ///   notification. A notification on the service object reaches ubus
+    ///   subscribers; it does not run the service's own `triggers`, which is
+    ///   what `procd_add_reload_data_trigger` registers.
+    /// - it is called with the OLD keys and then the NEW ones, so it needs a
+    ///   snapshot rather than "whatever the service holds right now".
+    fn data_trigger_keys(&mut self, keys: &[String]) {
+        let now = self.now_ms();
         for k in keys {
+            let mut vars = BTreeMap::new();
+            vars.insert("name".to_string(), k.clone());
+            self.triggers.fire("service.data.update", &vars, now);
+            // The C also emits nothing on the bus here; the ubus-visible
+            // event is `service.data.update` reaching subscribers of the
+            // service object, which trigger_event does not do. Keep the
+            // notification too so external subscribers still see it.
             let mut b = BlobBuf::new();
-            b.msg_string("name", &k);
+            b.msg_string("name", k);
             let _ = self
                 .conn
                 .notify(self.objects.service, "service.data.update", b.payload());
         }
+    }
+
+    /// The keys a service's data currently has, for use as a snapshot.
+    fn data_keys(&self, svc: &str) -> Vec<String> {
+        self.services
+            .get(svc)
+            .map(|s| s.data.keys().cloned().collect())
+            .unwrap_or_default()
     }
 
     /// `service_handle_list()`.
@@ -1161,11 +1229,13 @@ impl Procd {
                     return status::OK;
                 }
                 // service_update_data fires for the OLD keys, then the new.
-                self.data_trigger(&name);
+                let old_keys: Vec<String> = s.data.keys().cloned().collect();
+                let new_keys: Vec<String> = data.keys().cloned().collect();
+                self.data_trigger_keys(&old_keys);
                 if let Some(s) = self.services.get_mut(&name) {
                     s.data = data;
                 }
-                self.data_trigger(&name);
+                self.data_trigger_keys(&new_keys);
             }
         }
         status::OK

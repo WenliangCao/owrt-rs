@@ -243,26 +243,26 @@ pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPip
                 let _ = sys::apply_limit(name, value);
             }
             if !has_jail {
+                // instance_config_parse seeds the primary gid from the
+                // passwd entry and only lets an explicit `group` override
+                // it. Using the uid as the gid -- which is what this did --
+                // silently puts the process in the wrong primary group
+                // whenever a user's uid and gid differ.
+                let uid = uid_gid.map(|(u, _)| u).unwrap_or(0);
+                let gid = gr_gid.or(uid_gid.map(|(_, g)| g)).unwrap_or(0);
                 if let (Some(u), Some((_, pw_gid))) = (user.as_deref(), uid_gid) {
                     if pw_gid != 0 && !sys::init_groups(u, pw_gid) {
                         return Err(io::Error::other("initgroups failed"));
                     }
                 }
-                if let Some(g) = gr_gid {
-                    if g != 0 {
-                        owrt_ubus::sys::drop_privileges(
-                            uid_gid.map(|(u, _)| u).unwrap_or(0),
-                            g,
-                        )?;
-                        return Ok(());
-                    }
+                // The C guards each call on the value being non-zero, so a
+                // resolved id of 0 leaves that half alone rather than
+                // "dropping" to root explicitly.
+                if gid != 0 {
+                    sys::set_gid(gid)?;
                 }
-                if let Some((u, _)) = uid_gid {
-                    if u != 0 {
-                        // No explicit group: setuid alone, as the C does when
-                        // gr_gid is unset.
-                        owrt_ubus::sys::drop_privileges(u, u)?;
-                    }
+                if uid != 0 {
+                    sys::set_uid(uid)?;
                 }
             }
             Ok(())
