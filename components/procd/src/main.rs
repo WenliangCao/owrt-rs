@@ -57,7 +57,25 @@ impl Procd {
         let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) else {
             return;
         };
-        if !inst.valid || inst.state == Run::Running {
+        // instance_start()'s early returns, in order. Each returns without
+        // touching exit_code, which is why a never-started instance lists
+        // exit_code 0 rather than a spawn failure code.
+        if !inst.valid {
+            return;
+        }
+        if !inst.errors.is_empty() {
+            eprintln!("procd-rs: not starting {svc}::{name}, an error was indicated");
+            return;
+        }
+        if inst.bundle.is_none() && inst.command.is_empty() {
+            eprintln!("procd-rs: not starting {svc}::{name}, command not set");
+            return;
+        }
+        if inst.state == Run::Running || inst.state == Run::Halting {
+            // Already has a child. A halting one is asked to come back.
+            if inst.halt {
+                inst.restart = true;
+            }
             return;
         }
         inst.halt = false;

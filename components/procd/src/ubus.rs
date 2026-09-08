@@ -88,12 +88,16 @@ pub const SERVICE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
         &[("spawn", BOOL), ("name", MsgType::String)],
     ),
     (
+        // Designated initialisers do not reorder the array: the enum does.
+        // SERVICE_WATCHDOG_{MODE,TIMEOUT,NAME,INSTANCE} is the order the
+        // policy is stored in and therefore the order `ubus -v list` prints,
+        // even though the initialiser lists name before timeout.
         "watchdog",
         &[
-            ("name", MsgType::String),
-            ("instance", MsgType::String),
             ("mode", MsgType::Int32),
             ("timeout", MsgType::Int32),
+            ("name", MsgType::String),
+            ("instance", MsgType::String),
         ],
     ),
 ];

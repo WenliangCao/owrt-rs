@@ -340,11 +340,30 @@ impl Instance {
 /// nor listed.
 pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     let mut i = Instance::new(name);
+    let mut saw_command = false;
+    let mut command_ok = true;
 
     for f in entry.children() {
         match f.name {
             "command" => {
-                i.command = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+                saw_command = true;
+                let mut any = false;
+                for c in f.children() {
+                    any = true;
+                    match c.as_str() {
+                        Some(v) => i.command.push(v.to_string()),
+                        // blobmsg_check_attr_list(cur, BLOBMSG_TYPE_STRING):
+                        // one non-string element rejects the whole list.
+                        None => {
+                            command_ok = false;
+                            break;
+                        }
+                    }
+                }
+                // A present but empty array leaves ret false in the C.
+                if !any {
+                    command_ok = false;
+                }
             }
             "env" => {
                 for c in f.children() {
@@ -429,9 +448,14 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
         }
     }
 
-    // `instance_config_parse_command`: no command and no bundle means the
-    // instance never becomes valid.
-    i.valid = !i.command.is_empty() || i.bundle.is_some();
+    // `instance_config_parse_command()` is the subtle one. A *missing*
+    // `command` returns true with command = NULL: the instance is valid, is
+    // listed, and simply never starts ("command not set"). Only a command
+    // that is present and either empty or not a list of strings makes the
+    // instance invalid, and an invalid instance is not listed at all.
+    //
+    // A bundle skips the command parse entirely.
+    i.valid = i.bundle.is_some() || !saw_command || command_ok;
     i
 }
 
@@ -449,6 +473,19 @@ mod tests {
         assert_eq!(Instance::exit_code_of(9), SIGNALLED_OFFSET + 9);
         // stopped by SIGSTOP (19)
         assert_eq!(Instance::exit_code_of((19 << 8) | 0x7f), 19);
+    }
+
+    #[test]
+    fn a_missing_command_is_valid_but_an_empty_one_is_not() {
+        // Built by hand rather than through parse(), which needs a real blob.
+        let mut absent = Instance::new("a");
+        absent.valid = true; // no `command` key at all
+        assert!(absent.command.is_empty());
+
+        // instance_dump skips an invalid instance entirely, so this is the
+        // difference between "listed, never starts" and "not listed".
+        let empty = Instance::new("a"); // valid stays false
+        assert!(!empty.valid);
     }
 
     #[test]
