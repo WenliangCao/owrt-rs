@@ -50,11 +50,17 @@ pub struct Ctx<'a> {
     out: Run,
     /// `ctx->abort`, set by `return`.
     abort: bool,
+    /// The one file name `include` can resolve. procd's trigger context
+    /// registers `rule_load_script`, which answers only for the trigger's
+    /// own type -- and that file is the one already running.
+    own_type: Option<&'a str>,
 }
 
-/// Run one block against one variable set.
-pub fn run(block: Field<'_>, vars: &BTreeMap<String, String>) -> Run {
-    let mut ctx = Ctx { vars, out: Run::default(), abort: false };
+/// Run one block against one variable set. `own_type` is the trigger's type,
+/// the name under which `json_script_run(&t->jctx, t->type, data)` loaded
+/// this very block; `None` is a bare context where no `include` resolves.
+pub fn run_rule(block: Field<'_>, vars: &BTreeMap<String, String>, own_type: Option<&str>) -> Run {
+    let mut ctx = Ctx { vars, out: Run::default(), abort: false, own_type };
     ctx.process_cmd(block);
     ctx.out
 }
@@ -106,11 +112,20 @@ impl Ctx<'_> {
                 return -2;
             }
             "include" => {
-                // Only procd's trigger context defines a second file, and it
-                // only ever resolves the trigger's own type. Nothing on this
-                // device uses `include`, so it is a no-op with a recorded
-                // reason rather than a silent success.
-                self.error("include: no script files are registered");
+                // handle_include(): `json_get_tuple` wants a string name; a
+                // missing or non-string one returns 0 with no error. A name
+                // the file handler cannot resolve is ALSO a silent 0 -- the
+                // C tests `if (!f) return 0` and never calls handle_error.
+                // The one name procd's rule_load_script resolves is the
+                // trigger's own type, i.e. the file already running, so
+                // __json_script_run's seq guard fires: "Recursive include"
+                // through handle_error, and the block is not run again.
+                let name = cur.children().nth(1).and_then(|f| f.as_str());
+                if let (Some(n), Some(own)) = (name, self.own_type) {
+                    if n == own {
+                        self.error("Recursive include");
+                    }
+                }
                 return 0;
             }
             _ => {}
@@ -437,7 +452,7 @@ mod tests {
 
     fn run_script(b: &BlobBuf, v: &BTreeMap<String, String>) -> Run {
         let f = owrt_ubus::blob::fields(b.payload()).next().expect("one field");
-        run(f, v)
+        run_rule(f, v, None)
     }
 
     #[test]
@@ -471,7 +486,7 @@ mod tests {
     #[test]
     fn percent_rules() {
         let v = vars(&[("A", "1")]);
-        let ctx = Ctx { vars: &v, out: Run::default(), abort: false };
+        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, own_type: None };
         assert_eq!(ctx.eval_string("plain").unwrap(), "plain");
         assert_eq!(ctx.eval_string("%A%").unwrap(), "1");
         assert_eq!(ctx.eval_string("x%A%y").unwrap(), "x1y");
@@ -496,5 +511,64 @@ mod tests {
         // Without the flag it is plain equality, metacharacters and all.
         assert!(!eq_or_regex("eth0", "^eth[0-9]+$", false));
         assert!(eq_or_regex("^eth[0-9]+$", "^eth[0-9]+$", false));
+    }
+}
+
+#[cfg(test)]
+mod include_tests {
+    use super::*;
+    use owrt_ubus::blob::BlobBuf;
+
+    /// `[ ["include", <name>], ["run_script", "x"] ]` -- or, with no name,
+    /// `[ ["include"], ["run_script", "x"] ]`.
+    fn script(include_name: Option<&str>) -> BlobBuf {
+        let mut b = BlobBuf::new();
+        let outer = b.msg_open_array("script");
+        {
+            let inc = b.msg_open_array("");
+            b.msg_string("", "include");
+            if let Some(n) = include_name {
+                b.msg_string("", n);
+            }
+            b.msg_close(inc);
+        }
+        {
+            let cmd = b.msg_open_array("");
+            b.msg_string("", "run_script");
+            b.msg_string("", "x");
+            b.msg_close(cmd);
+        }
+        b.msg_close(outer);
+        b
+    }
+
+    fn run_it(b: &BlobBuf, own: Option<&str>) -> Run {
+        let f = owrt_ubus::blob::fields(b.payload()).next().expect("one field");
+        run_rule(f, &BTreeMap::new(), own)
+    }
+
+    #[test]
+    fn including_the_rule_itself_is_a_recursive_include_error_and_runs_once() {
+        let out = run_it(&script(Some("iface.up")), Some("iface.up"));
+        assert_eq!(out.errors, vec!["Recursive include".to_string()]);
+        // The include ran nothing; the command after it still runs once.
+        assert_eq!(out.commands, vec![("run_script".to_string(), vec!["x".to_string()])]);
+    }
+
+    #[test]
+    fn including_any_other_name_is_a_silent_no_op() {
+        let out = run_it(&script(Some("/etc/hotplug.json")), Some("iface.up"));
+        assert!(out.errors.is_empty(), "rule_load_script returns NULL and include returns 0");
+        assert_eq!(out.commands.len(), 1);
+        // With no file handler registered at all, the same.
+        let out = run_it(&script(Some("iface.up")), None);
+        assert!(out.errors.is_empty());
+    }
+
+    #[test]
+    fn an_include_without_a_name_is_ignored() {
+        let out = run_it(&script(None), Some("iface.up"));
+        assert!(out.errors.is_empty());
+        assert_eq!(out.commands.len(), 1);
     }
 }

@@ -146,7 +146,9 @@ impl Triggers {
                 ty: MsgType::Array as u32,
                 data: &t.script,
             };
-            let out = jsonscript::run(block, vars);
+            // json_script_run(&t->jctx, t->type, data): the rule is loaded
+            // under its own type name, which is what `include` can reach.
+            let out = jsonscript::run_rule(block, vars, Some(&t.kind));
             for (name, args) in out.commands {
                 // rule_handle_command honours run_script and nothing else.
                 if name == "run_script" {
