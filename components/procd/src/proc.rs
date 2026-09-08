@@ -110,7 +110,7 @@ const UJAIL: &str = "/sbin/ujail";
 pub fn jail_argv(inst: &Instance) -> Vec<String> {
     let j = &inst.jail;
     let mut a: Vec<String> = vec![UJAIL.into(), "-t".into(), inst.term_timeout.to_string()];
-    let mut opt = |flag: &str, v: &Option<String>, out: &mut Vec<String>| {
+    let opt = |flag: &str, v: &Option<String>, out: &mut Vec<String>| {
         if let Some(v) = v {
             out.push(flag.into());
             out.push(v.clone());
@@ -283,19 +283,6 @@ pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPip
     // the rest of this supervisor does.
     std::mem::forget(child);
     Ok((pid, out, err))
-}
-
-/// `waitpid(pid, &status, WNOHANG)`. `Some(status)` when the child reaped,
-/// `None` while it is still running or already gone.
-pub fn try_reap(pid: i32) -> Option<i32> {
-    let mut status: i32 = 0;
-    // SAFETY: waitpid(2) writes one int through the pointer.
-    let r = unsafe { waitpid(pid, &mut status, WNOHANG) };
-    if r == pid {
-        Some(status)
-    } else {
-        None
-    }
 }
 
 /// Reap any exited child, whoever it is. PID 1 has to do this for orphans it

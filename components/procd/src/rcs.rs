@@ -28,7 +28,11 @@ pub struct Job {
     pub file: PathBuf,
     pub param: String,
     pub pid: Option<i32>,
-    /// Monotonic ms after which a running stop/shutdown is cancelled.
+    /// Monotonic ms after which a running stop/shutdown is cancelled
+    /// (`run_timeout`). Recorded here but NOT yet enforced -- cancelling a
+    /// runqueue task is P3.2, and `rc()` on this path only ever runs
+    /// "running", which carries no timeout.
+    #[allow(dead_code)]
     pub deadline: Option<i64>,
 }
 
