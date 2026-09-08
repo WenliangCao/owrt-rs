@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use owrt_ubus::blob::{BlobBuf, MsgType};
+use owrt_ubus::blob::BlobBuf;
 
 /// `instance.h:24`. An instance killed by signal N reports 128 + N.
 pub const SIGNALLED_OFFSET: i32 = 128;
@@ -226,99 +226,94 @@ impl Instance {
         if !self.valid {
             return;
         }
-        let t = b.open_table(Some(&self.name));
-        b.put_i8("running", (self.state == Run::Running) as i8);
+        let t = b.msg_open_table(&self.name);
+        b.msg_bool("running", self.state == Run::Running);
         if self.state == Run::Running {
-            b.put_u32("pid", self.pid as u32);
+            b.msg_u32("pid", self.pid as u32);
         }
         if !self.command.is_empty() {
-            let a = b.open_array(Some("command"));
+            let a = b.msg_open_array("command");
             for arg in &self.command {
-                b.put_str(None, arg);
+                b.msg_string("", arg);
             }
-            b.close(a);
+            b.msg_close(a);
         }
         if let Some(v) = &self.bundle {
-            b.put_str(Some("bundle"), v);
+            b.msg_string("bundle", v);
         }
-        b.put_u32("term_timeout", self.term_timeout);
+        b.msg_u32("term_timeout", self.term_timeout);
         if self.state != Run::Running {
-            b.put_u32("exit_code", self.exit_code as u32);
+            b.msg_u32("exit_code", self.exit_code as u32);
         }
         if !self.errors.is_empty() {
-            let a = b.open_array(Some("errors"));
+            let a = b.msg_open_array("errors");
             for e in &self.errors {
-                b.put_str(None, e);
+                b.msg_string("", e);
             }
-            b.close(a);
+            b.msg_close(a);
         }
         if !self.env.is_empty() {
-            let e = b.open_table(Some("env"));
+            let e = b.msg_open_table("env");
             for (k, v) in &self.env {
-                b.put_str(Some(k), v);
+                b.msg_string(k, v);
             }
-            b.close(e);
+            b.msg_close(e);
         }
         if !self.data.is_empty() {
-            let e = b.open_table(Some("data"));
+            let e = b.msg_open_table("data");
             for (k, v) in &self.data {
-                b.put_str(Some(k), v);
+                b.msg_string(k, v);
             }
-            b.close(e);
+            b.msg_close(e);
         }
         if !self.limits.is_empty() {
-            let e = b.open_table(Some("limits"));
+            let e = b.msg_open_table("limits");
             for (k, v) in &self.limits {
-                b.put_str(Some(k), v);
+                b.msg_string(k, v);
             }
-            b.close(e);
+            b.msg_close(e);
         }
         if !self.netdev.is_empty() {
-            let a = b.open_array(Some("netdev"));
+            let a = b.msg_open_array("netdev");
             for n in &self.netdev {
-                b.put_str(None, n);
+                b.msg_string("", n);
             }
-            b.close(a);
+            b.msg_close(a);
         }
         if self.reload_signal != 0 {
-            b.put_u32("reload_signal", self.reload_signal as u32);
+            b.msg_u32("reload_signal", self.reload_signal as u32);
         }
         if let Some(r) = &self.respawn {
-            let t = b.open_table(Some("respawn"));
-            b.put_u32("threshold", r.threshold);
-            b.put_u32("timeout", r.timeout);
-            b.put_u32("retry", r.retry);
-            b.close(t);
+            let t = b.msg_open_table("respawn");
+            b.msg_u32("threshold", r.threshold);
+            b.msg_u32("timeout", r.timeout);
+            b.msg_u32("retry", r.retry);
+            b.msg_close(t);
         }
         if self.trace {
-            b.put_i8("trace", 1);
+            b.msg_bool("trace", true);
         }
         if self.no_new_privs {
-            b.put_i8("no_new_privs", 1);
+            b.msg_bool("no_new_privs", true);
         }
         if let Some(v) = &self.seccomp {
-            b.put_str(Some("seccomp"), v);
+            b.msg_string("seccomp", v);
         }
         if let Some(v) = &self.capabilities {
-            b.put_str(Some("capabilities"), v);
+            b.msg_string("capabilities", v);
         }
         if let Some(v) = &self.pidfile {
-            b.put_str(Some("pidfile"), v);
+            b.msg_string("pidfile", v);
         }
         if let Some(v) = &self.user {
-            b.put_str(Some("user"), v);
+            b.msg_string("user", v);
         }
         if let Some(v) = &self.group {
-            b.put_str(Some("group"), v);
+            b.msg_string("group", v);
         }
-        b.close(t);
+        b.msg_close(t);
     }
 }
-
-/// Unused placeholder so the type import stays honest while jail handling
-/// lands; removed once `jail` is projected rather than carried.
-#[allow(dead_code)]
-const _JAIL_IS_A_TABLE: MsgType = MsgType::Table;
 
 #[cfg(test)]
 mod tests {
@@ -353,4 +348,107 @@ mod tests {
         new.data.insert("k".into(), "v".into());
         assert!(!old.config_changed(&new));
     }
+}
+
+/// `instance_config_parse()`: turn one `instances` table entry into an
+/// `Instance`.
+///
+/// The C tolerates a lot here; where it does, so does this. Notably a
+/// `command` that is missing or empty leaves the instance *invalid* rather
+/// than failing the whole `set`, and an invalid instance is neither started
+/// nor listed.
+pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
+    let mut i = Instance::new(name);
+
+    for f in entry.children() {
+        match f.name {
+            "command" => {
+                i.command = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+            }
+            "env" => {
+                for c in f.children() {
+                    if let Some(v) = c.as_str() {
+                        i.env.insert(c.name.to_string(), v.to_string());
+                    }
+                }
+            }
+            "data" => {
+                for c in f.children() {
+                    if let Some(v) = c.as_str() {
+                        i.data.insert(c.name.to_string(), v.to_string());
+                    }
+                }
+            }
+            "limits" => {
+                for c in f.children() {
+                    if let Some(v) = c.as_str() {
+                        i.limits.insert(c.name.to_string(), v.to_string());
+                    }
+                }
+            }
+            "netdev" => {
+                i.netdev = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+            }
+            "file" => {
+                i.file = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+            }
+            "error" => {
+                i.errors = f.children().filter_map(|c| c.as_str()).map(str::to_string).collect();
+            }
+            "respawn" => {
+                // The C seeds vals[] with the defaults and overwrites only as
+                // many as the array supplies, so a short array keeps the rest.
+                let mut vals = RESPAWN_DEFAULTS;
+                for (n, c) in f.children().take(3).enumerate() {
+                    if let Some(s) = c.as_str() {
+                        vals[n] = s.parse().unwrap_or(0);
+                    } else if let Some(u) = c.as_u32() {
+                        vals[n] = u;
+                    }
+                }
+                i.respawn = Some(Respawn {
+                    threshold: vals[0],
+                    timeout: vals[1],
+                    retry: vals[2],
+                });
+            }
+            "term_timeout" => i.term_timeout = f.as_u32().unwrap_or(DEFAULT_TERM_TIMEOUT),
+            "reload_signal" => i.reload_signal = f.as_u32().unwrap_or(0) as i32,
+            "nice" => i.nice = f.as_u32().unwrap_or(0) as i32,
+            "user" => i.user = f.as_str().map(str::to_string),
+            "group" => i.group = f.as_str().map(str::to_string),
+            "pidfile" => i.pidfile = f.as_str().map(str::to_string),
+            "seccomp" => i.seccomp = f.as_str().map(str::to_string),
+            "capabilities" => i.capabilities = f.as_str().map(str::to_string),
+            "facility" => i.facility = f.as_str().map(str::to_string),
+            "bundle" => i.bundle = f.as_str().map(str::to_string),
+            "extroot" => i.extroot = f.as_str().map(str::to_string),
+            "overlaydir" => i.overlaydir = f.as_str().map(str::to_string),
+            "tmpoverlaysize" => i.tmpoverlaysize = f.as_str().map(str::to_string),
+            "stdout" => i.stdout_to_log = f.as_bool().unwrap_or(false),
+            "stderr" => i.stderr_to_log = f.as_bool().unwrap_or(false),
+            "no_new_privs" => i.no_new_privs = f.as_bool().unwrap_or(false),
+            "trace" => i.trace = f.as_bool().unwrap_or(false),
+            "jail" => {
+                i.has_jail = true;
+                i.jail = Some(f.data.to_vec());
+            }
+            "triggers" => i.triggers = Some(f.data.to_vec()),
+            "watchdog" => {
+                let v: Vec<u32> = f
+                    .children()
+                    .filter_map(|c| c.as_str().and_then(|s| s.parse().ok()).or_else(|| c.as_u32()))
+                    .collect();
+                if v.len() >= 2 {
+                    i.watchdog = Some((v[0], v[1]));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // `instance_config_parse_command`: no command and no bundle means the
+    // instance never becomes valid.
+    i.valid = !i.command.is_empty() || i.bundle.is_some();
+    i
 }
