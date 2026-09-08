@@ -499,6 +499,11 @@ call service set '{"name":"fc","instances":{"one":{"command":["/bin/sh","-c","ex
 sleep 4
 call service list '{"name":"fc"}'
 
+printf -- '--- F09b: a crash-looped instance must still be deletable\n'
+call service delete '{"name":"fc","instance":"one"}'
+sleep 2
+call service list '{"name":"fc"}'
+
 printf -- '--- F10: a deleted service must stop firing its rules\n'
 call service set '{"name":"fg","triggers":[["gone.ev",[["run_script","/bin/sh","-c","echo gone >> /tmp/out/gone.txt"]]]]}'
 sleep 1

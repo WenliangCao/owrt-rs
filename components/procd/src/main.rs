@@ -98,6 +98,10 @@ impl Procd {
         }
         inst.halt = false;
         inst.restart = false;
+        // A successful start ends the crash loop; leaving the flag set would
+        // also make the instance un-deletable, since collect_stopped uses it
+        // to tell "ran out of retries" from "was asked to go away".
+        inst.crash_looped = false;
         match proc::start(inst) {
             Ok((pid, out, err)) => {
                 inst.pid = pid;
@@ -158,11 +162,18 @@ impl Procd {
         if inst.state != Run::Running {
             if halt {
                 inst.halt = true;
+                // Already stopped and being deleted: let it be collected.
+                inst.crash_looped = false;
             }
             return;
         }
         inst.halt = halt;
         inst.restart = false;
+        // A deliberate stop outranks the crash-loop state: the instance was
+        // asked to go away, so it goes.
+        if halt {
+            inst.crash_looped = false;
+        }
         // Clearing respawn here is what stops a deliberate stop from being
         // undone by the respawn branch in instance_exit.
         inst.respawn_active = false;
