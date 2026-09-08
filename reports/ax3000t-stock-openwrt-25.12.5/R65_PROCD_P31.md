@@ -1,14 +1,48 @@
-# R65：P3.1 服务监管核心 —— **未通过验收**
+# R65：P3.1 服务监管核心 —— 门槛已重建并通过，**待外部复审**
 
-> **2026-09-08 撤回原标题。** 外部审查 [R68](../../docs/reviews/R68_ASTRA_P31_REVIEW.md)
+> **2026-09-08 上午撤回原标题。** 外部审查 [R68](../../docs/reviews/R68_ASTRA_P31_REVIEW.md)
 > 把两边的监管器启动命令都换成 `/bin/false`，r65 仍然输出 `r65: ok`、
 > diff 0 字节、退出码 0。**这个 harness 允许整套调用没有到达任何监管器**，
-> 所以下面写的"1050 行 0 diff"不构成验收证据。
+> 所以当时写的"1050 行 0 diff"不构成验收证据。
 > 审查另列 F01–F18 共 18 项实现差异，其中 F03/F05/F06/F07/F08/F09 属于
 > 监管核心的行为损坏，且都有复现记录。
 >
-> 本文以下内容保留为**当时的过程记录**，不是结论。真正的状态是：
-> **P3.1 开发中，验收门槛需重建。**
+> **2026-09-08 晚间恢复标题——但只恢复到"门槛已重建并通过"，不是"验收通过"。**
+> 恢复的依据只有一条：**同一次故障注入现在会红。**
+>
+> 关键证据不是"绿了"，而是那次注入的 **`calls.diff` 依然是 0 行**——
+> 正是当初让旧 harness 打印 `r65: ok` 的那个条件。diff 这一侧的证据一个字没变，
+> 判决却翻了过来，因为它不再只看 diff：
+>
+> ```
+> r65: c/rs never reported a pid at all -- nothing was running
+> r65: c/rs supervisor was not ready:            (各 17 条就绪失败)
+> r65: c/rs had calls that did not do what the case expected:  (各 141 条)
+> r65: c/rs had 145 failed calls -- the run is mostly errors
+> r65: pid assertion had no pid to compare: ... c=missing rs=missing  (四条全中)
+> ```
+>
+> 五组互相独立的检查各自判红，四条 PID 断言都正确地报 `missing` 而不是
+> `differs`——R68 指出的那处混同已经没有了。
+>
+> 正向基线（`tools/r65_procd_diff.sh`，md5 见提交）：**0 行 diff、1362 行被比较、
+> 两侧各 32 条 pid 行与 11 次预期内的失败调用、`expect.err` 与 `ready.err`
+> 两侧都不存在**，四条 PID 断言 `same/same`、`same/same`、`differs/differs`、
+> `differs/differs`，jail 用例两侧都是"never ran unconfined"。
+> 连续四次运行结果逐字节一致，候选二进制带 md5 戳且可重现构建。
+>
+> **仍然不能称为"P3.1 验收通过"，因为：**
+>
+> 1. 外部复审（第二轮）尚未回来。第一轮证明了我自己的门槛会放过没有监管器的运行，
+>    这一轮的结论同样要由外部给。
+> 2. 已知且**未做**的：`rcS()` 宽度 1 的串行队列（PID 1 的硬阻断，属 P3.2）、
+>    `jsonscript` 的 `include`、uid/gid 的子进程实测用例（rootfs 缺账号 fixture，
+>    F12 只有单测）。
+> 3. P3.3（设备侧 PID 1 切换）仍是 blocked，见 R67；**没有碰过设备**。
+>
+> 另见 [R69](R69_P31_TRIAGE.md) 末尾"审自己的修复，又查出三处"——
+> 门槛重建之后我在自己加的断言里又找出三处同类缺陷，其中一处我已经
+> 当作事实写进过给复审方的请求里。
 
 日期：2026-09-08。对象 `procd 58eb263d`（`manifests/.../sources.json` 里钉住的
 那个 revision）。全部在 oracle 上离线完成，**没有碰设备**。
