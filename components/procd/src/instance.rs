@@ -265,6 +265,7 @@ impl Instance {
             || self.no_new_privs != new.no_new_privs
             || self.jail != new.jail
             || self.jail.mount != new.jail.mount
+            || self.jail.setns != new.jail.setns
             // A self-managed watchdog is excluded from the comparison, so a
             // service that set its own mode/timeout is not restarted by the
             // next `set` carrying the original values.
@@ -679,6 +680,13 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                             for m in a.children() {
                                 if let Some(v) = m.as_str() {
                                     i.jail.mount.insert(m.name.to_string(), v.to_string());
+                                }
+                            }
+                        }
+                        "setns" => {
+                            for e in a.children() {
+                                if let Some(arg) = setns_argstr(e) {
+                                    i.jail.setns.push(arg);
                                 }
                             }
                         }
