@@ -402,8 +402,44 @@ impl Instance {
         if let Some(v) = &self.group {
             b.msg_string("group", v);
         }
-        // The jail block, extroot/overlaydir/tmpoverlaysize and the verbose
-        // trigger blob sit here in the C; none is produced by this build yet.
+        if self.has_jail {
+            let r = b.msg_open_table("jail");
+            if let Some(v) = &self.jail.name {
+                b.msg_string("name", v);
+            }
+            if self.bundle.is_none() {
+                // A non-bundle jail prints hostname plus eight flags, always,
+                // including the false ones -- absence is not the same as
+                // false here.
+                if let Some(v) = &self.jail.hostname {
+                    b.msg_string("hostname", v);
+                }
+                b.msg_bool("procfs", self.jail.procfs);
+                b.msg_bool("sysfs", self.jail.sysfs);
+                b.msg_bool("ubus", self.jail.ubus);
+                b.msg_bool("log", self.jail.log);
+                b.msg_bool("ronly", self.jail.ronly);
+                b.msg_bool("netns", self.jail.netns);
+                b.msg_bool("userns", self.jail.userns);
+                b.msg_bool("cgroupsns", self.jail.cgroupsns);
+            } else {
+                if let Some(v) = &self.jail.pidfile {
+                    b.msg_string("pidfile", v);
+                }
+                b.msg_bool("immediately", self.jail.immediately);
+            }
+            // The console flag reports whether a console fd is open, which
+            // this build never opens.
+            b.msg_bool("console", false);
+            b.msg_close(r);
+            if !self.jail.mount.is_empty() {
+                let e = b.msg_open_table("mount");
+                for (k, v) in &self.jail.mount {
+                    b.msg_string(k, v);
+                }
+                b.msg_close(e);
+            }
+        }
         if let Some(v) = &self.extroot {
             b.msg_string("extroot", v);
         }

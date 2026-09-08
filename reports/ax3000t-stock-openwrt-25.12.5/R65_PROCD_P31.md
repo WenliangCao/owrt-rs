@@ -62,6 +62,21 @@ get_data/set_data、autostart=false、触发器实际执行了什么、validate 
    根本没被插进去**——我的编辑没匹配上，我也没检查。r65 以空回复的形式
    抓到了它。之后每一处编辑都自己断言是否生效。
 
+## 一次假绿：三轮跑的其实是旧二进制
+
+比假红更该记的是这个。为了让 harness 能带上 `notifier`，我给构建加了
+`--examples`——**`cargo build --examples` 只构建 examples，不构建 bin**。
+它照样打印 `Compiling owrt-procd` 和 `Finished`（因为要为 example 编译这个
+crate），所以从命令输出看不出任何异常。
+
+结果是接下来三轮 r65 跑的都是加 `--examples` 之前那个二进制。我据此
+"发现" watch 不触发、日志不落盘，然后去调试——调的是根本不在二进制里的代码。
+正确的写法是 `--bins --examples`。
+
+harness 现在把候选的路径、mtime 和 md5 记到 `candidate.txt`，和运行时间放在一起。
+绿不绿是一回事，**跑的到底是不是你以为的那个东西**是另一回事，而后者原来
+完全没有证据。
+
 ## 一次假红
 
 有一轮 diff 934 行、pid 断言也翻了，看着像大回归。实际是 harness 的竞态：

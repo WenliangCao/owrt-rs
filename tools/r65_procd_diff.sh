@@ -340,7 +340,7 @@ cat /tmp/out/watched.txt 2>&1 || echo "(no file)"
 call service set '{"name":"tlog","instances":{"one":{"command":["/bin/sh","-c","echo hello-stdout; echo hello-stderr >&2; sleep 300"],"stdout":true,"stderr":true}}}'
 sleep 3
 printf -- '--- the instance lines must reach the log, ident basename[pid]\n'
-logread 2>&1 | grep -E "hello-stdout|hello-stderr" | sed -E "s/^[A-Z][a-z]{2} +[0-9]+ [0-9:]+ //; s/\[[0-9]+\]/[PID]/" || echo "(nothing logged)"
+logread 2>&1 | grep -E "hello-stdout|hello-stderr" | sed -E "s/^[A-Z][a-z]{2} [A-Z][a-z]{2} +[0-9]+ [0-9:]+ [0-9]{4} //; s/\[[0-9]+\]/[PID]/" || echo "(nothing logged)"
 printf -- '--- an instance NOT asking for stdout must log nothing\n'
 call service set '{"name":"tquiet","instances":{"one":{"command":["/bin/sh","-c","echo should-not-be-logged; sleep 300"]}}}'
 sleep 3
@@ -368,6 +368,7 @@ sleep 2
 printf -- '--- a jailed instance: running state and exit code\n'
 call service list '{"name":"tjail"}'
 printf -- '--- nothing named /bin/sleep may be running unconfined for it\n'
+ps 2>/dev/null | grep "[u]jail" | sed -E "s/^ *[0-9]+ +//; s/^[a-z]+ +[0-9:]+ +//" | sort
 ps 2>/dev/null | grep -c "[u]jail" | sed "s/^/ujail_procs=/"
 
 # 26. the whole table, so ordering is compared too
