@@ -95,6 +95,14 @@ pub struct Instance {
     pub restart: bool,
     /// Set when the instance is going away for good once the child reaps.
     pub halt: bool,
+    /// The C's `in->respawn`: a live respawn budget, separate from the
+    /// `respawn` policy. `instance_stop` clears it so a deliberate stop is
+    /// not undone by the respawn branch, while the policy stays for `list`.
+    pub respawn_active: bool,
+    /// Monotonic milliseconds at which `instance_timeout` should fire. One
+    /// timer per instance, as in the C: SIGKILL when halting, otherwise the
+    /// respawn delay.
+    pub deadline: Option<i64>,
 }
 
 impl Instance {
@@ -138,6 +146,8 @@ impl Instance {
             started: 0,
             restart: false,
             halt: false,
+            respawn_active: false,
+            deadline: None,
         }
     }
 
@@ -182,7 +192,7 @@ impl Instance {
     /// `instance_config_move()`: the process, its pid and the respawn budget
     /// belong to the running child, not to the config that replaced it.
     pub fn take_config(&mut self, new: Instance) {
-        let (state, pid, exit_code, respawn_count, started, restart, halt) = (
+        let (state, pid, exit_code, respawn_count, started, restart, halt, deadline) = (
             self.state,
             self.pid,
             self.exit_code,
@@ -190,6 +200,7 @@ impl Instance {
             self.started,
             self.restart,
             self.halt,
+            self.deadline,
         );
         *self = new;
         self.state = state;
@@ -199,6 +210,11 @@ impl Instance {
         self.started = started;
         self.restart = restart;
         self.halt = halt;
+        self.deadline = deadline;
+        // `respawn_active` follows the NEW config: the C sets in->respawn in
+        // instance_config_parse, so a config that dropped `respawn` stops
+        // respawning even though the running child predates the change.
+        self.respawn_active = self.respawn.is_some();
     }
 
     /// `instance_exit_code()`. Note the order: exited, then signalled, then
@@ -315,41 +331,6 @@ impl Instance {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn exit_code_matches_the_c_macros() {
-        // exit(0) and exit(3)
-        assert_eq!(Instance::exit_code_of(0), 0);
-        assert_eq!(Instance::exit_code_of(3 << 8), 3);
-        // killed by SIGTERM (15) and SIGKILL (9)
-        assert_eq!(Instance::exit_code_of(15), SIGNALLED_OFFSET + 15);
-        assert_eq!(Instance::exit_code_of(9), SIGNALLED_OFFSET + 9);
-        // stopped by SIGSTOP (19)
-        assert_eq!(Instance::exit_code_of((19 << 8) | 0x7f), 19);
-    }
-
-    #[test]
-    fn an_invalid_instance_always_counts_as_changed() {
-        let old = Instance::new("a");
-        let new = Instance::new("a");
-        assert!(!old.valid);
-        assert!(old.config_changed(&new));
-    }
-
-    #[test]
-    fn data_alone_does_not_count_as_a_config_change() {
-        let mut old = Instance::new("a");
-        old.valid = true;
-        old.command = vec!["/bin/true".into()];
-        let mut new = old.clone();
-        new.data.insert("k".into(), "v".into());
-        assert!(!old.config_changed(&new));
-    }
-}
-
 /// `instance_config_parse()`: turn one `instances` table entry into an
 /// `Instance`.
 ///
@@ -411,6 +392,7 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                     timeout: vals[1],
                     retry: vals[2],
                 });
+                i.respawn_active = true;
             }
             "term_timeout" => i.term_timeout = f.as_u32().unwrap_or(DEFAULT_TERM_TIMEOUT),
             "reload_signal" => i.reload_signal = f.as_u32().unwrap_or(0) as i32,
@@ -451,4 +433,39 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     // instance never becomes valid.
     i.valid = !i.command.is_empty() || i.bundle.is_some();
     i
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn exit_code_matches_the_c_macros() {
+        // exit(0) and exit(3)
+        assert_eq!(Instance::exit_code_of(0), 0);
+        assert_eq!(Instance::exit_code_of(3 << 8), 3);
+        // killed by SIGTERM (15) and SIGKILL (9)
+        assert_eq!(Instance::exit_code_of(15), SIGNALLED_OFFSET + 15);
+        assert_eq!(Instance::exit_code_of(9), SIGNALLED_OFFSET + 9);
+        // stopped by SIGSTOP (19)
+        assert_eq!(Instance::exit_code_of((19 << 8) | 0x7f), 19);
+    }
+
+    #[test]
+    fn an_invalid_instance_always_counts_as_changed() {
+        let old = Instance::new("a");
+        let new = Instance::new("a");
+        assert!(!old.valid);
+        assert!(old.config_changed(&new));
+    }
+
+    #[test]
+    fn data_alone_does_not_count_as_a_config_change() {
+        let mut old = Instance::new("a");
+        old.valid = true;
+        old.command = vec!["/bin/true".into()];
+        let mut new = old.clone();
+        new.data.insert("k".into(), "v".into());
+        assert!(!old.config_changed(&new));
+    }
 }
