@@ -80,10 +80,15 @@ run() {
 	  }
 	  snap() {
 	    echo "--- $1 lan v6 addr"
+	    # lifetimes are NOT normalised away here: `preferred 0` versus the
+	    # granted value is exactly what separates a withdrawn assignment from a
+	    # live one, and bucketing them hid the advisor'"'"'s counter-example.
 	    ip -o -6 addr show dev veth2 scope global \
 	      | sed -E -e "s/^[0-9]+: //" \
-	               -e "s/valid_lft [0-9]+sec/valid_lft L/" \
-	               -e "s/preferred_lft [0-9]+sec/preferred_lft P/" \
+	               -e "s/valid_lft ([0-9]+)sec/valid_lft \\1s/" \
+	               -e "s/preferred_lft ([0-9]+)sec/preferred_lft \\1s/" \
+	      | awk "{ for (i=1;i<=NF;i++) if (\$i ~ /_lft/) { getline_ok=1 }; print }" \
+	      | sed -E "s/(valid_lft )([0-9]+)s/\\1BUCKET/; s/(preferred_lft )0s/\\1ZERO/; s/(preferred_lft )[0-9]+s/\\1NONZERO/" \
 	      | sort
 	    echo "--- $1 lan v6 route"
 	    ip -6 route show dev veth2 | grep -v "^fe80" | sed -E "s/expires [0-9]+sec//" | sort
@@ -104,6 +109,13 @@ run() {
 	  notify "\"2001:db8:1:2::/60,3600,7200\"" ; sleep 3; snap first-grant
 	  notify "\"2001:db8:1:2::/60,3600,7200\"" ; sleep 3; snap renewal
 	  notify "\"2001:db8:5:0::/60,1800,3600\"" ; sleep 3; snap replaced
+	  # The advisor'"'"'s counter-example: the parent changes LENGTH only, so it is
+	  # a different vlist node handing out the SAME local address. The old
+	  # parent'"'"'s withdrawal lands on that address -- preferred 0 and the
+	  # kernel'"'"'s own route -- while the ubus assignment list still shows the
+	  # new lifetimes. Only the kernel state shows it.
+	  notify "\"2001:db8:100::/56,300,600\"" ; sleep 3; snap parent56
+	  notify "\"2001:db8:100::/60,1200,2400\"" ; sleep 3; snap parent60
 	  chroot "$m" ubus call network.interface.wan6 down >/dev/null 2>&1 || true
 	  sleep 3; snap after-down
 	  cp "$m/tmp/n.log" "$o/$t-daemon.log" 2>/dev/null || true

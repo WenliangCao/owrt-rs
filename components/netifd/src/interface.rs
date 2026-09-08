@@ -163,6 +163,17 @@ pub struct PrefixAssignment {
     pub valid: Option<u32>,
     /// `local-address` is an empty table when the assignment is not enabled.
     pub local: Option<(Ipv6Addr, u8)>,
+    /// Which parent prefix produced this assignment: the uplink it came from
+    /// (`None` for the ULA) and the parent's address and length.
+    ///
+    /// `prefix_cmp` keys the prefix vlist on the parent's address AND length,
+    /// so `2001:db8:100::/56` and `/60` are two different prefixes that can
+    /// hand out the identical `/64` local address. Deciding a withdrawal by
+    /// whether that local address survived therefore skips a withdrawal the C
+    /// performs -- measured on the reference, where the address ends up
+    /// deprecated with the OLD prefix's valid deadline while this build kept
+    /// it live. Ownership has to be tracked, not inferred.
+    pub owner: Option<(Option<String>, Ipv6Addr, u8)>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -733,6 +744,7 @@ mod tests {
             preferred: Some(1800),
             valid: Some(3600),
             local: None,
+            owner: None,
         });
         let j = json(&i);
         assert!(j.contains("\"local-address\":{}"), "{j}");

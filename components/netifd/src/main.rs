@@ -1996,30 +1996,49 @@ impl Netifd {
     /// afterwards -- so a replacement installs the new address before
     /// deprecating the old.
     fn refresh_prefix_assignments(&mut self) {
-        let before: Vec<(String, Ipv6Addr, u8, Option<u32>)> = self
+        type Owner = Option<(Option<String>, Ipv6Addr, u8)>;
+        let before: Vec<(String, Ipv6Addr, u8, Option<u32>, Owner)> = self
             .interfaces
             .iter()
             .flat_map(|i| {
                 i.prefix_assignments.iter().filter_map(move |a| {
-                    a.local.map(|(l, len)| (i.name.clone(), l, len, a.valid))
+                    a.local
+                        .map(|(l, len)| (i.name.clone(), l, len, a.valid, a.owner.clone()))
                 })
             })
             .collect();
 
+        // Which parent prefixes are still here. A withdrawal follows the
+        // PARENT going away, not the local address disappearing: two parents
+        // that differ only in length hand out the same local address, and the
+        // C withdraws the departing parent's assignment on top of it.
+        let live: Vec<(Option<String>, Ipv6Addr, u8)> = self
+            .prefixes
+            .iter()
+            .map(|p| (p.iface.clone(), p.addr, p.length))
+            .collect();
+
         self.apply_prefix_assignments();
 
-        for (name, local, len, valid) in before {
-            let still = self
-                .iface_index(&name)
-                .map(|i| {
-                    self.interfaces[i]
-                        .prefix_assignments
-                        .iter()
-                        .any(|a| a.local.map(|(l, _)| l) == Some(local))
-                })
-                .unwrap_or(false);
-            if still {
-                continue;
+        for (name, local, len, valid, owner) in before {
+            if let Some(o) = &owner {
+                if live.contains(o) {
+                    continue;
+                }
+            } else {
+                // no recorded owner: fall back to address survival
+                let still = self
+                    .iface_index(&name)
+                    .map(|i| {
+                        self.interfaces[i]
+                            .prefix_assignments
+                            .iter()
+                            .any(|a| a.local.map(|(l, _)| l) == Some(local))
+                    })
+                    .unwrap_or(false);
+                if still {
+                    continue;
+                }
             }
             let dev = self.iface_index(&name).and_then(|i| self.interfaces[i].l3_device.clone());
             let Some(dev) = dev else { continue };
@@ -2126,6 +2145,7 @@ impl Netifd {
                         preferred: p.preferred_until,
                         valid: p.valid_until,
                         local: if up { Some((local, a.length)) } else { None },
+                        owner: Some((p.iface.clone(), p.addr, p.length)),
                     },
                 );
             }
@@ -3586,6 +3606,24 @@ impl Netifd {
     /// assignments are keyed by; the ULA keeps `local`.
     fn set_delegated_prefixes(&mut self, iface: &str, mut fresh: Vec<ip::DevicePrefix>) {
         let before = self.prefixes.len();
+        // The null route belongs to the parent prefix, and the C removes it in
+        // the same `node_old` branch that withdraws the assignments
+        // (`system_del_route(NULL, &route)`). This has to be decided against
+        // the list as it stands NOW -- after the swap the departing prefix is
+        // already gone and there is nothing left to compare against.
+        let departing: Vec<(Ipv6Addr, u8)> = self
+            .prefixes
+            .iter()
+            .filter(|p| p.iface.as_deref() == Some(iface))
+            .filter(|p| !fresh.iter().any(|n| n.addr == p.addr && n.length == p.length))
+            .map(|p| (p.addr, p.length))
+            .collect();
+        for (addr, length) in departing {
+            let mut null = sys::Route::v6(addr, length);
+            null.metric = i32::MAX as u32;
+            null.nodev = true;
+            let _ = self.sys.del_route(0, &null);
+        }
         self.prefixes.retain(|p| p.iface.as_deref() != Some(iface));
         let removed = before - self.prefixes.len();
         let added = fresh.len();
