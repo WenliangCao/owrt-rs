@@ -231,6 +231,10 @@ r65 用两次 `service list` 取 pid 比过这条。
   所以 mode=active 的实例不会因为超时被重启。
 - **container 对象**只为签名对齐而注册，容器方法一律拒绝；本机
   `ubus call service list` 没有任何容器。
+- ~~system 对象方法全部拒绝~~ **board/info/watchdog/signal 已实现**并进 r65
+  差分（26b 例）：board 逐字节比、info 比形状、watchdog 的钳制算术
+  （frequency ≤ timeout/2，timeout ≤ frequency 时翻倍）、signal 的
+  INVALID_ARGUMENT 与忽略 kill() 结果，都与发货 procd 一致。
 - **`sysupgrade` / `validate_firmware_image`** 按真实签名注册并**拒绝**。
   本项目不刷设备，而一个静默成功的 sysupgrade 是能想到的最坏失败模式。
 
