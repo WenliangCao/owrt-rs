@@ -142,6 +142,11 @@ impl Procd {
             }
         }
         if failed_exec {
+            // The C has already forked by the time exec fails, so
+            // `instance.start` went out for the attempt; the child's 127 then
+            // arrives as an ordinary exit. A subscriber counts one start per
+            // attempt, not one per success.
+            self.service_event("instance.start", svc, name);
             // WIFEXITED with status 127, the way the C's child reports it.
             if self.instance_exited(svc, name, 127 << 8) {
                 self.instance_start(svc, name);
@@ -456,9 +461,12 @@ impl Procd {
         };
         let freed_service = s.can_be_freed();
         if freed_service {
-            // service_delete() -> trigger_del(s); the instances' rules go
-            // with their instances, but a service freed while some were
-            // never individually collected must not leave rules behind.
+            // service_stopped(): `service.stop` goes out first, then the
+            // service is unlinked and trigger_del(s) drops its rules. The
+            // instances' rules go with their instances, but a service freed
+            // while some were never individually collected must not leave
+            // rules behind.
+            self.service_only_event("service.stop", svc);
             self.triggers.del_service(svc);
             self.services.remove(svc);
         }
@@ -481,6 +489,14 @@ impl Procd {
         let mut b = BlobBuf::new();
         b.msg_string("service", svc);
         b.msg_string("instance", name);
+        let _ = self.conn.notify(self.objects.service, kind, b.payload());
+    }
+
+    /// `service_event(type, name, NULL)`: ubus_event_bcast() skips a NULL
+    /// value, so `service.start`/`service.stop` carry only the service.
+    fn service_only_event(&mut self, kind: &str, svc: &str) {
+        let mut b = BlobBuf::new();
+        b.msg_string("service", svc);
         let _ = self.conn.notify(self.objects.service, kind, b.payload());
     }
 
@@ -688,6 +704,10 @@ impl Procd {
             }
             if init {
                 self.run_init_script(&name);
+                // service_handle_set(): after service_update() returns for a
+                // NEWLY created service, `service.start` goes out. An update
+                // of an existing one notifies nothing at the service level.
+                self.service_only_event("service.start", &name);
             }
             return status::OK;
         }
@@ -745,6 +765,9 @@ impl Procd {
         // return above, so between them the two paths cover the same
         // condition as the single C call.
         self.run_init_script(&name);
+        if init {
+            self.service_only_event("service.start", &name);
+        }
         status::OK
     }
 
@@ -908,16 +931,11 @@ impl Procd {
         for k in keys {
             let mut vars = BTreeMap::new();
             vars.insert("name".to_string(), k.clone());
+            // And nothing on the bus: service_data_trigger() is trigger_event()
+            // only. A subscriber of the service object never sees a
+            // `service.data.update` from the C, so it must not see one here --
+            // case 28 of r65 now compares exactly that stream.
             self.triggers.fire("service.data.update", &vars, now);
-            // The C also emits nothing on the bus here; the ubus-visible
-            // event is `service.data.update` reaching subscribers of the
-            // service object, which trigger_event does not do. Keep the
-            // notification too so external subscribers still see it.
-            let mut b = BlobBuf::new();
-            b.msg_string("name", k);
-            let _ = self
-                .conn
-                .notify(self.objects.service, "service.data.update", b.payload());
         }
     }
 
@@ -989,6 +1007,7 @@ impl Procd {
                     self.collect_stopped(&name, &i);
                 }
                 if self.services.get(&name).is_some_and(|s| s.can_be_freed()) {
+                    self.service_only_event("service.stop", &name);
                     self.triggers.del_service(&name);
                     self.services.remove(&name);
                 }
@@ -1162,6 +1181,16 @@ impl Procd {
         b.msg_string("type", &kind);
         b.msg_field(owrt_ubus::blob::MsgType::Table as u32, "data", &data);
         let _ = self.conn.notify(self.objects.service, "event.trigger", b.payload());
+        // A `config.change` event with a `package` is additionally announced
+        // as its own notification, `config.change` {"config": <package>}
+        // (ubus_event_bcast in service_handle_event).
+        if kind == "config.change" {
+            if let Some(pkg) = vars.get("package") {
+                let mut b = BlobBuf::new();
+                b.msg_string("config", pkg);
+                let _ = self.conn.notify(self.objects.service, "config.change", b.payload());
+            }
+        }
         status::OK
     }
 

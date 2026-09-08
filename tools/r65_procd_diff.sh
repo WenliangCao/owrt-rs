@@ -230,6 +230,15 @@ must_have() {
 	fi
 }
 
+# Everything the `service` object notifies -- instance.start/stop/respawn/
+# fail, service.start/stop -- as a subscriber sees it. Until now no side
+# recorded these at all, so a missing, extra or differently-shaped
+# notification was invisible to the diff. The subscriber dies with ubusd in
+# F06, which is the last case, so this covers every case before it.
+ubus subscribe service > /tmp/out/notify.txt 2>&1 &
+echo $! > /tmp/out/sub.pid
+sleep 1
+
 # 1. signature: what `ubus -v list` prints is part of the interface
 printf -- '--- signature\n'
 ubus -v list service 2>&1
@@ -825,6 +834,23 @@ fi
 # 27. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
+
+# 28. what the subscriber saw. Notifications carry no pids on this procd
+#     (service_event is two strings). They are compared SORTED: two
+#     independent timers -- a respawn coming due and the next `set` in this
+#     script -- race across sides, and their relative order flipped between
+#     two otherwise identical runs. What is asserted is the multiset: which
+#     notifications, with which payload, how many times.
+printf -- '--- notifications seen by a subscriber of service (sorted)\n'
+kill "$(cat /tmp/out/sub.pid)" 2>/dev/null
+sleep 1
+if [ -s /tmp/out/notify.txt ]; then
+	sort /tmp/out/notify.txt
+	printf 'notifications=%s\n' "$(wc -l < /tmp/out/notify.txt)"
+else
+	echo "(no notifications)"
+	echo "EXPECT-FAIL: the service object notified nothing in the whole run" >> /tmp/out/expect.err
+fi
 
 # Last line: proves the drive script ran to the end.
 echo done > /tmp/out/drive.done
