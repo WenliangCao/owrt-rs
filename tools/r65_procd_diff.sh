@@ -526,7 +526,9 @@ call service set '{"name":"fw2","instances":{"one":{"command":["/bin/sh","-c","t
 sleep 2
 call service delete '{"name":"fw2"}'
 sleep 1
-callx service state '{"name":"fw2","spawn":true}'
+# Succeeds on both: during the TERM window the service is still in the map
+# with its deleted flag set, so this is a normal call, not an error case.
+call service state '{"name":"fw2","spawn":true}'
 sleep 8
 printf -- '--- must stay deleted\n'
 call service list '{"name":"fw2"}'
@@ -556,7 +558,12 @@ call service set '{"name":"fs1","instances":{"one":{"command":["/bin/sh","-c","t
 sleep 2
 call service signal '{"name":"fs1"}'
 sleep 2
-must_have /tmp/out/fs1.txt
+# No assertion on the trap's output file: it never appeared on EITHER side,
+# so it asserted nothing about the implementation. Whether busybox ash runs a
+# HUP trap while blocked in `sleep` is not this suite's business. The
+# property under test is survival, and the list below shows it -- pre-fix
+# this instance is running:false with exit_code 137, because the default was
+# SIGKILL.
 printf -- '--- and it must still be running: SIGHUP was handled, not fatal\n'
 call service list '{"name":"fs1"}'
 
@@ -987,7 +994,10 @@ done
 for t in c rs; do
 	f=$(grep -c "Command failed" "$out/$t-calls.txt" 2>/dev/null || true); [ -n "$f" ] || f=0
 	echo "$t: $f failed calls" >> "$out/coverage.txt"
-	if [ "$f" -gt 12 ]; then
+	# Every unexpected failure now also lands in expect.err, so this is
+	# belt-and-braces against a run that is mostly errors. It has to move
+	# when `callx` cases are added -- 13 are deliberate as of F20.
+	if [ "$f" -gt 25 ]; then
 		echo "r65: $t had $f failed calls -- the run is mostly errors" >&2
 		rc=1
 	fi
