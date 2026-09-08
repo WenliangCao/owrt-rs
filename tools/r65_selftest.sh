@@ -15,6 +15,15 @@ out=$3
 ex=${4:-}
 mkdir -p "$out"
 
+# A non-zero exit is not by itself proof that the INJECTION did it. If the
+# candidate is missing, or the rootfs is wrong, the negative run fails for
+# that reason and this script would report "correctly failed" -- passing for
+# precisely the wrong reason, which is the bug this script exists to catch.
+# So check the inputs first, then check WHY the run went red.
+[ -x "$cand" ] || { echo "r65-selftest: candidate is missing or not executable: $cand" >&2; exit 2; }
+[ -d "$root" ] || { echo "r65-selftest: rootfs is not a directory: $root" >&2; exit 2; }
+[ -z "$ex" ] || [ -x "$ex/notifier" ] || { echo "r65-selftest: examples dir has no notifier: $ex" >&2; exit 2; }
+
 here=$(dirname "$0")
 sed \
 	-e 's#^DBGLVL=0 /sbin/procd -S -I /tmp/initd -R /tmp/rcd.*#/bin/false \&#' \
@@ -41,4 +50,30 @@ if [ "$rc" = 0 ]; then
 	echo "  see $out/negative.log" >&2
 	exit 1
 fi
+
+# It went red -- but for the right reason? The injection removes the
+# supervisor, so the readiness gate is the check that MUST have fired. A run
+# that died early (bad rootfs, harness syntax error, no candidate) also exits
+# non-zero and would otherwise be read as a successful self-test.
+for want in \
+	'supervisor was not ready' \
+	'never reported a pid at all' \
+	'did not do what the case expected'
+do
+	if ! grep -q "$want" "$out/negative.log"; then
+		echo "r65-selftest: FAILED -- it went red, but not because of the injection." >&2
+		echo "  expected a line containing: $want" >&2
+		echo "  see $out/negative.log" >&2
+		exit 1
+	fi
+done
+
+# And it must have got far enough to compare something, otherwise "red" only
+# means the script fell over.
+if [ ! -s "$out/negative/c-calls.txt" ] || [ ! -s "$out/negative/rs-calls.txt" ]; then
+	echo "r65-selftest: FAILED -- the negative run produced no calls to judge" >&2
+	exit 1
+fi
+
 echo "r65-selftest: ok (harness correctly failed with no supervisor, rc=$rc)"
+echo "r65-selftest:    and it failed via the readiness gate, not by falling over"
