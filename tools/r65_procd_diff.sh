@@ -449,13 +449,23 @@ cat > /tmp/initd/showargv <<'Y'
 #!/bin/sh
 Y
 chmod 0755 /tmp/initd/showargv
-call service set '{"name":"tjail","instances":{"one":{"command":["/bin/sleep","300"],"jail":{"name":"tj","procfs":true,"ubus":true},"user":"nobody","no_new_privs":true}}}'
-sleep 2
+# Counting ujail processes was a racy proxy for the thing that matters. The
+# property F01 is about is whether the instance's OWN command can run
+# unconfined, so the command writes a marker: ujail here fails in this
+# namespace (both sides report exit_code 1), which means the inner command
+# must never have been reached.
+rm -f /tmp/out/unconfined.txt
+call service set '{"name":"tjail","instances":{"one":{"command":["/bin/sh","-c","echo ran-unconfined >> /tmp/out/unconfined.txt; sleep 300"],"jail":{"name":"tj","procfs":true,"ubus":true},"user":"nobody","no_new_privs":true}}}'
+sleep 3
 printf -- '--- a jailed instance: running state and exit code\n'
 call service list '{"name":"tjail"}'
-printf -- '--- nothing named /bin/sleep may be running unconfined for it\n'
-ps 2>/dev/null | grep "[u]jail" | sed -E "s/^ *[0-9]+ +//; s/^[a-z]+ +[0-9:]+ +//" | sort
-ps 2>/dev/null | grep -c "[u]jail" | sed "s/^/ujail_procs=/"
+printf -- '--- its command must NOT have run outside the jail\n'
+if [ -s /tmp/out/unconfined.txt ]; then
+	echo "RAN UNCONFINED"
+	echo "EXPECT-FAIL: a jailed command ran outside the jail" >> /tmp/out/expect.err
+else
+	echo "never ran unconfined"
+fi
 
 # 26. R68's counter-examples. Each of these was red on the candidate that
 #     passed the old gate, which is the point: they test behaviour the
