@@ -413,3 +413,41 @@ mod tests {
         assert!(!i.has_jail);
     }
 }
+
+/// `fork_worker()`: start one inittab action -- new session, stdio on
+/// /dev/<id> (or /dev/null when the open fails), controlling tty, foreground
+/// process group, then execvp. The pid is reaped by the main loop.
+pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
+    extern "C" {
+        fn setsid() -> i32;
+        fn ioctl(fd: i32, req: u64, arg: i32) -> i32;
+        fn tcsetpgrp(fd: i32, pgrp: i32) -> i32;
+        fn getpid() -> i32;
+    }
+    const TIOCSCTTY: u64 = 0x540E;
+
+    if argv.is_empty() {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
+    }
+    let mut cmd = Command::new(&argv[0]);
+    cmd.args(&argv[1..]);
+    let dev = if id.is_empty() { None } else { Some(id.to_string()) };
+    // SAFETY: everything in the closure is async-signal-safe and runs in the
+    // forked child before exec.
+    unsafe {
+        cmd.pre_exec(move || {
+            let p = setsid();
+            crate::sys::patch_fd(dev.as_deref(), 0, false);
+            crate::sys::patch_fd(dev.as_deref(), 1, true);
+            crate::sys::patch_fd(dev.as_deref(), 2, true);
+            ioctl(0, TIOCSCTTY, 1);
+            let _ = p;
+            tcsetpgrp(0, getpid());
+            Ok(())
+        });
+    }
+    let child = cmd.spawn()?;
+    let pid = child.id() as i32;
+    std::mem::forget(child);
+    Ok(pid)
+}

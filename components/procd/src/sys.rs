@@ -142,6 +142,29 @@ pub fn atoi_u32(s: &str) -> u32 {
     v as i32 as u32
 }
 
+/// `getpwnam()` -> (uid, gid, home). None when the user does not exist.
+/// STATE_UBUS needs the home directory to mkdir/chown it for ubusd.
+pub fn lookup_user_home(name: &str) -> Option<(u32, u32, String)> {
+    let c = CString::new(name).ok()?;
+    // SAFETY: `c` outlives the call; the returned static buffer is copied
+    // out immediately.
+    let p = unsafe { getpwnam(c.as_ptr().cast()) };
+    if p.is_null() {
+        return None;
+    }
+    // SAFETY: non-null means a valid struct passwd; pw_dir is NUL-terminated.
+    let pw = unsafe { &*p };
+    let home = if pw.pw_dir.is_null() {
+        String::new()
+    } else {
+        // SAFETY: pw_dir points at a NUL-terminated string in the buffer.
+        unsafe { std::ffi::CStr::from_ptr(pw.pw_dir.cast()) }
+            .to_string_lossy()
+            .into_owned()
+    };
+    Some((pw.pw_uid, pw.pw_gid, home))
+}
+
 /// `getpwnam()` -> (uid, gid). None when the user does not exist.
 pub fn lookup_user(name: &str) -> Option<(u32, u32)> {
     let c = CString::new(name).ok()?;
@@ -435,4 +458,247 @@ mod atoi_tests {
         assert_eq!(atoi_u32("  7"), 7);
         assert_eq!(atoi_u32("-1"), 0xffff_ffff, "atoi -> int -> uint32_t");
     }
+}
+
+// -- PID 1 plumbing (state.c, inittab.c, signal.c helpers) -------------------
+
+extern "C" {
+    fn open(path: *const u8, flags: i32, mode: u32) -> i32;
+    fn close(fd: i32) -> i32;
+    fn dup2(old: i32, new: i32) -> i32;
+    fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
+    fn chown(path: *const u8, uid: u32, gid: u32) -> i32;
+    fn sync();
+    fn reboot(cmd: i32) -> i32;
+    fn fork() -> i32;
+}
+
+const O_RDONLY: i32 = 0;
+const O_WRONLY: i32 = 1;
+const O_NOCTTY: i32 = 0o400;
+const O_NONBLOCK: i32 = 0o4000;
+const F_GETFL: i32 = 3;
+const F_SETFL: i32 = 4;
+
+/// `reboot(2)` magic (linux/reboot.h). `RB_DISABLE_CAD` makes ctrl-alt-del
+/// deliver SIGINT to PID 1 instead of hard-rebooting.
+pub const RB_AUTOBOOT: i32 = 0x01234567;
+pub const RB_HALT_SYSTEM: i32 = 0xcdef0123u32 as i32;
+pub const RB_POWER_OFF: i32 = 0x4321fedc;
+pub const RB_DISABLE_CAD: i32 = 0;
+
+/// `patch_fd()`: redirect one of stdin/stdout/stderr to a device. A relative
+/// name is under /dev; a failed open falls back to /dev/null; NULL means
+/// /dev/null outright.
+pub fn patch_fd(device: Option<&str>, fd: i32, write: bool) -> bool {
+    let flags = if write { O_WRONLY } else { O_RDONLY } | O_NOCTTY;
+    let path = match device {
+        None => "/dev/null".to_string(),
+        Some(d) if d.starts_with('/') => d.to_string(),
+        Some(d) => format!("/dev/{d}"),
+    };
+    let Ok(c) = CString::new(path.clone()) else { return false };
+    // SAFETY: NUL-terminated path, no retained pointers.
+    let mut nfd = unsafe { open(c.as_ptr().cast(), flags, 0) };
+    if nfd < 0 && path != "/dev/null" {
+        // SAFETY: as above.
+        nfd = unsafe { open(c"/dev/null".as_ptr().cast(), flags, 0) };
+    }
+    if nfd < 0 {
+        return false;
+    }
+    // SAFETY: plain fd ops.
+    unsafe {
+        let ok = dup2(nfd, fd) >= 0;
+        if nfd > 2 {
+            close(nfd);
+        }
+        ok
+    }
+}
+
+/// `set_stdio()`: point 0/1/2 at a tty and make stderr non-blocking, as
+/// STATE_UBUS does with "console".
+pub fn set_stdio(tty: &str) {
+    // The C uses freopen, which on failure leaves the old stdio in place --
+    // it does NOT fall back to /dev/null the way patch_fd does for children.
+    // Booting in a mount namespace without a console must keep its stderr.
+    if !dev_exist(tty) && !tty.starts_with('/') {
+        eprintln!("procd-rs: failed to set stdio: no /dev/{tty}");
+        return;
+    }
+    let ok = patch_fd(Some(tty), 0, false)
+        & patch_fd(Some(tty), 1, true)
+        & patch_fd(Some(tty), 2, true);
+    if !ok {
+        eprintln!("procd-rs: failed to set stdio to {tty}");
+        return;
+    }
+    // SAFETY: fcntl on stderr with integer args only.
+    unsafe {
+        let fl = fcntl(2, F_GETFL, 0);
+        if fl >= 0 {
+            fcntl(2, F_SETFL, fl | O_NONBLOCK);
+        }
+    }
+}
+
+/// `set_console()`: the shutdown path's best-effort console -- cmdline
+/// `console=`, then tty0, then console.
+pub fn set_console() {
+    let tty = cmdline_val("console", 0)
+        .map(|v| v.split(',').next().unwrap_or("").to_string())
+        .filter(|t| dev_exist(t));
+    let tty = tty.or_else(|| ["tty0", "console"].iter().find(|t| dev_exist(t)).map(|t| t.to_string()));
+    if let Some(t) = tty {
+        set_stdio(&t);
+    }
+}
+
+/// `dev_exist()`: can the name be opened under /dev? An empty id cannot,
+/// which is why an inittab respawn entry with an empty id never respawns.
+pub fn dev_exist(dev: &str) -> bool {
+    // openat(dfd, "", ...) is ENOENT: an empty id NEVER exists. Formatting
+    // it into a path would name the /dev directory itself, which opens --
+    // measured: the empty-id respawn entry came back after a kill, where the
+    // C runs it exactly once.
+    if dev.is_empty() {
+        return false;
+    }
+    let Ok(c) = CString::new(format!("/dev/{dev}")) else { return false };
+    // SAFETY: NUL-terminated path.
+    let fd = unsafe { open(c.as_ptr().cast(), O_RDONLY | O_NOCTTY, 0) };
+    if fd < 0 {
+        return false;
+    }
+    // SAFETY: fd is open.
+    unsafe { close(fd) };
+    true
+}
+
+/// `get_cmdline_val_offset()`: the value of the nth `name=value` word in
+/// /proc/cmdline (0-based).
+pub fn cmdline_val(name: &str, nth: usize) -> Option<String> {
+    let cmdline = std::fs::read_to_string("/proc/cmdline").ok()?;
+    cmdline
+        .split_ascii_whitespace()
+        .filter_map(|w| w.strip_prefix(name).and_then(|r| r.strip_prefix('=')))
+        .nth(nth)
+        .map(str::to_string)
+}
+
+/// `get_active_console()`: the first word of /sys/class/tty/console/active.
+pub fn active_console() -> Option<String> {
+    let s = std::fs::read_to_string("/sys/class/tty/console/active").ok()?;
+    s.split_ascii_whitespace().next().map(str::to_string)
+}
+
+/// `chown(2)` for the ubus home directory in STATE_UBUS.
+pub fn chown_path(path: &str, uid: u32, gid: u32) -> bool {
+    let Ok(c) = CString::new(path) else { return false };
+    // SAFETY: NUL-terminated path.
+    unsafe { chown(c.as_ptr().cast(), uid, gid) == 0 }
+}
+
+/// `is_container()`: the `container` environment variable, as container.c
+/// tests it.
+pub fn is_container() -> bool {
+    std::env::var_os("container").is_some()
+}
+
+/// `sync(2)`.
+pub fn sync_fs() {
+    // SAFETY: no arguments.
+    unsafe { sync() };
+}
+
+/// `reboot(2)` with one of the RB_* commands. In a PID namespace this ends
+/// the namespace rather than the host, which is exactly what the isolated
+/// boot probes rely on.
+pub fn reboot_cmd(cmd: i32) -> bool {
+    // SAFETY: integer command only.
+    unsafe { reboot(cmd) == 0 }
+}
+
+/// `perform_halt()`'s tail: fork so the kernel's do_exit on init does not
+/// panic the machine, reboot from the child, spin in the parent.
+pub fn halt_forever(event: i32) -> ! {
+    // SAFETY: fork + reboot, no memory.
+    unsafe {
+        if fork() == 0 {
+            reboot(event);
+            std::process::exit(0);
+        }
+    }
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(1));
+    }
+}
+
+/// The shutdown signals PID 1 must answer (signal.c). The handler only
+/// stores the reboot event; the main loop acts on it.
+pub static SHUTDOWN_EVENT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+
+extern "C" fn shutdown_signal(sig: i32) {
+    const SIGINT: i32 = 2;
+    const SIGTERM: i32 = 15;
+    const SIGUSR1: i32 = 10;
+    const SIGUSR2: i32 = 12;
+    const SIGPWR: i32 = 30;
+    let event = match sig {
+        SIGINT | SIGTERM => RB_AUTOBOOT,
+        SIGUSR1 => RB_HALT_SYSTEM,
+        SIGUSR2 | SIGPWR => RB_POWER_OFF,
+        _ => return,
+    };
+    SHUTDOWN_EVENT.store(event, std::sync::atomic::Ordering::SeqCst);
+}
+
+extern "C" fn crash_signal(_sig: i32) {
+    // signal_crash(): "Rebooting as procd has crashed". Everything here is
+    // async-signal-safe.
+    sync_fs();
+    // SAFETY: integer command only.
+    unsafe { reboot(RB_AUTOBOOT) };
+    std::process::exit(1);
+}
+
+/// `procd_signal()` for the PID 1 half: shutdown signals, crash-to-reboot,
+/// a dummy HUP, and ctrl-alt-del routed to SIGINT.
+pub fn procd_signal_pid1() {
+    use owrt_ubus::sys::set_signal_handler;
+    for sig in [2, 15, 10, 12, 30] {
+        set_signal_handler(sig, shutdown_signal);
+    }
+    for sig in [11, 7] {
+        set_signal_handler(sig, crash_signal);
+    }
+    extern "C" fn dummy(_sig: i32) {}
+    set_signal_handler(1, dummy);
+    reboot_cmd(RB_DISABLE_CAD);
+}
+
+/// Minimal /dev/watchdog keep-alive: open once, write a byte every `freq`
+/// seconds from the main loop. The full WDIOC ioctl surface (timeout
+/// configuration, magic close, the `system watchdog` method backing store)
+/// is the remaining P3.2 item and is deliberately absent.
+pub fn watchdog_open() -> Option<std::os::fd::OwnedFd> {
+    use std::os::fd::FromRawFd;
+    let Ok(c) = CString::new("/dev/watchdog") else { return None };
+    // SAFETY: NUL-terminated path; the fd is immediately owned.
+    let fd = unsafe { open(c.as_ptr().cast(), O_WRONLY | O_NOCTTY, 0) };
+    if fd < 0 {
+        return None;
+    }
+    // SAFETY: fd is a fresh, open descriptor.
+    Some(unsafe { std::os::fd::OwnedFd::from_raw_fd(fd) })
+}
+
+pub fn watchdog_feed(fd: &std::os::fd::OwnedFd) {
+    use std::os::fd::AsRawFd;
+    extern "C" {
+        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
+    }
+    // SAFETY: one byte from a live buffer to an open fd.
+    unsafe { write(fd.as_raw_fd(), [0u8].as_ptr(), 1) };
 }

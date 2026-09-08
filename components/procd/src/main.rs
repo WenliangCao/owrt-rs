@@ -9,6 +9,7 @@
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
 //! `service/instance.c`.
 
+mod inittab;
 mod instance;
 mod jsonscript;
 mod proc;
@@ -39,6 +40,23 @@ struct Objects {
     system: u32,
 }
 
+/// `state.c`'s states. `NotPid1` is the supervisor-only mode (`getpid() !=
+/// 1`), which never enters the machine.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+enum Boot {
+    NotPid1,
+    /// EARLY and UBUS run inside `run()` before `Procd` exists; the field
+    /// therefore starts at `Ubus` on PID 1 and `Early` is only the C's name
+    /// for that pre-bus phase.
+    #[allow(dead_code)]
+    Early,
+    Ubus,
+    Init,
+    Running,
+    Shutdown,
+    Halt,
+}
+
 struct Procd {
     conn: Connection,
     objects: Objects,
@@ -58,6 +76,21 @@ struct Procd {
     /// Paths we have already subscribed to, so a re-announce is a no-op.
     subscribed: BTreeMap<String, u32>,
     triggers: trigger::Triggers,
+    // -- the PID 1 half (state.c / inittab.c), inert when boot == NotPid1 --
+    boot: Boot,
+    inittab: Vec<inittab::Action>,
+    /// `rcS()`'s width-1 queue. Its drain is what advances Init -> Running
+    /// and Shutdown -> Halt.
+    serial: rcs::RunQueue,
+    /// True while a state is waiting on `serial` (rcdone()).
+    serial_awaited: bool,
+    /// `console` from askconsole, used by askfirst's skip test.
+    console: Option<String>,
+    rc_d: String,
+    reboot_event: i32,
+    watchdog: Option<std::os::fd::OwnedFd>,
+    /// Next monotonic ms at which the watchdog is fed (5 s cadence).
+    watchdog_next: i64,
 }
 
 impl Procd {
@@ -411,6 +444,12 @@ impl Procd {
                 if self.rc.reaped(pid) {
                     continue;
                 }
+                if self.serial.reaped(pid) {
+                    continue;
+                }
+                if self.inittab_exited(pid) {
+                    continue;
+                }
                 // Otherwise an orphan we never started. PID 1 must reap
                 // these; as an ordinary daemon we rarely see them.
                 let _ = wstatus;
@@ -478,6 +517,229 @@ impl Procd {
         // whatever is left, so an emptied service drops out on its own.
         if (drop_instance || freed_service) && self.watches.contains_key(svc) {
             self.refresh_watches(svc);
+        }
+    }
+
+    // -- PID 1: state.c and inittab.c ---------------------------------------
+
+    /// `procd_state_next()`.
+    fn state_next(&mut self) {
+        self.boot = match self.boot {
+            Boot::NotPid1 => return,
+            Boot::Early => Boot::Ubus,
+            Boot::Ubus => Boot::Init,
+            Boot::Init => Boot::Running,
+            Boot::Running | Boot::Shutdown | Boot::Halt => Boot::Halt,
+        };
+        self.state_enter();
+    }
+
+    /// `state_enter()` for the states reachable AFTER the bus exists. EARLY
+    /// and UBUS run before `Procd` can be built and live in `pid1_boot`.
+    fn state_enter(&mut self) {
+        match self.boot {
+            Boot::Init => {
+                eprintln!("procd: - init -");
+                self.inittab = inittab::parse("/etc/inittab");
+                self.inittab_run(inittab::Kind::Respawn);
+                self.inittab_run(inittab::Kind::Askconsole);
+                self.inittab_run(inittab::Kind::Askfirst);
+                self.inittab_run(inittab::Kind::Sysinit);
+            }
+            Boot::Running => {
+                eprintln!("procd: - init complete -");
+                self.inittab_run(inittab::Kind::Respawnlate);
+                self.inittab_run(inittab::Kind::Askconsolelate);
+            }
+            Boot::Shutdown => {
+                sys::set_console();
+                eprintln!("procd: - shutdown -");
+                self.inittab_run(inittab::Kind::Shutdown);
+                sys::sync_fs();
+            }
+            Boot::Halt => {
+                eprintln!("procd: - SIGTERM processes -");
+                proc::signal(-1, SIGTERM);
+                sys::sync_fs();
+                std::thread::sleep(std::time::Duration::from_secs(1));
+                eprintln!("procd: - SIGKILL processes -");
+                proc::signal(-1, SIGKILL);
+                sys::sync_fs();
+                std::thread::sleep(std::time::Duration::from_secs(1));
+                if self.reboot_event == sys::RB_POWER_OFF {
+                    eprintln!("procd: - power down -");
+                } else {
+                    eprintln!("procd: - reboot -");
+                }
+                std::thread::sleep(std::time::Duration::from_secs(1));
+                if sys::is_container() {
+                    sys::reboot_cmd(self.reboot_event);
+                    std::process::exit(0);
+                }
+                sys::halt_forever(self.reboot_event);
+            }
+            _ => {}
+        }
+    }
+
+    /// `procd_shutdown()`: jump the machine to SHUTDOWN once.
+    fn procd_shutdown(&mut self, event: i32) {
+        if self.boot == Boot::NotPid1 || self.boot >= Boot::Shutdown {
+            return;
+        }
+        self.reboot_event = event;
+        self.boot = Boot::Shutdown;
+        self.state_enter();
+    }
+
+    /// `procd_inittab_run(name)`.
+    fn inittab_run(&mut self, kind: inittab::Kind) {
+        let idxs: Vec<usize> = self
+            .inittab
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| a.kind == kind)
+            .map(|(i, _)| i)
+            .collect();
+        for i in idxs {
+            self.run_action(i);
+            if !kind.multi() {
+                break;
+            }
+        }
+    }
+
+    /// One handler dispatch (`handlers[]`).
+    fn run_action(&mut self, i: usize) {
+        let kind = self.inittab[i].kind;
+        match kind {
+            inittab::Kind::Sysinit | inittab::Kind::Shutdown => {
+                // runrc(): argv is [rcS-path, pattern, param]; a short line
+                // logs and does nothing. The serial queue's drain is
+                // rcdone() -> procd_state_next().
+                let (pat, param) = {
+                    let a = &self.inittab[i];
+                    match (a.argv.get(1), a.argv.get(2)) {
+                        (Some(p), Some(q)) => (p.clone(), q.clone()),
+                        _ => {
+                            eprintln!("procd-rs: valid format is rcS <S|K> <param>");
+                            return;
+                        }
+                    }
+                };
+                let rc_d = self.rc_d.clone();
+                self.serial.queue_all(&rc_d, &pat, &param);
+                self.serial_awaited = true;
+                if self.serial.is_idle() {
+                    // `if (rcS(...)) rcdone(NULL);` -- nothing to run still
+                    // advances the state.
+                    self.serial_awaited = false;
+                    self.state_next();
+                }
+            }
+            inittab::Kind::Askfirst => {
+                let skip = {
+                    let a = &self.inittab[i];
+                    !sys::dev_exist(&a.id) || self.console.as_deref() == Some(a.id.as_str())
+                };
+                if skip {
+                    return;
+                }
+                inittab::prepend_ask(&mut self.inittab[i].argv);
+                self.inittab[i].respawn_ms = inittab::RESPAWN_MS;
+                self.fork_action(i);
+            }
+            inittab::Kind::Askconsole | inittab::Kind::Askconsolelate => {
+                match inittab::resolve_console() {
+                    Some(tty) => {
+                        if !sys::dev_exist(&tty) {
+                            return;
+                        }
+                        self.console = Some(tty.clone());
+                        self.inittab[i].id = tty;
+                    }
+                    None => {
+                        self.console = None;
+                        self.inittab[i].id = String::new();
+                    }
+                }
+                inittab::prepend_ask(&mut self.inittab[i].argv);
+                self.inittab[i].respawn_ms = inittab::RESPAWN_MS;
+                self.fork_action(i);
+            }
+            inittab::Kind::Respawn | inittab::Kind::Respawnlate => {
+                self.inittab[i].respawn_ms = inittab::RESPAWN_MS;
+                self.fork_action(i);
+            }
+        }
+    }
+
+    /// `fork_worker()`, guarded like `if (!a->proc.pid)`.
+    fn fork_action(&mut self, i: usize) {
+        if self.inittab[i].pid.is_some() {
+            return;
+        }
+        let a = &self.inittab[i];
+        match proc::spawn_tty(&a.argv, &a.id) {
+            Ok(pid) => {
+                // DEBUG(4, "Launched new %s action, pid=%d")
+                eprintln!("procd-rs: launched {:?} action id '{}' pid {pid}", a.kind, a.id);
+                self.inittab[i].pid = Some(pid);
+            }
+            Err(e) => eprintln!("procd-rs: failed to execute {}: {e}", a.argv[0]),
+        }
+    }
+
+    /// `child_exit()`: respawn only while the device still exists.
+    fn inittab_exited(&mut self, pid: i32) -> bool {
+        let now = self.now_ms();
+        let Some(a) = self.inittab.iter_mut().find(|a| a.pid == Some(pid)) else {
+            return false;
+        };
+        a.pid = None;
+        if a.respawn_ms < 0 {
+            return true;
+        }
+        if !sys::dev_exist(&a.id) {
+            eprintln!("procd-rs: skipping respawn: device '{}' does not exist anymore", a.id);
+            return true;
+        }
+        a.respawn_at = Some(now + a.respawn_ms);
+        true
+    }
+
+    /// The per-loop PID 1 work: respawn timers, the serial queue, and its
+    /// state advance; plus the shutdown signals and the watchdog feed.
+    fn pump_pid1(&mut self) {
+        if self.boot == Boot::NotPid1 {
+            return;
+        }
+        let now = self.now_ms();
+        if let Some(fd) = &self.watchdog {
+            if now >= self.watchdog_next {
+                sys::watchdog_feed(fd);
+                self.watchdog_next = now + 5000;
+            }
+        }
+        let event = sys::SHUTDOWN_EVENT.swap(0, std::sync::atomic::Ordering::SeqCst);
+        if event != 0 {
+            self.procd_shutdown(event);
+        }
+        let due: Vec<usize> = self
+            .inittab
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| a.respawn_at.is_some_and(|at| now >= at))
+            .map(|(i, _)| i)
+            .collect();
+        for i in due {
+            self.inittab[i].respawn_at = None;
+            self.fork_action(i);
+        }
+        self.serial.pump(now);
+        if self.serial_awaited && self.serial.is_idle() {
+            self.serial_awaited = false;
+            self.state_next();
         }
     }
 
@@ -573,6 +835,12 @@ impl Procd {
             (Target::Service, "event") => self.handle_event(&req),
             (Target::Service, "validate") => self.handle_validate(&req),
             (Target::Service, "watchdog") => self.handle_watchdog(&req),
+            // system_reboot(): procd_shutdown(RB_AUTOBOOT). Only PID 1 has a
+            // machine to advance; the supervisor-only mode keeps rejecting.
+            (Target::System, "reboot") if self.boot != Boot::NotPid1 => {
+                self.procd_shutdown(sys::RB_AUTOBOOT);
+                status::OK
+            }
             _ => status::NOT_SUPPORTED,
         };
         let _ = self.conn.reply_status(&req, code, None);
@@ -1498,36 +1766,130 @@ fn main() {
     }
 }
 
-/// The C's `-I <path>`, defaulting to `/etc/init.d`.
-fn init_d_path() -> String {
+/// The C's `-I` / `-R <path>` options.
+fn arg_path(flag: &str, default: &str) -> String {
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
-        if a == "-I" {
+        if a == flag {
             if let Some(p) = args.next() {
                 return p;
             }
         }
     }
-    "/etc/init.d".to_string()
+    default.to_string()
 }
 
 fn run() -> io::Result<()> {
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
 
-    let conn = Connection::connect(None)?;
+    let pid1 = std::process::id() == 1;
+    let base = Instant::now();
+    let mut watchdog = None;
+    let mut early_ubus: Option<(instance::Instance, i32)> = None;
+
+    let conn = if pid1 {
+        // procd.c: `procd_state_next()` -- STATE_EARLY, then STATE_UBUS.
+        // Everything up to the working bus connection happens here, because
+        // Procd cannot exist without one.
+        sys::procd_signal_pid1();
+
+        // STATE_EARLY. watchdog_init(0) opens /dev/watchdog and starts the
+        // keep-alive; hotplug("/etc/hotplug.json") and procd_coldplug() are
+        // the remaining P3.2 pieces and their absence is logged, not hidden.
+        eprintln!("procd: - early -");
+        watchdog = sys::watchdog_open();
+        if watchdog.is_none() {
+            eprintln!("procd-rs: no /dev/watchdog");
+        }
+        eprintln!("procd-rs: hotplug/coldplug are not implemented in this build");
+
+        // STATE_UBUS.
+        sys::set_stdio("console");
+        let ubus_user = sys::lookup_user_home("ubus");
+        match &ubus_user {
+            Some((uid, gid, home)) => {
+                eprintln!("procd: - ubus -");
+                let _ = std::fs::create_dir_all(home);
+                if !sys::chown_path(home, *uid, *gid) {
+                    eprintln!("procd: - ubus - failed to chown({home})");
+                }
+            }
+            None => eprintln!("procd: - ubus (running as root!) -"),
+        }
+        // service_start_early("ubus", "/sbin/ubusd", ...): the same instance
+        // shape the C builds -- respawn {3600, 1, 0}, the ubus user when it
+        // exists -- started through the normal instance path, then connect
+        // with the retry the C's timer provides. Supervision of that one
+        // child runs inline here until the bus is up.
+        let mut inst = instance::Instance::new("instance1");
+        inst.valid = true;
+        inst.command = vec!["/sbin/ubusd".to_string()];
+        inst.respawn = Some(instance::Respawn { threshold: 3600, timeout: 1, retry: 0 });
+        inst.respawn_active = true;
+        if ubus_user.is_some() {
+            inst.user = Some("ubus".to_string());
+            inst.group = Some("ubus".to_string());
+        }
+        let mut pid = match proc::start(&inst) {
+            Ok((pid, _, _)) => pid,
+            Err(e) => {
+                eprintln!("procd-rs: failed to start ubusd: {e}");
+                0
+            }
+        };
+        let conn = loop {
+            match Connection::connect(None) {
+                Ok(c) => break c,
+                Err(_) => {
+                    if let Some((dead, _)) = proc::reap_any() {
+                        if dead == pid {
+                            std::thread::sleep(std::time::Duration::from_secs(1));
+                            pid = proc::start(&inst).map(|(p, _, _)| p).unwrap_or(0);
+                        }
+                    }
+                    if let Some(fd) = &watchdog {
+                        sys::watchdog_feed(fd);
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                }
+            }
+        };
+        inst.state = Run::Running;
+        inst.pid = pid;
+        inst.started = base.elapsed().as_millis() as i64;
+        early_ubus = Some((inst, pid));
+        conn
+    } else {
+        Connection::connect(None)?
+    };
+
     let mut p = Procd {
         conn,
         objects: Objects::default(),
         services: BTreeMap::new(),
-        base: Instant::now(),
+        base,
         validator_seq: 0,
         rc: rcs::RunQueue::default(),
-        init_d: init_d_path(),
+        init_d: arg_path("-I", "/etc/init.d"),
         watch_obj: 0,
         watches: BTreeMap::new(),
         subscribed: BTreeMap::new(),
         triggers: trigger::Triggers::default(),
+        boot: if pid1 { Boot::Ubus } else { Boot::NotPid1 },
+        inittab: Vec::new(),
+        serial: rcs::RunQueue::serial(),
+        serial_awaited: false,
+        console: None,
+        rc_d: arg_path("-R", "/etc/rc.d"),
+        reboot_event: 0,
+        watchdog,
+        watchdog_next: 0,
     };
+    if let Some((inst, _)) = early_ubus.take() {
+        let mut svc = Service::new("ubus");
+        svc.instances.insert("instance1".to_string(), inst);
+        p.services.insert("ubus".to_string(), svc);
+    }
 
     p.objects.service = p.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
     p.objects.container = p.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
@@ -1549,6 +1911,14 @@ fn run() -> io::Result<()> {
         eprintln!("procd-rs: failed to add ubus event handler: {e}");
     }
 
+    if pid1 {
+        // rc("ubus", "running") from service_start_early's set, then
+        // procd_state_ubus_connect(): the connection exists, so the machine
+        // moves to STATE_INIT.
+        p.run_init_script("ubus");
+        p.state_next();
+    }
+
     // Bus connection state, kept separate from supervision state. procd
     // reconnects with a 50ms..1s backoff (ubus.c); losing ubusd must not
     // take the supervisor -- and every child it is responsible for -- down
@@ -1563,6 +1933,7 @@ fn run() -> io::Result<()> {
             p.reap();
             p.fire_timeouts();
             p.pump_triggers();
+            p.pump_pid1();
             let now = p.now_ms();
             p.rc.pump(now);
             std::thread::sleep(std::time::Duration::from_millis(backoff_ms as u64));
@@ -1595,6 +1966,7 @@ fn run() -> io::Result<()> {
         p.reap();
         p.fire_timeouts();
         p.pump_triggers();
+        p.pump_pid1();
         let now = p.now_ms();
         p.rc.pump(now);
 
