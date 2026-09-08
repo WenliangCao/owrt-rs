@@ -105,7 +105,7 @@ case "$exe" in
 	*/procd|*/procd-rs) ;;
 	*) err "supervisor exe is not a procd: $exe" ;;
 esac
-ubus list 2>/dev/null | grep -qx service || err "no `service` object on the bus"
+ubus list 2>/dev/null | grep -qx service || err "no service object on the bus"
 for m in set add list delete signal update_start update_complete event 	 validate get_data set_data state watchdog; do
 	ubus -v list service 2>/dev/null | grep -q "\"$m\":" || err "service has no method $m"
 done
