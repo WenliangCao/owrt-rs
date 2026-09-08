@@ -451,3 +451,16 @@ pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     std::mem::forget(child);
     Ok(pid)
 }
+
+/// `fork(2)`, raw, for the hotplug firmware child whose work is a plain
+/// synchronous copy loop rather than an exec.
+///
+/// # Safety
+/// The child must only call async-signal-safe code before exiting; the
+/// process is single-threaded when this is called.
+pub unsafe fn fork_raw() -> i32 {
+    extern "C" {
+        fn fork() -> i32;
+    }
+    fork()
+}

@@ -9,6 +9,7 @@
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
 //! `service/instance.c`.
 
+mod hotplug;
 mod inittab;
 mod instance;
 mod jsonscript;
@@ -91,6 +92,8 @@ struct Procd {
     rc_d: String,
     reboot_event: i32,
     wdt: watchdog::Wdt,
+    /// The uevent listener + rule queue; PID 1 only.
+    hotplug: Option<hotplug::Hotplug>,
 }
 
 impl Procd {
@@ -450,6 +453,9 @@ impl Procd {
                 if self.inittab_exited(pid) {
                     continue;
                 }
+                if self.hotplug.as_mut().is_some_and(|h| h.reaped(pid, wstatus)) {
+                    continue;
+                }
                 // Otherwise an orphan we never started. PID 1 must reap
                 // these; as an ordinary daemon we rarely see them.
                 let _ = wstatus;
@@ -716,6 +722,16 @@ impl Procd {
         }
         let now = self.now_ms();
         self.wdt.pump(now);
+        if let Some(mut hp) = self.hotplug.take() {
+            if hp.pump(now) {
+                // start-console: run the console handlers again for a tty
+                // that appeared late (ttyGS). Done here, in the parent, so
+                // the respawn pids stay supervised.
+                self.inittab_run(inittab::Kind::Respawn);
+                self.inittab_run(inittab::Kind::Askfirst);
+            }
+            self.hotplug = Some(hp);
+        }
         let event = sys::SHUTDOWN_EVENT.swap(0, std::sync::atomic::Ordering::SeqCst);
         if event != 0 {
             self.procd_shutdown(event);
@@ -1871,6 +1887,7 @@ fn run() -> io::Result<()> {
     let pid1 = std::process::id() == 1;
     let base = Instant::now();
     let mut wdt = watchdog::Wdt::default();
+    let mut hp: Option<hotplug::Hotplug> = None;
     let mut early_ubus: Option<(instance::Instance, i32)> = None;
 
     let conn = if pid1 {
@@ -1887,7 +1904,30 @@ fn run() -> io::Result<()> {
         if !wdt.is_open() {
             eprintln!("procd-rs: no /dev/watchdog");
         }
-        eprintln!("procd-rs: hotplug/coldplug are not implemented in this build");
+        // hotplug("/etc/hotplug.json") + procd_coldplug(): EARLY -> UBUS is
+        // driven by udevtrigger finishing and the rules staying quiet for
+        // 500 ms, exactly the C's coldplug_complete path. The uevent storm
+        // this pumps through the rules is what populates /dev before UBUS
+        // needs a console.
+        hp = hotplug::Hotplug::new("/etc/hotplug.json");
+        match hp.as_mut() {
+            Some(h) => {
+                h.coldplug(sys::is_container());
+                loop {
+                    let now = base.elapsed().as_millis() as i64;
+                    h.pump(now);
+                    while let Some((pid, st)) = proc::reap_any() {
+                        h.reaped(pid, st);
+                    }
+                    wdt.pump(now);
+                    if h.coldplug_done(now) {
+                        break;
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                }
+            }
+            None => eprintln!("procd-rs: hotplug disabled: no socket or no rules"),
+        }
 
         // STATE_UBUS.
         sys::set_stdio("console");
@@ -1967,6 +2007,7 @@ fn run() -> io::Result<()> {
         rc_d: arg_path("-R", "/etc/rc.d"),
         reboot_event: 0,
         wdt,
+        hotplug: hp,
     };
     if let Some((inst, _)) = early_ubus.take() {
         let mut svc = Service::new("ubus");
