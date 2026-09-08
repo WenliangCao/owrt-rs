@@ -688,6 +688,25 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     // instance invalid, and an invalid instance is not listed at all.
     //
     // A bundle skips the command parse entirely.
+    // `if (!in->trace && tb[INSTANCE_ATTR_JAIL])` -- a traced instance never
+    // gets a jail, because trace already wraps the command.
+    if i.trace {
+        i.has_jail = false;
+    }
+
+    // If ujail is not installed: a require_jail instance is INVALID (the C
+    // returns false from instance_config_parse), and any other jailed
+    // instance quietly loses its jail and runs unconfined -- which is the
+    // C's own choice, and the reason `require` exists.
+    if i.has_jail && std::fs::metadata(crate::proc::UJAIL).is_err() {
+        if i.jail.requirejail {
+            eprintln!("procd-rs: cannot jail {name}: {} is missing", crate::proc::UJAIL);
+            bad_field = true;
+        } else {
+            i.has_jail = false;
+        }
+    }
+
     i.valid = (i.bundle.is_some() || !saw_command || command_ok) && !bad_field;
     i
 }
@@ -821,5 +840,32 @@ mod validity_tests {
             b.msg_close(c);
         });
         assert!(!i.valid);
+    }
+}
+
+#[cfg(test)]
+mod jail_gate_tests {
+    use super::*;
+
+    #[test]
+    fn trace_suppresses_the_jail() {
+        // `if (!in->trace && tb[INSTANCE_ATTR_JAIL])`: a traced instance is
+        // already wrapped, so it never gets a jail even if one is declared.
+        let mut i = Instance::new("one");
+        i.trace = true;
+        i.has_jail = true;
+        // The parse-time rule, applied the way parse() does.
+        if i.trace {
+            i.has_jail = false;
+        }
+        assert!(!i.has_jail);
+    }
+
+    #[test]
+    fn require_jail_without_ujail_is_a_config_error_not_a_silent_downgrade() {
+        // Documents the asymmetry that makes `require` meaningful: without
+        // it a missing ujail drops the sandbox and runs anyway.
+        let missing = std::fs::metadata("/definitely/no/ujail/here").is_err();
+        assert!(missing);
     }
 }

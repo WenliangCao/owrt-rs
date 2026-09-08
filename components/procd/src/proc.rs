@@ -100,7 +100,7 @@ extern "C" {
 }
 
 /// `UJAIL_BIN_PATH`.
-const UJAIL: &str = "/sbin/ujail";
+pub const UJAIL: &str = "/sbin/ujail";
 
 /// `jail_run()`: the ujail argv that wraps the instance's own command.
 ///
