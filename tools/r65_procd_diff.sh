@@ -451,7 +451,109 @@ printf -- '--- nothing named /bin/sleep may be running unconfined for it\n'
 ps 2>/dev/null | grep "[u]jail" | sed -E "s/^ *[0-9]+ +//; s/^[a-z]+ +[0-9:]+ +//" | sort
 ps 2>/dev/null | grep -c "[u]jail" | sed "s/^/ujail_procs=/"
 
-# 26. the whole table, so ordering is compared too
+# 26. R68's counter-examples. Each of these was red on the candidate that
+#     passed the old gate, which is the point: they test behaviour the
+#     previous cases could not see.
+
+printf -- '--- F03: a service.data.update trigger must actually run\n'
+call service set '{"name":"fd","triggers":[["service.data.update",[["run_script","/bin/sh","-c","echo dataev:%name% >> /tmp/out/dataev.txt"]]]],"data":{"old":"one"}}'
+sleep 1
+call service set_data '{"name":"fd","data":{"new":"two"}}'
+sleep 3
+must_have /tmp/out/dataev.txt
+
+printf -- '--- F05: a changed file with the SAME path must restart it\n'
+echo old > /tmp/out/watched.conf
+call service set '{"name":"ff","instances":{"one":{"command":["/bin/sleep","300"],"file":["/tmp/out/watched.conf"]}}}'
+sleep 1
+ubus call service list '{"name":"ff"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/filepid1=\1/p"
+echo new > /tmp/out/watched.conf
+call service set '{"name":"ff","instances":{"one":{"command":["/bin/sleep","300"],"file":["/tmp/out/watched.conf"]}}}'
+sleep 2
+ubus call service list '{"name":"ff"}' | sed -n "s/.*\"pid\": \([0-9]*\).*/filepid2=\1/p"
+
+printf -- '--- F07: an update adding reload_signal uses the OLD config\n'
+call service set '{"name":"fr","instances":{"one":{"command":["/bin/sleep","300"]}}}'
+sleep 1
+call service set '{"name":"fr","instances":{"one":{"command":["/bin/sleep","300"],"reload_signal":10}}}'
+sleep 2
+call service list '{"name":"fr"}'
+
+printf -- '--- F08: a command that appears late must still be retried\n'
+rm -f /tmp/out/late-ran.txt /tmp/late-exec
+call service set '{"name":"fl","instances":{"one":{"command":["/tmp/late-exec"],"respawn":["3600","1","5"]}}}'
+sleep 1
+printf '#!/bin/sh\necho ran >> /tmp/out/late-ran.txt\nsleep 300\n' > /tmp/late-exec
+chmod 0755 /tmp/late-exec
+sleep 4
+must_have /tmp/out/late-ran.txt
+
+printf -- '--- F09: a crash-looped instance stays listed with its exit code\n'
+call service set '{"name":"fc","instances":{"one":{"command":["/bin/sh","-c","exit 7"],"respawn":["3600","0","1"]}}}'
+sleep 4
+call service list '{"name":"fc"}'
+
+printf -- '--- F10: a deleted service must stop firing its rules\n'
+call service set '{"name":"fg","triggers":[["gone.ev",[["run_script","/bin/sh","-c","echo gone >> /tmp/out/gone.txt"]]]]}'
+sleep 1
+call service event '{"type":"gone.ev","data":{"k":"v"}}'
+sleep 2
+must_have /tmp/out/gone.txt
+call service delete '{"name":"fg"}'
+rm -f /tmp/out/gone.txt
+call service event '{"type":"gone.ev","data":{"k":"v"}}'
+sleep 2
+printf -- '--- after delete, nothing may fire\n'
+cat /tmp/out/gone.txt 2>&1 || echo "(correctly absent)"
+
+printf -- '--- F10b: an instance-level trigger must fire\n'
+call service set '{"name":"fi","instances":{"one":{"command":["/bin/sleep","300"],"triggers":[["inst.ev",[["run_script","/bin/sh","-c","echo instfired >> /tmp/out/instfired.txt"]]]]}}}'
+sleep 1
+call service event '{"type":"inst.ev","data":{"k":"v"}}'
+sleep 2
+must_have /tmp/out/instfired.txt
+
+printf -- '--- F13: pidfile must be written\n'
+call service set '{"name":"fp","instances":{"one":{"command":["/bin/sleep","300"],"pidfile":"/tmp/out/managed.pid"}}}'
+sleep 2
+[ -s /tmp/out/managed.pid ] && echo "pidfile written" || echo "PIDFILE MISSING"
+
+printf -- '--- F14: during the TERM grace period it is still running\n'
+call service set '{"name":"fh","instances":{"one":{"command":["/bin/sh","-c","trap \"\" TERM; while :; do sleep 1; done"],"term_timeout":5}}}'
+sleep 2
+call service delete '{"name":"fh","instance":"one"}'
+sleep 1
+ubus call service list '{"name":"fh"}' 2>&1 | grep -E '"running"' | head -1
+
+printf -- '--- F15: validity rules\n'
+call service set '{"name":"fv1","instances":{"one":{"command":["/bin/true"],"env":{"A":"ok","B":7}}}}'
+call service set '{"name":"fv2","instances":{"one":{"command":"/bin/true"}}}'
+call service set '{"name":"fv3","instances":{"one":{"command":["/bin/true"],"nice":21}}}'
+sleep 2
+call service list '{"name":"fv1"}'
+call service list '{"name":"fv2"}'
+call service list '{"name":"fv3"}'
+
+printf -- '--- F16: the watchdog timer must actually act\n'
+call service set '{"name":"fw","instances":{"one":{"command":["/bin/sleep","300"]}}}'
+sleep 1
+call service watchdog '{"name":"fw","instance":"one","mode":2,"timeout":1}'
+sleep 3
+call service list '{"name":"fw"}'
+
+printf -- '--- F17: rc running must also run after a respawn\n'
+rm -f /tmp/out/initd.txt
+call service set '{"name":"hasinit","instances":{"one":{"command":["/bin/sh","-c","exit 0"],"respawn":["3600","1","5"]}}}'
+sleep 4
+must_have /tmp/out/initd.txt
+
+printf -- '--- F18: merged validators keep insertion order, not global sort\n'
+call service set '{"name":"fz","validate":[{"package":"same","type":"same","data":{"z":"string"}}]}'
+call service set '{"name":"fa","validate":[{"package":"same","type":"same","data":{"a":"string"}}]}'
+sleep 1
+call service validate '{"package":"same"}'
+
+# 27. the whole table, so ordering is compared too
 printf -- '--- full list\n'
 ubus call service list 2>&1
 X
@@ -505,6 +607,8 @@ scrub() {
 		-e 's/^pid2=[0-9]+$/pid2=P2/' \
 		-e 's/^wdpid1=[0-9]+$/wdpid1=W1/' \
 		-e 's/^wdpid2=[0-9]+$/wdpid2=W2/' \
+		-e 's/^filepid1=[0-9]+$/filepid1=F1/' \
+		-e 's/^filepid2=[0-9]+$/filepid2=F2/' \
 		"$1"
 }
 scrub "$out/c-calls.txt" > "$out/c-calls.scrubbed"
@@ -517,6 +621,17 @@ scrub "$out/rs-calls.txt" > "$out/rs-calls.scrubbed"
 same_pid() {
 	a=$(sed -n 's/^pid1=\([0-9][0-9]*\)$/\1/p' "$1")
 	b=$(sed -n 's/^pid2=\([0-9][0-9]*\)$/\1/p' "$1")
+	if [ -z "$a" ] || [ -z "$b" ]; then
+		echo missing
+	elif [ "$a" = "$b" ]; then
+		echo same
+	else
+		echo differs
+	fi
+}
+same_filepid() {
+	a=$(sed -n 's/^filepid1=\([0-9][0-9]*\)$/\1/p' "$1")
+	b=$(sed -n 's/^filepid2=\([0-9][0-9]*\)$/\1/p' "$1")
 	if [ -z "$a" ] || [ -z "$b" ]; then
 		echo missing
 	elif [ "$a" = "$b" ]; then
@@ -539,6 +654,7 @@ same_wdpid() {
 {
 	echo "identical-set-keeps-pid c=$(same_pid "$out/c-calls.txt") rs=$(same_pid "$out/rs-calls.txt")"
 	echo "self-managed-watchdog-keeps-pid c=$(same_wdpid "$out/c-calls.txt") rs=$(same_wdpid "$out/rs-calls.txt")"
+	echo "changed-file-restarts c=$(same_filepid "$out/c-calls.txt") rs=$(same_filepid "$out/rs-calls.txt")"
 } > "$out/pid-identity.txt"
 
 rc=0
