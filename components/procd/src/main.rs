@@ -468,8 +468,7 @@ impl Procd {
             self.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
         self.objects.system = self.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
         self.watch_obj = self.conn.add_anonymous_object(1000)?;
-        self.conn
-            .register_event_handler(self.watch_obj, Some("ubus.object.add"), 1000)?;
+        self.conn.register_event_handler(self.watch_obj, None, 1000)?;
         // Subscriptions belonged to the old connection; re-establish them
         // against whatever exists on the new bus.
         self.subscribed.clear();
@@ -494,6 +493,14 @@ impl Procd {
             }
             if req.method == "ubus.object.add" {
                 // A watched path may have just appeared.
+                self.resubscribe();
+            } else if req.method == "ubus.object.remove" {
+                // Forget the id so the next add re-subscribes. An object
+                // that is destroyed and recreated gets a NEW id, so keeping
+                // the old one would leave the watch permanently detached.
+                if let Some(path) = vars.get("path") {
+                    self.subscribed.remove(path);
+                }
                 self.resubscribe();
             } else {
                 self.triggers.fire(&req.method, &vars, now);
@@ -1455,7 +1462,11 @@ fn run() -> io::Result<()> {
     p.watch_obj = p.conn.add_anonymous_object(1000)?;
     if let Err(e) = p
         .conn
-        .register_event_handler(p.watch_obj, Some("ubus.object.add"), 1000)
+        // No pattern: ubusd sends both ubus.object.add and
+        // ubus.object.remove, and a watched object that disappears has to
+        // drop its subscription or it will never be re-attached when the
+        // object comes back with a new id.
+        .register_event_handler(p.watch_obj, None, 1000)
     {
         eprintln!("procd-rs: failed to add ubus event handler: {e}");
     }
