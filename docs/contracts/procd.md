@@ -213,11 +213,14 @@ r65 用两次 `service list` 取 pid 比过这条。
 
 - **子进程回收**用事件循环里的 `waitpid(WNOHANG)` 轮询，不是 SIGCHLD 处理器，
   所以退出会在一轮循环内被发现而不是立刻。netifd-rs 也是这样。
-- **`rc(name, "running")`**：`service_update()` 会 glob `/etc/init.d/<name>`
-  并用 `running` 参数排队执行。这里没有——runqueue 属于 P3.2。
-- **实例日志 FD**：原版在实例声明 `stdout`/`stderr` 时把它们接到自己读的管道。
-  这里两个都指向 `/dev/null`。没人消费的管道正是被监管进程死锁的方式，
-  所以在日志通路落地前不接管道。
+- ~~`rc(name, "running")` 这里没有~~ **已实现**：`service_update()` 的 glob +
+  宽度 8 的 `r` 队列（r65 第 20 例、F17）；脚本输出按 `pipe_cb` 的形状
+  以 `<file>: <line>` 记进日志。`rcS()` 的宽度 1 串行队列（`rcs::RunQueue::serial`
+  + `queue_all`）也已实现并有单测，但**没有调用方**——它属于 PID 1（P3.2）。
+- ~~实例日志 FD 指向 /dev/null~~ **已实现**：`stdout`/`stderr` 接到 procd 读的
+  管道，逐行以 `basename(argv0)[pid]` 为 ident 进 syslog（r65 第 23 例）。
+- **ubusd 重连后 watch 是否恢复**：**有意偏离**，见第 13 节。这是本合同里
+  唯一一处候选故意不等于 C 的行为。
 - ~~每实例 watchdog 定时器不会触发~~ **已实现**（软件定时器，超时后
   按 respawn 决定重启还是停止）。系统 `/dev/watchdog`、`WDTFD` 继承和
   magic close 仍属于 P3.2，
@@ -226,3 +229,66 @@ r65 用两次 `service list` 取 pid 比过这条。
   `ubus call service list` 没有任何容器。
 - **`sysupgrade` / `validate_firmware_image`** 按真实签名注册并**拒绝**。
   本项目不刷设备，而一个静默成功的 sysupgrade 是能想到的最坏失败模式。
+
+## 13. ubusd 断线与重连（R70 坐实）
+
+发货 procd 丢失总线后以 50 ms→1 s 退避重连（`ubus.c`：`ubus_reconnect_cb`
+只做 `ubus_reconnect()` + `ubus_add_uloop()`），重连时重新注册
+`service`/`system`/`container` 与 `hotplug.*` 对象，实例监管不中断
+（实测重连前后子进程 pid 不变）。
+
+**但 watch 订阅链在重连后永久失效**：重启前声明的 watch 不再重新附着，
+重启后新声明的 watch 也永不附着。根因在两层：libubus 的 `ubus_reconnect()`
+→ `ubus_refresh_state()` 只重放对象注册和 libubus 自己 auto-subscribe 的
+`register`，**不重放** `ubus_register_event_handler()` 那次对 `ubus.event` 的
+`register`；而 procd 的 `watch_ubus()` 只在首次连接的 `ubus_connect_cb()` 里
+调用。对照实验里直接 `service event` 仍能触发，所以失效的只是订阅链。
+证据：[R70 §一](../reviews/R70_FABLE_P31_REVIEW.md)，探针
+`tools/r70/reconnect_probe.sh`（重启后新建 watch 指向新对象，C 30 s 不触发，
+`ubus monitor` 可见 `ubus.object.add` 已投递而没有 `lookup`/`subscribe` 跟进）。
+
+**procd-rs 有意偏离**：重连时重新注册事件处理并重订阅所有 watch
+（`reconnect()` → `register_event_handler` + `resubscribe()`）。理由：
+(a) 设备上 ubusd 从不重启（决策 0015），偏离在设备上不可观测；
+(b) C 的行为是一次性注册的遗漏而非设计——复刻它意味着一次总线重启后
+netifd→procd 的接口触发器全部静默。决定于 2026-09-08 由项目负责人作出。
+r65 不比较这一条（F06 只断言监管器回到总线），证据是上述独立探针。
+
+**watch 释放的精确形状（不是偏离）**：C 的 `watch_del()` 只从链表删条目，
+**不 `ubus_unsubscribe`**。所以实例释放后：(1) 被 watch 的对象**重建**
+（新 id）→ 不再重订阅 → 不触发；(2) 同一对象**仍活着**继续 notify → 旧订阅
+还挂在 ubusd 上 → `watch_notify_cb` 照样 `trigger_event`，别的服务对该通知
+类型的规则照触发。候选在 `f473c23` 起与此一致：`resubscribe()` 不再对
+"没人要的路径"退订。r65 的 F04b 用 notifier 重建对象，落在 (1)。
+
+## 14. `list` 回显数组字段的顺序，和 `service` 对象的通知（R70 后续实测）
+
+**列表顺序。** procd 用自己的 `blobmsg_list_fill(list, data, len, array)` 存
+`env`/`data`/`limits`/`jail.mount`（表）和 `netdev`/`file`/`error`/`jail.setns`
+（数组）：avl 树、`avl_strcmp`、**不允许重复**。表元素的键是名字；数组元素的键是
+`blobmsg_data()` **当作 C 字符串**——字符串数组就是值本身，而 `setns` 这种表数组
+就是原始负载到第一个 NUL 为止的那几个字节。可观测后果（都在发货 procd 上量过，
+r65 第 25b 例）：
+
+- `netdev: ["zeth","aeth","meth","aeth"]` 回显为 `["aeth","meth","zeth"]`；
+  同名重复丢弃；换个顺序再 `set` **不算配置变化**（`blobmsg_list_equal` 按 avl 序比）。
+- `env`/`limits`/`data` 按名字排序；同名重复**第一个赢**。
+- `setns: [{pid:3,…},{pid:1,…},{pid:2,…},{namespaces:[..]}]` 回显为
+  `[{namespaces:[..]},{pid:3,…}]`：三个以 `pid` 属性开头的表负载前几个字节相同，
+  被当成重复只留第一个；没有 `pid` 的那个首字节不同，排在前面。ujail 的 `-j`
+  参数也只来自留下的那些。
+- `file` 不出现在 `list` 里，但同样排序去重，所以换序不重启。
+
+**通知。** `service` 对象上 `ubus_notify` 的全部形状（`ubus subscribe service`
+可见，r65 第 28 例按排序后的多重集比较）：
+
+| 何时 | 通知 | 负载 |
+|---|---|---|
+| 新建服务的 `set`/`add` 返回后 | `service.start` | `{"service"}` —— 更新已有服务**不**发 |
+| 服务被释放（`deleted` 且无实例） | `service.stop` | `{"service"}` |
+| 实例 fork 成功 | `instance.start` | `{"service","instance"}` |
+| 实例被回收 | `instance.stop` | 同上 |
+| 崩溃预算内/外 | `instance.respawn` / `instance.fail` | 同上（设备 `58eb263` 是三字段；上游 HEAD 已加 pid/exit_code，见 R70 基线） |
+| `service event` | `event.trigger` | 请求原样：`{"type","data"}` |
+| `service event` 且 type 为 `config.change`、data 有 `package` | 另发 `config.change` | `{"config": package}` |
+| `set_data` / data 变化 | **没有**通知 | `service_data_trigger()` 只走内部规则引擎 |
