@@ -19,7 +19,7 @@ ORIG=/sbin/ubusd.c-orig
 
 status() {
 	echo "/sbin/ubusd: $(md5sum /sbin/ubusd 2>/dev/null)"
-	echo "running: $(ls -l /proc/$(pgrep -x ubusd | head -1)/exe 2>/dev/null || echo '?')"
+	echo "running: $(ls -l /proc/$(pgrep ubusd | head -1)/exe 2>/dev/null || echo '?')"
 	[ -e "$ORIG" ] && echo "staged: yes (original kept at $ORIG)" || echo "staged: no"
 }
 
