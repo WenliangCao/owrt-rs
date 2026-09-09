@@ -17,6 +17,7 @@
 #   nohup setsid tools/p6_window.sh /tmp/netifd-rs <md5> > /dev/null 2>&1 &
 #   tail -f /tmp/p6-window-*.log
 set -u
+set -o pipefail  # `ssh ... | tee` must fail when ssh fails (window #5 rebooted on a refused stage)
 BIN=$1; MD5=$2; V4=${3:-}
 LOG=${P6_LOG:-/tmp/p6-window-$(date +%Y%m%d-%H%M%S).log}
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -47,7 +48,11 @@ COPYFILE_DISABLE=1 tar cf - -C "$(dirname "$BIN")" "$bn" -C "$HERE" p6_switch.sh
 	| ssh_dev "cd /root && tar xf - && mv -f p6_switch.sh $DEV_SCRIPT && chmod 755 $bn $DEV_SCRIPT && md5sum $bn" | tee -a "$LOG"
 ssh_dev "md5sum /root/$bn" | grep -q "^$MD5" || { log "device-side md5 mismatch"; exit 2; }
 
-# 2. read-only baseline, then stage + reboot
+# 2. read-only baseline, then stage + reboot. A previous Rust candidate that
+#    is already resident (c-orig kept + confirmed) is undone first so that
+#    stage sees the C original at /sbin/netifd and keeps THAT as .c-orig --
+#    rs-to-rs upgrades must never make an old Rust build the rollback target.
+ssh_dev "if [ -e /sbin/netifd.c-orig ] && [ -e /etc/p6-confirm ]; then sh $DEV_SCRIPT undo; fi" | tee -a "$LOG"
 ssh_dev 'echo "baseline objs=$(ubus list | wc -l) running=$(ubus call service list "{}" | grep -c "\"running\": true") aps=$(iwinfo | grep -c ESSID) p6files=$(ls /etc/p6-* 2>/dev/null | tr "\n" " ")"' | tee -a "$LOG"
 if ! ssh_dev "sh $DEV_SCRIPT stage /root/$bn" | tee -a "$LOG"; then log "STAGE FAILED"; exit 2; fi
 T0=$(date +%s)

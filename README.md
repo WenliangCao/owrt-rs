@@ -43,10 +43,11 @@ handler 脚本原样保留。**
 第三方依赖只有 httpd 的 rustls/ring（TLS）。其余全部标准库 + 自写 FFI。发布构建 opt-level 3、
 静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。
 
-设备上的常驻内存（VmRSS，2026-09-09）：procd 744 kB、ubusd 360 kB、netifd 892 kB、rpcd-rs 384 kB、
-httpd-rs 552 kB、logd-rs 344 kB。性能对比见
-[BENCHMARK.md](reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md)（09-03，前六个组件）与
-R82（完全体，全部组件）。
+设备上的常驻内存（VmRSS，2026-09-09）：procd 744 kB、ubusd 360 kB、netifd 816 kB、rpcd-rs 384 kB、
+httpd-rs 552 kB、logd-rs 344 kB，每一项都低于对应的 C 原件。性能对比见
+[R82_BENCHMARK_FULL.md](reports/ax3000t-stock-openwrt-25.12.5/R82_BENCHMARK_FULL.md)（完全体，全部组件：
+uci 1.1–1.5×、fw4 print 12×、reload_config 1.6×、httpd +16–92% req/s，ubusd/rpcd/procd 持平，无一项更慢）；
+09-03 的六组件数据在 [BENCHMARK.md](reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md)。
 
 ## 方法：每个组件怎么被证明可以上线
 

@@ -137,10 +137,24 @@ sysctl）。C 的 `rtnl_event` socket **只订阅 RTNLGRP_LINK**，`cb_rtnl_even
 共享库对 C 是摊销的（libubox/libubus 被多个 daemon 共用），所以体积对比只说明"静态链接的代价"，不说明内存：
 RSS 上 Rust 每个 daemon 都更小。Flash 上九个 Rust 二进制合计约 7.4 MB，overlay 使用 8%。
 
-## 9. 修复：netifd-rs 的 netlink 订阅与 C 对齐
+## 9. 修复：netifd-rs 的 netlink 订阅与 C 对齐（提交 3c46782，候选 eb38bd1b）
 
-改动（同日）：只订阅 RTNLGRP_LINK；`drain_netlink` 仅当批次里有 RTM_NEWLINK/DELLINK 才 rescan。
-门槛与设备复测结果见本文末尾追加段。
+改动：只订阅 RTNLGRP_LINK；`drain_netlink` 仅当批次里有 RTM_NEWLINK/DELLINK 才 rescan。
+门槛：r63 up/down/absent/late/late16 五档 identical，套件 24/24，148 单测。
+
+设备窗口 #5（22:16 stage → 22:17:45 可达并首过 → 连续 188 s 全过 → 22:20:55 confirm，事后复核过）。
+第一次尝试因编排器管道吞掉 stage 的拒绝码而空跑了一次重启（旧候选 86c4e164 原地重启，无损）；编排器
+已加 `pipefail` 并在已有 Rust 候选常驻时先 `undo` 再 `stage`，保证 `.c-orig` 永远是 C 原件。
+
+| 指标 | 修复前（86c4e164） | 修复后（eb38bd1b） |
+|---|---|---|
+| 空闲 60 s 的 CPU ticks | 97（≈1.6%） | **5（≈0.08%）** |
+| 200 个 RTM_NEWADDR/DELADDR 事件的 CPU | 125 ticks | **0** |
+| 累计 CPU / uptime | 4842 / 3066 s（1.6%） | 95 / 320 s（含启动） |
+| RSS | 896–936 kB | 816 kB |
+| 同窗口 procd / ubusd / rpcd-rs | 39 / 115 / 12（当时 httpd 压测在跑） | 3 / 2 / 0 |
+
+至此九个组件在设备上没有一项比原版慢；netifd 空闲开销回到与 procd、ubusd 同一量级。
 
 ## 10. logd（活体 rs；C 侧沿用 09-03 切换窗口数据——C logd 没有指定 bus 的参数）
 
