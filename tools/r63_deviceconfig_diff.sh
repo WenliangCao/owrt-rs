@@ -81,6 +81,8 @@ echo "--- get_proto_handlers"
 ubus call network get_proto_handlers
 echo "--- interface dump"
 ubus call network.interface dump
+echo "--- resolv.conf.auto"
+cat /tmp/resolv.conf.d/resolv.conf.auto
 echo "--- device status"
 ubus call network.device status
 echo "--- interface lan status"
@@ -97,7 +99,7 @@ PROBE
 
 	sudo -n tee "$root/tmp/bus.sh" >/dev/null <<'BUS'
 set -u
-mkdir -p /var/run/ubus /var/lock /var/state /tmp/out
+mkdir -p /var/run/ubus /var/lock /var/state /tmp/out /tmp/resolv.conf.d
 /sbin/ubusd >/tmp/out/ubusd.log 2>&1 &
 echo $! > /tmp/out/ubusd.pid
 sleep 1

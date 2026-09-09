@@ -50,7 +50,7 @@ HP
 
 	sudo -n tee "$root/tmp/bus.sh" >/dev/null <<'BUS'
 set -u
-mkdir -p /var/run/ubus /var/lock /var/state /tmp/out
+mkdir -p /var/run/ubus /var/lock /var/state /tmp/out /tmp/resolv.conf.d
 /sbin/ubusd >/tmp/out/ubusd.log 2>&1 &
 echo $! > /tmp/out/ubusd.pid
 sleep 1
@@ -74,6 +74,8 @@ RN
 set -u
 echo "--- interface dump"
 ubus call network.interface dump
+echo "--- resolv.conf.auto"
+cat /tmp/resolv.conf.d/resolv.conf.auto
 echo "--- wan status"
 ubus call network.interface.wan status
 

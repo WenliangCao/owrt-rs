@@ -43,7 +43,7 @@ fi
 
 # 1. upload to PERSISTENT /root (tmpfs /tmp is wiped by the reboot)
 bn=$(basename "$BIN")
-tar cf - -C "$(dirname "$BIN")" "$bn" -C "$HERE" p6_switch.sh \
+COPYFILE_DISABLE=1 tar cf - -C "$(dirname "$BIN")" "$bn" -C "$HERE" p6_switch.sh \
 	| ssh_dev "cd /root && tar xf - && mv -f p6_switch.sh $DEV_SCRIPT && chmod 755 $bn $DEV_SCRIPT && md5sum $bn" | tee -a "$LOG"
 ssh_dev "md5sum /root/$bn" | grep -q "^$MD5" || { log "device-side md5 mismatch"; exit 2; }
 
@@ -78,7 +78,10 @@ while :; do
 		fi
 	else
 		first=0
-		log "probe fail at T0+${el}s (hold reset)"
+		# the probe prints {"error": ...} on stdout; keep the reason (window #3
+		# failed for a full run on "router DNS has no A response" and the log
+		# only said "probe fail")
+		log "probe fail at T0+${el}s (hold reset): $out"
 	fi
 	sleep $PROBE_GAP
 done

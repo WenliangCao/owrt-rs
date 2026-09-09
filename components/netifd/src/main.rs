@@ -53,6 +53,8 @@ const DEFAULT_HOTPLUG_PATH: &str = "/sbin/hotplug-call";
 /// Where the shell protocol handlers live; overridable with `-p`.
 /// Where wireless.uc looks for handler scripts.
 const DEFAULT_WIRELESS_DIR: &str = "/lib/netifd/wireless";
+/// `DEFAULT_RESOLV_CONF`: what dnsmasq reads as its resolvfile.
+const DEFAULT_RESOLV_CONF: &str = "/tmp/resolv.conf.d/resolv.conf.auto";
 
 const DEFAULT_PROTO_DIR: &str = "/lib/netifd/proto";
 
@@ -143,6 +145,8 @@ struct Netifd {
     conn: Connection,
     objects: ubus::Objects,
     confdir: String,
+    /// `resolv_conf` (-r): where interface_write_resolv_conf writes.
+    resolvconf: String,
     hotplug_path: String,
     /// `/lib/netifd/proto`; the scripts there are run with it as cwd.
     protodir: String,
@@ -251,6 +255,7 @@ impl Netifd {
             conn,
             objects,
             confdir: confdir.to_string(),
+            resolvconf: DEFAULT_RESOLV_CONF.to_string(),
             hotplug_path: hotplug.to_string(),
             protodir: protodir.to_string(),
             hotplug: process::Slot::default(),
@@ -407,6 +412,8 @@ impl Netifd {
                 }
             }
         }
+        // `interface_change_config` ends with interface_write_resolv_conf
+        self.write_resolv_conf();
     }
 
     /// `interface_do_reload`: down, then up again with the new config.
@@ -1210,6 +1217,7 @@ impl Netifd {
 
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
+        self.write_resolv_conf();
     }
 
     /// Run one protocol command for an interface, honouring the state machine.
@@ -1783,6 +1791,8 @@ impl Netifd {
                     self.emit_event(name, Event::Update);
                 }
             }
+            // `interface_ip_flush` + update: the DNS lists may have changed
+            self.write_resolv_conf();
             self.proto_state(name).sm = proto::Sm::Idle;
             return status::OK;
         }
@@ -1820,6 +1830,7 @@ impl Netifd {
         self.proto_state(name).sm = proto::Sm::Idle;
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
+        self.write_resolv_conf();
         eprintln!("netifd-rs: Interface '{name}' is now up");
         status::OK
     }
@@ -2941,6 +2952,55 @@ impl Netifd {
     /// `mark_interface_down`: flush everything the protocol applied, release
     /// the L3 device and emit the state's event. Returns early when already
     /// down, so a second call emits nothing.
+    /// `interface_write_resolv_conf` (this build has no jails): every UP
+    /// interface with DNS servers or search domains, ordered by dns_metric,
+    /// then metric, then name; config_ip entries first, then proto_ip unless
+    /// `no_dns`; a link-local v6 server carries `%<l3 device>`. Written to
+    /// `<path>.tmp` and renamed only when the bytes changed -- the C compares
+    /// crc32 of old and new, which decides the same thing. dnsmasq reads this
+    /// file as its resolvfile: without it every client has a lease and no name
+    /// resolution, which is exactly how P6 window #3 failed on the device.
+    fn write_resolv_conf(&self) {
+        let mut ifs: Vec<&Interface> = self
+            .interfaces
+            .iter()
+            .filter(|i| {
+                i.state == State::Up
+                    && !(i.config_ip.dns_servers.is_empty()
+                        && i.config_ip.dns_search.is_empty()
+                        && i.proto_ip.dns_servers.is_empty()
+                        && i.proto_ip.dns_search.is_empty())
+            })
+            .collect();
+        ifs.sort_by(|a, b| {
+            a.dns_metric
+                .cmp(&b.dns_metric)
+                .then(a.metric.cmp(&b.metric))
+                .then(a.name.cmp(&b.name))
+        });
+        let mut out = String::new();
+        for i in ifs {
+            let dev = i.l3_device.clone().or_else(|| i.device.clone()).unwrap_or_default();
+            out.push_str(&format!("# Interface {}\n", i.name));
+            write_resolv_entries(&mut out, &i.config_ip, &dev);
+            if !i.proto_ip.no_dns {
+                write_resolv_entries(&mut out, &i.proto_ip, &dev);
+            }
+        }
+        let path = &self.resolvconf;
+        if std::fs::read(path).map(|old| old == out.as_bytes()).unwrap_or(false) {
+            return;
+        }
+        let tmp = format!("{path}.tmp");
+        let _ = std::fs::remove_file(&tmp);
+        if std::fs::write(&tmp, out.as_bytes()).is_err() {
+            return;
+        }
+        if std::fs::rename(&tmp, path).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+        }
+    }
+
     fn mark_interface_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
         let prev = self.interfaces[idx].state;
@@ -2960,6 +3020,8 @@ impl Netifd {
             State::Setup => self.emit_event(name, Event::UpFailed),
             State::Down => {}
         }
+        // IFPEV_DOWN / IFPEV_LINK_LOST: this interface's servers leave the file
+        self.write_resolv_conf();
 
         let l3 = self.interfaces[idx].l3_device.clone();
         let addrs: Vec<Address> = self.interfaces[idx].proto_ip.addresses.clone();
@@ -3634,6 +3696,21 @@ impl Netifd {
                 self.drain_bus();
             }
         }
+    }
+}
+
+/// `write_resolv_conf_entries`: nameserver lines, then search lines.
+fn write_resolv_entries(out: &mut String, ip: &interface::IpSettings, dev: &str) {
+    for s in &ip.dns_servers {
+        match s {
+            IpAddr::V6(a) if (a.segments()[0] & 0xffc0) == 0xfe80 => {
+                out.push_str(&format!("nameserver {a}%{dev}\n"))
+            }
+            a => out.push_str(&format!("nameserver {a}\n")),
+        }
+    }
+    for d in &ip.dns_search {
+        out.push_str(&format!("search {d}\n"));
     }
 }
 
@@ -4428,6 +4505,7 @@ fn main() {
     let mut confdir = "/etc/config".to_string();
     let mut hotplug = DEFAULT_HOTPLUG_PATH.to_string();
     let mut protodir = DEFAULT_PROTO_DIR.to_string();
+    let mut resolvconf = DEFAULT_RESOLV_CONF.to_string();
     let mut socket: Option<String> = None;
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
@@ -4436,6 +4514,7 @@ fn main() {
             "-s" => socket = args.next(),
             "-h" => hotplug = args.next().unwrap_or(hotplug),
             "-p" => protodir = args.next().unwrap_or(protodir),
+            "-r" => resolvconf = args.next().unwrap_or(resolvconf),
             "-V" | "--version" => {
                 println!("{BUILD_ID}");
                 return;
@@ -4464,6 +4543,7 @@ fn main() {
             std::process::exit(1);
         }
     };
+    n.resolvconf = resolvconf;
     n.reload();
     n.wireless_load();
     n.run()

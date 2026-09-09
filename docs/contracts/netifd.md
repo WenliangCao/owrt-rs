@@ -88,3 +88,23 @@ netifd-rs 用 Rust 复刻同一套语义，handler 脚本仍是设备自带的 `
 
 差分依据：r59（投影）、r60 六变体（handler 协议）、r63（设备真 network+wireless 双侧活体 daemon，
 1881 ubus 行 + 50 kernel 行逐字节相同；换 /bin/false 作候选即判红——桥不建、静态路由缺失）。
+
+## 6. resolv.conf.auto（`interface_write_resolv_conf`）
+
+netifd 是 `/tmp/resolv.conf.d/resolv.conf.auto`（`-r` 可改）的**唯一写者**，dnsmasq 把它当
+resolvfile 读上游。没有它，客户端拿得到租约、到得了路由器，但没有名字解析——P6 窗口 #3 在真机上
+正是这样失败的（`dig @192.168.1.1` 无应答，路由器本地查询 REFUSED），而 ubus 里 wan 的
+`dns-server` 列表是齐的：daemon 知道上游、只是没写文件。
+
+- **内容**：只收 `state == UP` 且 config_ip/proto_ip 至少一边有 dns 或 dns_search 的接口；
+  按 dns_metric、metric、接口名三级升序（C 的 avl 比较器）；每个接口一段
+  `# Interface <name>`，先 config_ip 的条目，再 proto_ip 的（`no_dns` 时跳过 proto_ip）；
+  nameserver 先于 search；link-local v6 服务器写成 `nameserver fe80::…%<l3 设备名>`。
+- **写法**：写 `<path>.tmp`，与旧文件比较（C 比 crc32，rs 比字节，判定相同），不同才 rename；
+  失败静默（C 用 D() 调试日志）。目录不由 netifd 创建（非 jail 路径），设备启动时已存在。
+- **触发点**：IFPEV_UP 之后（两条 up 路径）、IFPEV_DOWN/LINK_LOST 的 mark_interface_down 之后、
+  proto update 替换 proto_ip 之后（`interface_ip_flush`）、`interface_change_config` 末尾。
+- **未实现**：jail 变体（`/tmp/resolv.conf-<jail>.d/`），本项目没有 jail 接口。
+
+差分依据：r49（wired 口静态 `list dns` + `dns_search`）、r52（udhcpd 下发 option dns + search）
+的探针都 cat 这个文件，C 与 rs 逐字节相同且非空；缺写入的旧候选 60dcff02 在 r49 上判红。
