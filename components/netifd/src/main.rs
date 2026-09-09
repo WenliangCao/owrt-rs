@@ -167,6 +167,9 @@ struct Netifd {
     link_state: Vec<(String, bool)>,
     /// `dev->sys_present`: the device names the kernel currently has.
     present: Vec<String>,
+    /// `bridge_hotplug_prepare`: a wireless handler needs its bridge before
+    /// it can create the first port. Cleared when a member is removed.
+    prepared_bridges: Vec<String>,
     /// A child's exit wakes the loop through this, rather than waiting for
     /// the poll timeout.
     sigchld: process::ChildSignal,
@@ -236,6 +239,7 @@ impl Netifd {
             wproc_checked: 0,
             link_state: Vec::new(),
             present: Vec::new(),
+            prepared_bridges: Vec::new(),
             sigchld: process::ChildSignal::install()?,
             device_objects: Vec::new(),
             claims: Vec::new(),
@@ -517,6 +521,12 @@ impl Netifd {
         if count != 1 {
             return;
         }
+        // hostapd owns an external wireless interface's administrative state.
+        // Claiming it must neither clear its state nor claim a kernel parent.
+        if self.devices.get(name).is_some_and(|d| d.external) {
+            self.set_enabled(name, true);
+            return;
+        }
         if let Some(p) = self.sys.parent_of(name) {
             if !self.device_objects.contains(&p) {
                 self.device_objects.push(p.clone());
@@ -564,9 +574,11 @@ impl Netifd {
             let (_, p) = self.parents.remove(pp);
             self.device_release(&p);
         }
-        if let Ok(i) = self.sys.if_index(name) {
-            if i != 0 {
-                let _ = self.sys.set_link_up(i, false);
+        if !self.devices.get(name).is_some_and(|d| d.external) {
+            if let Ok(i) = self.sys.if_index(name) {
+                if i != 0 {
+                    let _ = self.sys.set_link_up(i, false);
+                }
             }
         }
         // `DEV_EVENT_DOWN`
@@ -782,8 +794,14 @@ impl Netifd {
                 let _ = self.sys.set_txqueuelen(br, q);
             }
 
-            let mut members = Vec::new();
+            // Reload must preserve dynamic wireless members and their claims.
+            let mut members = self.devices.get(&dc.name)
+                .and_then(|d| d.bridge.as_ref()).map(|b| b.members.clone())
+                .unwrap_or_default();
             for port in &dc.ports {
+                if members.contains(port) {
+                    continue;
+                }
                 match self.sys.if_index(port) {
                     Ok(pi) if pi != 0 => {
                         // a member's own `config device` settings (macaddr)
@@ -2263,10 +2281,14 @@ impl Netifd {
         if !kernel {
             return false;
         }
-        if empty == Some(true) {
+        if empty == Some(true) || self.prepared_bridges.iter().any(|b| b == name) {
             return true;
         }
-        ports.iter().any(|p| self.sys.if_index(p).unwrap_or(0) != 0)
+        let mut members = ports;
+        if let Some(b) = self.devices.get(name).and_then(|d| d.bridge.as_ref()) {
+            members.extend(b.members.iter().cloned());
+        }
+        members.iter().any(|p| self.sys.if_index(p).unwrap_or(0) != 0)
     }
 
     /// `bridge_member_cb(DEV_EVENT_ADD)` + `bridge_enable_member` for a port
@@ -2514,8 +2536,15 @@ impl Netifd {
     /// autostart.
     fn check_state(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
-        let link =
+        let carrier =
             self.link_state.iter().find(|(n, _)| n == name).map(|(_, s)| *s).unwrap_or(false);
+        // proto-static defaults force_link to true. A LAN with no cable
+        // still needs its address before wireless can attach to its bridge.
+        let force = self.cfg.interfaces.iter().find(|c| c.name == name)
+            .is_some_and(|c| c.force_link.unwrap_or(c.proto == "static"));
+        let auth = self.interfaces[idx].device.as_deref()
+            .and_then(|d| self.devices.get(d)).is_some_and(|d| d.settings.auth);
+        let link = carrier || (force && !auth);
         let enabled = self.interfaces[idx].enabled;
         match self.interfaces[idx].state {
             State::Up | State::Setup => {
@@ -3160,6 +3189,20 @@ impl Netifd {
         snapshot.dump_status(b);
     }
 
+    fn dump_device(&self, b: &mut BlobBuf, device: &Device) {
+        let mut snapshot = device.clone();
+        if let Some(bridge) = &mut snapshot.bridge {
+            // bridge_dump_info lists registered members, including configured
+            // ports that have not appeared in the kernel yet.
+            if let Some(config) = self.cfg.devices.iter().find(|d| d.name == device.ifname) {
+                bridge.members.extend(config.ports.iter().cloned());
+                bridge.members.sort();
+                bridge.members.dedup();
+            }
+        }
+        snapshot.dump_status(b, Some(&self.ethtool));
+    }
+
     fn handle(&mut self, req: Request) {
         let mut target = self.objects.route(req.objid);
         let method = req.method.clone();
@@ -3289,14 +3332,20 @@ impl Netifd {
                     // not check whether the device is present -- a device
                     // object with no kernel device is still dumped
                     Some(n) => match self.devices.get(&n) {
-                        Some(d) => d.dump_status(&mut b, Some(&self.ethtool)),
+                        Some(d) => self.dump_device(&mut b, d),
                         None => {
                             let _ =
                                 self.conn.reply_status(&req, status::INVALID_ARGUMENT, None);
                             return;
                         }
                     },
-                    None => self.devices.dump_all(&mut b, Some(&self.ethtool)),
+                    None => {
+                        for d in self.devices.iter().filter(|d| d.present) {
+                            let t = b.msg_open_table(&d.ifname);
+                            self.dump_device(&mut b, d);
+                            b.msg_close(t);
+                        }
+                    }
                 }
                 let fields = b.payload().to_vec();
                 self.conn
@@ -3404,13 +3453,15 @@ impl Netifd {
                 let code = self.set_data(&name, &req.data);
                 self.conn.reply_status(&req, code, None)
             }
-            // `netifd_handle_iface_prepare`: it asks the main device's
-            // hotplug ops to prepare, and replies with the bridge they
-            // report. No device type in this build has hotplug ops, so the
-            // reply is the empty table the C sends in that case.
+            // `netifd_handle_iface_prepare`: the same bridge preparation
+            // used by wireless, with only the bridge name in the reply.
             (ubus::Target::Interface(Some(name)), "prepare") => {
-                let _ = name;
-                let b = BlobBuf::new();
+                let name = name.to_string();
+                let fields = self.prepare_interface_bridge(&name).unwrap_or_default();
+                let mut b = BlobBuf::new();
+                if let Some((_, owrt_ubus::json::Json::Str(br))) = fields.iter().find(|(k, _)| k == "bridge") {
+                    b.msg_string("bridge", br);
+                }
                 if let Err(e) = self.conn.reply_data(&req, b.payload()) {
                     eprintln!("netifd-rs: cannot reply to prepare: {e}");
                 }
@@ -3617,6 +3668,10 @@ struct WRadio {
     autostart: bool,
     /// `handler_data[section].ifname`, reported by the handler through notify.
     ifnames: Vec<(String, String)>,
+    /// The configuration actually passed to this generation's handler.
+    handler_config: owrt_ubus::json::Json,
+    /// Dynamic bridge members owned by this radio, for teardown.
+    links: Vec<(String, String)>,
     /// `wdev.procs`: processes the handler registered. A registered process
     /// disappearing tears the radio down.
     procs: Vec<(i64, String)>,
@@ -3631,8 +3686,7 @@ impl Netifd {
         self.wradios.iter_mut().find(|r| r.name == name)
     }
 
-    /// Discover the handlers, read the config, and start every radio. Handlers
-    /// run one at a time, the way `run_handler` serialises them.
+    /// Discover the handlers, read the config, and start every radio.
     fn wireless_load(&mut self) {
         self.whandlers = wireless::discover(std::path::Path::new(&self.wirelessdir));
         self.wconfig = wireless::load(&self.confdir, &self.whandlers);
@@ -3646,6 +3700,8 @@ impl Netifd {
                 retry_setup_failed: false,
                 autostart: true,
                 ifnames: Vec::new(),
+                handler_config: owrt_ubus::json::Json::Null,
+                links: Vec::new(),
                 device_data: Vec::new(),
                 procs: Vec::new(),
             })
@@ -3699,7 +3755,10 @@ impl Netifd {
             .collect();
 
         self.wconfig = fresh;
-        self.wradios.retain(|r| self.wconfig.iter().any(|c| c.name == r.name));
+        // A deleted radio still owns a handler and bridge ports until its
+        // teardown completes. Dropping it here skips both kinds of cleanup.
+        self.wradios.retain(|r| self.wconfig.iter().any(|c| c.name == r.name)
+            || r.state != wireless::WState::Down);
         for name in &added {
             self.wradios.push(WRadio {
                 name: name.clone(),
@@ -3708,6 +3767,8 @@ impl Netifd {
                 retry_setup_failed: false,
                 autostart: true,
                 ifnames: Vec::new(),
+                handler_config: owrt_ubus::json::Json::Null,
+                links: Vec::new(),
                 device_data: Vec::new(),
                 procs: Vec::new(),
             });
@@ -3725,6 +3786,9 @@ impl Netifd {
     /// `wdev.setup()`: only from up or down, and only while the radio is
     /// allowed to start.
     fn wireless_setup(&mut self, name: &str) {
+        if self.wconfig.iter().all(|r| r.name != name) {
+            return;
+        }
         let Some(r) = self.wradio(name) else { return };
         if !matches!(r.state, wireless::WState::Up | wireless::WState::Down) {
             return;
@@ -3854,15 +3918,166 @@ impl Netifd {
         self.wireless_pump();
     }
 
+    /// `uc_netifd_interface_get_bridge` and `bridge_hotplug_prepare`.
+    /// A valid non-bridge network returns an empty object and stops the search.
+    fn prepare_interface_bridge(&mut self, network: &str) -> Option<Vec<(String, owrt_ubus::json::Json)>> {
+        use owrt_ubus::json::Json;
+        let dev = self.cfg.interfaces.iter().find(|i| i.name == network)?.device.clone()?;
+        if !self.cfg.devices.iter().any(|d| d.name == dev && d.kind.as_deref() == Some("bridge")) {
+            return Some(Vec::new());
+        }
+        if !self.prepared_bridges.contains(&dev) {
+            self.prepared_bridges.push(dev.clone());
+        }
+        if self.sys.if_index(&dev).unwrap_or(0) == 0 {
+            self.create_devices();
+        }
+        if self.sys.if_index(&dev).unwrap_or(0) == 0 {
+            return None;
+        }
+        if !self.present.contains(&dev) {
+            self.present.push(dev.clone());
+        }
+        self.device_added(&dev);
+        let mut fields = vec![
+            ("bridge".into(), Json::Str(dev.clone())),
+            ("bridge-ifname".into(), Json::Str(dev.clone())),
+        ];
+        if let Some(d) = self.devices.get(&dev) {
+            if d.settings.has(device::opt::MULTICAST_TO_UNICAST) {
+                fields.push(("multicast_to_unicast".into(), Json::Bool(d.settings.multicast_to_unicast)));
+            }
+        }
+        Some(fields)
+    }
+
+    fn wireless_prepare_vif(&mut self, vif: &mut owrt_ubus::json::Json) {
+        use owrt_ubus::json::Json;
+        let networks = vif.get("config").and_then(|c| c.get("network"))
+            .and_then(Json::as_array).unwrap_or(&[]).to_vec();
+        for net in networks.iter().filter_map(Json::as_str) {
+            let Some(fields) = self.prepare_interface_bridge(net) else { continue };
+            if let Json::Object(obj) = vif {
+                obj.extend(fields);
+            }
+            break;
+        }
+        if let Json::Object(obj) = vif {
+            if let Some((_, Json::Object(vlans))) = obj.iter_mut().find(|(k, _)| k == "vlans") {
+                for (_, vlan) in vlans {
+                    self.wireless_prepare_vif(vlan);
+                }
+            }
+        }
+    }
+
+    /// Attach interfaces only after NOTIFY_UP, using the same configuration
+    /// generation that the handler received. hostapd may already have added
+    /// the kernel port; netifd must still own its membership and settings.
+    fn wireless_mark_up(&mut self, name: &str) {
+        use owrt_ubus::json::Json;
+        let Some(r) = self.wradios.iter().find(|r| r.name == name).cloned() else { return };
+        let Some(Json::Object(vifs)) = r.handler_config.get("interfaces") else { return };
+        let mut records = Vec::new();
+        for (_, vif) in vifs {
+            records.push((vif, false));
+            if let Some(Json::Object(vlans)) = vif.get("vlans") {
+                records.extend(vlans.iter().map(|(_, v)| (v, true)));
+            }
+        }
+        for (record, vlan) in records {
+            let Some(section) = record.get("name").and_then(Json::as_str) else { continue };
+            let Some((_, port)) = r.ifnames.iter().find(|(s, _)| s == section) else { continue };
+            let Some(config) = record.get("config") else { continue };
+            let Some(networks) = config.get("network").and_then(Json::as_array) else { continue };
+            if self.sys.if_index(port).unwrap_or(0) == 0 {
+                continue;
+            }
+            if !self.device_objects.contains(port) {
+                self.device_objects.push(port.clone());
+            }
+            self.rescan_devices();
+            if let Some(d) = self.devices.get_mut(port) {
+                d.external = true;
+            }
+            for net in networks.iter().filter_map(Json::as_str) {
+                let bridge = self.cfg.interfaces.iter().find(|c| c.name == net)
+                    .and_then(|c| c.device.clone()).filter(|dev| self.cfg.devices.iter()
+                        .any(|d| d.name == *dev && d.kind.as_deref() == Some("bridge")));
+                let Some(br) = bridge else { continue };
+                self.bridge_port_add(&br, port);
+                if !self.devices.get(&br).and_then(|d| d.bridge.as_ref())
+                    .is_some_and(|b| b.members.contains(port)) {
+                    continue;
+                }
+                let ap = vlan || config.get("mode").and_then(Json::as_str) == Some("ap");
+                let flag = |key| matches!(config.get(key), Some(Json::Bool(true)));
+                let proxy = !vlan && ap && flag("proxy_arp");
+                let isolated = !vlan && ap && flag("isolate");
+                let mcast = self.devices.get(&br).is_none_or(|d|
+                    !d.settings.has(device::opt::MULTICAST_TO_UNICAST) || d.settings.multicast_to_unicast) && ap;
+                for (attr, enabled) in [
+                    ("multicast_to_unicast", mcast),
+                    ("hairpin_mode", (mcast || proxy) && !isolated),
+                    ("proxyarp_wifi", proxy),
+                    ("isolated", flag("bridge_isolate")),
+                    ("bpdu_filter", ap),
+                ] {
+                    let path = format!("/sys/class/net/{port}/brport/{attr}");
+                    if let Err(e) = std::fs::write(&path, if enabled { "1" } else { "0" }) {
+                        eprintln!("netifd-rs: cannot set {port} {attr}: {e}");
+                    }
+                }
+                if let Some(r) = self.wradio(name) {
+                    let link = (br, port.clone());
+                    if !r.links.contains(&link) {
+                        r.links.push(link);
+                    }
+                }
+            }
+        }
+        self.rescan_devices();
+        self.update_presence();
+        self.update_link_states();
+    }
+
+    fn wireless_remove_links(&mut self, name: &str) {
+        let links = self.wradio(name).map(|r| std::mem::take(&mut r.links)).unwrap_or_default();
+        for (br, port) in links {
+            let other = self.wradios.iter().any(|r| r.links.contains(&(br.clone(), port.clone())));
+            if other { continue; }
+            if let Ok(pi) = self.sys.if_index(&port) {
+                if pi != 0 { let _ = self.sys.bridge_setmaster(pi, 0); }
+            }
+            self.bridge_port_del(&br, &port);
+            self.device_release(&port);
+            self.prepared_bridges.retain(|b| *b != br);
+            if !self.device_present_now(&br) {
+                self.present.retain(|b| *b != br);
+                self.device_removed(&br);
+                let _ = self.sys.bridge_delbr(&br);
+                self.devices.remove(&br);
+            }
+        }
+        self.free_unused_devices();
+        self.rescan_devices();
+    }
+
     fn wireless_pump(&mut self) {
         if self.wcur.is_some() {
             return;
         }
         let Some((name, op)) = self.wqueue.pop_front() else { return };
-        let Some(cfg) = self.wconfig.iter().find(|r| r.name == name).cloned() else {
-            return;
+        let cfg = self.wconfig.iter().find(|r| r.name == name).cloned();
+        let kind = if op == "setup" {
+            cfg.as_ref().and_then(|c| c.kind()).map(str::to_string)
+        } else {
+            self.wradios.iter().find(|r| r.name == name)
+                .and_then(|r| r.handler_config.get("config"))
+                .and_then(|c| c.get("type")).and_then(owrt_ubus::json::Json::as_str)
+                .map(str::to_string)
         };
-        let Some(h) = cfg.kind().and_then(|k| self.whandlers.iter().find(|h| h.name == k))
+        let Some(h) = kind.and_then(|k| self.whandlers.iter().find(|h| h.name == k))
         else {
             return;
         };
@@ -3876,21 +4091,38 @@ impl Netifd {
             .parent()
             .map(|d| d.to_string_lossy().into_owned())
             .unwrap_or_default();
+        let data = self.wradios.iter().find(|r| r.name == name)
+            .filter(|r| !r.device_data.is_empty())
+            .map(|r| wireless::device_data_record(&r.name, &r.device_data))
+            .unwrap_or_else(|| "{}".to_string());
+        let mut config = if op == "setup" {
+            let Some(cfg) = cfg else { return };
+            let mut config = owrt_ubus::json::parse(&wireless::handler_json(&cfg, &self.whandlers, &data))
+                .expect("wireless projection is valid JSON");
+            if let owrt_ubus::json::Json::Object(obj) = &mut config {
+                if let Some((_, owrt_ubus::json::Json::Object(vifs))) = obj.iter_mut().find(|(k, _)| k == "interfaces") {
+                    for (_, vif) in vifs { self.wireless_prepare_vif(vif); }
+                }
+            }
+            if let Some(r) = self.wradio(&name) {
+                r.handler_config = config.clone();
+                r.ifnames.clear();
+            }
+            config
+        } else {
+            self.wradio(&name).map(|r| r.handler_config.clone()).unwrap_or(owrt_ubus::json::Json::Null)
+        };
+        if let owrt_ubus::json::Json::Object(obj) = &mut config {
+            if let Some((_, value)) = obj.iter_mut().find(|(k, _)| k == "data") {
+                *value = owrt_ubus::json::parse(&data).expect("wireless data is valid JSON");
+            }
+        }
         let argv = vec![
             format!("./{file}"),
             hname,
             op.to_string(),
             name.clone(),
-            {
-                let d = self
-                    .wradios
-                    .iter()
-                    .find(|r| r.name == name)
-                    .filter(|r| !r.device_data.is_empty())
-                    .map(|r| wireless::device_data_record(&r.name, &r.device_data))
-                    .unwrap_or_else(|| "{}".to_string());
-                wireless::handler_json(&cfg, &self.whandlers, &d)
-            },
+            config.to_compact(),
         ];
         if let Err(e) = self.wslot.start_in(&argv, &[], &dir) {
             eprintln!("netifd-rs: {name}: cannot run the wireless handler: {e}");
@@ -3927,6 +4159,7 @@ impl Netifd {
                 self.wireless_teardown(&name);
             }
         } else {
+            self.wireless_remove_links(&name);
             if let Some(r) = self.wradio(&name) {
                 r.state = wireless::WState::Down;
                 // `wdev_teardown_cb` empties handler_data wholesale, so a
@@ -3934,7 +4167,11 @@ impl Netifd {
                 r.ifnames.clear();
                 r.device_data.clear();
             }
-            self.wireless_setup(&name);
+            if self.wconfig.iter().any(|r| r.name == name) {
+                self.wireless_setup(&name);
+            } else {
+                self.wradios.retain(|r| r.name != name);
+            }
         }
         self.wireless_pump();
     }
@@ -3991,6 +4228,7 @@ impl Netifd {
                     return status::INVALID_ARGUMENT;
                 }
                 r.state = wireless::WState::Up;
+                self.wireless_mark_up(&dev);
                 status::OK
             }
             wireless::NOTIFY_SET_DATA => {
@@ -4003,7 +4241,7 @@ impl Netifd {
                             f.children()
                                 .filter_map(|c| {
                                     let v = c.as_str()?;
-                                    Some((c.name.to_string(), format!("\"{v}\"")))
+                                    Some((c.name.to_string(), owrt_ubus::json::Json::Str(v.to_string()).to_compact()))
                                 })
                                 .collect()
                         })
@@ -4013,18 +4251,17 @@ impl Netifd {
                     }
                     return status::OK;
                 };
-                let cfg = self.wconfig.iter().find(|c| c.name == dev);
-                // the notify names the interface by its key in the handler
-                // JSON ("01"), and handler_data is keyed by the section name
-                let section = key
-                    .parse::<usize>()
-                    .ok()
-                    .and_then(|n| cfg.and_then(|c| c.vifs.get(n.wrapping_sub(1))))
-                    .map(|v| v.section.clone());
+                // Resolve against the exact handler generation, including
+                // wifi-vlan records, rather than the current UCI file.
+                let record = self.wradios.iter().find(|r| r.name == dev)
+                    .and_then(|r| r.handler_config.get("interfaces"))
+                    .and_then(|v| v.get(&key));
+                let record = if let Some(vlan) = vlan {
+                    record.and_then(|v| v.get("vlans")).and_then(|v| v.get(&vlan))
+                } else { record };
+                let section = record.and_then(|v| v.get("name"))
+                    .and_then(owrt_ubus::json::Json::as_str).map(str::to_string);
                 let Some(section) = section else { return status::NOT_FOUND };
-                if vlan.is_some() {
-                    return status::OK;
-                }
                 let ifname = find("data")
                     .and_then(|f| f.children().into_iter().find(|c| c.name == "ifname"))
                     .and_then(|c| c.as_str().map(|s| s.to_string()));

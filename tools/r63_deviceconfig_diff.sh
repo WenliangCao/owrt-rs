@@ -18,13 +18,17 @@
 #
 # Usage: r63_deviceconfig_diff.sh <rootfs-files> <netifd-rs> <network-cfg> <wireless-cfg> [outdir]
 #        PORTS="lan2 lan3 lan4 wan" (default) -- dummy netdevs to create
-#        PORT_STATE=up|down|late -- up (default): ports up before the daemon;
-#          down: ports exist but stay down (the real box's LAN: no cable);
-#          late: ports appear 8 s AFTER the daemon starts (hotplug order)
+#        PORT_STATE=up|down|absent|late|late16 -- up (default): ports up before the
+#          daemon; down: LAN ports have no carrier even when claimed (no
+#          cable), WAN present/up; absent: no wired ports; late: ports appear
+#          8 s AFTER the daemon starts; late16:
+#          16 s -- the AX3000T's measured DSA registration delay (dmesg:
+#          lan2 configures at 16.3 s, netifd starts well before that)
 set -eu
 rootfs=$1; cand=$2; netcfg=$3; wlcfg=$4; out=${5:-/tmp/r63-out}
 PORTS=${PORTS:-"lan2 lan3 lan4 wan"}
 PORT_STATE=${PORT_STATE:-up}
+case "$PORT_STATE" in up|down|absent|late|late16) ;; *) echo "invalid PORT_STATE: $PORT_STATE" >&2; exit 2 ;; esac
 [ -s "$netcfg" ] || { echo "missing network config: $netcfg"; exit 2; }
 [ -s "$wlcfg" ] || { echo "missing wireless config: $wlcfg"; exit 2; }
 mkdir -p "$out"
@@ -37,6 +41,20 @@ run_one() {
 	sudo -n mkdir -p "$root/tmp/out" "$root/etc/config"
 	sudo -n cp "$netcfg" "$root/etc/config/network"
 	sudo -n cp "$wlcfg" "$root/etc/config/wireless"
+	# With no ports, an unconfigured bridge MAC is kernel-random on each
+	# side. Identify only those bridges; configured MACs remain compared.
+	sudo -n chroot "$root" /bin/sh > "$out/$tag-random-bridge-macs.txt" <<'MACS'
+. /lib/functions.sh
+bridge_mac() {
+	local name type mac
+	config_get name "$1" name
+	config_get type "$1" type
+	config_get mac "$1" macaddr
+	[ "$type" != bridge ] || [ -n "$mac" ] || echo "$name"
+}
+config_load network
+config_foreach bridge_mac device
+MACS
 
 	sudo -n tee "$root/tmp/probe.sh" >/dev/null <<'PROBE'
 set -u
@@ -89,7 +107,7 @@ BUS
 	sudo -n chmod 755 "$root/sbin/netifd-rs"
 	if [ "$tag" = c ]; then daemon=/sbin/netifd; else daemon=/sbin/netifd-rs; fi
 
-	sudo -n unshare --mount --net --fork /bin/sh -c '
+	sudo -n unshare --mount --net --pid --fork --mount-proc /bin/sh -c '
 		root=$1; daemon=$2; out=$3; tag=$4; ports=$5; pstate=${6:-up}
 		mount --make-rprivate /
 		mount -t sysfs sysfs /sys
@@ -101,6 +119,14 @@ BUS
 		trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 
 		ip link set lo up
+		if [ "$pstate" = down ]; then
+			# Keep the peers outside netifds namespace so claiming a veth
+			# cannot bring its peer up via the device-parent relationship.
+			unshare --net /bin/sh -c "echo \$\$ > \"\$1\"; exec sleep 180" sh "$root/tmp/out/peer.pid" &
+			i=0
+			while [ ! -s "$root/tmp/out/peer.pid" ] && [ "$i" -lt 5 ]; do sleep 1; i=$((i+1)); done
+			peer=$(cat "$root/tmp/out/peer.pid")
+		fi
 		mkports() {
 			n=2
 			for p in $ports; do
@@ -109,16 +135,32 @@ BUS
 				# live. A two-step add-then-set makes orig (kernel
 				# random) differ from live for a late port, which shows
 				# up as a bridge-MAC diff that never happens on device.
-				ip link add "$p" address 02:00:00:00:00:0$n type dummy
-				[ "$pstate" = down ] || ip link set "$p" up
+				if [ "$pstate" = down ] && [ "$p" != wan ]; then
+					# A dummy gains carrier when netifd brings it up.
+					# A veth with its peer down models an unplugged cable.
+					ip link add "$p" address 02:00:00:00:00:0$n type veth peer name "peer$n"
+					ip link set "peer$n" netns "$peer"
+				else
+					ip link add "$p" address 02:00:00:00:00:0$n type dummy
+					# A late port appears admin-DOWN, as a DSA user port does
+					# (dmesg: registered "(uninitialized)" at 3 s, only
+					# "configuring ... link mode" when netifd ups it at 16 s).
+					# Creating it UP made the kernel derive fe80:: from the
+					# fixture MAC before the daemon applied the configured one
+					# -- a race that went red 1 run in 3 with no ubus diff.
+					case "$pstate" in late|late16) ;; *) ip link set "$p" up ;; esac
+				fi
 				n=$((n+1))
 			done
 		}
-		[ "$pstate" = late ] || mkports
+		case "$pstate" in late|late16|absent) ;; *) mkports ;; esac
 
 		chroot "$root" /bin/sh /tmp/bus.sh
 		chroot "$root" /bin/sh -c "$daemon >/tmp/out/netifd.log 2>&1 & echo \$! > /tmp/out/netifd.pid"
-		if [ "$pstate" = late ]; then sleep 8; mkports; fi
+		case "$pstate" in
+		late) sleep 8; mkports ;;
+		late16) sleep 16; mkports ;;
+		esac
 		sleep 5
 		chroot "$root" /bin/sh /tmp/probe.sh > "$out/$tag-ubus.txt" 2>&1 || true
 		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
@@ -199,11 +241,24 @@ sys.stdout.write("".join(out))
 '
 }
 
+norm_kernel() {
+	if [ "$PORT_STATE" = absent ] && [ -s "$out/$1-random-bridge-macs.txt" ]; then
+		awk '
+		NR == FNR { random_bridge[$0] = 1; next }
+		/^N: / { name = $2; sub(/:$/, "", name); mask = random_bridge[name] }
+		mask && /link\/ether/ { sub(/link\/ether [0-9a-f:]+/, "link/ether RANDOM-BRIDGE-MAC") }
+		{ print }
+		' "$out/$1-random-bridge-macs.txt" -
+	else
+		cat
+	fi
+}
+
 fail=0
 diff -u <(mask_bridge_mac < "$out/c-ubus.txt" | norm) \
 	<(mask_bridge_mac < "$out/rs-ubus.txt" | norm) > "$out/ubus.diff" || fail=1
-diff -u <(norm < "$out/c-kernel.txt" | sort_kernel_routes) \
-	<(norm < "$out/rs-kernel.txt" | sort_kernel_routes) > "$out/kernel.diff" || fail=1
+diff -u <(norm < "$out/c-kernel.txt" | norm_kernel c | sort_kernel_routes) \
+	<(norm < "$out/rs-kernel.txt" | norm_kernel rs | sort_kernel_routes) > "$out/kernel.diff" || fail=1
 
 # a diff that compared nothing is not a pass
 for side in c rs; do

@@ -1,7 +1,7 @@
 #!/bin/bash
 # The netifd differential suite: an explicit list of cases, one verdict each.
 #
-# Usage: netifd_suite.sh <rootfs-files> <netifd-rs musl binary> [outdir] [example-dir]
+# Usage: sudo -n bash netifd_suite.sh <rootfs-files> <netifd-rs musl binary> [outdir] [example-dir]
 #        SUBSET="r52 r60"  netifd_suite.sh ...     run only these
 #
 # <example-dir> holds the musl-built `devstatus` and `ifstatus` probes that r47
@@ -13,6 +13,7 @@
 # failure, not a skip -- with every path wrong this script used to print
 # thirteen SKIPs and then `SUITE: all identical` with exit 0.
 set -u
+[ "$(id -u)" -eq 0 ] || { echo "SUITE: NOT RUN -- run with sudo; r59 needs network/mount namespaces"; exit 2; }
 rootfs=${1:-}; cand=${2:-}; out=${3:-/tmp/netifd-suite}; exdir=${4:-}
 here=$(cd "$(dirname "$0")" && pwd)
 [ -n "$exdir" ] || exdir=$(dirname "$cand")
@@ -43,6 +44,7 @@ r60_proc|r60_wireless_handler_diff.sh|netifd|MODE=proc CMDS=no
 r61|r61_badconfig_diff.sh|netifd|
 r62|r62_pd_diff.sh|netifd|
 r64|r64_lateport_diff.sh|netifd|
+r79|r79_wireless_bridge_diff.sh|netifd|
 '
 
 # Everything the run needs must exist up front. Discovering a missing rootfs

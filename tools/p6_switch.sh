@@ -17,14 +17,16 @@ set -eu
 
 ORIG=/sbin/netifd.c-orig
 CONFIRM=/etc/p6-confirm
+PENDING=/etc/p6-pending
+REVERTING=/etc/p6-reverting
 CANARY=/etc/init.d/p6-canary
 CANARY_LINK=/etc/rc.d/S99p6-canary
 
 status() {
 	echo "/sbin/netifd: $(md5sum /sbin/netifd 2>/dev/null)"
-	echo "running: $(ls -l /proc/$(pgrep netifd | head -1)/exe 2>/dev/null || echo '?')"
+	echo "running: $(ls -l /proc/$(pidof netifd | cut -d' ' -f1)/exe 2>/dev/null || echo '?')"
 	[ -e "$ORIG" ] && echo "staged: yes (original kept at $ORIG)" || echo "staged: no"
-	[ -e "$CANARY_LINK" ] && echo "canary: armed (480s)" || echo "canary: not armed"
+	[ -e "$CANARY_LINK" ] && echo "canary: armed (rollback T+900s unless explicitly confirmed)" || echo "canary: not armed"
 	[ -e "$CONFIRM" ] && echo "confirmed: yes" || echo "confirmed: no"
 }
 
@@ -37,42 +39,76 @@ stage)
 	# netlink/ubus/config work. Never start the candidate for real here --
 	# a second live netifd would fight the running one.
 	"$bin" -V 2>&1 | grep -q netifd-rs || { echo "$bin -V did not identify as netifd-rs" >&2; exit 1; }
-	rm -f "$CONFIRM"
+	rm -f "$CONFIRM" "$REVERTING"
 	cat > "$CANARY" <<'EOF'
 #!/bin/sh /etc/rc.common
-# P6 canary: if this boot runs the staged netifd-rs and nobody confirms
-# within 480 s, restore the C netifd and reboot. Self-disarms once the
-# original is gone (i.e. after its own revert or after `confirm`).
+# The rollback timer never calls ubus or waits for a diagnostic command.
+# Only an explicit confirm can keep the candidate. Radio up alone does not
+# prove a client can get a lease, resolve DNS, or forward traffic.
 START=99
+snapshot() {
+	umask 077
+	{
+		date
+		md5sum /sbin/netifd
+		echo '--- addresses'; ip addr
+		echo '--- routes'; ip route; ip -6 route
+		echo '--- interface dump'; ubus -t 3 call network.interface dump
+		echo '--- wireless'; ubus -t 3 call network.wireless status
+		echo '--- bridge ports'; ls -l /sys/class/net/br-lan/brif
+		echo '--- processes'; ps w
+		echo '--- logs'; logread 2>/dev/null | tail -80
+		echo '--- kernel'; dmesg | tail -60
+	} >> "$1" 2>&1
+	sync
+}
 start() {
-	[ -e /sbin/netifd.c-orig ] || return 0
-	[ -e /etc/p6-confirm ] && return 0
+	[ -e /sbin/netifd.c-orig ] && [ -e /etc/p6-pending ] || return 0
+	umask 077
+	D=/root/p6-evidence-$(cat /proc/sys/kernel/random/boot_id).txt
 	(
-		sleep 480
-		[ -e /etc/p6-confirm ] && exit 0
-		[ -e /sbin/netifd.c-orig ] || exit 0
-		mv /sbin/netifd.c-orig /sbin/netifd
-		rm -f /etc/rc.d/S99p6-canary
+		sleep 300
+		[ -e /etc/p6-pending ] && snapshot "$D"
+	) </dev/null >/dev/null 2>&1 &
+	(
+		sleep 900
+		# Atomic rename elects either confirm or rollback. A confirmation
+		# cannot race past the deadline and claim a reverted binary is kept.
+		mv /etc/p6-pending /etc/p6-reverting 2>/dev/null || exit 0
+		echo "UNCONFIRMED: restoring C at $(date)" >> "$D"
+		if ! mv /sbin/netifd.c-orig /sbin/netifd; then
+			echo 'RESTORE FAILED; retry on next boot' >> "$D"
+			mv /etc/p6-reverting /etc/p6-pending
+			sync
+			exit 1
+		fi
+		rm -f /etc/rc.d/S99p6-canary /etc/p6-reverting
 		sync
 		reboot
-	) &
+	) </dev/null >/dev/null 2>&1 &
 }
 EOF
 	chmod 755 "$CANARY"
 	ln -sf ../init.d/p6-canary "$CANARY_LINK"
+	(umask 077; md5sum "$bin" | cut -d' ' -f1 > "$PENDING")
 	cp "$bin" /sbin/netifd.rs-new
 	sync
 	cp -a /sbin/netifd "$ORIG"
 	sync
 	mv /sbin/netifd.rs-new /sbin/netifd
 	sync
-	echo "staged, canary armed. After reboot: verify, then '$0 confirm' WITHIN 480s."
-	echo "rescue: canary auto-reverts in ~8 min; failsafe (mesh button + lan4) uses /rom."
+	echo "staged: C is restored and the router reboots at T+900s unless confirmed."
+	echo "Evidence: /root/p6-evidence-*.txt; failsafe uses /rom."
+	echo "Confirm only after client DHCP, DNS and Internet traffic are verified."
 	status
 	;;
 confirm)
 	[ -e "$ORIG" ] || { echo "nothing staged" >&2; exit 1; }
-	touch "$CONFIRM"
+	[ -e "$PENDING" ] || { echo "not pending (already confirmed or rollback started)" >&2; exit 1; }
+	expected=$(cat "$PENDING")
+	actual=$(md5sum /sbin/netifd | cut -d' ' -f1)
+	[ "$actual" = "$expected" ] || { echo "staged binary changed; refusing confirmation" >&2; exit 1; }
+	mv "$PENDING" "$CONFIRM" || { echo "rollback already started" >&2; exit 1; }
 	rm -f "$CANARY_LINK" "$CANARY"
 	sync
 	echo "confirmed: canary disarmed, netifd-rs stays. Rollback: mv $ORIG /sbin/netifd + reboot."
@@ -80,8 +116,11 @@ confirm)
 	;;
 undo)
 	[ -e "$ORIG" ] || { echo "nothing staged" >&2; exit 1; }
+	if [ -e "$PENDING" ]; then
+		mv "$PENDING" "$REVERTING" || { echo "rollback already started" >&2; exit 1; }
+	fi
 	mv "$ORIG" /sbin/netifd
-	rm -f "$CANARY_LINK" "$CANARY" "$CONFIRM"
+	rm -f "$CANARY_LINK" "$CANARY" "$CONFIRM" "$PENDING" "$REVERTING"
 	sync
 	echo "restored the original netifd for the next boot."
 	status
