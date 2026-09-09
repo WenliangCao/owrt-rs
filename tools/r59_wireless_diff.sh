@@ -1,12 +1,11 @@
 #!/bin/sh
 # R59: network.wireless's two read methods, C against netifd-rs.
 #
-# netifd-rs does not register `network.wireless` -- it cannot bring a radio up,
-# and an object that reports radios down while they are up would be worse than
-# no object at all. What it does have is the half that decides what those
-# replies look like: the handler schema and the config projection. This
-# compares that half directly, through `netifd-rs --dump-wireless`, against the
-# C daemon's own `status` and `get_validate`.
+# Compares the projection half -- the handler schema and the config
+# projection -- through `netifd-rs --dump-wireless` against the C daemon's own
+# `status` and `get_validate`. (The live object and the handler lifecycle are
+# registered and implemented now; r60 covers the notify protocol on fixture
+# handlers, r63 runs both live daemons on the device's real config.)
 #
 # Both sides run inside a copy of the exact device rootfs, so both read the
 # same /lib/netifd/wireless/mac80211.sh and the same /etc/config/wireless.

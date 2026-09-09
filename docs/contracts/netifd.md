@@ -63,3 +63,28 @@ netifd-rs 的 `autoneg_pause` 保留这个交换并在注释里说明。
 - 路由的 `rtm_scope` 由有没有网关决定：有网关 `RT_SCOPE_UNIVERSE`，没有
   `RT_SCOPE_LINK`；删除时 `RT_SCOPE_NOWHERE` 且 `rtm_type = 0`。
   `table >= 256` 时 `rtm_table` 置 `RT_TABLE_UNSPEC` 并改用 `RTA_TABLE` 属性。
+
+## 5. network.wireless（P6）
+
+C 的 wireless 是 `netifd` 载入 `/lib/netifd/wireless/*.uc`（ucode）跑的状态机；
+netifd-rs 用 Rust 复刻同一套语义，handler 脚本仍是设备自带的 `mac80211.sh`（shell）。
+
+- **对象注册**：`network.wireless` 恒注册（up/down/retry/reconf/status/get_validate/notify），
+  监管与 daemon 两种模式都在。此前"不注册"的取舍（R59 头注）已作废——radio 生命周期已实现。
+- **配置投影**：`wifi-device`/`wifi-iface` 按 handler 的 schema（`default_attrs` + handler 声明的
+  attr/validate）投影成 blobmsg；`disabled` 走 parse_bool（UCI 接受的拼写里只有 0/1/true/false/on/off/
+  yes/no 生效，其余当未禁用）；list-where-scalar、int-typed option 的处理与 C 逐字段对齐（r59 三例）。
+- **handler 协议**（wireless-device.uc 的 wdev 状态机）：setup→notify(up/set-retry/set-ifname/
+  process-add)→teardown，一次一个串行；notify 命令 `up`/`down`/`set_retry`/`process_add`/
+  `set_data`（device_data 记录）逐条复刻；注册的进程消失即拆除 radio；retry 预算耗尽置
+  `retry_setup_failed`（r60 六变体：up/fail × cmds，flood/token/proc）。
+- **notify 面**：`up`/`down`/`retry`/`reconf` 命令，`status`/`get_validate` 读方法。
+- **reload**：`network.reload` 重读 wireless；未变的 radio 完全不动（same_config 判等，
+  等价 C 的 `is_equal(this.data,data)` 提前返回），变了的重置预算重跑，消失的销毁——
+  不重启没人问的 radio。
+- **无 phy 的失败路径**：sandbox 里没有 radio，两侧 setup 都失败并落到
+  `up=false pending=false retry_setup_failed=true`，这个一致是失败路径的验证，**不是**
+  radio 能起来的证据；后者只有设备窗口能证。
+
+差分依据：r59（投影）、r60 六变体（handler 协议）、r63（设备真 network+wireless 双侧活体 daemon，
+1881 ubus 行 + 50 kernel 行逐字节相同；换 /bin/false 作候选即判红——桥不建、静态路由缺失）。

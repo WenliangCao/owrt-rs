@@ -4039,9 +4039,10 @@ fn main() {
                 return;
             }
             // Diagnostic, not part of the daemon: print what `network.wireless`
-            // WOULD answer for this config, so a differential can compare it
-            // with the C's replies. The object itself is not registered -- see
-            // the note in wireless.rs.
+            // would answer for this config, so a differential can compare the
+            // projection alone (r59) without starting a daemon. Prints and
+            // exits before any netlink/ubus/config work, which also makes it
+            // the inert identity probe p6_switch.sh uses on the device.
             "--dump-wireless" => {
                 let dir = args.next().unwrap_or_else(|| DEFAULT_WIRELESS_DIR.to_string());
                 println!("{}", wireless::dump(&confdir, &dir));
