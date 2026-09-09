@@ -39,6 +39,13 @@ X
 	chmod 0755 "$r/tmp/rcd/K90bye"
 	rm -rf "$r/etc/rc.d"; ln -s /tmp/rcd "$r/etc/rc.d"
 
+	cat > "$r/tmp/trapper.sh" <<'X'
+#!/bin/sh
+trap 'echo got-term >> /tmp/out/term.txt; exit 0' TERM
+sleep 500 &
+wait
+X
+	chmod 0755 "$r/tmp/trapper.sh"
 	cat > "$r/tmp/drive.sh" <<'X'
 #!/bin/sh
 # Started by the inittab `null::respawn` entry. Runs the checks once; later
@@ -72,6 +79,11 @@ log "once lines after killing it: $(wc -l < /tmp/out/once.txt 2>/dev/null || ech
 log "--- objects: $(ubus list 2>/dev/null | tr '\n' ' ')"
 log "--- service list: $(ubus call service list 2>/dev/null | tr -d '\n\t ')"
 log "--- pid1 exe: $(readlink /proc/1/exe)"
+# R73 finding 1: STATE_HALT must broadcast SIGTERM before reboot(2). A
+# child that traps TERM and writes a marker is the witness; the guard bug
+# (kill(-1) swallowed) leaves no marker.
+/bin/sh /tmp/trapper.sh &
+sleep 1
 log "--- system reboot"
 ubus call system reboot >> /tmp/out/drive.txt 2>&1 || log "reboot call failed rc=$?"
 sleep 15
@@ -117,7 +129,7 @@ X
 		fi
 	' sh "$r" "$tag" > "$out/$tag-pid1.log" 2>&1 || echo "ns exit $?" >> "$out/$tag-pid1.log"
 	umount "$r/proc" "$r/dev" 2>/dev/null || true
-	for f in drive.txt rc.txt boot.log resp.txt once.txt; do
+	for f in drive.txt rc.txt boot.log resp.txt once.txt term.txt; do
 		cp "$r/tmp/out/$f" "$out/$tag-$f" 2>/dev/null || true
 	done
 done

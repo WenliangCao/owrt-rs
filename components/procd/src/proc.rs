@@ -319,7 +319,13 @@ pub fn reap_any() -> Option<(i32, i32)> {
 }
 
 pub fn signal(pid: i32, sig: i32) -> bool {
-    if pid <= 0 {
+    // pid 0 means "no child recorded" throughout this supervisor and must
+    // never turn into kill(0) -- the caller's own process group. Negative
+    // pids are REAL kill(2) semantics and go through: STATE_HALT's
+    // kill(-1, SIGTERM/SIGKILL) broadcast was swallowed by a `pid <= 0`
+    // guard here, so a reboot never signalled anything before the final
+    // reboot(2). (R73 finding 1.)
+    if pid == 0 {
         return false;
     }
     // SAFETY: kill(2) takes two scalars and touches no memory.
