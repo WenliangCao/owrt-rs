@@ -1,5 +1,7 @@
 # Benchmark：Rust 实现 vs 原 C/ucode/shell 实现（AX3000T，2026-09-03）
 
+> **2026-09-09**：完全体（九个组件全部 Rust，含 procd/ubusd/netifd）的重测在 [R82_BENCHMARK_FULL.md](R82_BENCHMARK_FULL.md)；本文保留 09-03 六组件的数据与方法。
+
 > 同一台设备、同一时刻、同样输入。一次性程序并排跑（原版在 `/rom`），daemon 用 `owrt-*-switch` 短窗口切换。
 > 脚本：`tools/bench_device_side_by_side.sh`（设备上）、`tools/bench_httpd.sh` + `tools/bench_http_client.py`（Mac 发压）、
 > `tools/bench_swap_windows.sh`（logd/rpcd 切换）。原始输出 `private/bench/`。MT7981B 双核 A53，busybox `time` 计时。

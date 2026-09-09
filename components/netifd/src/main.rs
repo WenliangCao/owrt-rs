@@ -213,9 +213,13 @@ impl Netifd {
         protodir: &str,
     ) -> io::Result<Self> {
         let events = netlink::Netlink::open(
-            netlink::grp(netlink::RTNLGRP_LINK)
-                | netlink::grp(netlink::RTNLGRP_IPV4_IFADDR)
-                | netlink::grp(netlink::RTNLGRP_IPV6_IFADDR),
+            // RTNLGRP_LINK only, as system-linux.c's rtnl_event socket: the C
+            // acts on RTM_NEWLINK/DELLINK and nothing else. Subscribing to the
+            // address groups as well made every RA lifetime refresh, lease and
+            // neighbour churn on the box wake the daemon into a full device
+            // rescan (~6 ms CPU each on the AX3000T) -- 0.7-1.6% idle CPU
+            // against the C's ~0 (R82).
+            netlink::grp(netlink::RTNLGRP_LINK),
         )?;
         events.set_nonblocking()?;
         let mut conn = Connection::connect(socket)?;
@@ -3582,7 +3586,8 @@ impl Netifd {
     /// not implemented, and pretending otherwise would half-configure.
     fn drain_netlink(&mut self) {
         match self.events.recv_events() {
-            Ok(msgs) if !msgs.is_empty() => {
+            // `cb_rtnl_event`: only link add/remove/change is a device event
+            Ok(msgs) if msgs.iter().any(|m| m.ty == sys::RTM_NEWLINK || m.ty == sys::RTM_DELLINK) => {
                 self.rescan_devices();
                 self.update_presence();
                 self.update_link_states();
