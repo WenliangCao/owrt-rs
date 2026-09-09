@@ -22,6 +22,13 @@ for tag in ${SIDES:-c rs}; do
 	chown -R 0:0 "$r/usr/share/acl.d" 2>/dev/null || true
 	mkdir -p "$r/tmp/out" "$r/tmp/rcd"
 	chmod 1777 "$r/tmp/out"
+	# The ubus user's home is /var/run/ubus (/var -> tmp). C's STATE_UBUS
+	# does a SINGLE-LEVEL mkdir(pw_dir): without /tmp/run it fails, ubusd
+	# never starts, and C stalls in the connect-retry loop -- which an
+	# earlier run of this probe misread as "stuck in STATE_EARLY".
+	# procd-rs uses create_dir_all and does not need this. Pre-create the
+	# parent so BOTH sides boot and the comparison is same-fixture.
+	mkdir -p "$r/tmp/run"
 
 	for n in S10first S20second S30third; do
 		cat > "$r/tmp/rcd/$n" <<X
@@ -123,7 +130,9 @@ X
 		mknod -m 666 "$root/dev/zero" c 1 5
 		ip link set lo up
 		if [ "$2" = c ]; then
-			exec chroot "$root" /sbin/procd
+			# -S: ulog to stderr; as PID 1 the C otherwise logs the state
+			# lines only to /dev/kmsg, which this fixture cannot read.
+			exec chroot "$root" /sbin/procd -S
 		else
 			exec chroot "$root" /sbin/procd-rs
 		fi
@@ -133,4 +142,31 @@ X
 		cp "$r/tmp/out/$f" "$out/$tag-$f" 2>/dev/null || true
 	done
 done
+
+# ---- verdict (R73 hygiene: a probe that only collects evidence cannot go
+# red on its own; this one now does). Per-side invariants first, then the
+# scrubbed drive logs must be byte-identical across sides.
+rc=0
+fail() { echo "r71: FAIL($tag): $*" >&2; rc=1; }
+for tag in ${SIDES:-c rs}; do
+	printf 'start S10first boot\nend S10first\nstart S20second boot\nend S20second\nstart S30third boot\nend S30third\nK90bye shutdown\n' > "$out/rc-want.txt"
+	cmp -s "$out/$tag-rc.txt" "$out/rc-want.txt" || fail "rc.txt is not the serial glob order + K script"
+	[ "$(cat "$out/$tag-term.txt" 2>/dev/null)" = "got-term" ] || fail "no TERM-broadcast witness"
+	[ "$(wc -l < "$out/$tag-once.txt" 2>/dev/null || echo 0)" -eq 1 ] || fail "empty-id entry did not run exactly once"
+	grep -q "resp before=1 after=2" "$out/$tag-drive.txt" 2>/dev/null || fail "respawn count did not go 1 -> 2"
+	grep -q "STILL ALIVE" "$out/$tag-drive.txt" 2>/dev/null && fail "reboot(2) did not end the namespace"
+	sed -e 's/rc-done after [0-9]*s/rc-done after Xs/' \
+	    -e 's/^diag ls:.*/diag ls: SCRUBBED/' \
+	    -e 's/^diag ps:.*/diag ps: SCRUBBED/' \
+	    -e 's/pid \[[0-9]*\]/pid [X]/' \
+	    -e 's/"pid":[0-9]*/"pid":X/g' \
+	    -e 's;pid1 exe: /sbin/procd.*;pid1 exe: /sbin/procd;' \
+	    "$out/$tag-drive.txt" > "$out/$tag-drive.scrubbed" 2>/dev/null || fail "no drive.txt"
+done
+if ! diff -u "$out/c-drive.scrubbed" "$out/rs-drive.scrubbed" > "$out/drive.diff" 2>&1; then
+	echo "r71: FAIL: scrubbed drive logs differ (see $out/drive.diff)" >&2
+	rc=1
+fi
+[ "$rc" -eq 0 ] && echo "r71: ok" || echo "r71: FAILED" >&2
 echo "pid1_probe: done -> $out"
+exit $rc

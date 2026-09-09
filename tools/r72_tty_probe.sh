@@ -57,4 +57,16 @@ container=1 timeout -s KILL 90 unshare --mount --net --pid --fork --kill-child /
 ' sh "$r" > "$out/pid1.log" 2>&1 || echo "ns exit $?" >> "$out/pid1.log"
 umount "$r/dev/ttyP0" "$r/dev/pts" "$r/proc" "$r/dev" 2>/dev/null || true
 for f in rc.txt ttymark.txt banner.txt; do cp "$r/tmp/out/$f" "$out/$f" 2>/dev/null || true; done
+
+# ---- verdict (R73 hygiene). Single-sided: the C cannot be put on this
+# fixture identically (its banner text is the assertion source, from
+# inittab.c), so the checks are the inittab.c behaviors themselves.
+rc=0
+grep -q "Please press Enter to activate this console" "$out/banner.txt" 2>/dev/null \
+	|| { echo "r72b: FAIL: no askfirst banner on the pty" >&2; rc=1; }
+grep -q "activated on /dev/" "$out/ttymark.txt" 2>/dev/null \
+	|| { echo "r72b: FAIL: Enter did not activate the command on a tty" >&2; rc=1; }
+[ -s "$out/rc.txt" ] || { echo "r72b: FAIL: rcS never ran" >&2; rc=1; }
+[ "$rc" -eq 0 ] && echo "r72b: ok" || echo "r72b: FAILED" >&2
 echo "r72b: done -> $out"
+exit $rc

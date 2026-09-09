@@ -32,13 +32,19 @@ stage)
 	[ -x "$bin" ] || { echo "not executable: $bin" >&2; exit 1; }
 	# Refuse to double-stage: the original must survive exactly once.
 	[ -e "$ORIG" ] && { echo "already staged; undo first" >&2; exit 1; }
-	# The new binary must at least answer -h argument parsing; a truncated
-	# upload execs nothing.
-	"$bin" -h /nonexistent-rules 2>/dev/null && : || [ $? -eq 1 ] || {
-		echo "$bin does not behave like procd-rs (-h probe)" >&2; exit 1; }
+	# The new binary must behave like procd: -h with unreadable rules exits
+	# EXACTLY 1 (both C and Rust do), and the binary carries the "procd"
+	# marker string. Exit-0 imposters (/bin/true) fail the first check,
+	# exit-1 imposters (/bin/false) fail the second.
+	rc=0; "$bin" -h /nonexistent-rules 2>/dev/null || rc=$?
+	[ "$rc" -eq 1 ] || { echo "$bin does not behave like procd (-h exited $rc, want 1)" >&2; exit 1; }
+	grep -q procd "$bin" || { echo "$bin has no procd marker string" >&2; exit 1; }
 	cp "$bin" /sbin/procd.rs-new
 	sync
-	mv /sbin/procd "$ORIG"
+	# Keep a window-free path to PID 1: copy the original aside, then one
+	# atomic rename. /sbin/procd exists at every instant.
+	cp -a /sbin/procd "$ORIG"
+	sync
 	mv /sbin/procd.rs-new /sbin/procd
 	sync
 	echo "staged. Next boot's PID 1 is this binary. Undo: $0 undo"

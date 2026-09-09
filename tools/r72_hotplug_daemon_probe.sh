@@ -54,4 +54,24 @@ X
 		chroot "$root" /bin/sh /tmp/go.sh "$tag"
 	' sh "$r" "$tag" > "$out/$tag.log" 2>&1 || echo "outer exit $?" >> "$out/$tag.log"
 done
+
+# ---- verdict (R73 hygiene). The two logs must agree byte-for-byte after
+# scrubbing what legitimately varies: the daemon's own stderr lines (each
+# side prints its own startup noise) and node timestamps.
+rc=0
+for tag in c rs; do
+	grep -q "action=add if=lo" "$out/$tag.log" || { echo "r72a: FAIL($tag): exec never saw the uevent env" >&2; rc=1; }
+	# No node assertion: a net uevent has no MAJOR/MINOR, so BOTH sides skip
+	# makedev (R72). The node line still goes through the cross-side diff, so
+	# one side creating it while the other skips would go red there.
+	grep -q -- "--- daemon alive: yes" "$out/$tag.log" || { echo "r72a: FAIL($tag): daemon died" >&2; rc=1; }
+	sed -n '/^--- hp.txt:/,/^--- daemon alive:/p' "$out/$tag.log" \
+		| sed -e 's/[A-Z][a-z][a-z] *[0-9]* *[0-9:]* /DATE /' > "$out/$tag.scrubbed"
+done
+if ! diff -u "$out/c.scrubbed" "$out/rs.scrubbed" > "$out/r72a.diff" 2>&1; then
+	echo "r72a: FAIL: scrubbed effect logs differ (see $out/r72a.diff)" >&2
+	rc=1
+fi
+[ "$rc" -eq 0 ] && echo "r72a: ok" || echo "r72a: FAILED" >&2
 echo "r72a: done -> $out"
+exit $rc

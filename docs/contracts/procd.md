@@ -219,8 +219,12 @@ r65 用两次 `service list` 取 pid 比过这条。
   + `queue_all`）也已实现并有单测，但**没有调用方**——它属于 PID 1（P3.2）。
 - ~~实例日志 FD 指向 /dev/null~~ **已实现**：`stdout`/`stderr` 接到 procd 读的
   管道，逐行以 `basename(argv0)[pid]` 为 ident 进 syslog（r65 第 23 例）。
-- **ubusd 重连后 watch 是否恢复**：**有意偏离**，见第 13 节。这是本合同里
-  唯一一处候选故意不等于 C 的行为。
+- **ubusd 重连后 watch 是否恢复**：**有意偏离**，见第 13 节。
+- **ubus 用户 home 的创建**（R73 审计发现的"治愈型"偏离）：STATE_UBUS 里
+  C 对 pw_dir（/var/run/ubus）做**单层 mkdir**，父目录不存在就失败——设备
+  上被 preinit 预建的 /var/run 掩盖，从不出错；procd-rs 用 create_dir_all
+  建出整条链，所以在 C 起不来的环境（如无 /tmp/run 的命名空间 fixture）里
+  也能走通。方向是候选更能自愈，无回归风险，保留不改。
 - **PID 1 状态机与 inittab 已实现**（R71，隔离命名空间内完整启动+关机已验）：
   EARLY→UBUS→INIT→RUNNING、早期 ubus 服务、rcS 串行、respawn/askfirst/
   askconsole、SHUTDOWN/HALT。**hotplug/coldplug 已实现**（uevent 监听 +
