@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # R52: a real DHCP exchange through proto-shell, against the C netifd.
 #
 # This is the end-to-end test of the whole proto-shell path: netifd runs

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # R57: what happens to netifd when ubusd goes away and comes back.
 #
 # The plan's §2.3 asks for it, and the C answers clearly:

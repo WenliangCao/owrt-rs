@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # R53: the fault cases the plan's §2.3 asks for, against the C netifd.
 #
 # All four run against one live `proto dhcp` interface with a real udhcpd on

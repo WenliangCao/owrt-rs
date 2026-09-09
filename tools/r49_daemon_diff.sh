@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # R49: netifd-rs as a daemon against the device's own C netifd.
 #
 # Two runs, each in its own mount+network namespace with its own copy of the

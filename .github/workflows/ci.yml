@@ -25,7 +25,7 @@ jobs:
             ~/.cargo/git
             components/*/target
           key: cargo-${{ runner.os }}-${{ steps.rust.outputs.channel }}-${{ hashFiles('components/*/Cargo.lock') }}
-      - run: make check-tools
+      - run: make test
       - run: make check-toolchain
       - run: make check-toolchain-negative
-      - run: make test
+      - run: make check-tools

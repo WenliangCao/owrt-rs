@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # R51: the event stream, from both daemons.
 #
 # Three separate channels, all of which a live system depends on:

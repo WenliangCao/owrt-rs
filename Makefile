@@ -54,7 +54,10 @@ check-abi:
 	@sh tools/check_abi.sh
 
 check-tools:
-	@for f in tools/*.sh; do sh -n "$$f" || exit 1; done
+	@# bash scripts (`<<<`, `<( )`) must be checked with bash: CI's sh is dash
+	@for f in tools/*.sh; do \
+		if head -1 "$$f" | grep -q bash; then bash -n "$$f" || exit 1; else sh -n "$$f" || exit 1; fi; \
+	done
 	@python3 -m py_compile tools/*.py
 	@echo "tools: syntax ok"
 

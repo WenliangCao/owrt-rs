@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # R50: several hundred ifdown/ifup cycles against each daemon, then check that
 # nothing grew and that the final state still matches the reference.
 #
