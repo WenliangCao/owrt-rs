@@ -72,18 +72,23 @@ fn die(quiet: bool, msg: &str) -> ! {
     std::process::exit(1);
 }
 
+/// Exit code of the ucode interpreter when an uncaught exception aborts
+/// `main.uc`; the shell `/sbin/fw4` propagates it through `set -o pipefail`.
+const UCODE_ABORT: i32 = 254;
+
 /// `ACTION=start|print`: render the ruleset; with `use_statefile` also write
-/// the state file like ucode's `load(true)`.
-fn render(quiet: bool, use_statefile: bool) -> String {
+/// the state file like ucode's `load(true)`.  `None` is ucode aborting inside
+/// `load()` — nothing is rendered and no state file is written.
+fn render(quiet: bool, use_statefile: bool) -> Option<String> {
     let mut fw = new_fw4(quiet);
-    fw.load();
+    fw.load().ok()?;
     if use_statefile {
         let json = statefile::to_json(&fw.state).to_compact();
         if !fw.inputs.write_file(STATEFILE, &json) {
             fw.raw_warn(&format!("Unable to write '{STATEFILE}': Permission denied\n"));
         }
     }
-    fw.render_ruleset()
+    Some(fw.render_ruleset())
 }
 
 /// Feed `ruleset` to `nft [-e] [-c] -f -`; returns the exit code.
@@ -296,7 +301,7 @@ fn start(quiet: bool, verbose: bool, mode: &str) -> i32 {
         }
         _ => {}
     }
-    let ruleset = render(quiet, true);
+    let Some(ruleset) = render(quiet, true) else { return UCODE_ABORT };
     nft_load(&ruleset, verbose, false, false);
     run_includes(quiet)
 }
@@ -352,7 +357,11 @@ fn main() {
         "stop" => stop(),
         "flush" => flush(),
         "restart" => {
-            let ruleset = render(true, false);
+            // the shell runs `QUIET=1 print` in a pipeline, so an abort there
+            // reaches `die` just like a ruleset nft rejects.
+            let Some(ruleset) = render(true, false) else {
+                die(quiet, "The rendered ruleset contains errors, not doing firewall restart.")
+            };
             if nft_load(&ruleset, verbose, true, false) != 0 {
                 die(quiet, "The rendered ruleset contains errors, not doing firewall restart.");
             }
@@ -360,7 +369,7 @@ fn main() {
             start(quiet, verbose, "")
         }
         "check" => {
-            let ruleset = render(quiet, false);
+            let Some(ruleset) = render(quiet, false) else { std::process::exit(UCODE_ABORT) };
             let rc = nft_load(&ruleset, verbose, true, quiet);
             if rc == 0 && !quiet {
                 println!("Ruleset passes nftables check.");
@@ -368,7 +377,7 @@ fn main() {
             rc
         }
         "print" => {
-            let out = render(quiet, false);
+            let Some(out) = render(quiet, false) else { std::process::exit(UCODE_ABORT) };
             let _ = std::io::stdout().write_all(out.as_bytes());
             0
         }

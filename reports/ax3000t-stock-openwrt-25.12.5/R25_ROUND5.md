@@ -45,6 +45,8 @@ C 端读取这些文件用 fgets/getspnam/getpwnam，逐字节处理；Rust 用 
 
 ### 3.1 fw4：找到的差异与 ucode 的崩溃
 
+> **更正（R83，2026-09-09）**：末段"fw4-rs 按 ucode 自己的默认值继续"对 `config defaults` 不成立——当时的代码落到全 None 的 `Defaults` 并渲染 `policy null;`（nft 拒绝，同样无防火墙）；现已按 ucode 改为退 254 且不输出规则集，`config include` 的同类问题（`fw4.uc:3220`）一并修掉，见 `R83_parts/fw4.md`。
+
 - **真 bug（panic=abort → 无防火墙）**：非 ASCII 的选项值让 fw4-rs 在按字节下标切 `&str` 时崩溃——`parse_num_str` 的
   `&body[..2]`（进制前缀检测，`start_date '名字'` 等任何走数字转换的值）、`parse_date` 的 `split_at(4)`、以及 `parse_v4/parse_v6`
   的分组切片。ucode 只是打印 "specifies invalid value '名字'" 并跳过该 section。三处改为字节级判断 / `is_ascii()` 前置守卫；

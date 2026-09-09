@@ -321,10 +321,15 @@ impl Fw4 {
 
     // ------------------------------------------------------------ defaults
 
-    pub fn parse_defaults(&mut self, data: &Json) {
+    /// `Err` is ucode aborting: `parse_options()` returns `false` and
+    /// `fw4.uc:1978` dereferences it ("Reference error: left-hand side
+    /// expression is not an array or object"), so the interpreter exits 254
+    /// without rendering anything.  Verified against the upstream ucode fw4,
+    /// see `tools/r83_fw4_defaults.sh` / R83.
+    pub fn parse_defaults(&mut self, data: &Json) -> Result<(), ()> {
         if self.state.defaults.is_some() {
             self.warn_section(data, ": ignoring duplicate defaults section");
-            return;
+            return Ok(());
         }
         let parsed = {
             let mut o = Opts::new(self, data);
@@ -363,7 +368,8 @@ impl Fw4 {
             }
             r
         };
-        self.state.defaults = Some(parsed.unwrap_or_default());
+        self.state.defaults = Some(parsed?);
+        Ok(())
     }
 
     // ------------------------------------------------------------ zone
@@ -1810,7 +1816,12 @@ impl Fw4 {
 
     // ------------------------------------------------------------ include
 
-    pub fn parse_include(&mut self, data: &Json) {
+    /// `Err` is ucode aborting, exactly like `parse_defaults`: a failed
+    /// `parse_options()` returns `false` and `fw4.uc:3220` dereferences it
+    /// (`if (!inc.enabled)`), so the interpreter exits 254 without rendering
+    /// anything.  Verified against the upstream ucode fw4, see
+    /// `tools/r83_fw4_defaults.sh` / R83.
+    pub fn parse_include(&mut self, data: &Json) -> Result<(), ()> {
         let compat_default = Json::Bool(!loose_eq_str(data.get("path").unwrap_or(&Json::Null), "/etc/firewall.user"));
         let parsed = {
             let mut o = Opts::new(self, data);
@@ -1830,28 +1841,24 @@ impl Fw4 {
             }
             r
         };
-        // no `=== false` check upstream: a failed parse falls into the disabled branch
-        let Ok((enabled, path, ty, fw4_compatible, position, mut chain)) = parsed else {
-            self.warn_section(data, "is disabled, ignoring section");
-            return;
-        };
+        let (enabled, path, ty, fw4_compatible, position, mut chain) = parsed?;
         if !enabled {
             self.warn_section(data, "is disabled, ignoring section");
-            return;
+            return Ok(());
         }
         if ty == "script" && !fw4_compatible {
             self.warn_section(data, "is not marked as compatible with fw4, ignoring section");
             self.warn_section(data, "requires 'option fw4_compatible 1' to be considered compatible");
-            return;
+            return Ok(());
         }
         if ty != "nftables" {
             if chain.is_some() {
                 self.warn_section(data, "must not specify 'chain' for non-nftables includes, ignoring section");
-                return;
+                return Ok(());
             }
             if position.is_some() {
                 self.warn_section(data, "must not specify 'position' for non-nftables includes, ignoring section");
-                return;
+                return Ok(());
             }
         }
         let position = position.unwrap_or_else(|| "table-append".into());
@@ -1865,7 +1872,7 @@ impl Fw4 {
             "chain-prepend" | "chain-append" => {
                 if chain.is_none() {
                     self.warn_section(data, &format!("must specify 'chain' for position {position}, ignoring section"));
-                    return;
+                    return Ok(());
                 }
             }
             _ => {}
@@ -1873,12 +1880,13 @@ impl Fw4 {
         let real = self.inputs.readlink_or_self(&path);
         if !self.inputs.access(&real) {
             self.warn_section(data, &format!("specifies unreachable path '{real}', ignoring section"));
-            return;
+            return Ok(());
         }
         if data.get(".name").map(truthy) != Some(true) {
             self.warn(&format!("Automatically including '{real}'"));
         }
         self.state.includes.push(Include { enabled, path: real, ty, fw4_compatible, position, chain });
+        Ok(())
     }
 
     // ------------------------------------------------------------ ipset
@@ -2151,7 +2159,9 @@ impl Fw4 {
     }
 
     /// fw4.uc `load()` without the statefile shortcut: always reads ubus.
-    pub fn load(&mut self) {
+    /// `Err` propagates ucode's abort out of `parse_defaults`; nothing is
+    /// rendered and no state file is written.
+    pub fn load(&mut self) -> Result<(), ()> {
         self.firewall = self.inputs.uci_load("firewall");
         self.helpers_cfg = self.inputs.uci_load("/usr/share/firewall4/helpers");
         self.read_ubus();
@@ -2161,10 +2171,10 @@ impl Fw4 {
             self.parse_helper(&h);
         }
         for d in self.firewall.of_type("defaults").cloned().collect::<Vec<_>>() {
-            self.parse_defaults(&d);
+            self.parse_defaults(&d)?;
         }
         if self.state.defaults.is_none() {
-            self.parse_defaults(&Json::Object(vec![]));
+            self.parse_defaults(&Json::Object(vec![]))?;
         }
         for r in self.ubus_rules_of("ipset") {
             self.parse_ipset(&r);
@@ -2197,7 +2207,7 @@ impl Fw4 {
             self.parse_nat(&x);
         }
         for x in self.firewall.of_type("include").cloned().collect::<Vec<_>>() {
-            self.parse_include(&x);
+            self.parse_include(&x)?;
         }
         if self.defaults().auto_includes.unwrap_or(false) {
             for position in ["ruleset-pre", "ruleset-post", "table-pre", "table-post", "chain-pre", "chain-post"] {
@@ -2219,11 +2229,99 @@ impl Fw4 {
                                 ("chain".into(), chain.clone().map(Json::Str).unwrap_or(Json::Null)),
                                 ("path".into(), Json::Str(path)),
                             ]);
-                            self.parse_include(&obj);
+                            self.parse_include(&obj)?;
                         }
                     }
                 }
             }
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::input::Inputs;
+    use crate::state::State;
+    use crate::uci::Config;
+
+    const ZONE: &str = r#""zone":[{"name":"lan","device":"br-lan","input":"ACCEPT","output":"ACCEPT","forward":"ACCEPT"}]"#;
+
+    /// `load()` reads its config back through `Inputs`, so the fixture goes to
+    /// a mock dir in the upstream test-suite layout.
+    fn fw(tag: &str, cfg: &str) -> Fw4 {
+        let dir = std::env::temp_dir().join(format!("fw4rs-defaults-{tag}"));
+        std::fs::create_dir_all(dir.join("uci")).unwrap();
+        std::fs::write(dir.join("uci/firewall.json"), cfg).unwrap();
+        Fw4 {
+            inputs: Inputs::mock(vec![dir.to_str().unwrap().to_owned()], false),
+            firewall: Config::empty(),
+            helpers_cfg: Config::empty(),
+            state: State::default(),
+            kernel: 0,
+            quiet: true,
+            tty: false,
+        }
+    }
+
+    /// R83/F17: an invalid option in `config defaults` aborts the load, exactly
+    /// like the ucode `parse_options()` -> `false` -> `fw4.uc:1978` reference
+    /// error that makes utpl exit 254 with an empty ruleset.  It must never
+    /// fall through to an all-`None` `Defaults`, which renders `policy null;`.
+    #[test]
+    fn defaults_invalid_option_aborts() {
+        for (tag, bad) in [
+            ("policy", r#""input":"ACEPT""#),
+            ("bool", r#""drop_invalid":"notabool""#),
+            ("list", r#""input":["ACCEPT","REJECT"]"#),
+            ("limit", r#""synflood_rate":"25/fortnight""#),
+        ] {
+            let mut fw = fw(tag, &format!(r#"{{"defaults":{{{bad},"output":"ACCEPT"}},{ZONE}}}"#));
+            assert_eq!(fw.load(), Err(()), "expected an abort for {bad}");
+            assert!(fw.state.defaults.is_none(), "{bad} stored a Defaults anyway");
+        }
+    }
+
+    /// R83: `config include` is the same failure class one section type over
+    /// (`fw4.uc:3220`), and must abort too instead of degrading to the
+    /// "is disabled, ignoring section" branch and rendering on.
+    #[test]
+    fn include_invalid_option_aborts() {
+        let inc = |body: &str| format!(r#"{{{ZONE},"include":[{{{body}}}]}}"#);
+        for (tag, bad) in [
+            ("iposition", r#""path":"/etc/x.nft","type":"nftables","position":"BOGUS""#),
+            ("itype", r#""path":"/etc/x.nft","type":"yes""#),
+            ("ibool", r#""path":"/etc/x.nft","type":"nftables","enabled":"maybe""#),
+            ("ipath", r#""type":"nftables""#), // REQUIRED but not set
+        ] {
+            let mut fw = fw(tag, &inc(bad));
+            assert_eq!(fw.load(), Err(()), "expected an abort for {bad}");
+            assert!(fw.state.includes.is_empty(), "{bad} kept an include anyway");
+        }
+        // `enabled 0` is one of ucode's own "ignoring section" paths, not an abort
+        let mut fw = fw("idisabled", &inc(r#""path":"/etc/x.nft","type":"nftables","enabled":"0""#));
+        assert_eq!(fw.load(), Ok(()));
+        assert!(fw.state.includes.is_empty());
+    }
+
+    /// The other half: what fw4 accepts still loads, and neither a real
+    /// `defaults` section nor a missing one renders the `null` policy the F17
+    /// fall-through produced.
+    #[test]
+    fn defaults_valid_and_missing_render_real_policies() {
+        for (tag, cfg) in [
+            ("ok", format!(r#"{{"defaults":{{"input":"REJECT","output":"ACCEPT","forward":"REJECT","syn_flood":"1"}},{ZONE}}}"#)),
+            ("none", format!(r#"{{{ZONE}}}"#)), // no defaults section -> parse_defaults({})
+        ] {
+            let mut fw = fw(tag, &cfg);
+            assert_eq!(fw.load(), Ok(()));
+            assert!(fw.state.defaults.is_some());
+            let out = fw.render_ruleset();
+            assert!(!out.contains("policy null"), "rendered `policy null;`:\n{out}");
+            assert!(!out.contains("icmpx type  "), "rendered an empty reject code:\n{out}");
+            assert!(out.contains("type filter hook input priority filter; policy drop;"), "{out}");
+            assert!(out.contains("reject with icmpx type port-unreachable"), "{out}");
         }
     }
 }

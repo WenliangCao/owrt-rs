@@ -4,7 +4,10 @@
 Both implementations run against the upstream test mocks (tests/mocks) with a
 mutated `uci/firewall.json` placed in a per-case override directory, exactly
 the way run_tests.sh layers `-- File --` sections over the mocks. Every case
-compares stdout, stderr and the exit code of `fw4 print`.
+compares stdout, stderr and the exit code of `fw4 print`.  Cases where fw4.uc
+itself throws (a bad `defaults`/`include` option, see R83) are compared on the
+exit code and stdout only -- fw4-rs aborts the same way but does not fabricate
+ucode's interpreter backtrace on stderr.
 
 Mutations: option values replaced by malformed / boundary values (ports, IPs,
 CIDRs, MACs, protocols, targets, families, booleans, numbers), options and
@@ -114,9 +117,11 @@ def mutate(cfg, rng):
 # mocklib prints these (in blue) when a mutated path hits an unmocked fs call; the
 # Rust mock layer answers "absent" silently. Harness noise, not fw4 behaviour.
 FIXTURE_NOTICE = re.compile(r"\x1b\[34;1m\[!\] No stdout fixture defined for .*?\x1b\[0m\n(\x1b\[34;1m\[!\] Provide a mock output through the following text file:\n.*?\x1b\[0m\n)?", re.S)
-# an ucode runtime exception (fw4.uc dereferencing a skipped `defaults`/`include`
-# section) is an upstream crash, not a fw4 result; fw4-rs deliberately degrades
-# to the ucode defaults instead of aborting (DEVIATION, see R09)
+# an ucode runtime exception: fw4.uc dereferences the `false` that
+# `parse_options()` returns for a bad `defaults` (fw4.uc:1978) or `include`
+# (fw4.uc:3220) option and exits 254 with no ruleset. Since R83 fw4-rs aborts
+# the same way, so these cases are compared -- on the exit code and stdout,
+# without ucode's interpreter backtrace, which the crate does not fabricate.
 UCODE_CRASH = re.compile(r"^(Reference|Type|Syntax) error: .*\nIn ", re.M)
 
 
@@ -164,9 +169,13 @@ def main():
             u, r, crashed = run_case(src, binary, ucode, files, tmp)
             if crashed:
                 crashes += 1
-                if keep:
-                    os.makedirs(keep, exist_ok=True)
-                    shutil.copy(os.path.join(files, "uci", "firewall.json"), os.path.join(keep, "crash%04d.json" % k))
+                if (u[0], u[1]) != (r[0], r[1]):
+                    bad += 1
+                    print("CRASHDIFF case%04d: exit %d vs %d, stdout %dB vs %dB"
+                          % (k, u[0], r[0], len(u[1]), len(r[1])))
+                    if keep:
+                        os.makedirs(keep, exist_ok=True)
+                        shutil.copy(os.path.join(files, "uci", "firewall.json"), os.path.join(keep, "crash%04d.json" % k))
                 shutil.rmtree(files)
                 continue
             if u == r:
