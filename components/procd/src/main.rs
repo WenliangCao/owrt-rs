@@ -18,6 +18,7 @@ mod proc;
 mod rcs;
 mod service;
 mod sysobj;
+mod sysupgrade;
 mod watchdog;
 mod trigger;
 mod sys;
@@ -992,9 +993,142 @@ impl Procd {
                 proc::signal(pid as i32, signum as i32);
                 status::OK
             }
+            (Target::System, "validate_firmware_image") => {
+                let mut path = None;
+                for f in owrt_ubus::blob::fields(&req.data) {
+                    if f.name == "path" {
+                        path = f.as_str().map(str::to_string);
+                    }
+                }
+                match path {
+                    None => status::INVALID_ARGUMENT,
+                    Some(p) => match sysupgrade::validate_call(&p) {
+                        Ok(payload) => {
+                            let _ = self.conn.reply_data(&req, &payload);
+                            status::OK
+                        }
+                        // The C only returns the status here; the error text
+                        // is a sysupgrade-reply thing.
+                        Err(_) => status::UNKNOWN_ERROR,
+                    },
+                }
+            }
+            (Target::System, "sysupgrade") => self.handle_sysupgrade(&req),
             _ => status::NOT_SUPPORTED,
         };
         let _ = self.conn.reply_status(&req, code, None);
+    }
+
+    /// `sysupgrade_error()`: the reply is a table {"error": {"message": m}}.
+    fn sysupgrade_error(&mut self, req: &Request, message: &str) {
+        let mut b = BlobBuf::new();
+        let t = b.msg_open_table("error");
+        b.msg_string("message", message);
+        b.msg_close(t);
+        let _ = self.conn.reply_data(req, b.payload());
+    }
+
+    /// `sysupgrade()` (system.c). On the success path exec_upgraded replaces
+    /// this process and nothing returns; every other path answers a status
+    /// (with an error table for everything past argument validation).
+    fn handle_sysupgrade(&mut self, req: &Request) -> i32 {
+        use owrt_ubus::msg::status;
+        let (mut path, mut prefix, mut backup, mut command) = (None, None, None, None);
+        let mut force = false;
+        let mut options: Vec<(String, String)> = Vec::new();
+        for f in owrt_ubus::blob::fields(&req.data) {
+            match f.name {
+                "path" => path = f.as_str().map(str::to_string),
+                "prefix" => prefix = f.as_str().map(str::to_string),
+                "backup" => backup = f.as_str().map(str::to_string),
+                "command" => command = f.as_str().map(str::to_string),
+                "force" => force = f.as_bool().unwrap_or(false),
+                "options" => {
+                    for c in f.children() {
+                        options.extend(sysupgrade::option_env(c.name, c.ty, c.data));
+                    }
+                }
+                _ => {}
+            }
+        }
+        let (Some(path), Some(prefix)) = (path, prefix) else {
+            return status::INVALID_ARGUMENT;
+        };
+
+        let payload = match sysupgrade::validate_call(&path) {
+            Ok(p) => p,
+            Err(msg) => {
+                self.sysupgrade_error(req, &msg);
+                return status::UNKNOWN_ERROR;
+            }
+        };
+        // blobmsg_parse with a BOOL policy: only bool-typed fields count.
+        let (mut valid, mut forceable, mut allow_backup) = (None, None, None);
+        for f in owrt_ubus::blob::fields(&payload) {
+            match f.name {
+                "valid" => valid = f.as_bool(),
+                "forceable" => forceable = f.as_bool(),
+                "allow_backup" => allow_backup = f.as_bool(),
+                _ => {}
+            }
+        }
+        let (Some(valid), Some(forceable), Some(allow_backup)) = (valid, forceable, allow_backup)
+        else {
+            self.sysupgrade_error(req, "Validation script provided invalid input");
+            return status::INVALID_ARGUMENT;
+        };
+        if !valid {
+            if !forceable {
+                self.sysupgrade_error(req, "Firmware image is broken and cannot be installed");
+                return status::NOT_SUPPORTED;
+            } else if !force {
+                self.sysupgrade_error(req, "Firmware image is invalid");
+                return status::NOT_SUPPORTED;
+            }
+        } else if !allow_backup && backup.is_some() {
+            self.sysupgrade_error(req, "Firmware image doesn't allow preserving a backup");
+            return status::NOT_SUPPORTED;
+        }
+
+        self.service_stop_all();
+        sysupgrade::exec_upgraded(
+            &prefix,
+            &path,
+            backup.as_deref(),
+            command.as_deref(),
+            &options,
+            &mut self.wdt,
+        );
+        // exec_upgraded only returns on failure.
+        status::UNKNOWN_ERROR
+    }
+
+    /// `service_stop_all()`: halt every instance, kill the inittab children
+    /// with respawn disabled, and give the stopping instances their longest
+    /// term_timeout before the exec that follows.
+    fn service_stop_all(&mut self) {
+        let mut term: u32 = 0;
+        let pairs: Vec<(String, String)> = self
+            .services
+            .iter()
+            .flat_map(|(s, svc)| svc.instances.keys().map(move |i| (s.clone(), i.clone())))
+            .collect();
+        for (s, i) in &pairs {
+            if let Some(inst) = self.services.get(s).and_then(|v| v.instances.get(i)) {
+                term = term.max(inst.term_timeout);
+            }
+            self.instance_stop(s, i, true);
+        }
+        // procd_inittab_kill(): respawn off, SIGKILL what runs.
+        for a in &mut self.inittab {
+            a.respawn_at = None;
+            a.respawn_ms = -1;
+            if let Some(pid) = a.pid {
+                proc::signal(pid, proc::SIGKILL);
+            }
+        }
+        // The C sleeps synchronously here; the exec follows immediately.
+        std::thread::sleep(std::time::Duration::from_secs(term as u64));
     }
 
     /// `service_handle_set()`. `add` merges into the existing instance set;

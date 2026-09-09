@@ -769,6 +769,17 @@ call service list '{"name":"fv4"}'
 call service list '{"name":"fv5"}'
 call service list '{"name":"fv6"}'
 
+printf -- '--- F21: validate_firmware_image and the safe sysupgrade error paths (P4)\n'
+# The rootfs ships /usr/libexec/validate_firmware_image; on a garbage file it
+# deterministically answers valid:false forceable:true allow_backup:true.
+# sysupgrade with that image and no force stops at "Firmware image is
+# invalid" -- an error reply plus NOT_SUPPORTED, safely BEFORE the exec.
+echo garbage-not-firmware > /tmp/fake-fw.bin
+call system validate_firmware_image '{"path":"/tmp/fake-fw.bin"}'
+callx system validate_firmware_image '{}'
+callx system sysupgrade '{"path":"/tmp/fake-fw.bin"}'
+callx system sysupgrade '{"path":"/tmp/fake-fw.bin","prefix":"/"}'
+
 printf -- '--- F16: the watchdog timer must actually act\n'
 call service set '{"name":"fw","instances":{"one":{"command":["/bin/sleep","300"]}}}'
 sleep 1
@@ -1110,7 +1121,7 @@ done
 # of case markers. Measured, not guessed -- and re-measured when cases are
 # added, because the floor must sit ABOVE the self-test's truncation point or
 # the injection goes red for an unrelated reason instead of this one: a full
-# run currently emits 267 markers (v14, F15b added) and the F13-truncated
+# run currently emits 272 markers (v15, F21 added) and the F13-truncated
 # run 199, so 225.
 for t in c rs; do
 	m=$(grep -c '^--- ' "$out/$t-calls.txt" 2>/dev/null || true); [ -n "$m" ] || m=0

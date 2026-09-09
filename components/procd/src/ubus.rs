@@ -141,9 +141,9 @@ pub enum Target {
 
 /// `system_object` methods, in order (`system.c:845`).
 ///
-/// `sysupgrade` and `validate_firmware_image` are registered with their real
-/// signatures and refuse: this project does not flash the device, and a
-/// silently-succeeding sysupgrade would be the worst possible failure mode.
+/// `sysupgrade` and `validate_firmware_image` are implemented since P4
+/// (sysupgrade.rs); a real sysupgrade call validates, stops everything and
+/// execs /sbin/upgraded, exactly like the C.
 pub const SYSTEM_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("board", &[]),
     ("info", &[]),

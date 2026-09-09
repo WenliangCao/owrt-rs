@@ -175,6 +175,24 @@ impl Wdt {
     pub fn is_open(&self) -> bool {
         self.fd.is_some()
     }
+
+    /// `watchdog_fd()` proper: the raw fd number for the WDTFD handover.
+    pub fn handover_fd(&self) -> Option<i32> {
+        self.fd.as_ref().map(|_| self.raw_fd())
+    }
+
+    /// `watchdog_set_cloexec()`: upgraded must inherit the fd.
+    pub fn set_cloexec(&mut self, val: bool) {
+        if self.fd.is_none() {
+            return;
+        }
+        // SAFETY: fd flag ops on a live fd.
+        unsafe {
+            let flags = fcntl(self.raw_fd(), F_GETFD, 0);
+            let flags = if val { flags | FD_CLOEXEC } else { flags & !FD_CLOEXEC };
+            fcntl(self.raw_fd(), F_SETFD, flags);
+        }
+    }
 }
 
 #[cfg(test)]

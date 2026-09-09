@@ -246,8 +246,19 @@ r65 用两次 `service list` 取 pid 比过这条。
   差分（26b 例）：board 逐字节比、info 比形状、watchdog 的钳制算术
   （frequency ≤ timeout/2，timeout ≤ frequency 时翻倍）、signal 的
   INVALID_ARGUMENT 与忽略 kill() 结果，都与发货 procd 一致。
-- **`sysupgrade` / `validate_firmware_image`** 按真实签名注册并**拒绝**。
-  本项目不刷设备，而一个静默成功的 sysupgrade 是能想到的最坏失败模式。
+- ~~`sysupgrade` / `validate_firmware_image` 拒绝~~ **已实现**（P4，
+  sysupgrade.rs）：validate 是 fork/exec 校验脚本 + "首个完整 JSON 对象
+  获胜、尾随忽略"的 vjson 语义（脚本缺失/exec 失败 = "no JSON input"，
+  与 C 的空管道一致）；sysupgrade 走三布尔门（valid/forceable/
+  allow_backup 必须齐且为 bool 型）→ 与 C 逐字节相同的错误应答表 →
+  service_stop_all（term_timeout 上限睡眠 + inittab kill）→ chroot(prefix)
+  + WDTFD 移交 + UPGRADE_BACKUP/UPGRADE_OPT_*（名字大写、非 [A-Za-z0-9_]
+  整项丢弃、仅整数值）→ execvp /sbin/upgraded 替换本进程。exec 失败按 C
+  清理（unsetenv/cloexec/chroot(".")）并回 UNKNOWN_ERROR 无错误表。
+  差分：r65 F21（安全错误路径，含 validate 全 JSON 回显字节比）+
+  r75（双侧 ns 内真 exec 移交：argv/PID1/环境逐字节比）。**已知文本偏离**：
+  JSON 解析器的错误消息细节（"failed to parse JSON: ..."）来自各自解析器，
+  仅在校验脚本输出损坏 JSON 时可见。
 
 ## 13. ubusd 断线与重连（R70 坐实）
 
