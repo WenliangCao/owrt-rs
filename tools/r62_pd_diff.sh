@@ -54,6 +54,8 @@ run() {
 	  mount -t proc proc "$m/proc" 2>/dev/null || true
 	  mount --rbind /sys "$m/sys" 2>/dev/null || true
 	  mount -t tmpfs tmp "$m/tmp"; mkdir -p "$m/var/run"
+	  mount -t tmpfs -o mode=0755 d "$m/dev" 2>/dev/null || true
+	  mknod -m 666 "$m/dev/null" c 1 3 2>/dev/null || true
 	  ip link set lo up
 	  ip link add veth0 type veth peer name veth1; ip link set veth0 up; ip link set veth1 up
 	  ip link add veth2 type veth peer name veth3; ip link set veth2 up; ip link set veth3 up

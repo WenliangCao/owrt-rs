@@ -102,6 +102,8 @@ run_c() {
 	  mount -t proc proc "$m/proc" 2>/dev/null || true
 	  mount --rbind /sys "$m/sys" 2>/dev/null || true
 	  mount -t tmpfs t "$m/tmp"; mkdir -p "$m/var/run"
+	  mount -t tmpfs -o mode=0755 d "$m/dev" 2>/dev/null || true
+	  mknod -m 666 "$m/dev/null" c 1 3 2>/dev/null || true
 	  ip link set lo up
 	  chroot "$m" /sbin/ubusd & u=$!
 	  sleep 1
@@ -125,6 +127,8 @@ run_rs() {
 	  mount --bind "$m" "$m"; mount --make-private "$m"
 	  mount -t proc proc "$m/proc" 2>/dev/null || true
 	  mount -t tmpfs t "$m/tmp"
+	  mount -t tmpfs -o mode=0755 d "$m/dev" 2>/dev/null || true
+	  mknod -m 666 "$m/dev/null" c 1 3 2>/dev/null || true
 	  chroot "$m" /sbin/netifd-rs --dump-wireless > "$o.raw" 2>&1 || echo '"'"'{}'"'"' > "$o.raw"
 	' sh "$w" "$1"
 	rm -rf "$w"
