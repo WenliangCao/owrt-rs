@@ -21,6 +21,9 @@ Mac 有线口设静态 IP 192.168.1.2/24（failsafe 与恢复出厂都没有 DHC
 ```
 ssh root@192.168.1.1
 owrt-switch status              # 六个组件的 switch / boot-enable / pid
+# procd / ubusd / netifd 不走 switch：看运行中的是哪份
+md5sum /sbin/procd /sbin/ubusd /sbin/netifd; ls /sbin/*.c-orig
+# 回退其中一个（下次启动生效）：mv /sbin/<x>.c-orig /sbin/<x> && reboot
 logread | grep -iE "owrt|rpcd-rs|httpd-rs|logd-rs|fw4|uci-rs"
 ```
 
@@ -32,6 +35,8 @@ owrt-<name>-switch boot-enable off
 ```
 
 全部回退到原厂实现：`owrt-switch disable && owrt-switch boot-enable off`。
+procd/ubusd/netifd 的回退是把 `/sbin/<x>.c-orig` `mv` 回 `/sbin/<x>` 再重启；三份原件与 `/rom` 逐字节相同，
+failsafe 启动的就是 `/rom`，所以即使 overlay 上的替换全坏，failsafe 仍是完整的原厂控制面。
 rpcd 特别说明：`owrt-rpcd-switch disable` 会重新 enable 并启动原 `/etc/init.d/rpcd`。
 
 ## 2. 第二级：SSH 不通、蓝灯不亮 → failsafe

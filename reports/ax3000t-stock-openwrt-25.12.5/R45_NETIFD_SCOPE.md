@@ -1,6 +1,6 @@
 # R45 · netifd 的本机实际职责
 
-日期：2026-09-07。目的：把 `docs/RUST_CORE_CONTROL_PLAN.md` §3 要求的那张表落到本机，
+日期：2026-09-07。目的：把 `archive/plans/RUST_CORE_CONTROL_PLAN.md` §3 要求的那张表落到本机，
 确定 netifd-rs 必须实现什么、可以不实现什么。
 
 来源：设备只读采集（`uci show network/wireless`、`ubus call network.interface dump`、

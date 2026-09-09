@@ -1,256 +1,118 @@
 # owrt-control-plane-rs
 
-一个以**真实 OpenWrt 镜像、对应上游源码和设备运行行为**为依据的 Rust-native
-OpenWrt control plane 项目。
+在一台**真实运行**的 OpenWrt 路由器上，把控制面逐个换成 Rust 实现。目标设备是 Xiaomi Mi Router
+AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5dae5ece4` 官方 `sysupgrade.bin`，
+内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
+C 原件全程保留，任何一步都能回退。
 
-## 项目边界
+**现状（2026-09-09）：控制面九个组件全部由 Rust 实现并在设备上常驻运行；内核、驱动、数据面和无线
+handler 脚本原样保留。**
 
-本项目不重写 OpenWrt，也不从抽象架构开始凭空设计。
+## 分层与边界
 
-继续保留经过长期验证的 Linux kernel、硬件驱动、nftables、hostapd、dnsmasq/odhcpd
-以及 OpenWrt 的构建和软件包生态。项目首先识别现有系统的管理职责、接口和依赖，再决定
-哪些控制平面组件适合用 Rust 重新实现，哪些应该保持不变或仅做适配。
+| 层 | 内容 | 处置 |
+|---|---|---|
+| 内核与驱动 | Linux 6.12、mt798x-wmac/mt76 无线、an8855 DSA 交换机、nftables、netlink | **保留** |
+| 数据面 / 执行面 | hostapd（wpad）、dnsmasq、odhcpd、udhcpc/odhcp6c、dropbear、busybox、apk、sysupgrade stage2（`upgraded`） | **保留**——成熟、失败边界清楚、与本项目无接口冲突 |
+| 脚本层（被控制面调用） | `/lib/netifd/proto/*.sh`（dhcp/dhcpv6/ppp）、`/lib/netifd/wireless/mac80211.sh`（ucode wifi-scripts）、`/etc/init.d/*`、`/etc/hotplug.d/*`、`/etc/board.json` | **保留**——Rust daemon 按上游的调用合同（argv、环境、notify 协议）驱动它们 |
+| **控制面（管理层）** | procd、ubusd、netifd、rpcd、uci、firewall4 生成器、uhttpd、logd、reload_config | **全部 Rust**（下表） |
+| UI | LuCI（ucode，经 CGI 与 `/ubus`） | **保留**——跑在 httpd-rs + rpcd-rs 上 |
 
-每项设计必须同时说明三类依据：
+分层的判据不是"能不能用 Rust 写"，而是接口面是否清楚、失败边界是否可控、以及有没有办法在
+一台唯一的生产设备上验证并回退。数据面组件一律不碰；控制面组件按爆炸半径从小到大逐个接管。
 
-1. 目标设备实际安装镜像中的内容；
-2. 该镜像对应版本的上游源码；
-3. 经脱敏的真实运行态行为。
+## 控制面组件
 
-## 当前状态
+| 组件（crate） | 替代 | 上游参考 | 上线形态 | 首次上线 | 报告 |
+|---|---|---|---|---|---|
+| `components/reload-config` | `/sbin/reload_config`（procd 配置变更分发） | procd 触发链 | apk `owrt-reload-config`，bind mount | 2026-09-02 | R05_GO_LIVE |
+| `components/logd` | logd | ubox | apk `owrt-logd`，服务替换 | 2026-09-02 | R15_LOGD |
+| `components/httpd` | uhttpd（静态、CGI、`/ubus` JSON-RPC、TLS） | uhttpd 7b1bec45 | apk `owrt-httpd`，服务替换 80/443 | 2026-09-02 | R14_HTTPD |
+| `components/fw4` | firewall4 规则生成器（`fw4.uc` + 模板） | firewall4 b6e51575 | apk `owrt-fw4`，bind mount `/sbin/fw4` | 2026-09-02 | R09_FW4 |
+| `components/rpcd` | rpcd 全部对象：session/uci/rc、file/luci、luci-rpc/iwinfo/rpc-sys/network.rrdns | rpcd 28faf640 | apk `owrt-rpcd`，服务替换 | 2026-09-02 | R13/R17/R18 |
+| `components/uci` | libuci + `/sbin/uci` | uci 66127cd7 | apk `owrt-uci`，bind mount `/sbin/uci` | 2026-09-02 | R16_UCI |
+| `components/procd` | procd：服务监管、trigger、PID 1、rcS、hotplug/coldplug、watchdog、sysupgrade 移交 | procd 58eb263d | 直接替换 `/sbin/procd`，原件 `/sbin/procd.c-orig` | 2026-09-09 | R65–R75 |
+| `components/ubusd` | ubusd（系统消息总线） | ubus 24864e78 | 直接替换 `/sbin/ubusd`，原件 `.c-orig` | 2026-09-09 | R36–R42、R76 |
+| `components/netifd` | netifd：设备/接口/协议/路由/DHCP 生命周期 + 无线编排状态机 | netifd cbb83a18、wifi-scripts f0a60eee | 直接替换 `/sbin/netifd`，原件 `.c-orig` | 2026-09-09 | R45–R64、R77–R80 |
+| `components/ubus` | libubus/libubox 客户端与对象服务器、blobmsg、json_script | ubus 24864e78 | 库，被上述 crate 使用 | — | — |
 
-这是一个全新的干净项目，没有复制旧仓库的代码、抽象或阶段结论。旧项目只能作为比较
-材料；任何内容进入这里前，都必须重新通过镜像和源码证据验证。
+前六个通过 apk 包安装，`owrt-<name>-switch enable|disable|boot-enable` 显式切换，`owrt-switch status`
+一处查看；后三个是"失效即失联"的组件，在 bind mount 生效之前就已运行，所以改为在 overlay 上直接
+替换 `/sbin/<x>` 并保留 `<x>.c-orig`。failsafe（mesh 键 + lan4）启动的是原封 `/rom`。
 
-当前目标已经固定为 Xiaomi Mi Router AX3000T 的 stock 布局，部署规格是 OpenWrt 25.12.5
-`r33051-f5dae5ece4` 的官方 `sysupgrade.bin`。`-ubootmod` profile 和 `.itb` 镜像明确排除。
+第三方依赖只有 httpd 的 rustls/ring（TLS）。其余全部标准库 + 自写 FFI。发布构建 opt-level 3、
+静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。
 
-第一个阶段是 **I0：匹配源码基线与部署验证**。先用固件身份锁定准确的 OpenWrt release、
-feeds、设备定义、DTS 和镜像配方；再只读检查实际镜像，验证部署内容并找出定制差异；最后
-用必要的脱敏运行态观察裁决动态行为。I0 将形成五类边界：
+设备上的常驻内存（VmRSS，2026-09-09）：procd 744 kB、ubusd 360 kB、netifd 892 kB、rpcd-rs 384 kB、
+httpd-rs 552 kB、logd-rs 344 kB。性能对比见
+[BENCHMARK.md](reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md)（09-03，前六个组件）与
+R82（完全体，全部组件）。
 
-- 保留；
-- Rust 接入或包装；
-- 优先用 Rust 重写；
-- 延后评估；
-- 禁止触碰。
+## 方法：每个组件怎么被证明可以上线
 
-在 I0 完成前，不建立大型抽象、不导入旧实现、不连接或修改物理路由器。
+1. **合同**（`docs/contracts/<组件>.md`）：从上游源码和设备实测里写下要复刻的语义，包括不显然的
+   怪癖（有符号/无符号、truthiness、avl 排序、通知顺序……）和**有意偏离**（每条都写明理由）。
+2. **差分门槛**（`tools/r*_*.sh`）：在 aarch64 构建机上，把设备的精确 rootfs 复制两份，在各自的
+   mount/net/pid namespace 里跑 C 原件和 Rust 候选，同一客户端打同一串调用，逐字节比对输出、
+   内核状态、写出的文件。每个门槛都有**红证**——注入故障（换成 `/bin/false`、改掉一行）必须判红，
+   否则这个门槛不算存在。netifd 24 例（`tools/netifd_suite.sh`）、procd 272 标记（`r65`）、
+   ubusd（`r36`–`r42`）、rpcd/uci/fw4/httpd/logd 各有自己的套件。
+3. **设备窗口**：stage → 重启 → **站在客户端**验收（本机租约、经路由器解析、经路由器出网、
+   运行中二进制 = 候选）→ 连续观察 ≥ 3 分钟 → confirm；设备侧带自动回退（无人 confirm 则还原 C 并重启）。
+   窗口编排器（`tools/p6_window.sh`）脱离聊天会话运行——控制机就在被测路由器的 Wi-Fi 上。
+4. **报告**（`reports/…/R<nn>_*.md`）：每次窗口和每轮审计的证据、失败与修法。失败也写：P6 跑了
+   四次窗口，两个只有真机才暴露的缺口（DSA 口晚 16 秒注册、`resolv.conf.auto` 没写）都在 R78–R80。
+5. **外部审计**：R68/R70（procd）、R73（全量）由不同会话/模型对抗审计；每条发现先复现再修，
+   复现不了的连理由一起写回。下一轮冷启动审计的 brief 在 `docs/reviews/R81_COLD_AUDIT_PROMPT.md`。
 
-## 开始方式
+## 回退
 
-镜像和运行态材料的准备要求见 [docs/IMAGE_INTAKE.md](docs/IMAGE_INTAKE.md)。原始镜像、
-解包目录、分区内容、配置备份和任何可能包含设备秘密的文件都不得提交 Git。
+| 组件 | 回退 |
+|---|---|
+| uci / fw4 / reload_config / logd / httpd / rpcd | `owrt-<name>-switch disable`（立即）；`boot-enable off`（开机不再接管） |
+| procd / ubusd / netifd | `mv /sbin/<x>.c-orig /sbin/<x>` + `reboot` |
+| 全部 | failsafe（mesh 键 + lan4）→ `/rom` 原封系统；再不行走 [救援手册](docs/RUNBOOK_AX3000T_RECOVERY.md) |
 
-执行计划见 [docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md)。计划形成前完成的方法、环境和
-官方源码映射与镜像验证记录在 [docs/L0_DISCOVERY.md](docs/L0_DISCOVERY.md)。L0 使用的公开
-镜像只验证分析方法，不代表本项目的目标设备或部署版本。
+## 仓库结构
 
-目标部署身份和匹配源码基线分别见
-[IMAGE_IDENTITY.md](reports/ax3000t-stock-openwrt-25.12.5/IMAGE_IDENTITY.md) 与
-[SOURCE_BASELINE.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_BASELINE.md)。I0.2 已完成；其
-设备构建/升级基线和控制面源码检查清单见
-[DEVICE_BUILD_RECIPE.md](reports/ax3000t-stock-openwrt-25.12.5/DEVICE_BUILD_RECIPE.md) 与
-[SOURCE_EXPECTATIONS.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_EXPECTATIONS.md)。
+```
+components/      十个 crate（上表），各自 README/Cargo.toml；工作区 rust-toolchain 1.98.1
+docs/contracts/  每个组件的语义合同与有意偏离
+docs/decisions/  编号决策（0001–0018），过时的带"现状"横幅
+docs/reviews/    外部审计原文与复审
+docs/RELEASE.md  发布流水线；docs/RUNBOOK_AX3000T_RECOVERY.md 救援手册
+reports/         按设备 (ax3000t-stock-openwrt-25.12.5/) 的全部证据报告，R<nn> 递增
+tools/           差分门槛、探针、bench、设备窗口脚本（r*_*.sh 与 netifd_suite.sh 是回归入口）
+tests/reference/ 合同 C1 的参考用例
+packaging/       OpenWrt SDK 打包配方（owrt-* apk）
+manifests/       发布与验证的机器记录
+archive/         已完成/已被推翻的计划与 I0 过程文档（只供追溯）
+private/         镜像、rootfs、设备备份、bench 原始输出——不进 Git
+```
 
-I0.3 的全字节、FIT/DTB、SquashFS、文件属性和偏差验证见
-[DEPLOYMENT_VERIFICATION.md](reports/ax3000t-stock-openwrt-25.12.5/DEPLOYMENT_VERIFICATION.md)、
-[PARTITION_EXPECTATION.md](reports/ax3000t-stock-openwrt-25.12.5/PARTITION_EXPECTATION.md) 与
-[SOURCE_IMAGE_DEVIATIONS.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_IMAGE_DEVIATIONS.md)。
+## 构建与验证
 
-I0.4 已完成 159-package SBOM、全文件/ELF/service 归属、权限面和 exact source/patch map：
-[SBOM.md](reports/ax3000t-stock-openwrt-25.12.5/SBOM.md)、
-[FILE_OWNERSHIP.md](reports/ax3000t-stock-openwrt-25.12.5/FILE_OWNERSHIP.md)、
-[PRIVILEGE_SURFACE.md](reports/ax3000t-stock-openwrt-25.12.5/PRIVILEGE_SURFACE.md)、
-[SOURCE_MAP.md](reports/ax3000t-stock-openwrt-25.12.5/SOURCE_MAP.md) 与
-[PATCH_MAP.md](reports/ax3000t-stock-openwrt-25.12.5/PATCH_MAP.md)。可重复生成器是
-[i0_4_inventory.py](tools/i0_4_inventory.py)；固件、解包树和 source checkout 仍只保存在 Git
-外的 evidence 目录。
+```sh
+# 构建（任一 crate）：pinned 1.98.1，静态 musl
+cargo +1.98.1 build --release --bins --examples --target aarch64-unknown-linux-musl
 
-I0.5 已完成启动链、服务图、配置链和 IPC 目录：
-[BOOT_CHAIN.md](reports/ax3000t-stock-openwrt-25.12.5/BOOT_CHAIN.md)、
-[SERVICE_GRAPH.md](reports/ax3000t-stock-openwrt-25.12.5/SERVICE_GRAPH.md)、
-[CONFIG_FLOW.md](reports/ax3000t-stock-openwrt-25.12.5/CONFIG_FLOW.md) 与
-[IPC_CATALOG.md](reports/ax3000t-stock-openwrt-25.12.5/IPC_CATALOG.md)。可重复生成器是
-[i0_5_controlplane.py](tools/i0_5_controlplane.py)。三条最重要的部署事实：`/etc/init.d/rcS`
-不存在于镜像（`sysinit` 由 procd 内建 `rcS()` 处理）；`network`/`system`/`wireless`/
-`board.json` 都不随镜像发布、在首次启动生成；ubus 有 ubusd 与 rpcd 两层独立 ACL，
-socket 本身是 0666。
+# 差分门槛需要 Linux + sudo + 设备精确 rootfs（不在仓库内），例如：
+sudo bash tools/netifd_suite.sh <rootfs> <netifd-rs> <outdir> <examples-dir>
+sudo sh   tools/r65_procd_diff.sh <rootfs> <procd-rs> <outdir> <examples-dir>
+```
 
-I0.6 已完成 17 项控制面职责候选表和运行态问题单：
-[RESPONSIBILITY_CANDIDATES.md](reports/ax3000t-stock-openwrt-25.12.5/RESPONSIBILITY_CANDIDATES.md) 与
-[RUNTIME_QUESTIONS.md](reports/ax3000t-stock-openwrt-25.12.5/RUNTIME_QUESTIONS.md)，生成器是
-[i0_6_candidates.py](tools/i0_6_candidates.py)。15 个问题、23 条经源码审查的只读命令；
-11 条"看起来像读"的命令被排除，其中 `ubus call rc list` 会对每个 init 脚本 fork+exec。
-本阶段不排名替换候选。**设备接入与采集执行都尚未授权**，I0.7 需要用户分别批准。
+一条项目内反复验证过的纪律：**构建、门槛、提交必须出自同一棵树的同一瞬间**（注释也算改动），
+引用哪份二进制就写它的 md5。
 
-I0.7 已在用户授权下完成只读运行态采集：
-[RUNTIME_OBSERVATIONS.md](reports/ax3000t-stock-openwrt-25.12.5/RUNTIME_OBSERVATIONS.md) 与
-[STATIC_RUNTIME_DIFF.md](reports/ax3000t-stock-openwrt-25.12.5/STATIC_RUNTIME_DIFF.md)，
-派生工具是 [i0_7_observation.py](tools/i0_7_observation.py)（脱敏自检 0 命中才写出 manifest）。
-设备身份与基线逐项一致，包集合只比镜像多 4 个 LuCI 中文语言包。40 个 ubus 对象中静态
-字面量零漏注册，三条 build gating 结论全部证实；两处漏报都是方法缺陷：`dnsmasq.dns`
-只存在于 OpenWrt 补丁中，`ubus` 伪服务没有 init 脚本。kernel command line 实测不含
-`rootfs_mount_options.*`。jail 声明不等于生效——`wpad` 没有获得任何 namespace 隔离。
-原始输出只留在 Git 之外的 evidence 目录。
+## 明确不做
 
-**I0 已全部完成，I0 gate 通过。** 最终报告见
-[I0_FINAL_REPORT.md](reports/ax3000t-stock-openwrt-25.12.5/I0_FINAL_REPORT.md)，
-分类见 [REPLACEMENT_BOUNDARY.md](reports/ax3000t-stock-openwrt-25.12.5/REPLACEMENT_BOUNDARY.md)，
-未解问题与风险见 [OPEN_QUESTIONS.md](reports/ax3000t-stock-openwrt-25.12.5/OPEN_QUESTIONS.md)
-与 [RISK_REGISTER.md](reports/ax3000t-stock-openwrt-25.12.5/RISK_REGISTER.md)。
-OQ-01/OQ-07 的关闭证据与四阶段审查见
-[I0_FOLLOWUP_REVIEW.md](reports/ax3000t-stock-openwrt-25.12.5/I0_FOLLOWUP_REVIEW.md)。
+不重写内核、驱动、hostapd、dnsmasq/odhcpd、sysupgrade stage2、无线 handler 脚本和 LuCI。不做
+ubusd 的**热**切换（客户端 odhcpd/dnsmasq/netifd 的重连语义不允许，决策 0015；上线走的是随重启的
+冷切换）。不在没有回退路径的情况下碰设备。
 
-17 项控制面职责中 **10 项停在默认类**（保留或禁止触碰），4 项延后，3 项进入 Rust
-工作范围：R13 rpcd 与 R15 logd 为包装，**唯一的完整替换候选是 R05 配置变更检测与分发**
-（`/sbin/reload_config`，17 行 shell，上游自称临时方案）。它入选的理由是静态接口面窄、
-运行态基线与 trigger 注册已观察、失败静默、无持久副作用、恢复代价为零——不是因为
-"可以用 Rust 写"。事件投递 oracle 仍由 RK-01 阻塞。
+## 历史
 
-I0 follow-up 已关闭 OQ-01 与 OQ-07：rcS 顺序/失败传播已确定，设备当前 DHCP/firewall
-配置也已脱敏审查，可作为固定当前配置的 C1 oracle。当时剩余前置条件只有 RK-01
-（先让"变更已送达"可观测），并且严格保持了 **C1/R1.1 门通过前不创建替代 crate** 的顺序。
-
-**C1 已完成：第一个兼容合同 C1-01 已冻结**，对象是 I0 唯一的替换候选 R05
-配置变更检测与分发。合同见
-[config-change-dispatch.md](docs/contracts/config-change-dispatch.md)，决策见
-[0001](docs/decisions/0001-first-contract-is-config-change-dispatch.md)，
-11 个参考用例见 [tests/reference/config-change-dispatch/](tests/reference/config-change-dispatch/)。
-
-C1 期间在设备上取得三条关键行为证据：`/etc/config/` 中 7 个含点文件名对应的 UCI
-tuple 均无法解析并产出空基线条目，因此只要 tuple 继续不存在，修改这些文件自身的内容
-不会触发事件；删除与修改在
-`md5sum -c` 下是同一个 `FAILED` 信号，而新增完全静默；事件顺序按基线字典序确定。
-合同要求**复刻**这些行为——把当前 7 个空条目改成读取备份文件内容会改变 procd trigger 的触发面，
-那是行为变更而不是兼容实现。
-
-**R1.1 可观测 oracle 已通过。** 精确镜像 rootfs 中的原始 17 行实现通过 11 个合同用例
-和 4 个故障场景；每轮比较数、变更条目与逐条 ubus 调用结果已经可观察。报告见
-[R1_REFERENCE_ORACLE.md](reports/ax3000t-stock-openwrt-25.12.5/R1_REFERENCE_ORACLE.md)。
-这一门先以独立 commit 固化，之后才创建唯一的 R05 crate。
-
-**R1 已完成并通过 gate。** 最小实现位于
-[components/reload-config](components/reload-config/)，没有第三方 crate，也没有通用框架。
-它继续使用精确系统 `uci` 做规范化、BusyBox `md5sum` 保持共享基线，只把扫描/比较/顺序、
-子进程边界和 JSONL 可观测性显式化。目标 AArch64 静态 binary 为 432,248 bytes，低于
-512 KiB 的 R1 预算。
-
-在服务器的一次性精确 rootfs 中，候选与原实现 **11/11** 合同案例的事件顺序、事件集合和
-完整基线字节一致；部分投递失败、依赖消失、超时、畸形 UCI、并发与 SIGTERM 共 **6/6**
-故障案例通过。审查见
-[R1_IMPLEMENTATION.md](reports/ax3000t-stock-openwrt-25.12.5/R1_IMPLEMENTATION.md)，机器记录见
-[r1-candidate.json](manifests/ax3000t-stock-openwrt-25.12.5/r1-candidate.json)。
-
-**V1 已完成并通过 gate。** 匹配 OpenWrt 25.12.5 filogic 官方 SDK 的 package 位于
-[packaging/openwrt/owrt-reload-config](packaging/openwrt/owrt-reload-config/)。安装默认不取得
-控制权；只有显式 `enable` 才以重启即失的 bind mount 接管原调用路径，upgrade、downgrade、
-uninstall 和新 mount namespace 都会恢复原实现。
-
-APK 实际安装出的 346,531-byte dynamic musl PIE 再次通过 **11/11** 合同差分和 **6/6**
-原故障，并通过只读 I/O、磁盘满、依赖恢复和 100 次循环四项 V1 检查。V1 同时发现并修复了
-upgrade 未回退和磁盘满截断基线两个真实缺陷。报告见
-[V1_VALIDATION.md](reports/ax3000t-stock-openwrt-25.12.5/V1_VALIDATION.md)，机器记录见
-[v1-validation.json](manifests/ax3000t-stock-openwrt-25.12.5/v1-validation.json)。
-
-H1 已完成无拆机边界重规划。用户只提供 Wi-Fi、Ethernet 和现有 OpenWrt SSH；UART、拆机、
-主板测试点、raw NAND 和刷机永久退出当前执行路径。H1.2/H1.3b 保留为未执行的历史 false
-gate，不再错误阻断只涉及 R05 tmpfs 状态的验证。报告见
-[H1_NO_DISASSEMBLY_REPLAN.md](reports/ax3000t-stock-openwrt-25.12.5/H1_NO_DISASSEMBLY_REPLAN.md)，
-决策见 [0006](docs/decisions/0006-use-a-no-disassembly-device-validation-profile.md)。H1.4 offline
-preflight 已冻结并验证 SSH/tmpfs shadow harness，见
-[H1_4_PREFLIGHT.md](archive/stage-gates/H1_4_PREFLIGHT.md)（已归档）。它纠正了 synthetic
-package 新增应保持静默、修改才发事件的语义，并在首次实机 probe 中发现当前 baseline 与
-`network` 规范化结果存在 drift。最终 shadow 序列先隔离观察并吸收该 drift，再检查稳态零事件、
-新增静默和修改单事件；真实设备 H1.4 已全部通过，见
-[H1_4_SHADOW.md](reports/ax3000t-stock-openwrt-25.12.5/H1_4_SHADOW.md)。执行上限是固定 `/tmp`
-路径和 fake ubus，结果为零持久写入、零真实 ubus、零 mount、清理完成。H1.5 默认禁用安装
-已经完成：精确 `0.1.0-r1` package 已 offline 安装，switch 保持 disabled，original dispatcher、
-配置、baseline、triggers 和 mount 不变；详见
-[H1_5_DISABLED_INSTALL.md](reports/ax3000t-stock-openwrt-25.12.5/H1_5_DISABLED_INSTALL.md)。首轮
-fail-closed 还发现并修正了目标 BusyBox 无 `stat` 以及 apk 回退会规范化 scripts archive 的
-两个方法缺口。
-
-2026-09-02 阶段审计：H1.2/H1.3 物理恢复链假设了用户从未提供的拆机和 UART，每阶段一套 gate
-脚本与四处复写的状态文字也与 R05 的实际爆炸半径不成比例，均已移入 [archive/](archive/README.md)。
-同日完成了两步实机操作：用原始实现收口 `network` baseline drift（成因是 LuCI/rpcd 路径不经过
-`reload_config`，见 [H1_6_DRIFT_PROBE.md](reports/ax3000t-stock-openwrt-25.12.5/H1_6_DRIFT_PROBE.md)），
-以及 **H1.6 canary 通过**：候选真实接管约一分钟，稳态零事件、修改与删除各恰好一次真实 ubus 投递，
-切回后静默，见 [H1_6_CANARY.md](reports/ax3000t-stock-openwrt-25.12.5/H1_6_CANARY.md)。R05 实机验证
-完成。后续五阶段计划见 [docs/EXECUTION_PLAN.md](docs/EXECUTION_PLAN.md)。
-
-**阶段 1 完成：R05 Rust dispatcher 已转正。** 0.2.0 把 trace 改写 syslog、增加开机重新接管的 init 脚本，
-离线 R1/V1 harness 全部通过后升级到设备，canary 通过，`boot-enable` 已打开，候选当前接管
-`/sbin/reload_config`。报告见 [R05_GO_LIVE.md](reports/ax3000t-stock-openwrt-25.12.5/R05_GO_LIVE.md)，
-决策见 [0007](docs/decisions/0007-r05-boot-enable-and-syslog-trace.md)。
-
-**阶段 2 完成：logd 已由 Rust 实现接管。** `components/ubus` 是纯 Rust 的 ubus 线协议库，`components/logd`
-在精确 rootfs 中与原 logd 并排比对 10 项输出全部一致，设备上 canary 通过后 `boot-enable` 已打开。报告见
-[R15_LOGD.md](reports/ax3000t-stock-openwrt-25.12.5/R15_LOGD.md)，合同见 [logd.md](docs/contracts/logd.md)，
-决策见 [0008](docs/decisions/0008-replace-logd-with-rust-and-own-ubus-library.md)。
-
-**阶段 3 完成：uhttpd 已由 Rust 实现接管（含 HTTPS）。** `components/httpd` 在精确 rootfs 中与原 uhttpd 并排
-38/38 请求一致，设备上并排、canary 均与原服务一致，`boot-enable` 已打开。报告见
-[R14_HTTPD.md](reports/ax3000t-stock-openwrt-25.12.5/R14_HTTPD.md)，合同见 [httpd.md](docs/contracts/httpd.md)，
-决策见 [0009](docs/decisions/0009-replace-uhttpd-with-rust-httpd.md)。下一阶段：firewall4 生成器。
-
-阶段 4（2026-09-02）：R09 firewall4 生成器 Rust 化。`components/fw4` 逐函数移植 fw4.uc 与模板，上游 31 个测试文件
-逐字节通过（stdout+stderr），设备配置离线渲染与设备 `fw4 print` 相同；`owrt-fw4 0.1.0-r1` 的 `owrt-fw4-switch enable`
-以两种实现 `print` 相同为门禁后 bind mount 到 `/sbin/fw4`，经候选 reload 后内核规则集不变，`boot-enable on`。
-报告 `reports/ax3000t-stock-openwrt-25.12.5/R09_FW4.md`，清单 `manifests/ax3000t-stock-openwrt-25.12.5/r09-fw4.json`。
-
-阶段 5（2026-09-02）：R13 rpcd 插件层 Rust 化。`components/rpcd` 提供 `file` 与 `luci` 两个 ubus 对象，精确 rootfs
-沙箱 63 个请求与原插件相同；`owrt-rpcd 0.1.0-r2` 以裁剪插件目录 bind mount + procd 服务上线，`boot-enable on`。
-`session`/`uci`/`rc` 与 iwinfo/luci-rpc/rpc-sys/rrdns 保留在原 rpcd（决策 0011）。`owrt-switch` 一处操作五个组件。
-最终报告：`reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md`；报告 `R13_RPCD.md`，清单 `r13-rpcd.json`。
-
-收官（2026-09-02）：`owrt-switch status` 显示五个组件 enabled / boot-enable on；四次综合探测不变；用户登录 LuCI 浏览期间
-`file`/`luci` 的 71 次调用全部由 rpcd-rs 应答。清单 `manifests/ax3000t-stock-openwrt-25.12.5/final-window.json`。
-
-第二轮 §11.0 自检（2026-09-02）：15 项迁移自检 + 四路对抗审查，修复 20 处行为差异（rpcd `file.write` umask、ubus 有符号整数、
-logd read 类型策略、httpd 413/MIME、fw4 ipset 空白与 `%.14g` 等），全部按 check→单元→上游→release→差分重验。
-报告 `reports/ax3000t-stock-openwrt-25.12.5/AUDIT_ROUND1.md`，清单 `manifests/audit-round1.json`。
-
-阶段 6（2026-09-02）：`components/uci` 以 Rust 复刻 libuci 读写/delta 语义并提供 `uci-rs` CLI；上游 shunit2 112/112，
-精确 rootfs 差分 175/175（含 apk 发货二进制）；设备门禁 export/show/changes 逐字节相同后 bind mount 接管 `/sbin/uci`，
-`reload_config` 经候选规范化 19 个包与 C 版基线 0 差异，`boot-enable on`（S00）。`owrt-switch` 现管理六个组件。
-报告 `R16_UCI.md`，合同 `docs/contracts/uci.md`，决策 0012，清单 `manifests/r16-uci.json`。
-
-阶段 7（2026-09-02）：rpcd 核心对象 `session`/`uci`/`rc` 迁入 rpcd-rs（`uci` 对象基于 `components/uci`），精确 rootfs 双沙箱差分
-272/272（含 apk 发货二进制，含 SIGHUP 冻结/解冻）；设备只读门禁 51 项在原 rpcd 与 rpcd-rs 下逐字节相同；`owrt-rpcd-switch enable`
-按"停 rpcd → 起 rpcd-rs → 起 rpcd（只剩插件）"接管，`boot-enable on`（S11 先于 S12）。报告 `R17_RPCD_CORE.md`，合同
-`docs/contracts/rpcd-core.md`，决策 0013，清单 `manifests/r17-rpcd-core.json`。
-
-阶段 8（2026-09-02）：rpcd 余下对象 `rpc-sys`、`network.rrdns`、`luci-rpc`、`iwinfo` 迁入 rpcd-rs（纯 Rust rtnetlink 与
-libiwinfo nl80211 后端复刻），沙箱 r18 74/74、并排 r19 11/11、回归 r13/r17 不变；设备只读门禁 49 项在原 rpcd 与 rpcd-rs
-下相同（含两个 radio 的 iwinfo 与 luci-rpc 无线状态）；原 rpcd 进程停止、S12 移除，rpcd-rs 成为唯一 rpcd。
-报告 `R18_RPCD_PLUGINS.md`，合同 `docs/contracts/rpcd-plugins-stage8.md`，决策 0014，清单 `manifests/r18-rpcd-plugins.json`。
-
-§11.6 合并（2026-09-02）：fw4-rs 与 rpcd-rs 的内嵌 UCI 解析器均改为 `components/uci`；owrt-fw4 r2 上线（门禁 203 行相同，
-规则集不变）。logd-rs 补上 ubus 重连。
-
-第二轮收官（2026-09-02）：阶段 6/7/8 上线，阶段 9（ubusd）经 `tools/r22_ubus_clients_reconnect.sh` 前置检验判定不执行
-（决策 0015）。设备上 uci/reload_config/logd/uhttpd/fw4/rpcd 六个控制面组件均为 Rust；procd/ubusd/netifd/无线/DHCP
-栈保持原样。汇总见 `reports/ax3000t-stock-openwrt-25.12.5/REPORT_ROUND2.md`。
-
-第三轮（2026-09-03 起）：用户放宽设备边界后，决策 0016 允许一次受控重启验证从未执行过的开机路径（六个组件都是
-boot-enable on 但机器 33 天未重启）。已完成备份（配置、overlay、mtd0–7 只读转储）、官方镜像与原厂固件下载校验、
-bootloader 选槽逻辑核实、uci-rs 开机路径预检、`tools/r23_reboot_gate.sh pre`；救援手册 `docs/RUNBOOK_AX3000T_RECOVERY.md`。
-ubusd 仍排最后，默认建议不做。
-2026-09-03 受控重启通过：SSH 39 秒恢复，六个组件按 boot-enable 接管，重启前后 15 组结构化状态相同，bootloader 标志仅计数 +1，
-四分钟无 respawn（`reports/.../R23_BOOT_PATH.md`，`manifests/r23-boot-path.json`）。
-同日 logd-rs r2（ubus 重连）上线：r21 以同一二进制重跑通过后升级并重启 logd，3 分钟稳定（`R15_LOGD.md` 附录，`manifests/r24-logd-r2.json`）。
-
-收尾（2026-09-03）：ubusd 按用户决定不做。代码全部推到私有仓库 `github.com/WenliangCao/owrt-control-plane-rs`（noreply 邮箱，
-根 `Makefile` + GitHub Actions）。Benchmark 见 `reports/.../BENCHMARK.md`：fw4 生成快 10 倍、httpd 快 18–80%、uci/rpcd/logd 持平，
-iwinfo 与 logread 全量略慢；顺带发现并修复 reload_config 的 10 ms 轮询（r3 上线）。后续 OpenWrt 升级的维护路径见
-`docs/RELEASE.md`（`make apk/image VERSION=…`，ImageBuilder 自定义镜像；刷写另需决策）。
-
-第四轮（2026-09-03，`reports/.../R24_ROUND4.md`）：差分模糊找出 uci-rs 非 UTF-8 字节替换与 panic（修为字节保真，uci r3）；
-apk 升级钩子会把设备切回 C 实现（修，rpcd r7 验证）；去掉 reload_config/rpcd 的子进程轮询与 netlink 每次 64 KiB 分配，
-reload_config 64.9 vs 77.6 ms 已快于原脚本，iwinfo 24 vs 19 ms；logread 差距证实为测量假象。最后剩下的 uci/iwinfo 差距是构建配置（`opt-level z` + 动态链接，决策 0017）：改 opt-level 3 + 静态后
-六件重建上线，全量重测没有慢于原版的用例（`BENCHMARK.md` §11）。设备：uci r4 / reload-config r5 / logd r4 / httpd r2 / fw4 r4 / rpcd r8。
-
-第五轮（2026-09-03 夜，`reports/.../R25_ROUND5.md`）：所有用户文件按字节读取；clippy 七个 crate 清零；新增 fw4/rpcd/logd/httpd 差分模糊器
-（`tools/r26`–`r29`），找到并修了 fw4 非 ASCII 值的 panic（abort → 无防火墙）与 httpd 两处静默断开；设备：uci r5 / reload-config r5 / logd r5 / httpd r3 / fw4 r5 / rpcd r9。
-发布镜像现由 GitHub Actions `release-image` 生成（`docs/RELEASE.md`）：官方 SDK/ImageBuilder + 仓库里的包清单，产物为 artifact / Release，不刷写。
+I0（镜像与源码基线、职责边界）→ 阶段 1–5（reload_config、logd、httpd、fw4、rpcd 插件层，2026-09-02，
+[FINAL_REPORT](reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)）→ 第二至五轮（uci、rpcd 核心、
+开机路径、找 bug、模糊测试，09-03）→ 发布流水线（09-04–06）→ P3–P6（procd、sysupgrade、ubusd、
+netifd，09-07–09，R63–R80）。被推翻的计划与结论在 [archive/](archive/README.md)。

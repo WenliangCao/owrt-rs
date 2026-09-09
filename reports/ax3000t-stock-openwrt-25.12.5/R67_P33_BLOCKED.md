@@ -5,7 +5,7 @@
 提取的发货 rootfs、以及匹配的 buildroot `f0a60eee` 配置。
 **没有对设备做任何写入。**
 
-计划 [RUST_CORE_CONTROL_PLAN.md](../../docs/RUST_CORE_CONTROL_PLAN.md) 第 212–213 行
+计划 [RUST_CORE_CONTROL_PLAN.md](../../archive/plans/RUST_CORE_CONTROL_PLAN.md) 第 212–213 行
 明确允许这个结论：不刷机且找不到可验证的启动选择方案时，完成其余离线工作，
 写明具体缺口。这就是那份说明。
 

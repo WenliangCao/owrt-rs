@@ -218,7 +218,7 @@ kexec 的判断也只限于匹配构建证据；本轮没有在设备上调用 s
 > 尚无经验证的、独立于 overlay 的一次性启动选择或临时 RAM 启动入口；不能保证候选挂死、watchdog 复位或正常结束试用后，下一次必回原版。  
 > 继续 P3.1/P3.2 离线开发；不启用物理 PID 1 替换，不以普通回退脚本或未经证明的 boot flags 代替恢复保证。
 
-这与计划 [RUST_CORE_CONTROL_PLAN.md](/Users/USER/Developer/owrt-control-plane-rs/docs/RUST_CORE_CONTROL_PLAN.md:203) 第 203–217 行的边界一致，尤其第 212–213 行明确允许在“不刷机且现有恢复机制下找不到可验证选择方案”时完成其余离线工作，并指出具体缺口。
+这与计划 [RUST_CORE_CONTROL_PLAN.md](/Users/USER/Developer/owrt-control-plane-rs/archive/plans/RUST_CORE_CONTROL_PLAN.md:203) 第 203–217 行的边界一致，尤其第 212–213 行明确允许在“不刷机且现有恢复机制下找不到可验证选择方案”时完成其余离线工作，并指出具体缺口。
 
 以下是本轮三组实验的完整 results.json，时间单位为秒，起点为各组外部采集器启动后的单调时钟：
 

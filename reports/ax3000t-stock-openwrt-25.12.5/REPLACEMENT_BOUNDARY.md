@@ -1,5 +1,7 @@
 # AX3000T stock / OpenWrt 25.12.5：替换边界
 
+> **现状（2026-09-09）**：I0 时期的边界分类。"禁止触碰"的五项中 procd、ubusd、netifd 已在 0016 重划救援边界后由 Rust 接管（R74–R80）；无线 handler（hostapd/mac80211.sh）与 sysupgrade stage2 仍保留。
+
 > I0.8 状态：完成
 > 日期：2026-08-31
 > 实现授权：**无**。本报告不授权创建任何替代组件 crate。

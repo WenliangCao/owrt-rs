@@ -12,7 +12,7 @@ Wi-Fi、Ethernet 和现有 SSH。这些工作没有执行到设备，也不代�
 
 每个阶段各配一份 preflight、review 和 gate 脚本，再把同一结论复写进 README、runbook、
 计划和报告。这套仪式与 R05 的实际爆炸半径（tmpfs baseline、reboot 即失的 bind mount）不成比例。
-保留 1066 行的执行计划 v2 与 H1 runbook 快照供查阅；当前计划见 `docs/EXECUTION_PLAN.md`。
+保留 1066 行的执行计划 v2 与 H1 runbook 快照供查阅；后续计划见 `plans/`，现状见仓库 README。
 
 保留在 `tools/` 的只有仍会重复运行的采集与差分脚本（`h1_4_*`、`h1_5_*`、`i0_*`、`r1_*`、
 `v1_*`、`c1_*`）。
@@ -21,3 +21,15 @@ Wi-Fi、Ethernet 和现有 SSH。这些工作没有执行到设备，也不代�
 
 `manifests/` 中已有 JSON 的 `path` 字段记录的是归档前路径，其 SHA-256 针对文件内容，不因移动
 而失效。查阅时按本目录重新定位即可，manifest 本身不改写。
+
+## plans（2026-09-09 归档）
+
+`EXECUTION_PLAN.md`（v5，阶段 1–9 与第三/四/五轮）和 `RUST_CORE_CONTROL_PLAN.md`（P0–P3：ubusd/netifd/procd）。
+两份计划描述的工作已全部完成，且实际顺序与计划不同（P3 procd → P4 sysupgrade → P5 ubusd → P6 netifd），
+计划里"ubusd 不执行""procd/netifd 保留 C"的结论已被 R74–R80 推翻。现状以 README 与 `reports/` 的 R74–R80 为准。
+
+## i0（2026-09-09 归档）
+
+`L0_DISCOVERY.md`（用公开镜像验证分析方法的前置探索）和 `IMAGE_INTAKE.md`（I0 阶段的镜像/运行态接收要求）。
+I0 的结论全部落在 `reports/ax3000t-stock-openwrt-25.12.5/I0_FINAL_REPORT.md` 及其引用的报告里；这两份是过程文档。
+

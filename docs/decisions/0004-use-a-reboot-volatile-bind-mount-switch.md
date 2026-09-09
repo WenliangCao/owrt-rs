@@ -1,5 +1,7 @@
 # 决策 0004：V1 使用重启即失的 bind mount 显式切换 R05
 
+> **现状（2026-09-09）**：bind mount 切换仍用于 uci/fw4/reload_config（`owrt-*-switch`）；procd/ubusd/netifd 三个"失效即失联"的组件改为直接替换 `/sbin/<x>` 并保留 `<x>.c-orig`（R74/R76/R80），因为它们在 bind mount 生效前就已运行。
+
 > 日期：2026-08-31
 > 状态：已定
 > 阶段：V1

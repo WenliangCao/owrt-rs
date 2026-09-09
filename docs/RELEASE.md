@@ -1,5 +1,7 @@
 # 发布与维护：OpenWrt 新版本之后怎么保住这一层
 
+> **现状（2026-09-09）**：本文覆盖的是 apk 打包的六个组件（uci、reload-config、logd、httpd、fw4、rpcd）。procd/ubusd/netifd 三个 Rust 实现目前**不经 apk**，而是在 overlay 上直接替换 `/sbin/<x>`（原件 `<x>.c-orig`，R74/R76/R80）；sysupgrade 会重建 overlay，所以刷新镜像后需要重新部署这三个二进制，或把它们并入镜像配方——这是下一步发布工作。
+
 ## 现状与前提
 
 - 设备上的 sysupgrade 会重建 overlay，只按保留列表（`/etc/sysupgrade.conf`、`/lib/upgrade/keep.d/*`）恢复配置文件；
