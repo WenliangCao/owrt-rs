@@ -755,6 +755,20 @@ call service list '{"name":"fv1"}'
 call service list '{"name":"fv2"}'
 call service list '{"name":"fv3"}'
 
+printf -- '--- F15b: integer-typed fields (R73 findings 2 and 3)\n'
+# nice is (int8_t)blobmsg_get_u32: 236 truncates to -20, which is VALID --
+# the instance must run. The string cases above never exercised the cast.
+call service set '{"name":"fv4","instances":{"one":{"command":["/bin/sleep","300"],"nice":236}}}'
+# respawn/watchdog array elements go through blobmsg_get_string + atoi even
+# when the element is an integer: the payload's first byte is 0, so the
+# value read is 0, whatever the integer was.
+call service set '{"name":"fv5","instances":{"one":{"command":["/bin/sleep","300"],"respawn":[3600,5,5]}}}'
+call service set '{"name":"fv6","instances":{"one":{"command":["/bin/sleep","300"],"watchdog":[1,10]}}}'
+sleep 2
+call service list '{"name":"fv4"}'
+call service list '{"name":"fv5"}'
+call service list '{"name":"fv6"}'
+
 printf -- '--- F16: the watchdog timer must actually act\n'
 call service set '{"name":"fw","instances":{"one":{"command":["/bin/sleep","300"]}}}'
 sleep 1
@@ -1096,7 +1110,8 @@ done
 # of case markers. Measured, not guessed -- and re-measured when cases are
 # added, because the floor must sit ABOVE the self-test's truncation point or
 # the injection goes red for an unrelated reason instead of this one: a full
-# run currently emits 251 markers and the F13-truncated run 199, so 225.
+# run currently emits 267 markers (v14, F15b added) and the F13-truncated
+# run 199, so 225.
 for t in c rs; do
 	m=$(grep -c '^--- ' "$out/$t-calls.txt" 2>/dev/null || true); [ -n "$m" ] || m=0
 	echo "$t: $m case markers" >> "$out/coverage.txt"

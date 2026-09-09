@@ -522,6 +522,13 @@ impl Instance {
 /// `command` that is missing or empty leaves the instance *invalid* rather
 /// than failing the whole `set`, and an invalid instance is neither started
 /// nor listed.
+/// `blobmsg_get_string()` on a non-string attr, as atoi consumes it: the
+/// raw payload bytes up to the first NUL, lossily as ASCII.
+fn payload_cstr(data: &[u8]) -> String {
+    let end = data.iter().position(|b| *b == 0).unwrap_or(data.len());
+    String::from_utf8_lossy(&data[..end]).into_owned()
+}
+
 /// `instance_gen_setns_argstr()`: render one `setns` entry as ujail's
 /// `<pid>:<ns>,<ns>` argument. Returns None -- and the C then omits the
 /// whole `-j` pair -- when `pid` or `namespaces` is absent, or when any
@@ -663,8 +670,15 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                     if let Some(s) = c.as_str() {
                         // atoi(): "5x" is 5, "" is 0 -- not a parse failure.
                         vals[n] = crate::sys::atoi_u32(s);
-                    } else if let Some(u) = c.as_u32() {
-                        vals[n] = u;
+                    } else {
+                        // The C runs atoi(blobmsg_get_string(cur)) on EVERY
+                        // element type: an integer's payload is big-endian
+                        // binary, so atoi reads it as a (usually empty) C
+                        // string and yields 0 -- `"respawn":[3600,5,5]` with
+                        // JSON integers is {0,0,0} on the device, not the
+                        // numbers. Taking the numeric value was a silent
+                        // improvement over the interface.
+                        vals[n] = crate::sys::atoi_u32(&payload_cstr(c.data));
                     }
                 }
                 i.respawn = Some(Respawn {
@@ -677,9 +691,11 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
             "term_timeout" => i.term_timeout = f.as_u32().unwrap_or(DEFAULT_TERM_TIMEOUT),
             "reload_signal" => i.reload_signal = f.as_u32().unwrap_or(0) as i32,
             "nice" => {
-                // instance_config_parse rejects the whole instance when
-                // nice is outside [-20, 20]; it does not clamp.
-                let n = f.as_u32().unwrap_or(0) as i32;
+                // `in->nice = (int8_t) blobmsg_get_u32(cur)` FIRST, then the
+                // [-20, 20] test: the value is truncated to eight signed
+                // bits before validation, so nice:236 is a VALID -20 and
+                // only the post-truncation range rejects the instance.
+                let n = f.as_u32().unwrap_or(0) as u8 as i8 as i32;
                 if !(-20..=20).contains(&n) {
                     bad_field = true;
                 }
@@ -764,8 +780,12 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
                         // which then passes the `> 0` test and does NOT fall
                         // back to 30; "5x" is 5, not a parse failure.
                         vals[n] = crate::sys::atoi_u32(s);
-                    } else if let Some(u) = c.as_u32() {
-                        vals[n] = u;
+                    } else {
+                        // atoi over the raw payload, as above: an integer
+                        // element is 0, so `"watchdog":[1,10]` (JSON
+                        // integers) leaves the watchdog DISABLED on the
+                        // device where taking the value armed it.
+                        vals[n] = crate::sys::atoi_u32(&payload_cstr(c.data));
                     }
                 }
                 // Mode out of range falls back to 0, freq of 0 to 30.
@@ -1203,5 +1223,61 @@ mod list_order_tests {
         // sorts before it. Exactly what the shipping procd lists.
         assert_eq!(i.jail.setns, vec!["3:c".to_string()]);
         assert_eq!(i.jail.setns_raw.len(), 2);
+    }
+}
+
+#[cfg(test)]
+mod r73_fidelity_tests {
+    use super::*;
+    use owrt_ubus::blob::{fields, BlobBuf};
+
+    fn parse_entry(build: impl FnOnce(&mut BlobBuf)) -> Instance {
+        let mut b = BlobBuf::new();
+        let t = b.msg_open_table("one");
+        build(&mut b);
+        b.msg_close(t);
+        let f = fields(b.payload()).next().expect("one entry");
+        parse("one", f)
+    }
+
+    #[test]
+    fn nice_is_truncated_to_int8_before_the_range_check() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            b.msg_u32("nice", 236);
+        });
+        assert!(i.valid, "236 truncates to -20, which is in range");
+        assert_eq!(i.nice, -20);
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            b.msg_u32("nice", 100);
+        });
+        assert!(!i.valid, "100 stays 100 after truncation and is rejected");
+    }
+
+    #[test]
+    fn integer_elements_in_respawn_and_watchdog_arrays_atoi_to_zero() {
+        let i = parse_entry(|b| {
+            let c = b.msg_open_array("command");
+            b.msg_string("", "/bin/true");
+            b.msg_close(c);
+            let r = b.msg_open_array("respawn");
+            b.msg_u32("", 3600);
+            b.msg_u32("", 5);
+            b.msg_u32("", 5);
+            b.msg_close(r);
+            let w = b.msg_open_array("watchdog");
+            b.msg_u32("", 1);
+            b.msg_u32("", 10);
+            b.msg_close(w);
+        });
+        let r = i.respawn.as_ref().expect("respawn set");
+        assert_eq!((r.threshold, r.timeout, r.retry), (0, 0, 0));
+        assert_eq!(i.watchdog_mode, 0, "mode 99->0 fallback applies to the atoi'd 0");
+        assert_eq!(i.watchdog_freq, 30, "freq 0 falls back to 30");
     }
 }
