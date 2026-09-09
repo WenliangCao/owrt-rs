@@ -405,7 +405,10 @@ impl Procd {
                     .first()
                     .map(|c| c.rsplit('/').next().unwrap_or(c))
                     .unwrap_or("");
-                let ident = format!("{arg0}[{}]", inst.pid);
+                // snprintf(ident, 32, "%s[%d]", ...): the WHOLE ident is
+                // capped at 31 bytes, basename and pid included.
+                let mut ident = format!("{arg0}[{}]", inst.pid);
+                ident.truncate(31);
                 let facility = inst
                     .facility
                     .as_deref()
@@ -554,7 +557,7 @@ impl Procd {
     fn state_enter(&mut self) {
         match self.boot {
             Boot::Init => {
-                eprintln!("procd: - init -");
+                sys::klog("- init -");
                 self.inittab = inittab::parse("/etc/inittab");
                 self.inittab_run(inittab::Kind::Respawn);
                 self.inittab_run(inittab::Kind::Askconsole);
@@ -562,29 +565,29 @@ impl Procd {
                 self.inittab_run(inittab::Kind::Sysinit);
             }
             Boot::Running => {
-                eprintln!("procd: - init complete -");
+                sys::klog("- init complete -");
                 self.inittab_run(inittab::Kind::Respawnlate);
                 self.inittab_run(inittab::Kind::Askconsolelate);
             }
             Boot::Shutdown => {
                 sys::set_console();
-                eprintln!("procd: - shutdown -");
+                sys::klog("- shutdown -");
                 self.inittab_run(inittab::Kind::Shutdown);
                 sys::sync_fs();
             }
             Boot::Halt => {
-                eprintln!("procd: - SIGTERM processes -");
+                sys::klog("- SIGTERM processes -");
                 proc::signal(-1, SIGTERM);
                 sys::sync_fs();
                 std::thread::sleep(std::time::Duration::from_secs(1));
-                eprintln!("procd: - SIGKILL processes -");
+                sys::klog("- SIGKILL processes -");
                 proc::signal(-1, SIGKILL);
                 sys::sync_fs();
                 std::thread::sleep(std::time::Duration::from_secs(1));
                 if self.reboot_event == sys::RB_POWER_OFF {
-                    eprintln!("procd: - power down -");
+                    sys::klog("- power down -");
                 } else {
-                    eprintln!("procd: - reboot -");
+                    sys::klog("- reboot -");
                 }
                 std::thread::sleep(std::time::Duration::from_secs(1));
                 if sys::is_container() {
@@ -1948,6 +1951,8 @@ fn run_hotplug_daemon(rules: &str) -> io::Result<()> {
 }
 
 fn run() -> io::Result<()> {
+    // procd.c main(): setsid() before anything else, in every mode.
+    proc::become_session_leader();
     // `-h <path>`: run as hotplug daemon (procd.c's getopt case 'h').
     {
         let mut args = std::env::args().skip(1);
@@ -1976,7 +1981,7 @@ fn run() -> io::Result<()> {
         // STATE_EARLY. watchdog_init(0) opens /dev/watchdog and starts the
         // keep-alive; hotplug("/etc/hotplug.json") and procd_coldplug() are
         // the remaining P3.2 pieces and their absence is logged, not hidden.
-        eprintln!("procd: - early -");
+        sys::klog("- early -");
         wdt.init(base.elapsed().as_millis() as i64, false);
         if !wdt.is_open() {
             eprintln!("procd-rs: no /dev/watchdog");
@@ -2006,18 +2011,22 @@ fn run() -> io::Result<()> {
             None => eprintln!("procd-rs: hotplug disabled: no socket or no rules"),
         }
 
-        // STATE_UBUS.
+        // STATE_UBUS. watchdog_init(0) runs AGAIN: coldplug replaced /dev,
+        // so a watchdog that was absent before it may exist now, and a
+        // first-open failure must not leave the hardware WDT unarmed
+        // forever.
+        wdt.init(base.elapsed().as_millis() as i64, false);
         sys::set_stdio("console");
         let ubus_user = sys::lookup_user_home("ubus");
         match &ubus_user {
             Some((uid, gid, home)) => {
-                eprintln!("procd: - ubus -");
+                sys::klog("- ubus -");
                 let _ = std::fs::create_dir_all(home);
                 if !sys::chown_path(home, *uid, *gid) {
                     eprintln!("procd: - ubus - failed to chown({home})");
                 }
             }
-            None => eprintln!("procd: - ubus (running as root!) -"),
+            None => sys::klog("- ubus (running as root!) -"),
         }
         // service_start_early("ubus", "/sbin/ubusd", ...): the same instance
         // shape the C builds -- respawn {3600, 1, 0}, the ubus user when it

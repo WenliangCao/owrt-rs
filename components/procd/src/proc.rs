@@ -36,7 +36,7 @@ pub const SIGHUP: i32 = 1;
 #[derive(Debug)]
 pub struct LogPipe {
     pub fd: std::os::fd::OwnedFd,
-    partial: String,
+    partial: Vec<u8>,
     priority: i32,
 }
 
@@ -51,12 +51,14 @@ const PARTIAL_MAX: usize = 64 * 1024;
 impl LogPipe {
     pub fn new(fd: std::os::fd::OwnedFd, priority: i32) -> io::Result<Self> {
         owrt_ubus::sys::set_nonblocking(fd.as_raw_fd())?;
-        Ok(LogPipe { fd, partial: String::new(), priority })
+        Ok(LogPipe { fd, partial: Vec::new(), priority })
     }
 
-    /// Read what is available and hand each complete line to `emit`.
+    /// Read what is available and hand each complete line to `emit` as RAW
+    /// BYTES (trailing newline stripped): the C's ustream never transcodes,
+    /// and a multibyte char split across two read()s must not be mangled.
     /// Returns false once the write end is closed and nothing is left.
-    pub fn poll_lines(&mut self, mut emit: impl FnMut(i32, &str)) -> bool {
+    pub fn poll_lines(&mut self, mut emit: impl FnMut(i32, &[u8])) -> bool {
         let mut buf = [0u8; 4096];
         let mut taken = 0;
         loop {
@@ -69,10 +71,10 @@ impl LogPipe {
             };
             if n > 0 {
                 taken += n as usize;
-                self.partial.push_str(&String::from_utf8_lossy(&buf[..n as usize]));
-                while let Some(at) = self.partial.find('\n') {
-                    let line: String = self.partial.drain(..=at).collect();
-                    emit(self.priority, line.trim_end_matches('\n'));
+                self.partial.extend_from_slice(&buf[..n as usize]);
+                while let Some(at) = self.partial.iter().position(|b| *b == b'\n') {
+                    let line: Vec<u8> = self.partial.drain(..=at).collect();
+                    emit(self.priority, &line[..line.len() - 1]);
                 }
                 if self.partial.len() > PARTIAL_MAX {
                     let line = std::mem::take(&mut self.partial);
@@ -357,6 +359,69 @@ pub fn signal_status(pid: i32, sig: i32) -> i32 {
     }
 }
 
+
+
+/// `fork_worker()`: start one inittab action -- new session, stdio on
+/// /dev/<id> (or /dev/null when the open fails), controlling tty, foreground
+/// process group, then execvp. The pid is reaped by the main loop.
+pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
+    extern "C" {
+        fn setsid() -> i32;
+        fn tcsetpgrp(fd: i32, pgrp: i32) -> i32;
+        fn getpid() -> i32;
+    }
+    use crate::sys::ioctl;
+    const TIOCSCTTY: u64 = 0x540E;
+
+    if argv.is_empty() {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
+    }
+    let mut cmd = Command::new(&argv[0]);
+    cmd.args(&argv[1..]);
+    let dev = if id.is_empty() { None } else { Some(id.to_string()) };
+    // SAFETY: everything in the closure is async-signal-safe and runs in the
+    // forked child before exec.
+    unsafe {
+        cmd.pre_exec(move || {
+            let p = setsid();
+            crate::sys::patch_fd(dev.as_deref(), 0, false);
+            crate::sys::patch_fd(dev.as_deref(), 1, true);
+            crate::sys::patch_fd(dev.as_deref(), 2, true);
+            ioctl(0, TIOCSCTTY, 1);
+            let _ = p;
+            tcsetpgrp(0, getpid());
+            Ok(())
+        });
+    }
+    let child = cmd.spawn()?;
+    let pid = child.id() as i32;
+    std::mem::forget(child);
+    Ok(pid)
+}
+
+/// `setsid(2)`, ignoring the failure when already a session leader --
+/// exactly what the bare call in procd.c's main() amounts to.
+pub fn become_session_leader() {
+    extern "C" {
+        fn setsid() -> i32;
+    }
+    // SAFETY: no arguments, no memory.
+    unsafe { setsid() };
+}
+
+/// `fork(2)`, raw, for the hotplug firmware child whose work is a plain
+/// synchronous copy loop rather than an exec.
+///
+/// # Safety
+/// The child must only call async-signal-safe code before exiting; the
+/// process is single-threaded when this is called.
+pub unsafe fn fork_raw() -> i32 {
+    extern "C" {
+        fn fork() -> i32;
+    }
+    fork()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -418,55 +483,4 @@ mod tests {
         // start(), so assert the flag rather than the builder.
         assert!(!i.has_jail);
     }
-}
-
-/// `fork_worker()`: start one inittab action -- new session, stdio on
-/// /dev/<id> (or /dev/null when the open fails), controlling tty, foreground
-/// process group, then execvp. The pid is reaped by the main loop.
-pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
-    extern "C" {
-        fn setsid() -> i32;
-        fn tcsetpgrp(fd: i32, pgrp: i32) -> i32;
-        fn getpid() -> i32;
-    }
-    use crate::sys::ioctl;
-    const TIOCSCTTY: u64 = 0x540E;
-
-    if argv.is_empty() {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
-    }
-    let mut cmd = Command::new(&argv[0]);
-    cmd.args(&argv[1..]);
-    let dev = if id.is_empty() { None } else { Some(id.to_string()) };
-    // SAFETY: everything in the closure is async-signal-safe and runs in the
-    // forked child before exec.
-    unsafe {
-        cmd.pre_exec(move || {
-            let p = setsid();
-            crate::sys::patch_fd(dev.as_deref(), 0, false);
-            crate::sys::patch_fd(dev.as_deref(), 1, true);
-            crate::sys::patch_fd(dev.as_deref(), 2, true);
-            ioctl(0, TIOCSCTTY, 1);
-            let _ = p;
-            tcsetpgrp(0, getpid());
-            Ok(())
-        });
-    }
-    let child = cmd.spawn()?;
-    let pid = child.id() as i32;
-    std::mem::forget(child);
-    Ok(pid)
-}
-
-/// `fork(2)`, raw, for the hotplug firmware child whose work is a plain
-/// synchronous copy loop rather than an exec.
-///
-/// # Safety
-/// The child must only call async-signal-safe code before exiting; the
-/// process is single-threaded when this is called.
-pub unsafe fn fork_raw() -> i32 {
-    extern "C" {
-        fn fork() -> i32;
-    }
-    fork()
 }

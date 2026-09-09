@@ -235,7 +235,13 @@ impl Hotplug {
                 );
                 mknod(c"/dev/null".as_ptr().cast(), S_IFCHR | 0o666, libc_makedev(1, 3));
             }
+            // mkdir("/dev/pts", 0755) runs under umask(0): the mode must be
+            // explicit or it comes out 0777.
             let _ = std::fs::create_dir("/dev/pts");
+            let _ = std::fs::set_permissions(
+                "/dev/pts",
+                std::os::unix::fs::PermissionsExt::from_mode(0o755),
+            );
             // SAFETY: as above.
             unsafe {
                 mount(

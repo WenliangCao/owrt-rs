@@ -266,8 +266,26 @@ pub fn facility_from_str(name: &str) -> i32 {
 /// Using the platform's syslog(3) rather than formatting a datagram by hand
 /// is deliberate: libubox's ulog calls the same function, so the framing,
 /// timestamp and truncation behaviour cannot drift apart.
-pub fn log_instance_line(ident: &str, facility: i32, priority: i32, line: &str) {
-    let (Ok(cid), Ok(cline)) = (CString::new(ident), CString::new(line)) else {
+/// `ulog(LOG_NOTICE, ...)` as PID 1 goes to /dev/kmsg (ulog_open(ULOG_KMSG))
+/// -- that is where the "procd: - early -" boot lines land on a real serial
+/// log. Kept alongside stderr so namespace probes still see the lines.
+pub fn klog(line: &str) {
+    eprintln!("procd: {line}");
+    if std::process::id() != 1 {
+        return;
+    }
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new().write(true).open("/dev/kmsg") {
+        // <29> = LOG_DAEMON | LOG_NOTICE, ulog's default for these lines.
+        let _ = f.write_all(format!("<29>procd: {line}\n").as_bytes());
+    }
+}
+
+pub fn log_instance_line(ident: &str, facility: i32, priority: i32, line: &[u8]) {
+    // The line is raw child output. syslog's %s stops at the first NUL, so
+    // an interior NUL truncates the line exactly as the C's ulog would.
+    let end = line.iter().position(|b| *b == 0).unwrap_or(line.len());
+    let (Ok(cid), Ok(cline)) = (CString::new(ident), CString::new(&line[..end])) else {
         return;
     };
     let fmt = c"%s";
@@ -530,9 +548,11 @@ pub fn set_stdio(tty: &str) {
         eprintln!("procd-rs: failed to set stdio: no /dev/{tty}");
         return;
     }
-    let ok = patch_fd(Some(tty), 0, false)
-        & patch_fd(Some(tty), 1, true)
-        & patch_fd(Some(tty), 2, true);
+    // freopen carries NO O_NOCTTY: the session leader acquires the console
+    // as its controlling terminal here, which is how ^C on the serial
+    // console reaches PID 1. patch_fd (used for CHILDREN) does pass
+    // O_NOCTTY, matching utils.c. (R73/6g.)
+    let ok = stdio_open(tty, 0, false) & stdio_open(tty, 1, true) & stdio_open(tty, 2, true);
     if !ok {
         eprintln!("procd-rs: failed to set stdio to {tty}");
         return;
@@ -543,6 +563,25 @@ pub fn set_stdio(tty: &str) {
         if fl >= 0 {
             fcntl(2, F_SETFL, fl | O_NONBLOCK);
         }
+    }
+}
+
+/// One freopen leg: open WITHOUT O_NOCTTY and dup2 onto the std fd.
+fn stdio_open(tty: &str, fd: i32, write: bool) -> bool {
+    let path = if tty.starts_with('/') { tty.to_string() } else { format!("/dev/{tty}") };
+    let Ok(c) = CString::new(path) else { return false };
+    let flags = if write { O_WRONLY } else { O_RDONLY };
+    // SAFETY: NUL-terminated path; fd ops on the result.
+    unsafe {
+        let nfd = open(c.as_ptr().cast(), flags, 0);
+        if nfd < 0 {
+            return false;
+        }
+        let ok = dup2(nfd, fd) >= 0;
+        if nfd > 2 {
+            close(nfd);
+        }
+        ok
     }
 }
 
@@ -666,12 +705,23 @@ extern "C" fn shutdown_signal(sig: i32) {
 }
 
 extern "C" fn crash_signal(_sig: i32) {
-    // signal_crash(): "Rebooting as procd has crashed". Everything here is
-    // async-signal-safe.
+    // do_reboot(): sync, a two-second window for the last output to reach
+    // the console, reboot, then hang forever -- the C never exits here.
+    // process::exit would run atexit handlers (not async-signal-safe) and,
+    // on a reboot(2) failure, would make PID 1 exit and panic the kernel
+    // where the C hangs and lets the hardware watchdog bite. (R73/5.)
+    extern "C" {
+        fn sleep(secs: u32) -> u32;
+    }
     sync_fs();
-    // SAFETY: integer command only.
-    unsafe { reboot(RB_AUTOBOOT) };
-    std::process::exit(1);
+    // SAFETY: sleep(3) and reboot(2) are async-signal-safe.
+    unsafe {
+        sleep(2);
+        reboot(RB_AUTOBOOT);
+    }
+    loop {
+        std::hint::spin_loop();
+    }
 }
 
 /// `procd_signal()` for the PID 1 half: shutdown signals, crash-to-reboot,

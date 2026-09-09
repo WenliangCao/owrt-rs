@@ -377,10 +377,16 @@ extern "C" {
 
 const REG_EXTENDED: i32 = 1;
 const REG_NOSUB: i32 = 1 << 3;
-/// `regex_t` is opaque and its size differs per libc. 256 bytes is larger
-/// than glibc's (64) and musl's (32 on this target); over-allocating is safe
-/// because only the library ever writes into it.
+/// `regex_t` is opaque and its size differs per libc: glibc 64 bytes,
+/// musl 64 bytes (aarch64). 256 over-allocates safely because only the
+/// library writes into it. The wrapper forces the ALIGNMENT the real
+/// struct has (pointers inside -> 8): a bare [u8; N] is align-1, and
+/// handing that to code that loads 8-byte fields is UB on paper even
+/// where aarch64 tolerates the load. (R73 hygiene.)
 const REGEX_T_SIZE: usize = 256;
+
+#[repr(C, align(8))]
+struct RegexStorage([u8; REGEX_T_SIZE]);
 
 /// `eq_regex_cmp()`. Plain equality, or POSIX extended regex through the
 /// platform's own regcomp/regexec -- the same implementation the C calls, so
@@ -393,10 +399,11 @@ fn eq_or_regex(s: &str, pattern: &str, regex: bool) -> bool {
     let (Ok(cpat), Ok(cs)) = (CString::new(pattern), CString::new(s)) else {
         return false;
     };
-    let mut reg = [0u8; REGEX_T_SIZE];
-    // SAFETY: `reg` is a zeroed buffer at least as large as regex_t on this
-    // platform, and `cpat` is a NUL-terminated string that outlives the call.
-    if unsafe { regcomp(reg.as_mut_ptr(), cpat.as_ptr().cast(), REG_EXTENDED | REG_NOSUB) }
+    let mut reg = RegexStorage([0u8; REGEX_T_SIZE]);
+    // SAFETY: `reg` is a zeroed, 8-aligned buffer at least as large as
+    // regex_t on this platform, and `cpat` is a NUL-terminated string that
+    // outlives the call.
+    if unsafe { regcomp(reg.0.as_mut_ptr(), cpat.as_ptr().cast(), REG_EXTENDED | REG_NOSUB) }
         != 0
     {
         return false;
@@ -404,10 +411,10 @@ fn eq_or_regex(s: &str, pattern: &str, regex: bool) -> bool {
     // SAFETY: `reg` was successfully compiled above; nmatch 0 with a null
     // pmatch is what REG_NOSUB expects.
     let hit = unsafe {
-        regexec(reg.as_ptr(), cs.as_ptr().cast(), 0, std::ptr::null_mut(), 0) == 0
+        regexec(reg.0.as_ptr(), cs.as_ptr().cast(), 0, std::ptr::null_mut(), 0) == 0
     };
     // SAFETY: frees the compiled regex exactly once.
-    unsafe { regfree(reg.as_mut_ptr()) };
+    unsafe { regfree(reg.0.as_mut_ptr()) };
     hit
 }
 

@@ -192,11 +192,14 @@ impl Dispatch {
             return status::NOT_SUPPORTED;
         }
         let dir = format!("{BASEDIR}/{subsys}");
+        // glob("<dir>/*") does not exclude directories: the C hands a
+        // subdirectory to `sh -c ". <dir>"` too (which fails harmlessly into
+        // /dev/null). Filtering them out changed the script count and the
+        // 50 ms cadence, so they stay in.
         let mut scripts: Vec<String> = std::fs::read_dir(&dir)
             .map(|d| {
                 d.flatten()
                     .filter(|e| !e.file_name().to_string_lossy().starts_with('.'))
-                    .filter(|e| e.file_type().map(|t| !t.is_dir()).unwrap_or(false))
                     .map(|e| e.path().to_string_lossy().into_owned())
                     .collect()
             })

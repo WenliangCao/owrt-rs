@@ -115,7 +115,7 @@ impl Wdt {
         if !self.open(!preinit) {
             return;
         }
-        eprintln!("procd: - watchdog -");
+        crate::sys::klog("- watchdog -");
         self.set_drv_timeout();
         self.ping_and_rearm(now);
     }

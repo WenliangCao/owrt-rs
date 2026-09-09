@@ -156,7 +156,9 @@ impl RunQueue {
             let Some(p) = j.out.as_mut() else { continue };
             let file = j.file.display().to_string();
             let alive = p.poll_lines(|prio, line| {
-                sys::log_instance_line("procd", sys::LOG_DAEMON, prio, &format!("{file}: {line}"));
+                let mut msg = format!("{file}: ").into_bytes();
+                msg.extend_from_slice(line);
+                sys::log_instance_line("procd", sys::LOG_DAEMON, prio, &msg);
             });
             if !alive {
                 j.out = None;
@@ -242,7 +244,9 @@ impl RunQueue {
             if let Some(p) = j.out.as_mut() {
                 let file = j.file.display().to_string();
                 p.poll_lines(|prio, line| {
-                    sys::log_instance_line("procd", sys::LOG_DAEMON, prio, &format!("{file}: {line}"));
+                    let mut msg = format!("{file}: ").into_bytes();
+                    msg.extend_from_slice(line);
+                    sys::log_instance_line("procd", sys::LOG_DAEMON, prio, &msg);
                 });
             }
         }
