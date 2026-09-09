@@ -320,7 +320,7 @@ impl Netifd {
         self.rescan_devices();
         self.present.clear();
         for name in self.known_device_names() {
-            if self.sys.if_index(&name).unwrap_or(0) != 0 {
+            if self.device_present_now(&name) {
                 self.present.push(name);
             }
         }
@@ -786,6 +786,9 @@ impl Netifd {
             for port in &dc.ports {
                 match self.sys.if_index(port) {
                     Ok(pi) if pi != 0 => {
+                        // a member's own `config device` settings (macaddr)
+                        // before enslaving, same as the late-add path
+                        self.apply_device_settings(port, pi);
                         if let Err(e) = self.sys.bridge_setmaster(pi, br) {
                             eprintln!("netifd-rs: cannot add {port} to {}: {e}", dc.name);
                             continue;
@@ -840,19 +843,34 @@ impl Netifd {
                 eprintln!("netifd-rs: device {} is absent", dc.name);
                 continue;
             }
-            if let Some(mac) = dc.macaddr {
-                if let Err(e) = self.sys.set_mac(idx, &mac) {
-                    eprintln!("netifd-rs: cannot set {} macaddr: {e}", dc.name);
-                }
-            }
-            if let Some(mtu) = dc.mtu {
-                let _ = self.sys.set_mtu(idx, mtu);
-            }
-            if let Some(q) = dc.txqueuelen {
-                let _ = self.sys.set_txqueuelen(idx, q);
-            }
+            self.apply_device_settings(&dc.name, idx);
         }
         self.rescan_devices();
+    }
+
+    /// `system_if_apply_settings` for a plain `config device` section: MAC,
+    /// MTU and txqueuelen. Called both when the device is present at
+    /// create_devices() and when it appears later -- a `config device wan`
+    /// with an explicit macaddr that registers after the daemon started must
+    /// still get that MAC, or the box comes up with the kernel's MAC instead
+    /// of the configured one (the WAN MAC an ISP may pin to).
+    fn apply_device_settings(&mut self, name: &str, idx: u32) {
+        let Some(dc) = self.cfg.devices.iter().find(|d| d.name == name && d.kind.is_none())
+        else {
+            return;
+        };
+        let (mac, mtu, q) = (dc.macaddr, dc.mtu, dc.txqueuelen);
+        if let Some(mac) = mac {
+            if let Err(e) = self.sys.set_mac(idx, &mac) {
+                eprintln!("netifd-rs: cannot set {name} macaddr: {e}");
+            }
+        }
+        if let Some(mtu) = mtu {
+            let _ = self.sys.set_mtu(idx, mtu);
+        }
+        if let Some(q) = q {
+            let _ = self.sys.set_txqueuelen(idx, q);
+        }
     }
 
     /// The global prefix list: the ULA from `globals`. Delegated prefixes come
@@ -875,9 +893,10 @@ impl Netifd {
         // exists, so `device` is reported even for an absent one.
         i.device = ic.device.clone();
         // `available` reflects whether the device is present, not whether
-        // the interface was started.
+        // the interface was started -- and for a bridge, "present" means it
+        // has a present member, not that the bridge netdev exists.
         i.available =
-            ic.device.as_deref().map(|d| self.sys.if_index(d).unwrap_or(0) != 0).unwrap_or(false);
+            ic.device.as_deref().map(|d| self.device_present_now(d)).unwrap_or(false);
         i.autostart = ic.auto.unwrap_or(true) && !ic.disabled;
         i.metric = ic.metric;
         i.dns_metric = ic.dns_metric;
@@ -2210,10 +2229,117 @@ impl Netifd {
         self.handle_config_change(name);
     }
 
+    /// The configured bridge (if any) that lists `port` among its ports.
+    fn bridge_of_port(&self, port: &str) -> Option<String> {
+        self.cfg
+            .devices
+            .iter()
+            .find(|d| {
+                d.kind.as_deref() == Some("bridge") && d.ports.iter().any(|p| p == port)
+            })
+            .map(|d| d.name.clone())
+    }
+
+    /// Whether a device counts as present RIGHT NOW, by the C's rules: a
+    /// plain device is present when the kernel has it, but a bridge is
+    /// present only while it has a present member (`bridge_member_cb`
+    /// increments `n_present` and the first one calls `device_set_present`),
+    /// or when `bridge_empty` says an empty bridge is fine. A bridge whose
+    /// ports all appear later must NOT count as present just because the
+    /// bridge netdev itself exists -- that was exactly the P6 device failure:
+    /// `lan` was declared available on an empty br-lan, its one bring-up
+    /// unwound, and nothing retried when the DSA ports registered.
+    fn device_present_now(&mut self, name: &str) -> bool {
+        let kernel = self.sys.if_index(name).unwrap_or(0) != 0;
+        let bridge = self
+            .cfg
+            .devices
+            .iter()
+            .find(|d| d.name == name && d.kind.as_deref() == Some("bridge"))
+            .map(|d| (d.bridge_empty, d.ports.clone()));
+        let Some((empty, ports)) = bridge else {
+            return kernel;
+        };
+        if !kernel {
+            return false;
+        }
+        if empty == Some(true) {
+            return true;
+        }
+        ports.iter().any(|p| self.sys.if_index(p).unwrap_or(0) != 0)
+    }
+
+    /// `bridge_member_cb(DEV_EVENT_ADD)` + `bridge_enable_member` for a port
+    /// that appeared after the bridge was built: enslave it, kill its IPv6
+    /// unless a device section asked for it, claim it (which claims the DSA
+    /// conduit behind it), and reapply the bridge MTU the kernel may have
+    /// just recomputed from the new member.
+    fn bridge_port_add(&mut self, br: &str, port: &str) {
+        let bi = match self.sys.if_index(br) {
+            Ok(i) if i != 0 => i,
+            _ => return,
+        };
+        let pi = match self.sys.if_index(port) {
+            Ok(i) if i != 0 => i,
+            _ => return,
+        };
+        if let Some(d) = self.devices.get(br) {
+            if let Some(b) = &d.bridge {
+                if b.members.iter().any(|m| m == port) {
+                    return;
+                }
+            }
+        }
+        // a member with its own `config device` settings (its macaddr, say)
+        // gets them before enslaving, so the bridge inherits the configured
+        // MAC rather than the kernel's
+        self.apply_device_settings(port, pi);
+        if let Err(e) = self.sys.bridge_setmaster(pi, bi) {
+            eprintln!("netifd-rs: cannot add {port} to {br}: {e}");
+            return;
+        }
+        let explicit =
+            self.cfg.devices.iter().any(|d| d.name == port && d.ipv6.is_some());
+        if !explicit {
+            let path = format!("/proc/sys/net/ipv6/conf/{port}/disable_ipv6");
+            if let Err(e) = std::fs::write(&path, "1") {
+                eprintln!("netifd-rs: cannot disable IPv6 on {port}: {e}");
+            }
+        }
+        self.device_claim(port);
+        if let Some(dc) = self.cfg.devices.iter().find(|d| d.name == br) {
+            if let Some(mtu) = dc.mtu {
+                let _ = self.sys.set_mtu(bi, mtu);
+            }
+        }
+        if let Some(d) = self.devices.get_mut(br) {
+            if let Some(b) = &mut d.bridge {
+                b.members.push(port.to_string());
+            }
+        }
+        eprintln!("netifd-rs: bridge {br}: port {port} added");
+    }
+
+    /// `bridge_remove_member` bookkeeping for a port whose netdev is gone;
+    /// the kernel already dropped the enslavement with the device, and
+    /// `device_removed` cleans the claims.
+    fn bridge_port_del(&mut self, br: &str, port: &str) {
+        if let Some(d) = self.devices.get_mut(br) {
+            if let Some(b) = &mut d.bridge {
+                b.members.retain(|m| m != port);
+            }
+        }
+    }
+
     /// `_device_set_present`, for every device this daemon has an object for.
     /// A device that disappears takes its claims with it, so a device that
     /// comes back under the same name is claimed again rather than being
     /// assumed to still be up.
+    ///
+    /// Two passes: ports first, bridges second. Enslaving a freshly appeared
+    /// port is what can make its bridge present, so a bridge's own presence
+    /// flip must be evaluated after its members' -- otherwise the interface
+    /// on the bridge is told nothing until the NEXT netlink event.
     fn update_presence(&mut self) {
         let mut watch: Vec<String> = self.known_device_names();
         for (n, _) in &self.claims {
@@ -2221,8 +2347,47 @@ impl Netifd {
                 watch.push(n.clone());
             }
         }
-        for name in watch {
+        let bridges: Vec<String> = self
+            .cfg
+            .devices
+            .iter()
+            .filter(|d| d.kind.as_deref() == Some("bridge"))
+            .map(|d| d.name.clone())
+            .collect();
+        for name in watch.iter().filter(|n| !bridges.contains(n)).cloned().collect::<Vec<_>>() {
             let now = self.sys.if_index(&name).unwrap_or(0) != 0;
+            let was = self.present.contains(&name);
+            if now == was {
+                continue;
+            }
+            if now {
+                self.present.push(name.clone());
+                eprintln!("netifd-rs: device '{name}' is now present");
+                // a plain `config device` (e.g. wan with an explicit macaddr)
+                // that appears late still needs its settings applied
+                if let Ok(idx) = self.sys.if_index(&name) {
+                    if idx != 0 {
+                        self.apply_device_settings(&name, idx);
+                    }
+                }
+                if let Some(br) = self.bridge_of_port(&name) {
+                    self.bridge_port_add(&br, &name);
+                }
+                self.device_added(&name);
+            } else {
+                self.present.retain(|n| *n != name);
+                eprintln!("netifd-rs: device '{name}' is no longer present");
+                if let Some(br) = self.bridge_of_port(&name) {
+                    self.bridge_port_del(&br, &name);
+                }
+                self.device_removed(&name);
+            }
+        }
+        for name in bridges {
+            if !watch.contains(&name) {
+                continue;
+            }
+            let now = self.device_present_now(&name);
             let was = self.present.contains(&name);
             if now == was {
                 continue;

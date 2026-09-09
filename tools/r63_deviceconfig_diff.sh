@@ -18,9 +18,13 @@
 #
 # Usage: r63_deviceconfig_diff.sh <rootfs-files> <netifd-rs> <network-cfg> <wireless-cfg> [outdir]
 #        PORTS="lan2 lan3 lan4 wan" (default) -- dummy netdevs to create
+#        PORT_STATE=up|down|late -- up (default): ports up before the daemon;
+#          down: ports exist but stay down (the real box's LAN: no cable);
+#          late: ports appear 8 s AFTER the daemon starts (hotplug order)
 set -eu
 rootfs=$1; cand=$2; netcfg=$3; wlcfg=$4; out=${5:-/tmp/r63-out}
 PORTS=${PORTS:-"lan2 lan3 lan4 wan"}
+PORT_STATE=${PORT_STATE:-up}
 [ -s "$netcfg" ] || { echo "missing network config: $netcfg"; exit 2; }
 [ -s "$wlcfg" ] || { echo "missing wireless config: $wlcfg"; exit 2; }
 mkdir -p "$out"
@@ -86,7 +90,7 @@ BUS
 	if [ "$tag" = c ]; then daemon=/sbin/netifd; else daemon=/sbin/netifd-rs; fi
 
 	sudo -n unshare --mount --net --fork /bin/sh -c '
-		root=$1; daemon=$2; out=$3; tag=$4; ports=$5
+		root=$1; daemon=$2; out=$3; tag=$4; ports=$5; pstate=${6:-up}
 		mount --make-rprivate /
 		mount -t sysfs sysfs /sys
 		mount -t proc proc "$root/proc"; mount -t sysfs sysfs "$root/sys"
@@ -97,16 +101,24 @@ BUS
 		trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 
 		ip link set lo up
-		n=2
-		for p in $ports; do
-			ip link add "$p" type dummy
-			ip link set "$p" address 02:00:00:00:00:0$n
-			ip link set "$p" up
-			n=$((n+1))
-		done
+		mkports() {
+			n=2
+			for p in $ports; do
+				# MAC atomically at creation: on the real box a DSA
+				# port has its hardware MAC from the start, so orig ==
+				# live. A two-step add-then-set makes orig (kernel
+				# random) differ from live for a late port, which shows
+				# up as a bridge-MAC diff that never happens on device.
+				ip link add "$p" address 02:00:00:00:00:0$n type dummy
+				[ "$pstate" = down ] || ip link set "$p" up
+				n=$((n+1))
+			done
+		}
+		[ "$pstate" = late ] || mkports
 
 		chroot "$root" /bin/sh /tmp/bus.sh
 		chroot "$root" /bin/sh -c "$daemon >/tmp/out/netifd.log 2>&1 & echo \$! > /tmp/out/netifd.pid"
+		if [ "$pstate" = late ]; then sleep 8; mkports; fi
 		sleep 5
 		chroot "$root" /bin/sh /tmp/probe.sh > "$out/$tag-ubus.txt" 2>&1 || true
 		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
@@ -128,7 +140,7 @@ BUS
 		done
 		pkill -9 udhcpc 2>/dev/null || true
 		pkill -9 odhcp6c 2>/dev/null || true
-		' sh "$root" "$daemon" "$out" "$tag" "$PORTS" > "$out/$tag-outer.log" 2>&1 || true
+		' sh "$root" "$daemon" "$out" "$tag" "$PORTS" "$PORT_STATE" > "$out/$tag-outer.log" 2>&1 || true
 
 	sudo -n chown "$(id -u):$(id -g)" "$out"/$tag-* 2>/dev/null || true
 	sudo -n rm -rf "$tmp"
@@ -136,6 +148,18 @@ BUS
 
 run_one c
 run_one rs
+
+# blank the bridge device object's own macaddr (see the comment at the call
+# site). Only the bridge's line, found as the first macaddr after a
+# "...": { block whose type is bridge; member and wan macaddrs stay compared.
+mask_bridge_mac() {
+	awk '
+	/^\t"[a-zA-Z0-9_-]+": \{$/ { inobj=1; isbr=0; done=0 }
+	/"type": "bridge"/ { if (inobj) isbr=1 }
+	/"macaddr":/ { if (inobj && isbr && !done) { sub(/"macaddr": "[0-9a-f:]+"/, "\"macaddr\": \"BR\""); done=1 } }
+	{ print }
+	'
+}
 
 norm() {
 	sed -E \
@@ -176,7 +200,8 @@ sys.stdout.write("".join(out))
 }
 
 fail=0
-diff -u <(norm < "$out/c-ubus.txt") <(norm < "$out/rs-ubus.txt") > "$out/ubus.diff" || fail=1
+diff -u <(mask_bridge_mac < "$out/c-ubus.txt" | norm) \
+	<(mask_bridge_mac < "$out/rs-ubus.txt" | norm) > "$out/ubus.diff" || fail=1
 diff -u <(norm < "$out/c-kernel.txt" | sort_kernel_routes) \
 	<(norm < "$out/rs-kernel.txt" | sort_kernel_routes) > "$out/kernel.diff" || fail=1
 
