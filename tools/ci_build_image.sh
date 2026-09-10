@@ -136,9 +136,13 @@ if os.path.exists("binary-sha256.txt"):
     binsums = {n: h for h, n in (l.split() for l in open("binary-sha256.txt") if l.strip())}
 pkgs = {}
 for f in sorted(sums):
-    m = re.match(r"(owrt-[a-z-]+)-(\d+\.\d+\.\d+-r\d+)\.apk$", f)
+    m = re.match(r"(owrt-[a-z0-9-]+)-(\d+\.\d+\.\d+-r\d+)\.apk$", f)
     if m:
         pkgs[m.group(1)] = m.group(2)
+expected_pkgs = {"owrt-uci", "owrt-fw4", "owrt-reload-config", "owrt-logd",
+                 "owrt-httpd", "owrt-rpcd", "owrt-switch"}
+if set(pkgs) != expected_pkgs:
+    raise SystemExit(f"incomplete package version manifest: {sorted(pkgs)}")
 img = [f for f in sums if f.endswith("-sysupgrade.bin")][0]
 json.dump({"openwrt": ver, "profile": "xiaomi_mi-router-ax3000t", "source_commit": commit,
            "packages": pkgs, "image": {"file": img, "size": os.path.getsize(img), "sha256": sums[img]},
