@@ -39,10 +39,10 @@ pub struct RawField {
 
 #[derive(Clone, Debug)]
 pub struct Acl {
-    pub object: String,
+    pub object: Vec<u8>,
     pub function: String,
     /// avl key: object up to the first `*?[` (uh_id_len)
-    pub key: String,
+    pub key: Vec<u8>,
 }
 
 #[derive(Clone, Debug)]
@@ -91,16 +91,21 @@ impl Session {
 
     /// rpc_session_grant
     pub fn grant(&mut self, scope: &str, object: Option<&str>, function: Option<&str>) -> i32 {
+        self.grant_bytes(scope, object.map(str::as_bytes), function)
+    }
+
+    fn grant_bytes(&mut self, scope: &str, object: Option<&[u8]>, function: Option<&str>) -> i32 {
         let (Some(object), Some(function)) = (object, function) else {
             return status::INVALID_ARGUMENT;
         };
-        let key = object[..uh_id_len(object)].to_owned();
+        let end = object.iter().position(|c| matches!(c, b'*' | b'?' | b'[')).unwrap_or(object.len());
+        let key = object[..end].to_vec();
         let list = self.acls.entry(scope.to_owned()).or_default();
         if list.iter().any(|a| a.object == object && a.function == function) {
             return 0;
         }
         // insert after the last entry whose key <= new key (avl dup order)
-        let pos = list.iter().rposition(|a| a.key.as_str() <= key.as_str()).map_or(0, |i| i + 1);
+        let pos = list.iter().rposition(|a| a.key <= key).map_or(0, |i| i + 1);
         list.insert(
             pos,
             Acl {
@@ -114,6 +119,10 @@ impl Session {
 
     /// rpc_session_revoke
     pub fn revoke(&mut self, scope: &str, object: Option<&str>, function: Option<&str>) -> i32 {
+        self.revoke_bytes(scope, object.map(str::as_bytes), function)
+    }
+
+    fn revoke_bytes(&mut self, scope: &str, object: Option<&[u8]>, function: Option<&str>) -> i32 {
         let Some(list) = self.acls.get_mut(scope) else { return 0 };
         match (object, function) {
             (None, None) => {
@@ -133,10 +142,14 @@ impl Session {
 
     /// rpc_session_acl_allowed
     pub fn allowed(&self, scope: &str, obj: &str, fun: &str) -> bool {
+        self.allowed_bytes(scope, obj.as_bytes(), fun)
+    }
+
+    fn allowed_bytes(&self, scope: &str, obj: &[u8], fun: &str) -> bool {
         match self.acls.get(scope) {
             Some(list) => list
                 .iter()
-                .any(|a| fnmatch(a.object.as_bytes(), obj.as_bytes()) && fnmatch(a.function.as_bytes(), fun.as_bytes())),
+                .any(|a| fnmatch(&a.object, obj) && fnmatch(a.function.as_bytes(), fun.as_bytes())),
             None => false,
         }
     }
@@ -156,17 +169,17 @@ impl Session {
     fn dump_acls(&self, b: &mut BlobBuf) {
         for (scope, list) in &self.acls {
             let c = b.msg_open_table(scope);
-            let mut lastobj: Option<&str> = None;
+            let mut lastobj: Option<&[u8]> = None;
             let mut d: Option<usize> = None;
             for acl in list {
-                if lastobj != Some(acl.object.as_str()) {
+                if lastobj != Some(acl.object.as_slice()) {
                     if let Some(cookie) = d.take() {
                         b.msg_close(cookie);
                     }
-                    d = Some(b.msg_open_array(&acl.object));
+                    d = Some(b.msg_open_array_bytes(&acl.object));
                 }
                 b.msg_string("", &acl.function);
-                lastobj = Some(acl.object.as_str());
+                lastobj = Some(acl.object.as_slice());
             }
             if let Some(cookie) = d {
                 b.msg_close(cookie);
@@ -197,11 +210,6 @@ impl Session {
         b.msg_close(c);
         b.into_payload()
     }
-}
-
-/// strcspn(str, "*?[")
-fn uh_id_len(s: &str) -> usize {
-    s.bytes().position(|c| matches!(c, b'*' | b'?' | b'[')).unwrap_or(s.len())
 }
 
 pub struct Store {
@@ -257,8 +265,12 @@ impl Store {
 
     /// rpc_session_access
     pub fn access(&mut self, sid: &str, scope: &str, object: &str, function: &str) -> bool {
+        self.access_bytes(sid, scope, object.as_bytes(), function)
+    }
+
+    pub fn access_bytes(&mut self, sid: &str, scope: &str, object: &[u8], function: &str) -> bool {
         match self.get(sid) {
-            Some(ses) => ses.allowed(scope, object, function),
+            Some(ses) => ses.allowed_bytes(scope, object, function),
             None => false,
         }
     }
@@ -615,7 +627,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                         continue;
                     }
                     if object.is_none() {
-                        object = s.as_str();
+                        object = s.as_bytes();
                     } else if function.is_none() {
                         function = s.as_str();
                     } else {
@@ -624,9 +636,9 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                 }
                 if let (Some(o), Some(f)) = (object, function) {
                     if grant {
-                        ses.grant(&scope, Some(o), Some(f));
+                        ses.grant_bytes(&scope, Some(o), Some(f));
                     } else {
-                        ses.revoke(&scope, Some(o), Some(f));
+                        ses.revoke_bytes(&scope, Some(o), Some(f));
                     }
                 }
             }
@@ -635,12 +647,12 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
         "access" => {
             let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
             let scope = arg_str(raw, "scope").unwrap_or("ubus").to_owned();
-            let object = arg_str(raw, "object").map(str::to_owned);
+            let object = arg(raw, "object", MsgType::String).and_then(|f| f.as_bytes()).map(<[u8]>::to_vec);
             let function = arg_str(raw, "function").map(str::to_owned);
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
             let mut b = BlobBuf::new();
             if let (Some(o), Some(f)) = (object, function) {
-                b.msg_bool("access", ses.allowed(&scope, &o, &f));
+                b.msg_bool("access", ses.allowed_bytes(&scope, &o, &f));
             } else {
                 ses.dump_acls(&mut b);
             }

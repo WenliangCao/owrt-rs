@@ -74,7 +74,11 @@ ubus call system sysupgrade '{"path":"/tmp/fake.img"}' >> /tmp/out/drive.txt 2>&
 
 log "--- 5: valid image -- this exec ends the namespace"
 echo '{"valid": true, "forceable": true, "allow_backup": true}' > /tmp/validate.json
-ubus call system sysupgrade '{"path":"/tmp/fake.img","prefix":"/","backup":"/tmp/backup.tar","command":"stage2-cmd","options":{"save_partitions":1,"bad-name":2,"str":"x"}}' >> /tmp/out/drive.txt 2>&1 || log "rc=$?"
+# A successful call execs PID 1 and the fake upgraded exits immediately.
+# The namespace can kill this caller before it records the connection error.
+# Keep that diagnostic separate; success is the PID 1 argv/env record below.
+ubus call system sysupgrade '{"path":"/tmp/fake.img","prefix":"/","backup":"/tmp/backup.tar","command":"stage2-cmd","options":{"save_partitions":1,"bad-name":2,"str":"x"}}' > /tmp/out/handover-client.txt 2>&1
+echo "rc=$?" >> /tmp/out/handover-client.txt
 sleep 10
 log "STILL ALIVE 10s AFTER SYSUPGRADE"
 X
@@ -100,7 +104,7 @@ X
 		fi
 	' sh "$r" "$tag" > "$out/$tag-pid1.log" 2>&1 || echo "ns exit $?" >> "$out/$tag-pid1.log"
 	umount "$r/proc" "$r/dev" 2>/dev/null || true
-	for f in drive.txt upgraded.txt; do
+	for f in drive.txt upgraded.txt handover-client.txt; do
 		cp "$r/tmp/out/$f" "$out/$tag-$f" 2>/dev/null || true
 	done
 done
@@ -136,9 +140,8 @@ if ! diff -u "$out/c-upgraded.txt" "$out/rs-upgraded.txt" > "$out/upgraded.diff"
 	echo "r75: FAIL: upgraded.txt differs across sides (see $out/upgraded.diff)" >&2
 	rc=1
 fi
-# drive.txt: identical apart from rc lines' ubus error TEXT? Both sides print
-# ubus's own error strings, which come from the same ubus binary -- compare
-# byte-for-byte.
+# Compare all completed error replies byte-for-byte. The final successful
+# exec is asserted above; its caller is killed with the namespace.
 if ! diff -u "$out/c-drive.txt" "$out/rs-drive.txt" > "$out/drive.diff" 2>&1; then
 	echo "r75: FAIL: drive logs differ (see $out/drive.diff)" >&2
 	rc=1

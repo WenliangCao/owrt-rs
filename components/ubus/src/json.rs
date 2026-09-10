@@ -9,6 +9,9 @@ pub enum Json {
     Int(i64),
     Float(f64),
     Str(String),
+    /// json-c and blobmsg STRING carry bytes, including non-UTF-8 SSIDs and
+    /// file contents. Keep those bytes until a text-only caller asks for text.
+    Bytes(Vec<u8>),
     Array(Vec<Json>),
     Object(Vec<(String, Json)>),
 }
@@ -24,7 +27,23 @@ impl Json {
     pub fn as_str(&self) -> Option<&str> {
         match self {
             Json::Str(s) => Some(s),
+            Json::Bytes(s) => std::str::from_utf8(s).ok(),
             _ => None,
+        }
+    }
+
+    pub fn as_bytes(&self) -> Option<&[u8]> {
+        match self {
+            Json::Str(s) => Some(s.as_bytes()),
+            Json::Bytes(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn from_string_bytes(bytes: Vec<u8>) -> Self {
+        match String::from_utf8(bytes) {
+            Ok(s) => Json::Str(s),
+            Err(e) => Json::Bytes(e.into_bytes()),
         }
     }
 
@@ -36,39 +55,49 @@ impl Json {
     }
 
     pub fn to_compact(&self) -> String {
-        let mut out = String::new();
+        // For text-only consumers. Wire/file consumers must use to_bytes().
+        String::from_utf8_lossy(&self.to_bytes()).into_owned()
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut out = Vec::new();
         self.write(&mut out);
         out
     }
 
-    fn write(&self, out: &mut String) {
+    fn write(&self, out: &mut Vec<u8>) {
         match self {
-            Json::Null => out.push_str("null"),
-            Json::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
-            Json::Int(i) => out.push_str(&i.to_string()),
-            Json::Float(f) => write_double(out, *f),
-            Json::Str(s) => write_string(out, s),
+            Json::Null => out.extend_from_slice(b"null"),
+            Json::Bool(b) => out.extend_from_slice(if *b { b"true" } else { b"false" }),
+            Json::Int(i) => out.extend_from_slice(i.to_string().as_bytes()),
+            Json::Float(f) => {
+                let mut text = String::new();
+                write_double(&mut text, *f);
+                out.extend_from_slice(text.as_bytes());
+            }
+            Json::Str(s) => write_string(out, s.as_bytes()),
+            Json::Bytes(s) => write_string(out, s),
             Json::Array(items) => {
-                out.push('[');
+                out.push(b'[');
                 for (i, item) in items.iter().enumerate() {
                     if i > 0 {
-                        out.push(',');
+                        out.push(b',');
                     }
                     item.write(out);
                 }
-                out.push(']');
+                out.push(b']');
             }
             Json::Object(items) => {
-                out.push('{');
+                out.push(b'{');
                 for (i, (k, v)) in items.iter().enumerate() {
                     if i > 0 {
-                        out.push(',');
+                        out.push(b',');
                     }
-                    write_string(out, k);
-                    out.push(':');
+                    write_string(out, k.as_bytes());
+                    out.push(b':');
                     v.write(out);
                 }
-                out.push('}');
+                out.push(b'}');
             }
         }
     }
@@ -114,26 +143,30 @@ fn trim_fraction(s: &str) -> &str {
     s.strip_suffix('.').unwrap_or(s)
 }
 
-fn write_string(out: &mut String, s: &str) {
-    out.push('"');
-    for c in s.chars() {
+fn write_string(out: &mut Vec<u8>, s: &[u8]) {
+    out.push(b'"');
+    for &c in s {
         match c {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            '\u{08}' => out.push_str("\\b"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
+            b'"' => out.extend_from_slice(b"\\\""),
+            b'\\' => out.extend_from_slice(b"\\\\"),
+            b'\n' => out.extend_from_slice(b"\\n"),
+            b'\r' => out.extend_from_slice(b"\\r"),
+            b'\t' => out.extend_from_slice(b"\\t"),
+            8 => out.extend_from_slice(b"\\b"),
+            c if c < 0x20 => out.extend_from_slice(format!("\\u{c:04x}").as_bytes()),
             c => out.push(c),
         }
     }
-    out.push('"');
+    out.push(b'"');
 }
 
 pub fn parse(input: &str) -> Result<Json, String> {
+    parse_bytes(input.as_bytes())
+}
+
+pub fn parse_bytes(input: &[u8]) -> Result<Json, String> {
     let mut p = Parser {
-        bytes: input.as_bytes(),
+        bytes: input,
         pos: 0,
         depth: 0,
     };
@@ -149,8 +182,12 @@ pub fn parse(input: &str) -> Result<Json, String> {
 /// json_tokener_parse in its default (non-strict) mode: the first complete
 /// value is returned and whatever follows it is ignored.
 pub fn parse_prefix(input: &str) -> Result<Json, String> {
+    parse_prefix_bytes(input.as_bytes())
+}
+
+pub fn parse_prefix_bytes(input: &[u8]) -> Result<Json, String> {
     let mut p = Parser {
-        bytes: input.as_bytes(),
+        bytes: input,
         pos: 0,
         depth: 0,
     };
@@ -210,7 +247,7 @@ impl<'a> Parser<'a> {
             Some(b'n') => self.expect("null", Json::Null),
             Some(b't') => self.expect("true", Json::Bool(true)),
             Some(b'f') => self.expect("false", Json::Bool(false)),
-            Some(b'"') => self.string().map(Json::Str),
+            Some(b'"') => self.string().map(Json::from_string_bytes),
             Some(b'[') => {
                 self.pos += 1;
                 self.depth += 1;
@@ -260,7 +297,7 @@ impl<'a> Parser<'a> {
                     if self.peek() != Some(b'"') {
                         return Err("expected string key".into());
                     }
-                    let key = self.string()?;
+                    let key = String::from_utf8(self.string()?).map_err(|_| "bad UTF-8 key")?;
                     self.skip_ws();
                     if self.peek() != Some(b':') {
                         return Err("expected :".into());
@@ -292,9 +329,9 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn string(&mut self) -> Result<String, String> {
+    fn string(&mut self) -> Result<Vec<u8>, String> {
         self.pos += 1; // opening quote
-        let mut out = String::new();
+        let mut out = Vec::new();
         loop {
             let c = self.peek().ok_or("unterminated string")?;
             self.pos += 1;
@@ -304,14 +341,14 @@ impl<'a> Parser<'a> {
                     let e = self.peek().ok_or("bad escape")?;
                     self.pos += 1;
                     match e {
-                        b'"' => out.push('"'),
-                        b'\\' => out.push('\\'),
-                        b'/' => out.push('/'),
-                        b'b' => out.push('\u{08}'),
-                        b'f' => out.push('\u{0c}'),
-                        b'n' => out.push('\n'),
-                        b'r' => out.push('\r'),
-                        b't' => out.push('\t'),
+                        b'"' => out.push(b'"'),
+                        b'\\' => out.push(b'\\'),
+                        b'/' => out.push(b'/'),
+                        b'b' => out.push(8),
+                        b'f' => out.push(12),
+                        b'n' => out.push(b'\n'),
+                        b'r' => out.push(b'\r'),
+                        b't' => out.push(b'\t'),
                         b'u' => {
                             let mut code = self.hex4()?;
                             if (0xD800..0xDC00).contains(&code)
@@ -323,21 +360,14 @@ impl<'a> Parser<'a> {
                                     code = 0x10000 + ((code - 0xD800) << 10) + (low - 0xDC00);
                                 }
                             }
-                            out.push(char::from_u32(code).unwrap_or('\u{fffd}'));
+                            let mut bytes = [0; 4];
+                            out.extend_from_slice(char::from_u32(code).unwrap_or('\u{fffd}')
+                                .encode_utf8(&mut bytes).as_bytes());
                         }
                         _ => return Err("bad escape".into()),
                     }
                 }
-                _ => {
-                    // copy one UTF-8 sequence
-                    let start = self.pos - 1;
-                    let len = utf8_len(c);
-                    let end = (start + len).min(self.bytes.len());
-                    out.push_str(
-                        std::str::from_utf8(&self.bytes[start..end]).map_err(|_| "bad utf8")?,
-                    );
-                    self.pos = end;
-                }
+                _ => out.push(c),
             }
         }
     }
@@ -372,15 +402,6 @@ impl<'a> Parser<'a> {
         text.parse::<f64>()
             .map(Json::Float)
             .map_err(|_| "bad number".into())
-    }
-}
-
-fn utf8_len(first: u8) -> usize {
-    match first {
-        0x00..=0x7f => 1,
-        0xc0..=0xdf => 2,
-        0xe0..=0xef => 3,
-        _ => 4,
     }
 }
 

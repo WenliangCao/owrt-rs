@@ -68,6 +68,8 @@ pub struct CgiContext<'a> {
     pub remote: SocketAddr,
     pub tls: bool,
     pub script_timeout: u64,
+    pub interpreter: Option<&'a str>,
+    pub redirect_status: u16,
 }
 
 const HEADER_ENV: &[(&str, &str)] = &[
@@ -93,6 +95,86 @@ pub fn is_executable(pi: &PathInfo) -> bool {
     pi.meta.is_file() && pi.meta.permissions().mode() & 0o001 != 0
 }
 
+/// uh_client_error, proc.c:195: the relay closing with the header block still
+/// unfinished is the one CGI failure uhttpd reports, whatever caused it --
+/// no output at all, a partial header block, a header line without a colon,
+/// or the script timeout killing it before it finished its headers.
+const NO_RESPONSE: &str = "The process did not produce any response";
+
+/// The bare `strerror(errno)` text uhttpd puts in its CGI failure pages;
+/// std's Display appends " (os error N)", which C never prints.
+fn strerror(error: &io::Error) -> String {
+    let text = error.to_string();
+    match text.rfind(" (os error ") {
+        Some(cut) => text[..cut].to_owned(),
+        None => text,
+    }
+}
+
+/// uh_client_error drops keep-alive only when a request body is still
+/// outstanding -- `r->transfer_chunked || r->content_length > 0`
+/// (client.c:157-164). On the CGI path it never is: proc_data_send has already
+/// decremented the declared length, and it does so even when the write to the
+/// script fails ("consume all data", proc.c:302-303). So a CGI error keeps the
+/// connection alive and only the caller's drain has to catch up.
+fn cgi_error<W: Sink>(
+    resp: &mut Response<W>,
+    code: u16,
+    summary: &str,
+    detail: &str,
+) -> io::Result<()> {
+    resp.error(code, summary, Some(detail))
+}
+
+/// What uhttpd answers when the CGI process could not be started.
+///
+/// C splits this in two: pipe(2)/fork(2) failing never reaches a child, and
+/// cgi_handle_request answers 500 with an HTML page (cgi.c:91-95); an exec
+/// failure happens *inside* the child, which prints its own `Status: 500`
+/// header block plus a plain-text explanation (cgi.c:68-70) that then travels
+/// back through the ordinary header relay. `Command::spawn` reports both as
+/// one error, so the errno decides which page this is.
+fn spawn_failed<W: Sink>(
+    resp: &mut Response<W>,
+    request: &Request,
+    pi: &PathInfo,
+    error: &io::Error,
+    interpreter: Option<&str>,
+) -> io::Result<()> {
+    const EAGAIN: i32 = 11;
+    const ENOMEM: i32 = 12;
+    const ENFILE: i32 = 23;
+    const EMFILE: i32 = 24;
+    let reason = strerror(error);
+    if matches!(error.raw_os_error(), Some(EAGAIN | ENOMEM | ENFILE | EMFILE)) {
+        resp.error(
+            500,
+            "Internal Server Error",
+            Some(&format!("Failed to create CGI process: {reason}")),
+        )?;
+        // uh_create_process failed before proc_data_send was installed, so the
+        // body really is still outstanding and uh_client_error drops the
+        // connection -- after the header, which still says Keep-Alive.
+        if request.transfer_chunked || request.content_length.is_some_and(|n| n > 0) {
+            resp.force_close();
+        }
+        return Ok(());
+    }
+    // The child's own output: a Status line, no other header, then the text.
+    resp.status(500, "Internal Server Error")?;
+    resp.end_headers()?;
+    if !resp.is_head() {
+        resp.body(
+            format!(
+                "Unable to launch the requested CGI program:\n  {}: {reason}\n",
+                interpreter.map(str::to_owned).unwrap_or_else(|| pi.phys.display().to_string())
+            )
+            .as_bytes(),
+        )?;
+    }
+    resp.finish()
+}
+
 pub fn run<W: Sink, R: io::BufRead>(
     ctx: &CgiContext,
     request: &Request,
@@ -100,7 +182,8 @@ pub fn run<W: Sink, R: io::BufRead>(
     resp: &mut Response<W>,
     pi: &PathInfo,
 ) -> io::Result<()> {
-    let mut command = Command::new(&pi.phys);
+    let mut command = Command::new(ctx.interpreter.map(std::path::Path::new).unwrap_or(&pi.phys));
+    if ctx.interpreter.is_some() { command.arg(&pi.phys); }
     command
         .env_clear()
         .env("PATH", ctx.cgi_path)
@@ -113,7 +196,7 @@ pub fn run<W: Sink, R: io::BufRead>(
         .env("REQUEST_URI", &request.url)
         .env("SERVER_PROTOCOL", request.version.name())
         .env("REQUEST_METHOD", request.method.name())
-        .env("REDIRECT_STATUS", "200")
+        .env("REDIRECT_STATUS", ctx.redirect_status.to_string())
         .env("SERVER_NAME", ctx.local.ip().to_string())
         .env("SERVER_ADDR", ctx.local.ip().to_string())
         .env("SERVER_PORT", ctx.local.port().to_string())
@@ -135,7 +218,10 @@ pub fn run<W: Sink, R: io::BufRead>(
             command.env(env, value);
         }
     }
-    let mut child = ChildGuard(command.spawn()?);
+    let mut child = match command.spawn() {
+        Ok(child) => ChildGuard(child),
+        Err(error) => return spawn_failed(resp, request, pi, &error, ctx.interpreter),
+    };
     // ChildStdin/ChildStdout as plain files so both ends, plus the client
     // socket, can be driven by one poll(2) loop on this thread. uhttpd runs the
     // whole exchange on one uloop; anything that blocks here -- a stalled
@@ -154,7 +240,9 @@ pub fn run<W: Sink, R: io::BufRead>(
     let _blocking = NonBlockingFor::new(client_fd)?;
     // From here the relay owns readiness: `write` only queues.
     resp.sink().set_deferred(true);
-    let deadline = Instant::now() + Duration::from_secs(ctx.script_timeout.max(1));
+    // proc.c arms the timeout only when -t is positive; zero disables it.
+    let deadline = (ctx.script_timeout > 0)
+        .then(|| Instant::now() + Duration::from_secs(ctx.script_timeout));
     // One small staging window between the client and the script: the body is
     // pulled only when the script's stdin has room, so an upload of any size
     // costs this buffer, and a script that stops reading back-pressures the
@@ -169,7 +257,6 @@ pub fn run<W: Sink, R: io::BufRead>(
     let mut header_buf: Vec<u8> = Vec::new();
     let mut header_bytes = 0usize;
     let mut headers_done = false;
-    let mut timed_out = false;
     let mut script_done = false;
     let mut relay_eof = false;
     let mut body_failed = false;
@@ -182,9 +269,10 @@ pub fn run<W: Sink, R: io::BufRead>(
         if !script_done && matches!(child.0.try_wait(), Ok(Some(_))) {
             script_done = true;
         }
-        let remaining = deadline.saturating_duration_since(Instant::now());
-        if remaining.is_zero() {
-            timed_out = true;
+        // proc_timeout_cb: at the deadline the script is SIGKILLed (the guard
+        // does it) and the relay ends where it stands.
+        let remaining = deadline.map(|d| d.saturating_duration_since(Instant::now()));
+        if remaining.is_some_and(|left| left.is_zero()) {
             break;
         }
         // Read the script only while the response window has room: that is the
@@ -246,7 +334,7 @@ pub fn run<W: Sink, R: io::BufRead>(
         let wait_ms = if script_done && !want_write {
             0
         } else {
-            remaining.as_millis().min(CHILD_TICK_MS as u128) as i32
+            remaining.map_or(CHILD_TICK_MS as i32, |left| left.as_millis().min(CHILD_TICK_MS as u128) as i32)
         };
         if poll_fds(&mut fds[..n], wait_ms).is_err() {
             break;
@@ -337,31 +425,31 @@ pub fn run<W: Sink, R: io::BufRead>(
             return Ok(());
         }
         if !headers_done {
-            if timed_out && !script_done {
-                return resp.error(
-                    504,
-                    "Gateway Timeout",
-                    Some("The CGI script did not respond in time"),
-                );
-            }
-            // script exited without producing a header block
-            resp.status(status_code, &status_text)?;
-            for (name, value) in &headers {
-                resp.header(name, value)?;
-            }
-            resp.end_headers()?;
-            if !header_buf.is_empty() && !resp.is_head() {
-                resp.body(&header_buf)?;
-            }
+            // proc_handle_close (proc.c:192-198): the relay closed with
+            // r->header_cb still set. Every route here is the same 502 in C --
+            // a script that printed nothing, one that printed a partial header
+            // block, and proc_timeout_cb SIGKILLing one that had not finished
+            // its headers (proc.c:322-328 -> relay.c:181-188 -> 151-162).
+            // uhttpd has no 504 anywhere, and never promotes a half-written
+            // header block to a 200.
+            return cgi_error(resp, 502, "Bad Gateway", NO_RESPONSE);
         }
         resp.finish()
     })();
     // Bounded by whatever is left of the script budget, with a floor so a
     // response that is ready right at the deadline still gets out.
-    let left = deadline
-        .saturating_duration_since(Instant::now())
-        .max(Duration::from_millis(CHILD_TICK_MS));
-    let flushed = outcome.and_then(|()| flush_within(resp.sink(), left));
+    let flushed = outcome.and_then(|()| match deadline {
+        Some(deadline) => {
+            let left = deadline.saturating_duration_since(Instant::now())
+                .max(Duration::from_millis(CHILD_TICK_MS));
+            flush_within(resp.sink(), left)
+        }
+        None => {
+            // With no script budget, use the sink's configured network budget.
+            resp.sink().set_deferred(false);
+            resp.sink().flush()
+        }
+    });
     resp.sink().set_deferred(false);
     flushed
 }
@@ -389,7 +477,7 @@ fn flush_within<S: Sink>(sink: &mut S, budget: Duration) -> io::Result<()> {
 /// One chunk of script output: parse the header block, then relay the body.
 /// `Ok(false)` means the relay wrote an error page and the request is over.
 #[allow(clippy::too_many_arguments)]
-fn relay<W: Write>(
+fn relay<W: Sink>(
     chunk: &[u8],
     resp: &mut Response<W>,
     headers_done: &mut bool,
@@ -413,7 +501,10 @@ fn relay<W: Write>(
         // body sharing that read must never count against the cap.
         *header_bytes += line.len();
         if *header_bytes > MAX_HEADER_BYTES {
-            resp.error(500, "Internal Server Error", Some("CGI header block too large"))?;
+            // DEVIATION, no C counterpart: reading stops here, so what is
+            // left of the body would desynchronise the connection.
+            resp.force_close();
+            cgi_error(resp, 500, "Internal Server Error", "CGI header block too large")?;
             return Ok(false);
         }
         line.pop();
@@ -438,8 +529,13 @@ fn relay<W: Write>(
         }
         let text = String::from_utf8_lossy(&line).into_owned();
         let Some((name, value)) = text.split_once(':') else {
-            // malformed header: uhttpd aborts the relay
-            resp.error(500, "Internal Server Error", Some("Invalid CGI response header"))?;
+            // uh_split_header returns NULL, relay_error() aborts the relay
+            // (relay.c:101-104) and the close callback answers 502 with the
+            // same message as any other unfinished header block (proc.c:195).
+            // DEVIATION (kept): C only sends it once the script actually dies,
+            // i.e. at the script timeout for a script that keeps running;
+            // this answers immediately and the guard kills the script.
+            cgi_error(resp, 502, "Bad Gateway", NO_RESPONSE)?;
             return Ok(false);
         };
         let name = name.trim();
@@ -462,7 +558,8 @@ fn relay<W: Write>(
     }
     // Headers still unfinished: what is buffered is all header, so it counts.
     if *header_bytes + header_buf.len() > MAX_HEADER_BYTES {
-        resp.error(500, "Internal Server Error", Some("CGI header block too large"))?;
+        resp.force_close();
+        cgi_error(resp, 500, "Internal Server Error", "CGI header block too large")?;
         return Ok(false);
     }
     Ok(true)
@@ -478,6 +575,12 @@ mod tests {
     static SEQ: AtomicU32 = AtomicU32::new(0);
 
     fn script_fixture(script: &str) -> (std::path::PathBuf, PathInfo) {
+        script_fixture_raw(&format!("#!/bin/sh\n{script}"))
+    }
+
+    /// Same, but the caller writes the whole file -- shebang included, so a
+    /// missing interpreter can be tested.
+    fn script_fixture_raw(content: &str) -> (std::path::PathBuf, PathInfo) {
         let dir = std::env::temp_dir().join(format!(
             "owrt-cgi-test-{}-{}",
             std::process::id(),
@@ -485,7 +588,7 @@ mod tests {
         ));
         fs::create_dir_all(&dir).unwrap();
         let phys = dir.join("script");
-        fs::write(&phys, format!("#!/bin/sh\n{script}")).unwrap();
+        fs::write(&phys, content).unwrap();
         fs::set_permissions(&phys, fs::Permissions::from_mode(0o755)).unwrap();
         let pi = PathInfo {
             meta: fs::metadata(&phys).unwrap(),
@@ -545,10 +648,22 @@ mod tests {
 
     /// Run one throwaway CGI script and report (response bytes, elapsed ms).
     fn run_script(script: &str, script_timeout: u64) -> (String, u128) {
-        let (dir, pi) = script_fixture(script);
+        run_fixture(script_fixture(script), script_timeout)
+    }
+
+    fn run_raw(content: &str, script_timeout: u64) -> (String, u128) {
+        run_fixture(script_fixture_raw(content), script_timeout)
+    }
+
+    fn run_fixture(
+        (dir, pi): (std::path::PathBuf, PathInfo),
+        script_timeout: u64,
+    ) -> (String, u128) {
         let request = get_request();
         let local = "127.0.0.1:80".parse().unwrap();
         let ctx = CgiContext {
+            interpreter: None,
+            redirect_status: 200,
             docroot: dir.to_str().unwrap(),
             cgi_path: "/bin:/usr/bin",
             local,
@@ -570,10 +685,11 @@ mod tests {
 
     /// relay_close_if_done() finishes on stdout EOF and uh_relay_free() kills
     /// the script that is still running; we must not wait out its lifetime.
+    /// No header block was produced, so this is proc_handle_close's 502.
     #[test]
     fn stdout_eof_finishes_the_request_without_waiting_for_the_script() {
         let (out, ms) = run_script("exec 1>&-\nsleep 5\n", 1);
-        assert!(out.starts_with("HTTP/1.0 200 OK"), "{out:?}");
+        assert!(out.starts_with("HTTP/1.0 502 Bad Gateway"), "{out:?}");
         assert!(ms < 1000, "took {ms} ms, should end at relay EOF");
     }
 
@@ -582,7 +698,7 @@ mod tests {
     #[test]
     fn descendant_holding_stdout_cannot_outlive_the_script_timeout() {
         let (out, ms) = run_script("sleep 5 &\nwait\n", 1);
-        assert!(out.starts_with("HTTP/1.0 504 Gateway Timeout"), "{out:?}");
+        assert!(out.starts_with("HTTP/1.0 502 Bad Gateway"), "{out:?}");
         assert!((900..3000).contains(&ms), "took {ms} ms, expected ~1000");
     }
 
@@ -654,6 +770,8 @@ mod tests {
         let request = get_request();
         let local = "127.0.0.1:80".parse().unwrap();
         let ctx = CgiContext {
+            interpreter: None,
+            redirect_status: 200,
             docroot: dir.to_str().unwrap(),
             cgi_path: "/bin:/usr/bin",
             local,
@@ -673,10 +791,87 @@ mod tests {
         assert!(ms < 2500, "took {ms} ms with -t 1; the stalled client held the script");
     }
 
+    /// relay.c:101-104 + proc.c:195: a header line without a colon aborts the
+    /// relay, and the close callback answers the same 502 as any other
+    /// unfinished header block.
     #[test]
     fn malformed_header_aborts_the_relay_promptly() {
         let (out, ms) = run_script("printf 'invalid\\r\\n'\nsleep 5\n", 5);
-        assert!(out.starts_with("HTTP/1.0 500 Internal Server Error"), "{out:?}");
+        assert!(out.starts_with("HTTP/1.0 502 Bad Gateway"), "{out:?}");
+        assert!(out.contains(NO_RESPONSE), "{out:?}");
         assert!(ms < 1000, "took {ms} ms, should not wait for the script");
+    }
+
+    /// proc.c:192-201 proc_handle_close: when the relay closes and the header
+    /// block was never completed, uhttpd answers 502 Bad Gateway "The process
+    /// did not produce any response" -- never a 200 carrying the half-written
+    /// header block as its body.
+    #[test]
+    fn script_that_exits_without_headers_is_502() {
+        for script in ["exit 1\n", "exit 0\n", "printf 'Content-Type: text/plain\\r\\n'\nexit 0\n"] {
+            let (out, _) = run_script(script, 5);
+            assert!(out.starts_with("HTTP/1.0 502 Bad Gateway"), "{script:?}: {out:?}");
+            assert!(out.contains(NO_RESPONSE), "{script:?}: {out:?}");
+        }
+    }
+
+    /// proc.c:322-328 proc_timeout_cb -> uh_relay_kill -> relay_close_if_done
+    /// -> proc_handle_close: a script killed at the deadline before finishing
+    /// its headers also gets 502. uhttpd has no 504 anywhere.
+    #[test]
+    fn script_timeout_before_headers_is_502() {
+        let (out, ms) = run_script("sleep 5\n", 1);
+        assert!(out.starts_with("HTTP/1.0 502 Bad Gateway"), "{out:?}");
+        assert!((900..3000).contains(&ms), "took {ms} ms, expected ~1000");
+    }
+
+    /// cgi.c:68-70: exec failing is reported by the child itself, as a CGI
+    /// `Status: 500` header block plus a plain-text explanation -- so no
+    /// Content-Type, and the connection is not simply dropped.
+    #[test]
+    fn missing_interpreter_is_the_cgi_launch_failure_page() {
+        let (out, _) = run_raw("#!/usr/bin/definitely-missing-interpreter\ntrue\n", 5);
+        assert!(out.starts_with("HTTP/1.0 500 Internal Server Error"), "{out:?}");
+        assert!(out.contains("Unable to launch the requested CGI program:\n  "), "{out:?}");
+        assert!(out.contains("No such file or directory"), "{out:?}");
+        assert!(!out.to_ascii_lowercase().contains("content-type"), "{out:?}");
+        assert!(!out.contains("os error"), "strerror only: {out:?}");
+    }
+
+    /// uh_client_error's close rule reads `r->content_length`, which
+    /// proc_data_send has already spent by the time the relay fails
+    /// (proc.c:286-320) -- so a CGI error on a request that carried a body
+    /// still answers Connection: Keep-Alive.
+    #[test]
+    fn cgi_error_keeps_keep_alive_even_with_a_request_body() {
+        let (dir, pi) = script_fixture("exit 1\n");
+        let mut request = get_request();
+        request.version = Version::V1_1;
+        request.connection_close = false;
+        request.content_length = Some(4);
+        let local = "127.0.0.1:80".parse().unwrap();
+        let ctx = CgiContext {
+            interpreter: None,
+            redirect_status: 200,
+            docroot: dir.to_str().unwrap(),
+            cgi_path: "/bin:/usr/bin",
+            local,
+            remote: local,
+            tls: false,
+            script_timeout: 5,
+        };
+        let mut out = VecSink(Vec::new());
+        let src = std::cell::RefCell::new(io::BufReader::new(io::Cursor::new(b"body".to_vec())));
+        let close;
+        {
+            let mut resp = Response::new(&mut out, &request, 20);
+            run(&ctx, &request, &mut crate::http::BodyReader::new(&src, &request), &mut resp, &pi).unwrap();
+            close = resp.connection_close();
+        }
+        let _ = fs::remove_dir_all(&dir);
+        let text = String::from_utf8_lossy(&out.0).into_owned();
+        assert!(!close, "{text:?}");
+        assert!(text.starts_with("HTTP/1.1 502 Bad Gateway"), "{text:?}");
+        assert!(text.contains("Connection: Keep-Alive"), "{text:?}");
     }
 }

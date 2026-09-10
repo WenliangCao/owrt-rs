@@ -57,6 +57,8 @@ struct Cli {
     cur_section_ref: Option<String>,
     /// feof(input) as seen by uci_batch
     batch_eof: bool,
+    /// the surviving `ctx->pctx` of uci_batch_cmd (see Pctx::carry)
+    batch_carry: Option<parse::Carry>,
 }
 
 extern "C" {
@@ -482,8 +484,12 @@ Options:\n\
                 ret = ops::reorder_section(&mut self.ctx, pidx, sidx, delta::strtoul_int(&String::from_utf8_lossy(&value)), false);
             }
             CliCmd::Del => {
+                // `if (ptr.value && !sscanf(ptr.value, "%d", &dummy)) return 1;`
+                // sscanf returns EOF for an empty or all-whitespace value, and
+                // EOF is truthy, so only a value that starts a non-number is
+                // rejected. `uci delete p.s.o=` deletes the whole option.
                 if let Some(v) = &ptr.value {
-                    if std::str::from_utf8(v).ok().and_then(ops::sscanf_int).is_none() {
+                    if ops::sscanf_int_no_match(v) {
                         return 1;
                     }
                 }
@@ -514,15 +520,20 @@ Options:\n\
         let mut argv: Vec<Arg> = Vec::new();
         let mut input = std::mem::replace(&mut self.input, Box::new(BufReader::new(io::empty())));
         let mut pctx = Pctx::new(&mut *input);
+        // uci_parse_argument reuses ctx->pctx across batch commands, so the
+        // line counter (and the grown line buffer) continue where the previous
+        // command left them.
+        if let Some(c) = self.batch_carry {
+            pctx.restore(c);
+        }
         parse::parse_argument_line(&mut pctx);
         let mut error = false;
         let mut i = 0;
+        let mut too_many = false;
         loop {
             if i == MAX_ARGS {
-                drop(pctx);
-                self.input = input;
-                self.cli_error("Too many arguments\n");
-                return 1;
+                too_many = true;
+                break;
             }
             match parse::parse_argument_bytes(&mut pctx) {
                 Ok(arg) => {
@@ -534,15 +545,24 @@ Options:\n\
                 }
                 Err(e) => {
                     self.ctx.err = Some(e);
-                    self.ctx.pctx = Some(pctx.info());
                     error = true;
                     break;
                 }
             }
         }
         let eof = pctx.eof;
+        let carry = pctx.carry();
+        // That same context stays allocated for the whole command, so
+        // uci_get_errorstr appends ` (<reason>) at line N, byte B` to every
+        // parse error the command itself raises.
+        self.ctx.pctx = Some(carry.info);
+        self.batch_carry = Some(carry);
         drop(pctx);
         self.input = input;
+        if too_many {
+            self.cli_error("Too many arguments\n");
+            return 1;
+        }
         if error {
             self.cli_perror();
             argv.clear();
@@ -550,14 +570,22 @@ Options:\n\
         if eof {
             self.batch_eof = true;
         }
-        if !argv.is_empty() {
-            if argv[0].eq_ignore_ascii_case(b"exit") {
-                return 254;
-            }
-            self.uci_cmd(&argv)
-        } else {
-            0
+        if argv.is_empty() {
+            return 0;
         }
+        if argv[0].eq_ignore_ascii_case(b"exit") {
+            return 254;
+        }
+        let ret = self.uci_cmd(&argv);
+        // The batch context survives only while it is still the one
+        // uci_parse_argument allocated: a command that parsed a file either
+        // freed it (uci_cleanup) or left it pointing at another stream, which
+        // the next uci_parse_argument cleans up. Either way the next command
+        // starts a fresh context, and the line counter restarts at 1.
+        if self.ctx.pctx != Some(carry.info) {
+            self.batch_carry = None;
+        }
+        ret
     }
 
     /// uci_batch
@@ -634,6 +662,7 @@ fn main() {
         type_list: Vec::new(),
         cur_section_ref: None,
         batch_eof: false,
+        batch_carry: None,
     };
     let mut input_is_file = false;
 

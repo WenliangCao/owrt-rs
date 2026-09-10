@@ -114,6 +114,84 @@ fn bad_header(code: u16, summary: &'static str, version: Version) -> ParseOutcom
     ParseOutcome::Bad { code, summary, version, body: false }
 }
 
+/// uhttpd's user-agent classes (uhttpd.h:129-139). Only `Safari` and the old
+/// MSIE versions change anything; the rest exist because the classification is
+/// first-match-wins and the order decides which one a browser lands in.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum UserAgent {
+    Opera,
+    MsieOld,
+    MsieNew,
+    Chrome,
+    Safari,
+    Gecko,
+    Konqueror,
+}
+
+/// client.c:419-447, in that exact order: Opera, `MSIE `, `Chrome/`,
+/// `Safari/` together with `Mac OS X`, `Gecko/`, Konqueror. `None` means no
+/// pattern matched, which in C leaves the previous value in place.
+///
+/// The order is the point: Chrome and Edge on macOS carry both `Chrome/` and
+/// `Safari/ ... Mac OS X`, and are Chrome, so they keep keep-alive.
+fn classify_ua(value: &str) -> Option<UserAgent> {
+    if value.contains("Opera") {
+        return Some(UserAgent::Opera);
+    }
+    if let Some(at) = value.find("MSIE ") {
+        let rest = &value[at..];
+        let bytes = rest.as_bytes();
+        // C reads str[5] (the major version) and str[6] (the dot after it);
+        // 4, 5 and 6-without-SV1 are the agents that cannot do keep-alive POST.
+        let old = bytes.len() > 6
+            && bytes[6] == b'.'
+            && match bytes[5] {
+                b'6' => !rest.contains("SV1"),
+                b'4' | b'5' => true,
+                _ => false,
+            };
+        return Some(if old { UserAgent::MsieOld } else { UserAgent::MsieNew });
+    }
+    if value.contains("Chrome/") {
+        return Some(UserAgent::Chrome);
+    }
+    if value.contains("Safari/") && value.contains("Mac OS X") {
+        return Some(UserAgent::Safari);
+    }
+    if value.contains("Gecko/") {
+        return Some(UserAgent::Gecko);
+    }
+    if value.contains("Konqueror") {
+        return Some(UserAgent::Konqueror);
+    }
+    None
+}
+
+/// Overall deadline for one request head, mirroring uhttpd's client timeout:
+/// armed at accept and after every completed request (client.c:721, 137), and
+/// cancelled by the blank line that ends the head (client.c:372). uhttpd runs
+/// it on uloop; here it also shortens the socket read timeout, so no single
+/// read can carry the head past the deadline either.
+pub struct HeadDeadline {
+    fd: RawFd,
+    at: Instant,
+}
+
+impl HeadDeadline {
+    pub fn new(fd: RawFd, budget: Duration) -> Self {
+        HeadDeadline { fd, at: Instant::now() + budget }
+    }
+
+    fn arm(&self) -> io::Result<()> {
+        let left = self.at.saturating_duration_since(Instant::now());
+        if left.is_zero() {
+            // uhttpd closes without answering (client_timeout, client.c:95).
+            return Err(io::Error::new(io::ErrorKind::TimedOut, "request header timeout"));
+        }
+        crate::set_read_timeout(self.fd, left)
+    }
+}
+
 /// Outcome of a bounded head-line read.
 enum HeadLine {
     /// A complete line (its trailing CRLF/LF included), within the cap.
@@ -127,10 +205,18 @@ enum HeadLine {
 /// Read one line (up to and including LF) into `line`, buffering at most
 /// `max` bytes. uhttpd caps the request/header buffer at 4 KiB and answers
 /// 413 rather than reading an unbounded line into memory.
-fn read_head_line<R: BufRead>(reader: &mut R, line: &mut String, max: usize) -> io::Result<HeadLine> {
+fn read_head_line<R: BufRead>(
+    reader: &mut R,
+    line: &mut String,
+    max: usize,
+    deadline: Option<&HeadDeadline>,
+) -> io::Result<HeadLine> {
     line.clear();
     let mut raw: Vec<u8> = Vec::new();
     loop {
+        if let Some(deadline) = deadline {
+            deadline.arm()?;
+        }
         let chunk = reader.fill_buf()?;
         if chunk.is_empty() {
             if raw.is_empty() {
@@ -159,10 +245,14 @@ fn read_head_line<R: BufRead>(reader: &mut R, line: &mut String, max: usize) -> 
 }
 
 /// Read and parse one request head from `reader`.
-pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<ParseOutcome> {
+pub fn read_request<R: BufRead>(
+    reader: &mut R,
+    keepalive: bool,
+    deadline: Option<&HeadDeadline>,
+) -> io::Result<ParseOutcome> {
     let mut line = String::new();
     loop {
-        match read_head_line(reader, &mut line, 4096)? {
+        match read_head_line(reader, &mut line, 4096, deadline)? {
             HeadLine::Eof => return Ok(ParseOutcome::Eof),
             HeadLine::TooLong => {
                 return Ok(bad_line(413, "Request Entity Too Large"))
@@ -201,8 +291,9 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
     };
     let mut content_lengths = 0;
     let mut transfer_encodings = 0;
+    let mut ua = None;
     loop {
-        match read_head_line(reader, &mut line, 4096)? {
+        match read_head_line(reader, &mut line, 4096, deadline)? {
             HeadLine::Eof => return Ok(bad_header(400, "Bad Request", version)),
             HeadLine::TooLong => {
                 return Ok(bad_header(413, "Request Entity Too Large", version))
@@ -246,8 +337,10 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
                     request.connection_close = true;
                 }
             }
-            "user-agent" if value.contains("Safari/") && value.contains("Mac OS X") => {
-                request.connection_close = true;
+            "user-agent" => {
+                if let Some(class) = classify_ua(&value) {
+                    ua = Some(class);
+                }
             }
             _ => {}
         }
@@ -256,6 +349,15 @@ pub fn read_request<R: BufRead>(reader: &mut R, keepalive: bool) -> io::Result<P
     if content_lengths > 1 || (content_lengths > 0 && transfer_encodings > 0) {
         // uhttpd reports conflicting framing through uh_client_error, i.e. with a body
         return Ok(ParseOutcome::Bad { code: 400, summary: "Bad Request", version, body: true });
+    }
+    // client_header_complete (client.c:348-358), after the framing check and in
+    // this order: Safari always forces a close, old MSIE only on POST.
+    match ua {
+        Some(UserAgent::Safari) => request.connection_close = true,
+        Some(UserAgent::MsieOld) if request.method == Method::Post => {
+            request.connection_close = true
+        }
+        _ => {}
     }
     Ok(ParseOutcome::Request(request))
 }
@@ -894,15 +996,17 @@ pub fn url_decode(input: &str) -> Option<Vec<u8>> {
     Some(out)
 }
 
+/// uh_htmlescape (utils.c:260-299): the same five characters uhttpd treats as
+/// special, each written as `&#x<lower hex>;` -- not as a named entity, which
+/// is what the error pages and directory listings have to reproduce byte for
+/// byte.
 pub fn html_escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
         match c {
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '&' => out.push_str("&amp;"),
-            '"' => out.push_str("&#34;"),
-            '\'' => out.push_str("&#39;"),
+            '"' | '&' | '\'' | '<' | '>' => {
+                out.push_str(&format!("&#x{:02x};", c as u32));
+            }
             c => out.push(c),
         }
     }
@@ -924,12 +1028,12 @@ mod tests {
     #[test]
     fn parses_request_and_rejects_conflicting_framing() {
         let mut input = io::Cursor::new(b"GET /a?b=1 HTTP/1.1\r\nHost: x\r\nContent-Length: 3\r\nTransfer-Encoding: chunked\r\n\r\n".to_vec());
-        match read_request(&mut input, true).unwrap() {
+        match read_request(&mut input, true, None).unwrap() {
             ParseOutcome::Bad { code: 400, .. } => {}
             other => panic!("unexpected {:?}", matches!(other, ParseOutcome::Eof)),
         }
         let mut input = io::Cursor::new(b"HEAD /x HTTP/1.0\r\nHost: y\r\n\r\n".to_vec());
-        let ParseOutcome::Request(r) = read_request(&mut input, true).unwrap() else {
+        let ParseOutcome::Request(r) = read_request(&mut input, true, None).unwrap() else {
             panic!()
         };
         assert_eq!(r.method, Method::Head);
@@ -1101,5 +1205,59 @@ mod tests {
         let mut body = BodyReader::new(&cell, &request);
         assert!(body.read_all(16).unwrap().is_none());
         assert!(!body.reusable());
+    }
+    /// Ask read_request what it made of one User-Agent.
+    fn ua_closes(ua: &str, method: &str) -> bool {
+        let raw = format!("{method} /cgi-bin/luci HTTP/1.1\r\nHost: x\r\nUser-Agent: {ua}\r\n\r\n");
+        let mut input = io::Cursor::new(raw.into_bytes());
+        let ParseOutcome::Request(r) = read_request(&mut input, true, None).unwrap() else {
+            panic!("{ua} did not parse")
+        };
+        r.connection_close
+    }
+
+    /// client.c:419-447 classifies in the order Opera, MSIE, Chrome/,
+    /// Safari/+Mac OS X, Gecko/, Konqueror, and client_header_complete
+    /// (client.c:348-358) closes only for UH_UA_SAFARI and for old MSIE on
+    /// POST. Chrome and Edge on macOS carry both "Chrome/" and
+    /// "Safari/ ... Mac OS X" and are UH_UA_CHROME: keep-alive stays on.
+    #[test]
+    fn user_agent_close_policy_follows_uhttpd_classification_order() {
+        let chrome_mac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+        let edge_mac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
+        let safari_mac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15";
+        let safari_ios = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+        let chrome_linux = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+        let firefox = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0";
+        for ua in [chrome_mac, edge_mac, chrome_linux, firefox, "curl/8.4.0"] {
+            assert!(!ua_closes(ua, "GET"), "must keep keep-alive: {ua}");
+            assert!(!ua_closes(ua, "POST"), "must keep keep-alive: {ua}");
+        }
+        // UH_UA_SAFARI: closes for every method
+        for ua in [safari_mac, safari_ios] {
+            assert!(ua_closes(ua, "GET"), "Safari must close: {ua}");
+            assert!(ua_closes(ua, "POST"), "Safari must close: {ua}");
+        }
+        // "Opera" wins over everything after it
+        assert!(!ua_closes("Opera/9.80 (Macintosh; Intel Mac OS X) Safari/537.36", "GET"));
+        // UH_UA_MSIE_OLD: 4/5/6-without-SV1, and only on POST
+        for old in ["Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)", "Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)", "Mozilla/4.0 (compatible; MSIE 4.0; Windows 95)"] {
+            assert!(ua_closes(old, "POST"), "old MSIE POST must close: {old}");
+            assert!(!ua_closes(old, "GET"), "old MSIE GET must not close: {old}");
+        }
+        // SV1 keeps MSIE 6 in UH_UA_MSIE_NEW, and 7+ is new anyway
+        for new in ["Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)", "Mozilla/4.0 (compatible; MSIE 60; Windows)"] {
+            assert!(!ua_closes(new, "POST"), "new MSIE must keep keep-alive: {new}");
+        }
+    }
+
+    /// uh_htmlescape writes numeric entities, not named ones (utils.c:292-296).
+    #[test]
+    fn html_escape_matches_uh_htmlescape() {
+        assert_eq!(
+            html_escape("<a href='x'>&\"</a>"),
+            "&#x3c;a href=&#x27;x&#x27;&#x3e;&#x26;&#x22;&#x3c;/a&#x3e;"
+        );
+        assert_eq!(html_escape("/nope.txt?a=1"), "/nope.txt?a=1");
     }
 }

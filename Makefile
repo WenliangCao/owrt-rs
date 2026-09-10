@@ -4,7 +4,7 @@
 COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd
 VERSION ?= 25.12.5
 
-.PHONY: check-netlink-consts test check-tools check-toolchain check-toolchain-negative check-abi build apk image ci-image
+.PHONY: check-netlink-consts test check-tools check-harnesses check-toolchain check-toolchain-negative check-abi build apk image ci-image
 
 test:
 	@for c in $(COMPONENTS); do \
@@ -37,7 +37,7 @@ check-toolchain-negative:
 
 # The FFI structs are the one thing here that can be wrong without the compiler
 # noticing: a layout mismatch just reads and writes the wrong offsets. Needs an
-# OpenWrt SDK present; skips cleanly when there is none.
+# OpenWrt SDK present; exits 2 (not run) when it is unavailable.
 # The kernel constants netifd-rs hard-codes, against the real UAPI headers.
 # A wrong constant is not a compile error and often not a runtime error either
 # -- it silently sets the wrong option. Needs a C compiler whose <linux/*.h>
@@ -60,6 +60,9 @@ check-tools:
 	done
 	@python3 -m py_compile tools/*.py
 	@echo "tools: syntax ok"
+
+check-harnesses:
+	@python3 tools/test_audit_checks.py
 
 # Release pipeline (runs on the build host, see docs/RELEASE.md)
 apk:

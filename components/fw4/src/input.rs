@@ -134,7 +134,7 @@ impl Inputs {
                 keys.sort_by(|a, b| a.0.cmp(&b.0));
                 for (k, v) in keys {
                     match v {
-                        Json::Str(_) | Json::Int(_) | Json::Float(_) | Json::Bool(_) => {
+                        Json::Str(_) | Json::Bytes(_) | Json::Int(_) | Json::Float(_) | Json::Bool(_) => {
                             sig.push(format!("{k}-{}", mangle(&crate::val::to_str(v))))
                         }
                         Json::Array(_) => sig.push("array".into()),

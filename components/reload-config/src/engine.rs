@@ -1,7 +1,7 @@
 use crate::process::{self, WaitResult};
 use crate::{trace::Trace, unix};
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::os::fd::AsRawFd;
@@ -12,10 +12,10 @@ use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
 const MAX_CONFIG_ENTRIES: usize = 4096;
-const MAX_CONFIG_SOURCE_BYTES: u64 = 1024 * 1024;
-const MAX_NORMALIZED_BYTES: u64 = 1024 * 1024;
-const MAX_COMMAND_OUTPUT_BYTES: usize = 64 * 1024;
 const MAX_BASELINE_BYTES: u64 = (MAX_CONFIG_ENTRIES * 320) as u64;
+/// md5sum prints one `<32 hex>  <path>` line per file, so its output is bounded
+/// by the same budget as the baseline it becomes.
+const MAX_COMMAND_OUTPUT_BYTES: usize = MAX_BASELINE_BYTES as usize;
 
 #[derive(Debug)]
 pub enum Error {
@@ -24,7 +24,6 @@ pub enum Error {
     Dependency(String),
     Timeout(String),
     Cancelled,
-    ConcurrentRun,
 }
 
 impl std::fmt::Display for Error {
@@ -35,7 +34,6 @@ impl std::fmt::Display for Error {
             Self::Dependency(message) => write!(formatter, "dependency failure: {message}"),
             Self::Timeout(message) => write!(formatter, "dependency timeout: {message}"),
             Self::Cancelled => write!(formatter, "cancelled"),
-            Self::ConcurrentRun => write!(formatter, "another reload-config-rs run holds the lock"),
         }
     }
 }
@@ -60,7 +58,7 @@ pub struct RunOutcome {
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct BaselineEntry {
     digest: String,
-    name: String,
+    name: OsString,
 }
 
 struct CheckDirectory {
@@ -78,6 +76,12 @@ struct RunLock {
 }
 
 impl RunLock {
+    /// The shell original takes no lock at all: two concurrent runs share and
+    /// delete the same `/var/run/config.check`, deliver every event twice and
+    /// leave the baseline to whichever `md5sum` wins. Blocking here serialises
+    /// the runs instead, which keeps each caller's own changes dispatched --
+    /// refusing the second caller (the earlier fail-closed behaviour) dropped
+    /// its packages until a third run happened to notice them.
     fn acquire(path: &Path) -> Result<Self, Error> {
         let file = OpenOptions::new()
             .create(true)
@@ -86,11 +90,8 @@ impl RunLock {
             .write(true)
             .open(path)
             .map_err(|error| Error::Io("open run lock", error))?;
-        match unix::try_lock(file.as_raw_fd()) {
-            Ok(true) => Ok(Self { _file: file }),
-            Ok(false) => Err(Error::ConcurrentRun),
-            Err(error) => Err(Error::Io("lock run lock", error)),
-        }
+        unix::lock(file.as_raw_fd()).map_err(|error| Error::Io("lock run lock", error))?;
+        Ok(Self { _file: file })
     }
 }
 
@@ -115,25 +116,16 @@ pub fn run<W: Write>(
 
     let names = scan_config_names(settings)?;
     let mut current = HashMap::with_capacity(names.len());
-    let mut normalized: Vec<(String, PathBuf)> = Vec::with_capacity(names.len());
+    let mut normalized: Vec<(OsString, PathBuf)> = Vec::with_capacity(names.len());
     for name in &names {
         if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
             return Err(Error::Cancelled);
         }
         let output = check_path.join(name);
-        let status = normalize(settings, name, &output, cancelled)?;
-        if !status.success() {
+        if let Some(status) = normalize(settings, name, &output, cancelled)? {
             trace
-                .normalization(name, &format_exit(status.code()))
+                .normalization(&name.to_string_lossy(), &status)
                 .map_err(|error| Error::Io("write normalization trace", error))?;
-        }
-        let size = fs::metadata(&output)
-            .map_err(|error| Error::Io("stat normalized config", error))?
-            .len();
-        if size > MAX_NORMALIZED_BYTES {
-            return Err(Error::InvalidInput(format!(
-                "normalized package {name:?} is {size} bytes; limit is {MAX_NORMALIZED_BYTES}"
-            )));
         }
         normalized.push((name.clone(), output));
     }
@@ -141,37 +133,56 @@ pub fn run<W: Write>(
     // (`md5sum /var/run/config.check/*`), instead of one process per package.
     let digests = md5_all(settings, &normalized, cancelled)?;
     for (name, output) in &normalized {
-        let digest = digests
-            .get(output)
-            .ok_or_else(|| Error::Dependency(format!("md5sum returned no digest for {name:?}")))?;
-        current.insert(name.clone(), digest.clone());
+        // A digest can only be missing when the name breaks md5sum's line
+        // format (a newline in a config filename). The shell copies md5sum's
+        // broken output into the baseline verbatim and keeps going, so the
+        // entry is dropped here rather than failing the round.
+        match digests.get(output) {
+            Some(digest) => {
+                current.insert(name.clone(), digest.clone());
+            }
+            None => trace
+                .normalization(&name.to_string_lossy(), "no_digest")
+                .map_err(|error| Error::Io("write normalization trace", error))?,
+        }
     }
 
     let baseline_path = settings.path("/var/run/config.md5");
     let previous = read_baseline(&baseline_path)?;
     let changed = changed_entries(&previous, &current);
+    let changed_text: Vec<String> = changed
+        .iter()
+        .map(|name| name.to_string_lossy().into_owned())
+        .collect();
     trace
-        .comparison(previous.len(), &changed, current.len())
+        .comparison(previous.len(), &changed_text, current.len())
         .map_err(|error| Error::Io("write comparison trace", error))?;
 
     let mut failures = 0;
     for package in &changed {
+        let name = package.to_string_lossy();
         match dispatch(settings, package, cancelled)? {
             Delivery::Success(code) => trace
-                .delivery(package, "success", Some(code))
+                .delivery(&name, "success", Some(code))
                 .map_err(|error| Error::Io("write delivery trace", error))?,
             Delivery::Exit(code) => {
                 failures += 1;
                 trace
-                    .delivery(package, "exit_nonzero", Some(code))
+                    .delivery(&name, "exit_nonzero", Some(code))
                     .map_err(|error| Error::Io("write delivery trace", error))?;
             }
             Delivery::Spawn(error) => {
                 failures += 1;
                 trace
-                    .delivery(package, "spawn_error", None)
+                    .delivery(&name, "spawn_error", None)
                     .map_err(|trace_error| Error::Io("write delivery trace", trace_error))?;
                 let _ = error;
+            }
+            Delivery::Timeout => {
+                failures += 1;
+                trace
+                    .delivery(&name, "timeout", None)
+                    .map_err(|error| Error::Io("write delivery trace", error))?;
             }
         }
     }
@@ -185,7 +196,7 @@ pub fn run<W: Write>(
     })
 }
 
-fn scan_config_names(settings: &Settings) -> Result<Vec<String>, Error> {
+fn scan_config_names(settings: &Settings) -> Result<Vec<OsString>, Error> {
     let mut seen = HashSet::<OsString>::new();
     let mut names = Vec::<OsString>::new();
     for directory in [settings.path("/var/run/uci"), settings.path("/etc/config")] {
@@ -210,14 +221,9 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<String>, Error> {
         source_names.sort_by(|left, right| left.as_bytes().cmp(right.as_bytes()));
         for name in source_names {
             if seen.insert(name.clone()) {
-                let size = fs::metadata(directory.join(&name))
-                    .map_err(|error| Error::Io("stat config entry", error))?
-                    .len();
-                if size > MAX_CONFIG_SOURCE_BYTES {
-                    return Err(Error::InvalidInput(format!(
-                        "config entry {name:?} is {size} bytes; limit is {MAX_CONFIG_SOURCE_BYTES}"
-                    )));
-                }
+                // No size check: the shell hands any regular file to `uci show`
+                // whatever its size, and a 1.4 MiB /etc/config file is dispatched
+                // like any other. Refusing one used to abort the whole round.
                 names.push(name);
                 if names.len() > MAX_CONFIG_ENTRIES {
                     return Err(Error::InvalidInput(format!(
@@ -228,28 +234,18 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<String>, Error> {
         }
     }
     names.sort_by(|left, right| left.as_bytes().cmp(right.as_bytes()));
-    names
-        .into_iter()
-        .map(|name| {
-            let value = name
-                .into_string()
-                .map_err(|_| Error::InvalidInput("non-UTF-8 config filename".into()))?;
-            if value.contains(['\n', '\r', '\0']) {
-                return Err(Error::InvalidInput(format!(
-                    "control character in config filename {value:?}"
-                )));
-            }
-            Ok(value)
-        })
-        .collect()
+    Ok(names)
 }
 
+/// The shell's `uci show "$file" > /var/run/config.check/$file 2>/dev/null`:
+/// the exit status is ignored and whatever landed in the file is what gets
+/// hashed. Returns the status label for the trace, or None when uci succeeded.
 fn normalize(
     settings: &Settings,
-    name: &str,
+    name: &OsStr,
     output: &Path,
     cancelled: &AtomicBool,
-) -> Result<std::process::ExitStatus, Error> {
+) -> Result<Option<String>, Error> {
     let file =
         File::create(output).map_err(|error| Error::Io("create normalized output", error))?;
     let mut command = Command::new("uci");
@@ -268,15 +264,20 @@ fn normalize(
     match process::wait(&mut child, settings.timeout, cancelled)
         .map_err(|error| Error::Io("wait for uci", error))?
     {
-        WaitResult::Exited(status) => Ok(status),
-        WaitResult::TimedOut => Err(Error::Timeout(format!("uci show {name:?}"))),
+        WaitResult::Exited(status) if status.success() => Ok(None),
+        WaitResult::Exited(status) => Ok(Some(format_exit(status.code()))),
+        // The shell has no timeout and simply waits, so it dispatches the rest
+        // of the round; aborting here left every later package without an
+        // event and the baseline unwritten. The killed child is treated like
+        // any other failing `uci show`: the partial file is what gets hashed.
+        WaitResult::TimedOut => Ok(Some("timeout".into())),
         WaitResult::Cancelled => Err(Error::Cancelled),
     }
 }
 
 fn md5_all(
     settings: &Settings,
-    files: &[(String, PathBuf)],
+    files: &[(OsString, PathBuf)],
     cancelled: &AtomicBool,
 ) -> Result<BTreeMap<PathBuf, String>, Error> {
     let mut digests = BTreeMap::new();
@@ -316,18 +317,27 @@ fn md5_all(
     if output.len() > MAX_COMMAND_OUTPUT_BYTES {
         return Err(Error::Dependency("md5sum output exceeded limit".into()));
     }
-    let text = std::str::from_utf8(&output)
-        .map_err(|_| Error::Dependency("md5sum output was not UTF-8".into()))?;
-    for line in text.lines() {
-        let mut parts = line.splitn(2, ' ');
-        let digest = parts.next().unwrap_or("");
-        let path = parts.next().unwrap_or("").trim_start_matches([' ', '*']);
-        if digest.len() != 32 || !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-            return Err(Error::Dependency(format!(
-                "md5sum returned invalid digest {digest:?}"
-            )));
+    // Paths are not UTF-8 in general, so the output is split on bytes. A path
+    // containing a newline splits md5sum's own line, exactly as it does in the
+    // shell's `md5sum ... > config.md5`; those fragments simply do not match a
+    // digest and are skipped rather than failing the round.
+    for line in output.split(|&byte| byte == b'\n') {
+        if line.len() < 35 {
+            continue;
         }
-        digests.insert(PathBuf::from(path), digest.to_ascii_lowercase());
+        let (digest, rest) = line.split_at(32);
+        let Ok(digest) = std::str::from_utf8(digest) else {
+            continue;
+        };
+        if !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            continue;
+        }
+        let path = rest.strip_prefix(b"  ").unwrap_or(rest);
+        let path = path.strip_prefix(b"*").unwrap_or(path);
+        digests.insert(
+            PathBuf::from(OsStr::from_bytes(path)),
+            digest.to_ascii_lowercase(),
+        );
     }
     Ok(digests)
 }
@@ -336,13 +346,21 @@ enum Delivery {
     Success(i32),
     Exit(i32),
     Spawn(io::Error),
+    Timeout,
 }
 
-fn dispatch(settings: &Settings, package: &str, cancelled: &AtomicBool) -> Result<Delivery, Error> {
-    let payload = format!(
-        "{{ \"type\": \"config.change\", \"data\": {{ \"package\": \"{}\" }} }}",
-        json_escape(package)
-    );
+fn dispatch(
+    settings: &Settings,
+    package: &OsStr,
+    cancelled: &AtomicBool,
+) -> Result<Delivery, Error> {
+    // The shell interpolates `$(basename $c)` raw, so a package name that is
+    // not UTF-8 reaches ubus as those exact bytes; the payload is built as
+    // bytes and handed to execve as an OsStr for that reason.
+    let mut payload = br#"{ "type": "config.change", "data": { "package": ""#.to_vec();
+    payload.extend_from_slice(&json_escape_bytes(package.as_bytes()));
+    payload.extend_from_slice(br#"" } }"#);
+    let payload = OsStr::from_bytes(&payload);
     let mut child = match Command::new("ubus")
         .arg("call")
         .arg("service")
@@ -366,13 +384,20 @@ fn dispatch(settings: &Settings, package: &str, cancelled: &AtomicBool) -> Resul
                 Ok(Delivery::Exit(code))
             }
         }
-        WaitResult::TimedOut => Err(Error::Timeout(format!(
-            "ubus service.event for {package:?}"
-        ))),
+        // C-08: "a send failure affects neither later entries nor the baseline
+        // rewrite". A timeout is a send failure, so the killed child is counted
+        // and the round goes on; returning early used to skip the remaining
+        // packages and leave the baseline unwritten, which then re-sent the
+        // events that had already been delivered.
+        WaitResult::TimedOut => Ok(Delivery::Timeout),
         WaitResult::Cancelled => Err(Error::Cancelled),
     }
 }
 
+/// The shell's `md5sum -c $MD5FILE 2>/dev/null | grep FAILED`. busybox skips a
+/// line it cannot parse (the diagnostic goes to the discarded stderr) and
+/// carries on with the rest, so a broken line -- which is what a config
+/// filename containing a newline produces -- must not fail the round.
 fn read_baseline(path: &Path) -> Result<Vec<BaselineEntry>, Error> {
     match fs::metadata(path) {
         Ok(metadata) if metadata.len() > MAX_BASELINE_BYTES => {
@@ -385,37 +410,36 @@ fn read_baseline(path: &Path) -> Result<Vec<BaselineEntry>, Error> {
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
         Err(error) => return Err(Error::Io("stat baseline", error)),
     }
-    let content = match fs::read_to_string(path) {
+    let content = match fs::read(path) {
         Ok(content) => content,
         Err(error) => return Err(Error::Io("read baseline", error)),
     };
-    content
-        .lines()
-        .map(|line| {
-            if line.len() < 35 || &line[32..34] != "  " {
-                return Err(Error::InvalidInput(format!(
-                    "malformed baseline line {line:?}"
-                )));
-            }
-            let digest = &line[..32];
-            if !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-                return Err(Error::InvalidInput(format!(
-                    "invalid baseline digest {digest:?}"
-                )));
-            }
-            let name = Path::new(&line[34..])
-                .file_name()
-                .and_then(|value| value.to_str())
-                .ok_or_else(|| Error::InvalidInput("baseline path has no UTF-8 basename".into()))?;
-            Ok(BaselineEntry {
-                digest: digest.to_ascii_lowercase(),
-                name: name.to_owned(),
-            })
-        })
-        .collect()
+    let mut entries = Vec::new();
+    for line in content.split(|&byte| byte == b'\n') {
+        if line.len() < 35 || &line[32..34] != b"  " {
+            continue;
+        }
+        let Ok(digest) = std::str::from_utf8(&line[..32]) else {
+            continue;
+        };
+        if !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            continue;
+        }
+        let Some(name) = Path::new(OsStr::from_bytes(&line[34..])).file_name() else {
+            continue;
+        };
+        entries.push(BaselineEntry {
+            digest: digest.to_ascii_lowercase(),
+            name: name.to_os_string(),
+        });
+    }
+    Ok(entries)
 }
 
-fn changed_entries(previous: &[BaselineEntry], current: &HashMap<String, String>) -> Vec<String> {
+fn changed_entries(
+    previous: &[BaselineEntry],
+    current: &HashMap<OsString, String>,
+) -> Vec<OsString> {
     previous
         .iter()
         .filter(|entry| current.get(&entry.name) != Some(&entry.digest))
@@ -425,12 +449,12 @@ fn changed_entries(previous: &[BaselineEntry], current: &HashMap<String, String>
 
 fn write_baseline(
     path: &Path,
-    names: &[String],
-    current: &HashMap<String, String>,
+    names: &[OsString],
+    current: &HashMap<OsString, String>,
 ) -> Result<(), Error> {
     let mut temporary_name = path
         .file_name()
-        .unwrap_or_else(|| std::ffi::OsStr::new("config.md5"))
+        .unwrap_or_else(|| OsStr::new("config.md5"))
         .to_os_string();
     temporary_name.push(".reload-config-rs.tmp");
     let temporary = path.with_file_name(temporary_name);
@@ -438,10 +462,17 @@ fn write_baseline(
         let mut output = File::create(&temporary)
             .map_err(|error| Error::Io("create temporary baseline", error))?;
         for name in names {
-            let digest = current
-                .get(name)
-                .ok_or_else(|| Error::Dependency(format!("missing digest for {name:?}")))?;
-            writeln!(output, "{digest}  /var/run/config.check/{name}")
+            // Names whose digest md5sum could not report are absent here, the
+            // same entries the shell's own broken md5sum line loses.
+            let Some(digest) = current.get(name) else {
+                continue;
+            };
+            // The path bytes are md5sum's, so they are written as bytes.
+            let mut line = format!("{digest}  /var/run/config.check/").into_bytes();
+            line.extend_from_slice(name.as_bytes());
+            line.push(b'\n');
+            output
+                .write_all(&line)
                 .map_err(|error| Error::Io("write temporary baseline", error))?;
         }
         output
@@ -456,8 +487,24 @@ fn write_baseline(
     result
 }
 
-fn json_escape(value: &str) -> String {
-    crate::trace::escape(value)
+/// crate::trace::escape over bytes: the shell does no escaping at all, but a
+/// quote or a control byte in a filename would otherwise break the payload
+/// before ubus ever sees it. Bytes >= 0x20 other than `"` and `\` pass through
+/// unchanged, so a name that is not UTF-8 is forwarded verbatim.
+fn json_escape_bytes(value: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(value.len());
+    for &byte in value {
+        match byte {
+            b'"' => out.extend_from_slice(b"\\\""),
+            b'\\' => out.extend_from_slice(b"\\\\"),
+            b'\n' => out.extend_from_slice(b"\\n"),
+            b'\r' => out.extend_from_slice(b"\\r"),
+            b'\t' => out.extend_from_slice(b"\\t"),
+            0x00..=0x1f => out.extend_from_slice(format!("\\u{byte:04x}").as_bytes()),
+            _ => out.push(byte),
+        }
+    }
+    out
 }
 
 fn format_exit(code: Option<i32>) -> String {
@@ -468,10 +515,12 @@ fn format_exit(code: Option<i32>) -> String {
 mod tests {
     use super::{
         changed_entries, read_baseline, scan_config_names, write_baseline, BaselineEntry, Settings,
-        MAX_BASELINE_BYTES, MAX_CONFIG_SOURCE_BYTES,
+        MAX_BASELINE_BYTES,
     };
     use std::collections::HashMap;
+    use std::ffi::{OsStr, OsString};
     use std::fs::{self, File};
+    use std::os::unix::ffi::OsStrExt;
     use std::time::Duration;
 
     #[test]
@@ -486,7 +535,8 @@ mod tests {
                 digest: "A".into(),
             },
         ];
-        let current = HashMap::from([("alpha".into(), "A2".into()), ("new".into(), "N".into())]);
+        let current: HashMap<OsString, String> =
+            HashMap::from([("alpha".into(), "A2".into()), ("new".into(), "N".into())]);
         assert_eq!(changed_entries(&previous, &current), ["beta", "alpha"]);
     }
 
@@ -506,17 +556,18 @@ mod tests {
                                 })
                             })
                             .collect();
-                        let current: HashMap<_, _> = [("a", after_a), ("b", after_b)]
+                        let current: HashMap<OsString, String> = [("a", after_a), ("b", after_b)]
                             .into_iter()
                             .filter_map(|(name, digest)| {
                                 digest.map(|digest| (name.into(), digest.into()))
                             })
                             .collect();
-                        let expected: Vec<_> = [("a", before_a, after_a), ("b", before_b, after_b)]
-                            .into_iter()
-                            .filter(|(_, before, after)| before.is_some() && before != after)
-                            .map(|(name, _, _)| name.to_owned())
-                            .collect();
+                        let expected: Vec<OsString> =
+                            [("a", before_a, after_a), ("b", before_b, after_b)]
+                                .into_iter()
+                                .filter(|(_, before, after)| before.is_some() && before != after)
+                                .map(|(name, _, _)| name.into())
+                                .collect();
                         assert_eq!(changed_entries(&previous, &current), expected);
                     }
                 }
@@ -525,14 +576,43 @@ mod tests {
     }
 
     #[test]
-    fn baseline_parser_rejects_malformed_lines() {
+    fn baseline_parser_skips_malformed_lines_like_md5sum_c() {
         let directory =
             std::env::temp_dir().join(format!("reload-config-rs-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&directory);
         fs::create_dir_all(&directory).unwrap();
         let path = directory.join("baseline");
-        fs::write(&path, "not-a-baseline\n").unwrap();
-        assert!(read_baseline(&path).is_err());
+        // busybox `md5sum -c` reports a format error on stderr (discarded by
+        // the shell's 2>/dev/null) and checks the remaining lines.
+        fs::write(
+            &path,
+            format!(
+                "not-a-baseline\n{}  /var/run/config.check/alpha\n",
+                "a".repeat(32)
+            ),
+        )
+        .unwrap();
+        assert_eq!(
+            read_baseline(&path).unwrap(),
+            [BaselineEntry {
+                digest: "a".repeat(32),
+                name: "alpha".into(),
+            }]
+        );
+        // a config filename with a newline splits md5sum's own line; the
+        // fragment is skipped and the truncated name stays an entry
+        fs::write(
+            &path,
+            format!("{}  /var/run/config.check/we\nird\n", "b".repeat(32)),
+        )
+        .unwrap();
+        assert_eq!(
+            read_baseline(&path).unwrap(),
+            [BaselineEntry {
+                digest: "b".repeat(32),
+                name: "we".into(),
+            }]
+        );
         File::create(&path)
             .unwrap()
             .set_len(MAX_BASELINE_BYTES + 1)
@@ -557,12 +637,18 @@ mod tests {
             root: root.clone(),
             timeout: Duration::from_secs(1),
         };
-        assert_eq!(scan_config_names(&settings).unwrap(), ["dhcp.bak", "network"]);
+        assert_eq!(
+            scan_config_names(&settings).unwrap(),
+            ["dhcp.bak", "network"]
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
+    /// The shell hands any regular file to `uci show`. A 1.4 MiB
+    /// /etc/config/big is scanned, hashed and dispatched (verified against the
+    /// rootfs shell script); refusing it aborted the whole round.
     #[test]
-    fn scanner_rejects_oversized_source_before_uci() {
+    fn scanner_keeps_oversized_and_non_utf8_sources_like_the_shell() {
         let root =
             std::env::temp_dir().join(format!("reload-config-rs-scan-test-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
@@ -570,13 +656,22 @@ mod tests {
         fs::create_dir_all(&directory).unwrap();
         File::create(directory.join("oversized"))
             .unwrap()
-            .set_len(MAX_CONFIG_SOURCE_BYTES + 1)
+            .set_len(2 * 1024 * 1024)
             .unwrap();
+        File::create(directory.join(OsStr::from_bytes(b"\xff\xfe"))).unwrap();
+        File::create(directory.join("with space")).unwrap();
         let settings = Settings {
             root: root.clone(),
             timeout: Duration::from_secs(1),
         };
-        assert!(scan_config_names(&settings).is_err());
+        assert_eq!(
+            scan_config_names(&settings).unwrap(),
+            [
+                OsStr::from_bytes(b"oversized"),
+                OsStr::from_bytes(b"with space"),
+                OsStr::from_bytes(b"\xff\xfe"),
+            ]
+        );
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -591,8 +686,8 @@ mod tests {
         let path = directory.join("baseline");
         fs::write(&path, "previous baseline\n").unwrap();
         fs::create_dir(directory.join("baseline.reload-config-rs.tmp")).unwrap();
-        let names = vec!["alpha".to_owned()];
-        let current = HashMap::from([("alpha".to_owned(), "a".repeat(32))]);
+        let names = vec![OsString::from("alpha")];
+        let current = HashMap::from([(OsString::from("alpha"), "a".repeat(32))]);
 
         assert!(write_baseline(&path, &names, &current).is_err());
         assert_eq!(fs::read_to_string(&path).unwrap(), "previous baseline\n");

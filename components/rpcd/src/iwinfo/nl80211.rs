@@ -1474,7 +1474,7 @@ pub fn parse_wpa_suites(s: &[u8], defversion: i32, versions: &mut u8, suites: &m
         let mut q = p;
         for (m, ver, suite) in WPA_KEY_MGMT_STRINGS.iter() {
             let l = m.len();
-            if s[q..].starts_with(m) && s.get(q + l).map_or(true, |c| WPA_SEP.contains(c)) {
+            if s[q..].starts_with(m) && s.get(q + l).is_none_or(|c| WPA_SEP.contains(c)) {
                 let version = if *ver != 0 { *ver } else { defversion };
                 *versions |= version as u8;
                 *suites |= *suite as u8;
@@ -1508,7 +1508,7 @@ pub fn parse_wpa_ciphers(s: &[u8], ciphers: &mut u16) {
         let mut q = p;
         for (m, cipher) in WPA_CIPHER_STRINGS.iter() {
             let l = m.len();
-            if s[q..].starts_with(m) && s.get(q + l).map_or(true, |c| WPA_SEP.contains(c)) {
+            if s[q..].starts_with(m) && s.get(q + l).is_none_or(|c| WPA_SEP.contains(c)) {
                 *ciphers |= *cipher as u16;
                 q += l;
                 break;

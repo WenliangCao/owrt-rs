@@ -6,6 +6,7 @@
 set -eu
 rootfs=$1; bin=$2; extra=${3:-}
 tmp=$(mktemp -d /tmp/owrt-r21-XXXXXX)
+trap 'sudo -n rm -rf -- "$tmp"' EXIT
 root=$tmp/root
 sudo -n cp -a "$rootfs" "$root"
 # ubusd skips ACL files not owned by root:root ("wrong owner"); the extracted
@@ -17,15 +18,22 @@ set -u
 mkdir -p /var/run/ubus /tmp/out /dev/log
 rm -rf /dev/log
 /sbin/ubusd >/tmp/out/ubusd1.log 2>&1 & u1=$!
+trap 'kill ${l:-} ${u1:-} ${u2:-} 2>/dev/null || true' EXIT
 sleep 1
 /tmp/logd-rs -S 64 --kmsg none $EXTRA >/tmp/out/logd.log 2>&1 & l=$!
 for i in 1 2 3 4 5; do ubus list log >/dev/null 2>&1 && break; sleep 1; done
+if ! kill -0 "$l" 2>/dev/null || [ "$(ubus list log 2>/dev/null)" != log ]; then
+  echo 'FAIL: logd did not become ready'; cat /tmp/out/logd.log; exit 1
+fi
 logger -t r21 "before-outage-1"
 sleep 1
 echo "devlog: $(ls -la /dev/log 2>&1)"
-echo "read1: $(ubus -S call log read '{"lines":5,"stream":false}' 2>&1 | grep -o 'before-outage-1' | wc -l)"
+before=$(ubus -S call log read '{"lines":5,"stream":false}' 2>&1 | grep -o 'before-outage-1' | wc -l)
+echo "read1: $before"
+[ "$before" -eq 1 ] || { echo 'FAIL: initial log marker missing'; exit 1; }
 kill $u1; sleep 1
 echo "ubusd_down: $(ubus list log >/dev/null 2>&1; echo rc=$?)"
+if ubus list log >/dev/null 2>&1; then echo 'FAIL: ubusd did not stop'; exit 1; fi
 logger -t r21 "during-outage"
 sleep 2
 /sbin/ubusd >/tmp/out/ubusd2.log 2>&1 & u2=$!
@@ -36,15 +44,20 @@ echo "procs: $(ps | grep -E 'ubusd|logd-rs' | grep -v grep | tr '\n' ';')"
 logger -t r21 "after-outage"
 sleep 1
 out=$(ubus -S call log read '{"lines":10,"stream":false}' 2>&1)
-echo "read2_before: $(printf '%s' "$out" | grep -o 'before-outage-1' | wc -l) read2_during: $(printf '%s' "$out" | grep -o 'during-outage' | wc -l) read2_after: $(printf '%s' "$out" | grep -o 'after-outage' | wc -l)"
+before=$(printf '%s' "$out" | grep -o 'before-outage-1' | wc -l)
+during=$(printf '%s' "$out" | grep -o 'during-outage' | wc -l)
+after=$(printf '%s' "$out" | grep -o 'after-outage' | wc -l)
+echo "read2_before: $before read2_during: $during read2_after: $after"
 echo "logd_alive: $(kill -0 $l 2>/dev/null && echo yes || echo no)"
 cat /tmp/out/logd.log
-kill $l $u2 2>/dev/null
+[ "$before" -eq 1 ] && [ "$during" -eq 1 ] && [ "$after" -eq 1 ] && kill -0 "$l" || {
+  echo 'FAIL: logd lost records or stopped serving after reconnect'; exit 1
+}
+echo 'r21 logd reconnect: PASS'
 STEPS
 sudo -n cp "$tmp/steps.sh" "$root/tmp/steps.sh"
-sudo -n env EXTRA="$extra" setsid -w unshare --mount --fork /bin/sh -c '
+sudo -n env EXTRA="$extra" setsid -w unshare --mount --pid --fork /bin/sh -c '
 root=$1; mount --make-rprivate /; mount -t proc proc "$root/proc"; mount -t tmpfs tmpfs "$root/dev"
 mknod -m 666 "$root/dev/null" c 1 3; mknod -m 666 "$root/dev/urandom" c 1 9; mknod -m 666 "$root/dev/kmsg" c 1 11
 trap "umount $root/dev 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 EXTRA="$2" chroot "$root" /bin/sh /tmp/steps.sh' sh "$root" "$extra"
-sudo -n rm -rf "$tmp"

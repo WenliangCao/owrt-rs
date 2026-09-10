@@ -109,6 +109,12 @@ impl Connection {
         self.stream.as_raw_fd()
     }
 
+    /// End this transport even if a forked child still holds a descriptor.
+    /// The Connection remains the owner and closes its fd when dropped.
+    pub fn shutdown(&self) -> io::Result<()> {
+        self.stream.shutdown(std::net::Shutdown::Both)
+    }
+
     fn send(&mut self, header: Header, blob: &mut BlobBuf, fd: Option<RawFd>) -> io::Result<()> {
         let body = blob.as_bytes();
         if body.len() > MAX_MSGLEN {

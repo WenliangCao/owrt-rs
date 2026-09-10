@@ -108,3 +108,53 @@ resolvfile 读上游。没有它，客户端拿得到租约、到得了路由器
 
 差分依据：r49（wired 口静态 `list dns` + `dns_search`）、r52（udhcpd 下发 option dns + search）
 的探针都 cat 这个文件，C 与 rs 逐字节相同且非空；缺写入的旧候选 60dcff02 在 r49 上判红。
+
+## 7. R81 冷审计之后：进程生命周期与配置变更语义（R83）
+
+R81 的 F03–F14 按镜像内 `/sbin/netifd`、协议脚本和 `wireless-device.uc` 的实际行为修复。
+清单记载的上游修订为 `cbb83a18`；构建机现有 `stage9/netifd` 是较新的 checkout，不能把该目录
+称作这个修订。核对时分别读取固定修订与镜像文件；`proto-shell` / `proto-ext` 的组织差异不代替
+运行证据。差分门包括 r83_lifecycle、r83_config、r83_wireless_deadline、r61 和加强后的 r62。
+
+- **退出信号**（F03）：SIGINT/SIGTERM/SIGUSR1/SIGUSR2 → 接口原样留在内核，`netifd_kill_processes`
+  用 **SIGKILL** 杀掉自己起的进程（proto 脚本、helper、hotplug 脚本、无线 handler），退出 0。
+  无线 handler 虽由 C 的 ucode 部分持有，镜像进程退出时仍会停止它；r83 的 shutdown 用例
+  直接核对两侧 handler 进程，纠正了此前“退出时不杀无线 handler”的推断。
+- **proto-ext 超时**（F09）：teardown 脚本 5 s、被中止的 setup 1 s（`teardown_timeout`），到点 SIGKILL
+  脚本与 helper，状态机按终止完成收尾。`Slot::terminate` 发 SIGKILL 后立即返回；旧 Child 放入
+  回收列表，用 `try_wait` 回收，事件循环不做阻塞等待。无线 setup/teardown 的 deadline 为 30 s，
+  超时后取消任务并推进重试状态；setup 中的配置变更保留到本次任务结束后重新 setup。
+- **config_state**（F04/F11）：删接口 / 需要 reload 的变更先 `set_config_state`；接口已 DOWN 则立即执行，
+  否则 `__interface_set_down` 后在 IFPEV_DOWN 路径（`handle_config_change`）执行。删除时
+  `proto_ext_free` 对两个任务 SIGKILL；reload 保留运行期 `autostart`（只有 `auto` 本身变了才重置）。
+- **变更分级**（F05，`interface_change_config`）：reload 仅当 device / proto / handler 声明的参数
+  （shell handler 的 `config` 列表；static 为 ipaddr/ip6addr/netmask/broadcast/gateway/ip6gw/ip6prefix/
+  ip6deprecated）/ zone / 接口段里的 device 选项 / `auto` 从开到关 变了；metric、ip4table、ip6table、
+  defaultroute 变了只重装地址与路由（`reload_ip`）；dns/dns_search/peerdns 只重写 resolv.conf；
+  delegate/ip6assign/ip6hint/ip6class 只重算前缀分配；静态路由段变化只增删对应路由。
+- **dns / peerdns / defaultroute**（F06）：接口段的 `list dns`/`dns_search` 进 `config_ip`（所有协议）；
+  `peerdns 0` → `proto_ip.no_dns`（协议给的 DNS 进 inactive，不写 resolv.conf）；`defaultroute 0` →
+  `proto_ip.no_defaultroute`（协议给的默认路由留在列表、进 inactive、不进内核）。
+- **时钟与生命周期**（F07/F08）：`clock.rs` = CLOCK_MONOTONIC（`system_get_rtime`）；地址、前缀、
+  分配一律存**截止时刻**，status 打印剩余（preferred 钳 0，valid 与 C 一样按 u32 回绕）。
+  `ipv6-prefix` 由快照（`interface_snapshot`）从全局前缀表填入本接口的前缀及其 `assigned`；
+  `delegate 0` 的接口前缀不参与下游分配，仍保留父前缀及 null route；恢复 delegate 后重新分配。
+  普通配置 reload 保留协议持有的 PD，更新其生命周期或成员时在 `updated` 数组中加入 `prefixes`。
+  r62 使用真正进入 UP 的协议夹具，比对地址/前缀倒计时、续期、替换、delegate 开关及撤回；
+  内核生命周期按数值比较，容差 3 s，不再分桶或只比较零与非零。
+- **设备选项**（F12/F13）：`ipv6`/`promisc`/`multicast`/`mtu6` 按 `system_if_apply_settings` 的顺序应用，
+  应用点是 `device_claim` 里 IFF_UP **之前**（`system_if_up`）——内核在 NETDEV_UP 会把 IPv6 mtu 重置为
+  链路 mtu，所以 C 的 `mtu6` 对刚起来的设备实际不生效，这里同样不生效。`network.device status` 的
+  `up` 是 claim 状态（`dev->active`），不是 IFF_UP。
+- **add_device / remove_device**（F13）：主设备是网桥 → `bridge_hotplug_add/del`。先查设备，
+  `link-ext` 缺省 true，标记 external；即使后面的 hotplug 返回 NOT_SUPPORTED，这个标志也保留。
+  新建且非 external 的设备才清状态。非成员 NOT_FOUND；配置里的口 `remove` 回 0 不动；主设备就是它 → 0；
+  非网桥主设备 add → NOT_SUPPORTED，remove → INVALID_ARGUMENT；接口无 device 时 C 会把该设备
+  hotplug 成主设备——本构建不做，回 NOT_SUPPORTED（**有意偏离**）。
+- **disabled**（F13）：`option disabled '1'|'true'`（严格这两个拼写）→ 整段跳过，无接口对象、无 ubus 对象。
+- **不再拒绝 reload**（F14）：不认识的段、不支持的 device type、坏 macaddr 记 warning 并跳过
+  该项；无效静态地址使所属接口 SETUP 失败，均不阻断其他接口的 reload。
+  `config route`/`route6` 现在实现（target/netmask/gateway/metric/mtu/table/type/
+  onlink/source/proto/disabled；无 `interface` → loopback + NODEV），进 `config_ip`，接口 UP 时装入内核、
+  DOWN 时撤下；`valid` 不承载（**有意偏离**，本机无此用法）；`rule`/`rule6` 仍跳过（warning）。
+  没有 `proto` 的接口段仍跳过（C 会用 no_proto 建对象——**有意偏离**，本机无此用法）。

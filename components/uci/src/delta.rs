@@ -7,7 +7,7 @@ use crate::model::{Cmd, Delta, Ptr};
 use crate::ops;
 use crate::parse::{self, Pctx};
 use std::fs::File;
-use std::io::{self, BufReader, Seek, SeekFrom, Write};
+use std::io::{self, BufReader, BufWriter, Seek, SeekFrom, Write};
 use std::os::unix::fs::{DirBuilderExt, MetadataExt};
 
 /// uci_delta_save
@@ -106,10 +106,8 @@ pub fn parse_delta_tuple(pctx: &mut Pctx) -> Result<(Cmd, Ptr)> {
                 return Err(Error::Inval);
             }
         }
-        Cmd::ListAdd | Cmd::ListDel => {
-            if ptr.option.is_none() {
-                return Err(Error::Inval);
-            }
+        Cmd::ListAdd | Cmd::ListDel if ptr.option.is_none() => {
+            return Err(Error::Inval);
         }
         _ => {}
     }
@@ -289,10 +287,13 @@ fn filter_delta(ctx: &mut Context, name: &str, section: Option<&str>, option: Op
         let rebuilt = (|| -> io::Result<()> {
             f.seek(SeekFrom::Start(0))?;
             f.set_len(0)?;
+            // libuci writes through stdio; a bare File would turn every token
+            // and every escaped byte into its own write(2)
+            let mut w = BufWriter::new(&f);
             for h in &list {
-                delta_save(&mut f, name, h)?;
+                delta_save(&mut w, name, h)?;
             }
-            f.flush()
+            w.flush()
         })();
         if rebuilt.is_err() {
             ctx.err = Some(Error::Io);
@@ -347,15 +348,23 @@ pub fn save(ctx: &mut Context, pidx: usize) -> Result<()> {
     let name = ctx.root[pidx].name.clone();
     let filename = format!("{}/{}", ctx.savedir, name);
     ctx.err = None;
-    let mut f = file::open_stream(ctx, &filename, true, true, true)?;
-    let deltas: Vec<Delta> = ctx.root[pidx].delta.drain(..).collect();
+    let f = file::open_stream(ctx, &filename, true, true, true)?;
+    let deltas: Vec<Delta> = std::mem::take(&mut ctx.root[pidx].delta);
+    // libuci appends through a stdio FILE*; without a BufWriter one `uci set`
+    // costs a write(2) per token and per escaped byte
+    let mut w = BufWriter::new(&f);
     for h in &deltas {
-        if delta_save(&mut f, &name, h).is_err() {
+        if delta_save(&mut w, &name, h).is_err() {
+            let _ = w.flush();
             crate::sys::unlock(&f);
             return Err(Error::Io);
         }
     }
-    let _ = f.flush();
+    let flushed = w.flush();
+    drop(w);
     crate::sys::unlock(&f);
+    if flushed.is_err() {
+        return Err(Error::Io);
+    }
     Ok(())
 }

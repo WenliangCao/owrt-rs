@@ -1,6 +1,6 @@
 # R83 · fw4：R81-F17（`config defaults` 非法选项）
 
-日期 2026-09-09。参照：`oracle:/home/ubuntu/stage4/firewall4`（upstream ucode firewall4，
+日期 2026-09-10。参照修订 `b6e51575`：`oracle:/home/ubuntu/stage4/firewall4`（upstream ucode firewall4，
 `root/usr/share/ucode/fw4.uc`）、设备 rootfs
 `oracle:~/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files`。
 构建/测试目录 `oracle:~/r81-fw4`（本机只编辑，不在 oracle 上改代码）。未接触路由器。
@@ -139,16 +139,12 @@ r83 fw4 defaults: 7 cases compared, 0 failures / PASS
    同一条 warning 和回溯；fw4-rs 只打一次就退。未复刻（复刻等于为了错误路径重跑整个 load）。
 2. ucode 那 14 行解释器回溯不伪造（见 §3），所以 `QUIET=1 fw4 print` 在 ucode 下仍打回溯、
    在 fw4-rs 下静默退 254。r83/r29 的 stderr 比较都相应地剥掉回溯。
-3. `cargo clippy --all-targets -- -D warnings` 在本 crate**仍红**：唯一一条是
-   `src/sections.rs:1873`（`parse_include` 那个 `match` 臂里的 `collapsible_match`），
-   `git show HEAD` 里逐字相同（本轮只在同函数里改了返回类型，没碰这个分支），
-   属 R81 §6 记的既有风格提示，落在 fidelity 敏感的 include 分支上，本轮不动。
-   `cargo fmt --check` 全 crate 278 处 diff（本轮前 276）：仓库没有 `rustfmt.toml`、
-   CI 也不跑 fmt，既有代码整体按 ~120 列写，本轮新增代码与之一致。
+3. 最终 `cargo clippy --all-targets -- -D warnings` 已通过。相关 `collapsible_match` 等提示已修正，
+   未进行无关的整仓格式重排。
 
 ## 6. 追加：`config include`（同一失败类，已修）
 
-协调方指示后在同一 crate 内一并修掉——机制与 F17 完全同形，只是换了一个 section 类型。
+`config include` 与 defaults 的失败机制相同，已一并修复。
 
 **证据（ucode 实跑，同上游 mock 布局）**：
 
@@ -220,7 +216,7 @@ tools/r29_fw4_fuzz.py seed 3/4/5          → differing=0（见上）
 dash -n tools/r83_fw4_defaults.sh         → ok
 ```
 
-## 7. 产物
+## 7. 历史验证产物（非最终构建）
 
 ```
 aarch64: components/fw4/target/aarch64-unknown-linux-musl/release/fw4-rs
@@ -232,12 +228,9 @@ host x86_64: components/fw4/target/release/fw4-rs
 `cargo +1.98.1 build --release --bins --examples --target aarch64-unknown-linux-musl`，
 构建目录 `oracle:~/r81-fw4`（本机只编辑，rsync 过去构建）。
 
-md5 的出处必须连着工作树状态一起看：树基线 `57947ae`，除本轮的
-`components/fw4/src/{sections,main}.rs` 之外，`components/ubus/src/{blob,convert,json}.rs`
-与 `components/uci/src/*` 正被并行的 R83 线程改动，而 fw4 依赖 owrt-ubus / owrt-uci
-（同一份 fw4 源码在 ubus 改动前后编出过 `c963790c…`/`482cc02d…` 两个 aarch64 md5，已实测）。
-所以这些 md5 只对该次快照有效，发布镜像仍须按 `docs/RELEASE.md` 在干净树上由 CI 重建。
-仅 defaults 修复（未含 §6 的 include）时的 aarch64 md5 是 `482cc02d6e9f95f886604491d4412fd8`。
+以上 hash 只标识早期修复快照。最终共享库修复一并链接后的构建摘要见 [validation.md](validation.md)。
+最终验证：14 个单测、严格 clippy、r09 的 31 个上游用例、r29 的 200 例（含 25 个 ucode 崩溃例）、
+12 例 defaults/include 门全部通过。未构建发布镜像或接触实体设备。
 
 ## 8. 改动清单
 

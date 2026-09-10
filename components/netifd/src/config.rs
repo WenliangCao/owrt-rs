@@ -26,9 +26,17 @@ impl fmt::Display for ConfigError {
 /// Section types netifd knows but this build does not implement. Naming them
 /// separately keeps the error specific ("bonding is not supported") rather
 /// than "unknown section".
-const OUT_OF_SCOPE: &[&str] = &[
-    "route", "route6", "rule", "rule6", "switch", "switch_vlan", "switch_port", "bridge-vlan",
-];
+const OUT_OF_SCOPE: &[&str] =
+    &["rule", "rule6", "switch", "switch_vlan", "switch_port", "bridge-vlan"];
+
+/// One `config route` / `config route6` section (`config_parse_route` →
+/// `interface_ip_add_route(NULL, ...)`): it lands in the named interface's
+/// `config_ip`; with no `interface` it goes to `loopback` with DEVROUTE_NODEV.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StaticRoute {
+    pub interface: String,
+    pub route: crate::interface::Route,
+}
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Globals {
@@ -71,7 +79,6 @@ pub struct InterfaceConfig {
     pub device: Option<String>,
     pub proto: String,
     pub auto: Option<bool>,
-    pub disabled: bool,
     pub ipv4: Vec<(Ipv4Addr, u8)>,
     pub ipv6: Vec<(Ipv6Addr, u8)>,
     pub gateway: Option<Ipv4Addr>,
@@ -91,6 +98,11 @@ pub struct InterfaceConfig {
     pub force_link: Option<bool>,
     pub defaultroute: Option<bool>,
     pub peerdns: Option<bool>,
+    /// `proto_apply_static_settings`'s `goto error`: an unparsable static
+    /// option is a warning at parse time but a failed SETUP at run time --
+    /// the interface is marked down with this ("proto", code, value) error,
+    /// as the C's `interface_add_error` records it (r61 bad-addr).
+    pub static_error: Option<(String, String)>,
     /// Options this build does not interpret but the proto handler might;
     /// passed through to proto-shell verbatim.
     pub extra: BTreeMap<String, Vec<String>>,
@@ -114,9 +126,14 @@ pub struct Config {
     pub globals: Globals,
     pub devices: Vec<DeviceConfig>,
     pub interfaces: Vec<InterfaceConfig>,
-    /// Non-fatal on their own: netifd keeps running with the sections it does
-    /// understand, and these are reported so the operator can see what was
-    /// refused.
+    pub routes: Vec<StaticRoute>,
+    /// What was skipped or ignored, one line each. The C never refuses a
+    /// configuration over a section it cannot use -- it logs and moves on --
+    /// and neither does this build any more: refusing every later reload over
+    /// one `config rule` was R81 F14.
+    pub warnings: Vec<ConfigError>,
+    /// Reserved for a problem that makes the whole document unusable; nothing
+    /// the parser sees today is one.
     pub errors: Vec<ConfigError>,
 }
 
@@ -236,11 +253,13 @@ pub fn parse(pkg: &Package) -> Config {
             "globals" => parse_globals(s, &mut c, &where_),
             "device" => parse_device(s, &mut c, &where_),
             "interface" => parse_interface(s, &mut c, &where_),
-            t if OUT_OF_SCOPE.contains(&t) => c.errors.push(ConfigError {
+            "route" => parse_route(s, false, &mut c, &where_),
+            "route6" => parse_route(s, true, &mut c, &where_),
+            t if OUT_OF_SCOPE.contains(&t) => c.warnings.push(ConfigError {
                 section: where_,
                 message: format!("section type '{t}' is not supported by this build"),
             }),
-            t => c.errors.push(ConfigError {
+            t => c.warnings.push(ConfigError {
                 section: where_,
                 message: format!("unknown section type '{t}'"),
             }),
@@ -253,7 +272,7 @@ fn parse_globals(s: &Section, c: &mut Config, where_: &str) {
     if let Some(v) = s_opt(s, "ula_prefix") {
         match parse_v6(&v) {
             Some(p) => c.globals.ula_prefix = Some(p),
-            None => c.errors.push(ConfigError {
+            None => c.warnings.push(ConfigError {
                 section: where_.to_string(),
                 message: format!("ula_prefix '{v}' is not an IPv6 prefix"),
             }),
@@ -266,7 +285,7 @@ fn parse_globals(s: &Section, c: &mut Config, where_: &str) {
 
 fn parse_device(s: &Section, c: &mut Config, where_: &str) {
     let Some(name) = s_opt(s, "name") else {
-        c.errors.push(ConfigError {
+        c.warnings.push(ConfigError {
             section: where_.to_string(),
             message: "device section without a name".into(),
         });
@@ -275,7 +294,7 @@ fn parse_device(s: &Section, c: &mut Config, where_: &str) {
     let kind = s_opt(s, "type");
     if let Some(k) = &kind {
         if k != "bridge" {
-            c.errors.push(ConfigError {
+            c.warnings.push(ConfigError {
                 section: where_.to_string(),
                 message: format!("device type '{k}' is not supported by this build"),
             });
@@ -291,7 +310,7 @@ fn parse_device(s: &Section, c: &mut Config, where_: &str) {
     if let Some(m) = s_opt(s, "macaddr") {
         match parse_macaddr(&m) {
             Some(mac) => d.macaddr = Some(mac),
-            None => c.errors.push(ConfigError {
+            None => c.warnings.push(ConfigError {
                 section: where_.to_string(),
                 message: format!("macaddr '{m}' is not a MAC address"),
             }),
@@ -315,11 +334,167 @@ fn parse_device(s: &Section, c: &mut Config, where_: &str) {
     c.devices.push(d);
 }
 
+/// `interface_ip_add_route` for a UCI section. Field by field what the C
+/// parses, and every parse failure drops the whole route with a warning, as
+/// its `goto error` does. `valid` is not carried: the C turns it into a
+/// deadline at parse time, which no static route on this device uses.
+/// `parse_netmask_string` for a route section: a prefix length, or a dotted
+/// quad (v4 only, `32 - fls(~mask)`, not a contiguity check). `u32::MAX` is
+/// the C's `~0` for a string it rejects.
+fn parse_netmask_str(s: &str, v6: bool) -> u32 {
+    if !s.contains('.') {
+        return s.trim().parse::<u32>().unwrap_or(u32::MAX);
+    }
+    if v6 {
+        return u32::MAX;
+    }
+    match s.parse::<Ipv4Addr>() {
+        Ok(nm) => {
+            let inv = !u32::from_be_bytes(nm.octets());
+            32 - if inv == 0 { 0 } else { 32 - inv.leading_zeros() }
+        }
+        Err(_) => u32::MAX,
+    }
+}
+
+fn parse_route(s: &Section, v6: bool, c: &mut Config, where_: &str) {
+    use crate::interface::{devroute, Route};
+    let warn = |c: &mut Config, m: String| {
+        c.warnings.push(ConfigError { section: where_.to_string(), message: m })
+    };
+    if b_opt(s, "disabled").unwrap_or(false) {
+        return;
+    }
+    let max: u32 = if v6 { 128 } else { 32 };
+    let unspec: IpAddr =
+        if v6 { IpAddr::V6(Ipv6Addr::UNSPECIFIED) } else { IpAddr::V4(Ipv4Addr::UNSPECIFIED) };
+    let parse_ip = |s: &str| -> Option<IpAddr> {
+        if v6 {
+            s.parse::<Ipv6Addr>().ok().map(IpAddr::V6)
+        } else {
+            s.parse::<Ipv4Addr>().ok().map(IpAddr::V4)
+        }
+    };
+    let mut mask = max as u8;
+    if let Some(m) = s_opt(s, "netmask") {
+        let n = parse_netmask_str(&m, v6);
+        if n > max {
+            warn(c, format!("route netmask '{m}' is invalid"));
+            return;
+        }
+        mask = n as u8;
+    }
+    let mut target = unspec;
+    if let Some(t) = s_opt(s, "target") {
+        let (astr, m) = match t.split_once('/') {
+            Some((a, m)) => {
+                let n = parse_netmask_str(m, v6);
+                if n > max {
+                    warn(c, format!("Failed to parse route target: {t}"));
+                    return;
+                }
+                (a.to_string(), n as u8)
+            }
+            None => (t.clone(), mask),
+        };
+        mask = m;
+        let Some(a) = parse_ip(&astr) else {
+            warn(c, format!("Failed to parse route target: {t}"));
+            return;
+        };
+        target = a;
+        // "Mask out IPv4 host bits"
+        if let (IpAddr::V4(v4), true) = (target, !v6 && mask < 32) {
+            let bits = u32::from_be_bytes(v4.octets());
+            let keep = if mask == 0 { 0 } else { u32::MAX << (32 - mask) };
+            target = IpAddr::V4(Ipv4Addr::from(bits & keep));
+        }
+    }
+    let mut r = Route::new(target, mask, unspec);
+    if let Some(g) = s_opt(s, "gateway") {
+        let Some(nh) = parse_ip(&g) else {
+            warn(c, format!("Failed to parse route gateway: {g}"));
+            return;
+        };
+        r.nexthop = nh;
+    }
+    if let Some(m) = n_opt::<u32>(s, "metric") {
+        r.metric = m;
+        r.flags |= devroute::METRIC;
+    }
+    if let Some(m) = n_opt::<u32>(s, "mtu") {
+        r.mtu = m;
+        r.flags |= devroute::MTU;
+    }
+    if let Some(src) = s_opt(s, "source") {
+        let (a, m) = match src.split_once('/') {
+            Some((a, m)) => (a.to_string(), Some(m.to_string())),
+            None => (src.clone(), None),
+        };
+        let Some(sa) = parse_ip(&a) else {
+            warn(c, format!("Failed to parse route source: {a}"));
+            return;
+        };
+        r.source = sa;
+        r.sourcemask = match m {
+            Some(m) => match m.parse::<u32>() {
+                Ok(v) if v <= max => v as u8,
+                _ => {
+                    warn(c, format!("Invalid route source mask: {m}"));
+                    return;
+                }
+            },
+            None => max as u8,
+        };
+    }
+    if b_opt(s, "onlink").unwrap_or(false) {
+        r.flags |= devroute::ONLINK;
+    }
+    if let Some(t) = s_opt(s, "table") {
+        let Some(table) = crate::rt::resolve_rt_table(&t) else {
+            warn(c, format!("Failed to resolve routing table: {t}"));
+            return;
+        };
+        // "only set the table flag if not using the main (default) table"
+        r.table = if table == 254 { 0 } else { table };
+        if r.table != 0 {
+            r.flags |= devroute::TABLE;
+        }
+    }
+    if let Some(t) = s_opt(s, "type") {
+        let Some(ty) = crate::rt::resolve_rt_type(&t) else {
+            warn(c, format!("Failed to resolve routing type: {t}"));
+            return;
+        };
+        r.ty = ty;
+        r.flags |= devroute::TYPE;
+    }
+    if let Some(p) = s_opt(s, "proto") {
+        let Some(proto) = crate::rt::resolve_rt_proto(&p) else {
+            warn(c, format!("Failed to resolve proto type: {p}"));
+            return;
+        };
+        r.proto = proto;
+        r.flags |= devroute::PROTO;
+    }
+    if s_opt(s, "valid").is_some() {
+        warn(c, "route option 'valid' is not carried by this build".into());
+    }
+    let interface = match s_opt(s, "interface") {
+        Some(i) => i,
+        None => {
+            r.flags |= devroute::NODEV;
+            "loopback".to_string()
+        }
+    };
+    c.routes.push(StaticRoute { interface, route: r });
+}
+
 fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
     let mut i = InterfaceConfig { name: s.name.clone(), ..Default::default() };
     i.proto = s_opt(s, "proto").unwrap_or_default();
     if i.proto.is_empty() {
-        c.errors.push(ConfigError {
+        c.warnings.push(ConfigError {
             section: where_.to_string(),
             message: "interface without a proto".into(),
         });
@@ -327,32 +502,59 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
     }
     i.device = s_opt(s, "device").or_else(|| s_opt(s, "ifname"));
     i.auto = b_opt(s, "auto");
-    i.disabled = b_opt(s, "disabled").unwrap_or(false);
+    // `config_parse_interface`: `disabled` "1" or "true" (exactly those) skips
+    // the section entirely -- no interface object, no ubus object, nothing
+    // in the dump. Creating it with autostart off was R81 F13.
+    if matches!(s_opt(s, "disabled").as_deref(), Some("1") | Some("true")) {
+        return;
+    }
 
     let netmask = s_opt(s, "netmask");
     for a in l_opt(s, "ipaddr") {
         match parse_v4(&a, netmask.as_deref()) {
             Some(v) => i.ipv4.push(v),
-            None => c.errors.push(ConfigError {
-                section: where_.to_string(),
-                message: format!("ipaddr '{a}' is not an IPv4 address"),
-            }),
+            None => {
+                c.warnings.push(ConfigError {
+                    section: where_.to_string(),
+                    message: format!("ipaddr '{a}' is not an IPv4 address"),
+                });
+                i.static_error.get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+            }
         }
     }
     for a in l_opt(s, "ip6addr") {
         match parse_v6(&a) {
             Some(v) => i.ipv6.push(v),
-            None => c.errors.push(ConfigError {
-                section: where_.to_string(),
-                message: format!("ip6addr '{a}' is not an IPv6 address"),
-            }),
+            None => {
+                c.warnings.push(ConfigError {
+                    section: where_.to_string(),
+                    message: format!("ip6addr '{a}' is not an IPv6 address"),
+                });
+                i.static_error.get_or_insert(("INVALID_ADDRESS".into(), a.clone()));
+            }
+        }
+    }
+    for (name, code) in [("gateway", "INVALID_GATEWAY"), ("ip6gw", "INVALID_GATEWAY")] {
+        if let Some(v) = s_opt(s, name) {
+            let ok = if name == "gateway" {
+                v.parse::<Ipv4Addr>().is_ok()
+            } else {
+                v.parse::<Ipv6Addr>().is_ok()
+            };
+            if !ok {
+                c.warnings.push(ConfigError {
+                    section: where_.to_string(),
+                    message: format!("{name} '{v}' is not an address"),
+                });
+                i.static_error.get_or_insert((code.into(), v));
+            }
         }
     }
     i.gateway = s_opt(s, "gateway").and_then(|v| v.parse().ok());
     i.ip6gw = s_opt(s, "ip6gw").and_then(|v| v.parse().ok());
     if let Some(v) = n_opt::<u8>(s, "ip6assign") {
         if v > 64 {
-            c.errors.push(ConfigError {
+            c.warnings.push(ConfigError {
                 section: where_.to_string(),
                 message: format!("ip6assign {v} is longer than a /64"),
             });
@@ -367,7 +569,7 @@ fn parse_interface(s: &Section, c: &mut Config, where_: &str) {
     for d in l_opt(s, "dns") {
         match d.parse::<IpAddr>() {
             Ok(a) => i.dns.push(a),
-            Err(_) => c.errors.push(ConfigError {
+            Err(_) => c.warnings.push(ConfigError {
                 section: where_.to_string(),
                 message: format!("dns '{d}' is not an IP address"),
             }),
@@ -432,7 +634,7 @@ mod tests {
             "config device\n\toption name 'br-lan'\n\toption type 'bridge'\n\
              \tlist ports 'lan2'\n\tlist ports 'lan3'\n\toption macaddr '02:00:00:00:00:01'\n",
         ));
-        assert!(c.errors.is_empty(), "{:?}", c.errors);
+        assert!(c.warnings.is_empty(), "{:?}", c.warnings);
         assert_eq!(c.devices.len(), 1);
         let d = &c.devices[0];
         assert_eq!(d.name, "br-lan");
@@ -442,25 +644,25 @@ mod tests {
     }
 
     #[test]
-    fn an_unsupported_device_type_is_an_error_not_a_skip() {
+    fn an_unsupported_device_type_is_a_warning_and_a_skip() {
         let c = parse(&pkg("config device\n\toption name 'bond0'\n\toption type 'bonding'\n"));
         assert!(c.devices.is_empty());
-        assert_eq!(c.errors.len(), 1);
-        assert!(c.errors[0].message.contains("bonding"), "{:?}", c.errors);
+        assert_eq!(c.warnings.len(), 1);
+        assert!(c.warnings[0].message.contains("bonding"), "{:?}", c.warnings);
     }
 
     #[test]
     fn out_of_scope_sections_name_themselves() {
         let c = parse(&pkg("config rule\n\toption lookup '100'\n"));
-        assert_eq!(c.errors.len(), 1);
-        assert!(c.errors[0].message.contains("'rule' is not supported"), "{:?}", c.errors);
+        assert_eq!(c.warnings.len(), 1);
+        assert!(c.warnings[0].message.contains("'rule' is not supported"), "{:?}", c.warnings);
     }
 
     #[test]
     fn an_unknown_section_type_is_reported_separately() {
         let c = parse(&pkg("config wombat 'x'\n"));
-        assert_eq!(c.errors.len(), 1);
-        assert!(c.errors[0].message.contains("unknown section type"), "{:?}", c.errors);
+        assert_eq!(c.warnings.len(), 1);
+        assert!(c.warnings[0].message.contains("unknown section type"), "{:?}", c.warnings);
     }
 
     #[test]
@@ -470,7 +672,7 @@ mod tests {
              config interface old\n\toption proto 'static'\n\toption ipaddr '10.0.0.1'\n\
              \toption netmask '255.255.255.0'\n",
         ));
-        assert!(c.errors.is_empty(), "{:?}", c.errors);
+        assert!(c.warnings.is_empty(), "{:?}", c.warnings);
         assert_eq!(c.interfaces[0].ipv4, vec![("192.168.1.1".parse().unwrap(), 24)]);
         assert_eq!(c.interfaces[1].ipv4, vec![("10.0.0.1".parse().unwrap(), 24)]);
     }
@@ -488,7 +690,7 @@ mod tests {
              \toption netmask '255.0.255.0'\n",
         ));
         assert!(c.interfaces[0].ipv4.is_empty());
-        assert_eq!(c.errors.len(), 1);
+        assert_eq!(c.warnings.len(), 1);
     }
 
     #[test]
@@ -509,7 +711,7 @@ mod tests {
             "config interface lan\n\toption proto 'static'\n\toption ip6assign '80'\n",
         ));
         assert!(c.interfaces[0].ip6assign.is_none());
-        assert_eq!(c.errors.len(), 1);
+        assert_eq!(c.warnings.len(), 1);
     }
 
     #[test]
@@ -530,7 +732,7 @@ mod tests {
             "config interface wan\n\toption proto 'dhcp'\n\toption hostname 'router'\n\
              \tlist reqopts '43'\n\tlist reqopts '121'\n",
         ));
-        assert!(c.errors.is_empty(), "{:?}", c.errors);
+        assert!(c.warnings.is_empty(), "{:?}", c.warnings);
         let e = &c.interfaces[0].extra;
         assert_eq!(e.get("hostname").unwrap(), &vec!["router".to_string()]);
         assert_eq!(e.get("reqopts").unwrap(), &vec!["43".to_string(), "121".to_string()]);
@@ -554,10 +756,10 @@ mod tests {
     }
 
     #[test]
-    fn an_interface_without_a_proto_is_an_error() {
+    fn an_interface_without_a_proto_is_a_warning() {
         let c = parse(&pkg("config interface lan\n\toption device 'br-lan'\n"));
         assert!(c.interfaces.is_empty());
-        assert_eq!(c.errors.len(), 1);
+        assert_eq!(c.warnings.len(), 1);
     }
 
     #[test]
@@ -566,7 +768,7 @@ mod tests {
             "config globals 'globals'\n\toption ula_prefix 'fdfd:3b1d:1c26::/48'\n\
              \toption packet_steering '1'\n",
         ));
-        assert!(c.errors.is_empty(), "{:?}", c.errors);
+        assert!(c.warnings.is_empty(), "{:?}", c.warnings);
         assert_eq!(c.globals.ula_prefix, Some(("fdfd:3b1d:1c26::".parse().unwrap(), 48)));
         assert_eq!(c.globals.packet_steering, Some(1));
     }
@@ -587,7 +789,7 @@ mod tests {
              config interface 'wan'\n\toption device 'wan'\n\toption proto 'dhcp'\n\n\
              config interface 'wan6'\n\toption device 'wan'\n\toption proto 'dhcpv6'\n",
         ));
-        assert!(c.errors.is_empty(), "{:?}", c.errors);
+        assert!(c.warnings.is_empty(), "{:?}", c.warnings);
         assert_eq!(c.devices.len(), 2);
         assert_eq!(c.interfaces.len(), 4);
         assert_eq!(c.interfaces[1].ip6assign, Some(60));

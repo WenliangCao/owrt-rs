@@ -96,7 +96,7 @@ def main():
         total += n; fails += f
         print("%-40s %s" % (os.path.basename(t), "OK" if f == 0 else "FAILED (%d/%d)" % (f, n)))
     print("\nRan %d testcases in %d files, %d failures" % (total, len(tests), fails))
-    sys.exit(1 if fails else 0)
+    sys.exit(1 if fails else (0 if total else 2))
 
 if __name__ == "__main__":
     main()

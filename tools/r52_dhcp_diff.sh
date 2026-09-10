@@ -251,6 +251,8 @@ UD
 run_one c
 run_one rs
 
+python3 "$(dirname "$0")/audit_checks.py" r52 "$out"
+
 echo "=== lease acquired after"
 for t in c rs; do printf '%-3s %s\n' "$t" "$(cat "$out/$t-wait.txt" 2>/dev/null)"; done
 

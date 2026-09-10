@@ -27,7 +27,9 @@ chmod 0755 "$r/tmp/rcd/S10ok"
 rm -rf "$r/etc/rc.d"; ln -s /tmp/rcd "$r/etc/rc.d"
 cat > "$r/tmp/ttymark.sh" <<'X'
 #!/bin/sh
-echo "activated on $(tty)" >> /tmp/out/ttymark.txt
+# This exact BusyBox image has no tty applet. The shell's -t test checks
+# terminal attachment; readlink names the fd without requiring that applet.
+[ -t 0 ] && echo "activated on $(readlink /proc/self/fd/0)" >> /tmp/out/ttymark.txt
 exec sleep 600
 X
 chmod 0755 "$r/tmp/ttymark.sh"

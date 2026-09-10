@@ -39,8 +39,9 @@ run_for() {
 mask() { sed -e 's/@[0-9a-f]\{8\}/@ID/g' -e 's/"id": *[0-9]*/"id":ID/g'; }
 
 say "--- 1. empty bus"
-say "list: [$(ubus list | tr '\n' ' ')]"
-say "list_rc: $?"
+list=$(ubus list); list_rc=$?
+say "list: [$(printf '%s\n' "$list" | tr '\n' ' ')]"
+say "list_rc: $list_rc"
 
 say "--- 2. ping and an unknown method on a system object"
 ubus -S call event nosuchmethod '{}' >/dev/null 2>&1; say "event.nosuchmethod rc=$?"

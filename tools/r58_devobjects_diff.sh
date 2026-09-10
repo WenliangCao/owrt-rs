@@ -72,16 +72,28 @@ snap() {
 }
 snap startup
 echo "===== add a dynamic interface with a real device"
+echo "--- call"
 ubus call network add_dynamic \
 	'{"name":"dyn0","proto":"static","device":"veth3","ipaddr":"10.3.3.1","netmask":"255.255.255.0"}' 2>&1
+status=$?
+echo "--- status"
+echo "$status"
 sleep 2
 snap after-add
 echo "===== remove it again"
+echo "--- call"
 ubus call network.interface.dyn0 remove 2>&1
+status=$?
+echo "--- status"
+echo "$status"
 sleep 2
 snap after-remove
 echo "===== remove a config interface, which must survive"
+echo "--- call"
 ubus call network.interface.wired remove 2>&1
+status=$?
+echo "--- status"
+echo "$status"
 sleep 2
 snap after-config-remove
 DR
@@ -130,9 +142,12 @@ DR
 run_one c
 run_one rs
 
+python3 "$(dirname "$0")/audit_checks.py" r58 "$out"
+
 rc=0
-python3 - "$out/c-calls.txt" "$out/rs-calls.txt" <<'PY' || rc=1
+PYTHONPATH="$(dirname "$0")${PYTHONPATH:+:$PYTHONPATH}" python3 - "$out/c-calls.txt" "$out/rs-calls.txt" <<'PY' || rc=1
 import json, sys, collections
+from audit_checks import volatile_netifd_path
 
 def blocks(path):
     out, key, cur = collections.OrderedDict(), None, None
@@ -157,11 +172,8 @@ def parse(t):
         return t
 
 # traffic counters depend on how many packets each run happened to send
-SKIP = ("uptime", "rx_packets", "tx_packets", "rx_bytes", "tx_bytes",
-        "rx_dropped", "tx_dropped", "multicast", "collisions")
-
 def walk(a, b, path, hits):
-    if path.rsplit(".", 1)[-1] in SKIP:
+    if volatile_netifd_path(path):
         return
     if isinstance(a, dict) and isinstance(b, dict):
         for k in list(a.keys()) + [k for k in b if k not in a]:
@@ -187,10 +199,10 @@ if not c:
     print("NOTHING CAPTURED from the reference -- untested")
     sys.exit(1)
 bad = 0
-for label in c:
+for label in dict.fromkeys([*c, *r]):
     hits = []
-    for section in c[label]:
-        a, b = parse(c[label][section]), parse(r.get(label, {}).get(section, ""))
+    for section in dict.fromkeys([*c.get(label, {}), *r.get(label, {})]):
+        a, b = parse(c.get(label, {}).get(section, "")), parse(r.get(label, {}).get(section, ""))
         if section == "interfaces":
             a, b = by_name(a), by_name(b)
         walk(a, b, section, hits)

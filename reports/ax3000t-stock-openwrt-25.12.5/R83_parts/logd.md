@@ -1,6 +1,6 @@
 # R83 — logd-rs：R81 发现 F15、F16
 
-日期 2026-09-10。范围：`components/logd`（logd-rs，设备在跑）。**未触碰路由器。**
+日期 2026-09-10。范围：`components/logd`（logd-rs）。**未触碰路由器。**
 
 参照 C（唯一裁判）：上游 ubox `6f78fa496bf36c55864a41e353df7d13f04b1077`（合同 `docs/contracts/logd.md` 钉的
 提交），克隆到 `oracle:~/r81-logd-ubox/ubox`，读 `log/syslog.c`、`log/logd.c`；
@@ -13,12 +13,13 @@ libubus 重连语义读 `oracle:/home/ubuntu/stage9/ubus/{libubus.c,libubus-io.c
   （`oracle:~/r81-logd-scratch-{fixed,orig}`，用 `#[path]` 直接 include 仓库里的 `ring.rs`）。
 * **端到端**：exact rootfs `~/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files`
   的一次性副本，镜像自带 `/sbin/ubusd`、`/sbin/logd`、`/bin/ubus`、`/usr/sbin/logread`，
-  每侧独立 mount namespace + chroot（沙箱里**不挂 /proc**，于是 C logd 找不到 `/proc/kmsg`，
-  与候选的 `--kmsg none` 一样无内核输入，两侧环形缓冲区输入完全相同）。
+  每侧独立 mount namespace + chroot。混长环门挂私有 proc 供 ubusd 读取降权后的进程凭据，
+  并将 `/proc/kmsg` 绑定到 `/dev/null`；候选使用 `--kmsg none`，环只接收夹具输入。
+  超大回复门没有内核输入；重连门还使用私有 PID namespace。
 
 新增门：`tools/r83_logd_ring_wrap.sh`（F16 混长差分）、`tools/r83_logd_oversize_read.sh`（F15 本地错误）。
 R81 演示测试 `tools/audit/r81_logd_ring_wrap.rs` 已并入 crate 单元测试并删除。
-**未改动 `components/ubus`**（含 `conn.rs`）——F15 全部修在 logd 内。
+重连现通过共享 `Connection::shutdown()` 关闭 transport；该 API 也修复 rpcd 的 HUP 场景。
 
 ## 结论一览
 
@@ -29,7 +30,7 @@ R81 演示测试 `tools/audit/r81_logd_ring_wrap.rs` 已并入 crate 单元测�
 | F15 附带：`socketpair` 失败（EMFILE）同样当断线 | **成立**（同类，报告 §F15 提及） | `main.rs:195-209` 单请求 STATUS |
 | F16 回绕分支只按队首驱逐 | **成立** | `ring.rs:71-88` `retain(offset > next0 && offset < sentinel)` |
 
-发布二进制：`oracle:~/r81-logd/components/logd/target/aarch64-unknown-linux-musl/release/logd-rs`
+历史验证二进制（非最终产物）：`oracle:~/r81-logd/components/logd/target/aarch64-unknown-linux-musl/release/logd-rs`
 md5 **`4ead61417b77e5edd054d37e566d9e42`**，sha256 `17e16164ea79439eb871edc39d9b394942f70917358d3dcdb543e1b7f7d5a772`，
 462880 字节（`cargo +1.98.1 build --release --bins --examples --target aarch64-unknown-linux-musl`，构建路径 `/home/ubuntu/r81-logd`）。
 
@@ -43,8 +44,7 @@ md5 **`4ead61417b77e5edd054d37e566d9e42`**，sha256 `17e16164ea79439eb871edc39d9
 
 * Rust（R81 基线）：`reconnect()` 先 `Connection::connect()`、再 `register_log()`，只有成功才
   `self.conn = conn`；旧 `Connection` 整个过程都活着。ubusd 对已占用的 path 直接拒：
-  `components/ubusd/src/server.rs` 的 `add_object()`（路径已被占用时 `set_path` 失败 →
-  `destroy(id)` + `INVALID_ARGUMENT`；该文件本轮被另一线程并发修改，故不钉行号）。
+  `components/ubusd/src/server.rs` 的 `add_object()`（路径已被占用时 `set_path` 失败 → `destroy(id)` + `INVALID_ARGUMENT`）。
 * C：`ubus_reconnect()` **先关旧 fd 再连**（`libubus-io.c:421-426`），HELLO 后
   `ubus_refresh_state(ctx)`（460 行）重新注册对象；`ubus_auto_reconnect_cb`
   （`libubus.c:395-403`）失败才 1 Hz 重试。C logd 的 connect handler 在 `ubus_add_object`
@@ -69,12 +69,11 @@ md5 **`4ead61417b77e5edd054d37e566d9e42`**，sha256 `17e16164ea79439eb871edc39d9
 
 即 F15 描述的后果成立，且比“对象消失”更难查：`ubus list` 仍列出 `log`，每次调用超时。
 
-### 修法（三处，全在 `components/logd/src/main.rs`）
+### 修法
 
-1. `reconnect()`（318-330）：进重试循环前，借 `ManuallyDrop<UnixStream>` 对
-   `self.conn.as_raw_fd()` 做 `shutdown(Both)`，等价于 C `ubus_reconnect()` 的先 close；
-   ubusd 看到 EOF 拆掉陈旧客户端并释放 `log`，随后的 `add_object` 才可能成功
-   （仍失败就照 C 的 1 Hz 重试，下一轮必然成功）。`self.conn` 在赋新连接时真正关闭 fd。
+1. `reconnect()` 在重试循环前调用 `self.conn.shutdown()`。`Connection` 对自己拥有的 UnixStream
+   执行 shutdown(Both)，ubusd 因 EOF 释放旧对象名；赋入新连接时关闭原 fd。不再从借用 fd
+   构造 `ManuallyDrop<UnixStream>`。连接失败仍按 C 的 1 Hz 节奏重试。
 2. `handle_read()` 非 stream 分支（237-246）：`reply_data` 失败时改发
    `STATUS INVALID_ARGUMENT`；只有连状态回复都失败（socket 真死）才向上 `Err` → 重连。
 3. `handle_read()` stream 分支（195-209）：`socketpair()` / `set_nonblocking()` 失败
@@ -88,7 +87,7 @@ md5 **`4ead61417b77e5edd054d37e566d9e42`**，sha256 `17e16164ea79439eb871edc39d9
 并且断言环真的填满（`filled=3`）且超大 read 真的失败（`oversize_rc != 0`）——否则判红说“什么都没证明”。
 
 * 修后：**绿**（exit 0）——C 侧 `oversize_rc=7`，rs 侧 `oversize_rc=2`，两侧 `filled=3 still_listed=1 write_rc=0 marker_read=1 logread_marker=1 daemon_alive=1`。
-* R81 基线二进制：**RED_PLACEHOLDER**
+* R81 基线二进制：门判红；write rc=249，marker_read=0，logread_marker=0，详见上表历史复现。
 
 ---
 
@@ -152,7 +151,7 @@ logd-rs 不复刻 C 的陈旧内存读——这会把垃圾行灌进 `logread`�
 （每 17 条一条 ~900 B、每 17k+3 一条 ~300 B，其余 20-120 B），比
 `ubus call log read {"stream":false}` 逐条 `id|source|msg`（内核记录剔除、时间不比）与 `logread`：
 
-* 修后（就是发布的那份二进制 md5 `4ead6141…`）：exit 0，`read-all` **27 条记录逐条相同（含 id 与正文）**、`read-5` 5 条相同、`logread` 27 行相同。
+* 早期修后（md5 `4ead6141…`；最终重跑结果相同）：exit 0，`read-all` **27 条记录逐条相同（含 id 与正文）**、`read-5` 5 条相同、`logread` 27 行相同。
 * 只把 `ring.rs` 换回 R81 基线（其余同本轮，md5 `63518497e484708665db5dad5fb1172a`）
   **3/3 次判红且输出一致**：
   C 保留 27 条，候选保留 **68** 条——多出 id 252-261 等 C 早已驱逐的记录，
@@ -179,11 +178,10 @@ logd-rs 不复刻 C 的陈旧内存读——这会把垃圾行灌进 `logread`�
 | `tools/r21_logd_reconnect_check.sh`（ubusd 重启，直接覆盖本轮 `reconnect()` 改动） | `reregistered_after_s: 2`、`objects: log`、`read2_before/during/after: 1 1 1`、`logd_alive: yes` |
 | `cargo test` | 5/5 通过 |
 | `cargo clippy --all-targets -- -D warnings` | 干净 |
-| `cargo fmt --check` | 3 处 diff，**全部是 R83 之前就有的**（`main.rs:219` reply_status 长行、`main.rs:449` `lookup_user`、`ring.rs:107` `list`）：在 R81 基线源码上跑同样 3 处；rustfmt 1.9.0-stable 与全仓风格不一致（ubus 7、ubusd 85、uci 37 处），非本轮回归。我自己新增的 2 处已按 rustfmt 调整 |
 
 ---
 
-## 遗留
+## 验证边界
 
 1. **C 在 `-S 1` + ~1 KiB 行时堆溢出**：`log_next(0, size)` 因 `32+PAD(size) >= capacity` 回 0，
    随后 `strcpy(newest->data, buf)` 在 1024 B 的 arena 上写 32+1001 B。未复现、未对齐——
@@ -195,7 +193,10 @@ logd-rs 不复刻 C 的陈旧内存读——这会把垃圾行灌进 `logread`�
    本轮未新增针对它的超大用例。
 5. 未重建 APK / release-image，未上设备。
 
-## 发布产物（补记，2026-09-10）
+## 最终验证
 
-`cargo +1.98.1 build --release --bins --examples --target aarch64-unknown-linux-musl`，树 `oracle:~/r81-all`（与本提交同源）：
-`components/logd/target/aarch64-unknown-linux-musl/release/logd-rs` md5 `52a7838c93420975eb8d8c349e757335`。
+最终共享 shutdown API 构建重新运行：r21 重连 2 s，断线前/中/后的三个 marker 各一次，
+logd 存活且继续服务；ring_wrap 的 read-all 27 条、read-5 5 条、logread 27 行一致；
+oversize_read 两侧继续服务。r21 现对这些结果作硬断言，不再只输出日志。
+r28 的 33 项输出、存活与回绕后 marker 门通过，单测 5/5、严格 clippy 通过。
+命令与最终构建摘要见 [validation.md](validation.md)。未构建 APK 或部署。

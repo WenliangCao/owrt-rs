@@ -588,7 +588,8 @@ callx service signal '{"signal":15}'
 call service set '{"name":"tlog","instances":{"one":{"command":["/bin/sh","-c","echo hello-stdout; echo hello-stderr >&2; sleep 300"],"stdout":true,"stderr":true}}}'
 sleep 3
 printf -- '--- the instance lines must reach the log, ident basename[pid]\n'
-logged=$(logread 2>&1 | grep -E "hello-stdout|hello-stderr" | sed -E "s/^[A-Z][a-z]{2} [A-Z][a-z]{2} +[0-9]+ [0-9:]+ [0-9]{4} //; s/\[[0-9]+\]/[PID]/")
+logread >/tmp/out/instance-log.txt 2>&1
+logged=$(grep -E "hello-stdout|hello-stderr" /tmp/out/instance-log.txt | sed -E "s/^[A-Z][a-z]{2} [A-Z][a-z]{2} +[0-9]+ [0-9:]+ [0-9]{4} //; s/\[[0-9]+\]/[PID]/")
 if [ -n "$logged" ]; then printf '%s\n' "$logged"; else
 	echo "(nothing logged)"
 	echo "EXPECT-FAIL: instance stdout/stderr never reached the log" >> /tmp/out/expect.err
@@ -684,8 +685,11 @@ sleep 2
 call service list '{"name":"fr"}'
 
 printf -- '--- F08: a command that appears late must still be retried\n'
+# Publish between the initial exec failure and the 3-second retry. Publishing
+# exactly when a 1-second retry fires races chmod against exec, changing the
+# notification count even when both supervisors behave correctly.
 rm -f /tmp/out/late-ran.txt /tmp/late-exec
-call service set '{"name":"fl","instances":{"one":{"command":["/tmp/late-exec"],"respawn":["3600","1","5"]}}}'
+call service set '{"name":"fl","instances":{"one":{"command":["/tmp/late-exec"],"respawn":["3600","3","5"]}}}'
 sleep 1
 printf '#!/bin/sh\necho ran >> /tmp/out/late-ran.txt\nsleep 300\n' > /tmp/late-exec
 chmod 0755 /tmp/late-exec
@@ -944,7 +948,9 @@ run() {
 		mknod -m 666 "$root/dev/null" c 1 3
 		mknod -m 666 "$root/dev/urandom" c 1 9
 		mknod -m 666 "$root/dev/zero" c 1 5
-		trap "umount $root/dev 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
+		# Host kernel traffic must not evict fixture syslog lines from logd.
+		mount --bind "$root/dev/null" "$root/proc/kmsg"
+		trap "umount $root/proc/kmsg 2>/dev/null; umount $root/dev 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 		ip link set lo up
 		chroot "$root" /bin/sh /tmp/bus.sh
 		chroot "$root" /bin/sh "$starter"
@@ -961,6 +967,7 @@ run() {
 		cp "$root/tmp/out/ready.err" "$out/$tag-ready.err" 2>/dev/null || true
 		cp "$root/tmp/out/ready.txt" "$out/$tag-ready.txt" 2>/dev/null || true
 		cp "$root/tmp/out/expect.err" "$out/$tag-expect.err" 2>/dev/null || true
+		cp "$root/tmp/out/instance-log.txt" "$out/$tag-instance-log.txt" 2>/dev/null || true
 		for f in procd ubusd logd; do
 			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
 			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true

@@ -6,6 +6,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 mod file;
+mod delayed;
 mod glob;
 mod ip;
 mod iwinfo;
@@ -37,14 +38,19 @@ pub struct Ctx {
     pub exec_timeout_ms: i32,
     pub sessions: RefCell<session::Store>,
     pub apply: RefCell<uciobj::Apply>,
+    pub delayed: RefCell<delayed::Children>,
 }
 
 impl Ctx {
     /// `ops->session_access(sid, "file", path, perm)`, now in-process. No
     /// session id means a local root caller.
     pub fn file_access(&self, sid: Option<&str>, path: &str, perm: &str) -> bool {
+        self.file_access_bytes(sid, path.as_bytes(), perm)
+    }
+
+    pub fn file_access_bytes(&self, sid: Option<&str>, path: &[u8], perm: &str) -> bool {
         let Some(sid) = sid else { return true };
-        self.sessions.borrow_mut().access(sid, "file", path, perm)
+        self.sessions.borrow_mut().access_bytes(sid, "file", path, perm)
     }
 
     /// Plain ubus call helper for the luci methods.
@@ -89,6 +95,7 @@ static SIGNAL: AtomicI32 = AtomicI32::new(0);
 static WAKE_FD: AtomicI32 = AtomicI32::new(-1);
 const SIGHUP: i32 = 1;
 const SIGUSR1: i32 = 10;
+const SIGCHLD: i32 = 17;
 
 fn wake(fd: RawFd) {
     let b = [1u8];
@@ -99,7 +106,9 @@ fn wake(fd: RawFd) {
 }
 
 extern "C" fn handle_signal(sig: i32) {
-    SIGNAL.store(sig, Ordering::SeqCst);
+    if sig != SIGCHLD {
+        SIGNAL.store(sig, Ordering::SeqCst);
+    }
     let fd = WAKE_FD.load(Ordering::SeqCst);
     if fd >= 0 {
         wake(fd);
@@ -167,7 +176,7 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
             reply(conn, &req, r);
         }
     } else if req.objid == ids.sys {
-        if let rpcsys::Outcome::Now(req, r) = rpcsys::call(req, ctx.exec_timeout_ms, deferrer) {
+        if let rpcsys::Outcome::Now(req, r) = rpcsys::call(req, ctx, deferrer) {
             reply(conn, &req, r);
         }
     } else if req.objid == ids.rrdns {
@@ -199,10 +208,11 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
 }
 
 /// exec_self: re-run with the same arguments and RPC_HANGUP=1.
-fn exec_self() {
+fn exec_self(children: &delayed::Children) {
     use std::os::unix::process::CommandExt;
     let exe = std::env::current_exe().unwrap_or_else(|_| std::env::args_os().next().unwrap_or_default().into());
-    let err = std::process::Command::new(exe).args(std::env::args_os().skip(1)).env("RPC_HANGUP", "1").exec();
+    let err = std::process::Command::new(exe).args(std::env::args_os().skip(1))
+        .env("RPC_HANGUP", "1").env(delayed::REEXEC_ENV, children.reexec_pids()).exec();
     eprintln!("respawn failed: {err}");
 }
 
@@ -261,6 +271,7 @@ fn main() {
     WAKE_FD.store(pipe_w.as_raw_fd(), Ordering::SeqCst);
     sys::set_signal_handler(SIGHUP, handle_signal);
     sys::set_signal_handler(SIGUSR1, handle_signal);
+    sys::set_signal_handler(SIGCHLD, handle_signal);
 
     let mut conn = match Connection::connect(socket.as_deref()) {
         Ok(c) => c,
@@ -274,6 +285,7 @@ fn main() {
         exec_timeout_ms: exec_timeout as i32,
         sessions: RefCell::new(session::Store::new()),
         apply: RefCell::new(uciobj::Apply::default()),
+        delayed: RefCell::new(delayed::Children::inherit()),
     };
     let ids = Ids {
         session: register(&mut conn, "session", &session::signature()),
@@ -300,6 +312,7 @@ fn main() {
     let ubus_fd = conn.as_raw_fd();
     loop {
         // timers
+        ctx.delayed.borrow_mut().reap();
         ctx.sessions.borrow_mut().expire();
         let apply_due = ctx.apply.borrow().deadline.is_some_and(|d| d <= Instant::now());
         if apply_due {
@@ -313,9 +326,13 @@ fn main() {
         let sig = SIGNAL.swap(0, Ordering::SeqCst);
         if sig != 0 {
             ctx.sessions.borrow().freeze();
+            // A delayed fork still holds a copy of the socket until exec.
+            // Close alone would leave our old object paths registered and
+            // make the replacement rpcd fail to register them after HUP.
+            let _ = conn.shutdown();
             drop(conn);
             if sig == SIGHUP {
-                exec_self();
+                exec_self(&ctx.delayed.borrow());
             }
             std::process::exit(0);
         }

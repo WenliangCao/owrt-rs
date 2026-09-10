@@ -1,9 +1,8 @@
 #!/bin/sh
 # R83 F16: ring retention under MIXED-LENGTH records.
 #
-# r15/r28 feed same-length lines, so every lap wraps at the same offset and the
-# wrap branch is never asked to evict a record that is not at the head of the
-# retained list. This gate feeds an identical mixed-length sequence (a ~900 B
+# The original r15/r28 fed same-length lines, so every lap wrapped at the same
+# offset. This gate feeds an identical mixed-length sequence (a ~900 B
 # line every 17th record, otherwise 20-120 B) to the exact image's /sbin/logd
 # and to the candidate, both in a disposable copy of the exact rootfs with the
 # image's own ubusd/ubus/logread, and compares what each retains:
@@ -27,15 +26,16 @@ mkdir -p /var/run/ubus /tmp/out
 rm -rf /dev/log
 /sbin/ubusd >/tmp/out/ubusd.log 2>&1 & u=$!
 sleep 1
-# no /proc in this sandbox, so C logd finds no /proc/kmsg and stays kmsg-free,
-# exactly like the candidate's --kmsg none: the rings see the same input only
+# /proc is needed for ubusd credentials after C logd drops privileges.
+# Its kmsg entry is masked with /dev/null so the rings see fixture input only.
 if [ "$impl" = c ]; then
   /sbin/logd -S "$size" >/tmp/out/logd.log 2>&1 & l=$!
 else
   /tmp/logd-rs -S "$size" --kmsg none >/tmp/out/logd.log 2>&1 & l=$!
 fi
 i=0
-while [ $i -lt 8 ]; do ubus list log >/dev/null 2>&1 && break; sleep 1; i=$((i+1)); done
+while [ $i -lt 8 ]; do ubus list log 2>/dev/null | grep -qx log && break; sleep 1; i=$((i+1)); done
+kill -0 "$l" && [ $i -lt 8 ] || { cat /tmp/out/logd.log; exit 1; }
 long=$(awk 'BEGIN{s="";while(length(s)<900)s=s "L";print substr(s,1,900)}')
 i=0
 while [ $i -lt 320 ]; do
@@ -53,21 +53,22 @@ sleep 1
 ubus call log read '{"stream":false}' >/tmp/out/read-all.json 2>&1
 ubus call log read '{"lines":5,"stream":false}' >/tmp/out/read-5.json 2>&1
 logread >/tmp/out/logread.txt 2>&1
+kill -0 "$l" || exit 1
 kill $l $u 2>/dev/null || true
 STEPS
 
-# /dev is empty in the extracted rootfs and /proc is deliberately left out: with
-# no /proc/kmsg the image's own logd runs kmsg-free, like the candidate's
-# --kmsg none, so both rings see exactly the same input
+# /dev and /proc are private mounts; masking kmsg avoids consuming host logs.
 cat > "$tmp/enter.sh" <<'ENTER'
 set -eu
 root=$1; impl=$2; size=$3
 mount --make-rprivate /
+mount -t proc proc "$root/proc"
 mount -t tmpfs tmpfs "$root/dev"
 mknod -m 666 "$root/dev/null" c 1 3
 mknod -m 666 "$root/dev/zero" c 1 5
 mknod -m 666 "$root/dev/urandom" c 1 9
-trap 'umount "$root/dev" 2>/dev/null || true' EXIT
+mount --bind "$root/dev/null" "$root/proc/kmsg"
+trap 'umount "$root/proc/kmsg" "$root/proc" "$root/dev" 2>/dev/null || true' EXIT
 timeout 600 chroot "$root" /bin/sh /tmp/steps.sh "$impl" "$size"
 ENTER
 

@@ -1,19 +1,15 @@
-#!/bin/sh
-# R61: a configuration this build cannot represent must not tear down a
-# working network.
+#!/bin/bash
+# R61: a configuration the build only partly understands is applied as far as
+# it goes, exactly as the C does -- it is never refused whole (R81 F14).
 #
 # Start from a LAN that is up and carrying an address, then reload with each
-# of: an invalid address, an unsupported section type, and an unsupported
-# device type. After each one, the kernel state and the interface status are
-# compared against what they were BEFORE the bad reload -- the assertion is
-# that nothing moved -- and the return code of `network.reload` is recorded.
-# Then a valid config is loaded to prove reloads still work afterwards.
-#
-# This is a DELIBERATE DIVERGENCE from the C, so the two daemons are NOT
-# compared with each other here. The C applies what it understood and logs the
-# rest, which is how a working LAN ends up with no address. This build refuses
-# the reload whole and keeps the running state. The C's behaviour is recorded
-# alongside for the record.
+# of: an invalid address, a `config route` section (which this build now
+# installs), and an unsupported device type (`bonding`). After each one the
+# kernel state and the interface status are captured on BOTH daemons and
+# compared with each other: netifd applies what it understood and logs the
+# rest. An invalid address is how a working LAN ends up with no address --
+# on both sides. Refusing the reload whole (the pre-F14 behaviour) reappears
+# as a difference here, because the C never refuses.
 #
 # Usage: r61_badconfig_diff.sh <rootfs-files> <netifd-rs musl binary> [outdir]
 set -eu
@@ -128,40 +124,29 @@ run c
 run rs
 
 rc=0
-echo "=== the C, for the record (it applies what it understood)"
-sed 's/^/  /' "$out/c-state.txt"
-echo
-echo "=== netifd-rs"
-sed 's/^/  /' "$out/rs-state.txt"
-echo
+mask() { sed -E -e 's/"uptime":[0-9]+/"uptime":N/'; }
 
-# the assertion: on this build, every bad reload is refused and the address
-# that was there at baseline is still there afterwards
-base=$(grep -A1 '^--- baseline addr' "$out/rs-state.txt" | tail -1)
-if [ -z "$base" ]; then
-	echo "RESULT: no baseline address -- untested"
-	exit 1
+# the reference must have come up with its address, and must have ACCEPTED
+# every reload -- if the C refused one, the fixture is wrong, not the build
+base=$(grep -A1 '^--- baseline addr' "$out/c-state.txt" | tail -1)
+if ! echo "$base" | grep -q '10.0.0.1'; then
+	echo "RESULT: the reference never came up with 10.0.0.1 -- untested"; exit 1
 fi
-for bad in bad-addr bad-section bad-devtype; do
-	verdict=$(grep "^=== $bad: reload" "$out/rs-state.txt" | sed 's/.*reload //')
-	after=$(grep -A1 "^--- $bad addr" "$out/rs-state.txt" | tail -1)
-	if [ "$verdict" = REFUSED ] && [ "$after" = "$base" ]; then
-		echo "RESULT($bad): refused, address unchanged"
-	else
-		echo "$bad: WRONG -- reload was $verdict, address now: $after"
-		echo "                             baseline was: $base"
-		rc=1
-	fi
-done
-rec=$(grep -A1 '^--- recovered addr' "$out/rs-state.txt" | tail -1)
-recv=$(grep '^=== good: reload' "$out/rs-state.txt" | sed 's/.*reload //')
-if [ "$recv" = ACCEPTED ] && [ "$rec" = "$base" ]; then
-	echo "RESULT(recovered): a valid config still loads"
+if grep -q 'reload REFUSED' "$out/c-state.txt"; then
+	echo "RESULT: the reference REFUSED a reload -- fixture broken"; exit 1
+fi
+# and the `config route` section must actually have installed its route on the
+# C, or `bad-section` proves nothing
+if ! grep -q '10.9.9.0/24 via 10.0.0.2' "$out/c-state.txt"; then
+	echo "RESULT: the reference did not install the config route -- untested"; exit 1
+fi
+
+echo "=== C vs netifd-rs (must be identical: apply what is understood, log the rest)"
+if diff -u <(mask < "$out/c-state.txt") <(mask < "$out/rs-state.txt") > "$out/state.diff"; then
+	echo "R61: identical -- a partial config is applied, never refused"
 else
-	echo "recovered: WRONG -- reload was $recv, address: $rec"
-	rc=1
+	sed 's/^/  /' "$out/c-state.txt"; echo
+	cat "$out/state.diff"; rc=1
+	echo "R61: FAILURES"
 fi
-
-[ $rc -eq 0 ] && echo "R61: bad configuration is refused, the network is untouched" \
-	|| echo "R61: FAILURES"
 exit $rc

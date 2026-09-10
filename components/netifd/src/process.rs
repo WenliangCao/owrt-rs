@@ -25,6 +25,18 @@
 use std::io::{self, Read};
 use std::os::fd::AsRawFd;
 use std::process::{Child, Command, Stdio};
+use std::sync::Mutex;
+
+// Killed children may still be in uninterruptible kernel sleep. Keep their
+// handles until a later SIGCHLD/tick can reap them; never wait in the event loop
+// and never use waitpid(-1), which would steal another active slot's status.
+static RETIRED: Mutex<Vec<Child>> = Mutex::new(Vec::new());
+
+pub fn reap_retired() {
+    RETIRED.lock().unwrap_or_else(|e| e.into_inner()).retain_mut(|child| {
+        matches!(child.try_wait(), Ok(None))
+    });
+}
 
 /// One supervised child. Dropping this does NOT kill the child; call `kill`.
 /// How much of a child's output one poll round will take. A child that
@@ -183,12 +195,18 @@ impl Process {
         Ok(())
     }
 
-    /// `netifd_kill_process`: SIGTERM, then reap. Called before starting a new
-    /// process in the same slot, so a second setup never leaves the first
-    /// script running.
-    pub fn terminate(&mut self) {
-        let _ = self.signal(SIGTERM as u32);
-        let _ = self.child.wait();
+    /// `netifd_kill_process`: SIGKILL, without a blocking wait. Called before starting a new
+    /// process in the same slot, on a teardown deadline, and when the daemon
+    /// exits. It was SIGTERM + a blocking `wait()` until R81 F09: a child that
+    /// ignores SIGTERM then held the whole daemon, where the C's kill cannot be
+    /// ignored and returns at once.
+    pub fn terminate(mut self) {
+        let _ = self.signal(SIGKILL as u32);
+        if matches!(self.child.try_wait(), Ok(None)) {
+            self.child.stdout.take();
+            self.child.stderr.take();
+            RETIRED.lock().unwrap_or_else(|e| e.into_inner()).push(self.child);
+        }
     }
 }
 
@@ -232,7 +250,7 @@ impl Slot {
         env: &[(String, String)],
         dir: &str,
     ) -> io::Result<()> {
-        if let Some(mut old) = self.proc.take() {
+        if let Some(old) = self.proc.take() {
             old.terminate();
         }
         let d = if dir.is_empty() { None } else { Some(dir) };
@@ -248,7 +266,7 @@ impl Slot {
     }
 
     pub fn terminate(&mut self) {
-        if let Some(mut p) = self.proc.take() {
+        if let Some(p) = self.proc.take() {
             p.terminate();
         }
     }
@@ -276,6 +294,104 @@ impl Slot {
                 let name = p.argv0().to_string();
                 self.proc = None;
                 Some((name, -1, format!("wait failed: {e}")))
+            }
+        }
+    }
+}
+
+/// A signal self-pipe: SIGCHLD wakes the event loop at once, and the four
+/// signals `netifd_setup_signals` catches (SIGINT, SIGTERM, SIGUSR1, SIGUSR2)
+/// set `exit_requested` and wake it too, so the loop can do what the C does
+/// after `uloop_end`: kill every process it started, then exit (R81 F03).
+///
+/// The C reaps from a SIGCHLD handler through uloop, so a helper's death is
+/// noticed immediately. Polling alone made it up to one poll timeout late,
+/// which is observable: an `ifdown` of a DHCP interface left the lease on the
+/// device for that long, where the C had already removed it.
+pub struct ChildSignal {
+    read: i32,
+}
+
+static mut CHILD_PIPE_W: i32 = -1;
+static EXIT_REQUESTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+extern "C" {
+    fn pipe(fds: *mut i32) -> i32;
+    fn signal(sig: i32, handler: extern "C" fn(i32)) -> usize;
+    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
+    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
+}
+
+const SIGCHLD: i32 = 17;
+const SIGINT: i32 = 2;
+const SIGUSR1: i32 = 10;
+const SIGUSR2: i32 = 12;
+
+extern "C" fn on_exit_signal(sig: i32) {
+    EXIT_REQUESTED.store(true, std::sync::atomic::Ordering::SeqCst);
+    on_sigchld(sig);
+}
+
+extern "C" fn on_sigchld(_sig: i32) {
+    // async-signal-safe: one byte down a non-blocking pipe, errors ignored
+    // SAFETY: reading a fd set once before any child exists, and write(2) is
+    // on the list of functions safe to call from a signal handler.
+    unsafe {
+        let w = CHILD_PIPE_W;
+        if w >= 0 {
+            let byte = 1u8;
+            let _ = write(w, &byte, 1);
+        }
+    }
+}
+
+impl ChildSignal {
+    pub fn install() -> io::Result<Self> {
+        let mut fds = [0i32; 2];
+        // SAFETY: pipe(2) writes exactly two fds into the array provided.
+        if unsafe { pipe(fds.as_mut_ptr()) } < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        for fd in fds {
+            // SAFETY: fcntl on a pipe fd this function owns.
+            unsafe {
+                let f = fcntl(fd, F_GETFL, 0);
+                if f >= 0 {
+                    fcntl(fd, F_SETFL, f | O_NONBLOCK);
+                }
+                fcntl(fd, 2 /* F_SETFD */, 1 /* FD_CLOEXEC */);
+            }
+        }
+        // SAFETY: single-threaded startup, before any child is spawned, so no
+        // handler can observe a partially written value.
+        unsafe {
+            CHILD_PIPE_W = fds[1];
+            signal(SIGCHLD, on_sigchld);
+            for s in [SIGINT, SIGTERM, SIGUSR1, SIGUSR2] {
+                signal(s, on_exit_signal);
+            }
+        }
+        Ok(Self { read: fds[0] })
+    }
+
+    /// One of the exit signals arrived. Latched: the loop exits on seeing it.
+    pub fn exit_requested(&self) -> bool {
+        EXIT_REQUESTED.load(std::sync::atomic::Ordering::SeqCst)
+    }
+
+    pub fn as_raw_fd(&self) -> i32 {
+        self.read
+    }
+
+    /// Drain the pipe. Any number of signals collapses into one wake-up; the
+    /// caller then polls every slot, so nothing is missed.
+    pub fn drain(&self) {
+        let mut buf = [0u8; 64];
+        loop {
+            // SAFETY: our own read end, non-blocking.
+            let n = unsafe { read(self.read, buf.as_mut_ptr(), buf.len()) };
+            if n <= 0 {
+                break;
             }
         }
     }
@@ -374,6 +490,28 @@ mod tests {
     }
 
     #[test]
+    fn terminate_is_bounded_even_when_the_child_ignores_sigterm() {
+        // R81 F09: `netifd_kill_process` uses SIGKILL. A helper that traps TERM
+        // (or is stuck in D state) must not hold the event loop.
+        let mut s = Slot::default();
+        s.start(&sh("trap '' TERM; exec sleep 30"), &[]).unwrap();
+        let pid = s.pid().unwrap();
+        std::thread::sleep(std::time::Duration::from_millis(150));
+        let t = std::time::Instant::now();
+        s.terminate();
+        assert!(t.elapsed() < std::time::Duration::from_secs(2), "took {:?}", t.elapsed());
+        assert!(!s.is_running());
+        for _ in 0..200 {
+            reap_retired();
+            if !std::path::Path::new(&format!("/proc/{pid}")).exists() {
+                return;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        panic!("terminated child {pid} was not reaped");
+    }
+
+    #[test]
     fn an_empty_argv_is_refused_rather_than_spawned() {
         let mut s = Slot::default();
         assert!(s.start(&[], &[]).is_err());
@@ -434,82 +572,5 @@ mod tests {
         }
         // the proto scripts source ../netifd-proto.sh, so this is load-bearing
         assert!(out.trim().ends_with("tmp"), "{out:?}");
-    }
-}
-
-/// A SIGCHLD self-pipe, so a child's exit wakes the event loop at once.
-///
-/// The C reaps from a SIGCHLD handler through uloop, so a helper's death is
-/// noticed immediately. Polling alone made it up to one poll timeout late,
-/// which is observable: an `ifdown` of a DHCP interface left the lease on the
-/// device for that long, where the C had already removed it.
-pub struct ChildSignal {
-    read: i32,
-}
-
-static mut CHILD_PIPE_W: i32 = -1;
-
-extern "C" {
-    fn pipe(fds: *mut i32) -> i32;
-    fn signal(sig: i32, handler: extern "C" fn(i32)) -> usize;
-    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
-    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
-}
-
-const SIGCHLD: i32 = 17;
-
-extern "C" fn on_sigchld(_sig: i32) {
-    // async-signal-safe: one byte down a non-blocking pipe, errors ignored
-    // SAFETY: reading a fd set once before any child exists, and write(2) is
-    // on the list of functions safe to call from a signal handler.
-    unsafe {
-        let w = CHILD_PIPE_W;
-        if w >= 0 {
-            let byte = 1u8;
-            let _ = write(w, &byte, 1);
-        }
-    }
-}
-
-impl ChildSignal {
-    pub fn install() -> io::Result<Self> {
-        let mut fds = [0i32; 2];
-        // SAFETY: pipe(2) writes exactly two fds into the array provided.
-        if unsafe { pipe(fds.as_mut_ptr()) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        for fd in fds {
-            // SAFETY: fcntl on a pipe fd this function owns.
-            unsafe {
-                let f = fcntl(fd, F_GETFL, 0);
-                if f >= 0 {
-                    fcntl(fd, F_SETFL, f | O_NONBLOCK);
-                }
-            }
-        }
-        // SAFETY: single-threaded startup, before any child is spawned, so no
-        // handler can observe a partially written value.
-        unsafe {
-            CHILD_PIPE_W = fds[1];
-            signal(SIGCHLD, on_sigchld);
-        }
-        Ok(Self { read: fds[0] })
-    }
-
-    pub fn as_raw_fd(&self) -> i32 {
-        self.read
-    }
-
-    /// Drain the pipe. Any number of signals collapses into one wake-up; the
-    /// caller then polls every slot, so nothing is missed.
-    pub fn drain(&self) {
-        let mut buf = [0u8; 64];
-        loop {
-            // SAFETY: our own read end, non-blocking.
-            let n = unsafe { read(self.read, buf.as_mut_ptr(), buf.len()) };
-            if n <= 0 {
-                break;
-            }
-        }
     }
 }

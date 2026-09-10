@@ -444,8 +444,8 @@ mod tests {
         assert_eq!(autoneg_pause(&[p | a], &[a]), vec!["tx"]);
         // asym on both, only the partner advertises Pause: an_tx, prints "rx"
         assert_eq!(autoneg_pause(&[a], &[p | a]), vec!["rx"]);
+        assert_eq!(autoneg_pause(&[p | a], &[p | a]), vec!["rx", "tx"]);
         // asym on one side only: nothing negotiated
-        assert!(autoneg_pause(&[p | a], &[p | a][..1.min(1)]).len() <= 2);
         assert!(autoneg_pause(&[0], &[p]).is_empty());
         assert!(autoneg_pause(&[a], &[p]).is_empty());
     }

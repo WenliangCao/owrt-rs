@@ -5,7 +5,7 @@
 #   tools/r83_rpcd_defer.sh <rootfs-files> <rpcd-rs-musl-binary>
 #
 # Runs inside a disposable copy of the exact device rootfs (its own ubusd, no C
-# rpcd), so the candidate owns every object. Three assertions, each with a
+# rpcd), so the candidate owns every object. Assertions include a
 # known red injection:
 #
 #   defer     `file exec /bin/sh -c "sleep 5"` in flight, `session list` from a
@@ -18,6 +18,9 @@
 #             forks a child that sleeps 2 s and then execs, so the upgrade
 #             still happens across an rpcd respawn. A thread inside rpcd does
 #             not survive the re-exec.
+#   reload    uci.reload_config has the same delayed-child contract. A
+#             returning action must be reaped, including after HUP, without
+#             stealing the exit status from a concurrent file-exec worker.
 set -eu
 [ $# -eq 2 ] || { echo "usage: $0 <rootfs-files> <rpcd-rs-binary>" >&2; exit 2; }
 ROOTFS=$1
@@ -32,6 +35,11 @@ sudo -n chmod 755 "$TMP/rootfs/tmp/rpcd-rs"
 # stand-in for the real sysupgrade: it only has to leave a mark
 sudo -n sh -c "printf '#!/bin/sh\ntouch /tmp/out/upgraded\n' > '$TMP/rootfs/sbin/sysupgrade'"
 sudo -n chmod 755 "$TMP/rootfs/sbin/sysupgrade"
+sudo -n tee "$TMP/rootfs/sbin/reload_config" >/dev/null <<'RELOAD'
+#!/bin/sh
+touch /tmp/out/reloaded
+RELOAD
+sudo -n chmod 755 "$TMP/rootfs/sbin/reload_config"
 
 SCENARIO='
 set -eu
@@ -47,9 +55,11 @@ chroot "$root" /bin/sh -s <<"IN"
 set -u
 mkdir -p /var/run/ubus /tmp/out /var/lock /var/state /var/lib
 /sbin/ubusd >/tmp/out/ubusd.log 2>&1 &
+bus=$!
 sleep 1
 /tmp/rpcd-rs -s /var/run/ubus/ubus.sock -t 30 >/tmp/out/rpcd-rs.log 2>&1 &
 rs=$!
+trap "kill $rs $bus 2>/dev/null || true" EXIT
 for i in 1 2 3 4 5 6 7 8 9 10; do ubus list file >/dev/null 2>&1 && break; sleep 1; done
 ubus list file >/dev/null 2>&1 || { echo "FAIL rpcd-rs never registered"; exit 1; }
 
@@ -74,12 +84,28 @@ wait $a; wait $b
 e=$(date +%s)
 echo "parallel_two_execs_s=$((e - s))"
 
+# --- returning delayed action while a worker owns another child ---------
+ubus -t 20 call file exec "{\"command\":\"/bin/sh\",\"params\":[\"-c\",\"sleep 4; exit 17\"]}" >/tmp/out/worker.json 2>&1 &
+worker=$!
+ubus -t 20 call uci reload_config "{}" >/dev/null 2>&1
+wait $worker
+[ -f /tmp/out/reloaded ] && echo "reload_ran=1" || echo "reload_ran=0"
+echo "worker_reply=$(tr -d " \t\n" < /tmp/out/worker.json)"
+
 # --- respawn: the delayed action is a child, not a thread -----------------
-rm -f /tmp/out/upgraded
+rm -f /tmp/out/upgraded /tmp/out/reloaded
 ubus -t 20 call rpc-sys upgrade_start "{}" >/dev/null 2>&1
+ubus -t 20 call uci reload_config "{}" >/dev/null 2>&1
 kill -HUP $rs
 sleep 4
 [ -f /tmp/out/upgraded ] && echo "respawn_upgrade_ran=1" || echo "respawn_upgrade_ran=0"
+[ -f /tmp/out/reloaded ] && echo "respawn_reload_ran=1" || echo "respawn_reload_ran=0"
+if [ -r /proc/$rs/task/$rs/children ]; then
+    echo "remaining_action_children=$(cat /proc/$rs/task/$rs/children | wc -w)"
+else
+    echo "remaining_action_children=daemon-missing"
+fi
+ubus -t 5 call session list "{}" >/dev/null 2>&1 && echo "still_serving=1"
 echo DONE
 IN
 '
@@ -95,5 +121,11 @@ r=$(sed -n 's/^defer_exec_reply=//p' "$TMP/log")
 [ "$r" = '{"code":0}' ] || { echo "FAIL deferred exec reply was '$r', expected {\"code\":0}"; fail=1; }
 [ -n "$p" ] && [ "$p" -le 6 ] || { echo "FAIL two 4 s execs took ${p:-?} s, they must overlap"; fail=1; }
 [ "$u" = 1 ] || { echo "FAIL upgrade_start did not survive the SIGHUP respawn"; fail=1; }
+grep -q '^reload_ran=1$' "$TMP/log" || { echo "FAIL reload_config did not execute"; fail=1; }
+grep -q '^worker_reply={"code":17}$' "$TMP/log" || { echo "FAIL worker lost its child exit status"; fail=1; }
+grep -q '^respawn_reload_ran=1$' "$TMP/log" || { echo "FAIL reload_config did not survive the SIGHUP respawn"; fail=1; }
+grep -Eq '^remaining_action_children= *0$' "$TMP/log" || { echo "FAIL returning delayed children were not reaped"; fail=1; }
+grep -q '^still_serving=1$' "$TMP/log" || { echo "FAIL rpcd stopped serving after delayed actions"; fail=1; }
 [ "$fail" = 0 ] && echo "r83 rpcd defer gate: PASS" || echo "r83 rpcd defer gate: FAIL"
+[ "$fail" = 0 ] || tail -30 "$TMP/rootfs/tmp/out/rpcd-rs.log"
 exit $fail

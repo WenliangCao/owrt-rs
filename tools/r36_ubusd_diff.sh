@@ -11,7 +11,11 @@ set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r36-out}
 HELPERS=${HELPERS:-/tmp/r36-helpers}
 mkdir -p "$out"
-[ -x "$HELPERS/busprobe" ] || sh "$(dirname "$0")/r36_build_helpers.sh" "$HELPERS"
+[ -x "$HELPERS/busprobe" ] && [ -x "$HELPERS/asuser" ] || sh "$(dirname "$0")/r36_build_helpers.sh" "$HELPERS"
+
+for helper in asuser busprobe; do
+	[ -x "$HELPERS/$helper" ] || { echo "r36: missing $helper" >&2; exit 2; }
+done
 
 run_one() {
 	# $1 = tag (c|rs), $2 = daemon path inside the rootfs.
@@ -49,6 +53,8 @@ run_one() {
 
 run_one c /sbin/ubusd
 run_one rs /sbin/ubusd-rs
+
+python3 "$(dirname "$0")/audit_checks.py" r36 "$out"
 
 echo "== transcripts: $out/c.txt $out/rs.txt"
 if diff -u "$out/c.txt" "$out/rs.txt" > "$out/diff.txt"; then

@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import signal
 import subprocess
@@ -36,7 +37,7 @@ def sha256_file(path: Path) -> str:
 
 def parse_traces(stderr: bytes) -> list[dict[str, Any]]:
     traces: list[dict[str, Any]] = []
-    for line in stderr.decode("utf-8").splitlines():
+    for line in stderr.decode("utf-8", "surrogateescape").splitlines():
         if not line:
             continue
         item = json.loads(line)
@@ -257,31 +258,47 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     if not missing_ok:
         problems.append("f02-missing-uci-is-visible-and-preserves-baseline")
 
-    initial = prepare_simple_change(root, {"alpha": ("A", "A2")})
+    # R81 F26: a delivery that has to be killed is a delivery failure, not a
+    # reason to stop.  The shell original has no timeout at all -- it waits for
+    # the slow `ubus call` and then dispatches the rest of the changed set and
+    # rewrites the baseline (contract C-08: "a send failure affects neither
+    # later entries nor the baseline rewrite").  Aborting used to leave the
+    # later packages without an event and the baseline unwritten, so the next
+    # run re-sent the events that had already been delivered.
+    initial = prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B2")})
     before = oracle.parse_baseline(root)
-    timed = run_candidate(root, ["sleep:3"], timeout_ms=100, process_timeout_s=5)
+    timed = run_candidate(root, ["sleep:3", 0], timeout_ms=100, process_timeout_s=10)
     after = oracle.parse_baseline(root)
-    retry = run_candidate(root, [0])
-    timed_fatal = trace_of_kind(timed, "fatal")
+    repeat = run_candidate(root, [])
+    timed_deliveries = trace_of_kind(timed, "delivery")
+
+    prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B2")})
+    reference = oracle.run_exact(root, ["sleep:3", 0], timeout_s=10)
+    reference_events = [item["package"] for item in reference["deliveries"]]
+
     timed_ok = (
-        timed["exit_status"] == 75
-        and before == after
-        and len(timed_fatal) == 1
-        and timed_fatal[0]["class"] == "temporary"
-        and [item["package"] for item in retry["deliveries"]] == ["alpha"]
+        timed["exit_status"] == 2
+        and [item["package"] for item in timed_deliveries] == ["alpha", "beta"]
+        and [item["outcome"] for item in timed_deliveries] == ["timeout", "success"]
+        and [item["package"] for item in timed["deliveries"]] == reference_events
+        and before != after
+        and not repeat["deliveries"]
+        and repeat["exit_status"] == 0
     )
     results.append(
         {
-            "id": "f03-hung-delivery-times-out-with-retryable-baseline",
+            "id": "f03-hung-delivery-is-a-failure-and-the-round-continues",
             "compared_entry_count": len(initial),
             "exit_status": timed["exit_status"],
-            "baseline_unchanged": before == after,
-            "retry_events": [item["package"] for item in retry["deliveries"]],
+            "delivery_outcomes": [item["outcome"] for item in timed_deliveries],
+            "reference_events": reference_events,
+            "baseline_rewritten": before != after,
+            "repeat_events": [item["package"] for item in repeat["deliveries"]],
             "passed": timed_ok,
         }
     )
     if not timed_ok:
-        problems.append("f03-hung-delivery-times-out-with-retryable-baseline")
+        problems.append("f03-hung-delivery-is-a-failure-and-the-round-continues")
 
     initial = oracle.establish_baseline(root, {"alpha": "A"})
     oracle.write_config_set(root, {"alpha": "<MALFORMED>"}, {})
@@ -309,43 +326,50 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     if not malformed_ok:
         problems.append("f04-malformed-uci-remains-compatible-but-visible")
 
-    initial = prepare_simple_change(root, {"alpha": ("A", "A2")})
+    # R81 F26: a second caller waits for the lock instead of being refused.
+    # The shell takes no lock at all: two runs share and delete the same
+    # config.check, deliver every event twice and race over the baseline (the
+    # C1-01 oracle records that as undefined).  Refusing the second caller lost
+    # its packages entirely -- they were only noticed on a third run.
+    initial = prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B")})
     before = oracle.parse_baseline(root)
     oracle.write_statuses(root, ["sleep:1"])
     first = subprocess.Popen(
         candidate_command(root, 5_000), stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     wait_for_pending(root, first)
+    # beta changes while the first run holds the lock
+    oracle.write_config_set(root, {"alpha": "A2", "beta": "B2"}, {})
     second_result = subprocess.run(
-        candidate_command(root, 5_000), check=False, capture_output=True, timeout=5
+        candidate_command(root, 5_000), check=False, capture_output=True, timeout=20
     )
-    second = {
-        "exit_status": second_result.returncode,
-        "traces": parse_traces(second_result.stderr),
-    }
-    unchanged_while_locked = oracle.parse_baseline(root) == before
+    second_traces = parse_traces(second_result.stderr)
+    second = {"exit_status": second_result.returncode, "traces": second_traces}
     _, first_stderr = first.communicate(timeout=5)
     first_traces = parse_traces(first_stderr)
+    second_deliveries = [item["package"] for item in trace_of_kind(second, "delivery")]
     concurrent_ok = (
-        second["exit_status"] == 75
-        and len(trace_of_kind(second, "fatal")) == 1
-        and trace_of_kind(second, "fatal")[0]["class"] == "temporary"
-        and unchanged_while_locked
+        second["exit_status"] == 0
+        and not trace_of_kind(second, "fatal")
+        and second_deliveries == ["beta"]
+        and any(item["kind"] == "complete" for item in second_traces)
         and first.returncode == 0
-        and any(item["kind"] == "complete" for item in first_traces)
+        and [item["package"] for item in trace_of_kind({"traces": first_traces}, "delivery")]
+        == ["alpha"]
+        and oracle.parse_baseline(root) != before
     )
     results.append(
         {
-            "id": "f05-concurrent-run-is-rejected",
+            "id": "f05-concurrent-run-waits-for-the-lock",
             "compared_entry_count": len(initial),
             "second_exit_status": second["exit_status"],
-            "baseline_unchanged_while_locked": unchanged_while_locked,
+            "second_deliveries": second_deliveries,
             "first_exit_status": first.returncode,
             "passed": concurrent_ok,
         }
     )
     if not concurrent_ok:
-        problems.append("f05-concurrent-run-is-rejected")
+        problems.append("f05-concurrent-run-waits-for-the-lock")
 
     initial = prepare_simple_change(root, {"alpha": ("A", "A2")})
     before = oracle.parse_baseline(root)
@@ -400,6 +424,152 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     return results, problems
 
 
+def baseline_bytes(root: Path) -> bytes:
+    path = root / "var/run/config.md5"
+    return path.read_bytes() if path.exists() else b""
+
+
+def run_f26_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
+    """R81 F26: inputs the shell script handles and the candidate used to
+    refuse outright (exit 64, zero dispatch).  Each case runs the exact shell
+    original and the candidate from the same prepared tree and compares the
+    events and the baseline bytes."""
+    results: list[dict[str, Any]] = []
+    problems: list[str] = []
+    etc = root / "etc/config"
+    package = b"config r1 'main'\n\toption token '%s'\n"
+
+    def prepare(extra: dict[bytes, bytes], token: bytes) -> None:
+        oracle.establish_baseline(root, None)
+        oracle.clear_directory(etc)
+        oracle.clear_directory(root / "var/run/uci")
+        (etc / "alpha").write_bytes(package % b"A")
+        for name, body in extra.items():
+            (etc / os.fsdecode(name)).write_bytes(body)
+        # first run only establishes the baseline
+        oracle.run_exact(root, [])
+        (etc / "alpha").write_bytes(package % token)
+
+    def both(statuses: list[int | str]) -> dict[str, Any]:
+        reference = oracle.run_exact(root, statuses)
+        reference_bytes = baseline_bytes(root)
+        return {
+            "reference_events": [item["package"] for item in reference["deliveries"]],
+            "reference_exit": reference["exit_status"],
+            "reference_bytes": reference_bytes,
+        }
+
+    # --- an /etc/config entry larger than the old 1 MiB source limit
+    oversized = b"config r1 'main'\n" + b"\toption pad 'x'\n" * 90_000
+    prepare({b"big": oversized}, b"A2")
+    candidate = run_candidate(root, [0])
+    candidate_bytes = candidate["baseline_bytes"]
+    prepare({b"big": oversized}, b"A2")
+    reference = both([0])
+    big_ok = (
+        candidate["exit_status"] == 0
+        and [item["package"] for item in candidate["deliveries"]]
+        == reference["reference_events"]
+        == ["alpha"]
+        and candidate_bytes == reference["reference_bytes"]
+        and b"/var/run/config.check/big" in candidate_bytes
+    )
+    results.append(
+        {
+            "id": "f07-oversized-config-source-is-dispatched-like-the-shell",
+            "source_bytes": len(oversized),
+            "exit_status": candidate["exit_status"],
+            "candidate_events": [item["package"] for item in candidate["deliveries"]],
+            "reference_events": reference["reference_events"],
+            "baseline_byte_equivalent": candidate_bytes == reference["reference_bytes"],
+            "passed": big_ok,
+        }
+    )
+    if not big_ok:
+        problems.append("f07-oversized-config-source-is-dispatched-like-the-shell")
+
+    # --- config filenames that are not UTF-8 / contain a space
+    weird = {b"\xff\xfe": package % b"Z", b"with space": package % b"S"}
+    prepare(weird, b"A2")
+    candidate = run_candidate(root, [0])
+    candidate_bytes = candidate["baseline_bytes"]
+    prepare(weird, b"A2")
+    reference = both([0])
+    # now delete the non-UTF-8 entry: the shell emits an event carrying its
+    # raw bytes, because `md5sum -c` reports the missing file as FAILED
+    (etc / os.fsdecode(b"\xff\xfe")).unlink()
+    deleted_reference = oracle.run_exact(root, [0])
+    deleted_reference_events = [item["package"] for item in deleted_reference["deliveries"]]
+    prepare(weird, b"A2")
+    run_candidate(root, [0])
+    (etc / os.fsdecode(b"\xff\xfe")).unlink()
+    deleted_candidate = run_candidate(root, [0])
+    weird_ok = (
+        candidate["exit_status"] == 0
+        and [item["package"] for item in candidate["deliveries"]]
+        == reference["reference_events"]
+        == ["alpha"]
+        and candidate_bytes == reference["reference_bytes"]
+        and b"/var/run/config.check/\xff\xfe" in candidate_bytes
+        and deleted_candidate["exit_status"] == 0
+        and [item["package"] for item in deleted_candidate["deliveries"]]
+        == deleted_reference_events
+    )
+    results.append(
+        {
+            "id": "f08-non-utf8-config-filename-is-dispatched-like-the-shell",
+            "exit_status": candidate["exit_status"],
+            "candidate_events": [item["package"] for item in candidate["deliveries"]],
+            "reference_events": reference["reference_events"],
+            "baseline_byte_equivalent": candidate_bytes == reference["reference_bytes"],
+            "delete_events_equivalent": [
+                item["package"] for item in deleted_candidate["deliveries"]
+            ]
+            == deleted_reference_events,
+            "passed": weird_ok,
+        }
+    )
+    if not weird_ok:
+        problems.append("f08-non-utf8-config-filename-is-dispatched-like-the-shell")
+
+    # --- a `uci show` that has to be killed: the round still finishes
+    prepare({}, b"A2")
+    real = root / "sbin/uci"
+    hidden = root / "sbin/uci.r1-slow-hidden"
+    real.rename(hidden)
+    real.write_text(
+        "#!/bin/sh\n"
+        "for a in \"$@\"; do case \"$a\" in alpha) sleep 3;; esac; done\n"
+        "exec /sbin/uci.r1-slow-hidden \"$@\"\n"
+    )
+    real.chmod(0o755)
+    try:
+        slow = run_candidate(root, [0], timeout_ms=100, process_timeout_s=15)
+    finally:
+        real.unlink()
+        hidden.rename(real)
+    normalizations = [item["status"] for item in trace_of_kind(slow, "normalization")]
+    slow_ok = (
+        slow["exit_status"] == 0
+        and "timeout" in normalizations
+        and any(item["kind"] == "complete" for item in slow["traces"])
+        and slow["baseline_bytes"] != b""
+    )
+    results.append(
+        {
+            "id": "f09-killed-uci-show-does-not-abort-the-round",
+            "exit_status": slow["exit_status"],
+            "normalization_statuses": normalizations,
+            "baseline_rewritten": slow["baseline_bytes"] != b"",
+            "passed": slow_ok,
+        }
+    )
+    if not slow_ok:
+        problems.append("f09-killed-uci-show-does-not-abort-the-round")
+
+    return results, problems
+
+
 def prepare_rootfs(
     source: Path, destination: Path, candidate: Path
 ) -> tuple[dict[str, str], dict[str, Any]]:
@@ -433,6 +603,9 @@ def main() -> None:
         )
         cases, case_problems = run_reference_cases(root, args.cases.resolve())
         faults, fault_problems = run_fault_cases(root)
+        f26, f26_problems = run_f26_cases(root)
+        faults.extend(f26)
+        fault_problems.extend(f26_problems)
 
     problems = case_problems + fault_problems
     if not candidate_info["within_size_budget"]:
@@ -475,6 +648,9 @@ def main() -> None:
     if problems:
         for problem in problems:
             print(f"FAIL {problem}")
+        for item in cases + faults:
+            if not item.get("passed", True):
+                print(json.dumps(item, indent=2, sort_keys=True, default=str))
         raise SystemExit(f"{len(problems)} candidate problem(s); output not written")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)

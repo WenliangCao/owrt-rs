@@ -9,6 +9,9 @@ use owrt_ubus::convert::fields_to_json;
 use owrt_ubus::json::Json;
 use owrt_ubus::{status, Request};
 use std::fs;
+use std::ffi::{OsStr, OsString};
+use std::os::unix::ffi::{OsStrExt, OsStringExt};
+use std::path::{Path, PathBuf};
 use std::io::{Read, Write};
 use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use owrt_ubus::sys::{poll_fds, PollFd, POLLIN};
@@ -90,12 +93,13 @@ fn add_stat(out: &mut Vec<(String, Json)>, m: &fs::Metadata) {
 }
 
 /// `rpc_check_path`: canonicalise, ACL-check, optionally stat.
-fn check_path(ctx: &Ctx, args: &Json, perm: &str, want_stat: bool, use_lstat: bool) -> Result<(String, Option<fs::Metadata>), i32> {
-    let Some(raw) = arg_str(args, "path") else { return Err(status::INVALID_ARGUMENT) };
-    let Some(path) = util::canonicalize(raw) else { return Err(status::UNKNOWN_ERROR) };
-    if !ctx.file_access(arg_str(args, "ubus_rpc_session"), &path, perm) {
+fn check_path(ctx: &Ctx, args: &Json, perm: &str, want_stat: bool, use_lstat: bool) -> Result<(PathBuf, Option<fs::Metadata>), i32> {
+    let Some(raw) = args.get("path").and_then(Json::as_bytes) else { return Err(status::INVALID_ARGUMENT) };
+    let Some(path) = util::canonicalize_bytes(raw) else { return Err(status::UNKNOWN_ERROR) };
+    if !ctx.file_access_bytes(arg_str(args, "ubus_rpc_session"), &path, perm) {
         return Err(status::PERMISSION_DENIED);
     }
+    let path = PathBuf::from(OsString::from_vec(path));
     if want_stat {
         let m = if use_lstat { fs::symlink_metadata(&path) } else { fs::metadata(&path) };
         match m {
@@ -122,25 +126,25 @@ pub fn read(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     }
     buf.truncate(n);
     let data = if arg_bool(args, "base64") {
-        util::b64_encode(&buf)
+        Json::Str(util::b64_encode(&buf))
     } else {
-        String::from_utf8_lossy(&buf).into_owned()
+        Json::from_string_bytes(buf)
     };
-    Ok(Some(Json::Object(vec![("data".into(), Json::Str(data))])))
+    Ok(Some(Json::Object(vec![("data".into(), data)])))
 }
 
 pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     let (path, _) = check_path(ctx, args, "write", false, false)?;
-    let Some(data) = arg_str(args, "data") else { return Err(status::INVALID_ARGUMENT) };
+    let Some(data) = args.get("data").and_then(Json::as_bytes) else { return Err(status::INVALID_ARGUMENT) };
     let mode = match args.get("mode") {
         Some(Json::Int(m)) => *m as u32,
         _ => 0o666,
     };
     let mut f = open_for_write(&path, mode, arg_bool(args, "append")).map_err(|e| errno_status(&e))?;
     let bytes: Vec<u8> = if !data.is_empty() && arg_bool(args, "base64") {
-        util::b64_decode(data.as_bytes()).ok_or(status::UNKNOWN_ERROR)?
+        util::b64_decode(data).ok_or(status::UNKNOWN_ERROR)?
     } else {
-        data.as_bytes().to_vec()
+        data.to_vec()
     };
     let mut rv = Ok(());
     if f.write_all(&bytes).is_err() {
@@ -161,7 +165,8 @@ pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
 /// new file is created with O_EXCL and fchmod'ed to `mode` instead. An
 /// existing file keeps its own mode, exactly as in C -- open(2) ignores the
 /// mode argument once it does not create the file.
-fn open_for_write(path: &str, mode: u32, append: bool) -> std::io::Result<fs::File> {
+fn open_for_write(path: impl AsRef<Path>, mode: u32, append: bool) -> std::io::Result<fs::File> {
+    let path = path.as_ref();
     let mut opts = fs::OpenOptions::new();
     opts.write(true).mode(mode);
     if append {
@@ -200,15 +205,15 @@ pub fn list(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     let rd = fs::read_dir(&path).map_err(|e| errno_status(&e))?;
     let mut entries = Vec::new();
     for e in rd.flatten() {
-        let name = e.file_name().to_string_lossy().into_owned();
-        let entrypath = format!("{path}/{name}");
+        let name = e.file_name();
+        let entrypath = e.path();
         let Ok(m) = fs::symlink_metadata(&entrypath) else { continue };
-        let mut o = vec![("name".into(), Json::Str(name))];
+        let mut o = vec![("name".into(), Json::from_string_bytes(name.into_vec()))];
         add_stat(&mut o, &m);
         if m.file_type().is_symlink() {
             let mut t = Vec::new();
             if let Ok(link) = fs::read_link(&entrypath) {
-                t.push(("name".into(), Json::Str(link.to_string_lossy().into_owned())));
+                t.push(("name".into(), Json::from_string_bytes(link.into_os_string().into_vec())));
             }
             match fs::metadata(&entrypath) {
                 Ok(tm) => add_stat(&mut t, &tm),
@@ -223,15 +228,15 @@ pub fn list(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
 
 pub fn stat(ctx: &Ctx, args: &Json, use_lstat: bool) -> Result<Option<Json>, i32> {
     let (path, m) = check_path(ctx, args, "list", true, use_lstat)?;
-    let mut o = vec![("path".into(), Json::Str(path))];
+    let mut o = vec![("path".into(), Json::from_string_bytes(path.into_os_string().into_vec()))];
     add_stat(&mut o, &m.unwrap());
     Ok(Some(Json::Object(o)))
 }
 
-fn remove_recursive(path: &str) -> Result<(), i32> {
+fn remove_recursive(path: &Path) -> Result<(), i32> {
     let rd = fs::read_dir(path).map_err(|e| errno_status(&e))?;
     for e in rd.flatten() {
-        let entrypath = format!("{path}/{}", e.file_name().to_string_lossy());
+        let entrypath = e.path();
         if let Ok(m) = fs::symlink_metadata(&entrypath) {
             if m.is_dir() {
                 remove_recursive(&entrypath)?;
@@ -256,12 +261,20 @@ pub fn remove(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
 
 /// file.c `rpc_file_exec_lookup`: as given if a regular file, else PATH search.
 pub fn exec_lookup(cmd: &str) -> Option<String> {
+    exec_lookup_os(OsStr::new(cmd))?.into_string().ok()
+}
+
+fn exec_lookup_os(cmd: &OsStr) -> Option<OsString> {
     if fs::metadata(cmd).map(|m| m.is_file()).unwrap_or(false) {
         return Some(cmd.to_owned());
     }
-    let search = std::env::var("PATH").unwrap_or_else(|_| "/bin:/usr/bin:/sbin:/usr/sbin".into());
-    for dir in search.split(':') {
-        let p = format!("{dir}/{cmd}");
+    let search = std::env::var_os("PATH").unwrap_or_else(|| "/bin:/usr/bin:/sbin:/usr/sbin".into());
+    for dir in search.as_bytes().split(|&b| b == b':') {
+        // C concatenates even when cmd starts with '/', unlike Path::join.
+        let mut p = dir.to_vec();
+        p.push(b'/');
+        p.extend_from_slice(cmd.as_bytes());
+        let p = OsString::from_vec(p);
         if fs::metadata(&p).map(|m| m.is_file()).unwrap_or(false) {
             return Some(p);
         }
@@ -277,7 +290,13 @@ pub fn exec_lookup(cmd: &str) -> Option<String> {
 /// `p + blobmsg_data_len(cur) >= cmdstr + sizeof(cmdstr)` and a blobmsg
 /// string's data length counts its NUL terminator, so the limit is one byte
 /// tighter than the visible length suggests.
+#[cfg(test)]
 fn acl_cmdline(executable: &str, params: &[String]) -> Option<String> {
+    let params: Vec<OsString> = params.iter().map(OsString::from).collect();
+    acl_cmdline_os(OsStr::new(executable), &params)?.into_string().ok()
+}
+
+fn acl_cmdline_os(executable: &OsStr, params: &[OsString]) -> Option<OsString> {
     if executable.len() >= CMDLINE_MAX {
         return None;
     }
@@ -288,45 +307,46 @@ fn acl_cmdline(executable: &str, params: &[String]) -> Option<String> {
         if i + 2 == 255 || cmdstr.len() + p.len() + 1 >= CMDLINE_MAX {
             return None;
         }
-        cmdstr.push(' ');
-        cmdstr.push_str(p);
+        cmdstr.push(" ");
+        cmdstr.push(p);
     }
     Some(cmdstr)
 }
 
 /// Executable, argv tail and environment, as rpc_file_exec_run holds them at
 /// the point where it forks.
-type ExecPlan = (String, Vec<String>, Vec<(String, String)>);
+type ExecPlan = (OsString, Vec<OsString>, Vec<(OsString, OsString)>);
 
 /// Everything rpc_file_exec_run does before its fork: argument decoding, the
 /// `sid`+`env` rejection, the PATH lookup and both ACL checks. Cheap and
 /// non-blocking, so it stays on the request loop exactly as in C.
 fn exec_prepare(ctx: &Ctx, args: &Json) -> Result<ExecPlan, i32> {
-    let Some(cmd) = arg_str(args, "command") else { return Err(status::INVALID_ARGUMENT) };
+    let Some(cmd) = args.get("command").and_then(Json::as_bytes) else { return Err(status::INVALID_ARGUMENT) };
     let sid = arg_str(args, "ubus_rpc_session");
-    let params: Vec<String> = match args.get("params") {
-        Some(Json::Array(a)) => a.iter().filter_map(|v| v.as_str().map(str::to_owned)).collect(),
+    let params: Vec<OsString> = match args.get("params") {
+        Some(Json::Array(a)) => a.iter().filter_map(|v| v.as_bytes().map(|b| OsString::from_vec(b.to_vec()))).collect(),
         _ => Vec::new(),
     };
     let has_params = matches!(args.get("params"), Some(Json::Array(_)));
-    let env: Vec<(String, String)> = match args.get("env") {
-        Some(Json::Object(o)) => o.iter().filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_owned()))).collect(),
+    let env: Vec<(OsString, OsString)> = match args.get("env") {
+        Some(Json::Object(o)) => o.iter().filter_map(|(k, v)| v.as_bytes().map(|s| (OsString::from(k), OsString::from_vec(s.to_vec())))).collect(),
         _ => Vec::new(),
     };
     let has_env = matches!(args.get("env"), Some(Json::Object(_)));
     if sid.is_some() && has_env {
         return Err(status::PERMISSION_DENIED);
     }
-    let Some(found) = exec_lookup(cmd) else { return Err(status::NOT_FOUND) };
-    let Some(executable) = util::canonicalize(&found) else { return Err(status::UNKNOWN_ERROR) };
-    if !ctx.file_access(sid, &executable, "exec") {
+    let Some(found) = exec_lookup_os(OsStr::from_bytes(cmd)) else { return Err(status::NOT_FOUND) };
+    let Some(executable) = util::canonicalize_bytes(found.as_bytes()) else { return Err(status::UNKNOWN_ERROR) };
+    let executable = OsString::from_vec(executable);
+    if !ctx.file_access_bytes(sid, executable.as_bytes(), "exec") {
         if !has_params {
             return Err(status::PERMISSION_DENIED);
         }
-        let Some(cmdstr) = acl_cmdline(&executable, &params) else {
+        let Some(cmdstr) = acl_cmdline_os(&executable, &params) else {
             return Err(status::PERMISSION_DENIED);
         };
-        if !ctx.file_access(sid, &cmdstr, "exec") {
+        if !ctx.file_access_bytes(sid, cmdstr.as_bytes(), "exec") {
             return Err(status::PERMISSION_DENIED);
         }
     }
@@ -354,7 +374,7 @@ pub fn exec(ctx: &Ctx, req: Request, args: &Json, deferrer: &Deferrer) -> Outcom
         let r = if params.len() > 253 {
             Ok(Json::Object(vec![("code".into(), Json::Int(127))]))
         } else {
-            run_command(&executable, &params, &env, timeout_ms)
+            run_command_os(&executable, &params, &env, timeout_ms)
         };
         d.finish(req, crate::to_reply(r.map(Some)));
     });
@@ -366,6 +386,12 @@ pub fn exec(ctx: &Ctx, req: Request, args: &Json, deferrer: &Deferrer) -> Outcom
 /// timeout (-> TIMEOUT), reply {code, stdout?, stderr?}. A failed exec in the
 /// child is code 127.
 pub fn run_command(executable: &str, params: &[String], env: &[(String, String)], timeout_ms: i32) -> Result<Json, i32> {
+    let params: Vec<OsString> = params.iter().map(OsString::from).collect();
+    let env: Vec<(OsString, OsString)> = env.iter().map(|(k, v)| (k.into(), v.into())).collect();
+    run_command_os(OsStr::new(executable), &params, &env, timeout_ms)
+}
+
+fn run_command_os(executable: &OsStr, params: &[OsString], env: &[(OsString, OsString)], timeout_ms: i32) -> Result<Json, i32> {
     let mut command = Command::new(executable);
     command.arg0(executable);
     command.args(params);
@@ -444,10 +470,10 @@ pub fn run_command(executable: &str, params: &[String], env: &[(String, String)]
     let exit_code = st.code().unwrap_or(0) as u32 & 0xff;
     let mut o = vec![("code".into(), Json::Int(exit_code as i64))];
     if !out.data.is_empty() {
-        o.push(("stdout".into(), Json::Str(String::from_utf8_lossy(&out.data).into_owned())));
+        o.push(("stdout".into(), Json::from_string_bytes(out.data)));
     }
     if !err.data.is_empty() {
-        o.push(("stderr".into(), Json::Str(String::from_utf8_lossy(&err.data).into_owned())));
+        o.push(("stderr".into(), Json::from_string_bytes(err.data)));
     }
     Ok(Json::Object(o))
 }

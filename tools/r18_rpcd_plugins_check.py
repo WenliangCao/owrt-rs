@@ -5,16 +5,19 @@ plugins, in two disposable copies of the exact rootfs (same sandbox shape as
 r17: candidate = rpcd-rs first, then rpcd with file.so/ucode.so removed, whose
 core and plugin registrations that rpcd-rs already owns fail silently).
 
-A small PTR-only DNS responder runs on the host at 127.0.0.1:5353 for the
+A small PTR-only DNS responder runs on the host at 127.0.0.1:53 for the
 duration of each run (the chroot shares the host network namespace), so
 `network.rrdns lookup` gets deterministic answers, NXDOMAIN and a silent
 address for the timeout path.
 
-Usage: r18_rpcd_plugins_check.py <rootfs-files> <rpcd-rs-musl-binary> [--report out.json]
+Usage: sudo -n python3 r18_rpcd_plugins_check.py <rootfs-files> <rpcd-rs-musl-binary> [--report out.json]
 """
 import json, os, re, socket, struct, subprocess, sys, tempfile, threading
 
-DNS_PORT = 5353
+# The ubus CLI encodes JSON integers as INT32, but rrdns's port policy is
+# INT16. Its numeric port arguments are therefore ignored. Serve the actual
+# default port, and assert real PTR answers below instead of comparing {}.
+DNS_PORT = 53
 PTR_MAP = {
     "20.1.168.192.in-addr.arpa": ["host20.lan"],
     "1.1.168.192.in-addr.arpa": ["gw.lan", "gateway.lan"],
@@ -37,10 +40,7 @@ def parse_qname(msg, off):
         labels.append(msg[off + 1:off + 1 + n].decode())
         off += 1 + n
 
-def dns_server(stop):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind(("127.0.0.1", DNS_PORT))
-    s.settimeout(0.5)
+def dns_server(s, stop):
     while not stop.is_set():
         try:
             data, peer = s.recvfrom(512)
@@ -178,6 +178,9 @@ req("sys_nomethod", "rpc-sys", "nosuch", {})
 # ---------------------------------------------------------------- network.rrdns
 S = "127.0.0.1"
 req("rr_basic", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": S, "port": DNS_PORT, "timeout": 500})
+shx("rr_hosts_prep", "printf '127.0.0.1 r83-dns-fixture\\n' >> /etc/hosts")
+req("rr_hostname", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": "r83-dns-fixture", "port": DNS_PORT, "timeout": 500})
+req("rr_bad_hostname", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": "bad host name", "port": DNS_PORT, "timeout": 500})
 req("rr_multi", "network.rrdns", "lookup", {"addrs": ["192.168.1.20", "192.168.1.1", "2001:db8::1", "10.9.9.9"], "server": S, "port": DNS_PORT, "timeout": 500})
 req("rr_dup", "network.rrdns", "lookup", {"addrs": ["192.168.1.20", "192.168.1.20", "192.168.001.020"], "server": S, "port": DNS_PORT, "timeout": 500})
 req("rr_limit1", "network.rrdns", "lookup", {"addrs": ["192.168.1.20", "192.168.1.1", "2001:db8::1"], "server": S, "port": DNS_PORT, "timeout": 500, "limit": 1})
@@ -192,7 +195,7 @@ req("rr_badlimit0", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "serv
 req("rr_badtimeout", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": S, "port": DNS_PORT, "timeout": 5001})
 req("rr_badtimeout0", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": S, "port": DNS_PORT, "timeout": 0})
 req("rr_port_badtype", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": S, "port": "5353"})
-req("rr_unreach", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": "127.0.0.1", "port": 5399, "timeout": 300})
+req("rr_unreach", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "server": "127.0.0.2", "timeout": 300})
 shx("resolv_prep", "cp /etc/resolv.conf /tmp/resolv.bak 2>/dev/null; printf '# c\\nsearch lan\\nnameserver bogus\\nnameserver 127.0.0.1\\n' > /etc/resolv.conf")
 req("rr_default_server", "network.rrdns", "lookup", {"addrs": ["192.168.1.20"], "port": DNS_PORT, "timeout": 500})
 shx("resolv_none", "printf 'search lan\\n' > /etc/resolv.conf")
@@ -269,13 +272,23 @@ def main():
         args.remove(report)
     rootfs, binary = args[0], args[1]
     stop = threading.Event()
-    t = threading.Thread(target=dns_server, args=(stop,), daemon=True)
+    # Bind on the main thread: missing privilege or an occupied port must
+    # fail the gate before either side runs.
+    dns = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    dns.bind(("127.0.0.1", DNS_PORT))
+    dns.settimeout(0.5)
+    t = threading.Thread(target=dns_server, args=(dns, stop), daemon=True)
     t.start()
     try:
         orig, ologs = run_side(rootfs, "original", binary)
         cand, clogs = run_side(rootfs, "candidate", binary)
     finally:
         stop.set()
+        t.join(timeout=2)
+    for label, result in (("original", orig), ("candidate", cand)):
+        for sid in ("rr_basic", "rr_hostname"):
+            if result.get(sid + ".rc", b"").strip() != b"0" or json.loads(result.get(sid + ".out", b"{}")) != {"192.168.1.20": "host20.lan"}:
+                raise SystemExit(f"{label}: {sid} did not receive the fixture PTR answer: rc={result.get(sid + '.rc')!r}, out={result.get(sid + '.out')!r}")
     ndiff = 0
     details = []
     for st in STEPS:

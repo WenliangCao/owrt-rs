@@ -143,7 +143,8 @@ PAIRS = [
 ]
 IDS = ["sig"] + [p[0] for p in PAIRS]
 # per-run volatile values
-MASK_KEYS = {"rx_bytes", "tx_bytes", "tx_errors", "rx_errors", "tx_packets", "rx_packets", "multicast", "collisions", "rx_dropped", "tx_dropped", "expires", "changes", "up_count", "down_count"}
+from audit_checks import COUNTERS
+MASK_KEYS = {"expires", "changes", "up_count", "down_count"}
 
 
 def build_steps():
@@ -172,11 +173,12 @@ def normalize(sid, data):
     except Exception:
         return text
 
-    def mask(x):
+    def mask(x, path=()):
         if isinstance(x, dict):
-            return {k: ("<masked>" if k in MASK_KEYS else mask(y)) for k, y in x.items()}
+            return {k: ("<masked>" if k in MASK_KEYS or (path and path[-1] == "statistics" and k in COUNTERS)
+                        else mask(y, path + (k,))) for k, y in x.items()}
         if isinstance(x, list):
-            return [mask(y) for y in x]
+            return [mask(y, path) for y in x]
         return x
     return json.dumps(mask(v))
 

@@ -1,12 +1,13 @@
 //! `/ubus` JSON-RPC 2.0 bridge with uhttpd's exact response shapes and error
 //! codes, plus blobmsg <-> JSON conversion.
 
-use crate::http::{Method, Request, Response};
+use crate::http::{Method, Request, Response, Sink};
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::{self, Json};
 use owrt_ubus::{blob, BlobBuf, Connection};
 use std::io::{self, Write};
 use std::sync::Mutex;
+use std::ops::{Deref, DerefMut};
 
 pub const DEFAULT_SID: &str = "00000000000000000000000000000000";
 pub const MAX_POST: usize = 65536;
@@ -41,16 +42,25 @@ pub struct Bridge {
     pub noauth: bool,
     pub cors: bool,
     pub timeout_ms: i32,
+    pub events_retry: i32,
+    pub record_calls: bool,
+    pub idle: Mutex<Vec<Connection>>,
     /// object -> method -> count, exported for the stage-5 call inventory
     pub calls: Mutex<Vec<(String, String, u64)>>,
 }
 
 impl Bridge {
-    fn connect(&self) -> io::Result<Connection> {
-        Connection::connect(self.socket.as_deref())
+    fn connect(&self) -> io::Result<Lease<'_>> {
+        let mut idle = self.idle.lock().unwrap_or_else(|e| e.into_inner());
+        while let Some(conn) = idle.pop() {
+            if connected(&conn) { return Ok(Lease { conn: Some(conn), bridge: self }); }
+        }
+        drop(idle);
+        Ok(Lease { conn: Some(Connection::connect(self.socket.as_deref())?), bridge: self })
     }
 
     fn record(&self, object: &str, method: &str) {
+        if !self.record_calls { return; }
         if let Ok(mut calls) = self.calls.lock() {
             if let Some(entry) = calls
                 .iter_mut()
@@ -73,6 +83,35 @@ impl Bridge {
             }
         }
         out
+    }
+}
+
+fn connected(conn: &Connection) -> bool {
+    use owrt_ubus::sys::{poll_fds, PollFd, POLLHUP, POLLERR};
+    let mut fds = [PollFd { fd: conn.as_raw_fd(), events: 0, revents: 0 }];
+    poll_fds(&mut fds, 0).is_ok() && fds[0].revents & (POLLHUP | POLLERR) == 0
+}
+
+/// Reuse connections between calls without serialising long RPCs behind one
+/// mutex. A checked-out connection belongs to one HTTP worker until its reply.
+struct Lease<'a> {
+    conn: Option<Connection>,
+    bridge: &'a Bridge,
+}
+
+impl Deref for Lease<'_> {
+    type Target = Connection;
+    fn deref(&self) -> &Connection { self.conn.as_ref().expect("live lease") }
+}
+impl DerefMut for Lease<'_> {
+    fn deref_mut(&mut self) -> &mut Connection { self.conn.as_mut().expect("live lease") }
+}
+impl Drop for Lease<'_> {
+    fn drop(&mut self) {
+        if let Some(conn) = self.conn.take().filter(connected) {
+            let mut idle = self.bridge.idle.lock().unwrap_or_else(|e| e.into_inner());
+            if idle.len() < 8 { idle.push(conn); }
+        }
     }
 }
 
@@ -282,15 +321,7 @@ fn handle_object(bridge: &Bridge, obj: &Json, legacy: bool) -> Json {
     }
 }
 
-fn send_json<W: Write>(
-    resp: &mut Response<W>,
-    bridge: &Bridge,
-    request: &Request,
-    code: u16,
-    summary: &str,
-    body: &str,
-) -> io::Result<()> {
-    resp.status(code, summary)?;
+fn cors_headers<W: Write>(resp: &mut Response<W>, bridge: &Bridge, request: &Request) -> io::Result<()> {
     if bridge.cors {
         if let Some(origin) = request.header("origin") {
             let ok = request
@@ -307,21 +338,48 @@ fn send_json<W: Write>(
             }
         }
     }
+    Ok(())
+}
+
+fn send_json<W: Write>(
+    resp: &mut Response<W>,
+    bridge: &Bridge,
+    request: &Request,
+    code: u16,
+    summary: &str,
+    body: impl AsRef<[u8]>,
+) -> io::Result<()> {
+    resp.status(code, summary)?;
+    cors_headers(resp, bridge, request)?;
     resp.header("Content-Type", "application/json")?;
     if request.method == Method::Options {
         resp.header("Content-Length", "0")?;
     }
     resp.end_headers()?;
-    resp.body(body.as_bytes())?;
+    resp.body(body.as_ref())?;
     resp.finish()
 }
 
-fn error_only(error: RpcError) -> String {
-    rpc_error(Json::Null, error).to_compact()
+fn error_only(error: RpcError) -> Vec<u8> {
+    rpc_error(Json::Null, error).to_bytes()
+}
+
+/// uh_ubus_data_send's failure exit (ubus.c:944-952): the body could not be
+/// taken -- no body at all, or more than UH_UBUS_MAX_POST_SIZE of it -- so the
+/// connection is dropped (the unread suffix would otherwise be read as the next
+/// request) and the client still gets a well-formed JSON-RPC parse error under
+/// a 200, not an HTML page.
+pub fn parse_error<W: Write>(
+    bridge: &Bridge,
+    request: &Request,
+    resp: &mut Response<W>,
+) -> io::Result<()> {
+    resp.force_close();
+    send_json(resp, bridge, request, 200, "OK", error_only(RpcError::Parse))
 }
 
 /// Entry point for any request under the ubus prefix.
-pub fn handle<W: Write>(
+pub fn handle<W: Sink>(
     bridge: &Bridge,
     prefix: &str,
     request: &Request,
@@ -333,6 +391,9 @@ pub fn handle<W: Write>(
     match request.method {
         Method::Options => send_json(resp, bridge, request, 200, "OK", ""),
         Method::Get => {
+            if let Some(object) = rest.strip_prefix("/subscribe/") {
+                return subscribe(bridge, request, resp, object);
+            }
             if rest == "/list" || rest.starts_with("/list/") {
                 let target = rest
                     .strip_prefix("/list")
@@ -345,11 +406,11 @@ pub fn handle<W: Write>(
                         request,
                         500,
                         "Ubus Protocol Error",
-                        &Json::Object(vec![
+                        Json::Object(vec![
                             ("code".into(), Json::Int(10)),
                             ("message".into(), Json::Str("Connection failed".into())),
                         ])
-                        .to_compact(),
+                        .to_bytes(),
                     );
                 };
                 match conn.lookup(target, bridge.timeout_ms) {
@@ -367,7 +428,7 @@ pub fn handle<W: Write>(
                                     .collect(),
                             )
                         };
-                        send_json(resp, bridge, request, 200, "OK", &json.to_compact())
+                        send_json(resp, bridge, request, 200, "OK", json.to_bytes())
                     }
                     Err(_) => send_json(
                         resp,
@@ -375,11 +436,11 @@ pub fn handle<W: Write>(
                         request,
                         500,
                         "Ubus Protocol Error",
-                        &Json::Object(vec![
+                        Json::Object(vec![
                             ("code".into(), Json::Int(4)),
                             ("message".into(), Json::Str("Not found".into())),
                         ])
-                        .to_compact(),
+                        .to_bytes(),
                     ),
                 }
             } else {
@@ -390,42 +451,24 @@ pub fn handle<W: Write>(
         }
         Method::Post => {
             let Some(body) = body else {
-                resp.force_close();
-                return send_json(
-                    resp,
-                    bridge,
-                    request,
-                    200,
-                    "OK",
-                    &error_only(RpcError::Parse),
-                );
+                return parse_error(bridge, request, resp);
             };
             if body.len() > MAX_POST {
-                resp.force_close();
-                return send_json(
-                    resp,
-                    bridge,
-                    request,
-                    200,
-                    "OK",
-                    &error_only(RpcError::Parse),
-                );
+                return parse_error(bridge, request, resp);
             }
             // uhttpd hands the body to json_tokener_parse: trailing data after the
             // first value is ignored
-            let parsed = std::str::from_utf8(body)
-                .ok()
-                .and_then(|s| json::parse_prefix(s).ok());
+            let parsed = json::parse_prefix_bytes(body).ok();
             if rest.is_empty() || rest == "/" {
                 return match parsed {
                     Some(obj @ Json::Object(_)) => {
-                        let out = handle_object(bridge, &obj, true).to_compact();
+                        let out = handle_object(bridge, &obj, true).to_bytes();
                         send_json(resp, bridge, request, 200, "OK", &out)
                     }
                     Some(Json::Array(items)) => {
-                        let parts: Vec<String> = items
+                        let parts: Vec<Json> = items
                             .iter()
-                            .map(|item| handle_object(bridge, item, true).to_compact())
+                            .map(|item| handle_object(bridge, item, true))
                             .collect();
                         send_json(
                             resp,
@@ -433,7 +476,7 @@ pub fn handle<W: Write>(
                             request,
                             200,
                             "OK",
-                            &format!("[{}]", parts.join(",")),
+                            Json::Array(parts).to_bytes(),
                         )
                     }
                     _ => send_json(
@@ -442,7 +485,7 @@ pub fn handle<W: Write>(
                         request,
                         200,
                         "OK",
-                        &error_only(RpcError::Parse),
+                        error_only(RpcError::Parse),
                     ),
                 };
             }
@@ -469,12 +512,78 @@ pub fn handle<W: Write>(
                     }
                     _ => rpc_error(Json::Null, RpcError::Parse),
                 };
-                return send_json(resp, bridge, request, 200, "OK", &out.to_compact());
+                return send_json(resp, bridge, request, 200, "OK", out.to_bytes());
             }
             resp.status(404, "Not Found")?;
             resp.end_headers()?;
             resp.finish()
         }
         _ => resp.error(400, "Bad Request", Some("Invalid Request")),
+    }
+}
+
+fn subscribe<W: Sink>(bridge: &Bridge, request: &Request, resp: &mut Response<W>, object: &str) -> io::Result<()> {
+    use owrt_ubus::{attr, status, ty, Incoming};
+    use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLHUP, POLLERR};
+    // A subscription owns its socket until the HTTP client disconnects. It
+    // must never return a registered subscriber to the ordinary request pool.
+    let mut conn = Connection::connect(bridge.socket.as_deref())?;
+    let sid = request.header("authorization").and_then(|value| {
+        value.get(..7).filter(|prefix| prefix.eq_ignore_ascii_case("Bearer ")).map(|_| &value[7..])
+    }).unwrap_or(DEFAULT_SID);
+    let error = |code: i32, message: String| Json::Object(vec![
+        ("code".into(), Json::Int(code as i64)), ("message".into(), Json::Str(message)),
+    ]).to_bytes();
+    if !bridge.noauth && !allowed(&mut conn, bridge, sid, object, ":subscribe") {
+        return send_json(resp, bridge, request, 200, "OK", error(-13, "Permission denied".into()));
+    }
+    let subscriber = match conn.add_anonymous_object(bridge.timeout_ms) {
+        Ok(id) => id,
+        Err(_) => return send_json(resp, bridge, request, 200, "OK", error(status::UNKNOWN_ERROR, status::name(status::UNKNOWN_ERROR))),
+    };
+    let target = match conn.lookup_id(object, bridge.timeout_ms) {
+        Ok(target) => target,
+        Err(_) => return send_json(resp, bridge, request, 200, "OK", error(status::NOT_FOUND, status::name(status::NOT_FOUND))),
+    };
+    if conn.subscribe(subscriber, target, bridge.timeout_ms).is_err() {
+        return send_json(resp, bridge, request, 200, "OK", error(status::UNKNOWN_ERROR, status::name(status::UNKNOWN_ERROR)));
+    }
+    resp.status(200, "OK")?;
+    cors_headers(resp, bridge, request)?;
+    resp.header("Content-Type", "text/event-stream")?;
+    resp.end_headers()?;
+    if bridge.events_retry != 0 {
+        resp.body(format!("retry: {}\n", bridge.events_retry).as_bytes())?;
+    }
+    resp.sink().flush()?;
+    loop {
+        // Drain queued notifications before waiting on the descriptors.
+        while let Some(incoming) = conn.next_incoming(0)? {
+            match incoming {
+                Incoming::Invoke(req) if req.objid == subscriber => {
+                    resp.body(format!("event: {}\ndata: ", req.method).as_bytes())?;
+                    resp.body(&fields_to_json(&req.data).to_bytes())?;
+                    resp.body(b"\n\n")?;
+                    resp.sink().flush()?;
+                    conn.reply_status(&req, status::OK, None)?;
+                }
+                Incoming::Other(message) if message.header.ty == ty::UNSUBSCRIBE => {
+                    let attrs = message.attrs();
+                    if attrs[attr::OBJID as usize].and_then(|a| a.as_u32()) == Some(subscriber) {
+                        return resp.finish();
+                    }
+                }
+                _ => {}
+            }
+        }
+        const POLLRDHUP: i16 = 0x2000;
+        let mut fds = [
+            PollFd { fd: conn.as_raw_fd(), events: POLLIN, revents: 0 },
+            PollFd { fd: resp.sink().fd(), events: POLLRDHUP, revents: 0 },
+        ];
+        poll_fds(&mut fds, -1)?;
+        if fds[1].revents & (POLLRDHUP | POLLHUP | POLLERR) != 0 {
+            return Err(io::Error::new(io::ErrorKind::ConnectionAborted, "subscriber disconnected"));
+        }
     }
 }

@@ -15,6 +15,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 
+mod clock;
 mod config;
 mod device;
 mod ethtool;
@@ -25,13 +26,13 @@ mod netdev_types;
 mod netlink;
 mod process;
 mod proto;
+mod rt;
 mod sys;
 mod ubus;
 mod wireless;
 
 use std::io;
 use std::net::{IpAddr, Ipv6Addr};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::conn::{Connection, Incoming, Request};
@@ -83,17 +84,102 @@ fn string_list(f: &blob::Field) -> Vec<String> {
 }
 
 /// Whether a config change needs the interface reloaded. This is
-/// `interface_change_config`'s `reload` decision: the device, the protocol
-/// and the protocol's own parameters. `raw` is deliberately not compared --
-/// `uci_blob_check_equal` only looks at the parameters the protocol declares,
-/// so an option nothing reads changing is not a reason to bounce the link.
-fn config_changed(a: &config::InterfaceConfig, b: &config::InterfaceConfig) -> bool {
-    let strip = |c: &config::InterfaceConfig| {
-        let mut c = c.clone();
-        c.raw.clear();
-        c
+/// `interface_change_config`, as a decision: what a changed interface
+/// section needs. The C reloads (teardown + setup) only when the device, the
+/// protocol, the protocol's own declared parameters, `zone`, the device
+/// options carried in the section, or `auto` (from on to off) changed;
+/// metric/table/defaultroute re-apply the IP sets in place, dns/peerdns
+/// rewrite resolv.conf, delegate/ip6assign/ip6hint redo the assignments.
+/// Comparing the whole section bounced the link for a `list dns` edit
+/// (R81 F05).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct Change {
+    reload: bool,
+    reload_ip: bool,
+    delegation: bool,
+    assignment: bool,
+    autostart_changed: bool,
+}
+
+/// `proto_static`'s config_params (proto.c).
+const STATIC_PARAMS: &[&str] =
+    &["ipaddr", "ip6addr", "netmask", "broadcast", "gateway", "ip6gw", "ip6prefix", "ip6deprecated"];
+
+/// `device_attr_list` names an interface section may carry
+/// (`interface_device_config_changed`).
+const IFACE_DEVICE_OPTS: &[&str] = &[
+    "mtu", "mtu6", "macaddr", "txqueuelen", "ipv6", "promisc", "multicast", "rpfilter",
+    "acceptlocal", "igmpversion", "mldversion", "neighreachabletime", "neighgcstaletime",
+    "neighlocktime", "dadtransmits", "sendredirects", "enabled",
+];
+
+fn raw_get<'a>(c: &'a config::InterfaceConfig, name: &str) -> Option<&'a Vec<String>> {
+    c.raw.iter().find(|r| r.name == name).map(|r| &r.values)
+}
+
+fn raw_differs(a: &config::InterfaceConfig, b: &config::InterfaceConfig, names: &[&str]) -> bool {
+    names.iter().any(|n| raw_get(a, n) != raw_get(b, n))
+}
+
+fn classify_change(
+    o: &config::InterfaceConfig,
+    n: &config::InterfaceConfig,
+    handler: Option<&proto::Handler>,
+) -> Change {
+    let mut c = Change::default();
+    if o.device != n.device || o.proto != n.proto {
+        c.reload = true;
+    }
+    // `uci_blob_check_equal(old, new, proto_handler->config_params)`
+    let params: Vec<&str> = match handler {
+        Some(h) => h.config.iter().map(|(name, _)| name.as_str()).collect(),
+        None if n.proto == "static" => STATIC_PARAMS.to_vec(),
+        None => Vec::new(),
     };
-    strip(a) != strip(b)
+    if raw_differs(o, n, &params) || raw_differs(o, n, IFACE_DEVICE_OPTS) {
+        c.reload = true;
+    }
+    let (oa, na) = (o.auto.unwrap_or(true), n.auto.unwrap_or(true));
+    if oa != na {
+        c.autostart_changed = true;
+        if oa {
+            c.reload = true;
+        }
+    }
+    if raw_get(o, "zone") != raw_get(n, "zone") {
+        c.reload = true;
+    }
+    if o.metric != n.metric
+        || o.ip4table != n.ip4table
+        || o.ip6table != n.ip6table
+        || o.defaultroute.unwrap_or(true) != n.defaultroute.unwrap_or(true)
+    {
+        c.reload_ip = true;
+    }
+    if o.delegate != n.delegate {
+        c.delegation = true;
+    }
+    if o.ip6assign != n.ip6assign
+        || o.ip6hint != n.ip6hint
+        || raw_differs(o, n, &["ip6class", "ip6ifaceid", "ip6weight"])
+    {
+        c.assignment = true;
+    }
+    c
+}
+
+/// `interface_set_route_info`: a route without its own metric or table takes
+/// the interface's; a non-main table marks the route SRCTABLE.
+fn set_route_info(r: &mut interface::Route, metric: u32, ip4table: u32, ip6table: u32) {
+    if r.flags & interface::devroute::METRIC == 0 {
+        r.metric = metric;
+    }
+    if r.flags & interface::devroute::TABLE == 0 {
+        r.table = if r.target.is_ipv6() { ip6table } else { ip4table };
+        if r.table != 0 {
+            r.flags |= interface::devroute::SRCTABLE;
+        }
+    }
 }
 
 /// One entry of a protocol's `state->deps`.
@@ -127,8 +213,13 @@ fn in_prefix(addr: IpAddr, prefix: IpAddr, len: u8) -> bool {
     }
 }
 
+/// `system_get_rtime`: seconds on the monotonic clock. See `clock`.
 fn now() -> u64 {
-    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
+    clock::now()
+}
+
+fn now_ms() -> u64 {
+    clock::now_ms()
 }
 
 struct Netifd {
@@ -184,6 +275,7 @@ struct Netifd {
     wradios: Vec<WRadio>,
     wslot: process::Slot,
     wcur: Option<(String, &'static str)>,
+    wdeadline: Option<u64>,
     wqueue: std::collections::VecDeque<(String, &'static str)>,
     wproc_checked: u64,
     /// Every device netifd has an object for. An entry means `device_init`
@@ -243,6 +335,7 @@ impl Netifd {
             wradios: Vec::new(),
             wslot: process::Slot::default(),
             wcur: None,
+            wdeadline: None,
             wqueue: std::collections::VecDeque::new(),
             wproc_checked: 0,
             link_state: Vec::new(),
@@ -301,7 +394,7 @@ impl Netifd {
                 return Err(format!("cannot load network config: {e}"));
             }
         };
-        for e in &new.errors {
+        for e in new.warnings.iter().chain(new.errors.iter()) {
             eprintln!("netifd-rs: config: {e}");
         }
         if !first && !new.errors.is_empty() {
@@ -366,15 +459,10 @@ impl Netifd {
             if new.iter().any(|n| n.name == oc.name) {
                 continue;
             }
-            eprintln!("netifd-rs: Remove interface '{}'", oc.name);
-            self.set_down(&oc.name);
-            self.mark_interface_down(&oc.name);
-            self.interfaces.retain(|i| i.name != oc.name);
-            if let Err(e) = self.objects.remove_interface(&mut self.conn, &oc.name) {
-                eprintln!("netifd-rs: cannot unregister {}: {e}", oc.name);
-            }
-            self.link_state.retain(|(n, _)| *n != oc.name);
-            self.protos.retain(|(n, _)| *n != oc.name);
+            // `set_config_state(if_old, IFC_REMOVE)`: torn down first, removed
+            // once it is down -- the proto helper gets its teardown and is
+            // then killed with the proto state (R81 F04)
+            self.set_config_state(&oc.name, interface::ConfigState::Remove);
         }
 
         // new, then changed -- both in name order, as the vlist walk is
@@ -391,28 +479,60 @@ impl Netifd {
                     if let Err(e) = self.register_interface(&name) {
                         eprintln!("netifd-rs: cannot register {name}: {e}");
                     }
-                    if nc.auto.unwrap_or(true) && !nc.disabled {
+                    if nc.auto.unwrap_or(true) {
                         self.iface_up(&name);
                     }
                 }
                 Some(oc) => {
-                    if !config_changed(oc, &nc) {
-                        // the cheap fields are updated in place, as
-                        // `interface_change_config` does for everything that
-                        // does not need a reload
-                        if let Some(i) = self.iface_index(&name) {
-                            let iface = &mut self.interfaces[i];
-                            iface.metric = nc.metric;
-                            iface.dns_metric = nc.dns_metric;
-                            iface.ip4table = nc.ip4table.unwrap_or(0);
-                            iface.ip6table = nc.ip6table.unwrap_or(0);
+                    let handler = self.handler_for(&nc.proto).cloned();
+                    let ch = classify_change(oc, &nc, handler.as_ref());
+                    // everything `interface_change_config` copies over in
+                    // place, reload or not
+                    let new_routes: Vec<interface::Route> = self.config_routes_for(&nc.name);
+                    let mut routes_changed = false;
+                    if let Some(i) = self.iface_index(&name) {
+                        let iface = &mut self.interfaces[i];
+                        iface.metric = nc.metric;
+                        iface.dns_metric = nc.dns_metric;
+                        iface.ip4table = nc.ip4table.unwrap_or(0);
+                        iface.ip6table = nc.ip6table.unwrap_or(0);
+                        iface.proto_ip.no_dns = nc.peerdns == Some(false);
+                        iface.proto_ip.no_defaultroute = nc.defaultroute == Some(false);
+                        iface.proto_ip.no_delegation = nc.delegate == Some(false);
+                        // `interface_replace_dns(&if_old->config_ip, ...)`
+                        iface.config_ip.dns_servers = nc.dns.clone();
+                        iface.config_ip.dns_search = nc.dns_search.clone();
+                        if ch.autostart_changed {
+                            iface.autostart = nc.auto.unwrap_or(true);
                         }
+                        let old_keys: Vec<_> =
+                            iface.config_ip.routes.iter().map(route_key).collect();
+                        let new_keys: Vec<_> = new_routes.iter().map(route_key).collect();
+                        routes_changed = old_keys != new_keys;
+                    }
+                    if ch.reload {
+                        eprintln!(
+                            "netifd-rs: Reload interface '{name}' because of config changes"
+                        );
+                        self.set_config_state(&name, interface::ConfigState::Reload);
                         continue;
                     }
-                    eprintln!(
-                        "netifd-rs: Reload interface '{name}' because of config changes"
-                    );
-                    self.do_reload(&name);
+                    if routes_changed {
+                        // the config_ip route vlist: departed routes leave the
+                        // kernel, new ones enter it, while the interface is up
+                        self.replace_config_routes(&name, new_routes);
+                    }
+                    if ch.reload_ip {
+                        self.reload_ip(&name);
+                    }
+                    if ch.delegation {
+                        self.update_prefix_delegation();
+                    } else if ch.assignment {
+                        // `interface_merge_assignment_data` ->
+                        // `interface_refresh_assignments(true)`
+                        self.refresh_prefix_assignments();
+                    }
+                    self.check_state(&name);
                 }
             }
         }
@@ -420,22 +540,245 @@ impl Netifd {
         self.write_resolv_conf();
     }
 
-    /// `interface_do_reload`: down, then up again with the new config.
+    /// The `config route`/`route6` sections attached to `name`, with the
+    /// interface's own metric and tables filled in (`interface_set_route_info`).
+    fn config_routes_for(&self, name: &str) -> Vec<interface::Route> {
+        let (metric, t4, t6) = match self.cfg.interfaces.iter().find(|c| c.name == name) {
+            Some(ic) => (ic.metric, ic.ip4table.unwrap_or(0), ic.ip6table.unwrap_or(0)),
+            None => (0, 0, 0),
+        };
+        let mut out: Vec<interface::Route> = self
+            .cfg
+            .routes
+            .iter()
+            .filter(|r| r.interface == name)
+            .map(|r| {
+                let mut x = r.route.clone();
+                set_route_info(&mut x, metric, t4, t6);
+                x.enabled = false;
+                x
+            })
+            .collect();
+        out.sort_by(interface::route_order);
+        out
+    }
+
+    /// `interface_ip_set_enabled(&iface->config_ip, true)`, routes half: the
+    /// static routes of an interface enter the kernel when it comes up. A
+    /// route with no interface (DEVROUTE_NODEV) is installed with no device.
+    fn apply_config_routes(&mut self, name: &str, devidx: u32) {
+        let Some(idx) = self.iface_index(name) else { return };
+        let mut routes = std::mem::take(&mut self.interfaces[idx].config_ip.routes);
+        for r in &mut routes {
+            if r.enabled {
+                continue;
+            }
+            let di = if r.flags & interface::devroute::NODEV != 0 { 0 } else { devidx };
+            if let Err(e) = self.sys.add_route(di, &sys_route(r)) {
+                eprintln!("netifd-rs: {name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
+            }
+            // `route->enabled = _enabled` whatever the kernel said
+            r.enabled = true;
+        }
+        if let Some(idx) = self.iface_index(name) {
+            self.interfaces[idx].config_ip.routes = routes;
+        }
+    }
+
+    fn del_routes(&mut self, devidx: u32, routes: &[interface::Route]) {
+        for r in routes {
+            if !r.enabled {
+                continue;
+            }
+            let di = if r.flags & interface::devroute::NODEV != 0 { 0 } else { devidx };
+            let _ = self.sys.del_route(di, &sys_route(r));
+        }
+    }
+
+    /// The config_ip route vlist after a reload that did not need a teardown:
+    /// what left the config leaves the kernel, what entered it is installed
+    /// if the interface is up.
+    fn replace_config_routes(&mut self, name: &str, new: Vec<interface::Route>) {
+        let Some(idx) = self.iface_index(name) else { return };
+        let up = self.interfaces[idx].state == State::Up;
+        let devidx = self
+            .interfaces[idx]
+            .l3_device
+            .as_deref()
+            .and_then(|d| self.sys.if_index(d).ok())
+            .unwrap_or(0);
+        let old = std::mem::replace(&mut self.interfaces[idx].config_ip.routes, new);
+        if up && devidx != 0 {
+            self.del_routes(devidx, &old);
+            self.apply_config_routes(name, devidx);
+        }
+    }
+
+    /// `interface_change_config` with `reload_ip`: metric, ip4table/ip6table
+    /// or defaultroute changed. The C disables both IP sets and enables them
+    /// again, so every address is re-added and every route re-installed with
+    /// the new metric and table, and a default route follows the new
+    /// `no_defaultroute` -- without a teardown and without re-running the
+    /// protocol (R81 F05).
+    fn reload_ip(&mut self, name: &str) {
+        let Some(idx) = self.iface_index(name) else { return };
+        if self.interfaces[idx].state != State::Up {
+            return;
+        }
+        let Some(dev) = self.interfaces[idx].l3_device.clone() else { return };
+        let di = match self.sys.if_index(&dev) {
+            Ok(i) if i != 0 => i,
+            _ => return,
+        };
+        let Some(ic) = self.cfg.interfaces.iter().find(|c| c.name == name).cloned() else {
+            return;
+        };
+        let (metric, t4, t6) = (
+            self.interfaces[idx].metric,
+            self.interfaces[idx].ip4table,
+            self.interfaces[idx].ip6table,
+        );
+        let nodef = self.interfaces[idx].proto_ip.no_defaultroute;
+        let mut config_ip = std::mem::take(&mut self.interfaces[idx].config_ip);
+        let mut proto_ip = std::mem::take(&mut self.interfaces[idx].proto_ip);
+        // disable
+        for set in [&config_ip, &proto_ip] {
+            for a in &set.addresses {
+                let _ = self.sys.del_address(di, &sys::Address::new(a.addr, a.mask));
+            }
+            self.del_routes(di, &set.routes);
+        }
+        // enable, with the interface's new metric and tables
+        let base = now().min(u32::MAX as u64) as u32;
+        for (set, is_proto) in [(&mut config_ip, false), (&mut proto_ip, true)] {
+            for a in &set.addresses {
+                let mut sa = sys::Address::new(a.addr, a.mask);
+                sa.broadcast = a.broadcast;
+                if a.addr.is_ipv4() {
+                    sa = sa.with_default_broadcast();
+                }
+                sa.offlink = a.offlink;
+                sa.preferred = a.preferred_until.map(|u| u.saturating_sub(base));
+                sa.valid = a.valid_until.map(|u| u.saturating_sub(base));
+                if self.sys.add_address(di, &sa).is_ok() {
+                    self.replace_subnet_route(di, &sa, &ic);
+                }
+            }
+            for r in &mut set.routes {
+                set_route_info(r, metric, t4, t6);
+                r.enabled = !(is_proto && nodef && r.mask == 0);
+                if r.enabled {
+                    let d = if r.flags & interface::devroute::NODEV != 0 { 0 } else { di };
+                    let _ = self.sys.add_route(d, &sys_route(r));
+                }
+            }
+            set.routes.sort_by(interface::route_order);
+        }
+        if let Some(idx) = self.iface_index(name) {
+            self.interfaces[idx].config_ip = config_ip;
+            self.interfaces[idx].proto_ip = proto_ip;
+        }
+    }
+
+    /// `interface_update_prefix_delegation`: `option delegate 0` takes this
+    /// interface's delegated prefixes out of the assignment pool. The parent
+    /// prefix and its null route remain until the protocol withdraws them.
+    fn update_prefix_delegation(&mut self) {
+        self.refresh_prefix_assignments();
+    }
+
+    /// The prefixes that hand out assignments: every delegated prefix whose
+    /// receiving interface does not say `delegate 0` (R81 F08).
+    fn delegating_prefixes(&self) -> Vec<ip::DevicePrefix> {
+        self.prefixes
+            .iter()
+            .filter(|p| {
+                let Some(owner) = p.iface.as_deref() else { return true };
+                !self
+                    .interfaces
+                    .iter()
+                    .any(|i| i.name == owner && i.proto_ip.no_delegation)
+            })
+            .cloned()
+            .collect()
+    }
+
+    /// The status view of one interface: the live struct plus what only the
+    /// daemon knows -- its uptime, and its own delegated prefixes with their
+    /// assignments (`ipv6-prefix`), which lived only in the global list and
+    /// so never appeared in the status (R81 F08).
+    fn interface_snapshot(&self, i: &Interface) -> Interface {
+        let mut s = i.clone();
+        s.uptime = self.uptime_of(&i.name);
+        s.proto_ip.prefixes = self
+            .prefixes
+            .iter()
+            .filter(|p| p.iface.as_deref() == Some(i.name.as_str()))
+            .map(|p| {
+                let mut assigned: Vec<(String, Ipv6Addr, u8)> = self
+                    .interfaces
+                    .iter()
+                    .flat_map(|x| {
+                        x.prefix_assignments
+                            .iter()
+                            .filter(|a| {
+                                a.owner.as_ref()
+                                    == Some(&(Some(i.name.clone()), p.addr, p.length))
+                            })
+                            .map(move |a| (x.name.clone(), a.addr, a.length))
+                    })
+                    .collect();
+                assigned.sort_by_key(|(_, a, _)| *a);
+                interface::Prefix {
+                    addr: p.addr,
+                    length: p.length,
+                    preferred_until: p.preferred_until,
+                    valid_until: p.valid_until,
+                    class: p.class.clone(),
+                    assigned,
+                }
+            })
+            .collect();
+        s
+    }
+
+    /// `set_config_state`: a reload or a removal is performed right away
+    /// when the interface is down, and otherwise once its teardown completes
+    /// -- `interface_handle_config_change` runs from the IFPEV_DOWN path.
+    /// Doing it synchronously here was R81 F11: the setup was refused because
+    /// the state machine was still tearing down, and an ifup-failed the C
+    /// never sends went out.
+    fn set_config_state(&mut self, name: &str, cs: interface::ConfigState) {
+        let Some(idx) = self.iface_index(name) else { return };
+        self.interfaces[idx].config_state = cs;
+        if self.interfaces[idx].state == State::Down {
+            self.handle_config_change(name);
+        } else {
+            // `__interface_set_down(iface, false)`: autostart survives
+            self.set_down(name);
+        }
+    }
+
+    /// `interface_do_reload`, with the interface already down: the state is
+    /// rebuilt from the new config and the proto state starts over. The
+    /// runtime `autostart` is kept -- `interface_change_config` only resets
+    /// it when the `auto` option itself changed -- so an interface that was
+    /// `ifdown`ed by hand stays down through a reload, as it does in the C.
     fn do_reload(&mut self, name: &str) {
         let Some(nc) = self.cfg.interfaces.iter().find(|c| c.name == name).cloned() else {
             return;
         };
-        // `interface_do_reload` is a teardown, not an ifdown: autostart
-        // survives it, which is what brings the interface back up
-        self.set_down(name);
-        self.mark_interface_down(name);
-        if let Some(i) = self.iface_index(name) {
-            let fresh = self.new_interface(&nc);
-            self.interfaces[i] = fresh;
-        }
+        let Some(i) = self.iface_index(name) else { return };
+        let autostart = self.interfaces[i].autostart;
+        let mut fresh = self.new_interface(&nc);
+        fresh.autostart = autostart;
+        self.interfaces[i] = fresh;
         self.link_state.retain(|(n, _)| n != name);
-        if nc.auto.unwrap_or(true) && !nc.disabled {
-            self.iface_up(name);
+        // `interface_set_proto_state(iface, NULL)` then `proto_init_interface`
+        if let Some(pos) = self.protos.iter().position(|(n, _)| n == name) {
+            let (_, mut st) = self.protos.remove(pos);
+            st.script.terminate();
+            st.task.terminate();
         }
     }
 
@@ -532,11 +875,24 @@ impl Netifd {
         if count != 1 {
             return;
         }
+        // `dev->active`: the claim state, external or not (R81 F13)
+        if let Some(d) = self.devices.get_mut(name) {
+            d.active = true;
+        }
         // hostapd owns an external wireless interface's administrative state.
         // Claiming it must neither clear its state nor claim a kernel parent.
         if self.devices.get(name).is_some_and(|d| d.external) {
             self.set_enabled(name, true);
             return;
+        }
+        // The C claims a device that already has its object (`device_get`
+        // created it, clearing its state then). A veth's parent is its peer,
+        // and the peer's parent is the device itself: without this the walk
+        // below created the object for `name` from the peer's side and
+        // cleared it -- taking a freshly enslaved hotplug port back out of
+        // its bridge (r83c add_device).
+        if !self.device_objects.contains(&name.to_string()) {
+            self.device_objects.push(name.to_string());
         }
         if let Some(p) = self.sys.parent_of(name) {
             if !self.device_objects.contains(&p) {
@@ -548,6 +904,11 @@ impl Netifd {
         }
         if let Ok(i) = self.sys.if_index(name) {
             if i != 0 {
+                // `system_if_up`: settings first, then IFF_UP. The order is
+                // observable: the kernel resets the IPv6 mtu to the link mtu
+                // on NETDEV_UP, so a `mtu6` written after the link came up
+                // would stick where the C's does not (r83c).
+                self.apply_device_settings(name, i);
                 let _ = self.sys.set_link_up(i, true);
             }
         }
@@ -591,6 +952,9 @@ impl Netifd {
                     let _ = self.sys.set_link_up(i, false);
                 }
             }
+        }
+        if let Some(d) = self.devices.get_mut(name) {
+            d.active = false;
         }
         // `DEV_EVENT_DOWN`
         self.set_enabled(name, false);
@@ -695,7 +1059,13 @@ impl Netifd {
             // anything `set_state {"defer":true}` has held back
             d.sys_present = true;
             d.present = !d.deferred;
-            d.active = flags & sys::IFF_UP != 0;
+            // `dev->active` is netifd's own claim state (`device_set_state`),
+            // not IFF_UP: a device the kernel has up that nothing claimed is
+            // `up: false` in the C's status (R81 F13). A first sighting
+            // derives it from the claims held so far.
+            if self.devices.get(name).is_none() {
+                d.active = self.claims.iter().any(|(n, c)| n == name && *c > 0);
+            }
             d.link_active = flags & sys::IFF_LOWER_UP != 0;
             d.orig_settings = device::read_settings(name, &self.ethtool, &self.ifioctl);
             pending.push(d);
@@ -793,17 +1163,7 @@ impl Netifd {
                     continue;
                 }
             };
-            if let Some(mac) = dc.macaddr {
-                if let Err(e) = self.sys.set_mac(br, &mac) {
-                    eprintln!("netifd-rs: cannot set {} macaddr: {e}", dc.name);
-                }
-            }
-            if let Some(mtu) = dc.mtu {
-                let _ = self.sys.set_mtu(br, mtu);
-            }
-            if let Some(q) = dc.txqueuelen {
-                let _ = self.sys.set_txqueuelen(br, q);
-            }
+            self.apply_device_config(&dc, br);
 
             // Reload must preserve dynamic wireless members and their claims.
             let mut members = self.devices.get(&dc.name)
@@ -884,33 +1244,66 @@ impl Netifd {
     /// still get that MAC, or the box comes up with the kernel's MAC instead
     /// of the configured one (the WAN MAC an ISP may pin to).
     fn apply_device_settings(&mut self, name: &str, idx: u32) {
-        let Some(dc) = self.cfg.devices.iter().find(|d| d.name == name && d.kind.is_none())
+        let Some(dc) = self.cfg.devices.iter().find(|d| d.name == name && d.kind.is_none()).cloned()
         else {
             return;
         };
-        let (mac, mtu, q) = (dc.macaddr, dc.mtu, dc.txqueuelen);
-        if let Some(mac) = mac {
-            if let Err(e) = self.sys.set_mac(idx, &mac) {
-                eprintln!("netifd-rs: cannot set {name} macaddr: {e}");
-            }
-        }
-        if let Some(mtu) = mtu {
+        self.apply_device_config(&dc, idx);
+    }
+
+    /// `system_if_apply_settings`, in the C's order, for the options a
+    /// `config device` on this device can carry. `ipv6`, `promisc`,
+    /// `multicast` and `mtu6` were parsed and dropped until R81 F12.
+    fn apply_device_config(&mut self, dc: &config::DeviceConfig, idx: u32) {
+        if let Some(mtu) = dc.mtu {
             let _ = self.sys.set_mtu(idx, mtu);
         }
-        if let Some(q) = q {
+        // `mtu6`/DEV_OPT_MTU6: parsed, but the C does not lower the IPv6
+        // interface MTU for the plain `config device` sections on this box --
+        // verified against the reference, which leaves it at the link MTU
+        // (R83). Applying it was a divergence, so it is left alone here too.
+        if let Some(q) = dc.txqueuelen {
             let _ = self.sys.set_txqueuelen(idx, q);
+        }
+        if let Some(mac) = dc.macaddr {
+            if let Err(e) = self.sys.set_mac(idx, &mac) {
+                eprintln!("netifd-rs: cannot set {} macaddr: {e}", dc.name);
+            }
+        }
+        if let Some(v) = dc.ipv6 {
+            let p = sys::sysctl_path("ipv6", &dc.name, "disable_ipv6");
+            let _ = sys::sysctl_set(&p, if v { "0" } else { "1" });
+        }
+        if let Some(v) = dc.promisc {
+            let (add, rem) = if v { (sys::IFF_PROMISC, 0) } else { (0, sys::IFF_PROMISC) };
+            let _ = self.sys.set_link_flags(idx, add, rem);
+        }
+        if let Some(v) = dc.multicast {
+            let (add, rem) = if v { (sys::IFF_MULTICAST, 0) } else { (0, sys::IFF_MULTICAST) };
+            let _ = self.sys.set_link_flags(idx, add, rem);
         }
     }
 
-    /// The global prefix list: the ULA from `globals`. Delegated prefixes come
-    /// from a protocol handler, which this build does not run yet.
+    /// Reload only the ULA from `globals`. Protocol-owned delegations survive
+    /// an unrelated configuration reload, including a change to `delegate`.
     fn build_prefixes(&mut self) {
-        self.prefixes.clear();
-        if let Some((addr, len)) = self.cfg.globals.ula_prefix {
-            // interface_ip_set_ula_prefix refuses a length outside 1..=64
-            if (1..=64).contains(&len) {
-                self.prefixes.push(ip::DevicePrefix::new(addr, len, "local", None));
-            }
+        let fresh = self.cfg.globals.ula_prefix.filter(|(_, len)| (1..=64).contains(len));
+        let old = self.prefixes.iter().find(|p| p.iface.is_none()).map(|p| (p.addr, p.length));
+        if old == fresh {
+            return;
+        }
+        if let Some((addr, len)) = old {
+            let mut null = sys::Route::v6(addr, len);
+            null.metric = i32::MAX as u32;
+            null.nodev = true;
+            let _ = self.sys.del_route(0, &null);
+        }
+        self.prefixes.retain(|p| p.iface.is_some());
+        if let Some((addr, len)) = fresh {
+            self.prefixes.push(ip::DevicePrefix::new(addr, len, "local", None));
+        }
+        if !self.interfaces.is_empty() {
+            self.refresh_prefix_assignments();
         }
     }
 
@@ -926,12 +1319,19 @@ impl Netifd {
         // has a present member, not that the bridge netdev exists.
         i.available =
             ic.device.as_deref().map(|d| self.device_present_now(d)).unwrap_or(false);
-        i.autostart = ic.auto.unwrap_or(true) && !ic.disabled;
+        i.autostart = ic.auto.unwrap_or(true);
         i.metric = ic.metric;
         i.dns_metric = ic.dns_metric;
         i.ip4table = ic.ip4table.unwrap_or(0);
         i.ip6table = ic.ip6table.unwrap_or(0);
         i.proto_ip.no_delegation = ic.delegate == Some(false);
+        // `interface_add_dns_server_list(&iface->config_ip, ...)`, and the
+        // proto_ip flags from `peerdns`/`defaultroute` (R81 F06)
+        i.config_ip.dns_servers = ic.dns.clone();
+        i.config_ip.dns_search = ic.dns_search.clone();
+        i.config_ip.routes = self.config_routes_for(&ic.name);
+        i.proto_ip.no_dns = ic.peerdns == Some(false);
+        i.proto_ip.no_defaultroute = ic.defaultroute == Some(false);
         i
     }
 
@@ -962,7 +1362,7 @@ impl Netifd {
                 .interfaces
                 .iter()
                 .find(|ic| ic.name == name)
-                .map(|ic| ic.auto.unwrap_or(true) && !ic.disabled)
+                .map(|ic| ic.auto.unwrap_or(true))
                 .unwrap_or(false);
             if autostart {
                 self.iface_up(&name);
@@ -1131,6 +1531,21 @@ impl Netifd {
 
         // `interface_set_up`: `device_claim(&iface->main_dev)`
         self.iface_claim(name, &devname, false);
+        // `proto_apply_static_settings` failed: `__interface_set_up` gets -1
+        // and calls `mark_interface_down` from IFS_SETUP (an ifup-failed),
+        // with the proto error recorded. Skipping the bad option and coming
+        // up without it was r61's bad-addr difference (R81 F14 follow-up).
+        if let Some((code, value)) = ic.static_error.clone() {
+            eprintln!("netifd-rs: Interface '{name}' is setting up now");
+            self.interfaces[idx].state = State::Setup;
+            self.interfaces[idx].errors.push(interface::IfaceError {
+                subsystem: "proto".into(),
+                code,
+                data: vec![value],
+            });
+            self.mark_interface_down(name);
+            return;
+        }
         // static has no protocol script, so the main device is the L3 device
         self.iface_claim(name, &devname, true);
 
@@ -1194,9 +1609,12 @@ impl Netifd {
                 Err(e) => eprintln!("netifd-rs: {name}: cannot add ip6gw {gw}: {e}"),
             }
         }
-        ipset.dns_servers = ic.dns.clone();
-        ipset.dns_search = ic.dns_search.clone();
+        // `list dns` lives in config_ip (set in new_interface) for every
+        // protocol, not in the static proto's own settings (R81 F06)
+        ipset.no_dns = ic.peerdns == Some(false);
+        ipset.no_defaultroute = ic.defaultroute == Some(false);
         ipset.no_delegation = ic.delegate == Some(false);
+        self.apply_config_routes(name, devidx);
 
         let _ = applied_any;
         let i = &mut self.interfaces[idx];
@@ -1212,7 +1630,7 @@ impl Netifd {
         if !i.proto_ip.addresses.is_empty() {
             i.updated |= interface::updated::ADDRESS;
         }
-        if !i.proto_ip.routes.is_empty() {
+        if !i.proto_ip.routes.is_empty() || !i.config_ip.routes.is_empty() {
             i.updated |= interface::updated::ROUTE;
         }
         i.errors.clear();
@@ -1245,12 +1663,18 @@ impl Netifd {
                 let st = self.proto_state(name);
                 let _ = st.script.signal(process::SIGTERM as u32);
                 let _ = st.task.signal(process::SIGTERM as u32);
+                // `uloop_timeout_set(&state->teardown_timeout, 1000)`
+                st.teardown_deadline = Some(now_ms() + 1000);
             }
             proto::Action::Run { action, env } => {
                 if action != "setup" {
                     // `uloop_timeout_cancel(&state->checkup_timeout)` on
                     // teardown and on abort
                     self.proto_state(name).checkup_at = None;
+                }
+                if action == "teardown" {
+                    // `uloop_timeout_set(&state->teardown_timeout, 5000)`
+                    self.proto_state(name).teardown_deadline = Some(now_ms() + 5000);
                 }
                 // `proto_ext_clear_host_dep` runs when a SETUP starts, not on
                 // teardown -- so a dependency that went unsatisfied keeps the
@@ -1495,7 +1919,7 @@ impl Netifd {
             }
         }
         for r in &old.routes {
-            if new.routes.iter().any(|n| same_route(n, r)) {
+            if !r.enabled || new.routes.iter().any(|n| same_route(n, r)) {
                 continue;
             }
             let _ = self.sys.del_route(devidx, &sys_route(r));
@@ -1572,6 +1996,10 @@ impl Netifd {
         } else {
             interface::IpSettings::default()
         };
+        // `iface->proto_ip.no_dns / no_defaultroute` (peerdns, defaultroute):
+        // parsed since R45 but never applied until R81 F06
+        ipset.no_dns = ic.peerdns == Some(false);
+        ipset.no_defaultroute = ic.defaultroute == Some(false);
 
         // proto_apply_ip_settings: `ipaddr`/`ip6addr` are arrays of tables,
         // each carrying its own mask. A rejected item abandons the remaining
@@ -1608,8 +2036,12 @@ impl Netifd {
                 let mut ia = Address::new(a.ip, a.mask);
                 ia.point_to_point = a.point_to_point;
                 ia.class = a.class.clone();
-                ia.preferred = a.preferred;
-                ia.valid = a.valid;
+                // `parse_address_item`: lifetimes become deadlines here
+                let base = now().min(u32::MAX as u64) as u32;
+                ia.preferred_until = a.preferred.map(|p| base.saturating_add(p));
+                ia.valid_until = a.valid.map(|v| base.saturating_add(v));
+                ia.broadcast = a.broadcast;
+                ia.offlink = a.offlink;
                 ipset.addresses.push(ia);
                 counts[v6 as usize] += 1;
             }
@@ -1654,7 +2086,7 @@ impl Netifd {
                 delegated.push(dp);
             }
         }
-        self.set_delegated_prefixes(name, delegated);
+        let changed_prefixes = self.set_delegated_prefixes(name, delegated);
 
         // `gateway`/`ip6gw` are applied only when that family got an address
         if !bad {
@@ -1777,6 +2209,9 @@ impl Netifd {
         if changed_routes {
             new_updated |= interface::updated::ROUTE;
         }
+        if changed_prefixes {
+            new_updated |= interface::updated::PREFIX;
+        }
 
         // `IFPEV_UP`: the interface only completes its bring-up from SETUP.
         // One that is already up gets an IFEV_UPDATE; one that is DOWN --
@@ -1832,6 +2267,8 @@ impl Netifd {
         self.start_time.retain(|(n, _)| n != name);
         self.start_time.push((name.to_string(), now()));
         self.proto_state(name).sm = proto::Sm::Idle;
+        // `interface_ip_set_enabled(&iface->config_ip, true)` at IFPEV_UP
+        self.apply_config_routes(name, devidx);
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
         self.write_resolv_conf();
@@ -1864,6 +2301,14 @@ impl Netifd {
         r: &interface::Route,
         ipset: &mut interface::IpSettings,
     ) {
+        // `enable_route`: with `no_defaultroute` a default route stays in the
+        // list -- dumped under `inactive` -- but out of the kernel
+        if ipset.no_defaultroute && r.mask == 0 {
+            let mut held = r.clone();
+            held.enabled = false;
+            ipset.routes.push(held);
+            return;
+        }
         let k = sys_route(r);
         if let Err(e) = self.sys.add_route(devidx, &k) {
             eprintln!("netifd-rs: {name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
@@ -1948,53 +2393,60 @@ impl Netifd {
                         st.last_error = status;
                     }
                 }
-                let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned()
-                else {
-                    continue;
-                };
-                let Some(handler) = self.handler_for(&ic.proto).cloned() else { continue };
-                // `proto_ext_checkup_attach` reads `checkup_interval` out of
-                // the config blob handed to the protocol -- which carries
-                // only the parameters the handler declares. No handler on
-                // this device declares it, so the timer is never armed, and
-                // setting the option in UCI has no effect. Reading it
-                // straight from UCI instead armed a teardown the C never
-                // performs, and the interface then retried in a loop.
-                let declared = proto::IFACE_ATTRS.iter().any(|(n, _)| *n == "checkup_interval")
-                    || handler.config.iter().any(|(n, _)| n == "checkup_interval");
-                let checkup =
-                    if declared { ic.checkup_interval.unwrap_or(0) } else { 0 };
-                let effects = {
-                    let st = self.proto_state(&name);
-                    proto::task_finish(st, which, &handler, checkup)
-                };
-                for e in effects {
-                    match e {
-                        proto::Finish::LinkLost => {
-                            self.link_lost(&name);
-                        }
-                        // teardown is complete: this is the second IFEV_DOWN,
-                        // and hotplug.d already ran on the first
-                        proto::Finish::Down => {
-                            self.mark_interface_down(&name);
-                            self.handle_config_change(&name);
-                        }
-                        proto::Finish::Teardown => {
-                            self.proto_cmd(&name, proto::Cmd::Teardown);
-                        }
-                        proto::Finish::Renew => {
-                            self.proto_cmd(&name, proto::Cmd::Renew);
-                        }
-                        proto::Finish::SignalTask(sig) => {
-                            let st = self.proto_state(&name);
-                            st.task_killed = true;
-                            let _ = st.task.signal(sig);
-                        }
-                        proto::Finish::ArmCheckup => {
-                            let at = now() + checkup as u64;
-                            self.proto_state(&name).checkup_at = Some(at);
-                        }
-                    }
+                self.finish_proto_task(&name, which);
+            }
+        }
+    }
+
+    /// `proto_ext_task_finish`: the state machine's reaction to one child
+    /// having exited (or, from the teardown deadline, to both having been
+    /// killed). Shared by the reaper and the deadline pump.
+    fn finish_proto_task(&mut self, name: &str, which: proto::Which) {
+        let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned()
+        else {
+            return;
+        };
+        let Some(handler) = self.handler_for(&ic.proto).cloned() else { return };
+        // `proto_ext_checkup_attach` reads `checkup_interval` out of
+        // the config blob handed to the protocol -- which carries
+        // only the parameters the handler declares. No handler on
+        // this device declares it, so the timer is never armed, and
+        // setting the option in UCI has no effect. Reading it
+        // straight from UCI instead armed a teardown the C never
+        // performs, and the interface then retried in a loop.
+        let declared = proto::IFACE_ATTRS.iter().any(|(n, _)| *n == "checkup_interval")
+            || handler.config.iter().any(|(n, _)| n == "checkup_interval");
+        let checkup =
+            if declared { ic.checkup_interval.unwrap_or(0) } else { 0 };
+        let effects = {
+            let st = self.proto_state(name);
+            proto::task_finish(st, which, &handler, checkup)
+        };
+        for e in effects {
+            match e {
+                proto::Finish::LinkLost => {
+                    self.link_lost(name);
+                }
+                // teardown is complete: this is the second IFEV_DOWN,
+                // and hotplug.d already ran on the first
+                proto::Finish::Down => {
+                    self.mark_interface_down(name);
+                    self.handle_config_change(name);
+                }
+                proto::Finish::Teardown => {
+                    self.proto_cmd(name, proto::Cmd::Teardown);
+                }
+                proto::Finish::Renew => {
+                    self.proto_cmd(name, proto::Cmd::Renew);
+                }
+                proto::Finish::SignalTask(sig) => {
+                    let st = self.proto_state(name);
+                    st.task_killed = true;
+                    let _ = st.task.signal(sig);
+                }
+                proto::Finish::ArmCheckup => {
+                    let at = now() + checkup as u64;
+                    self.proto_state(name).checkup_at = Some(at);
                 }
             }
         }
@@ -2055,7 +2507,7 @@ impl Netifd {
             .flat_map(|i| {
                 i.prefix_assignments.iter().filter_map(move |a| {
                     a.local
-                        .map(|(l, len)| (i.name.clone(), l, len, a.valid, a.owner.clone()))
+                        .map(|(l, len)| (i.name.clone(), l, len, a.valid_until, a.owner.clone()))
                 })
             })
             .collect();
@@ -2065,7 +2517,7 @@ impl Netifd {
         // that differ only in length hand out the same local address, and the
         // C withdraws the departing parent's assignment on top of it.
         let live: Vec<(Option<String>, Ipv6Addr, u8)> = self
-            .prefixes
+            .delegating_prefixes()
             .iter()
             .map(|p| (p.iface.clone(), p.addr, p.length))
             .collect();
@@ -2122,8 +2574,7 @@ impl Netifd {
         for i in &mut self.interfaces {
             i.prefix_assignments.clear();
         }
-        let prefixes = self.prefixes.clone();
-        for p in &prefixes {
+        for p in &self.prefixes {
             // `interface_update_prefix` installs an unreachable route for the
             // whole prefix, at the lowest possible priority, so a packet for
             // an unassigned part of it does not loop back out.
@@ -2133,6 +2584,9 @@ impl Netifd {
             if let Err(e) = self.sys.add_route(0, &null) {
                 eprintln!("netifd-rs: cannot add the {}/{} null route: {e}", p.addr, p.length);
             }
+        }
+        let prefixes = self.delegating_prefixes();
+        for p in &prefixes {
             for a in ip::assign(p, &reqs) {
                 let addr = ip::assignment_address(p, a.assigned);
                 let local = ip::local_address(addr, "::1".parse().unwrap());
@@ -2194,8 +2648,8 @@ impl Netifd {
                     interface::PrefixAssignment {
                         addr,
                         length: a.length,
-                        preferred: p.preferred_until,
-                        valid: p.valid_until,
+                        preferred_until: p.preferred_until,
+                        valid_until: p.valid_until,
                         local: if up { Some((local, a.length)) } else { None },
                         owner: Some((p.iface.clone(), p.addr, p.length)),
                     },
@@ -2357,6 +2811,34 @@ impl Netifd {
         eprintln!("netifd-rs: bridge {br}: port {port} added");
     }
 
+    /// `bridge_hotplug_del`: a member that is not there is NOT_FOUND; one the
+    /// config names stays (`if (!bm->dev.hotplug) return 0`); a hotplug member
+    /// leaves the bridge and its claim goes.
+    fn bridge_port_detach(&mut self, br: &str, port: &str) -> i32 {
+        let member = self
+            .devices
+            .get(br)
+            .and_then(|d| d.bridge.as_ref())
+            .is_some_and(|b| b.members.iter().any(|m| m == port));
+        if !member {
+            return status::NOT_FOUND;
+        }
+        if self.cfg.devices.iter().any(|d| d.name == br && d.ports.iter().any(|p| p == port)) {
+            return 0;
+        }
+        if let Ok(pi) = self.sys.if_index(port) {
+            if pi != 0 {
+                if let Err(e) = self.sys.bridge_setmaster(pi, 0) {
+                    eprintln!("netifd-rs: cannot remove {port} from {br}: {e}");
+                }
+            }
+        }
+        self.device_release(port);
+        self.bridge_port_del(br, port);
+        eprintln!("netifd-rs: bridge {br}: port {port} removed");
+        0
+    }
+
     /// `bridge_remove_member` bookkeeping for a port whose netdev is gone;
     /// the kernel already dropped the enslavement with the device, and
     /// `device_removed` cleans the claims.
@@ -2401,12 +2883,8 @@ impl Netifd {
                 self.present.push(name.clone());
                 eprintln!("netifd-rs: device '{name}' is now present");
                 // a plain `config device` (e.g. wan with an explicit macaddr)
-                // that appears late still needs its settings applied
-                if let Ok(idx) = self.sys.if_index(&name) {
-                    if idx != 0 {
-                        self.apply_device_settings(&name, idx);
-                    }
-                }
+                // that appears late gets its settings when its interface
+                // claims it (`device_claim` -> `system_if_up`), like the C
                 if let Some(br) = self.bridge_of_port(&name) {
                     self.bridge_port_add(&br, &name);
                 }
@@ -2725,7 +3203,14 @@ impl Netifd {
                 eprintln!("netifd-rs: cannot unregister {name}: {e}");
             }
             self.link_state.retain(|(n, _)| *n != name);
-            self.protos.retain(|(n, _)| *n != name);
+            // `proto_ext_free`: `netifd_kill_process` on both tasks. Dropping
+            // the slots did not kill anything, so a removed interface's
+            // helper lived on (R81 F04).
+            if let Some(pos) = self.protos.iter().position(|(n, _)| *n == name) {
+                let (_, mut st) = self.protos.remove(pos);
+                st.script.terminate();
+                st.task.terminate();
+            }
         }
     }
 
@@ -2944,6 +3429,19 @@ impl Netifd {
     /// IFEV_UP_FAILED, which does not, so a protocol that cannot come up does
     /// not spin.
     fn handle_config_change(&mut self, name: &str) {
+        let Some(idx) = self.iface_index(name) else { return };
+        match std::mem::take(&mut self.interfaces[idx].config_state) {
+            interface::ConfigState::Normal => {}
+            interface::ConfigState::Reload => self.do_reload(name),
+            interface::ConfigState::Remove => {
+                // deferred, as the C's 1 ms remove_timer is: this runs from
+                // inside the reaper's walk over the proto states
+                if !self.remove_pending.iter().any(|n| n == name) {
+                    self.remove_pending.push(name.to_string());
+                }
+                return;
+            }
+        }
         let autostart = self
             .iface_index(name)
             .map(|i| self.interfaces[i].autostart)
@@ -3029,20 +3527,20 @@ impl Netifd {
 
         let l3 = self.interfaces[idx].l3_device.clone();
         let addrs: Vec<Address> = self.interfaces[idx].proto_ip.addresses.clone();
-        let routes: Vec<interface::Route> = self.interfaces[idx].proto_ip.routes.clone();
+        let mut routes: Vec<interface::Route> = self.interfaces[idx].proto_ip.routes.clone();
+        routes.extend(self.interfaces[idx].config_ip.routes.iter().cloned());
         let neighs: Vec<interface::Neighbor> = self.interfaces[idx].proto_ip.neighbors.clone();
         let assigns = self.interfaces[idx].prefix_assignments.clone();
         if let Some(dev) = l3 {
             if let Ok(di) = self.sys.if_index(&dev) {
                 if di != 0 {
                     for r in &routes {
-                        let mut sr = sys::Route::v4_default("0.0.0.0".parse().unwrap());
-                        sr.target = r.target;
-                        sr.mask = r.mask;
-                        sr.nexthop = r.nexthop;
-                        sr.metric = r.metric;
-                        sr.table = if r.table != 0 { r.table } else { sys::RT_TABLE_MAIN };
-                        if let Err(e) = self.sys.del_route(di, &sr) {
+                        // a route `no_defaultroute` held back was never added
+                        if !r.enabled {
+                            continue;
+                        }
+                        let d = if r.flags & interface::devroute::NODEV != 0 { 0 } else { di };
+                        if let Err(e) = self.sys.del_route(d, &sys_route(r)) {
                             eprintln!(
                                 "netifd-rs: {name}: cannot remove the route to {}/{}: {e}",
                                 r.target, r.mask
@@ -3069,7 +3567,7 @@ impl Netifd {
                     }
                     for a in &assigns {
                         if let Some((local, len)) = a.local {
-                            self.withdraw_assignment(di, local, len, a.valid);
+                            self.withdraw_assignment(di, local, len, a.valid_until);
                         }
                     }
                 }
@@ -3128,8 +3626,7 @@ impl Netifd {
         let Some(i) = self.interfaces.iter().find(|i| i.name == name).cloned() else { return };
         let mut b = BlobBuf::new();
         b.msg_string("interface", name);
-        let mut snapshot = i;
-        snapshot.uptime = self.uptime_of(name);
+        let snapshot = self.interface_snapshot(&i);
         snapshot.dump_status(&mut b);
         let fields = b.payload().to_vec();
         let shared = self.objects.interface;
@@ -3249,8 +3746,7 @@ impl Netifd {
     }
 
     fn dump_interface(&self, b: &mut BlobBuf, i: &Interface) {
-        let mut snapshot = i.clone();
-        snapshot.uptime = self.uptime_of(&i.name);
+        let snapshot = self.interface_snapshot(i);
         b.msg_string("interface", &i.name);
         snapshot.dump_status(b);
     }
@@ -3458,8 +3954,7 @@ impl Netifd {
                     return;
                 };
                 let mut b = BlobBuf::new();
-                let mut snapshot = i;
-                snapshot.uptime = self.uptime_of(&name);
+                let snapshot = self.interface_snapshot(&i);
                 snapshot.dump_status(&mut b);
                 let fields = b.payload().to_vec();
                 self.conn
@@ -3483,21 +3978,77 @@ impl Netifd {
             }
             // `netifd_handle_set_data` -> `interface_parse_data`
             // `netifd_iface_handle_device` -> `interface_handle_link`.
-            // Assigning a device to an interface by hotplug needs the device
-            // type's hotplug ops, which nothing in this build has, so `add`
-            // is NOT_SUPPORTED -- the same answer the C gives here. `remove`
-            // reports that the named device is not linked to this interface.
+            // `netifd_handle_iface_dev` -> `interface_handle_link`: with a
+            // bridge as the main device this is `bridge_hotplug_add/del`, a
+            // member joining or leaving at runtime; the interface's own main
+            // device is a no-op (0); a non-bridge main device has no hotplug
+            // ops in the C either (NOT_SUPPORTED); hotplug-assigning a device
+            // to an interface that has none is out of this build's scope and
+            // answers NOT_SUPPORTED rather than pretending (R81 F13).
             (ubus::Target::Interface(Some(name)), m @ ("add_device" | "remove_device")) => {
                 let name = name.to_string();
-                let has_name = blob::fields(&req.data)
-                    .any(|f| f.name == "name" && f.ty == MsgType::String as u32);
-                let code = if !has_name {
-                    status::INVALID_ARGUMENT
-                } else if m == "add_device" {
-                    status::NOT_SUPPORTED
-                } else {
-                    let _ = &name;
-                    status::INVALID_ARGUMENT
+                let dev = blob::fields(&req.data)
+                    .find(|f| f.name == "name" && f.ty == MsgType::String as u32)
+                    .and_then(|f| f.as_str().map(|s| s.to_string()));
+                let Some(dev) = dev else {
+                    let _ = self.conn.reply_status(&req, status::INVALID_ARGUMENT, None);
+                    return;
+                };
+                let link_ext = blob::fields(&req.data)
+                    .find(|f| f.name == "link-ext")
+                    .and_then(|f| f.as_bool())
+                    .unwrap_or(true);
+                // `interface_handle_link` looks up the device BEFORE checking
+                // whether the main device supports hotplug. Even a rejected
+                // add marks an existing device external (device_get(..., 2)).
+                if m == "add_device" {
+                    if !self.device_objects.contains(&dev) {
+                        self.device_objects.push(dev.clone());
+                        if !link_ext {
+                            self.sys.clear_state(&dev, false);
+                        }
+                        self.rescan_devices();
+                    }
+                    if link_ext {
+                        if let Some(d) = self.devices.get_mut(&dev) {
+                            d.external = true;
+                            d.present = !d.deferred;
+                        }
+                    }
+                }
+                let main = self
+                    .cfg
+                    .interfaces
+                    .iter()
+                    .find(|i| i.name == name)
+                    .and_then(|i| i.device.clone());
+                let code = match main {
+                    Some(md) if md == dev => 0,
+                    Some(md)
+                        if self
+                            .cfg
+                            .devices
+                            .iter()
+                            .any(|x| x.name == md && x.kind.as_deref() == Some("bridge")) =>
+                    {
+                        if m == "add_device" {
+                            if self.sys.if_index(&dev).unwrap_or(0) == 0 {
+                                status::NOT_FOUND
+                            } else {
+                                // The device lookup and external ownership
+                                // decision happened before the hotplug call.
+                                self.bridge_port_add(&md, &dev);
+                                0
+                            }
+                        } else {
+                            self.bridge_port_detach(&md, &dev)
+                        }
+                    }
+                    // `interface_add_link`: a main device without hotplug ops
+                    // is NOT_SUPPORTED; `interface_remove_link`: a main device
+                    // that was not hotplug-assigned is INVALID_ARGUMENT
+                    _ if m == "add_device" => status::NOT_SUPPORTED,
+                    _ => status::INVALID_ARGUMENT,
                 };
                 self.conn.reply_status(&req, code, None)
             }
@@ -3650,6 +4201,60 @@ impl Netifd {
         }
     }
 
+    /// One second as a backstop, or sooner when a proto teardown deadline is
+    /// closer than that.
+    fn poll_timeout_ms(&self) -> i32 {
+        let t = now_ms();
+        self.protos
+            .iter()
+            .filter_map(|(_, st)| st.teardown_deadline)
+            .chain(self.wdeadline)
+            .map(|d| d.saturating_sub(t).min(1000) as i32)
+            .min()
+            .unwrap_or(1000)
+    }
+
+    /// `uloop_end` followed by `netifd_kill_processes`: on SIGINT, SIGTERM,
+    /// SIGUSR1 or SIGUSR2 the C leaves the interfaces exactly as they are,
+    /// SIGKILLs every process it started -- protocol scripts, their helpers,
+    /// the hotplug script -- and exits 0. Without this the default disposition
+    /// killed netifd alone, so a `service network restart` left udhcpc and
+    /// odhcp6c running and the next netifd started a second copy of each
+    /// (R81 F03). The exact rootfs also stops its ucode-owned wireless
+    /// handler on exit, as the shutdown case in r83_wireless_deadline proves.
+    fn shutdown(&mut self) -> ! {
+        eprintln!("netifd-rs: terminating on signal");
+        for (_, st) in &mut self.protos {
+            st.script.terminate();
+            st.task.terminate();
+        }
+        self.hotplug.terminate();
+        self.wslot.terminate();
+        std::process::exit(0);
+    }
+
+    /// `proto_ext_teardown_timeout_cb`: a teardown script that has not exited
+    /// 5 s after it started, or an aborted setup still running 1 s after the
+    /// SIGTERM, is SIGKILLed together with its helper and the state machine
+    /// completes as if both had exited (R81 F09).
+    fn pump_proto_deadlines(&mut self) {
+        let t = now_ms();
+        let names: Vec<String> = self
+            .protos
+            .iter()
+            .filter(|(_, st)| st.teardown_deadline.is_some_and(|d| t >= d))
+            .map(|(n, _)| n.clone())
+            .collect();
+        for name in names {
+            eprintln!("netifd-rs: {name}: teardown timed out, killing the protocol handler");
+            let st = self.proto_state(&name);
+            st.teardown_deadline = None;
+            st.script.terminate();
+            st.task.terminate();
+            self.finish_proto_task(&name, proto::Which::Script);
+        }
+    }
+
     fn run(&mut self) -> ! {
         loop {
             if self.bus_down {
@@ -3665,8 +4270,10 @@ impl Netifd {
                 PollFd { fd: nl_fd, events: POLLIN, revents: 0 },
                 PollFd { fd: self.sigchld.as_raw_fd(), events: POLLIN, revents: 0 },
             ];
-            // the timeout is only a backstop now that SIGCHLD wakes us
-            match owrt_ubus::sys::poll_fds(&mut fds, 1000) {
+            // the timeout is a backstop now that SIGCHLD wakes us, or the
+            // nearest proto teardown deadline when that is sooner
+            let timeout = self.poll_timeout_ms();
+            match owrt_ubus::sys::poll_fds(&mut fds, timeout) {
                 Ok(_) => {}
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
                 Err(e) => {
@@ -3677,7 +4284,13 @@ impl Netifd {
             if fds[2].revents & POLLIN != 0 {
                 self.sigchld.drain();
             }
+            if self.sigchld.exit_requested() {
+                self.shutdown();
+            }
             self.reap_children();
+            process::reap_retired();
+            self.pump_proto_deadlines();
+            self.pump_wireless_deadline();
             self.pump_wireless_procs();
             self.pump_removals();
             self.pump_checkups();
@@ -3721,6 +4334,11 @@ fn write_resolv_entries(out: &mut String, ip: &interface::IpSettings, dev: &str)
 
 /// The vlist key of a route: its destination and where it sits, not how it
 /// gets there. See the note on `flush_stale_ip`.
+/// The config_ip route vlist key plus the fields a re-parse can change.
+fn route_key(r: &interface::Route) -> (IpAddr, u8, IpAddr, u32, u32, u32, u32, u32, IpAddr, u8) {
+    (r.target, r.mask, r.nexthop, r.flags, r.metric, r.table, r.mtu, r.ty, r.source, r.sourcemask)
+}
+
 fn same_route(a: &interface::Route, b: &interface::Route) -> bool {
     a.target == b.target
         && a.mask == b.mask
@@ -3757,6 +4375,9 @@ struct WRadio {
     /// `wdev.procs`: processes the handler registered. A registered process
     /// disappearing tears the radio down.
     procs: Vec<(i64, String)>,
+    /// `wdev.config_change`: a setup was asked for while the handler was
+    /// running; `wdev_setup_cb` runs it again once the handler is done.
+    config_change: bool,
     /// `handler_data[wdev.name]`: the device-level record, handed back to the
     /// handler on its next setup and on teardown. Cleared when a teardown
     /// completes, the way `wdev_teardown_cb` empties the whole map.
@@ -3786,6 +4407,7 @@ impl Netifd {
                 links: Vec::new(),
                 device_data: Vec::new(),
                 procs: Vec::new(),
+                config_change: false,
             })
             .collect();
         for name in self.wradios.iter().map(|r| r.name.clone()).collect::<Vec<_>>() {
@@ -3853,6 +4475,7 @@ impl Netifd {
                 links: Vec::new(),
                 device_data: Vec::new(),
                 procs: Vec::new(),
+                config_change: false,
             });
         }
         for name in added.iter().chain(changed.iter()) {
@@ -3873,11 +4496,17 @@ impl Netifd {
         }
         let Some(r) = self.wradio(name) else { return };
         if !matches!(r.state, wireless::WState::Up | wireless::WState::Down) {
+            // `update()` set config_change before calling `check()`, and
+            // `wdev_setup_cb` reruns the setup when the handler finishes.
+            // Returning without remembering it dropped a reload that landed
+            // during a setup (R81 F10).
+            r.config_change = true;
             return;
         }
         if !r.autostart || r.retry_setup_failed {
             return;
         }
+        r.config_change = false; // `delete this.config_change`
         r.state = wireless::WState::Setup;
         r.procs.clear(); // `wdev_proc_reset`
         self.wqueue.push_back((name.to_string(), "setup"));
@@ -3915,7 +4544,14 @@ impl Netifd {
     /// Replace the prefixes delegated to one interface. `class` and `iface`
     /// are the uplink's name, which is what the C reports and what the
     /// assignments are keyed by; the ULA keeps `local`.
-    fn set_delegated_prefixes(&mut self, iface: &str, mut fresh: Vec<ip::DevicePrefix>) {
+    fn set_delegated_prefixes(&mut self, iface: &str, mut fresh: Vec<ip::DevicePrefix>) -> bool {
+        // interface_update_prefix sets IUF_PREFIX for added/removed entries,
+        // or when a renewal changes either deadline on an existing entry.
+        let old: Vec<_> = self.prefixes.iter().filter(|p| p.iface.as_deref() == Some(iface)).collect();
+        let changed = old.len() != fresh.len() || fresh.iter().any(|n| {
+            !old.iter().any(|p| p.addr == n.addr && p.length == n.length
+                && p.preferred_until == n.preferred_until && p.valid_until == n.valid_until)
+        });
         let before = self.prefixes.len();
         // The null route belongs to the parent prefix, and the C removes it in
         // the same `node_old` branch that withdraws the assignments
@@ -3942,6 +4578,7 @@ impl Netifd {
         if removed != 0 || added != 0 {
             self.refresh_prefix_assignments();
         }
+        changed
     }
 
     /// `wdev_proc_check`, on the one-second interval `wdev_proc_add` starts.
@@ -4206,23 +4843,40 @@ impl Netifd {
             name.clone(),
             config.to_compact(),
         ];
+        self.wcur = Some((name.clone(), op));
         if let Err(e) = self.wslot.start_in(&argv, &[], &dir) {
             eprintln!("netifd-rs: {name}: cannot run the wireless handler: {e}");
+            self.wireless_complete();
             return;
         }
-        self.wcur = Some((name, op));
+        self.wdeadline = Some(now_ms() + 30_000);
+    }
+
+    /// wireless-device.uc run_handler_timeout: cancel after 30 s, then run
+    /// the normal completion callback so the next radio cannot be starved.
+    fn pump_wireless_deadline(&mut self) {
+        if self.wdeadline.is_some_and(|deadline| now_ms() >= deadline) {
+            self.wslot.terminate();
+            self.wireless_complete();
+        }
     }
 
     /// The handler exited. `wdev_setup_cb` / `wdev_teardown_cb`.
     fn wireless_reap(&mut self) {
         let Some((argv0, status, output)) = self.wslot.reap() else { return };
-        let Some((name, op)) = self.wcur.take() else { return };
+        let Some((name, _)) = self.wcur.as_ref() else { return };
         for line in output.lines().filter(|l| !l.trim().is_empty()) {
             eprintln!("netifd-rs: {name}: {line}");
         }
         if status != 0 {
             eprintln!("netifd-rs: {name}: {argv0} exited {status}");
         }
+        self.wireless_complete();
+    }
+
+    fn wireless_complete(&mut self) {
+        self.wdeadline = None;
+        let Some((name, op)) = self.wcur.take() else { return };
         if op == "setup" {
             // A handler that reported its interfaces up left the state at Up,
             // and there is nothing to retry.
@@ -4239,6 +4893,13 @@ impl Netifd {
                     }
                 }
                 self.wireless_teardown(&name);
+            } else if self
+                .wradios
+                .iter()
+                .any(|r| r.name == name && r.state == wireless::WState::Up && r.config_change)
+            {
+                // `wdev_setup_cb`: "state == up && config_change" -> setup again
+                self.wireless_setup(&name);
             }
         } else {
             self.wireless_remove_links(&name);
@@ -4503,6 +5164,7 @@ fn sys_route(r: &interface::Route) -> sys::Route {
         k.source = Some(r.source);
         k.sourcemask = r.sourcemask;
     }
+    k.nodev = r.flags & interface::devroute::NODEV != 0;
     k
 }
 
@@ -4570,6 +5232,7 @@ fn loading_the_same_config_twice_reports_no_change() {
     let b = config::load(dir.to_str().unwrap()).unwrap();
     let _ = std::fs::remove_dir_all(&dir);
     let (x, y) = (&a.interfaces[0], &b.interfaces[0]);
-    assert!(!config_changed(x, y), "\nA: {x:#?}\nB: {y:#?}");
+    let ch = classify_change(x, y, None);
+    assert!(!ch.reload && !ch.reload_ip && !ch.delegation && !ch.assignment, "{ch:?}\nA: {x:#?}\nB: {y:#?}");
 }
 }

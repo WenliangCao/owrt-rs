@@ -640,10 +640,8 @@ fn hints_ifaddrs(hints: &mut Hints) {
                     d.2.copy_from_slice(&ifa.addr);
                 }
             }
-            rtnl::AF_INET => {
-                if ifa.addr.len() == 4 {
-                    d.1.copy_from_slice(&ifa.addr);
-                }
+            rtnl::AF_INET if ifa.addr.len() == 4 => {
+                d.1.copy_from_slice(&ifa.addr);
             }
             _ => {}
         }

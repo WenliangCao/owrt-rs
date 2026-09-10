@@ -11,6 +11,8 @@
 use owrt_ubus::blob::BlobBuf;
 use owrt_ubus::json::Json;
 
+#[path = "../src/clock.rs"]
+mod clock;
 #[path = "../src/config.rs"]
 mod config;
 #[path = "../src/device.rs"]
@@ -27,6 +29,8 @@ mod ip;
 mod netdev_types;
 #[path = "../src/netlink.rs"]
 mod netlink;
+#[path = "../src/rt.rs"]
+mod rt;
 #[path = "../src/sys.rs"]
 mod sys;
 
@@ -206,8 +210,8 @@ fn main() {
             i.prefix_assignments.push(interface::PrefixAssignment {
                 addr,
                 length: a.length,
-                preferred: p.preferred_until,
-                valid: p.valid_until,
+                preferred_until: p.preferred_until,
+                valid_until: p.valid_until,
                 local: if i.state == State::Up || i.state == State::Setup {
                     Some((ip::local_address(addr, "::1".parse().unwrap()), a.length))
                 } else {

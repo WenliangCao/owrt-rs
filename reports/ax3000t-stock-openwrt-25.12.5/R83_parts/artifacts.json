@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "image_id": "ax3000t-stock-openwrt-25.12.5",
+  "recorded_date": "2026-09-10",
+  "audit_commit": "a903721",
+  "inherited_head": "068eada",
+  "purpose": "Verification builds only; no APK, firmware image or device deployment.",
+  "toolchain": {
+    "rustc": "1.98.1",
+    "commit": "48a229ceaefd4985c50990b14116b6d856af0985",
+    "llvm": "22.1.8",
+    "host": "aarch64-unknown-linux-gnu",
+    "target": "aarch64-unknown-linux-musl",
+    "sdk": "openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64"
+  },
+  "source_snapshot": {
+    "components": {
+      "fw4": "3342dd6722ae9cae627873f211de22312fb33e99fbf481429aa246e7ac6e79f7",
+      "httpd": "ce0f4ab9d4147f49974ee5ff3ab767d251a76292d99878dbf9271b0955d7ab15",
+      "logd": "ad2f044eb023b50ed42f15fd046cfbdf66fc290ae9e42bf434d331535b44b733",
+      "netifd": "4fa38f377cddde63ae2cc3da70f8dc753aa7ff207e6a0f4077534c4c86621d81",
+      "procd": "1c2b5d8b750bf37ce5205cb0571efa3efc00c584750c5124c7e61331e8aa4e08",
+      "reload-config": "5bbaf4983b74b1ba056271e5043fd040853418234318eef65664f8c02ea4051e",
+      "rpcd": "aa2d8e02a8bfaac79453ea9921861bd3d371126a44690877bd074da2ff5df481",
+      "ubus": "ec1c60ac7cd5bc94b0fa34a2b47386be4ba7093e7a2c39ae47966a979598dfae",
+      "ubusd": "27823b7f8aa992d16dcc566d0d3802f16afcbf949c1604754c4e47c6addc8aa9",
+      "uci": "94230e7cbc24166456aa892fa3335fe955b224eba25c56c1f417fed00a30b5b0"
+    },
+    "files": 135,
+    "source_sha256": "cb85334b08987cb5399b12cbe5355a28d75749665cfc7439428fc43c29d512c6",
+    "local_matches_build_host": true,
+    "definition": "SHA-256 of UTF-8 json.dumps(path_to_file_sha256, sort_keys=True, separators=(',', ':')). Paths relative to repository root. Includes components/**/*.rs, Cargo.toml, Cargo.lock, config.toml and root rust-toolchain.toml; excludes target, target-package, target-size, .git and __pycache__ directories. Component digests use the same rule limited to that component's paths."
+  },
+  "build": {
+    "directory": "/home/ubuntu/r83-complete",
+    "command": "cargo build --locked --release --bins --examples --target aarch64-unknown-linux-musl",
+    "reload_config_rustflags": [
+      "-Clink-arg=-fuse-ld=bfd",
+      "-Clink-arg=-Wl,-z,max-page-size=4096",
+      "-Clink-arg=-Wl,-z,now",
+      "-Clink-arg=-Wl,-z,relro",
+      "-Clink-arg=-Wl,-z,pack-relative-relocs"
+    ],
+    "reload_config_note": "Uses existing OpenWrt package linker flags and target-package. The native musl build is 528544 bytes; the package-flags build below passes the unchanged 512 KiB gate."
+  },
+  "binaries": [
+    {
+      "component": "uci",
+      "path": "components/uci/target/aarch64-unknown-linux-musl/release/uci-rs",
+      "bytes": 528496,
+      "sha256": "16ba2cbf0dfe282cb9c90b9bc5780708d57bbe3041253f8c4c7cce5f4f9d5ee7"
+    },
+    {
+      "component": "reload-config",
+      "path": "components/reload-config/target-package/aarch64-unknown-linux-musl/release/reload-config-rs",
+      "bytes": 491592,
+      "sha256": "ca46f1fe9d634cf367e0d3d94d63521e7f77ab5bc92b40c07a005d513f1e802b"
+    },
+    {
+      "component": "logd",
+      "path": "components/logd/target/aarch64-unknown-linux-musl/release/logd-rs",
+      "bytes": 462880,
+      "sha256": "921fb030892f18d9ff95da4a01134d77b16b7e47c05b2d3f9dcfc7c27844630e"
+    },
+    {
+      "component": "httpd",
+      "path": "components/httpd/target/aarch64-unknown-linux-musl/release/httpd-rs",
+      "bytes": 1577184,
+      "sha256": "4019c0791b8dfdb802680a221ba356ba253ddbbc890ae864723ec1374a3faac8"
+    },
+    {
+      "component": "fw4",
+      "path": "components/fw4/target/aarch64-unknown-linux-musl/release/fw4-rs",
+      "bytes": 1052728,
+      "sha256": "79261161a40260a51b0053806d7db98b47d375ff5f81c012beaffeb21889cac9"
+    },
+    {
+      "component": "rpcd",
+      "path": "components/rpcd/target/aarch64-unknown-linux-musl/release/rpcd-rs",
+      "bytes": 1249480,
+      "sha256": "7330aad6c1e49def53134ad7dbfecfa0fd926c1b6977c521e51cbfc460340bf8"
+    },
+    {
+      "component": "ubusd",
+      "path": "components/ubusd/target/aarch64-unknown-linux-musl/release/ubusd-rs",
+      "bytes": 528440,
+      "sha256": "18e6417f6a00834471e509f28249381bb79570425ea69e0c6902334a4230c559"
+    },
+    {
+      "component": "netifd",
+      "path": "components/netifd/target/aarch64-unknown-linux-musl/release/netifd-rs",
+      "bytes": 1052776,
+      "sha256": "839e27f2842aeb72caa98290ef622566f15c5e83d40e68b5186476041d1a8015"
+    },
+    {
+      "component": "procd",
+      "path": "components/procd/target/aarch64-unknown-linux-musl/release/procd-rs",
+      "bytes": 856144,
+      "sha256": "a030b2e852617a82f28d24fecfd0321f892e2062c735f445a69370c209b9f342"
+    }
+  ]
+}

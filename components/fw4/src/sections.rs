@@ -1869,11 +1869,9 @@ impl Fw4 {
                 }
                 chain = None;
             }
-            "chain-prepend" | "chain-append" => {
-                if chain.is_none() {
-                    self.warn_section(data, &format!("must specify 'chain' for position {position}, ignoring section"));
-                    return Ok(());
-                }
+            "chain-prepend" | "chain-append" if chain.is_none() => {
+                self.warn_section(data, &format!("must specify 'chain' for position {position}, ignoring section"));
+                return Ok(());
             }
             _ => {}
         }

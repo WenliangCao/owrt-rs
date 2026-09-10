@@ -298,7 +298,14 @@ impl Instance {
             self.watchdog_freq,
             self.watchdog_deadline,
         );
+        // instance_config_move never touches in->_stdout/_stderr: the pipes
+        // belong to the running child. Dropping them here closed the read
+        // ends on every `set` -- including a reload whose config had not
+        // changed -- and the child's next line was an EPIPE. (R81 F21.)
+        let (log_out, log_err) = (self.log_out.take(), self.log_err.take());
         *self = new;
+        self.log_out = log_out;
+        self.log_err = log_err;
         self.state = state;
         self.pid = pid;
         self.exit_code = exit_code;
@@ -815,7 +822,11 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     // C's own choice, and the reason `require` exists.
     if i.has_jail && std::fs::metadata(crate::proc::UJAIL).is_err() {
         if i.jail.requirejail {
-            eprintln!("procd-rs: cannot jail {name}: {} is missing", crate::proc::UJAIL);
+            log!(
+                crate::sys::LOG_ERR,
+                "Cannot jail service {name}. {} is missing",
+                crate::proc::UJAIL
+            );
             bad_field = true;
         } else {
             i.has_jail = false;
@@ -829,6 +840,34 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// R81 F21: `*self = new` dropped the running child's log pipes.
+    #[test]
+    fn take_config_keeps_the_running_childs_log_pipes() {
+        use std::os::fd::AsRawFd;
+        extern "C" {
+            fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
+        }
+        const F_GETFD: i32 = 1;
+        let (r, _w) = owrt_ubus::sys::pipe().unwrap();
+        let raw = r.as_raw_fd();
+        let mut live = Instance::new("a");
+        live.valid = true;
+        live.command = vec!["/bin/true".into()];
+        live.state = Run::Running;
+        live.pid = 12345;
+        live.log_out = Some(crate::proc::LogPipe::new(r, crate::sys::LOG_INFO).unwrap());
+
+        let mut fresh = Instance::new("a");
+        fresh.valid = true;
+        fresh.command = vec!["/bin/true".into()];
+        live.take_config(fresh);
+
+        assert!(live.log_out.is_some(), "log pipe dropped by take_config");
+        assert_eq!(live.log_out.as_ref().unwrap().fd.as_raw_fd(), raw);
+        // SAFETY: fcntl on a fd this test owns.
+        assert!(unsafe { fcntl(raw, F_GETFD, 0) } >= 0, "read end was closed");
+    }
 
     #[test]
     fn exit_code_matches_the_c_macros() {

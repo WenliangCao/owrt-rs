@@ -2,7 +2,6 @@ use std::io;
 use std::os::fd::RawFd;
 
 const LOCK_EX: i32 = 2;
-const LOCK_NB: i32 = 4;
 const SIG_ERR: usize = usize::MAX;
 pub const SIGINT: i32 = 2;
 pub const SIGTERM: i32 = 15;
@@ -16,17 +15,18 @@ extern "C" {
     fn libc_kill(pid: i32, signal: i32) -> i32;
 }
 
-pub fn try_lock(fd: RawFd) -> io::Result<bool> {
-    // SAFETY: fd is owned by a live File and flock does not retain a pointer.
-    let result = unsafe { flock(fd, LOCK_EX | LOCK_NB) };
-    if result == 0 {
-        return Ok(true);
-    }
-    let error = io::Error::last_os_error();
-    if error.kind() == io::ErrorKind::WouldBlock {
-        Ok(false)
-    } else {
-        Err(error)
+/// flock(fd, LOCK_EX): waits for the holder to finish. EINTR is retried, so a
+/// signal that only sets the cancel flag does not turn into a lock failure.
+pub fn lock(fd: RawFd) -> io::Result<()> {
+    loop {
+        // SAFETY: fd is owned by a live File and flock does not retain a pointer.
+        if unsafe { flock(fd, LOCK_EX) } == 0 {
+            return Ok(());
+        }
+        let error = io::Error::last_os_error();
+        if error.kind() != io::ErrorKind::Interrupted {
+            return Err(error);
+        }
     }
 }
 

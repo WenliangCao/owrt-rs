@@ -14,6 +14,7 @@ Methods whose output is inherently time/process dependent compare rc only.
 Usage: r26_rpcd_fuzz.py <rootfs-files> <rpcd-rs-musl-binary> [--cases-per-method N] [--seed S]
 Exit code 1 when any step differs.
 """
+from audit_checks import mask_session_ids
 import json
 import os
 import random
@@ -165,7 +166,11 @@ def main():
         text = base.normalize(sid, data, sids)
         text = re.sub(r'"(remaining|timeout|expires|time|uptime|localtime|idletime|atime|mtime|ctime)":\s*-?\d+', r'"\1":<N>', text)
         # sessions created by fuzz calls are not captured; any session id is random
-        text = re.sub(r"[0-9a-f]{32}", "<SID>", text)
+        text = mask_session_ids(text, session_list="_session_list" in sid)
+        if sid.endswith("_file_stat"):
+            # Each side has a separate rootfs copy. Only the top-level stat
+            # inode identifies that copy; mode/owner/size still compare.
+            text = re.sub(r'"inode":\s*\d+', '"inode":<INODE>', text)
         if "_session_list" in sid:
             text = "\n".join(sorted(text.splitlines()))
         return text

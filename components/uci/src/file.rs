@@ -8,7 +8,7 @@ use crate::export;
 use crate::parse;
 use crate::sys;
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufReader, Seek, SeekFrom};
+use std::io::{BufReader, Seek, SeekFrom, Write};
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 
 fn basename(path: &str) -> &str {
@@ -70,7 +70,7 @@ pub fn load(ctx: &mut Context, name: &str) -> Result<usize> {
         _ => {
             let mut conf2 = true;
             let mut filename = config_path(ctx, name, true)?;
-            if filename.as_ref().map_or(true, |f| fs::metadata(f).is_err()) {
+            if filename.as_ref().is_none_or(|f| fs::metadata(f).is_err()) {
                 conf2 = false;
                 filename = config_path(ctx, name, false)?;
             }
@@ -156,10 +156,15 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
                 return Ok(());
             }
         }
-        let (mut f2, tmp) = sys::mkstemp(&template).map_err(|_| Error::Io)?;
+        let (f2, tmp) = sys::mkstemp(&template).map_err(|_| Error::Io)?;
         tmpname = Some(tmp);
         sys::lock(&f2, sys::LOCK_EX).map_err(|_| Error::Io)?;
-        export::export_package(&mut f2, ctx.flags, &ctx.root[pidx], false).map_err(|_| Error::Io)?;
+        // uci_export writes through stdio and only then fflush/fsync; a bare
+        // File would emit a write(2) per token of every option
+        let mut w = std::io::BufWriter::new(&f2);
+        export::export_package(&mut w, ctx.flags, &ctx.root[pidx], false).map_err(|_| Error::Io)?;
+        w.flush().map_err(|_| Error::Io)?;
+        drop(w);
         let _ = f2.sync_all();
         sys::unlock(&f2);
         do_rename = true;

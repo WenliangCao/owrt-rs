@@ -11,11 +11,9 @@
 # down. After each step both sides are read for the LAN's addresses and
 # routes, the uplink's `ipv6-prefix`, and the assignment.
 #
-# wan6 is `auto 0` on purpose: with it starting normally the real odhcp6c runs,
-# finds no server, and its exit takes the interface down -- which withdraws the
-# assignment and leaves the C showing a DEPRECATED address from the first grant
-# onward. That is the protocol process interfering, not the delegation path.
-# Held down, the injected notify is the only thing acting on it.
+# A fixture shell protocol brings wan6 UP and then stays idle. The old test
+# injected while auto=0 kept wan6 DOWN, hiding ipv6-prefix from both status
+# replies and never exercising the reported lifetime fields.
 #
 # Usage: r62_pd_diff.sh <rootfs-files> <netifd-rs musl binary> [outdir]
 set -eu
@@ -36,8 +34,7 @@ config interface "lan"
 
 config interface "wan6"
 	option device "veth0"
-	option proto "dhcpv6"
-	option auto "0"
+	option proto "r83pd"
 '
 
 run() {
@@ -47,6 +44,20 @@ run() {
 	sudo -n chown -R root:root "$w/usr/share/acl.d" 2>/dev/null || true
 	[ "$tag" = rs ] && { sudo -n cp "$cand" "$w/sbin/netifd-rs"; sudo -n chmod 755 "$w/sbin/netifd-rs"; }
 	printf '%s' "$CFG" | sudo -n tee "$w/etc/config/network" >/dev/null
+	sudo -n tee "$w/lib/netifd/proto/r83pd.sh" >/dev/null <<'PROTO'
+#!/bin/sh
+. /lib/functions.sh
+. ../netifd-proto.sh
+init_proto "$@"
+proto_r83pd_init_config() { :; }
+proto_r83pd_setup() {
+    proto_init_update "$2" 1
+    proto_send_update "$1"
+}
+proto_r83pd_teardown() { :; }
+add_protocol r83pd
+PROTO
+	sudo -n chmod 755 "$w/lib/netifd/proto/r83pd.sh"
 
 	sudo -n unshare --mount --net --pid --fork --mount-proc=/proc sh -c '
 	  m=$1; t=$2; o=$3
@@ -77,21 +88,14 @@ run() {
 	  notify() {
 	    rc=0
 	    r=$(chroot "$m" ubus call network.interface.wan6 notify_proto \
-	      "{\"action\":0,\"link-up\":true,\"ifname\":\"veth0\",\"ip6addr\":[{\"ipaddr\":\"2001:db8:ffff::2\",\"mask\":128}],\"ip6prefix\":[$1]}" 2>&1) || rc=$?
+	      "{\"action\":0,\"link-up\":true,\"ifname\":\"veth0\",\"ip6addr\":[{\"ipaddr\":\"2001:db8:ffff::2\",\"mask\":128,\"preferred\":600,\"valid\":1200}],\"ip6prefix\":[$1]}" 2>&1) || rc=$?
 	    echo "--- notify rc=$rc out=[$r]"
 	  }
 	  snap() {
 	    echo "--- $1 lan v6 addr"
-	    # lifetimes are NOT normalised away here: `preferred 0` versus the
-	    # granted value is exactly what separates a withdrawn assignment from a
-	    # live one, and bucketing them hid the advisor'"'"'s counter-example.
-	    ip -o -6 addr show dev veth2 scope global \
-	      | sed -E -e "s/^[0-9]+: //" \
-	               -e "s/valid_lft ([0-9]+)sec/valid_lft \\1s/" \
-	               -e "s/preferred_lft ([0-9]+)sec/preferred_lft \\1s/" \
-	      | awk "{ for (i=1;i<=NF;i++) if (\$i ~ /_lft/) { getline_ok=1 }; print }" \
-	      | sed -E "s/(valid_lft )([0-9]+)s/\\1BUCKET/; s/(preferred_lft )0s/\\1ZERO/; s/(preferred_lft )[0-9]+s/\\1NONZERO/" \
-	      | sort
+	    # Preserve numerical lifetimes; the checker uses a 3-second tolerance
+	    # and separately requires countdown between two unmodified snapshots.
+	    ip -o -6 addr show dev veth2 scope global | sed -E "s/^[0-9]+: //" | sort
 	    echo "--- $1 lan v6 route"
 	    ip -6 route show dev veth2 | grep -v "^fe80" | sed -E "s/expires [0-9]+sec//" | sort
 	    # netifd installs an unreachable route for the whole delegated prefix
@@ -100,15 +104,15 @@ run() {
 	    echo "--- $1 prefix null route"
 	    ip -6 route show table all type unreachable 2>/dev/null \
 	      | sed -E "s/expires [0-9]+sec//" | sort
-	    echo "--- $1 wan6 prefix"
-	    chroot "$m" ubus call network.interface.wan6 status 2>/dev/null \
-	      | tr -d " \t\n" \
-	      | grep -oE "\"ipv6-prefix\":\[[^]]*\]*|\"address\":\"2001[^\"]*\"" | head -3
-	    echo ""
+	    echo "--- $1 wan6 status"
+	    chroot "$m" ubus call network.interface.wan6 status
+	    echo "--- $1 lan status"
+	    chroot "$m" ubus call network.interface.lan status
 	  }
 
 	  snap before-any
 	  notify "\"2001:db8:1:2::/60,3600,7200\"" ; sleep 3; snap first-grant
+	  sleep 3; snap countdown
 	  notify "\"2001:db8:1:2::/60,3600,7200\"" ; sleep 3; snap renewal
 	  notify "\"2001:db8:5:0::/60,1800,3600\"" ; sleep 3; snap replaced
 	  # The advisor'"'"'s counter-example: the parent changes LENGTH only, so it is
@@ -118,7 +122,15 @@ run() {
 	  # new lifetimes. Only the kernel state shows it.
 	  notify "\"2001:db8:100::/56,300,600\"" ; sleep 3; snap parent56
 	  notify "\"2001:db8:100::/60,1200,2400\"" ; sleep 3; snap parent60
-	  chroot "$m" ubus call network.interface.wan6 down >/dev/null 2>&1 || true
+	  chroot "$m" uci set network.wan6.delegate=0
+	  chroot "$m" uci commit network
+	  chroot "$m" ubus call network reload || exit 1
+	  sleep 3; snap delegate-off
+	  chroot "$m" uci set network.wan6.delegate=1
+	  chroot "$m" uci commit network
+	  chroot "$m" ubus call network reload || exit 1
+	  sleep 3; snap delegate-on
+	  chroot "$m" ubus call network.interface.wan6 down || exit 1
 	  sleep 3; snap after-down
 	  cp "$m/tmp/n.log" "$o/$t-daemon.log" 2>/dev/null || true
 	  cp /tmp/mon.txt "$o/$t-monitor.txt" 2>/dev/null || true
@@ -129,15 +141,4 @@ run() {
 run c
 run rs
 
-echo "=== C"
-sed 's/^/  /' "$out/c.txt"
-echo "=== netifd-rs"
-sed 's/^/  /' "$out/rs.txt"
-echo
-if diff -u "$out/c.txt" "$out/rs.txt" > "$out/pd.diff"; then
-	echo "R62: identical"
-	exit 0
-fi
-echo "R62: DIFFERENCES"
-cat "$out/pd.diff"
-exit 1
+python3 "$(dirname "$0")/r62_pd_check.py" "$out"

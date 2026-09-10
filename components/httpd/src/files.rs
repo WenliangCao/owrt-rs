@@ -23,8 +23,6 @@ pub enum Lookup {
     NotFound,
 }
 
-const INDEX_FILES: [&str; 4] = ["index.html", "index.htm", "default.html", "default.htm"];
-
 fn canonpath(path: &str) -> String {
     let mut out: Vec<&str> = Vec::new();
     for segment in path.split('/') {
@@ -41,7 +39,7 @@ fn canonpath(path: &str) -> String {
 }
 
 /// uhttpd's `uh_path_lookup`: longest existing prefix wins, rest is PATH_INFO.
-pub fn lookup(docroot: &str, url: &str) -> Lookup {
+pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -> Lookup {
     let (path_part, query) = match url.split_once('?') {
         Some((p, q)) => (
             p,
@@ -65,8 +63,12 @@ pub fn lookup(docroot: &str, url: &str) -> Lookup {
     let mut i = bytes.len();
     loop {
         if i == bytes.len() || bytes[i] == b'/' {
-            let candidate = canonpath(&full[..i]);
-            if fs::metadata(&candidate).is_ok() {
+            let candidate = if no_symlinks {
+                fs::canonicalize(&full[..i]).ok().map(|p| p.to_string_lossy().into_owned())
+            } else {
+                Some(canonpath(&full[..i]))
+            };
+            if let Some(candidate) = candidate.filter(|p| fs::metadata(p).is_ok()) {
                 found = Some((candidate, full[i..].to_owned()));
                 break;
             }
@@ -110,7 +112,7 @@ pub fn lookup(docroot: &str, url: &str) -> Lookup {
         };
         return Lookup::Redirect(location);
     }
-    for index in INDEX_FILES {
+    for index in indexes {
         let candidate = format!("{phys}/{index}");
         if let Ok(m) = fs::metadata(&candidate) {
             if m.is_file() {
@@ -274,6 +276,7 @@ pub fn serve<W: Write>(
     resp: &mut Response<W>,
     pi: &PathInfo,
     no_dirlists: bool,
+    charset: &str,
 ) -> io::Result<()> {
     if !matches!(
         request.method,
@@ -284,11 +287,11 @@ pub fn serve<W: Write>(
         return resp.finish();
     }
     if pi.meta.permissions().mode() & 0o004 == 0 {
-        return forbidden(resp, &pi.name);
+        return forbidden(resp, request, &request.url);
     }
     if pi.meta.is_file() {
         let Ok(mut file) = fs::File::open(&pi.phys) else {
-            return forbidden(resp, &pi.name);
+            return forbidden(resp, request, &request.url);
         };
         resp.disable_chunked();
         if !preconditions(request, resp, &pi.meta)? {
@@ -313,40 +316,66 @@ pub fn serve<W: Write>(
     }
     if pi.meta.is_dir() {
         if no_dirlists {
-            return forbidden(resp, &pi.name);
+            return forbidden(resp, request, &request.url);
         }
-        return dirlist(resp, pi);
+        return dirlist(resp, pi, charset);
     }
-    forbidden(resp, &pi.name)
+    forbidden(resp, request, &request.url)
 }
 
-pub fn forbidden<W: Write>(resp: &mut Response<W>, name: &str) -> io::Result<()> {
-    resp.error(
+/// uh_client_error gives up on keep-alive when the request declared a body the
+/// handler never read, because the unread suffix would be parsed as the next
+/// request (client.c:157-164). Note the order: uh_http_header has already
+/// written the `Connection` header by then, so the response still advertises
+/// Keep-Alive and only the connection is dropped afterwards.
+fn client_error<W: Write>(
+    resp: &mut Response<W>,
+    request: &Request,
+    code: u16,
+    summary: &str,
+    detail: &str,
+) -> io::Result<()> {
+    resp.error(code, summary, Some(detail))?;
+    if request.transfer_chunked || request.content_length.is_some_and(|n| n > 0) {
+        resp.force_close();
+    }
+    Ok(())
+}
+
+/// file.c:715-719 / cgi.c:79-83. `url` is the request target as sent, not the
+/// resolved path: uhttpd escapes what the client asked for, query included.
+pub fn forbidden<W: Write>(resp: &mut Response<W>, request: &Request, url: &str) -> io::Result<()> {
+    client_error(
+        resp,
+        request,
         403,
         "Forbidden",
-        Some(&format!(
+        &format!(
             "You don't have permission to access {} on this server.",
-            http::html_escape(name)
-        )),
+            http::html_escape(url)
+        ),
     )
 }
 
-pub fn not_found<W: Write>(resp: &mut Response<W>, url: &str) -> io::Result<()> {
-    resp.error(
+/// file.c:1002-1005, same rule for the request target.
+pub fn not_found<W: Write>(resp: &mut Response<W>, request: &Request, url: &str) -> io::Result<()> {
+    client_error(
+        resp,
+        request,
         404,
         "Not Found",
-        Some(&format!(
+        &format!(
             "The requested URL {} was not found on this server.",
             http::html_escape(url)
-        )),
+        ),
     )
 }
 
-fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo) -> io::Result<()> {
+fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io::Result<()> {
     let escaped = http::html_escape(&pi.name);
     resp.status(200, "OK")?;
     ok_headers(resp, None)?;
-    resp.header("Content-Type", "text/html; charset=UTF-8")?;
+    resp.header("Content-Type", &format!("text/html; charset={charset}"))?;
     resp.end_headers()?;
     resp.body(format!("<html><head><title>Index of {escaped}</title></head><body><h1>Index of {escaped}</h1><hr /><ol>").as_bytes())?;
     // (name, is_dir from d_type without following symlinks, stat following)

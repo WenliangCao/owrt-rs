@@ -34,10 +34,17 @@ pub struct Address {
     pub addr: IpAddr,
     pub mask: u8,
     pub point_to_point: Option<IpAddr>,
-    /// Seconds remaining; `None` means the field is omitted.
-    pub preferred: Option<u32>,
-    pub valid: Option<u32>,
+    /// DEADLINES on the monotonic clock, as `preferred_until`/`valid_until`
+    /// are in the C (`parse_address_item` adds `now`); the status prints what
+    /// is left. Storing the lifetime the protocol reported printed a constant
+    /// forever (R81 F08). `None` means the field is omitted.
+    pub preferred_until: Option<u32>,
+    pub valid_until: Option<u32>,
     pub class: Option<String>,
+    /// What the protocol asked for besides the prefix, kept so the address can
+    /// be re-applied (`interface_ip_set_enabled`) without the protocol.
+    pub broadcast: Option<std::net::Ipv4Addr>,
+    pub offlink: bool,
     /// Applied to the device, as opposed to held back — the `inactive` table.
     pub enabled: bool,
 }
@@ -48,12 +55,30 @@ impl Address {
             addr,
             mask,
             point_to_point: None,
-            preferred: None,
-            valid: None,
+            preferred_until: None,
+            valid_until: None,
             class: None,
+            broadcast: None,
+            offlink: false,
             enabled: true,
         }
     }
+}
+
+/// `blobmsg_add_u32(&b, "preferred", preferred_until - now)`, clamped at 0
+/// the way the C's `int preferred` check does.
+fn preferred_left(until: u32, now: u32) -> u32 {
+    until.saturating_sub(now)
+}
+
+/// `blobmsg_add_u32(&b, "valid", valid_until - now)`: no clamp in the C, so
+/// a deadline just past prints as a wrapped u32, exactly like `time_t` cast.
+fn valid_left(until: u32, now: u32) -> u32 {
+    until.wrapping_sub(now)
+}
+
+fn rtime() -> u32 {
+    crate::clock::now().min(u32::MAX as u64) as u32
 }
 
 /// netifd's `DEVROUTE_*` flags, which decide which route fields are printed.
@@ -65,6 +90,9 @@ pub mod devroute {
     pub const SRCTABLE: u32 = 1 << 4;
     pub const ONLINK: u32 = 1 << 5;
     pub const TYPE: u32 = 1 << 6;
+    /// `DEVROUTE_NODEV`: a `config route` with no interface -- installed with
+    /// no output device from `loopback`.
+    pub const NODEV: u32 = 1 << 7;
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -80,7 +108,8 @@ pub struct Route {
     pub mtu: u32,
     pub metric: u32,
     pub table: u32,
-    pub valid: Option<u32>,
+    /// A deadline on the monotonic clock; the status prints what is left.
+    pub valid_until: Option<u32>,
     pub enabled: bool,
 }
 
@@ -103,7 +132,7 @@ impl Route {
             mtu: 0,
             metric: 0,
             table: 0,
-            valid: None,
+            valid_until: None,
             enabled: true,
         }
     }
@@ -146,8 +175,8 @@ pub fn route_order(a: &Route, b: &Route) -> std::cmp::Ordering {
 pub struct Prefix {
     pub addr: Ipv6Addr,
     pub length: u8,
-    pub preferred: Option<u32>,
-    pub valid: Option<u32>,
+    pub preferred_until: Option<u32>,
+    pub valid_until: Option<u32>,
     pub class: String,
     /// interface name → (address, length)
     pub assigned: Vec<(String, Ipv6Addr, u8)>,
@@ -159,8 +188,9 @@ pub struct Prefix {
 pub struct PrefixAssignment {
     pub addr: Ipv6Addr,
     pub length: u8,
-    pub preferred: Option<u32>,
-    pub valid: Option<u32>,
+    /// Deadlines (the parent prefix's); the status prints what is left.
+    pub preferred_until: Option<u32>,
+    pub valid_until: Option<u32>,
     /// `local-address` is an empty table when the assignment is not enabled.
     pub local: Option<(Ipv6Addr, u8)>,
     /// Which parent prefix produced this assignment: the uplink it came from
@@ -208,11 +238,22 @@ pub struct IfaceError {
     pub data: Vec<String>,
 }
 
+/// `interface_config_state`: what a config change asked for, performed once
+/// the interface is down (`interface_handle_config_change`).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ConfigState {
+    #[default]
+    Normal,
+    Reload,
+    Remove,
+}
+
 /// One interface.
 #[derive(Clone, Debug, Default)]
 pub struct Interface {
     pub name: String,
     pub state: State,
+    pub config_state: ConfigState,
     pub available: bool,
     pub autostart: bool,
     /// `iface->enabled`: whether the main device is claimed and up. It comes
@@ -250,11 +291,12 @@ fn put_addr(b: &mut BlobBuf, a: &Address) {
     if let Some(p) = a.point_to_point {
         b.msg_string("ptpaddress", &p.to_string());
     }
-    if let Some(p) = a.preferred {
-        b.msg_u32("preferred", p);
+    let now = rtime();
+    if let Some(p) = a.preferred_until {
+        b.msg_u32("preferred", preferred_left(p, now));
     }
-    if let Some(v) = a.valid {
-        b.msg_u32("valid", v);
+    if let Some(v) = a.valid_until {
+        b.msg_u32("valid", valid_left(v, now));
     }
     if let Some(c) = &a.class {
         b.msg_string("class", c);
@@ -282,8 +324,8 @@ fn put_route(b: &mut BlobBuf, r: &Route) {
     if r.flags & devroute::TABLE != 0 {
         b.msg_u32("table", r.table);
     }
-    if let Some(v) = r.valid {
-        b.msg_u32("valid", v);
+    if let Some(v) = r.valid_until {
+        b.msg_u32("valid", valid_left(v, rtime()));
     }
     // `source` is always printed, as "<address>/<sourcemask>", even when the
     // source is unspecified and the mask is zero.
@@ -355,11 +397,12 @@ impl IpSettings {
             let t = b.msg_open_table("");
             b.msg_string("address", &p.addr.to_string());
             b.msg_u32("mask", p.length as u32);
-            if let Some(v) = p.preferred {
-                b.msg_u32("preferred", v);
+            let now = rtime();
+            if let Some(v) = p.preferred_until {
+                b.msg_u32("preferred", preferred_left(v, now));
             }
-            if let Some(v) = p.valid {
-                b.msg_u32("valid", v);
+            if let Some(v) = p.valid_until {
+                b.msg_u32("valid", valid_left(v, now));
             }
             b.msg_string("class", &p.class);
             let c = b.msg_open_table("assigned");
@@ -485,11 +528,12 @@ impl Interface {
             let t = b.msg_open_table("");
             b.msg_string("address", &p.addr.to_string());
             b.msg_u32("mask", p.length as u32);
-            if let Some(v) = p.preferred {
-                b.msg_u32("preferred", v);
+            let now = rtime();
+            if let Some(v) = p.preferred_until {
+                b.msg_u32("preferred", preferred_left(v, now));
             }
-            if let Some(v) = p.valid {
-                b.msg_u32("valid", v);
+            if let Some(v) = p.valid_until {
+                b.msg_u32("valid", valid_left(v, now));
             }
             let c = b.msg_open_table("local-address");
             if let Some((addr, len)) = &p.local {
@@ -741,8 +785,8 @@ mod tests {
         i.prefix_assignments.push(PrefixAssignment {
             addr: "2001:db8::".parse().unwrap(),
             length: 64,
-            preferred: Some(1800),
-            valid: Some(3600),
+            preferred_until: Some(rtime() + 1800),
+            valid_until: Some(rtime() + 3600),
             local: None,
             owner: None,
         });

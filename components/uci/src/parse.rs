@@ -15,10 +15,23 @@ use crate::ops;
 use std::io::BufRead;
 use std::sync::Mutex;
 
+/// LINEBUF (file.c)
+const LINEBUF: usize = 32;
+
+/// The state of a `struct uci_parse_context` that outlives one
+/// uci_parse_argument call (see `Pctx::carry`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Carry {
+    pub info: ParseInfo,
+    bufsz: usize,
+}
+
 /// struct uci_parse_context
 pub struct Pctx<'r> {
     reader: &'r mut dyn BufRead,
     pub buf: Vec<u8>,
+    /// pctx->bufsz: the fgets chunk sizing libuci's NUL handling depends on
+    bufsz: usize,
     pub buf_filled: usize,
     pub pos: usize,
     pub line: i32,
@@ -44,7 +57,8 @@ impl<'r> Pctx<'r> {
     pub fn new(reader: &'r mut dyn BufRead) -> Pctx<'r> {
         Pctx {
             reader,
-            buf: Vec::with_capacity(32),
+            buf: Vec::with_capacity(LINEBUF),
+            bufsz: LINEBUF,
             buf_filled: 0,
             pos: 0,
             line: 0,
@@ -99,30 +113,69 @@ impl<'r> Pctx<'r> {
         self.cur() == 0
     }
 
-    /// uci_getln: fetch a line into the buffer at `offset` (fgets semantics:
-    /// a NUL byte truncates the line, a final line without newline is kept).
+    /// fgets(p, size, file): consume at most `size - 1` bytes, stopping after
+    /// a newline. Returns what was consumed; empty means EOF.
+    fn fgets(&mut self, size: usize) -> Vec<u8> {
+        let max = size.saturating_sub(1);
+        let mut out = Vec::new();
+        while out.len() < max {
+            let available = match self.reader.fill_buf() {
+                Ok(b) => b,
+                Err(ref e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(_) => break,
+            };
+            if available.is_empty() {
+                break;
+            }
+            let take = available.len().min(max - out.len());
+            match available[..take].iter().position(|&b| b == b'\n') {
+                Some(i) => {
+                    out.extend_from_slice(&available[..=i]);
+                    self.reader.consume(i + 1);
+                    break;
+                }
+                None => {
+                    out.extend_from_slice(&available[..take]);
+                    self.reader.consume(take);
+                }
+            }
+        }
+        out
+    }
+
+    /// uci_getln: fetch a line into the buffer at `offset`. libuci reads with
+    /// fgets into a buffer that starts at LINEBUF and doubles until the line
+    /// ends in a newline, and it measures each chunk with strlen. A NUL byte
+    /// therefore drops only the bytes between it and the end of *that* chunk;
+    /// the rest of the line is appended by the next fgets and the line still
+    /// ends at its own newline. A chunk that starts with a NUL ends the line
+    /// where it is without counting it (`if (!p || !*p) return;`).
     pub fn getln(&mut self, offset: usize) {
-        self.buf.truncate(offset);
+        // "It takes 2 slots for fgets to read 1 char." libuci doubles once,
+        // which is always enough because offset <= bufsz - 1 there.
+        while offset + 1 >= self.bufsz {
+            self.bufsz *= 2;
+        }
+        let mut ofs = offset;
         loop {
-            let mut chunk = Vec::new();
-            let n = self.reader.read_until(b'\n', &mut chunk).unwrap_or(0);
-            if n == 0 {
+            self.buf.truncate(ofs);
+            let chunk = self.fgets(self.bufsz - ofs);
+            if chunk.is_empty() {
                 self.eof = true;
                 return;
             }
-            if let Some(z) = chunk.iter().position(|&b| b == 0) {
-                chunk.truncate(z);
-            }
-            if chunk.is_empty() {
+            let len = chunk.iter().position(|&b| b == 0).unwrap_or(chunk.len());
+            if len == 0 {
                 return;
             }
-            self.buf.extend_from_slice(&chunk);
-            self.buf_filled = self.buf.len();
-            if self.buf.last() == Some(&b'\n') {
+            self.buf.extend_from_slice(&chunk[..len]);
+            ofs += len;
+            self.buf_filled = ofs;
+            if self.buf[ofs - 1] == b'\n' {
                 self.line += 1;
                 return;
             }
-            // partial line: libuci grows the buffer and calls fgets again
+            self.bufsz *= 2;
         }
     }
 
@@ -139,6 +192,24 @@ impl<'r> Pctx<'r> {
             line: self.line,
             byte: self.byte,
         }
+    }
+
+    /// uci_parse_argument reuses `ctx->pctx` for every call on the same
+    /// stream, so batch mode keeps one context -- its line counter, its grown
+    /// buffer and its last parse error -- until something calls uci_cleanup or
+    /// hands it a different stream.
+    pub fn carry(&self) -> Carry {
+        Carry {
+            info: self.info(),
+            bufsz: self.bufsz,
+        }
+    }
+
+    pub fn restore(&mut self, c: Carry) {
+        self.reason = c.info.reason;
+        self.line = c.info.line;
+        self.byte = c.info.byte;
+        self.bufsz = c.bufsz;
     }
 
     /// parse_backslash: true if the escaped char is to be parsed.

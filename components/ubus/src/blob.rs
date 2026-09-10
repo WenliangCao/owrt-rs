@@ -260,10 +260,14 @@ impl BlobBuf {
     }
 
     fn msg_open(&mut self, ty: MsgType, name: &str) -> usize {
+        self.msg_open_bytes(ty, name.as_bytes())
+    }
+
+    fn msg_open_bytes(&mut self, ty: MsgType, name: &[u8]) -> usize {
         let offset = self.open(ty as u32, true);
         self.data
             .extend_from_slice(&(name.len() as u16).to_be_bytes());
-        self.data.extend_from_slice(name.as_bytes());
+        self.data.extend_from_slice(name);
         self.data.push(0);
         let hdr_end = offset + 4 + pad4(2 + name.len() + 1);
         self.data.resize(hdr_end, 0);
@@ -271,8 +275,13 @@ impl BlobBuf {
     }
 
     pub fn msg_string(&mut self, name: &str, value: &str) -> &mut Self {
+        self.msg_string_bytes(name, value.as_bytes())
+    }
+
+    pub fn msg_string_bytes(&mut self, name: &str, value: &[u8]) -> &mut Self {
         let offset = self.msg_open(MsgType::String, name);
-        self.data.extend_from_slice(value.as_bytes());
+        let end = value.iter().position(|&b| b == 0).unwrap_or(value.len());
+        self.data.extend_from_slice(&value[..end]);
         self.data.push(0);
         self.close(offset);
         self
@@ -349,6 +358,11 @@ impl BlobBuf {
 
     pub fn msg_open_array(&mut self, name: &str) -> usize {
         self.msg_open(MsgType::Array, name)
+    }
+
+    /// Session ACLs use filesystem paths as object keys, including byte paths.
+    pub fn msg_open_array_bytes(&mut self, name: &[u8]) -> usize {
+        self.msg_open_bytes(MsgType::Array, name)
     }
 
     pub fn msg_close(&mut self, cookie: usize) {

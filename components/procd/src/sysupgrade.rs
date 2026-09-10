@@ -32,52 +32,17 @@ extern "C" {
     fn execvp(file: *const u8, argv: *const *const u8) -> i32;
 }
 
-/// JSON -> blobmsg, the way `blobmsg_add_object` renders a json-c object.
-fn json_to_blob(b: &mut BlobBuf, name: &str, j: &owrt_ubus::json::Json) {
-    use owrt_ubus::json::Json;
-    match j {
-        Json::Null => {}
-        Json::Bool(v) => {
-            b.msg_bool(name, *v);
-        }
-        Json::Int(v) => {
-            b.msg_u32(name, *v as u32);
-        }
-        Json::Float(v) => {
-            b.msg_double(name, *v);
-        }
-        Json::Str(s) => {
-            b.msg_string(name, s);
-        }
-        Json::Array(items) => {
-            let a = b.msg_open_array(name);
-            for i in items {
-                json_to_blob(b, "", i);
-            }
-            b.msg_close(a);
-        }
-        Json::Object(fields) => {
-            let t = b.msg_open_table(name);
-            for (k, v) in fields {
-                json_to_blob(b, k, v);
-            }
-            b.msg_close(t);
-        }
-    }
-}
+use owrt_ubus::convert::json_to_fields as json_to_blob;
 
 /// `validate_firmware_image_call()`: run the validate script on `file` and
 /// return the validation JSON as a blobmsg payload, or the error message the
 /// C would put in a sysupgrade error reply.
 pub fn validate_call(file: &str) -> Result<Vec<u8>, String> {
     use std::process::{Command, Stdio};
-    let mut child = match Command::new(VALIDATE_SCRIPT)
-        .arg(file)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-    {
+    let mut cmd = Command::new(VALIDATE_SCRIPT);
+    cmd.arg(file).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::null());
+    crate::proc::inherit_ignored_sigpipe(&mut cmd);
+    let mut child = match cmd.spawn() {
         Ok(c) => c,
         // The C forks unconditionally; a failed execl exits the child with
         // an empty pipe, which reads as zero bytes below.
@@ -141,7 +106,7 @@ pub fn option_env(name: &str, ty: u32, data: &[u8]) -> Option<(String, String)> 
         if c.is_ascii_alphanumeric() || c == '_' {
             out.push(c.to_ascii_uppercase());
         } else {
-            eprintln!("procd-rs: Option \"{name}\" contains invalid characters");
+            crate::sys::stderr_line(&format!("Option \"{name}\" contains invalid characters"));
             return None;
         }
     }
@@ -156,7 +121,7 @@ pub fn option_env(name: &str, ty: u32, data: &[u8]) -> Option<(String, String)> 
         }
         t if t == MsgType::Int8 as u32 && !data.is_empty() => data[0] as u32,
         t => {
-            eprintln!("procd-rs: Option \"{name}\" has unsupported type: {t}");
+            crate::sys::stderr_line(&format!("Option \"{name}\" has unsupported type: {t}"));
             return None;
         }
     };
@@ -178,7 +143,7 @@ pub fn exec_upgraded(
     };
     // SAFETY: NUL-terminated path.
     if unsafe { chroot(cprefix.as_ptr().cast()) } < 0 {
-        eprintln!("Failed to chroot for upgraded exec.");
+        crate::sys::stderr_line("Failed to chroot for upgraded exec.");
         return;
     }
 
@@ -206,13 +171,13 @@ pub fn exec_upgraded(
     unsafe { execvp(argv0.as_ptr().cast(), ptrs.as_ptr()) };
 
     // Cleanup on failure, exactly the C's order.
-    eprintln!("Failed to exec upgraded.");
+    crate::sys::stderr_line("Failed to exec upgraded.");
     std::env::remove_var("WDTFD");
     wdt.set_cloexec(true);
     let Ok(dot) = CString::new(".") else { return };
     // SAFETY: NUL-terminated path; failing to escape the chroot is fatal.
     if unsafe { chroot(dot.as_ptr().cast()) } < 0 {
-        eprintln!("Failed to reset chroot, exiting.");
+        crate::sys::stderr_line("Failed to reset chroot, exiting.");
         std::process::exit(1);
     }
 }

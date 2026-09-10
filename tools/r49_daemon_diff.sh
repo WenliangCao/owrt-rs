@@ -160,6 +160,12 @@ RN
 		sleep 5
 
 		chroot "$root" /bin/sh /tmp/probe.sh > "$out/$tag-ubus.txt" 2>&1 || true
+		if [ "$tag" = c ]; then pidfile=netifd; else pidfile=cand; fi
+		if kill -0 "$(cat "$root/tmp/out/$pidfile.pid")" 2>/dev/null; then
+			echo yes > "$out/$tag-alive.txt"
+		else
+			echo no > "$out/$tag-alive.txt"
+		fi
 		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
 		{
 			echo "--- ip -d link"
@@ -186,6 +192,8 @@ RN
 
 run_one c
 run_one rs
+
+python3 "$(dirname "$0")/audit_checks.py" r49 "$out"
 
 # Normalise only what cannot be equal by construction.
 norm_kernel() {

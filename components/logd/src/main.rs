@@ -15,7 +15,7 @@ use ring::{normalize, Entry, Ring, LINE_SIZE, SOURCE_KLOG, SOURCE_SYSLOG};
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
-use std::os::unix::net::{UnixDatagram, UnixStream};
+use std::os::unix::net::UnixDatagram;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 struct Options {
@@ -321,13 +321,7 @@ impl Daemon {
         // frees the `log` path. Keeping it open means every `add_object("log")`
         // is refused with INVALID_ARGUMENT while ubusd is alive -- logd would
         // retry at 1 Hz forever and nothing would serve `log` again.
-        //
-        // SAFETY: we borrow our own still-open descriptor to reach
-        // UnixStream::shutdown; ManuallyDrop keeps the stream from closing it,
-        // self.conn stays the owner and closes it when it is replaced below.
-        let old =
-            std::mem::ManuallyDrop::new(unsafe { UnixStream::from_raw_fd(self.conn.as_raw_fd()) });
-        let _ = old.shutdown(std::net::Shutdown::Both);
+        let _ = self.conn.shutdown();
         loop {
             // keep collecting syslog/kmsg while ubusd is away (uloop keeps
             // servicing those fds in C logd too)

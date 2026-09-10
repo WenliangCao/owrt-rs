@@ -193,6 +193,8 @@ BUS
 run_one c
 run_one rs
 
+python3 "$(dirname "$0")/audit_checks.py" r63 "$out"
+
 # blank the bridge device object's own macaddr (see the comment at the call
 # site). Only the bridge's line, found as the first macaddr after a
 # "...": { block whose type is bridge; member and wan macaddrs stay compared.
@@ -220,7 +222,6 @@ norm() {
 		-e 's/\b([a-z_]*timer)[ ]+[0-9.]+/\1 T/g' \
 		-e 's/expires [0-9]+sec/expires Lsec/g' \
 		-e 's/"uptime": [0-9]+/"uptime": N/g' \
-		-e 's/"retry": -?[0-9]+/"retry": N/g' \
 		-e 's/@[0-9a-f]{8}/@ID/g' \
 		-e 's/("[a-z_]*(packets|bytes|errors|dropped|collisions|multicast)": )[0-9]+/\1N/g'
 }

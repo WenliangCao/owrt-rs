@@ -54,20 +54,55 @@ pub struct Ctx<'a> {
     /// registers `rule_load_script`, which answers only for the trigger's
     /// own type -- and that file is the one already running.
     own_type: Option<&'a str>,
+    /// `ctx->handle_var`: hotplug.c's `rule_handle_var` derives
+    /// DEVNAME/DEVICENAME from DEVPATH; trigger.c's returns NULL.
+    devname_fallback: bool,
 }
 
 /// Run one block against one variable set. `own_type` is the trigger's type,
 /// the name under which `json_script_run(&t->jctx, t->type, data)` loaded
 /// this very block; `None` is a bare context where no `include` resolves.
 pub fn run_rule(block: Field<'_>, vars: &BTreeMap<String, String>, own_type: Option<&str>) -> Run {
-    let mut ctx = Ctx { vars, out: Run::default(), abort: false, own_type };
+    let mut ctx = Ctx {
+        vars,
+        out: Run::default(),
+        abort: false,
+        own_type,
+        devname_fallback: false,
+    };
+    ctx.process_cmd(block);
+    ctx.out
+}
+
+/// `json_script_run` under plug/hotplug.c's context: no `include`, and the
+/// DEVNAME/DEVICENAME fallback. The fallback is answered by the lookup, not
+/// written into `vars`, so an `exec`'s environment and the `hotplug.<subsys>`
+/// notification carry only what the kernel sent. (R81 F22.)
+pub fn run_hotplug_rule(block: Field<'_>, vars: &BTreeMap<String, String>) -> Run {
+    let mut ctx = Ctx {
+        vars,
+        out: Run::default(),
+        abort: false,
+        own_type: None,
+        devname_fallback: true,
+    };
     ctx.process_cmd(block);
     ctx.out
 }
 
 impl Ctx<'_> {
+    /// `json_script_find_var()`: the table first, then `handle_var`.
     fn find_var(&self, name: &str) -> Option<&str> {
-        self.vars.get(name).map(String::as_str)
+        if let Some(v) = self.vars.get(name) {
+            return Some(v);
+        }
+        if self.devname_fallback && (name == "DEVNAME" || name == "DEVICENAME") {
+            // rule_handle_var(): basename of DEVPATH, or DEVPATH itself
+            // when it has no slash.
+            let path = self.vars.get("DEVPATH")?;
+            return Some(path.rsplit('/').next().unwrap_or(path));
+        }
+        None
     }
 
     fn error(&mut self, what: &str) {
@@ -493,7 +528,7 @@ mod tests {
     #[test]
     fn percent_rules() {
         let v = vars(&[("A", "1")]);
-        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, own_type: None };
+        let ctx = Ctx { vars: &v, out: Run::default(), abort: false, own_type: None, devname_fallback: false };
         assert_eq!(ctx.eval_string("plain").unwrap(), "plain");
         assert_eq!(ctx.eval_string("%A%").unwrap(), "1");
         assert_eq!(ctx.eval_string("x%A%y").unwrap(), "x1y");
@@ -578,4 +613,25 @@ mod include_tests {
         assert!(out.errors.is_empty());
         assert_eq!(out.commands.len(), 1);
     }
+    #[test]
+    fn the_hotplug_context_derives_devname_from_devpath_without_storing_it() {
+        let mut vars = BTreeMap::new();
+        vars.insert("DEVPATH".to_string(), "/devices/virtual/net/tun".to_string());
+        let rules = br#"[
+            [ "if", [ "has", "DEVNAME" ], [ "exec", "/bin/echo", "%DEVNAME%", "%DEVICENAME%" ] ]
+        ]"#;
+        let blob = crate::hotplug::rules_blob(rules).expect("rules parse");
+        let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
+        let out = run_hotplug_rule(block, &vars);
+        assert_eq!(
+            out.commands,
+            vec![("exec".to_string(), vec!["/bin/echo".into(), "tun".into(), "tun".into()])]
+        );
+        // The trigger context has no such fallback (trigger.c rule_handle_var).
+        let out = run_rule(block, &vars, None);
+        assert!(out.commands.is_empty(), "{:?}", out.commands);
+        // And the table itself is untouched: nothing for exec's env.
+        assert!(!vars.contains_key("DEVNAME"));
+    }
+
 }

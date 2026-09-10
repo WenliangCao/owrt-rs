@@ -4,8 +4,9 @@
 # Usage: sudo -n bash netifd_suite.sh <rootfs-files> <netifd-rs musl binary> [outdir] [example-dir]
 #        SUBSET="r52 r60"  netifd_suite.sh ...     run only these
 #
-# <example-dir> holds the musl-built `devstatus` and `ifstatus` probes that r47
-# and r48 drive; it defaults to the directory netifd-rs sits in.
+# NETWORK_CONFIG and WIRELESS_CONFIG point to private captured device configs
+# for r63. procd r65 belongs to its own suite and is run separately.
+# <example-dir> holds the musl-built `sysprobe`, `devstatus` and `ifstatus` probes; it defaults to the directory netifd-rs sits in.
 #
 # The list is explicit rather than a glob because a glob silently drops a new
 # case: `r5*_*.sh` never matched r60, so the harness written for the wireless
@@ -21,6 +22,7 @@ mkdir -p "$out"
 
 # name | script | which binary | extra env
 CASES='
+r46|r46_netlink_diff.sh|sysprobe|
 r47|r47_devstatus_diff.sh|devstatus|
 r48|r48_ifstatus_diff.sh|ifstatus|
 r49|r49_daemon_diff.sh|netifd|
@@ -43,14 +45,18 @@ r60_token|r60_wireless_handler_diff.sh|netifd|MODE=token CMDS=no
 r60_proc|r60_wireless_handler_diff.sh|netifd|MODE=proc CMDS=no
 r61|r61_badconfig_diff.sh|netifd|
 r62|r62_pd_diff.sh|netifd|
+r63|r63_deviceconfig_diff.sh|netifd|
 r64|r64_lateport_diff.sh|netifd|
 r79|r79_wireless_bridge_diff.sh|netifd|
+r83|r83_lifecycle_diff.sh|netifd|
+r83c|r83_config_diff.sh|netifd|
+r83w|r83_wireless_deadline.sh|netifd|
 '
 
 # Everything the run needs must exist up front. Discovering a missing rootfs
 # thirteen cases in is how a suite reports success having compared nothing.
 missing=0
-for f in "$rootfs" "$cand" "$exdir/devstatus" "$exdir/ifstatus"; do
+for f in "$rootfs" "$cand" "$exdir/devstatus" "$exdir/ifstatus" "$exdir/sysprobe" "${NETWORK_CONFIG:-}" "${WIRELESS_CONFIG:-}"; do
 	[ -e "$f" ] || { echo "MISSING: $f"; missing=1; }
 done
 while IFS= read -r line; do
@@ -75,6 +81,7 @@ while IFS= read -r line; do
 		skipped=$((skipped+1)); continue
 	fi
 	case $which in
+		sysprobe)  bin=$exdir/sysprobe ;;
 		devstatus) bin=$exdir/devstatus ;;
 		ifstatus)  bin=$exdir/ifstatus ;;
 		*)         bin=$cand ;;
@@ -85,7 +92,13 @@ while IFS= read -r line; do
 	start=$(date +%s)
 	# bash, not sh: several harnesses use process substitution, and dash's
 	# syntax error on those reads nothing like a difference
-	if env $envs bash "$here/$script" "$rootfs" "$bin" "$out/$name" > "$out/$name.log" 2>&1; then
+	args=("$rootfs" "$bin" "$out/$name")
+	case "$name" in
+		r46) args=("$bin" "$out/$name") ;;
+		r50) args=("$rootfs" "$bin" "${CYCLES:-200}" "$out/$name") ;;
+		r63) args=("$rootfs" "$bin" "$NETWORK_CONFIG" "$WIRELESS_CONFIG" "$out/$name") ;;
+	esac
+	if env $envs bash "$here/$script" "${args[@]}" > "$out/$name.log" 2>&1; then
 		v=ok; pass=$((pass+1))
 	else
 		v=FAILED; failn=$((failn+1))
@@ -98,6 +111,6 @@ ran=$((pass+failn))
 echo "SUITE: $ran of $total run -- $pass passed, $failn failed, $skipped not selected"
 [ $ran -eq 0 ] && { echo "SUITE: NOTHING RAN"; exit 2; }
 [ $failn -eq 0 ] || exit 1
-[ $skipped -eq 0 ] || { echo "SUITE: partial run, not a full pass"; exit 0; }
+[ $skipped -eq 0 ] || { echo "SUITE: partial run, not a full pass"; exit 2; }
 echo "SUITE: full pass"
 exit 0

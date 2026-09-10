@@ -1,7 +1,7 @@
 # R83 — ubusd-rs / owrt-ubus: R81 findings F02, F27, F24(ubus 部分)
 
-日期 2026-09-09。范围：`components/ubusd`（ubusd-rs）与 `components/ubus`（owrt-ubus）。
-参照 C：`oracle:/home/ubuntu/stage9/ubus`（ubusd_acl.c / ubusd_event.c / ubusd_monitor.c / ubusd_obj.c / ubusd_proto.c）与
+日期 2026-09-10。范围：`components/ubusd`（ubusd-rs）与 `components/ubus`（owrt-ubus）。
+参照 C 修订 `24864e78`：`oracle:/home/ubuntu/stage9/ubus`（ubusd_acl.c / ubusd_event.c / ubusd_monitor.c / ubusd_obj.c / ubusd_proto.c）与
 libubox 2026.06.19~7dd12784（blobmsg_json.c、blob.h、blobmsg.c）。
 差分沙箱：exact rootfs `~/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files`，
 C `/sbin/ubusd` + 设备自带 `/bin/ubus` CLI，每侧独立 mount+net namespace（与 r36 同一 harness）。
@@ -24,14 +24,12 @@ R81 演示测试 `tools/audit/r81_ubusd_acl_pathless.rs`、`tools/audit/r81_ubus
 | F27.5 `append_json` 整数全 INT64（C INT32） | **成立** | `server.rs acl_query()` 改用 `convert::json_to_fields`，删除 `append_json` |
 | F27.6 浮点最短往返 vs `%.17g` | **成立** | `ubus/json.rs write_double()` |
 | F27.7 每个 INVOKE 克隆凭据 / 每个 STATUS 新建 BlobBuf | **成立（低影响）** | `server.rs invoke()` 借用、`send_status()` 复用 scratch；未测墙钟 |
-| F24 非 UTF-8 STRING 变 `""`（owrt-ubus） | **成立** | `ubus/convert.rs field_to_json()` 改 lossy（U+FFFD）；残余见 §F24 |
+| F24 非 UTF-8 STRING 变 `""`（owrt-ubus） | **成立** | `Json::Bytes` 和字节转换保持原值；范围见 §F24 |
 
 r83 门：C vs 修后 rs **3/3 identical（35 行）**；C vs R81 基线 rs（md5 `f3940b6c…`）**红**，§1/§2 与 events/monitor/release/aclquery 全部行不同（下文贴出）。
-r36 门修后 identical（85 行）。r42 fuzz 修后 3 次：identical、identical、1 次 `final objects unchanged: no`——基线二进制同样出现该行，是 r42 自身在 rpcd 就位前 `ubus list` 的既有抖动，非本轮回归。
-
-发布二进制：`~/r81-ubusd/components/ubusd/target/aarch64-unknown-linux-musl/release/ubusd-rs`
-md5 **`5ae1a0a193357fd68adc3977f445477d`**（`cargo +1.98.1 build --release --bins --examples --target aarch64-unknown-linux-musl`，
-构建路径 `/home/ubuntu/r81-ubusd`；两次构建同 md5）。探针 `…/release/examples/wireprobe` md5 `f4f8a39e841fd284a9dcc15ed95fcb49`。
+最终 r36 root 与 `DAEMON_USER=ubus` 均通过；r42 600 次变异通过，现有门已要求两侧
+就绪、存活、对象表和 fd 状态符合预期。r83 线级门通过。早期 r42 的启动抖动不能再算通过。
+最终产物与测试计数见 [validation.md](validation.md)。下文红证 hash 只识别历史构建。
 
 ---
 
@@ -161,13 +159,14 @@ cli_listen_utf8_hex: [… 22 3a 22 63 61 66 e9 22 7d 20 7d 0a |":"caf."} }.|…]
 ```
 即 `{"s":"caf\xe9"}` 的 0xe9 原字节被 C 库直接写到输出。owrt-ubus 原 `Field::as_str().unwrap_or("")` 让整个值消失。
 
-修：`Field::as_bytes()`（到 NUL 的原字节）；`field_to_json` 用 `String::from_utf8_lossy` → `"caf\u{fffd}"`。
-测试 `convert::tests::non_utf8_string_is_not_silently_emptied`（原 r81_f10）、`blob::tests::string_field_bytes_are_not_validated`。
+修：`Field::as_bytes()` 取得 NUL 前原字节，`Json::from_string_bytes` 对有效 UTF-8 使用
+`Str`、其余使用 `Bytes`；解析、序列化和 JSON↔blob 转换均不换成 U+FFFD。
+`BlobBuf::msg_string_bytes` 保留 STRING 值，字节名称 API 支持 rpcd ACL 回复中的对象/键。
+`convert::tests::non_utf8_string_is_not_silently_emptied` 验证的是完整原字节往返，
+并由 `r83_rpcd_bytes.sh` 验证真实线协议与文件/ACL 行为。
 
-**残余差距（未做，按指示不启动 Vec<u8> 重构）**：
-1. 值仍是有损的 U+FFFD，不是 C 的原字节；rpcd `file read` 等经 Json 的路径依旧不是字节精确（R81 F24 的 rpcd 部分不在本轮范围）。
-2. 字段**名**非 UTF-8 时 `Attr::field()` 返回 None，整个字段被跳过（C 原样打印名字）；`Field.name: &str` 改类型会波及所有 crate。
-3. `event_register` 的 pattern、`event_send` 的 id 用 `as_str()`，非 UTF-8 时回 INVALID_ARGUMENT（C 接受）。极端边缘，未改。
+保留的既有边界：通用 `Field.name` 与 JSON 对象字段名仍为 UTF-8；非 UTF-8 事件 pattern/id
+仍不能通过其 `as_str()` 路径。这些字段名和事件名没有被此次 STRING 值修复宣称为已覆盖。
 
 ## 未复现 / 未改的
 
@@ -177,21 +176,17 @@ cli_listen_utf8_hex: [… 22 3a 22 63 61 66 e9 22 7d 20 7d 0a |":"caf."} }.|…]
 
 ## 测试与门（oracle，toolchain 1.98.1）
 
-```
-components/ubus : cargo test → 10 passed；cargo clippy --all-targets -- -D warnings → 通过
-components/ubusd: cargo test → 21 passed；cargo clippy --all-targets -- -D warnings → 通过（含 examples/wireprobe.rs）
-tools/r83_ubusd_acl.sh  C vs rs(5ae1a0a1) ×3 → RESULT: identical transcripts (35 lines)
-tools/r83_ubusd_acl.sh  C vs rs(f3940b6c 基线)  → RESULT: transcripts differ（上文各段引文）
-tools/r83_ubusd_acl.sh  C vs rs(f1def38f 去点文件过滤) → 仅 dotfile_hup_nobody_send 一行不同
-tools/r36_ubusd_diff.sh C vs rs(5ae1a0a1) → RESULT: identical transcripts（85 行）
-tools/r42_ubusd_fuzz.sh C vs rs(5ae1a0a1) ×3 → identical ×2，1 次 "final objects unchanged: no"（基线同现，r42 既有抖动）
-```
-门的完整性：r83 门要求两侧都到达 `daemon_alive: yes` 才比较，避免半截 transcript 假绿。
+- owrt-ubus 11 个单测、ubusd 21 个单测通过；两者严格 clippy 通过。
+- r36 root/非 root、r42 600 次变异、r83 35 行线级门通过。
+- r83 的旧二进制和去掉点文件过滤的故障注入均判红，见上文逐项证据。
+- r36/r42 现在分别核对存活、有效回复、完整场景与 fd 上限，不能因两边同死或 helper 缺失而通过。
+- F28 合并共享 poll/信号函数与 IoVec/MsgHdr 结构；14 个 RLIMIT、133 个网络常量及 ABI 校验通过。
+
 
 ## 改动文件
 
 - `components/ubus/src/blob.rs`：`attr_at` 填充长度检查；`Field::as_bytes`；2 个单测
-- `components/ubus/src/convert.rs`：STRING lossy；1 个单测
+- `components/ubus/src/convert.rs`：STRING 字节往返；1 个单测
 - `components/ubus/src/json.rs`：`write_double`/`trim_fraction`（`%.17g`）；1 个单测
 - `components/ubusd/src/acl.rs`：`check(obj: Option)`、`load() -> bool`、`acl_files()`；3 个新单测，旧单测改签名
 - `components/ubusd/src/server.rs`：`load_acl`、`send_status`、`free_object`、`invoke`、`forward_blob`（自由函数）、`notify`、`dispatch_event`、`acl_query`、`mirror`、`attrs_of`；删 `append_json`
@@ -199,4 +194,4 @@ tools/r42_ubusd_fuzz.sh C vs rs(5ae1a0a1) ×3 → identical ×2，1 次 "final o
 - `tools/r83_ubusd_acl.sh`、`tools/r83_ubusd_inner.sh`（新）
 - 删除 `tools/audit/r81_ubusd_acl_pathless.rs`、`tools/audit/r81_ubus_lib_fidelity.rs`
 
-未提交（按本轮规则不做 git 操作）。设备上线前请用 R80 的窗口流程替换 `/sbin/ubusd`（回滚 = mv `.c-orig` 回来）；本轮未碰 `openwrt`。
+最终修复随本轮提交，构建产物只记录摘要；未部署，也未操作实体路由器。

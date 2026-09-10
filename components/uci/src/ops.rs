@@ -47,11 +47,11 @@ pub fn validate_text(s: &[u8]) -> bool {
     !s.iter().any(|&c| c < 32 && c != b'\t' && c != b'\n' && c != b'\r')
 }
 
-/// strsep(&str, ".") over an Option<&str> cursor: returns None once the
+/// strsep(&str, ".") over an Option<&[u8]> cursor: returns None once the
 /// string pointer is exhausted, "" for consecutive delimiters.
-fn strsep_dot<'a>(cur: &mut Option<&'a str>) -> Option<&'a str> {
+fn strsep_dot<'a>(cur: &mut Option<&'a [u8]>) -> Option<&'a [u8]> {
     let s = (*cur)?;
-    match s.find('.') {
+    match s.iter().position(|&b| b == b'.') {
         Some(i) => {
             *cur = Some(&s[i + 1..]);
             Some(&s[..i])
@@ -63,6 +63,13 @@ fn strsep_dot<'a>(cur: &mut Option<&'a str>) -> Option<&'a str> {
     }
 }
 
+/// The validators only accept bytes from the ASCII identifier set, so a part
+/// that is not UTF-8 can never pass one; this keeps them byte-addressable
+/// without duplicating the tables.
+fn validate_bytes(s: &[u8], f: fn(&str) -> bool) -> bool {
+    std::str::from_utf8(s).is_ok_and(f)
+}
+
 /// uci_parse_ptr: split `pkg[.section[.option]][=value]`.
 pub fn parse_ptr(ptr: &mut Ptr, str_: &[u8]) -> Result<()> {
     *ptr = Ptr::default();
@@ -71,46 +78,47 @@ pub fn parse_ptr(ptr: &mut Ptr, str_: &[u8]) -> Result<()> {
         None => (str_, None),
     };
     ptr.value = value.map(<[u8]>::to_vec);
-    // names are validated below and cannot contain bytes that are not UTF-8,
-    // so libuci's UCI_ERR_INVAL is the outcome for such a tuple
-    let tuple = std::str::from_utf8(tuple).map_err(|_| Error::Inval)?;
 
     let mut cur = Some(tuple);
     let Some(package) = strsep_dot(&mut cur) else {
         return parse_ptr_error(ptr);
     };
-    ptr.package = Some(package.to_owned());
+    let mut section = None;
+    let mut option = None;
     'lastval: {
-        let Some(section) = strsep_dot(&mut cur) else {
+        let Some(s) = strsep_dot(&mut cur) else {
             ptr.target = Some(Target::Package);
             break 'lastval;
         };
-        ptr.section = Some(section.to_owned());
-        let Some(option) = strsep_dot(&mut cur) else {
+        section = Some(s);
+        let Some(o) = strsep_dot(&mut cur) else {
             ptr.target = Some(Target::Section);
             break 'lastval;
         };
-        ptr.option = Some(option.to_owned());
+        option = Some(o);
         ptr.target = Some(Target::Option);
         if strsep_dot(&mut cur).is_some() {
             return parse_ptr_error(ptr);
         }
     }
 
-    if let Some(p) = &ptr.package {
-        if !validate_package(p) {
-            return parse_ptr_error(ptr);
-        }
+    if !validate_bytes(package, validate_package) {
+        return parse_ptr_error(ptr);
     }
-    if let Some(s) = &ptr.section {
-        if !validate_name(s) {
+    ptr.package = Some(String::from_utf8_lossy(package).into_owned());
+    if let Some(s) = section {
+        if !validate_bytes(s, validate_name) {
             ptr.flags |= LOOKUP_EXTENDED;
         }
+        // a section that is not UTF-8 always fails uci_validate_name, so it is
+        // extended and can only ever fail again in uci_lookup_ext_section
+        ptr.section = Some(String::from_utf8_lossy(s).into_owned());
     }
-    if let Some(o) = &ptr.option {
-        if !validate_name(o) {
+    if let Some(o) = option {
+        if !validate_bytes(o, validate_name) {
             return parse_ptr_error(ptr);
         }
+        ptr.option = Some(String::from_utf8_lossy(o).into_owned());
     }
     if let Some(v) = &ptr.value {
         if !validate_text(v) {
@@ -150,9 +158,10 @@ fn lookup_ext_section(ctx: &Context, ptr: &mut Ptr) -> Result<Option<usize>> {
         return fail(ptr);
     }
     let idxstr = &idxstr[..rb];
-    // strtol(idxstr, &t, 10): "" parses as 0 with no trailing garbage.
-    let mut idx: i64 = match strtol(idxstr) {
-        Some(v) => v,
+    // `int idx = strtol(idxstr, &t, 10); if (t && *t) error;` -- the long is
+    // truncated to int, so 4294967296 selects section 0.
+    let mut idx: i64 = match strtol(idxstr.as_bytes()) {
+        Some(v) => v as i32 as i64,
         None => return fail(ptr),
     };
     let name = if name.is_empty() {
@@ -166,7 +175,7 @@ fn lookup_ext_section(ctx: &Context, ptr: &mut Ptr) -> Result<Option<usize>> {
         let c = p
             .sections
             .iter()
-            .filter(|s| name.map_or(true, |n| s.ty == n))
+            .filter(|s| name.is_none_or(|n| s.ty == n))
             .count() as i64;
         idx += c;
     }
@@ -186,32 +195,52 @@ fn lookup_ext_section(ctx: &Context, ptr: &mut Ptr) -> Result<Option<usize>> {
     Ok(None)
 }
 
-/// strtol(s, &end, 10) requiring the whole string to be consumed; the empty
-/// string yields 0 like the C code (end == s, *end == 0).
-fn strtol(s: &str) -> Option<i64> {
-    let t = s.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
-    let (neg, digits) = match t.as_bytes().first() {
-        Some(b'-') => (true, &t[1..]),
-        Some(b'+') => (false, &t[1..]),
-        _ => (false, t),
-    };
-    let n = digits.bytes().take_while(|b| b.is_ascii_digit()).count();
-    if n != digits.len() {
-        // trailing garbage
-        if n == 0 && digits.is_empty() && !neg {
-            return Some(0);
+/// strtol(s, &end, 10) on a NUL-terminated string: `None` when `*end != 0`,
+/// otherwise the converted value, clamped to LONG_MIN/LONG_MAX on overflow.
+/// When no conversion happens strtol leaves `end == s`, so a string that is
+/// only whitespace or only a sign has trailing garbage while "" does not.
+fn strtol(s: &[u8]) -> Option<i64> {
+    // isspace() in the C locale, which Rust's is_ascii_whitespace is not:
+    // it leaves out the vertical tab, and `uci get 't.@a[\x0b1].k'` returns
+    // section 1 on the device.
+    fn is_c_space(b: u8) -> bool {
+        b == 0x0b || b.is_ascii_whitespace()
+    }
+    let mut i = 0;
+    while s.get(i).copied().is_some_and(is_c_space) {
+        i += 1;
+    }
+    let neg = match s.get(i) {
+        Some(b'-') => {
+            i += 1;
+            true
         }
+        Some(b'+') => {
+            i += 1;
+            false
+        }
+        _ => false,
+    };
+    let first_digit = i;
+    let limit = i64::MAX as u64 + u64::from(neg);
+    let mut acc: u64 = 0;
+    let mut overflow = false;
+    while s.get(i).is_some_and(u8::is_ascii_digit) {
+        acc = acc.saturating_mul(10).saturating_add(u64::from(s[i] - b'0'));
+        overflow |= acc > limit;
+        i += 1;
+    }
+    // no digits: end == s, i.e. the whole string is left over
+    let end = if i == first_digit { 0 } else { i };
+    if end != s.len() {
         return None;
     }
-    if n == 0 {
-        // "-" or "+" alone: strtol consumes nothing -> end == s -> *end is '-'
-        return if t.is_empty() { Some(0) } else { None };
-    }
-    let mut v: i64 = 0;
-    for b in digits.bytes() {
-        v = v.saturating_mul(10).saturating_add((b - b'0') as i64);
-    }
-    Some(if neg { -v } else { v })
+    Some(match (overflow, neg) {
+        (true, true) => i64::MIN,
+        (true, false) => i64::MAX,
+        (false, true) => (acc as i64).wrapping_neg(),
+        (false, false) => acc as i64,
+    })
 }
 
 /// uci_lookup_ptr(ctx, ptr, str, extended)
@@ -381,8 +410,13 @@ pub fn rename(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     let Some(value) = ptr.value.clone() else {
         return Err(Error::Inval);
     };
-    // a new name must be a valid identifier, so it is ASCII
-    let name = String::from_utf8(value.clone()).map_err(|_| Error::Inval)?;
+    // uci_rename does not validate the new name at all (uci_parse_ptr only ran
+    // uci_validate_text over it), so a name that is not UTF-8 is accepted and
+    // written to the delta byte for byte; the delta loader is what rejects it
+    // later (uci_parse_delta_tuple runs uci_validate_name). Such a name is
+    // never read back through any entry point in this tree, so it is kept
+    // lossily rather than making every name in the model a byte string.
+    let name = String::from_utf8_lossy(&value).into_owned();
     let p = &mut ctx.root[pidx];
     if !internal && p.has_delta {
         add_delta(
@@ -453,9 +487,14 @@ pub fn delete(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
 
     if let (Some(oidx), Some(value)) = (ptr.o, ptr.value.as_deref().filter(|v| !v.is_empty())) {
         if let OptionValue::List(items) = &mut p.sections[sidx].options[oidx].value {
-            // sscanf(value, "%d", &index)
-            let Some(mut index) = std::str::from_utf8(value).ok().and_then(sscanf_int) else {
-                return Ok(()); // C returns 1, but the CLI already rejected it
+            // `if (!sscanf(ptr->value, "%d", &index)) return 1;`
+            // sscanf == 0 (a matching failure): C returns 1, but the CLI's own
+            // predicate already rejected the value before getting here.
+            // sscanf == EOF (all whitespace): C walks the list with an
+            // uninitialised `index`; the device build never hit item 0 in any
+            // run, so nothing is removed and no delta is written.
+            let Some(mut index) = sscanf_int_bytes(value) else {
+                return Ok(());
             };
             let mut i = 0;
             while i < items.len() {
@@ -491,6 +530,23 @@ pub fn delete(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     Ok(())
 }
 
+/// sscanf(s, "%d", &v) over bytes: `None` unless the conversion succeeded
+/// (sscanf returned 1). Use `sscanf_int_no_match` to tell a matching failure
+/// (0) from an input failure (EOF).
+pub fn sscanf_int_bytes(s: &[u8]) -> Option<i32> {
+    sscanf_int(&String::from_utf8_lossy(s))
+}
+
+/// `!sscanf(s, "%d", &dummy)`: true only when sscanf returns 0, i.e. a
+/// non-whitespace byte was left that cannot start a number. A string that is
+/// empty or all whitespace ends the input first and yields EOF (-1), which is
+/// truthy in C, so it is *not* a rejection. A lone sign is consumed and then
+/// fails to match, which is a 0.
+pub fn sscanf_int_no_match(s: &[u8]) -> bool {
+    let rest = s.iter().position(|b| !b.is_ascii_whitespace());
+    rest.is_some_and(|i| sscanf_int_bytes(&s[i..]).is_none())
+}
+
 /// sscanf(s, "%d", &v): leading whitespace, optional sign, at least one digit.
 pub fn sscanf_int(s: &str) -> Option<i32> {
     let t = s.trim_start_matches(|c: char| c.is_ascii_whitespace());
@@ -520,13 +576,15 @@ pub fn add_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> 
     let Some(value) = ptr.value.clone() else {
         return Err(Error::Inval);
     };
-    let Some(option) = ptr.option.clone() else {
-        return Err(Error::Inval);
-    };
+    // uci_add_list only asserts ptr->s and ptr->value: with no option part it
+    // calls uci_alloc_list(s, NULL, NULL) and writes an option-less
+    // `|pkg.section='v'` delta line, which uci_parse_delta_tuple then rejects
+    // on the next load.
+    let option = ptr.option.clone();
     let p = &mut ctx.root[pidx];
     let s = &mut p.sections[sidx];
     let oidx = match ptr.o {
-        None => alloc_option(s, &option, OptionValue::List(Vec::new()), None),
+        None => alloc_option(s, option.as_deref().unwrap_or(""), OptionValue::List(Vec::new()), None),
         Some(oidx) => {
             if let OptionValue::Str(old) = &s.options[oidx].value {
                 // convert the string option into a one-item list in place
@@ -545,7 +603,7 @@ pub fn add_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> 
             p,
             Cmd::ListAdd,
             ptr.section.as_deref().unwrap_or(""),
-            Some(&option),
+            option.as_deref(),
             Some(value.as_slice()),
         );
     }
@@ -639,10 +697,17 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
             if s.ty.as_bytes() == value.as_slice() {
                 return Ok(());
             }
+            // Equal lengths are a strcpy into the existing allocation, so the
+            // section keeps its anonymity. A different length allocates a
+            // replacement with uci_alloc_section(p, value, old->e.name, ...),
+            // and a non-empty name there clears `anonymous` -- every section a
+            // caller can reach is already named by uci_fixup_section, so an
+            // anonymous section becomes `config <newtype> 'cfgXXXXXX'`.
+            // n_section is unchanged (alloc bumps it, uci_set decrements it).
+            if s.ty.len() != value.len() && !s.name.is_empty() {
+                s.anonymous = false;
+            }
             s.ty = String::from_utf8(value.clone()).unwrap_or_default();
-            // C: alloc new section after old, transfer options, free old,
-            // n_section-- (alloc had incremented it). Net effect: type
-            // changes in place and n_section is unchanged.
         }
         _ => return Err(Error::Inval),
     }

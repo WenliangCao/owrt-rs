@@ -9,6 +9,23 @@
 //! 58eb263d5abe03f8c1280bdfa65a3b052614215d, mainly `service/service.c` and
 //! `service/instance.c`.
 
+/// procd's `LOG()`/`ERROR()`/`ULOG_WARN()`: one line through `sys::ulog`,
+/// the single sink that never panics (see sys.rs, R81 F01). `log!(prio, ..)`
+/// takes a syslog priority; `debug!(level, ..)` is `DEBUG(level, ..)`,
+/// printed at LOG_NOTICE only when the debug level allows.
+macro_rules! log {
+    ($prio:expr, $($arg:tt)*) => {
+        $crate::sys::ulog($prio, &format!($($arg)*))
+    };
+}
+macro_rules! debug {
+    ($level:expr, $($arg:tt)*) => {
+        if $crate::sys::debug_level() >= $level {
+            $crate::sys::ulog($crate::sys::LOG_NOTICE, &format!($($arg)*))
+        }
+    };
+}
+
 mod dispatch;
 mod hotplug;
 mod inittab;
@@ -98,6 +115,8 @@ struct Procd {
     hotplug: Option<hotplug::Hotplug>,
     /// The `hotplug.<subsys>` objects; registered in BOTH modes, like the C.
     dispatch: dispatch::Dispatch,
+    /// Read end of the SIGCHLD self-pipe: a child exit wakes the poll.
+    wakeup: std::os::fd::OwnedFd,
 }
 
 impl Procd {
@@ -122,11 +141,14 @@ impl Procd {
             return;
         }
         if !inst.errors.is_empty() {
-            eprintln!("procd-rs: not starting {svc}::{name}, an error was indicated");
+            log!(
+                sys::LOG_INFO,
+                "Not starting instance {svc}::{name}, an error was indicated"
+            );
             return;
         }
         if inst.bundle.is_none() && inst.command.is_empty() {
-            eprintln!("procd-rs: not starting {svc}::{name}, command not set");
+            log!(sys::LOG_INFO, "Not starting instance {svc}::{name}, command not set");
             return;
         }
         if inst.state == Run::Running || inst.state == Run::Halting {
@@ -142,7 +164,7 @@ impl Procd {
         // also make the instance un-deletable, since collect_stopped uses it
         // to tell "ran out of retries" from "was asked to go away".
         inst.crash_looped = false;
-        match proc::start(inst) {
+        match proc::start(inst, svc) {
             Ok((pid, out, err)) => {
                 inst.pid = pid;
                 inst.log_out = out;
@@ -153,7 +175,10 @@ impl Procd {
                 // interface break rather than a missing nicety.
                 if let Some(path) = &inst.pidfile {
                     if let Err(e) = std::fs::write(path, format!("{pid}\n")) {
-                        eprintln!("procd-rs: could not write pidfile {path}: {e}");
+                        log!(
+                            sys::LOG_ERR,
+                            "failed to open pidfile for writing: {path}: {e}"
+                        );
                     }
                 }
                 // instance_start() arms the watchdog timer whenever the mode
@@ -174,7 +199,9 @@ impl Procd {
                 // respawn budget applies and a command that appears later is
                 // retried. Recording 127 and stopping there looks identical
                 // in `list` and behaves completely differently.
-                eprintln!("procd-rs: {svc}::{name} failed to start: {e}");
+                // Rust-only line: the C's child fails execvp silently and
+                // exits 127.
+                log!(sys::LOG_ERR, "{svc}::{name} failed to start: {e}");
                 inst.pid = 0;
                 inst.state = Run::Stopped;
                 inst.started = now;
@@ -303,8 +330,9 @@ impl Procd {
             // The give-up test is strictly greater, and only when retry > 0.
             // A retry of 0 therefore means "respawn forever".
             if inst.respawn_count > r.retry && r.retry > 0 {
-                eprintln!(
-                    "procd-rs: {svc}::{name} is in a crash loop, {} crashes, {runtime}s since last",
+                log!(
+                    sys::LOG_INFO,
+                    "Instance {svc}::{name} s in a crash loop {} crashes, {runtime} seconds since last crash",
                     inst.respawn_count
                 );
                 inst.restart = false;
@@ -357,11 +385,11 @@ impl Procd {
             }
         }
         for (s, i) in wd_restart {
-            eprintln!("procd-rs: instance {s}::{i} watchdog timer expired");
+            debug!(3, "instance {s}::{i} watchdog timer expired");
             self.instance_restart(&s, &i);
         }
         for (s, i) in wd_stop {
-            eprintln!("procd-rs: instance {s}::{i} watchdog timer expired");
+            debug!(3, "instance {s}::{i} watchdog timer expired");
             self.instance_stop(&s, &i, true);
         }
 
@@ -381,7 +409,10 @@ impl Procd {
         }
 
         for (who, pid) in kill {
-            eprintln!("procd-rs: {who} pid {pid} not stopped on SIGTERM, sending SIGKILL instead");
+            log!(
+                sys::LOG_INFO,
+                "Instance {who} pid {pid} not stopped on SIGTERM, sending SIGKILL instead"
+            );
             proc::signal(pid, SIGKILL);
         }
         for (s, i) in start {
@@ -390,6 +421,39 @@ impl Procd {
             // after starting, exactly as the direct-restart path does.
             self.run_init_script(&s);
         }
+    }
+
+    /// One poll() over everything the loop reacts to, so a child exit, a
+    /// uevent, a script's output or an inotify event is handled when it
+    /// happens rather than at the next tick -- the C's uloop wakes on each of
+    /// these. `timeout_ms` is the timer tick that stays for deadlines.
+    /// (R81 F22.)
+    fn wait_activity(&mut self, timeout_ms: i32) {
+        use owrt_ubus::sys::{PollFd, POLLIN};
+        use std::os::fd::AsRawFd;
+        let pfd = |fd: i32| PollFd { fd, events: POLLIN, revents: 0 };
+        let mut fds = vec![pfd(self.conn.as_raw_fd()), pfd(self.wakeup.as_raw_fd())];
+        if let Some(h) = &self.hotplug {
+            fds.push(pfd(h.raw_fd()));
+        }
+        if let Some(fd) = self.dispatch.inotify_fd() {
+            fds.push(pfd(fd));
+        }
+        for s in self.services.values() {
+            for inst in s.instances.values() {
+                for p in [&inst.log_out, &inst.log_err].into_iter().flatten() {
+                    fds.push(pfd(p.fd.as_raw_fd()));
+                }
+            }
+        }
+        for j in self.rc.jobs.iter().chain(self.serial.jobs.iter()) {
+            if let Some(p) = &j.out {
+                fds.push(pfd(p.fd.as_raw_fd()));
+            }
+        }
+        // A poll failure only costs the wait; the loop body runs regardless.
+        let _ = owrt_ubus::sys::poll_fds(&mut fds, timeout_ms);
+        sys::drain_wakeup(self.wakeup.as_raw_fd());
     }
 
     /// Drain every live instance's captured output. `instance_stdio` builds
@@ -410,10 +474,13 @@ impl Procd {
                 // capped at 31 bytes, basename and pid included.
                 let mut ident = format!("{arg0}[{}]", inst.pid);
                 ident.truncate(31);
+                // instance_config_parse keeps LOG_DAEMON when
+                // syslog_facility_str_to_int() finds nothing (-1).
                 let facility = inst
                     .facility
                     .as_deref()
                     .map(sys::facility_from_str)
+                    .filter(|f| *f != -1)
                     .unwrap_or(sys::LOG_DAEMON);
                 for pipe in [&mut inst.log_out, &mut inst.log_err] {
                     let Some(p) = pipe.as_mut() else { continue };
@@ -558,37 +625,39 @@ impl Procd {
     fn state_enter(&mut self) {
         match self.boot {
             Boot::Init => {
-                sys::klog("- init -");
+                log!(sys::LOG_INFO, "- init -");
                 self.inittab = inittab::parse("/etc/inittab");
                 self.inittab_run(inittab::Kind::Respawn);
                 self.inittab_run(inittab::Kind::Askconsole);
                 self.inittab_run(inittab::Kind::Askfirst);
                 self.inittab_run(inittab::Kind::Sysinit);
+                // "switch to syslog log channel": ulog_open(ULOG_SYSLOG).
+                sys::ulog_open(sys::LogChannel::Syslog);
             }
             Boot::Running => {
-                sys::klog("- init complete -");
+                log!(sys::LOG_INFO, "- init complete -");
                 self.inittab_run(inittab::Kind::Respawnlate);
                 self.inittab_run(inittab::Kind::Askconsolelate);
             }
             Boot::Shutdown => {
                 sys::set_console();
-                sys::klog("- shutdown -");
+                log!(sys::LOG_INFO, "- shutdown -");
                 self.inittab_run(inittab::Kind::Shutdown);
                 sys::sync_fs();
             }
             Boot::Halt => {
-                sys::klog("- SIGTERM processes -");
+                log!(sys::LOG_INFO, "- SIGTERM processes -");
                 proc::signal(-1, SIGTERM);
                 sys::sync_fs();
                 std::thread::sleep(std::time::Duration::from_secs(1));
-                sys::klog("- SIGKILL processes -");
+                log!(sys::LOG_INFO, "- SIGKILL processes -");
                 proc::signal(-1, SIGKILL);
                 sys::sync_fs();
                 std::thread::sleep(std::time::Duration::from_secs(1));
                 if self.reboot_event == sys::RB_POWER_OFF {
-                    sys::klog("- power down -");
+                    log!(sys::LOG_INFO, "- power down -");
                 } else {
-                    sys::klog("- reboot -");
+                    log!(sys::LOG_INFO, "- reboot -");
                 }
                 std::thread::sleep(std::time::Duration::from_secs(1));
                 if sys::is_container() {
@@ -641,7 +710,7 @@ impl Procd {
                     match (a.argv.get(1), a.argv.get(2)) {
                         (Some(p), Some(q)) => (p.clone(), q.clone()),
                         _ => {
-                            eprintln!("procd-rs: valid format is rcS <S|K> <param>");
+                            log!(sys::LOG_ERR, "valid format is rcS <S|K> <param>");
                             return;
                         }
                     }
@@ -698,14 +767,26 @@ impl Procd {
         if self.inittab[i].pid.is_some() {
             return;
         }
-        let a = &self.inittab[i];
-        match proc::spawn_tty(&a.argv, &a.id) {
+        let (argv, id, kind, respawn_ms) = {
+            let a = &self.inittab[i];
+            (a.argv.clone(), a.id.clone(), a.kind, a.respawn_ms)
+        };
+        match proc::spawn_tty(&argv, &id) {
             Ok(pid) => {
-                // DEBUG(4, "Launched new %s action, pid=%d")
-                eprintln!("procd-rs: launched {:?} action id '{}' pid {pid}", a.kind, a.id);
+                debug!(4, "Launched new {kind:?} action, pid={pid}");
                 self.inittab[i].pid = Some(pid);
             }
-            Err(e) => eprintln!("procd-rs: failed to execute {}: {e}", a.argv[0]),
+            Err(e) => {
+                log!(sys::LOG_ERR, "Failed to execute {}: {e}", argv[0]);
+                // The C has forked by the time execvp fails, so the failure
+                // is a child exit and child_exit() re-arms the 500 ms
+                // respawn -- a command that appears later gets picked up.
+                // (R81 F22.)
+                if respawn_ms >= 0 && sys::dev_exist(&id) {
+                    let now = self.now_ms();
+                    self.inittab[i].respawn_at = Some(now + respawn_ms);
+                }
+            }
         }
     }
 
@@ -720,7 +801,7 @@ impl Procd {
             return true;
         }
         if !sys::dev_exist(&a.id) {
-            eprintln!("procd-rs: skipping respawn: device '{}' does not exist anymore", a.id);
+            debug!(4, "Skipping respawn: device '{}' does not exist anymore", a.id);
             return true;
         }
         a.respawn_at = Some(now + a.respawn_ms);
@@ -1265,6 +1346,18 @@ impl Procd {
             return status::OK;
         }
 
+        // instance_init() ends with service_data_trigger(&in->data) for EVERY
+        // instance in the message -- before the vlist diff decides whether it
+        // is new, changed or the same. (R81 F22.)
+        let fresh_keys: Vec<Vec<String>> = fresh
+            .values()
+            .map(|i| i.data.keys().cloned().collect())
+            .collect();
+        for keys in &fresh_keys {
+            self.data_trigger_keys(keys);
+        }
+        let s = self.services.get_mut(&name).expect("service exists");
+
         // The plan has to be computed before anything mutates, because the C
         // walks the vlist diff once and acts on each entry as it goes.
         let plan = s.plan(&fresh);
@@ -1433,7 +1526,7 @@ impl Procd {
                 Ok(()) => {
                     self.subscribed.insert(path, id);
                 }
-                Err(e) => eprintln!("procd-rs: failed to subscribe {path}: {e}"),
+                Err(e) => log!(sys::LOG_ERR, "failed to subscribe {path}: {e}"),
             }
         }
     }
@@ -1534,8 +1627,10 @@ impl Procd {
                 _ => {}
             }
         }
+        // service_handle_delete(): a missing `name` is NOT_FOUND, unlike
+        // `set`. (R81 F22.)
         let Some(name) = name else {
-            return status::INVALID_ARGUMENT;
+            return status::NOT_FOUND;
         };
         if !self.services.contains_key(&name) {
             return status::NOT_FOUND;
@@ -1789,13 +1884,13 @@ impl Procd {
             return;
         }
         // stdio to /dev/null, as trigger_command_run does below debug level 3.
-        match std::process::Command::new(&argv[0])
-            .args(&argv[1..])
+        let mut cmd = std::process::Command::new(&argv[0]);
+        cmd.args(&argv[1..])
             .stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
-            .spawn()
-        {
+            .stderr(std::process::Stdio::null());
+        proc::inherit_ignored_sigpipe(&mut cmd);
+        match cmd.spawn() {
             Ok(child) => self.triggers.pending[slot].pid = Some(child.id() as i32),
             // The C forks and the child exits 1 when exec fails; either way
             // the queue entry goes away.
@@ -2046,9 +2141,14 @@ impl Procd {
 
 fn main() {
     if let Err(e) = run() {
-        eprintln!("procd-rs: {e}");
+        log!(sys::LOG_ERR, "{e}");
         std::process::exit(1);
     }
+}
+
+/// `-S` and friends: a flag with no argument.
+fn arg_flag(flag: &str) -> bool {
+    std::env::args().skip(1).any(|a| a == flag)
 }
 
 /// The C's `-I` / `-R <path>` options.
@@ -2101,6 +2201,22 @@ fn run() -> io::Result<()> {
     owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
 
     let pid1 = std::process::id() == 1;
+    // procd.c main(): DBGLVL from the environment (then unset), `-d <level>`,
+    // and ulog_open(): kmsg by default, stderr with `-S`; STATE_INIT moves
+    // PID 1 to syslog. The supervisor mode -- a test-only mode on OpenWrt --
+    // keeps stderr, so a namespace probe's daemon log never lands in the
+    // host's kernel log.
+    if let Some(l) = std::env::var_os("DBGLVL") {
+        sys::set_debug_level(sys::atoi_u32(&l.to_string_lossy()) as i32);
+        std::env::remove_var("DBGLVL");
+    }
+    if arg_flag("-d") {
+        sys::set_debug_level(sys::atoi_u32(&arg_path("-d", "0")) as i32);
+    }
+    let channel = if pid1 && !arg_flag("-S") { sys::LogChannel::Kmsg } else { sys::LogChannel::Stdio };
+    sys::ulog_open(channel);
+    sys::install_panic_hook();
+    let wakeup = sys::install_sigchld_wakeup()?;
     let base = Instant::now();
     let mut wdt = watchdog::Wdt::default();
     let mut hp: Option<hotplug::Hotplug> = None;
@@ -2115,10 +2231,10 @@ fn run() -> io::Result<()> {
         // STATE_EARLY. watchdog_init(0) opens /dev/watchdog and starts the
         // keep-alive; hotplug("/etc/hotplug.json") and procd_coldplug() are
         // the remaining P3.2 pieces and their absence is logged, not hidden.
-        sys::klog("- early -");
+        log!(sys::LOG_INFO, "- early -");
         wdt.init(base.elapsed().as_millis() as i64, false);
         if !wdt.is_open() {
-            eprintln!("procd-rs: no /dev/watchdog");
+            debug!(4, "Watchdog does not exist");
         }
         // hotplug("/etc/hotplug.json") + procd_coldplug(): EARLY -> UBUS is
         // driven by udevtrigger finishing and the rules staying quiet for
@@ -2142,7 +2258,7 @@ fn run() -> io::Result<()> {
                     std::thread::sleep(std::time::Duration::from_millis(50));
                 }
             }
-            None => eprintln!("procd-rs: hotplug disabled: no socket or no rules"),
+            None => log!(sys::LOG_ERR, "hotplug disabled: no socket or no rules"),
         }
 
         // STATE_UBUS. watchdog_init(0) runs AGAIN: coldplug replaced /dev,
@@ -2154,13 +2270,13 @@ fn run() -> io::Result<()> {
         let ubus_user = sys::lookup_user_home("ubus");
         match &ubus_user {
             Some((uid, gid, home)) => {
-                sys::klog("- ubus -");
+                log!(sys::LOG_INFO, "- ubus -");
                 let _ = std::fs::create_dir_all(home);
                 if !sys::chown_path(home, *uid, *gid) {
-                    eprintln!("procd: - ubus - failed to chown({home})");
+                    log!(sys::LOG_INFO, "- ubus - failed to chown({home})");
                 }
             }
-            None => sys::klog("- ubus (running as root!) -"),
+            None => log!(sys::LOG_INFO, "- ubus (running as root!) -"),
         }
         // service_start_early("ubus", "/sbin/ubusd", ...): the same instance
         // shape the C builds -- respawn {3600, 1, 0}, the ubus user when it
@@ -2176,10 +2292,10 @@ fn run() -> io::Result<()> {
             inst.user = Some("ubus".to_string());
             inst.group = Some("ubus".to_string());
         }
-        let mut pid = match proc::start(&inst) {
+        let mut pid = match proc::start(&inst, "ubus") {
             Ok((pid, _, _)) => pid,
             Err(e) => {
-                eprintln!("procd-rs: failed to start ubusd: {e}");
+                log!(sys::LOG_ERR, "failed to start ubusd: {e}");
                 0
             }
         };
@@ -2190,7 +2306,7 @@ fn run() -> io::Result<()> {
                     if let Some((dead, _)) = proc::reap_any() {
                         if dead == pid {
                             std::thread::sleep(std::time::Duration::from_secs(1));
-                            pid = proc::start(&inst).map(|(p, _, _)| p).unwrap_or(0);
+                            pid = proc::start(&inst, "ubus").map(|(p, _, _)| p).unwrap_or(0);
                         }
                     }
                     wdt.pump(base.elapsed().as_millis() as i64);
@@ -2229,6 +2345,7 @@ fn run() -> io::Result<()> {
         wdt,
         hotplug: hp,
         dispatch: dispatch::Dispatch::new(),
+        wakeup,
     };
     if let Some((inst, _)) = early_ubus.take() {
         let mut svc = Service::new("ubus");
@@ -2260,7 +2377,7 @@ fn run() -> io::Result<()> {
         // removal.
         .register_event_handler(p.watch_obj, Some("ubus.object.add"), 1000)
     {
-        eprintln!("procd-rs: failed to add ubus event handler: {e}");
+        log!(sys::LOG_ERR, "failed to add ubus event handler: {e}");
     }
 
     if pid1 {
@@ -2291,7 +2408,7 @@ fn run() -> io::Result<()> {
             std::thread::sleep(std::time::Duration::from_millis(backoff_ms as u64));
             match p.reconnect() {
                 Ok(()) => {
-                    eprintln!("procd-rs: reconnected to ubus");
+                    debug!(2, "Connected to ubus");
                     connected = true;
                     backoff_ms = 50;
                 }
@@ -2322,12 +2439,16 @@ fn run() -> io::Result<()> {
         let now = p.now_ms();
         p.rc.pump(now);
 
-        match p.conn.next_incoming(200) {
+        // uloop_run(): sleep until ANY of the fds this loop reacts to is
+        // ready -- the bus, the uevent socket, a child's output, a child
+        // exit -- or the 200 ms timer tick for deadlines and respawns.
+        p.wait_activity(200);
+        match p.conn.next_incoming(0) {
             Ok(Some(msg)) => p.dispatch(msg),
             Ok(None) => {}
             Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
             Err(e) => {
-                eprintln!("procd-rs: lost the ubus connection ({e}); reconnecting");
+                debug!(2, "lost the ubus connection ({e}); reconnecting");
                 connected = false;
                 backoff_ms = 50;
             }

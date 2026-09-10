@@ -25,10 +25,7 @@ pub fn field_to_json(field: &Field) -> Json {
             Json::Array(field.children().map(|f| field_to_json(&f)).collect())
         }
         t if t == MsgType::String as u32 => {
-            // blobmsg_format_string copies the bytes verbatim; a Rust String
-            // cannot, so bytes that are not UTF-8 become U+FFFD rather than
-            // the whole value silently becoming "".
-            Json::Str(String::from_utf8_lossy(field.as_bytes().unwrap_or(b"")).into_owned())
+            Json::from_string_bytes(field.as_bytes().unwrap_or(b"").to_vec())
         }
         t if t == MsgType::Int8 as u32 => Json::Bool(field.as_bool().unwrap_or(false)),
         t if t == MsgType::Int16 as u32 => {
@@ -67,6 +64,9 @@ pub fn json_to_fields(b: &mut BlobBuf, name: &str, value: &Json) {
         }
         Json::Str(v) => {
             b.msg_string(name, v);
+        }
+        Json::Bytes(v) => {
+            b.msg_string_bytes(name, v);
         }
         Json::Array(items) => {
             let cookie = b.msg_open_array(name);
@@ -121,9 +121,7 @@ mod tests {
         }
     }
 
-    // libubox blobmsg_format_string (blobmsg_json.c) copies STRING bytes
-    // verbatim, UTF-8 or not. The closest a String allows is lossy; what it
-    // must never do is turn the value into "".
+    // Both directions must preserve the bytes, including across JSON output.
     #[test]
     fn non_utf8_string_is_not_silently_emptied() {
         let mut b = BlobBuf::new();
@@ -133,7 +131,12 @@ mod tests {
         let payload = b.into_payload();
         let table = blob::fields(&payload).next().unwrap();
         let ssid = table.children().next().unwrap();
-        assert_eq!(field_to_json(&ssid), Json::Str("caf\u{fffd}".to_owned()));
+        let json = field_to_json(&ssid);
+        assert_eq!(json.as_bytes(), Some(&b"caf\xe9"[..]));
+        assert_eq!(json.to_bytes(), b"\"caf\xe9\"");
+        assert_eq!(crate::json::parse_bytes(&json.to_bytes()).unwrap(), json);
+        let payload = object_to_payload(&Json::Object(vec![("ssid".into(), json)]));
+        assert_eq!(blob::fields(&payload).next().unwrap().as_bytes(), Some(&b"caf\xe9"[..]));
         // and valid UTF-8 still comes through untouched
         let mut b = BlobBuf::new();
         b.msg_string("ssid", "caf\u{e9}");

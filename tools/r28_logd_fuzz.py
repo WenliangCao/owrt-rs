@@ -92,7 +92,7 @@ def datagrams():
           b"<13>" + b"x" * 8192, b"<13>" + b"x" * 20000, b"<13>" + b"x" * 60000,
           b"<13>" + b"\xc3\xa9" * 3000, b"<13>%s%s%n", b"<13>$(id)", b"<13>{\"json\":true}", b"<13>tag with space: msg",
           b"<13>a" * 1 + b":" * 500, b"<13>" + b"[" * 200 + b"]" * 200, b"<13>\x7f\x7f", b"<13>" + bytes(range(1, 32))]
-    D += [b"<13>burst %d padding padding padding padding" % i for i in range(700)]   # wraps a 64 KiB ring
+    D += [b"<13>burst %d " % i + b"x" * (900 if i % 7 == 0 else 43 + i % 67) for i in range(700)]   # wraps a 64 KiB ring
     D += [b"<13>after wrap"]
     return D
 
@@ -148,7 +148,7 @@ def run_side(rootfs, candidate, impl):
                 break
             time.sleep(0.5)
         else:
-            raise RuntimeError("%s: sandbox did not come up\n%s" % (impl, log.read_text(errors="replace")[-2000:]))
+            raise RuntimeError("%s: sandbox did not come up\n%s" % (impl, log.read_text(errors="surrogateescape")[-2000:]))
         pid = pidfile.read_text().strip()
         ns = ["sudo", "-n", "nsenter", "-t", pid, "-m", "--"]
         inside = ns + ["chroot", str(root)]
@@ -159,22 +159,22 @@ def run_side(rootfs, candidate, impl):
         for i in range(0, len(ds), 100):
             r = run(ns + [sys.executable, str(temp / "sender.py"), str(root / "dev/log")] + [base64.b64encode(d).decode() for d in ds[i:i + 100]])
             if r.stdout.strip():
-                out.setdefault("sendto", []).extend(r.stdout.decode(errors="replace").splitlines())
+                out.setdefault("sendto", []).extend(r.stdout.decode(errors="surrogateescape").splitlines())
         time.sleep(1)
-        out["after_datagrams"] = norm_logread(run(inside + ["/sbin/logread"]).stdout.decode(errors="replace"))
+        out["after_datagrams"] = norm_logread(run(inside + ["/sbin/logread"]).stdout.decode(errors="surrogateescape"))
         # 2. ubus writes
         for k, ev in enumerate(ubus_writes()):
             r = run(inside + ["ubus", "call", "log", "write", json.dumps(ev)])
-            out["write%02d" % k] = ["rc=%d" % r.returncode] + r.stdout.decode(errors="replace").splitlines() + r.stderr.decode(errors="replace").splitlines()
+            out["write%02d" % k] = ["rc=%d" % r.returncode] + r.stdout.decode(errors="surrogateescape").splitlines() + r.stderr.decode(errors="surrogateescape").splitlines()
         time.sleep(0.5)
         # 3. ubus reads
         for k, args in enumerate(ubus_reads()):
             r = run(inside + ["ubus", "-t", "10", "call", "log", "read", json.dumps(args)])
-            out["read%02d" % k] = ["rc=%d" % r.returncode] + norm_json(r.stdout.decode(errors="replace")) + r.stderr.decode(errors="replace").splitlines()
-        out["logread_full"] = norm_logread(run(inside + ["/sbin/logread"]).stdout.decode(errors="replace"))
-        out["logread_l5"] = norm_logread(run(inside + ["/sbin/logread", "-l", "5"]).stdout.decode(errors="replace"))
-        out["logread_l0"] = norm_logread(run(inside + ["/sbin/logread", "-l", "0"]).stdout.decode(errors="replace"))
-        out["logread_e"] = norm_logread(run(inside + ["/sbin/logread", "-e", "burst 6[0-9][0-9]"]).stdout.decode(errors="replace"))
+            out["read%02d" % k] = ["rc=%d" % r.returncode] + norm_json(r.stdout.decode(errors="surrogateescape")) + r.stderr.decode(errors="surrogateescape").splitlines()
+        out["logread_full"] = norm_logread(run(inside + ["/sbin/logread"]).stdout.decode(errors="surrogateescape"))
+        out["logread_l5"] = norm_logread(run(inside + ["/sbin/logread", "-l", "5"]).stdout.decode(errors="surrogateescape"))
+        out["logread_l0"] = norm_logread(run(inside + ["/sbin/logread", "-l", "0"]).stdout.decode(errors="surrogateescape"))
+        out["logread_e"] = norm_logread(run(inside + ["/sbin/logread", "-e", "burst 6[0-9][0-9]"]).stdout.decode(errors="surrogateescape"))
         alive = run(ns + ["kill", "-0", (root / "tmp/out/logd.pid").read_text().strip()]).returncode == 0
         out["alive"] = [str(alive)]
         run(["sudo", "-n", "touch", str(root / "tmp/out/stop")])
@@ -183,7 +183,7 @@ def run_side(rootfs, candidate, impl):
         except subprocess.TimeoutExpired:
             proc.kill()
         daemon = (root / "tmp/out/logd.log")
-        out["_daemon_log"] = daemon.read_text(errors="replace")[-1500:].splitlines() if daemon.exists() else []
+        out["_daemon_log"] = daemon.read_text(errors="surrogateescape")[-1500:].splitlines() if daemon.exists() else []
         return out
     finally:
         run(["sudo", "-n", "rm", "-rf", "--", str(temp)])
@@ -196,6 +196,11 @@ def main():
     a = ap.parse_args()
     orig = run_side(a.rootfs.resolve(), a.candidate.resolve(), "original")
     cand = run_side(a.rootfs.resolve(), a.candidate.resolve(), "candidate")
+    for side, result in (("original", orig), ("candidate", cand)):
+        if result.get("alive") != ["True"]:
+            raise SystemExit(f"{side}: logd did not survive the scenario")
+        if not any(line.endswith("after wrap") for line in result.get("after_datagrams", [])):
+            raise SystemExit(f"{side}: no post-wrap record; the logging fixture did not work")
     bad = 0
     for name in sorted(set(orig) | set(cand)):
         if name.startswith("_"):

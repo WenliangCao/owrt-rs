@@ -1005,6 +1005,9 @@ pub fn json_into_blob(b: &mut owrt_ubus::blob::BlobBuf, name: &str, v: &Json) {
         Json::Str(s) => {
             b.msg_string(name, s);
         }
+        Json::Bytes(s) => {
+            b.msg_string_bytes(name, s);
+        }
         Json::Array(items) => {
             let c = b.msg_open_array(name);
             for it in items {

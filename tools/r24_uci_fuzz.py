@@ -18,7 +18,7 @@ import subprocess
 import sys
 import tempfile
 
-WEIRD = [b"\xe9", b"\xff\xfe", b"\xc3\x28", b"\xf0\x9f\x98\x80", b"\x80", b"\t", b"\r", b"\\", b"'", b'"',
+WEIRD = [b"\x00", b"x" * 40 + b"\x00" + b"y" * 40, b"\xe9", b"\xff\xfe", b"\xc3\x28", b"\xf0\x9f\x98\x80", b"\x80", b"\t", b"\r", b"\\", b"'", b'"',
          b"\\'", b" ", b"#", b";", b"$", b"`", b"\x7f", b"\xed\xa0\x80", b"\xc0\xaf"]
 
 

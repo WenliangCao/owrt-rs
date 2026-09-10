@@ -11,7 +11,10 @@ R05 配置变更检测与分发的最小 Rust 候选实现。行为边界由
 - 将比较、规范化异常、每次投递和完成/致命错误写为 JSONL；默认发往本机 syslog（`/dev/log`，daemon.info，
   tag `reload_config`，致命错误为 daemon.err），`--trace-stderr` 改写到 stderr。syslog 不可用时只有致命行
   回落到 stderr，其余静默，与原实现的 stderr 行为一致；
-- 对依赖超时、SIGINT/SIGTERM 与并发运行 fail-closed。
+- 子进程超时按一次失败记账后继续本轮（原脚本没有超时，只是一直等；C-08 要求投递失败不影响后续条目和基线重写），
+  SIGINT/SIGTERM 仍 fail-closed；并发运行阻塞等锁而不是拒绝（原脚本无锁，两轮会互相删 config.check 并重复投递）。
+- 输入不设上限：任意大小的 `/etc/config` 文件、非 UTF-8 或含空格的文件名都照原脚本处理（`uci show` 失败即空条目），
+  基线按字节写出与 `md5sum` 输出一致。
 - 通过同目录临时文件、`sync_all` 和原子 rename 提交基线，I/O 失败时保留旧基线。
 
 默认路径均位于 `/`。`--root` 只用于隔离测试，`--timeout-ms` 控制每个子进程的等待上限。

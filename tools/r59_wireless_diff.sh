@@ -128,7 +128,7 @@ run_rs() {
 	  mount -t tmpfs t "$m/tmp"
 	  mount -t tmpfs -o mode=0755 d "$m/dev" 2>/dev/null || true
 	  mknod -m 666 "$m/dev/null" c 1 3 2>/dev/null || true
-	  chroot "$m" /sbin/netifd-rs --dump-wireless > "$o.raw" 2>&1 || echo '"'"'{}'"'"' > "$o.raw"
+	  chroot "$m" /sbin/netifd-rs --dump-wireless > "$o.raw" 2>&1 || echo FAILED > "$o.raw"
 	' sh "$w" "$1"
 	rm -rf "$w"
 }
@@ -149,17 +149,15 @@ import json, sys
 c, rs, case = sys.argv[1], sys.argv[2], sys.argv[3]
 def load(p):
 	t = open(p).read().strip()
-	if not t or t == 'FAILED':
-		return None
 	try:
-		return json.loads(t)
-	except Exception:
-		return {'__unparsed__': t}
-# The four state booleans say whether a radio came up. netifd-rs cannot bring
-# one up, and the C's own values here are transient -- `pending` is true while
-# a radio is in setup or teardown, so the C reports it or not depending on when
-# the sample lands. Comparing them was luck; they are dropped from the
-# comparison and printed instead.
+		obj = json.loads(t)
+	except Exception as e:
+		raise SystemExit(f"case {case}: invalid/missing reply in {p}: {e}")
+	if not isinstance(obj, dict):
+		raise SystemExit(f"case {case}: reply in {p} is not an object")
+	return obj
+# This gate compares --dump-wireless configuration projection. Live lifecycle
+# states are covered by r60/r79/r83; the real driver cannot find a phy here.
 STATE = ('up', 'pending', 'autostart', 'retry_setup_failed')
 
 def strip_state(o):
@@ -183,6 +181,8 @@ except Exception as e:
 bad = 0
 for k in ('status', 'get_validate'):
 	a, b = want[k], got.get(k)
+	if not isinstance(b, dict):
+		raise SystemExit(f'case {case}: missing candidate {k} object')
 	if k == 'status':
 		for side, o in (('C ', a), ('rs', b)):
 			if isinstance(o, dict):
@@ -219,12 +219,12 @@ PY
 done
 
 echo
-echo "--- C signature (netifd-rs does not register this object) ---"
+echo "--- C signature (live registration is checked by r60/r63) ---"
 cat "$out/c-B.sig"
-echo "--- not covered: up/down/retry/reconf/notify need real radios ---"
+echo "--- live handler transitions: r60/r79/r83; real radio operation needs hardware ---"
 echo "--- status's up/pending/autostart/retry_setup_failed are printed"
 echo "    above but NOT compared: they say whether a radio came up, which"
-echo "    this build cannot do, and the C's own values move with when the"
+echo "    this namespace cannot do, and the C's own values move with when the"
 echo "    sample lands (pending is true during setup and teardown) ---"
 
 [ $fail -eq 0 ] && echo "R59: identical" || echo "R59: DIFFERENCES"

@@ -11,6 +11,7 @@
 //! a SIGCHLD handler, so an exit is noticed within one loop iteration instead
 //! of immediately. netifd-rs already works this way.
 
+use std::ffi::{CStr, CString};
 use std::io;
 use std::os::fd::AsRawFd;
 use std::os::unix::process::CommandExt;
@@ -105,6 +106,98 @@ extern "C" {
 
 /// `UJAIL_BIN_PATH`.
 pub const UJAIL: &str = "/sbin/ujail";
+/// The line-buffering preload instance_run() gives a piped stdout.
+pub const SETLBF: &str = "/lib/libsetlbf.so";
+/// `CGROUP_BASEDIR`.
+const CGROUP_BASEDIR: &str = "/sys/fs/cgroup/services";
+
+/// procd_signal() ignores SIGPIPE, and every child procd forks inherits
+/// that: an ignored disposition survives execve, so instances, inittab
+/// entries, hotplug and rc scripts all run with SIGPIPE ignored under the C.
+/// std's Command puts SIGPIPE back to SIG_DFL in the child before exec; this
+/// restores what the C child would have had. Call it on every spawn path.
+pub fn inherit_ignored_sigpipe(cmd: &mut Command) {
+    // SAFETY: signal(2) is async-signal-safe and the closure touches nothing
+    // else.
+    unsafe {
+        cmd.pre_exec(|| {
+            owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
+            Ok(())
+        });
+    }
+}
+
+/// `instance_add_cgroup()`'s parent half: None when there is no cgroup2 root
+/// to put the instance in (the C's `stat("/sys/fs/cgroup/cgroup.subtree_control")`
+/// early return) or the path would not fit the C's 256-byte buffer.
+fn cgroup_dir(service: &str, instance: &str) -> Option<CString> {
+    if std::fs::metadata("/sys/fs/cgroup/cgroup.subtree_control").is_err() {
+        return None;
+    }
+    let dir = format!("{CGROUP_BASEDIR}/{service}/{instance}");
+    if dir.len() + "/cgroup.procs".len() >= 256 {
+        return None;
+    }
+    CString::new(dir).ok()
+}
+
+/// The child half: mkdir_p(dir, 0700), then write our pid to cgroup.procs.
+/// Runs between fork and exec, so only syscalls and stack buffers.
+fn cgroup_add_self(dir: &CStr) -> io::Result<()> {
+    extern "C" {
+        fn mkdir(path: *const u8, mode: u32) -> i32;
+        fn open(path: *const u8, flags: i32, mode: u32) -> i32;
+        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
+        fn close(fd: i32) -> i32;
+        fn getpid() -> i32;
+    }
+    const O_WRONLY: i32 = 1;
+    const EEXIST: i32 = 17;
+    let bytes = dir.to_bytes();
+    // One component at a time, in a fixed buffer. "" and "/" are skipped.
+    let mut buf = [0u8; 272];
+    for (i, b) in bytes.iter().enumerate() {
+        buf[i] = *b;
+        let last = i + 1 == bytes.len();
+        if (*b == b'/' && i > 0) || last {
+            let mut comp = buf;
+            comp[if last { i + 1 } else { i }] = 0;
+            // SAFETY: comp is NUL-terminated within the buffer.
+            if unsafe { mkdir(comp.as_ptr(), 0o700) } != 0 {
+                let e = io::Error::last_os_error();
+                if e.raw_os_error() != Some(EEXIST) {
+                    return Err(e);
+                }
+            }
+        }
+    }
+    let procs = b"/cgroup.procs\0";
+    buf[bytes.len()..bytes.len() + procs.len()].copy_from_slice(procs);
+    // SAFETY: NUL-terminated path; fd ops on the result.
+    unsafe {
+        let fd = open(buf.as_ptr(), O_WRONLY, 0);
+        if fd < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        // dprintf(fd, "%d", getpid()) without a heap: decimal into a stack
+        // buffer.
+        let mut pid = getpid();
+        let mut digits = [0u8; 12];
+        let mut n = digits.len();
+        while pid > 0 {
+            n -= 1;
+            digits[n] = b'0' + (pid % 10) as u8;
+            pid /= 10;
+        }
+        let r = write(fd, digits[n..].as_ptr(), digits.len() - n);
+        let err = if r < 0 { Some(io::Error::last_os_error()) } else { None };
+        close(fd);
+        match err {
+            Some(e) => Err(e),
+            None => Ok(()),
+        }
+    }
+}
 
 /// `jail_run()`: the ujail argv that wraps the instance's own command.
 ///
@@ -183,10 +276,19 @@ pub fn jail_argv(inst: &Instance) -> Vec<String> {
 ///
 /// A jailed instance skips the privilege drop entirely -- ujail does it, and
 /// doing it here as well would leave ujail unable to set up the sandbox.
-pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPipe>)> {
+pub fn start(
+    inst: &Instance,
+    service: &str,
+) -> io::Result<(i32, Option<LogPipe>, Option<LogPipe>)> {
     if inst.command.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
     }
+    // instance_add_cgroup() runs in the child, before instance_run(): with a
+    // cgroup2 root mounted (`cgroup.subtree_control` exists -- procd's own
+    // init mounts it) every instance lands in
+    // /sys/fs/cgroup/services/<service>/<instance>, 0700. Resolved here so
+    // the child does no string work.
+    let cgroup = cgroup_dir(service, &inst.name);
 
     // Resolved in the parent: getpwnam is not async-signal-safe, and a failed
     // lookup should be visible here rather than as a child exiting 127.
@@ -218,6 +320,14 @@ pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPip
             cmd.env("SECCOMP_FILE", s);
         }
     }
+    // instance_run(): `setlbf = _stdout >= 0` -- a piped stdout gets
+    // /lib/libsetlbf.so preloaded so the child's stdio is line-buffered and
+    // its lines reach the log as they are printed, not in 4 KiB blocks (and
+    // not lost when it is killed). Set after the instance env, overriding
+    // any LD_PRELOAD of its own, as setenv(..., 1) does.
+    if inst.stdout_to_log {
+        cmd.env("LD_PRELOAD", SETLBF);
+    }
 
     // The C sends stdout/stderr to a pipe it reads when the instance asked
     // for it, and to /dev/null otherwise. The pipes here are read every loop
@@ -238,12 +348,19 @@ pub fn start(inst: &Instance) -> io::Result<(i32, Option<LogPipe>, Option<LogPip
     let nice = inst.nice;
     let limits = inst.limits.clone();
     let has_jail = inst.has_jail;
+    let cgroup_warn = format!("failed adding instance cgroup for {service}");
 
+    inherit_ignored_sigpipe(&mut cmd);
     // SAFETY: runs in the forked child before exec. Every call below is
     // async-signal-safe or touches only memory cloned into the closure; the
     // process is single-threaded, so no lock can be held across the fork.
     unsafe {
         cmd.pre_exec(move || {
+            if let Some(dir) = &cgroup {
+                if let Err(e) = cgroup_add_self(dir) {
+                    crate::sys::ulog(crate::sys::LOG_WARNING, &format!("{cgroup_warn}: {e}"));
+                }
+            }
             if nice != 0 {
                 sys::set_nice(nice);
             }
@@ -378,6 +495,7 @@ pub fn spawn_tty(argv: &[String], id: &str) -> io::Result<i32> {
     }
     let mut cmd = Command::new(&argv[0]);
     cmd.args(&argv[1..]);
+    inherit_ignored_sigpipe(&mut cmd);
     let dev = if id.is_empty() { None } else { Some(id.to_string()) };
     // SAFETY: everything in the closure is async-signal-safe and runs in the
     // forked child before exec.
@@ -482,5 +600,72 @@ mod tests {
         // jail_argv is only consulted when has_jail; the guard lives in
         // start(), so assert the flag rather than the builder.
         assert!(!i.has_jail);
+    }
+
+    /// Run `script` through start() with a piped stdout and return what it
+    /// printed, reaping the child.
+    fn run_piped(script: &str) -> Vec<String> {
+        let mut i = Instance::new("one");
+        i.valid = true;
+        i.command = vec!["/bin/sh".into(), "-c".into(), script.into()];
+        i.stdout_to_log = true;
+        let (pid, out, err) = start(&i, "svc").expect("spawn /bin/sh");
+        assert!(err.is_none(), "stderr was not asked for");
+        let mut out = out.expect("stdout pipe");
+        let mut lines = Vec::new();
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+        let mut reaped = false;
+        loop {
+            let alive = out.poll_lines(|_, l| lines.push(String::from_utf8_lossy(l).into_owned()));
+            if !reaped && try_reap(pid).is_some() {
+                reaped = true;
+            }
+            if !alive || std::time::Instant::now() > deadline {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert!(reaped, "child never exited");
+        lines
+    }
+
+    /// R81 F21 (second half): the C child inherits SIGPIPE ignored from
+    /// procd_signal(); std resets it to SIG_DFL, which this puts back.
+    #[test]
+    fn a_child_inherits_sigpipe_ignored_like_the_c_child() {
+        owrt_ubus::sys::ignore_signal(owrt_ubus::sys::SIGPIPE);
+        let lines = run_piped("grep SigIgn /proc/self/status");
+        let mask = lines
+            .iter()
+            .find_map(|l| l.strip_prefix("SigIgn:"))
+            .map(|h| u64::from_str_radix(h.trim(), 16).expect("hex mask"))
+            .expect("SigIgn line");
+        let bit = 1u64 << (owrt_ubus::sys::SIGPIPE - 1);
+        assert_ne!(mask & bit, 0, "SIGPIPE not ignored: {mask:#x}");
+    }
+
+    /// R81 F22: `setlbf = _stdout >= 0` -- a piped stdout gets the preload.
+    #[test]
+    fn a_piped_stdout_gets_libsetlbf_preloaded() {
+        let lines = run_piped("echo LD_PRELOAD=$LD_PRELOAD");
+        let want = format!("LD_PRELOAD={SETLBF}");
+        assert!(lines.iter().any(|l| l == &want), "{lines:?}");
+    }
+
+    #[test]
+    fn an_unpiped_stdout_gets_no_preload() {
+        let mut i = Instance::new("one");
+        i.valid = true;
+        i.command = vec!["/bin/sh".into(), "-c".into(), "exit 0".into()];
+        // No pipe means no way to read the env back; assert the predicate
+        // start() uses instead.
+        assert!(!i.stdout_to_log);
+        let dir = cgroup_dir("svc", "one");
+        // With a cgroup2 root the path is the C's; without one, None. Either
+        // way the length rule holds.
+        if let Some(d) = dir {
+            assert_eq!(d.to_str().unwrap(), "/sys/fs/cgroup/services/svc/one");
+        }
+        assert!(cgroup_dir("svc", &"x".repeat(240)).is_none(), "over the C's 256-byte buffer");
     }
 }

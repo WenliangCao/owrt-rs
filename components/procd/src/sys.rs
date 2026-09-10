@@ -207,6 +207,45 @@ mod tests {
         let (uid, _) = lookup_user("root").expect("root must exist");
         assert_eq!(uid, 0);
     }
+
+    /// R81 F01. PID 1's stderr is the console with O_NONBLOCK set
+    /// (set_stdio); once it stops draining (XOFF, a >4 KiB burst at 115200)
+    /// write(2) fails with EAGAIN, and `eprintln!` turned that into a panic
+    /// -- an abort of init under panic = "abort". Build exactly that fd:
+    /// a full non-blocking pipe on fd 2, then log through the sink.
+    #[test]
+    fn a_full_nonblocking_stderr_drops_the_line_instead_of_panicking() {
+        extern "C" {
+            fn pipe(fds: *mut i32) -> i32;
+            fn write(fd: i32, buf: *const u8, n: usize) -> isize;
+            fn dup(fd: i32) -> i32;
+        }
+        const EAGAIN: i32 = 11;
+        let mut fds = [0i32; 2];
+        // SAFETY: plain fd syscalls on fds this test owns; fd 2 is put back
+        // before the test returns.
+        unsafe {
+            assert_eq!(pipe(fds.as_mut_ptr()), 0);
+            let (r, w) = (fds[0], fds[1]);
+            fcntl(w, F_SETFL, fcntl(w, F_GETFL, 0) | O_NONBLOCK);
+            let junk = [b'x'; 4096];
+            while write(w, junk.as_ptr(), junk.len()) > 0 {}
+            // The fixture is the finding: a raw write now fails with EAGAIN.
+            assert!(write(w, junk.as_ptr(), 1) < 0);
+            assert_eq!(io::Error::last_os_error().raw_os_error(), Some(EAGAIN));
+
+            let saved = dup(2);
+            assert!(saved >= 0);
+            assert!(dup2(w, 2) >= 0);
+            ulog_stdio("- init -");
+            stderr_line("Failed to exec upgraded.");
+            // Reached: no panic. Restore before any assertion can print.
+            assert!(dup2(saved, 2) >= 0);
+            close(saved);
+            close(r);
+            close(w);
+        }
+    }
 }
 
 extern "C" {
@@ -216,15 +255,19 @@ extern "C" {
 }
 
 /// `LOG_INFO` and `LOG_ERR`: an instance's stdout is logged at info, its
-/// stderr at error (`instance_stdout` / `instance_stderr`).
+/// stderr at error (`instance_stdout` / `instance_stderr`). procd's own
+/// lines: `LOG()` is ULOG_INFO, `ERROR()` is ULOG_ERR, `ULOG_WARN` and
+/// `DEBUG()`/`ULOG_NOTE` are the two in between.
 pub const LOG_ERR: i32 = 3;
+pub const LOG_WARNING: i32 = 4;
+pub const LOG_NOTICE: i32 = 5;
 pub const LOG_INFO: i32 = 6;
 /// `LOG_DAEMON`, the facility procd restores after each instance line.
 pub const LOG_DAEMON: i32 = 3 << 3;
 
 /// `facilitynames` from <syslog.h>, which `syslog_facility_str_to_int()`
-/// walks. An unmatched name yields the terminator's value, -1, and the C
-/// stores that verbatim -- so an unknown facility is -1, not a default.
+/// walks. An unmatched name yields the terminator's value, -1; the caller
+/// (`instance_config_parse`) keeps LOG_DAEMON in that case.
 pub const FACILITY_NAMES: &[(&str, i32)] = &[
     ("auth", 4 << 3),
     ("authpriv", 10 << 3),
@@ -259,6 +302,141 @@ pub fn facility_from_str(name: &str) -> i32 {
         .unwrap_or(-1)
 }
 
+// -- ulog ------------------------------------------------------------------
+//
+// libubox's ulog, as procd uses it: ONE sink for every message procd itself
+// prints. procd.c main() opens ULOG_KMSG (or ULOG_STDIO with -S), state.c's
+// STATE_INIT switches to ULOG_SYSLOG. Nothing here can panic: as PID 1 the
+// console stderr is O_NONBLOCK (set_stdio), and `eprintln!` on an EAGAIN was
+// an abort of init -- a kernel panic on the device (R81 F01). A line that
+// cannot be written is dropped, which is what ulog_stdio/ulog_kmsg do too.
+
+/// `ULOG_STDIO` / `ULOG_KMSG` / `ULOG_SYSLOG`.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum LogChannel {
+    Stdio,
+    Kmsg,
+    Syslog,
+}
+
+static LOG_CHANNEL: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0);
+/// `debug` from `-d <level>` / `DBGLVL`; `DEBUG(level, ...)` prints at or
+/// below it. Default 0: the C's DEBUG lines are silent on a stock boot.
+static DEBUG_LEVEL: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+
+/// `ulog_open(channel, LOG_DAEMON, "procd")`.
+pub fn ulog_open(ch: LogChannel) {
+    use std::sync::atomic::Ordering::SeqCst;
+    if ch == LogChannel::Syslog {
+        // SAFETY: a static NUL-terminated ident that lives forever.
+        unsafe { openlog(c"procd".as_ptr().cast(), 0, LOG_DAEMON) };
+    }
+    LOG_CHANNEL.store(ch as u8, SeqCst);
+}
+
+pub fn log_channel() -> LogChannel {
+    match LOG_CHANNEL.load(std::sync::atomic::Ordering::SeqCst) {
+        1 => LogChannel::Kmsg,
+        2 => LogChannel::Syslog,
+        _ => LogChannel::Stdio,
+    }
+}
+
+pub fn set_debug_level(level: i32) {
+    DEBUG_LEVEL.store(level, std::sync::atomic::Ordering::SeqCst);
+}
+
+pub fn debug_level() -> i32 {
+    DEBUG_LEVEL.load(std::sync::atomic::Ordering::SeqCst)
+}
+
+/// `ulog(priority, "%s\n", line)` on whichever channel is open.
+pub fn ulog(priority: i32, line: &str) {
+    match log_channel() {
+        LogChannel::Stdio => ulog_stdio(line),
+        LogChannel::Kmsg => ulog_kmsg(priority, line),
+        LogChannel::Syslog => ulog_syslog(priority, line),
+    }
+}
+
+/// `ulog_stdio()`: `<ident>: <line>` on stderr. A short or failed write is
+/// dropped, never reported -- stderr may be a non-blocking console.
+pub fn ulog_stdio(line: &str) {
+    use std::io::Write;
+    let _ = writeln!(io::stderr().lock(), "procd: {line}");
+}
+
+/// A bare line on stderr, for the few places the C uses `fprintf(stderr)`
+/// directly (sysupgrade.c). Same non-panicking write.
+pub fn stderr_line(line: &str) {
+    use std::io::Write;
+    let _ = writeln!(io::stderr().lock(), "{line}");
+}
+
+/// `ulog_kmsg()`: one `<prio>procd: line` record per call, opened and closed
+/// around it like the C's fopen/fclose. The prefix is the bare syslog
+/// priority (`<6>` for LOG_INFO), which is exactly what libubox writes --
+/// the kernel supplies the facility.
+fn ulog_kmsg(priority: i32, line: &str) {
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new().write(true).open("/dev/kmsg") {
+        let _ = f.write_all(format!("<{priority}>procd: {line}\n").as_bytes());
+    }
+}
+
+/// `vsyslog(priority, ...)` under the `procd`/LOG_DAEMON openlog.
+fn ulog_syslog(priority: i32, line: &str) {
+    let end = line.bytes().position(|b| b == 0).unwrap_or(line.len());
+    let Ok(c) = CString::new(&line[..end]) else { return };
+    // SAFETY: both strings are NUL-terminated and outlive the call.
+    unsafe { syslog(priority, c"%s".as_ptr().cast(), c.as_ptr().cast()) };
+}
+
+/// `do_reboot()` (signal.c): sync, a two-second window for the last output
+/// to reach the console, reboot, then hang forever -- the C never exits
+/// here. process::exit would run atexit handlers (not async-signal-safe)
+/// and, on a reboot(2) failure, would make PID 1 exit and panic the kernel
+/// where the C hangs and lets the hardware watchdog bite. (R73/5.)
+pub fn crash_reboot() -> ! {
+    extern "C" {
+        fn sleep(secs: u32) -> u32;
+    }
+    sync_fs();
+    // SAFETY: sleep(3) and reboot(2) are async-signal-safe.
+    unsafe {
+        sleep(2);
+        reboot(RB_AUTOBOOT);
+    }
+    loop {
+        std::hint::spin_loop();
+    }
+}
+
+/// The Rust-only failure the C cannot have: a panic. With `panic = "abort"`
+/// this hook is the last code to run before the process dies, so as PID 1
+/// it does what `signal_crash()` does for SIGSEGV -- log, then
+/// `do_reboot()` -- instead of aborting into a kernel panic. Any other
+/// process (the supervisor, or a forked child that has not exec'd yet) logs
+/// and lets the abort proceed. The pid is read at panic time, not cached:
+/// children inherit the hook across fork.
+pub fn install_panic_hook() {
+    std::panic::set_hook(Box::new(|info| {
+        let msg = format!("panic: {info}");
+        ulog(LOG_ERR, &msg);
+        if std::process::id() != 1 {
+            return;
+        }
+        // The open channel may be syslog with logd already gone; the kernel
+        // log is the one place a dying init can still be heard.
+        if log_channel() != LogChannel::Kmsg {
+            ulog_kmsg(LOG_ERR, &msg);
+            ulog_kmsg(LOG_ERR, "Rebooting as procd has crashed");
+        }
+        ulog(LOG_ERR, "Rebooting as procd has crashed");
+        crash_reboot();
+    }));
+}
+
 /// One line of an instance's output, logged the way `instance_stdio` does:
 /// reopen the log with the instance's ident and facility, write, then put the
 /// log back to `procd`/LOG_DAEMON so procd's own messages are unaffected.
@@ -266,21 +444,6 @@ pub fn facility_from_str(name: &str) -> i32 {
 /// Using the platform's syslog(3) rather than formatting a datagram by hand
 /// is deliberate: libubox's ulog calls the same function, so the framing,
 /// timestamp and truncation behaviour cannot drift apart.
-/// `ulog(LOG_NOTICE, ...)` as PID 1 goes to /dev/kmsg (ulog_open(ULOG_KMSG))
-/// -- that is where the "procd: - early -" boot lines land on a real serial
-/// log. Kept alongside stderr so namespace probes still see the lines.
-pub fn klog(line: &str) {
-    eprintln!("procd: {line}");
-    if std::process::id() != 1 {
-        return;
-    }
-    use std::io::Write;
-    if let Ok(mut f) = std::fs::OpenOptions::new().write(true).open("/dev/kmsg") {
-        // <29> = LOG_DAEMON | LOG_NOTICE, ulog's default for these lines.
-        let _ = f.write_all(format!("<29>procd: {line}\n").as_bytes());
-    }
-}
-
 pub fn log_instance_line(ident: &str, facility: i32, priority: i32, line: &[u8]) {
     // The line is raw child output. syslog's %s stops at the first NUL, so
     // an interior NUL truncates the line exactly as the C's ulog would.
@@ -343,95 +506,11 @@ pub fn file_md5(path: &str) -> [u8; 16] {
     md5(&data)
 }
 
-/// RFC 1321 MD5. Small enough to carry than to take a dependency for, and
-/// only ever used to answer "did this file change".
-fn md5(input: &[u8]) -> [u8; 16] {
-    const S: [u32; 64] = [
-        7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 5, 9, 14, 20, 5, 9, 14, 20, 5,
-        9, 14, 20, 5, 9, 14, 20, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 6, 10,
-        15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
-    ];
-    let k: [u32; 64] = core::array::from_fn(|i| {
-        ((i as f64 + 1.0).sin().abs() * 4294967296.0) as u32
-    });
-
-    let mut msg = input.to_vec();
-    let bit_len = (input.len() as u64).wrapping_mul(8);
-    msg.push(0x80);
-    while msg.len() % 64 != 56 {
-        msg.push(0);
-    }
-    msg.extend_from_slice(&bit_len.to_le_bytes());
-
-    let (mut a0, mut b0, mut c0, mut d0) =
-        (0x67452301u32, 0xefcdab89u32, 0x98badcfeu32, 0x10325476u32);
-
-    for chunk in msg.as_chunks::<64>().0 {
-        let m: [u32; 16] = core::array::from_fn(|i| {
-            u32::from_le_bytes([
-                chunk[i * 4],
-                chunk[i * 4 + 1],
-                chunk[i * 4 + 2],
-                chunk[i * 4 + 3],
-            ])
-        });
-        let (mut a, mut b, mut c, mut d) = (a0, b0, c0, d0);
-        for i in 0..64 {
-            let (f, g) = match i / 16 {
-                0 => ((b & c) | (!b & d), i),
-                1 => ((d & b) | (!d & c), (5 * i + 1) % 16),
-                2 => (b ^ c ^ d, (3 * i + 5) % 16),
-                _ => (c ^ (b | !d), (7 * i) % 16),
-            };
-            let tmp = d;
-            d = c;
-            c = b;
-            let sum = a
-                .wrapping_add(f)
-                .wrapping_add(k[i])
-                .wrapping_add(m[g]);
-            b = b.wrapping_add(sum.rotate_left(S[i]));
-            a = tmp;
-        }
-        a0 = a0.wrapping_add(a);
-        b0 = b0.wrapping_add(b);
-        c0 = c0.wrapping_add(c);
-        d0 = d0.wrapping_add(d);
-    }
-
-    let mut out = [0u8; 16];
-    out[0..4].copy_from_slice(&a0.to_le_bytes());
-    out[4..8].copy_from_slice(&b0.to_le_bytes());
-    out[8..12].copy_from_slice(&c0.to_le_bytes());
-    out[12..16].copy_from_slice(&d0.to_le_bytes());
-    out
-}
+use owrt_ubus::digest::md5;
 
 #[cfg(test)]
 mod digest_tests {
     use super::*;
-
-    #[test]
-    fn md5_matches_the_rfc_vectors() {
-        let hex = |d: [u8; 16]| d.iter().map(|b| format!("{b:02x}")).collect::<String>();
-        assert_eq!(hex(md5(b"")), "d41d8cd98f00b204e9800998ecf8427e");
-        assert_eq!(hex(md5(b"a")), "0cc175b9c0f1b6a831c399e269772661");
-        assert_eq!(hex(md5(b"abc")), "900150983cd24fb0d6963f7d28e17f72");
-        assert_eq!(
-            hex(md5(b"message digest")),
-            "f96b697d7cb7938d525a2f31aaf161d0"
-        );
-        assert_eq!(
-            hex(md5(b"abcdefghijklmnopqrstuvwxyz")),
-            "c3fcd3d76192e4007dfb496cca67e13b"
-        );
-        assert_eq!(
-            hex(md5(
-                b"12345678901234567890123456789012345678901234567890123456789012345678901234567890"
-            )),
-            "57edf4a22be3c955ac49da2e2107b67a"
-        );
-    }
 
     #[test]
     fn an_unreadable_file_digests_to_zero() {
@@ -545,7 +624,7 @@ pub fn set_stdio(tty: &str) {
     // it does NOT fall back to /dev/null the way patch_fd does for children.
     // Booting in a mount namespace without a console must keep its stderr.
     if !dev_exist(tty) && !tty.starts_with('/') {
-        eprintln!("procd-rs: failed to set stdio: no /dev/{tty}");
+        ulog(LOG_ERR, &format!("failed to set stdio: no /dev/{tty}"));
         return;
     }
     // freopen carries NO O_NOCTTY: the session leader acquires the console
@@ -554,7 +633,7 @@ pub fn set_stdio(tty: &str) {
     // O_NOCTTY, matching utils.c. (R73/6g.)
     let ok = stdio_open(tty, 0, false) & stdio_open(tty, 1, true) & stdio_open(tty, 2, true);
     if !ok {
-        eprintln!("procd-rs: failed to set stdio to {tty}");
+        ulog(LOG_ERR, &format!("failed to set stdio to {tty}"));
         return;
     }
     // SAFETY: fcntl on stderr with integer args only.
@@ -705,23 +784,49 @@ extern "C" fn shutdown_signal(sig: i32) {
 }
 
 extern "C" fn crash_signal(_sig: i32) {
-    // do_reboot(): sync, a two-second window for the last output to reach
-    // the console, reboot, then hang forever -- the C never exits here.
-    // process::exit would run atexit handlers (not async-signal-safe) and,
-    // on a reboot(2) failure, would make PID 1 exit and panic the kernel
-    // where the C hangs and lets the hardware watchdog bite. (R73/5.)
+    // signal_crash(): the ERROR() line is skipped here -- formatting is not
+    // async-signal-safe -- and do_reboot() follows.
+    crash_reboot();
+}
+
+static SIGCHLD_WAKEUP: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+
+extern "C" fn sigchld_signal(_sig: i32) {
     extern "C" {
-        fn sleep(secs: u32) -> u32;
+        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
     }
-    sync_fs();
-    // SAFETY: sleep(3) and reboot(2) are async-signal-safe.
-    unsafe {
-        sleep(2);
-        reboot(RB_AUTOBOOT);
+    let fd = SIGCHLD_WAKEUP.load(std::sync::atomic::Ordering::Relaxed);
+    if fd >= 0 {
+        // SAFETY: write(2) of one byte to a non-blocking pipe; a full pipe
+        // (EAGAIN) already means a wakeup is pending.
+        unsafe { write(fd, b"c".as_ptr(), 1) };
     }
-    loop {
-        std::hint::spin_loop();
+}
+
+/// uloop's SIGCHLD self-pipe: a child exit wakes the main loop's poll()
+/// instead of waiting for its next tick. Returns the read end; the loop
+/// drains it after every poll. Installed in both modes, like uloop_init().
+pub fn install_sigchld_wakeup() -> io::Result<std::os::fd::OwnedFd> {
+    use std::os::fd::AsRawFd;
+    const SIGCHLD: i32 = 17;
+    let (r, w) = owrt_ubus::sys::pipe()?;
+    owrt_ubus::sys::set_nonblocking(r.as_raw_fd())?;
+    owrt_ubus::sys::set_nonblocking(w.as_raw_fd())?;
+    SIGCHLD_WAKEUP.store(w.as_raw_fd(), std::sync::atomic::Ordering::SeqCst);
+    // The write end lives for the process; the handler owns it from here.
+    std::mem::forget(w);
+    owrt_ubus::sys::set_signal_handler(SIGCHLD, sigchld_signal);
+    Ok(r)
+}
+
+/// Empty a wakeup pipe after poll() reported it readable.
+pub fn drain_wakeup(fd: std::os::fd::RawFd) {
+    extern "C" {
+        fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
     }
+    let mut buf = [0u8; 64];
+    // SAFETY: read(2) into a live buffer on a non-blocking fd.
+    while unsafe { read(fd, buf.as_mut_ptr(), buf.len()) } > 0 {}
 }
 
 /// `procd_signal()` for the PID 1 half: shutdown signals, crash-to-reboot,
@@ -731,7 +836,10 @@ pub fn procd_signal_pid1() {
     for sig in [2, 15, 10, 12, 30] {
         set_signal_handler(sig, shutdown_signal);
     }
-    for sig in [11, 7] {
+    // SIGSEGV and SIGBUS as in the C, plus SIGABRT: a Rust abort (an
+    // allocation failure, or a panic whose hook did not get to reboot) must
+    // end the same way, not as an init exit and a kernel panic.
+    for sig in [11, 7, 6] {
         set_signal_handler(sig, crash_signal);
     }
     extern "C" fn dummy(_sig: i32) {}

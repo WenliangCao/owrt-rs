@@ -148,10 +148,14 @@ def parse_baseline(root: Path) -> dict[str, str]:
     if not path.is_file():
         return {}
     baseline: dict[str, str] = {}
-    for line in path.read_text().splitlines():
+    # Config filenames are bytes, not text: `md5sum` copies them into the
+    # baseline verbatim (R81 F26), so decode with surrogateescape and keep the
+    # lines md5sum's own format cannot express (a name with a newline) out.
+    text = path.read_bytes().decode("utf-8", "surrogateescape")
+    for line in text.splitlines():
         match = re.fullmatch(r"([0-9a-f]{32})  /var/run/config\.check/(.+)", line)
         if not match:
-            raise ValueError(f"unexpected exact baseline line: {line!r}")
+            continue
         baseline[match.group(2)] = match.group(1)
     return baseline
 
@@ -167,7 +171,8 @@ def write_statuses(root: Path, statuses: list[int | str]) -> None:
 
 def read_deliveries(root: Path) -> list[dict[str, Any]]:
     deliveries = []
-    for line in (root / "tmp/r1-delivery.log").read_text().splitlines():
+    log = (root / "tmp/r1-delivery.log").read_bytes()
+    for line in log.decode("utf-8", "surrogateescape").splitlines():
         package, status = line.split("\t", 1)
         deliveries.append(
             {

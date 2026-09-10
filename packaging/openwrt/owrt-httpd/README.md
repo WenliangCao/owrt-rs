@@ -3,9 +3,11 @@
 Packages `components/httpd` (with `components/ubus`) for the pinned OpenWrt
 25.12.5 `mediatek/filogic` SDK as `/usr/sbin/httpd-rs`. The binary accepts
 uhttpd's command line; `/etc/init.d/owrt-httpd` builds it from
-`/etc/config/uhttpd` exactly like the stock init script and adds
-`--call-log /tmp/owrt-httpd-calls.txt` (the `/ubus` object/method inventory
-used by stage 5).
+`/etc/config/uhttpd` exactly like the stock init script. `--call-log FILE`
+(the `/ubus` object/method inventory used by stage 5) is a debug facility --
+it rewrites its file under a lock on every `/ubus` request -- and is not
+passed in production; `tools/r14_go_live_device.sh` adds it for side-by-side
+probing.
 
 Installation is inert. `owrt-httpd-switch enable` stops the stock `uhttpd`
 service, starts `httpd-rs` on the same ports and fails closed (restarts uhttpd)

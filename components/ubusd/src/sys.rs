@@ -40,38 +40,9 @@ pub struct Ucred {
     pub gid: u32,
 }
 
-#[repr(C)]
-struct IoVec {
-    base: *mut u8,
-    len: usize,
-}
-
-/// struct msghdr. `iovlen`/`controllen` are `int` plus padding in musl; a
-/// usize occupies the same slot on little-endian LP64, which the ABI probe
-/// asserts explicitly.
-#[repr(C)]
-struct MsgHdr {
-    name: *mut u8,
-    namelen: u32,
-    iov: *mut IoVec,
-    iovlen: usize,
-    control: *mut u8,
-    controllen: usize,
-    flags: i32,
-}
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct PollFd {
-    pub fd: i32,
-    pub events: i16,
-    pub revents: i16,
-}
-
-pub const POLLIN: i16 = 0x001;
-pub const POLLOUT: i16 = 0x004;
-pub const POLLERR: i16 = 0x008;
-pub const POLLHUP: i16 = 0x010;
+// The client library and daemon use the same wire ABI and readiness helpers.
+pub use owrt_ubus::sys::{ignore_signal, set_signal_handler, poll_fds, PollFd, POLLIN, POLLOUT, POLLERR, POLLHUP, SIGPIPE, SIGTERM, SIGINT};
+use owrt_ubus::sys::{IoVec, MsgHdr};
 
 /// struct passwd -- only pw_name is read.
 #[repr(C)]
@@ -133,9 +104,7 @@ extern "C" {
     fn getsockopt(fd: i32, level: i32, name: i32, val: *mut Ucred, len: *mut u32) -> i32;
     fn sendmsg(fd: i32, msg: *const MsgHdr, flags: i32) -> isize;
     fn recvmsg(fd: i32, msg: *mut MsgHdr, flags: i32) -> isize;
-    fn poll(fds: *mut PollFd, nfds: u64, timeout: i32) -> i32;
     fn pipe2(fds: *mut i32, flags: i32) -> i32;
-    fn signal(signum: i32, handler: usize) -> usize;
     fn getpwuid(uid: u32) -> *const Passwd;
     fn getgrgid(gid: u32) -> *const Group;
     fn getpwnam(name: *const u8) -> *const Passwd;
@@ -150,24 +119,10 @@ extern "C" {
     fn write(fd: i32, buf: *const u8, len: usize) -> isize;
 }
 
-pub const SIGPIPE: i32 = 13;
 pub const SIGHUP: i32 = 1;
-pub const SIGTERM: i32 = 15;
-pub const SIGINT: i32 = 2;
-pub const SIG_IGN: usize = 1;
 /// getrandom(2) GRND_INSECURE: ids only need to be hard to guess, and this
 /// must not stall boot on a board whose entropy pool seeds late.
 const GRND_INSECURE: u32 = 0x0004;
-
-pub fn ignore_signal(signum: i32) {
-    // SAFETY: SIG_IGN is a valid disposition for any catchable signal.
-    unsafe { signal(signum, SIG_IGN) };
-}
-
-pub fn set_signal_handler(signum: i32, handler: extern "C" fn(i32)) {
-    // SAFETY: `handler` is an extern "C" fn(i32), the disposition signal(2) wants.
-    unsafe { signal(signum, handler as usize) };
-}
 
 /// A u32 that is hard to guess. Mirrors ubusd_id.c: retry until the value is
 /// at least `min`, so ids never collide with the reserved system objects.
@@ -486,19 +441,4 @@ pub fn nonblocking_pipe() -> io::Result<(OwnedFd, OwnedFd)> {
     }
     // SAFETY: pipe2 returned two fresh owned descriptors.
     Ok(unsafe { (OwnedFd::from_raw_fd(fds[0]), OwnedFd::from_raw_fd(fds[1])) })
-}
-
-pub fn poll_fds(fds: &mut [PollFd], timeout_ms: i32) -> io::Result<usize> {
-    loop {
-        // SAFETY: fds is live and len describes it.
-        let n = unsafe { poll(fds.as_mut_ptr(), fds.len() as u64, timeout_ms) };
-        if n >= 0 {
-            return Ok(n as usize);
-        }
-        let err = io::Error::last_os_error();
-        if err.kind() == io::ErrorKind::Interrupted {
-            continue;
-        }
-        return Err(err);
-    }
 }

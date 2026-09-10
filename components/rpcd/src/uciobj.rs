@@ -1061,13 +1061,8 @@ fn rollback(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
 }
 
 /// rpc_uci_reload: `/sbin/reload_config` two seconds after the reply.
-fn reload_config() -> Reply {
-    std::thread::spawn(|| {
-        std::thread::sleep(Duration::from_secs(2));
-        if let Ok(mut child) = std::process::Command::new("/sbin/reload_config").spawn() {
-            let _ = child.wait();
-        }
-    });
+fn reload_config(ctx: &Ctx) -> Reply {
+    ctx.delayed.borrow_mut().exec(&["/sbin/reload_config"]);
     code(0)
 }
 
@@ -1087,7 +1082,7 @@ pub fn call(rctx: &Ctx, conn: &mut Connection, method: &str, raw: &[u8]) -> Repl
         "apply" => apply(rctx, conn, raw),
         "confirm" => confirm(rctx, raw),
         "rollback" => rollback(rctx, conn, raw),
-        "reload_config" => reload_config(),
+        "reload_config" => reload_config(rctx),
         _ => code(status::METHOD_NOT_FOUND),
     }
 }

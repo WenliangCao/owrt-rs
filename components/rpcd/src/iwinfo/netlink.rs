@@ -73,7 +73,7 @@ impl Msg {
         self.buf.extend_from_slice(&len.to_ne_bytes());
         self.buf.extend_from_slice(&ty.to_ne_bytes());
         self.buf.extend_from_slice(data);
-        while self.buf.len() % 4 != 0 {
+        while !self.buf.len().is_multiple_of(4) {
             self.buf.push(0);
         }
     }

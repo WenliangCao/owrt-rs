@@ -8,9 +8,11 @@
 //!   only `KEY=value` segments become variables (the "action@devpath"
 //!   header has no `=` and drops out by itself).
 //! - `DEVNAME`/`DEVICENAME` fall back to the basename of `DEVPATH` when the
-//!   event does not carry them -- and because json_script consults the
-//!   variable table before the fallback, `has DEVNAME` is TRUE whenever
-//!   DEVPATH exists. The fallback is materialized into the table here.
+//!   event does not carry them (`rule_handle_var`), so `has DEVNAME` is TRUE
+//!   whenever DEVPATH exists. The fallback is answered by the rule engine's
+//!   lookup and never enters the variable table: an `exec` child's
+//!   environment and the `hotplug.<subsys>` notification carry only what
+//!   the kernel sent.
 //! - `makedev` and `rm` are ATOMIC (run in-process, in order); everything
 //!   else is a queue of forked children, one at a time.
 //! - a `button` child's exit code (>>8) is a timeout in seconds: the same
@@ -113,46 +115,17 @@ pub struct Hotplug {
     quiet_at: i64,
 }
 
-/// JSON -> blobmsg, the way `blobmsg_add_json_element` renders it. Only the
-/// shapes json_script reads matter: strings, arrays, tables, and the odd
-/// bool/int a rule file might carry.
-fn json_to_blob(b: &mut BlobBuf, name: &str, j: &owrt_ubus::json::Json) {
-    use owrt_ubus::json::Json;
-    match j {
-        Json::Null => {}
-        Json::Bool(v) => {
-            b.msg_bool(name, *v);
-        }
-        Json::Int(v) => {
-            b.msg_u32(name, *v as u32);
-        }
-        Json::Float(v) => {
-            b.msg_double(name, *v);
-        }
-        Json::Str(s) => {
-            b.msg_string(name, s);
-        }
-        Json::Array(items) => {
-            let a = b.msg_open_array(name);
-            for i in items {
-                json_to_blob(b, "", i);
-            }
-            b.msg_close(a);
-        }
-        Json::Object(items) => {
-            let t = b.msg_open_table(name);
-            for (k, v) in items {
-                json_to_blob(b, k, v);
-            }
-            b.msg_close(t);
-        }
-    }
-}
+use owrt_ubus::convert::json_to_fields as json_to_blob;
+
 
 /// `rule_handle_file` + caching: the file is read once.
 fn load_rules(path: &str) -> Option<Vec<u8>> {
-    let text = std::fs::read_to_string(path).ok()?;
-    let j = owrt_ubus::json::parse(&text).ok()?;
+    rules_blob(&std::fs::read(path).ok()?)
+}
+
+/// The JSON rule text as the blobmsg array json_script runs.
+pub fn rules_blob(text: &[u8]) -> Option<Vec<u8>> {
+    let j = owrt_ubus::json::parse(std::str::from_utf8(text).ok()?).ok()?;
     let mut b = BlobBuf::new();
     json_to_blob(&mut b, "", &j);
     // The payload's first (only) field is the whole rule array; keep its
@@ -164,8 +137,9 @@ fn load_rules(path: &str) -> Option<Vec<u8>> {
     Some(f.data.to_vec())
 }
 
-/// The uevent datagram -> variable table, plus the DEVNAME/DEVICENAME
-/// fallback.
+/// The uevent datagram -> variable table: exactly the `KEY=value` segments
+/// the kernel sent. The DEVNAME/DEVICENAME fallback lives in the rule
+/// engine (`jsonscript::run_hotplug_rule`), as `rule_handle_var` does.
 pub fn parse_uevent(buf: &[u8]) -> BTreeMap<String, String> {
     let mut vars = BTreeMap::new();
     for seg in buf.split(|b| *b == 0) {
@@ -174,28 +148,29 @@ pub fn parse_uevent(buf: &[u8]) -> BTreeMap<String, String> {
             vars.insert(k.to_string(), v.to_string());
         }
     }
-    if let Some(devpath) = vars.get("DEVPATH").cloned() {
-        let base = devpath.rsplit('/').next().unwrap_or(&devpath).to_string();
-        vars.entry("DEVNAME".to_string()).or_insert_with(|| base.clone());
-        vars.entry("DEVICENAME".to_string()).or_insert(base);
-    }
     vars
 }
 
 impl Hotplug {
+    /// The uevent socket, for the main loop's poll set.
+    pub fn raw_fd(&self) -> std::os::fd::RawFd {
+        use std::os::fd::AsRawFd;
+        self.fd.as_raw_fd()
+    }
+
     /// `hotplug(rules)`: open and bind the uevent socket.
     pub fn new(rule_file: &str) -> Option<Hotplug> {
         let rules = load_rules(rule_file)?;
         // SAFETY: plain socket syscalls; the fd is owned immediately.
         let fd = unsafe { socket(AF_NETLINK, SOCK_DGRAM | SOCK_CLOEXEC, NETLINK_KOBJECT_UEVENT) };
         if fd < 0 {
-            eprintln!("procd-rs: failed to open hotplug socket");
+            log!(sys::LOG_ERR, "Failed to open hotplug socket");
             return None;
         }
         let addr = SockaddrNl { nl_family: AF_NETLINK as u16, nl_pad: 0, nl_pid: 0, nl_groups: u32::MAX };
         // SAFETY: addr is a live local of the correct layout.
         if unsafe { bind(fd, &addr, std::mem::size_of::<SockaddrNl>() as u32) } != 0 {
-            eprintln!("procd-rs: failed to bind hotplug socket");
+            log!(sys::LOG_ERR, "Failed to bind hotplug socket");
             // SAFETY: fd was just opened.
             unsafe { sys::close_fd(fd) };
             return None;
@@ -203,7 +178,7 @@ impl Hotplug {
         let bufsize: i32 = 512 * 1024;
         // SAFETY: setsockopt with an int payload.
         if unsafe { setsockopt(fd, SOL_SOCKET, SO_RCVBUFFORCE, &bufsize, 4) } != 0 {
-            eprintln!("procd-rs: failed to resize receive buffer");
+            log!(sys::LOG_ERR, "Failed to resize receive buffer");
         }
         Some(Hotplug {
             // SAFETY: fd is open and owned once.
@@ -257,17 +232,17 @@ impl Hotplug {
         // SAFETY: restoring the saved mask.
         unsafe { umask(old) };
 
-        match Command::new("udevtrigger")
-            .stdin(Stdio::null())
-            .spawn()
-        {
+        let mut trigger = Command::new("udevtrigger");
+        trigger.stdin(Stdio::null());
+        crate::proc::inherit_ignored_sigpipe(&mut trigger);
+        match trigger.spawn() {
             Ok(c) => {
                 let pid = c.id() as i32;
                 std::mem::forget(c);
                 self.coldplug = Coldplug::Trigger(pid);
             }
             Err(e) => {
-                eprintln!("procd-rs: failed to start coldplug: {e}");
+                log!(sys::LOG_ERR, "Failed to start coldplug: {e}");
                 // The C leaves the state machine stuck here; a boot that can
                 // never leave EARLY is strictly worse than one without
                 // coldplug, so the quiet timer still runs.
@@ -419,9 +394,10 @@ impl Hotplug {
         let rules = std::mem::take(&mut self.rules);
         {
             let block = Field { name: "", ty: MsgType::Array as u32, data: &rules };
-            let out = jsonscript::run_rule(block, vars, None);
+            let out = jsonscript::run_hotplug_rule(block, vars);
             for e in out.errors {
-                eprintln!("procd-rs: hotplug: {e}");
+                // rule_handle_error()
+                log!(sys::LOG_ERR, "ERROR: {e}");
             }
             for (name, argv) in out.commands {
                 self.dispatch(&name, argv, vars, now);
@@ -480,7 +456,13 @@ fn handle_makedev(argv: &[String], vars: &BTreeMap<String, String>) {
     // SAFETY: umask read-modify.
     let old = unsafe { umask(0) };
     if let Some(dir) = std::path::Path::new(path).parent() {
-        let _ = std::fs::create_dir_all(dir);
+        // mkdir_p(d, 0755): create_dir_all under umask(0) would leave 0777
+        // directories behind (R81 F22).
+        use std::os::unix::fs::DirBuilderExt;
+        let _ = std::fs::DirBuilder::new()
+            .recursive(true)
+            .mode(0o755)
+            .create(dir);
     }
     let ifmt = if subsystem == "block" { S_IFBLK } else { S_IFCHR };
     let mode_bits = u32::from_str_radix(mode, 8).unwrap_or(0);
@@ -493,10 +475,10 @@ fn handle_makedev(argv: &[String], vars: &BTreeMap<String, String>) {
         match crate::sys::lookup_group(group) {
             Some(gid) => {
                 if !sys::chown_path(path, 0, gid) {
-                    eprintln!("procd-rs: cannot set group {group} for {path} (chown)");
+                    log!(sys::LOG_ERR, "cannot set group {group} for {path} (chown)");
                 }
             }
-            None => eprintln!("procd-rs: cannot set group {group} for {path} (getgrnam)"),
+            None => log!(sys::LOG_ERR, "cannot set group {group} for {path} (getgrnam)"),
         }
     }
     // SAFETY: restore.
@@ -514,6 +496,7 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
         c.env(k, v);
     }
     c.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    crate::proc::inherit_ignored_sigpipe(&mut c);
     match c.spawn() {
         Ok(child) => {
             let pid = child.id() as i32;
@@ -542,23 +525,26 @@ fn spawn_firmware(cmd: &Queued) -> Option<i32> {
 
 fn firmware_child(dir: &str, vars: &BTreeMap<String, String>) {
     let (Some(file), Some(dev)) = (vars.get("FIRMWARE"), vars.get("DEVPATH")) else {
-        eprintln!("procd-rs: request for unknown firmware");
+        log!(sys::LOG_ERR, "Request for unknown firmware");
         return;
     };
     let path = format!("{dir}/{file}");
     let data = std::fs::read(&path).unwrap_or_else(|e| {
-        eprintln!("procd-rs: could not find firmware {path}: {e}");
+        log!(sys::LOG_ERR, "Could not find firmware {path}: {e}");
         Vec::new()
     });
     let loading = format!("/sys/{dev}/loading");
     if std::fs::write(&loading, "1").is_err() {
-        eprintln!("procd-rs: failed to write to {loading}");
+        log!(sys::LOG_ERR, "Failed to write to {loading}");
         return;
     }
     let syspath = format!("/sys/{dev}/data");
     if !data.is_empty() {
         if let Err(e) = std::fs::write(&syspath, &data) {
-            eprintln!("procd-rs: failed to write firmware {path} to {syspath}: {e}");
+            log!(
+                sys::LOG_ERR,
+                "failed to write firmware file {path} to {syspath}: {e}"
+            );
         }
     }
     let _ = std::fs::write(&loading, "0");
@@ -569,13 +555,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_uevent_datagram_becomes_variables_with_the_devname_fallback() {
+    fn a_uevent_datagram_becomes_exactly_the_kernels_variables() {
         let buf = b"add@/devices/platform/serial8250/tty/ttyS1\0ACTION=add\0DEVPATH=/devices/platform/serial8250/tty/ttyS1\0SUBSYSTEM=tty\0MAJOR=4\0MINOR=65\0";
         let v = parse_uevent(buf);
         assert_eq!(v.get("ACTION").map(String::as_str), Some("add"));
-        assert_eq!(v.get("DEVNAME").map(String::as_str), Some("ttyS1"), "derived from DEVPATH");
-        assert_eq!(v.get("DEVICENAME").map(String::as_str), Some("ttyS1"));
         assert_eq!(v.get("MAJOR").map(String::as_str), Some("4"));
+        // R81 F22: the synthesized names must not leak into an exec's env or
+        // a hotplug.<subsys> notification -- the rule engine answers them.
+        assert!(!v.contains_key("DEVNAME"));
+        assert!(!v.contains_key("DEVICENAME"));
+        let rules = br#"[[ "if", [ "has", "DEVICENAME" ], [ "exec", "/bin/echo", "%DEVNAME%", "%DEVICENAME%" ] ]]"#;
+        let blob = rules_blob(rules).unwrap();
+        let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
+        let out = jsonscript::run_hotplug_rule(block, &v);
+        assert_eq!(out.commands, vec![("exec".to_string(), vec!["/bin/echo".into(), "ttyS1".into(), "ttyS1".into()])]);
     }
 
     #[test]
@@ -583,7 +576,11 @@ mod tests {
         let buf = b"ACTION=add\0DEVPATH=/devices/x/y\0DEVNAME=bus/usb/001/002\0";
         let v = parse_uevent(buf);
         assert_eq!(v.get("DEVNAME").map(String::as_str), Some("bus/usb/001/002"));
-        assert_eq!(v.get("DEVICENAME").map(String::as_str), Some("y"), "DEVICENAME still derived");
+        let rules = br#"[[ "exec", "%DEVNAME%", "%DEVICENAME%" ]]"#;
+        let blob = rules_blob(rules).unwrap();
+        let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
+        let out = jsonscript::run_hotplug_rule(block, &v);
+        assert_eq!(out.commands, vec![("exec".to_string(), vec!["bus/usb/001/002".into(), "y".into()])]);
     }
 
     #[test]
@@ -603,9 +600,9 @@ mod tests {
         let blob = load_rules(p.to_str().unwrap()).expect("rules load");
         let mut vars = BTreeMap::new();
         vars.insert("ACTION".to_string(), "add".to_string());
-        vars.insert("DEVNAME".to_string(), "ttyS1".to_string());
+        vars.insert("DEVPATH".to_string(), "/devices/platform/serial8250/tty/ttyS1".to_string());
         let block = Field { name: "", ty: MsgType::Array as u32, data: &blob };
-        let out = jsonscript::run_rule(block, &vars, None);
+        let out = jsonscript::run_hotplug_rule(block, &vars);
         assert!(out.errors.is_empty(), "{:?}", out.errors);
         assert_eq!(
             out.commands,

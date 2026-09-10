@@ -145,6 +145,7 @@ pub fn to_num(v: &Json) -> Num {
         Json::Int(i) => Num::Int(*i),
         Json::Float(f) => Num::Dbl(*f),
         Json::Str(s) => parse_num_str(s),
+        Json::Bytes(s) => std::str::from_utf8(s).map(parse_num_str).unwrap_or(Num::Dbl(f64::NAN)),
         Json::Array(_) | Json::Object(_) => Num::Dbl(f64::NAN),
     }
 }
@@ -157,6 +158,7 @@ pub fn to_str(v: &Json) -> String {
         Json::Int(i) => i.to_string(),
         Json::Float(f) => fmt_double(*f),
         Json::Str(s) => s.clone(),
+        Json::Bytes(s) => String::from_utf8_lossy(s).into_owned(),
         Json::Array(_) | Json::Object(_) => {
             let mut out = String::new();
             ucode_json(v, &mut out);
@@ -192,6 +194,7 @@ fn ucode_json(v: &Json, out: &mut String) {
             out.push_str(" }");
         }
         Json::Str(s) => ucode_quote(s, out),
+        Json::Bytes(s) => ucode_quote(&String::from_utf8_lossy(s), out),
         other => out.push_str(&to_str(other)),
     }
 }
@@ -218,6 +221,7 @@ fn ucode_quote(s: &str, out: &mut String) {
 pub fn loose_eq_str(v: &Json, s: &str) -> bool {
     match v {
         Json::Str(x) => x == s,
+        Json::Bytes(x) => x == s.as_bytes(),
         Json::Null => false,
         Json::Array(_) | Json::Object(_) => false,
         _ => {
@@ -236,6 +240,7 @@ pub fn truthy(v: &Json) -> bool {
         Json::Int(i) => *i != 0,
         Json::Float(f) => *f != 0.0 && !f.is_nan(),
         Json::Str(s) => !s.is_empty(),
+        Json::Bytes(s) => !s.is_empty(),
         Json::Array(_) | Json::Object(_) => true,
     }
 }

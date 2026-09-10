@@ -107,13 +107,13 @@ fn main() {
         Ok(_) => EX_DELIVERY,
         Err(error) => {
             let class = match error {
-                Error::Cancelled | Error::Timeout(_) | Error::ConcurrentRun => "temporary",
+                Error::Cancelled | Error::Timeout(_) => "temporary",
                 Error::InvalidInput(_) => "input",
                 Error::Io(_, _) | Error::Dependency(_) => "dependency",
             };
             let _ = trace.fatal(class, &error.to_string());
             match error {
-                Error::Cancelled | Error::Timeout(_) | Error::ConcurrentRun => EX_TEMPFAIL,
+                Error::Cancelled | Error::Timeout(_) => EX_TEMPFAIL,
                 Error::InvalidInput(_) => EX_USAGE,
                 Error::Io(_, _) | Error::Dependency(_) => EX_SOFTWARE,
             }

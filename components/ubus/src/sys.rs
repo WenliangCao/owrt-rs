@@ -5,20 +5,20 @@ use std::io;
 use std::os::fd::{FromRawFd, OwnedFd, RawFd};
 
 #[repr(C)]
-struct IoVec {
-    base: *mut u8,
-    len: usize,
+pub struct IoVec {
+    pub base: *mut u8,
+    pub len: usize,
 }
 
 #[repr(C)]
-struct MsgHdr {
-    name: *mut u8,
-    namelen: u32,
-    iov: *mut IoVec,
-    iovlen: usize,
-    control: *mut u8,
-    controllen: usize,
-    flags: i32,
+pub struct MsgHdr {
+    pub name: *mut u8,
+    pub namelen: u32,
+    pub iov: *mut IoVec,
+    pub iovlen: usize,
+    pub control: *mut u8,
+    pub controllen: usize,
+    pub flags: i32,
 }
 
 #[repr(C)]

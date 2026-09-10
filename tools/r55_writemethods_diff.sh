@@ -127,10 +127,13 @@ RN
 set -u
 while IFS='|' read -r label obj method args; do
 	[ -n "$label" ] || continue
+	case "$label" in \#*) continue ;; esac
 	echo "===== $label"
 	echo "--- call"
 	ubus call "$obj" "$method" "$args" 2>&1
-	echo "--- status $?"
+	status=$?
+	echo "--- status"
+	echo "$status"
 	# let anything the call armed actually happen before looking: `remove`
 	# runs off a 100ms timer, and reading before it fires reads nothing
 	sleep 1
@@ -138,6 +141,11 @@ while IFS='|' read -r label obj method args; do
 	ubus call network.interface dump 2>&1
 	echo "--- device status veth6"
 	ubus call network.device status '{"name":"veth6"}' 2>&1
+	status=$?
+	echo "--- device-status-code"
+	echo "$status"
+	echo "--- devices"
+	ubus call network.device status 2>&1
 done < /tmp/calls.txt
 DR
 
@@ -197,9 +205,12 @@ DR
 run_one c
 run_one rs
 
+python3 "$(dirname "$0")/audit_checks.py" r55 "$out"
+
 rc=0
-python3 - "$out/c-calls.txt" "$out/rs-calls.txt" <<'PY' || rc=1
+PYTHONPATH="$(dirname "$0")${PYTHONPATH:+:$PYTHONPATH}" python3 - "$out/c-calls.txt" "$out/rs-calls.txt" <<'PY' || rc=1
 import json, sys, collections
+from audit_checks import volatile_netifd_path
 
 def blocks(path):
     out, key, cur = collections.OrderedDict(), None, None
@@ -225,11 +236,8 @@ def parse(text):
 
 # uptime moves, and the traffic counters depend on how many packets each run
 # happened to send
-SKIP = ("uptime", "rx_packets", "tx_packets", "rx_bytes", "tx_bytes",
-        "rx_dropped", "tx_dropped", "multicast", "collisions")
-
 def walk(a, b, path, hits):
-    if path.rsplit(".", 1)[-1] in SKIP:
+    if volatile_netifd_path(path):
         return
     if isinstance(a, dict) and isinstance(b, dict):
         for k in list(a.keys()) + [k for k in b if k not in a]:
@@ -257,10 +265,10 @@ if not c:
     print("NOTHING CAPTURED from the reference -- untested")
     sys.exit(1)
 bad = 0
-for label in c:
+for label in dict.fromkeys([*c, *r]):
     hits = []
-    for section in c[label]:
-        a = parse(c[label][section])
+    for section in dict.fromkeys([*c.get(label, {}), *r.get(label, {})]):
+        a = parse(c.get(label, {}).get(section, ""))
         b = parse(r.get(label, {}).get(section, ""))
         if section == "interface dump":
             a, b = by_name(a), by_name(b)

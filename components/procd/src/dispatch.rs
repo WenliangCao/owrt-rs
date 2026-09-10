@@ -113,6 +113,12 @@ impl Dispatch {
         Dispatch { objects: BTreeMap::new(), inotify, jobs: Vec::new() }
     }
 
+    /// The /etc/hotplug.d inotify fd, for the main loop's poll set.
+    pub fn inotify_fd(&self) -> Option<std::os::fd::RawFd> {
+        use std::os::fd::AsRawFd;
+        self.inotify.as_ref().map(|f| f.as_raw_fd())
+    }
+
     /// Register the initial object set (`init_subsystems`).
     pub fn register_all(&mut self, conn: &mut owrt_ubus::conn::Connection) {
         for name in scan_subsystems() {
@@ -128,7 +134,7 @@ impl Dispatch {
             Ok(id) => {
                 self.objects.insert(name.to_string(), id);
             }
-            Err(e) => eprintln!("procd-rs: failed to add hotplug.{name}: {e}"),
+            Err(e) => log!(crate::sys::LOG_ERR, "failed to add hotplug.{name}: {e}"),
         }
     }
 
@@ -245,12 +251,13 @@ impl Dispatch {
                 c.env(k, v);
             }
             c.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+            crate::proc::inherit_ignored_sigpipe(&mut c);
             match c.spawn() {
                 Ok(child) => {
                     j.child = Some(child.id() as i32);
                     std::mem::forget(child);
                 }
-                Err(e) => eprintln!("procd-rs: failed to execute script: {e}"),
+                Err(e) => log!(crate::sys::LOG_ERR, "Failed to execute script: {e}"),
             }
         }
         self.jobs.retain(|j| j.child.is_some() || j.next < j.scripts.len());

@@ -145,7 +145,8 @@ UD
 			ip -4 route show default 2>/dev/null
 		}
 
-		wait_lease || true
+		wait_lease
+		chroot "$root" ubus call network.interface.wan status > "$out/$tag-initial-lease.json"
 
 		# E: an interface that never comes up, with a checkup interval
 		{
@@ -191,7 +192,8 @@ UD
 		chroot "$root" ubus call network.interface.wan down >/dev/null 2>&1 || true
 		sleep 2
 		chroot "$root" ubus call network.interface.wan up >/dev/null 2>&1 || true
-		wait_lease || true
+		wait_lease
+		chroot "$root" ubus call network.interface.wan status > "$out/$tag-renewed-lease.json"
 		ip link set veth0 down
 		sleep 3
 		snap > "$out/$tag-B-carrier-lost.txt" 2>&1 || true
@@ -244,6 +246,8 @@ UD
 
 run_one c
 run_one rs
+
+python3 "$(dirname "$0")/audit_checks.py" r53 "$out"
 
 rc=0
 mask() {

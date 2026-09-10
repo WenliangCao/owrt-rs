@@ -7,7 +7,7 @@ use crate::Deferrer;
 use owrt_ubus::blob::{self, MsgType};
 use owrt_ubus::{status, BlobBuf, Request};
 use std::collections::{BTreeMap, BTreeSet};
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket};
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs, UdpSocket};
 use std::time::{Duration, Instant};
 
 const MAX_TIMEOUT: i32 = 5000;
@@ -293,6 +293,24 @@ pub enum Outcome {
     Deferred,
 }
 
+/// usock(USOCK_UDP): resolve the server name and try each address returned by
+/// libc until socket/connect succeeds. Resolution failure is UNKNOWN_ERROR.
+fn connect_server(server: &str, port: u16) -> std::io::Result<UdpSocket> {
+    let mut last = std::io::Error::new(std::io::ErrorKind::AddrNotAvailable, "no nameserver address");
+    for peer in (server, port).to_socket_addrs()? {
+        let bind = if peer.is_ipv4() {
+            SocketAddr::from((Ipv4Addr::UNSPECIFIED, 0))
+        } else {
+            SocketAddr::from((Ipv6Addr::UNSPECIFIED, 0))
+        };
+        match UdpSocket::bind(bind).and_then(|sock| sock.connect(peer).map(|()| sock)) {
+            Ok(sock) => return Ok(sock),
+            Err(error) => last = error,
+        }
+    }
+    Err(last)
+}
+
 /// In-process equivalent of `ubus call network.rrdns lookup {addrs, timeout,
 /// limit}` with the default server/port (luci-rpc's getHostHints path). None
 /// mirrors a failed invoke (no nameserver / socket error); Some(pairs) is the
@@ -302,10 +320,7 @@ pub fn resolve(addrs: &[String], timeout_ms: i32, limit: i32) -> Option<Vec<(Str
         return None;
     }
     let server = find_nameserver()?;
-    let ip = server.parse::<IpAddr>().ok()?;
-    let bind: SocketAddr = if ip.is_ipv4() { "0.0.0.0:0".parse().unwrap() } else { "[::]:0".parse().unwrap() };
-    let sock = UdpSocket::bind(bind).ok()?;
-    sock.connect(SocketAddr::new(ip, 53)).ok()?;
+    let sock = connect_server(&server, 53).ok()?;
     let lk = Lookup { sock, addrs: addrs.iter().cloned().map(Some).collect(), next: 0, by_id: BTreeMap::new(), seen: BTreeSet::new(), out: BlobBuf::new() };
     let reply = run(lk, limit, timeout_ms);
     let payload = reply.data.into_iter().next().unwrap_or_default();
@@ -334,12 +349,7 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
             None => return Outcome::Now(req, Reply { code: status::NOT_FOUND, data: vec![] }),
         },
     };
-    // usock(USOCK_UDP, server, port): numeric host only in practice
-    let Ok(ip) = server.parse::<IpAddr>() else {
-        return Outcome::Now(req, Reply { code: status::UNKNOWN_ERROR, data: vec![] });
-    };
-    let bind: SocketAddr = if ip.is_ipv4() { "0.0.0.0:0".parse().unwrap() } else { "[::]:0".parse().unwrap() };
-    let sock = match UdpSocket::bind(bind).and_then(|s| s.connect(SocketAddr::new(ip, port as u16)).map(|_| s)) {
+    let sock = match connect_server(&server, port as u16) {
         Ok(s) => s,
         Err(_) => return Outcome::Now(req, Reply { code: status::UNKNOWN_ERROR, data: vec![] }),
     };

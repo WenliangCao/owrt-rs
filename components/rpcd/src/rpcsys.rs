@@ -2,11 +2,10 @@
 //! password_set via /bin/passwd, sysupgrade/factory/reboot triggers.
 
 use crate::session::{arg, arg_str, Reply};
-use crate::{file, Deferrer};
+use crate::{file, Ctx, Deferrer};
 use owrt_ubus::blob::MsgType;
 use owrt_ubus::convert::object_to_payload;
 use owrt_ubus::{status, BlobBuf, Request};
-use std::ffi::{c_char, CString};
 use std::fs;
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
@@ -211,31 +210,6 @@ fn password_set(raw: &[u8]) -> Reply {
 extern "C" {
     fn fork() -> i32;
     fn sleep(secs: u32) -> u32;
-    fn execv(path: *const c_char, argv: *const *const c_char) -> i32;
-    fn _exit(code: i32) -> !;
-}
-
-/// `if (!fork()) { sleep(2); execv(cmd); }` -- the parent answers immediately.
-/// This has to be a real child, not a thread: rpcd re-execs itself on SIGHUP
-/// and exits on SIGUSR1, either of which would silently drop a pending
-/// sysupgrade/factory reset that lived inside the process.
-fn delayed_exec(argv: &'static [&'static str]) {
-    let args: Vec<CString> = argv.iter().filter_map(|a| CString::new(*a).ok()).collect();
-    if args.len() != argv.len() {
-        return;
-    }
-    let mut ptrs: Vec<*const c_char> = args.iter().map(|a| a.as_ptr()).collect();
-    ptrs.push(std::ptr::null());
-    // SAFETY: fork(2). The child touches nothing but sleep/execv/_exit and the
-    // argv array built above, all allocated before the fork, so none of the
-    // usual post-fork allocator hazards apply.
-    unsafe {
-        if fork() == 0 {
-            sleep(2);
-            execv(ptrs[0], ptrs.as_ptr());
-            _exit(127);
-        }
-    }
 }
 
 pub enum Outcome {
@@ -243,7 +217,8 @@ pub enum Outcome {
     Deferred,
 }
 
-pub fn call(req: Request, exec_timeout_ms: i32, deferrer: &Deferrer) -> Outcome {
+pub fn call(req: Request, ctx: &Ctx, deferrer: &Deferrer) -> Outcome {
+    let exec_timeout_ms = ctx.exec_timeout_ms;
     let raw = &req.data;
     let reply = match req.method.as_str() {
         "packagelist" => packagelist(raw),
@@ -267,9 +242,9 @@ pub fn call(req: Request, exec_timeout_ms: i32, deferrer: &Deferrer) -> Outcome 
         "upgrade_start" => {
             let keep = arg(raw, "keep", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);
             if keep {
-                delayed_exec(&["/sbin/sysupgrade", "/tmp/firmware.bin"]);
+                ctx.delayed.borrow_mut().exec(&["/sbin/sysupgrade", "/tmp/firmware.bin"]);
             } else {
-                delayed_exec(&["/sbin/sysupgrade", "-n", "/tmp/firmware.bin"]);
+                ctx.delayed.borrow_mut().exec(&["/sbin/sysupgrade", "-n", "/tmp/firmware.bin"]);
             }
             code(0)
         }
@@ -278,7 +253,7 @@ pub fn call(req: Request, exec_timeout_ms: i32, deferrer: &Deferrer) -> Outcome 
             Err(e) => code(errno_status(&e)),
         },
         "factory" => {
-            delayed_exec(&["/sbin/jffs2reset", "-y", "-r"]);
+            ctx.delayed.borrow_mut().exec(&["/sbin/jffs2reset", "-y", "-r"]);
             code(0)
         }
         "reboot" => {
@@ -287,8 +262,9 @@ pub fn call(req: Request, exec_timeout_ms: i32, deferrer: &Deferrer) -> Outcome 
             }
             // C: `if (!fork()) { sync(); sleep(2); reboot(RB_AUTOBOOT); while (1); }`
             // SAFETY: fork(2); the child only calls sync/sleep/reboot.
-            unsafe {
-                if fork() == 0 {
+            let pid = unsafe {
+                let pid = fork();
+                if pid == 0 {
                     crate::util::sync_all();
                     sleep(2);
                     reboot(0x0123_4567);
@@ -298,7 +274,9 @@ pub fn call(req: Request, exec_timeout_ms: i32, deferrer: &Deferrer) -> Outcome 
                         sleep(3600);
                     }
                 }
-            }
+                pid
+            };
+            ctx.delayed.borrow_mut().track(pid);
             code(0)
         }
         _ => code(status::METHOD_NOT_FOUND),

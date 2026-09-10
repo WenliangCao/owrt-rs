@@ -5,8 +5,8 @@
 # numbers. Those numbers are architecture-dependent -- RLIMIT_NOFILE is 7 on
 # Linux and 8 on Darwin -- and a wrong one is not a compile error: it silently
 # sets a different limit than the service asked for. This extracts the pairs
-# from the Rust source, generates a C program that prints the same names from
-# the headers, and diffs the two.
+# from the Rust table and compiles C static assertions against the headers.
+# The target executable need not run on the build host.
 #
 # Usage: check_rlimit_consts.sh [rust src file] [cc]
 #
@@ -19,25 +19,21 @@ cc=${2:-cc}
 tmp=$(mktemp -d /tmp/rlconst-XXXXXX)
 trap 'rm -rf "$tmp"' EXIT
 
-sed -n 's/^[[:space:]]*("\([a-z]*\)", \([0-9]*\)),$/\1 \2/p' "$src" | sort -u > "$tmp/rust.txt"
+# Other tables (notably syslog facilities) have the same tuple shape.
+sed -n '/^pub const RLIMIT_NAMES:/,/^];/p' "$src" |
+    sed -n 's/^[[:space:]]*("\([a-z]*\)", \([0-9]*\)),$/\1 \2/p' |
+    sort -u > "$tmp/rust.txt"
 [ -s "$tmp/rust.txt" ] || { echo "no limits found in $src"; exit 1; }
 
 {
-	echo '#include <stdio.h>'
 	echo '#include <sys/resource.h>'
-	echo 'int main(void) {'
-	while read -r name _; do
+	while read -r name value; do
 		up=$(echo "$name" | tr 'a-z' 'A-Z')
-		printf '  printf("%s %%d\\n", RLIMIT_%s);\n' "$name" "$up"
+		printf '_Static_assert(RLIMIT_%s == %s, "RLIMIT_%s mismatch");\n' "$up" "$value" "$up"
 	done < "$tmp/rust.txt"
-	echo '  return 0;'
-	echo '}'
 } > "$tmp/probe.c"
 
-$cc -o "$tmp/probe" "$tmp/probe.c"
-"$tmp/probe" | sort -u > "$tmp/c.txt"
-
-if diff -u "$tmp/rust.txt" "$tmp/c.txt"; then
+if $cc -c -o "$tmp/probe.o" "$tmp/probe.c"; then
 	echo "rlimit constants: $(wc -l < "$tmp/rust.txt" | tr -d ' ') ok"
 else
 	echo "rlimit constants DISAGREE with the headers" >&2

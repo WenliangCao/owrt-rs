@@ -18,7 +18,7 @@ pub const FLAG_SAVED_DELTA: u32 = 1 << 3;
 /// The parse-context fields uci_perror reads (`pctx->reason/line/byte`).
 /// Present only while a parser context is alive in the C sense: after a
 /// failed import (the longjmp skips uci_cleanup) and until the next cleanup.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ParseInfo {
     pub reason: Option<&'static str>,
     pub line: i32,

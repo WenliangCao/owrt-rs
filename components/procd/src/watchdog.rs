@@ -104,7 +104,7 @@ impl Wdt {
             // SAFETY: one byte to a live fd.
             let r = unsafe { write(self.raw_fd(), b"X".as_ptr(), 1) };
             if r < 0 {
-                eprintln!("procd-rs: WDT failed to write");
+                log!(crate::sys::LOG_ERR, "WDT failed to write");
             }
         }
         self.next_ping = Some(now + self.frequency as i64 * 1000);
@@ -115,7 +115,7 @@ impl Wdt {
         if !self.open(!preinit) {
             return;
         }
-        crate::sys::klog("- watchdog -");
+        log!(crate::sys::LOG_INFO, "- watchdog -");
         self.set_drv_timeout();
         self.ping_and_rearm(now);
     }

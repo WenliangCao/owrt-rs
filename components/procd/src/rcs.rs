@@ -22,6 +22,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use crate::proc::{self, LogPipe, SIGKILL, SIGTERM};
+use crate::sys::LOG_NOTICE;
 use crate::sys;
 
 /// The `rc()` queue's width (`r.max_running_tasks = 8`).
@@ -35,7 +36,6 @@ pub const STOP_RUN_TIMEOUT_MS: i64 = 15_000;
 pub const STOP_CANCEL_TIMEOUT_MS: i64 = 10_000;
 
 /// `ULOG_NOTE`.
-const LOG_NOTICE: i32 = 5;
 
 #[derive(Debug)]
 pub struct Job {
@@ -175,12 +175,12 @@ impl RunQueue {
             };
             match j.kill_at {
                 None if now >= started + rt => {
-                    eprintln!("procd-rs: {} {} ran past {rt} ms, cancelling", j.file.display(), j.param);
+                    log!(sys::LOG_ERR, "{} {} ran past {rt} ms, cancelling", j.file.display(), j.param);
                     proc::signal(pid, SIGTERM);
                     j.kill_at = Some(now + STOP_CANCEL_TIMEOUT_MS);
                 }
                 Some(at) if now >= at => {
-                    eprintln!("procd-rs: {} {} ignored SIGTERM, killing", j.file.display(), j.param);
+                    log!(sys::LOG_ERR, "{} {} ignored SIGTERM, killing", j.file.display(), j.param);
                     proc::signal(pid, SIGKILL);
                     j.kill_at = Some(i64::MAX);
                 }
@@ -206,12 +206,13 @@ impl RunQueue {
             }
             let spawned = owrt_ubus::sys::pipe().and_then(|(r, w)| {
                 let w2 = w.try_clone()?;
-                let child = Command::new(&j.file)
-                    .arg(&j.param)
+                let mut cmd = Command::new(&j.file);
+                cmd.arg(&j.param)
                     .stdin(Stdio::null())
                     .stdout(Stdio::from(w))
-                    .stderr(Stdio::from(w2))
-                    .spawn()?;
+                    .stderr(Stdio::from(w2));
+                proc::inherit_ignored_sigpipe(&mut cmd);
+                let child = cmd.spawn()?;
                 Ok((child.id() as i32, LogPipe::new(r, LOG_NOTICE)?))
             });
             match spawned {
@@ -222,7 +223,7 @@ impl RunQueue {
                     slots -= 1;
                 }
                 Err(e) => {
-                    eprintln!("procd-rs: {} {}: {e}", j.file.display(), j.param);
+                    log!(sys::LOG_ERR, "{} {}: {e}", j.file.display(), j.param);
                     // Mark it done so the entry is collected below.
                     j.param = String::new();
                 }

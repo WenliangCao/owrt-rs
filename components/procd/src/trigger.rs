@@ -156,7 +156,8 @@ impl Triggers {
                 }
             }
             for e in out.errors {
-                eprintln!("procd-rs: trigger {}: {e}", t.kind);
+                // rule_handle_error()
+                log!(crate::sys::LOG_ERR, "ERROR: {e} (trigger {})", t.kind);
             }
         }
         for (argv, timeout) in queued {

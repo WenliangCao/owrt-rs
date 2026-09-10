@@ -241,7 +241,10 @@ def normalize(data, closed):
     try:
         js = json.loads(body.decode("utf-8"))
         js = re.sub(r'"(time|expires|uptime|localtime)":\s*-?\d+', r'"\1":0', json.dumps(js, sort_keys=True))
-        body_repr = "json:" + js[:2000]
+        # Keep comparing the entire payload even for a large JSON-RPC batch.
+        encoded = js.encode("utf-8")
+        body_repr = "json:" + js if len(js) <= 2000 else (
+            "json:%d sha256:%s head:%s" % (len(encoded), hashlib.sha256(encoded).hexdigest(), js[:120]))
     except Exception:
         text = body.decode("utf-8", errors="replace")
         text = re.sub(r"\d{2}:\d{2}:\d{2}", "<t>", text)
@@ -303,8 +306,13 @@ def main():
     orig, olog = run_side(a.rootfs.resolve(), a.candidate.resolve(), "original", a.port)
     cand, clog = run_side(a.rootfs.resolve(), a.candidate.resolve(), "candidate", a.port + 1)
     bad = 0
+    dead = 0
     for c in cases():
         o, n = orig.get(c["id"]), cand.get(c["id"])
+        for impl, result in (("original", o), ("candidate", n)):
+            if not result or result.get("alive_after") is not True:
+                print("FAIL %s after %s: no live HTTP response" % (impl, c["id"]))
+                dead += 1
         if o == n:
             continue
         bad += 1
@@ -314,8 +322,8 @@ def main():
                 print("   %-12s orig=%r\n   %-12s cand=%r" % (k, o.get(k), "", n.get(k)))
     if clog.strip():
         print("== candidate httpd log tail: %r" % clog[-800:])
-    print("cases=%d differing=%d" % (len(cases()), bad))
-    return 1 if bad else 0
+    print("cases=%d differing=%d survival_failures=%d" % (len(cases()), bad, dead))
+    return 1 if bad or dead else 0
 
 
 if __name__ == "__main__":

@@ -108,7 +108,7 @@ fn parse_line(line: &str) -> Option<(String, String, Vec<String>)> {
 /// logged and dropped, like `add_action`'s -1.
 pub fn parse(path: &str) -> Vec<Action> {
     let Ok(text) = std::fs::read_to_string(path) else {
-        eprintln!("procd-rs: failed to open {path}");
+        log!(sys::LOG_ERR, "Failed to open {path}");
         return Vec::new();
     };
     let mut out = Vec::new();
@@ -117,7 +117,7 @@ pub fn parse(path: &str) -> Vec<Action> {
             continue;
         };
         let Some(kind) = Kind::from_name(&action) else {
-            eprintln!("procd-rs: unknown init handler {action}");
+            log!(sys::LOG_ERR, "Unknown init handler {action}");
             continue;
         };
         out.push(Action {

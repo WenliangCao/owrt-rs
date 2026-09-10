@@ -11,6 +11,7 @@
 # Usage: r50_cycle_loop.sh <rootfs-files> <netifd-rs binary> [cycles] [outdir]
 set -eu
 rootfs=$1; cand=$2; cycles=${3:-200}; out=${4:-/tmp/r50-out}
+case "$cycles" in ''|*[!0-9]*|0) echo "r50: cycles must be a positive integer" >&2; exit 2 ;; esac
 mkdir -p "$out"
 
 CFG='config interface "loopback"
@@ -77,7 +78,7 @@ RN
 	# The cycle: down then up, every interface, N times. Errors are counted
 	# rather than ignored -- a call that starts failing halfway through is
 	# exactly the kind of thing this is looking for.
-	printf 'set -u\nN=%s\nfail=0\ni=0\nwhile [ $i -lt $N ]; do\n  for f in lan wired; do\n    ubus call network.interface.$f down >/dev/null 2>&1 || fail=$((fail+1))\n    ubus call network.interface.$f up   >/dev/null 2>&1 || fail=$((fail+1))\n  done\n  i=$((i+1))\ndone\necho "cycles: $N"\necho "failed calls: $fail"\n' "$cycles" \
+	printf 'set -u\nN=%s\nfail=0\ni=0\nwhile [ $i -lt $N ]; do\n  for f in lan wired; do\n    ubus call network.interface.$f down >/dev/null 2>&1 || fail=$((fail+1))\n    ubus call network.interface.$f up   >/dev/null 2>&1 || fail=$((fail+1))\n  done\n  i=$((i+1))\ndone\necho "cycles: $i"\necho "failed calls: $fail"\n' "$cycles" \
 		| sudo -n tee "$root/tmp/cycle.sh" >/dev/null
 
 	sudo -n tee "$root/tmp/final.sh" >/dev/null <<'FIN'
@@ -169,6 +170,8 @@ FIN
 run_one c
 run_one rs
 
+python3 "$(dirname "$0")/audit_checks.py" r50 "$out" "$cycles"
+
 echo "=== resource use across $cycles cycles ==="
 for t in c rs; do
 	echo "-- $t"
@@ -199,15 +202,17 @@ sys.stdout.write("".join(out))
 '
 }
 
+rc=0
 echo "=== kernel state after the cycles ==="
 if diff -u <(norm < "$out/c-kernel.txt") <(norm < "$out/rs-kernel.txt") > "$out/kernel.diff"; then
 	echo "RESULT(kernel): identical"
 else
 	head -40 "$out/kernel.diff"
+	rc=1
 fi
 
 echo "=== interface dump after the cycles ==="
-python3 - "$out/c-final.json" "$out/rs-final.json" <<'PY'
+python3 - "$out/c-final.json" "$out/rs-final.json" <<'PY' || rc=1
 import json, sys, collections
 
 def load(p):
@@ -234,3 +239,5 @@ else:
             print("  rust: " + json.dumps(rm.get(n))[:600])
     sys.exit(1)
 PY
+
+exit $rc
