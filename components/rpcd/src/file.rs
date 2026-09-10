@@ -2,13 +2,15 @@
 //! remove/exec with session ACL checks through the original rpcd's
 //! `session access` (scope `file`).
 
+use crate::session::Reply;
 use crate::util;
-use crate::Ctx;
+use crate::{Ctx, Deferrer};
+use owrt_ubus::convert::fields_to_json;
 use owrt_ubus::json::Json;
-use owrt_ubus::status;
+use owrt_ubus::{status, Request};
 use std::fs;
 use std::io::{Read, Write};
-use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt};
+use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use owrt_ubus::sys::{poll_fds, PollFd, POLLIN};
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::os::unix::process::CommandExt;
@@ -134,20 +136,7 @@ pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
         Some(Json::Int(m)) => *m as u32,
         _ => 0o666,
     };
-    let mut opts = fs::OpenOptions::new();
-    // rpc_file_write: umask(0) around open(path, O_CREAT | O_WRONLY | flag,
-    // mode), where flag defaults to O_TRUNC and becomes O_APPEND only when
-    // "append" is set.
-    opts.create(true).write(true).mode(mode);
-    if arg_bool(args, "append") {
-        opts.append(true);
-    } else {
-        opts.truncate(true);
-    }
-    let prev_umask = util::umask_zero();
-    let opened = opts.open(&path);
-    util::umask_restore(prev_umask);
-    let mut f = opened.map_err(|e| errno_status(&e))?;
+    let mut f = open_for_write(&path, mode, arg_bool(args, "append")).map_err(|e| errno_status(&e))?;
     let bytes: Vec<u8> = if !data.is_empty() && arg_bool(args, "base64") {
         util::b64_decode(data.as_bytes()).ok_or(status::UNKNOWN_ERROR)?
     } else {
@@ -163,6 +152,38 @@ pub fn write(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     drop(f);
     util::sync_all();
     rv.map(|_| None)
+}
+
+/// `rpc_file_write`'s open: `umask(0); open(path, O_CREAT | O_WRONLY | flag,
+/// mode); umask(prev)`, where flag is O_TRUNC unless `append`. The umask is
+/// process-global and the rc/uci/rpc-sys workers fork children from their own
+/// threads, which would inherit the 0 mask for the length of the window, so a
+/// new file is created with O_EXCL and fchmod'ed to `mode` instead. An
+/// existing file keeps its own mode, exactly as in C -- open(2) ignores the
+/// mode argument once it does not create the file.
+fn open_for_write(path: &str, mode: u32, append: bool) -> std::io::Result<fs::File> {
+    let mut opts = fs::OpenOptions::new();
+    opts.write(true).mode(mode);
+    if append {
+        opts.append(true);
+    } else {
+        opts.truncate(true);
+    }
+    let mut created = true;
+    let f = match opts.clone().create_new(true).open(path) {
+        Ok(f) => f,
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            // A dangling symlink fails O_EXCL while the open below still
+            // creates the target, so re-check before deciding to chmod.
+            created = fs::metadata(path).is_err();
+            opts.clone().create(true).open(path)?
+        }
+        Err(e) => return Err(e),
+    };
+    if created {
+        f.set_permissions(fs::Permissions::from_mode(mode & 0o7777))?;
+    }
+    Ok(f)
 }
 
 pub fn md5(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
@@ -248,7 +269,39 @@ pub fn exec_lookup(cmd: &str) -> Option<String> {
     None
 }
 
-pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
+/// The command line rpc_file_exec_run builds for its second ACL check: the
+/// canonical executable plus every string parameter, space separated, inside a
+/// 1024 byte buffer. None is C's PERMISSION_DENIED -- either
+/// `strlen(executable) >= sizeof(cmdstr)`, or the 255th argv slot, or a
+/// parameter that no longer fits: C tests
+/// `p + blobmsg_data_len(cur) >= cmdstr + sizeof(cmdstr)` and a blobmsg
+/// string's data length counts its NUL terminator, so the limit is one byte
+/// tighter than the visible length suggests.
+fn acl_cmdline(executable: &str, params: &[String]) -> Option<String> {
+    if executable.len() >= CMDLINE_MAX {
+        return None;
+    }
+    let mut cmdstr = executable.to_owned();
+    for (i, p) in params.iter().enumerate() {
+        // C's arglen counts argv[0] and the NULL terminator, so it is 2 + i
+        // here and the 254th parameter is the one that no longer fits.
+        if i + 2 == 255 || cmdstr.len() + p.len() + 1 >= CMDLINE_MAX {
+            return None;
+        }
+        cmdstr.push(' ');
+        cmdstr.push_str(p);
+    }
+    Some(cmdstr)
+}
+
+/// Executable, argv tail and environment, as rpc_file_exec_run holds them at
+/// the point where it forks.
+type ExecPlan = (String, Vec<String>, Vec<(String, String)>);
+
+/// Everything rpc_file_exec_run does before its fork: argument decoding, the
+/// `sid`+`env` rejection, the PATH lookup and both ACL checks. Cheap and
+/// non-blocking, so it stays on the request loop exactly as in C.
+fn exec_prepare(ctx: &Ctx, args: &Json) -> Result<ExecPlan, i32> {
     let Some(cmd) = arg_str(args, "command") else { return Err(status::INVALID_ARGUMENT) };
     let sid = arg_str(args, "ubus_rpc_session");
     let params: Vec<String> = match args.get("params") {
@@ -267,29 +320,45 @@ pub fn exec(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     let Some(found) = exec_lookup(cmd) else { return Err(status::NOT_FOUND) };
     let Some(executable) = util::canonicalize(&found) else { return Err(status::UNKNOWN_ERROR) };
     if !ctx.file_access(sid, &executable, "exec") {
-        if !has_params || executable.len() >= CMDLINE_MAX {
+        if !has_params {
             return Err(status::PERMISSION_DENIED);
         }
-        let mut cmdstr = executable.clone();
-        let mut arglen = 2;
-        for p in &params {
-            if arglen == 255 || cmdstr.len() + p.len() >= CMDLINE_MAX {
-                return Err(status::PERMISSION_DENIED);
-            }
-            cmdstr.push(' ');
-            cmdstr.push_str(p);
-            arglen += 1;
-        }
+        let Some(cmdstr) = acl_cmdline(&executable, &params) else {
+            return Err(status::PERMISSION_DENIED);
+        };
         if !ctx.file_access(sid, &cmdstr, "exec") {
             return Err(status::PERMISSION_DENIED);
         }
     }
-    // The forked child in rpc_file_exec_run hits arglen==255 and _exit(127)
-    // once argv (executable + params + NULL) would exceed 255 entries.
-    if params.len() > 253 {
-        return Ok(Some(Json::Object(vec![("code".into(), Json::Int(127))])));
-    }
-    run_command(&executable, &params, &env, ctx.exec_timeout_ms).map(Some)
+    Ok((executable, params, env))
+}
+
+/// `file exec`: C forks the child, arms a uloop timeout and hands the request
+/// to `ubus_defer_request`, so the request loop keeps answering while the
+/// command runs. Here the child is watched from a worker thread and the reply
+/// travels back through the `Deferrer`, which gives the same property: no
+/// ordering guarantee against other requests (C has none either), one
+/// independent exec timeout per call, and a reply that is simply dropped by
+/// the socket if the caller is already gone.
+pub fn exec(ctx: &Ctx, req: Request, args: &Json, deferrer: &Deferrer) -> Outcome {
+    let (executable, params, env) = match exec_prepare(ctx, args) {
+        Ok(v) => v,
+        Err(code) => return Outcome::Now(req, crate::to_reply(Err(code))),
+    };
+    let timeout_ms = ctx.exec_timeout_ms;
+    let d = deferrer.clone();
+    std::thread::spawn(move || {
+        // The forked child in rpc_file_exec_run hits arglen==255 and
+        // _exit(127) once argv (executable + params + NULL) would exceed 255
+        // entries; C reports that through the deferred reply as well.
+        let r = if params.len() > 253 {
+            Ok(Json::Object(vec![("code".into(), Json::Int(127))]))
+        } else {
+            run_command(&executable, &params, &env, timeout_ms)
+        };
+        d.finish(req, crate::to_reply(r.map(Some)));
+    });
+    Outcome::Deferred
 }
 
 /// rpc_exec with the default callbacks (exec.c): run `executable` with
@@ -451,26 +520,85 @@ fn poll_pipes(out: &mut Pipe, err: &mut Pipe, timeout_ms: i32) -> bool {
     true
 }
 
-/// Dispatch one `file` method.
-pub fn call(ctx: &Ctx, method: &str, args: &Json) -> Result<Option<Json>, i32> {
-    match method {
-        "read" => read(ctx, args),
-        "write" => write(ctx, args),
-        "list" => list(ctx, args),
-        "lstat" => stat(ctx, args, true),
-        "stat" => stat(ctx, args, false),
-        "md5" => md5(ctx, args),
-        "remove" => remove(ctx, args),
-        "exec" => exec(ctx, args),
-        _ => Err(status::METHOD_NOT_FOUND),
+pub enum Outcome {
+    Now(Request, Reply),
+    Deferred,
+}
+
+/// Dispatch one `file` method. Only `exec` defers; everything else is a
+/// bounded filesystem operation that C runs on the loop too.
+pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
+    let args = fields_to_json(&req.data);
+    if req.method == "exec" {
+        return exec(ctx, req, &args, deferrer);
     }
+    let r = match req.method.as_str() {
+        "read" => read(ctx, &args),
+        "write" => write(ctx, &args),
+        "list" => list(ctx, &args),
+        "lstat" => stat(ctx, &args, true),
+        "stat" => stat(ctx, &args, false),
+        "md5" => md5(ctx, &args),
+        "remove" => remove(ctx, &args),
+        _ => Err(status::METHOD_NOT_FOUND),
+    };
+    Outcome::Now(req, crate::to_reply(r))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::run_command;
+    use super::{acl_cmdline, open_for_write, run_command, CMDLINE_MAX};
     use owrt_ubus::status;
+    use std::os::unix::fs::PermissionsExt;
     use std::time::Instant;
+
+    extern "C" {
+        fn umask(mask: u32) -> u32;
+    }
+
+    /// rpc_file_exec_run measures each parameter with blobmsg_data_len(), which
+    /// counts the string's NUL terminator, so the last command line that still
+    /// passes the ACL check is 1023 bytes long. Dropping that byte let a
+    /// 1024 byte command line through a `file exec` ACL that never saw it.
+    #[test]
+    fn the_acl_command_line_stops_one_byte_before_the_c_buffer() {
+        let exe = "/bin/x"; // 6 bytes
+        let fits = "a".repeat(CMDLINE_MAX - exe.len() - 1 - 1);
+        let cmdstr = acl_cmdline(exe, std::slice::from_ref(&fits)).expect("1023 bytes must still be checked");
+        assert_eq!(cmdstr.len(), CMDLINE_MAX - 1);
+        assert!(acl_cmdline(exe, &[format!("{fits}a")]).is_none(), "1024 bytes must be denied");
+        // the same limit across several parameters
+        let half = "b".repeat(500);
+        assert!(acl_cmdline(exe, &[half.clone(), half.clone()]).is_some());
+        assert!(acl_cmdline(exe, &[half.clone(), half.clone(), half]).is_none());
+        // argv runs out at 255 entries (executable + 253 parameters + NULL)
+        let many: Vec<String> = (0..253).map(|_| "c".to_owned()).collect();
+        assert!(acl_cmdline(exe, &many).is_some());
+        let many: Vec<String> = (0..254).map(|_| "c".to_owned()).collect();
+        assert!(acl_cmdline(exe, &many).is_none());
+    }
+
+    /// C gets the exact mode out of `umask(0)` + open(); we must get it without
+    /// touching the process umask, because the rc/uci/rpc-sys workers fork
+    /// children on other threads that would inherit the 0 mask. An existing
+    /// file keeps its own mode either way -- open(2) ignores `mode` then.
+    #[test]
+    fn write_creates_with_the_exact_mode_and_leaves_the_umask_alone() {
+        let path = format!("{}/r83-mode-{}", std::env::temp_dir().display(), std::process::id());
+        let _ = std::fs::remove_file(&path);
+        // SAFETY: umask(2) has no preconditions; restored below.
+        let prev = unsafe { umask(0o077) };
+        let mode_of = |p: &str| std::fs::metadata(p).unwrap().permissions().mode() & 0o7777;
+        open_for_write(&path, 0o666, false).expect("create");
+        assert_eq!(mode_of(&path), 0o666, "a new file must get the requested mode, not mode & ~umask");
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600)).unwrap();
+        open_for_write(&path, 0o666, false).expect("reopen");
+        assert_eq!(mode_of(&path), 0o600, "an existing file keeps its mode");
+        // SAFETY: restoring the value read above; also asserts nothing moved it.
+        let during = unsafe { umask(prev) };
+        assert_eq!(during, 0o077, "the process umask must be untouched");
+        let _ = std::fs::remove_file(&path);
+    }
 
     fn sh(script: &str, timeout_ms: i32) -> (Result<crate::Json, i32>, u128) {
         let started = Instant::now();

@@ -208,7 +208,6 @@ extern "C" {
     fn statvfs(path: *const std::os::raw::c_char, buf: *mut StatVfs) -> i32;
     fn uname(buf: *mut [u8; 6 * 65]) -> i32;
     fn sync();
-    fn umask(mask: u32) -> u32;
 }
 
 pub fn statvfs_of(path: &str) -> Option<StatVfs> {
@@ -234,22 +233,6 @@ pub fn machine() -> String {
     let m = &buf[4 * 65..5 * 65];
     let end = m.iter().position(|&b| b == 0).unwrap_or(m.len());
     String::from_utf8_lossy(&m[..end]).into_owned()
-}
-
-/// Set the process umask to 0, returning the previous value. Mirrors the
-/// `umask(0)` rpcd wraps around `open()` so `file write` honours the exact
-/// requested mode. The rpcd-rs request loop is single-threaded, so the
-/// paired restore runs before any other file operation.
-pub fn umask_zero() -> u32 {
-    // SAFETY: umask(2) has no preconditions. It is process-global, so the
-    // paired restore below must run before any other file operation; the rpcd
-    // request loop is single-threaded, which is what makes that hold.
-    unsafe { umask(0) }
-}
-
-pub fn umask_restore(prev: u32) {
-    // SAFETY: restoring the value umask_zero returned.
-    unsafe { umask(prev); }
 }
 
 pub fn sync_all() {

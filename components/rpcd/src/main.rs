@@ -139,6 +139,15 @@ fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'
     })
 }
 
+/// Pack a plugin-object method result into a ubus reply.
+pub fn to_reply(result: Result<Option<Json>, i32>) -> session::Reply {
+    match result {
+        Ok(Some(data)) => session::Reply { code: status::OK, data: vec![object_to_payload(&data)] },
+        Ok(None) => session::Reply { code: status::OK, data: vec![] },
+        Err(code) => session::Reply { code, data: vec![] },
+    }
+}
+
 fn reply(conn: &mut Connection, req: &Request, r: session::Reply) {
     for d in &r.data {
         let _ = conn.reply_data(req, d);
@@ -172,18 +181,17 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
     } else if req.objid == ids.iwinfo {
         let r = iwinfoobj::call(&req.method, &req.data);
         reply(conn, &req, r);
-    } else if req.objid == ids.file || req.objid == ids.luci {
-        let result = if req.objid == ids.file {
-            let args = fields_to_json(&req.data);
-            file::call(ctx, &req.method, &args)
-        } else {
-            luci::call(ctx, &req.method, &req.data)
-        };
-        let r = match result {
-            Ok(Some(data)) => session::Reply { code: status::OK, data: vec![object_to_payload(&data)] },
-            Ok(None) => session::Reply { code: status::OK, data: vec![] },
-            Err(code) => session::Reply { code, data: vec![] },
-        };
+    } else if req.objid == ids.file {
+        if let file::Outcome::Now(req, r) = file::call(ctx, req, deferrer) {
+            reply(conn, &req, r);
+        }
+    } else if req.objid == ids.luci {
+        // The C `luci` object is a ucode script that rpcd runs inside its own
+        // VM: rpc_ucode_script_call defers the request but then invokes the
+        // handler synchronously, and the handler's popen()/system() calls
+        // block the uloop for their whole duration. Staying on the loop here
+        // is what matches it.
+        let r = to_reply(luci::call(ctx, &req.method, &req.data));
         reply(conn, &req, r);
     } else {
         let _ = conn.reply_status(&req, status::NOT_FOUND, None);

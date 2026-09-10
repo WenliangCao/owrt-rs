@@ -147,10 +147,37 @@ fn skip_name(msg: &[u8], mut off: usize) -> Option<usize> {
             return Some(off + 1);
         }
         if len & 0xc0 == 0xc0 {
+            msg.get(off + 1)?;
             return Some(off + 2);
         }
         off += 1 + len as usize;
     }
+}
+
+/// `ns_initparse`: walk every record of all four sections and bounds-check it
+/// before a single answer is handed out. A truncated or malformed message
+/// fails here, which is why C rejects such a response whole (-EINVAL) instead
+/// of emitting the PTR names it managed to read.
+fn initparse(msg: &[u8]) -> Option<()> {
+    let count = |i: usize| u16::from_be_bytes([msg[4 + i * 2], msg[5 + i * 2]]) as usize;
+    let mut off = 12;
+    for section in 0..4 {
+        for _ in 0..count(section) {
+            off = skip_name(msg, off)?;
+            if section == 0 {
+                // QTYPE + QCLASS
+                off = off.checked_add(4)?;
+            } else {
+                let hdr = msg.get(off..off.checked_add(10)?)?;
+                let rdlen = u16::from_be_bytes([hdr[8], hdr[9]]) as usize;
+                off = off.checked_add(10)?.checked_add(rdlen)?;
+            }
+            if off > msg.len() {
+                return None;
+            }
+        }
+    }
+    Some(())
 }
 
 struct Pending {
@@ -200,6 +227,7 @@ impl Lookup {
         let res = &res[..len];
         let id = u16::from_be_bytes([res[0], res[1]]);
         let Some(req) = self.by_id.remove(&id) else { return Err(true) };
+        initparse(res).ok_or(false)?;
         let qd = u16::from_be_bytes([res[4], res[5]]) as usize;
         let an = u16::from_be_bytes([res[6], res[7]]) as usize;
         let mut off = 12;
@@ -336,6 +364,88 @@ mod tests {
         assert_eq!(parse_addr("192.168.1.20").unwrap().2, "20.1.168.192.in-addr.arpa");
         assert_eq!(parse_addr("2001:db8::1").unwrap().2, "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa");
         assert!(parse_addr("nope").is_none());
+    }
+
+    /// A PTR response for 1.2.3.4 -> "host.lan" plus `extra` bytes of junk
+    /// appended to the wire message.
+    fn ptr_response(id: u16, ancount: u16, arcount: u16) -> Vec<u8> {
+        let mut m = Vec::new();
+        m.extend_from_slice(&id.to_be_bytes());
+        m.extend_from_slice(&[0x81, 0x80]); // QR + RD + RA
+        m.extend_from_slice(&1u16.to_be_bytes()); // qdcount
+        m.extend_from_slice(&ancount.to_be_bytes());
+        m.extend_from_slice(&0u16.to_be_bytes()); // nscount
+        m.extend_from_slice(&arcount.to_be_bytes());
+        let qname: Vec<u8> = {
+            let mut q = Vec::new();
+            for label in ["4", "3", "2", "1", "in-addr", "arpa"] {
+                q.push(label.len() as u8);
+                q.extend_from_slice(label.as_bytes());
+            }
+            q.push(0);
+            q
+        };
+        m.extend_from_slice(&qname);
+        m.extend_from_slice(&[0, 12, 0, 1]); // PTR, IN
+        for _ in 0..ancount {
+            m.extend_from_slice(&[0xc0, 0x0c]); // name -> qname
+            m.extend_from_slice(&[0, 12, 0, 1, 0, 0, 0, 60]); // PTR, IN, ttl
+            let mut rd = Vec::new();
+            for label in ["host", "lan"] {
+                rd.push(label.len() as u8);
+                rd.extend_from_slice(label.as_bytes());
+            }
+            rd.push(0);
+            m.extend_from_slice(&(rd.len() as u16).to_be_bytes());
+            m.extend_from_slice(&rd);
+        }
+        m
+    }
+
+    /// One pending IPv4 lookup whose socket is connected to `peer`.
+    fn lookup_for(id: u16, peer: &UdpSocket) -> Lookup {
+        let sock = UdpSocket::bind("127.0.0.1:0").unwrap();
+        sock.connect(peer.local_addr().unwrap()).unwrap();
+        let mut key = [0u8; 16];
+        key[..4].copy_from_slice(&[1, 2, 3, 4]);
+        let mut by_id = BTreeMap::new();
+        by_id.insert(id, Pending { key, v6: false });
+        Lookup { sock, addrs: vec![], next: 0, by_id, seen: BTreeSet::new(), out: BlobBuf::new() }
+    }
+
+    fn names(lk: Lookup) -> Vec<(String, String)> {
+        let payload = lk.out.into_payload();
+        blob::fields(&payload).filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned()))).collect()
+    }
+
+    /// ns_initparse walks every section before rrdns_parse_response hands out a
+    /// single answer, so a response that is cut short is rejected whole. Parsing
+    /// answer-by-answer instead published the PTR names read before the cut.
+    #[test]
+    fn a_truncated_response_yields_no_ptr_at_all() {
+        let peer = UdpSocket::bind("127.0.0.1:0").unwrap();
+        let full = ptr_response(0x1234, 2, 0);
+        // control: the intact message must actually produce both answers
+        let mut lk = lookup_for(0x1234, &peer);
+        peer.send_to(&full, lk.sock.local_addr().unwrap()).unwrap();
+        assert!(lk.parse_response().is_ok());
+        assert_eq!(names(lk), vec![("1.2.3.4".to_owned(), "host.lan".to_owned()); 2]);
+
+        // the same message minus its last byte: the first answer is complete
+        for cut in 1..=3 {
+            let mut lk = lookup_for(0x1234, &peer);
+            peer.send_to(&full[..full.len() - cut], lk.sock.local_addr().unwrap()).unwrap();
+            assert_eq!(lk.parse_response(), Err(false), "cut {cut}");
+            assert!(names(lk).is_empty(), "cut {cut} leaked a partial answer");
+        }
+
+        // a truncated *additional* section, with every answer intact
+        let mut trunc = ptr_response(0x1234, 1, 1);
+        trunc.extend_from_slice(&[0xc0, 0x0c, 0, 1, 0, 1]); // name + type + class, no ttl/rdlength
+        let mut lk = lookup_for(0x1234, &peer);
+        peer.send_to(&trunc, lk.sock.local_addr().unwrap()).unwrap();
+        assert_eq!(lk.parse_response(), Err(false));
+        assert!(names(lk).is_empty(), "an intact answer must not survive a bad additional section");
     }
 
     #[test]

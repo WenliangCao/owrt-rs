@@ -6,6 +6,7 @@ use crate::{file, Deferrer};
 use owrt_ubus::blob::MsgType;
 use owrt_ubus::convert::object_to_payload;
 use owrt_ubus::{status, BlobBuf, Request};
+use std::ffi::{c_char, CString};
 use std::fs;
 use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
@@ -207,14 +208,34 @@ fn password_set(raw: &[u8]) -> Reply {
     code(0)
 }
 
-/// fork; sleep(2); execv(...) -- the parent answers immediately.
+extern "C" {
+    fn fork() -> i32;
+    fn sleep(secs: u32) -> u32;
+    fn execv(path: *const c_char, argv: *const *const c_char) -> i32;
+    fn _exit(code: i32) -> !;
+}
+
+/// `if (!fork()) { sleep(2); execv(cmd); }` -- the parent answers immediately.
+/// This has to be a real child, not a thread: rpcd re-execs itself on SIGHUP
+/// and exits on SIGUSR1, either of which would silently drop a pending
+/// sysupgrade/factory reset that lived inside the process.
 fn delayed_exec(argv: &'static [&'static str]) {
-    std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_secs(2));
-        if let Ok(mut c) = Command::new(argv[0]).args(&argv[1..]).spawn() {
-            let _ = c.wait();
+    let args: Vec<CString> = argv.iter().filter_map(|a| CString::new(*a).ok()).collect();
+    if args.len() != argv.len() {
+        return;
+    }
+    let mut ptrs: Vec<*const c_char> = args.iter().map(|a| a.as_ptr()).collect();
+    ptrs.push(std::ptr::null());
+    // SAFETY: fork(2). The child touches nothing but sleep/execv/_exit and the
+    // argv array built above, all allocated before the fork, so none of the
+    // usual post-fork allocator hazards apply.
+    unsafe {
+        if fork() == 0 {
+            sleep(2);
+            execv(ptrs[0], ptrs.as_ptr());
+            _exit(127);
         }
-    });
+    }
 }
 
 pub enum Outcome {
@@ -261,18 +282,23 @@ pub fn call(req: Request, exec_timeout_ms: i32, deferrer: &Deferrer) -> Outcome 
             code(0)
         }
         "reboot" => {
-            std::thread::spawn(|| {
-                crate::util::sync_all();
-                std::thread::sleep(Duration::from_secs(2));
-                // reboot(RB_AUTOBOOT)
-                extern "C" {
-                    fn reboot(cmd: i32) -> i32;
-                }
-                // SAFETY: plain syscall wrapper; only reached on an explicit request.
-                unsafe {
+            extern "C" {
+                fn reboot(cmd: i32) -> i32;
+            }
+            // C: `if (!fork()) { sync(); sleep(2); reboot(RB_AUTOBOOT); while (1); }`
+            // SAFETY: fork(2); the child only calls sync/sleep/reboot.
+            unsafe {
+                if fork() == 0 {
+                    crate::util::sync_all();
+                    sleep(2);
                     reboot(0x0123_4567);
+                    // C spins here; reboot(2) does not return for a privileged
+                    // caller, and idling beats burning a core if it ever does.
+                    loop {
+                        sleep(3600);
+                    }
                 }
-            });
+            }
             code(0)
         }
         _ => code(status::METHOD_NOT_FOUND),
