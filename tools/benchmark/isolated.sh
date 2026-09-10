@@ -35,7 +35,16 @@ if [ "${1:-}" = --namespace ]; then
     ln -s /proc/self/fd/2 "$root/dev/stderr"
     # kmsg is global even in a PID/net namespace. Neither implementation may
     # consume the router's kernel log or access its hardware watchdog.
-    mount --bind "$root/dev/null" "$root/proc/kmsg"
+    if [ "$component" = logd ]; then
+        # /dev/null is perpetually readable to poll(), causing the Rust logd
+        # to spin while the epoll-based original rejects that descriptor.
+        # Keep both ends of an empty FIFO open to model an idle kernel log.
+        mkfifo -m 600 "$root/dev/bench-kmsg"
+        exec 3<>"$root/dev/bench-kmsg"
+        mount --bind "$root/dev/bench-kmsg" "$root/proc/kmsg"
+    else
+        mount --bind "$root/dev/null" "$root/proc/kmsg"
+    fi
     cp "$script" "$root/tmp/workload.sh"
     exec chroot "$root" /bin/sh /tmp/workload.sh --workload "$component" "$impl" "$n"
 fi
@@ -47,6 +56,7 @@ if [ "${1:-}" = --workload ]; then
     bench=/tmp/bin/owrt-benchmark
     out=/tmp/out
     sha256sum "$bench" /tmp/bin/ns-exec > "$out/benchmark-sha256.txt"
+    sha256sum /tmp/workload.sh > "$out/harness-sha256.txt"
     socket=/var/run/ubus/ubus.sock
     cat /proc/cpuinfo > "$out/cpuinfo.txt"
     cat /proc/sys/kernel/random/boot_id > "$out/boot-id.txt"
@@ -185,6 +195,7 @@ EOF
             "$bin" -S 64 > "$out/daemon.log" 2>&1 & subject=$!
             wait_object log "$subject"
             monitors=$subject,$bus
+            "$bench" idle 3 "$monitors" > "$out/kernel-log-idle.jsonl"
             "$bench" syslog /dev/log "$socket" "$((n * 10))" 100 "$monitors" > "$out/syslog_128.json"
             run_rpc log_read_100 log read '{"lines":100,"stream":false}' '{"log":[{}]}'
             ;;
@@ -248,7 +259,9 @@ EOF
     esac
     "$bench" snapshot "$monitors" > "$out/resident.json"
     case "$component" in uci|reload-config|fw4) subject=null ;; esac
-    printf '{"component":"%s","implementation":"%s","subject_pid":%s,"dependencies":"original OpenWrt","iterations":%s}\n' "$component" "$impl" "$subject" "$n" > "$out/meta.json"
+    kernel_log_mask=dev-null
+    [ "$component" != logd ] || kernel_log_mask=empty-held-fifo
+    printf '{"component":"%s","implementation":"%s","subject_pid":%s,"dependencies":"original OpenWrt","iterations":%s,"kernel_log_mask":"%s"}\n' "$component" "$impl" "$subject" "$n" "$kernel_log_mask" > "$out/meta.json"
     sha256sum "$bin" > "$out/binary-sha256.txt"
     if [ "$subject" != null ]; then sha256sum /proc/"$subject"/exe > "$out/subject-sha256.txt"; fi
     touch "$out/COMPLETE"

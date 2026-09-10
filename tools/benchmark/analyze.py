@@ -71,6 +71,20 @@ def memory(process):
     return {key: process[key] for key in MEMORY_KEYS}
 
 
+def logd_idle(path, subject):
+    """Reject a kernel-log substitute that makes an otherwise idle logd spin."""
+    samples = [json.loads(line) for line in path.read_text().splitlines()]
+    assert len(samples) == 4, path
+    elapsed = samples[-1]["uptime_s"] - samples[0]["uptime_s"]
+    assert 2.9 <= elapsed <= 3.2, path
+    group = [next(p for p in s["processes"] if p["pid"] == subject) for s in samples]
+    assert all(p["start_ticks"] == group[0]["start_ticks"] for p in group), path
+    hz = samples[0]["clock_ticks_per_second"]
+    cpu = (group[-1]["cpu_ticks"] - group[0]["cpu_ticks"]) / hz
+    assert 0 <= cpu <= elapsed * .01 + 1 / hz, "logd is busy before any workload"
+    return {"elapsed_s": elapsed, "cpu_s": cpu, "cpu_one_core_pct": cpu / elapsed * 100}
+
+
 def components(root, manifest, partial):
     rows, residents, sources, missing = [], [], [], []
     for component, workloads in COMPONENT_WORK.items():
@@ -87,10 +101,16 @@ def components(root, manifest, partial):
             expected = manifest["components"][component]["rust" if implementation == "rs" else "original"]["sha256"]
             assert (raw / "binary-sha256.txt").read_text().split()[0] == expected
             assert (raw / "benchmark-sha256.txt").read_text().split()[0] == manifest["tools"]["owrt-benchmark"]["sha256"]
-            sources.append({"run": name, "archive_sha256": digest(run / "raw.tar.gz"),
-                            "subject_sha256": expected, "kernel": (raw / "kernel.txt").read_text().strip()})
             side = "rust" if implementation == "rs" else "stock"
             subject = meta["subject_pid"]
+            source = {"run": name, "archive_sha256": digest(run / "raw.tar.gz"),
+                      "subject_sha256": expected, "kernel": (raw / "kernel.txt").read_text().strip()}
+            if component == "logd":
+                assert meta["kernel_log_mask"] == "empty-held-fifo", "invalid logd kernel-log fixture"
+                source["kernel_log_idle_gate"] = logd_idle(raw / "kernel-log-idle.jsonl", subject)
+            if (raw / "harness-sha256.txt").exists():
+                source["harness_sha256"] = (raw / "harness-sha256.txt").read_text().split()[0]
+            sources.append(source)
             for workload in workloads:
                 data = native(raw / (workload + ".json"))
                 n = data["successful"]

@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from analyze import native, summarize, timing
+from analyze import logd_idle, native, summarize, timing
 
 
 class AnalysisGates(unittest.TestCase):
@@ -49,6 +49,18 @@ class AnalysisGates(unittest.TestCase):
         self.assertEqual(result["runs"], 3)
         self.assertEqual(result["metrics"]["mean_us"]["median"], 3)
         self.assertEqual(result["metrics"]["mean_us"]["max"], 20)
+
+    def test_logd_perpetually_readable_kernel_log_is_rejected(self):
+        samples = [{"uptime_s": i, "clock_ticks_per_second": 100,
+                    "processes": [{"pid": 7, "start_ticks": 17, "cpu_ticks": i * 100}]}
+                   for i in range(4)]
+        self.path.write_text("\n".join(json.dumps(s) for s in samples))
+        with self.assertRaises(AssertionError):
+            logd_idle(self.path, 7)
+        for sample in samples:
+            sample["processes"][0]["cpu_ticks"] = 1
+        self.path.write_text("\n".join(json.dumps(s) for s in samples))
+        self.assertEqual(logd_idle(self.path, 7)["cpu_s"], 0)
 
 
 if __name__ == "__main__":

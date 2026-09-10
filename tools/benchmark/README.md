@@ -44,6 +44,9 @@ temporary directory, to avoid accumulating raw samples in router RAM.
 this sequence, verifies component hashes, and checks that the host boot,
 configuration and running processes remain unchanged. Run it after the
 whole-system windows; concurrent benchmark loads would invalidate comparisons.
+`--components logd` selects one component with the same eight-run sequence in
+a new output directory. Preserve excluded attempts and the replacement's host
+verification before incorporating a corrected run into the final dataset.
 
 Every run has its own mount, PID and network namespace. The image mount is read
 only; config/runtime state is on private tmpfs; `/proc/kmsg` is masked; no
@@ -159,6 +162,14 @@ hashes, stable configuration/execution-plane hashes and final Rust health.
 - Every timed operation must succeed; CLI output is byte-checked, RPC replies
   have status/body checks, and a lost/replaced daemon invalidates the run. The
   native client reuses its ubus connection and resolves objects before timing.
+- The isolated logd sees an empty FIFO held open at both ends in place of the
+  global kernel log. A `/dev/null` substitute is perpetually readable to
+  `poll()` while the original's epoll rejects it, unfairly spinning only the
+  Rust daemon. Three seconds of pre-load idle evidence must reject that
+  condition. R84 preserves and excludes all eight original logd attempts;
+  only that component is repeated with the FIFO. Other components do not read
+  the masked kernel log in these workloads; whole-system windows use the real
+  kernel log and are unaffected.
 - Latencies cover the actual request/response or command execution. Validation
   is outside each latency interval; overall throughput includes validation.
   Warm-up is excluded. Keep raw nanosecond samples and summarize per-run means,

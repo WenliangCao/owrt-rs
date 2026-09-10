@@ -33,10 +33,15 @@ def main():
     parser.add_argument("--host", default="openwrt")
     parser.add_argument("--interface", required=True)
     parser.add_argument("--host-mode", choices=("stock", "rust"), default="rust")
+    parser.add_argument("--components", nargs="+", choices=COMPONENTS, default=list(COMPONENTS),
+                        help="selected components, each with all eight runs; use a new output directory")
     args = parser.parse_args()
+    if len(set(args.components)) != len(args.components):
+        parser.error("duplicate component selection")
     out = args.output.resolve()
     out.mkdir(mode=0o700, parents=True, exist_ok=True)
     (out / "STARTED").touch(exist_ok=False)
+    (out / "selection.json").write_text(json.dumps(args.components) + "\n")
     ssh_args = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=4",
                 "-o", "ServerAliveInterval=10", "-o", "ServerAliveCountMax=3", args.host]
 
@@ -53,7 +58,7 @@ def main():
     configs = ssh("sha256sum /etc/config/*")
     (out / "config-before.sha256").write_bytes(configs)
     manifest = json.loads(ssh("cat /root/r84/manifest.json"))
-    for component in COMPONENTS:
+    for component in args.components:
         for index, impl in enumerate(ORDER, 1):
             local = out / component / f"{index:02d}-{impl}"
             local.mkdir(mode=0o700, parents=True)
@@ -108,7 +113,8 @@ def main():
     if after_configs != configs:
         raise RuntimeError("host configuration changed")
     (out / "COMPLETE").touch()
-    event("all_components_complete", runs=len(COMPONENTS) * len(ORDER))
+    event("all_components_complete" if tuple(args.components) == COMPONENTS else "selected_components_complete",
+          components=args.components, runs=len(args.components) * len(ORDER))
 
 
 if __name__ == "__main__":
