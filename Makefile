@@ -4,7 +4,7 @@
 COMPONENTS := ubus uci reload-config logd httpd fw4 rpcd ubusd netifd procd
 VERSION ?= 25.12.5
 
-.PHONY: check-netlink-consts test check-tools check-harnesses check-toolchain check-toolchain-negative check-abi build apk image ci-image
+.PHONY: check-netlink-consts test check-tools check-harnesses check-benchmark check-toolchain check-toolchain-negative check-abi build apk image ci-image
 
 test:
 	@for c in $(COMPONENTS); do \
@@ -55,14 +55,22 @@ check-abi:
 
 check-tools:
 	@# bash scripts (`<<<`, `<( )`) must be checked with bash: CI's sh is dash
-	@for f in tools/*.sh; do \
+	@for f in tools/*.sh tools/benchmark/*.sh; do \
 		if head -1 "$$f" | grep -q bash; then bash -n "$$f" || exit 1; else sh -n "$$f" || exit 1; fi; \
 	done
-	@python3 -m py_compile tools/*.py
+	@python3 -m py_compile tools/*.py tools/benchmark/*.py
 	@echo "tools: syntax ok"
 
 check-harnesses:
 	@python3 tools/test_audit_checks.py
+
+# The load generator must reject failed requests and count every operation.
+# Full namespace/rollback gates additionally run on the image's build host.
+check-benchmark:
+	cargo fmt --manifest-path tools/benchmark/Cargo.toml --check
+	cargo test --locked --manifest-path tools/benchmark/Cargo.toml
+	python3 tools/benchmark/test_http_client.py
+	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/ns_exec.c
 
 # Release pipeline (runs on the build host, see docs/RELEASE.md)
 apk:

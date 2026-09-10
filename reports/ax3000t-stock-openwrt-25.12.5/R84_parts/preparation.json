@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "status": "prepared_not_deployed",
+  "image": "ax3000t-stock-openwrt-25.12.5",
+  "fix_commit": "9183a5da3ea488763d580f15b76261e3d0e8df2c",
+  "canonical_build": {
+    "source_commit": "b8b0dc3d26e967ecc389ee789bd83157a3c3e736",
+    "run_id": 34477008696,
+    "packages": {
+      "owrt-fw4": "0.1.0-r7",
+      "owrt-httpd": "0.1.1-r6",
+      "owrt-logd": "0.1.0-r7",
+      "owrt-reload-config": "0.2.0-r7",
+      "owrt-rpcd": "0.1.0-r11",
+      "owrt-switch": "0.1.0-r2",
+      "owrt-uci": "0.1.0-r7"
+    },
+    "reproduced_run_id": 34475612300,
+    "same_six_binaries_and_seven_apks": true
+  },
+  "components": {
+    "fw4": {
+      "original": {
+        "bytes": 2965,
+        "path": "/sbin/fw4",
+        "sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6"
+      },
+      "rust": {
+        "binary": "fw4-rs",
+        "bytes": 1039059,
+        "sha256": "6228de7fa3279c3830ffb522c0a08226aa3f176e817eca61d87d8a9ffbf6093a",
+        "builder": "GitHub release-image"
+      }
+    },
+    "httpd": {
+      "original": {
+        "bytes": 58066,
+        "path": "/usr/sbin/uhttpd",
+        "sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3"
+      },
+      "rust": {
+        "binary": "httpd-rs",
+        "bytes": 1538815,
+        "sha256": "48e13b674e5f783c636f48e0fd3fd7f31152c4ac5251de9539926b3f89821b90",
+        "builder": "GitHub release-image"
+      }
+    },
+    "logd": {
+      "original": {
+        "bytes": 16905,
+        "path": "/sbin/logd",
+        "sha256": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89"
+      },
+      "rust": {
+        "binary": "logd-rs",
+        "bytes": 408251,
+        "sha256": "317fb04e9eda0ff15ebe3624295f37bbf9fe195d208b6aac785d2a06054735ea",
+        "builder": "GitHub release-image"
+      }
+    },
+    "netifd": {
+      "original": {
+        "bytes": 232827,
+        "path": "/sbin/netifd",
+        "sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90"
+      },
+      "rust": {
+        "binary": "netifd-rs",
+        "bytes": 1052776,
+        "sha256": "839e27f2842aeb72caa98290ef622566f15c5e83d40e68b5186476041d1a8015",
+        "builder": "oracle; exact R83-verified musl binary"
+      }
+    },
+    "procd": {
+      "original": {
+        "bytes": 97697,
+        "path": "/sbin/procd",
+        "sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a"
+      },
+      "rust": {
+        "binary": "procd-rs",
+        "bytes": 856144,
+        "sha256": "a030b2e852617a82f28d24fecfd0321f892e2062c735f445a69370c209b9f342",
+        "builder": "oracle; exact R83-verified musl binary"
+      }
+    },
+    "reload-config": {
+      "original": {
+        "bytes": 591,
+        "path": "/sbin/reload_config",
+        "sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15"
+      },
+      "rust": {
+        "binary": "reload_config_rs",
+        "bytes": 490223,
+        "sha256": "6391d25fa21a0ecd20f18a4aadcc22137bb1b83c26e857c8476c5968fa78e6a3",
+        "builder": "GitHub release-image"
+      }
+    },
+    "rpcd": {
+      "original": {
+        "bytes": 62043,
+        "path": "/sbin/rpcd",
+        "sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "rust": {
+        "binary": "rpcd-rs",
+        "bytes": 1186579,
+        "sha256": "d50405957a49b2357b102b7f19f96a3f53b5d9639dfb04036aa0109e36b38d02",
+        "builder": "GitHub release-image"
+      }
+    },
+    "ubusd": {
+      "original": {
+        "bytes": 32962,
+        "path": "/sbin/ubusd",
+        "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+      },
+      "rust": {
+        "binary": "ubusd-rs",
+        "bytes": 528440,
+        "sha256": "18e6417f6a00834471e509f28249381bb79570425ea69e0c6902334a4230c559",
+        "builder": "oracle; exact R83-verified musl binary"
+      }
+    },
+    "uci": {
+      "original": {
+        "bytes": 16395,
+        "path": "/sbin/uci",
+        "sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+      },
+      "rust": {
+        "binary": "uci-rs",
+        "bytes": 494347,
+        "sha256": "b82be710edeba066e84e2da993fb265b38e35c71a2e6f10b0d20852fa3e10a76",
+        "builder": "GitHub release-image"
+      }
+    }
+  },
+  "tools": {
+    "owrt-benchmark": {
+      "bytes": 593872,
+      "sha256": "589039ec84a5a406a22b94b02bafd436c4046c2c101642c7e6c6484bfb63d9d2"
+    },
+    "ns-exec": {
+      "bytes": 288704,
+      "sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2"
+    }
+  },
+  "offline_validation": {
+    "isolated_component_implementations": 18,
+    "canonical_httpd_r14_cases": 61,
+    "canonical_httpd_r14_status": "pass",
+    "benchmark_rust_tests": 1,
+    "http_client_gate_tests": 5,
+    "namespace_cleanup_and_negative_gates": "pass",
+    "apk_stage_rollback_rescue_gates": "pass"
+  },
+  "physical_device": {
+    "deployed": false,
+    "benchmarked": false,
+    "nine_original_hashes_match_image": true,
+    "recovery_lan4_carrier": 0,
+    "human_recovery_readiness": "awaiting_response",
+    "read_only_health": "dual-stack WAN, DHCP, both AP bridges and watchdog passed"
+  }
+}
