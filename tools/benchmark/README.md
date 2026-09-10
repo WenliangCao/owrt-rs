@@ -140,6 +140,22 @@ client-visible recovery time and kernel boot events for every cold boot.
 
 ## Interpretation
 
+After the four windows and 72 component runs complete, derive allowlisted
+results (raw bodies, configurations, identifiers and tokens remain private):
+
+```sh
+python3 tools/benchmark/analyze.py private/r84 \
+  --manifest work/r84/deployment/manifest.json --output /path/to/report/results.json
+# A separate plotting environment needs matplotlib; analysis itself uses stdlib.
+python3 tools/benchmark/render.py /path/to/report/results.json /path/to/report
+# On the Linux build host, inventory the exact extracted image with readelf:
+python3 tools/benchmark/storage_inventory.py ROOTFS DEPLOYMENT_MANIFEST.json
+```
+
+The analyzer requires all completion markers, sample counts, matching binary
+hashes, stable configuration/execution-plane hashes and final Rust health.
+`--partial` supports private progress inspection; the renderer rejects it.
+
 - Every timed operation must succeed; CLI output is byte-checked, RPC replies
   have status/body checks, and a lost/replaced daemon invalidates the run. The
   native client reuses its ubus connection and resolves objects before timing.
