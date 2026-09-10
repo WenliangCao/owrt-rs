@@ -55,13 +55,17 @@ impl<'a> Attr<'a> {
 }
 
 /// Parse the attr starting at `offset`; returns the attr and the next offset.
+///
+/// Stops where libubox's `blob_for_each_attr` stops: the attribute's *padded*
+/// length must fit in what remains (`blob_pad_len(pos) <= rem`), so a trailing
+/// attribute whose padding bytes are missing is not yielded.
 pub fn attr_at(buf: &[u8], offset: usize) -> Option<(Attr<'_>, usize)> {
     if buf.len() < offset + 4 {
         return None;
     }
     let id_len = u32::from_be_bytes(buf[offset..offset + 4].try_into().unwrap());
     let raw_len = (id_len & LEN_MASK) as usize;
-    if raw_len < 4 || buf.len() < offset + raw_len {
+    if raw_len < 4 || buf.len() < offset + pad4(raw_len) {
         return None;
     }
     Some((
@@ -123,12 +127,19 @@ pub struct Field<'a> {
 }
 
 impl<'a> Field<'a> {
-    pub fn as_str(&self) -> Option<&'a str> {
+    /// The bytes of a STRING field up to its NUL terminator, whatever they
+    /// are: libubox never validates string contents, so a provider can and
+    /// does put non-UTF-8 bytes (a Latin-1 or GBK SSID) on the bus.
+    pub fn as_bytes(&self) -> Option<&'a [u8]> {
         if self.ty != MsgType::String as u32 {
             return None;
         }
         let end = self.data.iter().position(|&b| b == 0)?;
-        std::str::from_utf8(&self.data[..end]).ok()
+        Some(&self.data[..end])
+    }
+
+    pub fn as_str(&self) -> Option<&'a str> {
+        std::str::from_utf8(self.as_bytes()?).ok()
     }
 
     pub fn as_u32(&self) -> Option<u32> {
@@ -402,6 +413,38 @@ mod tests {
         let field = fields(&bytes[4..]).next().unwrap();
         assert_eq!(field.name, "lines");
         assert_eq!(field.as_u32(), Some(5));
+    }
+
+    // libubox blob_for_each_attr() stops when blob_pad_len(pos) > rem
+    // (blob.h:254-256): a trailing attribute whose padding is missing is
+    // skipped by C, so it must be skipped here too, at every nesting level.
+    #[test]
+    fn iter_requires_the_padded_length_to_fit() {
+        // one INT16-typed blobmsg field "a": hdr pad4(2+1+1)=4, payload 2:
+        // raw_len = 4 + 4 + 2 = 10, pad_len = 12
+        let mut v = Vec::new();
+        let id_len: u32 = EXTENDED | (MsgType::Int16 as u32) << 24 | 10;
+        v.extend_from_slice(&id_len.to_be_bytes());
+        v.extend_from_slice(&1u16.to_be_bytes());
+        v.extend_from_slice(b"a\0");
+        v.extend_from_slice(&7u16.to_be_bytes());
+        assert_eq!(v.len(), 10, "exactly raw_len bytes, no padding");
+        assert_eq!(iter(&v).count(), 0, "C sees rem=10 < pad_len=12 and yields nothing");
+        assert_eq!(fields(&v).count(), 0);
+        // with the padding present both agree
+        v.extend_from_slice(&[0, 0]);
+        assert_eq!(iter(&v).count(), 1);
+        assert_eq!(fields(&v).next().unwrap().as_u32(), Some(7));
+    }
+
+    #[test]
+    fn string_field_bytes_are_not_validated() {
+        let mut b = BlobBuf::new();
+        b.msg_field(MsgType::String as u32, "ssid", b"caf\xe9\0");
+        let payload = b.into_payload();
+        let f = fields(&payload).next().unwrap();
+        assert_eq!(f.as_bytes(), Some(&b"caf\xe9"[..]));
+        assert_eq!(f.as_str(), None);
     }
 
     #[test]

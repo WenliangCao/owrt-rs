@@ -24,7 +24,12 @@ pub fn field_to_json(field: &Field) -> Json {
         t if t == MsgType::Array as u32 => {
             Json::Array(field.children().map(|f| field_to_json(&f)).collect())
         }
-        t if t == MsgType::String as u32 => Json::Str(field.as_str().unwrap_or("").to_owned()),
+        t if t == MsgType::String as u32 => {
+            // blobmsg_format_string copies the bytes verbatim; a Rust String
+            // cannot, so bytes that are not UTF-8 become U+FFFD rather than
+            // the whole value silently becoming "".
+            Json::Str(String::from_utf8_lossy(field.as_bytes().unwrap_or(b"")).into_owned())
+        }
         t if t == MsgType::Int8 as u32 => Json::Bool(field.as_bool().unwrap_or(false)),
         t if t == MsgType::Int16 as u32 => {
             // libubox blobmsg_format_json casts INT16 through (int16_t): signed.
@@ -114,6 +119,27 @@ mod tests {
             // round-trips to the same integer
             assert_eq!(field_to_json(&f), Json::Int(v), "value {v}");
         }
+    }
+
+    // libubox blobmsg_format_string (blobmsg_json.c) copies STRING bytes
+    // verbatim, UTF-8 or not. The closest a String allows is lossy; what it
+    // must never do is turn the value into "".
+    #[test]
+    fn non_utf8_string_is_not_silently_emptied() {
+        let mut b = BlobBuf::new();
+        let off = b.msg_open_table("");
+        b.msg_field(MsgType::String as u32, "ssid", b"caf\xe9\0");
+        b.msg_close(off);
+        let payload = b.into_payload();
+        let table = blob::fields(&payload).next().unwrap();
+        let ssid = table.children().next().unwrap();
+        assert_eq!(field_to_json(&ssid), Json::Str("caf\u{fffd}".to_owned()));
+        // and valid UTF-8 still comes through untouched
+        let mut b = BlobBuf::new();
+        b.msg_string("ssid", "caf\u{e9}");
+        let payload = b.into_payload();
+        let f = blob::fields(&payload).next().unwrap();
+        assert_eq!(field_to_json(&f), Json::Str("caf\u{e9}".to_owned()));
     }
 
     // INT16/INT32 decode is signed (iwinfo signal/noise are negative dBm).

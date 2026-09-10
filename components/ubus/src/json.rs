@@ -46,14 +46,7 @@ impl Json {
             Json::Null => out.push_str("null"),
             Json::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
             Json::Int(i) => out.push_str(&i.to_string()),
-            Json::Float(f) => {
-                if f.is_finite() {
-                    let s = format!("{f}");
-                    out.push_str(&s);
-                } else {
-                    out.push_str("null");
-                }
-            }
+            Json::Float(f) => write_double(out, *f),
             Json::Str(s) => write_string(out, s),
             Json::Array(items) => {
                 out.push('[');
@@ -79,6 +72,46 @@ impl Json {
             }
         }
     }
+}
+
+/// `printf("%.17g", d)` -- what libubox blobmsg_format_json emits for a DOUBLE
+/// (blobmsg_json.c: `snprintf(buf, sizeof(buf), "%.17g", ...)`). Not the
+/// shortest round-trip form: 0.1 prints as 0.10000000000000001.
+fn write_double(out: &mut String, f: f64) {
+    if !f.is_finite() {
+        // glibc and musl print the sign bit, then inf/nan (invalid JSON, but
+        // it is what the C library puts on the wire)
+        if f.is_sign_negative() {
+            out.push('-');
+        }
+        out.push_str(if f.is_nan() { "nan" } else { "inf" });
+        return;
+    }
+    const PRECISION: i32 = 17;
+    // %g: round to PRECISION significant digits, then pick %e or %f style
+    // from the resulting decimal exponent X: %e when X < -4 or X >= P.
+    let sci = format!("{:.*e}", (PRECISION - 1) as usize, f);
+    let (mantissa, exp) = sci.split_once('e').unwrap_or((&sci, "0"));
+    let x: i32 = exp.parse().unwrap_or(0);
+    if !(-4..PRECISION).contains(&x) {
+        out.push_str(trim_fraction(mantissa));
+        out.push('e');
+        out.push(if x < 0 { '-' } else { '+' });
+        out.push_str(&format!("{:02}", x.abs()));
+    } else {
+        let fixed = format!("{:.*}", (PRECISION - 1 - x) as usize, f);
+        out.push_str(trim_fraction(&fixed));
+    }
+}
+
+/// %g without the `#` flag: trailing zeros of the fraction go, and so does a
+/// decimal point left with nothing after it.
+fn trim_fraction(s: &str) -> &str {
+    if !s.contains('.') {
+        return s;
+    }
+    let s = s.trim_end_matches('0');
+    s.strip_suffix('.').unwrap_or(s)
 }
 
 fn write_string(out: &mut String, s: &str) {
@@ -373,5 +406,47 @@ mod tests {
         // json-c keeps one entry per key, last value wins, first position
         let dup = parse(r#"{"a":1,"b":2,"a":3}"#).unwrap();
         assert_eq!(dup.to_compact(), r#"{"a":3,"b":2}"#);
+    }
+
+    // libubox prints doubles with "%.17g" (blobmsg_json.c). Expected strings
+    // are the output of printf("%.17g") on glibc and musl for the same input.
+    #[test]
+    fn double_formatting_matches_printf_17g() {
+        for (v, want) in [
+            (0.1, "0.10000000000000001"),
+            (1.1, "1.1000000000000001"),
+            (0.3, "0.29999999999999999"),
+            (0.5, "0.5"),
+            (2.5, "2.5"),
+            (-2.5, "-2.5"),
+            (100.0, "100"),
+            (0.0, "0"),
+            (-0.0, "-0"),
+            (12345.678, "12345.678"),
+            (std::f64::consts::PI, "3.1415926535897931"),
+            (1e15, "1000000000000000"),
+            (1e16, "10000000000000000"),
+            (1e17, "1e+17"),
+            (1e20, "1e+20"),
+            (1e21, "1e+21"),
+            (123456789012345678.0, "1.2345678901234568e+17"),
+            (9007199254740993.0, "9007199254740992"),
+            (0.0001, "0.0001"),
+            (0.00001, "1.0000000000000001e-05"),
+            (1.5e-7, "1.4999999999999999e-07"),
+            (1e-320, "9.9998886718268301e-321"),
+            (5e-324, "4.9406564584124654e-324"),
+            (f64::MAX, "1.7976931348623157e+308"),
+            (f64::MIN_POSITIVE, "2.2250738585072014e-308"),
+            // exact ties at the 18th digit round half to even, as printf does
+            (2f64.powi(-25), "2.9802322387695312e-08"),
+            (3.0 * 2f64.powi(-25), "8.9406967163085938e-08"),
+        ] {
+            assert_eq!(Json::Float(v).to_compact(), want, "value {v:e}");
+        }
+        assert_eq!(Json::Float(f64::INFINITY).to_compact(), "inf");
+        assert_eq!(Json::Float(f64::NEG_INFINITY).to_compact(), "-inf");
+        assert_eq!(Json::Float(f64::NAN).to_compact(), "nan");
+        assert_eq!(Json::Float(-f64::NAN).to_compact(), "-nan");
     }
 }

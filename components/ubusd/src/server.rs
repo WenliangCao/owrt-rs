@@ -78,7 +78,10 @@ impl Server {
 
     pub fn load_acl(&mut self) {
         let dir = self.acl_dir.clone();
-        self.acl.load(&dir);
+        // nothing to load: C returns before vlist_update, seq++ and the event
+        if !self.acl.load(&dir) {
+            return;
+        }
         let seq = self.acl.seq;
         let mut b = BlobBuf::new();
         b.put_u32(attr::OBJID, 0);
@@ -172,9 +175,13 @@ impl Server {
     }
 
     fn send_status(&mut self, client: u32, seq: u16, peer: u32, code: i32) {
-        let mut b = BlobBuf::new();
+        // the shared buffer, borrowed: a STATUS is the most frequent message
+        // on the bus and the C daemon builds it in its static blob_buf too
+        let mut b = std::mem::take(&mut self.scratch);
+        b.reset();
         b.put_u32(attr::STATUS, code as u32);
-        self.send(client, OutMsg::new(ty::STATUS, seq, peer, b.as_bytes().to_vec()));
+        self.send_blob(client, Header { ty: ty::STATUS, seq, peer }, b.as_bytes());
+        self.scratch = b;
     }
 
     fn handle(&mut self, client: u32, mut msg: InMsg) -> Outcome {
@@ -249,7 +256,7 @@ impl Server {
         if let Some(p) = attrs[attr::OBJPATH as usize] {
             let path = obj::cstr_bytes(p.payload).to_vec();
             let cred = self.cred_of(client);
-            let allowed = self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), &path, None, AclType::Publish);
+            let allowed = self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&path), None, AclType::Publish);
             if !allowed || !self.reg.set_path(id, path) {
                 self.reg.destroy(id);
                 return Outcome::Status(status::INVALID_ARGUMENT);
@@ -315,8 +322,13 @@ impl Server {
             }
         }
         for s in subscribers {
+            // ubus_notify_unsubscribe: UNSUBSCRIBE to the subscriber, then
+            // ubus_unsubscribe(), which tells the owner NOTIFY(ACTIVE=0) once
+            // the last subscriber is gone -- the object still exists here
             self.notify_unsubscribe(s, id);
-            self.reg.unsubscribe(s, id);
+            if self.reg.unsubscribe(s, id) {
+                self.notify_subscription(id);
+            }
         }
         self.patterns.retain(|p| p.obj != id);
 
@@ -441,7 +453,7 @@ impl Server {
         let cred_ref = cred.map(|c| c.as_cred());
         for m in &t.methods {
             all += 1;
-            if self.acl.check(cred_ref.as_ref(), &path, Some(&m.name), AclType::Access) {
+            if self.acl.check(cred_ref.as_ref(), Some(&path), Some(&m.name), AclType::Access) {
                 b.put_raw_fields(&m.blob);
                 visible += 1;
             }
@@ -470,48 +482,30 @@ impl Server {
             return Outcome::Status(status::NOT_FOUND);
         };
         let owner = o.client;
-        let path = o.path.clone().unwrap_or_default();
+        // `obj->path.key` is NULL for the system objects and for anonymous
+        // objects; ubusd_acl_check then allows the call outright (F02)
+        let path = o.path.as_deref();
 
-        let cred = self.cred_of(client);
-        if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), &path, Some(&method), AclType::Access) {
+        // Borrow the caller's credentials rather than copying them: this is
+        // the hot path, and the table and the ACL are disjoint fields.
+        let caller = self.clients.get(&client);
+        let cred = caller.map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
+        if !self.acl.check(cred.as_ref(), path, Some(&method), AclType::Access) {
             return Outcome::Status(status::PERMISSION_DENIED);
         }
 
-        let data = attrs[attr::DATA as usize].map(|a| a.payload.to_vec());
+        let data = attrs[attr::DATA as usize].map(|a| a.payload);
         let Some(owner) = owner else {
+            let data = data.map(<[u8]>::to_vec);
             return self.system_object(client, id, &method, msg, data);
         };
 
-        let blob = self.forward_blob(id, &method, cred.as_ref(), data.as_deref(), None);
+        let who = caller.map(|c| (c.user.as_str(), c.group.as_str()));
+        let blob = forward_blob(id, &method, who, data, None);
         let mut out = OutMsg::new(ty::INVOKE, msg.header.seq, client, blob);
         out.fd = msg.fd;
         self.send(owner, out);
         Outcome::NoStatus
-    }
-
-    /// The payload ubusd builds when relaying a call to the object's owner.
-    fn forward_blob(
-        &self,
-        objid: u32,
-        method: &[u8],
-        cred: Option<&ClientCred>,
-        data: Option<&[u8]>,
-        no_reply: Option<bool>,
-    ) -> Vec<u8> {
-        let mut b = BlobBuf::new();
-        if no_reply == Some(true) {
-            b.put_u8(attr::NO_REPLY, 1);
-        }
-        b.put_u32(attr::OBJID, objid);
-        b.put(attr::METHOD, &with_nul(method));
-        if let Some(c) = cred {
-            b.put_string(attr::USER, &c.user);
-            b.put_string(attr::GROUP, &c.group);
-        }
-        if let Some(d) = data {
-            b.put(attr::DATA, d);
-        }
-        b.as_bytes().to_vec()
     }
 
     /// A reply (STATUS or DATA) travelling from an object's owner back to the
@@ -580,7 +574,7 @@ impl Server {
             }
             Some(path) => {
                 let cred = self.cred_of(client);
-                if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), &path, None, AclType::Subscribe) {
+                if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&path), None, AclType::Subscribe) {
                     return Outcome::Status(status::NOT_FOUND);
                 }
             }
@@ -648,11 +642,12 @@ impl Server {
             self.send(client, out);
         }
 
-        let data = attrs[attr::DATA as usize].map(|a| a.payload.to_vec());
+        let data = attrs[attr::DATA as usize].map(|a| a.payload);
         let cred = self.cred_of(client);
+        let who = cred.as_ref().map(|c| (c.user.as_str(), c.group.as_str()));
         for s in subscribers {
             let Some(owner) = self.reg.get(s).and_then(|o| o.client) else { continue };
-            let blob = self.forward_blob(s, &method, cred.as_ref(), data.as_deref(), Some(no_reply));
+            let blob = forward_blob(s, &method, who, data, Some(no_reply));
             let out = OutMsg::new(ty::INVOKE, msg.header.seq, client, blob);
             self.send(owner, out);
         }
@@ -756,7 +751,7 @@ impl Server {
             pattern.pop();
         }
         let cred = self.cred_of(client);
-        if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), &pattern, None, AclType::Listen) {
+        if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&pattern), None, AclType::Listen) {
             return status::PERMISSION_DENIED;
         }
         // Keep the vector sorted, inserting after any equal keys so equal
@@ -786,7 +781,7 @@ impl Server {
             return status::PERMISSION_DENIED;
         }
         let cred = self.cred_of(client);
-        if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), &id, None, AclType::Send) {
+        if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&id), None, AclType::Send) {
             return status::PERMISSION_DENIED;
         }
         let mut b = BlobBuf::new();
@@ -818,8 +813,6 @@ impl Server {
     fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], blob: Vec<u8>) {
         self.obj_event_seq = self.obj_event_seq.wrapping_add(1);
         let round = self.obj_event_seq;
-        self.event_seq = self.event_seq.wrapping_add(1);
-        let seq = self.event_seq;
 
         let mut match_len = 0usize;
         let mut targets: Vec<u32> = Vec::new();
@@ -845,10 +838,13 @@ impl Server {
             }
             o.event_seen = round;
             let Some(owner) = o.client else { continue };
-            // Each receiver sees its own object id patched into the message.
+            // Each receiver sees its own object id patched into the message
+            // and its own sequence number: `(*ub)->hdr.seq = ++event_seq`
+            // runs once per delivered copy, not once per event.
             let mut per = blob.clone();
             patch_first_u32(&mut per, obj_id);
-            self.send(owner, OutMsg::new(ty::INVOKE, seq, 0, per));
+            self.event_seq = self.event_seq.wrapping_add(1);
+            self.send(owner, OutMsg::new(ty::INVOKE, self.event_seq, 0, per));
         }
     }
 
@@ -870,7 +866,9 @@ impl Server {
                 if let Some(g) = entry.group() {
                     b.msg_string("group", g);
                 }
-                append_json(&mut b, "acl", priv_acl);
+                // the C daemon stores the file's blobmsg form and echoes it,
+                // so the `acl` table has blobmsg_add_json_element's types
+                owrt_ubus::convert::json_to_fields(&mut b, "acl", priv_acl);
                 b.msg_close(t);
             }
         }
@@ -887,12 +885,14 @@ impl Server {
         if self.monitors.is_empty() {
             return;
         }
+        // attribute order as ubusd_monitor_message puts them: CLIENT, PEER,
+        // SEQ, TYPE, SEND, DATA
         let mut b = BlobBuf::new();
         b.put_u32(0, client); // UBUS_MONITOR_CLIENT
         b.put_u32(1, header.peer); // UBUS_MONITOR_PEER
-        b.put_u8(2, u8::from(send)); // UBUS_MONITOR_SEND
         b.put_u32(3, header.seq as u32); // UBUS_MONITOR_SEQ
         b.put_u32(4, header.ty as u32); // UBUS_MONITOR_TYPE
+        b.put_u8(2, u8::from(send)); // UBUS_MONITOR_SEND
         b.put(5, if blob.len() > 4 { &blob[4..] } else { &[] }); // UBUS_MONITOR_DATA
         let payload = b.as_bytes().to_vec();
 
@@ -940,11 +940,9 @@ fn check_policy(ty: u32, payload: &[u8]) -> bool {
 fn attrs_of(payload: &[u8]) -> [Option<blob::Attr<'_>>; attr::MAX] {
     let mut out: [Option<blob::Attr<'_>>; attr::MAX] = Default::default();
     let mut offset = 0usize;
+    // blob::attr_at already stops where blob_for_each_attr_len does: when the
+    // PADDED length of an attribute no longer fits
     while let Some((item, next)) = blob::attr_at(payload, offset) {
-        // blob_for_each_attr_len stops unless the PADDED length still fits
-        if next > payload.len() {
-            break;
-        }
         offset = next;
         if (item.id as usize) >= attr::MAX {
             continue;
@@ -964,6 +962,31 @@ fn with_nul(s: &[u8]) -> Vec<u8> {
     let mut v = s.to_vec();
     v.push(0);
     v
+}
+
+/// The payload ubusd builds when relaying a call to the object's owner
+/// (`ubusd_forward_invoke`); `who` is the caller's user and group names.
+fn forward_blob(
+    objid: u32,
+    method: &[u8],
+    who: Option<(&str, &str)>,
+    data: Option<&[u8]>,
+    no_reply: Option<bool>,
+) -> Vec<u8> {
+    let mut b = BlobBuf::new();
+    if no_reply == Some(true) {
+        b.put_u8(attr::NO_REPLY, 1);
+    }
+    b.put_u32(attr::OBJID, objid);
+    b.put(attr::METHOD, &with_nul(method));
+    if let Some((user, group)) = who {
+        b.put_string(attr::USER, user);
+        b.put_string(attr::GROUP, group);
+    }
+    if let Some(d) = data {
+        b.put(attr::DATA, d);
+    }
+    b.as_bytes().to_vec()
 }
 
 /// Overwrite the first attribute's u32 payload -- the OBJID placeholder in an
@@ -1032,42 +1055,6 @@ fn check_method(a: &blob::Attr) -> Option<Vec<u8>> {
         return None;
     }
     Some(a.payload[2..2 + name_len].to_vec())
-}
-
-/// Re-encode a JSON value from an ACL file as a blobmsg field.
-fn append_json(b: &mut BlobBuf, name: &str, value: &owrt_ubus::json::Json) {
-    use owrt_ubus::json::Json;
-    match value {
-        Json::Null => {
-            b.msg_null(name);
-        }
-        Json::Bool(v) => {
-            b.msg_bool(name, *v);
-        }
-        Json::Int(v) => {
-            b.msg_i64(name, *v);
-        }
-        Json::Float(v) => {
-            b.msg_double(name, *v);
-        }
-        Json::Str(s) => {
-            b.msg_string(name, s);
-        }
-        Json::Array(items) => {
-            let c = b.msg_open_array(name);
-            for i in items {
-                append_json(b, "", i);
-            }
-            b.msg_close(c);
-        }
-        Json::Object(items) => {
-            let c = b.msg_open_table(name);
-            for (k, v) in items {
-                append_json(b, k, v);
-            }
-            b.msg_close(c);
-        }
-    }
 }
 
 #[cfg(test)]

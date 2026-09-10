@@ -51,12 +51,17 @@ pub struct Cred<'a> {
 
 impl Acl {
     /// `ubusd_acl_check`: 0 means allowed. `None` for `cred` is the internal
-    /// caller, which is always allowed.
-    pub fn check(&self, cred: Option<&Cred>, obj: &[u8], method: Option<&[u8]>, ty: AclType) -> bool {
+    /// caller, which is always allowed. `None` for `obj` is an object without
+    /// a path -- the event/acl/monitor system objects and anonymous subscriber
+    /// objects -- and is allowed for every caller: ubusd_acl.c:108
+    /// `if (!cl || !cl->uid || !obj) return 0;`. The system objects then apply
+    /// their own checks (SEND/LISTEN on the event id, root-only for monitor).
+    pub fn check(&self, cred: Option<&Cred>, obj: Option<&[u8]>, method: Option<&[u8]>, ty: AclType) -> bool {
         let Some(cred) = cred else { return true };
         if cred.uid == 0 {
             return true;
         }
+        let Some(obj) = obj else { return true };
         let mut match_len = 0usize;
         for e in &self.entries {
             let (full, cur) = strmatch_len(obj, &e.key);
@@ -109,16 +114,17 @@ impl Acl {
     /// Reload every `*.json` under `dir`. Files that are not regular, not owned
     /// by root, or group/other-writable or other-executable are skipped with a
     /// message, as in the C loader; a parse failure skips just that file.
-    pub fn load(&mut self, dir: &str) -> u32 {
-        let mut files: Vec<String> = match std::fs::read_dir(dir) {
-            Ok(rd) => rd
-                .filter_map(|e| e.ok())
-                .map(|e| e.path().to_string_lossy().into_owned())
-                .filter(|p| p.ends_with(".json"))
-                .collect(),
-            Err(_) => Vec::new(),
-        };
-        files.sort();
+    ///
+    /// Returns false, leaving the table and `seq` untouched, when there is
+    /// nothing to load: `ubusd_acl_load` returns before `vlist_update` when
+    /// `glob("<dir>/*.json")` fails (missing or empty directory), so a HUP
+    /// during a transient empty acl.d does not strip every daemon of its
+    /// permissions and sends no `ubus.acl.sequence` event.
+    pub fn load(&mut self, dir: &str) -> bool {
+        let files = acl_files(dir);
+        if files.is_empty() {
+            return false;
+        }
 
         let mut entries = Vec::new();
         for path in &files {
@@ -130,8 +136,27 @@ impl Acl {
         entries.sort_by(|a, b| a.key.cmp(&b.key));
         self.entries = entries;
         self.seq = self.seq.wrapping_add(1);
-        self.seq
+        true
     }
+}
+
+/// What `glob("<dir>/*.json")` returns: the sorted `*.json` entries, minus
+/// dotfiles, which `*` never matches without GLOB_PERIOD.
+fn acl_files(dir: &str) -> Vec<String> {
+    let mut files: Vec<String> = match std::fs::read_dir(dir) {
+        Ok(rd) => rd
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                let name = e.file_name();
+                let name = name.to_string_lossy();
+                name.ends_with(".json") && !name.starts_with('.')
+            })
+            .map(|e| e.path().to_string_lossy().into_owned())
+            .collect(),
+        Err(_) => Vec::new(),
+    };
+    files.sort();
+    files
 }
 
 impl AclEntry {
@@ -285,13 +310,69 @@ mod tests {
     fn root_bypasses_every_check() {
         let a = acl(vec![]);
         let cred = Cred { uid: 0, gid: 0, extra_gid: &[] };
-        assert!(a.check(Some(&cred), b"anything", Some(b"call"), AclType::Publish));
+        assert!(a.check(Some(&cred), Some(b"anything"), Some(b"call"), AclType::Publish));
     }
 
     #[test]
     fn internal_caller_is_always_allowed() {
         let a = acl(vec![]);
-        assert!(a.check(None, b"ubus.object.add", None, AclType::Send));
+        assert!(a.check(None, Some(b"ubus.object.add"), None, AclType::Send));
+    }
+
+    // ubusd_acl.c:108 `!obj -> return 0`: an object without a path (the
+    // event/acl/monitor system objects, anonymous subscriber objects) passes
+    // the ACCESS check for any uid, whatever the table holds. hostapd runs as
+    // `network` and reaches the event object's own SEND check only this way.
+    #[test]
+    fn pathless_object_bypasses_the_table_like_c() {
+        let mut e = entry("bss.", true, 101);
+        e.send = true;
+        let a = acl(vec![e]);
+        let network = Cred { uid: 101, gid: 101, extra_gid: &[] };
+        for method in [&b"send"[..], b"register", b"query", b"add"] {
+            assert!(a.check(Some(&network), None, Some(method), AclType::Access));
+        }
+        let empty = acl(vec![]);
+        assert!(empty.check(Some(&network), None, Some(b"send"), AclType::Access));
+        // an empty path is a real path, not the absence of one
+        assert!(!empty.check(Some(&network), Some(b""), Some(b"send"), AclType::Access));
+        // the SEND check that follows in ubusd_send_event still applies to the id
+        assert!(!empty.check(Some(&network), Some(b"bss.add"), None, AclType::Send));
+        assert!(a.check(Some(&network), Some(b"bss.add"), None, AclType::Send));
+    }
+
+    // ubusd_acl_load() returns when glob() finds no *.json (missing or empty
+    // dir): the previous table stays, seq is not bumped.
+    #[test]
+    fn load_with_no_files_keeps_the_previous_table() {
+        let mut a = acl(vec![entry("dnsmasq", false, 453)]);
+        let seq_before = a.seq;
+        let dir = std::env::temp_dir().join(format!("owrt-empty-acl-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("notes.txt"), "not an acl file").unwrap();
+        assert!(!a.load(dir.to_str().unwrap()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let dnsmasq = Cred { uid: 453, gid: 453, extra_gid: &[] };
+        assert!(a.check(Some(&dnsmasq), Some(b"dnsmasq"), None, AclType::Publish));
+        assert_eq!(a.seq, seq_before);
+        assert!(!a.load("/nonexistent/owrt/acl.d"));
+        assert!(a.check(Some(&dnsmasq), Some(b"dnsmasq"), None, AclType::Publish));
+        assert_eq!(a.seq, seq_before);
+    }
+
+    // glob("*.json") never matches dotfiles; the loader must not either.
+    #[test]
+    fn dotfiles_are_not_acl_files() {
+        let dir = std::env::temp_dir().join(format!("owrt-dot-acl-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join(".hidden.json"), "{}").unwrap();
+        std::fs::write(dir.join("b.json"), "{}").unwrap();
+        std::fs::write(dir.join("a.json"), "{}").unwrap();
+        std::fs::write(dir.join("c.json.bak"), "{}").unwrap();
+        let files = acl_files(dir.to_str().unwrap());
+        let _ = std::fs::remove_dir_all(&dir);
+        let names: Vec<&str> = files.iter().map(|p| p.rsplit('/').next().unwrap()).collect();
+        assert_eq!(names, ["a.json", "b.json"]);
     }
 
     #[test]
@@ -299,25 +380,25 @@ mod tests {
         let a = acl(vec![entry("dnsmasq", false, 100)]);
         let ok = Cred { uid: 100, gid: 100, extra_gid: &[] };
         let other = Cred { uid: 101, gid: 101, extra_gid: &[] };
-        assert!(a.check(Some(&ok), b"dnsmasq", None, AclType::Publish));
-        assert!(!a.check(Some(&other), b"dnsmasq", None, AclType::Publish));
-        assert!(!a.check(Some(&ok), b"dnsmasq.dns", None, AclType::Publish));
+        assert!(a.check(Some(&ok), Some(b"dnsmasq"), None, AclType::Publish));
+        assert!(!a.check(Some(&other), Some(b"dnsmasq"), None, AclType::Publish));
+        assert!(!a.check(Some(&ok), Some(b"dnsmasq.dns"), None, AclType::Publish));
     }
 
     #[test]
     fn partial_entry_matches_prefix_only() {
         let a = acl(vec![entry("hostapd.", true, 100)]);
         let c = Cred { uid: 100, gid: 100, extra_gid: &[] };
-        assert!(a.check(Some(&c), b"hostapd.wlan0", None, AclType::Publish));
-        assert!(!a.check(Some(&c), b"hostapd", None, AclType::Publish));
+        assert!(a.check(Some(&c), Some(b"hostapd.wlan0"), None, AclType::Publish));
+        assert!(!a.check(Some(&c), Some(b"hostapd"), None, AclType::Publish));
     }
 
     #[test]
     fn access_needs_the_method_or_a_wildcard() {
         let a = acl(vec![entry("hotplug.dhcp", false, 100)]);
         let c = Cred { uid: 100, gid: 100, extra_gid: &[] };
-        assert!(a.check(Some(&c), b"hotplug.dhcp", Some(b"call"), AclType::Access));
-        assert!(!a.check(Some(&c), b"hotplug.dhcp", Some(b"other"), AclType::Access));
+        assert!(a.check(Some(&c), Some(b"hotplug.dhcp"), Some(b"call"), AclType::Access));
+        assert!(!a.check(Some(&c), Some(b"hotplug.dhcp"), Some(b"other"), AclType::Access));
     }
 
     #[test]
@@ -326,6 +407,6 @@ mod tests {
         e.gid = 42;
         let a = acl(vec![e]);
         let c = Cred { uid: 100, gid: 7, extra_gid: &[42] };
-        assert!(a.check(Some(&c), b"log", None, AclType::Publish));
+        assert!(a.check(Some(&c), Some(b"log"), None, AclType::Publish));
     }
 }
