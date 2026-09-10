@@ -80,6 +80,10 @@ class Gates(unittest.TestCase):
             with self.assertRaises(ValueError):
                 benchmark(self.url, 1, 1, 0, None, b"expected", rate=rate)
 
+    def test_cipher_control_requires_tls12(self):
+        with self.assertRaises(ValueError):
+            benchmark("https://127.0.0.1/", 1, 1, 0, None, b"expected", cipher="AES256-GCM-SHA384")
+
 
 if __name__ == "__main__":
     unittest.main()

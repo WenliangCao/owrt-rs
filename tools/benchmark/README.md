@@ -125,6 +125,12 @@ downloads all live output, verifies every file checksum, and only then removes
 its exact temporary router directory. A failed attempt must be preserved
 separately before `--resume-live` may reuse successful TLS results in the same
 boot; completed windows are never overwritten.
+The two implementations may prefer different TLS 1.2 ciphers. The normal
+four-window result preserves each implementation's negotiation. After the
+primary workload has finished in `stock-2` and `rust-2`, the collector also
+repeats the four TLS cases with `--cipher ECDHE-ECDSA-AES256-GCM-SHA384`.
+This supplemental comparison has one boot per implementation and cannot
+change the preceding idle/resource samples.
 
 Five rounds include serial HTTP/ubus/one-shot requests and a four-client mixed
 workload spanning procd, netifd, rpcd, ubusd and HTTP. The mixed workload has one
@@ -145,6 +151,13 @@ client-visible recovery time and kernel boot events for every cold boot.
   child processes. Linux `AT_CLKTCK` supplies the counter resolution; values
   below one tick are not evidence of zero CPU cost. Include client CPU so a
   client bottleneck is visible.
+- The native HTTP client sends each request as one buffer and refreshes Linux
+  `TCP_QUICKACK` after reads. The original uhttpd does not enable TCP_NODELAY;
+  loopback's large MSS otherwise produces roughly 50 ms Nagle/delayed-ACK
+  stalls absent from the measured real-LAN path. This is a per-client socket
+  setting on both sides, not a router-wide TCP change. Preserve diagnostic
+  runs separately and do not combine measurements from different client
+  revisions. Each run records the benchmark executable's hash.
 - This router does not expose `smaps`/`smaps_rollup`. Report `VmRSS`, `RssAnon`,
   `RssFile`, descriptors and threads, plus system `MemAvailable`; do not label
   them PSS or USS. Summed RSS double-counts shared mappings. One-shot peak RSS

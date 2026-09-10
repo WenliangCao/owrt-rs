@@ -42,13 +42,15 @@ class RequestPacer:
         time.sleep(max(0, scheduled - time.perf_counter()))
 
 
-def worker(url, count, warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time, pacer):
+def worker(url, count, warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time, pacer, cipher):
     parsed = urlsplit(url)
     context = None
     if parsed.scheme == "https":
         context = ssl._create_unverified_context() if insecure else ssl.create_default_context()
         if tls12:
             context.minimum_version = context.maximum_version = ssl.TLSVersion.TLSv1_2
+        if cipher:
+            context.set_ciphers(cipher)
     connection = (http.client.HTTPSConnection(parsed.hostname, parsed.port or 443, context=context, timeout=10)
                   if parsed.scheme == "https" else
                   http.client.HTTPConnection(parsed.hostname, parsed.port or 80, timeout=10))
@@ -98,13 +100,15 @@ def worker(url, count, warmup, body, expected, json_body, insecure, fresh, tls12
 
 
 def benchmark(url, n, concurrency, warmup, body, expected, json_body=False, insecure=False,
-              fresh=False, tls12=False, rate=None):
+              fresh=False, tls12=False, rate=None, cipher=None):
     if n <= 0 or concurrency <= 0 or concurrency > n or warmup < 0:
         raise ValueError("require n >= concurrency >= 1 and warmup >= 0")
     if urlsplit(url).scheme not in ("http", "https"):
         raise ValueError("only HTTP and HTTPS are supported")
     if rate is not None and (not math.isfinite(rate) or rate <= 0):
         raise ValueError("rate must be finite and positive")
+    if cipher and (not tls12 or urlsplit(url).scheme != "https"):
+        raise ValueError("a controlled cipher requires HTTPS and --tls12")
     pacer = RequestPacer(rate) if rate is not None else None
     release_time = [0]
 
@@ -114,7 +118,7 @@ def benchmark(url, n, concurrency, warmup, body, expected, json_body=False, inse
     barrier = threading.Barrier(concurrency, action=release)
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         futures = [pool.submit(worker, url, n // concurrency + (index < n % concurrency),
-                               warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time, pacer)
+                               warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time, pacer, cipher)
                    for index in range(concurrency)]
         results = [future.result() for future in futures]
     samples = [sample for group, *_ in results for sample in group]
@@ -130,6 +134,7 @@ def benchmark(url, n, concurrency, warmup, body, expected, json_body=False, inse
     return {"schema": 1, "successful": n, "errors": 0, "concurrency": concurrency,
             "connection_mode": "new_connection" if fresh else "keep_alive",
             "request_rate_limit_per_s": rate,
+            "requested_cipher": cipher,
             "tls_versions": sorted({c["version"] for c in connections}),
             "tls_ciphers": sorted({c["cipher"] for c in connections}),
             "measured_tls_handshakes": len(measured_connections),
@@ -154,13 +159,15 @@ def main():
     parser.add_argument("--tls12", action="store_true", help="use common TLS 1.2 for the controlled comparison")
     parser.add_argument("--rate", type=float,
                         help="total request starts per second across all clients; pacing excluded from latency")
+    parser.add_argument("--cipher", help="OpenSSL cipher selection for a controlled TLS 1.2 comparison")
     args = parser.parse_args()
     body = args.post.read_bytes() if args.post else None
     expected = (json.loads(args.expect_json.read_text()) if args.expect_json
                 else args.expect_bytes.read_bytes())
     try:
         measured = benchmark(args.url, args.n, args.c, args.warmup, body, expected,
-                             args.expect_json is not None, args.insecure, args.fresh_connection, args.tls12, args.rate)
+                             args.expect_json is not None, args.insecure, args.fresh_connection, args.tls12, args.rate,
+                             args.cipher)
     except Exception as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}))
         return 1

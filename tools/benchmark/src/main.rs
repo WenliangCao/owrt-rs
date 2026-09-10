@@ -7,6 +7,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
+use std::os::fd::AsRawFd;
 use std::os::unix::net::UnixDatagram;
 use std::process::Command;
 use std::time::{Duration, Instant};
@@ -308,8 +309,64 @@ fn serve(socket: &str, count: usize) -> Result<()> {
 
 struct HttpClient {
     address: String,
-    stream: Option<BufReader<TcpStream>>,
+    stream: Option<BufReader<HttpStream>>,
 }
+
+struct HttpStream(TcpStream);
+
+impl Read for HttpStream {
+    fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+        let count = self.0.read(buffer)?;
+        if count > 0 {
+            // QUICKACK is not persistent: refresh it after received data,
+            // including a header packet that precedes a Nagle-held body.
+            quick_ack(&self.0)?;
+        }
+        Ok(count)
+    }
+}
+
+impl Write for HttpStream {
+    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+        self.0.write(buffer)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.0.flush()
+    }
+}
+
+fn quick_ack(stream: &TcpStream) -> std::io::Result<()> {
+    // Linux constants and socklen_t are checked against the SDK by
+    // socket_constants.c. The option is per client socket, not host state.
+    unsafe extern "C" {
+        fn setsockopt(
+            fd: i32,
+            level: i32,
+            name: i32,
+            value: *const std::ffi::c_void,
+            len: u32,
+        ) -> i32;
+    }
+    let enabled: i32 = 1;
+    // SAFETY: the live socket and correctly sized integer remain valid for
+    // the call; setsockopt copies the value before returning.
+    let result = unsafe {
+        setsockopt(
+            stream.as_raw_fd(),
+            6,
+            12,
+            (&enabled as *const i32).cast(),
+            4,
+        )
+    };
+    if result == 0 {
+        Ok(())
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
+}
+
 impl HttpClient {
     fn request(&mut self, method: &str, path: &str, body: &[u8]) -> Result<Vec<u8>> {
         if self.stream.is_none() {
@@ -317,11 +374,19 @@ impl HttpClient {
             stream.set_nodelay(true)?;
             stream.set_read_timeout(Some(Duration::from_secs(5)))?;
             stream.set_write_timeout(Some(Duration::from_secs(5)))?;
-            self.stream = Some(BufReader::new(stream));
+            self.stream = Some(BufReader::new(HttpStream(stream)));
         }
         let reader = self.stream.as_mut().ok_or("missing HTTP stream")?;
-        write!(reader.get_mut(), "{method} {path} HTTP/1.1\r\nHost: {}\r\nConnection: keep-alive\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n", self.address, body.len())?;
-        reader.get_mut().write_all(body)?;
+        // Send a complete request together. Formatting directly into a
+        // TCP_NODELAY socket emits many tiny writes and can trigger delayed
+        // ACK/Nagle interactions in the peer rather than measure its work.
+        let mut request = format!("{method} {path} HTTP/1.1\r\nHost: {}\r\nConnection: keep-alive\r\nContent-Type: application/json\r\nContent-Length: {}\r\n\r\n", self.address, body.len()).into_bytes();
+        request.extend_from_slice(body);
+        reader.get_mut().write_all(&request)?;
+        // Loopback's large MSS can leave a C uhttpd response waiting for a
+        // delayed ACK for ~50 ms, unlike the real LAN path. Keep ACK policy
+        // identical and responsive for both subjects on this client socket.
+        quick_ack(&reader.get_ref().0)?;
         let mut line = String::new();
         reader.read_line(&mut line)?;
         require(

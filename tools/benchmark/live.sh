@@ -17,6 +17,7 @@ mkdir -p "$out"
 [ ! -e "$out/STARTED" ] || { echo 'refusing to mix benchmark runs' >&2; exit 2; }
 touch "$out/STARTED"
 bench=/root/r84/bins/owrt-benchmark
+sha256sum "$bench" > "$out/benchmark-sha256.txt"
 /bin/sh /root/r84/stack-switch.sh verify "$mode" > "$out/running-hashes.txt"
 monitors=$(awk '$2 != "-" {if (sep) printf ","; printf "%s", $2; sep=1}' "$out/running-hashes.txt")
 socket=/var/run/ubus/ubus.sock

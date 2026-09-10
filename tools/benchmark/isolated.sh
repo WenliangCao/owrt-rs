@@ -46,6 +46,7 @@ if [ "${1:-}" = --workload ]; then
     component=$1; impl=$2; n=$3
     bench=/tmp/bin/owrt-benchmark
     out=/tmp/out
+    sha256sum "$bench" /tmp/bin/ns-exec > "$out/benchmark-sha256.txt"
     socket=/var/run/ubus/ubus.sock
     cat /proc/cpuinfo > "$out/cpuinfo.txt"
     cat /proc/sys/kernel/random/boot_id > "$out/boot-id.txt"

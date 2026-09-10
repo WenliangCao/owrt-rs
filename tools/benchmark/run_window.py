@@ -85,6 +85,43 @@ def main():
         raise RuntimeError("TLS response fixture changed")
     css.write_bytes(expected_css)
     http_client = Path(__file__).with_name("http_client.py")
+
+    def measure_tls(label, fresh, concurrency, cipher=None):
+        snapshot_command = "/root/r84/bins/owrt-benchmark snapshot " + monitors
+        before = json.loads(ssh(snapshot_command))
+        command = [sys.executable, str(http_client),
+                   "https://192.168.1.1/luci-static/bootstrap/cascade.css",
+                   "--insecure", "--tls12", "--expect-bytes", str(css),
+                   "-n", "1000", "-c", str(concurrency), "--warmup", "10"]
+        if fresh:
+            # The image's firewall applies a global 25 SYN/s limit even
+            # to LAN input. Measure handshake cost below that limit;
+            # unrestricted persistent connections measure throughput.
+            command.extend(["--fresh-connection", "--rate", "20"])
+        if cipher:
+            command.extend(["--cipher", cipher])
+        measured = subprocess.run(command, capture_output=True, timeout=600)
+        after = json.loads(ssh(snapshot_command))
+        (out / (label + ".json")).write_bytes(measured.stdout)
+        (out / (label + ".stderr")).write_bytes(measured.stderr)
+        write_json(label + "-server.json", {
+            "before": before, "after": after,
+            "cpu_scope": "client invocation including warm-up and SSH sampling overhead",
+            "successful_including_warmup": 1000 + 10 * concurrency,
+            "measured_requests": 1000, "warmup_per_connection": 10,
+        })
+        measured.check_returncode()
+        result = json.loads(measured.stdout)
+        if cipher and result["tls_ciphers"] != [cipher]:
+            raise RuntimeError("controlled TLS cipher did not match")
+        if result["successful"] != 1000 or result["errors"] != 0:
+            raise RuntimeError("invalid TLS result")
+        if [(p["pid"], p["start_ticks"]) for p in before["processes"]] != [
+                (p["pid"], p["start_ticks"]) for p in after["processes"]]:
+            raise RuntimeError("process changed during TLS load")
+        event("tls_complete", workload=label, successful=1000,
+              mean_ms=result["mean_ms"], ops_per_s=result["ops_per_s"])
+
     event("load_started", mode=args.mode, window=window.name)
     for fresh in (False, True):
         for concurrency in (1, 4):
@@ -97,36 +134,7 @@ def main():
                         or prior.get("tls_versions") != ["TLSv1.2"]):
                     raise RuntimeError("cannot reuse an invalid or differently configured TLS result")
                 continue
-            snapshot_command = "/root/r84/bins/owrt-benchmark snapshot " + monitors
-            before = json.loads(ssh(snapshot_command))
-            command = [sys.executable, str(http_client),
-                       "https://192.168.1.1/luci-static/bootstrap/cascade.css",
-                       "--insecure", "--tls12", "--expect-bytes", str(css),
-                       "-n", "1000", "-c", str(concurrency), "--warmup", "10"]
-            if fresh:
-                # The image's firewall applies a global 25 SYN/s limit even
-                # to LAN input. Measure handshake cost below that limit;
-                # unrestricted persistent connections measure throughput.
-                command.extend(["--fresh-connection", "--rate", "20"])
-            measured = subprocess.run(command, capture_output=True, timeout=600)
-            after = json.loads(ssh(snapshot_command))
-            (out / (label + ".json")).write_bytes(measured.stdout)
-            (out / (label + ".stderr")).write_bytes(measured.stderr)
-            write_json(label + "-server.json", {
-                "before": before, "after": after,
-                "cpu_scope": "client invocation including warm-up and SSH sampling overhead",
-                "successful_including_warmup": 1000 + 10 * concurrency,
-                "measured_requests": 1000, "warmup_per_connection": 10,
-            })
-            measured.check_returncode()
-            result = json.loads(measured.stdout)
-            if result["successful"] != 1000 or result["errors"] != 0:
-                raise RuntimeError("invalid TLS result")
-            if [(p["pid"], p["start_ticks"]) for p in before["processes"]] != [
-                    (p["pid"], p["start_ticks"]) for p in after["processes"]]:
-                raise RuntimeError("process changed during TLS load")
-            event("tls_complete", workload=label, successful=1000,
-                  mean_ms=result["mean_ms"], ops_per_s=result["ops_per_s"])
+            measure_tls(label, fresh, concurrency)
     # Keep the SSH channel alive while the independent router workload runs.
     # Its stdout goes to this collector's private log, with one line per round.
     command = ("/bin/sh /root/r84/tools/benchmark/live.sh " + args.mode + " "
@@ -156,6 +164,14 @@ def main():
     live.check_returncode()
     if not (local_live / "COMPLETE").exists():
         raise RuntimeError("whole-system run did not complete")
+    # A supplemental common-cipher comparison uses one boot per side. It
+    # runs only after the primary workload and idle snapshots are complete,
+    # preserving the identical four-window protocol for the main results.
+    if window.name in ("stock-2", "rust-2"):
+        for fresh in (False, True):
+            for concurrency in (1, 4):
+                label = "tls-common-" + ("fresh" if fresh else "keepalive") + "-c" + str(concurrency)
+                measure_tls(label, fresh, concurrency, "ECDHE-ECDSA-AES256-GCM-SHA384")
     post = probe(host=args.host, mode=args.mode, interface=args.interface, recovery=True)
     if post["boot_id"] != pre["boot_id"]:
         raise RuntimeError("router rebooted during benchmark")
