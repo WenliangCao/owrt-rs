@@ -178,6 +178,10 @@ hashes, stable configuration/execution-plane hashes and final Rust health.
   `RssFile`, descriptors and threads, plus system `MemAvailable`; do not label
   them PSS or USS. Summed RSS double-counts shared mappings. One-shot peak RSS
   is not measured by this harness.
+  Integrity checks read full executable files and the Rust reference bundle,
+  warming more file cache than requests alone. Keep global `Cached`, `Mapped`,
+  `AnonPages` and slab statistics alongside `MemAvailable`; do not interpret
+  smaller summed RSS as equivalent whole-system physical-memory savings.
 - CLI/daemon ELF sizes do not include the original system's shared libraries,
   ucode interpreter, templates or plugins. Inventory those separately. Since
   originals remain available for recovery, added deployment storage differs

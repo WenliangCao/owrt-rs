@@ -72,6 +72,14 @@ def main():
         table.append(f"| {window['window']} | {number(window['first_ssh_s'])} | {number(m['summed_daemon_rss_kib']['median'])} | {number(m['summed_daemon_anon_kib']['median'])} | {number(m['memory_available_kib']['median'])} | {number(m['daemon_cpu_one_core_pct'])} | {number(m['system_busy_capacity_pct'])} | {number(m['temperature_millic']['median']/1000)} |")
     table += ["", "SSH恢复时间是客户端以约十秒间隔轮询得到的观测值，包含重启/bootloader时间。",
               "负载后 MemAvailable 还受到 tmpfs 中原始样本文件的影响；完整前后数据见 results.json。"]
+    table += ["", "## 整机内存分类", "", "单位 KiB；使用同一负载前采样窗口。", "",
+              "| 窗口 | 文件缓存 Cached | 全机匿名页 AnonPages | 文件映射页 Mapped | 不可回收 Slab |",
+              "|---|---:|---:|---:|---:|"]
+    for window in data["windows"]:
+        m = window["idle_before"]["system_memory_kib"]
+        table.append(f"| {window['window']} | {number(m['Cached']['median'])} | {number(m['AnonPages']['median'])} | {number(m['Mapped']['median'])} | {number(m['SUnreclaim']['median'])} |")
+    table += ["", "完整性核验会读取完整可执行文件及参照副本，形成不同的文件缓存状态。",
+              "MemAvailable 是该条件下的可用内存估计；RSS 合计也重复计算共享页。两者均不是独占物理内存或 PSS。"]
     (out / "system_results.md").write_text("\n".join(table) + "\n")
 
     table = ["# LAN HTTPS", "", "TLS 1.2，每次 1,000 个成功请求。fresh 统一限速20次/s，延迟不计入主动限速等待。",

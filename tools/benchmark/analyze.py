@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import re
 import statistics
 
 COMPONENT_WORK = {
@@ -28,6 +29,8 @@ ORDER = ("c", "rs", "rs", "c", "rs", "c", "c", "rs")
 WINDOWS = ("rust-1", "stock-1", "stock-2", "rust-2")
 SERIAL = ("network", "rpcd", "procd", "log", "uci", "fw4", "http-static", "http-jsonrpc")
 MEMORY_KEYS = ("VmRSS", "RssAnon", "RssFile", "RssShmem", "VmHWM", "VmPTE", "Threads", "fds")
+SYSTEM_MEMORY_KEYS = ("MemFree", "MemAvailable", "Cached", "AnonPages", "Mapped", "Shmem",
+                      "SReclaimable", "SUnreclaim", "KernelStack", "PageTables")
 
 
 def read_json(path):
@@ -139,12 +142,13 @@ def idle(path, names):
         result["processes"][name] = {**{key: stats(p[key] for p in group) for key in MEMORY_KEYS},
                                      "cpu_one_core_pct": cpu_ticks / hz / elapsed * 100}
     result["daemon_cpu_one_core_pct"] = total_daemon_ticks / hz / elapsed * 100
+    result["system_memory_kib"] = {key: stats(s["memory_kib"][key] for s in samples) for key in SYSTEM_MEMORY_KEYS}
     return result
 
 
 def windows(root, manifest, partial):
     rows, resources, tls_rows, sources, missing = [], [], [], [], []
-    configs, execution_planes = [], []
+    configs, execution_planes, rulesets = [], [], []
     for name in WINDOWS:
         window = root / "windows" / name
         out = window / "measurements"
@@ -160,6 +164,9 @@ def windows(root, manifest, partial):
         assert (raw / "config-before.sha256").read_bytes() == (raw / "config-after.sha256").read_bytes()
         assert (raw / "running-hashes.txt").read_bytes() == (raw / "final-running-hashes.txt").read_bytes()
         configs.append((raw / "config-before.sha256").read_bytes())
+        rules = re.sub(r"packets \d+ bytes \d+", "packets N bytes N", (out / "nft-ruleset.txt").read_text())
+        rules = re.sub(r"(expires|timeout) [0-9smhd]+", r"\1 T", rules)
+        rulesets.append(rules)
         execution_planes.append({(v[0], v[2]) for line in (raw / "execution-plane.txt").read_text().splitlines()
                                  if (v := line.split())})
         names = {}
@@ -207,7 +214,10 @@ def windows(root, manifest, partial):
                 rows.append({"study": "mixed-lane", "component": "all", "workload": lane,
                              "side": side, "run": f"{name}/{repeat}", **timing(lane_data)})
         assert total_ops == 500650
+        services = read_json(raw / "services.json")
         resources.append({"window": name, "side": side, "successful": total_ops,
+                          "service_count": len(services),
+                          "service_instance_count": sum(len(s.get("instances", {})) for s in services.values()),
                           "active_server_cpu_s": total_server_cpu,
                           "first_ssh_s": health["first_ssh_s"],
                           "health_confirmed_s": health["elapsed_s"],
@@ -242,6 +252,7 @@ def windows(root, manifest, partial):
     assert partial or not missing, missing
     assert not configs or all(c == configs[0] for c in configs), "configuration drift between boots"
     assert not execution_planes or all(p == execution_planes[0] for p in execution_planes), "execution-plane drift"
+    assert not rulesets or all(r == rulesets[0] for r in rulesets), "firewall ruleset drift"
     return rows, resources, tls_rows, sources, missing
 
 
@@ -291,6 +302,7 @@ def main():
                         "tls_cpu": "HTTP daemon; entire invocation includes counted warm-up and SSH sampling",
                         "rss": "not PSS/USS; shared mappings can be counted more than once",
                         "idle_after_memory": "includes raw output on tmpfs; use idle-before for main memory comparison",
+                        "page_cache": "integrity verification reads full executables and reference copies; MemAvailable is conditional on this cache state",
                         "common_tls": "one boot per implementation; measured after primary samples"},
               "pending": component_missing + window_missing + final_missing,
               "rows": rows, "summaries": summarize(rows, ("study", "component", "workload", "side")),
@@ -298,7 +310,8 @@ def main():
               "component_memory": summarize(residents, ("component", "side")),
               "windows": resources, "sources": component_sources + window_sources,
               "configuration_equal_across_completed_windows": True,
-              "execution_plane_equal_across_completed_windows": True}
+              "execution_plane_equal_across_completed_windows": True,
+              "nft_rules_equal_after_counter_normalization": True}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
     print(json.dumps({"status": result["status"], "component_runs": len(component_sources),
