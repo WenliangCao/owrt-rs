@@ -37,6 +37,8 @@ def main():
 
     table = ["# 单组件完整结果", "", "每侧四次独立运行；表中为每次运行统计值的中位数。延迟单位 µs。",
              "CPU 包含被测程序及其等待回收的子进程，依赖进程和客户端 CPU 分开保存在 results.json。", "",
+             "syslog_128 的延迟是约128字节数据报的发送耗时，含队列背压；总吞吐和CPU区间等待最终消息被读取。",
+             "它不表示逐条日志的落盘或端到端处理延迟。", "",
              "| 组件 / 负载 | 原版平均 | Rust 平均 | Rust/原版 | 原版 p95 | Rust p95 | 原版 CPU µs/次 | Rust CPU µs/次 |",
              "|---|---:|---:|---:|---:|---:|---:|---:|"]
     component_keys = sorted({key[1:3] for key in groups if key[0] == "component"})
@@ -72,6 +74,19 @@ def main():
         table.append(f"| {window['window']} | {number(window['first_ssh_s'])} | {number(m['summed_daemon_rss_kib']['median'])} | {number(m['summed_daemon_anon_kib']['median'])} | {number(m['memory_available_kib']['median'])} | {number(m['daemon_cpu_one_core_pct'])} | {number(m['system_busy_capacity_pct'])} | {number(m['temperature_millic']['median']/1000)} |")
     table += ["", "SSH恢复时间是客户端以约十秒间隔轮询得到的观测值，包含重启/bootloader时间。",
               "负载后 MemAvailable 还受到 tmpfs 中原始样本文件的影响；完整前后数据见 results.json。"]
+    table += ["", "## 混合负载的启动间变化", "",
+              "每个启动窗口有五轮；吞吐范围和中位数用于展示重复性，不是置信区间。",
+              "固定整套负载CPU涵盖该窗口的500,650次正式操作，包含fw4等一次性命令，未包含TLS或空闲采样。", "",
+              "| 窗口 | 混合吞吐中位数 次/s | 五轮吞吐范围 次/s | 混合控制面CPU中位数 µs/次 | 固定整套负载CPU s |",
+              "|---|---:|---:|---:|---:|"]
+    for window in data["windows"]:
+        mixed = [row for row in data["rows"] if row["study"] == "whole" and row["workload"] == "mixed-total"
+                 and row["run"].startswith(window["window"] + "/")]
+        rates = [row["ops_per_s"] for row in mixed]
+        cpu = statistics.median(row["server_cpu_us_per_op"] for row in mixed)
+        table.append(f"| {window['window']} | {number(statistics.median(rates))} | {number(min(rates))}–{number(max(rates))} | {number(cpu)} | {number(window['active_server_cpu_s'])} |")
+    table += ["", "实际路由器仍承载背景网络活动，空闲整机CPU会随窗口变化；上面的进程CPU与整机CPU分别报告。",
+              "只有两次冷启动/侧，结果限定于本设备、配置和负载，不把十轮视为十次独立启动。"]
     table += ["", "## 整机内存分类", "", "单位 KiB；使用同一负载前采样窗口。", "",
               "| 窗口 | 文件缓存 Cached | 全机匿名页 AnonPages | 文件映射页 Mapped | 不可回收 Slab |",
               "|---|---:|---:|---:|---:|"]
@@ -83,9 +98,9 @@ def main():
     (out / "system_results.md").write_text("\n".join(table) + "\n")
 
     table = ["# LAN HTTPS", "", "TLS 1.2，每次 1,000 个成功请求。fresh 统一限速20次/s，延迟不计入主动限速等待。",
-             "CPU 包括每连接10次预热及SSH采样开销，除以包含预热的成功请求数。", ""]
+             "CPU 包括每个客户端10次预热及SSH采样开销，除以包含预热的成功请求数。", ""]
     for study, title in (("tls-default", "默认协商：每侧两次启动"), ("tls-common", "相同 AES256-GCM 套件：每侧一次启动，主采样结束后测量")):
-        table += ["## " + title, "", "| 负载 | 原版平均 ms | Rust平均 ms | 原版 p95 ms | Rust p95 ms | 原版 httpd CPU µs/次 | Rust httpd CPU µs/次 |",
+        table += ["", "## " + title, "", "| 负载 | 原版平均 ms | Rust平均 ms | 原版 p95 ms | Rust p95 ms | 原版 httpd CPU µs/次 | Rust httpd CPU µs/次 |",
                   "|---|---:|---:|---:|---:|---:|---:|"]
         for workload in ("keepalive-c1", "keepalive-c4", "fresh-c1", "fresh-c4"):
             c, r = pair(study, "httpd", workload, "mean_ms")
@@ -99,25 +114,26 @@ def main():
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    labels = list(PRIMARY)
+    labels = ["uci · network export", "reload-config · no changes", "fw4 · print",
+              "logd · ~128 B submit", "httpd · 16 KiB static", "rpcd · uci.get",
+              "procd · list 32 services", "ubusd · invoke", "netifd · interface dump"]
     latency, cpu = [], []
     for component, workload in PRIMARY.items():
         c, r = pair("component", component, workload, "mean_us")
         latency.append(r / c)
         c, r = pair("component", component, workload, "subject_cpu_us_per_op")
         cpu.append(r / c if c else float("nan"))
-    fig, axes = plt.subplots(1, 3, figsize=(13, 5.5), gridspec_kw={"width_ratios": [1.25, 1.25, 1]})
+    fig, axes = plt.subplots(1, 3, figsize=(15.5, 6), gridspec_kw={"width_ratios": [1.25, 1.25, 1]})
     for ax, values, title in zip(axes[:2], (latency, cpu), ("Component latency", "Component CPU")):
         ax.barh(labels, values, color="#2563eb", height=.65)
         ax.axvline(1, color="#374151", linestyle="--", linewidth=1)
-        ax.set_xscale("log")
         ax.invert_yaxis()
         ax.set_title(title, loc="left", fontweight="bold")
         ax.set_xlabel("Rust / original OpenWrt (lower is better)")
         ax.grid(axis="x", alpha=.18)
         for i, v in enumerate(values):
-            ax.text(v * 1.08, i, f"{v:.2f}x", va="center", fontsize=9)
-        ax.set_xlim(min(min(values) * .65, .1), max(max(values) * 1.8, 2))
+            ax.text(v + .025, i, f"{v:.2f}x", va="center", fontsize=9)
+        ax.set_xlim(0, max(max(values) * 1.2, 1.65))
     axes[1].set_yticklabels([])
     c, r = pair("whole", "all", "mixed-total", "ops_per_s")
     axes[2].bar(("OpenWrt", "Rust"), (c, r), color=("#64748b", "#2563eb"), width=.55)
@@ -133,7 +149,7 @@ def main():
     for ax in axes:
         ax.spines[["top", "right"]].set_visible(False)
     fig.suptitle("AX3000T: original OpenWrt 25.12.5 vs latest Rust", fontsize=15, fontweight="bold")
-    fig.text(.04, .035, "Physical router | 4 component runs per side | 2 system boots per side | matched workloads and client", fontsize=9, color="#4b5563")
+    fig.text(.04, .035, "Physical router | 4 component runs per side | 2 system boots per side | CPU: subject + waited children | dots: per-boot medians", fontsize=9, color="#4b5563")
     fig.tight_layout(rect=(0, .07, 1, .94), w_pad=2)
     fig.savefig(out / "benchmark.svg", metadata={"Date": None})
     fig.savefig(out / "benchmark.png", dpi=180)

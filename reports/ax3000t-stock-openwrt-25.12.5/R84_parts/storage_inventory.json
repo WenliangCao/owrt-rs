@@ -1,0 +1,811 @@
+{
+  "schema": 1,
+  "image": "ax3000t-stock-openwrt-25.12.5",
+  "unit": "uncompressed file bytes",
+  "notes": [
+    "Groups overlap; shared libraries are counted once within each group.",
+    "Selected runtime groups are an inventory, not a minimal exclusive dependency set.",
+    "BusyBox, libc, libuci, ucode and other dependencies are also used by preserved components.",
+    "Originals and packages remain installed for recovery; these are not removable-space estimates."
+  ],
+  "rust_nine_static_entrypoints_bytes": 7594634,
+  "selected_original_runtime_union_bytes": 3730552,
+  "groups": {
+    "nine_entrypoints": {
+      "bytes": 520451,
+      "files": [
+        "/sbin/fw4",
+        "/sbin/logd",
+        "/sbin/netifd",
+        "/sbin/procd",
+        "/sbin/reload_config",
+        "/sbin/rpcd",
+        "/sbin/ubusd",
+        "/sbin/uci",
+        "/usr/sbin/uhttpd"
+      ]
+    },
+    "entrypoints_with_elf_dependency_closure": {
+      "bytes": 1702731,
+      "files": [
+        "/lib/libblobmsg_json.so.20260213",
+        "/lib/libc.so",
+        "/lib/libgcc_s.so.1",
+        "/lib/libjson_script.so.20260213",
+        "/lib/libubox.so.20260213",
+        "/lib/libubus.so.20251202",
+        "/lib/libuci.so.20250120",
+        "/sbin/fw4",
+        "/sbin/logd",
+        "/sbin/netifd",
+        "/sbin/procd",
+        "/sbin/reload_config",
+        "/sbin/rpcd",
+        "/sbin/ubusd",
+        "/sbin/uci",
+        "/usr/lib/libjson-c.so.5.4.0",
+        "/usr/lib/libnl-tiny.so.1",
+        "/usr/lib/libucode.so.20230711",
+        "/usr/lib/libudebug.so",
+        "/usr/sbin/uhttpd"
+      ]
+    },
+    "shell_and_reload_cli_tools": {
+      "bytes": 1398233,
+      "files": [
+        "/bin/busybox",
+        "/bin/ubus",
+        "/lib/libblobmsg_json.so.20260213",
+        "/lib/libc.so",
+        "/lib/libgcc_s.so.1",
+        "/lib/libubox.so.20260213",
+        "/lib/libubus.so.20251202",
+        "/lib/libuci.so.20250120",
+        "/sbin/uci",
+        "/usr/lib/libjson-c.so.5.4.0"
+      ]
+    },
+    "firewall_ucode_runtime": {
+      "bytes": 1354371,
+      "files": [
+        "/lib/libblobmsg_json.so.20260213",
+        "/lib/libc.so",
+        "/lib/libgcc_s.so.1",
+        "/lib/libubox.so.20260213",
+        "/lib/libubus.so.20251202",
+        "/lib/libuci.so.20250120",
+        "/usr/bin/ucode",
+        "/usr/lib/libjson-c.so.5.4.0",
+        "/usr/lib/libucode.so.20230711",
+        "/usr/lib/ucode/fs.so",
+        "/usr/lib/ucode/ubus.so",
+        "/usr/lib/ucode/uci.so",
+        "/usr/share/firewall4/helpers",
+        "/usr/share/firewall4/main.uc",
+        "/usr/share/firewall4/templates/mangle-rule.uc",
+        "/usr/share/firewall4/templates/redirect.uc",
+        "/usr/share/firewall4/templates/rule.uc",
+        "/usr/share/firewall4/templates/ruleset.uc",
+        "/usr/share/firewall4/templates/zone-drop-invalid.uc",
+        "/usr/share/firewall4/templates/zone-jump.uc",
+        "/usr/share/firewall4/templates/zone-masq.uc",
+        "/usr/share/firewall4/templates/zone-match.uc",
+        "/usr/share/firewall4/templates/zone-mssfix.uc",
+        "/usr/share/firewall4/templates/zone-notrack.uc",
+        "/usr/share/firewall4/templates/zone-verdict.uc",
+        "/usr/share/ucode/fw4.uc"
+      ]
+    },
+    "httpd_ubus_and_tls_runtime": {
+      "bytes": 1660580,
+      "files": [
+        "/lib/libblobmsg_json.so.20260213",
+        "/lib/libc.so",
+        "/lib/libgcc_s.so.1",
+        "/lib/libubox.so.20260213",
+        "/lib/libubus.so.20251202",
+        "/lib/libustream-ssl.so",
+        "/usr/lib/libjson-c.so.5.4.0",
+        "/usr/lib/libmbedcrypto.so.3.6.6",
+        "/usr/lib/libmbedtls.so.3.6.6",
+        "/usr/lib/libmbedx509.so.3.6.6",
+        "/usr/lib/uhttpd_ubus.so"
+      ]
+    },
+    "rpcd_plugins_and_scripts": {
+      "bytes": 1347102,
+      "files": [
+        "/lib/libc.so",
+        "/lib/libgcc_s.so.1",
+        "/lib/libubox.so.20260213",
+        "/lib/libubus.so.20251202",
+        "/lib/libuci.so.20250120",
+        "/usr/lib/libiwinfo.so.20230701",
+        "/usr/lib/libjson-c.so.5.4.0",
+        "/usr/lib/libnl-tiny.so.1",
+        "/usr/lib/libucode.so.20230711",
+        "/usr/lib/rpcd/file.so",
+        "/usr/lib/rpcd/iwinfo.so",
+        "/usr/lib/rpcd/luci.so",
+        "/usr/lib/rpcd/rpcsys.so",
+        "/usr/lib/rpcd/rrdns.so",
+        "/usr/lib/rpcd/ucode.so",
+        "/usr/share/rpcd/ucode/luci"
+      ]
+    },
+    "image_ucode_native_modules": {
+      "bytes": 1624700,
+      "files": [
+        "/lib/libblobmsg_json.so.20260213",
+        "/lib/libc.so",
+        "/lib/libgcc_s.so.1",
+        "/lib/libubox.so.20260213",
+        "/lib/libubus.so.20251202",
+        "/lib/libuci.so.20250120",
+        "/usr/lib/libjson-c.so.5.4.0",
+        "/usr/lib/liblucihttp.so.0.1",
+        "/usr/lib/libnl-tiny.so.1",
+        "/usr/lib/libuclient.so",
+        "/usr/lib/libucode.so.20230711",
+        "/usr/lib/ucode/digest.so",
+        "/usr/lib/ucode/fs.so",
+        "/usr/lib/ucode/html.so",
+        "/usr/lib/ucode/log.so",
+        "/usr/lib/ucode/luci/core.so",
+        "/usr/lib/ucode/lucihttp.so",
+        "/usr/lib/ucode/math.so",
+        "/usr/lib/ucode/nl80211.so",
+        "/usr/lib/ucode/rtnl.so",
+        "/usr/lib/ucode/ubus.so",
+        "/usr/lib/ucode/uci.so",
+        "/usr/lib/ucode/uclient.so",
+        "/usr/lib/ucode/uloop.so"
+      ]
+    },
+    "netifd_ucode_scripts": {
+      "bytes": 26802,
+      "files": [
+        "/lib/netifd/main.uc",
+        "/lib/netifd/utils.uc",
+        "/lib/netifd/wireless-device.uc",
+        "/lib/netifd/wireless.uc"
+      ]
+    },
+    "preserved_nft_execution_plane": {
+      "bytes": 1846681,
+      "files": [
+        "/lib/libc.so",
+        "/lib/libgcc_s.so.1",
+        "/usr/lib/libjansson.so.4.14.0",
+        "/usr/lib/libmnl.so.0.2.0",
+        "/usr/lib/libnftables.so.1.1.0",
+        "/usr/lib/libnftnl.so.11.7.0",
+        "/usr/sbin/nft"
+      ]
+    }
+  },
+  "files": {
+    "/bin/busybox": {
+      "bytes": 421909,
+      "sha256": "54d4139265132254e5601cb65d8617a928d5d5867c044ef701d53b973daafe09",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/bin/ubus": {
+      "bytes": 16400,
+      "sha256": "9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb",
+      "elf_needed": [
+        "libubus.so.20251202",
+        "libubox.so.20260213",
+        "libblobmsg_json.so.20260213",
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/lib/libblobmsg_json.so.20260213": {
+      "bytes": 12290,
+      "sha256": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/lib/libc.so": {
+      "bytes": 590852,
+      "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "elf_needed": []
+    },
+    "/lib/libgcc_s.so.1": {
+      "bytes": 131088,
+      "sha256": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "elf_needed": [
+        "libc.so"
+      ]
+    },
+    "/lib/libjson_script.so.20260213": {
+      "bytes": 12305,
+      "sha256": "9bb718c0c703323a42e565d5119e77b0a67601d4fd244b4a58023e211daea1ad",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/lib/libubox.so.20260213": {
+      "bytes": 65633,
+      "sha256": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/lib/libubus.so.20251202": {
+      "bytes": 28834,
+      "sha256": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/lib/libuci.so.20250120": {
+      "bytes": 41050,
+      "sha256": "bdfc94c8daca8c900e48bdd41c7c0f134ac92d1d1831a20c9b0179c8232fe5b0",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/lib/libustream-ssl.so": {
+      "bytes": 16386,
+      "sha256": "b62c4319863b939fe022aea483d52a31ae6f8e3916e9bfc9f159ca0950f0d6e0",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libmbedtls.so.21",
+        "libmbedx509.so.7",
+        "libmbedcrypto.so.16",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/lib/netifd/main.uc": {
+      "bytes": 1488,
+      "sha256": "f1a16867ac640108182e6fe2b5a02b18e66d302c55e2b9cd21ffefff3ee0cbf2",
+      "elf_needed": []
+    },
+    "/lib/netifd/utils.uc": {
+      "bytes": 2282,
+      "sha256": "9601c500d498103eb3b22010fd6fba0885840f10f32d8c8db7f05911e4aedeb9",
+      "elf_needed": []
+    },
+    "/lib/netifd/wireless-device.uc": {
+      "bytes": 11870,
+      "sha256": "b42b77c783542e2f56e264910d0fb4a15a86a514c0c60aafd63c489231f6ebd7",
+      "elf_needed": []
+    },
+    "/lib/netifd/wireless.uc": {
+      "bytes": 11162,
+      "sha256": "e369670e9b92d0cdef5b116570be21d952b4f58fa462fc95e58a4f717b662738",
+      "elf_needed": []
+    },
+    "/sbin/fw4": {
+      "bytes": 2965,
+      "sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+      "elf_needed": []
+    },
+    "/sbin/logd": {
+      "bytes": 16905,
+      "sha256": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libudebug.so",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/sbin/netifd": {
+      "bytes": 232827,
+      "sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libuci.so.20250120",
+        "libjson-c.so.5",
+        "libblobmsg_json.so.20260213",
+        "libudebug.so",
+        "libucode.so.20230711",
+        "libnl-tiny.so.1",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/sbin/procd": {
+      "bytes": 97697,
+      "sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libjson-c.so.5",
+        "libblobmsg_json.so.20260213",
+        "libjson_script.so.20260213",
+        "libudebug.so",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/sbin/reload_config": {
+      "bytes": 591,
+      "sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+      "elf_needed": []
+    },
+    "/sbin/rpcd": {
+      "bytes": 62043,
+      "sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libuci.so.20250120",
+        "libblobmsg_json.so.20260213",
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/sbin/ubusd": {
+      "bytes": 32962,
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libblobmsg_json.so.20260213",
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/sbin/uci": {
+      "bytes": 16395,
+      "sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+      "elf_needed": [
+        "libuci.so.20250120",
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/bin/ucode": {
+      "bytes": 16347,
+      "sha256": "51b711c8e0016ddde3998ce66e23b387f9e57417c40f3c2c40f2694be5e29450",
+      "elf_needed": [
+        "libucode.so.20230711",
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libiwinfo.so.20230701": {
+      "bytes": 65589,
+      "sha256": "98cfb9ce55c0e57eb840b0c124d8569284752be79885dff822270f8da37d8174",
+      "elf_needed": [
+        "libuci.so.20250120",
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libnl-tiny.so.1",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libjansson.so.4.14.0": {
+      "bytes": 90195,
+      "sha256": "24600316952a7b61a1db802ad2986e4a8c04a545a3df179b1b51896a03c5dafc",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libjson-c.so.5.4.0": {
+      "bytes": 73782,
+      "sha256": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/liblucihttp.so.0.1": {
+      "bytes": 16386,
+      "sha256": "ebd493734e92f532f582e5ee6272145816dba0407bf5ba325856498cea968ac8",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libmbedcrypto.so.3.6.6": {
+      "bytes": 463099,
+      "sha256": "a706d21b671066892985ed8c1a1adafed1f474c2b58a5e832987bb133aca81a1",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libmbedtls.so.3.6.6": {
+      "bytes": 180227,
+      "sha256": "d7408472dbd44a5f82293e0ba24326608ba7d8a5bb48e3616001b6622287d77e",
+      "elf_needed": [
+        "libmbedx509.so.7",
+        "libmbedcrypto.so.16",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libmbedx509.so.3.6.6": {
+      "bytes": 77827,
+      "sha256": "ebf2c5defdc319d0903af3569ee32e2bc6fc7a188470ae90a4ea24b3e9777dbd",
+      "elf_needed": [
+        "libmbedcrypto.so.16",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libmnl.so.0.2.0": {
+      "bytes": 20482,
+      "sha256": "4f13016b4961a217d5050ca9081a9467c37d2742fc3ad70b4aa135c8768ba260",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libnftables.so.1.1.0": {
+      "bytes": 799699,
+      "sha256": "defaca49ed2c54912b21fe2a0444d5321ddd5e9bde2e5a8b801a7381a620c538",
+      "elf_needed": [
+        "libmnl.so.0",
+        "libnftnl.so.11",
+        "libjansson.so.4",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libnftnl.so.11.7.0": {
+      "bytes": 202114,
+      "sha256": "036f26edd85e5378aeeb6328a838594a0f54b0354d30c1e5cf3534323ebd5751",
+      "elf_needed": [
+        "libmnl.so.0",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libnl-tiny.so.1": {
+      "bytes": 37450,
+      "sha256": "4abb1ddbece1565ca8b6b5a77f4d86a6e9ed240f604eb32187e5978600c9caea",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libuclient.so": {
+      "bytes": 24578,
+      "sha256": "b6e79922f28a367250dc04e884169bcbb038719f15371aa4f0bf2780e5d0bc30",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libucode.so.20230711": {
+      "bytes": 176659,
+      "sha256": "0feefc04e1f7ebd24545808887b0ac5784d79f8f60cd16e84402b3fd62d824d3",
+      "elf_needed": [
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/libudebug.so": {
+      "bytes": 12337,
+      "sha256": "56958bcd2dd706f841ed68f7f9241afd85f52a05b82cc5cf3ad510fd8895ef9c",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/rpcd/file.so": {
+      "bytes": 20658,
+      "sha256": "f181c959ff0c44db1a9f2d96d053646fd6bf4d38426edc37702764a6e993584f",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/rpcd/iwinfo.so": {
+      "bytes": 20682,
+      "sha256": "c8bcd7bc4057b023ed9eb955a3fa157bacba39820906e3859999f112e20ce77f",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libiwinfo.so.20230701",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/rpcd/luci.so": {
+      "bytes": 33026,
+      "sha256": "3f877f74b15e081723986d7d06b8e27a072bd8be92539dbee533623d0b18ef22",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libuci.so.20250120",
+        "libnl-tiny.so.1",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/rpcd/rpcsys.so": {
+      "bytes": 12586,
+      "sha256": "378375e5198dad1fa5ca05ca9095d725fef33062cb1423c77e8ab57f9fba9774",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/rpcd/rrdns.so": {
+      "bytes": 12466,
+      "sha256": "22c42f2de25a7670b2dd81fbcec1874a3ab166b2536ddc447b5f9a42d9f94e47",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libubus.so.20251202",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/rpcd/ucode.so": {
+      "bytes": 20586,
+      "sha256": "591c21eee13dcae91b75d039719e5733bcd2e1eeec7d0466104b1d2aa8d6c220",
+      "elf_needed": [
+        "libucode.so.20230711",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/digest.so": {
+      "bytes": 36873,
+      "sha256": "0b99d9c46cacfc9b8d4ede1d873c1c74db2dcbd48760274e96611488787d8124",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/fs.so": {
+      "bytes": 32770,
+      "sha256": "a616b2034e5e11dbf7d88729eb93adc9d8881b008bb4d8d0c30c345457e53632",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/html.so": {
+      "bytes": 61442,
+      "sha256": "f43c99a00b0fd4a7b0e2077815023863bd62eb7c3193f04aea7800b2a9976eaf",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/log.so": {
+      "bytes": 12290,
+      "sha256": "4c44a94580daf79cf3e746277781dd434e4f8d39a944fc50c624024d325cf378",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/luci/core.so": {
+      "bytes": 20482,
+      "sha256": "5221050503b326c961ab595c63c4ae333b00804899f819163799bd5cb074fd98",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/lucihttp.so": {
+      "bytes": 12290,
+      "sha256": "619b3d72564c04c8eb96afc21dfe8373ac5591af0fd8adcce8ccbe58f663abb7",
+      "elf_needed": [
+        "liblucihttp.so.0",
+        "libucode.so.20230711",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/math.so": {
+      "bytes": 8194,
+      "sha256": "2199a4027d927d1d4769df7d102df774c989006f6555bdf27cce95e27fd66164",
+      "elf_needed": [
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/nl80211.so": {
+      "bytes": 61442,
+      "sha256": "5d5bbde790d309120a612ab07305dc7d03dae2617241a556590e508068823e62",
+      "elf_needed": [
+        "libnl-tiny.so.1",
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/rtnl.so": {
+      "bytes": 73731,
+      "sha256": "cf961a3b7e157a1da34bd137dfcd677ba51c1d3c205af2746179caf3569b3434",
+      "elf_needed": [
+        "libnl-tiny.so.1",
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/ubus.so": {
+      "bytes": 45082,
+      "sha256": "d9915764817b9f6c15281342bcb187ca5d3de28403b12e6c6e477c30530acc02",
+      "elf_needed": [
+        "libubus.so.20251202",
+        "libblobmsg_json.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/uci.so": {
+      "bytes": 20538,
+      "sha256": "ba54ee77a2418ccfe840165b7c1d64e8d144f398f36b9fcc0e818516abcc550c",
+      "elf_needed": [
+        "libuci.so.20250120",
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/uclient.so": {
+      "bytes": 16386,
+      "sha256": "06c80c7ad45b02240055a918a821affb7e48003d61156e7f24fc4e4f1fb4ec59",
+      "elf_needed": [
+        "libuclient.so",
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/ucode/uloop.so": {
+      "bytes": 24578,
+      "sha256": "d7d4f5ea98b77116250f23ced91f9c48ab0d6cbc2b0848d65b63919628529048",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/lib/uhttpd_ubus.so": {
+      "bytes": 20562,
+      "sha256": "fa33486ca0b68e99efe376462ca1c151cb6ec7a8c01787cb76a1e1064a942ebb",
+      "elf_needed": [
+        "libubus.so.20251202",
+        "libubox.so.20260213",
+        "libblobmsg_json.so.20260213",
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/sbin/nft": {
+      "bytes": 12251,
+      "sha256": "2da931655b3491bb179c5990be9278d5676242714e29064fd92eabcfcf19f1b6",
+      "elf_needed": [
+        "libnftables.so.1",
+        "libmnl.so.0",
+        "libnftnl.so.11",
+        "libjansson.so.4",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/sbin/uhttpd": {
+      "bytes": 58066,
+      "sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "elf_needed": [
+        "libubox.so.20260213",
+        "libjson_script.so.20260213",
+        "libblobmsg_json.so.20260213",
+        "libjson-c.so.5",
+        "libgcc_s.so.1",
+        "libc.so"
+      ]
+    },
+    "/usr/share/firewall4/helpers": {
+      "bytes": 2195,
+      "sha256": "99c1a87f977bb51c13ec3b981c8f02e57308ef5d5c4b3b0877d50da8f7d1d4fb",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/main.uc": {
+      "bytes": 3016,
+      "sha256": "b1c8d293b16e6103ee279026fd06fcc5876b4629741080912420fb073b4f9848",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/mangle-rule.uc": {
+      "bytes": 4343,
+      "sha256": "1f5711f31399c1dee8d84c3faaa2a107ab4c3da50110af26db9cec381a9f9a6a",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/redirect.uc": {
+      "bytes": 4700,
+      "sha256": "a4a27d3549f8969ef0e12c03556ba88e7ed7180b8642697d3a7224d665b599c7",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/rule.uc": {
+      "bytes": 5331,
+      "sha256": "9c5bbd3970135fe150730bbbf37db6584a554f755c9b520e118e9cbf347a3402",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/ruleset.uc": {
+      "bytes": 15037,
+      "sha256": "3c67659a861500b4bcc3fbc058790c7b40adf5ff861ff9c87584813fb325805b",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/zone-drop-invalid.uc": {
+      "bytes": 614,
+      "sha256": "3aa2d0a2b89cd2b2d32f2fd6753d045bf9eba89adeb3c44330326f8e75f23523",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/zone-jump.uc": {
+      "bytes": 360,
+      "sha256": "77e8b804213ded857d1628896b5de05c1267cb2f4d4aa252ba24d9668d1f8777",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/zone-masq.uc": {
+      "bytes": 933,
+      "sha256": "0260f037b1c2ec33389a3764ac63bcb63ddc32751bd3cb65f6a43546d1a9cb8d",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/zone-match.uc": {
+      "bytes": 856,
+      "sha256": "8bd891b14a94b6b32c5373d9caa467e54880d722683bdf7d84fb173c1fb0bacb",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/zone-mssfix.uc": {
+      "bytes": 404,
+      "sha256": "3d40bfbc00735a037602e80f2536fa2ece1b70f49cc8a61bc4d84391f4293359",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/zone-notrack.uc": {
+      "bytes": 864,
+      "sha256": "7678213f9be65832e405de34ae116e6898df74d653c976a03e81ecc8b5751e54",
+      "elf_needed": []
+    },
+    "/usr/share/firewall4/templates/zone-verdict.uc": {
+      "bytes": 907,
+      "sha256": "ada10cefe077ad3a060f008d245515573ff26bfd93ccc6287cfe695b4fb2b0e7",
+      "elf_needed": []
+    },
+    "/usr/share/rpcd/ucode/luci": {
+      "bytes": 16161,
+      "sha256": "6f9d972958d9cfb8a7ba421f38f0a5b03718ffeb0e30d460b64c9faf725fc54e",
+      "elf_needed": []
+    },
+    "/usr/share/ucode/fw4.uc": {
+      "bytes": 79886,
+      "sha256": "148ded17db6a8984e97875c8e60ed7e4ab4c475fbd84a31bba6b543190b4e524",
+      "elf_needed": []
+    }
+  }
+}

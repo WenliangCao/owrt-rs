@@ -1,6 +1,5 @@
 {
   "schema_version": 1,
-  "status": "prepared_not_deployed",
   "image": "ax3000t-stock-openwrt-25.12.5",
   "fix_commit": "9183a5da3ea488763d580f15b76261e3d0e8df2c",
   "canonical_build": {
@@ -140,7 +139,7 @@
   "tools": {
     "owrt-benchmark": {
       "bytes": 593872,
-      "sha256": "589039ec84a5a406a22b94b02bafd436c4046c2c101642c7e6c6484bfb63d9d2"
+      "sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03"
     },
     "ns-exec": {
       "bytes": 288704,
@@ -152,16 +151,68 @@
     "canonical_httpd_r14_cases": 61,
     "canonical_httpd_r14_status": "pass",
     "benchmark_rust_tests": 1,
-    "http_client_gate_tests": 5,
+    "http_client_gate_tests": 8,
     "namespace_cleanup_and_negative_gates": "pass",
-    "apk_stage_rollback_rescue_gates": "pass"
+    "apk_stage_rollback_rescue_gates": "pass",
+    "analysis_gate_tests": 5,
+    "final_native_client_negative_gates": "pass",
+    "final_namespace_cleanup": "pass",
+    "socket_abi_constants_against_sdk": "pass",
+    "kernel_log_idle_positive_and_negative_gates": "pass"
   },
+  "status": "deployed_and_benchmarked",
   "physical_device": {
-    "deployed": false,
-    "benchmarked": false,
-    "nine_original_hashes_match_image": true,
-    "recovery_lan4_carrier": 0,
-    "human_recovery_readiness": "awaiting_response",
-    "read_only_health": "dual-stack WAN, DHCP, both AP bridges and watchdog passed"
+    "deployed": true,
+    "benchmarked": true,
+    "final_stack": "latest Rust",
+    "recovery_lan4_carrier": 1,
+    "human_recovery_readiness": "confirmed",
+    "offline_backups_and_recovery_images": "verified",
+    "running_component_hashes_verified": 9,
+    "effective_system_windows": 4,
+    "isolated_component_runs": 72,
+    "configuration_unchanged": true,
+    "execution_plane_hashes_unchanged": true,
+    "nft_rules_equal_after_counter_normalization": true,
+    "pending_rollback": false,
+    "final_health": "dual-stack WAN, LAN DHCP, both AP bridges, HTTP/HTTPS and watchdog passed"
+  },
+  "benchmark": {
+    "client_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+    "native_client_source_commit": "b890d38e02502ec3adde95e2bce1d0771d57ee33",
+    "whole_window_order": [
+      "rust",
+      "stock",
+      "stock",
+      "rust"
+    ],
+    "rounds_per_window": 5,
+    "whole_successful_operations": 2002600,
+    "component_successful_operations": 2101600,
+    "tls_successful_requests": 24000,
+    "whole_native_transport": "complete request buffer; TCP_NODELAY; TCP_QUICKACK refreshed after reads",
+    "tls_protocol": "TLS1.2; fresh TCP starts limited to20/s; shared AES256-GCM supplement",
+    "raw_observations": "private/r84; excluded pilots in private/r84/pilots",
+    "derived_results": "results.json",
+    "storage_inventory": "storage_inventory.json",
+    "logd_kernel_log_mask": "empty FIFO held open at both ends",
+    "logd_preload_idle_gate": "all eight runs passed",
+    "isolated_harnesses_sha256": {
+      "logd": "a7c5f697860a0aca96cc8432bca1ac57e187ae1986b8482a4377f1c393bf9839",
+      "other_eight_components": "d10af6fb1d0a6fd93e9f5a08d108b15b9b396719e773eb261d32a051ea887acb"
+    },
+    "whole_workload_script_sha256": "b9ecbdd74cd63298ffd752f8fcca2420eae1573c18fdc316f1e5b6f4050209f2",
+    "excluded_initial_logd_runs": 8,
+    "excluded_failed_upload_retry_attempts": 2
+  },
+  "tool_validation": {
+    "benchmark_protocol_ci": 34508455186,
+    "analysis_ci": 34519603272,
+    "source_commits": [
+      "b890d38e02502ec3adde95e2bce1d0771d57ee33",
+      "f1d125487e934883863054d1bb4b90245e9a1a62",
+      "f8d9c4edce649afefee2692a2519d6cc8584832f",
+      "64079feee6d2077a6f40bca5948b8363716c6f64"
+    ]
   }
 }

@@ -5,8 +5,9 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 C 原件全程保留，任何一步都能回退。
 
-**现状（2026-09-09）：控制面九个组件全部由 Rust 实现并在设备上常驻运行；内核、驱动、数据面和无线
-handler 脚本原样保留。**
+**现状（2026-09-10）：R81 冷审计修复已完成，最新版九个 Rust 组件已部署到设备；内核、驱动、数据面和无线
+handler 脚本原样保留。** 修复核实见 [R83](reports/ax3000t-stock-openwrt-25.12.5/R83_R81_FIXES.md)，
+最新原版/Rust 实机对照见 [R84](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md)。
 
 ## 分层与边界
 
@@ -43,11 +44,12 @@ handler 脚本原样保留。**
 第三方依赖只有 httpd 的 rustls/ring（TLS）。其余全部标准库 + 自写 FFI。发布构建 opt-level 3、
 静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。
 
-设备上的常驻内存（VmRSS，2026-09-09）：procd 744 kB、ubusd 360 kB、netifd 816 kB、rpcd-rs 384 kB、
-httpd-rs 552 kB、logd-rs 344 kB，每一项都低于对应的 C 原件。性能对比见
-[R82_BENCHMARK_FULL.md](reports/ax3000t-stock-openwrt-25.12.5/R82_BENCHMARK_FULL.md)（完全体，全部组件：
-uci 1.1–1.5×、fw4 print 12×、reload_config 1.6×、httpd +16–92% req/s，ubusd/rpcd/procd 持平，无一项更慢）；
-09-03 的六组件数据在 [BENCHMARK.md](reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md)。
+最新 [R84 实机对照](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md) 使用四次冷启动和
+72 次单组件隔离运行，基线是精确原版 OpenWrt。整体替换后的四客户端混合吞吐下降约 3.9%，控制面
+CPU/请求增加约 12.4%；fw4 规则生成、UCI 命令及 HTTPS 则有明显收益。六个常驻进程 RSS 合计约
+9.18→4.61 MiB，但共享页重复计数及文件缓存差异使其不能等同于整机独占内存节省。内核转发吞吐未测量。
+逐组件、CPU、延迟、内存、存储和测量边界以 R84 为准；[R82](reports/ax3000t-stock-openwrt-25.12.5/R82_BENCHMARK_FULL.md)
+及 [09-03 六组件数据](reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md) 保留为历史记录。
 
 ## 方法：每个组件怎么被证明可以上线
 
@@ -64,7 +66,8 @@ uci 1.1–1.5×、fw4 print 12×、reload_config 1.6×、httpd +16–92% req/s�
 4. **报告**（`reports/…/R<nn>_*.md`）：每次窗口和每轮审计的证据、失败与修法。失败也写：P6 跑了
    四次窗口，两个只有真机才暴露的缺口（DSA 口晚 16 秒注册、`resolv.conf.auto` 没写）都在 R78–R80。
 5. **外部审计**：R68/R70（procd）、R73（全量）由不同会话/模型对抗审计；每条发现先复现再修，
-   复现不了的连理由一起写回。下一轮冷启动审计的 brief 在 `docs/reviews/R81_COLD_AUDIT_PROMPT.md`。
+   复现不了的连理由一起写回。[R81 冷审计](docs/reviews/R81_COLD_AUDIT.md) 的逐项修复与最终验证见
+   [R83 报告](reports/ax3000t-stock-openwrt-25.12.5/R83_R81_FIXES.md)。
 
 ## 回退
 
@@ -116,4 +119,5 @@ ubusd 的**热**切换（客户端 odhcpd/dnsmasq/netifd 的重连语义不允�
 I0（镜像与源码基线、职责边界）→ 阶段 1–5（reload_config、logd、httpd、fw4、rpcd 插件层，2026-09-02，
 [FINAL_REPORT](reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)）→ 第二至五轮（uci、rpcd 核心、
 开机路径、找 bug、模糊测试，09-03）→ 发布流水线（09-04–06）→ P3–P6（procd、sysupgrade、ubusd、
-netifd，09-07–09，R63–R80）。被推翻的计划与结论在 [archive/](archive/README.md)。
+netifd，09-07–09，R63–R80）→ R81 冷审计修复与最新版部署/对照测试（09-10，R83–R84）。
+被推翻的计划与结论在 [archive/](archive/README.md)。

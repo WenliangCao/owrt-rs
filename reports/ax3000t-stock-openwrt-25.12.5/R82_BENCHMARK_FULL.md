@@ -1,5 +1,8 @@
 # R82：完全体性能对比——九个 Rust 组件 vs 原版，同一台设备
 
+> 历史测量（R81 修复前）。最新版的单组件与整体替换对照以 [R84](R84_DEPLOYMENT_BENCHMARK.md) 为准。
+> R84 使用持久客户端、固定原版依赖和四次冷启动；不同版本与方法的数字不混合比较。
+
 > 2026-09-09 21:50，AX3000T（MT7981B 双核 A53，Linux 6.12.94，up 51 min）。全部 Rust 组件已常驻。
 > 设备侧脚本 `tools/r82_bench_full.sh`（一次性程序、ubusd、rpcd、procd、netifd、logd），Mac 侧
 > `tools/bench_httpd.sh`（httpd）。原始输出在 `private/bench/r82/`。
