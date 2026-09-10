@@ -15,7 +15,7 @@ use ring::{normalize, Entry, Ring, LINE_SIZE, SOURCE_KLOG, SOURCE_SYSLOG};
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
-use std::os::unix::net::UnixDatagram;
+use std::os::unix::net::{UnixDatagram, UnixStream};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 struct Options {
@@ -192,8 +192,21 @@ impl Daemon {
         if stream {
             // unix stream socket like C logd (a pipe would hand the backlog over
             // in 64 KiB pieces); one BlobBuf reused for every frame
-            let (read_end, write_end) = sys::socketpair()?;
-            sys::set_nonblocking(write_end.as_raw_fd())?;
+            let pair = sys::socketpair().and_then(|(read_end, write_end)| {
+                sys::set_nonblocking(write_end.as_raw_fd())?;
+                Ok((read_end, write_end))
+            });
+            // C logd fails the request (`pipe()` failed -> handler returns -1)
+            // and keeps serving; a local error must never cost us the object.
+            let (read_end, write_end) = match pair {
+                Ok(pair) => pair,
+                Err(error) => {
+                    eprintln!("logd-rs: failed to create stream socket: {error}");
+                    return self
+                        .conn
+                        .reply_status(req, owrt_ubus::status::UNKNOWN_ERROR, None);
+                }
+            };
             let mut pending = Vec::with_capacity(backlog.len() * 96);
             let mut b = BlobBuf::new();
             for entry in backlog {
@@ -221,7 +234,16 @@ impl Daemon {
             b.msg_close(table);
         }
         b.msg_close(array);
-        self.conn.reply_data(req, b.payload())?;
+        // A reply past UBUS_MAX_MSGLEN is refused locally by Connection::send
+        // (C hands it to ubusd, which drops the client instead). Either way the
+        // request fails, but it must fail as this request's status: dropping the
+        // connection would cost us the `log` object until `service log restart`.
+        if let Err(error) = self.conn.reply_data(req, b.payload()) {
+            eprintln!("logd-rs: log read reply not sent: {error}");
+            return self
+                .conn
+                .reply_status(req, owrt_ubus::status::INVALID_ARGUMENT, None);
+        }
         self.conn.reply_status(req, owrt_ubus::status::OK, None)
     }
 
@@ -294,6 +316,18 @@ impl Daemon {
     /// retry every second and register the object again; the ring buffer and
     /// the stream clients survive (C logd behaves the same way).
     fn reconnect(&mut self) {
+        // C `ubus_reconnect()` closes the old socket before it connects
+        // (libubus-io.c:421-426), so ubusd tears the stale client down and
+        // frees the `log` path. Keeping it open means every `add_object("log")`
+        // is refused with INVALID_ARGUMENT while ubusd is alive -- logd would
+        // retry at 1 Hz forever and nothing would serve `log` again.
+        //
+        // SAFETY: we borrow our own still-open descriptor to reach
+        // UnixStream::shutdown; ManuallyDrop keeps the stream from closing it,
+        // self.conn stays the owner and closes it when it is replaced below.
+        let old =
+            std::mem::ManuallyDrop::new(unsafe { UnixStream::from_raw_fd(self.conn.as_raw_fd()) });
+        let _ = old.shutdown(std::net::Shutdown::Both);
         loop {
             // keep collecting syslog/kmsg while ubusd is away (uloop keeps
             // servicing those fds in C logd too)

@@ -69,14 +69,20 @@ impl Ring {
             write_at = newest;
             self.newest = next;
         } else {
+            // C wrap branch (syslog.c:195-206): the old write position becomes
+            // a `size == 0` sentinel, the eviction walk restarts at `log` and
+            // runs past `next`, and `newest` goes back to `log`. So a wrap
+            // drops two groups, wherever they sit in the list: the records the
+            // new record overwrites (offset <= next0), and everything from the
+            // sentinel to the end of the arena -- log_list jumps from the
+            // sentinel straight back to `log` (`if (!h->size && (h > newest))
+            // h = log`, syslog.c:304-325), so those records are unreachable.
+            // Popping only from the front instead keeps overwritten records
+            // listed as soon as a lap wraps earlier than the one before it.
             let next0 = self.log_next(0, size);
-            while let Some(front) = self.entries.front() {
-                if front.offset <= next0 {
-                    self.entries.pop_front();
-                } else {
-                    break;
-                }
-            }
+            let sentinel = self.newest;
+            self.entries
+                .retain(|entry| entry.offset > next0 && entry.offset < sentinel);
             write_at = 0;
             self.newest = next0;
         }
@@ -189,5 +195,79 @@ mod tests {
         // C log_list: count 0 or >= current_id -> all; negative -> none.
         assert_eq!(r.list(100).map(|e| e.id).collect::<Vec<_>>(), vec![2, 3]);
         assert_eq!(r.list(-1).count(), 0);
+    }
+
+    /// Bytes the retained records occupy in the arena: the 32-byte header plus
+    /// the padded text, as in C log_next().
+    fn retained_bytes(r: &Ring) -> usize {
+        r.list(0).map(|e| HEAD + pad4(e.msg.len() + 1)).sum()
+    }
+
+    #[test]
+    fn wrap_with_abandoned_tail_entry_drops_overwritten_records() {
+        // Mixed lengths make a lap wrap earlier than the one before it, so the
+        // previous lap's tail is still retained at high offsets when the wrap
+        // happens. C restarts the eviction walk at `log`, so the records the
+        // wrapping write overwrites go away even though they are not at the
+        // head of the list.
+        let mut r = Ring::new(256);
+        for m in ["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"] {
+            r.add(m.into(), 0, 1, 0); // ids 0..=6 at offsets 0,36,..,216; newest=252
+        }
+        r.add("hhh".into(), 0, 1, 0); // id 7 wraps to @0 (evicts a,b); newest=36
+        r.add("iii".into(), 0, 1, 0); // id 8 @36 (evicts c)
+        r.add("jjj".into(), 0, 1, 0); // id 9 @72 (evicts d)
+        r.add("kkk".into(), 0, 1, 0); // id 10 @108 (evicts e); f@180, g@216 remain
+
+        // 79-byte message, slot 112: 144+112 >= 256 -> wrap to [0,112), which
+        // overwrites h,i,j,k
+        r.add("m".repeat(79), 0, 1, 0); // id 11
+        let ids: Vec<u32> = r.list(0).map(|e| e.id).collect();
+        for overwritten in 7..=10 {
+            assert!(
+                !ids.contains(&overwritten),
+                "id {overwritten} was overwritten by the wrap write but is still listed: {ids:?}"
+            );
+        }
+        assert!(
+            retained_bytes(&r) <= 256,
+            "retained {} bytes in a 256-byte ring: {ids:?}",
+            retained_bytes(&r)
+        );
+    }
+
+    #[test]
+    fn mixed_sizes_never_retain_more_than_capacity() {
+        // 16 KiB ring, 60-byte lines with an occasional 1000-byte line: the lap
+        // that wraps on the long line leaves the previous lap's tail retained.
+        let mut r = Ring::new(16 * 1024);
+        for lap in 0..40 {
+            for i in 0..200 {
+                r.add(format!("lap {lap} line {i} {}", "x".repeat(40)), 0, 1, 0);
+                assert!(retained_bytes(&r) <= 16 * 1024, "lap {lap} line {i}");
+            }
+            r.add("L".repeat(1000), 0, 1, 0);
+            assert!(retained_bytes(&r) <= 16 * 1024, "lap {lap} long line");
+        }
+    }
+
+    #[test]
+    fn retention_matches_the_c_oracle_on_mixed_lengths() {
+        // Golden from upstream ubox 6f78fa49 log/syslog.c (log_add + log_list
+        // extracted verbatim and driven with this same sequence, R83): a
+        // 2 KiB ring, 35 records, every 7th one 200 bytes instead of 60, so
+        // laps wrap at different offsets. C retains ids 21..=34; the front-only
+        // eviction this test was written for also kept 17..=20, whose bytes the
+        // wrapping writes had already overwritten.
+        let mut r = Ring::new(2048);
+        for i in 0..35 {
+            let len = if i % 7 == 6 { 200 } else { 60 };
+            r.add(format!("l{i}_{}", "x".repeat(len)), 0, 1, 0);
+        }
+        assert_eq!(
+            r.list(0).map(|e| e.id).collect::<Vec<_>>(),
+            (21..=34).collect::<Vec<u32>>()
+        );
+        assert!(retained_bytes(&r) <= 2048, "{}", retained_bytes(&r));
     }
 }
