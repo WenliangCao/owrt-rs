@@ -2,6 +2,7 @@
 """Protocol/counting gates for the LAN benchmark; uses only local fixtures."""
 import http.server
 import threading
+import time
 import unittest
 
 from http_client import benchmark
@@ -9,8 +10,13 @@ from http_client import benchmark
 
 class Handler(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
+    paced_arrivals = []
+    paced_lock = threading.Lock()
 
     def do_GET(self):
+        if self.path == "/paced":
+            with self.paced_lock:
+                self.paced_arrivals.append(time.perf_counter())
         seen = getattr(self, "seen", 0)
         self.seen = seen + 1
         code = 503 if self.path == "/status-error" or (self.path == "/late-error" and seen) else 200
@@ -59,6 +65,20 @@ class Gates(unittest.TestCase):
         result = benchmark(self.url, 11, 3, 1, None, b"expected", fresh=True)
         self.assertEqual(result["successful"], 11)
         self.assertEqual(result["connection_mode"], "new_connection")
+
+    def test_rate_is_shared_across_clients_and_includes_warmup(self):
+        Handler.paced_arrivals.clear()
+        result = benchmark(self.url + "/paced", 17, 3, 1, None, b"expected", fresh=True, rate=20)
+        arrivals = sorted(Handler.paced_arrivals)
+        self.assertEqual(len(arrivals), 20)
+        self.assertEqual(result["successful"], 17)
+        self.assertGreater(arrivals[-1] - arrivals[0], 0.85)
+        self.assertEqual(result["request_rate_limit_per_s"], 20)
+
+    def test_invalid_rate_is_rejected(self):
+        for rate in (0, -1, float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                benchmark(self.url, 1, 1, 0, None, b"expected", rate=rate)
 
 
 if __name__ == "__main__":

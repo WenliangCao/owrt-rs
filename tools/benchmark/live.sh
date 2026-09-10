@@ -56,6 +56,9 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"ubus\",\"objects\":[[\"uci\",\"get\"]]}" >/dev/null
+# The HTTP bridge adds the session to the UCI request. Its method permission
+# and its configuration read permission are independent ACL scopes.
+ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"uci\",\"objects\":[[\"network\",\"read\"]]}" >/dev/null
 printf '{"jsonrpc":"2.0","id":1,"method":"call","params":["%s","uci","get",{"config":"network"}]}\n' "$sid" > "$out/http-post.json"
 printf '{"id":1,"result":[0,{"values":{"lan":{}}}]}\n' > "$out/http-expect.json"
 

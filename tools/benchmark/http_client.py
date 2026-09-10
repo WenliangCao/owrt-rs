@@ -9,6 +9,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 import http.client
 import json
+import math
 from pathlib import Path
 import ssl
 import statistics
@@ -27,7 +28,21 @@ def contains(actual, expected):
     return type(actual) is type(expected) and actual == expected
 
 
-def worker(url, count, warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time):
+class RequestPacer:
+    """One request-start budget shared by all connections, including warm-up."""
+    def __init__(self, rate):
+        self.interval = 1 / rate
+        self.next_start = 0
+        self.lock = threading.Lock()
+
+    def wait(self):
+        with self.lock:
+            scheduled = max(time.perf_counter(), self.next_start)
+            self.next_start = scheduled + self.interval
+        time.sleep(max(0, scheduled - time.perf_counter()))
+
+
+def worker(url, count, warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time, pacer):
     parsed = urlsplit(url)
     context = None
     if parsed.scheme == "https":
@@ -44,6 +59,8 @@ def worker(url, count, warmup, body, expected, json_body, insecure, fresh, tls12
     tls_connections = []
 
     def request():
+        if pacer is not None:
+            pacer.wait()
         started = time.perf_counter_ns()
         new_connection = connection.sock is None
         connection.request("POST" if body is not None else "GET", path, body=body, headers=headers)
@@ -81,11 +98,14 @@ def worker(url, count, warmup, body, expected, json_body, insecure, fresh, tls12
 
 
 def benchmark(url, n, concurrency, warmup, body, expected, json_body=False, insecure=False,
-              fresh=False, tls12=False):
+              fresh=False, tls12=False, rate=None):
     if n <= 0 or concurrency <= 0 or concurrency > n or warmup < 0:
         raise ValueError("require n >= concurrency >= 1 and warmup >= 0")
     if urlsplit(url).scheme not in ("http", "https"):
         raise ValueError("only HTTP and HTTPS are supported")
+    if rate is not None and (not math.isfinite(rate) or rate <= 0):
+        raise ValueError("rate must be finite and positive")
+    pacer = RequestPacer(rate) if rate is not None else None
     release_time = [0]
 
     def release():
@@ -94,7 +114,7 @@ def benchmark(url, n, concurrency, warmup, body, expected, json_body=False, inse
     barrier = threading.Barrier(concurrency, action=release)
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
         futures = [pool.submit(worker, url, n // concurrency + (index < n % concurrency),
-                               warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time)
+                               warmup, body, expected, json_body, insecure, fresh, tls12, barrier, release_time, pacer)
                    for index in range(concurrency)]
         results = [future.result() for future in futures]
     samples = [sample for group, *_ in results for sample in group]
@@ -109,6 +129,7 @@ def benchmark(url, n, concurrency, warmup, body, expected, json_body=False, inse
 
     return {"schema": 1, "successful": n, "errors": 0, "concurrency": concurrency,
             "connection_mode": "new_connection" if fresh else "keep_alive",
+            "request_rate_limit_per_s": rate,
             "tls_versions": sorted({c["version"] for c in connections}),
             "tls_ciphers": sorted({c["cipher"] for c in connections}),
             "measured_tls_handshakes": len(measured_connections),
@@ -131,13 +152,15 @@ def main():
     parser.add_argument("--insecure", action="store_true")
     parser.add_argument("--fresh-connection", action="store_true")
     parser.add_argument("--tls12", action="store_true", help="use common TLS 1.2 for the controlled comparison")
+    parser.add_argument("--rate", type=float,
+                        help="total request starts per second across all clients; pacing excluded from latency")
     args = parser.parse_args()
     body = args.post.read_bytes() if args.post else None
     expected = (json.loads(args.expect_json.read_text()) if args.expect_json
                 else args.expect_bytes.read_bytes())
     try:
         measured = benchmark(args.url, args.n, args.c, args.warmup, body, expected,
-                             args.expect_json is not None, args.insecure, args.fresh_connection, args.tls12)
+                             args.expect_json is not None, args.insecure, args.fresh_connection, args.tls12, args.rate)
     except Exception as exc:
         print(json.dumps({"status": "invalid", "error": str(exc)}))
         return 1

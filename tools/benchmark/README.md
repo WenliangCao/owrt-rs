@@ -40,6 +40,10 @@ Run all nine component names with fresh output directories. Use four runs per
 implementation in the order **C, Rust, Rust, C, Rust, C, C, Rust**. Copy each
 completed router run to private local storage before deleting that run's exact
 temporary directory, to avoid accumulating raw samples in router RAM.
+`run_components.py PRIVATE_OUT --interface enX --host-mode rust` automates
+this sequence, verifies component hashes, and checks that the host boot,
+configuration and running processes remain unchanged. Run it after the
+whole-system windows; concurrent benchmark loads would invalidate comparisons.
 
 Every run has its own mount, PID and network namespace. The image mount is read
 only; config/runtime state is on private tmpfs; `/proc/kmsg` is masked; no
@@ -95,8 +99,10 @@ Warm/test HTTPS consistently before each live workload:
 ```sh
 python3 tools/benchmark/http_client.py https://192.168.1.1/luci-static/bootstrap/cascade.css \
   --insecure --tls12 --expect-bytes PRIVATE_EXPECTED_CSS -n 1000 -c 4
-# Repeat separately with --fresh-connection, and record server CPU snapshots
-# around the client process. Also record negotiated TLS version/cipher.
+# Repeat separately with --fresh-connection --rate 20. The existing firewall
+# limits new TCP SYNs to 25/s (burst 50), including LAN input. Pacing is shared
+# across clients and excluded from latency; its throughput is rate-limited.
+# Record server CPU snapshots and the negotiated TLS version/cipher.
 ```
 
 Then run on the router, collecting outputs privately:
@@ -110,6 +116,15 @@ Run the commands in their corresponding verified boot, never both modes in one
 boot. The script refuses incorrect running hashes and writes `COMPLETE` only
 after all requests, configuration stability and final process identities pass.
 Its temporary authenticated RPC session is explicitly destroyed at exit.
+The session has both ubus `uci.get` permission and UCI `network.read` permission.
+
+`run_window.py MODE PRIVATE_WINDOW --interface enX` collects the four TLS cases
+and the live workload after `r84_window.py` has written `health.json`. TLS CPU
+brackets include warm-up (counted separately) and SSH sampling overhead. It
+downloads all live output, verifies every file checksum, and only then removes
+its exact temporary router directory. A failed attempt must be preserved
+separately before `--resume-live` may reuse successful TLS results in the same
+boot; completed windows are never overwritten.
 
 Five rounds include serial HTTP/ubus/one-shot requests and a four-client mixed
 workload spanning procd, netifd, rpcd, ubusd and HTTP. The mixed workload has one
