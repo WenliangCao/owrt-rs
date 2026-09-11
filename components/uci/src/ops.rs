@@ -352,7 +352,7 @@ fn fixup_section(p: &Package, s: &Section) -> String {
 }
 
 /// uci_alloc_section: appends (or inserts after `after`) and bumps n_section.
-fn alloc_section(p: &mut Package, ty: &str, name: Option<&str>, after: Option<usize>) -> usize {
+pub(crate) fn alloc_section(p: &mut Package, ty: &str, name: Option<&str>, after: Option<usize>) -> usize {
     let name = name.filter(|n| !n.is_empty());
     let s = Section {
         name: name.unwrap_or("").to_owned(),
@@ -373,7 +373,7 @@ fn alloc_section(p: &mut Package, ty: &str, name: Option<&str>, after: Option<us
     }
 }
 
-fn alloc_option(s: &mut Section, name: &str, value: OptionValue, after: Option<usize>) -> usize {
+pub(crate) fn alloc_option(s: &mut Section, name: &str, value: OptionValue, after: Option<usize>) -> usize {
     let o = Opt {
         name: name.to_owned(),
         value,
@@ -567,44 +567,48 @@ pub fn sscanf_int(s: &str) -> Option<i32> {
     Some(v as i32)
 }
 
+/// Append an already validated list value, shared by import and uci_add_list.
+pub(crate) fn append_list(s: &mut Section, option: &str, existing: Option<usize>, value: &[u8]) -> usize {
+    let oidx = match existing {
+        None => alloc_option(s, option, OptionValue::List(Vec::new()), None),
+        Some(oidx) => {
+            if let OptionValue::Str(old) = &mut s.options[oidx].value {
+                // convert the string option into a one-item list in place
+                let old = std::mem::take(old);
+                s.options[oidx].value = OptionValue::List(vec![old]);
+            }
+            oidx
+        }
+    };
+    if let OptionValue::List(items) = &mut s.options[oidx].value {
+        items.push(value.into());
+    }
+    oidx
+}
+
 /// uci_add_list
 pub fn add_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     expand_ptr(ctx, ptr, false)?;
     let (Some(pidx), Some(sidx)) = (ptr.p, ptr.s) else {
         return Err(Error::Inval);
     };
-    let Some(value) = ptr.value.clone() else {
+    let Some(value) = ptr.value.as_deref() else {
         return Err(Error::Inval);
     };
     // uci_add_list only asserts ptr->s and ptr->value: with no option part it
     // calls uci_alloc_list(s, NULL, NULL) and writes an option-less
     // `|pkg.section='v'` delta line, which uci_parse_delta_tuple then rejects
     // on the next load.
-    let option = ptr.option.clone();
+    let option = ptr.option.as_deref();
     let p = &mut ctx.root[pidx];
-    let s = &mut p.sections[sidx];
-    let oidx = match ptr.o {
-        None => alloc_option(s, option.as_deref().unwrap_or(""), OptionValue::List(Vec::new()), None),
-        Some(oidx) => {
-            if let OptionValue::Str(old) = &s.options[oidx].value {
-                // convert the string option into a one-item list in place
-                let old = old.clone();
-                s.options[oidx].value = OptionValue::List(vec![old]);
-            }
-            oidx
-        }
-    };
-    ptr.o = Some(oidx);
-    if let OptionValue::List(items) = &mut s.options[oidx].value {
-        items.push(value.clone());
-    }
+    ptr.o = Some(append_list(&mut p.sections[sidx], option.unwrap_or(""), ptr.o, value));
     if !internal && p.has_delta {
         add_delta(
             p,
             Cmd::ListAdd,
             ptr.section.as_deref().unwrap_or(""),
-            option.as_deref(),
-            Some(value.as_slice()),
+            option,
+            Some(value),
         );
     }
     Ok(())
@@ -636,7 +640,7 @@ pub fn del_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> 
         );
     }
     if let OptionValue::List(items) = &mut p.sections[sidx].options[oidx].value {
-        items.retain(|i| *i != value);
+        items.retain(|i| i.as_slice() != value.as_slice());
     }
     Ok(())
 }
@@ -644,13 +648,13 @@ pub fn del_list(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> 
 /// uci_set
 pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     expand_ptr(ctx, ptr, false)?;
-    let Some(value) = ptr.value.clone() else {
+    let Some(value) = ptr.value.as_deref() else {
         return Err(Error::Inval);
     };
     if !(ptr.s.is_some() || (ptr.option.is_none() && ptr.section.is_some())) {
         return Err(Error::Inval);
     }
-    if ptr.option.is_none() && !value.is_empty() && !std::str::from_utf8(&value).is_ok_and(validate_type) {
+    if ptr.option.is_none() && !value.is_empty() && !std::str::from_utf8(value).is_ok_and(validate_type) {
         return Err(Error::Inval);
     }
     let pidx = ptr.p.ok_or(Error::Inval)?;
@@ -673,28 +677,28 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     match (ptr.o, ptr.s, ptr.option.as_deref(), ptr.section.as_deref()) {
         (None, Some(sidx), Some(opt), _) => {
             // new option
-            let oidx = alloc_option(&mut p.sections[sidx], opt, OptionValue::Str(value.clone()), None);
+            let oidx = alloc_option(&mut p.sections[sidx], opt, OptionValue::Str(value.into()), None);
             ptr.o = Some(oidx);
         }
         (_, None, None, Some(sec)) => {
             // new section
-            let sidx = alloc_section(p, std::str::from_utf8(&value).unwrap_or(""), Some(sec), None);
+            let sidx = alloc_section(p, std::str::from_utf8(value).unwrap_or(""), Some(sec), None);
             ptr.s = Some(sidx);
         }
         (Some(oidx), Some(sidx), Some(_), _) => {
             // update option
             let o = &mut p.sections[sidx].options[oidx];
             if let OptionValue::Str(cur) = &o.value {
-                if *cur == value {
+                if cur.as_slice() == value {
                     return Ok(());
                 }
             }
-            o.value = OptionValue::Str(value.clone());
+            o.value = OptionValue::Str(value.into());
         }
         (None, Some(sidx), None, Some(_)) => {
             // update section type
             let s = &mut p.sections[sidx];
-            if s.ty.as_bytes() == value.as_slice() {
+            if s.ty.as_bytes() == value {
                 return Ok(());
             }
             // Equal lengths are a strcpy into the existing allocation, so the
@@ -707,7 +711,7 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
             if s.ty.len() != value.len() && !s.name.is_empty() {
                 s.anonymous = false;
             }
-            s.ty = String::from_utf8(value.clone()).unwrap_or_default();
+            s.ty = std::str::from_utf8(value).unwrap_or_default().to_owned();
         }
         _ => return Err(Error::Inval),
     }
@@ -718,7 +722,7 @@ pub fn set(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
             Cmd::Change,
             ptr.section.as_deref().unwrap_or(""),
             ptr.option.as_deref(),
-            Some(value.as_slice()),
+            Some(value),
         );
     }
     Ok(())

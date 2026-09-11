@@ -39,6 +39,7 @@ pub struct Ctx {
     pub sessions: RefCell<session::Store>,
     pub apply: RefCell<uciobj::Apply>,
     pub delayed: RefCell<delayed::Children>,
+    pub uci_read_cache: RefCell<owrt_uci::ReadCache>,
 }
 
 impl Ctx {
@@ -157,42 +158,48 @@ pub fn to_reply(result: Result<Option<Json>, i32>) -> session::Reply {
     }
 }
 
-fn reply(conn: &mut Connection, req: &Request, r: session::Reply) {
-    for d in &r.data {
-        let _ = conn.reply_data(req, d);
+fn reply(conn: &mut Connection, req: Request, r: session::Reply) {
+    if let [data] = r.data.as_slice() {
+        let _ = conn.reply_data_status(&req, data, r.code);
+        conn.recycle_request(req);
+        return;
     }
-    let _ = conn.reply_status(req, r.code, None);
+    for d in &r.data {
+        let _ = conn.reply_data(&req, d);
+    }
+    let _ = conn.reply_status(&req, r.code, None);
+    conn.recycle_request(req);
 }
 
 fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer: &Deferrer) {
     if req.objid == ids.session {
         let r = session::call(&mut ctx.sessions.borrow_mut(), &req.method, &req.data);
-        reply(conn, &req, r);
+        reply(conn, req, r);
     } else if req.objid == ids.uci {
         let r = uciobj::call(ctx, conn, &req.method, &req.data);
-        reply(conn, &req, r);
+        reply(conn, req, r);
     } else if req.objid == ids.rc {
         if let rc::Outcome::Now(req, r) = rc::call(req, deferrer) {
-            reply(conn, &req, r);
+            reply(conn, req, r);
         }
     } else if req.objid == ids.sys {
         if let rpcsys::Outcome::Now(req, r) = rpcsys::call(req, ctx, deferrer) {
-            reply(conn, &req, r);
+            reply(conn, req, r);
         }
     } else if req.objid == ids.rrdns {
         if let rrdns::Outcome::Now(req, r) = rrdns::call(req, deferrer) {
-            reply(conn, &req, r);
+            reply(conn, req, r);
         }
     } else if req.objid == ids.lucirpc {
         if let lucirpc::Outcome::Now(req, r) = lucirpc::call(ctx, req, deferrer) {
-            reply(conn, &req, r);
+            reply(conn, req, r);
         }
     } else if req.objid == ids.iwinfo {
         let r = iwinfoobj::call(&req.method, &req.data);
-        reply(conn, &req, r);
+        reply(conn, req, r);
     } else if req.objid == ids.file {
         if let file::Outcome::Now(req, r) = file::call(ctx, req, deferrer) {
-            reply(conn, &req, r);
+            reply(conn, req, r);
         }
     } else if req.objid == ids.luci {
         // The C `luci` object is a ucode script that rpcd runs inside its own
@@ -201,7 +208,7 @@ fn dispatch(ctx: &Ctx, conn: &mut Connection, ids: &Ids, req: Request, deferrer:
         // block the uloop for their whole duration. Staying on the loop here
         // is what matches it.
         let r = to_reply(luci::call(ctx, &req.method, &req.data));
-        reply(conn, &req, r);
+        reply(conn, req, r);
     } else {
         let _ = conn.reply_status(&req, status::NOT_FOUND, None);
     }
@@ -286,6 +293,7 @@ fn main() {
         sessions: RefCell::new(session::Store::new()),
         apply: RefCell::new(uciobj::Apply::default()),
         delayed: RefCell::new(delayed::Children::inherit()),
+        uci_read_cache: RefCell::new(owrt_uci::ReadCache::default()),
     };
     let ids = Ids {
         session: register(&mut conn, "session", &session::signature()),
@@ -320,7 +328,7 @@ fn main() {
         }
         // completed deferred requests
         while let Ok(done) = rx.try_recv() {
-            reply(&mut conn, &done.req, done.reply);
+            reply(&mut conn, done.req, done.reply);
         }
         // signals: freeze sessions, then respawn (SIGHUP) or exit (SIGUSR1)
         let sig = SIGNAL.swap(0, Ordering::SeqCst);

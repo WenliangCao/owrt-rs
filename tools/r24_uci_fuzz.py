@@ -17,6 +17,9 @@ import re
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
+
+from audit_checks import output_archive
 
 WEIRD = [b"\x00", b"x" * 40 + b"\x00" + b"y" * 40, b"\xe9", b"\xff\xfe", b"\xc3\x28", b"\xf0\x9f\x98\x80", b"\x80", b"\t", b"\r", b"\\", b"'", b'"',
          b"\\'", b" ", b"#", b";", b"$", b"`", b"\x7f", b"\xed\xa0\x80", b"\xc0\xaf"]
@@ -87,6 +90,26 @@ def steps_for(impl, pkg, setval):
     ]
 
 
+def compare_case(data, pkg):
+    diffs = []
+    for j in range(7):
+        for ext in ("rc", "out", "err"):
+            o = data.get(f"{pkg}.{j}.original.{ext}")
+            c = data.get(f"{pkg}.{j}.candidate.{ext}")
+            if o is None or c is None:
+                diffs.append((j, ext, o, c))
+                continue
+            o2 = re.sub(rb"steps.sh: line \d+:", b"steps.sh:", o.replace(b"/sbin/uci", b"uci"))
+            c2 = re.sub(rb"steps.sh: line \d+:", b"steps.sh:", c.replace(b"/tmp/uci-rs", b"uci"))
+            if o2 != c2:
+                k = 0
+                while k < min(len(o2), len(c2)) and o2[k] == c2[k]:
+                    k += 1
+                lo = max(0, k - 60)
+                diffs.append((j, ext, o2[lo:k + 160], c2[lo:k + 160]))
+    return diffs
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     n = int(sys.argv[sys.argv.index("--cases") + 1]) if "--cases" in sys.argv else 200
@@ -136,27 +159,16 @@ def main():
         )
         subprocess.run(["sudo", "-n", "setsid", "-w", "unshare", "--mount", "--fork", "/bin/sh", "-c", scenario, "sh", root], check=True)
         outdir = os.path.join(root, "tmp/out")
-        files = subprocess.run(["sudo", "-n", "ls", outdir], capture_output=True, text=True).stdout.split()
-        data = {}
-        for name in files:
-            data[name] = subprocess.run(["sudo", "-n", "cat", os.path.join(outdir, name)], capture_output=True).stdout
+        raw = subprocess.run(["sudo", "-n", "tar", "-cf", "-", "-C", outdir, "."],
+                             capture_output=True, check=True).stdout
+        if keep:
+            Path(keep).mkdir(parents=True, mode=0o700, exist_ok=True)
+            (Path(keep) / "outputs.tar").write_bytes(raw)
+        data = output_archive(raw)
 
         bad = 0
         for pkg, text, setval in cases:
-            diffs = []
-            for j in range(7):
-                for ext in ("rc", "out", "err"):
-                    o = data.get(f"{pkg}.{j}.original.{ext}", b"")
-                    c = data.get(f"{pkg}.{j}.candidate.{ext}", b"")
-                    # argv[0] differs between the binaries
-                    o2 = re.sub(rb"steps.sh: line \d+:", b"steps.sh:", o.replace(b"/sbin/uci", b"uci")); c2 = re.sub(rb"steps.sh: line \d+:", b"steps.sh:", c.replace(b"/tmp/uci-rs", b"uci"))
-                    if o2 != c2:
-                        # show the first differing region, not just the head
-                        k = 0
-                        while k < min(len(o2), len(c2)) and o2[k] == c2[k]:
-                            k += 1
-                        lo = max(0, k - 60)
-                        diffs.append((j, ext, o2[lo:k + 160], c2[lo:k + 160]))
+            diffs = compare_case(data, pkg)
             if diffs:
                 bad += 1
                 print(f"DIFF {pkg} set={setval!r}")

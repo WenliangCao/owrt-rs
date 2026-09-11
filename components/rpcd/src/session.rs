@@ -48,9 +48,9 @@ pub struct Acl {
 #[derive(Clone, Debug)]
 pub struct Session {
     pub id: String,
-    pub timeout: i32,
+    timeout: i32,
     /// uloop timer deadline; None when no timer is pending (timeout <= 0)
-    pub expires: Option<Instant>,
+    expires: Option<Instant>,
     pub data: BTreeMap<String, RawField>,
     pub acls: BTreeMap<String, Vec<Acl>>,
 }
@@ -213,7 +213,10 @@ impl Session {
 }
 
 pub struct Store {
-    pub sessions: BTreeMap<String, Session>,
+    sessions: BTreeMap<String, Session>,
+    /// A lower bound on the next timer. Touch/removal may leave it early,
+    /// but insertion and thaw must never leave it later than a live timer.
+    expiry_hint: Option<Instant>,
     /// uci.c `apply_sid`: the session with a pending rollback-armed apply
     pub apply_sid: Option<String>,
 }
@@ -223,6 +226,7 @@ impl Store {
     pub fn new() -> Store {
         let mut store = Store {
             sessions: BTreeMap::new(),
+            expiry_hint: None,
             apply_sid: None,
         };
         let mut ses = Session::new(DEFAULT_SID);
@@ -245,7 +249,7 @@ impl Store {
         let mut ses = Session::new(&id);
         ses.timeout = timeout;
         ses.touch();
-        self.sessions.insert(id.clone(), ses);
+        self.insert(ses);
         Some(id)
     }
 
@@ -253,7 +257,21 @@ impl Store {
     pub fn get(&mut self, id: &str) -> Option<&mut Session> {
         let ses = self.sessions.get_mut(id)?;
         ses.touch();
+        // Usually touch extends a timer. A thawed record can have a longer
+        // remaining time than its timeout, so also include the new deadline.
+        Self::note_expiry(&mut self.expiry_hint, ses.expires);
         Some(ses)
+    }
+
+    fn note_expiry(hint: &mut Option<Instant>, expires: Option<Instant>) {
+        if let Some(end) = expires {
+            *hint = Some(hint.map_or(end, |old| old.min(end)));
+        }
+    }
+
+    fn insert(&mut self, ses: Session) {
+        Self::note_expiry(&mut self.expiry_hint, ses.expires);
+        self.sessions.insert(ses.id.clone(), ses);
     }
 
     /// rpc_session_destroy (with the uci savedir purge callback)
@@ -276,18 +294,30 @@ impl Store {
     }
 
     pub fn next_expiry(&self) -> Option<Instant> {
-        self.sessions.values().filter_map(|s| s.expires).min()
+        self.expiry_hint
     }
 
     /// Destroy every session whose timer has fired.
     pub fn expire(&mut self) {
-        let now = Instant::now();
-        let dead: Vec<String> = self
-            .sessions
-            .values()
-            .filter(|s| s.expires.is_some_and(|e| e <= now))
-            .map(|s| s.id.clone())
-            .collect();
+        if self.expiry_hint.is_some() {
+            self.expire_at(Instant::now());
+        }
+    }
+
+    fn expire_at(&mut self, now: Instant) {
+        if !self.expiry_hint.is_some_and(|end| end <= now) {
+            return;
+        }
+        let mut dead = Vec::new();
+        let mut next = None;
+        for ses in self.sessions.values() {
+            if ses.expires.is_some_and(|end| end <= now) {
+                dead.push(ses.id.clone());
+            } else {
+                Self::note_expiry(&mut next, ses.expires);
+            }
+        }
+        self.expiry_hint = next;
         for id in dead {
             self.destroy(&id);
         }
@@ -365,7 +395,7 @@ impl Store {
         }
         let ms = (expires as i64 * 1000).clamp(0, i32::MAX as i64) as u64;
         ses.expires = Some(Instant::now() + Duration::from_millis(ms));
-        self.sessions.insert(ses.id.clone(), ses);
+        self.insert(ses);
         true
     }
 }
@@ -645,14 +675,38 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             ok(vec![])
         }
         "access" => {
-            let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
-            let scope = arg_str(raw, "scope").unwrap_or("ubus").to_owned();
-            let object = arg(raw, "object", MsgType::String).and_then(|f| f.as_bytes()).map(<[u8]>::to_vec);
-            let function = arg_str(raw, "function").map(str::to_owned);
+            // Decode each field once. Keep the first matching STRING before
+            // validating its value, exactly as the individual arg() lookups do.
+            let mut args = [None; 4];
+            let mut remaining = args.len();
+            for field in blob::fields(raw) {
+                if field.ty != MsgType::String as u32 {
+                    continue;
+                }
+                let index = match field.name {
+                    "ubus_rpc_session" => 0,
+                    "scope" => 1,
+                    "object" => 2,
+                    "function" => 3,
+                    _ => continue,
+                };
+                if args[index].is_none() {
+                    args[index] = Some(field);
+                    remaining -= 1;
+                    if remaining == 0 {
+                        break;
+                    }
+                }
+            }
+            let [sid, scope, object, function] = args;
+            let Some(sid) = sid.and_then(|f| f.as_str()) else { return err(status::INVALID_ARGUMENT) };
+            let scope = scope.and_then(|f| f.as_str()).unwrap_or("ubus");
+            let object = object.and_then(|f| f.as_bytes());
+            let function = function.and_then(|f| f.as_str());
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
-            let mut b = BlobBuf::new();
+            let mut b = BlobBuf::with_capacity(24);
             if let (Some(o), Some(f)) = (object, function) {
-                b.msg_bool("access", ses.allowed_bytes(&scope, &o, &f));
+                b.msg_bool("access", ses.allowed_bytes(scope, o, f));
             } else {
                 ses.dump_acls(&mut b);
             }
@@ -767,5 +821,137 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             ok(vec![ses.to_blob(true)])
         }
         _ => err(status::METHOD_NOT_FOUND),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn empty_store() -> Store {
+        Store { sessions: BTreeMap::new(), expiry_hint: None, apply_sid: None }
+    }
+
+    fn timer(id: &str, expires: Option<Instant>) -> Session {
+        let mut session = Session::new(&format!("timer-test-{}-{id}", std::process::id()));
+        session.expires = expires;
+        session
+    }
+
+    #[test]
+    fn access_preserves_typed_duplicates_raw_objects_and_acl_dump_fallback() {
+        let mut store = empty_store();
+        let mut session = Session::new("access-test");
+        assert_eq!(session.grant_bytes("file", Some(b"/raw\xff"), Some("read")), 0);
+        store.insert(session);
+        let mut b = BlobBuf::new();
+        b.msg_string("function", "read");
+        b.msg_string_bytes("object", b"/raw\xff");
+        b.msg_u32("ubus_rpc_session", 1); // a wrong type does not claim the slot
+        b.msg_string("ubus_rpc_session", "access-test");
+        b.msg_string("ubus_rpc_session", "missing");
+        b.msg_string("scope", "file");
+        b.msg_string("scope", "ubus");
+        let reply = call(&mut store, "access", b.payload());
+        assert_eq!(reply.code, 0);
+        assert_eq!(blob::fields(&reply.data[0]).next().unwrap().as_bool(), Some(true));
+
+        // A malformed first STRING is still the selected field. A later valid
+        // duplicate must not turn an invalid SID into an authorized request.
+        let mut b = BlobBuf::new();
+        b.msg_field(MsgType::String as u32, "ubus_rpc_session", b"\xff\0");
+        b.msg_string("ubus_rpc_session", "access-test");
+        assert_eq!(call(&mut store, "access", b.payload()).code, status::INVALID_ARGUMENT);
+
+        let mut b = BlobBuf::new();
+        b.msg_string("ubus_rpc_session", "access-test");
+        b.msg_string_bytes("object", b"/raw\xff");
+        // Missing function selects the full ACL dump rather than a boolean.
+        let reply = call(&mut store, "access", b.payload());
+        assert_eq!(reply.code, 0);
+        assert_eq!(blob::fields(&reply.data[0]).next().unwrap().name, "file");
+    }
+
+    #[test]
+    fn expiration_includes_new_earlier_timers_and_keeps_permanent_sessions() {
+        let now = Instant::now();
+        let later = now + Duration::from_secs(120);
+        let earlier = now + Duration::from_secs(60);
+        let mut store = empty_store();
+        assert_eq!(store.next_expiry(), None);
+        let permanent = timer("permanent", None);
+        let permanent_id = permanent.id.clone();
+        store.insert(permanent);
+        store.insert(timer("later", Some(later)));
+        let early = timer("early", Some(earlier));
+        let early_id = early.id.clone();
+        store.insert(early);
+        assert_eq!(store.next_expiry(), Some(earlier));
+        store.expire_at(earlier - Duration::from_nanos(1));
+        assert_eq!(store.sessions.len(), 3);
+        store.expire_at(earlier);
+        assert!(!store.sessions.contains_key(&early_id));
+        assert_eq!(store.next_expiry(), Some(later));
+        store.expire_at(later);
+        assert_eq!(store.sessions.len(), 1);
+        assert!(store.sessions.contains_key(&permanent_id));
+        assert_eq!(store.next_expiry(), None);
+    }
+
+    #[test]
+    fn touch_allows_an_early_wakeup_without_expiring_the_extended_session() {
+        let now = Instant::now();
+        let old_deadline = now + Duration::from_secs(10);
+        let mut store = empty_store();
+        let mut session = timer("touch", Some(old_deadline));
+        session.timeout = 120;
+        let id = session.id.clone();
+        store.insert(session);
+        let extended = store.get(&id).unwrap().expires.unwrap();
+        assert!(extended > old_deadline);
+        assert_eq!(store.next_expiry(), Some(old_deadline));
+        store.expire_at(old_deadline);
+        assert!(store.sessions.contains_key(&id));
+        assert_eq!(store.next_expiry(), Some(extended));
+    }
+
+    #[test]
+    fn removal_leaves_only_a_harmless_early_wakeup() {
+        let now = Instant::now();
+        let mut store = empty_store();
+        let first = timer("removed", Some(now));
+        let id = first.id.clone();
+        store.insert(first);
+        let later = now + Duration::from_secs(60);
+        store.insert(timer("survivor", Some(later)));
+        store.destroy(&id);
+        store.expire_at(now);
+        assert_eq!(store.sessions.len(), 1);
+        assert_eq!(store.next_expiry(), Some(later));
+    }
+
+    #[test]
+    fn thaw_and_touch_cannot_hide_an_earlier_deadline() {
+        let mut store = empty_store();
+        let mut blob = BlobBuf::new();
+        blob.msg_string("ubus_rpc_session", "12345678901234567890123456789012");
+        blob.msg_u32("timeout", 1);
+        blob.msg_u64("expires", 120);
+        let data = blob.msg_open_table("data");
+        blob.msg_close(data);
+        assert!(store.from_blob(blob.as_bytes()));
+        let thawed = store.next_expiry().unwrap();
+        let touched = store.get("12345678901234567890123456789012").unwrap().expires.unwrap();
+        assert!(touched < thawed);
+        assert_eq!(store.next_expiry(), Some(touched));
+        // Replacing a record during thaw also includes its new deadline.
+        let mut replacement = BlobBuf::new();
+        replacement.msg_string("ubus_rpc_session", "12345678901234567890123456789012");
+        replacement.msg_u32("timeout", 0);
+        replacement.msg_u64("expires", 0);
+        let data = replacement.msg_open_table("data");
+        replacement.msg_close(data);
+        assert!(store.from_blob(replacement.as_bytes()));
+        assert!(store.next_expiry().unwrap() < touched);
     }
 }

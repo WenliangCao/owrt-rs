@@ -2,6 +2,7 @@
 //! passwd/group lookups, statvfs/uname via FFI.
 
 use std::ffi::CString;
+use std::io::{BufRead, BufReader};
 
 pub use owrt_ubus::digest::md5;
 
@@ -125,14 +126,31 @@ pub fn read_lossy(path: &str) -> std::io::Result<String> {
 // ---------------------------------------------------- passwd / group
 
 fn lookup_name(file: &str, id: u32) -> Option<String> {
-    let text = read_lossy(file).ok()?;
-    for line in text.lines() {
-        let f: Vec<&str> = line.split(':').collect();
-        if f.len() >= 3 && f[2].parse::<u32>().ok() == Some(id) {
-            return Some(f[0].to_owned());
+    let file = std::fs::File::open(file).ok()?;
+    lookup_name_in(&mut BufReader::with_capacity(512, file), id)
+}
+
+fn lookup_name_in(reader: &mut impl BufRead, id: u32) -> Option<String> {
+    let mut line = Vec::new();
+    loop {
+        line.clear();
+        if reader.read_until(b'\n', &mut line).ok()? == 0 {
+            return None;
+        }
+        if line.last() == Some(&b'\n') {
+            line.pop();
+            if line.last() == Some(&b'\r') {
+                line.pop();
+            }
+        }
+        let mut fields = line.split(|&b| b == b':');
+        let name = fields.next()?;
+        let found = fields.nth(1).and_then(|b| std::str::from_utf8(b).ok())
+            .and_then(|s| s.parse::<u32>().ok());
+        if found == Some(id) {
+            return Some(String::from_utf8_lossy(name).into_owned());
         }
     }
-    None
 }
 
 pub fn user_name(uid: u32) -> Option<String> {
@@ -201,6 +219,30 @@ pub fn sync_all() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn identity_lookup_handles_fragmented_lines_raw_names_and_duplicate_ids() {
+        let bytes = b"invalid\nwrong:x:not-a-number\nus\xffer:x:41:9::/tmp:/bin/false\r\nlater:x:41:9\nlast:x:42";
+        let mut input = BufReader::with_capacity(3, std::io::Cursor::new(bytes));
+        assert_eq!(lookup_name_in(&mut input, 41).as_deref(), Some("us\u{fffd}er"));
+        let mut input = BufReader::with_capacity(3, std::io::Cursor::new(bytes));
+        assert_eq!(lookup_name_in(&mut input, 42).as_deref(), Some("last"));
+        assert_eq!(lookup_name_in(&mut std::io::Cursor::new(b"last:x:42\r"), 42), None);
+        assert_eq!(lookup_name_in(&mut std::io::Cursor::new(b"last:x:42\r\n"), 42).as_deref(), Some("last"));
+    }
+
+    #[test]
+    fn identity_lookup_reopens_the_current_file() {
+        let path = std::env::temp_dir().join(format!("rpcd-identity-{}", std::process::id()));
+        let mut file = std::fs::OpenOptions::new().create_new(true).write(true).open(&path).unwrap();
+        std::io::Write::write_all(&mut file, b"first:x:7\n").unwrap();
+        drop(file);
+        assert_eq!(lookup_name(path.to_str().unwrap(), 7).as_deref(), Some("first"));
+        std::fs::write(&path, b"changed:x:7\n").unwrap();
+        assert_eq!(lookup_name(path.to_str().unwrap(), 7).as_deref(), Some("changed"));
+        std::fs::remove_file(&path).unwrap();
+        assert_eq!(lookup_name(path.to_str().unwrap(), 7), None);
+    }
 
     #[test]
     fn md5_known() {

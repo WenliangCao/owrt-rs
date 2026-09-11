@@ -13,8 +13,10 @@ pub mod file;
 pub mod model;
 pub mod ops;
 pub mod parse;
+mod read_cache;
 pub mod sys;
 
 pub use context::Context;
 pub use error::{Error, Result};
 pub use model::{Cmd, Delta, Opt, OptionValue, Package, Ptr, Section};
+pub use read_cache::ReadCache;

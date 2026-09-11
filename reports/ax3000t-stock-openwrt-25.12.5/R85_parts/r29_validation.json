@@ -1,0 +1,31 @@
+{
+  "candidate_sha256": "7169866163289c7f4797966495d17e25c2b7e4a42b7dab40c195d495e3184ef3",
+  "source_archive_sha256": "0cb7f43f9e7bf99608164dabafb5826dc2bbded2dcefe801ab86dc444a276160",
+  "archive_sha256": "ab115c04e7676e6d74c034ac1127f9891baf36a455c3ccecdd7efc9b95599273",
+  "unit_tests": {
+    "uci": 30,
+    "rpcd": 46
+  },
+  "gate_exit_codes": {
+    "uci-r24": 0,
+    "r17_rpcd_core_check": 0,
+    "uci-r16": 0
+  },
+  "steps": {
+    "uci-r16": 193,
+    "uci_fuzz": 500,
+    "r17": 283
+  },
+  "differences": 0,
+  "raw_output_fields_verified": 22164,
+  "physical": {
+    "repeats_per_side": 2,
+    "verified_raw_files": 344,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "logs": {
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "uci-r16.log": "68316993668c8326dd9369c129743998d35a3cabd12793766160bb4f28b42728",
+    "uci-r24.log": "12e6da9233f64bf019980339a0f730ab7b7847a6a420910d6ff5626ecec37b97"
+  }
+}

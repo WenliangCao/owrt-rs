@@ -5,9 +5,11 @@ Equality is checked by each harness. These checks separately require that the
 scenario actually ran: two missing replies or two dead daemons are not parity.
 Only synthetic transcripts belong in Git; runtime captures remain in outdirs.
 """
+import io
 import json
 import re
 import sys
+import tarfile
 from pathlib import Path
 
 
@@ -33,6 +35,21 @@ def mask_session_ids(text, session_list=False):
 def require(condition, message):
     if not condition:
         raise ValueError(message)
+
+
+def output_archive(raw):
+    """Read a flat result directory without extracting paths or losing bytes."""
+    result = {}
+    with tarfile.open(fileobj=io.BytesIO(raw), mode="r:") as archive:
+        for member in archive:
+            name = member.name.removeprefix("./")
+            if member.isdir() and name in ("", "."):
+                continue
+            require(member.isfile() and re.fullmatch(r"[A-Za-z0-9_.-]+", name)
+                    and name not in (".", ".."), "invalid output entry: " + member.name)
+            require(name not in result, "duplicate output entry: " + name)
+            result[name] = archive.extractfile(member).read()
+    return result
 
 
 def sections(text):

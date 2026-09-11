@@ -1,0 +1,83 @@
+{
+  "host": "aarch64 Linux build host with exact OpenWrt rootfs and static-musl candidates",
+  "method": "Two alternating R16/R17 pairs; complete 18-workload RPC matrix before resident snapshot. Diagnostic process memory only: not router performance or whole-system memory acceptance. Build activity may affect timing; no timing conclusions are derived here.",
+  "archive_sha256": "c1e4d57d1d16c1388eede612cc72164b35945ba64421dd76ebe63b6153214d97",
+  "runs": [
+    {
+      "run": "r17-memory-r16-1",
+      "side": "r16",
+      "subject_sha256": "461f3d803f8cd9b98cf660a8023cf710ad21d3ae5c2ddee07d7c93847e8d2b06",
+      "successful_client_runs": 45,
+      "kernel": "6.17.0-1020-oracle",
+      "VmRSS": 1172,
+      "RssAnon": 112,
+      "RssFile": 1060,
+      "RssShmem": 0,
+      "VmHWM": 1172,
+      "VmPTE": 40,
+      "Threads": 1,
+      "fds": 6
+    },
+    {
+      "run": "r17-memory-r16-2",
+      "side": "r16",
+      "subject_sha256": "461f3d803f8cd9b98cf660a8023cf710ad21d3ae5c2ddee07d7c93847e8d2b06",
+      "successful_client_runs": 45,
+      "kernel": "6.17.0-1020-oracle",
+      "VmRSS": 1172,
+      "RssAnon": 112,
+      "RssFile": 1060,
+      "RssShmem": 0,
+      "VmHWM": 1172,
+      "VmPTE": 40,
+      "Threads": 1,
+      "fds": 6
+    },
+    {
+      "run": "r17-memory-r17-1",
+      "side": "r17",
+      "subject_sha256": "fe5a0e78402e05ed3989f2c7fe2286987ab104ed2ddc83f9da7c17c384502219",
+      "successful_client_runs": 45,
+      "kernel": "6.17.0-1020-oracle",
+      "VmRSS": 1140,
+      "RssAnon": 80,
+      "RssFile": 1060,
+      "RssShmem": 0,
+      "VmHWM": 1140,
+      "VmPTE": 44,
+      "Threads": 1,
+      "fds": 6
+    },
+    {
+      "run": "r17-memory-r17-2",
+      "side": "r17",
+      "subject_sha256": "fe5a0e78402e05ed3989f2c7fe2286987ab104ed2ddc83f9da7c17c384502219",
+      "successful_client_runs": 45,
+      "kernel": "6.17.0-1020-oracle",
+      "VmRSS": 1140,
+      "RssAnon": 80,
+      "RssFile": 1060,
+      "RssShmem": 0,
+      "VmHWM": 1140,
+      "VmPTE": 40,
+      "Threads": 1,
+      "fds": 6
+    }
+  ],
+  "summary": {
+    "r16": {
+      "RssAnon": 112.0,
+      "VmRSS": 1172.0,
+      "VmHWM": 1172.0,
+      "fds": 6.0,
+      "Threads": 1.0
+    },
+    "r17": {
+      "RssAnon": 80.0,
+      "VmRSS": 1140.0,
+      "VmHWM": 1140.0,
+      "fds": 6.0,
+      "Threads": 1.0
+    }
+  }
+}

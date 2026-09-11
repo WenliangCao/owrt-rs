@@ -1,0 +1,136 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs; 20,000 actual read_incoming calls after 100 warmups, with a fixed-frame UnixStream peer and a status acknowledgement per call. Times include IPC, not just classification. Allocation counters are separate.",
+  "profiler_sha256": {
+    "r11": "c3cab242cccb6cb7861dd778afb2c454586d292e048e84374d8db1ad48043cbf",
+    "r12": "119a5732a0beab773d68031f1a92ffcea42509d82efe3f8710bfeebe0c137fb2"
+  },
+  "source_sha256": {
+    "r12-incoming-profile-r11-recv-1": "4e585835be711ea6fc89f6e97f98ff904631308ed264bb8a932eececc4f8f785",
+    "r12-incoming-profile-r11-recv-2": "9b13eeacc4b43c6dc53e1ccc1f4087e2e0993721315883d1f6280b1f890236db",
+    "r12-incoming-profile-r11-recv-3": "a21cfed471d7e90dd5eea6f48613f92b26706bf7ad6ef0631197fde9b19efb0d",
+    "r12-incoming-profile-r11-recv-4": "481957c8a6a4fbc02d7820492c6a38ddaf165978b5ec75a00e2d76c6cf783706",
+    "r12-incoming-profile-r11-recv-5": "f8c4b9cb43133d351cc97d6f80db609695b852e837cb84fd20d4f4833431faee",
+    "r12-incoming-profile-r12-1": "ea905bc862276af9e6a00cd5e2e79ecbaa5e2eabd44f572b11271bd69252fbee",
+    "r12-incoming-profile-r12-2": "9a0a341425ce6749bbdf2a9409f331b809248e7e6fa6c95e212dd0bc710b9238",
+    "r12-incoming-profile-r12-3": "690d3f558860492dce6686767befa4a3483df8a27fe10b8de36035369011b70f",
+    "r12-incoming-profile-r12-4": "5db751f641eebe373b268ec0bf1cbbe4646bb85768cbc084738d36d6b49953d1",
+    "r12-incoming-profile-r12-5": "6f865c5b2a1f49c56fa5aecb8bddba6451d6a0950a8ff54a8955f065ac5aa8b4"
+  },
+  "runs": [
+    {
+      "run": "r12-incoming-profile-r11-recv-1",
+      "side": "r11",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10266.81,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 274.0
+    },
+    {
+      "run": "r12-incoming-profile-r11-recv-2",
+      "side": "r11",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 11276.51,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 274.0
+    },
+    {
+      "run": "r12-incoming-profile-r11-recv-3",
+      "side": "r11",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 11700.3,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 274.0
+    },
+    {
+      "run": "r12-incoming-profile-r11-recv-4",
+      "side": "r11",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 11562.05,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 274.0
+    },
+    {
+      "run": "r12-incoming-profile-r11-recv-5",
+      "side": "r11",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 11409.54,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 274.0
+    },
+    {
+      "run": "r12-incoming-profile-r12-1",
+      "side": "r12",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10828.2,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 154.0
+    },
+    {
+      "run": "r12-incoming-profile-r12-2",
+      "side": "r12",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10901.77,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 154.0
+    },
+    {
+      "run": "r12-incoming-profile-r12-3",
+      "side": "r12",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 11198.65,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 154.0
+    },
+    {
+      "run": "r12-incoming-profile-r12-4",
+      "side": "r12",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10902.06,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 154.0
+    },
+    {
+      "run": "r12-incoming-profile-r12-5",
+      "side": "r12",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 11099.6,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 154.0
+    }
+  ],
+  "summary": {
+    "r11": {
+      "ns_per_op": 11409.54,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 274.0
+    },
+    "r12": {
+      "ns_per_op": 10902.06,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 154.0
+    }
+  }
+}

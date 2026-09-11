@@ -1,0 +1,178 @@
+{
+  "host": "aarch64 Linux build host",
+  "method": "Paired five runs of the real library, 20,000 timed calls each. Timing excludes counters. Separate strace summaries include 100 warm-up + 1,000 timed + one counted call and process startup; fixture contains eight regular config files.",
+  "summary": {
+    "r01": {
+      "ns_per_op": 14802.19,
+      "allocs": 36.0,
+      "reallocs": 10.0,
+      "requested_bytes": 1956.0
+    },
+    "r02": {
+      "ns_per_op": 5656.34,
+      "allocs": 19.0,
+      "reallocs": 1.0,
+      "requested_bytes": 489.0
+    }
+  },
+  "runs": [
+    {
+      "run": "r01-1",
+      "side": "r01",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 14993.68,
+      "allocs": 36.0,
+      "reallocs": 10.0,
+      "requested_bytes": 1956.0
+    },
+    {
+      "run": "r01-2",
+      "side": "r01",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 14797.79,
+      "allocs": 36.0,
+      "reallocs": 10.0,
+      "requested_bytes": 1956.0
+    },
+    {
+      "run": "r01-3",
+      "side": "r01",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 14777.72,
+      "allocs": 36.0,
+      "reallocs": 10.0,
+      "requested_bytes": 1956.0
+    },
+    {
+      "run": "r01-4",
+      "side": "r01",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 14837.26,
+      "allocs": 36.0,
+      "reallocs": 10.0,
+      "requested_bytes": 1956.0
+    },
+    {
+      "run": "r01-5",
+      "side": "r01",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 14802.19,
+      "allocs": 36.0,
+      "reallocs": 10.0,
+      "requested_bytes": 1956.0
+    },
+    {
+      "run": "r02-1",
+      "side": "r02",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 5663.87,
+      "allocs": 19.0,
+      "reallocs": 1.0,
+      "requested_bytes": 489.0
+    },
+    {
+      "run": "r02-2",
+      "side": "r02",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 5656.34,
+      "allocs": 19.0,
+      "reallocs": 1.0,
+      "requested_bytes": 489.0
+    },
+    {
+      "run": "r02-3",
+      "side": "r02",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 5648.3,
+      "allocs": 19.0,
+      "reallocs": 1.0,
+      "requested_bytes": 489.0
+    },
+    {
+      "run": "r02-4",
+      "side": "r02",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 5646.23,
+      "allocs": 19.0,
+      "reallocs": 1.0,
+      "requested_bytes": 489.0
+    },
+    {
+      "run": "r02-5",
+      "side": "r02",
+      "stage": "list_config_files",
+      "iterations": 20000.0,
+      "ns_per_op": 5682.05,
+      "allocs": 19.0,
+      "reallocs": 1.0,
+      "requested_bytes": 489.0
+    }
+  ],
+  "syscall_counts": {
+    "r01": {
+      "newfstatat": 8808,
+      "getdents64": 2202,
+      "openat": 1103,
+      "close": 1103,
+      "fcntl": 1103,
+      "munmap": 123,
+      "mmap": 125,
+      "read": 4,
+      "write": 2,
+      "fstat": 2,
+      "sigaltstack": 3,
+      "ppoll": 1,
+      "set_tid_address": 1,
+      "rt_sigaction": 5,
+      "rt_sigprocmask": 1,
+      "brk": 2,
+      "execve": 1,
+      "mprotect": 1
+    },
+    "r02": {
+      "getdents64": 2202,
+      "openat": 1103,
+      "close": 1103,
+      "fcntl": 1103,
+      "munmap": 123,
+      "mmap": 125,
+      "read": 4,
+      "fstat": 2,
+      "write": 2,
+      "sigaltstack": 3,
+      "ppoll": 1,
+      "set_tid_address": 1,
+      "rt_sigaction": 5,
+      "rt_sigprocmask": 1,
+      "brk": 2,
+      "execve": 1,
+      "mprotect": 1
+    }
+  },
+  "profiler_sha256": {
+    "r01": "c1caef9592d459e91c9d2b35fecd25ab4ef4eb6c5734f31459dbcf17eaee4164",
+    "r02": "0d921f7afc24b4db7ceb1a7efa6c0e1e21504a45947fc3341a4f774aeb5f5da6"
+  },
+  "source_sha256": {
+    "r01-5.csv": "d1452b7ff973a9c8abf0b63a252bb98320dd6f30a5a747ce353e82d85b29ca9e",
+    "r01-4.csv": "dbbbd2ea638b34c3d69e50564d975b542c193d295e68a1a07d866b246a9a8eda",
+    "list-strace.txt": "dcb1641d7eee28544a194ad223c7bb28520e5e65988bd581f7ca0652590a5bcc",
+    "r01-1.csv": "6aad5d3785828fc4117589b28ac866a81a280ccb952d0e0106f404cbe3455a4c",
+    "r01-3.csv": "a48097340108d6b98654cccd2ae92731203ba935b95a91288605f35aeab40db1",
+    "r01-2.csv": "216481ec7e65db5cac9596e93b2a2e14a658ccbf1ae13d94488e9ad7f2132325",
+    "r02-4.csv": "eeac5639813634907bedf7a0bb48e978e8d2383c0dda83172222416424a35ca1",
+    "r02-5.csv": "860872494f4729a2dacd8324f080c3a8ef687bf4067b4b64ba75041aefcb3364",
+    "r02-1.csv": "ebeb0fca65e1f3ba761c21575f258ae5fabd56485f5f616cf3e525e90a57fb9d",
+    "r02-2.csv": "9a71ab2dd48782a5d71cf2a285074f1c636f374bebfc11113ebe80e005c3261c",
+    "r02-3.csv": "d4cb5ea127efaeed161746d9223cbffeef0886630e8d0a32717331eadcbfe8c7"
+  }
+}

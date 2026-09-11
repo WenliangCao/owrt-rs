@@ -1,0 +1,3854 @@
+{
+  "schema_version": 1,
+  "label": "R12",
+  "component": "rpcd",
+  "matrix": true,
+  "subjects": {
+    "stock": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+    "r84": "d50405957a49b2357b102b7f19f96a3f53b5d9639dfb04036aa0109e36b38d02",
+    "candidate": "f94fa1f8222482acd6b9110c9d4f88da2a9ee72d9ad33115a0c15fe9adb2a3d7"
+  },
+  "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+  "namespace_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+  "harness_sha256": "f0cc6aa4261aeed0c452ac1b5995409710653fa8aa6a8456871cea61046c156b",
+  "order": [
+    "stock",
+    "candidate",
+    "candidate",
+    "stock"
+  ],
+  "host_gates_passed": true,
+  "runs": [
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_configs",
+      "successful": 10000,
+      "wall_s": 1.696870589,
+      "ops_per_s": 5893.20132296783,
+      "mean_us": 157.4105912,
+      "p50_us": 150.268,
+      "p95_us": 196.126,
+      "p99_us": 302.306,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 80.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 51.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_get_network",
+      "successful": 10000,
+      "wall_s": 4.325604343,
+      "ops_per_s": 2311.815692570845,
+      "mean_us": 364.0747154,
+      "p50_us": 343.624,
+      "p95_us": 494.045,
+      "p99_us": 605.919,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 222.0,
+      "dependency_cpu_us_per_op": 59.0,
+      "client_cpu_us_per_op": 165.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "file_stat",
+      "successful": 10000,
+      "wall_s": 1.6723552069999998,
+      "ops_per_s": 5979.590913546874,
+      "mean_us": 153.6878421,
+      "p50_us": 147.267,
+      "p95_us": 190.894,
+      "p99_us": 297.689,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 76.0,
+      "dependency_cpu_us_per_op": 51.0,
+      "client_cpu_us_per_op": 53.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "session_access",
+      "successful": 10000,
+      "wall_s": 1.009790455,
+      "ops_per_s": 9903.044686632535,
+      "mean_us": 96.21618409999999,
+      "p50_us": 92.946,
+      "p95_us": 101.179,
+      "p99_us": 207.82,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 27.0,
+      "dependency_cpu_us_per_op": 47.0,
+      "client_cpu_us_per_op": 37.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_configs_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.2699999999967986,
+      "ops_per_s": 7874.015748051345,
+      "mean_us": 471.858311,
+      "p50_us": 443.725,
+      "p95_us": 730.335,
+      "p99_us": 863.444,
+      "subject_cpu_us_per_op": 77.38095238095238,
+      "dependency_cpu_us_per_op": 54.56349206349206,
+      "client_cpu_us_per_op": 58.000000000000014
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_get_network_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.7600000000020373,
+      "ops_per_s": 3623.188405794427,
+      "mean_us": 983.7548155000001,
+      "p50_us": 933.615,
+      "p95_us": 1415.504,
+      "p99_us": 1911.627,
+      "subject_cpu_us_per_op": 206.34920634920636,
+      "dependency_cpu_us_per_op": 76.38888888888889,
+      "client_cpu_us_per_op": 173.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "file_stat_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.0999999999985448,
+      "ops_per_s": 9090.909090921117,
+      "mean_us": 407.98572759999996,
+      "p50_us": 406.178,
+      "p95_us": 570.142,
+      "p99_us": 725.718,
+      "subject_cpu_us_per_op": 68.45238095238095,
+      "dependency_cpu_us_per_op": 51.58730158730159,
+      "client_cpu_us_per_op": 58.000000000000014
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "session_access_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.6900000000023283,
+      "ops_per_s": 14492.753623139502,
+      "mean_us": 249.12974309999998,
+      "p50_us": 235.212,
+      "p95_us": 374.709,
+      "p99_us": 472.886,
+      "subject_cpu_us_per_op": 22.817460317460316,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 41.00000000000001
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_get_64",
+      "successful": 1000,
+      "wall_s": 2.763873334,
+      "ops_per_s": 361.8110814625342,
+      "mean_us": 1816.66769,
+      "p50_us": 1768.283,
+      "p95_us": 2155.379,
+      "p99_us": 2374.973,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 1520.0,
+      "dependency_cpu_us_per_op": 170.0,
+      "client_cpu_us_per_op": 1070.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_get_64_c4",
+      "successful": 1000,
+      "warmup": 80,
+      "wall_s": 1.8099999999976717,
+      "ops_per_s": 552.4861878460146,
+      "mean_us": 5654.913683,
+      "p50_us": 5509.825,
+      "p95_us": 6594.478,
+      "p99_us": 9524.357,
+      "subject_cpu_us_per_op": 1537.037037037037,
+      "dependency_cpu_us_per_op": 185.1851851851852,
+      "client_cpu_us_per_op": 1100.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_get_authorized",
+      "successful": 10000,
+      "wall_s": 4.564141477,
+      "ops_per_s": 2190.9925558602486,
+      "mean_us": 385.0560389,
+      "p50_us": 362.936,
+      "p95_us": 518.128,
+      "p99_us": 637.158,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 238.0,
+      "dependency_cpu_us_per_op": 61.0,
+      "client_cpu_us_per_op": 171.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "uci_get_authorized_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.900000000001455,
+      "ops_per_s": 3448.2758620672353,
+      "mean_us": 1041.922024,
+      "p50_us": 1004.864,
+      "p95_us": 1525.07,
+      "p99_us": 1942.404,
+      "subject_cpu_us_per_op": 223.21428571428572,
+      "dependency_cpu_us_per_op": 75.39682539682539,
+      "client_cpu_us_per_op": 177.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "session_access_granted",
+      "successful": 10000,
+      "wall_s": 1.013693638,
+      "ops_per_s": 9864.913446364159,
+      "mean_us": 96.56642509999999,
+      "p50_us": 93.1,
+      "p95_us": 103.18,
+      "p99_us": 199.742,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 27.0,
+      "dependency_cpu_us_per_op": 47.0,
+      "client_cpu_us_per_op": 37.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "session_access_granted_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.7200000000011642,
+      "ops_per_s": 13888.888888866431,
+      "mean_us": 267.88449219999995,
+      "p50_us": 247.446,
+      "p95_us": 395.637,
+      "p99_us": 508.049,
+      "subject_cpu_us_per_op": 23.80952380952381,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 41.00000000000001
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "file_list",
+      "successful": 10000,
+      "wall_s": 8.385895466000001,
+      "ops_per_s": 1192.4784944606415,
+      "mean_us": 600.006318,
+      "p50_us": 565.063,
+      "p95_us": 753.417,
+      "p99_us": 913.457,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 456.0,
+      "dependency_cpu_us_per_op": 74.0,
+      "client_cpu_us_per_op": 306.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "file_list_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 5.25,
+      "ops_per_s": 1904.7619047619048,
+      "mean_us": 1801.5699392,
+      "p50_us": 1746.125,
+      "p95_us": 2285.95,
+      "p99_us": 3368.911,
+      "subject_cpu_us_per_op": 418.6507936507937,
+      "dependency_cpu_us_per_op": 89.28571428571429,
+      "client_cpu_us_per_op": 322.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "session_access_64",
+      "successful": 10000,
+      "wall_s": 1.018426799,
+      "ops_per_s": 9819.06604364601,
+      "mean_us": 97.07284010000001,
+      "p50_us": 93.715,
+      "p95_us": 103.334,
+      "p99_us": 200.973,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 29.0,
+      "dependency_cpu_us_per_op": 47.0,
+      "client_cpu_us_per_op": 38.0
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "workload": "session_access_64_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.680000000000291,
+      "ops_per_s": 14705.882352934883,
+      "mean_us": 247.5072923,
+      "p50_us": 235.212,
+      "p95_us": 361.013,
+      "p99_us": 432.568,
+      "subject_cpu_us_per_op": 24.8015873015873,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 40.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_configs",
+      "successful": 10000,
+      "wall_s": 1.6694725990000001,
+      "ops_per_s": 5989.915621250636,
+      "mean_us": 154.90987239999998,
+      "p50_us": 137.803,
+      "p95_us": 246.445,
+      "p99_us": 322.388,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 74.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 51.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_get_network",
+      "successful": 10000,
+      "wall_s": 4.319984962,
+      "ops_per_s": 2314.822872756102,
+      "mean_us": 362.5011129,
+      "p50_us": 338.546,
+      "p95_us": 499.893,
+      "p99_us": 619.922,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 214.0,
+      "dependency_cpu_us_per_op": 62.0,
+      "client_cpu_us_per_op": 165.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "file_stat",
+      "successful": 10000,
+      "wall_s": 1.629268105,
+      "ops_per_s": 6137.725257931076,
+      "mean_us": 149.1794163,
+      "p50_us": 142.42,
+      "p95_us": 200.434,
+      "p99_us": 298.073,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 70.0,
+      "dependency_cpu_us_per_op": 50.0,
+      "client_cpu_us_per_op": 53.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "session_access",
+      "successful": 10000,
+      "wall_s": 1.016331272,
+      "ops_per_s": 9839.31152715726,
+      "mean_us": 96.85192110000001,
+      "p50_us": 93.485,
+      "p95_us": 104.333,
+      "p99_us": 200.588,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 27.0,
+      "dependency_cpu_us_per_op": 46.0,
+      "client_cpu_us_per_op": 38.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_configs_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.0999999999985448,
+      "ops_per_s": 9090.909090921117,
+      "mean_us": 409.6301397,
+      "p50_us": 383.633,
+      "p95_us": 579.682,
+      "p99_us": 736.951,
+      "subject_cpu_us_per_op": 63.492063492063494,
+      "dependency_cpu_us_per_op": 48.611111111111114,
+      "client_cpu_us_per_op": 54.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_get_network_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.8699999999989814,
+      "ops_per_s": 3484.320557492526,
+      "mean_us": 1020.2752866,
+      "p50_us": 993.246,
+      "p95_us": 1606.936,
+      "p99_us": 1900.547,
+      "subject_cpu_us_per_op": 187.5,
+      "dependency_cpu_us_per_op": 76.38888888888889,
+      "client_cpu_us_per_op": 170.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "file_stat_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.2000000000007276,
+      "ops_per_s": 8333.33333332828,
+      "mean_us": 440.58386099999996,
+      "p50_us": 421.874,
+      "p95_us": 645.083,
+      "p99_us": 785.271,
+      "subject_cpu_us_per_op": 67.46031746031746,
+      "dependency_cpu_us_per_op": 54.56349206349206,
+      "client_cpu_us_per_op": 63.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "session_access_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.680000000000291,
+      "ops_per_s": 14705.882352934883,
+      "mean_us": 247.80918229999997,
+      "p50_us": 235.212,
+      "p95_us": 349.009,
+      "p99_us": 427.414,
+      "subject_cpu_us_per_op": 21.825396825396826,
+      "dependency_cpu_us_per_op": 42.65873015873016,
+      "client_cpu_us_per_op": 42.00000000000001
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_get_64",
+      "successful": 1000,
+      "wall_s": 2.613537426,
+      "ops_per_s": 382.62317962306463,
+      "mean_us": 1681.6608410000001,
+      "p50_us": 1626.634,
+      "p95_us": 1972.026,
+      "p99_us": 2127.219,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 1400.0,
+      "dependency_cpu_us_per_op": 160.0,
+      "client_cpu_us_per_op": 1030.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_get_64_c4",
+      "successful": 1000,
+      "warmup": 80,
+      "wall_s": 1.9200000000018917,
+      "ops_per_s": 520.8333333328202,
+      "mean_us": 5978.164682,
+      "p50_us": 5742.883,
+      "p95_us": 8683.61,
+      "p99_us": 11214.391,
+      "subject_cpu_us_per_op": 1444.4444444444443,
+      "dependency_cpu_us_per_op": 185.1851851851852,
+      "client_cpu_us_per_op": 1110.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_get_authorized",
+      "successful": 10000,
+      "wall_s": 4.515046947,
+      "ops_per_s": 2214.8163944661637,
+      "mean_us": 379.24574939999997,
+      "p50_us": 354.472,
+      "p95_us": 521.437,
+      "p99_us": 631.849,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 226.0,
+      "dependency_cpu_us_per_op": 63.0,
+      "client_cpu_us_per_op": 169.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "uci_get_authorized_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.9900000000016007,
+      "ops_per_s": 3344.48160534938,
+      "mean_us": 1070.4051385999999,
+      "p50_us": 1011.097,
+      "p95_us": 1651.409,
+      "p99_us": 2049.276,
+      "subject_cpu_us_per_op": 205.35714285714283,
+      "dependency_cpu_us_per_op": 81.34920634920636,
+      "client_cpu_us_per_op": 177.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "session_access_granted",
+      "successful": 10000,
+      "wall_s": 1.014042229,
+      "ops_per_s": 9861.52224632846,
+      "mean_us": 96.681421,
+      "p50_us": 92.869,
+      "p95_us": 106.334,
+      "p99_us": 212.668,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 26.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 37.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "session_access_granted_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.7000000000007276,
+      "ops_per_s": 14285.714285699436,
+      "mean_us": 250.0969987,
+      "p50_us": 247.215,
+      "p95_us": 362.551,
+      "p99_us": 430.875,
+      "subject_cpu_us_per_op": 22.817460317460316,
+      "dependency_cpu_us_per_op": 42.65873015873016,
+      "client_cpu_us_per_op": 41.00000000000001
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "file_list",
+      "successful": 10000,
+      "wall_s": 7.783896463,
+      "ops_per_s": 1284.7036246607383,
+      "mean_us": 540.5919719,
+      "p50_us": 511.742,
+      "p95_us": 672.782,
+      "p99_us": 837.9,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 407.00000000000006,
+      "dependency_cpu_us_per_op": 73.0,
+      "client_cpu_us_per_op": 301.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "file_list_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 4.849999999998545,
+      "ops_per_s": 2061.8556701037114,
+      "mean_us": 1652.2238839,
+      "p50_us": 1598.088,
+      "p95_us": 2220.241,
+      "p99_us": 2794.076,
+      "subject_cpu_us_per_op": 375.0,
+      "dependency_cpu_us_per_op": 91.26984126984127,
+      "client_cpu_us_per_op": 315.00000000000006
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "session_access_64",
+      "successful": 10000,
+      "wall_s": 1.061680777,
+      "ops_per_s": 9419.027090475425,
+      "mean_us": 100.9146633,
+      "p50_us": 97.255,
+      "p95_us": 112.104,
+      "p99_us": 214.822,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 31.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 39.0
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "workload": "session_access_64_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.7299999999995634,
+      "ops_per_s": 13698.630136994494,
+      "mean_us": 271.2521482,
+      "p50_us": 257.602,
+      "p95_us": 379.094,
+      "p99_us": 512.973,
+      "subject_cpu_us_per_op": 26.785714285714285,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 42.00000000000001
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_configs",
+      "successful": 10000,
+      "wall_s": 1.647891821,
+      "ops_per_s": 6068.359507926704,
+      "mean_us": 152.7334261,
+      "p50_us": 141.035,
+      "p95_us": 240.213,
+      "p99_us": 308.23,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 75.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 52.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_get_network",
+      "successful": 10000,
+      "wall_s": 4.365052052,
+      "ops_per_s": 2290.9234256251657,
+      "mean_us": 367.0687546,
+      "p50_us": 342.162,
+      "p95_us": 503.663,
+      "p99_us": 621.923,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 216.0,
+      "dependency_cpu_us_per_op": 62.0,
+      "client_cpu_us_per_op": 166.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "file_stat",
+      "successful": 10000,
+      "wall_s": 1.6366832709999999,
+      "ops_per_s": 6109.917646980092,
+      "mean_us": 149.90567819999998,
+      "p50_us": 142.496,
+      "p95_us": 203.358,
+      "p99_us": 302.46,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 70.0,
+      "dependency_cpu_us_per_op": 50.0,
+      "client_cpu_us_per_op": 54.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "session_access",
+      "successful": 10000,
+      "wall_s": 1.086511295,
+      "ops_per_s": 9203.769943321206,
+      "mean_us": 103.4596671,
+      "p50_us": 95.947,
+      "p95_us": 134.879,
+      "p99_us": 227.21,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 29.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 40.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_configs_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.0999999999985448,
+      "ops_per_s": 9090.909090921117,
+      "mean_us": 405.127314,
+      "p50_us": 380.632,
+      "p95_us": 646.006,
+      "p99_us": 820.434,
+      "subject_cpu_us_per_op": 68.45238095238095,
+      "dependency_cpu_us_per_op": 50.595238095238095,
+      "client_cpu_us_per_op": 58.000000000000014
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_get_network_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.680000000000291,
+      "ops_per_s": 3731.3432835816843,
+      "mean_us": 934.7964790000001,
+      "p50_us": 887.605,
+      "p95_us": 1428.122,
+      "p99_us": 1790.212,
+      "subject_cpu_us_per_op": 189.484126984127,
+      "dependency_cpu_us_per_op": 76.38888888888889,
+      "client_cpu_us_per_op": 171.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "file_stat_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.110000000000582,
+      "ops_per_s": 9009.009009004285,
+      "mean_us": 410.9811029,
+      "p50_us": 399.637,
+      "p95_us": 602.764,
+      "p99_us": 767.344,
+      "subject_cpu_us_per_op": 66.46825396825396,
+      "dependency_cpu_us_per_op": 52.57936507936508,
+      "client_cpu_us_per_op": 60.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "session_access_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.6899999999986903,
+      "ops_per_s": 14492.753623215915,
+      "mean_us": 252.21749540000002,
+      "p50_us": 249.908,
+      "p95_us": 364.09,
+      "p99_us": 454.882,
+      "subject_cpu_us_per_op": 22.817460317460316,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 41.00000000000001
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_get_64",
+      "successful": 1000,
+      "wall_s": 2.6234200960000003,
+      "ops_per_s": 381.1818021538857,
+      "mean_us": 1687.0061680000001,
+      "p50_us": 1634.866,
+      "p95_us": 1977.413,
+      "p99_us": 2141.915,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 1400.0,
+      "dependency_cpu_us_per_op": 160.0,
+      "client_cpu_us_per_op": 1030.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_get_64_c4",
+      "successful": 1000,
+      "warmup": 80,
+      "wall_s": 1.8700000000026193,
+      "ops_per_s": 534.759358288021,
+      "mean_us": 5694.048072,
+      "p50_us": 5488.358,
+      "p95_us": 7987.207,
+      "p99_us": 10313.09,
+      "subject_cpu_us_per_op": 1435.1851851851852,
+      "dependency_cpu_us_per_op": 175.92592592592592,
+      "client_cpu_us_per_op": 1120.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_get_authorized",
+      "successful": 10000,
+      "wall_s": 4.539671204,
+      "ops_per_s": 2202.8027032417654,
+      "mean_us": 380.9189817,
+      "p50_us": 355.858,
+      "p95_us": 523.284,
+      "p99_us": 640.236,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 226.0,
+      "dependency_cpu_us_per_op": 63.0,
+      "client_cpu_us_per_op": 170.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "uci_get_authorized_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.8800000000010186,
+      "ops_per_s": 3472.222222220994,
+      "mean_us": 1008.4070698,
+      "p50_us": 969.624,
+      "p95_us": 1545.69,
+      "p99_us": 1881.235,
+      "subject_cpu_us_per_op": 205.35714285714283,
+      "dependency_cpu_us_per_op": 80.35714285714286,
+      "client_cpu_us_per_op": 177.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "session_access_granted",
+      "successful": 10000,
+      "wall_s": 1.038571574,
+      "ops_per_s": 9628.609380753183,
+      "mean_us": 98.76441319999999,
+      "p50_us": 95.024,
+      "p95_us": 107.719,
+      "p99_us": 203.742,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 27.0,
+      "dependency_cpu_us_per_op": 46.0,
+      "client_cpu_us_per_op": 39.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "session_access_granted_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.7200000000011642,
+      "ops_per_s": 13888.888888866431,
+      "mean_us": 256.0129122,
+      "p50_us": 250.754,
+      "p95_us": 373.016,
+      "p99_us": 459.345,
+      "subject_cpu_us_per_op": 22.817460317460316,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 43.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "file_list",
+      "successful": 10000,
+      "wall_s": 7.79450792,
+      "ops_per_s": 1282.954626852185,
+      "mean_us": 542.6131156,
+      "p50_us": 514.512,
+      "p95_us": 673.552,
+      "p99_us": 823.743,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 405.99999999999994,
+      "dependency_cpu_us_per_op": 74.0,
+      "client_cpu_us_per_op": 304.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "file_list_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 4.930000000000291,
+      "ops_per_s": 2028.397565922801,
+      "mean_us": 1688.0412887,
+      "p50_us": 1657.952,
+      "p95_us": 2319.959,
+      "p99_us": 2993.746,
+      "subject_cpu_us_per_op": 376.984126984127,
+      "dependency_cpu_us_per_op": 93.25396825396825,
+      "client_cpu_us_per_op": 318.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "session_access_64",
+      "successful": 10000,
+      "wall_s": 1.057086499,
+      "ops_per_s": 9459.963786747787,
+      "mean_us": 100.562784,
+      "p50_us": 96.948,
+      "p95_us": 109.643,
+      "p99_us": 203.281,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 31.0,
+      "dependency_cpu_us_per_op": 46.0,
+      "client_cpu_us_per_op": 39.0
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "workload": "session_access_64_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.6899999999986903,
+      "ops_per_s": 14492.753623215915,
+      "mean_us": 250.3239474,
+      "p50_us": 237.367,
+      "p95_us": 365.399,
+      "p99_us": 451.035,
+      "subject_cpu_us_per_op": 24.8015873015873,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 41.00000000000001
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_configs",
+      "successful": 10000,
+      "wall_s": 1.695554097,
+      "ops_per_s": 5897.777026220119,
+      "mean_us": 156.97662789999998,
+      "p50_us": 148.422,
+      "p95_us": 209.129,
+      "p99_us": 311.154,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 80.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 51.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_get_network",
+      "successful": 10000,
+      "wall_s": 4.395590859,
+      "ops_per_s": 2275.007006060388,
+      "mean_us": 369.63031800000005,
+      "p50_us": 346.086,
+      "p95_us": 512.82,
+      "p99_us": 626.541,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 225.0,
+      "dependency_cpu_us_per_op": 59.0,
+      "client_cpu_us_per_op": 168.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "file_stat",
+      "successful": 10000,
+      "wall_s": 1.632931165,
+      "ops_per_s": 6123.956853992679,
+      "mean_us": 150.3001026,
+      "p50_us": 143.497,
+      "p95_us": 199.512,
+      "p99_us": 299.382,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 74.0,
+      "dependency_cpu_us_per_op": 52.0,
+      "client_cpu_us_per_op": 52.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "session_access",
+      "successful": 10000,
+      "wall_s": 1.012563997,
+      "ops_per_s": 9875.918983518826,
+      "mean_us": 96.48255809999999,
+      "p50_us": 93.023,
+      "p95_us": 102.333,
+      "p99_us": 200.05,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 26.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 37.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_configs_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.2999999999992724,
+      "ops_per_s": 7692.307692311998,
+      "mean_us": 485.2572661,
+      "p50_us": 490.584,
+      "p95_us": 742.262,
+      "p99_us": 884.836,
+      "subject_cpu_us_per_op": 77.38095238095238,
+      "dependency_cpu_us_per_op": 56.54761904761905,
+      "client_cpu_us_per_op": 56.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_get_network_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.8099999999976717,
+      "ops_per_s": 3558.718861212913,
+      "mean_us": 1013.4615801,
+      "p50_us": 955.161,
+      "p95_us": 1573.546,
+      "p99_us": 1861.387,
+      "subject_cpu_us_per_op": 204.36507936507937,
+      "dependency_cpu_us_per_op": 76.38888888888889,
+      "client_cpu_us_per_op": 172.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "file_stat_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 1.0999999999985448,
+      "ops_per_s": 9090.909090921117,
+      "mean_us": 406.1595647,
+      "p50_us": 398.022,
+      "p95_us": 604.458,
+      "p99_us": 763.037,
+      "subject_cpu_us_per_op": 68.45238095238095,
+      "dependency_cpu_us_per_op": 51.58730158730159,
+      "client_cpu_us_per_op": 58.000000000000014
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "session_access_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.7000000000007276,
+      "ops_per_s": 14285.714285699436,
+      "mean_us": 260.5426764,
+      "p50_us": 256.064,
+      "p95_us": 349.395,
+      "p99_us": 444.111,
+      "subject_cpu_us_per_op": 22.817460317460316,
+      "dependency_cpu_us_per_op": 44.642857142857146,
+      "client_cpu_us_per_op": 41.00000000000001
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_get_64",
+      "successful": 1000,
+      "wall_s": 2.681447163,
+      "ops_per_s": 372.93294971406453,
+      "mean_us": 1751.487556,
+      "p50_us": 1677.341,
+      "p95_us": 2029.198,
+      "p99_us": 2191.315,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 1500.0,
+      "dependency_cpu_us_per_op": 170.0,
+      "client_cpu_us_per_op": 1050.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_get_64_c4",
+      "successful": 1000,
+      "warmup": 80,
+      "wall_s": 1.7799999999988358,
+      "ops_per_s": 561.7977528093562,
+      "mean_us": 5540.500337,
+      "p50_us": 5434.508,
+      "p95_us": 6518.086,
+      "p99_us": 7128.546,
+      "subject_cpu_us_per_op": 1527.7777777777778,
+      "dependency_cpu_us_per_op": 185.1851851851852,
+      "client_cpu_us_per_op": 1100.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_get_authorized",
+      "successful": 10000,
+      "wall_s": 4.599899429,
+      "ops_per_s": 2173.9605733453964,
+      "mean_us": 387.1303928,
+      "p50_us": 362.244,
+      "p95_us": 517.976,
+      "p99_us": 640.545,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 238.0,
+      "dependency_cpu_us_per_op": 60.0,
+      "client_cpu_us_per_op": 172.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "uci_get_authorized_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 2.9799999999995634,
+      "ops_per_s": 3355.704697987069,
+      "mean_us": 1059.8325481,
+      "p50_us": 1002.327,
+      "p95_us": 1621.25,
+      "p99_us": 2014.425,
+      "subject_cpu_us_per_op": 219.24603174603175,
+      "dependency_cpu_us_per_op": 77.38095238095238,
+      "client_cpu_us_per_op": 177.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "session_access_granted",
+      "successful": 10000,
+      "wall_s": 1.015759456,
+      "ops_per_s": 9844.850511536857,
+      "mean_us": 96.9047071,
+      "p50_us": 93.485,
+      "p95_us": 102.256,
+      "p99_us": 203.435,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 27.0,
+      "dependency_cpu_us_per_op": 48.0,
+      "client_cpu_us_per_op": 37.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "session_access_granted_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.7000000000007276,
+      "ops_per_s": 14285.714285699436,
+      "mean_us": 254.4135518,
+      "p50_us": 242.599,
+      "p95_us": 391.405,
+      "p99_us": 499.893,
+      "subject_cpu_us_per_op": 23.80952380952381,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 40.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "file_list",
+      "successful": 10000,
+      "wall_s": 8.397136747,
+      "ops_per_s": 1190.882118666538,
+      "mean_us": 598.3904468000001,
+      "p50_us": 567.295,
+      "p95_us": 731.106,
+      "p99_us": 888.375,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 458.0,
+      "dependency_cpu_us_per_op": 74.0,
+      "client_cpu_us_per_op": 308.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "file_list_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 5.079999999998108,
+      "ops_per_s": 1968.5039370086072,
+      "mean_us": 1744.5326266000002,
+      "p50_us": 1741.126,
+      "p95_us": 2252.638,
+      "p99_us": 2984.205,
+      "subject_cpu_us_per_op": 418.6507936507937,
+      "dependency_cpu_us_per_op": 89.28571428571429,
+      "client_cpu_us_per_op": 319.00000000000006
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "session_access_64",
+      "successful": 10000,
+      "wall_s": 1.022568899,
+      "ops_per_s": 9779.292143325787,
+      "mean_us": 97.5662117,
+      "p50_us": 94.254,
+      "p95_us": 104.026,
+      "p99_us": 198.434,
+      "warmup": 20,
+      "subject_cpu_us_per_op": 30.0,
+      "dependency_cpu_us_per_op": 49.0,
+      "client_cpu_us_per_op": 37.0
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "workload": "session_access_64_c4",
+      "successful": 10000,
+      "warmup": 80,
+      "wall_s": 0.7599999999983993,
+      "ops_per_s": 13157.89473686982,
+      "mean_us": 277.3459742,
+      "p50_us": 264.528,
+      "p95_us": 409.41,
+      "p99_us": 544.829,
+      "subject_cpu_us_per_op": 23.80952380952381,
+      "dependency_cpu_us_per_op": 43.65079365079365,
+      "client_cpu_us_per_op": 39.0
+    }
+  ],
+  "summary": {
+    "uci_configs": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 157.19360955,
+          "mean": 157.19360955,
+          "min": 156.97662789999998,
+          "max": 157.4105912,
+          "stdev": 0.30685839221610356
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 149.345,
+          "mean": 149.345,
+          "min": 148.422,
+          "max": 150.268,
+          "stdev": 1.3053191180703694
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 202.6275,
+          "mean": 202.6275,
+          "min": 196.126,
+          "max": 209.129,
+          "stdev": 9.194509475768667
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 306.73,
+          "mean": 306.73,
+          "min": 302.306,
+          "max": 311.154,
+          "stdev": 6.256480799938582
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 5895.489174593975,
+          "mean": 5895.489174593975,
+          "min": 5893.20132296783,
+          "max": 5897.777026220119,
+          "stdev": 3.235510798391396
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 80.0,
+          "mean": 80.0,
+          "min": 80.0,
+          "max": 80.0,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 48.0,
+          "mean": 48.0,
+          "min": 48.0,
+          "max": 48.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 51.0,
+          "mean": 51.0,
+          "min": 51.0,
+          "max": 51.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 153.82164925,
+          "mean": 153.82164925,
+          "min": 152.7334261,
+          "max": 154.90987239999998,
+          "stdev": 1.5389799376183573
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 139.41899999999998,
+          "mean": 139.41899999999998,
+          "min": 137.803,
+          "max": 141.035,
+          "stdev": 2.285369116794921
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 243.329,
+          "mean": 243.329,
+          "min": 240.213,
+          "max": 246.445,
+          "stdev": 4.406689460354563
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 315.30899999999997,
+          "mean": 315.30899999999997,
+          "min": 308.23,
+          "max": 322.388,
+          "stdev": 10.011217808039111
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 6029.13756458867,
+          "mean": 6029.13756458867,
+          "min": 5989.915621250636,
+          "max": 6068.359507926704,
+          "stdev": 55.468204211277
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 74.5,
+          "mean": 74.5,
+          "min": 74.0,
+          "max": 75.0,
+          "stdev": 0.7071067811865476
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 48.0,
+          "mean": 48.0,
+          "min": 48.0,
+          "max": 48.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 51.5,
+          "mean": 51.5,
+          "min": 51.0,
+          "max": 52.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -2.1451001154900173,
+        "p50_us": -6.646355753456767,
+        "p95_us": 20.08685889131534,
+        "p99_us": 2.796922374726951,
+        "ops_per_s": 2.266960145913588,
+        "subject_cpu_us_per_op": -6.874999999999998,
+        "dependency_cpu_us_per_op": 0.0,
+        "client_cpu_us_per_op": 0.9803921568627416
+      }
+    },
+    "uci_get_network": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 366.8525167,
+          "mean": 366.8525167,
+          "min": 364.0747154,
+          "max": 369.63031800000005,
+          "stdev": 3.928404272037645
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 344.855,
+          "mean": 344.855,
+          "min": 343.624,
+          "max": 346.086,
+          "stdev": 1.7408968952812722
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 503.4325,
+          "mean": 503.4325,
+          "min": 494.045,
+          "max": 512.82,
+          "stdev": 13.275929816777454
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 616.23,
+          "mean": 616.23,
+          "min": 605.919,
+          "max": 626.541,
+          "stdev": 14.581956041629033
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 2293.4113493156165,
+          "mean": 2293.4113493156165,
+          "min": 2275.007006060388,
+          "max": 2311.815692570845,
+          "stdev": 26.027671838113896
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 223.5,
+          "mean": 223.5,
+          "min": 222.0,
+          "max": 225.0,
+          "stdev": 2.1213203435596424
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 59.0,
+          "mean": 59.0,
+          "min": 59.0,
+          "max": 59.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 166.5,
+          "mean": 166.5,
+          "min": 165.0,
+          "max": 168.0,
+          "stdev": 2.1213203435596424
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 364.78493375,
+          "mean": 364.78493375,
+          "min": 362.5011129,
+          "max": 367.0687546,
+          "stdev": 3.229810420100427
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 340.354,
+          "mean": 340.354,
+          "min": 338.546,
+          "max": 342.162,
+          "stdev": 2.5568981207705455
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 501.778,
+          "mean": 501.778,
+          "min": 499.893,
+          "max": 503.663,
+          "stdev": 2.6657925650733114
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 620.9225,
+          "mean": 620.9225,
+          "min": 619.922,
+          "max": 621.923,
+          "stdev": 1.4149206691542648
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 2302.8731491906337,
+          "mean": 2302.8731491906337,
+          "min": 2290.9234256251657,
+          "max": 2314.822872756102,
+          "stdev": 16.89946113289429
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 215.0,
+          "mean": 215.0,
+          "min": 214.0,
+          "max": 216.0,
+          "stdev": 1.4142135623730951
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 62.0,
+          "mean": 62.0,
+          "min": 62.0,
+          "max": 62.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 165.5,
+          "mean": 165.5,
+          "min": 165.0,
+          "max": 166.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -0.5636005903949748,
+        "p50_us": -1.3051862376941115,
+        "p95_us": -0.32864385990176714,
+        "p99_us": 0.7614851597617767,
+        "ops_per_s": 0.4125644480585944,
+        "subject_cpu_us_per_op": -3.803131991051456,
+        "dependency_cpu_us_per_op": 5.084745762711873,
+        "client_cpu_us_per_op": -0.6006006006005982
+      }
+    },
+    "file_stat": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 151.99397235,
+          "mean": 151.99397235,
+          "min": 150.3001026,
+          "max": 153.6878421,
+          "stdev": 2.3954935733435305
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 145.382,
+          "mean": 145.382,
+          "min": 143.497,
+          "max": 147.267,
+          "stdev": 2.6657925650732714
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 195.203,
+          "mean": 195.203,
+          "min": 190.894,
+          "max": 199.512,
+          "stdev": 6.0938462402656635
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 298.5355,
+          "mean": 298.5355,
+          "min": 297.689,
+          "max": 299.382,
+          "stdev": 1.1971317805488133
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 6051.773883769776,
+          "mean": 6051.773883769776,
+          "min": 5979.590913546874,
+          "max": 6123.956853992679,
+          "stdev": 102.08213546160191
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 75.0,
+          "mean": 75.0,
+          "min": 74.0,
+          "max": 76.0,
+          "stdev": 1.4142135623730951
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 51.5,
+          "mean": 51.5,
+          "min": 51.0,
+          "max": 52.0,
+          "stdev": 0.7071067811865476
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 52.5,
+          "mean": 52.5,
+          "min": 52.0,
+          "max": 53.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 149.54254724999998,
+          "mean": 149.54254724999998,
+          "min": 149.1794163,
+          "max": 149.90567819999998,
+          "stdev": 0.5135447144074042
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 142.458,
+          "mean": 142.458,
+          "min": 142.42,
+          "max": 142.496,
+          "stdev": 0.05374011537019305
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 201.89600000000002,
+          "mean": 201.89600000000002,
+          "min": 200.434,
+          "max": 203.358,
+          "stdev": 2.0675802281894695
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 300.26649999999995,
+          "mean": 300.26649999999995,
+          "min": 298.073,
+          "max": 302.46,
+          "stdev": 3.1020774490653844
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 6123.821452455584,
+          "mean": 6123.821452455584,
+          "min": 6109.917646980092,
+          "max": 6137.725257931076,
+          "stdev": 19.662950272037996
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 70.0,
+          "mean": 70.0,
+          "min": 70.0,
+          "max": 70.0,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 50.0,
+          "mean": 50.0,
+          "min": 50.0,
+          "max": 50.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 53.5,
+          "mean": 53.5,
+          "min": 53.0,
+          "max": 54.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -1.6128436293217363,
+        "p50_us": -2.0112531124898636,
+        "p95_us": 3.428738287833699,
+        "p99_us": 0.5798305394165704,
+        "ops_per_s": 1.1905198388034943,
+        "subject_cpu_us_per_op": -6.666666666666665,
+        "dependency_cpu_us_per_op": -2.9126213592232997,
+        "client_cpu_us_per_op": 1.904761904761898
+      }
+    },
+    "session_access": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 96.34937109999998,
+          "mean": 96.34937109999998,
+          "min": 96.21618409999999,
+          "max": 96.48255809999999,
+          "stdev": 0.1883548617317847
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 92.9845,
+          "mean": 92.9845,
+          "min": 92.946,
+          "max": 93.023,
+          "stdev": 0.05444722215136287
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 101.756,
+          "mean": 101.756,
+          "min": 101.179,
+          "max": 102.333,
+          "stdev": 0.8160012254892732
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 203.935,
+          "mean": 203.935,
+          "min": 200.05,
+          "max": 207.82,
+          "stdev": 5.494219689819461
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9889.48183507568,
+          "mean": 9889.48183507568,
+          "min": 9875.918983518826,
+          "max": 9903.044686632535,
+          "stdev": 19.180768616156236
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 26.5,
+          "mean": 26.5,
+          "min": 26.0,
+          "max": 27.0,
+          "stdev": 0.7071067811865476
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 47.5,
+          "mean": 47.5,
+          "min": 47.0,
+          "max": 48.0,
+          "stdev": 0.7071067811865476
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 37.0,
+          "mean": 37.0,
+          "min": 37.0,
+          "max": 37.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 100.15579410000001,
+          "mean": 100.15579410000001,
+          "min": 96.85192110000001,
+          "max": 103.4596671,
+          "stdev": 4.672382004958279
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 94.71600000000001,
+          "mean": 94.71600000000001,
+          "min": 93.485,
+          "max": 95.947,
+          "stdev": 1.7408968952812824
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 119.606,
+          "mean": 119.606,
+          "min": 104.333,
+          "max": 134.879,
+          "stdev": 21.599283738124274
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 213.899,
+          "mean": 213.899,
+          "min": 200.588,
+          "max": 227.21,
+          "stdev": 18.82459672874828
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9521.540735239232,
+          "mean": 9521.540735239232,
+          "min": 9203.769943321206,
+          "max": 9839.31152715726,
+          "stdev": 449.39576365651317
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 28.0,
+          "mean": 28.0,
+          "min": 27.0,
+          "max": 29.0,
+          "stdev": 1.4142135623730951
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 47.0,
+          "mean": 47.0,
+          "min": 46.0,
+          "max": 48.0,
+          "stdev": 1.4142135623730951
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 39.0,
+          "mean": 39.0,
+          "min": 38.0,
+          "max": 40.0,
+          "stdev": 1.4142135623730951
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": 3.950646440701089,
+        "p50_us": 1.8621383133748282,
+        "p95_us": 17.54196312748142,
+        "p99_us": 4.885870497952771,
+        "ops_per_s": -3.7205296088562156,
+        "subject_cpu_us_per_op": 5.660377358490565,
+        "dependency_cpu_us_per_op": -1.0526315789473717,
+        "client_cpu_us_per_op": 5.405405405405395
+      }
+    },
+    "uci_configs_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 478.55778855,
+          "mean": 478.55778855,
+          "min": 471.858311,
+          "max": 485.2572661,
+          "stdev": 9.47449201202405
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 467.1545,
+          "mean": 467.1545,
+          "min": 443.725,
+          "max": 490.584,
+          "stdev": 33.13431665962042
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 736.2985,
+          "mean": 736.2985,
+          "min": 730.335,
+          "max": 742.262,
+          "stdev": 8.433662579211887
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 874.14,
+          "mean": 874.14,
+          "min": 863.444,
+          "max": 884.836,
+          "stdev": 15.126428263142662
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 7783.161720181672,
+          "mean": 7783.161720181672,
+          "min": 7692.307692311998,
+          "max": 7874.015748051345,
+          "stdev": 128.4869984095157
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 77.38095238095238,
+          "mean": 77.38095238095238,
+          "min": 77.38095238095238,
+          "max": 77.38095238095238,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 55.55555555555556,
+          "mean": 55.55555555555556,
+          "min": 54.56349206349206,
+          "max": 56.54761904761905,
+          "stdev": 1.4029896452114063
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 57.00000000000001,
+          "mean": 57.00000000000001,
+          "min": 56.0,
+          "max": 58.000000000000014,
+          "stdev": 1.4142135623731051
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 407.37872685,
+          "mean": 407.37872685,
+          "min": 405.127314,
+          "max": 409.6301397,
+          "stdev": 3.183978586971034
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 382.1325,
+          "mean": 382.1325,
+          "min": 380.632,
+          "max": 383.633,
+          "stdev": 2.1220274503408123
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 612.844,
+          "mean": 612.844,
+          "min": 579.682,
+          "max": 646.006,
+          "stdev": 46.898150155416545
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 778.6925,
+          "mean": 778.6925,
+          "min": 736.951,
+          "max": 820.434,
+          "stdev": 59.03139541379651
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9090.909090921117,
+          "mean": 9090.909090921117,
+          "min": 9090.909090921117,
+          "max": 9090.909090921117,
+          "stdev": 0.0
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 65.97222222222223,
+          "mean": 65.97222222222223,
+          "min": 63.492063492063494,
+          "max": 68.45238095238095,
+          "stdev": 3.507474113028506
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 49.60317460317461,
+          "mean": 49.60317460317461,
+          "min": 48.611111111111114,
+          "max": 50.595238095238095,
+          "stdev": 1.4029896452114012
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 56.00000000000001,
+          "mean": 56.00000000000001,
+          "min": 54.0,
+          "max": 58.000000000000014,
+          "stdev": 2.8284271247462
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -14.873660695329615,
+        "p50_us": -18.199974526628772,
+        "p95_us": -16.766909072882797,
+        "p99_us": -10.919017548676413,
+        "ops_per_s": 16.80226388394921,
+        "subject_cpu_us_per_op": -14.743589743589736,
+        "dependency_cpu_us_per_op": -10.71428571428571,
+        "client_cpu_us_per_op": -1.754385964912275
+      }
+    },
+    "uci_get_network_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 998.6081978,
+          "mean": 998.6081978,
+          "min": 983.7548155000001,
+          "max": 1013.4615801,
+          "stdev": 21.005854695772424
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 944.3879999999999,
+          "mean": 944.3879999999999,
+          "min": 933.615,
+          "max": 955.161,
+          "stdev": 15.235322707445308
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 1494.525,
+          "mean": 1494.525,
+          "min": 1415.504,
+          "max": 1573.546,
+          "stdev": 111.75256991228444
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 1886.507,
+          "mean": 1886.507,
+          "min": 1861.387,
+          "max": 1911.627,
+          "stdev": 35.52504468681215
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 3590.95363350367,
+          "mean": 3590.95363350367,
+          "min": 3558.718861212913,
+          "max": 3623.188405794427,
+          "stdev": 45.58685215359708
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 205.35714285714286,
+          "mean": 205.35714285714286,
+          "min": 204.36507936507937,
+          "max": 206.34920634920636,
+          "stdev": 1.4029896452114063
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 76.38888888888889,
+          "mean": 76.38888888888889,
+          "min": 76.38888888888889,
+          "max": 76.38888888888889,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 172.5,
+          "mean": 172.5,
+          "min": 172.0,
+          "max": 173.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 977.5358828000001,
+          "mean": 977.5358828000001,
+          "min": 934.7964790000001,
+          "max": 1020.2752866,
+          "stdev": 60.4426445017001
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 940.4255,
+          "mean": 940.4255,
+          "min": 887.605,
+          "max": 993.246,
+          "stdev": 74.69946747132803
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 1517.529,
+          "mean": 1517.529,
+          "min": 1428.122,
+          "max": 1606.936,
+          "stdev": 126.44059197109121
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 1845.3795,
+          "mean": 1845.3795,
+          "min": 1790.212,
+          "max": 1900.547,
+          "stdev": 78.01862670221774
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 3607.8319205371054,
+          "mean": 3607.8319205371054,
+          "min": 3484.320557492526,
+          "max": 3731.3432835816843,
+          "stdev": 174.67144472483096
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 188.4920634920635,
+          "mean": 188.4920634920635,
+          "min": 187.5,
+          "max": 189.484126984127,
+          "stdev": 1.4029896452114063
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 76.38888888888889,
+          "mean": 76.38888888888889,
+          "min": 76.38888888888889,
+          "max": 76.38888888888889,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 170.5,
+          "mean": 170.5,
+          "min": 170.0,
+          "max": 171.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -2.110168437073079,
+        "p50_us": -0.419583899837761,
+        "p95_us": 1.539218146233745,
+        "p99_us": -2.1800873254114617,
+        "ops_per_s": 0.4700224162172528,
+        "subject_cpu_us_per_op": -8.212560386473433,
+        "dependency_cpu_us_per_op": 0.0,
+        "client_cpu_us_per_op": -1.1594202898550732
+      }
+    },
+    "file_stat_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 407.07264614999997,
+          "mean": 407.07264614999997,
+          "min": 406.1595647,
+          "max": 407.98572759999996,
+          "stdev": 1.291292170141281
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 402.1,
+          "mean": 402.1,
+          "min": 398.022,
+          "max": 406.178,
+          "stdev": 5.767162907357486
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 587.3,
+          "mean": 587.3,
+          "min": 570.142,
+          "max": 604.458,
+          "stdev": 24.265076303197507
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 744.3775,
+          "mean": 744.3775,
+          "min": 725.718,
+          "max": 763.037,
+          "stdev": 26.388517967100817
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9090.909090921117,
+          "mean": 9090.909090921117,
+          "min": 9090.909090921117,
+          "max": 9090.909090921117,
+          "stdev": 0.0
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 68.45238095238095,
+          "mean": 68.45238095238095,
+          "min": 68.45238095238095,
+          "max": 68.45238095238095,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 51.58730158730159,
+          "mean": 51.58730158730159,
+          "min": 51.58730158730159,
+          "max": 51.58730158730159,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 58.000000000000014,
+          "mean": 58.000000000000014,
+          "min": 58.000000000000014,
+          "max": 58.000000000000014,
+          "stdev": 0.0
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 425.78248195,
+          "mean": 425.78248195,
+          "min": 410.9811029,
+          "max": 440.58386099999996,
+          "stdev": 20.93231099433497
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 410.7555,
+          "mean": 410.7555,
+          "min": 399.637,
+          "max": 421.874,
+          "stdev": 15.723933493245275
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 623.9235,
+          "mean": 623.9235,
+          "min": 602.764,
+          "max": 645.083,
+          "stdev": 29.924051873033477
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 776.3075,
+          "mean": 776.3075,
+          "min": 767.344,
+          "max": 785.271,
+          "stdev": 12.676303266331171
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 8671.171171166283,
+          "mean": 8671.171171166283,
+          "min": 8333.33333332828,
+          "max": 9009.009009004285,
+          "stdev": 477.77485215330495
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 66.96428571428571,
+          "mean": 66.96428571428571,
+          "min": 66.46825396825396,
+          "max": 67.46031746031746,
+          "stdev": 0.7014948226057032
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 53.57142857142857,
+          "mean": 53.57142857142857,
+          "min": 52.57936507936508,
+          "max": 54.56349206349206,
+          "stdev": 1.4029896452114012
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 61.5,
+          "mean": 61.5,
+          "min": 60.0,
+          "max": 63.0,
+          "stdev": 2.1213203435596424
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": 4.596190870831873,
+        "p50_us": 2.152573986570494,
+        "p95_us": 6.235910097054331,
+        "p99_us": 4.289490211619773,
+        "ops_per_s": -4.617117117297065,
+        "subject_cpu_us_per_op": -2.1739130434782594,
+        "dependency_cpu_us_per_op": 3.8461538461538325,
+        "client_cpu_us_per_op": 6.034482758620663
+      }
+    },
+    "session_access_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 254.83620975,
+          "mean": 254.83620975,
+          "min": 249.12974309999998,
+          "max": 260.5426764,
+          "stdev": 8.070162529659775
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 245.638,
+          "mean": 245.638,
+          "min": 235.212,
+          "max": 256.064,
+          "stdev": 14.744590601301912
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 362.052,
+          "mean": 362.052,
+          "min": 349.395,
+          "max": 374.709,
+          "stdev": 17.89970105895628
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 458.49850000000004,
+          "mean": 458.49850000000004,
+          "min": 444.111,
+          "max": 472.886,
+          "stdev": 20.346997628642928
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 14389.23395441947,
+          "mean": 14389.23395441947,
+          "min": 14285.714285699436,
+          "max": 14492.753623139502,
+          "stdev": 146.39891947624085
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 22.817460317460316,
+          "mean": 22.817460317460316,
+          "min": 22.817460317460316,
+          "max": 22.817460317460316,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 44.1468253968254,
+          "mean": 44.1468253968254,
+          "min": 43.65079365079365,
+          "max": 44.642857142857146,
+          "stdev": 0.7014948226057032
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 41.00000000000001,
+          "mean": 41.00000000000001,
+          "min": 41.00000000000001,
+          "max": 41.00000000000001,
+          "stdev": 0.0
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 250.01333885,
+          "mean": 250.01333885,
+          "min": 247.80918229999997,
+          "max": 252.21749540000002,
+          "stdev": 3.117148086603522
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 242.56,
+          "mean": 242.56,
+          "min": 235.212,
+          "max": 249.908,
+          "stdev": 10.3916412563175
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 356.54949999999997,
+          "mean": 356.54949999999997,
+          "min": 349.009,
+          "max": 364.09,
+          "stdev": 10.663877367074296
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 441.148,
+          "mean": 441.148,
+          "min": 427.414,
+          "max": 454.882,
+          "stdev": 19.4228090656321
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 14599.3179880754,
+          "mean": 14599.3179880754,
+          "min": 14492.753623215915,
+          "max": 14705.882352934883,
+          "stdev": 150.70477004995735
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 22.32142857142857,
+          "mean": 22.32142857142857,
+          "min": 21.825396825396826,
+          "max": 22.817460317460316,
+          "stdev": 0.7014948226057006
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 43.154761904761905,
+          "mean": 43.154761904761905,
+          "min": 42.65873015873016,
+          "max": 43.65079365079365,
+          "stdev": 0.7014948226057032
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 41.50000000000001,
+          "mean": 41.50000000000001,
+          "min": 41.00000000000001,
+          "max": 42.00000000000001,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -1.8925375262531685,
+        "p50_us": -1.2530634510947047,
+        "p95_us": -1.519809309160025,
+        "p99_us": -3.784199948309541,
+        "ops_per_s": 1.4600084641156696,
+        "subject_cpu_us_per_op": -2.1739130434782594,
+        "dependency_cpu_us_per_op": -2.2471910112359605,
+        "client_cpu_us_per_op": 1.2195121951219523
+      }
+    },
+    "uci_get_64": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 1784.0776230000001,
+          "mean": 1784.0776230000001,
+          "min": 1751.487556,
+          "max": 1816.66769,
+          "stdev": 46.08931475004781
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 1722.812,
+          "mean": 1722.812,
+          "min": 1677.341,
+          "max": 1768.283,
+          "stdev": 64.30570489466702
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 2092.2885,
+          "mean": 2092.2885,
+          "min": 2029.198,
+          "max": 2155.379,
+          "stdev": 89.22344075689962
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 2283.1440000000002,
+          "mean": 2283.1440000000002,
+          "min": 2191.315,
+          "max": 2374.973,
+          "stdev": 129.86581721915888
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 367.3720155882994,
+          "mean": 367.3720155882994,
+          "min": 361.8110814625342,
+          "max": 372.93294971406453,
+          "stdev": 7.864348460120457
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 1510.0,
+          "mean": 1510.0,
+          "min": 1500.0,
+          "max": 1520.0,
+          "stdev": 14.142135623730951
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 170.0,
+          "mean": 170.0,
+          "min": 170.0,
+          "max": 170.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 1060.0,
+          "mean": 1060.0,
+          "min": 1050.0,
+          "max": 1070.0,
+          "stdev": 14.142135623730951
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 1684.3335045000001,
+          "mean": 1684.3335045000001,
+          "min": 1681.6608410000001,
+          "max": 1687.0061680000001,
+          "stdev": 3.779716969359543
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 1630.75,
+          "mean": 1630.75,
+          "min": 1626.634,
+          "max": 1634.866,
+          "stdev": 5.820903022727639
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 1974.7195000000002,
+          "mean": 1974.7195000000002,
+          "min": 1972.026,
+          "max": 1977.413,
+          "stdev": 3.8091842302518915
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 2134.567,
+          "mean": 2134.567,
+          "min": 2127.219,
+          "max": 2141.915,
+          "stdev": 10.39164125631744
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 381.9024908884752,
+          "mean": 381.9024908884752,
+          "min": 381.1818021538857,
+          "max": 382.62317962306463,
+          "stdev": 1.0192077827059163
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 1400.0,
+          "mean": 1400.0,
+          "min": 1400.0,
+          "max": 1400.0,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 160.0,
+          "mean": 160.0,
+          "min": 160.0,
+          "max": 160.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 1030.0,
+          "mean": 1030.0,
+          "min": 1030.0,
+          "max": 1030.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -5.590794773395347,
+        "p50_us": -5.343705523295627,
+        "p95_us": -5.619158161027982,
+        "p99_us": -6.507561502910031,
+        "ops_per_s": 3.95524827249214,
+        "subject_cpu_us_per_op": -7.284768211920534,
+        "dependency_cpu_us_per_op": -5.882352941176472,
+        "client_cpu_us_per_op": -2.8301886792452824
+      }
+    },
+    "uci_get_64_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 5597.70701,
+          "mean": 5597.70701,
+          "min": 5540.500337,
+          "max": 5654.913683,
+          "stdev": 80.9024528148423
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 5472.166499999999,
+          "mean": 5472.166499999999,
+          "min": 5434.508,
+          "max": 5509.825,
+          "stdev": 53.25716143862721
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 6556.282,
+          "mean": 6556.282,
+          "min": 6518.086,
+          "max": 6594.478,
+          "stdev": 54.017301228402616
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 8326.4515,
+          "mean": 8326.4515,
+          "min": 7128.546,
+          "max": 9524.357,
+          "stdev": 1694.0942045413235
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 557.1419703276854,
+          "mean": 557.1419703276854,
+          "min": 552.4861878460146,
+          "max": 561.7977528093562,
+          "stdev": 6.584270729037948
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 1532.4074074074074,
+          "mean": 1532.4074074074074,
+          "min": 1527.7777777777778,
+          "max": 1537.037037037037,
+          "stdev": 6.547285010986456
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 185.1851851851852,
+          "mean": 185.1851851851852,
+          "min": 185.1851851851852,
+          "max": 185.1851851851852,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 1100.0,
+          "mean": 1100.0,
+          "min": 1100.0,
+          "max": 1100.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 5836.106377,
+          "mean": 5836.106377,
+          "min": 5694.048072,
+          "max": 5978.164682,
+          "stdev": 200.9007815787337
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 5615.6205,
+          "mean": 5615.6205,
+          "min": 5488.358,
+          "max": 5742.883,
+          "stdev": 179.97635348150575
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 8335.408500000001,
+          "mean": 8335.408500000001,
+          "min": 7987.207,
+          "max": 8683.61,
+          "stdev": 492.43128373865545
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 10763.7405,
+          "mean": 10763.7405,
+          "min": 10313.09,
+          "max": 11214.391,
+          "stdev": 637.3160489902161
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 527.7963458104206,
+          "mean": 527.7963458104206,
+          "min": 520.8333333328202,
+          "max": 534.759358288021,
+          "stdev": 9.847186680795554
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 1439.8148148148148,
+          "mean": 1439.8148148148148,
+          "min": 1435.1851851851852,
+          "max": 1444.4444444444443,
+          "stdev": 6.547285010986456
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 180.55555555555554,
+          "mean": 180.55555555555554,
+          "min": 175.92592592592592,
+          "max": 185.1851851851852,
+          "stdev": 6.547285010986556
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 1115.0,
+          "mean": 1115.0,
+          "min": 1110.0,
+          "max": 1120.0,
+          "stdev": 7.0710678118654755
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": 4.258875403341267,
+        "p50_us": 2.6215211105144576,
+        "p95_us": 27.136210736511956,
+        "p99_us": 29.27164110665872,
+        "ops_per_s": -5.267171758753886,
+        "subject_cpu_us_per_op": -6.042296072507558,
+        "dependency_cpu_us_per_op": -2.5000000000000133,
+        "client_cpu_us_per_op": 1.3636363636363669
+      }
+    },
+    "uci_get_authorized": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 386.09321585,
+          "mean": 386.09321585,
+          "min": 385.0560389,
+          "max": 387.1303928,
+          "stdev": 1.4667897092707654
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 362.59000000000003,
+          "mean": 362.59000000000003,
+          "min": 362.244,
+          "max": 362.936,
+          "stdev": 0.48931789258105585
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 518.052,
+          "mean": 518.052,
+          "min": 517.976,
+          "max": 518.128,
+          "stdev": 0.1074802307403861
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 638.8515,
+          "mean": 638.8515,
+          "min": 637.158,
+          "max": 640.545,
+          "stdev": 2.3949706678787965
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 2182.4765646028227,
+          "mean": 2182.4765646028227,
+          "min": 2173.9605733453964,
+          "max": 2190.9925558602486,
+          "stdev": 12.04343033330269
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 238.0,
+          "mean": 238.0,
+          "min": 238.0,
+          "max": 238.0,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 60.5,
+          "mean": 60.5,
+          "min": 60.0,
+          "max": 61.0,
+          "stdev": 0.7071067811865476
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 171.5,
+          "mean": 171.5,
+          "min": 171.0,
+          "max": 172.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 380.08236554999996,
+          "mean": 380.08236554999996,
+          "min": 379.24574939999997,
+          "max": 380.9189817,
+          "stdev": 1.1831539058304004
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 355.16499999999996,
+          "mean": 355.16499999999996,
+          "min": 354.472,
+          "max": 355.858,
+          "stdev": 0.9800499987245719
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 522.3605,
+          "mean": 522.3605,
+          "min": 521.437,
+          "max": 523.284,
+          "stdev": 1.306026224851539
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 636.0425,
+          "mean": 636.0425,
+          "min": 631.849,
+          "max": 640.236,
+          "stdev": 5.930504573811534
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 2208.8095488539648,
+          "mean": 2208.8095488539648,
+          "min": 2202.8027032417654,
+          "max": 2214.8163944661637,
+          "stdev": 8.494962531853405
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 226.0,
+          "mean": 226.0,
+          "min": 226.0,
+          "max": 226.0,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 63.0,
+          "mean": 63.0,
+          "min": 63.0,
+          "max": 63.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 169.5,
+          "mean": 169.5,
+          "min": 169.0,
+          "max": 170.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -1.556839139679489,
+        "p50_us": -2.0477674508398103,
+        "p95_us": 0.831673268320543,
+        "p99_us": -0.4396952969508483,
+        "ops_per_s": 1.2065643534611814,
+        "subject_cpu_us_per_op": -5.042016806722693,
+        "dependency_cpu_us_per_op": 4.132231404958686,
+        "client_cpu_us_per_op": -1.1661807580174877
+      }
+    },
+    "uci_get_authorized_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 1050.8772860499998,
+          "mean": 1050.8772860499998,
+          "min": 1041.922024,
+          "max": 1059.8325481,
+          "stdev": 12.664653045715069
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 1003.5955,
+          "mean": 1003.5955,
+          "min": 1002.327,
+          "max": 1004.864,
+          "stdev": 1.7939299038702956
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 1573.1599999999999,
+          "mean": 1573.1599999999999,
+          "min": 1525.07,
+          "max": 1621.25,
+          "stdev": 68.00953021452219
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 1978.4144999999999,
+          "mean": 1978.4144999999999,
+          "min": 1942.404,
+          "max": 2014.425,
+          "stdev": 50.926537487836306
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 3401.990280027152,
+          "mean": 3401.990280027152,
+          "min": 3355.704697987069,
+          "max": 3448.2758620672353,
+          "stdev": 65.45769786341825
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 221.23015873015873,
+          "mean": 221.23015873015873,
+          "min": 219.24603174603175,
+          "max": 223.21428571428572,
+          "stdev": 2.8059792904228127
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 76.38888888888889,
+          "mean": 76.38888888888889,
+          "min": 75.39682539682539,
+          "max": 77.38095238095238,
+          "stdev": 1.4029896452114063
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 177.0,
+          "mean": 177.0,
+          "min": 177.0,
+          "max": 177.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 1039.4061041999998,
+          "mean": 1039.4061041999998,
+          "min": 1008.4070698,
+          "max": 1070.4051385999999,
+          "stdev": 43.83925486895
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 990.3605,
+          "mean": 990.3605,
+          "min": 969.624,
+          "max": 1011.097,
+          "stdev": 29.325839536149655
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 1598.5495,
+          "mean": 1598.5495,
+          "min": 1545.69,
+          "max": 1651.409,
+          "stdev": 74.75462180026065
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 1965.2554999999998,
+          "mean": 1965.2554999999998,
+          "min": 1881.235,
+          "max": 2049.276,
+          "stdev": 118.82293061736858
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 3408.351913785187,
+          "mean": 3408.351913785187,
+          "min": 3344.48160534938,
+          "max": 3472.222222220994,
+          "stdev": 90.32625642287084
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 205.35714285714283,
+          "mean": 205.35714285714283,
+          "min": 205.35714285714283,
+          "max": 205.35714285714283,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 80.85317460317461,
+          "mean": 80.85317460317461,
+          "min": 80.35714285714286,
+          "max": 81.34920634920636,
+          "stdev": 0.7014948226057032
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 177.0,
+          "mean": 177.0,
+          "min": 177.0,
+          "max": 177.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -1.091581481708248,
+        "p50_us": -1.3187584041578493,
+        "p95_us": 1.6139172112181965,
+        "p99_us": -0.6651285663343054,
+        "ops_per_s": 0.186997411350176,
+        "subject_cpu_us_per_op": -7.174887892376692,
+        "dependency_cpu_us_per_op": 5.844155844155852,
+        "client_cpu_us_per_op": 0.0
+      }
+    },
+    "session_access_granted": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 96.7355661,
+          "mean": 96.7355661,
+          "min": 96.56642509999999,
+          "max": 96.9047071,
+          "stdev": 0.23920149615335237
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 93.29249999999999,
+          "mean": 93.29249999999999,
+          "min": 93.1,
+          "max": 93.485,
+          "stdev": 0.2722361107568244
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 102.718,
+          "mean": 102.718,
+          "min": 102.256,
+          "max": 103.18,
+          "stdev": 0.6533666658163746
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 201.5885,
+          "mean": 201.5885,
+          "min": 199.742,
+          "max": 203.435,
+          "stdev": 2.6113453429219287
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9854.881978950507,
+          "mean": 9854.881978950507,
+          "min": 9844.850511536857,
+          "max": 9864.913446364159,
+          "stdev": 14.186637266888598
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 27.0,
+          "mean": 27.0,
+          "min": 27.0,
+          "max": 27.0,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 47.5,
+          "mean": 47.5,
+          "min": 47.0,
+          "max": 48.0,
+          "stdev": 0.7071067811865476
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 37.0,
+          "mean": 37.0,
+          "min": 37.0,
+          "max": 37.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 97.72291709999999,
+          "mean": 97.72291709999999,
+          "min": 96.681421,
+          "max": 98.76441319999999,
+          "stdev": 1.4728979097786798
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 93.9465,
+          "mean": 93.9465,
+          "min": 92.869,
+          "max": 95.024,
+          "stdev": 1.5238151134570108
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 107.0265,
+          "mean": 107.0265,
+          "min": 106.334,
+          "max": 107.719,
+          "stdev": 0.9793428919433619
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 208.20499999999998,
+          "mean": 208.20499999999998,
+          "min": 203.742,
+          "max": 212.668,
+          "stdev": 6.311635128871135
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9745.065813540823,
+          "mean": 9745.065813540823,
+          "min": 9628.609380753183,
+          "max": 9861.52224632846,
+          "stdev": 164.6942666738695
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 26.5,
+          "mean": 26.5,
+          "min": 26.0,
+          "max": 27.0,
+          "stdev": 0.7071067811865476
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 47.0,
+          "mean": 47.0,
+          "min": 46.0,
+          "max": 48.0,
+          "stdev": 1.4142135623730951
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 38.0,
+          "mean": 38.0,
+          "min": 37.0,
+          "max": 39.0,
+          "stdev": 1.4142135623730951
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": 1.0206701007769103,
+        "p50_us": 0.701020982394085,
+        "p95_us": 4.194493662259768,
+        "p99_us": 3.2821812752215296,
+        "ops_per_s": -1.1143326286833788,
+        "subject_cpu_us_per_op": -1.851851851851849,
+        "dependency_cpu_us_per_op": -1.0526315789473717,
+        "client_cpu_us_per_op": 2.7027027027026973
+      }
+    },
+    "session_access_granted_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 261.14902199999995,
+          "mean": 261.14902199999995,
+          "min": 254.4135518,
+          "max": 267.88449219999995,
+          "stdev": 9.525393305799795
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 245.02249999999998,
+          "mean": 245.02249999999998,
+          "min": 242.599,
+          "max": 247.446,
+          "stdev": 3.4273465684112017
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 393.52099999999996,
+          "mean": 393.52099999999996,
+          "min": 391.405,
+          "max": 395.637,
+          "stdev": 2.992475897981489
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 503.971,
+          "mean": 503.971,
+          "min": 499.893,
+          "max": 508.049,
+          "stdev": 5.767162907357486
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 14087.301587282935,
+          "mean": 14087.301587282935,
+          "min": 13888.888888866431,
+          "max": 14285.714285699436,
+          "stdev": 280.5979290476603
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 23.80952380952381,
+          "mean": 23.80952380952381,
+          "min": 23.80952380952381,
+          "max": 23.80952380952381,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 43.65079365079365,
+          "mean": 43.65079365079365,
+          "min": 43.65079365079365,
+          "max": 43.65079365079365,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 40.5,
+          "mean": 40.5,
+          "min": 40.0,
+          "max": 41.00000000000001,
+          "stdev": 0.7071067811865526
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 253.05495545000002,
+          "mean": 253.05495545000002,
+          "min": 250.0969987,
+          "max": 256.0129122,
+          "stdev": 4.183182552763054
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 248.9845,
+          "mean": 248.9845,
+          "min": 247.215,
+          "max": 250.754,
+          "stdev": 2.5024508986191827
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 367.7835,
+          "mean": 367.7835,
+          "min": 362.551,
+          "max": 373.016,
+          "stdev": 7.399872465117243
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 445.11,
+          "mean": 445.11,
+          "min": 430.875,
+          "max": 459.345,
+          "stdev": 20.13133006038103
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 14087.301587282935,
+          "mean": 14087.301587282935,
+          "min": 13888.888888866431,
+          "max": 14285.714285699436,
+          "stdev": 280.5979290476603
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 22.817460317460316,
+          "mean": 22.817460317460316,
+          "min": 22.817460317460316,
+          "max": 22.817460317460316,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 43.154761904761905,
+          "mean": 43.154761904761905,
+          "min": 42.65873015873016,
+          "max": 43.65079365079365,
+          "stdev": 0.7014948226057032
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 42.0,
+          "mean": 42.0,
+          "min": 41.00000000000001,
+          "max": 43.0,
+          "stdev": 1.41421356237309
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -3.0994052698385843,
+        "p50_us": 1.616994357661028,
+        "p95_us": -6.5403116987403305,
+        "p99_us": -11.679441872647434,
+        "ops_per_s": 0.0,
+        "subject_cpu_us_per_op": -4.166666666666674,
+        "dependency_cpu_us_per_op": -1.1363636363636354,
+        "client_cpu_us_per_op": 3.703703703703698
+      }
+    },
+    "file_list": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 599.1983824,
+          "mean": 599.1983824,
+          "min": 598.3904468000001,
+          "max": 600.006318,
+          "stdev": 1.1425934830439741
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 566.179,
+          "mean": 566.179,
+          "min": 565.063,
+          "max": 567.295,
+          "stdev": 1.5782623356083536
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 742.2615000000001,
+          "mean": 742.2615000000001,
+          "min": 731.106,
+          "max": 753.417,
+          "stdev": 15.776259395053087
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 900.9159999999999,
+          "mean": 900.9159999999999,
+          "min": 888.375,
+          "max": 913.457,
+          "stdev": 17.73565228572098
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 1191.6803065635897,
+          "mean": 1191.6803065635897,
+          "min": 1190.882118666538,
+          "max": 1192.4784944606415,
+          "stdev": 1.1288081493326807
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 457.0,
+          "mean": 457.0,
+          "min": 456.0,
+          "max": 458.0,
+          "stdev": 1.4142135623730951
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 74.0,
+          "mean": 74.0,
+          "min": 74.0,
+          "max": 74.0,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 307.0,
+          "mean": 307.0,
+          "min": 306.0,
+          "max": 308.0,
+          "stdev": 1.4142135623730951
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 541.60254375,
+          "mean": 541.60254375,
+          "min": 540.5919719,
+          "max": 542.6131156,
+          "stdev": 1.4291644160224966
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 513.127,
+          "mean": 513.127,
+          "min": 511.742,
+          "max": 514.512,
+          "stdev": 1.9586857838866836
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 673.167,
+          "mean": 673.167,
+          "min": 672.782,
+          "max": 673.552,
+          "stdev": 0.5444722215136287
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 830.8215,
+          "mean": 830.8215,
+          "min": 823.743,
+          "max": 837.9,
+          "stdev": 10.0105107012579
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 1283.8291257564615,
+          "mean": 1283.8291257564615,
+          "min": 1282.954626852185,
+          "max": 1284.7036246607383,
+          "stdev": 1.2367282107085487
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 406.5,
+          "mean": 406.5,
+          "min": 405.99999999999994,
+          "max": 407.00000000000006,
+          "stdev": 0.707106781186628
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 73.5,
+          "mean": 73.5,
+          "min": 73.0,
+          "max": 74.0,
+          "stdev": 0.7071067811865476
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 302.5,
+          "mean": 302.5,
+          "min": 301.0,
+          "max": 304.0,
+          "stdev": 2.1213203435596424
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -9.612148554091293,
+        "p50_us": -9.370181515033238,
+        "p95_us": -9.308646615781635,
+        "p99_us": -7.780359101181455,
+        "ops_per_s": 7.732679535386322,
+        "subject_cpu_us_per_op": -11.050328227571116,
+        "dependency_cpu_us_per_op": -0.6756756756756799,
+        "client_cpu_us_per_op": -1.4657980456026065
+      }
+    },
+    "file_list_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 1773.0512829,
+          "mean": 1773.0512829,
+          "min": 1744.5326266000002,
+          "max": 1801.5699392,
+          "stdev": 40.33147052011672
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 1743.6255,
+          "mean": 1743.6255,
+          "min": 1741.126,
+          "max": 1746.125,
+          "stdev": 3.534826799151568
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 2269.294,
+          "mean": 2269.294,
+          "min": 2252.638,
+          "max": 2285.95,
+          "stdev": 23.5551410948862
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 3176.558,
+          "mean": 3176.558,
+          "min": 2984.205,
+          "max": 3368.911,
+          "stdev": 272.02822136315206
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 1936.632920885256,
+          "mean": 1936.632920885256,
+          "min": 1904.7619047619048,
+          "max": 1968.5039370086072,
+          "stdev": 45.07242324825483
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 418.6507936507937,
+          "mean": 418.6507936507937,
+          "min": 418.6507936507937,
+          "max": 418.6507936507937,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 89.28571428571429,
+          "mean": 89.28571428571429,
+          "min": 89.28571428571429,
+          "max": 89.28571428571429,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 320.5,
+          "mean": 320.5,
+          "min": 319.00000000000006,
+          "max": 322.0,
+          "stdev": 2.1213203435596024
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 1670.1325863,
+          "mean": 1670.1325863,
+          "min": 1652.2238839,
+          "max": 1688.0412887,
+          "stdev": 25.32672981858365
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 1628.02,
+          "mean": 1628.02,
+          "min": 1598.088,
+          "max": 1657.952,
+          "stdev": 42.330240348951506
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 2270.1,
+          "mean": 2270.1,
+          "min": 2220.241,
+          "max": 2319.959,
+          "stdev": 70.51127400636004
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 2893.911,
+          "mean": 2893.911,
+          "min": 2794.076,
+          "max": 2993.746,
+          "stdev": 141.18801099951799
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 2045.1266180132561,
+          "mean": 2045.1266180132561,
+          "min": 2028.397565922801,
+          "max": 2061.8556701037114,
+          "stdev": 23.6584523519677
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 375.9920634920635,
+          "mean": 375.9920634920635,
+          "min": 375.0,
+          "max": 376.984126984127,
+          "stdev": 1.4029896452114063
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 92.26190476190476,
+          "mean": 92.26190476190476,
+          "min": 91.26984126984127,
+          "max": 93.25396825396825,
+          "stdev": 1.4029896452114063
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 316.5,
+          "mean": 316.5,
+          "min": 315.00000000000006,
+          "max": 318.0,
+          "stdev": 2.1213203435596024
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -5.804609127360738,
+        "p50_us": -6.630179473745946,
+        "p95_us": 0.035517654389427555,
+        "p99_us": -8.89790143923076,
+        "ops_per_s": 5.602181805233708,
+        "subject_cpu_us_per_op": -10.189573459715639,
+        "dependency_cpu_us_per_op": 3.3333333333333215,
+        "client_cpu_us_per_op": -1.2480499219968744
+      }
+    },
+    "session_access_64": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 97.3195259,
+          "mean": 97.3195259,
+          "min": 97.07284010000001,
+          "max": 97.5662117,
+          "stdev": 0.3488664040048491
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 93.9845,
+          "mean": 93.9845,
+          "min": 93.715,
+          "max": 94.254,
+          "stdev": 0.3811305550595502
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 103.68,
+          "mean": 103.68,
+          "min": 103.334,
+          "max": 104.026,
+          "stdev": 0.489317892581086
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 199.70350000000002,
+          "mean": 199.70350000000002,
+          "min": 198.434,
+          "max": 200.973,
+          "stdev": 1.7953441174326552
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9799.179093485898,
+          "mean": 9799.179093485898,
+          "min": 9779.292143325787,
+          "max": 9819.06604364601,
+          "stdev": 28.12439463066699
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 29.5,
+          "mean": 29.5,
+          "min": 29.0,
+          "max": 30.0,
+          "stdev": 0.7071067811865476
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 48.0,
+          "mean": 48.0,
+          "min": 47.0,
+          "max": 49.0,
+          "stdev": 1.4142135623730951
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 37.5,
+          "mean": 37.5,
+          "min": 37.0,
+          "max": 38.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 100.73872365,
+          "mean": 100.73872365,
+          "min": 100.562784,
+          "max": 100.9146633,
+          "stdev": 0.2488162391891807
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 97.10149999999999,
+          "mean": 97.10149999999999,
+          "min": 96.948,
+          "max": 97.255,
+          "stdev": 0.21708178182427162
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 110.8735,
+          "mean": 110.8735,
+          "min": 109.643,
+          "max": 112.104,
+          "stdev": 1.7401897885000923
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 209.0515,
+          "mean": 209.0515,
+          "min": 203.281,
+          "max": 214.822,
+          "stdev": 8.160719361673943
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 9439.495438611606,
+          "mean": 9439.495438611606,
+          "min": 9419.027090475425,
+          "max": 9459.963786747787,
+          "stdev": 28.94661553356094
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 31.0,
+          "mean": 31.0,
+          "min": 31.0,
+          "max": 31.0,
+          "stdev": 0.0
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 47.0,
+          "mean": 47.0,
+          "min": 46.0,
+          "max": 48.0,
+          "stdev": 1.4142135623730951
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 39.0,
+          "mean": 39.0,
+          "min": 39.0,
+          "max": 39.0,
+          "stdev": 0.0
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": 3.513372797883707,
+        "p50_us": 3.31650431720123,
+        "p95_us": 6.93817515432098,
+        "p99_us": 4.680939492798064,
+        "ops_per_s": -3.6705488433556144,
+        "subject_cpu_us_per_op": 5.084745762711873,
+        "dependency_cpu_us_per_op": -2.083333333333337,
+        "client_cpu_us_per_op": 4.0000000000000036
+      }
+    },
+    "session_access_64_c4": {
+      "stock": {
+        "mean_us": {
+          "n": 2,
+          "median": 262.42663325,
+          "mean": 262.42663325,
+          "min": 247.5072923,
+          "max": 277.3459742,
+          "stdev": 21.099134313158306
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 249.87,
+          "mean": 249.87,
+          "min": 235.212,
+          "max": 264.528,
+          "stdev": 20.72954239726485
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 385.2115,
+          "mean": 385.2115,
+          "min": 361.013,
+          "max": 409.41,
+          "stdev": 34.22184688908538
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 488.69849999999997,
+          "mean": 488.69849999999997,
+          "min": 432.568,
+          "max": 544.829,
+          "stdev": 79.38051436278299
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 13931.888544902351,
+          "mean": 13931.888544902351,
+          "min": 13157.89473686982,
+          "max": 14705.882352934883,
+          "stdev": 1094.5925405124044
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 24.305555555555557,
+          "mean": 24.305555555555557,
+          "min": 23.80952380952381,
+          "max": 24.8015873015873,
+          "stdev": 0.7014948226057006
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 43.65079365079365,
+          "mean": 43.65079365079365,
+          "min": 43.65079365079365,
+          "max": 43.65079365079365,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 39.5,
+          "mean": 39.5,
+          "min": 39.0,
+          "max": 40.0,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate": {
+        "mean_us": {
+          "n": 2,
+          "median": 260.7880478,
+          "mean": 260.7880478,
+          "min": 250.3239474,
+          "max": 271.2521482,
+          "stdev": 14.798472703713738
+        },
+        "p50_us": {
+          "n": 2,
+          "median": 247.48449999999997,
+          "mean": 247.48449999999997,
+          "min": 237.367,
+          "max": 257.602,
+          "stdev": 14.308305717309779
+        },
+        "p95_us": {
+          "n": 2,
+          "median": 372.24649999999997,
+          "mean": 372.24649999999997,
+          "min": 365.399,
+          "max": 379.094,
+          "stdev": 9.683827368349764
+        },
+        "p99_us": {
+          "n": 2,
+          "median": 482.004,
+          "mean": 482.004,
+          "min": 451.035,
+          "max": 512.973,
+          "stdev": 43.79677981313233
+        },
+        "ops_per_s": {
+          "n": 2,
+          "median": 14095.691880105205,
+          "mean": 14095.691880105205,
+          "min": 13698.630136994494,
+          "max": 14492.753623215915,
+          "stdev": 561.5301022066683
+        },
+        "subject_cpu_us_per_op": {
+          "n": 2,
+          "median": 25.79365079365079,
+          "mean": 25.79365079365079,
+          "min": 24.8015873015873,
+          "max": 26.785714285714285,
+          "stdev": 1.402989645211404
+        },
+        "dependency_cpu_us_per_op": {
+          "n": 2,
+          "median": 43.65079365079365,
+          "mean": 43.65079365079365,
+          "min": 43.65079365079365,
+          "max": 43.65079365079365,
+          "stdev": 0.0
+        },
+        "client_cpu_us_per_op": {
+          "n": 2,
+          "median": 41.50000000000001,
+          "mean": 41.50000000000001,
+          "min": 41.00000000000001,
+          "max": 42.00000000000001,
+          "stdev": 0.7071067811865476
+        }
+      },
+      "candidate_vs_stock_pct": {
+        "mean_us": -0.6243975429273574,
+        "p50_us": -0.9546964421499271,
+        "p95_us": -3.3656835271013485,
+        "p99_us": -1.3698630136986245,
+        "ops_per_s": 1.1757439393440317,
+        "subject_cpu_us_per_op": 6.122448979591821,
+        "dependency_cpu_us_per_op": 0.0,
+        "client_cpu_us_per_op": 5.063291139240533
+      }
+    }
+  },
+  "measured_sides": [
+    "stock",
+    "candidate"
+  ],
+  "resident": [
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "VmRSS": 2004,
+      "RssAnon": 608,
+      "RssFile": 1396,
+      "RssShmem": 0,
+      "VmHWM": 2004,
+      "VmPTE": 36,
+      "Threads": 1,
+      "fds": 11,
+      "temperature_millic": 59488
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "VmRSS": 1144,
+      "RssAnon": 88,
+      "RssFile": 4,
+      "RssShmem": 1052,
+      "VmHWM": 1144,
+      "VmPTE": 28,
+      "Threads": 1,
+      "fds": 6,
+      "temperature_millic": 59640
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "VmRSS": 1144,
+      "RssAnon": 88,
+      "RssFile": 4,
+      "RssShmem": 1052,
+      "VmHWM": 1144,
+      "VmPTE": 28,
+      "Threads": 1,
+      "fds": 6,
+      "temperature_millic": 59640
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "VmRSS": 2012,
+      "RssAnon": 608,
+      "RssFile": 1404,
+      "RssShmem": 0,
+      "VmHWM": 2012,
+      "VmPTE": 32,
+      "Threads": 1,
+      "fds": 11,
+      "temperature_millic": 59944
+    }
+  ],
+  "sources": [
+    {
+      "run": "01-stock",
+      "subject_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+      "archive_sha256": "dc0d2888bdc139fe1b28fa7fe9314ac7536da6813b41c1a37276d406aa5c0d6b",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "02-candidate",
+      "subject_sha256": "f94fa1f8222482acd6b9110c9d4f88da2a9ee72d9ad33115a0c15fe9adb2a3d7",
+      "archive_sha256": "d3d49573af9d1dbe082f992a1664cc74e2025b031fc638f63fa319f49f9a4a0a",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "03-candidate",
+      "subject_sha256": "f94fa1f8222482acd6b9110c9d4f88da2a9ee72d9ad33115a0c15fe9adb2a3d7",
+      "archive_sha256": "2f40a8ca9613d4454ffcaf6aebaf1bd7b1372729b46ad369f3db3a48dcd0c37e",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "04-stock",
+      "subject_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+      "archive_sha256": "fdfec5e696e26de7bf039ddbcd5f714f8b6f7b1604f3d5d436b533fac2056aaa",
+      "kernel": "6.12.94"
+    }
+  ],
+  "method": "Medians of per-run statistics; c4 CPU uses one outer interval divided by successful plus warm-up operations. c4 outer throughput includes warm-up/startup and uses /proc/uptime resolution. Client validation runs on the same router CPUs."
+}

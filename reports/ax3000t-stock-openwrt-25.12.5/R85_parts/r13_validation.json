@@ -1,0 +1,23 @@
+{
+  "subject_sha256": "0d2a53249fbd5c0ae282e28906791f0fa4924f8d515be9eb166cb390587a0340",
+  "uci_sha256": "cc8652573569d710818c2a294c1a1223294f186749942a316dced11b737c24f4",
+  "uci_unit_tests": 21,
+  "r16": {
+    "steps": 182,
+    "identical": 182,
+    "differences": 0
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0
+  },
+  "r24": {
+    "cases": 500,
+    "seed": 24,
+    "differences": 0
+  },
+  "completion_marker": true,
+  "orchestration_note": "Local SSH session ended with connection reset. Remote per-gate JSON/logs and completion marker were fetched and independently verified; no tests were restarted.",
+  "source_archive_sha256": "be5d5b284fe3fd7c980fcbf1005d9ac001b5bbefcfcb653a12b0ef1e144ba06b"
+}

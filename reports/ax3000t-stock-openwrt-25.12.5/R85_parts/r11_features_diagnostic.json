@@ -1,0 +1,45 @@
+{
+  "subject_sha256": "7f0831b50d0174a73a34e27e6a5bcd07eb42c580c0f78187c64470dde871980f",
+  "scope": "Actual getFeatures in disposable exact-image rootfs; SIGCHLD is injected only for diagnosis, not performance measurement.",
+  "runs": [
+    {
+      "side": "candidate",
+      "signals": false,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "false_netifd_vrf": 0,
+      "false_odhcpd": 0
+    },
+    {
+      "side": "candidate",
+      "signals": true,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "false_netifd_vrf": 0,
+      "false_odhcpd": 0
+    },
+    {
+      "side": "original",
+      "signals": false,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "false_netifd_vrf": 0,
+      "false_odhcpd": 0
+    },
+    {
+      "side": "original",
+      "signals": true,
+      "calls": 64,
+      "missing_dnsmasq": 56,
+      "false_netifd_vrf": 61,
+      "false_odhcpd": 60
+    }
+  ],
+  "normal_128_payloads_identical": true,
+  "original_fuzz_observations": [
+    "Initial R26: netifd_vrf false on original, true on candidate",
+    "Single R26 recheck: odhcpd false on original, feature table on candidate"
+  ],
+  "limitation": "The failed fuzz invocations were not syscall-traced; matching signal-induced observations do not identify their actual errno.",
+  "source_archive_sha256": "19b75bf2f11868457fa2568bc7509ab4de4fbcc3a4e9bbb76cba00f7523ab782"
+}

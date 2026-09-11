@@ -1,0 +1,16 @@
+{
+  "subject_sha256": "3ca780f7caad44fb9d21962e40225e841f7f0bc4dc2100b4ae350fa1f6e53a1d",
+  "rpcd_unit_tests": 44,
+  "r13": {
+    "requests": 63,
+    "identical": 63,
+    "differences": 0
+  },
+  "r83_bytes": "pass",
+  "source_sha256": {
+    "r08-r13.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "r08-r13.json": "f25f0075682f2556adbcb4bbe1fcfa53cc35a8d57b18ce998a0752464ce4240c",
+    "r08-rpcd-tests.log": "78ce618bb545d18181ad0cb75adf7688a6408b31533ea96d18236d287b1eb6db",
+    "r08-bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279"
+  }
+}

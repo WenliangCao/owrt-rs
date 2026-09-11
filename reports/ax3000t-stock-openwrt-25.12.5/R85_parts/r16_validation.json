@@ -1,0 +1,73 @@
+{
+  "subject_sha256": "461f3d803f8cd9b98cf660a8023cf710ad21d3ae5c2ddee07d7c93847e8d2b06",
+  "uci_sha256": "d52e3cdbf9b9ee502af851bd9eb11da323104994bce4182e58cd1fced21abef4",
+  "ubus_unit_tests": 20,
+  "rpcd_unit_tests": 45,
+  "r13": {
+    "steps": 63,
+    "identical": 63,
+    "differences": 0
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differences": 0
+  },
+  "r18": {
+    "steps": 77,
+    "identical": 77,
+    "differences": 0
+  },
+  "r19": {
+    "steps": 11,
+    "identical": 11,
+    "differences": 0
+  },
+  "r26": {
+    "steps": 733,
+    "cases_per_method": 10,
+    "seed": 26,
+    "differences": 0
+  },
+  "r83_bytes": "PASS",
+  "r83_defer": "PASS",
+  "evidence_archive_sha256": "391dd62c6969b920d99c3aedfa736f12d8f2d864fa37bfabe59ed7df756dd3d1",
+  "takeover_source_check": {
+    "files": 55,
+    "different": 0,
+    "scope": "rpcd/ubus/uci sources, examples, tests and Cargo manifests/locks compared against existing build-host candidate; current correspondence, not an independently reproducible release build"
+  },
+  "router_matrix": {
+    "workloads": 18,
+    "runs_per_side": 2,
+    "raw_file_hashes_verified": 344
+  },
+  "remaining": [
+    "shared-library consumers: release rebuild and runtime regression gates",
+    "formal four-repeat performance acceptance and canonical build",
+    "retained-memory investigation"
+  ],
+  "takeover_additional_validation": {
+    "source_archive_sha256": "f89ad5cf87b64584ea44fe28722d2b8ce7f17845cf38b37dd5ee2f44ded50a7b",
+    "log_sha256": "b5e414e6817a53d53190637c6659c1e1eda5621729e5dfd3f2078b70f242b55c",
+    "host": "aarch64 Linux; pinned Rust 1.98.1",
+    "all_component_unit_tests": {
+      "ubus": 23,
+      "uci": 21,
+      "reload-config": 9,
+      "logd": 5,
+      "httpd": 30,
+      "fw4": 14,
+      "rpcd": 45,
+      "ubusd": 21,
+      "netifd": 151,
+      "procd": 71
+    },
+    "total_unit_tests": 390,
+    "new_ubus_tests": [
+      "buffer lazy allocation, exact 4 KiB threshold and 1 MiB frame",
+      "queued/socket ordering and timeout",
+      "malformed version/length and truncated payload close SCM_RIGHTS descriptor"
+    ]
+  }
+}

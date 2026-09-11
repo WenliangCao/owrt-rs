@@ -49,13 +49,103 @@ pub struct Delta {
     pub value: Option<Vec<u8>>,
 }
 
-/// struct uci_option: UCI_TYPE_STRING or UCI_TYPE_LIST.
+/// Owned immutable UCI value. Short values need no separate heap allocation;
+/// longer values retain their complete bytes in an exact-sized allocation.
+/// The inline size keeps this representation the size of Vec on 64-bit hosts.
 #[derive(Clone, Debug, PartialEq, Eq)]
-/// option/list values are bytes: libuci keeps them byte for byte (any byte >= 0x20 plus
-/// tab/CR/LF) and never assumes UTF-8
+pub struct Bytes(StoredBytes);
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum StoredBytes {
+    Inline { len: u8, data: [u8; 15] },
+    Heap(Box<[u8]>),
+}
+
+impl Bytes {
+    pub fn as_slice(&self) -> &[u8] {
+        match &self.0 {
+            StoredBytes::Inline { len, data } => &data[..usize::from(*len)],
+            StoredBytes::Heap(data) => data,
+        }
+    }
+}
+
+impl Default for Bytes {
+    fn default() -> Self {
+        Self(StoredBytes::Inline { len: 0, data: [0; 15] })
+    }
+}
+
+impl From<&[u8]> for Bytes {
+    fn from(value: &[u8]) -> Self {
+        if value.len() <= 15 {
+            let mut data = [0; 15];
+            data[..value.len()].copy_from_slice(value);
+            Self(StoredBytes::Inline { len: value.len() as u8, data })
+        } else {
+            Self(StoredBytes::Heap(value.into()))
+        }
+    }
+}
+
+impl From<&str> for Bytes {
+    fn from(value: &str) -> Self {
+        Self::from(value.as_bytes())
+    }
+}
+
+impl From<Vec<u8>> for Bytes {
+    fn from(value: Vec<u8>) -> Self {
+        if value.len() <= 15 {
+            Self::from(value.as_slice())
+        } else {
+            Self(StoredBytes::Heap(value.into_boxed_slice()))
+        }
+    }
+}
+
+impl std::ops::Deref for Bytes {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        self.as_slice()
+    }
+}
+
+#[cfg(test)]
+mod storage_tests {
+    use super::{Bytes, Section};
+
+    #[test]
+    fn metadata_owns_utf8_across_short_and_long_values() {
+        for value in ["", "123456789012345", "1234567890123456", "接口名称", "接口名称非常长的元数据"] {
+            let source = value.to_owned();
+            let section = Section {
+                name: source.clone(),
+                ty: source.clone(),
+                anonymous: false,
+                options: vec![],
+            };
+            drop(source);
+            assert_eq!(section.name.as_str(), value);
+            assert_eq!(section.ty.as_bytes(), value.as_bytes());
+            assert_eq!(section.clone(), section);
+        }
+    }
+
+    #[test]
+    #[cfg(target_pointer_width = "64")]
+    fn inline_values_do_not_enlarge_each_value() {
+        assert!(std::mem::size_of::<Bytes>() <= std::mem::size_of::<Vec<u8>>());
+    }
+}
+
+/// struct uci_option: UCI_TYPE_STRING or UCI_TYPE_LIST. Values are bytes:
+/// libuci preserves them and never assumes UTF-8.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum OptionValue {
-    Str(Vec<u8>),
-    List(Vec<Vec<u8>>),
+    Str(Bytes),
+    List(Vec<Bytes>),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

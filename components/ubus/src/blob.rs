@@ -193,9 +193,14 @@ impl Default for BlobBuf {
 impl BlobBuf {
     /// Head attr with id 0 and (for now) empty payload.
     pub fn new() -> Self {
-        Self {
-            data: vec![0, 0, 0, 4],
-        }
+        Self::with_capacity(4)
+    }
+
+    /// Reserve storage for a known common reply size; larger values still grow.
+    pub fn with_capacity(capacity: usize) -> Self {
+        let mut data = Vec::with_capacity(capacity.max(4));
+        data.extend_from_slice(&[0, 0, 0, 4]);
+        Self { data }
     }
 
     /// blob_buf_init(): drop everything but the empty head, keeping the allocation.

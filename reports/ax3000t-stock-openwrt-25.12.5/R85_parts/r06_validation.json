@@ -1,0 +1,17 @@
+{
+  "subject_sha256": "f69c9b7bc2dc94b5fe4b4781300b14b07e43bf3c8d5994020e9869d2fde35d6e",
+  "rpcd_unit_tests": 44,
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0,
+    "differing": [],
+    "sids_captured": [
+      8,
+      8
+    ]
+  },
+  "source_sha256": {
+    "r17.json": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c"
+  }
+}

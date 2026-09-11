@@ -1,0 +1,879 @@
+{
+  "subject_sha256": "7f0831b50d0174a73a34e27e6a5bcd07eb42c580c0f78187c64470dde871980f",
+  "ubus_unit_tests": 17,
+  "rpcd_unit_tests": 44,
+  "differential_gates": {
+    "r13_rpcd_check": {
+      "requests": [
+        {
+          "id": "file_read",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/etc/passwd"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_read_b64",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/etc/passwd",
+            "base64": true
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_read_canon",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/etc//config/../passwd"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_read_missing",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/nonexistent"
+          },
+          "identical": true,
+          "rc": [
+            4,
+            4
+          ]
+        },
+        {
+          "id": "file_read_dir",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/etc"
+          },
+          "identical": true,
+          "rc": [
+            5,
+            5
+          ]
+        },
+        {
+          "id": "file_read_noarg",
+          "object": "file",
+          "method": "read",
+          "args": {},
+          "identical": true,
+          "rc": [
+            2,
+            2
+          ]
+        },
+        {
+          "id": "file_read_denied",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/etc/passwd",
+            "ubus_rpc_session": "00000000000000000000000000000000"
+          },
+          "identical": true,
+          "rc": [
+            6,
+            6
+          ]
+        },
+        {
+          "id": "file_stat",
+          "object": "file",
+          "method": "stat",
+          "args": {
+            "path": "/etc/passwd"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_stat_dir",
+          "object": "file",
+          "method": "stat",
+          "args": {
+            "path": "/etc/config/"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_lstat_link",
+          "object": "file",
+          "method": "lstat",
+          "args": {
+            "path": "/etc/rc.d/S19firewall"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_stat_link",
+          "object": "file",
+          "method": "stat",
+          "args": {
+            "path": "/etc/rc.d/S19firewall"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_list",
+          "object": "file",
+          "method": "list",
+          "args": {
+            "path": "/etc/config"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_list_rcd",
+          "object": "file",
+          "method": "list",
+          "args": {
+            "path": "/etc/rc.d"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_list_file",
+          "object": "file",
+          "method": "list",
+          "args": {
+            "path": "/etc/passwd"
+          },
+          "identical": true,
+          "rc": [
+            2,
+            2
+          ]
+        },
+        {
+          "id": "file_md5",
+          "object": "file",
+          "method": "md5",
+          "args": {
+            "path": "/etc/passwd"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_md5_dir",
+          "object": "file",
+          "method": "md5",
+          "args": {
+            "path": "/etc"
+          },
+          "identical": true,
+          "rc": [
+            8,
+            8
+          ]
+        },
+        {
+          "id": "file_write",
+          "object": "file",
+          "method": "write",
+          "args": {
+            "path": "/tmp/r13-w.txt",
+            "data": "hello\nworld\n"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_write_read",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/tmp/r13-w.txt"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_write_append",
+          "object": "file",
+          "method": "write",
+          "args": {
+            "path": "/tmp/r13-w.txt",
+            "data": "more",
+            "append": true
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_write_read2",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/tmp/r13-w.txt"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_write_b64",
+          "object": "file",
+          "method": "write",
+          "args": {
+            "path": "/tmp/r13-b.bin",
+            "data": "AAEC/w==",
+            "base64": true,
+            "mode": 384
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_write_b64_stat",
+          "object": "file",
+          "method": "stat",
+          "args": {
+            "path": "/tmp/r13-b.bin"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_write_b64_read",
+          "object": "file",
+          "method": "read",
+          "args": {
+            "path": "/tmp/r13-b.bin",
+            "base64": true
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_write_nodata",
+          "object": "file",
+          "method": "write",
+          "args": {
+            "path": "/tmp/r13-n.txt"
+          },
+          "identical": true,
+          "rc": [
+            2,
+            2
+          ]
+        },
+        {
+          "id": "file_remove",
+          "object": "file",
+          "method": "remove",
+          "args": {
+            "path": "/tmp/r13-w.txt"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_remove_gone",
+          "object": "file",
+          "method": "stat",
+          "args": {
+            "path": "/tmp/r13-w.txt"
+          },
+          "identical": true,
+          "rc": [
+            4,
+            4
+          ]
+        },
+        {
+          "id": "file_remove_missing",
+          "object": "file",
+          "method": "remove",
+          "args": {
+            "path": "/tmp/r13-none"
+          },
+          "identical": true,
+          "rc": [
+            4,
+            4
+          ]
+        },
+        {
+          "id": "file_exec_echo",
+          "object": "file",
+          "method": "exec",
+          "args": {
+            "command": "echo",
+            "params": [
+              "a",
+              "b c"
+            ]
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_exec_sh",
+          "object": "file",
+          "method": "exec",
+          "args": {
+            "command": "/bin/sh",
+            "params": [
+              "-c",
+              "echo out; echo err >&2; exit 3"
+            ]
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_exec_env",
+          "object": "file",
+          "method": "exec",
+          "args": {
+            "command": "/bin/sh",
+            "params": [
+              "-c",
+              "echo $FOO"
+            ],
+            "env": {
+              "FOO": "bar"
+            }
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "file_exec_missing",
+          "object": "file",
+          "method": "exec",
+          "args": {
+            "command": "nosuchcmd"
+          },
+          "identical": true,
+          "rc": [
+            4,
+            4
+          ]
+        },
+        {
+          "id": "file_exec_noarg",
+          "object": "file",
+          "method": "exec",
+          "args": {},
+          "identical": true,
+          "rc": [
+            2,
+            2
+          ]
+        },
+        {
+          "id": "file_exec_denied_env",
+          "object": "file",
+          "method": "exec",
+          "args": {
+            "command": "echo",
+            "env": {
+              "A": "b"
+            },
+            "ubus_rpc_session": "00000000000000000000000000000000"
+          },
+          "identical": true,
+          "rc": [
+            6,
+            6
+          ]
+        },
+        {
+          "id": "file_exec_denied",
+          "object": "file",
+          "method": "exec",
+          "args": {
+            "command": "echo",
+            "ubus_rpc_session": "00000000000000000000000000000000"
+          },
+          "identical": true,
+          "rc": [
+            6,
+            6
+          ]
+        },
+        {
+          "id": "luci_version",
+          "object": "luci",
+          "method": "getVersion",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initlist",
+          "object": "luci",
+          "method": "getInitList",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initlist_one",
+          "object": "luci",
+          "method": "getInitList",
+          "args": {
+            "name": "firewall"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initlist_none",
+          "object": "luci",
+          "method": "getInitList",
+          "args": {
+            "name": "nosuch"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initlist_badarg",
+          "object": "luci",
+          "method": "getInitList",
+          "args": {
+            "nam": "x"
+          },
+          "identical": true,
+          "rc": [
+            2,
+            2
+          ]
+        },
+        {
+          "id": "luci_initlist_badtype",
+          "object": "luci",
+          "method": "getInitList",
+          "args": {
+            "name": 1
+          },
+          "identical": true,
+          "rc": [
+            2,
+            2
+          ]
+        },
+        {
+          "id": "luci_initaction_bad",
+          "object": "luci",
+          "method": "setInitAction",
+          "args": {
+            "name": "cron",
+            "action": "bogus"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initaction_none",
+          "object": "luci",
+          "method": "setInitAction",
+          "args": {
+            "name": "nosuch",
+            "action": "disable"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initaction_disable",
+          "object": "luci",
+          "method": "setInitAction",
+          "args": {
+            "name": "cron",
+            "action": "disable"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initlist_cron",
+          "object": "luci",
+          "method": "getInitList",
+          "args": {
+            "name": "cron"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initaction_enable",
+          "object": "luci",
+          "method": "setInitAction",
+          "args": {
+            "name": "cron",
+            "action": "enable"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_initlist_cron2",
+          "object": "luci",
+          "method": "getInitList",
+          "args": {
+            "name": "cron"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_unixtime",
+          "object": "luci",
+          "method": "getUnixtime",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_timezones",
+          "object": "luci",
+          "method": "getTimezones",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_leds",
+          "object": "luci",
+          "method": "getLEDs",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_usb",
+          "object": "luci",
+          "method": "getUSBDevices",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_helpers",
+          "object": "luci",
+          "method": "getConntrackHelpers",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_features",
+          "object": "luci",
+          "method": "getFeatures",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_swfeat",
+          "object": "luci",
+          "method": "getSwconfigFeatures",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_swport",
+          "object": "luci",
+          "method": "getSwconfigPortState",
+          "args": {
+            "switch": "switch0"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_block",
+          "object": "luci",
+          "method": "getBlockDevices",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_mounts",
+          "object": "luci",
+          "method": "getMountPoints",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_rt_bad",
+          "object": "luci",
+          "method": "getRealtimeStats",
+          "args": {
+            "mode": "bogus"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_rt_load",
+          "object": "luci",
+          "method": "getRealtimeStats",
+          "args": {
+            "mode": "load"
+          },
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_conntrack",
+          "object": "luci",
+          "method": "getConntrackList",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_procs",
+          "object": "luci",
+          "method": "getProcessList",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_ports",
+          "object": "luci",
+          "method": "getBuiltinEthernetPorts",
+          "args": {},
+          "identical": true,
+          "rc": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "luci_odhcp6c",
+          "object": "luci",
+          "method": "getOdhcp6cStats",
+          "args": {},
+          "identical": true,
+          "rc": [
+            5,
+            5
+          ]
+        },
+        {
+          "id": "luci_nomethod",
+          "object": "luci",
+          "method": "noSuchMethod",
+          "args": {},
+          "identical": true,
+          "rc": [
+            3,
+            3
+          ]
+        }
+      ],
+      "identical": 63,
+      "differ": 0
+    },
+    "r17_rpcd_core_check": {
+      "steps": 283,
+      "identical": 283,
+      "differ": 0
+    },
+    "r18_rpcd_plugins_check": {
+      "steps": 77,
+      "identical": 77,
+      "differ": 0
+    },
+    "r19_lucirpc_check": {
+      "pairs": 11,
+      "identical": 11,
+      "differ": 0
+    }
+  },
+  "r26": {
+    "seed": 26,
+    "cases_per_method": 10,
+    "initial": {
+      "steps": 733,
+      "identical": 732,
+      "differences": 1,
+      "observation": "Original getFeatures: netifd_vrf=false; candidate=true"
+    },
+    "single_recheck": {
+      "steps": 733,
+      "identical": 732,
+      "differences": 1,
+      "observation": "Original getFeatures: odhcpd=false; candidate returned feature table"
+    },
+    "status": "Both failures retained. Not a zero-difference fuzz pass. Isolated feature diagnosis recorded separately; no output mask or further same-binary retry."
+  },
+  "bytes": "pass",
+  "defer": "pass",
+  "source_sha256": {
+    "RECHECK_FAILED": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "features-diagnostic.log": "2d8a6cc370cefb096133442190f2fcb983513614311ebd3242a9ece2f05d139b",
+    "r13_rpcd_check.json": "f25f0075682f2556adbcb4bbe1fcfa53cc35a8d57b18ce998a0752464ce4240c",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "r17_rpcd_core_check.json": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c",
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.json": "8ebc074680665c558d29569c8574ad9c8b880e52417ebc0da2515b0572278891",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r19_lucirpc_check.json": "e0914ad924da2a99045be8e1ffdf7fec1c24a757ccc5e8acf329ffbc62ce5a1d",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "r26-recheck.log": "6962cae0b3d8427b328620d02ba91033ef02731dc4d31c84bf36eca9735bf8ef",
+    "r26.log": "2551c049cf4660bb34901f824035264ebaf19bc256bb4c76f26ca1996f63c250"
+  }
+}

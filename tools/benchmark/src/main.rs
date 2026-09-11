@@ -462,7 +462,7 @@ fn main_inner(a: &[String]) -> Result<()> {
         .get(1)
         .ok_or("missing mode: rpc/lookup/exec/http/syslog/serve/snapshot/idle")?;
     match mode.as_str() {
-        "rpc" => {
+        "rpc" | "rpc-wire" => {
             require(
                 a.len() == 10,
                 "rpc SOCKET OBJECT METHOD INPUT_JSON EXPECT_JSON N WARMUP PIDS",
@@ -471,6 +471,13 @@ fn main_inner(a: &[String]) -> Result<()> {
             let expected = read_json(&a[6])?;
             let mut c = Connection::connect(Some(&a[2]))?;
             let target = c.lookup_id(&a[3], 3000)?;
+            // Diagnostic for repeated immutable replies: establish a fully
+            // validated reference, then compare every reply's complete DATA
+            // bytes. This separates client JSON work from server/IPC costs.
+            // The frozen R84 client and ordinary rpc mode remain the timing
+            // reference; rpc-wire is never a replacement for that workload.
+            let wire_validation = mode == "rpc-wire";
+            let mut reference = None;
             measure(
                 a[7].parse()?,
                 a[8].parse()?,
@@ -479,10 +486,28 @@ fn main_inner(a: &[String]) -> Result<()> {
                     let t = Instant::now();
                     let reply = c.invoke(target, &a[4], &payload, 5000)?;
                     let elapsed = t.elapsed().as_nanos() as u64;
-                    require(
-                        contains(&fields_to_json(&reply.fields()), &expected),
-                        "RPC reply failed validation",
-                    )?;
+                    if wire_validation {
+                        if let Some(reference) = &reference {
+                            require(
+                                reply.fd.is_none() && reply.data == *reference,
+                                "RPC reply changed from reference",
+                            )?;
+                        } else {
+                            // The first warm-up call is the reference: no
+                            // uncounted extra request in the outer CPU interval.
+                            require(
+                                reply.fd.is_none()
+                                    && contains(&fields_to_json(&reply.fields()), &expected),
+                                "RPC reference failed validation",
+                            )?;
+                            reference = Some(reply.data);
+                        }
+                    } else {
+                        require(
+                            contains(&fields_to_json(&reply.fields()), &expected),
+                            "RPC reply failed validation",
+                        )?;
+                    }
                     Ok(elapsed)
                 },
                 || Ok(()),

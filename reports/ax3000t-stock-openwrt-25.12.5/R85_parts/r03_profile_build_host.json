@@ -1,0 +1,252 @@
+{
+  "host": "aarch64 Linux build host",
+  "method": "Actual owrt_uci parser; five paired runs of 20,000 calls with allocation counting separate. Input is already in memory. Includes constructing a fresh context; excludes ACL, IPC and reply serialization.",
+  "runs": [
+    {
+      "run": "r02-1",
+      "side": "r02",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 9187.83,
+      "allocs": 144.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2853.0
+    },
+    {
+      "run": "r02-1",
+      "side": "r02",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 246546.49,
+      "allocs": 2827.0,
+      "reallocs": 4.0,
+      "requested_bytes": 52241.0
+    },
+    {
+      "run": "r02-2",
+      "side": "r02",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 9147.8,
+      "allocs": 144.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2853.0
+    },
+    {
+      "run": "r02-2",
+      "side": "r02",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 246001.58,
+      "allocs": 2827.0,
+      "reallocs": 4.0,
+      "requested_bytes": 52241.0
+    },
+    {
+      "run": "r02-3",
+      "side": "r02",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 9188.44,
+      "allocs": 144.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2853.0
+    },
+    {
+      "run": "r02-3",
+      "side": "r02",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 245561.57,
+      "allocs": 2827.0,
+      "reallocs": 4.0,
+      "requested_bytes": 52241.0
+    },
+    {
+      "run": "r02-4",
+      "side": "r02",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 9146.71,
+      "allocs": 144.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2853.0
+    },
+    {
+      "run": "r02-4",
+      "side": "r02",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 247828.51,
+      "allocs": 2827.0,
+      "reallocs": 4.0,
+      "requested_bytes": 52241.0
+    },
+    {
+      "run": "r02-5",
+      "side": "r02",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 9178.66,
+      "allocs": 144.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2853.0
+    },
+    {
+      "run": "r02-5",
+      "side": "r02",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 244638.51,
+      "allocs": 2827.0,
+      "reallocs": 4.0,
+      "requested_bytes": 52241.0
+    },
+    {
+      "run": "r03-1",
+      "side": "r03",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 7608.43,
+      "allocs": 102.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2319.0
+    },
+    {
+      "run": "r03-1",
+      "side": "r03",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 212750.45,
+      "allocs": 1995.0,
+      "reallocs": 4.0,
+      "requested_bytes": 43183.0
+    },
+    {
+      "run": "r03-2",
+      "side": "r03",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 7608.18,
+      "allocs": 102.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2319.0
+    },
+    {
+      "run": "r03-2",
+      "side": "r03",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 211847.57,
+      "allocs": 1995.0,
+      "reallocs": 4.0,
+      "requested_bytes": 43183.0
+    },
+    {
+      "run": "r03-3",
+      "side": "r03",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 7590.6,
+      "allocs": 102.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2319.0
+    },
+    {
+      "run": "r03-3",
+      "side": "r03",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 214069.02,
+      "allocs": 1995.0,
+      "reallocs": 4.0,
+      "requested_bytes": 43183.0
+    },
+    {
+      "run": "r03-4",
+      "side": "r03",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 7643.18,
+      "allocs": 102.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2319.0
+    },
+    {
+      "run": "r03-4",
+      "side": "r03",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 215587.18,
+      "allocs": 1995.0,
+      "reallocs": 4.0,
+      "requested_bytes": 43183.0
+    },
+    {
+      "run": "r03-5",
+      "side": "r03",
+      "stage": "parse_network",
+      "iterations": 20000.0,
+      "ns_per_op": 7535.62,
+      "allocs": 102.0,
+      "reallocs": 2.0,
+      "requested_bytes": 2319.0
+    },
+    {
+      "run": "r03-5",
+      "side": "r03",
+      "stage": "parse_r84fixture",
+      "iterations": 20000.0,
+      "ns_per_op": 211990.38,
+      "allocs": 1995.0,
+      "reallocs": 4.0,
+      "requested_bytes": 43183.0
+    }
+  ],
+  "summary": {
+    "r02": {
+      "parse_network": {
+        "ns_per_op": 9178.66,
+        "allocs": 144.0,
+        "reallocs": 2.0,
+        "requested_bytes": 2853.0
+      },
+      "parse_r84fixture": {
+        "ns_per_op": 246001.58,
+        "allocs": 2827.0,
+        "reallocs": 4.0,
+        "requested_bytes": 52241.0
+      }
+    },
+    "r03": {
+      "parse_network": {
+        "ns_per_op": 7608.18,
+        "allocs": 102.0,
+        "reallocs": 2.0,
+        "requested_bytes": 2319.0
+      },
+      "parse_r84fixture": {
+        "ns_per_op": 212750.45,
+        "allocs": 1995.0,
+        "reallocs": 4.0,
+        "requested_bytes": 43183.0
+      }
+    }
+  },
+  "profiler_sha256": {
+    "r02": "0d921f7afc24b4db7ceb1a7efa6c0e1e21504a45947fc3341a4f774aeb5f5da6",
+    "r03": "d5b9d2f504269fd3a5b5b43af58dbf5ccb0db3ab103fb24f1c8e3dae1640c902"
+  },
+  "source_sha256": {
+    "r03-4.csv": "c9c7a713198fe15d2ba56642eff3f2e9a7b9d1f7390059b472c720152c81b762",
+    "r03-5.csv": "199f7d7a5d1299a49f6ee9c8b4d2ccaa20349feabbeb8478fd178a6038bbd582",
+    "r03-2.csv": "bf871387bd64a9e7413e0f9cab23857159fdeca1d16cd0c7621d7c6d4c4600ae",
+    "r03-3.csv": "b3638fa94d9e08113ad0a360b80570ffb2c27fec4d426813a5b59553b7d9a687",
+    "r03-1.csv": "142f9118dfaabd2241f0cfd9bc6dc8b314a000d2fac68bbfef8feeb7c89df89a",
+    "r02-4.csv": "580d4539b7dc7f43e879cd54faff0d53ea4457859ba16097c3d52821e85dd97a",
+    "r02-5.csv": "a8bdb6d45bd2a52c83201fbf5e046bf3a11f677085fa7b7bae152b78f543dda0",
+    "r02-1.csv": "4f4c967a506f17f937302826397e2a090f6bbd91c3da935d0cd9943c5ea70cf8",
+    "r02-2.csv": "c36c1ad4d6decac091445fb7f31bf576dc28d11e0894d9f31dec5c77a8ad5168",
+    "r02-3.csv": "bad24db139c0af3d82ba6d498548e3e34bfcf6e3e665827355bd7bbc5ecac1ab"
+  }
+}

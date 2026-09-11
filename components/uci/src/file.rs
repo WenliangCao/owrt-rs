@@ -61,6 +61,16 @@ fn config_path(ctx: &Context, name: &str, conf2: bool) -> Result<Option<String>>
 
 /// uci_file_load: returns the index of the loaded package in ctx.root.
 pub fn load(ctx: &mut Context, name: &str) -> Result<usize> {
+    load_impl(ctx, name, None)
+}
+
+/// Read and lock current files as usual, reusing only an identical base parse.
+/// Delta paths are resolved and replayed on every call, including cache hits.
+pub fn load_cached(ctx: &mut Context, name: &str, cache: &mut crate::ReadCache) -> Result<usize> {
+    load_impl(ctx, name, Some(cache))
+}
+
+fn load_impl(ctx: &mut Context, name: &str, cache: Option<&mut crate::ReadCache>) -> Result<usize> {
     let (filename, pkgname, confdir, conf2) = match name.as_bytes().first() {
         Some(b'.') if name.as_bytes().get(1) != Some(&b'/') => return Err(Error::NotFound),
         Some(b'.') | Some(b'/') => {
@@ -79,8 +89,13 @@ pub fn load(ctx: &mut Context, name: &str) -> Result<usize> {
     };
     let file = open_stream(ctx, &filename, false, false, false)?;
     ctx.err = None;
-    let mut reader = BufReader::new(file.try_clone().map_err(|_| Error::Io)?);
-    let result = parse::import(ctx, &mut reader, Some(&pkgname), None, true);
+    // The owner keeps the shared lock alive. Read through a borrow rather than
+    // duplicating the descriptor (which would share this same file offset).
+    let mut reader = BufReader::new(&file);
+    let result = match cache {
+        Some(cache) => cache.import(ctx, &mut reader, &pkgname),
+        None => parse::import(ctx, &mut reader, Some(&pkgname), None, true),
+    };
     let pidx = match result {
         Ok(Some(i)) => i,
         Ok(None) => {
@@ -136,9 +151,9 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
                 // other processes might have modified the config as well:
                 // dump and reload from the locked stream
                 ctx.root.remove(pidx);
-                let mut dup = f1.try_clone().map_err(|_| Error::Io)?;
-                dup.seek(SeekFrom::Start(0)).map_err(|_| Error::Io)?;
-                let mut reader = BufReader::new(dup);
+                let mut stream = &f1;
+                stream.seek(SeekFrom::Start(0)).map_err(|_| Error::Io)?;
+                let mut reader = BufReader::new(stream);
                 let newidx = match parse::import(ctx, &mut reader, Some(&name), None, true)? {
                     Some(i) => i,
                     None => return Err(Error::NotFound),
@@ -199,30 +214,37 @@ pub fn list_config_files(ctx: &Context) -> Result<Vec<String>> {
         Ok(e) => e,
         Err(_) => return Err(Error::NotFound),
     };
-    let mut names: Vec<(Vec<u8>, bool)> = Vec::new();
+    let mut matched = false;
+    let mut out = Vec::new();
     for e in entries.flatten() {
         let raw = e.file_name();
-        let bytes = std::os::unix::ffi::OsStrExt::as_bytes(raw.as_os_str()).to_vec();
+        let bytes = std::os::unix::ffi::OsStrExt::as_bytes(raw.as_os_str());
         if bytes.first() == Some(&b'.') {
             continue; // glob("*") never matches a leading dot
         }
-        let is_dir = fs::metadata(e.path()).map(|m| m.is_dir()).unwrap_or(false);
-        names.push((bytes, is_dir));
+        // A glob match still counts when every matched name is later excluded.
+        matched = true;
+        if bytes.contains(&b'.') {
+            continue;
+        }
+        let Ok(name) = raw.into_string() else { continue };
+        if !crate::ops::validate_package(&name) {
+            continue;
+        }
+        // read_dir already provides the type on normal Linux filesystems.
+        // GLOB_MARK follows symlinks, so inspect their current target each
+        // time; unknown/error cases retain the previous metadata fallback.
+        let is_dir = match e.file_type() {
+            Ok(ty) if !ty.is_symlink() => ty.is_dir(),
+            _ => fs::metadata(e.path()).map(|m| m.is_dir()).unwrap_or(false),
+        };
+        if !is_dir {
+            out.push(name);
+        }
     }
-    if names.is_empty() {
+    if !matched {
         return Err(Error::NotFound);
     }
-    names.sort_by(|a, b| a.0.cmp(&b.0));
-    let mut out = Vec::new();
-    for (bytes, is_dir) in names {
-        if is_dir || bytes.contains(&b'.') {
-            continue;
-        }
-        let Ok(s) = String::from_utf8(bytes) else { continue };
-        if !crate::ops::validate_package(&s) {
-            continue;
-        }
-        out.push(s);
-    }
+    out.sort_unstable();
     Ok(out)
 }

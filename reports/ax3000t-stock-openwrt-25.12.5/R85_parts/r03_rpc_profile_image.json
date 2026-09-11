@@ -1,0 +1,369 @@
+{
+  "host": "aarch64 Linux build host",
+  "rootfs": "exact OpenWrt 25.12.5 image in an isolated namespace",
+  "method": "Real session handlers and identity helpers. Timed separately from allocation counting; uid/gid lookup reads the image passwd/group. Timer scan uses 2 or 64 sessions. The destructive UCI callback is excluded and panics if reached. No IPC in these stages.",
+  "profiler_sha256": "8c721510cf2067e779a33a1dbabe777c6bc2ac798e7480aac56403cba91080f4",
+  "iterations_per_stage": 20000,
+  "repeats": 5,
+  "runs": [
+    {
+      "run": "r03-rpc-profile-image-1",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 586.81,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-1",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 619.91,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-1",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 42.67,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-1",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 368.06,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-1",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3440.53,
+      "allocs": 4.0,
+      "reallocs": 1.0,
+      "requested_bytes": 944.0
+    },
+    {
+      "run": "r03-rpc-profile-image-1",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2986.84,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 490.0
+    },
+    {
+      "run": "r03-rpc-profile-image-1",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 218.57,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r03-rpc-profile-image-2",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 582.27,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-2",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 619.54,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-2",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.2,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-2",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 362.97,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-2",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3454.6,
+      "allocs": 4.0,
+      "reallocs": 1.0,
+      "requested_bytes": 944.0
+    },
+    {
+      "run": "r03-rpc-profile-image-2",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3001.02,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 490.0
+    },
+    {
+      "run": "r03-rpc-profile-image-2",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 162.17,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r03-rpc-profile-image-3",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 588.46,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-3",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 619.89,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-3",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.23,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-3",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 363.97,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-3",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3469.32,
+      "allocs": 4.0,
+      "reallocs": 1.0,
+      "requested_bytes": 944.0
+    },
+    {
+      "run": "r03-rpc-profile-image-3",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3008.86,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 490.0
+    },
+    {
+      "run": "r03-rpc-profile-image-3",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 162.51,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r03-rpc-profile-image-4",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 582.83,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-4",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 621.33,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-4",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 44.21,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-4",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 363.21,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-4",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3558.87,
+      "allocs": 4.0,
+      "reallocs": 1.0,
+      "requested_bytes": 944.0
+    },
+    {
+      "run": "r03-rpc-profile-image-4",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3115.06,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 490.0
+    },
+    {
+      "run": "r03-rpc-profile-image-4",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 163.44,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r03-rpc-profile-image-5",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 586.4,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-5",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 620.81,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r03-rpc-profile-image-5",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 42.93,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-5",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 355.68,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r03-rpc-profile-image-5",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3499.41,
+      "allocs": 4.0,
+      "reallocs": 1.0,
+      "requested_bytes": 944.0
+    },
+    {
+      "run": "r03-rpc-profile-image-5",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 3052.65,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 490.0
+    },
+    {
+      "run": "r03-rpc-profile-image-5",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 162.61,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    }
+  ],
+  "summary": {
+    "blob_status_build": {
+      "ns_per_op": 162.61,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    "file_group_name": {
+      "ns_per_op": 3008.86,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 490.0
+    },
+    "file_owner_name": {
+      "ns_per_op": 3469.32,
+      "allocs": 4.0,
+      "reallocs": 1.0,
+      "requested_bytes": 944.0
+    },
+    "session_access_allowed": {
+      "ns_per_op": 619.91,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    "session_access_denied": {
+      "ns_per_op": 586.4,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    "session_timers_2": {
+      "ns_per_op": 43.2,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    "session_timers_64": {
+      "ns_per_op": 363.21,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    }
+  }
+}

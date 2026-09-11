@@ -1,0 +1,248 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs, 20000 iterations after 100 warmups. Same real file::call entry on both sides; includes request field decoding, excludes ubus transport. No concurrent build or validation.",
+  "archive_sha256": "009947ccf9928a539532542371f080e6e143b4a28a70e04797fae0d3309259d5",
+  "source_archive_sha256": "60bdf2e8adf8d15bc120ddbc880dab8b6c4cc1bc085e91414f684e299c5cc578",
+  "profile_sha256": {
+    "r25-input": [
+      "952acb391c149d395690505eb47655bf48f5c4d447f7f1bd28dbcbccc122d065"
+    ],
+    "r26": [
+      "d20e565879d1ec6029fc478f80ee032e1fbc7e4a8e2ef292f498d1cf6e792db7"
+    ]
+  },
+  "rows": [
+    {
+      "side": "r25-input",
+      "run": 1,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5994.51,
+      "allocs": 12,
+      "reallocs": 0,
+      "requested_bytes": 1619
+    },
+    {
+      "side": "r25-input",
+      "run": 1,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 71870.63,
+      "allocs": 77,
+      "reallocs": 30,
+      "requested_bytes": 14938
+    },
+    {
+      "side": "r26",
+      "run": 1,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5668.32,
+      "allocs": 9,
+      "reallocs": 0,
+      "requested_bytes": 1372
+    },
+    {
+      "side": "r26",
+      "run": 1,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 70297.28,
+      "allocs": 74,
+      "reallocs": 30,
+      "requested_bytes": 14699
+    },
+    {
+      "side": "r25-input",
+      "run": 2,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 6007.68,
+      "allocs": 12,
+      "reallocs": 0,
+      "requested_bytes": 1619
+    },
+    {
+      "side": "r25-input",
+      "run": 2,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 73459.89,
+      "allocs": 77,
+      "reallocs": 30,
+      "requested_bytes": 14938
+    },
+    {
+      "side": "r26",
+      "run": 2,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5873.68,
+      "allocs": 9,
+      "reallocs": 0,
+      "requested_bytes": 1372
+    },
+    {
+      "side": "r26",
+      "run": 2,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 70575.53,
+      "allocs": 74,
+      "reallocs": 30,
+      "requested_bytes": 14699
+    },
+    {
+      "side": "r25-input",
+      "run": 3,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5998.97,
+      "allocs": 12,
+      "reallocs": 0,
+      "requested_bytes": 1619
+    },
+    {
+      "side": "r25-input",
+      "run": 3,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 71502.08,
+      "allocs": 77,
+      "reallocs": 30,
+      "requested_bytes": 14938
+    },
+    {
+      "side": "r26",
+      "run": 3,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5659.48,
+      "allocs": 9,
+      "reallocs": 0,
+      "requested_bytes": 1372
+    },
+    {
+      "side": "r26",
+      "run": 3,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 69928.39,
+      "allocs": 74,
+      "reallocs": 30,
+      "requested_bytes": 14699
+    },
+    {
+      "side": "r25-input",
+      "run": 4,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5973.72,
+      "allocs": 12,
+      "reallocs": 0,
+      "requested_bytes": 1619
+    },
+    {
+      "side": "r25-input",
+      "run": 4,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 71157.05,
+      "allocs": 77,
+      "reallocs": 30,
+      "requested_bytes": 14938
+    },
+    {
+      "side": "r26",
+      "run": 4,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5669.41,
+      "allocs": 9,
+      "reallocs": 0,
+      "requested_bytes": 1372
+    },
+    {
+      "side": "r26",
+      "run": 4,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 70039.95,
+      "allocs": 74,
+      "reallocs": 30,
+      "requested_bytes": 14699
+    },
+    {
+      "side": "r25-input",
+      "run": 5,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 6200.66,
+      "allocs": 12,
+      "reallocs": 0,
+      "requested_bytes": 1619
+    },
+    {
+      "side": "r25-input",
+      "run": 5,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 71649.65,
+      "allocs": 77,
+      "reallocs": 30,
+      "requested_bytes": 14938
+    },
+    {
+      "side": "r26",
+      "run": 5,
+      "stage": "file_stat_handler",
+      "iterations": 20000,
+      "ns_per_op": 5660.25,
+      "allocs": 9,
+      "reallocs": 0,
+      "requested_bytes": 1372
+    },
+    {
+      "side": "r26",
+      "run": 5,
+      "stage": "file_list_handler",
+      "iterations": 20000,
+      "ns_per_op": 70295.89,
+      "allocs": 74,
+      "reallocs": 30,
+      "requested_bytes": 14699
+    }
+  ],
+  "summary": {
+    "file_list_handler": {
+      "r25-input": {
+        "ns_per_op": 71649.65,
+        "allocs": 77,
+        "reallocs": 30,
+        "requested_bytes": 14938
+      },
+      "r26": {
+        "ns_per_op": 70295.89,
+        "allocs": 74,
+        "reallocs": 30,
+        "requested_bytes": 14699
+      }
+    },
+    "file_stat_handler": {
+      "r25-input": {
+        "ns_per_op": 5998.97,
+        "allocs": 12,
+        "reallocs": 0,
+        "requested_bytes": 1619
+      },
+      "r26": {
+        "ns_per_op": 5668.32,
+        "allocs": 9,
+        "reallocs": 0,
+        "requested_bytes": 1372
+      }
+    }
+  },
+  "valid": true,
+  "invalid_initial_attempt": "r26_initial_profile_image.json"
+}

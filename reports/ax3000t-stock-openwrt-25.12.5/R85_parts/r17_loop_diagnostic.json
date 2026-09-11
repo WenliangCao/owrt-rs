@@ -1,0 +1,29 @@
+{
+  "host": "aarch64 build host, exact OpenWrt rootfs",
+  "purpose": "Diagnostic syscall counts for the full 18-workload matrix, 500 nominal iterations. strace perturbs scheduling; times are not router performance.",
+  "archive_sha256": "0005181100eb207390288465224a25557d55ecec65f8c85554d44d534516771b",
+  "runs": {
+    "c": {
+      "trace_sha256": "70f98a189ca59576c40c713e9e93a1cc7fb906af23f3ec356d73f8f3376caebd",
+      "completed_syscalls": {
+        "execve": 1,
+        "sendmsg": 18132,
+        "ppoll": 9,
+        "recvmsg": 18160,
+        "epoll_pwait": 9062
+      },
+      "subject_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+    },
+    "rs": {
+      "trace_sha256": "224bf5ddf00682d277c307cd20fcdd2cbe5f826fef6dab90f45340306d10198a",
+      "completed_syscalls": {
+        "execve": 1,
+        "ppoll": 9081,
+        "recvmsg": 18161,
+        "sendmsg": 9071
+      },
+      "subject_sha256": "fe5a0e78402e05ed3989f2c7fe2286987ab104ed2ddc83f9da7c17c384502219"
+    }
+  },
+  "conclusion": "Both subjects receive each frame in two recvmsg calls and make about one wait per INVOKE. The measured trace does not support redundant per-request wait as a Rust-only cost. Rust combines the two response frames into one sendmsg."
+}

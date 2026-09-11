@@ -11,7 +11,7 @@ Methods that would act on the build host from inside the chroot (reboot,
 sysupgrade, init scripts, arbitrary exec/write/remove, clock) are excluded.
 Methods whose output is inherently time/process dependent compare rc only.
 
-Usage: r26_rpcd_fuzz.py <rootfs-files> <rpcd-rs-musl-binary> [--cases-per-method N] [--seed S]
+Usage: r26_rpcd_fuzz.py <rootfs-files> <rpcd-rs-musl-binary> [--cases-per-method N] [--seed S] [--keep DIR]
 Exit code 1 when any step differs.
 """
 from audit_checks import mask_session_ids
@@ -20,6 +20,7 @@ import os
 import random
 import re
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import r17_rpcd_core_check as base  # noqa: E402
@@ -129,13 +130,17 @@ def cases_for(rng, params, n):
 def main():
     argv = [a for a in sys.argv[1:] if not a.startswith("--")]
     opt = lambda name, default: sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
-    for name in ("--cases-per-method", "--seed"):
+    for name in ("--cases-per-method", "--seed", "--keep"):
         if name in sys.argv:
             v = sys.argv[sys.argv.index(name) + 1]
             if v in argv:
                 argv.remove(v)
     rootfs, binary = argv[0], argv[1]
     per, seed = int(opt("--cases-per-method", "8")), int(opt("--seed", "1"))
+    keep = opt("--keep", None)
+    if keep is not None:
+        keep = Path(keep)
+        keep.mkdir(mode=0o700, parents=True, exist_ok=False)
     rng = random.Random(seed)
 
     base.STEPS.clear()
@@ -161,6 +166,16 @@ def main():
 
     orig, osids, ologs = base.run_side(rootfs, "original", binary)
     cand, csids, clogs = base.run_side(rootfs, "candidate", binary)
+    if keep is not None:
+        # These are private observations, including session IDs and fixture
+        # credentials. Callers must keep this directory outside Git.
+        for side, results, sids, logs in (("original", orig, osids, ologs), ("candidate", cand, csids, clogs)):
+            directory = keep / side
+            directory.mkdir(mode=0o700)
+            for name, data in results.items():
+                (directory / name).write_bytes(data)
+            (directory / "sids.json").write_text(json.dumps(sids) + "\n")
+            (directory / "logs.json").write_text(json.dumps(logs) + "\n")
 
     def norm(sid, data, sids):
         text = base.normalize(sid, data, sids)
@@ -182,6 +197,9 @@ def main():
         diffs = []
         for ext in exts:
             k2 = "%s.%s" % (sid, ext)
+            if k2 not in orig or k2 not in cand:
+                diffs.append((ext, "present" if k2 in orig else "MISSING", "present" if k2 in cand else "MISSING"))
+                continue
             a, b = norm(sid, orig.get(k2, b""), osids), norm(sid, cand.get(k2, b""), csids)
             if a != b:
                 diffs.append((ext, a, b))

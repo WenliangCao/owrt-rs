@@ -1,0 +1,45 @@
+{
+  "diagnostic_only": true,
+  "candidate_sha256": "51292d2ab5401e1cc3e1644238d253031f952180c931b025938ffa650ea66f3c",
+  "archive_sha256": "ad0233de8b5bb45e98c3e21d4434ab47cbea883c7d7be28d07e2927e38a32923",
+  "normal_complete_replies_equal": true,
+  "summary": [
+    {
+      "side": "original",
+      "signals": false,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "missing_odhcpd": 0,
+      "netifd_vrf_false": 0,
+      "invalid_responses": 0
+    },
+    {
+      "side": "candidate",
+      "signals": false,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "missing_odhcpd": 0,
+      "netifd_vrf_false": 0,
+      "invalid_responses": 0
+    },
+    {
+      "side": "original",
+      "signals": true,
+      "calls": 64,
+      "missing_dnsmasq": 58,
+      "missing_odhcpd": 61,
+      "netifd_vrf_false": 61,
+      "invalid_responses": 0
+    },
+    {
+      "side": "candidate",
+      "signals": true,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "missing_odhcpd": 0,
+      "netifd_vrf_false": 0,
+      "invalid_responses": 0
+    }
+  ],
+  "limitation": "Signal injection independently reproduces stock helper feature loss. The original failing fuzz call was not syscall-traced, so its specific errno is not established. Its mismatch is retained, not changed to a pass."
+}

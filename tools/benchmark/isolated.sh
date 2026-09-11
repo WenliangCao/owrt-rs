@@ -8,6 +8,19 @@ case "${OWRT_HTTPD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_CGI_STRESS:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_RPC_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MEMORY:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
+case "${OWRT_RPCD_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_RPCD_PROFILE_KIND:-rpc}" in rpc|file|uci_reply|uci) ;; *) exit 2 ;; esac
+if [ "${OWRT_RPCD_PROFILE:-0}" = 1 ] && [ "${OWRT_RPCD_MATRIX:-0}" = 1 ]; then
+    echo 'RPC profiling and the performance matrix are separate runs' >&2
+    exit 2
+fi
+if [ "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" = 1 ] && [ "$(( ${OWRT_RPCD_MATRIX:-0} + ${OWRT_RPCD_PROFILE:-0} ))" -ne 0 ]; then
+    echo 'Client diagnostics are separate from the performance matrix and profiling' >&2
+    exit 2
+fi
 if [ "$(( ${OWRT_HTTPD_MATRIX:-0} + ${OWRT_HTTPD_CGI_STRESS:-0} + ${OWRT_HTTPD_RPC_PROFILE:-0} + ${OWRT_HTTPD_MEMORY:-0} ))" -gt 1 ]; then
     echo 'HTTPD matrix, CGI stress, RPC profiling and held-connection memory are separate runs' >&2
     exit 2
@@ -62,6 +75,7 @@ if [ "${1:-}" = --workload ]; then
     [ "${OWRT_BENCH_NAMESPACE:-}" = 1 ] || exit 125
     component=$1; impl=$2; n=$3
     bench=/tmp/bin/owrt-benchmark
+    rpc_mode=rpc
     out=/tmp/out
     sha256sum "$bench" /tmp/bin/ns-exec > "$out/benchmark-sha256.txt"
     sha256sum /tmp/workload.sh > "$out/harness-sha256.txt"
@@ -110,6 +124,21 @@ EOF
     printf '{"n":1}\n' > /tmp/ping.json
     : > /tmp/empty.bytes
 
+    if [ "${OWRT_RPCD_PROFILE:-0}" = 1 ]; then
+        [ "$component" = rpcd ] && [ "$impl" = rs ]
+        kind=${OWRT_RPCD_PROFILE_KIND:-rpc}
+        sha256sum "/tmp/bin/${kind}_profile" > "$out/profile-sha256.txt"
+        sha256sum /etc/passwd /etc/group > "$out/profile-fixtures.sha256"
+        if [ "$kind" = uci ]; then
+            sha256sum /etc/config/network /etc/config/r84fixture >> "$out/profile-fixtures.sha256"
+            /tmp/bin/uci_profile /etc/config "$n" "${OWRT_RPCD_PROFILE_FILTER:-}" > "$out/$kind-profile.csv"
+        else
+            "/tmp/bin/${kind}_profile" "$n" "${OWRT_RPCD_PROFILE_FILTER:-}" > "$out/$kind-profile.csv"
+        fi
+        touch "$out/COMPLETE"
+        exit 0
+    fi
+
     choose() { # component original candidate
         if [ "$component" = "$1" ] && [ "$impl" = rs ]; then
             printf '/tmp/bin/%s\n' "$3"
@@ -128,7 +157,38 @@ EOF
         label=$1; object=$2; method=$3; input=$4; expected=$5; count=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
-        "$bench" rpc "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label.json"
+        "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label.json"
+    }
+    rpc_four() { # label object method input expected [total iterations]
+        label=$1; object=$2; method=$3; input=$4; expected=$5; total=${6:-$n}
+        printf '%s\n' "$input" > /tmp/input.json
+        printf '%s\n' "$expected" > /tmp/expect.json
+        count=$((total / 4)); [ "$count" -gt 0 ] || count=1
+        mkdir "$out/$label"
+        printf '{"clients":4,"iterations_per_client":%s,"warmup_per_client":20}\n' "$count" > "$out/$label/group.json"
+        "$bench" snapshot "$monitors" > "$out/$label/before.json"
+        clients=''; j=1
+        while [ "$j" -le 4 ]; do
+            "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label/client-$j.json" &
+            clients="$clients $!"; j=$((j + 1))
+        done
+        failed=0
+        for client in $clients; do wait "$client" || failed=1; done
+        "$bench" snapshot "$monitors" > "$out/$label/after.json"
+        [ "$failed" = 0 ]
+    }
+    rpc_pair() { # c1 then c4 with identical arguments and validation
+        run_rpc "$@"
+        rpc_four "$1"_c4 "$2" "$3" "$4" "$5" "${6:-$n}"
+    }
+    large_uci_expect() {
+        printf '{"values":{' > /tmp/expect-large.json
+        i=0; sep=''
+        while [ "$i" -lt 64 ]; do
+            printf '%s"entry%s":{".anonymous":false,".type":"bench",".name":"entry%s",".index":%s,"value":"fixed-%s","members":["alpha","beta"]}' "$sep" "$i" "$i" "$i" "$i" >> /tmp/expect-large.json
+            sep=,; i=$((i + 1))
+        done
+        printf '}}\n' >> /tmp/expect-large.json
     }
     http_four() { # label method path body expected total format
         # Four clients share ONE outer CPU interval. Their overlapping
@@ -176,6 +236,49 @@ EOF
             run_rpc uci_get_network uci get '{"config":"network"}' '{"values":{"lan":{"proto":"static"}}}'
             run_rpc file_stat file stat '{"path":"/etc/config/network"}' '{"type":"file"}'
             run_rpc session_access session access '{"ubus_rpc_session":"00000000000000000000000000000000","scope":"ubus","object":"uci","function":"get"}' '{"access":false}'
+            if [ "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" = 1 ]; then
+                sha256sum /tmp/bin/rpc-client-probe > "$out/client-probe-sha256.txt"
+                sha256sum /etc/config/network /etc/config/r84fixture > "$out/rpc-fixtures.sha256"
+                large_uci_expect
+                large=$((n / 10)); [ "$large" -gt 0 ] || large=1
+                frozen_bench=$bench
+                bench=/tmp/bin/rpc-client-probe
+                modes='tree wire'
+                [ "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" = tree-first ] || modes='wire tree'
+                printf '%s\n' "$modes" > "$out/client-probe-order.txt"
+                for validation in $modes; do
+                    rpc_mode=rpc
+                    [ "$validation" = tree ] || rpc_mode=rpc-wire
+                    rpc_pair "diagnostic_${validation}_64" uci get '{"config":"r84fixture"}' "$(cat /tmp/expect-large.json)" "$large"
+                done
+                rpc_mode=rpc
+                bench=$frozen_bench
+            fi
+            if [ "${OWRT_RPCD_MATRIX:-0}" = 1 ]; then
+                sha256sum /etc/config/network /etc/config/r84fixture > "$out/rpc-fixtures.sha256"
+                rpc_four uci_configs_c4 uci configs '{}' '{"configs":[]}'
+                rpc_four uci_get_network_c4 uci get '{"config":"network"}' '{"values":{"lan":{"proto":"static"}}}'
+                rpc_four file_stat_c4 file stat '{"path":"/etc/config/network"}' '{"type":"file"}'
+                rpc_four session_access_c4 session access '{"ubus_rpc_session":"00000000000000000000000000000000","scope":"ubus","object":"uci","function":"get"}' '{"access":false}'
+                # Validate every section of the larger reply; N/10 keeps its
+                # client-side JSON work from dominating the whole matrix.
+                large_uci_expect
+                large=$((n / 10)); [ "$large" -gt 0 ] || large=1
+                rpc_pair uci_get_64 uci get '{"config":"r84fixture"}' "$(cat /tmp/expect-large.json)" "$large"
+                sid=$(ubus call session create '{"timeout":0}' | jsonfilter -e '@.ubus_rpc_session')
+                [ "${#sid}" = 32 ]
+                ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"uci\",\"objects\":[[\"net*\",\"r*\"]]}" >/dev/null
+                rpc_pair uci_get_authorized uci get "{\"config\":\"network\",\"ubus_rpc_session\":\"$sid\"}" '{"values":{"lan":{"proto":"static"}}}'
+                access="{\"ubus_rpc_session\":\"$sid\",\"scope\":\"uci\",\"object\":\"network\",\"function\":\"read\"}"
+                rpc_pair session_access_granted session access "$access" '{"access":true}'
+                rpc_pair file_list file list '{"path":"/etc/config"}' '{"entries":[{}]}'
+                i=0
+                while [ "$i" -lt 62 ]; do
+                    ubus call session create '{"timeout":3600}' >/dev/null
+                    i=$((i + 1))
+                done
+                rpc_pair session_access_64 session access "$access" '{"access":true}'
+            fi
             ;;
         procd)
             bin=$(choose procd /sbin/procd procd-rs)

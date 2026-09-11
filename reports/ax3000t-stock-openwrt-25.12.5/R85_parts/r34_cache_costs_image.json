@@ -1,0 +1,707 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five repeats in the same library profiler. 20000 operations after 100 warmups; stages ending in _pair include both network and large-file loads in every operation. Other stages count one load. Cold creates an empty cache each time; warmed uses the same file. No concurrent build or functional checks.",
+  "archive_sha256": "4a298ac28cf827f913c21d17df8e4f513c0ab4ccc74b81dbda5bc59072caf005",
+  "source_archive_sha256": "1c6f041f16e7b573de401ac09a669b0e9fab4c213b0834a6c0491ce8626d325e",
+  "rows": [
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "context_new",
+      "iterations": 20000,
+      "ns_per_op": 146.97,
+      "allocs": 5,
+      "reallocs": 0,
+      "requested_bytes": 65
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "list_config_files",
+      "iterations": 20000,
+      "ns_per_op": 4255.52,
+      "allocs": 21,
+      "reallocs": 2,
+      "requested_bytes": 858
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "parse_network",
+      "iterations": 20000,
+      "ns_per_op": 11631.84,
+      "allocs": 32,
+      "reallocs": 2,
+      "requested_bytes": 1826
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "load_network",
+      "iterations": 20000,
+      "ns_per_op": 22194.47,
+      "allocs": 42,
+      "reallocs": 6,
+      "requested_bytes": 10199
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "cached_warm_network",
+      "iterations": 20000,
+      "ns_per_op": 9871.34,
+      "allocs": 38,
+      "reallocs": 4,
+      "requested_bytes": 9879
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "cached_cold_network",
+      "iterations": 20000,
+      "ns_per_op": 13031.46,
+      "allocs": 44,
+      "reallocs": 6,
+      "requested_bytes": 10718
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "parse_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 109262.83,
+      "allocs": 395,
+      "reallocs": 4,
+      "requested_bytes": 32565
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "load_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 120470.3,
+      "allocs": 405,
+      "reallocs": 10,
+      "requested_bytes": 41016
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "cached_warm_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 28019.02,
+      "allocs": 402,
+      "reallocs": 6,
+      "requested_bytes": 25924
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "cached_cold_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 111190.62,
+      "allocs": 407,
+      "reallocs": 10,
+      "requested_bytes": 49218
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "load_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 152356.98,
+      "allocs": 447,
+      "reallocs": 16,
+      "requested_bytes": 51215
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "cached_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 134306.46,
+      "allocs": 449,
+      "reallocs": 16,
+      "requested_bytes": 51232
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "context_new",
+      "iterations": 20000,
+      "ns_per_op": 143.94,
+      "allocs": 5,
+      "reallocs": 0,
+      "requested_bytes": 65
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "list_config_files",
+      "iterations": 20000,
+      "ns_per_op": 4267.98,
+      "allocs": 21,
+      "reallocs": 2,
+      "requested_bytes": 858
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "parse_network",
+      "iterations": 20000,
+      "ns_per_op": 11675.44,
+      "allocs": 32,
+      "reallocs": 2,
+      "requested_bytes": 1826
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "load_network",
+      "iterations": 20000,
+      "ns_per_op": 22025.67,
+      "allocs": 42,
+      "reallocs": 6,
+      "requested_bytes": 10199
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "cached_warm_network",
+      "iterations": 20000,
+      "ns_per_op": 9852.44,
+      "allocs": 38,
+      "reallocs": 4,
+      "requested_bytes": 9879
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "cached_cold_network",
+      "iterations": 20000,
+      "ns_per_op": 12717.59,
+      "allocs": 44,
+      "reallocs": 6,
+      "requested_bytes": 10718
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "parse_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 108368.28,
+      "allocs": 395,
+      "reallocs": 4,
+      "requested_bytes": 32565
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "load_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 120983.35,
+      "allocs": 405,
+      "reallocs": 10,
+      "requested_bytes": 41016
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "cached_warm_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 27975.29,
+      "allocs": 402,
+      "reallocs": 6,
+      "requested_bytes": 25924
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "cached_cold_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 110878.13,
+      "allocs": 407,
+      "reallocs": 10,
+      "requested_bytes": 49218
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "load_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 149047.64,
+      "allocs": 447,
+      "reallocs": 16,
+      "requested_bytes": 51215
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "cached_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 134528.38,
+      "allocs": 449,
+      "reallocs": 16,
+      "requested_bytes": 51232
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "context_new",
+      "iterations": 20000,
+      "ns_per_op": 147.36,
+      "allocs": 5,
+      "reallocs": 0,
+      "requested_bytes": 65
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "list_config_files",
+      "iterations": 20000,
+      "ns_per_op": 4394.29,
+      "allocs": 21,
+      "reallocs": 2,
+      "requested_bytes": 858
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "parse_network",
+      "iterations": 20000,
+      "ns_per_op": 11748.07,
+      "allocs": 32,
+      "reallocs": 2,
+      "requested_bytes": 1826
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "load_network",
+      "iterations": 20000,
+      "ns_per_op": 22365.12,
+      "allocs": 42,
+      "reallocs": 6,
+      "requested_bytes": 10199
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "cached_warm_network",
+      "iterations": 20000,
+      "ns_per_op": 9852.02,
+      "allocs": 38,
+      "reallocs": 4,
+      "requested_bytes": 9879
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "cached_cold_network",
+      "iterations": 20000,
+      "ns_per_op": 12740.81,
+      "allocs": 44,
+      "reallocs": 6,
+      "requested_bytes": 10718
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "parse_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 111380.7,
+      "allocs": 395,
+      "reallocs": 4,
+      "requested_bytes": 32565
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "load_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 122489.0,
+      "allocs": 405,
+      "reallocs": 10,
+      "requested_bytes": 41016
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "cached_warm_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 27916.02,
+      "allocs": 402,
+      "reallocs": 6,
+      "requested_bytes": 25924
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "cached_cold_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 111136.27,
+      "allocs": 407,
+      "reallocs": 10,
+      "requested_bytes": 49218
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "load_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 147700.69,
+      "allocs": 447,
+      "reallocs": 16,
+      "requested_bytes": 51215
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "cached_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 136012.72,
+      "allocs": 449,
+      "reallocs": 16,
+      "requested_bytes": 51232
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "context_new",
+      "iterations": 20000,
+      "ns_per_op": 150.74,
+      "allocs": 5,
+      "reallocs": 0,
+      "requested_bytes": 65
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "list_config_files",
+      "iterations": 20000,
+      "ns_per_op": 4281.33,
+      "allocs": 21,
+      "reallocs": 2,
+      "requested_bytes": 858
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "parse_network",
+      "iterations": 20000,
+      "ns_per_op": 11630.1,
+      "allocs": 32,
+      "reallocs": 2,
+      "requested_bytes": 1826
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "load_network",
+      "iterations": 20000,
+      "ns_per_op": 22146.41,
+      "allocs": 42,
+      "reallocs": 6,
+      "requested_bytes": 10199
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "cached_warm_network",
+      "iterations": 20000,
+      "ns_per_op": 9826.65,
+      "allocs": 38,
+      "reallocs": 4,
+      "requested_bytes": 9879
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "cached_cold_network",
+      "iterations": 20000,
+      "ns_per_op": 12782.28,
+      "allocs": 44,
+      "reallocs": 6,
+      "requested_bytes": 10718
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "parse_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 108121.63,
+      "allocs": 395,
+      "reallocs": 4,
+      "requested_bytes": 32565
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "load_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 120808.54,
+      "allocs": 405,
+      "reallocs": 10,
+      "requested_bytes": 41016
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "cached_warm_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 27968.57,
+      "allocs": 402,
+      "reallocs": 6,
+      "requested_bytes": 25924
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "cached_cold_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 111452.68,
+      "allocs": 407,
+      "reallocs": 10,
+      "requested_bytes": 49218
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "load_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 148033.98,
+      "allocs": 447,
+      "reallocs": 16,
+      "requested_bytes": 51215
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "cached_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 135601.44,
+      "allocs": 449,
+      "reallocs": 16,
+      "requested_bytes": 51232
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "context_new",
+      "iterations": 20000,
+      "ns_per_op": 148.22,
+      "allocs": 5,
+      "reallocs": 0,
+      "requested_bytes": 65
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "list_config_files",
+      "iterations": 20000,
+      "ns_per_op": 4296.94,
+      "allocs": 21,
+      "reallocs": 2,
+      "requested_bytes": 858
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "parse_network",
+      "iterations": 20000,
+      "ns_per_op": 11772.05,
+      "allocs": 32,
+      "reallocs": 2,
+      "requested_bytes": 1826
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "load_network",
+      "iterations": 20000,
+      "ns_per_op": 22192.76,
+      "allocs": 42,
+      "reallocs": 6,
+      "requested_bytes": 10199
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "cached_warm_network",
+      "iterations": 20000,
+      "ns_per_op": 9773.07,
+      "allocs": 38,
+      "reallocs": 4,
+      "requested_bytes": 9879
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "cached_cold_network",
+      "iterations": 20000,
+      "ns_per_op": 12779.17,
+      "allocs": 44,
+      "reallocs": 6,
+      "requested_bytes": 10718
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "parse_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 108350.29,
+      "allocs": 395,
+      "reallocs": 4,
+      "requested_bytes": 32565
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "load_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 121541.67,
+      "allocs": 405,
+      "reallocs": 10,
+      "requested_bytes": 41016
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "cached_warm_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 27965.21,
+      "allocs": 402,
+      "reallocs": 6,
+      "requested_bytes": 25924
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "cached_cold_r84fixture",
+      "iterations": 20000,
+      "ns_per_op": 111536.89,
+      "allocs": 407,
+      "reallocs": 10,
+      "requested_bytes": 49218
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "load_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 148345.1,
+      "allocs": 447,
+      "reallocs": 16,
+      "requested_bytes": 51215
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "cached_alternating_pair",
+      "iterations": 20000,
+      "ns_per_op": 134923.38,
+      "allocs": 449,
+      "reallocs": 16,
+      "requested_bytes": 51232
+    }
+  ],
+  "summary": {
+    "cached_alternating_pair": {
+      "r34": {
+        "ns_per_op": 134923.38,
+        "allocs": 449,
+        "reallocs": 16,
+        "requested_bytes": 51232
+      }
+    },
+    "cached_cold_network": {
+      "r34": {
+        "ns_per_op": 12779.17,
+        "allocs": 44,
+        "reallocs": 6,
+        "requested_bytes": 10718
+      }
+    },
+    "cached_cold_r84fixture": {
+      "r34": {
+        "ns_per_op": 111190.62,
+        "allocs": 407,
+        "reallocs": 10,
+        "requested_bytes": 49218
+      }
+    },
+    "cached_warm_network": {
+      "r34": {
+        "ns_per_op": 9852.02,
+        "allocs": 38,
+        "reallocs": 4,
+        "requested_bytes": 9879
+      }
+    },
+    "cached_warm_r84fixture": {
+      "r34": {
+        "ns_per_op": 27968.57,
+        "allocs": 402,
+        "reallocs": 6,
+        "requested_bytes": 25924
+      }
+    },
+    "context_new": {
+      "r34": {
+        "ns_per_op": 147.36,
+        "allocs": 5,
+        "reallocs": 0,
+        "requested_bytes": 65
+      }
+    },
+    "list_config_files": {
+      "r34": {
+        "ns_per_op": 4281.33,
+        "allocs": 21,
+        "reallocs": 2,
+        "requested_bytes": 858
+      }
+    },
+    "load_alternating_pair": {
+      "r34": {
+        "ns_per_op": 148345.1,
+        "allocs": 447,
+        "reallocs": 16,
+        "requested_bytes": 51215
+      }
+    },
+    "load_network": {
+      "r34": {
+        "ns_per_op": 22192.76,
+        "allocs": 42,
+        "reallocs": 6,
+        "requested_bytes": 10199
+      }
+    },
+    "load_r84fixture": {
+      "r34": {
+        "ns_per_op": 120983.35,
+        "allocs": 405,
+        "reallocs": 10,
+        "requested_bytes": 41016
+      }
+    },
+    "parse_network": {
+      "r34": {
+        "ns_per_op": 11675.44,
+        "allocs": 32,
+        "reallocs": 2,
+        "requested_bytes": 1826
+      }
+    },
+    "parse_r84fixture": {
+      "r34": {
+        "ns_per_op": 108368.28,
+        "allocs": 395,
+        "reallocs": 4,
+        "requested_bytes": 32565
+      }
+    }
+  },
+  "valid": true
+}

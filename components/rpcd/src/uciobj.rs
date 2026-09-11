@@ -280,7 +280,7 @@ fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
     if use_state {
         delta::set_savedir(&mut ctx, "/var/state");
     }
-    let Ok(pidx) = tr!(ctx, file::load(&mut ctx, config)) else {
+    let Ok(pidx) = tr!(ctx, file::load_cached(&mut ctx, config, &mut rctx.uci_read_cache.borrow_mut())) else {
         return code(uci_status(&ctx));
     };
     if let Some(section) = arg_str(raw, "section") {
@@ -291,7 +291,7 @@ fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
     }
     let mut data = Vec::new();
     if lookup(&mut ctx, &mut ptr).is_ok() && ptr.flags & LOOKUP_COMPLETE != 0 {
-        let mut b = BlobBuf::new();
+        let mut b = BlobBuf::with_capacity(256);
         let p = &ctx.root[pidx];
         match (ptr.s, ptr.o) {
             (None, _) => dump_package(&mut b, p, "values", arg_str(raw, "type"), field_data(raw, "match", MsgType::Table)),
@@ -852,7 +852,7 @@ fn configs() -> Reply {
     let mut ctx = Context::new();
     match tr!(ctx, file::list_config_files(&ctx)) {
         Ok(list) => {
-            let mut b = BlobBuf::new();
+            let mut b = BlobBuf::with_capacity(256);
             let c = b.msg_open_array("configs");
             for name in &list {
                 b.msg_string("", name);

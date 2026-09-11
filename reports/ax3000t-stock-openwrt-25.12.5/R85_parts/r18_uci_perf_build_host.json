@@ -1,0 +1,109 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "perf record -F 499 -e cycles:u of unstripped release uci_reply_profile, actual UCI get handler for 64 sections, 100000 calls; diagnostic symbols resolved with symfs and exact executable. Parallel validation may affect timing.",
+  "archive_sha256": "5159db2d1c51ee8b273043c5cf9cb1ea37452e98eb1e7f2c194b89389b2cdced",
+  "lost_samples": 0,
+  "samples": 9228,
+  "top_symbols": [
+    {
+      "sample_pct": 14.75,
+      "symbol": "<owrt_uci::parse::Pctx>::next_arg"
+    },
+    {
+      "sample_pct": 9.32,
+      "symbol": "__libc_free"
+    },
+    {
+      "sample_pct": 8.8,
+      "symbol": "owrt_uci::parse::import"
+    },
+    {
+      "sample_pct": 8.02,
+      "symbol": "<owrt_uci::parse::Pctx>::getln"
+    },
+    {
+      "sample_pct": 7.06,
+      "symbol": "memcmp"
+    },
+    {
+      "sample_pct": 6.5,
+      "symbol": "__lock"
+    },
+    {
+      "sample_pct": 5.76,
+      "symbol": "memmove"
+    },
+    {
+      "sample_pct": 5.15,
+      "symbol": "__unlock"
+    },
+    {
+      "sample_pct": 4.8,
+      "symbol": "__libc_malloc_impl"
+    },
+    {
+      "sample_pct": 4.73,
+      "symbol": "<owrt_uci::parse::Pctx>::parse_option"
+    },
+    {
+      "sample_pct": 3.58,
+      "symbol": "core::str::converts::from_utf8"
+    },
+    {
+      "sample_pct": 2.8,
+      "symbol": "alloc_slot"
+    },
+    {
+      "sample_pct": 2.38,
+      "symbol": "memcpy"
+    },
+    {
+      "sample_pct": 2.35,
+      "symbol": "<owrt_ubus::blob::BlobBuf>::msg_open_bytes"
+    },
+    {
+      "sample_pct": 2.25,
+      "symbol": "<owrt_ubus::blob::BlobBuf>::msg_string"
+    },
+    {
+      "sample_pct": 1.84,
+      "symbol": "nontrivial_free"
+    },
+    {
+      "sample_pct": 1.12,
+      "symbol": "uci_reply_profile::uciobj::dump_section"
+    },
+    {
+      "sample_pct": 1.08,
+      "symbol": "memset"
+    },
+    {
+      "sample_pct": 0.82,
+      "symbol": "<core::str::lossy::Utf8Chunks as core::iter::traits::iterator::Iterator>::next"
+    },
+    {
+      "sample_pct": 0.71,
+      "symbol": "owrt_uci::ops::append_list"
+    },
+    {
+      "sample_pct": 0.68,
+      "symbol": "uci_reply_profile::uciobj::dump_option"
+    },
+    {
+      "sample_pct": 0.5,
+      "symbol": "<std::io::buffered::bufreader::BufReader<&std::fs::File> as std::io::BufRead>::fill_buf"
+    },
+    {
+      "sample_pct": 0.3,
+      "symbol": "owrt_uci::ops::alloc_section"
+    },
+    {
+      "sample_pct": 0.29,
+      "symbol": "__libc_realloc"
+    },
+    {
+      "sample_pct": 0.28,
+      "symbol": "<alloc::string::String>::from_utf8_lossy"
+    }
+  ]
+}

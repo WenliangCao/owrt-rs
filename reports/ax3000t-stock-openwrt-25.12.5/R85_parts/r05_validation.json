@@ -1,0 +1,71 @@
+{
+  "subject_sha256": "44d26a44f3312a154c12940da66eee65779e97b46d3ad0c3da38d734c836ba00",
+  "host": "aarch64 build host, isolated exact OpenWrt rootfs",
+  "suites": {
+    "r13_rpcd_check": {
+      "requests": 63,
+      "identical": 63,
+      "differences": 0
+    },
+    "r17_rpcd_core_check": {
+      "steps": 283,
+      "identical": 283,
+      "differ": 0,
+      "differing": [],
+      "sids_captured": [
+        8,
+        8
+      ]
+    },
+    "r18_rpcd_plugins_check": {
+      "steps": 77,
+      "identical": 77,
+      "differ": 0,
+      "differing": []
+    },
+    "r19_lucirpc_check": {
+      "pairs": 11,
+      "identical": 11,
+      "differ": 0,
+      "differing": []
+    }
+  },
+  "r26": {
+    "seed": 26,
+    "cases_per_method": 10,
+    "steps": 733,
+    "differences": 0
+  },
+  "r83": {
+    "bytes": "pass",
+    "defer": "pass",
+    "parallel_two_execs_s": 4,
+    "worker_code": 17,
+    "reload_across_hup": true,
+    "upgrade_across_hup": true,
+    "remaining_action_children": 0,
+    "still_serving": true
+  },
+  "unit_tests": {
+    "ubus": 15,
+    "rpcd": 40
+  },
+  "source_sha256": {
+    "r18_rpcd_plugins_check.json": "8ebc074680665c558d29569c8574ad9c8b880e52417ebc0da2515b0572278891",
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r26.log": "3ec7dddc3bd96bb8390b34a39fe0a1e31fd1adbbe24c86e0fafc7b46e583067c",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r13_rpcd_check.json": "f25f0075682f2556adbcb4bbe1fcfa53cc35a8d57b18ce998a0752464ce4240c",
+    "r19_lucirpc_check.json": "ebcdb7fe7fcaff7a10f59d95572e48a831fa8e3b835e0668b20ff14bf89b9c41",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "r17_rpcd_core_check.json": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c",
+    "bytes/rs.txt": "71ae3738a0e3472cd92aec6734059d3edf97200c1076ac98693ac66098e16b44",
+    "bytes/c-errors.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes/c.txt": "71ae3738a0e3472cd92aec6734059d3edf97200c1076ac98693ac66098e16b44",
+    "bytes/rs-errors.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

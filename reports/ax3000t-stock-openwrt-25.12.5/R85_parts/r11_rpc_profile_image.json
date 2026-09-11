@@ -1,0 +1,1148 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs; 20,000 calls after 100 warmups. Separate timing and allocation counters. Diagnostic stage costs, not end-to-end router latency. IPC send stages include a fixed-storage UnixStream peer.",
+  "profiler_sha256": {
+    "r10": "60c332659e1509b973595eab12150ba1b7b4251c3d8084cc253515ca17063a53",
+    "r11": "d60769081ffe56aaece38d9a7f80442ca138b68e9e47a12d05aa53bc229c8e88"
+  },
+  "source_sha256": {
+    "r11-rpc-profile-r10-1": "fb0f92e9b77e51cc869177ba70063b1f7f06c27df03ac234d52411e4949ca4f7",
+    "r11-rpc-profile-r10-2": "3319e47961d0dc68f0316058d5228fa36f1adbba9751e30990ff88d7963e1059",
+    "r11-rpc-profile-r10-3": "a8dba8aead30923c3743159afcf8c5cbad4df407033e91ce507fcb6dbe5edf54",
+    "r11-rpc-profile-r10-4": "907ca5f0d794990b1c418f64bddc58105d691e28ebdf6604ce20b87dc4b5e397",
+    "r11-rpc-profile-r10-5": "89d901c95afd8a0bd9cf639d49f0126d0ccf194066b96495dfccb98db9b13f1f",
+    "r11-rpc-profile-r11-1": "21f27d96230f2b189ff830008114f2e8255be2c9a5862b06faf907ffc69e7a42",
+    "r11-rpc-profile-r11-2": "370ddc5aa09033ce410ef12d545231c97c10e43c31169a579586aa7e98818de2",
+    "r11-rpc-profile-r11-3": "87c9108a73fbcb131be3ffa6527e6d99a18d2df609f0cbee0c0762800b8d6132",
+    "r11-rpc-profile-r11-4": "9cc0dcd8ba83516c5f3ade64565242d676c5a16fd34f96030aef3cfbcf2d6ccf",
+    "r11-rpc-profile-r11-5": "33576a828ca7e38e918b647bc22f32f7acb11e09e5f13cc3c4ad771e853fdfe0"
+  },
+  "runs": [
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 490.67,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 531.81,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 2.95,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 35.01,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2156.63,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2140.42,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 166.48,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1331.78,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1367.43,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-1",
+      "side": "r10",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1916.03,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 486.48,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 531.9,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 2.95,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 35.04,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2071.21,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2047.72,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 167.12,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1331.93,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1380.64,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-2",
+      "side": "r10",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1921.85,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 489.73,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 530.54,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 2.99,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 34.92,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2061.23,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2049.79,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 167.85,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1305.39,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1347.0,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-3",
+      "side": "r10",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1902.84,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 490.04,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 530.25,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 3.01,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 35.32,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2081.33,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2046.54,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 166.64,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1363.83,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1398.62,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-4",
+      "side": "r10",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1932.02,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 490.25,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 531.74,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 2.99,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 35.35,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2077.83,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2062.98,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 166.96,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1327.66,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1357.8,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r10-5",
+      "side": "r10",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1906.15,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 375.44,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 419.23,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 3.0,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 34.99,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1863.54,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 547.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1852.2,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 526.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 165.44,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1334.73,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1379.36,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-1",
+      "side": "r11",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1876.74,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 376.12,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 418.59,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 3.0,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 35.21,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1960.9,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 547.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1927.72,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 526.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 164.56,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1339.22,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1374.74,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-2",
+      "side": "r11",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1918.4,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 376.07,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 419.43,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 3.0,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 34.85,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1877.18,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 547.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1866.46,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 526.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 164.86,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1373.75,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1391.21,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-3",
+      "side": "r11",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1938.83,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 374.22,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 418.67,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 2.99,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 34.99,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1863.58,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 547.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1854.81,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 526.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 165.35,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1034.95,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1046.7,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-4",
+      "side": "r11",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1618.56,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 385.39,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 417.91,
+      "allocs": 2.0,
+      "reallocs": 0.0,
+      "requested_bytes": 48.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 2.99,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 35.15,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1856.76,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 547.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 1839.61,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 526.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 165.0,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1345.76,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1367.29,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r11-rpc-profile-r11-5",
+      "side": "r11",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1909.75,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    }
+  ],
+  "summary": {
+    "r10": {
+      "blob_status_build": {
+        "ns_per_op": 166.96,
+        "allocs": 1.0,
+        "reallocs": 3.0,
+        "requested_bytes": 60.0
+      },
+      "file_group_name": {
+        "ns_per_op": 2049.79,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 8206.0
+      },
+      "file_owner_name": {
+        "ns_per_op": 2077.83,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 8227.0
+      },
+      "reply_data_send": {
+        "ns_per_op": 1367.43,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_pair_send": {
+        "ns_per_op": 1916.03,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_status_send": {
+        "ns_per_op": 1331.78,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "session_access_allowed": {
+        "ns_per_op": 531.74,
+        "allocs": 2.0,
+        "reallocs": 3.0,
+        "requested_bytes": 84.0
+      },
+      "session_access_denied": {
+        "ns_per_op": 490.04,
+        "allocs": 2.0,
+        "reallocs": 3.0,
+        "requested_bytes": 84.0
+      },
+      "session_timers_2": {
+        "ns_per_op": 2.99,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "session_timers_64": {
+        "ns_per_op": 35.04,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      }
+    },
+    "r11": {
+      "blob_status_build": {
+        "ns_per_op": 165.0,
+        "allocs": 1.0,
+        "reallocs": 3.0,
+        "requested_bytes": 60.0
+      },
+      "file_group_name": {
+        "ns_per_op": 1854.81,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 526.0
+      },
+      "file_owner_name": {
+        "ns_per_op": 1863.58,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 547.0
+      },
+      "reply_data_send": {
+        "ns_per_op": 1374.74,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_pair_send": {
+        "ns_per_op": 1909.75,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_status_send": {
+        "ns_per_op": 1339.22,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "session_access_allowed": {
+        "ns_per_op": 418.67,
+        "allocs": 2.0,
+        "reallocs": 0.0,
+        "requested_bytes": 48.0
+      },
+      "session_access_denied": {
+        "ns_per_op": 376.07,
+        "allocs": 2.0,
+        "reallocs": 0.0,
+        "requested_bytes": 48.0
+      },
+      "session_timers_2": {
+        "ns_per_op": 3.0,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "session_timers_64": {
+        "ns_per_op": 34.99,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      }
+    }
+  }
+}

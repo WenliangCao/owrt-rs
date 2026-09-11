@@ -1,0 +1,353 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs of actual handlers; 20000 calls after 100 warmups, no concurrent build or functional checks.",
+  "archive_sha256": "4a298ac28cf827f913c21d17df8e4f513c0ab4ccc74b81dbda5bc59072caf005",
+  "source_archive_sha256": "1c6f041f16e7b573de401ac09a669b0e9fab4c213b0834a6c0491ce8626d325e",
+  "rows": [
+    {
+      "side": "r29",
+      "run": 1,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5765.16,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r29",
+      "run": 1,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 14951.38,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r29",
+      "run": 1,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 135042.35,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r29",
+      "run": 2,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5777.9,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r29",
+      "run": 2,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15103.4,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r29",
+      "run": 2,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 133595.3,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r29",
+      "run": 3,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5961.54,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r29",
+      "run": 3,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 14995.08,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r29",
+      "run": 3,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 133689.67,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r29",
+      "run": 4,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5774.73,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r29",
+      "run": 4,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15028.97,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r29",
+      "run": 4,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 134919.68,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r29",
+      "run": 5,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5771.02,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r29",
+      "run": 5,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15005.04,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r29",
+      "run": 5,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 134587.58,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5321.88,
+      "allocs": 28,
+      "reallocs": 2,
+      "requested_bytes": 1203
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 12592.38,
+      "allocs": 43,
+      "reallocs": 6,
+      "requested_bytes": 11788
+    },
+    {
+      "side": "r34",
+      "run": 1,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 55359.68,
+      "allocs": 407,
+      "reallocs": 12,
+      "requested_bytes": 58559
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5294.06,
+      "allocs": 28,
+      "reallocs": 2,
+      "requested_bytes": 1203
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 12658.31,
+      "allocs": 43,
+      "reallocs": 6,
+      "requested_bytes": 11788
+    },
+    {
+      "side": "r34",
+      "run": 2,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 55405.36,
+      "allocs": 407,
+      "reallocs": 12,
+      "requested_bytes": 58559
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5296.5,
+      "allocs": 28,
+      "reallocs": 2,
+      "requested_bytes": 1203
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 12648.11,
+      "allocs": 43,
+      "reallocs": 6,
+      "requested_bytes": 11788
+    },
+    {
+      "side": "r34",
+      "run": 3,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 55422.53,
+      "allocs": 407,
+      "reallocs": 12,
+      "requested_bytes": 58559
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5297.99,
+      "allocs": 28,
+      "reallocs": 2,
+      "requested_bytes": 1203
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 12599.6,
+      "allocs": 43,
+      "reallocs": 6,
+      "requested_bytes": 11788
+    },
+    {
+      "side": "r34",
+      "run": 4,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 55508.38,
+      "allocs": 407,
+      "reallocs": 12,
+      "requested_bytes": 58559
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5301.83,
+      "allocs": 28,
+      "reallocs": 2,
+      "requested_bytes": 1203
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 12828.68,
+      "allocs": 43,
+      "reallocs": 6,
+      "requested_bytes": 11788
+    },
+    {
+      "side": "r34",
+      "run": 5,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 55616.25,
+      "allocs": 407,
+      "reallocs": 12,
+      "requested_bytes": 58559
+    }
+  ],
+  "summary": {
+    "uci_configs_payload": {
+      "r29": {
+        "ns_per_op": 5774.73,
+        "allocs": 28,
+        "reallocs": 8,
+        "requested_bytes": 1455
+      },
+      "r34": {
+        "ns_per_op": 5297.99,
+        "allocs": 28,
+        "reallocs": 2,
+        "requested_bytes": 1203
+      }
+    },
+    "uci_get_64_payload": {
+      "r29": {
+        "ns_per_op": 134587.58,
+        "allocs": 410,
+        "reallocs": 16,
+        "requested_bytes": 73651
+      },
+      "r34": {
+        "ns_per_op": 55422.53,
+        "allocs": 407,
+        "reallocs": 12,
+        "requested_bytes": 58559
+      }
+    },
+    "uci_get_network_payload": {
+      "r29": {
+        "ns_per_op": 15005.04,
+        "allocs": 47,
+        "reallocs": 8,
+        "requested_bytes": 12108
+      },
+      "r34": {
+        "ns_per_op": 12648.11,
+        "allocs": 43,
+        "reallocs": 6,
+        "requested_bytes": 11788
+      }
+    }
+  },
+  "valid": true
+}

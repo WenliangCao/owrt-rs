@@ -1,0 +1,364 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs, 20,000 timed calls after 100 warmups. Real Connection sends to a fixed-storage local UnixStream peer. Pair stage sends the same DATA and STATUS frames; times include IPC and are diagnostic only.",
+  "profiler_sha256": {
+    "r08": "08f066a804a437477027b2b81fe0b5d20b1816e1214033e1186395a16ed71b0e",
+    "r09": "60c332659e1509b973595eab12150ba1b7b4251c3d8084cc253515ca17063a53"
+  },
+  "source_sha256": {
+    "r09-profile-r08-1": "3883efc3d5544758b165712f0bfdaf9584e17837e9b4e548f49a6bedcca4cfc6",
+    "r09-profile-r09-1": "5dcfe5d684de3c93035a415a9110bc5a2af766db5f4dfcb60996ac67cf01087f",
+    "r09-profile-r08-2": "1bbdc7368d7a989fca4848ddee6a7500dbde348250642e29c9b422472f47be16",
+    "r09-profile-r09-2": "d58084d85a5b13982788c023914777f8c0e639958fcd0026bcb44ea857c326db",
+    "r09-profile-r08-3": "581d9d8996fcb7a767a6e3ce6c828058a2ef855af19266253b89794ebce9e189",
+    "r09-profile-r09-3": "cd95763225aa2e47930edfed1fd64362229c628883ee6e4419ff16bf2deec49e",
+    "r09-profile-r08-4": "64669423c40f1196845e3103626439ccc06d7f01d96ca904175df72820224e82",
+    "r09-profile-r09-4": "aeb84be2b5236a307e9463c823c78c684090ec80629543e5f89b1c7a11772234",
+    "r09-profile-r08-5": "6e39bbe7e2c2b46fb762d1004dab7ce132cbd0b752b13a7d8f2574785441ec1e",
+    "r09-profile-r09-5": "68f4ce3f8b637a8a3bd722803533b21e0e3f78014a708c283f4f5f1f71803174"
+  },
+  "runs": [
+    {
+      "run": "r09-profile-r08-1",
+      "side": "r08",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1344.06,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-1",
+      "side": "r08",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1400.52,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-1",
+      "side": "r08",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 2797.96,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-1",
+      "side": "r09",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1356.57,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-1",
+      "side": "r09",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1387.43,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-1",
+      "side": "r09",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1937.46,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-2",
+      "side": "r08",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1040.43,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-2",
+      "side": "r08",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1054.99,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-2",
+      "side": "r08",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 2090.76,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-2",
+      "side": "r09",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1344.71,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-2",
+      "side": "r09",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1370.55,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-2",
+      "side": "r09",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1915.83,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-3",
+      "side": "r08",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1351.11,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-3",
+      "side": "r08",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1346.31,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-3",
+      "side": "r08",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 2711.37,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-3",
+      "side": "r09",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1036.75,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-3",
+      "side": "r09",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1051.7,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-3",
+      "side": "r09",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1690.89,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-4",
+      "side": "r08",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1324.82,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-4",
+      "side": "r08",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1330.2,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-4",
+      "side": "r08",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 2745.83,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-4",
+      "side": "r09",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1081.27,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-4",
+      "side": "r09",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1380.12,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-4",
+      "side": "r09",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1930.12,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-5",
+      "side": "r08",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1310.47,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-5",
+      "side": "r08",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1334.39,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r08-5",
+      "side": "r08",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 2643.17,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-5",
+      "side": "r09",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1344.45,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-5",
+      "side": "r09",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1370.1,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r09-profile-r09-5",
+      "side": "r09",
+      "stage": "reply_pair_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1915.34,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    }
+  ],
+  "summary": {
+    "r08": {
+      "reply_data_send": {
+        "ns_per_op": 1334.39,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_pair_send": {
+        "ns_per_op": 2711.37,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_status_send": {
+        "ns_per_op": 1324.82,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      }
+    },
+    "r09": {
+      "reply_data_send": {
+        "ns_per_op": 1370.55,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_pair_send": {
+        "ns_per_op": 1915.83,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_status_send": {
+        "ns_per_op": 1344.45,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      }
+    }
+  }
+}

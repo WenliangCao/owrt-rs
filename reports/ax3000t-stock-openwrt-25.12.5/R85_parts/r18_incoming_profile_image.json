@@ -1,0 +1,136 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs of real UnixStream INVOKE receive/classify/STATUS with root USER/GROUP. 20,000 calls after 100 warmups; separate allocation counting. Concurrent builds and validation make timing diagnostic only.",
+  "source_sha256": {
+    "r18-incoming-profile-r17-root-profile-1": "3b196608a3bba43be4f7d04ada80773e7234a2bb5e67db40fa5a63c0516398b9",
+    "r18-incoming-profile-r17-root-profile-2": "ba126c6dee2a1d40e698f6579ee384a3c6d5dbbf04d33a0455c7e1b01af3036f",
+    "r18-incoming-profile-r17-root-profile-3": "9a64be0985f4c68a8118d4293ff850cc681becc86736597c3ccfe282f56bd76f",
+    "r18-incoming-profile-r17-root-profile-4": "4f112306a8414fcbc7e098a57f509e6cb297c3d530e2635501a5a964cad6a819",
+    "r18-incoming-profile-r17-root-profile-5": "582f16bb6ebc082eaf34856bcc659644f04a48dfe7ae0299e3c09a3955440f82",
+    "r18-incoming-profile-r18-1": "0657f8b15adcd2b1c64a284875d580d32db169d032e64884718e458f54294adc",
+    "r18-incoming-profile-r18-2": "647e10aca2b2c53dcc81deb52e2e5dfe68742a1a2de3d03f04f56efb76dcc284",
+    "r18-incoming-profile-r18-3": "304a2ffa17eaa54a587fdc19f92b87aa9dcaa2e4e85f79ab2447da3806cbb587",
+    "r18-incoming-profile-r18-4": "3e4ae7d05c55352ac97f479b50953d415f36602b46866ddf8374f2091b76131f",
+    "r18-incoming-profile-r18-5": "58f81fd2561750990d77fdd1f393c1c892c6b192028c41e431a96c2b034b4bf3"
+  },
+  "profiler_sha256": {
+    "r17-root-profile": "145a91fb2249f8752bd64087e31c10c45d625c87b6727a45cb967469600aad9e",
+    "r18": "8ad2621c52f2a212c6d2db33640fb1c9d1186987c78481575240caaa5fa22e51"
+  },
+  "runs": [
+    {
+      "run": "r18-incoming-profile-r17-root-profile-1",
+      "side": "r17-root-profile",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10988.98,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 134.0
+    },
+    {
+      "run": "r18-incoming-profile-r17-root-profile-2",
+      "side": "r17-root-profile",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10257.12,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 134.0
+    },
+    {
+      "run": "r18-incoming-profile-r17-root-profile-3",
+      "side": "r17-root-profile",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 8867.74,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 134.0
+    },
+    {
+      "run": "r18-incoming-profile-r17-root-profile-4",
+      "side": "r17-root-profile",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 7720.35,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 134.0
+    },
+    {
+      "run": "r18-incoming-profile-r17-root-profile-5",
+      "side": "r17-root-profile",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 6746.65,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 134.0
+    },
+    {
+      "run": "r18-incoming-profile-r18-1",
+      "side": "r18",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10804.65,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r18-incoming-profile-r18-2",
+      "side": "r18",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 10581.13,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r18-incoming-profile-r18-3",
+      "side": "r18",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 6689.82,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r18-incoming-profile-r18-4",
+      "side": "r18",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 6678.33,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r18-incoming-profile-r18-5",
+      "side": "r18",
+      "stage": "incoming_request_roundtrip",
+      "iterations": 20000.0,
+      "ns_per_op": 6288.94,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    }
+  ],
+  "summary": {
+    "r17-root-profile": {
+      "ns_per_op": 8867.74,
+      "allocs": 4.0,
+      "reallocs": 0.0,
+      "requested_bytes": 134.0
+    },
+    "r18": {
+      "ns_per_op": 6689.82,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    }
+  }
+}

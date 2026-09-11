@@ -1,0 +1,140 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "perf record -F 499 -e cycles:u, 100000 actual 64-section UCI get handler calls; unstripped release with identical release parameters except symbols. No concurrent build or validation during sampling. Symbols resolved via symfs with the exact recorded executable; percentages are sampled CPU shares, not router latency.",
+  "executable_sha256": "51bfe3bc4c7c3b0f7c5815b5c53e652568a9909e3c205d772a528bb5194dfc6f",
+  "source_archive_sha256": "401130f23770a8c2f2ac687d13f4d555ead6cddbc872ca9d842469d451d32374",
+  "data_sha256": "72886d384ff294489826688aaa3bd728d8d01260d73b49228732d4c94c966a26",
+  "symbol_report_sha256": "93a486b1326255e9d224fe2949b026538e0bf990c3f54081993fec2c04a98297",
+  "samples": 8157,
+  "lost_samples": 0,
+  "top_symbols": [
+    {
+      "sample_pct": 12.48,
+      "symbol": "<owrt_uci::parse::Pctx>::next_arg"
+    },
+    {
+      "sample_pct": 9.64,
+      "symbol": "<owrt_uci::parse::Pctx>::getln"
+    },
+    {
+      "sample_pct": 9.2,
+      "symbol": "owrt_uci::parse::import"
+    },
+    {
+      "sample_pct": 7.75,
+      "symbol": "memcmp"
+    },
+    {
+      "sample_pct": 7.15,
+      "symbol": "__libc_free"
+    },
+    {
+      "sample_pct": 7.01,
+      "symbol": "memmove"
+    },
+    {
+      "sample_pct": 5.81,
+      "symbol": "<owrt_uci::parse::Pctx>::parse_option"
+    },
+    {
+      "sample_pct": 5.03,
+      "symbol": "__lock"
+    },
+    {
+      "sample_pct": 4.61,
+      "symbol": "core::str::converts::from_utf8"
+    },
+    {
+      "sample_pct": 3.84,
+      "symbol": "__unlock"
+    },
+    {
+      "sample_pct": 3.82,
+      "symbol": "__libc_malloc_impl"
+    },
+    {
+      "sample_pct": 2.64,
+      "symbol": "memcpy"
+    },
+    {
+      "sample_pct": 2.56,
+      "symbol": "alloc_slot"
+    },
+    {
+      "sample_pct": 2.48,
+      "symbol": "<owrt_ubus::blob::BlobBuf>::msg_open_bytes"
+    },
+    {
+      "sample_pct": 2.19,
+      "symbol": "<owrt_ubus::blob::BlobBuf>::msg_string"
+    },
+    {
+      "sample_pct": 1.7,
+      "symbol": "nontrivial_free"
+    },
+    {
+      "sample_pct": 1.16,
+      "symbol": "memset"
+    },
+    {
+      "sample_pct": 1.15,
+      "symbol": "uci_reply_profile::uciobj::dump_section"
+    },
+    {
+      "sample_pct": 0.94,
+      "symbol": "<core::str::lossy::Utf8Chunks as core::iter::traits::iterator::Iterator>::next"
+    },
+    {
+      "sample_pct": 0.92,
+      "symbol": "owrt_uci::ops::append_list"
+    },
+    {
+      "sample_pct": 0.85,
+      "symbol": "uci_reply_profile::uciobj::dump_option"
+    },
+    {
+      "sample_pct": 0.57,
+      "symbol": "<std::io::buffered::bufreader::BufReader<&std::fs::File> as std::io::BufRead>::fill_buf"
+    },
+    {
+      "sample_pct": 0.51,
+      "symbol": "<alloc::raw_vec::RawVecInner>::finish_grow"
+    },
+    {
+      "sample_pct": 0.5,
+      "symbol": "bcmp"
+    },
+    {
+      "sample_pct": 0.42,
+      "symbol": "owrt_uci::ops::alloc_section"
+    },
+    {
+      "sample_pct": 0.36,
+      "symbol": "<alloc::string::String>::from_utf8_lossy"
+    },
+    {
+      "sample_pct": 0.29,
+      "symbol": "core::ptr::drop_glue::<owrt_uci::model::Package>"
+    },
+    {
+      "sample_pct": 0.27,
+      "symbol": "__libc_realloc"
+    },
+    {
+      "sample_pct": 0.25,
+      "symbol": "<owrt_uci::model::Bytes as core::convert::From<&[u8]>>::from"
+    },
+    {
+      "sample_pct": 0.2,
+      "symbol": "<owrt_ubus::blob::BlobBuf>::msg_u32"
+    },
+    {
+      "sample_pct": 0.2,
+      "symbol": "uci_reply_profile::uciobj::match_section"
+    },
+    {
+      "sample_pct": 0.2,
+      "symbol": "__malloc_alloc_meta"
+    }
+  ]
+}

@@ -1,0 +1,252 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs; 20,000 complete local-root file payloads after 100 warmups. Actual handlers, no ACL/dispatch/exec. Separate timing and allocation counters. Not end-to-end router latency.",
+  "profiler_sha256": {
+    "r10": "a92e5791fb5d37f24be6dd1c57bb364b3a38b0a4085870867cfce5ddb36d80d1",
+    "r11": "ef90f4adf837d9524d51958b226f60b6f51581113215cd2d9b28220f93b64997"
+  },
+  "source_sha256": {
+    "r11-file-profile-r10-1": "a93800c66e34bcece8e8752a43184312e94ebdbae6003fc95abfe946e1dd1df7",
+    "r11-file-profile-r10-2": "e9037b99683df86089b54fdc9f299cba3133278c02b1b787d8e4b8635ebabd68",
+    "r11-file-profile-r10-3": "ae43c4a71584ec6148a2715c437892a759eb31b196464ffb977807c1adb104a5",
+    "r11-file-profile-r10-4": "69b492bf0d1fd3a30140eea247d2c3c99054eb3430902556ebb9c688832020dd",
+    "r11-file-profile-r10-5": "99d342ab6793b1e90f912b1ecb45918c012dabaf931646a5bc2b6eebfca59b3b",
+    "r11-file-profile-r11-1": "166050c1422b6aace7f762e3288e04019dafad3d8be7982e399a3d2cd8a98944",
+    "r11-file-profile-r11-2": "7d56f3ee579e38f0922103aa2c0a34e36fcd7e4a83bf657b3d610f2764ce473a",
+    "r11-file-profile-r11-3": "f03dff2d60c902d551d84daaf999daacb5b864db6f6389b173445f7d305ffa84",
+    "r11-file-profile-r11-4": "876d87937e0bb1d4d7d3adcd7424ecf9894dedd09c94b3c3d754c7c1aa3c96cb",
+    "r11-file-profile-r11-5": "ff99199f559b5bb1c1bc81bf134aee53cc758bf121e8fecde9cbc15293921c0d"
+  },
+  "runs": [
+    {
+      "run": "r11-file-profile-r10-1",
+      "side": "r10",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 13949.63,
+      "allocs": 8.0,
+      "reallocs": 6.0,
+      "requested_bytes": 17005.0
+    },
+    {
+      "run": "r11-file-profile-r10-1",
+      "side": "r10",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 86965.16,
+      "allocs": 73.0,
+      "reallocs": 36.0,
+      "requested_bytes": 153167.0
+    },
+    {
+      "run": "r11-file-profile-r10-2",
+      "side": "r10",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 14021.15,
+      "allocs": 8.0,
+      "reallocs": 6.0,
+      "requested_bytes": 17005.0
+    },
+    {
+      "run": "r11-file-profile-r10-2",
+      "side": "r10",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 87536.83,
+      "allocs": 73.0,
+      "reallocs": 36.0,
+      "requested_bytes": 153167.0
+    },
+    {
+      "run": "r11-file-profile-r10-3",
+      "side": "r10",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 13760.39,
+      "allocs": 8.0,
+      "reallocs": 6.0,
+      "requested_bytes": 17005.0
+    },
+    {
+      "run": "r11-file-profile-r10-3",
+      "side": "r10",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 87042.03,
+      "allocs": 73.0,
+      "reallocs": 36.0,
+      "requested_bytes": 153167.0
+    },
+    {
+      "run": "r11-file-profile-r10-4",
+      "side": "r10",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 14009.63,
+      "allocs": 8.0,
+      "reallocs": 6.0,
+      "requested_bytes": 17005.0
+    },
+    {
+      "run": "r11-file-profile-r10-4",
+      "side": "r10",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 86787.3,
+      "allocs": 73.0,
+      "reallocs": 36.0,
+      "requested_bytes": 153167.0
+    },
+    {
+      "run": "r11-file-profile-r10-5",
+      "side": "r10",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 13580.18,
+      "allocs": 8.0,
+      "reallocs": 6.0,
+      "requested_bytes": 17005.0
+    },
+    {
+      "run": "r11-file-profile-r10-5",
+      "side": "r10",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 86606.69,
+      "allocs": 73.0,
+      "reallocs": 36.0,
+      "requested_bytes": 153167.0
+    },
+    {
+      "run": "r11-file-profile-r11-1",
+      "side": "r11",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5366.54,
+      "allocs": 8.0,
+      "reallocs": 0.0,
+      "requested_bytes": 1348.0
+    },
+    {
+      "run": "r11-file-profile-r11-1",
+      "side": "r11",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 72924.67,
+      "allocs": 73.0,
+      "reallocs": 30.0,
+      "requested_bytes": 14675.0
+    },
+    {
+      "run": "r11-file-profile-r11-2",
+      "side": "r11",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5374.27,
+      "allocs": 8.0,
+      "reallocs": 0.0,
+      "requested_bytes": 1348.0
+    },
+    {
+      "run": "r11-file-profile-r11-2",
+      "side": "r11",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 72817.75,
+      "allocs": 73.0,
+      "reallocs": 30.0,
+      "requested_bytes": 14675.0
+    },
+    {
+      "run": "r11-file-profile-r11-3",
+      "side": "r11",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5387.49,
+      "allocs": 8.0,
+      "reallocs": 0.0,
+      "requested_bytes": 1348.0
+    },
+    {
+      "run": "r11-file-profile-r11-3",
+      "side": "r11",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 73023.48,
+      "allocs": 73.0,
+      "reallocs": 30.0,
+      "requested_bytes": 14675.0
+    },
+    {
+      "run": "r11-file-profile-r11-4",
+      "side": "r11",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5546.57,
+      "allocs": 8.0,
+      "reallocs": 0.0,
+      "requested_bytes": 1348.0
+    },
+    {
+      "run": "r11-file-profile-r11-4",
+      "side": "r11",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 74789.39,
+      "allocs": 73.0,
+      "reallocs": 30.0,
+      "requested_bytes": 14675.0
+    },
+    {
+      "run": "r11-file-profile-r11-5",
+      "side": "r11",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5339.12,
+      "allocs": 8.0,
+      "reallocs": 0.0,
+      "requested_bytes": 1348.0
+    },
+    {
+      "run": "r11-file-profile-r11-5",
+      "side": "r11",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 72504.16,
+      "allocs": 73.0,
+      "reallocs": 30.0,
+      "requested_bytes": 14675.0
+    }
+  ],
+  "summary": {
+    "r10": {
+      "file_list_payload": {
+        "ns_per_op": 86965.16,
+        "allocs": 73.0,
+        "reallocs": 36.0,
+        "requested_bytes": 153167.0
+      },
+      "file_stat_payload": {
+        "ns_per_op": 13949.63,
+        "allocs": 8.0,
+        "reallocs": 6.0,
+        "requested_bytes": 17005.0
+      }
+    },
+    "r11": {
+      "file_list_payload": {
+        "ns_per_op": 72924.67,
+        "allocs": 73.0,
+        "reallocs": 30.0,
+        "requested_bytes": 14675.0
+      },
+      "file_stat_payload": {
+        "ns_per_op": 5374.27,
+        "allocs": 8.0,
+        "reallocs": 0.0,
+        "requested_bytes": 1348.0
+      }
+    }
+  }
+}

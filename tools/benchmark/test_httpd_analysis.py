@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import analyze_httpd
+import analyze_candidate as analyze_httpd
 
 
 class ParallelIntervalTests(unittest.TestCase):
@@ -53,6 +53,14 @@ class ParallelIntervalTests(unittest.TestCase):
         self.clients[2]["successful"] = 24
         with patch.object(analyze_httpd, "native", side_effect=self.clients), self.assertRaises(AssertionError):
             analyze_httpd.parallel(self.root, 42)
+
+    def test_client_diagnostic_cannot_be_published_as_the_regular_matrix(self):
+        (self.root / "COMPLETE").touch()
+        self.put("order.json", ["stock", "candidate"])
+        self.put("subjects.json", {})
+        self.put("settings.json", {"component": "rpcd", "rpc_client_diagnostic": True})
+        with self.assertRaisesRegex(AssertionError, "diagnostics cannot be published"):
+            analyze_httpd.derive(self.root, "not-a-performance-result")
 
 
 if __name__ == "__main__":

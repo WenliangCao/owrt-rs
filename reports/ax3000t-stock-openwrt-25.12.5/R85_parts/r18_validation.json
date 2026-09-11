@@ -1,0 +1,140 @@
+{
+  "subject_sha256": "eec534e6c70e41357184bb54998c760a8ff79e6faf850bbb5f822637700a3c58",
+  "source_archive_sha256": "a0ff8c6859a1500bb6a2a4e6b2baa4752dad6b3b02f2d17cf00498205697b6a9",
+  "evidence_archive_sha256": "d9d2cd5edeec2bbffcad19b1dc51f9cfeccc9abbdf04cc648bb1f449ebc01e4b",
+  "artifacts_sha256": {
+    "file_profile": "9a4fbb4351d63d2f4736e0e3923e68d39fa57f1f8f4b4aa67b47e58b8ae2b408",
+    "fw4-rs": "f13f7e0b0b9225ff18cc0562fe53eb900bbcadc115a410c5918f469abd87b6eb",
+    "httpd-rs": "86a54633f509a66218322bb453c4b87cf0982bea71be665e69cd0319cdb562f7",
+    "logd-rs": "334a6ec3f108c01bbf1bb2c6248a87d5c7c0f4e5db5291c0d313f06dac3a2dbf",
+    "netifd-rs": "659d5d7003709fd1812460f65db6c6d1335a8d9f17af1c87784a9cd7045dadf9",
+    "ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "owrt-benchmark": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+    "procd-rs": "9d47dd3201a7339aa9f33b242852aac3675ce14ec61741bc19e55310847d3f7e",
+    "reload-config-rs": "ca46f1fe9d634cf367e0d3d94d63521e7f77ab5bc92b40c07a005d513f1e802b",
+    "rpc_profile": "8ad2621c52f2a212c6d2db33640fb1c9d1186987c78481575240caaa5fa22e51",
+    "rpcd-rs": "eec534e6c70e41357184bb54998c760a8ff79e6faf850bbb5f822637700a3c58",
+    "ubusd-rs": "152dfe8b9e274d94ca3ddffc8e7be1f7e595fd653d633cc230b80a0c9ca64086",
+    "uci-rs": "d52e3cdbf9b9ee502af851bd9eb11da323104994bce4182e58cd1fced21abef4",
+    "uci_profile": "f1acf0628efd42ff0f98477972bbf627600c73c9f1ac26d6e7364796ac61e6cf",
+    "uci_reply_profile": "de6297c506fac1b5ecb95cf4443d685fa171ea3d3d25dfc9beac5e83006ccec3"
+  },
+  "artifact_hashes_verified": 15,
+  "all_unit_tests_passed": 393,
+  "all_unit_log_sha256": "80d2e61a93fdf5efba4e4839f7cc6a167103f3562381ea42c548a4b74ac562ce",
+  "ubus_unit_tests": 26,
+  "rpcd_unit_tests": 45,
+  "r13": {
+    "steps": 63,
+    "identical": 63,
+    "differences": 0,
+    "report_sha256": "f25f0075682f2556adbcb4bbe1fcfa53cc35a8d57b18ce998a0752464ce4240c"
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differences": 0,
+    "report_sha256": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c"
+  },
+  "r18": {
+    "steps": 77,
+    "identical": 77,
+    "differences": 0,
+    "report_sha256": "8ebc074680665c558d29569c8574ad9c8b880e52417ebc0da2515b0572278891"
+  },
+  "r19": {
+    "steps": 11,
+    "identical": 11,
+    "differences": 0,
+    "report_sha256": "31f21a926c678351b92b7193a34ce88d0603c691bfd825bf60fe6eb50be4cc3f"
+  },
+  "r26": {
+    "status": "steps=733 differing=0",
+    "log_sha256": "a92fe1981a5233063c2e4d5e8eff23aeb08c1315a956262f29e13b335b6fd1e7"
+  },
+  "bytes": {
+    "status": "r83 rpcd byte transport: PASS",
+    "log_sha256": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279"
+  },
+  "defer": {
+    "status": "r83 rpcd defer gate: PASS",
+    "log_sha256": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3"
+  },
+  "remaining": [
+    "canonical build and validation",
+    "RPCD performance acceptance"
+  ],
+  "router_r18": {
+    "complete": true,
+    "raw_files_sha256_verified": 344,
+    "workload_measurements": 72,
+    "performance_accepted": false,
+    "rss_anon_kib": [
+      92,
+      92
+    ]
+  },
+  "shared_consumer_runtime_gates": {
+    "httpd-r83": {
+      "exit": 0,
+      "log_sha256": "9c18b2c33bc283a9adb64af2855943eb5b0fb00a257b3dff6d9d2280215a8a85"
+    },
+    "netifd-config": {
+      "exit": 0,
+      "log_sha256": "980a52808e94898f49dd840c2ea73f0e466e5a66c96b329e4b8cfb34354f5a05"
+    },
+    "netifd-wireless": {
+      "exit": 0,
+      "log_sha256": "2c7e686a07ca561b399910857e5cb3c815a22b2999f6019e6b33945cd500cf8c"
+    },
+    "ubusd-r42": {
+      "exit": 0,
+      "log_sha256": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9"
+    },
+    "procd-r83": {
+      "exit": 0,
+      "log_sha256": "d0274df0ed14f809fa2c779f2ba99e574584408e1f189d913dd992e08d1bf862"
+    },
+    "netifd-lifecycle": {
+      "exit": 0,
+      "log_sha256": "5ff10e8f8fa4f3f3b145b588c14901fd1723375c3735ee0831e2f9e432007853"
+    },
+    "ubusd-r83": {
+      "exit": 0,
+      "log_sha256": "265c41bc90b78b49a85e59969ea791b8085c24fbd589fad1d2cb9c8b804e5be6"
+    },
+    "procd-r65": {
+      "exit": 0,
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114"
+    }
+  },
+  "shared_consumer_evidence_archive_sha256": "5fd5d6a93afb458d13eac1297e8d60a761e9a96b8919114a39959bcb8173acb8",
+  "shared_consumer_launcher_note": "First launcher disappeared after five completed gates; verified it was not running, retained those results, resumed only three not-started gates. Final eight exit statuses are all zero.",
+  "additional_consumer_gates": {
+    "artifact_revision": "r18",
+    "reason": "R20 changed only RPCD uciobj; shared UCI/ubus source and consumer artifacts remain R18.",
+    "evidence_archive_sha256": "4a85772e630b262cf10acdb6c2c51a37a6eb5f2f041a2e33154ba5e9dcab00b4",
+    "gates": {
+      "fw4-image": {
+        "exit": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fw4-upstream": {
+        "exit": 0,
+        "log_sha256": "c3f4ba1228e06d3b501df007c6a20f0981dc9e4253bc60b0f771f9d980e07153"
+      },
+      "logd-oversize": {
+        "exit": 0,
+        "log_sha256": "d4834b30159500ad938d692fdbe1164a540f69b253be1ce82bf7eb81e3709ee2"
+      },
+      "logd-r28": {
+        "exit": 0,
+        "log_sha256": "e0d0fd8a678f44c092831793f3ced1f1dfc87fdcd6df75537b39834f73e44b2d"
+      },
+      "logd-ring": {
+        "exit": 0,
+        "log_sha256": "c6018f6db3f20697cc39204fb759ec19a82de36d927d0449775cb07058d85f80"
+      }
+    }
+  }
+}

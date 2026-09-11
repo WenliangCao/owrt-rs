@@ -5,9 +5,10 @@
 use crate::session::Reply;
 use crate::util;
 use crate::{Ctx, Deferrer};
-use owrt_ubus::convert::fields_to_json;
+use owrt_ubus::convert::{fields_to_json, json_to_fields};
+use owrt_ubus::blob::{self, MsgType};
 use owrt_ubus::json::Json;
-use owrt_ubus::{status, Request};
+use owrt_ubus::{status, BlobBuf, Request};
 use std::fs;
 use std::ffi::{OsStr, OsString};
 use std::os::unix::ffi::{OsStrExt, OsStringExt};
@@ -57,7 +58,7 @@ fn arg_bool(args: &Json, key: &str) -> bool {
     matches!(args.get(key), Some(Json::Bool(true)))
 }
 
-fn add_stat(out: &mut Vec<(String, Json)>, m: &fs::Metadata) {
+fn add_stat(out: &mut BlobBuf, m: &fs::Metadata) {
     let ty = if m.file_type().is_file() {
         "file"
     } else if m.file_type().is_dir() {
@@ -75,28 +76,70 @@ fn add_stat(out: &mut Vec<(String, Json)>, m: &fs::Metadata) {
     } else {
         "unknown"
     };
-    out.push(("type".into(), Json::Str(ty.into())));
-    out.push(("size".into(), Json::Int(m.size() as i64)));
-    out.push(("mode".into(), Json::Int(m.mode() as i64)));
-    out.push(("atime".into(), Json::Int(m.atime() as u32 as i64)));
-    out.push(("mtime".into(), Json::Int(m.mtime() as u32 as i64)));
-    out.push(("ctime".into(), Json::Int(m.ctime() as u32 as i64)));
-    out.push(("inode".into(), Json::Int(m.ino() as u32 as i64)));
-    out.push(("uid".into(), Json::Int(m.uid() as i64)));
-    out.push(("gid".into(), Json::Int(m.gid() as i64)));
+    out.msg_string("type", ty);
+    // Keep the existing JSON bridge's signed INT32/INT64 selection, without
+    // allocating a tree or copying constant field names into Strings.
+    for (name, value) in [
+        ("size", m.size() as i64),
+        ("mode", m.mode() as i64),
+        ("atime", m.atime() as u32 as i64),
+        ("mtime", m.mtime() as u32 as i64),
+        ("ctime", m.ctime() as u32 as i64),
+        ("inode", m.ino() as u32 as i64),
+        ("uid", m.uid() as i64),
+        ("gid", m.gid() as i64),
+    ] {
+        json_to_fields(out, name, &Json::Int(value));
+    }
     if let Some(u) = util::user_name(m.uid()) {
-        out.push(("user".into(), Json::Str(u)));
+        out.msg_string("user", &u);
     }
     if let Some(g) = util::group_name(m.gid()) {
-        out.push(("group".into(), Json::Str(g)));
+        out.msg_string("group", &g);
     }
 }
 
 /// `rpc_check_path`: canonicalise, ACL-check, optionally stat.
 fn check_path(ctx: &Ctx, args: &Json, perm: &str, want_stat: bool, use_lstat: bool) -> Result<(PathBuf, Option<fs::Metadata>), i32> {
-    let Some(raw) = args.get("path").and_then(Json::as_bytes) else { return Err(status::INVALID_ARGUMENT) };
+    check_path_args(ctx, PathArgs::from_json(args), perm, want_stat, use_lstat)
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct PathArgs<'a> {
+    path: Option<&'a [u8]>,
+    sid: Option<&'a str>,
+}
+
+impl<'a> PathArgs<'a> {
+    fn from_json(args: &'a Json) -> Self {
+        Self { path: args.get("path").and_then(Json::as_bytes), sid: arg_str(args, "ubus_rpc_session") }
+    }
+
+    fn from_blob(data: &'a [u8]) -> Self {
+        let (mut path, mut sid) = (None, None);
+        for field in blob::fields(data) {
+            match field.name {
+                "path" if path.is_none() => path = Some(field),
+                "ubus_rpc_session" if sid.is_none() => sid = Some(field),
+                _ => {}
+            }
+        }
+        // JSON's get selects the first named field, even when its type is
+        // wrong. A STRING without a NUL becomes empty in field_to_json.
+        let string_bytes = |f: blob::Field<'a>| {
+            (f.ty == MsgType::String as u32).then(|| f.as_bytes().unwrap_or(b""))
+        };
+        Self {
+            path: path.and_then(string_bytes),
+            sid: sid.and_then(string_bytes).and_then(|v| std::str::from_utf8(v).ok()),
+        }
+    }
+}
+
+fn check_path_args(ctx: &Ctx, args: PathArgs<'_>, perm: &str, want_stat: bool, use_lstat: bool) -> Result<(PathBuf, Option<fs::Metadata>), i32> {
+    let Some(raw) = args.path else { return Err(status::INVALID_ARGUMENT) };
     let Some(path) = util::canonicalize_bytes(raw) else { return Err(status::UNKNOWN_ERROR) };
-    if !ctx.file_access_bytes(arg_str(args, "ubus_rpc_session"), &path, perm) {
+    if !ctx.file_access_bytes(args.sid, &path, perm) {
         return Err(status::PERMISSION_DENIED);
     }
     let path = PathBuf::from(OsString::from_vec(path));
@@ -200,37 +243,41 @@ pub fn md5(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
     Ok(Some(Json::Object(vec![("md5".into(), Json::Str(util::hex(&util::md5(&data))))])))
 }
 
-pub fn list(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
-    let (path, _) = check_path(ctx, args, "list", false, false)?;
+fn list(ctx: &Ctx, args: PathArgs<'_>) -> Result<Vec<u8>, i32> {
+    let (path, _) = check_path_args(ctx, args, "list", false, false)?;
     let rd = fs::read_dir(&path).map_err(|e| errno_status(&e))?;
-    let mut entries = Vec::new();
+    let mut out = BlobBuf::with_capacity(256);
+    let entries = out.msg_open_array("entries");
     for e in rd.flatten() {
         let name = e.file_name();
         let entrypath = e.path();
         let Ok(m) = fs::symlink_metadata(&entrypath) else { continue };
-        let mut o = vec![("name".into(), Json::from_string_bytes(name.into_vec()))];
-        add_stat(&mut o, &m);
+        let entry = out.msg_open_table("");
+        out.msg_string_bytes("name", name.as_bytes());
+        add_stat(&mut out, &m);
         if m.file_type().is_symlink() {
-            let mut t = Vec::new();
+            let target = out.msg_open_table("target");
             if let Ok(link) = fs::read_link(&entrypath) {
-                t.push(("name".into(), Json::from_string_bytes(link.into_os_string().into_vec())));
+                out.msg_string_bytes("name", link.as_os_str().as_bytes());
             }
             match fs::metadata(&entrypath) {
-                Ok(tm) => add_stat(&mut t, &tm),
-                Err(_) => t.push(("type".into(), Json::Str("broken".into()))),
+                Ok(tm) => add_stat(&mut out, &tm),
+                Err(_) => { out.msg_string("type", "broken"); },
             }
-            o.push(("target".into(), Json::Object(t)));
+            out.msg_close(target);
         }
-        entries.push(Json::Object(o));
+        out.msg_close(entry);
     }
-    Ok(Some(Json::Object(vec![("entries".into(), Json::Array(entries))])))
+    out.msg_close(entries);
+    Ok(out.into_payload())
 }
 
-pub fn stat(ctx: &Ctx, args: &Json, use_lstat: bool) -> Result<Option<Json>, i32> {
-    let (path, m) = check_path(ctx, args, "list", true, use_lstat)?;
-    let mut o = vec![("path".into(), Json::from_string_bytes(path.into_os_string().into_vec()))];
-    add_stat(&mut o, &m.unwrap());
-    Ok(Some(Json::Object(o)))
+fn stat(ctx: &Ctx, args: PathArgs<'_>, use_lstat: bool) -> Result<Vec<u8>, i32> {
+    let (path, m) = check_path_args(ctx, args, "list", true, use_lstat)?;
+    let mut out = BlobBuf::with_capacity(256);
+    out.msg_string_bytes("path", path.as_os_str().as_bytes());
+    add_stat(&mut out, &m.unwrap());
+    Ok(out.into_payload())
 }
 
 fn remove_recursive(path: &Path) -> Result<(), i32> {
@@ -554,6 +601,19 @@ pub enum Outcome {
 /// Dispatch one `file` method. Only `exec` defers; everything else is a
 /// bounded filesystem operation that C runs on the loop too.
 pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
+    let payload = match req.method.as_str() {
+        "list" => Some(list(ctx, PathArgs::from_blob(&req.data))),
+        "lstat" => Some(stat(ctx, PathArgs::from_blob(&req.data), true)),
+        "stat" => Some(stat(ctx, PathArgs::from_blob(&req.data), false)),
+        _ => None,
+    };
+    if let Some(payload) = payload {
+        let reply = match payload {
+            Ok(data) => Reply { code: status::OK, data: vec![data] },
+            Err(code) => Reply { code, data: vec![] },
+        };
+        return Outcome::Now(req, reply);
+    }
     let args = fields_to_json(&req.data);
     if req.method == "exec" {
         return exec(ctx, req, &args, deferrer);
@@ -561,9 +621,6 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
     let r = match req.method.as_str() {
         "read" => read(ctx, &args),
         "write" => write(ctx, &args),
-        "list" => list(ctx, &args),
-        "lstat" => stat(ctx, &args, true),
-        "stat" => stat(ctx, &args, false),
         "md5" => md5(ctx, &args),
         "remove" => remove(ctx, &args),
         _ => Err(status::METHOD_NOT_FOUND),
@@ -573,10 +630,37 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
 
 #[cfg(test)]
 mod tests {
-    use super::{acl_cmdline, open_for_write, run_command, CMDLINE_MAX};
+    use super::{acl_cmdline, open_for_write, run_command, PathArgs, CMDLINE_MAX};
+    use owrt_ubus::{BlobBuf, MsgType};
     use owrt_ubus::status;
     use std::os::unix::fs::PermissionsExt;
     use std::time::Instant;
+
+    #[test]
+    fn path_arguments_keep_first_fields_raw_bytes_and_empty_string_rules() {
+        let mut b = BlobBuf::new();
+        b.msg_string_bytes("path", b"/tmp/\xff");
+        b.msg_string("path", "/second");
+        b.msg_string("ubus_rpc_session", "first");
+        b.msg_string("ubus_rpc_session", "second");
+        let fields = b.into_payload();
+        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: Some(b"/tmp/\xff"), sid: Some("first") });
+
+        let mut b = BlobBuf::new();
+        b.msg_u32("path", 1);
+        b.msg_string("path", "/second");
+        b.msg_string_bytes("ubus_rpc_session", b"\xff");
+        b.msg_string("ubus_rpc_session", "second");
+        let fields = b.into_payload();
+        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: None, sid: None });
+
+        let mut b = BlobBuf::new();
+        b.msg_field(MsgType::String as u32, "path", b"no terminator");
+        b.msg_field(MsgType::String as u32, "ubus_rpc_session", b"no terminator");
+        let fields = b.into_payload();
+        assert_eq!(PathArgs::from_blob(&fields), PathArgs { path: Some(b""), sid: Some("") });
+        assert_eq!(PathArgs::from_blob(&[]), PathArgs { path: None, sid: None });
+    }
 
     extern "C" {
         fn umask(mask: u32) -> u32;

@@ -1,0 +1,364 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs of actual local-root UCI handlers, including reading/parsing/complete payloads; 20,000 calls after 100 warmups. No ubus transport. Separate allocation counting.",
+  "profiler_sha256": {
+    "r14": "c0dbdc224fe9158dca28e5297baeb2dbd9f5aaee2cba4d6204eadf46f4630577",
+    "r15": "172e3839dfa20eb92e1ce7cb099ed024b49f3b0937d5941da8ebe0548303f988"
+  },
+  "source_sha256": {
+    "r15-uci-reply-profile-r14-1": "929067d917f2555837021b16d4a00b00cbb1e0282b7a67da18485b17df972843",
+    "r15-uci-reply-profile-r14-2": "e2d6a99e4f75541503706e1ea2152c7a08bd300d23cd4f47d17351f8809f2bb8",
+    "r15-uci-reply-profile-r14-3": "e15fd0900ff95aa1a771f222fe9f073ebf7f2dc0416d6b7d431b597cd63b9e2a",
+    "r15-uci-reply-profile-r14-4": "e60731f7a8aa91177e5286921ff61fd37020a9281d06553dbbf5b6511af9048f",
+    "r15-uci-reply-profile-r14-5": "d0bade5ac86b4d80eb3bb31b5512531fa0b9f7d01bb5dfec1ca3b2aa838e55ca",
+    "r15-uci-reply-profile-r15-1": "f1f36d07671f66ab492e31620acac09c93698b72de862cf4dce6205c13e341d0",
+    "r15-uci-reply-profile-r15-2": "953c2c04a848ee58990aa0ac67252550c0f3e46cabca0769ac06b477ce26595d",
+    "r15-uci-reply-profile-r15-3": "9b0a1bd9acb162a1108b34d1e03b9fd9e7a4b19d727e08bf3959325dab23f7e4",
+    "r15-uci-reply-profile-r15-4": "405fcf9b5da41aab9e9354ab61e06f502debf03d51e3ecf20c7b54c0c79c2f95",
+    "r15-uci-reply-profile-r15-5": "2049639dc7efe1ef9df768aefb11d672e660dd864d602c265fc78f319e637318"
+  },
+  "runs": [
+    {
+      "run": "r15-uci-reply-profile-r14-1",
+      "side": "r14",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5647.27,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-1",
+      "side": "r14",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 17541.02,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-1",
+      "side": "r14",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 171031.86,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-2",
+      "side": "r14",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5608.08,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-2",
+      "side": "r14",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 17365.36,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-2",
+      "side": "r14",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 169206.64,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-3",
+      "side": "r14",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5635.31,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-3",
+      "side": "r14",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 17486.57,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-3",
+      "side": "r14",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 168911.59,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-4",
+      "side": "r14",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5622.71,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-4",
+      "side": "r14",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 17441.61,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-4",
+      "side": "r14",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 170558.83,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-5",
+      "side": "r14",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5625.96,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-5",
+      "side": "r14",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 17386.44,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r14-5",
+      "side": "r14",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 170020.58,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-1",
+      "side": "r15",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5775.82,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-1",
+      "side": "r15",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16985.72,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-1",
+      "side": "r15",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 170460.85,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-2",
+      "side": "r15",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5763.52,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-2",
+      "side": "r15",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16899.26,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-2",
+      "side": "r15",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 166887.82,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-3",
+      "side": "r15",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5760.82,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-3",
+      "side": "r15",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16735.81,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-3",
+      "side": "r15",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 167551.15,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-4",
+      "side": "r15",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5778.85,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-4",
+      "side": "r15",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16726.56,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-4",
+      "side": "r15",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 168288.24,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-5",
+      "side": "r15",
+      "stage": "uci_configs_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 5748.38,
+      "allocs": 28.0,
+      "reallocs": 8.0,
+      "requested_bytes": 1455.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-5",
+      "side": "r15",
+      "stage": "uci_get_network_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16921.64,
+      "allocs": 56.0,
+      "reallocs": 14.0,
+      "requested_bytes": 12420.0
+    },
+    {
+      "run": "r15-uci-reply-profile-r15-5",
+      "side": "r15",
+      "stage": "uci_get_64_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 169942.55,
+      "allocs": 602.0,
+      "reallocs": 22.0,
+      "requested_bytes": 74981.0
+    }
+  ],
+  "summary": {
+    "r14": {
+      "uci_configs_payload": {
+        "ns_per_op": 5625.96,
+        "allocs": 28.0,
+        "reallocs": 8.0,
+        "requested_bytes": 1455.0
+      },
+      "uci_get_64_payload": {
+        "ns_per_op": 170020.58,
+        "allocs": 602.0,
+        "reallocs": 22.0,
+        "requested_bytes": 74981.0
+      },
+      "uci_get_network_payload": {
+        "ns_per_op": 17441.61,
+        "allocs": 56.0,
+        "reallocs": 14.0,
+        "requested_bytes": 12420.0
+      }
+    },
+    "r15": {
+      "uci_configs_payload": {
+        "ns_per_op": 5763.52,
+        "allocs": 28.0,
+        "reallocs": 8.0,
+        "requested_bytes": 1455.0
+      },
+      "uci_get_64_payload": {
+        "ns_per_op": 168288.24,
+        "allocs": 602.0,
+        "reallocs": 22.0,
+        "requested_bytes": 74981.0
+      },
+      "uci_get_network_payload": {
+        "ns_per_op": 16899.26,
+        "allocs": 56.0,
+        "reallocs": 14.0,
+        "requested_bytes": 12420.0
+      }
+    }
+  }
+}

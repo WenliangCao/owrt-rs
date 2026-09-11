@@ -125,9 +125,13 @@ pub struct Message {
 impl Message {
     /// Top-level attributes indexed by attribute id.
     pub fn attrs(&self) -> [Option<Attr<'_>>; attr::MAX] {
+        Self::attrs_from(&self.blob)
+    }
+
+    pub(crate) fn attrs_from(blob: &[u8]) -> [Option<Attr<'_>>; attr::MAX] {
         let mut out: [Option<Attr<'_>>; attr::MAX] = Default::default();
-        if self.blob.len() >= 4 {
-            for item in blob::iter(&self.blob[4..]) {
+        if blob.len() >= 4 {
+            for item in blob::iter(&blob[4..]) {
                 if (item.id as usize) < attr::MAX {
                     out[item.id as usize] = Some(item);
                 }

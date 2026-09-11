@@ -1,0 +1,33 @@
+{
+  "subject_sha256": "e06deab9d431cac78d42c34a0cb63056f5b519e2103acc8cb9ed600823df0806",
+  "uci_sha256": "949b2aeb9488c44ba49e569aae4cfe0a1227b7d997424f5dc0efb36db04fe00e",
+  "uci_unit_tests": 21,
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0,
+    "differing": [],
+    "sids_captured": [
+      8,
+      8
+    ]
+  },
+  "r16": {
+    "steps": 175,
+    "identical": 175,
+    "differences": 0
+  },
+  "r24": {
+    "cases": 500,
+    "seed": 24,
+    "differences": 0
+  },
+  "source_sha256": {
+    "r07-uci-tests.log": "ec020dae62240c12c3f32bbfc8c423e84611f628daab83a530dd218a97857ba0",
+    "r07-r24.log": "12e6da9233f64bf019980339a0f730ab7b7847a6a420910d6ff5626ecec37b97",
+    "r07-r16.json": "cd53950870fdbd06611356abcc80625910d59ccd7812ac6756c4260af1651384",
+    "r07-r17.json": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c",
+    "r07-r17.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r07-r16.log": "0c7494ebe74a2e1603d8418dd2d85da9a472c69ddf0d87289bad2cfdc1dc4ae0"
+  }
+}

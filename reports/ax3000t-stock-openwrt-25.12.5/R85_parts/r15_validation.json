@@ -1,0 +1,28 @@
+{
+  "subject_sha256": "0cd26703b13456585ae94ea9503684f30c442ec39377fa65916752e184e29cc1",
+  "uci_sha256": "d52e3cdbf9b9ee502af851bd9eb11da323104994bce4182e58cd1fced21abef4",
+  "uci_unit_tests": 21,
+  "r16": {
+    "steps": 182,
+    "identical": 182,
+    "differences": 0
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0
+  },
+  "r24": {
+    "cases": 500,
+    "seed": 24,
+    "differences": 0
+  },
+  "descriptor_diagnostic": {
+    "load_calls": 201,
+    "fcntl_dupfd_cloexec": 0,
+    "close_calls": 203,
+    "prior_dupfd_cloexec": 201,
+    "prior_close_calls": 404
+  },
+  "source_archive_sha256": "87b16fd36c633d54bbc3c04685da38237b7ea7d8ca00df9bad44f268838d7fe9"
+}

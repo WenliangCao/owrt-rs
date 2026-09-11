@@ -1,0 +1,58 @@
+{
+  "accepted": false,
+  "decision": "Withdraw large-reply split sends:64-sectionc4 still mean+0.86%,p95+26.22%,p99+25.21%;no convincing resolution. Production main.rs restored exactly to R20.",
+  "subject_sha256": "bd3cb524966b3d4064b8501a9aac977af2243abc2ae9681f49e320e584b03258",
+  "source_archive_sha256": "0b2a20a22204890d9350e079c66db1c0bc5158e3fb098d943a2a3e19cc38c1d3",
+  "initial_source_sha256": "ef5f33d87ae28cc7c6216dcb40b9b3570b3197ecd1f51af0b3aec45724ba3654",
+  "evidence_archive_sha256": "8cbb1bf167b1d532dcd7ebcc254296dcdad3ba33799397ad7a609abf990ba465",
+  "initial_build_failure": "let-chain syntax requires Rust2024; fixed to nested if without changing project edition. Failed build/unit logs retained.",
+  "rpcd_units": 45,
+  "router": {
+    "complete": true,
+    "measurements": 72,
+    "raw_files_sha256_verified": 344,
+    "host_health_identity_boot_config_gates": true
+  },
+  "r13": {
+    "identical": 63,
+    "differ": 0,
+    "report_sha256": "f25f0075682f2556adbcb4bbe1fcfa53cc35a8d57b18ce998a0752464ce4240c"
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0,
+    "differing": [],
+    "report_sha256": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c"
+  },
+  "r18": {
+    "steps": 77,
+    "identical": 77,
+    "differ": 0,
+    "differing": [],
+    "report_sha256": "8ebc074680665c558d29569c8574ad9c8b880e52417ebc0da2515b0572278891"
+  },
+  "r19": {
+    "pairs": 11,
+    "identical": 11,
+    "differ": 0,
+    "differing": [],
+    "report_sha256": "cf19b641a9d3523e70a323935d4239556a5fe85806afea5c1765b2bb4009b3cc"
+  },
+  "r26": {
+    "steps": 733,
+    "differences": 1,
+    "step": "f0424_luci_getFeatures",
+    "difference": "stocknetifd_vrf=false,candidate=true; consistent with preserved R09/R11/R17 stock helper fluctuation; exact failing call errno not traced",
+    "log_sha256": "b162e94b1c0197865e32dcb3f36c8b3363aea197ba2f83db8af8c6e21fdb1abd",
+    "rerun": false
+  },
+  "bytes": {
+    "pass": true,
+    "log_sha256": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279"
+  },
+  "defer": {
+    "pass": true,
+    "log_sha256": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3"
+  }
+}

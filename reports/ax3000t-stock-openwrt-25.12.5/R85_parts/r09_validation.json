@@ -1,0 +1,73 @@
+{
+  "subject_sha256": "26fa5b8b4a9c50aa2170778ddecb263d4599b3f16d546c1db7a1b283d425628a",
+  "unit_tests": {
+    "ubus": 17,
+    "rpcd": 44
+  },
+  "suites": {
+    "r13_rpcd_check": {
+      "requests": 63,
+      "identical": 63
+    },
+    "r17_rpcd_core_check": {
+      "steps": 283,
+      "identical": 283,
+      "differ": 0,
+      "differing": []
+    },
+    "r18_rpcd_plugins_check": {
+      "steps": 77,
+      "identical": 77,
+      "differ": 0,
+      "differing": []
+    },
+    "r19_lucirpc_check": {
+      "pairs": 11,
+      "identical": 11,
+      "differ": 0,
+      "differing": []
+    }
+  },
+  "r26_initial": {
+    "seed": 26,
+    "cases_per_method": 10,
+    "steps": 733,
+    "differences": 1,
+    "case": "f0424_luci_getFeatures",
+    "observation": "Original omitted dnsmasq, candidate included it. Original ran first; all other cases matched. Initial failure retained."
+  },
+  "diagnosis": "r09_features_diagnostic.json: SIGCHLD reproduces original-only missing dnsmasq. No output mask added; original failed syscall was not traced.",
+  "r26_confirmation": {
+    "seed": 26,
+    "cases_per_method": 10,
+    "steps": 733,
+    "differences": 0,
+    "all_raw_results_preserved": true,
+    "missing_output_files_now_fail": true
+  },
+  "r83": {
+    "bytes": "pass",
+    "defer": "pass",
+    "parallel_two_execs_s": 4,
+    "worker_code": 17,
+    "reload_across_hup": true,
+    "upgrade_across_hup": true,
+    "remaining_action_children": 0,
+    "still_serving": true
+  },
+  "source_sha256": {
+    "r18_rpcd_plugins_check.json": "8ebc074680665c558d29569c8574ad9c8b880e52417ebc0da2515b0572278891",
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r26.log": "38ad31186b513c78c18f3b18f1efa5d697ffe8489dd07c01f04d8de98dc3a545",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r13_rpcd_check.json": "f25f0075682f2556adbcb4bbe1fcfa53cc35a8d57b18ce998a0752464ce4240c",
+    "r19_lucirpc_check.json": "b692e0794cbe555757b49735d765e2cb07f9ff77846aac0bcee05a70cf991b04",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "r26-confirmation.log": "acfa3e2e7601abfb0c2df7012319f0294aed466300703cc10faacaedc192f211",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "raw.tar.gz": "e34291a6d956c9a3a78b41eaca2fab1d7c198d7907d8f06010bc80c28f1fa7f2",
+    "r17_rpcd_core_check.json": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c"
+  }
+}

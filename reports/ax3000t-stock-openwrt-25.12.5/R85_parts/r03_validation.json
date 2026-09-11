@@ -1,0 +1,31 @@
+{
+  "subject_sha256": "5eb5379f4d8c42c1ee626ec8788d3bb9893b478b00a986138c91ff2bce9369fe",
+  "uci_sha256": "dd42d629f3dfbe7c011607a80ea291431fd6e920e47814bb77196808cb151c9b",
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0,
+    "differing": [],
+    "sids_captured": [
+      8,
+      8
+    ]
+  },
+  "r16": {
+    "steps": 175,
+    "identical": 175,
+    "differences": 0
+  },
+  "r24": {
+    "cases": 500,
+    "differences": 0,
+    "seed": 24
+  },
+  "transport_note": "SSH returned 255 after all three suite summaries completed. Reconnected and verified the complete logs and that no suite process remained; no suite was restarted or samples discarded.",
+  "source_sha256": {
+    "r24.log": "12e6da9233f64bf019980339a0f730ab7b7847a6a420910d6ff5626ecec37b97",
+    "r17.json": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c",
+    "r16.log": "0c7494ebe74a2e1603d8418dd2d85da9a472c69ddf0d87289bad2cfdc1dc4ae0",
+    "r17.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf"
+  }
+}

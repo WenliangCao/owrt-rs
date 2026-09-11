@@ -7,12 +7,15 @@ uci-rs musl binary is bind-mounted over /sbin/uci (the same shape
 owrt-uci-switch enable produces), so argv[0] and every script path are
 identical. The same command script then runs inside both chroots; per-step
 stdout, stderr and exit code are recorded, and afterwards the full content and
-mode of /etc/config, /tmp/.uci and /var/state are dumped. Everything is
-compared byte for byte.
+mode of /etc/config, /tmp/.uci and /var/state are dumped. Metadata includes
+type, permissions, link count, owner, group and size, excluding wall-clock
+timestamps. File content and command streams are compared byte for byte.
 
-Usage: r16_uci_check.py <rootfs-files> <uci-rs-musl-binary> [--report out.json]
+Usage: r16_uci_check.py <rootfs-files> <uci-rs-musl-binary> [--report out.json] [--keep DIR]
 """
 import json, os, subprocess, sys, tempfile
+from pathlib import Path
+from audit_checks import output_archive
 
 SCENARIO = r"""
 set -eu
@@ -114,12 +117,12 @@ step("cat_delta_fwtest", "cat /tmp/.uci/fwtest")
 step("revert_opt", "uci revert fwtest.@defaults[0].input")
 step("changes_after_revert_opt", "uci changes fwtest")
 step("commit_fwtest", "uci commit fwtest")
-step("cat_delta_after_commit", "cat /tmp/.uci/fwtest; ls -la /tmp/.uci")
+step("cat_delta_after_commit", "cat /tmp/.uci/fwtest; uci_metadata /tmp/.uci")
 step("show_fwtest_post", "uci show fwtest")
-step("stat_fwtest", "ls -l /etc/config/fwtest")
+step("stat_fwtest", "uci_metadata /etc/config/fwtest")
 step("set_then_revert_sec", "uci set fwtest.mysec.x=1 && uci set fwtest.lastrule.y=2 && uci changes fwtest && uci revert fwtest.mysec && uci changes fwtest")
 step("revert_pkg", "uci revert fwtest && uci changes fwtest")
-step("commit_nochange", "uci commit fwtest && ls -l /etc/config/fwtest")
+step("commit_nochange", "uci commit fwtest && uci_metadata /etc/config/fwtest")
 
 # --- state (-P /var/state), like uci_set_state / uci_get_state
 step("state_set", "uci -P /var/state set dhcptest.@dnsmasq[0].statev=1")
@@ -127,8 +130,8 @@ step("state_set2", "uci -P /var/state set dhcptest.newsec=state")
 step("state_get", "uci -P /var/state -q get dhcptest.@dnsmasq[0].statev")
 step("state_get_plain", "uci -q get dhcptest.@dnsmasq[0].statev")
 step("state_show", "uci -P /var/state show dhcptest")
-step("state_cat", "cat /var/state/dhcptest; ls -la /var/state")
-step("state_commit_noop", "uci -P /var/state commit dhcptest && ls -l /etc/config/dhcptest")
+step("state_cat", "cat /var/state/dhcptest; uci_metadata /var/state")
+step("state_commit_noop", "uci -P /var/state commit dhcptest && uci_metadata /etc/config/dhcptest")
 step("state_revert", "uci -P /var/state revert dhcptest.@dnsmasq[0].statev && cat /var/state/dhcptest")
 step("state_export", "uci -P /var/state -S -n export dhcptest")
 
@@ -136,7 +139,7 @@ step("state_export", "uci -P /var/state -S -n export dhcptest")
 step("conf2_prep", "mkdir -p /var/run/uci && printf 'config foo bar\\n\\toption a b\\n' > /var/run/uci/dhcptest")
 step("conf2_show", "uci show dhcptest")
 step("conf2_show_disabled", "uci -C '' show dhcptest.bar")
-step("conf2_set", "uci set dhcptest.bar.a=c && uci commit dhcptest && cat /var/run/uci/dhcptest && ls -l /etc/config/dhcptest")
+step("conf2_set", "uci set dhcptest.bar.a=c && uci commit dhcptest && cat /var/run/uci/dhcptest && uci_metadata /etc/config/dhcptest")
 step("conf2_cleanup", "rm -f /var/run/uci/dhcptest")
 
 # --- extra delta paths -p / -t
@@ -145,10 +148,10 @@ step("p_changes_combined", "uci -p /tmp/altdelta changes dhcptest")
 step("p_export_combined", "uci -p /tmp/altdelta export dhcptest")
 step("p_dup", "uci -p /tmp/.uci changes dhcptest")
 step("P_commit_noop", "uci -P /tmp/altdelta commit dhcptest && cat /tmp/altdelta/dhcptest")
-step("p_commit", "uci -p /tmp/altdelta commit dhcptest && ls -la /tmp/altdelta /tmp/.uci && uci get dhcptest.@dnsmasq[0].alt")
+step("p_commit", "uci -p /tmp/altdelta commit dhcptest && uci_metadata /tmp/altdelta /tmp/.uci && uci get dhcptest.@dnsmasq[0].alt")
 
 # --- import
-step("import_named", "printf 'config type sec\\n\\toption o v\\n\\tlist l 1\\n\\tlist l 2\\n' | uci import imptest && cat /etc/config/imptest && ls -l /etc/config/imptest")
+step("import_named", "printf 'config type sec\\n\\toption o v\\n\\tlist l 1\\n\\tlist l 2\\n' | uci import imptest && cat /etc/config/imptest && uci_metadata /etc/config/imptest")
 step("import_pkgline", "printf 'package imp2\\n\\nconfig t s\\n\\toption o \"q\\\\\"x\"\\n' | uci import && cat /etc/config/imp2")
 step("import_nopkg", "printf 'config t s\\n' | uci import")
 step("import_merge", "printf 'config type sec\\n\\toption o w\\n\\toption n 1\\n' | uci -m import imptest && uci changes imptest && uci export imptest")
@@ -156,6 +159,30 @@ step("import_merge_noname", "printf 'config t s\\n' | uci -m import")
 step("import_toomany", "uci import a b")
 step("import_f_missing", "uci -f /nonexistent import imptest")
 step("import_f", "printf 'config t s\\n\\toption a 1\\n' > /tmp/imp.txt && uci -f /tmp/imp.txt import imp3 && cat /etc/config/imp3")
+
+# R85: fresh append and the update/merge fallbacks share one imported package.
+step("import_append_setup", "printf \"config type named\\n option scalar first\\n list members alpha\\n list members beta\\n option scalar second\\n option empty ''\\n list blank ''\\n config other\\n option byte '\\377'\\n\" > /tmp/r85-import")
+step("import_append", "uci -f /tmp/r85-import import r85import && uci export r85import")
+step("import_append_empty_update", "printf \"config type named\\n option scalar ''\\n list members gamma\\n option added value\\n config type another\\n list mixed x\\n option mixed y\\n\" | uci -m import r85import && uci changes r85import && uci export r85import")
+step("import_append_commit", "uci commit r85import && uci export r85import")
+step("import_append_duplicate", "printf 'config type s\\n option x one\\n config different s\\n option y two\\n' | uci import r85bad")
+step("import_append_duplicate_nonstrict", "printf 'config type s\\n option x one\\n config different s\\n option y two\\n' | uci -S import r85loose && uci export r85loose")
+step("import_list_append_types", "printf \"config type s\\n option mixed head\\n list mixed next\\n list mixed ''\\n list mixed next\\n list empty ''\\n list empty end\\n\" | uci import r85lists && uci export r85lists")
+
+# R85: larger imports must keep their original order and duplicate semantics.
+step("import_many_setup", "i=39; : > /tmp/r85-many; while [ $i -ge 0 ]; do printf 'config type section%s\\n option value old%s\\n' \"$i\" \"$i\" >> /tmp/r85-many; i=$((i-1)); done; printf 'config type section21\\n option value replaced\\n config type\\n option anon yes\\n config type section0\\n list members one\\n list members two\\n' >> /tmp/r85-many")
+step("import_many", "uci -f /tmp/r85-many import r85many && uci export r85many")
+step("import_many_merge", "printf 'config type section21\\n option value merged\\n config type added\\n' | uci -m import r85many && uci changes r85many && uci export r85many")
+step("import_many_strict", "{ cat /tmp/r85-many; printf 'config other section20\\n'; } | uci import r85manybad")
+step("import_many_nonstrict", "{ cat /tmp/r85-many; printf 'config other section20\\n option later yes\\n'; } | uci -S import r85manyloose && uci export r85manyloose")
+step("import_many_packages", "{ printf 'package r85first\\n'; cat /tmp/r85-many; printf 'package r85second\\n'; cat /tmp/r85-many; } | uci import && uci export r85first && uci export r85second")
+step("import_value_sizes", "{ printf 'config type s\\n'; for n in 0 1 14 15 16 17 255 4096; do printf ' list values '; printf \"'\"; i=0; while [ $i -lt $n ]; do printf '\\376'; i=$((i+1)); done; printf \"'\\n\"; done; } | uci import r85sizes && uci export r85sizes")
+step("import_value_size_updates", "uci set r85sizes.s.scalar=123456789012345 && uci add_list r85sizes.s.scalar=1234567890123456 && uci add_list r85sizes.s.scalar=x && uci del_list r85sizes.s.scalar=123456789012345 && uci commit r85sizes && uci export r85sizes")
+step("import_quoted_boundaries", "printf \"config 'type' 'section' # comment\\n option 'empty' ''\\n list 'list' ''\\n list 'list' 'with # ; literal'\\n option 'joined' 'before'after\\n option 'raw' '\\376'\\n\" | uci import r85quotes && uci export r85quotes")
+step("import_quoted_error_position", "printf \"config 'type' 'section' extra\\n\" | uci import r85quotesbad")
+
+# Short and long immutable metadata follow the same import/export rules.
+step("import_metadata_sizes", "{ for n in 1 14 15 16 17 63 256; do name=; i=0; while [ $i -lt $n ]; do name=${name}a; i=$((i+1)); done; printf 'config %s %s\\n option %s value\\n' \"$name\" \"$name\" \"$name\"; done; } | uci import r85metadata && uci export r85metadata")
 
 # --- parse errors, strict vs -S
 step("perr_prep", "printf 'config a\\n\\toption x 1\\nbogus line\\nconfig b\\n\\toption y 2\\n' > /etc/config/broken; printf 'config \"unterminated\\n' > /etc/config/broken2; printf 'config a\\n\\toption bad-name 1\\n' > /etc/config/broken3; printf 'option x 1\\n' > /etc/config/broken4; printf 'config a b c\\n' > /etc/config/broken5; printf 'config\\n' > /etc/config/broken6; printf 'config a\\n\\toption x 1\\nconfig other a\\n' > /etc/config/broken7")
@@ -199,21 +226,31 @@ step("add_missing_pkg", "uci add nosuchpkg foo; echo rc=$?")
 step("add_bad_argc", "uci add nosuchpkg; echo rc=$?")
 step("abs_path_load", "cp /etc/config/imptest /tmp/abs.conf && uci show /tmp/abs.conf && uci set /tmp/abs.conf.sec.o=viaabs && cat /tmp/abs.conf; ls /tmp/.uci")
 step("rel_path_bad", "uci show ./tmp/abs.conf; uci show .tmp; echo rc=$?")
-step("delete_pkg_section_all", "uci delete imptest.bsec && uci delete imptest.sec && uci commit imptest && cat /etc/config/imptest && ls -la /etc/config/imptest")
+step("delete_pkg_section_all", "uci delete imptest.bsec && uci delete imptest.sec && uci commit imptest && cat /etc/config/imptest && uci_metadata /etc/config/imptest")
 
 # --- final state dump
-step("final_dump", "for f in /etc/config/* /tmp/.uci/* /var/state/* /tmp/altdelta/*; do [ -f \"$f\" ] || continue; printf '== %s %s\\n' \"$f\" \"$(ls -l \"$f\")\"; cat \"$f\"; done")
+step("final_dump", "for f in /etc/config/* /tmp/.uci/* /var/state/* /tmp/altdelta/*; do [ -f \"$f\" ] || continue; printf '== %s %s\\n' \"$f\" \"$(uci_metadata \"$f\")\"; cat \"$f\"; done")
 
 
 def build_steps_script():
-    lines = ["#!/bin/sh", "mkdir -p /tmp/out /var/state /var/lock", "cd /"]
+    lines = ["#!/bin/sh", "mkdir -p /tmp/out /var/state /var/lock", "cd /", r"""
+uci_metadata() {
+    for path in "$@"; do
+        if [ -d "$path" ]; then
+            find "$path" -maxdepth 1 -exec stat -c '%f %h %u %g %s %n' '{}' ';' | LC_ALL=C sort
+        else
+            stat -c '%f %h %u %g %s %n' "$path" || return
+        fi
+    done
+}
+"""]
     for sid, cmd in STEPS:
         # each step runs in a subshell; capture streams and rc
         lines.append(f"( {cmd} ) >/tmp/out/{sid}.out 2>/tmp/out/{sid}.err; echo $? > /tmp/out/{sid}.rc")
     return "\n".join(lines) + "\n"
 
 
-def run(rootfs, impl, binary):
+def run(rootfs, impl, binary, keep=None):
     tmp = tempfile.mkdtemp(prefix="r16-")
     try:
         root = os.path.join(tmp, "root")
@@ -228,15 +265,20 @@ def run(rootfs, impl, binary):
         os.unlink(steps)
         subprocess.run(["sudo", "-n", "setsid", "-w", "unshare", "--mount", "--fork",
                         "/bin/sh", "-c", SCENARIO, "sh", root, impl], check=True)
-        out = {}
         outdir = os.path.join(root, "tmp/out")
-        listing = subprocess.run(["sudo", "-n", "ls", outdir], capture_output=True, text=True).stdout.split()
-        for name in listing:
-            data = subprocess.run(["sudo", "-n", "cat", os.path.join(outdir, name)], capture_output=True).stdout
-            out[name] = data
-        return out
+        raw = subprocess.run(["sudo", "-n", "tar", "-cf", "-", "-C", outdir, "."],
+                             capture_output=True, check=True).stdout
+        if keep:
+            Path(keep).mkdir(parents=True, mode=0o700, exist_ok=True)
+            (Path(keep) / f"{impl}.tar").write_bytes(raw)
+        return output_archive(raw)
     finally:
         subprocess.run(["sudo", "-n", "rm", "-rf", tmp], check=False)
+
+
+def same_step(orig, cand, sid):
+    keys = [f"{sid}.{ext}" for ext in ("rc", "out", "err")]
+    return all(k in orig and k in cand and orig[k] == cand[k] for k in keys)
 
 
 def main():
@@ -246,31 +288,31 @@ def main():
         report = sys.argv[sys.argv.index("--report") + 1]
         if report in args:
             args.remove(report)
+    keep = None
+    if "--keep" in sys.argv:
+        keep = sys.argv[sys.argv.index("--keep") + 1]
+        if keep in args:
+            args.remove(keep)
     rootfs, binary = args[0], args[1]
-    orig = run(rootfs, "original", binary)
-    cand = run(rootfs, "candidate", binary)
+    orig = run(rootfs, "original", binary, keep)
+    cand = run(rootfs, "candidate", binary, keep)
     ndiff = 0
     details = []
     for sid, _cmd in STEPS:
         if sid in PROBES:
             print(f"PROBE {sid}: orig={orig.get(sid + '.out', b'')!r} cand={cand.get(sid + '.out', b'')!r}")
             continue
-        same = True
-        for ext in ("rc", "out", "err"):
-            k = f"{sid}.{ext}"
-            if orig.get(k) != cand.get(k):
-                same = False
-        if same:
+        if same_step(orig, cand, sid):
             print(f"OK   {sid}")
         else:
             ndiff += 1
             print(f"DIFF {sid}   [{_cmd[:70]}]")
             for ext in ("rc", "out", "err"):
                 k = f"{sid}.{ext}"
-                o, c = orig.get(k, b""), cand.get(k, b"")
-                if o != c:
-                    print(f"   {ext} orig: {o[:600]!r}")
-                    print(f"   {ext} cand: {c[:600]!r}")
+                o, c = orig.get(k), cand.get(k)
+                if o is None or c is None or o != c:
+                    print(f"   {ext} orig: {o[:600] if o is not None else None!r}")
+                    print(f"   {ext} cand: {c[:600] if c is not None else None!r}")
             details.append(sid)
     n = len(STEPS) - len(PROBES)
     print(f"\n{n} steps: {n - ndiff} identical, {ndiff} differ")

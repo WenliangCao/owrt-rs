@@ -7,14 +7,17 @@ import os
 import re
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
 from pathlib import Path
 
 from audit_checks import (interfaces, kernel, lease, mask_session_ids, resources,
-                          transcript36, transcript42, volatile_netifd_path)
+                          output_archive, transcript36, transcript42, volatile_netifd_path)
+import r16_uci_check
 import r19_lucirpc_check
+import r24_uci_fuzz
 import r27_httpd_fuzz
 import r28_logd_fuzz
 
@@ -22,6 +25,43 @@ HERE = Path(__file__).resolve().parent
 
 
 class EvidenceGates(unittest.TestCase):
+    def test_uci_missing_outputs_are_not_empty_successes(self):
+        step = {f'call.{ext}': b'0\n' if ext == 'rc' else b'' for ext in ('rc', 'out', 'err')}
+        self.assertTrue(r16_uci_check.same_step(step, step, 'call'))
+        self.assertFalse(r16_uci_check.same_step({}, {}, 'call'))
+        for ext in ('rc', 'out', 'err'):
+            incomplete = step.copy()
+            del incomplete[f'call.{ext}']
+            self.assertFalse(r16_uci_check.same_step(incomplete, step, 'call'))
+            self.assertFalse(r16_uci_check.same_step(step, incomplete, 'call'))
+            self.assertFalse(r16_uci_check.same_step(incomplete, incomplete, 'call'))
+        case = {f'fz0000.{j}.{side}.{ext}': b'0\n' if ext == 'rc' else b''
+                for j in range(7) for side in ('original', 'candidate') for ext in ('rc', 'out', 'err')}
+        self.assertEqual(r24_uci_fuzz.compare_case(case, 'fz0000'), [])
+        for side in ('original', 'candidate'):
+            incomplete = case.copy()
+            del incomplete[f'fz0000.3.{side}.out']
+            self.assertTrue(r24_uci_fuzz.compare_case(incomplete, 'fz0000'))
+        self.assertTrue(r24_uci_fuzz.compare_case({}, 'fz0000'))
+        case['fz0000.2.candidate.rc'] = b'1\n'
+        self.assertTrue(r24_uci_fuzz.compare_case(case, 'fz0000'))
+
+    def test_output_archive_preserves_empty_raw_bytes_and_rejects_ambiguous_entries(self):
+        def archive(entries):
+            raw = io.BytesIO()
+            with tarfile.open(fileobj=raw, mode='w') as tar:
+                for name, data in entries:
+                    entry = tarfile.TarInfo(name)
+                    entry.size = len(data)
+                    tar.addfile(entry, io.BytesIO(data))
+            return raw.getvalue()
+        result = output_archive(archive([('./case.out', b'\xff\x00'), ('./case.err', b'')]))
+        self.assertEqual(result, {'case.out': b'\xff\x00', 'case.err': b''})
+        for entries in [[('case.out', b'a'), ('./case.out', b'b')],
+                        [('../case.out', b'x')], [('nested/case.out', b'x')]]:
+            with self.assertRaises(ValueError):
+                output_archive(archive(entries))
+
     def test_multicast_configuration_is_compared(self):
         self.assertFalse(volatile_netifd_path('devices.eth0.multicast'))
         self.assertTrue(volatile_netifd_path('devices.eth0.statistics.multicast'))
@@ -32,6 +72,34 @@ class EvidenceGates(unittest.TestCase):
         }).encode())
         self.assertNotEqual(norm(True, 1), norm(False, 1))
         self.assertEqual(norm(True, 1), norm(True, 999))
+
+    def test_lucirpc_stats_mask_only_numeric_device_counters(self):
+        norm = lambda value: r19_lucirpc_check.normalize('netdev', json.dumps(value).encode())
+        base = {'eth0': {'stats': {'rx_bytes': 1, 'unknown': 7}, 'flags': {'multicast': True}}}
+        changed = json.loads(json.dumps(base))
+        changed['eth0']['stats']['rx_bytes'] = 999
+        self.assertEqual(norm(base), norm(changed))
+        for value in ('999', True, -1, None):
+            changed['eth0']['stats']['rx_bytes'] = value
+            self.assertNotEqual(norm(base), norm(changed))
+        del changed['eth0']['stats']['rx_bytes']
+        self.assertNotEqual(norm(base), norm(changed))
+        changed = json.loads(json.dumps(base))
+        changed['eth0']['stats']['unknown'] = 8
+        self.assertNotEqual(norm(base), norm(changed))
+        changed = json.loads(json.dumps(base))
+        changed['eth0']['flags']['multicast'] = False
+        self.assertNotEqual(norm(base), norm(changed))
+
+    def test_lucirpc_missing_results_are_not_equal(self):
+        pair = {f'netdev.{side}.{ext}': b'0\n' if ext == 'rc' else b''
+                for side in ('o', 'c') for ext in ('rc', 'out', 'err')}
+        self.assertTrue(r19_lucirpc_check.same_pair('netdev', pair))
+        for side in ('o', 'c'):
+            incomplete = pair.copy()
+            del incomplete[f'netdev.{side}.out']
+            self.assertFalse(r19_lucirpc_check.same_pair('netdev', incomplete))
+        self.assertFalse(r19_lucirpc_check.same_pair('netdev', {}))
 
     def test_md5_is_compared_while_session_ids_are_masked(self):
         norm = lambda md5, sid: mask_session_ids(json.dumps({'md5': md5, 'ubus_rpc_session': sid}))

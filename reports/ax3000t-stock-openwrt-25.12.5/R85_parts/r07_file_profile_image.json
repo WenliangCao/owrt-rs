@@ -1,0 +1,322 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five serial runs, 20,000 calls/stage after 100 warmups. Includes actual local-root handlers and codec; excludes argument decoding, ACL, dispatch and ubus. Stages are independent timings and cannot be added; allocator state also differs between stages.",
+  "profiler_sha256": "19ffcd601c9b7962d874ab3da25d6ec93a21b9f69bc537599b02efb85060ab26",
+  "runs": [
+    {
+      "run": "r07-file-profile-1",
+      "stage": "file_stat_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 6225.91,
+      "allocs": 21.0,
+      "reallocs": 3.0,
+      "requested_bytes": 18131.0
+    },
+    {
+      "run": "r07-file-profile-1",
+      "stage": "file_list_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 92660.1,
+      "allocs": 189.0,
+      "reallocs": 56.0,
+      "requested_bytes": 165091.0
+    },
+    {
+      "run": "r07-file-profile-1",
+      "stage": "file_stat_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 1016.49,
+      "allocs": 1.0,
+      "reallocs": 6.0,
+      "requested_bytes": 553.0
+    },
+    {
+      "run": "r07-file-profile-1",
+      "stage": "file_list_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 4045.26,
+      "allocs": 1.0,
+      "reallocs": 9.0,
+      "requested_bytes": 4092.0
+    },
+    {
+      "run": "r07-file-profile-1",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16325.45,
+      "allocs": 22.0,
+      "reallocs": 9.0,
+      "requested_bytes": 18684.0
+    },
+    {
+      "run": "r07-file-profile-1",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 96583.23,
+      "allocs": 190.0,
+      "reallocs": 65.0,
+      "requested_bytes": 169183.0
+    },
+    {
+      "run": "r07-file-profile-2",
+      "stage": "file_stat_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 6244.48,
+      "allocs": 21.0,
+      "reallocs": 3.0,
+      "requested_bytes": 18131.0
+    },
+    {
+      "run": "r07-file-profile-2",
+      "stage": "file_list_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 92523.59,
+      "allocs": 189.0,
+      "reallocs": 56.0,
+      "requested_bytes": 165091.0
+    },
+    {
+      "run": "r07-file-profile-2",
+      "stage": "file_stat_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 1019.78,
+      "allocs": 1.0,
+      "reallocs": 6.0,
+      "requested_bytes": 553.0
+    },
+    {
+      "run": "r07-file-profile-2",
+      "stage": "file_list_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 4030.3,
+      "allocs": 1.0,
+      "reallocs": 9.0,
+      "requested_bytes": 4092.0
+    },
+    {
+      "run": "r07-file-profile-2",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16259.12,
+      "allocs": 22.0,
+      "reallocs": 9.0,
+      "requested_bytes": 18684.0
+    },
+    {
+      "run": "r07-file-profile-2",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 97458.12,
+      "allocs": 190.0,
+      "reallocs": 65.0,
+      "requested_bytes": 169183.0
+    },
+    {
+      "run": "r07-file-profile-3",
+      "stage": "file_stat_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 6209.3,
+      "allocs": 21.0,
+      "reallocs": 3.0,
+      "requested_bytes": 18131.0
+    },
+    {
+      "run": "r07-file-profile-3",
+      "stage": "file_list_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 92380.26,
+      "allocs": 189.0,
+      "reallocs": 56.0,
+      "requested_bytes": 165091.0
+    },
+    {
+      "run": "r07-file-profile-3",
+      "stage": "file_stat_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 1010.95,
+      "allocs": 1.0,
+      "reallocs": 6.0,
+      "requested_bytes": 553.0
+    },
+    {
+      "run": "r07-file-profile-3",
+      "stage": "file_list_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 4034.6,
+      "allocs": 1.0,
+      "reallocs": 9.0,
+      "requested_bytes": 4092.0
+    },
+    {
+      "run": "r07-file-profile-3",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16303.24,
+      "allocs": 22.0,
+      "reallocs": 9.0,
+      "requested_bytes": 18684.0
+    },
+    {
+      "run": "r07-file-profile-3",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 96722.04,
+      "allocs": 190.0,
+      "reallocs": 65.0,
+      "requested_bytes": 169183.0
+    },
+    {
+      "run": "r07-file-profile-4",
+      "stage": "file_stat_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 6180.71,
+      "allocs": 21.0,
+      "reallocs": 3.0,
+      "requested_bytes": 18131.0
+    },
+    {
+      "run": "r07-file-profile-4",
+      "stage": "file_list_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 92947.32,
+      "allocs": 189.0,
+      "reallocs": 56.0,
+      "requested_bytes": 165091.0
+    },
+    {
+      "run": "r07-file-profile-4",
+      "stage": "file_stat_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 1019.87,
+      "allocs": 1.0,
+      "reallocs": 6.0,
+      "requested_bytes": 553.0
+    },
+    {
+      "run": "r07-file-profile-4",
+      "stage": "file_list_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 4024.15,
+      "allocs": 1.0,
+      "reallocs": 9.0,
+      "requested_bytes": 4092.0
+    },
+    {
+      "run": "r07-file-profile-4",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16062.63,
+      "allocs": 22.0,
+      "reallocs": 9.0,
+      "requested_bytes": 18684.0
+    },
+    {
+      "run": "r07-file-profile-4",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 96760.27,
+      "allocs": 190.0,
+      "reallocs": 65.0,
+      "requested_bytes": 169183.0
+    },
+    {
+      "run": "r07-file-profile-5",
+      "stage": "file_stat_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 6231.58,
+      "allocs": 21.0,
+      "reallocs": 3.0,
+      "requested_bytes": 18131.0
+    },
+    {
+      "run": "r07-file-profile-5",
+      "stage": "file_list_handler",
+      "iterations": 20000.0,
+      "ns_per_op": 92220.18,
+      "allocs": 189.0,
+      "reallocs": 56.0,
+      "requested_bytes": 165091.0
+    },
+    {
+      "run": "r07-file-profile-5",
+      "stage": "file_stat_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 1015.22,
+      "allocs": 1.0,
+      "reallocs": 6.0,
+      "requested_bytes": 553.0
+    },
+    {
+      "run": "r07-file-profile-5",
+      "stage": "file_list_encode",
+      "iterations": 20000.0,
+      "ns_per_op": 4017.44,
+      "allocs": 1.0,
+      "reallocs": 9.0,
+      "requested_bytes": 4092.0
+    },
+    {
+      "run": "r07-file-profile-5",
+      "stage": "file_stat_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 16049.77,
+      "allocs": 22.0,
+      "reallocs": 9.0,
+      "requested_bytes": 18684.0
+    },
+    {
+      "run": "r07-file-profile-5",
+      "stage": "file_list_payload",
+      "iterations": 20000.0,
+      "ns_per_op": 96510.46,
+      "allocs": 190.0,
+      "reallocs": 65.0,
+      "requested_bytes": 169183.0
+    }
+  ],
+  "summary": {
+    "file_stat_encode": {
+      "ns_per_op": 1016.49,
+      "allocs": 1.0,
+      "reallocs": 6.0,
+      "requested_bytes": 553.0
+    },
+    "file_list_handler": {
+      "ns_per_op": 92523.59,
+      "allocs": 189.0,
+      "reallocs": 56.0,
+      "requested_bytes": 165091.0
+    },
+    "file_stat_handler": {
+      "ns_per_op": 6225.91,
+      "allocs": 21.0,
+      "reallocs": 3.0,
+      "requested_bytes": 18131.0
+    },
+    "file_list_payload": {
+      "ns_per_op": 96722.04,
+      "allocs": 190.0,
+      "reallocs": 65.0,
+      "requested_bytes": 169183.0
+    },
+    "file_stat_payload": {
+      "ns_per_op": 16259.12,
+      "allocs": 22.0,
+      "reallocs": 9.0,
+      "requested_bytes": 18684.0
+    },
+    "file_list_encode": {
+      "ns_per_op": 4030.3,
+      "allocs": 1.0,
+      "reallocs": 9.0,
+      "requested_bytes": 4092.0
+    }
+  },
+  "source_sha256": {
+    "r07-file-profile-1": "6060b9b3803b64f2da855e7496430168c299cf11107de96a351fad3dc2cfc32f",
+    "r07-file-profile-2": "de65494b265bbbd75224d8052606915f7f5bd7f324080550c3fc20543007a05f",
+    "r07-file-profile-3": "63eeb9e0dfb7e6b2f7403a217cd3f1c1b4356cbc2a5c4266f46e33e052802a1a",
+    "r07-file-profile-4": "91f9285c9c475897bc179499c62f1f9ae0c6314a6fe496ec4b46a2d7d49be8e7",
+    "r07-file-profile-5": "73144400a38838abfe0377cdb70f5bbf3b9d88e51706191eaff47cd80fbc6262"
+  }
+}

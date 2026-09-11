@@ -1,0 +1,50 @@
+{
+  "candidate_sha256": "2b7ec2061ad7c604d339c3727599b2098a1a8b94598cb3b1e0bfb6e61ceaf95d",
+  "source_archive_sha256": "401130f23770a8c2f2ac687d13f4d555ead6cddbc872ca9d842469d451d32374",
+  "archive_sha256": "b242da5fe7a1b74bf5ce1c58662c3d17232a5aef11a7876dd411bf2900bad54f",
+  "unit_tests": {
+    "uci": 29,
+    "rpcd": 46
+  },
+  "gate_exit_codes": {
+    "uci-r24": 0,
+    "r17_rpcd_core_check": 0,
+    "uci-r16": 0
+  },
+  "steps": {
+    "uci-r16": 193,
+    "uci_fuzz": 500,
+    "r17": 283
+  },
+  "differences": 0,
+  "raw_output_fields_verified": 22164,
+  "initial_attempt": {
+    "r16": {
+      "steps": 193,
+      "identical": 183,
+      "differ": [
+        "cat_delta_after_commit",
+        "stat_fwtest",
+        "commit_nochange",
+        "state_cat",
+        "state_commit_noop",
+        "conf2_set",
+        "p_commit",
+        "import_named",
+        "delete_pkg_section_all",
+        "final_dump"
+      ]
+    },
+    "note": "All 10 differences in metadata-producing steps; captured prefixes show minute rollover. Initial tool did not retain full raw streams, so absence of other differences cannot be established for that attempt. One fixed-tool validation of the same binary completed with complete raw streams."
+  },
+  "tools_sha256": {
+    "tools/r16_uci_check.py": "5e3b69e9280824b7d2c794dd6dbd2a5daa83d3c3b9dfa65210c2657f7638896c",
+    "tools/r24_uci_fuzz.py": "d0f71b84391a0edb70ceb44089638796f02d19452dae2edca0113966536c52fd",
+    "tools/audit_checks.py": "86d7361d651118b2169b460e155103d8c695eff81da4a2dfbc56103beb2529e9"
+  },
+  "logs": {
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "uci-r16.log": "bfcc63b914e972b6f645e7febb7ca680702304a16e5e9bce94aa290425a7e64c",
+    "uci-r24.log": "12e6da9233f64bf019980339a0f730ab7b7847a6a420910d6ff5626ecec37b97"
+  }
+}

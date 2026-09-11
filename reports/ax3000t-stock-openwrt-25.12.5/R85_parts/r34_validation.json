@@ -1,0 +1,65 @@
+{
+  "candidate_sha256": "51292d2ab5401e1cc3e1644238d253031f952180c931b025938ffa650ea66f3c",
+  "source_archive_sha256": "1c6f041f16e7b573de401ac09a669b0e9fab4c213b0834a6c0491ce8626d325e",
+  "archive_sha256": "4a298ac28cf827f913c21d17df8e4f513c0ab4ccc74b81dbda5bc59072caf005",
+  "checks_archive_sha256": "ad0233de8b5bb45e98c3e21d4434ab47cbea883c7d7be28d07e2927e38a32923",
+  "unit_tests": {
+    "ubus": 26,
+    "uci": 36,
+    "reload-config": 9,
+    "logd": 5,
+    "httpd": 30,
+    "fw4": 14,
+    "rpcd": 46,
+    "ubusd": 21,
+    "netifd": 151,
+    "procd": 71
+  },
+  "total_component_unit_tests": 409,
+  "gate_exit_codes": {
+    "r13_rpcd_check": 0,
+    "r19_lucirpc_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "defer": 0,
+    "r17_rpcd_core_check": 0,
+    "bytes": 0,
+    "rpcd-r26": 1
+  },
+  "steps": {
+    "r13": 63,
+    "r17": 283,
+    "r18": 77,
+    "r19": 11,
+    "r26": 733
+  },
+  "fuzz_differences": [
+    {
+      "step": "f0424_luci_getFeatures",
+      "field": "odhcpd",
+      "stock": false,
+      "candidate": {
+        "ra": true,
+        "ndp": true,
+        "dhcpv6": true,
+        "dhcpv4": false,
+        "ubus": true
+      },
+      "disposition": "Retained; independent normal and signal diagnostic in r34_features_diagnostic.json."
+    }
+  ],
+  "tool_checks": "All passed after redirecting Python bytecode cache to an owned directory. Initial make check-tools failed on a root-owned generated .pyc; full component tests and toolchain checks had already passed and were not rerun.",
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 688,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "logs": {
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "rpcd-r26.log": "73587b07648b81b3fa8ac7ad84d121dbe7cf691ed59ff958d84f08ae84b3248b"
+  }
+}

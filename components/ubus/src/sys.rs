@@ -94,16 +94,12 @@ pub fn set_signal_handler(signum: i32, handler: extern "C" fn(i32)) {
 /// Send `header` followed by `body` on a unix socket, optionally attaching `fd`
 /// as SCM_RIGHTS on the first chunk. Retries on partial writes and EINTR/EAGAIN.
 pub fn send_with_fd(sock: RawFd, header: &[u8], body: &[u8], fd: Option<RawFd>) -> io::Result<()> {
-    let mut iov = [
-        IoVec {
-            base: header.as_ptr() as *mut u8,
-            len: header.len(),
-        },
-        IoVec {
-            base: body.as_ptr() as *mut u8,
-            len: body.len(),
-        },
-    ];
+    send_parts(sock, [header, body], fd)
+}
+
+/// Send fixed borrowed pieces without collecting them into a second buffer.
+pub(crate) fn send_parts<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Option<RawFd>) -> io::Result<()> {
+    let mut iov = parts.map(|part| IoVec { base: part.as_ptr() as *mut u8, len: part.len() });
     let mut control = [0u8; CMSG_SPACE_FD];
     let mut attach = fd;
     let mut index = 0;

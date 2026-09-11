@@ -1,0 +1,42 @@
+{
+  "candidate_sha256": "df5d46ecc6e106a656c0f63c84fc2d41ee5842a5c0d94109fba2fae5be9142d5",
+  "source_archive_sha256": "43870cf75751a296353ddca2d5cb642cb588914ba86c802795260ed1b1fd7b4a",
+  "archive_sha256": "414f4e6dcd9dc536b92313444436de99b0f29764625c2a277499f4df245088b7",
+  "unit_tests": {
+    "uci": 28,
+    "rpcd": 46
+  },
+  "gate_exit_codes": {
+    "r13_rpcd_check": 0,
+    "uci-r24": 0,
+    "r19_lucirpc_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "defer": 0,
+    "r17_rpcd_core_check": 0,
+    "uci-r16": 0,
+    "bytes": 0,
+    "rpcd-r26": 0
+  },
+  "steps": {
+    "uci-r16": 193,
+    "uci_fuzz": 500,
+    "r13": 63,
+    "r17": 283,
+    "r18": 77,
+    "r19": 11,
+    "rpcd-r26": 733
+  },
+  "differences": 0,
+  "logs": {
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "uci-r16.log": "68316993668c8326dd9369c129743998d35a3cabd12793766160bb4f28b42728",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "rpcd-r26.log": "87ac97c3e93e121f5d6837d790cbef1d743eaf1f40fa2e84e115db168bd61d69",
+    "uci-r24.log": "12e6da9233f64bf019980339a0f730ab7b7847a6a420910d6ff5626ecec37b97"
+  },
+  "decision": "Text storage reverted for insufficient performance benefit; no functional difference found."
+}

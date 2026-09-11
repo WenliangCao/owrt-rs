@@ -1,0 +1,25 @@
+{
+  "accepted": false,
+  "decision": "Withdraw production copy_run after paired handler profiles showed no benefit; preserve regression test and initial incorrect expectation evidence.",
+  "source_archive_sha256": "b9f1f4f23d95779450788260ab1257091ea1dd939df1d0d5ad2c294d7364ad73",
+  "evidence_archive_sha256": "46c32bf244cc2c31243b4db2bf11af4ec74d9aa70e4054d73ee16e7e434d6b9e",
+  "initial_test_failure": "Expected unquoted semicolon to continue with another option; exact image UCI and R18 both omit it. Only new expectation corrected; production behavior unchanged.",
+  "uci_units": 22,
+  "r16": {
+    "steps": 182,
+    "identical": 182,
+    "differ": []
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0,
+    "differing": [],
+    "sids_captured": [
+      8,
+      8
+    ]
+  },
+  "r24": "500 cases, zero differences",
+  "router_performance": "not run; no stage benefit"
+}

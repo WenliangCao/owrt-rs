@@ -1,0 +1,44 @@
+{
+  "subject_sha256": "fe5a0e78402e05ed3989f2c7fe2286987ab104ed2ddc83f9da7c17c384502219",
+  "method": "Separate exact-rootfs getFeatures checks: 64 per side normally and with SIGCHLD injection. Original R26 failure is retained, not retried or masked. No syscall trace exists for that failing call; this reproduces the symptom but does not prove its exact errno.",
+  "archive_sha256": "f0b00f6a2da5bddde404e22d18fc56abb17fb87339aa54d1bd3dd816b8813709",
+  "full_responses_equal_to_normal_reference": [
+    "original-normal (64)",
+    "candidate-normal (64)",
+    "candidate-signals (64)"
+  ],
+  "summary": [
+    {
+      "side": "original",
+      "signals": false,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "netifd_vrf_false": 0,
+      "invalid_responses": 0
+    },
+    {
+      "side": "candidate",
+      "signals": false,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "netifd_vrf_false": 0,
+      "invalid_responses": 0
+    },
+    {
+      "side": "original",
+      "signals": true,
+      "calls": 64,
+      "missing_dnsmasq": 59,
+      "netifd_vrf_false": 60,
+      "invalid_responses": 0
+    },
+    {
+      "side": "candidate",
+      "signals": true,
+      "calls": 64,
+      "missing_dnsmasq": 0,
+      "netifd_vrf_false": 0,
+      "invalid_responses": 0
+    }
+  ]
+}

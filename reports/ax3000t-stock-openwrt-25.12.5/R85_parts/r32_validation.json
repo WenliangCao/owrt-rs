@@ -1,0 +1,41 @@
+{
+  "candidate_sha256": "db38cd4a4178800a64e925804f9e72433e9dc85bde96bbaefa4e24fa3639bd57",
+  "source_archive_sha256": "e0c5b23d66f3cb634f5bd788fd64df0abe8ddb6cc4beace0958ded631dc5d50a",
+  "archive_sha256": "f132d0c8d8e7bd1b289bdf8232bd79670510a4db7077b5ae54a5b672dcfbadf3",
+  "unit_tests": {
+    "uci": 36,
+    "rpcd": 46
+  },
+  "gate_exit_codes": {
+    "r13_rpcd_check": 0,
+    "r19_lucirpc_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "defer": 0,
+    "r17_rpcd_core_check": 0,
+    "bytes": 0,
+    "rpcd-r26": 0
+  },
+  "steps": {
+    "r13": 63,
+    "r17": 283,
+    "r18": 77,
+    "r19": 11,
+    "r26": 733
+  },
+  "differences": 0,
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 688,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "logs": {
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "rpcd-r26.log": "68a773ed3ff301a16418ed48d406d63e3d82958fbc3365f0d3accb20edbf1b6a"
+  },
+  "collection_note": "The first tar command could not include the root-owned fuzz directory; its partial archive was retained but is not used as evidence here. The complete archive was collected with sudo and its remote SHA-256 verified."
+}

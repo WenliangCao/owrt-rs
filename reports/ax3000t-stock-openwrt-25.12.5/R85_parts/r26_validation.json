@@ -1,0 +1,40 @@
+{
+  "candidate_sha256": "f9dda34db1acf1cc231ef8c651d6a6cafd4092f4d4976d32eb7f891896d2ff02",
+  "source_archive_sha256": "60bdf2e8adf8d15bc120ddbc880dab8b6c4cc1bc085e91414f684e299c5cc578",
+  "archive_sha256": "009947ccf9928a539532542371f080e6e143b4a28a70e04797fae0d3309259d5",
+  "unit_tests": {
+    "rpcd": 46
+  },
+  "unit_test_note": "Completed before valid profile rebuild; inherited run record, build log retained in initial evidence.",
+  "gate_exit_codes": {
+    "bytes": 0,
+    "defer": 0,
+    "r13_rpcd_check": 0,
+    "r17_rpcd_core_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "r19_lucirpc_check": 0,
+    "rpcd-r26": 1
+  },
+  "functional_steps": {
+    "r13": 63,
+    "r17": 283,
+    "r18": 77,
+    "r19": 11,
+    "r26": 733
+  },
+  "known_difference": "r26 f0424_luci_getFeatures: original netifd_vrf false, candidate true. Full outputs retained, no retry or masking. Earlier independent signal diagnostic is not a syscall trace of this failing call.",
+  "physical": {
+    "repeats_per_side": 2,
+    "verified_raw_files": 344,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "logs": {
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "rpcd-r26.log": "b6fa52682ab19b0aa83915849d3493f7b5657425dfe20a5db2a74be88e6b70ec"
+  }
+}

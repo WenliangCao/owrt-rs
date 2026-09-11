@@ -1,0 +1,191 @@
+{
+  "accepted": false,
+  "decision": "Retain 256-byte UCI reply reservation after stage improvement; router performance and canonical acceptance pending.",
+  "subject_sha256": "ff8ea7c4d6d1fc674904d923758285c888d254dfc941b456bed7f6b5cda95ff6",
+  "source_archive_sha256": "cc68fa788b93f55cecf54c9f5ec141fe9b535c47967a447810f1ba5d0cdc6555",
+  "profile_evidence_archive_sha256": "4f9b04a785cf66264c5b7d078fd98c33ee346f1a162960eea92575808a9cd3d2",
+  "validation_evidence_archive_sha256": "d4410fbbae61e862e5b142b8b104f922b1b0db688fb3010fd53a1efab68d3bbc",
+  "runtime_uci_sha256": "d52e3cdbf9b9ee502af851bd9eb11da323104994bce4182e58cd1fced21abef4",
+  "all_unit_tests_passed": 394,
+  "ubus_unit_tests": 26,
+  "uci_unit_tests": 22,
+  "rpcd_unit_tests": 45,
+  "required_checks": {
+    "all_passed": true,
+    "log_sha256": "61bda741191e3265cae79c7eef637fc7770b5eec6cae665f54f86da113f605f7",
+    "harness_corrected_tests": 14,
+    "harness_corrected_log_sha256": "b159fbcc2a14dc6273670998ef5164bfb4650a0d67ff8d31725e0bceb4750121"
+  },
+  "r19_initial_failure": {
+    "pairs": 11,
+    "identical": 10,
+    "differing": [
+      "netdev"
+    ],
+    "cause_evidence": "Logged differences include changing stats.rx_bytes/tx_bytes/packet counters. Exact LuCI source uses stats for kernel statistics. Old normalizer only recognized statistics. Initial output was truncated by the old harness; its log and report are retained, not claimed complete raw evidence.",
+    "report_sha256": "7f8f000985f90cb84f8f45b49bc962ced6a8c77dc5612b77d102a6ee8c681fc8",
+    "log_sha256": "f11fb8be8d81d3e8d079873fb8ae6d81426de5ad7b511f597e3f23130804a9c7"
+  },
+  "harness_fix": {
+    "upstream_luci_revision": "128a7812f4be233c5dd7f7466f534fd888785caf",
+    "source": "libs/rpcd-mod-luci/src/luci.c:661,811",
+    "scope": "Only getNetworkDevices device stats/statistics known nonnegative integer counters. Unknown fields, types, presence and flags remain compared. Missing captures fail. Optional private --keep stores complete captures.",
+    "script_sha256": "26d001f05e12aaf5d7927a5c16b70735b52be288d984d9e959b2da2612803f0e",
+    "tests_sha256": "d53dadc82c916cbd2b92b65922f6dbcafd73a6fc1b3f6c4281ab313e0fcc13ba"
+  },
+  "router": {
+    "complete": true,
+    "attempt": "r20-matrix-resumed",
+    "earlier_attempt": "r20-matrix failed preflight, no workload",
+    "raw_files_sha256_verified": 688,
+    "workload_measurements": 144,
+    "all_health_identity_config_boot_gates": true,
+    "repeats_per_side": 4,
+    "performance_accepted": false,
+    "rss_anon_kib": [
+      92,
+      96,
+      92,
+      92
+    ],
+    "result": "18/18 CPU lower,15/18 means lower;64-sectionc4 mean+1.69%,p95+29.73%,p99+33.32%"
+  },
+  "remaining": [
+    "canonical build and validation",
+    "RPCD performance acceptance"
+  ],
+  "r13": {
+    "identical": 63,
+    "differ": 0,
+    "report_sha256": "f25f0075682f2556adbcb4bbe1fcfa53cc35a8d57b18ce998a0752464ce4240c"
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0,
+    "differing": [],
+    "report_sha256": "f836a1fe29536462cd44f5275e0c4f171bacb1990367f12c3ed0e87e9fd8726c"
+  },
+  "r18": {
+    "steps": 77,
+    "identical": 77,
+    "differ": 0,
+    "differing": [],
+    "report_sha256": "8ebc074680665c558d29569c8574ad9c8b880e52417ebc0da2515b0572278891"
+  },
+  "r19_corrected": {
+    "pairs": 11,
+    "identical": 11,
+    "differ": 0,
+    "differing": [],
+    "report_sha256": "7002a179a7208ab7e42fdb7661cf364e281d4fa66e6089e19dd7731fec95ae9e",
+    "raw_file_sha256": {
+      "board.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "board.c.out": "a42e010048837dd36ccf53b5071cb46c02bc969378964a10641e17a93a428dfb",
+      "board.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "board.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "board.o.out": "a42e010048837dd36ccf53b5071cb46c02bc969378964a10641e17a93a428dfb",
+      "board.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "duid.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duid.c.out": "b15e792899d549f4f3d0d6591b7165e82ae5ec1afb78a20b1e12a5f71a5c33d0",
+      "duid.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "duid.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "duid.o.out": "b15e792899d549f4f3d0d6591b7165e82ae5ec1afb78a20b1e12a5f71a5c33d0",
+      "duid.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "hosthints.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hosthints.c.out": "3aa7f8ad98ba1c5c21cf41a634f3e60a1b47287f156a549fa5afb1999c4cdd44",
+      "hosthints.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "hosthints.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "hosthints.o.out": "3aa7f8ad98ba1c5c21cf41a634f3e60a1b47287f156a549fa5afb1999c4cdd44",
+      "hosthints.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases.c.out": "43ed28ebbe230dd91dbaf15fa775ff8675f60b868680c991b032a37931ae1c4a",
+      "leases.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases.o.out": "43ed28ebbe230dd91dbaf15fa775ff8675f60b868680c991b032a37931ae1c4a",
+      "leases.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases4.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases4.c.out": "73531cd62b1b98d3a68f0e1fb8611afbe799165e8f8e2db109fc94915a5fb49b",
+      "leases4.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases4.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases4.o.out": "73531cd62b1b98d3a68f0e1fb8611afbe799165e8f8e2db109fc94915a5fb49b",
+      "leases4.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases6.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases6.c.out": "a62ab0471c4818a4f99d7314287df86ed10c5f96d2581e778ee895d3811b593b",
+      "leases6.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases6.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases6.o.out": "a62ab0471c4818a4f99d7314287df86ed10c5f96d2581e778ee895d3811b593b",
+      "leases6.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases_bad.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases_bad.c.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases_bad.c.rc": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+      "leases_bad.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases_bad.o.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases_bad.o.rc": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3",
+      "leases_badtype.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases_badtype.c.out": "43ed28ebbe230dd91dbaf15fa775ff8675f60b868680c991b032a37931ae1c4a",
+      "leases_badtype.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "leases_badtype.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "leases_badtype.o.out": "43ed28ebbe230dd91dbaf15fa775ff8675f60b868680c991b032a37931ae1c4a",
+      "leases_badtype.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "logs.json": "931d900623cc6382bcd5f26b59785f22f881207405bf53e64c5209563bce4291",
+      "netdev.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "netdev.c.out": "2bb361d3cd22f6d3fff2408d7ef88c4d378eea7329739e690e0faf74a1cc668c",
+      "netdev.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "netdev.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "netdev.o.out": "2bb361d3cd22f6d3fff2408d7ef88c4d378eea7329739e690e0faf74a1cc668c",
+      "netdev.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "nomethod.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "nomethod.c.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "nomethod.c.rc": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+      "nomethod.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "nomethod.o.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "nomethod.o.rc": "1121cfccd5913f0a63fec40a6ffd44ea64f9dc135c66634ba001d10bcf4302a2",
+      "sig.c.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sig.c.out": "eb3ce6117fae3e2db3aa2e224b1d8f1f987fa70fe27bb5ba0b195102a755dd07",
+      "sig.c.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "sig.o.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sig.o.out": "0877195915e991d5c11d21ad0a912adc6f724d1050a80cc90c7ed283601c606e",
+      "sig.o.rc": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    }
+  },
+  "r26": {
+    "result": "steps=733 differing=0",
+    "log_sha256": "ef1a94e2f712689b3b376cb128aa2d8a06428041ab2ecc2abef3f4d44d8f1480"
+  },
+  "bytes": {
+    "result": "r83 rpcd byte transport: PASS",
+    "log_sha256": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279"
+  },
+  "defer": {
+    "result": "r83 rpcd defer gate: PASS",
+    "log_sha256": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3"
+  },
+  "additional_consumer_gates": {
+    "artifact_revision": "r18",
+    "reason": "R20 changed only RPCD uciobj; shared UCI/ubus source and consumer artifacts remain R18.",
+    "evidence_archive_sha256": "4a85772e630b262cf10acdb6c2c51a37a6eb5f2f041a2e33154ba5e9dcab00b4",
+    "gates": {
+      "fw4-image": {
+        "exit": 0,
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fw4-upstream": {
+        "exit": 0,
+        "log_sha256": "c3f4ba1228e06d3b501df007c6a20f0981dc9e4253bc60b0f771f9d980e07153"
+      },
+      "logd-oversize": {
+        "exit": 0,
+        "log_sha256": "d4834b30159500ad938d692fdbe1164a540f69b253be1ce82bf7eb81e3709ee2"
+      },
+      "logd-r28": {
+        "exit": 0,
+        "log_sha256": "e0d0fd8a678f44c092831793f3ced1f1dfc87fdcd6df75537b39834f73e44b2d"
+      },
+      "logd-ring": {
+        "exit": 0,
+        "log_sha256": "c6018f6db3f20697cc39204fb759ec19a82de36d927d0449775cb07058d85f80"
+      }
+    }
+  }
+}

@@ -1,0 +1,353 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs",
+  "method": "Five alternating pairs of actual UCI handler plus reply construction; 20000 iterations after 100 warmups. No concurrent build/validation. Not router performance.",
+  "archive_sha256": "70f936ce6cd3d2c1cf7498fccaf354fcffaf0c092f6e28f185bd4f9eb170de74",
+  "source_archive_sha256": "99016271474b0de9dd31e9c1d99e625720b5e5a06014ce5ad7267361f9add3c4",
+  "candidate_sha256": "a0dd108020e0aba3c29bd625f3d489e7df13d15ac93e65a08d8b327c5bd51dbd",
+  "rows": [
+    {
+      "side": "r20",
+      "run": 1,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5660.64,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r20",
+      "run": 1,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 16115.63,
+      "allocs": 56,
+      "reallocs": 8,
+      "requested_bytes": 12168
+    },
+    {
+      "side": "r20",
+      "run": 1,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 166727.2,
+      "allocs": 602,
+      "reallocs": 16,
+      "requested_bytes": 74729
+    },
+    {
+      "side": "r24",
+      "run": 1,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5656.01,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r24",
+      "run": 1,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15848.59,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r24",
+      "run": 1,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 151911.88,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r20",
+      "run": 2,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5683.33,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r20",
+      "run": 2,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 16105.53,
+      "allocs": 56,
+      "reallocs": 8,
+      "requested_bytes": 12168
+    },
+    {
+      "side": "r20",
+      "run": 2,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 166825.47,
+      "allocs": 602,
+      "reallocs": 16,
+      "requested_bytes": 74729
+    },
+    {
+      "side": "r24",
+      "run": 2,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5657.65,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r24",
+      "run": 2,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15739.35,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r24",
+      "run": 2,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 151515.47,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r20",
+      "run": 3,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5755.02,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r20",
+      "run": 3,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 16122.54,
+      "allocs": 56,
+      "reallocs": 8,
+      "requested_bytes": 12168
+    },
+    {
+      "side": "r20",
+      "run": 3,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 166445.62,
+      "allocs": 602,
+      "reallocs": 16,
+      "requested_bytes": 74729
+    },
+    {
+      "side": "r24",
+      "run": 3,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5650.06,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r24",
+      "run": 3,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15717.26,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r24",
+      "run": 3,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 153218.51,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r20",
+      "run": 4,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5674.57,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r20",
+      "run": 4,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 16120.36,
+      "allocs": 56,
+      "reallocs": 8,
+      "requested_bytes": 12168
+    },
+    {
+      "side": "r20",
+      "run": 4,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 168208.07,
+      "allocs": 602,
+      "reallocs": 16,
+      "requested_bytes": 74729
+    },
+    {
+      "side": "r24",
+      "run": 4,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5643.85,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r24",
+      "run": 4,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15793.61,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r24",
+      "run": 4,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 152853.7,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    },
+    {
+      "side": "r20",
+      "run": 5,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5688.09,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r20",
+      "run": 5,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 16153.13,
+      "allocs": 56,
+      "reallocs": 8,
+      "requested_bytes": 12168
+    },
+    {
+      "side": "r20",
+      "run": 5,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 167718.52,
+      "allocs": 602,
+      "reallocs": 16,
+      "requested_bytes": 74729
+    },
+    {
+      "side": "r24",
+      "run": 5,
+      "stage": "uci_configs_payload",
+      "iterations": 20000,
+      "ns_per_op": 5691.47,
+      "allocs": 28,
+      "reallocs": 8,
+      "requested_bytes": 1455
+    },
+    {
+      "side": "r24",
+      "run": 5,
+      "stage": "uci_get_network_payload",
+      "iterations": 20000,
+      "ns_per_op": 15904.28,
+      "allocs": 47,
+      "reallocs": 8,
+      "requested_bytes": 12108
+    },
+    {
+      "side": "r24",
+      "run": 5,
+      "stage": "uci_get_64_payload",
+      "iterations": 20000,
+      "ns_per_op": 153001.15,
+      "allocs": 410,
+      "reallocs": 16,
+      "requested_bytes": 73651
+    }
+  ],
+  "summary": {
+    "uci_configs_payload": {
+      "r20": {
+        "ns_per_op": 5683.33,
+        "allocs": 28,
+        "reallocs": 8,
+        "requested_bytes": 1455
+      },
+      "r24": {
+        "ns_per_op": 5656.01,
+        "allocs": 28,
+        "reallocs": 8,
+        "requested_bytes": 1455
+      }
+    },
+    "uci_get_64_payload": {
+      "r20": {
+        "ns_per_op": 166825.47,
+        "allocs": 602,
+        "reallocs": 16,
+        "requested_bytes": 74729
+      },
+      "r24": {
+        "ns_per_op": 152853.7,
+        "allocs": 410,
+        "reallocs": 16,
+        "requested_bytes": 73651
+      }
+    },
+    "uci_get_network_payload": {
+      "r20": {
+        "ns_per_op": 16120.36,
+        "allocs": 56,
+        "reallocs": 8,
+        "requested_bytes": 12168
+      },
+      "r24": {
+        "ns_per_op": 15793.61,
+        "allocs": 47,
+        "reallocs": 8,
+        "requested_bytes": 12108
+      }
+    }
+  }
+}

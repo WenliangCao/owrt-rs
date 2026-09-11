@@ -1,0 +1,16 @@
+{
+  "subject_sha256": "6a22822ee48748a88a72037ea3dadc380d2344a713a0bbc2c27fca373e750652",
+  "rpcd_unit_tests": 45,
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differ": 0
+  },
+  "uci_descriptor_diagnostic": {
+    "load_calls": 201,
+    "fcntl_dupfd_cloexec": 201,
+    "close_calls": 404,
+    "note": "100 warmups + 100 timed operations + one allocation-counted call; startup/setup account for additional close calls. Trace timing is not benchmark timing."
+  },
+  "source_archive_sha256": "e857fade46763eff1ee7df8dc592382b9dd0bde690bb279b2ceadd4647752e12"
+}

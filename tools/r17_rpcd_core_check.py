@@ -406,6 +406,20 @@ shx("d_configs", "for f in fwtest dhcptest system; do echo \"== $f\"; cat /etc/c
 shx("d_state", "cat /var/state/dhcptest")
 shx("d_rcd", "ls /etc/rc.d | sort")
 
+# R85: list configs from fresh directory entries, including live symlink targets.
+# This runs only in the disposable rootfs after the other config scenarios.
+shx("u_listing_setup", "mv /etc/config /tmp/r85-listing-original && mkdir /etc/config")
+req("u_listing_empty", "uci", "configs", {})
+shx("u_listing_hidden_setup", "touch /etc/config/.hidden")
+req("u_listing_hidden", "uci", "configs", {})
+shx("u_listing_excluded_setup", "touch /etc/config/has.dot '/etc/config/bad name'; mkdir /etc/config/directory")
+req("u_listing_excluded", "uci", "configs", {})
+shx("u_listing_links_setup", "touch /etc/config/alpha /etc/config/zeta; ln -s zeta /etc/config/filelink; ln -s directory /etc/config/dirlink; ln -s missing /etc/config/broken")
+req("u_listing_links", "uci", "configs", {})
+shx("u_listing_changed_setup", "rm /etc/config/alpha /etc/config/zeta; mkdir /etc/config/zeta; rmdir /etc/config/directory; touch /etc/config/directory /etc/config/newconfig")
+req("u_listing_changed", "uci", "configs", {})
+shx("u_listing_restore", "rm -rf /etc/config && mv /tmp/r85-listing-original /etc/config")
+
 
 def build_steps():
     lines = [PRELUDE]
@@ -494,7 +508,7 @@ def main():
         same = True
         for ext in ("rc", "out", "err"):
             k = "%s.%s" % (sid, ext)
-            if normalize(sid, orig.get(k, b""), osids) != normalize(sid, cand.get(k, b""), csids):
+            if k not in orig or k not in cand or normalize(sid, orig[k], osids) != normalize(sid, cand[k], csids):
                 same = False
         if same:
             print("OK   %s" % sid)

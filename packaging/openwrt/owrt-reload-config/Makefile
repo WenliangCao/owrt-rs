@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=owrt-reload-config
 PKG_VERSION:=0.2.0
-PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),7)
+PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),8)
 
 PKG_MAINTAINER:=owrt-control-plane-rs project
 PKG_LICENSE:=MIT OR Apache-2.0

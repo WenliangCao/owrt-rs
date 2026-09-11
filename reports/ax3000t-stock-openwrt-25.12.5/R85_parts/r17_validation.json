@@ -1,0 +1,121 @@
+{
+  "subject_sha256": "fe5a0e78402e05ed3989f2c7fe2286987ab104ed2ddc83f9da7c17c384502219",
+  "uci_sha256": "d52e3cdbf9b9ee502af851bd9eb11da323104994bce4182e58cd1fced21abef4",
+  "source_archive_sha256": "c465199462f8e504e95bda6c77ffde88585e3769083bea16773f691471766f53",
+  "evidence_archive_sha256": "4e52c428841a2b4c97f709dc52b34880f8c52cc9f435277e2b12c935f5d16027",
+  "ubus_unit_tests": 24,
+  "shared_consumers_release_builds": 9,
+  "artifact_hashes_verified": 15,
+  "r13": {
+    "steps": 63,
+    "identical": 63,
+    "differences": 0
+  },
+  "r17": {
+    "steps": 283,
+    "identical": 283,
+    "differences": 0
+  },
+  "r18": {
+    "steps": 77,
+    "identical": 77,
+    "differences": 0
+  },
+  "r19": {
+    "steps": 11,
+    "identical": 11,
+    "differences": 0
+  },
+  "r26": {
+    "steps": 733,
+    "seed": 26,
+    "cases_per_method": 10,
+    "differences": 1,
+    "case": "f0425_luci_getFeatures",
+    "difference": "original netifd_vrf=false; candidate=true",
+    "status": "REVIEW_R26; retained failure, no rerun or masking",
+    "diagnostic_assessment": "Same netifd_vrf false observation already retained for R11/R12. Independent R17 normal and SIGCHLD diagnostics reproduce original-side instability; failed fuzz call was not syscall-traced. Difference remains visible, not a zero-difference pass."
+  },
+  "r83_bytes": "PASS",
+  "r83_defer": "PASS",
+  "remaining": [
+    "router health gate and performance/resource verification",
+    "canonical release build and verification"
+  ],
+  "httpd_r14": {
+    "status": "61/61 PASS",
+    "report_sha256": "21e41431f1d11c01b8753ef6be8fbac9abb331fa1a7b073efb8074d48ced0683"
+  },
+  "httpd_r83": {
+    "extended_compatibility": "31/31 PASS",
+    "per_side_checks": 32,
+    "disconnected_sse_cleanup": "PASS",
+    "c_retained_fds": 12,
+    "rust_retained_fds": 0,
+    "tls_slow_reader_rss_growth_kib": {
+      "original": 44,
+      "candidate": 116
+    }
+  },
+  "shared_consumer_evidence_archive_sha256": "1a2680d2bb71e1b1efb650ef8585bff569efde5a75a9dba09e0b972bb23edfe4",
+  "shared_consumer_runtime_gates": {
+    "httpd-r83": {
+      "exit": 0,
+      "log_sha256": "a4e033e9cc81862e5e00b5adbc6598c0e681aec6998499fe0f74820426d9959b"
+    },
+    "netifd-config": {
+      "exit": 0,
+      "log_sha256": "980a52808e94898f49dd840c2ea73f0e466e5a66c96b329e4b8cfb34354f5a05"
+    },
+    "netifd-lifecycle": {
+      "exit": 0,
+      "log_sha256": "1ddf8dff42884d2d8b9440414491fc606b985f2c1d797e69f388f1561847ce42"
+    },
+    "netifd-wireless": {
+      "exit": 0,
+      "log_sha256": "2c7e686a07ca561b399910857e5cb3c815a22b2999f6019e6b33945cd500cf8c"
+    },
+    "procd-r65": {
+      "exit": 0,
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114"
+    },
+    "procd-r83": {
+      "exit": 0,
+      "log_sha256": "c768607cf87baccb57a7dbb76109b0a55c1029e9645fb9a419d00cefae85073e"
+    },
+    "ubusd-r42": {
+      "exit": 0,
+      "log_sha256": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9"
+    },
+    "ubusd-r83": {
+      "exit": 0,
+      "log_sha256": "40f07ee506c5ff05520ad42e4f2d3ae16275d59e7fada32195661b18327f19d7"
+    }
+  },
+  "extra_evidence_archive_sha256": "5bf7ac840fb72b40a652ed3a4bfa0883b77787972451f6f5247fd49812930191",
+  "additional_consumers": {
+    "logd_r28": "33 outputs, zero differences",
+    "logd_ring": "27 records and 5-record bound identical",
+    "logd_oversize": "both sides continue serving",
+    "fw4_upstream": "31/31 PASS; reference fw4.uc SHA256 identical to exact image",
+    "fw4_exact_image": "print and nft check pass in isolated namespace"
+  },
+  "required_checks": {
+    "toolchain": "PASS",
+    "toolchain_negative": "PASS",
+    "tools": "PASS",
+    "harnesses": "12 PASS",
+    "benchmark": "PASS",
+    "first_attempt": "check-tools failed on root-owned __pycache__ from sudo runtime gates; tool checks rerun with a separate user-owned PYTHONPYCACHEPREFIX, no source changes"
+  },
+  "router_r17": {
+    "complete": true,
+    "raw_files_sha256_verified": 344,
+    "workload_measurements": 72,
+    "performance_accepted": false,
+    "rss_anon_kib": [
+      80,
+      76
+    ]
+  }
+}

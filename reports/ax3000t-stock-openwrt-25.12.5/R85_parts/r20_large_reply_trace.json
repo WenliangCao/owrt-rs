@@ -1,0 +1,30 @@
+{
+  "c": {
+    "start": 1789116401.67282,
+    "end": 1789116401.80411,
+    "calls": {
+      "recvmsg": 256,
+      "sendmsg": 256,
+      "epoll_pwait": 128
+    },
+    "eagain_recv": 0,
+    "trace_sha256": "70f98a189ca59576c40c713e9e93a1cc7fb906af23f3ec356d73f8f3376caebd",
+    "wait_duration_s": 0.016038
+  },
+  "rs": {
+    "start": 1789116412.687414,
+    "end": 1789116412.841364,
+    "calls": {
+      "recvmsg": 256,
+      "sendmsg": 128,
+      "ppoll": 128
+    },
+    "eagain_recv": 0,
+    "trace_sha256": "224bf5ddf00682d277c307cd20fcdd2cbe5f826fef6dab90f45340306d10198a",
+    "wait_duration_s": 0.014161
+  },
+  "method": "Restrict existing R17 full-matrix strace to the observed exec-to-final-syscall window of all four 64-section clients (12 measured plus20warmup each). Includes startup boundaries. Trace timings are perturbed and on build host, not target performance.",
+  "requests_in_window": 128,
+  "conclusion": "Both implementations still have 256 recvmsg and128 poll calls. C sends256messages;R17 sends128 combined DATA+STATUS writes. This does not support extra Rust event-loop waits as the measured cause.",
+  "source_archive_sha256": "0005181100eb207390288465224a25557d55ecec65f8c85554d44d534516771b"
+}

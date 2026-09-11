@@ -7,9 +7,11 @@ request is sent to both objects back to back, so both read the same host
 network state, the same synthetic lease/ethers/uci fixtures and the same fake
 PTR server (127.0.0.1:53, needs sudo).
 
-Usage: r19_lucirpc_check.py <rootfs-files> <rpcd-rs-musl-binary> [--report out.json]
+Usage: r19_lucirpc_check.py <rootfs-files> <rpcd-rs-musl-binary> [--report out.json] [--keep private-dir]
 """
+import argparse
 import json, os, re, subprocess, sys, tempfile, time
+from pathlib import Path
 
 DNS_SERVER = r'''
 import socket, struct
@@ -175,7 +177,11 @@ def normalize(sid, data):
 
     def mask(x, path=()):
         if isinstance(x, dict):
-            return {k: ("<masked>" if k in MASK_KEYS or (path and path[-1] == "statistics" and k in COUNTERS)
+            # luci-rpc serializes /sys/class/net/*/statistics as "stats".
+            # Only numeric counters at the device-table level are volatile;
+            # flags, missing fields, unknown fields and wrong types still differ.
+            counters = sid == "netdev" and len(path) == 2 and path[-1] in ("stats", "statistics")
+            return {k: ("<masked>" if k in MASK_KEYS or (counters and k in COUNTERS and type(y) is int and y >= 0)
                         else mask(y, path + (k,))) for k, y in x.items()}
         if isinstance(x, list):
             return [mask(y, path) for y in x]
@@ -183,13 +189,22 @@ def normalize(sid, data):
     return json.dumps(mask(v))
 
 
+def same_pair(sid, out):
+    return all("%s.o.%s" % (sid, ext) in out and "%s.c.%s" % (sid, ext) in out
+               and normalize(sid, out["%s.o.%s" % (sid, ext)]) == normalize(sid, out["%s.c.%s" % (sid, ext)])
+               for ext in ("rc", "out", "err"))
+
+
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    report = None
-    if "--report" in sys.argv:
-        report = sys.argv[sys.argv.index("--report") + 1]
-        args.remove(report)
-    rootfs, binary = args[0], args[1]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("rootfs")
+    parser.add_argument("binary")
+    parser.add_argument("--report")
+    parser.add_argument("--keep", type=Path)
+    args = parser.parse_args()
+    rootfs, binary, report = args.rootfs, args.binary, args.report
+    if args.keep is not None:
+        args.keep.mkdir(mode=0o700, parents=True, exist_ok=False)
     dns = subprocess.Popen(["sudo", "-n", "python3", "-c", DNS_SERVER])
     time.sleep(0.5)
     tmp = tempfile.mkdtemp(prefix="owrt-r19-")
@@ -211,6 +226,10 @@ def main():
         for name in sudo("ls", resdir, capture_output=True, text=True, check=False).stdout.split():
             out[name] = sudo("cat", os.path.join(resdir, name), capture_output=True, check=False).stdout
         logs = {n: sudo("cat", os.path.join(root, "tmp/out", n), capture_output=True, check=False).stdout.decode(errors="replace")[-2000:] for n in ("rpcd.log", "rpcd-rs.log", "trace.txt")}
+        if args.keep is not None:
+            for name, data in out.items():
+                (args.keep / name).write_bytes(data)
+            (args.keep / "logs.json").write_text(json.dumps(logs) + "\n")
     finally:
         subprocess.run(["sudo", "-n", "pkill", "-f", "socket.bind((\"127.0.0.1\", 53))"], check=False)
         dns.terminate()
@@ -218,7 +237,7 @@ def main():
     ndiff = 0
     details = []
     for sid in IDS:
-        same = all(normalize(sid, out.get("%s.o.%s" % (sid, e), b"")) == normalize(sid, out.get("%s.c.%s" % (sid, e), b"")) for e in ("rc", "out", "err"))
+        same = same_pair(sid, out)
         if same:
             print("OK   %s" % sid)
             continue
@@ -226,6 +245,9 @@ def main():
         details.append(sid)
         print("DIFF %s" % sid)
         for e in ("rc", "out", "err"):
+            if "%s.o.%s" % (sid, e) not in out or "%s.c.%s" % (sid, e) not in out:
+                print("   %s: missing captured result" % e)
+                continue
             o = normalize(sid, out.get("%s.o.%s" % (sid, e), b""))
             c = normalize(sid, out.get("%s.c.%s" % (sid, e), b""))
             if o != c:

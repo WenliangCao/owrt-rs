@@ -1,0 +1,1036 @@
+{
+  "host": "aarch64 build host in exact OpenWrt rootfs namespaces",
+  "method": "Five paired runs, alternating pair order, 20,000 timed calls per stage after 100 warmups. Allocation counting is a separate call. Wire stages include local IPC; the peer uses stack storage and no measured allocations. They are diagnostic, not router benchmark scores.",
+  "profiler_sha256": {
+    "r04-wire": "2ff9a1346a5a8af0d5eb637106183fb71d2991d6b075597e9e313160c99c9af4",
+    "r05": "febb8aa8aae4729b913d0bf0b354f68f8cf14d3ceac373597b29a28b86ca8517"
+  },
+  "source_sha256": {
+    "r05-profile-r04-wire-1": "7404db0302b8184cd98d17c9b64bc4b2acc89e20f789cf701f5ad7bf879da687",
+    "r05-profile-r05-1": "1245f06b9de638e24e5a27b55243ca56805102476edc80a73042698647bba35e",
+    "r05-profile-r04-wire-2": "97f397f21261d98c42f6498e4b7b20c400f4bf357dc6ca2f42060622923e65d0",
+    "r05-profile-r05-2": "e340262300de6dae2f3622d33c4b373726865bc1d891b4c37f3117d4257f3b05",
+    "r05-profile-r04-wire-3": "29079bca3b101f15d47cdbbb0ae9ca50c43c7171e172a258b7ae2660c7d3254d",
+    "r05-profile-r05-3": "58b11568ce3af8008c509afc834b9abc76208176dcde469affcf7c714252d616",
+    "r05-profile-r04-wire-4": "2a50cce7be0fe6d62fda4012c964f35679106d2c6a5c7e36f2378d2322390406",
+    "r05-profile-r05-4": "b886b9593e3730ac099161eda2dda3e548793ac0f92950c637be9f0fb97c33a1",
+    "r05-profile-r04-wire-5": "2271d828b3c0eccebfb73229078838e6908e4468d97057872bb973e76a8ea134",
+    "r05-profile-r05-5": "8d6d2a1f86eba7b2ad422a5f5bbace41a26ba5b8eca4a18b66bfa598cb8e81b9"
+  },
+  "runs": [
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 592.57,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 634.98,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.17,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 376.82,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2189.53,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2152.01,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 168.37,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1365.51,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-1",
+      "side": "r04-wire",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1398.03,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 508.57,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 543.86,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 42.82,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 364.53,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2080.66,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2058.63,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 168.17,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1352.76,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-1",
+      "side": "r05",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1375.54,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 595.05,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 639.22,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.36,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 374.13,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2062.66,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2048.95,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 166.61,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1348.87,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-2",
+      "side": "r04-wire",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1363.73,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 507.75,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 545.66,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 42.67,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 380.36,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2179.52,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2144.57,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 166.84,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1357.25,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-2",
+      "side": "r05",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1378.47,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 594.17,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 633.45,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.29,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 378.36,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2066.4,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2049.58,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 166.93,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1099.28,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-3",
+      "side": "r04-wire",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1365.22,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 507.76,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 545.14,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.91,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 363.27,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2091.77,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2053.5,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 167.27,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1347.34,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-3",
+      "side": "r05",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1391.19,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 606.09,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 634.43,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.21,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 366.97,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2090.43,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2135.77,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 167.12,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1353.39,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-4",
+      "side": "r04-wire",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1336.79,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 499.15,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 544.89,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 42.84,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 357.91,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2086.2,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2057.53,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 166.33,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1374.82,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-4",
+      "side": "r05",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1434.0,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 592.86,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 635.05,
+      "allocs": 5.0,
+      "reallocs": 3.0,
+      "requested_bytes": 94.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 43.07,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 368.36,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2072.38,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2050.48,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 167.73,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1343.13,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r04-wire-5",
+      "side": "r04-wire",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1345.7,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "session_access_denied",
+      "iterations": 20000.0,
+      "ns_per_op": 507.84,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "session_access_allowed",
+      "iterations": 20000.0,
+      "ns_per_op": 546.71,
+      "allocs": 2.0,
+      "reallocs": 3.0,
+      "requested_bytes": 84.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "session_timers_2",
+      "iterations": 20000.0,
+      "ns_per_op": 42.83,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "session_timers_64",
+      "iterations": 20000.0,
+      "ns_per_op": 360.38,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "file_owner_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2089.09,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8227.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "file_group_name",
+      "iterations": 20000.0,
+      "ns_per_op": 2071.07,
+      "allocs": 3.0,
+      "reallocs": 0.0,
+      "requested_bytes": 8206.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "blob_status_build",
+      "iterations": 20000.0,
+      "ns_per_op": 165.91,
+      "allocs": 1.0,
+      "reallocs": 3.0,
+      "requested_bytes": 60.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "reply_status_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1323.11,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    },
+    {
+      "run": "r05-profile-r05-5",
+      "side": "r05",
+      "stage": "reply_data_send",
+      "iterations": 20000.0,
+      "ns_per_op": 1360.93,
+      "allocs": 0.0,
+      "reallocs": 0.0,
+      "requested_bytes": 0.0
+    }
+  ],
+  "summary": {
+    "r04-wire": {
+      "blob_status_build": {
+        "ns_per_op": 167.12,
+        "allocs": 1.0,
+        "reallocs": 3.0,
+        "requested_bytes": 60.0
+      },
+      "file_group_name": {
+        "ns_per_op": 2050.48,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 8206.0
+      },
+      "file_owner_name": {
+        "ns_per_op": 2072.38,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 8227.0
+      },
+      "reply_data_send": {
+        "ns_per_op": 1363.73,
+        "allocs": 1.0,
+        "reallocs": 3.0,
+        "requested_bytes": 84.0
+      },
+      "reply_status_send": {
+        "ns_per_op": 1348.87,
+        "allocs": 1.0,
+        "reallocs": 3.0,
+        "requested_bytes": 60.0
+      },
+      "session_access_allowed": {
+        "ns_per_op": 634.98,
+        "allocs": 5.0,
+        "reallocs": 3.0,
+        "requested_bytes": 94.0
+      },
+      "session_access_denied": {
+        "ns_per_op": 594.17,
+        "allocs": 5.0,
+        "reallocs": 3.0,
+        "requested_bytes": 94.0
+      },
+      "session_timers_2": {
+        "ns_per_op": 43.21,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "session_timers_64": {
+        "ns_per_op": 374.13,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      }
+    },
+    "r05": {
+      "blob_status_build": {
+        "ns_per_op": 166.84,
+        "allocs": 1.0,
+        "reallocs": 3.0,
+        "requested_bytes": 60.0
+      },
+      "file_group_name": {
+        "ns_per_op": 2058.63,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 8206.0
+      },
+      "file_owner_name": {
+        "ns_per_op": 2089.09,
+        "allocs": 3.0,
+        "reallocs": 0.0,
+        "requested_bytes": 8227.0
+      },
+      "reply_data_send": {
+        "ns_per_op": 1378.47,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "reply_status_send": {
+        "ns_per_op": 1352.76,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "session_access_allowed": {
+        "ns_per_op": 545.14,
+        "allocs": 2.0,
+        "reallocs": 3.0,
+        "requested_bytes": 84.0
+      },
+      "session_access_denied": {
+        "ns_per_op": 507.76,
+        "allocs": 2.0,
+        "reallocs": 3.0,
+        "requested_bytes": 84.0
+      },
+      "session_timers_2": {
+        "ns_per_op": 42.83,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      },
+      "session_timers_64": {
+        "ns_per_op": 363.27,
+        "allocs": 0.0,
+        "reallocs": 0.0,
+        "requested_bytes": 0.0
+      }
+    }
+  }
+}
