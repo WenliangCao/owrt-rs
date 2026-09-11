@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "subjects": {
+    "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+    "candidate": "92a746b4aba180db2cacfae5bdde8c5475eea2e7de4c4fb6968c8da28161256e"
+  },
+  "memory_probe_sha256": "3c41626bc05f8e26927fb19a31addb476cadcd3c2c109cc229dd32db030dfa8a",
+  "host_gates_passed": true,
+  "connections": 64,
+  "response_bytes": 16384,
+  "requests_per_connection": 2,
+  "order": [
+    "stock",
+    "candidate",
+    "candidate",
+    "stock",
+    "stock",
+    "candidate",
+    "candidate",
+    "stock"
+  ],
+  "rows": [
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "before": {
+        "VmRSS": 1028,
+        "RssAnon": 112,
+        "RssFile": 916,
+        "VmHWM": 1028,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held": {
+        "VmRSS": 1480,
+        "RssAnon": 564,
+        "RssFile": 916,
+        "VmHWM": 1480,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 72
+      },
+      "after_close": {
+        "VmRSS": 1040,
+        "RssAnon": 124,
+        "RssFile": 916,
+        "VmHWM": 1280,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held_rss_growth_kib": 452,
+      "held_anon_growth_kib": 452,
+      "archive_sha256": "be42a7f8b9294da370946910812376dd2b8291f5c164acc89b25f8d9838af754",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "before": {
+        "VmRSS": 844,
+        "RssAnon": 44,
+        "RssFile": 0,
+        "VmHWM": 844,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held": {
+        "VmRSS": 4104,
+        "RssAnon": 3172,
+        "RssFile": 4,
+        "VmHWM": 4104,
+        "VmPTE": 296,
+        "Threads": 66,
+        "fds": 68
+      },
+      "after_close": {
+        "VmRSS": 980,
+        "RssAnon": 48,
+        "RssFile": 4,
+        "VmHWM": 4000,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held_rss_growth_kib": 3260,
+      "held_anon_growth_kib": 3128,
+      "archive_sha256": "d6d6db4ec021171f98737e93d13e0ce629c1d2db7b536592fe88a68f863310b9",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "before": {
+        "VmRSS": 848,
+        "RssAnon": 48,
+        "RssFile": 0,
+        "VmHWM": 848,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held": {
+        "VmRSS": 4108,
+        "RssAnon": 3176,
+        "RssFile": 4,
+        "VmHWM": 4108,
+        "VmPTE": 296,
+        "Threads": 66,
+        "fds": 68
+      },
+      "after_close": {
+        "VmRSS": 984,
+        "RssAnon": 52,
+        "RssFile": 4,
+        "VmHWM": 4000,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held_rss_growth_kib": 3260,
+      "held_anon_growth_kib": 3128,
+      "archive_sha256": "43b62f096aedc4f4e648bf33fc8920126566a5cce23665892860649998e206af",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "before": {
+        "VmRSS": 1012,
+        "RssAnon": 112,
+        "RssFile": 900,
+        "VmHWM": 1012,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held": {
+        "VmRSS": 1464,
+        "RssAnon": 564,
+        "RssFile": 900,
+        "VmHWM": 1464,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 72
+      },
+      "after_close": {
+        "VmRSS": 1024,
+        "RssAnon": 124,
+        "RssFile": 900,
+        "VmHWM": 1420,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held_rss_growth_kib": 452,
+      "held_anon_growth_kib": 452,
+      "archive_sha256": "27129836d105f81c1302b9598dc078d5bf2f89fb981e863456914362f7af1759",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "05-stock",
+      "side": "stock",
+      "before": {
+        "VmRSS": 1024,
+        "RssAnon": 112,
+        "RssFile": 912,
+        "VmHWM": 1024,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held": {
+        "VmRSS": 1476,
+        "RssAnon": 564,
+        "RssFile": 912,
+        "VmHWM": 1476,
+        "VmPTE": 36,
+        "Threads": 1,
+        "fds": 72
+      },
+      "after_close": {
+        "VmRSS": 1036,
+        "RssAnon": 124,
+        "RssFile": 912,
+        "VmHWM": 1276,
+        "VmPTE": 36,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held_rss_growth_kib": 452,
+      "held_anon_growth_kib": 452,
+      "archive_sha256": "66b2e3318eaa65289bb280863fbbc1aa281190f1b9c782b80811b7de8cfdeea7",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "06-candidate",
+      "side": "candidate",
+      "before": {
+        "VmRSS": 844,
+        "RssAnon": 44,
+        "RssFile": 0,
+        "VmHWM": 844,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held": {
+        "VmRSS": 4104,
+        "RssAnon": 3172,
+        "RssFile": 4,
+        "VmHWM": 4104,
+        "VmPTE": 300,
+        "Threads": 66,
+        "fds": 68
+      },
+      "after_close": {
+        "VmRSS": 980,
+        "RssAnon": 48,
+        "RssFile": 4,
+        "VmHWM": 4000,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held_rss_growth_kib": 3260,
+      "held_anon_growth_kib": 3128,
+      "archive_sha256": "d6028febbfb351959b25063f5930387748c2b919799447cef82e93d7aa23f719",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "07-candidate",
+      "side": "candidate",
+      "before": {
+        "VmRSS": 848,
+        "RssAnon": 48,
+        "RssFile": 0,
+        "VmHWM": 848,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held": {
+        "VmRSS": 4108,
+        "RssAnon": 3176,
+        "RssFile": 4,
+        "VmHWM": 4108,
+        "VmPTE": 292,
+        "Threads": 66,
+        "fds": 68
+      },
+      "after_close": {
+        "VmRSS": 984,
+        "RssAnon": 52,
+        "RssFile": 4,
+        "VmHWM": 4000,
+        "VmPTE": 32,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held_rss_growth_kib": 3260,
+      "held_anon_growth_kib": 3128,
+      "archive_sha256": "dcba84d39cdedea2dc28e0cccdbd99cd97f94b88e9ebb75344e7b988d6467ffd",
+      "kernel": "6.12.94"
+    },
+    {
+      "run": "08-stock",
+      "side": "stock",
+      "before": {
+        "VmRSS": 1016,
+        "RssAnon": 112,
+        "RssFile": 904,
+        "VmHWM": 1016,
+        "VmPTE": 28,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held": {
+        "VmRSS": 1468,
+        "RssAnon": 564,
+        "RssFile": 904,
+        "VmHWM": 1468,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 72
+      },
+      "after_close": {
+        "VmRSS": 1028,
+        "RssAnon": 124,
+        "RssFile": 904,
+        "VmHWM": 1400,
+        "VmPTE": 32,
+        "Threads": 1,
+        "fds": 8
+      },
+      "held_rss_growth_kib": 452,
+      "held_anon_growth_kib": 452,
+      "archive_sha256": "9108953258badd0da1177a7d09547a2357e026d580d7d93cf9fe806a30fa44d4",
+      "kernel": "6.12.94"
+    }
+  ],
+  "summary": {
+    "stock": {
+      "held_rss_growth_kib": {
+        "n": 4,
+        "median": 452.0,
+        "mean": 452,
+        "min": 452,
+        "max": 452,
+        "stdev": 0.0
+      },
+      "held_anon_growth_kib": {
+        "n": 4,
+        "median": 452.0,
+        "mean": 452,
+        "min": 452,
+        "max": 452,
+        "stdev": 0.0
+      }
+    },
+    "candidate": {
+      "held_rss_growth_kib": {
+        "n": 4,
+        "median": 3260.0,
+        "mean": 3260,
+        "min": 3260,
+        "max": 3260,
+        "stdev": 0.0
+      },
+      "held_anon_growth_kib": {
+        "n": 4,
+        "median": 3128.0,
+        "mean": 3128,
+        "min": 3128,
+        "max": 3128,
+        "stdev": 0.0
+      }
+    }
+  },
+  "method": "Fresh isolated daemons on the router; /proc/status samples before, with 64 held clients, and after close. RSS is not PSS/USS or global physical-memory usage. VmHWM is an approximate sample. No latency benchmark is performed by this diagnostic client."
+}

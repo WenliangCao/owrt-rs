@@ -1,0 +1,19 @@
+{
+  "source_commit": "608415fb4158f3a920b3221540e194541b630a0e",
+  "workflow": "release-image",
+  "run_id": 34547779727,
+  "run_url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/34547779727",
+  "ci_tests_run_id": 34547780040,
+  "ci_tests_url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/34547780040",
+  "ci_tests_passed": true,
+  "openwrt": "25.12.5",
+  "package": {
+    "name": "owrt-httpd",
+    "version": "0.1.1-r7",
+    "file": "owrt-httpd-0.1.1-r7.apk",
+    "sha256": "2506b3904550d4e75faa82957750e7089d550a39cbe865430467e04c475d232d"
+  },
+  "httpd_sha256": "92a746b4aba180db2cacfae5bdde8c5475eea2e7de4c4fb6968c8da28161256e",
+  "manifest_sha256": "a907ec2083b8d2a5c7445b693d4d0b4b33e8ae75725261ad0408a4b3820665d4",
+  "method": "Official workflow artifact; all downloaded APK/image checksums verified before extracting HTTPD from its squashfs. Only HTTPD is under test; dependencies are the exact original image. The production R84 stack remains active."
+}

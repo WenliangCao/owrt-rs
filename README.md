@@ -5,9 +5,11 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 C 原件全程保留，任何一步都能回退。
 
-**现状（2026-09-10）：R81 冷审计修复已完成，最新版九个 Rust 组件已部署到设备；内核、驱动、数据面和无线
+**现状（2026-09-11）：R81 冷审计修复已完成，设备运行 R84 的九个 Rust 组件；内核、驱动、数据面和无线
 handler 脚本原样保留。** 修复核实见 [R83](reports/ax3000t-stock-openwrt-25.12.5/R83_R81_FIXES.md)，
-最新原版/Rust 实机对照见 [R84](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md)。
+原版/Rust 整体实机对照见 [R84](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md)。
+[R85 优化开发日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)已完成 HTTPD 的正式产物隔离验收：
+16 项负载的延迟与 CPU 汇总值均优于原版，保持连接内存仍较高。候选尚未替换正式运行栈，其余四项优化排队。
 
 ## 分层与边界
 
@@ -44,11 +46,11 @@ handler 脚本原样保留。** 修复核实见 [R83](reports/ax3000t-stock-open
 第三方依赖只有 httpd 的 rustls/ring（TLS）。其余全部标准库 + 自写 FFI。发布构建 opt-level 3、
 静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。
 
-最新 [R84 实机对照](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md) 使用四次冷启动和
+整体基线 [R84 实机对照](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md) 使用四次冷启动和
 72 次单组件隔离运行，基线是精确原版 OpenWrt。整体替换后的四客户端混合吞吐下降约 3.9%，控制面
 CPU/请求增加约 12.4%；fw4 规则生成、UCI 命令及 HTTPS 则有明显收益。六个常驻进程 RSS 合计约
 9.18→4.61 MiB，但共享页重复计数及文件缓存差异使其不能等同于整机独占内存节省。内核转发吞吐未测量。
-逐组件、CPU、延迟、内存、存储和测量边界以 R84 为准；[R82](reports/ax3000t-stock-openwrt-25.12.5/R82_BENCHMARK_FULL.md)
+R84 版本的逐组件、CPU、延迟、内存、存储和测量边界以该报告为准；[R82](reports/ax3000t-stock-openwrt-25.12.5/R82_BENCHMARK_FULL.md)
 及 [09-03 六组件数据](reports/ax3000t-stock-openwrt-25.12.5/BENCHMARK.md) 保留为历史记录。
 
 ## 方法：每个组件怎么被证明可以上线
