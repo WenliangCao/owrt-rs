@@ -40,6 +40,7 @@ const CMSG_HDR: usize = 16; // sizeof(struct cmsghdr) on 64-bit Linux
 const CMSG_SPACE_FD: usize = 24; // CMSG_SPACE(sizeof(int)) buffer size
 const CMSG_LEN_FD: usize = 20; // CMSG_LEN(sizeof(int)); one fd, as libubus asks
 const O_CLOEXEC: i32 = 0o2000000;
+const MSG_DONTWAIT: i32 = 0x40;
 
 extern "C" {
     fn sendmsg(fd: i32, msg: *const MsgHdr, flags: i32) -> isize;
@@ -154,6 +155,16 @@ pub(crate) fn send_parts<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Opt
 
 /// Receive exactly `buf.len()` bytes; the first recvmsg may deliver one fd.
 pub fn recv_exact(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Option<OwnedFd>> {
+    recv_exact_inner::<false>(sock, buf, want_fd)
+}
+
+/// Do not wait for the first byte. Once a frame has started, finish the
+/// requested slice with the same blocking and descriptor rules as recv_exact.
+pub(crate) fn recv_exact_if_started(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Option<OwnedFd>> {
+    recv_exact_inner::<true>(sock, buf, want_fd)
+}
+
+fn recv_exact_inner<const TRY_START: bool>(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Option<OwnedFd>> {
     let mut received_fd = None;
     let mut offset = 0;
     let mut first = want_fd;
@@ -180,7 +191,7 @@ pub fn recv_exact(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Opti
         };
         // SAFETY: hdr, its iovec and the control buffer are live for the call and
         // sized by the lengths hdr carries.
-        let got = unsafe { recvmsg(sock, &mut hdr, 0) };
+        let got = unsafe { recvmsg(sock, &mut hdr, if TRY_START && offset == 0 { MSG_DONTWAIT } else { 0 }) };
         if got == 0 {
             return Err(io::Error::new(
                 io::ErrorKind::UnexpectedEof,
@@ -189,6 +200,9 @@ pub fn recv_exact(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Opti
         }
         if got < 0 {
             let error = io::Error::last_os_error();
+            if TRY_START && offset == 0 {
+                return Err(error);
+            }
             match error.kind() {
                 io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock => {
                     wait(sock, POLLIN)?;

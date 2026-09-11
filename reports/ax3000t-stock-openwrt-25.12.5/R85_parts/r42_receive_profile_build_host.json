@@ -1,0 +1,369 @@
+{
+  "scope": "Oracle aarch64 kernel 6.17.0-1020-oracle, statically linked SDK-musl Connection transport; not a physical-router or full-daemon benchmark. Requests arrive in groups of 1/4/32; each is immediately replied independently.",
+  "source_archive_sha256": "2ea6766836f8a99426ffd61157b73156d49aebea747dda452871ff4302671d07",
+  "probe_sha256": "08305d0be71d79088d56b1b114855ed36a32aeb27167e71c01c2bb67895034f4",
+  "csv_sha256": "77809c77fc82514f89f210ef44dbf450a478540cdc79321f42caa6a46b340570",
+  "runs": [
+    {
+      "round": 1,
+      "burst": 1,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 7516.17,
+      "wall_ns": 13502.32,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 1,
+      "burst": 1,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 7644.07,
+      "wall_ns": 13073.6,
+      "waits": 99991,
+      "empty_probes": 99990
+    },
+    {
+      "round": 1,
+      "burst": 4,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 3798.93,
+      "wall_ns": 5487.93,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 1,
+      "burst": 4,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 3572.27,
+      "wall_ns": 5299.76,
+      "waits": 24998,
+      "empty_probes": 24997
+    },
+    {
+      "round": 1,
+      "burst": 32,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 2944.69,
+      "wall_ns": 3193.18,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 1,
+      "burst": 32,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 2313.54,
+      "wall_ns": 2590.17,
+      "waits": 3125,
+      "empty_probes": 0
+    },
+    {
+      "round": 2,
+      "burst": 1,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 7748.13,
+      "wall_ns": 13202.75,
+      "waits": 99949,
+      "empty_probes": 99948
+    },
+    {
+      "round": 2,
+      "burst": 1,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 7415.55,
+      "wall_ns": 13335.62,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 2,
+      "burst": 4,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 3535.29,
+      "wall_ns": 5267.37,
+      "waits": 24999,
+      "empty_probes": 24998
+    },
+    {
+      "round": 2,
+      "burst": 4,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 3705.51,
+      "wall_ns": 5367.22,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 2,
+      "burst": 32,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 2320.73,
+      "wall_ns": 2609.11,
+      "waits": 3125,
+      "empty_probes": 0
+    },
+    {
+      "round": 2,
+      "burst": 32,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 2890.55,
+      "wall_ns": 3142.24,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 3,
+      "burst": 1,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 7351.7,
+      "wall_ns": 13392.13,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 3,
+      "burst": 1,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 7655.5,
+      "wall_ns": 13169.44,
+      "waits": 99995,
+      "empty_probes": 99994
+    },
+    {
+      "round": 3,
+      "burst": 4,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 3389.64,
+      "wall_ns": 4719.55,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 3,
+      "burst": 4,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 3452.96,
+      "wall_ns": 5122.32,
+      "waits": 25000,
+      "empty_probes": 24999
+    },
+    {
+      "round": 3,
+      "burst": 32,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 2891.06,
+      "wall_ns": 3153.13,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 3,
+      "burst": 32,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 2348.92,
+      "wall_ns": 2632.78,
+      "waits": 3125,
+      "empty_probes": 0
+    },
+    {
+      "round": 4,
+      "burst": 1,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 7825.26,
+      "wall_ns": 13368.97,
+      "waits": 99995,
+      "empty_probes": 99994
+    },
+    {
+      "round": 4,
+      "burst": 1,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 7413.57,
+      "wall_ns": 13332.95,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 4,
+      "burst": 4,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 3518.56,
+      "wall_ns": 5266.02,
+      "waits": 24999,
+      "empty_probes": 24998
+    },
+    {
+      "round": 4,
+      "burst": 4,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 3693.86,
+      "wall_ns": 5228.7,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 4,
+      "burst": 32,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 2033.01,
+      "wall_ns": 2232.61,
+      "waits": 3125,
+      "empty_probes": 0
+    },
+    {
+      "round": 4,
+      "burst": 32,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 2968.62,
+      "wall_ns": 3227.29,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 5,
+      "burst": 1,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 7396.1,
+      "wall_ns": 13329.95,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 5,
+      "burst": 1,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 7888.61,
+      "wall_ns": 13451.5,
+      "waits": 99997,
+      "empty_probes": 99996
+    },
+    {
+      "round": 5,
+      "burst": 4,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 3797.57,
+      "wall_ns": 5481.7,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 5,
+      "burst": 4,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 3543.21,
+      "wall_ns": 5226.65,
+      "waits": 24999,
+      "empty_probes": 24998
+    },
+    {
+      "round": 5,
+      "burst": 32,
+      "strategy": "wait",
+      "iterations": 100000,
+      "thread_cpu_ns": 2945.6,
+      "wall_ns": 3192.31,
+      "waits": 100000,
+      "empty_probes": 0
+    },
+    {
+      "round": 5,
+      "burst": 32,
+      "strategy": "drain",
+      "iterations": 100000,
+      "thread_cpu_ns": 2363.85,
+      "wall_ns": 2642.43,
+      "waits": 3125,
+      "empty_probes": 0
+    }
+  ],
+  "summary": {
+    "1": {
+      "wait": {
+        "thread_cpu_ns": 7413.57,
+        "wall_ns": 13335.62,
+        "waits": 100000,
+        "empty_probes": 0
+      },
+      "drain": {
+        "thread_cpu_ns": 7748.13,
+        "wall_ns": 13202.75,
+        "waits": 99995,
+        "empty_probes": 99994
+      },
+      "drain_vs_wait_pct": {
+        "thread_cpu_ns": 4.5128055714048765,
+        "wall_ns": -0.9963541252675179
+      }
+    },
+    "4": {
+      "wait": {
+        "thread_cpu_ns": 3705.51,
+        "wall_ns": 5367.22,
+        "waits": 100000,
+        "empty_probes": 0
+      },
+      "drain": {
+        "thread_cpu_ns": 3535.29,
+        "wall_ns": 5266.02,
+        "waits": 24999,
+        "empty_probes": 24998
+      },
+      "drain_vs_wait_pct": {
+        "thread_cpu_ns": -4.593699652679395,
+        "wall_ns": -1.8855198780746818
+      }
+    },
+    "32": {
+      "wait": {
+        "thread_cpu_ns": 2944.69,
+        "wall_ns": 3192.31,
+        "waits": 100000,
+        "empty_probes": 0
+      },
+      "drain": {
+        "thread_cpu_ns": 2320.73,
+        "wall_ns": 2609.11,
+        "waits": 3125,
+        "empty_probes": 0
+      },
+      "drain_vs_wait_pct": {
+        "thread_cpu_ns": -21.18932722969141,
+        "wall_ns": -18.268902456215088
+      }
+    }
+  },
+  "unit_tests": {
+    "ubus": 31,
+    "rpcd": 52
+  },
+  "target_abi": "passed"
+}

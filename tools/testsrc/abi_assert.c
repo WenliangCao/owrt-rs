@@ -95,6 +95,7 @@ A(CMSG_SPACE(sizeof(int)) == 24);
 A(CMSG_LEN(sizeof(int)) == 20);
 A(SOL_SOCKET == 1);
 A(SCM_RIGHTS == 1);
+A(MSG_DONTWAIT == 0x40);
 A(SO_PEERCRED == 17);
 
 /* components/ubusd/src/sys.rs: Ucred */

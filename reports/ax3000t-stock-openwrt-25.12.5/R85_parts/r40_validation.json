@@ -1,0 +1,41 @@
+{
+  "candidate_sha256": "1a902aa671c5b99b236edc56037d2c43c06e90ecabea6a07262aa1102780e138",
+  "source_archive_sha256": "d71d4a9a97fedac798eb355711e31cb143297181174886b3aeab15e590dc2293",
+  "archive_sha256": "b20938cf72e73c3cdaebf37cb9ba9fc9d6b8dcb8b87b7b10e126a9255ec3890a",
+  "unit_tests": {
+    "rpcd": 52
+  },
+  "gate_exit_codes": {
+    "r13_rpcd_check": 0,
+    "r19_lucirpc_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "defer": 0,
+    "r17_rpcd_core_check": 0,
+    "bytes": 0,
+    "rpcd-r26": 0
+  },
+  "steps": {
+    "r13": 63,
+    "r17": 283,
+    "r18": 77,
+    "r19": 11,
+    "fuzz": 733
+  },
+  "differences": 0,
+  "logs": {
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "rpcd-r26.log": "87ac97c3e93e121f5d6837d790cbef1d743eaf1f40fa2e84e115db168bd61d69"
+  },
+  "unit_test_log_sha256": "bb73eb4cf3926d4764f755be94247b4072196c5613bb4c24078a7da5fc0ce154",
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 688,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "decision": "Reverted short-reply split sending: CPU benefit narrowed and latency gaps remained."
+}

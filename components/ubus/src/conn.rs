@@ -142,6 +142,10 @@ impl Connection {
     fn recv_head(&mut self) -> io::Result<ReceivedHeader> {
         let mut head = [0u8; Header::LEN + 4];
         let fd = sys::recv_exact(self.stream.as_raw_fd(), &mut head, true)?;
+        Self::decode_head(head, fd)
+    }
+
+    fn decode_head(head: [u8; Header::LEN + 4], fd: Option<OwnedFd>) -> io::Result<ReceivedHeader> {
         let header = Header::decode(head[..8].try_into().unwrap())
             .ok_or_else(|| io::Error::other("ubus: bad header"))?;
         let id_len = u32::from_be_bytes(head[8..12].try_into().unwrap());
@@ -474,6 +478,26 @@ impl Connection {
             return Ok(Self::classify(message));
         }
         let head = self.recv_head()?;
+        self.read_incoming_body(head)
+    }
+
+    /// Read a frame without a separate readiness wait when its first byte is
+    /// already available. An empty socket returns None; a started frame uses
+    /// the existing blocking completion rules. Does not change socket flags.
+    pub fn incoming_if_started(&mut self) -> io::Result<Option<Incoming>> {
+        if let Some(message) = self.pending.pop_front() {
+            return Ok(Some(Self::classify(message)));
+        }
+        let mut head = [0u8; Header::LEN + 4];
+        let fd = match sys::recv_exact_if_started(self.stream.as_raw_fd(), &mut head, true) {
+            Ok(fd) => fd,
+            Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(None),
+            Err(e) => return Err(e),
+        };
+        self.read_incoming_body(Self::decode_head(head, fd)?).map(Some)
+    }
+
+    fn read_incoming_body(&mut self, head: ReceivedHeader) -> io::Result<Incoming> {
         if head.header.ty == ty::INVOKE && head.len <= INCOMING_BUFFER_SIZE {
             if self.incoming_buf.len() < head.len {
                 self.incoming_buf.resize(head.len.next_power_of_two(), 0);
@@ -639,6 +663,71 @@ mod tests {
         let (a, b) = UnixStream::pair().unwrap();
         let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), incoming_buf: Vec::new(), spare_request: None };
         (conn(a), conn(b))
+    }
+
+    #[test]
+    fn started_receive_preserves_empty_socket_pending_order_and_eof() {
+        let (mut sender, mut receiver) = pair();
+        assert!(receiver.incoming_if_started().unwrap().is_none());
+        let mut b = BlobBuf::new();
+        b.put_string(attr::METHOD, "queued").put(attr::DATA, b"first");
+        sender.send(Header { ty: ty::INVOKE, seq: 1, peer: 9 }, &mut b, None).unwrap();
+        let queued = receiver.recv().unwrap();
+        receiver.pending.push_back(queued);
+        b = BlobBuf::new();
+        b.put_string(attr::METHOD, "socket").put(attr::DATA, b"second");
+        sender.send(Header { ty: ty::INVOKE, seq: 2, peer: 9 }, &mut b, None).unwrap();
+        let Some(Incoming::Invoke(first)) = receiver.incoming_if_started().unwrap() else { panic!("queued") };
+        let Some(Incoming::Invoke(second)) = receiver.incoming_if_started().unwrap() else { panic!("socket") };
+        assert_eq!((first.seq, first.data.as_slice()), (1, &b"first"[..]));
+        assert_eq!((second.seq, second.data.as_slice()), (2, &b"second"[..]));
+        assert!(receiver.incoming_if_started().unwrap().is_none());
+        drop(sender);
+        assert_eq!(receiver.incoming_if_started().unwrap_err().kind(), io::ErrorKind::UnexpectedEof);
+    }
+
+    #[test]
+    fn started_receive_finishes_fragmented_frame_and_owns_its_fd() {
+        let (mut sender, mut receiver) = pair();
+        let (passed, mut observer) = UnixStream::pair().unwrap();
+        let mut b = BlobBuf::new();
+        b.put_string(attr::METHOD, "fragment").put(attr::DATA, b"raw\xff");
+        let mut wire = Header { ty: ty::INVOKE, seq: 5, peer: 8 }.encode().to_vec();
+        wire.extend_from_slice(b.as_bytes());
+        sys::send_with_fd(sender.as_raw_fd(), &wire[..1], &[], Some(passed.as_raw_fd())).unwrap();
+        drop(passed);
+        let producer = std::thread::spawn(move || {
+            for part in wire[1..].chunks(3) {
+                sender.stream.write_all(part).unwrap();
+                std::thread::yield_now();
+            }
+            sender
+        });
+        let Some(Incoming::Invoke(req)) = receiver.incoming_if_started().unwrap() else { panic!("started") };
+        assert_eq!(req.method, "fragment");
+        assert_eq!(req.data, b"raw\xff");
+        let mut received = UnixStream::from(req.fd.unwrap());
+        received.write_all(b"x").unwrap();
+        observer.read_exact(&mut [0]).unwrap();
+        producer.join().unwrap();
+    }
+
+    #[test]
+    fn started_receive_error_releases_descriptor() {
+        for (version, len, truncated) in [(1, 4, false), (0, 3, false),
+            (0, MAX_MSGLEN + 1, false), (0, 16, true)] {
+            let (sender, mut receiver) = pair();
+            let (passed, mut observer) = UnixStream::pair().unwrap();
+            observer.set_nonblocking(true).unwrap();
+            let mut header = Header { ty: ty::INVOKE, seq: 1, peer: 2 }.encode();
+            header[0] = version;
+            sys::send_with_fd(sender.as_raw_fd(), &header, &(len as u32).to_be_bytes(),
+                Some(passed.as_raw_fd())).unwrap();
+            drop(passed);
+            if truncated { sender.stream.shutdown(std::net::Shutdown::Write).unwrap(); }
+            assert!(receiver.incoming_if_started().is_err());
+            assert_eq!(observer.read(&mut [0]).unwrap(), 0);
+        }
     }
 
     #[test]

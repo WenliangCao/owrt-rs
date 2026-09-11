@@ -1,0 +1,85 @@
+{
+  "candidate_sha256": "03b87d2d69a8aff32cb59e857858f86a35343346fa184ac61d685f9a46cdae0c",
+  "source_commit": "37706c806b8008dce3942e963077030c0453d2ab",
+  "also_built_unchanged_at": "424e77948bd266012b2e92cddc418489fdf8ce44",
+  "archive_sha256": "d525ec4998094b2b772866b77f3b35da64b52feed3555e66037f749c216029c5",
+  "host": "Oracle aarch64 with exact OpenWrt 25.12.5 rootfs; memory below is not physical-router data",
+  "gates": {
+    "static_file_changes_and_reused_connections": 41,
+    "r14_identical": 61,
+    "extended_identical": 31,
+    "sse_disconnect_cleanup": "passed",
+    "fuzz_cases_per_side": 133,
+    "retained_baseline_differences": 22,
+    "new_differences": 0,
+    "survival_failures": 0,
+    "cgi_stress": {
+      "clients": 4,
+      "requests_per_client": 30000,
+      "total_measured_requests": 120000,
+      "total_warmup_requests": 80
+    }
+  },
+  "held_connections_diagnostic": {
+    "stock": {
+      "connections": 64,
+      "response_bytes": 16384,
+      "before": {
+        "VmHWM": 960,
+        "VmRSS": 960,
+        "RssAnon": 100,
+        "Threads": 1,
+        "fds": 7
+      },
+      "held": {
+        "VmHWM": 1404,
+        "VmRSS": 1404,
+        "RssAnon": 544,
+        "Threads": 1,
+        "fds": 71
+      },
+      "after_close": {
+        "VmHWM": 1144,
+        "VmRSS": 964,
+        "RssAnon": 104,
+        "Threads": 1,
+        "fds": 7
+      },
+      "held_rss_growth_kib": 444
+    },
+    "candidate": {
+      "connections": 64,
+      "response_bytes": 16384,
+      "before": {
+        "VmHWM": 928,
+        "VmRSS": 916,
+        "RssAnon": 44,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held": {
+        "VmHWM": 4044,
+        "VmRSS": 4044,
+        "RssAnon": 3172,
+        "Threads": 66,
+        "fds": 68
+      },
+      "after_close": {
+        "VmHWM": 3744,
+        "VmRSS": 920,
+        "RssAnon": 48,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held_rss_growth_kib": 3128
+    }
+  },
+  "logs": {
+    "cgi-stress.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "extended.log": "9c18b2c33bc283a9adb64af2855943eb5b0fb00a257b3dff6d9d2280215a8a85",
+    "fuzz.log": "d12c93f0d3815979388f42c105029d1faff351f8683d278d58225256ec1c5462",
+    "r14.log": "ba38f8d0d9fbd6bf237ab4e386101ee14c808a681a6cc9daba2c8126adb29bfb",
+    "static.log": "64b8f105bba1ad1e066a00dae7242d80f1c0f836cffb32116483946c81d50e46"
+  },
+  "passed": true
+}
