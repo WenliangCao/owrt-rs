@@ -1,0 +1,779 @@
+{
+  "scope": "Oracle host static SDK-musl; actual phase costs plus exact-rootfs strace and functional smoke. Not physical-router performance.",
+  "source_archive_sha256": "e48a691b8c8d7b45b141e5243ea14a816333afcef682e52538686081415d1aba",
+  "candidate_sha256": "03f3639b984f0065a09eed77c045804c0bf9f3eba4eeae6e02ee2fb932a06e7c",
+  "probe_sha256": "932c839560b2cd26e21c3dff333d64e116f97c2d6d6909770aec4061e8ed02ed",
+  "archive_sha256": "2df0e807a950e82fc09b08345cc47b57a42a8d29d9439452f1f3dbfba058a14d",
+  "phase_runs": [
+    {
+      "label": "p05",
+      "round": 1,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 42.5,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 1,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1247.06,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 1,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5076.22,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 1,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10725.9,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p05",
+      "round": 2,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 44.65,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 2,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1247.78,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 2,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5081.42,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 2,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10687.7,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p05",
+      "round": 3,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 44.26,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 3,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1244.72,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 3,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5065.37,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 3,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10756.39,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p05",
+      "round": 4,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 43.23,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 4,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1243.17,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 4,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5061.73,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 4,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10857.73,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p05",
+      "round": 5,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 44.28,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 5,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1249.59,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 5,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5070.94,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p05",
+      "round": 5,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10746.56,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p06",
+      "round": 1,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 44.08,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 1,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1259.29,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 1,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5109.01,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 1,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10803.06,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p06",
+      "round": 1,
+      "stage": "hotplug_object_miss_8",
+      "iterations": 20000,
+      "ns_per_op": 23.61,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 1,
+      "stage": "hotplug_object_miss_32",
+      "iterations": 20000,
+      "ns_per_op": 90.98,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 1,
+      "stage": "hotplug_object_miss_128",
+      "iterations": 20000,
+      "ns_per_op": 376.96,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 2,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 44.99,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 2,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1248.76,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 2,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5111.22,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 2,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10780.0,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p06",
+      "round": 2,
+      "stage": "hotplug_object_miss_8",
+      "iterations": 20000,
+      "ns_per_op": 23.82,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 2,
+      "stage": "hotplug_object_miss_32",
+      "iterations": 20000,
+      "ns_per_op": 91.74,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 2,
+      "stage": "hotplug_object_miss_128",
+      "iterations": 20000,
+      "ns_per_op": 378.95,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 3,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 45.33,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 3,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1252.26,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 3,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5103.63,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 3,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10899.09,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p06",
+      "round": 3,
+      "stage": "hotplug_object_miss_8",
+      "iterations": 20000,
+      "ns_per_op": 29.1,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 3,
+      "stage": "hotplug_object_miss_32",
+      "iterations": 20000,
+      "ns_per_op": 91.0,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 3,
+      "stage": "hotplug_object_miss_128",
+      "iterations": 20000,
+      "ns_per_op": 377.5,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 4,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 45.74,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 4,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1255.3,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 4,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5455.88,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 4,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10762.61,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p06",
+      "round": 4,
+      "stage": "hotplug_object_miss_8",
+      "iterations": 20000,
+      "ns_per_op": 23.34,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 4,
+      "stage": "hotplug_object_miss_32",
+      "iterations": 20000,
+      "ns_per_op": 91.05,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 4,
+      "stage": "hotplug_object_miss_128",
+      "iterations": 20000,
+      "ns_per_op": 378.34,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 5,
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 43.33,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 5,
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 1257.42,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 5,
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 5088.67,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 5,
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 10732.13,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 4096
+    },
+    {
+      "label": "p06",
+      "round": 5,
+      "stage": "hotplug_object_miss_8",
+      "iterations": 20000,
+      "ns_per_op": 26.94,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 5,
+      "stage": "hotplug_object_miss_32",
+      "iterations": 20000,
+      "ns_per_op": 99.07,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "label": "p06",
+      "round": 5,
+      "stage": "hotplug_object_miss_128",
+      "iterations": 20000,
+      "ns_per_op": 377.69,
+      "allocations": 0,
+      "reallocations": 0,
+      "allocated_bytes": 0
+    }
+  ],
+  "phase_summary": {
+    "hotplug_object_miss_128": {
+      "p06": {
+        "ns_per_op": 377.69,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      }
+    },
+    "hotplug_object_miss_32": {
+      "p06": {
+        "ns_per_op": 91.05,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      }
+    },
+    "hotplug_object_miss_8": {
+      "p06": {
+        "ns_per_op": 23.82,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      }
+    },
+    "service_list_1": {
+      "p05": {
+        "ns_per_op": 44.26,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      },
+      "p06": {
+        "ns_per_op": 44.99,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      },
+      "ns_change_pct": 1.6493447808404893
+    },
+    "service_list_128": {
+      "p05": {
+        "ns_per_op": 5070.94,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      },
+      "p06": {
+        "ns_per_op": 5109.01,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      },
+      "ns_change_pct": 0.7507483819568117
+    },
+    "service_list_32": {
+      "p05": {
+        "ns_per_op": 1247.06,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      },
+      "p06": {
+        "ns_per_op": 1255.3,
+        "allocations": 0,
+        "reallocations": 0,
+        "allocated_bytes": 0
+      },
+      "ns_change_pct": 0.6607540936282241
+    },
+    "system_info": {
+      "p05": {
+        "ns_per_op": 10746.56,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 4096
+      },
+      "p06": {
+        "ns_per_op": 10780.0,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 4096
+      },
+      "ns_change_pct": 0.31116934163117893
+    }
+  },
+  "traces": {
+    "c": {
+      "sha256": "618c796fd34a37e241f46c8415eb3ab812ced3ae24032553938b71438003b28a",
+      "syscall_counts": {
+        "close": 534,
+        "openat": 1057,
+        "execve": 1,
+        "read": 1569,
+        "epoll_pwait": 1075,
+        "sendmsg": 2177,
+        "ppoll": 20,
+        "recvmsg": 2244,
+        "getdents64": 2,
+        "sysinfo": 520,
+        "statfs": 1040
+      },
+      "read_breakdown": [
+        {
+          "fd": 3,
+          "requested_bytes": 960,
+          "returned": 960,
+          "errno": null,
+          "calls": 7
+        },
+        {
+          "fd": 6,
+          "requested_bytes": 0,
+          "returned": 0,
+          "errno": null,
+          "calls": 1
+        },
+        {
+          "fd": 6,
+          "requested_bytes": 12,
+          "returned": 12,
+          "errno": null,
+          "calls": 1
+        },
+        {
+          "fd": 8,
+          "requested_bytes": 1024,
+          "returned": 0,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 8,
+          "requested_bytes": 1024,
+          "returned": 508,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 8,
+          "requested_bytes": 1024,
+          "returned": 1024,
+          "errno": null,
+          "calls": 520
+        }
+      ]
+    },
+    "rs": {
+      "sha256": "c65c359d7a9de8ea022aceebde2429ffb6f9f3f1c57ec6dc8bd4e6854980a1cc",
+      "syscall_counts": {
+        "close": 524,
+        "openat": 524,
+        "execve": 1,
+        "ppoll": 1103,
+        "recvmsg": 2203,
+        "sendmsg": 1119,
+        "getdents64": 2,
+        "wait4": 1,
+        "read": 1041,
+        "sysinfo": 520,
+        "statfs": 1040
+      },
+      "read_breakdown": [
+        {
+          "fd": 6,
+          "requested_bytes": 4096,
+          "returned": -1,
+          "errno": "EAGAIN",
+          "calls": 1
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 2564,
+          "returned": 0,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 4096,
+          "returned": 1532,
+          "errno": null,
+          "calls": 520
+        }
+      ]
+    }
+  },
+  "unit_tests": {
+    "procd": 72,
+    "ubus": 32,
+    "failed": 0
+  },
+  "smoke_matrix_complete": true,
+  "trace_scope": "500 nominal requests per original workload plus warmups/setup. Counts include initialization; time under strace is not performance evidence.",
+  "busy_gate": [
+    {
+      "side": "original",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 179,
+      "fds_before": 8,
+      "fds_after": 8
+    },
+    {
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 162,
+      "fds_before": 7,
+      "fds_after": 7
+    }
+  ],
+  "busy_gate_script_sha256": "9a7ec6f7dd3d899056ed35bd340afdf3135af4d8d567df5ba60de47bb84a222f",
+  "initial_gate_failure": "Original reaped all 32 children, but the test incorrectly expected watchdog expiry to retain a stopped instance. Stock deleted it. Corrected gate requires the original live PID to disappear and exact empty service output; the original failure is preserved in the archive."
+}

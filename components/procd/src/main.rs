@@ -83,6 +83,9 @@ struct Procd {
     conn: Connection,
     objects: Objects,
     services: BTreeMap<String, Service>,
+    /// Storage only: list/info values are rebuilt for each request. Bounded
+    /// after sending so an unusually large list is not retained indefinitely.
+    read_reply: BlobBuf,
     base: Instant,
     /// Next `Validator::seq`; see its doc comment.
     validator_seq: u64,
@@ -117,6 +120,10 @@ struct Procd {
     dispatch: dispatch::Dispatch,
     /// Read end of the SIGCHLD self-pipe: a child exit wakes the poll.
     wakeup: std::os::fd::OwnedFd,
+    /// Rebuilt from the current owners on every wait; no descriptor ownership
+    /// or kernel registration persists in this storage.
+    wait_fds: Vec<owrt_ubus::sys::PollFd>,
+    inotify_ready: bool,
 }
 
 impl Procd {
@@ -428,17 +435,22 @@ impl Procd {
     /// happens rather than at the next tick -- the C's uloop wakes on each of
     /// these. `timeout_ms` is the timer tick that stays for deadlines.
     /// (R81 F22.)
-    fn wait_activity(&mut self, timeout_ms: i32) {
+    fn wait_activity(&mut self, timeout_ms: i32) -> io::Result<bool> {
         use owrt_ubus::sys::{PollFd, POLLIN};
         use std::os::fd::AsRawFd;
         let pfd = |fd: i32| PollFd { fd, events: POLLIN, revents: 0 };
-        let mut fds = vec![pfd(self.conn.as_raw_fd()), pfd(self.wakeup.as_raw_fd())];
+        let mut fds = std::mem::take(&mut self.wait_fds);
+        fds.clear();
+        fds.push(pfd(self.conn.as_raw_fd()));
+        fds.push(pfd(self.wakeup.as_raw_fd()));
         if let Some(h) = &self.hotplug {
             fds.push(pfd(h.raw_fd()));
         }
-        if let Some(fd) = self.dispatch.inotify_fd() {
+        let inotify_index = self.dispatch.inotify_fd().map(|fd| {
+            let index = fds.len();
             fds.push(pfd(fd));
-        }
+            index
+        });
         for s in self.services.values() {
             for inst in s.instances.values() {
                 for p in [&inst.log_out, &inst.log_err].into_iter().flatten() {
@@ -451,9 +463,26 @@ impl Procd {
                 fds.push(pfd(p.fd.as_raw_fd()));
             }
         }
-        // A poll failure only costs the wait; the loop body runs regardless.
-        let _ = owrt_ubus::sys::poll_fds(&mut fds, timeout_ms);
-        sys::drain_wakeup(self.wakeup.as_raw_fd());
+        // Synchronous calls in the maintenance work may have queued a bus
+        // message. Still check the other descriptors, but do not sleep on it.
+        let pending = self.conn.has_pending();
+        let result = owrt_ubus::sys::poll_fds(&mut fds, if pending { 0 } else { timeout_ms });
+        if result.is_ok() {
+            if fds[1].revents != 0 {
+                sys::drain_wakeup(self.wakeup.as_raw_fd());
+            }
+            self.inotify_ready |= inotify_index.is_some_and(|i| fds[i].revents != 0);
+        } else {
+            // If polling failed, preserve the old nonblocking maintenance
+            // read rather than depending on an absent readiness result.
+            self.inotify_ready = true;
+        }
+        let bus_ready = pending || fds[0].revents != 0;
+        if fds.capacity() <= 256 {
+            fds.clear();
+            self.wait_fds = fds;
+        }
+        result.map(|_| bus_ready)
     }
 
     /// Drain every live instance's captured output. `instance_stdio` builds
@@ -497,6 +526,12 @@ impl Procd {
 
     /// Poll for exited children and drive each through `instance_exited`.
     fn reap(&mut self) {
+        // Clear before draining: SIGCHLD may coalesce several exits, or
+        // arrive while we process one. Drain all statuses, leaving any new
+        // signal armed for the next pass. pump_logs still runs first.
+        if !sys::take_child_exit_pending() {
+            return;
+        }
         while let Some((pid, wstatus)) = proc::reap_any() {
             let mut found = None;
             for (sname, s) in self.services.iter() {
@@ -816,7 +851,8 @@ impl Procd {
         {
             let now = self.now_ms();
             let mut d = std::mem::take(&mut self.dispatch);
-            d.pump(&mut self.conn, now);
+            let ready = std::mem::replace(&mut self.inotify_ready, false);
+            d.pump(&mut self.conn, now, ready);
             self.dispatch = d;
         }
         if self.boot == Boot::NotPid1 {
@@ -990,9 +1026,16 @@ impl Procd {
                 self.triggers.fire(&req.method, &vars, now);
             }
             let _ = self.conn.reply_status(&req, status::OK, None);
+            self.conn.recycle_request(req);
             return;
         }
-        if let Some(subsys) = self.dispatch.subsystem_of(req.objid).map(str::to_string) {
+        let target = if req.objid == self.objects.service {
+            Target::Service
+        } else if req.objid == self.objects.container {
+            Target::Container
+        } else if req.objid == self.objects.system {
+            Target::System
+        } else if let Some(subsys) = self.dispatch.subsystem_of(req.objid).map(str::to_string) {
             let now = self.now_ms();
             let mut d = std::mem::take(&mut self.dispatch);
             let code = if req.method == "call" {
@@ -1002,36 +1045,37 @@ impl Procd {
             };
             self.dispatch = d;
             let _ = self.conn.reply_status(&req, code, None);
+            self.conn.recycle_request(req);
             return;
-        }
-        let target = if req.objid == self.objects.service {
-            Target::Service
-        } else if req.objid == self.objects.container {
-            Target::Container
-        } else if req.objid == self.objects.system {
-            Target::System
         } else {
             let _ = self.conn.reply_status(&req, status::NOT_FOUND, None);
+            self.conn.recycle_request(req);
             return;
         };
-        self.handle(target, req);
+        self.handle(target, &req);
+        self.conn.recycle_request(req);
     }
 
-    fn handle(&mut self, target: Target, req: Request) {
+    fn handle(&mut self, target: Target, req: &Request) {
         let code = match (target, req.method.as_str()) {
-            (Target::Service, "set") => self.handle_set(&req, false),
-            (Target::Service, "add") => self.handle_set(&req, true),
-            (Target::Service, "list") => self.handle_list(&req),
-            (Target::Service, "delete") => self.handle_delete(&req),
-            (Target::Service, "signal") => self.handle_signal(&req),
-            (Target::Service, "state") => self.handle_state(&req),
-            (Target::Service, "update_start") => self.handle_update(&req, true),
-            (Target::Service, "update_complete") => self.handle_update(&req, false),
-            (Target::Service, "get_data") => self.handle_get_data(&req),
-            (Target::Service, "set_data") => self.handle_set_data(&req),
-            (Target::Service, "event") => self.handle_event(&req),
-            (Target::Service, "validate") => self.handle_validate(&req),
-            (Target::Service, "watchdog") => self.handle_watchdog(&req),
+            (Target::Service, "set") => self.handle_set(req, false),
+            (Target::Service, "add") => self.handle_set(req, true),
+            (Target::Service, "list") => {
+                service::dump_list(&self.services, &req.data, &mut self.read_reply);
+                let _ = self.conn.reply_data_status(req, self.read_reply.payload(), status::OK);
+                self.read_reply.reset_bounded(16 * 1024);
+                return;
+            }
+            (Target::Service, "delete") => self.handle_delete(req),
+            (Target::Service, "signal") => self.handle_signal(req),
+            (Target::Service, "state") => self.handle_state(req),
+            (Target::Service, "update_start") => self.handle_update(req, true),
+            (Target::Service, "update_complete") => self.handle_update(req, false),
+            (Target::Service, "get_data") => self.handle_get_data(req),
+            (Target::Service, "set_data") => self.handle_set_data(req),
+            (Target::Service, "event") => self.handle_event(req),
+            (Target::Service, "validate") => self.handle_validate(req),
+            (Target::Service, "watchdog") => self.handle_watchdog(req),
             // system_reboot(): procd_shutdown(RB_AUTOBOOT). Only PID 1 has a
             // machine to advance; the supervisor-only mode keeps rejecting.
             (Target::System, "reboot") if self.boot != Boot::NotPid1 => {
@@ -1041,19 +1085,19 @@ impl Procd {
             (Target::System, "board") => {
                 let mut b = BlobBuf::new();
                 sysobj::build_board(&mut b);
-                let _ = self.conn.reply_data(&req, b.payload());
+                let _ = self.conn.reply_data(req, b.payload());
                 status::OK
             }
             (Target::System, "info") => {
-                let mut b = BlobBuf::new();
-                if !sysobj::build_info(&mut b) {
-                    status::UNKNOWN_ERROR
+                if sysobj::build_info(&mut self.read_reply) {
+                    let _ = self.conn.reply_data_status(req, self.read_reply.payload(), status::OK);
                 } else {
-                    let _ = self.conn.reply_data(&req, b.payload());
-                    status::OK
+                    let _ = self.conn.reply_status(req, status::UNKNOWN_ERROR, None);
                 }
+                self.read_reply.reset_bounded(16 * 1024);
+                return;
             }
-            (Target::System, "watchdog") => self.handle_system_watchdog(&req),
+            (Target::System, "watchdog") => self.handle_system_watchdog(req),
             (Target::System, "signal") => {
                 // proc_signal(): both fields required, the kill() result is
                 // deliberately not checked.
@@ -1068,7 +1112,7 @@ impl Procd {
                 }
                 let (Some(pid), Some(signum)) = (pid, signum) else {
                     return {
-                        let _ = self.conn.reply_status(&req, status::INVALID_ARGUMENT, None);
+                        let _ = self.conn.reply_status(req, status::INVALID_ARGUMENT, None);
                     };
                 };
                 proc::signal(pid as i32, signum as i32);
@@ -1085,7 +1129,7 @@ impl Procd {
                     None => status::INVALID_ARGUMENT,
                     Some(p) => match sysupgrade::validate_call(&p) {
                         Ok(payload) => {
-                            let _ = self.conn.reply_data(&req, &payload);
+                            let _ = self.conn.reply_data(req, &payload);
                             status::OK
                         }
                         // The C only returns the status here; the error text
@@ -1094,10 +1138,10 @@ impl Procd {
                     },
                 }
             }
-            (Target::System, "sysupgrade") => self.handle_sysupgrade(&req),
+            (Target::System, "sysupgrade") => self.handle_sysupgrade(req),
             _ => status::NOT_SUPPORTED,
         };
-        let _ = self.conn.reply_status(&req, code, None);
+        let _ = self.conn.reply_status(req, code, None);
     }
 
     /// `sysupgrade_error()`: the reply is a table {"error": {"message": m}}.
@@ -1591,28 +1635,6 @@ impl Procd {
             .get(svc)
             .map(|s| s.data.keys().cloned().collect())
             .unwrap_or_default()
-    }
-
-    /// `service_handle_list()`.
-    fn handle_list(&mut self, req: &Request) -> i32 {
-        let mut verbose = false;
-        let mut only: Option<String> = None;
-        for f in owrt_ubus::blob::fields(&req.data) {
-            match f.name {
-                "verbose" => verbose = f.as_bool().unwrap_or(false),
-                "name" => only = f.as_str().map(str::to_string),
-                _ => {}
-            }
-        }
-        let mut b = BlobBuf::new();
-        for (n, s) in self.services.iter() {
-            if only.as_ref().is_some_and(|want| want != n) {
-                continue;
-            }
-            s.dump(&mut b, verbose);
-        }
-        let _ = self.conn.reply_data(req, b.payload());
-        status::OK
     }
 
     /// `service_handle_delete()`. Without `instance`, the whole service goes;
@@ -2327,6 +2349,7 @@ fn run() -> io::Result<()> {
         conn,
         objects: Objects::default(),
         services: BTreeMap::new(),
+        read_reply: BlobBuf::new(),
         base,
         validator_seq: 0,
         rc: rcs::RunQueue::default(),
@@ -2346,6 +2369,8 @@ fn run() -> io::Result<()> {
         hotplug: hp,
         dispatch: dispatch::Dispatch::new(),
         wakeup,
+        wait_fds: Vec::with_capacity(8),
+        inotify_ready: true,
     };
     if let Some((inst, _)) = early_ubus.take() {
         let mut svc = Service::new("ubus");
@@ -2402,6 +2427,9 @@ fn run() -> io::Result<()> {
             p.reap();
             p.fire_timeouts();
             p.pump_triggers();
+            // Reconnect backoff has no poll set. Keep checking inotify on
+            // these maintenance ticks, as before.
+            p.inotify_ready = true;
             p.pump_pid1();
             let now = p.now_ms();
             p.rc.pump(now);
@@ -2442,8 +2470,14 @@ fn run() -> io::Result<()> {
         // uloop_run(): sleep until ANY of the fds this loop reacts to is
         // ready -- the bus, the uevent socket, a child's output, a child
         // exit -- or the 200 ms timer tick for deadlines and respawns.
-        p.wait_activity(200);
-        match p.conn.next_incoming(0) {
+        let incoming = match p.wait_activity(200) {
+            Ok(true) => p.conn.read_incoming().map(Some),
+            Ok(false) => Ok(None),
+            // Preserve the old nonblocking bus probe if the shared wait
+            // fails; never block on an unverified socket in that case.
+            Err(_) => p.conn.next_incoming(0),
+        };
+        match incoming {
             Ok(Some(msg)) => p.dispatch(msg),
             Ok(None) => {}
             Err(e) if e.kind() == io::ErrorKind::Interrupted => {}

@@ -13,6 +13,30 @@ use owrt_ubus::blob::{BlobBuf, MsgType};
 
 use crate::instance::{Instance, Run};
 
+/// `service_handle_list()`: the optional name is an exact map key. Field
+/// parsing keeps the original last-field-wins behaviour, including a later
+/// invalid name clearing an earlier filter.
+pub fn dump_list(services: &BTreeMap<String, Service>, data: &[u8], b: &mut BlobBuf) {
+    let mut verbose = false;
+    let mut only = None;
+    for f in owrt_ubus::blob::fields(data) {
+        match f.name {
+            "verbose" => verbose = f.as_bool().unwrap_or(false),
+            "name" => only = f.as_str(),
+            _ => {}
+        }
+    }
+    if let Some(name) = only {
+        if let Some(service) = services.get(name) {
+            service.dump(b, verbose);
+        }
+    } else {
+        for service in services.values() {
+            service.dump(b, verbose);
+        }
+    }
+}
+
 /// What `service_instance_update` decides for one name in the vlist diff.
 /// One `validate` entry: a uci package and section type plus the option
 /// rules for it. `service_validate_add()` drops any entry missing one of
@@ -167,6 +191,35 @@ impl Service {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn filtered_lists_keep_order_last_field_rules_and_current_services() {
+        let mut services = BTreeMap::new();
+        services.insert("z".into(), Service::new("z"));
+        services.insert("a".into(), Service::new("a"));
+        let mut request = BlobBuf::new();
+        let mut reply = BlobBuf::new();
+        let names = |b: &BlobBuf| owrt_ubus::blob::fields(b.payload())
+            .map(|f| f.name.to_owned()).collect::<Vec<_>>();
+        dump_list(&services, request.payload(), &mut reply);
+        assert_eq!(names(&reply), ["a", "z"]);
+        request.msg_string("name", "z");
+        reply.reset_bounded(16 * 1024);
+        dump_list(&services, request.payload(), &mut reply);
+        assert_eq!(names(&reply), ["z"]);
+        services.remove("z");
+        reply.reset_bounded(16 * 1024);
+        dump_list(&services, request.payload(), &mut reply);
+        assert!(reply.payload().is_empty(), "deleted service is visible immediately");
+        request.msg_u32("name", 0);
+        reply.reset_bounded(16 * 1024);
+        dump_list(&services, request.payload(), &mut reply);
+        assert_eq!(names(&reply), ["a"], "invalid later name clears the filter");
+        request.msg_string("name", "");
+        reply.reset_bounded(16 * 1024);
+        dump_list(&services, request.payload(), &mut reply);
+        assert!(reply.payload().is_empty(), "an empty name is still an exact filter");
+    }
 
     fn inst(name: &str) -> Instance {
         let mut i = Instance::new(name);

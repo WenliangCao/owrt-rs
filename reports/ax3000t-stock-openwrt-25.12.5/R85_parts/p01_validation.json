@@ -1,0 +1,29 @@
+{
+  "candidate_sha256": "2380492bc373790137878d11324d072d5beb211940a48abd2680452f5d4e0b9a",
+  "archive_sha256": "de87f6121de22746b3dacadec06e513cb4da4fc6f35a464e33a82db212ae4d71",
+  "gate_exit_codes": {
+    "procd-r71": 0,
+    "procd-r72-tty": 2,
+    "procd-r72-tty-corrected": 0,
+    "procd-r83": 0,
+    "procd-r75": 0,
+    "procd-r65": 0
+  },
+  "logs": {
+    "procd-r83.log": "8d845284f55eca0a0b3f62ce4fd188da03d1390a7446cf98cf467bf9967ed966",
+    "procd-r72-tty.log": "46865e9a98d38f3f3ee59558ec813985d8270b82fa54eec6379c407790b03616",
+    "procd-r72-tty-corrected.log": "1538578b8b886d8d63029f515b8c57fb0bfbec915d3f423da9f5342468ac80a1",
+    "procd-r71.log": "20fe8c4bc8e5f0632fb7425e99808b2fa6bc0e8979f18d5364536922906eb2e7",
+    "procd-r65.log": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+    "procd-r75.log": "aba97b89b85a0dc32dc870d5c65baaaae30005c8a95e26f05bd8bd437bd3dd83"
+  },
+  "notes": [
+    "Initial TTY invocation omitted the required ptyhold argument and exited 2 before running a test. The corrected invocation and remaining sysupgrade gate passed. Previously passed gates were not repeated.",
+    "The first SSH transport remained open after the remote validator had exited. Remote gate files and absence of running validator processes were verified, then this exact local SSH process was terminated (255); this is not a daemon test failure."
+  ],
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 368,
+    "health_identity_boot_configuration_unchanged": true
+  }
+}

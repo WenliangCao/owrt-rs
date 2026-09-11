@@ -13,6 +13,7 @@ from analyze import COMPONENT_WORK, memory, native, stats, timing
 STATIC = ("static_512_dat", "static_16k_dat", "static_16k_css",
           "static_image_css", "static_64k_dat", "static_1m_dat")
 RPCD_EXTRA = ("uci_get_64", "uci_get_authorized", "session_access_granted", "file_list", "session_access_64")
+PROCD_EXTRA = ("service_list_128", "service_list_named_128")
 METRICS = ("mean_us", "p50_us", "p95_us", "p99_us", "ops_per_s",
            "subject_cpu_us_per_op", "dependency_cpu_us_per_op", "client_cpu_us_per_op")
 
@@ -91,6 +92,9 @@ def derive(root, label):
     elif matrix and component == "rpcd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in RPCD_EXTRA for suffix in ("", "_c4")]
+    elif matrix and component == "procd":
+        workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
+        workloads += [name + suffix for name in PROCD_EXTRA for suffix in ("", "_c4")]
     else:
         assert not matrix, "unsupported workload matrix"
     for index, side in enumerate(order, 1):
@@ -107,7 +111,8 @@ def derive(root, label):
         identity += ((raw / "harness-sha256.txt").read_text().split()[0],)
         identities.add(identity)
         if matrix:
-            fixture_file = "static-fixtures.sha256" if component == "httpd" else "rpc-fixtures.sha256"
+            fixture_file = {"httpd": "static-fixtures.sha256", "rpcd": "rpc-fixtures.sha256",
+                            "procd": "procd-fixtures.sha256"}[component]
             fixtures.add((raw / fixture_file).read_text())
         sources.append({"run": local.name, "subject_sha256": subjects[side],
                         "archive_sha256": hashlib.sha256((local / "raw.tar.gz").read_bytes()).hexdigest(),

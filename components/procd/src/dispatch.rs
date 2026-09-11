@@ -233,7 +233,7 @@ impl Dispatch {
 
     /// Start due scripts and process inotify (`hotplug_exec` +
     /// `inotify_read_handler`).
-    pub fn pump(&mut self, conn: &mut owrt_ubus::conn::Connection, now: i64) {
+    pub fn pump(&mut self, conn: &mut owrt_ubus::conn::Connection, now: i64, read_inotify: bool) {
         for j in self.jobs.iter_mut() {
             if j.child.is_some() || now < j.at {
                 continue;
@@ -262,6 +262,9 @@ impl Dispatch {
         }
         self.jobs.retain(|j| j.child.is_some() || j.next < j.scripts.len());
 
+        if !read_inotify {
+            return;
+        }
         // inotify: directory create/remove tracks the object set.
         use std::os::fd::AsRawFd;
         let Some(raw) = self.inotify.as_ref().map(|f| f.as_raw_fd()) else { return };

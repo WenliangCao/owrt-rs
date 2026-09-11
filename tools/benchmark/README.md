@@ -97,6 +97,12 @@ includes warm-up/startup and has `/proc/uptime` clock resolution. Never sum the
 overlapping daemon CPU intervals inside individual client files. The matrix's
 16-KiB `.dat` c1 file aliases the existing static measurement, not another run.
 
+`run_candidate.py --component procd --matrix` retains list32 and system.info,
+adds four-client versions, then lists 128 services and queries one service by
+name at one and four clients. The generated 32/128-service expectations are
+checksummed across subjects; every service's data is validated. The base modes
+and frozen client binary remain available for the original R84 workloads.
+
 `components/httpd/examples/profile.rs` directly profiles parser/file-handler
 stages, with allocation counters disabled for timing. Its `_reused` cases keep
 the output allocation across requests; the other cases include a new output

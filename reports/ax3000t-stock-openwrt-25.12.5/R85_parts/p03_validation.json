@@ -1,0 +1,24 @@
+{
+  "candidate_sha256": "ddac91599bbc9081c401faab9cc671fec2d9abc27147d3d77906156b916c27df",
+  "archive_sha256": "0ed18576b43d6b6e9e8623f1abb35126d2aaaac238669ddf6771211c17479311",
+  "gate_exit_codes": {
+    "procd-r71": 0,
+    "procd-r72-tty": 0,
+    "procd-r83": 0,
+    "procd-r75": 0,
+    "procd-r65": 0
+  },
+  "logs": {
+    "procd-r83.log": "37b68523730fbfc406d672fc6e2317f054b15b13d2d64f0b65a72477f50cd4ff",
+    "procd-r72-tty.log": "b974d745fb518d92be8ca5c17f5a1f8957031307915a1182dc8d093f1c1ef5fa",
+    "procd-r71.log": "7ce1dd471d98eeeae9f90b42c87bf42dcb889846201e98de733feef3dd2999e7",
+    "procd-r65.log": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+    "procd-r75.log": "feb0164d03d3818fc914d2ae2486890331b9f5e285d202a61ddcfe44efdfacae"
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 368,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "note": "Remote COMPLETE and five successful exits were verified. The SSH transport remained open after validation; only that exact local transport was closed. No gate was repeated."
+}

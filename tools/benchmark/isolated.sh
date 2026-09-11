@@ -190,6 +190,16 @@ EOF
         done
         printf '}}\n' >> /tmp/expect-large.json
     }
+    service_list_expect() {
+        # Validate every service's data using the same frozen RPC client.
+        service_index=0; service_sep=''
+        printf '{'
+        while [ "$service_index" -lt "$1" ]; do
+            printf '%s"r84fixture%s":{"data":{"index":%s}}' "$service_sep" "$service_index" "$service_index"
+            service_sep=,; service_index=$((service_index + 1))
+        done
+        printf '}\n'
+    }
     http_four() { # label method path body expected total format
         # Four clients share ONE outer CPU interval. Their overlapping
         # per-client daemon counters must never be summed.
@@ -290,8 +300,26 @@ EOF
                 i=$((i + 1))
             done
             monitors=$subject,$bus
-            run_rpc service_list_32 service list '{}' '{"r84fixture0":{}}'
+            service32='{"r84fixture0":{}}'
+            if [ "${OWRT_PROCD_MATRIX:-0}" = 1 ]; then
+                service_list_expect 32 > /tmp/expect-service-32.json
+                service32=$(cat /tmp/expect-service-32.json)
+            fi
+            run_rpc service_list_32 service list '{}' "$service32"
             run_rpc system_info system info '{}' '{"memory":{}}'
+            if [ "${OWRT_PROCD_MATRIX:-0}" = 1 ]; then
+                rpc_four service_list_32_c4 service list '{}' "$service32"
+                rpc_four system_info_c4 system info '{}' '{"memory":{}}'
+                i=32
+                while [ "$i" -lt 128 ]; do
+                    ubus call service set "{\"name\":\"r84fixture$i\",\"data\":{\"index\":$i}}" >/dev/null
+                    i=$((i + 1))
+                done
+                service_list_expect 128 > /tmp/expect-service-128.json
+                sha256sum /tmp/expect-service-32.json /tmp/expect-service-128.json > "$out/procd-fixtures.sha256"
+                rpc_pair service_list_128 service list '{}' "$(cat /tmp/expect-service-128.json)"
+                rpc_pair service_list_named_128 service list '{"name":"r84fixture127"}' '{"r84fixture127":{"data":{"index":127}}}'
+            fi
             ;;
         netifd|fw4)
             bin=$(choose netifd /sbin/netifd netifd-rs)

@@ -1,0 +1,23 @@
+{
+  "candidate_sha256": "623af238d830c39427b5d304445c75bf81e18959521622f873cd390c4d9af055",
+  "archive_sha256": "19ddfa51e16aa052542ec20eeeb0093f7ac37552cbfa89e3d1468a6b27f5c374",
+  "gate_exit_codes": {
+    "procd-r71": 0,
+    "procd-r72-tty": 0,
+    "procd-r83": 0,
+    "procd-r75": 0,
+    "procd-r65": 0
+  },
+  "logs": {
+    "procd-r83.log": "4dc19d743e6f9f419569b2f1512a6cd139153915eabb70fd07784d0d733395b3",
+    "procd-r72-tty.log": "ffd730d81ca228ceefb7781f76f3d1c7f015ab8a90cd79897e3f5a216e39a374",
+    "procd-r71.log": "94abdad1ef3d1fd5fb2c57d0cde69327216dae74609d06cce2f3338be014cfa6",
+    "procd-r65.log": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+    "procd-r75.log": "e26649bd3000f7860f6fd5f06d31ba3d72ef473c985c8515e541bb7af5791366"
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 368,
+    "health_identity_boot_configuration_unchanged": true
+  }
+}

@@ -13,6 +13,7 @@
 //!   string.
 
 use owrt_ubus::blob::BlobBuf;
+use std::io::Read;
 
 #[repr(C)]
 struct Utsname {
@@ -234,18 +235,25 @@ pub fn build_info(b: &mut BlobBuf) -> bool {
     if unsafe { sysinfo(&mut info) } != 0 {
         return false;
     }
-    let Ok(meminfo) = std::fs::read_to_string("/proc/meminfo") else {
+    let Ok(mut file) = std::fs::File::open("/proc/meminfo") else {
         return false;
     };
+    // procfs reports size zero. Start with room for the normal report rather
+    // than growing from 32 bytes through several small read() calls. Read to
+    // EOF on every request, including reports larger than this initial room.
+    let mut meminfo = String::with_capacity(4096);
+    if file.read_to_string(&mut meminfo).is_err() {
+        return false;
+    }
+    drop(file);
     let mut available: u64 = 0;
     let mut cached: u64 = 0;
     for line in meminfo.lines() {
         let Some((key, val)) = line.split_once(':') else { continue };
-        let n = crate::sys::atoi_u32(val.trim_start()) as u64;
         if key.eq_ignore_ascii_case("MemAvailable") {
-            available = 1024 * n;
+            available = 1024 * crate::sys::atoi_u32(val) as u64;
         } else if key.eq_ignore_ascii_case("Cached") {
-            cached = 1024 * n;
+            cached = 1024 * crate::sys::atoi_u32(val) as u64;
         }
     }
 
@@ -274,12 +282,11 @@ pub fn build_info(b: &mut BlobBuf) -> bool {
     b.msg_u64("cached", cached);
     b.msg_close(m);
 
-    for (path, name) in [("/", "root"), ("/tmp", "tmp")] {
-        let Ok(c) = std::ffi::CString::new(path) else { continue };
+    for (path, name) in [(c"/", "root"), (c"/tmp", "tmp")] {
         // SAFETY: statvfs fills the struct for a NUL-terminated path.
         let mut s: StatVfs = unsafe { std::mem::zeroed() };
         // SAFETY: as above.
-        if unsafe { statvfs(c.as_ptr().cast(), &mut s) } != 0 {
+        if unsafe { statvfs(path.as_ptr().cast(), &mut s) } != 0 {
             continue;
         }
         let frsize = if s.f_frsize == 0 { s.f_bsize } else { s.f_frsize };

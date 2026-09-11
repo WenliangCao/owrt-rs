@@ -1,0 +1,47 @@
+{
+  "candidate_sha256": "03f3639b984f0065a09eed77c045804c0bf9f3eba4eeae6e02ee2fb932a06e7c",
+  "archive_sha256": "154df3f5aa2141891bfd78647bb36bc8aa3eb0d4d7b2d63b58932add0aeb5522",
+  "gate_exit_codes": {
+    "procd-r71": 0,
+    "procd-r72-tty": 0,
+    "procd-r83": 0,
+    "procd-r75": 0,
+    "procd-r65": 0
+  },
+  "logs": {
+    "procd-r83.log": "99dac7c71f0cd1b638ed79fbc5bd85ff9829639cd570b39cb28e05c9c5d59a97",
+    "procd-r72-tty.log": "cf08edd24ae60d266ab0837dc289660ba3aae2a719d13215e157ad895755e1bb",
+    "procd-r71.log": "4695997b9539ca18282e816c67fd20576b0af84dabb1b89332361c43f16b4f6b",
+    "procd-r65.log": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+    "procd-r75.log": "c36cf4b5c37b0a0ef35f223c822756671583c45f42406ac4ae30fca12dc5547e"
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 368,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "busy_gate": [
+    {
+      "side": "original",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 179,
+      "fds_before": 8,
+      "fds_after": 8
+    },
+    {
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 162,
+      "fds_before": 7,
+      "fds_after": 7
+    }
+  ]
+}

@@ -209,6 +209,16 @@ impl BlobBuf {
         self.data.extend_from_slice(&[0, 0, 0, 4]);
     }
 
+    /// Reset, discarding backing storage that exceeds `limit` bytes.
+    /// A large one-off reply must not set a daemon's permanent footprint.
+    pub fn reset_bounded(&mut self, limit: usize) {
+        if self.data.capacity() > limit {
+            *self = Self::new();
+        } else {
+            self.reset();
+        }
+    }
+
     fn set_raw_len(&mut self, offset: usize, raw_len: usize) {
         let id_len = u32::from_be_bytes(self.data[offset..offset + 4].try_into().unwrap());
         let value = (id_len & !LEN_MASK) | (raw_len as u32 & LEN_MASK);
@@ -403,6 +413,24 @@ impl BlobBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bounded_reset_clears_old_fields_and_releases_large_storage() {
+        let mut b = BlobBuf::with_capacity(128);
+        b.msg_string("old", "value");
+        let storage = b.data.as_ptr();
+        b.reset_bounded(128);
+        assert_eq!(b.data.as_ptr(), storage);
+        assert!(b.payload().is_empty());
+        b.msg_string("large", &"x".repeat(4096));
+        b.reset_bounded(128);
+        assert!(b.data.capacity() <= 128);
+        b.msg_u32("new", 42);
+        let fields: Vec<_> = fields(b.payload()).collect();
+        assert_eq!(fields.len(), 1);
+        assert_eq!(fields[0].name, "new");
+        assert_eq!(fields[0].as_u32(), Some(42));
+    }
 
     #[test]
     fn raw_attr_roundtrip() {

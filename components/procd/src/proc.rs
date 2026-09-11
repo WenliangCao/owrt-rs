@@ -428,12 +428,16 @@ pub fn try_reap(pid: i32) -> Option<i32> {
 
 pub fn reap_any() -> Option<(i32, i32)> {
     let mut status: i32 = 0;
-    // SAFETY: waitpid(2) with -1 waits for any child and writes one int.
-    let r = unsafe { waitpid(-1, &mut status, WNOHANG) };
-    if r > 0 {
-        Some((r, status))
-    } else {
-        None
+    loop {
+        // SAFETY: waitpid(2) with -1 waits for any child and writes one int.
+        let r = unsafe { waitpid(-1, &mut status, WNOHANG) };
+        if r > 0 {
+            return Some((r, status));
+        }
+        if r < 0 && io::Error::last_os_error().kind() == io::ErrorKind::Interrupted {
+            continue;
+        }
+        return None;
     }
 }
 

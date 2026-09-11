@@ -1,0 +1,399 @@
+{
+  "source_archive_sha256": "c3ed5e1892ffabe47e99e03addc1083853c9e46082332680fb85c2e565ad37ee",
+  "candidate_sha256": "b4b62a95f8f97f38bf2fcd2dd1088de0da97ad90a63646b9afa51086f52b0a35",
+  "probe_sha256": "33c59de947bdfbe494f7d74ac23b435c2bf6a7bb07e5d2685830b379ca77c6f9",
+  "archive_sha256": "27fd988eda7c9fb692329fe5e15904cdadea7396571d7e6cf03319b5450e597f",
+  "phase_scope": "Oracle aarch64 host, static SDK-musl, actual Service::dump and system.info; Rust allocation counters, not complete daemon or physical router timings. Validation of encoded service count is outside timing.",
+  "runs": [
+    {
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 338.63,
+      "allocations": 1,
+      "reallocations": 4,
+      "allocated_bytes": 124,
+      "round": 1
+    },
+    {
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 2308.35,
+      "allocations": 1,
+      "reallocations": 9,
+      "allocated_bytes": 4092,
+      "round": 1
+    },
+    {
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 6908.22,
+      "allocations": 1,
+      "reallocations": 11,
+      "allocated_bytes": 16380,
+      "round": 1
+    },
+    {
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 24592.3,
+      "allocations": 4,
+      "reallocations": 13,
+      "allocated_bytes": 5091,
+      "round": 1
+    },
+    {
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 336.14,
+      "allocations": 1,
+      "reallocations": 4,
+      "allocated_bytes": 124,
+      "round": 2
+    },
+    {
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 2299.26,
+      "allocations": 1,
+      "reallocations": 9,
+      "allocated_bytes": 4092,
+      "round": 2
+    },
+    {
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 6892.35,
+      "allocations": 1,
+      "reallocations": 11,
+      "allocated_bytes": 16380,
+      "round": 2
+    },
+    {
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 24771.8,
+      "allocations": 4,
+      "reallocations": 13,
+      "allocated_bytes": 5091,
+      "round": 2
+    },
+    {
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 336.56,
+      "allocations": 1,
+      "reallocations": 4,
+      "allocated_bytes": 124,
+      "round": 3
+    },
+    {
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 2307.46,
+      "allocations": 1,
+      "reallocations": 9,
+      "allocated_bytes": 4092,
+      "round": 3
+    },
+    {
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 6933.22,
+      "allocations": 1,
+      "reallocations": 11,
+      "allocated_bytes": 16380,
+      "round": 3
+    },
+    {
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 24683.26,
+      "allocations": 4,
+      "reallocations": 13,
+      "allocated_bytes": 5091,
+      "round": 3
+    },
+    {
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 338.12,
+      "allocations": 1,
+      "reallocations": 4,
+      "allocated_bytes": 124,
+      "round": 4
+    },
+    {
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 2294.79,
+      "allocations": 1,
+      "reallocations": 9,
+      "allocated_bytes": 4092,
+      "round": 4
+    },
+    {
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 6910.72,
+      "allocations": 1,
+      "reallocations": 11,
+      "allocated_bytes": 16380,
+      "round": 4
+    },
+    {
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 24636.87,
+      "allocations": 4,
+      "reallocations": 13,
+      "allocated_bytes": 5091,
+      "round": 4
+    },
+    {
+      "stage": "service_list_1",
+      "iterations": 20000,
+      "ns_per_op": 336.65,
+      "allocations": 1,
+      "reallocations": 4,
+      "allocated_bytes": 124,
+      "round": 5
+    },
+    {
+      "stage": "service_list_32",
+      "iterations": 20000,
+      "ns_per_op": 2304.17,
+      "allocations": 1,
+      "reallocations": 9,
+      "allocated_bytes": 4092,
+      "round": 5
+    },
+    {
+      "stage": "service_list_128",
+      "iterations": 20000,
+      "ns_per_op": 6894.89,
+      "allocations": 1,
+      "reallocations": 11,
+      "allocated_bytes": 16380,
+      "round": 5
+    },
+    {
+      "stage": "system_info",
+      "iterations": 20000,
+      "ns_per_op": 24444.34,
+      "allocations": 4,
+      "reallocations": 13,
+      "allocated_bytes": 5091,
+      "round": 5
+    }
+  ],
+  "summary": {
+    "service_list_1": {
+      "ns_per_op": 336.65,
+      "allocations": 1,
+      "reallocations": 4,
+      "allocated_bytes": 124
+    },
+    "service_list_32": {
+      "ns_per_op": 2304.17,
+      "allocations": 1,
+      "reallocations": 9,
+      "allocated_bytes": 4092
+    },
+    "service_list_128": {
+      "ns_per_op": 6908.22,
+      "allocations": 1,
+      "reallocations": 11,
+      "allocated_bytes": 16380
+    },
+    "system_info": {
+      "ns_per_op": 24636.87,
+      "allocations": 4,
+      "reallocations": 13,
+      "allocated_bytes": 5091
+    }
+  },
+  "traces": {
+    "c": {
+      "trace_sha256": "3766c864c771f4e7726cb0dfc888dc109d3ea74f4ec60ccc1245db7927f58b02",
+      "syscall_counts": {
+        "close": 534,
+        "openat": 1057,
+        "execve": 1,
+        "read": 1569,
+        "epoll_pwait": 1075,
+        "sendmsg": 2177,
+        "ppoll": 20,
+        "recvmsg": 2244,
+        "getdents64": 2,
+        "sysinfo": 520,
+        "statfs": 1040
+      },
+      "traced_wall_seconds": {
+        "close": 0.005076999999999993,
+        "openat": 0.012898000000000067,
+        "execve": 0.000267,
+        "read": 0.016963000000000106,
+        "epoll_pwait": 1.8021520000000013,
+        "sendmsg": 0.02733400000000055,
+        "ppoll": 0.0027830000000000003,
+        "recvmsg": 0.023506999999999556,
+        "getdents64": 2.7e-05,
+        "sysinfo": 0.0047290000000000075,
+        "statfs": 0.011159999999999939
+      },
+      "errors": {
+        "ENOENT": 527
+      },
+      "meminfo_open_fd_counts": {
+        "8": 520
+      },
+      "read_breakdown": [
+        {
+          "fd": 3,
+          "requested_bytes": 960,
+          "returned": 960,
+          "errno": null,
+          "calls": 7
+        },
+        {
+          "fd": 6,
+          "requested_bytes": 0,
+          "returned": 0,
+          "errno": null,
+          "calls": 1
+        },
+        {
+          "fd": 6,
+          "requested_bytes": 12,
+          "returned": 12,
+          "errno": null,
+          "calls": 1
+        },
+        {
+          "fd": 8,
+          "requested_bytes": 1024,
+          "returned": 0,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 8,
+          "requested_bytes": 1024,
+          "returned": 508,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 8,
+          "requested_bytes": 1024,
+          "returned": 1024,
+          "errno": null,
+          "calls": 520
+        }
+      ]
+    },
+    "rs": {
+      "trace_sha256": "8ecf105bc14ed835b10aa804cbcd05b0bf6535af09f0f4cbf687a560a6d4ed88",
+      "syscall_counts": {
+        "close": 524,
+        "openat": 524,
+        "execve": 1,
+        "ppoll": 2174,
+        "recvmsg": 2203,
+        "sendmsg": 2159,
+        "getdents64": 2,
+        "wait4": 1072,
+        "read": 6303,
+        "sysinfo": 520,
+        "statfs": 1040
+      },
+      "traced_wall_seconds": {
+        "close": 0.00520499999999999,
+        "openat": 0.006505999999999965,
+        "execve": 0.00023,
+        "ppoll": 0.7520139999999982,
+        "recvmsg": 0.02395899999999989,
+        "sendmsg": 0.028352000000000526,
+        "getdents64": 2.4e-05,
+        "wait4": 0.011298000000000074,
+        "read": 0.06703100000000126,
+        "sysinfo": 0.004930999999999997,
+        "statfs": 0.010441999999999944
+      },
+      "errors": {
+        "ECHILD": 1072,
+        "EAGAIN": 2143,
+        "ENOENT": 1
+      },
+      "meminfo_open_fd_counts": {
+        "7": 520
+      },
+      "read_breakdown": [
+        {
+          "fd": 3,
+          "requested_bytes": 64,
+          "returned": -1,
+          "errno": "EAGAIN",
+          "calls": 1071
+        },
+        {
+          "fd": 6,
+          "requested_bytes": 4096,
+          "returned": -1,
+          "errno": "EAGAIN",
+          "calls": 1072
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 32,
+          "returned": 32,
+          "errno": null,
+          "calls": 1040
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 64,
+          "returned": 64,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 128,
+          "returned": 128,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 256,
+          "returned": 256,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 512,
+          "returned": 512,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 516,
+          "returned": 0,
+          "errno": null,
+          "calls": 520
+        },
+        {
+          "fd": 7,
+          "requested_bytes": 1024,
+          "returned": 508,
+          "errno": null,
+          "calls": 520
+        }
+      ]
+    }
+  },
+  "trace_scope": "Exact OpenWrt rootfs on Oracle, each side 500 nominal requests per workload plus warmups and setup. strace disturbs timing; syscall counts include initialization. Wall seconds under strace are not CPU costs."
+}

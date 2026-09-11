@@ -790,17 +790,25 @@ extern "C" fn crash_signal(_sig: i32) {
 }
 
 static SIGCHLD_WAKEUP: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+// Start armed so children inherited/created before entering the main loop
+// get an initial sweep. A signal during a sweep arms the following one.
+static CHILD_EXIT_PENDING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
 
 extern "C" fn sigchld_signal(_sig: i32) {
     extern "C" {
         fn write(fd: i32, buf: *const u8, n: usize) -> isize;
     }
+    CHILD_EXIT_PENDING.store(true, std::sync::atomic::Ordering::Relaxed);
     let fd = SIGCHLD_WAKEUP.load(std::sync::atomic::Ordering::Relaxed);
     if fd >= 0 {
         // SAFETY: write(2) of one byte to a non-blocking pipe; a full pipe
         // (EAGAIN) already means a wakeup is pending.
         unsafe { write(fd, b"c".as_ptr(), 1) };
     }
+}
+
+pub fn take_child_exit_pending() -> bool {
+    CHILD_EXIT_PENDING.swap(false, std::sync::atomic::Ordering::Relaxed)
 }
 
 /// uloop's SIGCHLD self-pipe: a child exit wakes the main loop's poll()
