@@ -65,6 +65,12 @@ impl Json {
         out
     }
 
+    /// Append compact wire JSON without allocating a separate output buffer.
+    /// Byte strings and number formatting follow the same rules as to_bytes().
+    pub fn append_to(&self, out: &mut Vec<u8>) {
+        self.write(out);
+    }
+
     fn write(&self, out: &mut Vec<u8>) {
         match self {
             Json::Null => out.extend_from_slice(b"null"),

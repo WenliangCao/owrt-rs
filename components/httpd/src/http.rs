@@ -1,6 +1,7 @@
 //! HTTP/1.x request parsing and response writing with uhttpd's exact header
 //! conventions (status line, Connection/Keep-Alive, chunked encoding, Date).
 
+use std::borrow::Cow;
 use std::cell::RefCell;
 use owrt_ubus::sys::{poll_fds, PollFd, POLLOUT};
 use std::io::{self, BufRead, BufReader, Read, Write};
@@ -78,7 +79,7 @@ pub struct Request {
     /// Raw request target as sent (path + query).
     pub url: String,
     /// Lower-cased header names in arrival order.
-    pub headers: Vec<(String, String)>,
+    pub headers: Vec<(Cow<'static, str>, String)>,
     pub content_length: Option<usize>,
     pub transfer_chunked: bool,
     pub connection_close: bool,
@@ -92,6 +93,21 @@ impl Request {
             .find(|(k, _)| k == name)
             .map(|(_, v)| v.as_str())
     }
+}
+
+fn lower_header_name(name: &str) -> Cow<'static, str> {
+    // Common protocol names are immutable. Share them between requests;
+    // unknown extension headers retain the same ASCII lowercase behavior.
+    const COMMON: &[&str] = &[
+        "host", "connection", "content-type", "content-length", "expect",
+        "transfer-encoding", "user-agent", "accept", "authorization",
+    ];
+    for &known in COMMON {
+        if name.eq_ignore_ascii_case(known) {
+            return Cow::Borrowed(known);
+        }
+    }
+    Cow::Owned(name.to_ascii_lowercase())
 }
 
 pub enum ParseOutcome {
@@ -182,13 +198,17 @@ impl HeadDeadline {
         HeadDeadline { fd, at: Instant::now() + budget }
     }
 
-    fn arm(&self) -> io::Result<()> {
+    fn remaining(&self) -> io::Result<Duration> {
         let left = self.at.saturating_duration_since(Instant::now());
         if left.is_zero() {
             // uhttpd closes without answering (client_timeout, client.c:95).
             return Err(io::Error::new(io::ErrorKind::TimedOut, "request header timeout"));
         }
-        crate::set_read_timeout(self.fd, left)
+        Ok(left)
+    }
+
+    fn arm(&self) -> io::Result<()> {
+        crate::set_read_timeout(self.fd, self.remaining()?)
     }
 }
 
@@ -202,22 +222,34 @@ enum HeadLine {
     TooLong,
 }
 
-/// Read one line (up to and including LF) into `line`, buffering at most
+/// Read one line (up to and including LF) into `raw`, buffering at most
 /// `max` bytes. uhttpd caps the request/header buffer at 4 KiB and answers
 /// 413 rather than reading an unbounded line into memory.
-fn read_head_line<R: BufRead>(
-    reader: &mut R,
-    line: &mut String,
+fn read_head_line<R: Read>(
+    reader: &mut BufReader<R>,
+    raw: &mut Vec<u8>,
     max: usize,
     deadline: Option<&HeadDeadline>,
 ) -> io::Result<HeadLine> {
-    line.clear();
-    let mut raw: Vec<u8> = Vec::new();
+    raw.clear();
     loop {
         if let Some(deadline) = deadline {
-            deadline.arm()?;
+            if reader.buffer().is_empty() {
+                // Only fill_buf on an empty buffer can read the transport.
+                deadline.arm()?;
+            } else {
+                // Buffered or pipelined input must still obey the same
+                // whole-head deadline; it just needs no socket option.
+                deadline.remaining()?;
+            }
         }
-        let chunk = reader.fill_buf()?;
+        let chunk = match reader.fill_buf() {
+            Ok(chunk) => chunk,
+            // Concurrent CGI activity can interrupt a socket read. Keep the
+            // partial line and recheck the original deadline before retrying.
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => return Err(error),
+        };
         if chunk.is_empty() {
             if raw.is_empty() {
                 return Ok(HeadLine::Eof);
@@ -240,30 +272,79 @@ fn read_head_line<R: BufRead>(
         raw.extend_from_slice(chunk);
         reader.consume(n);
     }
-    *line = String::from_utf8_lossy(&raw).into_owned();
     Ok(HeadLine::Line)
 }
 
 /// Read and parse one request head from `reader`.
-pub fn read_request<R: BufRead>(
-    reader: &mut R,
+#[allow(dead_code)] // Also used by standalone callers and the stage profiler.
+pub fn read_request<R: Read>(
+    reader: &mut BufReader<R>,
     keepalive: bool,
     deadline: Option<&HeadDeadline>,
 ) -> io::Result<ParseOutcome> {
-    let mut line = String::new();
+    HeadBuffer::default().read_request(reader, keepalive, deadline)
+}
+
+/// Per-connection parser storage. Reuse allocations, never parsed decisions:
+/// every field and flag is replaced before a request can reach a handler.
+#[derive(Default)]
+pub struct HeadBuffer {
+    line: Vec<u8>,
+    spare: Option<Request>,
+}
+
+impl HeadBuffer {
+    pub fn read_request<R: Read>(
+        &mut self,
+        reader: &mut BufReader<R>,
+        keepalive: bool,
+        deadline: Option<&HeadDeadline>,
+    ) -> io::Result<ParseOutcome> {
+        read_request_into(reader, keepalive, deadline, &mut self.line, self.spare.take())
+    }
+
+    /// Large headers must not pin their peak capacity while a connection is
+    /// idle. This limits retained storage, not which requests are accepted.
+    pub fn recycle(&mut self, request: Request) {
+        let mut bytes = self.line.capacity().saturating_add(request.url.capacity())
+            .saturating_add(request.headers.capacity().saturating_mul(
+                std::mem::size_of::<(Cow<'static, str>, String)>()));
+        for (name, value) in &request.headers {
+            bytes = bytes.saturating_add(value.capacity());
+            if let Cow::Owned(name) = name {
+                bytes = bytes.saturating_add(name.capacity());
+            }
+        }
+        if bytes <= 8192 {
+            self.spare = Some(request);
+        } else {
+            self.spare = None;
+            self.line = Vec::new();
+        }
+    }
+}
+
+fn read_request_into<R: Read>(
+    reader: &mut BufReader<R>,
+    keepalive: bool,
+    deadline: Option<&HeadDeadline>,
+    raw: &mut Vec<u8>,
+    spare: Option<Request>,
+) -> io::Result<ParseOutcome> {
     loop {
-        match read_head_line(reader, &mut line, 4096, deadline)? {
+        match read_head_line(reader, raw, 4096, deadline)? {
             HeadLine::Eof => return Ok(ParseOutcome::Eof),
             HeadLine::TooLong => {
                 return Ok(bad_line(413, "Request Entity Too Large"))
             }
             HeadLine::Line => {}
         }
-        if line == "\r\n" || line == "\n" {
+        if raw.as_slice() == b"\r\n" || raw.as_slice() == b"\n" {
             continue;
         }
         break;
     }
+    let line = String::from_utf8_lossy(raw);
     // strtok(data, " "): runs of spaces separate the three tokens, extra tokens are ignored
     let mut parts = line.trim_end_matches(['\r', '\n']).split(' ').filter(|t| !t.is_empty());
     let (Some(method), Some(url), Some(version)) = (parts.next(), parts.next(), parts.next())
@@ -276,30 +357,46 @@ pub fn read_request<R: BufRead>(
     // DEVIATION: uhttpd decodes %00 into a NUL that silently truncates the path
     // (C string); a NUL cannot be passed to the CGI environment or the file
     // lookup, so it is rejected instead of truncated.
-    if url_decode(url.split('?').next().unwrap_or("")).is_some_and(|d| d.contains(&0)) {
+    let path = url.split('?').next().unwrap_or("");
+    let has_nul = if path.contains('%') {
+        url_decode(path).is_some_and(|decoded| decoded.contains(&0))
+    } else {
+        path.as_bytes().contains(&0)
+    };
+    if has_nul {
         return Ok(bad_line(400, "Bad Request"));
     }
-    let mut request = Request {
+    let mut request = spare.unwrap_or_else(|| Request {
         method,
         version,
-        url: url.to_owned(),
+        url: String::new(),
         headers: Vec::new(),
         content_length: None,
         transfer_chunked: false,
-        connection_close: version < Version::V1_1 || !keepalive,
+        connection_close: false,
         expect_continue: false,
-    };
+    });
+    request.method = method;
+    request.version = version;
+    request.url.clear();
+    request.url.push_str(url);
+    request.content_length = None;
+    request.transfer_chunked = false;
+    request.connection_close = version < Version::V1_1 || !keepalive;
+    request.expect_continue = false;
+    let mut used_headers = 0;
     let mut content_lengths = 0;
     let mut transfer_encodings = 0;
     let mut ua = None;
     loop {
-        match read_head_line(reader, &mut line, 4096, deadline)? {
+        match read_head_line(reader, raw, 4096, deadline)? {
             HeadLine::Eof => return Ok(bad_header(400, "Bad Request", version)),
             HeadLine::TooLong => {
                 return Ok(bad_header(413, "Request Entity Too Large", version))
             }
             HeadLine::Line => {}
         }
+        let line = String::from_utf8_lossy(raw);
         let trimmed = line.trim_end_matches(['\r', '\n']);
         if trimmed.is_empty() {
             break;
@@ -307,9 +404,9 @@ pub fn read_request<R: BufRead>(
         let Some((name, value)) = trimmed.split_once(':') else {
             return Ok(bad_header(400, "Bad Request", version));
         };
-        let name = name.trim().to_ascii_lowercase();
-        let value = value.trim().to_owned();
-        match name.as_str() {
+        let name = lower_header_name(name.trim());
+        let value = value.trim();
+        match name.as_ref() {
             "expect" => {
                 if value.eq_ignore_ascii_case("100-continue") {
                     request.expect_continue = true;
@@ -338,14 +435,22 @@ pub fn read_request<R: BufRead>(
                 }
             }
             "user-agent" => {
-                if let Some(class) = classify_ua(&value) {
+                if let Some(class) = classify_ua(value) {
                     ua = Some(class);
                 }
             }
             _ => {}
         }
-        request.headers.push((name, value));
+        if let Some((old_name, old_value)) = request.headers.get_mut(used_headers) {
+            *old_name = name;
+            old_value.clear();
+            old_value.push_str(value);
+        } else {
+            request.headers.push((name, value.to_owned()));
+        }
+        used_headers += 1;
     }
+    request.headers.truncate(used_headers);
     if content_lengths > 1 || (content_lengths > 0 && transfer_encodings > 0) {
         // uhttpd reports conflicting framing through uh_client_error, i.e. with a body
         return Ok(ParseOutcome::Bad { code: 400, summary: "Bad Request", version, body: true });
@@ -377,6 +482,21 @@ pub trait Sink: Write {
     fn set_deferred(&mut self, on: bool);
     /// Transport descriptor, for readiness polling.
     fn fd(&self) -> RawFd;
+    /// Copy an unframed file body. The length is only a sizing hint: a file
+    /// may change after lookup, so reading still continues through EOF.
+    fn copy_from(&mut self, source: &mut dyn Read, length_hint: u64) -> io::Result<()> {
+        let mut buf = [0u8; 4096];
+        let want = length_hint.min(buf.len() as u64).max(1) as usize;
+        loop {
+            let n = match source.read(&mut buf[..want]) {
+                Ok(0) => return Ok(()),
+                Ok(n) => n,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => return Err(error),
+            };
+            self.write_all(&buf[..n])?;
+        }
+    }
 }
 
 /// Response transport: a bounded window in front of the client. One stream
@@ -389,7 +509,12 @@ pub trait Sink: Write {
 pub struct Out<'a, T: Read + Write> {
     client: &'a RefCell<BufReader<T>>,
     fd: RawFd,
+    /// Initialized storage; only start..end contains queued response bytes.
+    /// Keeping the initialized tail lets file reads reuse it without zeroing
+    /// or copying a separate staging buffer for every read.
     buf: Vec<u8>,
+    start: usize,
+    end: usize,
     window: usize,
     /// Budget for one blocking drain, from the configured network timeout.
     timeout: Duration,
@@ -398,18 +523,42 @@ pub struct Out<'a, T: Read + Write> {
 
 impl<'a, T: Read + Write> Out<'a, T> {
     pub fn new(client: &'a RefCell<BufReader<T>>, fd: RawFd, window: usize, timeout: Duration) -> Self {
-        Out { client, fd, buf: Vec::new(), window, timeout, deferred: false }
+        // Ordinary response headers fit here. Avoid growing through many
+        // tiny allocations before the first body write fills the window.
+        Out { client, fd, buf: Vec::with_capacity(window.min(512)), start: 0, end: 0,
+              window, timeout, deferred: false }
     }
 
-    /// Push until the window is empty, waiting for writability as needed.
+    /// Finish one response before reusing its allocation for the next one.
+    /// Retain at most two windows, so an unusually large CGI header cannot
+    /// pin its peak allocation for the rest of a keep-alive connection.
+    pub fn finish_request(&mut self) -> io::Result<()> {
+        self.flush()?;
+        if self.deferred || self.pending() != 0 {
+            return Err(io::Error::other("response relay did not finish"));
+        }
+        if self.buf.capacity() > self.window.saturating_mul(2) {
+            self.buf = Vec::with_capacity(self.window.min(512));
+        }
+        Ok(())
+    }
+
+    fn compact(&mut self) {
+        if self.start != 0 {
+            self.buf.copy_within(self.start..self.end, 0);
+            self.end -= self.start;
+            self.start = 0;
+        }
+    }
+
     /// Push until the window is empty. The budget covers the whole drain, not
     /// one write, so many small partial writes cannot extend it.
     fn drain_blocking(&mut self) -> io::Result<()> {
         let deadline = Instant::now() + self.timeout;
-        while !self.buf.is_empty() {
-            let before = self.buf.len();
+        while self.pending() != 0 {
+            let before = self.pending();
             self.drain_ready()?;
-            if self.buf.len() == before {
+            if self.pending() == before {
                 let left = deadline.saturating_duration_since(Instant::now());
                 if left.is_zero() {
                     return Err(io::Error::new(io::ErrorKind::TimedOut, "response write deadline"));
@@ -426,15 +575,19 @@ impl<'a, T: Read + Write> Out<'a, T> {
 
 impl<T: Read + Write> Sink for Out<'_, T> {
     fn pending(&self) -> usize {
-        self.buf.len()
+        self.end - self.start
     }
 
     fn drain_ready(&mut self) -> io::Result<()> {
-        while !self.buf.is_empty() {
-            match borrow(self.client)?.get_mut().write(&self.buf) {
+        while self.pending() != 0 {
+            match borrow(self.client)?.get_mut().write(&self.buf[self.start..self.end]) {
                 Ok(0) => return Err(io::Error::new(io::ErrorKind::WriteZero, "client accepted nothing")),
                 Ok(n) => {
-                    self.buf.drain(..n);
+                    self.start += n;
+                    if self.start == self.end {
+                        self.start = 0;
+                        self.end = 0;
+                    }
                 }
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(()),
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
@@ -451,12 +604,41 @@ impl<T: Read + Write> Sink for Out<'_, T> {
     fn fd(&self) -> RawFd {
         self.fd
     }
+
+    fn copy_from(&mut self, source: &mut dyn Read, length_hint: u64) -> io::Result<()> {
+        if self.deferred {
+            return Err(io::Error::other("file copy cannot own deferred relay readiness"));
+        }
+        let want = length_hint.min(self.window as u64).max(1) as usize;
+        self.compact();
+        loop {
+            let limit = self.end + want;
+            if self.buf.len() < limit {
+                self.buf.resize(limit, 0);
+            }
+            let n = match source.read(&mut self.buf[self.end..limit]) {
+                Ok(0) => return Ok(()),
+                Ok(n) => n,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => return Err(error),
+            };
+            self.end += n;
+            // Push this batch before reading more. This also sends a final
+            // short batch before the EOF read, without reserving a second
+            // window beyond that partial batch.
+            self.drain_blocking()?;
+        }
+    }
 }
 
 impl<T: Read + Write> Write for Out<'_, T> {
     fn write(&mut self, data: &[u8]) -> io::Result<usize> {
-        self.buf.extend_from_slice(data);
-        if !self.deferred && self.buf.len() >= self.window {
+        self.compact();
+        let initialized = (self.buf.len() - self.end).min(data.len());
+        self.buf[self.end..self.end + initialized].copy_from_slice(&data[..initialized]);
+        self.buf.extend_from_slice(&data[initialized..]);
+        self.end += data.len();
+        if !self.deferred && self.pending() >= self.window {
             self.drain_blocking()?;
         }
         Ok(data.len())
@@ -810,7 +992,7 @@ impl<'a, W: Write> Response<'a, W> {
         Ok(())
     }
 
-    pub fn header(&mut self, name: &str, value: &str) -> io::Result<()> {
+    pub fn header(&mut self, name: &str, value: impl std::fmt::Display) -> io::Result<()> {
         write!(self.out, "{name}: {value}\r\n")
     }
 
@@ -841,6 +1023,18 @@ impl<'a, W: Write> Response<'a, W> {
         } else {
             self.out.write_all(data)
         }
+    }
+
+    /// Static Content-Length bodies may read straight into the output window.
+    pub fn copy_unchunked(&mut self, source: &mut dyn Read, length_hint: u64) -> io::Result<()>
+    where W: Sink {
+        if self.is_head() {
+            return Ok(());
+        }
+        if self.chunked {
+            return Err(io::Error::other("direct file copy requires unchunked framing"));
+        }
+        self.out.copy_from(source, length_hint)
     }
 
     /// The transport underneath, for a handler that drives readiness itself.
@@ -897,20 +1091,25 @@ fn civil_from_days(z: i64) -> (i64, u32, u32) {
 
 /// RFC 1123 date, e.g. `Mon, 29 Jun 2026 12:59:20 GMT`.
 pub fn http_date(unix: i64) -> String {
-    let days = unix.div_euclid(86_400);
-    let secs = unix.rem_euclid(86_400);
-    let (y, m, d) = civil_from_days(days);
-    let weekday = (days + 4).rem_euclid(7) as usize;
-    format!(
-        "{}, {:02} {} {:04} {:02}:{:02}:{:02} GMT",
-        DAYS[weekday],
-        d,
-        MONTHS[(m - 1) as usize],
-        y,
-        secs / 3600,
-        (secs % 3600) / 60,
-        secs % 60
-    )
+    HttpDate(unix).to_string()
+}
+
+/// A date written directly into a response, without an intermediate String.
+pub struct HttpDate(pub i64);
+
+impl std::fmt::Display for HttpDate {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let days = self.0.div_euclid(86_400);
+        let secs = self.0.rem_euclid(86_400);
+        let (y, m, d) = civil_from_days(days);
+        let weekday = (days + 4).rem_euclid(7) as usize;
+        write!(
+            out,
+            "{}, {:02} {} {:04} {:02}:{:02}:{:02} GMT",
+            DAYS[weekday], d, MONTHS[(m - 1) as usize], y,
+            secs / 3600, (secs % 3600) / 60, secs % 60
+        )
+    }
 }
 
 fn days_from_civil(y: i64, m: u32, d: u32) -> i64 {
@@ -1027,18 +1226,200 @@ mod tests {
 
     #[test]
     fn parses_request_and_rejects_conflicting_framing() {
-        let mut input = io::Cursor::new(b"GET /a?b=1 HTTP/1.1\r\nHost: x\r\nContent-Length: 3\r\nTransfer-Encoding: chunked\r\n\r\n".to_vec());
+        let mut input = BufReader::new(io::Cursor::new(b"GET /a?b=1 HTTP/1.1\r\nHost: x\r\nContent-Length: 3\r\nTransfer-Encoding: chunked\r\n\r\n"));
         match read_request(&mut input, true, None).unwrap() {
             ParseOutcome::Bad { code: 400, .. } => {}
             other => panic!("unexpected {:?}", matches!(other, ParseOutcome::Eof)),
         }
-        let mut input = io::Cursor::new(b"HEAD /x HTTP/1.0\r\nHost: y\r\n\r\n".to_vec());
+        let mut input = BufReader::new(io::Cursor::new(b"HEAD /x HTTP/1.0\r\nHost: y\r\n\r\n"));
         let ParseOutcome::Request(r) = read_request(&mut input, true, None).unwrap() else {
             panic!()
         };
         assert_eq!(r.method, Method::Head);
         assert!(r.connection_close);
         assert_eq!(r.header("host"), Some("y"));
+    }
+
+    #[test]
+    fn fragmented_head_leaves_body_and_next_request_intact() {
+        let raw = "POST /路径 HTTP/1.1\r\nX-Test: a€\r\nContent-Length: 3\r\n\r\nxyzGET /next HTTP/1.1\r\nX-Test: b\r\n\r\n";
+        for capacity in [1, 2, 7, 4096] {
+            let mut input = BufReader::with_capacity(capacity, io::Cursor::new(raw.as_bytes()));
+            let ParseOutcome::Request(first) = read_request(&mut input, true, None).unwrap() else {
+                panic!("fragmented first head rejected")
+            };
+            assert_eq!(first.url, "/路径");
+            assert_eq!(first.header("x-test"), Some("a€"));
+            assert_eq!(first.content_length, Some(3));
+            let mut body = [0; 3];
+            input.read_exact(&mut body).unwrap();
+            assert_eq!(&body, b"xyz");
+            let ParseOutcome::Request(next) = read_request(&mut input, true, None).unwrap() else {
+                panic!("pipelined head rejected")
+            };
+            assert_eq!(next.url, "/next");
+            assert_eq!(next.header("x-test"), Some("b"));
+            assert_eq!(first.header("x-test"), Some("a€"));
+        }
+    }
+
+    #[test]
+    fn expired_head_deadline_also_rejects_already_buffered_input() {
+        let raw = b"GET / HTTP/1.1\r\nHost: x\r\n\r\n";
+        let mut input = BufReader::new(io::Cursor::new(raw));
+        assert_eq!(input.fill_buf().unwrap(), raw);
+        let deadline = HeadDeadline { fd: -1, at: Instant::now() - Duration::from_secs(1) };
+        let error = read_request(&mut input, true, Some(&deadline)).err().expect("deadline ignored");
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+        assert_eq!(input.buffer(), raw);
+    }
+
+    #[test]
+    fn interrupted_head_reads_preserve_partial_lines_and_deadline() {
+        struct InterruptedInput<'a> { bytes: &'a [u8], interrupt: bool }
+        impl Read for InterruptedInput<'_> {
+            fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+                self.interrupt = !self.interrupt;
+                if self.interrupt {
+                    return Err(io::Error::from(io::ErrorKind::Interrupted));
+                }
+                let n = out.len().min(self.bytes.len()).min(3);
+                out[..n].copy_from_slice(&self.bytes[..n]);
+                self.bytes = &self.bytes[n..];
+                Ok(n)
+            }
+        }
+        let raw = b"GET /interrupted HTTP/1.1\r\nHost: x\r\nX-Test: intact\r\n\r\n";
+        let mut input = BufReader::new(InterruptedInput { bytes: raw, interrupt: false });
+        let deadline = HeadDeadline::new(-1, Duration::from_secs(1));
+        let ParseOutcome::Request(request) = read_request(&mut input, true, Some(&deadline)).unwrap() else {
+            panic!("interrupted head rejected")
+        };
+        assert_eq!(request.url, "/interrupted");
+        assert_eq!(request.header("x-test"), Some("intact"));
+
+        struct AlwaysInterrupted;
+        impl Read for AlwaysInterrupted {
+            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+                Err(io::ErrorKind::Interrupted.into())
+            }
+        }
+        let mut input = BufReader::new(AlwaysInterrupted);
+        let deadline = HeadDeadline::new(-1, Duration::from_millis(5));
+        let error = read_request(&mut input, true, Some(&deadline)).err().expect("deadline ignored");
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+    }
+
+    #[test]
+    fn reused_head_resets_credentials_framing_and_connection_flags() {
+        let raw = concat!(
+            "POST /first HTTP/1.1\r\nHost: old\r\nAuthorization: Bearer fixture\r\n",
+            "Content-Length: 3\r\nExpect: 100-continue\r\nConnection: close\r\n\r\nabc",
+            "GET /second?new=1 HTTP/1.1\r\nAccept: text/plain\r\nHost: new\r\n\r\n"
+        );
+        let mut input = BufReader::with_capacity(17, io::Cursor::new(raw.as_bytes()));
+        let mut heads = HeadBuffer::default();
+        let ParseOutcome::Request(first) = heads.read_request(&mut input, true, None).unwrap() else {
+            panic!("first head rejected")
+        };
+        assert!(first.expect_continue && first.connection_close);
+        assert_eq!(first.content_length, Some(3));
+        let mut body = [0; 3];
+        input.read_exact(&mut body).unwrap();
+        assert_eq!(&body, b"abc");
+        heads.recycle(first);
+        assert!(heads.spare.is_some());
+        let ParseOutcome::Request(second) = heads.read_request(&mut input, true, None).unwrap() else {
+            panic!("second head rejected")
+        };
+        assert_eq!(second.method, Method::Get);
+        assert_eq!(second.url, "/second?new=1");
+        assert_eq!(second.header("host"), Some("new"));
+        assert_eq!(second.header("accept"), Some("text/plain"));
+        assert_eq!(second.headers.len(), 2);
+        assert_eq!(second.header("authorization"), None);
+        assert_eq!(second.content_length, None);
+        assert!(!second.transfer_chunked && !second.expect_continue && !second.connection_close);
+    }
+
+    #[test]
+    fn reused_head_drops_large_storage_without_rejecting_the_request() {
+        let raw = format!("GET /large HTTP/1.1\r\nX-First: {}\r\nX-Second: {}\r\n\r\n",
+                          "a".repeat(4000), "b".repeat(4000));
+        let mut input = BufReader::new(io::Cursor::new(raw.as_bytes()));
+        let mut heads = HeadBuffer::default();
+        let ParseOutcome::Request(request) = heads.read_request(&mut input, true, None).unwrap() else {
+            panic!("valid large headers rejected")
+        };
+        assert_eq!(request.header("x-first").unwrap().len(), 4000);
+        assert_eq!(request.header("x-second").unwrap().len(), 4000);
+        heads.recycle(request);
+        assert!(heads.spare.is_none());
+        assert_eq!(heads.line.capacity(), 0);
+    }
+
+    #[test]
+    fn reused_output_preserves_bytes_and_bounds_retained_capacity() {
+        struct ShortWrites(Vec<u8>);
+        impl Read for ShortWrites {
+            fn read(&mut self, _: &mut [u8]) -> io::Result<usize> { Ok(0) }
+        }
+        impl Write for ShortWrites {
+            fn write(&mut self, data: &[u8]) -> io::Result<usize> {
+                let n = data.len().min(31);
+                self.0.extend_from_slice(&data[..n]);
+                Ok(n)
+            }
+            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+        }
+        let client = RefCell::new(BufReader::new(ShortWrites(Vec::new())));
+        let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
+        let mut expected = Vec::new();
+        for (value, length) in [(1, 65), (2, 63), (3, 512)] {
+            let bytes = vec![value; length];
+            out.write_all(&bytes).unwrap();
+            out.finish_request().unwrap();
+            expected.extend_from_slice(&bytes);
+            assert_eq!(out.pending(), 0);
+            assert!(out.buf.capacity() <= 128);
+            assert_eq!(client.borrow().get_ref().0, expected);
+        }
+        struct ShortReads<'a> { bytes: &'a [u8], interrupt: bool }
+        impl Read for ShortReads<'_> {
+            fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+                self.interrupt = !self.interrupt;
+                if self.interrupt {
+                    return Err(io::ErrorKind::Interrupted.into());
+                }
+                let n = out.len().min(self.bytes.len()).min(7);
+                out[..n].copy_from_slice(&self.bytes[..n]);
+                self.bytes = &self.bytes[n..];
+                Ok(n)
+            }
+        }
+        for length in [0, 1, 63, 64, 65, 257] {
+            let bytes: Vec<u8> = (0..length).map(|i| (i % 251) as u8).collect();
+            out.write_all(b"next:").unwrap();
+            let mut source = ShortReads { bytes: &bytes, interrupt: false };
+            // A changed file may be longer than its lookup metadata. The
+            // hint must not truncate it or expose an old initialized tail.
+            out.copy_from(&mut source, (length / 2) as u64).unwrap();
+            out.finish_request().unwrap();
+            expected.extend_from_slice(b"next:");
+            expected.extend_from_slice(&bytes);
+            assert_eq!(client.borrow().get_ref().0, expected);
+            assert_eq!(out.pending(), 0);
+            assert!(out.buf.capacity() <= 128);
+        }
+        out.set_deferred(true);
+        out.write_all(b"unfinished").unwrap();
+        assert!(out.finish_request().is_err());
+        assert_eq!(out.pending(), 10);
+        assert_eq!(client.borrow().get_ref().0, expected);
+        out.set_deferred(false);
+        out.finish_request().unwrap();
+        expected.extend_from_slice(b"unfinished");
+        assert_eq!(client.borrow().get_ref().0, expected);
     }
 
     #[test]
@@ -1209,7 +1590,7 @@ mod tests {
     /// Ask read_request what it made of one User-Agent.
     fn ua_closes(ua: &str, method: &str) -> bool {
         let raw = format!("{method} /cgi-bin/luci HTTP/1.1\r\nHost: x\r\nUser-Agent: {ua}\r\n\r\n");
-        let mut input = io::Cursor::new(raw.into_bytes());
+        let mut input = BufReader::new(io::Cursor::new(raw.into_bytes()));
         let ParseOutcome::Request(r) = read_request(&mut input, true, None).unwrap() else {
             panic!("{ua} did not parse")
         };

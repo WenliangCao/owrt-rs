@@ -15,6 +15,7 @@ mod tls;
 
 use bridge::Bridge;
 use http::{Method, ParseOutcome, Request, Response};
+use std::borrow::Cow;
 use std::io::{self, BufReader, Read, Write};
 use std::cell::RefCell;
 use std::os::fd::{AsRawFd, FromRawFd, RawFd};
@@ -410,17 +411,20 @@ const OUT_WINDOW: usize = 16 * 1024;
 
 struct Server {
     config: Config,
+    cgi_physical_prefix: Option<String>,
     bridge: Bridge,
     connections: AtomicUsize,
     accept_lock: Mutex<()>,
     scripts: ScriptSlots,
-    inventory: Mutex<Option<std::fs::File>>,
+    inventory: Option<Mutex<std::fs::File>>,
 }
 
 impl Server {
     fn serve(&self, stream: Box<dyn Stream>, conn: Conn) {
         let client = RefCell::new(BufReader::new(stream));
         let network_timeout = Duration::from_secs(self.config.network_timeout.max(1));
+        let mut out = http::Out::new(&client, conn.fd, OUT_WINDOW, network_timeout);
+        let mut heads = http::HeadBuffer::default();
         let mut requests = 0u64;
         loop {
             // uh_keepalive_poll_cb (client.c:110-117): one deadline covers the
@@ -435,7 +439,7 @@ impl Server {
             let deadline = http::HeadDeadline::new(conn.fd, budget);
             // Bind the outcome first: a `borrow_mut()` in the scrutinee stays
             // alive for the whole match, and the reject arm needs the stream.
-            let outcome = http::read_request(
+            let outcome = heads.read_request(
                 &mut *client.borrow_mut(),
                 self.config.http_keepalive > 0,
                 Some(&deadline),
@@ -448,9 +452,8 @@ impl Server {
                 Ok(ParseOutcome::Request(r)) => r,
                 Ok(ParseOutcome::Eof) | Err(_) => return,
                 Ok(ParseOutcome::Bad { code, summary, version, body }) => {
-                    let mut w = http::Out::new(&client, conn.fd, OUT_WINDOW, Duration::from_secs(self.config.network_timeout.max(1)));
-                    self.reject(&mut w, code, summary, version, body);
-                    let _ = Write::flush(&mut w);
+                    self.reject(&mut out, code, summary, version, body);
+                    let _ = Write::flush(&mut out);
                     return;
                 }
             };
@@ -460,23 +463,19 @@ impl Server {
             // The body is decoded on demand: CGI streams it straight to the
             // script's stdin, so an upload never has to fit in memory first.
             let mut body = http::BodyReader::new(&client, &request);
-            // uhttpd streams every response through the client ustream. Keep
-            // one 16 KiB window instead of collecting the whole body first, so
-            // a large file or a slow CGI cannot grow RSS by its own size and
-            // the first byte reaches the client while the handler still runs.
+            // Stream through a bounded window and reuse its allocation on
+            // this connection. finish_request drains all bytes and bounds
+            // retained capacity before another request can use it.
             let close;
             {
-                let mut out = http::Out::new(&client, conn.fd, OUT_WINDOW, Duration::from_secs(self.config.network_timeout.max(1)));
-                {
-                    let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
-                    if self.dispatch(&mut request, &mut body, &mut resp, conn).is_err() {
-                        return;
-                    }
-                    close = resp.connection_close();
-                }
-                if Write::flush(&mut out).is_err() {
+                let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
+                if self.dispatch(&mut request, &mut body, &mut resp, conn).is_err() {
                     return;
                 }
+                close = resp.connection_close();
+            }
+            if out.finish_request().is_err() {
+                return;
             }
             // A handler that ignored the body leaves the connection out of sync
             // unless the rest is drained; give up on anything larger.
@@ -486,6 +485,7 @@ impl Server {
             {
                 return;
             }
+            heads.recycle(request);
         }
     }
 
@@ -546,7 +546,7 @@ impl Server {
         }
         let path = request.url.split('?').next().unwrap_or("");
         if let Some(prefix) = &self.config.ubus_prefix {
-            if path == prefix || path.starts_with(&format!("{prefix}/")) {
+            if path == prefix || path.strip_prefix(prefix).is_some_and(|tail| tail.starts_with('/')) {
                 // UH_UBUS_MAX_POST_SIZE (ubus.c:37, 937-952): over the cap,
                 // uh_ubus_data_send stops parsing, closes the connection and
                 // answers 200 with the JSON-RPC parse error -- never an HTML
@@ -569,10 +569,10 @@ impl Server {
                 return result;
             }
         }
-        let mut url = request.url.clone();
+        let mut url = Cow::Borrowed(request.url.as_str());
         for (alias, target) in &self.config.aliases {
             if path_matches(alias, &url) {
-                url = format!("{}{}", target.as_deref().or(self.config.cgi_prefix.as_deref()).unwrap_or(""), url);
+                url = Cow::Owned(format!("{}{}", target.as_deref().or(self.config.cgi_prefix.as_deref()).unwrap_or(""), url));
                 break;
             }
         }
@@ -607,8 +607,8 @@ impl Server {
                     let interpreter = self.config.interpreters.iter()
                         .find(|(ext, _)| physical.len() > ext.len() && physical.ends_with(ext))
                         .map(|(_, path)| path.as_str());
-                    let is_cgi = interpreter.is_some() || self.config.cgi_prefix.as_ref()
-                        .is_some_and(|p| path_matches(&format!("{}{}", self.config.docroot, p), &physical));
+                    let is_cgi = interpreter.is_some() || self.cgi_physical_prefix.as_ref()
+                        .is_some_and(|prefix| path_matches(prefix, &physical));
                     if is_cgi {
                         if interpreter.is_none() && !cgi::is_executable(&pi) {
                             return files::forbidden(resp, request, &url);
@@ -631,7 +631,7 @@ impl Server {
                 files::Lookup::NotFound => {
                     if redirect_status == 200 {
                         if let Some(handler) = &self.config.error_handler {
-                            url = handler.clone();
+                            url = Cow::Borrowed(handler.as_str());
                             redirect_status = 404;
                             continue;
                         }
@@ -644,14 +644,13 @@ impl Server {
 
     fn flush_inventory(&self) {
         use std::io::Seek;
-        if let Ok(mut guard) = self.inventory.lock() {
-            if let Some(file) = guard.as_mut() {
-                let text = self.bridge.call_inventory();
-                let _ = file.seek(std::io::SeekFrom::Start(0));
-                let _ = file.write_all(text.as_bytes());
-                let _ = file.set_len(text.len() as u64);
-                let _ = file.flush();
-            }
+        let Some(inventory) = &self.inventory else { return };
+        if let Ok(mut file) = inventory.lock() {
+            let text = self.bridge.call_inventory();
+            let _ = file.seek(std::io::SeekFrom::Start(0));
+            let _ = file.write_all(text.as_bytes());
+            let _ = file.set_len(text.len() as u64);
+            let _ = file.flush();
         }
     }
 }
@@ -759,6 +758,7 @@ fn main() {
         .as_ref()
         .and_then(|path| std::fs::File::create(path).ok());
     let server = Arc::new(Server {
+        cgi_physical_prefix: config.cgi_prefix.as_ref().map(|prefix| format!("{}{}", config.docroot, prefix)),
         bridge: Bridge {
             socket: config.ubus_socket.clone(),
             noauth: config.ubus_noauth,
@@ -772,7 +772,7 @@ fn main() {
         connections: AtomicUsize::new(0),
         accept_lock: Mutex::new(()),
         scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: config.max_script_requests },
-        inventory: Mutex::new(inventory),
+        inventory: inventory.map(Mutex::new),
         config,
     });
     let mut handles = Vec::new();

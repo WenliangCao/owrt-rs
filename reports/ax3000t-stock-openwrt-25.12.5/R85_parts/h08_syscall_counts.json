@@ -1,0 +1,386 @@
+{
+  "method": "Build-host strace counts including startup; blocking duration is not CPU cost; the frozen native client is unchanged",
+  "subjects": {
+    "h07-c1": {
+      "settings": {
+        "iterations": 10000,
+        "clients": 1,
+        "warmup_per_client": 20,
+        "fixture_bytes": 16384,
+        "subject_sha256": "810c9097dc95366c74431feeed5b896d46fd2c3a3501f043282b0719703080f5",
+        "client_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+        "kernel": "6.17.0-1020-oracle",
+        "architecture": "aarch64",
+        "method": "strace syscall counts; timings are diagnostic, not router performance"
+      },
+      "syscalls": {
+        "futex": {
+          "calls": 1,
+          "errors": 1
+        },
+        "sendto": {
+          "calls": 10020,
+          "errors": 0
+        },
+        "read": {
+          "calls": 20040,
+          "errors": 0
+        },
+        "openat": {
+          "calls": 10021,
+          "errors": 1
+        },
+        "newfstatat": {
+          "calls": 10020,
+          "errors": 0
+        },
+        "setsockopt": {
+          "calls": 20056,
+          "errors": 0
+        },
+        "close": {
+          "calls": 10022,
+          "errors": 0
+        },
+        "recvfrom": {
+          "calls": 10022,
+          "errors": 0
+        },
+        "fcntl": {
+          "calls": 10020,
+          "errors": 0
+        },
+        "munmap": {
+          "calls": 296,
+          "errors": 0
+        },
+        "mmap": {
+          "calls": 304,
+          "errors": 0
+        },
+        "clone": {
+          "calls": 3,
+          "errors": 0
+        },
+        "rt_sigprocmask": {
+          "calls": 17,
+          "errors": 0
+        },
+        "mprotect": {
+          "calls": 7,
+          "errors": 0
+        },
+        "ppoll": {
+          "calls": 3,
+          "errors": 0
+        },
+        "sigaltstack": {
+          "calls": 10,
+          "errors": 0
+        },
+        "accept4": {
+          "calls": 2,
+          "errors": 0
+        },
+        "rt_sigaction": {
+          "calls": 6,
+          "errors": 0
+        },
+        "socket": {
+          "calls": 1,
+          "errors": 0
+        },
+        "readlinkat": {
+          "calls": 2,
+          "errors": 2
+        },
+        "bind": {
+          "calls": 1,
+          "errors": 0
+        },
+        "getsockname": {
+          "calls": 3,
+          "errors": 0
+        },
+        "brk": {
+          "calls": 2,
+          "errors": 0
+        },
+        "listen": {
+          "calls": 1,
+          "errors": 0
+        },
+        "ioctl": {
+          "calls": 1,
+          "errors": 0
+        },
+        "set_tid_address": {
+          "calls": 1,
+          "errors": 0
+        },
+        "gettid": {
+          "calls": 3,
+          "errors": 0
+        },
+        "execve": {
+          "calls": 1,
+          "errors": 0
+        }
+      }
+    },
+    "h07-c4": {
+      "settings": {
+        "iterations": 10000,
+        "clients": 4,
+        "warmup_per_client": 20,
+        "fixture_bytes": 16384,
+        "subject_sha256": "810c9097dc95366c74431feeed5b896d46fd2c3a3501f043282b0719703080f5",
+        "client_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+        "kernel": "6.17.0-1020-oracle",
+        "architecture": "aarch64",
+        "method": "strace syscall counts; timings are diagnostic, not router performance"
+      },
+      "syscalls": {
+        "futex": {
+          "calls": 7901,
+          "errors": 1879
+        },
+        "sendto": {
+          "calls": 10080,
+          "errors": 0
+        },
+        "setsockopt": {
+          "calls": 20191,
+          "errors": 0
+        },
+        "read": {
+          "calls": 20160,
+          "errors": 0
+        },
+        "recvfrom": {
+          "calls": 10085,
+          "errors": 0
+        },
+        "openat": {
+          "calls": 10081,
+          "errors": 1
+        },
+        "newfstatat": {
+          "calls": 10080,
+          "errors": 0
+        },
+        "close": {
+          "calls": 10085,
+          "errors": 0
+        },
+        "fcntl": {
+          "calls": 10080,
+          "errors": 0
+        },
+        "munmap": {
+          "calls": 876,
+          "errors": 0
+        },
+        "mmap": {
+          "calls": 885,
+          "errors": 0
+        },
+        "clone": {
+          "calls": 6,
+          "errors": 0
+        },
+        "sigaltstack": {
+          "calls": 19,
+          "errors": 0
+        },
+        "rt_sigprocmask": {
+          "calls": 32,
+          "errors": 0
+        },
+        "gettid": {
+          "calls": 6,
+          "errors": 0
+        },
+        "mprotect": {
+          "calls": 13,
+          "errors": 0
+        },
+        "ioctl": {
+          "calls": 1,
+          "errors": 0
+        },
+        "ppoll": {
+          "calls": 6,
+          "errors": 0
+        },
+        "readlinkat": {
+          "calls": 2,
+          "errors": 2
+        },
+        "set_tid_address": {
+          "calls": 1,
+          "errors": 0
+        },
+        "rt_sigaction": {
+          "calls": 6,
+          "errors": 0
+        },
+        "socket": {
+          "calls": 1,
+          "errors": 0
+        },
+        "bind": {
+          "calls": 1,
+          "errors": 0
+        },
+        "listen": {
+          "calls": 1,
+          "errors": 0
+        },
+        "getsockname": {
+          "calls": 6,
+          "errors": 0
+        },
+        "brk": {
+          "calls": 2,
+          "errors": 0
+        },
+        "execve": {
+          "calls": 1,
+          "errors": 0
+        },
+        "accept4": {
+          "calls": 5,
+          "errors": 0
+        }
+      }
+    },
+    "h08-c4": {
+      "settings": {
+        "iterations": 10000,
+        "clients": 4,
+        "warmup_per_client": 20,
+        "fixture_bytes": 16384,
+        "subject_sha256": "6aad76fc8fc7519c37546d5c216434f8558401676f0d987f88cd29fc77bdd2c7",
+        "client_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+        "kernel": "6.17.0-1020-oracle",
+        "architecture": "aarch64",
+        "method": "strace syscall counts; timings are diagnostic, not router performance"
+      },
+      "syscalls": {
+        "futex": {
+          "calls": 2491,
+          "errors": 630
+        },
+        "sendto": {
+          "calls": 10080,
+          "errors": 0
+        },
+        "read": {
+          "calls": 20160,
+          "errors": 0
+        },
+        "setsockopt": {
+          "calls": 20191,
+          "errors": 0
+        },
+        "openat": {
+          "calls": 10081,
+          "errors": 1
+        },
+        "newfstatat": {
+          "calls": 10080,
+          "errors": 0
+        },
+        "recvfrom": {
+          "calls": 10085,
+          "errors": 0
+        },
+        "close": {
+          "calls": 10085,
+          "errors": 0
+        },
+        "fcntl": {
+          "calls": 10080,
+          "errors": 0
+        },
+        "munmap": {
+          "calls": 57,
+          "errors": 0
+        },
+        "mmap": {
+          "calls": 64,
+          "errors": 0
+        },
+        "clone": {
+          "calls": 6,
+          "errors": 0
+        },
+        "ppoll": {
+          "calls": 6,
+          "errors": 0
+        },
+        "accept4": {
+          "calls": 5,
+          "errors": 0
+        },
+        "rt_sigprocmask": {
+          "calls": 32,
+          "errors": 0
+        },
+        "execve": {
+          "calls": 1,
+          "errors": 0
+        },
+        "sigaltstack": {
+          "calls": 19,
+          "errors": 0
+        },
+        "gettid": {
+          "calls": 6,
+          "errors": 0
+        },
+        "mprotect": {
+          "calls": 13,
+          "errors": 0
+        },
+        "getsockname": {
+          "calls": 6,
+          "errors": 0
+        },
+        "rt_sigaction": {
+          "calls": 6,
+          "errors": 0
+        },
+        "socket": {
+          "calls": 1,
+          "errors": 0
+        },
+        "readlinkat": {
+          "calls": 2,
+          "errors": 2
+        },
+        "bind": {
+          "calls": 1,
+          "errors": 0
+        },
+        "brk": {
+          "calls": 2,
+          "errors": 0
+        },
+        "listen": {
+          "calls": 1,
+          "errors": 0
+        },
+        "ioctl": {
+          "calls": 1,
+          "errors": 0
+        },
+        "set_tid_address": {
+          "calls": 1,
+          "errors": 0
+        }
+      }
+    }
+  }
+}

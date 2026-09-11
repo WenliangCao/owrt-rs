@@ -1,0 +1,89 @@
+{
+  "stage": "H07",
+  "host": "aarch64 Linux build host",
+  "subject_sha256": "810c9097dc95366c74431feeed5b896d46fd2c3a3501f043282b0719703080f5",
+  "unit_tests": {
+    "passed": 25,
+    "failed": 0
+  },
+  "r14": {
+    "passed": 61,
+    "differences": 0
+  },
+  "static": {
+    "passed": true,
+    "cases": 33,
+    "case_names": [
+      "initial",
+      "unchanged",
+      "repeated-slash",
+      "dot-segment",
+      "parent-segment",
+      "escaped-dot",
+      "escaped-name-query",
+      "docroot-prefix-boundary",
+      "malformed-path-escape",
+      "atomic-replacement",
+      "permission-revoked",
+      "permission-restored",
+      "head",
+      "deleted",
+      "became-directory",
+      "new-index",
+      "mime-UPPER.CSS",
+      "mime-\u76ee\u5f55.HTML",
+      "mime-archive.TAR.GZ",
+      "mime-archive.tar.bz2",
+      "mime-WPAD.DAT",
+      "mime-README",
+      "mime-unknown.dat",
+      "boundary-16383",
+      "boundary-head-16383",
+      "boundary-16384",
+      "boundary-head-16384",
+      "boundary-16385",
+      "boundary-head-16385",
+      "boundary-65537",
+      "boundary-head-65537",
+      "boundary-1048577",
+      "boundary-head-1048577"
+    ]
+  },
+  "extended_compatibility": {
+    "passed": 31,
+    "new_differences": 0,
+    "candidate_sse_fds_retained": 0,
+    "original_sse_fds_retained": 12,
+    "candidate_tls_slow_reader_rss_growth_kib": 116
+  },
+  "fuzz": {
+    "cases": 133,
+    "baseline_differences": [
+      "cgi-pathinfo-nul",
+      "chunked-bad-size",
+      "chunked-huge-size",
+      "connect",
+      "header-ctrl",
+      "header-no-colon",
+      "header-obs-fold",
+      "http09",
+      "http12",
+      "http2",
+      "httpx",
+      "json-deep-array",
+      "lf-only",
+      "long-path-8k",
+      "lowercase-method",
+      "method-only",
+      "percent-nul",
+      "pipelined-bad-second",
+      "raw-space-in-path",
+      "tab-separated",
+      "trace",
+      "unknown-method"
+    ],
+    "candidate_changes": [],
+    "survival_failures": [],
+    "passed": true
+  }
+}

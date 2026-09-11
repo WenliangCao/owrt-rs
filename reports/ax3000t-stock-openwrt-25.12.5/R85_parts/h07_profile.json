@@ -1,0 +1,1118 @@
+{
+  "stage": "H07",
+  "host": "AX3000T router",
+  "method": "five paired 20000-call batches, order alternates H06/H07 and H07/H06; allocations counted separately from timing",
+  "host_gates_passed": true,
+  "subjects": {
+    "h06": {
+      "profile_sha256": "4c4f4b8e20dcd9809e5f64ea85b522a6184b496dd38a88639ddcafcc88ca4e3f",
+      "stages": {
+        "mime_dat": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 1107.22,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1095.59,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1113.36,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1105.51,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1092.36,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 1105.51
+        },
+        "mime_css": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 95.48,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 92.17,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 90.97,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 95.99,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 85.29,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 92.17
+        },
+        "mime_html": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 110.64,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 111.69,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 112.8,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 111.42,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 109.94,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 111.42
+        },
+        "mime_tar_gz": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 505.9,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 498.87,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 508.82,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 514.77,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 500.43,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 505.9
+        },
+        "parse_buffered": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 8203.31,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8233.53,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8187.23,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8168.48,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8140.66,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 8187.23
+        },
+        "parse_buffered_deadline": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 10304.48,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10460.44,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10556.68,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10523.76,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10216.0,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 10460.44
+        },
+        "lookup": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 12562.17,
+              "allocs": 10,
+              "reallocs": 3,
+              "requested_bytes": 616,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 12370.04,
+              "allocs": 10,
+              "reallocs": 3,
+              "requested_bytes": 616,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 12416.86,
+              "allocs": 10,
+              "reallocs": 3,
+              "requested_bytes": 616,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 12397.37,
+              "allocs": 10,
+              "reallocs": 3,
+              "requested_bytes": 616,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 12293.91,
+              "allocs": 10,
+              "reallocs": 3,
+              "requested_bytes": 616,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 12397.37
+        },
+        "date": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 2336.29,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2309.93,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2334.65,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2342.55,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2305.21,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 2334.65
+        },
+        "serve_static": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 35544.79,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 34984.62,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 34703.2,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 35101.45,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 34780.08,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            }
+          ],
+          "median_ns": 34984.62
+        },
+        "lookup_serve_static": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 51020.48,
+              "allocs": 11,
+              "reallocs": 4,
+              "requested_bytes": 17752,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 50634.53,
+              "allocs": 11,
+              "reallocs": 4,
+              "requested_bytes": 17752,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 51332.64,
+              "allocs": 11,
+              "reallocs": 4,
+              "requested_bytes": 17752,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 50617.85,
+              "allocs": 11,
+              "reallocs": 4,
+              "requested_bytes": 17752,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 50307.51,
+              "allocs": 11,
+              "reallocs": 4,
+              "requested_bytes": 17752,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            }
+          ],
+          "median_ns": 50634.53
+        },
+        "parse_lookup_serve_static": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 63459.09,
+              "allocs": 23,
+              "reallocs": 5,
+              "requested_bytes": 18126,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 62233.8,
+              "allocs": 23,
+              "reallocs": 5,
+              "requested_bytes": 18126,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 63395.2,
+              "allocs": 23,
+              "reallocs": 5,
+              "requested_bytes": 18126,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 63239.5,
+              "allocs": 23,
+              "reallocs": 5,
+              "requested_bytes": 18126,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 62408.04,
+              "allocs": 23,
+              "reallocs": 5,
+              "requested_bytes": 18126,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            }
+          ],
+          "median_ns": 63239.5
+        }
+      }
+    },
+    "h07": {
+      "profile_sha256": "d4b86c6536ea6ac1b7234754814ab0075a98c182ac8b9f03d73e1ddaf2009942",
+      "stages": {
+        "mime_dat": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 1115.81,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1090.57,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1123.63,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1120.42,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 1093.85,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 1115.81
+        },
+        "mime_css": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 90.14,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 89.26,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 102.73,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 90.71,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 93.04,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 90.71
+        },
+        "mime_html": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 112.83,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 107.54,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 114.47,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 113.35,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 109.19,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 112.83
+        },
+        "mime_tar_gz": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 506.61,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 499.57,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 501.09,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 501.45,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 506.6,
+              "allocs": 0,
+              "reallocs": 0,
+              "requested_bytes": 0,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 501.45
+        },
+        "parse_buffered": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 8321.3,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8272.43,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8347.19,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8320.79,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 8244.87,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 8320.79
+        },
+        "parse_buffered_deadline": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 10357.01,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10288.71,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10363.08,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10393.41,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 10407.5,
+              "allocs": 12,
+              "reallocs": 1,
+              "requested_bytes": 374,
+              "timeout_syscalls": 1,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 10363.08
+        },
+        "lookup": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 7123.74,
+              "allocs": 4,
+              "reallocs": 0,
+              "requested_bytes": 315,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 7044.1,
+              "allocs": 4,
+              "reallocs": 0,
+              "requested_bytes": 315,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 7087.95,
+              "allocs": 4,
+              "reallocs": 0,
+              "requested_bytes": 315,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 7112.59,
+              "allocs": 4,
+              "reallocs": 0,
+              "requested_bytes": 315,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 7065.5,
+              "allocs": 4,
+              "reallocs": 0,
+              "requested_bytes": 315,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 7087.95
+        },
+        "date": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 2341.57,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2291.7,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2358.13,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2360.27,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 2293.94,
+              "allocs": 1,
+              "reallocs": 2,
+              "requested_bytes": 56,
+              "timeout_syscalls": 0,
+              "transport_writes": 0
+            }
+          ],
+          "median_ns": 2341.57
+        },
+        "serve_static": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 34522.84,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 34109.95,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 34780.7,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 34604.01,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 34634.33,
+              "allocs": 1,
+              "reallocs": 1,
+              "requested_bytes": 17136,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            }
+          ],
+          "median_ns": 34604.01
+        },
+        "lookup_serve_static": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 44538.58,
+              "allocs": 5,
+              "reallocs": 1,
+              "requested_bytes": 17451,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 44069.72,
+              "allocs": 5,
+              "reallocs": 1,
+              "requested_bytes": 17451,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 44591.95,
+              "allocs": 5,
+              "reallocs": 1,
+              "requested_bytes": 17451,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 44205.02,
+              "allocs": 5,
+              "reallocs": 1,
+              "requested_bytes": 17451,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 44157.37,
+              "allocs": 5,
+              "reallocs": 1,
+              "requested_bytes": 17451,
+              "timeout_syscalls": 0,
+              "transport_writes": 1
+            }
+          ],
+          "median_ns": 44205.02
+        },
+        "parse_lookup_serve_static": {
+          "runs": [
+            {
+              "iterations": 20000,
+              "ns_per_op": 57907.24,
+              "allocs": 17,
+              "reallocs": 2,
+              "requested_bytes": 17825,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 56938.24,
+              "allocs": 17,
+              "reallocs": 2,
+              "requested_bytes": 17825,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 57719.58,
+              "allocs": 17,
+              "reallocs": 2,
+              "requested_bytes": 17825,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 57839.64,
+              "allocs": 17,
+              "reallocs": 2,
+              "requested_bytes": 17825,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            },
+            {
+              "iterations": 20000,
+              "ns_per_op": 57230.19,
+              "allocs": 17,
+              "reallocs": 2,
+              "requested_bytes": 17825,
+              "timeout_syscalls": 1,
+              "transport_writes": 1
+            }
+          ],
+          "median_ns": 57719.58
+        }
+      }
+    }
+  }
+}

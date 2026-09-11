@@ -2,8 +2,9 @@
 //! listing, conditional requests and MIME table.
 
 use crate::http::{self, Method, Request, Response};
+use std::borrow::Cow;
 use std::fs;
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
@@ -24,18 +25,25 @@ pub enum Lookup {
 }
 
 fn canonpath(path: &str) -> String {
-    let mut out: Vec<&str> = Vec::new();
+    let mut out = String::with_capacity(path.len().max(1));
     for segment in path.split('/') {
         match segment {
             "" | "." => {}
             ".." => {
-                out.pop();
+                if let Some(slash) = out.rfind('/') {
+                    out.truncate(slash);
+                }
             }
-            s => out.push(s),
+            s => {
+                out.push('/');
+                out.push_str(s);
+            }
         }
     }
-    let joined = format!("/{}", out.join("/"));
-    joined
+    if out.is_empty() {
+        out.push('/');
+    }
+    out
 }
 
 /// uhttpd's `uh_path_lookup`: longest existing prefix wins, rest is PATH_INFO.
@@ -51,14 +59,24 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         ),
         None => (url, None),
     };
-    let Some(decoded) = http::url_decode(path_part) else {
-        return Lookup::NotFound;
+    // Unescaped paths already have the required UTF-8 representation. For
+    // escaped bytes retain the same malformed-escape and lossy-UTF-8 rules.
+    let bytes;
+    let decoded = if path_part.contains('%') {
+        let Some(decoded) = http::url_decode(path_part) else {
+            return Lookup::NotFound;
+        };
+        bytes = decoded;
+        String::from_utf8_lossy(&bytes)
+    } else {
+        Cow::Borrowed(path_part)
     };
-    let decoded = String::from_utf8_lossy(&decoded).into_owned();
     let trailing_slash = decoded.ends_with('/');
-    let full = format!("{docroot}{decoded}");
+    let mut full = String::with_capacity(docroot.len() + decoded.len());
+    full.push_str(docroot);
+    full.push_str(&decoded);
     // try progressively shorter prefixes ending at '/' boundaries
-    let mut found: Option<(String, String)> = None;
+    let mut found: Option<(String, String, fs::Metadata)> = None;
     let bytes = full.as_bytes();
     let mut i = bytes.len();
     loop {
@@ -68,9 +86,11 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
             } else {
                 Some(canonpath(&full[..i]))
             };
-            if let Some(candidate) = candidate.filter(|p| fs::metadata(p).is_ok()) {
-                found = Some((candidate, full[i..].to_owned()));
-                break;
+            if let Some(candidate) = candidate {
+                if let Ok(meta) = fs::metadata(&candidate) {
+                    found = Some((candidate, full[i..].to_owned(), meta));
+                    break;
+                }
             }
         }
         if i == 0 {
@@ -78,19 +98,16 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         }
         i -= 1;
     }
-    let Some((phys, info)) = found else {
+    let Some((phys, info, meta)) = found else {
         return Lookup::NotFound;
     };
-    if !(phys == docroot || phys.starts_with(&format!("{docroot}/"))) {
+    if !(phys == docroot || phys.strip_prefix(docroot).is_some_and(|tail| tail.starts_with('/'))) {
         return Lookup::NotFound;
     }
-    let Ok(meta) = fs::metadata(&phys) else {
-        return Lookup::NotFound;
-    };
     let name = phys[docroot.len()..].to_owned();
     if meta.is_file() {
         return Lookup::Found(Box::new(PathInfo {
-            phys: PathBuf::from(&phys),
+            phys: PathBuf::from(phys),
             name: if name.is_empty() { "/".into() } else { name },
             info: if info.is_empty() { None } else { Some(info) },
             query,
@@ -127,7 +144,7 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         }
     }
     Lookup::Found(Box::new(PathInfo {
-        phys: PathBuf::from(&phys),
+        phys: PathBuf::from(phys),
         name: dir_name,
         info: None,
         query,
@@ -138,9 +155,8 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
 pub fn mime_type(path: &str) -> &'static str {
     const TABLE: &[(&str, &str)] = &[
         // Verbatim from uhttpd mimetypes.h (uh_mime_types), same order.
-        // C matches case-insensitively at any `.`/`/` boundary anchored to
-        // the end, which equals ends_with(".ext")/ends_with("/ext"); the
-        // path is lowercased before lookup, so entries are lowercase.
+        // Match case-insensitively at a `.`/`/` boundary anchored to the end.
+        // Order matters for compound suffixes such as tar.gz before gz.
         ("txt", "text/plain"),
         ("log", "text/plain"),
         ("js", "text/javascript"),
@@ -200,13 +216,66 @@ pub fn mime_type(path: &str) -> &'static str {
         ("appcache", "text/cache-manifest"),
         ("manifest", "text/cache-manifest"),
     ];
-    let lower = path.to_ascii_lowercase();
+    let path = path.as_bytes();
     for (ext, mime) in TABLE {
-        if lower.ends_with(&format!(".{ext}")) || lower.ends_with(&format!("/{ext}")) {
+        let ext = ext.as_bytes();
+        if path.len() > ext.len()
+            && matches!(path[path.len() - ext.len() - 1], b'.' | b'/')
+            && path[path.len() - ext.len()..].eq_ignore_ascii_case(ext)
+        {
             return mime;
         }
     }
     "application/octet-stream"
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{canonpath, mime_type};
+
+    #[test]
+    fn canonical_paths_preserve_root_and_segment_boundaries() {
+        for (path, expected) in [
+            ("", "/"),
+            ("/", "/"),
+            ("////", "/"),
+            ("relative/file", "/relative/file"),
+            ("/a//b/./c/", "/a/b/c"),
+            ("/a/b/../c", "/a/c"),
+            ("/../../a/../..", "/"),
+            ("/doc/../doc-other/file", "/doc-other/file"),
+            ("/a/.../.hidden", "/a/.../.hidden"),
+            ("/目录/页面/../文件", "/目录/文件"),
+        ] {
+            assert_eq!(canonpath(path), expected, "{path}");
+        }
+    }
+
+    #[test]
+    fn mime_preserves_case_boundaries_and_compound_suffix_priority() {
+        for (path, expected) in [
+            ("/static.dat", "application/octet-stream"),
+            ("/site.CSS", "text/css"),
+            ("/目录/页面.HtMl", "text/html"),
+            ("/README", "text/plain"),
+            ("/readme.txt", "text/plain"),
+            ("/archive.TAR.Gz", "application/x-compressed-tar"),
+            ("/archive.gz", "application/x-gzip"),
+            ("/archive.TAR.BZ2", "application/x-bzip-compressed-tar"),
+            ("/archive.bz2", "application/x-bzip"),
+            ("/WPAD.DAT", "application/x-ns-proxy-autoconfig"),
+            ("/tar.gz", "application/x-compressed-tar"),
+            ("/css", "text/css"),
+            ("css", "application/octet-stream"),
+            ("/mycss", "application/octet-stream"),
+            ("/x.css/unknown", "application/octet-stream"),
+            ("/x.css.", "application/octet-stream"),
+            ("/é", "application/octet-stream"),
+            ("", "application/octet-stream"),
+        ] {
+            assert_eq!(mime_type(path), expected, "{path}");
+        }
+    }
 }
 
 fn etag(meta: &fs::Metadata) -> String {
@@ -215,10 +284,10 @@ fn etag(meta: &fs::Metadata) -> String {
 
 fn ok_headers<W: Write>(resp: &mut Response<W>, meta: Option<&fs::Metadata>) -> io::Result<()> {
     if let Some(meta) = meta {
-        resp.header("ETag", &etag(meta))?;
-        resp.header("Last-Modified", &http::http_date(meta.mtime()))?;
+        resp.header("ETag", format_args!("\"{:x}-{:x}-{:x}\"", meta.ino(), meta.size(), meta.mtime()))?;
+        resp.header("Last-Modified", http::HttpDate(meta.mtime()))?;
     }
-    resp.header("Date", &http::http_date(http::now_unix()))
+    resp.header("Date", http::HttpDate(http::now_unix()))
 }
 
 fn tag_matches(header: &str, tag: &str) -> bool {
@@ -238,9 +307,8 @@ fn preconditions<W: Write>(
     // "%a, %d %b %Y %H:%M:%S %Z"; musl rejects %Z, so on the target both
     // headers never match. Mirror that: only the ETag preconditions apply.
     let _ = http::parse_http_date;
-    let tag = etag(meta);
     if let Some(h) = request.header("if-match") {
-        if !tag_matches(h, &tag) {
+        if !tag_matches(h, &etag(meta)) {
             resp.status(412, "Precondition Failed")?;
             resp.end_headers()?;
             resp.finish()?;
@@ -256,7 +324,7 @@ fn preconditions<W: Write>(
         return Ok(false);
     }
     if let Some(h) = request.header("if-none-match") {
-        if tag_matches(h, &tag) {
+        if tag_matches(h, &etag(meta)) {
             if matches!(request.method, Method::Get | Method::Head) {
                 resp.status(304, "Not Modified")?;
                 ok_headers(resp, Some(meta))?;
@@ -271,7 +339,7 @@ fn preconditions<W: Write>(
     Ok(true)
 }
 
-pub fn serve<W: Write>(
+pub fn serve<W: http::Sink>(
     request: &Request,
     resp: &mut Response<W>,
     pi: &PathInfo,
@@ -300,18 +368,9 @@ pub fn serve<W: Write>(
         resp.status(200, "OK")?;
         ok_headers(resp, Some(&pi.meta))?;
         resp.header("Content-Type", mime_type(&pi.name))?;
-        resp.header("Content-Length", &pi.meta.size().to_string())?;
+        resp.header("Content-Length", pi.meta.size())?;
         resp.end_headers()?;
-        if !resp.is_head() {
-            let mut buf = [0u8; 16384];
-            loop {
-                let n = file.read(&mut buf)?;
-                if n == 0 {
-                    break;
-                }
-                resp.body(&buf[..n])?;
-            }
-        }
+        resp.copy_unchunked(&mut file, pi.meta.size())?;
         return resp.finish();
     }
     if pi.meta.is_dir() {

@@ -388,11 +388,10 @@ impl HttpClient {
         // identical and responsive for both subjects on this client socket.
         quick_ack(&reader.get_ref().0)?;
         let mut line = String::new();
-        reader.read_line(&mut line)?;
-        require(
-            line.split_whitespace().nth(1) == Some("200"),
-            "HTTP status is not 200",
-        )?;
+        require(reader.read_line(&mut line)? > 0, "EOF before HTTP status")?;
+        if line.split_whitespace().nth(1) != Some("200") {
+            return Err(format!("HTTP status is not 200: {line:?}").into());
+        }
         let mut close = line.starts_with("HTTP/1.0");
         let mut length = None;
         let mut chunked = false;
@@ -583,6 +582,76 @@ fn main_inner(a: &[String]) -> Result<()> {
                 },
                 || Ok(()),
             )
+        }
+        "http-resident" => {
+            require(
+                a.len() == 7,
+                "http-resident ADDRESS PATH EXPECT_BYTES CONNECTIONS PID",
+            )?;
+            let count: usize = a[5].parse()?;
+            let pid: u32 = a[6].parse()?;
+            require(
+                (1..=64).contains(&count) && pid != 0,
+                "invalid resident sample size or PID",
+            )?;
+            let expected = fs::read(&a[4])?;
+            let before = proc_sample(pid)?;
+            let mut clients = Vec::with_capacity(count);
+            for _ in 0..count {
+                let mut client = HttpClient {
+                    address: a[2].clone(),
+                    stream: None,
+                };
+                for _ in 0..2 {
+                    require(
+                        client.request("GET", &a[3], &[])? == expected,
+                        "resident HTTP body failed byte validation",
+                    )?;
+                    require(
+                        client.stream.is_some(),
+                        "resident connection did not stay open",
+                    )?;
+                }
+                clients.push(client);
+            }
+            std::thread::sleep(Duration::from_millis(200));
+            let held = proc_sample(pid)?;
+            require(
+                held.start_ticks == before.start_ticks,
+                "resident server was replaced",
+            )?;
+            require(
+                held.values["fds"] == before.values["fds"] + count as u64,
+                "not all resident connections were held",
+            )?;
+            drop(clients);
+            let deadline = Instant::now() + Duration::from_secs(3);
+            let after = loop {
+                let after = proc_sample(pid)?;
+                require(
+                    after.start_ticks == before.start_ticks,
+                    "resident server was replaced",
+                )?;
+                if after.values["fds"] == before.values["fds"]
+                    && after.values["Threads"] == before.values["Threads"]
+                {
+                    break after;
+                }
+                require(
+                    Instant::now() < deadline,
+                    "resident resources were not released",
+                )?;
+                std::thread::sleep(Duration::from_millis(20));
+            };
+            emit(obj([
+                ("connections", integer(count as u64)),
+                ("requests_per_connection", integer(2)),
+                ("response_bytes", integer(expected.len() as u64)),
+                ("before", proc_json(pid, &before)),
+                ("held", proc_json(pid, &held)),
+                ("after_close", proc_json(pid, &after)),
+            ]));
+            Ok(())
         }
         "syslog" => {
             require(a.len() == 7, "syslog LOG_SOCKET UBUS_SOCKET N WARMUP PIDS")?;

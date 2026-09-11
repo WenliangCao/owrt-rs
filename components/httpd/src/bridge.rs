@@ -2,9 +2,10 @@
 //! codes, plus blobmsg <-> JSON conversion.
 
 use crate::http::{Method, Request, Response, Sink};
-use owrt_ubus::convert::{fields_to_json, object_to_payload};
+use owrt_ubus::convert::{fields_to_json, json_to_fields};
 use owrt_ubus::json::{self, Json};
 use owrt_ubus::{blob, BlobBuf, Connection};
+use std::borrow::Cow;
 use std::io::{self, Write};
 use std::sync::Mutex;
 use std::ops::{Deref, DerefMut};
@@ -143,27 +144,64 @@ fn rpc_id(obj: Option<&Json>) -> Json {
     obj.and_then(|o| o.get("id")).cloned().unwrap_or(Json::Null)
 }
 
-fn rpc_error(id: Json, error: RpcError) -> Json {
-    let (code, message) = error.code_message();
-    Json::Object(vec![
-        ("jsonrpc".into(), Json::Str("2.0".into())),
-        ("id".into(), id),
-        (
-            "error".into(),
-            Json::Object(vec![
-                ("code".into(), Json::Int(code)),
-                ("message".into(), Json::Str(message.into())),
-            ]),
-        ),
-    ])
+/// The envelope has fixed field names. Keep only its variable values instead
+/// of allocating a generic JSON object, then serialize once into the wire body.
+struct RpcResponse {
+    id: Json,
+    error: bool,
+    value: Json,
 }
 
-fn rpc_result(id: Json, result: Json) -> Json {
-    Json::Object(vec![
-        ("jsonrpc".into(), Json::Str("2.0".into())),
-        ("id".into(), id),
-        ("result".into(), result),
-    ])
+impl RpcResponse {
+    fn append_to(&self, out: &mut Vec<u8>) {
+        out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"id\":");
+        self.id.append_to(out);
+        out.extend_from_slice(if self.error { b",\"error\":" } else { b",\"result\":" });
+        self.value.append_to(out);
+        out.push(b'}');
+    }
+
+    fn to_bytes(&self) -> Vec<u8> {
+        let mut out = Vec::with_capacity(128);
+        self.append_to(&mut out);
+        out
+    }
+}
+
+fn rpc_batch(responses: impl Iterator<Item = RpcResponse>) -> Vec<u8> {
+    let mut out = Vec::with_capacity(128);
+    out.push(b'[');
+    for (index, response) in responses.enumerate() {
+        if index != 0 { out.push(b','); }
+        response.append_to(&mut out);
+    }
+    out.push(b']');
+    out
+}
+
+fn rpc_error(id: Json, error: RpcError) -> RpcResponse {
+    let (code, message) = error.code_message();
+    RpcResponse { id, error: true, value: Json::Object(vec![
+        ("code".into(), Json::Int(code)),
+        ("message".into(), Json::Str(message.into())),
+    ]) }
+}
+
+fn rpc_result(id: Json, result: Json) -> RpcResponse {
+    RpcResponse { id, error: false, value: result }
+}
+
+/// Most replies carry a single DATA attr. Borrow that payload; multiple DATA
+/// attrs still use the exact concatenation semantics of Reply::fields().
+fn reply_fields(reply: &owrt_ubus::Reply) -> Cow<'_, [u8]> {
+    let mut fields = reply.data.iter().flat_map(|payload| blob::iter(payload))
+        .filter(|attr| attr.id == owrt_ubus::attr::DATA);
+    let Some(first) = fields.next() else { return Cow::Borrowed(&[]) };
+    if fields.next().is_none() {
+        Cow::Borrowed(first.payload)
+    } else {
+        Cow::Owned(reply.fields())
+    }
 }
 
 fn allowed(
@@ -182,7 +220,7 @@ fn allowed(
         .msg_string("function", function);
     match conn.invoke(session_id, "access", b.payload(), bridge.timeout_ms / 2) {
         Ok(reply) => {
-            blob::fields(&reply.fields()).any(|f| f.name == "access" && f.as_bool() == Some(true))
+            blob::fields(&reply_fields(&reply)).any(|f| f.name == "access" && f.as_bool() == Some(true))
         }
         Err(_) => false,
     }
@@ -197,7 +235,7 @@ fn do_call(
     function: &str,
     args: &Json,
     legacy: bool,
-) -> Json {
+) -> RpcResponse {
     let Ok(mut conn) = bridge.connect() else {
         return rpc_error(id, RpcError::Internal);
     };
@@ -213,39 +251,32 @@ fn do_call(
         }
     }
     bridge.record(object, function);
-    let mut payload = object_to_payload(args);
     let mut b = BlobBuf::new();
-    b.put_raw_fields(&payload);
+    if let Json::Object(items) = args {
+        for (name, value) in items {
+            json_to_fields(&mut b, name, value);
+        }
+    }
     b.msg_string("ubus_rpc_session", sid);
-    payload = b.into_payload();
-    match conn.invoke_status(objid, function, &payload, bridge.timeout_ms) {
+    match conn.invoke_status(objid, function, b.payload(), bridge.timeout_ms) {
         Err(e) if e.to_string().contains("timed out") => rpc_error(id, RpcError::Timeout),
         Err(_) => rpc_error(id, RpcError::Internal),
         Ok(reply) => {
-            let data = reply.fields();
+            let data = reply_fields(&reply);
             let has_data = !data.is_empty();
             if legacy {
-                let mut result = vec![Json::Int(reply.status as i64)];
+                let mut result = Vec::with_capacity(2);
+                result.push(Json::Int(reply.status as i64));
                 if has_data {
                     result.push(fields_to_json(&data));
                 }
                 return rpc_result(id, Json::Array(result));
             }
             if reply.status != 0 {
-                return Json::Object(vec![
-                    ("jsonrpc".into(), Json::Str("2.0".into())),
-                    ("id".into(), id),
-                    (
-                        "error".into(),
-                        Json::Object(vec![
-                            ("code".into(), Json::Int(reply.status as i64)),
-                            (
-                                "message".into(),
-                                Json::Str(owrt_ubus::status::name(reply.status)),
-                            ),
-                        ]),
-                    ),
-                ]);
+                return RpcResponse { id, error: true, value: Json::Object(vec![
+                    ("code".into(), Json::Int(reply.status as i64)),
+                    ("message".into(), Json::Str(owrt_ubus::status::name(reply.status))),
+                ]) };
             }
             if has_data {
                 rpc_result(id, fields_to_json(&data))
@@ -256,7 +287,7 @@ fn do_call(
     }
 }
 
-fn do_list(bridge: &Bridge, id: Json, params: Option<&Json>) -> Json {
+fn do_list(bridge: &Bridge, id: Json, params: Option<&Json>) -> RpcResponse {
     let Ok(mut conn) = bridge.connect() else {
         return rpc_error(id, RpcError::Internal);
     };
@@ -285,7 +316,7 @@ fn do_list(bridge: &Bridge, id: Json, params: Option<&Json>) -> Json {
 }
 
 /// Handle one JSON-RPC request object (POST /ubus body element).
-fn handle_object(bridge: &Bridge, obj: &Json, legacy: bool) -> Json {
+fn handle_object(bridge: &Bridge, obj: &Json, legacy: bool) -> RpcResponse {
     let id = rpc_id(Some(obj));
     let Json::Object(_) = obj else {
         return rpc_error(id, RpcError::Parse);
@@ -299,10 +330,10 @@ fn handle_object(bridge: &Bridge, obj: &Json, legacy: bool) -> Json {
     match method {
         "call" => {
             let params = obj.get("params").and_then(Json::as_array).unwrap_or(&[]);
-            let sid = params.first().and_then(Json::as_str).map(str::to_owned);
+            let sid = params.first().and_then(Json::as_str);
             let sid = match sid {
                 Some(s) if !s.is_empty() => s,
-                _ if bridge.noauth => DEFAULT_SID.to_owned(),
+                _ if bridge.noauth => DEFAULT_SID,
                 Some(s) => s,
                 None => return rpc_error(id, RpcError::Parse),
             };
@@ -314,7 +345,7 @@ fn handle_object(bridge: &Bridge, obj: &Json, legacy: bool) -> Json {
             else {
                 return rpc_error(id, RpcError::Parse);
             };
-            do_call(bridge, id, &sid, object, function, args, legacy)
+            do_call(bridge, id, sid, object, function, args, legacy)
         }
         "list" => do_list(bridge, id, obj.get("params")),
         _ => rpc_error(id, RpcError::Method),
@@ -466,17 +497,13 @@ pub fn handle<W: Sink>(
                         send_json(resp, bridge, request, 200, "OK", &out)
                     }
                     Some(Json::Array(items)) => {
-                        let parts: Vec<Json> = items
-                            .iter()
-                            .map(|item| handle_object(bridge, item, true))
-                            .collect();
                         send_json(
                             resp,
                             bridge,
                             request,
                             200,
                             "OK",
-                            Json::Array(parts).to_bytes(),
+                            rpc_batch(items.iter().map(|item| handle_object(bridge, item, true))),
                         )
                     }
                     _ => send_json(
@@ -496,16 +523,16 @@ pub fn handle<W: Sink>(
                         a.strip_prefix("Bearer ")
                             .or_else(|| a.strip_prefix("bearer "))
                     })
-                    .unwrap_or(DEFAULT_SID)
-                    .to_owned();
+                    .unwrap_or(DEFAULT_SID);
                 let out = match parsed {
                     Some(obj @ Json::Object(_)) => {
                         let id = rpc_id(Some(&obj));
                         if obj.get("jsonrpc").and_then(Json::as_str) != Some("2.0") {
                             rpc_error(id, RpcError::Parse)
                         } else if let Some(method) = obj.get("method").and_then(Json::as_str) {
-                            let args = obj.get("params").cloned().unwrap_or(Json::Object(vec![]));
-                            do_call(bridge, id, &sid, object, method, &args, false)
+                            let empty = Json::Object(vec![]);
+                            let args = obj.get("params").unwrap_or(&empty);
+                            do_call(bridge, id, sid, object, method, args, false)
                         } else {
                             rpc_error(id, RpcError::Parse)
                         }
@@ -584,6 +611,62 @@ fn subscribe<W: Sink>(bridge: &Bridge, request: &Request, resp: &mut Response<W>
         poll_fds(&mut fds, -1)?;
         if fds[1].revents & (POLLRDHUP | POLLHUP | POLLERR) != 0 {
             return Err(io::Error::new(io::ErrorKind::ConnectionAborted, "subscriber disconnected"));
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn rpc_envelopes_preserve_bytes_ids_errors_and_batch_order() {
+        let result = rpc_result(Json::Bytes(b"id\xff\"".to_vec()),
+                                Json::Array(vec![Json::Int(0), Json::Bytes(b"a\n\x80".to_vec())]));
+        let expected = b"{\"jsonrpc\":\"2.0\",\"id\":\"id\xff\\\"\",\"result\":[0,\"a\\n\x80\"]}";
+        assert_eq!(result.to_bytes(), expected);
+        let mut prefixed = b"prefix".to_vec();
+        result.append_to(&mut prefixed);
+        assert_eq!(&prefixed[..6], b"prefix");
+        assert_eq!(&prefixed[6..], expected);
+
+        let failure = rpc_error(Json::Null, RpcError::Parse);
+        assert_eq!(failure.to_bytes(),
+                   br#"{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}"#);
+        assert_eq!(rpc_batch(std::iter::empty()), b"[]");
+        let batch = rpc_batch([rpc_result(Json::Int(1), Json::Null), failure].into_iter());
+        assert_eq!(batch,
+                   br#"[{"jsonrpc":"2.0","id":1,"result":null},{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}]"#);
+        let large = rpc_result(Json::Array(vec![Json::Bool(true)]), Json::Str("x".repeat(8192)));
+        let parsed = json::parse_bytes(&large.to_bytes()).unwrap();
+        assert_eq!(parsed.get("id"), Some(&Json::Array(vec![Json::Bool(true)])));
+        assert_eq!(parsed.get("result").and_then(Json::as_str), Some("x".repeat(8192).as_str()));
+    }
+
+    #[test]
+    fn reply_data_keeps_order_and_concatenation_across_messages() {
+        use owrt_ubus::{attr, Reply};
+        let mut fields = BlobBuf::new();
+        fields.msg_bool("access", true).msg_string("value", "data");
+        let data = fields.payload();
+        let reply = |chunks: Vec<Vec<u8>>| Reply { status: 0, data: chunks, fd: None };
+        let mut one = BlobBuf::new();
+        one.put_u32(attr::OBJID, 17).put(attr::DATA, data);
+        let single = reply(vec![one.into_payload()]);
+        assert_eq!(&*reply_fields(&single), data);
+        assert!(matches!(reply_fields(&single), Cow::Borrowed(_)));
+        assert!(reply_fields(&reply(Vec::new())).is_empty());
+
+        // A field split between DATA attrs must still be reassembled exactly,
+        // even across messages or alongside unrelated protocol attrs.
+        for split in 0..=data.len() {
+            let mut first = BlobBuf::new();
+            first.put(attr::DATA, &data[..split]).put_u32(attr::OBJID, 17);
+            let mut second = BlobBuf::new();
+            second.put(attr::DATA, &data[split..]);
+            let multiple = reply(vec![first.into_payload(), second.into_payload()]);
+            assert_eq!(&*reply_fields(&multiple), data, "split at {split}");
+            assert_eq!(fields_to_json(&reply_fields(&multiple)), fields_to_json(data));
         }
     }
 }

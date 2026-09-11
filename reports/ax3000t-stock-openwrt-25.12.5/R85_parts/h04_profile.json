@@ -1,0 +1,106 @@
+{
+  "stage": "H04",
+  "method": "paired five 20000-call batches, both parsers use the same reused BufReader over in-memory requests; allocation counting separated from timing",
+  "subjects": {
+    "h03-buffered": {
+      "profile_sha256": "32c9ccd7f12503f3a0d4a9d33cf2fa29d999238cbe4c63ba3c1cc121cabe60b6",
+      "stages": {
+        "parse_buffered": {
+          "ns_per_op_runs": [
+            10358.6,
+            10407.3,
+            10235.67,
+            10201.75,
+            10226.85
+          ],
+          "median_ns": 10235.67,
+          "allocs": 23,
+          "reallocs": 0,
+          "requested_bytes": 554,
+          "timeout_syscalls": 0,
+          "transport_writes": 0
+        },
+        "parse_buffered_deadline": {
+          "ns_per_op_runs": [
+            18211.69,
+            18172.45,
+            18376.36,
+            18035.0,
+            17980.02
+          ],
+          "median_ns": 18172.45,
+          "allocs": 23,
+          "reallocs": 0,
+          "requested_bytes": 554,
+          "timeout_syscalls": 6,
+          "transport_writes": 0
+        },
+        "parse_lookup_serve_static": {
+          "ns_per_op_runs": [
+            84192.77,
+            83059.57,
+            81366.45,
+            82124.91,
+            81239.1
+          ],
+          "median_ns": 82124.91,
+          "allocs": 39,
+          "reallocs": 17,
+          "requested_bytes": 18527,
+          "timeout_syscalls": 6,
+          "transport_writes": 1
+        }
+      }
+    },
+    "h04": {
+      "profile_sha256": "f26edefa3fd6d10e4faa00620373eefa69d561b85202fdf868a257d110151dd5",
+      "stages": {
+        "parse_buffered": {
+          "ns_per_op_runs": [
+            8052.34,
+            8201.24,
+            8134.89,
+            8071.12,
+            8128.39
+          ],
+          "median_ns": 8128.39,
+          "allocs": 12,
+          "reallocs": 1,
+          "requested_bytes": 374,
+          "timeout_syscalls": 0,
+          "transport_writes": 0
+        },
+        "parse_buffered_deadline": {
+          "ns_per_op_runs": [
+            10216.99,
+            10398.99,
+            10254.67,
+            10149.6,
+            10284.36
+          ],
+          "median_ns": 10254.67,
+          "allocs": 12,
+          "reallocs": 1,
+          "requested_bytes": 374,
+          "timeout_syscalls": 1,
+          "transport_writes": 0
+        },
+        "parse_lookup_serve_static": {
+          "ns_per_op_runs": [
+            71360.98,
+            73826.39,
+            73011.27,
+            71524.21,
+            74229.3
+          ],
+          "median_ns": 73011.27,
+          "allocs": 28,
+          "reallocs": 18,
+          "requested_bytes": 18347,
+          "timeout_syscalls": 1,
+          "transport_writes": 1
+        }
+      }
+    }
+  }
+}

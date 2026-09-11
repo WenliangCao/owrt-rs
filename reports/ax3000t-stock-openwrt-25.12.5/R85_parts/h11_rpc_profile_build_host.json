@@ -1,0 +1,426 @@
+{
+  "host": "aarch64 Linux build host",
+  "method": "5 paired repetitions, 20,000 operations each; actual HTTP bridge with original ubusd/rpcd; elapsed stage time includes IPC and is not server CPU or router HTTP latency; allocation counting is separate from timing",
+  "profiler_sha256": {
+    "h10": "3476ddf783695a2d78a6936e3ba6f3fbe0b824aaf3eed133d6e11958ea77b939",
+    "h11": "f381a7505ee5fc36f0bd5ab77123651737a250139a7b989b04ed705bb6bceacd"
+  },
+  "rows": [
+    {
+      "round": 1,
+      "side": "h10",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 168.14,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "side": "h10",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1233.36,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "side": "h10",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 131603.08,
+      "allocs": 58,
+      "reallocs": 31,
+      "requested_bytes": 8334,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 1,
+      "side": "h11",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 167.85,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "side": "h11",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1277.04,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "side": "h11",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 132768.07,
+      "allocs": 54,
+      "reallocs": 31,
+      "requested_bytes": 8102,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "side": "h10",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 167.19,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "side": "h10",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1225.95,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "side": "h10",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 128231.89,
+      "allocs": 58,
+      "reallocs": 31,
+      "requested_bytes": 8334,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "side": "h11",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 169.02,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "side": "h11",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1280.94,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "side": "h11",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 131633.26,
+      "allocs": 54,
+      "reallocs": 31,
+      "requested_bytes": 8102,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "side": "h10",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 169.29,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "side": "h10",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1238.21,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "side": "h10",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 131514.23,
+      "allocs": 58,
+      "reallocs": 31,
+      "requested_bytes": 8334,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "side": "h11",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 167.75,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "side": "h11",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1278.99,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "side": "h11",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 130047.23,
+      "allocs": 54,
+      "reallocs": 31,
+      "requested_bytes": 8102,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "side": "h10",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 170.22,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "side": "h10",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1235.02,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "side": "h10",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 128997.43,
+      "allocs": 58,
+      "reallocs": 31,
+      "requested_bytes": 8334,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "side": "h11",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 168.24,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "side": "h11",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1277.48,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "side": "h11",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 131990.15,
+      "allocs": 54,
+      "reallocs": 31,
+      "requested_bytes": 8102,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "side": "h10",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 169.41,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "side": "h10",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1234.15,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "side": "h10",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 131571.38,
+      "allocs": 58,
+      "reallocs": 31,
+      "requested_bytes": 8334,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "side": "h11",
+      "stage": "rpc_body_collect",
+      "iterations": 20000,
+      "ns_per_op": 169.26,
+      "allocs": 1,
+      "reallocs": 0,
+      "requested_bytes": 106,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "side": "h11",
+      "stage": "rpc_json_parse",
+      "iterations": 20000,
+      "ns_per_op": 1283.45,
+      "allocs": 11,
+      "reallocs": 2,
+      "requested_bytes": 472,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "side": "h11",
+      "stage": "rpc_handle_reused",
+      "iterations": 20000,
+      "ns_per_op": 128061.31,
+      "allocs": 54,
+      "reallocs": 31,
+      "requested_bytes": 8102,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    }
+  ],
+  "summary": {
+    "rpc_body_collect": {
+      "h10": {
+        "ns_per_op": 169.29,
+        "allocs": 1,
+        "reallocs": 0,
+        "requested_bytes": 106
+      },
+      "h11": {
+        "ns_per_op": 168.24,
+        "allocs": 1,
+        "reallocs": 0,
+        "requested_bytes": 106
+      }
+    },
+    "rpc_handle_reused": {
+      "h10": {
+        "ns_per_op": 131514.23,
+        "allocs": 58,
+        "reallocs": 31,
+        "requested_bytes": 8334
+      },
+      "h11": {
+        "ns_per_op": 131633.26,
+        "allocs": 54,
+        "reallocs": 31,
+        "requested_bytes": 8102
+      }
+    },
+    "rpc_json_parse": {
+      "h10": {
+        "ns_per_op": 1234.15,
+        "allocs": 11,
+        "reallocs": 2,
+        "requested_bytes": 472
+      },
+      "h11": {
+        "ns_per_op": 1278.99,
+        "allocs": 11,
+        "reallocs": 2,
+        "requested_bytes": 472
+      }
+    }
+  },
+  "sources": {
+    "1-h10-rpc-profile/profile.csv": "7002d0c5561ba6e45c3c6d1cab19192005fbf9b7c4326f48331720318925a64b",
+    "1-h11/profile.csv": "660c6b339319b1318ffd0220e8de9c0cbdcc69dc28ec0ff6431e7cf760e34df9",
+    "2-h10-rpc-profile/profile.csv": "154d1479a0b66273961705b0350ac86004f9d94afb55e2f2f5787fe06471a907",
+    "2-h11/profile.csv": "5bee0b31fdd41d0f57d8551ab26551d5d6130cbd7f2b83861b9964c5b5a54405",
+    "3-h10-rpc-profile/profile.csv": "268e5924cf8cb09628d0d8df39c3a772099b8e7213c54e649b8943f27134f279",
+    "3-h11/profile.csv": "e1af780bac14e4f632c2c8603321c5e91c7cdd203895e196ba23c5a829e1179f",
+    "4-h10-rpc-profile/profile.csv": "ab5cc27183fd382837b804d82b8739fb5a97e50022aac48e5f0ee40fbf671c85",
+    "4-h11/profile.csv": "5420923d28dd5444293db24ba539a6e2c373229b588c2a4e5c76bcbd4c2ac176",
+    "5-h10-rpc-profile/profile.csv": "6fb4074388e521a7b0c14f6a7a8ca2bc231e95fff323668f713df8fc227f6ae2",
+    "5-h11/profile.csv": "79b62dba71ebbde0785327b0fdc9c366946f37a9054aec2174300e3aabd2abdd"
+  }
+}

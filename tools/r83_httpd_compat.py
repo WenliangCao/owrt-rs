@@ -157,6 +157,27 @@ def fd_count(pid):
     return len(sudo('ls', '-1', f'/proc/{pid}/fd').stdout.splitlines())
 
 
+def hold_partial_heads(pid, port, count):
+    # A completed TCP handshake does not prove that the server accepted it.
+    # uhttpd checks -N after draining accept(), so a simultaneous third SYN
+    # can join that batch before the listener is disabled (listen.c:85-96).
+    # First establish the occupied-slot precondition, then test the backlog.
+    baseline = fd_count(pid)
+    holders = []
+    try:
+        for _ in range(count):
+            holders.append(raw_connect(port, b'GET /'))
+            deadline = time.monotonic() + 1
+            while fd_count(pid) != baseline + len(holders):
+                require(time.monotonic() < deadline, 'partial client was not accepted before the cap test')
+                time.sleep(.01)
+        return holders
+    except Exception:
+        for sock in holders:
+            sock.close()
+        raise
+
+
 def unix_sockets(pid):
     links = sudo('ls', '-l', f'/proc/{pid}/fd').stdout.decode()
     sockets = set(re.findall(r'socket:\[(\d+)\]', links))
@@ -254,7 +275,8 @@ def run_side(rootfs, binary, notifier, side, port):
             require(request(port + 3, '/cgi-bin/slow')[2] == b'slow\n', '-t 0 did not disable the script timeout')
             results['zero-script-timeout'] = 'script completed with timeout disabled'
 
-            holders = [raw_connect(port + 1, b'GET /') for _ in range(2)]
+            cap_pid = int((root / 'tmp/out/cap.pid').read_text())
+            holders = hold_partial_heads(cap_pid, port + 1, 2)
             queued = raw_connect(port + 1, GET)
             try:
                 queued.settimeout(.25)
@@ -278,7 +300,7 @@ def run_side(rootfs, binary, notifier, side, port):
             results['unlimited'] = 'four partial clients plus a served request'
 
             time.sleep(.3)
-            holders = [raw_connect(port + 1, b'GET /') for _ in range(2)]
+            holders = hold_partial_heads(cap_pid, port + 1, 2)
             stop = threading.Event()
             def drip():
                 while not stop.wait(.35):

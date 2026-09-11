@@ -4,6 +4,14 @@
 # BUNDLE contains ns-exec, owrt-benchmark and the nine shipped Rust binaries.
 # On a physical router this is a device mutation and requires its recovery gate.
 set -eu
+case "${OWRT_HTTPD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_HTTPD_CGI_STRESS:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_HTTPD_RPC_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_HTTPD_MEMORY:-0}" in 0|1) ;; *) exit 2 ;; esac
+if [ "$(( ${OWRT_HTTPD_MATRIX:-0} + ${OWRT_HTTPD_CGI_STRESS:-0} + ${OWRT_HTTPD_RPC_PROFILE:-0} + ${OWRT_HTTPD_MEMORY:-0} ))" -gt 1 ]; then
+    echo 'HTTPD matrix, CGI stress, RPC profiling and held-connection memory are separate runs' >&2
+    exit 2
+fi
 
 if [ "${1:-}" = --namespace ]; then
     shift
@@ -122,6 +130,24 @@ EOF
         printf '%s\n' "$expected" > /tmp/expect.json
         "$bench" rpc "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label.json"
     }
+    http_four() { # label method path body expected total format
+        # Four clients share ONE outer CPU interval. Their overlapping
+        # per-client daemon counters must never be summed.
+        label=$1; method=$2; url=$3; body=$4; expected=$5; total=$6; format=$7
+        count=$((total / 4)); [ "$count" -gt 0 ] || count=1
+        mkdir "$out/$label"
+        printf '{"clients":4,"iterations_per_client":%s,"warmup_per_client":20}\n' "$count" > "$out/$label/group.json"
+        "$bench" snapshot "$monitors" > "$out/$label/before.json"
+        clients=''; j=1
+        while [ "$j" -le 4 ]; do
+            "$bench" http 127.0.0.1:18080 "$method" "$url" "$body" "$expected" "$count" 20 "$monitors" "$format" > "$out/$label/client-$j.json" &
+            clients="$clients $!"; j=$((j + 1))
+        done
+        failed=0
+        for client in $clients; do wait "$client" || failed=1; done
+        "$bench" snapshot "$monitors" > "$out/$label/after.json"
+        [ "$failed" = 0 ]
+    }
     count_exec=$((n / 20)); [ "$count_exec" -gt 0 ] || count_exec=1
     count_fw=$((n / 100)); [ "$count_fw" -gt 0 ] || count_fw=1
     bus_bin=$(choose ubusd /sbin/ubusd ubusd-rs)
@@ -239,6 +265,14 @@ EOF
             ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"ubus\",\"objects\":[[\"uci\",\"configs\"]]}" >/dev/null
             printf '{"jsonrpc":"2.0","id":1,"method":"call","params":["%s","uci","configs",{}]}\n' "$sid" > /tmp/http-post.json
             printf '{"jsonrpc":"2.0","id":1,"result":[0,{"configs":[]}]}\n' > /tmp/http-expect.json
+            if [ "${OWRT_HTTPD_RPC_PROFILE:-0}" = 1 ]; then
+                # Diagnostic stage timings, not HTTP throughput. The profiler
+                # includes the actual bridge source and validates its result.
+                sha256sum /tmp/bin/profile > "$out/profile-sha256.txt"
+                /tmp/bin/profile "$n" rpc /tmp/http-post.json > "$out/profile.csv"
+                touch "$out/COMPLETE"
+                exit 0
+            fi
             mkdir -p /tmp/www/cgi-bin
             dd if=/dev/zero of=/tmp/www/static.dat bs=16384 count=1 2>/dev/null
             printf 'r84 CGI response\n' > /tmp/expected.cgi
@@ -251,9 +285,52 @@ EOF
             "$bin" -f -h /tmp/www -r OpenWrt -x /cgi-bin -u /ubus -t 60 -T 30 -k 20 -A 1 -n 3 -N 100 -R -p 127.0.0.1:18080 > "$out/daemon.log" 2>&1 & subject=$!
             monitors=$subject,$rpc,$bus
             sleep 1; kill -0 "$subject"
-            "$bench" http 127.0.0.1:18080 GET /static.dat - /tmp/www/static.dat "$n" 20 "$monitors" bytes > "$out/static_16k.json"
-            "$bench" http 127.0.0.1:18080 GET /cgi-bin/bench - /tmp/expected.cgi "$count_exec" 5 "$monitors" bytes > "$out/cgi.json"
-            "$bench" http 127.0.0.1:18080 POST /ubus /tmp/http-post.json /tmp/http-expect.json "$n" 20 "$monitors" json > "$out/jsonrpc.json"
+            if [ "${OWRT_HTTPD_MEMORY:-0}" = 1 ]; then
+                # A separate diagnostic client; the frozen timing client above
+                # remains unchanged and no latency samples are mixed in here.
+                sha256sum /tmp/bin/memory-probe > "$out/memory-probe-sha256.txt"
+                /tmp/bin/memory-probe http-resident 127.0.0.1:18080 /static.dat /tmp/www/static.dat 64 "$subject" > "$out/memory.json"
+                n=128
+            elif [ "${OWRT_HTTPD_CGI_STRESS:-0}" = 1 ]; then
+                # In this mode N is per client, for reproducible long-lived
+                # connection stress without unrelated static/RPC traffic.
+                http_four cgi_stress_c4 GET /cgi-bin/bench - /tmp/expected.cgi "$((n * 4))" bytes
+            else
+                "$bench" http 127.0.0.1:18080 GET /static.dat - /tmp/www/static.dat "$n" 20 "$monitors" bytes > "$out/static_16k.json"
+                "$bench" http 127.0.0.1:18080 GET /cgi-bin/bench - /tmp/expected.cgi "$count_exec" 5 "$monitors" bytes > "$out/cgi.json"
+                "$bench" http 127.0.0.1:18080 POST /ubus /tmp/http-post.json /tmp/http-expect.json "$n" 20 "$monitors" json > "$out/jsonrpc.json"
+                if [ "${OWRT_HTTPD_MATRIX:-0}" = 1 ]; then
+                    dd if=/dev/zero of=/tmp/www/small.dat bs=512 count=1 2>/dev/null
+                    cp /tmp/www/static.dat /tmp/www/static.css
+                    cp /www/luci-static/bootstrap/cascade.css /tmp/www/cascade.css
+                    dd if=/dev/zero of=/tmp/www/medium.dat bs=65536 count=1 2>/dev/null
+                    dd if=/dev/zero of=/tmp/www/large.dat bs=65536 count=16 2>/dev/null
+                    sha256sum /tmp/www/*.dat /tmp/www/*.css > "$out/static-fixtures.sha256"
+                    wc -c /tmp/www/*.dat /tmp/www/*.css > "$out/static-fixtures-sizes.txt"
+                    for label in static_512_dat static_16k_dat static_16k_css static_image_css static_64k_dat static_1m_dat; do
+                        matrix_count=$n
+                        case "$label" in
+                            static_512_dat) filename=small.dat ;;
+                            static_16k_dat) filename=static.dat ;;
+                            static_16k_css) filename=static.css ;;
+                            static_image_css) filename=cascade.css ;;
+                            static_64k_dat) filename=medium.dat ;;
+                            static_1m_dat) filename=large.dat; matrix_count=$((n / 10)) ;;
+                        esac
+                        [ "$matrix_count" -gt 0 ] || matrix_count=1
+                        if [ "$label" = static_16k_dat ]; then
+                            # This is the existing measurement, not a second
+                            # independent sample of the same workload.
+                            cp "$out/static_16k.json" "$out/${label}_c1.json"
+                        else
+                            "$bench" http 127.0.0.1:18080 GET "/$filename" - "/tmp/www/$filename" "$matrix_count" 20 "$monitors" bytes > "$out/${label}_c1.json"
+                        fi
+                        http_four "${label}_c4" GET "/$filename" - "/tmp/www/$filename" "$matrix_count" bytes
+                    done
+                    http_four cgi_c4 GET /cgi-bin/bench - /tmp/expected.cgi "$count_exec" bytes
+                    http_four jsonrpc_c4 POST /ubus /tmp/http-post.json /tmp/http-expect.json "$n" json
+                fi
+            fi
             ;;
         *) echo 'unknown component' >&2; exit 2 ;;
     esac

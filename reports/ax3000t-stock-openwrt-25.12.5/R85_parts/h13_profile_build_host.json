@@ -1,0 +1,932 @@
+{
+  "stage": "H13",
+  "host": "aarch64 Linux build host",
+  "profiler_sha256": "1b0011da1bbf64bcef0ba337d812a7a2d14c0e66666e2124480f4b8e89424bac",
+  "method": "Same implementation with fresh and recycled request storage, 5 x 20,000 operations; timing and allocation counting separate; not router HTTP latency",
+  "rows": [
+    {
+      "round": 1,
+      "stage": "mime_dat",
+      "iterations": 20000,
+      "ns_per_op": 122.11,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "mime_css",
+      "iterations": 20000,
+      "ns_per_op": 13.35,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "mime_html",
+      "iterations": 20000,
+      "ns_per_op": 13.09,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "mime_tar_gz",
+      "iterations": 20000,
+      "ns_per_op": 53.3,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "parse_buffered",
+      "iterations": 20000,
+      "ns_per_op": 1075.44,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "parse_buffered_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1558.13,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "lookup",
+      "iterations": 20000,
+      "ns_per_op": 1112.79,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "date",
+      "iterations": 20000,
+      "ns_per_op": 424.22,
+      "allocs": 1,
+      "reallocs": 2,
+      "requested_bytes": 56,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "serve_static",
+      "iterations": 20000,
+      "ns_per_op": 5330.92,
+      "allocs": 1,
+      "reallocs": 1,
+      "requested_bytes": 17138,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 1,
+      "stage": "lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 6757.83,
+      "allocs": 5,
+      "reallocs": 1,
+      "requested_bytes": 17457,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 1,
+      "stage": "parse_lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 8585.2,
+      "allocs": 12,
+      "reallocs": 2,
+      "requested_bytes": 17780,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 1,
+      "stage": "serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 4250.65,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 1,
+      "stage": "parse_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7589.58,
+      "allocs": 11,
+      "reallocs": 1,
+      "requested_bytes": 642,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 1,
+      "stage": "parse_reused_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1070.33,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 1,
+      "stage": "parse_reused_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 6976.46,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "stage": "mime_dat",
+      "iterations": 20000,
+      "ns_per_op": 122.36,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "mime_css",
+      "iterations": 20000,
+      "ns_per_op": 12.87,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "mime_html",
+      "iterations": 20000,
+      "ns_per_op": 13.09,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "mime_tar_gz",
+      "iterations": 20000,
+      "ns_per_op": 53.44,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "parse_buffered",
+      "iterations": 20000,
+      "ns_per_op": 1076.49,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "parse_buffered_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1552.01,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "lookup",
+      "iterations": 20000,
+      "ns_per_op": 1117.17,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "date",
+      "iterations": 20000,
+      "ns_per_op": 360.06,
+      "allocs": 1,
+      "reallocs": 2,
+      "requested_bytes": 56,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "serve_static",
+      "iterations": 20000,
+      "ns_per_op": 5338.51,
+      "allocs": 1,
+      "reallocs": 1,
+      "requested_bytes": 17138,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "stage": "lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 6733.7,
+      "allocs": 5,
+      "reallocs": 1,
+      "requested_bytes": 17457,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "stage": "parse_lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 8631.71,
+      "allocs": 12,
+      "reallocs": 2,
+      "requested_bytes": 17780,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "stage": "serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 4242.72,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "stage": "parse_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7589.75,
+      "allocs": 11,
+      "reallocs": 1,
+      "requested_bytes": 642,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 2,
+      "stage": "parse_reused_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1072.81,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 2,
+      "stage": "parse_reused_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7021.21,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "stage": "mime_dat",
+      "iterations": 20000,
+      "ns_per_op": 124.11,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "mime_css",
+      "iterations": 20000,
+      "ns_per_op": 12.88,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "mime_html",
+      "iterations": 20000,
+      "ns_per_op": 13.16,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "mime_tar_gz",
+      "iterations": 20000,
+      "ns_per_op": 53.0,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "parse_buffered",
+      "iterations": 20000,
+      "ns_per_op": 1079.77,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "parse_buffered_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1571.39,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "lookup",
+      "iterations": 20000,
+      "ns_per_op": 1112.78,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "date",
+      "iterations": 20000,
+      "ns_per_op": 360.86,
+      "allocs": 1,
+      "reallocs": 2,
+      "requested_bytes": 56,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "serve_static",
+      "iterations": 20000,
+      "ns_per_op": 5348.75,
+      "allocs": 1,
+      "reallocs": 1,
+      "requested_bytes": 17138,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "stage": "lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 6798.59,
+      "allocs": 5,
+      "reallocs": 1,
+      "requested_bytes": 17457,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "stage": "parse_lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 8626.82,
+      "allocs": 12,
+      "reallocs": 2,
+      "requested_bytes": 17780,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "stage": "serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 4307.78,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "stage": "parse_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7606.99,
+      "allocs": 11,
+      "reallocs": 1,
+      "requested_bytes": 642,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 3,
+      "stage": "parse_reused_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1069.13,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 3,
+      "stage": "parse_reused_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7017.09,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "stage": "mime_dat",
+      "iterations": 20000,
+      "ns_per_op": 122.32,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "mime_css",
+      "iterations": 20000,
+      "ns_per_op": 12.86,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "mime_html",
+      "iterations": 20000,
+      "ns_per_op": 14.33,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "mime_tar_gz",
+      "iterations": 20000,
+      "ns_per_op": 53.49,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "parse_buffered",
+      "iterations": 20000,
+      "ns_per_op": 1093.17,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "parse_buffered_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1567.81,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "lookup",
+      "iterations": 20000,
+      "ns_per_op": 1142.94,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "date",
+      "iterations": 20000,
+      "ns_per_op": 358.9,
+      "allocs": 1,
+      "reallocs": 2,
+      "requested_bytes": 56,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "serve_static",
+      "iterations": 20000,
+      "ns_per_op": 5480.27,
+      "allocs": 1,
+      "reallocs": 1,
+      "requested_bytes": 17138,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "stage": "lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 6881.59,
+      "allocs": 5,
+      "reallocs": 1,
+      "requested_bytes": 17457,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "stage": "parse_lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 8690.31,
+      "allocs": 12,
+      "reallocs": 2,
+      "requested_bytes": 17780,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "stage": "serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 4279.85,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "stage": "parse_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7619.27,
+      "allocs": 11,
+      "reallocs": 1,
+      "requested_bytes": 642,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 4,
+      "stage": "parse_reused_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1077.09,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 4,
+      "stage": "parse_reused_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7016.54,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "stage": "mime_dat",
+      "iterations": 20000,
+      "ns_per_op": 124.8,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "mime_css",
+      "iterations": 20000,
+      "ns_per_op": 12.72,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "mime_html",
+      "iterations": 20000,
+      "ns_per_op": 13.11,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "mime_tar_gz",
+      "iterations": 20000,
+      "ns_per_op": 53.89,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "parse_buffered",
+      "iterations": 20000,
+      "ns_per_op": 1077.4,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "parse_buffered_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1557.44,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "lookup",
+      "iterations": 20000,
+      "ns_per_op": 1112.62,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "date",
+      "iterations": 20000,
+      "ns_per_op": 362.75,
+      "allocs": 1,
+      "reallocs": 2,
+      "requested_bytes": 56,
+      "timeout_syscalls": 0,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "serve_static",
+      "iterations": 20000,
+      "ns_per_op": 5430.37,
+      "allocs": 1,
+      "reallocs": 1,
+      "requested_bytes": 17138,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "stage": "lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 6832.63,
+      "allocs": 5,
+      "reallocs": 1,
+      "requested_bytes": 17457,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "stage": "parse_lookup_serve_static",
+      "iterations": 20000,
+      "ns_per_op": 8679.48,
+      "allocs": 12,
+      "reallocs": 2,
+      "requested_bytes": 17780,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "stage": "serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 4267.69,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 0,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "stage": "parse_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7637.06,
+      "allocs": 11,
+      "reallocs": 1,
+      "requested_bytes": 642,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    },
+    {
+      "round": 5,
+      "stage": "parse_reused_deadline",
+      "iterations": 20000,
+      "ns_per_op": 1071.16,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0,
+      "timeout_syscalls": 1,
+      "transport_writes": 0
+    },
+    {
+      "round": 5,
+      "stage": "parse_reused_lookup_serve_static_reused",
+      "iterations": 20000,
+      "ns_per_op": 7007.63,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319,
+      "timeout_syscalls": 1,
+      "transport_writes": 1
+    }
+  ],
+  "summary": {
+    "date": {
+      "ns_per_op": 360.86,
+      "allocs": 1,
+      "reallocs": 2,
+      "requested_bytes": 56
+    },
+    "lookup": {
+      "ns_per_op": 1112.79,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319
+    },
+    "lookup_serve_static": {
+      "ns_per_op": 6798.59,
+      "allocs": 5,
+      "reallocs": 1,
+      "requested_bytes": 17457
+    },
+    "mime_css": {
+      "ns_per_op": 12.87,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0
+    },
+    "mime_dat": {
+      "ns_per_op": 122.36,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0
+    },
+    "mime_html": {
+      "ns_per_op": 13.11,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0
+    },
+    "mime_tar_gz": {
+      "ns_per_op": 53.44,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0
+    },
+    "parse_buffered": {
+      "ns_per_op": 1077.4,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323
+    },
+    "parse_buffered_deadline": {
+      "ns_per_op": 1558.13,
+      "allocs": 7,
+      "reallocs": 1,
+      "requested_bytes": 323
+    },
+    "parse_lookup_serve_static": {
+      "ns_per_op": 8631.71,
+      "allocs": 12,
+      "reallocs": 2,
+      "requested_bytes": 17780
+    },
+    "parse_lookup_serve_static_reused": {
+      "ns_per_op": 7606.99,
+      "allocs": 11,
+      "reallocs": 1,
+      "requested_bytes": 642
+    },
+    "parse_reused_deadline": {
+      "ns_per_op": 1071.16,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0
+    },
+    "parse_reused_lookup_serve_static_reused": {
+      "ns_per_op": 7016.54,
+      "allocs": 4,
+      "reallocs": 0,
+      "requested_bytes": 319
+    },
+    "serve_static": {
+      "ns_per_op": 5348.75,
+      "allocs": 1,
+      "reallocs": 1,
+      "requested_bytes": 17138
+    },
+    "serve_static_reused": {
+      "ns_per_op": 4267.69,
+      "allocs": 0,
+      "reallocs": 0,
+      "requested_bytes": 0
+    }
+  },
+  "sources": {
+    "1.csv": "c28ff9712082200c0798fccac91073bb722172fd50edaa117fa877692d6a46e2",
+    "2.csv": "cabec4d49f05c5e37bf2b2dc45004b7fc751f99162492a90bc712b48122cc6da",
+    "3.csv": "fab1be5c9adbbe7c7f07c8330c90c490d1b451d0136d44c5f397e1c00452e2d8",
+    "4.csv": "121a6ce12acf19606f0eb7e63cf2376b1c8c66870d6d4d6cdd5518835e93dcec",
+    "5.csv": "e25fa374d3eaa2d0549555fba05b4f4da6a20e1c9b0cae000bac116b03e10ce5"
+  }
+}

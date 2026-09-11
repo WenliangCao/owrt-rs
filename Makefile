@@ -71,6 +71,7 @@ check-benchmark:
 	cargo test --locked --manifest-path tools/benchmark/Cargo.toml
 	python3 tools/benchmark/test_http_client.py
 	python3 tools/benchmark/test_analyze.py
+	python3 tools/benchmark/test_httpd_analysis.py
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/ns_exec.c
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/socket_constants.c
 

@@ -1,0 +1,117 @@
+{
+  "method": "Linux build-host disposable namespace; 64 kept-alive connections, two validated 16 KiB requests each; all descriptors and threads must return to baseline after close",
+  "host": {
+    "kernel": "6.17.0-1020-oracle",
+    "architecture": "aarch64"
+  },
+  "stages": {
+    "h07": {
+      "stock": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 980,
+          "VmRSS": 980,
+          "RssAnon": 96,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held": {
+          "VmHWM": 1424,
+          "VmRSS": 1424,
+          "RssAnon": 540,
+          "Threads": 1,
+          "fds": 71
+        },
+        "after_close": {
+          "VmHWM": 1148,
+          "VmRSS": 984,
+          "RssAnon": 100,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held_rss_growth_kib": 444
+      },
+      "candidate": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 980,
+          "VmRSS": 980,
+          "RssAnon": 44,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held": {
+          "VmHWM": 3928,
+          "VmRSS": 3928,
+          "RssAnon": 2992,
+          "Threads": 66,
+          "fds": 68
+        },
+        "after_close": {
+          "VmHWM": 3616,
+          "VmRSS": 1000,
+          "RssAnon": 64,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held_rss_growth_kib": 2948
+      }
+    },
+    "h08": {
+      "stock": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 960,
+          "VmRSS": 960,
+          "RssAnon": 100,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held": {
+          "VmHWM": 1404,
+          "VmRSS": 1404,
+          "RssAnon": 544,
+          "Threads": 1,
+          "fds": 71
+        },
+        "after_close": {
+          "VmHWM": 1272,
+          "VmRSS": 964,
+          "RssAnon": 104,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held_rss_growth_kib": 444
+      },
+      "candidate": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 980,
+          "VmRSS": 980,
+          "RssAnon": 44,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held": {
+          "VmHWM": 5104,
+          "VmRSS": 5104,
+          "RssAnon": 4168,
+          "Threads": 66,
+          "fds": 68
+        },
+        "after_close": {
+          "VmHWM": 4768,
+          "VmRSS": 984,
+          "RssAnon": 48,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held_rss_growth_kib": 4124
+      }
+    }
+  }
+}

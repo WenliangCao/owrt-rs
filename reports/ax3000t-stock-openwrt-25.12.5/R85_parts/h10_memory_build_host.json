@@ -1,0 +1,64 @@
+{
+  "stage": "H10",
+  "host": "aarch64 Linux build host",
+  "subject_sha256": "a3a55442df25a1403c731e0155329861906227a0f0732af57f5cb6240802fd3b",
+  "method": "64 persistent clients, two validated 16 KiB responses each; /proc/status samples; fds and threads must return to baseline",
+  "host_details": {
+    "kernel": "6.17.0-1020-oracle",
+    "architecture": "aarch64"
+  },
+  "sides": {
+    "stock": {
+      "connections": 64,
+      "response_bytes": 16384,
+      "before": {
+        "VmHWM": 984,
+        "VmRSS": 984,
+        "RssAnon": 100,
+        "Threads": 1,
+        "fds": 7
+      },
+      "held": {
+        "VmHWM": 1428,
+        "VmRSS": 1428,
+        "RssAnon": 544,
+        "Threads": 1,
+        "fds": 71
+      },
+      "after_close": {
+        "VmHWM": 1276,
+        "VmRSS": 988,
+        "RssAnon": 104,
+        "Threads": 1,
+        "fds": 7
+      },
+      "held_rss_growth_kib": 444
+    },
+    "candidate": {
+      "connections": 64,
+      "response_bytes": 16384,
+      "before": {
+        "VmHWM": 980,
+        "VmRSS": 980,
+        "RssAnon": 44,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held": {
+        "VmHWM": 4080,
+        "VmRSS": 4080,
+        "RssAnon": 3144,
+        "Threads": 66,
+        "fds": 68
+      },
+      "after_close": {
+        "VmHWM": 3744,
+        "VmRSS": 984,
+        "RssAnon": 48,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held_rss_growth_kib": 3100
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "stage": "H05",
+  "host": "aarch64 Linux build host",
+  "subject_sha256": "2ea259c1a4d506c0588784c27677a25087afaa6223c8ba510aeda0cf3a0bb849",
+  "unit_tests": {
+    "passed": 24,
+    "failed": 0,
+    "new_eintr_test_failed_before_fix": true
+  },
+  "cgi_stress": {
+    "clients": [
+      {
+        "successful": 30000,
+        "errors": 0,
+        "warmup": 20
+      },
+      {
+        "successful": 30000,
+        "errors": 0,
+        "warmup": 20
+      },
+      {
+        "successful": 30000,
+        "errors": 0,
+        "warmup": 20
+      },
+      {
+        "successful": 30000,
+        "errors": 0,
+        "warmup": 20
+      }
+    ],
+    "successful": 120000,
+    "warmup": 80
+  },
+  "static_cases": 26,
+  "extended_compatibility": {
+    "passed": 31,
+    "new_differences": 0,
+    "candidate_sse_fds_retained": 0,
+    "original_sse_fds_retained": 12,
+    "candidate_tls_slow_reader_rss_growth_kib": 112
+  },
+  "fuzz": {
+    "cases": 133,
+    "baseline_differences": [
+      "cgi-pathinfo-nul",
+      "chunked-bad-size",
+      "chunked-huge-size",
+      "connect",
+      "header-ctrl",
+      "header-no-colon",
+      "header-obs-fold",
+      "http09",
+      "http12",
+      "http2",
+      "httpx",
+      "json-deep-array",
+      "lf-only",
+      "long-path-8k",
+      "lowercase-method",
+      "method-only",
+      "percent-nul",
+      "pipelined-bad-second",
+      "raw-space-in-path",
+      "tab-separated",
+      "trace",
+      "unknown-method"
+    ],
+    "candidate_changes": [],
+    "survival_failures": [],
+    "passed": true
+  }
+}

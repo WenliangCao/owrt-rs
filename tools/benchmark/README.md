@@ -1,9 +1,10 @@
 # Original OpenWrt vs latest Rust
 
-This benchmark compares implementations, never two Rust revisions. Both sides
-must use the same OpenWrt image, configuration, kernel, drivers and execution
-plane. No generated binaries, images, private configuration or raw device logs
-belong in Git.
+The primary comparison is original OpenWrt versus current Rust. Optimization
+trials may additionally retain a frozen Rust baseline to explain each change.
+Both sides must use the same OpenWrt image, configuration, kernel, drivers and
+execution plane. No generated binaries, images, private configuration or raw
+device logs belong in Git.
 
 ## Build and validate
 
@@ -74,6 +75,66 @@ generation/checks operate only inside the isolated network namespace.
 | reload-config | Unchanged configuration walk with original uci |
 | httpd | 16 KiB static file, CGI, authenticated JSON-RPC |
 
+R85 HTTPD optimization uses `run_httpd.py CANDIDATE PRIVATE_OUT --interface enX`:
+the original image, frozen R84 binary and candidate are measured in a balanced
+12-run sequence (four per side). `--repeats 2` is an exploratory six-run trial.
+The recovery/health gate runs before uploading into a new temporary directory;
+the production binaries/configuration remain active and are checked afterwards.
+Explicitly authorized Wi-Fi management uses `--access wifi --interface enX`;
+it still verifies the active stack, configuration, namespace launcher and host
+health. Workload traffic stays on isolated loopback, and results are downloaded
+after each measurement. This option does not change the recovery requirements
+for deployment, live stack switching or flashing.
+`--sides stock candidate` compares only the original and the candidate. Preserve
+failed frozen-R84 trials separately; they cannot become successful baselines by
+dropping failed clients or averaging only their successful requests.
+`--matrix` adds 512-byte, 16-KiB `.dat`/`.css`, image CSS, 64-KiB and 1-MiB files
+at one and four clients, plus four-client CGI and JSON-RPC. The original native
+client binary stays unchanged. Four-client results retain all latency samples
+and one outer CPU interval, including the separately recorded 20 warm-ups per
+client; divide that CPU by measured plus warm-up operations. Outer throughput
+includes warm-up/startup and has `/proc/uptime` clock resolution. Never sum the
+overlapping daemon CPU intervals inside individual client files. The matrix's
+16-KiB `.dat` c1 file aliases the existing static measurement, not another run.
+
+`components/httpd/examples/profile.rs` directly profiles parser/file-handler
+stages, with allocation counters disabled for timing. Its `_reused` cases keep
+the output allocation across requests; the other cases include a new output
+allocation per request. `trace_httpd.py --clients 4` counts syscalls under
+concurrency on the Linux build host; `--bytes` changes the static fixture size.
+Neither instrumented timing is an end-to-end router performance result.
+
+The CGI connection regression has a separate long-running mode, using the
+same namespace, configuration and frozen client. N is **per client** here:
+
+```sh
+sudo env OWRT_HTTPD_CGI_STRESS=1 sh tools/benchmark/isolated.sh \
+  ROOTFS BUNDLE httpd rs PRIVATE_NEW_OUT 30000
+```
+
+It requires four clients × 30,000 validated requests plus 20 warm-ups each.
+One failed client invalidates the run. Preserve failed R84 attempts and check
+the subject/client hashes and `COMPLETE` marker before accepting a fix.
+Do not combine this mode with `OWRT_HTTPD_MATRIX=1` or substitute it for the
+16-workload performance matrix.
+
+For held-connection memory, build the current client as a **separate diagnostic
+binary** named `memory-probe`; keep the frozen R84 timing binary in place:
+
+```sh
+python3 tools/benchmark/run_httpd.py CANDIDATE NEW_PRIVATE_OUT \
+  --interface enX --access wifi --sides stock candidate --memory-probe MEMORY_PROBE
+python3 tools/benchmark/analyze_httpd_memory.py NEW_PRIVATE_OUT --output DERIVED.json
+```
+
+Each fresh daemon serves two byte-validated 16-KiB responses to each of 64 held
+connections. The client verifies the actual open fd count and process identity,
+then requires fd/thread counts to return to baseline after closing. Four runs
+per side are the default. This measures `/proc/status` RSS and anonymous RSS;
+it does not claim PSS/USS, peak global RAM, or a latency result. The normal host
+health/configuration gates still apply. On the build host the corresponding
+isolated mode is `OWRT_HTTPD_MEMORY=1`, with `memory-probe` in BUNDLE.
+
 ## Whole-system comparisons
 
 Physical cold switching uses `tools/r84_stack_switch.sh` and the detached Mac
@@ -142,6 +203,22 @@ Idle resource snapshots are taken for 120 seconds before and after load. Record
 client-visible recovery time and kernel boot events for every cold boot.
 
 ## Interpretation
+
+For HTTPD RPC stage profiling on the Linux build host, build the HTTPD `profile`
+example into the experimental bundle and run:
+
+```sh
+sudo env OWRT_HTTPD_RPC_PROFILE=1 sh tools/benchmark/isolated.sh \
+  ROOTFS BUNDLE httpd rs NEW_PRIVATE_OUTPUT 20000
+```
+
+This measures request-body collection, JSON parsing, and the actual bridge with
+the image's original ubusd/rpcd. A real authorized UCI result is checked before
+measurement. Timing and allocation counting run separately; these stage timings
+are diagnostic and cannot replace the frozen client's HTTP measurements. Run
+paired repetitions without other load on the host. This mode is separate from
+the full matrix and CGI stress, and uses the same physical-device recovery gate
+if run on a router.
 
 After the four windows and 72 component runs complete, derive allowlisted
 results (raw bodies, configurations, identifiers and tokens remain private):

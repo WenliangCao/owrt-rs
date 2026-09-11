@@ -1,0 +1,163 @@
+{
+  "stage": "H13",
+  "host": "aarch64 Linux build host",
+  "subject_sha256": "08c06fcf1c57c8a659dfb82a0f64eee2535820af5fdf7311e41bc5cf215a21da",
+  "unit_tests": {
+    "passed": 30,
+    "failed": 0
+  },
+  "r14": {
+    "passed": 61,
+    "differences": 0
+  },
+  "static": {
+    "passed": true,
+    "cases": 41,
+    "case_names": [
+      "initial",
+      "cgi-on-reused-connection",
+      "static-after-cgi",
+      "unchanged",
+      "repeated-slash",
+      "dot-segment",
+      "parent-segment",
+      "escaped-dot",
+      "escaped-name-query",
+      "docroot-prefix-boundary",
+      "malformed-path-escape",
+      "atomic-replacement",
+      "permission-revoked",
+      "permission-restored",
+      "head",
+      "deleted",
+      "became-directory",
+      "new-index",
+      "mime-UPPER.CSS",
+      "mime-\u76ee\u5f55.HTML",
+      "mime-archive.TAR.GZ",
+      "mime-archive.tar.bz2",
+      "mime-WPAD.DAT",
+      "mime-README",
+      "mime-unknown.dat",
+      "boundary-16383",
+      "boundary-head-16383",
+      "boundary-16384",
+      "boundary-head-16384",
+      "boundary-16385",
+      "boundary-head-16385",
+      "boundary-65537",
+      "boundary-head-65537",
+      "boundary-1048577",
+      "boundary-head-1048577",
+      "reused-post-length",
+      "reused-get-after-length",
+      "reused-post-chunked",
+      "reused-get-after-chunked",
+      "reused-credentials",
+      "credentials-not-retained"
+    ]
+  },
+  "memory": {
+    "host": {
+      "kernel": "6.17.0-1020-oracle",
+      "architecture": "aarch64"
+    },
+    "sides": {
+      "stock": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 956,
+          "VmRSS": 956,
+          "RssAnon": 96,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held": {
+          "VmHWM": 1400,
+          "VmRSS": 1400,
+          "RssAnon": 540,
+          "Threads": 1,
+          "fds": 71
+        },
+        "after_close": {
+          "VmHWM": 1140,
+          "VmRSS": 960,
+          "RssAnon": 100,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held_rss_growth_kib": 444
+      },
+      "candidate": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 1056,
+          "VmRSS": 980,
+          "RssAnon": 44,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held": {
+          "VmHWM": 4108,
+          "VmRSS": 4108,
+          "RssAnon": 3172,
+          "Threads": 66,
+          "fds": 68
+        },
+        "after_close": {
+          "VmHWM": 3872,
+          "VmRSS": 984,
+          "RssAnon": 48,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held_rss_growth_kib": 3128
+      }
+    }
+  },
+  "extended_compatibility": {
+    "passed": 31,
+    "new_differences": 0,
+    "candidate_sse_fds_retained": 0,
+    "original_sse_fds_retained": 12,
+    "candidate_tls_slow_reader_rss_growth_kib": 112
+  },
+  "fuzz": {
+    "baseline_differences": [
+      "cgi-pathinfo-nul",
+      "chunked-bad-size",
+      "chunked-huge-size",
+      "connect",
+      "header-ctrl",
+      "header-no-colon",
+      "header-obs-fold",
+      "http09",
+      "http12",
+      "http2",
+      "httpx",
+      "json-deep-array",
+      "lf-only",
+      "long-path-8k",
+      "lowercase-method",
+      "method-only",
+      "percent-nul",
+      "pipelined-bad-second",
+      "raw-space-in-path",
+      "tab-separated",
+      "trace",
+      "unknown-method"
+    ],
+    "candidate_changes": [],
+    "cases": 133,
+    "passed": true,
+    "survival_failures": []
+  },
+  "sources": {
+    "static.log": "7a72e358dc5abe5a1a4c668c296d4afb4e81e9bd168f1d50be741162a21797cc",
+    "extended.log": "9c18b2c33bc283a9adb64af2855943eb5b0fb00a257b3dff6d9d2280215a8a85",
+    "fuzz.log": "d12c93f0d3815979388f42c105029d1faff351f8683d278d58225256ec1c5462",
+    "r14.log": "5c3bbdf49f0b529779bbf79a3047a9fe2b47565ec3c4774202fa56b7f7e64744"
+  }
+}
