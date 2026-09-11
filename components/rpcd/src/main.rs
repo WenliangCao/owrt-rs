@@ -14,6 +14,7 @@ mod iwinfoobj;
 mod luci;
 mod procwait;
 mod readiness;
+mod reply;
 mod lucirpc;
 mod rc;
 mod rpcsys;
@@ -153,19 +154,19 @@ fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'
 /// Pack a plugin-object method result into a ubus reply.
 pub fn to_reply(result: Result<Option<Json>, i32>) -> session::Reply {
     match result {
-        Ok(Some(data)) => session::Reply { code: status::OK, data: vec![object_to_payload(&data)] },
-        Ok(None) => session::Reply { code: status::OK, data: vec![] },
-        Err(code) => session::Reply { code, data: vec![] },
+        Ok(Some(data)) => session::Reply::one(status::OK, object_to_payload(&data)),
+        Ok(None) => session::Reply::empty(status::OK),
+        Err(code) => session::Reply::empty(code),
     }
 }
 
 fn reply(conn: &mut Connection, req: Request, r: session::Reply) {
-    if let [data] = r.data.as_slice() {
+    if let Some(data) = r.data.single() {
         let _ = conn.reply_data_status(&req, data, r.code);
         conn.recycle_request(req);
         return;
     }
-    for d in &r.data {
+    for d in r.data.iter() {
         let _ = conn.reply_data(&req, d);
     }
     let _ = conn.reply_status(&req, r.code, None);

@@ -290,3 +290,53 @@ pub fn drop_privileges(uid: u32, gid: u32) -> io::Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{Read, Write};
+    use std::os::fd::AsRawFd;
+    use std::os::unix::net::UnixStream;
+
+    #[test]
+    fn body_without_ancillary_storage_closes_discarded_descriptor() {
+        let (send, receive) = UnixStream::pair().unwrap();
+        let (passed, mut watch) = UnixStream::pair().unwrap();
+        send_with_fd(send.as_raw_fd(), b"bo", b"dy", Some(passed.as_raw_fd())).unwrap();
+        drop(passed);
+        let mut body = [0; 4];
+        assert!(recv_exact(receive.as_raw_fd(), &mut body, false).unwrap().is_none());
+        assert_eq!(&body, b"body");
+        watch.set_nonblocking(true).unwrap();
+        assert_eq!(watch.read(&mut [0]).unwrap(), 0, "discarded SCM_RIGHTS must not leak");
+
+        let (passed, mut watch) = UnixStream::pair().unwrap();
+        send_with_fd(send.as_raw_fd(), b"ne", b"xt", Some(passed.as_raw_fd())).unwrap();
+        drop(passed);
+        let fd = recv_exact(receive.as_raw_fd(), &mut body, true).unwrap().unwrap();
+        assert_eq!(&body, b"next");
+        let mut received = UnixStream::from(fd);
+        received.write_all(b"x").unwrap();
+        watch.read_exact(&mut [0]).unwrap();
+    }
+
+    #[test]
+    fn nonblocking_fragments_keep_exact_boundaries_and_eof() {
+        let (mut send, receive) = UnixStream::pair().unwrap();
+        receive.set_nonblocking(true).unwrap();
+        let producer = std::thread::spawn(move || {
+            for part in [b"a".as_slice(), b"bc", b"defgh"] {
+                send.write_all(part).unwrap();
+                std::thread::yield_now();
+            }
+        });
+        let mut first = [0; 3];
+        recv_exact(receive.as_raw_fd(), &mut first, true).unwrap();
+        assert_eq!(&first, b"abc");
+        let mut body = [0; 5];
+        recv_exact(receive.as_raw_fd(), &mut body, false).unwrap();
+        assert_eq!(&body, b"defgh");
+        producer.join().unwrap();
+        assert_eq!(recv_exact(receive.as_raw_fd(), &mut [0], false).unwrap_err().kind(), io::ErrorKind::UnexpectedEof);
+    }
+}

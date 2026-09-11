@@ -1,0 +1,36 @@
+{
+  "candidate_sha256": "06370e843fc85dff62ae0d4d354e6b01d24c00b2f7da47b0037d62d1cc07fa47",
+  "source_archive_sha256": "ecf9b238997dfe9fedcf6aca06bdefe8aaaab775fdbad12ffc235db4c372aa85",
+  "archive_sha256": "7821614e979a9cafe7f9084a3a6ac8dba710fca07deac3d2377feac16d53a277",
+  "unit_tests": {
+    "ubus": 28,
+    "rpcd": 49
+  },
+  "gate_exit_codes": {
+    "r13_rpcd_check": 0,
+    "r19_lucirpc_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "defer": 0,
+    "r17_rpcd_core_check": 0,
+    "bytes": 0,
+    "rpcd-r26": 0
+  },
+  "steps": {
+    "r13": 63,
+    "r17": 283,
+    "r18": 77,
+    "r19": 11,
+    "fuzz": 733
+  },
+  "differences": 0,
+  "physical_benchmark": "Not run: no stage improvement. Production changes withdrawn; regression tests retained.",
+  "logs": {
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "rpcd-r26.log": "ae1bda3d33929b9fd44a2fbab0aae0cbc674022bc1eed980d5a329654a488c02"
+  }
+}

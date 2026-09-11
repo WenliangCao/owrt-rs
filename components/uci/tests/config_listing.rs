@@ -64,3 +64,16 @@ fn follows_link_targets_and_observes_add_remove_and_type_changes() {
     fs::write(f.dir.join("newconfig"), "").unwrap();
     assert_eq!(file::list_config_files(&f.ctx).unwrap(), ["broken", "directory", "dirlink", "newconfig"]);
 }
+
+#[test]
+fn names_survive_directory_buffer_refills_and_long_record_boundaries() {
+    let f = Fixture::new();
+    let mut expected = Vec::new();
+    for i in 0..300 {
+        let name = format!("{i:03}_{}", "x".repeat(if i % 2 == 0 { 251 } else { 123 }));
+        fs::write(f.dir.join(&name), "").unwrap();
+        expected.push(name);
+    }
+    assert_eq!(file::list_config_files(&f.ctx).unwrap(), expected);
+    assert_eq!(file::list_config_files_in("bad\0directory"), Err(Error::NotFound));
+}

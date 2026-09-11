@@ -115,7 +115,11 @@ macro_rules! tr {
 
 /// rpc_uci_status
 fn uci_status(ctx: &Context) -> i32 {
-    match ctx.err {
+    uci_error(ctx.err)
+}
+
+fn uci_error(error: Option<Error>) -> i32 {
+    match error {
         None => status::OK,
         Some(Error::Inval) => status::INVALID_ARGUMENT,
         Some(Error::NotFound) => status::NOT_FOUND,
@@ -257,10 +261,10 @@ fn dump_package(b: &mut BlobBuf, p: &owrt_uci::Package, name: &str, ty: Option<&
 }
 
 fn code(c: i32) -> Reply {
-    Reply { code: c, data: vec![] }
+    Reply::empty(c)
 }
 fn with(c: i32, d: Vec<u8>) -> Reply {
-    Reply { code: c, data: vec![d] }
+    Reply::one(c, d)
 }
 
 fn field_data<'a>(raw: &'a [u8], name: &str, ty: MsgType) -> Option<&'a [u8]> {
@@ -289,7 +293,7 @@ fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
             ptr.option = Some(option.to_owned());
         }
     }
-    let mut data = Vec::new();
+    let mut result = Reply::empty(0);
     if lookup(&mut ctx, &mut ptr).is_ok() && ptr.flags & LOOKUP_COMPLETE != 0 {
         let mut b = BlobBuf::with_capacity(256);
         let p = &ctx.root[pidx];
@@ -298,12 +302,13 @@ fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
             (Some(s), None) => dump_section(&mut b, &p.sections[s], "values", -1),
             (Some(s), Some(o)) => dump_option(&mut b, &p.sections[s].options[o].value, "value"),
         }
-        data.push(b.into_payload());
+        result = Reply::one(0, b.into_payload());
     }
     // out: uci_unload resets the cursor error before rpc_uci_status()
     ctx.unload(pidx);
     ctx.err = None;
-    Reply { code: uci_status(&ctx), data }
+    result.code = uci_status(&ctx);
+    result
 }
 
 fn add(rctx: &Ctx, raw: &[u8]) -> Reply {
@@ -849,8 +854,7 @@ fn revert_commit(rctx: &Ctx, conn: &mut Connection, raw: &[u8], commit: bool) ->
 }
 
 fn configs() -> Reply {
-    let mut ctx = Context::new();
-    match tr!(ctx, file::list_config_files(&ctx)) {
+    match file::list_config_files_in(owrt_uci::context::CONFDIR) {
         Ok(list) => {
             let mut b = BlobBuf::with_capacity(256);
             let c = b.msg_open_array("configs");
@@ -858,9 +862,9 @@ fn configs() -> Reply {
                 b.msg_string("", name);
             }
             b.msg_close(c);
-            with(uci_status(&ctx), b.into_payload())
+            with(status::OK, b.into_payload())
         }
-        Err(_) => code(uci_status(&ctx)),
+        Err(error) => code(uci_error(Some(error))),
     }
 }
 

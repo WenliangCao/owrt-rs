@@ -494,7 +494,7 @@ pub fn get_network_devices() -> Reply {
             network_device(&mut b, &e.file_name().to_string_lossy(), &ifaddr);
         }
     }
-    Reply { code: 0, data: vec![b.into_payload()] }
+    Reply::one(0, b.into_payload())
 }
 
 // ------------------------------------------------------------ host hints
@@ -733,7 +733,7 @@ pub fn get_host_hints() -> Reply {
         }
         b.msg_close(o);
     }
-    Reply { code: 0, data: vec![b.into_payload()] }
+    Reply::one(0, b.into_payload())
 }
 
 // ------------------------------------------------------------ leases / duid / board
@@ -774,16 +774,16 @@ pub fn get_duid_hints() -> Reply {
         b.msg_close(a);
         b.msg_close(o);
     }
-    Reply { code: 0, data: vec![b.into_payload()] }
+    Reply::one(0, b.into_payload())
 }
 
 pub fn get_board_json() -> Reply {
     let Ok(text) = crate::util::read_lossy("/etc/board.json") else {
-        return Reply { code: status::UNKNOWN_ERROR, data: vec![] };
+        return Reply::empty(status::UNKNOWN_ERROR);
     };
     match owrt_ubus::json::parse(&text) {
-        Ok(Json::Object(o)) => Reply { code: 0, data: vec![owrt_ubus::convert::object_to_payload(&Json::Object(o))] },
-        _ => Reply { code: status::UNKNOWN_ERROR, data: vec![] },
+        Ok(Json::Object(o)) => Reply::one(0, owrt_ubus::convert::object_to_payload(&Json::Object(o))),
+        _ => Reply::empty(status::UNKNOWN_ERROR),
     }
 }
 
@@ -793,7 +793,7 @@ pub fn get_dhcp_leases(raw: &[u8]) -> Reply {
         0 => vec![false, true],
         4 => vec![false],
         6 => vec![true],
-        _ => return Reply { code: status::INVALID_ARGUMENT, data: vec![] },
+        _ => return Reply::empty(status::INVALID_ARGUMENT),
     };
     let mut b = BlobBuf::new();
     for v6 in fams {
@@ -836,7 +836,7 @@ pub fn get_dhcp_leases(raw: &[u8]) -> Reply {
         }
         b.msg_close(a);
     }
-    Reply { code: 0, data: vec![b.into_payload()] }
+    Reply::one(0, b.into_payload())
 }
 
 // ------------------------------------------------------------ wireless
@@ -847,8 +847,8 @@ pub fn get_dhcp_leases(raw: &[u8]) -> Reply {
 /// invoke context clears its callback after one message); a failed lookup is
 /// NOT_FOUND, a missing/late reply an empty table.
 pub fn get_wireless_devices(socket: Option<&str>) -> Reply {
-    let Ok(mut conn) = Connection::connect(socket) else { return Reply { code: status::NOT_FOUND, data: vec![] } };
-    let Ok(id) = conn.lookup_id("network.wireless", 2000) else { return Reply { code: status::NOT_FOUND, data: vec![] } };
+    let Ok(mut conn) = Connection::connect(socket) else { return Reply::empty(status::NOT_FOUND) };
+    let Ok(id) = conn.lookup_id("network.wireless", 2000) else { return Reply::empty(status::NOT_FOUND) };
     let msg: Vec<u8> = match conn.invoke_status(id, "status", &[], 2000) {
         Ok(reply) => reply
             .data
@@ -901,7 +901,7 @@ pub fn get_wireless_devices(socket: Option<&str>) -> Reply {
         crate::iwinfoobj::luci_iwinfo(&mut b, first_ifname.as_deref().unwrap_or(wifi.name), true);
         b.msg_close(o);
     }
-    Reply { code: 0, data: vec![b.into_payload()] }
+    Reply::one(0, b.into_payload())
 }
 
 // ------------------------------------------------------------ dispatch
@@ -933,7 +933,7 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
             std::thread::spawn(move || d.finish(req, get_wireless_devices(socket.as_deref())));
             Outcome::Deferred
         }
-        _ => Outcome::Now(req, Reply { code: status::METHOD_NOT_FOUND, data: vec![] }),
+        _ => Outcome::Now(req, Reply::empty(status::METHOD_NOT_FOUND)),
     }
 }
 

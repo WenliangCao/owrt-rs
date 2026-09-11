@@ -1,0 +1,59 @@
+{
+  "candidate_sha256": "fac58c653bc433dc7dd1a263146f556c58ea1bf3bf615b286c7f6ca53775f03c",
+  "source_archive_sha256": "e8ac2e7ca1d9bc0ae10a0e1d66ff9f4e4a5ebf6ab7d9149f234345d519f59d92",
+  "archive_sha256": "123354069cbc94eb2050fb056184ce3aacd7a653e2182e29db383f93db9aa1b0",
+  "unit_tests": {
+    "ubus": 28,
+    "rpcd": 51
+  },
+  "gate_exit_codes": {
+    "r13_rpcd_check": 0,
+    "r19_lucirpc_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "defer": 0,
+    "r17_rpcd_core_check": 0,
+    "bytes": 0,
+    "rpcd-r26": 1
+  },
+  "steps": {
+    "r13": 63,
+    "r17": 283,
+    "r18": 77,
+    "r19": 11,
+    "fuzz": 733
+  },
+  "fuzz_difference": {
+    "step": "f0422_luci_getFeatures",
+    "fields": {
+      "netifd_vrf": {
+        "stock": false,
+        "candidate": true
+      },
+      "odhcpd": {
+        "stock": false,
+        "candidate": {
+          "ra": true,
+          "ndp": true,
+          "dhcpv6": true,
+          "dhcpv4": false,
+          "ubus": true
+        }
+      }
+    },
+    "disposition": "Full raw output shows two fields in one failing step. Previously observed stock feature omission; no syscall trace of this exact call, no rerun or masking."
+  },
+  "logs": {
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "rpcd-r26.log": "c5447fdcb243e1cb54be0903401bd4505abc1f495ccbaffd3be851148e0fb501"
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 688,
+    "health_identity_boot_configuration_unchanged": true
+  }
+}

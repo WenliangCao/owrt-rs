@@ -58,7 +58,7 @@ fn arg_bool(args: &Json, key: &str) -> bool {
     matches!(args.get(key), Some(Json::Bool(true)))
 }
 
-fn add_stat(out: &mut BlobBuf, m: &fs::Metadata) {
+fn add_stat(out: &mut BlobBuf, m: &fs::Metadata, names: &mut util::IdentityNames) {
     let ty = if m.file_type().is_file() {
         "file"
     } else if m.file_type().is_dir() {
@@ -91,11 +91,11 @@ fn add_stat(out: &mut BlobBuf, m: &fs::Metadata) {
     ] {
         json_to_fields(out, name, &Json::Int(value));
     }
-    if let Some(u) = util::user_name(m.uid()) {
-        out.msg_string("user", &u);
+    if let Some(u) = names.user(m.uid()) {
+        out.msg_string("user", u);
     }
-    if let Some(g) = util::group_name(m.gid()) {
-        out.msg_string("group", &g);
+    if let Some(g) = names.group(m.gid()) {
+        out.msg_string("group", g);
     }
 }
 
@@ -247,6 +247,7 @@ fn list(ctx: &Ctx, args: PathArgs<'_>) -> Result<Vec<u8>, i32> {
     let (path, _) = check_path_args(ctx, args, "list", false, false)?;
     let rd = fs::read_dir(&path).map_err(|e| errno_status(&e))?;
     let mut out = BlobBuf::with_capacity(256);
+    let mut names = util::IdentityNames::default();
     let entries = out.msg_open_array("entries");
     for e in rd.flatten() {
         let name = e.file_name();
@@ -254,14 +255,14 @@ fn list(ctx: &Ctx, args: PathArgs<'_>) -> Result<Vec<u8>, i32> {
         let Ok(m) = fs::symlink_metadata(&entrypath) else { continue };
         let entry = out.msg_open_table("");
         out.msg_string_bytes("name", name.as_bytes());
-        add_stat(&mut out, &m);
+        add_stat(&mut out, &m, &mut names);
         if m.file_type().is_symlink() {
             let target = out.msg_open_table("target");
             if let Ok(link) = fs::read_link(&entrypath) {
                 out.msg_string_bytes("name", link.as_os_str().as_bytes());
             }
             match fs::metadata(&entrypath) {
-                Ok(tm) => add_stat(&mut out, &tm),
+                Ok(tm) => add_stat(&mut out, &tm, &mut names),
                 Err(_) => { out.msg_string("type", "broken"); },
             }
             out.msg_close(target);
@@ -276,7 +277,7 @@ fn stat(ctx: &Ctx, args: PathArgs<'_>, use_lstat: bool) -> Result<Vec<u8>, i32> 
     let (path, m) = check_path_args(ctx, args, "list", true, use_lstat)?;
     let mut out = BlobBuf::with_capacity(256);
     out.msg_string_bytes("path", path.as_os_str().as_bytes());
-    add_stat(&mut out, &m.unwrap());
+    add_stat(&mut out, &m.unwrap(), &mut util::IdentityNames::default());
     Ok(out.into_payload())
 }
 
@@ -609,8 +610,8 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
     };
     if let Some(payload) = payload {
         let reply = match payload {
-            Ok(data) => Reply { code: status::OK, data: vec![data] },
-            Err(code) => Reply { code, data: vec![] },
+            Ok(data) => Reply::one(status::OK, data),
+            Err(code) => Reply::empty(code),
         };
         return Outcome::Now(req, reply);
     }

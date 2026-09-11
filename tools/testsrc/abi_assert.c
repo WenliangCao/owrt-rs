@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/epoll.h>
+#include <dirent.h>
 #include <sys/un.h>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -79,6 +80,14 @@ A(EPOLLIN == 1);
 A(CLOCK_THREAD_CPUTIME_ID == 3);
 A(sizeof(struct timespec) == 16);
 A(offsetof(struct timespec, tv_nsec) == 8);
+
+/* components/uci/src/file.rs: borrowed Linux directory names */
+A(sizeof(struct dirent) == 280);
+A(offsetof(struct dirent, d_type) == 18);
+A(offsetof(struct dirent, d_name) == 19);
+A(DT_UNKNOWN == 0);
+A(DT_DIR == 4);
+A(DT_LNK == 10);
 
 /* the cmsg arithmetic in both sys.rs files */
 A(sizeof(struct cmsghdr) == 16);

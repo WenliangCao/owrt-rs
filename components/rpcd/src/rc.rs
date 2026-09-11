@@ -157,7 +157,7 @@ fn scan(path: &str, name: &str, skip_running_check: bool) -> Option<Entry> {
 
 fn list_run(req_name: Option<String>, skip_running_check: bool) -> Reply {
     let Ok(rd) = fs::read_dir("/etc/init.d") else {
-        return Reply { code: status::UNKNOWN_ERROR, data: vec![] };
+        return Reply::empty(status::UNKNOWN_ERROR);
     };
     let mut b = BlobBuf::new();
     for de in rd.flatten() {
@@ -189,7 +189,7 @@ fn list_run(req_name: Option<String>, skip_running_check: bool) -> Reply {
             break;
         }
     }
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 pub enum Outcome {
@@ -198,7 +198,7 @@ pub enum Outcome {
 }
 
 fn now(req: Request, code: i32) -> Outcome {
-    Outcome::Now(req, Reply { code, data: vec![] })
+    Outcome::Now(req, Reply::empty(code))
 }
 
 pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
@@ -243,7 +243,7 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
                 {
                     let _ = child.wait();
                 }
-                d.finish(req, Reply { code: status::OK, data: vec![] });
+                d.finish(req, Reply::empty(status::OK));
             });
             Outcome::Deferred
         }

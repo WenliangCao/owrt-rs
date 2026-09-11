@@ -161,6 +161,38 @@ pub fn group_name(gid: u32) -> Option<String> {
     lookup_name("/etc/group", gid)
 }
 
+/// Display names for one file response. Repeated consecutive IDs use the name
+/// observed first in this response; a new response always opens current files.
+/// Two slots bound storage independently of directory size. These names are
+/// never used for permissions or session identity.
+#[derive(Default)]
+pub struct IdentityNames {
+    user: LastName,
+    group: LastName,
+}
+
+#[derive(Default)]
+struct LastName(Option<(u32, Option<String>)>);
+
+impl LastName {
+    fn get(&mut self, id: u32, lookup: impl FnOnce() -> Option<String>) -> Option<&str> {
+        if self.0.as_ref().map(|entry| entry.0) != Some(id) {
+            self.0 = Some((id, lookup()));
+        }
+        self.0.as_ref().and_then(|entry| entry.1.as_deref())
+    }
+}
+
+impl IdentityNames {
+    pub fn user(&mut self, uid: u32) -> Option<&str> {
+        self.user.get(uid, || user_name(uid))
+    }
+
+    pub fn group(&mut self, gid: u32) -> Option<&str> {
+        self.group.get(gid, || group_name(gid))
+    }
+}
+
 // ----------------------------------------------------------- FFI bits
 
 #[repr(C)]
@@ -221,6 +253,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn display_name_slots_are_per_response_and_do_not_mix_ids() {
+        let mut slot = LastName::default();
+        assert_eq!(slot.get(1, || Some("first".into())), Some("first"));
+        assert_eq!(slot.get(1, || panic!("same response and ID")), Some("first"));
+        assert_eq!(slot.get(2, || None), None);
+        assert_eq!(slot.get(2, || panic!("missing identity is also a result")), None);
+        assert_eq!(slot.get(1, || Some("changed".into())), Some("changed"));
+        let mut next_response = LastName::default();
+        assert_eq!(next_response.get(1, || Some("new response".into())), Some("new response"));
+    }
+
+    #[test]
     fn identity_lookup_handles_fragmented_lines_raw_names_and_duplicate_ids() {
         let bytes = b"invalid\nwrong:x:not-a-number\nus\xffer:x:41:9::/tmp:/bin/false\r\nlater:x:41:9\nlast:x:42";
         let mut input = BufReader::with_capacity(3, std::io::Cursor::new(bytes));
@@ -238,8 +282,13 @@ mod tests {
         std::io::Write::write_all(&mut file, b"first:x:7\n").unwrap();
         drop(file);
         assert_eq!(lookup_name(path.to_str().unwrap(), 7).as_deref(), Some("first"));
+        let mut response = LastName::default();
+        assert_eq!(response.get(7, || lookup_name(path.to_str().unwrap(), 7)), Some("first"));
         std::fs::write(&path, b"changed:x:7\n").unwrap();
         assert_eq!(lookup_name(path.to_str().unwrap(), 7).as_deref(), Some("changed"));
+        assert_eq!(response.get(7, || lookup_name(path.to_str().unwrap(), 7)), Some("first"));
+        let mut next_response = LastName::default();
+        assert_eq!(next_response.get(7, || lookup_name(path.to_str().unwrap(), 7)), Some("changed"));
         std::fs::remove_file(&path).unwrap();
         assert_eq!(lookup_name(path.to_str().unwrap(), 7), None);
     }

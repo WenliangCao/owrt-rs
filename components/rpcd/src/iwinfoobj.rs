@@ -24,7 +24,7 @@ pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
 }
 
 fn code(c: i32) -> Reply {
-    Reply { code: c, data: vec![] }
+    Reply::empty(c)
 }
 
 /// rpc_iwinfo_open: device argument + iwinfo_backend() probe.
@@ -206,7 +206,7 @@ fn info(raw: &[u8]) -> Reply {
     call_str(&mut b, "name", nl80211::hardware_name(&dev));
     b.msg_close(c);
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 // DEVIATION: the C indexes these tables with IE-derived values unchecked; an
@@ -274,7 +274,7 @@ fn scan(raw: &[u8]) -> Reply {
     }
     b.msg_close(c);
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 /// rpc_iwinfo_add_rateinfo
@@ -374,7 +374,7 @@ fn assoclist(raw: &[u8]) -> Reply {
         }
     }
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 fn survey(raw: &[u8]) -> Reply {
@@ -399,7 +399,7 @@ fn survey(raw: &[u8]) -> Reply {
     }
     b.msg_close(c);
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 fn freqlist(raw: &[u8]) -> Reply {
@@ -429,7 +429,7 @@ fn freqlist(raw: &[u8]) -> Reply {
     }
     b.msg_close(c);
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 fn txpowerlist(raw: &[u8]) -> Reply {
@@ -454,7 +454,7 @@ fn txpowerlist(raw: &[u8]) -> Reply {
     }
     b.msg_close(c);
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 fn countrylist(raw: &[u8]) -> Reply {
@@ -485,7 +485,7 @@ fn countrylist(raw: &[u8]) -> Reply {
     }
     b.msg_close(c);
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 fn phyname(raw: &[u8]) -> Reply {
@@ -497,7 +497,7 @@ fn phyname(raw: &[u8]) -> Reply {
         Ok(name) => {
             let mut b = BlobBuf::new();
             b.msg_string("phyname", &name);
-            Reply { code: status::OK, data: vec![b.into_payload()] }
+            Reply::one(status::OK, b.into_payload())
         }
         Err(()) => code(status::NOT_FOUND),
     }
@@ -518,7 +518,7 @@ fn devices() -> Reply {
     }
     b.msg_close(c);
     close();
-    Reply { code: status::OK, data: vec![b.into_payload()] }
+    Reply::one(status::OK, b.into_payload())
 }
 
 pub fn call(method: &str, raw: &[u8]) -> Reply {

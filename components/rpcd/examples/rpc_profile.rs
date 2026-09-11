@@ -10,6 +10,8 @@ mod glob;
 #[allow(unused_imports)] // only the identity helpers are measured here
 mod util;
 mod profile_support;
+#[path = "../src/reply.rs"]
+mod reply;
 
 // The measured handlers never destroy sessions or touch UCI deltas. Fail if a
 // future profiling path reaches the unlinked destruction callback.

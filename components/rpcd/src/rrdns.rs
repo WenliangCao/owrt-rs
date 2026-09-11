@@ -285,7 +285,7 @@ fn run(mut lk: Lookup, limit: i32, timeout_ms: i32) -> Reply {
             }
         }
     }
-    Reply { code: status::OK, data: vec![lk.out.into_payload()] }
+    Reply::one(status::OK, lk.out.into_payload())
 }
 
 pub enum Outcome {
@@ -323,13 +323,13 @@ pub fn resolve(addrs: &[String], timeout_ms: i32, limit: i32) -> Option<Vec<(Str
     let sock = connect_server(&server, 53).ok()?;
     let lk = Lookup { sock, addrs: addrs.iter().cloned().map(Some).collect(), next: 0, by_id: BTreeMap::new(), seen: BTreeSet::new(), out: BlobBuf::new() };
     let reply = run(lk, limit, timeout_ms);
-    let payload = reply.data.into_iter().next().unwrap_or_default();
+    let payload = reply.data.iter().next().unwrap_or_default();
     Some(blob::fields(&payload).filter_map(|f| f.as_str().map(|v| (f.name.to_owned(), v.to_owned()))).collect())
 }
 
 pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
     if req.method != "lookup" {
-        return Outcome::Now(req, Reply { code: status::METHOD_NOT_FOUND, data: vec![] });
+        return Outcome::Now(req, Reply::empty(status::METHOD_NOT_FOUND));
     }
     let raw = &req.data;
     let port: i32 = arg(raw, "port", MsgType::Int16).and_then(|f| f.as_u32()).map(|v| v as u16 as i32).unwrap_or(53);
@@ -337,21 +337,21 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
     let timeout: i32 = arg(raw, "timeout", MsgType::Int32).and_then(|f| f.as_u32()).map(|v| v as i32).unwrap_or(DEF_TIMEOUT);
     let server = arg_str(raw, "server").map(str::to_owned);
     let Some(addrs) = arg(raw, "addrs", MsgType::Array) else {
-        return Outcome::Now(req, Reply { code: status::INVALID_ARGUMENT, data: vec![] });
+        return Outcome::Now(req, Reply::empty(status::INVALID_ARGUMENT));
     };
     if port <= 0 || limit <= 0 || limit > MAX_LIMIT || timeout <= 0 || timeout > MAX_TIMEOUT {
-        return Outcome::Now(req, Reply { code: status::INVALID_ARGUMENT, data: vec![] });
+        return Outcome::Now(req, Reply::empty(status::INVALID_ARGUMENT));
     }
     let server = match server.filter(|s| !s.is_empty()) {
         Some(s) => s,
         None => match find_nameserver() {
             Some(s) => s,
-            None => return Outcome::Now(req, Reply { code: status::NOT_FOUND, data: vec![] }),
+            None => return Outcome::Now(req, Reply::empty(status::NOT_FOUND)),
         },
     };
     let sock = match connect_server(&server, port as u16) {
         Ok(s) => s,
-        Err(_) => return Outcome::Now(req, Reply { code: status::UNKNOWN_ERROR, data: vec![] }),
+        Err(_) => return Outcome::Now(req, Reply::empty(status::UNKNOWN_ERROR)),
     };
     let list: Vec<Option<String>> = blob::iter(addrs.data)
         .map(|a| a.field().and_then(|f| if f.ty == MsgType::String as u32 { f.as_str().map(str::to_owned) } else { None }))

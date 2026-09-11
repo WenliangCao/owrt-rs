@@ -13,6 +13,8 @@ mod iwinfo;
 #[path = "../src/procwait.rs"]
 mod procwait;
 mod profile_support;
+#[path = "../src/reply.rs"]
+mod reply;
 
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::Json;
@@ -30,7 +32,7 @@ impl Ctx {
     }
 }
 mod session {
-    pub struct Reply { pub code: i32, pub data: Vec<Vec<u8>> }
+    pub use crate::reply::Reply;
 }
 #[derive(Clone)]
 pub struct Deferrer;

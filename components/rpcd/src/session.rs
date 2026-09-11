@@ -604,17 +604,18 @@ pub fn arg_str<'a>(raw: &'a [u8], name: &str) -> Option<&'a str> {
     arg(raw, name, MsgType::String).and_then(|f| f.as_str())
 }
 
-/// Result of a session method: status plus zero or more DATA payloads.
-pub struct Reply {
-    pub code: i32,
-    pub data: Vec<Vec<u8>>,
-}
+pub use crate::reply::Reply;
+
+// Immutable wire templates, not cached authorization results. Every request
+// still resolves/touches the session and evaluates its current ACL rules.
+const ACCESS_FALSE: &[u8] = b"\x87\0\0\x11\0\x06access\0\0\0\0\0\0\0\0";
+const ACCESS_TRUE: &[u8] = b"\x87\0\0\x11\0\x06access\0\0\0\0\x01\0\0\0";
 
 fn ok(data: Vec<Vec<u8>>) -> Reply {
-    Reply { code: 0, data }
+    Reply::many(0, data)
 }
 fn err(code: i32) -> Reply {
-    Reply { code, data: vec![] }
+    Reply::empty(code)
 }
 
 pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
@@ -625,14 +626,14 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                 .map(|v| v as i32)
                 .unwrap_or(DEFAULT_TIMEOUT);
             match store.create(timeout) {
-                Some(id) => ok(vec![store.sessions[&id].to_blob(true)]),
+                Some(id) => Reply::one(0, store.sessions[&id].to_blob(true)),
                 None => ok(vec![]),
             }
         }
         "list" => match arg_str(raw, "ubus_rpc_session") {
             None => ok(store.sessions.values().map(|s| s.to_blob(true)).collect()),
             Some(sid) => match store.get(sid) {
-                Some(ses) => ok(vec![ses.to_blob(true)]),
+                Some(ses) => Reply::one(0, ses.to_blob(true)),
                 None => err(status::NOT_FOUND),
             },
         },
@@ -704,13 +705,13 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             let object = object.and_then(|f| f.as_bytes());
             let function = function.and_then(|f| f.as_str());
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
-            let mut b = BlobBuf::with_capacity(24);
             if let (Some(o), Some(f)) = (object, function) {
-                b.msg_bool("access", ses.allowed_bytes(scope, o, f));
-            } else {
-                ses.dump_acls(&mut b);
+                let allowed = ses.allowed_bytes(scope, o, f);
+                return Reply::constant(0, if allowed { ACCESS_TRUE } else { ACCESS_FALSE });
             }
-            ok(vec![b.into_payload()])
+            let mut b = BlobBuf::with_capacity(24);
+            ses.dump_acls(&mut b);
+            Reply::one(0, b.into_payload())
         }
         "set" => {
             let (Some(sid), Some(values)) = (arg_str(raw, "ubus_rpc_session"), arg(raw, "values", MsgType::Table)) else {
@@ -747,7 +748,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                 None => ses.dump_data(&mut b),
             }
             b.msg_close(c);
-            ok(vec![b.into_payload()])
+            Reply::one(0, b.into_payload())
         }
         "unset" => {
             let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
@@ -818,7 +819,7 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             if let Some(f) = arg(raw, "username", MsgType::String) {
                 ses.set(&f);
             }
-            ok(vec![ses.to_blob(true)])
+            Reply::one(0, ses.to_blob(true))
         }
         _ => err(status::METHOD_NOT_FOUND),
     }
@@ -827,6 +828,26 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn constant_access_wire_matches_codec_and_grants_are_rechecked() {
+        for (allowed, wire) in [(false, ACCESS_FALSE), (true, ACCESS_TRUE)] {
+            let mut b = BlobBuf::new();
+            b.msg_bool("access", allowed);
+            assert_eq!(wire, b.into_payload());
+        }
+        let mut store = Store::new();
+        let sid = store.create(0).unwrap();
+        let mut b = BlobBuf::new();
+        b.msg_string("ubus_rpc_session", &sid).msg_string("scope", "ubus")
+            .msg_string("object", "changing").msg_string("function", "read");
+        let raw = b.into_payload();
+        assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_FALSE);
+        store.get(&sid).unwrap().grant("ubus", Some("changing"), Some("read"));
+        assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_TRUE);
+        store.get(&sid).unwrap().revoke("ubus", Some("changing"), Some("read"));
+        assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_FALSE);
+    }
 
     fn empty_store() -> Store {
         Store { sessions: BTreeMap::new(), expiry_hint: None, apply_sid: None }

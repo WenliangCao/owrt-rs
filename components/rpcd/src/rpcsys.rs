@@ -37,7 +37,7 @@ fn errno_status(e: &std::io::Error) -> i32 {
 }
 
 fn code(c: i32) -> Reply {
-    Reply { code: c, data: vec![] }
+    Reply::empty(c)
 }
 
 /// is_all_or_world: `pkg` (NUL-terminated) against world lines terminated by
@@ -169,7 +169,7 @@ fn packagelist(raw: &[u8]) -> Reply {
         }
     }
     b.msg_close(t);
-    Reply { code: 0, data: vec![b.into_payload()] }
+    Reply::one(0, b.into_payload())
 }
 
 /// rpc_cgi_password_set: `/bin/passwd <user>` fed the password twice.
@@ -232,7 +232,7 @@ pub fn call(req: Request, ctx: &Ctx, deferrer: &Deferrer) -> Outcome {
             std::thread::spawn(move || {
                 let params = vec!["--test".to_owned(), "/tmp/firmware.bin".to_owned()];
                 let reply = match file::run_command(&cmd, &params, &[], exec_timeout_ms) {
-                    Ok(json) => Reply { code: status::OK, data: vec![object_to_payload(&json)] },
+                    Ok(json) => Reply::one(status::OK, object_to_payload(&json)),
                     Err(c) => code(c),
                 };
                 d.finish(req, reply);

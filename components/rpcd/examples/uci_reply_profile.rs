@@ -14,6 +14,8 @@ mod glob;
 #[allow(unused_imports)]
 mod util;
 mod profile_support;
+#[path = "../src/reply.rs"]
+mod reply;
 
 use owrt_ubus::{BlobBuf, Connection, Header, ty};
 use profile_support::measure;
