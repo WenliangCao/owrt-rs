@@ -61,6 +61,9 @@ jobs:
       - name: build apks and image
         run: sh tools/ci_build_image.sh "$GITHUB_WORKSPACE/work"
 
+      - name: build standalone core components
+        run: sh tools/ci_build_core.sh "$GITHUB_WORKSPACE/work"
+
       - name: summary
         run: |
           { echo '### owrt-control-plane-rs image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
@@ -74,6 +77,9 @@ jobs:
             work/out/SHA256SUMS
             work/out/binary-sha256.txt
             work/out/manifest.json
+            work/out/core-binaries.tar.gz
+            work/out/core-binary-sha256.txt
+            work/out/core-manifest.json
             work/out/*.log
           if-no-files-found: error
           retention-days: 90
@@ -85,4 +91,5 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME} (OpenWrt ${OPENWRT_VERSION})" \
             --notes "Built by release-image from ${GITHUB_SHA}. Not flashed; see docs/RELEASE.md." \
-            work/out/*.apk work/out/*-sysupgrade.bin work/out/SHA256SUMS work/out/binary-sha256.txt work/out/manifest.json
+            work/out/*.apk work/out/*-sysupgrade.bin work/out/SHA256SUMS work/out/binary-sha256.txt work/out/manifest.json \
+            work/out/core-binaries.tar.gz work/out/core-binary-sha256.txt work/out/core-manifest.json

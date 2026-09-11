@@ -87,3 +87,17 @@ canonical 发货哈希是 `3af335b1…`，诊断脚本 `repro_diag.sh` 收到的
 
 跑两次 `release-image`（同一 commit），比较两次的 `binary-sha256.txt`：六行应完全相同。
 构建主机产物用于比对时，预期只有 `httpd-rs` 一行不同，其余五行相同。
+
+## R85：补齐三个核心组件的来源链（2026-09-11）
+
+`release-image` 增加 `tools/ci_build_core.sh`，在同一提交和已校验 SDK 下构建
+`procd-rs`、`ubusd-rs`、`netifd-rs`。它们的固定构建路径为
+`/tmp/owrt-core-release/<component>`，使用项目固定工具链、release 参数和目标 ABI 检查。
+
+新增产物为 `core-binaries.tar.gz`、`core-binary-sha256.txt` 和 `core-manifest.json`。
+清单记录源码提交、目标、SDK、三个文件及归档哈希，并绑定同次构建的 image manifest；
+生成时逐项核对归档成员、执行权限和文件哈希。将原有六个 `binary_sha256` 与该清单合并后，
+才覆盖九个组件的正式来源。
+
+生成的 sysupgrade 镜像仍按既有方案启用六个包内组件。三个核心文件作为独立产物发布，
+其正式切换继续使用已验证恢复门；生成、下载或验证这些产物不执行设备部署或刷写。

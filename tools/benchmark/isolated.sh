@@ -12,7 +12,7 @@ case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
-case "${OWRT_RPCD_PROFILE_KIND:-rpc}" in rpc|file|uci_reply|uci) ;; *) exit 2 ;; esac
+case "${OWRT_RPCD_PROFILE_KIND:-rpc}" in rpc|file|uci_reply|uci|readiness) ;; *) exit 2 ;; esac
 if [ "${OWRT_RPCD_PROFILE:-0}" = 1 ] && [ "${OWRT_RPCD_MATRIX:-0}" = 1 ]; then
     echo 'RPC profiling and the performance matrix are separate runs' >&2
     exit 2

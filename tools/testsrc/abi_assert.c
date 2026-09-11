@@ -15,6 +15,7 @@
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/epoll.h>
 #include <sys/un.h>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -68,6 +69,16 @@ A(POLLIN == 0x001);
 A(POLLOUT == 0x004);
 A(POLLERR == 0x008);
 A(POLLHUP == 0x010);
+
+/* components/rpcd/src/readiness.rs and its Linux-only CPU diagnostic */
+A(sizeof(struct epoll_event) == 16);
+A(offsetof(struct epoll_event, data) == 8);
+A(EPOLL_CLOEXEC == 0x80000);
+A(EPOLL_CTL_ADD == 1);
+A(EPOLLIN == 1);
+A(CLOCK_THREAD_CPUTIME_ID == 3);
+A(sizeof(struct timespec) == 16);
+A(offsetof(struct timespec, tv_nsec) == 8);
 
 /* the cmsg arithmetic in both sys.rs files */
 A(sizeof(struct cmsghdr) == 16);

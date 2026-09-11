@@ -13,6 +13,7 @@ mod iwinfo;
 mod iwinfoobj;
 mod luci;
 mod procwait;
+mod readiness;
 mod lucirpc;
 mod rc;
 mod rpcsys;
@@ -24,7 +25,7 @@ mod util;
 
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::Json;
-use owrt_ubus::sys::{self, PollFd, POLLIN};
+use owrt_ubus::sys;
 use owrt_ubus::{status, Connection, Incoming, MsgType, Request};
 use std::cell::RefCell;
 use std::os::fd::{AsRawFd, RawFd};
@@ -318,6 +319,7 @@ fn main() {
     let (tx, rx): (Sender<Done>, Receiver<Done>) = mpsc::channel();
     let deferrer = Deferrer { tx, wake: pipe_w.as_raw_fd() };
     let ubus_fd = conn.as_raw_fd();
+    let mut readiness = readiness::Readiness::new([ubus_fd, pipe_r.as_raw_fd()]);
     loop {
         // timers
         ctx.delayed.borrow_mut().reap();
@@ -355,17 +357,11 @@ fn main() {
         if conn.has_pending() {
             timeout = 0;
         }
-        let mut fds = [
-            PollFd { fd: ubus_fd, events: POLLIN, revents: 0 },
-            PollFd { fd: pipe_r.as_raw_fd(), events: POLLIN, revents: 0 },
-        ];
-        if sys::poll_fds(&mut fds, timeout).is_err() {
-            continue;
-        }
-        if fds[1].revents != 0 {
+        let Ok([bus_ready, wake_ready]) = readiness.wait(timeout) else { continue };
+        if wake_ready {
             drain(pipe_r.as_raw_fd());
         }
-        if fds[0].revents != 0 || conn.has_pending() {
+        if bus_ready || conn.has_pending() {
             match conn.read_incoming() {
                 Ok(Incoming::Invoke(req)) => dispatch(&ctx, &mut conn, &ids, req, &deferrer),
                 Ok(_) => {}

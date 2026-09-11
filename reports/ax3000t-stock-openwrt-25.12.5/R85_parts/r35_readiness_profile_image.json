@@ -1,0 +1,407 @@
+{
+  "scope": "Exact OpenWrt image on build host; zero-timeout readiness syscall wall cost and blocking service-thread CPU, not daemon latency. Initial CSV omits iterations; command recorded 1000000.",
+  "archive_sha256": "2b58365f86419574b1388340bfbca2528ec0df9244e021d3d80c9157490a0524",
+  "profiles": {
+    "r35-readiness": {
+      "profile_sha256": "817de481e6636aa11d6a76e94bd4979aa4a49a56fc7939a8b158034e87c91153",
+      "csv_sha256": "a6b06ba8cf92b0c62f748d1cab0ae931bccfe4717ea8912a351fb6ac4c0d80f0",
+      "runs": [
+        {
+          "round": 1,
+          "state": "false",
+          "implementation": "poll",
+          "ns_per_op": 272.71,
+          "iterations": 1000000
+        },
+        {
+          "round": 1,
+          "state": "false",
+          "implementation": "epoll",
+          "ns_per_op": 161.76,
+          "iterations": 1000000
+        },
+        {
+          "round": 1,
+          "state": "true",
+          "implementation": "poll",
+          "ns_per_op": 271.22,
+          "iterations": 1000000
+        },
+        {
+          "round": 1,
+          "state": "true",
+          "implementation": "epoll",
+          "ns_per_op": 243.11,
+          "iterations": 1000000
+        },
+        {
+          "round": 2,
+          "state": "false",
+          "implementation": "epoll",
+          "ns_per_op": 162.88,
+          "iterations": 1000000
+        },
+        {
+          "round": 2,
+          "state": "false",
+          "implementation": "poll",
+          "ns_per_op": 271.88,
+          "iterations": 1000000
+        },
+        {
+          "round": 2,
+          "state": "true",
+          "implementation": "epoll",
+          "ns_per_op": 243.43,
+          "iterations": 1000000
+        },
+        {
+          "round": 2,
+          "state": "true",
+          "implementation": "poll",
+          "ns_per_op": 271.51,
+          "iterations": 1000000
+        },
+        {
+          "round": 3,
+          "state": "false",
+          "implementation": "poll",
+          "ns_per_op": 271.75,
+          "iterations": 1000000
+        },
+        {
+          "round": 3,
+          "state": "false",
+          "implementation": "epoll",
+          "ns_per_op": 161.57,
+          "iterations": 1000000
+        },
+        {
+          "round": 3,
+          "state": "true",
+          "implementation": "poll",
+          "ns_per_op": 271.25,
+          "iterations": 1000000
+        },
+        {
+          "round": 3,
+          "state": "true",
+          "implementation": "epoll",
+          "ns_per_op": 243.17,
+          "iterations": 1000000
+        },
+        {
+          "round": 4,
+          "state": "false",
+          "implementation": "epoll",
+          "ns_per_op": 162.14,
+          "iterations": 1000000
+        },
+        {
+          "round": 4,
+          "state": "false",
+          "implementation": "poll",
+          "ns_per_op": 273.2,
+          "iterations": 1000000
+        },
+        {
+          "round": 4,
+          "state": "true",
+          "implementation": "epoll",
+          "ns_per_op": 243.79,
+          "iterations": 1000000
+        },
+        {
+          "round": 4,
+          "state": "true",
+          "implementation": "poll",
+          "ns_per_op": 271.07,
+          "iterations": 1000000
+        },
+        {
+          "round": 5,
+          "state": "false",
+          "implementation": "poll",
+          "ns_per_op": 271.86,
+          "iterations": 1000000
+        },
+        {
+          "round": 5,
+          "state": "false",
+          "implementation": "epoll",
+          "ns_per_op": 161.58,
+          "iterations": 1000000
+        },
+        {
+          "round": 5,
+          "state": "true",
+          "implementation": "poll",
+          "ns_per_op": 271.12,
+          "iterations": 1000000
+        },
+        {
+          "round": 5,
+          "state": "true",
+          "implementation": "epoll",
+          "ns_per_op": 243.39,
+          "iterations": 1000000
+        }
+      ],
+      "summary": {
+        "false": {
+          "ns_per_op": {
+            "poll": 271.88,
+            "epoll": 161.76
+          },
+          "epoll_vs_poll_pct": -40.503163160217746
+        },
+        "true": {
+          "ns_per_op": {
+            "poll": 271.22,
+            "epoll": 243.39
+          },
+          "epoll_vs_poll_pct": -10.261042695966394
+        }
+      }
+    },
+    "r35-blocking-readiness": {
+      "profile_sha256": "44633f752cb043500b15e3549b53148d48573cfedc57d08c81256728ccb88b64",
+      "csv_sha256": "f0f3484eb44df3aaf48763d974ac1eb6e85060cb4851ddc164f2771f866828bd",
+      "runs": [
+        {
+          "round": 1,
+          "state": "false",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 272.52
+        },
+        {
+          "round": 1,
+          "state": "false",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 161.27
+        },
+        {
+          "round": 1,
+          "state": "true",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 271.6
+        },
+        {
+          "round": 1,
+          "state": "true",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 251.1
+        },
+        {
+          "round": 1,
+          "state": "blocking_thread_cpu",
+          "implementation": "poll",
+          "iterations": 100000,
+          "ns_per_op": 6257.63
+        },
+        {
+          "round": 1,
+          "state": "blocking_thread_cpu",
+          "implementation": "epoll",
+          "iterations": 100000,
+          "ns_per_op": 5823.01
+        },
+        {
+          "round": 2,
+          "state": "false",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 161.9
+        },
+        {
+          "round": 2,
+          "state": "false",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 271.82
+        },
+        {
+          "round": 2,
+          "state": "true",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 252.77
+        },
+        {
+          "round": 2,
+          "state": "true",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 270.72
+        },
+        {
+          "round": 2,
+          "state": "blocking_thread_cpu",
+          "implementation": "epoll",
+          "iterations": 100000,
+          "ns_per_op": 6298.46
+        },
+        {
+          "round": 2,
+          "state": "blocking_thread_cpu",
+          "implementation": "poll",
+          "iterations": 100000,
+          "ns_per_op": 6500.48
+        },
+        {
+          "round": 3,
+          "state": "false",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 271.53
+        },
+        {
+          "round": 3,
+          "state": "false",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 161.29
+        },
+        {
+          "round": 3,
+          "state": "true",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 270.58
+        },
+        {
+          "round": 3,
+          "state": "true",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 251.56
+        },
+        {
+          "round": 3,
+          "state": "blocking_thread_cpu",
+          "implementation": "poll",
+          "iterations": 100000,
+          "ns_per_op": 6162.65
+        },
+        {
+          "round": 3,
+          "state": "blocking_thread_cpu",
+          "implementation": "epoll",
+          "iterations": 100000,
+          "ns_per_op": 6084.28
+        },
+        {
+          "round": 4,
+          "state": "false",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 161.84
+        },
+        {
+          "round": 4,
+          "state": "false",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 271.2
+        },
+        {
+          "round": 4,
+          "state": "true",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 251.87
+        },
+        {
+          "round": 4,
+          "state": "true",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 270.55
+        },
+        {
+          "round": 4,
+          "state": "blocking_thread_cpu",
+          "implementation": "epoll",
+          "iterations": 100000,
+          "ns_per_op": 6086.19
+        },
+        {
+          "round": 4,
+          "state": "blocking_thread_cpu",
+          "implementation": "poll",
+          "iterations": 100000,
+          "ns_per_op": 6407.01
+        },
+        {
+          "round": 5,
+          "state": "false",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 273.21
+        },
+        {
+          "round": 5,
+          "state": "false",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 161.23
+        },
+        {
+          "round": 5,
+          "state": "true",
+          "implementation": "poll",
+          "iterations": 1000000,
+          "ns_per_op": 271.33
+        },
+        {
+          "round": 5,
+          "state": "true",
+          "implementation": "epoll",
+          "iterations": 1000000,
+          "ns_per_op": 251.83
+        },
+        {
+          "round": 5,
+          "state": "blocking_thread_cpu",
+          "implementation": "poll",
+          "iterations": 100000,
+          "ns_per_op": 6419.49
+        },
+        {
+          "round": 5,
+          "state": "blocking_thread_cpu",
+          "implementation": "epoll",
+          "iterations": 100000,
+          "ns_per_op": 6206.66
+        }
+      ],
+      "summary": {
+        "blocking_thread_cpu": {
+          "ns_per_op": {
+            "poll": 6407.01,
+            "epoll": 6086.19
+          },
+          "epoll_vs_poll_pct": -5.00732791114733
+        },
+        "false": {
+          "ns_per_op": {
+            "poll": 271.82,
+            "epoll": 161.29
+          },
+          "epoll_vs_poll_pct": -40.66293870944008
+        },
+        "true": {
+          "ns_per_op": {
+            "poll": 270.72,
+            "epoll": 251.83
+          },
+          "epoll_vs_poll_pct": -6.977689125295516
+        }
+      }
+    }
+  }
+}
