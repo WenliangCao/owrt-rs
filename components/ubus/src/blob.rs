@@ -258,8 +258,14 @@ impl BlobBuf {
     }
 
     pub fn put_string(&mut self, id: u32, value: &str) -> &mut Self {
+        self.put_string_bytes(id, value.as_bytes())
+    }
+
+    /// Append the supplied bytes and a terminating NUL, without a temporary
+    /// allocation or UTF-8 conversion. Callers choose their C-string length.
+    pub fn put_string_bytes(&mut self, id: u32, value: &[u8]) -> &mut Self {
         let offset = self.open(id, false);
-        self.data.extend_from_slice(value.as_bytes());
+        self.data.extend_from_slice(value);
         self.data.push(0);
         self.close(offset);
         self
@@ -446,6 +452,17 @@ mod tests {
         assert_eq!(attrs[0].as_u32(), Some(0x11223344));
         assert_eq!(attrs[1].as_str(), Some("read"));
         assert_eq!(attrs[2].as_u32(), Some(1));
+    }
+
+    #[test]
+    fn raw_string_bytes_preserve_non_utf8_and_caller_supplied_nuls() {
+        let mut b = BlobBuf::new();
+        b.put_string_bytes(4, b"caf\xff\0tail").put_u32(3, 7);
+        let attrs: Vec<_> = iter(b.payload()).collect();
+        assert_eq!(attrs.len(), 2);
+        assert_eq!(attrs[0].payload, b"caf\xff\0tail\0");
+        assert_eq!(attrs[0].as_str(), None);
+        assert_eq!(attrs[1].as_u32(), Some(7));
     }
 
     #[test]

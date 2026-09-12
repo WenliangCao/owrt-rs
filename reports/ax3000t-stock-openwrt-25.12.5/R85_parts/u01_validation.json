@@ -1,0 +1,44 @@
+{
+  "candidate_sha256": "df916b9b76190816bd7a34be92ec20d7cd78057401a4f33c8a2c4f91ab49ac69",
+  "source_archive_sha256": "b89508286f86b440e72a7561b8ff8a7bae5e7976f5a7165aeb73ab2fbf16fad1",
+  "validation_tools_archive_sha256": "3636a8a70365de944d47a607789b77c4a971989845414fb6549a17cd97d5f648",
+  "archive_sha256": "709eefdbc75ff898fd44100d9445d52390602c39b9b4b96777c19ca73893b6ad",
+  "gate_exit_codes": {
+    "ubusd-r36-ubus": 0,
+    "wireprobe-build": 0,
+    "ubusd-r42": 0,
+    "ubusd-r41": 0,
+    "ubusd-r36": 0,
+    "ubusd-r83": 0,
+    "helpers": 0
+  },
+  "logs": {
+    "helpers.log": "240ea74b6b13b7fe403c66dae9a0a8577315681faa4e90920a251e6ecf6ba46b",
+    "ubusd-r36-ubus.log": "484e722e8b3593702bd3a04a047e3e365977e5067b317dbc2b05b0bf4b3677ce",
+    "ubusd-r36.log": "857625c3ab4322012d441e6fdac90d2323d424fd7d7119db5055214a03142317",
+    "ubusd-r41.log": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+    "ubusd-r42.log": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9",
+    "ubusd-r83.log": "5eb74f85ca76578f1ad82c09fed001f79128ac04315d461aa77672f3610bc895",
+    "wireprobe-build.log": "68a2a738eb704c331503b33a15e4532079e51a33a90cc5a78a44f2c57016758e"
+  },
+  "unit_tests": {
+    "ubusd": 21,
+    "ubus": 33,
+    "reference": "u01_cost_profile.json"
+  },
+  "slow_lookup": {
+    "objects": 200,
+    "exact_ordered_frames": true,
+    "other_client_calls": 32,
+    "sides_passed": [
+      "stock",
+      "candidate"
+    ]
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "workloads": 10,
+    "reference": "u01/results.json"
+  },
+  "note": "Functional gates run after diagnosis completed. r41 now consumes HELLO and really sends a three-byte declared blob, and asserts exact upper/lower size verdicts, survival, fixtures and resource bounds. Old r41 does not establish these size edges."
+}

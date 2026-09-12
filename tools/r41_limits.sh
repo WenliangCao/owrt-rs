@@ -31,6 +31,7 @@ run_one() {
 
 run_one c "$cbin"
 run_one rs "$rsbin"
+python3 "$(dirname "$0")/audit_checks.py" r41 "$out"
 if diff -u "$out/c.txt" "$out/rs.txt" > "$out/diff.txt"; then
 	echo "RESULT: identical"
 	cat "$out/c.txt"

@@ -1,0 +1,51 @@
+{
+  "candidate_sha256": "cfcf9ff9cc84ca6f846206e7948901fd335b382456f3527aa7576bffcb243f85",
+  "source_archive_sha256": "3b69dcb2f11a1e4382f598a1caa2636db4dfccdea2d780151e9f8be544ec256f",
+  "archive_sha256": "30eda827d45d8b4871fd8ed08e8c21d20caa1177599eb3f4b626504f4517cbd0",
+  "gate_exit_codes": {
+    "ubusd-r36-ubus": 0,
+    "ubusd-r42": 0,
+    "ubusd-r41": 0,
+    "ubusd-r36": 0,
+    "ubusd-r83": 0
+  },
+  "logs": {
+    "ubusd-r36-ubus.log": "b9727cac7349b4aef668cc4d73082c1a9dcf3339e8de28d26bbf4195d26e4141",
+    "ubusd-r36.log": "941e9c666de5e3906d7f00aab05f81e117314501c55fbefff717c8928487d206",
+    "ubusd-r41.log": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+    "ubusd-r42.log": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9",
+    "ubusd-r83.log": "7b24590f0e46fba6e301f4b43384b496adc72e3a2c333ddaacd5e72fc0254023"
+  },
+  "unit_tests": {
+    "ubusd": 23,
+    "ubus": 33,
+    "reference": "u03_cost_profile.json"
+  },
+  "slow_lookup": {
+    "objects": 200,
+    "exact_ordered_frames": true,
+    "bytes": 1392800,
+    "other_client_calls": 32,
+    "sides_passed": [
+      "stock",
+      "candidate"
+    ]
+  },
+  "monitor_lookup": {
+    "exact_data": 1,
+    "prefix_data": 4,
+    "ordered_attributes_sequences_directions_payloads": true,
+    "sides_passed": [
+      "stock",
+      "candidate"
+    ]
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "workloads": 10,
+    "verified_raw_files": 472,
+    "health_identity_boot_configuration_unchanged": true,
+    "reference": "u03/results.json"
+  },
+  "note": "All five differential gates completed after diagnosis, without concurrent Oracle profiling/build. The corrected r41 helper is reused from U01; its checksum is in raw binaries.sha256."
+}

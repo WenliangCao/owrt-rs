@@ -148,16 +148,10 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
             accept_all(server, listener);
         }
 
-        // Snapshot the ready set: handlers mutate the client table.
-        let ready: Vec<(u32, i16)> = ids
-            .iter()
-            .zip(fds[2..].iter())
-            .filter(|(_, p)| p.revents != 0)
-            .map(|(id, p)| (*id, p.revents))
-            .collect();
-
-        for (id, revents) in ready {
-            if !service_client(server, id, revents) {
+        // ids/fds already snapshot the owners for this poll. Handlers can
+        // mutate the client table without another allocation of ready ids.
+        for (&id, fd) in ids.iter().zip(&fds[2..]) {
+            if fd.revents != 0 && !service_client(server, id, fd.revents) {
                 server.remove_client(id);
             }
         }

@@ -142,6 +142,26 @@ def transcript42(text):
     require([int(n) for n in cases] == list(range(600)), "fuzzer did not complete 600 mutations")
 
 
+def transcript41(text):
+    require(re.findall(r"^--- (\d+)\.", text, re.M) == ["1", "2", "3", "4"],
+            "limits transcript incomplete")
+    sizes = re.findall(r"^size=(\d+) verdict=(\S+)$", text, re.M)
+    require(sizes == [(str(n), "accepted_replied" if 4 <= n <= 1048576 else "dropped")
+                      for n in (1048572, 1048576, 1048577, 1048580, 2097152, 3)],
+            "message-size probe missing, failed or has wrong verdict")
+    lines = text.splitlines()
+    require(lines.count("  bus_alive_after=yes serving=yes") == 5,
+            "daemon failed after a message-size probe")
+    for line in ("  serving=yes", "objects=200", "during: serving=yes call_rc=0",
+                 "during: rss_growth_kib_bounded=yes", "after: bus_alive=yes",
+                 "after: serving=yes", "after: rss_growth_kib_bounded=yes",
+                 "still_serving=yes", "fd_bounded=yes", "rss_growth_kib_bounded=yes"):
+        require(lines.count(line) == 1, "missing/failed " + line.split("=")[0])
+    signature = re.findall(r"^one_signature_bytes=(\d+)$", text, re.M)
+    require(len(signature) == 1 and int(signature[0]) > 1024,
+            "wide object fixture was not loaded")
+
+
 def validate(case, out, cycles=200):
     def read(side, name):
         return (out / f"{side}-{name}").read_text(errors="surrogateescape")
@@ -207,9 +227,9 @@ def validate(case, out, cycles=200):
                 for label in ("add a dynamic interface with a real device", "remove it again",
                               "remove a config interface, which must survive"):
                     require(calls.get(label, {}).get("status", "").strip() == "0", "dynamic call failed")
-        elif case in ("r36", "r42"):
+        elif case in ("r36", "r41", "r42"):
             text = (out / f"{side}.txt").read_text(errors="surrogateescape")
-            (transcript36 if case == "r36" else transcript42)(text)
+            {"r36": transcript36, "r41": transcript41, "r42": transcript42}[case](text)
 
 
 if __name__ == "__main__":

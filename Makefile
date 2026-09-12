@@ -63,6 +63,7 @@ check-tools:
 
 check-harnesses:
 	@python3 tools/test_audit_checks.py
+	@python3 tools/test_r85_procd_busy_gate.py
 
 # The load generator must reject failed requests and count every operation.
 # Full namespace/rollback gates additionally run on the image's build host.

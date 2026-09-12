@@ -2,7 +2,7 @@
 //! the bounded transmit queue.
 
 use crate::sys;
-use owrt_ubus::msg::{Header, MAX_MSGLEN};
+use owrt_ubus::msg::{ty, Header, MAX_MSGLEN};
 use std::collections::VecDeque;
 use std::io;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
@@ -150,6 +150,71 @@ impl Client {
         }
         self.enqueue(OutMsg { header, blob: blob.to_vec(), fd });
         true
+    }
+
+    /// The final LOOKUP DATA and its successful STATUS are known together.
+    /// Write both immediately, keeping their separate framing and queue caps.
+    /// Neither reply carries a descriptor. Monitor users keep the per-message
+    /// path so each mirror remains at its original send boundary.
+    pub fn send_lookup_reply(&mut self, header: Header, blob: &[u8]) {
+        let status_header = Header { ty: ty::STATUS, ..header };
+        let status_blob = [0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0];
+        if !self.tx.is_empty() {
+            self.send_borrowed(header, blob, None);
+            self.send_borrowed(status_header, &status_blob, None);
+            return;
+        }
+        let mut status_frame = [0u8; Header::LEN + 12];
+        status_frame[..Header::LEN].copy_from_slice(&status_header.encode());
+        status_frame[Header::LEN..].copy_from_slice(&status_blob);
+        let first_len = Header::LEN + blob.len();
+        let written = sys::sendmsg_three(self.fd(), [&header.encode(), blob, &status_frame])
+            .unwrap_or(0);
+        if written < first_len {
+            self.txq_ofs = written;
+            self.txq_len = -(written as i64);
+            self.enqueue(OutMsg { header, blob: blob.to_vec(), fd: None });
+            // If DATA was silently dropped at the cap, STATUS can still go
+            // directly, exactly as on the per-message path.
+            self.send_borrowed(status_header, &status_blob, None);
+        } else if written < first_len + status_frame.len() {
+            self.txq_ofs = written - first_len;
+            self.txq_len = -(self.txq_ofs as i64);
+            self.enqueue(OutMsg { header: status_header, blob: status_blob.to_vec(), fd: None });
+        }
+    }
+
+    /// Submit a bounded sequence of complete descriptor-free LOOKUP frames.
+    /// A short write is split back into the original per-frame queue entries,
+    /// retaining their offsets and cap checks rather than queueing one giant
+    /// synthetic message. `frames` is assembled by Server, never wire input.
+    pub fn send_lookup_batch(&mut self, frames: &[u8]) {
+        let direct = self.tx.is_empty();
+        let written = if direct {
+            sys::sendmsg_two(self.fd(), frames, &[], None).unwrap_or(0)
+        } else {
+            0
+        };
+        if written == frames.len() {
+            return;
+        }
+        let mut pos = 0;
+        while pos < frames.len() {
+            let header = Header::decode(frames[pos..pos + Header::LEN].try_into().unwrap()).unwrap();
+            let start = pos + Header::LEN;
+            let end = start + blob_raw_len(&frames[start..]);
+            if written < end {
+                let blob = &frames[start..end];
+                if direct && written >= pos {
+                    self.txq_ofs = written - pos;
+                    self.txq_len = -(self.txq_ofs as i64);
+                    self.enqueue(OutMsg { header, blob: blob.to_vec(), fd: None });
+                } else {
+                    self.send_borrowed(header, blob, None);
+                }
+            }
+            pos = end;
+        }
     }
 
     /// Send a message: try the socket directly when nothing is queued, then
@@ -307,6 +372,11 @@ pub fn pad4(len: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use owrt_ubus::blob::BlobBuf;
+    use owrt_ubus::msg::attr;
+    use std::io::Read;
+    use std::os::unix::net::UnixStream;
+    use std::time::{Duration, Instant};
 
     #[test]
     fn raw_len_ignores_id_and_extended_bits() {
@@ -321,5 +391,117 @@ mod tests {
     fn prefix_is_header_plus_blob_header() {
         assert_eq!(PREFIX_LEN, 12);
         assert_eq!(Header::LEN, 8);
+    }
+
+    #[test]
+    fn combined_lookup_preserves_bytes_through_partial_and_queued_writes() {
+        for size in [4, 28, 65536, MAX_MSGLEN] {
+            let (sock, mut peer) = UnixStream::pair().unwrap();
+            sock.set_nonblocking(true).unwrap();
+            peer.set_nonblocking(true).unwrap();
+            let mut c = Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new());
+            let mut expected = Vec::new();
+            for (seq, len) in [(0xfffe, size), (0xffff, 28)] {
+                let header = Header { ty: ty::DATA, seq, peer: 0x87654321 };
+                let mut blob = vec![0x5a; len];
+                blob[..4].copy_from_slice(&(len as u32).to_be_bytes());
+                expected.extend_from_slice(&header.encode());
+                expected.extend_from_slice(&blob);
+                expected.extend_from_slice(&Header { ty: ty::STATUS, ..header }.encode());
+                let mut status = BlobBuf::new();
+                status.put_u32(attr::STATUS, 0);
+                expected.extend_from_slice(status.as_bytes());
+                c.send_lookup_reply(header, &blob);
+                // Reusing the caller's storage must not corrupt queued output.
+                blob.fill(0xa5);
+            }
+            if size == MAX_MSGLEN {
+                assert!(!c.tx_empty(), "the fixture must force a partial write");
+                assert!(c.txq_ofs > 0);
+            }
+            let deadline = Instant::now() + Duration::from_secs(3);
+            let mut got = Vec::new();
+            let mut buf = [0u8; 8192];
+            while got.len() < expected.len() || !c.tx_empty() {
+                assert!(Instant::now() < deadline, "queue did not drain");
+                match peer.read(&mut buf) {
+                    Ok(0) => panic!("unexpected EOF"),
+                    Ok(n) => got.extend_from_slice(&buf[..n]),
+                    Err(e) if would_block(&e) => {}
+                    Err(e) => panic!("read: {e}"),
+                }
+                assert!(c.flush());
+            }
+            assert_eq!(got, expected, "DATA followed by STATUS, then the next reply");
+            assert_eq!(c.txq_len, 0);
+            assert_eq!(c.txq_ofs, 0);
+            assert!(matches!(peer.read(&mut buf), Err(e) if would_block(&e)));
+        }
+    }
+
+    #[test]
+    fn lookup_batch_keeps_frames_when_blocked_or_already_queued() {
+        for mode in 0..3 {
+            let (sock, mut peer) = UnixStream::pair().unwrap();
+            sock.set_nonblocking(true).unwrap();
+            peer.set_nonblocking(true).unwrap();
+            let mut c = Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new());
+            let mut expected = Vec::new();
+            let mut got = Vec::new();
+            if mode == 1 {
+                // Fill the kernel buffer without a user-space queue, then free
+                // some space so the batch meets a partially writable socket.
+                let fill = [0x77; 4096];
+                loop {
+                    match sys::sendmsg_two(c.fd(), &fill, &[], None) {
+                        Ok(n) => expected.extend_from_slice(&fill[..n]),
+                        Err(e) if would_block(&e) => break,
+                        Err(e) => panic!("fill: {e}"),
+                    }
+                    assert!(expected.len() < 8 * MAX_MSGLEN);
+                }
+                let mut buf = [0u8; 8192];
+                let n = peer.read(&mut buf).unwrap();
+                got.extend_from_slice(&buf[..n]);
+            } else if mode == 2 {
+                let header = Header { ty: ty::DATA, seq: 9, peer: 0 };
+                let mut blob = vec![0x33; MAX_MSGLEN];
+                blob[..4].copy_from_slice(&(MAX_MSGLEN as u32).to_be_bytes());
+                expected.extend_from_slice(&header.encode());
+                expected.extend_from_slice(&blob);
+                c.send_borrowed(header, &blob, None);
+                assert!(!c.tx_empty());
+            }
+            let mut batch = Vec::new();
+            for i in 0..128 {
+                let header = Header { ty: ty::DATA, seq: 10, peer: 0 };
+                let mut blob = BlobBuf::new();
+                blob.put_string(attr::OBJPATH, &format!("object{i:04}"));
+                blob.put_u32(attr::OBJID, i);
+                batch.extend_from_slice(&header.encode());
+                batch.extend_from_slice(blob.as_bytes());
+            }
+            let mut status = BlobBuf::new();
+            status.put_u32(attr::STATUS, 0);
+            batch.extend_from_slice(&Header { ty: ty::STATUS, seq: 10, peer: 0 }.encode());
+            batch.extend_from_slice(status.as_bytes());
+            expected.extend_from_slice(&batch);
+            c.send_lookup_batch(&batch);
+            batch.fill(0xaa);
+            let deadline = Instant::now() + Duration::from_secs(3);
+            let mut buf = [0u8; 8192];
+            while got.len() < expected.len() || !c.tx_empty() {
+                assert!(Instant::now() < deadline, "batch queue did not drain");
+                match peer.read(&mut buf) {
+                    Ok(0) => panic!("unexpected EOF"),
+                    Ok(n) => got.extend_from_slice(&buf[..n]),
+                    Err(e) if would_block(&e) => {}
+                    Err(e) => panic!("read: {e}"),
+                }
+                assert!(c.flush());
+            }
+            assert_eq!(got, expected);
+            assert_eq!((c.txq_len, c.txq_ofs), (0, 0));
+        }
     }
 }

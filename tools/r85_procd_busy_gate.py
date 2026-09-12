@@ -10,9 +10,22 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
+
+
+def check_final_logs(before, messages):
+    """Each child must keep its own last line and its original pid tag."""
+    instances = before["burst"]["instances"]
+    expected = sorted((int(instances[f"i{i}"]["pid"]), i) for i in range(32))
+    observed = []
+    for line in messages.splitlines():
+        match = re.search(r"\bsh\[(\d+)\]: r85-tail-(\d+)$", line)
+        if match:
+            observed.append(tuple(map(int, match.groups())))
+    assert sorted(observed) == expected, "missing, duplicate or wrongly attributed final log line"
 
 
 DRIVER = r'''set -eu
@@ -155,6 +168,8 @@ def main():
             (destination / "exit").write_text(str(run.returncode) + "\n")
             run.check_returncode()
         row = {"side": side, **json.loads((destination / "raw/result.json").read_text())}
+        check_final_logs(json.loads((destination / "raw/before.json").read_text()),
+                         (destination / "raw/messages.txt").read_text())
         assert row["children_reaped"] == row["final_log_lines"] == 32
         assert row["fds_before"] == row["fds_after"] and row["load_requests"] > 0
         summary.append(row)

@@ -1,0 +1,42 @@
+{
+  "candidate_sha256": "38284d96c90702442822178bf40960a6a1c46389701c61d18c564dc289eedf8e",
+  "source_archive_sha256": "fe5c98f97edc8874acab763f954dddce493e7f85de317a5dcbcc6eba536bb27f",
+  "archive_sha256": "633d2601a05159fd2f7f3507037679c5fd0f6068fab1ead15b44d9c5e6f24572",
+  "gate_exit_codes": {
+    "ubusd-r36-ubus": 0,
+    "ubusd-r42": 0,
+    "ubusd-r41": 0,
+    "ubusd-r36": 0,
+    "ubusd-r83": 0
+  },
+  "logs": {
+    "ubusd-r36-ubus.log": "55bebc3555cfd62c82a8ea32bf67ed1ccda4da9aa6966dfe11b44de6660f9f26",
+    "ubusd-r36.log": "a088b054cf600f4bdf82a6ee8368d091c9f39e838f26e2aa1e9b47969347b017",
+    "ubusd-r41.log": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+    "ubusd-r42.log": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9",
+    "ubusd-r83.log": "67199e71714dc778619e13c51b27f88a165d0594d08c7ea168e47cbb31d25ade"
+  },
+  "unit_tests": {
+    "ubusd": 22,
+    "ubus": 33,
+    "reference": "u02_cost_profile.json"
+  },
+  "slow_lookup": {
+    "objects": 200,
+    "exact_ordered_frames": true,
+    "bytes": 1392800,
+    "other_client_calls": 32,
+    "sides_passed": [
+      "stock",
+      "candidate"
+    ]
+  },
+  "note": "All five differential gates completed after diagnosis; no concurrent profiling/build on Oracle. Corrected r41 busprobe reused from U01, hash in raw binaries.sha256.",
+  "physical": {
+    "repeats_per_side": 4,
+    "workloads": 10,
+    "verified_raw_files": 472,
+    "health_identity_boot_configuration_unchanged": true,
+    "reference": "u02/results.json"
+  }
+}

@@ -16,6 +16,8 @@
 //!   aclquery  the blobmsg types inside `acl query`'s private acl table
 //!             (needs an acl.d entry for root with an `acl` table on r83.priv)
 //!   utf8      a STRING field carrying non-UTF-8 bytes crosses the bus intact
+//!   slowlookup pause a >1 MiB LOOKUP, overwrite scratch via another client,
+//!             then require every original frame in order after resuming
 
 use owrt_ubus::blob::{self, Attr, BlobBuf, Field, MsgType};
 use owrt_ubus::msg::{attr, ty, Header};
@@ -360,10 +362,103 @@ fn utf8(sock: &str) {
     println!("got={} s_hex={hex} s_is_utf8={}", type_name(h.ty), s.is_some_and(|f| f.as_str().is_some()));
 }
 
+fn slowlookup(sock: &str) {
+    let mut owner = Conn::open(sock);
+    let mut reader = Conn::open(sock);
+    let names: Vec<String> = (0..64).map(|i| format!("method_{i:04}_{}", "x".repeat(88))).collect();
+    let methods: Vec<&str> = names.iter().map(String::as_str).collect();
+    let mut expected = Vec::new();
+    for i in 0..200 {
+        let path = format!("r85.resume.{i:04}");
+        owner.add_object(Some(&path), &methods);
+        let mut b = BlobBuf::new();
+        b.put_string(attr::OBJPATH, &path);
+        let (code, frames) = owner.request(ty::LOOKUP, 0, &mut b);
+        assert_eq!(code, 0);
+        assert_eq!(frames.len(), 1, "exact lookup fixture");
+        assert_eq!(frames[0].0.ty, ty::DATA);
+        expected.push(frames[0].1.clone());
+    }
+    let total: usize = expected.iter().map(|blob| 8 + blob.len()).sum();
+    let socket_budget: usize = std::fs::read_to_string("/proc/sys/net/core/wmem_default")
+        .expect("socket send-buffer budget").trim().parse().unwrap();
+    assert!(total > 1_048_576 && total > socket_budget * 2,
+            "fixture must exceed both the transmit cap and kernel send buffer");
+
+    reader.send(ty::LOOKUP, 700, 0, &mut BlobBuf::new());
+    std::thread::sleep(Duration::from_millis(200));
+    // These calls overwrite the reusable output while the reader is stopped.
+    for i in 0..32 {
+        let mut b = BlobBuf::new();
+        b.put_string(attr::OBJPATH, &format!("r85.resume.{:04}", i % 200));
+        let (code, frames) = owner.request(ty::LOOKUP, 0, &mut b);
+        assert_eq!(code, 0);
+        assert_eq!(frames.len(), 1);
+        assert_eq!(frames[0].1, expected[i % 200]);
+    }
+    for blob in &expected {
+        let (h, got) = reader.recv().expect("resumed LOOKUP DATA");
+        assert_eq!((h.ty, h.seq, h.peer), (ty::DATA, 700, 0));
+        assert_eq!(&got, blob, "missing, reordered or overwritten LOOKUP frame");
+    }
+    let (h, got) = reader.recv().expect("resumed LOOKUP STATUS");
+    assert_eq!((h.ty, h.seq, h.peer), (ty::STATUS, 700, 0));
+    assert_eq!(attrs(&got)[attr::STATUS as usize].and_then(|a| a.as_u32()), Some(0));
+    let (code, frames) = reader.request(ty::PING, 0, &mut BlobBuf::new());
+    assert_eq!(code, 0);
+    assert_eq!(frames.len(), 1, "no extra or duplicate LOOKUP replies");
+    assert_eq!(frames[0].0.ty, ty::DATA);
+    println!("resumed_objects=200 exact_frames=true ordered=true status=0 other_client_calls=32 bytes={total}");
+}
+
+fn monitor_lookup(sock: &str) {
+    let mut owner = Conn::open(sock);
+    for i in 0..4 {
+        owner.add_object(Some(&format!("r85.monitor.{i}")), &["method"]);
+    }
+    let mut monitor = Conn::open(sock);
+    let (code, initial) = monitor.invoke(MONITOR_OBJ, "add", None);
+    assert_eq!(code, 0);
+    assert_eq!(initial.len(), 1, "mirror of monitor.add STATUS");
+    let mut last_seq = initial[0].0.seq;
+    for (path, count) in [("r85.monitor.0", 1), ("r85.monitor.*", 4)] {
+        let mut b = BlobBuf::new();
+        b.put_string(attr::OBJPATH, path);
+        let query = b.as_bytes().to_vec();
+        let seq = owner.next_seq;
+        let (code, data) = owner.request(ty::LOOKUP, 0, &mut b);
+        assert_eq!(code, 0);
+        assert_eq!(data.len(), count);
+        let mut status = BlobBuf::new();
+        status.put_u32(attr::STATUS, 0);
+        let mut expected = vec![(ty::LOOKUP, false, query)];
+        expected.extend(data.into_iter().map(|(h, blob)| {
+            assert_eq!((h.ty, h.seq, h.peer), (ty::DATA, seq, 0));
+            (ty::DATA, true, blob)
+        }));
+        expected.push((ty::STATUS, true, status.as_bytes().to_vec()));
+        for (kind, send, blob) in expected {
+            let (h, mirror) = monitor.recv().expect("lookup mirror");
+            last_seq = last_seq.wrapping_add(1);
+            assert_eq!((h.ty, h.seq), (ty::MONITOR, last_seq));
+            let at = attrs(&mirror);
+            assert_eq!(blob::iter(&mirror[4..]).map(|a| a.id).collect::<Vec<_>>(), [0, 1, 3, 4, 2, 5]);
+            assert_eq!(at[4].and_then(|a| a.as_u32()), Some(kind as u32));
+            assert_eq!(at[3].and_then(|a| a.as_u32()), Some(seq as u32));
+            assert_eq!(at[2].unwrap().payload, &[u8::from(send)]);
+            assert_eq!(at[5].unwrap().payload, &blob[4..]);
+        }
+    }
+    let (code, final_mirrors) = monitor.invoke(MONITOR_OBJ, "remove", None);
+    assert_eq!(code, 0);
+    assert_eq!(final_mirrors.len(), 1, "only the remove request remains");
+    println!("exact_data=1 prefix_data=4 mirror_order=true mirror_payloads=true mirror_sequences=true");
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
-        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|aclquery|utf8>");
+        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|aclquery|utf8|slowlookup|monitor_lookup>");
         std::process::exit(2);
     }
     let sock = &args[1];
@@ -374,6 +469,8 @@ fn main() {
         "release" => release(sock),
         "aclquery" => aclquery(sock),
         "utf8" => utf8(sock),
+        "slowlookup" => slowlookup(sock),
+        "monitor_lookup" => monitor_lookup(sock),
         other => {
             eprintln!("unknown scenario {other}");
             std::process::exit(2);

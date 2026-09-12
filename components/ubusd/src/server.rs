@@ -55,6 +55,9 @@ pub struct Server {
     /// grow repeatedly for a multi-kilobyte object signature; keeping one
     /// around means that growth happens once.
     scratch: BlobBuf,
+    /// A short prefix query is submitted together. Capacity is acquired only
+    /// on first use and bounded to 16 KiB; larger queries keep the old path.
+    lookup_batch: Vec<u8>,
 }
 
 impl Server {
@@ -73,6 +76,7 @@ impl Server {
             obj_event_seq: 0,
             monitors: Vec::new(),
             scratch: BlobBuf::new(),
+            lookup_batch: Vec::new(),
         })
     }
 
@@ -138,21 +142,22 @@ impl Server {
 
     fn send(&mut self, client: u32, msg: OutMsg) {
         if msg.header.ty != ty::MONITOR {
-            self.mirror(client, &msg.header, &msg.blob, true);
+            Self::mirror(&mut self.clients, &mut self.monitors, client, &msg.header, &msg.blob, true);
         }
         if let Some(c) = self.clients.get_mut(&client) {
             c.send(msg);
         }
     }
 
-    /// Same as `send`, but the payload is borrowed: nothing is copied when the
-    /// socket takes it all. Used on the paths where the blob was just built.
-    fn send_blob(&mut self, client: u32, header: Header, blob: &[u8]) {
+    /// Send the assembled bytes directly. Keeping the buffer in its field
+    /// avoids mem::take constructing and dropping an allocated empty buffer.
+    fn send_scratch(&mut self, client: u32, header: Header, fd: Option<OwnedFd>) {
+        let blob = self.scratch.as_bytes();
         if header.ty != ty::MONITOR {
-            self.mirror(client, &header, blob, true);
+            Self::mirror(&mut self.clients, &mut self.monitors, client, &header, blob, true);
         }
         if let Some(c) = self.clients.get_mut(&client) {
-            c.send_borrowed(header, blob, None);
+            c.send_borrowed(header, blob, fd);
         }
     }
 
@@ -160,7 +165,7 @@ impl Server {
 
     /// Handle one received message. Returns false when the client must go.
     pub fn receive(&mut self, client: u32, msg: InMsg) -> bool {
-        self.mirror(client, &msg.header, &msg.blob, false);
+        Self::mirror(&mut self.clients, &mut self.monitors, client, &msg.header, &msg.blob, false);
 
         let seq = msg.header.seq;
         let peer = msg.header.peer;
@@ -177,11 +182,10 @@ impl Server {
     fn send_status(&mut self, client: u32, seq: u16, peer: u32, code: i32) {
         // the shared buffer, borrowed: a STATUS is the most frequent message
         // on the bus and the C daemon builds it in its static blob_buf too
-        let mut b = std::mem::take(&mut self.scratch);
+        let b = &mut self.scratch;
         b.reset();
         b.put_u32(attr::STATUS, code as u32);
-        self.send_blob(client, Header { ty: ty::STATUS, seq, peer }, b.as_bytes());
-        self.scratch = b;
+        self.send_scratch(client, Header { ty: ty::STATUS, seq, peer }, None);
     }
 
     fn handle(&mut self, client: u32, mut msg: InMsg) -> Outcome {
@@ -354,7 +358,7 @@ impl Server {
             return Outcome::Queued;
         }
         match self.lookup(client, &msg, None) {
-            Ok(code) => Outcome::Status(code),
+            Ok(outcome) => outcome,
             Err(next) => {
                 if let Some(c) = self.clients.get_mut(&client) {
                     c.cmd_queue.push_back(PendingCmd { msg, next });
@@ -373,8 +377,10 @@ impl Server {
                 return;
             };
             match self.lookup(client, &cmd.msg, cmd.next) {
-                Ok(code) => {
-                    self.send_status(client, cmd.msg.header.seq, cmd.msg.header.peer, code);
+                Ok(outcome) => {
+                    if let Outcome::Status(code) = outcome {
+                        self.send_status(client, cmd.msg.header.seq, cmd.msg.header.peer, code);
+                    }
                 }
                 Err(next) => {
                     if let Some(c) = self.clients.get_mut(&client) {
@@ -386,12 +392,10 @@ impl Server {
         }
     }
 
-    /// `Ok(status)` when the lookup finished; `Err(next)` when the transmit
+    /// `Ok(outcome)` when the lookup finished; `Err(next)` when the transmit
     /// queue filled and it must resume at object `next`.
-    fn lookup(&mut self, client: u32, msg: &InMsg, resume: Option<u32>) -> Result<i32, Option<u32>> {
+    fn lookup(&mut self, client: u32, msg: &InMsg, resume: Option<u32>) -> Result<Outcome, Option<u32>> {
         let attrs = attrs_of(msg.payload());
-        let cred = self.cred_of(client);
-
         let Some(p) = attrs[attr::OBJPATH as usize] else {
             let all = self.reg.path_order();
             let start = match resume {
@@ -402,70 +406,123 @@ impl Server {
                 if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
                     return Err(Some(all[i]));
                 }
-                self.send_obj(client, cred.as_ref(), id, msg);
+                self.send_obj(client, id, msg);
             }
-            return Ok(status::OK);
+            return Ok(Outcome::Status(status::OK));
         };
 
         let path = obj::cstr_bytes(p.payload);
         if path.is_empty() {
-            return Ok(status::INVALID_ARGUMENT);
+            return Ok(Outcome::Status(status::INVALID_ARGUMENT));
         }
         if path[path.len() - 1] != b'*' {
             let Some(id) = self.reg.by_path(path) else {
-                return Ok(status::NOT_FOUND);
+                return Ok(Outcome::Status(status::NOT_FOUND));
             };
-            self.send_obj(client, cred.as_ref(), id, msg);
-            return Ok(status::OK);
+            if self.monitors.is_empty() {
+                if self.build_obj(client, id) {
+                    let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
+                    if let Some(c) = self.clients.get_mut(&client) {
+                        c.send_lookup_reply(header, self.scratch.as_bytes());
+                    }
+                    return Ok(Outcome::NoStatus);
+                }
+                return Ok(Outcome::Status(status::OK));
+            }
+            self.send_obj(client, id, msg);
+            return Ok(Outcome::Status(status::OK));
         }
 
         let prefix = &path[..path.len() - 1];
         let matches = self.reg.path_prefix(prefix);
         if matches.is_empty() {
-            return Ok(status::NOT_FOUND);
+            return Ok(Outcome::Status(status::NOT_FOUND));
+        }
+        if self.try_prefix_batch(client, msg, &matches) {
+            return Ok(Outcome::NoStatus);
         }
         for id in matches {
-            self.send_obj(client, cred.as_ref(), id, msg);
+            self.send_obj(client, id, msg);
         }
-        Ok(status::OK)
+        Ok(Outcome::Status(status::OK))
+    }
+
+    fn try_prefix_batch(&mut self, client: u32, msg: &InMsg, ids: &[u32]) -> bool {
+        const LIMIT: usize = 16 * 1024;
+        if !self.monitors.is_empty() {
+            return false;
+        }
+        // Bound the whole reply before emitting anything. The signature is
+        // an upper bound: ACL filtering can only remove methods/objects.
+        // This keeps large-prefix queue overflow at its original boundaries.
+        let mut bytes = Header::LEN + 12; // final STATUS
+        for id in ids {
+            let Some(o) = self.reg.get(*id) else { continue };
+            let (Some(path), Some(t)) = (o.path.as_deref(), o.type_id.and_then(|id| self.reg.types.get(&id)))
+                else { continue };
+            bytes += Header::LEN + 4 + crate::client::pad4(4 + path.len() + 1) + 8 + 8 + 4;
+            bytes += t.methods.iter().map(|m| m.blob.len()).sum::<usize>();
+            if bytes > LIMIT {
+                return false;
+            }
+        }
+        self.lookup_batch.clear();
+        self.lookup_batch.reserve_exact(bytes);
+        let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
+        for id in ids {
+            if self.build_obj(client, *id) {
+                self.append_lookup_frame(header);
+            }
+        }
+        self.scratch.reset();
+        self.scratch.put_u32(attr::STATUS, status::OK as u32);
+        self.append_lookup_frame(Header { ty: ty::STATUS, ..header });
+        debug_assert!(self.lookup_batch.len() <= bytes);
+        if let Some(c) = self.clients.get_mut(&client) {
+            c.send_lookup_batch(&self.lookup_batch);
+        }
+        self.lookup_batch.clear();
+        true
+    }
+
+    fn append_lookup_frame(&mut self, header: Header) {
+        self.lookup_batch.extend_from_slice(&header.encode());
+        self.lookup_batch.extend_from_slice(self.scratch.as_bytes());
     }
 
     /// One object's description. Objects with no type are invisible, and a
     /// client that may call none of a type's methods does not see the object.
-    fn send_obj(&mut self, client: u32, cred: Option<&ClientCred>, id: u32, msg: &InMsg) {
-        let Some(o) = self.reg.get(id) else { return };
-        let Some(type_id) = o.type_id else { return };
-        let Some(path) = o.path.clone() else { return };
-        let Some(t) = self.reg.types.get(&type_id) else { return };
+    fn send_obj(&mut self, client: u32, id: u32, msg: &InMsg) {
+        if self.build_obj(client, id) {
+            let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
+            self.send_scratch(client, header, None);
+        }
+    }
 
-        // Take the shared buffer out of self so the rest of the method can
-        // still borrow the registry and the ACL table; it goes back at the end.
-        let mut b = std::mem::take(&mut self.scratch);
+    fn build_obj(&mut self, client: u32, id: u32) -> bool {
+        let Some(o) = self.reg.get(id) else { return false };
+        let Some(type_id) = o.type_id else { return false };
+        let Some(path) = o.path.as_deref() else { return false };
+        let Some(t) = self.reg.types.get(&type_id) else { return false };
+
+        let b = &mut self.scratch;
         b.reset();
-        let mut path_z = path.clone();
-        path_z.push(0);
-        b.put(attr::OBJPATH, &path_z);
+        b.put_string_bytes(attr::OBJPATH, path);
         b.put_u32(attr::OBJID, id);
         b.put_u32(attr::OBJTYPE, type_id);
         let s = b.nest_start(attr::SIGNATURE);
         let mut all = 0usize;
         let mut visible = 0usize;
-        let cred_ref = cred.map(|c| c.as_cred());
+        let cred_ref = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
         for m in &t.methods {
             all += 1;
-            if self.acl.check(cred_ref.as_ref(), Some(&path), Some(&m.name), AclType::Access) {
+            if self.acl.check(cred_ref.as_ref(), Some(path), Some(&m.name), AclType::Access) {
                 b.put_raw_fields(&m.blob);
                 visible += 1;
             }
         }
         b.nest_end(s);
-        if visible > 0 || all == 0 {
-            // borrow rather than copy: this blob is a whole object signature,
-            // the largest thing the daemon routinely sends
-            let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
-            self.send_blob(client, header, b.as_bytes());
-        }
-        self.scratch = b;
+        visible > 0 || all == 0
     }
 
     // --------------------------------------------------------------- invoke
@@ -473,7 +530,7 @@ impl Server {
     fn invoke(&mut self, client: u32, msg: InMsg) -> Outcome {
         let attrs = attrs_of(msg.payload());
         let (Some(method), Some(id)) = (
-            attrs[attr::METHOD as usize].map(|a| obj::cstr_bytes(a.payload).to_vec()),
+            attrs[attr::METHOD as usize].map(|a| obj::cstr_bytes(a.payload)),
             attrs[attr::OBJID as usize].and_then(|a| a.as_u32()),
         ) else {
             return Outcome::Status(status::INVALID_ARGUMENT);
@@ -490,21 +547,20 @@ impl Server {
         // the hot path, and the table and the ACL are disjoint fields.
         let caller = self.clients.get(&client);
         let cred = caller.map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
-        if !self.acl.check(cred.as_ref(), path, Some(&method), AclType::Access) {
+        if !self.acl.check(cred.as_ref(), path, Some(method), AclType::Access) {
             return Outcome::Status(status::PERMISSION_DENIED);
         }
 
         let data = attrs[attr::DATA as usize].map(|a| a.payload);
         let Some(owner) = owner else {
             let data = data.map(<[u8]>::to_vec);
+            let method = method.to_vec();
             return self.system_object(client, id, &method, msg, data);
         };
 
         let who = caller.map(|c| (c.user.as_str(), c.group.as_str()));
-        let blob = forward_blob(id, &method, who, data, None);
-        let mut out = OutMsg::new(ty::INVOKE, msg.header.seq, client, blob);
-        out.fd = msg.fd;
-        self.send(owner, out);
+        build_forward_blob(&mut self.scratch, id, method, who, data, None);
+        self.send_scratch(owner, Header { ty: ty::INVOKE, seq: msg.header.seq, peer: client }, msg.fd);
         Outcome::NoStatus
     }
 
@@ -881,8 +937,8 @@ impl Server {
 
     // -------------------------------------------------------------- monitor
 
-    fn mirror(&mut self, client: u32, header: &Header, blob: &[u8], send: bool) {
-        if self.monitors.is_empty() {
+    fn mirror(clients: &mut HashMap<u32, Client>, monitors: &mut [(u32, u16)], client: u32, header: &Header, blob: &[u8], send: bool) {
+        if monitors.is_empty() {
             return;
         }
         // attribute order as ubusd_monitor_message puts them: CLIENT, PEER,
@@ -896,14 +952,14 @@ impl Server {
         b.put(5, if blob.len() > 4 { &blob[4..] } else { &[] }); // UBUS_MONITOR_DATA
         let payload = b.as_bytes().to_vec();
 
-        let mons: Vec<u32> = self.monitors.iter().map(|(c, _)| *c).collect();
+        let mons: Vec<u32> = monitors.iter().map(|(c, _)| *c).collect();
         for m in mons {
             let seq = {
-                let Some(entry) = self.monitors.iter_mut().find(|(c, _)| *c == m) else { continue };
+                let Some(entry) = monitors.iter_mut().find(|(c, _)| *c == m) else { continue };
                 entry.1 = entry.1.wrapping_add(1);
                 entry.1
             };
-            if let Some(c) = self.clients.get_mut(&m) {
+            if let Some(c) = clients.get_mut(&m) {
                 c.send(OutMsg::new(ty::MONITOR, seq, 0, payload.clone()));
             }
         }
@@ -974,11 +1030,24 @@ fn forward_blob(
     no_reply: Option<bool>,
 ) -> Vec<u8> {
     let mut b = BlobBuf::new();
+    build_forward_blob(&mut b, objid, method, who, data, no_reply);
+    b.as_bytes().to_vec()
+}
+
+fn build_forward_blob(
+    b: &mut BlobBuf,
+    objid: u32,
+    method: &[u8],
+    who: Option<(&str, &str)>,
+    data: Option<&[u8]>,
+    no_reply: Option<bool>,
+) {
+    b.reset();
     if no_reply == Some(true) {
         b.put_u8(attr::NO_REPLY, 1);
     }
     b.put_u32(attr::OBJID, objid);
-    b.put(attr::METHOD, &with_nul(method));
+    b.put_string_bytes(attr::METHOD, method);
     if let Some((user, group)) = who {
         b.put_string(attr::USER, user);
         b.put_string(attr::GROUP, group);
@@ -986,7 +1055,6 @@ fn forward_blob(
     if let Some(d) = data {
         b.put(attr::DATA, d);
     }
-    b.as_bytes().to_vec()
 }
 
 /// Overwrite the first attribute's u32 payload -- the OBJID placeholder in an

@@ -1,0 +1,1961 @@
+{
+  "source_archive_sha256": "fe5c98f97edc8874acab763f954dddce493e7f85de317a5dcbcc6eba536bb27f",
+  "candidate_sha256": "38284d96c90702442822178bf40960a6a1c46389701c61d18c564dc289eedf8e",
+  "profiler_sha256": "79e33d0eabbc08c12b6edb35ec8c78db0c7584a8f47f4473951bf7f5ec2f46d1",
+  "archive_sha256": "c377fa411b8c982aed58092d75059b63419b416cf3086d2c2ad3541aa1a00fed",
+  "scope": "Oracle aarch64, actual Server receive/send/drain plus input clone. Allocation counters disabled during timing. Not full-daemon or physical-router timings.",
+  "phase_runs": [
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2926.73,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 3014.13,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2911.65,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 94930.28,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2903.33,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 189571.75,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3814.22,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3821.13,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1523.17,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 36.39,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1437.43,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1872.42,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 128.7,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1653.87,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5061.44,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 594.44,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 1,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3943.94,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2868.31,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2876.98,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2865.35,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 95844.78,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2922.18,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 191056.29,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3808.86,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3814.46,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1537.6,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 36.36,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1439.25,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1866.48,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 129.14,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1663.54,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5078.67,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 596.98,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 2,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3923.71,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2909.9,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2853.17,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2893.3,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 93602.89,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2903.28,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 189201.3,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3802.16,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3803.01,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1525.88,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 40.37,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1426.64,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1866.73,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 134.87,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1643.2,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5084.34,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 597.92,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 3,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3926.91,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 3020.33,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2895.98,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2866.47,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 95452.04,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2917.83,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 190566.11,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3815.98,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3832.85,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1527.62,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 36.37,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1427.56,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1879.09,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 128.58,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1597.55,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5071.59,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 596.4,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 4,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3938.96,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2863.34,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2869.01,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2887.08,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 95704.72,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2918.1,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 191643.67,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3823.85,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3827.9,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1526.75,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 39.95,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1428.64,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1876.82,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 131.36,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1632.37,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5138.82,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 596.63,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u01",
+      "round": 5,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3934.89,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2172.79,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2910.22,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2214.33,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 94322.57,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2249.22,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 188007.88,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3066.27,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3865.34,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1567.23,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 36.42,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1431.43,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1869.5,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 132.07,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1623.47,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5144.79,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 593.0,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 1,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3966.4,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2197.34,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2907.46,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2212.81,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 96033.09,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2248.36,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 190784.46,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3075.86,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3866.44,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1562.42,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 38.03,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1421.55,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1893.4,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 132.81,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1639.85,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5089.79,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 596.0,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 2,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3961.62,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2187.93,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2919.87,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2212.9,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 94027.02,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2270.35,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 189994.6,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3089.78,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3874.38,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1564.0,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 38.08,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1417.62,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1900.74,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 130.07,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1623.26,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5141.05,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 600.4,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 3,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3938.64,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2198.13,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2902.3,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2207.79,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 94937.18,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2251.86,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 189788.8,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3098.31,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3882.2,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1566.57,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 36.26,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1433.83,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1891.6,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 131.22,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1647.21,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5112.34,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 597.06,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 4,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3967.56,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_exact_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2190.2,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_all_objects_1_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2914.03,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_exact_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2220.83,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_all_objects_64_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 95281.26,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 260
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_exact_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 2242.56,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_all_objects_128_methods_1",
+      "iterations": 5000,
+      "ns_per_op": 189815.54,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 516
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_exact_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3069.48,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 28
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "lookup_all_objects_1_methods_64",
+      "iterations": 5000,
+      "ns_per_op": 3839.25,
+      "allocations": 2,
+      "reallocations": 0,
+      "allocated_bytes": 8
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "invoke_forward_16",
+      "iterations": 5000,
+      "ns_per_op": 1567.24,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "fixture_clone_16",
+      "iterations": 5000,
+      "ns_per_op": 36.38,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "socket_write_receive_16",
+      "iterations": 5000,
+      "ns_per_op": 1426.09,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 48
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "invoke_forward_1024",
+      "iterations": 5000,
+      "ns_per_op": 1894.34,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "fixture_clone_1024",
+      "iterations": 5000,
+      "ns_per_op": 129.4,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "socket_write_receive_1024",
+      "iterations": 5000,
+      "ns_per_op": 1645.0,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 1056
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "invoke_forward_16384",
+      "iterations": 5000,
+      "ns_per_op": 5158.5,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "fixture_clone_16384",
+      "iterations": 5000,
+      "ns_per_op": 596.55,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    },
+    {
+      "label": "u02",
+      "round": 5,
+      "stage": "socket_write_receive_16384",
+      "iterations": 5000,
+      "ns_per_op": 3968.02,
+      "allocations": 1,
+      "reallocations": 0,
+      "allocated_bytes": 16416
+    }
+  ],
+  "medians": {
+    "u01": {
+      "fixture_clone_1024": {
+        "ns_per_op": 129.14,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 1056
+      },
+      "fixture_clone_16": {
+        "ns_per_op": 36.39,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 48
+      },
+      "fixture_clone_16384": {
+        "ns_per_op": 596.63,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 16416
+      },
+      "invoke_forward_1024": {
+        "ns_per_op": 1872.42,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 1056
+      },
+      "invoke_forward_16": {
+        "ns_per_op": 1526.75,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 48
+      },
+      "invoke_forward_16384": {
+        "ns_per_op": 5078.67,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 16416
+      },
+      "lookup_all_objects_128_methods_1": {
+        "ns_per_op": 190566.11,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 516
+      },
+      "lookup_all_objects_1_methods_1": {
+        "ns_per_op": 2876.98,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 8
+      },
+      "lookup_all_objects_1_methods_64": {
+        "ns_per_op": 3821.13,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 8
+      },
+      "lookup_all_objects_64_methods_1": {
+        "ns_per_op": 95452.04,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 260
+      },
+      "lookup_exact_objects_128_methods_1": {
+        "ns_per_op": 2917.83,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "lookup_exact_objects_1_methods_1": {
+        "ns_per_op": 2909.9,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "lookup_exact_objects_1_methods_64": {
+        "ns_per_op": 3814.22,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "lookup_exact_objects_64_methods_1": {
+        "ns_per_op": 2887.08,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "socket_write_receive_1024": {
+        "ns_per_op": 1643.2,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 1056
+      },
+      "socket_write_receive_16": {
+        "ns_per_op": 1428.64,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 48
+      },
+      "socket_write_receive_16384": {
+        "ns_per_op": 3934.89,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 16416
+      }
+    },
+    "u02": {
+      "fixture_clone_1024": {
+        "ns_per_op": 131.22,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 1056
+      },
+      "fixture_clone_16": {
+        "ns_per_op": 36.42,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 48
+      },
+      "fixture_clone_16384": {
+        "ns_per_op": 596.55,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 16416
+      },
+      "invoke_forward_1024": {
+        "ns_per_op": 1893.4,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 1056
+      },
+      "invoke_forward_16": {
+        "ns_per_op": 1566.57,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 48
+      },
+      "invoke_forward_16384": {
+        "ns_per_op": 5141.05,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 16416
+      },
+      "lookup_all_objects_128_methods_1": {
+        "ns_per_op": 189815.54,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 516
+      },
+      "lookup_all_objects_1_methods_1": {
+        "ns_per_op": 2910.22,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 8
+      },
+      "lookup_all_objects_1_methods_64": {
+        "ns_per_op": 3866.44,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 8
+      },
+      "lookup_all_objects_64_methods_1": {
+        "ns_per_op": 94937.18,
+        "allocations": 2,
+        "reallocations": 0,
+        "allocated_bytes": 260
+      },
+      "lookup_exact_objects_128_methods_1": {
+        "ns_per_op": 2249.22,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "lookup_exact_objects_1_methods_1": {
+        "ns_per_op": 2190.2,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "lookup_exact_objects_1_methods_64": {
+        "ns_per_op": 3075.86,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "lookup_exact_objects_64_methods_1": {
+        "ns_per_op": 2212.9,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 28
+      },
+      "socket_write_receive_1024": {
+        "ns_per_op": 1639.85,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 1056
+      },
+      "socket_write_receive_16": {
+        "ns_per_op": 1426.09,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 48
+      },
+      "socket_write_receive_16384": {
+        "ns_per_op": 3966.4,
+        "allocations": 1,
+        "reallocations": 0,
+        "allocated_bytes": 16416
+      }
+    }
+  },
+  "traces": {
+    "c": {
+      "sha256": "911e5e3c83d9925235f7aaa8778ec294b10d35f11107b55628a78a4f914acadb",
+      "syscall_counts": {
+        "close": 41,
+        "openat": 38,
+        "fcntl": 75,
+        "execve": 1,
+        "read": 2183,
+        "epoll_pwait": 2157,
+        "sendmsg": 36539,
+        "recvmsg": 4814
+      },
+      "syscall_errors": {
+        "openat:ENOENT": 3,
+        "recvmsg:EAGAIN": 2147
+      }
+    },
+    "rs": {
+      "sha256": "7a0759f03de30f6283ebc90376988bde3f9e4bb62a202ce93e8639a6ca51bddf",
+      "syscall_counts": {
+        "close": 37,
+        "openat": 31,
+        "fcntl": 50,
+        "execve": 1,
+        "ppoll": 2159,
+        "read": 2221,
+        "sendmsg": 36017,
+        "recvmsg": 4819
+      },
+      "syscall_errors": {
+        "recvmsg:EAGAIN": 2147
+      }
+    }
+  },
+  "trace_scope": "500 nominal requests for each of the three original workloads plus warmup/setup; syscall counts only.",
+  "unit_tests": {
+    "ubusd": 22,
+    "ubus": 33,
+    "failed": 0
+  },
+  "smoke_matrix_complete": true
+}

@@ -103,6 +103,14 @@ name at one and four clients. The generated 32/128-service expectations are
 checksummed across subjects; every service's data is validated. The base modes
 and frozen client binary remain available for the original R84 workloads.
 
+`run_candidate.py --component ubusd --matrix` retains exact lookup, lookup of
+64 objects and invoke, adds four-client versions, then prefix lookup of 64
+objects and lookup of 128 objects at one and four clients. Each provider phase
+checks the complete ordered object path set before and after measurement.
+The frozen timing client still checks only that bench.target exists on each
+lookup; complete signatures, ACLs, descriptors and queue boundaries are checked
+separately by the functional gates. Four-client CPU uses one outer interval.
+
 `components/httpd/examples/profile.rs` directly profiles parser/file-handler
 stages, with allocation counters disabled for timing. Its `_reused` cases keep
 the output allocation across requests; the other cases include a new output

@@ -9,6 +9,7 @@ case "${OWRT_HTTPD_CGI_STRESS:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_RPC_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MEMORY:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -181,6 +182,35 @@ EOF
         run_rpc "$@"
         rpc_four "$1"_c4 "$2" "$3" "$4" "$5" "${6:-$n}"
     }
+    lookup_four() { # label path total; same outer CPU interval as rpc_four
+        label=$1; lookup_path=$2; total=$3
+        count=$((total / 4)); [ "$count" -gt 0 ] || count=1
+        mkdir "$out/$label"
+        printf '{"clients":4,"iterations_per_client":%s,"warmup_per_client":20}\n' "$count" > "$out/$label/group.json"
+        "$bench" snapshot "$monitors" > "$out/$label/before.json"
+        clients=''; j=1
+        while [ "$j" -le 4 ]; do
+            "$bench" lookup "$socket" "$lookup_path" "$count" 20 "$monitors" > "$out/$label/client-$j.json" &
+            clients="$clients $!"; j=$((j + 1))
+        done
+        failed=0
+        for client in $clients; do wait "$client" || failed=1; done
+        "$bench" snapshot "$monitors" > "$out/$label/after.json"
+        [ "$failed" = 0 ]
+    }
+    check_bus_objects() {
+        # The frozen timing client checks bench.target on every lookup. Check
+        # the complete path set separately before/after each matrix phase.
+        object_index=1
+        : > /tmp/ubusd-objects.expected
+        while [ "$object_index" -lt "$1" ]; do
+            printf 'bench.filler%04d\n' "$object_index" >> /tmp/ubusd-objects.expected
+            object_index=$((object_index + 1))
+        done
+        printf 'bench.target\n' >> /tmp/ubusd-objects.expected
+        ubus list 'bench.*' > "$out/objects-$1-$2.txt"
+        cmp /tmp/ubusd-objects.expected "$out/objects-$1-$2.txt"
+    }
     large_uci_expect() {
         printf '{"values":{' > /tmp/expect-large.json
         i=0; sep=''
@@ -233,9 +263,37 @@ EOF
             "$bench" serve "$socket" 64 > "$out/provider.log" 2>&1 & provider=$!
             wait_object bench.target "$provider"
             monitors=$bus,$provider
+            if [ "${OWRT_UBUSD_MATRIX:-0}" = 1 ]; then
+                wait_object bench.filler0063 "$provider"
+                printf 'provider_objects=64,128\nmethod=ping\nargument=n:int32\nreply=ok:1\n' > /tmp/ubusd-fixtures
+                sha256sum /tmp/ubusd-fixtures > "$out/ubusd-fixtures.sha256"
+                check_bus_objects 64 before
+            fi
             "$bench" lookup "$socket" bench.target "$n" 20 "$monitors" > "$out/lookup.json"
             "$bench" lookup "$socket" '*' "$n" 20 "$monitors" > "$out/lookup_all_64.json"
             run_rpc invoke bench.target ping '{"n":1}' '{"ok":1}'
+            if [ "${OWRT_UBUSD_MATRIX:-0}" = 1 ]; then
+                lookup_four lookup_c4 bench.target "$n"
+                lookup_four lookup_all_64_c4 '*' "$n"
+                rpc_four invoke_c4 bench.target ping '{"n":1}' '{"ok":1}' "$n"
+                "$bench" lookup "$socket" 'bench.*' "$n" 20 "$monitors" > "$out/lookup_prefix_64.json"
+                lookup_four lookup_prefix_64_c4 'bench.*' "$n"
+                check_bus_objects 64 after
+                kill "$provider"; wait "$provider" 2>/dev/null || true
+                tries=0
+                while ubus list bench.target 2>/dev/null | grep -q '^bench.target$'; do
+                    [ "$tries" -lt 20 ]; sleep 1; tries=$((tries + 1))
+                done
+                "$bench" serve "$socket" 128 > "$out/provider-128.log" 2>&1 & provider=$!
+                wait_object bench.target "$provider"
+                # bench.target registers first; wait for the final filler too.
+                wait_object bench.filler0127 "$provider"
+                monitors=$bus,$provider
+                check_bus_objects 128 before
+                "$bench" lookup "$socket" '*' "$n" 20 "$monitors" > "$out/lookup_all_128.json"
+                lookup_four lookup_all_128_c4 '*' "$n"
+                check_bus_objects 128 after
+            fi
             ;;
         rpcd)
             bin=$(choose rpcd /sbin/rpcd rpcd-rs)

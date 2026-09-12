@@ -14,7 +14,7 @@ from unittest.mock import patch
 from pathlib import Path
 
 from audit_checks import (interfaces, kernel, lease, mask_session_ids, resources,
-                          output_archive, transcript36, transcript42, volatile_netifd_path)
+                          output_archive, transcript36, transcript41, transcript42, volatile_netifd_path)
 import r16_uci_check
 import r19_lucirpc_check
 import r24_uci_fuzz
@@ -153,6 +153,28 @@ class EvidenceGates(unittest.TestCase):
             transcript42('survived: no\n')
         with self.assertRaises(ValueError):
             transcript42('survived: yes\nfinal objects unchanged: yes\nfinal serving: 0\nfinal fd bounded: yes\n')
+
+    def test_limits_require_real_probes_survival_and_complete_fixture(self):
+        text = '--- 1. sizes\n'
+        for n in (1048572, 1048576, 1048577, 1048580, 2097152):
+            verdict = 'accepted_replied' if n <= 1048576 else 'dropped'
+            text += f'size={n} verdict={verdict}\n  bus_alive_after=yes serving=yes\n'
+        text += ('--- 2. short\nsize=3 verdict=dropped\n  serving=yes\n'
+                 '--- 3. queue\nobjects=200\none_signature_bytes=9000\n'
+                 'during: serving=yes call_rc=0\nduring: rss_growth_kib_bounded=yes\n'
+                 'after: bus_alive=yes\nafter: serving=yes\nafter: rss_growth_kib_bounded=yes\n'
+                 '--- 4. disconnects\nstill_serving=yes\nfd_bounded=yes\nrss_growth_kib_bounded=yes\n')
+        transcript41(text)
+        for old, new in [('size=3 verdict=dropped', 'size=3 verdict=too small'),
+                         ('objects=200', 'objects=0'), ('call_rc=0', 'call_rc=1'),
+                         ('after: bus_alive=yes', 'after: bus_alive=no'),
+                         ('fd_bounded=yes', 'fd_bounded=no'),
+                         ('size=1048576 verdict=accepted_replied', 'size=1048576 verdict=dropped')]:
+            with self.subTest(injection=new), self.assertRaises(ValueError):
+                transcript41(text.replace(old, new))
+        for incomplete in ('', text[:text.index('--- 4.')]):
+            with self.assertRaises(ValueError):
+                transcript41(incomplete)
 
     def run_embedded(self, script, args):
         code = re.findall(r"<<'PY'[^\n]*\n(.*?)\nPY", (HERE / script).read_text(), re.S)[0]

@@ -14,6 +14,7 @@ STATIC = ("static_512_dat", "static_16k_dat", "static_16k_css",
           "static_image_css", "static_64k_dat", "static_1m_dat")
 RPCD_EXTRA = ("uci_get_64", "uci_get_authorized", "session_access_granted", "file_list", "session_access_64")
 PROCD_EXTRA = ("service_list_128", "service_list_named_128")
+UBUSD_EXTRA = ("lookup_prefix_64", "lookup_all_128")
 METRICS = ("mean_us", "p50_us", "p95_us", "p99_us", "ops_per_s",
            "subject_cpu_us_per_op", "dependency_cpu_us_per_op", "client_cpu_us_per_op")
 
@@ -95,6 +96,9 @@ def derive(root, label):
     elif matrix and component == "procd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in PROCD_EXTRA for suffix in ("", "_c4")]
+    elif matrix and component == "ubusd":
+        workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
+        workloads += [name + suffix for name in UBUSD_EXTRA for suffix in ("", "_c4")]
     else:
         assert not matrix, "unsupported workload matrix"
     for index, side in enumerate(order, 1):
@@ -112,8 +116,13 @@ def derive(root, label):
         identities.add(identity)
         if matrix:
             fixture_file = {"httpd": "static-fixtures.sha256", "rpcd": "rpc-fixtures.sha256",
-                            "procd": "procd-fixtures.sha256"}[component]
+                            "procd": "procd-fixtures.sha256", "ubusd": "ubusd-fixtures.sha256"}[component]
             fixtures.add((raw / fixture_file).read_text())
+            if component == "ubusd":
+                for count in (64, 128):
+                    expected_paths = [f"bench.filler{i:04d}" for i in range(1, count)] + ["bench.target"]
+                    for phase in ("before", "after"):
+                        assert (raw / f"objects-{count}-{phase}.txt").read_text().splitlines() == expected_paths
         sources.append({"run": local.name, "subject_sha256": subjects[side],
                         "archive_sha256": hashlib.sha256((local / "raw.tar.gz").read_bytes()).hexdigest(),
                         "kernel": (raw / "kernel.txt").read_text().strip()})

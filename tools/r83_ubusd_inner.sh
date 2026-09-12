@@ -76,8 +76,9 @@ kill $ap 2>/dev/null; wait $ap 2>/dev/null
 say "acl_seq_events_seen: [$(sed -n 's/.*"sequence": *\([0-9]*\).*/\1/p' /tmp/out/aclseq.txt | tr '\n' ' ')]"
 
 say "--- 3. wire level: sequence numbers, attribute order, types (F27/F24)"
-for sc in events monitor release aclquery utf8; do
-	say "$sc: $(/tmp/wireprobe $S $sc 2>&1 | tr '\n' ' ')"
+for sc in events monitor release aclquery utf8 slowlookup monitor_lookup; do
+	/tmp/wireprobe $S "$sc" >"/tmp/out/probe-$sc.txt" 2>&1 || exit 1
+	say "$sc: $(tr '\n' ' ' <"/tmp/out/probe-$sc.txt")"
 done
 # what the C library's blobmsg_format_json prints for a non-UTF-8 STRING:
 # the bytes themselves (0xe9), not an escape and not an empty string

@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=owrt-ubusd
 PKG_VERSION:=0.1.0
-PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),2)
+PKG_RELEASE:=$(if $(V1_PACKAGE_RELEASE),$(V1_PACKAGE_RELEASE),3)
 
 PKG_MAINTAINER:=owrt-control-plane-rs project
 PKG_LICENSE:=MIT OR Apache-2.0

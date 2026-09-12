@@ -353,12 +353,22 @@ pub fn sendmsg_two(sock: RawFd, head: &[u8], tail: &[u8], fd: Option<RawFd>) -> 
         IoVec { base: tail.as_ptr() as *mut u8, len: tail.len() },
     ];
     let iovlen = if tail.is_empty() { 1 } else { 2 };
+    sendmsg_iov(sock, &mut iov[..iovlen], fd)
+}
+
+/// Submit three byte slices as one stream write, without copying the payload.
+pub fn sendmsg_three(sock: RawFd, parts: [&[u8]; 3]) -> io::Result<usize> {
+    let mut iov = parts.map(|part| IoVec { base: part.as_ptr() as *mut u8, len: part.len() });
+    sendmsg_iov(sock, &mut iov, None)
+}
+
+fn sendmsg_iov(sock: RawFd, iov: &mut [IoVec], fd: Option<RawFd>) -> io::Result<usize> {
     let mut control = [0u8; CMSG_SPACE_FD];
     let mut hdr = MsgHdr {
         name: std::ptr::null_mut(),
         namelen: 0,
         iov: iov.as_mut_ptr(),
-        iovlen,
+        iovlen: iov.len(),
         control: std::ptr::null_mut(),
         controllen: 0,
         flags: 0,
