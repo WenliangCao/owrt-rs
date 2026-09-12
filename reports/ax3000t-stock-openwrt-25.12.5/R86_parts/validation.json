@@ -1,0 +1,487 @@
+{
+  "schema": 1,
+  "source_commit": "f612e30f2e282fe5b3b3084a2da0edaa6047f612",
+  "status": "passed",
+  "required_function_gates_passed": true,
+  "binary_sha256": {
+    "fw4": "e6911e446a9963fd3fa14d78a631102566b19cce50172da61d9f72f4f82ae431",
+    "httpd": "05336a5bd0d9a5bdec5704023c869565e3a7493fd8b02f397ed7f8cd47ae4997",
+    "logd": "1be0d0f769346a89a4e28da0d6788096b01888e4fe3af77cc8c999befa71ac53",
+    "netifd": "6f71709f117fe357e97615f4e40bb315871c602264443ebab0539bce96c9b300",
+    "procd": "759a52d2b833fc260389402475a38bc8e4d7de3bc74cc17b9f0a1fd3324d016e",
+    "reload-config": "6391d25fa21a0ecd20f18a4aadcc22137bb1b83c26e857c8476c5968fa78e6a3",
+    "rpcd": "fabe445de71e5322dabe4801d86c06237abd5e3150372f3c34a2ae6ba387f432",
+    "ubusd": "728fa1ddae1ef266e416959d6a146fe66e2a1dc11e258875cd32deaf8be70766",
+    "uci": "1758125b86c80a1a09c2db55df83952f5cbef6542527f1de1f37a088cba115cf"
+  },
+  "exact_binary_identity_reuse": {
+    "from": "482ab8f0d0fbb987a0aab12290cf10dd5a41257a",
+    "components": [
+      "fw4",
+      "logd",
+      "netifd",
+      "procd",
+      "reload-config",
+      "rpcd",
+      "ubusd",
+      "uci"
+    ]
+  },
+  "gates": [
+    {
+      "gate": "rpcd-unit",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "1e7a716818e43260729a3c7611f938ab36767bbbe9fb5ba475046e0e70377bf3"
+    },
+    {
+      "gate": "procd-unit",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "9c83c8e099f4e9bfd39b44996ecabdffa7f233904837bb99e772c8c31957d7c6"
+    },
+    {
+      "gate": "ubusd-unit",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "fca204753c7c57da5a7a65ee495bec2a351bad3f74e5596125855aa170ed91a2"
+    },
+    {
+      "gate": "netifd-unit",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "9c17ca588e7b33f7321f0a5599280d1ad79882ef48f1318b3a668460255c56d8"
+    },
+    {
+      "gate": "uci-r16",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "a9909d8d59aeeb7d9248fd4f2d39d2489e0a811fa4ade3f289b2ef9857c6df64"
+    },
+    {
+      "gate": "r13_rpcd_check",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b"
+    },
+    {
+      "gate": "r17_rpcd_core_check",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf"
+    },
+    {
+      "gate": "r18_rpcd_plugins_check",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97"
+    },
+    {
+      "gate": "r19_lucirpc_check",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6"
+    },
+    {
+      "gate": "rpcd-busy",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "793f13544e0a75d009757c9919a0d39cebcb7da170ec0d223f39f852c696fed9"
+    },
+    {
+      "gate": "rpcd-r26",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "3f3f370466e8d1167900bb127e0570c3c1c51765a1f8bdfa2e33aed04f5cdb83"
+    },
+    {
+      "gate": "rpcd-bytes",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279"
+    },
+    {
+      "gate": "rpcd-defer",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3"
+    },
+    {
+      "gate": "procd-busy-1-original",
+      "exit": 0,
+      "original_control": true,
+      "log_sha256": "8fbb7d40f8ba7b469cdbb197b16fe45f4f4cfb6f318aa368f6f79ed05172d3b9"
+    },
+    {
+      "gate": "procd-busy-1-candidate",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "11b9af42e871dddc82c0dbb7ba37cc9c50552437ea23300c714886fceaa80170"
+    },
+    {
+      "gate": "procd-busy-2-original",
+      "exit": 0,
+      "original_control": true,
+      "log_sha256": "d2e69e0c571201e3b346876630a4dbfbcd06fb7ebbafc393bf434d722178ef8a"
+    },
+    {
+      "gate": "procd-busy-2-candidate",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "410c8c8c153f94c7e7499daad7f8110019b60ccb6392e7b46ea11108f48ab2be"
+    },
+    {
+      "gate": "procd-busy-3-original",
+      "exit": 0,
+      "original_control": true,
+      "log_sha256": "f070e9584a408bf0dec3bfe99768e30ffa5dfe97de5fa94d3fc6499d8057c485"
+    },
+    {
+      "gate": "procd-busy-3-candidate",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "3e71bff719990641b31359e385115a834b9ecf0673442ed4a1fedcccb494ab7a"
+    },
+    {
+      "gate": "procd-busy-4-original",
+      "exit": 0,
+      "original_control": true,
+      "log_sha256": "5dc2c37ffb11d522cc0f8c1a1dabc509604c94a793b5a0b29cf4978667f9eb12"
+    },
+    {
+      "gate": "procd-busy-4-candidate",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "4207ec2a2dcbe2c4c44c7bee9cebdd001495059a7ac234b62c8fa48d7f9ae8af"
+    },
+    {
+      "gate": "procd-busy-5-original",
+      "exit": 0,
+      "original_control": true,
+      "log_sha256": "e5e9e72040a3fa91e5a43cf331b86766b5892a3535d4b9c11206841769ede6d6"
+    },
+    {
+      "gate": "procd-busy-5-candidate",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "ffcd3b08c4ca4f4c184144ccf969cd2bb4b2fa8bb2912747f9cac5240e44ca4d"
+    },
+    {
+      "gate": "procd-r65",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114"
+    },
+    {
+      "gate": "procd-r83",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "7bffbc8f8e516966954fa57127c391e308bdf3193b69c1f36536d4511a71aa70"
+    },
+    {
+      "gate": "procd-r71",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "355452812971e42b6607ff353a5616214a2ae6df805ce9af0bf48ed922dedd1b"
+    },
+    {
+      "gate": "procd-r72-tty",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "4466179b9a3416fc311f0d78f831aa62c2eca7a60d3c6614cda85cf7f56d7f99"
+    },
+    {
+      "gate": "procd-r75",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "feebccf000e0eb3ba744f6eea29b8890bb9d6fc034f2e4f88c1657fb57eabdb9"
+    },
+    {
+      "gate": "ubusd-r36",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "6119608303284586eb9c2c0c8844414d463ebf552b66ae9fa86f6b2f38dc1b66"
+    },
+    {
+      "gate": "ubusd-r36-ubus",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "1452d1de79a8a6bae9d958568a95e55c6b3599d76f0580f3219543bca3a45efa"
+    },
+    {
+      "gate": "ubusd-r83",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "71ef95c71f7da8a917f78db06d71e8a6cebf80f4fe59396dcaef8a638457b671"
+    },
+    {
+      "gate": "ubusd-r42",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9"
+    },
+    {
+      "gate": "ubusd-r41",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "gate": "netifd-suite",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "592aaad1fa7518040c09918b534dc6759db0df62a112c89ece6294f748b6ae6d"
+    },
+    {
+      "gate": "httpd-unit",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "0bf1ca28c4e895189d2caffc74525ca1293000990cdf04926729df10a2efc1a6"
+    },
+    {
+      "gate": "httpd-resource",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "5c9893884e3e213957119c120bc9b6d0e2c844f06796d7eef4fa6541c2f0038b"
+    },
+    {
+      "gate": "httpd-static",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "4be8c84ca2307256e1b174f6e07219d9a68857fb96c519f043a6a3f0101ed049"
+    },
+    {
+      "gate": "httpd-extended",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "369e10a2c50691a2f150a0a5d0de49621d7e27e39d3bfa879281d0c44e1c9d2e"
+    },
+    {
+      "gate": "httpd-r14",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "c0d2afaf6f6ceb3f71a52bfe720cc5bf521487e537a0aa6a798561a83ce0b4e3"
+    },
+    {
+      "gate": "httpd-fuzz",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "d12c93f0d3815979388f42c105029d1faff351f8683d278d58225256ec1c5462"
+    },
+    {
+      "gate": "httpd-cgi-stress",
+      "exit": 0,
+      "original_control": false,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "unit_tests": {
+    "httpd": 30,
+    "rpcd": 53,
+    "procd": 73,
+    "ubusd": 24,
+    "netifd": 155
+  },
+  "unit_test_total": 335,
+  "netifd_scenarios": 29,
+  "httpd": {
+    "static_cases": 41,
+    "r14_requests_per_side": 61,
+    "extended_cases": 31,
+    "disconnected_sse_cleanup": true,
+    "cgi_stress_requests": 30000,
+    "fuzz": {
+      "cases": 133,
+      "baseline_differences": [
+        "cgi-pathinfo-nul",
+        "chunked-bad-size",
+        "chunked-huge-size",
+        "connect",
+        "header-ctrl",
+        "header-no-colon",
+        "header-obs-fold",
+        "http09",
+        "http12",
+        "http2",
+        "httpx",
+        "json-deep-array",
+        "lf-only",
+        "long-path-8k",
+        "lowercase-method",
+        "method-only",
+        "percent-nul",
+        "pipelined-bad-second",
+        "raw-space-in-path",
+        "tab-separated",
+        "trace",
+        "unknown-method"
+      ],
+      "candidate_changes": [],
+      "survival_failures": [],
+      "passed": true
+    },
+    "resource_failure": {
+      "passed": true,
+      "results": [
+        {
+          "side": "stock",
+          "survived": true,
+          "limited_requests": 3,
+          "accepted_while_limited": 3,
+          "requests_after_restore": 4,
+          "connection_slots_recovered": true,
+          "fds_recovered": true
+        },
+        {
+          "side": "candidate",
+          "survived": true,
+          "limited_requests": 3,
+          "accepted_while_limited": 0,
+          "requests_after_restore": 4,
+          "connection_slots_recovered": true,
+          "fds_recovered": true
+        }
+      ]
+    },
+    "oracle_memory": {
+      "stock": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 948,
+          "VmRSS": 948,
+          "RssAnon": 96,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held": {
+          "VmHWM": 1392,
+          "VmRSS": 1392,
+          "RssAnon": 540,
+          "Threads": 1,
+          "fds": 71
+        },
+        "after_close": {
+          "VmHWM": 1144,
+          "VmRSS": 952,
+          "RssAnon": 100,
+          "Threads": 1,
+          "fds": 7
+        },
+        "held_rss_growth_kib": 444
+      },
+      "candidate": {
+        "connections": 64,
+        "response_bytes": 16384,
+        "before": {
+          "VmHWM": 1004,
+          "VmRSS": 1004,
+          "RssAnon": 68,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held": {
+          "VmHWM": 2940,
+          "VmRSS": 2940,
+          "RssAnon": 2004,
+          "Threads": 66,
+          "fds": 68
+        },
+        "after_close": {
+          "VmHWM": 2720,
+          "VmRSS": 1008,
+          "RssAnon": 72,
+          "Threads": 2,
+          "fds": 4
+        },
+        "held_rss_growth_kib": 1936
+      }
+    }
+  },
+  "rpcd_fuzz": {
+    "steps": 733,
+    "differences": 0
+  },
+  "ubusd_fuzz": {
+    "cases": 664,
+    "identical": true
+  },
+  "uci": {
+    "steps": 193,
+    "identical": 193,
+    "differ": []
+  },
+  "procd_busy": {
+    "candidate_rounds": 5,
+    "candidate_failures": 0,
+    "original_rounds": 5,
+    "original_failures": 0,
+    "earlier_r85_original_failures": "Preserved in R85; this fixed five-round batch passed both sides."
+  },
+  "clippy": [
+    {
+      "component": "httpd",
+      "scope": "all-targets",
+      "undocumented_unsafe_blocks": "passed",
+      "log_sha256": "27a8cf7afcd09b8729800985d62f3aeb0f441b5d23852746ff88b27e6be87284",
+      "other_warnings": "retained"
+    },
+    {
+      "component": "rpcd",
+      "scope": "runtime",
+      "undocumented_unsafe_blocks": "passed",
+      "log_sha256": "deb30ca9cb8e71c03eaa5f5b4add827aec5b7ac472dd22a4dfba6639a519da55",
+      "other_warnings": "retained"
+    },
+    {
+      "component": "procd",
+      "scope": "all-targets",
+      "undocumented_unsafe_blocks": "passed",
+      "log_sha256": "daeda7ce4f33bc243e0d0538dd741f13bdfc1e13a257723f590423e88041386d",
+      "other_warnings": "retained"
+    },
+    {
+      "component": "ubusd",
+      "scope": "runtime",
+      "undocumented_unsafe_blocks": "passed",
+      "log_sha256": "96b49316f4005ca7558c80ec59d649e401e09a7dfccfd3bbd33d6bb8e5d91379",
+      "other_warnings": "retained"
+    },
+    {
+      "component": "netifd",
+      "scope": "runtime",
+      "undocumented_unsafe_blocks": "passed",
+      "log_sha256": "1bafa4cbedb606a6a7a848b3824989fac3fb38af385195da83a7210580b400a5",
+      "other_warnings": "retained"
+    }
+  ],
+  "offline_switch": {
+    "passed": true,
+    "checks": [
+      "APK installation is inert and all six shipped binary hashes match",
+      "cold stage preserves originals; early confirmation and stale timer rejected",
+      "failed restore remains pending and never reboots",
+      "automatic rollback restores the entire original next boot",
+      "offline failsafe rescue requires no ubus or running Rust"
+    ],
+    "log_sha256": "c367e34308da1c05f4a6256fac2f1dad049748368ebf48abe1633c44f8d13dc5"
+  },
+  "superseded_failed_candidate": {
+    "httpd_sha256": "018be790277a7c0016d4d09c13ad1a18ab5f8f4cfa7889c156a433e540922203",
+    "failed_gate": "httpd-fuzz",
+    "changed_case": "long-path-8k",
+    "raw_retained": true,
+    "log_sha256": "b868b4abccff58561d8e77f4473e2ea64ba5da876aecff4e8a2ee7abcaccfa09"
+  },
+  "evidence": {
+    "source": "Oracle R86 review",
+    "archive_sha256": "6b4206d4cfad1d70428ea1f2524f174e6302b6600b225b1189d696c45992fa6f",
+    "file_count": 5722,
+    "all_files_verified": true
+  },
+  "limitations": [
+    "This is finite regression coverage, not a proof that all possible inputs are bug-free.",
+    "The four unchanged components retain their earlier acceptance evidence and current CI; UCI also reran R16.",
+    "HTTPD retains 22 previously recorded malformed-request differences from original OpenWrt."
+  ]
+}

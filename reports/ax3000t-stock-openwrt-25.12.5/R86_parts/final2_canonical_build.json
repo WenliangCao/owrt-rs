@@ -1,0 +1,36 @@
+{
+  "source_commit": "f612e30f2e282fe5b3b3084a2da0edaa6047f612",
+  "release_workflow": 34695787044,
+  "ci_workflow": 34695786971,
+  "workflow_conclusions": "success",
+  "openwrt": "25.12.5",
+  "artifact_sha256": {
+    "owrt-fw4-0.1.0-r12.apk": "b5aa688c534293a58854fc61970d058f434f66315e3043973c3b6028b00a6af0",
+    "owrt-httpd-0.1.1-r13.apk": "4dcf07cc698286b4619913a72c2a7ad1725d676e735cdfe8fc75cdeb40a78a38",
+    "owrt-logd-0.1.0-r11.apk": "af859c4928d600e95d1cdb51f8c3ebe86c908dc58495e20f9e93330190a2c869",
+    "owrt-reload-config-0.2.0-r8.apk": "a8bcfa28c22d131e3f85ac6940a504c6a02d6729cc34cbbb87b84b9ef0f2a92c",
+    "owrt-rpcd-0.1.0-r18.apk": "3b2d2895488823d241978deee17a02117bafc6633fc05e90bd6a7fb1324b1173",
+    "owrt-switch-0.1.0-r2.apk": "2814f8fc5fcc2f4d19dc2781bc763689bcbf400a0d42fd0781d154650a8cd94b",
+    "owrt-uci-0.1.0-r9.apk": "004c6dfbc98d395f953bd041937427031a67b8decc1012e3d861d547531f38c5",
+    "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin": "6bc2b053b80d71d8ef31663c1de225b0cb086cd8c9c7ad7a53263b7eef23f9b3"
+  },
+  "image_manifest_sha256": "44646408e43d42d7a518af7366aaddf18d6f8cfa402ee8bfbf8fc56370b96ad0",
+  "core_manifest_sha256": "4202dd8a01b05a519c7729726ce2d60bcb86ec5435a1196dfb1934750482a10f",
+  "core_archive_sha256": "e0fffebe09526cbcbe0454feba08c6c1705596953966db4baaebf4164faeaba8",
+  "root_squashfs_sha256": "3e92ab3d9261e859c4c2c6672b356339ac9c7bea4c80a543220f0e2e910fc865",
+  "packaged_binary_sha256": {
+    "uci-rs": "1758125b86c80a1a09c2db55df83952f5cbef6542527f1de1f37a088cba115cf",
+    "fw4-rs": "e6911e446a9963fd3fa14d78a631102566b19cce50172da61d9f72f4f82ae431",
+    "reload_config_rs": "6391d25fa21a0ecd20f18a4aadcc22137bb1b83c26e857c8476c5968fa78e6a3",
+    "logd-rs": "1be0d0f769346a89a4e28da0d6788096b01888e4fe3af77cc8c999befa71ac53",
+    "httpd-rs": "05336a5bd0d9a5bdec5704023c869565e3a7493fd8b02f397ed7f8cd47ae4997",
+    "rpcd-rs": "fabe445de71e5322dabe4801d86c06237abd5e3150372f3c34a2ae6ba387f432"
+  },
+  "core_binary_sha256": {
+    "procd-rs": "759a52d2b833fc260389402475a38bc8e4d7de3bc74cc17b9f0a1fd3324d016e",
+    "ubusd-rs": "728fa1ddae1ef266e416959d6a146fe66e2a1dc11e258875cd32deaf8be70766",
+    "netifd-rs": "6f71709f117fe357e97615f4e40bb315871c602264443ebab0539bce96c9b300"
+  },
+  "verification": "All APK/image hashes and core archive verified. All nine extracted binaries match their manifests. Runtime acceptance is separate.",
+  "deployed": false
+}

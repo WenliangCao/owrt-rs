@@ -88,7 +88,7 @@ def derive(root, label):
     settings = read(root / "settings.json")
     assert not settings.get("rpc_client_diagnostic"), "RPC client diagnostics cannot be published as performance-matrix results"
     component = settings.get("component", "httpd")
-    assert component in ("httpd", "rpcd", "procd", "ubusd", "netifd")
+    assert component in COMPONENT_WORK
     measured_sides = tuple(side for side in ("stock", "r84", "candidate") if side in order)
     assert {"stock", "candidate"}.issubset(measured_sides)
     assert len({order.count(side) for side in measured_sides}) == 1
