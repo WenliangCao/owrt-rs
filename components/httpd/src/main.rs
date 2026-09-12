@@ -780,8 +780,13 @@ impl Server {
 
 /// One listener: accepts, and holds the keep-alive connections its threads
 /// have parked, waking one only when its socket reports input, a hangup or
-/// its keep-alive deadline.
+/// its keep-alive deadline. The parked set is a readiness set (epoll on
+/// Linux), so a wake costs the same with two parked sockets or two thousand.
 fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustls::ServerConfig>>) {
+    use owrt_ubus::readiness::{Poller, Ready};
+    const TOKEN_WAKE: u64 = u64::MAX;
+    const TOKEN_LISTENER: u64 = u64::MAX - 1;
+
     let local = listener.local_addr().ok();
     if listener.set_nonblocking(true).is_err() { return; }
     set_tcp_keepalive(listener.as_raw_fd(), server.config.tcp_keepalive);
@@ -791,37 +796,48 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
         return;
     }
     let (wake_r, wake_w): (std::fs::File, std::fs::File) = (wake_r.into(), wake_w.into());
+    let Ok(mut poller) = Poller::new() else { return };
+    if poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false).is_err() { return; }
     let parking = Arc::new(Parking { inbox: Mutex::new(Vec::new()), wake: wake_w });
-    let mut parked: Vec<Parked> = Vec::new();
-    let mut fds: Vec<owrt_ubus::sys::PollFd> = Vec::new();
-    let poll_in = |fd: RawFd| owrt_ubus::sys::PollFd { fd, events: owrt_ubus::sys::POLLIN, revents: 0 };
+    // Parked connections by token; tokens are never reused within a listener.
+    let mut parked: std::collections::HashMap<u64, Parked> = std::collections::HashMap::new();
+    let mut next_token: u64 = 0;
+    let mut listening = false;
+    let mut ready: Vec<Ready> = Vec::new();
     loop {
-        parked.append(&mut parking.inbox.lock().unwrap_or_else(|e| e.into_inner()));
+        for p in parking.inbox.lock().unwrap_or_else(|e| e.into_inner()).drain(..) {
+            let token = next_token;
+            next_token += 1;
+            if poller.add(p.conn.fd, token, false).is_ok() {
+                parked.insert(token, p);
+            } else {
+                // Cannot watch it: treat as closed rather than leak the slot.
+                server.connections.fetch_sub(1, Ordering::Relaxed);
+            }
+        }
         // uhttpd closes a keep-alive connection whose timer ran out without
         // answering (client_timeout, client.c:95).
         let now = Instant::now();
-        parked.retain(|p| {
-            let live = p.deadline > now;
-            if !live {
+        let expired: Vec<u64> = parked.iter().filter(|(_, p)| p.deadline <= now).map(|(t, _)| *t).collect();
+        for token in expired {
+            if let Some(p) = parked.remove(&token) {
+                let _ = poller.remove(p.conn.fd);
                 server.connections.fetch_sub(1, Ordering::Relaxed);
             }
-            live
-        });
+        }
         // listen.c:95 + uh_poll_listeners: at the cap uhttpd takes the listener
         // out of uloop and re-arms it once a client goes away, so further
         // connection attempts wait in the backlog instead of being accepted and
         // dropped. `-N 0` disables the cap entirely (`conf.max_connections &&`).
         let at_cap = server.config.max_connections > 0
             && server.connections.load(Ordering::Relaxed) >= server.config.max_connections;
-        fds.clear();
-        fds.push(poll_in(wake_r.as_raw_fd()));
-        if !at_cap {
-            fds.push(poll_in(listener.as_raw_fd()));
+        if at_cap && listening {
+            listening = poller.remove(listener.as_raw_fd()).is_err();
+        } else if !at_cap && !listening {
+            listening = poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false).is_ok();
         }
-        let first_parked = fds.len();
-        fds.extend(parked.iter().map(|p| poll_in(p.conn.fd)));
         let mut timeout = parked
-            .iter()
+            .values()
             .map(|p| p.deadline.saturating_duration_since(now).as_millis().clamp(1, i32::MAX as u128) as i32)
             .min()
             .unwrap_or(-1);
@@ -829,19 +845,24 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
             // No listener in the set: look again shortly for a freed slot.
             timeout = if timeout < 0 { 50 } else { timeout.min(50) };
         }
-        if owrt_ubus::sys::poll_fds(&mut fds, timeout).is_err() { continue; }
-        if fds[0].revents != 0 {
-            let mut drain = [0u8; 64];
-            while matches!((&wake_r).read(&mut drain), Ok(n) if n > 0) {}
-        }
-        // Back to front so swap_remove never disturbs an index still to check.
-        for i in (0..parked.len()).rev() {
-            if fds[first_parked + i].revents != 0 {
-                let p = parked.swap_remove(i);
-                resume(&server, &parking, p);
+        if poller.wait(timeout, &mut ready).is_err() { continue; }
+        let mut accept_ready = false;
+        for r in &ready {
+            match r.token {
+                TOKEN_WAKE => {
+                    let mut drain = [0u8; 64];
+                    while matches!((&wake_r).read(&mut drain), Ok(n) if n > 0) {}
+                }
+                TOKEN_LISTENER => accept_ready = r.revents & owrt_ubus::sys::POLLIN != 0,
+                token => {
+                    if let Some(p) = parked.remove(&token) {
+                        let _ = poller.remove(p.conn.fd);
+                        resume(&server, &parking, p);
+                    }
+                }
             }
         }
-        if at_cap || fds[1].revents & owrt_ubus::sys::POLLIN == 0 {
+        if at_cap || !accept_ready {
             continue;
         }
         // All listeners share the cap. The lock covers nonblocking accept and
