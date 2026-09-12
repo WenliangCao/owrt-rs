@@ -231,6 +231,12 @@ impl Dispatch {
         false
     }
 
+    /// No script call in flight or waiting for its 50 ms gap. inotify events
+    /// still wake the loop through its descriptor.
+    pub fn is_idle(&self) -> bool {
+        self.jobs.is_empty()
+    }
+
     /// Start due scripts and process inotify (`hotplug_exec` +
     /// `inotify_read_handler`).
     pub fn pump(&mut self, conn: &mut owrt_ubus::conn::Connection, now: i64, read_inotify: bool) {

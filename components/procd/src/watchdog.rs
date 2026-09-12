@@ -145,6 +145,11 @@ impl Wdt {
         self.next_ping.is_none()
     }
 
+    /// Milliseconds until the next ping is due (0 when overdue), if armed.
+    pub fn next_ping_in(&self, now: i64) -> Option<i64> {
+        self.next_ping.map(|at| (at - now).max(0))
+    }
+
     /// `watchdog_timeout(t)`: 0 reads, non-zero writes (and pushes to the
     /// driver when open).
     pub fn timeout(&mut self, t: i32) -> i32 {

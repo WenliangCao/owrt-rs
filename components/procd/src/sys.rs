@@ -793,7 +793,7 @@ pub fn halt_forever(event: i32) -> ! {
 }
 
 /// The shutdown signals PID 1 must answer (signal.c). The handler only
-/// stores the reboot event; the main loop acts on it.
+/// stores the reboot event and wakes the loop; the main loop acts on it.
 pub static SHUTDOWN_EVENT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
 
 extern "C" fn shutdown_signal(sig: i32) {
@@ -809,6 +809,32 @@ extern "C" fn shutdown_signal(sig: i32) {
         _ => return,
     };
     SHUTDOWN_EVENT.store(event, std::sync::atomic::Ordering::SeqCst);
+    wake_loop();
+}
+
+/// One byte down the loop's self-pipe, errno preserved: the loop may be
+/// sleeping until a deadline rather than ticking, so a signal that changes
+/// what it must do next has to interrupt that sleep.
+fn wake_loop() {
+    extern "C" {
+        fn write(fd: i32, buf: *const u8, n: usize) -> isize;
+    }
+    #[cfg(target_os = "linux")]
+    // SAFETY: errno is thread-local and must survive an asynchronous handler.
+    let (errno, saved_errno) = unsafe {
+        extern "C" { fn __errno_location() -> *mut i32; }
+        let errno = __errno_location();
+        (errno, *errno)
+    };
+    let fd = SIGCHLD_WAKEUP.load(std::sync::atomic::Ordering::Relaxed);
+    if fd >= 0 {
+        // SAFETY: write(2) of one byte to a non-blocking pipe; a full pipe
+        // (EAGAIN) already means a wakeup is pending.
+        unsafe { write(fd, b"s".as_ptr(), 1) };
+    }
+    #[cfg(target_os = "linux")]
+    // SAFETY: the pointer still names this thread's errno cell.
+    unsafe { *errno = saved_errno; }
 }
 
 extern "C" fn crash_signal(_sig: i32) {

@@ -126,6 +126,14 @@ struct Procd {
     inotify_ready: bool,
 }
 
+/// What one wait returned: bus input, and anything else that calls for the
+/// maintenance pass (another descriptor, the tick, or a failed poll).
+#[derive(Clone, Copy)]
+struct Activity {
+    bus: bool,
+    other: bool,
+}
+
 impl Procd {
     fn now_ms(&self) -> i64 {
         self.base.elapsed().as_millis() as i64
@@ -434,12 +442,38 @@ impl Procd {
         }
     }
 
+    /// How long the loop may sleep before the maintenance pass must run
+    /// again. While anything time-based is pending (a stop or respawn
+    /// deadline, an instance watchdog, a queued trigger, an rc or hotplug
+    /// job, an inittab respawn, coldplug) it keeps the 200 ms tick the
+    /// deadlines were written against. Otherwise it sleeps until the next
+    /// watchdog ping, capped at 5 s as a safety net; child exits, uevents,
+    /// pipe output, inotify, bus traffic and signals all wake it through
+    /// descriptors. The C's uloop only wakes for armed timers.
+    fn next_tick_ms(&self) -> i32 {
+        let pending = self.services.values().any(|s| {
+            s.instances.values().any(|i| i.deadline.is_some() || i.watchdog_deadline.is_some())
+        }) || !self.triggers.pending.is_empty()
+            || !self.rc.jobs.is_empty()
+            || !self.serial.jobs.is_empty()
+            || !self.dispatch.is_idle()
+            || self.hotplug.as_ref().is_some_and(|h| !h.is_idle())
+            || self.inittab.iter().any(|a| a.respawn_at.is_some());
+        if pending {
+            return 200;
+        }
+        let ping = self.wdt.next_ping_in(self.now_ms()).unwrap_or(5000);
+        ping.clamp(1, 5000) as i32
+    }
+
     /// One poll() over everything the loop reacts to, so a child exit, a
     /// uevent, a script's output or an inotify event is handled when it
     /// happens rather than at the next tick -- the C's uloop wakes on each of
     /// these. `timeout_ms` is the timer tick that stays for deadlines.
-    /// (R81 F22.)
-    fn wait_activity(&mut self, timeout_ms: i32) -> io::Result<bool> {
+    /// (R81 F22.) Returns whether the bus is readable and whether anything
+    /// else (another descriptor, or the tick itself) asks for a maintenance
+    /// pass.
+    fn wait_activity(&mut self, timeout_ms: i32) -> io::Result<Activity> {
         use owrt_ubus::sys::{PollFd, POLLIN};
         use std::os::fd::AsRawFd;
         let pfd = |fd: i32| PollFd { fd, events: POLLIN, revents: 0 };
@@ -471,22 +505,29 @@ impl Procd {
         // message. Still check the other descriptors, but do not sleep on it.
         let pending = self.conn.has_pending();
         let result = owrt_ubus::sys::poll_fds(&mut fds, if pending { 0 } else { timeout_ms });
-        if result.is_ok() {
-            if fds[1].revents != 0 {
-                sys::drain_wakeup(self.wakeup.as_raw_fd());
+        let mut other = false;
+        match &result {
+            Ok(ready) => {
+                if fds[1].revents != 0 {
+                    sys::drain_wakeup(self.wakeup.as_raw_fd());
+                }
+                self.inotify_ready |= inotify_index.is_some_and(|i| fds[i].revents != 0);
+                // The tick elapsed, or something other than the bus is ready.
+                other = (*ready == 0 && !pending) || fds[1..].iter().any(|p| p.revents != 0);
             }
-            self.inotify_ready |= inotify_index.is_some_and(|i| fds[i].revents != 0);
-        } else {
-            // If polling failed, preserve the old nonblocking maintenance
-            // read rather than depending on an absent readiness result.
-            self.inotify_ready = true;
+            Err(_) => {
+                // If polling failed, preserve the old nonblocking maintenance
+                // read rather than depending on an absent readiness result.
+                self.inotify_ready = true;
+                other = true;
+            }
         }
-        let bus_ready = pending || fds[0].revents != 0;
+        let bus = pending || fds[0].revents != 0;
         if fds.capacity() <= 256 {
             fds.clear();
             self.wait_fds = fds;
         }
-        result.map(|_| bus_ready)
+        result.map(|_| Activity { bus, other })
     }
 
     /// Drain every live instance's captured output. `instance_stdio` builds
@@ -1014,8 +1055,11 @@ impl Procd {
 
     // -- ubus --------------------------------------------------------------
 
-    fn dispatch(&mut self, msg: Incoming) {
-        let Incoming::Invoke(req) = msg else { return };
+    /// Handle one bus message. Returns true when it may have changed
+    /// something the maintenance pass (timers, triggers, queues) acts on;
+    /// read-only queries return false so the pass can be skipped for them.
+    fn dispatch(&mut self, msg: Incoming) -> bool {
+        let Incoming::Invoke(req) = msg else { return false };
         // watch_notify_cb(): a notification delivered to our subscriber
         // object arrives as an INVOKE whose method is the notification type.
         // ubusd's own event object announces new objects the same way.
@@ -1035,7 +1079,7 @@ impl Procd {
             }
             let _ = self.conn.reply_status(&req, status::OK, None);
             self.conn.recycle_request(req);
-            return;
+            return true;
         }
         let target = if req.objid == self.objects.service {
             Target::Service
@@ -1054,14 +1098,20 @@ impl Procd {
             self.dispatch = d;
             let _ = self.conn.reply_status(&req, code, None);
             self.conn.recycle_request(req);
-            return;
+            return true;
         } else {
             let _ = self.conn.reply_status(&req, status::NOT_FOUND, None);
             self.conn.recycle_request(req);
-            return;
+            return false;
         };
+        // Pure reads: nothing for the maintenance pass to pick up afterwards.
+        let read_only = matches!(
+            (target, req.method.as_str()),
+            (Target::Service, "list" | "get_data" | "validate") | (Target::System, "info" | "board")
+        );
         self.handle(target, &req);
         self.conn.recycle_request(req);
+        !read_only
     }
 
     fn handle(&mut self, target: Target, req: &Request) {
@@ -2427,6 +2477,10 @@ fn run() -> io::Result<()> {
     // with it.
     let mut backoff_ms: i32 = 50;
     let mut connected = true;
+    // The maintenance pass runs on every wake that is not a pure read on the
+    // bus: timers, child exits, pipe output, uevents, inotify, signals, and
+    // any bus method that changes supervised state. It starts armed.
+    let mut maintenance_due = true;
 
     loop {
         if !connected {
@@ -2460,33 +2514,46 @@ fn run() -> io::Result<()> {
         // needed exactly this fix.
         while p.conn.has_pending() {
             match p.conn.read_incoming() {
-                Ok(msg) => p.dispatch(msg),
+                Ok(msg) => maintenance_due |= p.dispatch(msg),
                 Err(_) => break,
             }
         }
-        // Drain output BEFORE reaping: a child that just exited may have
-        // left its last lines in the pipe, and closing it on reap would
-        // lose them.
-        p.pump_logs();
-        p.reap();
-        p.fire_timeouts();
-        p.pump_triggers();
-        p.pump_pid1();
-        let now = p.now_ms();
-        p.rc.pump(now);
+        if maintenance_due {
+            // Drain output BEFORE reaping: a child that just exited may have
+            // left its last lines in the pipe, and closing it on reap would
+            // lose them.
+            p.pump_logs();
+            p.reap();
+            p.fire_timeouts();
+            p.pump_triggers();
+            p.pump_pid1();
+            let now = p.now_ms();
+            p.rc.pump(now);
+            maintenance_due = false;
+        }
 
         // uloop_run(): sleep until ANY of the fds this loop reacts to is
         // ready -- the bus, the uevent socket, a child's output, a child
-        // exit -- or the 200 ms timer tick for deadlines and respawns.
-        let incoming = match p.wait_activity(200) {
-            Ok(true) => p.conn.read_incoming().map(Some),
-            Ok(false) => Ok(None),
+        // exit -- or the timer tick for deadlines and respawns, which is
+        // 200 ms while anything is pending and the watchdog interval otherwise.
+        let incoming = match p.wait_activity(p.next_tick_ms()) {
+            Ok(Activity { bus: true, other }) => {
+                maintenance_due |= other;
+                p.conn.read_incoming().map(Some)
+            }
+            Ok(Activity { bus: false, other }) => {
+                maintenance_due |= other;
+                Ok(None)
+            }
             // Preserve the old nonblocking bus probe if the shared wait
             // fails; never block on an unverified socket in that case.
-            Err(_) => p.conn.next_incoming(0),
+            Err(_) => {
+                maintenance_due = true;
+                p.conn.next_incoming(0)
+            }
         };
         match incoming {
-            Ok(Some(msg)) => p.dispatch(msg),
+            Ok(Some(msg)) => maintenance_due |= p.dispatch(msg),
             Ok(None) => {}
             Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
             Err(e) => {

@@ -326,6 +326,16 @@ impl Hotplug {
         }
     }
 
+    /// Nothing here needs a timer tick: no queued command, no running child,
+    /// no armed button timeout and coldplug not waiting on its quiet period.
+    /// New uevents still arrive through the socket in the loop's poll set.
+    pub fn is_idle(&self) -> bool {
+        self.queue.is_empty()
+            && self.child.is_none()
+            && self.buttons.is_empty()
+            && matches!(self.coldplug, Coldplug::Idle | Coldplug::Done)
+    }
+
     /// Drain the socket, run rules, fire button timeouts, start queue work.
     /// Returns whether a `start-console` command asked for the inittab
     /// console handlers, and the events received (for `hotplug_ubus_event`'s
