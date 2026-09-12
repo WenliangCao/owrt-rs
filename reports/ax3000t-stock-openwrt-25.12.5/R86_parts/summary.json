@@ -1,0 +1,543 @@
+{
+  "schema": 1,
+  "component_workloads": 74,
+  "component_observations": 592,
+  "component_counts": {
+    "mean_us": {
+      "lower": 73,
+      "equal": 0,
+      "higher": 1
+    },
+    "subject_cpu_us_per_op": {
+      "lower": 73,
+      "equal": 1,
+      "higher": 0
+    },
+    "p95_us": {
+      "lower": 66,
+      "equal": 0,
+      "higher": 8
+    },
+    "p99_us": {
+      "lower": 66,
+      "equal": 0,
+      "higher": 8
+    }
+  },
+  "primary": [
+    {
+      "component": "uci",
+      "workload": "export_network",
+      "mean_us": {
+        "stock": 2107.145477,
+        "rust": 1203.902626,
+        "rust_vs_stock_percent": -42.86570912445833
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 1750.0,
+        "rust": 900.0,
+        "rust_vs_stock_percent": -48.57142857142858
+      },
+      "p95_us": {
+        "stock": 2507.9695,
+        "rust": 1459.901,
+        "rust_vs_stock_percent": -41.78952335744115
+      },
+      "p99_us": {
+        "stock": 2777.267,
+        "rust": 1836.2640000000001,
+        "rust_vs_stock_percent": -33.88233828436372
+      }
+    },
+    {
+      "component": "reload-config",
+      "workload": "unchanged_config",
+      "mean_us": {
+        "stock": 40162.179291,
+        "rust": 25407.207388000003,
+        "rust_vs_stock_percent": -36.73847426478288
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 41470.0,
+        "rust": 26320.0,
+        "rust_vs_stock_percent": -36.532433084157226
+      },
+      "p95_us": {
+        "stock": 41379.555,
+        "rust": 26393.0225,
+        "rust_vs_stock_percent": -36.21723940723868
+      },
+      "p99_us": {
+        "stock": 42857.6535,
+        "rust": 27058.610500000003,
+        "rust_vs_stock_percent": -36.863994432172994
+      }
+    },
+    {
+      "component": "fw4",
+      "workload": "print",
+      "mean_us": {
+        "stock": 99730.411055,
+        "rust": 10780.375495,
+        "rust_vs_stock_percent": -89.19048324281471
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 96050.0,
+        "rust": 9500.0,
+        "rust_vs_stock_percent": -90.1093180635086
+      },
+      "p95_us": {
+        "stock": 104824.9025,
+        "rust": 11713.835,
+        "rust_vs_stock_percent": -88.8253318432612
+      },
+      "p99_us": {
+        "stock": 112331.8845,
+        "rust": 12287.7855,
+        "rust_vs_stock_percent": -89.06117746115085
+      }
+    },
+    {
+      "component": "logd",
+      "workload": "syslog_128",
+      "mean_us": {
+        "stock": 28.18694626,
+        "rust": 4.982223255,
+        "rust_vs_stock_percent": -82.32435962007614
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 32.0,
+        "rust": 8.5,
+        "rust_vs_stock_percent": -73.4375
+      },
+      "p95_us": {
+        "stock": 29.854,
+        "rust": 10.810500000000001,
+        "rust_vs_stock_percent": -63.7887720238494
+      },
+      "p99_us": {
+        "stock": 68.9785,
+        "rust": 13.042,
+        "rust_vs_stock_percent": -81.09265930688548
+      }
+    },
+    {
+      "component": "httpd",
+      "workload": "static_16k",
+      "mean_us": {
+        "stock": 364.21243505,
+        "rust": 267.9140005,
+        "rust_vs_stock_percent": -26.440183058763477
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 260.5,
+        "rust": 153.0,
+        "rust_vs_stock_percent": -41.26679462571977
+      },
+      "p95_us": {
+        "stock": 470.002,
+        "rust": 359.743,
+        "rust_vs_stock_percent": -23.459261875481385
+      },
+      "p99_us": {
+        "stock": 592.9165,
+        "rust": 440.84000000000003,
+        "rust_vs_stock_percent": -25.6488898521124
+      }
+    },
+    {
+      "component": "rpcd",
+      "workload": "uci_get_network",
+      "mean_us": {
+        "stock": 374.36148343,
+        "rust": 334.12244171,
+        "rust_vs_stock_percent": -10.748713075746785
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 225.8,
+        "rust": 182.3,
+        "rust_vs_stock_percent": -19.26483613817538
+      },
+      "p95_us": {
+        "stock": 522.1295,
+        "rust": 481.1965,
+        "rust_vs_stock_percent": -7.839625993168364
+      },
+      "p99_us": {
+        "stock": 644.3140000000001,
+        "rust": 603.842,
+        "rust_vs_stock_percent": -6.281409374932112
+      }
+    },
+    {
+      "component": "procd",
+      "workload": "service_list_32",
+      "mean_us": {
+        "stock": 230.6970398,
+        "rust": 199.17839605,
+        "rust_vs_stock_percent": -13.662352918496357
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 88.0,
+        "rust": 71.0,
+        "rust_vs_stock_percent": -19.318181818181824
+      },
+      "p95_us": {
+        "stock": 359.12800000000004,
+        "rust": 320.079,
+        "rust_vs_stock_percent": -10.873281949611291
+      },
+      "p99_us": {
+        "stock": 698.0575,
+        "rust": 619.192,
+        "rust_vs_stock_percent": -11.297851538018
+      }
+    },
+    {
+      "component": "ubusd",
+      "workload": "invoke",
+      "mean_us": {
+        "stock": 95.08296290000001,
+        "rust": 92.1944001,
+        "rust_vs_stock_percent": -3.0379394077548416
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 52.5,
+        "rust": 52.0,
+        "rust_vs_stock_percent": -0.952380952380949
+      },
+      "p95_us": {
+        "stock": 111.52799999999999,
+        "rust": 99.64,
+        "rust_vs_stock_percent": -10.659206656624342
+      },
+      "p99_us": {
+        "stock": 211.822,
+        "rust": 205.20499999999998,
+        "rust_vs_stock_percent": -3.1238492696698206
+      }
+    },
+    {
+      "component": "netifd",
+      "workload": "interface_dump",
+      "mean_us": {
+        "stock": 217.83685644999997,
+        "rust": 192.2996792,
+        "rust_vs_stock_percent": -11.723074628494512
+      },
+      "subject_cpu_us_per_op": {
+        "stock": 94.5,
+        "rust": 71.0,
+        "rust_vs_stock_percent": -24.86772486772487
+      },
+      "p95_us": {
+        "stock": 318.887,
+        "rust": 299.03599999999994,
+        "rust_vs_stock_percent": -6.22508913815868
+      },
+      "p99_us": {
+        "stock": 596.302,
+        "rust": 586.838,
+        "rust_vs_stock_percent": -1.5871152536801936
+      }
+    }
+  ],
+  "whole": {
+    "fw4": {
+      "ops_per_s": {
+        "stock": 4.89150487525192,
+        "rust": 63.76923770837658,
+        "rust_vs_stock_percent": 1203.673191271068
+      },
+      "server_cpu_us_per_op": {
+        "stock": 198500.0,
+        "rust": 15333.333333333332,
+        "rust_vs_stock_percent": -92.27539882451721
+      },
+      "mean_us": {
+        "stock": 204375.89886666666,
+        "rust": 15629.424616666667,
+        "rust_vs_stock_percent": -92.3526087452889
+      }
+    },
+    "http-jsonrpc": {
+      "ops_per_s": {
+        "stock": 563.8954070984078,
+        "rust": 608.2405959609782,
+        "rust_vs_stock_percent": 7.864080519959193
+      },
+      "server_cpu_us_per_op": {
+        "stock": 1429.0,
+        "rust": 1305.0,
+        "rust_vs_stock_percent": -8.677396780965708
+      },
+      "mean_us": {
+        "stock": 1552.4469563999999,
+        "rust": 1418.4110388499998,
+        "rust_vs_stock_percent": -8.633848454366422
+      }
+    },
+    "http-static": {
+      "ops_per_s": {
+        "stock": 1037.2226597553586,
+        "rust": 1132.081126578941,
+        "rust_vs_stock_percent": 9.145429472776456
+      },
+      "server_cpu_us_per_op": {
+        "stock": 430.0,
+        "rust": 351.0,
+        "rust_vs_stock_percent": -18.372093023255808
+      },
+      "mean_us": {
+        "stock": 663.79899535,
+        "rust": 587.0645497,
+        "rust_vs_stock_percent": -11.559891802719646
+      }
+    },
+    "log": {
+      "ops_per_s": {
+        "stock": 535.9321255624519,
+        "rust": 649.4494071251481,
+        "rust_vs_stock_percent": 21.181279521835283
+      },
+      "server_cpu_us_per_op": {
+        "stock": 830.0,
+        "rust": 486.99999999999994,
+        "rust_vs_stock_percent": -41.32530120481929
+      },
+      "mean_us": {
+        "stock": 978.8099978,
+        "rust": 589.0101325,
+        "rust_vs_stock_percent": -39.823854085688204
+      }
+    },
+    "mixed-total": {
+      "ops_per_s": {
+        "stock": 1142.0831985385357,
+        "rust": 1250.4555800424382,
+        "rust_vs_stock_percent": 9.489009350858236
+      },
+      "server_cpu_us_per_op": {
+        "stock": 785.0,
+        "rust": 707.25,
+        "rust_vs_stock_percent": -9.904458598726118
+      }
+    },
+    "network": {
+      "ops_per_s": {
+        "stock": 801.465799036866,
+        "rust": 950.302063294674,
+        "rust_vs_stock_percent": 18.57050724268794
+      },
+      "server_cpu_us_per_op": {
+        "stock": 625.5,
+        "rust": 443.0,
+        "rust_vs_stock_percent": -29.17665867306155
+      },
+      "mean_us": {
+        "stock": 788.7525949999999,
+        "rust": 592.1638864,
+        "rust_vs_stock_percent": -24.92400149884767
+      }
+    },
+    "procd": {
+      "ops_per_s": {
+        "stock": 918.9863737853705,
+        "rust": 961.1627817819658,
+        "rust_vs_stock_percent": 4.589448679512809
+      },
+      "server_cpu_us_per_op": {
+        "stock": 298.0,
+        "rust": 354.5,
+        "rust_vs_stock_percent": 18.95973154362416
+      },
+      "mean_us": {
+        "stock": 467.35256205,
+        "rust": 472.10480885,
+        "rust_vs_stock_percent": 1.0168440671759038
+      }
+    },
+    "rpcd": {
+      "ops_per_s": {
+        "stock": 1656.9155382949482,
+        "rust": 1824.3584669013392,
+        "rust_vs_stock_percent": 10.10570090849039
+      },
+      "server_cpu_us_per_op": {
+        "stock": 415.00000000000006,
+        "rust": 378.00000000000006,
+        "rust_vs_stock_percent": -8.915662650602407
+      },
+      "mean_us": {
+        "stock": 458.57046945,
+        "rust": 403.8917866,
+        "rust_vs_stock_percent": -11.923725248941675
+      }
+    },
+    "uci": {
+      "ops_per_s": {
+        "stock": 433.11237386784114,
+        "rust": 720.7751910051581,
+        "rust_vs_stock_percent": 66.41759379174277
+      },
+      "server_cpu_us_per_op": {
+        "stock": 2000.0,
+        "rust": 1000.0,
+        "rust_vs_stock_percent": -50.0
+      },
+      "mean_us": {
+        "stock": 2301.018535,
+        "rust": 1372.0525349999998,
+        "rust_vs_stock_percent": -40.37194772096871
+      }
+    }
+  },
+  "whole_fixed_batch_cpu_s": {
+    "stock": 389.31999999999994,
+    "rust": 310.32,
+    "rust_vs_stock_percent": -20.291790814753917
+  },
+  "whole_operations_per_boot": 500650,
+  "cold_boots_per_side": 2,
+  "rounds_per_boot": 5,
+  "tls": {
+    "tls-default": {
+      "keepalive-c1": {
+        "mean_ms": {
+          "stock": 7.6814890295,
+          "rust": 6.000267247,
+          "rust_vs_stock_percent": -21.886665151033004
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 1292.0792079207922,
+          "rust": 599.009900990099,
+          "rust_vs_stock_percent": -53.639846743295024
+        }
+      },
+      "keepalive-c4": {
+        "mean_ms": {
+          "stock": 9.9105198625,
+          "rust": 6.886961421500001,
+          "rust_vs_stock_percent": -30.50857556363632
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 1293.269230769231,
+          "rust": 591.3461538461538,
+          "rust_vs_stock_percent": -54.275092936802984
+        }
+      },
+      "fresh-c1": {
+        "mean_ms": {
+          "stock": 40.93949849649999,
+          "rust": 23.2681684215,
+          "rust_vs_stock_percent": -43.164500602054886
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 17019.80198019802,
+          "rust": 2381.1881188118814,
+          "rust_vs_stock_percent": -86.00930773705643
+        }
+      },
+      "fresh-c4": {
+        "mean_ms": {
+          "stock": 41.141820090500005,
+          "rust": 23.5424902445,
+          "rust_vs_stock_percent": -42.777227179756785
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 17014.423076923078,
+          "rust": 2350.9615384615386,
+          "rust_vs_stock_percent": -86.18253743995479
+        }
+      }
+    },
+    "tls-common": {
+      "keepalive-c1": {
+        "mean_ms": {
+          "stock": 7.659713723,
+          "rust": 6.136746230000001,
+          "rust_vs_stock_percent": -19.882825234407253
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 1227.7227722772277,
+          "rust": 584.1584158415842,
+          "rust_vs_stock_percent": -52.41935483870967
+        }
+      },
+      "keepalive-c4": {
+        "mean_ms": {
+          "stock": 10.324920681,
+          "rust": 6.925283578,
+          "rust_vs_stock_percent": -32.9265202904274
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 1240.3846153846155,
+          "rust": 596.1538461538462,
+          "rust_vs_stock_percent": -51.93798449612403
+        }
+      },
+      "fresh-c1": {
+        "mean_ms": {
+          "stock": 41.033823256,
+          "rust": 23.585448798999998,
+          "rust_vs_stock_percent": -42.52193208549897
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 16881.188118811882,
+          "rust": 2336.633663366337,
+          "rust_vs_stock_percent": -86.158357771261
+        }
+      },
+      "fresh-c4": {
+        "mean_ms": {
+          "stock": 41.420963732000004,
+          "rust": 23.420794884,
+          "rust_vs_stock_percent": -43.45666354955877
+        },
+        "httpd_cpu_us_per_op": {
+          "stock": 16932.69230769231,
+          "rust": 2326.923076923077,
+          "rust_vs_stock_percent": -86.25780806360022
+        }
+      }
+    }
+  },
+  "httpd_held_memory": {
+    "stock": {
+      "held_rss_growth_kib": {
+        "n": 4,
+        "median": 452.0,
+        "mean": 452,
+        "min": 452,
+        "max": 452,
+        "stdev": 0.0
+      },
+      "held_anon_growth_kib": {
+        "n": 4,
+        "median": 452.0,
+        "mean": 452,
+        "min": 452,
+        "max": 452,
+        "stdev": 0.0
+      }
+    },
+    "candidate": {
+      "held_rss_growth_kib": {
+        "n": 4,
+        "median": 2096.0,
+        "mean": 2096,
+        "min": 2096,
+        "max": 2096,
+        "stdev": 0.0
+      },
+      "held_anon_growth_kib": {
+        "n": 4,
+        "median": 1964.0,
+        "mean": 1964,
+        "min": 1964,
+        "max": 1964,
+        "stdev": 0.0
+      }
+    }
+  }
+}

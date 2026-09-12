@@ -5,15 +5,18 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 C 原件全程保留，任何一步都能回退。
 
-**现状（2026-09-12）：R81 冷审计修复已完成，设备运行 R84 的九个 Rust 组件；内核、驱动、数据面和无线
-handler 脚本原样保留。** 修复核实见 [R83](reports/ax3000t-stock-openwrt-25.12.5/R83_R81_FIXES.md)，
-原版/Rust 整体实机对照见 [R84](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md)。
-[R85 优化开发日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)已完成 HTTPD、rpcd、procd、
-ubusd、netifd 五项正式文件的主要性能与候选功能隔离验收。指定最终样本的66项负载均值和CPU汇总值
-低于原版；rpcd短测波动及部分尾延迟、HTTPD保持连接内存代价、原版procd两轮丢日志样本全部保留。
-候选尚未替换正式运行栈，R85部署后的整机收益仍未测量。
-[R86复核](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)正在补齐最新九组件的
-对照与部署；已修复信号唤醒、HTTPD资源耗尽故障，并发现N05的子进程回收检查缺口，正在补测。
+**现状（2026-09-12）：R86 已完成复核、Wi-Fi 部署和四窗口实机对照，设备运行发布提交 `f612e30`
+的九个 Rust 组件；内核、驱动、数据面和无线 handler 脚本保留。**
+[R86报告](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)记录了信号唤醒、HTTPD资源耗尽和
+netifd子进程回收检查的修复。九组件代表负载的平均延迟和CPU均下降；完整74项负载中，平均延迟
+73项下降、1项上升，CPU73项下降、1项持平。整机混合吞吐较原版高9.49%，控制面CPU/次低9.90%，
+固定整批CPU低20.29%。
+
+这些结果不表示全面提升：整机独立服务列表查询CPU高18.96%，HTTPD保持64连接RSS增量为原版452→Rust2096 KiB，
+部分尾延迟仍上升。每侧只有两次整机启动；有限测试也不能证明任意输入无bug。
+[部署证明](reports/ax3000t-stock-openwrt-25.12.5/R86_parts/deployment.json)、
+[完整表格与图](reports/ax3000t-stock-openwrt-25.12.5/R86_parts/rendered/system_results.md)及
+[R85优化日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)保留全部有效样本和历史失败。
 
 ## 分层与边界
 

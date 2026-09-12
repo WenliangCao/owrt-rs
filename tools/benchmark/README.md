@@ -113,8 +113,13 @@ object sets; fixture hashes must agree across subjects. Wireless remains the
 empty configuration, so its timing does not claim radio lifecycle coverage.
 Each phase waits for all expected `ifup` callbacks, no remaining child process,
 and stable reaped-child CPU counters before measuring. Every read workload
-must retain zero child CPU growth. Early N00/N01 matrices predated this gate;
-their 32-interface initialization overlap is retained as an explicit limitation.
+must retain zero child CPU growth. The exact router kernel lacks the proc
+`task/PID/children` interface. R86 checks each process status file's `PPid`
+instead, rejecting live or zombie children and read failures. Each phase records
+that evidence; the analyzer excludes older matrices without it from final
+acceptance. Early N00/N01 lacked the earlier callback/CPU gate too. The old N05
+and first R86 matrix are retained as diagnostics; R86 repeats all fourteen
+workloads with the complete gate and unchanged component binaries.
 
 `run_candidate.py --component ubusd --matrix` retains exact lookup, lookup of
 64 objects and invoke, adds four-client versions, then prefix lookup of 64
@@ -263,6 +268,28 @@ python3 tools/benchmark/storage_inventory.py ROOTFS DEPLOYMENT_MANIFEST.json
 The analyzer requires all completion markers, sample counts, matching binary
 hashes, stable configuration/execution-plane hashes and final Rust health.
 `--partial` supports private progress inspection; the renderer rejects it.
+
+R86 extends the isolated matrix to 74 workloads and uses the fixed candidate
+collector order **stock, candidate, candidate, stock, stock, candidate,
+candidate, stock**. Its four whole-system windows keep the preceding protocol.
+Derive the R86 component matrices, held-connection memory, system windows and
+separate deployment attestation together with:
+
+```sh
+python3 tools/benchmark/analyze_r86.py private/r86 \
+  --manifest work/r86/deployment-final2/manifest.json \
+  --archive work/r86/deployment-final2.tar.gz \
+  --output reports/ax3000t-stock-openwrt-25.12.5/R86_parts
+python3 tools/benchmark/render.py \
+  reports/ax3000t-stock-openwrt-25.12.5/R86_parts/results.json \
+  reports/ax3000t-stock-openwrt-25.12.5/R86_parts/rendered
+```
+
+The R86 entry point binds both implementations and the measurement tools to
+the prepared release, rechecks all four downloaded live archives, and requires
+the deployment driver's final completion event. It preserves the hash-pinned
+preparation manifest. Its attestation records the completed historical run;
+the analysis itself does not query the device or establish current live health.
 
 - Every timed operation must succeed; CLI output is byte-checked, RPC replies
   have status/body checks, and a lost/replaced daemon invalidates the run. The

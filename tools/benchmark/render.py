@@ -152,6 +152,8 @@ def main():
     fig.text(.04, .035, "Physical router | 4 component runs per side | 2 system boots per side | CPU: subject + waited children | dots: per-boot medians", fontsize=9, color="#4b5563")
     fig.tight_layout(rect=(0, .07, 1, .94), w_pad=2)
     fig.savefig(out / "benchmark.svg", metadata={"Date": None})
+    svg = out / "benchmark.svg"
+    svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     fig.savefig(out / "benchmark.png", dpi=180)
     plt.close(fig)
 
