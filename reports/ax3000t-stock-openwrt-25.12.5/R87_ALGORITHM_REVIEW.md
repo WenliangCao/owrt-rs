@@ -99,16 +99,37 @@ R86 的正式 `r85_httpd_static.py --memory-connections 64` 在精确 rootfs 中
 代价：空闲超过 50 ms 后的第一个请求要重新创建线程（A53 上约数十至一百微秒）并分配 8 KiB 读缓冲；停放的 TLS 连接仍持有 rustls 缓冲；
 监听线程的 poll 集合大小等于停放连接数，仅在停放/唤醒事件时轮询，`-N 0` 取消上限时该集合无界。
 
+### H18 · HTTPD：停放集合改用共享就绪集合（`e766e86`、`2ba37c8`）
+
+U05 的就绪集合移入共享 crate `owrt_ubus::readiness`（测试随之迁移），HTTPD 监听线程用它保存停放的套接字：
+每个连接注册一次、按令牌唤醒，监听套接字在连接上限时离开集合、有空位时回来。`-N 0` 取消上限时停放/唤醒的成本不再随
+空闲连接数增长。六个 HTTPD 门重跑通过；30000 次 CGI 压力在三个夹具并行时失败一次，单独重跑通过。
+
+### P11 · procd：只读方法后跳过维护，空闲时睡到下一个截止时间（`fab7cea`）
+
+每条总线消息后都执行整轮维护（日志泵、回收、超时、触发器、PID 1 工作、rc 队列），且无事可做时仍每 200 ms 醒一次：
+R86 空闲 procd CPU 是 C 版的五倍（0.008%→0.042%），真实 `service list` 每次都付这轮维护。现在：只读方法
+（`list`、`get_data`、`validate`、`system info/board`）不触发维护；任何时间相关状态待处理时（停止/重启截止、实例看门狗、
+触发器、rc/hotplug 任务、inittab 重启、coldplug）保留原 200 ms 节拍，否则睡到下一次看门狗喂狗、上限 5 s；
+关机信号与 SIGCHLD 一样写自管道唤醒循环。procd 门重跑：busy 候选 5/5（原版侧 7 次里失败 2 次，是 R86 已记录的原版丢日志问题），
+r65、r83、r71、r72 tty、r75 通过；73 项单元测试通过。
+
 ### R45 · rpcd：字面量与 `*` 的 ACL 匹配快路径（`f57b716`）
 
 `fnmatch` 对不含通配符的模式直接比较切片，对单独的 `*` 直接返回真；含通配符的模式仍走原匹配器。
 新增单元测试覆盖两条快路径与原匹配器的一致性。
 
+### 夹具与构建机清理
+
+`7d72bad` 修正 r36/r42 的对象基线竞争；`caed6ac` 让 r36 沙箱结束时杀掉它启动的 rpcd（沙箱没有 pid namespace）。
+构建机上 32 个 `/sbin/ubusd` 和 1 个 `/sbin/rpcd` 残留进程（根目录均已删除，来自 r83_lifecycle_diff 与 r36 的历次运行）已按 pid 清理；
+r83_lifecycle_diff 的泄漏路径未改。
+
 ## 4. 功能验证（构建机）
 
 | 项目 | 结果 |
 |---|---|
-| 单元测试 | ubusd 27（+3）、httpd 31（+1）、rpcd 54（+1）全部通过 |
+| 单元测试 | ubus 36（+3，轮询器）、ubusd 24、httpd 31（+1）、rpcd 54（+1）、procd 73 全部通过 |
 | HTTPD R86 门重跑 | resource（F02）、static 41 项 + 64 连接内存、extended 31/31 + SSE 清理、r14 61 请求 0 差异、fuzz 133 项 0 新增差异（22 项既有差异不变）、30000 次 CGI 压力：全部通过 |
 | ubusd R86 门重跑 | r36（默认用户）与 r42 fuzz 修正夹具竞争后各 6/6 通过（新旧 ubusd 各 3 次）；r36 以 ubus 用户、r83 ACL 通过；r41 limits 用 HEAD 源重建 busprobe 后新旧各通过 |
 | rpcd R86 门重跑 | r13 63/63、r17 283/283、r18 77/77、busy、bytes、defer 通过；r26 fuzz 首轮原版侧 91 步 Not found，重跑两次与旧文件对照各 0 差异 |
@@ -126,7 +147,19 @@ R86 的正式 `r85_httpd_static.py --memory-connections 64` 在精确 rootfs 中
 - 构建机上还残留着 32 个历次门运行留下的 `/sbin/ubusd` 和 1 个 `/sbin/rpcd`（2026-09-10 至 09-12，父进程为 1），
   本轮没有清理别的会话的进程；它们各在已删除的 rootfs 副本里，未见影响，但说明夹具的收尾不完整。
 
-## 5. 待完成与边界
+## 5. 正式验收流水线（进行中，按 R86 流程）
+
+- 源提交 `caed6ac`：CI `34716101331` 与 `release-image` `34716120045` 均成功；产物下载后九个二进制身份全部核对
+  （[r87_canonical_build.json](R87_parts/r87_canonical_build.json)）。与 R86 发布相比 7 个二进制改变（fw4、httpd、logd、netifd、procd、rpcd、ubusd
+  —— 全部是共享 crate `owrt-ubus` 的依赖方），uci 与 reload-config 逐字节相同，沿用 R86 身份匹配的验收。
+- 构建机对正式二进制的功能门（`work/r87/scripts/validate-r87.py`、`validate-r87-b.py`）：logd 与 fw4 的 12 项（单元、r15、r28、r21、r25、
+  环形缓冲、超大读取；fw4 上游用例、r29 fuzz 200 例、defaults、镜像内 print）全部通过；五个守护进程的单元测试、clippy 与 R86 同名门见
+  [validation.json](R87_parts/validation.json)。
+- 部署包 `work/r87/deployment-r87`（httpd apk r13 + 三个核心二进制 + 其余 apk）在构建机通过离线 APK 安装与全栈回退自测 5/5。
+- 实机隔离矩阵（七个改变的组件，每侧四轮，rpcd 50000 次、其余 10000 次，另加 HTTPD 64 连接内存探针）与
+  部署后的四个冷启动窗口（Rust-1、stock-1、stock-2、Rust-2）按 R86 第 4 节的计划执行，结果补入第 6 节。
+
+## 6. 待完成与边界
 
 - 正式验收仍需走 R86 的流程：CI `release-image` 生成九文件身份 → 提取校验 → 隔离矩阵与整机四窗口。
   本文的构建机数字（噪声大、CPU 快得多）不能替代路由器数字；实机上 ubusd 的 O(N) 差额预计接近第 2.1 节的 36–48 µs/次，
