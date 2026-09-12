@@ -152,12 +152,18 @@ r83_lifecycle_diff 的泄漏路径未改。
 - 源提交 `caed6ac`：CI `34716101331` 与 `release-image` `34716120045` 均成功；产物下载后九个二进制身份全部核对
   （[r87_canonical_build.json](R87_parts/r87_canonical_build.json)）。与 R86 发布相比 7 个二进制改变（fw4、httpd、logd、netifd、procd、rpcd、ubusd
   —— 全部是共享 crate `owrt-ubus` 的依赖方），uci 与 reload-config 逐字节相同，沿用 R86 身份匹配的验收。
-- 构建机对正式二进制的功能门（`work/r87/scripts/validate-r87.py`、`validate-r87-b.py`）：logd 与 fw4 的 12 项（单元、r15、r28、r21、r25、
-  环形缓冲、超大读取；fw4 上游用例、r29 fuzz 200 例、defaults、镜像内 print）全部通过；五个守护进程的单元测试、clippy 与 R86 同名门见
-  [validation.json](R87_parts/validation.json)。
+- 构建机对正式二进制的功能门（`work/r87/scripts/validate-r87.py`、`validate-r87-b.py`，汇总见 [validation.json](R87_parts/validation.json)）：
+  58 项中 53 项必需门全部通过，392 项单元测试通过；未通过的只有 procd busy 门的原版侧两轮（原版丢末尾日志，R85 起记录为对照项）。
+  含 logd/fw4 的 12 项（单元、r15、r28、r21、r25、环形缓冲、超大读取；fw4 上游用例、r29 fuzz 200 例、defaults、镜像内 print）、
+  五个守护进程的 clippy `undocumented_unsafe_blocks`、netifd 29 场景套件、HTTPD 六门（CGI 压力首次因二进制目录缺少 ns-exec/owrt-benchmark
+  以退出码 127 失败，补齐后单独复跑通过，首次日志保留）。
 - 部署包 `work/r87/deployment-r87`（httpd apk r13 + 三个核心二进制 + 其余 apk）在构建机通过离线 APK 安装与全栈回退自测 5/5。
 - 实机隔离矩阵（七个改变的组件，每侧四轮，rpcd 50000 次、其余 10000 次，另加 HTTPD 64 连接内存探针）与
   部署后的四个冷启动窗口（Rust-1、stock-1、stock-2、Rust-2）按 R86 第 4 节的计划执行，结果补入第 6 节。
+- 已完成的 [HTTPD 实机矩阵](R87_parts/httpd/results.md)：16 项平均延迟全部低于原版（−7.85% 至 −38.79%），CPU 15 项下降，
+  `jsonrpc_c4` CPU +3.10%（480.65→495.54 µs/次）。与 R86 最终 HTTPD 的同一矩阵相比，候选 CPU 在多数负载上高 0.4%–2.3%
+  （原版侧同期漂移 −1.3%–+4.2%），但 `static_512_dat_c1` +10.3%（82.5→91.0 µs）、`static_512_dat_c4` +6.4%、`jsonrpc_c4` +16.3%
+  （426.1→495.5 µs）。构建机固定核对照没有测到每请求差异，本文不给这几项归因；整机窗口的 HTTP 负载另行观察。
 
 ## 6. 待完成与边界
 
