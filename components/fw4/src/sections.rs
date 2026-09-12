@@ -598,6 +598,12 @@ impl Fw4 {
                 if !helper.available {
                     continue;
                 }
+                // `this.port(helper.port)` with no port: ucode dies on
+                // `p.min` of null (no shipped helper lacks a port).
+                if helper.port.is_none() {
+                    self.aborted = true;
+                    continue;
+                }
                 for proto in helper.proto.iter().flatten() {
                     helper_rules.push(Rule {
                         chain: format!("helper_{}", z.name),
@@ -1528,7 +1534,12 @@ impl Fw4 {
                     _ => vec![rd.dest.unwrap()],
                 };
                 for rzone in rzones {
-                    let Some(rzi) = rzone.zone else { continue };
+                    // `rzone.zone.related_subnets` on the `'*'` pseudo-zone:
+                    // ucode dies on the null member access.
+                    let Some(rzi) = rzone.zone else {
+                        self.aborted = true;
+                        continue;
+                    };
                     let related = self.state.zones[rzi].related_subnets.clone();
                     let iaddrs = split_addrs(&related);
                     let refaddrs = if rd.reflection_src.as_deref() == Some("internal") { &iaddrs } else { &eaddrs };
@@ -2233,6 +2244,9 @@ impl Fw4 {
                 }
             }
         }
+        if self.aborted {
+            return Err(());
+        }
         Ok(())
     }
 }
@@ -2259,6 +2273,7 @@ mod tests {
             state: State::default(),
             kernel: 0,
             quiet: true,
+            aborted: false,
             tty: false,
         }
     }

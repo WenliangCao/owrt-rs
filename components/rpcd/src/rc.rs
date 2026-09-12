@@ -209,12 +209,10 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
             }
             let skip = arg(&req.data, "skip_running_check", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);
             let name = arg_str(&req.data, "name").map(str::to_owned);
-            let d = deferrer.clone();
-            std::thread::spawn(move || {
-                let reply = list_run(name, skip);
-                d.finish(req, reply);
-            });
-            Outcome::Deferred
+            match deferrer.defer(req, move || list_run(name, skip)) {
+                None => Outcome::Deferred,
+                Some((req, reply)) => Outcome::Now(req, reply),
+            }
         }
         "init" => {
             let (Some(name), Some(action)) = (arg_str(&req.data, "name"), arg_str(&req.data, "action")) else {
@@ -232,8 +230,7 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
                 return now(req, status::INVALID_ARGUMENT);
             }
             let action = action.to_owned();
-            let d = deferrer.clone();
-            std::thread::spawn(move || {
+            match deferrer.defer(req, move || {
                 if let Ok(mut child) = Command::new(&path)
                     .arg(&action)
                     .stdin(Stdio::null())
@@ -243,9 +240,11 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
                 {
                     let _ = child.wait();
                 }
-                d.finish(req, Reply::empty(status::OK));
-            });
-            Outcome::Deferred
+                Reply::empty(status::OK)
+            }) {
+                None => Outcome::Deferred,
+                Some((req, reply)) => Outcome::Now(req, reply),
+            }
         }
         _ => now(req, status::METHOD_NOT_FOUND),
     }

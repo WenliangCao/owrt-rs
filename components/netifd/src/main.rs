@@ -466,6 +466,14 @@ impl Netifd {
             if new.iter().any(|n| n.name == oc.name) {
                 continue;
             }
+            // The removed interface keeps its old config entry until
+            // `pump_removals` drops both records: `begin_teardown`,
+            // `proto_cmd` and `finish_proto_task` look the protocol up there,
+            // and without it a shell protocol's teardown script never ran and
+            // the helper was SIGKILLed instead (R88 netifd F1).
+            if !self.cfg.interfaces.iter().any(|c| c.name == oc.name) {
+                self.cfg.interfaces.push(oc.clone());
+            }
             // `set_config_state(if_old, IFC_REMOVE)`: torn down first, removed
             // once it is down -- the proto helper gets its teardown and is
             // then killed with the proto state (R81 F04)

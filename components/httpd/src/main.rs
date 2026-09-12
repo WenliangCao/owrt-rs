@@ -700,6 +700,7 @@ impl Server {
             }
         }
         let mut redirect_status = 200;
+        let mut remote_user: Option<String> = None;
         loop {
             match files::lookup(&self.config.docroot, &url, self.config.no_symlinks, &self.config.index_files) {
                 files::Lookup::Redirect(location) => {
@@ -721,8 +722,9 @@ impl Server {
                         }
                         Ok(Some((user, pass))) => {
                             request.headers.retain(|(k, _)| k != "http-auth-user" && k != "http-auth-pass");
-                            request.headers.push(("http-auth-user".into(), user));
+                            request.headers.push(("http-auth-user".into(), user.clone()));
                             request.headers.push(("http-auth-pass".into(), pass));
+                            remote_user = Some(user);
                         }
                         Ok(None) => {}
                     }
@@ -746,6 +748,7 @@ impl Server {
                             script_timeout: self.config.script_timeout,
                             interpreter,
                             redirect_status,
+                            remote_user: remote_user.as_deref(),
                         };
                         return cgi::run(&ctx, request, body, resp, &pi);
                     }
@@ -924,7 +927,13 @@ fn spawn_connection(server: &Arc<Server>, parking: &Arc<Parking>, transport: Tra
     let parking = Arc::clone(parking);
     if let Err(error) = std::thread::Builder::new().spawn(move || {
         if let Outcome::Closed = worker.run_connection(transport, conn, &parking, resume) {
-            worker.connections.fetch_sub(1, Ordering::Relaxed);
+            let before = worker.connections.fetch_sub(1, Ordering::Relaxed);
+            // At the cap the listener took itself out of the readiness set;
+            // tell it a slot is free instead of leaving it to its 50 ms
+            // re-check (R88 httpd H-11).
+            if worker.config.max_connections > 0 && before >= worker.config.max_connections {
+                let _ = (&parking.wake).write(&[0u8]);
+            }
         }
     }) {
         // The failed spawn drops its closure and the socket. Release the

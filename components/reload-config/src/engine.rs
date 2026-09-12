@@ -82,7 +82,7 @@ impl RunLock {
     /// the runs instead, which keeps each caller's own changes dispatched --
     /// refusing the second caller (the earlier fail-closed behaviour) dropped
     /// its packages until a third run happened to notice them.
-    fn acquire(path: &Path) -> Result<Self, Error> {
+    fn acquire(path: &Path, cancelled: &AtomicBool) -> Result<Self, Error> {
         let file = OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -90,7 +90,9 @@ impl RunLock {
             .write(true)
             .open(path)
             .map_err(|error| Error::Io("open run lock", error))?;
-        unix::lock(file.as_raw_fd()).map_err(|error| Error::Io("lock run lock", error))?;
+        if !unix::lock(file.as_raw_fd(), cancelled).map_err(|error| Error::Io("lock run lock", error))? {
+            return Err(Error::Cancelled);
+        }
         Ok(Self { _file: file })
     }
 }
@@ -102,7 +104,7 @@ pub fn run<W: Write>(
 ) -> Result<RunOutcome, Error> {
     let run_dir = settings.path("/var/run");
     fs::create_dir_all(run_dir).map_err(|error| Error::Io("create /var/run", error))?;
-    let _lock = RunLock::acquire(&settings.path("/var/run/reload-config-rs.lock"))?;
+    let _lock = RunLock::acquire(&settings.path("/var/run/reload-config-rs.lock"), cancelled)?;
 
     let check_path = settings.path("/var/run/config.check");
     if check_path.exists() {

@@ -248,10 +248,14 @@ impl Daemon {
     }
 
     fn handle_write(&mut self, req: &Request) -> io::Result<()> {
+        // blobmsg_get_string() hands write_log() whatever bytes are there;
+        // an event that is not UTF-8 is stored the same lossy way the
+        // syslog datagram path stores one, rather than dropped while the
+        // caller is still told OK (R88 logd F1).
         let event = blob::fields(&req.data)
             .find(|f| f.name == "event")
-            .and_then(|f| f.as_str())
-            .map(str::to_owned);
+            .and_then(|f| f.as_bytes())
+            .map(|bytes| String::from_utf8_lossy(bytes).into_owned());
         if let Some(mut event) = event {
             if event.len() + 1 > LINE_SIZE {
                 let mut cut = LINE_SIZE - 1;

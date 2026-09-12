@@ -109,7 +109,10 @@ impl DerefMut for Lease<'_> {
 }
 impl Drop for Lease<'_> {
     fn drop(&mut self) {
-        if let Some(conn) = self.conn.take().filter(connected) {
+        // A reply that arrived after its call timed out sits in `pending`
+        // and nothing on the bridge ever reads it; keeping such a connection
+        // would retain one stale reply per timeout (R88 httpd H-06).
+        if let Some(conn) = self.conn.take().filter(|c| !c.has_pending() && connected(c)) {
             let mut idle = self.bridge.idle.lock().unwrap_or_else(|e| e.into_inner());
             if idle.len() < 8 { idle.push(conn); }
         }
@@ -520,8 +523,9 @@ pub fn handle<W: Sink>(
                 let sid = request
                     .header("authorization")
                     .and_then(|a| {
-                        a.strip_prefix("Bearer ")
-                            .or_else(|| a.strip_prefix("bearer "))
+                        a.get(..7)
+                            .filter(|prefix| prefix.eq_ignore_ascii_case("Bearer "))
+                            .map(|_| &a[7..])
                     })
                     .unwrap_or(DEFAULT_SID);
                 let out = match parsed {

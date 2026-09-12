@@ -70,6 +70,9 @@ pub struct CgiContext<'a> {
     pub script_timeout: u64,
     pub interpreter: Option<&'a str>,
     pub redirect_status: u16,
+    /// `req->realm->user`: the Basic-auth user that authenticated this
+    /// request, exported as `REMOTE_USER` (uhttpd proc.c VAR_USER).
+    pub remote_user: Option<&'a str>,
 }
 
 const HEADER_ENV: &[(&str, &str)] = &[
@@ -212,6 +215,9 @@ pub fn run<W: Sink, R: io::BufRead>(
     }
     if ctx.tls {
         command.env("HTTPS", "on");
+    }
+    if let Some(user) = ctx.remote_user {
+        command.env("REMOTE_USER", user);
     }
     for (env, header) in HEADER_ENV {
         if let Some(value) = request.header(header) {
@@ -664,6 +670,7 @@ mod tests {
         let ctx = CgiContext {
             interpreter: None,
             redirect_status: 200,
+            remote_user: None,
             docroot: dir.to_str().unwrap(),
             cgi_path: "/bin:/usr/bin",
             local,
@@ -772,6 +779,7 @@ mod tests {
         let ctx = CgiContext {
             interpreter: None,
             redirect_status: 200,
+            remote_user: None,
             docroot: dir.to_str().unwrap(),
             cgi_path: "/bin:/usr/bin",
             local,
@@ -853,6 +861,7 @@ mod tests {
         let ctx = CgiContext {
             interpreter: None,
             redirect_status: 200,
+            remote_user: None,
             docroot: dir.to_str().unwrap(),
             cgi_path: "/bin:/usr/bin",
             local,

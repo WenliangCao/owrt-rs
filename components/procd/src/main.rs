@@ -552,8 +552,7 @@ impl Procd {
             .unwrap_or("");
         // snprintf(ident, 32, "%s[%d]", ...): the WHOLE ident is
         // capped at 31 bytes, basename and pid included.
-        let mut ident = format!("{arg0}[{}]", inst.pid);
-        ident.truncate(31);
+        let ident = syslog_ident(arg0, inst.pid);
         // instance_config_parse keeps LOG_DAEMON when
         // syslog_facility_str_to_int() finds nothing (-1).
         let facility = inst
@@ -2219,6 +2218,21 @@ impl Procd {
     }
 }
 
+/// snprintf(ident, 32, "%s[%d]", ...): the WHOLE ident is capped at 31
+/// bytes, basename and pid included. String::truncate panics inside a
+/// multibyte character, so back off to the boundary instead of taking PID 1
+/// down (R88 procd F4); the C keeps the partial bytes, which no reader of
+/// the ident can tell apart from a shorter one.
+fn syslog_ident(arg0: &str, pid: i32) -> String {
+    let mut ident = format!("{arg0}[{pid}]");
+    let mut cut = ident.len().min(31);
+    while !ident.is_char_boundary(cut) {
+        cut -= 1;
+    }
+    ident.truncate(cut);
+    ident
+}
+
 fn main() {
     if let Err(e) = run() {
         log!(sys::LOG_ERR, "{e}");
@@ -2301,6 +2315,8 @@ fn run() -> io::Result<()> {
     let mut wdt = watchdog::Wdt::default();
     let mut hp: Option<hotplug::Hotplug> = None;
     let mut early_ubus: Option<(instance::Instance, i32)> = None;
+    // Exits of children other than ubusd seen during the connect retry.
+    let mut early_reaps: Vec<(i32, i32)> = Vec::new();
 
     let conn = if pid1 {
         // procd.c: `procd_state_next()` -- STATE_EARLY, then STATE_UBUS.
@@ -2383,10 +2399,16 @@ fn run() -> io::Result<()> {
             match Connection::connect(None) {
                 Ok(c) => break c,
                 Err(_) => {
-                    if let Some((dead, _)) = proc::reap_any() {
+                    while let Some((dead, wstatus)) = proc::reap_any() {
                         if dead == pid {
                             std::thread::sleep(std::time::Duration::from_secs(1));
                             pid = proc::start(&inst, "ubus").map(|(p, _, _)| p).unwrap_or(0);
+                        } else {
+                            // A coldplug command may still be running here;
+                            // its exit belongs to the hotplug queue, or the
+                            // queue would stall for the whole uptime (R88
+                            // procd F2).
+                            early_reaps.push((dead, wstatus));
                         }
                     }
                     wdt.pump(base.elapsed().as_millis() as i64);
@@ -2435,6 +2457,11 @@ fn run() -> io::Result<()> {
         svc.instances.insert("instance1".to_string(), inst);
         p.services.insert("ubus".to_string(), svc);
     }
+    for (dead, wstatus) in early_reaps.drain(..) {
+        if let Some(h) = p.hotplug.as_mut() {
+            h.reaped(dead, wstatus);
+        }
+    }
 
     p.objects.service = p.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
     p.objects.container = p.conn.add_object("container", ubus::CONTAINER_METHODS, 1000)?;
@@ -2481,6 +2508,11 @@ fn run() -> io::Result<()> {
     // bus: timers, child exits, pipe output, uevents, inotify, signals, and
     // any bus method that changes supervised state. It starts armed.
     let mut maintenance_due = true;
+    // The timer tick is anchored at the last maintenance pass, not at the
+    // last wake: a bus client that keeps the socket readable would otherwise
+    // push the deadline out forever and starve every timer, including the
+    // hardware watchdog feed (R88 procd F1).
+    let mut maintenance_at: i64 = 0;
 
     loop {
         if !connected {
@@ -2530,19 +2562,21 @@ fn run() -> io::Result<()> {
             let now = p.now_ms();
             p.rc.pump(now);
             maintenance_due = false;
+            maintenance_at = p.now_ms() + i64::from(p.next_tick_ms());
         }
 
         // uloop_run(): sleep until ANY of the fds this loop reacts to is
         // ready -- the bus, the uevent socket, a child's output, a child
         // exit -- or the timer tick for deadlines and respawns, which is
         // 200 ms while anything is pending and the watchdog interval otherwise.
-        let incoming = match p.wait_activity(p.next_tick_ms()) {
+        let remaining = (maintenance_at - p.now_ms()).clamp(0, i64::from(i32::MAX)) as i32;
+        let incoming = match p.wait_activity(remaining) {
             Ok(Activity { bus: true, other }) => {
-                maintenance_due |= other;
+                maintenance_due |= other || p.now_ms() >= maintenance_at;
                 p.conn.read_incoming().map(Some)
             }
             Ok(Activity { bus: false, other }) => {
-                maintenance_due |= other;
+                maintenance_due |= other || p.now_ms() >= maintenance_at;
                 Ok(None)
             }
             // Preserve the old nonblocking bus probe if the shared wait
@@ -2562,5 +2596,22 @@ fn run() -> io::Result<()> {
                 backoff_ms = 50;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod r88_tests {
+    use super::*;
+
+    #[test]
+    fn syslog_ident_caps_at_31_bytes_on_a_char_boundary() {
+        assert_eq!(syslog_ident("sh", 7), "sh[7]");
+        let long = "a".repeat(40);
+        assert_eq!(syslog_ident(&long, 12345).len(), 31);
+        // 17 x 'é' = 34 bytes; byte 31 falls inside a character.
+        let accented = "é".repeat(17);
+        let ident = syslog_ident(&accented, 1);
+        assert!(ident.len() <= 31 && ident.is_char_boundary(ident.len()));
+        assert_eq!(ident, "é".repeat(15));
     }
 }

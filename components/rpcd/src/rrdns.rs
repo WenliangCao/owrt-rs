@@ -357,12 +357,10 @@ pub fn call(req: Request, deferrer: &Deferrer) -> Outcome {
         .map(|a| a.field().and_then(|f| if f.ty == MsgType::String as u32 { f.as_str().map(str::to_owned) } else { None }))
         .collect();
     let lk = Lookup { sock, addrs: list, next: 0, by_id: BTreeMap::new(), seen: BTreeSet::new(), out: BlobBuf::new() };
-    let d = deferrer.clone();
-    std::thread::spawn(move || {
-        let reply = run(lk, limit, timeout);
-        d.finish(req, reply);
-    });
-    Outcome::Deferred
+    match deferrer.defer(req, move || run(lk, limit, timeout)) {
+        None => Outcome::Deferred,
+        Some((req, reply)) => Outcome::Now(req, reply),
+    }
 }
 
 #[cfg(test)]

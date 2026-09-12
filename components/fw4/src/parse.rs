@@ -23,6 +23,10 @@ pub struct Fw4 {
     pub state: State,
     pub kernel: i64,
     pub quiet: bool,
+    /// Set where ucode would have died with an uncaught exception in the
+    /// middle of `load()` (a null member access): `load()` turns it into the
+    /// same abort -- nothing rendered, exit 254 (R88 fw4 F1/F2).
+    pub aborted: bool,
     pub tty: bool,
 }
 
@@ -1103,6 +1107,7 @@ mod tests {
             state: State::default(),
             kernel: 0,
             quiet: true,
+            aborted: false,
             tty: false,
         }
     }

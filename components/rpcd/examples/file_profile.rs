@@ -40,6 +40,12 @@ impl Deferrer {
     pub fn finish(&self, _: Request, _: session::Reply) {
         panic!("deferred requests are outside this profiler's scope");
     }
+    pub fn defer<F>(&self, _: Request, _: F) -> Option<(Request, session::Reply)>
+    where
+        F: FnOnce() -> session::Reply + Send + 'static,
+    {
+        panic!("deferred requests are outside this profiler's scope");
+    }
 }
 pub fn to_reply(_: Result<Option<Json>, i32>) -> session::Reply {
     panic!("dispatch is outside this profiler's scope");

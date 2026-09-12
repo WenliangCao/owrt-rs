@@ -86,6 +86,35 @@ impl Deferrer {
         let _ = self.tx.send(Done { req, reply });
         wake(self.wake);
     }
+
+    /// Run `work` on a worker thread and finish `req` with its reply; None
+    /// means the request is now deferred. When the thread cannot be created
+    /// the request comes back with an UNKNOWN_ERROR reply to answer at once,
+    /// as the C answers a failed fork with rpc_errno_status();
+    /// the release profile is panic=abort, so an unchecked spawn would have
+    /// taken the daemon down instead (R88 rpcd F1).
+    pub fn defer<F>(&self, req: Request, work: F) -> Option<(Request, session::Reply)>
+    where
+        F: FnOnce() -> session::Reply + Send + 'static,
+    {
+        let slot = std::sync::Arc::new(std::sync::Mutex::new(Some(req)));
+        let taken = std::sync::Arc::clone(&slot);
+        let d = self.clone();
+        let spawned = std::thread::Builder::new().spawn(move || {
+            let req = taken.lock().unwrap_or_else(|e| e.into_inner()).take();
+            if let Some(req) = req {
+                d.finish(req, work());
+            }
+        });
+        match spawned {
+            Ok(_) => None,
+            Err(error) => {
+                eprintln!("rpcd-rs: cannot create worker thread: {error}");
+                let req = slot.lock().unwrap_or_else(|e| e.into_inner()).take();
+                Some((req.expect("unstarted worker keeps its request"), session::Reply::empty(owrt_ubus::status::UNKNOWN_ERROR)))
+            }
+        }
+    }
 }
 
 extern "C" {

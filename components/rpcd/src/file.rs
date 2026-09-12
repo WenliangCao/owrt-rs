@@ -414,8 +414,7 @@ pub fn exec(ctx: &Ctx, req: Request, args: &Json, deferrer: &Deferrer) -> Outcom
         Err(code) => return Outcome::Now(req, crate::to_reply(Err(code))),
     };
     let timeout_ms = ctx.exec_timeout_ms;
-    let d = deferrer.clone();
-    std::thread::spawn(move || {
+    match deferrer.defer(req, move || {
         // The forked child in rpc_file_exec_run hits arglen==255 and
         // _exit(127) once argv (executable + params + NULL) would exceed 255
         // entries; C reports that through the deferred reply as well.
@@ -424,9 +423,11 @@ pub fn exec(ctx: &Ctx, req: Request, args: &Json, deferrer: &Deferrer) -> Outcom
         } else {
             run_command_os(&executable, &params, &env, timeout_ms)
         };
-        d.finish(req, crate::to_reply(r.map(Some)));
-    });
-    Outcome::Deferred
+        crate::to_reply(r.map(Some))
+    }) {
+        None => Outcome::Deferred,
+        Some((req, reply)) => Outcome::Now(req, reply),
+    }
 }
 
 /// rpc_exec with the default callbacks (exec.c): run `executable` with

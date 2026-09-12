@@ -153,6 +153,8 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
     poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false)?;
     poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false)?;
     let mut ready: Vec<owrt_ubus::readiness::Ready> = Vec::new();
+    // True while the listener is out of the set after an accept failure.
+    let mut listener_parked = false;
 
     while !STOP.load(Ordering::SeqCst) {
         poller.wait(-1, &mut ready)?;
@@ -174,8 +176,8 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
             match r.token {
                 TOKEN_WAKE => {}
                 TOKEN_LISTENER => {
-                    if r.revents & sys::POLLIN != 0 {
-                        accept_all(server, listener, &mut poller);
+                    if r.revents & sys::POLLIN != 0 && !accept_all(server, listener, &mut poller) {
+                        listener_parked = poller.remove(listener.as_raw_fd()).is_ok();
                     }
                 }
                 token => {
@@ -189,6 +191,10 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
                         sync_write_interest(server, &mut poller, id);
                     } else {
                         disconnect(server, &mut poller, id);
+                        // A descriptor is free again: resume accepting.
+                        if listener_parked {
+                            listener_parked = poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false).is_err();
+                        }
                     }
                 }
             }
@@ -221,7 +227,12 @@ fn disconnect(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id
     server.remove_client(id);
 }
 
-fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::readiness::Poller) {
+/// Accept everything queued. Returns false when accept failed for a reason
+/// other than an empty backlog (EMFILE/ENFILE): the caller then takes the
+/// listener out of the readiness set until a client goes away, because a
+/// level-triggered listener that cannot be accepted would otherwise wake
+/// the loop continuously (R88 ubusd U-1; the C listener is edge-triggered).
+fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::readiness::Poller) -> bool {
     loop {
         match sys::accept(listener.as_raw_fd()) {
             Ok(Some(sock)) => match server.add_client(sock) {
@@ -238,8 +249,11 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
                 }
                 Err(e) => eprintln!("ubusd-rs: rejecting connection: {e}"),
             },
-            Ok(None) => return,
-            Err(_) => return,
+            Ok(None) => return true,
+            Err(e) => {
+                eprintln!("ubusd-rs: accept failed: {e}");
+                return false;
+            }
         }
     }
 }

@@ -916,11 +916,10 @@ pub enum Outcome {
 pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
     match req.method.as_str() {
         "getNetworkDevices" => Outcome::Now(req, get_network_devices()),
-        "getHostHints" => {
-            let d = deferrer.clone();
-            std::thread::spawn(move || d.finish(req, get_host_hints()));
-            Outcome::Deferred
-        }
+        "getHostHints" => match deferrer.defer(req, get_host_hints) {
+            None => Outcome::Deferred,
+            Some((req, reply)) => Outcome::Now(req, reply),
+        },
         "getDUIDHints" => Outcome::Now(req, get_duid_hints()),
         "getBoardJSON" => Outcome::Now(req, get_board_json()),
         "getDHCPLeases" => {
@@ -928,10 +927,11 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
             Outcome::Now(req, r)
         }
         "getWirelessDevices" => {
-            let d = deferrer.clone();
             let socket = ctx.socket.clone();
-            std::thread::spawn(move || d.finish(req, get_wireless_devices(socket.as_deref())));
-            Outcome::Deferred
+            match deferrer.defer(req, move || get_wireless_devices(socket.as_deref())) {
+                None => Outcome::Deferred,
+                Some((req, reply)) => Outcome::Now(req, reply),
+            }
         }
         _ => Outcome::Now(req, Reply::empty(status::METHOD_NOT_FOUND)),
     }

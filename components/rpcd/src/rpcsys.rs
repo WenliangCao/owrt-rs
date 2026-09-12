@@ -228,16 +228,16 @@ pub fn call(req: Request, ctx: &Ctx, deferrer: &Deferrer) -> Outcome {
             let Some(cmd) = file::exec_lookup("sysupgrade") else {
                 return Outcome::Now(req, code(status::NOT_FOUND));
             };
-            let d = deferrer.clone();
-            std::thread::spawn(move || {
+            return match deferrer.defer(req, move || {
                 let params = vec!["--test".to_owned(), "/tmp/firmware.bin".to_owned()];
-                let reply = match file::run_command(&cmd, &params, &[], exec_timeout_ms) {
+                match file::run_command(&cmd, &params, &[], exec_timeout_ms) {
                     Ok(json) => Reply::one(status::OK, object_to_payload(&json)),
                     Err(c) => code(c),
-                };
-                d.finish(req, reply);
-            });
-            return Outcome::Deferred;
+                }
+            }) {
+                None => Outcome::Deferred,
+                Some((req, reply)) => Outcome::Now(req, reply),
+            };
         }
         "upgrade_start" => {
             let keep = arg(raw, "keep", MsgType::Int8).and_then(|f| f.as_bool()).unwrap_or(false);

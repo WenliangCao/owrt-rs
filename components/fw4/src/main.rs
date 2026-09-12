@@ -61,6 +61,7 @@ fn new_fw4(quiet: bool) -> Fw4 {
         state: state::State::default(),
         kernel: 0,
         quiet: quiet || std::env::var("QUIET").map(|q| !q.is_empty()).unwrap_or(false),
+        aborted: false,
         tty: std::env::var("TTY").map(|t| !t.is_empty()).unwrap_or(false),
     }
 }
@@ -70,6 +71,27 @@ fn die(quiet: bool, msg: &str) -> ! {
         eprintln!("{msg}");
     }
     std::process::exit(1);
+}
+
+/// `exec 1>/dev/null; exec 2>/dev/null` from the shell wrapper (R88 fw4 F4).
+fn silence_stdio() {
+    unsafe extern "C" {
+        fn open(path: *const u8, flags: i32, ...) -> i32;
+        fn dup2(old: i32, new: i32) -> i32;
+        fn close(fd: i32) -> i32;
+    }
+    // SAFETY: a NUL-terminated path, O_WRONLY (1); dup2 onto the standard
+    // descriptors only, and the temporary descriptor is closed afterwards.
+    unsafe {
+        let fd = open(c"/dev/null".as_ptr().cast(), 1);
+        if fd >= 0 {
+            dup2(fd, 1);
+            dup2(fd, 2);
+            if fd > 2 {
+                close(fd);
+            }
+        }
+    }
 }
 
 /// Exit code of the ucode interpreter when an uncaught exception aborts
@@ -369,6 +391,11 @@ fn main() {
             start(quiet, verbose, "")
         }
         "check" => {
+            // /sbin/fw4 check under -q: `exec 1>/dev/null; exec 2>/dev/null`
+            // before ucode runs, so even plain warn() output is silenced.
+            if quiet {
+                silence_stdio();
+            }
             let Some(ruleset) = render(quiet, false) else { std::process::exit(UCODE_ABORT) };
             let rc = nft_load(&ruleset, verbose, true, quiet);
             if rc == 0 && !quiet {
