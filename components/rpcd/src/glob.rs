@@ -4,6 +4,14 @@
 use std::path::Path;
 
 pub fn fnmatch(pattern: &[u8], name: &[u8]) -> bool {
+    // Session ACLs are checked on every authorized call, and nearly all of
+    // their patterns are either a literal object or method name or a bare
+    // `*`. Answer those without the per-byte recursion below.
+    match pattern {
+        b"*" => return true,
+        p if !p.iter().any(|&b| matches!(b, b'*' | b'?' | b'[')) => return p == name,
+        _ => {}
+    }
     fn m(p: &[u8], n: &[u8]) -> bool {
         match p.first() {
             None => n.is_empty(),
@@ -93,6 +101,19 @@ fn join(base: &str, name: &str, absolute: bool) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn literal_and_star_fast_paths_agree_with_the_matcher() {
+        assert!(fnmatch(b"*", b""));
+        assert!(fnmatch(b"*", b"anything/at all"));
+        assert!(fnmatch(b"uci", b"uci"));
+        assert!(!fnmatch(b"uci", b"uci2"));
+        assert!(!fnmatch(b"uci", b"uc"));
+        assert!(!fnmatch(b"", b"x"));
+        assert!(fnmatch(b"", b""));
+        assert!(fnmatch(b"net*", b"network"));
+        assert!(!fnmatch(b"net*", b"nat"));
+    }
+
     #[test]
     fn matching() {
         assert!(fnmatch(b"[SK][0-9][0-9]firewall", b"S19firewall"));
