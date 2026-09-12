@@ -16,6 +16,7 @@ netifd子进程回收检查的修复。九组件代表负载的平均延迟和CP
 部分尾延迟仍上升。每侧只有两次整机启动；有限测试也不能证明任意输入无bug。
 [部署证明](reports/ax3000t-stock-openwrt-25.12.5/R86_parts/deployment.json)、
 [完整表格与图](reports/ax3000t-stock-openwrt-25.12.5/R86_parts/rendered/system_results.md)及
+[所有回退与持平事实清单](reports/ax3000t-stock-openwrt-25.12.5/R86_REGRESSIONS_COMPLETE.md)以及
 [R85优化日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)保留全部有效样本和历史失败。
 
 ## 分层与边界
