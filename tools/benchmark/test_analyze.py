@@ -61,6 +61,53 @@ class AnalysisGates(unittest.TestCase):
         with self.assertRaises(AssertionError):
             serial(self.path, 99)
 
+    def test_one_shot_collection_does_not_require_a_resident_process_hash(self):
+        from analyze_candidate import derive
+        root = Path(self.directory.name)
+
+        def save(name, value):
+            (root / name).write_text(json.dumps(value))
+
+        (root / "COMPLETE").touch()
+        save("order.json", ["stock", "candidate"])
+        save("subjects.json", {"stock": "a" * 64, "candidate": "b" * 64})
+        save("settings.json", {"component": "uci", "matrix": False})
+        for phase in ("before", "after"):
+            save(f"health-{phase}.json", {"boot_id": "same-boot"})
+            (root / f"config-{phase}.sha256").write_text("same-config\n")
+        data = {**self.valid, "warmup": 5, "child_cpu_s": .004, "client_cpu_s": .002,
+                "daemon_cpu": []}
+        for index, side in enumerate(("stock", "candidate"), 1):
+            run = root / f"{index:02d}-{side}"
+            raw = run / "raw"
+            raw.mkdir(parents=True)
+            (run / "COMPLETE").touch()
+            (raw / "COMPLETE").touch()
+            (run / "raw.tar.gz").write_bytes(b"fixture archive identity")
+            meta = {"component": "uci", "dependencies": "original OpenWrt",
+                    "subject_pid": None, "iterations": 40}
+            (raw / "meta.json").write_text(json.dumps(meta))
+            (raw / "boot-id.txt").write_text("same-boot\n")
+            (raw / "kernel.txt").write_text("fixture-kernel\n")
+            (raw / "binary-sha256.txt").write_text(("a" if side == "stock" else "b") * 64 + "  uci\n")
+            (raw / "benchmark-sha256.txt").write_text("client  benchmark\nnamespace  ns-exec\n")
+            (raw / "harness-sha256.txt").write_text("harness  isolated.sh\n")
+            for workload in ("export_network", "export_64", "set_commit_get"):
+                (raw / (workload + ".json")).write_text(json.dumps(data))
+        result = derive(root, "one-shot fixture")
+        self.assertEqual(result["resident"], [])
+        self.assertEqual(len(result["runs"]), 6)
+        self.assertTrue(all(r["subject_cpu_us_per_op"] == 2000 for r in result["runs"]))
+
+        # Declaring a daemon to have no PID must not bypass its live identity check.
+        save("settings.json", {"component": "rpcd", "matrix": False})
+        for path in root.glob("*/raw/meta.json"):
+            meta = json.loads(path.read_text())
+            meta["component"] = "rpcd"
+            path.write_text(json.dumps(meta))
+        with self.assertRaisesRegex(AssertionError, "invalid subject process kind"):
+            derive(root, "invalid daemon fixture")
+
     def test_logd_perpetually_readable_kernel_log_is_rejected(self):
         samples = [{"uptime_s": i, "clock_ticks_per_second": 100,
                     "processes": [{"pid": 7, "start_ticks": 17, "cpu_ticks": i * 100}]}

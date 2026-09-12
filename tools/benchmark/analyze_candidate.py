@@ -127,11 +127,13 @@ def derive(root, label):
         meta = read(raw / "meta.json")
         assert meta["component"] == component and meta["dependencies"] == "original OpenWrt"
         subject = meta["subject_pid"]
+        assert (subject is None) == (component in ("uci", "reload-config", "fw4")), "invalid subject process kind"
         if component == "logd":
             assert meta["kernel_log_mask"] == "empty-held-fifo", "invalid logd kernel-log fixture"
             logd_idle(raw / "kernel-log-idle.jsonl", subject)
         assert (raw / "boot-id.txt").read_text().strip() == before["boot_id"]
-        for file in ("binary-sha256.txt", "subject-sha256.txt"):
+        identity_files = ("binary-sha256.txt", "subject-sha256.txt") if subject is not None else ("binary-sha256.txt",)
+        for file in identity_files:
             assert (raw / file).read_text().split()[0] == subjects[side]
         identity = tuple(line.split()[0] for line in (raw / "benchmark-sha256.txt").read_text().splitlines())
         identity += ((raw / "harness-sha256.txt").read_text().split()[0],)

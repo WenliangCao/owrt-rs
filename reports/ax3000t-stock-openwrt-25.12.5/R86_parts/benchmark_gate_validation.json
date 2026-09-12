@@ -42,5 +42,18 @@
       "candidate",
       "stock"
     ]
+  },
+  "offline_deployment_bundle": {
+    "passed": true,
+    "checks": [
+      "APK installation is inert and all six shipped binary hashes match",
+      "cold stage preserves originals; early confirmation and stale timer rejected",
+      "failed restore remains pending and never reboots",
+      "automatic rollback restores the entire original next boot",
+      "offline failsafe rescue requires no ubus or running Rust"
+    ],
+    "log_sha256": "d3b2fea3e53f28778a0041d2e446bce66938ff5886c60a48b841c2590e39a6cb",
+    "archive_sha256": "19dbe13c767cdc9c83047415534877a8c2e0f5eb44898b8d316dc51767e6713c",
+    "benchmark_source_commit": "098d219b644dd4ea22e1a1afe31e586a51c2ee37"
   }
 }
