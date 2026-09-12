@@ -42,8 +42,6 @@ pub struct Ucred {
 
 // The client library and daemon use the same wire ABI and readiness helpers.
 pub use owrt_ubus::sys::{ignore_signal, set_signal_handler, POLLIN, POLLOUT, POLLERR, POLLHUP, SIGPIPE, SIGTERM, SIGINT};
-#[cfg(not(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "x86_64"))))]
-pub use owrt_ubus::sys::{poll_fds, PollFd};
 use owrt_ubus::sys::{IoVec, MsgHdr};
 
 /// struct passwd -- only pw_name is read.

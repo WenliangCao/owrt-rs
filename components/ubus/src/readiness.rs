@@ -1,14 +1,15 @@
-//! Readiness notification for the bus loop.
+//! Readiness notification for single-threaded daemon loops.
 //!
-//! The interest set is maintained incrementally: a client is registered once
-//! when it connects and removed once when it goes, and a wait hands back only
-//! the entries that are ready. The previous loop rebuilt a poll(2) array from
-//! the whole client table on every iteration, so each message cost work
-//! proportional to the number of connected clients -- a router has twenty or
-//! so daemons on the bus, and that overhead showed up as ubusd CPU in every
-//! whole-system workload while staying invisible in two-client fixtures.
+//! The interest set is maintained incrementally: a descriptor is registered
+//! once and removed once, and a wait hands back only the entries that are
+//! ready. ubusd's loop used to rebuild a poll(2) array from the whole client
+//! table on every iteration, so each message cost work proportional to the
+//! number of connected clients -- a router has twenty or so daemons on the
+//! bus, and that overhead showed up as ubusd CPU in every whole-system
+//! workload while staying invisible in two-client fixtures. httpd keeps its
+//! parked keep-alive sockets in the same kind of set.
 //!
-//! Linux uses epoll, which is what libubox's uloop gives the C daemon. Other
+//! Linux uses epoll, which is what libubox's uloop gives the C daemons. Other
 //! targets keep a poll(2) set in place so the tests build there too.
 
 /// One ready descriptor: the token given at registration and the poll(2)

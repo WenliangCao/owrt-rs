@@ -14,7 +14,6 @@
 mod acl;
 mod client;
 mod obj;
-mod readiness;
 mod server;
 mod sys;
 
@@ -150,10 +149,10 @@ const TOKEN_LISTENER: u64 = u64::MAX;
 const TOKEN_WAKE: u64 = u64::MAX - 1;
 
 fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std::io::Result<()> {
-    let mut poller = readiness::Poller::new()?;
+    let mut poller = owrt_ubus::readiness::Poller::new()?;
     poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false)?;
     poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false)?;
-    let mut ready: Vec<readiness::Ready> = Vec::new();
+    let mut ready: Vec<owrt_ubus::readiness::Ready> = Vec::new();
 
     while !STOP.load(Ordering::SeqCst) {
         poller.wait(-1, &mut ready)?;
@@ -207,7 +206,7 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
 
 /// Ask for output readiness exactly while the client has queued output, the
 /// way the C daemon adds and drops ULOOP_WRITE around a blocked write.
-fn sync_write_interest(server: &mut Server, poller: &mut readiness::Poller, id: u32) {
+fn sync_write_interest(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id: u32) {
     let Some(c) = server.clients.get_mut(&id) else { return };
     let want = !c.tx_empty();
     if want != c.out_registered && poller.set_write(c.fd(), u64::from(id), want).is_ok() {
@@ -215,14 +214,14 @@ fn sync_write_interest(server: &mut Server, poller: &mut readiness::Poller, id: 
     }
 }
 
-fn disconnect(server: &mut Server, poller: &mut readiness::Poller, id: u32) {
+fn disconnect(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id: u32) {
     if let Some(c) = server.clients.get(&id) {
         let _ = poller.remove(c.fd());
     }
     server.remove_client(id);
 }
 
-fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut readiness::Poller) {
+fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::readiness::Poller) {
     loop {
         match sys::accept(listener.as_raw_fd()) {
             Ok(Some(sock)) => match server.add_client(sock) {

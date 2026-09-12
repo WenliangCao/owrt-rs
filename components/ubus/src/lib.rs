@@ -12,6 +12,7 @@ pub mod convert;
 pub mod digest;
 pub mod json;
 pub mod msg;
+pub mod readiness;
 pub mod sys;
 
 pub use blob::{Attr, BlobBuf, Field, MsgType};
