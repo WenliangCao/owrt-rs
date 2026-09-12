@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "reason": "The image lacks /proc/PID/task/PID/children; the previous shell condition swallowed cat failure. Preserve that full matrix as diagnostic and rerun using proc status PPid plus existing callbacks/CPU gates.",
+  "harness_sha256": "8defe05510bfbeba82c213ffc6e7f282250279e2f3e587bef41e1ae3cf45cdbc",
+  "candidate_sha256": "6f71709f117fe357e97615f4e40bb315871c602264443ebab0539bce96c9b300",
+  "reproduction": {
+    "old_gate_exit_with_live_child_and_missing_children_interface": 0,
+    "fixed_gate_exit_with_same_fixture": 1,
+    "router_proc_status_available": true,
+    "router_task_children_available": false
+  },
+  "tool_tests_passed": 27,
+  "openwrt_namespace_probe": {
+    "sides": [
+      "original",
+      "candidate"
+    ],
+    "matrix": true,
+    "iterations": 40,
+    "performance_result": false,
+    "checks_at_interface_counts": [
+      2,
+      32
+    ],
+    "both_passed": true
+  },
+  "archive_sha256": "2c26d580e12b3ea30977a27403a3d48ee9ac59f7962bba6bd79824b729d8f0a6",
+  "raw_files_verified": 183,
+  "prior_netifd_matrices": "Preserved for diagnosis; no longer eligible for complete initialization acceptance.",
+  "planned_router_remeasurement": {
+    "iterations": 10000,
+    "matrix_workloads": 14,
+    "repeats_per_side": 4,
+    "order": [
+      "stock",
+      "candidate",
+      "candidate",
+      "stock",
+      "stock",
+      "candidate",
+      "candidate",
+      "stock"
+    ]
+  }
+}

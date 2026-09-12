@@ -255,6 +255,13 @@ EOF
         sed 's/^/network.interface./' /tmp/netifd-names.expected > /tmp/netifd-objects.expected
         cmp /tmp/netifd-objects.expected "$out/interface-objects-$1-$2.txt"
     }
+    netifd_children_reaped() {
+        # This image does not expose /proc/PID/task/PID/children. Read PPid
+        # from status instead, and never interpret a read failure as empty.
+        netifd_children=$(awk -v parent="$subject" '$1 == "PPid:" && $2 == parent { print FILENAME }' \
+            "${1:-/proc}"/[0-9]*/status 2>/dev/null) || return 1
+        [ -z "$netifd_children" ]
+    }
     wait_netifd_hotplug() { # check_netifd_interfaces has written the expected names
         # Interface UP precedes completion of its hotplug scripts. Wait for
         # every fixture's successful ifup callback and the parent to reap
@@ -263,8 +270,7 @@ EOF
         while :; do
             kill -0 "$subject"; [ "$netifd_tries" -lt 90 ]
             awk '$2 == "ifup" && $3 == 0 { print $1 }' /tmp/netifd-hotplug.done | LC_ALL=C sort > /tmp/netifd-hotplug.names
-            if cmp -s /tmp/netifd-names.expected /tmp/netifd-hotplug.names &&
-                [ -z "$(cat /proc/"$subject"/task/"$subject"/children)" ]; then
+            if cmp -s /tmp/netifd-names.expected /tmp/netifd-hotplug.names && netifd_children_reaped; then
                 break
             fi
             sleep 1; netifd_tries=$((netifd_tries + 1))
@@ -272,7 +278,8 @@ EOF
         cp /tmp/netifd-hotplug.done "$out/hotplug-settled-$1.txt"
         "$bench" snapshot "$monitors" > "$out/hotplug-settled-$1-before.json"
         sleep 2
-        [ -z "$(cat /proc/"$subject"/task/"$subject"/children)" ]
+        netifd_children_reaped
+        printf 'proc-status-ppid\n' > "$out/hotplug-child-check-$1.txt"
         "$bench" snapshot "$monitors" > "$out/hotplug-settled-$1-after.json"
     }
     http_four() { # label method path body expected total format

@@ -15,16 +15,24 @@ class HotplugCompletionTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.events = self.root / "hotplug-settled-2.txt"
         self.events.write_text("lan ifup 0\nloopback ifup 0\n")
+        self.child_check = self.root / "hotplug-child-check-2.txt"
+        self.child_check.write_text("proc-status-ppid\n")
         self.before = {"processes": [{"pid": 42, "start_ticks": 10, "child_cpu_ticks": 99}]}
         self.after = {"processes": [{"pid": 42, "start_ticks": 10, "child_cpu_ticks": 99}]}
 
     def check(self):
         for phase, data in (("before", self.before), ("after", self.after)):
             (self.root / f"hotplug-settled-2-{phase}.json").write_text(json.dumps(data))
-        check_netifd_hotplug(self.root, 42, 2, ["lan", "loopback"])
+        return check_netifd_hotplug(self.root, 42, 2, ["lan", "loopback"])
 
     def test_all_callbacks_finished_and_reaped(self):
-        self.check()
+        self.assertTrue(self.check())
+
+    def test_missing_or_inapplicable_child_check_is_not_acceptance(self):
+        self.child_check.unlink()
+        self.assertFalse(self.check())
+        self.child_check.write_text("unavailable-proc-children\n")
+        self.assertFalse(self.check())
 
     def test_missing_or_duplicate_completion_is_rejected(self):
         for text in ("lan ifup 0\n", "lan ifup 0\nlan ifup 0\nloopback ifup 0\n"):

@@ -12,6 +12,8 @@ handler 脚本原样保留。** 修复核实见 [R83](reports/ax3000t-stock-open
 ubusd、netifd 五项正式文件的主要性能与候选功能隔离验收。指定最终样本的66项负载均值和CPU汇总值
 低于原版；rpcd短测波动及部分尾延迟、HTTPD保持连接内存代价、原版procd两轮丢日志样本全部保留。
 候选尚未替换正式运行栈，R85部署后的整机收益仍未测量。
+[R86复核](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)正在补齐最新九组件的
+对照与部署；已修复信号唤醒、HTTPD资源耗尽故障，并发现N05的子进程回收检查缺口，正在补测。
 
 ## 分层与边界
 

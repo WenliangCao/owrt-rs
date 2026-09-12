@@ -80,6 +80,8 @@ def check_netifd_hotplug(raw, subject, count, expected_names):
     parent = [next(p for p in snapshot["processes"] if p["pid"] == subject) for snapshot in idle]
     assert parent[0]["start_ticks"] == parent[1]["start_ticks"], "netifd restarted while settling"
     assert parent[0]["child_cpu_ticks"] == parent[1]["child_cpu_ticks"], "setup children still running"
+    child_check = raw / f"hotplug-child-check-{count}.txt"
+    return child_check.is_file() and child_check.read_text().strip() == "proc-status-ppid"
 
 
 def derive(root, label):
@@ -150,7 +152,8 @@ def derive(root, label):
                 for count in (2, 32):
                     expected_names = [f"bench{i:02d}" for i in range(count - 2)] + ["lan", "loopback"]
                     if settled:
-                        check_netifd_hotplug(raw, subject, count, expected_names)
+                        children_checked = check_netifd_hotplug(raw, subject, count, expected_names)
+                        initialization_settled[-1] = initialization_settled[-1] and children_checked
                     for phase in ("before", "after"):
                         assert (raw / f"interface-names-{count}-{phase}.txt").read_text().splitlines() == expected_names
                         assert (raw / f"interface-objects-{count}-{phase}.txt").read_text().splitlines() == [
@@ -163,7 +166,7 @@ def derive(root, label):
                         "kernel": (raw / "kernel.txt").read_text().strip()})
         for name in workloads:
             data = parallel(raw / name, subject) if name.endswith("_c4") else serial(raw / (name + ".json"), subject)
-            if component == "netifd" and matrix and initialization_settled[-1]:
+            if component == "netifd" and matrix and settled:
                 if name.endswith("_c4"):
                     snapshots = [read(raw / name / f"{phase}.json") for phase in ("before", "after")]
                     child_ticks = [next(p for p in s["processes"] if p["pid"] == subject)["child_cpu_ticks"] for s in snapshots]
@@ -200,7 +203,7 @@ def derive(root, label):
     client, namespace, harness = next(iter(identities))
     limitations = []
     if initialization_settled and not all(initialization_settled):
-        limitations.append("Legacy netifd matrix began the 32-interface phase before all setup hotplug children finished. Phase timings/CPU are retained for diagnosis, not acceptance; rerun with the explicit hotplug completion gate.")
+        limitations.append("This netifd matrix lacks complete evidence for finished hotplug callbacks, reaped children checked through proc status PPid, and stable child CPU before queries. Timings/CPU are retained for diagnosis, not acceptance; rerun with the complete initialization gate.")
     return {"schema_version": 1, "label": label, "component": component, "matrix": matrix, "subjects": subjects,
             "benchmark_sha256": client, "namespace_sha256": namespace, "harness_sha256": harness,
             "order": order, "host_gates_passed": True, "acceptance_eligible": not limitations,
@@ -232,8 +235,8 @@ def main():
                      f"{v('stock', 'subject_cpu_us_per_op'):.2f} | {v('candidate', 'subject_cpu_us_per_op'):.2f} | "
                      f"{delta['subject_cpu_us_per_op']:+.2f}% |")
     if result["limitations"]:
-        lines += ["", "**本组不能用于完整性能验收：** 32接口阶段开始时，初始化hotplug子进程尚未全部结束，",
-                  "其CPU和争用混入首项查询。原始结果保留，须使用显式hotplug完成门复测。"]
+        lines += ["", "**本组不能用于完整性能验收：** 查询前缺少完整的初始化完成证据，",
+                  "须同时检查hotplug回调、通过proc status的PPid确认子进程已回收，并验证子进程CPU稳定。原始结果保留，使用完整门复测。"]
     lines += ["", "每侧运行次数：" + str(len(result["order"]) // len(result["measured_sides"])) + "。所列完整运行的请求均成功，原版依赖和正式运行栈保持相同。",
               "", "c4 的 CPU 包含并计数每客户端 20 次预热，使用唯一外层区间；吞吐包括预热和启动，",
               "计时精度来自 /proc/uptime。客户端校验也使用路由器 CPU，不能把这里的吞吐视为服务端极限。",
