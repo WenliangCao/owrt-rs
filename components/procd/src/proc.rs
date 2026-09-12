@@ -92,8 +92,11 @@ impl LogPipe {
                 }
                 return false;
             }
-            // n < 0: EAGAIN means "nothing right now", anything else ends it.
+            // A signal does not close the writer or consume pending bytes.
             let e = io::Error::last_os_error();
+            if e.kind() == io::ErrorKind::Interrupted {
+                continue;
+            }
             return e.kind() == io::ErrorKind::WouldBlock;
         }
     }

@@ -300,13 +300,17 @@ impl Procd {
         let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) else {
             return false;
         };
+        // A child can write and exit after this iteration's earlier pipe
+        // scan (including while procd is stopped). Drain again only once
+        // waitpid has confirmed the exit, before clearing the old pid/pipes.
+        Self::pump_instance_logs(inst);
         let runtime = (now - inst.started) / 1000;
         inst.exit_code = Instance::exit_code_of(wstatus);
         inst.pid = 0;
         inst.state = Run::Stopped;
         inst.deadline = None;
-        // pump_logs ran just before the reap, so anything left here is a
-        // pipe whose writer is gone; dropping it closes our read end.
+        // The confirmed-exit drain above preserves output that arrived
+        // between the earlier scan and waitpid.
         inst.log_out = None;
         inst.log_err = None;
         inst.watchdog_deadline = None;
@@ -491,35 +495,39 @@ impl Procd {
     fn pump_logs(&mut self) {
         for s in self.services.values_mut() {
             for inst in s.instances.values_mut() {
-                if inst.log_out.is_none() && inst.log_err.is_none() {
-                    continue;
-                }
-                let arg0 = inst
-                    .command
-                    .first()
-                    .map(|c| c.rsplit('/').next().unwrap_or(c))
-                    .unwrap_or("");
-                // snprintf(ident, 32, "%s[%d]", ...): the WHOLE ident is
-                // capped at 31 bytes, basename and pid included.
-                let mut ident = format!("{arg0}[{}]", inst.pid);
-                ident.truncate(31);
-                // instance_config_parse keeps LOG_DAEMON when
-                // syslog_facility_str_to_int() finds nothing (-1).
-                let facility = inst
-                    .facility
-                    .as_deref()
-                    .map(sys::facility_from_str)
-                    .filter(|f| *f != -1)
-                    .unwrap_or(sys::LOG_DAEMON);
-                for pipe in [&mut inst.log_out, &mut inst.log_err] {
-                    let Some(p) = pipe.as_mut() else { continue };
-                    let alive = p.poll_lines(|prio, line| {
-                        sys::log_instance_line(&ident, facility, prio, line);
-                    });
-                    if !alive {
-                        *pipe = None;
-                    }
-                }
+                Self::pump_instance_logs(inst);
+            }
+        }
+    }
+
+    fn pump_instance_logs(inst: &mut Instance) {
+        if inst.log_out.is_none() && inst.log_err.is_none() {
+            return;
+        }
+        let arg0 = inst
+            .command
+            .first()
+            .map(|c| c.rsplit('/').next().unwrap_or(c))
+            .unwrap_or("");
+        // snprintf(ident, 32, "%s[%d]", ...): the WHOLE ident is
+        // capped at 31 bytes, basename and pid included.
+        let mut ident = format!("{arg0}[{}]", inst.pid);
+        ident.truncate(31);
+        // instance_config_parse keeps LOG_DAEMON when
+        // syslog_facility_str_to_int() finds nothing (-1).
+        let facility = inst
+            .facility
+            .as_deref()
+            .map(sys::facility_from_str)
+            .filter(|f| *f != -1)
+            .unwrap_or(sys::LOG_DAEMON);
+        for pipe in [&mut inst.log_out, &mut inst.log_err] {
+            let Some(p) = pipe.as_mut() else { continue };
+            let alive = p.poll_lines(|prio, line| {
+                sys::log_instance_line(&ident, facility, prio, line);
+            });
+            if !alive {
+                *pipe = None;
             }
         }
     }

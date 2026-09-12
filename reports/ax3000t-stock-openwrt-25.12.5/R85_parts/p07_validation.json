@@ -1,0 +1,46 @@
+{
+  "candidate_sha256": "620a1a27bd59915c318b57194bfa6c4de4a31ddf0094ef0be47b3f35f3a9991c",
+  "archive_sha256": "3273be82c93c9f9223db02ec681451cf0f78e0dae62b7960aa1e87846380bab5",
+  "gate_exit_codes": {
+    "procd-r71": 0,
+    "procd-r72-tty": 0,
+    "procd-r83": 0,
+    "procd-r75": 0,
+    "procd-r65": 0,
+    "procd-busy": 1
+  },
+  "logs": {
+    "procd-r83.log": "22462b107bfb2a8f3c724d877061c211b8b1022f1b6057c1cb30c72aa1bc1e19",
+    "procd-r72-tty.log": "5e759ccecaaf5038350491fcf1aca62c10910b46dc2848e8d19222bcf4386e41",
+    "procd-busy.log": "2cd9e1a618f840672ae206374bf0774be1277ad7a3139f783d35e3a5b7c19e17",
+    "procd-r71.log": "e47879d46f1696b3e8c55ca34f30f8310346037c11bef9da8c848eb1a19b70bf",
+    "procd-r65.log": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+    "procd-r75.log": "fb358a75cb40a6d6648dd6ce38dd51bb2523d4590dad8a7d16713b1d8fe2aaa9"
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "verified_raw_files": 368,
+    "health_identity_boot_configuration_unchanged": true
+  },
+  "accepted": false,
+  "busy_gate": {
+    "original": {
+      "children_reaped_exit19": 32,
+      "final_log_lines": 32,
+      "watchdog_reply": {
+        "busywatch": {}
+      },
+      "completed": true
+    },
+    "candidate": {
+      "children_reaped_exit19": 32,
+      "final_log_lines": 10,
+      "watchdog_reply": {
+        "busywatch": {}
+      },
+      "completed": false
+    }
+  },
+  "failure": "Original busy gate passed; candidate reaped all 32 exit19 children but captured only the last 10 of 32 tail lines. No COMPLETE marker and no acceptance. Fix and independent validation follow in P08.",
+  "launcher_note": "First Python detached launcher had a quoting SyntaxError before executing gates. Its log is retained; corrected launcher ran all six gates and preserved the busy failure."
+}
