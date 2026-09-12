@@ -1,0 +1,173 @@
+{
+  "candidate_sha256": "d11eb6c3f9044da67f206d91a1e08ed7ed36f53f769b828d0db62f66c79af9ae",
+  "source_archive_sha256": "f4be3bc5cae9e8854a47c96c993282a8b78f18cace74583c088cb3726412d415",
+  "archive_sha256": "8ce0ea827bcc6471ece2448af506a0c87c5894caf4d359e0d8fb643bb973d688",
+  "unit_tests": 154,
+  "full_suite_exit": 0,
+  "cases": [
+    {
+      "case": "r46",
+      "verdict": "ok",
+      "elapsed_s": 0
+    },
+    {
+      "case": "r47",
+      "verdict": "ok",
+      "elapsed_s": 6
+    },
+    {
+      "case": "r48",
+      "verdict": "ok",
+      "elapsed_s": 7
+    },
+    {
+      "case": "r49",
+      "verdict": "ok",
+      "elapsed_s": 13
+    },
+    {
+      "case": "r50",
+      "verdict": "ok",
+      "elapsed_s": 36
+    },
+    {
+      "case": "r51",
+      "verdict": "ok",
+      "elapsed_s": 31
+    },
+    {
+      "case": "r52",
+      "verdict": "ok",
+      "elapsed_s": 23
+    },
+    {
+      "case": "r53",
+      "verdict": "ok",
+      "elapsed_s": 73
+    },
+    {
+      "case": "r54",
+      "verdict": "ok",
+      "elapsed_s": 30
+    },
+    {
+      "case": "r55",
+      "verdict": "ok",
+      "elapsed_s": 83
+    },
+    {
+      "case": "r56",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r57",
+      "verdict": "ok",
+      "elapsed_s": 31
+    },
+    {
+      "case": "r58",
+      "verdict": "ok",
+      "elapsed_s": 24
+    },
+    {
+      "case": "r59",
+      "verdict": "ok",
+      "elapsed_s": 16
+    },
+    {
+      "case": "r60_up_cmds",
+      "verdict": "ok",
+      "elapsed_s": 42
+    },
+    {
+      "case": "r60_up",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_fail_cmds",
+      "verdict": "ok",
+      "elapsed_s": 41
+    },
+    {
+      "case": "r60_fail",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_flood",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_token",
+      "verdict": "ok",
+      "elapsed_s": 35
+    },
+    {
+      "case": "r60_proc",
+      "verdict": "ok",
+      "elapsed_s": 25
+    },
+    {
+      "case": "r61",
+      "verdict": "ok",
+      "elapsed_s": 29
+    },
+    {
+      "case": "r62",
+      "verdict": "ok",
+      "elapsed_s": 65
+    },
+    {
+      "case": "r63",
+      "verdict": "ok",
+      "elapsed_s": 13
+    },
+    {
+      "case": "r64",
+      "verdict": "ok",
+      "elapsed_s": 25
+    },
+    {
+      "case": "r79",
+      "verdict": "ok",
+      "elapsed_s": 47
+    },
+    {
+      "case": "r83",
+      "verdict": "ok",
+      "elapsed_s": 28
+    },
+    {
+      "case": "r83c",
+      "verdict": "ok",
+      "elapsed_s": 41
+    },
+    {
+      "case": "r83w",
+      "verdict": "ok",
+      "elapsed_s": 77
+    }
+  ],
+  "suite_log_sha256": "7b450ca354268acec034eebabd8c42df9b84c1356b0f27bf8ffaa2cd1fc4ca05",
+  "all_29_selected_and_passed": true,
+  "uptime_relationships_both_sides_passed": true,
+  "added_uptime_gate_sha256": "73c6882b2022d5bb3c6bd166060860a9e38dfde2eff67a3d22801cadb5e524cc",
+  "private_configs_match_router_before_matrix": true,
+  "physical": {
+    "repeats_per_side": 4,
+    "workloads": 14,
+    "verified_raw_files": 704,
+    "host_gates_passed": true,
+    "initialization_settled": true,
+    "read_query_child_cpu_growth": 0,
+    "reference": "n04/results.json"
+  },
+  "driver_failure_after_suite": {
+    "log_sha256": "563c732a00bd8e2f34933c815be4f492894862100f803ab64891e5fd93835a04",
+    "cause": "SSH shell quoting split the outer completion printf. The complete N04 script and suite exit 0 were verified directly; no N04 test was repeated. P10/R44 were not started by that wrapper and were launched only after it exited."
+  },
+  "note": "Actual N04 candidate passed all 29 exact-image cases and the four-round physical matrix. Full canonical artifact acceptance remains separate. Oracle had no concurrent profiling/build. The r54 validation-only update was copied after the build; production source was unchanged."
+}

@@ -1,0 +1,167 @@
+{
+  "candidate_sha256": "50de3adccbb963dafb22b4c65a14a7a14eb5be5060f349461a2032cf0c3f668b",
+  "source_archive_sha256": "5ff14ed953aaf8f44107c94bfdeb0bf51f4dd72569d6232c9bfda28e643cb14d",
+  "archive_sha256": "5294d41a737af6e5a686411debd4f0bb902d855be72fbda50fbdd9445d3abb1f",
+  "full_suite_exit": 0,
+  "unit_tests": 153,
+  "cases": [
+    {
+      "case": "r46",
+      "verdict": "ok",
+      "elapsed_s": 0
+    },
+    {
+      "case": "r47",
+      "verdict": "ok",
+      "elapsed_s": 6
+    },
+    {
+      "case": "r48",
+      "verdict": "ok",
+      "elapsed_s": 7
+    },
+    {
+      "case": "r49",
+      "verdict": "ok",
+      "elapsed_s": 12
+    },
+    {
+      "case": "r50",
+      "verdict": "ok",
+      "elapsed_s": 36
+    },
+    {
+      "case": "r51",
+      "verdict": "ok",
+      "elapsed_s": 31
+    },
+    {
+      "case": "r52",
+      "verdict": "ok",
+      "elapsed_s": 23
+    },
+    {
+      "case": "r53",
+      "verdict": "ok",
+      "elapsed_s": 73
+    },
+    {
+      "case": "r54",
+      "verdict": "ok",
+      "elapsed_s": 28
+    },
+    {
+      "case": "r55",
+      "verdict": "ok",
+      "elapsed_s": 84
+    },
+    {
+      "case": "r56",
+      "verdict": "ok",
+      "elapsed_s": 15
+    },
+    {
+      "case": "r57",
+      "verdict": "ok",
+      "elapsed_s": 31
+    },
+    {
+      "case": "r58",
+      "verdict": "ok",
+      "elapsed_s": 23
+    },
+    {
+      "case": "r59",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_up_cmds",
+      "verdict": "ok",
+      "elapsed_s": 40
+    },
+    {
+      "case": "r60_up",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_fail_cmds",
+      "verdict": "ok",
+      "elapsed_s": 41
+    },
+    {
+      "case": "r60_fail",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_flood",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_token",
+      "verdict": "ok",
+      "elapsed_s": 35
+    },
+    {
+      "case": "r60_proc",
+      "verdict": "ok",
+      "elapsed_s": 24
+    },
+    {
+      "case": "r61",
+      "verdict": "ok",
+      "elapsed_s": 28
+    },
+    {
+      "case": "r62",
+      "verdict": "ok",
+      "elapsed_s": 66
+    },
+    {
+      "case": "r63",
+      "verdict": "ok",
+      "elapsed_s": 13
+    },
+    {
+      "case": "r64",
+      "verdict": "ok",
+      "elapsed_s": 25
+    },
+    {
+      "case": "r79",
+      "verdict": "ok",
+      "elapsed_s": 47
+    },
+    {
+      "case": "r83",
+      "verdict": "ok",
+      "elapsed_s": 28
+    },
+    {
+      "case": "r83c",
+      "verdict": "ok",
+      "elapsed_s": 40
+    },
+    {
+      "case": "r83w",
+      "verdict": "ok",
+      "elapsed_s": 77
+    }
+  ],
+  "suite_log_sha256": "5d47007154bbbde22776761c1d4e4f26af1ccee5a64c92dc38d2222e902fa988",
+  "all_29_selected_and_passed": true,
+  "private_configs_match_router_before_matrix": true,
+  "physical": {
+    "repeats_per_side": 4,
+    "workloads": 14,
+    "verified_raw_files": 704,
+    "host_gates_passed": true,
+    "reference": "n03/results.json"
+  },
+  "performance_accepted": false,
+  "remaining_gap": "interface_named_32 mean +4.31%, CPU +4.35%; c4 mean +0.93%.",
+  "note": "Full exact-image suite without concurrent Oracle profiling or building. Synthetic/no-PHY wireless tests do not prove physical radio startup. N03 predates the added N04 uptime relationships."
+}

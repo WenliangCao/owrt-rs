@@ -24,6 +24,8 @@ mod netlink;
 mod rt;
 #[path = "../src/sys.rs"]
 mod sys;
+#[path = "../src/ubus.rs"]
+mod ubus;
 #[path = "../../rpcd/examples/profile_support/mod.rs"]
 mod profile_support;
 
@@ -39,6 +41,7 @@ fn interface(index: usize) -> interface::Interface {
     i.device = Some("br-profile".into());
     i.l3_device = i.device.clone();
     i.uptime = 60;
+    i.started_at = Some(60);
     i.proto_ip.addresses.push(interface::Address::new("192.0.2.1".parse().unwrap(), 24));
     i.proto_ip.addresses.push(interface::Address::new("2001:db8::1".parse().unwrap(), 64));
     i
@@ -48,6 +51,35 @@ fn main() {
     let n = std::env::args().nth(1).unwrap_or_else(|| "1000".into()).parse().unwrap();
     let filter = std::env::args().nth(2).unwrap_or_default();
     println!("stage,iterations,ns_per_op,allocations,reallocations,allocated_bytes");
+    for count in [2, 32, 128] {
+        let interfaces: Vec<_> = (0..count).map(interface).collect();
+        let times: Vec<_> = interfaces.iter().map(|i| (i.name.clone(), 60u64)).collect();
+        let objects = ubus::Objects {
+            per_interface: interfaces.iter().enumerate().map(|(n, i)| (i.name.clone(), 100 + n as u32)).collect(),
+            ..Default::default()
+        };
+        let name = interfaces.last().unwrap().name.as_str();
+        profile_support::measure(&format!("lookup_object_{count}"), n, &filter, || {
+            black_box(objects.route(black_box(100 + count as u32 - 1)));
+        });
+        profile_support::measure(&format!("lookup_interface_linear_{count}"), n, &filter, || {
+            black_box(black_box(&interfaces).iter().find(|i| i.name == black_box(name)));
+        });
+        profile_support::measure(&format!("lookup_interface_partition_{count}"), n, &filter, || {
+            let at = black_box(&interfaces).partition_point(|i| i.name.as_str() < black_box(name));
+            black_box(interfaces.get(at).filter(|i| i.name == name));
+        });
+        profile_support::measure(&format!("lookup_uptime_linear_{count}"), n, &filter, || {
+            black_box(black_box(&times).iter().find(|(key, _)| key == black_box(name))
+                .map(|(_, time)| clock::now().saturating_sub(*time) as u32).unwrap_or(0));
+        });
+        profile_support::measure(&format!("lookup_interface_current_{count}"), n, &filter, || {
+            black_box(interface::find_by_name(black_box(&interfaces), black_box(name)));
+        });
+        profile_support::measure(&format!("lookup_uptime_current_{count}"), n, &filter, || {
+            black_box(black_box(interfaces.last().unwrap()).current_uptime());
+        });
+    }
     let iface = interface(0);
     profile_support::measure("interface_clone", n, &filter, || {
         black_box(black_box(&iface).clone());

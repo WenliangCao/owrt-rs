@@ -1,0 +1,116 @@
+{
+  "candidate_sha256": "0b007d697024fd2f8875ba260bf312b6cd8bfc39aec44712d16942ba914c7f29",
+  "source_commit": "364c3d83499222bf39fe4ea28be1e885ea8e1541",
+  "also_built_unchanged_at": "83561e37f03c19c2974b7c3edfa900021542d6ae",
+  "canonical_reference": "n03_canonical_build.json",
+  "archive_sha256": "2fcd4337fb29f71baacc7b3c8aef6a80f56f8d54aa796a014c9a29e190fd26cd",
+  "host": "Oracle aarch64 with exact OpenWrt 25.12.5 rootfs; held-connection memory is not physical-router data",
+  "gates": {
+    "static_file_changes_and_reused_connections": 41,
+    "r14_identical": 61,
+    "extended_identical": 31,
+    "sse_disconnect_cleanup": "passed",
+    "fuzz_cases_per_side": 133,
+    "retained_baseline_differences": [
+      "cgi-pathinfo-nul",
+      "chunked-bad-size",
+      "chunked-huge-size",
+      "connect",
+      "header-ctrl",
+      "header-no-colon",
+      "header-obs-fold",
+      "http09",
+      "http12",
+      "http2",
+      "httpx",
+      "json-deep-array",
+      "lf-only",
+      "long-path-8k",
+      "lowercase-method",
+      "method-only",
+      "percent-nul",
+      "pipelined-bad-second",
+      "raw-space-in-path",
+      "tab-separated",
+      "trace",
+      "unknown-method"
+    ],
+    "new_differences": 0,
+    "survival_failures": 0,
+    "cgi_stress": {
+      "clients": 4,
+      "requests_per_client": 30000,
+      "total_measured_requests": 120000,
+      "total_warmup_requests": 80
+    }
+  },
+  "held_connections_diagnostic": {
+    "stock": {
+      "connections": 64,
+      "response_bytes": 16384,
+      "before": {
+        "VmHWM": 952,
+        "VmRSS": 952,
+        "RssAnon": 96,
+        "Threads": 1,
+        "fds": 7
+      },
+      "held": {
+        "VmHWM": 1396,
+        "VmRSS": 1396,
+        "RssAnon": 540,
+        "Threads": 1,
+        "fds": 71
+      },
+      "after_close": {
+        "VmHWM": 1272,
+        "VmRSS": 956,
+        "RssAnon": 100,
+        "Threads": 1,
+        "fds": 7
+      },
+      "held_rss_growth_kib": 444
+    },
+    "candidate": {
+      "connections": 64,
+      "response_bytes": 16384,
+      "before": {
+        "VmHWM": 916,
+        "VmRSS": 916,
+        "RssAnon": 44,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held": {
+        "VmHWM": 4044,
+        "VmRSS": 4044,
+        "RssAnon": 3172,
+        "Threads": 66,
+        "fds": 68
+      },
+      "after_close": {
+        "VmHWM": 3744,
+        "VmRSS": 920,
+        "RssAnon": 48,
+        "Threads": 2,
+        "fds": 4
+      },
+      "held_rss_growth_kib": 3128
+    }
+  },
+  "logs": {
+    "cgi-stress.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "extended.log": "9c18b2c33bc283a9adb64af2855943eb5b0fb00a257b3dff6d9d2280215a8a85",
+    "fuzz.log": "d12c93f0d3815979388f42c105029d1faff351f8683d278d58225256ec1c5462",
+    "r14.log": "71e28e0f8cae793438b369367ca6d326985b18592a7231cc40319b84d489b57e",
+    "static.log": "17892f410e1c6bd4b321731a9a326ea80768e8f21a6769200ada071da391943e"
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "workloads": 16,
+    "verified_raw_files": 648,
+    "host_gates_passed": true,
+    "reference": "h16/results.json"
+  },
+  "passed": true
+}

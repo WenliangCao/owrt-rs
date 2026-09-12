@@ -236,8 +236,6 @@ struct Netifd {
     cfg: Config,
     devices: Devices,
     interfaces: Vec<Interface>,
-    /// Absolute start times, for the `uptime` field.
-    start_time: Vec<(String, u64)>,
     prefixes: Vec<ip::DevicePrefix>,
     sys: sys::System,
     events: netlink::Netlink,
@@ -330,7 +328,6 @@ impl Netifd {
             cfg: Config::default(),
             devices: Devices::new(),
             interfaces: Vec::new(),
-            start_time: Vec::new(),
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
@@ -747,7 +744,7 @@ impl Netifd {
                 }
             })
             .collect();
-        i.dump_status_with(b, self.uptime_of(&i.name), &prefixes);
+        i.dump_status_with(b, i.current_uptime(), &prefixes);
     }
 
     /// `set_config_state`: a reload or a removal is performed right away
@@ -1642,8 +1639,7 @@ impl Netifd {
             i.updated |= interface::updated::ROUTE;
         }
         i.errors.clear();
-        self.start_time.retain(|(n, _)| n != name);
-        self.start_time.push((name.to_string(), now()));
+        i.started_at = Some(now());
 
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
@@ -2271,9 +2267,8 @@ impl Netifd {
                 i.data.sort_by(|a, b| a.0.cmp(&b.0));
             }
             i.errors.clear();
+            i.started_at = Some(now());
         }
-        self.start_time.retain(|(n, _)| n != name);
-        self.start_time.push((name.to_string(), now()));
         self.proto_state(name).sm = proto::Sm::Idle;
         // `interface_ip_set_enabled(&iface->config_ip, true)` at IFPEV_UP
         self.apply_config_routes(name, devidx);
@@ -3591,7 +3586,7 @@ impl Netifd {
         // protocol reported does not survive its interface going down
         i.data.clear();
 
-        self.start_time.retain(|(n, _)| n != name);
+        i.started_at = None;
         // A prefix is only delegated while the uplink that carries it is up.
         // Leaving it behind would keep handing the LAN addresses that no
         // longer route.
@@ -3744,14 +3739,6 @@ impl Netifd {
         (argv, env)
     }
 
-    fn uptime_of(&self, name: &str) -> u32 {
-        self.start_time
-            .iter()
-            .find(|(n, _)| n == name)
-            .map(|(_, t)| now().saturating_sub(*t) as u32)
-            .unwrap_or(0)
-    }
-
     fn dump_interface(&self, b: &mut BlobBuf, i: &Interface) {
         b.msg_string("interface", &i.name);
         self.dump_interface_status(b, i);
@@ -3788,16 +3775,16 @@ impl Netifd {
         // "<name>"}`, never the per-interface object. Registration is
         // unaffected -- `ubus -v list` shows the object TYPE's signature,
         // which still carries each method's own policy.
-        let mut resolved: Option<String> = None;
+        let mut resolved: Option<&str> = None;
         if target == ubus::Target::Interface(None) && method != "dump" {
             let name = blob::fields(&req.data)
                 .find(|f| f.name == "interface" && f.ty == MsgType::String as u32)
-                .and_then(|f| f.as_str().map(|s| s.to_string()));
+                .and_then(|f| f.as_str());
             let Some(name) = name else {
                 let _ = self.conn.reply_status(req, status::INVALID_ARGUMENT, None);
                 return;
             };
-            if !self.interfaces.iter().any(|i| i.name == name) {
+            if interface::find_by_name(&self.interfaces, name).is_none() {
                 let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
                 return;
             }
@@ -3944,7 +3931,7 @@ impl Netifd {
                 reply_fields(&mut self.conn, req, b.payload())
             }
             (ubus::Target::Interface(Some(name)), "status") => {
-                let Some(i) = self.interfaces.iter().find(|i| i.name == name) else {
+                let Some(i) = interface::find_by_name(&self.interfaces, name) else {
                     let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
                     return;
                 };

@@ -137,7 +137,12 @@ def main():
     parser.add_argument("rootfs", type=Path)
     parser.add_argument("candidate", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--sides", nargs="+", choices=("original", "candidate"),
+                        default=("original", "candidate"),
+                        help="explicit subjects, for completing an unrun side after a recorded failure")
     args = parser.parse_args()
+    if len(set(args.sides)) != len(args.sides):
+        parser.error("duplicate subjects")
     if os.geteuid() != 0:
         parser.error("run as root on the Linux build host")
     args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
@@ -147,7 +152,7 @@ def main():
         for i in range(32)
     }
     summary = []
-    for side in ("original", "candidate"):
+    for side in args.sides:
         destination = args.output / side
         destination.mkdir(mode=0o700)
         with tempfile.TemporaryDirectory(prefix="r85-procd-busy-") as work:

@@ -263,6 +263,9 @@ pub struct Interface {
     pub dynamic: bool,
     /// Seconds since the interface came up; only printed while up.
     pub uptime: u32,
+    /// Daemon-owned monotonic start time. It follows this interface through
+    /// sorting and disappears with it on teardown or configuration reload.
+    pub started_at: Option<u64>,
     pub l3_device: Option<String>,
     pub proto: Option<String>,
     /// `main_dev`, printed unless the proto handler is `PROTO_FLAG_NODEV`.
@@ -282,6 +285,17 @@ pub struct Interface {
     /// `set_data` entries, in name order (an AVL walk).
     pub data: Vec<(String, owrt_ubus::json::Json)>,
     pub errors: Vec<IfaceError>,
+}
+
+/// Find the first matching interface in the daemon's name-ordered list.
+/// Call only after additions have been sorted; construction-time lookups
+/// may still need a linear scan. Tiny lists avoid the binary-search overhead.
+pub fn find_by_name<'a>(interfaces: &'a [Interface], name: &str) -> Option<&'a Interface> {
+    if interfaces.len() <= 2 {
+        return interfaces.iter().find(|i| i.name == name);
+    }
+    let at = interfaces.partition_point(|i| i.name.as_str() < name);
+    interfaces.get(at).filter(|i| i.name == name)
 }
 
 fn put_addr(b: &mut BlobBuf, a: &Address) {
@@ -421,6 +435,12 @@ impl IpSettings {
 impl Interface {
     pub fn new(name: &str) -> Self {
         Self { name: name.to_string(), ..Default::default() }
+    }
+
+    /// Read live elapsed time without searching a second name-keyed list.
+    /// Standalone status probes continue to supply the separate `uptime`.
+    pub fn current_uptime(&self) -> u32 {
+        self.started_at.map(|t| crate::clock::now().saturating_sub(t) as u32).unwrap_or(0)
     }
 
     /// `netifd_dump_status`, field for field.
@@ -601,6 +621,34 @@ impl Interface {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn named_lookup_preserves_first_match_and_tracks_list_changes() {
+        for count in [0, 1, 2, 3, 32, 128] {
+            let mut interfaces: Vec<_> = (0..count)
+                .map(|n| Interface::new(&format!("interface{n:03}")))
+                .collect();
+            for n in 0..=count {
+                let name = format!("interface{n:03}");
+                let found = find_by_name(&interfaces, &name);
+                assert_eq!(found.map(|i| i.name.as_str()),
+                           (n < count).then_some(name.as_str()));
+            }
+            for missing in ["", "Interface000", "interface", "interface000x", "z"] {
+                assert!(find_by_name(&interfaces, missing).is_none());
+            }
+            let mut first = Interface::new("duplicate");
+            first.metric = 42;
+            interfaces.push(first);
+            interfaces.push(Interface::new("duplicate"));
+            interfaces.sort_by(|a, b| a.name.cmp(&b.name));
+            assert_eq!(find_by_name(&interfaces, "duplicate").unwrap().metric, 42);
+            interfaces.remove(0);
+            assert_eq!(find_by_name(&interfaces, "duplicate").unwrap().metric, 0);
+            interfaces.retain(|i| i.name != "duplicate");
+            assert!(find_by_name(&interfaces, "duplicate").is_none());
+        }
+    }
 
     fn json(i: &Interface) -> String {
         let mut b = BlobBuf::new();

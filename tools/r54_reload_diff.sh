@@ -251,4 +251,33 @@ if diff -u "$out/c-kernel.txt" "$out/rs-kernel.txt" > "$out/kernel.diff"; then
 else
 	head -30 "$out/kernel.diff"; rc=1
 fi
+
+# Compare elapsed-time relationships on each side before masking uptime.
+# Exact seconds differ between runs, but a changed interface must restart
+# its clock while unaffected interfaces survive reload and list reordering.
+python3 - "$out" <<'PY' || rc=1
+import json, sys
+from pathlib import Path
+
+out = Path(sys.argv[1])
+for side in ("c", "rs"):
+    samples = []
+    for n in (1, 2, 3):
+        rows = json.loads((out / f"{side}-dump{n}.txt").read_text())["interface"]
+        expected = ["loopback", "one", "three", "two"]
+        if n == 3:
+            expected.insert(0, "four")
+        assert [i["interface"] for i in rows] == expected, (side, n, rows)
+        assert all(i["up"] and type(i.get("uptime")) is int for i in rows)
+        samples.append({i["interface"]: i["uptime"] for i in rows})
+    before, changed, added = samples
+    assert min(before.values()) >= 3, (side, "initial elapsed time", samples)
+    for name in ("loopback", "one", "three"):
+        assert changed[name] >= before[name] + 2, (side, "unaffected reload", name, samples)
+    assert changed["two"] < before["two"], (side, "changed interface did not restart", samples)
+    for name in before:
+        assert added[name] >= changed[name] + 2, (side, "sort moved uptime", name, samples)
+    assert added["four"] < min(added[name] for name in before), (side, "new interface", samples)
+    print(f"RESULT(uptime {side}): live clocks, reload reset and reorder preservation passed")
+PY
 exit $rc
