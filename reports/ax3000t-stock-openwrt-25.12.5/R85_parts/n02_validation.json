@@ -1,0 +1,36 @@
+{
+  "candidate_sha256": "5bfa44ec3c8a2d093e3e1585e0e9b1933d459220efe38fb5d904b7f3ca0ce3e5",
+  "source_archive_sha256": "6b62c3da2c9e1bc1796df3ef4a182f2d44e1cd131524cc3a1e085908292c9a59",
+  "archive_sha256": "41c78d65f27ed52ec7f4b47c6a62e30caba3d9dfbd5c6f6669bf6b8b1c9d8731",
+  "gate_exit_codes": {
+    "events": 0,
+    "ifstatus": 0,
+    "config": 0,
+    "lifecycle": 0,
+    "reload": 0,
+    "cycles": 0,
+    "pd": 0,
+    "daemon": 0
+  },
+  "logs": {
+    "reload.log": "af5c16b5578fbf82778855e377a587e9a20bf6b9ad8bb87965be61b73f480763",
+    "lifecycle.log": "588e5629caa30bea388325e5e0168d35a2bf549ad777f6476ceab21aad22409e",
+    "pd.log": "64dc2e548def92555b5530a9959268453583cc859d19af835c7669da9e1172b6",
+    "ifstatus.log": "80f9679370be1324538a8e4ac9323bc525fe0bcfe4181e3e255729e5a21514d3",
+    "daemon.log": "3bd541b034128a684915aa11eb132eafc77c2f433b3b8c99fa80eceb72d89a31",
+    "events.log": "f417d0af78ab5d5e0b0d551034ea8e19d5bf95600e266f3153f5af49924bc85d",
+    "cycles.log": "ec7e2242d25cc118fdd9d8fe69d0015314f5fae2081b9c91afc682cc675240b5",
+    "config.log": "980a52808e94898f49dd840c2ea73f0e466e5a66c96b329e4b8cfb34354f5a05"
+  },
+  "unit_tests": 153,
+  "scope": "Eight targeted interface-projection gates; not a repeat of the full 29-case N01 suite.",
+  "physical": {
+    "repeats_per_side": 2,
+    "exploratory": true,
+    "workloads": 14,
+    "initialization_settled": true,
+    "read_query_child_cpu_growth": 0,
+    "host_gates_passed": true,
+    "reference": "n02/results.json"
+  }
+}

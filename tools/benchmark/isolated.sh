@@ -10,6 +10,7 @@ case "${OWRT_HTTPD_RPC_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MEMORY:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_NETIFD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -230,6 +231,50 @@ EOF
         done
         printf '}\n'
     }
+    netifd_expect() { # total interfaces: the original two, then thirty static aliases
+        printf '{"interface":['
+        netifd_index=0; netifd_sep=''
+        while [ "$netifd_index" -lt "$(($1 - 2))" ]; do
+            printf '%s{"interface":"bench%02d","up":true,"proto":"static","ipv4-address":[{"address":"198.18.%s.1","mask":24}]}' "$netifd_sep" "$netifd_index" "$netifd_index"
+            netifd_sep=,; netifd_index=$((netifd_index + 1))
+        done
+        printf '%s{"interface":"lan","up":true,"proto":"static","ipv4-address":[{"address":"192.0.2.1","mask":24}]},{"interface":"loopback","up":true,"proto":"static","ipv4-address":[{"address":"127.0.0.1","mask":8}]}]}\n' "$netifd_sep"
+    }
+    check_netifd_interfaces() { # full ordered names, beyond the frozen client's subset checks
+        netifd_index=0
+        : > /tmp/netifd-names.expected
+        while [ "$netifd_index" -lt "$(($1 - 2))" ]; do
+            printf 'bench%02d\n' "$netifd_index" >> /tmp/netifd-names.expected
+            netifd_index=$((netifd_index + 1))
+        done
+        printf 'lan\nloopback\n' >> /tmp/netifd-names.expected
+        ubus call network.interface dump > "$out/interfaces-$1-$2.json"
+        jsonfilter -i "$out/interfaces-$1-$2.json" -e '@.interface[*].interface' > "$out/interface-names-$1-$2.txt"
+        cmp /tmp/netifd-names.expected "$out/interface-names-$1-$2.txt"
+        ubus list 'network.interface.*' > "$out/interface-objects-$1-$2.txt"
+        sed 's/^/network.interface./' /tmp/netifd-names.expected > /tmp/netifd-objects.expected
+        cmp /tmp/netifd-objects.expected "$out/interface-objects-$1-$2.txt"
+    }
+    wait_netifd_hotplug() { # check_netifd_interfaces has written the expected names
+        # Interface UP precedes completion of its hotplug scripts. Wait for
+        # every fixture's successful ifup callback and the parent to reap
+        # all children, so query CPU cannot include setup work.
+        netifd_tries=0
+        while :; do
+            kill -0 "$subject"; [ "$netifd_tries" -lt 90 ]
+            awk '$2 == "ifup" && $3 == 0 { print $1 }' /tmp/netifd-hotplug.done | LC_ALL=C sort > /tmp/netifd-hotplug.names
+            if cmp -s /tmp/netifd-names.expected /tmp/netifd-hotplug.names &&
+                [ -z "$(cat /proc/"$subject"/task/"$subject"/children)" ]; then
+                break
+            fi
+            sleep 1; netifd_tries=$((netifd_tries + 1))
+        done
+        cp /tmp/netifd-hotplug.done "$out/hotplug-settled-$1.txt"
+        "$bench" snapshot "$monitors" > "$out/hotplug-settled-$1-before.json"
+        sleep 2
+        [ -z "$(cat /proc/"$subject"/task/"$subject"/children)" ]
+        "$bench" snapshot "$monitors" > "$out/hotplug-settled-$1-after.json"
+    }
     http_four() { # label method path body expected total format
         # Four clients share ONE outer CPU interval. Their overlapping
         # per-client daemon counters must never be summed.
@@ -381,7 +426,20 @@ EOF
             ;;
         netifd|fw4)
             bin=$(choose netifd /sbin/netifd netifd-rs)
-            "$bin" > "$out/network.log" 2>&1 & subject=$!
+            if [ "$component" = netifd ] && [ "${OWRT_NETIFD_MATRIX:-0}" = 1 ]; then
+                : > /tmp/netifd-hotplug.done
+                cat > /tmp/netifd-hotplug <<'EOF'
+#!/bin/sh
+/sbin/hotplug-call "$@"
+status=$?
+printf '%s %s %s\n' "$INTERFACE" "$ACTION" "$status" >> /tmp/netifd-hotplug.done
+exit "$status"
+EOF
+                chmod +x /tmp/netifd-hotplug
+                "$bin" -h /tmp/netifd-hotplug > "$out/network.log" 2>&1 & subject=$!
+            else
+                "$bin" > "$out/network.log" 2>&1 & subject=$!
+            fi
             wait_object network.interface.lan "$subject"
             ready=0; tries=0
             until [ "$ready" = true ]; do
@@ -391,10 +449,46 @@ EOF
             done
             monitors=$subject,$bus
             if [ "$component" = netifd ]; then
-                run_rpc interface_dump network.interface dump '{}' '{"interface":[]}'
+                interface_expected='{"interface":[]}'
+                if [ "${OWRT_NETIFD_MATRIX:-0}" = 1 ]; then
+                    netifd_expect 2 > /tmp/expect-interfaces-2.json
+                    interface_expected=$(cat /tmp/expect-interfaces-2.json)
+                    check_netifd_interfaces 2 before
+                    wait_netifd_hotplug 2
+                    sha256sum /etc/config/network /etc/config/wireless > "$out/netifd-fixtures.sha256"
+                fi
+                run_rpc interface_dump network.interface dump '{}' "$interface_expected"
                 run_rpc lan_status network.interface.lan status '{}' '{"up":true,"proto":"static"}'
                 run_rpc device_status network.device status '{"name":"br-bench"}' '{"present":true,"type":"bridge"}'
                 run_rpc wireless_status network.wireless status '{}' '{}'
+                if [ "${OWRT_NETIFD_MATRIX:-0}" = 1 ]; then
+                    rpc_four interface_dump_c4 network.interface dump '{}' "$interface_expected"
+                    rpc_four lan_status_c4 network.interface.lan status '{}' '{"up":true,"proto":"static"}'
+                    rpc_four device_status_c4 network.device status '{"name":"br-bench"}' '{"present":true,"type":"bridge"}'
+                    rpc_four wireless_status_c4 network.wireless status '{}' '{}'
+                    rpc_pair device_status_all network.device status '{}' '{"br-bench":{"present":true,"type":"bridge"},"lo":{"present":true}}'
+                    check_netifd_interfaces 2 after
+                    # Multiple static interfaces on the same bridge exercise
+                    # live status projection without requiring extra hardware.
+                    netifd_index=0
+                    while [ "$netifd_index" -lt 30 ]; do
+                        printf "config interface 'bench%02d'\n option device 'br-bench'\n option proto 'static'\n option ipaddr '198.18.%s.1/24'\n" "$netifd_index" "$netifd_index" >> /etc/config/network
+                        netifd_index=$((netifd_index + 1))
+                    done
+                    ubus call network reload >/dev/null
+                    wait_object network.interface.bench29 "$subject"
+                    tries=0
+                    until [ "$(ubus call network.interface.bench29 status | jsonfilter -e '@.up')" = true ]; do
+                        kill -0 "$subject"; [ "$tries" -lt 20 ]; sleep 1; tries=$((tries + 1))
+                    done
+                    netifd_expect 32 > /tmp/expect-interfaces-32.json
+                    sha256sum /etc/config/network /tmp/expect-interfaces-2.json /tmp/expect-interfaces-32.json >> "$out/netifd-fixtures.sha256"
+                    check_netifd_interfaces 32 before
+                    wait_netifd_hotplug 32
+                    rpc_pair interface_dump_32 network.interface dump '{}' "$(cat /tmp/expect-interfaces-32.json)"
+                    rpc_pair interface_named_32 network.interface.bench29 status '{}' '{"up":true,"proto":"static","ipv4-address":[{"address":"198.18.29.1","mask":24}]}'
+                    check_netifd_interfaces 32 after
+                fi
             else
                 bin=$(choose fw4 /sbin/fw4 fw4-rs)
                 /sbin/fw4 print > /tmp/expected.rules 2> "$out/reference-stderr.log"

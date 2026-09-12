@@ -137,7 +137,7 @@ R81 的 F03–F14 按镜像内 `/sbin/netifd`、协议脚本和 `wireless-device
   `proto_ip.no_defaultroute`（协议给的默认路由留在列表、进 inactive、不进内核）。
 - **时钟与生命周期**（F07/F08）：`clock.rs` = CLOCK_MONOTONIC（`system_get_rtime`）；地址、前缀、
   分配一律存**截止时刻**，status 打印剩余（preferred 钳 0，valid 与 C 一样按 u32 回绕）。
-  `ipv6-prefix` 由快照（`interface_snapshot`）从全局前缀表填入本接口的前缀及其 `assigned`；
+  `ipv6-prefix` 由当前视图（`dump_interface_status`）从全局前缀表填入本接口的前缀及其 `assigned`；
   `delegate 0` 的接口前缀不参与下游分配，仍保留父前缀及 null route；恢复 delegate 后重新分配。
   普通配置 reload 保留协议持有的 PD，更新其生命周期或成员时在 `updated` 数组中加入 `prefixes`。
   r62 使用真正进入 UP 的协议夹具，比对地址/前缀倒计时、续期、替换、delegate 开关及撤回；

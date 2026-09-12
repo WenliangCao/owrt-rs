@@ -1,0 +1,52 @@
+{
+  "candidate_sha256": "4aa9934c26277c202b225f8ef5f4c5ce2e1cfcd97226ade541bfa303851d822c",
+  "archive_sha256": "91887a8c444c09d5a4ae46a15e430d22fac2c20384f32d94aa1dc0996c75388d",
+  "gate_exit_codes": {
+    "ubusd-r36-ubus": 0,
+    "ubusd-r42": 0,
+    "ubusd-r41": 0,
+    "ubusd-r36": 0,
+    "ubusd-r83": 0
+  },
+  "logs": {
+    "ubusd-r36-ubus.log": "d44cf7a4dae4215a6add715d0ec243d5597451a1cfa5ed52abbf39a155b3410d",
+    "ubusd-r42.log": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9",
+    "ubusd-r83.log": "61142c409eb2dae205eb45c31517bb5faa09d4b5152b5f434965376f7bdbce9a",
+    "ubusd-r41.log": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+    "ubusd-r36.log": "000a2ba6a787798bc589832669f3488d3c4f4f9867c71ec4f604058ac591b663"
+  },
+  "unit_tests": {
+    "ubusd": 23,
+    "ubus": 33,
+    "reference": "u03_cost_profile.json"
+  },
+  "slow_lookup": {
+    "objects": 200,
+    "exact_ordered_frames": true,
+    "bytes": 1392800,
+    "other_client_calls": 32,
+    "sides_passed": [
+      "stock",
+      "candidate"
+    ]
+  },
+  "monitor_lookup": {
+    "exact_data": 1,
+    "prefix_data": 4,
+    "ordered_attributes_sequences_directions_payloads": true,
+    "sides_passed": [
+      "stock",
+      "candidate"
+    ]
+  },
+  "physical": {
+    "repeats_per_side": 4,
+    "workloads": 10,
+    "verified_raw_files": 472,
+    "health_identity_boot_configuration_unchanged": true,
+    "reference": "u04/results.json"
+  },
+  "note": "Formal CI binary tested independently: all five differential gates completed. Unit tests reference the unchanged U03 production source; no Oracle profile/build ran concurrently with the U04 functional gates. No production router deployment.",
+  "source_commit": "83561e37f03c19c2974b7c3edfa900021542d6ae",
+  "canonical_reference": "u04_canonical_build.json"
+}

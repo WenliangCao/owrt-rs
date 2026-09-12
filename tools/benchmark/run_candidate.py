@@ -34,7 +34,7 @@ def main():
     parser.add_argument("--host", default="openwrt")
     parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
     parser.add_argument("--iterations", type=int, default=10000)
-    parser.add_argument("--matrix", action="store_true", help="expanded HTTPD, rpcd, procd or ubusd workloads, including four clients")
+    parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--memory-probe", type=Path,
                         help="separate diagnostic binary with http-resident mode; measure 64 held connections only")
     parser.add_argument("--rpc-client-probe", type=Path,
@@ -46,8 +46,6 @@ def main():
         parser.error("iterations must be positive")
     if len(set(args.sides)) != len(args.sides) or not {"stock", "candidate"}.issubset(args.sides):
         parser.error("sides must include stock and candidate, without duplicates")
-    if args.matrix and args.component not in ("httpd", "rpcd", "procd", "ubusd"):
-        parser.error("expanded matrix currently supports HTTPD, rpcd, procd and ubusd")
     if args.component != "httpd" and args.memory_probe:
         parser.error("held-connection memory currently requires HTTPD")
     if args.memory_probe and (args.matrix or "r84" in args.sides):

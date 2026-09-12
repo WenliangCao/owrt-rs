@@ -392,8 +392,8 @@ impl IpSettings {
         }
     }
 
-    fn dump_prefixes(&self, b: &mut BlobBuf) {
-        for p in &self.prefixes {
+    fn dump_prefixes(b: &mut BlobBuf, prefixes: &[Prefix]) {
+        for p in prefixes {
             let t = b.msg_open_table("");
             b.msg_string("address", &p.addr.to_string());
             b.msg_u32("mask", p.length as u32);
@@ -425,6 +425,12 @@ impl Interface {
 
     /// `netifd_dump_status`, field for field.
     pub fn dump_status(&self, b: &mut BlobBuf) {
+        self.dump_status_with(b, self.uptime, &self.proto_ip.prefixes);
+    }
+
+    /// The daemon supplies current uptime and its global delegated-prefix
+    /// view; every other field is read directly from this interface.
+    pub fn dump_status_with(&self, b: &mut BlobBuf, uptime: u32, proto_prefixes: &[Prefix]) {
         b.msg_bool("up", self.state == State::Up);
         b.msg_bool("pending", self.state == State::Setup);
         b.msg_bool("available", self.available);
@@ -432,7 +438,7 @@ impl Interface {
         b.msg_bool("dynamic", self.dynamic);
 
         if self.state == State::Up {
-            b.msg_u32("uptime", self.uptime);
+            b.msg_u32("uptime", uptime);
             if let Some(d) = &self.l3_device {
                 b.msg_string("l3_device", d);
             }
@@ -474,7 +480,7 @@ impl Interface {
                 b.msg_u32("ip6weight", self.assignment_weight);
             }
 
-            self.dump_ip_block(b, true);
+            self.dump_ip_block(b, true, proto_prefixes);
 
             let inactive = b.msg_open_table("inactive");
             self.dump_inactive_block(b);
@@ -510,7 +516,7 @@ impl Interface {
     }
 
     /// The enabled lists: config entries then protocol entries, per list.
-    fn dump_ip_block(&self, b: &mut BlobBuf, enabled: bool) {
+    fn dump_ip_block(&self, b: &mut BlobBuf, enabled: bool, proto_prefixes: &[Prefix]) {
         let a = b.msg_open_array("ipv4-address");
         self.config_ip.dump_addresses(b, false, enabled);
         self.proto_ip.dump_addresses(b, false, enabled);
@@ -520,8 +526,8 @@ impl Interface {
         self.proto_ip.dump_addresses(b, true, enabled);
         b.msg_close(a);
         let a = b.msg_open_array("ipv6-prefix");
-        self.config_ip.dump_prefixes(b);
-        self.proto_ip.dump_prefixes(b);
+        IpSettings::dump_prefixes(b, &self.config_ip.prefixes);
+        IpSettings::dump_prefixes(b, proto_prefixes);
         b.msg_close(a);
         let a = b.msg_open_array("ipv6-prefix-assignment");
         for p in &self.prefix_assignments {
@@ -701,6 +707,48 @@ mod tests {
         let a = j.find("192.168.1.1").unwrap();
         let b = j.find("10.0.0.1").unwrap();
         assert!(a < b, "{j}");
+    }
+
+    #[test]
+    fn daemon_status_overrides_uptime_and_protocol_prefixes_without_mutating_state() {
+        use owrt_ubus::json::Json;
+        let prefix = |address: &str| Prefix {
+            addr: address.parse().unwrap(), length: 64,
+            preferred_until: None, valid_until: None,
+            class: "wan6".into(), assigned: Vec::new(),
+        };
+        let mut i = Interface::new("wan6");
+        i.state = State::Up;
+        i.uptime = 1;
+        i.config_ip.prefixes.push(prefix("fd00:1::"));
+        i.proto_ip.prefixes.push(prefix("2001:db8:1::"));
+        i.proto_ip.addresses.push(Address::new("2001:db8::1".parse().unwrap(), 64));
+        let mut current = prefix("2001:db8:2::");
+        current.assigned.push(("lan".into(), "2001:db8:2::".parse().unwrap(), 64));
+        let mut b = BlobBuf::new();
+        i.dump_status_with(&mut b, 77, &[current]);
+        let j = owrt_ubus::convert::fields_to_json(b.payload());
+        assert_eq!(j.get("uptime"), Some(&Json::Int(77)));
+        let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else { panic!("missing prefixes") };
+        assert_eq!(prefixes.len(), 2);
+        assert_eq!(prefixes[0].get("address").and_then(Json::as_str), Some("fd00:1::"));
+        assert_eq!(prefixes[1].get("address").and_then(Json::as_str), Some("2001:db8:2::"));
+        assert!(prefixes[1].get("assigned").unwrap().get("lan").is_some());
+        assert_eq!(i.uptime, 1);
+        assert_eq!(i.proto_ip.prefixes[0].addr, "2001:db8:1::".parse::<Ipv6Addr>().unwrap());
+        assert_eq!(i.proto_ip.addresses.len(), 1);
+        // An empty live prefix view removes stale delegated prefixes, while
+        // configuration-owned prefixes and the base interface remain intact.
+        b.reset();
+        i.dump_status_with(&mut b, 78, &[]);
+        let j = owrt_ubus::convert::fields_to_json(b.payload());
+        let Some(Json::Array(prefixes)) = j.get("ipv6-prefix") else { panic!("missing prefixes") };
+        assert_eq!(prefixes.len(), 1);
+        i.state = State::Down;
+        b.reset();
+        i.dump_status_with(&mut b, 79, &[]);
+        let j = owrt_ubus::convert::fields_to_json(b.payload());
+        assert!(j.get("uptime").is_none() && j.get("ipv6-prefix").is_none());
     }
 
     #[test]

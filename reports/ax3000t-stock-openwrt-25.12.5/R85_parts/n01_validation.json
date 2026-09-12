@@ -1,0 +1,162 @@
+{
+  "candidate_sha256": "140cd5c0a54c8284989882621e535553a98f7ff6c5407a45d0b5a0adb1a4c6a7",
+  "source_archive_sha256": "528f17f2d4114c03c2f7a44b5192207edc4b6711f7f353ec7ff0bb92b1554c74",
+  "archive_sha256": "01f9d1a1cdd85cef93fdafb0ff4b6a1dae0b4bc0155ce3c529d8a4056d716f0f",
+  "unit_tests": 152,
+  "full_suite_exit": 0,
+  "cases": [
+    {
+      "case": "r46",
+      "verdict": "ok",
+      "elapsed_s": 1
+    },
+    {
+      "case": "r47",
+      "verdict": "ok",
+      "elapsed_s": 6
+    },
+    {
+      "case": "r48",
+      "verdict": "ok",
+      "elapsed_s": 6
+    },
+    {
+      "case": "r49",
+      "verdict": "ok",
+      "elapsed_s": 13
+    },
+    {
+      "case": "r50",
+      "verdict": "ok",
+      "elapsed_s": 31
+    },
+    {
+      "case": "r51",
+      "verdict": "ok",
+      "elapsed_s": 31
+    },
+    {
+      "case": "r52",
+      "verdict": "ok",
+      "elapsed_s": 22
+    },
+    {
+      "case": "r53",
+      "verdict": "ok",
+      "elapsed_s": 73
+    },
+    {
+      "case": "r54",
+      "verdict": "ok",
+      "elapsed_s": 29
+    },
+    {
+      "case": "r55",
+      "verdict": "ok",
+      "elapsed_s": 83
+    },
+    {
+      "case": "r56",
+      "verdict": "ok",
+      "elapsed_s": 14
+    },
+    {
+      "case": "r57",
+      "verdict": "ok",
+      "elapsed_s": 30
+    },
+    {
+      "case": "r58",
+      "verdict": "ok",
+      "elapsed_s": 23
+    },
+    {
+      "case": "r59",
+      "verdict": "ok",
+      "elapsed_s": 15
+    },
+    {
+      "case": "r60_up_cmds",
+      "verdict": "ok",
+      "elapsed_s": 41
+    },
+    {
+      "case": "r60_up",
+      "verdict": "ok",
+      "elapsed_s": 16
+    },
+    {
+      "case": "r60_fail_cmds",
+      "verdict": "ok",
+      "elapsed_s": 41
+    },
+    {
+      "case": "r60_fail",
+      "verdict": "ok",
+      "elapsed_s": 16
+    },
+    {
+      "case": "r60_flood",
+      "verdict": "ok",
+      "elapsed_s": 16
+    },
+    {
+      "case": "r60_token",
+      "verdict": "ok",
+      "elapsed_s": 34
+    },
+    {
+      "case": "r60_proc",
+      "verdict": "ok",
+      "elapsed_s": 24
+    },
+    {
+      "case": "r61",
+      "verdict": "ok",
+      "elapsed_s": 29
+    },
+    {
+      "case": "r62",
+      "verdict": "ok",
+      "elapsed_s": 64
+    },
+    {
+      "case": "r63",
+      "verdict": "ok",
+      "elapsed_s": 12
+    },
+    {
+      "case": "r64",
+      "verdict": "ok",
+      "elapsed_s": 25
+    },
+    {
+      "case": "r79",
+      "verdict": "ok",
+      "elapsed_s": 45
+    },
+    {
+      "case": "r83",
+      "verdict": "ok",
+      "elapsed_s": 27
+    },
+    {
+      "case": "r83c",
+      "verdict": "ok",
+      "elapsed_s": 39
+    },
+    {
+      "case": "r83w",
+      "verdict": "ok",
+      "elapsed_s": 74
+    }
+  ],
+  "suite_log_sha256": "1d4e9f945da01408b3ce8ca38ae2a8d23f021518e26516669394680712d49de3",
+  "all_29_selected_and_passed": true,
+  "private_configs_match_router_before_matrix": true,
+  "config_identity": [
+    "network",
+    "wireless"
+  ],
+  "note": "Full exact-rootfs suite, with the current captured device configs. No profiling or builds ran concurrently. Wireless no-PHY failure-path and synthetic handler tests are not a physical-radio deployment claim."
+}

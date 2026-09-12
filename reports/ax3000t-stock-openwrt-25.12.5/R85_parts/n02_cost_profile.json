@@ -1,0 +1,1417 @@
+{
+  "candidate_sha256": "5bfa44ec3c8a2d093e3e1585e0e9b1933d459220efe38fb5d904b7f3ca0ce3e5",
+  "profile_sha256": "0e6a73735ada9c78db5cf287aff41b3d8f89577b3af59b93792751466eff97cd",
+  "source_archive_sha256": "6b62c3da2c9e1bc1796df3ef4a182f2d44e1cd131524cc3a1e085908292c9a59",
+  "archive_sha256": "70e1c94cc780d2f3a3bd0eac97d0c6d4bb7f43236a3c30019f923195ba247036",
+  "profile_host": "Oracle aarch64, not router",
+  "scope": "Five alternating phase runs, timing separate from allocation counting. Interface list fixtures exclude global PD reconstruction; phase costs are not full daemon latency.",
+  "profile_rows": [
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 369.76,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 10012.32,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4725.96,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 76227.27,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 296712.53,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 634.21,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 70072.66,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 57498.47,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n01",
+      "round": 1,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5620.37,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 370.8,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 9816.16,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4678.72,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 75399.18,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 298910.63,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 628.92,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 69839.1,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 57486.92,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n01",
+      "round": 2,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5642.29,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 370.16,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 10138.36,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 5016.92,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 76528.47,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 294102.39,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 636.85,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 69767.66,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 57369.07,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n01",
+      "round": 3,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5665.69,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 372.52,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 10059.08,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4707.6,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 76558.59,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 298390.46,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 637.25,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 71211.63,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 58960.01,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n01",
+      "round": 4,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5636.89,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 391.48,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 9866.12,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4724.52,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 75647.58,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 294884.51,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 641.92,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 69778.9,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 57518.47,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n01",
+      "round": 5,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5627.77,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 369.88,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 10035.96,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4720.44,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_dump_borrowed_2",
+      "iterations": 1000,
+      "ns_per_op": 3674.15,
+      "allocations": 5,
+      "reallocations": 13,
+      "allocated_bytes": 4188
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 76094.31,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_dump_borrowed_32",
+      "iterations": 1000,
+      "ns_per_op": 66693.91,
+      "allocations": 65,
+      "reallocations": 77,
+      "allocated_bytes": 67068
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 294491.71,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "interface_dump_borrowed_128",
+      "iterations": 1000,
+      "ns_per_op": 235966.23,
+      "allocations": 257,
+      "reallocations": 271,
+      "allocated_bytes": 268284
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 645.37,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 71238.95,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 58440.0,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n02",
+      "round": 1,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5599.21,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 369.96,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 9850.44,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4722.16,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_dump_borrowed_2",
+      "iterations": 1000,
+      "ns_per_op": 4024.95,
+      "allocations": 5,
+      "reallocations": 13,
+      "allocated_bytes": 4188
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 76488.23,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_dump_borrowed_32",
+      "iterations": 1000,
+      "ns_per_op": 67617.96,
+      "allocations": 65,
+      "reallocations": 77,
+      "allocated_bytes": 67068
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 294315.63,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "interface_dump_borrowed_128",
+      "iterations": 1000,
+      "ns_per_op": 235878.75,
+      "allocations": 257,
+      "reallocations": 271,
+      "allocated_bytes": 268284
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 632.21,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 70337.82,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 57769.4,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n02",
+      "round": 2,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5587.57,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 368.56,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 9934.96,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 5032.04,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_dump_borrowed_2",
+      "iterations": 1000,
+      "ns_per_op": 3677.43,
+      "allocations": 5,
+      "reallocations": 13,
+      "allocated_bytes": 4188
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 75974.03,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_dump_borrowed_32",
+      "iterations": 1000,
+      "ns_per_op": 66446.59,
+      "allocations": 65,
+      "reallocations": 77,
+      "allocated_bytes": 67068
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 294686.63,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "interface_dump_borrowed_128",
+      "iterations": 1000,
+      "ns_per_op": 236354.67,
+      "allocations": 257,
+      "reallocations": 271,
+      "allocated_bytes": 268284
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 708.49,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 70739.78,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 57493.36,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n02",
+      "round": 3,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5580.61,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 369.8,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 10281.25,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4724.16,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_dump_borrowed_2",
+      "iterations": 1000,
+      "ns_per_op": 3810.87,
+      "allocations": 5,
+      "reallocations": 13,
+      "allocated_bytes": 4188
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 76137.79,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_dump_borrowed_32",
+      "iterations": 1000,
+      "ns_per_op": 66560.83,
+      "allocations": 65,
+      "reallocations": 77,
+      "allocated_bytes": 67068
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 294730.35,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "interface_dump_borrowed_128",
+      "iterations": 1000,
+      "ns_per_op": 236164.27,
+      "allocations": 257,
+      "reallocations": 271,
+      "allocated_bytes": 268284
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 627.52,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 71439.23,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 58469.96,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n02",
+      "round": 4,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5629.49,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_clone",
+      "iterations": 1000,
+      "ns_per_op": 389.2,
+      "allocations": 5,
+      "reallocations": 0,
+      "allocated_bytes": 214
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_status_static",
+      "iterations": 1000,
+      "ns_per_op": 9982.68,
+      "allocations": 3,
+      "reallocations": 10,
+      "allocated_bytes": 2092
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_dump_snapshots_2",
+      "iterations": 1000,
+      "ns_per_op": 4694.08,
+      "allocations": 15,
+      "reallocations": 13,
+      "allocated_bytes": 4616
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_dump_borrowed_2",
+      "iterations": 1000,
+      "ns_per_op": 3679.63,
+      "allocations": 5,
+      "reallocations": 13,
+      "allocated_bytes": 4188
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_dump_snapshots_32",
+      "iterations": 1000,
+      "ns_per_op": 76171.27,
+      "allocations": 225,
+      "reallocations": 77,
+      "allocated_bytes": 73916
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_dump_borrowed_32",
+      "iterations": 1000,
+      "ns_per_op": 66645.23,
+      "allocations": 65,
+      "reallocations": 77,
+      "allocated_bytes": 67068
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_dump_snapshots_128",
+      "iterations": 1000,
+      "ns_per_op": 294910.35,
+      "allocations": 897,
+      "reallocations": 271,
+      "allocated_bytes": 295676
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "interface_dump_borrowed_128",
+      "iterations": 1000,
+      "ns_per_op": 238492.89,
+      "allocations": 257,
+      "reallocations": 271,
+      "allocated_bytes": 268284
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "device_status_absent",
+      "iterations": 1000,
+      "ns_per_op": 640.76,
+      "allocations": 1,
+      "reallocations": 5,
+      "allocated_bytes": 252
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "device_status_lo",
+      "iterations": 1000,
+      "ns_per_op": 70899.71,
+      "allocations": 5,
+      "reallocations": 12,
+      "allocated_bytes": 6353
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "statistics_lo",
+      "iterations": 1000,
+      "ns_per_op": 57645.32,
+      "allocations": 2,
+      "reallocations": 1,
+      "allocated_bytes": 633
+    },
+    {
+      "label": "n02",
+      "round": 5,
+      "stage": "one_sysfs_counter",
+      "iterations": 1000,
+      "ns_per_op": 5648.21,
+      "allocations": 3,
+      "reallocations": 1,
+      "allocated_bytes": 4203
+    }
+  ],
+  "profile_summary": {
+    "interface_clone": {
+      "n01": {
+        "ns_per_op_median": 370.8,
+        "ns_per_op_all": [
+          369.76,
+          370.8,
+          370.16,
+          372.52,
+          391.48
+        ],
+        "allocations": 5,
+        "reallocations": 0,
+        "allocated_bytes": 214
+      },
+      "n02": {
+        "ns_per_op_median": 369.88,
+        "ns_per_op_all": [
+          369.88,
+          369.96,
+          368.56,
+          369.8,
+          389.2
+        ],
+        "allocations": 5,
+        "reallocations": 0,
+        "allocated_bytes": 214
+      },
+      "delta_pct": -0.24811218985976158
+    },
+    "interface_status_static": {
+      "n01": {
+        "ns_per_op_median": 10012.32,
+        "ns_per_op_all": [
+          10012.32,
+          9816.16,
+          10138.36,
+          10059.08,
+          9866.12
+        ],
+        "allocations": 3,
+        "reallocations": 10,
+        "allocated_bytes": 2092
+      },
+      "n02": {
+        "ns_per_op_median": 9982.68,
+        "ns_per_op_all": [
+          10035.96,
+          9850.44,
+          9934.96,
+          10281.25,
+          9982.68
+        ],
+        "allocations": 3,
+        "reallocations": 10,
+        "allocated_bytes": 2092
+      },
+      "delta_pct": -0.29603528452945005
+    },
+    "interface_dump_snapshots_2": {
+      "n01": {
+        "ns_per_op_median": 4724.52,
+        "ns_per_op_all": [
+          4725.96,
+          4678.72,
+          5016.92,
+          4707.6,
+          4724.52
+        ],
+        "allocations": 15,
+        "reallocations": 13,
+        "allocated_bytes": 4616
+      },
+      "n02": {
+        "ns_per_op_median": 4722.16,
+        "ns_per_op_all": [
+          4720.44,
+          4722.16,
+          5032.04,
+          4724.16,
+          4694.08
+        ],
+        "allocations": 15,
+        "reallocations": 13,
+        "allocated_bytes": 4616
+      },
+      "delta_pct": -0.04995216445269346
+    },
+    "interface_dump_snapshots_32": {
+      "n01": {
+        "ns_per_op_median": 76227.27,
+        "ns_per_op_all": [
+          76227.27,
+          75399.18,
+          76528.47,
+          76558.59,
+          75647.58
+        ],
+        "allocations": 225,
+        "reallocations": 77,
+        "allocated_bytes": 73916
+      },
+      "n02": {
+        "ns_per_op_median": 76137.79,
+        "ns_per_op_all": [
+          76094.31,
+          76488.23,
+          75974.03,
+          76137.79,
+          76171.27
+        ],
+        "allocations": 225,
+        "reallocations": 77,
+        "allocated_bytes": 73916
+      },
+      "delta_pct": -0.11738581219031818
+    },
+    "interface_dump_snapshots_128": {
+      "n01": {
+        "ns_per_op_median": 296712.53,
+        "ns_per_op_all": [
+          296712.53,
+          298910.63,
+          294102.39,
+          298390.46,
+          294884.51
+        ],
+        "allocations": 897,
+        "reallocations": 271,
+        "allocated_bytes": 295676
+      },
+      "n02": {
+        "ns_per_op_median": 294686.63,
+        "ns_per_op_all": [
+          294491.71,
+          294315.63,
+          294686.63,
+          294730.35,
+          294910.35
+        ],
+        "allocations": 897,
+        "reallocations": 271,
+        "allocated_bytes": 295676
+      },
+      "delta_pct": -0.6827820854077293
+    },
+    "device_status_absent": {
+      "n01": {
+        "ns_per_op_median": 636.85,
+        "ns_per_op_all": [
+          634.21,
+          628.92,
+          636.85,
+          637.25,
+          641.92
+        ],
+        "allocations": 1,
+        "reallocations": 5,
+        "allocated_bytes": 252
+      },
+      "n02": {
+        "ns_per_op_median": 640.76,
+        "ns_per_op_all": [
+          645.37,
+          632.21,
+          708.49,
+          627.52,
+          640.76
+        ],
+        "allocations": 1,
+        "reallocations": 5,
+        "allocated_bytes": 252
+      },
+      "delta_pct": 0.6139593310826585
+    },
+    "device_status_lo": {
+      "n01": {
+        "ns_per_op_median": 69839.1,
+        "ns_per_op_all": [
+          70072.66,
+          69839.1,
+          69767.66,
+          71211.63,
+          69778.9
+        ],
+        "allocations": 5,
+        "reallocations": 12,
+        "allocated_bytes": 6353
+      },
+      "n02": {
+        "ns_per_op_median": 70899.71,
+        "ns_per_op_all": [
+          71238.95,
+          70337.82,
+          70739.78,
+          71439.23,
+          70899.71
+        ],
+        "allocations": 5,
+        "reallocations": 12,
+        "allocated_bytes": 6353
+      },
+      "delta_pct": 1.518647863446132
+    },
+    "statistics_lo": {
+      "n01": {
+        "ns_per_op_median": 57498.47,
+        "ns_per_op_all": [
+          57498.47,
+          57486.92,
+          57369.07,
+          58960.01,
+          57518.47
+        ],
+        "allocations": 2,
+        "reallocations": 1,
+        "allocated_bytes": 633
+      },
+      "n02": {
+        "ns_per_op_median": 57769.4,
+        "ns_per_op_all": [
+          58440.0,
+          57769.4,
+          57493.36,
+          58469.96,
+          57645.32
+        ],
+        "allocations": 2,
+        "reallocations": 1,
+        "allocated_bytes": 633
+      },
+      "delta_pct": 0.4711951465838915
+    },
+    "one_sysfs_counter": {
+      "n01": {
+        "ns_per_op_median": 5636.89,
+        "ns_per_op_all": [
+          5620.37,
+          5642.29,
+          5665.69,
+          5636.89,
+          5627.77
+        ],
+        "allocations": 3,
+        "reallocations": 1,
+        "allocated_bytes": 4203
+      },
+      "n02": {
+        "ns_per_op_median": 5599.21,
+        "ns_per_op_all": [
+          5599.21,
+          5587.57,
+          5580.61,
+          5629.49,
+          5648.21
+        ],
+        "allocations": 3,
+        "reallocations": 1,
+        "allocated_bytes": 4203
+      },
+      "delta_pct": -0.6684537040815064
+    },
+    "interface_dump_borrowed_2": {
+      "n02": {
+        "ns_per_op_median": 3679.63,
+        "ns_per_op_all": [
+          3674.15,
+          4024.95,
+          3677.43,
+          3810.87,
+          3679.63
+        ],
+        "allocations": 5,
+        "reallocations": 13,
+        "allocated_bytes": 4188
+      }
+    },
+    "interface_dump_borrowed_32": {
+      "n02": {
+        "ns_per_op_median": 66645.23,
+        "ns_per_op_all": [
+          66693.91,
+          67617.96,
+          66446.59,
+          66560.83,
+          66645.23
+        ],
+        "allocations": 65,
+        "reallocations": 77,
+        "allocated_bytes": 67068
+      }
+    },
+    "interface_dump_borrowed_128": {
+      "n02": {
+        "ns_per_op_median": 236164.27,
+        "ns_per_op_all": [
+          235966.23,
+          235878.75,
+          236354.67,
+          236164.27,
+          238492.89
+        ],
+        "allocations": 257,
+        "reallocations": 271,
+        "allocated_bytes": 268284
+      }
+    }
+  },
+  "traces": {
+    "c": {
+      "sha256": "da2ee6d19da709024957c199fe1e698122caab4558508e8ede02f78669b901b0",
+      "counts": {
+        "close": 23261,
+        "epoll_pwait": 2225,
+        "execve": 1,
+        "fcntl": 92,
+        "fstat": 14,
+        "ioctl": 5137,
+        "newfstatat": 24,
+        "openat": 22419,
+        "ppoll": 90,
+        "read": 21484,
+        "recvmsg": 4738,
+        "sendmsg": 4562,
+        "sendto": 107,
+        "wait4": 69,
+        "write": 101
+      }
+    },
+    "rs": {
+      "sha256": "fa8af6d272b669c0decc876d10e3449e7d7441049500db81c244700fff69de0c",
+      "counts": {
+        "close": 24079,
+        "execve": 1,
+        "fcntl": 2400,
+        "fstat": 2217,
+        "ioctl": 4637,
+        "newfstatat": 50,
+        "openat": 23928,
+        "ppoll": 2326,
+        "read": 25551,
+        "recvfrom": 311,
+        "recvmsg": 4487,
+        "sendmsg": 4409,
+        "sendto": 262,
+        "wait4": 72,
+        "write": 339
+      }
+    }
+  },
+  "trace_scope": "Full daemon 14 workloads at N=100 including setup, reload and warm-up. All fixture hotplug callbacks complete before query timing.",
+  "unit_tests": 153,
+  "smoke_matrix_sides": [
+    "stock",
+    "candidate"
+  ],
+  "hotplug_completion_gate": true
+}

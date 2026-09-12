@@ -15,6 +15,7 @@ STATIC = ("static_512_dat", "static_16k_dat", "static_16k_css",
 RPCD_EXTRA = ("uci_get_64", "uci_get_authorized", "session_access_granted", "file_list", "session_access_64")
 PROCD_EXTRA = ("service_list_128", "service_list_named_128")
 UBUSD_EXTRA = ("lookup_prefix_64", "lookup_all_128")
+NETIFD_EXTRA = ("device_status_all", "interface_dump_32", "interface_named_32")
 METRICS = ("mean_us", "p50_us", "p95_us", "p99_us", "ops_per_s",
            "subject_cpu_us_per_op", "dependency_cpu_us_per_op", "client_cpu_us_per_op")
 
@@ -69,6 +70,16 @@ def parallel(path, subject):
             "client_cpu_us_per_op": sum(c["client_cpu_s"] for c in clients) * 1e6 / count}
 
 
+def check_netifd_hotplug(raw, subject, count, expected_names):
+    callbacks = [line.split() for line in (raw / f"hotplug-settled-{count}.txt").read_text().splitlines()]
+    assert all(len(c) == 3 and c[2] == "0" for c in callbacks), "hotplug callback failed"
+    assert sorted(c[0] for c in callbacks if c[1] == "ifup") == expected_names, "incomplete or duplicate ifup callbacks"
+    idle = [read(raw / f"hotplug-settled-{count}-{phase}.json") for phase in ("before", "after")]
+    parent = [next(p for p in snapshot["processes"] if p["pid"] == subject) for snapshot in idle]
+    assert parent[0]["start_ticks"] == parent[1]["start_ticks"], "netifd restarted while settling"
+    assert parent[0]["child_cpu_ticks"] == parent[1]["child_cpu_ticks"], "setup children still running"
+
+
 def derive(root, label):
     assert (root / "COMPLETE").exists(), "collector did not complete its host gates"
     order, subjects = read(root / "order.json"), read(root / "subjects.json")
@@ -83,6 +94,7 @@ def derive(root, label):
     assert before["boot_id"] == after["boot_id"]
     assert (root / "config-before.sha256").read_bytes() == (root / "config-after.sha256").read_bytes()
     rows, residents, sources = [], [], []
+    initialization_settled = []
     identities = set()
     fixtures = set()
     matrix = read(root / "settings.json")["matrix"]
@@ -99,6 +111,9 @@ def derive(root, label):
     elif matrix and component == "ubusd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in UBUSD_EXTRA for suffix in ("", "_c4")]
+    elif matrix and component == "netifd":
+        workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
+        workloads += [name + suffix for name in NETIFD_EXTRA for suffix in ("", "_c4")]
     else:
         assert not matrix, "unsupported workload matrix"
     for index, side in enumerate(order, 1):
@@ -116,18 +131,41 @@ def derive(root, label):
         identities.add(identity)
         if matrix:
             fixture_file = {"httpd": "static-fixtures.sha256", "rpcd": "rpc-fixtures.sha256",
-                            "procd": "procd-fixtures.sha256", "ubusd": "ubusd-fixtures.sha256"}[component]
+                            "procd": "procd-fixtures.sha256", "ubusd": "ubusd-fixtures.sha256",
+                            "netifd": "netifd-fixtures.sha256"}[component]
             fixtures.add((raw / fixture_file).read_text())
             if component == "ubusd":
                 for count in (64, 128):
                     expected_paths = [f"bench.filler{i:04d}" for i in range(1, count)] + ["bench.target"]
                     for phase in ("before", "after"):
                         assert (raw / f"objects-{count}-{phase}.txt").read_text().splitlines() == expected_paths
+            if component == "netifd":
+                settled = (raw / "hotplug-settled-32.txt").is_file()
+                initialization_settled.append(settled)
+                for count in (2, 32):
+                    expected_names = [f"bench{i:02d}" for i in range(count - 2)] + ["lan", "loopback"]
+                    if settled:
+                        check_netifd_hotplug(raw, subject, count, expected_names)
+                    for phase in ("before", "after"):
+                        assert (raw / f"interface-names-{count}-{phase}.txt").read_text().splitlines() == expected_names
+                        assert (raw / f"interface-objects-{count}-{phase}.txt").read_text().splitlines() == [
+                            "network.interface." + name for name in expected_names]
+                        interfaces = read(raw / f"interfaces-{count}-{phase}.json")["interface"]
+                        assert [i["interface"] for i in interfaces] == expected_names
+                        assert all(i["up"] and i["proto"] == "static" for i in interfaces)
         sources.append({"run": local.name, "subject_sha256": subjects[side],
                         "archive_sha256": hashlib.sha256((local / "raw.tar.gz").read_bytes()).hexdigest(),
                         "kernel": (raw / "kernel.txt").read_text().strip()})
         for name in workloads:
             data = parallel(raw / name, subject) if name.endswith("_c4") else serial(raw / (name + ".json"), subject)
+            if component == "netifd" and matrix and initialization_settled[-1]:
+                if name.endswith("_c4"):
+                    snapshots = [read(raw / name / f"{phase}.json") for phase in ("before", "after")]
+                    child_ticks = [next(p for p in s["processes"] if p["pid"] == subject)["child_cpu_ticks"] for s in snapshots]
+                    assert child_ticks[0] == child_ticks[1], (name, "query includes child setup CPU")
+                else:
+                    own = next(p for p in native(raw / (name + ".json"))["daemon_cpu"] if p["pid"] == subject)
+                    assert own["child_cpu_s"] == 0, (name, "query includes child setup CPU")
             expected = max(1, meta["iterations"] // (20 if name.startswith("cgi") else 10 if name.startswith(("static_1m", "uci_get_64")) else 1))
             if name.endswith("_c4"):
                 expected = max(1, expected // 4) * 4
@@ -150,9 +188,13 @@ def derive(root, label):
             for metric in METRICS if sides["stock"][metric]["median"] > 0}
         summary[name] = sides
     client, namespace, harness = next(iter(identities))
+    limitations = []
+    if initialization_settled and not all(initialization_settled):
+        limitations.append("Legacy netifd matrix began the 32-interface phase before all setup hotplug children finished. Phase timings/CPU are retained for diagnosis, not acceptance; rerun with the explicit hotplug completion gate.")
     return {"schema_version": 1, "label": label, "component": component, "matrix": matrix, "subjects": subjects,
             "benchmark_sha256": client, "namespace_sha256": namespace, "harness_sha256": harness,
-            "order": order, "host_gates_passed": True, "runs": rows, "summary": summary,
+            "order": order, "host_gates_passed": True, "acceptance_eligible": not limitations,
+            "limitations": limitations, "runs": rows, "summary": summary,
             "measured_sides": measured_sides,
             "resident": residents, "sources": sources,
             "method": "Medians of per-run statistics; c4 CPU uses one outer interval divided by successful plus warm-up operations. c4 outer throughput includes warm-up/startup and uses /proc/uptime resolution. Client validation runs on the same router CPUs."}
@@ -179,6 +221,9 @@ def main():
                      f"{v('candidate', 'mean_us'):.2f} | {delta['mean_us']:+.2f}% | "
                      f"{v('stock', 'subject_cpu_us_per_op'):.2f} | {v('candidate', 'subject_cpu_us_per_op'):.2f} | "
                      f"{delta['subject_cpu_us_per_op']:+.2f}% |")
+    if result["limitations"]:
+        lines += ["", "**本组不能用于完整性能验收：** 32接口阶段开始时，初始化hotplug子进程尚未全部结束，",
+                  "其CPU和争用混入首项查询。原始结果保留，须使用显式hotplug完成门复测。"]
     lines += ["", "每侧运行次数：" + str(len(result["order"]) // len(result["measured_sides"])) + "。所列完整运行的请求均成功，原版依赖和正式运行栈保持相同。",
               "", "c4 的 CPU 包含并计数每客户端 20 次预热，使用唯一外层区间；吞吐包括预热和启动，",
               "计时精度来自 /proc/uptime。客户端校验也使用路由器 CPU，不能把这里的吞吐视为服务端极限。",

@@ -4,7 +4,8 @@
 //! are the kernel's, asserted by `tools/check_abi.sh` against the real headers
 //! so a layout drift fails the build rather than the device.
 
-use std::io;
+use std::ffi::{CStr, CString};
+use std::io::{self, Read};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 
 use crate::ethtool_modes::{
@@ -33,6 +34,7 @@ const SPEED_UNKNOWN: u32 = u32::MAX;
 extern "C" {
     fn socket(domain: i32, ty: i32, proto: i32) -> i32;
     fn ioctl(fd: i32, req: u64, arg: *mut u8) -> i32;
+    fn openat(dir: i32, path: *const std::ffi::c_char, flags: i32, ...) -> i32;
 }
 
 /// The ioctl socket netifd keeps open for the lifetime of the process
@@ -370,15 +372,55 @@ pub const STAT_COUNTERS: &[&str] = &[
 /// Counters that exist for this device, in `STAT_COUNTERS` order. A counter
 /// whose file is missing or unparsable is omitted, as in the C.
 pub fn statistics(ifname: &str) -> Vec<(&'static str, u64)> {
-    STAT_COUNTERS
-        .iter()
-        .filter_map(|c| {
-            dev_sysfs(ifname, &format!("statistics/{c}"))
-                .ok()
-                .and_then(|v| v.parse::<u64>().ok())
-                .map(|v| (*c, v))
-        })
-        .collect()
+    let Ok(path) = CString::new(format!("/sys/class/net/{ifname}/statistics")) else {
+        return Vec::new();
+    };
+    statistics_at(&path)
+}
+
+fn open_readonly_at(dir: i32, path: &CStr) -> Option<OwnedFd> {
+    const O_CLOEXEC: i32 = 0o2000000;
+    // SAFETY: path is NUL-terminated and live; O_RDONLY | O_CLOEXEC does
+    // not take a mode argument. A failed open never transfers ownership.
+    let fd = unsafe { openat(dir, path.as_ptr(), O_CLOEXEC) };
+    if fd < 0 {
+        None
+    } else {
+        // SAFETY: openat returned a new, uniquely owned descriptor.
+        Some(unsafe { OwnedFd::from_raw_fd(fd) })
+    }
+}
+
+fn statistics_at(path: &CStr) -> Vec<(&'static str, u64)> {
+    const AT_FDCWD: i32 = -100;
+    let Some(dir) = open_readonly_at(AT_FDCWD, path) else { return Vec::new() };
+    let mut values = Vec::with_capacity(STAT_COUNTERS.len());
+    for &name in STAT_COUNTERS {
+        // Kernel counter names are fixed and fit here. Reuse stack storage
+        // rather than allocating a full path and decimal String per field.
+        let mut name_buf = [0u8; 32];
+        name_buf[..name.len()].copy_from_slice(name.as_bytes());
+        let path = CStr::from_bytes_with_nul(&name_buf[..name.len() + 1]).unwrap();
+        let Some(fd) = open_readonly_at(dir.as_raw_fd(), path) else { continue };
+        let mut file = std::fs::File::from(fd);
+        // sysfs emits at most 20 decimal digits plus a newline for u64.
+        // Reading that bounded value needs neither fstat nor an EOF probe.
+        let mut buf = [0u8; 64];
+        let len = loop {
+            match file.read(&mut buf) {
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Ok(n) if n < buf.len() => break n,
+                _ => break 0,
+            }
+        };
+        if let Some(value) = std::str::from_utf8(&buf[..len])
+            .ok()
+            .and_then(|s| s.trim().parse::<u64>().ok())
+        {
+            values.push((name, value));
+        }
+    }
+    values
 }
 
 #[cfg(test)]
@@ -460,5 +502,32 @@ mod tests {
         let mut sorted = STAT_COUNTERS.to_vec();
         sorted.sort_unstable();
         assert_ne!(sorted, STAT_COUNTERS.to_vec());
+    }
+
+    #[test]
+    fn counters_keep_order_and_observe_changes_missing_files_and_full_u64() {
+        let dir = std::env::temp_dir().join(format!(
+            "netifd-statistics-{}-{}", std::process::id(),
+            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+        ));
+        std::fs::create_dir(&dir).unwrap();
+        let path = CString::new(dir.as_os_str().as_encoded_bytes()).unwrap();
+        assert!(statistics_at(&path).is_empty());
+        std::fs::write(dir.join("rx_bytes"), b"18446744073709551615\n").unwrap();
+        std::fs::write(dir.join("collisions"), b"0\n").unwrap();
+        std::fs::write(dir.join("tx_bytes"), b"18446744073709551616\n").unwrap();
+        std::fs::write(dir.join("rx_packets"), b"invalid\n").unwrap();
+        assert_eq!(statistics_at(&path), [("collisions", 0), ("rx_bytes", u64::MAX)]);
+        std::fs::write(dir.join("rx_bytes"), b"12345\n").unwrap();
+        std::fs::remove_file(dir.join("collisions")).unwrap();
+        assert_eq!(statistics_at(&path), [("rx_bytes", 12345)]);
+        // The directory and each counter are reopened for every snapshot;
+        // no descriptor or value survives a device disappearing.
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert!(statistics_at(&path).is_empty());
+        std::fs::create_dir(&dir).unwrap();
+        std::fs::write(dir.join("rx_bytes"), b"7\n").unwrap();
+        assert_eq!(statistics_at(&path), [("rx_bytes", 7)]);
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 }

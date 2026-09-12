@@ -103,6 +103,19 @@ name at one and four clients. The generated 32/128-service expectations are
 checksummed across subjects; every service's data is validated. The base modes
 and frozen client binary remain available for the original R84 workloads.
 
+`run_candidate.py --component netifd --matrix` retains the four base queries,
+adds four-client versions and all-device status, then creates 30 additional
+static interfaces on the isolated bridge and measures the 32-interface dump
+and one named interface at one and four clients. Every interface's protocol,
+UP state and IPv4 address is checked by the frozen client. Separate checks
+before and after each phase require the exact ordered interface and ubus
+object sets; fixture hashes must agree across subjects. Wireless remains the
+empty configuration, so its timing does not claim radio lifecycle coverage.
+Each phase waits for all expected `ifup` callbacks, no remaining child process,
+and stable reaped-child CPU counters before measuring. Every read workload
+must retain zero child CPU growth. Early N00/N01 matrices predated this gate;
+their 32-interface initialization overlap is retained as an explicit limitation.
+
 `run_candidate.py --component ubusd --matrix` retains exact lookup, lookup of
 64 objects and invoke, adds four-client versions, then prefix lookup of 64
 objects and lookup of 128 objects at one and four clients. Each provider phase
