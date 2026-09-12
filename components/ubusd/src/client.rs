@@ -83,6 +83,9 @@ pub struct Client {
     header: Header,
     pending_fd: Option<OwnedFd>,
     pub eof: bool,
+    /// Whether the readiness set currently asks for output events on this
+    /// socket. The loop keeps it equal to "something is queued".
+    pub out_registered: bool,
 }
 
 impl Client {
@@ -105,6 +108,7 @@ impl Client {
             header: Header { ty: 0, seq: 0, peer: 0 },
             pending_fd: None,
             eof: false,
+            out_registered: false,
         }
     }
 

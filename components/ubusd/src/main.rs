@@ -1,8 +1,8 @@
 //! ubusd-rs: the OpenWrt system message bus.
 //!
 //! Behaviour is specified by docs/contracts/ubusd.md, which is derived from
-//! the pinned ubus 24864e78 source. Single-threaded poll loop, no async
-//! runtime, no third-party crates.
+//! the pinned ubus 24864e78 source. Single-threaded readiness loop (epoll on
+//! Linux, as uloop gives the C daemon), no async runtime, no third-party crates.
 //!
 //! Every `unsafe` block here is a syscall the standard library does not
 //! expose, and each one has to say why it is sound: the lint below makes that
@@ -14,6 +14,7 @@
 mod acl;
 mod client;
 mod obj;
+mod readiness;
 mod server;
 mod sys;
 
@@ -143,29 +144,23 @@ fn run(socket: &str, acl_dir: &str) -> std::io::Result<()> {
     result
 }
 
+/// Tokens for the two descriptors that are not clients; client tokens are
+/// their ids, which the registry keeps below `u32::MAX`.
+const TOKEN_LISTENER: u64 = u64::MAX;
+const TOKEN_WAKE: u64 = u64::MAX - 1;
+
 fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std::io::Result<()> {
-    let mut fds: Vec<sys::PollFd> = Vec::new();
-    let mut ids: Vec<u32> = Vec::new();
+    let mut poller = readiness::Poller::new()?;
+    poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false)?;
+    poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false)?;
+    let mut ready: Vec<readiness::Ready> = Vec::new();
 
     while !STOP.load(Ordering::SeqCst) {
-        fds.clear();
-        ids.clear();
-        fds.push(sys::PollFd { fd: listener.as_raw_fd(), events: sys::POLLIN, revents: 0 });
-        fds.push(sys::PollFd { fd: wake_r.as_raw_fd(), events: sys::POLLIN, revents: 0 });
-        for (id, c) in &server.clients {
-            // Only ask for writability while something is queued, so an idle
-            // connection never spins the loop.
-            let mut events = sys::POLLIN;
-            if !c.tx_empty() {
-                events |= sys::POLLOUT;
-            }
-            fds.push(sys::PollFd { fd: c.fd(), events, revents: 0 });
-            ids.push(*id);
-        }
+        poller.wait(-1, &mut ready)?;
 
-        sys::poll_fds(&mut fds, -1)?;
-
-        if fds[1].revents & sys::POLLIN != 0 {
+        // Signals first, as before: a reload or stop decided in this round
+        // takes effect before any client is served.
+        if ready.iter().any(|r| r.token == TOKEN_WAKE) {
             let mut buf = [0u8; 64];
             while sys::read_fd(wake_r.as_raw_fd(), &mut buf).unwrap_or(0) > 0 {}
         }
@@ -176,29 +171,74 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
             break;
         }
 
-        if fds[0].revents & sys::POLLIN != 0 {
-            accept_all(server, listener);
-        }
-
-        // ids/fds already snapshot the owners for this poll. Handlers can
-        // mutate the client table without another allocation of ready ids.
-        for (&id, fd) in ids.iter().zip(&fds[2..]) {
-            if fd.revents != 0 && !service_client(server, id, fd.revents) {
-                server.remove_client(id);
+        for r in &ready {
+            match r.token {
+                TOKEN_WAKE => {}
+                TOKEN_LISTENER => {
+                    if r.revents & sys::POLLIN != 0 {
+                        accept_all(server, listener, &mut poller);
+                    }
+                }
+                token => {
+                    let id = token as u32;
+                    // A client removed earlier in this round can still have
+                    // an entry here; its id is gone from the table.
+                    if !server.clients.contains_key(&id) {
+                        continue;
+                    }
+                    if service_client(server, id, r.revents) {
+                        sync_write_interest(server, &mut poller, id);
+                    } else {
+                        disconnect(server, &mut poller, id);
+                    }
+                }
             }
         }
+        // Relays and events write to clients other than the one being served;
+        // bring their output interest in line with what is queued for them.
+        let mut touched = std::mem::take(&mut server.touched);
+        for id in touched.drain(..) {
+            sync_write_interest(server, &mut poller, id);
+        }
+        server.touched = touched;
     }
     Ok(())
 }
 
-fn accept_all(server: &mut Server, listener: &OwnedFd) {
+/// Ask for output readiness exactly while the client has queued output, the
+/// way the C daemon adds and drops ULOOP_WRITE around a blocked write.
+fn sync_write_interest(server: &mut Server, poller: &mut readiness::Poller, id: u32) {
+    let Some(c) = server.clients.get_mut(&id) else { return };
+    let want = !c.tx_empty();
+    if want != c.out_registered && poller.set_write(c.fd(), u64::from(id), want).is_ok() {
+        c.out_registered = want;
+    }
+}
+
+fn disconnect(server: &mut Server, poller: &mut readiness::Poller, id: u32) {
+    if let Some(c) = server.clients.get(&id) {
+        let _ = poller.remove(c.fd());
+    }
+    server.remove_client(id);
+}
+
+fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut readiness::Poller) {
     loop {
         match sys::accept(listener.as_raw_fd()) {
-            Ok(Some(sock)) => {
-                if let Err(e) = server.add_client(sock) {
-                    eprintln!("ubusd-rs: rejecting connection: {e}");
+            Ok(Some(sock)) => match server.add_client(sock) {
+                Ok(id) => {
+                    let Some(c) = server.clients.get_mut(&id) else { continue };
+                    // HELLO was just queued or written; register with the
+                    // interest that matches.
+                    let write = !c.tx_empty();
+                    if poller.add(c.fd(), u64::from(id), write).is_ok() {
+                        c.out_registered = write;
+                    } else {
+                        server.remove_client(id);
+                    }
                 }
-            }
+                Err(e) => eprintln!("ubusd-rs: rejecting connection: {e}"),
+            },
             Ok(None) => return,
             Err(_) => return,
         }

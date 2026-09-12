@@ -58,6 +58,9 @@ pub struct Server {
     /// A short prefix query is submitted together. Capacity is acquired only
     /// on first use and bounded to 16 KiB; larger queries keep the old path.
     lookup_batch: Vec<u8>,
+    /// Clients written to since the loop last looked: only these can have
+    /// changed whether they need output readiness. Ids may repeat.
+    pub touched: Vec<u32>,
 }
 
 impl Server {
@@ -77,6 +80,7 @@ impl Server {
             monitors: Vec::new(),
             scratch: BlobBuf::new(),
             lookup_batch: Vec::new(),
+            touched: Vec::new(),
         })
     }
 
@@ -142,10 +146,11 @@ impl Server {
 
     fn send(&mut self, client: u32, msg: OutMsg) {
         if msg.header.ty != ty::MONITOR {
-            Self::mirror(&mut self.clients, &mut self.monitors, client, &msg.header, &msg.blob, true);
+            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &msg.header, &msg.blob, true);
         }
         if let Some(c) = self.clients.get_mut(&client) {
             c.send(msg);
+            self.touched.push(client);
         }
     }
 
@@ -154,10 +159,11 @@ impl Server {
     fn send_scratch(&mut self, client: u32, header: Header, fd: Option<OwnedFd>) {
         let blob = self.scratch.as_bytes();
         if header.ty != ty::MONITOR {
-            Self::mirror(&mut self.clients, &mut self.monitors, client, &header, blob, true);
+            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &header, blob, true);
         }
         if let Some(c) = self.clients.get_mut(&client) {
             c.send_borrowed(header, blob, fd);
+            self.touched.push(client);
         }
     }
 
@@ -165,7 +171,7 @@ impl Server {
 
     /// Handle one received message. Returns false when the client must go.
     pub fn receive(&mut self, client: u32, msg: InMsg) -> bool {
-        Self::mirror(&mut self.clients, &mut self.monitors, client, &msg.header, &msg.blob, false);
+        Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &msg.header, &msg.blob, false);
 
         let seq = msg.header.seq;
         let peer = msg.header.peer;
@@ -424,6 +430,7 @@ impl Server {
                     let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
                     if let Some(c) = self.clients.get_mut(&client) {
                         c.send_lookup_reply(header, self.scratch.as_bytes());
+                        self.touched.push(client);
                     }
                     return Ok(Outcome::NoStatus);
                 }
@@ -480,6 +487,7 @@ impl Server {
         debug_assert!(self.lookup_batch.len() <= bytes);
         if let Some(c) = self.clients.get_mut(&client) {
             c.send_lookup_batch(&self.lookup_batch);
+            self.touched.push(client);
         }
         self.lookup_batch.clear();
         true
@@ -937,7 +945,7 @@ impl Server {
 
     // -------------------------------------------------------------- monitor
 
-    fn mirror(clients: &mut HashMap<u32, Client>, monitors: &mut [(u32, u16)], client: u32, header: &Header, blob: &[u8], send: bool) {
+    fn mirror(clients: &mut HashMap<u32, Client>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
         if monitors.is_empty() {
             return;
         }
@@ -961,6 +969,7 @@ impl Server {
             };
             if let Some(c) = clients.get_mut(&m) {
                 c.send(OutMsg::new(ty::MONITOR, seq, 0, payload.clone()));
+                touched.push(m);
             }
         }
     }
