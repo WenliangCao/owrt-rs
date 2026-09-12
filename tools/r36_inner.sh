@@ -57,7 +57,14 @@ ubus -S list 'nosuch*' >/dev/null 2>&1; say "list wildcard-nosuch rc=$?"
 
 say "--- 4. a real provider: rpcd"
 /sbin/rpcd >/tmp/out/rpcd.log 2>&1 &
-i=0; while [ $i -lt 15 ]; do ubus list | grep -q '^uci$' && break; i=$((i+1)); sleep 1; done
+# rpcd registers its plugin objects (luci, network.rrdns) a moment after uci;
+# list only once two listings a second apart agree, so the transcript does
+# not depend on how fast the provider finished starting.
+i=0; prev=; while [ $i -lt 20 ]; do
+	cur=$(ubus list | sort | tr '\n' ' ')
+	case "$cur" in *"uci "*) [ "$cur" = "$prev" ] && break ;; esac
+	prev=$cur; i=$((i+1)); sleep 1
+done
 say "objects: [$(ubus list | sort | tr '\n' ' ')]"
 say "session_signature: [$(ubus -v list session | grep -o '"[a-z_]*":' | sort -u | tr '\n' ' ')]"
 say "uci_methods: [$(ubus -v list uci | sed -n 's/^\t"\([a-z_]*\)".*/\1/p' | sort | tr '\n' ' ')]"

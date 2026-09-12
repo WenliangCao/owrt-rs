@@ -7,7 +7,14 @@ S=/var/run/ubus/ubus.sock
 i=0; while [ $i -lt 10 ]; do [ -S $S ] && break; i=$((i+1)); sleep 1; done
 # a real provider, so malformed traffic has live state to disturb
 /sbin/rpcd >/tmp/out/rpcd.log 2>&1 & rp=$!
-i=0; while [ $i -lt 15 ]; do ubus list | grep -q '^uci$' && break; i=$((i+1)); sleep 1; done
+# rpcd registers its plugin objects (luci, network.rrdns) a moment after uci;
+# take the baseline only once two listings a second apart agree, or the final
+# comparison races the provider rather than testing the bus.
+i=0; prev=; while [ $i -lt 20 ]; do
+	cur=$(ubus list | sort | tr '\n' ' ')
+	case "$cur" in *"uci "*) [ "$cur" = "$prev" ] && break ;; esac
+	prev=$cur; i=$((i+1)); sleep 1
+done
 before=$(ubus list | sort | tr '\n' ' ')
 /tmp/fuzz $S 600
 echo "survived: $(kill -0 $bus 2>/dev/null && echo yes || echo no)"
