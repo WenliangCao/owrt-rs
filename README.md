@@ -19,6 +19,11 @@ netifd子进程回收检查的修复。九组件代表负载的平均延迟和CP
 [所有回退与持平事实清单](reports/ax3000t-stock-openwrt-25.12.5/R86_REGRESSIONS_COMPLETE.md)以及
 [R85优化日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)保留全部有效样本和历史失败。
 
+[R87算法复核](reports/ax3000t-stock-openwrt-25.12.5/R87_ALGORITHM_REVIEW.md)（2026-09-12）把整机CPU回退定位到
+ubusd事件循环每条消息轮询全部客户端（实机约18个），把HTTPD保持连接内存定位到每连接一线程，并提交了
+ubusd就绪集合、HTTPD空闲连接停放和rpcd ACL匹配快路径三项改动；构建机上64连接RSS增量1944→100 KiB、
+ubusd CPU不再随客户端数增长。这些改动**尚未构建发布产物、尚未部署**，实机数字待下一轮验收。
+
 ## 分层与边界
 
 | 层 | 内容 | 处置 |
