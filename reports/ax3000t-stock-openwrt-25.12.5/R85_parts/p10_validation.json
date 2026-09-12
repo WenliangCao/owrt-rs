@@ -1,0 +1,196 @@
+{
+  "candidate_sha256": "6fd35161a618b72f12ba645c1ac294db1ae4ff41c3359e2a4be83ac054cf3d85",
+  "build_reference": "n04_canonical_build.json",
+  "archive_sha256": {
+    "p10-validation": "6a8b0954236c0a4bccb3d0ca672218e340a6f713ea9a19effe94fc05670bc70e",
+    "p10-validation-remaining": "d95e75948bab58ad185a0733331b65650de746b88ade28704f15bf8d0fa09635",
+    "p10-busy-5-candidate": "4e5e9dfc467dcb37b5ae11d6ded37b2bde0d737ab09e5804cb4634866b769d27"
+  },
+  "gate_exit_codes": {
+    "p10-validation": {
+      "procd-busy-1": 0,
+      "procd-busy-2": 1
+    },
+    "p10-validation-remaining": {
+      "procd-busy-2-candidate": 0,
+      "procd-busy-3": 0,
+      "procd-busy-4": 0,
+      "procd-busy-5": 1,
+      "procd-r65": 0,
+      "procd-r71": 0,
+      "procd-r72-tty": 0,
+      "procd-r75": 0,
+      "procd-r83": 0
+    },
+    "p10-busy-5-candidate": {}
+  },
+  "logs": {
+    "p10-validation": {
+      "procd-busy-1.log": "b3b65d42b9422a39f1a6299c1ff0529532bc68a6ea1991ebc6c581f56d3162ab",
+      "procd-busy-2.log": "404f37f71a84ec1f055eea01e47b9e6dc761e66b3ce234e58cbb5c98b98ab977"
+    },
+    "p10-validation-remaining": {
+      "procd-busy-2-candidate.log": "8930052e9e587e29114684363500dd38d67025434849cd14a59a79fb6228842a",
+      "procd-busy-3.log": "155395c8cc6ca72b31e1b9ee2d1edcfeaef85e5ca429599afe9ca75cd3ddbd1c",
+      "procd-busy-4.log": "3194a83eb3676234fe57779f6e98271b19356a84ca07566d9661efe5dc4dfa02",
+      "procd-busy-5.log": "736d3a584ee86919682890aad44ac1928f2e13f4a646d14dcaa9f1cf414e0c1d",
+      "procd-r65.log": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+      "procd-r71.log": "de19526535d09c6e436c5ab8fac04e52e2545282a968aee6b1cd78ee6aa123df",
+      "procd-r72-tty.log": "66b32848d233c11278990c801df4f02edec4ce63ed818086507c7142b03dadee",
+      "procd-r75.log": "3c826f20fa3dbc6924b4ff42a0f2c918ab78cbe7cbec9d45fe4f4b301b286891",
+      "procd-r83.log": "0be5dc34552cf1b669fda6c882bded4e2960c6839fc5c1549923b26559bbbc98"
+    },
+    "p10-busy-5-candidate": {}
+  },
+  "busy_gate_passed_trials": [
+    {
+      "round": 1,
+      "side": "original",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 185,
+      "fds_before": 8,
+      "fds_after": 8,
+      "unique_line_and_original_pid_tags": true
+    },
+    {
+      "round": 1,
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 166,
+      "fds_before": 7,
+      "fds_after": 7,
+      "unique_line_and_original_pid_tags": true
+    },
+    {
+      "round": 2,
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 220,
+      "fds_before": 7,
+      "fds_after": 7,
+      "unique_line_and_original_pid_tags": true
+    },
+    {
+      "round": 3,
+      "side": "original",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 176,
+      "fds_before": 8,
+      "fds_after": 8,
+      "unique_line_and_original_pid_tags": true
+    },
+    {
+      "round": 3,
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 195,
+      "fds_before": 7,
+      "fds_after": 7,
+      "unique_line_and_original_pid_tags": true
+    },
+    {
+      "round": 4,
+      "side": "original",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 182,
+      "fds_before": 8,
+      "fds_after": 8,
+      "unique_line_and_original_pid_tags": true
+    },
+    {
+      "round": 4,
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 284,
+      "fds_before": 7,
+      "fds_after": 7,
+      "unique_line_and_original_pid_tags": true
+    },
+    {
+      "round": 5,
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 161,
+      "fds_before": 7,
+      "fds_after": 7,
+      "unique_line_and_original_pid_tags": true
+    }
+  ],
+  "original_failed_trials": [
+    {
+      "round": 2,
+      "side": "original",
+      "exit_code": 1,
+      "children_reaped": 32,
+      "child_exit_code": 19,
+      "final_log_lines": 31,
+      "missing_final_line_indices": [
+        7
+      ],
+      "watchdog_stopped": true,
+      "messages_sha256": "eda90e22840eb6b0133dcd250a73f7b06a57e6a2654667572ad804d57585893b",
+      "later_hotplug_and_fd_checks_reached": false
+    },
+    {
+      "round": 5,
+      "side": "original",
+      "exit_code": 1,
+      "children_reaped": 32,
+      "child_exit_code": 19,
+      "final_log_lines": 31,
+      "missing_final_line_indices": [
+        9
+      ],
+      "watchdog_stopped": true,
+      "messages_sha256": "01b248192b01d0a8346f4666fd2f666d0b667cb0b4d6d1ec0ee3eeb85fa4761f",
+      "later_hotplug_and_fd_checks_reached": false
+    }
+  ],
+  "candidate_busy_rounds_passed": 5,
+  "candidate_full_gates_passed": true,
+  "all_original_busy_rounds_passed": false,
+  "physical": {
+    "reference": "p10/results.json",
+    "repeats_per_side": 4,
+    "workloads": 8,
+    "verified_raw_files": 368,
+    "host_gates_passed": true,
+    "acceptance_eligible": true,
+    "raw_results_rederived_and_matched": true
+  },
+  "busy_tool_sha256": "c9f6f17f1c40895b4f48de4490cf9d54242b6616f5221f5eb028d720881b3c76",
+  "unit_test_reference": "P08: same procd source; 72 tests passed. No repeat for the identical source.",
+  "note": "All five predeclared candidate rounds passed. Original rounds 2 and 5 failed with one final line missing; their failures were not rerun or converted to passes. Only the previously unrun candidate sides were completed via --sides. The cause of the original missing lines is not established by syscall evidence. Logs and original pid tags were independently checked on collection. These are isolated exact-image tests, not deployment acceptance."
+}

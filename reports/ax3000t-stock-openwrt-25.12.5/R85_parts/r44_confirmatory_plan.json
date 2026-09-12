@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-09-12T11:40:19.995310+00:00",
+  "component": "rpcd",
+  "candidate_sha256": "557d8437f669dff0adf1ce2046d9db9eafad3f87ddf9d57072a36515dded4a3b",
+  "reason": "R44 granted access c4 median +1.99% while arithmetic mean across rounds is lower; per-side round standard deviation exceeds the observed median gap. Confirm the same binary before attributing the difference to an algorithm.",
+  "iterations": 50000,
+  "repeats_per_side": 2,
+  "matrix_workloads": 18,
+  "comparison": "exact OpenWrt 25.12.5 original components",
+  "production_changes": false,
+  "rules": [
+    "Run the complete fixed sequence once. Keep every completed round and any failure.",
+    "Report alongside all four original R44 rounds; do not replace or discard the short-run result.",
+    "If a material latency deficit persists, investigate costs before changing production code."
+  ],
+  "scope": "Unprofiled router measurements; namespace loopback under authorized Wi-Fi management."
+}

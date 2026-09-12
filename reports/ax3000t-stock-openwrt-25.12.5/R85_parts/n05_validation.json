@@ -1,0 +1,171 @@
+{
+  "candidate_sha256": "3b1040e7b81330aa44d4e9ffde2355c93f9c623b4eaaa04c81e5e2959d018f0e",
+  "source_commit": "f4d36bb5af2bd059c57e214b92d318b5b29375cf",
+  "build_reference": "n04_canonical_build.json",
+  "archive_sha256": "585b987f7b05eb99eccfc6cf7a16ec45f6f22285da21370973a290d601313db2",
+  "verified_functional_raw_files": 600,
+  "full_suite_exit": 0,
+  "suite_log_sha256": "022bf40dc4d258b9c97c3c5ad21bea6ecddc935280f506620044e81d64045626",
+  "cases": [
+    {
+      "case": "r46",
+      "verdict": "ok",
+      "elapsed_s": 0
+    },
+    {
+      "case": "r47",
+      "verdict": "ok",
+      "elapsed_s": 6
+    },
+    {
+      "case": "r48",
+      "verdict": "ok",
+      "elapsed_s": 6
+    },
+    {
+      "case": "r49",
+      "verdict": "ok",
+      "elapsed_s": 13
+    },
+    {
+      "case": "r50",
+      "verdict": "ok",
+      "elapsed_s": 34
+    },
+    {
+      "case": "r51",
+      "verdict": "ok",
+      "elapsed_s": 31
+    },
+    {
+      "case": "r52",
+      "verdict": "ok",
+      "elapsed_s": 23
+    },
+    {
+      "case": "r53",
+      "verdict": "ok",
+      "elapsed_s": 73
+    },
+    {
+      "case": "r54",
+      "verdict": "ok",
+      "elapsed_s": 29
+    },
+    {
+      "case": "r55",
+      "verdict": "ok",
+      "elapsed_s": 83
+    },
+    {
+      "case": "r56",
+      "verdict": "ok",
+      "elapsed_s": 24
+    },
+    {
+      "case": "r57",
+      "verdict": "ok",
+      "elapsed_s": 32
+    },
+    {
+      "case": "r58",
+      "verdict": "ok",
+      "elapsed_s": 24
+    },
+    {
+      "case": "r59",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_up_cmds",
+      "verdict": "ok",
+      "elapsed_s": 41
+    },
+    {
+      "case": "r60_up",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_fail_cmds",
+      "verdict": "ok",
+      "elapsed_s": 42
+    },
+    {
+      "case": "r60_fail",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_flood",
+      "verdict": "ok",
+      "elapsed_s": 17
+    },
+    {
+      "case": "r60_token",
+      "verdict": "ok",
+      "elapsed_s": 36
+    },
+    {
+      "case": "r60_proc",
+      "verdict": "ok",
+      "elapsed_s": 25
+    },
+    {
+      "case": "r61",
+      "verdict": "ok",
+      "elapsed_s": 29
+    },
+    {
+      "case": "r62",
+      "verdict": "ok",
+      "elapsed_s": 66
+    },
+    {
+      "case": "r63",
+      "verdict": "ok",
+      "elapsed_s": 14
+    },
+    {
+      "case": "r64",
+      "verdict": "ok",
+      "elapsed_s": 25
+    },
+    {
+      "case": "r79",
+      "verdict": "ok",
+      "elapsed_s": 48
+    },
+    {
+      "case": "r83",
+      "verdict": "ok",
+      "elapsed_s": 29
+    },
+    {
+      "case": "r83c",
+      "verdict": "ok",
+      "elapsed_s": 42
+    },
+    {
+      "case": "r83w",
+      "verdict": "ok",
+      "elapsed_s": 78
+    }
+  ],
+  "all_29_selected_and_passed": true,
+  "uptime_relationships_both_sides_passed": true,
+  "physical": {
+    "reference": "n05/results.json",
+    "repeats_per_side": 4,
+    "workloads": 14,
+    "verified_raw_files": 704,
+    "host_gates_passed": true,
+    "acceptance_eligible": true,
+    "raw_results_rederived_and_matched": true,
+    "initialization_settled": true,
+    "read_query_child_cpu_growth": 0
+  },
+  "unit_test_reference": "N04: identical production source; 154 unit tests passed.",
+  "note": "Formal CI binary independently passed all 29 exact-image cases and the complete four-round-per-side physical matrix. This collector was already running at Waku handoff and was allowed to finish; no rounds were repeated or discarded. Oracle's network/wireless fixture tests do not establish physical radio or production cold-start acceptance. The production device remains on R84."
+}

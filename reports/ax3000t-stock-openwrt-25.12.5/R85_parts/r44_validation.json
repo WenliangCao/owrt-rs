@@ -1,0 +1,100 @@
+{
+  "candidate_sha256": "557d8437f669dff0adf1ce2046d9db9eafad3f87ddf9d57072a36515dded4a3b",
+  "build_reference": "n04_canonical_build.json",
+  "archive_sha256": "7551a05719b5357ccbcad9a9a44132801e072c6736447ae0a089d5332ed53aa6",
+  "gate_exit_codes": {
+    "busy": 0,
+    "bytes": 0,
+    "defer": 0,
+    "r13_rpcd_check": 0,
+    "r17_rpcd_core_check": 0,
+    "r18_rpcd_plugins_check": 0,
+    "r19_lucirpc_check": 0,
+    "rpcd-r26": 0,
+    "uci-r16": 0
+  },
+  "logs": {
+    "busy.log": "906850c2d4cd30a64d0894593b5bc38bb51237000270c59270f6c363205beb1a",
+    "bytes.log": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+    "defer.log": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+    "r13_rpcd_check.log": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+    "r17_rpcd_core_check.log": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+    "r18_rpcd_plugins_check.log": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+    "r19_lucirpc_check.log": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+    "rpcd-r26.log": "3076032caa94f839924355c106a1276f83344df3ac740e0db7b79644cb5ac05e",
+    "uci-r16.log": "a9909d8d59aeeb7d9248fd4f2d39d2489e0a811fa4ade3f289b2ef9857c6df64"
+  },
+  "differential": {
+    "uci-r16": {
+      "cases": 193,
+      "identical": 193,
+      "differing": 0
+    },
+    "r13_rpcd_check": {
+      "cases": 63,
+      "identical": 63,
+      "differing": 0
+    },
+    "r17_rpcd_core_check": {
+      "cases": 283,
+      "identical": 283,
+      "differing": 0
+    },
+    "r18_rpcd_plugins_check": {
+      "cases": 77,
+      "identical": 77,
+      "differing": 0
+    },
+    "r19_lucirpc_check": {
+      "cases": 11,
+      "identical": 11,
+      "differing": 0
+    }
+  },
+  "fuzz": {
+    "steps": 733,
+    "fuzz_calls": 729,
+    "differing": 0,
+    "seed": 26
+  },
+  "busy_gate": [
+    {
+      "side": "original",
+      "expired_session_status": 4,
+      "worker_exit": 17,
+      "load_requests": 6027,
+      "fds_before": 11,
+      "fds_after": 11
+    },
+    {
+      "side": "candidate",
+      "expired_session_status": 4,
+      "worker_exit": 17,
+      "load_requests": 6485,
+      "fds_before": 7,
+      "fds_after": 7
+    }
+  ],
+  "full_functional_gates_passed": true,
+  "physical": {
+    "reference": "r44/results.json",
+    "repeats_per_side": 4,
+    "workloads": 18,
+    "verified_raw_files": 688,
+    "host_gates_passed": true,
+    "acceptance_eligible": true,
+    "raw_results_rederived_and_matched": true
+  },
+  "confirmatory_physical": {
+    "reference": "r44-confirmatory/results.json",
+    "repeats_per_side": 2,
+    "workloads": 18,
+    "verified_raw_files": 344,
+    "host_gates_passed": true,
+    "acceptance_eligible": true,
+    "raw_results_rederived_and_matched": true
+  },
+  "confirmatory_plan_reference": "r44_confirmatory_plan.json",
+  "confirmatory_plan_sha256": "aadb38aae969b3d133a5d782bd7475e1d8985e078c74f9e613f3298047e70515",
+  "note": "The fixed two-round-per-side, 50000-iteration confirmatory matrix uses the same formal binary and all 18 workloads. Preserve all four shorter R44 rounds alongside it, including the +1.99% granted-access c4 latency median. All 18 mean-latency and CPU medians are lower in the confirmatory sample; this does not establish stable per-round dominance for short requests or uniformly lower tail latency. No production changes or extra selected reruns were made."
+}

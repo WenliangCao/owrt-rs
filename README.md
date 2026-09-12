@@ -5,11 +5,13 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 C 原件全程保留，任何一步都能回退。
 
-**现状（2026-09-11）：R81 冷审计修复已完成，设备运行 R84 的九个 Rust 组件；内核、驱动、数据面和无线
+**现状（2026-09-12）：R81 冷审计修复已完成，设备运行 R84 的九个 Rust 组件；内核、驱动、数据面和无线
 handler 脚本原样保留。** 修复核实见 [R83](reports/ax3000t-stock-openwrt-25.12.5/R83_R81_FIXES.md)，
 原版/Rust 整体实机对照见 [R84](reports/ax3000t-stock-openwrt-25.12.5/R84_DEPLOYMENT_BENCHMARK.md)。
-[R85 优化开发日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)已完成 HTTPD 的正式产物隔离验收：
-16 项负载的延迟与 CPU 汇总值均优于原版，保持连接内存仍较高。候选尚未替换正式运行栈，其余四项优化排队。
+[R85 优化开发日志](reports/ax3000t-stock-openwrt-25.12.5/R85_OPTIMIZATION_LOG.md)已完成 HTTPD、rpcd、procd、
+ubusd、netifd 五项正式文件的主要性能与候选功能隔离验收。指定最终样本的66项负载均值和CPU汇总值
+低于原版；rpcd短测波动及部分尾延迟、HTTPD保持连接内存代价、原版procd两轮丢日志样本全部保留。
+候选尚未替换正式运行栈，R85部署后的整机收益仍未测量。
 
 ## 分层与边界
 
@@ -60,7 +62,7 @@ R84 版本的逐组件、CPU、延迟、内存、存储和测量边界以该报�
 2. **差分门槛**（`tools/r*_*.sh`）：在 aarch64 构建机上，把设备的精确 rootfs 复制两份，在各自的
    mount/net/pid namespace 里跑 C 原件和 Rust 候选，同一客户端打同一串调用，逐字节比对输出、
    内核状态、写出的文件。每个门槛都有**红证**——注入故障（换成 `/bin/false`、改掉一行）必须判红，
-   否则这个门槛不算存在。netifd 24 例（`tools/netifd_suite.sh`）、procd 272 标记（`r65`）、
+   否则这个门槛不算存在。netifd 29 例（`tools/netifd_suite.sh`）、procd 272 标记（`r65`）、
    ubusd（`r36`–`r42`）、rpcd/uci/fw4/httpd/logd 各有自己的套件。
 3. **设备窗口**：stage → 重启 → **站在客户端**验收（本机租约、经路由器解析、经路由器出网、
    运行中二进制 = 候选）→ 连续观察 ≥ 3 分钟 → confirm；设备侧带自动回退（无人 confirm 则还原 C 并重启）。
