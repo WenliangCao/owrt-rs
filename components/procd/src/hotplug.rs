@@ -511,8 +511,8 @@ fn spawn_exec(cmd: &Queued) -> Option<i32> {
 fn spawn_firmware(cmd: &Queued) -> Option<i32> {
     let dir = cmd.argv.first()?.clone();
     let vars = cmd.vars.clone();
-    // A short-lived child, like the C's fork: the copy loop must not stall
-    // the supervisor.
+    // SAFETY: the supervisor is single-threaded; the child owns its copied
+    // state and exits after the firmware transfer, without returning to it.
     match unsafe { crate::proc::fork_raw() } {
         0 => {
             firmware_child(&dir, &vars);

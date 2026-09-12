@@ -36,6 +36,7 @@ unsafe impl GlobalAlloc for CountingAllocator {
             ALLOCS.fetch_add(1, Relaxed);
             BYTES.fetch_add(layout.size() as u64, Relaxed);
         }
+        // SAFETY: the caller supplies the GlobalAlloc layout contract unchanged.
         unsafe { System.alloc(layout) }
     }
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
@@ -43,9 +44,11 @@ unsafe impl GlobalAlloc for CountingAllocator {
             ALLOCS.fetch_add(1, Relaxed);
             BYTES.fetch_add(layout.size() as u64, Relaxed);
         }
+        // SAFETY: the caller supplies the GlobalAlloc layout contract unchanged.
         unsafe { System.alloc_zeroed(layout) }
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        // SAFETY: the caller supplies the matching live System allocation.
         unsafe { System.dealloc(ptr, layout) }
     }
     unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, size: usize) -> *mut u8 {
@@ -53,6 +56,7 @@ unsafe impl GlobalAlloc for CountingAllocator {
             REALLOCS.fetch_add(1, Relaxed);
             BYTES.fetch_add(size as u64, Relaxed);
         }
+        // SAFETY: the caller supplies the live allocation and valid new size.
         unsafe { System.realloc(ptr, layout, size) }
     }
 }

@@ -422,9 +422,9 @@ struct Server {
 
 impl Server {
     fn serve(&self, stream: Box<dyn Stream>, conn: Conn) {
-        // Header lines remain bounded and can span reads. Large body reads
-        // bypass BufReader's storage, so idle clients need no 8 KiB buffer.
-        let client = RefCell::new(BufReader::with_capacity(2048, stream));
+        // Keep the established read-ahead at oversized request boundaries;
+        // reducing it can leave unread TCP bytes and turn a 413 into a reset.
+        let client = RefCell::new(BufReader::new(stream));
         let network_timeout = Duration::from_secs(self.config.network_timeout.max(1));
         let mut heads = http::HeadBuffer::default();
         let mut requests = 0u64;

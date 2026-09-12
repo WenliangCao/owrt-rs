@@ -26,7 +26,8 @@ ORDER = ("stock", "r84", "candidate", "candidate", "r84", "stock",
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("candidate", type=Path)
-    parser.add_argument("--component", choices=("httpd", "rpcd", "procd", "ubusd", "netifd"), default="httpd")
+    parser.add_argument("--component", choices=("httpd", "rpcd", "procd", "ubusd", "netifd",
+                                                "uci", "reload-config", "logd", "fw4"), default="httpd")
     parser.add_argument("output", type=Path)
     parser.add_argument("--interface", required=True)
     parser.add_argument("--access", choices=("wired", "wifi"), default="wifi",
@@ -48,12 +49,14 @@ def main():
         parser.error("sides must include stock and candidate, without duplicates")
     if args.component != "httpd" and args.memory_probe:
         parser.error("held-connection memory currently requires HTTPD")
+    if args.matrix and args.component not in ("httpd", "rpcd", "procd", "ubusd", "netifd"):
+        parser.error("expanded matrices are defined for the five main daemons")
     if args.memory_probe and (args.matrix or "r84" in args.sides):
         parser.error("held-connection memory uses --sides stock candidate without --matrix")
     if args.rpc_client_probe and (args.component != "rpcd" or args.matrix or args.memory_probe or "r84" in args.sides):
         parser.error("RPC client diagnostics require rpcd, --sides stock candidate, and no other experiment mode")
     component = args.component
-    binary = component + "-rs"
+    binary = "reload_config_rs" if component == "reload-config" else component + "-rs"
     args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
     out = args.output.resolve()
     (out / "STARTED").touch()

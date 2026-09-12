@@ -50,6 +50,17 @@ class AnalysisGates(unittest.TestCase):
         self.assertEqual(result["metrics"]["mean_us"]["median"], 3)
         self.assertEqual(result["metrics"]["mean_us"]["max"], 20)
 
+    def test_candidate_distinguishes_child_program_cpu_from_daemon_cpu(self):
+        from analyze_candidate import serial
+        data = copy.deepcopy(self.valid)
+        data.update(warmup=5, child_cpu_s=.004, client_cpu_s=.002)
+        data["daemon_cpu"][0]["pid"] = 7
+        self.path.write_text(json.dumps(data))
+        self.assertEqual(serial(self.path, None)["subject_cpu_us_per_op"], 2000)
+        self.assertEqual(serial(self.path, 7)["subject_cpu_us_per_op"], 5000)
+        with self.assertRaises(AssertionError):
+            serial(self.path, 99)
+
     def test_logd_perpetually_readable_kernel_log_is_rejected(self):
         samples = [{"uptime_s": i, "clock_ticks_per_second": 100,
                     "processes": [{"pid": 7, "start_ticks": 17, "cpu_ticks": i * 100}]}

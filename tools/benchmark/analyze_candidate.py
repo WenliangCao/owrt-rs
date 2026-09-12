@@ -8,7 +8,7 @@ import math
 from pathlib import Path
 import statistics
 
-from analyze import COMPONENT_WORK, memory, native, stats, timing
+from analyze import COMPONENT_WORK, logd_idle, memory, native, stats, timing
 
 STATIC = ("static_512_dat", "static_16k_dat", "static_16k_css",
           "static_image_css", "static_64k_dat", "static_1m_dat")
@@ -26,10 +26,12 @@ def read(path):
 
 def serial(path, subject):
     data = native(path)
-    own = next(p for p in data["daemon_cpu"] if p["pid"] == subject)
+    own = next((p for p in data["daemon_cpu"] if p["pid"] == subject), None)
+    assert subject is None or own is not None, "measured daemon is missing"
+    cpu = data["child_cpu_s"] if subject is None else own["cpu_s"] + own["child_cpu_s"]
     count = data["successful"]
     return {**timing(data), "warmup": data["warmup"],
-            "subject_cpu_us_per_op": (own["cpu_s"] + own["child_cpu_s"]) * 1e6 / count,
+            "subject_cpu_us_per_op": cpu * 1e6 / count,
             "dependency_cpu_us_per_op": sum(p["cpu_s"] for p in data["daemon_cpu"]
                                             if p["pid"] != subject) * 1e6 / count,
             "client_cpu_us_per_op": data["client_cpu_s"] * 1e6 / count}
@@ -123,6 +125,9 @@ def derive(root, label):
         meta = read(raw / "meta.json")
         assert meta["component"] == component and meta["dependencies"] == "original OpenWrt"
         subject = meta["subject_pid"]
+        if component == "logd":
+            assert meta["kernel_log_mask"] == "empty-held-fifo", "invalid logd kernel-log fixture"
+            logd_idle(raw / "kernel-log-idle.jsonl", subject)
         assert (raw / "boot-id.txt").read_text().strip() == before["boot_id"]
         for file in ("binary-sha256.txt", "subject-sha256.txt"):
             assert (raw / file).read_text().split()[0] == subjects[side]
@@ -167,14 +172,19 @@ def derive(root, label):
                     own = next(p for p in native(raw / (name + ".json"))["daemon_cpu"] if p["pid"] == subject)
                     assert own["child_cpu_s"] == 0, (name, "query includes child setup CPU")
             expected = max(1, meta["iterations"] // (20 if name.startswith("cgi") else 10 if name.startswith(("static_1m", "uci_get_64")) else 1))
+            if component in ("uci", "reload-config", "fw4"):
+                expected = max(1, meta["iterations"] // (100 if component == "fw4" else 20))
+            elif name == "syslog_128":
+                expected = meta["iterations"] * 10
             if name.endswith("_c4"):
                 expected = max(1, expected // 4) * 4
             assert data["successful"] == expected, (name, data["successful"], expected)
             rows.append({"run": local.name, "side": side, "workload": name, **data})
-        resident = read(raw / "resident.json")
-        process = next(p for p in resident["processes"] if p["pid"] == subject)
-        residents.append({"run": local.name, "side": side, **memory(process),
-                          "temperature_millic": resident["temperature_millic"]})
+        if subject is not None:
+            resident = read(raw / "resident.json")
+            process = next(p for p in resident["processes"] if p["pid"] == subject)
+            residents.append({"run": local.name, "side": side, **memory(process),
+                              "temperature_millic": resident["temperature_millic"]})
     assert len(identities) == 1 and (not matrix or len(fixtures) == 1), "clients/harness/fixtures changed between sides"
     groups = defaultdict(list)
     for row in rows:

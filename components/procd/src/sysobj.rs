@@ -256,9 +256,9 @@ pub fn build_info(b: &mut BlobBuf) -> bool {
             cached = 1024 * crate::sys::atoi_u32(val) as u64;
         }
     }
-
     // SAFETY: time with a null-free out param; localtime_r fills `tm`.
     let now = unsafe { time(std::ptr::null_mut()) };
+    // SAFETY: Tm contains integers and a raw pointer, all valid when zeroed.
     let mut tm: Tm = unsafe { std::mem::zeroed() };
     // SAFETY: `now` and `tm` are live locals.
     if unsafe { localtime_r(&now, &mut tm) }.is_null() {
