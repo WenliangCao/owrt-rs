@@ -57,6 +57,7 @@ ubus -S list 'nosuch*' >/dev/null 2>&1; say "list wildcard-nosuch rc=$?"
 
 say "--- 4. a real provider: rpcd"
 /sbin/rpcd >/tmp/out/rpcd.log 2>&1 &
+provider=$!
 # rpcd registers its plugin objects (luci, network.rrdns) a moment after uci;
 # list only once two listings a second apart agree, so the transcript does
 # not depend on how fast the provider finished starting.
@@ -244,5 +245,6 @@ say "still_serving: $(ubus -S call session list '{}' >/dev/null 2>&1; echo $?)"
 say "--- 11. still healthy at the end"
 say "final_objects: [$(ubus list | sort | tr '\n' ' ')]"
 say "daemon_alive: $(kill -0 $bus 2>/dev/null && echo yes || echo no)"
-kill $bus 2>/dev/null
+# The sandbox has no pid namespace: what is not killed here outlives the run.
+kill $provider $bus 2>/dev/null
 exit 0
