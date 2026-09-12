@@ -109,6 +109,14 @@ fn wake(fd: RawFd) {
 }
 
 extern "C" fn handle_signal(sig: i32) {
+    #[cfg(target_os = "linux")]
+    // SAFETY: errno belongs to this thread; preserve the interrupted call's
+    // error across write(2), including EAGAIN from an already-full wake pipe.
+    let (errno, saved_errno) = unsafe {
+        extern "C" { fn __errno_location() -> *mut i32; }
+        let errno = __errno_location();
+        (errno, *errno)
+    };
     if sig != SIGCHLD {
         SIGNAL.store(sig, Ordering::SeqCst);
     }
@@ -116,6 +124,9 @@ extern "C" fn handle_signal(sig: i32) {
     if fd >= 0 {
         wake(fd);
     }
+    #[cfg(target_os = "linux")]
+    // SAFETY: the thread-local errno pointer above remains live in this handler.
+    unsafe { *errno = saved_errno; }
 }
 
 fn drain(fd: RawFd) {
@@ -127,6 +138,15 @@ fn drain(fd: RawFd) {
             break;
         }
     }
+}
+
+fn wake_pipe() -> std::io::Result<(std::os::fd::OwnedFd, std::os::fd::OwnedFd)> {
+    let (read, write) = sys::pipe()?;
+    sys::set_nonblocking(read.as_raw_fd())?;
+    // Signals and completed workers must never wait for the main loop. EAGAIN
+    // leaves an existing readable wakeup; the actual state lives outside it.
+    sys::set_nonblocking(write.as_raw_fd())?;
+    Ok((read, write))
 }
 
 struct Ids {
@@ -272,11 +292,10 @@ fn main() {
         umask(0o077);
     }
     sys::ignore_signal(sys::SIGPIPE);
-    let (pipe_r, pipe_w) = sys::pipe().unwrap_or_else(|e| {
+    let (pipe_r, pipe_w) = wake_pipe().unwrap_or_else(|e| {
         eprintln!("pipe: {e}");
         std::process::exit(1);
     });
-    let _ = sys::set_nonblocking(pipe_r.as_raw_fd());
     WAKE_FD.store(pipe_w.as_raw_fd(), Ordering::SeqCst);
     sys::set_signal_handler(SIGHUP, handle_signal);
     sys::set_signal_handler(SIGUSR1, handle_signal);
@@ -431,4 +450,71 @@ fn strtol0(s: &str) -> i64 {
         i += 1;
     }
     if neg { -v } else { v }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod wake_tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn saturated_wake_pipe_keeps_signal_handling_live() {
+        const CHILD: &str = "OWRT_RPCD_WAKE_TEST_CHILD";
+        if std::env::var_os(CHILD).is_some() {
+            extern "C" {
+                fn fcntl(fd: i32, command: i32, value: i32) -> i32;
+                fn __errno_location() -> *mut i32;
+            }
+            let (read_end, write_end) = wake_pipe().unwrap();
+            let fd = write_end.as_raw_fd();
+            // SAFETY: F_GETFL reads the flags of our live pipe descriptor.
+            let original_flags = unsafe { fcntl(fd, 3, 0) };
+            assert!(original_flags >= 0);
+            sys::set_nonblocking(fd).unwrap();
+            let bytes = [0u8; 4096];
+            loop {
+                // SAFETY: the live pipe and buffer remain valid during write.
+                let n = unsafe { write(fd, bytes.as_ptr(), bytes.len()) };
+                if n < 0 {
+                    assert_eq!(std::io::Error::last_os_error().kind(), std::io::ErrorKind::WouldBlock);
+                    break;
+                }
+                assert!(n > 0);
+            }
+            // Restore the production flags before exercising the real handler.
+            // SAFETY: F_SETFL accepts the flags obtained from this descriptor.
+            assert_eq!(unsafe { fcntl(fd, 4, original_flags) }, 0);
+            WAKE_FD.store(fd, Ordering::SeqCst);
+            // SAFETY: this thread owns its errno cell for the test duration.
+            let errno = unsafe { __errno_location() };
+            // SAFETY: the live thread-local cell accepts any saved error code.
+            unsafe { *errno = 22; }
+            handle_signal(SIGCHLD);
+            // SAFETY: errno is still this thread's live error cell.
+            assert_eq!(unsafe { *errno }, 22, "signal handler changed interrupted errno");
+            drain(read_end.as_raw_fd());
+            handle_signal(SIGCHLD);
+            assert!(sys::wait_readable(read_end.as_raw_fd(), 100).unwrap());
+            WAKE_FD.store(-1, Ordering::SeqCst);
+            return;
+        }
+        // A blocking signal handler must fail a bounded regression test rather
+        // than hanging the entire test suite.
+        let mut child = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", "wake_tests::saturated_wake_pipe_keeps_signal_handling_live", "--nocapture"])
+            .env(CHILD, "1").spawn().unwrap();
+        let deadline = Instant::now() + Duration::from_secs(3);
+        loop {
+            if let Some(status) = child.try_wait().unwrap() {
+                assert!(status.success(), "wake-pipe child failed: {status}");
+                break;
+            }
+            if Instant::now() >= deadline {
+                child.kill().unwrap();
+                child.wait().unwrap();
+                panic!("signal handler blocked on its saturated wake pipe");
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+    }
 }

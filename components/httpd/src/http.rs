@@ -525,8 +525,19 @@ impl<'a, T: Read + Write> Out<'a, T> {
     pub fn new(client: &'a RefCell<BufReader<T>>, fd: RawFd, window: usize, timeout: Duration) -> Self {
         // Ordinary response headers fit here. Avoid growing through many
         // tiny allocations before the first body write fills the window.
-        Out { client, fd, buf: Vec::with_capacity(window.min(512)), start: 0, end: 0,
+        Self::with_buffer(client, fd, window, timeout, Vec::with_capacity(window.min(512)))
+    }
+
+    pub fn with_buffer(client: &'a RefCell<BufReader<T>>, fd: RawFd, window: usize,
+                       timeout: Duration, buf: Vec<u8>) -> Self {
+        Out { client, fd, buf, start: 0, end: 0,
               window, timeout, deferred: false }
+    }
+
+    /// Return initialized storage only after a completed response. The next
+    /// owner starts at 0..0 and must overwrite bytes before sending them.
+    pub fn into_buffer(self) -> Vec<u8> {
+        self.buf
     }
 
     /// Finish one response before reusing its allocation for the next one.
@@ -1420,6 +1431,18 @@ mod tests {
         out.finish_request().unwrap();
         expected.extend_from_slice(b"unfinished");
         assert_eq!(client.borrow().get_ref().0, expected);
+
+        // Transfer initialized storage to a different connection. A shorter
+        // response, a header-only response and a file copy must never expose
+        // bytes left by the previous client.
+        let next = RefCell::new(BufReader::new(ShortWrites(Vec::new())));
+        let mut out = Out::with_buffer(&next, -1, 64, Duration::from_secs(1), out.into_buffer());
+        out.write_all(b"new").unwrap();
+        out.finish_request().unwrap();
+        out.finish_request().unwrap();
+        out.copy_from(&mut io::Cursor::new(b"file"), 4).unwrap();
+        out.finish_request().unwrap();
+        assert_eq!(next.borrow().get_ref().0, b"newfile");
     }
 
     #[test]

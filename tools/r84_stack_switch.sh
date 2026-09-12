@@ -4,8 +4,9 @@
 #   bins/{procd-rs,ubusd-rs,netifd-rs,...}, bundle.sha256 (relative to bins/),
 #   original.sha256 (/rom paths), installed.sha256 (/usr/sbin Rust paths).
 # Physical execution requires explicit deployment authorization and the
-# AGENTS.md recovery gate. The canary cannot rescue a failed early PID 1:
-# mesh-button failsafe over lan4 remains a mandatory independent fallback.
+# AGENTS.md recovery gate. Wi-Fi management is authorized without a LAN cable.
+# The canary covers boots that reach init; verified offline recovery artifacts
+# remain necessary if early PID 1 fails before the canary can start.
 set -eu
 BASE=$(cd "$(dirname "$0")" && pwd)
 PENDING=/etc/r84-pending

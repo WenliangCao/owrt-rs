@@ -23,7 +23,7 @@
 //!     iteration instead of immediately.
 
 use std::io::{self, Read};
-use std::os::fd::AsRawFd;
+use std::os::fd::{AsRawFd, IntoRawFd};
 use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 
@@ -316,7 +316,6 @@ static mut CHILD_PIPE_W: i32 = -1;
 static EXIT_REQUESTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 extern "C" {
-    fn pipe(fds: *mut i32) -> i32;
     fn signal(sig: i32, handler: extern "C" fn(i32)) -> usize;
     fn write(fd: i32, buf: *const u8, n: usize) -> isize;
     fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
@@ -333,6 +332,13 @@ extern "C" fn on_exit_signal(sig: i32) {
 }
 
 extern "C" fn on_sigchld(_sig: i32) {
+    #[cfg(target_os = "linux")]
+    // SAFETY: preserve the interrupted syscall's thread-local errno.
+    let (errno, saved_errno) = unsafe {
+        extern "C" { fn __errno_location() -> *mut i32; }
+        let errno = __errno_location();
+        (errno, *errno)
+    };
     // async-signal-safe: one byte down a non-blocking pipe, errors ignored
     // SAFETY: reading a fd set once before any child exists, and write(2) is
     // on the list of functions safe to call from a signal handler.
@@ -343,25 +349,19 @@ extern "C" fn on_sigchld(_sig: i32) {
             let _ = write(w, &byte, 1);
         }
     }
+    #[cfg(target_os = "linux")]
+    // SAFETY: this thread's errno cell remains live across the pipe write.
+    unsafe { *errno = saved_errno; }
 }
 
 impl ChildSignal {
     pub fn install() -> io::Result<Self> {
-        let mut fds = [0i32; 2];
-        // SAFETY: pipe(2) writes exactly two fds into the array provided.
-        if unsafe { pipe(fds.as_mut_ptr()) } < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        for fd in fds {
-            // SAFETY: fcntl on a pipe fd this function owns.
-            unsafe {
-                let f = fcntl(fd, F_GETFL, 0);
-                if f >= 0 {
-                    fcntl(fd, F_SETFL, f | O_NONBLOCK);
-                }
-                fcntl(fd, 2 /* F_SETFD */, 1 /* FD_CLOEXEC */);
-            }
-        }
+        let (read, write) = owrt_ubus::sys::pipe()?;
+        owrt_ubus::sys::set_nonblocking(read.as_raw_fd())?;
+        owrt_ubus::sys::set_nonblocking(write.as_raw_fd())?;
+        // Only publish after both nonblocking operations succeed. OwnedFd
+        // closes both ends on failure; the installed pipe lives until exit.
+        let fds = [read.into_raw_fd(), write.into_raw_fd()];
         // SAFETY: single-threaded startup, before any child is spawned, so no
         // handler can observe a partially written value.
         unsafe {
@@ -400,6 +400,33 @@ impl ChildSignal {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn saturated_signal_pipe_preserves_errno() {
+        use std::os::fd::AsRawFd;
+        let (_read, write_end) = owrt_ubus::sys::pipe().unwrap();
+        let fd = write_end.as_raw_fd();
+        owrt_ubus::sys::set_nonblocking(fd).unwrap();
+        let bytes = [0u8; 4096];
+        // SAFETY: the pipe is nonblocking and the stack buffer stays live.
+        while unsafe { write(fd, bytes.as_ptr(), bytes.len()) } > 0 {}
+        assert_eq!(io::Error::last_os_error().kind(), io::ErrorKind::WouldBlock);
+        // SAFETY: no test installs this process-global handler; call it directly
+        // with our own pipe, restoring the startup value before dropping it.
+        let previous = unsafe { let old = CHILD_PIPE_W; CHILD_PIPE_W = fd; old };
+        // SAFETY: __errno_location returns this thread's live error cell.
+        let errno = unsafe {
+            extern "C" { fn __errno_location() -> *mut i32; }
+            __errno_location()
+        };
+        // SAFETY: simulate an interrupted syscall's error.
+        unsafe { *errno = 22; }
+        on_sigchld(SIGCHLD);
+        // SAFETY: the thread-local cell remains live, and restore the private fd.
+        let after = unsafe { let error = *errno; CHILD_PIPE_W = previous; error };
+        assert_eq!(after, 22);
+    }
 
     fn sh(script: &str) -> Vec<String> {
         vec!["/bin/sh".into(), "-c".into(), script.into()]

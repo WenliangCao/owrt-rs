@@ -83,8 +83,8 @@ the production binaries/configuration remain active and are checked afterwards.
 Explicitly authorized Wi-Fi management uses `--access wifi --interface enX`;
 it still verifies the active stack, configuration, namespace launcher and host
 health. Workload traffic stays on isolated loopback, and results are downloaded
-after each measurement. This option does not change the recovery requirements
-for deployment, live stack switching or flashing.
+after each measurement. Wi-Fi is also authorized for deployment and cold stack
+switching; offline backups, identities, rollback and client health remain required.
 `--sides stock candidate` compares only the original and the candidate. Preserve
 failed frozen-R84 trials separately; they cannot become successful baselines by
 dropping failed clients or averaging only their successful requests.
@@ -165,7 +165,7 @@ isolated mode is `OWRT_HTTPD_MEMORY=1`, with `memory-probe` in BUNDLE.
 ## Whole-system comparisons
 
 Physical cold switching uses `tools/r84_stack_switch.sh` and the detached Mac
-`tools/r84_window.py`. The latter checks the actual LAN interface, cable, all
+`tools/r84_window.py`. The latter checks the selected client interface, all
 nine identities, DHCP (or explicitly selected static addressing), DNS, IPv4/IPv6
 HTTPS, both AP bridges and the watchdog. It requires 180 seconds of continuous
 health and a final observation before confirming Rust. An unconfirmed Rust boot
@@ -173,7 +173,8 @@ restores all nine originals at 900 seconds; **a failure before the canary starts
 still requires physical failsafe recovery**.
 
 Prepare the release bundle and its checksum manifests, verify offline backups,
-and verify the human recovery conditions before any device mutation. Install
+and confirm that the recovery procedure is available. A LAN cable is not a
+deployment prerequisite under the current user authorization. Install
 the APKs with `--no-scripts --no-network --allow-untrusted` only after verifying
 the canonical artifact checksums. A controlled reboot activates the whole stack
 together. Test installation, staging and rollback first with:

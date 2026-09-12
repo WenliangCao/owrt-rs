@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Detached Mac orchestrator for an already prepared, authorized cold switch.
 
-Run only after the human recovery conditions and offline backups have been
-verified. This checks the cable and preflight again, stages the chosen stack,
+Run only after recovery artifacts and offline backups have been verified.
+Wi-Fi management is authorized; no LAN cable is required. This checks preflight, stages the chosen stack,
 requires a new boot and 180 seconds of continuous client health, and confirms
 Rust before its all-stock rollback deadline. It never restarts a live ubusd.
 """
@@ -34,7 +34,7 @@ def main():
     if args.result.exists():
         raise RuntimeError("refusing to overwrite a previous window result")
     health_args = dict(host=args.host, interface=args.interface, ipv6=not args.ipv4_only,
-                       static_client=args.static_client, recovery=True)
+                       static_client=args.static_client)
     pre = probe(mode="existing", **health_args)
     log("preflight_passed", probe=pre)
     # A failed stage raises here; it can never fall through into reboot.

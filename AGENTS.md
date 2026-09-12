@@ -14,6 +14,8 @@ This project is evidence-first:
   components unless concrete evidence justifies reconsideration.
 - Never modify or flash physical router state without a separate explicit user
   request and a verified recovery gate.
+- Wi-Fi management is authorized; a LAN cable is not a deployment prerequisite.
+  Verify offline backups, artifact identities, automatic rollback and client
+  health before confirming a deployment.
 - Keep firmware images, extracted files, device dumps, backups and secrets out
   of Git. Commit only tooling, manifests without secrets, and derived reports.
-

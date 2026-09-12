@@ -34,7 +34,7 @@ def ssh(host, command, timeout=12):
 
 
 def probe(host="openwrt", mode="existing", interface=None, ipv6=True,
-          static_client=False, recovery=False):
+          static_client=False):
     boot = ssh(host, "cat /proc/sys/kernel/random/boot_id")
     result = {"boot_id": boot, "mode": mode}
     require(re.fullmatch(r"[0-9a-f-]{36}", boot), "invalid boot identity")
@@ -55,9 +55,6 @@ def probe(host="openwrt", mode="existing", interface=None, ipv6=True,
     address = run(["ipconfig", "getifaddr", interface])
     require(ipaddress.ip_address(address) in ipaddress.ip_network("192.168.1.0/24"),
             "client is not on the expected router LAN")
-    if recovery:
-        require(ssh(host, "cat /sys/class/net/lan4/carrier") == "1", "lan4 recovery cable is not connected")
-        result["lan4_carrier"] = True
     if not static_client:
         leases = ssh(host, "cat /tmp/dhcp.leases")
         require(any(len(fields) >= 3 and fields[2] == address
@@ -144,11 +141,10 @@ def main():
     parser.add_argument("--interface")
     parser.add_argument("--ipv4-only", action="store_true")
     parser.add_argument("--static-client", action="store_true")
-    parser.add_argument("--recovery", action="store_true")
     args = parser.parse_args()
     try:
         print(json.dumps(probe(args.host, args.mode, args.interface, not args.ipv4_only,
-                               args.static_client, args.recovery), sort_keys=True))
+                               args.static_client), sort_keys=True))
     except (RuntimeError, OSError, ValueError, KeyError, http.client.HTTPException,
             subprocess.TimeoutExpired) as exc:
         print(json.dumps({"error": str(exc)}))

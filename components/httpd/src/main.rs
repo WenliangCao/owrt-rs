@@ -416,14 +416,16 @@ struct Server {
     connections: AtomicUsize,
     accept_lock: Mutex<()>,
     scripts: ScriptSlots,
+    output_buffers: Mutex<Vec<Vec<u8>>>,
     inventory: Option<Mutex<std::fs::File>>,
 }
 
 impl Server {
     fn serve(&self, stream: Box<dyn Stream>, conn: Conn) {
-        let client = RefCell::new(BufReader::new(stream));
+        // Header lines remain bounded and can span reads. Large body reads
+        // bypass BufReader's storage, so idle clients need no 8 KiB buffer.
+        let client = RefCell::new(BufReader::with_capacity(2048, stream));
         let network_timeout = Duration::from_secs(self.config.network_timeout.max(1));
-        let mut out = http::Out::new(&client, conn.fd, OUT_WINDOW, network_timeout);
         let mut heads = http::HeadBuffer::default();
         let mut requests = 0u64;
         loop {
@@ -452,20 +454,26 @@ impl Server {
                 Ok(ParseOutcome::Request(r)) => r,
                 Ok(ParseOutcome::Eof) | Err(_) => return,
                 Ok(ParseOutcome::Bad { code, summary, version, body }) => {
+                    let mut out = http::Out::new(&client, conn.fd, OUT_WINDOW, network_timeout);
                     self.reject(&mut out, code, summary, version, body);
                     let _ = Write::flush(&mut out);
                     return;
                 }
             };
+            // Idle connections hold no response window. Share a small bounded
+            // set between active requests, retaining initialized storage for
+            // file reads without allocating it per request or per idle client.
+            let buffer = self.output_buffers.lock().unwrap_or_else(|e| e.into_inner())
+                .pop().unwrap_or_else(|| Vec::with_capacity(512));
+            let mut out = http::Out::with_buffer(&client, conn.fd, OUT_WINDOW, network_timeout, buffer);
             if request.expect_continue && client.borrow_mut().get_mut().write_all(b"HTTP/1.1 100 Continue\r\n\r\n").is_err() {
                 return;
             }
             // The body is decoded on demand: CGI streams it straight to the
             // script's stdin, so an upload never has to fit in memory first.
             let mut body = http::BodyReader::new(&client, &request);
-            // Stream through a bounded window and reuse its allocation on
-            // this connection. finish_request drains all bytes and bounds
-            // retained capacity before another request can use it.
+            // finish_request drains every byte and bounds retained capacity
+            // before this window can be returned to the shared free list.
             let close;
             {
                 let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
@@ -476,6 +484,13 @@ impl Server {
             }
             if out.finish_request().is_err() {
                 return;
+            }
+            {
+                let buffer = out.into_buffer();
+                let mut buffers = self.output_buffers.lock().unwrap_or_else(|e| e.into_inner());
+                if buffers.len() < 8 {
+                    buffers.push(buffer);
+                }
             }
             // A handler that ignored the body leaves the connection out of sync
             // unless the rest is drained; give up on anything larger.
@@ -690,13 +705,14 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
         };
         server.connections.fetch_add(1, Ordering::Relaxed);
         drop(guard);
-        let server = Arc::clone(&server);
+        let worker = Arc::clone(&server);
         let tls = tls.clone();
         let local = stream
             .local_addr()
             .or(local.ok_or(io::Error::other("no local addr")))
             .unwrap_or_else(|_| SocketAddr::from(([0, 0, 0, 0], 0)));
-        std::thread::spawn(move || {
+        if let Err(error) = std::thread::Builder::new().spawn(move || {
+            let server = worker;
             let fd = stream.as_raw_fd();
             let timeout = Duration::from_secs(server.config.network_timeout.max(1));
             let _ = stream.set_read_timeout(Some(timeout));
@@ -713,7 +729,13 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
                 }
             }
             server.connections.fetch_sub(1, Ordering::Relaxed);
-        });
+        }) {
+            // The failed spawn drops its closure and accepted socket. Release
+            // the reserved slot too, and keep the listener alive under pressure.
+            server.connections.fetch_sub(1, Ordering::Relaxed);
+            let _ = writeln!(std::io::stderr().lock(), "httpd-rs: cannot create connection thread: {error}");
+            std::thread::sleep(Duration::from_millis(50));
+        }
     }
 }
 
@@ -772,6 +794,7 @@ fn main() {
         connections: AtomicUsize::new(0),
         accept_lock: Mutex::new(()),
         scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: config.max_script_requests },
+        output_buffers: Mutex::new(Vec::new()),
         inventory: inventory.map(Mutex::new),
         config,
     });

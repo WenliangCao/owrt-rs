@@ -49,7 +49,7 @@ def main():
         return subprocess.run(ssh_args + [command], check=True, capture_output=True,
                               timeout=timeout).stdout
 
-    pre = probe(host=args.host, mode=args.host_mode, interface=args.interface, recovery=True)
+    pre = probe(host=args.host, mode=args.host_mode, interface=args.interface)
     (out / "health-before.json").write_text(json.dumps(pre, indent=2) + "\n")
     identity = ssh("/bin/sh /root/r84/stack-switch.sh verify " + args.host_mode)
     (out / "host-running-hashes.txt").write_bytes(identity)
@@ -102,7 +102,7 @@ def main():
                 raise RuntimeError("router rebooted during component measurement")
             (local / "COMPLETE").touch()
             event("component_complete", component=component, implementation=impl, index=index)
-        post = probe(host=args.host, mode=args.host_mode, interface=args.interface, recovery=True)
+        post = probe(host=args.host, mode=args.host_mode, interface=args.interface)
         (out / component / "host-health.json").write_text(json.dumps(post, indent=2) + "\n")
         if post["boot_id"] != pre["boot_id"]:
             raise RuntimeError("host boot changed between component runs")

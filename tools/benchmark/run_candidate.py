@@ -29,8 +29,8 @@ def main():
     parser.add_argument("--component", choices=("httpd", "rpcd", "procd", "ubusd", "netifd"), default="httpd")
     parser.add_argument("output", type=Path)
     parser.add_argument("--interface", required=True)
-    parser.add_argument("--access", choices=("wired", "wifi"), default="wired",
-                        help="management path; wifi requires the user's explicit wireless-test authorization")
+    parser.add_argument("--access", choices=("wired", "wifi"), default="wifi",
+                        help="management path recorded with the measurements; both are authorized")
     parser.add_argument("--host", default="openwrt")
     parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
     parser.add_argument("--iterations", type=int, default=10000)
@@ -67,9 +67,7 @@ def main():
     def save(name, value):
         (out / name).write_text(json.dumps(value, indent=2) + "\n")
 
-    # Wireless access is explicitly authorized for isolated component experiments.
-    # This does not alter the recovery gate for stack switching or deployment.
-    pre = probe(host=args.host, mode="rust", interface=args.interface, recovery=args.access == "wired")
+    pre = probe(host=args.host, mode="rust", interface=args.interface)
     save("health-before.json", pre)
     identity = ssh("/bin/sh /root/r84/stack-switch.sh verify rust")
     (out / "host-running-hashes.txt").write_bytes(identity)
@@ -159,7 +157,7 @@ def main():
             raise RuntimeError("host boot changed")
         (local / "COMPLETE").touch()
         print(json.dumps({"event": "complete", "side": side, "index": index}), flush=True)
-    post = probe(host=args.host, mode="rust", interface=args.interface, recovery=args.access == "wired")
+    post = probe(host=args.host, mode="rust", interface=args.interface)
     save("health-after.json", post)
     after = ssh("sha256sum /etc/config/*")
     (out / "config-after.sha256").write_bytes(after)

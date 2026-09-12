@@ -196,6 +196,34 @@ pub fn lookup_group(name: &str) -> Option<u32> {
 mod tests {
     use super::*;
 
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn full_sigchld_pipe_preserves_the_interrupted_error() {
+        use std::os::fd::AsRawFd;
+        extern "C" {
+            fn write(fd: i32, bytes: *const u8, length: usize) -> isize;
+            fn __errno_location() -> *mut i32;
+        }
+        let (_read, write_end) = owrt_ubus::sys::pipe().unwrap();
+        let fd = write_end.as_raw_fd();
+        owrt_ubus::sys::set_nonblocking(fd).unwrap();
+        let bytes = [0u8; 4096];
+        // SAFETY: the pipe and stack buffer stay live; O_NONBLOCK bounds writes.
+        while unsafe { write(fd, bytes.as_ptr(), bytes.len()) } > 0 {}
+        assert_eq!(io::Error::last_os_error().kind(), io::ErrorKind::WouldBlock);
+        // Call the handler directly, without changing the process signal disposition.
+        let previous = SIGCHLD_WAKEUP.swap(fd, std::sync::atomic::Ordering::SeqCst);
+        // SAFETY: __errno_location returns this thread's live errno cell.
+        let errno = unsafe { __errno_location() };
+        // SAFETY: save an interrupted error before the real handler's EAGAIN.
+        unsafe { *errno = 22; }
+        sigchld_signal(17);
+        // SAFETY: the thread-local cell remains valid.
+        let after = unsafe { *errno };
+        SIGCHLD_WAKEUP.store(previous, std::sync::atomic::Ordering::SeqCst);
+        assert_eq!(after, 22);
+    }
+
     #[test]
     fn an_unknown_limit_is_a_no_op_not_an_error() {
         assert!(apply_limit("no-such-limit", "1234").is_ok());
@@ -798,6 +826,13 @@ extern "C" fn sigchld_signal(_sig: i32) {
     extern "C" {
         fn write(fd: i32, buf: *const u8, n: usize) -> isize;
     }
+    #[cfg(target_os = "linux")]
+    // SAFETY: errno is thread-local and must survive an asynchronous handler.
+    let (errno, saved_errno) = unsafe {
+        extern "C" { fn __errno_location() -> *mut i32; }
+        let errno = __errno_location();
+        (errno, *errno)
+    };
     CHILD_EXIT_PENDING.store(true, std::sync::atomic::Ordering::Relaxed);
     let fd = SIGCHLD_WAKEUP.load(std::sync::atomic::Ordering::Relaxed);
     if fd >= 0 {
@@ -805,6 +840,9 @@ extern "C" fn sigchld_signal(_sig: i32) {
         // (EAGAIN) already means a wakeup is pending.
         unsafe { write(fd, b"c".as_ptr(), 1) };
     }
+    #[cfg(target_os = "linux")]
+    // SAFETY: the pointer still names this thread's errno cell.
+    unsafe { *errno = saved_errno; }
 }
 
 pub fn take_child_exit_pending() -> bool {

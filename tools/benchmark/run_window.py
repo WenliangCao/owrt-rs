@@ -58,7 +58,7 @@ def main():
     def write_json(name, value):
         (out / name).write_text(json.dumps(value, indent=2) + "\n")
 
-    pre = probe(host=args.host, mode=args.mode, interface=args.interface, recovery=True)
+    pre = probe(host=args.host, mode=args.mode, interface=args.interface)
     if pre["boot_id"] != health["post"]["boot_id"]:
         raise RuntimeError("boot changed since health verification")
     write_json("resume-preflight.json" if args.resume_live else "preflight.json", pre)
@@ -172,7 +172,7 @@ def main():
             for concurrency in (1, 4):
                 label = "tls-common-" + ("fresh" if fresh else "keepalive") + "-c" + str(concurrency)
                 measure_tls(label, fresh, concurrency, "ECDHE-ECDSA-AES256-GCM-SHA384")
-    post = probe(host=args.host, mode=args.mode, interface=args.interface, recovery=True)
+    post = probe(host=args.host, mode=args.mode, interface=args.interface)
     if post["boot_id"] != pre["boot_id"]:
         raise RuntimeError("router rebooted during benchmark")
     write_json("postflight.json", post)
