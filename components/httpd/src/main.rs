@@ -1,7 +1,10 @@
 //! httpd-rs: contract C3 compatible uhttpd replacement.
 //!
 //! Accepts uhttpd's command line so the stock init script arguments work
-//! unchanged. One thread per connection; blocking I/O; TLS via rustls.
+//! unchanged. Blocking I/O on one thread per *active* connection; a keep-alive
+//! connection that goes quiet is parked on its listener's poll set and its
+//! thread released, so idle clients cost a descriptor and a few bytes rather
+//! than a stack. TLS via rustls.
 
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -19,10 +22,10 @@ use std::borrow::Cow;
 use std::io::{self, BufReader, Read, Write};
 use std::cell::RefCell;
 use std::os::fd::{AsRawFd, FromRawFd, RawFd};
-use std::net::{IpAddr, SocketAddr, TcpListener};
+use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 struct Config {
     docroot: String,
@@ -369,10 +372,104 @@ struct Conn {
     fd: RawFd,
 }
 
-trait Stream: Read + Write + Send {}
-impl<T: Read + Write + Send> Stream for T {}
+/// The client socket, plain or wrapped in TLS. An enum rather than a trait
+/// object so a parked connection can be inspected: whether TLS still holds
+/// decrypted bytes or owes the peer a write decides if it may be parked.
+/// The TLS variant is large; boxing it would only add an allocation to a
+/// connection that already owns rustls's buffers.
+#[allow(clippy::large_enum_variant)]
+enum Transport {
+    Plain(TcpStream),
+    Tls(rustls::StreamOwned<rustls::ServerConnection, TcpStream>),
+}
 
-type Client = BufReader<Box<dyn Stream>>;
+impl Transport {
+    fn tcp(&self) -> &TcpStream {
+        match self {
+            Transport::Plain(s) => s,
+            Transport::Tls(s) => &s.sock,
+        }
+    }
+
+    /// True when a read would not have to touch the socket first -- TLS
+    /// plaintext already decrypted -- or when TLS still has records to send.
+    /// Such a connection must stay on its thread; the poll set only watches
+    /// the socket.
+    fn busy(&mut self) -> bool {
+        match self {
+            Transport::Plain(_) => false,
+            Transport::Tls(s) => {
+                s.conn.wants_write()
+                    || s.conn.process_new_packets().map(|st| st.plaintext_bytes_to_read() > 0).unwrap_or(true)
+            }
+        }
+    }
+}
+
+impl Read for Transport {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        match self {
+            Transport::Plain(s) => s.read(buf),
+            Transport::Tls(s) => s.read(buf),
+        }
+    }
+}
+
+impl Write for Transport {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self {
+            Transport::Plain(s) => s.write(buf),
+            Transport::Tls(s) => s.write(buf),
+        }
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        match self {
+            Transport::Plain(s) => s.flush(),
+            Transport::Tls(s) => s.flush(),
+        }
+    }
+}
+
+type Client = BufReader<Transport>;
+
+/// How long a connection keeps its thread waiting for the first byte of a
+/// request before it is parked. A client in a request loop answers well
+/// inside this and never pays for a handoff; a browser between clicks does
+/// not, and gives the stack back. Must stay well under the 200 ms at which
+/// the resident memory check samples.
+const LINGER: Duration = Duration::from_millis(50);
+
+/// A keep-alive connection between requests, held by its listener's poll set
+/// with no thread, read buffer or parser storage attached.
+struct Parked {
+    transport: Transport,
+    conn: Conn,
+    /// End of the keep-alive wait that began when the last response was
+    /// sent (uh_keepalive_poll_cb's timer). The head deadline resumes here.
+    deadline: Instant,
+}
+
+/// Where connection threads leave parked connections for their listener.
+struct Parking {
+    inbox: Mutex<Vec<Parked>>,
+    /// Non-blocking write end of the listener's wake pipe; a byte interrupts
+    /// its poll.
+    wake: std::fs::File,
+}
+
+impl Parking {
+    fn park(&self, parked: Parked) {
+        self.inbox.lock().unwrap_or_else(|e| e.into_inner()).push(parked);
+        // A full pipe already guarantees a wakeup.
+        let _ = (&self.wake).write(&[1]);
+    }
+}
+
+/// What a connection thread did with its connection when it returned.
+enum Outcome {
+    Closed,
+    Parked,
+}
 
 /// Put the client socket in (non-)blocking mode for the duration of a handler
 /// that drives readiness itself. The fd stays owned by the connection.
@@ -421,24 +518,24 @@ struct Server {
 }
 
 impl Server {
-    fn serve(&self, stream: Box<dyn Stream>, conn: Conn) {
+    /// Drive one connection until it closes or is parked. `resume` is the
+    /// keep-alive deadline of a connection taken back from the poll set.
+    fn run_connection(&self, transport: Transport, conn: Conn, parking: &Parking, resume: Option<Instant>) -> Outcome {
         // Keep the established read-ahead at oversized request boundaries;
         // reducing it can leave unread TCP bytes and turn a 413 into a reset.
-        let client = RefCell::new(BufReader::new(stream));
+        let client = RefCell::new(BufReader::new(transport));
         let network_timeout = Duration::from_secs(self.config.network_timeout.max(1));
+        let keepalive = Duration::from_secs(u64::from(self.config.http_keepalive).max(1));
         let mut heads = http::HeadBuffer::default();
-        let mut requests = 0u64;
+        // uh_keepalive_poll_cb (client.c:110-117): one deadline covers the
+        // whole head, network_timeout for the first request on the
+        // connection and http_keepalive for the ones after it. Without it
+        // a client that dribbles one byte per read holds its slot forever.
+        let mut head_deadline = resume.unwrap_or_else(|| Instant::now() + network_timeout);
         loop {
-            // uh_keepalive_poll_cb (client.c:110-117): one deadline covers the
-            // whole head, network_timeout for the first request on the
-            // connection and http_keepalive for the ones after it. Without it
-            // a client that dribbles one byte per read holds its slot forever.
-            let budget = if requests == 0 {
-                network_timeout
-            } else {
-                Duration::from_secs(u64::from(self.config.http_keepalive).max(1))
-            };
-            let deadline = http::HeadDeadline::new(conn.fd, budget);
+            // The first read of every head waits at most LINGER on this
+            // thread; an idle connection is then parked with its deadline.
+            let deadline = http::HeadDeadline::until(conn.fd, head_deadline).with_linger(LINGER);
             // Bind the outcome first: a `borrow_mut()` in the scrutinee stays
             // alive for the whole match, and the reject arm needs the stream.
             let outcome = heads.read_request(
@@ -449,15 +546,25 @@ impl Server {
             // client_parse_header cancels the timeout on the blank line
             // (client.c:372): the body and the response get the full budget.
             let _ = set_read_timeout(conn.fd, network_timeout);
-            requests += 1;
             let mut request = match outcome {
                 Ok(ParseOutcome::Request(r)) => r,
-                Ok(ParseOutcome::Eof) | Err(_) => return,
+                Ok(ParseOutcome::Eof) | Err(_) => return Outcome::Closed,
+                Ok(ParseOutcome::Idle) => {
+                    // TLS may still owe the peer a write or hold plaintext
+                    // that the socket cannot signal; keep such a connection.
+                    if client.borrow_mut().get_mut().busy() {
+                        continue;
+                    }
+                    // No byte was read, so no read-ahead is lost with the reader.
+                    let transport = client.into_inner().into_inner();
+                    parking.park(Parked { transport, conn, deadline: head_deadline });
+                    return Outcome::Parked;
+                }
                 Ok(ParseOutcome::Bad { code, summary, version, body }) => {
                     let mut out = http::Out::new(&client, conn.fd, OUT_WINDOW, network_timeout);
                     self.reject(&mut out, code, summary, version, body);
                     let _ = Write::flush(&mut out);
-                    return;
+                    return Outcome::Closed;
                 }
             };
             // Idle connections hold no response window. Share a small bounded
@@ -467,7 +574,7 @@ impl Server {
                 .pop().unwrap_or_else(|| Vec::with_capacity(512));
             let mut out = http::Out::with_buffer(&client, conn.fd, OUT_WINDOW, network_timeout, buffer);
             if request.expect_continue && client.borrow_mut().get_mut().write_all(b"HTTP/1.1 100 Continue\r\n\r\n").is_err() {
-                return;
+                return Outcome::Closed;
             }
             // The body is decoded on demand: CGI streams it straight to the
             // script's stdin, so an upload never has to fit in memory first.
@@ -478,12 +585,12 @@ impl Server {
             {
                 let mut resp = Response::new(&mut out, &request, self.config.http_keepalive);
                 if self.dispatch(&mut request, &mut body, &mut resp, conn).is_err() {
-                    return;
+                    return Outcome::Closed;
                 }
                 close = resp.connection_close();
             }
             if out.finish_request().is_err() {
-                return;
+                return Outcome::Closed;
             }
             {
                 let buffer = out.into_buffer();
@@ -498,9 +605,10 @@ impl Server {
                 || self.config.http_keepalive == 0
                 || (!body.reusable() && !body.drain(MAX_DRAIN))
             {
-                return;
+                return Outcome::Closed;
             }
             heads.recycle(request);
+            head_deadline = Instant::now() + keepalive;
         }
     }
 
@@ -670,25 +778,72 @@ impl Server {
     }
 }
 
+/// One listener: accepts, and holds the keep-alive connections its threads
+/// have parked, waking one only when its socket reports input, a hangup or
+/// its keep-alive deadline.
 fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustls::ServerConfig>>) {
     let local = listener.local_addr().ok();
     if listener.set_nonblocking(true).is_err() { return; }
     set_tcp_keepalive(listener.as_raw_fd(), server.config.tcp_keepalive);
+    let Ok((wake_r, wake_w)) = owrt_ubus::sys::pipe() else { return };
+    if owrt_ubus::sys::set_nonblocking(wake_r.as_raw_fd()).is_err()
+        || owrt_ubus::sys::set_nonblocking(wake_w.as_raw_fd()).is_err() {
+        return;
+    }
+    let (wake_r, wake_w): (std::fs::File, std::fs::File) = (wake_r.into(), wake_w.into());
+    let parking = Arc::new(Parking { inbox: Mutex::new(Vec::new()), wake: wake_w });
+    let mut parked: Vec<Parked> = Vec::new();
+    let mut fds: Vec<owrt_ubus::sys::PollFd> = Vec::new();
+    let poll_in = |fd: RawFd| owrt_ubus::sys::PollFd { fd, events: owrt_ubus::sys::POLLIN, revents: 0 };
     loop {
+        parked.append(&mut parking.inbox.lock().unwrap_or_else(|e| e.into_inner()));
+        // uhttpd closes a keep-alive connection whose timer ran out without
+        // answering (client_timeout, client.c:95).
+        let now = Instant::now();
+        parked.retain(|p| {
+            let live = p.deadline > now;
+            if !live {
+                server.connections.fetch_sub(1, Ordering::Relaxed);
+            }
+            live
+        });
         // listen.c:95 + uh_poll_listeners: at the cap uhttpd takes the listener
         // out of uloop and re-arms it once a client goes away, so further
         // connection attempts wait in the backlog instead of being accepted and
         // dropped. `-N 0` disables the cap entirely (`conf.max_connections &&`).
-        if server.config.max_connections > 0
-            && server.connections.load(Ordering::Relaxed) >= server.config.max_connections
-        {
-            std::thread::sleep(Duration::from_millis(50));
+        let at_cap = server.config.max_connections > 0
+            && server.connections.load(Ordering::Relaxed) >= server.config.max_connections;
+        fds.clear();
+        fds.push(poll_in(wake_r.as_raw_fd()));
+        if !at_cap {
+            fds.push(poll_in(listener.as_raw_fd()));
+        }
+        let first_parked = fds.len();
+        fds.extend(parked.iter().map(|p| poll_in(p.conn.fd)));
+        let mut timeout = parked
+            .iter()
+            .map(|p| p.deadline.saturating_duration_since(now).as_millis().clamp(1, i32::MAX as u128) as i32)
+            .min()
+            .unwrap_or(-1);
+        if at_cap {
+            // No listener in the set: look again shortly for a freed slot.
+            timeout = if timeout < 0 { 50 } else { timeout.min(50) };
+        }
+        if owrt_ubus::sys::poll_fds(&mut fds, timeout).is_err() { continue; }
+        if fds[0].revents != 0 {
+            let mut drain = [0u8; 64];
+            while matches!((&wake_r).read(&mut drain), Ok(n) if n > 0) {}
+        }
+        // Back to front so swap_remove never disturbs an index still to check.
+        for i in (0..parked.len()).rev() {
+            if fds[first_parked + i].revents != 0 {
+                let p = parked.swap_remove(i);
+                resume(&server, &parking, p);
+            }
+        }
+        if at_cap || fds[1].revents & owrt_ubus::sys::POLLIN == 0 {
             continue;
         }
-        let mut fds = [owrt_ubus::sys::PollFd {
-            fd: listener.as_raw_fd(), events: owrt_ubus::sys::POLLIN, revents: 0,
-        }];
-        if owrt_ubus::sys::poll_fds(&mut fds, -1).is_err() { continue; }
         // All listeners share the cap. The lock covers nonblocking accept and
         // increment together, so HTTP and HTTPS cannot both claim the last slot.
         let guard = server.accept_lock.lock().unwrap_or_else(|e| e.into_inner());
@@ -705,37 +860,57 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
         };
         server.connections.fetch_add(1, Ordering::Relaxed);
         drop(guard);
-        let worker = Arc::clone(&server);
-        let tls = tls.clone();
         let local = stream
             .local_addr()
             .or(local.ok_or(io::Error::other("no local addr")))
             .unwrap_or_else(|_| SocketAddr::from(([0, 0, 0, 0], 0)));
-        if let Err(error) = std::thread::Builder::new().spawn(move || {
-            let server = worker;
-            let fd = stream.as_raw_fd();
-            let timeout = Duration::from_secs(server.config.network_timeout.max(1));
-            let _ = stream.set_read_timeout(Some(timeout));
-            let _ = stream.set_write_timeout(Some(timeout));
-            let _ = stream.set_nodelay(true);
-            match tls {
-                None => server.serve(Box::new(stream), Conn { local, remote, tls: false, fd }),
-                Some(config) => {
-                    if let Ok(mut conn) = rustls::ServerConnection::new(config) {
-                        conn.set_buffer_limit(Some(16 * 1024));
-                        let tls_stream = rustls::StreamOwned::new(conn, stream);
-                        server.serve(Box::new(tls_stream), Conn { local, remote, tls: true, fd });
-                    }
+        let fd = stream.as_raw_fd();
+        let timeout = Duration::from_secs(server.config.network_timeout.max(1));
+        let _ = stream.set_read_timeout(Some(timeout));
+        let _ = stream.set_write_timeout(Some(timeout));
+        let _ = stream.set_nodelay(true);
+        let conn = Conn { local, remote, tls: tls.is_some(), fd };
+        let transport = match &tls {
+            None => Transport::Plain(stream),
+            Some(config) => match rustls::ServerConnection::new(Arc::clone(config)) {
+                Ok(mut c) => {
+                    c.set_buffer_limit(Some(16 * 1024));
+                    Transport::Tls(rustls::StreamOwned::new(c, stream))
                 }
-            }
+                Err(_) => {
+                    server.connections.fetch_sub(1, Ordering::Relaxed);
+                    continue;
+                }
+            },
+        };
+        spawn_connection(&server, &parking, transport, conn, None);
+    }
+}
+
+/// A parked connection's socket reported something. A closed peer is the
+/// usual reason and is answered here; anything else gets a thread again.
+fn resume(server: &Arc<Server>, parking: &Arc<Parking>, p: Parked) {
+    match p.transport.tcp().peek(&mut [0u8; 1]) {
+        Ok(0) | Err(_) => {
             server.connections.fetch_sub(1, Ordering::Relaxed);
-        }) {
-            // The failed spawn drops its closure and accepted socket. Release
-            // the reserved slot too, and keep the listener alive under pressure.
-            server.connections.fetch_sub(1, Ordering::Relaxed);
-            let _ = writeln!(std::io::stderr().lock(), "httpd-rs: cannot create connection thread: {error}");
-            std::thread::sleep(Duration::from_millis(50));
         }
+        Ok(_) => spawn_connection(server, parking, p.transport, p.conn, Some(p.deadline)),
+    }
+}
+
+fn spawn_connection(server: &Arc<Server>, parking: &Arc<Parking>, transport: Transport, conn: Conn, resume: Option<Instant>) {
+    let worker = Arc::clone(server);
+    let parking = Arc::clone(parking);
+    if let Err(error) = std::thread::Builder::new().spawn(move || {
+        if let Outcome::Closed = worker.run_connection(transport, conn, &parking, resume) {
+            worker.connections.fetch_sub(1, Ordering::Relaxed);
+        }
+    }) {
+        // The failed spawn drops its closure and the socket. Release the
+        // reserved slot too, and keep the listener alive under pressure.
+        server.connections.fetch_sub(1, Ordering::Relaxed);
+        let _ = writeln!(std::io::stderr().lock(), "httpd-rs: cannot create connection thread: {error}");
+        std::thread::sleep(Duration::from_millis(50));
     }
 }
 
@@ -798,15 +973,10 @@ fn main() {
         inventory: inventory.map(Mutex::new),
         config,
     });
-    let mut handles = Vec::new();
+    let mut listeners = Vec::new();
     for spec in &server.config.http {
         match bind(spec) {
-            Ok(listener) => {
-                let server = Arc::clone(&server);
-                handles.push(std::thread::spawn(move || {
-                    accept_loop(server, listener, None)
-                }));
-            }
+            Ok(listener) => listeners.push((listener, None)),
             Err(error) => {
                 eprintln!("httpd-rs: cannot bind {spec}: {error}");
                 std::process::exit(1);
@@ -816,13 +986,7 @@ fn main() {
     if let Some(tls_config) = tls_config {
         for spec in &server.config.https {
             match bind(spec) {
-                Ok(listener) => {
-                    let server = Arc::clone(&server);
-                    let tls_config = Arc::clone(&tls_config);
-                    handles.push(std::thread::spawn(move || {
-                        accept_loop(server, listener, Some(tls_config))
-                    }));
-                }
+                Ok(listener) => listeners.push((listener, Some(Arc::clone(&tls_config)))),
                 Err(error) => {
                     eprintln!("httpd-rs: cannot bind {spec}: {error}");
                     std::process::exit(1);
@@ -830,10 +994,18 @@ fn main() {
             }
         }
     }
-    if handles.is_empty() {
+    let Some(last) = listeners.pop() else {
         eprintln!("httpd-rs: nothing to listen on");
         std::process::exit(1);
+    };
+    let mut handles = Vec::new();
+    for (listener, tls) in listeners {
+        let server = Arc::clone(&server);
+        handles.push(std::thread::spawn(move || accept_loop(server, listener, tls)));
     }
+    // The main thread serves the last listener itself rather than only
+    // waiting: one thread fewer at idle, as uhttpd's single loop has.
+    accept_loop(Arc::clone(&server), last.0, last.1);
     for handle in handles {
         let _ = handle.join();
     }

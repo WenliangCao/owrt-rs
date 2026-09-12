@@ -120,6 +120,9 @@ pub enum ParseOutcome {
     /// the `<h1>summary</h1>` body (request-line errors) or none (header
     /// errors, `uh_header_error`).
     Bad { code: u16, summary: &'static str, version: Version, body: bool },
+    /// No byte of a head arrived within the deadline's linger: the connection
+    /// is idle and may be parked. Only produced with `HeadDeadline::linger`.
+    Idle,
 }
 
 fn bad_line(code: u16, summary: &'static str) -> ParseOutcome {
@@ -191,11 +194,31 @@ fn classify_ua(value: &str) -> Option<UserAgent> {
 pub struct HeadDeadline {
     fd: RawFd,
     at: Instant,
+    /// How long the first read of a head may wait before the caller is told
+    /// the connection is idle. The deadline itself is unchanged by it.
+    linger: Option<Duration>,
 }
 
 impl HeadDeadline {
+    /// A budget counted from now. The server itself always resumes an
+    /// earlier instant (`until`); the profiler and tests start fresh.
+    #[allow(dead_code)]
     pub fn new(fd: RawFd, budget: Duration) -> Self {
-        HeadDeadline { fd, at: Instant::now() + budget }
+        Self::until(fd, Instant::now() + budget)
+    }
+
+    /// A deadline that started earlier: a keep-alive wait that began before
+    /// the connection was parked keeps its original end.
+    pub fn until(fd: RawFd, at: Instant) -> Self {
+        HeadDeadline { fd, at, linger: None }
+    }
+
+    /// Report `ParseOutcome::Idle` instead of waiting the whole budget when
+    /// no byte arrives within `linger`. Costs nothing extra: the first read
+    /// already arms the socket timeout, it is just armed shorter.
+    pub fn with_linger(mut self, linger: Duration) -> Self {
+        self.linger = Some(linger);
+        self
     }
 
     fn remaining(&self) -> io::Result<Duration> {
@@ -207,8 +230,22 @@ impl HeadDeadline {
         Ok(left)
     }
 
-    fn arm(&self) -> io::Result<()> {
-        crate::set_read_timeout(self.fd, self.remaining()?)
+    fn arm(&self, first_byte: bool) -> io::Result<()> {
+        let mut wait = self.remaining()?;
+        if let (true, Some(linger)) = (first_byte, self.linger) {
+            wait = wait.min(linger);
+        }
+        crate::set_read_timeout(self.fd, wait)
+    }
+
+    /// A read timed out before any byte of the head: idle if budget remains,
+    /// the usual timeout error otherwise.
+    fn idle(&self) -> io::Result<HeadLine> {
+        if self.linger.is_none() {
+            return Err(io::Error::new(io::ErrorKind::TimedOut, "request header timeout"));
+        }
+        self.remaining()?;
+        Ok(HeadLine::Idle)
     }
 }
 
@@ -220,6 +257,8 @@ enum HeadLine {
     Eof,
     /// The line exceeded the cap before a newline arrived.
     TooLong,
+    /// Nothing arrived within the deadline's linger (first line only).
+    Idle,
 }
 
 /// Read one line (up to and including LF) into `raw`, buffering at most
@@ -230,13 +269,16 @@ fn read_head_line<R: Read>(
     raw: &mut Vec<u8>,
     max: usize,
     deadline: Option<&HeadDeadline>,
+    first_line: bool,
 ) -> io::Result<HeadLine> {
     raw.clear();
     loop {
+        // No byte of this head has arrived yet: the linger, if any, applies.
+        let first_byte = first_line && raw.is_empty();
         if let Some(deadline) = deadline {
             if reader.buffer().is_empty() {
                 // Only fill_buf on an empty buffer can read the transport.
-                deadline.arm()?;
+                deadline.arm(first_byte)?;
             } else {
                 // Buffered or pipelined input must still obey the same
                 // whole-head deadline; it just needs no socket option.
@@ -248,6 +290,15 @@ fn read_head_line<R: Read>(
             // Concurrent CGI activity can interrupt a socket read. Keep the
             // partial line and recheck the original deadline before retrying.
             Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error)
+                if first_byte
+                    && matches!(error.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut) =>
+            {
+                return match deadline {
+                    Some(deadline) => deadline.idle(),
+                    None => Err(error),
+                };
+            }
             Err(error) => return Err(error),
         };
         if chunk.is_empty() {
@@ -331,14 +382,18 @@ fn read_request_into<R: Read>(
     raw: &mut Vec<u8>,
     spare: Option<Request>,
 ) -> io::Result<ParseOutcome> {
+    let mut first_line = true;
     loop {
-        match read_head_line(reader, raw, 4096, deadline)? {
+        match read_head_line(reader, raw, 4096, deadline, first_line)? {
             HeadLine::Eof => return Ok(ParseOutcome::Eof),
+            HeadLine::Idle => return Ok(ParseOutcome::Idle),
             HeadLine::TooLong => {
                 return Ok(bad_line(413, "Request Entity Too Large"))
             }
             HeadLine::Line => {}
         }
+        // A stray blank line is input: from here on the whole budget applies.
+        first_line = false;
         if raw.as_slice() == b"\r\n" || raw.as_slice() == b"\n" {
             continue;
         }
@@ -389,12 +444,12 @@ fn read_request_into<R: Read>(
     let mut transfer_encodings = 0;
     let mut ua = None;
     loop {
-        match read_head_line(reader, raw, 4096, deadline)? {
+        match read_head_line(reader, raw, 4096, deadline, false)? {
             HeadLine::Eof => return Ok(bad_header(400, "Bad Request", version)),
             HeadLine::TooLong => {
                 return Ok(bad_header(413, "Request Entity Too Large", version))
             }
-            HeadLine::Line => {}
+            HeadLine::Line | HeadLine::Idle => {}
         }
         let line = String::from_utf8_lossy(raw);
         let trimmed = line.trim_end_matches(['\r', '\n']);
@@ -1279,10 +1334,63 @@ mod tests {
         let raw = b"GET / HTTP/1.1\r\nHost: x\r\n\r\n";
         let mut input = BufReader::new(io::Cursor::new(raw));
         assert_eq!(input.fill_buf().unwrap(), raw);
-        let deadline = HeadDeadline { fd: -1, at: Instant::now() - Duration::from_secs(1) };
+        let deadline = HeadDeadline::until(-1, Instant::now() - Duration::from_secs(1));
         let error = read_request(&mut input, true, Some(&deadline)).err().expect("deadline ignored");
         assert_eq!(error.kind(), io::ErrorKind::TimedOut);
         assert_eq!(input.buffer(), raw);
+    }
+
+    #[test]
+    fn a_timed_out_first_read_is_idle_only_with_a_linger_and_budget_left() {
+        /// Times out on every read until `bytes` is set, then serves it.
+        struct Quiet { bytes: &'static [u8], timeouts: usize }
+        impl Read for Quiet {
+            fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+                if self.timeouts > 0 {
+                    self.timeouts -= 1;
+                    return Err(io::ErrorKind::WouldBlock.into());
+                }
+                let n = out.len().min(self.bytes.len());
+                out[..n].copy_from_slice(&self.bytes[..n]);
+                self.bytes = &self.bytes[n..];
+                Ok(n)
+            }
+        }
+        let head: &[u8] = b"GET /q HTTP/1.1\r\nHost: x\r\n\r\n";
+        // With a linger and budget left: idle, and nothing consumed.
+        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
+        let deadline = HeadDeadline::new(-1, Duration::from_secs(30)).with_linger(Duration::from_millis(50));
+        assert!(matches!(read_request(&mut input, true, Some(&deadline)).unwrap(), ParseOutcome::Idle));
+        assert!(input.buffer().is_empty());
+        // The same reader then delivers the request normally.
+        let ParseOutcome::Request(r) = read_request(&mut input, true, Some(&deadline)).unwrap() else { panic!() };
+        assert_eq!(r.url, "/q");
+        // Without a linger the timeout is the head timeout, as before.
+        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
+        let deadline = HeadDeadline::new(-1, Duration::from_secs(30));
+        assert_eq!(read_request(&mut input, true, Some(&deadline)).err().expect("timeout ignored").kind(), io::ErrorKind::TimedOut);
+        // With a linger but the budget gone: still the head timeout.
+        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
+        let deadline = HeadDeadline::until(-1, Instant::now() - Duration::from_secs(1)).with_linger(Duration::from_millis(50));
+        assert_eq!(read_request(&mut input, true, Some(&deadline)).err().expect("timeout ignored").kind(), io::ErrorKind::TimedOut);
+        // A timeout after part of the head arrived is never idle.
+        struct Partial { sent: bool }
+        impl Read for Partial {
+            fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+                if self.sent {
+                    return Err(io::ErrorKind::WouldBlock.into());
+                }
+                self.sent = true;
+                out[..4].copy_from_slice(b"GET ");
+                Ok(4)
+            }
+        }
+        let mut input = BufReader::new(Partial { sent: false });
+        let deadline = HeadDeadline::new(-1, Duration::from_secs(30)).with_linger(Duration::from_millis(50));
+        assert_eq!(read_request(&mut input, true, Some(&deadline)).err().expect("timeout ignored").kind(), io::ErrorKind::WouldBlock);
+        // No deadline at all: the error passes through untouched.
+        let mut input = BufReader::new(Quiet { bytes: head, timeouts: 1 });
+        assert_eq!(read_request(&mut input, true, None).err().expect("timeout ignored").kind(), io::ErrorKind::WouldBlock);
     }
 
     #[test]
