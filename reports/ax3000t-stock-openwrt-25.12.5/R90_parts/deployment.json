@@ -1,0 +1,81 @@
+{
+  "status": "complete",
+  "completed_at": "2026-09-13T21:18:36.805908+00:00",
+  "management_access": "wifi",
+  "client_interface": "en0",
+  "physical_deployment_completed": true,
+  "final_mode": "R90 Rust",
+  "canonical_runtime_commit": "ae51db4e453417184260c368f7d4d7a2727b133f",
+  "canonical_release_run": 34753661051,
+  "component_sha256": {
+    "fw4": "c8837ab990128efc30b993442ce73145a5c852cc2225ece1fb6b16d352d10cbf",
+    "httpd": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+    "logd": "a6f738144c561047bdd34188b084888ca5050ef01a7b7105a2b9f8d9152b975f",
+    "netifd": "e8a18c5bf3c2f07aca6704a97030e64ed760e2a41f9a0d0139cb797588c3f4b9",
+    "procd": "2720dc66876e0ea53b6dab75ff6bd827466563dce5030eac931f8a5b7c5a22ee",
+    "reload-config": "f38ffe36b404964ef53ca023167d3154f47139110c34c4e44435f9c198846ae4",
+    "rpcd": "a58c2f7039369c4dde7b0f0fdb45053c147f823c178651b1867c7843e3217a18",
+    "ubusd": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "uci": "1758125b86c80a1a09c2db55df83952f5cbef6542527f1de1f37a088cba115cf"
+  },
+  "recovery_gate_sha256": "ce73cc91b7b32c6b9b9692585310471f5515a9ed0e76da7beeff48937d503b15",
+  "offline_backup_verified": true,
+  "automatic_rollback_seconds": 900,
+  "pending_and_reverting_absent": true,
+  "deployment_archive_sha256": "ef6d41ce5963f2f812976a67aa04b3278bae9e9008c86ddfe27c19a634c32ae7",
+  "preparation_manifest_sha256": "176fd4f9e241b7535bb9022216ecc571d14c1a1d0994cb7430bd2bc15ff91710",
+  "preparation_manifest_preserved": true,
+  "previous_r89_bundle_preserved": true,
+  "configuration_unchanged": true,
+  "execution_plane_unchanged": true,
+  "generated_firewall_rules_unchanged": true,
+  "firewall_normalization": "Sort wan_subnets set members; membership identical, only arrival order differed",
+  "client_health": {
+    "client_dhcp": true,
+    "local_http_https": true,
+    "dns_https_ipv4": true,
+    "dns_https_ipv6": true,
+    "watchdog_running": true
+  },
+  "two_radios_and_ap_bridges_healthy": true,
+  "boots": [
+    {
+      "window": "r89-1",
+      "first_ssh_seconds": 40.23488270799862,
+      "confirmed_seconds": 262.2604137919989,
+      "health_observation_seconds": 183.37602295800752,
+      "final_observation_seconds": 30,
+      "health_sha256": "6888fa1c62083f36aa19a1cdfaa39fcde748b926cc682a1c37dae3d45d6f58a8",
+      "boot_id": "2c6eeeec-4281-478a-97ae-5f9b09e4b028"
+    },
+    {
+      "window": "r90-1",
+      "first_ssh_seconds": 40.253108207994956,
+      "confirmed_seconds": 262.4036385000072,
+      "health_observation_seconds": 183.61711945800926,
+      "final_observation_seconds": 30,
+      "health_sha256": "f055f2d8cbdb73af6eccc276e480d424bd0bc50c851b0774b0b257dfc8286437",
+      "boot_id": "83e63194-8c43-4f23-85a8-70a57fca5fc2"
+    },
+    {
+      "window": "r90-2",
+      "first_ssh_seconds": 40.234303667006316,
+      "confirmed_seconds": 262.8477333750052,
+      "health_observation_seconds": 183.88500712500536,
+      "final_observation_seconds": 30,
+      "health_sha256": "2c883a038f407c6525672f30be4191772f84ed5da2d2af3b94c54f6a1643f176",
+      "boot_id": "dd5a44a4-1362-4534-a14f-80021456a5f0"
+    }
+  ],
+  "measured_cold_windows": 2,
+  "final_r90_cold_boot_recheck": true,
+  "whole_measured_operations": 180780,
+  "isolated_measured_operations": 528000,
+  "isolated_workloads": 22,
+  "orchestrator_sha256": "b887f5efaa762ade9563e5cbdef2003510b31d7620e1be178465ce984979df0b",
+  "orchestrator_log_sha256": "b23fd2e4bd0ff2dd7a51492882e3c9ebd4cf1ad75911919535e5f77801fb71b6",
+  "final_health_sha256": "95ea557b58ed986ae0fd299aeb73b014b31e975c42498bf2d6a4e4a4d26fd690",
+  "task_stops_after_reporting": true,
+  "actual_rollback_timer_observed_before_confirmation": true,
+  "rollback_observation_sha256": "775301581930d89aa429074229b4a4ac6c7567dcc72e47b7bd1d640bdab1584a"
+}
