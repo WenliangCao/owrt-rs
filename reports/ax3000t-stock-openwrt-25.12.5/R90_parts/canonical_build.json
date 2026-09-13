@@ -1,0 +1,42 @@
+{
+  "source_commit": "ae51db4e453417184260c368f7d4d7a2727b133f",
+  "release_workflow": 34753661051,
+  "workflow_conclusion": "success",
+  "openwrt": "25.12.5",
+  "core_binary_sha256": {
+    "procd-rs": "2720dc66876e0ea53b6dab75ff6bd827466563dce5030eac931f8a5b7c5a22ee",
+    "ubusd-rs": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "netifd-rs": "e8a18c5bf3c2f07aca6704a97030e64ed760e2a41f9a0d0139cb797588c3f4b9"
+  },
+  "packaged_binary_sha256": {
+    "uci-rs": "1758125b86c80a1a09c2db55df83952f5cbef6542527f1de1f37a088cba115cf",
+    "fw4-rs": "c8837ab990128efc30b993442ce73145a5c852cc2225ece1fb6b16d352d10cbf",
+    "reload_config_rs": "f38ffe36b404964ef53ca023167d3154f47139110c34c4e44435f9c198846ae4",
+    "logd-rs": "a6f738144c561047bdd34188b084888ca5050ef01a7b7105a2b9f8d9152b975f",
+    "httpd-rs": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+    "rpcd-rs": "a58c2f7039369c4dde7b0f0fdb45053c147f823c178651b1867c7843e3217a18"
+  },
+  "core_archive_sha256": "a9cfa3ec9009e39afb4fdaca1b7494b0873438e1256443dde3f636e76db4b62a",
+  "image_manifest_sha256": "9d28ad1c215687ff5b23e490696f2def17313e308117065bfd60c66582b6471b",
+  "core_manifest_sha256": "93e54cddb382f9285a0cd2d6e5db096fdda25a0d437056e1e1a335872adc6576",
+  "unchanged_from_r89": [
+    "ubusd",
+    "fw4",
+    "httpd",
+    "logd",
+    "reload_config_rs",
+    "rpcd",
+    "uci"
+  ],
+  "artifact_sha256": {
+    "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin": "712aab120abfb98482266934ebd69bfdfcf2fff2098d1eb7a6fded9f6d14deb3",
+    "owrt-reload-config-0.2.0-r8.apk": "314ddfd217e68e21411e6cba625159c9a419a74f34703a72d26e98585d1c4dc2",
+    "owrt-rpcd-0.1.0-r18.apk": "cab948f87b63baa9e2852b80134cd1ed6704b185c0bfaeaebc7a5c7de24a470a",
+    "owrt-httpd-0.1.1-r13.apk": "0e97a24cc722b16e902a74c1482a9b76cc8836d36de9382effa7559abb64efb6",
+    "owrt-uci-0.1.0-r9.apk": "004c6dfbc98d395f953bd041937427031a67b8decc1012e3d861d547531f38c5",
+    "owrt-logd-0.1.0-r11.apk": "b9af17e8c80d12508c1d8bf87494c16789e1267316ae9f6fe0464da41d6322a8",
+    "owrt-switch-0.1.0-r2.apk": "2814f8fc5fcc2f4d19dc2781bc763689bcbf400a0d42fd0781d154650a8cd94b",
+    "owrt-fw4-0.1.0-r12.apk": "e15b6dd465faa264b207d526b84da48f2e7a001fb68d00eb75fdb3b10a28edde"
+  },
+  "verification": "Artifact sums, manifest chain and three extracted core binaries verified. Seven unchanged binaries match R89 exactly. No device changes."
+}
