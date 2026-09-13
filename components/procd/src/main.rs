@@ -238,9 +238,8 @@ impl Procd {
         }
     }
 
-    /// `instance_stop()`. SIGTERM now, SIGKILL after term_timeout -- except
-    /// for a jailed instance, where the C never arms the kill timer because
-    /// ujail owns the teardown.
+    /// `instance_stop()`. SIGTERM now; only a halt escalates to SIGKILL after
+    /// term_timeout. A jailed instance has no timer: ujail owns its teardown.
     fn instance_stop(&mut self, svc: &str, name: &str, halt: bool) {
         let now = self.now_ms();
         let Some(inst) = self.services.get_mut(svc).and_then(|s| s.instances.get_mut(name)) else {
@@ -378,8 +377,9 @@ impl Procd {
         restart
     }
 
-    /// `instance_timeout()`: halting means the child ignored SIGTERM, so
-    /// SIGKILL; otherwise the respawn delay just elapsed.
+    /// `instance_timeout()`: only the halt flag authorizes SIGKILL. A
+    /// `service state {spawn:false}` stop keeps halt=false even while the
+    /// child is in Run::Halting, so an ignored SIGTERM does not escalate.
     fn fire_timeouts(&mut self) {
         let now = self.now_ms();
         let mut kill: Vec<(String, i32)> = Vec::new();
@@ -419,7 +419,7 @@ impl Procd {
                     continue;
                 }
                 inst.deadline = None;
-                if inst.state == Run::Halting {
+                if inst.halt {
                     kill.push((format!("{sname}::{iname}"), inst.pid));
                 } else if inst.restart || inst.respawn_active {
                     start.push((sname.clone(), iname.clone()));
@@ -1526,11 +1526,8 @@ impl Procd {
             return;
         };
         // C: `running = in->proc.pending; stopping = in->halt;`
-        // Both were wrong here. `running` excluded the TERM grace period, and
-        // `stopping` read the state instead of the halt flag -- an instance
-        // stopped with state(spawn=false) has halt set but is NOT Halting, so
-        // a config change during that window took the running branch and
-        // killed it dead instead of restarting it into the new config.
+        // A child in the TERM grace period is still running. The halt flag
+        // is independent: state(spawn=false) sets Run::Halting but halt=false.
         let running = inst.state == Run::Running || inst.state == Run::Halting;
         let stopping = inst.halt;
         let changed = inst.config_changed(&new);

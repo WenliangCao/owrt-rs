@@ -4,6 +4,10 @@
 [R45_NETIFD_SCOPE.md](../../reports/ax3000t-stock-openwrt-25.12.5/R45_NETIFD_SCOPE.md)。
 这里只记**读源码不会一眼看到、但调用方能观察到**的行为，不重复源码结构。
 
+R90 补充：无载波、处于 DOWN 的接口仍可能持有 main-device claim；显式 ifdown
+必须释放它，使最后一个用户退出时设备的 `up` 与内核 IFF_UP 都变为 false。
+其余生命周期补充见 [proto-shell §9](netifd-proto-shell.md#9-r90-生命周期补充与源码纠正)。
+
 ## 1. `network.device status`
 
 - 字段顺序是固定的，不是字母序：`external present type` →（present 才有）

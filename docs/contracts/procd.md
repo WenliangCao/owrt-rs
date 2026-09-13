@@ -77,6 +77,12 @@ if (in->reload_signal) {
 `instance_stop()` 里 `uloop_timeout_set(&in->timeout, ...)` 被
 `if (!in->has_jail)` 包着——**jail 实例不会收到 SIGKILL**，ujail 自己负责收尾。
 
+`service state {spawn:false}` 以 `halt=false` 停止实例。对忽略 SIGTERM 的
+子进程，期限到达后**不升级为 SIGKILL**，实例继续以原 pid 报告 running。
+`service delete` 的 `halt=true` 仍会在期限到达后强杀。R90 用钉死镜像的
+原版确认了两条路径，并修正 Rust 把 `Run::Halting` 当成 halt 标志的错误；
+维护节拍、只读查询快路径和 respawn 调度保持原有实现。
+
 ## 4. instance_update 的三条路
 
 `instance_update()`：

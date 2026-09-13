@@ -51,6 +51,7 @@ r79|r79_wireless_bridge_diff.sh|netifd|
 r83|r83_lifecycle_diff.sh|netifd|
 r83c|r83_config_diff.sh|netifd|
 r83w|r83_wireless_deadline.sh|netifd|
+r90|r90_netifd_lifecycle.sh|netifd|
 '
 
 # Everything the run needs must exist up front. Discovering a missing rootfs

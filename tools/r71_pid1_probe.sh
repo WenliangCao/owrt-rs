@@ -30,6 +30,36 @@ for tag in ${SIDES:-c rs}; do
 	# parent so BOTH sides boot and the comparison is same-fixture.
 	mkdir -p "$r/tmp/run"
 
+	# R90: force a coldplug command to exit while procd is still waiting for
+	# ubusd, then send a later event to prove the serialized queue survived.
+	# R87 discarded that child's wait status and permanently stalled hotplug.
+	if [ "${R90_HOTPLUG_PROBE:-0}" = 1 ]; then
+		mv "$r/sbin/ubusd" "$r/sbin/ubusd.real"
+		cat > "$r/sbin/ubusd" <<'X'
+#!/bin/sh
+sleep 5
+exec /sbin/ubusd.real "$@"
+X
+		cat > "$r/sbin/udevtrigger" <<'X'
+#!/bin/sh
+echo add > /sys/class/net/lo/uevent
+X
+		cat > "$r/etc/hotplug.json" <<'X'
+[["if", ["eq", "INTERFACE", "lo"], ["exec", "/bin/sh", "/tmp/r90-hotplug.sh"]]]
+X
+		cat > "$r/tmp/r90-hotplug.sh" <<'X'
+#!/bin/sh
+if [ ! -e /tmp/out/coldplug-started ]; then
+    touch /tmp/out/coldplug-started
+    sleep 3
+    echo coldplug-finished >> /tmp/out/hotplug.txt
+else
+    echo hotplug-finished >> /tmp/out/hotplug.txt
+fi
+X
+		chmod 755 "$r/sbin/ubusd" "$r/sbin/udevtrigger"
+	fi
+
 	for n in S10first S20second S30third; do
 		cat > "$r/tmp/rcd/$n" <<X
 #!/bin/sh
@@ -86,6 +116,13 @@ log "once lines after killing it: $(wc -l < /tmp/out/once.txt 2>/dev/null || ech
 log "--- objects: $(ubus list 2>/dev/null | tr '\n' ' ')"
 log "--- service list: $(ubus call service list 2>/dev/null | tr -d '\n\t ')"
 log "--- pid1 exe: $(readlink /proc/1/exe)"
+if [ -e /tmp/r90-hotplug.sh ]; then
+    echo change > /sys/class/net/lo/uevent
+    i=0
+    while ! grep -q hotplug-finished /tmp/out/hotplug.txt 2>/dev/null && [ $i -lt 5 ]; do
+        sleep 1; i=$((i+1))
+    done
+fi
 # R73 finding 1: STATE_HALT must broadcast SIGTERM before reboot(2). A
 # child that traps TERM and writes a marker is the witness; the guard bug
 # (kill(-1) swallowed) leaves no marker.
@@ -124,6 +161,11 @@ X
 		root=$1
 		mount --make-rprivate /
 		mount -t proc proc "$root/proc"
+		if [ "${R90_HOTPLUG_PROBE:-0}" = 1 ]; then
+			# Only the synthetic lo trigger above may see sysfs. The stock
+			# udevtrigger must not emit events for build host devices.
+			mount -t sysfs sysfs "$root/sys"
+		fi
 		mount -t tmpfs -o mode=1777 tmpfs "$root/dev"
 		mknod -m 666 "$root/dev/null" c 1 3
 		mknod -m 666 "$root/dev/urandom" c 1 9
@@ -138,7 +180,7 @@ X
 		fi
 	' sh "$r" "$tag" > "$out/$tag-pid1.log" 2>&1 || echo "ns exit $?" >> "$out/$tag-pid1.log"
 	umount "$r/proc" "$r/dev" 2>/dev/null || true
-	for f in drive.txt rc.txt boot.log resp.txt once.txt term.txt; do
+	for f in drive.txt rc.txt boot.log resp.txt once.txt term.txt hotplug.txt; do
 		cp "$r/tmp/out/$f" "$out/$tag-$f" 2>/dev/null || true
 	done
 done
@@ -149,6 +191,10 @@ done
 rc=0
 fail() { echo "r71: FAIL($tag): $*" >&2; rc=1; }
 for tag in ${SIDES:-c rs}; do
+	if [ "${R90_HOTPLUG_PROBE:-0}" = 1 ]; then
+		printf 'coldplug-finished\nhotplug-finished\n' > "$out/hotplug-want.txt"
+		cmp -s "$out/$tag-hotplug.txt" "$out/hotplug-want.txt" || fail "hotplug queue stalled after coldplug"
+	fi
 	printf 'start S10first boot\nend S10first\nstart S20second boot\nend S20second\nstart S30third boot\nend S30third\nK90bye shutdown\n' > "$out/rc-want.txt"
 	cmp -s "$out/$tag-rc.txt" "$out/rc-want.txt" || fail "rc.txt is not the serial glob order + K script"
 	[ "$(cat "$out/$tag-term.txt" 2>/dev/null)" = "got-term" ] || fail "no TERM-broadcast witness"

@@ -235,6 +235,10 @@ fn run_dump(dir: &Path, script: &Path, name: &str) -> io::Result<String> {
 #[derive(Default)]
 pub struct ProtoState {
     pub sm: Sm,
+    /// A reload replaces the desired config before the running protocol
+    /// finishes. Keep its old contract until do_reload drops this state.
+    /// Allocated only during a reload, never on the steady query path.
+    pub teardown_config: Option<Box<crate::config::InterfaceConfig>>,
     /// The setup/teardown/renew script.
     pub script: Slot,
     /// The helper netifd runs on the script's behalf (action 1).
@@ -291,7 +295,7 @@ pub fn plan(
             _ => Action::Refuse,
         },
         Cmd::Renew => {
-            if !handler.renew_available {
+            if !handler.renew_available || matches!(state.sm, Sm::Teardown | Sm::SetupAbort) {
                 return Action::Nothing;
             }
             if state.script.is_running() {
@@ -641,6 +645,24 @@ mod tests {
         let mut s = ProtoState::new();
         assert_eq!(plan(&mut s, Cmd::Renew, &h), Action::Nothing);
         assert!(!s.renew_pending);
+    }
+
+    #[test]
+    fn renew_during_teardown_or_abort_is_dropped_with_or_without_a_script() {
+        let h = dhcp();
+        for sm in [Sm::Teardown, Sm::SetupAbort] {
+            for running in [false, true] {
+                let mut s = ProtoState::new();
+                s.sm = sm;
+                if running {
+                    s.script.start(&["/bin/sleep".into(), "30".into()], &[]).unwrap();
+                }
+                assert_eq!(plan(&mut s, Cmd::Renew, &h), Action::Nothing);
+                assert!(!s.renew_pending);
+                assert_eq!(s.sm, sm);
+                s.script.terminate();
+            }
+        }
     }
 
     #[test]

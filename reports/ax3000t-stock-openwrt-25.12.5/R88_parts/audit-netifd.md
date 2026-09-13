@@ -1,5 +1,11 @@
 # netifd-rs audit (subagent, read-only, HEAD 6aca99c)
 
+> R90 correction: this audit mixed the newer `netifd-c/proto-ext.c` tree with
+> the pinned image revision. The exact cbb83a18 source is `netifd-ref`, verified
+> against the clean build-host Git checkout. In particular F10 is shared by
+> the original, not a Rust-only difference. Lifecycle findings and their
+> original/R89/candidate evidence are superseded by [R90](../R90_BATCH1_LIFECYCLE.md).
+
 Scope: components/netifd/src/{main,process,proto,netlink,sys,interface,device,ubus}.rs (targeted regions of the 5.2k-line main.rs) vs C main.c, proto-ext.c, proto-shell.c, interface.c, interface-event.c, interface-ip.c, system-linux.c, ubus.c; contracts netifd.md, netifd-proto-shell.md; evidence R80/R83/R86/R87, netifd_suite.sh and r49/r52/r54/r63/r83 diffs. Wireless only at reload/state-machine level.
 
 ## 1. Findings

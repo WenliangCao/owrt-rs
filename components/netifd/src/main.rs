@@ -301,7 +301,8 @@ struct Netifd {
     claimed_main: Vec<(String, String)>,
     claimed_l3: Vec<(String, String)>,
     handlers: Vec<proto::Handler>,
-    /// Per-interface protocol state, for the shell handlers only.
+    /// Shell protocol state; also holds a static interface's old config
+    /// transiently while a reload switches it to another protocol.
     protos: Vec<(String, proto::ProtoState)>,
 }
 
@@ -529,6 +530,12 @@ impl Netifd {
                         eprintln!(
                             "netifd-rs: Reload interface '{name}' because of config changes"
                         );
+                        // proto_shell keeps its own config until the old
+                        // protocol is freed. A second reload during teardown
+                        // must still use the first running configuration.
+                        self.proto_state(&name)
+                            .teardown_config
+                            .get_or_insert_with(|| Box::new(oc.clone()));
                         self.set_config_state(&name, interface::ConfigState::Reload);
                         continue;
                     }
@@ -1002,6 +1009,12 @@ impl Netifd {
 
     fn handler_for(&self, proto: &str) -> Option<&proto::Handler> {
         self.handlers.iter().find(|h| h.name == proto)
+    }
+
+    fn proto_config(&self, name: &str) -> Option<&config::InterfaceConfig> {
+        self.protos.iter().find(|(n, _)| n == name)
+            .and_then(|(_, st)| st.teardown_config.as_deref())
+            .or_else(|| self.cfg.interfaces.iter().find(|ic| ic.name == name))
     }
 
     fn proto_state(&mut self, name: &str) -> &mut proto::ProtoState {
@@ -1656,7 +1669,7 @@ impl Netifd {
 
     /// Run one protocol command for an interface, honouring the state machine.
     fn proto_cmd(&mut self, name: &str, cmd: proto::Cmd) {
-        let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned() else {
+        let Some(ic) = self.proto_config(name).cloned() else {
             return;
         };
         let Some(handler) = self.handler_for(&ic.proto).cloned() else { return };
@@ -1755,10 +1768,7 @@ impl Netifd {
         // every action on a built-in one -- static, none -- is refused,
         // whatever the action number says.
         let external = self
-            .cfg
-            .interfaces
-            .iter()
-            .find(|i| i.name == name)
+            .proto_config(name)
             .map(|ic| {
                 !IMPLEMENTED_PROTOS.contains(&ic.proto.as_str())
                     && self.handler_for(&ic.proto).is_some()
@@ -1811,6 +1821,7 @@ impl Netifd {
                     })
                     .collect();
                 let st = self.proto_state(name);
+                st.task_killed = false;
                 match st.task.start(&argv, &env) {
                     Ok(()) => status::OK,
                     Err(e) => {
@@ -1867,10 +1878,8 @@ impl Netifd {
                 let Some(av) = find("available").and_then(|f| f.as_bool()) else {
                     return status::INVALID_ARGUMENT;
                 };
-                if let Some(idx) = self.iface_index(name) {
-                    self.interfaces[idx].available = av;
-                }
                 self.proto_state(name).available = av;
+                self.set_available(name, av);
                 status::OK
             }
             6 => {
@@ -1881,7 +1890,7 @@ impl Netifd {
             }
             7 => match sm {
                 proto::Sm::Idle => {
-                    self.iface_down(name);
+                    self.link_lost(name);
                     self.proto_cmd(name, proto::Cmd::Teardown);
                     status::OK
                 }
@@ -2171,16 +2180,6 @@ impl Netifd {
             .extend(find("dns_search").map(|f| string_list(&f)).unwrap_or_default());
         ipset.no_delegation = ic.delegate == Some(false);
 
-        // `data` is one table; each member is stored under its own name in an
-        // avl tree, so the status prints them sorted, not in arrival order.
-        let mut newdata: Vec<(String, owrt_ubus::json::Json)> = Vec::new();
-        if let Some(t) = find("data") {
-            for m in t.children() {
-                let j = owrt_ubus::convert::field_to_json(&m);
-                newdata.push((m.name.to_string(), j));
-            }
-        }
-
         // `interface_update_complete`: vlist_flush drops the entries this
         // update did not renew, and their free callbacks take them out of the
         // kernel. Without this a protocol that reports a new address on every
@@ -2225,6 +2224,34 @@ impl Netifd {
             new_updated |= interface::updated::PREFIX;
         }
 
+        // interface_add_data runs before IFPEV_UP, in every interface state.
+        // Merge directly: an ordinary lease renewal neither needs a temporary
+        // Vec nor allocates names for keys already present. Only insertions
+        // change the order of the status's name-sorted data table.
+        if let (Some(t), Some(idx)) = (find("data"), self.iface_index(name)) {
+            let data = &mut self.interfaces[idx].data;
+            let mut inserted = false;
+            for m in t.children() {
+                let value = owrt_ubus::convert::field_to_json(&m);
+                match data.iter_mut().find(|(n, _)| n == m.name) {
+                    Some((_, old)) => {
+                        if *old != value {
+                            *old = value;
+                            new_updated |= interface::updated::DATA;
+                        }
+                    }
+                    None => {
+                        data.push((m.name.to_string(), value));
+                        new_updated |= interface::updated::DATA;
+                        inserted = true;
+                    }
+                }
+            }
+            if inserted {
+                data.sort_by(|a, b| a.0.cmp(&b.0));
+            }
+        }
+
         // `IFPEV_UP`: the interface only completes its bring-up from SETUP.
         // One that is already up gets an IFEV_UPDATE; one that is DOWN --
         // because something took it down while the protocol was still
@@ -2256,24 +2283,6 @@ impl Netifd {
             i.proto_ip = ipset;
             i.proto_ip.routes.sort_by(interface::route_order);
             i.updated = new_updated;
-            if !newdata.is_empty() {
-                for (k, v) in newdata {
-                    // avl_find_element + replace: same name replaces
-                    match i.data.iter_mut().find(|(n, _)| *n == k) {
-                        Some(slot) => {
-                            if slot.1 != v {
-                                slot.1 = v;
-                                i.updated |= interface::updated::DATA;
-                            }
-                        }
-                        None => {
-                            i.data.push((k, v));
-                            i.updated |= interface::updated::DATA;
-                        }
-                    }
-                }
-                i.data.sort_by(|a, b| a.0.cmp(&b.0));
-            }
             i.errors.clear();
             i.started_at = Some(now());
         }
@@ -2413,7 +2422,7 @@ impl Netifd {
     /// having exited (or, from the teardown deadline, to both having been
     /// killed). Shared by the reaper and the deadline pump.
     fn finish_proto_task(&mut self, name: &str, which: proto::Which) {
-        let Some(ic) = self.cfg.interfaces.iter().find(|i| i.name == name).cloned()
+        let Some(ic) = self.proto_config(name).cloned()
         else {
             return;
         };
@@ -2686,8 +2695,13 @@ impl Netifd {
     fn set_down(&mut self, name: &str) {
         let Some(idx) = self.iface_index(name) else { return };
         let prev = self.interfaces[idx].state;
-        // "case IFS_DOWN / case IFS_TEARDOWN: break" -- nothing to do
-        if prev == State::Down || prev == State::Teardown {
+        // A DOWN interface can still hold its main device while waiting for
+        // carrier. Explicit ifdown must release that claim as the C does.
+        if prev == State::Down {
+            self.iface_unclaim(name, false);
+            return;
+        }
+        if prev == State::Teardown {
             return;
         }
         // IFEV_DOWN on entering teardown, and only from IFS_UP
@@ -2710,7 +2724,7 @@ impl Netifd {
         // An interface whose protocol has settled sits in S_IDLE, and S_IDLE
         // is exactly the state the teardown command runs from, so the state
         // machine must not be part of this test.
-        let shell = match self.cfg.interfaces.iter().find(|i| i.name == name) {
+        let shell = match self.proto_config(name) {
             Some(ic) => {
                 !IMPLEMENTED_PROTOS.contains(&ic.proto.as_str())
                     && self.handler_for(&ic.proto).is_some()

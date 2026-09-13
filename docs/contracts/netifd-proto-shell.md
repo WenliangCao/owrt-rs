@@ -89,6 +89,9 @@ setup 期间收到 teardown 则进 `S_SETUP_ABORT`：
 - `PROTO_CMD_SETUP` 只在 `S_IDLE` 接受，否则返回 -1。
 - `PROTO_CMD_RENEW` 在 `PROTO_FLAG_RENEW_AVAILABLE` 未置位时直接返回 0；
   脚本任务还在跑时置 `renew_pending` 并返回 0（**不排队第二个进程**）。
+  R90：经 ubus 在 teardown/abort 期间发起的 renew 不得遗留到下一次 setup；
+  Rust 在状态机入口丢弃它。精确原版的接口入口同样不会产生遗留 renew，
+  不能把较新 `proto-ext.c` 的分支当作本镜像的源码引用。
 - `PROTO_CMD_TEARDOWN` 在 `S_SETUP` 且脚本仍在跑时：设 1000 ms 的
   `teardown_timeout`、给脚本和 proto_task 各发 `SIGTERM`、进 `S_SETUP_ABORT`、
   返回 0——**不立即跑 teardown 脚本**。
@@ -153,6 +156,9 @@ routes routes6 tunnel data keep host dns dns_search neighbor neighbor6
   `RTA_PREFSRC`）。
 - `data` 是一个表，每个成员按名字存进一棵 avl 树 —— 所以 status 里 `data`
   是**按名字排序**的，不是到达顺序。
+  合并发生在 `IFPEV_UP` 之前：SETUP、UP、DOWN 均保存新值，同名替换，未提供的
+  键保留；只有变化才置 `IUF_DATA`。UP 时发 `ifupdate`（`IFUPDATE_DATA=1`），
+  完全相同的重复更新不发；DOWN 时保存数据但不自行变 UP（R90 差分）。
 - `metric`/`mtu`/`table`/`type`/`proto` 只有显式给了才置对应的 `DEVROUTE_*` 标志，
   也只有置了标志才会打印出来。主表（`main`）不置 `DEVROUTE_TABLE`。
 
@@ -239,3 +245,25 @@ r51 一直报"一致"，但候选侧的 daemon 日志第一行是
 它的 `ifdown` 也一致。
 
 结论跟 §7 是同一条：**harness 自己也要被怀疑**。一个"一致"的结果，先问它到底比了什么。
+
+## 9. R90 生命周期补充与源码纠正
+
+本轮只以镜像对应的 `cbb83a1857407a28a63dc09412a1f209195914ef` 为源码参考。
+本地 `private/upstream-ref/netifd-ref/{interface.c,proto-shell.c}` 与构建机该提交
+逐字节一致；`netifd-c/proto-ext.c` 来自较新上游，不属于此部署规范。
+
+- `setup_failed` 在 S_IDLE 发 LINK_LOST 后 teardown，保留 autostart，完成后重试。
+- `set_available(false)` 必须驱动强制 teardown 和状态清理；恢复 available 后按
+  autostart 决定是否 setup。仅改两个布尔值不满足合同。
+- reload 期间旧 handler 的 teardown/notify/reap 使用旧协议、配置和设备；新配置
+  仅供下一次 setup。连续 reload 仍保留最初的运行配置，最后一次配置用于新 setup。
+  实现只在 reload 时保存一份临时旧配置，完成时随旧协议状态释放。
+- **有意改进**：每次 action 1 启动新 helper 时清 `task_killed`。精确 C 原版与 R89
+  都不清此标志，第二次 teardown 的脚本若不调用 `proto_kill_command`，会拖到 5 秒
+  强杀。R90 恢复正常 SIGTERM 清理；随镜像的 DHCP/DHCPv6/PPP handler 原本都会
+  显式 kill，不依赖这个缺陷。差分门明确记录 C 的这一项差异，不把它伪装成等价。
+
+验证入口：`tools/r90_lifecycle_probe.py`，以及 netifd_suite 的 `r90` 项。
+接口的 `up=false,pending=false` 同样可能表示 TEARDOWN；完成断言还必须检查
+数据清理和 helper 已回收。无载波用例把 veth 对端放在另一个隔离网络空间，
+保证对端不受被测 netifd 的设备发现影响。
