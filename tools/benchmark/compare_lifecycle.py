@@ -37,7 +37,10 @@ def main():
     p.add_argument("output", type=Path)
     p.add_argument("--iterations", type=int, default=30000)
     p.add_argument("--cpus", help="optional taskset CPU list, held constant for all runs")
+    p.add_argument("--components", nargs="+", choices=("procd", "netifd"), default=("procd", "netifd"))
     args = p.parse_args()
+    if len(set(args.components)) != len(args.components):
+        p.error("duplicate components")
     if os.geteuid() != 0 or Path('/etc/openwrt_release').exists():
         p.error("run as root on the Linux build host, not a physical router")
     if args.iterations < 1000 or args.iterations % 4:
@@ -52,7 +55,7 @@ def main():
     fixtures = defaultdict(set)
     boots, clients, kernels = set(), set(), set()
     script = Path(__file__).with_name('isolated.sh')
-    for component in ("procd", "netifd"):
+    for component in args.components:
         work = list(COMPONENT_WORK[component])
         work += [n+'_c4' for n in COMPONENT_WORK[component]]
         work += [n+s for n in (PROCD_EXTRA if component == 'procd' else NETIFD_EXTRA) for s in ('', '_c4')]
@@ -81,8 +84,8 @@ def main():
                     names = [f'bench{i:02d}' for i in range(count-2)] + ['lan', 'loopback']
                     assert check_netifd_hotplug(raw, subject, count, names)
                     for phase in ('before', 'after'):
-                        assert (raw/f'interfaces-{count}-{phase}.txt').read_text().splitlines() == names
-                        assert (raw/f'objects-{count}-{phase}.txt').read_text().splitlines() == ['network.interface.'+n for n in names]
+                        assert (raw/f'interface-names-{count}-{phase}.txt').read_text().splitlines() == names
+                        assert (raw/f'interface-objects-{count}-{phase}.txt').read_text().splitlines() == ['network.interface.'+n for n in names]
             for workload in work:
                 value = parallel(raw/workload, subject) if workload.endswith('_c4') else serial(raw/(workload+'.json'), subject)
                 assert value['successful'] == args.iterations
@@ -113,7 +116,7 @@ def main():
                  if sides['baseline'][m]['median'] > 0}
         summary.append({'component':component, 'workload':workload, **sides, 'candidate_vs_baseline_pct':delta})
     result = {'environment':'aarch64 Linux build host; not router acceptance', 'kernels':sorted(kernels),
-              'cpus':args.cpus, 'iterations':args.iterations, 'order':ORDER, 'identities':identities,
+              'cpus':args.cpus, 'components':args.components, 'iterations':args.iterations, 'order':ORDER, 'identities':identities,
               'benchmark_sha256':digest(bundles['baseline']/'owrt-benchmark'),
               'namespace_sha256':digest(bundles['baseline']/'ns-exec'), 'harness_sha256':digest(script),
               'summary':summary, 'runs':rows, 'resident':residents,

@@ -1,0 +1,728 @@
+{
+  "source_identity": {
+    "source_commit": "ae51db4e453417184260c368f7d4d7a2727b133f",
+    "files_checked": 335,
+    "differences": [],
+    "file_manifest_sha256": "17bb326bc94805e7d4a5f82e533d094f7c2c4dee9cb39bc061660994537da670",
+    "scope": "components/, tools/, rust-toolchain.toml from git archive"
+  },
+  "canonical_build": 34753661051,
+  "core_binary_sha256": {
+    "procd-rs": "2720dc66876e0ea53b6dab75ff6bd827466563dce5030eac931f8a5b7c5a22ee",
+    "ubusd-rs": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "netifd-rs": "e8a18c5bf3c2f07aca6704a97030e64ed760e2a41f9a0d0139cb797588c3f4b9"
+  },
+  "status": "formal candidate offline functional checks passed; original busy control failed; router pending",
+  "gates": [
+    {
+      "name": "netifd-unit",
+      "exit": 0,
+      "raw_path": "canonical-validation/netifd-unit.log",
+      "sha256": "14ea39de086af4184826ef142832a9c71401f7ecf4c233e7c0511cf3d860cef8"
+    },
+    {
+      "name": "netifd-clippy",
+      "exit": 0,
+      "raw_path": "canonical-validation/netifd-clippy.log",
+      "sha256": "00c9d55dfd9777d4b3a6f7fc8e0cb81d08e43b09c5caedaf121518f24244c679"
+    },
+    {
+      "name": "procd-unit",
+      "exit": 0,
+      "raw_path": "canonical-validation/procd-unit.log",
+      "sha256": "519f704cffd2a7ff9099a7bb2a058faa04fc669058c89e12c59229dcad0071e7"
+    },
+    {
+      "name": "procd-clippy",
+      "exit": 0,
+      "raw_path": "canonical-validation/procd-clippy.log",
+      "sha256": "d6bdc78fb565cc45792191fccc3adf6cbdf9a152eca9135adf019a7f65cdde74"
+    },
+    {
+      "name": "netifd-suite",
+      "exit": 0,
+      "seconds": 950.64,
+      "log_sha256": "a2616ec3e772e03193faab4d019f41a6979c46ef65024cc8705b9aa463f61f7a",
+      "raw_path": "acceptance-02/netifd/netifd-suite.log",
+      "sha256": "a2616ec3e772e03193faab4d019f41a6979c46ef65024cc8705b9aa463f61f7a"
+    },
+    {
+      "name": "r90-service-state",
+      "exit": 0,
+      "seconds": 7.02,
+      "log_sha256": "37100bc9a42189e3a06175ec0109dc1f70f2157a77de3fed8971148899c7ce8c",
+      "raw_path": "acceptance-02/procd/r90-service-state.log",
+      "sha256": "37100bc9a42189e3a06175ec0109dc1f70f2157a77de3fed8971148899c7ce8c"
+    },
+    {
+      "name": "r90-hotplug",
+      "exit": 0,
+      "seconds": 44.44,
+      "log_sha256": "43986be6a2996ebf7ab2fc2c7b9500dc5cd1c4c0f08672b73274e15a29af2bb6",
+      "raw_path": "acceptance-02/procd/r90-hotplug.log",
+      "sha256": "43986be6a2996ebf7ab2fc2c7b9500dc5cd1c4c0f08672b73274e15a29af2bb6"
+    },
+    {
+      "name": "procd-tick",
+      "exit": 0,
+      "seconds": 16.42,
+      "log_sha256": "7f983dc224923a5d925ee34d4fa4e0bdec9ac6bca1948b7bfd4c5d01b79af96e",
+      "raw_path": "acceptance-02/procd/procd-tick.log",
+      "sha256": "7f983dc224923a5d925ee34d4fa4e0bdec9ac6bca1948b7bfd4c5d01b79af96e"
+    },
+    {
+      "name": "procd-busy",
+      "exit": 1,
+      "seconds": 13.51,
+      "log_sha256": "ffc3d97499d8c60b09002b81434ee51f4158594ebfeef2290c1c319d23b275cf",
+      "raw_path": "acceptance-02/procd/procd-busy.log",
+      "sha256": "ffc3d97499d8c60b09002b81434ee51f4158594ebfeef2290c1c319d23b275cf"
+    },
+    {
+      "name": "procd-r65",
+      "exit": 0,
+      "seconds": 401.39,
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+      "raw_path": "acceptance-02/procd/procd-r65.log",
+      "sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114"
+    },
+    {
+      "name": "procd-r83",
+      "exit": 0,
+      "seconds": 67.24,
+      "log_sha256": "4ec3ca3f1ad4bff896cfa48ee4e806d79bfd9e3f072d14bfeb61dd4602410727",
+      "raw_path": "acceptance-02/procd/procd-r83.log",
+      "sha256": "4ec3ca3f1ad4bff896cfa48ee4e806d79bfd9e3f072d14bfeb61dd4602410727"
+    },
+    {
+      "name": "procd-r71",
+      "exit": 0,
+      "seconds": 32.01,
+      "log_sha256": "b5b71e7ed95d63d8a7ecb8c05c9e5f1cb86f760899e057dd769c7cc3c0168d1b",
+      "raw_path": "acceptance-02/procd/procd-r71.log",
+      "sha256": "b5b71e7ed95d63d8a7ecb8c05c9e5f1cb86f760899e057dd769c7cc3c0168d1b"
+    },
+    {
+      "name": "procd-r72",
+      "exit": 0,
+      "seconds": 90.15,
+      "log_sha256": "4e9979349babe946e63b2131f343ff6a16310a7645e67b18322f39fcac240a14",
+      "raw_path": "acceptance-02/procd/procd-r72.log",
+      "sha256": "4e9979349babe946e63b2131f343ff6a16310a7645e67b18322f39fcac240a14"
+    },
+    {
+      "name": "procd-r75",
+      "exit": 0,
+      "seconds": 6.59,
+      "log_sha256": "f0b4e94fb70dcd41686251b25c2973538bf849d1f07f00fa7097590147969f97",
+      "raw_path": "acceptance-02/procd/procd-r75.log",
+      "sha256": "f0b4e94fb70dcd41686251b25c2973538bf849d1f07f00fa7097590147969f97"
+    },
+    {
+      "name": "offline-switch",
+      "exit": 0,
+      "seconds": 1.9,
+      "log_sha256": "45cd504933968ad28f0ec4f2d533ef3a1bb51e0b47082fb5e6f88881eede4ae9",
+      "raw_path": "acceptance-02/offline/offline-switch.log",
+      "sha256": "45cd504933968ad28f0ec4f2d533ef3a1bb51e0b47082fb5e6f88881eede4ae9"
+    }
+  ],
+  "netifd_suite": [
+    {
+      "name": "r46",
+      "seconds": 0
+    },
+    {
+      "name": "r47",
+      "seconds": 6
+    },
+    {
+      "name": "r48",
+      "seconds": 6
+    },
+    {
+      "name": "r49",
+      "seconds": 13
+    },
+    {
+      "name": "r50",
+      "seconds": 40
+    },
+    {
+      "name": "r51",
+      "seconds": 31
+    },
+    {
+      "name": "r52",
+      "seconds": 23
+    },
+    {
+      "name": "r53",
+      "seconds": 73
+    },
+    {
+      "name": "r54",
+      "seconds": 29
+    },
+    {
+      "name": "r55",
+      "seconds": 83
+    },
+    {
+      "name": "r56",
+      "seconds": 26
+    },
+    {
+      "name": "r57",
+      "seconds": 31
+    },
+    {
+      "name": "r58",
+      "seconds": 23
+    },
+    {
+      "name": "r59",
+      "seconds": 16
+    },
+    {
+      "name": "r60_up_cmds",
+      "seconds": 41
+    },
+    {
+      "name": "r60_up",
+      "seconds": 17
+    },
+    {
+      "name": "r60_fail_cmds",
+      "seconds": 41
+    },
+    {
+      "name": "r60_fail",
+      "seconds": 17
+    },
+    {
+      "name": "r60_flood",
+      "seconds": 17
+    },
+    {
+      "name": "r60_token",
+      "seconds": 35
+    },
+    {
+      "name": "r60_proc",
+      "seconds": 25
+    },
+    {
+      "name": "r61",
+      "seconds": 28
+    },
+    {
+      "name": "r62",
+      "seconds": 65
+    },
+    {
+      "name": "r63",
+      "seconds": 13
+    },
+    {
+      "name": "r64",
+      "seconds": 25
+    },
+    {
+      "name": "r79",
+      "seconds": 47
+    },
+    {
+      "name": "r83",
+      "seconds": 28
+    },
+    {
+      "name": "r83c",
+      "seconds": 40
+    },
+    {
+      "name": "r83w",
+      "seconds": 75
+    },
+    {
+      "name": "r90",
+      "seconds": 35
+    }
+  ],
+  "lifecycle": [
+    {
+      "side": "original",
+      "case": "down_claim",
+      "exit": 0,
+      "checks": {
+        "released": true,
+        "kernel_down": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "data_update",
+      "exit": 0,
+      "checks": {
+        "merged_data": true,
+        "data_updated": true,
+        "ifupdate_data": true,
+        "identical_no_update": true,
+        "down_data_preserved_without_ifup": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "setup_failed",
+      "exit": 0,
+      "checks": {
+        "autostart_preserved": true,
+        "setup_retried": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "renew_teardown",
+      "exit": 0,
+      "checks": {
+        "no_stale_renew": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "renew_abort",
+      "exit": 0,
+      "checks": {
+        "no_stale_renew": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "task_restart",
+      "exit": 0,
+      "checks": {
+        "second_helper_term": false,
+        "down_without_deadline_kill": false,
+        "eventual_cleanup": true
+      },
+      "expected_original_difference": {
+        "second_helper_term": false,
+        "down_without_deadline_kill": false,
+        "eventual_cleanup": true
+      },
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "reload_config",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": true,
+        "new_config_setup": true,
+        "old_helper_terminated": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "reload_twice",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": true,
+        "new_config_setup": true,
+        "old_helper_terminated": true,
+        "no_intermediate_setup": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "reload_proto",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": true,
+        "new_config_setup": true,
+        "old_helper_terminated": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "remove",
+      "exit": 0,
+      "checks": {
+        "teardown_called": true,
+        "helper_term": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "available",
+      "exit": 0,
+      "checks": {
+        "unavailable_torn_down": true,
+        "available_restarts": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "down_claim",
+      "exit": 0,
+      "checks": {
+        "released": true,
+        "kernel_down": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "data_update",
+      "exit": 0,
+      "checks": {
+        "merged_data": true,
+        "data_updated": true,
+        "ifupdate_data": true,
+        "identical_no_update": true,
+        "down_data_preserved_without_ifup": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "setup_failed",
+      "exit": 0,
+      "checks": {
+        "autostart_preserved": true,
+        "setup_retried": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "renew_teardown",
+      "exit": 0,
+      "checks": {
+        "no_stale_renew": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "renew_abort",
+      "exit": 0,
+      "checks": {
+        "no_stale_renew": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "task_restart",
+      "exit": 0,
+      "checks": {
+        "second_helper_term": true,
+        "down_without_deadline_kill": true,
+        "eventual_cleanup": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "reload_config",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": true,
+        "new_config_setup": true,
+        "old_helper_terminated": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "reload_twice",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": true,
+        "new_config_setup": true,
+        "old_helper_terminated": true,
+        "no_intermediate_setup": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "reload_proto",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": true,
+        "new_config_setup": true,
+        "old_helper_terminated": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "remove",
+      "exit": 0,
+      "checks": {
+        "teardown_called": true,
+        "helper_term": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "available",
+      "exit": 0,
+      "checks": {
+        "unavailable_torn_down": true,
+        "available_restarts": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "service_state",
+      "exit": 0,
+      "checks": {
+        "same_child_after_state_stop": true,
+        "delete_still_kills": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "service_state",
+      "exit": 0,
+      "checks": {
+        "same_child_after_state_stop": true,
+        "delete_still_kills": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    }
+  ],
+  "helper_teardown_timing": {
+    "original": {
+      "second_teardown_ms": 5013.052535010502
+    },
+    "candidate": {
+      "second_teardown_ms": 71.67527009733021
+    }
+  },
+  "busy_control": {
+    "original_exit": 1,
+    "children_reaped": 32,
+    "exit_code": 19,
+    "final_log_lines": 31,
+    "watchdog_stopped": true,
+    "candidate": {
+      "side": "candidate",
+      "children_reaped": 32,
+      "exit_code": 19,
+      "final_log_lines": 32,
+      "watchdog_stopped": true,
+      "hotplug_added_removed": true,
+      "load_requests": 185,
+      "fds_before": 7,
+      "fds_after": 7
+    },
+    "note": "Original failed before candidate ran; candidate completed separately with --sides candidate. Original failure retained, not a double-sided pass.",
+    "evidence": [
+      {
+        "raw_path": "acceptance-02/procd/procd-busy/original/raw/messages.txt",
+        "sha256": "6af9c9865861a76b33f3bcc209adb11f0f23ba3531daebe2b77d413e31aef009"
+      },
+      {
+        "raw_path": "acceptance-02/procd-busy-candidate/summary.json",
+        "sha256": "0fdad98532d2659533d045ccf99360336be12bbc35e73de9b90b767d9e4fd41e"
+      }
+    ]
+  },
+  "offline_switch": [
+    "PASS: APK installation is inert and all six shipped binary hashes match",
+    "PASS: cold stage preserves originals; early confirmation and stale timer rejected",
+    "PASS: failed restore remains pending and never reboots",
+    "PASS: automatic rollback restores the entire original next boot",
+    "PASS: offline failsafe rescue requires no ubus or running Rust"
+  ],
+  "r89_red_control": [
+    {
+      "side": "candidate",
+      "case": "down_claim",
+      "exit": 0,
+      "checks": {
+        "released": false,
+        "kernel_down": false
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "data_update",
+      "exit": 0,
+      "checks": {
+        "merged_data": false,
+        "data_updated": false,
+        "ifupdate_data": false,
+        "identical_no_update": true,
+        "down_data_preserved_without_ifup": false
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "setup_failed",
+      "exit": 0,
+      "checks": {
+        "autostart_preserved": false,
+        "setup_retried": false
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "renew_teardown",
+      "exit": 0,
+      "checks": {
+        "no_stale_renew": false
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "renew_abort",
+      "exit": 0,
+      "checks": {
+        "no_stale_renew": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "task_restart",
+      "exit": 0,
+      "checks": {
+        "second_helper_term": false,
+        "down_without_deadline_kill": false,
+        "eventual_cleanup": true
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "reload_config",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": false,
+        "new_config_setup": true,
+        "old_helper_terminated": true
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "reload_twice",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": false,
+        "new_config_setup": true,
+        "old_helper_terminated": true,
+        "no_intermediate_setup": true
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "reload_proto",
+      "exit": 0,
+      "checks": {
+        "old_config_teardown": false,
+        "new_config_setup": true,
+        "old_helper_terminated": false
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "remove",
+      "exit": 0,
+      "checks": {
+        "teardown_called": true,
+        "helper_term": true
+      },
+      "expected_original_difference": {},
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "available",
+      "exit": 0,
+      "checks": {
+        "unavailable_torn_down": false,
+        "available_restarts": false
+      },
+      "expected_original_difference": {},
+      "passed": false
+    },
+    {
+      "side": "candidate",
+      "case": "service_state",
+      "exit": 0,
+      "checks": {
+        "same_child_after_state_stop": false,
+        "delete_still_kills": true
+      },
+      "expected_original_difference": {},
+      "passed": false
+    }
+  ],
+  "physical_device_modified": false,
+  "limits": [
+    "Functional gates ran in separate build-host namespaces; no performance claim from these timings.",
+    "Three netifd suite entries use source-matched example probes; daemon cases use canonical netifd.",
+    "Unit/clippy evidence reused only from completed pre-pause gates; interrupted suite evidence excluded."
+  ],
+  "r89_red_control_identity": {
+    "netifd": "b127c49888b70a1f1e59318c0b05661623e05030b923975881e4b2279388a478",
+    "procd": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98"
+  }
+}

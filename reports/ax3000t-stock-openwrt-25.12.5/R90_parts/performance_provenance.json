@@ -1,0 +1,46 @@
+{
+  "comparison_script_sha256": "d28082732020cd64bd7ec092b7aa4d4ad181292d172eb7acf486a52131e12291",
+  "source_commit": "ae51db4e453417184260c368f7d4d7a2727b133f",
+  "raw_directory": "raw/performance-02",
+  "accepted_measured_requests": 5280000,
+  "result_sha256": "ec31bac6a20bc0bf40565aeebfbc672c8d40aacf96d51beb7ade42c497513098",
+  "preflight": {
+    "functional_validators_finished": true,
+    "no_cargo_or_rustc": true,
+    "no_active_temporary_chroots": true,
+    "last_completed_suite_orphans_removed": [
+      {
+        "pid": 4078797,
+        "start_ticks": "189923040",
+        "root": "/tmp/owrt-r83c-yKPdJ5/root (deleted)"
+      },
+      {
+        "pid": 4079317,
+        "start_ticks": "189925011",
+        "root": "/tmp/owrt-r83c-AKzkYD/root (deleted)"
+      }
+    ],
+    "logical_cpus": 4,
+    "loadavg": [
+      0.10546875,
+      1.9365234375,
+      2.84423828125
+    ],
+    "kernel": [
+      "Linux",
+      "instance-20260123-1135",
+      "6.17.0-1020-oracle",
+      "#20-Ubuntu SMP Sat Jul 25 00:52:17 UTC 2026",
+      "aarch64"
+    ]
+  },
+  "first_attempt": "performance-01 stopped after netifd baseline acquisition due to two wrong evidence filenames. Preserved; not substituted for the complete matrix.",
+  "follow_up": {
+    "raw_directory": "raw/performance-procd-affinity",
+    "comparison_script_sha256": "79fa4f5a527016cbabfb723809638738a696054c96590f79e7430a40b55dda65",
+    "measured_requests": 1920000,
+    "cpus": "2,3",
+    "purpose": "Investigate system_info_c4 tail increase; keep full unpinned matrix as primary evidence. CPU restriction changes the environment, so results are separate.",
+    "result_sha256": "25f576c1000414c72d869a1c2f0e446ef536ecb3cf7c7454b988d59018b51f8f"
+  }
+}
