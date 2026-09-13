@@ -147,7 +147,7 @@ r83_lifecycle_diff 的泄漏路径未改。
 - 构建机上还残留着 32 个历次门运行留下的 `/sbin/ubusd` 和 1 个 `/sbin/rpcd`（2026-09-10 至 09-12，父进程为 1），
   本轮没有清理别的会话的进程；它们各在已删除的 rootfs 副本里，未见影响，但说明夹具的收尾不完整。
 
-## 5. 正式验收流水线（进行中，按 R86 流程）
+## 5. 正式验收流水线（已完成，按 R86 流程）
 
 - 源提交 `caed6ac`：CI `34716101331` 与 `release-image` `34716120045` 均成功；产物下载后九个二进制身份全部核对
   （[r87_canonical_build.json](R87_parts/r87_canonical_build.json)）。与 R86 发布相比 7 个二进制改变（fw4、httpd、logd、netifd、procd、rpcd、ubusd
@@ -158,18 +158,32 @@ r83_lifecycle_diff 的泄漏路径未改。
   五个守护进程的 clippy `undocumented_unsafe_blocks`、netifd 29 场景套件、HTTPD 六门（CGI 压力首次因二进制目录缺少 ns-exec/owrt-benchmark
   以退出码 127 失败，补齐后单独复跑通过，首次日志保留）。
 - 部署包 `work/r87/deployment-r87`（httpd apk r13 + 三个核心二进制 + 其余 apk）在构建机通过离线 APK 安装与全栈回退自测 5/5。
-- 实机隔离矩阵（七个改变的组件，每侧四轮，rpcd 50000 次、其余 10000 次，另加 HTTPD 64 连接内存探针）与
-  部署后的四个冷启动窗口（Rust-1、stock-1、stock-2、Rust-2）按 R86 第 4 节的计划执行，结果补入第 6 节。
+- 实机隔离矩阵（七个改变的组件，每侧四轮，rpcd 50000 次、其余 10000 次，另加 HTTPD 64 连接内存探针）已完成：
+  [rpcd](R87_parts/rpcd/results.md)、[procd](R87_parts/procd/results.md)、[ubusd](R87_parts/ubusd/results.md)、
+  [netifd](R87_parts/netifd/results.md)、[logd](R87_parts/logd/results.md)、[fw4](R87_parts/fw4/results.md)。
+  74 个负载、148 个延迟/CPU 中位数单元格里 3 个高于原版（ubusd lookup_all_64 延迟 +0.9%、lookup_all_128 +1.9%、invoke_c4 +2.8%；
+  httpd jsonrpc_c4 CPU +3.1%），其余全部低于原版；每组件常驻 RSS 都低于原版（ubusd 616 vs 976 KiB，rpcd 1180 vs 2004，netifd 1208 vs 2212，logd 508 vs 1014）。
+- 路由器上的 HTTPD 64 个保持连接内存探针（[httpd_memory_router.json](R87_parts/httpd_memory_router.json)）：
+  原版 +452 KiB（1012→1464），Rust **+256..260 KiB**（848→1108），持有期间 1 个线程、71 个 fd；R86 同一探针为 +2096 KiB。
+  关闭后 Rust 不回落（musl 分配器保留），原版回落到 +12。
+- 部署（2026-09-12 22:12 UTC，Wi-Fi 管理、备份三份归档与两份恢复镜像校验后）与四个冷启动窗口全部健康
+  （[deployment.json](R87_parts/deployment.json)、[results.json](R87_parts/results.json)、[summary.json](R87_parts/summary.json)）：
+  整机 13 条真实客户端 lane 全部低于原版——procd lane 平均 −12.47%、服务端 CPU −12.21%（R86 为 +1.02% / +18.96%），
+  rpcd −18.35% / −20.87%，network −27.11% / −34.19%，http-static −10.82% / −16.88%，http-jsonrpc −13.38% / −16.28%，
+  log −41.84% / −46.39%，uci −39.50% / −47.37%，fw4 −92.3%；mixed 总吞吐 +16.18%、服务端 CPU/次 −18.05%；
+  每窗口固定批次的活动 CPU 388.3 s（原版两窗）vs 282.8 / 279.3 s（Rust 两窗，−27.6%）。
+  空闲：守护进程 RSS 合计 4880 / 4864 KiB vs 原版 9424 / 9272；守护进程 CPU 0.025% vs 0.075%（P11 生效，R86 为 0.042%）；
+  MemAvailable 中位数 Rust 131.9 / 132.3 MB vs 原版 139.5 / 138.7 MB——差额是 7.6 MB 静态二进制的页缓存，与 R86 同一口径。
+  首次 SSH 50.2 / 40.3 s（Rust）vs 40.3 / 40.3 s；健康确认 270.7 / 262.4 s vs 266.2 / 266.8 s。
 - 已完成的 [HTTPD 实机矩阵](R87_parts/httpd/results.md)：16 项平均延迟全部低于原版（−7.85% 至 −38.79%），CPU 15 项下降，
   `jsonrpc_c4` CPU +3.10%（480.65→495.54 µs/次）。与 R86 最终 HTTPD 的同一矩阵相比，候选 CPU 在多数负载上高 0.4%–2.3%
   （原版侧同期漂移 −1.3%–+4.2%），但 `static_512_dat_c1` +10.3%（82.5→91.0 µs）、`static_512_dat_c4` +6.4%、`jsonrpc_c4` +16.3%
   （426.1→495.5 µs）。构建机固定核对照没有测到每请求差异，本文不给这几项归因；整机窗口的 HTTP 负载另行观察。
 
-## 6. 待完成与边界
+## 6. 边界与后续
 
-- 正式验收仍需走 R86 的流程：CI `release-image` 生成九文件身份 → 提取校验 → 隔离矩阵与整机四窗口。
-  本文的构建机数字（噪声大、CPU 快得多）不能替代路由器数字；实机上 ubusd 的 O(N) 差额预计接近第 2.1 节的 36–48 µs/次，
-  HTTPD 64 连接增量预计落在 100 KiB 量级，但都必须测量后再写。
+- 设备上 R87 的正式构建在四窗口之后一直运行，直到 R89 修复轮部署（见 [R88_FULL_AUDIT.md](R88_FULL_AUDIT.md) §6）：
+  R88 审计在 P11 里发现一个 P1（总线持续可读时维护节拍饿死，硬件看门狗只在维护里喂），R87 矩阵单轮最长约 22 s 未触及 30 s 超时。
+  本轮的性能结论不受该缺陷影响（修复只改变维护截止时间的锚点），R89 矩阵重新测量后 procd 每请求 CPU 与 R87 之差在 ±0.8% 内。
 - 夹具修正（r36/r42 基线等待）已随本轮提交；R86 的 r36/r42 结论本身不受影响，只是当时一次通过的运行没有暴露竞争。
-- 未改动：procd 每 200 ms 的维护节拍（空闲 CPU 0.008% → 0.042%，见 R86 诊断字段）与每消息维护开销；
-  ubusd lookup p99 与 rpcd 尾部没有可归因的算法缺陷，本轮只减少了每次操作的工作量。
+- 残余尾延迟：候选在 c4 的 p99 逐轮离散度是原版的 3–10 倍而均值与 CPU 更低更紧（R88 §3），根因未归因；ubusd lookup p99 与 rpcd 尾部没有可归因的算法缺陷。
