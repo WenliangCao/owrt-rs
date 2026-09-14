@@ -4,10 +4,19 @@
 # BUNDLE contains ns-exec, owrt-benchmark and the nine shipped Rust binaries.
 # On a physical router this is a device mutation and requires its recovery gate.
 set -eu
+case "${OWRT_BENCH_TRACE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_CGI_STRESS:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_RPC_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MEMORY:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_HTTPD_DIAG:-0}" in 0|paced|memory) ;; *) exit 2 ;; esac
+for diag_number in "${OWRT_HTTPD_DIAG_GAP_MS:-0}" "${OWRT_HTTPD_DIAG_CLIENTS:-4}" "${OWRT_HTTPD_DIAG_ROUNDS:-40}" "${OWRT_HTTPD_NETEM_MS:-0}"; do
+    case "$diag_number" in ''|*[!0-9]*) exit 2 ;; esac
+done
+if [ "${OWRT_HTTPD_DIAG:-0}" != 0 ] && [ "$(( ${OWRT_HTTPD_MATRIX:-0} + ${OWRT_HTTPD_CGI_STRESS:-0} + ${OWRT_HTTPD_RPC_PROFILE:-0} + ${OWRT_HTTPD_MEMORY:-0} ))" -ne 0 ]; then
+    echo 'HTTP diagnostics require their own run' >&2
+    exit 2
+fi
 case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -69,6 +78,15 @@ if [ "${1:-}" = --namespace ]; then
         mount --bind "$root/dev/null" "$root/proc/kmsg"
     fi
     cp "$script" "$root/tmp/workload.sh"
+    if [ "${OWRT_HTTPD_NETEM_MS:-0}" -gt 0 ]; then
+        [ "${OWRT_HTTPD_DIAG:-0}" = paced ] && [ "$component" = httpd ]
+        [ "$OWRT_HTTPD_NETEM_MS" -le 500 ]
+        # This is the verified private network namespace, before chroot.
+        # No production interface or management path receives a qdisc.
+        ip link set lo up
+        tc qdisc add dev lo root netem delay "${OWRT_HTTPD_NETEM_MS}ms"
+        tc -s qdisc show dev lo > "$out/netem.txt"
+    fi
     exec chroot "$root" /bin/sh /tmp/workload.sh --workload "$component" "$impl" "$n"
 fi
 
@@ -145,6 +163,18 @@ EOF
         if [ "$component" = "$1" ] && [ "$impl" = rs ]; then
             printf '/tmp/bin/%s\n' "$3"
         else printf '%s\n' "$2"; fi
+    }
+    start_trace() {
+        [ "${OWRT_BENCH_TRACE:-0}" = 1 ] || return 0
+        sha256sum /tmp/bin/strace > "$out/strace-sha256.txt"
+        printf 'strace syscall counts and blocked wall time; diagnostic only\n' > "$out/TRACE_DIAGNOSTIC"
+        /tmp/bin/strace -f -c -w -S calls -o "$out/syscalls.txt" -p "$subject" > "$out/strace.log" 2>&1 & tracer=$!
+        attempts=0
+        until [ "$(awk '/^TracerPid:/ {print $2}' /proc/"$subject"/status)" = "$tracer" ]; do
+            kill -0 "$tracer"
+            [ "$attempts" -lt 5 ]
+            sleep 1; attempts=$((attempts + 1))
+        done
     }
     wait_object() {
         object=$1; pid=$2; tries=0
@@ -321,6 +351,7 @@ EOF
                 sha256sum /tmp/ubusd-fixtures > "$out/ubusd-fixtures.sha256"
                 check_bus_objects 64 before
             fi
+            start_trace
             "$bench" lookup "$socket" bench.target "$n" 20 "$monitors" > "$out/lookup.json"
             "$bench" lookup "$socket" '*' "$n" 20 "$monitors" > "$out/lookup_all_64.json"
             run_rpc invoke bench.target ping '{"n":1}' '{"ok":1}'
@@ -415,6 +446,7 @@ EOF
                 service_list_expect 32 > /tmp/expect-service-32.json
                 service32=$(cat /tmp/expect-service-32.json)
             fi
+            start_trace
             run_rpc service_list_32 service list '{}' "$service32"
             run_rpc system_info system info '{}' '{"memory":{}}'
             if [ "${OWRT_PROCD_MATRIX:-0}" = 1 ]; then
@@ -575,7 +607,23 @@ EOF
             "$bin" -f -h /tmp/www -r OpenWrt -x /cgi-bin -u /ubus -t 60 -T 30 -k 20 -A 1 -n 3 -N 100 -R -p 127.0.0.1:18080 > "$out/daemon.log" 2>&1 & subject=$!
             monitors=$subject,$rpc,$bus
             sleep 1; kill -0 "$subject"
-            if [ "${OWRT_HTTPD_MEMORY:-0}" = 1 ]; then
+            start_trace
+            if [ "${OWRT_HTTPD_DIAG:-0}" != 0 ]; then
+                sha256sum /tmp/bin/http-diagnostics > "$out/diagnostic-sha256.txt"
+                printf '%s\n' "$OWRT_HTTPD_DIAG" > "$out/diagnostic-mode.txt"
+                if [ "$OWRT_HTTPD_DIAG" = paced ]; then
+                    /tmp/bin/http-diagnostics http-paced 127.0.0.1:18080 /static.dat /tmp/www/static.dat "$n" "${OWRT_HTTPD_DIAG_CLIENTS:-4}" "${OWRT_HTTPD_DIAG_GAP_MS:-0}" "$subject" > "$out/paced.json"
+                else
+                    rounds=${OWRT_HTTPD_DIAG_ROUNDS:-40}
+                    [ "$rounds" -ge 2 ] && [ "$rounds" -le 500 ]
+                    round=1
+                    while [ "$round" -le "$rounds" ]; do
+                        /tmp/bin/http-diagnostics http-resident 127.0.0.1:18080 /static.dat /tmp/www/static.dat 64 "$subject" > "$out/memory-$round.json"
+                        round=$((round + 1))
+                    done
+                    n=$((rounds * 128))
+                fi
+            elif [ "${OWRT_HTTPD_MEMORY:-0}" = 1 ]; then
                 # A separate diagnostic client; the frozen timing client above
                 # remains unchanged and no latency samples are mixed in here.
                 sha256sum /tmp/bin/memory-probe > "$out/memory-probe-sha256.txt"
@@ -631,6 +679,14 @@ EOF
     printf '{"component":"%s","implementation":"%s","subject_pid":%s,"dependencies":"original OpenWrt","iterations":%s,"kernel_log_mask":"%s"}\n' "$component" "$impl" "$subject" "$n" "$kernel_log_mask" > "$out/meta.json"
     sha256sum "$bin" > "$out/binary-sha256.txt"
     if [ "$subject" != null ]; then sha256sum /proc/"$subject"/exe > "$out/subject-sha256.txt"; fi
+    if [ -n "${tracer:-}" ]; then
+        kill -INT "$tracer"
+        # An attached strace exits with SIGINT's 128+2 status after detaching.
+        if wait "$tracer"; then :; else [ "$?" -eq 130 ]; fi
+        kill -0 "$subject"
+        [ "$(awk '/^TracerPid:/ {print $2}' /proc/"$subject"/status)" = 0 ]
+        [ -s "$out/syscalls.txt" ]
+    fi
     touch "$out/COMPLETE"
     # Namespace PID 1 destroys every descendant after this shell exits.
     exit 0
@@ -640,6 +696,9 @@ fi
 [ "$(id -u)" -eq 0 ] || { echo 'namespace setup requires root' >&2; exit 2; }
 image=$(cd "$1" && pwd); bundle=$(cd "$2" && pwd); component=$3; impl=$4
 case "$component" in uci|fw4|reload-config|logd|rpcd|httpd|procd|ubusd|netifd) ;; *) exit 2 ;; esac
+if [ "${OWRT_BENCH_TRACE:-0}" = 1 ]; then
+    case "$component" in ubusd|procd|httpd) ;; *) exit 2 ;; esac
+fi
 case "$impl" in c|rs) ;; *) exit 2 ;; esac
 mkdir -p "$5"; out=$(cd "$5" && pwd)
 [ ! -e "$out/STARTED" ] || { echo 'refusing to mix benchmark runs' >&2; exit 2; }

@@ -111,7 +111,7 @@ def main():
     add("functional", "fw4-image", ["sudo", "-n", "sh", "tools/benchmark/isolated.sh", rootfs, bins, "fw4", "rs", out / "fw4-image", "10"])
     add("functional", "uci-r16", ["sudo", "-n", "python3", "tools/r16_uci_check.py", rootfs, bins / "uci-rs", "--report", out / "uci-r16.json", "--keep", out / "uci-r16"])
     add("functional", "uci-r24", ["sudo", "-n", "python3", "tools/r24_uci_fuzz.py", rootfs, bins / "uci-rs", "--cases", "1000", "--seed", "92", "--keep", out / "uci-r24"])
-    add("functional", "uci-r83", ["sh", "tools/r83_uci_findings.sh", rootfs, bins / "uci-rs"])
+    add("functional", "uci-r83", ["env", "R92_UCI_RENAME_REJECT=1", "sh", "tools/r83_uci_findings.sh", rootfs, bins / "uci-rs", out / "uci-r83"])
     add("functional", "reload-config-r1", ["sudo", "-n", "python3", "tools/r1_candidate_check.py", "--rootfs", rootfs, "--candidate", bins / "reload_config_rs",
         "--cases", "tests/reference/config-change-dispatch/cases", "--output", out / "reload-config-r1", "--image-id", "ax3000t-stock-openwrt-25.12.5", "--recorded-at", now])
     add("recovery", "r92-recovery", ["sudo", "-n", "python3", "tools/r92_recovery_probe.py", rootfs, bins, out / "r92-recovery", "--output-helper", examples / "output_lifecycle"])
@@ -120,14 +120,28 @@ def main():
     selected = [g for g in gates if g[0] in a.groups and (not a.gates or g[1] in a.gates)]
     if not selected or (a.gates and set(a.gates) != {g[1] for g in selected}):
         p.error("empty selection or unknown gate")
+    helper_identity = None
+    if {g[1] for g in selected} & {"ubusd-r36", "ubusd-r36-user", "ubusd-r41"}:
+        helper_manifest = a.helpers / "manifest.json"
+        if not helper_manifest.exists():
+            p.error("rebuild test helpers with r36_build_helpers.sh; their source manifest is required")
+        helper_identity = json.loads(helper_manifest.read_text())
+        for name in ("asuser", "busprobe"):
+            identity = helper_identity["helpers"][name]
+            if (identity["source_sha256"] != digest(source / "tools/testsrc" / (name + ".c"))
+                    or identity["binary_sha256"] != digest(a.helpers / name)):
+                p.error("stale or modified test helper: " + name)
     binaries = {p.name: digest(p) for p in sorted(bins.iterdir()) if p.is_file()}
-    result = {"started": now, "groups": a.groups, "gate_selection": a.gates, "driver_sha256": digest(Path(__file__)), "binary_sha256": binaries, "results": []}
+    result = {"started": now, "groups": a.groups, "gate_selection": a.gates, "driver_sha256": digest(Path(__file__)), "binary_sha256": binaries, "helper_identity": helper_identity, "results": []}
     for group, name, command, extra_env, required in selected:
         if group != "unit":
             # The namespace init outlives each gate and kills all descendants
             # when it exits, including setsid daemons left by old harnesses.
             # Its private loopback also contains the r18/r19 DNS fixtures.
-            command = ["sudo", "-n", str(a.baseline.resolve() / "ns-exec"), sys.executable,
+            # sudo deliberately resets the inherited environment. Pass this
+            # selected, source-verified helper directory as an explicit value.
+            command = ["sudo", "-n", "env", "HELPERS=" + str(a.helpers.resolve()),
+                       str(a.baseline.resolve() / "ns-exec"), sys.executable,
                        str(Path(__file__).resolve()), "--namespace-command", *command]
         print(json.dumps({"started": name, "at": datetime.datetime.now(datetime.timezone.utc).isoformat()}), flush=True)
         log = out / (name + ".log")

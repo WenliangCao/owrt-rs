@@ -13,12 +13,14 @@
 # without `-t` both sides would share /tmp/.uci and contaminate each other.
 #
 # Usage: sudo r83_uci_findings.sh <rootfs-files> <uci-rs-musl-binary> [workdir]
-# Exit 1 on any difference.
+# Exit 1 on any difference, except the individually verified R92 rename
+# disposition when R92_UCI_RENAME_REJECT=1 is explicitly selected.
 set -u
 
 ROOTFS=${1:?rootfs-files}
 CAND=${2:?uci-rs musl binary}
 WORK=${3:-/tmp/r83-uci}
+case "${R92_UCI_RENAME_REJECT:-0}" in 0|1) ;; *) exit 2 ;; esac
 
 [ -x "$ROOTFS/sbin/uci" ] || { echo "no $ROOTFS/sbin/uci"; exit 2; }
 [ -f "$CAND" ] || { echo "no $CAND"; exit 2; }
@@ -248,6 +250,31 @@ echo "  cand  $(wc -c < "$CAND") bytes  $(md5sum < "$CAND" | cut -d' ' -f1)"
 
 fail=0
 compared=0
+if [ "${R92_UCI_RENAME_REJECT:-0}" = 1 ]; then
+    # Preserve both raw trees. Only these exact outcomes may differ; names,
+    # ordinary rename, reload/show/commit and every other fixture still diff.
+    python3 - "$WORK" <<'PY' || fail=1
+import hashlib, sys
+from pathlib import Path
+root = Path(sys.argv[1])
+delta = b"@t.s='\xff\xfe'\n"
+missing = b"sh: can't open /tmp/scratch/ren/save/t: no such file\n"
+expected = {
+    'ren_do.out': (b'', b''), 'ren_do.err': (b'', b'uci: Invalid argument\n'),
+    'ren_do.rc': (b'0\n', b'1\n'),
+    'ren_delta.out': (b'10\n' + hashlib.md5(delta).hexdigest().encode() + b'  -\n', b''),
+    'ren_delta.err': (b'', missing * 2), 'ren_delta.rc': (b'0\n', b'1\n')}
+for name, values in expected.items():
+    for side, value in zip(('c', 'rs'), values):
+        assert (root / side / 'tmp/out' / name).read_bytes() == value, (side, name)
+for side in ('c', 'rs'):
+    tree = root / side / 'tmp/scratch/ren'
+    actual = {str(p.relative_to(tree)): p.read_bytes() for p in tree.rglob('*') if p.is_file()}
+    assert actual == ({'t': b'config a s\n', 'save/t': delta} if side == 'c' else
+                      {'t': b'config a s\n'}), side
+print('R92 rename disposition: original raw delta retained; candidate rejects without model/file mutation')
+PY
+fi
 for tree in out scratch; do
 	if [ ! -d "$WORK/c/tmp/$tree" ] || [ ! -d "$WORK/rs/tmp/$tree" ]; then
 		echo "MISSING /tmp/$tree on one side"
@@ -256,7 +283,13 @@ for tree in out scratch; do
 	fi
 	n=$(find "$WORK/c/tmp/$tree" -type f | wc -l)
 	compared=$((compared + n))
-	if ! diff -r "$WORK/c/tmp/$tree" "$WORK/rs/tmp/$tree" > "$WORK/$tree.diff" 2>&1; then
+    excludes=
+    if [ "${R92_UCI_RENAME_REJECT:-0}" = 1 ]; then
+        if [ "$tree" = out ]; then
+            excludes='-x ren_do.out -x ren_do.err -x ren_do.rc -x ren_delta.out -x ren_delta.err -x ren_delta.rc'
+        else excludes='-x ren'; fi
+    fi
+	if ! diff -r $excludes "$WORK/c/tmp/$tree" "$WORK/rs/tmp/$tree" > "$WORK/$tree.diff" 2>&1; then
 		echo "DIFF /tmp/$tree  ($n files on the C side)"
 		sed -n 1,200p "$WORK/$tree.diff"
 		fail=1

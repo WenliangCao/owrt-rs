@@ -91,7 +91,8 @@ def derive(root, label):
     assert not settings.get("rpc_client_diagnostic"), "RPC client diagnostics cannot be published as performance-matrix results"
     component = settings.get("component", "httpd")
     assert component in COMPONENT_WORK
-    measured_sides = tuple(side for side in ("stock", "r84", "candidate") if side in order)
+    baseline_label = settings.get("baseline_label", "r84")
+    measured_sides = tuple(side for side in ("stock", baseline_label, "candidate") if side in order)
     assert {"stock", "candidate"}.issubset(measured_sides)
     assert len({order.count(side) for side in measured_sides}) == 1
     before, after = read(root / "health-before.json"), read(root / "health-after.json")
@@ -124,6 +125,8 @@ def derive(root, label):
         local = root / f"{index:02d}-{side}"
         raw = local / "raw"
         assert (local / "COMPLETE").exists() and (raw / "COMPLETE").exists()
+        assert not (raw / "TRACE_DIAGNOSTIC").exists(), "traced runs are not performance measurements"
+        assert not (raw / "diagnostic-mode.txt").exists(), "HTTP diagnostics are separate from the matrix"
         meta = read(raw / "meta.json")
         assert meta["component"] == component and meta["dependencies"] == "original OpenWrt"
         subject = meta["subject_pid"]
@@ -201,6 +204,10 @@ def derive(root, label):
         sides["candidate_vs_stock_pct"] = {
             metric: (sides["candidate"][metric]["median"] / sides["stock"][metric]["median"] - 1) * 100
             for metric in METRICS if sides["stock"][metric]["median"] > 0}
+        if baseline_label in sides:
+            sides["candidate_vs_baseline_pct"] = {
+                metric: (sides["candidate"][metric]["median"] / sides[baseline_label][metric]["median"] - 1) * 100
+                for metric in METRICS if sides[baseline_label][metric]["median"] > 0}
         summary[name] = sides
     client, namespace, harness = next(iter(identities))
     limitations = []
@@ -211,6 +218,7 @@ def derive(root, label):
             "order": order, "host_gates_passed": True, "acceptance_eligible": not limitations,
             "limitations": limitations, "runs": rows, "summary": summary,
             "measured_sides": measured_sides,
+            "baseline_label": baseline_label, "cpu_affinity": settings.get("cpu_affinity"),
             "resident": residents, "sources": sources,
             "method": "Medians of per-run statistics; c4 CPU uses one outer interval divided by successful plus warm-up operations. c4 outer throughput includes warm-up/startup and uses /proc/uptime resolution. Client validation runs on the same router CPUs."}
 
@@ -226,13 +234,13 @@ def main():
     (args.output / "results.json").write_text(json.dumps(result, indent=2) + "\n")
     lines = [f"# {args.label}：{result['component']} 实机对照", "",
              "单位：延迟和 CPU 为 µs/请求；数值是逐轮统计的中位数。负百分比表示开销下降。", "",
-             "| 负载 | 原版延迟 | R84 延迟 | 候选延迟 | 候选比原版 | 原版 CPU | 候选 CPU | 候选比原版 |",
+             f"| 负载 | 原版延迟 | {result['baseline_label'].upper()} 延迟 | 候选延迟 | 候选比原版 | 原版 CPU | 候选 CPU | 候选比原版 |",
              "|---|---:|---:|---:|---:|---:|---:|---:|"]
     for name, sides in result["summary"].items():
         v = lambda side, metric: sides[side][metric]["median"]
         delta = sides["candidate_vs_stock_pct"]
-        r84 = f"{v('r84', 'mean_us'):.2f}" if "r84" in sides else "—"
-        lines.append(f"| {name} | {v('stock', 'mean_us'):.2f} | {r84} | "
+        baseline = f"{v(result['baseline_label'], 'mean_us'):.2f}" if result["baseline_label"] in sides else "—"
+        lines.append(f"| {name} | {v('stock', 'mean_us'):.2f} | {baseline} | "
                      f"{v('candidate', 'mean_us'):.2f} | {delta['mean_us']:+.2f}% | "
                      f"{v('stock', 'subject_cpu_us_per_op'):.2f} | {v('candidate', 'subject_cpu_us_per_op'):.2f} | "
                      f"{delta['subject_cpu_us_per_op']:+.2f}% |")

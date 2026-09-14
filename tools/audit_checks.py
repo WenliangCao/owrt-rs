@@ -133,6 +133,10 @@ def transcript36(text):
     require(len(survived) == 6 and set(survived) == {"yes"}, "incomplete/failed survival probes")
     require(len(re.findall(r"^--- \d+\.", text, re.M)) == 16, "incomplete ubusd transcript")
     require(re.search(r"^session_create: .*\"sid\":MASKED", text, re.M), "provider never replied")
+    deltas = re.findall(r"^fd_delta_(since_probe_start|after_20_clients): (-?\d+)$", text, re.M)
+    require([name for name, _ in deltas] == ["since_probe_start", "after_20_clients"],
+            "descriptor observations incomplete")
+    require(all(int(value) <= 0 for _, value in deltas), "descriptor count grew across client churn")
 
 
 def transcript42(text):

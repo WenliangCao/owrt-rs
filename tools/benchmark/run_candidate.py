@@ -10,6 +10,7 @@ import datetime
 import hashlib
 import json
 from pathlib import Path
+import re
 import shlex
 import subprocess
 import sys
@@ -33,6 +34,10 @@ def main():
     parser.add_argument("--access", choices=("wired", "wifi"), default="wifi",
                         help="management path recorded with the measurements; both are authorized")
     parser.add_argument("--host", default="openwrt")
+    parser.add_argument("--baseline-bundle", default="/root/r84",
+                        help="frozen comparison bundle on the router, including manifest.json")
+    parser.add_argument("--baseline-label", default="r84", help="evidence label for that frozen bundle")
+    parser.add_argument("--cpus", help="optional fixed taskset CPU list for every isolated subject/client")
     parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
     parser.add_argument("--iterations", type=int, default=10000)
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
@@ -43,6 +48,10 @@ def main():
     parser.add_argument("--sides", nargs="+", choices=("stock", "r84", "candidate"),
                         default=["stock", "r84", "candidate"])
     args = parser.parse_args()
+    if not re.fullmatch(r"[a-z][a-z0-9_-]*", args.baseline_label) or args.baseline_label in ("stock", "candidate"):
+        parser.error("invalid baseline label")
+    if not args.baseline_bundle.startswith("/") or (args.cpus and not re.fullmatch(r"[0-9,-]+", args.cpus)):
+        parser.error("baseline path must be absolute; CPU list must be numeric")
     if args.iterations <= 0:
         parser.error("iterations must be positive")
     if len(set(args.sides)) != len(args.sides) or not {"stock", "candidate"}.issubset(args.sides):
@@ -77,15 +86,22 @@ def main():
     config = ssh("sha256sum /etc/config/*")
     (out / "config-before.sha256").write_bytes(config)
     manifest = json.loads(ssh("cat /root/r84/manifest.json"))
+    baseline = json.loads(ssh("cat " + shlex.quote(args.baseline_bundle + "/manifest.json")))
     hashes = {"stock": manifest["components"][component]["original"]["sha256"],
-              "r84": manifest["components"][component]["rust"]["sha256"],
+              args.baseline_label: baseline["components"][component]["rust"]["sha256"],
               "candidate": hashlib.sha256(args.candidate.read_bytes()).hexdigest()}
+    for name in ("ns-exec", "owrt-benchmark"):
+        if baseline["tools"][name]["sha256"] != manifest["tools"][name]["sha256"]:
+            raise RuntimeError("frozen baseline and host benchmark tools differ")
     save("subjects.json", hashes)
-    order = tuple(side for side in ORDER[:args.repeats * 3] if side in args.sides)
+    order = tuple(args.baseline_label if side == "r84" else side
+                  for side in ORDER[:args.repeats * 3] if side in args.sides)
     save("order.json", order)
     save("settings.json", {"component": component, "iterations": args.iterations, "matrix": args.matrix,
                            "held_connections": 64 if args.memory_probe else None,
                            "rpc_client_diagnostic": bool(args.rpc_client_probe),
+                           "baseline_label": args.baseline_label, "baseline_bundle": args.baseline_bundle,
+                           "cpu_affinity": args.cpus,
                            "management_access": args.access, "workload_transport": "namespace loopback"})
     remote = "/tmp/r85-" + component + "-" + uuid.uuid4().hex[:12]
     ssh("test ! -e " + remote + " && mkdir -p " + remote + "/bundle")
@@ -118,13 +134,15 @@ def main():
         local = out / f"{index:02d}-{side}"
         local.mkdir(mode=0o700)
         run_out = remote + f"/run-{index:02d}"
-        selected = bundle if side == "candidate" or args.memory_probe or args.rpc_client_probe else "/root/r84/bins"
+        selected = bundle if side == "candidate" or args.memory_probe or args.rpc_client_probe else args.baseline_bundle + "/bins"
         impl = "c" if side == "stock" else "rs"
         (local / "host-before.json").write_bytes(ssh(snapshot))
         print(json.dumps({"event": "started", "side": side, "index": index,
                           "at": datetime.datetime.now(datetime.timezone.utc).isoformat()}), flush=True)
-        command = (f"/bin/sh {remote}/isolated.sh /rom {selected} {component} {impl} "
+        command = (f"/bin/sh {remote}/isolated.sh /rom {shlex.quote(selected)} {component} {impl} "
                    f"{run_out} {args.iterations}")
+        if args.cpus:
+            command = "taskset -c " + shlex.quote(args.cpus) + " " + command
         if args.matrix:
             command = "OWRT_" + component.upper() + "_MATRIX=1 " + command
         if args.memory_probe:

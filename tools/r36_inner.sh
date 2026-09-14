@@ -118,7 +118,19 @@ fi
 # Absolute counts differ legitimately between the two daemons; only the change
 # across the churn below is comparable.
 fdcount() { ls /proc/$bus/fd 2>/dev/null | wc -l; }
-fd_base=$(fdcount)
+settled_fdcount() {
+    previous=; attempts=0
+    while [ "$attempts" -lt 5 ]; do
+        current=$(fdcount)
+        [ "$current" -gt 0 ] || return 1
+        if [ "$current" = "$previous" ]; then printf '%s\n' "$current"; return 0; fi
+        previous=$current; attempts=$((attempts + 1)); sleep 1
+    done
+    return 1
+}
+# The preceding CLI may have exited before ubusd consumes its EOF. Sample
+# without opening another bus connection, after two consecutive counts agree.
+fd_base=$(settled_fdcount) || exit 1
 
 say "--- 10. malformed input and antisocial clients"
 if [ -x /tmp/busprobe ]; then
@@ -235,11 +247,12 @@ say "monitor_saw_hello: $(grep -ci 'hello' /tmp/out/monitor.txt || true)"
 say "monitor_nonroot_denied: $([ -x /tmp/asuser ] && { /tmp/asuser nobody /bin/ubus monitor >/dev/null 2>&1; echo $?; } || echo skipped)"
 
 say "--- 15. no descriptor or client leak across all of the above"
-fd_now=$(fdcount)
+fd_now=$(settled_fdcount) || exit 1
 say "fd_delta_since_probe_start: $((fd_now - fd_base))"
 # churn: 20 connect/disconnect cycles must leave nothing behind
 i=0; while [ $i -lt 20 ]; do ubus list >/dev/null 2>&1; i=$((i+1)); done
-say "fd_delta_after_20_clients: $(( $(fdcount) - fd_base ))"
+fd_after=$(settled_fdcount) || exit 1
+say "fd_delta_after_20_clients: $((fd_after - fd_base))"
 say "still_serving: $(ubus -S call session list '{}' >/dev/null 2>&1; echo $?)"
 
 say "--- 11. still healthy at the end"

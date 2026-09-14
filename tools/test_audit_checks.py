@@ -154,6 +154,16 @@ class EvidenceGates(unittest.TestCase):
         with self.assertRaises(ValueError):
             transcript42('survived: yes\nfinal objects unchanged: yes\nfinal serving: 0\nfinal fd bounded: yes\n')
 
+    def test_two_identical_ubusd_leaks_cannot_pass_the_gate(self):
+        text = ''.join(f'--- {n}. case\n' for n in range(1, 17))
+        text += ''.join(f'probe{n}_survived: yes\n' for n in range(6))
+        text += ('daemon_alive: yes\nlist_rc: 0\nstill_serving: 0\nsession_create: {"sid":MASKED}\n'
+                 'fd_delta_since_probe_start: 0\nfd_delta_after_20_clients: 0\n')
+        transcript36(text)
+        for label in ('since_probe_start', 'after_20_clients'):
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                transcript36(text.replace(f'fd_delta_{label}: 0', f'fd_delta_{label}: 1'))
+
     def test_limits_require_real_probes_survival_and_complete_fixture(self):
         text = '--- 1. sizes\n'
         for n in (1048572, 1048576, 1048577, 1048580, 2097152):

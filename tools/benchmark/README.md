@@ -332,3 +332,29 @@ the analysis itself does not query the device or establish current live health.
 - Kernel forwarding and hardware offload remain unchanged. These measurements
   quantify control-plane overhead and end-to-end management requests; they do
   not establish a routing-throughput speedup.
+
+R92 retains the frozen benchmark and explicitly selects the R89 bundle with
+`run_candidate.py --baseline-bundle /root/r89-before-r90 --baseline-label r89`.
+`--cpus 0` applies the same affinity to each isolated subject and its clients;
+these follow-up runs are kept separate from the normal two-CPU matrix.
+
+HTTP diagnostics use a separately built `http-diagnostics` executable from
+this directory. It must never replace the frozen `owrt-benchmark`. In an
+isolated run, `OWRT_HTTPD_DIAG=paced` selects four persistent clients;
+`OWRT_HTTPD_DIAG_GAP_MS` selects the inter-request delay. Linux build hosts can
+also set `OWRT_HTTPD_NETEM_MS` to apply a real one-way delay on the private
+namespace's loopback only. Request gaps on the router do not measure RTT.
+`OWRT_HTTPD_DIAG=memory OWRT_HTTPD_DIAG_ROUNDS=40` repeatedly holds and closes
+64 clients and requires descriptors and threads to return each time.
+
+`OWRT_BENCH_TRACE=1` attaches a separately identified static `strace` to ubusd,
+procd or httpd; traced results are diagnostic only. `analyze_candidate.py`
+rejects them. `analyze_diagnostics.py` verifies the raw HTTP series and exports
+latency/CPU for untraced diagnostics, clone counts for traced diagnostics, and
+RSS drift after repeated closes. Sampled thread births are lower bounds.
+
+`file_residency.c` uses `mmap(PROT_NONE)` and `mincore`; `file_pages.sh` records
+active executable, mapping and retained-bundle pages after the usual identity
+gate, without faulting file contents or dropping caches. Deduplicate by
+device/inode within groups and retain the limitation that overlay aliases may
+share physical pages. The result is neither exclusive RSS nor removable RAM.

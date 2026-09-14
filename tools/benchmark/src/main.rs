@@ -608,6 +608,86 @@ fn main_inner(a: &[String]) -> Result<()> {
                 || Ok(()),
             )
         }
+        "http-paced" => {
+            // Diagnostic-only build: the release comparison keeps its frozen
+            // client. Controlled gaps exercise HTTPD's 50 ms parking boundary.
+            require(a.len() == 9, "http-paced ADDRESS PATH EXPECT_BYTES N CLIENTS GAP_MS PID")?;
+            let count: usize = a[5].parse()?;
+            let concurrency: usize = a[6].parse()?;
+            let gap = Duration::from_millis(a[7].parse()?);
+            let pid: u32 = a[8].parse()?;
+            require((1..=64).contains(&concurrency) && count >= concurrency
+                && count.is_multiple_of(concurrency) && pid != 0, "invalid paced workload")?;
+            let expected = fs::read(&a[4])?;
+            let mut clients = Vec::new();
+            for _ in 0..concurrency {
+                let mut client = HttpClient { address: a[2].clone(), stream: None };
+                require(client.request("GET", &a[3], &[])? == expected, "warm-up response mismatch")?;
+                require(client.stream.is_some(), "server closed a diagnostic connection")?;
+                clients.push(client);
+            }
+            let before = proc_sample(pid)?;
+            let stop = std::sync::atomic::AtomicBool::new(false);
+            let barrier = std::sync::Barrier::new(concurrency + 1);
+            let baseline_tasks: std::collections::BTreeSet<_> = fs::read_dir(format!("/proc/{pid}/task"))?
+                .filter_map(|e| e.ok()).map(|e| e.file_name()).collect();
+            let started = Instant::now();
+            let (samples, tasks) = std::thread::scope(|scope| -> Result<_> {
+                let observer = scope.spawn(|| {
+                    let mut seen = baseline_tasks.clone();
+                    while !stop.load(std::sync::atomic::Ordering::Relaxed) {
+                        if let Ok(entries) = fs::read_dir(format!("/proc/{pid}/task")) {
+                            seen.extend(entries.filter_map(|e| e.ok()).map(|e| e.file_name()));
+                        }
+                        std::thread::sleep(Duration::from_millis(2));
+                    }
+                    seen.len().saturating_sub(baseline_tasks.len())
+                });
+                let mut workers = Vec::new();
+                for mut client in clients {
+                    let expected = &expected;
+                    let path = &a[3];
+                    let barrier = &barrier;
+                    workers.push(scope.spawn(move || -> std::result::Result<Vec<u64>, String> {
+                        barrier.wait();
+                        let mut samples = Vec::new();
+                        for _ in 0..count / concurrency {
+                            if !gap.is_zero() { std::thread::sleep(gap); }
+                            let t = Instant::now();
+                            let body = client.request("GET", path, &[]).map_err(|e| e.to_string())?;
+                            samples.push(t.elapsed().as_nanos() as u64);
+                            if body != *expected || client.stream.is_none() {
+                                return Err("paced response mismatch or connection closed".into());
+                            }
+                        }
+                        Ok(samples)
+                    }));
+                }
+                barrier.wait();
+                let results: Vec<_> = workers.into_iter().map(|w| w.join()).collect();
+                stop.store(true, std::sync::atomic::Ordering::Relaxed);
+                let tasks = observer.join().map_err(|_| "observer panicked")?;
+                let mut samples = Vec::new();
+                for result in results { samples.extend(result.map_err(|_| "client panicked")??); }
+                Ok((samples, tasks))
+            })?;
+            let wall = started.elapsed();
+            let after = proc_sample(pid)?;
+            require(before.start_ticks == after.start_ticks && samples.len() == count,
+                "server replaced or requests missing")?;
+            emit(obj([
+                ("diagnostic_only", Json::Bool(true)),
+                ("successful", integer(count as u64)), ("errors", integer(0)),
+                ("clients", integer(concurrency as u64)), ("gap_ms", integer(gap.as_millis() as u64)),
+                ("wall_ns", integer(wall.as_nanos() as u64)),
+                ("thread_births_observed_lower_bound", integer(tasks as u64)),
+                ("observer_interval_ms", integer(2)),
+                ("ticks_per_second", integer(ticks_per_second()?)),
+                ("before", proc_json(pid, &before)), ("after", proc_json(pid, &after)),
+                ("latency_ns", Json::Array(samples.into_iter().map(integer).collect())),
+            ]));
+            Ok(())
+        }
         "http-resident" => {
             require(
                 a.len() == 7,
