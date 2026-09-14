@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "runtime_source_commit": "ca1a9121df0380448a19d474e29796066b6734e8",
+  "baseline_source_commit": "d9c10483d95590143f9d6a1f41310e2a13e63fb3",
+  "analyzer_sha256": "1676d92b8fba4999468e2e59ae088562ea0271d9c5f403f80363f31633ee3111",
+  "formal_validation_analyzer_sha256": "601bced4374026cb9796aa4b664f0d5c41c1cff2d4fff65dc8b1d4e01edb285c",
+  "wireless_analyzer_sha256": "fc4f7cf43ceea827588884ba9e428422e1a063e4536c2e0d3a4d70d473d530bc",
+  "final_attestation_sha256": "13c217ee5ea1f7fea6f722f41ac3a581405db9d0f0b393245bd2b0d3559ab03b",
+  "private_root_required": true,
+  "raw_data_published": false,
+  "note": "Tooling and documentation may have later commits; deployed binaries remain pinned to the runtime commit."
+}

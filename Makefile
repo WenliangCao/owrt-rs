@@ -75,6 +75,7 @@ check-benchmark:
 	python3 tools/benchmark/test_httpd_analysis.py
 	python3 tools/benchmark/test_netifd_analysis.py
 	python3 tools/benchmark/test_netifd_gate.py
+	python3 tools/benchmark/test_r92_analysis.py
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/ns_exec.c
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/socket_constants.c
 

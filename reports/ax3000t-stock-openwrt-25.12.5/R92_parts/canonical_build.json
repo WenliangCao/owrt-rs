@@ -1,0 +1,65 @@
+{
+  "source_commit": "ca1a9121df0380448a19d474e29796066b6734e8",
+  "release_workflow": 34874442503,
+  "workflow_conclusion": "success",
+  "openwrt": "25.12.5",
+  "profile": "xiaomi_mi-router-ax3000t",
+  "artifact_sha256": {
+    "owrt-fw4-0.1.0-r12.apk": "ef0d27d6ba6d13de21783d1d908f92211f096f48e37f269ed9e199483e5abbc5",
+    "owrt-httpd-0.1.1-r13.apk": "389a8a33914e99bda90a32048a37397f89cb8138ba6ca11abf61c113edc18ca5",
+    "owrt-logd-0.1.0-r11.apk": "0e73a15e58bc028c9c60fcf7458fdae36b814f90abe413236131b7c39fd5a408",
+    "owrt-reload-config-0.2.0-r8.apk": "832ffe70ab42dc2c975f9880a4a05f6e036c2bbd645443b37cd84a4eca1b593e",
+    "owrt-rpcd-0.1.0-r18.apk": "930b63f6d32a6af83eef803da42e27f3b702edeebbecea73b3cfe689b5ddde31",
+    "owrt-switch-0.1.0-r2.apk": "2814f8fc5fcc2f4d19dc2781bc763689bcbf400a0d42fd0781d154650a8cd94b",
+    "owrt-uci-0.1.0-r9.apk": "7641809d19e7f2253a318ae10184588652279ea695a8d93b6377e4c86d46e8c8",
+    "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin": "da4f0496b035312f426b7374c6ef0e4c4c7f90194c9e336780091692fc1b7a5c",
+    "core-binaries.tar.gz": "7243bffed98ae77607af3449b885889323245702ada61976c81f2480c8e9c2d8"
+  },
+  "image_manifest_sha256": "5546f0a993c7623b50f1bbb54935b8b4daef51245c36f8421571bd3e7a71939f",
+  "core_manifest_sha256": "0f6d47cad5ebc636a98789ab626f218e403bc1b19f01f5f4766750540fc40587",
+  "binary_sha256": {
+    "uci-rs": "823d8c9545c7d4dd3c4a14d3bddebd3b86ad745d34b54a9e81d8f53c04533654",
+    "fw4-rs": "1216529c85e8868bc341d858a6c71a783441a564f8d9cf5944b2d2cbb8587095",
+    "reload_config_rs": "1f0bb7896b51a2093c846e71c849cba1d6da23adc62d8a585d7362ac8294ac35",
+    "logd-rs": "50603a6edfb5c8bfcc7e18ae9d41418704924f21c72989356b9cf78d2d48572c",
+    "httpd-rs": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+    "rpcd-rs": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08",
+    "procd-rs": "b4da8ad95bf2da1da9851b4a394a919827653c9d8281a6e8c0d31bf39df4d9cc",
+    "ubusd-rs": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+    "netifd-rs": "7c324b4eb4078b514d796f42606f22abe2301dc9bc2f4869c6a97ee9e0787591"
+  },
+  "original_binary_sha256": {
+    "fw4": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+    "httpd": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+    "logd": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+    "netifd": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+    "procd": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+    "reload-config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+    "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+  },
+  "binary_bytes": {
+    "uci-rs": 506635,
+    "fw4-rs": 1055443,
+    "reload_config_rs": 498415,
+    "logd-rs": 412347,
+    "httpd-rs": 1563391,
+    "rpcd-rs": 1248019,
+    "procd-rs": 843768,
+    "ubusd-rs": 503776,
+    "netifd-rs": 1044544
+  },
+  "toolchain": {
+    "requested": "1.98.1",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01); binary: rustc; commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985; commit-date: 2026-09-01; host: x86_64-unknown-linux-gnu; release: 1.98.1; LLVM version: 22.1.8",
+    "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+    "target_gcc": "aarch64-openwrt-linux-gcc (OpenWrt GCC 14.3.0 r33051-f5dae5ece4) 14.3.0",
+    "target": "aarch64-unknown-linux-musl",
+    "cargo_lock_sha256": "c4b025635598713eafc7de02e92ae69ac0dd6894f8007e5c63081637fe04ac99",
+    "official": true,
+    "override": null
+  },
+  "generated_image_flashed": false,
+  "verification": "Seven APKs, generated image, core archive, manifest chain and all nine standalone binary identities verified; deployment is attested separately."
+}

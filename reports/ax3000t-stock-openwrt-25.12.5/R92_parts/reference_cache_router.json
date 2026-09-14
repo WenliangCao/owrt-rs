@@ -1,0 +1,762 @@
+{
+  "schema": 1,
+  "inactive_files": 9,
+  "active_inodes_excluded": true,
+  "reference_file_pages_kib": 7508,
+  "phases": [
+    {
+      "phase": "warm-0",
+      "samples": 31,
+      "duration_seconds": 30,
+      "reference_resident_kib_before": 7508,
+      "reference_resident_kib_after": 7508,
+      "system_memory_kib": {
+        "MemFree": {
+          "n": 31,
+          "median": 108320,
+          "mean": 108333.93548387097,
+          "min": 108320,
+          "max": 108440,
+          "stdev": 36.774933024068595
+        },
+        "MemAvailable": {
+          "n": 31,
+          "median": 115864,
+          "mean": 115877.93548387097,
+          "min": 115864,
+          "max": 115984,
+          "stdev": 36.774933024068595
+        },
+        "Cached": {
+          "n": 31,
+          "median": 50484,
+          "mean": 50484,
+          "min": 50484,
+          "max": 50484,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4372,
+          "mean": 4369.677419354839,
+          "min": 4328,
+          "max": 4400,
+          "stdev": 10.054475278117678
+        },
+        "Mapped": {
+          "n": 31,
+          "median": 8240,
+          "mean": 8238.193548387097,
+          "min": 8148,
+          "max": 8276,
+          "stdev": 17.943279809515893
+        },
+        "Shmem": {
+          "n": 31,
+          "median": 1420,
+          "mean": 1420,
+          "min": 1420,
+          "max": 1420,
+          "stdev": 0.0
+        },
+        "SReclaimable": {
+          "n": 31,
+          "median": 7324,
+          "mean": 7324,
+          "min": 7324,
+          "max": 7324,
+          "stdev": 0.0
+        },
+        "SUnreclaim": {
+          "n": 31,
+          "median": 22680,
+          "mean": 22682.064516129034,
+          "min": 22660,
+          "max": 22708,
+          "stdev": 11.994263862004948
+        },
+        "KernelStack": {
+          "n": 31,
+          "median": 1632,
+          "mean": 1637.032258064516,
+          "min": 1632,
+          "max": 1648,
+          "stdev": 7.300611257366248
+        },
+        "PageTables": {
+          "n": 31,
+          "median": 792,
+          "mean": 792.258064516129,
+          "min": 780,
+          "max": 824,
+          "stdev": 6.361172543567126
+        }
+      },
+      "daemon_rss_kib": {
+        "n": 31,
+        "median": 5408,
+        "mean": 5408,
+        "min": 5408,
+        "max": 5408,
+        "stdev": 0.0
+      },
+      "source_sha256": "76147b8c23cc2820c1c2e9f2af5d817c723da23602f8e70d9274f93de0322073",
+      "additional_memory_accounting_kib": {
+        "Active(file)": {
+          "n": 31,
+          "median": 13396,
+          "mean": 13396,
+          "min": 13396,
+          "max": 13396,
+          "stdev": 0.0
+        },
+        "Inactive(file)": {
+          "n": 31,
+          "median": 35668,
+          "mean": 35668,
+          "min": 35668,
+          "max": 35668,
+          "stdev": 0.0
+        },
+        "KReclaimable": {
+          "n": 31,
+          "median": 7324,
+          "mean": 7324,
+          "min": 7324,
+          "max": 7324,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4372,
+          "mean": 4369.677419354839,
+          "min": 4328,
+          "max": 4400,
+          "stdev": 10.054475278117678
+        },
+        "Unevictable": {
+          "n": 31,
+          "median": 0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      },
+      "available_minus_free_kib": {
+        "n": 31,
+        "median": 7544,
+        "mean": 7544,
+        "min": 7544,
+        "max": 7544,
+        "stdev": 0.0
+      }
+    },
+    {
+      "phase": "advised-1",
+      "samples": 31,
+      "duration_seconds": 30,
+      "reference_resident_kib_before": 0,
+      "reference_resident_kib_after": 0,
+      "system_memory_kib": {
+        "MemFree": {
+          "n": 31,
+          "median": 110240,
+          "mean": 110217.03225806452,
+          "min": 110184,
+          "max": 110240,
+          "stdev": 27.61579725563823
+        },
+        "MemAvailable": {
+          "n": 31,
+          "median": 110272,
+          "mean": 110249.03225806452,
+          "min": 110216,
+          "max": 110272,
+          "stdev": 27.61579725563823
+        },
+        "Cached": {
+          "n": 31,
+          "median": 42976,
+          "mean": 42976,
+          "min": 42976,
+          "max": 42976,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4376,
+          "mean": 4374.322580645161,
+          "min": 4320,
+          "max": 4388,
+          "stdev": 10.820927553508506
+        },
+        "Mapped": {
+          "n": 31,
+          "median": 8240,
+          "mean": 8237.032258064517,
+          "min": 8148,
+          "max": 8240,
+          "stdev": 16.52368778646329
+        },
+        "Shmem": {
+          "n": 31,
+          "median": 1420,
+          "mean": 1420,
+          "min": 1420,
+          "max": 1420,
+          "stdev": 0.0
+        },
+        "SReclaimable": {
+          "n": 31,
+          "median": 7316,
+          "mean": 7316,
+          "min": 7316,
+          "max": 7316,
+          "stdev": 0.0
+        },
+        "SUnreclaim": {
+          "n": 31,
+          "median": 22684,
+          "mean": 22687.09677419355,
+          "min": 22668,
+          "max": 22732,
+          "stdev": 14.558742708328623
+        },
+        "KernelStack": {
+          "n": 31,
+          "median": 1632,
+          "mean": 1631.8709677419354,
+          "min": 1628,
+          "max": 1632,
+          "stdev": 0.7184212081070996
+        },
+        "PageTables": {
+          "n": 31,
+          "median": 792,
+          "mean": 791.3548387096774,
+          "min": 772,
+          "max": 792,
+          "stdev": 3.592106040535498
+        }
+      },
+      "daemon_rss_kib": {
+        "n": 31,
+        "median": 5408,
+        "mean": 5408,
+        "min": 5408,
+        "max": 5408,
+        "stdev": 0.0
+      },
+      "source_sha256": "143075e69064ee797dc07d99f8bc13c63bb05c1361fdf4adf3b94512dae2b938",
+      "additional_memory_accounting_kib": {
+        "Active(file)": {
+          "n": 31,
+          "median": 13396,
+          "mean": 13396,
+          "min": 13396,
+          "max": 13396,
+          "stdev": 0.0
+        },
+        "Inactive(file)": {
+          "n": 31,
+          "median": 28160,
+          "mean": 28160,
+          "min": 28160,
+          "max": 28160,
+          "stdev": 0.0
+        },
+        "KReclaimable": {
+          "n": 31,
+          "median": 7316,
+          "mean": 7316,
+          "min": 7316,
+          "max": 7316,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4376,
+          "mean": 4374.322580645161,
+          "min": 4320,
+          "max": 4388,
+          "stdev": 10.820927553508506
+        },
+        "Unevictable": {
+          "n": 31,
+          "median": 0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      },
+      "available_minus_free_kib": {
+        "n": 31,
+        "median": 32,
+        "mean": 32,
+        "min": 32,
+        "max": 32,
+        "stdev": 0.0
+      }
+    },
+    {
+      "phase": "warm-1",
+      "samples": 31,
+      "duration_seconds": 30,
+      "reference_resident_kib_before": 7508,
+      "reference_resident_kib_after": 7508,
+      "system_memory_kib": {
+        "MemFree": {
+          "n": 31,
+          "median": 112816,
+          "mean": 112564.90322580645,
+          "min": 109096,
+          "max": 112936,
+          "stdev": 896.9701353199637
+        },
+        "MemAvailable": {
+          "n": 31,
+          "median": 120356,
+          "mean": 120104.25806451614,
+          "min": 116636,
+          "max": 120476,
+          "stdev": 899.3739662580831
+        },
+        "Cached": {
+          "n": 31,
+          "median": 50484,
+          "mean": 50483.74193548387,
+          "min": 50476,
+          "max": 50484,
+          "stdev": 1.4368424162141993
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4372,
+          "mean": 4373.419354838709,
+          "min": 4352,
+          "max": 4408,
+          "stdev": 8.674768752146989
+        },
+        "Mapped": {
+          "n": 31,
+          "median": 8240,
+          "mean": 8237.290322580646,
+          "min": 8120,
+          "max": 8276,
+          "stdev": 22.70711129196769
+        },
+        "Shmem": {
+          "n": 31,
+          "median": 1420,
+          "mean": 1420,
+          "min": 1420,
+          "max": 1420,
+          "stdev": 0.0
+        },
+        "SReclaimable": {
+          "n": 31,
+          "median": 7316,
+          "mean": 7316,
+          "min": 7316,
+          "max": 7316,
+          "stdev": 0.0
+        },
+        "SUnreclaim": {
+          "n": 31,
+          "median": 22668,
+          "mean": 22675.74193548387,
+          "min": 22636,
+          "max": 22784,
+          "stdev": 27.88424613999272
+        },
+        "KernelStack": {
+          "n": 31,
+          "median": 1632,
+          "mean": 1632.516129032258,
+          "min": 1632,
+          "max": 1644,
+          "stdev": 2.2490141209269967
+        },
+        "PageTables": {
+          "n": 31,
+          "median": 796,
+          "mean": 797.5483870967741,
+          "min": 796,
+          "max": 832,
+          "stdev": 6.747042362780991
+        }
+      },
+      "daemon_rss_kib": {
+        "n": 31,
+        "median": 5408,
+        "mean": 5408,
+        "min": 5408,
+        "max": 5408,
+        "stdev": 0.0
+      },
+      "source_sha256": "6b6949c139db09b7370d1dea513df4c9caba0f62044797d6b5eda94b0f79a4f1",
+      "additional_memory_accounting_kib": {
+        "Active(file)": {
+          "n": 31,
+          "median": 13396,
+          "mean": 13396,
+          "min": 13396,
+          "max": 13396,
+          "stdev": 0.0
+        },
+        "Inactive(file)": {
+          "n": 31,
+          "median": 35668,
+          "mean": 35667.354838709674,
+          "min": 35648,
+          "max": 35668,
+          "stdev": 3.592106040535498
+        },
+        "KReclaimable": {
+          "n": 31,
+          "median": 7316,
+          "mean": 7316,
+          "min": 7316,
+          "max": 7316,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4372,
+          "mean": 4373.419354838709,
+          "min": 4352,
+          "max": 4408,
+          "stdev": 8.674768752146989
+        },
+        "Unevictable": {
+          "n": 31,
+          "median": 0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      },
+      "available_minus_free_kib": {
+        "n": 31,
+        "median": 7540,
+        "mean": 7539.354838709677,
+        "min": 7520,
+        "max": 7540,
+        "stdev": 3.592106040535498
+      }
+    },
+    {
+      "phase": "advised-2",
+      "samples": 31,
+      "duration_seconds": 30,
+      "reference_resident_kib_before": 0,
+      "reference_resident_kib_after": 0,
+      "system_memory_kib": {
+        "MemFree": {
+          "n": 31,
+          "median": 112512,
+          "mean": 112493.93548387097,
+          "min": 112456,
+          "max": 112512,
+          "stdev": 26.610693945443522
+        },
+        "MemAvailable": {
+          "n": 31,
+          "median": 112544,
+          "mean": 112525.93548387097,
+          "min": 112488,
+          "max": 112544,
+          "stdev": 26.610693945443522
+        },
+        "Cached": {
+          "n": 31,
+          "median": 42976,
+          "mean": 42976,
+          "min": 42976,
+          "max": 42976,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4372,
+          "mean": 4373.1612903225805,
+          "min": 4364,
+          "max": 4388,
+          "stdev": 7.810662687179829
+        },
+        "Mapped": {
+          "n": 31,
+          "median": 8240,
+          "mean": 8237.032258064517,
+          "min": 8148,
+          "max": 8240,
+          "stdev": 16.52368778646329
+        },
+        "Shmem": {
+          "n": 31,
+          "median": 1420,
+          "mean": 1420,
+          "min": 1420,
+          "max": 1420,
+          "stdev": 0.0
+        },
+        "SReclaimable": {
+          "n": 31,
+          "median": 7316,
+          "mean": 7316,
+          "min": 7316,
+          "max": 7316,
+          "stdev": 0.0
+        },
+        "SUnreclaim": {
+          "n": 31,
+          "median": 22656,
+          "mean": 22662.451612903227,
+          "min": 22644,
+          "max": 22692,
+          "stdev": 13.959079983240107
+        },
+        "KernelStack": {
+          "n": 31,
+          "median": 1632,
+          "mean": 1631.8709677419354,
+          "min": 1628,
+          "max": 1632,
+          "stdev": 0.7184212081070996
+        },
+        "PageTables": {
+          "n": 31,
+          "median": 784,
+          "mean": 784.7741935483871,
+          "min": 760,
+          "max": 788,
+          "stdev": 4.99806414137417
+        }
+      },
+      "daemon_rss_kib": {
+        "n": 31,
+        "median": 5408,
+        "mean": 5408,
+        "min": 5408,
+        "max": 5408,
+        "stdev": 0.0
+      },
+      "source_sha256": "ba4d0f1b22777114b58da17230be4f9c144a96c14f3d6ee1b4543ca88a7b886f",
+      "additional_memory_accounting_kib": {
+        "Active(file)": {
+          "n": 31,
+          "median": 13396,
+          "mean": 13396,
+          "min": 13396,
+          "max": 13396,
+          "stdev": 0.0
+        },
+        "Inactive(file)": {
+          "n": 31,
+          "median": 28160,
+          "mean": 28160,
+          "min": 28160,
+          "max": 28160,
+          "stdev": 0.0
+        },
+        "KReclaimable": {
+          "n": 31,
+          "median": 7316,
+          "mean": 7316,
+          "min": 7316,
+          "max": 7316,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4372,
+          "mean": 4373.1612903225805,
+          "min": 4364,
+          "max": 4388,
+          "stdev": 7.810662687179829
+        },
+        "Unevictable": {
+          "n": 31,
+          "median": 0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      },
+      "available_minus_free_kib": {
+        "n": 31,
+        "median": 32,
+        "mean": 32,
+        "min": 32,
+        "max": 32,
+        "stdev": 0.0
+      }
+    },
+    {
+      "phase": "warm-2",
+      "samples": 31,
+      "duration_seconds": 30,
+      "reference_resident_kib_before": 7508,
+      "reference_resident_kib_after": 7508,
+      "system_memory_kib": {
+        "MemFree": {
+          "n": 31,
+          "median": 112336,
+          "mean": 112312.12903225806,
+          "min": 111860,
+          "max": 112456,
+          "stdev": 148.62026374522057
+        },
+        "MemAvailable": {
+          "n": 31,
+          "median": 119872,
+          "mean": 119848.12903225806,
+          "min": 119396,
+          "max": 119992,
+          "stdev": 148.62026374522057
+        },
+        "Cached": {
+          "n": 31,
+          "median": 50484,
+          "mean": 50484,
+          "min": 50484,
+          "max": 50484,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4368,
+          "mean": 4369.1612903225805,
+          "min": 4364,
+          "max": 4392,
+          "stdev": 5.675072828863364
+        },
+        "Mapped": {
+          "n": 31,
+          "median": 8240,
+          "mean": 8237.161290322581,
+          "min": 8148,
+          "max": 8244,
+          "stdev": 16.563205756925093
+        },
+        "Shmem": {
+          "n": 31,
+          "median": 1420,
+          "mean": 1420,
+          "min": 1420,
+          "max": 1420,
+          "stdev": 0.0
+        },
+        "SReclaimable": {
+          "n": 31,
+          "median": 7308,
+          "mean": 7308,
+          "min": 7308,
+          "max": 7308,
+          "stdev": 0.0
+        },
+        "SUnreclaim": {
+          "n": 31,
+          "median": 22668,
+          "mean": 22667.483870967742,
+          "min": 22636,
+          "max": 22688,
+          "stdev": 16.091138281140825
+        },
+        "KernelStack": {
+          "n": 31,
+          "median": 1632,
+          "mean": 1632,
+          "min": 1632,
+          "max": 1632,
+          "stdev": 0.0
+        },
+        "PageTables": {
+          "n": 31,
+          "median": 796,
+          "mean": 796.516129032258,
+          "min": 784,
+          "max": 824,
+          "stdev": 5.536972504548766
+        }
+      },
+      "daemon_rss_kib": {
+        "n": 31,
+        "median": 5408,
+        "mean": 5408,
+        "min": 5408,
+        "max": 5408,
+        "stdev": 0.0
+      },
+      "source_sha256": "2876f5259671200eeb45604910f6ea5fe5d3191e4a81e93b13a6e11caec8cfbf",
+      "additional_memory_accounting_kib": {
+        "Active(file)": {
+          "n": 31,
+          "median": 13396,
+          "mean": 13396,
+          "min": 13396,
+          "max": 13396,
+          "stdev": 0.0
+        },
+        "Inactive(file)": {
+          "n": 31,
+          "median": 35668,
+          "mean": 35668,
+          "min": 35668,
+          "max": 35668,
+          "stdev": 0.0
+        },
+        "KReclaimable": {
+          "n": 31,
+          "median": 7308,
+          "mean": 7308,
+          "min": 7308,
+          "max": 7308,
+          "stdev": 0.0
+        },
+        "AnonPages": {
+          "n": 31,
+          "median": 4368,
+          "mean": 4369.1612903225805,
+          "min": 4364,
+          "max": 4392,
+          "stdev": 5.675072828863364
+        },
+        "Unevictable": {
+          "n": 31,
+          "median": 0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      },
+      "available_minus_free_kib": {
+        "n": 31,
+        "median": 7536,
+        "mean": 7536,
+        "min": 7536,
+        "max": 7536,
+        "stdev": 0.0
+      }
+    }
+  ],
+  "identities": {
+    "advice_sha256": "32defb3c149df82feb6266b74bab5c63d2abebfc59eb98edbc0e381c3721e5a3",
+    "residency_sha256": "9c19c1b3148f6d18a4186f99ea21c7d53eb35b780e7e51ddca0adcc3949c7722",
+    "driver_sha256": "b858ac29734b3ef95eaba178e9291c25f590f0cdd59ed53a7532eea1cd527a9a",
+    "manifest_sha256": "08223e9e3662123b4f52596e6d11959cbca386cd9352f9059a1048b24d346416"
+  },
+  "files_and_configuration_unchanged": true,
+  "client_health_passed": true,
+  "limitations": [
+    "Only the current inactive reference copies receive POSIX_FADV_DONTNEED advice.",
+    "The kernel may retain pages; mincore records what actually happened.",
+    "MemAvailable is a kernel estimate and also changes with unrelated router activity.",
+    "This causal diagnostic is separate from normal cold-window measurements."
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "component_counts": {
+    "fw4": {
+      "workloads": 2,
+      "measurements": 24,
+      "positive_deltas_vs_c": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 0
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 1
+      }
+    },
+    "httpd": {
+      "workloads": 16,
+      "measurements": 192,
+      "positive_deltas_vs_c": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 1,
+        "p99_us": 0
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 8,
+        "subject_cpu_us_per_op": 7,
+        "p99_us": 7
+      }
+    },
+    "logd": {
+      "workloads": 2,
+      "measurements": 24,
+      "positive_deltas_vs_c": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 0
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 0
+      }
+    },
+    "netifd": {
+      "workloads": 14,
+      "measurements": 168,
+      "positive_deltas_vs_c": {
+        "mean_us": 2,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 3
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 8,
+        "subject_cpu_us_per_op": 5,
+        "p99_us": 8
+      }
+    },
+    "procd": {
+      "workloads": 8,
+      "measurements": 96,
+      "positive_deltas_vs_c": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 1
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 4,
+        "subject_cpu_us_per_op": 3,
+        "p99_us": 3
+      }
+    },
+    "reload-config": {
+      "workloads": 1,
+      "measurements": 12,
+      "positive_deltas_vs_c": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 0
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 1
+      }
+    },
+    "rpcd": {
+      "workloads": 18,
+      "measurements": 216,
+      "positive_deltas_vs_c": {
+        "mean_us": 2,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 5
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 7,
+        "subject_cpu_us_per_op": 8,
+        "p99_us": 5
+      }
+    },
+    "ubusd": {
+      "workloads": 10,
+      "measurements": 120,
+      "positive_deltas_vs_c": {
+        "mean_us": 3,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 0
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 5,
+        "subject_cpu_us_per_op": 5,
+        "p99_us": 3
+      }
+    },
+    "uci": {
+      "workloads": 3,
+      "measurements": 36,
+      "positive_deltas_vs_c": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 0
+      },
+      "positive_deltas_vs_r89": {
+        "mean_us": 0,
+        "subject_cpu_us_per_op": 0,
+        "p99_us": 0
+      }
+    }
+  },
+  "whole_totals": {
+    "stock": {
+      "active_server_cpu_s": 389.645,
+      "idle_before_rss_kib": 9606.0,
+      "idle_before_mem_available_kib": 137296.0,
+      "idle_before_daemon_cpu_pct": 0.08750000000000002
+    },
+    "rust": {
+      "active_server_cpu_s": 298.49499999999995,
+      "idle_before_rss_kib": 5320.0,
+      "idle_before_mem_available_kib": 130830.0,
+      "idle_before_daemon_cpu_pct": 0.03333333333333333
+    }
+  },
+  "aggregation": "Per-run medians; positive-delta counts are arithmetic, not significance tests."
+}

@@ -22,8 +22,15 @@ for component in ubusd netifd rpcd logd httpd; do
     printf '/proc/%s/exe\n' "$pid" >> "$out/active-paths.txt"
 done
 printf '/sbin/uci\n/sbin/fw4\n/sbin/reload_config\n' >> "$out/active-paths.txt"
+sha256sum "$0" > "$out/driver-sha256.txt"
+: > "$out/deleted-mappings.txt"
 printf '%s\n' "$monitors" | tr ',' '\n' | while IFS= read -r pid; do
-    awk '$6 ~ /^\// {print $6}' /proc/"$pid"/maps
+    cat /proc/"$pid"/maps > "$out/maps-$pid.txt"
+    # C procd/netifd keep unlinked udebug shared-memory mappings. Their old
+    # pathnames cannot be opened and are not executable/library file pages.
+    # Preserve the mappings separately; never claim mincore measured them.
+    awk '$6 ~ /^\// && $NF == "(deleted)"' "$out/maps-$pid.txt" >> "$out/deleted-mappings.txt"
+    awk '$6 ~ /^\// && $NF != "(deleted)" {print $6}' "$out/maps-$pid.txt"
 done | sort -u > "$out/mapped-paths.txt"
 : > "$out/bundle-paths.txt"
 for directory in /root/r84/bins /root/r89-before-r90/bins /root/r90-before-r92/bins; do
@@ -38,5 +45,5 @@ for group in active mapped bundle; do
 done
 /root/r84/bins/owrt-benchmark snapshot "$monitors" > "$out/snapshot-after.json"
 cat /proc/meminfo > "$out/meminfo-after.txt"
-printf 'mmap(PROT_NONE)+mincore; page cache is not exclusive RSS; overlay aliases may share pages\n' > "$out/method.txt"
+printf 'mmap(PROT_NONE)+mincore; linked file mappings only; deleted mappings recorded separately, not measured; page cache is not exclusive RSS; overlay aliases may share pages\n' > "$out/method.txt"
 touch "$out/COMPLETE"

@@ -1,0 +1,1221 @@
+{
+  "schema": 1,
+  "rows": [
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 1,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 236.0,
+        "netifd": 0,
+        "rpcd": 357.0,
+        "logd": 0,
+        "httpd": 616.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 1,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 149.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 291.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 2,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 235.0,
+        "netifd": 1.0,
+        "rpcd": 358.0,
+        "logd": 0,
+        "httpd": 616.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 2,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 147.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 289.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 3,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 236.0,
+        "netifd": 0,
+        "rpcd": 360.0,
+        "logd": 0,
+        "httpd": 617.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 3,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 146.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 291.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 4,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 235.0,
+        "netifd": 1.0,
+        "rpcd": 357.0,
+        "logd": 0,
+        "httpd": 613.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 4,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 150.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 292.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 5,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 235.0,
+        "netifd": 0,
+        "rpcd": 358.0,
+        "logd": 0,
+        "httpd": 612.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "repeat": 5,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 145.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 291.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 1,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 229.0,
+        "netifd": 0,
+        "rpcd": 358.0,
+        "logd": 0,
+        "httpd": 608.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 1,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 145.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 293.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 2,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 1.0,
+        "ubusd": 227.99999999999997,
+        "netifd": 0,
+        "rpcd": 358.0,
+        "logd": 0,
+        "httpd": 607.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 2,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 145.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 292.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 3,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 227.0,
+        "netifd": 1.0,
+        "rpcd": 357.0,
+        "logd": 0,
+        "httpd": 606.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 3,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 145.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 292.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 4,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 227.99999999999997,
+        "netifd": 1.0,
+        "rpcd": 358.0,
+        "logd": 0,
+        "httpd": 608.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 4,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 145.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 293.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 5,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 227.99999999999997,
+        "netifd": 0,
+        "rpcd": 357.0,
+        "logd": 0,
+        "httpd": 607.0
+      }
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "repeat": 5,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 145.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 294.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 1,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 236.0,
+        "netifd": 0,
+        "rpcd": 350.0,
+        "logd": 0,
+        "httpd": 718.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 1,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 164.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 404.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 2,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 237.0,
+        "netifd": 0,
+        "rpcd": 351.0,
+        "logd": 0,
+        "httpd": 720.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 2,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 160.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 395.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 3,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 239.0,
+        "netifd": 1.0,
+        "rpcd": 352.0,
+        "logd": 0,
+        "httpd": 720.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 3,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 163.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 428.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 4,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 241.0,
+        "netifd": 0,
+        "rpcd": 353.0,
+        "logd": 0,
+        "httpd": 719.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 4,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 160.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 429.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 5,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 239.0,
+        "netifd": 1.0,
+        "rpcd": 351.0,
+        "logd": 0,
+        "httpd": 720.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "repeat": 5,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 160.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 426.99999999999994,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 1,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 240.0,
+        "netifd": 1.0,
+        "rpcd": 354.0,
+        "logd": 0,
+        "httpd": 716.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 1,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 159.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 382.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 2,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 243.00000000000003,
+        "netifd": 0,
+        "rpcd": 356.0,
+        "logd": 0,
+        "httpd": 722.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 2,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 162.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 430.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 3,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 244.0,
+        "netifd": 0,
+        "rpcd": 355.0,
+        "logd": 0,
+        "httpd": 722.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 3,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 148.0,
+        "netifd": 0,
+        "rpcd": 0,
+        "logd": 292.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 4,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 245.00000000000003,
+        "netifd": 0,
+        "rpcd": 356.0,
+        "logd": 0,
+        "httpd": 727.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 4,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 156.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 344.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 5,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 243.00000000000003,
+        "netifd": 1.0,
+        "rpcd": 354.0,
+        "logd": 0,
+        "httpd": 725.0
+      }
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "repeat": 5,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 163.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 400,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 1,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 252.99999999999997,
+        "netifd": 2.0,
+        "rpcd": 450.0,
+        "logd": 1.0,
+        "httpd": 750.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 1,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 166.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 694.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 2,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 1.0,
+        "ubusd": 250.99999999999997,
+        "netifd": 0,
+        "rpcd": 445.0,
+        "logd": 0,
+        "httpd": 745.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 2,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 162.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 667.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 3,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 250.0,
+        "netifd": 0,
+        "rpcd": 443.0,
+        "logd": 0,
+        "httpd": 740.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 3,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 1.0,
+        "ubusd": 161.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 666.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 4,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 1.0,
+        "ubusd": 250.0,
+        "netifd": 0,
+        "rpcd": 443.0,
+        "logd": 1.0,
+        "httpd": 742.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 4,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 159.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 666.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 5,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 250.99999999999997,
+        "netifd": 1.0,
+        "rpcd": 444.00000000000006,
+        "logd": 1.0,
+        "httpd": 743.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "repeat": 5,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 158.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 663.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 1,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 250.0,
+        "netifd": 1.0,
+        "rpcd": 437.0,
+        "logd": 0,
+        "httpd": 734.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 1,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 163.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 690.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 2,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 249.00000000000003,
+        "netifd": 0,
+        "rpcd": 438.0,
+        "logd": 0,
+        "httpd": 736.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 2,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 162.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 672.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 3,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 250.0,
+        "netifd": 1.0,
+        "rpcd": 437.0,
+        "logd": 0,
+        "httpd": 736.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 3,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 159.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 642.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 4,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 250.0,
+        "netifd": 1.0,
+        "rpcd": 438.0,
+        "logd": 0,
+        "httpd": 735.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 4,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 0,
+        "ubusd": 158.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 662.0,
+        "httpd": 0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 5,
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": 1.0,
+        "ubusd": 257.0,
+        "netifd": 1.0,
+        "rpcd": 441.0,
+        "logd": 0,
+        "httpd": 742.0
+      }
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "repeat": 5,
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": 1.0,
+        "ubusd": 159.0,
+        "netifd": 1.0,
+        "rpcd": 0,
+        "logd": 662.0,
+        "httpd": 0
+      }
+    }
+  ],
+  "summary": [
+    {
+      "release": "C",
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0.3,
+          "min": 0,
+          "max": 1.0,
+          "stdev": 0.48304589153964794
+        },
+        "ubusd": {
+          "n": 10,
+          "median": 250.0,
+          "mean": 251.1,
+          "min": 249.00000000000003,
+          "max": 257.0,
+          "stdev": 2.3309511649396066
+        },
+        "netifd": {
+          "n": 10,
+          "median": 1.0,
+          "mean": 0.7,
+          "min": 0,
+          "max": 2.0,
+          "stdev": 0.6749485577105528
+        },
+        "rpcd": {
+          "n": 10,
+          "median": 442.0,
+          "mean": 441.6,
+          "min": 437.0,
+          "max": 450.0,
+          "stdev": 4.221637386396687
+        },
+        "logd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0.3,
+          "min": 0,
+          "max": 1.0,
+          "stdev": 0.48304589153964794
+        },
+        "httpd": {
+          "n": 10,
+          "median": 741.0,
+          "mean": 740.3,
+          "min": 734.0,
+          "max": 750.0,
+          "stdev": 5.1001089312985375
+        }
+      }
+    },
+    {
+      "release": "C",
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0.2,
+          "min": 0,
+          "max": 1.0,
+          "stdev": 0.4216370213557839
+        },
+        "ubusd": {
+          "n": 10,
+          "median": 160.0,
+          "mean": 160.7,
+          "min": 158.0,
+          "max": 166.0,
+          "stdev": 2.5841396591085743
+        },
+        "netifd": {
+          "n": 10,
+          "median": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "stdev": 0.0
+        },
+        "rpcd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "logd": {
+          "n": 10,
+          "median": 666.0,
+          "mean": 668.4,
+          "min": 642.0,
+          "max": 694.0,
+          "stdev": 14.743736900045992
+        },
+        "httpd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      }
+    },
+    {
+      "release": "R89",
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0.1,
+          "min": 0,
+          "max": 1.0,
+          "stdev": 0.31622776601683794
+        },
+        "ubusd": {
+          "n": 10,
+          "median": 232.0,
+          "mean": 231.7,
+          "min": 227.0,
+          "max": 236.0,
+          "stdev": 3.945461527713423
+        },
+        "netifd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0.4,
+          "min": 0,
+          "max": 1.0,
+          "stdev": 0.5163977794943223
+        },
+        "rpcd": {
+          "n": 10,
+          "median": 358.0,
+          "mean": 357.8,
+          "min": 357.0,
+          "max": 360.0,
+          "stdev": 0.9189365834726815
+        },
+        "logd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "httpd": {
+          "n": 10,
+          "median": 610.0,
+          "mean": 611.0,
+          "min": 606.0,
+          "max": 617.0,
+          "stdev": 4.2946995755750415
+        }
+      }
+    },
+    {
+      "release": "R89",
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "ubusd": {
+          "n": 10,
+          "median": 145.0,
+          "mean": 146.2,
+          "min": 145.0,
+          "max": 150.0,
+          "stdev": 1.8737959096740262
+        },
+        "netifd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "rpcd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "logd": {
+          "n": 10,
+          "median": 292.0,
+          "mean": 291.8,
+          "min": 289.0,
+          "max": 294.0,
+          "stdev": 1.398411797560202
+        },
+        "httpd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      }
+    },
+    {
+      "release": "R92",
+      "workload": "http-jsonrpc",
+      "process_cpu_us_per_op": {
+        "procd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "ubusd": {
+          "n": 10,
+          "median": 240.5,
+          "mean": 240.70000000000002,
+          "min": 236.0,
+          "max": 245.00000000000003,
+          "stdev": 3.0203016773531544
+        },
+        "netifd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0.4,
+          "min": 0,
+          "max": 1.0,
+          "stdev": 0.5163977794943223
+        },
+        "rpcd": {
+          "n": 10,
+          "median": 353.5,
+          "mean": 353.2,
+          "min": 350.0,
+          "max": 356.0,
+          "stdev": 2.1499353995462798
+        },
+        "logd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "httpd": {
+          "n": 10,
+          "median": 720.0,
+          "mean": 720.9,
+          "min": 716.0,
+          "max": 727.0,
+          "stdev": 3.2472210341220142
+        }
+      }
+    },
+    {
+      "release": "R92",
+      "workload": "log",
+      "process_cpu_us_per_op": {
+        "procd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "ubusd": {
+          "n": 10,
+          "median": 160.0,
+          "mean": 159.5,
+          "min": 148.0,
+          "max": 164.0,
+          "stdev": 4.672615256292062
+        },
+        "netifd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0.3,
+          "min": 0,
+          "max": 1.0,
+          "stdev": 0.48304589153964794
+        },
+        "rpcd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        },
+        "logd": {
+          "n": 10,
+          "median": 402.0,
+          "mean": 393.1,
+          "min": 292.0,
+          "max": 430.0,
+          "stdev": 44.650370161461765
+        },
+        "httpd": {
+          "n": 10,
+          "median": 0.0,
+          "mean": 0,
+          "min": 0,
+          "max": 0,
+          "stdev": 0.0
+        }
+      }
+    }
+  ],
+  "sources": [
+    {
+      "release": "R89",
+      "window": "rust-1",
+      "archive_sha256": "4f60762f01736c0362a077fe7ec6d29cee28062de17fd1451139e65478a5b349",
+      "verified_files": 104,
+      "hash_manifest_sha256": "b095ddab3b64f3b5ab3f9d2ba58ad367424b2bcc73852c7f263236090357aad3"
+    },
+    {
+      "release": "R89",
+      "window": "rust-2",
+      "archive_sha256": "7ee626aa8a6aefac303c8bbe8cf1f6aacc8c322c8dc4591f17f309ada4e5f75f",
+      "verified_files": 104,
+      "hash_manifest_sha256": "dc66f82a125f8e657b1ba00daf7f3be992e13b746c60f89873ab1e8e73730fdb"
+    },
+    {
+      "release": "R92",
+      "window": "rust-1",
+      "archive_sha256": "92563504a260801de2395ccf7873b1e838eb793d2477db245231b7e07e6ce7f5",
+      "verified_files": 104,
+      "hash_manifest_sha256": "13a50b433ce2d135bb72ed3e45a7a39c35e9ff30db1a2f0e85a94455a771c5ee"
+    },
+    {
+      "release": "R92",
+      "window": "rust-2",
+      "archive_sha256": "ed40f80846095acaffb22d993abe719e2e4190a13866fb96385bcb33d5cc14e7",
+      "verified_files": 104,
+      "hash_manifest_sha256": "1add1bffe32397b0f695cc2ca7e424cfa48b4fa1f8966e72da8bf69fecd3f14d"
+    },
+    {
+      "release": "C",
+      "window": "stock-1",
+      "archive_sha256": "eb68e899b439cac2ebb64056bddc4fcc4d760e4c1751dd1933b4f3f6769f4200",
+      "verified_files": 104,
+      "hash_manifest_sha256": "04ca8e864186cbcf575a8c50a47f7a16b373a27701bcfde151b09cf7b3ce2409"
+    },
+    {
+      "release": "C",
+      "window": "stock-2",
+      "archive_sha256": "ff6da4f3484d4187a31024d56694bbf58ade977e99e7e1d4b33d0c9c2c95505c",
+      "verified_files": 104,
+      "hash_manifest_sha256": "79825710e4dc2ff0ac73830abeeba23684668ee35262aaed10be60f70472622a"
+    }
+  ],
+  "same_configuration_and_network_export": true,
+  "limitations": [
+    "Historical log bodies were not frozen or captured by the timing client.",
+    "Identical configuration does not imply identical runtime process history or scheduling.",
+    "CPU medians for different processes need not sum exactly to the median total."
+  ]
+}

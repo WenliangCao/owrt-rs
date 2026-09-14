@@ -1,0 +1,9 @@
+{
+  "renderer_sha256": "375bcfc14002e595429f4e957d38011db9999934ca40a37548378bf518f9cd52",
+  "input": "Public allowlisted JSON only",
+  "formats": [
+    "Markdown",
+    "SVG",
+    "PDF"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "scope": "Later tooling checks; no runtime rebuild or replacement of canonical gates",
+  "checks": {
+    "tools_syntax_and_harnesses": {
+      "log_sha256": "6eb3a7d4f3f6a2169cc56419752b815bbe6c839233f62d0110656308c4e8905e",
+      "passed": true
+    },
+    "benchmark_python": {
+      "log_sha256": "c43740ce12feb3dd2de5c4a936c4d5ab6185704eb79f4afc480c264df5e4bcf4",
+      "passed": true
+    }
+  },
+  "harness_tests": 21,
+  "benchmark_python_tests": 33,
+  "benchmark_python_new_evidence_tests": 5,
+  "runtime_source_commit": "ca1a9121df0380448a19d474e29796066b6734e8"
+}

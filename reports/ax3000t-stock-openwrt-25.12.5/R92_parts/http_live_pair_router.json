@@ -1,0 +1,620 @@
+{
+  "schema": 1,
+  "settings": {
+    "environment": "AX3000T; shared live R92 ubusd/rpcd; separate loopback HTTP servers",
+    "diagnostic_only": true,
+    "order": [
+      "stock",
+      "r89",
+      "candidate",
+      "live",
+      "live",
+      "candidate",
+      "r89",
+      "stock",
+      "r89",
+      "stock",
+      "live",
+      "candidate",
+      "candidate",
+      "live",
+      "stock",
+      "r89"
+    ],
+    "iterations": 10000,
+    "warmup": 30,
+    "subjects": {
+      "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "r89": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "candidate": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "live": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac"
+    },
+    "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+    "manifest_sha256": "08223e9e3662123b4f52596e6d11959cbca386cd9352f9059a1048b24d346416",
+    "driver_sha256": "3658e7564f3cf2073f5a42101595192a525c1f1ee32bd7b5f48ae74549315e4b",
+    "listeners_match_active_families": true
+  },
+  "rows": [
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.892949831,
+      "ops_per_s": 840.8342877167562,
+      "mean_us": 1144.3003786,
+      "p50_us": 1110.74,
+      "p95_us": 1303.48,
+      "p99_us": 1438.129,
+      "cpu_us_per_op": {
+        "httpd": 508.0,
+        "rpcd": 273.0,
+        "ubusd": 230.0
+      },
+      "archive_sha256": "a7df47597cd6b1aa977dff5aac89073993d76565cfc4741996a7e626c0f67d06"
+    },
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.220529462000002,
+      "ops_per_s": 580.7022381086879,
+      "mean_us": 1488.2762283999998,
+      "p50_us": 1446.131,
+      "p95_us": 1675.265,
+      "p99_us": 1835.074,
+      "cpu_us_per_op": {
+        "httpd": 752.0,
+        "rpcd": 362.0,
+        "ubusd": 253.0
+      },
+      "archive_sha256": "a7df47597cd6b1aa977dff5aac89073993d76565cfc4741996a7e626c0f67d06"
+    },
+    {
+      "run": "02-r89",
+      "side": "r89",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 9.975139369,
+      "ops_per_s": 1002.4922590131682,
+      "mean_us": 956.3832243999999,
+      "p50_us": 926.462,
+      "p95_us": 1092.119,
+      "p99_us": 1197.222,
+      "cpu_us_per_op": {
+        "httpd": 388.0,
+        "rpcd": 261.0,
+        "ubusd": 208.0
+      },
+      "archive_sha256": "79eb3ca207ddd56ef5b7878971b3134da109ad5bd9a5d15dbcd917c572eadff8"
+    },
+    {
+      "run": "02-r89",
+      "side": "r89",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 16.014651139,
+      "ops_per_s": 624.4282134655621,
+      "mean_us": 1369.7930371999998,
+      "p50_us": 1334.948,
+      "p95_us": 1546.694,
+      "p99_us": 1709.581,
+      "cpu_us_per_op": {
+        "httpd": 633.0,
+        "rpcd": 356.0,
+        "ubusd": 237.0
+      },
+      "archive_sha256": "79eb3ca207ddd56ef5b7878971b3134da109ad5bd9a5d15dbcd917c572eadff8"
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 10.030522211,
+      "ops_per_s": 996.9570666055126,
+      "mean_us": 962.0030492999999,
+      "p50_us": 930.771,
+      "p95_us": 1108.969,
+      "p99_us": 1225.921,
+      "cpu_us_per_op": {
+        "httpd": 392.0,
+        "rpcd": 260.0,
+        "ubusd": 206.99999999999997
+      },
+      "archive_sha256": "a8cce1e3ab7e9e2470dffce5401091d9fa0e7f5641740d8a3c6ea7350d63b112"
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 15.864248482,
+      "ops_per_s": 630.3481700596323,
+      "mean_us": 1358.1737822,
+      "p50_us": 1328.407,
+      "p95_us": 1535.844,
+      "p99_us": 1671.878,
+      "cpu_us_per_op": {
+        "httpd": 640.0,
+        "rpcd": 354.0,
+        "ubusd": 232.0
+      },
+      "archive_sha256": "a8cce1e3ab7e9e2470dffce5401091d9fa0e7f5641740d8a3c6ea7350d63b112"
+    },
+    {
+      "run": "04-live",
+      "side": "live",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.24393675,
+      "ops_per_s": 889.3682188313626,
+      "mean_us": 1085.332813,
+      "p50_us": 1049.723,
+      "p95_us": 1236.615,
+      "p99_us": 1357.722,
+      "cpu_us_per_op": {
+        "httpd": 503.0,
+        "rpcd": 265.0,
+        "ubusd": 217.0
+      },
+      "archive_sha256": "e0ff763155bdef7bedbe1ccde68eee124f8041640dcf2489af7efd05deea2b43"
+    },
+    {
+      "run": "04-live",
+      "side": "live",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.250589904,
+      "ops_per_s": 579.6903210643966,
+      "mean_us": 1496.6147324,
+      "p50_us": 1448.668,
+      "p95_us": 1699.038,
+      "p99_us": 1855.462,
+      "cpu_us_per_op": {
+        "httpd": 743.0,
+        "rpcd": 355.0,
+        "ubusd": 239.0
+      },
+      "archive_sha256": "e0ff763155bdef7bedbe1ccde68eee124f8041640dcf2489af7efd05deea2b43"
+    },
+    {
+      "run": "05-live",
+      "side": "live",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.262803554,
+      "ops_per_s": 887.8784000852511,
+      "mean_us": 1087.1654899,
+      "p50_us": 1050.415,
+      "p95_us": 1240.154,
+      "p99_us": 1366.34,
+      "cpu_us_per_op": {
+        "httpd": 503.0,
+        "rpcd": 264.0,
+        "ubusd": 217.0
+      },
+      "archive_sha256": "476e405cf895dd21125db23c81b5e8d6e77deaa958c4a52e3fee69d313d7a55c"
+    },
+    {
+      "run": "05-live",
+      "side": "live",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.291144249,
+      "ops_per_s": 578.3307256012471,
+      "mean_us": 1500.129468,
+      "p50_us": 1451.828,
+      "p95_us": 1702.654,
+      "p99_us": 1870.003,
+      "cpu_us_per_op": {
+        "httpd": 746.0,
+        "rpcd": 356.0,
+        "ubusd": 241.0
+      },
+      "archive_sha256": "476e405cf895dd21125db23c81b5e8d6e77deaa958c4a52e3fee69d313d7a55c"
+    },
+    {
+      "run": "06-candidate",
+      "side": "candidate",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 10.04208919,
+      "ops_per_s": 995.8087217506579,
+      "mean_us": 962.9256670999999,
+      "p50_us": 932.62,
+      "p95_us": 1101.046,
+      "p99_us": 1216.536,
+      "cpu_us_per_op": {
+        "httpd": 393.0,
+        "rpcd": 261.0,
+        "ubusd": 206.99999999999997
+      },
+      "archive_sha256": "216fc333e922d64ac00beb9e38fa6ad783ad2bd8a729502b8d14e43f9834d782"
+    },
+    {
+      "run": "06-candidate",
+      "side": "candidate",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 15.955197313,
+      "ops_per_s": 626.7550193097384,
+      "mean_us": 1365.9491802,
+      "p50_us": 1335.798,
+      "p95_us": 1546.466,
+      "p99_us": 1694.734,
+      "cpu_us_per_op": {
+        "httpd": 644.0,
+        "rpcd": 356.0,
+        "ubusd": 236.0
+      },
+      "archive_sha256": "216fc333e922d64ac00beb9e38fa6ad783ad2bd8a729502b8d14e43f9834d782"
+    },
+    {
+      "run": "07-r89",
+      "side": "r89",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 9.981145268,
+      "ops_per_s": 1001.8890349247243,
+      "mean_us": 956.9467443,
+      "p50_us": 925.925,
+      "p95_us": 1098.661,
+      "p99_us": 1224.462,
+      "cpu_us_per_op": {
+        "httpd": 390.0,
+        "rpcd": 262.0,
+        "ubusd": 208.0
+      },
+      "archive_sha256": "de16e15edc4c73737c6b8d56e62a9d6dadafa285c6f742e3c63740d3e2c38389"
+    },
+    {
+      "run": "07-r89",
+      "side": "r89",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 16.017710708,
+      "ops_per_s": 624.3089404159066,
+      "mean_us": 1370.4629831999998,
+      "p50_us": 1326.179,
+      "p95_us": 1548.619,
+      "p99_us": 1691.04,
+      "cpu_us_per_op": {
+        "httpd": 630.0,
+        "rpcd": 358.0,
+        "ubusd": 236.0
+      },
+      "archive_sha256": "de16e15edc4c73737c6b8d56e62a9d6dadafa285c6f742e3c63740d3e2c38389"
+    },
+    {
+      "run": "08-stock",
+      "side": "stock",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.925099042,
+      "ops_per_s": 838.5674588345277,
+      "mean_us": 1147.79278,
+      "p50_us": 1107.585,
+      "p95_us": 1325.948,
+      "p99_us": 1535.693,
+      "cpu_us_per_op": {
+        "httpd": 507.0,
+        "rpcd": 272.0,
+        "ubusd": 230.0
+      },
+      "archive_sha256": "935a55555a96f861c9e69455cdf7850b0b6d82bbf3be7cc22ed00dcc2aac6d86"
+    },
+    {
+      "run": "08-stock",
+      "side": "stock",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.312258522,
+      "ops_per_s": 577.6253853471655,
+      "mean_us": 1497.637551,
+      "p50_us": 1456.827,
+      "p95_us": 1691.731,
+      "p99_us": 1865.621,
+      "cpu_us_per_op": {
+        "httpd": 756.0,
+        "rpcd": 362.0,
+        "ubusd": 256.0
+      },
+      "archive_sha256": "935a55555a96f861c9e69455cdf7850b0b6d82bbf3be7cc22ed00dcc2aac6d86"
+    },
+    {
+      "run": "09-r89",
+      "side": "r89",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 9.948530731,
+      "ops_per_s": 1005.1735548084121,
+      "mean_us": 953.7663372,
+      "p50_us": 920.769,
+      "p95_us": 1099.506,
+      "p99_us": 1212.996,
+      "cpu_us_per_op": {
+        "httpd": 386.0,
+        "rpcd": 261.0,
+        "ubusd": 206.99999999999997
+      },
+      "archive_sha256": "c3f1ae39b8fa5611a112a479a7c9c979a5b8411fc8cd72074a48b759fdef6732"
+    },
+    {
+      "run": "09-r89",
+      "side": "r89",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 16.027548311,
+      "ops_per_s": 623.9257437231879,
+      "mean_us": 1370.5817554,
+      "p50_us": 1331.41,
+      "p95_us": 1555.004,
+      "p99_us": 1690.346,
+      "cpu_us_per_op": {
+        "httpd": 631.0,
+        "rpcd": 357.0,
+        "ubusd": 236.0
+      },
+      "archive_sha256": "c3f1ae39b8fa5611a112a479a7c9c979a5b8411fc8cd72074a48b759fdef6732"
+    },
+    {
+      "run": "10-stock",
+      "side": "stock",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.799949811,
+      "ops_per_s": 847.4612316298097,
+      "mean_us": 1135.5575741999999,
+      "p50_us": 1103.353,
+      "p95_us": 1288.553,
+      "p99_us": 1427.511,
+      "cpu_us_per_op": {
+        "httpd": 502.0,
+        "rpcd": 272.0,
+        "ubusd": 229.0
+      },
+      "archive_sha256": "e4cf1bb14297c032056e985aaa9413b8a55ec627243de3c81a3bab859d7fce2c"
+    },
+    {
+      "run": "10-stock",
+      "side": "stock",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.191202165,
+      "ops_per_s": 581.6928859320409,
+      "mean_us": 1487.6018365,
+      "p50_us": 1445.284,
+      "p95_us": 1678.188,
+      "p99_us": 1844.23,
+      "cpu_us_per_op": {
+        "httpd": 751.0,
+        "rpcd": 363.0,
+        "ubusd": 255.0
+      },
+      "archive_sha256": "e4cf1bb14297c032056e985aaa9413b8a55ec627243de3c81a3bab859d7fce2c"
+    },
+    {
+      "run": "11-live",
+      "side": "live",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.253517892,
+      "ops_per_s": 888.611018880495,
+      "mean_us": 1086.6605670000001,
+      "p50_us": 1052.878,
+      "p95_us": 1231.845,
+      "p99_us": 1361.109,
+      "cpu_us_per_op": {
+        "httpd": 507.0,
+        "rpcd": 264.0,
+        "ubusd": 217.0
+      },
+      "archive_sha256": "1c10bbcd64a790241f0cb3fc487f815c63338c99de66cd64bac4fa5f0838bf71"
+    },
+    {
+      "run": "11-live",
+      "side": "live",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.494366488,
+      "ops_per_s": 571.6125820765988,
+      "mean_us": 1517.5995332,
+      "p50_us": 1465.057,
+      "p95_us": 1760.054,
+      "p99_us": 1975.723,
+      "cpu_us_per_op": {
+        "httpd": 752.0,
+        "rpcd": 358.0,
+        "ubusd": 241.0
+      },
+      "archive_sha256": "1c10bbcd64a790241f0cb3fc487f815c63338c99de66cd64bac4fa5f0838bf71"
+    },
+    {
+      "run": "12-candidate",
+      "side": "candidate",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 10.056756457,
+      "ops_per_s": 994.3563854566156,
+      "mean_us": 964.3358822,
+      "p50_us": 931.232,
+      "p95_us": 1114.124,
+      "p99_us": 1230.153,
+      "cpu_us_per_op": {
+        "httpd": 394.0,
+        "rpcd": 260.0,
+        "ubusd": 206.99999999999997
+      },
+      "archive_sha256": "2751999c05e248656cc04e62ee596463362cdc78ddfd499bed4bc2094e8c7fff"
+    },
+    {
+      "run": "12-candidate",
+      "side": "candidate",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 15.931067418,
+      "ops_per_s": 627.7043300125215,
+      "mean_us": 1363.9191578,
+      "p50_us": 1333.947,
+      "p95_us": 1547.616,
+      "p99_us": 1716.274,
+      "cpu_us_per_op": {
+        "httpd": 643.0,
+        "rpcd": 355.0,
+        "ubusd": 233.0
+      },
+      "archive_sha256": "2751999c05e248656cc04e62ee596463362cdc78ddfd499bed4bc2094e8c7fff"
+    },
+    {
+      "run": "13-candidate",
+      "side": "candidate",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 10.160331273,
+      "ops_per_s": 984.2198774142272,
+      "mean_us": 974.4371347,
+      "p50_us": 934.54,
+      "p95_us": 1140.284,
+      "p99_us": 1270.008,
+      "cpu_us_per_op": {
+        "httpd": 395.0,
+        "rpcd": 261.0,
+        "ubusd": 208.0
+      },
+      "archive_sha256": "066b4491e909f09ffc925a50cbdad0b95da0ffac32869a15b86207c25c583f89"
+    },
+    {
+      "run": "13-candidate",
+      "side": "candidate",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 15.960276168,
+      "ops_per_s": 626.5555742731932,
+      "mean_us": 1366.5494324000001,
+      "p50_us": 1333.563,
+      "p95_us": 1558.311,
+      "p99_us": 1690.266,
+      "cpu_us_per_op": {
+        "httpd": 642.0,
+        "rpcd": 355.0,
+        "ubusd": 235.0
+      },
+      "archive_sha256": "066b4491e909f09ffc925a50cbdad0b95da0ffac32869a15b86207c25c583f89"
+    },
+    {
+      "run": "14-live",
+      "side": "live",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.346612113,
+      "ops_per_s": 881.3203360096213,
+      "mean_us": 1095.8070437000001,
+      "p50_us": 1053.108,
+      "p95_us": 1261.237,
+      "p99_us": 1418.044,
+      "cpu_us_per_op": {
+        "httpd": 508.0,
+        "rpcd": 264.0,
+        "ubusd": 217.0
+      },
+      "archive_sha256": "68d5b6f3c53706e294d8595c9ba3841600f219ce77858c123318571cd7b65109"
+    },
+    {
+      "run": "14-live",
+      "side": "live",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.307371035,
+      "ops_per_s": 577.7885029319244,
+      "mean_us": 1501.6287169000002,
+      "p50_us": 1451.361,
+      "p95_us": 1714.503,
+      "p99_us": 1878.463,
+      "cpu_us_per_op": {
+        "httpd": 744.0,
+        "rpcd": 355.0,
+        "ubusd": 239.0
+      },
+      "archive_sha256": "68d5b6f3c53706e294d8595c9ba3841600f219ce77858c123318571cd7b65109"
+    },
+    {
+      "run": "15-stock",
+      "side": "stock",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 11.83925968,
+      "ops_per_s": 844.6474078858959,
+      "mean_us": 1138.8011934,
+      "p50_us": 1103.426,
+      "p95_us": 1308.861,
+      "p99_us": 1448.511,
+      "cpu_us_per_op": {
+        "httpd": 501.0,
+        "rpcd": 272.0,
+        "ubusd": 228.0
+      },
+      "archive_sha256": "0d004202807221f13ae7cead1ac58dfbd7799261b923e39d8446ba52dce8b800"
+    },
+    {
+      "run": "15-stock",
+      "side": "stock",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 17.174476992,
+      "ops_per_s": 582.25936106573,
+      "mean_us": 1485.7118475,
+      "p50_us": 1444.202,
+      "p95_us": 1665.026,
+      "p99_us": 1813.293,
+      "cpu_us_per_op": {
+        "httpd": 752.0,
+        "rpcd": 362.0,
+        "ubusd": 256.0
+      },
+      "archive_sha256": "0d004202807221f13ae7cead1ac58dfbd7799261b923e39d8446ba52dce8b800"
+    },
+    {
+      "run": "16-r89",
+      "side": "r89",
+      "method": "uci.configs",
+      "successful": 10000,
+      "wall_s": 10.026338967,
+      "ops_per_s": 997.3730224874015,
+      "mean_us": 961.7587605,
+      "p50_us": 925.612,
+      "p95_us": 1110.582,
+      "p99_us": 1230.765,
+      "cpu_us_per_op": {
+        "httpd": 388.0,
+        "rpcd": 262.0,
+        "ubusd": 210.0
+      },
+      "archive_sha256": "13761af2657cc1ab275e35f905de35a337b8874f41528fc8af4e35f7cf29ee01"
+    },
+    {
+      "run": "16-r89",
+      "side": "r89",
+      "method": "uci.get",
+      "successful": 10000,
+      "wall_s": 16.043026669,
+      "ops_per_s": 623.3237783817337,
+      "mean_us": 1372.8724267,
+      "p50_us": 1333.867,
+      "p95_us": 1552.46,
+      "p99_us": 1702.497,
+      "cpu_us_per_op": {
+        "httpd": 633.0,
+        "rpcd": 357.0,
+        "ubusd": 235.0
+      },
+      "archive_sha256": "13761af2657cc1ab275e35f905de35a337b8874f41528fc8af4e35f7cf29ee01"
+    }
+  ],
+  "limitations": [
+    "All four HTTP servers use the same live R92 ubusd/rpcd, configuration and session.",
+    "Fresh temporary servers and the running server have different process histories.",
+    "Diagnostic pairs are separate from the cold-window and isolation matrices."
+  ]
+}

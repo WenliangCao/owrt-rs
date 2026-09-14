@@ -1,0 +1,2988 @@
+{
+  "schema": 1,
+  "settings": {
+    "environment": "Linux AArch64 build host; private loopback netem",
+    "subjects": {
+      "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "r89": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "candidate": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac"
+    },
+    "driver_sha256": "00848caefe52d1b70c5b480c20e25b442dee24b8e0889e660472f4a4175aaf28",
+    "client_sha256": "522f525ac3fd1fe96c3b4b9730acd3d50d81c258aaaa10ed437aae2f1b248cea",
+    "fixture_sha256": "ff08fe2bf0b3d09d762cf29e4c6a4e9dee1b6b6268e0f01f7752547d029ba56f",
+    "cpu_affinity": [
+      0,
+      1
+    ],
+    "cipher": "ECDHE-ECDSA-AES256-GCM-SHA384",
+    "count": 80,
+    "repeats": 2,
+    "delays": [
+      0,
+      20,
+      40,
+      100
+    ]
+  },
+  "rows": [
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 1.6940137875,
+      "p50_ms": 1.684854,
+      "p95_ms": 2.35914,
+      "p99_ms": 2.624302,
+      "wall_s": 0.035863772,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "001-http-0-stock-r1",
+      "repeat": 1,
+      "result_sha256": "35c950d1b361b9b952c88d6b54275d7d49217c64fbf7ce91a36ebb64754c263b"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 1.5165538374999998,
+      "p50_ms": 1.429331,
+      "p95_ms": 2.898343,
+      "p99_ms": 3.191506,
+      "wall_s": 0.032405184,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 45,
+      "name": "002-http-0-r89-r1",
+      "repeat": 1,
+      "result_sha256": "c4aafe483b75454d7fe6a055a2dcdd195f11400133d4a9160c77f76174ee9b6e"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 1.406184025,
+      "p50_ms": 1.336251,
+      "p95_ms": 2.635702,
+      "p99_ms": 3.177626,
+      "wall_s": 0.031753898,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 49,
+      "name": "003-http-0-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "e0ba991be16f5874ccff22c7052f668a1744709704299b674e5af68fe475ac10"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 86.1264900875,
+      "p50_ms": 85.9435,
+      "p95_ms": 86.943988,
+      "p99_ms": 90.806099,
+      "wall_s": 1.73196262,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2613.6363636363635,
+      "sampled_tasks_lower_bound": 1,
+      "name": "004-https-0-stock-r1",
+      "repeat": 1,
+      "result_sha256": "253e065e6f3f10301e4103863f7c8a479f9211d94b01e3f6f5ad8fe5b0dfc63f"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 5.530785525000001,
+      "p50_ms": 5.535285,
+      "p95_ms": 8.224067,
+      "p99_ms": 8.722792,
+      "wall_s": 0.116914832,
+      "cpu_ticks": 5,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 568.1818181818181,
+      "sampled_tasks_lower_bound": 88,
+      "name": "005-https-0-r89-r1",
+      "repeat": 1,
+      "result_sha256": "b5ef692949d58bdcaf7f098954062d2f13630d416671ede1cd5cd10146b31a60"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 4.0157481875,
+      "p50_ms": 3.894912,
+      "p95_ms": 6.059569,
+      "p99_ms": 6.989297,
+      "wall_s": 0.090029053,
+      "cpu_ticks": 5,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 568.1818181818181,
+      "sampled_tasks_lower_bound": 88,
+      "name": "006-https-0-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "e9a423e1d5598f3e063bc58ac2c2d26e0b586ae60c18801a0faa833a77528633"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "b46c0dc0e6f24d1405d166dd3dc94d333593b2ed75a1771f2be338ce37b7f4d9",
+      "traced": false,
+      "mean_ms": 121.02219029999999,
+      "p50_ms": 121.027025,
+      "p95_ms": 121.523389,
+      "p99_ms": 121.62527,
+      "wall_s": 2.423539492,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "007-http-20-stock-r1",
+      "repeat": 1,
+      "result_sha256": "211308a85db8c5bde68c3d46e8f5f6e80c14ab3a173be969f21296ef3a572b07"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "e136b0d4d412802a23d6fec047bd90bc6a4f862a1e69de491977e36f9aa0aeb2",
+      "traced": false,
+      "mean_ms": 81.064021075,
+      "p50_ms": 80.922339,
+      "p95_ms": 81.822946,
+      "p99_ms": 82.843474,
+      "wall_s": 1.624041664,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "008-http-20-r89-r1",
+      "repeat": 1,
+      "result_sha256": "8e7ecd4f3e8fa0ffb7ef315bb7ba35f2f1e93f4fe81c03328a67c8817ebbeb37"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "f7b8b5774a7097053c777f5e201c09243bee06873b200baea1527abdd3cb3ff3",
+      "traced": false,
+      "mean_ms": 81.08673776250001,
+      "p50_ms": 81.09662,
+      "p95_ms": 81.695945,
+      "p99_ms": 81.863746,
+      "wall_s": 1.624658029,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "009-http-20-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "0725cb7aa78e850ef1ec50e21d773f577c04779c6075ef23ad272e0b0cd52339"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "064b3fd890ceecce90535f920ac922ca7d157ddbc7cf96cf91cda2ce65eda303",
+      "traced": false,
+      "mean_ms": 364.166467125,
+      "p50_ms": 363.948164,
+      "p95_ms": 365.029253,
+      "p99_ms": 366.929348,
+      "wall_s": 7.287014383,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2613.6363636363635,
+      "sampled_tasks_lower_bound": 1,
+      "name": "010-https-20-stock-r1",
+      "repeat": 1,
+      "result_sha256": "6afd48dee01823a13e30978b85ce33b1611c3b44c0490f8eee44e92c9e687380"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "902affd87490d5333c024ee6c842b7a3fc7888bdb7906214981c4d1cdeba4772",
+      "traced": false,
+      "mean_ms": 162.9911384,
+      "p50_ms": 162.818646,
+      "p95_ms": 164.287498,
+      "p99_ms": 166.131473,
+      "wall_s": 3.267247891,
+      "cpu_ticks": 6,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 681.8181818181819,
+      "sampled_tasks_lower_bound": 90,
+      "name": "011-https-20-r89-r1",
+      "repeat": 1,
+      "result_sha256": "39ca978ed1154c98e82184f09e6447e07db59300380c7b20592e41857356183e"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "ae9509719aa4c47d75d16da8352ca9c7d881da0579bcfe203499597cb5a84dfb",
+      "traced": false,
+      "mean_ms": 162.6391108125,
+      "p50_ms": 162.410363,
+      "p95_ms": 164.978344,
+      "p99_ms": 166.635397,
+      "wall_s": 3.255250635,
+      "cpu_ticks": 5,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 568.1818181818181,
+      "sampled_tasks_lower_bound": 90,
+      "name": "012-https-20-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "425017a66ebf7d587bc9811929379cd1a1c98bde19c61791824a6298b337ee4b"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "b7707ee768d9c54fdad3c811984670e2f72dc993b8ff28eeaddaa7c4debd4c86",
+      "traced": false,
+      "mean_ms": 240.7019628625,
+      "p50_ms": 240.691361,
+      "p95_ms": 240.967243,
+      "p99_ms": 241.064724,
+      "wall_s": 4.814814783,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "013-http-40-stock-r1",
+      "repeat": 1,
+      "result_sha256": "1b6b2484e9f32dccc5cbbc6daca9993c08232ffa0d47dc9c477f2d1a0770bab5"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "58740ccfbc7117fd7536041c4c5494b4dddc68e22c62d8f53b272b1ae9d15d25",
+      "traced": false,
+      "mean_ms": 160.71811186250002,
+      "p50_ms": 160.70155,
+      "p95_ms": 160.87271,
+      "p99_ms": 161.110593,
+      "wall_s": 3.215227114,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "014-http-40-r89-r1",
+      "repeat": 1,
+      "result_sha256": "8a3580943f9fa951634d08bd9de5963e9742b1aaf9db187c82bcb9e7a25f08b3"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "d4f981e412c696cd9f6c2878694e822965a716cedc16fef75cff1fa73188af6f",
+      "traced": false,
+      "mean_ms": 160.7487777375,
+      "p50_ms": 160.73307,
+      "p95_ms": 161.011552,
+      "p99_ms": 161.282914,
+      "wall_s": 3.215743881,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "015-http-40-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "fb2d449a7fd9aa2a7c6a117b4e30aec524f8a4513c03ee496c9c4b0d46bc3adf"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "1de1999bd8228efc582da7eb7617607df1375abc4e0e0509807e04df8e8bc8a8",
+      "traced": false,
+      "mean_ms": 644.108195025,
+      "p50_ms": 643.949967,
+      "p95_ms": 644.935575,
+      "p99_ms": 646.71223,
+      "wall_s": 12.886106533,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2613.6363636363635,
+      "sampled_tasks_lower_bound": 1,
+      "name": "016-https-40-stock-r1",
+      "repeat": 1,
+      "result_sha256": "d98749937aa473631951bce585b9a32163f25fa083f98a432e82473e6031b963"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "1996bee708c97ec77396739c5da43f568e30229e3194912f178dadc76fa54f38",
+      "traced": false,
+      "mean_ms": 322.68199925,
+      "p50_ms": 322.58511,
+      "p95_ms": 323.476037,
+      "p99_ms": 323.988441,
+      "wall_s": 6.456279345,
+      "cpu_ticks": 7,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 795.4545454545455,
+      "sampled_tasks_lower_bound": 178,
+      "name": "017-https-40-r89-r1",
+      "repeat": 1,
+      "result_sha256": "281e95031a3eaba7fe411ea96d3e51c1bb6ff599e34786bb80dcdbdfeabbe652"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "1ed09e20ab60a02533a65c88dd5af4c0ed256f9915c93bde556bc275df4c6a87",
+      "traced": false,
+      "mean_ms": 322.6796865,
+      "p50_ms": 322.550989,
+      "p95_ms": 323.767119,
+      "p99_ms": 324.499845,
+      "wall_s": 6.456496875,
+      "cpu_ticks": 7,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 795.4545454545455,
+      "sampled_tasks_lower_bound": 178,
+      "name": "018-https-40-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "ae58c58bd05bfb629ed2c947b9ac50e427fa5772678bf76c97c8a94f0dcb73ce"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "cc9c1b0e50ffb6cdeb8badab82fed7ec567b0b9559af1f3ed236f5d29efb8aba",
+      "traced": false,
+      "mean_ms": 600.7103977,
+      "p50_ms": 600.693418,
+      "p95_ms": 600.946061,
+      "p99_ms": 601.117701,
+      "wall_s": 12.014931489,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "019-http-100-stock-r1",
+      "repeat": 1,
+      "result_sha256": "26db352acb4282c252e7c292c588594ad46387865812b16c7232435f363febb3"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "0f1255cdd2db1af7ecc8374f86b51ad94759b4af64f23f9dab96730e9b850498",
+      "traced": false,
+      "mean_ms": 400.944565875,
+      "p50_ms": 400.86503,
+      "p95_ms": 401.467834,
+      "p99_ms": 402.325641,
+      "wall_s": 8.02135102,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "020-http-100-r89-r1",
+      "repeat": 1,
+      "result_sha256": "8af6ccdca20ab7683573afdd8b7e063f903120d7edb129125a1c7a477ca26c90"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "73542bb6469f7160d38bff3a0f0842ab2c136b881af734bd3a21fc953873aa8e",
+      "traced": false,
+      "mean_ms": 401.166519875,
+      "p50_ms": 401.135672,
+      "p95_ms": 401.665436,
+      "p99_ms": 401.972039,
+      "wall_s": 8.027881964,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "021-http-100-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "f612ffa5cff711ff893bedcd98134e92e4d2168e603276722b0021a684c0aa8c"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "1d9030dd90384b0119852216147c0fca3cefc55ebe8bb513113b83f00fb2306b",
+      "traced": false,
+      "mean_ms": 1484.1935864625002,
+      "p50_ms": 1483.947751,
+      "p95_ms": 1484.962081,
+      "p99_ms": 1487.059851,
+      "wall_s": 29.687991225,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2613.6363636363635,
+      "sampled_tasks_lower_bound": 1,
+      "name": "022-https-100-stock-r1",
+      "repeat": 1,
+      "result_sha256": "87aadd24e8e569b35d086c7cf5d76427a2d525afe9df79451d1842e39a48895b"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "0c1bc2f09426fbe94e8d52b5edc1fa7668091ffddc090bf5667b14cb392fd0e4",
+      "traced": false,
+      "mean_ms": 802.7626576875,
+      "p50_ms": 802.710393,
+      "p95_ms": 803.334559,
+      "p99_ms": 803.691161,
+      "wall_s": 16.05856974,
+      "cpu_ticks": 9,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 1022.7272727272727,
+      "sampled_tasks_lower_bound": 266,
+      "name": "023-https-100-r89-r1",
+      "repeat": 1,
+      "result_sha256": "2094476b5a54f35f8b30336fe56637dab3da4a37b83d533d6159cc6e2bd86289"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "4888d461ffd63afcb62275cc2cb5a4c48bd0db202412e38ca06e4c6fbbef5a8f",
+      "traced": false,
+      "mean_ms": 803.4539247625,
+      "p50_ms": 803.350681,
+      "p95_ms": 804.378489,
+      "p99_ms": 805.69366,
+      "wall_s": 16.072812456,
+      "cpu_ticks": 9,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 1022.7272727272727,
+      "sampled_tasks_lower_bound": 266,
+      "name": "024-https-100-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "f0d18b517f4f58e6667c646b61ead60da4b2879c461317e9d6e687591751b22d"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "624a12060cf04eba077e8486466aea2762c147c09749a9cf680fff5396856c14",
+      "traced": false,
+      "mean_ms": 401.177880375,
+      "p50_ms": 401.143957,
+      "p95_ms": 401.803162,
+      "p99_ms": 402.054724,
+      "wall_s": 8.02644908,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "025-http-100-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "7aecfb9d2de7def480038f0b2830b11add31956fcd16a8dd6a6fdfb3ca078f5c"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "3c9800ccacb59b2d7f3a6966be9c7c067144e59afc1af2671822e32b38bfff9e",
+      "traced": false,
+      "mean_ms": 401.1509471,
+      "p50_ms": 401.158878,
+      "p95_ms": 401.657361,
+      "p99_ms": 401.727441,
+      "wall_s": 8.026221608,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "026-http-100-r89-r2",
+      "repeat": 2,
+      "result_sha256": "50b4d54b7b2f617539bb90402d3d9cfc34410b08909ef68c20d6040e7dfcf697"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "f0b9197c63d00058049bafe5bf7f3846437018ca322db197d643605c9a1fa1ac",
+      "traced": false,
+      "mean_ms": 601.1387932,
+      "p50_ms": 600.95279,
+      "p95_ms": 603.508251,
+      "p99_ms": 603.790893,
+      "wall_s": 12.025668218,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "027-http-100-stock-r2",
+      "repeat": 2,
+      "result_sha256": "8903e88e586e0272f67b3ba14a433accbd95a5542198519c6cbacae5ae0bab6a"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "4b8ab81c4f1f8d5f3a151631a7d8e488a985dd0fee7f737ad9fca87385e5ad3d",
+      "traced": false,
+      "mean_ms": 803.468375875,
+      "p50_ms": 803.278045,
+      "p95_ms": 806.741433,
+      "p99_ms": 807.106755,
+      "wall_s": 16.072755557,
+      "cpu_ticks": 10,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 1136.3636363636363,
+      "sampled_tasks_lower_bound": 266,
+      "name": "028-https-100-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "8623884f7365c44781d2f98a9879443a7746ad69e4b7d30f6144146013e8ca42"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "41690761ee9312b1bb97820bb7a3a6014b8891e084c704ce75f24bff75172493",
+      "traced": false,
+      "mean_ms": 803.409953775,
+      "p50_ms": 803.324847,
+      "p95_ms": 804.308536,
+      "p99_ms": 804.752779,
+      "wall_s": 16.071539381,
+      "cpu_ticks": 10,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 1136.3636363636363,
+      "sampled_tasks_lower_bound": 266,
+      "name": "029-https-100-r89-r2",
+      "repeat": 2,
+      "result_sha256": "cbf54cbba2ffeb250f9ab72c168e7968510abefce26bcdb7a18eca8449424ead"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "fb94b10ddeb57084720a8a8616e299cb95be566d77d701b2915ede55ad29b4e5",
+      "traced": false,
+      "mean_ms": 1484.5608324500001,
+      "p50_ms": 1483.959498,
+      "p95_ms": 1486.953118,
+      "p99_ms": 1487.96161,
+      "wall_s": 29.694902478,
+      "cpu_ticks": 24,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2727.2727272727275,
+      "sampled_tasks_lower_bound": 1,
+      "name": "030-https-100-stock-r2",
+      "repeat": 2,
+      "result_sha256": "6b0ad1a0785d19e1b125e28a080676290123249b5356ea53f018ec0769a6707e"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "f383660a0b7d43eda6e5a8d04254e3ee56619c58efb2c879278a109d735dce13",
+      "traced": false,
+      "mean_ms": 161.05621335,
+      "p50_ms": 160.795915,
+      "p95_ms": 163.258895,
+      "p99_ms": 163.75834,
+      "wall_s": 3.22507722,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "031-http-40-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "7d227f87a149e658cd70a6de59dab1776e69c65349fb26feb9dd6d3d549416d6"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "0abe5e351199bb07ae9e1c6d632262cade3e512d089eb407bdb053cb35da8c11",
+      "traced": false,
+      "mean_ms": 161.0298607375,
+      "p50_ms": 160.970717,
+      "p95_ms": 161.600322,
+      "p99_ms": 161.735523,
+      "wall_s": 3.22369613,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "032-http-40-r89-r2",
+      "repeat": 2,
+      "result_sha256": "288b8ad29fd8a67436e818e18b182919d5002c087b4cca65303e4ed1c6a6c76e"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "3fd953ffcfaa0a0029de6281ba9932bf650557383d424a3c53eafad024c66dea",
+      "traced": false,
+      "mean_ms": 240.7413789375,
+      "p50_ms": 240.621248,
+      "p95_ms": 241.328814,
+      "p99_ms": 242.953147,
+      "wall_s": 4.817925893,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "033-http-40-stock-r2",
+      "repeat": 2,
+      "result_sha256": "a8fd0b115222d69dbac84d05a08909969d2eb18e39b0ad96e2f250a40391970a"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "7696a75c1fe7b45e068a13fbc0ba8cf05848eae1c3ded5135c04c31dfe002bad",
+      "traced": false,
+      "mean_ms": 323.3397318125,
+      "p50_ms": 323.218285,
+      "p95_ms": 324.317094,
+      "p99_ms": 325.451343,
+      "wall_s": 6.470526897,
+      "cpu_ticks": 8,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 909.0909090909091,
+      "sampled_tasks_lower_bound": 178,
+      "name": "034-https-40-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "58e71c661ef3e56c14f3f16439cc130d2ac60d665be514f3c7a052a1fe3dfbbf"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "5bcb878a50c67fc16497383ca7e82b483cf0d1818e714c6effb720e77e29afa9",
+      "traced": false,
+      "mean_ms": 323.02367255,
+      "p50_ms": 323.043763,
+      "p95_ms": 323.803889,
+      "p99_ms": 324.123212,
+      "wall_s": 6.464299891,
+      "cpu_ticks": 7,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 795.4545454545455,
+      "sampled_tasks_lower_bound": 178,
+      "name": "035-https-40-r89-r2",
+      "repeat": 2,
+      "result_sha256": "c7af6b6a3796d59b6e0471966c588917b899abb3e69f1457126113088c6dd6f1"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 40,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "eba7c56d185b7a8569fca83cb687c743544dd20b4522aa04d5d3945c406089ae",
+      "traced": false,
+      "mean_ms": 644.2040990625,
+      "p50_ms": 643.95227,
+      "p95_ms": 644.948277,
+      "p99_ms": 646.743572,
+      "wall_s": 12.887998624,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2613.6363636363635,
+      "sampled_tasks_lower_bound": 1,
+      "name": "036-https-40-stock-r2",
+      "repeat": 2,
+      "result_sha256": "34869c5f7b22a37ebdff64af4a8cff2ef23262c39913811259ab50902be26ecf"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "c36d7dd3956a08d15f4beaf8affd8ce3e8d2e76a195a78ead2ab0f75460f725f",
+      "traced": false,
+      "mean_ms": 80.7154221,
+      "p50_ms": 80.69034,
+      "p95_ms": 80.987903,
+      "p99_ms": 81.175824,
+      "wall_s": 1.615107298,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "037-http-20-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "a9d021654ed02e45a6a355bb5fbccb3604ebed5266577f32f953e719d9cbc456"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "e6b6315e80f8f7885571bb098fa77cbccd78aea3058d34ac27bbc375b68bea36",
+      "traced": false,
+      "mean_ms": 80.7525749375,
+      "p50_ms": 80.752981,
+      "p95_ms": 81.095024,
+      "p99_ms": 81.200425,
+      "wall_s": 1.615907865,
+      "cpu_ticks": 2,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 227.27272727272728,
+      "sampled_tasks_lower_bound": 90,
+      "name": "038-http-20-r89-r2",
+      "repeat": 2,
+      "result_sha256": "b76f23e8e8280cca027cc6c305f4eb164572bf209437d100bf77afc445cf96f6"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "630ccc8494193206266ca3fecf35adf48648b428b1e73198fb9f135b0a66d37c",
+      "traced": false,
+      "mean_ms": 120.65289247499999,
+      "p50_ms": 120.643787,
+      "p95_ms": 120.790869,
+      "p99_ms": 120.93127,
+      "wall_s": 2.413911997,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "039-http-20-stock-r2",
+      "repeat": 2,
+      "result_sha256": "c400d25ec11992574a80bcdb5a624ec47450bf09ff34810ffe27c70391e5ddf2"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "b3f3efd4ce71284d7f25233829c7bb558f935d6cbdce7f4c015c5aad3e540bbb",
+      "traced": false,
+      "mean_ms": 162.4618677125,
+      "p50_ms": 162.337729,
+      "p95_ms": 163.837221,
+      "p99_ms": 164.407305,
+      "wall_s": 3.251671454,
+      "cpu_ticks": 5,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 568.1818181818181,
+      "sampled_tasks_lower_bound": 90,
+      "name": "040-https-20-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "2e1f3d7ebf8f6a9029916df333acac64946c625ad12e2b006967778bf1ee7962"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "e279d73f2b546fd90de103e8b1f6fa573ac84aaef4b6c0f8774843d365d3f157",
+      "traced": false,
+      "mean_ms": 162.5305503125,
+      "p50_ms": 162.429649,
+      "p95_ms": 163.196936,
+      "p99_ms": 163.927701,
+      "wall_s": 3.253311829,
+      "cpu_ticks": 5,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 568.1818181818181,
+      "sampled_tasks_lower_bound": 90,
+      "name": "041-https-20-r89-r2",
+      "repeat": 2,
+      "result_sha256": "199dce6ce0266c5bf9de1a393a99875da4291fea701005f7d0e697caa48e1a85"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 20,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "5f83cee99c55d075006de99bdc8ce721c459449d9524cc21eeae306e61394352",
+      "traced": false,
+      "mean_ms": 364.2096928,
+      "p50_ms": 363.948299,
+      "p95_ms": 365.678994,
+      "p99_ms": 370.706394,
+      "wall_s": 7.290101955,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2613.6363636363635,
+      "sampled_tasks_lower_bound": 1,
+      "name": "042-https-20-stock-r2",
+      "repeat": 2,
+      "result_sha256": "8046e692029af5fd2419426634265cb476c1029a6c8762e946b0de1a198ccffd"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 1.5362776375,
+      "p50_ms": 1.414532,
+      "p95_ms": 2.495701,
+      "p99_ms": 3.276026,
+      "wall_s": 0.037339466,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 53,
+      "name": "043-http-0-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "0f8e2b8e99fafb9b488affb646c07f9b63796ee1a9f3cb3a0d7bfea350545a3e"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 1.4093789875,
+      "p50_ms": 1.401011,
+      "p95_ms": 2.038177,
+      "p99_ms": 2.50074,
+      "wall_s": 0.030997734,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 46,
+      "name": "044-http-0-r89-r2",
+      "repeat": 2,
+      "result_sha256": "ac7cd301aa4a633e279d4f8613319ff478f41d042443a2fc05151b810ef3ac17"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 1.439865725,
+      "p50_ms": 1.435732,
+      "p95_ms": 1.922736,
+      "p99_ms": 2.150057,
+      "wall_s": 0.030443929,
+      "cpu_ticks": 1,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 113.63636363636364,
+      "sampled_tasks_lower_bound": 1,
+      "name": "045-http-0-stock-r2",
+      "repeat": 2,
+      "result_sha256": "39f6808d4741814dced4142080d61fa9fa08aeabb739d56c2c6b0002fc69227f"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 7.1607136124999995,
+      "p50_ms": 7.190579,
+      "p95_ms": 9.003554,
+      "p99_ms": 11.727936,
+      "wall_s": 0.149580745,
+      "cpu_ticks": 5,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 568.1818181818181,
+      "sampled_tasks_lower_bound": 90,
+      "name": "046-https-0-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "181e533a859b1b71a4f52db890e0298019755b245e0ca0364a4a93b62447cc06"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 5.8198206625,
+      "p50_ms": 6.19481,
+      "p95_ms": 8.49347,
+      "p99_ms": 8.663471,
+      "wall_s": 0.124368258,
+      "cpu_ticks": 5,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 568.1818181818181,
+      "sampled_tasks_lower_bound": 88,
+      "name": "047-https-0-r89-r2",
+      "repeat": 2,
+      "result_sha256": "bfa1b163fa14b912f3f162b8cec37aacfc2dd0415dd34b53507df02f45a2d5f2"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": false,
+      "mean_ms": 86.08662873749999,
+      "p50_ms": 85.927184,
+      "p95_ms": 87.92092,
+      "p99_ms": 92.656079,
+      "wall_s": 1.731975819,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "subject_cpu_us_per_op": 2613.6363636363635,
+      "sampled_tasks_lower_bound": 1,
+      "name": "048-https-0-stock-r2",
+      "repeat": 2,
+      "result_sha256": "4906bf315a1f1cd3791e6167c41a10bd2d686cf12fa1e5ae478ade74f5f7e942"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": true,
+      "syscalls": {
+        "write": {
+          "calls": 968,
+          "errors": 0,
+          "blocked_wall_seconds": 0.031114
+        },
+        "read": {
+          "calls": 618,
+          "errors": 1,
+          "blocked_wall_seconds": 0.005456
+        },
+        "fcntl": {
+          "calls": 194,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000869
+        },
+        "epoll_ctl": {
+          "calls": 181,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001542
+        },
+        "close": {
+          "calls": 178,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003267
+        },
+        "accept": {
+          "calls": 113,
+          "errors": 24,
+          "blocked_wall_seconds": 0.001075
+        },
+        "mmap": {
+          "calls": 94,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001042
+        },
+        "munmap": {
+          "calls": 92,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001542
+        },
+        "openat": {
+          "calls": 91,
+          "errors": 1,
+          "blocked_wall_seconds": 0.00082
+        },
+        "getsockname": {
+          "calls": 89,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00043
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000815
+        },
+        "epoll_pwait": {
+          "calls": 49,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008328
+        },
+        "rt_sigaction": {
+          "calls": 7,
+          "errors": 0,
+          "blocked_wall_seconds": 4.4e-05
+        },
+        "lseek": {
+          "calls": 6,
+          "errors": 0,
+          "blocked_wall_seconds": 3.1e-05
+        },
+        "readv": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 2.3e-05
+        },
+        "epoll_create1": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 9e-06
+        },
+        "pipe2": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 1.1e-05
+        },
+        "rt_sigprocmask": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 5e-06
+        },
+        "getpid": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 6e-06
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "049-trace-http-0-stock-r1",
+      "repeat": 1,
+      "result_sha256": "e47590bda21ad2e5a9f1c8ae047c54659816e88dcac5dbab3bca89132e977b2c"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": true,
+      "syscalls": {
+        "setsockopt": {
+          "calls": 616,
+          "errors": 0,
+          "blocked_wall_seconds": 0.014133
+        },
+        "rt_sigprocmask": {
+          "calls": 438,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013364
+        },
+        "sigaltstack": {
+          "calls": 263,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008019
+        },
+        "mmap": {
+          "calls": 228,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007124
+        },
+        "munmap": {
+          "calls": 222,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010143
+        },
+        "read": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006025
+        },
+        "recvfrom": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006
+        },
+        "mprotect": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006037
+        },
+        "close": {
+          "calls": 175,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006377
+        },
+        "futex": {
+          "calls": 153,
+          "errors": 33,
+          "blocked_wall_seconds": 0.012925
+        },
+        "epoll_pwait": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.015435
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001596
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002155
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002851
+        },
+        "gettid": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00267
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002323
+        },
+        "sendto": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.021581
+        },
+        "clone": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01173
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00363
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "050-trace-http-0-r89-r1",
+      "repeat": 1,
+      "result_sha256": "dd4e9904dc8ffec9f00e59cd17ff32276b6f7ac4e9f59801fc1ff54168681ac1"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": true,
+      "syscalls": {
+        "setsockopt": {
+          "calls": 616,
+          "errors": 0,
+          "blocked_wall_seconds": 0.020811
+        },
+        "rt_sigprocmask": {
+          "calls": 438,
+          "errors": 0,
+          "blocked_wall_seconds": 0.014142
+        },
+        "sigaltstack": {
+          "calls": 263,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00716
+        },
+        "mmap": {
+          "calls": 220,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008428
+        },
+        "munmap": {
+          "calls": 213,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010136
+        },
+        "read": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005967
+        },
+        "recvfrom": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007046
+        },
+        "mprotect": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007199
+        },
+        "close": {
+          "calls": 175,
+          "errors": 0,
+          "blocked_wall_seconds": 0.009049
+        },
+        "futex": {
+          "calls": 174,
+          "errors": 27,
+          "blocked_wall_seconds": 0.0162
+        },
+        "epoll_pwait": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.019171
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003516
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002032
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002642
+        },
+        "gettid": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002776
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002549
+        },
+        "sendto": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.017928
+        },
+        "clone": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.011524
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004059
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "051-trace-http-0-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "fa18fcd11cb36913c1344a08744d54702d3183f5cb3c3cdeea7ad60ecfefdb13"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": true,
+      "syscalls": {
+        "write": {
+          "calls": 1496,
+          "errors": 0,
+          "blocked_wall_seconds": 0.024205
+        },
+        "read": {
+          "calls": 1217,
+          "errors": 425,
+          "blocked_wall_seconds": 0.010022
+        },
+        "getrandom": {
+          "calls": 528,
+          "errors": 0,
+          "blocked_wall_seconds": 0.021144
+        },
+        "epoll_ctl": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002384
+        },
+        "epoll_pwait": {
+          "calls": 323,
+          "errors": 0,
+          "blocked_wall_seconds": 1.581485
+        },
+        "mmap": {
+          "calls": 201,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003271
+        },
+        "munmap": {
+          "calls": 193,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003345
+        },
+        "fcntl": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00097
+        },
+        "close": {
+          "calls": 175,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004145
+        },
+        "accept": {
+          "calls": 166,
+          "errors": 78,
+          "blocked_wall_seconds": 0.002206
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001034
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001116
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000514
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "052-trace-https-0-stock-r1",
+      "repeat": 1,
+      "result_sha256": "2d0be26808a07b4c9db44babeaee12e38f037f5df9decd673940a05fb0fec35d"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": true,
+      "syscalls": {
+        "futex": {
+          "calls": 828,
+          "errors": 183,
+          "blocked_wall_seconds": 0.060366
+        },
+        "setsockopt": {
+          "calls": 615,
+          "errors": 0,
+          "blocked_wall_seconds": 0.034223
+        },
+        "rt_sigprocmask": {
+          "calls": 434,
+          "errors": 0,
+          "blocked_wall_seconds": 0.026107
+        },
+        "mmap": {
+          "calls": 369,
+          "errors": 0,
+          "blocked_wall_seconds": 0.019182
+        },
+        "writev": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.07114
+        },
+        "recvfrom": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.150932
+        },
+        "getrandom": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.023748
+        },
+        "munmap": {
+          "calls": 348,
+          "errors": 0,
+          "blocked_wall_seconds": 0.029786
+        },
+        "sigaltstack": {
+          "calls": 262,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013068
+        },
+        "read": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010687
+        },
+        "mprotect": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00876
+        },
+        "close": {
+          "calls": 174,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013123
+        },
+        "epoll_pwait": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.08674
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005539
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005744
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008092
+        },
+        "gettid": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005766
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003783
+        },
+        "clone": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013556
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004908
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "053-trace-https-0-r89-r1",
+      "repeat": 1,
+      "result_sha256": "fa2b69d0978a3e6385542d6a9a6dba4a8d03867d6ed2d0d95ab150e55bbbf134"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 0,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "718aa134d34bbc23b140512f3eeee8d13b50e6a5636b5905a88a15c3d8090b7e",
+      "traced": true,
+      "syscalls": {
+        "futex": {
+          "calls": 876,
+          "errors": 178,
+          "blocked_wall_seconds": 0.062349
+        },
+        "setsockopt": {
+          "calls": 616,
+          "errors": 0,
+          "blocked_wall_seconds": 0.032216
+        },
+        "rt_sigprocmask": {
+          "calls": 438,
+          "errors": 0,
+          "blocked_wall_seconds": 0.024963
+        },
+        "mmap": {
+          "calls": 366,
+          "errors": 0,
+          "blocked_wall_seconds": 0.023148
+        },
+        "munmap": {
+          "calls": 353,
+          "errors": 0,
+          "blocked_wall_seconds": 0.026647
+        },
+        "writev": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.056465
+        },
+        "recvfrom": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.131634
+        },
+        "getrandom": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01956
+        },
+        "sigaltstack": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.011995
+        },
+        "close": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.014953
+        },
+        "read": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013086
+        },
+        "mprotect": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007103
+        },
+        "epoll_pwait": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.086866
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002861
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004996
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005595
+        },
+        "gettid": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005167
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002751
+        },
+        "clone": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.015465
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005248
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "054-trace-https-0-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "8e66eb06a1e54d06bea8fb9fdc293962d5d976167bd5e47d49788ad445803de3"
+    },
+    {
+      "side": "stock",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "11a2803df83ce59054ac7e92c7b00c01432fb3f40ae982ba1127bae9439a89fc",
+      "traced": true,
+      "syscalls": {
+        "write": {
+          "calls": 968,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010457
+        },
+        "read": {
+          "calls": 700,
+          "errors": 88,
+          "blocked_wall_seconds": 0.010078
+        },
+        "epoll_pwait": {
+          "calls": 227,
+          "errors": 0,
+          "blocked_wall_seconds": 12.868886
+        },
+        "fcntl": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001679
+        },
+        "epoll_ctl": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002261
+        },
+        "close": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002722
+        },
+        "accept": {
+          "calls": 144,
+          "errors": 56,
+          "blocked_wall_seconds": 0.002734
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001203
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001308
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000902
+        },
+        "mmap": {
+          "calls": 73,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001249
+        },
+        "munmap": {
+          "calls": 69,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001678
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "055-trace-http-100-stock-r1",
+      "repeat": 1,
+      "result_sha256": "c136ef855232a81a04b33bc89bda233858019d1b0522af0b0aa6ef3321875614"
+    },
+    {
+      "side": "r89",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "dc3ac4a3d2fb625a47244ae5a84200dad0f51a5540f0b8ab9ed3075f126c0281",
+      "traced": true,
+      "syscalls": {
+        "setsockopt": {
+          "calls": 616,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010821
+        },
+        "rt_sigprocmask": {
+          "calls": 440,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006232
+        },
+        "read": {
+          "calls": 315,
+          "errors": 66,
+          "blocked_wall_seconds": 0.005124
+        },
+        "mmap": {
+          "calls": 294,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005105
+        },
+        "munmap": {
+          "calls": 290,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008186
+        },
+        "sigaltstack": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00338
+        },
+        "recvfrom": {
+          "calls": 260,
+          "errors": 88,
+          "blocked_wall_seconds": 4.450201
+        },
+        "epoll_pwait": {
+          "calls": 238,
+          "errors": 0,
+          "blocked_wall_seconds": 8.736603
+        },
+        "mprotect": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002924
+        },
+        "epoll_ctl": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002966
+        },
+        "close": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003426
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001103
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001356
+        },
+        "write": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002034
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001441
+        },
+        "gettid": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001057
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001243
+        },
+        "sendto": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002153
+        },
+        "clone": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007872
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002377
+        },
+        "futex": {
+          "calls": 73,
+          "errors": 17,
+          "blocked_wall_seconds": 0.002901
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "056-trace-http-100-r89-r1",
+      "repeat": 1,
+      "result_sha256": "ad22ac49d0fb47c6ba26bbe916c9386da9c9c5939a7f73646809fd6a5ce9dabf"
+    },
+    {
+      "side": "candidate",
+      "protocol": "http",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [],
+      "tls_ciphers": [],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "99a93cd9e516b0c4e74c0f5c21ae24555d39dc8c33b65b709802c87d8bf9f86f",
+      "traced": true,
+      "syscalls": {
+        "setsockopt": {
+          "calls": 616,
+          "errors": 0,
+          "blocked_wall_seconds": 0.009217
+        },
+        "rt_sigprocmask": {
+          "calls": 440,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006968
+        },
+        "mmap": {
+          "calls": 294,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005194
+        },
+        "munmap": {
+          "calls": 290,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008343
+        },
+        "read": {
+          "calls": 282,
+          "errors": 50,
+          "blocked_wall_seconds": 0.005581
+        },
+        "sigaltstack": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003675
+        },
+        "recvfrom": {
+          "calls": 260,
+          "errors": 88,
+          "blocked_wall_seconds": 4.452202
+        },
+        "epoll_pwait": {
+          "calls": 220,
+          "errors": 0,
+          "blocked_wall_seconds": 8.736764
+        },
+        "mprotect": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003164
+        },
+        "epoll_ctl": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003175
+        },
+        "close": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003415
+        },
+        "futex": {
+          "calls": 100,
+          "errors": 21,
+          "blocked_wall_seconds": 0.005545
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001332
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00175
+        },
+        "write": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002382
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001526
+        },
+        "gettid": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001409
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001413
+        },
+        "sendto": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002309
+        },
+        "clone": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010644
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002511
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "057-trace-http-100-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "0492e17ad6075859604aca3a73809d882ca13bc0c54fa7386d6a59c985afe7a1"
+    },
+    {
+      "side": "stock",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "dd5b64833b9edddf5964b2db8e47df1b34f6314d6c891a0f23d8148a35fb9794",
+      "traced": true,
+      "syscalls": {
+        "write": {
+          "calls": 1496,
+          "errors": 0,
+          "blocked_wall_seconds": 0.018631
+        },
+        "read": {
+          "calls": 1228,
+          "errors": 440,
+          "blocked_wall_seconds": 0.014207
+        },
+        "getrandom": {
+          "calls": 528,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005423
+        },
+        "epoll_pwait": {
+          "calls": 478,
+          "errors": 0,
+          "blocked_wall_seconds": 31.991286
+        },
+        "mmap": {
+          "calls": 464,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007448
+        },
+        "munmap": {
+          "calls": 447,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00796
+        },
+        "epoll_ctl": {
+          "calls": 348,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003782
+        },
+        "fcntl": {
+          "calls": 176,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004185
+        },
+        "close": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003289
+        },
+        "accept": {
+          "calls": 165,
+          "errors": 77,
+          "blocked_wall_seconds": 0.003069
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001242
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001397
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000886
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "058-trace-https-100-stock-r1",
+      "repeat": 1,
+      "result_sha256": "00a9f57221db1a48cacd8e8bfe5076d2713cb3ca00c98918c00481b0294dd260"
+    },
+    {
+      "side": "r89",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "f048fc2ea8e336f5a10aecc3ee679b1823defa2291cea7f6202685835cf8f9b7",
+      "traced": true,
+      "syscalls": {
+        "rt_sigprocmask": {
+          "calls": 1320,
+          "errors": 0,
+          "blocked_wall_seconds": 0.02618
+        },
+        "setsockopt": {
+          "calls": 968,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01609
+        },
+        "mmap": {
+          "calls": 960,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01853
+        },
+        "munmap": {
+          "calls": 945,
+          "errors": 0,
+          "blocked_wall_seconds": 0.035346
+        },
+        "recvfrom": {
+          "calls": 876,
+          "errors": 352,
+          "blocked_wall_seconds": 17.880933
+        },
+        "sigaltstack": {
+          "calls": 792,
+          "errors": 0,
+          "blocked_wall_seconds": 0.014485
+        },
+        "mprotect": {
+          "calls": 528,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010454
+        },
+        "epoll_ctl": {
+          "calls": 524,
+          "errors": 0,
+          "blocked_wall_seconds": 0.012611
+        },
+        "read": {
+          "calls": 508,
+          "errors": 159,
+          "blocked_wall_seconds": 0.009542
+        },
+        "epoll_pwait": {
+          "calls": 501,
+          "errors": 0,
+          "blocked_wall_seconds": 17.513849
+        },
+        "futex": {
+          "calls": 461,
+          "errors": 84,
+          "blocked_wall_seconds": 0.022055
+        },
+        "writev": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.012313
+        },
+        "getrandom": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005339
+        },
+        "write": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005935
+        },
+        "gettid": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004205
+        },
+        "clone": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.029053
+        },
+        "close": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003652
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001471
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001745
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001809
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001347
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002288
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "059-trace-https-100-r89-r1",
+      "repeat": 1,
+      "result_sha256": "06c2c66a00848a7a3fb249bc8aeeca2f8c704839847ac99e1639b5fffa36aea5"
+    },
+    {
+      "side": "candidate",
+      "protocol": "https",
+      "one_way_delay_ms": 100,
+      "successful": 80,
+      "warmup": 8,
+      "clients": 4,
+      "fresh_connection": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "diagnostic_only": true,
+      "tls_versions": [
+        "TLSv1.2"
+      ],
+      "tls_ciphers": [
+        "ECDHE-ECDSA-AES256-GCM-SHA384"
+      ],
+      "resumed_tls_handshakes": 0,
+      "kernel": "6.17.0-1020-oracle",
+      "python_ssl": "OpenSSL 3.0.13 30 Jan 2024",
+      "qdisc_sha256": "8ec7ec49c302a54ff2e2853f6eb58075d7d152e82df66f070fa142baf78cd85b",
+      "traced": true,
+      "syscalls": {
+        "rt_sigprocmask": {
+          "calls": 1320,
+          "errors": 0,
+          "blocked_wall_seconds": 0.026847
+        },
+        "mmap": {
+          "calls": 987,
+          "errors": 0,
+          "blocked_wall_seconds": 0.019047
+        },
+        "munmap": {
+          "calls": 972,
+          "errors": 0,
+          "blocked_wall_seconds": 0.029686
+        },
+        "setsockopt": {
+          "calls": 968,
+          "errors": 0,
+          "blocked_wall_seconds": 0.017395
+        },
+        "recvfrom": {
+          "calls": 876,
+          "errors": 352,
+          "blocked_wall_seconds": 17.87063
+        },
+        "sigaltstack": {
+          "calls": 792,
+          "errors": 0,
+          "blocked_wall_seconds": 0.012897
+        },
+        "futex": {
+          "calls": 566,
+          "errors": 119,
+          "blocked_wall_seconds": 0.023709
+        },
+        "read": {
+          "calls": 528,
+          "errors": 163,
+          "blocked_wall_seconds": 0.009925
+        },
+        "mprotect": {
+          "calls": 528,
+          "errors": 0,
+          "blocked_wall_seconds": 0.011491
+        },
+        "epoll_ctl": {
+          "calls": 524,
+          "errors": 0,
+          "blocked_wall_seconds": 0.011125
+        },
+        "epoll_pwait": {
+          "calls": 500,
+          "errors": 0,
+          "blocked_wall_seconds": 17.519742
+        },
+        "writev": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.009875
+        },
+        "getrandom": {
+          "calls": 352,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005259
+        },
+        "write": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006437
+        },
+        "gettid": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004484
+        },
+        "clone": {
+          "calls": 264,
+          "errors": 0,
+          "blocked_wall_seconds": 0.027648
+        },
+        "close": {
+          "calls": 172,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00347
+        },
+        "fcntl": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00146
+        },
+        "openat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001762
+        },
+        "newfstatat": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001914
+        },
+        "getsockname": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001359
+        },
+        "accept4": {
+          "calls": 88,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004836
+        }
+      },
+      "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36",
+      "name": "060-trace-https-100-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "236a8bf6744374461c47b0b3a16c919d12e938034aee6548bfa366382140903d"
+    }
+  ],
+  "limitations": [
+    "Build-host diagnostic; not a router performance score.",
+    "Tracing groups export syscall counts separately from untraced timing."
+  ],
+  "archive_sha256": "25fae41cc68b1f9c59b0e457963a478e270026b397453c7374a185175efe08e8",
+  "verified_files": 495
+}

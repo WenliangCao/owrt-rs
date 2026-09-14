@@ -39,6 +39,8 @@
   iwinfo 表，radio 级附 phy_only iwinfo。
 - `getHostHints`：rtnetlink 邻居表（状态排除 NUD_NOARP 之外全零）、uci `dhcp` host 节、租约文件、
   `/etc/ethers`、getifaddrs，按优先级合并；对非本地地址经 `network.rrdns lookup`（timeout 250）补名字。
+  IPv6 地址集合取决于当时的邻居表和租约；同一 MAC 的跨启动记录不保证地址数量或作用域集合相同。
+  对固定输入必须保留所有合格地址，不能把地址遗漏作为动态差异豁免。
 - `getDUIDHints`、`getBoardJSON`（`/etc/board.json` 原样）、`getDHCPLeases {family}`：租约文件解析
   （dnsmasq 与 odhcpd 两种格式，含 `ff:`/`01:` DUID 形态、过期时间相对值）。
 - R92：畸形 `ff:` 标识在第 14/15 字节切分时不得触发 UTF-8 索引 panic。
@@ -52,6 +54,14 @@ frequency(_offset)/txpower(_offset)/quality(_max)/signal/noise/bitrate/encryptio
 hwmodes_text/hwmode/htmode/hardware{id[4],name}）、scan、assoclist（含 rx/tx 速率表）、freqlist、
 txpowerlist、countrylist（ISO3166 表顺序）、survey、phyname。数值按 libiwinfo nl80211 后端计算。
 
+- **R92 freqlist 有意改进**：以清零的条目累积内核频率限制。精确 C 后端对调用者缓冲的
+  `flags` 使用 OR，而 rpcd 的 `char res[IWINFO_BUFSIZE]` 未初始化；不能复制随机附加的
+  `no_ir`/`no_he` 等标志和由此产生的 `restricted`。两个真实 radio 的清零/全置位/再清零
+  控制验证了这一依赖，Rust 的全部频率条目与清零原版相同。这不是射频强度波动。
+- **HT 扫描字段沿用精确原版**：`ht_operation.channel_width` 按 HT operation IE 第三个
+  payload 字节的 bit 2 映射为 20/2040；保留该镜像的规则，不能把输出直接解释为实际带宽。
+  不同扫描的 IE 输入可变；固定输入必须与原版相同，字段缺失或其它静态字段差异不能屏蔽。
+
 ## 5. 验证
 
 - 8a：`tools/r18_rpcd_plugins_check.py`，精确 rootfs 双沙箱 + 隔离网络中的假 PTR 服务器（127.0.0.1:53，
@@ -62,3 +72,11 @@ txpowerlist、countrylist（ISO3166 表顺序）、survey、phyname。数值按 
 - R92 `r92_compat_probe.py`：所有带 device 的 iwinfo 方法的缺参/不存在设备、100 次失败探测 fd 稳定；
   正确 INT16 端口上的 PTR 正常、截断、坏 additional、压缩指针环、无关 ID/短包后正确回复及后续恢复；
   畸形 DHCP 标识通过实际 `luci-rpc` 调用验证。
+- R92 `r92_iwinfo_flags_probe.py`：精确动态库的两个真实 radio 缓冲控制，检查每个 flags/restricted。
+- R92 `r92_host_hints_probe.py`：双侧正式二进制、私有网络 namespace；固定 IPv4/link-local IPv6，
+  添加/删除全局 IPv6，以及 NUD_NOARP/stale，六个阶段各两次查询。
+  `r92_host_hints_live.py` 在计时实验之后用独立原版总线/进程做三组同启动相邻查询，不遮罩地址或名字。
+- R92 `r92_scan_ie_probe.py`：直接包含正式提交的 Rust 模块，编译精确 C 解析函数；
+  262144 组 HT IE 输入逐字节对照。它不是历史扫描帧重放，四窗口未保存当时的原始 IE。
+  `r92_wireless_compare.py` 公开动态集合数量、所有 HT 字段差异及上述控制的身份；不把这些
+  被明确排除的跨启动比较写成完整 JSON 等价。

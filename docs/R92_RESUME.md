@@ -1,82 +1,120 @@
-# R92：剩余四批续接与证据台账
+# R92：第 2–5 批已完成，续接入口
 
-起点 `8b64f1d`（R91 本地候选），最后实机验收版本 R90；性能比较固定为 R89 正式产物。
-任务是完成原计划第 2–5 批，包括正式构建、恢复验证、已授权的 Wi-Fi 部署和实机验收。
-用户已明确授权全部访问、Wi-Fi 调试及实机运行；部署仍需备份、身份、自动回退和客户端健康门。
-本文件是进行中的台账，不能把开发验证表述为实机已完成。
+截至 2026-09-15（Europe/Berlin），原计划剩余四批已完成：正式构建与回归、性能量化、
+已授权的 Wi-Fi 部署、四个冷启动与完整负载、最终设备核验、公开派生证据及发布整理。
+当前设备运行 R92；没有待放行的测试队列或尚待完成的部署步骤。
 
-## 第 2 批：异常恢复与资源边界
+本文件可独立续接。会话 ID 是会话标识，不是系统 PID，也不保证其它模型能读取历史。
 
-| 项目 | 开发处置和证据 |
+## 1. 固定身份
+
+- 项目：`/Users/USER/Developer/owrt-control-plane-rs`。
+- 分支：`codex/r92-recovery-compat`；当前 HEAD 包含后续验证工具与报告，部署身份以以下正式提交为准。
+- 运行时提交：`ca1a9121df0380448a19d474e29796066b6734e8`。
+- [release-image 34874442503](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/34874442503)。
+- 固定性能基线：正式 R89 `d9c1048` / release-image `34724293710`。R90 是上一完整验收版本。
+- 九个二进制、七个 APK、core archive、生成镜像和 manifest 链见
+  [canonical_build.json](../reports/ax3000t-stock-openwrt-25.12.5/R92_parts/canonical_build.json)。
+- 后续注释、工具和报告提交没有重新构建或替换上述运行时；原版 freqlist 缓冲问题只修正了注释。
+
+## 2. 主要报告
+
+- [四批验收](../reports/ax3000t-stock-openwrt-25.12.5/R92_REMAINING_BATCHES.md)：结果、验证、实机与采集事故。
+- [逐项处置](../reports/ax3000t-stock-openwrt-25.12.5/R92_COVERAGE.md)：R88 每个遗留问题的修复、保留或撤销理由及回归门。
+- [性能报告](../reports/ax3000t-stock-openwrt-25.12.5/R92_PERFORMANCE.md)：全部正差值、尾延迟、同机 HTTP、停放及内存控制。
+- [部署证明](../reports/ax3000t-stock-openwrt-25.12.5/R92_parts/deployment.json)：恢复门、四 boot、安装与最终健康。
+- [包保留与回退](R92_RELEASE_AND_ROLLBACK.md)：C/R89/R90/R92 的位置及 R90 APK 回退顺序。
+
+## 3. 正式验证已经完成
+
+69 道门中 68 道必需门全部通过。原版 C procd busy 的既有丢尾控制失败仍保留；它不属于候选必需门。
+Rust 为 449 个不同 crate 内测试名、450 次执行，wake-pipe 测试在 rpcd lib/bin 重复编入。
+十 crate Clippy、netifd 31/31、HTTP 133 例、fw4 上游 31/31 与 r29 200/200、UCI r16/r24 1000 例及
+修正 r83 均通过。r71 确实启用 `R90_HOTPLUG_PROBE=1`。
+离线冷切换/救援 5/5，同版本 APK 升级 4/4；收尾工具语法、21 个 harness 和 33 个 benchmark Python 测试通过。
+
+三处正式夹具失败已经修正并用同一正式二进制复跑：sudo 丢 HELPERS 误用旧 probe、fd 基线早于 EOF
+清理、UCI r83 未应用非法 UTF-8 rename 原子拒绝合同。原失败和最初 52 道门后断连的采集记录均保留。
+不要重跑已经有效的完整验证，只在新变更或新失败需要时补对应检查。
+
+## 4. 实机完成状态
+
+最终设备证明时间：**2026-09-14 23:27:33 UTC**。
+四窗口 Rust-1→C-1→C-2→Rust-2，每窗口 500650 次被测操作、五轮及前后各 120 秒 idle；
+九组件三侧四轮共 888 条测量，ubusd/procd CPU 0 affinity 共 216 条测量。
+
+无线四窗口 212 调用、4 次扫描、28 组；两个 radio 的精确动态库缓冲控制通过。
+固定邻居六阶段每侧 20 断言、262144 个固定 HT IE、三组同启动完整 HostHints JSON 均通过。
+HTTP 同机四侧、两方法、各四轮共 320000 次被测请求全部通过，活动 HTTPD 未重启。
+
+最终九组件身份、C 原件、安装文件、配置、内核 6.12.94、执行面、归一化 nft 规则、客户端 DHCP、
+双频 AP 桥、本地 HTTP/HTTPS、IPv4/IPv6 DNS/HTTPS 与 watchdog 通过。
+R89/R90/R92 保留包各 29 个文件与 7 个 APK 逐项核验。六个诊断文件核验后删除；临时目录及
+pending/reverting/canary 清除，overlay 可用 28936 KiB。没有刷固件。
+
+设备位置：
+
+| 内容 | 路径 |
 |---|---|
-| ubusd U-2 | EOF 后撤销读就绪，待回复排空后关闭；R89 0.79 CPU s/0.8 s 空转反例、候选恢复门通过 |
-| ubusd U-8 | 挂起 lookup 用路径下界续传；R89 重复回复，精确 C 原版删除游标时崩溃，候选无重复 |
-| netifd F7 | ENOBUFS/截断触发有界扩容及完整设备/载波重同步，失败 dump 待重试；真实溢出门通过 |
-| procd F5 | 总线断连仍排空日志、维护计时器并重连；原版/R89/候选对照完成 |
-| procd F6 | 非 PID 1 模式继续喂狗；精确 C 也有缺口，属于共有缺陷改进；仅模拟 watchdog 文件 |
-| httpd H-07 | 批量 RPC 逐项序列化发送，写失败停止后续调用；原版也有放大问题 |
-| rpcd F2/F3 | 保留有界生命周期：提前关管道仍等待/超时回收，超限立即关闭两管道再回收；与 C 的早回复/存活子进程不同 |
-| logd F4 | 1 MiB/流、4 MiB 总排队、64 流；断开滞后者；原版同样无界，作为共同资源治理 |
+| 当前 R92 | `/root/r84` |
+| 正式 R89 | `/root/r89-before-r90` |
+| 已接受 R90 与旧 APK | `/root/r90-before-r92` |
+| 自动回退 C | 精确 `/rom` 及保留原件 |
 
-`raw/red-01`、`green-01/02/04/05`、`recovery-03`、`lookup-delete-04` 保留原始控制项与绿证。
-原版行的 passed 只表示符合该行明确写出的原版预期，不能称原版满足候选的不变量。
+回到 R90 要先以 `--no-scripts --no-network --force-reinstall` 安装其旧 APK，再调整 bundle 并冷切换。
+`stack-switch` 没有 `status` 子命令。恢复门和客户端健康要求继续适用于之后的新部署。
 
-## 第 3 批：协议与数据兼容
+## 5. 不能丢失的结论边界
 
-开发修复与原版对照已覆盖：HTTP 错误/redirect/100 顺序、403 handler、监听地址、TLS 端口、
-CGI Status、ubus 状态；ubusd 属性长度、重复字段、类型、ACL、签名补齐；rpcd fnmatch、ACL 文件
-非法 UTF-8 拒绝、原始对象及 UCI 值字节；logd 原始字节/1023 字节截断；fw4 退出/警告/特殊值；
-reload-config 共用 JSON 转义及 4096 配置项边界；netifd 全局 restart 同 PID 延迟 re-exec；
-procd bundle-only、看门狗复位诊断。
+- 相对本轮 C，固定整批 CPU −23.39%、mixed 吞吐 +12.05%、mixed CPU/操作 −14.20%。
+  相对历史正式 R89，HTTP lane CPU +9.38%、log +29.49%、mixed +4.35%，mixed 吞吐 −3.73%。
+  两个窗口均出现增幅，不能称全面无回退。
+- 固定语料 logd 没有复现整机日志增幅。历史真实日志正文未冻结，不能定量归因全部日志成本。
+- 同机新启动 HTTPD：R92 相对 R89 自身 CPU，configs +1.42%、get +1.66%；活动 R92 比临时 R92
+  高 28.34%、15.95%。运行环境、进程历史和监听端点仍是变量，不能宣称证明唯一原因。
+- c4 绑核同时限制客户端、服务端与依赖，部分范围收窄、部分扩大，p99 更差；保留生产双核。
+  syscall trace 不等于 perf/IRQ 跟踪，不能认定唯一调度根因。
+- 50 ms 停放/线程重建在构建机及路由器均可达。TLS 高延迟 clone 增加，fresh 明文 HTTP 没有同样增长。
+  gap 不是 RTT；netem 只在构建机私有 namespace，未改管理链路或安装内核模块。
+- R92 500 次连接开关后半 250 轮 RSS 增长 0/4 KiB，fd/线程回初值；仅覆盖该有限实验。
+- MemAvailable 差 6466 KiB（6.31 MiB），RSS 中位数之和 9606→5320 KiB，是不同口径。
+  非运行副本页确实 7508→0→7508→0→7508 KiB，但逐出没有增加 MemAvailable，不能把全部差额
+  等同于静态二进制缓存或泄漏。
+- freqlist 随机 flags 来自原版未初始化 caller buffer；R92 与清零 C 一致，保留确定的内核限制位。
+  跨 boot 的 IPv6 成员与两条 HT width 差异有固定输入控制，但历史邻居表/原始扫描 IE 未采，
+  不能称历史帧重放，也不能证明 AP 当时真的切换带宽。
+- 直接子进程回收、模拟非 PID 1 watchdog 与有限无线覆盖，都不外推为任意孙进程、硬件复位或所有硬件场景。
 
-有意差异逐项写入 `docs/contracts/`：HTTP 22 项旧畸形请求差异以
-`tests/reference/httpd/r92-deviations.json` 固定；133 例相对 R89 只允许 header-ctrl 和
-chunked-huge-size 两项转为立即拒绝（`httpd-fuzz-07`）。保留 HTTP 超时/重连、RPC 子进程回收、
-非法授权标识拒绝等边界。UCI 非 UTF-8 rename 原子拒绝，已纠正“C 同 batch 显示原始名字”的旧判断。
+## 6. 采集事故与本机证据
 
-fw4：`fw4-05` 16/16、`fw4-upstream-05.log` 31/31、`fw4-r29-05.log` 200/200，
-原版 23 次 ucode 崩溃单独记录。原版 ucode 的 stale errno 不复制，候选报告实际 errno。
+以下失败从未改写为成功样本：
 
-## 第 4 批：性能与内存
+1. C deleted udebug 映射不能按旧路径 mincore；失败归档后修正 collector，有效冷窗口未重跑。
+2. rpcd 第五轮 SSH exit 255；远端已 COMPLETE，下载逐文件 hash、18 workloads、CPU 区间与健康核验
+   通过后保留样本，`run_candidate.py --resume` 续跑其余轮次。
+3. HostHints 首次在调用前因设备不支持 `sleep 0.1` 失败；失败目录读回校验后清理，整数等待重跑通过。
+4. HTTP 同机探针首次准备阶段把成功但没有 DATA 的 grant/destroy 回复当 JSON；修正后完整重跑，
+   旧日志及空临时目录清理证明保留。
 
-仍待完成：c4 尾延迟离散度与调度追踪、HTTP JSON-RPC c4 CPU、高 RTT 下停放/线程重建、
-多轮连接关闭的内存斜率、静态二进制文件页成本。构建机诊断与路由器验收必须分别记录。
-路由器缺少 tc/netem/perf 工具及模块；不得为测量更换内核或修改管理链路。
+原始数据、二进制、镜像、配置、无线标识、session、备份只在 ignored `private/r92/`；不入 Git。
+构建机工作区为 `/home/ubuntu/r92-recovery-compat/`。本机关键目录：
 
-## 第 5 批：覆盖和发布
+- `derived/formal/`、`validation-effective.json`：正式验证证据。
+- `device/recovery-01/`、`deployment-r92/`：恢复资料及发布包。
+- `device/windows/`、`device/components/`、`device/affinity/`：全部测量。
+- `device/http-diagnostics/`、`device/tail-traces/`、`device/reference-cache/`、`device/http-live-pair/`：实机控制。
+- `oracle-evidence/`：构建机诊断六份归档，已逐成员重新验证解包内容。
+- `device/final-01/`、`device/FINAL_COMPLETE`：最终设备证明；所有 COMPLETE 均已满足。
+- `derived/acceptance-final/`：经审核后原样发布到 `reports/…/R92_parts/` 的派生结果。
 
-- 保留 R90 hotplug 专项存活门，netifd 套件当前 31 场景。
-- r26 使用同样受控的 apk 版本输出消除 EOF/SIGCHLD 夹具竞争，另保留真实 apk 与信号注入门。
-- 已修复 getFeatures 非 ASCII 版本切片崩溃；R89 正式二进制反例已取得。
-- 新增 iwinfo 全部 device 方法缺参/不存在设备及 100 次失败探测 fd 稳定检查；
-  PTR 截断、坏 additional、指针环、无关 ID、短包后的恢复；两侧通过 `plugin-green-09`。
-- 内部复核发现 luci-rpc 畸形 DHCP 标识跨字节切分导致进程退出。原版存活，R89 panic；
-  候选按字节切分后通过实际 ubus 回归，租约显示沿用有损 UTF-8 策略并明确入合同。
-- UCI 缓存、delta/文件事务、快速/一般解析器继续通过原有内部测试；完整镜像差分正在运行。
-- HTTP 缓存合同已改为精确 musl 镜像行为（IMS/IUS 被忽略；ETag 生效）。
-- 正式构建 `ca1a9121df0380448a19d474e29796066b6734e8`，release-image `34874442503` 成功；
-  九个二进制、七个 APK、core archive 和生成镜像全部校验。生成镜像不用于本轮刷写。
-- 正式产物 69 道门中的 68 道必需门通过；原版 procd busy 失败作为既有控制项保留。
-  `canonical-validation-01` 在 52 道门后采集连接中断；后续门由 `canonical-completion-03` 完成。
-  两份初始结果都不是完整通过：sudo 丢失 HELPERS 导致旧探针被误用、fd 采样抢在 EOF 清理前、
-  UCI r83 尚未应用原子拒绝合同。修正工具后 `canonical-gates-04` 与正式 r41 重跑闭合所有必需门。
-  旧失败保留；没有因此修改正式运行时二进制。
-- `offline-switch-01` 5/5；`offline-apk-upgrade-03` 4/4，同版本强制重装时旧 rpcd 和三个 CLI
-  bind mount 保持旧身份、配置/开机状态不变，新进程使用新产物。
-- 未完成：性能诊断和实机测量、发布文档、设备包整理、冷启动验收及最终覆盖复核。
+复核只需已有原始证据，不需要再次部署：
 
-## 当前状态与位置
+```sh
+python3 tools/benchmark/analyze_r92.py private/r92 private/r92/derived/review-new \
+  --history reports/ax3000t-stock-openwrt-25.12.5/R89_parts \
+  --final private/r92/device/final-01
+private/r92/plot-env/bin/python tools/benchmark/render_r92.py private/r92/derived/review-new
+```
 
-分支 `codex/r92-recovery-compat`。ignored `private/r92/` 保管原始数据；构建机目录
-`/home/ubuntu/r92-recovery-compat/`。source-08 的九组件开发构建、十 crate 单元/Clippy、
-Python 门测试通过；development-09 只更新 rpcd 的租约切分修复，其余二进制同 development-08。
-`plugin-green-09` 五组 × 两侧通过。source-08 的完整功能/恢复/兼容组合仍在跑；
-组合期间新增了插件门工具，正式验收将以固定提交重新验证，不能把其混合工具身份当同源正式验收。
-
-实机目前只有只读盘点和备份：九组件、DHCP、双频 AP、双栈访问健康。
-`private/r92/device/recovery-01` 七份新归档完整读回、每份 bundle 的所有文件与九组件身份核对通过；
-两份离线恢复镜像正确，配置/进程身份未变。最后已部署的仍是 R90；尚未进行 R92 设备修改。
-overlay 可用约 13 MiB，待删除已备份的三份更旧 bundle，保留精确 C、R89 基线、R90 回退及新候选。
-
-性能工具已支持单独诊断：`http-paced`、私有 namespace netem、40 次 64 连接开/关、
-strace clone/系统调用、mincore 文件页、R89 显式基线与 CPU affinity。追踪及诊断数据不得混入正式矩阵。
+分析器拒绝复用输出目录。`r92_finalize_device.py` 已完成实际清理，不要把它当成可重复的只读检查再次执行；
+需要当前健康时使用 `r84_device_probe.py --mode rust --interface en0`。

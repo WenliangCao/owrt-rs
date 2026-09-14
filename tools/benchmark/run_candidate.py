@@ -40,6 +40,8 @@ def main():
     parser.add_argument("--cpus", help="optional fixed taskset CPU list for every isolated subject/client")
     parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
     parser.add_argument("--iterations", type=int, default=10000)
+    parser.add_argument("--resume", action="store_true",
+                        help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--memory-probe", type=Path,
                         help="separate diagnostic binary with http-resident mode; measure 64 held connections only")
@@ -66,7 +68,9 @@ def main():
         parser.error("RPC client diagnostics require rpcd, --sides stock candidate, and no other experiment mode")
     component = args.component
     binary = "reload_config_rs" if component == "reload-config" else component + "-rs"
-    args.output.mkdir(mode=0o700, parents=True, exist_ok=False)
+    if args.resume and (not (args.output / "STARTED").exists() or (args.output / "COMPLETE").exists()):
+        parser.error("resume requires an existing, incomplete collection")
+    args.output.mkdir(mode=0o700, parents=True, exist_ok=args.resume)
     out = args.output.resolve()
     (out / "STARTED").touch()
     ssh_args = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=4", "-o",
@@ -79,12 +83,27 @@ def main():
     def save(name, value):
         (out / name).write_text(json.dumps(value, indent=2) + "\n")
 
-    pre = probe(host=args.host, mode="rust", interface=args.interface)
-    save("health-before.json", pre)
+    def initial(name, value):
+        if args.resume:
+            assert json.loads((out / name).read_text()) == value, "resume settings changed: " + name
+        else:
+            save(name, value)
+
+    current = probe(host=args.host, mode="rust", interface=args.interface)
+    if args.resume:
+        pre = json.loads((out / "health-before.json").read_text())
+        assert current["boot_id"] == pre["boot_id"], "host rebooted before resume"
+        save("resume-health-" + uuid.uuid4().hex[:12] + ".json", current)
+    else:
+        pre = current
+        save("health-before.json", pre)
     identity = ssh("/bin/sh /root/r84/stack-switch.sh verify rust")
-    (out / "host-running-hashes.txt").write_bytes(identity)
     config = ssh("sha256sum /etc/config/*")
-    (out / "config-before.sha256").write_bytes(config)
+    for name, value in (("host-running-hashes.txt", identity), ("config-before.sha256", config)):
+        if args.resume:
+            assert (out / name).read_bytes() == value, "host state changed before resume"
+        else:
+            (out / name).write_bytes(value)
     manifest = json.loads(ssh("cat /root/r84/manifest.json"))
     baseline = json.loads(ssh("cat " + shlex.quote(args.baseline_bundle + "/manifest.json")))
     hashes = {"stock": manifest["components"][component]["original"]["sha256"],
@@ -93,35 +112,46 @@ def main():
     for name in ("ns-exec", "owrt-benchmark"):
         if baseline["tools"][name]["sha256"] != manifest["tools"][name]["sha256"]:
             raise RuntimeError("frozen baseline and host benchmark tools differ")
-    save("subjects.json", hashes)
+    initial("subjects.json", hashes)
     order = tuple(args.baseline_label if side == "r84" else side
                   for side in ORDER[:args.repeats * 3] if side in args.sides)
-    save("order.json", order)
-    save("settings.json", {"component": component, "iterations": args.iterations, "matrix": args.matrix,
+    initial("order.json", list(order))
+    initial("settings.json", {"component": component, "iterations": args.iterations, "matrix": args.matrix,
                            "held_connections": 64 if args.memory_probe else None,
                            "rpc_client_diagnostic": bool(args.rpc_client_probe),
                            "baseline_label": args.baseline_label, "baseline_bundle": args.baseline_bundle,
                            "cpu_affinity": args.cpus,
                            "management_access": args.access, "workload_transport": "namespace loopback"})
-    remote = "/tmp/r85-" + component + "-" + uuid.uuid4().hex[:12]
-    ssh("test ! -e " + remote + " && mkdir -p " + remote + "/bundle")
-    bundle = remote + "/bundle"
-    ssh("cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark " + bundle + "/")
     script = Path(__file__).with_name("isolated.sh")
-    for local, target in ((args.candidate, bundle + "/" + binary), (script, remote + "/isolated.sh")):
-        subprocess.run(["scp", "-O", str(local.resolve()), args.host + ":" + target], check=True)
+    if args.resume:
+        collector = json.loads((out / "collector.json").read_text())
+        remote = collector["remote"]
+        assert re.fullmatch("/tmp/r85-" + component + "-[a-f0-9]{12}", remote)
+        assert collector["harness_sha256"] == hashlib.sha256(script.read_bytes()).hexdigest()
+        assert ssh("sha256sum " + remote + "/isolated.sh").decode().split()[0] == collector["harness_sha256"]
+    else:
+        remote = "/tmp/r85-" + component + "-" + uuid.uuid4().hex[:12]
+        ssh("test ! -e " + remote + " && mkdir -p " + remote + "/bundle")
+        save("collector.json", {"remote": remote, "harness_sha256": hashlib.sha256(script.read_bytes()).hexdigest()})
+    bundle = remote + "/bundle"
+    if not args.resume:
+        ssh("cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark " + bundle + "/")
+        for local, target in ((args.candidate, bundle + "/" + binary), (script, remote + "/isolated.sh")):
+            subprocess.run(["scp", "-O", str(local.resolve()), args.host + ":" + target], check=True)
     if args.memory_probe:
         digest = hashlib.sha256(args.memory_probe.read_bytes()).hexdigest()
-        subprocess.run(["scp", "-O", str(args.memory_probe.resolve()), args.host + ":" + bundle + "/memory-probe"], check=True)
+        if not args.resume:
+            subprocess.run(["scp", "-O", str(args.memory_probe.resolve()), args.host + ":" + bundle + "/memory-probe"], check=True)
         if ssh("sha256sum " + bundle + "/memory-probe").decode().split()[0] != digest:
             raise RuntimeError("memory probe upload checksum mismatch")
-        save("memory-probe.json", {"sha256": digest})
+        initial("memory-probe.json", {"sha256": digest})
     if args.rpc_client_probe:
         digest = hashlib.sha256(args.rpc_client_probe.read_bytes()).hexdigest()
-        subprocess.run(["scp", "-O", str(args.rpc_client_probe.resolve()), args.host + ":" + bundle + "/rpc-client-probe"], check=True)
+        if not args.resume:
+            subprocess.run(["scp", "-O", str(args.rpc_client_probe.resolve()), args.host + ":" + bundle + "/rpc-client-probe"], check=True)
         if ssh("sha256sum " + bundle + "/rpc-client-probe").decode().split()[0] != digest:
             raise RuntimeError("RPC client probe upload checksum mismatch")
-        save("client-probe.json", {"sha256": digest, "diagnostic_only": True})
+        initial("client-probe.json", {"sha256": digest, "diagnostic_only": True})
     for name in ("ns-exec", "owrt-benchmark"):
         if ssh("sha256sum " + bundle + "/" + name).decode().split()[0] != manifest["tools"][name]["sha256"]:
             raise RuntimeError("benchmark identity mismatch: " + name)
@@ -132,6 +162,19 @@ def main():
     snapshot = "/root/r84/bins/owrt-benchmark snapshot " + monitors
     for index, side in enumerate(order, 1):
         local = out / f"{index:02d}-{side}"
+        if args.resume and local.exists():
+            raw = local / "raw"
+            assert (local / "COMPLETE").exists() and (raw / "COMPLETE").exists(), (
+                "incomplete sample requires explicit recovery or archival before resume", local.name)
+            assert (raw / "binary-sha256.txt").read_text().split()[0] == hashes[side]
+            assert (raw / "boot-id.txt").read_text().strip() == pre["boot_id"]
+            assert (raw / "harness-sha256.txt").read_text().split()[0] == collector["harness_sha256"]
+            for line in (local / "raw.sha256").read_text().splitlines():
+                expected, name = line.split(None, 1)
+                path = (raw / name).resolve()
+                assert path.is_relative_to(raw.resolve()) and hashlib.sha256(path.read_bytes()).hexdigest() == expected
+            print(json.dumps({"event": "preserved", "side": side, "index": index}), flush=True)
+            continue
         local.mkdir(mode=0o700)
         run_out = remote + f"/run-{index:02d}"
         selected = bundle if side == "candidate" or args.memory_probe or args.rpc_client_probe else args.baseline_bundle + "/bins"

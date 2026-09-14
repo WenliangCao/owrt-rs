@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "windows": [
+    {
+      "window": "rust-1",
+      "groups": {
+        "active": {
+          "unique_files": 9,
+          "resident_kib": 7508,
+          "file_page_extent_kib": 7508
+        },
+        "mapped": {
+          "unique_files": 6,
+          "resident_kib": 5492,
+          "file_page_extent_kib": 5492
+        },
+        "bundle": {
+          "unique_files": 27,
+          "resident_kib": 7508,
+          "file_page_extent_kib": 22372
+        },
+        "current_bundle": {
+          "unique_files": 9,
+          "resident_kib": 7508,
+          "file_page_extent_kib": 7508
+        }
+      },
+      "deduplicated_union_resident_kib": 15016,
+      "active_current_bundle_common_inodes": 0,
+      "mapped_active_common_inodes": 6,
+      "deleted_mappings_not_measured": 0,
+      "system_memory_kib": {
+        "MemFree": 132760,
+        "MemAvailable": 129336,
+        "Cached": 35580,
+        "AnonPages": 4200,
+        "Mapped": 8368,
+        "Shmem": 104,
+        "SReclaimable": 6824,
+        "SUnreclaim": 20404,
+        "KernelStack": 1956,
+        "PageTables": 840
+      },
+      "archive_sha256": "0ef11bcf382810c3a50d152012d6f9103214ac60dcf816328987627078b7b665"
+    },
+    {
+      "window": "stock-1",
+      "groups": {
+        "active": {
+          "unique_files": 9,
+          "resident_kib": 532,
+          "file_page_extent_kib": 532
+        },
+        "mapped": {
+          "unique_files": 35,
+          "resident_kib": 2892,
+          "file_page_extent_kib": 2892
+        },
+        "bundle": {
+          "unique_files": 27,
+          "resident_kib": 0,
+          "file_page_extent_kib": 22372
+        },
+        "current_bundle": {
+          "unique_files": 9,
+          "resident_kib": 0,
+          "file_page_extent_kib": 7508
+        }
+      },
+      "deduplicated_union_resident_kib": 2920,
+      "active_current_bundle_common_inodes": 0,
+      "mapped_active_common_inodes": 6,
+      "deleted_mappings_not_measured": 12,
+      "system_memory_kib": {
+        "MemFree": 146208,
+        "MemAvailable": 135652,
+        "Cached": 21564,
+        "AnonPages": 5072,
+        "Mapped": 5240,
+        "Shmem": 368,
+        "SReclaimable": 6836,
+        "SUnreclaim": 20264,
+        "KernelStack": 1604,
+        "PageTables": 760
+      },
+      "archive_sha256": "a32c62e0a0c618a16579dde36c2e1a205a0123ed32bb5f65f9eb37f6e2f055e9"
+    },
+    {
+      "window": "stock-2",
+      "groups": {
+        "active": {
+          "unique_files": 9,
+          "resident_kib": 532,
+          "file_page_extent_kib": 532
+        },
+        "mapped": {
+          "unique_files": 35,
+          "resident_kib": 2892,
+          "file_page_extent_kib": 2892
+        },
+        "bundle": {
+          "unique_files": 27,
+          "resident_kib": 0,
+          "file_page_extent_kib": 22372
+        },
+        "current_bundle": {
+          "unique_files": 9,
+          "resident_kib": 0,
+          "file_page_extent_kib": 7508
+        }
+      },
+      "deduplicated_union_resident_kib": 2920,
+      "active_current_bundle_common_inodes": 0,
+      "mapped_active_common_inodes": 6,
+      "deleted_mappings_not_measured": 12,
+      "system_memory_kib": {
+        "MemFree": 145388,
+        "MemAvailable": 134592,
+        "Cached": 21192,
+        "AnonPages": 5100,
+        "Mapped": 5160,
+        "Shmem": 364,
+        "SReclaimable": 6764,
+        "SUnreclaim": 20128,
+        "KernelStack": 1856,
+        "PageTables": 788
+      },
+      "archive_sha256": "067f83103026c53f9a9b5552fc3bfca3e4c5fe646ff5ef037b5e053235acda2e"
+    },
+    {
+      "window": "rust-2",
+      "groups": {
+        "active": {
+          "unique_files": 9,
+          "resident_kib": 7508,
+          "file_page_extent_kib": 7508
+        },
+        "mapped": {
+          "unique_files": 6,
+          "resident_kib": 5492,
+          "file_page_extent_kib": 5492
+        },
+        "bundle": {
+          "unique_files": 27,
+          "resident_kib": 7508,
+          "file_page_extent_kib": 22372
+        },
+        "current_bundle": {
+          "unique_files": 9,
+          "resident_kib": 7508,
+          "file_page_extent_kib": 7508
+        }
+      },
+      "deduplicated_union_resident_kib": 15016,
+      "active_current_bundle_common_inodes": 0,
+      "mapped_active_common_inodes": 6,
+      "deleted_mappings_not_measured": 0,
+      "system_memory_kib": {
+        "MemFree": 135892,
+        "MemAvailable": 132448,
+        "Cached": 35616,
+        "AnonPages": 4184,
+        "Mapped": 8260,
+        "Shmem": 132,
+        "SReclaimable": 6772,
+        "SUnreclaim": 20524,
+        "KernelStack": 1700,
+        "PageTables": 848
+      },
+      "archive_sha256": "72156026774775bae9b92e3fa03faedb130fb682e9e145ec6dd83202534ed8f5"
+    }
+  ],
+  "method": "mmap(PROT_NONE) + mincore; deduplicate by dev/inode.",
+  "limitations": [
+    "File-page residency is not exclusive process memory and must not be added to RSS.",
+    "Unlinked udebug mappings in C are recorded separately and cannot be measured by pathname.",
+    "Normal identity checks read active files and reference copies; cache state is part of the result."
+  ]
+}

@@ -1,0 +1,3475 @@
+{
+  "schema": 1,
+  "environment": "AX3000T OpenWrt 25.12.5; isolated subjects, original dependencies, live R92 host",
+  "subject_sha256": {
+    "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+    "r89": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+    "candidate": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac"
+  },
+  "harness_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+  "diagnostic_sha256": "33ef8d7489fedac4cf10ccd173fe9c1c9010bfae6351c96aae099f0a3f7e3a2c",
+  "rows": [
+    {
+      "name": "001-gap-0-stock-r1",
+      "side": "stock",
+      "kind": "gap",
+      "value": 0,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "mean_us": 1464.6127362500001,
+      "p50_us": 785.503,
+      "p95_us": 4910.758,
+      "p99_us": 14026.638,
+      "subject_cpu_us_per_op": 262.5,
+      "cpu_ticks": 21,
+      "ticks_per_second": 100,
+      "wall_seconds": 0.339896653,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "da03361fb10e7e92b8c257fcfa7f9865024948cdff29ffb3fc1238767a84d8a5"
+    },
+    {
+      "name": "002-gap-0-r89-r1",
+      "side": "r89",
+      "kind": "gap",
+      "value": 0,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "mean_us": 952.673025,
+      "p50_us": 878.526,
+      "p95_us": 1743.664,
+      "p99_us": 2281.412,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 0.22672169,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "8ba590de1a609e60c203337a7c68eb1ea675d95ba3c497adc50ffa155dfd125a"
+    },
+    {
+      "name": "003-gap-0-candidate-r1",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 0,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "mean_us": 973.51221625,
+      "p50_us": 901.993,
+      "p95_us": 1673.185,
+      "p99_us": 2163.614,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 0.222453702,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "3c805241034bea66079880ce1d6bf8105e2441423feb63da8062ab71b79b610f"
+    },
+    {
+      "name": "004-gap-20-stock-r1",
+      "side": "stock",
+      "kind": "gap",
+      "value": 20,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 20,
+      "mean_us": 447.7972375,
+      "p50_us": 425.491,
+      "p95_us": 578.99,
+      "p99_us": 954.006,
+      "subject_cpu_us_per_op": 287.5,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "wall_seconds": 4.131736571,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "c77fdc81d845810268050af07265f4c389a98651f6e41b02f05b9d64db287ace"
+    },
+    {
+      "name": "005-gap-20-r89-r1",
+      "side": "r89",
+      "kind": "gap",
+      "value": 20,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 20,
+      "mean_us": 427.27682,
+      "p50_us": 392.482,
+      "p95_us": 605.997,
+      "p99_us": 919.305,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 4.126167572,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "b5074feb6d040bf460beba47b717a3750e361b4a60aebdb03d5c69ae2111a8c6"
+    },
+    {
+      "name": "006-gap-20-candidate-r1",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 20,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 20,
+      "mean_us": 410.09591375,
+      "p50_us": 379.094,
+      "p95_us": 600.919,
+      "p99_us": 830.283,
+      "subject_cpu_us_per_op": 200.0,
+      "cpu_ticks": 16,
+      "ticks_per_second": 100,
+      "wall_seconds": 4.120360283,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "edf7faa0326db9c04b6bbd9543adea52e0cfd6494a6d1ec74f34d90e7ed491be"
+    },
+    {
+      "name": "007-gap-40-stock-r1",
+      "side": "stock",
+      "kind": "gap",
+      "value": 40,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 40,
+      "mean_us": 461.24548749999997,
+      "p50_us": 441.11,
+      "p95_us": 635.389,
+      "p99_us": 863.753,
+      "subject_cpu_us_per_op": 287.5,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "wall_seconds": 8.13525066,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "4757e6e0063edb1f53439e7ab7be5ccf9a835fdc957d69bf1a972b18bad5a513"
+    },
+    {
+      "name": "008-gap-40-r89-r1",
+      "side": "r89",
+      "kind": "gap",
+      "value": 40,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 40,
+      "mean_us": 430.95583750000003,
+      "p50_us": 394.637,
+      "p95_us": 646.93,
+      "p99_us": 785.502,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 8.126929368,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "299ad1b322bfbe102a3d2b9d088ed8006be81b7519723cb430d8d26e46a79b98"
+    },
+    {
+      "name": "009-gap-40-candidate-r1",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 40,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 40,
+      "mean_us": 420.91454875,
+      "p50_us": 390.097,
+      "p95_us": 629.002,
+      "p99_us": 781.425,
+      "subject_cpu_us_per_op": 200.0,
+      "cpu_ticks": 16,
+      "ticks_per_second": 100,
+      "wall_seconds": 8.124288027,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "17676046b899b0999e7852fdc4788ffebe8a53341bba3638be35e06fcb12daf3"
+    },
+    {
+      "name": "010-gap-60-stock-r1",
+      "side": "stock",
+      "kind": "gap",
+      "value": 60,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 60,
+      "mean_us": 452.14214875,
+      "p50_us": 430.338,
+      "p95_us": 609.228,
+      "p99_us": 884.911,
+      "subject_cpu_us_per_op": 287.5,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "wall_seconds": 12.135075501,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "cf1c65e7d3546f89274d788230af13958cef1493eb8db59dc0726a8970457295"
+    },
+    {
+      "name": "011-gap-60-r89-r1",
+      "side": "r89",
+      "kind": "gap",
+      "value": 60,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 60,
+      "mean_us": 738.00865125,
+      "p50_us": 727.334,
+      "p95_us": 954.082,
+      "p99_us": 1219.225,
+      "subject_cpu_us_per_op": 612.5,
+      "cpu_ticks": 49,
+      "ticks_per_second": 100,
+      "wall_seconds": 12.187560849,
+      "sampled_thread_births_lower_bound": 735,
+      "evidence_sha256": "172a985722612db35deeb9416819831b40136ac0d97f0123252e6ef1d0483e43"
+    },
+    {
+      "name": "012-gap-60-candidate-r1",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 60,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 60,
+      "mean_us": 752.23808125,
+      "p50_us": 733.028,
+      "p95_us": 1033.41,
+      "p99_us": 1218.533,
+      "subject_cpu_us_per_op": 625.0,
+      "cpu_ticks": 50,
+      "ticks_per_second": 100,
+      "wall_seconds": 12.193075487,
+      "sampled_thread_births_lower_bound": 745,
+      "evidence_sha256": "602b758c779a614e6a308087c061637e52529e5a578f482d63f28debad19941b"
+    },
+    {
+      "name": "013-gap-80-stock-r1",
+      "side": "stock",
+      "kind": "gap",
+      "value": 80,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "mean_us": 470.73343125,
+      "p50_us": 437.108,
+      "p95_us": 630.617,
+      "p99_us": 1086.192,
+      "subject_cpu_us_per_op": 300.0,
+      "cpu_ticks": 24,
+      "ticks_per_second": 100,
+      "wall_seconds": 16.136432586,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "cbe8cf996c11d7733b2c26b6602a365904b4be8eb58f037c007e8606af146c61"
+    },
+    {
+      "name": "014-gap-80-r89-r1",
+      "side": "r89",
+      "kind": "gap",
+      "value": 80,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "mean_us": 785.6985575,
+      "p50_us": 762.111,
+      "p95_us": 954.313,
+      "p99_us": 1227.304,
+      "subject_cpu_us_per_op": 687.5,
+      "cpu_ticks": 55,
+      "ticks_per_second": 100,
+      "wall_seconds": 16.208102155,
+      "sampled_thread_births_lower_bound": 798,
+      "evidence_sha256": "b80fcfd6ffdb6d3dc3aafecda781069fc73b1a20ea50e2168acde3c8113d5c44"
+    },
+    {
+      "name": "015-gap-80-candidate-r1",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 80,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "mean_us": 758.8766575,
+      "p50_us": 743.414,
+      "p95_us": 895.452,
+      "p99_us": 1032.563,
+      "subject_cpu_us_per_op": 675.0,
+      "cpu_ticks": 54,
+      "ticks_per_second": 100,
+      "wall_seconds": 16.197127229,
+      "sampled_thread_births_lower_bound": 798,
+      "evidence_sha256": "5fcb534be2a75ff56cddedac2be865a6b02f1a9d397458a04590298d332e429e"
+    },
+    {
+      "name": "016-memory-40-stock-r1",
+      "side": "stock",
+      "kind": "memory",
+      "value": 40,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "cycles": 40,
+      "successful": 5120,
+      "initial": {
+        "VmRSS": 1028,
+        "RssAnon": 116,
+        "RssFile": 912,
+        "fds": 8,
+        "Threads": 1
+      },
+      "post_close": {
+        "VmRSS": {
+          "first": 1040,
+          "last": 1044,
+          "all": {
+            "n": 40,
+            "median": 1044.0,
+            "mean": 1043.9,
+            "min": 1040,
+            "max": 1044,
+            "stdev": 0.6324555320336759
+          },
+          "last_half": {
+            "n": 20,
+            "median": 1044.0,
+            "mean": 1044,
+            "min": 1044,
+            "max": 1044,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        },
+        "RssAnon": {
+          "first": 128,
+          "last": 132,
+          "all": {
+            "n": 40,
+            "median": 132.0,
+            "mean": 131.9,
+            "min": 128,
+            "max": 132,
+            "stdev": 0.6324555320336759
+          },
+          "last_half": {
+            "n": 20,
+            "median": 132.0,
+            "mean": 132,
+            "min": 132,
+            "max": 132,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        },
+        "RssFile": {
+          "first": 912,
+          "last": 912,
+          "all": {
+            "n": 40,
+            "median": 912.0,
+            "mean": 912,
+            "min": 912,
+            "max": 912,
+            "stdev": 0.0
+          },
+          "last_half": {
+            "n": 20,
+            "median": 912.0,
+            "mean": 912,
+            "min": 912,
+            "max": 912,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        }
+      },
+      "post_close_samples": [
+        {
+          "VmRSS": 1040,
+          "RssAnon": 128,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1044,
+          "RssAnon": 132,
+          "RssFile": 912,
+          "fds": 8,
+          "Threads": 1
+        }
+      ],
+      "max_held_rss_kib": 1480,
+      "descriptors_and_threads_returned": true,
+      "evidence_sha256": "c4263509c61e2b9659e8e530c40d4180997d80fdf518598851200bcd1a26dcee"
+    },
+    {
+      "name": "017-memory-40-r89-r1",
+      "side": "r89",
+      "kind": "memory",
+      "value": 40,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "cycles": 40,
+      "successful": 5120,
+      "initial": {
+        "VmRSS": 848,
+        "RssAnon": 44,
+        "RssFile": 4,
+        "fds": 7,
+        "Threads": 1
+      },
+      "post_close": {
+        "VmRSS": {
+          "first": 1100,
+          "last": 1272,
+          "all": {
+            "n": 40,
+            "median": 1200.0,
+            "mean": 1193.7,
+            "min": 1100,
+            "max": 1272,
+            "stdev": 77.8263023234005
+          },
+          "last_half": {
+            "n": 20,
+            "median": 1272.0,
+            "mean": 1270.2,
+            "min": 1252,
+            "max": 1272,
+            "stdev": 5.578152872921664
+          },
+          "slope_per_cycle_after_five": 6.5131652661064425,
+          "last_ten_minus_first_ten_median": 152.0
+        },
+        "RssAnon": {
+          "first": 232,
+          "last": 404,
+          "all": {
+            "n": 40,
+            "median": 332.0,
+            "mean": 325.7,
+            "min": 232,
+            "max": 404,
+            "stdev": 77.8263023234005
+          },
+          "last_half": {
+            "n": 20,
+            "median": 404.0,
+            "mean": 402.2,
+            "min": 384,
+            "max": 404,
+            "stdev": 5.578152872921664
+          },
+          "slope_per_cycle_after_five": 6.5131652661064425,
+          "last_ten_minus_first_ten_median": 152.0
+        },
+        "RssFile": {
+          "first": 4,
+          "last": 4,
+          "all": {
+            "n": 40,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "last_half": {
+            "n": 20,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        }
+      },
+      "post_close_samples": [
+        {
+          "VmRSS": 1100,
+          "RssAnon": 232,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1112,
+          "RssAnon": 244,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1148,
+          "RssAnon": 280,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1252,
+          "RssAnon": 384,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1256,
+          "RssAnon": 388,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1272,
+          "RssAnon": 404,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        }
+      ],
+      "max_held_rss_kib": 1272,
+      "descriptors_and_threads_returned": true,
+      "evidence_sha256": "519675f9a1a7160f6d0150c169579284f77c35fc5d837e713991605a8a99739f"
+    },
+    {
+      "name": "018-memory-40-candidate-r1",
+      "side": "candidate",
+      "kind": "memory",
+      "value": 40,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "cycles": 40,
+      "successful": 5120,
+      "initial": {
+        "VmRSS": 852,
+        "RssAnon": 48,
+        "RssFile": 4,
+        "fds": 7,
+        "Threads": 1
+      },
+      "post_close": {
+        "VmRSS": {
+          "first": 1096,
+          "last": 1296,
+          "all": {
+            "n": 40,
+            "median": 1294.0,
+            "mean": 1215.2,
+            "min": 1096,
+            "max": 1300,
+            "stdev": 89.37939876211365
+          },
+          "last_half": {
+            "n": 20,
+            "median": 1296.0,
+            "mean": 1296.2,
+            "min": 1296,
+            "max": 1300,
+            "stdev": 0.8944271909999159
+          },
+          "slope_per_cycle_after_five": 7.182072829131653,
+          "last_ten_minus_first_ten_median": 180.0
+        },
+        "RssAnon": {
+          "first": 228,
+          "last": 428,
+          "all": {
+            "n": 40,
+            "median": 426.0,
+            "mean": 347.2,
+            "min": 228,
+            "max": 432,
+            "stdev": 89.37939876211365
+          },
+          "last_half": {
+            "n": 20,
+            "median": 428.0,
+            "mean": 428.2,
+            "min": 428,
+            "max": 432,
+            "stdev": 0.8944271909999159
+          },
+          "slope_per_cycle_after_five": 7.182072829131653,
+          "last_ten_minus_first_ten_median": 180.0
+        },
+        "RssFile": {
+          "first": 4,
+          "last": 4,
+          "all": {
+            "n": 40,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "last_half": {
+            "n": 20,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        }
+      },
+      "post_close_samples": [
+        {
+          "VmRSS": 1096,
+          "RssAnon": 228,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1176,
+          "RssAnon": 308,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1260,
+          "RssAnon": 392,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1292,
+          "RssAnon": 424,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1300,
+          "RssAnon": 432,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        }
+      ],
+      "max_held_rss_kib": 1300,
+      "descriptors_and_threads_returned": true,
+      "evidence_sha256": "04d7191535b2622c6bc019585a4cab5e527ae802e79f95b59f7869d427c3ab2f"
+    },
+    {
+      "name": "019-memory-40-candidate-r2",
+      "side": "candidate",
+      "kind": "memory",
+      "value": 40,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "cycles": 40,
+      "successful": 5120,
+      "initial": {
+        "VmRSS": 848,
+        "RssAnon": 44,
+        "RssFile": 4,
+        "fds": 7,
+        "Threads": 1
+      },
+      "post_close": {
+        "VmRSS": {
+          "first": 1104,
+          "last": 1296,
+          "all": {
+            "n": 40,
+            "median": 1296.0,
+            "mean": 1226.1,
+            "min": 1104,
+            "max": 1296,
+            "stdev": 85.59409277484468
+          },
+          "last_half": {
+            "n": 20,
+            "median": 1296.0,
+            "mean": 1296,
+            "min": 1296,
+            "max": 1296,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 6.416806722689076,
+          "last_ten_minus_first_ten_median": 180.0
+        },
+        "RssAnon": {
+          "first": 236,
+          "last": 428,
+          "all": {
+            "n": 40,
+            "median": 428.0,
+            "mean": 358.1,
+            "min": 236,
+            "max": 428,
+            "stdev": 85.59409277484468
+          },
+          "last_half": {
+            "n": 20,
+            "median": 428.0,
+            "mean": 428,
+            "min": 428,
+            "max": 428,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 6.416806722689076,
+          "last_ten_minus_first_ten_median": 180.0
+        },
+        "RssFile": {
+          "first": 4,
+          "last": 4,
+          "all": {
+            "n": 40,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "last_half": {
+            "n": 20,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        }
+      },
+      "post_close_samples": [
+        {
+          "VmRSS": 1104,
+          "RssAnon": 236,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1116,
+          "RssAnon": 248,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1136,
+          "RssAnon": 268,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1136,
+          "RssAnon": 268,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1136,
+          "RssAnon": 268,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1196,
+          "RssAnon": 328,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1264,
+          "RssAnon": 396,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1288,
+          "RssAnon": 420,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1292,
+          "RssAnon": 424,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1296,
+          "RssAnon": 428,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        }
+      ],
+      "max_held_rss_kib": 1296,
+      "descriptors_and_threads_returned": true,
+      "evidence_sha256": "257a0d81222e1b628b8ff272aab8ece75b6d398ce013e3807155c0d93c4b6e9a"
+    },
+    {
+      "name": "020-memory-40-r89-r2",
+      "side": "r89",
+      "kind": "memory",
+      "value": 40,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "cycles": 40,
+      "successful": 5120,
+      "initial": {
+        "VmRSS": 852,
+        "RssAnon": 48,
+        "RssFile": 4,
+        "fds": 7,
+        "Threads": 1
+      },
+      "post_close": {
+        "VmRSS": {
+          "first": 1108,
+          "last": 1280,
+          "all": {
+            "n": 40,
+            "median": 1124.0,
+            "mean": 1143,
+            "min": 1108,
+            "max": 1280,
+            "stdev": 49.62836244502088
+          },
+          "last_half": {
+            "n": 20,
+            "median": 1124.0,
+            "mean": 1162.8,
+            "min": 1120,
+            "max": 1280,
+            "stdev": 64.94175528076961
+          },
+          "slope_per_cycle_after_five": 3.2414565826330533,
+          "last_ten_minus_first_ten_median": 86.0
+        },
+        "RssAnon": {
+          "first": 240,
+          "last": 412,
+          "all": {
+            "n": 40,
+            "median": 256.0,
+            "mean": 275,
+            "min": 240,
+            "max": 412,
+            "stdev": 49.62836244502088
+          },
+          "last_half": {
+            "n": 20,
+            "median": 256.0,
+            "mean": 294.8,
+            "min": 252,
+            "max": 412,
+            "stdev": 64.94175528076961
+          },
+          "slope_per_cycle_after_five": 3.2414565826330533,
+          "last_ten_minus_first_ten_median": 86.0
+        },
+        "RssFile": {
+          "first": 4,
+          "last": 4,
+          "all": {
+            "n": 40,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "last_half": {
+            "n": 20,
+            "median": 4.0,
+            "mean": 4,
+            "min": 4,
+            "max": 4,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        }
+      },
+      "post_close_samples": [
+        {
+          "VmRSS": 1108,
+          "RssAnon": 240,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1128,
+          "RssAnon": 260,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1124,
+          "RssAnon": 256,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1120,
+          "RssAnon": 252,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1172,
+          "RssAnon": 304,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1248,
+          "RssAnon": 380,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1268,
+          "RssAnon": 400,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1276,
+          "RssAnon": 408,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1280,
+          "RssAnon": 412,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1280,
+          "RssAnon": 412,
+          "RssFile": 4,
+          "fds": 7,
+          "Threads": 1
+        }
+      ],
+      "max_held_rss_kib": 1280,
+      "descriptors_and_threads_returned": true,
+      "evidence_sha256": "c84ede88bff957e1487531efccc0ab7b68cf8e3c6bbd270b881c7acfdbf51a0d"
+    },
+    {
+      "name": "021-memory-40-stock-r2",
+      "side": "stock",
+      "kind": "memory",
+      "value": 40,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "cycles": 40,
+      "successful": 5120,
+      "initial": {
+        "VmRSS": 1020,
+        "RssAnon": 112,
+        "RssFile": 908,
+        "fds": 8,
+        "Threads": 1
+      },
+      "post_close": {
+        "VmRSS": {
+          "first": 1032,
+          "last": 1036,
+          "all": {
+            "n": 40,
+            "median": 1036.0,
+            "mean": 1035.9,
+            "min": 1032,
+            "max": 1036,
+            "stdev": 0.6324555320336759
+          },
+          "last_half": {
+            "n": 20,
+            "median": 1036.0,
+            "mean": 1036,
+            "min": 1036,
+            "max": 1036,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        },
+        "RssAnon": {
+          "first": 124,
+          "last": 128,
+          "all": {
+            "n": 40,
+            "median": 128.0,
+            "mean": 127.9,
+            "min": 124,
+            "max": 128,
+            "stdev": 0.6324555320336759
+          },
+          "last_half": {
+            "n": 20,
+            "median": 128.0,
+            "mean": 128,
+            "min": 128,
+            "max": 128,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        },
+        "RssFile": {
+          "first": 908,
+          "last": 908,
+          "all": {
+            "n": 40,
+            "median": 908.0,
+            "mean": 908,
+            "min": 908,
+            "max": 908,
+            "stdev": 0.0
+          },
+          "last_half": {
+            "n": 20,
+            "median": 908.0,
+            "mean": 908,
+            "min": 908,
+            "max": 908,
+            "stdev": 0.0
+          },
+          "slope_per_cycle_after_five": 0.0,
+          "last_ten_minus_first_ten_median": 0.0
+        }
+      },
+      "post_close_samples": [
+        {
+          "VmRSS": 1032,
+          "RssAnon": 124,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        },
+        {
+          "VmRSS": 1036,
+          "RssAnon": 128,
+          "RssFile": 908,
+          "fds": 8,
+          "Threads": 1
+        }
+      ],
+      "max_held_rss_kib": 1472,
+      "descriptors_and_threads_returned": true,
+      "evidence_sha256": "72f1651014f4f37177284662d12dae5317f3cb3e20ae74dd7437af775dd5e46b"
+    },
+    {
+      "name": "022-gap-80-candidate-r2",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 80,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "mean_us": 782.7938375,
+      "p50_us": 748.034,
+      "p95_us": 993.557,
+      "p99_us": 1325.948,
+      "subject_cpu_us_per_op": 662.5,
+      "cpu_ticks": 53,
+      "ticks_per_second": 100,
+      "wall_seconds": 16.205013981,
+      "sampled_thread_births_lower_bound": 797,
+      "evidence_sha256": "9a06e38a7e3186de220057957ed2fb4396aca202db0de8cde3f8e18dca89a413"
+    },
+    {
+      "name": "023-gap-80-r89-r2",
+      "side": "r89",
+      "kind": "gap",
+      "value": 80,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "mean_us": 757.5046737499999,
+      "p50_us": 740.57,
+      "p95_us": 867.679,
+      "p99_us": 1065.42,
+      "subject_cpu_us_per_op": 662.5,
+      "cpu_ticks": 53,
+      "ticks_per_second": 100,
+      "wall_seconds": 16.195015389,
+      "sampled_thread_births_lower_bound": 798,
+      "evidence_sha256": "63819f7d2db6bb1dec03317cd10264594219bb77d3a9454d483323746deef94e"
+    },
+    {
+      "name": "024-gap-80-stock-r2",
+      "side": "stock",
+      "kind": "gap",
+      "value": 80,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "mean_us": 460.1221125,
+      "p50_us": 438.648,
+      "p95_us": 634.697,
+      "p99_us": 790.043,
+      "subject_cpu_us_per_op": 300.0,
+      "cpu_ticks": 24,
+      "ticks_per_second": 100,
+      "wall_seconds": 16.135454545,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "5e81c8c44634606b4834a4d33e8f937277cf1166c8f87ec8c3c27a7efea88257"
+    },
+    {
+      "name": "025-gap-60-candidate-r2",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 60,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 60,
+      "mean_us": 722.4350725,
+      "p50_us": 719.718,
+      "p95_us": 917.768,
+      "p99_us": 1131.744,
+      "subject_cpu_us_per_op": 600.0,
+      "cpu_ticks": 48,
+      "ticks_per_second": 100,
+      "wall_seconds": 12.187316546,
+      "sampled_thread_births_lower_bound": 724,
+      "evidence_sha256": "bf9e7619fd36fb6b339d1f134c64100375ab706e28358b3e7a493a8ec9d226b7"
+    },
+    {
+      "name": "026-gap-60-r89-r2",
+      "side": "r89",
+      "kind": "gap",
+      "value": 60,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 60,
+      "mean_us": 762.550295,
+      "p50_us": 742.34,
+      "p95_us": 991.632,
+      "p99_us": 1240.617,
+      "subject_cpu_us_per_op": 637.5,
+      "cpu_ticks": 51,
+      "ticks_per_second": 100,
+      "wall_seconds": 12.193977001,
+      "sampled_thread_births_lower_bound": 753,
+      "evidence_sha256": "5dcdac4f59f7c66e8e84e12f77e1cd7bec8cbee2b092f69b14c1cb117c4b043c"
+    },
+    {
+      "name": "027-gap-60-stock-r2",
+      "side": "stock",
+      "kind": "gap",
+      "value": 60,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 60,
+      "mean_us": 466.296445,
+      "p50_us": 444.034,
+      "p95_us": 624.002,
+      "p99_us": 867.447,
+      "subject_cpu_us_per_op": 300.0,
+      "cpu_ticks": 24,
+      "ticks_per_second": 100,
+      "wall_seconds": 12.137929911,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "56508ca74e4622447393ee7d53b1bf0ea08c3459ccdfef690ff5f641bce0792b"
+    },
+    {
+      "name": "028-gap-40-candidate-r2",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 40,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 40,
+      "mean_us": 409.27941,
+      "p50_us": 381.095,
+      "p95_us": 606.69,
+      "p99_us": 784.35,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 8.121037634,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "d9212d7822a267023e4de432741b9f1c8f565285b581d35eaee66afef734d14d"
+    },
+    {
+      "name": "029-gap-40-r89-r2",
+      "side": "r89",
+      "kind": "gap",
+      "value": 40,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 40,
+      "mean_us": 408.42867625,
+      "p50_us": 382.172,
+      "p95_us": 619.54,
+      "p99_us": 891.222,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 8.120202653,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "eba7a9cd7092e6eb0e2d11a78f92cefffcd3626ff216bfd4ab0ca128d413f279"
+    },
+    {
+      "name": "030-gap-40-stock-r2",
+      "side": "stock",
+      "kind": "gap",
+      "value": 40,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 40,
+      "mean_us": 447.94491625,
+      "p50_us": 427.568,
+      "p95_us": 587.223,
+      "p99_us": 818.204,
+      "subject_cpu_us_per_op": 287.5,
+      "cpu_ticks": 23,
+      "ticks_per_second": 100,
+      "wall_seconds": 8.132271646,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "18a1616d3e1757376fe02fa571884f2d35b287d23c45c7838bec7d226e0bdbe1"
+    },
+    {
+      "name": "031-gap-20-candidate-r2",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 20,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 20,
+      "mean_us": 402.75062375000005,
+      "p50_us": 371.785,
+      "p95_us": 621.616,
+      "p99_us": 905.611,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 4.11869272,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "8fcad384e41edf1212a71bb2e4a26c7230a75de6086e7dc16155603c6dd8c845"
+    },
+    {
+      "name": "032-gap-20-r89-r2",
+      "side": "r89",
+      "kind": "gap",
+      "value": 20,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 20,
+      "mean_us": 431.63530125,
+      "p50_us": 396.56,
+      "p95_us": 617.77,
+      "p99_us": 923.461,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 4.126164981,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "56c5f2c09805b66cf150cdfb18e5d4ef0f0c12226d4fafba7e2142efbf16c9f8"
+    },
+    {
+      "name": "033-gap-20-stock-r2",
+      "side": "stock",
+      "kind": "gap",
+      "value": 20,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 20,
+      "mean_us": 453.90459625,
+      "p50_us": 428.799,
+      "p95_us": 607.612,
+      "p99_us": 953.545,
+      "subject_cpu_us_per_op": 300.0,
+      "cpu_ticks": 24,
+      "ticks_per_second": 100,
+      "wall_seconds": 4.132699008,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "209583647fa74ad778af7f14ab43b6cdb537978b687b2ffab31407f43f8c2cb7"
+    },
+    {
+      "name": "034-gap-0-candidate-r2",
+      "side": "candidate",
+      "kind": "gap",
+      "value": 0,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "mean_us": 990.25304125,
+      "p50_us": 896.377,
+      "p95_us": 1729.585,
+      "p99_us": 2242.944,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 0.223987545,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "c4a2dfc4bd6225713d22d012d72658d9f82a4849db3e70e9d10180786499aa52"
+    },
+    {
+      "name": "035-gap-0-r89-r2",
+      "side": "r89",
+      "kind": "gap",
+      "value": 0,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "mean_us": 969.4907875,
+      "p50_us": 890.837,
+      "p95_us": 1749.282,
+      "p99_us": 2118.912,
+      "subject_cpu_us_per_op": 212.5,
+      "cpu_ticks": 17,
+      "ticks_per_second": 100,
+      "wall_seconds": 0.223372153,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "f9ef70d2d80e86441800e751b01c582ce81050408bf3a4646c3c660d10412091"
+    },
+    {
+      "name": "036-gap-0-stock-r2",
+      "side": "stock",
+      "kind": "gap",
+      "value": 0,
+      "repeat": 2,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "mean_us": 1648.10932,
+      "p50_us": 1053.877,
+      "p95_us": 5777.592,
+      "p99_us": 10596.099,
+      "subject_cpu_us_per_op": 275.0,
+      "cpu_ticks": 22,
+      "ticks_per_second": 100,
+      "wall_seconds": 0.376472261,
+      "sampled_thread_births_lower_bound": 0,
+      "evidence_sha256": "6178686bcb788d1105c306d0f79fc79a1f0ce8a33cdb2ec76d3ea7eb04f040d3"
+    },
+    {
+      "name": "037-trace-gap-0-stock",
+      "side": "stock",
+      "kind": "trace-gap",
+      "value": 0,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "syscalls": {
+        "write": {
+          "calls": 8844,
+          "errors": 0,
+          "blocked_wall_seconds": 0.725961
+        },
+        "read": {
+          "calls": 4836,
+          "errors": 8,
+          "blocked_wall_seconds": 0.114645
+        },
+        "close": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.017107
+        },
+        "openat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.026222
+        },
+        "newfstatat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.029188
+        },
+        "epoll_pwait": {
+          "calls": 12,
+          "errors": 0,
+          "blocked_wall_seconds": 1.028882
+        },
+        "epoll_ctl": {
+          "calls": 8,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000219
+        },
+        "fcntl": {
+          "calls": 8,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000125
+        },
+        "accept": {
+          "calls": 8,
+          "errors": 4,
+          "blocked_wall_seconds": 0.000314
+        },
+        "getsockname": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 7.2e-05
+        },
+        "munmap": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000158
+        },
+        "mmap": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 8.2e-05
+        }
+      },
+      "evidence_sha256": "7399d93df270ece3c2d850f54bd056786734052598b6adf345df3b9cddb5a83b"
+    },
+    {
+      "name": "038-trace-gap-80-stock",
+      "side": "stock",
+      "kind": "trace-gap",
+      "value": 80,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "syscalls": {
+        "write": {
+          "calls": 8844,
+          "errors": 0,
+          "blocked_wall_seconds": 0.7113
+        },
+        "read": {
+          "calls": 5628,
+          "errors": 800,
+          "blocked_wall_seconds": 0.136387
+        },
+        "close": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01878
+        },
+        "epoll_pwait": {
+          "calls": 805,
+          "errors": 0,
+          "blocked_wall_seconds": 15.934322
+        },
+        "openat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.024298
+        },
+        "newfstatat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.029041
+        },
+        "epoll_ctl": {
+          "calls": 8,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00019
+        },
+        "fcntl": {
+          "calls": 8,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000122
+        },
+        "accept": {
+          "calls": 8,
+          "errors": 4,
+          "blocked_wall_seconds": 0.000298
+        },
+        "getsockname": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 6.6e-05
+        },
+        "munmap": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 7.8e-05
+        },
+        "mmap": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 7.8e-05
+        }
+      },
+      "evidence_sha256": "6c47321976185dc82b39cf4c352aa5cf06526b9838f537841cb2b28a644e7d5d"
+    },
+    {
+      "name": "039-trace-gap-0-r89",
+      "side": "r89",
+      "kind": "trace-gap",
+      "value": 0,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "syscalls": {
+        "setsockopt": {
+          "calls": 1628,
+          "errors": 0,
+          "blocked_wall_seconds": 0.110505
+        },
+        "read": {
+          "calls": 1608,
+          "errors": 0,
+          "blocked_wall_seconds": 0.179167
+        },
+        "close": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.06039
+        },
+        "recvfrom": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.079408
+        },
+        "fcntl": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.042932
+        },
+        "openat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.060323
+        },
+        "newfstatat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.063604
+        },
+        "sendto": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.259249
+        },
+        "futex": {
+          "calls": 459,
+          "errors": 107,
+          "blocked_wall_seconds": 0.030609
+        },
+        "mmap": {
+          "calls": 83,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005228
+        },
+        "munmap": {
+          "calls": 79,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010825
+        },
+        "rt_sigprocmask": {
+          "calls": 23,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000564
+        },
+        "sigaltstack": {
+          "calls": 12,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000235
+        },
+        "mprotect": {
+          "calls": 8,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000273
+        },
+        "epoll_pwait": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 1.031953
+        },
+        "gettid": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 6e-05
+        },
+        "getsockname": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 6.2e-05
+        },
+        "clone": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000652
+        },
+        "accept4": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000188
+        }
+      },
+      "evidence_sha256": "00ef8f7e18b767a4ceba1f95db099d985aa0650b5faae20ee5c1f9123431e752"
+    },
+    {
+      "name": "040-trace-gap-80-r89",
+      "side": "r89",
+      "kind": "trace-gap",
+      "value": 80,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "syscalls": {
+        "rt_sigprocmask": {
+          "calls": 4023,
+          "errors": 0,
+          "blocked_wall_seconds": 0.092059
+        },
+        "setsockopt": {
+          "calls": 3228,
+          "errors": 0,
+          "blocked_wall_seconds": 0.086425
+        },
+        "read": {
+          "calls": 2683,
+          "errors": 482,
+          "blocked_wall_seconds": 0.1004
+        },
+        "mmap": {
+          "calls": 2443,
+          "errors": 0,
+          "blocked_wall_seconds": 0.101284
+        },
+        "munmap": {
+          "calls": 2438,
+          "errors": 0,
+          "blocked_wall_seconds": 0.182493
+        },
+        "sigaltstack": {
+          "calls": 2412,
+          "errors": 0,
+          "blocked_wall_seconds": 0.057915
+        },
+        "recvfrom": {
+          "calls": 2408,
+          "errors": 800,
+          "blocked_wall_seconds": 44.664959
+        },
+        "mprotect": {
+          "calls": 1608,
+          "errors": 0,
+          "blocked_wall_seconds": 0.063468
+        },
+        "epoll_ctl": {
+          "calls": 1600,
+          "errors": 0,
+          "blocked_wall_seconds": 0.060851
+        },
+        "epoll_pwait": {
+          "calls": 1283,
+          "errors": 0,
+          "blocked_wall_seconds": 16.737478
+        },
+        "close": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.021838
+        },
+        "fcntl": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.015935
+        },
+        "openat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.027906
+        },
+        "newfstatat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.032851
+        },
+        "gettid": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.012731
+        },
+        "sendto": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.268992
+        },
+        "clone": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.135975
+        },
+        "write": {
+          "calls": 800,
+          "errors": 0,
+          "blocked_wall_seconds": 0.045577
+        },
+        "futex": {
+          "calls": 542,
+          "errors": 77,
+          "blocked_wall_seconds": 0.099805
+        },
+        "getsockname": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 6.2e-05
+        },
+        "accept4": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00018
+        }
+      },
+      "evidence_sha256": "c8a2165c7650d9bf3ea202ce91fec6153ba1cae21c696f6d940079f4b5be067a"
+    },
+    {
+      "name": "041-trace-gap-0-candidate",
+      "side": "candidate",
+      "kind": "trace-gap",
+      "value": 0,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 0,
+      "syscalls": {
+        "setsockopt": {
+          "calls": 1628,
+          "errors": 0,
+          "blocked_wall_seconds": 0.101377
+        },
+        "read": {
+          "calls": 1608,
+          "errors": 0,
+          "blocked_wall_seconds": 0.171648
+        },
+        "close": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.053017
+        },
+        "recvfrom": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.082586
+        },
+        "fcntl": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.041773
+        },
+        "openat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.061534
+        },
+        "newfstatat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.061981
+        },
+        "sendto": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.203896
+        },
+        "futex": {
+          "calls": 496,
+          "errors": 95,
+          "blocked_wall_seconds": 0.032596
+        },
+        "mmap": {
+          "calls": 117,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007559
+        },
+        "munmap": {
+          "calls": 112,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013116
+        },
+        "rt_sigprocmask": {
+          "calls": 23,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000481
+        },
+        "sigaltstack": {
+          "calls": 12,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00085
+        },
+        "mprotect": {
+          "calls": 8,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000276
+        },
+        "epoll_pwait": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 1.032421
+        },
+        "gettid": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 6.4e-05
+        },
+        "getsockname": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 6.1e-05
+        },
+        "clone": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000712
+        },
+        "accept4": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000188
+        }
+      },
+      "evidence_sha256": "732b1ad5d302db3de6744dde2296af407d2c0f008fadac7745ea014d4878b809"
+    },
+    {
+      "name": "042-trace-gap-80-candidate",
+      "side": "candidate",
+      "kind": "trace-gap",
+      "value": 80,
+      "repeat": 1,
+      "kernel": "6.12.94",
+      "successful": 800,
+      "clients": 4,
+      "gap_ms": 80,
+      "syscalls": {
+        "rt_sigprocmask": {
+          "calls": 4023,
+          "errors": 0,
+          "blocked_wall_seconds": 0.095914
+        },
+        "setsockopt": {
+          "calls": 3228,
+          "errors": 0,
+          "blocked_wall_seconds": 0.085623
+        },
+        "read": {
+          "calls": 2681,
+          "errors": 474,
+          "blocked_wall_seconds": 0.098015
+        },
+        "mmap": {
+          "calls": 2452,
+          "errors": 0,
+          "blocked_wall_seconds": 0.103226
+        },
+        "munmap": {
+          "calls": 2447,
+          "errors": 0,
+          "blocked_wall_seconds": 0.18443
+        },
+        "sigaltstack": {
+          "calls": 2412,
+          "errors": 0,
+          "blocked_wall_seconds": 0.057891
+        },
+        "recvfrom": {
+          "calls": 2408,
+          "errors": 800,
+          "blocked_wall_seconds": 44.672116
+        },
+        "mprotect": {
+          "calls": 1608,
+          "errors": 0,
+          "blocked_wall_seconds": 0.064797
+        },
+        "epoll_ctl": {
+          "calls": 1600,
+          "errors": 0,
+          "blocked_wall_seconds": 0.060085
+        },
+        "epoll_pwait": {
+          "calls": 1275,
+          "errors": 0,
+          "blocked_wall_seconds": 16.728865
+        },
+        "close": {
+          "calls": 808,
+          "errors": 0,
+          "blocked_wall_seconds": 0.023689
+        },
+        "fcntl": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.015305
+        },
+        "openat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.027464
+        },
+        "newfstatat": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.033628
+        },
+        "gettid": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013648
+        },
+        "sendto": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.260224
+        },
+        "clone": {
+          "calls": 804,
+          "errors": 0,
+          "blocked_wall_seconds": 0.137493
+        },
+        "write": {
+          "calls": 800,
+          "errors": 0,
+          "blocked_wall_seconds": 0.041605
+        },
+        "futex": {
+          "calls": 545,
+          "errors": 74,
+          "blocked_wall_seconds": 0.095109
+        },
+        "getsockname": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 6.6e-05
+        },
+        "accept4": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000172
+        }
+      },
+      "evidence_sha256": "2c0d004bc796a7660f4b8e8c3ccbaf213ae8081ce02d243703437b4bec8a5bf6"
+    }
+  ],
+  "limitations": [
+    "Diagnostic client differs from the frozen performance client.",
+    "CPU tick quantization is retained; these are not throughput benchmarks.",
+    "Request gaps are not network RTT; netem rows identify actual private-namespace delay.",
+    "Thread births sampled every 2 ms are lower bounds; traced clone counts are separate.",
+    "Stable RSS over these finite cycles does not prove the absence of every leak.",
+    "RSS and file-page residency are not PSS, USS or exclusive physical memory."
+  ]
+}

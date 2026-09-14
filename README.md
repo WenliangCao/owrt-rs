@@ -5,14 +5,24 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 C 原件全程保留，任何一步都能回退。
 
-**现状（2026-09-14）：R90 已完成 Wi-Fi 部署和实机验收，设备运行发布提交 `ae51db4`
-的九个 Rust 组件；内核、驱动、数据面和无线 handler 脚本保留。**
-[R90 报告](reports/ax3000t-stock-openwrt-25.12.5/R90_BATCH1_LIFECYCLE.md)记录 netifd/procd 生命周期修复、
-两次 R90 冷启动及客户端健康确认。整机混合吞吐相对 R89 −2.12%，CPU/操作 +0.52%，
-常驻 RSS 中位数之和 4716→4708 KiB；部分微基准变慢，不能宣称所有查询无回退。
-[R92 后续台账](docs/R92_RESUME.md)继续完成异常恢复、协议兼容、性能与覆盖四批，包含 R91 日志修复。
-R89 正式产物是固定比较基线；R92 正式构建 `ca1a912` 的 68 道必需门和离线升级/回退已通过，
-尚未部署。资源上限与有意差异逐项写入组件合同。
+**现状（2026-09-15）：R92 九组件已通过 Wi-Fi 部署，原计划第 2–5 批和最终实机验收完成。
+内核、驱动、数据面和无线 handler 脚本保留，本轮没有刷写固件。**
+运行时固定为 `ca1a9121df0380448a19d474e29796066b6734e8`，
+[正式构建 34874442503](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/34874442503)；
+后续工具、注释和报告提交没有替换这份运行时。
+[R92 验收](reports/ax3000t-stock-openwrt-25.12.5/R92_REMAINING_BATCHES.md)包含异常恢复、兼容修复、
+R91 日志、插件与无线复核：68 道必需门、四个冷启动、74 负载×三侧×四轮的 888 条测量通过。
+每个剩余问题的修复或保留理由见 [逐项处置](reports/ax3000t-stock-openwrt-25.12.5/R92_COVERAGE.md)。
+
+相对本轮精确 C，固定整批 CPU 低 23.39%，mixed 吞吐高 12.05%，idle-before 守护进程 RSS
+中位数之和为 9606→5320 KiB。相对历史正式 R89，HTTP lane CPU **+9.38%**、log **+29.49%**、
+mixed **+4.35%**，mixed 吞吐 **−3.73%**；不能宣称全面无回退。MemAvailable 少 6.31 MiB，
+副本缓存控制不支持把全部差额归于静态二进制。[性能报告](reports/ax3000t-stock-openwrt-25.12.5/R92_PERFORMANCE.md)
+保留各轮范围、同机 HTTP 控制、尾延迟、停放成本及内存边界。
+
+设备保留精确 C、正式 R89、已接受 R90 和当前 R92；诊断文件已核验清理。
+[回退与包保留](docs/R92_RELEASE_AND_ROLLBACK.md)、[续接说明](docs/R92_RESUME.md)给出当前身份与复核入口。
+[R90](reports/ax3000t-stock-openwrt-25.12.5/R90_BATCH1_LIFECYCLE.md)记录已经完成的第一批生命周期修复。
 
 历史 [R86 报告](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)（发布提交 `f612e30`）记录了信号唤醒、HTTPD资源耗尽和
 netifd子进程回收检查的修复。九组件代表负载的平均延迟和CPU均下降；完整74项负载中，平均延迟
@@ -99,10 +109,13 @@ R84 版本的逐组件、CPU、延迟、内存、存储和测量边界以该报�
 
 ## 回退
 
+当前九组件部署优先使用 [R92 整栈冷回退流程](docs/R92_RELEASE_AND_ROLLBACK.md)。
+回到 R90 必须先重装其保存的 APK；仅交换 bundle 目录不够。
+
 | 组件 | 回退 |
 |---|---|
 | uci / fw4 / reload_config / logd / httpd / rpcd | `owrt-<name>-switch disable`（立即）；`boot-enable off`（开机不再接管） |
-| procd / ubusd / netifd | `mv /sbin/<x>.c-orig /sbin/<x>` + `reboot` |
+| procd / ubusd / netifd | `/bin/sh /root/r84/stack-switch.sh stage stock` 后冷启动，按身份与客户端健康门核验 |
 | 全部 | failsafe（mesh 键 + lan4）→ `/rom` 原封系统；再不行走 [救援手册](docs/RUNBOOK_AX3000T_RECOVERY.md) |
 
 ## 仓库结构
@@ -147,5 +160,6 @@ ubusd 的**热**切换（客户端 odhcpd/dnsmasq/netifd 的重连语义不允�
 I0（镜像与源码基线、职责边界）→ 阶段 1–5（reload_config、logd、httpd、fw4、rpcd 插件层，2026-09-02，
 [FINAL_REPORT](reports/ax3000t-stock-openwrt-25.12.5/FINAL_REPORT.md)）→ 第二至五轮（uci、rpcd 核心、
 开机路径、找 bug、模糊测试，09-03）→ 发布流水线（09-04–06）→ P3–P6（procd、sysupgrade、ubusd、
-netifd，09-07–09，R63–R80）→ R81 冷审计修复与最新版部署/对照测试（09-10，R83–R84）。
+netifd，09-07–09，R63–R80）→ R81 冷审计修复与部署/对照测试（09-10，R83–R84）→
+R85–R89 性能与审计 → R90 生命周期 → R91 日志 → R92 第 2–5 批修复、部署与整体验收（09-15）。
 被推翻的计划与结论在 [archive/](archive/README.md)。

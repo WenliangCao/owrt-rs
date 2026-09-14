@@ -1,0 +1,953 @@
+{
+  "schema": 1,
+  "settings": {
+    "environment": "Linux AArch64 build host, private namespaces",
+    "driver_sha256": "a18b82e07525377a73e48de7d285bf99888971b94f890a2ad6a5b029f53b4436",
+    "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+    "network_file_bytes": 705,
+    "strace_sha256": "7752778a2836dc57c99c2698cae5b84c1d6a9865393690c47191893bd3cd2d36"
+  },
+  "rows": [
+    {
+      "name": "01-stock-original-r1",
+      "repeat": 1,
+      "result_sha256": "9622bdf84d3af9b0377d7afc83185602777961c7ebe45df832046f7cdbc04973",
+      "side": "stock",
+      "dependencies": "original",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "dependency_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.521548072,
+          "ops_per_s": 3965.817709780312,
+          "mean_us": 248.7935924,
+          "p50_us": 246.842,
+          "p95_us": 276.523,
+          "p99_us": 311.883,
+          "cpu_us_per_op": {
+            "httpd": 94.0,
+            "rpcd": 43.0,
+            "ubusd": 77.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 3.3212730759999998,
+          "ops_per_s": 3010.893645650955,
+          "mean_us": 302.782506,
+          "p50_us": 301.523,
+          "p95_us": 332.763,
+          "p99_us": 363.403,
+          "cpu_us_per_op": {
+            "httpd": 122.0,
+            "rpcd": 67.0,
+            "ubusd": 74.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "02-r89-original-r1",
+      "repeat": 1,
+      "result_sha256": "a4187dfbc7d33960f57d9f861cafe3c684c03f74282f129e6af1e368861ada14",
+      "side": "r89",
+      "dependencies": "original",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "dependency_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.257233474,
+          "ops_per_s": 4430.201888810018,
+          "mean_us": 222.58971100000002,
+          "p50_us": 220.801,
+          "p95_us": 250.682,
+          "p99_us": 265.002,
+          "cpu_us_per_op": {
+            "httpd": 84.0,
+            "rpcd": 42.0,
+            "ubusd": 77.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 3.169410172,
+          "ops_per_s": 3155.161199501571,
+          "mean_us": 287.64192979999996,
+          "p50_us": 287.002,
+          "p95_us": 322.763,
+          "p99_us": 344.162,
+          "cpu_us_per_op": {
+            "httpd": 123.0,
+            "rpcd": 68.0,
+            "ubusd": 75.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "03-candidate-original-r1",
+      "repeat": 1,
+      "result_sha256": "b1a8644ed7e79e48740a16e3c64ad7881e600af5f4fbf4f57f10b0fb2bc8c2ff",
+      "side": "candidate",
+      "dependencies": "original",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "dependency_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.217505423,
+          "ops_per_s": 4509.571835216207,
+          "mean_us": 218.8119622,
+          "p50_us": 217.042,
+          "p95_us": 242.722,
+          "p99_us": 255.722,
+          "cpu_us_per_op": {
+            "httpd": 82.0,
+            "rpcd": 42.0,
+            "ubusd": 76.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 3.195185264,
+          "ops_per_s": 3129.708975773494,
+          "mean_us": 289.6885615,
+          "p50_us": 287.882,
+          "p95_us": 329.403,
+          "p99_us": 352.363,
+          "cpu_us_per_op": {
+            "httpd": 124.0,
+            "rpcd": 69.0,
+            "ubusd": 75.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "04-stock-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "20f6547190ff40513995063d4d069dc3e8cb2a6f3b28b9c9e974a1322ca48373",
+      "side": "stock",
+      "dependencies": "candidate",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.220311325,
+          "ops_per_s": 4503.872897193821,
+          "mean_us": 218.66760250000002,
+          "p50_us": 212.721,
+          "p95_us": 252.962,
+          "p99_us": 282.723,
+          "cpu_us_per_op": {
+            "httpd": 87.0,
+            "rpcd": 35.0,
+            "ubusd": 58.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 3.102777215,
+          "ops_per_s": 3222.9191163504142,
+          "mean_us": 281.0275766,
+          "p50_us": 274.882,
+          "p95_us": 318.522,
+          "p99_us": 347.603,
+          "cpu_us_per_op": {
+            "httpd": 127.0,
+            "rpcd": 50.0,
+            "ubusd": 62.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "05-r89-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "7f74d2034aa44775efb4ad0e50ca4a7d7670f8685f5d33fa8283db68a7eaf969",
+      "side": "r89",
+      "dependencies": "candidate",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 1.944350951,
+          "ops_per_s": 5143.1044353679545,
+          "mean_us": 191.6156359,
+          "p50_us": 188.641,
+          "p95_us": 215.042,
+          "p99_us": 230.762,
+          "cpu_us_per_op": {
+            "httpd": 84.0,
+            "rpcd": 38.0,
+            "ubusd": 63.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 2.905089772,
+          "ops_per_s": 3442.234417807864,
+          "mean_us": 260.5821694,
+          "p50_us": 253.882,
+          "p95_us": 293.123,
+          "p99_us": 313.403,
+          "cpu_us_per_op": {
+            "httpd": 124.0,
+            "rpcd": 51.0,
+            "ubusd": 63.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "06-candidate-candidate-r1",
+      "repeat": 1,
+      "result_sha256": "9b1b7c0cdea4129653384b0b72a1c74f4b3ff627c8e5d907ca526fdc83c8efcc",
+      "side": "candidate",
+      "dependencies": "candidate",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 1.963136026,
+          "ops_per_s": 5093.890523916248,
+          "mean_us": 193.0759465,
+          "p50_us": 189.761,
+          "p95_us": 216.842,
+          "p99_us": 231.162,
+          "cpu_us_per_op": {
+            "httpd": 77.0,
+            "rpcd": 34.0,
+            "ubusd": 60.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 2.837173086,
+          "ops_per_s": 3524.6351550932486,
+          "mean_us": 254.21527840000002,
+          "p50_us": 249.162,
+          "p95_us": 286.962,
+          "p99_us": 310.243,
+          "cpu_us_per_op": {
+            "httpd": 120.0,
+            "rpcd": 51.0,
+            "ubusd": 62.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "07-candidate-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "e6758ee99a706bc4f80daf124ec90ecf07bc72faaed16bb7984ee9a36913a917",
+      "side": "candidate",
+      "dependencies": "candidate",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 1.90587163,
+          "ops_per_s": 5246.943100779563,
+          "mean_us": 187.5447264,
+          "p50_us": 184.482,
+          "p95_us": 211.002,
+          "p99_us": 228.082,
+          "cpu_us_per_op": {
+            "httpd": 75.0,
+            "rpcd": 33.0,
+            "ubusd": 58.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 2.782338229,
+          "ops_per_s": 3594.099342693537,
+          "mean_us": 248.7229847,
+          "p50_us": 244.642,
+          "p95_us": 278.442,
+          "p99_us": 299.682,
+          "cpu_us_per_op": {
+            "httpd": 117.0,
+            "rpcd": 50.0,
+            "ubusd": 61.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "08-r89-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "15f0b49516c955e50219e869c1a43a81a027f7639c7da27bcc199cd99a64c62b",
+      "side": "r89",
+      "dependencies": "candidate",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 1.927853651,
+          "ops_per_s": 5187.115730912917,
+          "mean_us": 189.7652313,
+          "p50_us": 187.442,
+          "p95_us": 210.642,
+          "p99_us": 227.362,
+          "cpu_us_per_op": {
+            "httpd": 76.0,
+            "rpcd": 34.0,
+            "ubusd": 60.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 2.772242224,
+          "ops_per_s": 3607.1884027403803,
+          "mean_us": 247.85101010000002,
+          "p50_us": 244.602,
+          "p95_us": 275.002,
+          "p99_us": 298.483,
+          "cpu_us_per_op": {
+            "httpd": 116.0,
+            "rpcd": 49.0,
+            "ubusd": 60.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "09-stock-candidate-r2",
+      "repeat": 2,
+      "result_sha256": "7bac5e8cdc73f2a14c373c03fd7ec605c8826e9fceb941c8a305115575458b2a",
+      "side": "stock",
+      "dependencies": "candidate",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.214581111,
+          "ops_per_s": 4515.526638572507,
+          "mean_us": 217.99930859999998,
+          "p50_us": 213.641,
+          "p95_us": 251.122,
+          "p99_us": 278.642,
+          "cpu_us_per_op": {
+            "httpd": 90.0,
+            "rpcd": 34.0,
+            "ubusd": 58.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 2.879289591,
+          "ops_per_s": 3473.07892587731,
+          "mean_us": 256.4511114,
+          "p50_us": 252.002,
+          "p95_us": 278.603,
+          "p99_us": 309.002,
+          "cpu_us_per_op": {
+            "httpd": 135.0,
+            "rpcd": 51.0,
+            "ubusd": 71.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "10-candidate-original-r2",
+      "repeat": 2,
+      "result_sha256": "389df2051089f37776f07cb33ff92a3243092eae78c8705dec612d56fceced37",
+      "side": "candidate",
+      "dependencies": "original",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "dependency_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.0901017570000002,
+          "ops_per_s": 4784.45605172514,
+          "mean_us": 206.0151989,
+          "p50_us": 202.482,
+          "p95_us": 227.642,
+          "p99_us": 251.642,
+          "cpu_us_per_op": {
+            "httpd": 73.0,
+            "rpcd": 41.0,
+            "ubusd": 83.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 3.176415337,
+          "ops_per_s": 3148.2029076980243,
+          "mean_us": 286.64123959999995,
+          "p50_us": 281.402,
+          "p95_us": 312.082,
+          "p99_us": 335.802,
+          "cpu_us_per_op": {
+            "httpd": 130.0,
+            "rpcd": 70.0,
+            "ubusd": 80.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "11-r89-original-r2",
+      "repeat": 2,
+      "result_sha256": "48c1cb0f9bd2c55a9fdeab70eef15ec8e76c3b1d117e74a9ed2b9449a4e46b69",
+      "side": "r89",
+      "dependencies": "original",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "dependency_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.163676407,
+          "ops_per_s": 4621.763202504615,
+          "mean_us": 213.4820137,
+          "p50_us": 209.522,
+          "p95_us": 236.522,
+          "p99_us": 257.482,
+          "cpu_us_per_op": {
+            "httpd": 84.0,
+            "rpcd": 41.0,
+            "ubusd": 76.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 3.187858951,
+          "ops_per_s": 3136.901648946262,
+          "mean_us": 288.88402970000004,
+          "p50_us": 285.883,
+          "p95_us": 323.002,
+          "p99_us": 348.083,
+          "cpu_us_per_op": {
+            "httpd": 125.0,
+            "rpcd": 68.0,
+            "ubusd": 75.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "12-stock-original-r2",
+      "repeat": 2,
+      "result_sha256": "139f61b69120d0d802822657fd69517e31c051b9a3a46e60c3b1a4a383b69697",
+      "side": "stock",
+      "dependencies": "original",
+      "traced": false,
+      "diagnostic_only": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "dependency_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 10000,
+          "response_json_bytes": 113,
+          "wall_s": 2.320418187,
+          "ops_per_s": 4309.568014948505,
+          "mean_us": 228.9680013,
+          "p50_us": 225.322,
+          "p95_us": 249.962,
+          "p99_us": 264.603,
+          "cpu_us_per_op": {
+            "httpd": 101.0,
+            "rpcd": 41.0,
+            "ubusd": 75.0
+          }
+        },
+        {
+          "method": "uci.get",
+          "successful": 10000,
+          "response_json_bytes": 1008,
+          "wall_s": 3.168587149,
+          "ops_per_s": 3155.9807351853906,
+          "mean_us": 285.0540222,
+          "p50_us": 279.002,
+          "p95_us": 309.482,
+          "p99_us": 334.402,
+          "cpu_us_per_op": {
+            "httpd": 140.0,
+            "rpcd": 67.0,
+            "ubusd": 81.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "13-stock-candidate-r1-trace",
+      "repeat": 1,
+      "result_sha256": "268c38182f8c7116277d89f30c79f76e5e38bee50cdbb5513e04f3f754980e51",
+      "side": "stock",
+      "dependencies": "candidate",
+      "traced": true,
+      "diagnostic_only": true,
+      "subject_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 400,
+          "response_json_bytes": 113
+        },
+        {
+          "method": "uci.get",
+          "successful": 400,
+          "response_json_bytes": 1008
+        }
+      ],
+      "syscalls": {
+        "recvmsg": {
+          "calls": 13760,
+          "errors": 0,
+          "blocked_wall_seconds": 0.122087
+        },
+        "write": {
+          "calls": 6880,
+          "errors": 0,
+          "blocked_wall_seconds": 0.214956
+        },
+        "sendmsg": {
+          "calls": 3440,
+          "errors": 0,
+          "blocked_wall_seconds": 0.080398
+        },
+        "epoll_pwait": {
+          "calls": 2588,
+          "errors": 0,
+          "blocked_wall_seconds": 0.099183
+        },
+        "ppoll": {
+          "calls": 2580,
+          "errors": 0,
+          "blocked_wall_seconds": 0.034693
+        },
+        "read": {
+          "calls": 1722,
+          "errors": 860,
+          "blocked_wall_seconds": 0.02119
+        },
+        "mmap": {
+          "calls": 535,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00771
+        },
+        "munmap": {
+          "calls": 534,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008627
+        },
+        "epoll_ctl": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 4.6e-05
+        },
+        "fcntl": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 3.4e-05
+        },
+        "accept": {
+          "calls": 4,
+          "errors": 2,
+          "blocked_wall_seconds": 6.5e-05
+        },
+        "close": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 8.4e-05
+        },
+        "getsockname": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 1.8e-05
+        },
+        "getrandom": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 9e-06
+        }
+      }
+    },
+    {
+      "name": "14-r89-candidate-r1-trace",
+      "repeat": 1,
+      "result_sha256": "8bb4be790923adcc12c536ed2fde8c9b12c1f2472a3b4573159c6a30df5e3e73",
+      "side": "r89",
+      "dependencies": "candidate",
+      "traced": true,
+      "diagnostic_only": true,
+      "subject_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 400,
+          "response_json_bytes": 113
+        },
+        {
+          "method": "uci.get",
+          "successful": 400,
+          "response_json_bytes": 1008
+        }
+      ],
+      "syscalls": {
+        "recvmsg": {
+          "calls": 13761,
+          "errors": 0,
+          "blocked_wall_seconds": 0.13843
+        },
+        "ppoll": {
+          "calls": 8599,
+          "errors": 0,
+          "blocked_wall_seconds": 0.092158
+        },
+        "sendmsg": {
+          "calls": 3440,
+          "errors": 0,
+          "blocked_wall_seconds": 0.088545
+        },
+        "setsockopt": {
+          "calls": 1730,
+          "errors": 0,
+          "blocked_wall_seconds": 0.016454
+        },
+        "mmap": {
+          "calls": 871,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010191
+        },
+        "munmap": {
+          "calls": 869,
+          "errors": 0,
+          "blocked_wall_seconds": 0.012533
+        },
+        "recvfrom": {
+          "calls": 862,
+          "errors": 0,
+          "blocked_wall_seconds": 0.011597
+        },
+        "sendto": {
+          "calls": 860,
+          "errors": 0,
+          "blocked_wall_seconds": 0.063395
+        },
+        "rt_sigprocmask": {
+          "calls": 10,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000116
+        },
+        "sigaltstack": {
+          "calls": 6,
+          "errors": 0,
+          "blocked_wall_seconds": 5.5e-05
+        },
+        "mprotect": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 4.6e-05
+        },
+        "epoll_pwait": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 0.433127
+        },
+        "close": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 8.4e-05
+        },
+        "gettid": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 1.4e-05
+        },
+        "getsockname": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 1.9e-05
+        },
+        "clone": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000147
+        },
+        "accept4": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 5.1e-05
+        },
+        "socket": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 1.4e-05
+        },
+        "connect": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 1.9e-05
+        }
+      }
+    },
+    {
+      "name": "15-candidate-candidate-r1-trace",
+      "repeat": 1,
+      "result_sha256": "a946e34e9aa3e2bb57906b2d399fba3c40b5b7ee0d97eb4c53ccbaee5dc98075",
+      "side": "candidate",
+      "dependencies": "candidate",
+      "traced": true,
+      "diagnostic_only": true,
+      "subject_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "dependency_sha256": {
+        "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+        "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08"
+      },
+      "benchmark_sha256": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+      "rows": [
+        {
+          "method": "uci.configs",
+          "successful": 400,
+          "response_json_bytes": 113
+        },
+        {
+          "method": "uci.get",
+          "successful": 400,
+          "response_json_bytes": 1008
+        }
+      ],
+      "syscalls": {
+        "recvmsg": {
+          "calls": 13761,
+          "errors": 0,
+          "blocked_wall_seconds": 0.096296
+        },
+        "ppoll": {
+          "calls": 8599,
+          "errors": 0,
+          "blocked_wall_seconds": 0.104706
+        },
+        "sendmsg": {
+          "calls": 3440,
+          "errors": 0,
+          "blocked_wall_seconds": 0.048948
+        },
+        "setsockopt": {
+          "calls": 1730,
+          "errors": 0,
+          "blocked_wall_seconds": 0.011187
+        },
+        "mmap": {
+          "calls": 871,
+          "errors": 0,
+          "blocked_wall_seconds": 0.008687
+        },
+        "munmap": {
+          "calls": 869,
+          "errors": 0,
+          "blocked_wall_seconds": 0.010871
+        },
+        "recvfrom": {
+          "calls": 862,
+          "errors": 0,
+          "blocked_wall_seconds": 0.022575
+        },
+        "sendto": {
+          "calls": 860,
+          "errors": 0,
+          "blocked_wall_seconds": 0.023187
+        },
+        "rt_sigprocmask": {
+          "calls": 10,
+          "errors": 0,
+          "blocked_wall_seconds": 9.6e-05
+        },
+        "sigaltstack": {
+          "calls": 6,
+          "errors": 0,
+          "blocked_wall_seconds": 5e-05
+        },
+        "mprotect": {
+          "calls": 4,
+          "errors": 0,
+          "blocked_wall_seconds": 4.4e-05
+        },
+        "epoll_pwait": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 0.333747
+        },
+        "close": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 8.5e-05
+        },
+        "gettid": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 1.3e-05
+        },
+        "getsockname": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 1.5e-05
+        },
+        "clone": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000134
+        },
+        "accept4": {
+          "calls": 2,
+          "errors": 0,
+          "blocked_wall_seconds": 3.3e-05
+        },
+        "socket": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 1.5e-05
+        },
+        "connect": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 2.6e-05
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Build-host diagnostic; not a router performance score.",
+    "Tracing groups export syscall counts separately from untraced timing."
+  ],
+  "archive_sha256": "563eb365953348265e5ce0faf51a091c3ef91e38e09ed7f6831f508ab87b544f",
+  "verified_files": 144
+}

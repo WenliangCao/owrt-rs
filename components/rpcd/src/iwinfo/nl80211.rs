@@ -2559,8 +2559,9 @@ fn nl80211_get_freqlist_cb(msg: &Nlmsg, arr: &mut Vec<FreqlistEntry>) {
             if at(&freqs, NL80211_FREQUENCY_ATTR_DISABLED).is_some() {
                 continue;
             }
-            // The C ORs `flags` onto whatever the caller's buffer held; the
-            // consumers hand it zeroed memory, so a fresh entry matches.
+            // The C backend ORs `flags` into the caller's buffer. rpcd hands
+            // it uninitialized stack memory, producing spurious restrictions.
+            // Keep only kernel flags; R92 checks against a zeroed C control.
             let mut e = FreqlistEntry::default();
             e.band = nl80211_get_band(band.raw_type) as u8;
             e.mhz = f.get_u32();

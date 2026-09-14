@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "status": "accepted",
+  "source_commit": "ca1a9121df0380448a19d474e29796066b6734e8",
+  "recovery": {
+    "offline_backup_verified": true,
+    "configuration_matches_backup": true,
+    "archives": {
+      "config.tar.gz": {
+        "sha256": "c1cd4722f4c3420f4a48ad66da6fe2023f8da85e492704921f19fb4886ee8cb8",
+        "bytes": 3734,
+        "regular_files_fully_read": 19,
+        "all_remote_file_hashes_verified": false
+      },
+      "overlay-upper.tar.gz": {
+        "sha256": "87aeeef405db671a39488c40dcc3ca9079f83385e74ddd602e35ffdeb357196a",
+        "bytes": 41622518,
+        "regular_files_fully_read": 240,
+        "all_remote_file_hashes_verified": false
+      },
+      "r84.tar.gz": {
+        "sha256": "e0420352086401f5163b3d3ac79e32d7dea7a1a3c7023f932eae77b6410588ae",
+        "bytes": 7372503,
+        "regular_files_fully_read": 29,
+        "all_remote_file_hashes_verified": true
+      },
+      "r89-before-r90.tar.gz": {
+        "sha256": "19bfb15b1ec3b995385bb48970e4241080fcb885e854226e40b653b9c79bdc3f",
+        "bytes": 7372585,
+        "regular_files_fully_read": 29,
+        "all_remote_file_hashes_verified": true
+      },
+      "r84-prior-r86.tar.gz": {
+        "sha256": "612efa7d70eba82ee560b01192be86257ed73203680bd643381229e83645eb07",
+        "bytes": 7288383,
+        "regular_files_fully_read": 29,
+        "all_remote_file_hashes_verified": true
+      },
+      "r84-prior-r87.tar.gz": {
+        "sha256": "9dae48bb7232687678c369fa27077b7fa53661bbf1d909ab21b9abf27f0dbcba",
+        "bytes": 7358158,
+        "regular_files_fully_read": 29,
+        "all_remote_file_hashes_verified": true
+      },
+      "r84-prior-r89.tar.gz": {
+        "sha256": "80d97b67ec6984825360f3702c62e338f7459c14e3493765ec8d2b172ea0759f",
+        "bytes": 7364391,
+        "regular_files_fully_read": 29,
+        "all_remote_file_hashes_verified": true
+      }
+    },
+    "recovery_image_sha256": [
+      "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+      "77bf35b27b6ec29fbfe2c3f4280618cd70bade5e9998d407b634ce8a12825cc6"
+    ],
+    "retained_on_device": [
+      "original C in /rom",
+      "formal R89",
+      "accepted R90",
+      "new R92"
+    ],
+    "automatic_rollback_seconds": 900,
+    "candidate_archive_sha256": "5544d761196e24e7b133209f8b987e749ca6fe6ef57bebfa2982a7585b261f9f",
+    "candidate_manifest_sha256": "08223e9e3662123b4f52596e6d11959cbca386cd9352f9059a1048b24d346416",
+    "canonical_required_gates": 68
+  },
+  "installation": {
+    "at": "2026-09-14T18:54:33.491977+00:00",
+    "installed": true,
+    "configuration_unchanged": true,
+    "old_process_and_cli_identities_retained_before_reboot": true,
+    "archived_legacy_bundles_removed": [
+      "r84-prior-r86",
+      "r84-prior-r87",
+      "r84-prior-r89"
+    ],
+    "fallback_bundle": "/root/r90-before-r92",
+    "baseline_bundle": "/root/r89-before-r90",
+    "candidate_bundle": "/root/r84",
+    "candidate_archive_sha256": "5544d761196e24e7b133209f8b987e749ca6fe6ef57bebfa2982a7585b261f9f",
+    "firmware_flashed": false
+  },
+  "final": {
+    "schema": 1,
+    "at": "2026-09-14T23:27:33.355595+00:00",
+    "source_commit": "ca1a9121df0380448a19d474e29796066b6734e8",
+    "client_health_passed": true,
+    "same_final_cold_boot": true,
+    "configuration_unchanged": true,
+    "execution_plane_unchanged": true,
+    "firewall_rules_unchanged": true,
+    "kernel": "6.12.94",
+    "active_component_sha256": {
+      "procd": "b4da8ad95bf2da1da9851b4a394a919827653c9d8281a6e8c0d31bf39df4d9cc",
+      "ubusd": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+      "netifd": "7c324b4eb4078b514d796f42606f22abe2301dc9bc2f4869c6a97ee9e0787591",
+      "rpcd": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08",
+      "logd": "50603a6edfb5c8bfcc7e18ae9d41418704924f21c72989356b9cf78d2d48572c",
+      "httpd": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+      "uci": "823d8c9545c7d4dd3c4a14d3bddebd3b86ad745d34b54a9e81d8f53c04533654",
+      "fw4": "1216529c85e8868bc341d858a6c71a783441a564f8d9cf5944b2d2cbb8587095",
+      "reload-config": "1f0bb7896b51a2093c846e71c849cba1d6da23adc62d8a585d7362ac8294ac35"
+    },
+    "retained_bundles": [
+      {
+        "release": "R92",
+        "path": "/root/r84",
+        "regular_files_verified": 29,
+        "apks_verified": 7,
+        "files_sha256": "36826c29abb5c3162e8d3dd8932aba5ae98dbd9e8ae8d97593a0bd353ea7d123"
+      },
+      {
+        "release": "R90",
+        "path": "/root/r90-before-r92",
+        "regular_files_verified": 29,
+        "apks_verified": 7,
+        "files_sha256": "2c26ef1f2b8fc350219c07b016d922d9671c3e8bb67f2778acd70a8b7265ae38"
+      },
+      {
+        "release": "R89",
+        "path": "/root/r89-before-r90",
+        "regular_files_verified": 29,
+        "apks_verified": 7,
+        "files_sha256": "7c9b3f95430a7aed6eb560a00c7d217a64decf96efd07773e3024914a71b46d4"
+      }
+    ],
+    "original_and_installed_artifacts_verified": true,
+    "diagnostic_files_removed": 6,
+    "no_pending_rollback_or_canary": true,
+    "no_task_temporary_directory": true,
+    "overlay_available_kib": 28936,
+    "firmware_flashed": false,
+    "automatic_fallback": "Exact original C stack; R90 needs its retained APKs reinstalled before switching.",
+    "driver_sha256": "76519a4a6b81b7e10d608aaff4610654fe992115a39d18f61c5fdfbc3e930f95"
+  },
+  "cold_windows": [
+    {
+      "window": "rust-1",
+      "first_ssh_s": 50.281375624996144,
+      "health_confirmed_s": 281.1280289579954,
+      "successful": 500650
+    },
+    {
+      "window": "stock-1",
+      "first_ssh_s": 40.28847654200217,
+      "health_confirmed_s": 272.0312916670009,
+      "successful": 500650
+    },
+    {
+      "window": "stock-2",
+      "first_ssh_s": 40.27680454200163,
+      "health_confirmed_s": 272.74552529200446,
+      "successful": 500650
+    },
+    {
+      "window": "rust-2",
+      "first_ssh_s": 80.34331024999847,
+      "health_confirmed_s": 307.0741184159997,
+      "successful": 500650
+    }
+  ],
+  "collector_incidents": [
+    {
+      "case": "C deleted udebug mapping",
+      "action": "Retained failed capture; record deleted mappings separately and collect only openable file pages."
+    },
+    {
+      "case": "rpcd run 05-r89 SSH timeout",
+      "at": "2026-09-14T21:36:26.711361+00:00",
+      "ssh_exit": 255,
+      "reason": "SSH ServerAlive timeout; the isolated run completed and its raw data were downloaded and hash-verified.",
+      "host_boot_unchanged": true,
+      "client_health_passed": true,
+      "validated_workloads": 18,
+      "all_request_counts_and_native_cpu_intervals_validated": true,
+      "original_run_log_sha256": "17a11ad04fb87ae525384a986c0ab6ae9319e1b430ebef8677556c0e493ae934",
+      "raw_archive_sha256": "6cc6a70e14af825a171aff966b2eb4f237d83835553db8b74580bf9372b20083",
+      "samples_preserved_without_rerun": [
+        "01-stock",
+        "02-r89",
+        "03-candidate",
+        "04-candidate",
+        "05-r89"
+      ]
+    },
+    {
+      "case": "HostHints fractional sleep unsupported by exact device",
+      "action": "Failed before any HostHints call; preserved and verified failure files, removed only its owned directory, then passed three exact JSON pairs with bounded integer sleeps.",
+      "failure_log_sha256": "7e6636741522f3b365406dc2ee078c9c68fd9ca964a159637d96fa92d410da65",
+      "verified_files": 2,
+      "hash_manifest_sha256": "28b23dea4aeeed1d9fceabe01050f6bde6e2534b87b95ca291f61603432bbcd2",
+      "archive_sha256": "1318a8434c8b75dfaf7beab3cc7b313af844bd96b986c22d343001229ac31721"
+    },
+    {
+      "case": "Live HTTP setup parsed an empty successful ubus status as JSON",
+      "action": "No HTTP workload ran; session destroy succeeded. Preserved failure log and verified empty owned directory before removal. Allow empty successful grant/destroy replies; create still requires JSON.",
+      "failure_log_sha256": "9f7f4f422920bde374c2a1d816f30d786afdeb91f0bf55eebe8298554207dbbc"
+    }
+  ],
+  "scope": "Exact nine-component runtime accepted; known differences and finite performance limits remain explicit."
+}

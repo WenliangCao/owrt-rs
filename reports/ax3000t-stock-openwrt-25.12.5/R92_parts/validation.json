@@ -1,0 +1,1456 @@
+{
+  "schema": 1,
+  "source_commit": "ca1a9121df0380448a19d474e29796066b6734e8",
+  "validation_tools_commit": "1f2842e",
+  "gate_count": 69,
+  "required_passed": 68,
+  "passed": true,
+  "gates": [
+    {
+      "name": "ubus-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "1327e1793c74de0f7dedade33394f17978545a4adce8641adf879821cb2dc158",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubus-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ed1f5d0cba5bfd231c730ede21e79b8701e77d97fee33b9ce463e770db885ba6",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "uci-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "2522eca36d10378d0aa69e40fd7637a3a0b14b89f3633bce385ada6e6498b2e9",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "uci-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "7594a66751dccf365d4ea8ad1e6566b09b390758048813cdccdf707a6121b4fa",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "reload-config-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "2871ae67d6affbc05ff4c847cc94b116d0c6ac4b1c1cf3e793900ae5a78af75b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "reload-config-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8f5d1e60134e633a94ce4c01600061bb092eaf64843385ef09db50ef8819dd16",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "5afcf24af9eb4c1e033d776e4165ca1b1be322b94541c257926f323ef6795921",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "a74959a29833dcb07b1443b79eaa39e03fc78329761680bbd6b164101daa41b0",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "563c70be64e1655bc04fe87ffdb14d5f256816efbd2888291c588d1359bbc3df",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8e146daaf5b984fe7d79743c34e17d106699fdb777c1d1db6aaec4479810499b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "netifd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "2612030843af8c3fd551de0b2c8f9fb4e83378fa7cbdfeb2e41b238e39223d17",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "netifd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "24c4d5d385419010db8af58768dff0d04a1edbe1e3bb3d4b38600db2a60a4dc5",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "logd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "0dd36449b0c137caac85167d2c1ffffc417e54e969192c9ac6d69597b16d6834",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "logd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "9c1184bdebd945beb70f4f1905ea24293364b8c98a51cfb788caf304ccc1d291",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "1f64ed0f1b748db76638cff3778876c7c7af5e9aa5e065dacc425482e564db45",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8768bae3adbe6039825f4b2d39bd0dab858125ad676db857d501801db8d87049",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "834858f33a16512ed6914025f4bcabb130a95706fa6920c4b5481d1c91fa8397",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "4f09d1b0a1398ed5b52bfdce96782123208dfaa7b047b5174f68d588210c034d",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "fw4-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "3031f32d931e5179d501855bef5a03f752986ea5d301ab937bc27acefe4b313d",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "fw4-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e8fddaccb168d5d5dcfa539ab27de188f90fed4afc4064f1ff0b25e510bac4fc",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "python-gates",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "275bb14f6de8a6b398c9361ad029c29e5c0709b992e8d757ab5f8b9b758028ca",
+      "source": "canonical-gates-04"
+    },
+    {
+      "name": "procd-watchdog-status",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "bb9431c4fb8806b72e7b5bb6dc1c16cd5171621772d5c6ff4968947474e9df66",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-tick",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "042bec4aaf23b3b1a23cb634fa43e523008a74eea792ec1f4feec7ac130d2b83",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-busy-original",
+      "group": "functional",
+      "exit": 1,
+      "required": false,
+      "log_sha256": "0612d6926a4ff160e86119fc8086f0260c81631983a844a7ba8d15cd03c93794",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-busy-candidate",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "f1b546ccfa1b1ac405b7b92837858df0242a5a05e7904b59155d3105941319cd",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r65",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r83",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "3d31fef6d93759ec1d8f8b4ba681e1cb9c7f4e58293ebfa043750b5f326e0614",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r71-hotplug",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "4f5f4af5c3077f8c988c32b10f5af3e682f76a730633be9a1d5903eed8eb287d",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r72",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "20376ddbda8564a42be65495c0f4366126cccc2b59dcac8d69cb5cb58d4ce376",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r75",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "6078a7fe012d78183adb059d5c9e4a2c8607ffb090081aba3ea599ddebd32c96",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r90",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "37100bc9a42189e3a06175ec0109dc1f70f2157a77de3fed8971148899c7ce8c",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-resources",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "5c9893884e3e213957119c120bc9b6d0e2c844f06796d7eef4fa6541c2f0038b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-static",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "d7b03e2d2486b79b3d2bf6fea97fc88f8212e3fcd61fcb2c1c8a2a1f55884cdb",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-extended",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "d29fe0b0885bc7b971a8d041703d588a493afc9b71f29c8e59c02f5fe38cb534",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-r14",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "550510c0e50f9591ed4bbda87da687356c7557db8d38e2dd6f88eff97f2f5ab1",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-fuzz",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e2bbad5eb1ab2ea7b6aecb5d2a809d030e61f6a9130a31f0278a9f39648d0dc0",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-cgi-stress",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r13_rpcd_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r17_rpcd_core_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r18_rpcd_plugins_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r19_lucirpc_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-busy",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8c5c487d4b56ec7c5153825cbc9a67e86146d946c2d7745049ff69018b5454cb",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-r26",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "39a1d996fd84b2e77826540960c22f21a8eb8c9759c7b86c4ed1e36b47797ad7",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-real-features",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "7dba27504a5426e55418613a5ee2d5091be447c75d216224b7d51b921117ff75",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-bytes",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-defer",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r36",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "651c34586a62ecc2afb63cad12eb44d9f8632c92cd422ce63431e5b52db24035",
+      "source": "canonical-gates-04"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "024981b03986cf6e0e93e38b7354f2377a463b80ea63c15dfb49bb90b48345b5",
+      "source": "canonical-gates-04"
+    },
+    {
+      "name": "ubusd-r83",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8bf3cd8479db20f2de4cfaf7dce037c53ed126ec3d3116e3f02bf4dadd26a359",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r42",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r41",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "netifd-suite",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "3bddffd50f550342dde61a80d182eb062cd4950e22624b2413c405850259b2b7",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "logd-r15",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "73a6d4300c56768c0effa7c200e465c71e96f6ae6279eda898bac62f55d90574",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "logd-r28",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e0d0fd8a678f44c092831793f3ced1f1dfc87fdcd6df75537b39834f73e44b2d",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r21_logd_reconnect_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "aca5e31980f56487609d4af8accf93a6c0f8f49638384d880fd2b0f860d89bd4",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r25_logd_stream_probe",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "aa7e6b3026d5360ae80d2df403171b6a20f1c908ffdedc8e467629367c274bf6",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r83_logd_ring_wrap",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "c6018f6db3f20697cc39204fb759ec19a82de36d927d0449775cb07058d85f80",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r83_logd_oversize_read",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "d4834b30159500ad938d692fdbe1164a540f69b253be1ce82bf7eb81e3709ee2",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-upstream",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "c3f4ba1228e06d3b501df007c6a20f0981dc9e4253bc60b0f771f9d980e07153",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-r29",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "de870d7ded0347234d3eacf24a94ea43b928dba8786a2c909558a05bf211b083",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-defaults",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "de9dd46bf7fd8cf25c7c078be33e857527aa86decd11ab7114ff20e468b06ab0",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-image",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "uci-r16",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "a9909d8d59aeeb7d9248fd4f2d39d2489e0a811fa4ade3f289b2ef9857c6df64",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "uci-r24",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "14fa3b859089d4da4ee1bf152ddefc7604d46fab242fe5f097a49cd0f3a968d2",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "uci-r83",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ddd1579c650a61c342a38e8b916eb43694cd6eada04974ea8cbb7aed13d61c7a",
+      "source": "canonical-gates-04"
+    },
+    {
+      "name": "reload-config-r1",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e5c893b81b7e8c9372a13db6167df0f324eff66edff504981695bd91bfcf3685",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r92-recovery",
+      "group": "recovery",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "40b042a0a08c46f2f75b1a0b600d932d7a3958523e6b6bc0bbbdc5573e347414",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r92-compat",
+      "group": "compat",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "185d11e3b3c4edcb716251570f17ca7d074421abe149682ae607aac46c555e29",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r92-fw4",
+      "group": "compat",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "affb1902df11be70b0086f7a09245bdd81cf1d4b98f76b397ca2761a6377ff13",
+      "source": "canonical-completion-03"
+    }
+  ],
+  "attempts": [
+    {
+      "name": "ubus-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "1327e1793c74de0f7dedade33394f17978545a4adce8641adf879821cb2dc158",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubus-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ed1f5d0cba5bfd231c730ede21e79b8701e77d97fee33b9ce463e770db885ba6",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "uci-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "2522eca36d10378d0aa69e40fd7637a3a0b14b89f3633bce385ada6e6498b2e9",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "uci-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "7594a66751dccf365d4ea8ad1e6566b09b390758048813cdccdf707a6121b4fa",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "reload-config-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "2871ae67d6affbc05ff4c847cc94b116d0c6ac4b1c1cf3e793900ae5a78af75b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "reload-config-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8f5d1e60134e633a94ce4c01600061bb092eaf64843385ef09db50ef8819dd16",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "5afcf24af9eb4c1e033d776e4165ca1b1be322b94541c257926f323ef6795921",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "a74959a29833dcb07b1443b79eaa39e03fc78329761680bbd6b164101daa41b0",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "563c70be64e1655bc04fe87ffdb14d5f256816efbd2888291c588d1359bbc3df",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8e146daaf5b984fe7d79743c34e17d106699fdb777c1d1db6aaec4479810499b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "netifd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "2612030843af8c3fd551de0b2c8f9fb4e83378fa7cbdfeb2e41b238e39223d17",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "netifd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "24c4d5d385419010db8af58768dff0d04a1edbe1e3bb3d4b38600db2a60a4dc5",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "logd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "0dd36449b0c137caac85167d2c1ffffc417e54e969192c9ac6d69597b16d6834",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "logd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "9c1184bdebd945beb70f4f1905ea24293364b8c98a51cfb788caf304ccc1d291",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "1f64ed0f1b748db76638cff3778876c7c7af5e9aa5e065dacc425482e564db45",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8768bae3adbe6039825f4b2d39bd0dab858125ad676db857d501801db8d87049",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "834858f33a16512ed6914025f4bcabb130a95706fa6920c4b5481d1c91fa8397",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "4f09d1b0a1398ed5b52bfdce96782123208dfaa7b047b5174f68d588210c034d",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "fw4-unit",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "3031f32d931e5179d501855bef5a03f752986ea5d301ab937bc27acefe4b313d",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "fw4-clippy",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e8fddaccb168d5d5dcfa539ab27de188f90fed4afc4064f1ff0b25e510bac4fc",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "python-gates",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "78d5e893bf7d6bde711dcf13b323a96d32cc19128ec896926aeeff2b0c4903b1",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-watchdog-status",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "bb9431c4fb8806b72e7b5bb6dc1c16cd5171621772d5c6ff4968947474e9df66",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-tick",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "042bec4aaf23b3b1a23cb634fa43e523008a74eea792ec1f4feec7ac130d2b83",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-busy-original",
+      "group": "functional",
+      "exit": 1,
+      "required": false,
+      "log_sha256": "0612d6926a4ff160e86119fc8086f0260c81631983a844a7ba8d15cd03c93794",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-busy-candidate",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "f1b546ccfa1b1ac405b7b92837858df0242a5a05e7904b59155d3105941319cd",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r65",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r83",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "3d31fef6d93759ec1d8f8b4ba681e1cb9c7f4e58293ebfa043750b5f326e0614",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r71-hotplug",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "4f5f4af5c3077f8c988c32b10f5af3e682f76a730633be9a1d5903eed8eb287d",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r72",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "20376ddbda8564a42be65495c0f4366126cccc2b59dcac8d69cb5cb58d4ce376",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r75",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "6078a7fe012d78183adb059d5c9e4a2c8607ffb090081aba3ea599ddebd32c96",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "procd-r90",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "37100bc9a42189e3a06175ec0109dc1f70f2157a77de3fed8971148899c7ce8c",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-resources",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "5c9893884e3e213957119c120bc9b6d0e2c844f06796d7eef4fa6541c2f0038b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-static",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "d7b03e2d2486b79b3d2bf6fea97fc88f8212e3fcd61fcb2c1c8a2a1f55884cdb",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-extended",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "d29fe0b0885bc7b971a8d041703d588a493afc9b71f29c8e59c02f5fe38cb534",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-r14",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "550510c0e50f9591ed4bbda87da687356c7557db8d38e2dd6f88eff97f2f5ab1",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-fuzz",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e2bbad5eb1ab2ea7b6aecb5d2a809d030e61f6a9130a31f0278a9f39648d0dc0",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "httpd-cgi-stress",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r13_rpcd_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r17_rpcd_core_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r18_rpcd_plugins_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "r19_lucirpc_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-busy",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8c5c487d4b56ec7c5153825cbc9a67e86146d946c2d7745049ff69018b5454cb",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-r26",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "39a1d996fd84b2e77826540960c22f21a8eb8c9759c7b86c4ed1e36b47797ad7",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-real-features",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "7dba27504a5426e55418613a5ee2d5091be447c75d216224b7d51b921117ff75",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-bytes",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "rpcd-defer",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r36",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "fac58c8631c0720545918e48ff4bf3575c6c4233a42d17a5fbfa38045cf7a10f",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "fa5f25bb02065cf69c951dfe27f4a940cc0620d93a07d0675895d1292b1e8433",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r83",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "8bf3cd8479db20f2de4cfaf7dce037c53ed126ec3d3116e3f02bf4dadd26a359",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r42",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "591e200d3592536e66b6e47042465e85766119a8cf98d0267cee7502b79704a9",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r41",
+      "group": "functional",
+      "exit": 1,
+      "required": true,
+      "log_sha256": "e88ca5635110abbf3d149e2b632a7abcf84c1fac018caa810e09e2b5097e9c92",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "netifd-suite",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "3bddffd50f550342dde61a80d182eb062cd4950e22624b2413c405850259b2b7",
+      "source": "canonical-validation-01"
+    },
+    {
+      "name": "ubusd-r36",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "5915deb2be8a0141e4fee77497749381bf5aaeb855fb139ab3ba98046499f853",
+      "source": "canonical-helpers-02"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "7bd155c91696981aff2737b900e786c62ce68516ca1cd8ccb56e9af6a8ebe59e",
+      "source": "canonical-helpers-02"
+    },
+    {
+      "name": "ubusd-r41",
+      "group": "functional",
+      "exit": 1,
+      "required": true,
+      "log_sha256": "e88ca5635110abbf3d149e2b632a7abcf84c1fac018caa810e09e2b5097e9c92",
+      "source": "canonical-helpers-02"
+    },
+    {
+      "name": "ubusd-r36",
+      "group": "functional",
+      "exit": 1,
+      "required": true,
+      "log_sha256": "ba594fae94fc876eb0a4aa640b24976c166aaaa755e5d318d892981dd009976d",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ee8294d8b157e86ae9eccac6883d607972688b607f35eb5e9c9fdc8aa4591e09",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "ubusd-r41",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "logd-r15",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "73a6d4300c56768c0effa7c200e465c71e96f6ae6279eda898bac62f55d90574",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "logd-r28",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e0d0fd8a678f44c092831793f3ced1f1dfc87fdcd6df75537b39834f73e44b2d",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r21_logd_reconnect_check",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "aca5e31980f56487609d4af8accf93a6c0f8f49638384d880fd2b0f860d89bd4",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r25_logd_stream_probe",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "aa7e6b3026d5360ae80d2df403171b6a20f1c908ffdedc8e467629367c274bf6",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r83_logd_ring_wrap",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "c6018f6db3f20697cc39204fb759ec19a82de36d927d0449775cb07058d85f80",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r83_logd_oversize_read",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "d4834b30159500ad938d692fdbe1164a540f69b253be1ce82bf7eb81e3709ee2",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-upstream",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "c3f4ba1228e06d3b501df007c6a20f0981dc9e4253bc60b0f771f9d980e07153",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-r29",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "de870d7ded0347234d3eacf24a94ea43b928dba8786a2c909558a05bf211b083",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-defaults",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "de9dd46bf7fd8cf25c7c078be33e857527aa86decd11ab7114ff20e468b06ab0",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "fw4-image",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "uci-r16",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "a9909d8d59aeeb7d9248fd4f2d39d2489e0a811fa4ade3f289b2ef9857c6df64",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "uci-r24",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "14fa3b859089d4da4ee1bf152ddefc7604d46fab242fe5f097a49cd0f3a968d2",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "uci-r83",
+      "group": "functional",
+      "exit": 1,
+      "required": true,
+      "log_sha256": "2ad067fd74cf6f2bcce4c3a378528179058eb7445105cff1552c185e1acdf35b",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "reload-config-r1",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e5c893b81b7e8c9372a13db6167df0f324eff66edff504981695bd91bfcf3685",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r92-recovery",
+      "group": "recovery",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "40b042a0a08c46f2f75b1a0b600d932d7a3958523e6b6bc0bbbdc5573e347414",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r92-compat",
+      "group": "compat",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "185d11e3b3c4edcb716251570f17ca7d074421abe149682ae607aac46c555e29",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "r92-fw4",
+      "group": "compat",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "affb1902df11be70b0086f7a09245bdd81cf1d4b98f76b397ca2761a6377ff13",
+      "source": "canonical-completion-03"
+    },
+    {
+      "name": "python-gates",
+      "group": "unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "275bb14f6de8a6b398c9361ad029c29e5c0709b992e8d757ab5f8b9b758028ca",
+      "source": "canonical-gates-04"
+    },
+    {
+      "name": "ubusd-r36",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "651c34586a62ecc2afb63cad12eb44d9f8632c92cd422ce63431e5b52db24035",
+      "source": "canonical-gates-04"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "024981b03986cf6e0e93e38b7354f2377a463b80ea63c15dfb49bb90b48345b5",
+      "source": "canonical-gates-04"
+    },
+    {
+      "name": "uci-r83",
+      "group": "functional",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ddd1579c650a61c342a38e8b916eb43694cd6eada04974ea8cbb7aed13d61c7a",
+      "source": "canonical-gates-04"
+    }
+  ],
+  "original_busy_control": "Original C loses trailing logs under the already documented sustained-bus-load control; candidate passes.",
+  "corrections": [
+    "The first full collector stopped after 52 gates; its completed logs are verified, its incomplete result is retained.",
+    "An outer sudo removed HELPERS and selected stale /tmp helpers. An explicit argument plus source/binary manifests now pins the helpers.",
+    "r36 now waits for closed CLI connections before its fd baseline and rejects growth even if both sides leak.",
+    "r83 explicitly asserts the documented atomic non-UTF-8 rename rejection; every other output and scratch byte remains compared."
+  ],
+  "rust_tests": {
+    "ubus": {
+      "executions": 37,
+      "distinct_names": 37
+    },
+    "uci": {
+      "executions": 38,
+      "distinct_names": 38
+    },
+    "reload-config": {
+      "executions": 12,
+      "distinct_names": 12
+    },
+    "ubusd": {
+      "executions": 24,
+      "distinct_names": 24
+    },
+    "procd": {
+      "executions": 74,
+      "distinct_names": 74
+    },
+    "netifd": {
+      "executions": 157,
+      "distinct_names": 157
+    },
+    "logd": {
+      "executions": 5,
+      "distinct_names": 5
+    },
+    "httpd": {
+      "executions": 34,
+      "distinct_names": 34
+    },
+    "rpcd": {
+      "executions": 55,
+      "distinct_names": 54
+    },
+    "fw4": {
+      "executions": 14,
+      "distinct_names": 14
+    }
+  },
+  "rust_distinct_tests": 449,
+  "rust_test_executions": 450,
+  "repeated_test": "rpcd wake_tests::saturated_wake_pipe_keeps_signal_handling_live is compiled into both library and binary targets.",
+  "offline": [
+    {
+      "suite": "offline-switch-01",
+      "passed": 5,
+      "checks": [
+        "APK installation is inert and all six shipped binary hashes match",
+        "cold stage preserves originals; early confirmation and stale timer rejected",
+        "failed restore remains pending and never reboots",
+        "automatic rollback restores the entire original next boot",
+        "offline failsafe rescue requires no ubus or running Rust"
+      ],
+      "log_sha256": "3f2a10b62276e3f10f6cc47ca4f5170f27cfde6a034e3520436c2fa01ab49de5"
+    },
+    {
+      "suite": "offline-apk-upgrade-03",
+      "passed": 4,
+      "checks": [
+        "old APKs installed, boot flags enabled, old rpcd serving the private bus",
+        "six installed hashes replaced; active CLI mounts, configuration and boot flags unchanged",
+        "existing rpcd retains its old executable identity and still serves requests",
+        "a fresh rpcd process uses the new formal executable and serves the private bus"
+      ],
+      "log_sha256": "deeb877a29142374043d923e5613b1322055ea798b7a0930d172c565b5c8c240"
+    }
+  ],
+  "httpd_fuzz": {
+    "cases": 133,
+    "contract_sha256": "89540f64e657cd3ef02f3eafdddf31f535c64f4b3e430a975ecd46c6654d6b3f",
+    "baseline_sha256": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+    "candidate_sha256": "23db69b0c198dbdf4fb3fab2bcf797d533b3ca52258d84e41eec43e7dac320ac",
+    "baseline_differences": [
+      "cgi-pathinfo-nul",
+      "chunked-bad-size",
+      "chunked-huge-size",
+      "connect",
+      "header-ctrl",
+      "header-no-colon",
+      "header-obs-fold",
+      "http09",
+      "http12",
+      "http2",
+      "httpx",
+      "json-deep-array",
+      "lf-only",
+      "long-path-8k",
+      "lowercase-method",
+      "method-only",
+      "percent-nul",
+      "pipelined-bad-second",
+      "raw-space-in-path",
+      "tab-separated",
+      "trace",
+      "unknown-method"
+    ],
+    "candidate_changes": [
+      "chunked-huge-size",
+      "header-ctrl"
+    ],
+    "checks": {
+      "fragment": true,
+      "dirlist-traversal": true,
+      "cgi-dir": true,
+      "tab-separated": true,
+      "chunked-two-chunks": true,
+      "json-1mib": true,
+      "extra-token": true,
+      "cl-negative": true,
+      "dot-file": true,
+      "ubus-get-query": true,
+      "post-no-cl": true,
+      "accept-encoding": true,
+      "huge-header": true,
+      "cgi-pathinfo-traversal": true,
+      "te-gzip": true,
+      "percent-truncated": true,
+      "pipelined-bad-second": true,
+      "http09": true,
+      "range": true,
+      "authorization-garbage": true,
+      "chunked-bad-size": true,
+      "cgi-pathinfo-encoded": true,
+      "json-id-object": true,
+      "percent-upper": true,
+      "json-sid-nonhex": true,
+      "ubus-get-list-deep": true,
+      "long-path-8k": true,
+      "json-params-short": true,
+      "semicolon-params": true,
+      "header-highbytes": true,
+      "host-twice": true,
+      "json-content-type-text": true,
+      "absolute-uri": true,
+      "head-ubus": true,
+      "cookie-huge": true,
+      "upgrade-websocket": true,
+      "long-path-64k": true,
+      "header-empty-name": true,
+      "percent-slash": true,
+      "empty": true,
+      "cl-huge": true,
+      "lowercase-method": true,
+      "percent-bad": true,
+      "json-deep-object": true,
+      "json-object-name-long": true,
+      "json-no-id": true,
+      "dotdot-encoded": true,
+      "json-number": true,
+      "ubus-get-call": true,
+      "query-only": true,
+      "if-none-match-garbage": true,
+      "json-two-docs": true,
+      "json-batch-1000": true,
+      "cl-twice": true,
+      "absolute-uri-other-host": true,
+      "json-id-string": true,
+      "leading-crlf": true,
+      "dot-segment": true,
+      "dotdot-double-encoded": true,
+      "connect": true,
+      "header-ctrl": true,
+      "json-null": true,
+      "json-id-null": true,
+      "trace": true,
+      "cgi-query-bad-pct": true,
+      "json-batch-empty": true,
+      "raw-highbytes-path": true,
+      "json-to-ubus-call-path": true,
+      "json-args-array": true,
+      "json-big-number": true,
+      "json-array-empty": true,
+      "json-sid-short": true,
+      "cgi-head": true,
+      "header-obs-fold": true,
+      "plain": true,
+      "json-params-long": true,
+      "chunked-huge-size": true,
+      "json-params-string": true,
+      "json-to-ubus-slash": true,
+      "if-none-match-star": true,
+      "json-to-static": true,
+      "method-only": true,
+      "double-space": true,
+      "json-to-ubus-list-path": true,
+      "cgi-cl-mismatch-short": true,
+      "json-trailing-garbage": true,
+      "unknown-method": true,
+      "cl-alpha": true,
+      "json-bad-utf8": true,
+      "raw-ctrl-path": true,
+      "json-to-cgi": true,
+      "many-headers": true,
+      "expect-continue-nobody": true,
+      "get-with-body": true,
+      "json-string": true,
+      "json-empty": true,
+      "json-list-many": true,
+      "if-modified-garbage": true,
+      "connection-keepalive-http10": true,
+      "cl-short-body": true,
+      "percent-nul": true,
+      "cl-long-body": true,
+      "http2": true,
+      "double-slash": true,
+      "json-object-empty": true,
+      "cgi-pathinfo-nul": true,
+      "chunked-no-terminator": true,
+      "json-to-missing": true,
+      "range-bad": true,
+      "host-with-port": true,
+      "no-host": true,
+      "index-dir-noslash": true,
+      "header-no-colon": true,
+      "http12": true,
+      "json-deep-array": true,
+      "delete": true,
+      "json-batch-mixed": true,
+      "httpx": true,
+      "options-star": true,
+      "cgi-dir-noslash": true,
+      "json-nul-escape": true,
+      "dotdot-inside": true,
+      "no-slash": true,
+      "pipelined-two": true,
+      "http10-no-headers": true,
+      "ubus-put": true,
+      "cgi-huge-header": true,
+      "raw-space-in-path": true,
+      "lf-only": true,
+      "chunked-ok": true,
+      "chunked-and-cl": true,
+      "long-query": true,
+      "json-dup-keys": true
+    },
+    "survival_failures": [],
+    "passed": true
+  },
+  "netifd_suite": {
+    "scenarios": 31,
+    "passed": 31,
+    "skipped": 0,
+    "log_sha256": "3bddffd50f550342dde61a80d182eb062cd4950e22624b2413c405850259b2b7"
+  },
+  "hotplug": {
+    "specialized_mode": true,
+    "passed": true,
+    "log_sha256": "4f5f4af5c3077f8c988c32b10f5af3e682f76a730633be9a1d5903eed8eb287d"
+  },
+  "scope": "Formal runtime hashes are fixed; corrected helper/environment/collector gates keep all earlier failed attempts."
+}

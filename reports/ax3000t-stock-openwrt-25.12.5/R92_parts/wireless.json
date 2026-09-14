@@ -1,0 +1,646 @@
+{
+  "schema": 1,
+  "calls": 212,
+  "scan_calls": 4,
+  "radios": 2,
+  "groups": [
+    {
+      "object": "iwinfo",
+      "method": "devices",
+      "scope": "all",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "info",
+      "scope": "radio-1",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "volatile_fields": [
+        "bitrate",
+        "noise",
+        "quality",
+        "signal"
+      ],
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "assoclist",
+      "scope": "radio-1",
+      "samples": 8,
+      "records_per_sample": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "common_records_compared": 1,
+      "changing_membership": 0,
+      "volatile_fields": [
+        "bitrate",
+        "connected_time",
+        "inactive",
+        "noise",
+        "preamble",
+        "quality",
+        "rx",
+        "signal",
+        "signal_avg",
+        "thr",
+        "tx"
+      ],
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "freqlist",
+      "scope": "radio-1",
+      "samples": 8,
+      "frequency_entries": 13,
+      "extra_flag_entries_per_sample": [
+        0,
+        0,
+        4,
+        5,
+        5,
+        5,
+        0,
+        0
+      ],
+      "candidate_matches_zeroed_library": true,
+      "disposition": "Keep deterministic kernel flags; do not reproduce the original uninitialized buffer.",
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "txpowerlist",
+      "scope": "radio-1",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "countrylist",
+      "scope": "radio-1",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "survey",
+      "scope": "radio-1",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "volatile_fields": [
+        "noise",
+        "active_time",
+        "busy_time",
+        "busy_time_ext",
+        "rx_time",
+        "tx_time"
+      ],
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "info",
+      "scope": "radio-2",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "volatile_fields": [
+        "bitrate",
+        "noise",
+        "quality",
+        "signal"
+      ],
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "assoclist",
+      "scope": "radio-2",
+      "samples": 8,
+      "records_per_sample": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "common_records_compared": 3,
+      "changing_membership": 2,
+      "volatile_fields": [
+        "bitrate",
+        "connected_time",
+        "inactive",
+        "noise",
+        "preamble",
+        "quality",
+        "rx",
+        "signal",
+        "signal_avg",
+        "thr",
+        "tx"
+      ],
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "freqlist",
+      "scope": "radio-2",
+      "samples": 8,
+      "frequency_entries": 27,
+      "extra_flag_entries_per_sample": [
+        0,
+        0,
+        8,
+        9,
+        7,
+        9,
+        0,
+        0
+      ],
+      "candidate_matches_zeroed_library": true,
+      "disposition": "Keep deterministic kernel flags; do not reproduce the original uninitialized buffer.",
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "txpowerlist",
+      "scope": "radio-2",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "countrylist",
+      "scope": "radio-2",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "survey",
+      "scope": "radio-2",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "volatile_fields": [
+        "noise",
+        "active_time",
+        "busy_time",
+        "busy_time_ext",
+        "rx_time",
+        "tx_time"
+      ],
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "phyname",
+      "scope": "radio0",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "phyname",
+      "scope": "radio1",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getNetworkDevices",
+      "scope": "all",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "volatile_fields": [
+        "stats values",
+        "link changes/up_count/down_count",
+        "IPv6 address bytes"
+      ],
+      "order_normalization": "sort IPv4/IPv6 address lists; preserve all other fields and masks",
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getWirelessDevices",
+      "scope": "all",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "volatile_fields": [
+        "bitrate",
+        "noise",
+        "quality",
+        "signal"
+      ],
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getHostHints",
+      "scope": "all",
+      "samples": 8,
+      "records_per_sample": [
+        13,
+        13,
+        14,
+        14,
+        13,
+        13,
+        13,
+        13
+      ],
+      "common_records_compared": 12,
+      "changing_membership": 3,
+      "ipv6_role_inventory_changed_common_records": 1,
+      "ipv6_address_counts_per_sample": [
+        15,
+        15,
+        16,
+        16,
+        16,
+        16,
+        15,
+        15
+      ],
+      "input_sensitive_fields": [
+        "ip6addrs"
+      ],
+      "disposition": "Neighbor/lease address inventory is input, not a cross-boot constant. Exact JSON equality is separately checked on three adjacent live pairs; add/remove/NUD_NOARP is checked on fixed neighbors.",
+      "volatile_fields": [
+        "record membership",
+        "IPv6 address inventory"
+      ],
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getDUIDHints",
+      "scope": "all",
+      "samples": 8,
+      "records_per_sample": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "common_records_compared": 1,
+      "changing_membership": 2,
+      "volatile_fields": [
+        "record membership",
+        "IPv6 address bytes and temporary-address count"
+      ],
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getBoardJSON",
+      "scope": "all",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getDHCPLeases",
+      "scope": "all",
+      "samples": 8,
+      "families": {
+        "dhcp_leases": {
+          "records_per_sample": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "common_records_compared": 4,
+          "changing_membership": 2
+        },
+        "dhcp6_leases": {
+          "records_per_sample": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "common_records_compared": 1,
+          "changing_membership": 2
+        }
+      },
+      "volatile_fields": [
+        "record membership",
+        "expires",
+        "IPv6 address bytes and temporary-address count"
+      ],
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getDHCPLeases",
+      "scope": "family-4",
+      "samples": 8,
+      "families": {
+        "dhcp_leases": {
+          "records_per_sample": [
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "common_records_compared": 4,
+          "changing_membership": 2
+        }
+      },
+      "volatile_fields": [
+        "record membership",
+        "expires",
+        "IPv6 address bytes and temporary-address count"
+      ],
+      "passed": true
+    },
+    {
+      "object": "luci-rpc",
+      "method": "getDHCPLeases",
+      "scope": "family-6",
+      "samples": 8,
+      "families": {
+        "dhcp6_leases": {
+          "records_per_sample": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "common_records_compared": 1,
+          "changing_membership": 2
+        }
+      },
+      "volatile_fields": [
+        "record membership",
+        "expires",
+        "IPv6 address bytes and temporary-address count"
+      ],
+      "passed": true
+    },
+    {
+      "object": "luci",
+      "method": "getFeatures",
+      "scope": "all",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "luci",
+      "method": "getVersion",
+      "scope": "all",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "network.rrdns",
+      "method": "lookup",
+      "scope": "all",
+      "samples": 8,
+      "normalized_static_equal": true,
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "scan",
+      "scope": "radio-1",
+      "samples": 2,
+      "records_per_sample": [
+        35,
+        37
+      ],
+      "common_records_compared": 31,
+      "changing_membership": 10,
+      "ht_channel_width_different_records": 1,
+      "different_width_pairs_in_sample_order": [
+        [
+          2040,
+          20
+        ]
+      ],
+      "input_sensitive_fields": [
+        "ht_operation.channel_width"
+      ],
+      "disposition": "Retain the exact reference parser, proven equal on 262144 fixed IEs. Earlier scan frames were not captured; these differing values are not a byte-equivalence claim or proof of an RF width change.",
+      "volatile_fields": [
+        "quality",
+        "signal"
+      ],
+      "passed": true
+    },
+    {
+      "object": "iwinfo",
+      "method": "scan",
+      "scope": "radio-2",
+      "samples": 2,
+      "records_per_sample": [
+        11,
+        11
+      ],
+      "common_records_compared": 10,
+      "changing_membership": 2,
+      "ht_channel_width_different_records": 1,
+      "different_width_pairs_in_sample_order": [
+        [
+          20,
+          2040
+        ]
+      ],
+      "input_sensitive_fields": [
+        "ht_operation.channel_width"
+      ],
+      "disposition": "Retain the exact reference parser, proven equal on 262144 fixed IEs. Earlier scan frames were not captured; these differing values are not a byte-equivalence claim or proof of an RF width change.",
+      "volatile_fields": [
+        "quality",
+        "signal"
+      ],
+      "passed": true
+    }
+  ],
+  "sources": [
+    {
+      "window": "rust-1",
+      "calls": 54,
+      "calls_sha256": "9df840f5641e4416bafc771662a326baedf72183a201c553743ed5b20e8c62e4",
+      "health_sha256": "ca30adb4c43f0eade3e9d2f1f2da40c8536f2a92a42bd6f48959e62308263d4a"
+    },
+    {
+      "window": "stock-1",
+      "calls": 54,
+      "calls_sha256": "ea0101c6e7d6fa9f9f0444732c0d5a96d5cc71d3308dfa0d00229f4d36bc3872",
+      "health_sha256": "2b55764f5f8aca7c258a443d3084af9e6bcd10733cafd7e0161d23e64e1b6ee8"
+    },
+    {
+      "window": "stock-2",
+      "calls": 52,
+      "calls_sha256": "b9b5232c371d4cc99674906ca739a61d3aca14bf51995d6f972b041b88220b0a",
+      "health_sha256": "135c08cc2b15308f4ff93a8ea97c008d72cd26f6d75d2f687100bd738443aa63"
+    },
+    {
+      "window": "rust-2",
+      "calls": 52,
+      "calls_sha256": "053b692408824f2f85ceaabc300d7f748f6072e10ee9236d565af73fa696a2e0",
+      "health_sha256": "faa3e492c1cb3d3cc7ab3d376c4907c5a68c40f08fdb8757583beacd09f7017a"
+    }
+  ],
+  "input_controls": {
+    "host_hints_fixed_input": {
+      "sides": 2,
+      "phases_per_side": 6,
+      "calls_per_phase": 2,
+      "assertions_per_side": 20,
+      "passed": true,
+      "results_sha256": "f0d7ee019161c87d6ea742e525337df5ac6e1e2ac09f7a60814b6bf6c5728978"
+    },
+    "host_hints_same_boot": {
+      "schema": 1,
+      "passed": true,
+      "pairs": [
+        {
+          "pair": 1,
+          "records": 17,
+          "exact_json_equal": true,
+          "ipv6_addresses": 24,
+          "reply_sha256": {
+            "original": "2fb8da4714e8ce91a024ca132eb587f5d64bfbdd14f76e693773eb1e7f742dbe",
+            "candidate": "2fb8da4714e8ce91a024ca132eb587f5d64bfbdd14f76e693773eb1e7f742dbe"
+          },
+          "neighbor_snapshot_unchanged": true
+        },
+        {
+          "pair": 2,
+          "records": 17,
+          "exact_json_equal": true,
+          "ipv6_addresses": 24,
+          "reply_sha256": {
+            "original": "2fb8da4714e8ce91a024ca132eb587f5d64bfbdd14f76e693773eb1e7f742dbe",
+            "candidate": "2fb8da4714e8ce91a024ca132eb587f5d64bfbdd14f76e693773eb1e7f742dbe"
+          },
+          "neighbor_snapshot_unchanged": true
+        },
+        {
+          "pair": 3,
+          "records": 17,
+          "exact_json_equal": true,
+          "ipv6_addresses": 24,
+          "reply_sha256": {
+            "original": "2fb8da4714e8ce91a024ca132eb587f5d64bfbdd14f76e693773eb1e7f742dbe",
+            "candidate": "2fb8da4714e8ce91a024ca132eb587f5d64bfbdd14f76e693773eb1e7f742dbe"
+          },
+          "neighbor_snapshot_unchanged": true
+        }
+      ],
+      "original_sha256": {
+        "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+      },
+      "candidate_rpcd_sha256": "59dd1443156180d18bbf9783409c232169d4249c12ed3399dd72e157d0c5ef08",
+      "driver_sha256": "8151b44919545cca4717ae02263da09f7c8361a59faecd04637739a944ad4f98",
+      "archive_sha256": "03be12e5f5373b3170294b3fc220d84f64ee790c8b30f1c33f06e127c3b4444e",
+      "configuration_and_identities_unchanged": true,
+      "client_health_passed": true,
+      "limitations": [
+        "Three adjacent read-only pairs in one boot; historical neighbor snapshots were not collected."
+      ]
+    },
+    "ht_ie_fixed_input": {
+      "schema": 1,
+      "passed": true,
+      "cases": 262144,
+      "byte_identical": true,
+      "channels": [
+        6,
+        36
+      ],
+      "ie_payload_lengths": [
+        3,
+        22
+      ],
+      "second_byte_values": 256,
+      "third_byte_values": 256,
+      "source_sha256": {
+        "reference_nl80211": "d0856f76d99aeb4046108f6b4c299ee5bc162e719cd6111379fdab5aefef853b",
+        "reference_header": "5010e8f903074750e3435fb266cb6c1dc7f6417b4ebf9e6affccccfa882c7f73",
+        "reference_fragment": "1cfa9bd3285f0d253bd4aeaaa911f5b5fd8ee6f6c73dc7c22a049c04d06539b1",
+        "candidate": {
+          "components/rpcd/src/iwinfo/mod.rs": "efba5e2f757493c1dca0bf3bf92175af9259e28f9193f1559c35bd6851a8c392",
+          "components/rpcd/src/iwinfo/netlink.rs": "35853efadad8c4fd6e3ac7add801ae4dc8865f65e87dfa7a4c828a7336cea570",
+          "components/rpcd/src/iwinfo/nl80211.rs": "864ea5b3cb362793d69f75362e5791369cbb3d760ac47813479fa6491cb7a134",
+          "components/rpcd/src/iwinfo/sys.rs": "c75a2317dee899c8c9802fc15efef81a5d44bea73540065ac980408cc6221776",
+          "components/rpcd/src/iwinfo/tables.rs": "8ed94677c646c15a4739ed70e5fd548238cb11266911f790e3a832324253c674",
+          "components/rpcd/src/iwinfo/utils.rs": "15af3f910e940874c54d7f0ac045b522d74d62f025970c8eddebe41a0b1cf03e",
+          "components/rpcd/src/glob.rs": "0e6c90225caae3792343ead317aedc3ed64398c403f9e138e1057bd8cf720498"
+        },
+        "driver": "654dd7061ae3c9fc2dff8780e7b0c8d1ee3b3cd431363b7d9eb3779cf26074f4"
+      },
+      "corpus_sha256": "b8f3c01cc12c33b14daa09729f1d50399846516ddd884c4e33c57daae65785aa",
+      "output_sha256": "a82caf3dfdc8be22a17c031e544cccba95def6243b2bb36c1dae85093d0770fa",
+      "harness_binary_sha256": {
+        "original": "db065084c54d91d41018f83e9a0e40044a7796d437f094dfedf5c1aa4a347179",
+        "candidate": "b127e8b1024a4a5d157ed4f6af565b0b63040d06a3c57d5a5c35a1b23c840d6f"
+      },
+      "scope": "Actual C and Rust HT IE parsers, fixed well-formed inputs; no radio or kernel mutation.",
+      "limitations": [
+        "Not a new runtime build or a replay of the earlier wireless frames.",
+        "Both retain the exact library's third-payload-byte bit 2 rule; this does not certify advertised 20/40 MHz width.",
+        "Non-HT crypto parsing, truncated IEs and RF acquisition are outside this focused comparison."
+      ]
+    }
+  },
+  "flags_control_sha256": "e0347cec1b59d12ad3808c09b35dd019fd5731b2150adce4facc42505ace0597",
+  "flags_helper_identity": {
+    "helper_sha256": "64fbd00afb44d7627fdacfb19aac9661405e277d39d26bc01fc4700db764442e",
+    "original_library_sha256": "98cfb9ce55c0e57eb840b0c124d8569284752be79885dff822270f8da37d8174",
+    "driver_sha256": "93c894d9acefa0fa7eb266ac881674827aaf67a33349c134dbfa57829b38f148"
+  },
+  "limitations": [
+    "Two observation rounds in each of four boots; dynamic fields are not byte-equivalence assertions.",
+    "Changing neighbor, client and lease membership is recorded; only common records are compared.",
+    "Scan signal/quality and HT width observations are handled separately; all other common-record fields must match.",
+    "Historical neighbor tables and raw scan IEs were not captured. Fixed-input and adjacent live controls do not reconstruct those inputs.",
+    "Input contains private identifiers and configuration; none are exported here."
+  ]
+}

@@ -1,0 +1,497 @@
+{
+  "schema": 1,
+  "rows": [
+    {
+      "component": "ubusd",
+      "side": "stock",
+      "subject_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "syscalls": {
+        "sendmsg": {
+          "calls": 238226,
+          "errors": 0,
+          "blocked_wall_seconds": 9.618619
+        },
+        "recvmsg": {
+          "calls": 7942,
+          "errors": 1482,
+          "blocked_wall_seconds": 0.163168
+        },
+        "read": {
+          "calls": 4735,
+          "errors": 0,
+          "blocked_wall_seconds": 0.095452
+        },
+        "epoll_pwait": {
+          "calls": 1150,
+          "errors": 0,
+          "blocked_wall_seconds": 1.110557
+        },
+        "getrandom": {
+          "calls": 288,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004778
+        },
+        "fcntl": {
+          "calls": 192,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003175
+        },
+        "close": {
+          "calls": 128,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003724
+        },
+        "mmap": {
+          "calls": 97,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002841
+        },
+        "openat": {
+          "calls": 96,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003714
+        },
+        "lseek": {
+          "calls": 96,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002229
+        },
+        "munmap": {
+          "calls": 89,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003584
+        },
+        "epoll_ctl": {
+          "calls": 64,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002428
+        },
+        "accept": {
+          "calls": 48,
+          "errors": 16,
+          "blocked_wall_seconds": 0.002048
+        },
+        "getsockopt": {
+          "calls": 32,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001223
+        }
+      },
+      "archive_sha256": "557576a8a3ff77b6815e51a14e9c12e7db3019b7fe33697a55a0ae29026ef908"
+    },
+    {
+      "component": "ubusd",
+      "side": "r89",
+      "subject_sha256": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+      "syscalls": {
+        "sendmsg": {
+          "calls": 179399,
+          "errors": 0,
+          "blocked_wall_seconds": 7.763791
+        },
+        "recvmsg": {
+          "calls": 8251,
+          "errors": 1780,
+          "blocked_wall_seconds": 0.181738
+        },
+        "read": {
+          "calls": 4959,
+          "errors": 0,
+          "blocked_wall_seconds": 0.106562
+        },
+        "epoll_pwait": {
+          "calls": 1272,
+          "errors": 0,
+          "blocked_wall_seconds": 1.136959
+        },
+        "getrandom": {
+          "calls": 288,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004722
+        },
+        "fcntl": {
+          "calls": 160,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002791
+        },
+        "mmap": {
+          "calls": 148,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005129
+        },
+        "munmap": {
+          "calls": 141,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00624
+        },
+        "close": {
+          "calls": 128,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005892
+        },
+        "openat": {
+          "calls": 96,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003903
+        },
+        "epoll_ctl": {
+          "calls": 64,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002735
+        },
+        "lseek": {
+          "calls": 64,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001258
+        },
+        "accept4": {
+          "calls": 48,
+          "errors": 16,
+          "blocked_wall_seconds": 0.001987
+        },
+        "fstat": {
+          "calls": 32,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000609
+        },
+        "getsockopt": {
+          "calls": 32,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001054
+        },
+        "mremap": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 7e-05
+        }
+      },
+      "archive_sha256": "97e7ad51c9116c91cba8451ddf633753b39c7c045c099a60c389d44f5465002d"
+    },
+    {
+      "component": "ubusd",
+      "side": "candidate",
+      "subject_sha256": "62abdc5182c2051b5c9d1b6546d26c3885a61964d9c5eee3a8395c7b51aeb3ef",
+      "syscalls": {
+        "sendmsg": {
+          "calls": 179399,
+          "errors": 0,
+          "blocked_wall_seconds": 7.127451
+        },
+        "recvmsg": {
+          "calls": 8681,
+          "errors": 2210,
+          "blocked_wall_seconds": 0.185114
+        },
+        "read": {
+          "calls": 4959,
+          "errors": 0,
+          "blocked_wall_seconds": 0.101455
+        },
+        "epoll_pwait": {
+          "calls": 1461,
+          "errors": 0,
+          "blocked_wall_seconds": 1.137712
+        },
+        "getrandom": {
+          "calls": 288,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004765
+        },
+        "fcntl": {
+          "calls": 160,
+          "errors": 0,
+          "blocked_wall_seconds": 0.002578
+        },
+        "mmap": {
+          "calls": 143,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004424
+        },
+        "munmap": {
+          "calls": 136,
+          "errors": 0,
+          "blocked_wall_seconds": 0.00565
+        },
+        "close": {
+          "calls": 128,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005703
+        },
+        "openat": {
+          "calls": 96,
+          "errors": 0,
+          "blocked_wall_seconds": 0.003922
+        },
+        "epoll_ctl": {
+          "calls": 64,
+          "errors": 0,
+          "blocked_wall_seconds": 0.006102
+        },
+        "lseek": {
+          "calls": 64,
+          "errors": 0,
+          "blocked_wall_seconds": 0.001167
+        },
+        "accept4": {
+          "calls": 49,
+          "errors": 17,
+          "blocked_wall_seconds": 0.002329
+        },
+        "fstat": {
+          "calls": 32,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000546
+        },
+        "getsockopt": {
+          "calls": 32,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000631
+        }
+      },
+      "archive_sha256": "7d98d52e297c9ac5bf94c02891a3339d8f3878d8af03f789bbd7343db739f352"
+    },
+    {
+      "component": "procd",
+      "side": "stock",
+      "subject_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+      "syscalls": {
+        "sendmsg": {
+          "calls": 7392,
+          "errors": 0,
+          "blocked_wall_seconds": 0.445622
+        },
+        "recvmsg": {
+          "calls": 7392,
+          "errors": 0,
+          "blocked_wall_seconds": 0.177539
+        },
+        "epoll_pwait": {
+          "calls": 3698,
+          "errors": 0,
+          "blocked_wall_seconds": 1.725416
+        },
+        "read": {
+          "calls": 2700,
+          "errors": 0,
+          "blocked_wall_seconds": 0.072675
+        },
+        "openat": {
+          "calls": 1801,
+          "errors": 901,
+          "blocked_wall_seconds": 0.07499
+        },
+        "statfs": {
+          "calls": 1800,
+          "errors": 0,
+          "blocked_wall_seconds": 0.037705
+        },
+        "close": {
+          "calls": 905,
+          "errors": 0,
+          "blocked_wall_seconds": 0.018272
+        },
+        "sysinfo": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.019562
+        },
+        "newfstatat": {
+          "calls": 192,
+          "errors": 192,
+          "blocked_wall_seconds": 0.006362
+        },
+        "mmap": {
+          "calls": 123,
+          "errors": 0,
+          "blocked_wall_seconds": 0.004337
+        },
+        "munmap": {
+          "calls": 110,
+          "errors": 0,
+          "blocked_wall_seconds": 0.005358
+        },
+        "fcntl": {
+          "calls": 10,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000156
+        },
+        "socket": {
+          "calls": 5,
+          "errors": 0,
+          "blocked_wall_seconds": 0.000222
+        },
+        "connect": {
+          "calls": 5,
+          "errors": 5,
+          "blocked_wall_seconds": 0.000338
+        },
+        "brk": {
+          "calls": 1,
+          "errors": 0,
+          "blocked_wall_seconds": 3.2e-05
+        }
+      },
+      "archive_sha256": "45df5d265022ec5f5013545a14a6eaece4cd20ff3ea804b277bef8c46557efcb"
+    },
+    {
+      "component": "procd",
+      "side": "r89",
+      "subject_sha256": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98",
+      "syscalls": {
+        "recvmsg": {
+          "calls": 7392,
+          "errors": 0,
+          "blocked_wall_seconds": 0.158148
+        },
+        "sendmsg": {
+          "calls": 3792,
+          "errors": 0,
+          "blocked_wall_seconds": 0.34567
+        },
+        "ppoll": {
+          "calls": 3696,
+          "errors": 0,
+          "blocked_wall_seconds": 1.735775
+        },
+        "statfs": {
+          "calls": 1800,
+          "errors": 0,
+          "blocked_wall_seconds": 0.04021
+        },
+        "read": {
+          "calls": 1800,
+          "errors": 0,
+          "blocked_wall_seconds": 0.049918
+        },
+        "openat": {
+          "calls": 901,
+          "errors": 1,
+          "blocked_wall_seconds": 0.036239
+        },
+        "fcntl": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.014097
+        },
+        "close": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.018072
+        },
+        "lseek": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01417
+        },
+        "fstat": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.016751
+        },
+        "sysinfo": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.018982
+        },
+        "mmap": {
+          "calls": 213,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007383
+        },
+        "munmap": {
+          "calls": 197,
+          "errors": 0,
+          "blocked_wall_seconds": 0.013362
+        },
+        "newfstatat": {
+          "calls": 96,
+          "errors": 96,
+          "blocked_wall_seconds": 0.004181
+        }
+      },
+      "archive_sha256": "64e19c6d03ad4bafd36d0a9d901dae4714d9868d64b23ac554cc30d3457cbb97"
+    },
+    {
+      "component": "procd",
+      "side": "candidate",
+      "subject_sha256": "b4da8ad95bf2da1da9851b4a394a919827653c9d8281a6e8c0d31bf39df4d9cc",
+      "syscalls": {
+        "recvmsg": {
+          "calls": 7392,
+          "errors": 0,
+          "blocked_wall_seconds": 0.179883
+        },
+        "sendmsg": {
+          "calls": 3792,
+          "errors": 0,
+          "blocked_wall_seconds": 0.350267
+        },
+        "ppoll": {
+          "calls": 3696,
+          "errors": 0,
+          "blocked_wall_seconds": 1.794372
+        },
+        "statfs": {
+          "calls": 1800,
+          "errors": 0,
+          "blocked_wall_seconds": 0.040352
+        },
+        "read": {
+          "calls": 1800,
+          "errors": 0,
+          "blocked_wall_seconds": 0.050746
+        },
+        "openat": {
+          "calls": 901,
+          "errors": 1,
+          "blocked_wall_seconds": 0.035864
+        },
+        "fcntl": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01416
+        },
+        "close": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.018286
+        },
+        "lseek": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.01397
+        },
+        "fstat": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.016703
+        },
+        "sysinfo": {
+          "calls": 900,
+          "errors": 0,
+          "blocked_wall_seconds": 0.018995
+        },
+        "mmap": {
+          "calls": 213,
+          "errors": 0,
+          "blocked_wall_seconds": 0.007399
+        },
+        "munmap": {
+          "calls": 197,
+          "errors": 0,
+          "blocked_wall_seconds": 0.012438
+        },
+        "newfstatat": {
+          "calls": 96,
+          "errors": 96,
+          "blocked_wall_seconds": 0.004216
+        }
+      },
+      "archive_sha256": "34c3caed5326b1c1623bad8874d8f0c2d1b3e93eaa018ade18f2220150044e4d"
+    }
+  ],
+  "limitations": [
+    "Separate traced workload; no traced timing is a performance matrix sample.",
+    "Syscall counts do not uniquely identify scheduler or IRQ causes of tail latency."
+  ]
+}
