@@ -18,7 +18,7 @@ use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::json::Json;
 
 use crate::process::Slot;
-use crate::{interface, sys};
+use crate::{interface, logging, sys};
 
 /// `state->sm`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -203,9 +203,9 @@ pub fn discover(dir: &Path) -> Vec<Handler> {
         match run_dump(dir, &path, stem) {
             Ok(text) => match parse_dump(&path, &text) {
                 Ok(hs) => out.extend(hs),
-                Err(e) => eprintln!("netifd-rs: {} dump is not usable: {e}", path.display()),
+                Err(e) => logging::log!(Warning, "{} dump is not usable: {e}", path.display()),
             },
-            Err(e) => eprintln!("netifd-rs: cannot run {} dump: {e}", path.display()),
+            Err(e) => logging::log!(Warning, "cannot run {} dump: {e}", path.display()),
         }
     }
     out

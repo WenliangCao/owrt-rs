@@ -276,9 +276,12 @@ R89 正式二进制的构建机验证：65 道门、60 道必需门全部通过�
 > R90 第一批已处理下列 netifd 生命周期项及 procd F3，状态以
 > [R90 报告](R90_BATCH1_LIFECYCLE.md)为准。该轮也纠正了本审计 netifd 引用较新
 > 上游源码的问题：F10 在精确 C 原版中同样存在，其修复属于有意改进。
+>
+> R91 又撤销了 netifd F6：精确镜像的接口对象本来就没有 `restart` 方法。
+> F8 的日志通道由 [R91 本地候选](R91_NETIFD_LOGGING.md)处理；部署状态和验证边界以该报告为准。
 
-- procd F3：`service state {spawn:false}` 在 term_timeout 后 SIGKILL，C 不 kill（需先在沙箱确认 C 行为再决定）；F5 断连期间不排空实例管道；F6 非 PID 1 模式看门狗不喂；F7 bundle-only 实例；F8 缺看门狗复位日志。
-- netifd F2（DOWN 且持有 claim 的接口 `ifdown` 不释放设备）、F3（已 UP 时 data-only 更新丢失）、F4（S_IDLE 下 setup_failed 清 autostart，仅 ppp）、F5（teardown 期间 renew 不丢弃）、F10（`task_killed` 不复位）、F6–F9/F11/F12。
+- procd F5 断连期间不排空实例管道；F6 非 PID 1 模式看门狗不喂；F7 bundle-only 实例；F8 缺看门狗复位日志。F3 已由 R90 的原版/候选探针验证并修复。
+- netifd F7（netlink 溢出恢复）、F9（全局 restart/re-exec）仍开放。F2–F5/F10–F12 已由 R90 处理；F6 撤销；F8 见 R91。
 - httpd H-02/H-04/H-05/H-07/H-08/H-09/H-10/H-12–H-16（设备配置不触发或属既有 22 项差异）。
 - ubusd U-2–U-9（手工报文或慢读对端才能触发）。
 - rpcd F2–F6（exec 生命周期差异、fnmatch 边界、拒绝侧 UTF-8 严格性、uci 转储 U+FFFD）。

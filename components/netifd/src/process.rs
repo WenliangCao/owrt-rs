@@ -159,7 +159,6 @@ impl Process {
         out
     }
 
-    #[cfg(test)]
     pub fn pid(&self) -> u32 {
         self.child.id()
     }
@@ -233,7 +232,6 @@ impl Slot {
         self.proc.is_some()
     }
 
-    #[cfg(test)]
     pub fn pid(&self) -> Option<u32> {
         self.proc.as_ref().map(|p| p.pid())
     }

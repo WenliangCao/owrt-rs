@@ -22,6 +22,7 @@ mod ethtool;
 mod ethtool_modes;
 mod interface;
 mod ip;
+mod logging;
 mod netdev_types;
 mod netlink;
 mod process;
@@ -398,17 +399,17 @@ impl Netifd {
         let new = match config::load(&self.confdir) {
             Ok(c) => c,
             Err(e) => {
-                eprintln!("netifd-rs: cannot load network config: {e}");
+                logging::log!(Warning, "cannot load network config: {e}");
                 return Err(format!("cannot load network config: {e}"));
             }
         };
         for e in new.warnings.iter().chain(new.errors.iter()) {
-            eprintln!("netifd-rs: config: {e}");
+            logging::log!(Warning, "config: {e}");
         }
         if !first && !new.errors.is_empty() {
             let what: Vec<String> = new.errors.iter().map(|e| e.to_string()).collect();
-            eprintln!(
-                "netifd-rs: refusing this reload -- {} problem(s); the running \
+            logging::log!(Warning,
+                "refusing this reload -- {} problem(s); the running \
                  configuration is untouched",
                 what.len()
             );
@@ -419,7 +420,7 @@ impl Netifd {
         if self.handlers.is_empty() {
             self.handlers = proto::discover(std::path::Path::new(&self.protodir));
             let names: Vec<&str> = self.handlers.iter().map(|h| h.name.as_str()).collect();
-            eprintln!("netifd-rs: shell protocol handlers: {}", names.join(" "));
+            logging::log!(Debug, "shell protocol handlers: {}", names.join(" "));
         }
 
         if first {
@@ -488,12 +489,12 @@ impl Netifd {
             let nc = new.iter().find(|c| c.name == name).cloned().unwrap();
             match old.interfaces.iter().find(|o| o.name == name) {
                 None => {
-                    eprintln!("netifd-rs: Create interface '{name}'");
+                    logging::log!(Debug, "Create interface '{name}'");
                     let i = self.new_interface(&nc);
                     self.interfaces.push(i);
                     self.interfaces.sort_by(|a, b| a.name.cmp(&b.name));
                     if let Err(e) = self.register_interface(&name) {
-                        eprintln!("netifd-rs: cannot register {name}: {e}");
+                        logging::log!(Warning, "cannot register {name}: {e}");
                     }
                     if nc.auto.unwrap_or(true) {
                         self.iface_up(&name);
@@ -527,8 +528,8 @@ impl Netifd {
                         routes_changed = old_keys != new_keys;
                     }
                     if ch.reload {
-                        eprintln!(
-                            "netifd-rs: Reload interface '{name}' because of config changes"
+                        logging::log!(Debug,
+                            "Reload interface '{name}' because of config changes"
                         );
                         // proto_shell keeps its own config until the old
                         // protocol is freed. A second reload during teardown
@@ -597,7 +598,7 @@ impl Netifd {
             }
             let di = if r.flags & interface::devroute::NODEV != 0 { 0 } else { devidx };
             if let Err(e) = self.sys.add_route(di, &sys_route(r)) {
-                eprintln!("netifd-rs: {name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
+                logging::log!(Warning, "{name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
             }
             // `route->enabled = _enabled` whatever the kernel said
             r.enabled = true;
@@ -835,7 +836,7 @@ impl Netifd {
             if !self.interfaces[idx].autostart || self.interfaces[idx].state == State::Up {
                 continue;
             }
-            eprintln!("netifd-rs: Interface '{name}' is not up after the checkup interval");
+            logging::log!(Notice, "Interface '{name}' is not up after the checkup interval");
             self.proto_cmd(&name, proto::Cmd::Teardown);
         }
     }
@@ -944,8 +945,8 @@ impl Netifd {
             if let Some(i) = self.iface_index(&name) {
                 if self.interfaces[i].enabled != enabled {
                     self.interfaces[i].enabled = enabled;
-                    eprintln!(
-                        "netifd-rs: Interface '{name}' is {}",
+                    logging::log!(Notice,
+                        "Interface '{name}' is {}",
                         if enabled { "enabled" } else { "disabled" }
                     );
                 }
@@ -1057,7 +1058,7 @@ impl Netifd {
         let msgs = match self.sys.dump_links() {
             Ok(m) => m,
             Err(e) => {
-                eprintln!("netifd-rs: link dump failed: {e}");
+                logging::log!(Warning, "link dump failed: {e}");
                 return;
             }
         };
@@ -1178,14 +1179,14 @@ impl Netifd {
             let existing = self.sys.if_index(&dc.name).unwrap_or(0);
             if existing == 0 {
                 if let Err(e) = self.sys.bridge_addbr(&dc.name, &brcfg) {
-                    eprintln!("netifd-rs: cannot create bridge {}: {e}", dc.name);
+                    logging::log!(Warning, "cannot create bridge {}: {e}", dc.name);
                     continue;
                 }
             }
             let br = match self.sys.if_index(&dc.name) {
                 Ok(i) if i != 0 => i,
                 _ => {
-                    eprintln!("netifd-rs: bridge {} did not appear", dc.name);
+                    logging::log!(Warning, "bridge {} did not appear", dc.name);
                     continue;
                 }
             };
@@ -1205,7 +1206,7 @@ impl Netifd {
                         // before enslaving, same as the late-add path
                         self.apply_device_settings(port, pi);
                         if let Err(e) = self.sys.bridge_setmaster(pi, br) {
-                            eprintln!("netifd-rs: cannot add {port} to {}: {e}", dc.name);
+                            logging::log!(Warning, "cannot add {port} to {}: {e}", dc.name);
                             continue;
                         }
                         // a bridge member has to be up for the bridge to
@@ -1226,14 +1227,14 @@ impl Netifd {
                             let path =
                                 format!("/proc/sys/net/ipv6/conf/{port}/disable_ipv6");
                             if let Err(e) = std::fs::write(&path, "1") {
-                                eprintln!(
-                                    "netifd-rs: cannot disable IPv6 on {port}: {e}"
+                                logging::log!(Warning,
+                                    "cannot disable IPv6 on {port}: {e}"
                                 );
                             }
                         }
                         members.push(port.clone());
                     }
-                    _ => eprintln!("netifd-rs: bridge {} port {port} is absent", dc.name),
+                    _ => logging::log!(Warning, "bridge {} port {port} is absent", dc.name),
                 }
             }
 
@@ -1255,7 +1256,7 @@ impl Netifd {
             }
             let Ok(idx) = self.sys.if_index(&dc.name) else { continue };
             if idx == 0 {
-                eprintln!("netifd-rs: device {} is absent", dc.name);
+                logging::log!(Warning, "device {} is absent", dc.name);
                 continue;
             }
             self.apply_device_settings(&dc.name, idx);
@@ -1293,7 +1294,7 @@ impl Netifd {
         }
         if let Some(mac) = dc.macaddr {
             if let Err(e) = self.sys.set_mac(idx, &mac) {
-                eprintln!("netifd-rs: cannot set {} macaddr: {e}", dc.name);
+                logging::log!(Warning, "cannot set {} macaddr: {e}", dc.name);
             }
         }
         if let Some(v) = dc.ipv6 {
@@ -1373,7 +1374,7 @@ impl Netifd {
 
         for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
             if let Err(e) = self.register_interface(&name) {
-                eprintln!("netifd-rs: cannot register {name}: {e}");
+                logging::log!(Warning, "cannot register {name}: {e}");
             }
         }
         // `interface_start_pending` walks the interface vlist, which is an
@@ -1517,6 +1518,7 @@ impl Netifd {
         };
         let Some(idx) = self.iface_index(name) else { return };
 
+        logging::log!(Notice, "Interface '{name}' is setting up now");
         if !IMPLEMENTED_PROTOS.contains(&ic.proto.as_str()) {
             if self.handler_for(&ic.proto).is_some() {
                 self.proto_setup(name);
@@ -1527,8 +1529,8 @@ impl Netifd {
                 code: "PROTO_NOT_SUPPORTED".into(),
                 data: vec![ic.proto.clone()],
             });
-            eprintln!(
-                "netifd-rs: interface {name} uses proto '{}', which this build cannot run; \
+            logging::log!(Warning,
+                "interface {name} uses proto '{}', which this build cannot run; \
                  leaving it down",
                 ic.proto
             );
@@ -1562,7 +1564,6 @@ impl Netifd {
         // with the proto error recorded. Skipping the bad option and coming
         // up without it was r61's bad-addr difference (R81 F14 follow-up).
         if let Some((code, value)) = ic.static_error.clone() {
-            eprintln!("netifd-rs: Interface '{name}' is setting up now");
             self.interfaces[idx].state = State::Setup;
             self.interfaces[idx].errors.push(interface::IfaceError {
                 subsystem: "proto".into(),
@@ -1587,7 +1588,7 @@ impl Netifd {
                     self.replace_subnet_route(devidx, &sa, &ic);
                     applied_any = true;
                 }
-                Err(e) => eprintln!("netifd-rs: {name}: cannot add {a}/{m}: {e}"),
+                Err(e) => logging::log!(Warning, "{name}: cannot add {a}/{m}: {e}"),
             }
         }
         for (a, m) in &ic.ipv6 {
@@ -1598,7 +1599,7 @@ impl Netifd {
                     self.replace_subnet_route(devidx, &sa, &ic);
                     applied_any = true;
                 }
-                Err(e) => eprintln!("netifd-rs: {name}: cannot add {a}/{m}: {e}"),
+                Err(e) => logging::log!(Warning, "{name}: cannot add {a}/{m}: {e}"),
             }
         }
         if let Some(gw) = ic.gateway {
@@ -1616,7 +1617,7 @@ impl Netifd {
                     ir.table = ic.ip4table.unwrap_or(0);
                     ipset.routes.push(ir);
                 }
-                Err(e) => eprintln!("netifd-rs: {name}: cannot add default via {gw}: {e}"),
+                Err(e) => logging::log!(Warning, "{name}: cannot add default via {gw}: {e}"),
             }
         }
         if let Some(gw) = ic.ip6gw {
@@ -1632,7 +1633,7 @@ impl Netifd {
                     ir.table = ic.ip6table.unwrap_or(0);
                     ipset.routes.push(ir);
                 }
-                Err(e) => eprintln!("netifd-rs: {name}: cannot add ip6gw {gw}: {e}"),
+                Err(e) => logging::log!(Warning, "{name}: cannot add ip6gw {gw}: {e}"),
             }
         }
         // `list dns` lives in config_ip (set in new_interface) for every
@@ -1664,6 +1665,7 @@ impl Netifd {
 
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
+        logging::log!(Notice, "Interface '{name}' is now up");
         self.write_resolv_conf();
     }
 
@@ -1680,7 +1682,7 @@ impl Netifd {
         match plan {
             proto::Action::Nothing => {}
             proto::Action::Refuse => {
-                eprintln!("netifd-rs: {name}: {cmd:?} refused in this state");
+                logging::log!(Warning, "{name}: {cmd:?} refused in this state");
             }
             proto::Action::Abort => {
                 // SIGTERM both children and wait for them; the abort completes
@@ -1721,7 +1723,7 @@ impl Netifd {
                 let st = self.proto_state(name);
                 // the scripts source ../netifd-proto.sh, so cwd matters
                 if let Err(e) = st.script.start_in(&argv, &env, &dir) {
-                    eprintln!("netifd-rs: {name}: cannot run {action}: {e}");
+                    logging::log!(Warning, "{name}: cannot run {action}: {e}");
                 }
             }
         }
@@ -1825,7 +1827,7 @@ impl Netifd {
                 match st.task.start(&argv, &env) {
                     Ok(()) => status::OK,
                     Err(e) => {
-                        eprintln!("netifd-rs: {name}: cannot run {}: {e}", argv[0]);
+                        logging::log!(Warning, "{name}: cannot run {}: {e}", argv[0]);
                         status::UNKNOWN_ERROR
                     }
                 }
@@ -1936,7 +1938,7 @@ impl Netifd {
             }
             let sa = sys::Address::new(a.addr, a.mask);
             if let Err(e) = self.sys.del_address(devidx, &sa) {
-                eprintln!("netifd-rs: {name}: cannot remove {}/{}: {e}", a.addr, a.mask);
+                logging::log!(Warning, "{name}: cannot remove {}/{}: {e}", a.addr, a.mask);
             }
         }
         for r in &old.routes {
@@ -1975,7 +1977,7 @@ impl Netifd {
         // has no further effect and is accepted rather than refused.
         let _addr_ext = find("address-external").and_then(|f| f.as_bool()).unwrap_or(false);
         if find("tunnel").is_some() {
-            eprintln!("netifd-rs: {name}: proto-created tunnels are out of scope");
+            logging::log!(Warning, "{name}: proto-created tunnels are out of scope");
             return status::NOT_SUPPORTED;
         }
         let already_up = self
@@ -1995,7 +1997,7 @@ impl Netifd {
         let Some(l3) = l3 else { return status::INVALID_ARGUMENT };
         let devidx = self.sys.if_index(&l3).unwrap_or(0);
         if devidx == 0 {
-            eprintln!("netifd-rs: {name}: proto reported device {l3}, which does not exist");
+            logging::log!(Warning, "{name}: proto reported device {l3}, which does not exist");
             return status::INVALID_ARGUMENT;
         }
         if !keep {
@@ -2032,7 +2034,7 @@ impl Netifd {
             let Some(list) = find(key) else { continue };
             for item in list.children() {
                 let Some(a) = proto::parse_addr_item(&item, v6) else {
-                    eprintln!("netifd-rs: {name}: proto sent an address this build rejects");
+                    logging::log!(Warning, "{name}: proto sent an address this build rejects");
                     bad = true;
                     break;
                 };
@@ -2048,7 +2050,7 @@ impl Netifd {
                 sa.valid = a.valid;
                 sa.offlink = a.offlink;
                 if let Err(e) = self.sys.add_address(devidx, &sa) {
-                    eprintln!("netifd-rs: {name}: cannot add {}/{}: {e}", a.ip, a.mask);
+                    logging::log!(Warning, "{name}: cannot add {}/{}: {e}", a.ip, a.mask);
                     continue;
                 }
                 if !a.offlink {
@@ -2083,7 +2085,7 @@ impl Netifd {
             for item in list.children() {
                 let Some(text) = item.as_str() else { continue };
                 let Some(p) = proto::parse_prefix6(text) else {
-                    eprintln!("netifd-rs: {name}: proto sent a prefix this build rejects: {text}");
+                    logging::log!(Warning, "{name}: proto sent a prefix this build rejects: {text}");
                     continue;
                 };
                 // netifd stores DEADLINES, not lifetimes: `parse_prefix_option`
@@ -2117,7 +2119,7 @@ impl Netifd {
                 }
                 let Some(gw) = find(key).and_then(|f| f.as_str()) else { continue };
                 let Ok(nexthop) = gw.parse::<IpAddr>() else {
-                    eprintln!("netifd-rs: {name}: proto sent a bad {key} '{gw}'");
+                    logging::log!(Warning, "{name}: proto sent a bad {key} '{gw}'");
                     self.iface_error(name, "proto", "INVALID_GATEWAY", &[gw]);
                     break;
                 };
@@ -2162,7 +2164,7 @@ impl Netifd {
                     router: n.router != 0,
                 };
                 if let Err(e) = self.sys.neighbor(devidx, &sn, true) {
-                    eprintln!("netifd-rs: {name}: cannot add the neighbour {}: {e}", n.addr);
+                    logging::log!(Warning, "{name}: cannot add the neighbour {}: {e}", n.addr);
                     continue;
                 }
                 ipset.neighbors.push(n);
@@ -2172,7 +2174,7 @@ impl Netifd {
         for d in find("dns").map(|f| string_list(&f)).unwrap_or_default() {
             match d.parse::<IpAddr>() {
                 Ok(a) => ipset.dns_servers.push(a),
-                Err(_) => eprintln!("netifd-rs: {name}: proto sent a bad dns '{d}'"),
+                Err(_) => logging::log!(Warning, "{name}: proto sent a bad dns '{d}'"),
             }
         }
         ipset
@@ -2292,7 +2294,7 @@ impl Netifd {
         self.apply_prefix_assignments();
         self.emit_event(name, Event::Up);
         self.write_resolv_conf();
-        eprintln!("netifd-rs: Interface '{name}' is now up");
+        logging::log!(Notice, "Interface '{name}' is now up");
         status::OK
     }
 
@@ -2306,7 +2308,7 @@ impl Netifd {
         if self.interfaces[idx].state != State::Up {
             return;
         }
-        eprintln!("netifd-rs: Interface '{name}' has lost the connection");
+        logging::log!(Notice, "Interface '{name}' has lost the connection");
         self.mark_interface_down(name);
         if let Some(idx) = self.iface_index(name) {
             self.interfaces[idx].state = State::Setup;
@@ -2331,7 +2333,7 @@ impl Netifd {
         }
         let k = sys_route(r);
         if let Err(e) = self.sys.add_route(devidx, &k) {
-            eprintln!("netifd-rs: {name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
+            logging::log!(Warning, "{name}: cannot add the route to {}/{}: {e}", r.target, r.mask);
             return;
         }
         ipset.routes.push(r.clone());
@@ -2353,8 +2355,10 @@ impl Netifd {
     /// helper that never exits -- `udhcpc -f -t 0` is the normal case -- keeps
     /// everything it printed, errors included, in an unread pipe.
     fn poll_child_output(&mut self) {
-        for line in self.hotplug.poll_lines() {
-            eprintln!("netifd-rs: hotplug: {line}");
+        if let Some(pid) = self.hotplug.pid() {
+            for line in self.hotplug.poll_lines() {
+                logging::log!(Notice, "hotplug ({pid}): {line}");
+            }
         }
         // The wireless handler has to be drained while it runs, like the
         // protocol scripts. Reading only at reap deadlocks a handler whose
@@ -2363,19 +2367,18 @@ impl Netifd {
         // every other radio is stuck behind it. The r60 stub prints almost
         // nothing, so it never showed this.
         let who = self.wcur.as_ref().map(|(n, _)| n.clone()).unwrap_or_default();
-        for line in self.wslot.poll_lines() {
-            eprintln!("netifd-rs: {who}: {line}");
+        if let Some(pid) = self.wslot.pid() {
+            for line in self.wslot.poll_lines() {
+                logging::log!(Notice, "{who} ({pid}): {line}");
+            }
         }
-        let names: Vec<String> = self.protos.iter().map(|(n, _)| n.clone()).collect();
-        for name in names {
-            let lines = {
-                let st = self.proto_state(&name);
-                let mut l = st.script.poll_lines();
-                l.extend(st.task.poll_lines());
-                l
-            };
-            for line in lines {
-                eprintln!("netifd-rs: {name}: {line}");
+        for (name, st) in &mut self.protos {
+            for slot in [&mut st.script, &mut st.task] {
+                if let Some(pid) = slot.pid() {
+                    for line in slot.poll_lines() {
+                        logging::log!(Notice, "{name} ({pid}): {line}");
+                    }
+                }
             }
         }
     }
@@ -2383,9 +2386,9 @@ impl Netifd {
     fn reap_children(&mut self) {
         self.poll_child_output();
         self.wireless_reap();
-        if let Some((_, _, output)) = self.hotplug.reap() {
+        if let (Some(pid), Some((_, _, output))) = (self.hotplug.pid(), self.hotplug.reap()) {
             for line in output.lines().filter(|l| !l.trim().is_empty()) {
-                eprintln!("netifd-rs: hotplug: {line}");
+                logging::log!(Notice, "hotplug ({pid}): {line}");
             }
             self.hotplug_current = None;
             self.pump_hotplug();
@@ -2395,17 +2398,18 @@ impl Netifd {
             for which in [proto::Which::Script, proto::Which::Task] {
                 let exited = {
                     let st = self.proto_state(&name);
-                    match which {
-                        proto::Which::Script => st.script.reap(),
-                        proto::Which::Task => st.task.reap(),
-                    }
+                    let slot = match which {
+                        proto::Which::Script => &mut st.script,
+                        proto::Which::Task => &mut st.task,
+                    };
+                    slot.pid().zip(slot.reap())
                 };
-                let Some((argv0, status, output)) = exited else { continue };
+                let Some((pid, (argv0, status, output))) = exited else { continue };
                 for line in output.lines().filter(|l| !l.trim().is_empty()) {
-                    eprintln!("netifd-rs: {name}: {line}");
+                    logging::log!(Notice, "{name} ({pid}): {line}");
                 }
                 if status != 0 {
-                    eprintln!("netifd-rs: {name}: {argv0} exited {status}");
+                    logging::log!(Info, "{name}: {argv0} exited {status}");
                 }
                 if which == proto::Which::Task {
                     let st = self.proto_state(&name);
@@ -2499,8 +2503,8 @@ impl Netifd {
         let mut r = sys::subnet_route(addr, ic.metric, table);
         r.proto = None;
         if let Err(e) = self.sys.add_route(devidx, &r) {
-            eprintln!(
-                "netifd-rs: {}: cannot take over the {}/{} prefix route: {e}",
+            logging::log!(Warning,
+                "{}: cannot take over the {}/{} prefix route: {e}",
                 ic.name, addr.ip, addr.mask
             );
         }
@@ -2602,7 +2606,7 @@ impl Netifd {
             null.metric = i32::MAX as u32;
             null.nodev = true;
             if let Err(e) = self.sys.add_route(0, &null) {
-                eprintln!("netifd-rs: cannot add the {}/{} null route: {e}", p.addr, p.length);
+                logging::log!(Warning, "cannot add the {}/{} null route: {e}", p.addr, p.length);
             }
         }
         let prefixes = self.delegating_prefixes();
@@ -2639,8 +2643,8 @@ impl Netifd {
                                 sa.preferred = left(p.preferred_until);
                                 sa.valid = left(p.valid_until);
                                 if let Err(e) = self.sys.add_address(di, &sa) {
-                                    eprintln!(
-                                        "netifd-rs: {}: cannot add {local}/{}: {e}",
+                                    logging::log!(Warning,
+                                        "{}: cannot add {local}/{}: {e}",
                                         a.name, a.length
                                     );
                                 }
@@ -2655,8 +2659,8 @@ impl Netifd {
                                 let t = ic.and_then(|i| i.ip6table).unwrap_or(0);
                                 pr.table = if t != 0 { t } else { sys::RT_TABLE_MAIN };
                                 if let Err(e) = self.sys.add_route(di, &pr) {
-                                    eprintln!(
-                                        "netifd-rs: {}: cannot add the {}/{rmask} route: {e}",
+                                    logging::log!(Warning,
+                                        "{}: cannot add the {}/{rmask} route: {e}",
                                         a.name, pr.target
                                     );
                                 }
@@ -2811,7 +2815,7 @@ impl Netifd {
         // MAC rather than the kernel's
         self.apply_device_settings(port, pi);
         if let Err(e) = self.sys.bridge_setmaster(pi, bi) {
-            eprintln!("netifd-rs: cannot add {port} to {br}: {e}");
+            logging::log!(Warning, "cannot add {port} to {br}: {e}");
             return;
         }
         let explicit =
@@ -2819,7 +2823,7 @@ impl Netifd {
         if !explicit {
             let path = format!("/proc/sys/net/ipv6/conf/{port}/disable_ipv6");
             if let Err(e) = std::fs::write(&path, "1") {
-                eprintln!("netifd-rs: cannot disable IPv6 on {port}: {e}");
+                logging::log!(Warning, "cannot disable IPv6 on {port}: {e}");
             }
         }
         self.device_claim(port);
@@ -2833,7 +2837,7 @@ impl Netifd {
                 b.members.push(port.to_string());
             }
         }
-        eprintln!("netifd-rs: bridge {br}: port {port} added");
+        logging::log!(Info, "bridge {br}: port {port} added");
     }
 
     /// `bridge_hotplug_del`: a member that is not there is NOT_FOUND; one the
@@ -2854,13 +2858,13 @@ impl Netifd {
         if let Ok(pi) = self.sys.if_index(port) {
             if pi != 0 {
                 if let Err(e) = self.sys.bridge_setmaster(pi, 0) {
-                    eprintln!("netifd-rs: cannot remove {port} from {br}: {e}");
+                    logging::log!(Warning, "cannot remove {port} from {br}: {e}");
                 }
             }
         }
         self.device_release(port);
         self.bridge_port_del(br, port);
-        eprintln!("netifd-rs: bridge {br}: port {port} removed");
+        logging::log!(Info, "bridge {br}: port {port} removed");
         0
     }
 
@@ -2906,7 +2910,7 @@ impl Netifd {
             }
             if now {
                 self.present.push(name.clone());
-                eprintln!("netifd-rs: device '{name}' is now present");
+                logging::log!(Debug, "device '{name}' is now present");
                 // a plain `config device` (e.g. wan with an explicit macaddr)
                 // that appears late gets its settings when its interface
                 // claims it (`device_claim` -> `system_if_up`), like the C
@@ -2916,7 +2920,7 @@ impl Netifd {
                 self.device_added(&name);
             } else {
                 self.present.retain(|n| *n != name);
-                eprintln!("netifd-rs: device '{name}' is no longer present");
+                logging::log!(Debug, "device '{name}' is no longer present");
                 if let Some(br) = self.bridge_of_port(&name) {
                     self.bridge_port_del(&br, &name);
                 }
@@ -2934,11 +2938,11 @@ impl Netifd {
             }
             if now {
                 self.present.push(name.clone());
-                eprintln!("netifd-rs: device '{name}' is now present");
+                logging::log!(Debug, "device '{name}' is now present");
                 self.device_added(&name);
             } else {
                 self.present.retain(|n| *n != name);
-                eprintln!("netifd-rs: device '{name}' is no longer present");
+                logging::log!(Debug, "device '{name}' is no longer present");
                 self.device_removed(&name);
             }
         }
@@ -3042,8 +3046,8 @@ impl Netifd {
             Some(slot) => slot.1 = new_state,
             None => self.link_state.push((name.to_string(), new_state)),
         }
-        eprintln!(
-            "netifd-rs: Interface '{name}' has link connectivity {}",
+        logging::log!(Notice,
+            "Interface '{name}' has link connectivity {}",
             if new_state { "" } else { "loss" }
         );
         self.check_state(name);
@@ -3189,10 +3193,10 @@ impl Netifd {
         self.interfaces.push(i);
         self.interfaces.sort_by(|a, b| a.name.cmp(&b.name));
         if let Err(e) = self.register_interface(&name) {
-            eprintln!("netifd-rs: cannot register {name}: {e}");
+            logging::log!(Warning, "cannot register {name}: {e}");
             return status::UNKNOWN_ERROR;
         }
-        eprintln!("netifd-rs: Create interface '{name}'");
+        logging::log!(Debug, "Create interface '{name}'");
         if present {
             self.set_available(&name, true);
         }
@@ -3216,7 +3220,7 @@ impl Netifd {
             if self.iface_index(&name).is_none() {
                 continue;
             }
-            eprintln!("netifd-rs: Remove interface '{name}'");
+            logging::log!(Debug, "Remove interface '{name}'");
             // Exactly one ifdown. `mark_interface_down` flushes the state,
             // releases the claims and emits a single IFEV_DOWN; adding
             // `set_down` first emitted a second one, and skipping both
@@ -3225,7 +3229,7 @@ impl Netifd {
             self.interfaces.retain(|i| i.name != name);
             self.cfg.interfaces.retain(|c| c.name != name);
             if let Err(e) = self.objects.remove_interface(&mut self.conn, &name) {
-                eprintln!("netifd-rs: cannot unregister {name}: {e}");
+                logging::log!(Warning, "cannot unregister {name}: {e}");
             }
             self.link_state.retain(|(n, _)| *n != name);
             // `proto_ext_free`: `netifd_kill_process` on both tasks. Dropping
@@ -3539,7 +3543,7 @@ impl Netifd {
         // DOWN interface whose addresses are still on the device.
         // `IFPEV_DOWN` logs before it marks the interface down
         if prev != State::Setup {
-            eprintln!("netifd-rs: Interface '{name}' is now down");
+            logging::log!(Notice, "Interface '{name}' is now down");
         }
         self.interfaces[idx].state = State::Down;
         match prev {
@@ -3566,8 +3570,8 @@ impl Netifd {
                         }
                         let d = if r.flags & interface::devroute::NODEV != 0 { 0 } else { di };
                         if let Err(e) = self.sys.del_route(d, &sys_route(r)) {
-                            eprintln!(
-                                "netifd-rs: {name}: cannot remove the route to {}/{}: {e}",
+                            logging::log!(Warning,
+                                "{name}: cannot remove the route to {}/{}: {e}",
                                 r.target, r.mask
                             );
                         }
@@ -3584,8 +3588,8 @@ impl Netifd {
                     for a in &addrs {
                         let sa = sys::Address::new(a.addr, a.mask);
                         if let Err(e) = self.sys.del_address(di, &sa) {
-                            eprintln!(
-                                "netifd-rs: {name}: cannot remove {}/{}: {e}",
+                            logging::log!(Warning,
+                                "{name}: cannot remove {}/{}: {e}",
                                 a.addr, a.mask
                             );
                         }
@@ -3642,7 +3646,7 @@ impl Netifd {
         let up = matches!(ev, Event::Up);
         if matches!(ev, Event::Up | Event::Down) {
             if let Err(e) = ubus::interface_event(&mut self.conn, name, up) {
-                eprintln!("netifd-rs: cannot send the {name} interface event: {e}");
+                logging::log!(Warning, "cannot send the {name} interface event: {e}");
             }
         }
 
@@ -3662,7 +3666,7 @@ impl Netifd {
             .map(|(_, id)| *id);
         for id in [Some(shared), own].into_iter().flatten() {
             if let Err(e) = self.conn.notify(id, method, &fields) {
-                eprintln!("netifd-rs: cannot notify {method} for {name}: {e}");
+                logging::log!(Warning, "cannot notify {method} for {name}: {e}");
             }
         }
 
@@ -3721,7 +3725,7 @@ impl Netifd {
         match self.hotplug.start(&argv, &env) {
             Ok(()) => self.hotplug_current = Some((name, ev)),
             Err(e) => {
-                eprintln!("netifd-rs: cannot run {} for {name}: {e}", self.hotplug_path);
+                logging::log!(Warning, "cannot run {} for {name}: {e}", self.hotplug_path);
                 self.hotplug_current = None;
             }
         }
@@ -3868,7 +3872,7 @@ impl Netifd {
                         b.msg_string("interface", &iface);
                         let fields = b.payload().to_vec();
                         if let Err(e) = self.conn.reply_data(req, &fields) {
-                            eprintln!("netifd-rs: cannot reply to add_host_route: {e}");
+                            logging::log!(Warning, "cannot reply to add_host_route: {e}");
                         }
                         self.conn.reply_status(req, status::OK, None)
                     }
@@ -4080,7 +4084,7 @@ impl Netifd {
                     b.msg_string("bridge", br);
                 }
                 if let Err(e) = self.conn.reply_data(req, b.payload()) {
-                    eprintln!("netifd-rs: cannot reply to prepare: {e}");
+                    logging::log!(Warning, "cannot reply to prepare: {e}");
                 }
                 self.conn.reply_status(req, status::OK, None)
             }
@@ -4095,7 +4099,7 @@ impl Netifd {
             }
         };
         if let Err(e) = r {
-            eprintln!("netifd-rs: reply failed: {e}");
+            logging::log!(Warning, "reply failed: {e}");
         }
     }
 
@@ -4144,7 +4148,7 @@ impl Netifd {
                 self.update_link_states();
             }
             Ok(_) => {}
-            Err(e) => eprintln!("netifd-rs: netlink event read failed: {e}"),
+            Err(e) => logging::log!(Warning, "netlink event read failed: {e}"),
         }
     }
 
@@ -4164,18 +4168,18 @@ impl Netifd {
         let objects = match ubus::Objects::register(&mut self.conn) {
             Ok(o) => o,
             Err(e) => {
-                eprintln!("netifd-rs: reconnected but cannot register: {e}");
+                logging::log!(Warning, "reconnected but cannot register: {e}");
                 return;
             }
         };
         self.objects = objects;
         for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
             if let Err(e) = self.objects.add_interface(&mut self.conn, &name) {
-                eprintln!("netifd-rs: reconnected but cannot register {name}: {e}");
+                logging::log!(Warning, "reconnected but cannot register {name}: {e}");
             }
         }
         self.bus_down = false;
-        eprintln!("netifd-rs: reconnected to ubus");
+        logging::log!(Info, "reconnected to ubus");
     }
 
     /// Messages that arrive while a blocking request is waiting for its own
@@ -4192,7 +4196,7 @@ impl Netifd {
                 Ok(Incoming::Invoke(req)) => self.handle(req),
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("netifd-rs: bus connection lost: {e}");
+                    logging::log!(Warning, "bus connection lost: {e}");
                     self.bus_down = true;
                     self.bus_retry_at = now() + BUS_RETRY_SECS;
                     break;
@@ -4223,7 +4227,7 @@ impl Netifd {
     /// (R81 F03). The exact rootfs also stops its ucode-owned wireless
     /// handler on exit, as the shutdown case in r83_wireless_deadline proves.
     fn shutdown(&mut self) -> ! {
-        eprintln!("netifd-rs: terminating on signal");
+        logging::log!(Info, "terminating on signal");
         for (_, st) in &mut self.protos {
             st.script.terminate();
             st.task.terminate();
@@ -4246,7 +4250,7 @@ impl Netifd {
             .map(|(n, _)| n.clone())
             .collect();
         for name in names {
-            eprintln!("netifd-rs: {name}: teardown timed out, killing the protocol handler");
+            logging::log!(Warning, "{name}: teardown timed out, killing the protocol handler");
             let st = self.proto_state(&name);
             st.teardown_deadline = None;
             st.script.terminate();
@@ -4277,7 +4281,7 @@ impl Netifd {
                 Ok(_) => {}
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
                 Err(e) => {
-                    eprintln!("netifd-rs: poll failed: {e}");
+                    logging::log!(Warning, "poll failed: {e}");
                     std::process::exit(1);
                 }
             }
@@ -4305,7 +4309,7 @@ impl Netifd {
                         // `netifd_ubus_connection_lost`: retry, do not exit.
                         // Exiting only looks survivable because procd restarts
                         // the daemon -- and that loses every interface.
-                        eprintln!("netifd-rs: bus connection lost: {e}");
+                        logging::log!(Warning, "bus connection lost: {e}");
                         self.bus_down = true;
                         self.bus_retry_at = now() + BUS_RETRY_SECS;
                     }
@@ -4537,7 +4541,7 @@ impl Netifd {
             _ => cap,
         });
         if let Err(e) = self.sys.add_address(di, &sa) {
-            eprintln!("netifd-rs: cannot deprecate {local}/{len}: {e}");
+            logging::log!(Warning, "cannot deprecate {local}/{len}: {e}");
         }
     }
 
@@ -4601,7 +4605,7 @@ impl Netifd {
                 if process_alive(pid, &exe) {
                     continue;
                 }
-                eprintln!("netifd-rs: {name}: process {exe}({pid}) no longer active");
+                logging::log!(Warning, "{name}: process {exe}({pid}) no longer active");
                 self.wireless_teardown(&name);
                 break;
             }
@@ -4744,7 +4748,7 @@ impl Netifd {
                 ] {
                     let path = format!("/sys/class/net/{port}/brport/{attr}");
                     if let Err(e) = std::fs::write(&path, if enabled { "1" } else { "0" }) {
-                        eprintln!("netifd-rs: cannot set {port} {attr}: {e}");
+                        logging::log!(Warning, "cannot set {port} {attr}: {e}");
                     }
                 }
                 if let Some(r) = self.wradio(name) {
@@ -4845,7 +4849,7 @@ impl Netifd {
         ];
         self.wcur = Some((name.clone(), op));
         if let Err(e) = self.wslot.start_in(&argv, &[], &dir) {
-            eprintln!("netifd-rs: {name}: cannot run the wireless handler: {e}");
+            logging::log!(Warning, "{name}: cannot run the wireless handler: {e}");
             self.wireless_complete();
             return;
         }
@@ -4863,13 +4867,15 @@ impl Netifd {
 
     /// The handler exited. `wdev_setup_cb` / `wdev_teardown_cb`.
     fn wireless_reap(&mut self) {
-        let Some((argv0, status, output)) = self.wslot.reap() else { return };
+        let Some((pid, (argv0, status, output))) = self.wslot.pid().zip(self.wslot.reap()) else {
+            return;
+        };
         let Some((name, _)) = self.wcur.as_ref() else { return };
         for line in output.lines().filter(|l| !l.trim().is_empty()) {
-            eprintln!("netifd-rs: {name}: {line}");
+            logging::log!(Notice, "{name} ({pid}): {line}");
         }
         if status != 0 {
-            eprintln!("netifd-rs: {name}: {argv0} exited {status}");
+            logging::log!(Info, "{name}: {argv0} exited {status}");
         }
         self.wireless_complete();
     }
@@ -5035,13 +5041,13 @@ impl Netifd {
                     .and_then(|c| c.as_str().map(|s| s.to_string()));
                 match (pid, exe) {
                     (Some(pid), Some(exe)) => {
-                        eprintln!("netifd-rs: {dev}: watching {exe}({pid})");
+                        logging::log!(Debug, "{dev}: watching {exe}({pid})");
                         if let Some(r) = self.wradio(&dev) {
                             r.procs.push((pid, exe));
                         }
                     }
-                    _ => eprintln!(
-                        "netifd-rs: {dev}: process_add without a usable pid and exe"
+                    _ => logging::log!(Warning,
+                        "{dev}: process_add without a usable pid and exe"
                     ),
                 }
                 status::OK
@@ -5174,6 +5180,8 @@ fn main() {
     let mut protodir = DEFAULT_PROTO_DIR.to_string();
     let mut resolvconf = DEFAULT_RESOLV_CONF.to_string();
     let mut socket: Option<String> = None;
+    let mut log_stderr = false;
+    let mut log_level = logging::DEFAULT_LEVEL;
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
         match a.as_str() {
@@ -5182,6 +5190,17 @@ fn main() {
             "-h" => hotplug = args.next().unwrap_or(hotplug),
             "-p" => protodir = args.next().unwrap_or(protodir),
             "-r" => resolvconf = args.next().unwrap_or(resolvconf),
+            "-S" => log_stderr = true,
+            "-l" => {
+                let Some(level) = args.next() else {
+                    eprintln!("netifd-rs: -l requires a level");
+                    std::process::exit(1);
+                };
+                log_level = logging::parse_level(&level);
+            }
+            level if level.starts_with("-l") && level.len() > 2 => {
+                log_level = logging::parse_level(&level[2..]);
+            }
             "-V" | "--version" => {
                 println!("{BUILD_ID}");
                 return;
@@ -5203,6 +5222,7 @@ fn main() {
         }
     }
 
+    logging::init(log_stderr, log_level);
     let mut n = match Netifd::new(&confdir, socket.as_deref(), &hotplug, &protodir) {
         Ok(n) => n,
         Err(e) => {

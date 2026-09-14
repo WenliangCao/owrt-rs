@@ -16,6 +16,8 @@ mod ethtool_modes;
 mod interface;
 #[path = "../src/ip.rs"]
 mod ip;
+#[path = "../src/logging.rs"]
+mod logging;
 #[path = "../src/netdev_types.rs"]
 mod netdev_types;
 #[path = "../src/netlink.rs"]

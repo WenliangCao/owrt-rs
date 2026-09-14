@@ -5,6 +5,11 @@
 > against the clean build-host Git checkout. In particular F10 is shared by
 > the original, not a Rust-only difference. Lifecycle findings and their
 > original/R89/candidate evidence are superseded by [R90](../R90_BATCH1_LIFECYCLE.md).
+>
+> R91 correction: F6 is retracted. The pinned `ubus.c` and the exact image's
+> runtime interface signature both omit interface-level `restart`, matching
+> R90. F8's syslog channel and `-S`/`-l` handling are addressed by the local
+> R91 candidate; see [R91](../R91_NETIFD_LOGGING.md) for validation and deployment status.
 
 Scope: components/netifd/src/{main,process,proto,netlink,sys,interface,device,ubus}.rs (targeted regions of the 5.2k-line main.rs) vs C main.c, proto-ext.c, proto-shell.c, interface.c, interface-event.c, interface-ip.c, system-linux.c, ubus.c; contracts netifd.md, netifd-proto-shell.md; evidence R80/R83/R86/R87, netifd_suite.sh and r49/r52/r54/r63/r83 diffs. Wireless only at reload/state-machine level.
 

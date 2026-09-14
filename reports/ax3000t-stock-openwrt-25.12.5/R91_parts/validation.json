@@ -1,0 +1,863 @@
+{
+  "schema_version": 1,
+  "round": "R91",
+  "date": "2026-09-14",
+  "scope": "netifd logging and correction of the R88 F6 interface-method finding",
+  "status": "development_candidate_validated_not_deployed",
+  "base_commit": "d669b05e993f3cd3fd0352c8f58227c80e7c70ea",
+  "reference": {
+    "upstream_revision": "cbb83a1857407a28a63dc09412a1f209195914ef",
+    "upstream_files_sha256": {
+      "interface.c": "3404ca8b45b2e9cd638f11852f52f5dc33f338502a0a9e06a88d68f4ebfc1829",
+      "proto-shell.c": "414456fcddd798f590d6a9c9c196f0645f1d026933d11100c34ea1dc8aa2a668",
+      "ubus.c": "3ae2788070d1b0160ffaca536d33bf7514c7c1c546e3067fc975173ab0646205",
+      "main.c": "659cd502d660c062d777a79d7ed4bd60d01121d99d98f9bae94d1708e9940079",
+      "system-linux.c": "a3d94025b4ce24cf317bcccfbe0b47f2753e521f1ac807fae186818ef30c55fb",
+      "netifd.h": "ff9e66ea37b4e3e762f1c014741075f498c0a66b236b20baadb217c442170108"
+    },
+    "image_files_sha256": {
+      "sbin/netifd": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+      "sbin/ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "etc/init.d/network": "1c27ae29b6702f51e96d1aacd5181f0041e3672635ed9026fae179afa4e94b6e"
+    },
+    "build_host": {
+      "system": "Linux",
+      "architecture": "aarch64",
+      "kernel": "6.17.0-1020-oracle"
+    },
+    "rustc_verbose": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8"
+  },
+  "candidate": {
+    "official_release": false,
+    "target": "aarch64-unknown-linux-musl",
+    "build_command": "cargo +1.98.1 build --locked --release --bins --examples --target aarch64-unknown-linux-musl --manifest-path components/netifd/Cargo.toml",
+    "sha256": "6915569a21fa05f81944c0070d52d71db8f0ff08b3a2be1e505afe836a36bbc4",
+    "md5": "a73819d883bec87a64415740df1c1155",
+    "size_bytes": 1052824,
+    "source_manifest_files": 238,
+    "source_manifest_sha256": "da9e765bd56addb2caaed082f07d41d3cb0cbc5604d0ca0ea8f55d8f271d5f96",
+    "source_archive_sha256": "92892e22e12029e1c6c489282689bddd3efecba8adf0bc8630d950670601f057",
+    "source_matches_working_tree": true,
+    "build_log_sha256": "e877856298dab048b1c1b5f9433af245fe8e686456e00d1ad3264d7aeee7c18c"
+  },
+  "gates": [
+    {
+      "name": "netifd-unit",
+      "exit": 0,
+      "elapsed_seconds": 5.29,
+      "log_sha256": "c770d107fa2d0a14939185bb58798a98b4f87880a6f06aa27e1fcd24bf1a24be"
+    },
+    {
+      "name": "netifd-clippy",
+      "exit": 0,
+      "elapsed_seconds": 1.87,
+      "log_sha256": "88d6f4f6062c316fdc34cbae0bba5ba6f58b3f3862d7ae5eb6cf26c242241af0"
+    },
+    {
+      "name": "tools-syntax",
+      "exit": 0,
+      "elapsed_seconds": 0.41,
+      "log_sha256": "39e2c189fab15659d5536c710a51814fc33932b129264f31a1a60cde04f18fef"
+    },
+    {
+      "name": "netifd-suite",
+      "exit": 0,
+      "elapsed_seconds": 934.89,
+      "log_sha256": "3b0f44e63c904267ab64e807b3602d28938242a45dd3086a6a738e84fe4985d4"
+    },
+    {
+      "name": "r90-negative",
+      "exit": 1,
+      "elapsed_seconds": 19.25,
+      "log_sha256": "9db611a93b5310a1c9717dc50abb4a6ffddfc645666d23133628579c243af8ff",
+      "expected_failure_verified": true
+    }
+  ],
+  "unit_tests": {
+    "passed": 157,
+    "failed": 0,
+    "ignored": 0
+  },
+  "clippy": {
+    "exit": 0,
+    "existing_warning_count": 42,
+    "r90_existing_warning_count": 42,
+    "required_lint": "clippy::undocumented_unsafe_blocks"
+  },
+  "netifd_suite": {
+    "passed": 31,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "case": "r46",
+        "status": "ok",
+        "seconds": 0
+      },
+      {
+        "case": "r47",
+        "status": "ok",
+        "seconds": 6
+      },
+      {
+        "case": "r48",
+        "status": "ok",
+        "seconds": 7
+      },
+      {
+        "case": "r49",
+        "status": "ok",
+        "seconds": 12
+      },
+      {
+        "case": "r50",
+        "status": "ok",
+        "seconds": 32
+      },
+      {
+        "case": "r51",
+        "status": "ok",
+        "seconds": 30
+      },
+      {
+        "case": "r52",
+        "status": "ok",
+        "seconds": 23
+      },
+      {
+        "case": "r53",
+        "status": "ok",
+        "seconds": 73
+      },
+      {
+        "case": "r54",
+        "status": "ok",
+        "seconds": 28
+      },
+      {
+        "case": "r55",
+        "status": "ok",
+        "seconds": 84
+      },
+      {
+        "case": "r56",
+        "status": "ok",
+        "seconds": 14
+      },
+      {
+        "case": "r57",
+        "status": "ok",
+        "seconds": 31
+      },
+      {
+        "case": "r58",
+        "status": "ok",
+        "seconds": 22
+      },
+      {
+        "case": "r59",
+        "status": "ok",
+        "seconds": 16
+      },
+      {
+        "case": "r60_up_cmds",
+        "status": "ok",
+        "seconds": 41
+      },
+      {
+        "case": "r60_up",
+        "status": "ok",
+        "seconds": 16
+      },
+      {
+        "case": "r60_fail_cmds",
+        "status": "ok",
+        "seconds": 40
+      },
+      {
+        "case": "r60_fail",
+        "status": "ok",
+        "seconds": 17
+      },
+      {
+        "case": "r60_flood",
+        "status": "ok",
+        "seconds": 16
+      },
+      {
+        "case": "r60_token",
+        "status": "ok",
+        "seconds": 35
+      },
+      {
+        "case": "r60_proc",
+        "status": "ok",
+        "seconds": 24
+      },
+      {
+        "case": "r61",
+        "status": "ok",
+        "seconds": 29
+      },
+      {
+        "case": "r62",
+        "status": "ok",
+        "seconds": 64
+      },
+      {
+        "case": "r63",
+        "status": "ok",
+        "seconds": 13
+      },
+      {
+        "case": "r64",
+        "status": "ok",
+        "seconds": 24
+      },
+      {
+        "case": "r79",
+        "status": "ok",
+        "seconds": 47
+      },
+      {
+        "case": "r83",
+        "status": "ok",
+        "seconds": 27
+      },
+      {
+        "case": "r83c",
+        "status": "ok",
+        "seconds": 39
+      },
+      {
+        "case": "r83w",
+        "status": "ok",
+        "seconds": 75
+      },
+      {
+        "case": "r90",
+        "status": "ok",
+        "seconds": 35
+      },
+      {
+        "case": "r91",
+        "status": "ok",
+        "seconds": 15
+      }
+    ],
+    "outer_pid_namespace": true
+  },
+  "logging": {
+    "positive_identity": {
+      "original_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+      "candidate_sha256": "6915569a21fa05f81944c0070d52d71db8f0ff08b3a2be1e505afe836a36bbc4",
+      "probe_sha256": "5d1b42bf5f9adc3ff77ec9fb0c32f96500035707e325516296aab159c7839e92",
+      "cases": [
+        "surface",
+        "syslog",
+        "stderr",
+        "quiet",
+        "verbose",
+        "negative",
+        "invalid",
+        "reconnect",
+        "stderr_full"
+      ],
+      "sides": [
+        "original",
+        "candidate"
+      ]
+    },
+    "positive": [
+      {
+        "side": "original",
+        "case": "surface",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "syslog",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "stderr",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "quiet",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "verbose",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "negative",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "invalid",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "reconnect",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "stderr_full",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "surface",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "syslog",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "stderr",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "quiet",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "verbose",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "negative",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "invalid",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "reconnect",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "stderr_full",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      }
+    ],
+    "negative_identity": {
+      "original_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+      "candidate_sha256": "e8a18c5bf3c2f07aca6704a97030e64ed760e2a41f9a0d0139cb797588c3f4b9",
+      "probe_sha256": "5d1b42bf5f9adc3ff77ec9fb0c32f96500035707e325516296aab159c7839e92",
+      "cases": [
+        "surface",
+        "syslog",
+        "stderr",
+        "quiet",
+        "verbose",
+        "negative",
+        "invalid",
+        "reconnect",
+        "stderr_full"
+      ],
+      "sides": [
+        "original",
+        "candidate"
+      ]
+    },
+    "r90_negative": [
+      {
+        "side": "original",
+        "case": "surface",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "syslog",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "stderr",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "quiet",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "verbose",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "negative",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "invalid",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "reconnect",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "original",
+        "case": "stderr_full",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": true,
+          "notice_priority": true,
+          "channel_exclusive": true,
+          "child_identity": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "surface",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true
+        },
+        "passed": true
+      },
+      {
+        "side": "candidate",
+        "case": "syslog",
+        "exit": 0,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true,
+          "interface_down": true,
+          "live": true,
+          "notice_delivery": false,
+          "notice_priority": true,
+          "channel_exclusive": false,
+          "child_identity": false
+        },
+        "passed": false
+      },
+      {
+        "side": "candidate",
+        "case": "stderr",
+        "exit": 1,
+        "checks": {},
+        "passed": false
+      },
+      {
+        "side": "candidate",
+        "case": "quiet",
+        "exit": 1,
+        "checks": {},
+        "passed": false
+      },
+      {
+        "side": "candidate",
+        "case": "verbose",
+        "exit": 1,
+        "checks": {},
+        "passed": false
+      },
+      {
+        "side": "candidate",
+        "case": "negative",
+        "exit": 1,
+        "checks": {},
+        "passed": false
+      },
+      {
+        "side": "candidate",
+        "case": "invalid",
+        "exit": 1,
+        "checks": {},
+        "passed": false
+      },
+      {
+        "side": "candidate",
+        "case": "reconnect",
+        "exit": 1,
+        "checks": {
+          "identity": true,
+          "interface_up": true,
+          "methods": true
+        },
+        "passed": false
+      },
+      {
+        "side": "candidate",
+        "case": "stderr_full",
+        "exit": 1,
+        "checks": {},
+        "passed": false
+      }
+    ],
+    "r90_expected_failing_cases": 8,
+    "original_passed_cases": 9,
+    "r91_passed_cases": 9
+  },
+  "development_failures": [
+    {
+      "stage": "red-01",
+      "cause": "ubus -S -v suppressed method signatures on both sides",
+      "retained_results_sha256": "4a315d3fa2af9d7770da960e0732047444c70883bff748213f1641a458a93a18"
+    },
+    {
+      "stage": "development build of source-v1",
+      "exit": 101,
+      "diagnostic": "couldn't read examples/../../rpcd/examples/profile_support/mod.rs: No such file or directory (os error 2)",
+      "cause": "source archive omitted the existing profile example support file",
+      "resolution": "source-v2 includes components/rpcd/examples/profile_support/mod.rs; runtime source is unchanged",
+      "evidence_limit": "This records the observed tool diagnostic. Full stderr was not saved separately for the first build; build-v2 has a complete log."
+    }
+  ],
+  "limits": [
+    "No physical router connection, mutation, reboot or deployment in R91.",
+    "The deployed R90 attestation is not an R91 attestation.",
+    "No formal release build or performance matrix in this round.",
+    "Syslog uses a libc-owned socket; no claim that fd count or performance is unchanged.",
+    "Complete C log text, ordering, udebug and debug-mask compatibility are not asserted.",
+    "R88 netifd F7 and F9 remain open; F6 is retracted against the exact image."
+  ],
+  "private_evidence": "private/r91/oracle-evidence",
+  "validation_transport": {
+    "command": "ssh -o BatchMode=yes -o ConnectTimeout=10 oracle python3 /home/ubuntu/r91-netifd-logging/validate.py",
+    "local_pid": 40220,
+    "remote_validation_complete_before_close": true,
+    "remote_validation_process_absent_before_close": true,
+    "evidence_read_back_and_verified_before_close": true,
+    "action": "SIGTERM sent only after rechecking the local PID's exact command",
+    "ssh_client_exit": 255,
+    "gate_results_authority": "remote acceptance-v2/results.json, COMPLETE marker and hash-verified gate logs"
+  }
+}

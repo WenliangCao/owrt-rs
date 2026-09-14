@@ -162,3 +162,30 @@ R81 的 F03–F14 按镜像内 `/sbin/netifd`、协议脚本和 `wireless-device
   onlink/source/proto/disabled；无 `interface` → loopback + NODEV），进 `config_ip`，接口 UP 时装入内核、
   DOWN 时撤下；`valid` 不承载（**有意偏离**，本机无此用法）；`rule`/`rule6` 仍跳过（warning）。
   没有 `proto` 的接口段仍跳过（C 会用 no_proto 建对象——**有意偏离**，本机无此用法）。
+
+## 8. 日志通道与方法表（R91）
+
+精确参考是 `cbb83a1857407a28a63dc09412a1f209195914ef` 的 `main.c`、
+`netifd.h` 与 `ubus.c`，以及该镜像的 `/etc/init.d/network`。后者不设置
+`procd_set_param stderr`；只写 stderr 的候选在正常启动后不会把网络日志送到 logd。
+
+- 默认使用 libc `syslog`，ident 为 `netifd`，facility 为 `LOG_DAEMON`，
+  默认输出到 `L_NOTICE=2`。接口 setup/up/down、连接变化及协议子进程的 stdout/stderr
+  都是 notice；原始 syslog PRI 为 29。
+- `-S` 把这些消息改送 stderr，正文不重复添加 ident。与 C 的 `vfprintf` 一样，
+  stderr 写入失败不终止 daemon，包括被写满的非阻塞管道。
+- `-l <level>` / `-l<level>` 使用 C `atoi` 语义：数字前缀有效、非数字为 0、
+  大于 4 钳到 4，负数不钳为 0。只输出级别不高于该值的消息；过滤日志仍须排空子进程管道。
+- 协议脚本和 helper 的消息保留实际子进程 PID，形如 `wan (123): ...`。
+  消息作为 `%s` 的参数传给 libc，不把子进程输出当格式字符串。
+- logd 的 socket 被替换后继续投递，重连由 libc 处理；不新增日志线程或用户态发送队列。
+
+`tools/r91_netifd_logging.py` 在隔离 namespace 中收取真实 `/dev/log` 数据报，并验证
+通道、级别、子进程 PID、日志接收端重建及 stderr 写满。既有 Rust 诊断文本、
+额外 info/debug 消息和子进程输出分帧不等于完整 C 日志逐字节合同；本轮不实现
+`-d` 或 udebug，子进程输出的既有有损 UTF-8/末尾处理差异仍保留。
+
+R88 netifd F6 撤销：镜像匹配的 `iface_object_methods` 与原版运行时都只有
+`up/down/renew/status/prepare/dump/add_device/remove_device/notify_proto/remove/set_data`，
+没有接口级 `restart`。现有候选的方法表符合该版本；不要从较新上游补入这个方法。
+全局 `network restart` 是另一项合同，R88 F9 仍待处理。

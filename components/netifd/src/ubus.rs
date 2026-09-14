@@ -14,6 +14,8 @@ use owrt_ubus::blob::{BlobBuf, MsgType};
 use owrt_ubus::conn::{Connection, Request};
 use owrt_ubus::msg::status;
 
+use crate::logging;
+
 // blobmsg has no distinct BOOL type: a bool is INT8, and that is the type
 // `ubus -v list` prints for these arguments.
 const BOOL: MsgType = MsgType::Int8;
@@ -212,7 +214,7 @@ pub fn interface_event(conn: &mut Connection, name: &str, up: bool) -> io::Resul
 
 /// A refusal that names the method, so a caller sees which call it was.
 pub fn not_supported(conn: &mut Connection, req: &Request, what: &str) -> io::Result<()> {
-    eprintln!("netifd-rs: {what} is not implemented by this build");
+    logging::log!(Warning, "{what} is not implemented by this build");
     conn.reply_status(req, status::NOT_SUPPORTED, None)
 }
 
