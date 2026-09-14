@@ -456,6 +456,11 @@ fn read_request_into<R: Read>(
         if trimmed.is_empty() {
             break;
         }
+        // A NUL/control byte cannot be represented in a CGI environment
+        // and must not be silently accepted or truncate a header in C.
+        if trimmed.bytes().any(|b| (b < 0x20 && b != b'\t') || b == 0x7f) {
+            return Ok(bad_header(400, "Bad Request", version));
+        }
         let Some((name, value)) = trimmed.split_once(':') else {
             return Ok(bad_header(400, "Bad Request", version));
         };
@@ -849,6 +854,11 @@ impl<'a, R: BufRead> BodyReader<'a, R> {
                     let Ok(size) = u64::from_str_radix(size_text, 16) else {
                         return Err(self.fail(io::ErrorKind::InvalidData, "bad chunk size"));
                     };
+                    // client.c stores each chunk in a signed int. Reject
+                    // the same impossible lengths before waiting for data.
+                    if size > i32::MAX as u64 {
+                        return Err(self.fail(io::ErrorKind::InvalidData, "chunk size exceeds INT_MAX"));
+                    }
                     if size == 0 {
                         self.stage = Stage::Trailer;
                     } else {
@@ -983,7 +993,7 @@ pub struct Response<'a, W: Write> {
     method: Method,
     connection_close: bool,
     keepalive_timeout: u32,
-    code: u16,
+    code: i32,
     chunked: bool,
     disable_chunked: bool,
     headers_done: bool,
@@ -1026,7 +1036,8 @@ impl<'a, W: Write> Response<'a, W> {
     }
 
     /// Status line plus Connection/Transfer-Encoding/Keep-Alive headers.
-    pub fn status(&mut self, code: u16, summary: &str) -> io::Result<()> {
+    pub fn status(&mut self, code: impl Into<i32>, summary: &str) -> io::Result<()> {
+        let code = code.into();
         self.code = code;
         self.chunked = self.use_chunked();
         let conn = if self.connection_close {
@@ -1304,6 +1315,33 @@ mod tests {
         assert_eq!(r.method, Method::Head);
         assert!(r.connection_close);
         assert_eq!(r.header("host"), Some("y"));
+    }
+
+    #[test]
+    fn header_controls_cannot_reach_dispatch() {
+        for byte in (0..=31).chain([127]).filter(|b| *b != b'\t' && *b != b'\n' && *b != b'\r') {
+            let mut raw = b"GET / HTTP/1.1\r\nX-Test: a".to_vec();
+            raw.push(byte);
+            raw.extend_from_slice(b"b\r\n\r\n");
+            let mut input = BufReader::new(io::Cursor::new(raw));
+            assert!(matches!(read_request(&mut input, true, None).unwrap(), ParseOutcome::Bad { code: 400, .. }));
+        }
+        let mut input = BufReader::new(io::Cursor::new(b"GET / HTTP/1.1\r\nX-Test: a\tb\r\n\r\n"));
+        assert!(matches!(read_request(&mut input, true, None).unwrap(), ParseOutcome::Request(_)));
+    }
+
+    #[test]
+    fn chunk_length_boundary_is_checked_before_reading_payload() {
+        for (size, valid) in [("7fffffff", true), ("80000000", false), ("ffffffffffffffff", false)] {
+            let raw = format!("POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n{size}\r\nx");
+            let mut input = BufReader::new(io::Cursor::new(raw));
+            let ParseOutcome::Request(request) = read_request(&mut input, true, None).unwrap() else { panic!() };
+            let input = RefCell::new(input);
+            let mut body = BodyReader::new(&input, &request);
+            let result = body.read(&mut [0; 1]);
+            if valid { assert_eq!(result.unwrap(), 1); }
+            else { assert_eq!(result.unwrap_err().kind(), io::ErrorKind::InvalidData); }
+        }
     }
 
     #[test]

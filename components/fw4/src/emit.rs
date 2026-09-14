@@ -239,14 +239,15 @@ impl Fw4 {
     /// `parse_setfile(set, cb)`: entries from `loadfile`.
     pub fn parse_setfile(&self, set: &Ipset, cb: &mut dyn FnMut(&[String])) -> Option<usize> {
         let path = set.loadfile.as_deref()?;
-        let Some(data) = self.inputs.read_all(path) else {
-            self.raw_warn(&format!(
-                "Unable to load file '{}' for set '{}': {}\n",
-                path,
-                set.name,
-                if self.inputs.is_mock() { "Unspecified error" } else { "No such file or directory" }
-            ));
-            return None;
+        let data = match self.inputs.read_open(path) {
+            Ok(data) => data,
+            Err(error) => {
+                self.raw_warn(&format!(
+                    "Unable to load file '{}' for set '{}': {}\n",
+                    path, set.name, crate::input::fs_error(&error)
+                ));
+                return None;
+            }
         };
         let mut count = 0;
         for line in data.split_inclusive('\n') {

@@ -431,7 +431,7 @@ pub fn exec(ctx: &Ctx, req: Request, args: &Json, deferrer: &Deferrer) -> Outcom
 }
 
 /// rpc_exec with the default callbacks (exec.c): run `executable` with
-/// `params`, collect stdout/stderr (64 KiB cap each -> NOT_SUPPORTED), kill on
+/// `params`, collect stdout/stderr (256 KiB cap each -> NOT_SUPPORTED), kill on
 /// timeout (-> TIMEOUT), reply {code, stdout?, stderr?}. A failed exec in the
 /// child is code 127.
 pub fn run_command(executable: &str, params: &[String], env: &[(String, String)], timeout_ms: i32) -> Result<Json, i32> {
@@ -485,9 +485,10 @@ fn run_command_os(executable: &OsStr, params: &[OsString], env: &[(OsString, OsS
         }
     }
     if out.overflow || err.overflow {
+        out.file = None;
+        err.file = None;
         // The read callbacks schedule NOT_SUPPORTED the moment
-        // ustream_read_buf_full() trips. Both capture fds are already closed
-        // (Pipe::read_ready drops the File on overflow), so the child gets
+        // ustream_read_buf_full() trips. Close both capture fds, so the child gets
         // EPIPE rather than blocking on a pipe nobody drains; the grace here
         // only covers a child that ignores SIGPIPE.
         let _ = crate::procwait::wait(&mut child, Duration::from_millis(EXEC_TICK_MS));

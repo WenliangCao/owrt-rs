@@ -38,8 +38,10 @@ TCP keepalive 1；最多 3 个并发脚本、100 个连接；RFC1918 过滤；�
 3. 文件：要求 `S_IROTH`；方法只允许 GET/POST/HEAD/OPTIONS，否则 405。
 4. 响应头：`ETag: "<ino>-<size>-<mtime>"`（十六进制）、`Last-Modified`、`Date`、`Content-Type`（按扩展名表，
    缺省 `application/octet-stream`）、`Content-Length`；文件响应不分块。
-5. 条件请求：`If-Modified-Since`（≥ mtime → 304）、`If-Match`（不匹配 → 412）、`If-None-Match`
-   （匹配：GET/HEAD → 304，其他 → 412）、`If-Unmodified-Since`、`If-Range`。304/412 响应带 ETag/Last-Modified/Date。
+5. 条件请求：`If-Match` 不匹配 → 412；`If-None-Match` 匹配时 GET/HEAD → 304，其他 → 412。
+   **精确镜像的 musl `strptime` 不接受原版使用的 `%Z`**，`If-Modified-Since` 和
+   `If-Unmodified-Since` 因日期解析失败被忽略；R92 双侧 HTTP 用例确认，包括从同一响应取回的
+   Last-Modified。不能把较新 libc 的日期行为写成本镜像合同。304/412 仍带 ETag/Last-Modified/Date。
 6. 不存在 → 404 `The requested URL <path> was not found on this server.`；无权限 → 403。
    错误正文保留原始请求目标及 query，并按 uhttpd 的规则转义。
 
@@ -102,3 +104,27 @@ IANA、OpenSSL 与镜像 mbedTLS 的套件拼写。rustls 0.23.43 默认缓冲�
 关键头与正文哈希；`Date`、`Keep-Alive` 值等时变项屏蔽。
 R83 增补 r14 的 CGI 错误、环境、query 和 UA 用例，r27 比较正文长度及哈希；
 `tools/r83_httpd_compat.py` 覆盖 Basic auth、选项、连接/脚本队列、慢头、SSE、连接复用和 TLS。
+
+## 9. R92 边界合同
+
+- 检查顺序为 RFC1918 过滤 → HTTPS 重定向 → 100 Continue；loopback 不增加 C 中没有的例外。
+  `-E` 也处理静态文件/禁目录列表的 403，传 REDIRECT_STATUS，错误处理器递归有界。
+- 裸端口同时尝试 IPv4/IPv6；主机名按解析结果绑定；任一成功监听可保留。重定向只选实际绑定的
+  同地址族 TLS 监听，并优先 443。CGI 三字符 Status 按原版 atoi 前缀解释，包括 `abc` → `000`。
+- header 阶段错误发送完整 chunk 结束符；原版可缺少结束符。chunk 扩展和有限 trailer 继续接受
+  （单行 4096 字节、trailer 总计 8192 字节且至多 64 行）。chunk 长度不得超过 INT_MAX。
+  framing 错误返回 HTTP 400 并关闭，原版在 `/ubus` 下可回 HTTP 200 + -32700。
+- 控制字节请求头（允许 HTAB）立即返回 400，避免 NUL 截断或无法传入 CGI 环境；LF-only 请求
+  继续接受。完整的 22 项处置逐项记录在
+  [r92-deviations.json](../../tests/reference/httpd/r92-deviations.json)，不是笼统豁免。
+  [r92_httpd_fuzz_gate.py](../../tools/r92_httpd_fuzz_gate.py) 比较 133 项完整规范化响应；
+  仅控制字节头、超大 chunk 两项允许相对正式 R89 改变，其余保持既有结果。
+- batch 回复逐项序列化、写出并 flush；下游写失败立即终止后续 RPC。仍保留 ≤65536 字节的输入
+  JSON 树和一个 RPC 的回复，不承诺把任意单次 RPC 回复限制到固定字节数。原版也会在慢读下积压。
+- ubus 连接失败：JSON-RPC call → -32000；GET list → HTTP 500/code 2；lookup 状态按实际返回。
+  候选重连并执行配置的 deadline；原版断连后可能一直失效，lookup 无超时。这两项恢复改进保留。
+- `-n` 等候槽由线程调度唤醒，不保证原版 LIFO 顺序；队列用例验证槽位上限、每请求只执行一次及
+  全部请求完成。无客户端接口依赖 LIFO，避免为内部排队次序引入额外全局队列。
+
+运行对照：[r92_compat_probe.py](../../tools/r92_compat_probe.py) 的 HTTP 场景；慢读 batch
+与失败停止：[r92_recovery_probe.py](../../tools/r92_recovery_probe.py)。

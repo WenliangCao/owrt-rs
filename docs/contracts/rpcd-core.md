@@ -70,3 +70,17 @@
 全方法在设备 6 个真实包上的读、写、changes、revert、commit、apply/confirm/rollback；rc list（含
 skip_running_check）与 init（enable/disable 一个无副作用脚本）。会话 id 与 expires 遮罩。设备门禁
 只读：`session list`/`access`（默认会话）、`uci configs/get/changes/state` 原候选相同。
+
+## 5. R92 字节与匹配边界
+
+ACL 复杂模式交给镜像目标 libc fnmatch；ACL 使用 FNM_NOESCAPE，login 授权组/否定组及文件 glob
+使用 flags=0。未闭合 `[`、首字符 `]`、POSIX 类、转义星号均由精确原版对照确定。
+两侧 daemon 都在 C locale；`?` 不匹配双字节 `é`，R88 对这一点的差异推测撤销。
+
+object 名支持原始字节。function 和会话 id 仍要求 UTF-8：grant/revoke 先选前两个 STRING，
+无效第二项使该 pair 跳过，第三项不得递补成另一项授权/撤权；无效 SID 返回 INVALID_ARGUMENT，
+而原版为 NOT_FOUND。无效 UTF-8 ACL 文件整份跳过并记日志，不得用 U+FFFD 改写授权标识符；
+原版 json-c 可接受这些原始字节。这些为有意的拒绝侧差异，正常文件和其它文件继续加载。
+
+UCI 的 scalar/list 转储（包括 get/state）保留原始值字节；名字校验与 UCI 合同一致。
+回归：`r92_compat_probe.py` 的 `rpcd_compat`，覆盖 login 正/负模式、字节值、无效授权及撤权。

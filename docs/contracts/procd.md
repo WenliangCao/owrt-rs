@@ -328,3 +328,16 @@ r65 第 25b 例）：
 | `service event` | `event.trigger` | 请求原样：`{"type","data"}` |
 | `service event` 且 type 为 `config.change`、data 有 `package` | 另发 `config.change` | `{"config": package}` |
 | `set_data` / data 变化 | **没有**通知 | `service_data_trigger()` 只走内部规则引擎 |
+
+## 15. R92 恢复与启动边界
+
+总线断连和重连等待期间继续排空实例 stdout/stderr、处理退出与监管定时器，避免管道写满后
+堵住服务子进程。非 PID 1 监管模式也维护 watchdog 节拍；精确 C 在该模式只喂一次，属于
+共有缺陷的有意修复。`r92_recovery_probe.py` 使用匿名 socketpair 注入 WDTFD，测试不打开
+主机或物理 watchdog；watchdog 响应能力不会由“进程仍在”代替验证。
+
+jail 中的 bundle 不要求 command；同时给两者时只把 bundle 交给 ujail，与原版 argv 一致。
+watchdog 初始化保留 WDIOC_GETSUPPORT、CARDRESET、GETBOOTSTATUS 的分支与原版诊断；
+`watchdog_status` example 通过 mock ioctl 验证 ABI、调用顺序与五种结果，不接触硬件。
+
+R90 的启动期 hotplug 队列存活断言和生命周期回归继续必需；不把本次恢复修复替代它们。

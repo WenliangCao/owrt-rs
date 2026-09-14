@@ -256,7 +256,7 @@ pub fn run<W: Sink, R: io::BufRead>(
     let mut stage = [0u8; 4096];
     let mut staged = 0usize;
     let mut stage_pos = 0usize;
-    let mut status_code = 200u16;
+    let mut status_code = 200i32;
     let mut status_text = String::from("OK");
     let mut headers: Vec<(String, String)> = Vec::new();
     let mut disable_chunked = false;
@@ -490,7 +490,7 @@ fn relay<W: Sink>(
     header_buf: &mut Vec<u8>,
     header_bytes: &mut usize,
     headers: &mut Vec<(String, String)>,
-    status_code: &mut u16,
+    status_code: &mut i32,
     status_text: &mut String,
     disable_chunked: &mut bool,
 ) -> io::Result<bool> {
@@ -549,10 +549,16 @@ fn relay<W: Sink>(
         if name == "Status" {
             if let Some((code, rest)) = value.split_once(' ') {
                 if code.len() == 3 {
-                    if let Ok(code) = code.parse() {
-                        *status_code = code;
-                        *status_text = rest.to_owned();
-                    }
+                    // proc.c applies atoi() to exactly three bytes, even
+                    // for "abc", "+12" or "-12". The range is bounded.
+                    let (sign, digits) = match code.as_bytes() {
+                        [b'-', tail @ ..] => (-1, tail),
+                        [b'+', tail @ ..] => (1, tail),
+                        bytes => (1, bytes),
+                    };
+                    *status_code = sign * digits.iter().take_while(|b| b.is_ascii_digit())
+                        .fold(0, |n, b| n * 10 + i32::from(b - b'0'));
+                    *status_text = rest.to_owned();
                 }
             }
             continue;

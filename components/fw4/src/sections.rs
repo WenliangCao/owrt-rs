@@ -649,7 +649,8 @@ impl Fw4 {
             match_devices: match_devices
                 .iter()
                 .filter(|d| !d.invert)
-                // fw4.set() drops null items (e.g. an any-device "*").
+                // Emit concrete device names; the exact image's any-device
+                // control is covered by r92_fw4_probe.py.
                 .filter_map(|d| d.device.clone())
                 .collect(),
             match_subnets: related_subnets
@@ -1075,7 +1076,7 @@ impl Fw4 {
                     }
                 }
                 let need_src_action_chain = src_zone
-                    .map(|i| self.state.zones[i].log_bits() != 0 && target != "accept")
+                    .map(|i| self.state.zones[i].log.is_some_and(|n| n.as_f64() != 0.0) && target != "accept")
                     .unwrap_or(false);
                 if !target.is_empty() && dest.is_some() && !dest_any {
                     r.jump_chain = Some(format!("{target}_to_{}", self.zone_name(dest)));
@@ -2065,12 +2066,10 @@ impl Fw4 {
     }
 
     pub fn read_ubus(&mut self) {
-        let ifaces = self.inputs.ubus_call("network.interface", "dump", None);
-        let services = self.inputs.ubus_call(
-            "service",
-            "get_data",
-            Some(&Json::Object(vec![("type".into(), Json::Str("firewall".into()))])),
-        );
+        let (ifaces, services) = self.inputs.ubus_state().unwrap_or_else(|_| {
+            self.raw_warn("Unable to connect to ubus: Unable to connect to ubus socket\n");
+            (None, None)
+        });
         let mut rules = Vec::new();
         let mut networks = Vec::new();
         if let Some(Json::Array(list)) = ifaces.as_ref().and_then(|i| i.get("interface")) {

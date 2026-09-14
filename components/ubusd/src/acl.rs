@@ -240,9 +240,9 @@ fn load_file(path: &str) -> io::Result<Vec<AclEntry>> {
 
     if let Some(Json::Object(access)) = doc.get("access") {
         for (name, spec) in access {
-            let methods = spec.get("methods");
-            let tags = spec.get("tags");
-            let priv_acl = spec.get("acl");
+            let methods = spec.get("methods").filter(|v| matches!(v, Json::Array(_)));
+            let tags = spec.get("tags").filter(|v| matches!(v, Json::Array(_)));
+            let priv_acl = spec.get("acl").filter(|v| matches!(v, Json::Object(_)));
             if methods.is_none() && tags.is_none() && priv_acl.is_none() {
                 continue;
             }

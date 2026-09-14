@@ -23,6 +23,17 @@ const F_SETFD: i32 = 2;
 const FD_CLOEXEC: i32 = 1;
 /// `_IOWR('W', 6, int)`.
 const WDIOC_SETTIMEOUT: u64 = 0xC004_5706;
+const WDIOC_GETSUPPORT: u64 = 0x8028_5700;
+const WDIOC_GETBOOTSTATUS: u64 = 0x8004_5702;
+const WDIOF_CARDRESET: u32 = 0x20;
+
+#[repr(C)]
+#[derive(Default)]
+struct WatchdogInfo {
+    options: u32,
+    firmware_version: u32,
+    identity: [u8; 32],
+}
 
 pub struct Wdt {
     fd: Option<OwnedFd>,
@@ -118,6 +129,31 @@ impl Wdt {
         log!(crate::sys::LOG_INFO, "- watchdog -");
         self.set_drv_timeout();
         self.ping_and_rearm(now);
+        self.print_status();
+    }
+
+    fn print_status(&self) {
+        let mut info = WatchdogInfo::default();
+        // SAFETY: GETSUPPORT writes the SDK's 40-byte watchdog_info structure.
+        if unsafe { crate::sys::ioctl(self.raw_fd(), WDIOC_GETSUPPORT, &mut info) } != 0 {
+            debug!(2, "Watchdog GETSUPPORT failed");
+            return;
+        }
+        if info.options & WDIOF_CARDRESET == 0 {
+            debug!(2, "Watchdog does not have CARDRESET support");
+            return;
+        }
+        let mut status = 0i32;
+        // SAFETY: GETBOOTSTATUS writes a live int, not watchdog_info.
+        if unsafe { crate::sys::ioctl(self.raw_fd(), WDIOC_GETBOOTSTATUS, &mut status) } != 0 {
+            debug!(2, "Watchdog GETBOOTSTATUS failed");
+            return;
+        }
+        if status as u32 & WDIOF_CARDRESET != 0 {
+            log!(crate::sys::LOG_INFO, "Watchdog has previously reset the system");
+        } else {
+            debug!(2, "Watchdog did not previously reset the system");
+        }
     }
 
     /// The main loop's timer edge.

@@ -443,7 +443,7 @@ def sudo(*args, **kw):
     return subprocess.run(["sudo", "-n"] + list(args), check=kw.pop("check", True), **kw)
 
 
-def run_side(rootfs, impl, binary):
+def run_side(rootfs, impl, binary, prepare_root=None):
     tmp = tempfile.mkdtemp(prefix="owrt-r17-")
     root = os.path.join(tmp, "root")
     sudo("cp", "-a", rootfs, root)
@@ -451,6 +451,8 @@ def run_side(rootfs, impl, binary):
     sudo("sh", "-c", "cp %s/etc/config/firewall %s/etc/config/fwtest && cp %s/etc/config/dhcp %s/etc/config/dhcptest && chmod 0600 %s/etc/config/fwtest %s/etc/config/dhcptest" % ((root,) * 6))
     sudo("sh", "-c", "cat >> %s/etc/config/rpcd" % root, input=RPCD_LOGINS.encode())
     sudo("sh", "-c", "printf '%%s\\n' 'r17shadow:%s:0:0:99999:7:::' >> %s/etc/shadow" % (SHADOW_HASH, root))
+    if prepare_root is not None:
+        prepare_root(root)
     if impl == "candidate":
         sudo("rm", "-f", os.path.join(root, "usr/lib/rpcd/file.so"), os.path.join(root, "usr/lib/rpcd/ucode.so"))
         sudo("cp", binary, os.path.join(root, "tmp/rpcd-rs"))

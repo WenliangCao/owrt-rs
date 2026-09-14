@@ -495,7 +495,7 @@ fn test_permission(login: Option<&Login>, perm: &str, group: &str) -> bool {
             if p.is_empty() {
                 continue;
             }
-            if fnmatch(p, group.as_bytes()) {
+            if crate::glob::fnmatch_escaped(p, group.as_bytes()) {
                 return false;
             }
         }
@@ -503,7 +503,7 @@ fn test_permission(login: Option<&Login>, perm: &str, group: &str) -> bool {
             if item.is_empty() || item.starts_with(b"!") {
                 continue;
             }
-            if fnmatch(item, group.as_bytes()) {
+            if crate::glob::fnmatch_escaped(item, group.as_bytes()) {
                 return true;
             }
         }
@@ -540,7 +540,13 @@ fn setup_acl_scope(ses: &mut Session, perm: &str, scope: &str, value: &Json) {
 
 /// rpc_login_setup_acl_file
 fn setup_acl_file(ses: &mut Session, login: Option<&Login>, path: &str) {
-    let text = crate::util::read_lossy(path).unwrap_or_default();
+    // ACL identifiers must never be silently changed into U+FFFD grants.
+    // As at the ubus function boundary, reject unrepresentable text. The
+    // exact C implementation accepts raw bytes; we skip this entire file.
+    let Ok(text) = fs::read_to_string(path) else {
+        eprintln!("Failed to read {path}");
+        return;
+    };
     let Ok(Json::Object(groups)) = owrt_ubus::json::parse(&text) else {
         eprintln!("Failed to parse {path}");
         return;
@@ -651,20 +657,12 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                 if pair.ty != MsgType::Array as u32 {
                     continue;
                 }
-                let mut object = None;
-                let mut function = None;
-                for s in pair.children() {
-                    if s.ty != MsgType::String as u32 {
-                        continue;
-                    }
-                    if object.is_none() {
-                        object = s.as_bytes();
-                    } else if function.is_none() {
-                        function = s.as_str();
-                    } else {
-                        break;
-                    }
-                }
+                // Select the first two STRING fields before validation. A
+                // rejected non-UTF-8 function must not promote a third item
+                // into a different grant/revoke operation.
+                let mut strings = pair.children().filter(|s| s.ty == MsgType::String as u32);
+                let object = strings.next().and_then(|s| s.as_bytes());
+                let function = strings.next().and_then(|s| s.as_str());
                 if let (Some(o), Some(f)) = (object, function) {
                     if grant {
                         ses.grant_bytes(&scope, Some(o), Some(f));

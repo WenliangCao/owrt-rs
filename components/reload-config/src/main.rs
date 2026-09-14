@@ -2,6 +2,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 mod engine;
+mod json;
 mod process;
 mod syslog;
 mod trace;

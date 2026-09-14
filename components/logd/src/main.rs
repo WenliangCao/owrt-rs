@@ -67,7 +67,7 @@ fn now_ms() -> u64 {
 }
 
 fn entry_fields(b: &mut BlobBuf, entry: &Entry) {
-    b.msg_string("msg", &entry.msg)
+    b.msg_string_bytes("msg", &entry.msg)
         .msg_u32("id", entry.id)
         .msg_u32("priority", entry.priority)
         .msg_u32("source", entry.source)
@@ -86,6 +86,12 @@ struct Client {
     pending: Vec<u8>,
     oneshot: bool,
 }
+
+// The original ustream write queue is unbounded. Disconnect a lagging
+// stream instead of letting it exhaust the daemon.
+const MAX_STREAM_PENDING: usize = 1024 * 1024;
+const MAX_TOTAL_PENDING: usize = 4 * 1024 * 1024;
+const MAX_STREAM_CLIENTS: usize = 64;
 
 impl Client {
     /// Write what we can; Ok(false) when the client must be dropped.
@@ -154,10 +160,18 @@ impl Daemon {
         if self.has_subscribers {
             let _ = self.conn.notify(self.objid, "message", &bytes[4..]);
         }
-        for client in &mut self.clients {
+        let mut total: usize = self.clients.iter().map(|c| c.pending.len()).sum();
+        self.clients.retain_mut(|client| {
+            total -= client.pending.len();
+            let size = client.pending.len() + bytes.len();
+            if size > MAX_STREAM_PENDING || total + size > MAX_TOTAL_PENDING {
+                return false;
+            }
             client.pending.extend_from_slice(&bytes);
-        }
-        self.clients.retain_mut(Client::flush);
+            let keep = client.flush();
+            if keep { total += client.pending.len(); }
+            keep
+        });
     }
 
     fn handle_read(&mut self, req: &Request) -> io::Result<()> {
@@ -190,6 +204,10 @@ impl Daemon {
             None => self.ring.list(0).collect(),
         };
         if stream {
+            let total: usize = self.clients.iter().map(|c| c.pending.len()).sum();
+            if self.clients.len() >= MAX_STREAM_CLIENTS {
+                return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
+            }
             // unix stream socket like C logd (a pipe would hand the backlog over
             // in 64 KiB pieces); one BlobBuf reused for every frame
             let pair = sys::socketpair().and_then(|(read_end, write_end)| {
@@ -207,11 +225,15 @@ impl Daemon {
                         .reply_status(req, owrt_ubus::status::UNKNOWN_ERROR, None);
                 }
             };
-            let mut pending = Vec::with_capacity(backlog.len() * 96);
+            let mut pending = Vec::with_capacity((backlog.len() * 96).min(MAX_STREAM_PENDING));
             let mut b = BlobBuf::new();
             for entry in backlog {
                 b.reset();
                 entry_fields(&mut b, entry);
+                if pending.len() + b.as_bytes().len() > MAX_STREAM_PENDING
+                    || total + pending.len() + b.as_bytes().len() > MAX_TOTAL_PENDING {
+                    return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
+                }
                 pending.extend_from_slice(b.as_bytes());
             }
             let mut client = Client {
@@ -221,7 +243,7 @@ impl Daemon {
             };
             self.conn.reply_status(req, owrt_ubus::status::OK, Some(read_end.as_raw_fd()))?;
             drop(read_end);
-            if client.flush() || !client.pending.is_empty() {
+            if client.flush() {
                 self.clients.push(client);
             }
             return Ok(());
@@ -248,23 +270,13 @@ impl Daemon {
     }
 
     fn handle_write(&mut self, req: &Request) -> io::Result<()> {
-        // blobmsg_get_string() hands write_log() whatever bytes are there;
-        // an event that is not UTF-8 is stored the same lossy way the
-        // syslog datagram path stores one, rather than dropped while the
-        // caller is still told OK (R88 logd F1).
+        // blobmsg_get_string / strlen operate on bytes. Truncate before
+        // normalization, including when the cut splits a UTF-8 character.
         let event = blob::fields(&req.data)
             .find(|f| f.name == "event")
-            .and_then(|f| f.as_bytes())
-            .map(|bytes| String::from_utf8_lossy(bytes).into_owned());
-        if let Some(mut event) = event {
-            if event.len() + 1 > LINE_SIZE {
-                let mut cut = LINE_SIZE - 1;
-                while !event.is_char_boundary(cut) {
-                    cut -= 1;
-                }
-                event.truncate(cut);
-            }
-            self.add(event.as_bytes(), SOURCE_SYSLOG);
+            .and_then(|f| f.as_bytes());
+        if let Some(event) = event {
+            self.add(&event[..event.len().min(LINE_SIZE - 1)], SOURCE_SYSLOG);
         }
         self.conn.reply_status(req, owrt_ubus::status::OK, None)
     }

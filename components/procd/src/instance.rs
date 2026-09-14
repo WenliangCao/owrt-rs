@@ -810,6 +810,9 @@ pub fn parse(name: &str, entry: owrt_ubus::blob::Field<'_>) -> Instance {
     // instance invalid, and an invalid instance is not listed at all.
     //
     // A bundle skips the command parse entirely.
+    if i.bundle.is_some() {
+        i.command.clear();
+    }
     // `if (!in->trace && tb[INSTANCE_ATTR_JAIL])` -- a traced instance never
     // gets a jail, because trace already wraps the command.
     if i.trace {

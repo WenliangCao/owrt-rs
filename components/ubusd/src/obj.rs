@@ -142,6 +142,7 @@ impl Registry {
     }
 
     /// Object ids in path order -- the order `lookup` without a pattern walks.
+    #[cfg(test)]
     pub fn path_order(&self) -> Vec<u32> {
         self.paths.values().copied().collect()
     }

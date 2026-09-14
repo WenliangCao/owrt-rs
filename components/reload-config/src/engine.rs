@@ -360,7 +360,7 @@ fn dispatch(
     // not UTF-8 reaches ubus as those exact bytes; the payload is built as
     // bytes and handed to execve as an OsStr for that reason.
     let mut payload = br#"{ "type": "config.change", "data": { "package": ""#.to_vec();
-    payload.extend_from_slice(&json_escape_bytes(package.as_bytes()));
+    payload.extend_from_slice(&crate::json::escape_bytes(package.as_bytes()));
     payload.extend_from_slice(br#"" } }"#);
     let payload = OsStr::from_bytes(&payload);
     let mut child = match Command::new("ubus")
@@ -489,25 +489,6 @@ fn write_baseline(
     result
 }
 
-/// crate::trace::escape over bytes: the shell does no escaping at all, but a
-/// quote or a control byte in a filename would otherwise break the payload
-/// before ubus ever sees it. Bytes >= 0x20 other than `"` and `\` pass through
-/// unchanged, so a name that is not UTF-8 is forwarded verbatim.
-fn json_escape_bytes(value: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(value.len());
-    for &byte in value {
-        match byte {
-            b'"' => out.extend_from_slice(b"\\\""),
-            b'\\' => out.extend_from_slice(b"\\\\"),
-            b'\n' => out.extend_from_slice(b"\\n"),
-            b'\r' => out.extend_from_slice(b"\\r"),
-            b'\t' => out.extend_from_slice(b"\\t"),
-            0x00..=0x1f => out.extend_from_slice(format!("\\u{byte:04x}").as_bytes()),
-            _ => out.push(byte),
-        }
-    }
-    out
-}
 
 fn format_exit(code: Option<i32>) -> String {
     code.map_or_else(|| "signal".into(), |value| format!("exit_{value}"))
@@ -516,8 +497,8 @@ fn format_exit(code: Option<i32>) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        changed_entries, read_baseline, scan_config_names, write_baseline, BaselineEntry, Settings,
-        MAX_BASELINE_BYTES,
+        changed_entries, read_baseline, run, scan_config_names, write_baseline, BaselineEntry, Error,
+        Settings, MAX_BASELINE_BYTES, MAX_CONFIG_ENTRIES,
     };
     use std::collections::HashMap;
     use std::ffi::{OsStr, OsString};
@@ -643,6 +624,40 @@ mod tests {
             scan_config_names(&settings).unwrap(),
             ["dhcp.bak", "network"]
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn config_limit_counts_unique_names_and_rejects_before_changing_baseline() {
+        let root = std::env::temp_dir().join(format!(
+            "reload-config-rs-limit-test-{}", std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        let config = root.join("etc/config");
+        let state = root.join("var/run/uci");
+        fs::create_dir_all(&config).unwrap();
+        fs::create_dir_all(&state).unwrap();
+        for i in 0..MAX_CONFIG_ENTRIES {
+            File::create(config.join(format!("package{i:04}"))).unwrap();
+        }
+        let settings = Settings { root: root.clone(), timeout: Duration::from_secs(1) };
+        assert_eq!(scan_config_names(&settings).unwrap().len(), MAX_CONFIG_ENTRIES);
+        File::create(state.join("package0000")).unwrap();
+        File::create(config.join(".hidden")).unwrap();
+        fs::create_dir(config.join("directory")).unwrap();
+        assert_eq!(scan_config_names(&settings).unwrap().len(), MAX_CONFIG_ENTRIES);
+
+        File::create(state.join("overflow")).unwrap();
+        let baseline = root.join("var/run/config.md5");
+        fs::write(&baseline, b"previous baseline\n").unwrap();
+        let cancelled = std::sync::atomic::AtomicBool::new(false);
+        let mut trace_bytes = Vec::new();
+        let mut trace = crate::trace::Trace::new(&mut trace_bytes);
+        assert!(matches!(run(&settings, &cancelled, &mut trace), Err(Error::InvalidInput(_))));
+        assert_eq!(fs::read(&baseline).unwrap(), b"previous baseline\n");
+        assert!(trace_bytes.is_empty());
+        assert!(!root.join("var/run/config.check").exists());
+        assert!(!root.join("var/run/config.md5.reload-config-rs.tmp").exists());
         fs::remove_dir_all(root).unwrap();
     }
 

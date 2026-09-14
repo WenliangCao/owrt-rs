@@ -106,8 +106,8 @@ fn render(quiet: bool, use_statefile: bool) -> Option<String> {
     fw.load().ok()?;
     if use_statefile {
         let json = statefile::to_json(&fw.state).to_compact();
-        if !fw.inputs.write_file(STATEFILE, &json) {
-            fw.raw_warn(&format!("Unable to write '{STATEFILE}': Permission denied\n"));
+        if let Err(error) = fw.inputs.write_file(STATEFILE, &json) {
+            fw.raw_warn(&format!("Unable to write '{STATEFILE}': {}\n", input::fs_error(&error)));
         }
     }
     Some(fw.render_ruleset())
@@ -280,50 +280,74 @@ fn lookup(quiet: bool, action: &str, object: Option<&str>, device: Option<&str>)
 }
 
 fn usage(argv0: &str) {
-    print!(
-        "Usage:
+    print!("Usage:
+
   {argv0} [-v] [-q] start|stop|flush|restart|reload
+
     Start, stop, flush, restart or reload the firewall respectively.
+
+
   {argv0} [-v] [-q] reload-sets
+
     Reload the contents of all declared sets but do not touch the
     ruleset.
+
+
   {argv0} [-q] print
+
     Print the rendered ruleset.
+
+
   {argv0} [-q] check
+
     Test the rendered ruleset using nftables' check mode without
     applying it to the running system.
+
+
   {argv0} [-q] network {{net}}
+
     Print the name of the firewall zone covering the given network.
+
     Exits with code 1 if the network is not found or if no zone is
     covering it.
+
+
   {argv0} [-q] device {{dev}}
+
     Print the name of the firewall zone covering the given device.
+
     Exits with code 1 if the device is not found or if no zone is
     covering it.
+
+
   {argv0} [-q] zone {{zone}} [dev]
+
     Print all covered devices of the given zone, optionally restricted
     to only the given device name.
+
     Exits with code 1 if zone is not found or if a device is specified
     and not covered by the given zone.
-"
-    );
+
+");
 }
 
 fn start(quiet: bool, verbose: bool, mode: &str) -> i32 {
     let _lock = lock();
     match mode {
-        "start" if std::path::Path::new(STATEFILE).exists() => {
+        "start" if std::path::Path::new(STATEFILE).is_file() => {
             die(quiet, "The fw4 firewall appears to be already loaded.")
         }
         "reload" => {
-            if !std::path::Path::new(STATEFILE).exists() {
+            if !std::path::Path::new(STATEFILE).is_file() {
                 die(quiet, "The fw4 firewall does not appear to be loaded.");
             }
             let _ = std::fs::remove_file(STATEFILE);
         }
         _ => {}
     }
-    let Some(ruleset) = render(quiet, true) else { return UCODE_ABORT };
+    // The wrapper runs its includes phase even when the render pipeline
+    // aborted. With no state file this supplies the observed exit code 1.
+    let ruleset = render(quiet, true).unwrap_or_default();
     nft_load(&ruleset, verbose, false, false);
     run_includes(quiet)
 }

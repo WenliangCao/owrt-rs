@@ -283,7 +283,7 @@ pub fn start(
     inst: &Instance,
     service: &str,
 ) -> io::Result<(i32, Option<LogPipe>, Option<LogPipe>)> {
-    if inst.command.is_empty() {
+    if inst.command.is_empty() && !(inst.has_jail && inst.bundle.is_some()) {
         return Err(io::Error::new(io::ErrorKind::InvalidInput, "no command"));
     }
     // instance_add_cgroup() runs in the child, before instance_run(): with a

@@ -240,6 +240,9 @@ struct Netifd {
     prefixes: Vec<ip::DevicePrefix>,
     sys: sys::System,
     events: netlink::Netlink,
+    /// Retry a failed recovery dump on the normal maintenance backstop.
+    netlink_resync: bool,
+    restart_at: Option<u64>,
     ethtool: ethtool::Ethtool,
     ifioctl: sys::IfIoctl,
     conn: Connection,
@@ -333,6 +336,8 @@ impl Netifd {
             prefixes: Vec::new(),
             sys: sys::System::open()?,
             events,
+            netlink_resync: false,
+            restart_at: None,
             host_deps: Vec::new(),
             remove_pending: Vec::new(),
             socket: socket.map(|s| s.to_string()),
@@ -1050,7 +1055,7 @@ impl Netifd {
     }
 
     /// Refresh the registry from the kernel, for the named devices only.
-    fn rescan_devices(&mut self) {
+    fn rescan_devices(&mut self) -> bool {
         // every device object, not just the config-named ones: a parent
         // claimed through `iflink` has an object too, and the C's
         // `network.device status` lists it
@@ -1059,7 +1064,7 @@ impl Netifd {
             Ok(m) => m,
             Err(e) => {
                 logging::log!(Warning, "link dump failed: {e}");
-                return;
+                return false;
             }
         };
         let mut pending: Vec<Device> = Vec::new();
@@ -1104,6 +1109,7 @@ impl Netifd {
             }
             self.devices.insert(d);
         }
+        true
     }
 
     /// `dev->type->name`: the C names a plain kernel device "Network device"
@@ -3861,7 +3867,7 @@ impl Netifd {
                 {
                     self.set_down(&name);
                 }
-                self.reload();
+                self.restart_at = Some(now_ms() + 1000);
                 self.conn.reply_status(req, status::OK, None)
             }
             // `netifd_add_host_route`
@@ -4143,12 +4149,26 @@ impl Netifd {
         match self.events.recv_events() {
             // `cb_rtnl_event`: only link add/remove/change is a device event
             Ok(msgs) if msgs.iter().any(|m| m.ty == sys::RTM_NEWLINK || m.ty == sys::RTM_DELLINK) => {
-                self.rescan_devices();
-                self.update_presence();
-                self.update_link_states();
+                self.netlink_resync = true;
             }
             Ok(_) => {}
+            Err(e) if e.raw_os_error() == Some(netlink::ENOBUFS) => {
+                logging::log!(Warning, "netlink receive overflow; resynchronizing devices");
+                if let Err(error) = self.events.grow_event_buffer() {
+                    logging::log!(Warning, "cannot grow netlink receive buffer: {error}");
+                }
+                self.netlink_resync = true;
+            }
+            Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
             Err(e) => logging::log!(Warning, "netlink event read failed: {e}"),
+        }
+    }
+
+    fn resync_netlink(&mut self) {
+        if self.netlink_resync && self.rescan_devices() {
+            self.netlink_resync = false;
+            self.update_presence();
+            self.update_link_states();
         }
     }
 
@@ -4213,6 +4233,7 @@ impl Netifd {
             .iter()
             .filter_map(|(_, st)| st.teardown_deadline)
             .chain(self.wdeadline)
+            .chain(self.restart_at)
             .map(|d| d.saturating_sub(t).min(1000) as i32)
             .min()
             .unwrap_or(1000)
@@ -4261,6 +4282,17 @@ impl Netifd {
 
     fn run(&mut self) -> ! {
         loop {
+            if self.restart_at.is_some_and(|at| now_ms() >= at) {
+                self.restart_at = None;
+                use std::os::unix::process::CommandExt;
+                let mut argv = std::env::args_os();
+                if let Some(program) = argv.next() {
+                    // main.c netifd_do_restart: execvp(global_argv[0], global_argv).
+                    // CLOEXEC descriptors release the old bus registrations.
+                    let error = std::process::Command::new(program).args(argv).exec();
+                    logging::log!(Warning, "restart exec failed: {error}");
+                }
+            }
             if self.bus_down {
                 self.retry_bus();
             }
@@ -4301,6 +4333,7 @@ impl Netifd {
             if fds[1].revents & POLLIN != 0 {
                 self.drain_netlink();
             }
+            self.resync_netlink();
             if !self.bus_down && fds[0].revents & (POLLIN | POLLHUP) != 0 {
                 match self.conn.read_incoming() {
                     Ok(Incoming::Invoke(req)) => self.handle(req),

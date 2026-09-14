@@ -7,7 +7,8 @@
 use crate::uci::Config;
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::{self, Json};
-use std::io::Write;
+use std::io::{self, Read, Write};
+use std::os::unix::process::ExitStatusExt;
 use std::path::Path;
 use std::process::Command;
 
@@ -156,6 +157,10 @@ impl Inputs {
             return None;
         }
         let mut conn = owrt_ubus::Connection::connect(None).ok()?;
+        Self::call_on(&mut conn, object, method, args)
+    }
+
+    fn call_on(conn: &mut owrt_ubus::Connection, object: &str, method: &str, args: Option<&Json>) -> Option<Json> {
         let id = conn.lookup_id(object, 3000).ok()?;
         let payload = args.map(object_to_payload).unwrap_or_default();
         let reply = conn.invoke_status(id, method, &payload, 30000).ok()?;
@@ -165,17 +170,40 @@ impl Inputs {
         Some(fields_to_json(&reply.fields()))
     }
 
+    /// fw4.read_ubus uses one connection for both input objects and emits
+    /// its connection warning once, even if both calls would have failed.
+    pub fn ubus_state(&self) -> io::Result<(Option<Json>, Option<Json>)> {
+        let args = Json::Object(vec![("type".into(), Json::Str("firewall".into()))]);
+        if self.is_mock() {
+            return Ok((self.ubus_call("network.interface", "dump", None),
+                self.ubus_call("service", "get_data", Some(&args))));
+        }
+        let mut conn = owrt_ubus::Connection::connect(None)?;
+        Ok((Self::call_on(&mut conn, "network.interface", "dump", None),
+            Self::call_on(&mut conn, "service", "get_data", Some(&args))))
+    }
+
     /// `fs.open(path, "r")` + read everything.
     pub fn read_all(&self, path: &str) -> Option<String> {
+        self.read_open(path).ok()
+    }
+
+    /// Preserve open failures separately from a read that reaches an error
+    /// (e.g. a directory). parse_setfile's line loop treats the latter as EOF.
+    pub fn read_open(&self, path: &str) -> io::Result<String> {
         if self.is_mock() {
-            let data = self.mock_read(&format!("fs/open~{}.txt", mangle(path)))?;
+            let data = self.mock_read(&format!("fs/open~{}.txt", mangle(path)))
+                .ok_or_else(|| io::Error::other("Unspecified error"))?;
             self.trace(&format!("fs.open path <{path}> mode <r>"));
-            return Some(data);
+            return Ok(data);
         }
         // fs.readfile returns raw bytes; one stray non-UTF-8 byte in an include
         // file must not make the whole file vanish (DEVIATION: invalid bytes
         // become U+FFFD instead of being copied through).
-        std::fs::read(path).ok().map(|b| String::from_utf8_lossy(&b).into_owned())
+        let mut file = std::fs::File::open(path)?;
+        let mut bytes = Vec::new();
+        let _ = file.read_to_end(&mut bytes);
+        Ok(String::from_utf8_lossy(&bytes).into_owned())
     }
 
     /// `fs.readfile(path)`.
@@ -281,16 +309,16 @@ impl Inputs {
     }
 
     /// `fs.popen(cmd, "r").read("all")`.
-    pub fn popen_read(&self, cmd: &str) -> Option<String> {
+    pub fn popen_read(&self, cmd: &str) -> io::Result<String> {
         if self.is_mock() {
             let data = self.mock_read(&format!("fs/popen~{}.txt", mangle(cmd)));
             if data.is_some() {
                 self.trace(&format!("fs.popen cmdline <{cmd}> mode <r>"));
             }
-            return data;
+            return data.ok_or_else(|| io::Error::other("Unspecified error"));
         }
-        let out = Command::new("/bin/sh").arg("-c").arg(cmd).output().ok()?;
-        Some(String::from_utf8_lossy(&out.stdout).into_owned())
+        let out = Command::new("/bin/sh").arg("-c").arg(cmd).output()?;
+        Ok(String::from_utf8_lossy(&out.stdout).into_owned())
     }
 
     /// `system(cmd)` exit code.
@@ -300,7 +328,7 @@ impl Inputs {
             return 0;
         }
         match Command::new("/bin/sh").arg("-c").arg(cmd).status() {
-            Ok(st) => st.code().unwrap_or(-1),
+            Ok(st) => exit_code(st),
             Err(_) => -1,
         }
     }
@@ -317,12 +345,11 @@ impl Inputs {
         let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
         loop {
             match child.try_wait() {
-                Ok(Some(st)) => return st.code().unwrap_or(-1),
+                Ok(Some(st)) => return exit_code(st),
                 Ok(None) => {
                     if std::time::Instant::now() >= deadline {
                         let _ = child.kill();
-                        let _ = child.wait();
-                        return -1;
+                        return child.wait().map(exit_code).unwrap_or(-1);
                     }
                     std::thread::sleep(std::time::Duration::from_millis(20));
                 }
@@ -332,14 +359,29 @@ impl Inputs {
     }
 
     /// `fs.open(path, "w")` + write; used for the state file.
-    pub fn write_file(&self, path: &str, data: &str) -> bool {
+    pub fn write_file(&self, path: &str, data: &str) -> io::Result<()> {
         if self.is_mock() {
-            return true;
+            return Ok(());
         }
-        std::fs::write(path, data).is_ok()
+        std::fs::write(path, data)
     }
 }
 
+fn exit_code(status: std::process::ExitStatus) -> i32 {
+    status.code().unwrap_or_else(|| -status.signal().unwrap_or(1))
+}
+
+/// Report this operation's errno. The pinned ucode fs.open() does not set
+/// fs.last_error on open failure, so its fs.error() can report an unrelated
+/// earlier error; retaining that stale state is not a compatibility goal.
+pub fn fs_error(error: &io::Error) -> String {
+    let text = error.to_string();
+    if let Some(code) = error.raw_os_error() {
+        text.strip_suffix(&format!(" (os error {code})")).unwrap_or(&text).to_owned()
+    } else {
+        text
+    }
+}
 fn json_strings(v: Option<&Json>) -> Vec<String> {
     match v {
         Some(Json::Array(a)) => a.iter().filter_map(|x| x.as_str().map(str::to_owned)).collect(),

@@ -19,7 +19,7 @@ pub struct Entry {
     pub priority: u32,
     pub source: u32,
     pub time_ms: u64,
-    pub msg: String,
+    pub msg: Vec<u8>,
 }
 
 pub struct Ring {
@@ -53,7 +53,7 @@ impl Ring {
     }
 
     /// Store `msg` (already normalized); returns the stored entry.
-    pub fn add(&mut self, msg: String, priority: u32, source: u32, time_ms: u64) -> Entry {
+    pub fn add(&mut self, msg: Vec<u8>, priority: u32, source: u32, time_ms: u64) -> Entry {
         let size = msg.len() + 1;
         let next = self.log_next(self.newest, size);
         let write_at;
@@ -122,7 +122,7 @@ impl Ring {
 
 /// Apply logd's `log_add` normalization. Returns None when the record must
 /// not be stored (facility LOCAL7).
-pub fn normalize(raw: &[u8], source: u32) -> Option<(u32, String)> {
+pub fn normalize(raw: &[u8], source: u32) -> Option<(u32, Vec<u8>)> {
     let mut bytes: Vec<u8> = raw
         .iter()
         .take_while(|&&b| b != 0)
@@ -153,7 +153,7 @@ pub fn normalize(raw: &[u8], source: u32) -> Option<(u32, String)> {
     if priority & 0x3f8 == 23 << 3 {
         return None;
     }
-    Some((priority, String::from_utf8_lossy(&bytes).into_owned()))
+    Some((priority, bytes))
 }
 
 #[cfg(test)]
@@ -168,10 +168,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(p, 30);
-        assert_eq!(m, "reload_config[1]: hello");
+        assert_eq!(m, b"reload_config[1]: hello");
         let (p, m) = normalize(b"<6>[  123.456] kernel line", SOURCE_KLOG).unwrap();
         assert_eq!(p, 6);
-        assert_eq!(m, "[  123.456] kernel line");
+        assert_eq!(m, b"[  123.456] kernel line");
         assert_eq!(
             normalize(b"plain", SOURCE_SYSLOG),
             Some((0, "plain".into()))
@@ -221,7 +221,7 @@ mod tests {
 
         // 79-byte message, slot 112: 144+112 >= 256 -> wrap to [0,112), which
         // overwrites h,i,j,k
-        r.add("m".repeat(79), 0, 1, 0); // id 11
+        r.add(vec![b'm'; 79], 0, 1, 0); // id 11
         let ids: Vec<u32> = r.list(0).map(|e| e.id).collect();
         for overwritten in 7..=10 {
             assert!(
@@ -243,10 +243,10 @@ mod tests {
         let mut r = Ring::new(16 * 1024);
         for lap in 0..40 {
             for i in 0..200 {
-                r.add(format!("lap {lap} line {i} {}", "x".repeat(40)), 0, 1, 0);
+                r.add(format!("lap {lap} line {i} {}", "x".repeat(40)).into_bytes(), 0, 1, 0);
                 assert!(retained_bytes(&r) <= 16 * 1024, "lap {lap} line {i}");
             }
-            r.add("L".repeat(1000), 0, 1, 0);
+            r.add(vec![b'L'; 1000], 0, 1, 0);
             assert!(retained_bytes(&r) <= 16 * 1024, "lap {lap} long line");
         }
     }
@@ -262,7 +262,7 @@ mod tests {
         let mut r = Ring::new(2048);
         for i in 0..35 {
             let len = if i % 7 == 6 { 200 } else { 60 };
-            r.add(format!("l{i}_{}", "x".repeat(len)), 0, 1, 0);
+            r.add(format!("l{i}_{}", "x".repeat(len)).into_bytes(), 0, 1, 0);
         }
         assert_eq!(
             r.list(0).map(|e| e.id).collect::<Vec<_>>(),

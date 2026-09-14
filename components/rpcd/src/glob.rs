@@ -3,54 +3,37 @@
 
 use std::path::Path;
 
+// fnmatch(3) comes from the same musl linked into the exact OpenWrt image.
+// Keep the allocation-free literal / star path for normal ACL requests.
+unsafe extern "C" {
+    #[link_name = "fnmatch"]
+    fn libc_fnmatch(pattern: *const std::ffi::c_char, name: *const std::ffi::c_char, flags: i32) -> i32;
+}
+
 pub fn fnmatch(pattern: &[u8], name: &[u8]) -> bool {
-    // Session ACLs are checked on every authorized call, and nearly all of
-    // their patterns are either a literal object or method name or a bare
-    // `*`. Answer those without the per-byte recursion below.
-    match pattern {
-        b"*" => return true,
-        p if !p.iter().any(|&b| matches!(b, b'*' | b'?' | b'[')) => return p == name,
-        _ => {}
+    match_with_flags(pattern, name, 2) // FNM_NOESCAPE: session ACL entries
+}
+
+pub fn fnmatch_escaped(pattern: &[u8], name: &[u8]) -> bool {
+    match_with_flags(pattern, name, 0) // rpc_login_test_permission / glob
+}
+
+fn match_with_flags(pattern: &[u8], name: &[u8], flags: i32) -> bool {
+    let pattern = pattern.split(|b| *b == 0).next().unwrap_or_default();
+    let name = name.split(|b| *b == 0).next().unwrap_or_default();
+    if pattern == b"*" { return true; }
+    if !pattern.iter().any(|&b| matches!(b, b'*' | b'?' | b'[') || (flags == 0 && b == b'\\')) {
+        return pattern == name;
     }
-    fn m(p: &[u8], n: &[u8]) -> bool {
-        match p.first() {
-            None => n.is_empty(),
-            Some(b'*') => (0..=n.len()).any(|i| m(&p[1..], &n[i..])),
-            Some(b'?') => !n.is_empty() && m(&p[1..], &n[1..]),
-            Some(b'[') => {
-                let Some(end) = p.iter().skip(1).position(|&c| c == b']') else { return false };
-                let class = &p[1..1 + end];
-                let rest = &p[2 + end..];
-                let Some(&c) = n.first() else { return false };
-                let (negate, class) = match class.first() {
-                    Some(b'!') | Some(b'^') => (true, &class[1..]),
-                    _ => (false, class),
-                };
-                let mut hit = false;
-                let mut i = 0;
-                while i < class.len() {
-                    if i + 2 < class.len() && class[i + 1] == b'-' {
-                        if class[i] <= c && c <= class[i + 2] {
-                            hit = true;
-                        }
-                        i += 3;
-                    } else {
-                        if class[i] == c {
-                            hit = true;
-                        }
-                        i += 1;
-                    }
-                }
-                hit != negate && m(rest, &n[1..])
-            }
-            Some(&c) => n.first() == Some(&c) && m(&p[1..], &n[1..]),
-        }
-    }
-    m(pattern, name)
+    let pattern = std::ffi::CString::new(pattern).unwrap();
+    let name = std::ffi::CString::new(name).unwrap();
+    // SAFETY: both NUL-terminated strings live through this synchronous call;
+    // flags are the image's FNM_NOESCAPE or zero, with no pointer outputs.
+    unsafe { libc_fnmatch(pattern.as_ptr(), name.as_ptr(), flags) == 0 }
 }
 
 fn has_magic(s: &str) -> bool {
-    s.bytes().any(|b| matches!(b, b'*' | b'?' | b'['))
+    s.bytes().any(|b| matches!(b, b'*' | b'?' | b'[' | b'\\'))
 }
 
 /// Expand `pattern` (absolute path) into sorted matching paths.
@@ -66,8 +49,8 @@ pub fn glob(pattern: &str) -> Vec<String> {
                     let mut names: Vec<String> = rd
                         .flatten()
                         .map(|e| e.file_name().to_string_lossy().into_owned())
-                        .filter(|n| !n.starts_with('.') || comp.starts_with('.'))
-                        .filter(|n| fnmatch(comp.as_bytes(), n.as_bytes()))
+                        .filter(|n| !n.starts_with('.') || comp.starts_with('.') || comp.starts_with("\\."))
+                        .filter(|n| fnmatch_escaped(comp.as_bytes(), n.as_bytes()))
                         .collect();
                     names.sort();
                     for n in names {

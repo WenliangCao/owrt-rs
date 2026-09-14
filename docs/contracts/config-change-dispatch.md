@@ -227,3 +227,15 @@ R1.1 的精确 rootfs oracle、golden traces 与故障观察见
 R1.2 候选用同一精确 rootfs 的真实 `uci` 与 BusyBox `md5sum` 对跑：11/11 用例的事件
 顺序、事件集合和完整基线字节均与原实现一致；6/6 故障注入通过。见
 [R1_IMPLEMENTATION.md](../../reports/ax3000t-stock-openwrt-25.12.5/R1_IMPLEMENTATION.md)。
+
+## 11. 资源边界与转义（R92）
+
+候选最多扫描 4096 个去重后的配置 basename，合并两个目录计数；隐藏文件与非普通文件不计入，
+重复 basename 只计一次。超过 4096 立即报 invalid input，在调用 uci/md5sum/ubus 之前终止，
+清除本轮 config.check，保留既有 config.md5。原 shell 没有此硬上限；保留它用于限制小设备资源，
+不是把溢出条目静默忽略。基线和 md5sum 输出上限为 4096×320=1310720 字节。
+
+payload 与 trace 复用同一个 JSON escaping 实现，统一引号、反斜杠及所有 ASCII 控制字节。
+payload 的非 ASCII 字节原样传递；trace 接口是 UTF-8，文件名展示仍使用既有有损转换，
+因此不能用 trace 展示值作为原始文件名证据。原 shell 不转义这一缺陷不复刻。
+边界单测验证 4096/4097、重复/隐藏文件、失败后基线保持以及全部 32 个控制字节。

@@ -86,22 +86,9 @@ fn write_strings(writer: &mut impl Write, values: &[String]) -> io::Result<()> {
 }
 
 pub fn escape(value: &str) -> String {
-    let mut output = String::with_capacity(value.len());
-    for character in value.chars() {
-        match character {
-            '"' => output.push_str("\\\""),
-            '\\' => output.push_str("\\\\"),
-            '\n' => output.push_str("\\n"),
-            '\r' => output.push_str("\\r"),
-            '\t' => output.push_str("\\t"),
-            value if value <= '\u{1f}' => {
-                use std::fmt::Write as _;
-                let _ = write!(output, "\\u{:04x}", value as u32);
-            }
-            value => output.push(value),
-        }
-    }
-    output
+    // Escaping only replaces ASCII bytes with ASCII sequences; UTF-8 input
+    // therefore remains UTF-8 without a second, drifting implementation.
+    String::from_utf8(crate::json::escape_bytes(value.as_bytes())).expect("escaped UTF-8")
 }
 
 #[cfg(test)]

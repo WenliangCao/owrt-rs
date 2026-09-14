@@ -220,15 +220,13 @@ fn match_section(s: &owrt_uci::Section, ty: Option<&str>, matches: Option<&[u8]>
 
 fn dump_option(b: &mut BlobBuf, o: &OptionValue, name: &str) {
     match o {
-        // blobmsg strings are UTF-8 here; libuci values are raw bytes (DEVIATION: a
-        // non-UTF-8 byte reaches the bus as U+FFFD instead of the raw byte)
         OptionValue::Str(s) => {
-            b.msg_string(name, &String::from_utf8_lossy(s));
+            b.msg_string_bytes(name, s);
         }
         OptionValue::List(items) => {
             let c = b.msg_open_array(name);
             for e in items {
-                b.msg_string("", &String::from_utf8_lossy(e));
+                b.msg_string_bytes("", e);
             }
             b.msg_close(c);
         }

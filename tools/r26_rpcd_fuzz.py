@@ -127,6 +127,26 @@ def cases_for(rng, params, n):
     return out
 
 
+def stable_apk_probe(root):
+    # A deterministic input for getFeatures, not a response mask. Closing
+    # stdout before the helper exits separates EOF from rpcd's SIGCHLD; the
+    # image ucode fread otherwise intermittently returns no package version.
+    # The real helper and interrupted reads have a separate r85/r92 gate.
+    apk = os.path.join(root, "usr/bin/apk")
+    base.sudo("mv", apk, apk + ".r92-real")
+    script = b'''#!/bin/sh
+if [ "$*" = 'list -I netifd' ]; then
+    printf 'netifd-2026.06.05~cbb83a18-r1 aarch64_cortex-a53\\n'
+    exec 1>&-
+    sleep 0.05
+    exit 0
+fi
+exec /usr/bin/apk.r92-real "$@"
+'''
+    base.sudo("sh", "-c", "cat > " + base.shquote(apk), input=script)
+    base.sudo("chmod", "755", apk)
+
+
 def main():
     argv = [a for a in sys.argv[1:] if not a.startswith("--")]
     opt = lambda name, default: sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
@@ -164,9 +184,10 @@ def main():
     total = len(base.STEPS)
     print("steps: %d (fuzz calls %d)" % (total, k), flush=True)
 
-    orig, osids, ologs = base.run_side(rootfs, "original", binary)
-    cand, csids, clogs = base.run_side(rootfs, "candidate", binary)
+    orig, osids, ologs = base.run_side(rootfs, "original", binary, prepare_root=stable_apk_probe)
+    cand, csids, clogs = base.run_side(rootfs, "candidate", binary, prepare_root=stable_apk_probe)
     if keep is not None:
+        (keep / "fixture.json").write_text(json.dumps({"netifd_vrf_input": "netifd-2026.06.05~cbb83a18-r1 aarch64_cortex-a53", "stdout_closed_before_exit": True}) + "\n")
         # These are private observations, including session IDs and fixture
         # credentials. Callers must keep this directory outside Git.
         for side, results, sids, logs in (("original", orig, osids, ologs), ("candidate", cand, csids, clogs)):

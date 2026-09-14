@@ -410,13 +410,11 @@ pub fn rename(ctx: &mut Context, ptr: &mut Ptr, internal: bool) -> Result<()> {
     let Some(value) = ptr.value.clone() else {
         return Err(Error::Inval);
     };
-    // uci_rename does not validate the new name at all (uci_parse_ptr only ran
-    // uci_validate_text over it), so a name that is not UTF-8 is accepted and
-    // written to the delta byte for byte; the delta loader is what rejects it
-    // later (uci_parse_delta_tuple runs uci_validate_name). Such a name is
-    // never read back through any entry point in this tree, so it is kept
-    // lossily rather than making every name in the model a byte string.
-    let name = String::from_utf8_lossy(&value).into_owned();
+    // Names in this model are UTF-8. C accepts a byte name here that its own
+    // delta parser rejects on the next load. Refuse that unsupported rename
+    // before touching either the model or the delta, instead of silently
+    // persisting U+FFFD during a later show/export/commit in the same batch.
+    let name = String::from_utf8(value.clone()).map_err(|_| Error::Inval)?;
     let p = &mut ctx.root[pidx];
     if !internal && p.has_delta {
         add_delta(

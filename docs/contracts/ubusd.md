@@ -237,3 +237,18 @@ type = `UBUS_MSG_MONITOR`，seq = 每个监听者自己的 `++m->seq`。
 | 慢客户端超限静默丢消息 | 复刻原版；如改为断开需单独记录并验证调用方 |
 | 客户端断连后在途请求 | 原版靠对象释放时的 UNSUBSCRIBE + 调用方超时；不新增机制 |
 | 0015 记录的重连缺陷（odhcpd/dnsmasq/netifd.wireless） | **是客户端侧问题，不由 ubusd-rs 修复**；切换方案必须给出需重启的客户端名单与顺序 |
+
+## 15. R92 异常恢复与线协议补齐
+
+- 对端半关闭输入后移除读就绪监听，已有回复排空后关闭；慢读半关闭不能持续占满 CPU。
+- 暂停的 LOOKUP 保存下一路径的 owned 下界；该对象在恢复前被删除时从下界继续，不回到树首，
+  不重发已完成的对象。精确 C 原版在对应删除场景会崩溃，保留修复而不复刻悬空指针。
+- 顶层 raw attribute 声明长 1–3 时按 C 遍历继续跳过；SIGNATURE 中不合法的短成员使类型创建失败，
+  仍可创建无类型对象。复用类型且请求同时带 SIGNATURE 时回复包含 OBJTYPE；签名前缀按补齐长度计。
+- event 的同名字段选第一个类型正确的字段；object 仅 INT32；事件名保留原始字节。
+  ACL methods/tags 只接受 ARRAY，私有 acl 只接受 TABLE；类型错误字段不授予权限。
+- TARGET 长于 4 字节时使用前 4 字节；声明长度不足 4 时有意返回 INVALID_ARGUMENT，
+  不复刻原版跨 attribute 读取。合同例子中原版读到其它字节后回 NOT_FOUND，并不构成合法短字段。
+
+原版/R89 反例与候选门：`r92_recovery_probe.py`；原始报文、debug build 补齐断言与非 root ACL
+可见性：`r92_compat_probe.py` 的 `ubusd_wire`、`ubusd_acl_types`。

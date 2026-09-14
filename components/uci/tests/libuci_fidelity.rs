@@ -291,22 +291,18 @@ fn option_less_list_add_delta_is_rejected_on_load() {
 
 // ---------------------------------------------------------------- rename
 
-/// list.c uci_rename does not validate the new name; uci_parse_ptr only ran
-/// uci_validate_text over it (every byte >= 0x20 passes), so a name that is
-/// not UTF-8 is accepted and written to the delta byte for byte. C: rc 0 and
-/// a 10-byte `@t.s='\xff\xfe'` delta.
+/// Intentional difference: refuse an unrepresentable name atomically rather
+/// than replacing its bytes on a same-process export or commit. The original
+/// accepts it here but rejects the resulting rename delta on the next load.
 #[test]
-fn rename_to_non_utf8_is_accepted_like_c() {
+fn rename_to_non_utf8_is_refused_without_mutating_model_or_delta() {
     let (mut ctx, i) = load(b"config a s\n");
     ctx.root[i].has_delta = true;
     let mut ptr = Ptr::default();
     ops::lookup_ptr(&mut ctx, &mut ptr, Some(b"t.s=\xff\xfe"), true).unwrap();
-    assert_eq!(ops::rename(&mut ctx, &mut ptr, false), Ok(()));
-    let d = &ctx.root[i].delta;
-    assert_eq!(d.len(), 1);
-    assert_eq!(d[0].cmd, owrt_uci::model::Cmd::Rename);
-    assert_eq!(d[0].section, "s", "the delta names the section as it was");
-    assert_eq!(d[0].value.as_deref(), Some(&b"\xff\xfe"[..]));
+    let before = ctx.root[i].clone();
+    assert_eq!(ops::rename(&mut ctx, &mut ptr, false), Err(Error::Inval));
+    assert_eq!(ctx.root[i], before);
 }
 
 /// ... and is rejected again on load, so it never reaches the config file.

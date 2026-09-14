@@ -224,13 +224,22 @@ impl Server {
 
     fn add_object(&mut self, client: u32, msg: &InMsg) -> Outcome {
         let attrs = attrs_of(msg.payload());
-        let mut created_type = false;
         let type_id = if let Some(a) = attrs[attr::OBJTYPE as usize] {
             a.as_u32().and_then(|t| self.reg.ref_type(t))
         } else if let Some(sig) = attrs[attr::SIGNATURE as usize] {
             let mut methods = Vec::new();
             let mut ok = true;
-            for item in blob::iter(sig.payload) {
+            let mut offset = 0;
+            loop {
+                // blob_for_each_attr visits a 1..3-byte raw attribute; the
+                // method validator then rejects it. It must not become an
+                // apparently empty (valid) signature when our iterator stops.
+                if short_attr(sig.payload, offset) {
+                    ok = false;
+                    break;
+                }
+                let Some((item, next)) = blob::attr_at(sig.payload, offset) else { break };
+                offset = next;
                 match check_method(&item) {
                     Some(name) => methods.push(obj::Method { name, blob: raw_attr(&item) }),
                     None => {
@@ -240,7 +249,6 @@ impl Server {
                 }
             }
             if ok {
-                created_type = true;
                 self.reg.new_type(methods).ok()
             } else {
                 // ubus_create_obj_type returns NULL on a bad signature and the
@@ -283,7 +291,7 @@ impl Server {
 
         let mut b = BlobBuf::new();
         b.put_u32(attr::OBJID, id);
-        if created_type {
+        if attrs[attr::SIGNATURE as usize].is_some() {
             if let Some(t) = type_id {
                 b.put_u32(attr::OBJTYPE, t);
             }
@@ -399,18 +407,15 @@ impl Server {
     }
 
     /// `Ok(outcome)` when the lookup finished; `Err(next)` when the transmit
-    /// queue filled and it must resume at object `next`.
-    fn lookup(&mut self, client: u32, msg: &InMsg, resume: Option<u32>) -> Result<Outcome, Option<u32>> {
+    /// queue filled and it must resume at path `next` (even if its object
+    /// has been deleted in the meantime).
+    fn lookup(&mut self, client: u32, msg: &InMsg, resume: Option<Vec<u8>>) -> Result<Outcome, Option<Vec<u8>>> {
         let attrs = attrs_of(msg.payload());
         let Some(p) = attrs[attr::OBJPATH as usize] else {
-            let all = self.reg.path_order();
-            let start = match resume {
-                Some(id) => all.iter().position(|&o| o == id).unwrap_or(0),
-                None => 0,
-            };
-            for (i, &id) in all.iter().enumerate().skip(start) {
+            let all: Vec<u32> = self.reg.paths.range(resume.unwrap_or_default()..).map(|(_, &id)| id).collect();
+            for id in all {
                 if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
-                    return Err(Some(all[i]));
+                    return Err(self.reg.get(id).and_then(|o| o.path.clone()));
                 }
                 self.send_obj(client, id, msg);
             }
@@ -468,7 +473,7 @@ impl Server {
             let (Some(path), Some(t)) = (o.path.as_deref(), o.type_id.and_then(|id| self.reg.types.get(&id)))
                 else { continue };
             bytes += Header::LEN + 4 + crate::client::pad4(4 + path.len() + 1) + 8 + 8 + 4;
-            bytes += t.methods.iter().map(|m| m.blob.len()).sum::<usize>();
+            bytes += t.methods.iter().map(|m| crate::client::pad4(m.blob.len())).sum::<usize>();
             if bytes > LIMIT {
                 return false;
             }
@@ -604,7 +609,7 @@ impl Server {
         let attrs = attrs_of(msg.payload());
         let (Some(id), Some(target)) = (
             attrs[attr::OBJID as usize].and_then(|a| a.as_u32()),
-            attrs[attr::TARGET as usize].and_then(|a| a.as_u32()),
+            attrs[attr::TARGET as usize].and_then(|a| target_u32(a.payload)),
         ) else {
             return Outcome::Status(status::INVALID_ARGUMENT);
         };
@@ -654,7 +659,7 @@ impl Server {
         let attrs = attrs_of(msg.payload());
         let (Some(id), Some(target)) = (
             attrs[attr::OBJID as usize].and_then(|a| a.as_u32()),
-            attrs[attr::TARGET as usize].and_then(|a| a.as_u32()),
+            attrs[attr::TARGET as usize].and_then(|a| target_u32(a.payload)),
         ) else {
             return Outcome::Status(status::INVALID_ARGUMENT);
         };
@@ -791,8 +796,8 @@ impl Server {
         let mut object = None;
         for f in blob::fields(data) {
             match f.name {
-                "pattern" => pattern = f.as_str().map(|s| s.as_bytes().to_vec()),
-                "object" => object = f.as_u32(),
+                "pattern" if pattern.is_none() => pattern = f.as_bytes().map(<[u8]>::to_vec),
+                "object" if object.is_none() && f.ty == MsgType::Int32 as u32 => object = f.as_u32(),
                 _ => {}
             }
         }
@@ -832,8 +837,8 @@ impl Server {
         for f in blob::fields(data) {
             match f.name {
                 // `data` must be a table; its contents become the event payload.
-                "id" => id = f.as_str().map(|s| s.as_bytes().to_vec()),
-                "data" if f.ty == MsgType::Table as u32 => payload = Some(f.data.to_vec()),
+                "id" if id.is_none() => id = f.as_bytes().map(<[u8]>::to_vec),
+                "data" if payload.is_none() && f.ty == MsgType::Table as u32 => payload = Some(f.data.to_vec()),
                 _ => {}
             }
         }
@@ -1002,12 +1007,31 @@ fn check_policy(ty: u32, payload: &[u8]) -> bool {
 /// then sees the attribute as absent and usually answers INVALID_ARGUMENT.
 /// Skipping this filter would let, for example, an OBJPATH that is not
 /// NUL-terminated reach a handler that the C daemon never lets it reach.
+fn short_attr(payload: &[u8], offset: usize) -> bool {
+    payload.get(offset..offset + 4).is_some_and(|raw| {
+        matches!(u32::from_be_bytes(raw.try_into().unwrap()) & 0x00ff_ffff, 1..=3)
+    })
+}
+
+/// C reads four bytes even outside a short TARGET's declared payload. Reject
+/// that malformed input rather than reading padding or the next attribute.
+fn target_u32(payload: &[u8]) -> Option<u32> {
+    payload.get(..4).map(|raw| u32::from_be_bytes(raw.try_into().unwrap()))
+}
+
 fn attrs_of(payload: &[u8]) -> [Option<blob::Attr<'_>>; attr::MAX] {
     let mut out: [Option<blob::Attr<'_>>; attr::MAX] = Default::default();
     let mut offset = 0usize;
     // blob::attr_at already stops where blob_for_each_attr_len does: when the
     // PADDED length of an attribute no longer fits
-    while let Some((item, next)) = blob::attr_at(payload, offset) {
+    loop {
+        // blob_parse_attr drops invalid raw lengths, but the enclosing
+        // iterator still advances by their four-byte padded size.
+        if short_attr(payload, offset) {
+            offset += 4;
+            continue;
+        }
+        let Some((item, next)) = blob::attr_at(payload, offset) else { break };
         offset = next;
         if (item.id as usize) >= attr::MAX {
             continue;

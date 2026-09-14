@@ -473,13 +473,15 @@ impl Procd {
     /// (R81 F22.) Returns whether the bus is readable and whether anything
     /// else (another descriptor, or the tick itself) asks for a maintenance
     /// pass.
-    fn wait_activity(&mut self, timeout_ms: i32) -> io::Result<Activity> {
+    fn wait_activity(&mut self, timeout_ms: i32, connected: bool) -> io::Result<Activity> {
         use owrt_ubus::sys::{PollFd, POLLIN};
         use std::os::fd::AsRawFd;
         let pfd = |fd: i32| PollFd { fd, events: POLLIN, revents: 0 };
         let mut fds = std::mem::take(&mut self.wait_fds);
         fds.clear();
-        fds.push(pfd(self.conn.as_raw_fd()));
+        // poll ignores negative fds. A disconnected bus must not wake the
+        // pipe/timer loop continuously while its reconnect timer is armed.
+        fds.push(pfd(if connected { self.conn.as_raw_fd() } else { -1 }));
         fds.push(pfd(self.wakeup.as_raw_fd()));
         if let Some(h) = &self.hotplug {
             fds.push(pfd(h.raw_fd()));
@@ -503,7 +505,7 @@ impl Procd {
         }
         // Synchronous calls in the maintenance work may have queued a bus
         // message. Still check the other descriptors, but do not sleep on it.
-        let pending = self.conn.has_pending();
+        let pending = connected && self.conn.has_pending();
         let result = owrt_ubus::sys::poll_fds(&mut fds, if pending { 0 } else { timeout_ms });
         let mut other = false;
         match &result {
@@ -903,11 +905,11 @@ impl Procd {
             d.pump(&mut self.conn, now, ready);
             self.dispatch = d;
         }
+        let now = self.now_ms();
+        self.wdt.pump(now);
         if self.boot == Boot::NotPid1 {
             return;
         }
-        let now = self.now_ms();
-        self.wdt.pump(now);
         if let Some(mut hp) = self.hotplug.take() {
             let (console, events) = hp.pump(now);
             if console {
@@ -2500,6 +2502,7 @@ fn run() -> io::Result<()> {
     // take the supervisor -- and every child it is responsible for -- down
     // with it.
     let mut backoff_ms: i32 = 50;
+    let mut reconnect_at: i64 = 0;
     let mut connected = true;
     // The maintenance pass runs on every wake that is not a pure read on the
     // bus: timers, child exits, pipe output, uevents, inotify, signals, and
@@ -2515,6 +2518,7 @@ fn run() -> io::Result<()> {
         if !connected {
             // Keep supervising while the bus is gone: children still exit,
             // stop timeouts still expire, respawns still come due.
+            p.pump_logs();
             p.reap();
             p.fire_timeouts();
             p.pump_triggers();
@@ -2524,15 +2528,21 @@ fn run() -> io::Result<()> {
             p.pump_pid1();
             let now = p.now_ms();
             p.rc.pump(now);
-            std::thread::sleep(std::time::Duration::from_millis(backoff_ms as u64));
+            let remaining = (reconnect_at - p.now_ms()).clamp(0, i64::from(p.next_tick_ms())) as i32;
+            if remaining > 0 {
+                let _ = p.wait_activity(remaining, false);
+                continue;
+            }
             match p.reconnect() {
                 Ok(()) => {
                     debug!(2, "Connected to ubus");
                     connected = true;
                     backoff_ms = 50;
+                    maintenance_due = true;
                 }
                 Err(_) => {
                     backoff_ms = (backoff_ms * 2).min(1000);
+                    reconnect_at = p.now_ms() + i64::from(backoff_ms);
                 }
             }
             continue;
@@ -2567,7 +2577,7 @@ fn run() -> io::Result<()> {
         // exit -- or the timer tick for deadlines and respawns, which is
         // 200 ms while anything is pending and the watchdog interval otherwise.
         let remaining = (maintenance_at - p.now_ms()).clamp(0, i64::from(i32::MAX)) as i32;
-        let incoming = match p.wait_activity(remaining) {
+        let incoming = match p.wait_activity(remaining, true) {
             Ok(Activity { bus: true, other }) => {
                 maintenance_due |= other || p.now_ms() >= maintenance_at;
                 p.conn.read_incoming().map(Some)
@@ -2591,6 +2601,7 @@ fn run() -> io::Result<()> {
                 debug!(2, "lost the ubus connection ({e}); reconnecting");
                 connected = false;
                 backoff_ms = 50;
+                reconnect_at = p.now_ms() + i64::from(backoff_ms);
             }
         }
     }

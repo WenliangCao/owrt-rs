@@ -49,10 +49,11 @@ impl OutMsg {
 }
 
 /// A LOOKUP that could not be finished because the transmit queue filled up.
-/// `next` is the object to resume from, in path order.
+/// `next` is an owned path lower bound, so deleting the next object cannot
+/// invalidate the cursor or restart the walk at already-delivered objects.
 pub struct PendingCmd {
     pub msg: InMsg,
-    pub next: Option<u32>,
+    pub next: Option<Vec<u8>>,
 }
 
 enum ReadState {
@@ -86,6 +87,7 @@ pub struct Client {
     /// Whether the readiness set currently asks for output events on this
     /// socket. The loop keeps it equal to "something is queued".
     pub out_registered: bool,
+    pub in_registered: bool,
 }
 
 impl Client {
@@ -109,6 +111,7 @@ impl Client {
             pending_fd: None,
             eof: false,
             out_registered: false,
+            in_registered: true,
         }
     }
 

@@ -215,8 +215,11 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
 fn sync_write_interest(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id: u32) {
     let Some(c) = server.clients.get_mut(&id) else { return };
     let want = !c.tx_empty();
-    if want != c.out_registered && poller.set_write(c.fd(), u64::from(id), want).is_ok() {
+    let read = !c.eof;
+    if (want != c.out_registered || read != c.in_registered)
+        && poller.set_interest(c.fd(), u64::from(id), read, want).is_ok() {
         c.out_registered = want;
+        c.in_registered = read;
     }
 }
 
@@ -271,6 +274,9 @@ fn service_client(server: &mut Server, id: u32, revents: i16) -> bool {
         }
         if c.tx_empty() {
             server.process_cmd_queue(id);
+        }
+        if server.clients.get(&id).is_some_and(|c| c.eof && c.tx_empty()) {
+            return false;
         }
     }
 

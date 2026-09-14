@@ -22,7 +22,7 @@ use std::borrow::Cow;
 use std::io::{self, BufReader, Read, Write};
 use std::cell::RefCell;
 use std::os::fd::{AsRawFd, FromRawFd, RawFd};
-use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream};
+use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
@@ -265,27 +265,27 @@ impl Drop for ScriptPermit<'_> {
     }
 }
 
-fn bind(spec: &str) -> io::Result<TcpListener> {
+fn bind(spec: &str) -> io::Result<Vec<TcpListener>> {
     // uhttpd accepts "port", "addr:port", "[v6]:port"
-    let addr: SocketAddr = if let Ok(port) = spec.parse::<u16>() {
-        SocketAddr::from(([0, 0, 0, 0], port))
-    } else if let Some(rest) = spec.strip_prefix('[') {
-        let (host, port) = rest
-            .split_once("]:")
-            .ok_or_else(|| io::Error::other("bad listen spec"))?;
-        SocketAddr::new(
-            host.parse()
-                .map_err(|_| io::Error::other("bad v6 address"))?,
-            port.parse().map_err(|_| io::Error::other("bad port"))?,
-        )
+    let addresses: Vec<SocketAddr> = if let Ok(port) = spec.parse::<u16>() {
+        vec![SocketAddr::from(([0, 0, 0, 0], port)), SocketAddr::from(([0u16; 8], port))]
     } else {
-        spec.parse()
-            .map_err(|_| io::Error::other(format!("bad listen spec {spec}")))?
+        spec.to_socket_addrs()?.collect()
     };
-    match addr {
-        SocketAddr::V4(_) => TcpListener::bind(addr),
-        SocketAddr::V6(v6) => bind_v6only(v6),
+    let mut listeners = Vec::new();
+    let mut last_error = io::Error::other(format!("no address for {spec}"));
+    for addr in addresses {
+        match match addr {
+            SocketAddr::V4(_) => TcpListener::bind(addr),
+            SocketAddr::V6(v6) => bind_v6only(v6),
+        } {
+            Ok(listener) => listeners.push(listener),
+            Err(error) => last_error = error,
+        }
     }
+    // Like getaddrinfo(AF_UNSPEC, AI_PASSIVE), keep successful families even
+    // when IPv6 is unavailable or another address is already bound.
+    if listeners.is_empty() { Err(last_error) } else { Ok(listeners) }
 }
 
 /// Like uhttpd (usock with USOCK_IPV6ONLY): a v6 listener that does not claim
@@ -508,6 +508,7 @@ const OUT_WINDOW: usize = 16 * 1024;
 
 struct Server {
     config: Config,
+    tls_addresses: Vec<SocketAddr>,
     cgi_physical_prefix: Option<String>,
     bridge: Bridge,
     connections: AtomicUsize,
@@ -573,9 +574,6 @@ impl Server {
             let buffer = self.output_buffers.lock().unwrap_or_else(|e| e.into_inner())
                 .pop().unwrap_or_else(|| Vec::with_capacity(512));
             let mut out = http::Out::with_buffer(&client, conn.fd, OUT_WINDOW, network_timeout, buffer);
-            if request.expect_continue && client.borrow_mut().get_mut().write_all(b"HTTP/1.1 100 Continue\r\n\r\n").is_err() {
-                return Outcome::Closed;
-            }
             // The body is decoded on demand: CGI streams it straight to the
             // script's stdin, so an upload never has to fit in memory first.
             let mut body = http::BodyReader::new(&client, &request);
@@ -639,11 +637,22 @@ impl Server {
         resp: &mut Response<W>,
         conn: Conn,
     ) -> io::Result<()> {
+        // client_header_complete: policy filters precede interim responses.
+        if self.config.rfc1918_filter
+            && is_rfc1918(conn.remote.ip())
+            && !is_rfc1918(conn.local.ip())
+        {
+            return resp.error(
+                403,
+                "Forbidden",
+                Some("Rejected request from RFC1918 IP to public server address"),
+            );
+        }
         if self.config.tls_redirect && !conn.tls {
-            let port = self.config.https.iter().find_map(|spec| {
-                let (host, port) = spec.rsplit_once(':').unwrap_or(("", spec));
-                (host.contains(':') == conn.local.is_ipv6()).then(|| port.parse::<u16>().ok()).flatten()
-            });
+            let port = self.tls_addresses.iter()
+                .filter(|addr| addr.is_ipv6() == conn.local.is_ipv6())
+                .map(SocketAddr::port)
+                .fold(None, |first, port| if first.is_none() || port == 443 { Some(port) } else { first });
             if let (Some(port), Some(host)) = (port, request.header("host")) {
                 let host = if let Some(end) = host.find(']') { &host[..=end] }
                     else { host.split(':').next().unwrap_or(host) };
@@ -656,16 +665,9 @@ impl Server {
                 return resp.finish();
             }
         }
-        if self.config.rfc1918_filter
-            && is_rfc1918(conn.remote.ip())
-            && !is_rfc1918(conn.local.ip())
-            && !conn.local.ip().is_loopback()
-        {
-            return resp.error(
-                403,
-                "Forbidden",
-                Some("Rejected request from RFC1918 IP to public server address"),
-            );
+        if request.expect_continue {
+            resp.sink().write_all(b"HTTP/1.1 100 Continue\r\n\r\n")?;
+            resp.sink().flush()?;
         }
         let path = request.url.split('?').next().unwrap_or("");
         if let Some(prefix) = &self.config.ubus_prefix {
@@ -752,9 +754,24 @@ impl Server {
                         };
                         return cgi::run(&ctx, request, body, resp, &pi);
                     }
-                    return files::serve(request, resp, &pi, self.config.no_dirlists, &self.config.dirlist_charset);
+                    match files::serve(request, resp, &pi, self.config.no_dirlists, &self.config.dirlist_charset)? {
+                        files::Served::Complete => return Ok(()),
+                        files::Served::Forbidden => {
+                            if redirect_status != 403 {
+                                if let Some(handler) = &self.config.error_handler {
+                                    url = Cow::Borrowed(handler.as_str());
+                                    redirect_status = 403;
+                                    continue;
+                                }
+                            }
+                            return files::forbidden(resp, request, &request.url);
+                        }
+                    }
                 }
                 files::Lookup::NotFound => {
+                    if redirect_status == 403 {
+                        return files::forbidden(resp, request, &request.url);
+                    }
                     if redirect_status == 200 {
                         if let Some(handler) = &self.config.error_handler {
                             url = Cow::Borrowed(handler.as_str());
@@ -984,7 +1001,29 @@ fn main() {
         .call_log
         .as_ref()
         .and_then(|path| std::fs::File::create(path).ok());
+    let mut listeners = Vec::new();
+    let mut tls_addresses = Vec::new();
+    for spec in &config.http {
+        match bind(spec) {
+            Ok(bound) => listeners.extend(bound.into_iter().map(|listener| (listener, None))),
+            Err(error) => eprintln!("httpd-rs: cannot bind {spec}: {error}"),
+        }
+    }
+    if let Some(tls_config) = tls_config {
+        for spec in &config.https {
+            match bind(spec) {
+                Ok(bound) => {
+                    for listener in bound {
+                        if let Ok(addr) = listener.local_addr() { tls_addresses.push(addr); }
+                        listeners.push((listener, Some(Arc::clone(&tls_config))));
+                    }
+                }
+                Err(error) => eprintln!("httpd-rs: cannot bind {spec}: {error}"),
+            }
+        }
+    }
     let server = Arc::new(Server {
+        tls_addresses,
         cgi_physical_prefix: config.cgi_prefix.as_ref().map(|prefix| format!("{}{}", config.docroot, prefix)),
         bridge: Bridge {
             socket: config.ubus_socket.clone(),
@@ -1003,27 +1042,6 @@ fn main() {
         inventory: inventory.map(Mutex::new),
         config,
     });
-    let mut listeners = Vec::new();
-    for spec in &server.config.http {
-        match bind(spec) {
-            Ok(listener) => listeners.push((listener, None)),
-            Err(error) => {
-                eprintln!("httpd-rs: cannot bind {spec}: {error}");
-                std::process::exit(1);
-            }
-        }
-    }
-    if let Some(tls_config) = tls_config {
-        for spec in &server.config.https {
-            match bind(spec) {
-                Ok(listener) => listeners.push((listener, Some(Arc::clone(&tls_config)))),
-                Err(error) => {
-                    eprintln!("httpd-rs: cannot bind {spec}: {error}");
-                    std::process::exit(1);
-                }
-            }
-        }
-    }
     let Some(last) = listeners.pop() else {
         eprintln!("httpd-rs: nothing to listen on");
         std::process::exit(1);

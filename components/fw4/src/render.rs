@@ -469,13 +469,16 @@ impl Fw4 {
 
     fn nft_json_command(&self, args: &str) -> Vec<Json> {
         let cmd = format!("/usr/sbin/nft --terse --json {args}");
-        let Some(text) = self.inputs.popen_read(&cmd) else {
-            self.raw_warn(&format!(
-                "Unable to popen() [ \"/usr/sbin/nft\", \"--terse\", \"--json\", {} ]: {}\n",
-                args.split(' ').map(|a| format!("\"{a}\"")).collect::<Vec<_>>().join(", "),
-                if self.inputs.is_mock() { "Unspecified error" } else { "No such file or directory" }
-            ));
-            return vec![];
+        let text = match self.inputs.popen_read(&cmd) {
+            Ok(text) => text,
+            Err(error) => {
+                self.raw_warn(&format!(
+                    "Unable to popen() [ \"/usr/sbin/nft\", \"--terse\", \"--json\", {} ]: {}\n",
+                    args.split(' ').map(|a| format!("\"{a}\"")).collect::<Vec<_>>().join(", "),
+                    crate::input::fs_error(&error)
+                ));
+                return vec![];
+            }
         };
         match owrt_ubus::json::parse(&text) {
             Ok(j) => j

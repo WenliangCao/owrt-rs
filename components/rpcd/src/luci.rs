@@ -659,11 +659,13 @@ fn get_features() -> Json {
     }
     // netifd version check (apk only on this release)
     let apk = popen("apk list -I 'netifd' 2>/dev/null");
-    let vrf = apk
-        .lines()
-        .find_map(|l| l.strip_prefix("netifd-"))
-        .map(|v| v.len() >= 4 && v.starts_with("20") && v[..4].bytes().all(|b| b.is_ascii_digit()) && v[..4].parse::<i64>().unwrap_or(0) >= 2025)
-        .unwrap_or(false);
+    // Check bytes before slicing: a malformed year such as "20中" must
+    // return false without splitting a character and panicking. The exact
+    // ucode regexp also finds a package line after a preceding notice.
+    let vrf = apk.lines().find_map(|line| line.strip_prefix("netifd-"))
+        .and_then(|v| v.as_bytes().get(..4))
+        .is_some_and(|year| year.starts_with(b"20") && year.iter().all(u8::is_ascii_digit)
+            && year >= b"2025".as_slice());
     if let Some(slot) = r.iter_mut().find(|(k, _)| k == "netifd_vrf") {
         slot.1 = Json::Bool(vrf);
     }

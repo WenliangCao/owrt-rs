@@ -89,8 +89,25 @@ struct ReceivedHeader {
     fd: Option<OwnedFd>,
 }
 
+#[derive(Debug)]
+struct StatusError(i32);
+
+impl std::fmt::Display for StatusError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ubus: {} ({})", status::name(self.0), self.0)
+    }
+}
+
+impl std::error::Error for StatusError {}
+
 fn ubus_error(code: i32) -> io::Error {
-    io::Error::other(format!("ubus: {} ({code})", status::name(code)))
+    io::Error::other(StatusError(code))
+}
+
+/// Preserve protocol failures for bridges that must return the original
+/// status. Transport errors have no ubus status and return None.
+pub fn error_status(error: &io::Error) -> Option<i32> {
+    error.get_ref()?.downcast_ref::<StatusError>().map(|e| e.0)
 }
 
 impl Connection {

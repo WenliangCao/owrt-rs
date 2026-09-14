@@ -86,3 +86,13 @@ delta 文件的写入、读取与过滤、配置目录列举。不替换 `libuci
 - 并发：两个进程同时 commit 依赖 flock，与原实现同粒度，不新增锁协议。
 - 内存耗尽路径（`Out of memory`）。
 - `ucimap`、Lua 绑定、`uci_hash_options`：不在 CLI 路径上。
+
+## 5. R92 非 UTF-8 改名的处置
+
+值仍为原始字节；model 的 package/section/option 名是 UTF-8。`rename` 的新名无法表示时，
+在修改 model 和 delta 之前返回 INVAL，避免库调用者在同一 Context 内得到 U+FFFD 改名。
+不把此拒绝宣称为原版字节兼容：C 接受瞬态原始名字并保存 delta，但随后加载会丢弃其非法改名。
+
+**R88 的同 batch CLI 描述收窄**：两侧 CLI 在每个 batch 命令后卸载包；精确原版的 rename → export
+不会直接导出该 raw 名字，raw delta 与立即报错行为仍不同。`r92_compat_probe.py` 的 `uci_rename`
+分别验证 section/option、delta、后续加载、配置文件保持及无 U+FFFD；库单测验证 model/delta 原子拒绝。

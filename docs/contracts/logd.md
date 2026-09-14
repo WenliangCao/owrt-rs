@@ -22,7 +22,8 @@
 2. 入库前处理顺序：所有 `\n` 换成空格；去掉末尾空白；解析并去掉 `^<([0-9]*)>`；来自 `/dev/log`
    且长度 > 16 且第 16 个字符为空格时，去掉前 16 个字符（syslog 时间戳）；facility 为 LOCAL7 的
    记录不入环形缓冲区。
-3. 单条上限 1024 字节（含 NUL），`write` 超长截断。
+3. 单条上限 1024 字节（含 NUL），`write` 按前 1023 **输入字节**截断，允许截在 UTF-8 字符中间。
+   `/dev/log`、`write`、环形记录、blobmsg 回复保留非 UTF-8 字节，不再转换成 U+FFFD。
 4. 环形缓冲区容量为 `-S` 指定的 KiB 数 × 1024 字节，缺省 16 KiB；每条占 32 字节头 + 4 字节对齐的
    正文。写入位置到达末端时回绕到起点，被覆盖区间内的旧记录淘汰。保留集合与原实现一致。
 5. `read`：`lines=N` 表示只返回 `id >= current_id - N` 的记录；`lines` 缺省或 0 表示全部。
@@ -40,3 +41,14 @@ udebug 环形缓冲区（设备上没有 `udebug` 对象）；远程 syslog 与�
 见 [tests/reference/logd/](../../tests/reference/logd/)。每个用例给出一组输入（`logger` 写入、
 `ubus call log write`、kmsg 行）与期望的 `logread`/`ubus call log read` 输出形态；在精确 rootfs
 中对原 logd 与候选分别执行并比较。
+
+## 5. 慢读流的资源治理（R92）
+
+精确原版的 libubox ustream 队列也无上限，属于共同的资源问题。候选有意限制为：每条流
+最多 1 MiB 待写 payload，全部流合计最多 4 MiB，最多 64 条流。慢读者触及积压上限后断开；
+新流的初始历史记录超过单流预算或已无槽位时返回 NOT_SUPPORTED。释放读端后容量可复用。
+oneshot 也受同一预算约束，普通非流式 read 的既有 ubus 消息上限不变。
+
+预算计算的是排队 payload 字节，不等于 allocator capacity、RSS 或内核管道缓冲区大小。
+断开意味着该慢读客户端丢失后续日志；它可重连按环形缓冲保留范围重新读取，不能承诺无限补发。
+边界和正常读者用例见 `r92_compat_probe.py` 的 `logd_limits`，持续压力见 `r92_recovery_probe.py`。

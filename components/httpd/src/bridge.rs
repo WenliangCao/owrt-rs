@@ -171,15 +171,18 @@ impl RpcResponse {
     }
 }
 
-fn rpc_batch(responses: impl Iterator<Item = RpcResponse>) -> Vec<u8> {
+fn rpc_batch(responses: impl Iterator<Item = RpcResponse>, mut emit: impl FnMut(&[u8]) -> io::Result<()>) -> io::Result<()> {
     let mut out = Vec::with_capacity(128);
-    out.push(b'[');
+    emit(b"[")?;
     for (index, response) in responses.enumerate() {
+        out.clear();
         if index != 0 { out.push(b','); }
         response.append_to(&mut out);
+        // One reply at a time: a blocked HTTP writer stops evaluating later
+        // RPCs instead of materialising a batch-sized response in memory.
+        emit(&out)?;
     }
-    out.push(b']');
-    out
+    emit(b"]")
 }
 
 fn rpc_error(id: Json, error: RpcError) -> RpcResponse {
@@ -240,7 +243,8 @@ fn do_call(
     legacy: bool,
 ) -> RpcResponse {
     let Ok(mut conn) = bridge.connect() else {
-        return rpc_error(id, RpcError::Internal);
+        // The C lookup_id fails when its bus is disconnected too.
+        return rpc_error(id, RpcError::Object);
     };
     let Ok(objid) = conn.lookup_id(object, bridge.timeout_ms) else {
         return rpc_error(id, RpcError::Object);
@@ -441,8 +445,10 @@ pub fn handle<W: Sink>(
                         500,
                         "Ubus Protocol Error",
                         Json::Object(vec![
-                            ("code".into(), Json::Int(10)),
-                            ("message".into(), Json::Str("Connection failed".into())),
+                            // ubus_lookup returns INVALID_ARGUMENT when
+                            // ubus_start_request fails on a disconnected fd.
+                            ("code".into(), Json::Int(2)),
+                            ("message".into(), Json::Str("Invalid argument".into())),
                         ])
                         .to_bytes(),
                     );
@@ -464,18 +470,22 @@ pub fn handle<W: Sink>(
                         };
                         send_json(resp, bridge, request, 200, "OK", json.to_bytes())
                     }
-                    Err(_) => send_json(
+                    Err(error) => {
+                        let code = owrt_ubus::conn::error_status(&error)
+                            .unwrap_or(owrt_ubus::status::CONNECTION_FAILED);
+                        send_json(
                         resp,
                         bridge,
                         request,
                         500,
                         "Ubus Protocol Error",
                         Json::Object(vec![
-                            ("code".into(), Json::Int(4)),
-                            ("message".into(), Json::Str("Not found".into())),
+                            ("code".into(), Json::Int(code as i64)),
+                            ("message".into(), Json::Str(owrt_ubus::status::name(code).into())),
                         ])
                         .to_bytes(),
-                    ),
+                    )
+                    },
                 }
             } else {
                 resp.status(404, "Not Found")?;
@@ -500,14 +510,15 @@ pub fn handle<W: Sink>(
                         send_json(resp, bridge, request, 200, "OK", &out)
                     }
                     Some(Json::Array(items)) => {
-                        send_json(
-                            resp,
-                            bridge,
-                            request,
-                            200,
-                            "OK",
-                            rpc_batch(items.iter().map(|item| handle_object(bridge, item, true))),
-                        )
+                        resp.status(200, "OK")?;
+                        cors_headers(resp, bridge, request)?;
+                        resp.header("Content-Type", "application/json")?;
+                        resp.end_headers()?;
+                        rpc_batch(items.iter().map(|item| handle_object(bridge, item, true)), |bytes| {
+                            resp.body(bytes)?;
+                            resp.sink().flush()
+                        })?;
+                        resp.finish()
                     }
                     _ => send_json(
                         resp,
@@ -637,14 +648,35 @@ mod tests {
         let failure = rpc_error(Json::Null, RpcError::Parse);
         assert_eq!(failure.to_bytes(),
                    br#"{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}"#);
-        assert_eq!(rpc_batch(std::iter::empty()), b"[]");
-        let batch = rpc_batch([rpc_result(Json::Int(1), Json::Null), failure].into_iter());
+        let collect = |items: Vec<RpcResponse>| {
+            let mut out = Vec::new();
+            rpc_batch(items.into_iter(), |bytes| { out.extend_from_slice(bytes); Ok(()) }).unwrap();
+            out
+        };
+        assert_eq!(collect(vec![]), b"[]");
+        let batch = collect(vec![rpc_result(Json::Int(1), Json::Null), failure]);
         assert_eq!(batch,
                    br#"[{"jsonrpc":"2.0","id":1,"result":null},{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}]"#);
         let large = rpc_result(Json::Array(vec![Json::Bool(true)]), Json::Str("x".repeat(8192)));
         let parsed = json::parse_bytes(&large.to_bytes()).unwrap();
         assert_eq!(parsed.get("id"), Some(&Json::Array(vec![Json::Bool(true)])));
         assert_eq!(parsed.get("result").and_then(Json::as_str), Some("x".repeat(8192).as_str()));
+    }
+
+    #[test]
+    fn a_failed_batch_writer_stops_before_executing_the_next_rpc() {
+        let mut handled = 0;
+        let responses = (0..100).map(|id| {
+            handled += 1;
+            rpc_result(Json::Int(id), Json::Str("x".repeat(32768)))
+        });
+        let mut writes = 0;
+        let result = rpc_batch(responses, |_| {
+            writes += 1;
+            if writes == 2 { Err(io::Error::from(io::ErrorKind::BrokenPipe)) } else { Ok(()) }
+        });
+        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::BrokenPipe);
+        assert_eq!(handled, 1);
     }
 
     #[test]

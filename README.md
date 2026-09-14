@@ -10,7 +10,8 @@ C 原件全程保留，任何一步都能回退。
 [R90 报告](reports/ax3000t-stock-openwrt-25.12.5/R90_BATCH1_LIFECYCLE.md)记录 netifd/procd 生命周期修复、
 两次 R90 冷启动及客户端健康确认。整机混合吞吐相对 R89 −2.12%，CPU/操作 +0.52%，
 常驻 RSS 中位数之和 4716→4708 KiB；部分微基准变慢，不能宣称所有查询无回退。
-[R91 本地后续](docs/R91_RESUME.md)修复 netifd 日志通道，尚未发布或部署。
+[R92 后续台账](docs/R92_RESUME.md)继续完成异常恢复、协议兼容、性能与覆盖四批，包含 R91 日志修复。
+R89 正式产物是固定比较基线；R92 当前处于开发验证，尚未部署。资源上限与有意差异逐项写入组件合同。
 
 历史 [R86 报告](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)（发布提交 `f612e30`）记录了信号唤醒、HTTPD资源耗尽和
 netifd子进程回收检查的修复。九组件代表负载的平均延迟和CPU均下降；完整74项负载中，平均延迟
@@ -84,7 +85,7 @@ R84 版本的逐组件、CPU、延迟、内存、存储和测量边界以该报�
 2. **差分门槛**（`tools/r*_*.sh`）：在 aarch64 构建机上，把设备的精确 rootfs 复制两份，在各自的
    mount/net/pid namespace 里跑 C 原件和 Rust 候选，同一客户端打同一串调用，逐字节比对输出、
    内核状态、写出的文件。每个门槛都有**红证**——注入故障（换成 `/bin/false`、改掉一行）必须判红，
-   否则这个门槛不算存在。netifd 29 例（`tools/netifd_suite.sh`）、procd 272 标记（`r65`）、
+   否则这个门槛不算存在。netifd 31 例（`tools/netifd_suite.sh`）、procd 272 标记（`r65`）、
    ubusd（`r36`–`r42`）、rpcd/uci/fw4/httpd/logd 各有自己的套件。
 3. **设备窗口**：stage → 重启 → **站在客户端**验收（本机租约、经路由器解析、经路由器出网、
    运行中二进制 = 候选）→ 连续观察 ≥ 3 分钟 → confirm；设备侧带自动回退（无人 confirm 则还原 C 并重启）。
@@ -132,7 +133,7 @@ sudo sh   tools/r65_procd_diff.sh <rootfs> <procd-rs> <outdir> <examples-dir>
 ```
 
 一条项目内反复验证过的纪律：**构建、门槛、提交必须出自同一棵树的同一瞬间**（注释也算改动），
-引用哪份二进制就写它的 md5。
+引用哪份二进制就记录它的 SHA256；开发构建、正式构建和实机身份分别核验。
 
 ## 明确不做
 

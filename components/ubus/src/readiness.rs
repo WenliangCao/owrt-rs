@@ -86,8 +86,8 @@ mod linux {
             Ok(Poller { epoll, events: vec![Event::default(); BATCH] })
         }
 
-        fn ctl(&self, op: i32, fd: RawFd, token: u64, write: bool) -> io::Result<()> {
-            let mut event = Event { events: EPOLLIN | if write { EPOLLOUT } else { 0 }, token };
+        fn ctl(&self, op: i32, fd: RawFd, token: u64, read: bool, write: bool) -> io::Result<()> {
+            let mut event = Event { events: (if read { EPOLLIN } else { 0 }) | if write { EPOLLOUT } else { 0 }, token };
             // SAFETY: event is a live, correctly laid out epoll_event for this call.
             if unsafe { epoll_ctl(self.epoll.as_raw_fd(), op, fd, &mut event) } < 0 {
                 return Err(io::Error::last_os_error());
@@ -97,12 +97,18 @@ mod linux {
 
         /// Watch `fd` for input, and for output too when `write` is set.
         pub fn add(&mut self, fd: RawFd, token: u64, write: bool) -> io::Result<()> {
-            self.ctl(EPOLL_CTL_ADD, fd, token, write)
+            self.ctl(EPOLL_CTL_ADD, fd, token, true, write)
         }
 
         /// Change whether output readiness is wanted for a registered `fd`.
         pub fn set_write(&mut self, fd: RawFd, token: u64, write: bool) -> io::Result<()> {
-            self.ctl(EPOLL_CTL_MOD, fd, token, write)
+            self.set_interest(fd, token, true, write)
+        }
+
+        /// EOF is permanently readable. Stop asking for input once it has
+        /// been consumed, while still allowing queued replies to drain.
+        pub fn set_interest(&mut self, fd: RawFd, token: u64, read: bool, write: bool) -> io::Result<()> {
+            self.ctl(EPOLL_CTL_MOD, fd, token, read, write)
         }
 
         pub fn remove(&mut self, fd: RawFd) -> io::Result<()> {
@@ -169,11 +175,15 @@ mod fallback {
             Ok(())
         }
 
-        pub fn set_write(&mut self, fd: RawFd, _token: u64, write: bool) -> io::Result<()> {
+        pub fn set_write(&mut self, fd: RawFd, token: u64, write: bool) -> io::Result<()> {
+            self.set_interest(fd, token, true, write)
+        }
+
+        pub fn set_interest(&mut self, fd: RawFd, _token: u64, read: bool, write: bool) -> io::Result<()> {
             let Some(entry) = self.fds.iter_mut().find(|p| p.fd == fd) else {
                 return Err(io::Error::new(io::ErrorKind::NotFound, "descriptor not registered"));
             };
-            entry.events = POLLIN | if write { POLLOUT } else { 0 };
+            entry.events = (if read { POLLIN } else { 0 }) | if write { POLLOUT } else { 0 };
             Ok(())
         }
 
@@ -256,5 +266,22 @@ mod tests {
         poller.remove(a.as_raw_fd()).unwrap();
         assert!(wait(&mut poller, 0).is_empty());
         assert!(poller.remove(a.as_raw_fd()).is_err());
+    }
+
+    #[test]
+    fn eof_read_interest_can_be_removed_without_losing_write_readiness() {
+        let (mut a, peer) = UnixStream::pair().unwrap();
+        peer.shutdown(std::net::Shutdown::Write).unwrap();
+        let mut poller = Poller::new().unwrap();
+        poller.add(a.as_raw_fd(), 4, false).unwrap();
+        assert_ne!(wait(&mut poller, 1000)[0].revents & POLLIN, 0);
+        assert_eq!(a.read(&mut [0]).unwrap(), 0);
+        poller.set_interest(a.as_raw_fd(), 4, false, false).unwrap();
+        assert!(wait(&mut poller, 20).is_empty());
+        poller.set_interest(a.as_raw_fd(), 4, false, true).unwrap();
+        let ready = wait(&mut poller, 1000);
+        assert_eq!(ready.len(), 1);
+        assert_eq!(ready[0].revents & POLLIN, 0);
+        assert_ne!(ready[0].revents & POLLOUT, 0);
     }
 }

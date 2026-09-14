@@ -40,3 +40,19 @@ input_/output_/forward_/helper_、verdict 链）、NAT 链（dstnat/srcnat 与�
 
 `fw4` 之外的 firewall 相关组件（`/etc/init.d/firewall`、hotplug `20-firewall`）保留原样，只是它们调用的
 `/sbin/fw4` 被 bind mount 到候选。
+
+## 5. R92 CLI 与特殊输入
+
+- start/reload 渲染中止后仍按 shell 管线运行 nft 与 includes 阶段；无状态时最终退出 1，print
+  中止退出 254。启动/重载的状态存在性按普通文件判定，usage 的空行和文本按镜像 wrapper。
+- 一次读取网络/服务 ubus 状态复用同一连接；连接失败只打印一次原版警告。
+- `log=0.5` 的规则 action 链选择按 ucode 数值真值判断，不先截成整数位图。
+  `any_device`、`monthdays=foo/1.5` 的旧风险假设未复现为新增差异，保留实际生成的规则对照。
+- include 被信号终止返回负信号号；超时杀死并等待直接子进程，采用该退出/信号结果。
+  不承诺收回任意自行脱离的孙进程；探针的超时脚本 `exec sleep` 验证直接子进程边界。
+- 文件打开失败报告该操作的实际 errno。精确 ucode `85922056` 的 fs.open 失败不更新
+  fs.last_error，故原版在 ENOTDIR/ELOOP/EISDIR 场景可错误打印旧 ENOENT；有意保留准确诊断，
+  不伪造解释器 backtrace。目录成功 open 后读取失败按原版行读取 EOF 处理。
+
+`r92_fw4_probe.py` 用一次性镜像和 nft 记录器对照 16 项 CLI/文件/信号行为，并保留完整 stderr；
+它只替代 nft 执行边界，不替代正式回归的上游语料、r29 及实际规则检查。

@@ -14,7 +14,7 @@
 | stat / lstat | path S, ubus_rpc_session S | list | `{path, type,size,mode,atime,mtime,ctime,inode,uid,gid,user?,group?}` |
 | md5 | path S, ubus_rpc_session S | read | `{md5}`；非普通文件 → NOT_SUPPORTED |
 | remove | path S, ubus_rpc_session S | write | 目录递归删除；无数据 |
-| exec | command S, params A, env T, ubus_rpc_session S | exec：先查规范化可执行路径，再查 "路径 参数..."（≤1024 字节，≤253 个参数） | `{code, stdout?, stderr?}`；有会话且带 env → PERMISSION_DENIED(6)；命令不存在 → NOT_FOUND(4)；单流 > 262144 字节 → NOT_SUPPORTED；超时（rpcd `-t`，设备 30 s）→ TIMEOUT(7) |
+| exec | command S, params A, env T, ubus_rpc_session S | exec：先查规范化可执行路径，再查 "路径 参数..."（≤1024 字节，≤253 个参数） | `{code, stdout?, stderr?}`；有会话且带 env → PERMISSION_DENIED(6)；命令不存在 → NOT_FOUND(4)；单流达到 262144 字节 → NOT_SUPPORTED；超时（rpcd `-t`，设备 30 s）→ TIMEOUT(7) |
 
 通用：path 先按 file.c 规则规范化（合并 `/`、消解 `.`/`..`、去尾 `/`）；无 `ubus_rpc_session` 时不做 ACL
 检查（本机 root 调用）；errno → 状态码：EACCES→6、ENOENT→4、ENOTDIR/EINVAL→2、其它→9。参数类型不符
@@ -36,3 +36,16 @@ ucode.so：未知参数或类型不符 → INVALID_ARGUMENT，`ubus_rpc_session`
    与 rpcd-rs 的回复做结构比较（忽略时间戳、计数类易变字段），状态码必须相同。
 2. 设备：`enable` 后用 `ubus call file|luci …` 只读子集复核；LuCI 登录后页面可用由用户确认；
    `disable` 恢复原插件。
+
+## 4. R92 进程生命周期与 feature 夹具
+
+输出 pipe 的 EOF 不是子进程退出。候选在两端关闭后仍等待直接子进程；超过配置 deadline
+则终止并回收，再回 TIMEOUT。输出到达单流 256 KiB 上限时回 NOT_SUPPORTED，关闭管道并
+在有限宽限后回收仍存活的子进程。原版可能在 EOF 提前回复并留下子进程；候选的有界生命周期
+为有意差异。`r92_recovery_probe.py` 使用停止 rpcd→子进程关闭管道→恢复 rpcd 的可重复调度，
+分别验证空输出、已有输出及超限，不能用不稳定的线程时序代替比较。
+
+`luci getFeatures` 的 netifd_vrf 保留真实 apk 版本探测。r26 的差分输入由 fixture 提供，并在
+helper 退出前关闭 stdout，避免镜像 ucode fread 遇 SIGCHLD 时偶发丢版本；不屏蔽回复字段。
+真实 apk 与信号干扰另由 r85 feature 探针验证，r92 增补版本边界（含 `20中`，必须 false 且
+daemon 存活）、前置提示行和空输出。无效年份按字节检验，避免 Rust 的 UTF-8 切片 panic。

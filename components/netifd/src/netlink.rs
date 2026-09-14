@@ -17,6 +17,13 @@ const SOCK_CLOEXEC: i32 = 0o2000000;
 const NETLINK_ROUTE: i32 = 0;
 const SOL_NETLINK: i32 = 270;
 const NETLINK_EXT_ACK: i32 = 11;
+const SOL_SOCKET: i32 = 1;
+const SO_RCVBUF: i32 = 8;
+const EVENT_BUFFER: i32 = 65535;
+// Growth is only a mitigation; correctness comes from a fresh link dump.
+// Bound requests even on a kernel with a very large rmem_max.
+const MAX_EVENT_BUFFER: i32 = 4 * 1024 * 1024;
+pub const ENOBUFS: i32 = 105;
 
 pub const NLMSG_NOOP: u16 = 1;
 pub const NLMSG_ERROR: u16 = 2;
@@ -194,6 +201,7 @@ pub const NLA_F_NESTED: u16 = 0x8000;
 pub struct Netlink {
     fd: OwnedFd,
     seq: u32,
+    event_buffer: i32,
 }
 
 impl Netlink {
@@ -220,11 +228,30 @@ impl Netlink {
         unsafe {
             setsockopt(fd.as_raw_fd(), SOL_NETLINK, NETLINK_EXT_ACK, &one, 4);
         }
-        Ok(Self { fd, seq: 0 })
+        let mut socket = Self { fd, seq: 0, event_buffer: EVENT_BUFFER };
+        if groups != 0 {
+            socket.set_event_buffer(EVENT_BUFFER)?;
+        }
+        Ok(socket)
     }
 
     pub fn as_raw_fd(&self) -> i32 {
         self.fd.as_raw_fd()
+    }
+
+    fn set_event_buffer(&mut self, bytes: i32) -> io::Result<()> {
+        // SAFETY: SO_RCVBUF reads a live int; the kernel applies rmem_max.
+        if unsafe { setsockopt(self.as_raw_fd(), SOL_SOCKET, SO_RCVBUF, &bytes, 4) } < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        self.event_buffer = bytes;
+        Ok(())
+    }
+
+    /// system-linux.c doubles the event receive buffer after NLE_NOMEM.
+    /// Always resynchronise too, even when growth is capped or refused.
+    pub fn grow_event_buffer(&mut self) -> io::Result<()> {
+        self.set_event_buffer((self.event_buffer * 2).min(MAX_EVENT_BUFFER))
     }
 
     /// O_NONBLOCK, for the event socket read from the poll loop.
@@ -396,14 +423,20 @@ impl Netlink {
     /// Drain whatever the event socket has; `Ok(vec![])` when it would block.
     pub fn recv_events(&self) -> io::Result<Vec<Msg>> {
         let mut buf = vec![0u8; 1 << 17];
+        const MSG_TRUNC: i32 = 0x20;
         // SAFETY: buf is a live allocation of the length passed.
-        let n = unsafe { recv(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), 0) };
+        let n = unsafe { recv(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), MSG_TRUNC) };
         if n < 0 {
             let e = io::Error::last_os_error();
             if e.kind() == io::ErrorKind::WouldBlock {
                 return Ok(Vec::new());
             }
             return Err(e);
+        }
+        if n as usize > buf.len() {
+            // recv(MSG_TRUNC) reports the full datagram size. A discarded
+            // tail loses events just like a receive-queue overflow.
+            return Err(io::Error::from_raw_os_error(ENOBUFS));
         }
         Ok(split(&buf[..n as usize]))
     }

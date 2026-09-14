@@ -348,8 +348,11 @@ pub fn leases() -> Vec<Lease> {
                 let strip_colon = |s: &str| s.replace(':', "");
                 if !e.v6 && duid.len() > 15 && duid.starts_with("ff:") {
                     // ff:<iaid-4-bytes>:<duid-x-bytes...>
-                    e.iaid = Some(strip_colon(&duid[3..14]));
-                    e.duid = Some(strip_colon(&duid[15..]));
+                    // C splits bytes at fixed offsets. A malformed client ID
+                    // can split a UTF-8 character; retain this module's lossy
+                    // display policy without indexing inside a Rust string.
+                    e.iaid = Some(strip_colon(&String::from_utf8_lossy(&duid.as_bytes()[3..14])));
+                    e.duid = Some(strip_colon(&String::from_utf8_lossy(&duid.as_bytes()[15..])));
                 } else if !e.v6 && duid.len() == 20 && duid.starts_with("01:") {
                     // 01:<mac-addr-6-bytes>
                     if ea.is_none() {

@@ -188,4 +188,16 @@ R81 的 F03–F14 按镜像内 `/sbin/netifd`、协议脚本和 `wireless-device
 R88 netifd F6 撤销：镜像匹配的 `iface_object_methods` 与原版运行时都只有
 `up/down/renew/status/prepare/dump/add_device/remove_device/notify_proto/remove/set_data`，
 没有接口级 `restart`。现有候选的方法表符合该版本；不要从较新上游补入这个方法。
-全局 `network restart` 是另一项合同，R88 F9 仍待处理。
+全局 `network restart` 是另一项合同，见下节。
+
+## 9. R92 溢出恢复与全局 restart
+
+事件 netlink socket 初始请求 65535 字节接收缓冲；ENOBUFS 时请求倍增至最多 4 MiB，
+实际值仍受内核 rmem_max 限制。ENOBUFS 或 MSG_TRUNC 后完整重扫设备，重建 presence/carrier
+视图；扩容失败或已达上限也须重同步。dump 失败保留重同步标志，在后续维护中重试。
+丢失事件不能靠单次日志后继续使用旧设备状态。`r92_recovery_probe.py` 用真实内核事件队列
+溢出验证扩容、丢事件后状态恢复和 daemon 存活。
+
+全局 `network restart` 先关闭接口，等待 1000 ms，再用原始 argv exec 当前程序，保持 PID。
+方法立即回复，新的对象注册必须来自 exec 后的实例。`r92_compat_probe.py` 的 restart 用例
+同时验证延时、PID/argv、对象重注册和后续调用，接口级方法表不扩展。

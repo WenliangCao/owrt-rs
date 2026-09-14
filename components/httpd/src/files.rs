@@ -339,31 +339,39 @@ fn preconditions<W: Write>(
     Ok(true)
 }
 
+pub enum Served {
+    Complete,
+    Forbidden,
+}
+
+/// A forbidden file has not written a response yet: the caller may dispatch
+/// the configured error handler with REDIRECT_STATUS=403.
 pub fn serve<W: http::Sink>(
     request: &Request,
     resp: &mut Response<W>,
     pi: &PathInfo,
     no_dirlists: bool,
     charset: &str,
-) -> io::Result<()> {
+) -> io::Result<Served> {
     if !matches!(
         request.method,
         Method::Get | Method::Post | Method::Head | Method::Options
     ) {
         resp.status(405, "Method Not Allowed")?;
         resp.end_headers()?;
-        return resp.finish();
+        resp.finish()?;
+        return Ok(Served::Complete);
     }
     if pi.meta.permissions().mode() & 0o004 == 0 {
-        return forbidden(resp, request, &request.url);
+        return Ok(Served::Forbidden);
     }
     if pi.meta.is_file() {
         let Ok(mut file) = fs::File::open(&pi.phys) else {
-            return forbidden(resp, request, &request.url);
+            return Ok(Served::Forbidden);
         };
         resp.disable_chunked();
         if !preconditions(request, resp, &pi.meta)? {
-            return Ok(());
+            return Ok(Served::Complete);
         }
         resp.status(200, "OK")?;
         ok_headers(resp, Some(&pi.meta))?;
@@ -371,15 +379,17 @@ pub fn serve<W: http::Sink>(
         resp.header("Content-Length", pi.meta.size())?;
         resp.end_headers()?;
         resp.copy_unchunked(&mut file, pi.meta.size())?;
-        return resp.finish();
+        resp.finish()?;
+        return Ok(Served::Complete);
     }
     if pi.meta.is_dir() {
         if no_dirlists {
-            return forbidden(resp, request, &request.url);
+            return Ok(Served::Forbidden);
         }
-        return dirlist(resp, pi, charset);
+        dirlist(resp, pi, charset)?;
+        return Ok(Served::Complete);
     }
-    forbidden(resp, request, &request.url)
+    Ok(Served::Forbidden)
 }
 
 /// uh_client_error gives up on keep-alive when the request declared a body the
