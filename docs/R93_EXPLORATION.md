@@ -28,7 +28,7 @@
 - netifd：重连注册的固定对象和全部接口对象都成功后才切回在线；局部失败释放半注册连接
   并继续重试，不能把缺少接口对象的状态当作恢复成功。
 - procd：将全量 watch 和热插拔对象注册分批，保留初始 rcS 前对象注册顺序；避免目录/订阅
-  数量乘以单次请求上限而拖延 watchdog、日志与子进程期限。完整集成门待最终冻结。
+  数量乘以单次请求上限而拖延 watchdog、日志与子进程期限。最终 source-05 修复已冻结，完整集成门正在对同 SDK recipe 九组件产物核验。
 
 证据放 ignored `private/r93/`，构建机独立目录 `/home/ubuntu/r93-exploration/`。
 `source-01/02` 是不可混用的开发快照，开发二进制不是 canonical 发布产物。
@@ -72,8 +72,11 @@ TLS 延迟、三侧完整 HTTP 矩阵验证，不通过移动阈值规避诊断�
 分步 watch 的第一个候选虽然解决批量维护饥饿，却让 `service.set` 提前返回。相同精确
 C ubusd 和预先存在的六个 watch，set 返回后立即通知最后一个路径：正式 R89 12/12 已订阅且
 触发，source-03 队列版 0/12。这是相对 R89 的真实功能回归，不能仅凭 C 不保证该时点而接受。
-修正方案为单个待回复 set/add：保留请求，每轮维护后尝试一项，全部本次尝试完成才返回状态；
-失败的后台重试不无限扣留回复，旧连接请求不能跨重连发送。此修正及全部历史 procd 门待验证。
+修正为单个待回复 set/add：保留请求，每轮维护后尝试一项，全部本次尝试完成才返回状态；
+失败的后台重试不无限扣留回复，旧连接请求不能跨重连发送。最终 source-05 的 set/add 和
+service.start 两个首次通知场景均恢复 12/12；83 项 Linux 单测、11 项业务检查通过，
+all-targets Clippy 通过。新鲜编译的 output_lifecycle 补齐后，最终开发产物 r92-recovery 全绿；
+同 SDK recipe 产物的完整历史门仍待完成。
 
 HTTP 独立实验仅缓存工作线程可减少 clone，但跨线程唤醒、停车时接收超时和 epoll 增删仍在；
 立即停车会让连续请求大幅回退，已否决。logd 的候选正文复制消除必须同时限制归一化后的
@@ -81,3 +84,25 @@ capacity，否则长尾空白日志可能增加 RSS。两类实验仅在 private
 
 已落本地提交：独立审查 `7da29b9`、HTTP/ubusd 接入恢复 `13d4e48`、总线/daemon 恢复
 `453ceed`。这些提交是探索性修复记录，不是正式发布或完整设备验收。
+
+### 统一门中的夹具与产物边界
+
+- source-03 `procd_bundle` 记录器用文件存在表示参数已写完，出现一次空数组误报；改为
+  先写临时文件再 rename，原候选同一 binary 与 C 重跑均通过。不放宽 argv 断言。
+- 默认链接的 reload-config 为 528544 字节，超过既有 512 KiB 门，功能差分未报告失败。
+  同发布 SDK/4 KiB 链接与 sstrip 后为 498415 字节，原门 11 个参考 + 9 个故障用例通过，
+  未修改大小限制。仍是构建主机产物，非 canonical CI。
+- source-04 修复 set/add 返回时点后，立即通知 12/12 恢复；但 `service.start` 完成通知仍提前，
+  单独复现 R89 12/12、source-04 2/12。继续修正完成副作用顺序，source-04 也不是部署候选。
+- source-04 all-targets Clippy 抓到单测 fcntl 缺少 SAFETY 注释；补注释后原命令通过，
+  运行时未变。之前的子任务 Clippy 仅 `-D warnings`，未开启此额外 lint，不等同该门。
+
+- source-04 r92-recovery 的失败发生在业务执行前：缺少 `output_lifecycle` example。
+  source-05 重新编译 procd/rpcd 全 examples 并冻结后，开发产物原恢复门完整通过；没有删减断言。
+- source-05 完整源码快照归档 SHA256 为
+  `6f8700bf5af4ca80a9113b5624229bde3e373f53553dec4dc95524dba33abd7c`；
+  procd main SHA256 为 `dcf5ba9966f09fc21fe463d717c95325349e3602ed46cbd2b6ff26d7c54647cf`。
+  九组件同 SDK recipe 产物仍是构建主机诊断构建，不能称 canonical CI 发布。
+
+最终 procd 的控制流独立审查见 [R93_PROCD_FINAL_REVIEW](reviews/R93_PROCD_FINAL_REVIEW.md)，
+红绿对照及测试身份见 [procd evidence](reviews/r93-procd-evidence/summary.json)。

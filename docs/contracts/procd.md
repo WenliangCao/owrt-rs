@@ -297,6 +297,52 @@ r65 不比较这一条（F06 只断言监管器回到总线），证据是上述
 类型的规则照触发。候选在 `f473c23` 起与此一致：`resubscribe()` 不再对
 "没人要的路径"退订。r65 的 F04b 用 notifier 重建对象，落在 (1)。
 
+**R93：按新增对象的 path 重订阅。** 精确 C 的 `watch_subscribe_cb` 只在事件的
+`path` 与某条 watch 相同时才 lookup。候选曾对任意 `ubus.object.add` 扫描所有
+watch 并逐条同步 lookup，每条最多等待 1 秒；无关对象变化也可能长时间阻塞实例期限
+和硬件看门狗维护。现在无关或缺失 path 不发总线调用，匹配 path 只 lookup 一次，
+同 id 不重复订阅、重建后的新 id 重新订阅；带同一 id 的重复事件不再触发 lookup。
+显式配置更新和重连仍恢复全部 watch，但分批进入主循环，既有不退订的合同不变。`watch_tests` 用真实 Unix socket 记录 LOOKUP/SUBSCRIBE 报文，
+覆盖无关/缺失 path、同 id、新 id 和重连采用的全量重放路径。
+
+**R93：总线 I/O 不得无限阻塞监管。** 初始连接和重连均启用 1 秒对象服务 I/O
+预算，覆盖一帧完整接收、reply 和 notify。半帧或发送背压超时会关闭损坏的传输，
+主循环继续监管并重连；新连接的 admission/HELLO 同样受共享连接层 1 秒预算约束。
+纯同步请求在帧边界超时保留连接，半帧超时关闭。相比 C 的无界补帧/发送等待，这是
+有意收紧的故障边界。Linux 单测让假总线保持连接 2.2 秒但只发一个字节或不读大回复，
+候选 1 秒后恢复实例期限处理并 SIGKILL 测试自己启动的子进程；不操作硬件看门狗。
+
+**R93：批量恢复必须让出监管维护。** watch 使用去重待办队列，每个主循环最多处理一条
+path（lookup ≤1 s，再 subscribe ≤1 s）；配置删除过滤过时待办，新增不重置已有顺序/重试时间，
+重连清空连接所属 id 后重建全量队列。传输、timeout 或非永久错误按 1 s 延后轮转，无需新的
+object.add 才能恢复；NOT_FOUND 等明确拒绝等待下次对象事件或配置更新。
+**保留 R89 的返回时点：** service.set/add 携带 instances 时，成功 STATUS 等到该服务本次
+每条 watch 已尝试后才返回，已有对象的首次通知不会被提前回复丢掉。每条之间继续监管维护；
+NOT_FOUND 或失败也结束本次尝试，后续异步重试不无限阻塞回复。期间不分派后来的业务请求，
+避免另一次 set/delete 先完成并替代本次配置；只保存一份拥有 Request 的待回复状态，断连
+丢弃旧连接代际的请求及 fd，no_reply 仍不发送 STATUS。rc running 入队和新服务的
+service.start 同样在初始 watch 尝试后完成，set 产生的 trigger 命令等待该边界再启动；
+既有运行中命令及其回收继续进行。断连已应用的配置仍运行本地 running hook，旧连接的
+service.start/reply 不跨代重放。其它服务的全量刷新和重连仍异步。
+最初提前回复的队列版本确实退化：预先存在六对象、set 后立即通知最后对象，R89 12/12 送达，
+提前回复版本 0/12 送达；不能以 C 的 watch_add 只存链表、不保证返回前订阅来接受该回退。
+service.start 驱动立即通知的对照也曾复现 R89 12/12、仅延迟 STATUS 版 2/12；最终候选
+恢复两种时序各 12/12。维护不在 lookup 与 subscribe 之间重入，避免 reap→collect_stopped→refresh_watches 的递归及服务生命周期交错。
+
+hotplug 子系统同样使用去重登记队列：先推进 script jobs、读取最多一块 inotify 事件，再最多
+执行一次 add/remove（≤1 s）；失败保留待办并延后，删除 button 仍无效。ADD_OBJECT 超时可能
+已经成功但丢失对象 id，因而主动关闭传输后重连重建，避免盲重试永远撞上自己的同名对象。
+队列截止时间参与 poll 以及纯读取洪流下的维护判断。最坏批次成本由 N×请求预算变为每轮
+watch ≤2 s + hotplug 登记 ≤1 s；这是批量总线工作的边界，不把其它文件系统、子进程或
+handler 成本称为硬实时上限，也不保证能满足用户自设小于该值的 watchdog timeout。
+
+正常初始启动仍在 rcS 前尝试登记所有初始 hotplug 对象；每次尝试之间专门执行日志排空、
+回收、实例期限和 watchdog，失败待办保留给主循环。不会在登记中递归推进 dispatch。
+Linux 回归用真实 Unix socket 和自有子进程：六条 watch 每条两次 300 ms 响应，旧代码把
+50 ms halt deadline 推迟到 3.61 s；六个临时目录每次登记 350 ms，旧代码推迟到 2.11 s。
+候选均在批次完成前处理期限且最后全部登记成功；还覆盖重试、配置取消、button 保留、
+重复事件、id 重建及维护调度截止时间。测试不触碰真实 `/etc/hotplug.d` 或硬件 watchdog。
+
 ## 14. `list` 回显数组字段的顺序，和 `service` 对象的通知（R70 后续实测）
 
 **列表顺序。** procd 用自己的 `blobmsg_list_fill(list, data, len, array)` 存

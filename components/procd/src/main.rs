@@ -41,7 +41,7 @@ mod trigger;
 mod sys;
 mod ubus;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::io;
 use std::time::Instant;
 
@@ -79,6 +79,15 @@ enum Boot {
     Halt,
 }
 
+/// One set/add reply held until this service's initial watch attempts finish.
+/// Later business requests stay in Connection's FIFO until this completes.
+struct PendingSet {
+    request: Request,
+    paths: VecDeque<String>,
+    service: String,
+    new_service: bool,
+}
+
 struct Procd {
     conn: Connection,
     objects: Objects,
@@ -100,6 +109,9 @@ struct Procd {
     watches: BTreeMap<String, Vec<String>>,
     /// Paths we have already subscribed to, so a re-announce is a no-op.
     subscribed: BTreeMap<String, u32>,
+    /// At most one queued retry per watched path; each loop processes one.
+    watch_pending: VecDeque<(String, i64)>,
+    pending_set: Option<PendingSet>,
     triggers: trigger::Triggers,
     // -- the PID 1 half (state.c / inittab.c), inert when boot == NotPid1 --
     boot: Boot,
@@ -466,6 +478,13 @@ impl Procd {
         ping.clamp(1, 5000) as i32
     }
 
+    /// Registration retries are maintenance deadlines even while a stream
+    /// of read-only bus requests keeps poll continuously readable.
+    fn maintenance_delay_ms(&self, now: i64, maintenance_at: i64) -> i32 {
+        let regular = (maintenance_at - now).clamp(0, i64::from(i32::MAX)) as i32;
+        regular.min(self.dispatch.next_registration_ms(now).unwrap_or(regular))
+    }
+
     /// One poll() over everything the loop reacts to, so a child exit, a
     /// uevent, a script's output or an inotify event is handled when it
     /// happens rather than at the next tick -- the C's uloop wakes on each of
@@ -507,23 +526,22 @@ impl Procd {
         // message. Still check the other descriptors, but do not sleep on it.
         let pending = connected && self.conn.has_pending();
         let result = owrt_ubus::sys::poll_fds(&mut fds, if pending { 0 } else { timeout_ms });
-        let mut other = false;
-        match &result {
+        let other = match &result {
             Ok(ready) => {
                 if fds[1].revents != 0 {
                     sys::drain_wakeup(self.wakeup.as_raw_fd());
                 }
                 self.inotify_ready |= inotify_index.is_some_and(|i| fds[i].revents != 0);
                 // The tick elapsed, or something other than the bus is ready.
-                other = (*ready == 0 && !pending) || fds[1..].iter().any(|p| p.revents != 0);
+                (*ready == 0 && !pending) || fds[1..].iter().any(|p| p.revents != 0)
             }
             Err(_) => {
                 // If polling failed, preserve the old nonblocking maintenance
                 // read rather than depending on an absent readiness result.
                 self.inotify_ready = true;
-                other = true;
+                true
             }
-        }
+        };
         let bus = pending || fds[0].revents != 0;
         if fds.capacity() <= 256 {
             fds.clear();
@@ -893,6 +911,15 @@ impl Procd {
         true
     }
 
+    /// Supervision between initial hotplug object registrations, before
+    /// rcS can enqueue dispatch jobs. No bus dispatch/registration reentry.
+    fn maintain_initial_registration(&mut self) {
+        self.pump_logs();
+        self.reap();
+        self.fire_timeouts();
+        self.wdt.pump(self.now_ms());
+    }
+
     /// The per-loop PID 1 work: respawn timers, the serial queue, and its
     /// state advance; plus the shutdown signals and the watchdog feed.
     fn pump_pid1(&mut self) {
@@ -1033,7 +1060,10 @@ impl Procd {
     /// object id is only meaningful to one connection, so the old ids and
     /// the subscription set have to be discarded first.
     fn reconnect(&mut self) -> io::Result<()> {
-        let conn = Connection::connect(None)?;
+        // Reply coordinates belong to the old connection generation.
+        self.pending_set = None;
+        let mut conn = Connection::connect(None)?;
+        conn.set_server_io_timeout(std::time::Duration::from_secs(1));
         self.conn = conn;
         self.objects.service = self.conn.add_object("service", ubus::SERVICE_METHODS, 1000)?;
         self.objects.container =
@@ -1041,7 +1071,7 @@ impl Procd {
         self.objects.system = self.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
         {
             let mut d = std::mem::take(&mut self.dispatch);
-            d.reregister(&mut self.conn);
+            d.reregister();
             self.dispatch = d;
         }
         self.watch_obj = self.conn.add_anonymous_object(1000)?;
@@ -1050,6 +1080,7 @@ impl Procd {
         // Subscriptions belonged to the old connection; re-establish them
         // against whatever exists on the new bus.
         self.subscribed.clear();
+        self.watch_pending.clear();
         self.resubscribe();
         Ok(())
     }
@@ -1073,8 +1104,18 @@ impl Procd {
                 }
             }
             if req.method == "ubus.object.add" {
-                // A watched path may have just appeared.
-                self.resubscribe();
+                // watch_subscribe_cb only looks up the announced path when
+                // an instance watches it. Unrelated object churn must not
+                // turn into N synchronous calls that stall supervision.
+                if let Some(path) = vars.get("path") {
+                    if self.watches.values().flatten().any(|wanted| wanted == path) {
+                        let id = owrt_ubus::blob::fields(&req.data)
+                            .find(|f| f.name == "id").and_then(|f| f.as_u32());
+                        if id.is_none_or(|id| self.subscribed.get(path) != Some(&id)) {
+                            self.queue_watch(path);
+                        }
+                    }
+                }
             } else {
                 self.triggers.fire(&req.method, &vars, now);
             }
@@ -1105,6 +1146,33 @@ impl Procd {
             self.conn.recycle_request(req);
             return false;
         };
+        if matches!((target, req.method.as_str()), (Target::Service, "set" | "add")) {
+            let mut name = None;
+            let mut instances = false;
+            for field in owrt_ubus::blob::fields(&req.data) {
+                match field.name {
+                    "name" => name = field.as_str(),
+                    "instances" => instances = true,
+                    _ => {}
+                }
+            }
+            let new_service = name.is_some_and(|name| !self.services.contains_key(name));
+            let name = name.map(str::to_owned);
+            let code = self.handle_set(&req, req.method == "add");
+            if code == status::OK && instances {
+                let name = name.expect("successful set has a service name");
+                let paths = self.watches.get(&name).cloned().unwrap_or_default();
+                if !paths.is_empty() {
+                    self.pending_set = Some(PendingSet { request: req, paths: paths.into(),
+                        service: name, new_service });
+                    return true;
+                }
+                self.finish_set(&name, new_service);
+            }
+            let _ = self.conn.reply_status(&req, code, None);
+            self.conn.recycle_request(req);
+            return true;
+        }
         // Pure reads: nothing for the maintenance pass to pick up afterwards.
         let read_only = matches!(
             (target, req.method.as_str()),
@@ -1117,8 +1185,6 @@ impl Procd {
 
     fn handle(&mut self, target: Target, req: &Request) {
         let code = match (target, req.method.as_str()) {
-            (Target::Service, "set") => self.handle_set(req, false),
-            (Target::Service, "add") => self.handle_set(req, true),
             (Target::Service, "list") => {
                 service::dump_list(&self.services, &req.data, &mut self.read_reply);
                 let _ = self.conn.reply_data_status(req, self.read_reply.payload(), status::OK);
@@ -1508,16 +1574,16 @@ impl Procd {
             self.data_trigger_keys(&fresh);
         }
         self.refresh_watches(&name);
-        // service_update() ends with
-        //   if (init || tb[SERVICE_SET_INSTANCES]) rc(s->name, "running");
-        // This is the `instances` half; the `init` half is at the early
-        // return above, so between them the two paths cover the same
-        // condition as the single C call.
-        self.run_init_script(&name);
-        if init {
-            self.service_only_event("service.start", &name);
-        }
+        // The dispatcher finishes rc("running") and service.start after
+        // this service's initial watch attempts, preserving their old order.
         status::OK
+    }
+
+    fn finish_set(&mut self, name: &str, new_service: bool) {
+        self.run_init_script(name);
+        if new_service {
+            self.service_only_event("service.start", name);
+        }
     }
 
     /// `instance_update()`. Not running (or already stopping) means take the
@@ -1585,16 +1651,112 @@ impl Procd {
         self.resubscribe();
     }
 
-    /// Subscribe to every watched path that exists and is not already
-    /// subscribed. Called after a config change and again whenever ubusd
-    /// announces a new object.
+    /// Reconcile pending work without resetting its order or retry times.
+    /// Deleted watches drop out; newly wanted paths join the tail. No bus
+    /// call runs on the config/collection/reconnect stack.
     fn resubscribe(&mut self) {
-        let wanted: Vec<String> = {
-            let mut v: Vec<String> = self.watches.values().flatten().cloned().collect();
-            v.sort();
-            v.dedup();
-            v
+        let mut wanted: Vec<String> = self.watches.values().flatten().cloned().collect();
+        wanted.sort();
+        wanted.dedup();
+        self.watch_pending.retain(|(path, _)| wanted.binary_search(path).is_ok());
+        for path in wanted {
+            self.queue_watch(&path);
+        }
+    }
+
+    fn queue_watch(&mut self, path: &str) {
+        if !self.watch_pending.iter().any(|(queued, _)| queued == path) {
+            self.watch_pending.push_back((path.to_owned(), self.now_ms()));
+        }
+    }
+
+    /// One path costs at most a 1 s lookup plus a 1 s subscription. Return
+    /// to the main loop's maintenance before starting another; do not call
+    /// reap/timeouts here (collection can itself change watch ownership).
+    fn pump_watch(&mut self) -> bool {
+        let now = self.now_ms();
+        let Some(index) = self.watch_pending.iter().position(|(_, at)| *at <= now) else {
+            return false;
         };
+        let (path, _) = self.watch_pending.remove(index).unwrap();
+        if !self.watches.values().flatten().any(|wanted| wanted == &path) {
+            return true;
+        }
+        let _ = self.attempt_watch(&path);
+        true
+    }
+
+    fn attempt_watch(&mut self, path: &str) -> io::Result<()> {
+        let result = self.resubscribe_path(path);
+        if let Err(error) = &result {
+            // Missing paths wait for object.add. Other failures rotate back
+            // into the asynchronous queue, after this attempt has completed.
+            if owrt_ubus::conn::error_status(error).is_none_or(|code| {
+                !matches!(code, status::NOT_FOUND | status::INVALID_ARGUMENT | status::PERMISSION_DENIED)
+            }) && !self.watch_pending.iter().any(|(queued, _)| queued == path) {
+                self.watch_pending.push_back((path.to_owned(), self.now_ms() + 1000));
+            }
+        }
+        result
+    }
+
+    /// Preserve R89's set-return boundary, but service deadlines between
+    /// attempts. A missing/failed path completes this attempt; background
+    /// retries must never hold the reply indefinitely.
+    fn pump_pending_set(&mut self) -> io::Result<()> {
+        let Some(mut pending) = self.pending_set.take() else { return Ok(()) };
+        if let Some(path) = pending.paths.pop_front() {
+            if let Err(error) = self.attempt_set_watch(&path) {
+                // Configuration is already applied. R89 still ran the local
+                // running hook after failed lookups. Keep it exactly once,
+                // without replaying old bus ids/replies on a new generation.
+                self.run_init_script(&pending.service);
+                return Err(error);
+            }
+        }
+        if pending.paths.is_empty() {
+            self.finish_set(&pending.service, pending.new_service);
+            self.conn.reply_status(&pending.request, status::OK, None)?;
+            self.conn.recycle_request(pending.request);
+        } else {
+            self.pending_set = Some(pending);
+        }
+        Ok(())
+    }
+
+    fn attempt_set_watch(&mut self, path: &str) -> io::Result<()> {
+        self.watch_pending.retain(|(queued, _)| queued != path);
+        if !self.watches.values().flatten().any(|wanted| wanted == path) {
+            return Ok(());
+        }
+        if let Err(error) = self.attempt_watch(path) {
+            if owrt_ubus::conn::error_status(&error).is_none() {
+                return Err(error);
+            }
+            // A clean timeout preserves framing; a partial one shuts the
+            // socket down. Do not retain or reply to an old request then.
+            use owrt_ubus::sys::{PollFd, POLLERR, POLLHUP};
+            let mut fd = [PollFd { fd: self.conn.as_raw_fd(), events: 0, revents: 0 }];
+            owrt_ubus::sys::poll_fds(&mut fd, 0)?;
+            if fd[0].revents & (POLLERR | POLLHUP) != 0 {
+                return Err(io::Error::new(io::ErrorKind::BrokenPipe, "watch connection closed"));
+            }
+        }
+        Ok(())
+    }
+
+    /// The normal supervision pass, also used between deferred set attempts.
+    /// No business request dispatch occurs here.
+    fn maintain(&mut self) {
+        self.pump_logs();
+        self.reap();
+        self.fire_timeouts();
+        self.pump_triggers();
+        self.pump_pid1();
+        self.rc.pump(self.now_ms());
+    }
+
+    fn resubscribe_path(&mut self, path: &str) -> io::Result<()> {
         // NOT unsubscribing here is deliberate, and it is what C does.
         // watch.c's watch_del() only unlinks the entry from watch_objects --
         // it never calls ubus_unsubscribe. So after an instance is freed:
@@ -1610,25 +1772,17 @@ impl Procd {
         // less often than C. The stale entry in `subscribed` is harmless: it
         // is only consulted if the path becomes wanted again, and then a
         // recreated object's new id makes it resubscribe anyway.
-        for path in wanted {
-            // A path that does not exist yet is not an error: the
-            // ubus.object.add event brings us back here when it appears.
-            let Ok(id) = self.conn.lookup_id(&path, 1000) else {
-                continue;
-            };
-            // An object that was destroyed and recreated comes back with a
-            // NEW id, so a remembered id that no longer matches means the
-            // subscription is attached to something that is gone.
-            if self.subscribed.get(&path) == Some(&id) {
-                continue;
-            }
-            match self.conn.subscribe(self.watch_obj, id, 1000) {
-                Ok(()) => {
-                    self.subscribed.insert(path, id);
-                }
-                Err(e) => log!(sys::LOG_ERR, "failed to subscribe {path}: {e}"),
-            }
+        // A path that does not exist yet is not an error: the
+        // ubus.object.add event brings us back here when it appears.
+        let id = self.conn.lookup_id(path, 1000)?;
+        // An object that was destroyed and recreated comes back with a NEW
+        // id, so a remembered old id must not suppress its subscription.
+        if self.subscribed.get(path) == Some(&id) {
+            return Ok(());
         }
+        self.conn.subscribe(self.watch_obj, id, 1000)?;
+        self.subscribed.insert(path.to_owned(), id);
+        Ok(())
     }
 
     /// `trigger_add(in->trigger, in)`: an instance's own `triggers` array is
@@ -1945,7 +2099,11 @@ impl Procd {
             }
         }
 
-        if self.triggers.pending.iter().any(|c| c.pid.is_some()) {
+        // A set's data updates may have queued commands that notify its
+        // watched objects. Keep their old ordering behind initial watch
+        // attempts; already running children and their reap bookkeeping
+        // above continue while the reply is deferred.
+        if self.pending_set.is_some() || self.triggers.pending.iter().any(|c| c.pid.is_some()) {
             return;
         }
         let Some(slot) = self
@@ -2317,7 +2475,7 @@ fn run() -> io::Result<()> {
     // Exits of children other than ubusd seen during the connect retry.
     let mut early_reaps: Vec<(i32, i32)> = Vec::new();
 
-    let conn = if pid1 {
+    let mut conn = if pid1 {
         // procd.c: `procd_state_next()` -- STATE_EARLY, then STATE_UBUS.
         // Everything up to the working bus connection happens here, because
         // Procd cannot exist without one.
@@ -2423,6 +2581,9 @@ fn run() -> io::Result<()> {
     } else {
         Connection::connect(None)?
     };
+    // Partial bus frames and stalled replies must return control to service
+    // deadlines and the hardware watchdog before recovery reconnects.
+    conn.set_server_io_timeout(std::time::Duration::from_secs(1));
 
     let mut p = Procd {
         conn,
@@ -2436,6 +2597,8 @@ fn run() -> io::Result<()> {
         watch_obj: 0,
         watches: BTreeMap::new(),
         subscribed: BTreeMap::new(),
+        watch_pending: VecDeque::new(),
+        pending_set: None,
         triggers: trigger::Triggers::default(),
         boot: if pid1 { Boot::Ubus } else { Boot::NotPid1 },
         inittab: Vec::new(),
@@ -2467,10 +2630,13 @@ fn run() -> io::Result<()> {
     p.objects.system = p.conn.add_object("system", ubus::SYSTEM_METHODS, 1000)?;
     // ubus_init_hotplug(): the hotplug.<subsys> objects exist in the
     // supervisor mode too.
-    {
-        let mut d = std::mem::take(&mut p.dispatch);
-        d.register_all(&mut p.conn);
-        p.dispatch = d;
+    let initial_subsystems = p.dispatch.register_all();
+    for _ in 0..initial_subsystems {
+        let now = p.now_ms();
+        p.dispatch.pump_registration(&mut p.conn, now);
+        // Initial registration precedes rcS, so dispatch has no script
+        // jobs yet. Do not pump dispatch recursively while registering.
+        p.maintain_initial_registration();
     }
 
     // watch_ubus(): an anonymous subscriber object, then a subscription to
@@ -2516,6 +2682,7 @@ fn run() -> io::Result<()> {
 
     loop {
         if !connected {
+            p.pending_set = None;
             // Keep supervising while the bus is gone: children still exit,
             // stop timeouts still expire, respawns still come due.
             p.pump_logs();
@@ -2548,42 +2715,66 @@ fn run() -> io::Result<()> {
             continue;
         }
 
+        if p.pending_set.is_some() {
+            p.maintain();
+            if let Err(error) = p.pump_pending_set() {
+                debug!(2, "lost ubus during service watch setup ({error}); reconnecting");
+                let _ = p.conn.shutdown();
+                p.pending_set = None;
+                connected = false;
+                backoff_ms = 50;
+                reconnect_at = p.now_ms() + i64::from(backoff_ms);
+            }
+            maintenance_due = true;
+            // Synchronous watch calls already buffer interleaved traffic.
+            // Do not separately read/dispatch later calls before the reply.
+            continue;
+        }
+
         // Drain anything already buffered before blocking: a poll on the
         // socket does not see bytes already read out of it. The netifd loop
         // needed exactly this fix.
-        while p.conn.has_pending() {
+        maintenance_due |= p.maintenance_delay_ms(p.now_ms(), maintenance_at) == 0;
+        for _ in 0..32 {
+            if !p.conn.has_pending() { break; }
             match p.conn.read_incoming() {
                 Ok(msg) => maintenance_due |= p.dispatch(msg),
                 Err(_) => break,
             }
+            maintenance_due |= p.maintenance_delay_ms(p.now_ms(), maintenance_at) == 0;
+            if maintenance_due { break; }
         }
+        if p.pending_set.is_some() { continue; }
         if maintenance_due {
             // Drain output BEFORE reaping: a child that just exited may have
             // left its last lines in the pipe, and closing it on reap would
             // lose them.
-            p.pump_logs();
-            p.reap();
-            p.fire_timeouts();
-            p.pump_triggers();
-            p.pump_pid1();
-            let now = p.now_ms();
-            p.rc.pump(now);
+            p.maintain();
             maintenance_due = false;
             maintenance_at = p.now_ms() + i64::from(p.next_tick_ms());
+        }
+
+        // One queued path per turn. A slow batch must not postpone child
+        // deadlines or watchdog pings by N times the request timeout.
+        if p.pump_watch() {
+            maintenance_due = true;
+            maintenance_at = p.now_ms();
         }
 
         // uloop_run(): sleep until ANY of the fds this loop reacts to is
         // ready -- the bus, the uevent socket, a child's output, a child
         // exit -- or the timer tick for deadlines and respawns, which is
         // 200 ms while anything is pending and the watchdog interval otherwise.
-        let remaining = (maintenance_at - p.now_ms()).clamp(0, i64::from(i32::MAX)) as i32;
+        let watch_at = p.watch_pending.iter().map(|(_, at)| *at).min().unwrap_or(maintenance_at);
+        let now = p.now_ms();
+        let remaining = p.maintenance_delay_ms(now, maintenance_at.min(watch_at));
         let incoming = match p.wait_activity(remaining, true) {
             Ok(Activity { bus: true, other }) => {
-                maintenance_due |= other || p.now_ms() >= maintenance_at;
+                maintenance_due |= other || p.maintenance_delay_ms(p.now_ms(), maintenance_at) == 0;
                 p.conn.read_incoming().map(Some)
             }
             Ok(Activity { bus: false, other }) => {
-                maintenance_due |= other || p.now_ms() >= maintenance_at;
+                maintenance_due |= other || p.maintenance_delay_ms(p.now_ms(), maintenance_at) == 0;
                 Ok(None)
             }
             // Preserve the old nonblocking bus probe if the shared wait
@@ -2621,5 +2812,416 @@ mod r88_tests {
         let ident = syslog_ident(&accented, 1);
         assert!(ident.len() <= 31 && ident.is_char_boundary(ident.len()));
         assert_eq!(ident, "é".repeat(15));
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod watch_tests {
+    use super::*;
+    use std::io::{Read, Write};
+    use std::os::unix::net::{UnixListener, UnixStream};
+    use std::sync::{atomic::{AtomicU32, Ordering}, Arc, Mutex};
+    use owrt_ubus::msg::{attr, ty, Header};
+
+    pub(super) fn supervisor(conn: Connection) -> Procd {
+        let (wakeup, _write) = owrt_ubus::sys::pipe().unwrap();
+        Procd {
+            conn, objects: Objects::default(), services: BTreeMap::new(), read_reply: BlobBuf::new(),
+            base: Instant::now(), validator_seq: 0, rc: rcs::RunQueue::default(), init_d: String::new(),
+            watch_obj: 1001, watches: BTreeMap::new(),
+            subscribed: BTreeMap::new(), watch_pending: VecDeque::new(), pending_set: None, triggers: trigger::Triggers::default(), boot: Boot::NotPid1,
+            inittab: Vec::new(), serial: rcs::RunQueue::serial(), serial_awaited: false, console: None,
+            rc_d: String::new(), reboot_event: 0, wdt: watchdog::Wdt::default(), hotplug: None,
+            dispatch: dispatch::Dispatch::default(), wakeup, wait_fds: Vec::new(), inotify_ready: false,
+        }
+    }
+
+    // The wire peer records real LOOKUP/SUBSCRIBE requests rather than
+    // duplicating the path-selection logic under test.
+    fn peer(stream: UnixStream, calls: Arc<Mutex<Vec<(u8, String)>>>, alpha: Arc<AtomicU32>) {
+        delayed_peer(stream, calls, alpha, 0, false);
+    }
+
+    fn delayed_peer(mut stream: UnixStream, calls: Arc<Mutex<Vec<(u8, String)>>>, alpha: Arc<AtomicU32>, delay_ms: u64, mut drop_lookup: bool) {
+        stream.write_all(&[0, ty::HELLO, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4]).unwrap();
+        loop {
+            let mut head = [0; 12];
+            if stream.read_exact(&mut head).is_err() { return; }
+            let header = Header::decode(head[..8].try_into().unwrap()).unwrap();
+            let len = (u32::from_be_bytes(head[8..].try_into().unwrap()) & 0xffffff) as usize;
+            let mut body = vec![0; len - 4];
+            stream.read_exact(&mut body).unwrap();
+            if header.ty == ty::STATUS { continue; } // Event acknowledgement.
+            let attrs: Vec<_> = owrt_ubus::blob::iter(&body).collect();
+            let mut reply = BlobBuf::new();
+            std::thread::sleep(std::time::Duration::from_millis(delay_ms));
+            match header.ty {
+                ty::LOOKUP => {
+                    let path = attrs.iter().find(|a| a.id == attr::OBJPATH).unwrap();
+                    let path = std::str::from_utf8(&path.payload[..path.payload.len() - 1]).unwrap();
+                    calls.lock().unwrap().push((ty::LOOKUP, path.to_owned()));
+                    if drop_lookup { drop_lookup = false; continue; }
+                    reply.put_string(attr::OBJPATH, path);
+                    reply.put_u32(attr::OBJID, if path == "watched.alpha" { alpha.load(Ordering::Relaxed) } else { 2002 });
+                    stream.write_all(&Header { ty: ty::DATA, seq: header.seq, peer: header.peer }.encode()).unwrap();
+                    stream.write_all(reply.as_bytes()).unwrap();
+                }
+                ty::SUBSCRIBE => {
+                    let id = attrs.iter().find(|a| a.id == attr::TARGET).unwrap().as_u32().unwrap();
+                    calls.lock().unwrap().push((ty::SUBSCRIBE, id.to_string()));
+                }
+                _ => panic!("unexpected request {}", header.ty),
+            }
+            let mut status = BlobBuf::new();
+            status.put_u32(attr::STATUS, 0);
+            stream.write_all(&Header { ty: ty::STATUS, seq: header.seq, peer: header.peer }.encode()).unwrap();
+            stream.write_all(status.as_bytes()).unwrap();
+        }
+    }
+
+    #[test]
+    fn object_add_only_checks_its_path_and_full_resubscribe_still_replays_watches() {
+        let path = format!("/tmp/procd-watch-r93-{}.sock", std::process::id());
+        let listener = UnixListener::bind(&path).unwrap();
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let alpha = Arc::new(AtomicU32::new(2001));
+        let peer_calls = Arc::clone(&calls);
+        let peer_alpha = Arc::clone(&alpha);
+        let worker = std::thread::spawn(move || peer(listener.accept().unwrap().0, peer_calls, peer_alpha));
+        let conn = Connection::connect(Some(&path)).unwrap();
+        std::fs::remove_file(&path).unwrap();
+        let mut p = supervisor(conn);
+        p.watches.insert("svc".into(), vec!["watched.alpha".into(), "watched.beta".into()]);
+        let event = |path: Option<&str>| {
+            let mut data = BlobBuf::new();
+            if let Some(path) = path { data.msg_string("path", path); }
+            Incoming::Invoke(Request { peer: 0, seq: 0, objid: 1001, method: "ubus.object.add".into(),
+                user: None, group: None, data: data.into_payload(), fd: None, no_reply: true })
+        };
+        p.dispatch(event(Some("unrelated")));
+        p.dispatch(event(None));
+        p.pump_watch();
+        assert!(calls.lock().unwrap().is_empty(), "unrelated/missing paths must not issue lookups");
+        p.dispatch(event(Some("watched.alpha")));
+        p.pump_watch();
+        assert_eq!(*calls.lock().unwrap(), [(ty::LOOKUP, "watched.alpha".into()), (ty::SUBSCRIBE, "2001".into())]);
+        calls.lock().unwrap().clear();
+        p.dispatch(event(Some("watched.alpha")));
+        p.pump_watch();
+        assert_eq!(*calls.lock().unwrap(), [(ty::LOOKUP, "watched.alpha".into())], "same id must not be subscribed twice");
+        calls.lock().unwrap().clear();
+        alpha.store(3001, Ordering::Relaxed);
+        p.dispatch(event(Some("watched.alpha")));
+        p.pump_watch();
+        assert_eq!(*calls.lock().unwrap(), [(ty::LOOKUP, "watched.alpha".into()), (ty::SUBSCRIBE, "3001".into())]);
+        calls.lock().unwrap().clear();
+        for _ in 0..100 {
+            let mut data = BlobBuf::new();
+            data.msg_string("path", "watched.alpha");
+            data.msg_u32("id", 3001);
+            p.dispatch(Incoming::Invoke(Request { peer: 0, seq: 0, objid: 1001, method: "ubus.object.add".into(),
+                user: None, group: None, data: data.into_payload(), fd: None, no_reply: true }));
+        }
+        assert!(p.watch_pending.is_empty(), "same-id announcement floods need no lookup");
+        assert!(calls.lock().unwrap().is_empty());
+        // reconnect() clears connection-owned subscriptions, then calls this
+        // same full replay; it must still cover paths without new events.
+        p.subscribed.clear();
+        p.resubscribe();
+        while p.pump_watch() {}
+        assert_eq!(*calls.lock().unwrap(), [(ty::LOOKUP, "watched.alpha".into()), (ty::SUBSCRIBE, "3001".into()),
+            (ty::LOOKUP, "watched.beta".into()), (ty::SUBSCRIBE, "2002".into())]);
+        drop(p);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn slow_watch_batch_services_child_deadline_before_finishing_all_paths() {
+        use std::os::unix::process::ExitStatusExt;
+        use std::time::Duration;
+        let path = format!("/tmp/procd-watch-batch-{}.sock", std::process::id());
+        let listener = UnixListener::bind(&path).unwrap();
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let peer_calls = Arc::clone(&calls);
+        let worker = std::thread::spawn(move || delayed_peer(listener.accept().unwrap().0,
+            peer_calls, Arc::new(AtomicU32::new(2001)), 300, false));
+        let conn = Connection::connect(Some(&path)).unwrap();
+        std::fs::remove_file(path).unwrap();
+        let mut p = supervisor(conn);
+        let mut child = std::process::Command::new("/bin/sleep").arg("10").spawn().unwrap();
+        let mut instance = Instance::new("batch-child");
+        instance.pid = child.id() as i32;
+        instance.halt = true;
+        instance.state = Run::Halting;
+        instance.deadline = Some(p.now_ms() + 50);
+        let mut service = Service::new("batch-service");
+        service.instances.insert(instance.name.clone(), instance);
+        p.services.insert(service.name.clone(), service);
+        p.watches.insert("batch-service".into(), (0..6).map(|n| format!("watched.{n}")).collect());
+        let start = Instant::now();
+        p.resubscribe();
+        let mut stopped_at = None;
+        while start.elapsed() < Duration::from_secs(8) {
+            p.pump_watch();
+            p.fire_timeouts();
+            if stopped_at.is_none() {
+                if let Some(status) = child.try_wait().unwrap() {
+                    assert_eq!(status.signal(), Some(SIGKILL));
+                    stopped_at = Some(start.elapsed());
+                }
+            }
+            if stopped_at.is_some() && p.subscribed.len() == 6 { break; }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        if stopped_at.is_none() { let _ = child.kill(); }
+        child.wait().unwrap();
+        let stop = stopped_at.expect("owned child must be killed");
+        eprintln!("watch batch: child stopped at {stop:?}, all paths at {:?}", start.elapsed());
+        assert!(stop < Duration::from_millis(1800), "child deadline waited for entire batch: {stop:?}");
+        assert_eq!(p.subscribed.len(), 6, "yielding must preserve every pending subscription");
+        assert_eq!(calls.lock().unwrap().len(), 12);
+        drop(p);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn watch_timeout_retries_without_event_and_pending_paths_follow_configuration() {
+        use std::time::Duration;
+        let path = format!("/tmp/procd-watch-retry-{}.sock", std::process::id());
+        let listener = UnixListener::bind(&path).unwrap();
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let peer_calls = Arc::clone(&calls);
+        let worker = std::thread::spawn(move || delayed_peer(listener.accept().unwrap().0,
+            peer_calls, Arc::new(AtomicU32::new(2001)), 0, true));
+        let conn = Connection::connect(Some(&path)).unwrap();
+        std::fs::remove_file(path).unwrap();
+        let mut p = supervisor(conn);
+        p.watches.insert("svc".into(), vec!["watched.alpha".into(), "removed".into()]);
+        p.resubscribe();
+        // Repeated announcements cannot fill/reset the queue or delay retries.
+        for _ in 0..100 { p.queue_watch("watched.alpha"); }
+        assert_eq!(p.watch_pending.len(), 2);
+        p.watches.insert("svc".into(), vec!["watched.alpha".into()]);
+        p.resubscribe();
+        assert_eq!(p.watch_pending.len(), 1);
+        assert!(p.pump_watch()); // A full clean timeout; connection stays usable.
+        assert!(p.subscribed.is_empty());
+        assert_eq!(p.watch_pending.len(), 1);
+        assert!(!p.pump_watch(), "retry must back off");
+        std::thread::sleep(Duration::from_millis(1050));
+        assert!(p.pump_watch());
+        assert_eq!(p.subscribed.get("watched.alpha"), Some(&2001));
+        assert!(p.watch_pending.is_empty());
+        assert_eq!(*calls.lock().unwrap(), [(ty::LOOKUP, "watched.alpha".into()),
+            (ty::LOOKUP, "watched.alpha".into()), (ty::SUBSCRIBE, "2001".into())]);
+        drop(p);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn deferred_set_replies_after_attempts_and_keeps_stop_maintenance() {
+        use std::os::unix::process::ExitStatusExt;
+        use std::time::Duration;
+        let path = format!("/tmp/procd-set-defer-{}.sock", std::process::id());
+        let listener = UnixListener::bind(&path).unwrap();
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let peer_calls = Arc::clone(&calls);
+        let worker = std::thread::spawn(move || delayed_peer(listener.accept().unwrap().0,
+            peer_calls, Arc::new(AtomicU32::new(2001)), 300, false));
+        let conn = Connection::connect(Some(&path)).unwrap();
+        std::fs::remove_file(path).unwrap();
+        let mut p = supervisor(conn);
+        let mut child = std::process::Command::new("/bin/sleep").arg("10").spawn().unwrap();
+        let mut instance = Instance::new("deferred-child");
+        instance.pid = child.id() as i32;
+        instance.halt = true;
+        instance.state = Run::Halting;
+        instance.deadline = Some(50);
+        let mut service = Service::new("deferred-service");
+        service.instances.insert(instance.name.clone(), instance);
+        p.services.insert(service.name.clone(), service);
+        let paths: Vec<_> = (0..6).map(|n| format!("watched.{n}")).collect();
+        p.watches.insert("watched-service".into(), paths.clone());
+        p.pending_set = Some(PendingSet { request: Request { peer: 10, seq: 99, objid: 1001,
+            method: "set".into(), user: None, group: None, data: vec![], fd: None, no_reply: false },
+            paths: paths.into(), service: "watched-service".into(), new_service: false });
+        let marker = format!("/tmp/procd-set-trigger-{}", std::process::id());
+        p.triggers.pending.push(trigger::Pending {
+            argv: vec!["/bin/sh".into(), "-c".into(), format!("echo done > {marker}")],
+            due: 0, requeue: false, pid: None, finished: false,
+        });
+        let start = Instant::now();
+        let mut stopped_at = None;
+        let mut turns = 0;
+        while p.pending_set.is_some() {
+            // Same maintenance order as the main loop, without reap taking
+            // the wait status owned by this test's Child handle.
+            p.pump_logs();
+            p.fire_timeouts();
+            p.wdt.pump(p.now_ms());
+            p.pump_triggers();
+            assert!(p.triggers.pending[0].pid.is_none(), "trigger started before watch attempts finished");
+            assert!(!std::path::Path::new(&marker).exists());
+            p.pump_pending_set().unwrap();
+            turns += 1;
+            if stopped_at.is_none() && child.try_wait().unwrap().is_some() {
+                stopped_at = Some(start.elapsed());
+            }
+            assert!(turns <= 6);
+            if turns < 6 { assert!(p.pending_set.is_some()); }
+        }
+        if stopped_at.is_none() { let _ = child.kill(); }
+        assert_eq!(child.wait().unwrap().signal(), Some(SIGKILL));
+        assert!(stopped_at.unwrap() < Duration::from_millis(1800));
+        assert_eq!(p.subscribed.len(), 6);
+        assert_eq!(turns, 6);
+        p.pump_triggers();
+        assert!(p.triggers.pending[0].pid.is_some(), "trigger starts after completion");
+        let until = Instant::now() + Duration::from_secs(1);
+        while !std::path::Path::new(&marker).exists() && Instant::now() < until {
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(std::path::Path::new(&marker).exists());
+        std::fs::remove_file(marker).unwrap();
+        // Reap this test-owned trigger directly (no global signal handler).
+        extern "C" { fn waitpid(pid: i32, status: *mut i32, flags: i32) -> i32; }
+        let mut status = 0;
+        // SAFETY: live status pointer and the exact child spawned above.
+        assert_eq!(unsafe { waitpid(p.triggers.pending[0].pid.unwrap(), &mut status, 0) }, p.triggers.pending[0].pid.unwrap());
+        drop(p);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn deferred_set_timeout_finishes_attempt_and_keeps_background_retry() {
+        let path = format!("/tmp/procd-set-timeout-{}.sock", std::process::id());
+        let listener = UnixListener::bind(&path).unwrap();
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let peer_calls = Arc::clone(&calls);
+        let worker = std::thread::spawn(move || delayed_peer(listener.accept().unwrap().0,
+            peer_calls, Arc::new(AtomicU32::new(2001)), 0, true));
+        let conn = Connection::connect(Some(&path)).unwrap();
+        std::fs::remove_file(path).unwrap();
+        let mut p = supervisor(conn);
+        p.watches.insert("svc".into(), vec!["watched.alpha".into()]);
+        p.pending_set = Some(PendingSet { request: Request { peer: 10, seq: 99, objid: 1001,
+            method: "set".into(), user: None, group: None, data: vec![], fd: None, no_reply: true },
+            paths: ["watched.alpha".into()].into(), service: "svc".into(), new_service: false });
+        p.pump_pending_set().unwrap();
+        assert!(p.pending_set.is_none(), "one failed attempt must release the request");
+        assert_eq!(p.watch_pending.len(), 1, "retry proceeds separately");
+        assert!(p.subscribed.is_empty());
+        drop(p);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn deferred_set_disconnect_drops_owned_request_fd_without_reply() {
+        use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+        use std::time::Duration;
+        let path = format!("/tmp/procd-set-disconnect-{}.sock", std::process::id());
+        let listener = UnixListener::bind(&path).unwrap();
+        let worker = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            stream.write_all(&[0, ty::HELLO, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4]).unwrap();
+            let mut head = [0; 12];
+            stream.read_exact(&mut head).unwrap();
+            // A started request and a truncated reply lose the transport.
+            stream.write_all(&[0]).unwrap();
+            std::thread::sleep(Duration::from_millis(1300));
+        });
+        let conn = Connection::connect(Some(&path)).unwrap();
+        std::fs::remove_file(path).unwrap();
+        let mut p = supervisor(conn);
+        p.watches.insert("svc".into(), vec!["watched.alpha".into()]);
+        let init_dir = format!("/tmp/procd-disconnect-init-{}", std::process::id());
+        std::fs::create_dir(&init_dir).unwrap();
+        let completed = format!("{init_dir}/completed");
+        std::fs::write(format!("{init_dir}/svc"), format!("#!/bin/sh\necho done > {completed}\n")).unwrap();
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(format!("{init_dir}/svc"), std::fs::Permissions::from_mode(0o755)).unwrap();
+        p.init_d = init_dir.clone();
+        let file = std::fs::File::open("/dev/null").unwrap();
+        extern "C" { fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32; }
+        // A high duplicated fd prevents another test thread reusing its
+        // number during the release assertion. F_DUPFD_CLOEXEC is Linux.
+        // SAFETY: file owns a live fd; duplication creates a separately
+        // owned descriptor without closing or changing the original.
+        let raw = unsafe { fcntl(file.as_raw_fd(), 1030, 1000) };
+        assert!(raw >= 1000);
+        p.pending_set = Some(PendingSet { request: Request { peer: 10, seq: 99, objid: 1001,
+            method: "set".into(), user: None, group: None, data: vec![],
+            // SAFETY: newly duplicated descriptor transfers ownership once.
+            fd: Some(unsafe { OwnedFd::from_raw_fd(raw) }), no_reply: false },
+            paths: ["watched.alpha".into()].into(), service: "svc".into(), new_service: false });
+        assert!(p.pump_pending_set().is_err());
+        assert!(p.pending_set.is_none());
+        assert_eq!(p.rc.jobs.len(), 1, "lost transport must not discard the local running hook");
+        assert_eq!(p.rc.jobs[0].param, "running");
+        p.rc.pump(p.now_ms());
+        let until = Instant::now() + Duration::from_secs(1);
+        while !std::path::Path::new(&completed).exists() && Instant::now() < until {
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        assert!(std::path::Path::new(&completed).exists());
+        extern "C" { fn waitpid(pid: i32, status: *mut i32, flags: i32) -> i32; }
+        let pid = p.rc.jobs[0].pid.unwrap();
+        let mut child_status = 0;
+        // SAFETY: pointer is live and pid is this test's exact running hook.
+        assert_eq!(unsafe { waitpid(pid, &mut child_status, 0) }, pid);
+        std::fs::remove_dir_all(init_dir).unwrap();
+        // SAFETY: F_GETFD only probes the descriptor, with no ownership.
+        assert_eq!(unsafe { fcntl(raw, 1, 0) }, -1);
+        assert_eq!(io::Error::last_os_error().raw_os_error(), Some(9));
+        drop(p);
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn partial_frame_and_reply_backpressure_return_to_stop_deadlines() {
+        use std::time::Duration;
+        use std::os::unix::process::ExitStatusExt;
+        for partial_input in [true, false] {
+            let path = format!("/tmp/procd-io-r93-{}-{partial_input}.sock", std::process::id());
+            let listener = UnixListener::bind(&path).unwrap();
+            let worker = std::thread::spawn(move || {
+                let (mut stream, _) = listener.accept().unwrap();
+                stream.write_all(&[0, ty::HELLO, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4]).unwrap();
+                if partial_input { stream.write_all(&[0]).unwrap(); }
+                // The bus stays connected beyond the one-second I/O budget.
+                std::thread::sleep(Duration::from_millis(2200));
+            });
+            let mut conn = Connection::connect(Some(&path)).unwrap();
+            std::fs::remove_file(path).unwrap();
+            conn.set_server_io_timeout(Duration::from_secs(1));
+            let mut p = supervisor(conn);
+            let mut child = std::process::Command::new("/bin/sleep").arg("10").spawn().unwrap();
+            let mut instance = Instance::new("owned-child");
+            instance.pid = child.id() as i32;
+            instance.halt = true;
+            instance.state = Run::Halting;
+            instance.deadline = Some(p.now_ms() + 50);
+            let mut service = Service::new("owned-service");
+            service.instances.insert(instance.name.clone(), instance);
+            p.services.insert(service.name.clone(), service);
+            let start = Instant::now();
+            let result = if partial_input {
+                p.conn.read_incoming().map(|_| ())
+            } else {
+                let req = Request { peer: 0, seq: 0, objid: 1001, method: "list".into(),
+                    user: None, group: None, data: Vec::new(), fd: None, no_reply: false };
+                p.conn.reply_data_status(&req, &vec![0; 1_000_000], 0)
+            };
+            let elapsed = start.elapsed();
+            let error = result.unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+            assert!(elapsed >= Duration::from_millis(800) && elapsed < Duration::from_millis(1800), "{elapsed:?}");
+            // This is the maintenance branch entered after the bus error.
+            p.fire_timeouts();
+            let status = child.wait().unwrap();
+            assert_eq!(status.signal(), Some(SIGKILL));
+            drop(p);
+            worker.join().unwrap();
+        }
     }
 }

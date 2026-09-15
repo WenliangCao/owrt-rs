@@ -1,0 +1,73 @@
+{
+  "environment": "Linux aarch64 disposable mount/net/PID namespaces; no physical router changes",
+  "original_ubusd_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+  "scenario": "Create six objects before service.set. On the same persistent provider connection, notify the sixth path immediately after set STATUS; inspect actual subscriber list and a distinct trigger output file. Repeat with fresh paths twelve times.",
+  "results": [
+    {
+      "side": "formal-r89",
+      "binary_sha256": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98",
+      "probe_sha256": "7fb3e9b88788ead1d3ff0ee4490fb14a1e8510637a360e33b0e40c66b3c24fd3",
+      "result_sha256": "7bb0d2cec80c90a31e6cb62246de050d81399e3d65de468f9c189e53c23e9af9",
+      "completed_rounds": 12,
+      "immediate_notify_with_subscriber": 12,
+      "immediate_notify_trigger_executed": 12
+    },
+    {
+      "side": "r93-early-reply-queue",
+      "binary_sha256": "01e92cd7fe03b277f533f933adb7b7e75241b7ece546c93a3cad4b0bbc7181bd",
+      "probe_sha256": "7fb3e9b88788ead1d3ff0ee4490fb14a1e8510637a360e33b0e40c66b3c24fd3",
+      "result_sha256": "6ac95133b4193d6ef85686bd71a57d38a822a9f2896564bfb6670ae96aea54e3",
+      "completed_rounds": 12,
+      "immediate_notify_with_subscriber": 0,
+      "immediate_notify_trigger_executed": 0
+    }
+  ],
+  "conclusion": "The early-reply queue introduces a demonstrated R89 first-notification regression. C lacking this stronger return guarantee does not waive the regression.",
+  "fix": "Hold one owned set/add request while attempting its service watches one per maintenance pass. Complete rc running and service.start only after attempts, then reply. Delay launching queued trigger commands until this boundary while maintaining running tasks. On transport failure preserve the local running hook, discard old-generation replies/events and owned request fds.",
+  "unit_validation": {
+    "source_main_sha256": "dcf5ba9966f09fc21fe463d717c95325349e3602ed46cbd2b6ff26d7c54647cf",
+    "tests_passed": 83,
+    "tests_failed": 0,
+    "clippy": "1.98.1 Linux --bin procd-rs --tests -- -D warnings -D clippy::undocumented_unsafe_blocks passed",
+    "coverage": [
+      "slow six-path deferred reply with owned child stop deadline",
+      "clean timeout finishes request and preserves background retry",
+      "partial-reply timeout drops owned request fd",
+      "object recreation, duplicate events, no_reply, directory registration retry and scheduler deadline"
+    ],
+    "clippy_scope_note": "The earlier -D warnings run did not enable clippy::undocumented_unsafe_blocks. Root later found and fixed one test SAFETY comment. Final source05 bin/tests pass both -D warnings and that lint; all-target gates belong to root validation."
+  },
+  "scope": "Final focused exact-image Linux namespace gate passed. Native 83 tests and bin/tests Clippy passed; root owns all-target/full historical compatibility and physical router acceptance. No physical router or hardware watchdog was modified by these probes.",
+  "service_start_counterexample": [
+    {
+      "side": "formal-r89",
+      "binary_sha256": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98",
+      "probe_sha256": "537837645a7eda51e8d2be61d67034e3a2a0739f35d10189096a87cb4fa01919",
+      "result_sha256": "90ce0cdaac24ed9b072ce28790e448757ed2b4507ce178f01cbd39354c8d95fc",
+      "completed_rounds": 12,
+      "service_start_notify_subscribed": 12,
+      "service_start_notify_delivered": 12
+    },
+    {
+      "side": "r93-deferred-status-only",
+      "binary_sha256": "8299d67256c2e16749f18a351a95a16c1ad5bf599e6619167c10d90ea489ee18",
+      "probe_sha256": "537837645a7eda51e8d2be61d67034e3a2a0739f35d10189096a87cb4fa01919",
+      "result_sha256": "1cf7ce797908618b11277501987721e2f273f29637b5585106011c1989775d35",
+      "completed_rounds": 12,
+      "service_start_notify_subscribed": 2,
+      "service_start_notify_delivered": 2
+    }
+  ],
+  "final_focused_validation": {
+    "binary_sha256": "3f375ee6cea5a024085c31ff39fda7ff2137536cb611df4354f9b110e9472c03",
+    "probe_sha256": "d185916a0a2640d6c179943fe00e6077dd44fcba8e0a98faeb1ef29b14fe87fe",
+    "result_sha256": "2d6a8d260741f0498136cda64bc43c6f918f68b8d4b09742bdb23f1a232e54a8",
+    "passed": true,
+    "checks_passed": 11,
+    "set_add_immediate_subscribed": 12,
+    "set_add_immediate_delivered": 12,
+    "service_start_immediate_subscribed": 12,
+    "service_start_immediate_delivered": 12,
+    "six_missing_watch_set_seconds": 0.0010874089784920216
+  }
+}
