@@ -56,3 +56,11 @@ make performance look better.
 After any performance change, first rerun `test_logd_stream_recovery.py` and
 historical logd correctness gates. Then run this tool on all three binary
 identities. This tool does not replace disconnect/reconnect correctness tests.
+# R93 增量接收器验证补记（2026-09-15）
+
+固定输入工具复用的 `receive_frames` 已改为增量读取帧头，避免每次收到新数据都重新遍历
+全部历史帧。最终 `assert_records` 的字段、字节、ID 和顺序检查保持原样；EOF 不足、
+额外帧和碎尾不能被当成成功。测试：9 项碎帧单测、5 项真实流恢复、C/R89/span 五场景
+15/15 smoke，通过 6912 个 follow 帧与 1800 个 backlog 帧的完整校验。
+原始证据在 ignored `private/r93/logd-reader-validation-20260915/`。
+修改前的 pilot 与修改后的正式采样使用不同接收器，不能直接混成同一批性能结果。

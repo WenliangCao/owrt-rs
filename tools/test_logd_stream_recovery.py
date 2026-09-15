@@ -88,13 +88,30 @@ def complete_frame_count(data):
 
 def receive_frames(fd, count, timeout=3):
     data = bytearray()
+    offset = complete = 0
+    frame_end = None
     end = time.monotonic() + timeout
     while time.monotonic() < end:
         chunk, closed = take(fd)
         data.extend(chunk)
-        complete = complete_frame_count(data)
-        if closed or (complete is not None and complete >= count):
+        # Keep the parse cursor across reads. Recounting every prior frame
+        # here makes a fragmented stream quadratic in its record count.
+        while offset < len(data):
+            if frame_end is None:
+                if len(data) - offset < 4:
+                    break
+                size = struct.unpack_from(">I", data, offset)[0]
+                assert 4 <= size <= 1048576, f"invalid log frame size {size}"
+                frame_end = offset + ((size + 3) & ~3)
+            if frame_end > len(data):
+                break
+            offset = frame_end
+            frame_end = None
+            complete += 1
+        assert complete <= count, "received more log frames than expected"
+        if complete == count and offset == len(data):
             return bytes(data), closed
+        assert not closed, f"log stream ended with {complete}/{count} frames and {len(data) - offset} trailing bytes"
         select.select([fd], [], [], min(0.05, max(0, end - time.monotonic())))
     raise AssertionError(f"received only {len(data)} bytes before log frame deadline")
 
