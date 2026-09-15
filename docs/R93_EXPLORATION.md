@@ -147,3 +147,20 @@ capacity，否则长尾空白日志可能增加 RSS。两类实验仅在 private
   校验完整 hash，随后在独立副本重跑整组通过。污染记录与初次输出原样保留于 private。
 - 开始以 source05 修复版采集 C / 正式 R89 / 候选九组件 74 负载实机矩阵，生产栈继续 R92；
   与此同时三个私有性能候选完成各自验证，尚未替换矩阵中的候选。
+- logd 四轮三侧、24 个负载观测及文件/健康核验完成。固定 128-byte 写入的自身 CPU
+  C/R89/source05 为 32.3/8.5/7.2 µs；读取 100 条为 808/420.5/389.5 µs。
+  RSS 中位数 1010/504/568 KiB，source05 尚未全面赢 R89 内存。
+  详见 [本轮 logd 实机基线](reviews/R93_LOGD_DEVICE_BASELINE.md)。
+- 恢复过程中一度误将历史暂停指令当作当前任务，停止了本地矩阵 driver；当时的 ubusd
+  第三样本 namespace 自行完整结束。恢复前核验完整原始文件 hash、COMPLETE、boot、
+  配置及生产身份；`03-candidate/collector-recovery.json` 明记延迟的 host-after 观测。
+  前两样本未动，第三样本取回后由原工具 `--resume` 继续，不覆写历史原始数据。
+- 私有 ubusd 诊断发现真实未修故障：64 个大签名对象的 `*` 慢读，C/source05/lookup 优化
+  候选都只返回 62 条 DATA 后发 STATUS；无 OBJPATH 同输入完整返回 64 条。R89 该输入
+  正在补测。失败交付不能纳入成功性能比较；单独制作保留发送上限的背压续传修复。
+- HTTP worker-cache SDK 候选主要历史/故障门通过，但尚无实机收益；Linux 一次内存诊断
+  冷态/64 连接/关闭 2 秒 RSS 为 952/1228/1112 KiB，线程 1/5/1，FD 7/71/7。
+  关闭后仍比自身冷态高 160 KiB，不能宣称内存胜出。解析缓冲复用是另一个私有小实验。
+- logd span 候选运行正确性通过；Oracle 单轮 no-subscriber 的 source05/span CPU 均
+  1.9 µs/条，尚未显示额外收益。小型分配计数证明减少临时分配，最终 ring 存活字节相同；
+  不能用分配次数下降替代 CPU 或 RSS 验收。
