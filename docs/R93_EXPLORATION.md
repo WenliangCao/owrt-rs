@@ -232,3 +232,8 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
 - fw4 实机 24 个观测完成。print/check CPU 为 9300/19650 µs，R89 为 9500/19900，
   C 为 96000/107650；check 延迟仍比 R89 高 1.24%，四轮范围重叠，未定因。
   [fw4 实机报告](reviews/R93_FW4_DEVICE_BASELINE.md)。
+- reload-config 12 个观测完成，固定 unchanged-config 的延迟/CPU 显著低于 C；
+  source05 CPU 26270 µs，R89 26420，C 41440，source05/R89 的逐轮范围重叠。
+  配置摘要前后与原版相同，未测改动传播或整栈冷启动。八组件累计 696 个观测完成，
+  source05 完整 HTTP 矩阵正在采集。
+  [reload-config 实机报告](reviews/R93_RELOAD_CONFIG_DEVICE_BASELINE.md)。
