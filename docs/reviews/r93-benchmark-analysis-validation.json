@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-15",
+  "scope": "native benchmark summary consistency, no runtime or measurement-client changes",
+  "problem": "native() validated sample count and mean but accepted altered p50/p95/p99 and ops_per_s; malformed raw latency and nonfinite wall could also pass prior checks",
+  "change": "recompute native half-up percentile indices and successful/wall throughput; require integer nonnegative latency samples and finite positive wall",
+  "files": {
+    "tools/benchmark/analyze.py": "cb66f29c6645b02c4c6175449c9ce6e6a32729c7c7dfa3ee57ac5f28829f4a27",
+    "tools/benchmark/test_analyze.py": "b948a4e7bef0c721c7ddd286bab3088d0d172a8258e0963d324f567c3febd0bf"
+  },
+  "validation": {
+    "analysis_test_modules": 15,
+    "test_analyze": 10,
+    "all_passed": true,
+    "raw_replay": {
+      "logd": 24,
+      "procd": 240,
+      "netifd_partial_completed_samples": 385,
+      "ubusd": 300,
+      "rpcd": 540
+    },
+    "raw_records_replayed": 1489,
+    "raw_replay_all_passed": true
+  },
+  "limitations": [
+    "Replay counts include four native client files for c4 intervals; these are not new independent workload observations.",
+    "Netifd replay covered only samples COMPLETE at that moment; the collection was still running.",
+    "Validation tightens derived-summary consistency; it does not add new runtime correctness coverage."
+  ]
+}

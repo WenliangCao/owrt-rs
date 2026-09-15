@@ -52,10 +52,20 @@ def stats(values):
 def native(path):
     data = read_json(path)
     n = data["successful"]
-    assert n > 0 and data["errors"] == 0 and len(data["latency_ns"]) == n, path
-    assert data["wall_s"] > 0
+    samples = data["latency_ns"]
+    assert type(n) is int and n > 0 and data["errors"] == 0 and len(samples) == n, path
+    assert all(type(v) is int and v >= 0 for v in samples), path
+    assert math.isfinite(data["wall_s"]) and data["wall_s"] > 0, path
     assert math.isclose(data["mean_us"], statistics.mean(data["latency_ns"]) / 1000,
                         rel_tol=1e-8, abs_tol=1e-6), path
+    ordered = sorted(samples)
+    # Match the native client's nonnegative .round() index; Python round()
+    # instead rounds halfway indices to even and can select a different item.
+    for key, quantile in (("p50_us", .50), ("p95_us", .95), ("p99_us", .99)):
+        expected = ordered[math.floor((n - 1) * quantile + .5)] / 1000
+        assert math.isclose(data[key], expected, rel_tol=1e-8, abs_tol=1e-6), (path, key)
+    assert math.isclose(data["ops_per_s"], n / data["wall_s"],
+                        rel_tol=1e-8, abs_tol=1e-6), (path, "ops_per_s")
     for process in data["daemon_cpu"]:
         assert process["before"]["start_ticks"] == process["after"]["start_ticks"], path
         assert process["cpu_s"] >= 0 and process["child_cpu_s"] >= 0, path

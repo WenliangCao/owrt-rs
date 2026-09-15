@@ -36,6 +36,28 @@ class AnalysisGates(unittest.TestCase):
         with self.assertRaises(AssertionError):
             native(self.path)
 
+    def test_derived_percentiles_and_rate_must_match_raw_samples(self):
+        for key in ("p50_us", "p95_us", "p99_us", "ops_per_s"):
+            with self.subTest(key=key):
+                self.path.write_text(json.dumps({**self.valid, key: 123456789}))
+                with self.assertRaises(AssertionError):
+                    native(self.path)
+
+    def test_invalid_raw_samples_and_nonfinite_wall_are_rejected(self):
+        for patch in ({"latency_ns": [-1000, 5000]},
+                      {"latency_ns": [1000.0, 3000.0]},
+                      {"wall_s": float("inf")}, {"wall_s": float("nan")}):
+            self.path.write_text(json.dumps({**self.valid, **patch}))
+            with self.assertRaises(AssertionError):
+                native(self.path)
+
+    def test_even_sample_median_uses_native_half_up_index(self):
+        self.path.write_text(json.dumps(self.valid))
+        self.assertEqual(native(self.path)["p50_us"], 3)
+        self.path.write_text(json.dumps({**self.valid, "p50_us": 1}))
+        with self.assertRaises(AssertionError):
+            native(self.path)
+
     def test_timing_fields_do_not_export_unrelated_payloads(self):
         self.path.write_text(json.dumps({**self.valid, "private_response": "must remain private"}))
         result = timing(native(self.path))
