@@ -203,6 +203,13 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
 已赢 R89；源码/总线期限开销正在定位，未通过撤除保护换分数。
 完整数据与限制见 [rpcd 本轮基线](reviews/R93_RPCD_DEVICE_BASELINE.md)。
 
+## RPCD glob 实机候选矩阵（第三次恢复）
+
+- 采集器先通过 BusyBox 兼容的 `/usr/bin/setsid` smoke；原先的 `nohup` 启动尝试在第一个样本前失败，原始失败保存在 `private/r93/rpcd-device-smoke-resumed-03/`，没有性能观测。
+- 四侧 smoke 以 N=4000 完成 72 个观测；随后 N=20000、四轮 Williams 顺序完成 **288 个观测**。C、正式 R89、source05 control 和 ASCII 单尾星号 candidate 的身份、响应、CPU 算术、健康和清理门全部通过。
+- 候选对 `session_access_granted`、`session_access_64` 授权路径相对 source05 control 有稳定 CPU 下降信号；但普通路径、拒绝路径和部分并发路径方向混合，且多项仍未赢 R89。候选不合入。
+- 详细逐负载结果见 [R93_RPCD_GLOB_DEVICE_MATRIX](reviews/R93_RPCD_GLOB_DEVICE_MATRIX.md) 及同名 JSON。
+
 ## 第二次恢复
 
 - HEAD 从 `d19f370` 恢复；工作区干净，source05 九个冻结 ELF hash 全部匹配。

@@ -1,0 +1,406 @@
+{
+  "title": "R93 RPCD glob candidate AX3000T four-side matrix",
+  "recorded_at": "2026-09-15T16:35:02.345591+00:00",
+  "scope": "physical router isolated RPCD matrix; C, formal R89, source05 control, ASCII trailing-star candidate",
+  "passed": true,
+  "observations": 288,
+  "candidate_sha256": "5d2dbbf67b6024306bc02232894a96b0fc7302818b499a2e0aef81c3acc4f1fa",
+  "control_sha256": "d78a752cb383abfbc3c2d0050e445e3742595706e0baf05af17c60d3fcd5d1a8",
+  "r89_sha256": "a58c2f7039369c4dde7b0f0fdb45053c147f823c178651b1867c7843e3217a18",
+  "c_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+  "helper_sha256": {
+    "ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "owrt-benchmark": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03"
+  },
+  "dependency_ubusd_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+  "harness_sha256": "23dad2ab6fbe325f2faa38361b8c8c78da54706d723232e5fcde017077309d69",
+  "smoke": "private/r93/rpcd-device-smoke-resumed-04 COMPLETE, 72 observations",
+  "cleanup": "all 16 samples passed namespace-cleanup remaining=[] and supervisor cleanup; remote owned dirs removed",
+  "rows": [
+    {
+      "workload": "uci_configs",
+      "cpu_us": {
+        "C": 81.5,
+        "R89": 63.75,
+        "control": 64.75,
+        "candidate": 63.25
+      },
+      "mean_us": {
+        "C": 165.59543187499997,
+        "R89": 145.463857225,
+        "control": 145.322383775,
+        "candidate": 142.660853025
+      },
+      "candidate_vs_r89_cpu_pct": -0.7843137254901933,
+      "candidate_vs_c_cpu_pct": -22.39263803680982,
+      "candidate_vs_r89_mean_pct": -1.9269420277123417,
+      "candidate_vs_c_mean_pct": -13.849765413403547,
+      "candidate_cpu_better_r89": true,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "uci_get_network",
+      "cpu_us": {
+        "C": 222.25,
+        "R89": 180.25,
+        "control": 180.25,
+        "candidate": 180.75
+      },
+      "mean_us": {
+        "C": 380.789087375,
+        "R89": 336.253418425,
+        "control": 338.109978775,
+        "candidate": 337.724914125
+      },
+      "candidate_vs_r89_cpu_pct": 0.277392510402219,
+      "candidate_vs_c_cpu_pct": -18.6726659167604,
+      "candidate_vs_r89_mean_pct": 0.43761509009854205,
+      "candidate_vs_c_mean_pct": -11.309193114452498,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "file_stat",
+      "cpu_us": {
+        "C": 78.0,
+        "R89": 72.0,
+        "control": 70.75,
+        "candidate": 72.0
+      },
+      "mean_us": {
+        "C": 163.90035820000003,
+        "R89": 158.027911625,
+        "control": 155.59984242500002,
+        "candidate": 156.90155942500002
+      },
+      "candidate_vs_r89_cpu_pct": 0.0,
+      "candidate_vs_c_cpu_pct": -7.692307692307687,
+      "candidate_vs_r89_mean_pct": -0.7127552268568982,
+      "candidate_vs_c_mean_pct": -4.270154654854197,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "session_access",
+      "cpu_us": {
+        "C": 27.75,
+        "R89": 22.75,
+        "control": 24.25,
+        "candidate": 23.75
+      },
+      "mean_us": {
+        "C": 101.26692912499999,
+        "R89": 96.04222777500001,
+        "control": 97.9435368,
+        "candidate": 97.4346327
+      },
+      "candidate_vs_r89_cpu_pct": 4.395604395604402,
+      "candidate_vs_c_cpu_pct": -14.414414414414411,
+      "candidate_vs_r89_mean_pct": 1.4497840765022696,
+      "candidate_vs_c_mean_pct": -3.784351375234807,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "uci_configs_c4",
+      "cpu_us": {
+        "C": 75.69721115537848,
+        "R89": 53.286852589641434,
+        "control": 53.286852589641434,
+        "candidate": 53.03784860557769
+      },
+      "mean_us": {
+        "C": 443.64289295000003,
+        "R89": 372.934582725,
+        "control": 384.020651175,
+        "candidate": 379.96826475
+      },
+      "candidate_vs_r89_cpu_pct": -0.4672897196261627,
+      "candidate_vs_c_cpu_pct": -29.934210526315784,
+      "candidate_vs_r89_mean_pct": 1.8860364125004248,
+      "candidate_vs_c_mean_pct": -14.352676265497255,
+      "candidate_cpu_better_r89": true,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "uci_get_network_c4",
+      "cpu_us": {
+        "C": 200.199203187251,
+        "R89": 149.402390438247,
+        "control": 149.402390438247,
+        "candidate": 151.89243027888446
+      },
+      "mean_us": {
+        "C": 992.73208965,
+        "R89": 881.9839330750001,
+        "control": 883.450057775,
+        "candidate": 895.392979725
+      },
+      "candidate_vs_r89_cpu_pct": 1.6666666666666607,
+      "candidate_vs_c_cpu_pct": -24.12935323383084,
+      "candidate_vs_r89_mean_pct": 1.5203277686986816,
+      "candidate_vs_c_mean_pct": -9.805174118962757,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "file_stat_c4",
+      "cpu_us": {
+        "C": 70.71713147410358,
+        "R89": 58.017928286852595,
+        "control": 58.266932270916335,
+        "candidate": 59.7609561752988
+      },
+      "mean_us": {
+        "C": 456.992048425,
+        "R89": 388.44259925,
+        "control": 399.851926875,
+        "candidate": 408.271506275
+      },
+      "candidate_vs_r89_cpu_pct": 3.0042918454935563,
+      "candidate_vs_c_cpu_pct": -15.492957746478876,
+      "candidate_vs_r89_mean_pct": 5.104719992937268,
+      "candidate_vs_c_mean_pct": -10.66113564074318,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "session_access_c4",
+      "cpu_us": {
+        "C": 23.655378486055778,
+        "R89": 16.683266932270918,
+        "control": 19.9203187250996,
+        "candidate": 18.675298804780876
+      },
+      "mean_us": {
+        "C": 272.092282275,
+        "R89": 261.20511692499997,
+        "control": 270.67881072500006,
+        "candidate": 268.657185475
+      },
+      "candidate_vs_r89_cpu_pct": 11.940298507462677,
+      "candidate_vs_c_cpu_pct": -21.052631578947366,
+      "candidate_vs_r89_mean_pct": 2.8529565721102434,
+      "candidate_vs_c_mean_pct": -1.2624749115552558,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "uci_get_64",
+      "cpu_us": {
+        "C": 1515.0,
+        "R89": 670.0,
+        "control": 655.0,
+        "candidate": 657.5
+      },
+      "mean_us": {
+        "C": 1815.75396725,
+        "R89": 966.6406895,
+        "control": 944.23616525,
+        "candidate": 939.0544507499999
+      },
+      "candidate_vs_r89_cpu_pct": -1.8656716417910446,
+      "candidate_vs_c_cpu_pct": -56.600660066006604,
+      "candidate_vs_r89_mean_pct": -2.853825526863474,
+      "candidate_vs_c_mean_pct": -48.282946495652226,
+      "candidate_cpu_better_r89": true,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "uci_get_64_c4",
+      "cpu_us": {
+        "C": 1536.0576923076924,
+        "R89": 661.0576923076924,
+        "control": 644.2307692307693,
+        "candidate": 649.0384615384615
+      },
+      "mean_us": {
+        "C": 5820.855805249999,
+        "R89": 3587.8496745,
+        "control": 3488.0597105,
+        "candidate": 3474.547455
+      },
+      "candidate_vs_r89_cpu_pct": -1.81818181818183,
+      "candidate_vs_c_cpu_pct": -57.74647887323944,
+      "candidate_vs_r89_mean_pct": -3.1579422155079584,
+      "candidate_vs_c_mean_pct": -40.30864925624503,
+      "candidate_cpu_better_r89": true,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "uci_get_authorized",
+      "cpu_us": {
+        "C": 237.5,
+        "R89": 190.75,
+        "control": 194.5,
+        "candidate": 190.25
+      },
+      "mean_us": {
+        "C": 401.87530115,
+        "R89": 353.64371604999997,
+        "control": 355.901346075,
+        "candidate": 349.24662412500004
+      },
+      "candidate_vs_r89_cpu_pct": -0.2621231979030192,
+      "candidate_vs_c_cpu_pct": -19.894736842105264,
+      "candidate_vs_r89_mean_pct": -1.2433677527521114,
+      "candidate_vs_c_mean_pct": -13.095772961015161,
+      "candidate_cpu_better_r89": true,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "uci_get_authorized_c4",
+      "cpu_us": {
+        "C": 215.6374501992032,
+        "R89": 159.8605577689243,
+        "control": 161.85258964143426,
+        "candidate": 160.60756972111554
+      },
+      "mean_us": {
+        "C": 1083.269131775,
+        "R89": 927.873659825,
+        "control": 943.7324087249999,
+        "candidate": 927.9811490249999
+      },
+      "candidate_vs_r89_cpu_pct": 0.4672897196261738,
+      "candidate_vs_c_cpu_pct": -25.519630484988454,
+      "candidate_vs_r89_mean_pct": 0.011584465068259497,
+      "candidate_vs_c_mean_pct": -14.335124872943773,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "session_access_granted",
+      "cpu_us": {
+        "C": 28.5,
+        "R89": 22.5,
+        "control": 27.25,
+        "candidate": 23.75
+      },
+      "mean_us": {
+        "C": 102.65616555,
+        "R89": 96.96052044999999,
+        "control": 102.23692695,
+        "candidate": 98.40954802499999
+      },
+      "candidate_vs_r89_cpu_pct": 5.555555555555558,
+      "candidate_vs_c_cpu_pct": -16.666666666666664,
+      "candidate_vs_r89_mean_pct": 1.4944511109005632,
+      "candidate_vs_c_mean_pct": -4.1367388916661145,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "session_access_granted_c4",
+      "cpu_us": {
+        "C": 24.40239043824701,
+        "R89": 17.43027888446215,
+        "control": 21.663346613545816,
+        "candidate": 18.675298804780876
+      },
+      "mean_us": {
+        "C": 286.38509555,
+        "R89": 259.48540652500003,
+        "control": 269.381467725,
+        "candidate": 266.0274989
+      },
+      "candidate_vs_r89_cpu_pct": 7.14285714285714,
+      "candidate_vs_c_cpu_pct": -23.469387755102034,
+      "candidate_vs_r89_mean_pct": 2.5211793073880218,
+      "candidate_vs_c_mean_pct": -7.108469318524913,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "file_list",
+      "cpu_us": {
+        "C": 458.25,
+        "R89": 233.25,
+        "control": 236.75,
+        "candidate": 238.25
+      },
+      "mean_us": {
+        "C": 620.9694807000001,
+        "R89": 379.387661075,
+        "control": 385.0230112,
+        "candidate": 381.224133925
+      },
+      "candidate_vs_r89_cpu_pct": 2.143622722400851,
+      "candidate_vs_c_cpu_pct": -48.00872885979269,
+      "candidate_vs_r89_mean_pct": 0.48406235584899093,
+      "candidate_vs_c_mean_pct": -38.60823345210821,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "file_list_c4",
+      "cpu_us": {
+        "C": 423.30677290836655,
+        "R89": 202.4402390438247,
+        "control": 203.68525896414343,
+        "candidate": 206.9223107569721
+      },
+      "mean_us": {
+        "C": 1835.502719175,
+        "R89": 1222.808017475,
+        "control": 1246.514180775,
+        "candidate": 1228.636461875
+      },
+      "candidate_vs_r89_cpu_pct": 2.2140221402213944,
+      "candidate_vs_c_cpu_pct": -51.117647058823536,
+      "candidate_vs_r89_mean_pct": 0.47664427422018374,
+      "candidate_vs_c_mean_pct": -33.062672746830216,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "session_access_64",
+      "cpu_us": {
+        "C": 30.5,
+        "R89": 25.25,
+        "control": 29.75,
+        "candidate": 26.0
+      },
+      "mean_us": {
+        "C": 102.68676579999999,
+        "R89": 97.82428254999999,
+        "control": 102.555596675,
+        "candidate": 100.11534814999999
+      },
+      "candidate_vs_r89_cpu_pct": 2.970297029702973,
+      "candidate_vs_c_cpu_pct": -14.754098360655743,
+      "candidate_vs_r89_mean_pct": 2.3420213675771073,
+      "candidate_vs_c_mean_pct": -2.5041373442496684,
+      "candidate_cpu_better_r89": false,
+      "candidate_cpu_better_c": true
+    },
+    {
+      "workload": "session_access_64_c4",
+      "cpu_us": {
+        "C": 26.145418326693225,
+        "R89": 20.169322709163346,
+        "control": 22.41035856573705,
+        "candidate": 19.422310756972113
+      },
+      "mean_us": {
+        "C": 291.429722625,
+        "R89": 285.30848127499996,
+        "control": 273.21697865,
+        "candidate": 261.08420267500003
+      },
+      "candidate_vs_r89_cpu_pct": -3.703703703703698,
+      "candidate_vs_c_cpu_pct": -25.7142857142857,
+      "candidate_vs_r89_mean_pct": -8.49055677971623,
+      "candidate_vs_c_mean_pct": -10.41263728238433,
+      "candidate_cpu_better_r89": true,
+      "candidate_cpu_better_c": true
+    }
+  ],
+  "limits": [
+    "Performance candidate is private and not merged or deployed.",
+    "Four rounds reduce order bias but do not establish universal workload performance.",
+    "Native RPC response check is recursive JSON subset, not full byte equality.",
+    "RSS is after the 18 workloads and is not a cold heap measurement.",
+    "R89 remains lower on several ordinary and denied paths; candidate is not a full R89 win."
+  ]
+}
