@@ -1,0 +1,66 @@
+{
+  "scope": "Linux exact-image namespaces and owned sockets; seven fault groups, source03 before procd set-return correction. Not canonical release or device acceptance.",
+  "binary_sha256": {
+    "fw4-rs": "6606ca8e3b8d2de41f9987cfc3d7d1baf98df29f405db66d104355f55b03b0e4",
+    "httpd-rs": "2bfd7fe890556d3a5c92becc0f6c732b9ef16b677e79f05d847a762edf8c4e5e",
+    "logd-rs": "895e884305dbbb9057d0400c331820da0c2343df51943820cf82529c58103a2f",
+    "netifd-rs": "70c71046483b4bb34f6a96233b0a153d9f1b99e8fe1beb0c7006251cfe104667",
+    "ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "owrt-benchmark": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+    "reload-config-rs": "98022c94d03c11cb286ee86a68e70b2fd566ee3e3e84f152389c4ffc7d587c70",
+    "reload_config_rs": "98022c94d03c11cb286ee86a68e70b2fd566ee3e3e84f152389c4ffc7d587c70",
+    "rpcd-rs": "9e274893ce379ddec9a3989ffdcfd4940325f05fa9267b5a2b97d37c4cb6e97f",
+    "ubusd-rs": "90e006348b3e815fc443d01ab9bbf45a4c2bbe454b618cc3bc8f90dee8734132",
+    "uci-rs": "4df6d89abf777ef409297f6a620309d4ffd03dd8fee98746120e80f66c4438fa"
+  },
+  "source_sha256": {
+    "tools/r14_httpd_check.py": "7578754ce914c7e688a2b0dee6d37c84cd69730f314d003f44527dd665e2c49b",
+    "tools/r92_compat_probe.py": "ff08fe2bf0b3d09d762cf29e4c6a4e9dee1b6b6268e0f01f7752547d029ba56f",
+    "tools/r92_recovery_probe.py": "77fb8a609fbd55f97aa7cbe232a878e592813764daa7b760c778ba36792b1713",
+    "tools/r92_validate.py": "9e23edfd32ad9e850e4b0c8e97f908ca4db17b5fc72ec5e967d6a6f4df88f3a3",
+    "tools/r93_httpd_cap_probe.py": "16883e1427e2cd8cd31682d861da727884153e3e8fede43bbb42650710b861f3",
+    "tools/r93_netifd_reconnect.py": "57c46e7b7a8fb32f2a9411dbb657d3e5bd681023a0afb3b73923ee05bc0c1bb6",
+    "tools/r93_regressions.py": "9b03c33b7a52cf4524c0f7514741c2fc616de12a9fa7262ad115bcb465ba5024",
+    "tools/r93_rpcd_reconnect.py": "e2379c1d17c504f6fa4a0804b44d37baa1c38bfa9d6437f0d1020a167fbf9518",
+    "tools/r93_ubusd_accept_probe.py": "78071068705d093d0bd8b3ba1b7a1f5d0ab545697628b906058d4ee1fd933a8a",
+    "tools/test_logd_stream_recovery.py": "313b206a9d8a9eb320d428e8ae75e699f94a518feea15541c768fae47dbd8030"
+  },
+  "passed": true,
+  "gates": [
+    {
+      "name": "httpd-shared-cap",
+      "exit": 0,
+      "log_sha256": "c1a2e73ad1b246dc09d23d012ff69cbf83ed62a67edfb9dda42582e25bbd18a0"
+    },
+    {
+      "name": "ubusd-accept",
+      "exit": 0,
+      "log_sha256": "ae835cd2a679316649ebb3899695ae278fb7d74f74366abbda4cfd2f12c2ba71"
+    },
+    {
+      "name": "logd-streams",
+      "exit": 0,
+      "log_sha256": "e9bd5d21c65a53f4bbdf3a306c4742ba1c0a2e6428466870f51cffb216cc5ab7"
+    },
+    {
+      "name": "rpcd-disconnect",
+      "exit": 0,
+      "log_sha256": "d7438aba172dd84066531d765b09e43c2bfbfff81b01fe153c86c0adcdf6ab8f"
+    },
+    {
+      "name": "rpcd-half_header",
+      "exit": 0,
+      "log_sha256": "6227e046c580a7cf8a7d7c0804ae0547121c93dd211198bd3781c99a83dbee2a"
+    },
+    {
+      "name": "netifd-network.device",
+      "exit": 0,
+      "log_sha256": "cb9209fff2a6c97dc65f485657c09e1e9f80bdf079d098bc6828585b42dc19d4"
+    },
+    {
+      "name": "netifd-network.interface.loopback",
+      "exit": 0,
+      "log_sha256": "38b1e4433cccfc8516236ae9686593b9e2fa39536c68175c0030afdc14171731"
+    }
+  ]
+}
