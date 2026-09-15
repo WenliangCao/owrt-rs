@@ -20,6 +20,7 @@ mod sys;
 use server::Server;
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
+use std::time::{Duration, Instant};
 
 /// Identifies this binary in a running process, which matters when it is
 /// installed at the same path as the daemon it replaces.
@@ -147,17 +148,38 @@ fn run(socket: &str, acl_dir: &str) -> std::io::Result<()> {
 /// their ids, which the registry keeps below `u32::MAX`.
 const TOKEN_LISTENER: u64 = u64::MAX;
 const TOKEN_WAKE: u64 = u64::MAX - 1;
+const ACCEPT_RETRY_DELAY: Duration = Duration::from_millis(100);
+const ACCEPT_TRANSIENT_BUDGET: usize = 16;
 
 fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std::io::Result<()> {
     let mut poller = owrt_ubus::readiness::Poller::new()?;
     poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false)?;
     poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false)?;
     let mut ready: Vec<owrt_ubus::readiness::Ready> = Vec::new();
-    // True while the listener is out of the set after an accept failure.
-    let mut listener_parked = false;
+    // A resource failure removes the level-triggered listener temporarily.
+    // Resources may recover without a client disconnect (SCM_RIGHTS fds,
+    // system-wide ENFILE, socket memory), so always arm a timed retry.
+    let mut listener_retry_at: Option<Instant> = None;
 
     while !STOP.load(Ordering::SeqCst) {
-        poller.wait(-1, &mut ready)?;
+        let timeout_ms = if let Some(at) = listener_retry_at {
+            let now = Instant::now();
+            if now >= at {
+                match poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false) {
+                    Ok(()) => listener_retry_at = None,
+                    Err(e) => {
+                        eprintln!("ubusd-rs: listener retry failed: {e}");
+                        listener_retry_at = Some(now + ACCEPT_RETRY_DELAY);
+                    }
+                }
+            }
+            listener_retry_at.map_or(-1, |next| {
+                next.saturating_duration_since(now).as_millis().max(1) as i32
+            })
+        } else {
+            -1
+        };
+        poller.wait(timeout_ms, &mut ready)?;
 
         // Signals first, as before: a reload or stop decided in this round
         // takes effect before any client is served.
@@ -177,7 +199,8 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
                 TOKEN_WAKE => {}
                 TOKEN_LISTENER => {
                     if r.revents & sys::POLLIN != 0 && !accept_all(server, listener, &mut poller) {
-                        listener_parked = poller.remove(listener.as_raw_fd()).is_ok();
+                        poller.remove(listener.as_raw_fd())?;
+                        listener_retry_at = Some(Instant::now() + ACCEPT_RETRY_DELAY);
                     }
                 }
                 token => {
@@ -192,8 +215,8 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
                     } else {
                         disconnect(server, &mut poller, id);
                         // A descriptor is free again: resume accepting.
-                        if listener_parked {
-                            listener_parked = poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false).is_err();
+                        if listener_retry_at.is_some() {
+                            listener_retry_at = Some(Instant::now());
                         }
                     }
                 }
@@ -230,12 +253,12 @@ fn disconnect(server: &mut Server, poller: &mut owrt_ubus::readiness::Poller, id
     server.remove_client(id);
 }
 
-/// Accept everything queued. Returns false when accept failed for a reason
-/// other than an empty backlog (EMFILE/ENFILE): the caller then takes the
-/// listener out of the readiness set until a client goes away, because a
-/// level-triggered listener that cannot be accepted would otherwise wake
-/// the loop continuously (R88 ubusd U-1; the C listener is edge-triggered).
+/// Accept everything queued. EINTR/ECONNABORTED retry as in the C daemon,
+/// with a budget so repeated transient errors cannot monopolize the loop.
+/// Other errors (including EMFILE/ENFILE) or exhausted retries return false:
+/// the caller parks the level-triggered listener and retries after a delay.
 fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::readiness::Poller) -> bool {
+    let mut transient_errors = 0;
     loop {
         match sys::accept(listener.as_raw_fd()) {
             Ok(Some(sock)) => match server.add_client(sock) {
@@ -254,6 +277,12 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
             },
             Ok(None) => return true,
             Err(e) => {
+                if matches!(e.kind(), std::io::ErrorKind::Interrupted | std::io::ErrorKind::ConnectionAborted) {
+                    transient_errors += 1;
+                    if transient_errors < ACCEPT_TRANSIENT_BUDGET {
+                        continue;
+                    }
+                }
                 eprintln!("ubusd-rs: accept failed: {e}");
                 return false;
             }

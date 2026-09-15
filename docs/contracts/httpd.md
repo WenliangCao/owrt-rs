@@ -128,3 +128,14 @@ R83 增补 r14 的 CGI 错误、环境、query 和 UA 用例，r27 比较正文�
 
 运行对照：[r92_compat_probe.py](../../tools/r92_compat_probe.py) 的 HTTP 场景；慢读 batch
 与失败停止：[r92_recovery_probe.py](../../tools/r92_recovery_probe.py)。
+
+## 10. R93 共享连接槽恢复
+
+`-N` 的计数覆盖全部 HTTP/HTTPS、IPv4/IPv6 listener。满额后任一连接关闭、停放连接到期、
+TLS 初始化失败或工作线程创建失败，都通过同一释放入口归还连接槽；从满额变为可接入时
+唤醒全部 listener。新请求不需要等另一 listener 的 50 ms 防御重查。唤醒写使用非阻塞管道，
+重试 EINTR；管道已满表示已有唤醒待处理。注册失败保留有界重试，不进入无限等待。
+
+[双监听器回归](../../tools/r93_httpd_cap_probe.py) 检查主动连接关闭、停放连接关闭、停放到期后的
+接入和完整响应。接入测试同时确认满额时请求留在 backlog，不通过提前接入降低恢复延迟。
+50 ms 连接停放和恢复时新建工作线程的策略不由本修复改变。

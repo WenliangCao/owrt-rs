@@ -252,3 +252,21 @@ type = `UBUS_MSG_MONITOR`，seq = 每个监听者自己的 `++m->seq`。
 
 原版/R89 反例与候选门：`r92_recovery_probe.py`；原始报文、debug build 补齐断言与非 root ACL
 可见性：`r92_compat_probe.py` 的 `ubusd_wire`、`ubusd_acl_types`。
+
+## 16. R93 accept 错误恢复
+
+精确原版 `ubusd_main.c:get_next_connection()` 遇到 `EINTR`、`ECONNABORTED` 立即重试；
+其它错误结束当轮 accept。R89/R92 为避免 level-triggered listener 在资源耗尽时空转，
+把所有 accept 错误都改为移除监听，且只在客户端断开时恢复。这会使一次暂态错误永久阻止
+新连接；`ENFILE`、socket 内存或传递的 FD 恢复也不一定伴随客户端断开。
+
+R93 对 `EINTR`、`ECONNABORTED` 在当轮最多尝试 16 次；其它错误或预算耗尽时移除
+listener，并在 100 ms 后重试。已有客户端断开可提前触发重试；重新注册失败也保留
+100 ms 重试期限。正常状态没有周期唤醒。移除监听本身失败时返回事件循环错误，避免
+带着永久可读的失效 listener 空转。
+
+探针 `tools/r93_ubusd_accept_probe.py GNU_BINARY OUTPUT` 在 Linux 的独立 Unix socket
+上保留一个持续 PING 的客户端，再排队第二个连接。单次 `EINTR`/`ECONNABORTED`、
+短时错误流、`ENFILE`/`ENOMEM`/`ENOBUFS`/未知错误通过 `LD_PRELOAD` 注入；`EMFILE`
+则实际耗尽测试子进程的 96-FD 限额，再只释放占位 FD。恢复条件是两个客户端均未断开时
+第二个收到 HELLO，错误调用次数有上限。它不耗尽宿主机的全局资源，也不连接路由器。

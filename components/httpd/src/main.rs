@@ -24,7 +24,7 @@ use std::cell::RefCell;
 use std::os::fd::{AsRawFd, FromRawFd, RawFd};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Condvar, Mutex, Weak};
 use std::time::{Duration, Instant};
 
 struct Config {
@@ -458,10 +458,19 @@ struct Parking {
 }
 
 impl Parking {
+    fn wake(&self) {
+        loop {
+            match (&self.wake).write(&[1]) {
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                // A full nonblocking pipe already guarantees a wakeup.
+                _ => return,
+            }
+        }
+    }
+
     fn park(&self, parked: Parked) {
         self.inbox.lock().unwrap_or_else(|e| e.into_inner()).push(parked);
-        // A full pipe already guarantees a wakeup.
-        let _ = (&self.wake).write(&[1]);
+        self.wake();
     }
 }
 
@@ -513,12 +522,32 @@ struct Server {
     bridge: Bridge,
     connections: AtomicUsize,
     accept_lock: Mutex<()>,
+    /// The connection cap covers every listener, so releasing its last slot
+    /// must wake HTTP, HTTPS and both address families together.
+    listeners: Mutex<Vec<Weak<Parking>>>,
     scripts: ScriptSlots,
     output_buffers: Mutex<Vec<Vec<u8>>>,
     inventory: Option<Mutex<std::fs::File>>,
 }
 
 impl Server {
+    fn release_connection(&self) {
+        let before = self.connections.fetch_sub(1, Ordering::Relaxed);
+        if self.config.max_connections == 0 || before != self.config.max_connections {
+            return;
+        }
+        // Never take an inbox or accept lock here: a listener can release a
+        // slot while draining its inbox, and these writes cannot block.
+        self.listeners.lock().unwrap_or_else(|e| e.into_inner()).retain(|listener| {
+            if let Some(listener) = listener.upgrade() {
+                listener.wake();
+                true
+            } else {
+                false
+            }
+        });
+    }
+
     /// Drive one connection until it closes or is parked. `resume` is the
     /// keep-alive deadline of a connection taken back from the poll set.
     fn run_connection(&self, transport: Transport, conn: Conn, parking: &Parking, resume: Option<Instant>) -> Outcome {
@@ -819,6 +848,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
     let Ok(mut poller) = Poller::new() else { return };
     if poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false).is_err() { return; }
     let parking = Arc::new(Parking { inbox: Mutex::new(Vec::new()), wake: wake_w });
+    server.listeners.lock().unwrap_or_else(|e| e.into_inner()).push(Arc::downgrade(&parking));
     // Parked connections by token; tokens are never reused within a listener.
     let mut parked: std::collections::HashMap<u64, Parked> = std::collections::HashMap::new();
     let mut next_token: u64 = 0;
@@ -832,7 +862,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
                 parked.insert(token, p);
             } else {
                 // Cannot watch it: treat as closed rather than leak the slot.
-                server.connections.fetch_sub(1, Ordering::Relaxed);
+                server.release_connection();
             }
         }
         // uhttpd closes a keep-alive connection whose timer ran out without
@@ -842,7 +872,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
         for token in expired {
             if let Some(p) = parked.remove(&token) {
                 let _ = poller.remove(p.conn.fd);
-                server.connections.fetch_sub(1, Ordering::Relaxed);
+                server.release_connection();
             }
         }
         // listen.c:95 + uh_poll_listeners: at the cap uhttpd takes the listener
@@ -861,11 +891,15 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
             .map(|p| p.deadline.saturating_duration_since(now).as_millis().clamp(1, i32::MAX as u128) as i32)
             .min()
             .unwrap_or(-1);
-        if at_cap {
-            // No listener in the set: look again shortly for a freed slot.
+        if at_cap || !listening {
+            // Retain a bounded retry if registration failed, as well as a
+            // defensive cap recheck. Normal slot releases wake every listener.
             timeout = if timeout < 0 { 50 } else { timeout.min(50) };
         }
-        if poller.wait(timeout, &mut ready).is_err() { continue; }
+        if poller.wait(timeout, &mut ready).is_err() {
+            std::thread::sleep(Duration::from_millis(50));
+            continue;
+        }
         let mut accept_ready = false;
         for r in &ready {
             match r.token {
@@ -894,8 +928,13 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
         }
         let (stream, remote) = match listener.accept() {
             Ok(pair) => pair,
-            Err(_) => {
-                std::thread::sleep(Duration::from_millis(50));
+            Err(error) => {
+                // An exhausted listener must not hold the shared admission
+                // lock while backing off and delay healthy listeners too.
+                drop(guard);
+                if !matches!(error.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted) {
+                    std::thread::sleep(Duration::from_millis(50));
+                }
                 continue;
             }
         };
@@ -919,7 +958,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
                     Transport::Tls(rustls::StreamOwned::new(c, stream))
                 }
                 Err(_) => {
-                    server.connections.fetch_sub(1, Ordering::Relaxed);
+                    server.release_connection();
                     continue;
                 }
             },
@@ -933,7 +972,7 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
 fn resume(server: &Arc<Server>, parking: &Arc<Parking>, p: Parked) {
     match p.transport.tcp().peek(&mut [0u8; 1]) {
         Ok(0) | Err(_) => {
-            server.connections.fetch_sub(1, Ordering::Relaxed);
+            server.release_connection();
         }
         Ok(_) => spawn_connection(server, parking, p.transport, p.conn, Some(p.deadline)),
     }
@@ -944,18 +983,12 @@ fn spawn_connection(server: &Arc<Server>, parking: &Arc<Parking>, transport: Tra
     let parking = Arc::clone(parking);
     if let Err(error) = std::thread::Builder::new().spawn(move || {
         if let Outcome::Closed = worker.run_connection(transport, conn, &parking, resume) {
-            let before = worker.connections.fetch_sub(1, Ordering::Relaxed);
-            // At the cap the listener took itself out of the readiness set;
-            // tell it a slot is free instead of leaving it to its 50 ms
-            // re-check (R88 httpd H-11).
-            if worker.config.max_connections > 0 && before >= worker.config.max_connections {
-                let _ = (&parking.wake).write(&[0u8]);
-            }
+            worker.release_connection();
         }
     }) {
         // The failed spawn drops its closure and the socket. Release the
         // reserved slot too, and keep the listener alive under pressure.
-        server.connections.fetch_sub(1, Ordering::Relaxed);
+        server.release_connection();
         let _ = writeln!(std::io::stderr().lock(), "httpd-rs: cannot create connection thread: {error}");
         std::thread::sleep(Duration::from_millis(50));
     }
@@ -1037,6 +1070,7 @@ fn main() {
         },
         connections: AtomicUsize::new(0),
         accept_lock: Mutex::new(()),
+        listeners: Mutex::new(Vec::new()),
         scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: config.max_script_requests },
         output_buffers: Mutex::new(Vec::new()),
         inventory: inventory.map(Mutex::new),
@@ -1056,5 +1090,83 @@ fn main() {
     accept_loop(Arc::clone(&server), last.0, last.1);
     for handle in handles {
         let _ = handle.join();
+    }
+}
+
+#[cfg(test)]
+mod connection_tests {
+    use super::*;
+    use std::os::unix::net::UnixStream;
+
+    fn server(limit: usize) -> Server {
+        let config = parse_args_from(["-p", "127.0.0.1:0", "-c", "/r93-no-httpd-config", "-N"]
+            .into_iter().map(str::to_owned).chain([limit.to_string()])).unwrap();
+        Server {
+            config, tls_addresses: Vec::new(), cgi_physical_prefix: None,
+            bridge: Bridge {
+                socket: None, noauth: false, cors: false, timeout_ms: 1000,
+                events_retry: 0, record_calls: false,
+                idle: Mutex::new(Vec::new()), calls: Mutex::new(Vec::new()),
+            },
+            connections: AtomicUsize::new(0), accept_lock: Mutex::new(()),
+            listeners: Mutex::new(Vec::new()),
+            scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: 1 },
+            output_buffers: Mutex::new(Vec::new()), inventory: None,
+        }
+    }
+
+    fn listener(server: &Server) -> (Arc<Parking>, UnixStream) {
+        // UnixStream gives both host tests and Linux a nonblocking writable
+        // descriptor without depending on Linux's pipe2 flag constants.
+        let (read, write) = UnixStream::pair().unwrap();
+        read.set_nonblocking(true).unwrap();
+        write.set_nonblocking(true).unwrap();
+        let owned: std::os::fd::OwnedFd = write.into();
+        let parking = Arc::new(Parking { inbox: Mutex::new(Vec::new()), wake: owned.into() });
+        server.listeners.lock().unwrap().push(Arc::downgrade(&parking));
+        (parking, read)
+    }
+
+    #[test]
+    fn freeing_the_shared_last_slot_wakes_every_listener_even_before_wait() {
+        let server = server(2);
+        let (_first, mut first) = listener(&server);
+        let (_second, mut second) = listener(&server);
+        let (retired, _read) = listener(&server);
+        drop(retired);
+        server.connections.store(2, Ordering::Relaxed);
+        server.release_connection();
+        assert_eq!(server.connections.load(Ordering::Relaxed), 1);
+        // The wake remains queued if release raced ahead of the next wait.
+        let mut poller = owrt_ubus::readiness::Poller::new().unwrap();
+        poller.add(first.as_raw_fd(), 1, false).unwrap();
+        poller.add(second.as_raw_fd(), 2, false).unwrap();
+        let mut ready = Vec::new();
+        poller.wait(0, &mut ready).unwrap();
+        assert_eq!(ready.len(), 2);
+        assert_eq!(first.read(&mut [0]).unwrap(), 1);
+        assert_eq!(second.read(&mut [0]).unwrap(), 1);
+        assert_eq!(server.listeners.lock().unwrap().len(), 2);
+        // Closing below the cap adds no broadcast work or stray wake bytes.
+        server.release_connection();
+        assert_eq!(server.connections.load(Ordering::Relaxed), 0);
+        poller.wait(0, &mut ready).unwrap();
+        assert!(ready.is_empty());
+    }
+
+    #[test]
+    fn a_full_wake_descriptor_does_not_block_shared_slot_release() {
+        let server = server(1);
+        let (parking, _read) = listener(&server);
+        loop {
+            match (&parking.wake).write(&[0; 4096]) {
+                Ok(_) => {}
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
+                result => panic!("filling wake descriptor: {result:?}"),
+            }
+        }
+        server.connections.store(1, Ordering::Relaxed);
+        server.release_connection();
+        assert_eq!(server.connections.load(Ordering::Relaxed), 0);
     }
 }
