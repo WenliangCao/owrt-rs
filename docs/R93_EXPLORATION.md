@@ -9,7 +9,7 @@
 - C/R89/source05 实机矩阵已完成八组件 **696 个负载观测**，完整 HTTP 矩阵仍在采集。
   每份报告注明逐轮结果和未覆盖范围；没有整栈冷启动或全场景胜出结论。
 - HTTP worker/head、ubusd borrow、RPCD glob、logd span 均为独立性能候选，未合入运行时。
-  HTTP/ubusd Oracle 初筛已完成；RPCD 新四轮结果正在整理，logd 正在验证新 runner。
+  HTTP/ubusd/RPCD Oracle 初筛已完成；logd 新 runner 已通过实际故障门和 pilot，正式四轮在跑。
 - 已修复统计工具会接受错误分位数/吞吐率的问题；八组件完整派生结果已重新计算，
   与既有报告逐项一致。
 
@@ -249,3 +249,12 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
   配置摘要前后与原版相同，未测改动传播或整栈冷启动。八组件累计 696 个观测完成，
   source05 完整 HTTP 矩阵正在采集。
   [reload-config 实机报告](reviews/R93_RELOAD_CONFIG_DEVICE_BASELINE.md)。
+- RPCD 18 负载四侧四轮 288 个 Oracle 观测完整通过。两项并发授权查询的四轮延迟均
+  下降，CPU 仅差 1–3 ticks；denied c4 延迟 3/4 轮稍高，其他非目标负载涨跌混合。
+  暂不合入，下一轮拟给目标和 denied 控制同时增加请求量。N40 smoke 因 10 ms
+  uptime 量化为零被严格拒绝，旧 FAILED 保留；N4000 新 smoke 通过，未放宽断言。
+  [RPCD Oracle 报告](reviews/R93_RPCD_GLOB_ORACLE_PERFORMANCE.md)。
+- procd watch 队列局部候选仅在本机独立副本：61 边界与 80066 次简化状态随机对照等价，
+  去掉冷队列 O(W²) 扫描；但已排队小配置会多一次临时 Vec 分配，8-path full 比较数
+  103→106。只证明机制和模型状态，不代表 daemon CPU 或业务门通过。证据在
+  `private/r93/procd-queue-local-20260915/RESULT.md`，未合入、未占用远端计时。
