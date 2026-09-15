@@ -1,0 +1,1742 @@
+{
+  "passed": true,
+  "source_results_sha256": "dfcf58f790fe76612b566f7c073d9b94711616b78d1034aaa4855291b00edd9c",
+  "source_inventory_sha256": "89af0effd0f51c4345775eb3068ab56f9f945cd15f30b77716db84c0cf8c8c55",
+  "matrix_rows": 80,
+  "repeats": 4,
+  "binary_sha256": {
+    "c": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+    "r89": "a6f738144c561047bdd34188b084888ca5050ef01a7b7105a2b9f8d9152b975f",
+    "control": "235a50bf191e9858a760fb120683ee49f6c18ddff06912d1c0acd8f158450627",
+    "candidate": "d0bd0a3b44992178b5b0b7c794e4ca51c44851c121b605496cd5a3ff7c2e3947"
+  },
+  "wrapper_sha256": "b73459f63f3c6ee1fd7bba22f5b02ee54dc9a4f005a380e89c8a4f4dd3827371",
+  "watchdog_sha256": "e11d9f7928334519c037075f5c6f4538de4a46364cbdd7b208e810ff42fa88d1",
+  "metrics": {
+    "no_subscriber": {
+      "c": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            2.55,
+            2.6,
+            2.2,
+            2.55
+          ],
+          "median": 2.55,
+          "min": 2.2,
+          "max": 2.6
+        },
+        "wall_us_per_input": {
+          "samples": [
+            2.6128661748953164,
+            2.657101150834933,
+            2.2237760096322745,
+            2.577957120956853
+          ],
+          "median": 2.5954116479260847,
+          "min": 2.2237760096322745,
+          "max": 2.657101150834933
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            51,
+            52,
+            44,
+            51
+          ],
+          "median": 51.0,
+          "min": 44,
+          "max": 52
+        },
+        "rss_after_kib": {
+          "samples": [
+            932,
+            948,
+            936,
+            880
+          ],
+          "median": 934.0,
+          "min": 880,
+          "max": 948
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            1024,
+            1040,
+            1028,
+            972
+          ],
+          "median": 1026.0,
+          "min": 972,
+          "max": 1040
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.47211724,
+            0.48235684,
+            0.39129952,
+            0.4712472
+          ],
+          "median": 0.47168222,
+          "min": 0.39129952,
+          "max": 0.48235684
+        },
+        "low_resolution_rows": 0
+      },
+      "r89": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            1.75,
+            2.05,
+            2.05,
+            2.05
+          ],
+          "median": 2.05,
+          "min": 1.75,
+          "max": 2.05
+        },
+        "wall_us_per_input": {
+          "samples": [
+            1.8411430646665394,
+            2.067989924689755,
+            2.119102554861456,
+            2.1102042903658003
+          ],
+          "median": 2.0890971075277776,
+          "min": 1.8411430646665394,
+          "max": 2.119102554861456
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            35,
+            41,
+            41,
+            41
+          ],
+          "median": 41.0,
+          "min": 35,
+          "max": 41
+        },
+        "rss_after_kib": {
+          "samples": [
+            464,
+            460,
+            460,
+            464
+          ],
+          "median": 462.0,
+          "min": 460,
+          "max": 464
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            464,
+            460,
+            460,
+            464
+          ],
+          "median": 462.0,
+          "min": 460,
+          "max": 464
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.36777032,
+            0.41307000000000005,
+            0.42331907999999996,
+            0.42144892
+          ],
+          "median": 0.41725946,
+          "min": 0.36777032,
+          "max": 0.42331907999999996
+        },
+        "low_resolution_rows": 0
+      },
+      "control": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            2.05,
+            2.0,
+            1.85,
+            2.0
+          ],
+          "median": 2.0,
+          "min": 1.85,
+          "max": 2.05
+        },
+        "wall_us_per_input": {
+          "samples": [
+            2.097882165107876,
+            2.085341870551929,
+            1.8944069161079824,
+            2.094259555451572
+          ],
+          "median": 2.0898007130017504,
+          "min": 1.8944069161079824,
+          "max": 2.097882165107876
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            41,
+            40,
+            37,
+            40
+          ],
+          "median": 40.0,
+          "min": 37,
+          "max": 41
+        },
+        "rss_after_kib": {
+          "samples": [
+            528,
+            528,
+            524,
+            524
+          ],
+          "median": 526.0,
+          "min": 524,
+          "max": 528
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            528,
+            528,
+            524,
+            524
+          ],
+          "median": 526.0,
+          "min": 524,
+          "max": 528
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.41871331999999994,
+            0.41644475999999997,
+            0.37844148,
+            0.41824656000000004
+          ],
+          "median": 0.41734566,
+          "min": 0.37844148,
+          "max": 0.41871331999999994
+        },
+        "low_resolution_rows": 0
+      },
+      "candidate": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            2.0,
+            1.95,
+            1.95,
+            2.05
+          ],
+          "median": 1.975,
+          "min": 1.95,
+          "max": 2.05
+        },
+        "wall_us_per_input": {
+          "samples": [
+            2.2832576802466065,
+            2.280490464763716,
+            2.1692791651003063,
+            2.349913449725136
+          ],
+          "median": 2.281874072505161,
+          "min": 2.1692791651003063,
+          "max": 2.349913449725136
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            40,
+            39,
+            39,
+            41
+          ],
+          "median": 39.5,
+          "min": 39,
+          "max": 41
+        },
+        "rss_after_kib": {
+          "samples": [
+            520,
+            520,
+            520,
+            524
+          ],
+          "median": 520.0,
+          "min": 520,
+          "max": 524
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            520,
+            520,
+            520,
+            524
+          ],
+          "median": 520.0,
+          "min": 520,
+          "max": 524
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.45603516,
+            0.45547512,
+            0.4335044,
+            0.46961324000000004
+          ],
+          "median": 0.45575514,
+          "min": 0.4335044,
+          "max": 0.46961324000000004
+        },
+        "low_resolution_rows": 0
+      }
+    },
+    "follow_1": {
+      "c": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            4.57763671875,
+            4.57763671875,
+            4.2724609375,
+            4.8828125
+          ],
+          "median": 4.57763671875,
+          "min": 4.2724609375,
+          "max": 4.8828125
+        },
+        "wall_us_per_input": {
+          "samples": [
+            9.595384888427816,
+            8.648089568907835,
+            9.117296357885607,
+            10.143455931199696
+          ],
+          "median": 9.356340623156711,
+          "min": 8.648089568907835,
+          "max": 10.143455931199696
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            15,
+            15,
+            14,
+            16
+          ],
+          "median": 15.0,
+          "min": 14,
+          "max": 16
+        },
+        "rss_after_kib": {
+          "samples": [
+            948,
+            900,
+            928,
+            940
+          ],
+          "median": 934.0,
+          "min": 900,
+          "max": 948
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            1036,
+            984,
+            1016,
+            1032
+          ],
+          "median": 1024.0,
+          "min": 984,
+          "max": 1036
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.43548448,
+            0.36812844,
+            0.38678664,
+            0.46434411999999997
+          ],
+          "median": 0.41113556,
+          "min": 0.36812844,
+          "max": 0.46434411999999997
+        },
+        "low_resolution_rows": 0
+      },
+      "r89": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            5.18798828125,
+            5.18798828125,
+            5.18798828125,
+            5.4931640625
+          ],
+          "median": 5.18798828125,
+          "min": 5.18798828125,
+          "max": 5.4931640625
+        },
+        "wall_us_per_input": {
+          "samples": [
+            10.315505555524851,
+            10.109953372250402,
+            10.581656496810865,
+            10.251357181800813
+          ],
+          "median": 10.283431368662832,
+          "min": 10.109953372250402,
+          "max": 10.581656496810865
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            17,
+            17,
+            17,
+            18
+          ],
+          "median": 17.0,
+          "min": 17,
+          "max": 18
+        },
+        "rss_after_kib": {
+          "samples": [
+            552,
+            608,
+            524,
+            584
+          ],
+          "median": 568.0,
+          "min": 524,
+          "max": 608
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            460,
+            460,
+            460,
+            460
+          ],
+          "median": 460.0,
+          "min": 460,
+          "max": 460
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.46655283999999997,
+            0.47273772,
+            0.48322351999999996,
+            0.47663363999999997
+          ],
+          "median": 0.47468568,
+          "min": 0.46655283999999997,
+          "max": 0.48322351999999996
+        },
+        "low_resolution_rows": 0
+      },
+      "control": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            4.8828125,
+            4.8828125,
+            4.8828125,
+            4.8828125
+          ],
+          "median": 4.8828125,
+          "min": 4.8828125,
+          "max": 4.8828125
+        },
+        "wall_us_per_input": {
+          "samples": [
+            9.715970612944602,
+            10.247412994601746,
+            9.734195927535438,
+            9.755756195772847
+          ],
+          "median": 9.744976061654143,
+          "min": 9.715970612944602,
+          "max": 10.247412994601746
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            16,
+            16,
+            16,
+            16
+          ],
+          "median": 16.0,
+          "min": 16,
+          "max": 16
+        },
+        "rss_after_kib": {
+          "samples": [
+            552,
+            656,
+            664,
+            648
+          ],
+          "median": 652.0,
+          "min": 552,
+          "max": 664
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            524,
+            528,
+            528,
+            528
+          ],
+          "median": 528.0,
+          "min": 524,
+          "max": 528
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.43503524,
+            0.46517911999999995,
+            0.44046972,
+            0.44264332000000006
+          ],
+          "median": 0.44155652,
+          "min": 0.43503524,
+          "max": 0.46517911999999995
+        },
+        "low_resolution_rows": 0
+      },
+      "candidate": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            4.57763671875,
+            4.2724609375,
+            4.57763671875,
+            4.2724609375
+          ],
+          "median": 4.425048828125,
+          "min": 4.2724609375,
+          "max": 4.57763671875
+        },
+        "wall_us_per_input": {
+          "samples": [
+            9.950572142258807,
+            10.777680998330652,
+            9.474081480220775,
+            9.038648258297144
+          ],
+          "median": 9.712326811239791,
+          "min": 9.038648258297144,
+          "max": 10.777680998330652
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            15,
+            14,
+            15,
+            14
+          ],
+          "median": 14.5,
+          "min": 14,
+          "max": 15
+        },
+        "rss_after_kib": {
+          "samples": [
+            608,
+            524,
+            656,
+            520
+          ],
+          "median": 566.0,
+          "min": 520,
+          "max": 656
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            524,
+            524,
+            520,
+            520
+          ],
+          "median": 522.0,
+          "min": 520,
+          "max": 524
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.46108467999999997,
+            0.49172656,
+            0.42909936,
+            0.41916748
+          ],
+          "median": 0.44509202,
+          "min": 0.41916748,
+          "max": 0.49172656
+        },
+        "low_resolution_rows": 0
+      }
+    },
+    "follow_8": {
+      "c": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            15.869140625,
+            15.2587890625,
+            16.17431640625,
+            15.869140625
+          ],
+          "median": 15.869140625,
+          "min": 15.2587890625,
+          "max": 16.17431640625
+        },
+        "wall_us_per_input": {
+          "samples": [
+            83.59946212976865,
+            84.51148050170332,
+            84.91256927101176,
+            83.72871215556188
+          ],
+          "median": 84.1200963286326,
+          "min": 83.59946212976865,
+          "max": 84.91256927101176
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            52,
+            50,
+            53,
+            52
+          ],
+          "median": 52.0,
+          "min": 50,
+          "max": 53
+        },
+        "rss_after_kib": {
+          "samples": [
+            880,
+            928,
+            948,
+            948
+          ],
+          "median": 938.0,
+          "min": 880,
+          "max": 948
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            972,
+            1020,
+            1040,
+            1040
+          ],
+          "median": 1030.0,
+          "min": 972,
+          "max": 1040
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            4.77103548,
+            4.55100524,
+            4.88822536,
+            4.795478279999999
+          ],
+          "median": 4.78325688,
+          "min": 4.55100524,
+          "max": 4.88822536
+        },
+        "low_resolution_rows": 0
+      },
+      "r89": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            21.97265625,
+            22.27783203125,
+            21.97265625,
+            22.27783203125
+          ],
+          "median": 22.125244140625,
+          "min": 21.97265625,
+          "max": 22.27783203125
+        },
+        "wall_us_per_input": {
+          "samples": [
+            91.29933227569609,
+            93.16941870451956,
+            88.6287532608776,
+            88.34348510333712
+          ],
+          "median": 89.96404276828684,
+          "min": 88.34348510333712,
+          "max": 93.16941870451956
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            72,
+            73,
+            72,
+            73
+          ],
+          "median": 72.5,
+          "min": 72,
+          "max": 73
+        },
+        "rss_after_kib": {
+          "samples": [
+            460,
+            460,
+            464,
+            464
+          ],
+          "median": 462.0,
+          "min": 460,
+          "max": 464
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            460,
+            460,
+            464,
+            464
+          ],
+          "median": 462.0,
+          "min": 460,
+          "max": 464
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            5.22131328,
+            5.25537288,
+            5.09269436,
+            5.0367998
+          ],
+          "median": 5.15700382,
+          "min": 5.0367998,
+          "max": 5.25537288
+        },
+        "low_resolution_rows": 0
+      },
+      "control": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            21.66748046875,
+            21.66748046875,
+            21.3623046875,
+            22.27783203125
+          ],
+          "median": 21.66748046875,
+          "min": 21.3623046875,
+          "max": 22.27783203125
+        },
+        "wall_us_per_input": {
+          "samples": [
+            90.88947546587178,
+            89.9891205179415,
+            88.45301080384615,
+            94.84954669147783
+          ],
+          "median": 90.43929799190664,
+          "min": 88.45301080384615,
+          "max": 94.84954669147783
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            71,
+            71,
+            70,
+            73
+          ],
+          "median": 71.0,
+          "min": 70,
+          "max": 73
+        },
+        "rss_after_kib": {
+          "samples": [
+            532,
+            528,
+            528,
+            528
+          ],
+          "median": 528.0,
+          "min": 528,
+          "max": 532
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            532,
+            528,
+            528,
+            528
+          ],
+          "median": 528.0,
+          "min": 528,
+          "max": 532
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            5.21047844,
+            5.14251604,
+            5.0972690400000005,
+            5.33998108
+          ],
+          "median": 5.17649724,
+          "min": 5.0972690400000005,
+          "max": 5.33998108
+        },
+        "low_resolution_rows": 0
+      },
+      "candidate": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            21.3623046875,
+            21.3623046875,
+            21.3623046875,
+            21.3623046875
+          ],
+          "median": 21.3623046875,
+          "min": 21.3623046875,
+          "max": 21.3623046875
+        },
+        "wall_us_per_input": {
+          "samples": [
+            89.92606545632498,
+            91.4363602291246,
+            92.75883587633871,
+            89.46655209740584
+          ],
+          "median": 90.68121284272479,
+          "min": 89.46655209740584,
+          "max": 92.75883587633871
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            70,
+            70,
+            70,
+            70
+          ],
+          "median": 70.0,
+          "min": 70,
+          "max": 70
+        },
+        "rss_after_kib": {
+          "samples": [
+            524,
+            524,
+            524,
+            524
+          ],
+          "median": 524.0,
+          "min": 524,
+          "max": 524
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            524,
+            524,
+            524,
+            524
+          ],
+          "median": 524.0,
+          "min": 524,
+          "max": 524
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            5.204379439999999,
+            5.25275156,
+            5.3139424,
+            5.14446772
+          ],
+          "median": 5.2285655,
+          "min": 5.14446772,
+          "max": 5.3139424
+        },
+        "low_resolution_rows": 0
+      }
+    },
+    "trim_heavy": {
+      "c": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            3.65,
+            3.65,
+            3.45,
+            3.5
+          ],
+          "median": 3.575,
+          "min": 3.45,
+          "max": 3.65
+        },
+        "wall_us_per_input": {
+          "samples": [
+            3.7368777801748365,
+            3.7167910346761346,
+            3.5278139007277787,
+            3.5393424052745104
+          ],
+          "median": 3.6280667199753225,
+          "min": 3.5278139007277787,
+          "max": 3.7368777801748365
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            73,
+            73,
+            69,
+            70
+          ],
+          "median": 71.5,
+          "min": 69,
+          "max": 73
+        },
+        "rss_after_kib": {
+          "samples": [
+            932,
+            932,
+            932,
+            948
+          ],
+          "median": 932.0,
+          "min": 932,
+          "max": 948
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            1084,
+            1084,
+            1084,
+            1100
+          ],
+          "median": 1084.0,
+          "min": 1084,
+          "max": 1100
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.62676,
+            0.62103384,
+            0.54832452,
+            0.56264256
+          ],
+          "median": 0.5918382,
+          "min": 0.54832452,
+          "max": 0.62676
+        },
+        "low_resolution_rows": 0
+      },
+      "r89": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            4.6,
+            4.85,
+            4.9,
+            4.8
+          ],
+          "median": 4.824999999999999,
+          "min": 4.6,
+          "max": 4.9
+        },
+        "wall_us_per_input": {
+          "samples": [
+            4.6494992496445775,
+            4.912823629565537,
+            4.9693215056322515,
+            4.859837624244392
+          ],
+          "median": 4.8863306269049644,
+          "min": 4.6494992496445775,
+          "max": 4.9693215056322515
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            92,
+            97,
+            98,
+            96
+          ],
+          "median": 96.5,
+          "min": 92,
+          "max": 98
+        },
+        "rss_after_kib": {
+          "samples": [
+            544,
+            548,
+            544,
+            548
+          ],
+          "median": 546.0,
+          "min": 544,
+          "max": 548
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            540,
+            544,
+            540,
+            544
+          ],
+          "median": 542.0,
+          "min": 540,
+          "max": 544
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.6126698800000001,
+            0.73080172,
+            0.7315280799999999,
+            0.725713
+          ],
+          "median": 0.72825736,
+          "min": 0.6126698800000001,
+          "max": 0.7315280799999999
+        },
+        "low_resolution_rows": 0
+      },
+      "control": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            4.6,
+            4.5,
+            4.4,
+            4.8
+          ],
+          "median": 4.55,
+          "min": 4.4,
+          "max": 4.8
+        },
+        "wall_us_per_input": {
+          "samples": [
+            4.648407044587657,
+            4.567548000486568,
+            4.44830983527936,
+            4.826948755653575
+          ],
+          "median": 4.607977522537112,
+          "min": 4.44830983527936,
+          "max": 4.826948755653575
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            92,
+            90,
+            88,
+            96
+          ],
+          "median": 91.0,
+          "min": 88,
+          "max": 96
+        },
+        "rss_after_kib": {
+          "samples": [
+            608,
+            612,
+            612,
+            612
+          ],
+          "median": 612.0,
+          "min": 608,
+          "max": 612
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            608,
+            612,
+            612,
+            612
+          ],
+          "median": 612.0,
+          "min": 608,
+          "max": 612
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.62403172,
+            0.6718249999999999,
+            0.64363516,
+            0.72700284
+          ],
+          "median": 0.6577300799999999,
+          "min": 0.62403172,
+          "max": 0.72700284
+        },
+        "low_resolution_rows": 0
+      },
+      "candidate": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            3.1,
+            3.1,
+            2.7,
+            3.2
+          ],
+          "median": 3.1,
+          "min": 2.7,
+          "max": 3.2
+        },
+        "wall_us_per_input": {
+          "samples": [
+            3.1360274646431208,
+            3.148450180888176,
+            2.764855850255117,
+            3.2167909597046673
+          ],
+          "median": 3.1422388227656484,
+          "min": 2.764855850255117,
+          "max": 3.2167909597046673
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            62,
+            62,
+            54,
+            64
+          ],
+          "median": 62.0,
+          "min": 54,
+          "max": 64
+        },
+        "rss_after_kib": {
+          "samples": [
+            604,
+            600,
+            604,
+            600
+          ],
+          "median": 602.0,
+          "min": 600,
+          "max": 604
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            604,
+            600,
+            604,
+            600
+          ],
+          "median": 602.0,
+          "min": 600,
+          "max": 604
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.53121824,
+            0.5324903599999999,
+            0.4550042799999999,
+            0.5688378
+          ],
+          "median": 0.5318543,
+          "min": 0.4550042799999999,
+          "max": 0.5688378
+        },
+        "low_resolution_rows": 0
+      }
+    },
+    "backlog_600": {
+      "c": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "wall_us_per_input": {
+          "samples": [
+            30.068311607465148,
+            30.632985290139914,
+            30.320581669608753,
+            31.542391904319327
+          ],
+          "median": 30.476783479874335,
+          "min": 30.068311607465148,
+          "max": 31.542391904319327
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "rss_after_kib": {
+          "samples": [
+            1480,
+            1472,
+            1496,
+            1480
+          ],
+          "median": 1480.0,
+          "min": 1472,
+          "max": 1496
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            2120,
+            2112,
+            2136,
+            2120
+          ],
+          "median": 2120.0,
+          "min": 2112,
+          "max": 2136
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.013025000000000009,
+            0.013986760000000042,
+            0.013602479999999972,
+            0.014643719999999971
+          ],
+          "median": 0.013794620000000007,
+          "min": 0.013025000000000009,
+          "max": 0.014643719999999971
+        },
+        "low_resolution_rows": 4,
+        "recovery_wall_seconds": {
+          "samples": [
+            0.002717582043260336,
+            0.0027911830693483353,
+            0.0026682219468057156,
+            0.002826182870194316
+          ],
+          "median": 0.0027543825563043356,
+          "min": 0.0026682219468057156,
+          "max": 0.002826182870194316
+        },
+        "recovery_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "low_resolution_recovery_rows": 4
+      },
+      "r89": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "wall_us_per_input": {
+          "samples": [
+            24.967603385448456,
+            23.91039510257542,
+            41.35973829155167,
+            25.27387502292792
+          ],
+          "median": 25.12073920418819,
+          "min": 23.91039510257542,
+          "max": 41.35973829155167
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "rss_after_kib": {
+          "samples": [
+            1016,
+            1016,
+            1020,
+            1020
+          ],
+          "median": 1018.0,
+          "min": 1016,
+          "max": 1020
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            1016,
+            1016,
+            1020,
+            1020
+          ],
+          "median": 1018.0,
+          "min": 1016,
+          "max": 1020
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.011349920000000013,
+            0.010758039999999969,
+            0.01112643999999996,
+            0.011499959999999976
+          ],
+          "median": 0.011238179999999987,
+          "min": 0.010758039999999969,
+          "max": 0.011499959999999976
+        },
+        "low_resolution_rows": 4,
+        "recovery_wall_seconds": {
+          "samples": [
+            0.0010011279955506325,
+            0.0010756079573184252,
+            0.001055888831615448,
+            0.0008780071511864662
+          ],
+          "median": 0.0010285084135830402,
+          "min": 0.0008780071511864662,
+          "max": 0.0010756079573184252
+        },
+        "recovery_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "low_resolution_recovery_rows": 4
+      },
+      "control": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "wall_us_per_input": {
+          "samples": [
+            24.35666664193074,
+            24.242664997776348,
+            24.438200052827597,
+            25.47060837969184
+          ],
+          "median": 24.39743334737917,
+          "min": 24.242664997776348,
+          "max": 25.47060837969184
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "rss_after_kib": {
+          "samples": [
+            1080,
+            1080,
+            1076,
+            1076
+          ],
+          "median": 1078.0,
+          "min": 1076,
+          "max": 1080
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            1080,
+            1080,
+            1076,
+            1076
+          ],
+          "median": 1078.0,
+          "min": 1076,
+          "max": 1080
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.011198840000000043,
+            0.011269000000000029,
+            0.011321799999999993,
+            0.011897480000000016
+          ],
+          "median": 0.011295400000000011,
+          "min": 0.011198840000000043,
+          "max": 0.011897480000000016
+        },
+        "low_resolution_rows": 4,
+        "recovery_wall_seconds": {
+          "samples": [
+            0.0011916498187929392,
+            0.0011355290189385414,
+            0.0011322100181132555,
+            0.0012475699186325073
+          ],
+          "median": 0.0011635894188657403,
+          "min": 0.0011322100181132555,
+          "max": 0.0012475699186325073
+        },
+        "recovery_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "low_resolution_recovery_rows": 4
+      },
+      "candidate": {
+        "logd_cpu_us_per_input": {
+          "samples": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "wall_us_per_input": {
+          "samples": [
+            19.466026375691097,
+            19.69896179313461,
+            19.80349499111374,
+            20.142831684400637
+          ],
+          "median": 19.751228392124176,
+          "min": 19.466026375691097,
+          "max": 20.142831684400637
+        },
+        "logd_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "rss_after_kib": {
+          "samples": [
+            1072,
+            1072,
+            1072,
+            1072
+          ],
+          "median": 1072.0,
+          "min": 1072,
+          "max": 1072
+        },
+        "rss_after_close_kib": {
+          "samples": [
+            1072,
+            1072,
+            1072,
+            1072
+          ],
+          "median": 1072.0,
+          "min": 1072,
+          "max": 1072
+        },
+        "driver_cpu_seconds": {
+          "samples": [
+            0.010061159999999958,
+            0.010261119999999957,
+            0.010241480000000025,
+            0.010518279999999991
+          ],
+          "median": 0.010251299999999991,
+          "min": 0.010061159999999958,
+          "max": 0.010518279999999991
+        },
+        "low_resolution_rows": 4,
+        "recovery_wall_seconds": {
+          "samples": [
+            0.0008794870227575302,
+            0.000910287955775857,
+            0.0008900470566004515,
+            0.0009231669828295708
+          ],
+          "median": 0.0009001675061881542,
+          "min": 0.0008794870227575302,
+          "max": 0.0009231669828295708
+        },
+        "recovery_cpu_ticks": {
+          "samples": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "low_resolution_recovery_rows": 4
+      }
+    }
+  },
+  "limitations": [
+    "Linux Oracle host, not physical router",
+    "Low-resolution ticks are not small-gain evidence",
+    "Wall is aggregate delivery, not per-record response latency",
+    "No sustained whole-system log workload equivalence claimed"
+  ],
+  "no_subscriber_rounds": [
+    {
+      "repeat": 0,
+      "side": "c",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.5225732349790633,
+        "logd_cpu_seconds": 0.51,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.47211724,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 0,
+      "side": "r89",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.3682286129333079,
+        "logd_cpu_seconds": 0.35,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.36777032,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 0,
+      "side": "candidate",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.4566515360493213,
+        "logd_cpu_seconds": 0.4,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.45603516,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 0,
+      "side": "control",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.4195764330215752,
+        "logd_cpu_seconds": 0.41,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.41871331999999994,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 1,
+      "side": "r89",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.41359798493795097,
+        "logd_cpu_seconds": 0.41,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.41307000000000005,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 1,
+      "side": "control",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.4170683741103858,
+        "logd_cpu_seconds": 0.4,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.41644475999999997,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 1,
+      "side": "c",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.5314202301669866,
+        "logd_cpu_seconds": 0.52,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.48235684,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 1,
+      "side": "candidate",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.4560980929527432,
+        "logd_cpu_seconds": 0.39,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.45547512,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 2,
+      "side": "control",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.3788813832215965,
+        "logd_cpu_seconds": 0.37,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.37844148,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 2,
+      "side": "candidate",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.43385583302006125,
+        "logd_cpu_seconds": 0.39,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.4335044,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 2,
+      "side": "r89",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.42382051097229123,
+        "logd_cpu_seconds": 0.41,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.42331907999999996,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 2,
+      "side": "c",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.4447552019264549,
+        "logd_cpu_seconds": 0.44,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.39129952,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 3,
+      "side": "candidate",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.46998268994502723,
+        "logd_cpu_seconds": 0.41,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.46961324000000004,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 3,
+      "side": "c",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.5155914241913706,
+        "logd_cpu_seconds": 0.51,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.4712472,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 3,
+      "side": "control",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.4188519110903144,
+        "logd_cpu_seconds": 0.4,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.41824656000000004,
+        "low_resolution_logd_cpu": false
+      }
+    },
+    {
+      "repeat": 3,
+      "side": "r89",
+      "input_count": 200000,
+      "interval": {
+        "wall_seconds": 0.42204085807316005,
+        "logd_cpu_seconds": 0.41,
+        "ubusd_cpu_seconds": 0.0,
+        "driver_cpu_seconds": 0.42144892,
+        "low_resolution_logd_cpu": false
+      }
+    }
+  ],
+  "available_counters": [
+    "process total CPU ticks",
+    "driver process_time CPU seconds",
+    "monotonic wall",
+    "RSS/HWM/PSS/private dirty/FDs",
+    "PID/start tick identity"
+  ],
+  "missing_counters": [
+    "utime/stime split",
+    "context switches",
+    "schedstat runtime/wait",
+    "per-worker/per-thread CPU",
+    "CPU affinity/core migrations"
+  ],
+  "component": "logd",
+  "scope": "Oracle Linux fixed-corpus four-side screening; not physical-router validation",
+  "cases": [
+    "no_subscriber",
+    "follow_1",
+    "follow_8",
+    "trim_heavy",
+    "backlog_600"
+  ],
+  "counts": {
+    "no_subscriber": 200000,
+    "trim_heavy": 200000,
+    "follow_1": 32768,
+    "follow_8": 32768,
+    "backlog_600": 600
+  },
+  "gates": {
+    "independent_deadline": true,
+    "parent_sigkill": true,
+    "watchdog_sigkill": true,
+    "ordinary_and_setsid_descendants_removed": true,
+    "pilot_rows": 20,
+    "pilot_passed": true,
+    "owned_processes_remaining": 0,
+    "all_formal_namespaces_removed": true,
+    "all_formal_temporary_roots_removed": true,
+    "frozen_inputs_reverified": true
+  },
+  "decision": "Do not claim an all-component/all-workload victory; span improves trim-heavy workload, eight readers still cost more CPU than C; no-subscriber aggregate wall is higher than control in every round; small RSS differences do not establish retained-capacity improvement."
+}

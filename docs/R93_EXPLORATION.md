@@ -9,7 +9,7 @@
 - C/R89/source05 实机矩阵已完成八组件 **696 个负载观测**，完整 HTTP 矩阵仍在采集。
   每份报告注明逐轮结果和未覆盖范围；没有整栈冷启动或全场景胜出结论。
 - HTTP worker/head、ubusd borrow、RPCD glob、logd span 均为独立性能候选，未合入运行时。
-  HTTP/ubusd/RPCD Oracle 初筛已完成；logd 新 runner 已通过实际故障门和 pilot，正式四轮在跑。
+  四项 Oracle 初筛已完成；RPCD 正在增加目标/denied 控制请求数，复核低 tick 下的收益。
 - 已修复统计工具会接受错误分位数/吞吐率的问题；八组件完整派生结果已重新计算，
   与既有报告逐项一致。
 
@@ -258,3 +258,13 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
   去掉冷队列 O(W²) 扫描；但已排队小配置会多一次临时 Vec 分配，8-path full 比较数
   103→106。只证明机制和模型状态，不代表 daemon CPU 或业务门通过。证据在
   `private/r93/procd-queue-local-20260915/RESULT.md`，未合入、未占用远端计时。
+- logd span 80/80 四侧四轮完成。trim-heavy CPU 比 control/R89/C 分别低
+  31.9%/35.8%/13.3%，但 no_subscriber 的完整交付 wall 每轮更慢，中位 +9.2%；
+  同时 driver CPU 每轮增加，无法仅凭已有数据区分生产者/daemon/调度交互。
+  八读者 CPU 仍高 C 34.6%，不接受只靠 trim-heavy 的收益合入。
+  [完整对照与反向结果](reviews/R93_LOGD_SPAN_ORACLE_SCREEN.md)。
+- logd 健康流只读诊断确认每条 frame 的 BlobBuf 重建与 to_vec 复制；单 Daemon
+  有界 scratch 的本机 13 个帧字节对照通过，普通长度预热后可消除帧编码分配。
+  未实现 runtime patch、未计 CPU，不把它当八读者差额的归因。kmsg 可能超过 LINE_SIZE，
+  4 KiB 只能是处理完成后的保留容量，不能为此截断日志。
+  `private/r93/logd-frame-diagnosis-20260915/RESULT.md` 保留接口与验证要求。
