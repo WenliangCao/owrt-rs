@@ -1,0 +1,274 @@
+{
+  "passed": true,
+  "status": "complete",
+  "recorded_at": "2026-09-15T13:56:04.266387+00:00",
+  "scope": "RPCD single-trailing-ASCII-star candidate allocation mechanism and correctness; not performance or deployment acceptance",
+  "candidate_merged": false,
+  "canonical": false,
+  "source": {
+    "archive_sha256": "6f8700bf5af4ca80a9113b5624229bde3e373f53553dec4dc95524dba33abd7c",
+    "source05_manifest_sha256": "5dc728c6d6507604e6177999a4940fe93d312f66809e5d842b35b66667af7c55",
+    "files_per_side": 424,
+    "changed_files": [
+      "components/rpcd/src/glob.rs"
+    ],
+    "control_glob_sha256": "0e6c90225caae3792343ead317aedc3ed64398c403f9e138e1057bd8cf720498",
+    "candidate_glob_sha256": "fe24f2bde34a624e826f701a9ef9ca1be5934d19c4f9786ecc8721b800606ca2",
+    "patch_sha256": "acf14d1c5563e3646a35a522539a0fb5879b08b010143f5354b381005f33f48d",
+    "package_recipe_sha256": "7278d15c94c894315cebe90b9e6cf2e602f5230b40158cf3578487ad7d62eea6"
+  },
+  "sdk": {
+    "rustc_version": "1.98.1 (48a229cea 2026-09-01)",
+    "build_host": "aarch64-unknown-linux-gnu",
+    "target": "aarch64-unknown-linux-musl",
+    "gcc": "OpenWrt GCC 14.3.0 r33051-f5dae5ece4",
+    "linker": "GNU ld 2.44 bfd",
+    "recipe": "existing rpcd package fixed-path recipe; isolated mount namespace and ordinary source/target copies",
+    "binaries": {
+      "control": {
+        "sha256": "d78a752cb383abfbc3c2d0050e445e3742595706e0baf05af17c60d3fcd5d1a8",
+        "bytes": 1256211,
+        "cargo_sha256": "f437ba43c8ed31d8e5750c790ffdc23df911a03fd635837a98a4a29d7eab7529",
+        "cargo_bytes": 1257584,
+        "interp": false,
+        "gnu_relro": true,
+        "section_count": 0,
+        "identity_sha256": "dd77e949e5d3e78137f23715cf85aedc045c7292d0ce297833c0c2bcd92af0f0",
+        "build_log_sha256": "7e6866d2fbd78a9b645c112846ae82f25ad4232ab323874d6a69c7e71cba8069",
+        "load_alignments": [
+          4096
+        ]
+      },
+      "candidate": {
+        "sha256": "5d2dbbf67b6024306bc02232894a96b0fc7302818b499a2e0aef81c3acc4f1fa",
+        "bytes": 1256211,
+        "cargo_sha256": "cd7de5bae1385ac8ce282d4a0cfc834d930d8a64f44c3d557cce1368b79ce264",
+        "cargo_bytes": 1257584,
+        "interp": false,
+        "gnu_relro": true,
+        "section_count": 0,
+        "identity_sha256": "02bc778a1fef1ff2a219cef47b10380afd1927fc05224d3b7aac01a2dc9be07d",
+        "build_log_sha256": "d7743fd9d9056cef5207d9897f655259cbcd0de73aad92488a79f14daa5c47e1",
+        "load_alignments": [
+          4096
+        ]
+      }
+    }
+  },
+  "allocation_probe": {
+    "host": "macOS arm64",
+    "flags_shim": {
+      "linux_noescape": 2,
+      "macos_noescape": 1
+    },
+    "requests_per_side_per_locale": 100000,
+    "locales": [
+      "C",
+      "en_US.UTF-8"
+    ],
+    "fixture": [
+      "net*/network",
+      "r*/read"
+    ],
+    "r89": {
+      "rust_allocations_per_request": 0,
+      "rust_deallocations_per_request": 0,
+      "rust_requested_bytes_per_request": 0,
+      "libc_calls_per_request": 0
+    },
+    "source05": {
+      "rust_allocations_per_request": 4,
+      "rust_deallocations_per_request": 4,
+      "rust_requested_bytes_per_request": 21,
+      "libc_calls_per_request": 2
+    },
+    "candidate": {
+      "rust_allocations_per_request": 0,
+      "rust_deallocations_per_request": 0,
+      "rust_requested_bytes_per_request": 0,
+      "libc_calls_per_request": 0
+    },
+    "source_candidate_semantic_pairs_per_locale": 6500243,
+    "mismatches": 0,
+    "cpu_attribution": false
+  },
+  "exact_image_libc": {
+    "sha256": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "corpus_sha256": "ef975d9f271f47655d5e73681461c7412f3e73ee0467708e29119c519ee41a0e",
+    "rows": [
+      {
+        "locale": "C",
+        "source_candidate_pairs": 2864,
+        "image_libc_compared": 2815,
+        "mismatches": 0
+      },
+      {
+        "locale": "C.UTF-8",
+        "source_candidate_pairs": 2864,
+        "image_libc_compared": 2815,
+        "mismatches": 0
+      }
+    ]
+  },
+  "validation": {
+    "required_gates": 22,
+    "passed_gates": 22,
+    "unit_tests": 56,
+    "clippy_passed": true,
+    "r13_comparisons": 63,
+    "r17_comparisons": 283,
+    "r18_comparisons": 77,
+    "r19_comparisons": 11,
+    "r26_stable_steps": 733,
+    "r26_stable_differences": 0,
+    "reconnect_checks_per_fault_per_side": 20,
+    "gate_results": [
+      {
+        "name": "exact-image-libc",
+        "exit": 0,
+        "log_sha256": "201f22d9909188401014dcc96c561a3b32b43fd97f66b7693d8ba758cc296b3e"
+      },
+      {
+        "name": "rpcd-unit",
+        "exit": 0,
+        "log_sha256": "69e68528fdb265496b9b89abcfbb6aace4d771d88fb0e119310afb3321e4ec1e"
+      },
+      {
+        "name": "rpcd-clippy",
+        "exit": 0,
+        "log_sha256": "a0cc3fddf7d06c80604dcc710e9985c0db94892211c6e0f47d40223b22062f33"
+      },
+      {
+        "name": "control-compat",
+        "exit": 0,
+        "log_sha256": "f709b0441d71de95ca64358bd8ca261b8df82b502d7ddb0202f725b5aad4fffd"
+      },
+      {
+        "name": "control-features-stable",
+        "exit": 0,
+        "log_sha256": "eafaef45cfafe6b20dd3b513446b955d0537e721d18156878db0ea7ff1c40fb3"
+      },
+      {
+        "name": "control-disconnect",
+        "exit": 0,
+        "log_sha256": "d87eb96b0f11d0dd7711369bab6bd1e189a2460def47205e5d261750e0018344"
+      },
+      {
+        "name": "control-half_header",
+        "exit": 0,
+        "log_sha256": "e93454168dcd717e79e11ebe79f9b10cc741109cab12c06360e8f14fa80e51fb"
+      },
+      {
+        "name": "control-recovery",
+        "exit": 0,
+        "log_sha256": "44e525aaecd9835b62eed89b1fad6765060e30a520b7f215fc29759d7e53a42f"
+      },
+      {
+        "name": "candidate-compat",
+        "exit": 0,
+        "log_sha256": "f709b0441d71de95ca64358bd8ca261b8df82b502d7ddb0202f725b5aad4fffd"
+      },
+      {
+        "name": "candidate-features-stable",
+        "exit": 0,
+        "log_sha256": "eafaef45cfafe6b20dd3b513446b955d0537e721d18156878db0ea7ff1c40fb3"
+      },
+      {
+        "name": "candidate-disconnect",
+        "exit": 0,
+        "log_sha256": "6c23f11d0e337694018dbed59c8556de61cda081f2df356317486019858db4c7"
+      },
+      {
+        "name": "candidate-half_header",
+        "exit": 0,
+        "log_sha256": "11d5d516ea058e26316db74f921423d2fbe2e4e739e658405f88c865cf7566c1"
+      },
+      {
+        "name": "candidate-recovery",
+        "exit": 0,
+        "log_sha256": "44e525aaecd9835b62eed89b1fad6765060e30a520b7f215fc29759d7e53a42f"
+      },
+      {
+        "name": "r13_rpcd_check",
+        "exit": 0,
+        "log_sha256": "a909cfad9d8d070a67bb7443f762f6394c7aff039e32871506984efe4ca4b34b"
+      },
+      {
+        "name": "r17_rpcd_core_check",
+        "exit": 0,
+        "log_sha256": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf"
+      },
+      {
+        "name": "r18_rpcd_plugins_check",
+        "exit": 0,
+        "log_sha256": "130910404e0047fc0c8cbd48efb5057a385563df8f9c9f201ec25602b01d5b97"
+      },
+      {
+        "name": "r19_lucirpc_check",
+        "exit": 0,
+        "log_sha256": "27e1b425113583fb4f8059b6d589c20ac2478378cfc4f57a24afe8b8d91ffce6"
+      },
+      {
+        "name": "rpcd-busy",
+        "exit": 0,
+        "log_sha256": "6cfbfb6f7747f865b99378d4aed7a7fb0ae4ff48dca2eefe13143ea00766b8a9"
+      },
+      {
+        "name": "rpcd-real-features",
+        "exit": 0,
+        "log_sha256": "0bf32fc66755b601afa549679be4f8c4e0bbba686aabecc6b7122fb4a521d964"
+      },
+      {
+        "name": "rpcd-bytes",
+        "exit": 0,
+        "log_sha256": "8a244931e8803888853ff7762270ad806d8f4a5e7734d108494f6d08cc335279"
+      },
+      {
+        "name": "rpcd-defer",
+        "exit": 0,
+        "log_sha256": "273dfc7199bd38e11982f23cf80891933ca2b542212ca6587658c8c65fb450e3"
+      },
+      {
+        "name": "rpcd-r26-stable-733",
+        "exit": 0,
+        "log_sha256": "679d333691fff1c32bda07c9725a1681f40f767eafc5c90e6e8dc5e62e6e9702"
+      }
+    ]
+  },
+  "original_real_features": {
+    "calls_per_condition": 32,
+    "no_signals": "both sides complete",
+    "signals": {
+      "original_missing_dnsmasq": 30,
+      "original_missing_odhcpd": 32,
+      "original_netifd_vrf_false": 32,
+      "candidate_missing_dnsmasq": 0,
+      "candidate_missing_odhcpd": 0,
+      "candidate_netifd_vrf_false": 0
+    },
+    "interpretation": "original observed deficiencies retained; candidate meets gate; no retries"
+  },
+  "evidence": {
+    "private_root": "private/r93/rpcd-glob-audit/local-20260915-resume-01",
+    "acceptance_sha256": "39ab82942427233f74c97835db2321ef44524137c5527ca107d65bfc27bb1b6a",
+    "archive_sha256": "c03dc665de8f5cd8825c6834170b8f46024311b202157112292cd4ed140b28e4",
+    "archive_files_verified": 6473,
+    "validation_results_sha256": "12ee602a082f7424e781388c6412348819768cef38a9fbad74350c7ee3fabffb",
+    "validation_identity_sha256": "2584751ecb6d0eee5f6221e4808586ec1290d7a9b345e8b68d3d6b94cfa24cb1",
+    "pair_sha256": "1e454ce10a788da4cd1bffb62988d38da353538c7d5ed2aba783da9bededa038",
+    "local_c_probe_sha256": "5f090ed3f324843e37ecf63feacad79329e6751a29dbedd9031b812bb93f3860",
+    "local_utf8_probe_sha256": "41060127cf135d81020dd15fa0a9372ed92140262426360fed715eaeef16181e"
+  },
+  "preserved_failure": {
+    "path": "validation/",
+    "kind": "standalone diagnostic compiler error",
+    "reason": "setlocale signature used i8 instead of aarch64 std::ffi::c_char; fixed only diagnostic; full fresh run validation-02 passed"
+  },
+  "limitations": [
+    "The allocation count covers two matcher calls in the ACL fixture, not a full-daemon heap trace.",
+    "No CPU/latency benchmark or CPU attribution was performed; four-side Oracle performance is pending.",
+    "Host exhaustive comparison is macOS with explicit flags shim; exact-image Linux comparison is a smaller directed corpus.",
+    "Oracle SDK diagnostic builds are not canonical x86_64 CI releases.",
+    "No main-tree runtime merge, router modification, deployment, restart or flash."
+  ]
+}

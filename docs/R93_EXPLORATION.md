@@ -213,3 +213,11 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
   25 项相关测试、1489 条已完成原始记录回放通过，现有记录数字无需更正；c4 的四个
   客户端文件计入回放条数，不是新增独立负载。原采集工具与正在运行的矩阵未改变。
   [验证范围](reviews/r93-benchmark-analysis-validation.json)。
+- RPCD ASCII 尾星号候选精确 SDK 控制复现和 22/22 正确性门已过，包含 56 单测、
+  原镜像 libc、断连/半帧/输出恢复及 733 步稳定模糊对照；仍待 CPU 对照，未合入。
+  [验收报告](reviews/R93_RPCD_GLOB_VALIDATION.md)。
+- netifd 实机 168 个观测完成，累计五组件 624 个观测。14 项的 source05 平均延迟和
+  自身 CPU 中位数均低于 C，部分未赢 R89：空无线查询 CPU 25→26.5 µs，四轮范围
+  24–25 对 26–27；device_status_c4 CPU 608.13→614.09 µs。RSS 比 R89 多 66 KiB，
+  匿名页只多 2 KiB。查询前初始化/回调/子进程回收证据完整；非空 IPv6 prefix 仍未测。
+  [netifd 实机报告](reviews/R93_NETIFD_DEVICE_BASELINE.md)。
