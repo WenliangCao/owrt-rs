@@ -392,7 +392,7 @@ def procd_bundle(f):
     jail = f.root / "sbin/ujail"
     if jail.is_symlink():
         jail.unlink()
-    write(jail, "#!/bin/sh\nprintf '%s\\n' \"$@\" > /tmp/out/ujail-argv\necho $$ > /tmp/out/jail-pid\nexec sleep 30\n")
+    write(jail, "#!/bin/sh\nprintf '%s\\n' \"$@\" > /tmp/out/ujail-argv.tmp\nmv /tmp/out/ujail-argv.tmp /tmp/out/ujail-argv\necho $$ > /tmp/out/jail-pid\nexec sleep 30\n")
     jail.chmod(0o755)
     f.start_bus()
     f.start_subject("-S", "-I", "/tmp/initd", "-R", "/tmp/rcd", obj="service")
