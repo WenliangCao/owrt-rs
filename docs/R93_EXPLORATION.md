@@ -255,6 +255,12 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
   暂不合入，下一轮拟给目标和 denied 控制同时增加请求量。N40 smoke 因 10 ms
   uptime 量化为零被严格拒绝，旧 FAILED 保留；N4000 新 smoke 通过，未放宽断言。
   [RPCD Oracle 报告](reviews/R93_RPCD_GLOB_ORACLE_PERFORMANCE.md)。
+- RPCD 焦点复核把 6 个授权/拒绝负载提高到每项 N=200000；288 个观测再次全部正确，
+  目标 CPU 已达到约 100–219 ticks。`session_access_granted` CPU 9.80→9.38 µs、
+  并发 5.80→5.40 µs，四轮方向一致；`session_access_64` 串行 10.30→9.75 µs，
+  但并发两轮上升。拒绝路径仍混合。它支持“授权快路有针对性收益信号”，不支持
+  全面性能胜出或直接归因全部设备 CPU；下一步才是路由器四侧候选对照。
+  [高精度复核](reviews/R93_RPCD_GLOB_FOCUSED_ORACLE.md)。
 - procd watch 队列局部候选仅在本机独立副本：61 边界与 80066 次简化状态随机对照等价，
   去掉冷队列 O(W²) 扫描；但已排队小配置会多一次临时 Vec 分配，8-path full 比较数
   103→106。只证明机制和模型状态，不代表 daemon CPU 或业务门通过。证据在

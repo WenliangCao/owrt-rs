@@ -1,0 +1,580 @@
+{
+  "status": "COMPLETE",
+  "scope": "Oracle AArch64 focused RPCD ACL glob comparison; 6 workloads N200000, remaining 12 N20000; 288 observations total; no device claim",
+  "subjects": {
+    "stock": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+    "r89": "a58c2f7039369c4dde7b0f0fdb45053c147f823c178651b1867c7843e3217a18",
+    "control": "d78a752cb383abfbc3c2d0050e445e3742595706e0baf05af17c60d3fcd5d1a8",
+    "candidate": "5d2dbbf67b6024306bc02232894a96b0fc7302818b499a2e0aef81c3acc4f1fa"
+  },
+  "observations": 288,
+  "focus_workloads": [
+    "session_access",
+    "session_access_c4",
+    "session_access_granted",
+    "session_access_granted_c4",
+    "session_access_64",
+    "session_access_64_c4"
+  ],
+  "summary": {
+    "session_access": {
+      "stock": {
+        "mean_us_median": 37.0434020175,
+        "cpu_us_per_op_median": 10.325,
+        "ticks": [
+          206,
+          207,
+          206,
+          208
+        ],
+        "mean_us_runs": [
+          36.88748207,
+          36.96010418,
+          37.126699855,
+          37.590764265
+        ]
+      },
+      "r89": {
+        "mean_us_median": 35.766993025000005,
+        "cpu_us_per_op_median": 9.2,
+        "ticks": [
+          179,
+          184,
+          188,
+          184
+        ],
+        "mean_us_runs": [
+          34.994905965,
+          35.88311766,
+          36.33525104,
+          35.65086839000001
+        ]
+      },
+      "control": {
+        "mean_us_median": 35.9304712325,
+        "cpu_us_per_op_median": 9.425,
+        "ticks": [
+          189,
+          184,
+          191,
+          188
+        ],
+        "mean_us_runs": [
+          35.961567505,
+          35.063197005,
+          36.282946635,
+          35.89937496
+        ]
+      },
+      "candidate": {
+        "mean_us_median": 35.957749160000006,
+        "cpu_us_per_op_median": 9.425,
+        "ticks": [
+          204,
+          188,
+          186,
+          189
+        ],
+        "mean_us_runs": [
+          38.18576488,
+          36.03074654,
+          35.728201495,
+          35.88475178
+        ]
+      },
+      "candidate_vs_control_pct": {
+        "mean_us": {
+          "per_round": [
+            6.184928881898033,
+            2.759444710252845,
+            -1.5289418072369942,
+            -0.040733801121317637
+          ],
+          "median": 1.3593554545657638,
+          "min": -1.5289418072369942,
+          "max": 6.184928881898033
+        },
+        "cpu_us_per_op": {
+          "per_round": [
+            7.9365079365079305,
+            2.1739130434782705,
+            -2.617801047120416,
+            0.5319148936170137
+          ],
+          "median": 1.3529139685476421,
+          "min": -2.617801047120416,
+          "max": 7.9365079365079305
+        }
+      }
+    },
+    "session_access_c4": {
+      "stock": {
+        "mean_us_median": 51.279802805,
+        "cpu_us_per_op_median": 6.572371051579369,
+        "ticks": [
+          136,
+          132,
+          127,
+          131
+        ],
+        "mean_us_runs": [
+          52.170462914999995,
+          50.753331425,
+          46.610466939999995,
+          51.806274185
+        ]
+      },
+      "r89": {
+        "mean_us_median": 49.3881446225,
+        "cpu_us_per_op_median": 5.272890843662535,
+        "ticks": [
+          97,
+          108,
+          105,
+          106
+        ],
+        "mean_us_runs": [
+          47.4069353,
+          49.431227925,
+          50.34265331,
+          49.34506132
+        ]
+      },
+      "control": {
+        "mean_us_median": 49.40551147,
+        "cpu_us_per_op_median": 5.47281087564974,
+        "ticks": [
+          108,
+          109,
+          114,
+          110
+        ],
+        "mean_us_runs": [
+          48.03536941,
+          49.34839145,
+          51.09746655,
+          49.46263149
+        ]
+      },
+      "candidate": {
+        "mean_us_median": 49.5645427125,
+        "cpu_us_per_op_median": 5.3978408636545385,
+        "ticks": [
+          110,
+          111,
+          104,
+          106
+        ],
+        "mean_us_runs": [
+          49.786362034999996,
+          50.381749094999996,
+          47.887964795,
+          49.342723389999996
+        ]
+      },
+      "candidate_vs_control_pct": {
+        "mean_us": {
+          "per_round": [
+            3.645215278880465,
+            2.0940047175539656,
+            -6.281136760194228,
+            -0.24242159462187773
+          ],
+          "median": 0.9257915614660439,
+          "min": -6.281136760194228,
+          "max": 3.645215278880465
+        },
+        "cpu_us_per_op": {
+          "per_round": [
+            1.8518518518518379,
+            1.83486238532109,
+            -8.771929824561408,
+            -3.6363636363636376
+          ],
+          "median": -0.9007506255212738,
+          "min": -8.771929824561408,
+          "max": 1.8518518518518379
+        }
+      }
+    },
+    "session_access_granted": {
+      "stock": {
+        "mean_us_median": 37.2292809725,
+        "cpu_us_per_op_median": 10.4,
+        "ticks": [
+          206,
+          212,
+          206,
+          210
+        ],
+        "mean_us_runs": [
+          36.945343395,
+          37.51321855,
+          36.884838835000004,
+          37.749914965
+        ]
+      },
+      "r89": {
+        "mean_us_median": 36.1614442,
+        "cpu_us_per_op_median": 9.25,
+        "ticks": [
+          185,
+          185,
+          192,
+          184
+        ],
+        "mean_us_runs": [
+          35.95532995,
+          36.14553703,
+          36.7926367,
+          36.17735137
+        ]
+      },
+      "control": {
+        "mean_us_median": 36.225070785,
+        "cpu_us_per_op_median": 9.8,
+        "ticks": [
+          196,
+          198,
+          196,
+          195
+        ],
+        "mean_us_runs": [
+          36.30684483,
+          36.14329674,
+          36.48589687,
+          36.058644105
+        ]
+      },
+      "candidate": {
+        "mean_us_median": 35.9205030725,
+        "cpu_us_per_op_median": 9.375,
+        "ticks": [
+          188,
+          187,
+          186,
+          188
+        ],
+        "mean_us_runs": [
+          35.93738303,
+          35.903623115,
+          35.998836645000004,
+          35.534034225000006
+        ]
+      },
+      "candidate_vs_control_pct": {
+        "mean_us": {
+          "per_round": [
+            -1.0176092186747088,
+            -0.6631205413388463,
+            -1.3349273740903222,
+            -1.4548796634514805
+          ],
+          "median": -1.1762682963825155,
+          "min": -1.4548796634514805,
+          "max": -0.6631205413388463
+        },
+        "cpu_us_per_op": {
+          "per_round": [
+            -4.081632653061229,
+            -5.555555555555558,
+            -5.102040816326525,
+            -3.589743589743588
+          ],
+          "median": -4.591836734693877,
+          "min": -5.555555555555558,
+          "max": -3.589743589743588
+        }
+      }
+    },
+    "session_access_granted_c4": {
+      "stock": {
+        "mean_us_median": 50.8220707775,
+        "cpu_us_per_op_median": 6.722311075569772,
+        "ticks": [
+          132,
+          133,
+          136,
+          136
+        ],
+        "mean_us_runs": [
+          49.75982166,
+          50.187781969999996,
+          51.456359585,
+          52.2065419
+        ]
+      },
+      "r89": {
+        "mean_us_median": 49.1209723475,
+        "cpu_us_per_op_median": 5.3978408636545385,
+        "ticks": [
+          112,
+          108,
+          108,
+          101
+        ],
+        "mean_us_runs": [
+          49.14166988,
+          50.44340802,
+          49.100274815,
+          48.86464907
+        ]
+      },
+      "control": {
+        "mean_us_median": 49.5046904,
+        "cpu_us_per_op_median": 5.7976809276289485,
+        "ticks": [
+          125,
+          117,
+          115,
+          114
+        ],
+        "mean_us_runs": [
+          56.300017335,
+          49.40400012,
+          49.286024665,
+          49.60538068
+        ]
+      },
+      "candidate": {
+        "mean_us_median": 49.1796221575,
+        "cpu_us_per_op_median": 5.3978408636545385,
+        "ticks": [
+          119,
+          109,
+          105,
+          107
+        ],
+        "mean_us_runs": [
+          51.402385445,
+          48.18417866,
+          48.97673117,
+          49.382513145
+        ]
+      },
+      "candidate_vs_control_pct": {
+        "mean_us": {
+          "per_round": [
+            -8.699165865008162,
+            -2.4690742794856835,
+            -0.6275480668247901,
+            -0.44928096900960224
+          ],
+          "median": -1.5483111731552368,
+          "min": -8.699165865008162,
+          "max": -0.44928096900960224
+        },
+        "cpu_us_per_op": {
+          "per_round": [
+            -4.800000000000004,
+            -6.8376068376068355,
+            -8.695652173913048,
+            -6.14035087719299
+          ],
+          "median": -6.488978857399912,
+          "min": -8.695652173913048,
+          "max": -4.800000000000004
+        }
+      }
+    },
+    "session_access_64": {
+      "stock": {
+        "mean_us_median": 36.971097395,
+        "cpu_us_per_op_median": 10.875,
+        "ticks": [
+          219,
+          213,
+          216,
+          219
+        ],
+        "mean_us_runs": [
+          37.241082165,
+          36.472343654999996,
+          36.701112625,
+          37.514922659999996
+        ]
+      },
+      "r89": {
+        "mean_us_median": 35.401826310000004,
+        "cpu_us_per_op_median": 9.525,
+        "ticks": [
+          193,
+          189,
+          190,
+          191
+        ],
+        "mean_us_runs": [
+          35.119670095000004,
+          35.135465445,
+          35.668187175,
+          36.164495360000004
+        ]
+      },
+      "control": {
+        "mean_us_median": 36.6036067175,
+        "cpu_us_per_op_median": 10.3,
+        "ticks": [
+          207,
+          206,
+          206,
+          205
+        ],
+        "mean_us_runs": [
+          36.583637395,
+          35.928126864999996,
+          36.62357604,
+          36.700490405
+        ]
+      },
+      "candidate": {
+        "mean_us_median": 35.7704247025,
+        "cpu_us_per_op_median": 9.75,
+        "ticks": [
+          194,
+          196,
+          193,
+          196
+        ],
+        "mean_us_runs": [
+          35.653785920000004,
+          36.032697295,
+          35.43453762,
+          35.887063485
+        ]
+      },
+      "candidate_vs_control_pct": {
+        "mean_us": {
+          "per_round": [
+            -2.5417141137722865,
+            0.29105449998250155,
+            -3.2466475111587734,
+            -2.2163925087202108
+          ],
+          "median": -2.3790533112462486,
+          "min": -3.2466475111587734,
+          "max": 0.29105449998250155
+        },
+        "cpu_us_per_op": {
+          "per_round": [
+            -6.2801932367149815,
+            -4.854368932038833,
+            -6.310679611650494,
+            -4.390243902439006
+          ],
+          "median": -5.567281084376907,
+          "min": -6.310679611650494,
+          "max": -4.390243902439006
+        }
+      }
+    },
+    "session_access_64_c4": {
+      "stock": {
+        "mean_us_median": 51.3100948525,
+        "cpu_us_per_op_median": 6.972211115553779,
+        "ticks": [
+          146,
+          139,
+          140,
+          135
+        ],
+        "mean_us_runs": [
+          51.911376785,
+          50.455071024999995,
+          51.005290865,
+          51.61489884
+        ]
+      },
+      "r89": {
+        "mean_us_median": 48.3311905725,
+        "cpu_us_per_op_median": 5.547780887644942,
+        "ticks": [
+          110,
+          111,
+          111,
+          111
+        ],
+        "mean_us_runs": [
+          48.09245423,
+          49.893995275,
+          48.569926914999996,
+          47.935681515
+        ]
+      },
+      "control": {
+        "mean_us_median": 49.0102309575,
+        "cpu_us_per_op_median": 5.947620951619352,
+        "ticks": [
+          119,
+          115,
+          121,
+          119
+        ],
+        "mean_us_runs": [
+          49.142447155,
+          46.33999227,
+          49.95022298,
+          48.87801476
+        ]
+      },
+      "candidate": {
+        "mean_us_median": 49.310560259999995,
+        "cpu_us_per_op_median": 5.597760895641743,
+        "ticks": [
+          113,
+          117,
+          111,
+          110
+        ],
+        "mean_us_runs": [
+          49.126539214999994,
+          49.714262025000004,
+          49.494581305,
+          47.232007525
+        ]
+      },
+      "candidate_vs_control_pct": {
+        "mean_us": {
+          "per_round": [
+            -0.03237107820420748,
+            7.281550103288348,
+            -0.9121914734643743,
+            -3.367582016336379
+          ],
+          "median": -0.4722812758342909,
+          "min": -3.367582016336379,
+          "max": 7.281550103288348
+        },
+        "cpu_us_per_op": {
+          "per_round": [
+            -5.042016806722693,
+            1.7391304347825987,
+            -8.264462809917362,
+            -7.563025210084029
+          ],
+          "median": -6.302521008403361,
+          "min": -8.264462809917362,
+          "max": 1.7391304347825987
+        }
+      }
+    }
+  },
+  "all_requests_validated": true,
+  "raw_complete": true,
+  "cleanup_empty": true,
+  "child_ticks_zero": true,
+  "clock_hz": 100,
+  "low_cpu_rounds": [],
+  "decision": "Do not merge yet: high-count focused CPU is more precise but candidate/control direction is mixed; candidate latency improves granted/64 serial but granted c4 is only small signal and denied c4 not consistently improved. Requires physical four-side test before any deployment.",
+  "evidence": {
+    "private_root": "private/r93/rpcd-glob-focused-prepare-01/evidence-final/matrix-01",
+    "results_sha256": "05073c6536162b28c29043a38fe4d796730a0bb0e3daaafc375e7798ad37e3ed",
+    "archive_sha256": "13d24045f311900dd3bcf3b0597820bbea776fff433a87335f7efc361573d73f",
+    "driver_sha256": "23c3ed0f4334d299875466f42f3039425aac3cc4800ef843960b4d92d8b55f9c",
+    "validation_acceptance_sha256": "39ab82942427233f74c97835db2321ef44524137c5527ca107d65bfc27bb1b6a"
+  },
+  "limitations": [
+    "Oracle diagnostic SDK build, not AX3000T.",
+    "100 Hz ticks now 100-219 for serial/c4 focus; still report paired values rather than p-values.",
+    "Other workload results remain in full matrix; no side-dependent adaptive sampling."
+  ]
+}
