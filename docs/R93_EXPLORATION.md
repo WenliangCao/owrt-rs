@@ -225,3 +225,10 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
   export_network / export_64 / set_commit_get CPU 为 900/1840/6820 µs，R89 为
   950/1880/6960，C 为 1750/3270/8970。固定 shell 编排包含在最后一项里，不能把它当
   单次 UCI API 成本。 [UCI 实机报告](reviews/R93_UCI_DEVICE_BASELINE.md)。
+- ubusd 借用遍历新版 48 smoke 与 192 个 Oracle 四轮样本全过，严格交付约 28.27 亿
+  wire bytes。512 对象大签名慢读的四轮配对 CPU 均下降，中位 −4.01%；但每样本仅
+  15.98–18.14 ms CPU，其余 11 cell 方向混合，暂不支持稳定收益或合入。
+  [初筛报告](reviews/R93_UBUSD_LOOKUP_ORACLE_SCREEN.md) 保留全部原始范围与低采样限制。
+- fw4 实机 24 个观测完成。print/check CPU 为 9300/19650 µs，R89 为 9500/19900，
+  C 为 96000/107650；check 延迟仍比 R89 高 1.24%，四轮范围重叠，未定因。
+  [fw4 实机报告](reviews/R93_FW4_DEVICE_BASELINE.md)。
