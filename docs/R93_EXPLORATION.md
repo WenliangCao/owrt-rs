@@ -221,3 +221,7 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
   24–25 对 26–27；device_status_c4 CPU 608.13→614.09 µs。RSS 比 R89 多 66 KiB，
   匿名页只多 2 KiB。查询前初始化/回调/子进程回收证据完整；非空 IPv6 prefix 仍未测。
   [netifd 实机报告](reviews/R93_NETIFD_DEVICE_BASELINE.md)。
+- UCI 36 个观测完成，三项输出逐次字节校验通过；本轮三项延迟和 CPU 均优于双基线。
+  export_network / export_64 / set_commit_get CPU 为 900/1840/6820 µs，R89 为
+  950/1880/6960，C 为 1750/3270/8970。固定 shell 编排包含在最后一项里，不能把它当
+  单次 UCI API 成本。 [UCI 实机报告](reviews/R93_UCI_DEVICE_BASELINE.md)。
