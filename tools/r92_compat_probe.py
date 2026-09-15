@@ -451,7 +451,9 @@ def rpcd_features(f):
     if f.side != "original":
         f.check("real_probe_complete", real, [True] * 12)
     apk.rename(apk.with_name("apk.r92-real"))
-    write(apk, "#!/bin/sh\nif [ \"$*\" = 'list -I netifd' ]; then\n cat /tmp/apk-output\n exec 1>&-\n sleep 0.05\n exit 0\nfi\nexec /usr/bin/apk.r92-real \"$@\"\n")
+    # The image BusyBox rejects fractional sleep; keep EOF separate from
+    # SIGCHLD with a supported integer delay for these fixed parser inputs.
+    write(apk, "#!/bin/sh\nif [ \"$*\" = 'list -I netifd' ]; then\n cat /tmp/apk-output\n exec 1>&-\n sleep 1\n exit 0\nfi\nexec /usr/bin/apk.r92-real \"$@\"\n")
     apk.chmod(0o755)
     for i, (output, expected) in enumerate(FEATURE_OUTPUTS):
         (f.root / "tmp/apk-output").write_bytes(output)

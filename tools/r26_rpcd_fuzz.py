@@ -15,6 +15,8 @@ Usage: r26_rpcd_fuzz.py <rootfs-files> <rpcd-rs-musl-binary> [--cases-per-method
 Exit code 1 when any step differs.
 """
 from audit_checks import mask_session_ids
+import base64
+import hashlib
 import json
 import os
 import random
@@ -127,24 +129,49 @@ def cases_for(rng, params, n):
     return out
 
 
-def stable_apk_probe(root):
-    # A deterministic input for getFeatures, not a response mask. Closing
-    # stdout before the helper exits separates EOF from rpcd's SIGCHLD; the
-    # image ucode fread otherwise intermittently returns no package version.
-    # The real helper and interrupted reads have a separate r85/r92 gate.
-    apk = os.path.join(root, "usr/bin/apk")
-    base.sudo("mv", apk, apk + ".r92-real")
-    script = b'''#!/bin/sh
-if [ "$*" = 'list -I netifd' ]; then
-    printf 'netifd-2026.06.05~cbb83a18-r1 aarch64_cortex-a53\\n'
-    exec 1>&-
-    sleep 0.05
-    exit 0
-fi
-exec /usr/bin/apk.r92-real "$@"
+def stable_feature_probes(root):
+    # Capture the exact helpers, then replay their bytes as deterministic
+    # parser inputs. EOF must precede SIGCHLD: image ucode fread can otherwise
+    # lose a helper's output. The real helpers/interruption retain the separate
+    # r85/r92 gates. Image BusyBox sleep accepts integers only.
+    capture = r'''
+set -eu
+root=$1; shift
+mount --make-rprivate /
+mount -t tmpfs tmpfs "$root/dev"
+trap 'umount "$root/dev"' EXIT
+mknod -m 666 "$root/dev/null" c 1 3
+mknod -m 666 "$root/dev/urandom" c 1 9
+chroot "$root" "$@"
 '''
-    base.sudo("sh", "-c", "cat > " + base.shquote(apk), input=script)
-    base.sudo("chmod", "755", apk)
+    probes = [("/usr/bin/apk", ["list", "-I", "netifd"]),
+              ("/usr/sbin/dnsmasq", ["--version"]),
+              ("/usr/sbin/odhcpd", ["-h"])]
+    manifest = []
+    for path, args in probes:
+        helper = os.path.join(root, path.lstrip("/"))
+        command = " ".join(base.shquote(arg) for arg in [os.path.basename(path), *args])
+        result = base.sudo("unshare", "--mount", "--fork", "/bin/sh", "-c", capture,
+                           "sh", root, "/bin/sh", "-c", command, capture_output=True, timeout=10)
+        if not result.stdout:
+            raise RuntimeError("empty feature probe output: " + path)
+        original = base.sudo("cat", helper, capture_output=True).stdout
+        output = "/tmp/r26-" + os.path.basename(path) + ".stdout"
+        base.sudo("sh", "-c", "cat > " + base.shquote(root + output), input=result.stdout)
+        base.sudo("mv", helper, helper + ".r93-real")
+        conditions = [f'[ "$#" -eq {len(args)} ]'] + [
+            f'[ "${i}" = {base.shquote(arg)} ]' for i, arg in enumerate(args, 1)]
+        script = ("#!/bin/sh\nif " + " && ".join(conditions) + "; then\n"
+                  f"    cat {base.shquote(output)}\n    exec 1>&-\n    sleep 1\n"
+                  f"    exit {result.returncode}\nfi\nexec {path}.r93-real \"$@\"\n")
+        base.sudo("sh", "-c", "cat > " + base.shquote(helper), input=script.encode())
+        base.sudo("chmod", "755", helper)
+        manifest.append({"argv": [path, *args], "helper_sha256": hashlib.sha256(original).hexdigest(),
+                         "rc": result.returncode, "stdout_bytes": len(result.stdout),
+                         "stdout_sha256": hashlib.sha256(result.stdout).hexdigest(),
+                         "stdout_base64": base64.b64encode(result.stdout).decode(),
+                         "stderr_base64": base64.b64encode(result.stderr).decode()})
+    return {"probes": manifest, "stdout_closed_before_exit": True, "exit_delay_seconds": 1}
 
 
 def main():
@@ -184,10 +211,13 @@ def main():
     total = len(base.STEPS)
     print("steps: %d (fuzz calls %d)" % (total, k), flush=True)
 
-    orig, osids, ologs = base.run_side(rootfs, "original", binary, prepare_root=stable_apk_probe)
-    cand, csids, clogs = base.run_side(rootfs, "candidate", binary, prepare_root=stable_apk_probe)
+    fixtures = []
+    def prepare(root):
+        fixtures.append(stable_feature_probes(root))
+    orig, osids, ologs = base.run_side(rootfs, "original", binary, prepare_root=prepare)
+    cand, csids, clogs = base.run_side(rootfs, "candidate", binary, prepare_root=prepare)
     if keep is not None:
-        (keep / "fixture.json").write_text(json.dumps({"netifd_vrf_input": "netifd-2026.06.05~cbb83a18-r1 aarch64_cortex-a53", "stdout_closed_before_exit": True}) + "\n")
+        (keep / "fixture.json").write_text(json.dumps(dict(zip(("original", "candidate"), fixtures)), indent=2) + "\n")
         # These are private observations, including session IDs and fixture
         # credentials. Callers must keep this directory outside Git.
         for side, results, sids, logs in (("original", orig, osids, ologs), ("candidate", cand, csids, clogs)):
@@ -211,7 +241,9 @@ def main():
             text = "\n".join(sorted(text.splitlines()))
         return text
 
-    bad = 0
+    bad = int(len(fixtures) != 2 or fixtures[0] != fixtures[1])
+    if bad:
+        print("DIFF captured feature probe inputs", flush=True)
     for st in base.STEPS:
         sid = st[0]
         exts = ("rc",) if sid in rc_only else ("rc", "out", "err")

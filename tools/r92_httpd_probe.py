@@ -1,6 +1,8 @@
 """HTTP cases used by r92_compat_probe, on exact-image disposable fixtures."""
+import errno
 import http.client
 import json
+import os
 import socket
 import threading
 import time
@@ -122,7 +124,11 @@ def date_and_framing(f):
 
 def script_queue(f):
     script = f.root / "www/cgi-bin/r92-queue"
-    write(script, "#!/bin/sh\necho \"$QUERY_STRING\" >> /tmp/out/queue-starts\nwhile [ ! -f /tmp/release-\"$QUERY_STRING\" ]; do sleep 0.02; done\nprintf 'Content-Type: text/plain\\r\\n\\r\\n%s' \"$QUERY_STRING\"\n")
+    # Block on an explicit release instead of a polling shell: the exact
+    # image's sleep rejects fractions and turned the old loop into a spin.
+    for i in range(5):
+        os.mkfifo(f.root / f"tmp/release-{i}")
+    write(script, "#!/bin/sh\necho \"$QUERY_STRING\" >> /tmp/out/queue-starts\nread -r release < /tmp/release-\"$QUERY_STRING\"\nprintf 'Content-Type: text/plain\\r\\n\\r\\n%s' \"$QUERY_STRING\"\n")
     script.chmod(0o755)
     setup(f, "-n", "1", "-t", "10")
     starts = f.output / "queue-starts"
@@ -151,7 +157,22 @@ def script_queue(f):
         assert f.wait(lambda: len(order()) > i), "script queue stopped making progress"
         active = order()
         bounded &= len(active) == i + 1
-        (f.root / ("tmp/release-" + active[i])).touch()
+        # Nonblocking open fails if the CGI never reaches its read; avoid
+        # hanging the host test on a broken script.
+        release = f.root / ("tmp/release-" + active[i])
+        def release_ready():
+            try:
+                fd = os.open(release, os.O_WRONLY | os.O_NONBLOCK)
+            except OSError as error:
+                if error.errno == errno.ENXIO:
+                    return False
+                raise
+            try:
+                os.write(fd, b"release\n")
+            finally:
+                os.close(fd)
+            return True
+        assert f.wait(release_ready), "script did not wait for its release"
     for worker in workers:
         worker.join(timeout=4)
     f.observations["queue_order"] = order()
