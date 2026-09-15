@@ -1,0 +1,518 @@
+{
+  "scope": "AX3000T physical CPU; private namespace loopback over Wi-Fi management; four repeats per side/gap; diagnostic client observer perturbs work",
+  "runtime_source": "7d5cb38",
+  "canonical": false,
+  "source_archive_sha256": "6f8700bf5af4ca80a9113b5624229bde3e373f53553dec4dc95524dba33abd7c",
+  "candidate_build_manifest_sha256": "8da1b4fcca9e295b2a9a216c40bfb5727424d467a113d7ca28527e2607cf4fda",
+  "input_fixture_bytes": 16384,
+  "fixture_sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+  "subjects": {
+    "r89": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+    "candidate": "d7a6ed6285bcd828273f0ebdbbf33765efff66c26243776ab1957ef08672b2ab",
+    "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3"
+  },
+  "client_sha256": "33ef8d7489fedac4cf10ccd173fe9c1c9010bfae6351c96aae099f0a3f7e3a2c",
+  "harness_sha256": "8a8016e546a52fda9b3bb1468424a76cbe7a086b150b4e4aee59d129139c9c34",
+  "result_sha256": "bf5c7b20f9967f9553682888c22a770ff0e4a349a1c4875ebc03ca24235aa0e8",
+  "samples": 60,
+  "requests": 168000,
+  "errors": 0,
+  "rows": [
+    {
+      "gap_ms": 0,
+      "stock": {
+        "subject_cpu_us_per_request": {
+          "median": 259.0,
+          "min": 254.0,
+          "max": 260.0
+        },
+        "mean_us": {
+          "median": 1341.36743665,
+          "min": 1275.0157852,
+          "max": 1388.7463825999998
+        },
+        "p99_us": {
+          "median": 8696.585,
+          "min": 6903.024,
+          "max": 10161.68
+        },
+        "rss_after_kib": {
+          "median": 1026.0,
+          "min": 1000,
+          "max": 1036
+        },
+        "rss_idle_2s_kib": {
+          "median": 1026.0,
+          "min": 1000,
+          "max": 1036
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "r89": {
+        "subject_cpu_us_per_request": {
+          "median": 204.0,
+          "min": 200.99999999999997,
+          "max": 206.0
+        },
+        "mean_us": {
+          "median": 900.1590610000001,
+          "min": 891.9328504,
+          "max": 900.7559037999999
+        },
+        "p99_us": {
+          "median": 1948.5990000000002,
+          "min": 1788.906,
+          "max": 2013.732
+        },
+        "rss_after_kib": {
+          "median": 996.0,
+          "min": 996,
+          "max": 1000
+        },
+        "rss_idle_2s_kib": {
+          "median": 996.0,
+          "min": 996,
+          "max": 1000
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "candidate": {
+        "subject_cpu_us_per_request": {
+          "median": 202.99999999999997,
+          "min": 202.0,
+          "max": 204.99999999999997
+        },
+        "mean_us": {
+          "median": 903.8813561500001,
+          "min": 896.0402678,
+          "max": 919.8899222
+        },
+        "p99_us": {
+          "median": 1880.0445,
+          "min": 1804.91,
+          "max": 2111.91
+        },
+        "rss_after_kib": {
+          "median": 998.0,
+          "min": 996,
+          "max": 1000
+        },
+        "rss_idle_2s_kib": {
+          "median": 998.0,
+          "min": 996,
+          "max": 1000
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "gap_ms": 20,
+      "stock": {
+        "subject_cpu_us_per_request": {
+          "median": 290.0,
+          "min": 290.0,
+          "max": 290.0
+        },
+        "mean_us": {
+          "median": 456.1153405,
+          "min": 452.995179,
+          "max": 474.009012
+        },
+        "p99_us": {
+          "median": 907.1485,
+          "min": 862.907,
+          "max": 1167.751
+        },
+        "rss_after_kib": {
+          "median": 1026.0,
+          "min": 1024,
+          "max": 1032
+        },
+        "rss_idle_2s_kib": {
+          "median": 1026.0,
+          "min": 1024,
+          "max": 1032
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "r89": {
+        "subject_cpu_us_per_request": {
+          "median": 210.0,
+          "min": 210.0,
+          "max": 220.0
+        },
+        "mean_us": {
+          "median": 439.398632,
+          "min": 425.02036599999997,
+          "max": 462.931175
+        },
+        "p99_us": {
+          "median": 831.7835,
+          "min": 783.118,
+          "max": 954.237
+        },
+        "rss_after_kib": {
+          "median": 976.0,
+          "min": 976,
+          "max": 980
+        },
+        "rss_idle_2s_kib": {
+          "median": 976.0,
+          "min": 976,
+          "max": 980
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "candidate": {
+        "subject_cpu_us_per_request": {
+          "median": 210.0,
+          "min": 210.0,
+          "max": 210.0
+        },
+        "mean_us": {
+          "median": 421.04365800000005,
+          "min": 403.296493,
+          "max": 434.572337
+        },
+        "p99_us": {
+          "median": 844.3634999999999,
+          "min": 740.107,
+          "max": 907.611
+        },
+        "rss_after_kib": {
+          "median": 980.0,
+          "min": 960,
+          "max": 1000
+        },
+        "rss_idle_2s_kib": {
+          "median": 980.0,
+          "min": 960,
+          "max": 1000
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "gap_ms": 40,
+      "stock": {
+        "subject_cpu_us_per_request": {
+          "median": 290.0,
+          "min": 280.0,
+          "max": 300.0
+        },
+        "mean_us": {
+          "median": 454.792117,
+          "min": 449.165433,
+          "max": 468.243178
+        },
+        "p99_us": {
+          "median": 881.45,
+          "min": 822.82,
+          "max": 1026.64
+        },
+        "rss_after_kib": {
+          "median": 1018.0,
+          "min": 972,
+          "max": 1036
+        },
+        "rss_idle_2s_kib": {
+          "median": 1018.0,
+          "min": 972,
+          "max": 1036
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "r89": {
+        "subject_cpu_us_per_request": {
+          "median": 210.0,
+          "min": 210.0,
+          "max": 220.0
+        },
+        "mean_us": {
+          "median": 425.158977,
+          "min": 423.237364,
+          "max": 429.3352
+        },
+        "p99_us": {
+          "median": 890.144,
+          "min": 837.131,
+          "max": 1099.889
+        },
+        "rss_after_kib": {
+          "median": 988.0,
+          "min": 976,
+          "max": 996
+        },
+        "rss_idle_2s_kib": {
+          "median": 988.0,
+          "min": 976,
+          "max": 996
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "candidate": {
+        "subject_cpu_us_per_request": {
+          "median": 210.0,
+          "min": 210.0,
+          "max": 210.0
+        },
+        "mean_us": {
+          "median": 421.7816085,
+          "min": 417.149473,
+          "max": 432.72979200000003
+        },
+        "p99_us": {
+          "median": 861.7145,
+          "min": 843.672,
+          "max": 895.992
+        },
+        "rss_after_kib": {
+          "median": 980.0,
+          "min": 976,
+          "max": 980
+        },
+        "rss_idle_2s_kib": {
+          "median": 980.0,
+          "min": 976,
+          "max": 980
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "gap_ms": 60,
+      "stock": {
+        "subject_cpu_us_per_request": {
+          "median": 290.0,
+          "min": 280.0,
+          "max": 290.0
+        },
+        "mean_us": {
+          "median": 455.987253,
+          "min": 453.628215,
+          "max": 462.991326
+        },
+        "p99_us": {
+          "median": 844.3254999999999,
+          "min": 741.876,
+          "max": 1050.876
+        },
+        "rss_after_kib": {
+          "median": 1032.0,
+          "min": 1012,
+          "max": 1036
+        },
+        "rss_idle_2s_kib": {
+          "median": 1032.0,
+          "min": 1012,
+          "max": 1036
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "r89": {
+        "subject_cpu_us_per_request": {
+          "median": 625.0,
+          "min": 610.0,
+          "max": 630.0
+        },
+        "mean_us": {
+          "median": 746.6347955,
+          "min": 738.93817,
+          "max": 760.97688
+        },
+        "p99_us": {
+          "median": 1338.2175000000002,
+          "min": 1175.061,
+          "max": 1397.963
+        },
+        "rss_after_kib": {
+          "median": 982.0,
+          "min": 980,
+          "max": 984
+        },
+        "rss_idle_2s_kib": {
+          "median": 982.0,
+          "min": 980,
+          "max": 984
+        },
+        "thread_births_lower_bound": {
+          "median": 928.0,
+          "min": 911,
+          "max": 940
+        }
+      },
+      "candidate": {
+        "subject_cpu_us_per_request": {
+          "median": 630.0,
+          "min": 610.0,
+          "max": 640.0
+        },
+        "mean_us": {
+          "median": 752.9643365000001,
+          "min": 746.596522,
+          "max": 760.781743
+        },
+        "p99_us": {
+          "median": 1317.6354999999999,
+          "min": 1182.833,
+          "max": 1399.425
+        },
+        "rss_after_kib": {
+          "median": 984.0,
+          "min": 980,
+          "max": 1000
+        },
+        "rss_idle_2s_kib": {
+          "median": 984.0,
+          "min": 980,
+          "max": 1000
+        },
+        "thread_births_lower_bound": {
+          "median": 940.5,
+          "min": 925,
+          "max": 953
+        }
+      }
+    },
+    {
+      "gap_ms": 80,
+      "stock": {
+        "subject_cpu_us_per_request": {
+          "median": 290.0,
+          "min": 290.0,
+          "max": 290.0
+        },
+        "mean_us": {
+          "median": 468.18353349999995,
+          "min": 452.215753,
+          "max": 473.043657
+        },
+        "p99_us": {
+          "median": 895.2995000000001,
+          "min": 832.592,
+          "max": 1015.33
+        },
+        "rss_after_kib": {
+          "median": 1032.0,
+          "min": 972,
+          "max": 1036
+        },
+        "rss_idle_2s_kib": {
+          "median": 1032.0,
+          "min": 972,
+          "max": 1036
+        },
+        "thread_births_lower_bound": {
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "r89": {
+        "subject_cpu_us_per_request": {
+          "median": 685.0,
+          "min": 670.0,
+          "max": 690.0
+        },
+        "mean_us": {
+          "median": 778.7206639999999,
+          "min": 771.705142,
+          "max": 790.6782460000001
+        },
+        "p99_us": {
+          "median": 1287.9740000000002,
+          "min": 1084.885,
+          "max": 1623.095
+        },
+        "rss_after_kib": {
+          "median": 980.0,
+          "min": 976,
+          "max": 980
+        },
+        "rss_idle_2s_kib": {
+          "median": 980.0,
+          "min": 976,
+          "max": 980
+        },
+        "thread_births_lower_bound": {
+          "median": 998.0,
+          "min": 997,
+          "max": 999
+        }
+      },
+      "candidate": {
+        "subject_cpu_us_per_request": {
+          "median": 685.0,
+          "min": 670.0,
+          "max": 690.0
+        },
+        "mean_us": {
+          "median": 778.753719,
+          "min": 763.367455,
+          "max": 814.106763
+        },
+        "p99_us": {
+          "median": 1155.4025,
+          "min": 1125.51,
+          "max": 1905.474
+        },
+        "rss_after_kib": {
+          "median": 980.0,
+          "min": 980,
+          "max": 984
+        },
+        "rss_idle_2s_kib": {
+          "median": 980.0,
+          "min": 980,
+          "max": 984
+        },
+        "thread_births_lower_bound": {
+          "median": 997.5,
+          "min": 997,
+          "max": 998
+        }
+      }
+    }
+  ],
+  "conclusion": "Parking cost remains about 2.2x/2.3x C at 60/80ms; similar to R89, not a C baseline win. No algorithm optimization applied."
+}
