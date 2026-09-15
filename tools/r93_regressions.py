@@ -12,12 +12,32 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import sys
 
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def freeze_binaries(inputs, output):
+    """Give this run independent inodes, never a shared or hard-linked target."""
+    expected = {p.name: digest(p) for p in inputs.iterdir() if p.is_file()}
+    output.mkdir()
+    for name, checksum in expected.items():
+        source, copy = inputs / name, output / name
+        shutil.copy2(source, copy)
+        if digest(copy) != checksum or digest(source) != checksum:
+            raise RuntimeError("input changed while freezing: " + name)
+        copy.chmod(copy.stat().st_mode & ~0o222)
+    return expected
+
+
+def verify_binaries(directory, expected):
+    actual = {p.name: digest(p) for p in directory.iterdir() if p.is_file()}
+    if actual != expected:
+        raise RuntimeError("frozen runtime binary identities changed")
 
 
 def main():
@@ -39,6 +59,9 @@ def main():
         if not path.is_file():
             parser.error("missing input: " + str(path))
     out.mkdir(parents=True, exist_ok=False)
+    input_bins = bins
+    bins = out / "runtime-bins"
+    binary_hashes = freeze_binaries(input_bins, bins)
     gates = [
         ("procd-watch", "r93_procd_watch_probe.py",
          [rootfs, bins / "procd-rs", out / "procd-watch"]),
@@ -59,7 +82,8 @@ def main():
     now = lambda: datetime.datetime.now(datetime.timezone.utc).isoformat()
     result = {
         "started": now(), "scope": "R93 new fault regressions; historical suite is separate",
-        "binary_sha256": {p.name: digest(p) for p in sorted(bins.iterdir()) if p.is_file()},
+        "input_bins": str(input_bins),
+        "binary_sha256": binary_hashes,
         "gnu_ubusd_sha256": digest(gnu), "ns_exec_sha256": digest(launcher),
         "stock_ubusd_sha256": digest(rootfs / "sbin/ubusd"),
         "source_sha256": {str(p.relative_to(source)): digest(p) for p in sorted({
@@ -69,6 +93,7 @@ def main():
         "results": [],
     }
     for name, script, arguments in gates:
+        verify_binaries(bins, binary_hashes)
         command = ["sudo", "-n", str(launcher), sys.executable,
                    str(source / "tools/r92_validate.py"), "--namespace-command",
                    sys.executable, str(source / "tools" / script), *map(str, arguments)]
@@ -88,6 +113,7 @@ def main():
                     except ProcessLookupError:
                         pass
                     process.wait()
+        verify_binaries(bins, binary_hashes)
         result["results"].append({"name": name, "exit": code, "command": command,
                                   "log_sha256": digest(log)})
         (out / "results.json").write_text(json.dumps(result, indent=2) + "\n")

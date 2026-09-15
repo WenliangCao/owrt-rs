@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "at": "2026-09-15T12:36:06.584503+00:00",
+  "scope": "source05 correctness evidence closure for isolated component benchmarking; not deployment/absolute bug-free acceptance",
+  "source_archive_sha256": "6f8700bf5af4ca80a9113b5624229bde3e373f53553dec4dc95524dba33abd7c",
+  "runtime_commit": "7d5cb38",
+  "canonical": false,
+  "binary_sha256": {
+    "fw4-rs": "e6bdb3218ce85d01527cc903c9921e5a8908d918ecf9d44b50148017070b0cb0",
+    "httpd-rs": "d7a6ed6285bcd828273f0ebdbbf33765efff66c26243776ab1957ef08672b2ab",
+    "logd-rs": "235a50bf191e9858a760fb120683ee49f6c18ddff06912d1c0acd8f158450627",
+    "netifd-rs": "7122d02b3ff1426605e00b313e5e3d0078090b7741ff8089b3e8395778d3544a",
+    "procd-rs": "1458301f5fb613ce81e48acc154dee75cfadabc668f4ccf66779fd4d0c26d862",
+    "reload_config_rs": "1f0bb7896b51a2093c846e71c849cba1d6da23adc62d8a585d7362ac8294ac35",
+    "rpcd-rs": "d78a752cb383abfbc3c2d0050e445e3742595706e0baf05af17c60d3fcd5d1a8",
+    "ubusd-rs": "d139260478da973abfaa5b9044632f5e0fa315db195899163b37ab7e33d8a2e8",
+    "uci-rs": "823d8c9545c7d4dd3c4a14d3bddebd3b86ad745d34b54a9e81d8f53c04533654"
+  },
+  "historical_required_gates": 68,
+  "historical_summary_sha256": "4198520f1a3cf2d430a494cc06ef335eb3e849fd25b43310bf5e5738a7d4cb04",
+  "historical_original_failed_gate": "rpcd-r26",
+  "corrected_r26_steps": 733,
+  "corrected_r26_difference_count": 0,
+  "rerun_archive_sha256": "5e41fe3ea69bae05831244a6ea11d4f74bc71eae6177a9ba73d7afdc91e6db5e",
+  "new_fault_groups": 8,
+  "new_fault_summary_sha256": "e1a3e4b60a6b8624ce1919b72f30dadd9541ca466670f52b4e8bf14bf4da69c1",
+  "new_fault_groups_passed": [
+    "procd-watch",
+    "httpd-shared-cap",
+    "ubusd-accept",
+    "logd-streams",
+    "rpcd-disconnect",
+    "rpcd-half_header",
+    "netifd-network.device",
+    "netifd-network.interface.loopback"
+  ],
+  "discarded_attempt": "resumed-01/regressions-sdk-05: logd used experiment ubusd during hard-link incident; retained but not accepted",
+  "limitations": [
+    "accept injected via separately identified GNU same-source build, not SDK LD_PRELOAD",
+    "historical C feature-output instability controlled by identical input fixture, original real-helper gate retained",
+    "source05 all-component physical matrix and whole-stack acceptance not yet performed"
+  ]
+}
