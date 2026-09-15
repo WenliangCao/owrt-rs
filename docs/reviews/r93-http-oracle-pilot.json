@@ -1,0 +1,4347 @@
+{
+  "status": "COMPLETE",
+  "scope": "Oracle AArch64 namespace loopback, diagnostic single-round screening; not AX3000T/device results",
+  "fixture_bytes": 16384,
+  "clients": 4,
+  "rounds": 1,
+  "paced_iterations": 800,
+  "hot_iterations": 20000,
+  "verification": {
+    "complete": true,
+    "samples": 20,
+    "successful": 112000,
+    "errors": 0,
+    "raw_hashes_verified": true,
+    "derived_recomputed": true,
+    "raw_owner_uid": 0,
+    "driver_files_owner_uid": 1001,
+    "owned_processes_after": [],
+    "old_partial_replay_is_excluded": true,
+    "no_device_access": true
+  },
+  "identity": {
+    "subjects": {
+      "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "r89": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+      "source05": "d7a6ed6285bcd828273f0ebdbbf33765efff66c26243776ab1957ef08672b2ab",
+      "worker": "f2fe52c68e9c7f1657a0f95819052e6c2b70fa95bae899c043ce3ecd2d2d9130",
+      "head": "0140478cabab30ec085c636e7ceee2cc30b655efbe18cde10b83a286fa1d0332"
+    },
+    "tools": {
+      "ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "owrt-benchmark": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03"
+    },
+    "diagnostic_sha256": "33ef8d7489fedac4cf10ccd173fe9c1c9010bfae6351c96aae099f0a3f7e3a2c",
+    "harness_sha256": "a55ebe1ee84a26b7e255c0a1b14d707433e9e2b8e74c188814fdf097b6b09e78",
+    "driver_sha256": "04eeab6fedb50738b07e4ed8a2351aa41ab64ba0be41fa056740fb0909f46d40",
+    "derive_source_sha256": "9304365ca714f1e511c523bf3f4ae476e6249394d6970f62c2662f0efa821ea1",
+    "fixture_sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+    "dependencies": {
+      "rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+      "ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+    }
+  },
+  "evidence": {
+    "archive": "private/r93/http-worker-experiment/five-side/resume2-20260915.tar.gz",
+    "archive_sha256": "2ced2bf230c6c325340ac0a51a8857f7a2fca3872315acc079dacf44f091e946",
+    "results_sha256": "f780fb3995c700d263190830764b7052a44e806b142964416a54d525923c605a",
+    "archive_file_count_excluding_manifest": 602,
+    "original_partial_unchanged_file_count": 53
+  },
+  "limitations": [
+    "C and R89 are exact-image/formal originals; source05/worker/head are diagnostic same-SDK Oracle builds, not canonical CI.",
+    "Server process CPU uses /proc stat including exited workers; do not substitute main-thread schedstat.",
+    "2ms observer samples thread births only as lower bound and imposes overhead varying with thread count.",
+    "No client/observer CPU included in daemon CPU.",
+    "CPU ticks quantize short samples; every actual tick count is reported.",
+    "Resource snapshots at before/after/1s/2s; no held200ms result from this run.",
+    "Same-machine pilot and four-round formal runs remain separate datasets.",
+    "Each side/gap has only one sample, in fixed C/R89/source05/worker/head order. No confidence interval or general performance claim.",
+    "800-request paced samples use 100 Hz CPU ticks: one tick is 12.5 us/request. Worker-vs-head differences are one tick.",
+    "Oracle host has normal background services. No other owned pressure/build task overlapped."
+  ],
+  "runs": [
+    {
+      "name": "001-r1-stock-gap0",
+      "repeat": 1,
+      "side": "stock",
+      "gap_ms": 0,
+      "iterations": 20000,
+      "successful": 20000,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 163.45480055000002,
+        "p50": 162.482,
+        "p95": 186.442,
+        "p99": 199.961
+      },
+      "wall_s": 0.878893465,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 87,
+        "waited_child_ticks": 0,
+        "own_s": 0.87,
+        "waited_child_s": 0.0,
+        "total_s": 0.87,
+        "us_per_request": 43.5
+      },
+      "outer_including_warmup": {
+        "successful": 20004,
+        "roles": {
+          "httpd": {
+            "own_ticks": 87,
+            "waited_child_ticks": 0,
+            "own_s": 0.87,
+            "waited_child_s": 0.0,
+            "total_s": 0.87
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.87,
+        "us_per_request": 43.49130173965207,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 0.8899999998975545
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 1012,
+            "RssAnon": 116,
+            "RssFile": 896,
+            "VmHWM": 1012,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1020,
+            "RssAnon": 124,
+            "RssFile": 896,
+            "VmHWM": 1020,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1020,
+            "RssAnon": 124,
+            "RssFile": 896,
+            "VmHWM": 1020,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1020,
+            "RssAnon": 124,
+            "RssFile": 896,
+            "VmHWM": 1020,
+            "fds": 8,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "002-r1-r89-gap0",
+      "repeat": 1,
+      "side": "r89",
+      "gap_ms": 0,
+      "iterations": 20000,
+      "successful": 20000,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 57.949373050000005,
+        "p50": 51.601,
+        "p95": 93.08,
+        "p99": 130.961
+      },
+      "wall_s": 0.358343706,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 63,
+        "waited_child_ticks": 0,
+        "own_s": 0.63,
+        "waited_child_s": 0.0,
+        "total_s": 0.63,
+        "us_per_request": 31.5
+      },
+      "outer_including_warmup": {
+        "successful": 20004,
+        "roles": {
+          "httpd": {
+            "own_ticks": 63,
+            "waited_child_ticks": 0,
+            "own_s": 0.63,
+            "waited_child_s": 0.0,
+            "total_s": 0.63
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.63,
+        "us_per_request": 31.49370125974805,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 0.35999999986961484
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "003-r1-source05-gap0",
+      "repeat": 1,
+      "side": "source05",
+      "gap_ms": 0,
+      "iterations": 20000,
+      "successful": 20000,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 58.8978966,
+        "p50": 52.08,
+        "p95": 95.921,
+        "p99": 137.762
+      },
+      "wall_s": 0.369067834,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 65,
+        "waited_child_ticks": 0,
+        "own_s": 0.65,
+        "waited_child_s": 0.0,
+        "total_s": 0.65,
+        "us_per_request": 32.5
+      },
+      "outer_including_warmup": {
+        "successful": 20004,
+        "roles": {
+          "httpd": {
+            "own_ticks": 65,
+            "waited_child_ticks": 0,
+            "own_s": 0.65,
+            "waited_child_s": 0.0,
+            "total_s": 0.65
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.65,
+        "us_per_request": 32.49350129974005,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 0.36999999987892807
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "004-r1-worker-gap0",
+      "repeat": 1,
+      "side": "worker",
+      "gap_ms": 0,
+      "iterations": 20000,
+      "successful": 20000,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 59.4437341,
+        "p50": 52.2,
+        "p95": 98.841,
+        "p99": 137.001
+      },
+      "wall_s": 0.371786736,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 65,
+        "waited_child_ticks": 0,
+        "own_s": 0.65,
+        "waited_child_s": 0.0,
+        "total_s": 0.65,
+        "us_per_request": 32.5
+      },
+      "outer_including_warmup": {
+        "successful": 20004,
+        "roles": {
+          "httpd": {
+            "own_ticks": 65,
+            "waited_child_ticks": 0,
+            "own_s": 0.65,
+            "waited_child_s": 0.0,
+            "total_s": 0.65
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.65,
+        "us_per_request": 32.49350129974005,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 0.38000000012107193
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1124,
+            "RssAnon": 252,
+            "RssFile": 872,
+            "VmHWM": 1124,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1012,
+            "RssAnon": 140,
+            "RssFile": 872,
+            "VmHWM": 1012,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1012,
+            "RssAnon": 140,
+            "RssFile": 872,
+            "VmHWM": 1012,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1932,
+            "RssAnon": 544,
+            "RssFile": 1388,
+            "VmHWM": 1932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1932,
+            "RssAnon": 544,
+            "RssFile": 1388,
+            "VmHWM": 1932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1932,
+            "RssAnon": 544,
+            "RssFile": 1388,
+            "VmHWM": 1932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1932,
+            "RssAnon": 544,
+            "RssFile": 1388,
+            "VmHWM": 1932,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "005-r1-head-gap0",
+      "repeat": 1,
+      "side": "head",
+      "gap_ms": 0,
+      "iterations": 20000,
+      "successful": 20000,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 59.03847175,
+        "p50": 52.6,
+        "p95": 97.16,
+        "p99": 137.361
+      },
+      "wall_s": 0.36740934,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 65,
+        "waited_child_ticks": 0,
+        "own_s": 0.65,
+        "waited_child_s": 0.0,
+        "total_s": 0.65,
+        "us_per_request": 32.5
+      },
+      "outer_including_warmup": {
+        "successful": 20004,
+        "roles": {
+          "httpd": {
+            "own_ticks": 65,
+            "waited_child_ticks": 0,
+            "own_s": 0.65,
+            "waited_child_s": 0.0,
+            "total_s": 0.65
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.65,
+        "us_per_request": 32.49350129974005,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 0.38000000012107193
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1128,
+            "RssAnon": 256,
+            "RssFile": 872,
+            "VmHWM": 1128,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "006-r1-stock-gap40",
+      "repeat": 1,
+      "side": "stock",
+      "gap_ms": 40,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 127.51557875,
+        "p50": 117.161,
+        "p95": 184.922,
+        "p99": 259.082
+      },
+      "wall_s": 8.045182941,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 3,
+        "waited_child_ticks": 0,
+        "own_s": 0.03,
+        "waited_child_s": 0.0,
+        "total_s": 0.03,
+        "us_per_request": 37.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 3,
+            "waited_child_ticks": 0,
+            "own_s": 0.03,
+            "waited_child_s": 0.0,
+            "total_s": 0.03
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.03,
+        "us_per_request": 37.3134328358209,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 8.050000000046566
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 1028,
+            "RssAnon": 112,
+            "RssFile": 916,
+            "VmHWM": 1028,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1036,
+            "RssAnon": 120,
+            "RssFile": 916,
+            "VmHWM": 1036,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 120,
+            "RssFile": 916,
+            "VmHWM": 1036,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 120,
+            "RssFile": 916,
+            "VmHWM": 1036,
+            "fds": 8,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 12,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 12,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "007-r1-r89-gap40",
+      "repeat": 1,
+      "side": "r89",
+      "gap_ms": 40,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 134.91632625000003,
+        "p50": 123.041,
+        "p95": 224.802,
+        "p99": 310.442
+      },
+      "wall_s": 8.04550131,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 5,
+        "waited_child_ticks": 0,
+        "own_s": 0.05,
+        "waited_child_s": 0.0,
+        "total_s": 0.05,
+        "us_per_request": 62.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 5,
+            "waited_child_ticks": 0,
+            "own_s": 0.05,
+            "waited_child_s": 0.0,
+            "total_s": 0.05
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.05,
+        "us_per_request": 62.18905472636816,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 8.050000000046566
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1952,
+            "RssAnon": 548,
+            "RssFile": 1404,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1952,
+            "RssAnon": 548,
+            "RssFile": 1404,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1952,
+            "RssAnon": 548,
+            "RssFile": 1404,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1952,
+            "RssAnon": 548,
+            "RssFile": 1404,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "008-r1-source05-gap40",
+      "repeat": 1,
+      "side": "source05",
+      "gap_ms": 40,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 130.83279124999999,
+        "p50": 120.041,
+        "p95": 223.722,
+        "p99": 308.083
+      },
+      "wall_s": 8.045663037,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 4,
+        "waited_child_ticks": 0,
+        "own_s": 0.04,
+        "waited_child_s": 0.0,
+        "total_s": 0.04,
+        "us_per_request": 50.0
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 4,
+            "waited_child_ticks": 0,
+            "own_s": 0.04,
+            "waited_child_s": 0.0,
+            "total_s": 0.04
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.04,
+        "us_per_request": 49.75124378109453,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 8.049999999813735
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1956,
+            "RssAnon": 548,
+            "RssFile": 1408,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "009-r1-worker-gap40",
+      "repeat": 1,
+      "side": "worker",
+      "gap_ms": 40,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 131.52941750000002,
+        "p50": 118.921,
+        "p95": 235.602,
+        "p99": 298.163
+      },
+      "wall_s": 8.046027445,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 5,
+        "waited_child_ticks": 0,
+        "own_s": 0.05,
+        "waited_child_s": 0.0,
+        "total_s": 0.05,
+        "us_per_request": 62.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 5,
+            "waited_child_ticks": 0,
+            "own_s": 0.05,
+            "waited_child_s": 0.0,
+            "total_s": 0.05
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.05,
+        "us_per_request": 62.18905472636816,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 8.050000000046566
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1128,
+            "RssAnon": 256,
+            "RssFile": 872,
+            "VmHWM": 1128,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "010-r1-head-gap40",
+      "repeat": 1,
+      "side": "head",
+      "gap_ms": 40,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 134.1628525,
+        "p50": 122.921,
+        "p95": 236.402,
+        "p99": 295.243
+      },
+      "wall_s": 8.046406813,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 5,
+        "waited_child_ticks": 0,
+        "own_s": 0.05,
+        "waited_child_s": 0.0,
+        "total_s": 0.05,
+        "us_per_request": 62.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 5,
+            "waited_child_ticks": 0,
+            "own_s": 0.05,
+            "waited_child_s": 0.0,
+            "total_s": 0.05
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.05,
+        "us_per_request": 62.18905472636816,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 8.050000000046566
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1128,
+            "RssAnon": 256,
+            "RssFile": 872,
+            "VmHWM": 1128,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1056,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1056,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "011-r1-stock-gap60",
+      "repeat": 1,
+      "side": "stock",
+      "gap_ms": 60,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 138.3408475,
+        "p50": 133.841,
+        "p95": 198.081,
+        "p99": 248.722
+      },
+      "wall_s": 12.047243365,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 4,
+        "waited_child_ticks": 0,
+        "own_s": 0.04,
+        "waited_child_s": 0.0,
+        "total_s": 0.04,
+        "us_per_request": 50.0
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 4,
+            "waited_child_ticks": 0,
+            "own_s": 0.04,
+            "waited_child_s": 0.0,
+            "total_s": 0.04
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.04,
+        "us_per_request": 49.75124378109453,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 12.050000000046566
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 960,
+            "RssAnon": 116,
+            "RssFile": 844,
+            "VmHWM": 960,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 968,
+            "RssAnon": 124,
+            "RssFile": 844,
+            "VmHWM": 968,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 968,
+            "RssAnon": 124,
+            "RssFile": 844,
+            "VmHWM": 968,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 968,
+            "RssAnon": 124,
+            "RssFile": 844,
+            "VmHWM": 968,
+            "fds": 8,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 12,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 932,
+            "RssAnon": 84,
+            "RssFile": 848,
+            "VmHWM": 932,
+            "fds": 12,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "012-r1-r89-gap60",
+      "repeat": 1,
+      "side": "r89",
+      "gap_ms": 60,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 283.96673375,
+        "p50": 277.842,
+        "p95": 382.683,
+        "p99": 450.003
+      },
+      "wall_s": 12.075517568,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 22,
+        "waited_child_ticks": 0,
+        "own_s": 0.22,
+        "waited_child_s": 0.0,
+        "total_s": 0.22,
+        "us_per_request": 275.0
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 22,
+            "waited_child_ticks": 0,
+            "own_s": 0.22,
+            "waited_child_s": 0.0,
+            "total_s": 0.22
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.22,
+        "us_per_request": 273.6318407960199,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 12.070000000065193
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 904,
+            "RssAnon": 84,
+            "RssFile": 820,
+            "VmHWM": 904,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 798,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "013-r1-source05-gap60",
+      "repeat": 1,
+      "side": "source05",
+      "gap_ms": 60,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 278.8561125,
+        "p50": 273.482,
+        "p95": 375.603,
+        "p99": 433.243
+      },
+      "wall_s": 12.074669451,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 22,
+        "waited_child_ticks": 0,
+        "own_s": 0.22,
+        "waited_child_s": 0.0,
+        "total_s": 0.22,
+        "us_per_request": 275.0
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 22,
+            "waited_child_ticks": 0,
+            "own_s": 0.22,
+            "waited_child_s": 0.0,
+            "total_s": 0.22
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.22,
+        "us_per_request": 273.6318407960199,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 12.079999999841675
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1148,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1148,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1148,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1940,
+            "RssAnon": 548,
+            "RssFile": 1392,
+            "VmHWM": 1940,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1940,
+            "RssAnon": 548,
+            "RssFile": 1392,
+            "VmHWM": 1940,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1940,
+            "RssAnon": 548,
+            "RssFile": 1392,
+            "VmHWM": 1940,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1940,
+            "RssAnon": 548,
+            "RssFile": 1392,
+            "VmHWM": 1940,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 798,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "014-r1-worker-gap60",
+      "repeat": 1,
+      "side": "worker",
+      "gap_ms": 60,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 219.2163825,
+        "p50": 217.082,
+        "p95": 296.322,
+        "p99": 374.843
+      },
+      "wall_s": 12.061155828,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 12,
+        "waited_child_ticks": 0,
+        "own_s": 0.12,
+        "waited_child_s": 0.0,
+        "total_s": 0.12,
+        "us_per_request": 150.0
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 12,
+            "waited_child_ticks": 0,
+            "own_s": 0.12,
+            "waited_child_s": 0.0,
+            "total_s": 0.12
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.12,
+        "us_per_request": 149.2537313432836,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 12.06000000005588
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1152,
+            "RssAnon": 280,
+            "RssFile": 872,
+            "VmHWM": 1312,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1040,
+            "RssAnon": 168,
+            "RssFile": 872,
+            "VmHWM": 1312,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1040,
+            "RssAnon": 168,
+            "RssFile": 872,
+            "VmHWM": 1312,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1948,
+            "RssAnon": 544,
+            "RssFile": 1404,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 864,
+            "RssAnon": 92,
+            "RssFile": 772,
+            "VmHWM": 864,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 864,
+            "RssAnon": 92,
+            "RssFile": 772,
+            "VmHWM": 864,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 864,
+            "RssAnon": 92,
+            "RssFile": 772,
+            "VmHWM": 864,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 864,
+            "RssAnon": 92,
+            "RssFile": 772,
+            "VmHWM": 864,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "015-r1-head-gap60",
+      "repeat": 1,
+      "side": "head",
+      "gap_ms": 60,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 200.11499375,
+        "p50": 192.401,
+        "p95": 276.282,
+        "p99": 342.842
+      },
+      "wall_s": 12.057234845,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 11,
+        "waited_child_ticks": 0,
+        "own_s": 0.11,
+        "waited_child_s": 0.0,
+        "total_s": 0.11,
+        "us_per_request": 137.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 11,
+            "waited_child_ticks": 0,
+            "own_s": 0.11,
+            "waited_child_s": 0.0,
+            "total_s": 0.11
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.11,
+        "us_per_request": 136.81592039800995,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 12.06000000005588
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1148,
+            "RssAnon": 276,
+            "RssFile": 872,
+            "VmHWM": 1244,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1244,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1244,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1860,
+            "RssAnon": 544,
+            "RssFile": 1316,
+            "VmHWM": 1860,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 908,
+            "RssAnon": 84,
+            "RssFile": 824,
+            "VmHWM": 908,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 908,
+            "RssAnon": 84,
+            "RssFile": 824,
+            "VmHWM": 908,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 908,
+            "RssAnon": 84,
+            "RssFile": 824,
+            "VmHWM": 908,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 908,
+            "RssAnon": 84,
+            "RssFile": 824,
+            "VmHWM": 908,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "016-r1-stock-gap80",
+      "repeat": 1,
+      "side": "stock",
+      "gap_ms": 80,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 143.89863625,
+        "p50": 138.241,
+        "p95": 220.122,
+        "p99": 259.762
+      },
+      "wall_s": 16.047546411,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 4,
+        "waited_child_ticks": 0,
+        "own_s": 0.04,
+        "waited_child_s": 0.0,
+        "total_s": 0.04,
+        "us_per_request": 50.0
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 4,
+            "waited_child_ticks": 0,
+            "own_s": 0.04,
+            "waited_child_s": 0.0,
+            "total_s": 0.04
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.04,
+        "us_per_request": 49.75124378109453,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 16.050000000046566
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 1040,
+            "RssAnon": 116,
+            "RssFile": 924,
+            "VmHWM": 1040,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1048,
+            "RssAnon": 124,
+            "RssFile": 924,
+            "VmHWM": 1048,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1048,
+            "RssAnon": 124,
+            "RssFile": 924,
+            "VmHWM": 1048,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1048,
+            "RssAnon": 124,
+            "RssFile": 924,
+            "VmHWM": 1048,
+            "fds": 8,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1956,
+            "RssAnon": 544,
+            "RssFile": 1412,
+            "VmHWM": 1956,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 928,
+            "RssAnon": 84,
+            "RssFile": 844,
+            "VmHWM": 928,
+            "fds": 12,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "017-r1-r89-gap80",
+      "repeat": 1,
+      "side": "r89",
+      "gap_ms": 80,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 296.18704375,
+        "p50": 291.683,
+        "p95": 397.564,
+        "p99": 462.204
+      },
+      "wall_s": 16.077517631,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 23,
+        "waited_child_ticks": 0,
+        "own_s": 0.23,
+        "waited_child_s": 0.0,
+        "total_s": 0.23,
+        "us_per_request": 287.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 23,
+            "waited_child_ticks": 0,
+            "own_s": 0.23,
+            "waited_child_s": 0.0,
+            "total_s": 0.23
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.23,
+        "us_per_request": 286.0696517412935,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 16.079999999841675
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1228,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1228,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1228,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1936,
+            "RssAnon": 544,
+            "RssFile": 1392,
+            "VmHWM": 1936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1936,
+            "RssAnon": 544,
+            "RssFile": 1392,
+            "VmHWM": 1936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1936,
+            "RssAnon": 544,
+            "RssFile": 1392,
+            "VmHWM": 1936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1936,
+            "RssAnon": 544,
+            "RssFile": 1392,
+            "VmHWM": 1936,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 924,
+            "RssAnon": 84,
+            "RssFile": 840,
+            "VmHWM": 924,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 796,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "018-r1-source05-gap80",
+      "repeat": 1,
+      "side": "source05",
+      "gap_ms": 80,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 300.71451375,
+        "p50": 295.563,
+        "p95": 412.923,
+        "p99": 470.284
+      },
+      "wall_s": 16.078916496,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 23,
+        "waited_child_ticks": 0,
+        "own_s": 0.23,
+        "waited_child_s": 0.0,
+        "total_s": 0.23,
+        "us_per_request": 287.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 23,
+            "waited_child_ticks": 0,
+            "own_s": 0.23,
+            "waited_child_s": 0.0,
+            "total_s": 0.23
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.23,
+        "us_per_request": 286.0696517412935,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 16.079999999841675
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1252,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1252,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1252,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1864,
+            "RssAnon": 548,
+            "RssFile": 1316,
+            "VmHWM": 1864,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1864,
+            "RssAnon": 548,
+            "RssFile": 1316,
+            "VmHWM": 1864,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1864,
+            "RssAnon": 548,
+            "RssFile": 1316,
+            "VmHWM": 1864,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1864,
+            "RssAnon": 548,
+            "RssFile": 1316,
+            "VmHWM": 1864,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 936,
+            "RssAnon": 88,
+            "RssFile": 848,
+            "VmHWM": 936,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 796,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "019-r1-worker-gap80",
+      "repeat": 1,
+      "side": "worker",
+      "gap_ms": 80,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 229.457225,
+        "p50": 227.802,
+        "p95": 295.443,
+        "p99": 347.043
+      },
+      "wall_s": 16.06430467,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 12,
+        "waited_child_ticks": 0,
+        "own_s": 0.12,
+        "waited_child_s": 0.0,
+        "total_s": 0.12,
+        "us_per_request": 150.0
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 12,
+            "waited_child_ticks": 0,
+            "own_s": 0.12,
+            "waited_child_s": 0.0,
+            "total_s": 0.12
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.12,
+        "us_per_request": 149.2537313432836,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 16.070000000065193
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1148,
+            "RssAnon": 276,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1952,
+            "RssAnon": 544,
+            "RssFile": 1408,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1952,
+            "RssAnon": 544,
+            "RssFile": 1408,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1952,
+            "RssAnon": 544,
+            "RssFile": 1408,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1952,
+            "RssAnon": 544,
+            "RssFile": 1408,
+            "VmHWM": 1952,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 916,
+            "RssAnon": 92,
+            "RssFile": 824,
+            "VmHWM": 916,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 916,
+            "RssAnon": 92,
+            "RssFile": 824,
+            "VmHWM": 916,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 916,
+            "RssAnon": 92,
+            "RssFile": 824,
+            "VmHWM": 916,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 916,
+            "RssAnon": 92,
+            "RssFile": 824,
+            "VmHWM": 916,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    },
+    {
+      "name": "020-r1-head-gap80",
+      "repeat": 1,
+      "side": "head",
+      "gap_ms": 80,
+      "iterations": 800,
+      "successful": 800,
+      "errors": 0,
+      "warmup_successful": 4,
+      "latency_us": {
+        "mean": 226.81528625,
+        "p50": 222.442,
+        "p95": 316.363,
+        "p99": 369.923
+      },
+      "wall_s": 16.063445195,
+      "ticks_per_second": 100,
+      "subject_measured_cpu": {
+        "own_ticks": 11,
+        "waited_child_ticks": 0,
+        "own_s": 0.11,
+        "waited_child_s": 0.0,
+        "total_s": 0.11,
+        "us_per_request": 137.5
+      },
+      "outer_including_warmup": {
+        "successful": 804,
+        "roles": {
+          "httpd": {
+            "own_ticks": 11,
+            "waited_child_ticks": 0,
+            "own_s": 0.11,
+            "waited_child_s": 0.0,
+            "total_s": 0.11
+          },
+          "rpcd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          },
+          "ubusd": {
+            "own_ticks": 0,
+            "waited_child_ticks": 0,
+            "own_s": 0.0,
+            "waited_child_s": 0.0,
+            "total_s": 0.0
+          }
+        },
+        "all_daemons_cpu_s": 0.11,
+        "us_per_request": 136.81592039800995,
+        "dependencies_cpu_s": 0.0,
+        "wall_s": 16.070000000065193
+      },
+      "resources": {
+        "httpd": {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1148,
+            "RssAnon": 276,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          }
+        },
+        "rpcd": {
+          "before": {
+            "VmRSS": 1948,
+            "RssAnon": 548,
+            "RssFile": 1400,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1948,
+            "RssAnon": 548,
+            "RssFile": 1400,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1948,
+            "RssAnon": 548,
+            "RssFile": 1400,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1948,
+            "RssAnon": 548,
+            "RssFile": 1400,
+            "VmHWM": 1948,
+            "fds": 11,
+            "Threads": 1
+          }
+        },
+        "ubusd": {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 84,
+            "RssFile": 768,
+            "VmHWM": 852,
+            "fds": 11,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 852,
+            "RssAnon": 84,
+            "RssFile": 768,
+            "VmHWM": 852,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 852,
+            "RssAnon": 84,
+            "RssFile": 768,
+            "VmHWM": 852,
+            "fds": 11,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 852,
+            "RssAnon": 84,
+            "RssFile": 768,
+            "VmHWM": 852,
+            "fds": 11,
+            "Threads": 1
+          }
+        }
+      },
+      "sampled_thread_births_lower_bound": 0,
+      "observer_interval_ms": 2
+    }
+  ],
+  "summary": [
+    {
+      "gap_ms": 0,
+      "side": "stock",
+      "samples": 1,
+      "cpu_us_median": 43.5,
+      "cpu_us_runs": [
+        43.5
+      ],
+      "latency_mean_us_median": 163.45480055000002,
+      "latency_mean_us_runs": [
+        163.45480055000002
+      ],
+      "cpu_ticks_runs": [
+        87
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 1012,
+            "RssAnon": 116,
+            "RssFile": 896,
+            "VmHWM": 1012,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1020,
+            "RssAnon": 124,
+            "RssFile": 896,
+            "VmHWM": 1020,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1020,
+            "RssAnon": 124,
+            "RssFile": 896,
+            "VmHWM": 1020,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1020,
+            "RssAnon": 124,
+            "RssFile": 896,
+            "VmHWM": 1020,
+            "fds": 8,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 0,
+      "side": "r89",
+      "samples": 1,
+      "cpu_us_median": 31.5,
+      "cpu_us_runs": [
+        31.5
+      ],
+      "latency_mean_us_median": 57.949373050000005,
+      "latency_mean_us_runs": [
+        57.949373050000005
+      ],
+      "cpu_ticks_runs": [
+        63
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 0,
+      "side": "source05",
+      "samples": 1,
+      "cpu_us_median": 32.5,
+      "cpu_us_runs": [
+        32.5
+      ],
+      "latency_mean_us_median": 58.8978966,
+      "latency_mean_us_runs": [
+        58.8978966
+      ],
+      "cpu_ticks_runs": [
+        65
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1000,
+            "RssAnon": 128,
+            "RssFile": 872,
+            "VmHWM": 1000,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 0,
+      "side": "worker",
+      "samples": 1,
+      "cpu_us_median": 32.5,
+      "cpu_us_runs": [
+        32.5
+      ],
+      "latency_mean_us_median": 59.4437341,
+      "latency_mean_us_runs": [
+        59.4437341
+      ],
+      "cpu_ticks_runs": [
+        65
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1124,
+            "RssAnon": 252,
+            "RssFile": 872,
+            "VmHWM": 1124,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1012,
+            "RssAnon": 140,
+            "RssFile": 872,
+            "VmHWM": 1012,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1012,
+            "RssAnon": 140,
+            "RssFile": 872,
+            "VmHWM": 1012,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 0,
+      "side": "head",
+      "samples": 1,
+      "cpu_us_median": 32.5,
+      "cpu_us_runs": [
+        32.5
+      ],
+      "latency_mean_us_median": 59.03847175,
+      "latency_mean_us_runs": [
+        59.03847175
+      ],
+      "cpu_ticks_runs": [
+        65
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1128,
+            "RssAnon": 256,
+            "RssFile": 872,
+            "VmHWM": 1128,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 40,
+      "side": "stock",
+      "samples": 1,
+      "cpu_us_median": 37.5,
+      "cpu_us_runs": [
+        37.5
+      ],
+      "latency_mean_us_median": 127.51557875,
+      "latency_mean_us_runs": [
+        127.51557875
+      ],
+      "cpu_ticks_runs": [
+        3
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 1028,
+            "RssAnon": 112,
+            "RssFile": 916,
+            "VmHWM": 1028,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1036,
+            "RssAnon": 120,
+            "RssFile": 916,
+            "VmHWM": 1036,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 120,
+            "RssFile": 916,
+            "VmHWM": 1036,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 120,
+            "RssFile": 916,
+            "VmHWM": 1036,
+            "fds": 8,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 40,
+      "side": "r89",
+      "samples": 1,
+      "cpu_us_median": 62.5,
+      "cpu_us_runs": [
+        62.5
+      ],
+      "latency_mean_us_median": 134.91632625000003,
+      "latency_mean_us_runs": [
+        134.91632625000003
+      ],
+      "cpu_ticks_runs": [
+        5
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 40,
+      "side": "source05",
+      "samples": 1,
+      "cpu_us_median": 50.0,
+      "cpu_us_runs": [
+        50.0
+      ],
+      "latency_mean_us_median": 130.83279124999999,
+      "latency_mean_us_runs": [
+        130.83279124999999
+      ],
+      "cpu_ticks_runs": [
+        4
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1004,
+            "RssAnon": 132,
+            "RssFile": 872,
+            "VmHWM": 1004,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 40,
+      "side": "worker",
+      "samples": 1,
+      "cpu_us_median": 62.5,
+      "cpu_us_runs": [
+        62.5
+      ],
+      "latency_mean_us_median": 131.52941750000002,
+      "latency_mean_us_runs": [
+        131.52941750000002
+      ],
+      "cpu_ticks_runs": [
+        5
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1128,
+            "RssAnon": 256,
+            "RssFile": 872,
+            "VmHWM": 1128,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1016,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 40,
+      "side": "head",
+      "samples": 1,
+      "cpu_us_median": 62.5,
+      "cpu_us_runs": [
+        62.5
+      ],
+      "latency_mean_us_median": 134.1628525,
+      "latency_mean_us_runs": [
+        134.1628525
+      ],
+      "cpu_ticks_runs": [
+        5
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1128,
+            "RssAnon": 256,
+            "RssFile": 872,
+            "VmHWM": 1128,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1056,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1016,
+            "RssAnon": 144,
+            "RssFile": 872,
+            "VmHWM": 1056,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 60,
+      "side": "stock",
+      "samples": 1,
+      "cpu_us_median": 50.0,
+      "cpu_us_runs": [
+        50.0
+      ],
+      "latency_mean_us_median": 138.3408475,
+      "latency_mean_us_runs": [
+        138.3408475
+      ],
+      "cpu_ticks_runs": [
+        4
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 960,
+            "RssAnon": 116,
+            "RssFile": 844,
+            "VmHWM": 960,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 968,
+            "RssAnon": 124,
+            "RssFile": 844,
+            "VmHWM": 968,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 968,
+            "RssAnon": 124,
+            "RssFile": 844,
+            "VmHWM": 968,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 968,
+            "RssAnon": 124,
+            "RssFile": 844,
+            "VmHWM": 968,
+            "fds": 8,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 60,
+      "side": "r89",
+      "samples": 1,
+      "cpu_us_median": 275.0,
+      "cpu_us_runs": [
+        275.0
+      ],
+      "latency_mean_us_median": 283.96673375,
+      "latency_mean_us_runs": [
+        283.96673375
+      ],
+      "cpu_ticks_runs": [
+        22
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 60,
+      "side": "source05",
+      "samples": 1,
+      "cpu_us_median": 275.0,
+      "cpu_us_runs": [
+        275.0
+      ],
+      "latency_mean_us_median": 278.8561125,
+      "latency_mean_us_runs": [
+        278.8561125
+      ],
+      "cpu_ticks_runs": [
+        22
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1148,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1148,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1148,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 60,
+      "side": "worker",
+      "samples": 1,
+      "cpu_us_median": 150.0,
+      "cpu_us_runs": [
+        150.0
+      ],
+      "latency_mean_us_median": 219.2163825,
+      "latency_mean_us_runs": [
+        219.2163825
+      ],
+      "cpu_ticks_runs": [
+        12
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1152,
+            "RssAnon": 280,
+            "RssFile": 872,
+            "VmHWM": 1312,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1040,
+            "RssAnon": 168,
+            "RssFile": 872,
+            "VmHWM": 1312,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1040,
+            "RssAnon": 168,
+            "RssFile": 872,
+            "VmHWM": 1312,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 60,
+      "side": "head",
+      "samples": 1,
+      "cpu_us_median": 137.5,
+      "cpu_us_runs": [
+        137.5
+      ],
+      "latency_mean_us_median": 200.11499375,
+      "latency_mean_us_runs": [
+        200.11499375
+      ],
+      "cpu_ticks_runs": [
+        11
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1148,
+            "RssAnon": 276,
+            "RssFile": 872,
+            "VmHWM": 1244,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1244,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1244,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 80,
+      "side": "stock",
+      "samples": 1,
+      "cpu_us_median": 50.0,
+      "cpu_us_runs": [
+        50.0
+      ],
+      "latency_mean_us_median": 143.89863625,
+      "latency_mean_us_runs": [
+        143.89863625
+      ],
+      "cpu_ticks_runs": [
+        4
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 1040,
+            "RssAnon": 116,
+            "RssFile": 924,
+            "VmHWM": 1040,
+            "fds": 8,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1048,
+            "RssAnon": 124,
+            "RssFile": 924,
+            "VmHWM": 1048,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1048,
+            "RssAnon": 124,
+            "RssFile": 924,
+            "VmHWM": 1048,
+            "fds": 8,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1048,
+            "RssAnon": 124,
+            "RssFile": 924,
+            "VmHWM": 1048,
+            "fds": 8,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 80,
+      "side": "r89",
+      "samples": 1,
+      "cpu_us_median": 287.5,
+      "cpu_us_runs": [
+        287.5
+      ],
+      "latency_mean_us_median": 296.18704375,
+      "latency_mean_us_runs": [
+        296.18704375
+      ],
+      "cpu_ticks_runs": [
+        23
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1228,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1228,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1228,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 80,
+      "side": "source05",
+      "samples": 1,
+      "cpu_us_median": 287.5,
+      "cpu_us_runs": [
+        287.5
+      ],
+      "latency_mean_us_median": 300.71451375,
+      "latency_mean_us_runs": [
+        300.71451375
+      ],
+      "cpu_ticks_runs": [
+        23
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1252,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_1s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1252,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1024,
+            "RssAnon": 152,
+            "RssFile": 872,
+            "VmHWM": 1252,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 80,
+      "side": "worker",
+      "samples": 1,
+      "cpu_us_median": 150.0,
+      "cpu_us_runs": [
+        150.0
+      ],
+      "latency_mean_us_median": 229.457225,
+      "latency_mean_us_runs": [
+        229.457225
+      ],
+      "cpu_ticks_runs": [
+        12
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 856,
+            "RssAnon": 48,
+            "RssFile": 808,
+            "VmHWM": 856,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1148,
+            "RssAnon": 276,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    },
+    {
+      "gap_ms": 80,
+      "side": "head",
+      "samples": 1,
+      "cpu_us_median": 137.5,
+      "cpu_us_runs": [
+        137.5
+      ],
+      "latency_mean_us_median": 226.81528625,
+      "latency_mean_us_runs": [
+        226.81528625
+      ],
+      "cpu_ticks_runs": [
+        11
+      ],
+      "resource_snapshots": [
+        {
+          "before": {
+            "VmRSS": 852,
+            "RssAnon": 44,
+            "RssFile": 808,
+            "VmHWM": 852,
+            "fds": 7,
+            "Threads": 1
+          },
+          "after": {
+            "VmRSS": 1148,
+            "RssAnon": 276,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 5
+          },
+          "idle_1s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          },
+          "idle_2s": {
+            "VmRSS": 1036,
+            "RssAnon": 164,
+            "RssFile": 872,
+            "VmHWM": 1184,
+            "fds": 7,
+            "Threads": 1
+          }
+        }
+      ]
+    }
+  ]
+}

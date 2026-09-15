@@ -1,7 +1,7 @@
 # R93：统一探索分支、正确性收尾与双基线优化
 
-> **2026-09-15 用户再次要求暂停，已收尾。** 最新状态与接续入口见
-> [R93_PAUSED_HANDOFF_2](R93_PAUSED_HANDOFF_2.md)。本文保留工作过程与验证记录。
+> **2026-09-15 用户已从第二次暂停点恢复工作。** 已完成项与候选身份见
+> [R93_PAUSED_HANDOFF_2](R93_PAUSED_HANDOFF_2.md)，本次恢复进度见本文末尾。
 
 ## 分支与授权
 
@@ -189,3 +189,22 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
 241.98→275.37 µs（+13.80%），CPU 17.86→22.82 µs。已有恢复正确性通过不代表性能
 已赢 R89；源码/总线期限开销正在定位，未通过撤除保护换分数。
 完整数据与限制见 [rpcd 本轮基线](reviews/R93_RPCD_DEVICE_BASELINE.md)。
+
+## 第二次恢复
+
+- HEAD 从 `d19f370` 恢复；工作区干净，source05 九个冻结 ELF hash 全部匹配。
+  离线归档、boot、配置、生产身份、恢复工具和保留基线 manifest 均与暂停时一致；
+  Wi-Fi/客户端健康通过，无未完成的回退事务。核验在 ignored `private/r93/resumed-02/`。
+- 已完成的四组件 456 个观测不重复采集；剩余 netifd、UCI、fw4、reload-config、HTTP
+  从新组件目录继续，仍使用 source05 冻结基线。生产保持 R92。
+- HTTP 五侧 pilot 先修正输出权限，再使用新目录完整初筛；RPCD 私有 glob 草稿先做
+  精确语义与分配验证；ubusd 借用遍历对照先修平衡顺序与完整矩阵校验。
+- HTTP 新五侧 pilot 已完成 20/20，112000 次响应完整正确。Oracle 上 60/80 ms 档
+  source05 CPU 为 275/287.5 µs，worker-cache 为 150/150，追加 head-cache 为
+  137.5/137.5，C 为 50/50。候选仍输 C；head 比 worker 仅少一个 tick，不能认定独立收益。
+  缓存线程退出后仍有额外 RSS，不能宣称全面省内存。旧权限失败的原始样本保持不动；
+  [初筛报告与测量边界](reviews/R93_HTTP_ORACLE_PILOT.md)。
+- RPCD 本机计数确认：成功 ACL 查询中的两次 `net*`/`r*` 匹配，source05 每请求
+  四次 Rust 分配、四次释放、21 B；ASCII 单尾星号候选均降到零。两种 locale 各
+  6500243 组 source05/candidate 语义对照通过；这只是本机机制证据，目标镜像和
+  SDK 验证及 CPU 对照仍待完成，未合入运行时。
