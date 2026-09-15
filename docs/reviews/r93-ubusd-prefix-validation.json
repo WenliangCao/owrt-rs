@@ -1,0 +1,107 @@
+{
+  "passed": true,
+  "scope": "prefix correctness fix on source05, 9 fault groups; not performance or deployment acceptance",
+  "sdk_ubusd_sha256": "49b0244d7e6fea050b4ea39b92af82c1023a784c331ab3b8faf8b009450685e1",
+  "gnu_ubusd_sha256": "54d8150705afd9dc6c363f4a668d87e775174c24397a8f2c56c2bd3768a02c9a",
+  "server_with_tests_sha256": "014c31b2a67fabc99840656e44e6a680a983ef5d43b6a0047ba559da732f811c",
+  "fault_groups": [
+    {
+      "name": "procd-watch",
+      "exit": 0,
+      "log_sha256": "d87e55906bb412a1b16b07f66032a9e5a67e63edcc1c55b92e2454bfb580f673"
+    },
+    {
+      "name": "httpd-shared-cap",
+      "exit": 0,
+      "log_sha256": "60da34d98ea370e76eb0063031e8390de42e03dd07038b21ce048fa72d65db2f"
+    },
+    {
+      "name": "ubusd-accept",
+      "exit": 0,
+      "log_sha256": "03af233021c43d569b0013138a2b0c6039ad1782703032057662a46e49a075f0"
+    },
+    {
+      "name": "ubusd-prefix",
+      "exit": 0,
+      "log_sha256": "abfd015ac60ee90567e3dd6842f708b7d6678626c6b8ae33fa9577068d534eaa"
+    },
+    {
+      "name": "logd-streams",
+      "exit": 0,
+      "log_sha256": "c286f5e5c2e169f42c3fc55ece7a6e3e24569f31b4c24a611bb953340939d96f"
+    },
+    {
+      "name": "rpcd-disconnect",
+      "exit": 0,
+      "log_sha256": "e286e9d7cf40f1ce24c0d7c7ab6d2b8173a2125b366133bb3b49887787a77ea1"
+    },
+    {
+      "name": "rpcd-half_header",
+      "exit": 0,
+      "log_sha256": "e4908d3ab3fd5895ee8493376a975d8974ce4974e25f48c3014e2445c6d5f3bf"
+    },
+    {
+      "name": "netifd-network.device",
+      "exit": 0,
+      "log_sha256": "21f4f00aee6364aa563974a8df5e94645dfc8385d3c641dc6e9d8ddeb632afee"
+    },
+    {
+      "name": "netifd-network.interface.loopback",
+      "exit": 0,
+      "log_sha256": "8655ff8de9211868b76c1b17442872602a35169df2cecf14a87b7c02bfcdcd09"
+    }
+  ],
+  "binary_sha256": {
+    "ubusd-rs": "49b0244d7e6fea050b4ea39b92af82c1023a784c331ab3b8faf8b009450685e1",
+    "httpd-rs": "d7a6ed6285bcd828273f0ebdbbf33765efff66c26243776ab1957ef08672b2ab",
+    "rpcd-rs": "d78a752cb383abfbc3c2d0050e445e3742595706e0baf05af17c60d3fcd5d1a8",
+    "logd-rs": "235a50bf191e9858a760fb120683ee49f6c18ddff06912d1c0acd8f158450627",
+    "uci-rs": "823d8c9545c7d4dd3c4a14d3bddebd3b86ad745d34b54a9e81d8f53c04533654",
+    "netifd-rs": "7122d02b3ff1426605e00b313e5e3d0078090b7741ff8089b3e8395778d3544a",
+    "fw4-rs": "e6bdb3218ce85d01527cc903c9921e5a8908d918ecf9d44b50148017070b0cb0",
+    "reload_config_rs": "1f0bb7896b51a2093c846e71c849cba1d6da23adc62d8a585d7362ac8294ac35",
+    "ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "owrt-benchmark": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+    "procd-rs": "1458301f5fb613ce81e48acc154dee75cfadabc668f4ccf66779fd4d0c26d862"
+  },
+  "source_sha256": {
+    "tools/r14_httpd_check.py": "7578754ce914c7e688a2b0dee6d37c84cd69730f314d003f44527dd665e2c49b",
+    "tools/r92_compat_probe.py": "c092ba6bf6fab04bd08667f8b9c4f7ac4042e3dfb605e080df74a0c1b1aa3396",
+    "tools/r92_recovery_probe.py": "77fb8a609fbd55f97aa7cbe232a878e592813764daa7b760c778ba36792b1713",
+    "tools/r92_validate.py": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2",
+    "tools/r93_httpd_cap_probe.py": "16883e1427e2cd8cd31682d861da727884153e3e8fede43bbb42650710b861f3",
+    "tools/r93_netifd_reconnect.py": "57c46e7b7a8fb32f2a9411dbb657d3e5bd681023a0afb3b73923ee05bc0c1bb6",
+    "tools/r93_procd_watch_probe.py": "d185916a0a2640d6c179943fe00e6077dd44fcba8e0a98faeb1ef29b14fe87fe",
+    "tools/r93_regressions.py": "05fd6fc52fc658b35526b8f34c68989706eababf35f682db3ad9a16cb190bb11",
+    "tools/r93_rpcd_reconnect.py": "e2379c1d17c504f6fa4a0804b44d37baa1c38bfa9d6437f0d1020a167fbf9518",
+    "tools/r93_ubusd_accept_probe.py": "78071068705d093d0bd8b3ba1b7a1f5d0ab545697628b906058d4ee1fd933a8a",
+    "tools/r93_ubusd_prefix_probe.py": "40800f1e20e85a57bfd803d736d60791b37be1e3f76f4a0fd08fead8f08907ba",
+    "tools/test_logd_stream_recovery.py": "18d1df2d5224fb303b4338efd722aa67506ba9db73c71617c4e505f5d2d056c7"
+  },
+  "evidence_archive_sha256": "04af198c15af21028097bea9712b78c55da9a67dfaedf8d1f92b3dd7edb2c226",
+  "historical_ubusd_gates": [
+    "r36",
+    "r36-user",
+    "r83",
+    "r42",
+    "r41"
+  ],
+  "focused_checks": [
+    "64 exact DATA payloads and STATUS",
+    "pipelined LOOKUP FIFO/PING and halfclose",
+    "ACL revoke while parked"
+  ],
+  "original_defect": {
+    "c": 62,
+    "r89": 62,
+    "source05": 62,
+    "fix": 64,
+    "expected_data_frames": 64
+  },
+  "native_linux_tests": 27,
+  "limitations": [
+    "SDK release runtime identical but last pipeline unit test added after SDK build",
+    "physical candidate matrix still measures frozen source05, not this fix",
+    "same SDK recipe diagnostic build; not canonical CI release"
+  ]
+}

@@ -69,6 +69,8 @@ def main():
          ["--binary", bins / "httpd-rs", "--rootfs", rootfs,
           "--output", out / "httpd-shared-cap.json"]),
         ("ubusd-accept", "r93_ubusd_accept_probe.py", [gnu, out / "ubusd-accept"]),
+        ("ubusd-prefix", "r93_ubusd_prefix_probe.py",
+         [rootfs, bins / "ubusd-rs", out / "ubusd-prefix", "--ns-exec", launcher]),
         ("logd-streams", "test_logd_stream_recovery.py",
          ["--ubusd", bins / "ubusd-rs", "--logd", bins / "logd-rs",
           "--output", out / "logd-streams.json"]),

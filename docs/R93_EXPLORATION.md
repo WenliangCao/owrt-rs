@@ -156,11 +156,28 @@ capacity，否则长尾空白日志可能增加 RSS。两类实验仅在 private
   配置及生产身份；`03-candidate/collector-recovery.json` 明记延迟的 host-after 观测。
   前两样本未动，第三样本取回后由原工具 `--resume` 继续，不覆写历史原始数据。
 - 私有 ubusd 诊断发现真实未修故障：64 个大签名对象的 `*` 慢读，C/source05/lookup 优化
-  候选都只返回 62 条 DATA 后发 STATUS；无 OBJPATH 同输入完整返回 64 条。R89 该输入
-  正在补测。失败交付不能纳入成功性能比较；单独制作保留发送上限的背压续传修复。
+  候选都只返回 62 条 DATA 后发 STATUS；无 OBJPATH 同输入完整返回 64 条。正式 R89
+  同输入也为 62/64。失败交付不能纳入成功性能比较。
 - HTTP worker-cache SDK 候选主要历史/故障门通过，但尚无实机收益；Linux 一次内存诊断
   冷态/64 连接/关闭 2 秒 RSS 为 952/1228/1112 KiB，线程 1/5/1，FD 7/71/7。
   关闭后仍比自身冷态高 160 KiB，不能宣称内存胜出。解析缓冲复用是另一个私有小实验。
 - logd span 候选运行正确性通过；Oracle 单轮 no-subscriber 的 source05/span CPU 均
   1.9 µs/条，尚未显示额外收益。小型分配计数证明减少临时分配，最终 ring 存活字节相同；
   不能用分配次数下降替代 CPU 或 RSS 验收。
+
+### Prefix 漏数据修复通过整组验证
+
+- 前缀 LOOKUP 现在在输出开始缓冲时按 owned 路径下界暂停，排空后续传，保留 1 MiB
+  发送上限；当前 LOOKUP 结束仍有缓冲时，后续 LOOKUP 继续等待。仅修改正确性路径，
+  未合入 pathless 遍历、HTTP worker 或 logd span 性能实验。
+- C/R89/source05 同输入严格失败，修复版 64/64 DATA 的完整 payload 和最终 STATUS 通过。
+  同客户端排队查询、PING seq、半关闭到 EOF、删除/重建续传点和撤销 ACL 均通过。
+- SDK 修复 ELF `49b0244d…`，507872 B；最终同源码 GNU ELF 单独用于 accept 注入。
+  27 项 Linux 单测、Clippy、五个 ubusd 历史门、四个恢复场景、三项专用门通过。
+- 替换 source05 bundle 的 ubusd 后，在独立冻结工具/二进制上执行新整组 **9/9 通过**，
+  包括 procd、HTTP cap、accept、prefix、logd、rpcd 断连/半帧、netifd 两种注册失败。
+  [验收摘要与身份](reviews/r93-ubusd-prefix-validation.json)。生产路由器未部署此修复。
+- source05 的 ubusd 四轮实机基线另已完成，共 120 个观测。部分查询延迟仍未赢 C/R89；
+  [完整对照](reviews/R93_UBUSD_DEVICE_BASELINE.md) 明确不包含本次新修复。
+- 旧 contract 关于 `txq_ofs` 残值破坏下一条消息的说法缺乏运行反例，且下一次部分写入
+  会重设 offset，已更正为未证实疑点。不能将旧文档断言当成新复现的故障。

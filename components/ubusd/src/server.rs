@@ -386,6 +386,11 @@ impl Server {
     /// `ubus_client_cmd_queue_process`.
     pub fn process_cmd_queue(&mut self, client: u32) {
         loop {
+            // A completed reply may itself have started buffering. Leave the
+            // next LOOKUP parked until that output drains as well.
+            if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
+                return;
+            }
             let Some(cmd) = self.clients.get_mut(&client).and_then(|c| c.cmd_queue.pop_front())
             else {
                 return;
@@ -446,14 +451,27 @@ impl Server {
         }
 
         let prefix = &path[..path.len() - 1];
-        let matches = self.reg.path_prefix(prefix);
+        let resumed = resume.is_some();
+        let matches: Vec<u32> = if let Some(lower) = resume {
+            self.reg.paths.range(lower..)
+                .take_while(|(path, _)| path.starts_with(prefix)).map(|(_, &id)| id).collect()
+        } else {
+            self.reg.path_prefix(prefix)
+        };
         if matches.is_empty() {
-            return Ok(Outcome::Status(status::NOT_FOUND));
+            // Removing the remaining tail completes a parked lookup; only an
+            // initially unmatched prefix reports NOT_FOUND.
+            return Ok(Outcome::Status(if resumed { status::OK } else { status::NOT_FOUND }));
         }
         if self.try_prefix_batch(client, msg, &matches) {
             return Ok(Outcome::NoStatus);
         }
         for id in matches {
+            // Prefix replies need the same backpressure boundary as pathless
+            // lookup: never fill the bounded queue then silently lose DATA.
+            if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
+                return Err(self.reg.get(id).and_then(|o| o.path.clone()));
+            }
             self.send_obj(client, id, msg);
         }
         Ok(Outcome::Status(status::OK))
@@ -1225,4 +1243,254 @@ mod tests {
         let a = blob::Attr { id: 9, extended: true, payload: &payload };
         assert!(check_method(&a).is_none());
     }
+    #[cfg(target_os = "linux")]
+    fn lookup_client() -> (Client, std::os::unix::net::UnixStream) {
+        use std::os::fd::AsRawFd;
+        use std::os::unix::net::UnixStream;
+        unsafe extern "C" {
+            fn setsockopt(fd: i32, level: i32, name: i32, value: *const i32, len: u32) -> i32;
+        }
+        let (sock, peer) = UnixStream::pair().unwrap();
+        sock.set_nonblocking(true).unwrap();
+        peer.set_nonblocking(true).unwrap();
+        let size: i32 = 4096;
+        // SAFETY: size is a live i32 with the declared byte length. These are
+        // Linux SOL_SOCKET/SO_SNDBUF, and sock is an owned connected socket.
+        assert_eq!(unsafe { setsockopt(sock.as_raw_fd(), 1, 7, &size, 4) }, 0);
+        (Client::new(sock.into(), crate::sys::Ucred::default(), String::new(), String::new()), peer)
+    }
+
+    #[cfg(target_os = "linux")]
+    fn drain_lookup(server: &mut Server, client: u32, peer: &mut std::os::unix::net::UnixStream) -> Vec<u8> {
+        use std::io::Read;
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
+        let mut bytes = Vec::new();
+        loop {
+            assert!(std::time::Instant::now() < deadline, "lookup did not finish");
+            let mut buffer = [0u8; 4096];
+            loop {
+                match peer.read(&mut buffer) {
+                    Ok(0) => panic!("unexpected EOF"),
+                    Ok(n) => bytes.extend_from_slice(&buffer[..n]),
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
+                    Err(e) => panic!("read: {e}"),
+                }
+            }
+            let c = server.clients.get_mut(&client).unwrap();
+            if c.tx_empty() && c.cmd_queue.is_empty() {
+                return bytes;
+            }
+            assert!(c.flush());
+            if c.tx_empty() {
+                server.process_cmd_queue(client);
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn lookup_frames(mut bytes: &[u8]) -> Vec<(Header, Vec<u8>)> {
+        let mut frames = Vec::new();
+        while !bytes.is_empty() {
+            assert!(bytes.len() >= Header::LEN + 4);
+            let header = Header::decode(bytes[..Header::LEN].try_into().unwrap()).unwrap();
+            let len = crate::client::blob_raw_len(&bytes[Header::LEN..]);
+            assert!(len >= 4 && bytes.len() >= Header::LEN + len);
+            frames.push((header, bytes[Header::LEN..Header::LEN + len].to_vec()));
+            bytes = &bytes[Header::LEN + len..];
+        }
+        frames
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn prefix_lookup_resumes_by_path_after_delete_or_recreate_and_keeps_queued_bytes() {
+        const CALLER: u32 = 2000;
+        const TYPE: u32 = 3000;
+        const FIRST: u32 = 4000;
+        for (change, pattern) in [("delete", "*"), ("recreate", "lookup.*"), ("delete_tail", "lookup.*")] {
+            let mut server = Server::new(String::new()).unwrap();
+            let (caller, mut peer) = lookup_client();
+            server.clients.insert(CALLER, caller);
+            let mut signature = BlobBuf::new();
+            let table = signature.msg_open_table("method");
+            signature.msg_string("large", &"x".repeat(32768));
+            signature.msg_close(table);
+            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods: vec![obj::Method {
+                name: b"method".to_vec(), blob: signature.payload().to_vec(),
+            }] });
+            let mut expected = Vec::new();
+            for i in 0..12 {
+                let id = FIRST + i;
+                server.reg.create(Some(TYPE), Some(id)).unwrap();
+                assert!(server.reg.set_path(id, format!("lookup.{i:02}").into_bytes()));
+                assert!(server.build_obj(CALLER, id));
+                expected.push(server.scratch.as_bytes().to_vec());
+            }
+            let mut blob = BlobBuf::new();
+            blob.put_string(attr::OBJPATH, pattern);
+            let request = InMsg { header: Header { ty: ty::LOOKUP, seq: 0xabcd, peer: 0x12345678 },
+                blob: blob.as_bytes().to_vec(), fd: None };
+            assert!(server.receive(CALLER, request));
+            let next = server.clients[&CALLER].cmd_queue.front().unwrap().next.clone().unwrap();
+            assert_eq!(next, b"lookup.01", "first frame must force backpressure");
+            let removed = server.reg.by_path(&next).unwrap();
+            server.reg.destroy(removed).unwrap();
+            if change == "recreate" {
+                server.reg.create(Some(TYPE), Some(9000)).unwrap();
+                assert!(server.reg.set_path(9000, next));
+                assert!(server.build_obj(CALLER, 9000));
+                expected[1] = server.scratch.as_bytes().to_vec();
+            } else if change == "delete_tail" {
+                for id in FIRST + 2..FIRST + 12 {
+                    server.reg.destroy(id).unwrap();
+                }
+                expected.truncate(1);
+            } else {
+                expected.remove(1);
+            }
+            // A newly inserted path before the saved lower bound must not
+            // restart the completed prefix or appear in this continuation.
+            server.reg.create(Some(TYPE), Some(9001)).unwrap();
+            assert!(server.reg.set_path(9001, b"lookup.00a".to_vec()));
+            if pattern != "*" {
+                server.reg.create(Some(TYPE), Some(9002)).unwrap();
+                assert!(server.reg.set_path(9002, b"outside".to_vec()));
+            }
+            // The first DATA is partially sent and queued. Deleting its
+            // registry entry and overwriting scratch must not alter its tail.
+            server.reg.destroy(FIRST).unwrap();
+            server.scratch.reset();
+            server.scratch.put_string(attr::OBJPATH, "overwritten");
+            let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
+            assert_eq!(frames.len(), expected.len() + 1);
+            for ((header, blob), expected) in frames[..frames.len() - 1].iter().zip(expected) {
+                assert_eq!(header.ty, ty::DATA);
+                assert_eq!(header.seq, 0xabcd);
+                assert_eq!(header.peer, 0x12345678);
+                assert_eq!(blob, &expected);
+            }
+            let (header, blob) = frames.last().unwrap();
+            assert_eq!(header.ty, ty::STATUS);
+            assert_eq!(header.seq, 0xabcd);
+            assert_eq!(header.peer, 0x12345678);
+            assert_eq!(attrs_of(&blob[4..])[attr::STATUS as usize].unwrap().as_u32(), Some(0));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn prefix_lookup_preserves_acl_typeless_filter_raw_order_and_monitor_frames() {
+        const CALLER: u32 = 2000;
+        const MONITOR: u32 = 2001;
+        for root in [false, true] {
+            let mut server = Server::new(String::new()).unwrap();
+            let (mut caller, mut peer) = lookup_client();
+            caller.uid = if root { 0 } else { 12345 };
+            server.clients.insert(CALLER, caller);
+            let (monitor, mut monitor_peer) = lookup_client();
+            server.clients.insert(MONITOR, monitor);
+            server.monitors.push((MONITOR, 0));
+            server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: Vec::new() });
+            let mut signature = BlobBuf::new();
+            let table = signature.msg_open_table("hidden");
+            signature.msg_close(table);
+            server.reg.types.insert(3001, obj::ObjType { refcount: 0, methods: vec![obj::Method {
+                name: b"hidden".to_vec(), blob: signature.payload().to_vec(),
+            }] });
+            // Deliberately insert in reverse byte order, including non-UTF8.
+            for (id, path, kind) in [(4000, &b"z\xff"[..], Some(3000)),
+                                      (4001, &b"c"[..], Some(3001)),
+                                      (4002, &b"b"[..], None),
+                                      (4003, &b"a"[..], Some(3000))] {
+                server.reg.create(kind, Some(id)).unwrap();
+                assert!(server.reg.set_path(id, path.to_vec()));
+            }
+            let mut blob = BlobBuf::new();
+            blob.put_string(attr::OBJPATH, "*");
+            let request = InMsg { header: Header { ty: ty::LOOKUP, seq: 55, peer: 66 },
+                blob: blob.as_bytes().to_vec(), fd: None };
+            let input = request.blob[4..].to_vec();
+            assert!(server.receive(CALLER, request));
+            let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
+            let paths: Vec<_> = frames.iter().filter(|(h, _)| h.ty == ty::DATA).map(|(_, b)| {
+                obj::cstr_bytes(attrs_of(&b[4..])[attr::OBJPATH as usize].unwrap().payload).to_vec()
+            }).collect();
+            let expected = if root { vec![b"a".to_vec(), b"c".to_vec(), b"z\xff".to_vec()] }
+                else { vec![b"a".to_vec(), b"z\xff".to_vec()] };
+            assert_eq!(paths, expected);
+            assert_eq!(frames.last().unwrap().0.ty, ty::STATUS);
+            let mirrored = lookup_frames(&drain_lookup(&mut server, MONITOR, &mut monitor_peer));
+            assert_eq!(mirrored.len(), frames.len() + 1);
+            for (index, (header, payload)) in mirrored.iter().enumerate() {
+                assert_eq!(header.ty, ty::MONITOR);
+                assert_eq!(header.seq, index as u16 + 1);
+                let mut fields: [Option<blob::Attr<'_>>; 6] = Default::default();
+                for field in blob::iter(&payload[4..]) {
+                    let id = field.id as usize;
+                    assert!(id < fields.len());
+                    fields[id] = Some(field);
+                }
+                assert_eq!(fields[0].unwrap().as_u32(), Some(CALLER));
+                assert_eq!(fields[1].unwrap().as_u32(), Some(66));
+                assert_eq!(fields[3].unwrap().as_u32(), Some(55));
+                let (kind, data) = if index == 0 { (ty::LOOKUP, input.as_slice()) }
+                    else { (frames[index - 1].0.ty, &frames[index - 1].1[4..]) };
+                assert_eq!(fields[4].unwrap().as_u32(), Some(kind as u32));
+                assert_eq!(fields[2].unwrap().payload, &[u8::from(index != 0)]);
+                assert_eq!(fields[5].unwrap().payload, data);
+            }
+        }
+    }
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn prefix_lookup_pipelines_preserve_lookup_fifo_and_other_reply_sequences() {
+        const CALLER: u32 = 2000;
+        let mut server = Server::new(String::new()).unwrap();
+        let (caller, mut peer) = lookup_client();
+        server.clients.insert(CALLER, caller);
+        let mut signature = BlobBuf::new();
+        let table = signature.msg_open_table("method");
+        signature.msg_string("large", &"x".repeat(32768));
+        signature.msg_close(table);
+        server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: vec![obj::Method {
+            name: b"method".to_vec(), blob: signature.payload().to_vec(),
+        }] });
+        let mut expected = Vec::new();
+        for i in 0..40 {
+            let id = 4000 + i;
+            server.reg.create(Some(3000), Some(id)).unwrap();
+            assert!(server.reg.set_path(id, format!("lookup.{i:02}").into_bytes()));
+            assert!(server.build_obj(CALLER, id));
+            expected.push(server.scratch.as_bytes().to_vec());
+        }
+        for (seq, pattern) in [(10, "*"), (11, "lookup.39"), (12, "missing.*")] {
+            let mut blob = BlobBuf::new();
+            blob.put_string(attr::OBJPATH, pattern);
+            assert!(server.receive(CALLER, InMsg { header: Header { ty: ty::LOOKUP, seq, peer: 55 },
+                blob: blob.as_bytes().to_vec(), fd: None }));
+        }
+        assert_eq!(server.clients[&CALLER].cmd_queue.len(), 3);
+        let mut ping = BlobBuf::new();
+        ping.put_string(attr::OBJPATH, "ping");
+        let ping_bytes = ping.as_bytes().to_vec();
+        assert!(server.receive(CALLER, InMsg { header: Header { ty: ty::PING, seq: 13, peer: 56 },
+            blob: ping_bytes.clone(), fd: None }));
+        let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
+        assert_eq!(frames.len(), 46);
+        assert_eq!((frames[0].0.ty, frames[0].0.seq, &frames[0].1), (ty::DATA, 10, &expected[0]));
+        assert_eq!((frames[1].0.ty, frames[1].0.seq, frames[1].0.peer, &frames[1].1), (ty::DATA, 13, 56, &ping_bytes));
+        assert_eq!((frames[2].0.ty, frames[2].0.seq), (ty::STATUS, 13));
+        for (i, expected) in expected.iter().enumerate().skip(1) {
+            assert_eq!((frames[i + 2].0.ty, frames[i + 2].0.seq, frames[i + 2].0.peer, &frames[i + 2].1), (ty::DATA, 10, 55, expected));
+        }
+        assert_eq!((frames[42].0.ty, frames[42].0.seq), (ty::STATUS, 10));
+        assert_eq!((frames[43].0.ty, frames[43].0.seq, &frames[43].1), (ty::DATA, 11, &expected[39]));
+        assert_eq!((frames[44].0.ty, frames[44].0.seq), (ty::STATUS, 11));
+        assert_eq!((frames[45].0.ty, frames[45].0.seq), (ty::STATUS, 12));
+        for index in [2, 42, 44, 45] {
+            assert_eq!(attrs_of(&frames[index].1[4..])[attr::STATUS as usize].unwrap().as_u32(),
+                Some(if index == 45 { status::NOT_FOUND as u32 } else { 0 }));
+        }
+    }
+
 }
