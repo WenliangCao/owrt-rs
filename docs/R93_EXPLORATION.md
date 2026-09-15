@@ -6,7 +6,8 @@
 ## 当前状态摘要
 
 - source05 九组件历史/新故障门已闭合；后续 prefix 漏对象修复也已合入并通过整组故障门。
-- C/R89/source05 实机矩阵已完成八组件 **696 个负载观测**，完整 HTTP 矩阵仍在采集。
+- C/R89/source05 实机矩阵已完成九组件 **74 项负载、888 个观测**；5052 个原始文件
+  全集/hash 和所有派生数据重新校验通过。[总清单](reviews/r93-source05-device-matrix.json)。
   每份报告注明逐轮结果和未覆盖范围；没有整栈冷启动或全场景胜出结论。
 - HTTP worker/head、ubusd borrow、RPCD glob、logd span 均为独立性能候选，未合入运行时。
   四项 Oracle 初筛已完成；RPCD 正在增加目标/denied 控制请求数，复核低 tick 下的收益。
@@ -268,3 +269,8 @@ R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4`
   未实现 runtime patch、未计 CPU，不把它当八读者差额的归因。kmsg 可能超过 LINE_SIZE，
   4 KiB 只能是处理完成后的保留容量，不能为此截断日志。
   `private/r93/logd-frame-diagnosis-20260915/RESULT.md` 保留接口与验证要求。
+- source05 HTTP 完整矩阵 192 个观测及收尾健康/清理完成，九组件共 888 个观测闭合。
+  HTTP 全部平均延迟中位数低于 C，但 jsonrpc_c4 自身 CPU 高 C 3.50%（逐轮范围重叠）；
+  512 B 单客户端静态 CPU R89 82→source05 89 µs，79–84 对 86–93，存在不重叠差额。
+  不能以延迟改善代替自身 CPU 验收。生产仍为 R92，未切栈、重启或刷机。
+  [HTTP 完整实机报告](reviews/R93_HTTPD_MATRIX_DEVICE_BASELINE.md)。

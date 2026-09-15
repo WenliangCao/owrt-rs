@@ -1,6 +1,7 @@
 # R93 双基线与实机比较入口
 
-2026-09-15。本报告核对已有本地证据；没有修改或重启物理路由器。
+2026-09-15。初始双基线计划及接续索引；本轮 source05 九组件实机矩阵已完成，见
+[74 项/888 观测清单](r93-source05-device-matrix.json)。隔离组件运行保持生产 R92，未重启。
 
 ## 固定身份
 
@@ -9,7 +10,7 @@
 | 精确原版（报告简称 C，包含 fw4 等原版脚本） | OpenWrt 25.12.5 `r33051-f5dae5ece4`，AX3000T stock 布局，kernel 6.12.94。官方 sysupgrade SHA256 `a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea`；实机使用 `/rom` 和已校验 `.c-orig`，构建机使用该镜像的 pristine rootfs。 |
 | 正式 R89 | 运行时提交 `d9c10483d95590143f9d6a1f41310e2a13e63fb3`，release-image `34724293710`；部署包 SHA256 `a655b1356905c9434d5c53362c93722e0e8d93175f1b196d28f86ee42f632791`。设备保留 `/root/r89-before-r90`；离线归档 `private/r92/device/recovery-01/r89-before-r90.tar.gz`。 |
 | R92 增量参考 | 运行时提交 `ca1a9121df0380448a19d474e29796066b6734e8`，release-image `34874442503`。本地二进制在 `private/r92/deployment-r92/bins/`；设备最后已验证活动包为 `/root/r84`。 |
-| R93 候选 | 本工作树尚有未提交修复，不能以 HEAD `6bb1226` 充当候选源码身份。下一批必须冻结源码快照/提交、工具链、九个二进制与测试工具 hash。 |
+| R93 source05 测量基线 | 冻结源码归档 SHA256 `6f8700bf5af4ca80a9113b5624229bde3e373f53553dec4dc95524dba33abd7c`，九个 SDK recipe 诊断产物身份见 [矩阵清单](r93-source05-device-matrix.json)。该组不含后续 `3262a56` prefix 修复或任何私有性能候选，不能把当前 HEAD 视为被测源码。 |
 
 R89 最后一条报告提交 `39e5d89`、R92 最后一条报告提交 `6bb1226` 均不是各自正式运行时提交。
 R89 canonical-build 中的 `deployed: false` 是构建时状态；其后的 deployment 证明包含四个已完成窗口。

@@ -1,0 +1,170 @@
+{
+  "status": "COMPLETE",
+  "scope": "AX3000T source05 fixed 74-workload isolated component baseline; not whole-stack acceptance",
+  "components": [
+    {
+      "component": "logd",
+      "workloads": 2,
+      "observations": 24,
+      "raw_files_verified": 192,
+      "identity": {
+        "stock": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+        "r89": "a6f738144c561047bdd34188b084888ca5050ef01a7b7105a2b9f8d9152b975f",
+        "candidate": "235a50bf191e9858a760fb120683ee49f6c18ddff06912d1c0acd8f158450627"
+      },
+      "report": "R93_LOGD_DEVICE_BASELINE.md",
+      "report_sha256": "905bdb5a0269798c298e512dbfe56fa5575f184092c9b176887a1f38c5d005ba",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "ubusd",
+      "workloads": 10,
+      "observations": 120,
+      "raw_files_verified": 708,
+      "identity": {
+        "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+        "candidate": "d139260478da973abfaa5b9044632f5e0fa315db195899163b37ab7e33d8a2e8"
+      },
+      "report": "R93_UBUSD_DEVICE_BASELINE.md",
+      "report_sha256": "2952777263eedb59c98686ffa4b8355ba19572cb6bbfe8d49ffad8871f17b6cd",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "rpcd",
+      "workloads": 18,
+      "observations": 216,
+      "raw_files_verified": 1032,
+      "identity": {
+        "stock": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+        "r89": "a58c2f7039369c4dde7b0f0fdb45053c147f823c178651b1867c7843e3217a18",
+        "candidate": "d78a752cb383abfbc3c2d0050e445e3742595706e0baf05af17c60d3fcd5d1a8"
+      },
+      "report": "R93_RPCD_DEVICE_BASELINE.md",
+      "report_sha256": "9b6fe99b615a67ae327002ad78dfc4632f38a7611020353ab17acb354431469c",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "procd",
+      "workloads": 8,
+      "observations": 96,
+      "raw_files_verified": 552,
+      "identity": {
+        "stock": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+        "r89": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98",
+        "candidate": "1458301f5fb613ce81e48acc154dee75cfadabc668f4ccf66779fd4d0c26d862"
+      },
+      "report": "r93-procd-device-baseline.json",
+      "report_sha256": "68dd23dd228e67efb5aa7f95b6acad687566f03354e76aa2ed1c3cfe9b9e4f37",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "netifd",
+      "workloads": 14,
+      "observations": 168,
+      "raw_files_verified": 1080,
+      "identity": {
+        "stock": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+        "r89": "b127c49888b70a1f1e59318c0b05661623e05030b923975881e4b2279388a478",
+        "candidate": "7122d02b3ff1426605e00b313e5e3d0078090b7741ff8089b3e8395778d3544a"
+      },
+      "report": "R93_NETIFD_DEVICE_BASELINE.md",
+      "report_sha256": "e7bbc6e6da8f1682846984fd6249873f7a9db31c2c3baa1fc03086af58cb69bb",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "uci",
+      "workloads": 3,
+      "observations": 36,
+      "raw_files_verified": 168,
+      "identity": {
+        "stock": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+        "r89": "1758125b86c80a1a09c2db55df83952f5cbef6542527f1de1f37a088cba115cf",
+        "candidate": "823d8c9545c7d4dd3c4a14d3bddebd3b86ad745d34b54a9e81d8f53c04533654"
+      },
+      "report": "R93_UCI_DEVICE_BASELINE.md",
+      "report_sha256": "3c595e036637743818da52605e6353922587d43154f51b404382236d0ac0343b",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "fw4",
+      "workloads": 2,
+      "observations": 24,
+      "raw_files_verified": 180,
+      "identity": {
+        "stock": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+        "r89": "c8837ab990128efc30b993442ce73145a5c852cc2225ece1fb6b16d352d10cbf",
+        "candidate": "e6bdb3218ce85d01527cc903c9921e5a8908d918ecf9d44b50148017070b0cb0"
+      },
+      "report": "R93_FW4_DEVICE_BASELINE.md",
+      "report_sha256": "b8be6a60223b043e7065d8af2502ade8fcce205b9898897c9318d17054ed3757",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "reload-config",
+      "workloads": 1,
+      "observations": 12,
+      "raw_files_verified": 168,
+      "identity": {
+        "stock": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+        "r89": "f38ffe36b404964ef53ca023167d3154f47139110c34c4e44435f9c198846ae4",
+        "candidate": "1f0bb7896b51a2093c846e71c849cba1d6da23adc62d8a585d7362ac8294ac35"
+      },
+      "report": "R93_RELOAD_CONFIG_DEVICE_BASELINE.md",
+      "report_sha256": "7f5a8bad79f6c142c3bc6d20e4dff25afd68240b4b3b48516b3b52de762183b9",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    },
+    {
+      "component": "httpd",
+      "workloads": 16,
+      "observations": 192,
+      "raw_files_verified": 972,
+      "identity": {
+        "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+        "r89": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+        "candidate": "d7a6ed6285bcd828273f0ebdbbf33765efff66c26243776ab1957ef08672b2ab"
+      },
+      "report": "R93_HTTPD_MATRIX_DEVICE_BASELINE.md",
+      "report_sha256": "b0b40fe37a281b08d3714b8e559b78f0215177a776f6befccd1dbccdd6e9f58a",
+      "health_before_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "health_after_sha256": "4e57c63a84794d404a66f046ffae48614ee40346dc0f91579432eea98b61f078",
+      "accepted_for_component_comparison": true
+    }
+  ],
+  "workloads": 74,
+  "observations": 888,
+  "sides": [
+    "exact original image",
+    "formal R89",
+    "source05 SDK diagnostic"
+  ],
+  "repeats_per_side": 4,
+  "raw_files_verified": 5052,
+  "all_derived_results_recomputed": true,
+  "runtime_switched": false,
+  "production": "R92 unchanged",
+  "private_root": "private/r93/device-components-sdk-05",
+  "collection_completion_sha256": "0a52b59e425129ee1db290ee41294c8de4390ff572c381a0767ce54f16e4ec2e",
+  "limits": [
+    "Source05 excludes subsequently committed ubusd prefix fix and all private performance candidates.",
+    "C/R89 are original/formal historical artifacts; source05 is same SDK recipe diagnostic, not canonical x86 CI.",
+    "Earlier standalone paced HTTP measurements are separate, not folded into 888.",
+    "No absolute bug-free, all metrics win or whole-stack cold boot conclusion."
+  ]
+}
