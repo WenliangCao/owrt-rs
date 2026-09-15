@@ -78,6 +78,8 @@ pub struct Connection {
     incoming_buf: Vec<u8>,
     /// Optional storage returned by a server after it has finished a request.
     spare_request: Option<Request>,
+    /// Opt-in bound for daemon reads/replies outside a timed request.
+    server_io_timeout: Option<Duration>,
 }
 
 const INCOMING_BUFFER_SIZE: usize = 4096;
@@ -111,8 +113,19 @@ pub fn error_status(error: &io::Error) -> Option<i32> {
 }
 
 impl Connection {
+    /// A new transport must be admitted and receive its complete HELLO in
+    /// one second. Failure drops only this new connection.
     pub fn connect(path: Option<&str>) -> io::Result<Self> {
-        let stream = UnixStream::connect(path.unwrap_or(UBUS_SOCKET))?;
+        Self::connect_timeout(path, Duration::from_secs(1))
+    }
+
+    /// Build a new connection within one total admission/HELLO budget.
+    /// A zero budget expires immediately; unlike request timeouts it does
+    /// not mean an unbounded wait.
+    pub fn connect_timeout(path: Option<&str>, timeout: Duration) -> io::Result<Self> {
+        let deadline = Instant::now().checked_add(timeout)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "connect timeout too large"))?;
+        let stream = crate::connect::stream(path.unwrap_or(UBUS_SOCKET), deadline)?;
         let mut conn = Self {
             stream,
             local_id: 0,
@@ -120,8 +133,9 @@ impl Connection {
             pending: VecDeque::new(),
             incoming_buf: Vec::new(),
             spare_request: None,
+            server_io_timeout: None,
         };
-        let hello = conn.recv()?;
+        let hello = conn.recv_until(Some(deadline))?;
         if hello.header.ty != ty::HELLO {
             return Err(io::Error::other("ubus: expected HELLO"));
         }
@@ -131,6 +145,28 @@ impl Connection {
 
     pub fn local_id(&self) -> u32 {
         self.local_id
+    }
+
+    /// Bound completing incoming frames and sending replies/notifications.
+    /// Daemons must handle a transport failure by returning to maintenance
+    /// and reconnecting. Explicit request deadlines keep their own semantics.
+    pub fn set_server_io_timeout(&mut self, timeout: Duration) {
+        self.server_io_timeout = Some(timeout);
+    }
+
+    fn server_deadline(&self) -> Option<Instant> {
+        self.server_io_timeout.map(|timeout| Instant::now() + timeout)
+    }
+
+    fn server_result<T>(&self, result: io::Result<T>) -> io::Result<T> {
+        if result.as_ref().is_err_and(|e| e.kind() == io::ErrorKind::TimedOut) {
+            let _ = self.shutdown();
+        }
+        result
+    }
+
+    fn send_server_parts<const N: usize>(&self, parts: [&[u8]; N], fd: Option<RawFd>) -> io::Result<()> {
+        self.server_result(sys::send_parts_until(self.as_raw_fd(), parts, fd, self.server_deadline()))
     }
 
     /// Messages already read from the socket but not yet handed out.
@@ -153,12 +189,17 @@ impl Connection {
         if body.len() > MAX_MSGLEN {
             return Err(ubus_error(status::INVALID_ARGUMENT));
         }
-        sys::send_with_fd(self.stream.as_raw_fd(), &header.encode(), body, fd)
+        self.send_server_parts([&header.encode(), body], fd)
     }
 
+    #[cfg(test)]
     fn recv_head(&mut self) -> io::Result<ReceivedHeader> {
+        self.recv_head_until(None)
+    }
+
+    fn recv_head_until(&mut self, deadline: Option<Instant>) -> io::Result<ReceivedHeader> {
         let mut head = [0u8; Header::LEN + 4];
-        let fd = sys::recv_exact(self.stream.as_raw_fd(), &mut head, true)?;
+        let fd = sys::recv_exact_until(self.stream.as_raw_fd(), &mut head, true, deadline)?;
         Self::decode_head(head, fd)
     }
 
@@ -173,18 +214,35 @@ impl Connection {
         Ok(ReceivedHeader { header, blob_header: head[8..12].try_into().unwrap(), len: raw_len, fd })
     }
 
+    #[cfg(test)]
     fn recv_body(&mut self, head: ReceivedHeader) -> io::Result<Message> {
+        self.recv_body_until(head, None)
+    }
+
+    fn recv_body_until(&mut self, head: ReceivedHeader, deadline: Option<Instant>) -> io::Result<Message> {
         let mut blob = vec![0u8; head.len];
         blob[..4].copy_from_slice(&head.blob_header);
         if head.len > 4 {
-            sys::recv_exact(self.stream.as_raw_fd(), &mut blob[4..], false)?;
+            sys::recv_exact_until(self.stream.as_raw_fd(), &mut blob[4..], false, deadline)?;
         }
         Ok(Message { header: head.header, blob, fd: head.fd })
     }
 
+    #[cfg(test)]
     fn recv(&mut self) -> io::Result<Message> {
         let head = self.recv_head()?;
         self.recv_body(head)
+    }
+
+    fn recv_until(&mut self, deadline: Option<Instant>) -> io::Result<Message> {
+        let mut bytes = [0u8; Header::LEN + 4];
+        let fd = sys::recv_exact_until(self.as_raw_fd(), &mut bytes, true, deadline)?;
+        let head = Self::decode_head(bytes, fd)?;
+        let mut blob = vec![0u8; head.len];
+        blob[..4].copy_from_slice(&head.blob_header);
+        sys::recv_exact_until(self.as_raw_fd(), &mut blob[4..], false, deadline)
+            .map_err(sys::partial_timeout)?;
+        Ok(Message { header: head.header, blob, fd: head.fd })
     }
 
     fn next_seq(&mut self) -> u16 {
@@ -204,33 +262,36 @@ impl Connection {
         fd: Option<RawFd>,
         timeout_ms: i32,
     ) -> io::Result<Reply> {
+        // One deadline covers sending and every byte of every reply. A
+        // readable prefix alone must not turn a bounded call into a hang.
+        let deadline = (timeout_ms > 0)
+            .then(|| Instant::now() + Duration::from_millis(timeout_ms as u64));
+        let result = self.request_until(cmd, peer, blob, fd, deadline);
+        if result.as_ref().is_err_and(|e| e.kind() == io::ErrorKind::TimedOut) {
+            // Only a partial frame loses its framing boundary. A clean
+            // request timeout must keep object servers connected: rpcd may
+            // be awaiting service.event while an apply rollback is armed.
+            if result.as_ref().is_err_and(sys::is_partial_timeout) {
+                let _ = self.shutdown();
+            }
+            return Err(ubus_error(status::TIMEOUT));
+        }
+        result
+    }
+
+    fn request_until(&mut self, cmd: u8, peer: u32, blob: &mut BlobBuf, fd: Option<RawFd>, deadline: Option<Instant>) -> io::Result<Reply> {
+        if blob.as_bytes().len() > MAX_MSGLEN {
+            return Err(ubus_error(status::INVALID_ARGUMENT));
+        }
         let seq = self.next_seq();
-        self.send(Header { ty: cmd, seq, peer }, blob, fd)?;
+        sys::send_with_fd_until(self.as_raw_fd(), &Header { ty: cmd, seq, peer }.encode(), blob.as_bytes(), fd, deadline)?;
         let mut reply = Reply {
             status: status::UNKNOWN_ERROR,
             data: Vec::new(),
             fd: None,
         };
-        // libubus fixes the deadline once (libubus-req.c: time_end), so
-        // unrelated traffic cannot keep restarting the timeout. A
-        // non-positive timeout means wait forever, as poll(-1) does.
-        let deadline = (timeout_ms > 0)
-            .then(|| Instant::now() + Duration::from_millis(timeout_ms as u64));
         loop {
-            let remaining = match deadline {
-                None => -1,
-                Some(end) => {
-                    let now = Instant::now();
-                    if now >= end {
-                        return Err(ubus_error(status::TIMEOUT));
-                    }
-                    (end - now).as_millis().min(i32::MAX as u128) as i32
-                }
-            };
-            if !sys::wait_readable(self.stream.as_raw_fd(), remaining)? {
-                return Err(ubus_error(status::TIMEOUT));
-            }
-            let mut message = self.recv()?;
+            let mut message = self.recv_until(deadline)?;
             if message.header.seq != seq || message.header.peer != peer {
                 self.pending.push_back(message);
                 continue;
@@ -494,8 +555,10 @@ impl Connection {
         if let Some(message) = self.pending.pop_front() {
             return Ok(Self::classify(message));
         }
-        let head = self.recv_head()?;
-        self.read_incoming_body(head)
+        let deadline = self.server_deadline();
+        let result = self.recv_head_until(deadline)
+            .and_then(|head| self.read_incoming_body(head, deadline));
+        self.server_result(result)
     }
 
     /// Read a frame without a separate readiness wait when its first byte is
@@ -506,15 +569,17 @@ impl Connection {
             return Ok(Some(Self::classify(message)));
         }
         let mut head = [0u8; Header::LEN + 4];
-        let fd = match sys::recv_exact_if_started(self.stream.as_raw_fd(), &mut head, true) {
+        let deadline = self.server_deadline();
+        let fd = match sys::recv_exact_if_started_until(self.stream.as_raw_fd(), &mut head, true, deadline) {
             Ok(fd) => fd,
             Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(None),
-            Err(e) => return Err(e),
+            Err(e) => return self.server_result(Err(e)),
         };
-        self.read_incoming_body(Self::decode_head(head, fd)?).map(Some)
+        let result = self.read_incoming_body(Self::decode_head(head, fd)?, deadline).map(Some);
+        self.server_result(result)
     }
 
-    fn read_incoming_body(&mut self, head: ReceivedHeader) -> io::Result<Incoming> {
+    fn read_incoming_body(&mut self, head: ReceivedHeader, deadline: Option<Instant>) -> io::Result<Incoming> {
         if head.header.ty == ty::INVOKE && head.len <= INCOMING_BUFFER_SIZE {
             if self.incoming_buf.len() < head.len {
                 self.incoming_buf.resize(head.len.next_power_of_two(), 0);
@@ -522,11 +587,11 @@ impl Connection {
             let blob = &mut self.incoming_buf[..head.len];
             blob[..4].copy_from_slice(&head.blob_header);
             if head.len > 4 {
-                sys::recv_exact(self.stream.as_raw_fd(), &mut blob[4..], false)?;
+                sys::recv_exact_until(self.stream.as_raw_fd(), &mut blob[4..], false, deadline)?;
             }
             return Ok(Incoming::Invoke(Self::decode_request(head.header, blob, head.fd, self.spare_request.take())));
         }
-        Ok(Self::classify(self.recv_body(head)?))
+        Ok(Self::classify(self.recv_body_until(head, deadline)?))
     }
 
     /// Return storage only after the caller has finished using the request.
@@ -608,7 +673,7 @@ impl Connection {
         }
         if fields.len().is_multiple_of(4) {
             let prefix = Self::data_prefix(req, fields.len());
-            return sys::send_with_fd(self.stream.as_raw_fd(), &prefix, fields, None);
+            return self.send_server_parts([&prefix, fields], None);
         }
         // Callers can also provide unaligned raw fields. Keep the codec's
         // padding semantics for that less common case.
@@ -652,7 +717,7 @@ impl Connection {
         if !req.no_reply && fields.len().is_multiple_of(4) && fields.len() <= MAX_MSGLEN - 16 {
             let prefix = Self::data_prefix(req, fields.len());
             let status = Self::status_frame(req, code);
-            return sys::send_parts(self.stream.as_raw_fd(), [&prefix, fields, &status], None);
+            return self.send_server_parts([&prefix, fields, &status], None);
         }
         // Retain padding, no_reply and the existing best-effort final status
         // when a caller supplies an oversized DATA reply.
@@ -667,7 +732,7 @@ impl Connection {
             return Ok(());
         }
         let frame = Self::status_frame(req, code);
-        sys::send_with_fd(self.stream.as_raw_fd(), &frame[..8], &frame[8..], fd)
+        self.send_server_parts([&frame[..8], &frame[8..]], fd)
     }
 }
 
@@ -678,8 +743,135 @@ mod tests {
 
     fn pair() -> (Connection, Connection) {
         let (a, b) = UnixStream::pair().unwrap();
-        let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), incoming_buf: Vec::new(), spare_request: None };
+        let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), incoming_buf: Vec::new(), spare_request: None, server_io_timeout: None };
         (conn(a), conn(b))
+    }
+
+    #[test]
+    fn server_io_budget_bounds_partial_frames_and_reply_backpressure() {
+        for size in [1, 12] {
+            let (mut sender, mut server) = pair();
+            server.set_server_io_timeout(Duration::from_millis(40));
+            let mut b = BlobBuf::new();
+            b.put_string(attr::METHOD, "partial");
+            let mut wire = Header { ty: ty::INVOKE, seq: 1, peer: 9 }.encode().to_vec();
+            wire.extend_from_slice(b.as_bytes());
+            sender.stream.write_all(&wire[..size]).unwrap();
+            let start = Instant::now();
+            let error = server.incoming_if_started().unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+            assert!(start.elapsed() < Duration::from_millis(200));
+            assert_eq!(sender.stream.read(&mut [0]).unwrap(), 0);
+        }
+        let (mut server, mut client) = pair();
+        server.set_server_io_timeout(Duration::from_millis(40));
+        // An empty incoming socket is still an immediate None, not a timeout.
+        assert!(server.incoming_if_started().unwrap().is_none());
+        let start = Instant::now();
+        let error = server.reply_data_status(&request(), &vec![0; MAX_MSGLEN - 16], status::OK).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+        assert!(start.elapsed() < Duration::from_millis(200));
+        client.stream.set_nonblocking(true).unwrap();
+        let mut bytes = Vec::new();
+        client.stream.read_to_end(&mut bytes).unwrap();
+        assert!(!bytes.is_empty() && bytes.len() < MAX_MSGLEN);
+    }
+
+    #[test]
+    fn request_deadline_covers_partial_header_and_body() {
+        for prefix in [1, 12] {
+            let (mut client, mut server) = pair();
+            let peer = std::thread::spawn(move || {
+                let request = server.recv().unwrap();
+                let mut b = BlobBuf::new();
+                b.put_u32(attr::STATUS, status::OK as u32);
+                let mut wire = Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }.encode().to_vec();
+                wire.extend_from_slice(b.as_bytes());
+                server.stream.write_all(&wire[..prefix]).unwrap();
+                // Keep the transport alive much longer than the RPC deadline.
+                std::thread::sleep(Duration::from_millis(300));
+            });
+            let start = Instant::now();
+            let error = client.lookup_id("deadline-probe", 40).unwrap_err();
+            let elapsed = start.elapsed();
+            peer.join().unwrap();
+            assert_eq!(error_status(&error), Some(status::TIMEOUT), "{error}");
+            assert!(elapsed < Duration::from_millis(200), "partial prefix {prefix}: {elapsed:?}");
+        }
+    }
+
+    #[test]
+    fn request_deadline_bounds_backpressure_and_closes_the_transport() {
+        let (mut client, mut server) = pair();
+        let mut b = BlobBuf::new();
+        b.put(attr::DATA, &vec![0; MAX_MSGLEN - 16]);
+        let start = Instant::now();
+        let error = client.request(ty::INVOKE, 42, &mut b, None, 40).unwrap_err();
+        assert_eq!(error_status(&error), Some(status::TIMEOUT));
+        assert!(start.elapsed() < Duration::from_millis(200));
+        server.stream.set_nonblocking(true).unwrap();
+        let mut received = Vec::new();
+        server.stream.read_to_end(&mut received).unwrap();
+        assert!(!received.is_empty() && received.len() < MAX_MSGLEN);
+        assert!(client.lookup_id("cannot-reuse-partial-frame", 40).is_err());
+    }
+
+    #[test]
+    fn clean_request_timeout_keeps_connection_and_late_reply_boundaries() {
+        let (mut client, mut server) = pair();
+        let peer = std::thread::spawn(move || {
+            let first = server.recv().unwrap();
+            std::thread::sleep(Duration::from_millis(100));
+            let mut b = BlobBuf::new();
+            b.put_u32(attr::STATUS, status::OK as u32);
+            server.send(Header { ty: ty::STATUS, seq: first.header.seq, peer: 0 }, &mut b, None).unwrap();
+            let second = server.recv().unwrap();
+            server.send(Header { ty: ty::STATUS, seq: second.header.seq, peer: 0 }, &mut b, None).unwrap();
+        });
+        let error = client.request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 30).unwrap_err();
+        assert_eq!(error_status(&error), Some(status::TIMEOUT));
+        let next = client.request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 500).unwrap();
+        assert_eq!(next.status, status::OK);
+        assert_eq!(client.pending.len(), 1, "late response retains its own sequence");
+        peer.join().unwrap();
+    }
+
+    #[test]
+    fn request_deadline_keeps_fragmented_success_and_timeout_fd_cleanup() {
+        for complete in [true, false] {
+            let (mut client, mut server) = pair();
+            let (passed, mut observer) = UnixStream::pair().unwrap();
+            let peer = std::thread::spawn(move || {
+                let req = server.recv().unwrap();
+                let mut b = BlobBuf::new();
+                b.put_u32(attr::STATUS, status::OK as u32);
+                let mut wire = Header { ty: ty::STATUS, seq: req.header.seq, peer: 0 }.encode().to_vec();
+                wire.extend_from_slice(b.as_bytes());
+                sys::send_with_fd(server.as_raw_fd(), &wire[..1], &[], Some(passed.as_raw_fd())).unwrap();
+                drop(passed);
+                if complete {
+                    for part in wire[1..].chunks(3) {
+                        std::thread::sleep(Duration::from_millis(2));
+                        server.stream.write_all(part).unwrap();
+                    }
+                } else {
+                    std::thread::sleep(Duration::from_millis(150));
+                }
+            });
+            let reply = client.request(ty::LOOKUP, 0, &mut BlobBuf::new(), None, 80);
+            if complete {
+                let reply = reply.unwrap();
+                assert_eq!(reply.status, status::OK);
+                let mut fd = UnixStream::from(reply.fd.unwrap());
+                fd.write_all(b"x").unwrap();
+                observer.read_exact(&mut [0]).unwrap();
+            } else {
+                assert_eq!(error_status(&reply.unwrap_err()), Some(status::TIMEOUT));
+                observer.set_nonblocking(true).unwrap();
+                assert_eq!(observer.read(&mut [0]).unwrap(), 0, "timed-out prefix leaked SCM_RIGHTS");
+            }
+            peer.join().unwrap();
+        }
     }
 
     #[test]

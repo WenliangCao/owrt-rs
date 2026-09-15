@@ -26,9 +26,11 @@
    `/dev/log`、`write`、环形记录、blobmsg 回复保留非 UTF-8 字节，不再转换成 U+FFFD。
 4. 环形缓冲区容量为 `-S` 指定的 KiB 数 × 1024 字节，缺省 16 KiB；每条占 32 字节头 + 4 字节对齐的
    正文。写入位置到达末端时回绕到起点，被覆盖区间内的旧记录淘汰。保留集合与原实现一致。
-5. `read`：`lines=N` 表示只返回 `id >= current_id - N` 的记录；`lines` 缺省或 0 表示全部。
-   `stream=false` 时一次性返回 `{"log":[...]}`；`stream=true`（缺省）时新建 pipe，把读端随 STATUS
-   传给调用方，写端按 blob 帧写出积压记录；`oneshot=true` 写完即关，否则保持并推送新记录。
+5. `read`：`lines=N` 表示只返回 `id >= current_id - N` 的记录；`lines` 缺省表示全部，显式 0 不返回历史。
+   `stream=false` 时一次性返回 `{"log":[...]}`；`stream=true`（缺省）时原版新建 pipe，候选使用
+   Unix stream socketpair（R89 之前已有的差异），把读端随 STATUS 传给调用方，写端按同样的
+   blob 帧写出积压记录；`oneshot=true` 写完即关，否则保持并推送新记录。两类 fd 的内核
+   缓冲容量不同，容量和背压性能须分别实测，不能假定均为 64 KiB。
 6. `write {event}` 以 source=1 入库，经过与 `/dev/log` 相同的处理。
 
 ## 3. 不在合同内
@@ -52,3 +54,19 @@ oneshot 也受同一预算约束，普通非流式 read 的既有 ubus 消息上
 预算计算的是排队 payload 字节，不等于 allocator capacity、RSS 或内核管道缓冲区大小。
 断开意味着该慢读客户端丢失后续日志；它可重连按环形缓冲保留范围重新读取，不能承诺无限补发。
 边界和正常读者用例见 `r92_compat_probe.py` 的 `logd_limits`，持续压力见 `r92_recovery_probe.py`。
+
+## 6. 流隔离和总线恢复
+
+某个流关闭或被预算淘汰，不能把它的就绪事件应用到另一个流。每轮先处理已轮询的流，
+再接收可能增加/删除流的 ubus、syslog 和 kmsg 输入；新流从下一轮开始参与轮询。
+总积压预算不足时先尝试发送可写数据，只对仍需排队的字节计费，再淘汰积压最多的流；
+不因队列位置先淘汰无积压的健康流。
+
+ubusd 断连期间，已有流仍可发送积压、完成 oneshot 和回收已关闭的读端，环形缓冲仍接收
+本地日志。这与精确原版由 uloop 独立处理 ustream 的行为一致。重连尝试按一秒截止时间
+进行，流就绪或持续日志不能提高尝试频率；单轮最多接收 256 个 syslog 数据报，余下数据
+由下一轮读取，不主动丢弃。旧总线的 subscriber 标志立即清除，成功重连后重新注册对象。
+
+`tools/test_logd_stream_recovery.py --ubusd PATH --logd PATH` 在 Linux 的临时 Unix socket
+和独立子进程上覆盖双读者隔离、断连期间无新日志的积压排空/回收、持续日志下的重连节拍
+及 64 流上限恢复。它不使用宿主 `/dev/log`、网络设备或路由器；可对修复前后同跑验证。

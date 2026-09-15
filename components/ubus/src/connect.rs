@@ -1,0 +1,219 @@
+//! Bounded construction of a new bus transport. Existing connections are
+//! never touched when admission or the initial HELLO fails.
+use std::io;
+use std::os::unix::net::UnixStream;
+use std::time::Instant;
+
+pub(crate) fn stream(path: &str, deadline: Instant) -> io::Result<UnixStream> {
+    #[cfg(target_os = "linux")]
+    { linux::stream(path, deadline) }
+    // The client targets Linux. Preserve the existing host-only transport
+    // behavior; its HELLO read still uses the shared absolute deadline.
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = deadline;
+        UnixStream::connect(path)
+    }
+}
+
+#[cfg(target_os = "linux")]
+mod linux {
+    use super::*;
+    use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+    use std::time::Duration;
+    use crate::sys::{PollFd, POLLOUT};
+
+    #[repr(C)]
+    struct Address { family: u16, path: [u8; 108] }
+
+    extern "C" {
+        fn socket(domain: i32, kind: i32, protocol: i32) -> i32;
+        fn connect(fd: i32, address: *const Address, length: u32) -> i32;
+        fn poll(fds: *mut PollFd, count: u64, timeout: i32) -> i32;
+        fn getsockopt(fd: i32, level: i32, option: i32, value: *mut i32, length: *mut u32) -> i32;
+    }
+
+    fn remaining(deadline: Instant) -> io::Result<Duration> {
+        let remaining = deadline.saturating_duration_since(Instant::now());
+        if remaining.is_zero() {
+            Err(io::Error::new(io::ErrorKind::TimedOut, "ubus connect deadline elapsed"))
+        } else { Ok(remaining) }
+    }
+
+    pub(super) fn stream(path: &str, deadline: Instant) -> io::Result<UnixStream> {
+        if path.as_bytes().contains(&0) || path.len() >= 108 {
+            return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid unix socket path"));
+        }
+        let mut address = Address { family: 1, path: [0; 108] };
+        address.path[..path.len()].copy_from_slice(path.as_bytes());
+        // SAFETY: Linux AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC.
+        let raw = unsafe { socket(1, 1 | 0o4000 | 0o2000000, 0) };
+        if raw < 0 { return Err(io::Error::last_os_error()); }
+        // SAFETY: socket returned a new descriptor, owned only here.
+        let socket = unsafe { OwnedFd::from_raw_fd(raw) };
+        loop {
+            remaining(deadline)?;
+            // SAFETY: address is live and the length includes its trailing NUL.
+            let result = unsafe { connect(socket.as_raw_fd(), &address, (2 + path.len() + 1) as u32) };
+            if result == 0 { break; }
+            let error = io::Error::last_os_error();
+            match error.raw_os_error() {
+                Some(4) => continue, // EINTR
+                Some(11) => {
+                    // AF_UNIX returns EAGAIN for a full accept backlog. It has
+                    // not started connecting: POLLOUT alone is not success.
+                    std::thread::sleep(remaining(deadline)?.min(Duration::from_millis(1)));
+                }
+                Some(115) | Some(114) => { // EINPROGRESS / EALREADY
+                    let mut fd = PollFd { fd: socket.as_raw_fd(), events: POLLOUT, revents: 0 };
+                    loop {
+                        let timeout = remaining(deadline)?.as_millis().clamp(1, i32::MAX as u128) as i32;
+                        // SAFETY: fd is one live pollfd. EINTR recomputes the deadline.
+                        let ready = unsafe { poll(&mut fd, 1, timeout) };
+                        if ready == 0 { continue; }
+                        if ready < 0 {
+                            let error = io::Error::last_os_error();
+                            if error.kind() == io::ErrorKind::Interrupted { continue; }
+                            return Err(error);
+                        }
+                        let mut error = 0;
+                        let mut length = std::mem::size_of_val(&error) as u32;
+                        // SAFETY: SO_ERROR writes one i32 to our live value.
+                        if unsafe { getsockopt(socket.as_raw_fd(), 1, 4, &mut error, &mut length) } < 0 {
+                            return Err(io::Error::last_os_error());
+                        }
+                        if error != 0 { return Err(io::Error::from_raw_os_error(error)); }
+                        break;
+                    }
+                    break;
+                }
+                Some(106) => break, // EISCONN after an interrupted connect
+                _ => return Err(error),
+            }
+        }
+        let stream = UnixStream::from(socket);
+        stream.set_nonblocking(false)?;
+        Ok(stream)
+    }
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tests {
+    use super::*;
+    use crate::{Connection, Header, BlobBuf, ty};
+    use std::io::{Read, Write};
+    use std::os::fd::AsRawFd;
+    use std::os::unix::net::UnixListener;
+    use std::path::PathBuf;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
+
+    static NEXT: AtomicUsize = AtomicUsize::new(0);
+    struct Fixture { path: PathBuf, listener: UnixListener }
+    impl Fixture {
+        fn new() -> Self {
+            let path = std::env::temp_dir().join(format!("r93-connect-{}-{}.sock", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
+            Self { listener: UnixListener::bind(&path).unwrap(), path }
+        }
+        fn path(&self) -> &str { self.path.to_str().unwrap() }
+    }
+    impl Drop for Fixture {
+        fn drop(&mut self) { let _ = std::fs::remove_file(&self.path); }
+    }
+
+    fn hello() -> Vec<u8> {
+        let mut wire = Header { ty: ty::HELLO, seq: 0, peer: 1234 }.encode().to_vec();
+        wire.extend_from_slice(BlobBuf::new().as_bytes());
+        wire
+    }
+
+    #[test]
+    fn hello_deadline_bounds_absent_partial_header_and_partial_body() {
+        for prefix in [0, 1, 12] {
+            let fixture = Fixture::new();
+            let listener = fixture.listener.try_clone().unwrap();
+            let peer = std::thread::spawn(move || {
+                let (mut accepted, _) = listener.accept().unwrap();
+                let mut blob = BlobBuf::new();
+                blob.put_u32(crate::attr::STATUS, 0);
+                let mut wire = Header { ty: ty::HELLO, seq: 0, peer: 1234 }.encode().to_vec();
+                wire.extend_from_slice(blob.as_bytes());
+                accepted.write_all(&wire[..prefix]).unwrap();
+                // The timed-out constructor owns no live connection after
+                // returning: the accepted peer must see EOF without cleanup.
+                accepted.set_read_timeout(Some(Duration::from_millis(300))).unwrap();
+                assert_eq!(accepted.read(&mut [0]).unwrap(), 0);
+            });
+            let started = Instant::now();
+            let error = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(30))
+                .err().expect("HELLO must time out");
+            assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+            assert!(started.elapsed() < Duration::from_millis(200));
+            peer.join().unwrap();
+        }
+    }
+
+    #[test]
+    fn fragmented_hello_succeeds_and_normal_socket_errors_are_preserved() {
+        let fixture = Fixture::new();
+        let listener = fixture.listener.try_clone().unwrap();
+        let peer = std::thread::spawn(move || {
+            let (mut accepted, _) = listener.accept().unwrap();
+            for part in hello().chunks(3) {
+                accepted.write_all(part).unwrap();
+                std::thread::sleep(Duration::from_millis(2));
+            }
+        });
+        let connection = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(200)).unwrap();
+        assert_eq!(connection.local_id(), 1234);
+        peer.join().unwrap();
+        assert_eq!(Connection::connect_timeout(Some(fixture.path()), Duration::ZERO).err().unwrap().kind(), io::ErrorKind::TimedOut);
+        assert_eq!(Connection::connect(Some("invalid\0path")).err().unwrap().kind(), io::ErrorKind::InvalidInput);
+        assert_eq!(Connection::connect(Some(&"x".repeat(108))).err().unwrap().kind(), io::ErrorKind::InvalidInput);
+        let missing = fixture.path.with_extension("missing");
+        assert_eq!(Connection::connect(Some(missing.to_str().unwrap())).err().unwrap().kind(), io::ErrorKind::NotFound);
+    }
+
+    #[test]
+    fn full_backlog_times_out_and_recovers_with_the_same_total_budget() {
+        extern "C" { fn listen(fd: i32, backlog: i32) -> i32; }
+        let fixture = Fixture::new();
+        // SAFETY: the fixture owns this listening socket; reduce only its backlog.
+        assert_eq!(unsafe { listen(fixture.listener.as_raw_fd(), 0) }, 0);
+        let filler = UnixStream::connect(fixture.path()).unwrap();
+        let started = Instant::now();
+        let error = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(30))
+            .err().expect("full backlog must time out");
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+        assert!(started.elapsed() < Duration::from_millis(200));
+        // Free the backlog while another connect is retrying, then send a
+        // fragmented HELLO. Admission and HELLO share its original deadline.
+        let listener = fixture.listener.try_clone().unwrap();
+        let peer = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(20));
+            drop(listener.accept().unwrap());
+            let (mut accepted, _) = listener.accept().unwrap();
+            accepted.write_all(&hello()).unwrap();
+        });
+        assert_eq!(Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(200)).unwrap().local_id(), 1234);
+        peer.join().unwrap();
+        drop(filler);
+
+        // Admission time must count against HELLO's budget. A fresh HELLO
+        // deadline after connect would incorrectly accept this delayed reply.
+        let filler = UnixStream::connect(fixture.path()).unwrap();
+        let listener = fixture.listener.try_clone().unwrap();
+        let peer = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(30));
+            drop(listener.accept().unwrap());
+            let (mut accepted, _) = listener.accept().unwrap();
+            std::thread::sleep(Duration::from_millis(50));
+            let _ = accepted.write_all(&hello());
+        });
+        let error = Connection::connect_timeout(Some(fixture.path()), Duration::from_millis(60))
+            .err().expect("HELLO must share admission's deadline");
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+        peer.join().unwrap();
+        drop(filler);
+    }
+}

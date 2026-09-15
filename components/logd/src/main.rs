@@ -16,7 +16,7 @@ use std::fs::File;
 use std::io::{self, Read, Write};
 use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::os::unix::net::UnixDatagram;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 struct Options {
     log_size: usize,
@@ -94,6 +94,14 @@ const MAX_TOTAL_PENDING: usize = 4 * 1024 * 1024;
 const MAX_STREAM_CLIENTS: usize = 64;
 
 impl Client {
+    fn poll_fd(&self) -> sys::PollFd {
+        sys::PollFd {
+            fd: self.fd.as_raw_fd(),
+            events: if self.pending.is_empty() { 0 } else { sys::POLLOUT },
+            revents: 0,
+        }
+    }
+
     /// Write what we can; Ok(false) when the client must be dropped.
     fn flush(&mut self) -> bool {
         while !self.pending.is_empty() {
@@ -116,8 +124,84 @@ impl Client {
     }
 }
 
+/// Consume a poll snapshot before any input handler can add/remove clients.
+/// Each result belongs to the client at the same position at poll time.
+fn flush_ready_clients(clients: &mut Vec<Client>, fds: &[sys::PollFd]) {
+    debug_assert_eq!(clients.len(), fds.len());
+    let mut ready = fds.iter();
+    clients.retain_mut(|client| {
+        let event = ready.next().expect("one poll result per client");
+        debug_assert_eq!(client.fd.as_raw_fd(), event.fd);
+        if event.revents & (sys::POLLERR | sys::POLLHUP) != 0 {
+            return false;
+        }
+        event.revents & sys::POLLOUT == 0 || client.flush()
+    });
+}
+
+fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8]) {
+    let (projected, fits_each) = clients.iter().fold((0, true), |(total, fits), client| {
+        let size = client.pending.len() + bytes.len();
+        (total + size, fits && size <= MAX_STREAM_PENDING)
+    });
+    if projected <= MAX_TOTAL_PENDING && fits_each {
+        clients.retain_mut(|client| {
+            client.pending.extend_from_slice(bytes);
+            client.flush()
+        });
+        return;
+    }
+    let mut sent = [0; MAX_STREAM_CLIENTS];
+    // Pressure only: first make room with writes that were not ready at
+    // poll time. Empty queues can send this frame without using a budget.
+    clients.retain_mut(Client::flush);
+    let mut index = 0;
+    clients.retain(|client| {
+        let mut offset = 0;
+        if client.pending.is_empty() {
+            // SAFETY: borrow this client's live fd; ManuallyDrop keeps
+            // ownership in Client, as in flush().
+            let mut file = std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(client.fd.as_raw_fd()) });
+            while offset < bytes.len() {
+                match file.write(&bytes[offset..]) {
+                    Ok(0) => return false,
+                    Ok(n) => offset += n,
+                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                    Err(_) => return false,
+                }
+            }
+        }
+        if client.pending.len() + bytes.len() - offset > MAX_STREAM_PENDING {
+            return false;
+        }
+        sent[index] = offset;
+        index += 1;
+        true
+    });
+    let mut total: usize = clients.iter().enumerate()
+        .map(|(i, client)| client.pending.len() + bytes.len() - sent[i]).sum();
+    // A full global budget belongs to the lagging streams, not an earlier
+    // healthy reader. This scan is only needed at the pressure boundary.
+    while total > MAX_TOTAL_PENDING {
+        let (index, client) = clients.iter().enumerate()
+            .max_by_key(|(i, client)| client.pending.len() + bytes.len() - sent[*i])
+            .expect("an over-budget set is nonempty");
+        total -= client.pending.len() + bytes.len() - sent[index];
+        sent.copy_within(index + 1..clients.len(), index);
+        clients.remove(index);
+    }
+    let mut index = 0;
+    clients.retain_mut(|client| {
+        client.pending.extend_from_slice(&bytes[sent[index]..]);
+        index += 1;
+        client.flush()
+    });
+}
+
 /// ubus_add_object("log", ...)
 fn register_log(conn: &mut Connection) -> io::Result<u32> {
+    conn.set_server_io_timeout(Duration::from_secs(1));
     conn.add_object(
         "log",
         &[
@@ -160,18 +244,7 @@ impl Daemon {
         if self.has_subscribers {
             let _ = self.conn.notify(self.objid, "message", &bytes[4..]);
         }
-        let mut total: usize = self.clients.iter().map(|c| c.pending.len()).sum();
-        self.clients.retain_mut(|client| {
-            total -= client.pending.len();
-            let size = client.pending.len() + bytes.len();
-            if size > MAX_STREAM_PENDING || total + size > MAX_TOTAL_PENDING {
-                return false;
-            }
-            client.pending.extend_from_slice(&bytes);
-            let keep = client.flush();
-            if keep { total += client.pending.len(); }
-            keep
-        });
+        send_to_clients(&mut self.clients, &bytes);
     }
 
     fn handle_read(&mut self, req: &Request) -> io::Result<()> {
@@ -208,8 +281,9 @@ impl Daemon {
             if self.clients.len() >= MAX_STREAM_CLIENTS {
                 return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
             }
-            // unix stream socket like C logd (a pipe would hand the backlog over
-            // in 64 KiB pieces); one BlobBuf reused for every frame
+            // The candidate has used a Unix stream socket since before R89;
+            // exact C logd uses pipe(). Both carry the same blob frames, but
+            // their kernel buffering differs. Reuse one BlobBuf per backlog.
             let pair = sys::socketpair().and_then(|(read_end, write_end)| {
                 sys::set_nonblocking(write_end.as_raw_fd())?;
                 Ok((read_end, write_end))
@@ -304,7 +378,9 @@ impl Daemon {
 
     fn drain_syslog(&mut self) {
         let mut buf = [0u8; LINE_SIZE];
-        loop {
+        // A continuously writing producer must not starve streams, ubus or
+        // the reconnect deadline. Remaining datagrams keep POLLIN asserted.
+        for _ in 0..256 {
             match self.syslog.recv(&mut buf[..LINE_SIZE - 1]) {
                 Ok(0) => break,
                 Ok(n) => self.add(&buf[..n], SOURCE_SYSLOG),
@@ -338,6 +414,8 @@ impl Daemon {
         // is refused with INVALID_ARGUMENT while ubusd is alive -- logd would
         // retry at 1 Hz forever and nothing would serve `log` again.
         let _ = self.conn.shutdown();
+        self.has_subscribers = false;
+        let mut retry_at = Instant::now() + Duration::from_secs(1);
         loop {
             // keep collecting syslog/kmsg while ubusd is away (uloop keeps
             // servicing those fds in C logd too)
@@ -353,13 +431,23 @@ impl Daemon {
                     revents: 0,
                 });
             }
-            if sys::poll_fds(&mut fds, 1000).is_ok() {
+            let client_base = fds.len();
+            fds.extend(self.clients.iter().map(Client::poll_fd));
+            let timeout = retry_at.saturating_duration_since(Instant::now())
+                .as_millis().min(1000) as i32;
+            if sys::poll_fds(&mut fds, timeout).is_ok() {
+                flush_ready_clients(&mut self.clients, &fds[client_base..]);
                 if fds[0].revents & sys::POLLIN != 0 {
                     self.drain_syslog();
                 }
-                if fds.len() > 1 && fds[1].revents & sys::POLLIN != 0 {
+                if self.kmsg.is_some() && fds[1].revents & sys::POLLIN != 0 {
                     self.drain_kmsg();
                 }
+            }
+            // Stream readiness and incoming logs may wake us continuously;
+            // they must not turn a one-second retry into a busy connect loop.
+            if Instant::now() < retry_at {
+                continue;
             }
             if let Ok(mut conn) = Connection::connect(self.ubus_socket.as_deref()) {
                 match register_log(&mut conn) {
@@ -372,6 +460,7 @@ impl Daemon {
                     Err(error) => eprintln!("logd-rs: failed to add object: {error}"),
                 }
             }
+            retry_at = Instant::now() + Duration::from_secs(1);
         }
     }
 
@@ -411,19 +500,11 @@ impl Daemon {
                 fds.len() - 1
             });
             let client_base = fds.len();
-            let polled_clients = self.clients.len();
-            for client in &self.clients {
-                fds.push(sys::PollFd {
-                    fd: client.fd.as_raw_fd(),
-                    events: if client.pending.is_empty() {
-                        0
-                    } else {
-                        sys::POLLOUT
-                    },
-                    revents: 0,
-                });
-            }
+            fds.extend(self.clients.iter().map(Client::poll_fd));
             sys::poll_fds(&mut fds, -1)?;
+            // add()/read may compact or append clients. Apply this snapshot
+            // first, while every result still names the stream we polled.
+            flush_ready_clients(&mut self.clients, &fds[client_base..]);
             if fds[0].revents & (sys::POLLIN | sys::POLLERR | sys::POLLHUP) != 0 {
                 let incoming = self.conn.read_incoming()?;
                 self.handle_incoming(incoming)?;
@@ -436,23 +517,6 @@ impl Daemon {
                     self.drain_kmsg();
                 }
             }
-            // Clients added while handling this iteration were not polled.
-            let mut position = 0;
-            self.clients.retain_mut(|client| {
-                let current = position;
-                position += 1;
-                if current >= polled_clients {
-                    return true;
-                }
-                let revents = fds[client_base + current].revents;
-                if revents & (sys::POLLERR | sys::POLLHUP) != 0 {
-                    return false;
-                }
-                if revents & sys::POLLOUT != 0 {
-                    return client.flush();
-                }
-                true
-            });
         }
     }
 }
@@ -548,5 +612,81 @@ fn main() {
     if let Err(error) = daemon.run() {
         eprintln!("logd-rs: {error}");
         std::process::exit(1);
+    }
+}
+
+#[cfg(test)]
+mod stream_tests {
+    use super::*;
+    use std::os::unix::net::UnixStream;
+
+    fn pair(pending: Vec<u8>, oneshot: bool) -> (UnixStream, Client) {
+        let (reader, writer) = UnixStream::pair().unwrap();
+        writer.set_nonblocking(true).unwrap();
+        (reader, Client { fd: writer.into(), pending, oneshot })
+    }
+
+    #[test]
+    fn one_streams_hangup_does_not_close_the_next_stream() {
+        let (closed, first) = pair(vec![1], false);
+        let (mut healthy, second) = pair(b"still connected".to_vec(), false);
+        let mut clients = vec![first, second];
+        let mut fds: Vec<_> = clients.iter().map(Client::poll_fd).collect();
+        drop(closed);
+        sys::poll_fds(&mut fds, 1000).unwrap();
+        assert_ne!(fds[0].revents & sys::POLLHUP, 0);
+        assert_ne!(fds[1].revents & sys::POLLOUT, 0);
+        flush_ready_clients(&mut clients, &fds);
+        assert_eq!(clients.len(), 1);
+        let mut bytes = [0; 15];
+        healthy.read_exact(&mut bytes).unwrap();
+        assert_eq!(&bytes, b"still connected");
+        healthy.set_nonblocking(true).unwrap();
+        assert_eq!(healthy.read(&mut bytes).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+    }
+
+    #[test]
+    fn write_readiness_finishes_oneshot_without_another_log_record() {
+        let (mut reader, client) = pair(b"queued history".to_vec(), true);
+        let mut clients = vec![client];
+        let mut fds: Vec<_> = clients.iter().map(Client::poll_fd).collect();
+        sys::poll_fds(&mut fds, 1000).unwrap();
+        flush_ready_clients(&mut clients, &fds);
+        assert!(clients.is_empty());
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).unwrap();
+        assert_eq!(bytes, b"queued history");
+    }
+
+    #[test]
+    fn full_aggregate_backlog_drops_a_lagging_stream_not_the_healthy_first_reader() {
+        let (mut healthy, first) = pair(Vec::new(), false);
+        let mut clients = vec![first];
+        let mut slow_readers = Vec::new();
+        for _ in 0..8 {
+            let (reader, client) = pair(vec![b'x'; MAX_TOTAL_PENDING / 8], false);
+            // Fill the kernel socket buffer too: a late flush must not make
+            // this supposedly stalled consumer healthy by itself.
+            // SAFETY: borrow the live fd without taking its ownership.
+            let mut file = std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(client.fd.as_raw_fd()) });
+            loop {
+                match file.write(&[b'x'; 65536]) {
+                    Ok(n) => assert!(n > 0),
+                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                    Err(e) => panic!("fill socket: {e}"),
+                }
+            }
+            slow_readers.push(reader);
+            clients.push(client);
+        }
+        send_to_clients(&mut clients, b"live record");
+        assert_eq!(clients.len(), 8);
+        assert!(clients.iter().map(|c| c.pending.len()).sum::<usize>() <= MAX_TOTAL_PENDING);
+        let mut bytes = [0; 11];
+        healthy.read_exact(&mut bytes).unwrap();
+        assert_eq!(&bytes, b"live record");
+        healthy.set_nonblocking(true).unwrap();
+        assert_eq!(healthy.read(&mut bytes).unwrap_err().kind(), io::ErrorKind::WouldBlock);
     }
 }

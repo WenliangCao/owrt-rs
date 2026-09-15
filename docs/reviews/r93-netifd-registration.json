@@ -1,0 +1,208 @@
+{
+  "scope": "Linux exact-image isolated namespaces; no device deployment",
+  "rows": [
+    {
+      "label": "r93-netifd-red02",
+      "binary_sha256": "467183f0cddbdda63338f367ba07e26fc7f8c285f568076a3f9b85c92d3b0752",
+      "probe_sha256": "b6bf10299ebbde2aec55c145669ea366994afc0285864c25b41783034ea1a950",
+      "exit": 0,
+      "checks": {
+        "initial_registration": true,
+        "identity": true,
+        "old_failure_reproduced": true,
+        "same_netifd_alive": true,
+        "address_preserved": true
+      },
+      "attempts": [
+        {
+          "connection": 0,
+          "path": "network"
+        },
+        {
+          "connection": 0,
+          "path": "network.device"
+        },
+        {
+          "connection": 0,
+          "path": "network.interface"
+        },
+        {
+          "connection": 0,
+          "path": "network.wireless"
+        },
+        {
+          "connection": 0,
+          "path": "network.interface.loopback"
+        },
+        {
+          "connection": 1,
+          "path": "network"
+        },
+        {
+          "connection": 1,
+          "path": "network.device"
+        },
+        {
+          "connection": 1,
+          "path": "network.interface"
+        },
+        {
+          "connection": 1,
+          "path": "network.wireless"
+        },
+        {
+          "connection": 1,
+          "path": "network.interface.loopback"
+        }
+      ],
+      "connections": 2,
+      "passed": true
+    },
+    {
+      "label": "r93-netifd-green-interface",
+      "binary_sha256": "70c71046483b4bb34f6a96233b0a153d9f1b99e8fe1beb0c7006251cfe104667",
+      "probe_sha256": "57c46e7b7a8fb32f2a9411dbb657d3e5bd681023a0afb3b73923ee05bc0c1bb6",
+      "exit": 0,
+      "checks": {
+        "initial_registration": true,
+        "identity": true,
+        "complete_registration_recovered": true,
+        "working_interface_object": true,
+        "new_connection_retried": true,
+        "same_netifd_alive": true,
+        "address_preserved": true
+      },
+      "attempts": [
+        {
+          "connection": 0,
+          "path": "network"
+        },
+        {
+          "connection": 0,
+          "path": "network.device"
+        },
+        {
+          "connection": 0,
+          "path": "network.interface"
+        },
+        {
+          "connection": 0,
+          "path": "network.wireless"
+        },
+        {
+          "connection": 0,
+          "path": "network.interface.loopback"
+        },
+        {
+          "connection": 1,
+          "path": "network"
+        },
+        {
+          "connection": 1,
+          "path": "network.device"
+        },
+        {
+          "connection": 1,
+          "path": "network.interface"
+        },
+        {
+          "connection": 1,
+          "path": "network.wireless"
+        },
+        {
+          "connection": 1,
+          "path": "network.interface.loopback"
+        },
+        {
+          "connection": 2,
+          "path": "network"
+        },
+        {
+          "connection": 2,
+          "path": "network.device"
+        },
+        {
+          "connection": 2,
+          "path": "network.interface"
+        },
+        {
+          "connection": 2,
+          "path": "network.wireless"
+        },
+        {
+          "connection": 2,
+          "path": "network.interface.loopback"
+        }
+      ],
+      "connections": 3,
+      "passed": true
+    },
+    {
+      "label": "r93-netifd-green-fixed",
+      "binary_sha256": "70c71046483b4bb34f6a96233b0a153d9f1b99e8fe1beb0c7006251cfe104667",
+      "probe_sha256": "57c46e7b7a8fb32f2a9411dbb657d3e5bd681023a0afb3b73923ee05bc0c1bb6",
+      "exit": 0,
+      "checks": {
+        "initial_registration": true,
+        "identity": true,
+        "complete_registration_recovered": true,
+        "working_interface_object": true,
+        "new_connection_retried": true,
+        "same_netifd_alive": true,
+        "address_preserved": true
+      },
+      "attempts": [
+        {
+          "connection": 0,
+          "path": "network"
+        },
+        {
+          "connection": 0,
+          "path": "network.device"
+        },
+        {
+          "connection": 0,
+          "path": "network.interface"
+        },
+        {
+          "connection": 0,
+          "path": "network.wireless"
+        },
+        {
+          "connection": 0,
+          "path": "network.interface.loopback"
+        },
+        {
+          "connection": 1,
+          "path": "network"
+        },
+        {
+          "connection": 1,
+          "path": "network.device"
+        },
+        {
+          "connection": 2,
+          "path": "network"
+        },
+        {
+          "connection": 2,
+          "path": "network.device"
+        },
+        {
+          "connection": 2,
+          "path": "network.interface"
+        },
+        {
+          "connection": 2,
+          "path": "network.wireless"
+        },
+        {
+          "connection": 2,
+          "path": "network.interface.loopback"
+        }
+      ],
+      "connections": 3,
+      "passed": true
+    }
+  ]
+}

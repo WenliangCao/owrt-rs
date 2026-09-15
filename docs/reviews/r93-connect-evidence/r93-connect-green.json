@@ -1,0 +1,26 @@
+[
+  {
+    "case": "nohello",
+    "elapsed": 1.0022848518565297,
+    "exit": 0,
+    "stdout": "error=ubus I/O deadline elapsed; elapsed=1.000262595s",
+    "stderr": "",
+    "hung": false
+  },
+  {
+    "case": "partialhello",
+    "elapsed": 1.001733087003231,
+    "exit": 0,
+    "stdout": "error=ubus deadline elapsed inside a frame; elapsed=1.000543757s",
+    "stderr": "",
+    "hung": false
+  },
+  {
+    "case": "backlog",
+    "elapsed": 1.0013979650102556,
+    "exit": 0,
+    "stdout": "error=ubus connect deadline elapsed; elapsed=1.000109994s",
+    "stderr": "",
+    "hung": false
+  }
+]

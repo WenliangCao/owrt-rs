@@ -26,6 +26,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <stddef.h>
+#include <errno.h>
 
 #define A(c) _Static_assert((c), #c)
 
@@ -152,5 +153,14 @@ A(AF_UNIX == 1);
 A(SOCK_STREAM == 1);
 A(SOCK_CLOEXEC == 02000000);
 A(SOCK_NONBLOCK == 04000);
+
+/* components/ubus/src/connect.rs: nonblocking Unix admission and SO_ERROR. */
+A(sizeof(socklen_t) == 4);
+A(SO_ERROR == 4);
+A(EINTR == 4);
+A(EAGAIN == 11);
+A(EINPROGRESS == 115);
+A(EALREADY == 114);
+A(EISCONN == 106);
 
 int main(void) { return 0; }

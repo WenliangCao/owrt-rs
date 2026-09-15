@@ -7,6 +7,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 pub mod blob;
+mod connect;
 pub mod conn;
 pub mod convert;
 pub mod digest;

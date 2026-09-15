@@ -33,7 +33,7 @@ use std::os::fd::{AsRawFd, RawFd};
 use std::os::unix::fs::DirBuilderExt;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::mpsc::{self, Receiver, Sender};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 pub struct Ctx {
     pub socket: Option<String>,
@@ -82,9 +82,15 @@ pub struct Deferrer {
 }
 
 impl Deferrer {
+    fn channel(wake: RawFd) -> (Self, Receiver<Done>) {
+        let (tx, rx) = mpsc::channel();
+        (Self { tx, wake }, rx)
+    }
+
     pub fn finish(&self, req: Request, reply: session::Reply) {
-        let _ = self.tx.send(Done { req, reply });
-        wake(self.wake);
+        if self.tx.send(Done { req, reply }).is_ok() {
+            wake(self.wake);
+        }
     }
 
     /// Run `work` on a worker thread and finish `req` with its reply; None
@@ -192,12 +198,9 @@ struct Ids {
     iwinfo: u32,
 }
 
-fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> u32 {
+fn register(conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> std::io::Result<u32> {
     let refs: Vec<(&str, &[(&str, MsgType)])> = methods.iter().map(|(n, p)| (*n, p.as_slice())).collect();
-    conn.add_object(name, &refs, 5000).unwrap_or_else(|e| {
-        eprintln!("Failed to register object '{name}': {e}");
-        std::process::exit(1);
-    })
+    conn.add_object(name, &refs, 1000)
 }
 
 /// Pack a plugin-object method result into a ubus reply.
@@ -337,6 +340,7 @@ fn main() {
             std::process::exit(255);
         }
     };
+    conn.set_server_io_timeout(Duration::from_secs(1));
     let ctx = Ctx {
         socket: socket.clone(),
         exec_timeout_ms: exec_timeout as i32,
@@ -345,57 +349,112 @@ fn main() {
         delayed: RefCell::new(delayed::Children::inherit()),
         uci_read_cache: RefCell::new(owrt_uci::ReadCache::default()),
     };
-    let ids = Ids {
-        session: register(&mut conn, "session", &session::signature()),
-        uci: register(&mut conn, "uci", &uciobj::signature()),
-        rc: register(&mut conn, "rc", &rc::signature()),
-        file: register(&mut conn, "file", &file::signature()),
-        luci: register(&mut conn, "luci", &luci::signature()),
-        sys: register(&mut conn, "rpc-sys", &rpcsys::signature()),
-        rrdns: register(&mut conn, "network.rrdns", &rrdns::signature()),
-        lucirpc: {
-            let name = std::env::var("OWRT_RPCD_LUCI_RPC_NAME").unwrap_or_else(|_| "luci-rpc".to_owned());
-            register(&mut conn, &name, &lucirpc::signature())
-        },
-        iwinfo: register(&mut conn, "iwinfo", &iwinfoobj::signature()),
-    };
+    let mut ids = register_objects(&ctx, &mut conn).unwrap_or_else(|error| {
+        eprintln!("Failed to register rpcd objects: {error}");
+        std::process::exit(1);
+    });
     if std::env::var("RPC_HANGUP").ok().as_deref() != Some("1") {
         uciobj::purge_savedirs();
     } else {
         ctx.sessions.borrow_mut().thaw();
     }
 
-    let (tx, rx): (Sender<Done>, Receiver<Done>) = mpsc::channel();
-    let deferrer = Deferrer { tx, wake: pipe_w.as_raw_fd() };
+    loop {
+        if let Err(error) = serve(&ctx, &mut conn, &ids, pipe_r.as_raw_fd(), pipe_w.as_raw_fd()) {
+            eprintln!("ubus connection lost: {error}");
+        }
+        // A deferred worker may still be running, but serve() has dropped its
+        // completion receiver. It cannot send an old peer/sequence on a new bus.
+        let _ = conn.shutdown();
+        drop(conn);
+        (conn, ids) = reconnect(&ctx, pipe_r.as_raw_fd());
+    }
+}
+
+fn maintain(ctx: &Ctx) {
+    ctx.delayed.borrow_mut().reap();
+    ctx.sessions.borrow_mut().expire();
+    let due = ctx.apply.borrow().deadline.is_some_and(|at| at <= Instant::now());
+    if due {
+        uciobj::apply_timeout(ctx);
+    }
+}
+
+fn check_signal(ctx: &Ctx, conn: Option<&Connection>) {
+    let sig = SIGNAL.swap(0, Ordering::SeqCst);
+    if sig == 0 { return; }
+    ctx.sessions.borrow().freeze();
+    if let Some(conn) = conn { let _ = conn.shutdown(); }
+    if sig == SIGHUP { exec_self(&ctx.delayed.borrow()); }
+    std::process::exit(0);
+}
+
+fn reconnect(ctx: &Ctx, read_fd: RawFd) -> (Connection, Ids) {
+    let mut retry_at = Instant::now() + Duration::from_secs(1);
+    loop {
+        maintain(ctx);
+        check_signal(ctx, None);
+        if Instant::now() >= retry_at {
+            if let Ok(mut conn) = Connection::connect(ctx.socket.as_deref()) {
+                conn.set_server_io_timeout(Duration::from_secs(1));
+                match register_objects(ctx, &mut conn) {
+                    Ok(ids) => return (conn, ids),
+                    Err(error) => {
+                        eprintln!("rpcd object re-registration failed: {error}");
+                        let _ = conn.shutdown();
+                    }
+                }
+            }
+            retry_at = Instant::now() + Duration::from_secs(1);
+            continue;
+        }
+        let next = [Some(retry_at), ctx.sessions.borrow().next_expiry(), ctx.apply.borrow().deadline]
+            .into_iter().flatten().min().unwrap();
+        let timeout = next.saturating_duration_since(Instant::now()).as_micros().div_ceil(1000)
+            .min(i32::MAX as u128) as i32;
+        let mut fds = [sys::PollFd { fd: read_fd, events: sys::POLLIN, revents: 0 }];
+        if sys::poll_fds(&mut fds, timeout).is_ok() && fds[0].revents != 0 {
+            drain(read_fd);
+        }
+    }
+}
+
+fn register_live(ctx: &Ctx, conn: &mut Connection, name: &str, methods: &[(&'static str, Vec<(&'static str, MsgType)>)]) -> std::io::Result<u32> {
+    maintain(ctx);
+    check_signal(ctx, Some(conn));
+    register(conn, name, methods)
+}
+
+fn register_objects(ctx: &Ctx, conn: &mut Connection) -> std::io::Result<Ids> {
+    Ok(Ids {
+        session: register_live(ctx, conn, "session", &session::signature())?,
+        uci: register_live(ctx, conn, "uci", &uciobj::signature())?,
+        rc: register_live(ctx, conn, "rc", &rc::signature())?,
+        file: register_live(ctx, conn, "file", &file::signature())?,
+        luci: register_live(ctx, conn, "luci", &luci::signature())?,
+        sys: register_live(ctx, conn, "rpc-sys", &rpcsys::signature())?,
+        rrdns: register_live(ctx, conn, "network.rrdns", &rrdns::signature())?,
+        lucirpc: {
+            let name = std::env::var("OWRT_RPCD_LUCI_RPC_NAME").unwrap_or_else(|_| "luci-rpc".to_owned());
+            register_live(ctx, conn, &name, &lucirpc::signature())?
+        },
+        iwinfo: register_live(ctx, conn, "iwinfo", &iwinfoobj::signature())?,
+    })
+}
+
+fn serve(ctx: &Ctx, conn: &mut Connection, ids: &Ids, read_fd: RawFd, wake_fd: RawFd) -> std::io::Result<()> {
+    let (deferrer, rx) = Deferrer::channel(wake_fd);
     let ubus_fd = conn.as_raw_fd();
-    let mut readiness = readiness::Readiness::new([ubus_fd, pipe_r.as_raw_fd()]);
+    let mut readiness = readiness::Readiness::new([ubus_fd, read_fd]);
     let mut immediate_left = 0;
     loop {
-        // timers
-        ctx.delayed.borrow_mut().reap();
-        ctx.sessions.borrow_mut().expire();
-        let apply_due = ctx.apply.borrow().deadline.is_some_and(|d| d <= Instant::now());
-        if apply_due {
-            uciobj::apply_timeout(&ctx, &mut conn);
-        }
+        maintain(ctx);
+        uciobj::retry_event(ctx, conn);
         // completed deferred requests
         while let Ok(done) = rx.try_recv() {
-            reply(&mut conn, done.req, done.reply);
+            reply(conn, done.req, done.reply);
         }
-        // signals: freeze sessions, then respawn (SIGHUP) or exit (SIGUSR1)
-        let sig = SIGNAL.swap(0, Ordering::SeqCst);
-        if sig != 0 {
-            ctx.sessions.borrow().freeze();
-            // A delayed fork still holds a copy of the socket until exec.
-            // Close alone would leave our old object paths registered and
-            // make the replacement rpcd fail to register them after HUP.
-            let _ = conn.shutdown();
-            drop(conn);
-            if sig == SIGHUP {
-                exec_self(&ctx.delayed.borrow());
-            }
-            std::process::exit(0);
-        }
+        check_signal(ctx, Some(conn));
         // Already-arrived frames need no readiness syscall. Bound this path so
         // the wake pipe is drained even under continuous input. Timers, signals
         // and completed worker replies still run above for every request.
@@ -404,22 +463,21 @@ fn main() {
                 Ok(Some(incoming)) => {
                     immediate_left -= 1;
                     if let Incoming::Invoke(req) = incoming {
-                        dispatch(&ctx, &mut conn, &ids, req, &deferrer);
+                        dispatch(ctx, conn, ids, req, &deferrer);
                     }
                     continue;
                 }
                 Ok(None) => {}
                 Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
                 Err(e) => {
-                    eprintln!("ubus connection lost: {e}");
-                    std::process::exit(1);
+                    return Err(e);
                 }
             }
         }
         // next timer
         let now = Instant::now();
         let mut timeout: i32 = -1;
-        let deadlines = [ctx.sessions.borrow().next_expiry(), ctx.apply.borrow().deadline];
+        let deadlines = [ctx.sessions.borrow().next_expiry(), ctx.apply.borrow().deadline, ctx.apply.borrow().event_retry];
         for d in deadlines.into_iter().flatten() {
             let ms = if d <= now { 0 } else { (d - now).as_micros().div_ceil(1000).min(i32::MAX as u128) as i32 };
             timeout = if timeout < 0 { ms } else { timeout.min(ms) };
@@ -429,16 +487,15 @@ fn main() {
         }
         let Ok([bus_ready, wake_ready]) = readiness.wait(timeout) else { continue };
         if wake_ready {
-            drain(pipe_r.as_raw_fd());
+            drain(read_fd);
         }
         if bus_ready || conn.has_pending() {
             immediate_left = 31;
             match conn.read_incoming() {
-                Ok(Incoming::Invoke(req)) => dispatch(&ctx, &mut conn, &ids, req, &deferrer),
+                Ok(Incoming::Invoke(req)) => dispatch(ctx, conn, ids, req, &deferrer),
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("ubus connection lost: {e}");
-                    std::process::exit(1);
+                    return Err(e);
                 }
             }
         }
@@ -479,6 +536,27 @@ fn strtol0(s: &str) -> i64 {
         i += 1;
     }
     if neg { -v } else { v }
+}
+
+#[cfg(test)]
+mod reconnect_tests {
+    use super::*;
+
+    #[test]
+    fn old_worker_completion_cannot_enter_a_reconnected_generation() {
+        let (old, receiver) = Deferrer::channel(-1);
+        drop(receiver);
+        let (_current, receiver) = Deferrer::channel(-1);
+        let done = Done {
+            req: Request { peer: 42, seq: 7, objid: 99, method: "exec".into(),
+                user: None, group: None, data: vec![], fd: None, no_reply: false },
+            reply: session::Reply::empty(0),
+        };
+        // A worker's captured Sender stays on the old generation even if the
+        // new daemon happens to reuse the same peer/sequence/object numbers.
+        assert!(old.tx.send(done).is_err());
+        assert!(matches!(receiver.try_recv(), Err(mpsc::TryRecvError::Empty)));
+    }
 }
 
 #[cfg(all(test, target_os = "linux"))]

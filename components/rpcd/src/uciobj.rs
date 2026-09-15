@@ -28,6 +28,9 @@ fn savedir_of(sid: &str) -> String {
 #[derive(Default)]
 pub struct Apply {
     pub deadline: Option<Instant>,
+    pending_events: std::collections::BTreeSet<String>,
+    last_event: Option<String>,
+    pub event_retry: Option<Instant>,
 }
 
 pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
@@ -811,14 +814,49 @@ fn changes(rctx: &Ctx, raw: &[u8]) -> Reply {
 }
 
 /// rpc_uci_trigger_event: `service event {type: config.change, data:{package}}`
-fn trigger_event(conn: &mut Connection, config: &str) {
-    let Ok(id) = conn.lookup_id("service", 1000) else { return };
+fn send_event(conn: &mut Connection, config: &str) -> bool {
+    let Ok(id) = conn.lookup_id("service", 1000) else { return false };
     let mut b = BlobBuf::new();
     b.msg_string("type", "config.change");
     let c = b.msg_open_table("data");
     b.msg_string("package", config);
     b.msg_close(c);
-    let _ = conn.invoke_status(id, "event", b.payload(), 1000);
+    conn.invoke_status(id, "event", b.payload(), 1000).is_ok_and(|r| r.status == 0)
+}
+
+fn trigger_event(rctx: &Ctx, conn: Option<&mut Connection>, config: &str) {
+    let sent = conn.is_some_and(|conn| send_event(conn, config));
+    let mut apply = rctx.apply.borrow_mut();
+    if sent {
+        apply.pending_events.remove(config);
+    } else {
+        apply.pending_events.insert(config.to_owned());
+    }
+    if apply.pending_events.is_empty() {
+        apply.event_retry = None;
+    } else if apply.event_retry.is_none() {
+        apply.event_retry = Some(Instant::now() + Duration::from_secs(1));
+    }
+}
+
+/// Retry at most one failed notification per tick. The files are already
+/// committed/restored; procd needs the current package, not an old payload.
+pub fn retry_event(rctx: &Ctx, conn: &mut Connection) {
+    let config = {
+        let mut apply = rctx.apply.borrow_mut();
+        if !apply.event_retry.is_some_and(|at| at <= Instant::now()) {
+            return;
+        }
+        let next = apply.last_event.as_ref().and_then(|last| {
+            apply.pending_events.range((std::ops::Bound::Excluded(last.clone()), std::ops::Bound::Unbounded)).next()
+        }).or_else(|| apply.pending_events.first()).cloned();
+        apply.last_event = next.clone();
+        apply.event_retry = Some(Instant::now() + Duration::from_secs(1));
+        next
+    };
+    if let Some(config) = config {
+        trigger_event(rctx, Some(conn), &config);
+    }
 }
 
 fn revert_commit(rctx: &Ctx, conn: &mut Connection, raw: &[u8], commit: bool) -> Reply {
@@ -836,7 +874,7 @@ fn revert_commit(rctx: &Ctx, conn: &mut Connection, raw: &[u8], commit: bool) ->
             let _ = tr!(ctx, file::commit(&mut ctx, pidx, false));
             ctx.unload(pidx);
             ctx.err = None;
-            trigger_event(conn, config);
+            trigger_event(rctx, Some(conn), config);
         }
     } else {
         let mut ptr = Ptr { package: Some(config.to_owned()), ..Ptr::default() };
@@ -895,13 +933,17 @@ pub fn purge_savedirs() {
 }
 
 /// rpc_uci_apply_config (cursor state is whatever the caller set up)
-fn apply_config(ctx: &mut Context, conn: &mut Connection, config: &str) {
+fn commit_config(ctx: &mut Context, config: &str) {
     if let Ok(pidx) = tr!(ctx, file::load(ctx, config)) {
         let _ = tr!(ctx, file::commit(ctx, pidx, false));
         ctx.unload(pidx);
         ctx.err = None;
     }
-    trigger_event(conn, config);
+}
+
+fn apply_config(rctx: &Ctx, ctx: &mut Context, conn: Option<&mut Connection>, config: &str) {
+    commit_config(ctx, config);
+    trigger_event(rctx, conn, config);
 }
 
 /// rpc_uci_copy_file: the target is created (truncated) even when the source
@@ -956,7 +998,7 @@ fn apply_access(rctx: &Ctx, sid: &str, dir: &str, names: &[String]) -> i32 {
 }
 
 /// rpc_uci_do_rollback over the snapshot-files listing.
-pub fn do_rollback(rctx: &Ctx, conn: &mut Connection, names: &[String]) {
+pub fn do_rollback(rctx: &Ctx, mut conn: Option<&mut Connection>, names: &[String]) {
     let apply_sid = rctx.sessions.borrow().apply_sid.clone();
     let deny = match &apply_sid {
         Some(sid) => apply_access(rctx, sid, SNAPSHOT_FILES.trim_end_matches('/'), names),
@@ -973,7 +1015,7 @@ pub fn do_rollback(rctx: &Ctx, conn: &mut Connection, names: &[String]) {
             continue;
         }
         copy_file(SNAPSHOT_FILES, UCI_DIR, config);
-        apply_config(&mut ctx, conn, config);
+        commit_config(&mut ctx, config);
         if deny != 0 {
             continue;
         }
@@ -983,12 +1025,17 @@ pub fn do_rollback(rctx: &Ctx, conn: &mut Connection, names: &[String]) {
     purge_dir(SNAPSHOT_DELTA);
     rctx.apply.borrow_mut().deadline = None;
     rctx.sessions.borrow_mut().apply_sid = None;
+    // Restore every file before a procd event can wait for a reply. Manual
+    // rollback retains its synchronous event attempts; a timer queues them.
+    for config in names.iter().filter(|name| !name.starts_with('.')) {
+        trigger_event(rctx, conn.as_deref_mut(), config);
+    }
 }
 
 /// The apply rollback timer fired.
-pub fn apply_timeout(rctx: &Ctx, conn: &mut Connection) {
+pub fn apply_timeout(rctx: &Ctx) {
     let names = glob_period(SNAPSHOT_FILES.trim_end_matches('/'));
-    do_rollback(rctx, conn, &names);
+    do_rollback(rctx, None, &names);
 }
 
 fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
@@ -1026,7 +1073,7 @@ fn apply(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
             }
             copy_file(UCI_DIR, SNAPSHOT_FILES, config);
             copy_file(&tmp, SNAPSHOT_DELTA, config);
-            apply_config(&mut ctx, conn, config);
+            apply_config(rctx, &mut ctx, Some(conn), config);
         }
         if rollback {
             let msecs: i64 = if timeout > 0 && timeout <= i32::MAX / 1000 { timeout as i64 * 1000 } else { i32::MAX as i64 };
@@ -1058,7 +1105,7 @@ fn rollback(rctx: &Ctx, conn: &mut Connection, raw: &[u8]) -> Reply {
         return code(status::PERMISSION_DENIED);
     }
     let names = glob_period(SNAPSHOT_FILES.trim_end_matches('/'));
-    do_rollback(rctx, conn, &names);
+    do_rollback(rctx, Some(conn), &names);
     code(0)
 }
 

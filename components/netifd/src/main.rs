@@ -34,6 +34,7 @@ mod wireless;
 
 use std::io;
 use std::net::{IpAddr, Ipv6Addr};
+use std::time::Duration;
 
 use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::conn::{Connection, Incoming, Request};
@@ -328,6 +329,7 @@ impl Netifd {
         )?;
         events.set_nonblocking()?;
         let mut conn = Connection::connect(socket)?;
+        conn.set_server_io_timeout(Duration::from_secs(1));
         let objects = ubus::Objects::register(&mut conn)?;
         Ok(Self {
             cfg: Config::default(),
@@ -4180,24 +4182,32 @@ impl Netifd {
             return;
         }
         self.bus_retry_at = now() + BUS_RETRY_SECS;
-        let conn = match Connection::connect(self.socket.as_deref()) {
+        // A failed earlier attempt may still own some object paths. Release
+        // it before registering on another transport, even if a child still
+        // holds a copied descriptor.
+        let _ = self.conn.shutdown();
+        let mut conn = match Connection::connect(self.socket.as_deref()) {
             Ok(c) => c,
             Err(_) => return,
         };
-        self.conn = conn;
-        let objects = match ubus::Objects::register(&mut self.conn) {
+        conn.set_server_io_timeout(Duration::from_secs(1));
+        let mut objects = match ubus::Objects::register(&mut conn) {
             Ok(o) => o,
             Err(e) => {
                 logging::log!(Warning, "reconnected but cannot register: {e}");
                 return;
             }
         };
-        self.objects = objects;
-        for name in self.interfaces.iter().map(|i| i.name.clone()).collect::<Vec<_>>() {
-            if let Err(e) = self.objects.add_interface(&mut self.conn, &name) {
+        for name in self.interfaces.iter().map(|i| &i.name) {
+            if let Err(e) = objects.add_interface(&mut conn, name) {
                 logging::log!(Warning, "reconnected but cannot register {name}: {e}");
+                // Keep retrying the complete set. Dropping this local
+                // transport removes its partial registrations from ubusd.
+                return;
             }
         }
+        self.conn = conn;
+        self.objects = objects;
         self.bus_down = false;
         logging::log!(Info, "reconnected to ubus");
     }

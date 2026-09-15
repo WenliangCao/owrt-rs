@@ -3,6 +3,30 @@
 
 use std::io;
 use std::os::fd::{FromRawFd, OwnedFd, RawFd};
+use std::time::Instant;
+
+#[derive(Debug)]
+struct PartialTimeout;
+impl std::fmt::Display for PartialTimeout {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ubus deadline elapsed inside a frame")
+    }
+}
+impl std::error::Error for PartialTimeout {}
+
+pub(crate) fn partial_timeout(error: io::Error) -> io::Error {
+    if error.kind() == io::ErrorKind::TimedOut {
+        io::Error::new(io::ErrorKind::TimedOut, PartialTimeout)
+    } else { error }
+}
+
+pub(crate) fn is_partial_timeout(error: &io::Error) -> bool {
+    error.get_ref().is_some_and(|e| e.is::<PartialTimeout>())
+}
+
+fn after_progress(error: io::Error, started: bool) -> io::Error {
+    if started { partial_timeout(error) } else { error }
+}
 
 #[repr(C)]
 pub struct IoVec {
@@ -98,13 +122,23 @@ pub fn send_with_fd(sock: RawFd, header: &[u8], body: &[u8], fd: Option<RawFd>) 
     send_parts(sock, [header, body], fd)
 }
 
+pub(crate) fn send_with_fd_until(sock: RawFd, header: &[u8], body: &[u8], fd: Option<RawFd>, deadline: Option<Instant>) -> io::Result<()> {
+    send_parts_until(sock, [header, body], fd, deadline)
+}
+
 /// Send fixed borrowed pieces without collecting them into a second buffer.
 pub(crate) fn send_parts<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Option<RawFd>) -> io::Result<()> {
+    send_parts_until(sock, parts, fd, None)
+}
+
+pub(crate) fn send_parts_until<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Option<RawFd>, deadline: Option<Instant>) -> io::Result<()> {
     let mut iov = parts.map(|part| IoVec { base: part.as_ptr() as *mut u8, len: part.len() });
     let mut control = [0u8; CMSG_SPACE_FD];
     let mut attach = fd;
     let mut index = 0;
+    let mut started = false;
     while index < iov.len() {
+        check_deadline(deadline).map_err(|e| after_progress(e, started))?;
         let mut hdr = MsgHdr {
             name: std::ptr::null_mut(),
             namelen: 0,
@@ -125,18 +159,23 @@ pub(crate) fn send_parts<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Opt
         }
         // SAFETY: hdr, the iovec array it points at and the control buffer all
         // outlive this call, and their lengths describe them.
-        let sent = unsafe { sendmsg(sock, &hdr, 0) };
+        let sent = unsafe { sendmsg(sock, &hdr, if deadline.is_some() { MSG_DONTWAIT } else { 0 }) };
         if sent < 0 {
             let error = io::Error::last_os_error();
             match error.kind() {
-                io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock => {
-                    wait(sock, POLLOUT)?;
+                io::ErrorKind::Interrupted => continue,
+                io::ErrorKind::WouldBlock => {
+                    wait_until(sock, POLLOUT, deadline).map_err(|e| after_progress(e, started))?;
                     continue;
                 }
                 _ => return Err(error),
             }
         }
+        if sent == 0 && iov[index..].iter().any(|part| part.len != 0) {
+            return Err(io::Error::new(io::ErrorKind::WriteZero, "ubus send made no progress"));
+        }
         attach = None;
+        started |= sent > 0;
         let mut remaining = sent as usize;
         while index < iov.len() && remaining >= iov[index].len {
             remaining -= iov[index].len;
@@ -155,20 +194,25 @@ pub(crate) fn send_parts<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Opt
 
 /// Receive exactly `buf.len()` bytes; the first recvmsg may deliver one fd.
 pub fn recv_exact(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Option<OwnedFd>> {
-    recv_exact_inner::<false>(sock, buf, want_fd)
+    recv_exact_inner::<false>(sock, buf, want_fd, None)
+}
+
+pub(crate) fn recv_exact_until(sock: RawFd, buf: &mut [u8], want_fd: bool, deadline: Option<Instant>) -> io::Result<Option<OwnedFd>> {
+    recv_exact_inner::<false>(sock, buf, want_fd, deadline)
 }
 
 /// Do not wait for the first byte. Once a frame has started, finish the
 /// requested slice with the same blocking and descriptor rules as recv_exact.
-pub(crate) fn recv_exact_if_started(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Option<OwnedFd>> {
-    recv_exact_inner::<true>(sock, buf, want_fd)
+pub(crate) fn recv_exact_if_started_until(sock: RawFd, buf: &mut [u8], want_fd: bool, deadline: Option<Instant>) -> io::Result<Option<OwnedFd>> {
+    recv_exact_inner::<true>(sock, buf, want_fd, deadline)
 }
 
-fn recv_exact_inner<const TRY_START: bool>(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Option<OwnedFd>> {
+fn recv_exact_inner<const TRY_START: bool>(sock: RawFd, buf: &mut [u8], want_fd: bool, deadline: Option<Instant>) -> io::Result<Option<OwnedFd>> {
     let mut received_fd = None;
     let mut offset = 0;
     let mut first = want_fd;
     while offset < buf.len() {
+        check_deadline(deadline).map_err(|e| after_progress(e, offset > 0))?;
         let mut iov = IoVec {
             // SAFETY: the enclosing loop runs only while offset < buf.len(), so this
             // stays within the buffer.
@@ -191,7 +235,7 @@ fn recv_exact_inner<const TRY_START: bool>(sock: RawFd, buf: &mut [u8], want_fd:
         };
         // SAFETY: hdr, its iovec and the control buffer are live for the call and
         // sized by the lengths hdr carries.
-        let got = unsafe { recvmsg(sock, &mut hdr, if TRY_START && offset == 0 { MSG_DONTWAIT } else { 0 }) };
+        let got = unsafe { recvmsg(sock, &mut hdr, if deadline.is_some() || (TRY_START && offset == 0) { MSG_DONTWAIT } else { 0 }) };
         if got == 0 {
             return Err(io::Error::new(
                 io::ErrorKind::UnexpectedEof,
@@ -204,8 +248,9 @@ fn recv_exact_inner<const TRY_START: bool>(sock: RawFd, buf: &mut [u8], want_fd:
                 return Err(error);
             }
             match error.kind() {
-                io::ErrorKind::Interrupted | io::ErrorKind::WouldBlock => {
-                    wait(sock, POLLIN)?;
+                io::ErrorKind::Interrupted => continue,
+                io::ErrorKind::WouldBlock => {
+                    wait_until(sock, POLLIN, deadline).map_err(|e| after_progress(e, offset > 0))?;
                     continue;
                 }
                 _ => return Err(error),
@@ -245,13 +290,35 @@ pub fn poll_fds(fds: &mut [PollFd], timeout_ms: i32) -> io::Result<usize> {
     }
 }
 
-fn wait(fd: RawFd, events: i16) -> io::Result<()> {
+fn check_deadline(deadline: Option<Instant>) -> io::Result<()> {
+    if deadline.is_some_and(|end| Instant::now() >= end) {
+        return Err(io::Error::new(io::ErrorKind::TimedOut, "ubus I/O deadline elapsed"));
+    }
+    Ok(())
+}
+
+fn wait_until(fd: RawFd, events: i16, deadline: Option<Instant>) -> io::Result<()> {
     let mut pfd = [PollFd {
         fd,
         events,
         revents: 0,
     }];
-    poll_fds(&mut pfd, -1).map(|_| ())
+    if deadline.is_none() {
+        return poll_fds(&mut pfd, -1).map(|_| ());
+    }
+    loop {
+        check_deadline(deadline)?;
+        let remaining = deadline.unwrap().saturating_duration_since(Instant::now());
+        let timeout = remaining.as_millis().clamp(1, i32::MAX as u128) as i32;
+        // SAFETY: pfd is one live pollfd. Recompute the deadline after EINTR
+        // instead of restarting the full timeout under repeated signals.
+        let ready = unsafe { poll(pfd.as_mut_ptr(), 1, timeout) };
+        if ready > 0 { return Ok(()); }
+        if ready < 0 {
+            let error = io::Error::last_os_error();
+            if error.kind() != io::ErrorKind::Interrupted { return Err(error); }
+        }
+    }
 }
 
 /// Wait until `fd` is readable or the timeout elapses. Returns false on timeout.

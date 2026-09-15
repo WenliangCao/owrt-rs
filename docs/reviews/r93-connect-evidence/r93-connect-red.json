@@ -1,0 +1,17 @@
+[
+  {
+    "case": "nohello",
+    "elapsed": 1.6039943560026586,
+    "hung": true
+  },
+  {
+    "case": "partialhello",
+    "elapsed": 1.60306110791862,
+    "hung": true
+  },
+  {
+    "case": "backlog",
+    "elapsed": 1.6013841340318322,
+    "hung": true
+  }
+]

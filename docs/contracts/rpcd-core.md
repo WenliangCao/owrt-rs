@@ -84,3 +84,26 @@ object 名支持原始字节。function 和会话 id 仍要求 UTF-8：grant/rev
 
 UCI 的 scalar/list 转储（包括 get/state）保留原始值字节；名字校验与 UCI 合同一致。
 回归：`r92_compat_probe.py` 的 `rpcd_compat`，覆盖 login 正/负模式、字节值、无效授权及撤权。
+
+## 6. 总线断连时保留回滚（R93）
+
+精确原版使用 libubus 默认 `connection_lost` 回调结束 uloop，进程退出并丢失内存中的
+apply 回滚计时器。候选有意改进该故障边界：总线断开或一秒服务端 I/O 预算用尽时关闭旧
+连接，保留会话、UCI savedir、apply 状态和受监督的延迟子进程，每秒尝试重连并注册全部对象。
+离线仍处理会话过期、子进程回收和 apply 到期；连接和每个对象注册分别有一秒上限，注册之间
+检查计时器。明确的 SIGHUP/SIGUSR1 流程继续沿用原有 freeze/re-exec/exit 行为。
+
+到期回滚先恢复所有文件，再排队通知；手动 rollback 也先恢复所有文件，再尝试同步通知。
+总线不可用时不依赖 `service event` 成功才完成恢复。未发送成功的
+`config.change` 按包名去重保留，在线每秒最多轮转重试一个包，单个永久失败的包不阻塞后面的包，直到 `service event` 回复 OK；
+成功项移除，不周期重发。回复丢失可能使 procd 收到重复事件，因此是至少一次交付；事件表示
+读取包的当前配置，不保存旧配置内容。总线/procd 恢复前，磁盘已恢复并不意味着执行面已重载。
+
+每次总线连接独占 deferred 完成通道。关闭连接同时丢弃旧 receiver，旧 worker 即使稍后完成，
+也不能把旧 peer/sequence/object 的回复发送到新连接；原命令继续按其既有超时/回收规则结束。
+该修复不把待完成外部命令自动重试，也不承诺跨进程崩溃持久化未送达事件。
+
+回归 `tools/r93_rpcd_reconnect.py` 在精确 rootfs 的 mount/net/PID namespace 中运行，覆盖
+断连及半帧输入下的 apply 文件回滚、会话保留/过期、通知补发及成功后不再重复、旧 worker
+完成后的服务；还覆盖在线通知失败、多包回滚不被回复拖延、永久失败包不饿死后续通知。
+旧 receiver 隔离另由 channel generation 单测验证。不会连接或更改物理路由器。
