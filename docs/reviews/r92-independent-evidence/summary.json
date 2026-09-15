@@ -1,0 +1,119 @@
+{
+  "reviewed_commit": "6bb1226",
+  "runtime_commit": "ca1a912",
+  "current_main": "39e5d89",
+  "scope": "R84 through R92, prioritizing the eight commits on main..codex/r92-recovery-compat",
+  "evidence_rederivation": {
+    "command": "python3 tools/benchmark/analyze_r92.py PRIVATE_R92 NEW_OUTPUT --history reports/ax3000t-stock-openwrt-25.12.5/R89_parts --final PRIVATE_R92/device/final-01",
+    "json_files": 31,
+    "identical_to_published": 31,
+    "component_measurements": 888,
+    "required_historical_gates": 68,
+    "new_router_execution": false
+  },
+  "local_checks": {
+    "tool_syntax": "passed",
+    "harness_tests_passed": 21,
+    "benchmark_python_tests_passed": 33,
+    "httpd_tests_passed": 34,
+    "ubusd_tests_passed": 23,
+    "readiness_tests_passed": 3,
+    "rpcd_binary_tests_passed": 52,
+    "fw4_tests_passed": 14,
+    "logd_tests_passed": 5,
+    "uci_library_tests_passed": 16,
+    "uci_fidelity_tests_passed": 16,
+    "uci_read_cache_tests_passed": 2,
+    "uci_config_listing": {
+      "passed": 2,
+      "fixture_platform_failures": 1
+    },
+    "reload_config": {
+      "passed": 11,
+      "fixture_platform_failures": 1
+    },
+    "procd_all_targets_check": "passed",
+    "procd_watchdog_mock_cases_passed": 5,
+    "procd_full_test_limitation": "macOS linker lacks Linux sysinfo",
+    "filename_fixture_limitation": "APFS rejects invalid UTF-8 filename with EILSEQ before target behavior runs"
+  },
+  "http_listener_probe": {
+    "host": "macOS",
+    "production_logic": "R92 copied sources, platform shims for fcntl flags and Linux accept noninheritance; fallback poll rather than Linux epoll",
+    "listeners": 2,
+    "global_connection_limit": 1,
+    "requests_per_case": 20,
+    "result": {
+      "same_listener": {
+        "median_ms": 0.45258349996402103,
+        "min_ms": 0.21599999990939978,
+        "max_ms": 0.9442919999855803,
+        "samples_ms": [
+          0.5375000000640284,
+          0.46225000005506445,
+          0.36200000022290624,
+          0.9442919999855803,
+          0.21599999990939978,
+          0.31499999977313564,
+          0.4429169998729776,
+          0.6186659998093091,
+          0.4305829997974797,
+          0.8036660001380369,
+          0.7102920003489999,
+          0.6598749996555853,
+          0.7529999998041603,
+          0.33437500042055035,
+          0.36495799986369093,
+          0.49450000005890615,
+          0.27637499988486525,
+          0.27520799994817935,
+          0.38529199991899077,
+          0.8249999996223778
+        ]
+      },
+      "other_listener": {
+        "median_ms": 34.96700000027886,
+        "min_ms": 23.588582999764185,
+        "max_ms": 45.408375000079104,
+        "samples_ms": [
+          45.26866699961829,
+          37.59362500022689,
+          30.290083000181767,
+          23.611999999957334,
+          44.92733300003238,
+          37.904750000052445,
+          31.35704199985412,
+          24.436874999992142,
+          45.3729169998951,
+          37.90012500030571,
+          29.720167000050424,
+          23.660542000015994,
+          45.408375000079104,
+          38.98887500008641,
+          31.074458000148297,
+          27.05704199979664,
+          44.784791999973095,
+          37.83070899999075,
+          32.34037500033082,
+          23.588582999764185
+        ]
+      }
+    },
+    "router_performance_claim": false
+  },
+  "logd_poll_index_probe": {
+    "method": "Extract unchanged production Client, frame, Daemon::add and final run_connected retention; real UnixStream pairs and poll, stub unused ubus notify",
+    "result": [
+      "after log dispatch: healthy B still present; stale A revents = 16",
+      "after exact run_connected retention: healthy B incorrectly removed",
+      "B received 116 frame bytes and then EOF"
+    ],
+    "new_in_r92": false
+  },
+  "ubusd_accept_recovery": {
+    "evidence_level": "source control-flow confirmation; no fresh Linux fault injection",
+    "state": "listener removed on all accept errors, restored only after service_client returns false",
+    "trigger": "temporary EMFILE relieved by dropping a received SCM_RIGHTS fd without closing an accepted bus client; or transient accept error"
+  },
+  "review_modifications": "report and derived evidence only; no production edits, merge, commit, or device access"
+}
