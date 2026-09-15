@@ -1,0 +1,95 @@
+{
+  "procd_sha256": "8299d67256c2e16749f18a351a95a16c1ad5bf599e6619167c10d90ea489ee18",
+  "probe_sha256": "01ac0c3f30c5f49913770969a10fd59e5d9a5da34acb770726eefee3c8247f76",
+  "exit": 0,
+  "checks": {
+    "all_six_subscribed": true,
+    "trigger_executes": true,
+    "recreated_id_is_new": true,
+    "recreated_subscribed": true,
+    "immediate_set_add_subscribed": true,
+    "immediate_set_add_delivered": true,
+    "missing_paths_do_not_wait_for_creation": true,
+    "same_supervisor": true,
+    "identity": true
+  },
+  "observations": {
+    "all_subscribed_seconds": 0.20292277005501091,
+    "immediate_trials": [
+      {
+        "method": "set",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 11.91999763250351
+      },
+      {
+        "method": "add",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 13.280892744660378
+      },
+      {
+        "method": "set",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 11.400086805224419
+      },
+      {
+        "method": "add",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 9.680166840553284
+      },
+      {
+        "method": "set",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 11.91999763250351
+      },
+      {
+        "method": "add",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 11.801021173596382
+      },
+      {
+        "method": "set",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 11.719996109604836
+      },
+      {
+        "method": "add",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 9.719980880618095
+      },
+      {
+        "method": "set",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 13.43991607427597
+      },
+      {
+        "method": "add",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 9.279930964112282
+      },
+      {
+        "method": "set",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 10.360032320022583
+      },
+      {
+        "method": "add",
+        "subscribed": true,
+        "delivered": true,
+        "return_to_notify_us": 61.04004569351673
+      }
+    ],
+    "missing_set_seconds": 0.0007824068889021873
+  },
+  "passed": true
+}

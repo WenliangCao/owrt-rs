@@ -19,6 +19,28 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def example_inputs(gate_names, examples):
+    """Check selected fixtures before starting any expensive runtime gate."""
+    required = {
+        "procd-watchdog-status": ("watchdog_status",),
+        "procd-r65": ("notifier",),
+        "procd-r72": ("ptyhold",),
+        "httpd-extended": ("notifier",),
+        "rpcd-bytes": ("raw_bytes",),
+        "ubusd-r83": ("wireprobe",),
+        "ubusd-r42": ("fuzz",),
+        "ubusd-r41": ("bench",),
+        "netifd-suite": ("sysprobe", "devstatus", "ifstatus"),
+        "r92-recovery": ("output_lifecycle",),
+    }
+    names = sorted({name for gate in gate_names for name in required.get(gate, ())})
+    missing = [str(examples / name) for name in names
+               if not (examples / name).is_file() or not os.access(examples / name, os.X_OK)]
+    if missing:
+        raise ValueError("missing or non-executable test examples: " + ", ".join(missing))
+    return {name: digest(examples / name) for name in names}
+
+
 def main():
     if sys.argv[1:2] == ["--namespace-command"]:
         if os.environ.get("OWRT_BENCH_NAMESPACE") != "1" or os.geteuid() != 0:
@@ -44,7 +66,6 @@ def main():
         p.error("run only on a Linux build host")
     rootfs, bins, out, examples = [x.resolve() for x in (a.rootfs, a.bins, a.output, a.examples)]
     source = Path(__file__).resolve().parents[1]
-    out.mkdir(parents=True, exist_ok=False)
     env = dict(os.environ, PATH="/home/ubuntu/.cargo/bin:" + os.environ["PATH"],
                CARGO_TARGET_DIR=str(a.target_dir.resolve()), HELPERS=str(a.helpers.resolve()))
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -120,6 +141,10 @@ def main():
     selected = [g for g in gates if g[0] in a.groups and (not a.gates or g[1] in a.gates)]
     if not selected or (a.gates and set(a.gates) != {g[1] for g in selected}):
         p.error("empty selection or unknown gate")
+    try:
+        example_identity = example_inputs({g[1] for g in selected}, examples)
+    except ValueError as error:
+        p.error(str(error))
     helper_identity = None
     if {g[1] for g in selected} & {"ubusd-r36", "ubusd-r36-user", "ubusd-r41"}:
         helper_manifest = a.helpers / "manifest.json"
@@ -132,7 +157,8 @@ def main():
                     or identity["binary_sha256"] != digest(a.helpers / name)):
                 p.error("stale or modified test helper: " + name)
     binaries = {p.name: digest(p) for p in sorted(bins.iterdir()) if p.is_file()}
-    result = {"started": now, "groups": a.groups, "gate_selection": a.gates, "driver_sha256": digest(Path(__file__)), "binary_sha256": binaries, "helper_identity": helper_identity, "results": []}
+    out.mkdir(parents=True, exist_ok=False)
+    result = {"started": now, "groups": a.groups, "gate_selection": a.gates, "driver_sha256": digest(Path(__file__)), "binary_sha256": binaries, "example_sha256": example_identity, "helper_identity": helper_identity, "results": []}
     for group, name, command, extra_env, required in selected:
         if group != "unit":
             # The namespace init outlives each gate and kills all descendants
