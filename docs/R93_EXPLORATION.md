@@ -32,8 +32,8 @@
 
 证据放 ignored `private/r93/`，构建机独立目录 `/home/ubuntu/r93-exploration/`。
 `source-01/02` 是不可混用的开发快照，开发二进制不是 canonical 发布产物。
-`source-03` 当前用于统一构建和分组验证；procd 最后修复仍在验证，最终文件清单另行冻结；source-03 的纯队列版本有已确认
-的 set-return 通知时序回归，不得部署。
+`source-05` 是当前九组件统一 SDK recipe 冻结快照，对应运行时提交 `7d5cb38`；
+`source-03/04` 的 procd 存在已确认的 set-return/service.start 通知时序回归，不得部署。
 新门为 `r93_httpd_cap_probe.py`、`r93_ubusd_accept_probe.py`、`test_logd_stream_recovery.py`；
 共享库新增部分报文、背压、完整超时与 fd 回收单测。
 
@@ -54,8 +54,8 @@ Linux 旧版反例已确认 accept 8/8 不恢复、logd 三项恢复失败和共
 - 原始回归文件含 root 私有日志，普通 scp 无法读全；改用 sudo tar 完整读回并核验，保留初次记录。
 
 2026-09-15 本轮 Wi-Fi 只读健康检查通过；新读回配置、overlay、R89/R90/R92 三包和两份
-恢复镜像均已核验，证据在 `private/r93/recovery-01/`。只读备份不是候选部署验收；统一候选
-正确性通过后才能开始物理实验。基线、恢复入口和完整比较矩阵见
+恢复镜像均已核验，证据在 `private/r93/recovery-01/`。只读备份不是候选部署验收；对应组件正确性通过后可在私有 namespace
+采集修复版本的实机基线，统一正确性门闭合后才合入性能算法或开展整栈切换。基线、恢复入口和完整比较矩阵见
 [R93_BASELINES](reviews/R93_BASELINES.md)。
 
 ## 性能阶段入口
@@ -106,3 +106,26 @@ capacity，否则长尾空白日志可能增加 RSS。两类实验仅在 private
 
 最终 procd 的控制流独立审查见 [R93_PROCD_FINAL_REVIEW](reviews/R93_PROCD_FINAL_REVIEW.md)，
 红绿对照及测试身份见 [procd evidence](reviews/r93-procd-evidence/summary.json)。
+
+## source-05 验证进度与物理基线
+
+- 同 SDK recipe 九个二进制冻结完成；所有 157 个组件源码/依赖文件与 source-05 一致。
+  三个 core 按 `ci_build_core.sh` 不做 sstrip，六个 package 按 Makefile 做 sstrip；
+  全部 4 KiB PT_LOAD 对齐、静态、RELRO。构建主机为 aarch64 GNU Rust 1.98.1 + 镜像 SDK，
+  与 x86_64 canonical CI 的 host 不同，不能称字节相同的正式发布。
+- 当前构建机整组门为 `gates-sdk-05`：十 crate 单测/all-target Clippy、procd 全历史、HTTP
+  全历史与 CGI 压力已通过；ubusd 全历史已通过；netifd 等后续继续运行。
+- RPCD r26 733 步中的一个原版 `getFeatures` 返回漏掉 dnsmasq，候选完整返回，其余值相同。
+  已交独立诊断，不把原始 FAILED 改为通过、不删除该字段；真实助手输出另有 r85 门。
+- 历史 driver 增加按所选 gate 检查所需 executable example 及记录其 hash，避免运行数分钟
+  后才发现 notifier/output_lifecycle 漏编。该 tooling 提交晚于冻结快照；正在运行的旧 driver
+  身份原样保留，不能回填为新 hash。
+- HTTP 在自身完整正确性门通过后启动物理三侧固定间隔基线；生产 R92 栈未切换。
+  `tools/benchmark/r93_http_gap.py` 使用原版、正式 R89 和当前 SDK HTTPD，四轮 × 五种 gap。
+  独立目标镜像 smoke 完整 8/8 请求与 derive 校验通过，1 秒 timeout smoke 的 10 个观测
+  owned 进程全部退出。镜像没有 BusyBox timeout、不支持小数 sleep，初始失败记录保留；
+  当前定时器用私有 namespace shell，关闭后资源采样为 1 秒和 2 秒，不宣称覆盖 200 ms。
+- logd 固定语料新工具在三侧五场景 15/15 smoke 通过，全部标记 non-performance；
+  无订阅完整保留集、1/8 readers 每条完整帧、trim-heavy、600 history；不能替代原恢复门。
+- HTTP worker-cache、logd 最终 span 单次分配、ubusd 无路径迭代优化仍只存在于私有副本，
+  当前生产源码没有这些性能改动。先采修复基线，再单项对比。
