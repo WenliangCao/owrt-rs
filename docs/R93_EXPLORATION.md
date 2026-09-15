@@ -181,3 +181,11 @@ capacity，否则长尾空白日志可能增加 RSS。两类实验仅在 private
   [完整对照](reviews/R93_UBUSD_DEVICE_BASELINE.md) 明确不包含本次新修复。
 - 旧 contract 关于 `txq_ofs` 残值破坏下一条消息的说法缺乏运行反例，且下一次部分写入
   会重设 offset，已更正为未证实疑点。不能将旧文档断言当成新复现的故障。
+
+### RPCD 新实机退步
+
+三侧四轮、18 项负载的 216 个观测完成。`session_access_granted` 自身 CPU 四轮范围
+R89 22–24、source05 27–28 µs，范围没有重叠；`session_access_64_c4` 平均延迟中位数
+241.98→275.37 µs（+13.80%），CPU 17.86→22.82 µs。已有恢复正确性通过不代表性能
+已赢 R89；源码/总线期限开销正在定位，未通过撤除保护换分数。
+完整数据与限制见 [rpcd 本轮基线](reviews/R93_RPCD_DEVICE_BASELINE.md)。
