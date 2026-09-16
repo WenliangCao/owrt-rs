@@ -336,7 +336,7 @@ pub fn read_request<R: Read>(
     HeadBuffer::default().read_request(reader, keepalive, deadline)
 }
 
-/// Per-connection parser storage. Reuse allocations, never parsed decisions:
+/// Worker-local parser storage. Reuse allocations, never parsed decisions:
 /// every field and flag is replaced before a request can reach a handler.
 #[derive(Default)]
 pub struct HeadBuffer {
@@ -351,26 +351,41 @@ impl HeadBuffer {
         keepalive: bool,
         deadline: Option<&HeadDeadline>,
     ) -> io::Result<ParseOutcome> {
-        read_request_into(reader, keepalive, deadline, &mut self.line, self.spare.take())
+        read_request_into(reader, keepalive, deadline, &mut self.line, &mut self.spare)
     }
 
     /// Large headers must not pin their peak capacity while a connection is
     /// idle. This limits retained storage, not which requests are accepted.
     pub fn recycle(&mut self, request: Request) {
-        let mut bytes = self.line.capacity().saturating_add(request.url.capacity())
-            .saturating_add(request.headers.capacity().saturating_mul(
-                std::mem::size_of::<(Cow<'static, str>, String)>()));
-        for (name, value) in &request.headers {
-            bytes = bytes.saturating_add(value.capacity());
-            if let Cow::Owned(name) = name {
-                bytes = bytes.saturating_add(name.capacity());
+        self.spare = Some(request);
+        self.trim();
+    }
+
+    fn retained_bytes(&self) -> usize {
+        let mut bytes = self.line.capacity();
+        if let Some(request) = &self.spare {
+            bytes = bytes.saturating_add(request.url.capacity())
+                .saturating_add(request.headers.capacity().saturating_mul(
+                    std::mem::size_of::<(Cow<'static, str>, String)>()));
+            for (name, value) in &request.headers {
+                bytes = bytes.saturating_add(value.capacity());
+                if let Cow::Owned(name) = name {
+                    bytes = bytes.saturating_add(name.capacity());
+                }
             }
         }
-        if bytes <= 8192 {
-            self.spare = Some(request);
-        } else {
+        bytes
+    }
+
+    /// Called before a worker becomes idle, including after parser errors.
+    /// At most four idle workers retain at most 8 KiB each; idle sockets keep
+    /// neither this storage nor the reader's separate 8 KiB allocation.
+    pub fn trim(&mut self) {
+        if self.retained_bytes() > 8192 {
             self.spare = None;
             self.line = Vec::new();
+        } else {
+            self.line.clear();
         }
     }
 }
@@ -380,7 +395,7 @@ fn read_request_into<R: Read>(
     keepalive: bool,
     deadline: Option<&HeadDeadline>,
     raw: &mut Vec<u8>,
-    spare: Option<Request>,
+    spare: &mut Option<Request>,
 ) -> io::Result<ParseOutcome> {
     let mut first_line = true;
     loop {
@@ -421,7 +436,9 @@ fn read_request_into<R: Read>(
     if has_nul {
         return Ok(bad_line(400, "Bad Request"));
     }
-    let mut request = spare.unwrap_or_else(|| Request {
+    // Idle/EOF/bad request lines must not consume reusable storage.
+    // Take it only when a new request can reset every field below.
+    let mut request = spare.take().unwrap_or_else(|| Request {
         method,
         version,
         url: String::new(),
@@ -1811,3 +1828,7 @@ mod tests {
         assert_eq!(html_escape("/nope.txt?a=1"), "/nope.txt?a=1");
     }
 }
+
+#[cfg(test)]
+#[path = "head_cache_tests.rs"]
+mod head_cache_tests;
