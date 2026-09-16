@@ -530,7 +530,6 @@ struct Server {
     /// The connection cap covers every listener, so releasing its last slot
     /// must wake HTTP, HTTPS and both address families together.
     listeners: Mutex<Vec<Weak<Parking>>>,
-    idle_workers: Mutex<Vec<Arc<IdleWorker>>>,
     scripts: ScriptSlots,
     output_buffers: Mutex<Vec<Vec<u8>>>,
     inventory: Option<Mutex<std::fs::File>>,
@@ -1043,121 +1042,28 @@ fn resume(server: &Arc<Server>, parking: &Arc<Parking>, p: Parked) {
     }
 }
 
-// Idle workers are shared across all listeners. Active CGI, uploads and SSE
-// never queue behind this limit: no reusable worker means spawn immediately.
-const MAX_IDLE_WORKERS: usize = 4;
-const WORKER_IDLE: Duration = Duration::from_secs(1);
-
-struct Work {
-    server: Arc<Server>,
-    parking: Arc<Parking>,
-    transport: Transport,
-    conn: Conn,
-    resume: Option<Instant>,
-}
-
-#[derive(Default)]
-struct IdleState {
-    available: bool,
-    work: Option<Work>,
-}
-
-#[derive(Default)]
-struct IdleWorker {
-    state: Mutex<IdleState>,
-    ready: Condvar,
-}
-
-impl IdleWorker {
-    /// None means accepted; a rejected job is returned with ownership intact.
-    fn assign(&self, work: Work) -> Option<Work> {
-        let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
-        if !state.available { return Some(work); }
-        state.available = false;
-        state.work = Some(work);
-        self.ready.notify_one();
-        None
-    }
-
-    fn publish(self: &Arc<Self>, server: &Server) -> bool {
-        let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
-        let mut idle = server.idle_workers.lock().unwrap_or_else(|e| e.into_inner());
-        if idle.len() >= MAX_IDLE_WORKERS { return false; }
-        state.available = true;
-        idle.push(Arc::clone(self));
-        true
-    }
-
-    fn wait(&self, deadline: Instant) -> Option<Work> {
-        let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
-        loop {
-            // Assignment and timeout resolve under the same mutex. A job
-            // already assigned always wins, even when the worker wakes late.
-            if let Some(work) = state.work.take() { return Some(work); }
-            let remaining = deadline.saturating_duration_since(Instant::now());
-            if remaining.is_zero() { state.available = false; return None; }
-            state = self.ready.wait_timeout(state, remaining)
-                .unwrap_or_else(|e| e.into_inner()).0;
-        }
-    }
-}
-
-fn run_worker(mut work: Work) {
-    let idle_worker = Arc::new(IdleWorker::default());
-    let mut heads = http::HeadBuffer::default();
-    loop {
-        let server = Arc::clone(&work.server);
-        if let Outcome::Closed = server.run_connection(work.transport, work.conn, &work.parking, work.resume, &mut heads) {
-            server.release_connection();
-        }
-        // Bound storage after every exit, including malformed or closed heads.
-        heads.trim();
-        drop(work.parking);
-        drop(work.server);
-        // run_connection has dropped its BufReader and returned any transport
-        // to the listener. Only bounded parser capacity stays with the worker.
-        let deadline = Instant::now() + WORKER_IDLE;
-        if !idle_worker.publish(&server) { return; }
-        let Some(next) = idle_worker.wait(deadline) else { return };
-        work = next;
-    }
-}
-
-fn start_worker(work: Work) -> io::Result<()> {
-    std::thread::Builder::new().spawn(move || run_worker(work)).map(|_| ())
-}
-
-fn dispatch_work(server: &Server, mut work: Work, start: impl FnOnce(Work) -> io::Result<()>) -> io::Result<()> {
-    loop {
-        // Drop the list lock before taking a slot lock. A publishing worker
-        // takes its own slot lock first; dispatch must never reverse that order.
-        let idle = server.idle_workers.lock().unwrap_or_else(|e| e.into_inner()).pop();
-        let Some(idle) = idle else { break };
-        match idle.assign(work) {
-            None => return Ok(()),
-            Some(returned) => work = returned,
-        }
-    }
-    let result = start(work);
-    if result.is_err() {
-        // Failed thread creation drops the closure/socket. No idle slot owns
-        // this job, and its one reserved connection permit must be returned.
-        server.release_connection();
-    }
-    result
-}
-
+/// One thread per active connection. A keep-alive connection that goes quiet
+/// is parked without a thread, and the fastpath serves its next small static
+/// request on the listener itself, so the common paced case never spawns a
+/// thread on resume. Requests that fall back keep a fresh thread each -- as
+/// uhttpd does not, but idle connections then cost only a descriptor, which
+/// is the memory contract the R85/R93 gates hold to.
 fn spawn_connection(server: &Arc<Server>, parking: &Arc<Parking>, transport: Transport, conn: Conn, resume: Option<Instant>) {
-    let work = Work { server: Arc::clone(server), parking: Arc::clone(parking), transport, conn, resume };
-    if let Err(error) = dispatch_work(server, work, start_worker) {
+    let worker = Arc::clone(server);
+    let parking = Arc::clone(parking);
+    if let Err(error) = std::thread::Builder::new().spawn(move || {
+        let mut heads = http::HeadBuffer::default();
+        if let Outcome::Closed = worker.run_connection(transport, conn, &parking, resume, &mut heads) {
+            worker.release_connection();
+        }
+    }) {
+        // The failed spawn drops its closure and the socket. Release the
+        // reserved slot too, and keep the listener alive under pressure.
+        server.release_connection();
         let _ = writeln!(std::io::stderr().lock(), "httpd-rs: cannot create connection thread: {error}");
         std::thread::sleep(Duration::from_millis(50));
     }
 }
-
-#[cfg(test)]
-#[path = "worker_cache_tests.rs"]
-mod worker_cache_tests;
 
 #[cfg(test)]
 #[path = "fast_tests.rs"]
@@ -1240,7 +1146,6 @@ fn main() {
         connections: AtomicUsize::new(0),
         accept_lock: Mutex::new(()),
         listeners: Mutex::new(Vec::new()),
-        idle_workers: Mutex::new(Vec::new()),
         scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: config.max_script_requests },
         output_buffers: Mutex::new(Vec::new()),
         inventory: inventory.map(Mutex::new),
@@ -1280,7 +1185,6 @@ mod connection_tests {
             },
             connections: AtomicUsize::new(0), accept_lock: Mutex::new(()),
             listeners: Mutex::new(Vec::new()),
-            idle_workers: Mutex::new(Vec::new()),
             scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: 1 },
             output_buffers: Mutex::new(Vec::new()), inventory: None,
         }

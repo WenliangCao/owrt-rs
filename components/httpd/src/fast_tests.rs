@@ -68,7 +68,6 @@ fn fixture() -> Fixture {
         scripts: ScriptSlots { count: Mutex::new(0), ready: Condvar::new(), limit: 1 },
         output_buffers: Mutex::new(Vec::new()),
         inventory: None,
-        idle_workers: Mutex::new(Vec::new()),
     });
     let (read, write) = std::os::unix::net::UnixStream::pair().unwrap();
     read.set_nonblocking(true).unwrap();
