@@ -98,11 +98,19 @@ impl Request {
 fn lower_header_name(name: &str) -> Cow<'static, str> {
     // Common protocol names are immutable. Share them between requests;
     // unknown extension headers retain the same ASCII lowercase behavior.
-    const COMMON: &[&str] = &[
-        "host", "connection", "content-type", "content-length", "expect",
-        "transfer-encoding", "user-agent", "accept", "authorization",
-    ];
-    for &known in COMMON {
+    // Dispatch on length first so a typical head compares each name against
+    // at most two candidates instead of the whole table.
+    let candidates: &[&'static str] = match name.len() {
+        4 => &["host"],
+        6 => &["expect", "accept"],
+        10 => &["connection", "user-agent"],
+        12 => &["content-type"],
+        13 => &["authorization"],
+        14 => &["content-length"],
+        17 => &["transfer-encoding"],
+        _ => &[],
+    };
+    for &known in candidates {
         if name.eq_ignore_ascii_case(known) {
             return Cow::Borrowed(known);
         }
@@ -326,6 +334,57 @@ fn read_head_line<R: Read>(
     Ok(HeadLine::Line)
 }
 
+/// Rejectable header bytes -- control characters other than HTAB, and DEL --
+/// eight bytes per step. The R92 scan ran per byte and showed up as 12-18% of
+/// request-head parse time in the R93 local stage profile.
+#[inline]
+fn has_forbidden_ctl(bytes: &[u8]) -> bool {
+    const ONES: u64 = 0x0101_0101_0101_0101;
+    const HIGH: u64 = 0x8080_8080_8080_8080;
+    #[inline]
+    fn zero_byte(x: u64) -> u64 {
+        x.wrapping_sub(ONES) & !x & HIGH
+    }
+    let mut chunks = bytes.chunks_exact(8);
+    for chunk in &mut chunks {
+        let x = u64::from_le_bytes(chunk.try_into().expect("exact chunk"));
+        // High bit set per byte with value < 0x20 (only valid for ASCII
+        // thresholds; 0x20 qualifies).
+        let ctl = x.wrapping_sub(ONES * 0x20) & !x & HIGH;
+        let tab = zero_byte(x ^ (ONES * u64::from(b'\t')));
+        let del = zero_byte(x ^ (ONES * 0x7f));
+        if (ctl & !tab) | del != 0 {
+            return true;
+        }
+    }
+    chunks.remainder().iter().any(|&b| (b < 0x20 && b != b'\t') || b == 0x7f)
+}
+
+#[cfg(test)]
+mod ctl_scan_tests {
+    use super::has_forbidden_ctl;
+
+    #[test]
+    fn swar_scan_matches_the_scalar_predicate() {
+        let scalar = |bytes: &[u8]| bytes.iter().any(|&b| (b < 0x20 && b != b'\t') || b == 0x7f);
+        for value in 0u8..=255 {
+            for position in [0usize, 3, 7, 8, 12, 15, 16] {
+                let mut line = vec![b'a'; 17];
+                line[position] = value;
+                assert_eq!(
+                    has_forbidden_ctl(&line),
+                    scalar(&line),
+                    "byte {value:#x} at {position}"
+                );
+            }
+        }
+        assert!(!has_forbidden_ctl(b""));
+        assert!(!has_forbidden_ctl(b"Host:\tlocalhost"));
+        assert!(has_forbidden_ctl(b"Host: a\rb"));
+        assert!(has_forbidden_ctl(&[0u8]));
+    }
+}
+
 /// Read and parse one request head from `reader`.
 #[allow(dead_code)] // Also used by standalone callers and the stage profiler.
 pub fn read_request<R: Read>(
@@ -475,7 +534,7 @@ fn read_request_into<R: Read>(
         }
         // A NUL/control byte cannot be represented in a CGI environment
         // and must not be silently accepted or truncate a header in C.
-        if trimmed.bytes().any(|b| (b < 0x20 && b != b'\t') || b == 0x7f) {
+        if has_forbidden_ctl(trimmed.as_bytes()) {
             return Ok(bad_header(400, "Bad Request", version));
         }
         let Some((name, value)) = trimmed.split_once(':') else {
