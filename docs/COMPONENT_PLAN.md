@@ -98,17 +98,16 @@ R93 共享连接限额释放时广播全部监听器（`r93_httpd_cap_probe.py`�
 **待办**：无阻塞项。遗留研究：
 ① jsonrpc_c4 自身 CPU 470 vs C 463（自身范围内持平，R89 时代即如此）——要明确压到 C 以下需看 bridge JSON-RPC 序列化/ubus 调用路径；② 常驻 VmRSS 比 R89 高 138 KiB，几乎全是文件页（代码体积），匿名页 +10 KiB。LINGER 50 ms 未改。
 
-## rpcd ☐
+## rpcd ✅
 
-**实机差距（R93）**：会话权限查询是唯一可重复的 R89 退步：`session_access_granted` CPU 23→27.5 µs（四轮不重叠）、
-`session_access_64_c4` 延迟 241.98→275.37（+13.8%）/CPU 17.86→22.82（+27.8%）、`session_access_64` CPU 25→30；
-`uci_get_authorized` CPU +4%，`uci_configs_c4` 延迟 +5%。对 C 仅 `session_access_64_c4` 延迟持平（275.4 vs 274.6）。
-
-**既有候选**：R93 glob 授权快路径（`private/r93/rpcd-glob-*`）Oracle 焦点复核 N=200000：granted CPU 9.80→9.38 µs、并发 5.80→5.40，
-四轮方向一致；拒绝路径混合。未合入、未上机。
-
-**提示**：看 `session.rs` ACL 匹配（fnmatch/glob 逐条扫描 vs C 的 avl + 前缀）、每次查询的 blob 重建与字符串分配；
-c4 退步大于 c1 说明有共享状态锁或每请求重建。
+**已攻克（R94，2026-09-16，实机三侧四轮 216 观测，候选 `a362c468`）**：ubus 服务端接收改为读前缓冲——
+一次 `recvmsg` 整块读入固定缓冲、从中切出完整帧，把 R89 每请求 3 次 `recvmsg` 降为 1 次（`strace` 5→3 系统调用/请求）；
+会话 ACL 匹配去分配——ASCII 尾星按前缀直接匹配、匹配前用无通配前缀 key 预筛（同 C 的 strncmp）、其余 fnmatch 短操作数走栈缓冲，
+去掉授权请求每条 ACL 的 4 次 CString 分配。实机：18 负载全部优于 C（重负载超一倍）；对 R89 16/18 延迟与 CPU 双优、多数 CPU 逐轮范围不重叠。
+**R93 退步全部收回**：`session_access_granted` CPU -16.7%（20-21 对 22-25，不重叠）、`session_access_64` CPU -13.7%（22 对 25-26）、
+`session_access_64_c4` 延迟 -6.8%/CPU -5.6%（R93 曾 +13.8%/+27.8%）、`session_access_granted_c4` -8.4%/-21.1%、`uci_get_authorized` CPU -2.4%。
+唯 `uci_get_64`/`uci_get_64_c4`（64 段 UCI 读，非会话路径）对 R89 +0.8%/+2.1% CPU，范围与 R89 大幅重叠属噪声，仍远优于 C（675 对 1510）。
+报告 `docs/reviews/R94_RPCD_RECV_ACL.md`；18/18 门绿（模糊 733/733，依赖 6 组件单测全绿）；未部署。
 
 **已修复缺陷**：R81 F23 `file exec`/luci shell 在单线程循环同步执行；F24 其他偏差。Round 5 字节忠实文件读取（shadow/passwd/board.json/acl）。
 R88 F1 线程创建失败终止 daemon → UNKNOWN_ERROR + procwait 轮询回退。R92 glob/session/file 界限。
