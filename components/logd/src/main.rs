@@ -4,17 +4,25 @@
 //! /proc/kmsg, keeps logd's ring-buffer retention, streams records to
 //! `logread` over a pipe passed with the STATUS reply, and notifies
 //! subscribers. Drops privileges to user `logd` after binding sockets.
+//!
+//! Per record the daemon allocates nothing: the message is copied once from
+//! the receive buffer into the ring arena, and its stream frame is appended
+//! to a batch buffer that is written to every stream once per input round
+//! (up to 256 datagrams), so a burst costs one write per stream instead of
+//! one per record. The byte stream each reader sees is unchanged.
 
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
 
+mod frame;
 mod ring;
 
-use owrt_ubus::{blob, sys, BlobBuf, Connection, Incoming, MsgType, Request};
-use ring::{normalize, Entry, Ring, LINE_SIZE, SOURCE_KLOG, SOURCE_SYSLOG};
+use frame::{frame_len, push_frame, push_reply_header, push_table, table_len, REPLY_HEADER_LEN};
+use owrt_ubus::{blob, sys, Connection, Incoming, MsgType, Request};
+use ring::{normalize, Ring, LINE_SIZE, SOURCE_KLOG, SOURCE_SYSLOG};
 use std::fs::File;
 use std::io::{self, Read, Write};
-use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd, RawFd};
 use std::os::unix::net::UnixDatagram;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -66,24 +74,19 @@ fn now_ms() -> u64 {
         .unwrap_or(0)
 }
 
-fn entry_fields(b: &mut BlobBuf, entry: &Entry) {
-    b.msg_string_bytes("msg", &entry.msg)
-        .msg_u32("id", entry.id)
-        .msg_u32("priority", entry.priority)
-        .msg_u32("source", entry.source)
-        .msg_u64("time", entry.time_ms);
-}
-
-/// One frame as logd writes it to a stream client: a head blob with the fields.
-fn frame(entry: &Entry) -> Vec<u8> {
-    let mut b = BlobBuf::new();
-    entry_fields(&mut b, entry);
-    b.as_bytes().to_vec()
+/// write(2) on a descriptor we keep owning elsewhere.
+fn write_fd(fd: RawFd, bytes: &[u8]) -> io::Result<usize> {
+    // SAFETY: the caller's OwnedFd stays open for this call; ManuallyDrop
+    // keeps the File from closing a descriptor it does not own.
+    let mut file = std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(fd) });
+    file.write(bytes)
 }
 
 struct Client {
     fd: OwnedFd,
+    /// Queued frames; `pending[sent..]` is still to be written.
     pending: Vec<u8>,
+    sent: usize,
     oneshot: bool,
 }
 
@@ -92,35 +95,88 @@ struct Client {
 const MAX_STREAM_PENDING: usize = 1024 * 1024;
 const MAX_TOTAL_PENDING: usize = 4 * 1024 * 1024;
 const MAX_STREAM_CLIENTS: usize = 64;
+/// Storage a drained queue or batch keeps for the next burst; anything
+/// larger goes back to the allocator so one slow reader does not set the
+/// daemon's footprint.
+const RETAINED_QUEUE: usize = 64 * 1024;
+/// Storage the `read` reply buffer keeps between requests.
+const RETAINED_REPLY: usize = 32 * 1024;
 
 impl Client {
+    fn queued(&self) -> usize {
+        self.pending.len() - self.sent
+    }
+
     fn poll_fd(&self) -> sys::PollFd {
         sys::PollFd {
             fd: self.fd.as_raw_fd(),
-            events: if self.pending.is_empty() { 0 } else { sys::POLLOUT },
+            events: if self.queued() == 0 { 0 } else { sys::POLLOUT },
             revents: 0,
+        }
+    }
+
+    /// Write as much of `bytes` as the pipe takes now; Ok(n) with n < len
+    /// means it is full. Err means the reader is gone.
+    fn write_direct(&self, bytes: &[u8]) -> io::Result<usize> {
+        let mut offset = 0;
+        while offset < bytes.len() {
+            match write_fd(self.fd.as_raw_fd(), &bytes[offset..]) {
+                Ok(0) => return Err(io::ErrorKind::WriteZero.into()),
+                Ok(n) => offset += n,
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                Err(e) => return Err(e),
+            }
+        }
+        Ok(offset)
+    }
+
+    fn queue(&mut self, bytes: &[u8]) {
+        if self.sent > 0 {
+            self.pending.drain(..self.sent);
+            self.sent = 0;
+        }
+        self.pending.extend_from_slice(bytes);
+    }
+
+    fn release(&mut self) {
+        self.sent = 0;
+        if self.pending.capacity() > RETAINED_QUEUE {
+            self.pending = Vec::new();
+        } else {
+            self.pending.clear();
         }
     }
 
     /// Write what we can; Ok(false) when the client must be dropped.
     fn flush(&mut self) -> bool {
-        while !self.pending.is_empty() {
-            // SAFETY: borrowing our own still-open descriptor to get at
-            // File's write(). ManuallyDrop keeps the File from closing it --
-            // self.fd remains the owner.
-            let mut file =
-                std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(self.fd.as_raw_fd()) });
-            match file.write(&self.pending) {
-                Ok(0) => return false,
-                Ok(n) => {
-                    self.pending.drain(..n);
+        match self.write_direct(&self.pending[self.sent..]) {
+            Ok(n) => {
+                self.sent += n;
+                if self.sent < self.pending.len() {
+                    return true;
                 }
-                Err(e) if e.kind() == io::ErrorKind::WouldBlock => return true,
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                self.release();
+                !self.oneshot
+            }
+            Err(_) => false,
+        }
+    }
+
+    /// Deliver `bytes`, queueing whatever the pipe does not take now.
+    fn send(&mut self, bytes: &[u8]) -> bool {
+        if self.queued() == 0 {
+            match self.write_direct(bytes) {
+                Ok(n) if n == bytes.len() => return !self.oneshot,
+                Ok(n) => {
+                    self.queue(&bytes[n..]);
+                    return true;
+                }
                 Err(_) => return false,
             }
         }
-        !self.oneshot
+        self.queue(bytes);
+        self.flush()
     }
 }
 
@@ -139,40 +195,30 @@ fn flush_ready_clients(clients: &mut Vec<Client>, fds: &[sys::PollFd]) {
     });
 }
 
+/// Deliver one batch of frames to every stream.
 fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8]) {
     let (projected, fits_each) = clients.iter().fold((0, true), |(total, fits), client| {
-        let size = client.pending.len() + bytes.len();
+        let size = client.queued() + bytes.len();
         (total + size, fits && size <= MAX_STREAM_PENDING)
     });
     if projected <= MAX_TOTAL_PENDING && fits_each {
-        clients.retain_mut(|client| {
-            client.pending.extend_from_slice(bytes);
-            client.flush()
-        });
+        clients.retain_mut(|client| client.send(bytes));
         return;
     }
     let mut sent = [0; MAX_STREAM_CLIENTS];
     // Pressure only: first make room with writes that were not ready at
-    // poll time. Empty queues can send this frame without using a budget.
+    // poll time. Empty queues can send this batch without using a budget.
     clients.retain_mut(Client::flush);
     let mut index = 0;
-    clients.retain(|client| {
+    clients.retain_mut(|client| {
         let mut offset = 0;
-        if client.pending.is_empty() {
-            // SAFETY: borrow this client's live fd; ManuallyDrop keeps
-            // ownership in Client, as in flush().
-            let mut file = std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(client.fd.as_raw_fd()) });
-            while offset < bytes.len() {
-                match file.write(&bytes[offset..]) {
-                    Ok(0) => return false,
-                    Ok(n) => offset += n,
-                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                    Err(_) => return false,
-                }
+        if client.queued() == 0 {
+            match client.write_direct(bytes) {
+                Ok(n) => offset = n,
+                Err(_) => return false,
             }
         }
-        if client.pending.len() + bytes.len() - offset > MAX_STREAM_PENDING {
+        if client.queued() + bytes.len() - offset > MAX_STREAM_PENDING {
             return false;
         }
         sent[index] = offset;
@@ -180,20 +226,20 @@ fn send_to_clients(clients: &mut Vec<Client>, bytes: &[u8]) {
         true
     });
     let mut total: usize = clients.iter().enumerate()
-        .map(|(i, client)| client.pending.len() + bytes.len() - sent[i]).sum();
+        .map(|(i, client)| client.queued() + bytes.len() - sent[i]).sum();
     // A full global budget belongs to the lagging streams, not an earlier
     // healthy reader. This scan is only needed at the pressure boundary.
     while total > MAX_TOTAL_PENDING {
         let (index, client) = clients.iter().enumerate()
-            .max_by_key(|(i, client)| client.pending.len() + bytes.len() - sent[*i])
+            .max_by_key(|(i, client)| client.queued() + bytes.len() - sent[*i])
             .expect("an over-budget set is nonempty");
-        total -= client.pending.len() + bytes.len() - sent[index];
+        total -= client.queued() + bytes.len() - sent[index];
         sent.copy_within(index + 1..clients.len(), index);
         clients.remove(index);
     }
     let mut index = 0;
     clients.retain_mut(|client| {
-        client.pending.extend_from_slice(&bytes[sent[index]..]);
+        client.queue(&bytes[sent[index]..]);
         index += 1;
         client.flush()
     });
@@ -229,25 +275,50 @@ struct Daemon {
     syslog: UnixDatagram,
     kmsg: Option<File>,
     kmsg_buf: Vec<u8>,
+    /// Frames of the current input round, not yet written to the streams.
+    batch: Vec<u8>,
+    /// Reused `read` reply storage.
+    reply: Vec<u8>,
+    /// Reused poll set.
+    fds: Vec<sys::PollFd>,
 }
 
 impl Daemon {
+    /// Store one input record; its frame joins the batch when anyone listens.
     fn add(&mut self, raw: &[u8], source: u32) {
         let Some((priority, msg)) = normalize(raw, source) else {
             return;
         };
-        let entry = self.ring.add(msg, priority, source, now_ms());
+        let record = self.ring.add(msg, priority, source, now_ms());
         if self.clients.is_empty() && !self.has_subscribers {
             return;
         }
-        let bytes = frame(&entry);
+        let start = self.batch.len();
+        push_frame(&mut self.batch, &record);
         if self.has_subscribers {
-            let _ = self.conn.notify(self.objid, "message", &bytes[4..]);
+            let _ = self.conn.notify(self.objid, "message", &self.batch[start + 4..]);
         }
-        send_to_clients(&mut self.clients, &bytes);
+        if self.clients.is_empty() {
+            self.batch.truncate(start);
+        }
+    }
+
+    /// Write the round's frames to every stream. Runs before any `read`
+    /// request is served, so a new stream's backlog never overlaps them.
+    fn flush_batch(&mut self) {
+        if self.batch.is_empty() {
+            return;
+        }
+        send_to_clients(&mut self.clients, &self.batch);
+        if self.batch.capacity() > RETAINED_QUEUE {
+            self.batch = Vec::new();
+        } else {
+            self.batch.clear();
+        }
     }
 
     fn handle_read(&mut self, req: &Request) -> io::Result<()> {
+        debug_assert!(self.batch.is_empty(), "read served with unsent frames");
         // logd read_policy is strict: lines is INT32, stream/oneshot BOOL
         // (INT8). blobmsg_parse drops attributes of any other type, so a
         // wrong-typed field leaves the default in place (as in logd.c).
@@ -271,20 +342,24 @@ impl Daemon {
         }
         // log_list(count): a present lines==0 yields no backlog, absent
         // yields all, otherwise the C min window applies.
-        let backlog: Vec<&Entry> = match lines {
-            Some(0) => Vec::new(),
-            Some(count) => self.ring.list(count).collect(),
-            None => self.ring.list(0).collect(),
+        let window = match lines {
+            Some(0) => None,
+            Some(count) => Some(count),
+            None => Some(0),
         };
         if stream {
-            let total: usize = self.clients.iter().map(|c| c.pending.len()).sum();
             if self.clients.len() >= MAX_STREAM_CLIENTS {
                 return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
             }
-            // The candidate has used a Unix stream socket since before R89;
-            // exact C logd uses pipe(). Both carry the same blob frames, but
-            // their kernel buffering differs. Reuse one BlobBuf per backlog.
-            let pair = sys::socketpair().and_then(|(read_end, write_end)| {
+            let total: usize = self.clients.iter().map(Client::queued).sum();
+            let backlog: usize = window
+                .map_or(0, |count| self.ring.list(count).map(|r| frame_len(r.size())).sum());
+            if backlog > MAX_STREAM_PENDING || total + backlog > MAX_TOTAL_PENDING {
+                return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
+            }
+            // A pipe, as in exact C logd (R89..R93 used a Unix stream socket).
+            let pair = io::pipe().and_then(|(read_end, write_end)| {
+                let (read_end, write_end) = (OwnedFd::from(read_end), OwnedFd::from(write_end));
                 sys::set_nonblocking(write_end.as_raw_fd())?;
                 Ok((read_end, write_end))
             });
@@ -293,26 +368,23 @@ impl Daemon {
             let (read_end, write_end) = match pair {
                 Ok(pair) => pair,
                 Err(error) => {
-                    eprintln!("logd-rs: failed to create stream socket: {error}");
+                    eprintln!("logd-rs: failed to create stream pipe: {error}");
                     return self
                         .conn
                         .reply_status(req, owrt_ubus::status::UNKNOWN_ERROR, None);
                 }
             };
-            let mut pending = Vec::with_capacity((backlog.len() * 96).min(MAX_STREAM_PENDING));
-            let mut b = BlobBuf::new();
-            for entry in backlog {
-                b.reset();
-                entry_fields(&mut b, entry);
-                if pending.len() + b.as_bytes().len() > MAX_STREAM_PENDING
-                    || total + pending.len() + b.as_bytes().len() > MAX_TOTAL_PENDING {
-                    return self.conn.reply_status(req, owrt_ubus::status::NOT_SUPPORTED, None);
+            let mut pending = Vec::with_capacity(backlog);
+            if let Some(count) = window {
+                for record in self.ring.list(count) {
+                    push_frame(&mut pending, &record);
                 }
-                pending.extend_from_slice(b.as_bytes());
             }
+            debug_assert_eq!(pending.len(), backlog);
             let mut client = Client {
                 fd: write_end,
                 pending,
+                sent: 0,
                 oneshot,
             };
             self.conn.reply_status(req, owrt_ubus::status::OK, Some(read_end.as_raw_fd()))?;
@@ -322,25 +394,31 @@ impl Daemon {
             }
             return Ok(());
         }
-        let mut b = BlobBuf::new();
-        let array = b.msg_open_array("log");
-        for entry in backlog {
-            let table = b.msg_open_table("");
-            entry_fields(&mut b, entry);
-            b.msg_close(table);
+        let total = REPLY_HEADER_LEN
+            + window.map_or(0, |count| self.ring.list(count).map(|r| table_len(r.size())).sum::<usize>());
+        self.reply.clear();
+        self.reply.reserve_exact(total);
+        push_reply_header(&mut self.reply, total);
+        if let Some(count) = window {
+            for record in self.ring.list(count) {
+                push_table(&mut self.reply, &record);
+            }
         }
-        b.msg_close(array);
-        // A reply past UBUS_MAX_MSGLEN is refused locally by Connection::send
-        // (C hands it to ubusd, which drops the client instead). Either way the
-        // request fails, but it must fail as this request's status: dropping the
+        debug_assert_eq!(self.reply.len(), total);
+        // A reply past UBUS_MAX_MSGLEN is refused locally (C hands it to
+        // ubusd, which drops the client instead). Either way the request
+        // fails, but it must fail as this request's status: dropping the
         // connection would cost us the `log` object until `service log restart`.
-        if let Err(error) = self.conn.reply_data(req, b.payload()) {
-            eprintln!("logd-rs: log read reply not sent: {error}");
-            return self
-                .conn
-                .reply_status(req, owrt_ubus::status::INVALID_ARGUMENT, None);
+        let result = if total > owrt_ubus::msg::MAX_MSGLEN - 16 {
+            eprintln!("logd-rs: log read reply of {total} bytes exceeds the ubus message limit");
+            self.conn.reply_status(req, owrt_ubus::status::INVALID_ARGUMENT, None)
+        } else {
+            self.conn.reply_data_status(req, &self.reply, owrt_ubus::status::OK)
+        };
+        if self.reply.capacity() > RETAINED_REPLY {
+            self.reply = Vec::new();
         }
-        self.conn.reply_status(req, owrt_ubus::status::OK, None)
+        result
     }
 
     fn handle_write(&mut self, req: &Request) -> io::Result<()> {
@@ -351,6 +429,7 @@ impl Daemon {
             .and_then(|f| f.as_bytes());
         if let Some(event) = event {
             self.add(&event[..event.len().min(LINE_SIZE - 1)], SOURCE_SYSLOG);
+            self.flush_batch();
         }
         self.conn.reply_status(req, owrt_ubus::status::OK, None)
     }
@@ -388,6 +467,7 @@ impl Daemon {
                 Err(_) => break,
             }
         }
+        self.flush_batch();
     }
 
     fn drain_kmsg(&mut self) {
@@ -398,10 +478,30 @@ impl Daemon {
         if let Ok(n) = kmsg.read(&mut chunk) {
             self.kmsg_buf.extend_from_slice(&chunk[..n]);
         }
-        while let Some(pos) = self.kmsg_buf.iter().position(|&b| b == b'\n') {
-            let line: Vec<u8> = self.kmsg_buf.drain(..=pos).collect();
-            self.add(&line[..line.len() - 1], SOURCE_KLOG);
+        let mut buf = std::mem::take(&mut self.kmsg_buf);
+        let mut start = 0;
+        while let Some(pos) = buf[start..].iter().position(|&b| b == b'\n') {
+            self.add(&buf[start..start + pos], SOURCE_KLOG);
+            start += pos + 1;
         }
+        buf.drain(..start);
+        self.kmsg_buf = buf;
+        self.flush_batch();
+    }
+
+    /// Poll set for one loop iteration; returns the first client index.
+    fn poll_set(&mut self, with_bus: bool) -> usize {
+        self.fds.clear();
+        if with_bus {
+            self.fds.push(sys::PollFd { fd: self.conn.as_raw_fd(), events: sys::POLLIN, revents: 0 });
+        }
+        self.fds.push(sys::PollFd { fd: self.syslog.as_raw_fd(), events: sys::POLLIN, revents: 0 });
+        if let Some(kmsg) = &self.kmsg {
+            self.fds.push(sys::PollFd { fd: kmsg.as_raw_fd(), events: sys::POLLIN, revents: 0 });
+        }
+        let client_base = self.fds.len();
+        self.fds.extend(self.clients.iter().map(Client::poll_fd));
+        client_base
     }
 
     /// libubus ubus_auto_connect(): after the connection to ubusd is lost,
@@ -419,28 +519,15 @@ impl Daemon {
         loop {
             // keep collecting syslog/kmsg while ubusd is away (uloop keeps
             // servicing those fds in C logd too)
-            let mut fds = vec![sys::PollFd {
-                fd: self.syslog.as_raw_fd(),
-                events: sys::POLLIN,
-                revents: 0,
-            }];
-            if let Some(kmsg) = &self.kmsg {
-                fds.push(sys::PollFd {
-                    fd: kmsg.as_raw_fd(),
-                    events: sys::POLLIN,
-                    revents: 0,
-                });
-            }
-            let client_base = fds.len();
-            fds.extend(self.clients.iter().map(Client::poll_fd));
+            let client_base = self.poll_set(false);
             let timeout = retry_at.saturating_duration_since(Instant::now())
                 .as_millis().min(1000) as i32;
-            if sys::poll_fds(&mut fds, timeout).is_ok() {
-                flush_ready_clients(&mut self.clients, &fds[client_base..]);
-                if fds[0].revents & sys::POLLIN != 0 {
+            if sys::poll_fds(&mut self.fds, timeout).is_ok() {
+                flush_ready_clients(&mut self.clients, &self.fds[client_base..]);
+                if self.fds[0].revents & sys::POLLIN != 0 {
                     self.drain_syslog();
                 }
-                if self.kmsg.is_some() && fds[1].revents & sys::POLLIN != 0 {
+                if self.kmsg.is_some() && self.fds[1].revents & sys::POLLIN != 0 {
                     self.drain_kmsg();
                 }
             }
@@ -479,41 +566,21 @@ impl Daemon {
                 let incoming = self.conn.read_incoming()?;
                 self.handle_incoming(incoming)?;
             }
-            let mut fds = vec![
-                sys::PollFd {
-                    fd: self.conn.as_raw_fd(),
-                    events: sys::POLLIN,
-                    revents: 0,
-                },
-                sys::PollFd {
-                    fd: self.syslog.as_raw_fd(),
-                    events: sys::POLLIN,
-                    revents: 0,
-                },
-            ];
-            let kmsg_index = self.kmsg.as_ref().map(|kmsg| {
-                fds.push(sys::PollFd {
-                    fd: kmsg.as_raw_fd(),
-                    events: sys::POLLIN,
-                    revents: 0,
-                });
-                fds.len() - 1
-            });
-            let client_base = fds.len();
-            fds.extend(self.clients.iter().map(Client::poll_fd));
-            sys::poll_fds(&mut fds, -1)?;
+            let client_base = self.poll_set(true);
+            let kmsg_index = self.kmsg.is_some().then_some(2);
+            sys::poll_fds(&mut self.fds, -1)?;
             // add()/read may compact or append clients. Apply this snapshot
             // first, while every result still names the stream we polled.
-            flush_ready_clients(&mut self.clients, &fds[client_base..]);
-            if fds[0].revents & (sys::POLLIN | sys::POLLERR | sys::POLLHUP) != 0 {
+            flush_ready_clients(&mut self.clients, &self.fds[client_base..]);
+            if self.fds[0].revents & (sys::POLLIN | sys::POLLERR | sys::POLLHUP) != 0 {
                 let incoming = self.conn.read_incoming()?;
                 self.handle_incoming(incoming)?;
             }
-            if fds[1].revents & sys::POLLIN != 0 {
+            if self.fds[1].revents & sys::POLLIN != 0 {
                 self.drain_syslog();
             }
             if let Some(index) = kmsg_index {
-                if fds[index].revents & sys::POLLIN != 0 {
+                if self.fds[index].revents & sys::POLLIN != 0 {
                     self.drain_kmsg();
                 }
             }
@@ -608,6 +675,9 @@ fn main() {
         syslog,
         kmsg,
         kmsg_buf: Vec::new(),
+        batch: Vec::new(),
+        reply: Vec::new(),
+        fds: Vec::new(),
     };
     if let Err(error) = daemon.run() {
         eprintln!("logd-rs: {error}");
@@ -618,12 +688,59 @@ fn main() {
 #[cfg(test)]
 mod stream_tests {
     use super::*;
-    use std::os::unix::net::UnixStream;
 
-    fn pair(pending: Vec<u8>, oneshot: bool) -> (UnixStream, Client) {
-        let (reader, writer) = UnixStream::pair().unwrap();
-        writer.set_nonblocking(true).unwrap();
-        (reader, Client { fd: writer.into(), pending, oneshot })
+    /// O_NONBLOCK for the test's own descriptors. `sys` targets Linux only;
+    /// macOS development hosts use a different flag value.
+    fn nonblocking(fd: RawFd) {
+        #[cfg(target_os = "linux")]
+        sys::set_nonblocking(fd).unwrap();
+        #[cfg(not(target_os = "linux"))]
+        {
+            extern "C" {
+                fn fcntl(fd: i32, cmd: i32, ...) -> i32;
+            }
+            // SAFETY: plain fcntl(F_GETFL)/fcntl(F_SETFL) on a descriptor the
+            // test owns; O_NONBLOCK is 0x4 on the BSD-derived hosts.
+            let flags = unsafe { fcntl(fd, 3) };
+            assert!(flags >= 0);
+            // SAFETY: F_SETFL with the flags just read back, same descriptor.
+            let set = unsafe { fcntl(fd, 4, flags | 0x4) };
+            assert_eq!(set, 0);
+        }
+    }
+
+    /// A stream client over a pipe, as the daemon creates them.
+    fn pair(pending: Vec<u8>, oneshot: bool) -> (File, Client) {
+        let (read_end, write_end) = io::pipe().unwrap();
+        let write_end = OwnedFd::from(write_end);
+        nonblocking(write_end.as_raw_fd());
+        (File::from(OwnedFd::from(read_end)), Client { fd: write_end, pending, sent: 0, oneshot })
+    }
+
+    fn fill_pipe(client: &Client) {
+        loop {
+            match write_fd(client.fd.as_raw_fd(), &[b'x'; 65536]) {
+                Ok(n) => assert!(n > 0),
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e) => panic!("fill pipe: {e}"),
+            }
+        }
+    }
+
+    fn read_available(reader: &mut File) -> Vec<u8> {
+        nonblocking(reader.as_raw_fd());
+        let mut bytes = Vec::new();
+        let mut chunk = [0u8; 65536];
+        loop {
+            match reader.read(&mut chunk) {
+                Ok(0) => break,
+                Ok(n) => bytes.extend_from_slice(&chunk[..n]),
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                Err(e) => panic!("{e}"),
+            }
+        }
+        bytes
     }
 
     #[test]
@@ -634,15 +751,14 @@ mod stream_tests {
         let mut fds: Vec<_> = clients.iter().map(Client::poll_fd).collect();
         drop(closed);
         sys::poll_fds(&mut fds, 1000).unwrap();
-        assert_ne!(fds[0].revents & sys::POLLHUP, 0);
+        assert_ne!(fds[0].revents & (sys::POLLERR | sys::POLLHUP), 0);
         assert_ne!(fds[1].revents & sys::POLLOUT, 0);
         flush_ready_clients(&mut clients, &fds);
         assert_eq!(clients.len(), 1);
         let mut bytes = [0; 15];
         healthy.read_exact(&mut bytes).unwrap();
         assert_eq!(&bytes, b"still connected");
-        healthy.set_nonblocking(true).unwrap();
-        assert_eq!(healthy.read(&mut bytes).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert!(read_available(&mut healthy).is_empty());
     }
 
     #[test]
@@ -665,28 +781,83 @@ mod stream_tests {
         let mut slow_readers = Vec::new();
         for _ in 0..8 {
             let (reader, client) = pair(vec![b'x'; MAX_TOTAL_PENDING / 8], false);
-            // Fill the kernel socket buffer too: a late flush must not make
-            // this supposedly stalled consumer healthy by itself.
-            // SAFETY: borrow the live fd without taking its ownership.
-            let mut file = std::mem::ManuallyDrop::new(unsafe { File::from_raw_fd(client.fd.as_raw_fd()) });
-            loop {
-                match file.write(&[b'x'; 65536]) {
-                    Ok(n) => assert!(n > 0),
-                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                    Err(e) => panic!("fill socket: {e}"),
-                }
-            }
+            // Fill the kernel pipe too: a late flush must not make this
+            // supposedly stalled consumer healthy by itself.
+            fill_pipe(&client);
             slow_readers.push(reader);
             clients.push(client);
         }
         send_to_clients(&mut clients, b"live record");
         assert_eq!(clients.len(), 8);
-        assert!(clients.iter().map(|c| c.pending.len()).sum::<usize>() <= MAX_TOTAL_PENDING);
+        assert!(clients.iter().map(Client::queued).sum::<usize>() <= MAX_TOTAL_PENDING);
         let mut bytes = [0; 11];
         healthy.read_exact(&mut bytes).unwrap();
         assert_eq!(&bytes, b"live record");
-        healthy.set_nonblocking(true).unwrap();
-        assert_eq!(healthy.read(&mut bytes).unwrap_err().kind(), io::ErrorKind::WouldBlock);
+        assert!(read_available(&mut healthy).is_empty());
+    }
+
+    #[test]
+    fn a_batch_reaches_every_stream_once_and_in_order() {
+        // Frames of one input round go out as one write per stream; a
+        // stream that was already lagging gets them appended after its
+        // queue, and nothing is duplicated or reordered.
+        let (mut fast, first) = pair(Vec::new(), false);
+        let (mut lagging, second) = pair(b"old-backlog|".to_vec(), false);
+        let mut clients = vec![first, second];
+        let batch: Vec<u8> = (0..300).flat_map(|i| format!("frame-{i:03}|").into_bytes()).collect();
+        send_to_clients(&mut clients, &batch);
+        assert_eq!(clients.len(), 2);
+        assert_eq!(read_available(&mut fast), batch);
+        let mut expected = b"old-backlog|".to_vec();
+        expected.extend_from_slice(&batch);
+        assert_eq!(read_available(&mut lagging), expected);
+        assert!(clients.iter().all(|c| c.queued() == 0));
+        // a second round follows without repeating the first
+        send_to_clients(&mut clients, b"next|");
+        assert_eq!(read_available(&mut fast), b"next|");
+        assert_eq!(read_available(&mut lagging), b"next|");
+    }
+
+    #[test]
+    fn a_full_pipe_queues_the_remainder_and_drains_it_later_in_order() {
+        let (mut reader, client) = pair(Vec::new(), false);
+        fill_pipe(&client);
+        let kernel_held = read_available(&mut reader);
+        assert!(!kernel_held.is_empty());
+        let mut clients = vec![client];
+        // pipe is empty now; a batch larger than the pipe is split between
+        // the kernel and the client queue
+        let big: Vec<u8> = (0..200_000u32).map(|i| (i % 251) as u8).collect();
+        send_to_clients(&mut clients, &big);
+        assert_eq!(clients.len(), 1);
+        let queued = clients[0].queued();
+        assert!(queued > 0 && queued < big.len(), "queued {queued}");
+        let mut got = read_available(&mut reader);
+        assert_eq!(got.len(), big.len() - queued);
+        // a later frame joins the queue behind the remainder, not before it
+        send_to_clients(&mut clients, b"tail");
+        while clients[0].queued() > 0 {
+            got.extend(read_available(&mut reader));
+            let mut fds: Vec<_> = clients.iter().map(Client::poll_fd).collect();
+            sys::poll_fds(&mut fds, 1000).unwrap();
+            flush_ready_clients(&mut clients, &fds);
+            assert_eq!(clients.len(), 1);
+        }
+        got.extend(read_available(&mut reader));
+        let mut expected = big;
+        expected.extend_from_slice(b"tail");
+        assert_eq!(got, expected);
+        assert!(clients[0].pending.capacity() <= RETAINED_QUEUE, "drained queue keeps bounded storage");
+    }
+
+    #[test]
+    fn oneshot_client_closes_after_its_backlog_even_when_delivered_by_a_batch() {
+        let (mut reader, client) = pair(Vec::new(), true);
+        let mut clients = vec![client];
+        send_to_clients(&mut clients, b"only this");
+        assert!(clients.is_empty(), "delivered oneshot must close");
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).unwrap();
+        assert_eq!(bytes, b"only this");
     }
 }
