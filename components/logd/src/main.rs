@@ -82,6 +82,32 @@ fn write_fd(fd: RawFd, bytes: &[u8]) -> io::Result<usize> {
     file.write(bytes)
 }
 
+/// Kernel buffer of a stream pipe. The default 64 KiB pipe returns EAGAIN
+/// after a few hundred frames of backlog and makes a burst cost a write
+/// per pipe-full; 256 KiB matches the Unix stream socket R89..R93 used.
+/// Pipe pages are allocated only while data sits in them, so this costs
+/// nothing at rest. Best effort: a kernel that refuses keeps the default.
+const PIPE_CAPACITY: i32 = 256 * 1024;
+
+#[cfg(target_os = "linux")]
+fn set_pipe_capacity(fd: RawFd, bytes: i32) -> io::Result<()> {
+    extern "C" {
+        fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
+    }
+    const F_SETPIPE_SZ: i32 = 1024 + 7;
+    // SAFETY: fcntl(F_SETPIPE_SZ) only resizes the buffer of the caller's
+    // own open descriptor; the argument is a plain integer.
+    if unsafe { fcntl(fd, F_SETPIPE_SZ, bytes) } < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    Ok(())
+}
+
+#[cfg(not(target_os = "linux"))]
+fn set_pipe_capacity(_fd: RawFd, _bytes: i32) -> io::Result<()> {
+    Ok(())
+}
+
 struct Client {
     fd: OwnedFd,
     /// Queued frames; `pending[sent..]` is still to be written.
@@ -281,7 +307,16 @@ struct Daemon {
     reply: Vec<u8>,
     /// Reused poll set.
     fds: Vec<sys::PollFd>,
+    /// Zero-timeout polls left before the loop blocks again (see `drain_syslog`).
+    spin: u8,
 }
+
+/// Polls with a zero timeout after a round that found a burst in progress.
+/// A producer writing back to back is otherwise met by a daemon that drains
+/// faster than it writes and sleeps between datagrams, so every datagram
+/// pays a wakeup on both sides; a few cheap polls keep the loop awake for
+/// the next one and cost about a microsecond once when a burst ends.
+const BURST_SPINS: u8 = 4;
 
 impl Daemon {
     /// Store one input record; its frame joins the batch when anyone listens.
@@ -361,6 +396,7 @@ impl Daemon {
             let pair = io::pipe().and_then(|(read_end, write_end)| {
                 let (read_end, write_end) = (OwnedFd::from(read_end), OwnedFd::from(write_end));
                 sys::set_nonblocking(write_end.as_raw_fd())?;
+                let _ = set_pipe_capacity(write_end.as_raw_fd(), PIPE_CAPACITY);
                 Ok((read_end, write_end))
             });
             // C logd fails the request (`pipe()` failed -> handler returns -1)
@@ -455,18 +491,26 @@ impl Daemon {
         }
     }
 
-    fn drain_syslog(&mut self) {
+    /// `spinning`: this round was entered from a zero-timeout poll.
+    fn drain_syslog(&mut self, spinning: bool) {
         let mut buf = [0u8; LINE_SIZE];
         // A continuously writing producer must not starve streams, ubus or
         // the reconnect deadline. Remaining datagrams keep POLLIN asserted.
-        for _ in 0..256 {
+        let mut received = 0;
+        while received < 256 {
             match self.syslog.recv(&mut buf[..LINE_SIZE - 1]) {
                 Ok(0) => break,
-                Ok(n) => self.add(&buf[..n], SOURCE_SYSLOG),
+                Ok(n) => {
+                    self.add(&buf[..n], SOURCE_SYSLOG);
+                    received += 1;
+                }
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
                 Err(_) => break,
             }
         }
+        // Two datagrams in one wakeup, or one more while spinning, means the
+        // producer is still writing.
+        self.spin = if received >= 2 || (spinning && received >= 1) { BURST_SPINS } else { 0 };
         self.flush_batch();
     }
 
@@ -525,7 +569,7 @@ impl Daemon {
             if sys::poll_fds(&mut self.fds, timeout).is_ok() {
                 flush_ready_clients(&mut self.clients, &self.fds[client_base..]);
                 if self.fds[0].revents & sys::POLLIN != 0 {
-                    self.drain_syslog();
+                    self.drain_syslog(false);
                 }
                 if self.kmsg.is_some() && self.fds[1].revents & sys::POLLIN != 0 {
                     self.drain_kmsg();
@@ -568,7 +612,11 @@ impl Daemon {
             }
             let client_base = self.poll_set(true);
             let kmsg_index = self.kmsg.is_some().then_some(2);
-            sys::poll_fds(&mut self.fds, -1)?;
+            let spinning = self.spin > 0;
+            if spinning {
+                self.spin -= 1;
+            }
+            sys::poll_fds(&mut self.fds, if spinning { 0 } else { -1 })?;
             // add()/read may compact or append clients. Apply this snapshot
             // first, while every result still names the stream we polled.
             flush_ready_clients(&mut self.clients, &self.fds[client_base..]);
@@ -577,7 +625,7 @@ impl Daemon {
                 self.handle_incoming(incoming)?;
             }
             if self.fds[1].revents & sys::POLLIN != 0 {
-                self.drain_syslog();
+                self.drain_syslog(spinning);
             }
             if let Some(index) = kmsg_index {
                 if self.fds[index].revents & sys::POLLIN != 0 {
@@ -678,6 +726,7 @@ fn main() {
         batch: Vec::new(),
         reply: Vec::new(),
         fds: Vec::new(),
+        spin: 0,
     };
     if let Err(error) = daemon.run() {
         eprintln!("logd-rs: {error}");
@@ -741,6 +790,22 @@ mod stream_tests {
             }
         }
         bytes
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn stream_pipes_get_the_larger_capacity() {
+        extern "C" {
+            fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
+        }
+        let (_reader, client) = pair(Vec::new(), false);
+        set_pipe_capacity(client.fd.as_raw_fd(), PIPE_CAPACITY).unwrap();
+        // SAFETY: F_GETPIPE_SZ only reads the size of our own descriptor.
+        let size = unsafe { fcntl(client.fd.as_raw_fd(), 1024 + 8, 0) };
+        assert_eq!(size, PIPE_CAPACITY);
+        // and such a pipe takes a whole 200 KiB burst in one write
+        let big = vec![7u8; 200_000];
+        assert_eq!(client.write_direct(&big).unwrap(), big.len());
     }
 
     #[test]
