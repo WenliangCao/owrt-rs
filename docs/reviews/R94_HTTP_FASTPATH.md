@@ -1,6 +1,6 @@
 # R94 HTTP 监听器内联快路径
 
-2026-09-16。目标：让 httpd 在停放后（paced keep-alive）的每请求成本既优于 C 原版、也优于正式 R89。筛选在 Oracle Linux AArch64 私有 namespace loopback 上完成，终验在 AX3000T 实机（见「实机」节）。候选由 SDK musl 交叉编译（sha256 `d418b497c5109785830f`），静态链接。
+2026-09-16。目标：让 httpd 在停放后（paced keep-alive）的每请求成本既优于 C 原版、也优于正式 R89。筛选在 Oracle Linux AArch64 私有 namespace loopback 上完成，终验在 AX3000T 实机（见「实机」节）。第一阶段候选 `d418b497`；第二阶段（紧密路径）候选 `55436dfd`。均为 SDK musl 交叉编译、静态链接。
 
 ## 改动
 
@@ -70,6 +70,24 @@ R93 基线里 60/80 ms 停放后 R89 为 C 的 2.17/2.36 倍（[R93_HTTP_DEVICE_
 ### 判定
 
 停放（paced keep-alive）路径：优于 C 与 R89，完成。紧密（gap 0 连发）路径：优于 C、与 R89 持平，**未达「全面优于 R89」**，列为下一轮目标。httpd 整体暂不打勾。
+
+## 第二阶段：紧密路径（gap 0，连接不停放）
+
+实机紧密矩阵与 R89 持平的原因：R89→R94 的热路径几乎没变。Oracle 上 `strace -c` 显示候选与正式 R89 **每个静态响应都是同样的 10 个系统调用**，daemon CPU 约 80% 在内核态（user 4–5 / sys 18–19 µs，1 客户端）。要赢就得砍掉 R89 也在付的每请求内核工作，而不是找回退。
+
+| 系统调用 | R89 | 去向 |
+|---|---:|---|
+| setsockopt ×2 | 2 | 头等待改用 `poll(2)`（`HeadDeadline::polling`）：装 SO_RCVTIMEO 与读完头后恢复各省 1 次，换 1 次 poll。TLS 保留原路径（rustls 可能持有 socket 无法示意的明文）。 |
+| read ×2 | 2 | 只读 Content-Length 字节（`copy_from`），不再多读一次到 EOF。副作用是正确性改进：lookup 后变长的文件不再把超出声明长度的字节泄进下一条响应（uhttpd 有此 framing 缺陷；变短仍提前结束，同 uhttpd）。 |
+| fcntl | 1 | musl 的 `open()` 在 O_CLOEXEC 后无条件补 `fcntl(F_SETFD)`（Rust std 走 `open64`）；直接调 `openat` 没有。 |
+| openat + close | 2 | 每连接线程保留最近打开的文件：lookup 每次仍新鲜 `stat`，仅当 (dev, ino, ctime) 与打开时 `fstat` 记录完全一致才复用并 `pread`；替换、重写、截断、chmod、删除重建都会重开。随线程退出释放，停放/关闭的连接不持有文件（r85 fd 基线门通过）；监听器快路径不启用。 |
+| recvfrom / newfstatat / sendto / (p)read | 4 | 保留 |
+
+结果：**10 → 5**（ppoll、recvfrom、newfstatat、pread64、sendto，strace 逐项 1.00/请求）。同时 `lookup` 热路径 4 次堆分配 → 1 次（路径就地规范化、name 改为 phys 偏移、`Lookup::Found` 去 Box）。
+
+Oracle（aarch64，1 客户端 40,000 请求，daemon utime+stime）：**R94 18–19 µs/请求 vs R89 22**（两次重复；ticks 74–76 vs 90–91）。四侧 pilot gap0 紧密档（4 客户端 20,000 请求）：**R94 27.0 vs R89 32.0 vs source05 32.5 µs**（−15.6%）；停放档 37.5/25.0 vs R89 275。
+
+门禁（候选 `55436dfd`）：8 项历史门全部 exit 0，fuzz 133/133 仍只有两项 R92 既批准偏差，extended 31/31，`httpd-static` 的 64 连接 fd/线程回基线子测在 fd 复用下通过。
 
 ## 边界
 
