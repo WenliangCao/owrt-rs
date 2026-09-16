@@ -2,7 +2,8 @@
 //! conventions (status line, Connection/Keep-Alive, chunked encoding, Date).
 
 use std::borrow::Cow;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
+use std::net::TcpStream;
 use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::os::fd::RawFd;
@@ -194,6 +195,98 @@ fn classify_ua(value: &str) -> Option<UserAgent> {
     None
 }
 
+/// What a blocking client read does when the socket's 50 ms receive timeout
+/// (`LINGER`, set once at accept) expires with nothing read. The connection
+/// thread sets the mode for the phase it is in; the socket option itself is
+/// never touched again, so the hot path is one `recv` per request.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReadWait {
+    /// Report `WouldBlock` at once: the first byte of a head, so the caller
+    /// can park the idle connection.
+    Linger,
+    /// Wait up to this much longer with poll(2), then read again. Later head
+    /// lines and request bodies use it; a client that pauses for more than
+    /// 50 ms pays the poll, a prompt one never does.
+    Budget(Duration),
+    /// Hand every result through unchanged: a nonblocking relay owns the
+    /// socket's readiness itself.
+    Passthrough,
+}
+
+thread_local! {
+    /// One connection per thread, so the mode is per connection.
+    static READ_WAIT: Cell<ReadWait> = const { Cell::new(ReadWait::Passthrough) };
+}
+
+pub fn read_wait() -> ReadWait {
+    READ_WAIT.with(Cell::get)
+}
+
+pub fn set_read_wait(wait: ReadWait) {
+    READ_WAIT.with(|cell| cell.set(wait));
+}
+
+/// How long a connection keeps its thread waiting for the first byte of a
+/// request before it is parked. A client in a request loop answers well
+/// inside this and never pays for a handoff; a browser between clicks does
+/// not, and gives the stack back. Must stay well under the 200 ms at which
+/// the resident memory check samples. It is also the socket's fixed receive
+/// timeout, see `Sock`.
+pub const LINGER: Duration = Duration::from_millis(50);
+
+/// The client socket. Reads honour `ReadWait`; writes and everything else
+/// are the stream's own. TLS wraps this too, so its record reads follow the
+/// same rules without any socket option changing under rustls.
+pub struct Sock(pub TcpStream);
+
+impl Sock {
+    /// Wrap an accepted stream: its receive timeout becomes `LINGER` for the
+    /// connection's life, the one socket option a request never touches.
+    pub fn new(stream: TcpStream) -> Sock {
+        let _ = stream.set_read_timeout(Some(LINGER));
+        Sock(stream)
+    }
+}
+
+impl Read for Sock {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        use std::os::fd::AsRawFd;
+        let mut until: Option<Instant> = None;
+        loop {
+            match self.0.read(buf) {
+                Err(error) if matches!(error.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut) => {
+                    match read_wait() {
+                        ReadWait::Passthrough => return Err(error),
+                        ReadWait::Linger => return Err(io::Error::new(io::ErrorKind::WouldBlock, "no request bytes within the linger")),
+                        ReadWait::Budget(budget) => {
+                            let deadline = *until.get_or_insert_with(|| Instant::now() + budget);
+                            let left = deadline.saturating_duration_since(Instant::now());
+                            if left.is_zero() {
+                                return Err(io::Error::new(io::ErrorKind::TimedOut, "client read deadline"));
+                            }
+                            let mut fds = [PollFd { fd: self.0.as_raw_fd(), events: POLLIN, revents: 0 }];
+                            let ms = left.as_millis().saturating_add(1).min(i32::MAX as u128) as i32;
+                            if poll_fds(&mut fds, ms)? == 0 {
+                                return Err(io::Error::new(io::ErrorKind::TimedOut, "client read deadline"));
+                            }
+                        }
+                    }
+                }
+                result => return result,
+            }
+        }
+    }
+}
+
+impl Write for Sock {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.write(buf)
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        self.0.flush()
+    }
+}
+
 /// Overall deadline for one request head, mirroring uhttpd's client timeout:
 /// armed at accept and after every completed request (client.c:721, 137), and
 /// cancelled by the blank line that ends the head (client.c:372). uhttpd runs
@@ -205,12 +298,11 @@ pub struct HeadDeadline {
     /// How long the first read of a head may wait before the caller is told
     /// the connection is idle. The deadline itself is unchanged by it.
     linger: Option<Duration>,
-    /// Wait for input with poll(2) instead of shortening SO_RCVTIMEO. The
-    /// socket option costs a setsockopt to arm and another to restore on
-    /// every request; one poll replaces both. Only for transports whose
-    /// readable bytes all sit in the socket (plain TCP): TLS may hold
-    /// decrypted plaintext the socket cannot signal, so it keeps the option.
-    poll: bool,
+    /// The socket's receive timeout is the linger, fixed at accept, and the
+    /// thread's `ReadWait` mode decides what a timed-out read means. No
+    /// socket option is changed per request. Off for the profiler and tests
+    /// that drive a socket without a `Sock` wrapper.
+    linger_socket: bool,
 }
 
 impl HeadDeadline {
@@ -224,14 +316,13 @@ impl HeadDeadline {
     /// A deadline that started earlier: a keep-alive wait that began before
     /// the connection was parked keeps its original end.
     pub fn until(fd: RawFd, at: Instant) -> Self {
-        HeadDeadline { fd, at, linger: None, poll: false }
+        HeadDeadline { fd, at, linger: None, linger_socket: false }
     }
 
-    /// Wait with poll(2) rather than the socket receive timeout. The
-    /// receive timeout is then never touched, so the body and any later
-    /// request keep whatever the connection was accepted with.
-    pub fn polling(mut self) -> Self {
-        self.poll = true;
+    /// The connection's socket already times out reads at the linger; the
+    /// deadline only sets the thread's `ReadWait` mode, never a socket option.
+    pub fn linger_socket(mut self) -> Self {
+        self.linger_socket = true;
         self
     }
 
@@ -252,29 +343,18 @@ impl HeadDeadline {
         Ok(left)
     }
 
-    /// Make the next transport read honour the remaining budget: arm the
-    /// socket timeout, or wait for input here. A poll that sees nothing
-    /// within the budget reports `WouldBlock`, the same shape as a timed-out
-    /// read, so `read_head_line` treats both alike.
+    /// Make the next transport read honour the remaining budget: set the
+    /// thread's `ReadWait` mode (linger socket), or arm the socket timeout.
     fn arm(&self, first_byte: bool) -> io::Result<()> {
         let mut wait = self.remaining()?;
         if let (true, Some(linger)) = (first_byte, self.linger) {
             wait = wait.min(linger);
         }
-        if !self.poll {
-            return crate::set_read_timeout(self.fd, wait);
-        }
-        if self.fd < 0 {
+        if self.linger_socket {
+            set_read_wait(if first_byte && self.linger.is_some() { ReadWait::Linger } else { ReadWait::Budget(wait) });
             return Ok(());
         }
-        let mut fds = [PollFd { fd: self.fd, events: POLLIN, revents: 0 }];
-        // Rounding up keeps a sub-millisecond remainder from becoming a busy
-        // poll(0); the whole-head deadline is rechecked before the next read.
-        let ms = wait.as_millis().saturating_add(1).min(i32::MAX as u128) as i32;
-        if poll_fds(&mut fds, ms)? == 0 {
-            return Err(io::Error::new(io::ErrorKind::WouldBlock, "no request bytes within the budget"));
-        }
-        Ok(())
+        crate::set_read_timeout(self.fd, wait)
     }
 
     /// A read timed out before any byte of the head: idle if budget remains,
@@ -317,15 +397,7 @@ fn read_head_line<R: Read>(
         if let Some(deadline) = deadline {
             if reader.buffer().is_empty() {
                 // Only fill_buf on an empty buffer can read the transport.
-                // A polling deadline that saw no input reports it here, and
-                // it means exactly what a timed-out read would.
-                match deadline.arm(first_byte) {
-                    Ok(()) => {}
-                    Err(error) if first_byte && error.kind() == io::ErrorKind::WouldBlock => {
-                        return deadline.idle();
-                    }
-                    Err(error) => return Err(error),
-                }
+                deadline.arm(first_byte)?;
             } else {
                 // Buffered or pipelined input must still obey the same
                 // whole-head deadline; it just needs no socket option.
@@ -1558,38 +1630,49 @@ mod tests {
     }
 
     #[test]
-    fn polling_deadline_idles_then_reads_and_times_out_partial_heads() {
-        use std::net::{TcpListener, TcpStream};
+    fn linger_socket_idles_then_reads_and_times_out_partial_heads() {
+        use std::net::TcpListener;
         use std::os::fd::AsRawFd;
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let mut peer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
         let (server, _) = listener.accept().unwrap();
-        server.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        // The connection's fixed receive timeout stands in for LINGER.
+        server.set_read_timeout(Some(Duration::from_millis(30))).unwrap();
         let fd = server.as_raw_fd();
-        let mut input = BufReader::new(server);
-        // Nothing arrives within the linger: idle, socket untouched, budget kept.
-        let deadline = HeadDeadline::new(fd, Duration::from_secs(30)).with_linger(Duration::from_millis(30)).polling();
+        let mut input = BufReader::new(Sock(server));
+        // Nothing arrives within the linger: idle, nothing consumed, no socket option touched.
+        let deadline = HeadDeadline::new(fd, Duration::from_secs(30)).with_linger(Duration::from_millis(30)).linger_socket();
         let started = Instant::now();
         assert!(matches!(read_request(&mut input, true, Some(&deadline)).unwrap(), ParseOutcome::Idle));
         assert!(started.elapsed() >= Duration::from_millis(25) && started.elapsed() < Duration::from_secs(2));
         assert!(input.buffer().is_empty());
-        // Input present: served without waiting out the linger.
+        assert_eq!(read_wait(), ReadWait::Linger);
+        // Input present: served without waiting.
         peer.write_all(b"GET /q HTTP/1.1\r\nHost: x\r\n\r\n").unwrap();
         let ParseOutcome::Request(r) = read_request(&mut input, true, Some(&deadline)).unwrap() else { panic!() };
         assert_eq!(r.url, "/q");
-        // A head that stalls after its first bytes hits the head timeout, not idle.
+        // A head that stalls after its first bytes gets the head budget (poll
+        // after the 30 ms socket timeout), then the head timeout; never idle.
         peer.write_all(b"GET /p HTTP/1.1\r\nHo").unwrap();
-        let deadline = HeadDeadline::new(fd, Duration::from_millis(80)).with_linger(Duration::from_millis(30)).polling();
+        let deadline = HeadDeadline::new(fd, Duration::from_millis(90)).with_linger(Duration::from_millis(30)).linger_socket();
         let started = Instant::now();
-        // The same WouldBlock a timed-out socket read produces; never Idle.
         let kind = read_request(&mut input, true, Some(&deadline)).err().expect("stalled head accepted").kind();
-        assert!(matches!(kind, io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut), "{kind:?}");
-        assert!(started.elapsed() >= Duration::from_millis(70) && started.elapsed() < Duration::from_secs(2));
-        // Peer closes: EOF, not a timeout.
-        drop(peer);
-        let mut input = BufReader::new(input.into_inner());
-        let deadline = HeadDeadline::new(fd, Duration::from_secs(30)).with_linger(Duration::from_millis(500)).polling();
-        assert!(matches!(read_request(&mut input, true, Some(&deadline)), Ok(ParseOutcome::Eof) | Ok(ParseOutcome::Bad { .. })));
+        assert_eq!(kind, io::ErrorKind::TimedOut);
+        assert!(started.elapsed() >= Duration::from_millis(80) && started.elapsed() < Duration::from_secs(2));
+        // A body read waits its budget through the short socket timeout.
+        set_read_wait(ReadWait::Budget(Duration::from_millis(200)));
+        let started = Instant::now();
+        let mut sock = input.into_inner();
+        let writer = std::thread::spawn(move || { std::thread::sleep(Duration::from_millis(60)); peer.write_all(b"late").unwrap(); peer });
+        let mut buf = [0u8; 8];
+        let n = sock.read(&mut buf).unwrap();
+        assert_eq!(&buf[..n], b"late");
+        assert!(started.elapsed() >= Duration::from_millis(50));
+        // Budget exhausted with the peer still open: a timeout, not a hang.
+        let _peer = writer.join().unwrap();
+        set_read_wait(ReadWait::Budget(Duration::from_millis(50)));
+        assert_eq!(sock.read(&mut buf).unwrap_err().kind(), io::ErrorKind::TimedOut);
+        set_read_wait(ReadWait::Passthrough);
     }
 
     #[test]

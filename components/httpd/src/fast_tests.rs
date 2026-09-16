@@ -93,7 +93,7 @@ fn parked_pair(f: &Fixture) -> (Parked, TcpStream) {
     f.server.connections.fetch_add(1, Ordering::Relaxed);
     (
         Parked {
-            transport: Transport::Plain(stream),
+            transport: Transport::Plain(http::Sock::new(stream)),
             conn,
             deadline: Instant::now() + Duration::from_secs(20),
             writing: None,

@@ -33,18 +33,22 @@ const CLIENT: usize = 2;
 
 /// Puts the client socket in non-blocking mode while a handler drives its own
 /// readiness, and restores blocking mode on every exit path.
-struct NonBlockingFor(RawFd);
+struct NonBlockingFor(RawFd, crate::http::ReadWait);
 
 impl NonBlockingFor {
     fn new(fd: RawFd) -> io::Result<Self> {
         crate::set_nonblocking(fd, true)?;
-        Ok(NonBlockingFor(fd))
+        // The relay owns readiness: a WouldBlock must reach it unchanged.
+        let previous = crate::http::read_wait();
+        crate::http::set_read_wait(crate::http::ReadWait::Passthrough);
+        Ok(NonBlockingFor(fd, previous))
     }
 }
 
 impl Drop for NonBlockingFor {
     fn drop(&mut self) {
         let _ = crate::set_nonblocking(self.0, false);
+        crate::http::set_read_wait(self.1);
     }
 }
 

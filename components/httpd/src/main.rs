@@ -380,15 +380,15 @@ struct Conn {
 /// connection that already owns rustls's buffers.
 #[allow(clippy::large_enum_variant)]
 enum Transport {
-    Plain(TcpStream),
-    Tls(rustls::StreamOwned<rustls::ServerConnection, TcpStream>),
+    Plain(http::Sock),
+    Tls(rustls::StreamOwned<rustls::ServerConnection, http::Sock>),
 }
 
 impl Transport {
     fn tcp(&self) -> &TcpStream {
         match self {
-            Transport::Plain(s) => s,
-            Transport::Tls(s) => &s.sock,
+            Transport::Plain(s) => &s.0,
+            Transport::Tls(s) => &s.sock.0,
         }
     }
 
@@ -433,12 +433,7 @@ impl Write for Transport {
 
 type Client = BufReader<Transport>;
 
-/// How long a connection keeps its thread waiting for the first byte of a
-/// request before it is parked. A client in a request loop answers well
-/// inside this and never pays for a handoff; a browser between clicks does
-/// not, and gives the stack back. Must stay well under the 200 ms at which
-/// the resident memory check samples.
-const LINGER: Duration = Duration::from_millis(50);
+use http::LINGER;
 
 /// A keep-alive connection between requests, held by its listener's poll set
 /// with no thread, read buffer or parser storage attached.
@@ -566,17 +561,15 @@ impl Server {
         // connection and http_keepalive for the ones after it. Without it
         // a client that dribbles one byte per read holds its slot forever.
         let mut head_deadline = resume.unwrap_or_else(|| Instant::now() + network_timeout);
-        // Plain sockets wait for a head with poll(2) and never touch the
-        // receive timeout set at accept; TLS keeps the socket-option path
-        // because decrypted plaintext can be readable without the socket.
-        let plain = matches!(client.borrow().get_ref(), Transport::Plain(_));
+        // The socket's receive timeout is LINGER for the connection's whole
+        // life (set at accept); the thread's ReadWait mode says what a timed
+        // out read means in each phase. Handshake and bodies get the network
+        // budget, the first byte of a head parks the connection.
+        http::set_read_wait(http::ReadWait::Budget(network_timeout));
         loop {
             // The first read of every head waits at most LINGER on this
             // thread; an idle connection is then parked with its deadline.
-            let mut deadline = http::HeadDeadline::until(conn.fd, head_deadline).with_linger(LINGER);
-            if plain {
-                deadline = deadline.polling();
-            }
+            let deadline = http::HeadDeadline::until(conn.fd, head_deadline).with_linger(LINGER).linger_socket();
             // Bind the outcome first: a `borrow_mut()` in the scrutinee stays
             // alive for the whole match, and the reject arm needs the stream.
             let outcome = heads.read_request(
@@ -586,10 +579,7 @@ impl Server {
             );
             // client_parse_header cancels the timeout on the blank line
             // (client.c:372): the body and the response get the full budget.
-            // A polling deadline never shortened it, so nothing to restore.
-            if !plain {
-                let _ = set_read_timeout(conn.fd, network_timeout);
-            }
+            http::set_read_wait(http::ReadWait::Budget(network_timeout));
             let mut request = match outcome {
                 Ok(ParseOutcome::Request(r)) => r,
                 Ok(ParseOutcome::Eof) | Err(_) => return Outcome::Closed,
@@ -1020,16 +1010,18 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
             .unwrap_or_else(|_| SocketAddr::from(([0, 0, 0, 0], 0)));
         let fd = stream.as_raw_fd();
         let timeout = Duration::from_secs(server.config.network_timeout.max(1));
-        let _ = stream.set_read_timeout(Some(timeout));
+        // http::Sock fixes the receive timeout at LINGER for the connection's
+        // life and turns it into idle detection or a polled wait per phase,
+        // so no request ever pays a setsockopt.
         let _ = stream.set_write_timeout(Some(timeout));
         let _ = stream.set_nodelay(true);
         let conn = Conn { local, remote, tls: tls.is_some(), fd };
         let transport = match &tls {
-            None => Transport::Plain(stream),
+            None => Transport::Plain(http::Sock::new(stream)),
             Some(config) => match rustls::ServerConnection::new(Arc::clone(config)) {
                 Ok(mut c) => {
                     c.set_buffer_limit(Some(16 * 1024));
-                    Transport::Tls(rustls::StreamOwned::new(c, stream))
+                    Transport::Tls(rustls::StreamOwned::new(c, http::Sock::new(stream)))
                 }
                 Err(_) => {
                     server.release_connection();

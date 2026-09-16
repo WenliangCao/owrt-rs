@@ -128,7 +128,7 @@ fn serving_then_parking_keeps_parser_only_with_the_worker() {
     let original = prime(&mut heads);
     let request = b"GET /head-cache-missing HTTP/1.1\r\nHost: new\r\n\r\n";
     peer.write_all(request).unwrap();
-    assert!(matches!(server.run_connection(crate::Transport::Plain(transport), conn, &parking, None, &mut heads), crate::Outcome::Parked));
+    assert!(matches!(server.run_connection(crate::Transport::Plain(crate::http::Sock::new(transport)), conn, &parking, None, &mut heads), crate::Outcome::Parked));
     heads.trim();
     // Use only the header vector: the new path may legitimately grow the URL.
     assert_eq!(storage(&heads).1, original.1);
