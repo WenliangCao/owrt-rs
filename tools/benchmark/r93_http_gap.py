@@ -248,6 +248,8 @@ def main():
     p.add_argument("--recovery-gate", type=Path, required=True)
     p.add_argument("--candidate-build-record", type=Path, help="optional release recipe/provenance evidence")
     p.add_argument("--host", default="openwrt")
+    p.add_argument("--stack", choices=("rust", "stock"), default="rust",
+                        help="production stack the device must be running (verified, never switched)")
     p.add_argument("--interface", required=True)
     p.add_argument("--access", choices=("wifi", "wired"), default="wifi")
     p.add_argument("--rounds", type=int, default=4)
@@ -320,12 +322,12 @@ def main():
     def digest_remote(path):
         return ssh("sha256sum " + shlex.quote(path)).decode().split()[0]
 
-    before = probe(host=a.host, mode="rust", interface=a.interface)
+    before = probe(host=a.host, mode=a.stack, interface=a.interface)
     save(out / "health-before.json", before)
     require(before["boot_id"] == gate["boot_id"], "boot differs from recovery gate")
     config = ssh("sha256sum /etc/config/*")
     require(config == backup_config.read_bytes(), "configuration differs from verified offline backup")
-    identity = ssh("/bin/sh /root/r84/stack-switch.sh verify rust")
+    identity = ssh("/bin/sh /root/r84/stack-switch.sh verify " + a.stack)
     (out / "host-running-hashes.txt").write_bytes(identity)
     (out / "config-before.sha256").write_bytes(config)
     ssh("test ! -e /etc/r84-pending && test ! -e /etc/r84-reverting && test ! -e /etc/p6-pending && test ! -e /etc/p6-reverting")
@@ -420,20 +422,20 @@ def main():
             (folder / "COMPLETE").touch()
             print(json.dumps({"event": "complete", "name": run["name"]}), flush=True)
             if len(rows) % 15 == 0:
-                health = probe(host=a.host, mode="rust", interface=a.interface)
+                health = probe(host=a.host, mode=a.stack, interface=a.interface)
                 save(out / f"health-round-{run['repeat']}.json", health)
                 require(health["boot_id"] == before["boot_id"], "router rebooted")
                 require(ssh("sha256sum /etc/config/*") == config, "production config changed")
-                require(ssh("/bin/sh /root/r84/stack-switch.sh verify rust") == identity, "production identities changed")
+                require(ssh("/bin/sh /root/r84/stack-switch.sh verify " + a.stack) == identity, "production identities changed")
     finally:
         # Failure is never labelled complete. Leave exact owned evidence directory
         # recorded for recovery; namespace workload timeout independently kills descendants.
         try:
-            after = probe(host=a.host, mode="rust", interface=a.interface)
+            after = probe(host=a.host, mode=a.stack, interface=a.interface)
             save(out / "health-after.json", after)
             require(after["boot_id"] == before["boot_id"], "router rebooted")
             require(ssh("sha256sum /etc/config/*") == config, "production config changed")
-            require(ssh("/bin/sh /root/r84/stack-switch.sh verify rust") == identity, "production identities changed")
+            require(ssh("/bin/sh /root/r84/stack-switch.sh verify " + a.stack) == identity, "production identities changed")
         except Exception as error:
             save(out / "post-health-error.json", {"error": str(error)})
             raise

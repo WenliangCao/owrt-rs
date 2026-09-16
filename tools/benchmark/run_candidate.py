@@ -34,6 +34,8 @@ def main():
     parser.add_argument("--access", choices=("wired", "wifi"), default="wifi",
                         help="management path recorded with the measurements; both are authorized")
     parser.add_argument("--host", default="openwrt")
+    parser.add_argument("--stack", choices=("rust", "stock"), default="rust",
+                        help="production stack the device must be running (verified, never switched)")
     parser.add_argument("--baseline-bundle", default="/root/r84",
                         help="frozen comparison bundle on the router, including manifest.json")
     parser.add_argument("--baseline-label", default="r84", help="evidence label for that frozen bundle")
@@ -89,7 +91,7 @@ def main():
         else:
             save(name, value)
 
-    current = probe(host=args.host, mode="rust", interface=args.interface)
+    current = probe(host=args.host, mode=args.stack, interface=args.interface)
     if args.resume:
         pre = json.loads((out / "health-before.json").read_text())
         assert current["boot_id"] == pre["boot_id"], "host rebooted before resume"
@@ -97,7 +99,7 @@ def main():
     else:
         pre = current
         save("health-before.json", pre)
-    identity = ssh("/bin/sh /root/r84/stack-switch.sh verify rust")
+    identity = ssh("/bin/sh /root/r84/stack-switch.sh verify " + args.stack)
     config = ssh("sha256sum /etc/config/*")
     for name, value in (("host-running-hashes.txt", identity), ("config-before.sha256", config)):
         if args.resume:
@@ -221,13 +223,13 @@ def main():
             raise RuntimeError("host boot changed")
         (local / "COMPLETE").touch()
         print(json.dumps({"event": "complete", "side": side, "index": index}), flush=True)
-    post = probe(host=args.host, mode="rust", interface=args.interface)
+    post = probe(host=args.host, mode=args.stack, interface=args.interface)
     save("health-after.json", post)
     after = ssh("sha256sum /etc/config/*")
     (out / "config-after.sha256").write_bytes(after)
     if pre["boot_id"] != post["boot_id"] or config != after:
         raise RuntimeError("host boot/configuration changed")
-    if ssh("/bin/sh /root/r84/stack-switch.sh verify rust") != identity:
+    if ssh("/bin/sh /root/r84/stack-switch.sh verify " + args.stack) != identity:
         raise RuntimeError("host process identities changed")
     ssh("rm -rf -- " + remote)
     (out / "COMPLETE").touch()
