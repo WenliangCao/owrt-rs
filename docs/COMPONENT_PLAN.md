@@ -42,8 +42,8 @@
 
 | 状态 | 组件 | 实机相对 C | 实机相对 R89 | 下一步 |
 |---|---|---|---|---|
-| ✅ 实机待补 | **logd** | 全胜（R94：syslog_128 CPU 5.1 vs 32.5，read_100 120.5 vs 808.5） | 全胜（vs 8.5 / 421.5；RssAnon 120 vs 176 KiB） | 终版 `08c833fd` 实机四侧一次补测 |
-| ✅ 实机待补 | **httpd** | Oracle 停放 60/80 ms：37.5–42.5 vs C 57.5–60 µs；gap0 32.4 vs 40.4 | Oracle 停放：vs 282–292 µs；gap0 持平 | Oracle formal 四轮收尾；实机 74 项矩阵 + 间隔基线一次补测 |
+| ✅ | **logd** | 全胜（R94 终版实机：syslog_128 CPU 5.65 vs 31.95，read_100 121.0 vs 809.5） | 全胜（vs 8.40 / 420.5；延迟 −40%；RssAnon 120 vs 174 KiB；四轮不重叠） | 完成。[实机报告](reviews/R94_LOGD_DEVICE.md) |
+| ☐ 进行中 | **httpd** | 实机紧密矩阵 16 条 CPU/延迟全部低于 C，jsonrpc_c4 CPU 498 vs 487（重叠）；Oracle formal 停放 60/80 ms 40.0/42.5 vs C 57.5/58.75 | 实机紧密矩阵与 R89 逐轮范围全部重叠（持平，未胜）；Oracle 停放 vs 281/292 | 实机停放间隔四轮进行中；紧密路径需再找算法差距 |
 | ☐ | rpcd | session_access_64_c4 延迟 275.4 vs 274.6（持平） | session_access_granted CPU +19.6%、session_access_64_c4 CPU +27.8%/延迟 +13.8%、session_access_64 CPU +20%、uci_get_authorized CPU +4% | 授权快路径（R93 glob 候选有 Oracle 信号）+ 会话 ACL 查询算法 |
 | ☐ | procd | 全胜 | 8 条负载 CPU 系统性高 1.5–6.2%（service_list_32_c4 +6.2%、named_128_c4 +5.9%、system_info_c4 +2.5%） | service list 序列化/对象遍历热路径 |
 | ☐ | ubusd | lookup_all_64/128 延迟 786/1549 vs 775/1510（CPU 更低） | 多条 lookup 延迟高 0.9–2.5% | lookup 全表遍历与回复分帧（R93 pathless/borrow 候选未合入） |
@@ -54,7 +54,7 @@
 
 ---
 
-## logd ✅（实机待补）
+## logd ✅
 
 **R94 改动**（`88a958c`、`e7c2da4`）：字节 arena 环（沿用 C `log_add` 保留算法，无堆 Entry）；
 blobmsg 模板帧（`frame.rs`，与旧 BlobBuf 逐字节相同）；流改用 pipe（同 C），一轮 ≤256 条 datagram
@@ -67,10 +67,10 @@ trim_heavy 3.0 vs C 3.6/R89 4.7；RSS 496–524 KiB。实机 stage-one 候选 `0
 R88 F1 非 UTF-8 `log write` 静默丢弃却回 OK → 有损转换。R92 环/限额合同（`logd_bytes`、`logd_limits`）。
 R93 旧 poll 下标误断健康流；断连期间积压/oneshot/关闭回收；重连节拍；总预算保护健康读者（`test_logd_stream_recovery.py` 5/5）。
 
-**待办**：终版构建 `08c833fd`（含 burst-spin + pipe）只在 Oracle 验证过，实机四侧一次补测；实机窗口曾因 R92 冷启动断网事故中止。
-门：单测、clippy、固定语料 15/15、流恢复 5/5、r92 logd_bytes/limits、历史 r15/r28/r21/r25/r83。
+**实机终验（2026-09-16，终版 `08c833fd`，四轮 24 观测）**：syslog_128 CPU 5.65 vs R89 8.40 vs C 31.95 µs；log_read_100 121.0 vs 420.5 vs 809.5；平均与 p95 延迟均比 R89 低约 40%；RssAnon 120 vs 174 KiB。逐轮范围不重叠。见 [R94_LOGD_DEVICE](reviews/R94_LOGD_DEVICE.md)。
+门：单测、clippy、固定语料 15/15、流恢复 5/5、r92 logd_bytes/limits、历史 r15/r28/r21/r25/r83。未部署生产。
 
-## httpd ✅（实机待补）
+## httpd ☐（进行中）
 
 **R94 改动**（`4537438`、`d67a6e4`、`3b98ab2`；报告 `docs/reviews/R94_HTTP_FASTPATH.md`）：
 - 监听器内联快路径（`fast.rs`）：已停放 plain 连接收到完整小 GET/HEAD（普通文件 ≤32 KiB，无 CGI/ubus/auth/alias/政策）
@@ -81,7 +81,8 @@ R93 旧 poll 下标误断健康流；断连期间积压/oneshot/关闭回收；�
 - 移除 R93 空闲 worker 缓存：它保留 4 个线程 1 s，违反 R85 内存门（连接关闭后 Threads 必须回基线）——正是 R93 worker/head 候选无法合入的原因；快路径已用零线程覆盖其目标场景。
 
 **结果**：Oracle 全部门绿（8 项历史门 + shared-cap + http-r92；fuzz 133/133 无新偏差；r85 64 连接内存门通过）。
-Oracle 四侧：见总表；formal 四轮进行中（`/home/ubuntu/r94-httpd/perf/formal-01`）。
+Oracle formal 四轮（64 样本、832,000 请求）：停放 60/80 ms R94 CPU 每轮均为 40.0/42.5 µs，C 57.5/58.75，R89 281/292；gap0 32.5 vs R89 32.4 vs C 39.75；gap40 60.0 vs R89 61.25 vs C 55.0（gap<50 ms 不停放，走线程路径）。
+**实机紧密矩阵**（2026-09-16，16 负载四轮 192 观测）：全部 CPU 与延迟低于 C；相对 R89 CPU −0.9%…+2.7%、延迟 +0.2%…+3.9%，**16 条逐轮范围全部重叠**——持平，不是胜出；jsonrpc_c4 CPU 498 vs C 487（范围重叠）。该矩阵为 gap 0 连发，连接从不停放，快路径不参与；SWAR 也没把 512 B c1 拉到 R89 以下（86.5 vs 85.5）。常驻 VmRSS 1130 vs R89 992 KiB（+138，其中匿名页仅 +8），需在停放内存门里核对快路径 scratch/响应缓冲的保留量。
 
 **已修复缺陷（回归清单）**：R81 F18 CGI 错误面（无完整头/超时/坏头 → 502，spawn 失败 → 500）；F19 macOS Chrome/Edge 被当 Safari 强制 close；F20 其他偏差。
 R88 H-01 Basic auth 后缺 REMOTE_USER；H-06 迟到回复滞留连接池；H-03 Bearer 大小写；H-11 连接上限时不唤醒监听。
@@ -89,9 +90,9 @@ R92 政策顺序 RFC1918→redirect→100 Continue；控制字节头 400；chunk
 ubus 断连重连与 deadline；`-n` 槽由调度唤醒；22 项处置见 `tests/reference/httpd/r92-deviations.json`。
 R93 共享连接限额释放时广播全部监听器（`r93_httpd_cap_probe.py`）。
 
-**待办**：实机补测 R93 的 74 项矩阵与间隔基线，重点核对三处实机差距是否闭合：
-60/80 ms 停放 CPU（R93 为 C 的 2.2–2.4 倍，快路径目标）、512 B 单客户端 CPU 82→89 µs vs R89（SWAR 目标）、
-jsonrpc_c4 自身 CPU 高 C 3.5%（未处理，需看 bridge 序列化路径）。LINGER 50 ms 未改，gap<50 ms 走线程路径与 R89 持平。
+**待办**：① 实机停放间隔四轮（0/20/40/60/80 ms）进行中，验证快路径是否把 R93 的 60/80 ms 2.2–2.4 倍 C 差距闭合。
+② 紧密路径仍只与 R89 持平：下一轮要找 gap0 每请求的算法差距（R92 新增的 URL `%` NUL 解码、头保留循环、framing 检查各占多少；bridge JSON-RPC 序列化路径对 jsonrpc_c4），目标是每条负载都低于 R89 而不是重叠。
+③ 常驻内存 +138 KiB 归因（`fast::Scratch` 每 listener 保留 ≤2×33 KiB 响应缓冲，可按需收紧）。LINGER 50 ms 未改。
 
 ## rpcd ☐
 
@@ -185,3 +186,4 @@ R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` �
 - 2026-09-15 R93：九组件实机三侧四轮 888 个观测闭合（source05 vs C vs R89），各组件差距见上表。
 - 2026-09-16 logd R94：arena 环 + 模板帧 + 批量 pipe + burst-spin；Oracle 160/160 字节相同，全负载优于 C/R89/R93；实机 stage-one 候选优于 R89（CPU、RssAnon）。终版实机待补。
 - 2026-09-16 httpd R94：监听器内联快路径 + SWAR 头扫描；移除 worker 缓存（违反 r85 内存门）。Oracle 全门绿；四侧停放 60/80 ms CPU 37.5–42.5 µs，低于 C（57.5–60）与 R89（282–292）；gap0 持平 R89、优于 C。formal 四轮进行中，实机待补。
+- 2026-09-16 实机窗口（全 C 生产栈，namespace 三侧四轮）：logd 终版 24 观测全胜 C/R89，**logd 完成**；httpd 紧密矩阵 192 观测全部低于 C、与 R89 逐轮重叠持平；httpd 间隔驱动因恢复门 boot_id 过期停止，重生成恢复门后重跑。给 `run_candidate.py`/`r93_http_gap.py` 加 `--stack stock`（路由器回滚到 C 后驱动仍可跑）。
