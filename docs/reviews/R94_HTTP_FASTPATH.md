@@ -1,6 +1,6 @@
 # R94 HTTP 监听器内联快路径
 
-2026-09-16。目标：让 httpd 在停放后（paced keep-alive）的每请求成本既优于 C 原版、也优于正式 R89。所有实验在 Oracle Linux AArch64 私有 namespace loopback 上完成，未访问路由器。候选由 SDK musl 交叉编译（sha256 `d418b497c5109785830f`），静态链接。
+2026-09-16。目标：让 httpd 在停放后（paced keep-alive）的每请求成本既优于 C 原版、也优于正式 R89。筛选在 Oracle Linux AArch64 私有 namespace loopback 上完成，终验在 AX3000T 实机（见「实机」节）。候选由 SDK musl 交叉编译（sha256 `d418b497c5109785830f`），静态链接。
 
 ## 改动
 
@@ -65,7 +65,7 @@ R93 基线里 60/80 ms 停放后 R89 为 C 的 2.17/2.36 倍（[R93_HTTP_DEVICE_
 
 ### 紧密矩阵（16 负载四轮，192 观测）
 
-全部 16 条 CPU 与延迟低于 C；相对 R89 CPU −0.9%…+2.7%、延迟 +0.2%…+3.9%，**16 条逐轮范围全部重叠**——与 R89 持平，不是胜出。jsonrpc_c4 CPU 498.0 vs C 487.1（R89 487.1，范围重叠）。该矿阵为 gap 0 连发，连接从不停放，快路径不参与；SWAR 未把 512 B c1 拉到 R89 以下（86.5 vs 85.5）。常驻 VmRSS 1130 vs R89 992 KiB（+138，其中匿名页仅 +8），需在停放内存门里核对 `fast::Scratch` 保留的响应缓冲。完整表见 `private/r94/device-r94-01-derived/httpd/results.md`。
+全部 16 条 CPU 与延迟低于 C；相对 R89 CPU −0.9%…+2.7%、延迟 +0.2%…+3.9%，**16 条逐轮范围全部重叠**——与 R89 持平，不是胜出。jsonrpc_c4 CPU 498.0 vs C 487.1（R89 487.1，范围重叠）。该矩阵为 gap 0 连发，连接从不停放，快路径不参与；SWAR 未把 512 B c1 拉到 R89 以下（86.5 vs 85.5）。常驻 VmRSS 1130 vs R89 992 KiB（+138，其中匿名页仅 +8），需在停放内存门里核对 `fast::Scratch` 保留的响应缓冲。完整表见 `private/r94/device-r94-01-derived/httpd/results.md`。
 
 ### 判定
 
