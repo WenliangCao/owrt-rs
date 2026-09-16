@@ -114,16 +114,14 @@ R88 F1 线程创建失败终止 daemon → UNKNOWN_ERROR + procwait 轮询回退
 R93 断连保留会话与回滚、离线到期恢复文件、失败通知按包名去重轮转（断连/半帧各 20 项）；
 ubus 库 deadline 覆盖完整 header/body，避免 `service.event` 超时导致 rpcd 退出（`453ceed`）。
 
-## procd ☐
+## procd ✅
 
-**实机差距（R93）**：8 条负载全部优于 C；相对 R89 CPU 系统性高：service_list_32 69→69.5、system_info 143→145.5、
-service_list_32_c4 55.1→58.5（+6.2%）、system_info_c4 120.5→123.5、service_list_128 205.5→208.5、
-service_list_128_c4 185→189、named_128 30.5→31、named_128_c4 25.3→26.8（+5.9%）µs/操作。
-
-**既有候选**：watch 队列去 O(W²) 冷扫描（`private/r93/procd-queue-local-20260915`），仅本机模型验证。
-
-**提示**：R93 修复把 watch/hotplug 注册分批、维护节拍锚定，可能给主循环加了固定开销；先量 `service list` 一次调用的 blob 构建与实例遍历分配数，
-对照 C `service_dump`。c4 退步更大提示每请求重复计算。
+**已攻克（R94，2026-09-16，实机三侧四轮 96 观测，候选 `0df4baae`）**：总线读取继承 rpcd 轮的读前缓冲（每请求 `recvmsg` 2→1，`strace` 4→3）；
+`system info` 改为启动时常开 `/proc/meminfo`、每请求一次 `pread`（取代 openat+read+read+close，描述符数恒定）并用字节级、与 C `strtok`/`strcasecmp` 同构的扫描取代
+`str::lines`+`split_once`（曾占采样 8%）；blob 头部编码一次 reserve。实机：8/8 负载对 C 延迟与 CPU 双优（CPU -19…-46%）；对 R89 7/8 双优，
+`system_info` CPU -34.9%（91-94 对 137-177，不重叠）、c4 -35.1%，`named_128_c4` -20.4%，`list_32_c4` -3.5%；R93 记录的 8 项 R89 偏高全部反转。
+唯 `service_list_128_c4` 延迟 +1.7%（范围完全重叠，CPU -5.6%），非本轮路径。报告 `docs/reviews/R94_PROCD_INFO_RECV.md`；
+16/16 门绿（R92 伞形 12 项含 r65/r83/r71/r72/r75/r90/tick/busy、恢复/兼容 procd 用例、R93 通知探针 12/12×2）；未部署。
 
 **已修复缺陷**：R81 F01 PID 1 写非阻塞 stderr 可 abort（P0）；F21 `service set` 关掉运行实例日志管道；F22。
 R88 F1 维护节拍饿死（P1，`r89_procd_tick_probe.py`）；F2 启动期丢非 ubusd 子进程回收；F4 ident 截断 panic。R90 F3。
