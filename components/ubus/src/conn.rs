@@ -73,9 +73,21 @@ pub struct Connection {
     local_id: u32,
     seq: u16,
     pending: VecDeque<Message>,
-    /// Grows lazily for serving small INVOKEs, up to INCOMING_BUFFER_SIZE.
-    /// Large frames use temporary storage instead of inflating this buffer.
-    incoming_buf: Vec<u8>,
+    /// Read-ahead storage for incoming frames. One recvmsg takes everything
+    /// the socket holds (up to INCOMING_BUFFER_SIZE), so a small frame costs
+    /// one syscall and frames queued behind it need none. Allocated at the
+    /// first read; frames that do not fit use their own storage instead.
+    rx: Vec<u8>,
+    rx_start: usize,
+    rx_end: usize,
+    /// Descriptors delivered with read-ahead bytes, keyed by the rx index one
+    /// past the recvmsg that carried them. ubusd attaches a descriptor to the
+    /// sendmsg that begins its frame and the kernel ends a recvmsg after the
+    /// buffer carrying ancillary data, so the frame holding that last byte
+    /// owns the descriptor.
+    rx_fds: VecDeque<(usize, OwnedFd)>,
+    /// Budget for finishing the frame being received; fixed at its first wait.
+    rx_deadline: Option<Instant>,
     /// Optional storage returned by a server after it has finished a request.
     spare_request: Option<Request>,
     /// Opt-in bound for daemon reads/replies outside a timed request.
@@ -84,11 +96,10 @@ pub struct Connection {
 
 const INCOMING_BUFFER_SIZE: usize = 4096;
 
-struct ReceivedHeader {
-    header: Header,
-    blob_header: [u8; 4],
-    len: usize,
-    fd: Option<OwnedFd>,
+/// Where a taken frame's blob (4-byte blob header included) lives.
+enum Body {
+    Buffered(std::ops::Range<usize>),
+    Owned(Vec<u8>),
 }
 
 #[derive(Debug)]
@@ -131,7 +142,11 @@ impl Connection {
             local_id: 0,
             seq: 0,
             pending: VecDeque::new(),
-            incoming_buf: Vec::new(),
+            rx: Vec::new(),
+            rx_start: 0,
+            rx_end: 0,
+            rx_fds: VecDeque::new(),
+            rx_deadline: None,
             spare_request: None,
             server_io_timeout: None,
         };
@@ -165,13 +180,18 @@ impl Connection {
         result
     }
 
-    fn send_server_parts<const N: usize>(&self, parts: [&[u8]; N], fd: Option<RawFd>) -> io::Result<()> {
-        self.server_result(sys::send_parts_until(self.as_raw_fd(), parts, fd, self.server_deadline()))
+    fn server_bound(&self) -> sys::Bound {
+        self.server_io_timeout.map_or(sys::Bound::Forever, sys::Bound::Within)
     }
 
-    /// Messages already read from the socket but not yet handed out.
+    fn send_server_parts<const N: usize>(&self, parts: [&[u8]; N], fd: Option<RawFd>) -> io::Result<()> {
+        self.server_result(sys::send_parts_until(self.as_raw_fd(), parts, fd, self.server_bound()))
+    }
+
+    /// A message can be handed out without waiting on the socket: one was
+    /// read while awaiting a reply, or a complete frame is already buffered.
     pub fn has_pending(&self) -> bool {
-        !self.pending.is_empty()
+        !self.pending.is_empty() || self.rx_complete()
     }
 
     pub fn as_raw_fd(&self) -> RawFd {
@@ -192,59 +212,159 @@ impl Connection {
         self.send_server_parts([&header.encode(), body], fd)
     }
 
-    #[cfg(test)]
-    fn recv_head(&mut self) -> io::Result<ReceivedHeader> {
-        self.recv_head_until(None)
+    fn rx_reset(&mut self) {
+        self.rx_start = 0;
+        self.rx_end = 0;
+        self.rx_fds.clear();
+        self.rx_deadline = None;
     }
 
-    fn recv_head_until(&mut self, deadline: Option<Instant>) -> io::Result<ReceivedHeader> {
-        let mut head = [0u8; Header::LEN + 4];
-        let fd = sys::recv_exact_until(self.stream.as_raw_fd(), &mut head, true, deadline)?;
-        Self::decode_head(head, fd)
+    /// Buffer at least `need` bytes of the frame at rx_start, reading whatever
+    /// the socket holds. With `start`, an empty buffer on an idle socket gives
+    /// Ok(false) instead of waiting. `deadline` is a caller's fixed bound; a
+    /// server budget starts only when a wait becomes necessary.
+    fn rx_fill(&mut self, need: usize, start: bool, deadline: Option<Instant>) -> io::Result<bool> {
+        debug_assert!(need <= INCOMING_BUFFER_SIZE);
+        if self.rx.is_empty() {
+            self.rx = vec![0u8; INCOMING_BUFFER_SIZE];
+        }
+        let bound = deadline.map_or_else(|| self.server_bound(), sys::Bound::At);
+        let sock = self.stream.as_raw_fd();
+        while self.rx_end - self.rx_start < need {
+            if self.rx_start + need > INCOMING_BUFFER_SIZE {
+                self.rx.copy_within(self.rx_start..self.rx_end, 0);
+                for (mark, _) in &mut self.rx_fds {
+                    *mark -= self.rx_start;
+                }
+                self.rx_end -= self.rx_start;
+                self.rx_start = 0;
+            }
+            let idle = self.rx_end == self.rx_start;
+            match sys::recv_into(sock, &mut self.rx[self.rx_end..], true, bound.nonblocking() || (start && idle)) {
+                Ok((0, _)) => {
+                    self.rx_reset();
+                    return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
+                }
+                Ok((got, fd)) => {
+                    self.rx_end += got;
+                    if let Some(fd) = fd {
+                        self.rx_fds.push_back((self.rx_end, fd));
+                    }
+                }
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    if start && idle {
+                        return Ok(false);
+                    }
+                    let wait = bound.deadline(&mut self.rx_deadline);
+                    if let Err(e) = sys::wait_until(sock, sys::POLLIN, wait) {
+                        // The frame cannot complete: release its bytes and any
+                        // descriptor that arrived with them.
+                        self.rx_reset();
+                        return Err(sys::after_progress(e, !idle));
+                    }
+                }
+                Err(e) => {
+                    self.rx_reset();
+                    return Err(e);
+                }
+            }
+        }
+        Ok(true)
     }
 
-    fn decode_head(head: [u8; Header::LEN + 4], fd: Option<OwnedFd>) -> io::Result<ReceivedHeader> {
-        let header = Header::decode(head[..8].try_into().unwrap())
+    /// Header and blob length of the frame at rx_start (12 bytes buffered).
+    fn rx_frame(&self) -> io::Result<(Header, usize)> {
+        let s = self.rx_start;
+        let header = Header::decode(self.rx[s..s + Header::LEN].try_into().unwrap())
             .ok_or_else(|| io::Error::other("ubus: bad header"))?;
-        let id_len = u32::from_be_bytes(head[8..12].try_into().unwrap());
+        let id_len = u32::from_be_bytes(self.rx[s + Header::LEN..s + Header::LEN + 4].try_into().unwrap());
         let raw_len = (id_len & 0x00ff_ffff) as usize;
         if !(4..=MAX_MSGLEN).contains(&raw_len) {
             return Err(io::Error::other("ubus: bad blob length"));
         }
-        Ok(ReceivedHeader { header, blob_header: head[8..12].try_into().unwrap(), len: raw_len, fd })
+        Ok((header, raw_len))
     }
 
-    #[cfg(test)]
-    fn recv_body(&mut self, head: ReceivedHeader) -> io::Result<Message> {
-        self.recv_body_until(head, None)
-    }
-
-    fn recv_body_until(&mut self, head: ReceivedHeader, deadline: Option<Instant>) -> io::Result<Message> {
-        let mut blob = vec![0u8; head.len];
-        blob[..4].copy_from_slice(&head.blob_header);
-        if head.len > 4 {
-            sys::recv_exact_until(self.stream.as_raw_fd(), &mut blob[4..], false, deadline)?;
+    /// A complete frame is buffered, or a framing error awaits the next read.
+    fn rx_complete(&self) -> bool {
+        let buffered = self.rx_end - self.rx_start;
+        if buffered < Header::LEN + 4 {
+            return false;
         }
-        Ok(Message { header: head.header, blob, fd: head.fd })
+        match self.rx_frame() {
+            Ok((_, len)) => Header::LEN + len <= buffered,
+            Err(_) => true,
+        }
+    }
+
+    /// The descriptor owned by the frame spanning rx indices `start..end`.
+    fn rx_take_fd(&mut self, start: usize, end: usize) -> Option<OwnedFd> {
+        while self.rx_fds.front().is_some_and(|(mark, _)| *mark <= start) {
+            self.rx_fds.pop_front();
+        }
+        if self.rx_fds.front().is_some_and(|(mark, _)| *mark <= end) {
+            return self.rx_fds.pop_front().map(|(_, fd)| fd);
+        }
+        None
+    }
+
+    /// Take the next frame: header, its descriptor and its blob. None only
+    /// with `start` when the buffer is empty and the socket idle.
+    fn take_frame(&mut self, start: bool, deadline: Option<Instant>) -> io::Result<Option<(Header, Option<OwnedFd>, Body)>> {
+        if !self.rx_fill(Header::LEN + 4, start, deadline)? {
+            return Ok(None);
+        }
+        let (header, len) = match self.rx_frame() {
+            Ok(frame) => frame,
+            Err(e) => {
+                self.rx_reset();
+                return Err(e);
+            }
+        };
+        let total = Header::LEN + len;
+        let (start, body) = if total <= INCOMING_BUFFER_SIZE {
+            self.rx_fill(total, false, deadline)?;
+            let s = self.rx_start;
+            self.rx_start = s + total;
+            (s, Body::Buffered(s + Header::LEN..s + total))
+        } else {
+            let s = self.rx_start;
+            let mut blob = vec![0u8; len];
+            let have = (self.rx_end - s - Header::LEN).min(len);
+            blob[..have].copy_from_slice(&self.rx[s + Header::LEN..s + Header::LEN + have]);
+            self.rx_start = s + Header::LEN + have;
+            if have < len {
+                let rest = deadline.or_else(|| self.server_deadline());
+                sys::recv_exact_until(self.stream.as_raw_fd(), &mut blob[have..], false, rest)
+                    .map_err(sys::partial_timeout)?;
+            }
+            (s, Body::Owned(blob))
+        };
+        let fd = self.rx_take_fd(start, start + total);
+        self.rx_deadline = None;
+        if self.rx_start == self.rx_end {
+            self.rx_reset();
+        }
+        Ok(Some((header, fd, body)))
+    }
+
+    fn blob_of(&self, body: Body) -> Vec<u8> {
+        match body {
+            Body::Buffered(range) => self.rx[range].to_vec(),
+            Body::Owned(blob) => blob,
+        }
     }
 
     #[cfg(test)]
     fn recv(&mut self) -> io::Result<Message> {
-        let head = self.recv_head()?;
-        self.recv_body(head)
+        self.recv_until(None)
     }
 
     fn recv_until(&mut self, deadline: Option<Instant>) -> io::Result<Message> {
-        let mut bytes = [0u8; Header::LEN + 4];
-        let fd = sys::recv_exact_until(self.as_raw_fd(), &mut bytes, true, deadline)?;
-        let head = Self::decode_head(bytes, fd)?;
-        let mut blob = vec![0u8; head.len];
-        blob[..4].copy_from_slice(&head.blob_header);
-        sys::recv_exact_until(self.as_raw_fd(), &mut blob[4..], false, deadline)
-            .map_err(sys::partial_timeout)?;
-        Ok(Message { header: head.header, blob, fd: head.fd })
+        let (header, fd, body) = self.take_frame(false, deadline)?.expect("a waiting frame read yields a frame");
+        Ok(Message { header, blob: self.blob_of(body), fd })
     }
-
     fn next_seq(&mut self) -> u16 {
         self.seq = self.seq.wrapping_add(1);
         if self.seq == 0 {
@@ -555,9 +675,8 @@ impl Connection {
         if let Some(message) = self.pending.pop_front() {
             return Ok(Self::classify(message));
         }
-        let deadline = self.server_deadline();
-        let result = self.recv_head_until(deadline)
-            .and_then(|head| self.read_incoming_body(head, deadline));
+        let result = self.take_frame(false, None)
+            .map(|frame| self.incoming(frame.expect("a waiting frame read yields a frame")));
         self.server_result(result)
     }
 
@@ -568,32 +687,22 @@ impl Connection {
         if let Some(message) = self.pending.pop_front() {
             return Ok(Some(Self::classify(message)));
         }
-        let mut head = [0u8; Header::LEN + 4];
-        let deadline = self.server_deadline();
-        let fd = match sys::recv_exact_if_started_until(self.stream.as_raw_fd(), &mut head, true, deadline) {
-            Ok(fd) => fd,
-            Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(None),
-            Err(e) => return self.server_result(Err(e)),
-        };
-        let result = self.read_incoming_body(Self::decode_head(head, fd)?, deadline).map(Some);
+        let result = self.take_frame(true, None).map(|frame| frame.map(|frame| self.incoming(frame)));
         self.server_result(result)
     }
 
-    fn read_incoming_body(&mut self, head: ReceivedHeader, deadline: Option<Instant>) -> io::Result<Incoming> {
-        if head.header.ty == ty::INVOKE && head.len <= INCOMING_BUFFER_SIZE {
-            if self.incoming_buf.len() < head.len {
-                self.incoming_buf.resize(head.len.next_power_of_two(), 0);
-            }
-            let blob = &mut self.incoming_buf[..head.len];
-            blob[..4].copy_from_slice(&head.blob_header);
-            if head.len > 4 {
-                sys::recv_exact_until(self.stream.as_raw_fd(), &mut blob[4..], false, deadline)?;
-            }
-            return Ok(Incoming::Invoke(Self::decode_request(head.header, blob, head.fd, self.spare_request.take())));
+    fn incoming(&mut self, (header, fd, body): (Header, Option<OwnedFd>, Body)) -> Incoming {
+        if header.ty == ty::INVOKE {
+            // Decode straight from the read-ahead buffer into retained storage.
+            let spare = self.spare_request.take();
+            let blob: &[u8] = match &body {
+                Body::Buffered(range) => &self.rx[range.clone()],
+                Body::Owned(blob) => blob,
+            };
+            return Incoming::Invoke(Self::decode_request(header, blob, fd, spare));
         }
-        Ok(Self::classify(self.recv_body_until(head, deadline)?))
+        Self::classify(Message { header, blob: self.blob_of(body), fd })
     }
-
     /// Return storage only after the caller has finished using the request.
     /// At most one small request is retained; descriptors are closed now.
     pub fn recycle_request(&mut self, mut req: Request) {
@@ -743,7 +852,7 @@ mod tests {
 
     fn pair() -> (Connection, Connection) {
         let (a, b) = UnixStream::pair().unwrap();
-        let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), incoming_buf: Vec::new(), spare_request: None, server_io_timeout: None };
+        let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), rx: Vec::new(), rx_start: 0, rx_end: 0, rx_fds: VecDeque::new(), rx_deadline: None, spare_request: None, server_io_timeout: None };
         (conn(a), conn(b))
     }
 
@@ -985,7 +1094,7 @@ mod tests {
             assert_eq!(req.method, "");
             assert_eq!(req.objid, 0);
             assert!(!req.no_reply);
-            assert!(receiver.incoming_buf.capacity() <= INCOMING_BUFFER_SIZE);
+            assert!(receiver.rx.capacity() <= INCOMING_BUFFER_SIZE);
         }
     }
 
@@ -1000,8 +1109,8 @@ mod tests {
         let Incoming::Invoke(first) = receiver.read_incoming().unwrap() else {
             panic!("expected first INVOKE");
         };
-        // A short request must not reserve the entire 4 KiB limit.
-        assert!(receiver.incoming_buf.capacity() <= 256);
+        // One fixed read-ahead buffer serves every small frame.
+        assert_eq!(receiver.rx.capacity(), INCOMING_BUFFER_SIZE);
         for seq in 2..5 {
             let mut b = BlobBuf::new();
             sender.send(Header { ty: ty::INVOKE, seq, peer: 3 }, &mut b, None).unwrap();
@@ -1083,7 +1192,7 @@ mod tests {
         let (mut sender, mut receiver) = pair();
         sender.reply_status(&request(), 0, None).unwrap();
         assert!(matches!(receiver.read_incoming().unwrap(), Incoming::Other(_)));
-        assert_eq!(receiver.incoming_buf.capacity(), 0);
+        assert_eq!(receiver.rx.capacity(), INCOMING_BUFFER_SIZE);
 
         let writer = std::thread::spawn(move || {
             for len in [INCOMING_BUFFER_SIZE + 4, INCOMING_BUFFER_SIZE, MAX_MSGLEN, 8] {
@@ -1100,15 +1209,10 @@ mod tests {
             };
             assert_eq!((req.seq, req.peer), (7, 9));
             assert_eq!(req.data, vec![0xa5; len - 8]);
-            if len <= INCOMING_BUFFER_SIZE {
-                retained.get_or_insert(receiver.incoming_buf.as_ptr());
-            }
-            if let Some(pointer) = retained {
-                assert_eq!(receiver.incoming_buf.as_ptr(), pointer);
-                assert_eq!(receiver.incoming_buf.capacity(), INCOMING_BUFFER_SIZE);
-            } else {
-                assert_eq!(receiver.incoming_buf.capacity(), 0);
-            }
+            // Frames beyond the buffer never inflate or replace it.
+            let pointer = *retained.get_or_insert(receiver.rx.as_ptr());
+            assert_eq!(receiver.rx.as_ptr(), pointer);
+            assert_eq!(receiver.rx.capacity(), INCOMING_BUFFER_SIZE);
         }
         writer.join().unwrap();
     }
@@ -1125,7 +1229,7 @@ mod tests {
                 panic!("expected INVOKE");
             };
             held.push((size, req));
-            assert!(receiver.incoming_buf.capacity() <= INCOMING_BUFFER_SIZE);
+            assert!(receiver.rx.capacity() <= INCOMING_BUFFER_SIZE);
             for (length, req) in &held {
                 assert_eq!(req.data.len(), *length);
                 assert!(req.data.iter().all(|b| *b == 0xa5));
@@ -1134,7 +1238,7 @@ mod tests {
     }
 
     #[test]
-    fn queued_invokes_keep_order_and_do_not_allocate_receive_storage() {
+    fn queued_invokes_keep_order_ahead_of_socket_frames() {
         let (mut sender, mut receiver) = pair();
         let mut b = BlobBuf::new();
         b.put_string(attr::METHOD, "queued").put(attr::DATA, b"first");
@@ -1147,7 +1251,6 @@ mod tests {
         let Some(Incoming::Invoke(first)) = receiver.next_incoming(0).unwrap() else {
             panic!("expected queued INVOKE");
         };
-        assert_eq!(receiver.incoming_buf.capacity(), 0);
         assert_eq!((first.seq, first.method.as_str(), first.data.as_slice()), (1, "queued", &b"first"[..]));
         let Incoming::Invoke(second) = receiver.read_incoming().unwrap() else {
             panic!("expected socket INVOKE");
@@ -1176,7 +1279,7 @@ mod tests {
             // EOF proves the received descriptor was closed on the error path.
             // A leak returns WouldBlock instead of hanging this test.
             assert_eq!(observer.read(&mut [0]).unwrap(), 0);
-            assert!(receiver.incoming_buf.capacity() <= INCOMING_BUFFER_SIZE);
+            assert!(receiver.rx.capacity() <= INCOMING_BUFFER_SIZE);
         }
     }
 

@@ -25,6 +25,28 @@ fn match_with_flags(pattern: &[u8], name: &[u8], flags: i32) -> bool {
     if !pattern.iter().any(|&b| matches!(b, b'*' | b'?' | b'[') || (flags == 0 && b == b'\\')) {
         return pattern == name;
     }
+    // FNM_NOESCAPE makes a wildcard-free prefix literal, and a single trailing
+    // star is the usual ACL shape (`net*`, `r*`). Non-ASCII stays with the
+    // image libc's multibyte matcher.
+    if flags == 2 && pattern.is_ascii() && name.is_ascii() {
+        if let Some(prefix) = pattern.strip_suffix(b"*") {
+            if !prefix.iter().any(|&b| matches!(b, b'*' | b'?' | b'[')) {
+                return name.starts_with(prefix);
+            }
+        }
+    }
+    // NUL-terminated copies on the stack: ACL patterns and object names are
+    // short, and an authorized request checks several per call.
+    const STACK: usize = 256;
+    if pattern.len() < STACK && name.len() < STACK {
+        let mut p = [0u8; STACK];
+        let mut n = [0u8; STACK];
+        p[..pattern.len()].copy_from_slice(pattern);
+        n[..name.len()].copy_from_slice(name);
+        // SAFETY: both arrays are NUL-terminated (zero-filled past the copied
+        // bytes, which contain no NUL) and outlive this synchronous call.
+        return unsafe { libc_fnmatch(p.as_ptr().cast(), n.as_ptr().cast(), flags) == 0 };
+    }
     let pattern = std::ffi::CString::new(pattern).unwrap();
     let name = std::ffi::CString::new(name).unwrap();
     // SAFETY: both NUL-terminated strings live through this synchronous call;

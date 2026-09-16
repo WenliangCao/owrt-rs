@@ -455,24 +455,21 @@ fn serve(ctx: &Ctx, conn: &mut Connection, ids: &Ids, read_fd: RawFd, wake_fd: R
             reply(conn, done.req, done.reply);
         }
         check_signal(ctx, Some(conn));
-        // Already-arrived frames need no readiness syscall. Bound this path so
-        // the wake pipe is drained even under continuous input. Timers, signals
-        // and completed worker replies still run above for every request.
-        if immediate_left > 0 {
-            match conn.incoming_if_started() {
-                Ok(Some(incoming)) => {
-                    immediate_left -= 1;
-                    if let Incoming::Invoke(req) = incoming {
-                        dispatch(ctx, conn, ids, req, &deferrer);
-                    }
-                    continue;
-                }
-                Ok(None) => {}
-                Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+        // Frames already buffered need no readiness or receive syscall. Bound
+        // this path so the wake pipe is drained even under continuous input.
+        // Timers, signals and completed worker replies still run above for
+        // every request.
+        if immediate_left > 0 && conn.has_pending() {
+            immediate_left -= 1;
+            match conn.read_incoming() {
+                Ok(Incoming::Invoke(req)) => dispatch(ctx, conn, ids, req, &deferrer),
+                Ok(_) => {}
+                Err(e) if e.kind() == std::io::ErrorKind::Interrupted => {}
                 Err(e) => {
                     return Err(e);
                 }
             }
+            continue;
         }
         // next timer
         let now = Instant::now();

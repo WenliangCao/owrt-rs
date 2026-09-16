@@ -24,8 +24,38 @@ pub(crate) fn is_partial_timeout(error: &io::Error) -> bool {
     error.get_ref().is_some_and(|e| e.is::<PartialTimeout>())
 }
 
-fn after_progress(error: io::Error, started: bool) -> io::Error {
+pub(crate) fn after_progress(error: io::Error, started: bool) -> io::Error {
     if started { partial_timeout(error) } else { error }
+}
+
+/// How long an I/O primitive may wait. `Within` starts its budget at the
+/// first wait, so a call that never blocks never reads the clock.
+#[derive(Clone, Copy)]
+pub(crate) enum Bound {
+    Forever,
+    At(Instant),
+    Within(std::time::Duration),
+}
+
+impl From<Option<Instant>> for Bound {
+    fn from(deadline: Option<Instant>) -> Self {
+        deadline.map_or(Bound::Forever, Bound::At)
+    }
+}
+
+impl Bound {
+    pub(crate) fn nonblocking(self) -> bool {
+        !matches!(self, Bound::Forever)
+    }
+
+    /// The deadline to wait against; a budget is fixed the first time.
+    pub(crate) fn deadline(self, fixed: &mut Option<Instant>) -> Option<Instant> {
+        match self {
+            Bound::Forever => None,
+            Bound::At(deadline) => Some(deadline),
+            Bound::Within(budget) => Some(*fixed.get_or_insert_with(|| Instant::now() + budget)),
+        }
+    }
 }
 
 #[repr(C)]
@@ -123,20 +153,21 @@ pub fn send_with_fd(sock: RawFd, header: &[u8], body: &[u8], fd: Option<RawFd>) 
 }
 
 pub(crate) fn send_with_fd_until(sock: RawFd, header: &[u8], body: &[u8], fd: Option<RawFd>, deadline: Option<Instant>) -> io::Result<()> {
-    send_parts_until(sock, [header, body], fd, deadline)
+    send_parts_until(sock, [header, body], fd, deadline.into())
 }
 
 /// Send fixed borrowed pieces without collecting them into a second buffer.
 pub(crate) fn send_parts<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Option<RawFd>) -> io::Result<()> {
-    send_parts_until(sock, parts, fd, None)
+    send_parts_until(sock, parts, fd, Bound::Forever)
 }
 
-pub(crate) fn send_parts_until<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Option<RawFd>, deadline: Option<Instant>) -> io::Result<()> {
+pub(crate) fn send_parts_until<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Option<RawFd>, bound: Bound) -> io::Result<()> {
     let mut iov = parts.map(|part| IoVec { base: part.as_ptr() as *mut u8, len: part.len() });
     let mut control = [0u8; CMSG_SPACE_FD];
     let mut attach = fd;
     let mut index = 0;
     let mut started = false;
+    let mut deadline = if let Bound::At(deadline) = bound { Some(deadline) } else { None };
     while index < iov.len() {
         check_deadline(deadline).map_err(|e| after_progress(e, started))?;
         let mut hdr = MsgHdr {
@@ -159,13 +190,13 @@ pub(crate) fn send_parts_until<const N: usize>(sock: RawFd, parts: [&[u8]; N], f
         }
         // SAFETY: hdr, the iovec array it points at and the control buffer all
         // outlive this call, and their lengths describe them.
-        let sent = unsafe { sendmsg(sock, &hdr, if deadline.is_some() { MSG_DONTWAIT } else { 0 }) };
+        let sent = unsafe { sendmsg(sock, &hdr, if bound.nonblocking() { MSG_DONTWAIT } else { 0 }) };
         if sent < 0 {
             let error = io::Error::last_os_error();
             match error.kind() {
                 io::ErrorKind::Interrupted => continue,
                 io::ErrorKind::WouldBlock => {
-                    wait_until(sock, POLLOUT, deadline).map_err(|e| after_progress(e, started))?;
+                    wait_until(sock, POLLOUT, bound.deadline(&mut deadline)).map_err(|e| after_progress(e, started))?;
                     continue;
                 }
                 _ => return Err(error),
@@ -194,85 +225,72 @@ pub(crate) fn send_parts_until<const N: usize>(sock: RawFd, parts: [&[u8]; N], f
 
 /// Receive exactly `buf.len()` bytes; the first recvmsg may deliver one fd.
 pub fn recv_exact(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<Option<OwnedFd>> {
-    recv_exact_inner::<false>(sock, buf, want_fd, None)
+    recv_exact_until(sock, buf, want_fd, None)
 }
 
 pub(crate) fn recv_exact_until(sock: RawFd, buf: &mut [u8], want_fd: bool, deadline: Option<Instant>) -> io::Result<Option<OwnedFd>> {
-    recv_exact_inner::<false>(sock, buf, want_fd, deadline)
-}
-
-/// Do not wait for the first byte. Once a frame has started, finish the
-/// requested slice with the same blocking and descriptor rules as recv_exact.
-pub(crate) fn recv_exact_if_started_until(sock: RawFd, buf: &mut [u8], want_fd: bool, deadline: Option<Instant>) -> io::Result<Option<OwnedFd>> {
-    recv_exact_inner::<true>(sock, buf, want_fd, deadline)
-}
-
-fn recv_exact_inner<const TRY_START: bool>(sock: RawFd, buf: &mut [u8], want_fd: bool, deadline: Option<Instant>) -> io::Result<Option<OwnedFd>> {
     let mut received_fd = None;
     let mut offset = 0;
     let mut first = want_fd;
     while offset < buf.len() {
         check_deadline(deadline).map_err(|e| after_progress(e, offset > 0))?;
-        let mut iov = IoVec {
-            // SAFETY: the enclosing loop runs only while offset < buf.len(), so this
-            // stays within the buffer.
-            base: unsafe { buf.as_mut_ptr().add(offset) },
-            len: buf.len() - offset,
-        };
-        let mut control = [0u8; CMSG_SPACE_FD];
-        let mut hdr = MsgHdr {
-            name: std::ptr::null_mut(),
-            namelen: 0,
-            iov: &mut iov,
-            iovlen: 1,
-            control: if first {
-                control.as_mut_ptr()
-            } else {
-                std::ptr::null_mut()
-            },
-            controllen: if first { CMSG_LEN_FD } else { 0 },
-            flags: 0,
-        };
-        // SAFETY: hdr, its iovec and the control buffer are live for the call and
-        // sized by the lengths hdr carries.
-        let got = unsafe { recvmsg(sock, &mut hdr, if deadline.is_some() || (TRY_START && offset == 0) { MSG_DONTWAIT } else { 0 }) };
-        if got == 0 {
-            return Err(io::Error::new(
-                io::ErrorKind::UnexpectedEof,
-                "ubus connection closed",
-            ));
-        }
-        if got < 0 {
-            let error = io::Error::last_os_error();
-            if TRY_START && offset == 0 {
-                return Err(error);
+        match recv_into(sock, &mut buf[offset..], first, deadline.is_some()) {
+            Ok((0, _)) => {
+                return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
             }
-            match error.kind() {
+            Ok((got, fd)) => {
+                received_fd = received_fd.or(fd);
+                first = false;
+                offset += got;
+            }
+            Err(error) => match error.kind() {
                 io::ErrorKind::Interrupted => continue,
                 io::ErrorKind::WouldBlock => {
                     wait_until(sock, POLLIN, deadline).map_err(|e| after_progress(e, offset > 0))?;
-                    continue;
                 }
                 _ => return Err(error),
-            }
+            },
         }
-        if first && hdr.controllen >= CMSG_HDR + 4 {
-            let level = i32::from_ne_bytes(control[8..12].try_into().unwrap());
-            let kind = i32::from_ne_bytes(control[12..16].try_into().unwrap());
-            if level == SOL_SOCKET && kind == SCM_RIGHTS {
-                let fd = i32::from_ne_bytes(control[16..20].try_into().unwrap());
-                if fd >= 0 {
-                    // SAFETY: the kernel installed this descriptor for this process as part of
-                    // the SCM_RIGHTS message, and nothing else refers to it, so OwnedFd may
-                    // take over closing it.
-                    received_fd = Some(unsafe { OwnedFd::from_raw_fd(fd) });
-                }
-            }
-        }
-        first = false;
-        offset += got as usize;
     }
     Ok(received_fd)
+}
+
+/// One recvmsg into `buf`: bytes received (0 at end of stream) and any
+/// SCM_RIGHTS descriptor that came with them. Errors are returned raw so the
+/// caller decides how to retry EINTR and EAGAIN.
+pub(crate) fn recv_into(sock: RawFd, buf: &mut [u8], want_fd: bool, nonblocking: bool) -> io::Result<(usize, Option<OwnedFd>)> {
+    let mut iov = IoVec { base: buf.as_mut_ptr(), len: buf.len() };
+    let mut control = [0u8; CMSG_SPACE_FD];
+    let mut hdr = MsgHdr {
+        name: std::ptr::null_mut(),
+        namelen: 0,
+        iov: &mut iov,
+        iovlen: 1,
+        control: if want_fd { control.as_mut_ptr() } else { std::ptr::null_mut() },
+        controllen: if want_fd { CMSG_LEN_FD } else { 0 },
+        flags: 0,
+    };
+    // SAFETY: hdr, its iovec and the control buffer are live for the call and
+    // sized by the lengths hdr carries.
+    let got = unsafe { recvmsg(sock, &mut hdr, if nonblocking { MSG_DONTWAIT } else { 0 }) };
+    if got < 0 {
+        return Err(io::Error::last_os_error());
+    }
+    let mut fd = None;
+    if want_fd && hdr.controllen >= CMSG_HDR + 4 {
+        let level = i32::from_ne_bytes(control[8..12].try_into().unwrap());
+        let kind = i32::from_ne_bytes(control[12..16].try_into().unwrap());
+        if level == SOL_SOCKET && kind == SCM_RIGHTS {
+            let raw = i32::from_ne_bytes(control[16..20].try_into().unwrap());
+            if raw >= 0 {
+                // SAFETY: the kernel installed this descriptor for this process as part of
+                // the SCM_RIGHTS message, and nothing else refers to it, so OwnedFd may
+                // take over closing it.
+                fd = Some(unsafe { OwnedFd::from_raw_fd(raw) });
+            }
+        }
+    }
+    Ok((got as usize, fd))
 }
 
 pub fn poll_fds(fds: &mut [PollFd], timeout_ms: i32) -> io::Result<usize> {
@@ -297,7 +315,7 @@ fn check_deadline(deadline: Option<Instant>) -> io::Result<()> {
     Ok(())
 }
 
-fn wait_until(fd: RawFd, events: i16, deadline: Option<Instant>) -> io::Result<()> {
+pub(crate) fn wait_until(fd: RawFd, events: i16, deadline: Option<Instant>) -> io::Result<()> {
     let mut pfd = [PollFd {
         fd,
         events,

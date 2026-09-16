@@ -98,7 +98,8 @@ impl Session {
         let (Some(object), Some(function)) = (object, function) else {
             return status::INVALID_ARGUMENT;
         };
-        let end = object.iter().position(|c| matches!(c, b'*' | b'?' | b'[')).unwrap_or(object.len());
+        // C stores the object as a C string, so the key ends at a NUL as well.
+        let end = object.iter().position(|c| matches!(c, b'*' | b'?' | b'[' | 0)).unwrap_or(object.len());
         let key = object[..end].to_vec();
         let list = self.acls.entry(scope.to_owned()).or_default();
         if list.iter().any(|a| a.object == object && a.function == function) {
@@ -146,10 +147,13 @@ impl Session {
     }
 
     fn allowed_bytes(&self, scope: &str, obj: &[u8], fun: &str) -> bool {
+        // The key is the pattern's literal prefix (FNM_NOESCAPE), so an object
+        // that does not start with it cannot match; C filters with the same
+        // strncmp before fnmatch.
         match self.acls.get(scope) {
-            Some(list) => list
-                .iter()
-                .any(|a| fnmatch(&a.object, obj) && fnmatch(a.function.as_bytes(), fun.as_bytes())),
+            Some(list) => list.iter().any(|a| {
+                obj.starts_with(&a.key) && fnmatch(&a.object, obj) && fnmatch(a.function.as_bytes(), fun.as_bytes())
+            }),
             None => false,
         }
     }
