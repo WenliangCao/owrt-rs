@@ -219,12 +219,14 @@ impl BlobBuf {
         }
     }
 
+    #[inline]
     fn set_raw_len(&mut self, offset: usize, raw_len: usize) {
         let id_len = u32::from_be_bytes(self.data[offset..offset + 4].try_into().unwrap());
         let value = (id_len & !LEN_MASK) | (raw_len as u32 & LEN_MASK);
         self.data[offset..offset + 4].copy_from_slice(&value.to_be_bytes());
     }
 
+    #[inline]
     fn open(&mut self, id: u32, extended: bool) -> usize {
         let offset = self.data.len();
         let mut id_len = (id << 24) & ID_MASK;
@@ -235,6 +237,7 @@ impl BlobBuf {
         offset
     }
 
+    #[inline]
     fn close(&mut self, offset: usize) {
         let raw_len = self.data.len() - offset;
         self.set_raw_len(offset, raw_len);
@@ -284,14 +287,16 @@ impl BlobBuf {
         self.msg_open_bytes(ty, name.as_bytes())
     }
 
+    #[inline]
     fn msg_open_bytes(&mut self, ty: MsgType, name: &[u8]) -> usize {
+        // One reservation for the whole header; the resize supplies the NUL
+        // terminator and the padding together.
+        let header = 4 + pad4(2 + name.len() + 1);
+        self.data.reserve(header);
         let offset = self.open(ty as u32, true);
-        self.data
-            .extend_from_slice(&(name.len() as u16).to_be_bytes());
+        self.data.extend_from_slice(&(name.len() as u16).to_be_bytes());
         self.data.extend_from_slice(name);
-        self.data.push(0);
-        let hdr_end = offset + 4 + pad4(2 + name.len() + 1);
-        self.data.resize(hdr_end, 0);
+        self.data.resize(offset + header, 0);
         offset
     }
 
@@ -362,12 +367,12 @@ impl BlobBuf {
     /// blobmsg type and already-encoded payload (used to re-emit stored
     /// session data with its original type).
     pub fn msg_field(&mut self, ty: u32, name: &str, data: &[u8]) -> &mut Self {
+        let header = 4 + pad4(2 + name.len() + 1);
+        self.data.reserve(header + data.len() + 3);
         let offset = self.open(ty, true);
         self.data.extend_from_slice(&(name.len() as u16).to_be_bytes());
         self.data.extend_from_slice(name.as_bytes());
-        self.data.push(0);
-        let hdr_end = offset + 4 + pad4(2 + name.len() + 1);
-        self.data.resize(hdr_end, 0);
+        self.data.resize(offset + header, 0);
         self.data.extend_from_slice(data);
         self.close(offset);
         self

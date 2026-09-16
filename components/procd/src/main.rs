@@ -95,6 +95,8 @@ struct Procd {
     /// Storage only: list/info values are rebuilt for each request. Bounded
     /// after sending so an unusually large list is not retained indefinitely.
     read_reply: BlobBuf,
+    /// `/proc/meminfo`, kept open for `system info`.
+    meminfo: sysobj::Meminfo,
     base: Instant,
     /// Next `Validator::seq`; see its doc comment.
     validator_seq: u64,
@@ -1214,7 +1216,7 @@ impl Procd {
                 status::OK
             }
             (Target::System, "info") => {
-                if sysobj::build_info(&mut self.read_reply) {
+                if sysobj::build_info(&mut self.read_reply, &mut self.meminfo) {
                     let _ = self.conn.reply_data_status(req, self.read_reply.payload(), status::OK);
                 } else {
                     let _ = self.conn.reply_status(req, status::UNKNOWN_ERROR, None);
@@ -2590,6 +2592,7 @@ fn run() -> io::Result<()> {
         objects: Objects::default(),
         services: BTreeMap::new(),
         read_reply: BlobBuf::new(),
+        meminfo: sysobj::Meminfo::open(),
         base,
         validator_seq: 0,
         rc: rcs::RunQueue::default(),
@@ -2827,7 +2830,7 @@ mod watch_tests {
         let (wakeup, _write) = owrt_ubus::sys::pipe().unwrap();
         Procd {
             conn, objects: Objects::default(), services: BTreeMap::new(), read_reply: BlobBuf::new(),
-            base: Instant::now(), validator_seq: 0, rc: rcs::RunQueue::default(), init_d: String::new(),
+            meminfo: sysobj::Meminfo::open(), base: Instant::now(), validator_seq: 0, rc: rcs::RunQueue::default(), init_d: String::new(),
             watch_obj: 1001, watches: BTreeMap::new(),
             subscribed: BTreeMap::new(), watch_pending: VecDeque::new(), pending_set: None, triggers: trigger::Triggers::default(), boot: Boot::NotPid1,
             inittab: Vec::new(), serial: rcs::RunQueue::serial(), serial_awaited: false, console: None,

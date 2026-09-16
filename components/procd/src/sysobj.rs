@@ -227,35 +227,94 @@ fn kscale(blocks: u64, bs: u64) -> u64 {
     (blocks * bs + 512) / 1024
 }
 
+/// `/proc/meminfo` for `system info`. The descriptor is opened once at
+/// startup and every request reads the report with one pread from offset
+/// zero, which makes procfs regenerate it: one syscall instead of open, a
+/// read, a second read for EOF and close. The descriptor count therefore
+/// stays constant after startup. Without the descriptor (no /proc yet), each
+/// request falls back to the open-and-read path.
+pub struct Meminfo {
+    file: Option<std::fs::File>,
+    buf: Vec<u8>,
+}
+
+impl Meminfo {
+    const ROOM: usize = 8192;
+
+    pub fn open() -> Meminfo {
+        Meminfo { file: std::fs::File::open("/proc/meminfo").ok(), buf: Vec::new() }
+    }
+
+    /// The current report, or None when it cannot be read.
+    fn read(&mut self) -> Option<&[u8]> {
+        use std::os::unix::fs::FileExt;
+        if let Some(file) = &self.file {
+            self.buf.resize(Self::ROOM, 0);
+            if let Ok(mut got) = file.read_at(&mut self.buf, 0) {
+                // A procfs read returns the whole report when it fits; only
+                // a full buffer needs more reads to reach EOF.
+                while got == self.buf.len() {
+                    self.buf.resize(got + Self::ROOM, 0);
+                    match file.read_at(&mut self.buf[got..], got as u64) {
+                        Ok(0) => break,
+                        Ok(more) => got += more,
+                        Err(_) => return None,
+                    }
+                }
+                self.buf.truncate(got);
+                return Some(&self.buf);
+            }
+        }
+        self.buf.clear();
+        let mut file = std::fs::File::open("/proc/meminfo").ok()?;
+        file.read_to_end(&mut self.buf).ok()?;
+        Some(&self.buf)
+    }
+}
+
+/// The MemAvailable and Cached values (bytes) as the C parses them:
+/// `strtok(line, " :")` for the key, `strtok(NULL, " ")` for the value,
+/// `strcasecmp` on the key, and a line without both parts is skipped.
+fn scan_meminfo(text: &[u8]) -> (u64, u64) {
+    let mut available: u64 = 0;
+    let mut cached: u64 = 0;
+    for line in text.split(|&b| b == b'\n') {
+        let start = match line.iter().position(|&b| b != b' ' && b != b':') {
+            Some(start) => start,
+            None => continue,
+        };
+        let line = &line[start..];
+        let key_end = line.iter().position(|&b| b == b' ' || b == b':').unwrap_or(line.len());
+        let key = &line[..key_end];
+        // Only the two wanted keys need the value; every other line costs a
+        // single length check.
+        let target = if key.len() == 12 && key.eq_ignore_ascii_case(b"MemAvailable") {
+            &mut available
+        } else if key.len() == 6 && key.eq_ignore_ascii_case(b"Cached") {
+            &mut cached
+        } else {
+            continue;
+        };
+        let rest = &line[(key_end + 1).min(line.len())..];
+        let Some(val_start) = rest.iter().position(|&b| b != b' ') else { continue };
+        let Ok(val) = std::str::from_utf8(&rest[val_start..]) else { continue };
+        *target = 1024 * crate::sys::atoi_u32(val) as u64;
+    }
+    (available, cached)
+}
+
 /// `system_info()`. Returns false on the two UNKNOWN_ERROR paths.
-pub fn build_info(b: &mut BlobBuf) -> bool {
+pub fn build_info(b: &mut BlobBuf, meminfo: &mut Meminfo) -> bool {
     // SAFETY: sysinfo fills the kernel-layout struct.
     let mut info: Sysinfo = unsafe { std::mem::zeroed() };
     // SAFETY: as above.
     if unsafe { sysinfo(&mut info) } != 0 {
         return false;
     }
-    let Ok(mut file) = std::fs::File::open("/proc/meminfo") else {
+    let Some(text) = meminfo.read() else {
         return false;
     };
-    // procfs reports size zero. Start with room for the normal report rather
-    // than growing from 32 bytes through several small read() calls. Read to
-    // EOF on every request, including reports larger than this initial room.
-    let mut meminfo = String::with_capacity(4096);
-    if file.read_to_string(&mut meminfo).is_err() {
-        return false;
-    }
-    drop(file);
-    let mut available: u64 = 0;
-    let mut cached: u64 = 0;
-    for line in meminfo.lines() {
-        let Some((key, val)) = line.split_once(':') else { continue };
-        if key.eq_ignore_ascii_case("MemAvailable") {
-            available = 1024 * crate::sys::atoi_u32(val) as u64;
-        } else if key.eq_ignore_ascii_case("Cached") {
-            cached = 1024 * crate::sys::atoi_u32(val) as u64;
-        }
-    }
+    let (available, cached) = scan_meminfo(text);
     // SAFETY: time with a null-free out param; localtime_r fills `tm`.
     let now = unsafe { time(std::ptr::null_mut()) };
     // SAFETY: Tm contains integers and a raw pointer, all valid when zeroed.
@@ -310,6 +369,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn meminfo_scan_matches_the_c_tokenizer() {
+        let text = b"MemTotal:        1000 kB\nMEMAVAILABLE:   123 kB\n  Cached:  7 kB\nCached\n:  :bad\nSwapCached:  9 kB\n";
+        assert_eq!(scan_meminfo(text), (123 * 1024, 7 * 1024));
+        // A key without a value is skipped (strtok returns NULL for val).
+        assert_eq!(scan_meminfo(b"Cached:\nMemAvailable\n"), (0, 0));
+        assert_eq!(scan_meminfo(b"Cached:5\nMemAvailable:6 kB"), (6 * 1024, 5 * 1024));
+    }
+
+    #[test]
+    fn meminfo_pread_and_fallback_agree() {
+        let mut kept = Meminfo::open();
+        let mut fresh = Meminfo { file: None, buf: Vec::new() };
+        let a = kept.read().map(|t| scan_meminfo(t));
+        let b = fresh.read().map(|t| scan_meminfo(t));
+        assert!(a.is_some() && b.is_some());
+        // Values move between the two reads; both must at least be present.
+        assert!(a.unwrap().0 > 0 && b.unwrap().0 > 0);
+    }
+
+    #[test]
     fn the_release_parser_keeps_only_quoted_text() {
         assert_eq!(release_value("\"OpenWrt\""), "OpenWrt");
         assert_eq!(release_value("'a' plus \"b\""), "ab");
@@ -324,7 +403,7 @@ mod tests {
         let names: Vec<String> = owrt_ubus::blob::fields(b.payload()).map(|f| f.name.to_string()).collect();
         assert!(names.contains(&"kernel".to_string()), "{names:?}");
         let mut b = BlobBuf::new();
-        assert!(build_info(&mut b));
+        assert!(build_info(&mut b, &mut Meminfo::open()));
         let names: Vec<String> = owrt_ubus::blob::fields(b.payload()).map(|f| f.name.to_string()).collect();
         for want in ["localtime", "uptime", "load", "memory", "swap"] {
             assert!(names.contains(&want.to_string()), "{names:?}");

@@ -54,7 +54,7 @@ fn main() {
     }
     let mut b = BlobBuf::new();
     profile_support::measure("system_info", n, &filter, || {
-        assert!(sysobj::build_info(&mut b));
+        assert!(sysobj::build_info(&mut b, &mut sysobj::Meminfo::open()));
         black_box(b.payload());
         b.reset_bounded(16 * 1024);
     });
