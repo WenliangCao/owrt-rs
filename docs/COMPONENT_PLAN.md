@@ -128,14 +128,14 @@ R88 F1 维护节拍饿死（P1，`r89_procd_tick_probe.py`）；F2 启动期丢�
 R92 kill(-1) 守卫、nice int8、respawn/watchdog 数组、watchdog 重开与状态、5 个恢复路径界限。
 R93 全量 watch/热插拔注册分批并保留 rcS 前顺序；set-return/service.start 通知时序（source-03/04 回归已修，`R93_PROCD_FINAL_REVIEW.md`）。
 
-## ubusd ☐
+## ubusd ✅
 
-**实机差距（R93）**：`lookup_all_64/128` 延迟 786/1549 vs C 775/1510 µs（自身 CPU 更低）；相对 R89 多条 lookup 延迟高 0.9–2.5%
-（lookup_all_64_c4 2510→2574、lookup_prefix_64 697→714）；invoke_c4 反而更低。
-
-**既有候选**：pathless 遍历 / lookup borrow（`private/r93/ubusd-star-lookup-borrow`）Oracle 初筛方向混合，未合入。
-
-**提示**：延迟比 CPU 差说明是回复分帧/写出形态（多次 sendmsg 或大 blob 拷贝），不是计算；对照 C `ubusd_send_obj` 的单帧写。
+**已攻克（R94，2026-09-16，实机三侧四轮 120 观测，候选 `bb95efdc`）**：每客户端读前缓冲（一次 `recvmsg` 整块读入、切帧、短读即排空不再探测 EAGAIN；
+invoke 中转 13→7 次系统调用、单 lookup `recvmsg`+`read`→`recvmsg`）；无 path 的全总线 LOOKUP 走前缀 lookup 已有的 16 KiB 批量写出（64 对象 65→1 次 `sendmsg`，
+帧字节不变，背压续跑仍逐对象）。实机：10/10 负载对 C 双优（全量 lookup CPU -67…-72%，invoke -23%）；对 R89 9/10 双优且 CPU 范围全部不重叠：
+`lookup_all_64/128` CPU -66.7%/-62.9%，c4 延迟 -36.6%/-38.6%，`invoke` CPU -22.6%，`lookup` -15%。R93 记录的 `lookup_all_64/128` 劣于 C 已反转。
+唯 `lookup_prefix_64` 延迟 +0.5%（范围完全重叠，CPU -4.4%，未改路径）。wire 模糊工具把 EOF 与 ECONNRESET 同记为 `disconnected`（C 自身随客户端写分块给出任一种），
+R89 与候选对 C 均 identical——本轮唯一门工具改动。报告 `docs/reviews/R94_UBUSD_READAHEAD_BATCH.md`；12/12 门绿（含 r42 模糊、r93 accept 8/8 需本机动态构建、r93 前缀背压）；未部署。
 
 **已修复缺陷**：R81 F02 无 path 系统对象（event/acl/monitor）拒绝非 root。wire fuzz 四项忠实度（`30d4963`）。R88 U-1 EMFILE 下监听空转。
 R92 acl/client/server 界限。R93 accept 暂态错误有界重试与 100 ms 恢复（`r93_ubusd_accept_probe.py` 8/8）；
