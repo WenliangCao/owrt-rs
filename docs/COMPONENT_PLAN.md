@@ -43,7 +43,7 @@
 | 状态 | 组件 | 实机相对 C | 实机相对 R89 | 下一步 |
 |---|---|---|---|---|
 | ✅ | **logd** | 全胜（R94 终版实机：syslog_128 CPU 5.65 vs 31.95，read_100 121.0 vs 809.5） | 全胜（vs 8.40 / 420.5；延迟 −40%；RssAnon 120 vs 174 KiB；四轮不重叠） | 完成。[实机报告](reviews/R94_LOGD_DEVICE.md) |
-| ◐ 停放 ✅ / 紧密 ☐ | **httpd** | 实机全胜：停放 60/80 ms CPU 210/215 vs 290（−27%），gap0 203.5 vs 260；紧密矩阵 16 条全部低于 C | 停放 60/80 ms vs 615/675（−66/−68%）；gap0/20/40 与 R89 1 tick 内持平；紧密矩阵 16 条与 R89 逐轮重叠（持平，未胜） | 紧密路径找 gap0 每请求算法差距（R92 新增解析开销、jsonrpc bridge 序列化），目标每条低于 R89 |
+| ✅ | **httpd** | 全胜：紧密 16 条 CPU/延迟全低于 C（512 B c1 57.5 vs 168.5）；停放五档 −28…−45%（jsonrpc_c4 CPU 470 vs 463 在自身范围内持平） | 紧密 10 条静态低 14–31%（不重叠）、6 条持平；停放五档低 20–70%（不重叠） | 完成。[报告](reviews/R94_HTTP_FASTPATH.md)。遗留研究：jsonrpc_c4 bridge 路径 |
 | ☐ | rpcd | session_access_64_c4 延迟 275.4 vs 274.6（持平） | session_access_granted CPU +19.6%、session_access_64_c4 CPU +27.8%/延迟 +13.8%、session_access_64 CPU +20%、uci_get_authorized CPU +4% | 授权快路径（R93 glob 候选有 Oracle 信号）+ 会话 ACL 查询算法 |
 | ☐ | procd | 全胜 | 8 条负载 CPU 系统性高 1.5–6.2%（service_list_32_c4 +6.2%、named_128_c4 +5.9%、system_info_c4 +2.5%） | service list 序列化/对象遍历热路径 |
 | ☐ | ubusd | lookup_all_64/128 延迟 786/1549 vs 775/1510（CPU 更低） | 多条 lookup 延迟高 0.9–2.5% | lookup 全表遍历与回复分帧（R93 pathless/borrow 候选未合入） |
@@ -70,7 +70,7 @@ R93 旧 poll 下标误断健康流；断连期间积压/oneshot/关闭回收；�
 **实机终验（2026-09-16，终版 `08c833fd`，四轮 24 观测）**：syslog_128 CPU 5.65 vs R89 8.40 vs C 31.95 µs；log_read_100 121.0 vs 420.5 vs 809.5；平均与 p95 延迟均比 R89 低约 40%；RssAnon 120 vs 174 KiB。逐轮范围不重叠。见 [R94_LOGD_DEVICE](reviews/R94_LOGD_DEVICE.md)。
 门：单测、clippy、固定语料 15/15、流恢复 5/5、r92 logd_bytes/limits、历史 r15/r28/r21/r25/r83。未部署生产。
 
-## httpd ◐（停放完成，紧密待攻）
+## httpd ✅
 
 **R94 改动**（`4537438`、`d67a6e4`、`3b98ab2`；报告 `docs/reviews/R94_HTTP_FASTPATH.md`）：
 - 监听器内联快路径（`fast.rs`）：已停放 plain 连接收到完整小 GET/HEAD（普通文件 ≤32 KiB，无 CGI/ubus/auth/alias/政策）
@@ -92,9 +92,11 @@ R93 共享连接限额释放时广播全部监听器（`r93_httpd_cap_probe.py`�
 
 **实机停放间隔（2026-09-16，四轮 60 样本 168,000 请求 0 错误）**：CPU C/R89/R94 — 0 ms 260/204/203.5；20 ms 290/210/215；40 ms 290/210/215；60 ms 290/615/**210**；80 ms 290/675/**215** µs/请求；延迟 60/80 ms 461/754/**419**、465/786/**428**。五档全部低于 C，60/80 ms 比 R89 低约 2/3，其余在 1 tick 内。R93 的 2.2–2.4 倍 C 差距已闭合。见 [R94_HTTP_FASTPATH](reviews/R94_HTTP_FASTPATH.md)。
 
-**待办**：① 停放路径完成，不再需要动作。
-② 紧密路径仍只与 R89 持平：下一轮要找 gap0 每请求的算法差距（R92 新增的 URL `%` NUL 解码、头保留循环、framing 检查各占多少；bridge JSON-RPC 序列化路径对 jsonrpc_c4），目标是每条负载都低于 R89 而不是重叠。
-③ 常驻内存 +138 KiB 归因（`fast::Scratch` 每 listener 保留 ≤2×33 KiB 响应缓冲，可按需收紧）。LINGER 50 ms 未改。
+**第二阶段（紧密路径，2026-09-16 下午，`977c480`/`76de74c`/`ebaec81`）**：strace 证明 R89 与候选每个静态响应都是同样的 10 个 syscall、daemon CPU 约 80% 在内核，于是砍到 4 个：接收超时固定 50 ms（`http::Sock`，按阶段 `ReadWait` 语义，零 poll 零 setsockopt）；精确发送 Content-Length（少一次 EOF read）；直接 `openat`（去掉 musl `open()` 的 fcntl）；每连接线程按 (dev, ino, ctime) 复用最近打开的文件并 `pread`（去掉 openat+close）；lookup 4 次分配 → 1 次。第三轮曾因 poll 头等待让 jsonrpc_c4 退步 10%，第四轮改固定超时后消除。
+实机终验（候选 `16fa25d9`）：紧密 10 条静态 CPU 低于 R89 14–31%（512 B c1 57.5 vs 83.0）、延迟低 5–22%，范围不重叠；1 MiB/CGI/JSON-RPC 持平；停放五档 CPU 低于 R89 20–70%、低于 C 28–45%。10 项门全绿。
+
+**待办**：无阻塞项。遗留研究：
+① jsonrpc_c4 自身 CPU 470 vs C 463（自身范围内持平，R89 时代即如此）——要明确压到 C 以下需看 bridge JSON-RPC 序列化/ubus 调用路径；② 常驻 VmRSS 比 R89 高 138 KiB，几乎全是文件页（代码体积），匿名页 +10 KiB。LINGER 50 ms 未改。
 
 ## rpcd ☐
 
@@ -190,3 +192,4 @@ R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` �
 - 2026-09-16 httpd R94：监听器内联快路径 + SWAR 头扫描；移除 worker 缓存（违反 r85 内存门）。Oracle 全门绿；四侧停放 60/80 ms CPU 37.5–42.5 µs，低于 C（57.5–60）与 R89（282–292）；gap0 持平 R89、优于 C。formal 四轮进行中，实机待补。
 - 2026-09-16 实机窗口（全 C 生产栈，namespace 三侧四轮）：logd 终版 24 观测全胜 C/R89，**logd 完成**；httpd 紧密矩阵 192 观测全部低于 C、与 R89 逐轮重叠持平；httpd 间隔驱动因恢复门 boot_id 过期停止，重生成恢复门后重跑。给 `run_candidate.py`/`r93_http_gap.py` 加 `--stack stock`（路由器回滚到 C 后驱动仍可跑）。
 - 2026-09-16 httpd 实机停放间隔四轮完成：五档 CPU/延迟全部低于 C，60/80 ms 比 R89 低 66–68%，其余与 R89 1 tick 内；快路径目标闭合。紧密矩阵仍与 R89 持平，httpd 标为「停放 ✅ / 紧密 ☐」，紧密路径为下一轮目标。
+- 2026-09-16 httpd 紧密路径攻坚：每静态响应 syscall 10→4（固定 50 ms 接收超时 + ReadWait、精确 Content-Length、直接 openat、每线程 fd 复用）、lookup 分配 4→1。第三轮 poll 头等待让 jsonrpc_c4 退步 10%，第四轮改固定超时消除。实机终验：紧密 10 条静态低于 R89 14–31%、停放五档低 20–70%，全部低于 C；10 项门全绿。**httpd 完成打勾。**
