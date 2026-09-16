@@ -3,7 +3,7 @@
 
 use std::borrow::Cow;
 use std::cell::RefCell;
-use owrt_ubus::sys::{poll_fds, PollFd, POLLOUT};
+use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
@@ -205,6 +205,12 @@ pub struct HeadDeadline {
     /// How long the first read of a head may wait before the caller is told
     /// the connection is idle. The deadline itself is unchanged by it.
     linger: Option<Duration>,
+    /// Wait for input with poll(2) instead of shortening SO_RCVTIMEO. The
+    /// socket option costs a setsockopt to arm and another to restore on
+    /// every request; one poll replaces both. Only for transports whose
+    /// readable bytes all sit in the socket (plain TCP): TLS may hold
+    /// decrypted plaintext the socket cannot signal, so it keeps the option.
+    poll: bool,
 }
 
 impl HeadDeadline {
@@ -218,7 +224,15 @@ impl HeadDeadline {
     /// A deadline that started earlier: a keep-alive wait that began before
     /// the connection was parked keeps its original end.
     pub fn until(fd: RawFd, at: Instant) -> Self {
-        HeadDeadline { fd, at, linger: None }
+        HeadDeadline { fd, at, linger: None, poll: false }
+    }
+
+    /// Wait with poll(2) rather than the socket receive timeout. The
+    /// receive timeout is then never touched, so the body and any later
+    /// request keep whatever the connection was accepted with.
+    pub fn polling(mut self) -> Self {
+        self.poll = true;
+        self
     }
 
     /// Report `ParseOutcome::Idle` instead of waiting the whole budget when
@@ -238,12 +252,29 @@ impl HeadDeadline {
         Ok(left)
     }
 
+    /// Make the next transport read honour the remaining budget: arm the
+    /// socket timeout, or wait for input here. A poll that sees nothing
+    /// within the budget reports `WouldBlock`, the same shape as a timed-out
+    /// read, so `read_head_line` treats both alike.
     fn arm(&self, first_byte: bool) -> io::Result<()> {
         let mut wait = self.remaining()?;
         if let (true, Some(linger)) = (first_byte, self.linger) {
             wait = wait.min(linger);
         }
-        crate::set_read_timeout(self.fd, wait)
+        if !self.poll {
+            return crate::set_read_timeout(self.fd, wait);
+        }
+        if self.fd < 0 {
+            return Ok(());
+        }
+        let mut fds = [PollFd { fd: self.fd, events: POLLIN, revents: 0 }];
+        // Rounding up keeps a sub-millisecond remainder from becoming a busy
+        // poll(0); the whole-head deadline is rechecked before the next read.
+        let ms = wait.as_millis().saturating_add(1).min(i32::MAX as u128) as i32;
+        if poll_fds(&mut fds, ms)? == 0 {
+            return Err(io::Error::new(io::ErrorKind::WouldBlock, "no request bytes within the budget"));
+        }
+        Ok(())
     }
 
     /// A read timed out before any byte of the head: idle if budget remains,
@@ -286,7 +317,15 @@ fn read_head_line<R: Read>(
         if let Some(deadline) = deadline {
             if reader.buffer().is_empty() {
                 // Only fill_buf on an empty buffer can read the transport.
-                deadline.arm(first_byte)?;
+                // A polling deadline that saw no input reports it here, and
+                // it means exactly what a timed-out read would.
+                match deadline.arm(first_byte) {
+                    Ok(()) => {}
+                    Err(error) if first_byte && error.kind() == io::ErrorKind::WouldBlock => {
+                        return deadline.idle();
+                    }
+                    Err(error) => return Err(error),
+                }
             } else {
                 // Buffered or pipelined input must still obey the same
                 // whole-head deadline; it just needs no socket option.
@@ -345,9 +384,9 @@ fn has_forbidden_ctl(bytes: &[u8]) -> bool {
     fn zero_byte(x: u64) -> u64 {
         x.wrapping_sub(ONES) & !x & HIGH
     }
-    let mut chunks = bytes.chunks_exact(8);
-    for chunk in &mut chunks {
-        let x = u64::from_le_bytes(chunk.try_into().expect("exact chunk"));
+    let (chunks, remainder) = bytes.as_chunks::<8>();
+    for chunk in chunks {
+        let x = u64::from_le_bytes(*chunk);
         // High bit set per byte with value < 0x20 (only valid for ASCII
         // thresholds; 0x20 qualifies).
         let ctl = x.wrapping_sub(ONES * 0x20) & !x & HIGH;
@@ -357,7 +396,7 @@ fn has_forbidden_ctl(bytes: &[u8]) -> bool {
             return true;
         }
     }
-    chunks.remainder().iter().any(|&b| (b < 0x20 && b != b'\t') || b == 0x7f)
+    remainder.iter().any(|&b| (b < 0x20 && b != b'\t') || b == 0x7f)
 }
 
 #[cfg(test)]
@@ -618,12 +657,18 @@ pub trait Sink: Write {
     fn set_deferred(&mut self, on: bool);
     /// Transport descriptor, for readiness polling.
     fn fd(&self) -> RawFd;
-    /// Copy an unframed file body. The length is only a sizing hint: a file
-    /// may change after lookup, so reading still continues through EOF.
-    fn copy_from(&mut self, source: &mut dyn Read, length_hint: u64) -> io::Result<()> {
+    /// Copy an unframed file body of exactly `length` bytes, the value the
+    /// Content-Length header announced. A file that grew after lookup is
+    /// cut there: bytes past the announced length would be parsed by the
+    /// client as the next response (uhttpd streams through EOF and has
+    /// that framing fault). A file that shrank ends early, as in uhttpd.
+    /// Stopping at the length also spares the read that would only return
+    /// EOF on every static response.
+    fn copy_from(&mut self, source: &mut dyn Read, length: u64) -> io::Result<()> {
         let mut buf = [0u8; 4096];
-        let want = length_hint.min(buf.len() as u64).max(1) as usize;
-        loop {
+        let mut remaining = length;
+        while remaining > 0 {
+            let want = remaining.min(buf.len() as u64) as usize;
             let n = match source.read(&mut buf[..want]) {
                 Ok(0) => return Ok(()),
                 Ok(n) => n,
@@ -631,7 +676,9 @@ pub trait Sink: Write {
                 Err(error) => return Err(error),
             };
             self.write_all(&buf[..n])?;
+            remaining -= n as u64;
         }
+        Ok(())
     }
 }
 
@@ -752,13 +799,14 @@ impl<T: Read + Write> Sink for Out<'_, T> {
         self.fd
     }
 
-    fn copy_from(&mut self, source: &mut dyn Read, length_hint: u64) -> io::Result<()> {
+    fn copy_from(&mut self, source: &mut dyn Read, length: u64) -> io::Result<()> {
         if self.deferred {
             return Err(io::Error::other("file copy cannot own deferred relay readiness"));
         }
-        let want = length_hint.min(self.window as u64).max(1) as usize;
         self.compact();
-        loop {
+        let mut remaining = length;
+        while remaining > 0 {
+            let want = remaining.min(self.window as u64) as usize;
             let limit = self.end + want;
             if self.buf.len() < limit {
                 self.buf.resize(limit, 0);
@@ -770,11 +818,12 @@ impl<T: Read + Write> Sink for Out<'_, T> {
                 Err(error) => return Err(error),
             };
             self.end += n;
-            // Push this batch before reading more. This also sends a final
-            // short batch before the EOF read, without reserving a second
-            // window beyond that partial batch.
+            remaining -= n as u64;
+            // Push this batch before reading more, so no second window is
+            // ever reserved beyond a partial batch.
             self.drain_blocking()?;
         }
+        Ok(())
     }
 }
 
@@ -1178,8 +1227,9 @@ impl<'a, W: Write> Response<'a, W> {
         }
     }
 
-    /// Static Content-Length bodies may read straight into the output window.
-    pub fn copy_unchunked(&mut self, source: &mut dyn Read, length_hint: u64) -> io::Result<()>
+    /// Static Content-Length bodies may read straight into the output window;
+    /// exactly `length` bytes are sent, see `Sink::copy_from`.
+    pub fn copy_unchunked(&mut self, source: &mut dyn Read, length: u64) -> io::Result<()>
     where W: Sink {
         if self.is_head() {
             return Ok(());
@@ -1187,7 +1237,7 @@ impl<'a, W: Write> Response<'a, W> {
         if self.chunked {
             return Err(io::Error::other("direct file copy requires unchunked framing"));
         }
-        self.out.copy_from(source, length_hint)
+        self.out.copy_from(source, length)
     }
 
     /// The transport underneath, for a handler that drives readiness itself.
@@ -1508,6 +1558,41 @@ mod tests {
     }
 
     #[test]
+    fn polling_deadline_idles_then_reads_and_times_out_partial_heads() {
+        use std::net::{TcpListener, TcpStream};
+        use std::os::fd::AsRawFd;
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let mut peer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (server, _) = listener.accept().unwrap();
+        server.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        let fd = server.as_raw_fd();
+        let mut input = BufReader::new(server);
+        // Nothing arrives within the linger: idle, socket untouched, budget kept.
+        let deadline = HeadDeadline::new(fd, Duration::from_secs(30)).with_linger(Duration::from_millis(30)).polling();
+        let started = Instant::now();
+        assert!(matches!(read_request(&mut input, true, Some(&deadline)).unwrap(), ParseOutcome::Idle));
+        assert!(started.elapsed() >= Duration::from_millis(25) && started.elapsed() < Duration::from_secs(2));
+        assert!(input.buffer().is_empty());
+        // Input present: served without waiting out the linger.
+        peer.write_all(b"GET /q HTTP/1.1\r\nHost: x\r\n\r\n").unwrap();
+        let ParseOutcome::Request(r) = read_request(&mut input, true, Some(&deadline)).unwrap() else { panic!() };
+        assert_eq!(r.url, "/q");
+        // A head that stalls after its first bytes hits the head timeout, not idle.
+        peer.write_all(b"GET /p HTTP/1.1\r\nHo").unwrap();
+        let deadline = HeadDeadline::new(fd, Duration::from_millis(80)).with_linger(Duration::from_millis(30)).polling();
+        let started = Instant::now();
+        // The same WouldBlock a timed-out socket read produces; never Idle.
+        let kind = read_request(&mut input, true, Some(&deadline)).err().expect("stalled head accepted").kind();
+        assert!(matches!(kind, io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut), "{kind:?}");
+        assert!(started.elapsed() >= Duration::from_millis(70) && started.elapsed() < Duration::from_secs(2));
+        // Peer closes: EOF, not a timeout.
+        drop(peer);
+        let mut input = BufReader::new(input.into_inner());
+        let deadline = HeadDeadline::new(fd, Duration::from_secs(30)).with_linger(Duration::from_millis(500)).polling();
+        assert!(matches!(read_request(&mut input, true, Some(&deadline)), Ok(ParseOutcome::Eof) | Ok(ParseOutcome::Bad { .. })));
+    }
+
+    #[test]
     fn interrupted_head_reads_preserve_partial_lines_and_deadline() {
         struct InterruptedInput<'a> { bytes: &'a [u8], interrupt: bool }
         impl Read for InterruptedInput<'_> {
@@ -1634,12 +1719,13 @@ mod tests {
             let bytes: Vec<u8> = (0..length).map(|i| (i % 251) as u8).collect();
             out.write_all(b"next:").unwrap();
             let mut source = ShortReads { bytes: &bytes, interrupt: false };
-            // A changed file may be longer than its lookup metadata. The
-            // hint must not truncate it or expose an old initialized tail.
-            out.copy_from(&mut source, (length / 2) as u64).unwrap();
+            // Exactly the announced length is sent even when the file grew
+            // after lookup, and no old initialized tail is exposed.
+            let announced = length / 2;
+            out.copy_from(&mut source, announced as u64).unwrap();
             out.finish_request().unwrap();
             expected.extend_from_slice(b"next:");
-            expected.extend_from_slice(&bytes);
+            expected.extend_from_slice(&bytes[..announced]);
             assert_eq!(client.borrow().get_ref().0, expected);
             assert_eq!(out.pending(), 0);
             assert!(out.buf.capacity() <= 128);

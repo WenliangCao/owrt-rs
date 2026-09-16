@@ -239,7 +239,7 @@ fn ineligible_requests_hand_off_with_the_socket_untouched() {
         b"\r\nGET /hello.txt HTTP/1.1\r\nHost: a\r\n\r\n",
     ];
     for request in cases {
-        let (event, mut parked, _peer) = fast_event(&f, &mut scratch, request);
+        let (event, parked, _peer) = fast_event(&f, &mut scratch, request);
         assert!(
             matches!(event, fast::Event::Handoff),
             "expected handoff for {:?}",

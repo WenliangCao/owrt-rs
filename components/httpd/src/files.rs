@@ -252,6 +252,24 @@ mod tests {
     }
 
     #[test]
+    fn open_readonly_reads_files_and_reports_missing_ones() {
+        use std::io::Read;
+        let dir = std::env::temp_dir().join(format!("httpd-open-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("f.txt");
+        std::fs::write(&file, b"payload").unwrap();
+        let mut text = String::new();
+        super::open_readonly(&file).unwrap().read_to_string(&mut text).unwrap();
+        assert_eq!(text, "payload");
+        assert_eq!(super::open_readonly(&dir.join("missing")).unwrap_err().kind(), std::io::ErrorKind::NotFound);
+        // Past the stack buffer: the std fallback answers, with the same kind.
+        let long = dir.join("a/".repeat(140)).join("f.txt");
+        assert!(long.as_os_str().len() > 256);
+        assert_eq!(super::open_readonly(&long).unwrap_err().kind(), std::io::ErrorKind::NotFound);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
     fn mime_preserves_case_boundaries_and_compound_suffix_priority() {
         for (path, expected) in [
             ("/static.dat", "application/octet-stream"),
@@ -276,6 +294,40 @@ mod tests {
             assert_eq!(mime_type(path), expected, "{path}");
         }
     }
+}
+
+/// Open a regular file for reading. musl's `open()` wrapper, which std's
+/// `File::open` reaches through `open64`, follows every O_CLOEXEC open with a
+/// second syscall, `fcntl(F_SETFD, FD_CLOEXEC)`, for kernels that predate the
+/// flag; its `openat()` wrapper does not. That fcntl was one of the ten
+/// syscalls every static response paid. Long paths fall back to std.
+fn open_readonly(path: &Path) -> io::Result<fs::File> {
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::fd::FromRawFd;
+        use std::os::unix::ffi::OsStrExt;
+        extern "C" {
+            fn openat(dirfd: i32, path: *const u8, flags: i32, ...) -> i32;
+        }
+        const AT_FDCWD: i32 = -100;
+        const O_RDONLY: i32 = 0;
+        const O_CLOEXEC: i32 = 0o2000000;
+        let bytes = path.as_os_str().as_bytes();
+        let mut cpath = [0u8; 256];
+        if bytes.len() < cpath.len() && !bytes.contains(&0) {
+            cpath[..bytes.len()].copy_from_slice(bytes);
+            // SAFETY: cpath is a live, NUL-terminated buffer that openat only
+            // reads; the flags carry no mode argument.
+            let fd = unsafe { openat(AT_FDCWD, cpath.as_ptr(), O_RDONLY | O_CLOEXEC) };
+            if fd < 0 {
+                return Err(io::Error::last_os_error());
+            }
+            // SAFETY: a fresh descriptor from openat that nothing else owns;
+            // the File closes it.
+            return Ok(unsafe { fs::File::from_raw_fd(fd) });
+        }
+    }
+    fs::File::open(path)
 }
 
 fn etag(meta: &fs::Metadata) -> String {
@@ -366,7 +418,7 @@ pub fn serve<W: http::Sink>(
         return Ok(Served::Forbidden);
     }
     if pi.meta.is_file() {
-        let Ok(mut file) = fs::File::open(&pi.phys) else {
+        let Ok(mut file) = open_readonly(&pi.phys) else {
             return Ok(Served::Forbidden);
         };
         resp.disable_chunked();

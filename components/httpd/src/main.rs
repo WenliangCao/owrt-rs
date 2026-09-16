@@ -566,10 +566,17 @@ impl Server {
         // connection and http_keepalive for the ones after it. Without it
         // a client that dribbles one byte per read holds its slot forever.
         let mut head_deadline = resume.unwrap_or_else(|| Instant::now() + network_timeout);
+        // Plain sockets wait for a head with poll(2) and never touch the
+        // receive timeout set at accept; TLS keeps the socket-option path
+        // because decrypted plaintext can be readable without the socket.
+        let plain = matches!(client.borrow().get_ref(), Transport::Plain(_));
         loop {
             // The first read of every head waits at most LINGER on this
             // thread; an idle connection is then parked with its deadline.
-            let deadline = http::HeadDeadline::until(conn.fd, head_deadline).with_linger(LINGER);
+            let mut deadline = http::HeadDeadline::until(conn.fd, head_deadline).with_linger(LINGER);
+            if plain {
+                deadline = deadline.polling();
+            }
             // Bind the outcome first: a `borrow_mut()` in the scrutinee stays
             // alive for the whole match, and the reject arm needs the stream.
             let outcome = heads.read_request(
@@ -579,7 +586,10 @@ impl Server {
             );
             // client_parse_header cancels the timeout on the blank line
             // (client.c:372): the body and the response get the full budget.
-            let _ = set_read_timeout(conn.fd, network_timeout);
+            // A polling deadline never shortened it, so nothing to restore.
+            if !plain {
+                let _ = set_read_timeout(conn.fd, network_timeout);
+            }
             let mut request = match outcome {
                 Ok(ParseOutcome::Request(r)) => r,
                 Ok(ParseOutcome::Eof) | Err(_) => return Outcome::Closed,
