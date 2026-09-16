@@ -1,0 +1,187 @@
+# 九组件攻坚计划与日志
+
+> 用途：逐个组件把 Rust 控制面做到「正确不退、性能全胜」。重开会话先读这一页，
+> 按表格找到下一个未打勾的组件；每个组件可交给不同模型独立攻破。
+> 完成一个组件就在这里打勾、填数字、写一行日志，并提交。
+
+## 准则
+
+1. **保证正确性**：绝不能让任何已修复的 bug 重现。每个组件的「已修复缺陷」段是它的回归清单；
+   对应的历史门（r14/r27/r83/r85/r92 fuzz、组件差分、恢复探针）在改动后必须全部重跑并保持绿。
+2. **保证性能**：性能不仅要 100% 优于 C 原版，还要尽可能全面优于正式 R89（`d9c1048`）。
+   每条负载分别报告自身 CPU、平均/尾延迟、内存；不能用混合得分或延迟改善掩盖某一项 CPU 退步。
+
+## 工作要求
+
+- **当成研究来做**：先读原版 C 的数据结构与执行形态，再读我们的实现，找出算法/形态层面的差距
+  （分配次数、系统调用序列、线程/事件所有权、每请求重建的对象），而不是调参数。优先重写热路径算法。
+- **一击毙命，不做无谓测试**：找准精确的改进点，预测它省掉什么（哪几次 syscall、哪几次分配），
+  再一次性在 Linux 主机上跑门禁 + 四侧性能；不在 macOS 上做实验（见
+  `memory/no-macos-experiments.md`）；不用多轮探索式测试消耗 token。每次改动都要有正向收益，
+  否则回退。
+- **最终以路由器实机对比为准**：Oracle（AArch64 Linux）四侧结果只是筛选；打勾的依据是 AX3000T 上
+  C / R89 / 候选 四轮交错的实机结果。实机窗口要 detached 运行、按客户端健康验收
+  （`memory/detach-long-device-drivers.md`）。
+
+## 每个组件的标准流程
+
+1. 读本页该组件段：实机差距表、已修复缺陷、既有候选与提示。
+2. 定位算法差距，写出可证伪的预测（省掉哪些 syscall/分配，哪条负载应降多少）。
+3. 改动 + 单测；本地只做编译冒烟。
+4. Oracle 一次性：SDK musl 构建 → 该组件全部历史门 → 四侧性能（C / R89 / source05 / 候选）。
+   构建与门禁脚本参考 `/home/ubuntu/r94-httpd/{build.sh,run-gates.py,perf/run.py}`。
+5. 实机四轮交错四侧；全部负载 CPU 与延迟均低于 C，且不低于 R89（或差值在四轮范围内重叠并已解释）。
+6. 打勾，把最终数字填进表格，写日志，提交。
+
+图例：✅ 完成（Oracle 全门绿 + 性能优于 C 与 R89；标注「实机待补」者尚缺最终实机四侧）；☐ 待攻坚。
+
+## 进度总表
+
+实机数字来自 2026-09-15 R93 source05 九组件矩阵（AX3000T，四轮中位数，`docs/reviews/R93_*_DEVICE_BASELINE.md`）。
+「落后」只列 source05 相对基线更差的负载；空白表示该组件所有已测负载均已优于两侧。
+
+| 状态 | 组件 | 实机相对 C | 实机相对 R89 | 下一步 |
+|---|---|---|---|---|
+| ✅ 实机待补 | **logd** | 全胜（R94：syslog_128 CPU 5.1 vs 32.5，read_100 120.5 vs 808.5） | 全胜（vs 8.5 / 421.5；RssAnon 120 vs 176 KiB） | 终版 `08c833fd` 实机四侧一次补测 |
+| ✅ 实机待补 | **httpd** | Oracle 停放 60/80 ms：37.5–42.5 vs C 57.5–60 µs；gap0 32.4 vs 40.4 | Oracle 停放：vs 282–292 µs；gap0 持平 | Oracle formal 四轮收尾；实机 74 项矩阵 + 间隔基线一次补测 |
+| ☐ | rpcd | session_access_64_c4 延迟 275.4 vs 274.6（持平） | session_access_granted CPU +19.6%、session_access_64_c4 CPU +27.8%/延迟 +13.8%、session_access_64 CPU +20%、uci_get_authorized CPU +4% | 授权快路径（R93 glob 候选有 Oracle 信号）+ 会话 ACL 查询算法 |
+| ☐ | procd | 全胜 | 8 条负载 CPU 系统性高 1.5–6.2%（service_list_32_c4 +6.2%、named_128_c4 +5.9%、system_info_c4 +2.5%） | service list 序列化/对象遍历热路径 |
+| ☐ | ubusd | lookup_all_64/128 延迟 786/1549 vs 775/1510（CPU 更低） | 多条 lookup 延迟高 0.9–2.5% | lookup 全表遍历与回复分帧（R93 pathless/borrow 候选未合入） |
+| ☐ | netifd | 全胜 | wireless_status CPU +6.0%/延迟 +1.9%；interface_dump_c4 CPU +3.1%；device_status_c4/lan_status_c4/device_status_all_c4 延迟 +2.5–3.1% | wireless status 拼装、并发下 blob 构建 |
+| ☐ | fw4 | 全胜（print −89%，check −58% CPU） | check 延迟 +1.24%（四轮重叠） | 归因 check 执行链墙钟；否则打勾 |
+| ☐ | uci | 全胜 | 全胜（CPU 四轮范围不重叠） | 仅需实机复核大配置/异常输入即可打勾 |
+| ☐ | reload-config | 全胜 | 26270 vs 26420 µs（重叠，不宣布稳定胜出） | 覆盖改动传播场景后打勾 |
+
+---
+
+## logd ✅（实机待补）
+
+**R94 改动**（`88a958c`、`e7c2da4`）：字节 arena 环（沿用 C `log_add` 保留算法，无堆 Entry）；
+blobmsg 模板帧（`frame.rs`，与旧 BlobBuf 逐字节相同）；流改用 pipe（同 C），一轮 ≤256 条 datagram
+合并成每流一次 write，256 KiB 管道；burst-spin（连发时 0 超时 poll 至多 4 次）。
+
+**结果**：Oracle 两次四侧 160/160 字节相同；follow_8 CPU 11.9 vs C 15.6、R89 21.7 µs/条（R93 span 候选曾比 C 差 34.6%）；
+trim_heavy 3.0 vs C 3.6/R89 4.7；RSS 496–524 KiB。实机 stage-one 候选 `000f3f15` 四轮：见总表。
+
+**已修复缺陷（回归清单）**：R81 F15 重连时旧连接未关导致 `log` 对象永远注册不上；F16 环回绕只按队首驱逐，被覆盖旧条目残留。
+R88 F1 非 UTF-8 `log write` 静默丢弃却回 OK → 有损转换。R92 环/限额合同（`logd_bytes`、`logd_limits`）。
+R93 旧 poll 下标误断健康流；断连期间积压/oneshot/关闭回收；重连节拍；总预算保护健康读者（`test_logd_stream_recovery.py` 5/5）。
+
+**待办**：终版构建 `08c833fd`（含 burst-spin + pipe）只在 Oracle 验证过，实机四侧一次补测；实机窗口曾因 R92 冷启动断网事故中止。
+门：单测、clippy、固定语料 15/15、流恢复 5/5、r92 logd_bytes/limits、历史 r15/r28/r21/r25/r83。
+
+## httpd ✅（实机待补）
+
+**R94 改动**（`4537438`、`d67a6e4`、`3b98ab2`；报告 `docs/reviews/R94_HTTP_FASTPATH.md`）：
+- 监听器内联快路径（`fast.rs`）：已停放 plain 连接收到完整小 GET/HEAD（普通文件 ≤32 KiB，无 CGI/ubus/auth/alias/政策）
+  时在监听器线程就地完成：peek → 现有 parser → `files::serve` 写入有界内存 → 精确消费头 → 非阻塞 send。
+  socket 不离开 epoll，消掉每次停放请求的 epoll DEL/ADD、线程移交、50 ms 接收超时、8 KiB reader 重建。
+  不合格请求整体回退且未消费任何字节。短写保留 ≤4 个 PendingReply 经 POLLOUT 排水。
+- 请求头控制字符 SWAR 8 字节扫描 + 按长度索引的头名表（R93 剖析中逐字节扫描占头解析 12–18%）。
+- 移除 R93 空闲 worker 缓存：它保留 4 个线程 1 s，违反 R85 内存门（连接关闭后 Threads 必须回基线）——正是 R93 worker/head 候选无法合入的原因；快路径已用零线程覆盖其目标场景。
+
+**结果**：Oracle 全部门绿（8 项历史门 + shared-cap + http-r92；fuzz 133/133 无新偏差；r85 64 连接内存门通过）。
+Oracle 四侧：见总表；formal 四轮进行中（`/home/ubuntu/r94-httpd/perf/formal-01`）。
+
+**已修复缺陷（回归清单）**：R81 F18 CGI 错误面（无完整头/超时/坏头 → 502，spawn 失败 → 500）；F19 macOS Chrome/Edge 被当 Safari 强制 close；F20 其他偏差。
+R88 H-01 Basic auth 后缺 REMOTE_USER；H-06 迟到回复滞留连接池；H-03 Bearer 大小写；H-11 连接上限时不唤醒监听。
+R92 政策顺序 RFC1918→redirect→100 Continue；控制字节头 400；chunk 长度/trailer 界限；batch 逐项 flush 与下游失败即停；
+ubus 断连重连与 deadline；`-n` 槽由调度唤醒；22 项处置见 `tests/reference/httpd/r92-deviations.json`。
+R93 共享连接限额释放时广播全部监听器（`r93_httpd_cap_probe.py`）。
+
+**待办**：实机补测 R93 的 74 项矩阵与间隔基线，重点核对三处实机差距是否闭合：
+60/80 ms 停放 CPU（R93 为 C 的 2.2–2.4 倍，快路径目标）、512 B 单客户端 CPU 82→89 µs vs R89（SWAR 目标）、
+jsonrpc_c4 自身 CPU 高 C 3.5%（未处理，需看 bridge 序列化路径）。LINGER 50 ms 未改，gap<50 ms 走线程路径与 R89 持平。
+
+## rpcd ☐
+
+**实机差距（R93）**：会话权限查询是唯一可重复的 R89 退步：`session_access_granted` CPU 23→27.5 µs（四轮不重叠）、
+`session_access_64_c4` 延迟 241.98→275.37（+13.8%）/CPU 17.86→22.82（+27.8%）、`session_access_64` CPU 25→30；
+`uci_get_authorized` CPU +4%，`uci_configs_c4` 延迟 +5%。对 C 仅 `session_access_64_c4` 延迟持平（275.4 vs 274.6）。
+
+**既有候选**：R93 glob 授权快路径（`private/r93/rpcd-glob-*`）Oracle 焦点复核 N=200000：granted CPU 9.80→9.38 µs、并发 5.80→5.40，
+四轮方向一致；拒绝路径混合。未合入、未上机。
+
+**提示**：看 `session.rs` ACL 匹配（fnmatch/glob 逐条扫描 vs C 的 avl + 前缀）、每次查询的 blob 重建与字符串分配；
+c4 退步大于 c1 说明有共享状态锁或每请求重建。
+
+**已修复缺陷**：R81 F23 `file exec`/luci shell 在单线程循环同步执行；F24 其他偏差。Round 5 字节忠实文件读取（shadow/passwd/board.json/acl）。
+R88 F1 线程创建失败终止 daemon → UNKNOWN_ERROR + procwait 轮询回退。R92 glob/session/file 界限。
+R93 断连保留会话与回滚、离线到期恢复文件、失败通知按包名去重轮转（断连/半帧各 20 项）；
+ubus 库 deadline 覆盖完整 header/body，避免 `service.event` 超时导致 rpcd 退出（`453ceed`）。
+
+## procd ☐
+
+**实机差距（R93）**：8 条负载全部优于 C；相对 R89 CPU 系统性高：service_list_32 69→69.5、system_info 143→145.5、
+service_list_32_c4 55.1→58.5（+6.2%）、system_info_c4 120.5→123.5、service_list_128 205.5→208.5、
+service_list_128_c4 185→189、named_128 30.5→31、named_128_c4 25.3→26.8（+5.9%）µs/操作。
+
+**既有候选**：watch 队列去 O(W²) 冷扫描（`private/r93/procd-queue-local-20260915`），仅本机模型验证。
+
+**提示**：R93 修复把 watch/hotplug 注册分批、维护节拍锚定，可能给主循环加了固定开销；先量 `service list` 一次调用的 blob 构建与实例遍历分配数，
+对照 C `service_dump`。c4 退步更大提示每请求重复计算。
+
+**已修复缺陷**：R81 F01 PID 1 写非阻塞 stderr 可 abort（P0）；F21 `service set` 关掉运行实例日志管道；F22。
+R88 F1 维护节拍饿死（P1，`r89_procd_tick_probe.py`）；F2 启动期丢非 ubusd 子进程回收；F4 ident 截断 panic。R90 F3。
+R92 kill(-1) 守卫、nice int8、respawn/watchdog 数组、watchdog 重开与状态、5 个恢复路径界限。
+R93 全量 watch/热插拔注册分批并保留 rcS 前顺序；set-return/service.start 通知时序（source-03/04 回归已修，`R93_PROCD_FINAL_REVIEW.md`）。
+
+## ubusd ☐
+
+**实机差距（R93）**：`lookup_all_64/128` 延迟 786/1549 vs C 775/1510 µs（自身 CPU 更低）；相对 R89 多条 lookup 延迟高 0.9–2.5%
+（lookup_all_64_c4 2510→2574、lookup_prefix_64 697→714）；invoke_c4 反而更低。
+
+**既有候选**：pathless 遍历 / lookup borrow（`private/r93/ubusd-star-lookup-borrow`）Oracle 初筛方向混合，未合入。
+
+**提示**：延迟比 CPU 差说明是回复分帧/写出形态（多次 sendmsg 或大 blob 拷贝），不是计算；对照 C `ubusd_send_obj` 的单帧写。
+
+**已修复缺陷**：R81 F02 无 path 系统对象（event/acl/monitor）拒绝非 root。wire fuzz 四项忠实度（`30d4963`）。R88 U-1 EMFILE 下监听空转。
+R92 acl/client/server 界限。R93 accept 暂态错误有界重试与 100 ms 恢复（`r93_ubusd_accept_probe.py` 8/8）；
+prefix lookup 背压下 64 个大签名对象漏 DATA（`3262a56`，只在严格工具复现，矩阵不覆盖）。ACL 目录须 root 属主（沙箱陷阱）。
+
+## netifd ☐
+
+**实机差距（R93）**：14 条全部优于 C；相对 R89：wireless_status CPU 25→26.5（+6.0%）/延迟 +1.9%、wireless_status_c4 CPU +4.6%；
+interface_dump_c4 CPU 63.49→65.48；device_status_c4 延迟 2406→2481、lan_status_c4 477→489、device_status_all_c4 3773→3869。
+
+**提示**：wireless status 是纯序列化路径，看每次调用重建的字符串/Vec；并发延迟退步看主循环里是否有同步 netlink 查询被串行化。
+
+**已修复缺陷**：R81 F03 无 SIGTERM 处理致 udhcpc/odhcp6c 孤儿；F04 删除接口后 ProtoState 直接 drop；F05 任何选项变化都 ifdown+ifup；
+F06 peerdns/defaultroute 不生效；F07 墙钟当 uptime；F08 IPv6 preferred/valid 与 prefix 输出；F09 teardown/handler 无超时且阻塞 wait；
+F10 radio setup 中 reload 丢配置；F11 reload 对非 DOWN 接口 set_down 被拒；F12 `config device` 只应用三项；F13 add/remove_device 一律拒绝；
+F14 有不支持段时所有 reload 返回 INVALID_ARGUMENT。R88 F1 reload 删除接口不跑 teardown。R90 生命周期批（F2–F5/F10–F12）；R91 日志通道。
+R92 netlink 界限。R93 重连注册固定对象与全部接口对象全成功才切回在线。开放：F7 netlink 溢出恢复、F9 全局 restart/re-exec。
+
+## fw4 ☐
+
+**实机差距（R93）**：print/check CPU 9300/19650 vs C 96000/107650、R89 9500/19900；check 延迟 61084 vs R89 60335（+1.24%，四轮重叠）。
+
+**提示**：CPU 更低而墙钟更高 → 执行链里有等待（子进程/nft 调用序列），不是规则生成算法；归因后大概率直接打勾。
+
+**已修复缺陷**：R81 F17 `config defaults` 非法选项渲染 `policy null;`。Round 5 warnings 按 ucode 字符串化列表。
+R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` 仍输出。R92 input/emit/render/sections 修复。开放：F3/F5–F11 退出码与用法/警告文本边界。
+
+## uci ☐
+
+**实机差距（R93）**：export_network CPU 900 vs C 1750/R89 950，export_64 1840 vs 3270/1880，set_commit_get 6820 vs 8970/6960；三项均胜且四轮不重叠。
+
+**提示**：无已测退步。打勾前用大配置与异常持久化输入做一次实机复核即可。
+
+**已修复缺陷**：Round 4 非 UTF-8 输入；R81 F25 偏差；R92 ops 界限、非法 UTF-8 rename 原子拒绝合同（r83）；libuci 忠实度测试（r16/r24 1000 例）。开放：U1 同 batch 非 UTF-8 改名的 U+FFFD。
+
+## reload-config ☐
+
+**实机差距（R93）**：unchanged_config 25417 µs / CPU 26270 vs C 40214/41440、R89 25695/26420；与 R89 四轮重叠。
+
+**提示**：一次性进程，成本是 md5 编排与子进程；只覆盖 unchanged-config，改动传播与事件风暴未测。补测后打勾。
+
+**已修复缺陷**：R81 F26 偏差。R88 F1 运行锁不可取消（`LOCK_NB` + 10 ms 轮询）。R92 engine/json/trace（两套 JSON 转义 F3）。
+合同：512 KiB 尺寸预算（opt-level s），F2 4096 项硬上限待写入合同。
+
+---
+
+## 日志
+
+- 2026-09-15 R93：九组件实机三侧四轮 888 个观测闭合（source05 vs C vs R89），各组件差距见上表。
+- 2026-09-16 logd R94：arena 环 + 模板帧 + 批量 pipe + burst-spin；Oracle 160/160 字节相同，全负载优于 C/R89/R93；实机 stage-one 候选优于 R89（CPU、RssAnon）。终版实机待补。
+- 2026-09-16 httpd R94：监听器内联快路径 + SWAR 头扫描；移除 worker 缓存（违反 r85 内存门）。Oracle 全门绿；四侧停放 60/80 ms CPU 37.5–42.5 µs，低于 C（57.5–60）与 R89（282–292）；gap0 持平 R89、优于 C。formal 四轮进行中，实机待补。
