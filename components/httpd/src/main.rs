@@ -756,7 +756,7 @@ impl Server {
                     return resp.finish();
                 }
                 files::Lookup::Found(pi) => {
-                    match auth::check(&self.config.auth, &pi.name, request.header("authorization")) {
+                    match auth::check(&self.config.auth, pi.name(), request.header("authorization")) {
                         Err(()) => {
                             resp.status(401, "Authorization Required")?;
                             resp.header("WWW-Authenticate", &format!("Basic realm=\"{}\"", self.config.realm))?;
@@ -773,12 +773,12 @@ impl Server {
                         }
                         Ok(None) => {}
                     }
-                    let physical = pi.phys.to_string_lossy();
+                    let physical = pi.phys.as_str();
                     let interpreter = self.config.interpreters.iter()
                         .find(|(ext, _)| physical.len() > ext.len() && physical.ends_with(ext))
                         .map(|(_, path)| path.as_str());
                     let is_cgi = interpreter.is_some() || self.cgi_physical_prefix.as_ref()
-                        .is_some_and(|prefix| path_matches(prefix, &physical));
+                        .is_some_and(|prefix| path_matches(prefix, physical));
                     if is_cgi {
                         if interpreter.is_none() && !cgi::is_executable(&pi) {
                             return files::forbidden(resp, request, &url);
@@ -797,7 +797,7 @@ impl Server {
                         };
                         return cgi::run(&ctx, request, body, resp, &pi);
                     }
-                    match files::serve(request, resp, &pi, self.config.no_dirlists, &self.config.dirlist_charset)? {
+                    match files::serve(request, resp, &pi, self.config.no_dirlists, &self.config.dirlist_charset, true)? {
                         files::Served::Complete => return Ok(()),
                         files::Served::Forbidden => {
                             if redirect_status != 403 {

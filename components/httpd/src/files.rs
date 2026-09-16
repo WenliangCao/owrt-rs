@@ -4,24 +4,95 @@
 use crate::http::{self, Method, Request, Response};
 use std::borrow::Cow;
 use std::fs;
-use std::io::{self, Write};
-use std::os::unix::fs::{MetadataExt, PermissionsExt};
-use std::path::{Path, PathBuf};
+use std::cell::RefCell;
+use std::io::{self, Read, Write};
+use std::os::unix::fs::{FileExt, MetadataExt, PermissionsExt};
+use std::path::Path;
 
 pub struct PathInfo {
-    pub phys: PathBuf,
-    /// Path relative to docroot, starting with '/'.
-    pub name: String,
+    /// Canonical physical path (valid UTF-8: built from the docroot and the
+    /// decoded URL, or from `canonicalize` lossily).
+    pub phys: String,
+    /// Where the docroot-relative name starts inside `phys`.
+    name_start: usize,
+    /// A directory listing is named with a trailing slash the physical
+    /// path does not carry; every other name is a suffix of `phys`.
+    dir_name: Option<String>,
     pub info: Option<String>,
     pub query: Option<String>,
     pub meta: fs::Metadata,
 }
 
+impl PathInfo {
+    /// Path relative to docroot, starting with '/'.
+    pub fn name(&self) -> &str {
+        if let Some(dir) = &self.dir_name {
+            return dir;
+        }
+        let name = &self.phys[self.name_start..];
+        if name.is_empty() { "/" } else { name }
+    }
+
+    pub fn path(&self) -> &Path {
+        Path::new(&self.phys)
+    }
+
+    /// A regular file whose name starts `name_start` bytes into `phys`.
+    #[cfg(test)]
+    pub fn for_test(phys: String, name_start: usize, meta: fs::Metadata) -> Self {
+        PathInfo { phys, name_start, dir_name: None, info: None, query: None, meta }
+    }
+}
+
+/// `Found` carries the whole record by value: boxing it cost one allocation
+/// per static request, and the record is moved once.
+#[allow(clippy::large_enum_variant)]
 pub enum Lookup {
-    Found(Box<PathInfo>),
+    Found(PathInfo),
     /// Directory requested without trailing slash: redirect.
     Redirect(String),
     NotFound,
+}
+
+/// `canonpath` on a path that starts with '/', rewriting it in place: the
+/// canonical form is never longer than such an input. The hot path of
+/// `lookup` canonicalizes the full docroot+URL string this way instead of
+/// allocating a second copy.
+fn canonpath_in_place(path: &mut String) {
+    if !path.starts_with('/') {
+        *path = canonpath(path);
+        return;
+    }
+    let mut bytes = std::mem::take(path).into_bytes();
+    let n = bytes.len();
+    let (mut r, mut w) = (0usize, 0usize);
+    while r < n {
+        let e = bytes[r..].iter().position(|&b| b == b'/').map_or(n, |p| r + p);
+        match &bytes[r..e] {
+            b"" | b"." => {}
+            b".." => {
+                if let Some(slash) = bytes[..w].iter().rposition(|&b| b == b'/') {
+                    w = slash;
+                }
+            }
+            _ => {
+                // w <= r - 1 here: the byte at w is a consumed '/' or already
+                // written output, never part of this segment.
+                bytes[w] = b'/';
+                bytes.copy_within(r..e, w + 1);
+                w += 1 + (e - r);
+            }
+        }
+        r = e + 1;
+    }
+    if w == 0 {
+        bytes.clear();
+        bytes.push(b'/');
+        w = 1;
+    }
+    bytes.truncate(w);
+    // Segments were moved whole, so the bytes are still the input's UTF-8.
+    *path = String::from_utf8(bytes).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned());
 }
 
 fn canonpath(path: &str) -> String {
@@ -75,28 +146,47 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
     let mut full = String::with_capacity(docroot.len() + decoded.len());
     full.push_str(docroot);
     full.push_str(&decoded);
-    // try progressively shorter prefixes ending at '/' boundaries
     let mut found: Option<(String, String, fs::Metadata)> = None;
-    let bytes = full.as_bytes();
-    let mut i = bytes.len();
-    loop {
-        if i == bytes.len() || bytes[i] == b'/' {
-            let candidate = if no_symlinks {
-                fs::canonicalize(&full[..i]).ok().map(|p| p.to_string_lossy().into_owned())
-            } else {
-                Some(canonpath(&full[..i]))
-            };
-            if let Some(candidate) = candidate {
-                if let Ok(meta) = fs::metadata(&candidate) {
-                    found = Some((candidate, full[i..].to_owned(), meta));
-                    break;
-                }
+    if !no_symlinks {
+        // Nearly every request names an existing file: canonicalize the
+        // whole path in place and stat it once, allocating nothing more.
+        // Only a miss rebuilds the original for the prefix walk below.
+        canonpath_in_place(&mut full);
+        match fs::metadata(&full) {
+            Ok(meta) => found = Some((std::mem::take(&mut full), String::new(), meta)),
+            Err(_) => {
+                full = String::with_capacity(docroot.len() + decoded.len());
+                full.push_str(docroot);
+                full.push_str(&decoded);
             }
         }
-        if i == 0 {
-            break;
+    }
+    if found.is_none() {
+        // try progressively shorter prefixes ending at '/' boundaries
+        let bytes = full.as_bytes();
+        let mut i = bytes.len();
+        loop {
+            if i == bytes.len() || bytes[i] == b'/' {
+                let candidate = if no_symlinks {
+                    fs::canonicalize(&full[..i]).ok().map(|p| p.to_string_lossy().into_owned())
+                } else if i == bytes.len() {
+                    // Already tried above.
+                    None
+                } else {
+                    Some(canonpath(&full[..i]))
+                };
+                if let Some(candidate) = candidate {
+                    if let Ok(meta) = fs::metadata(&candidate) {
+                        found = Some((candidate, full[i..].to_owned(), meta));
+                        break;
+                    }
+                }
+            }
+            if i == 0 {
+                break;
+            }
+            i -= 1;
         }
-        i -= 1;
     }
     let Some((phys, info, meta)) = found else {
         return Lookup::NotFound;
@@ -104,21 +194,23 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
     if !(phys == docroot || phys.strip_prefix(docroot).is_some_and(|tail| tail.starts_with('/'))) {
         return Lookup::NotFound;
     }
-    let name = phys[docroot.len()..].to_owned();
+    let name_start = docroot.len();
     if meta.is_file() {
-        return Lookup::Found(Box::new(PathInfo {
-            phys: PathBuf::from(phys),
-            name: if name.is_empty() { "/".into() } else { name },
+        return Lookup::Found(PathInfo {
+            phys,
+            name_start,
+            dir_name: None,
             info: if info.is_empty() { None } else { Some(info) },
             query,
             meta,
-        }));
+        });
     }
     if !meta.is_dir() || !info.is_empty() {
         return Lookup::NotFound;
     }
+    let name = &phys[name_start..];
     let dir_name = if name.ends_with('/') {
-        name
+        name.to_owned()
     } else {
         format!("{name}/")
     };
@@ -133,23 +225,25 @@ pub fn lookup(docroot: &str, url: &str, no_symlinks: bool, indexes: &[String]) -
         let candidate = format!("{phys}/{index}");
         if let Ok(m) = fs::metadata(&candidate) {
             if m.is_file() {
-                return Lookup::Found(Box::new(PathInfo {
-                    phys: PathBuf::from(candidate),
-                    name: format!("{dir_name}{index}"),
+                return Lookup::Found(PathInfo {
+                    phys: candidate,
+                    name_start,
+                    dir_name: None,
                     info: None,
                     query,
                     meta: m,
-                }));
+                });
             }
         }
     }
-    Lookup::Found(Box::new(PathInfo {
-        phys: PathBuf::from(phys),
-        name: dir_name,
+    Lookup::Found(PathInfo {
+        phys,
+        name_start,
+        dir_name: Some(dir_name),
         info: None,
         query,
         meta,
-    }))
+    })
 }
 
 pub fn mime_type(path: &str) -> &'static str {
@@ -252,6 +346,56 @@ mod tests {
     }
 
     #[test]
+    fn in_place_canonpath_matches_canonpath_for_rooted_paths() {
+        for path in [
+            "/", "////", "/a//b/./c/", "/a/b/../c", "/../../a/../..", "/doc/../doc-other/file",
+            "/a/.../.hidden", "/目录/页面/../文件", "/www/static.dat", "/www/./a/../b/c/..", "/..", "/a/..",
+        ] {
+            let mut rewritten = path.to_owned();
+            super::canonpath_in_place(&mut rewritten);
+            assert_eq!(rewritten, super::canonpath(path), "{path}");
+        }
+        let mut relative = "relative/file".to_owned();
+        super::canonpath_in_place(&mut relative);
+        assert_eq!(relative, "/relative/file");
+    }
+
+    #[test]
+    fn reused_open_file_never_serves_a_replaced_or_rewritten_file() {
+        use std::io::{Read as _, Write as _};
+        let dir = std::env::temp_dir().join(format!("httpd-reuse-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let docroot = dir.to_str().unwrap().to_owned();
+        std::fs::write(dir.join("f.txt"), b"first").unwrap();
+        let body = |expect: &[u8]| {
+            let super::Lookup::Found(pi) = super::lookup(&docroot, "/f.txt", false, &[]) else { panic!("lookup") };
+            assert_eq!(pi.name(), "/f.txt");
+            let opened = super::OpenFile::acquire(&pi, true).expect("open");
+            let mut got = Vec::new();
+            super::ReadAt { file: &opened.file, pos: 0 }.read_to_end(&mut got).unwrap();
+            opened.release(true);
+            assert_eq!(got, expect);
+        };
+        body(b"first");
+        body(b"first");
+        // Same inode rewritten: ctime moves, the descriptor is replaced.
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        let mut file = std::fs::OpenOptions::new().write(true).truncate(true).open(dir.join("f.txt")).unwrap();
+        file.write_all(b"second, longer").unwrap();
+        drop(file);
+        body(b"second, longer");
+        // Replaced by rename: different inode.
+        std::fs::write(dir.join("g.txt"), b"third").unwrap();
+        std::fs::rename(dir.join("g.txt"), dir.join("f.txt")).unwrap();
+        body(b"third");
+        // Not reusing leaves nothing behind for the thread.
+        let super::Lookup::Found(pi) = super::lookup(&docroot, "/f.txt", false, &[]) else { panic!() };
+        super::OpenFile::acquire(&pi, false).unwrap().release(false);
+        std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
     fn open_readonly_reads_files_and_reports_missing_ones() {
         use std::io::Read;
         let dir = std::env::temp_dir().join(format!("httpd-open-{}", std::process::id()));
@@ -330,6 +474,68 @@ fn open_readonly(path: &Path) -> io::Result<fs::File> {
     fs::File::open(path)
 }
 
+/// The file a connection thread served last, kept open across requests.
+/// `lookup` stats the path afresh every time; the descriptor is reused only
+/// when that stat names exactly the object it was opened on -- same device,
+/// inode and ctime -- so a replaced, rewritten, truncated, re-permissioned
+/// or deleted-and-recreated file always reopens. Reuse saves the openat and
+/// close a keep-alive client otherwise pays on every static response. The
+/// entry dies with its thread, so idle and closed connections hold no file.
+struct OpenFile {
+    file: fs::File,
+    dev: u64,
+    ino: u64,
+    ctime: (i64, i64),
+}
+
+thread_local! {
+    static LAST_OPEN: RefCell<Option<OpenFile>> = const { RefCell::new(None) };
+}
+
+impl OpenFile {
+    fn matches(&self, meta: &fs::Metadata) -> bool {
+        self.dev == meta.dev() && self.ino == meta.ino() && self.ctime == (meta.ctime(), meta.ctime_nsec())
+    }
+
+    /// Reuse the thread's open file when it is the object `pi` names, else
+    /// open it. The identity is recorded from the opened descriptor itself,
+    /// so a file replaced between lookup's stat and the open is never
+    /// mistaken for the one that was stat'ed.
+    fn acquire(pi: &PathInfo, reuse: bool) -> Option<OpenFile> {
+        if reuse {
+            if let Some(last) = LAST_OPEN.with(|slot| slot.borrow_mut().take()) {
+                if last.matches(&pi.meta) {
+                    return Some(last);
+                }
+            }
+        }
+        let file = open_readonly(pi.path()).ok()?;
+        let meta = file.metadata().ok()?;
+        Some(OpenFile { file, dev: meta.dev(), ino: meta.ino(), ctime: (meta.ctime(), meta.ctime_nsec()) })
+    }
+
+    fn release(self, reuse: bool) {
+        if reuse {
+            LAST_OPEN.with(|slot| *slot.borrow_mut() = Some(self));
+        }
+    }
+}
+
+/// Positional reads leave the shared descriptor's offset alone, so a reused
+/// file starts at zero for every response.
+struct ReadAt<'a> {
+    file: &'a fs::File,
+    pos: u64,
+}
+
+impl Read for ReadAt<'_> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let n = self.file.read_at(buf, self.pos)?;
+        self.pos += n as u64;
+        Ok(n)
+    }
+}
+
 fn etag(meta: &fs::Metadata) -> String {
     format!("\"{:x}-{:x}-{:x}\"", meta.ino(), meta.size(), meta.mtime())
 }
@@ -404,6 +610,7 @@ pub fn serve<W: http::Sink>(
     pi: &PathInfo,
     no_dirlists: bool,
     charset: &str,
+    reuse_open: bool,
 ) -> io::Result<Served> {
     if !matches!(
         request.method,
@@ -418,19 +625,23 @@ pub fn serve<W: http::Sink>(
         return Ok(Served::Forbidden);
     }
     if pi.meta.is_file() {
-        let Ok(mut file) = open_readonly(&pi.phys) else {
+        let Some(opened) = OpenFile::acquire(pi, reuse_open) else {
             return Ok(Served::Forbidden);
         };
         resp.disable_chunked();
         if !preconditions(request, resp, &pi.meta)? {
+            opened.release(reuse_open);
             return Ok(Served::Complete);
         }
         resp.status(200, "OK")?;
         ok_headers(resp, Some(&pi.meta))?;
-        resp.header("Content-Type", mime_type(&pi.name))?;
+        resp.header("Content-Type", mime_type(pi.name()))?;
         resp.header("Content-Length", pi.meta.size())?;
         resp.end_headers()?;
-        resp.copy_unchunked(&mut file, pi.meta.size())?;
+        let mut body = ReadAt { file: &opened.file, pos: 0 };
+        let copied = resp.copy_unchunked(&mut body, pi.meta.size());
+        opened.release(reuse_open);
+        copied?;
         resp.finish()?;
         return Ok(Served::Complete);
     }
@@ -493,7 +704,7 @@ pub fn not_found<W: Write>(resp: &mut Response<W>, request: &Request, url: &str)
 }
 
 fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io::Result<()> {
-    let escaped = http::html_escape(&pi.name);
+    let escaped = http::html_escape(pi.name());
     resp.status(200, "OK")?;
     ok_headers(resp, None)?;
     resp.header("Content-Type", &format!("text/html; charset={charset}"))?;
@@ -501,7 +712,7 @@ fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io
     resp.body(format!("<html><head><title>Index of {escaped}</title></head><body><h1>Index of {escaped}</h1><hr /><ol>").as_bytes())?;
     // (name, is_dir from d_type without following symlinks, stat following)
     let mut entries: Vec<(String, bool, fs::Metadata)> = Vec::new();
-    if let Ok(read) = fs::read_dir(&pi.phys) {
+    if let Ok(read) = fs::read_dir(pi.path()) {
         for entry in read.flatten() {
             let name = entry.file_name().to_string_lossy().into_owned();
             let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
@@ -510,7 +721,7 @@ fn dirlist<W: Write>(resp: &mut Response<W>, pi: &PathInfo, charset: &str) -> io
             }
         }
     }
-    if let Ok(parent) = fs::metadata(Path::new(&pi.phys).join("..")) {
+    if let Ok(parent) = fs::metadata(pi.path().join("..")) {
         entries.push(("..".to_owned(), true, parent));
     }
     entries.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));

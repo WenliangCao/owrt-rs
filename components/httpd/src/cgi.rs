@@ -170,7 +170,7 @@ fn spawn_failed<W: Sink>(
         resp.body(
             format!(
                 "Unable to launch the requested CGI program:\n  {}: {reason}\n",
-                interpreter.map(str::to_owned).unwrap_or_else(|| pi.phys.display().to_string())
+                interpreter.map(str::to_owned).unwrap_or_else(|| pi.phys.clone())
             )
             .as_bytes(),
         )?;
@@ -185,14 +185,14 @@ pub fn run<W: Sink, R: io::BufRead>(
     resp: &mut Response<W>,
     pi: &PathInfo,
 ) -> io::Result<()> {
-    let mut command = Command::new(ctx.interpreter.map(std::path::Path::new).unwrap_or(&pi.phys));
-    if ctx.interpreter.is_some() { command.arg(&pi.phys); }
+    let mut command = Command::new(ctx.interpreter.map(std::path::Path::new).unwrap_or(pi.path()));
+    if ctx.interpreter.is_some() { command.arg(pi.path()); }
     command
         .env_clear()
         .env("PATH", ctx.cgi_path)
         .env("GATEWAY_INTERFACE", "CGI/1.1")
         .env("SERVER_SOFTWARE", "uhttpd")
-        .env("SCRIPT_NAME", &pi.name)
+        .env("SCRIPT_NAME", pi.name())
         .env("SCRIPT_FILENAME", &pi.phys)
         .env("DOCUMENT_ROOT", ctx.docroot)
         .env("QUERY_STRING", pi.query.as_deref().unwrap_or(""))
@@ -602,13 +602,9 @@ mod tests {
         let phys = dir.join("script");
         fs::write(&phys, content).unwrap();
         fs::set_permissions(&phys, fs::Permissions::from_mode(0o755)).unwrap();
-        let pi = PathInfo {
-            meta: fs::metadata(&phys).unwrap(),
-            phys,
-            name: "/script".into(),
-            info: None,
-            query: None,
-        };
+        let meta = fs::metadata(&phys).unwrap();
+        let pi = PathInfo::for_test(phys.to_str().unwrap().to_owned(), dir.to_str().unwrap().len(), meta);
+        assert_eq!(pi.name(), "/script");
         (dir, pi)
     }
 

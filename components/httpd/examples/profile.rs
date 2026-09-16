@@ -132,7 +132,7 @@ fn parse(input: &mut BufReader<Cursor<&[u8]>>, fd: Option<RawFd>) -> http::Reque
     }
 }
 
-fn lookup(root: &str) -> Box<files::PathInfo> {
+fn lookup(root: &str) -> files::PathInfo {
     match files::lookup(black_box(root), black_box("/static.dat"), false, &[]) {
         files::Lookup::Found(pi) => pi,
         _ => panic!("profile file not found"),
@@ -146,7 +146,7 @@ fn serve(client: &RefCell<BufReader<Discard>>, request: &http::Request, pi: &fil
 
 fn serve_to(output: &mut http::Out<'_, Discard>, request: &http::Request, pi: &files::PathInfo) {
     let mut response = http::Response::new(output, request, 20);
-    files::serve(request, &mut response, pi, false, "UTF-8").unwrap();
+    files::serve(request, &mut response, pi, false, "UTF-8", true).unwrap();
     output.finish_request().unwrap();
 }
 

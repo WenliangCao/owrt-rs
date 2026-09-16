@@ -282,7 +282,7 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
         Lookup::Found(pi) => pi,
         Lookup::Redirect(_) | Lookup::NotFound => return Event::Handoff,
     };
-    let physical = pi.phys.to_string_lossy();
+    let physical = pi.phys.as_str();
     if pi.info.is_some()
         || !pi.meta.is_file()
         || pi.meta.size() > MAX_BODY
@@ -290,11 +290,10 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
         || server
             .cgi_physical_prefix
             .as_deref()
-            .is_some_and(|prefix| path_matches(prefix, &physical))
+            .is_some_and(|prefix| path_matches(prefix, physical))
     {
         return Event::Handoff;
     }
-    drop(physical);
     // Generate the complete response into bounded memory before touching the
     // socket. files::serve is the same code the thread path runs, so status,
     // conditionals, ETag, MIME, HEAD handling and bodies stay byte-identical.
@@ -302,7 +301,9 @@ pub fn on_readable(server: &Server, p: &mut Parked, s: &mut Scratch, writing: us
     let close;
     {
         let mut resp = Response::new(&mut sink, &request, config.http_keepalive);
-        match files::serve(&request, &mut resp, &pi, config.no_dirlists, &config.dirlist_charset) {
+        // The listener serves many connections; a file kept open here would
+        // outlive the connection, so it never reuses descriptors.
+        match files::serve(&request, &mut resp, &pi, config.no_dirlists, &config.dirlist_charset, false) {
             Ok(files::Served::Complete) => {}
             Ok(files::Served::Forbidden) | Err(_) => {
                 s.return_resp(sink.buf);
