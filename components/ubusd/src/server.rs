@@ -417,7 +417,13 @@ impl Server {
     fn lookup(&mut self, client: u32, msg: &InMsg, resume: Option<Vec<u8>>) -> Result<Outcome, Option<Vec<u8>>> {
         let attrs = attrs_of(msg.payload());
         let Some(p) = attrs[attr::OBJPATH as usize] else {
+            let resumed = resume.is_some();
             let all: Vec<u32> = self.reg.paths.range(resume.unwrap_or_default()..).map(|(_, &id)| id).collect();
+            // A whole-bus listing is the same bounded frame sequence as a
+            // prefix listing: one write instead of one per object.
+            if !resumed && !all.is_empty() && self.try_batch(client, msg, &all) {
+                return Ok(Outcome::NoStatus);
+            }
             for id in all {
                 if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
                     return Err(self.reg.get(id).and_then(|o| o.path.clone()));
@@ -463,7 +469,7 @@ impl Server {
             // initially unmatched prefix reports NOT_FOUND.
             return Ok(Outcome::Status(if resumed { status::OK } else { status::NOT_FOUND }));
         }
-        if self.try_prefix_batch(client, msg, &matches) {
+        if self.try_batch(client, msg, &matches) {
             return Ok(Outcome::NoStatus);
         }
         for id in matches {
@@ -477,14 +483,18 @@ impl Server {
         Ok(Outcome::Status(status::OK))
     }
 
-    fn try_prefix_batch(&mut self, client: u32, msg: &InMsg, ids: &[u32]) -> bool {
+    /// Emit every listed object and the final STATUS as one bounded write.
+    /// Used for prefix and whole-bus lookups; the wire bytes are the same
+    /// frames the per-object path sends, so a short write splits back into
+    /// them (see `Client::send_lookup_batch`).
+    fn try_batch(&mut self, client: u32, msg: &InMsg, ids: &[u32]) -> bool {
         const LIMIT: usize = 16 * 1024;
         if !self.monitors.is_empty() {
             return false;
         }
         // Bound the whole reply before emitting anything. The signature is
         // an upper bound: ACL filtering can only remove methods/objects.
-        // This keeps large-prefix queue overflow at its original boundaries.
+        // This keeps large-listing queue overflow at its original boundaries.
         let mut bytes = Header::LEN + 12; // final STATUS
         for id in ids {
             let Some(o) = self.reg.get(*id) else { continue };

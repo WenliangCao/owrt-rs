@@ -3,7 +3,7 @@
 //! Every case is generated from a fixed table plus a seeded LCG, so the two
 //! daemons receive byte-identical input and their verdict transcripts can be
 //! compared directly. Each case gets a fresh connection; the verdict is what
-//! the daemon did with it -- replied, stayed silent, or hung up -- plus whether
+//! the daemon did with it -- replied, stayed silent, or disconnected -- plus whether
 //! the daemon was still serving afterwards.
 //!
 //! Usage: fuzz <socket> [cases]
@@ -95,8 +95,16 @@ fn probe(sock: &str, bytes: &[u8]) -> String {
         return "write_failed".into();
     }
     let mut buf = [0u8; 4096];
+    // A daemon that closes the connection is "disconnected" whether the peer
+    // observes EOF or ECONNRESET: the kernel raises the reset only when the
+    // closer still had unread bytes queued, which for the same input depends
+    // on how many bytes the daemon happened to pull before deciding (the C
+    // daemon reads a 12-byte prefix first; a read-ahead daemon takes the
+    // whole write). "silent" is left for a daemon that keeps the connection
+    // open without answering.
     match s.read(&mut buf) {
-        Ok(0) => "hung_up".into(),
+        Ok(0) => "disconnected".into(),
+        Err(e) if e.kind() == std::io::ErrorKind::ConnectionReset => "disconnected".into(),
         Ok(n) => {
             // report only the type byte and the status when present: everything
             // else carries random ids

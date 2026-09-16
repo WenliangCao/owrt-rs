@@ -56,11 +56,16 @@ pub struct PendingCmd {
     pub next: Option<Vec<u8>>,
 }
 
-enum ReadState {
-    /// Filling the 12-byte prefix.
-    Prefix { got: usize },
-    /// Prefix complete; filling `blob` from `got` bytes onward.
-    Body { got: usize },
+/// Read-ahead room per connection. A frame that does not fit is finished
+/// straight into its own storage.
+const RX_SIZE: usize = 4096;
+
+/// A frame larger than the read-ahead buffer, being completed in place.
+struct LargeFrame {
+    header: Header,
+    blob: Vec<u8>,
+    got: usize,
+    fd: Option<OwnedFd>,
 }
 
 pub struct Client {
@@ -78,11 +83,24 @@ pub struct Client {
     txq_ofs: usize,
     /// Bytes still owed, which goes negative after a partial direct write.
     txq_len: i64,
-    prefix: [u8; PREFIX_LEN],
-    state: ReadState,
-    blob: Vec<u8>,
-    header: Header,
-    pending_fd: Option<OwnedFd>,
+    /// Read-ahead storage: one recvmsg takes everything the socket holds (up
+    /// to RX_SIZE) and complete frames are cut from it, so a message costs
+    /// one syscall and frames queued behind it need none. Allocated at the
+    /// first read.
+    rx: Vec<u8>,
+    rx_start: usize,
+    rx_end: usize,
+    /// Descriptors delivered with read-ahead bytes, keyed by the rx index one
+    /// past the recvmsg that carried them. A peer attaches a descriptor to
+    /// the sendmsg that begins its frame and the kernel ends a recvmsg after
+    /// the buffer carrying ancillary data, so the frame holding that last
+    /// byte owns the descriptor.
+    rx_fds: VecDeque<(usize, OwnedFd)>,
+    /// The last recvmsg returned less than the room offered, so the socket
+    /// was drained at that moment; the next read waits for readiness
+    /// instead of probing for EAGAIN.
+    rx_drained: bool,
+    large: Option<LargeFrame>,
     pub eof: bool,
     /// Whether the readiness set currently asks for output events on this
     /// socket. The loop keeps it equal to "something is queued".
@@ -104,11 +122,12 @@ impl Client {
             tx: VecDeque::new(),
             txq_ofs: 0,
             txq_len: 0,
-            prefix: [0; PREFIX_LEN],
-            state: ReadState::Prefix { got: 0 },
-            blob: Vec::new(),
-            header: Header { ty: 0, seq: 0, peer: 0 },
-            pending_fd: None,
+            rx: Vec::new(),
+            rx_start: 0,
+            rx_end: 0,
+            rx_fds: VecDeque::new(),
+            rx_drained: false,
+            large: None,
             eof: false,
             out_registered: false,
             in_registered: true,
@@ -286,76 +305,123 @@ impl Client {
     /// connection must be closed (protocol violation or socket error).
     pub fn read_message(&mut self) -> io::Result<Option<InMsg>> {
         loop {
-            match self.state {
-                ReadState::Prefix { got } => {
-                    // Only accept a descriptor while none is held undelivered,
-                    // mirroring the C control-buffer toggle.
-                    let want_fd = self.pending_fd.is_none();
-                    let (n, fd) = match sys::recvmsg_fd(self.fd(), &mut self.prefix[got..], want_fd)
-                    {
-                        Ok(v) => v,
-                        Err(e) if would_block(&e) => return Ok(None),
-                        Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                        Err(e) => return Err(e),
-                    };
-                    if let Some(fd) = fd {
-                        self.pending_fd = Some(fd);
-                    }
-                    if n == 0 {
-                        self.eof = true;
-                        return Ok(None);
-                    }
-                    let got = got + n;
-                    if got < PREFIX_LEN {
-                        self.state = ReadState::Prefix { got };
-                        return Ok(None);
-                    }
-
-                    let raw_len = blob_raw_len(&self.prefix[Header::LEN..]);
-                    if raw_len < 4 || pad4(raw_len) > MAX_MSGLEN {
-                        return Err(io::Error::new(io::ErrorKind::InvalidData, "bad message length"));
-                    }
-                    // ubusd_main.c never looks at hdr.version: it reads the
-                    // prefix, checks the blob length and dispatches on the type.
-                    // A client sending a nonzero version is served, not dropped.
-                    let p = &self.prefix;
-                    self.header = Header {
-                        ty: p[1],
-                        seq: u16::from_be_bytes([p[2], p[3]]),
-                        peer: u32::from_be_bytes([p[4], p[5], p[6], p[7]]),
-                    };
-                    self.blob = vec![0u8; raw_len];
-                    self.blob[..4].copy_from_slice(&self.prefix[Header::LEN..]);
-                    self.state = ReadState::Body { got: 4 };
+            if let Some(large) = &mut self.large {
+                let n = match sys::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
+                    Ok(v) => v,
+                    Err(e) if would_block(&e) => return Ok(None),
+                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                    Err(e) => return Err(e),
+                };
+                if n == 0 {
+                    self.eof = true;
+                    return Ok(None);
                 }
-                ReadState::Body { got } => {
-                    if got < self.blob.len() {
-                        let n = match sys::read_fd(self.fd(), &mut self.blob[got..]) {
-                            Ok(v) => v,
-                            Err(e) if would_block(&e) => return Ok(None),
-                            Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                            Err(e) => return Err(e),
-                        };
-                        if n == 0 {
-                            self.eof = true;
-                            return Ok(None);
-                        }
-                        let got = got + n;
-                        if got < self.blob.len() {
-                            self.state = ReadState::Body { got };
-                            return Ok(None);
-                        }
+                large.got += n;
+                if large.got < large.blob.len() {
+                    return Ok(None);
+                }
+                let done = self.large.take().expect("checked above");
+                return Ok(Some(InMsg { header: done.header, blob: done.blob, fd: done.fd }));
+            }
+            let buffered = self.rx_end - self.rx_start;
+            if buffered >= PREFIX_LEN {
+                let s = self.rx_start;
+                let raw_len = blob_raw_len(&self.rx[s + Header::LEN..]);
+                if raw_len < 4 || pad4(raw_len) > MAX_MSGLEN {
+                    return Err(io::Error::new(io::ErrorKind::InvalidData, "bad message length"));
+                }
+                // ubusd_main.c never looks at hdr.version: it reads the
+                // prefix, checks the blob length and dispatches on the type.
+                // A client sending a nonzero version is served, not dropped.
+                let p = &self.rx[s..s + Header::LEN];
+                let header = Header {
+                    ty: p[1],
+                    seq: u16::from_be_bytes([p[2], p[3]]),
+                    peer: u32::from_be_bytes([p[4], p[5], p[6], p[7]]),
+                };
+                let total = Header::LEN + raw_len;
+                if total > RX_SIZE {
+                    let mut blob = vec![0u8; raw_len];
+                    let have = buffered - Header::LEN;
+                    blob[..have].copy_from_slice(&self.rx[s + Header::LEN..self.rx_end]);
+                    let fd = self.rx_take_fd(s, s + total);
+                    self.rx_reset();
+                    self.large = Some(LargeFrame { header, blob, got: have, fd });
+                    continue;
+                }
+                if buffered >= total {
+                    let blob = self.rx[s + Header::LEN..s + total].to_vec();
+                    let fd = self.rx_take_fd(s, s + total);
+                    self.rx_start = s + total;
+                    if self.rx_start == self.rx_end {
+                        self.rx_reset();
                     }
-                    self.state = ReadState::Prefix { got: 0 };
-                    let blob = std::mem::take(&mut self.blob);
-                    return Ok(Some(InMsg {
-                        header: self.header,
-                        blob,
-                        fd: self.pending_fd.take(),
-                    }));
+                    return Ok(Some(InMsg { header, blob, fd }));
                 }
             }
+            if self.rx_drained {
+                // Nothing more was available at the last read; a readiness
+                // event announces the rest.
+                self.rx_drained = false;
+                return Ok(None);
+            }
+            match self.rx_fill() {
+                Ok(true) => {}
+                Ok(false) => return Ok(None),
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e) => return Err(e),
+            }
         }
+    }
+
+    /// One recvmsg into the read-ahead buffer. Ok(false): nothing to read
+    /// now, or the peer closed (`eof` is set).
+    fn rx_fill(&mut self) -> io::Result<bool> {
+        if self.rx.is_empty() {
+            self.rx = vec![0u8; RX_SIZE];
+        }
+        if self.rx_end == RX_SIZE {
+            self.rx.copy_within(self.rx_start..self.rx_end, 0);
+            for (mark, _) in &mut self.rx_fds {
+                *mark -= self.rx_start;
+            }
+            self.rx_end -= self.rx_start;
+            self.rx_start = 0;
+        }
+        let room = RX_SIZE - self.rx_end;
+        match sys::recvmsg_fd(self.sock.as_raw_fd(), &mut self.rx[self.rx_end..], true) {
+            Ok((0, _)) => {
+                self.eof = true;
+                Ok(false)
+            }
+            Ok((n, fd)) => {
+                self.rx_end += n;
+                if let Some(fd) = fd {
+                    self.rx_fds.push_back((self.rx_end, fd));
+                }
+                self.rx_drained = n < room;
+                Ok(true)
+            }
+            Err(e) if would_block(&e) => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn rx_reset(&mut self) {
+        self.rx_start = 0;
+        self.rx_end = 0;
+        self.rx_fds.clear();
+    }
+
+    /// The descriptor owned by the frame spanning rx indices `start..end`.
+    fn rx_take_fd(&mut self, start: usize, end: usize) -> Option<OwnedFd> {
+        while self.rx_fds.front().is_some_and(|(mark, _)| *mark <= start) {
+            self.rx_fds.pop_front();
+        }
+        if self.rx_fds.front().is_some_and(|(mark, _)| *mark <= end) {
+            return self.rx_fds.pop_front().map(|(_, fd)| fd);
+        }
+        None
     }
 }
 
