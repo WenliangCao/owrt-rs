@@ -12,6 +12,7 @@
 mod bridge;
 mod auth;
 mod cgi;
+mod fast;
 mod files;
 mod http;
 mod tls;
@@ -446,7 +447,11 @@ struct Parked {
     conn: Conn,
     /// End of the keep-alive wait that began when the last response was
     /// sent (uh_keepalive_poll_cb's timer). The head deadline resumes here.
+    /// While a fastpath reply is draining, this is its write deadline.
     deadline: Instant,
+    /// A committed inline response the socket has not fully accepted yet
+    /// (fast.rs). The listener holds POLLOUT interest until it drains.
+    writing: Option<fast::PendingReply>,
 }
 
 /// Where connection threads leave parked connections for their listener.
@@ -587,7 +592,7 @@ impl Server {
                     }
                     // No byte was read, so no read-ahead is lost with the reader.
                     let transport = client.into_inner().into_inner();
-                    parking.park(Parked { transport, conn, deadline: head_deadline });
+                    parking.park(Parked { transport, conn, deadline: head_deadline, writing: None });
                     return Outcome::Parked;
                 }
                 Ok(ParseOutcome::Bad { code, summary, version, body }) => {
@@ -854,6 +859,10 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
     let mut next_token: u64 = 0;
     let mut listening = false;
     let mut ready: Vec<Ready> = Vec::new();
+    // Bounded working storage for inline service of parked connections.
+    let mut scratch = fast::Scratch::default();
+    let keepalive = Duration::from_secs(u64::from(server.config.http_keepalive).max(1));
+    let write_budget = Duration::from_secs(server.config.network_timeout.max(1));
     loop {
         for p in parking.inbox.lock().unwrap_or_else(|e| e.into_inner()).drain(..) {
             let token = next_token;
@@ -909,9 +918,65 @@ fn accept_loop(server: Arc<Server>, listener: TcpListener, tls: Option<Arc<rustl
                 }
                 TOKEN_LISTENER => accept_ready = r.revents & owrt_ubus::sys::POLLIN != 0,
                 token => {
-                    if let Some(p) = parked.remove(&token) {
-                        let _ = poller.remove(p.conn.fd);
-                        resume(&server, &parking, p);
+                    // Serve eligible requests here, on the thread that already
+                    // owns the socket's registration: no epoll DEL/ADD, no
+                    // handoff wake, no fresh reader per parked request.
+                    let (event, was_writing) = {
+                        let writing = parked.values().filter(|q| q.writing.is_some()).count();
+                        let Some(p) = parked.get_mut(&token) else { continue };
+                        if !fast::wants_inline(p) {
+                            // TLS keeps its existing resume path whole.
+                            let p = parked.remove(&token).expect("checked above");
+                            let _ = poller.remove(p.conn.fd);
+                            resume(&server, &parking, p);
+                            continue;
+                        }
+                        let was_writing = p.writing.is_some();
+                        let event = if was_writing {
+                            fast::on_writable(p, &mut scratch)
+                        } else {
+                            fast::on_readable(&server, p, &mut scratch, writing)
+                        };
+                        (event, was_writing)
+                    };
+                    match event {
+                        fast::Event::Spurious => {}
+                        fast::Event::Writing => {
+                            let p = parked.get_mut(&token).expect("entry retained");
+                            if !was_writing {
+                                p.deadline = Instant::now() + write_budget;
+                                if poller.set_interest(p.conn.fd, token, false, true).is_err() {
+                                    // Cannot watch for output: drop the reply.
+                                    let p = parked.remove(&token).expect("entry retained");
+                                    let _ = poller.remove(p.conn.fd);
+                                    server.release_connection();
+                                }
+                            }
+                        }
+                        fast::Event::Served => {
+                            let p = parked.get_mut(&token).expect("entry retained");
+                            p.deadline = Instant::now() + keepalive;
+                            if was_writing
+                                && poller.set_interest(p.conn.fd, token, true, false).is_err()
+                            {
+                                let p = parked.remove(&token).expect("entry retained");
+                                let _ = poller.remove(p.conn.fd);
+                                server.release_connection();
+                            }
+                        }
+                        fast::Event::ServedClose | fast::Event::Close => {
+                            if let Some(p) = parked.remove(&token) {
+                                let _ = poller.remove(p.conn.fd);
+                                drop(p);
+                                server.release_connection();
+                            }
+                        }
+                        fast::Event::Handoff => {
+                            if let Some(p) = parked.remove(&token) {
+                                let _ = poller.remove(p.conn.fd);
+                                spawn_connection(&server, &parking, p.transport, p.conn, Some(p.deadline));
+                            }
+                        }
                     }
                 }
             }
@@ -1093,6 +1158,10 @@ fn spawn_connection(server: &Arc<Server>, parking: &Arc<Parking>, transport: Tra
 #[cfg(test)]
 #[path = "worker_cache_tests.rs"]
 mod worker_cache_tests;
+
+#[cfg(test)]
+#[path = "fast_tests.rs"]
+mod fast_tests;
 
 fn set_tcp_keepalive(fd: RawFd, interval: u64) {
     if interval == 0 { return; }
