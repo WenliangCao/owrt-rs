@@ -1,9 +1,11 @@
 use crate::process::{self, WaitResult};
-use crate::{trace::Trace, unix};
-use std::collections::{BTreeMap, HashMap, HashSet};
+use crate::{md5, trace::Trace, unix};
+use owrt_uci::show::{self, Show};
+use owrt_uci::Context;
+use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
@@ -13,16 +15,11 @@ use std::time::Duration;
 
 const MAX_CONFIG_ENTRIES: usize = 4096;
 const MAX_BASELINE_BYTES: u64 = (MAX_CONFIG_ENTRIES * 320) as u64;
-/// md5sum prints one `<32 hex>  <path>` line per file, so its output is bounded
-/// by the same budget as the baseline it becomes.
-const MAX_COMMAND_OUTPUT_BYTES: usize = MAX_BASELINE_BYTES as usize;
 
 #[derive(Debug)]
 pub enum Error {
     Io(&'static str, io::Error),
     InvalidInput(String),
-    Dependency(String),
-    Timeout(String),
     Cancelled,
 }
 
@@ -31,8 +28,6 @@ impl std::fmt::Display for Error {
         match self {
             Self::Io(context, error) => write!(formatter, "{context}: {error}"),
             Self::InvalidInput(message) => write!(formatter, "invalid input: {message}"),
-            Self::Dependency(message) => write!(formatter, "dependency failure: {message}"),
-            Self::Timeout(message) => write!(formatter, "dependency timeout: {message}"),
             Self::Cancelled => write!(formatter, "cancelled"),
         }
     }
@@ -59,16 +54,6 @@ pub struct RunOutcome {
 struct BaselineEntry {
     digest: String,
     name: OsString,
-}
-
-struct CheckDirectory {
-    path: PathBuf,
-}
-
-impl Drop for CheckDirectory {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.path);
-    }
 }
 
 struct RunLock {
@@ -106,47 +91,41 @@ pub fn run<W: Write>(
     fs::create_dir_all(run_dir).map_err(|error| Error::Io("create /var/run", error))?;
     let _lock = RunLock::acquire(&settings.path("/var/run/reload-config-rs.lock"), cancelled)?;
 
-    let check_path = settings.path("/var/run/config.check");
-    if check_path.exists() {
-        fs::remove_dir_all(&check_path)
-            .map_err(|error| Error::Io("remove stale config.check", error))?;
-    }
-    fs::create_dir_all(&check_path).map_err(|error| Error::Io("create config.check", error))?;
-    let _check_guard = CheckDirectory {
-        path: check_path.clone(),
-    };
-
+    // The shell writes each `uci show` into /var/run/config.check/<name> and
+    // hashes the files; the normalized bytes never need to touch the disk, so
+    // there is no scratch directory here.  Only /var/run/config.md5 is a
+    // contract output (C1-01 section 5).
     let names = scan_config_names(settings)?;
     let mut current = HashMap::with_capacity(names.len());
-    let mut normalized: Vec<(OsString, PathBuf)> = Vec::with_capacity(names.len());
+    // One uci context for the round, the way `uci show` with no argument walks
+    // every package in one process.  Packages stay loaded until exit instead
+    // of being freed after each one: the same bytes come out, and mallocng
+    // stops handing whole groups back to the kernel between packages (the
+    // per-package free/munmap/mmap churn was a third of the round's syscalls).
+    let mut ctx = Context::new();
+    ctx.set_confdir(&settings.path("/etc/config").to_string_lossy());
+    ctx.set_conf2dir(&settings.path("/var/run/uci").to_string_lossy());
     for name in &names {
         if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
             return Err(Error::Cancelled);
         }
-        let output = check_path.join(name);
-        if let Some(status) = normalize(settings, name, &output, cancelled)? {
+        let (output, status) = normalize(&mut ctx, name);
+        if let Some(status) = status {
             trace
                 .normalization(&name.to_string_lossy(), &status)
                 .map_err(|error| Error::Io("write normalization trace", error))?;
         }
-        normalized.push((name.clone(), output));
-    }
-    // One md5sum over every normalized file, as the shell script does
-    // (`md5sum /var/run/config.check/*`), instead of one process per package.
-    let digests = md5_all(settings, &normalized, cancelled)?;
-    for (name, output) in &normalized {
-        // A digest can only be missing when the name breaks md5sum's line
-        // format (a newline in a config filename). The shell copies md5sum's
-        // broken output into the baseline verbatim and keeps going, so the
-        // entry is dropped here rather than failing the round.
-        match digests.get(output) {
-            Some(digest) => {
-                current.insert(name.clone(), digest.clone());
-            }
-            None => trace
+        // md5sum printed `<digest>  /var/run/config.check/<name>`; a newline in
+        // the name split that line and the entry was lost from the baseline.
+        // The shell copies md5sum's broken output verbatim and keeps going,
+        // so the entry is dropped here rather than failing the round.
+        if name.as_bytes().contains(&b'\n') {
+            trace
                 .normalization(&name.to_string_lossy(), "no_digest")
-                .map_err(|error| Error::Io("write normalization trace", error))?,
+                .map_err(|error| Error::Io("write normalization trace", error))?;
+            continue;
         }
+        current.insert(name.clone(), md5::hex(&output));
     }
 
     let baseline_path = settings.path("/var/run/config.md5");
@@ -239,109 +218,19 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<OsString>, Error> {
     Ok(names)
 }
 
-/// The shell's `uci show "$file" > /var/run/config.check/$file 2>/dev/null`:
-/// the exit status is ignored and whatever landed in the file is what gets
-/// hashed. Returns the status label for the trace, or None when uci succeeded.
-fn normalize(
-    settings: &Settings,
-    name: &OsStr,
-    output: &Path,
-    cancelled: &AtomicBool,
-) -> Result<Option<String>, Error> {
-    let file =
-        File::create(output).map_err(|error| Error::Io("create normalized output", error))?;
-    let mut command = Command::new("uci");
-    command
-        .arg("-c")
-        .arg(settings.path("/etc/config"))
-        .arg("-C")
-        .arg(settings.path("/var/run/uci"))
-        .arg("show")
-        .arg(name)
-        .stdout(Stdio::from(file))
-        .stderr(Stdio::null());
-    let mut child = command
-        .spawn()
-        .map_err(|error| Error::Dependency(format!("spawn uci for {name:?}: {error}")))?;
-    match process::wait(&mut child, settings.timeout, cancelled)
-        .map_err(|error| Error::Io("wait for uci", error))?
-    {
-        WaitResult::Exited(status) if status.success() => Ok(None),
-        WaitResult::Exited(status) => Ok(Some(format_exit(status.code()))),
-        // The shell has no timeout and simply waits, so it dispatches the rest
-        // of the round; aborting here left every later package without an
-        // event and the baseline unwritten. The killed child is treated like
-        // any other failing `uci show`: the partial file is what gets hashed.
-        WaitResult::TimedOut => Ok(Some("timeout".into())),
-        WaitResult::Cancelled => Err(Error::Cancelled),
-    }
-}
-
-fn md5_all(
-    settings: &Settings,
-    files: &[(OsString, PathBuf)],
-    cancelled: &AtomicBool,
-) -> Result<BTreeMap<PathBuf, String>, Error> {
-    let mut digests = BTreeMap::new();
-    if files.is_empty() {
-        return Ok(digests);
-    }
-    let mut command = Command::new("md5sum");
-    for (_, path) in files {
-        command.arg(path);
-    }
-    let mut child = command
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|error| Error::Dependency(format!("spawn md5sum: {error}")))?;
-    let mut stdout = child
-        .stdout
-        .take()
-        .ok_or_else(|| Error::Dependency("md5sum stdout unavailable".into()))?;
-    // read while the child runs: 19 lines fit the pipe, larger sets must not deadlock
+/// The shell's `uci show "$file" > /var/run/config.check/$file 2>/dev/null`,
+/// rendered in-process by the uci library: the same lookup and the same
+/// printer the CLI uses, so the bytes are what `uci show <name>` prints
+/// (contract C-06), including the empty output for a dotted name whose tuple
+/// does not resolve (C-03).  Deltas under /tmp/.uci apply as in the CLI.  Any
+/// failure is what `uci` exits 1 for, so the entry is empty and traced as
+/// `exit_1`.
+fn normalize(ctx: &mut Context, name: &OsStr) -> (Vec<u8>, Option<String>) {
     let mut output = Vec::new();
-    stdout
-        .by_ref()
-        .take((MAX_COMMAND_OUTPUT_BYTES + 1) as u64)
-        .read_to_end(&mut output)
-        .map_err(|error| Error::Io("read md5sum output", error))?;
-    let status = process::wait(&mut child, settings.timeout, cancelled)
-        .map_err(|error| Error::Io("wait for md5sum", error))?;
-    match status {
-        WaitResult::TimedOut => return Err(Error::Timeout("md5sum".into())),
-        WaitResult::Cancelled => return Err(Error::Cancelled),
-        WaitResult::Exited(status) if !status.success() => {
-            return Err(Error::Dependency(format!("md5sum exited {status}")))
-        }
-        WaitResult::Exited(_) => {}
+    match show::tuple(ctx, name.as_bytes(), &mut Show::new(true, b" "), &mut output) {
+        Ok(()) => (output, None),
+        Err(_) => (output, Some("exit_1".into())),
     }
-    if output.len() > MAX_COMMAND_OUTPUT_BYTES {
-        return Err(Error::Dependency("md5sum output exceeded limit".into()));
-    }
-    // Paths are not UTF-8 in general, so the output is split on bytes. A path
-    // containing a newline splits md5sum's own line, exactly as it does in the
-    // shell's `md5sum ... > config.md5`; those fragments simply do not match a
-    // digest and are skipped rather than failing the round.
-    for line in output.split(|&byte| byte == b'\n') {
-        if line.len() < 35 {
-            continue;
-        }
-        let (digest, rest) = line.split_at(32);
-        let Ok(digest) = std::str::from_utf8(digest) else {
-            continue;
-        };
-        if !digest.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-            continue;
-        }
-        let path = rest.strip_prefix(b"  ").unwrap_or(rest);
-        let path = path.strip_prefix(b"*").unwrap_or(path);
-        digests.insert(
-            PathBuf::from(OsStr::from_bytes(path)),
-            digest.to_ascii_lowercase(),
-        );
-    }
-    Ok(digests)
 }
 
 enum Delivery {
@@ -489,10 +378,6 @@ fn write_baseline(
     result
 }
 
-
-fn format_exit(code: Option<i32>) -> String {
-    code.map_or_else(|| "signal".into(), |value| format!("exit_{value}"))
-}
 
 #[cfg(test)]
 mod tests {

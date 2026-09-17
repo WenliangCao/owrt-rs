@@ -1,8 +1,11 @@
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
+// the pidfd child wait is Linux-only; smoke builds elsewhere just have to compile
+#![cfg_attr(not(target_os = "linux"), allow(dead_code, unused_imports))]
 
 mod engine;
 mod json;
+mod md5;
 mod process;
 mod syslog;
 mod trace;
@@ -108,15 +111,15 @@ fn main() {
         Ok(_) => EX_DELIVERY,
         Err(error) => {
             let class = match error {
-                Error::Cancelled | Error::Timeout(_) => "temporary",
+                Error::Cancelled => "temporary",
                 Error::InvalidInput(_) => "input",
-                Error::Io(_, _) | Error::Dependency(_) => "dependency",
+                Error::Io(_, _) => "dependency",
             };
             let _ = trace.fatal(class, &error.to_string());
             match error {
-                Error::Cancelled | Error::Timeout(_) => EX_TEMPFAIL,
+                Error::Cancelled => EX_TEMPFAIL,
                 Error::InvalidInput(_) => EX_USAGE,
-                Error::Io(_, _) | Error::Dependency(_) => EX_SOFTWARE,
+                Error::Io(_, _) => EX_SOFTWARE,
             }
         }
     };

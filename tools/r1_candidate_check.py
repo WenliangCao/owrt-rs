@@ -238,13 +238,25 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     finally:
         hidden_uci.rename(uci)
     fatal = trace_of_kind(missing_uci, "fatal")
-    missing_ok = (
+    # A candidate that spawns `uci show` must fail closed without it (exit 70,
+    # a dependency fatal, baseline untouched).  A candidate that normalizes
+    # in-process with the uci library (R94) does not depend on /sbin/uci at all
+    # and must therefore behave exactly as with uci present: the pending alpha
+    # change is dispatched and the baseline advances.
+    child_missing_ok = (
         missing_uci["exit_status"] == 70
         and missing_uci["baseline"] == before
         and not missing_uci["deliveries"]
         and len(fatal) == 1
         and fatal[0]["class"] == "dependency"
     )
+    inprocess_missing_ok = (
+        missing_uci["exit_status"] == 0
+        and [item["package"] for item in missing_uci["deliveries"]] == ["alpha"]
+        and missing_uci["baseline"] != before
+        and not fatal
+    )
+    missing_ok = child_missing_ok or inprocess_missing_ok
     results.append(
         {
             "id": "f02-missing-uci-is-visible-and-preserves-baseline",
@@ -252,6 +264,7 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
             "exit_status": missing_uci["exit_status"],
             "baseline_unchanged": missing_uci["baseline"] == before,
             "fatal_class": fatal[0]["class"] if len(fatal) == 1 else None,
+            "normalizer": "in-process" if inprocess_missing_ok else "child",
             "passed": missing_ok,
         }
     )
@@ -537,8 +550,11 @@ def run_f26_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     real = root / "sbin/uci"
     hidden = root / "sbin/uci.r1-slow-hidden"
     real.rename(hidden)
+    invoked_marker = root / "tmp/r1-slow-uci-invoked"
+    invoked_marker.unlink(missing_ok=True)
     real.write_text(
         "#!/bin/sh\n"
+        ": > /tmp/r1-slow-uci-invoked\n"
         "for a in \"$@\"; do case \"$a\" in alpha) sleep 3;; esac; done\n"
         "exec /sbin/uci.r1-slow-hidden \"$@\"\n"
     )
@@ -548,10 +564,15 @@ def run_f26_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     finally:
         real.unlink()
         hidden.rename(real)
+    shim_invoked = invoked_marker.exists()
+    invoked_marker.unlink(missing_ok=True)
     normalizations = [item["status"] for item in trace_of_kind(slow, "normalization")]
+    # A candidate that spawns `uci show` must kill the hung child, trace the
+    # timeout and finish the round.  One that normalizes in-process never runs
+    # the shim (the marker stays absent) and simply finishes the round.
     slow_ok = (
         slow["exit_status"] == 0
-        and "timeout" in normalizations
+        and ("timeout" in normalizations or not shim_invoked)
         and any(item["kind"] == "complete" for item in slow["traces"])
         and slow["baseline_bytes"] != b""
     )
@@ -560,6 +581,7 @@ def run_f26_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
             "id": "f09-killed-uci-show-does-not-abort-the-round",
             "exit_status": slow["exit_status"],
             "normalization_statuses": normalizations,
+            "uci_shim_invoked": shim_invoked,
             "baseline_rewritten": slow["baseline_bytes"] != b"",
             "passed": slow_ok,
         }
