@@ -13,6 +13,7 @@ pub mod file;
 pub mod model;
 pub mod ops;
 pub mod parse;
+pub mod show;
 mod read_cache;
 pub mod sys;
 

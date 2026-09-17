@@ -9,9 +9,10 @@ use owrt_uci::delta;
 use owrt_uci::error::Error;
 use owrt_uci::export;
 use owrt_uci::file;
-use owrt_uci::model::{Cmd, OptionValue, Package, Ptr, Section};
+use owrt_uci::model::{Cmd, Package, Ptr};
 use owrt_uci::ops;
 use owrt_uci::parse::{self, Pctx};
+use owrt_uci::show;
 use std::io::{self, BufRead, BufReader, Write};
 
 const MAX_ARGS: usize = 4;
@@ -58,8 +59,6 @@ struct Cli {
     /// `-f FILE`, or stdin opened on first use (batch / import only)
     input: Option<Box<dyn BufRead>>,
     /// uci_lookup_section_ref state: (type, idx) list and current ref
-    type_list: Vec<(String, u32)>,
-    cur_section_ref: Option<String>,
     /// feof(input) as seen by uci_batch
     batch_eof: bool,
     /// the surviving `ctx->pctx` of uci_batch_cmd (see Pctx::carry)
@@ -83,34 +82,6 @@ fn strerror_str(e: &io::Error) -> String {
 }
 
 impl Cli {
-    fn uci_reset_typelist(&mut self) {
-        self.type_list.clear();
-        self.cur_section_ref = None;
-    }
-
-    /// uci_lookup_section_ref
-    fn uci_lookup_section_ref(&mut self, s: &Section) -> String {
-        if self.flags & FLAG_SHOW_EXT == 0 {
-            return s.name.clone();
-        }
-        let ti = match self.type_list.iter().position(|(t, _)| *t == s.ty) {
-            Some(i) => i,
-            None => {
-                // new entries are pushed at the list head in C; order is
-                // irrelevant for lookups
-                self.type_list.push((s.ty.clone(), 0));
-                self.type_list.len() - 1
-            }
-        };
-        let ret = if s.anonymous {
-            format!("@{}[{}]", self.type_list[ti].0, self.type_list[ti].1)
-        } else {
-            s.name.clone()
-        };
-        self.type_list[ti].1 += 1;
-        ret
-    }
-
     fn usage(&self) {
         eprint!(
             "Usage: {} [<options>] <command> [<arguments>]\n\n\
@@ -165,73 +136,6 @@ Options:\n\
         eprint!("{msg}");
     }
 
-    fn print_value(out: &mut impl Write, v: &[u8]) {
-        let _ = out.write_all(b"'");
-        for &c in v {
-            if c != b'\'' {
-                let _ = out.write_all(&[c]);
-            } else {
-                let _ = out.write_all(b"'\\''");
-            }
-        }
-        let _ = out.write_all(b"'");
-    }
-
-    /// uci_show_value
-    fn show_value(&self, out: &mut impl Write, value: &OptionValue, quote: bool) {
-        match value {
-            OptionValue::Str(s) => {
-                if quote {
-                    Self::print_value(out, s);
-                } else {
-                    let _ = out.write_all(s);
-                }
-                let _ = out.write_all(b"\n");
-            }
-            OptionValue::List(items) => {
-                let mut sep = false;
-                for item in items {
-                    if sep {
-                        let _ = out.write_all(self.delimiter.as_bytes());
-                    }
-                    let space = item.iter().any(|&b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'));
-                    if !space && !quote {
-                        let _ = out.write_all(item);
-                    } else {
-                        Self::print_value(out, item);
-                    }
-                    sep = true;
-                }
-                let _ = out.write_all(b"\n");
-            }
-        }
-    }
-
-    fn show_option(&self, out: &mut impl Write, p: &Package, s: &Section, oidx: usize, quote: bool) {
-        let o = &s.options[oidx];
-        let sname = self.cur_section_ref.as_deref().unwrap_or(&s.name);
-        let _ = write!(out, "{}.{}.{}=", p.name, sname, o.name);
-        self.show_value(out, &o.value, quote);
-    }
-
-    fn show_section(&self, out: &mut impl Write, p: &Package, s: &Section) {
-        let sname = self.cur_section_ref.as_deref().unwrap_or(&s.name);
-        let _ = writeln!(out, "{}.{}={}", p.name, sname, s.ty);
-        for i in 0..s.options.len() {
-            self.show_option(out, p, s, i, true);
-        }
-    }
-
-    fn show_package(&mut self, out: &mut impl Write, pidx: usize) {
-        self.uci_reset_typelist();
-        let p = self.ctx.root[pidx].clone();
-        for s in &p.sections {
-            self.cur_section_ref = Some(self.uci_lookup_section_ref(s));
-            self.show_section(out, &p, s);
-        }
-        self.uci_reset_typelist();
-    }
-
     fn show_changes(&self, out: &mut impl Write, p: &Package) {
         for h in &p.saved_delta {
             let (prefix, op) = match h.cmd {
@@ -246,7 +150,7 @@ Options:\n\
             }
             if h.cmd != Cmd::Remove {
                 let _ = out.write_all(op.as_bytes());
-                Self::print_value(out, h.value.as_deref().unwrap_or(b""));
+                show::print_value(out, h.value.as_deref().unwrap_or(b""));
             }
             let _ = out.write_all(b"\n");
         }
@@ -318,14 +222,14 @@ Options:\n\
                         return ret;
                     }
                     let pidx = ptr.p.expect("package");
+                    let mut show = show::Show::new(self.flags & FLAG_SHOW_EXT != 0, self.delimiter.as_bytes());
+                    let p = &self.ctx.root[pidx];
                     if let (Some(sidx), Some(oidx)) = (ptr.s, ptr.o) {
-                        let p = self.ctx.root[pidx].clone();
-                        self.show_option(&mut out, &p, &p.sections[sidx], oidx, true);
+                        show.option(&mut out, p, &p.sections[sidx], oidx, true);
                     } else if let Some(sidx) = ptr.s {
-                        let p = self.ctx.root[pidx].clone();
-                        self.show_section(&mut out, &p, &p.sections[sidx]);
+                        show.section(&mut out, p, &p.sections[sidx]);
                     } else {
-                        self.show_package(&mut out, pidx);
+                        show.package(&mut out, p);
                     }
                 }
                 _ => {}
@@ -481,7 +385,7 @@ Options:\n\
                 let mut out = stdout.lock();
                 if let (Some(sidx), Some(oidx)) = (ptr.s, ptr.o) {
                     let v = p.sections[sidx].options[oidx].value.clone();
-                    self.show_value(&mut out, &v, false);
+                    show::Show::new(self.flags & FLAG_SHOW_EXT != 0, self.delimiter.as_bytes()).value(&mut out, &v, false);
                 } else if let Some(sidx) = ptr.s {
                     let _ = writeln!(out, "{}", p.sections[sidx].ty);
                 }
@@ -695,8 +599,6 @@ fn run(raw: Vec<Arg>) -> ! {
         delimiter: " ".into(),
         appname: appname.clone(),
         input: None,
-        type_list: Vec::new(),
-        cur_section_ref: None,
         batch_eof: false,
         batch_carry: None,
     };
