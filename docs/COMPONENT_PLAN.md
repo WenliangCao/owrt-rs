@@ -48,7 +48,7 @@
 | ☐ | procd | 全胜 | 8 条负载 CPU 系统性高 1.5–6.2%（service_list_32_c4 +6.2%、named_128_c4 +5.9%、system_info_c4 +2.5%） | service list 序列化/对象遍历热路径 |
 | ☐ | ubusd | lookup_all_64/128 延迟 786/1549 vs 775/1510（CPU 更低） | 多条 lookup 延迟高 0.9–2.5% | lookup 全表遍历与回复分帧（R93 pathless/borrow 候选未合入） |
 | ☐ | netifd | 全胜 | wireless_status CPU +6.0%/延迟 +1.9%；interface_dump_c4 CPU +3.1%；device_status_c4/lan_status_c4/device_status_all_c4 延迟 +2.5–3.1% | wireless status 拼装、并发下 blob 构建 |
-| ☐ | fw4 | 全胜（print −89%，check −58% CPU） | check 延迟 +1.24%（四轮重叠） | 归因 check 执行链墙钟；否则打勾 |
+| ✅ | fw4 | R94 实机全胜（print 延迟 −95.8%、CPU −96.7%；check −63.3%/−87.5%） | R94 实机 2/2 双优，四项范围不重叠（print 延迟 −61.9%、CPU −66.3%；check −8.4%/−32.7%） | 完成（候选 `3be616b0`，未部署） |
 | ☐ | uci | 全胜 | 全胜（CPU 四轮范围不重叠） | 仅需实机复核大配置/异常输入即可打勾 |
 | ☐ | reload-config | 全胜 | 26270 vs 26420 µs（重叠，不宣布稳定胜出） | 覆盖改动传播场景后打勾 |
 
@@ -157,11 +157,11 @@ F10 radio setup 中 reload 丢配置；F11 reload 对非 DOWN 接口 set_down �
 F14 有不支持段时所有 reload 返回 INVALID_ARGUMENT。R88 F1 reload 删除接口不跑 teardown。R90 生命周期批（F2–F5/F10–F12）；R91 日志通道。
 R92 netlink 界限。R93 重连注册固定对象与全部接口对象全成功才切回在线。开放：F7 netlink 溢出恢复、F9 全局 restart/re-exec。
 
-## fw4 ☐
+## fw4 ✅
 
 **实机差距（R93）**：print/check CPU 9300/19650 vs C 96000/107650、R89 9500/19900；check 延迟 61084 vs R89 60335（+1.24%，四轮重叠）。
 
-**提示**：CPU 更低而墙钟更高 → 执行链里有等待（子进程/nft 调用序列），不是规则生成算法；归因后大概率直接打勾。
+**R94 结果（2026-09-17，候选 `3be616b0`，`docs/reviews/R94_FW4_KERNEL_QUERY_NOCLONE.md`）**：先量再改。strace 时间线：一次 print 一半在等 `sh -c nft --json list flowtables inet` 子进程，只为一个布尔；uprobe 堆剖析：每次 print 2 075 次 malloc，81% ≤32 字节，按调用链归属后大半是复制（`Opts` 每次取值 `.cloned()`、`load()` 逐节克隆、渲染克隆 zone/helper/ipset、`defaults()` 返回克隆）。两项改动：① `NFT_MSG_GETFLOWTABLE` 不带 ACK 直接问内核，恰好一个回复数据报，5 次系统调用替掉两次 execve，任何非干净回答回退 nft；② 解析/渲染零拷贝（`Rc<Config>`、借用选项值、消费 Package、`&Defaults`、就地写 includes/set、ASCII `parse_enum`），malloc 2 075→1 140，系统调用 303→142。实机三侧四轮：print p50 4 109 vs R89 10 778 vs C 98 843，CPU 3 200 vs 9 500 vs 95 850；check p50 54 939 vs 59 977 vs 149 642，CPU 13 400 vs 19 900 vs 107 300；四项范围全部不重叠。门 7/7（unit 17、clippy、上游 31/31、r29 200 例 0 差异、r83 12 例、镜像、R92 兼容）+ 两态 flowtable 差分逐字节相同。**前一轮（自定义分配器，`4624414b`）被否决并从分支移除**，仅留 `refs/discarded/fw4-opus-r94`；本轮 print 比它慢约 0.5 ms，差额是留在 mallocng 里的约 1 100 次数据分配（owrt_uci 解析器 ~230、ubus→JSON ~115 在共享 crate 里，可作下一目标）。
 
 **已修复缺陷**：R81 F17 `config defaults` 非法选项渲染 `policy null;`。Round 5 warnings 按 ucode 字符串化列表。
 R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` 仍输出。R92 input/emit/render/sections 修复。开放：F3/F5–F11 退出码与用法/警告文本边界。
@@ -193,3 +193,4 @@ R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` �
 - 2026-09-16 实机窗口（全 C 生产栈，namespace 三侧四轮）：logd 终版 24 观测全胜 C/R89，**logd 完成**；httpd 紧密矩阵 192 观测全部低于 C、与 R89 逐轮重叠持平；httpd 间隔驱动因恢复门 boot_id 过期停止，重生成恢复门后重跑。给 `run_candidate.py`/`r93_http_gap.py` 加 `--stack stock`（路由器回滚到 C 后驱动仍可跑）。
 - 2026-09-16 httpd 实机停放间隔四轮完成：五档 CPU/延迟全部低于 C，60/80 ms 比 R89 低 66–68%，其余与 R89 1 tick 内；快路径目标闭合。紧密矩阵仍与 R89 持平，httpd 标为「停放 ✅ / 紧密 ☐」，紧密路径为下一轮目标。
 - 2026-09-16 httpd 紧密路径攻坚：每静态响应 syscall 10→4（固定 50 ms 接收超时 + ReadWait、精确 Content-Length、直接 openat、每线程 fd 复用）、lookup 分配 4→1。第三轮 poll 头等待让 jsonrpc_c4 退步 10%，第四轮改固定超时消除。实机终验：紧密 10 条静态低于 R89 14–31%、停放五档低 20–70%，全部低于 C；10 项门全绿。**httpd 完成打勾。**
+- 2026-09-17 fw4 R94（重做）：否决并移除前一轮的自定义分配器方案；内核 flowtable 判定 + 解析/渲染零拷贝。Oracle 门 7/7，print 1 042 µs vs R89 2 591；实机三侧四轮 print/check 延迟与 CPU 四项全部低于 C 与 R89、范围不重叠。**fw4 完成打勾。**
