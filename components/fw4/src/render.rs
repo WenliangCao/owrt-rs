@@ -494,6 +494,13 @@ impl Fw4 {
     }
 
     pub fn check_flowtable(&self) -> bool {
+        // The kernel answers the predicate directly; the nft child stays the
+        // fallback (and the only path under the mock backend's fixtures).
+        if !self.inputs.is_mock() {
+            if let Some(exists) = crate::flowtable::exists("fw4", "ft") {
+                return exists;
+            }
+        }
         self.nft_json_command("list flowtables inet").iter().any(|item| {
             item.get("flowtable").map(|f| {
                 f.get("table").and_then(Json::as_str) == Some("fw4") && f.get("name").and_then(Json::as_str) == Some("ft")

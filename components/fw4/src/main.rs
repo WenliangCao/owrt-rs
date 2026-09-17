@@ -6,6 +6,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 mod emit;
+mod flowtable;
 mod input;
 mod ip;
 mod parse;
