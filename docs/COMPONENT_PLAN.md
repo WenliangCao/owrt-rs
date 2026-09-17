@@ -49,7 +49,7 @@
 | ☐ | ubusd | lookup_all_64/128 延迟 786/1549 vs 775/1510（CPU 更低） | 多条 lookup 延迟高 0.9–2.5% | lookup 全表遍历与回复分帧（R93 pathless/borrow 候选未合入） |
 | ☐ | netifd | 全胜 | wireless_status CPU +6.0%/延迟 +1.9%；interface_dump_c4 CPU +3.1%；device_status_c4/lan_status_c4/device_status_all_c4 延迟 +2.5–3.1% | wireless status 拼装、并发下 blob 构建 |
 | ✅ | fw4 | R94 实机全胜（print 延迟 −95.8%、CPU −96.7%；check −63.3%/−87.5%） | R94 实机 2/2 双优，四项范围不重叠（print 延迟 −61.9%、CPU −66.3%；check −8.4%/−32.7%） | 完成（候选 `3be616b0`，未部署） |
-| ☐ | uci | 全胜 | 全胜（CPU 四轮范围不重叠） | 仅需实机复核大配置/异常输入即可打勾 |
+| ✅ | uci | R94 实机全胜（export_network CPU −56.2%，export_64 −49.2%，set_commit_get −30.6%） | R94 实机 3/3 双优，六项范围不重叠（−17.2%、−10.8%、−9.4% CPU；延迟 −13.6%、−10.0%、−9.6%） | 完成（候选 `c3b51560`，未部署） |
 | ☐ | reload-config | 全胜 | 26270 vs 26420 µs（重叠，不宣布稳定胜出） | 覆盖改动传播场景后打勾 |
 
 ---
@@ -166,11 +166,11 @@ R92 netlink 界限。R93 重连注册固定对象与全部接口对象全成功�
 **已修复缺陷**：R81 F17 `config defaults` 非法选项渲染 `policy null;`。Round 5 warnings 按 ucode 字符串化列表。
 R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` 仍输出。R92 input/emit/render/sections 修复。开放：F3/F5–F11 退出码与用法/警告文本边界。
 
-## uci ☐
+## uci ✅
 
 **实机差距（R93）**：export_network CPU 900 vs C 1750/R89 950，export_64 1840 vs 3270/1880，set_commit_get 6820 vs 8970/6960；三项均胜且四轮不重叠。
 
-**提示**：无已测退步。打勾前用大配置与异常持久化输入做一次实机复核即可。
+**R94 结果（2026-09-17，候选 `c3b51560`，`docs/reviews/R94_UCI_EXEC_PATH.md`）**：uci 是几百微秒的一次性进程，没有算法热点，于是把一次执行的 36 次系统调用和 129 次 malloc 逐条对账：14 次是 Rust 运行时序言（ppoll、5 次 sigaction、3 次 sigaltstack、备用栈映射），本体里 `lseek(0)`、BufReader 的 EOF 探测 read 和 8 KiB 组换页是多余的，`export::escape` 每个值先复制再写占 34 次 malloc，`load_delta` 还 dup 描述符。改动一个提交（`14c02a6`）：`write_escaped` 零拷贝 + 预定容一次 write、`read_whole` fstat 定长一次 read、去掉 lseek/dup、stdin 惰性、`#![no_main]` 从 libc 取 main（`build.rs` 在 musl 上加 `-Wl,-u,getauxval` 解决链接顺序）。export 系统调用 36→21、malloc 129→86，二进制 506 635→486 155。实机三侧四轮 36 观测：export_network p50 1 012 vs R89 1 171 vs C 2 030（CPU 770/930/1 760），export_64 1 956/2 174/3 627，set_commit_get 6 567/7 263/9 366；六项范围全部不重叠。门 5/5（unit、clippy、r16 193 步相同、r24 1 000 例 0 差异、r83 554 文件相同）。
 
 **已修复缺陷**：Round 4 非 UTF-8 输入；R81 F25 偏差；R92 ops 界限、非法 UTF-8 rename 原子拒绝合同（r83）；libuci 忠实度测试（r16/r24 1000 例）。开放：U1 同 batch 非 UTF-8 改名的 U+FFFD。
 
@@ -194,3 +194,4 @@ R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` �
 - 2026-09-16 httpd 实机停放间隔四轮完成：五档 CPU/延迟全部低于 C，60/80 ms 比 R89 低 66–68%，其余与 R89 1 tick 内；快路径目标闭合。紧密矩阵仍与 R89 持平，httpd 标为「停放 ✅ / 紧密 ☐」，紧密路径为下一轮目标。
 - 2026-09-16 httpd 紧密路径攻坚：每静态响应 syscall 10→4（固定 50 ms 接收超时 + ReadWait、精确 Content-Length、直接 openat、每线程 fd 复用）、lookup 分配 4→1。第三轮 poll 头等待让 jsonrpc_c4 退步 10%，第四轮改固定超时消除。实机终验：紧密 10 条静态低于 R89 14–31%、停放五档低 20–70%，全部低于 C；10 项门全绿。**httpd 完成打勾。**
 - 2026-09-17 fw4 R94（重做）：否决并移除前一轮的自定义分配器方案；内核 flowtable 判定 + 解析/渲染零拷贝。Oracle 门 7/7，print 1 042 µs vs R89 2 591；实机三侧四轮 print/check 延迟与 CPU 四项全部低于 C 与 R89、范围不重叠。**fw4 完成打勾。**
+- 2026-09-17 uci R94：一次执行的系统调用/堆调用逐条对账；零拷贝 export、定长一次 read、去 lseek/dup、stdin 惰性、libc main 跳过 Rust 序言。门 5/5；实机三侧四轮六项全部低于 C 与 R89、范围不重叠（export_network CPU −17.2%，set_commit_get −9.4%）。**uci 完成打勾。**
