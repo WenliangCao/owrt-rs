@@ -73,7 +73,7 @@ fn main() {
             });
         }
         let t = b.msg_open_table(name);
-        d.dump_status(&mut b, Some(&e));
+        d.dump_status(&mut b, Some(&e), None);
         b.msg_close(t);
     }
     println!("{}", owrt_ubus::convert::fields_to_json(b.payload()).to_compact());

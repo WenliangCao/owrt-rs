@@ -369,6 +369,31 @@ pub const STAT_COUNTERS: &[&str] = &[
     "tx_carrier_errors",
 ];
 
+/// Position of each `STAT_COUNTERS` entry inside `struct rtnl_link_stats64`
+/// (rx_packets, tx_packets, rx_bytes, tx_bytes, rx_errors, tx_errors,
+/// rx_dropped, tx_dropped, multicast, collisions, rx_length_errors,
+/// rx_over_errors, rx_crc_errors, rx_frame_errors, rx_fifo_errors,
+/// rx_missed_errors, tx_aborted_errors, tx_carrier_errors, tx_fifo_errors,
+/// tx_heartbeat_errors, tx_window_errors, rx_compressed, tx_compressed).
+/// The sysfs `statistics/*` files print exactly these fields, so the IFLA_STATS64
+/// attribute of one RTM_GETLINK reply carries the same 23 values as 23
+/// open/read/close triples.
+const STATS64_INDEX: [usize; 23] = [9, 13, 22, 8, 10, 7, 2, 15, 5, 21, 11, 18, 12, 0, 19, 6, 16, 1, 4, 3, 20, 14, 17];
+
+/// The 23 counters from an IFLA_STATS64 payload, in `STAT_COUNTERS` order.
+/// None when the payload is too short for the fields used here.
+pub fn stats64_counters(payload: &[u8]) -> Option<[u64; 23]> {
+    if payload.len() < 23 * 8 {
+        return None;
+    }
+    let mut out = [0u64; 23];
+    for (slot, &field) in out.iter_mut().zip(STATS64_INDEX.iter()) {
+        let at = field * 8;
+        *slot = u64::from_ne_bytes(payload[at..at + 8].try_into().unwrap());
+    }
+    Some(out)
+}
+
 /// Counters that exist for this device, in `STAT_COUNTERS` order. A counter
 /// whose file is missing or unparsable is omitted, as in the C.
 pub fn statistics(ifname: &str) -> Vec<(&'static str, u64)> {

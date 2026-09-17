@@ -247,6 +247,10 @@ struct Netifd {
     ethtool: ethtool::Ethtool,
     ifioctl: sys::IfIoctl,
     conn: Connection,
+    /// Storage for read replies, reused across requests so a 32-interface
+    /// dump does not regrow a fresh buffer from 1 KiB through several
+    /// reallocations every time. Bounded after each send.
+    reply: BlobBuf,
     objects: ubus::Objects,
     confdir: String,
     /// `resolv_conf` (-r): where interface_write_resolv_conf writes.
@@ -366,6 +370,7 @@ impl Netifd {
             ethtool: ethtool::Ethtool::open()?,
             ifioctl: sys::IfIoctl::open()?,
             conn,
+            reply: BlobBuf::new(),
             objects,
             confdir: confdir.to_string(),
             resolvconf: DEFAULT_RESOLV_CONF.to_string(),
@@ -3778,7 +3783,33 @@ impl Netifd {
         self.dump_interface_status(b, i);
     }
 
-    fn dump_device(&self, b: &mut BlobBuf, device: &Device) {
+    /// The device's link counters from one RTM_GETLINK reply. The 23 sysfs
+    /// statistics files the C reads are views of the same rtnl_link_stats64,
+    /// so this replaces 70 file syscalls per status with a netlink round trip;
+    /// None (no reply, no attribute) falls back to the sysfs files.
+    fn link_stats(&mut self, ifname: &str) -> Option<[u64; 23]> {
+        let hdr = sys::ifinfomsg(sys::AF_UNSPEC, 0, 0, 0);
+        let mut a = netlink::Attrs::new();
+        a.str0(sys::IFLA_IFNAME, ifname);
+        let msg = self.sys.nl.dump_one(sys::RTM_GETLINK, &hdr, a.as_bytes()).ok()??;
+        let attrs = msg.attrs(16);
+        ethtool::stats64_counters(netlink::attr(&attrs, sys::IFLA_STATS64)?)
+    }
+
+    fn take_reply(&mut self) -> BlobBuf {
+        std::mem::take(&mut self.reply)
+    }
+
+    /// Send `b` as the DATA + STATUS reply and keep its storage for the next
+    /// request, dropping it if an unusually large reply inflated it.
+    fn send_reply(&mut self, req: &Request, b: BlobBuf) -> io::Result<()> {
+        let result = reply_fields(&mut self.conn, req, b.payload());
+        self.reply = b;
+        self.reply.reset_bounded(64 * 1024);
+        result
+    }
+
+    fn dump_device(&self, b: &mut BlobBuf, device: &Device, stats: Option<&[u64; 23]>) {
         let mut snapshot = device.clone();
         if let Some(bridge) = &mut snapshot.bridge {
             // bridge_dump_info lists registered members, including configured
@@ -3789,7 +3820,7 @@ impl Netifd {
                 bridge.members.dedup();
             }
         }
-        snapshot.dump_status(b, Some(&self.ethtool));
+        snapshot.dump_status(b, Some(&self.ethtool), stats);
     }
 
     fn handle(&mut self, req: Request) {
@@ -3833,15 +3864,15 @@ impl Netifd {
             // `interface_set_down(NULL)`, which does NOT clear autostart --
             // so everything comes back up afterwards.
             (ubus::Target::Wireless, "status") => {
-                let mut b = BlobBuf::with_capacity(1024);
+                let mut b = self.take_reply();
                 wireless::json_text_into_blob(&mut b, &self.wireless_status_json());
-                reply_fields(&mut self.conn, req, b.payload())
+                self.send_reply(req, b)
             }
             (ubus::Target::Wireless, "get_validate") => {
-                let mut b = BlobBuf::with_capacity(1024);
+                let mut b = self.take_reply();
                 let text = wireless::get_validate_json(&self.wconfig, &self.whandlers);
                 wireless::json_text_into_blob(&mut b, &text);
-                reply_fields(&mut self.conn, req, b.payload())
+                self.send_reply(req, b)
             }
             (ubus::Target::Wireless, "notify") => {
                 let st = self.wireless_notify(&blob::fields(&req.data).collect::<Vec<_>>());
@@ -3901,38 +3932,49 @@ impl Netifd {
                 self.conn.reply_status(req, code, None)
             }
             (ubus::Target::Network, "get_proto_handlers") => {
-                let mut b = BlobBuf::with_capacity(1024);
+                let mut b = self.take_reply();
                 self.dump_proto_handlers(&mut b);
-                reply_fields(&mut self.conn, req, b.payload())
+                self.send_reply(req, b)
             }
             (ubus::Target::Network, m) => ubus::not_supported(&mut self.conn, req, m),
             (ubus::Target::Device, "status") => {
                 let name = blob::fields(&req.data)
                     .find(|f| f.name == "name" && f.ty == MsgType::String as u32)
                     .and_then(|f| f.as_str().map(|s| s.to_string()));
-                let mut b = BlobBuf::with_capacity(1024);
+                let mut b = self.take_reply();
                 match name {
                     // `netifd_dev_status`: `device_find` misses -> the C
                     // answers INVALID_ARGUMENT, not NOT_FOUND, and it does
                     // not check whether the device is present -- a device
                     // object with no kernel device is still dumped
-                    Some(n) => match self.devices.get(&n) {
-                        Some(d) => self.dump_device(&mut b, d),
-                        None => {
+                    Some(n) => {
+                        if self.devices.get(&n).is_none() {
                             let _ =
                                 self.conn.reply_status(req, status::INVALID_ARGUMENT, None);
                             return;
                         }
-                    },
+                        let stats = self.link_stats(&n);
+                        if let Some(d) = self.devices.get(&n) {
+                            self.dump_device(&mut b, d, stats.as_ref());
+                        }
+                    }
                     None => {
-                        for d in self.devices.iter().filter(|d| d.present) {
+                        let names: Vec<String> = self
+                            .devices
+                            .iter()
+                            .filter(|d| d.present)
+                            .map(|d| d.ifname.clone())
+                            .collect();
+                        for name in names {
+                            let stats = self.link_stats(&name);
+                            let Some(d) = self.devices.get(&name) else { continue };
                             let t = b.msg_open_table(&d.ifname);
-                            self.dump_device(&mut b, d);
+                            self.dump_device(&mut b, d, stats.as_ref());
                             b.msg_close(t);
                         }
                     }
                 }
-                reply_fields(&mut self.conn, req, b.payload())
+                self.send_reply(req, b)
             }
             // `netifd_handle_set_state`
             (ubus::Target::Device, "set_state") => {
@@ -3954,7 +3996,7 @@ impl Netifd {
             }
             (ubus::Target::Device, m) => ubus::not_supported(&mut self.conn, req, m),
             (ubus::Target::Interface(_), "dump") => {
-                let mut b = BlobBuf::with_capacity(1024);
+                let mut b = self.take_reply();
                 let arr = b.msg_open_array("interface");
                 for i in &self.interfaces {
                     let t = b.msg_open_table("");
@@ -3962,16 +4004,20 @@ impl Netifd {
                     b.msg_close(t);
                 }
                 b.msg_close(arr);
-                reply_fields(&mut self.conn, req, b.payload())
+                self.send_reply(req, b)
             }
             (ubus::Target::Interface(Some(name)), "status") => {
-                let Some(i) = interface::find_by_name(&self.interfaces, name) else {
+                // `name` borrows the object table; own it before touching
+                // the reply storage, as the other per-interface arms do.
+                let name = name.to_string();
+                let mut b = self.take_reply();
+                let Some(i) = interface::find_by_name(&self.interfaces, &name) else {
+                    self.reply = b;
                     let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
                     return;
                 };
-                let mut b = BlobBuf::with_capacity(1024);
                 self.dump_interface_status(&mut b, i);
-                reply_fields(&mut self.conn, req, b.payload())
+                self.send_reply(req, b)
             }
             (ubus::Target::Interface(Some(name)), "up") => {
                 let name = name.to_string();

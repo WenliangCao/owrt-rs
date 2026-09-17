@@ -298,19 +298,47 @@ pub fn find_by_name<'a>(interfaces: &'a [Interface], name: &str) -> Option<&'a I
     interfaces.get(at).filter(|i| i.name == name)
 }
 
+/// An address's text on the stack: the same `Display` output as
+/// `to_string()` (longest IPv6 form is 45 bytes) without a heap allocation
+/// per field, which a 32-interface dump pays hundreds of times.
+struct IpText {
+    buf: [u8; 48],
+    len: usize,
+}
+
+impl IpText {
+    fn of(addr: &IpAddr) -> IpText {
+        use std::io::Write;
+        let mut text = IpText { buf: [0u8; 48], len: 0 };
+        let mut cursor = std::io::Cursor::new(&mut text.buf[..]);
+        // Display of an IpAddr never exceeds 45 bytes.
+        let _ = write!(cursor, "{addr}");
+        text.len = cursor.position() as usize;
+        text
+    }
+
+    fn as_str(&self) -> &str {
+        std::str::from_utf8(&self.buf[..self.len]).unwrap_or("")
+    }
+}
+
 fn put_addr(b: &mut BlobBuf, a: &Address) {
     let t = b.msg_open_table("");
-    b.msg_string("address", &a.addr.to_string());
+    b.msg_string("address", IpText::of(&a.addr).as_str());
     b.msg_u32("mask", a.mask as u32);
     if let Some(p) = a.point_to_point {
-        b.msg_string("ptpaddress", &p.to_string());
+        b.msg_string("ptpaddress", IpText::of(&p).as_str());
     }
-    let now = rtime();
-    if let Some(p) = a.preferred_until {
-        b.msg_u32("preferred", preferred_left(p, now));
-    }
-    if let Some(v) = a.valid_until {
-        b.msg_u32("valid", valid_left(v, now));
+    // Only a lifetime-bearing address needs the clock; static addresses are
+    // the common case and a dump touches every one of them.
+    if a.preferred_until.is_some() || a.valid_until.is_some() {
+        let now = rtime();
+        if let Some(p) = a.preferred_until {
+            b.msg_u32("preferred", preferred_left(p, now));
+        }
+        if let Some(v) = a.valid_until {
+            b.msg_u32("valid", valid_left(v, now));
+        }
     }
     if let Some(c) = &a.class {
         b.msg_string("class", c);
@@ -320,9 +348,9 @@ fn put_addr(b: &mut BlobBuf, a: &Address) {
 
 fn put_route(b: &mut BlobBuf, r: &Route) {
     let t = b.msg_open_table("");
-    b.msg_string("target", &r.target.to_string());
+    b.msg_string("target", IpText::of(&r.target).as_str());
     b.msg_u32("mask", r.mask as u32);
-    b.msg_string("nexthop", &r.nexthop.to_string());
+    b.msg_string("nexthop", IpText::of(&r.nexthop).as_str());
     if r.flags & devroute::TYPE != 0 {
         b.msg_u32("type", r.ty);
     }

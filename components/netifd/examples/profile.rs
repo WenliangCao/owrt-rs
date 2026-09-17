@@ -133,11 +133,11 @@ fn main() {
         let label = if present { "device_status_lo" } else { "device_status_absent" };
         profile_support::measure(label, n, &filter, || {
             let mut b = BlobBuf::with_capacity(1024);
-            d.dump_status(&mut b, Some(&ethtool));
+            d.dump_status(&mut b, Some(&ethtool), None);
             black_box(b.payload());
         });
         let mut b = BlobBuf::with_capacity(1024);
-        d.dump_status(&mut b, Some(&ethtool));
+        d.dump_status(&mut b, Some(&ethtool), None);
         assert!(blob::fields(b.payload()).any(|f| f.name == "present"));
     }
     profile_support::measure("statistics_lo", n, &filter, || {

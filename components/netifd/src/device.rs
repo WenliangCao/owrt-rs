@@ -295,7 +295,10 @@ impl Device {
     ///
     /// The order below is the C's, field for field; a reordering would be
     /// visible to every caller that reads the blob rather than JSON.
-    pub fn dump_status(&self, b: &mut BlobBuf, e: Option<&Ethtool>) {
+    ///
+    /// `stats` are the link counters from an RTM_GETLINK reply when the caller
+    /// has them; otherwise the sysfs statistics files are read as the C does.
+    pub fn dump_status(&self, b: &mut BlobBuf, e: Option<&Ethtool>, stats: Option<&[u64; 23]>) {
         b.msg_bool("external", self.external);
         b.msg_bool("present", self.present);
         b.msg_string("type", &self.type_name);
@@ -421,8 +424,17 @@ impl Device {
         }
 
         let s = b.msg_open_table("statistics");
-        for (k, v) in ethtool::statistics(&self.ifname) {
-            b.msg_u64(k, v);
+        match stats {
+            Some(values) => {
+                for (k, v) in ethtool::STAT_COUNTERS.iter().zip(values) {
+                    b.msg_u64(k, *v);
+                }
+            }
+            None => {
+                for (k, v) in ethtool::statistics(&self.ifname) {
+                    b.msg_u64(k, v);
+                }
+            }
         }
         b.msg_close(s);
     }
@@ -600,7 +612,7 @@ impl Devices {
     pub fn dump_all(&self, b: &mut BlobBuf, e: Option<&Ethtool>) {
         for d in self.iter().filter(|d| d.present) {
             let t = b.msg_open_table(&d.ifname);
-            d.dump_status(b, e);
+            d.dump_status(b, e, None);
             b.msg_close(t);
         }
     }
@@ -664,7 +676,7 @@ mod tests {
         let d = Device::new("wan", "Network device");
         let mut b = BlobBuf::new();
         let t = b.msg_open_table("wan");
-        d.dump_status(&mut b, None);
+        d.dump_status(&mut b, None, None);
         b.msg_close(t);
         let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
         assert!(json.contains("\"external\""), "{json}");
@@ -681,7 +693,7 @@ mod tests {
         d.settings.flags |= opt::MTU;
         d.settings.mtu = 1500;
         let mut b = BlobBuf::new();
-        d.dump_status(&mut b, None);
+        d.dump_status(&mut b, None, None);
         let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
         assert!(json.contains("\"carrier\""), "{json}");
         assert!(!json.contains("\"mtu\""), "{json}");
@@ -718,7 +730,7 @@ mod tests {
         d.orig_settings = s;
 
         let mut b = BlobBuf::new();
-        d.dump_status(&mut b, None);
+        d.dump_status(&mut b, None, None);
         let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
         let order: Vec<&str> = [
             "external",
@@ -758,7 +770,7 @@ mod tests {
         d.orig_settings.neigh4gcstaletime = 60;
         d.orig_settings.neigh6gcstaletime = 60;
         let mut b = BlobBuf::new();
-        d.dump_status(&mut b, None);
+        d.dump_status(&mut b, None, None);
         let json = owrt_ubus::convert::fields_to_json(b.payload()).to_compact();
         assert!(json.contains("neigh4gcstaletime"), "{json}");
         assert!(json.contains("neigh6gcstaletime"), "{json}");

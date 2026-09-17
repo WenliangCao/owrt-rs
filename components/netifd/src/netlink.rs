@@ -202,6 +202,9 @@ pub struct Netlink {
     fd: OwnedFd,
     seq: u32,
     event_buffer: i32,
+    /// Reply storage for `dump_one`, kept across calls: a fresh 64 KiB
+    /// allocation per query cost an mmap/munmap pair and a page fault.
+    reply: Vec<u8>,
 }
 
 impl Netlink {
@@ -228,7 +231,7 @@ impl Netlink {
         unsafe {
             setsockopt(fd.as_raw_fd(), SOL_NETLINK, NETLINK_EXT_ACK, &one, 4);
         }
-        let mut socket = Self { fd, seq: 0, event_buffer: EVENT_BUFFER };
+        let mut socket = Self { fd, seq: 0, event_buffer: EVENT_BUFFER, reply: Vec::new() };
         if groups != 0 {
             socket.set_event_buffer(EVENT_BUFFER)?;
         }
@@ -384,14 +387,16 @@ impl Netlink {
     /// an error. `Ok(None)` means the kernel acknowledged with no payload.
     pub fn dump_one(&mut self, ty: u16, hdr: &[u8], attrs: &[u8]) -> io::Result<Option<Msg>> {
         let seq = self.send_msg(ty, NLM_F_REQUEST, hdr, attrs)?;
-        let mut buf = vec![0u8; 1 << 16];
+        if self.reply.len() < 1 << 16 {
+            self.reply.resize(1 << 16, 0);
+        }
         loop {
-            // SAFETY: buf is a live allocation of the length passed.
-            let n = unsafe { recv(self.fd.as_raw_fd(), buf.as_mut_ptr(), buf.len(), 0) };
+            // SAFETY: reply is a live allocation of the length passed.
+            let n = unsafe { recv(self.fd.as_raw_fd(), self.reply.as_mut_ptr(), self.reply.len(), 0) };
             if n < 0 {
                 return Err(io::Error::last_os_error());
             }
-            for m in split(&buf[..n as usize]) {
+            for m in split(&self.reply[..n as usize]) {
                 if m.seq != seq {
                     continue;
                 }
