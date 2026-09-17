@@ -44,10 +44,10 @@
 |---|---|---|---|---|
 | ✅ | **logd** | 全胜（R94 终版实机：syslog_128 CPU 5.65 vs 31.95，read_100 121.0 vs 809.5） | 全胜（vs 8.40 / 420.5；延迟 −40%；RssAnon 120 vs 174 KiB；四轮不重叠） | 完成。[实机报告](reviews/R94_LOGD_DEVICE.md) |
 | ✅ | **httpd** | 全胜：紧密 16 条 CPU/延迟全低于 C（512 B c1 57.5 vs 168.5）；停放五档 −28…−45%（jsonrpc_c4 CPU 470 vs 463 在自身范围内持平） | 紧密 10 条静态低 14–31%（不重叠）、6 条持平；停放五档低 20–70%（不重叠） | 完成。[报告](reviews/R94_HTTP_FASTPATH.md)。遗留研究：jsonrpc_c4 bridge 路径 |
-| ☐ | rpcd | session_access_64_c4 延迟 275.4 vs 274.6（持平） | session_access_granted CPU +19.6%、session_access_64_c4 CPU +27.8%/延迟 +13.8%、session_access_64 CPU +20%、uci_get_authorized CPU +4% | 授权快路径（R93 glob 候选有 Oracle 信号）+ 会话 ACL 查询算法 |
-| ☐ | procd | 全胜 | 8 条负载 CPU 系统性高 1.5–6.2%（service_list_32_c4 +6.2%、named_128_c4 +5.9%、system_info_c4 +2.5%） | service list 序列化/对象遍历热路径 |
-| ☐ | ubusd | lookup_all_64/128 延迟 786/1549 vs 775/1510（CPU 更低） | 多条 lookup 延迟高 0.9–2.5% | lookup 全表遍历与回复分帧（R93 pathless/borrow 候选未合入） |
-| ☐ | netifd | 全胜 | wireless_status CPU +6.0%/延迟 +1.9%；interface_dump_c4 CPU +3.1%；device_status_c4/lan_status_c4/device_status_all_c4 延迟 +2.5–3.1% | wireless status 拼装、并发下 blob 构建 |
+| ✅ | rpcd | R94 实机 18/18 双优（重负载超一倍） | R94 实机 16/18 双优，R93 会话授权退步全部收回（`session_access_granted` CPU −16.7% 不重叠，`_64_c4` 延迟 −6.8%/CPU −5.6%）；`uci_get_64` +0.8%/+2.1% 在噪声内 | 完成（候选 `a362c468`，未部署） |
+| ✅ | procd | R94 实机 8/8 双优（CPU −19…−46%） | R94 实机 7/8 双优，`system_info` CPU −34.9% 不重叠、`named_128_c4` −20.4%；R93 的 8 项偏高全部反转 | 完成（候选 `0df4baae`，未部署） |
+| ✅ | ubusd | R94 实机 10/10 双优（全量 lookup CPU −67…−72%） | R94 实机 9/10 双优、CPU 范围全部不重叠（`lookup_all_64/128` CPU −66.7%/−62.9%，`invoke` −22.6%）；仅 `lookup_prefix_64` 延迟 +0.5% 重叠 | 完成（候选 `bb95efdc`，未部署） |
+| ✅ | netifd | R94 实机 14/14 双优（`device_status` CPU −43…−60%） | R94 实机 13/14 双优，CPU 范围除 `wireless_status` 外全不重叠（`device_status` −38.5%，`interface_dump_32` −37.3%）；`wireless_status` 延迟 +0.3% | 完成（候选 `5f20a5a4`，未部署） |
 | ✅ | fw4 | R94 实机全胜（print 延迟 −95.8%、CPU −96.7%；check −63.3%/−87.5%） | R94 实机 2/2 双优，四项范围不重叠（print 延迟 −61.9%、CPU −66.3%；check −8.4%/−32.7%） | 完成（候选 `3be616b0`，未部署） |
 | ✅ | uci | R94 实机全胜（export_network CPU −56.2%，export_64 −49.2%，set_commit_get −30.6%） | R94 实机 3/3 双优，六项范围不重叠（−17.2%、−10.8%、−9.4% CPU；延迟 −13.6%、−10.0%、−9.6%） | 完成（候选 `c3b51560`，未部署） |
 | ☐ | reload-config | 全胜 | 26270 vs 26420 µs（重叠，不宣布稳定胜出） | 覆盖改动传播场景后打勾 |
