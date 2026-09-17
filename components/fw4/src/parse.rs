@@ -5,6 +5,7 @@ use crate::input::Inputs;
 use crate::ip::{self};
 use crate::state::*;
 use crate::uci::Config;
+use std::rc::Rc;
 use crate::val::{loose_eq_str, to_array, to_num, to_str, trim, truthy, Num};
 use owrt_ubus::json::Json;
 use std::io::Write;
@@ -18,8 +19,10 @@ pub const DEPRECATED: u32 = 0x20;
 
 pub struct Fw4 {
     pub inputs: Inputs,
-    pub firewall: Config,
-    pub helpers_cfg: Config,
+    /// Shared so `load()` can walk the sections while the parsers borrow
+    /// `self` mutably, without cloning every section.
+    pub firewall: Rc<Config>,
+    pub helpers_cfg: Rc<Config>,
     pub state: State,
     pub kernel: i64,
     pub quiet: bool,
@@ -128,13 +131,13 @@ impl<'a> Opts<'a> {
     ) -> Result<Option<T>, ()> {
         self.keys.push(key);
         let s = self.s;
-        let mut val = s.get(key).cloned();
-        if is_null(val.as_ref()) {
+        let mut val = s.get(key);
+        if is_null(val) {
             if flags & REQUIRED != 0 {
                 self.fw.warn_section(s, &format!("option '{key}' is mandatory but not set"));
                 return Err(());
             }
-            val = def;
+            val = def.as_ref();
         }
         let val = match val {
             Some(Json::Array(_)) => {
@@ -144,10 +147,10 @@ impl<'a> Opts<'a> {
             None | Some(Json::Null) => return Ok(None),
             Some(v) => v,
         };
-        let Some(res) = f(self.fw, &val) else {
+        let Some(res) = f(self.fw, val) else {
             self.fw.warn_section(
                 s,
-                &format!("option '{key}' specifies invalid value '{}'", to_str(&val)),
+                &format!("option '{key}' specifies invalid value '{}'", to_str(val)),
             );
             return Err(());
         };
@@ -168,24 +171,29 @@ impl<'a> Opts<'a> {
     ) -> Result<Option<Vec<T>>, ()> {
         self.keys.push(key);
         let s = self.s;
-        let mut val = s.get(key).cloned();
-        if is_null(val.as_ref()) {
+        let fw = self.fw;
+        let mut val = s.get(key);
+        if is_null(val) {
             if flags & REQUIRED != 0 {
-                self.fw.warn_section(s, &format!("option '{key}' is mandatory but not set"));
+                fw.warn_section(s, &format!("option '{key}' is mandatory but not set"));
                 return Err(());
             }
-            val = def;
+            val = def.as_ref();
         }
         let mut rv = Vec::new();
-        for item in to_array(&val.unwrap_or(Json::Null)) {
-            let Some(res) = f(self.fw, &item) else {
-                self.fw.warn_section(
-                    s,
-                    &format!("option '{key}' specifies invalid value '{}'", to_str(&item)),
-                );
+        let mut one = |item: &Json| -> Result<(), ()> {
+            let Some(res) = f(fw, item) else {
+                fw.warn_section(s, &format!("option '{key}' specifies invalid value '{}'", to_str(item)));
                 return Err(());
             };
             rv.extend(res);
+            Ok(())
+        };
+        match val {
+            // a list is walked in place; anything else goes through to_array()
+            Some(Json::Array(items)) => items.iter().try_for_each(&mut one)?,
+            Some(other) => to_array(other).iter().try_for_each(&mut one)?,
+            None => {}
         }
         if rv.is_empty() {
             return Ok(None);
@@ -442,6 +450,14 @@ impl Fw4 {
 
     pub fn parse_enum(&self, val: &Json, choices: &[&str]) -> Option<String> {
         let Json::Str(v) = val else { return None };
+        if v.is_ascii() && choices.iter().all(|c| c.is_ascii()) {
+            // `lc(val)` against the equally long prefix of each choice, with
+            // no lowercase copies: ASCII case folding is a byte comparison.
+            return choices
+                .iter()
+                .find(|c| c.len() >= v.len() && c.as_bytes()[..v.len()].eq_ignore_ascii_case(v.as_bytes()))
+                .map(|c| c.to_string());
+        }
         let v = v.to_lowercase();
         for c in choices {
             let prefix: String = c.chars().take(v.chars().count()).collect();
@@ -556,17 +572,25 @@ impl Fw4 {
 
     pub fn parse_protocol(&self, val: &Json) -> Option<Vec<Proto>> {
         let p = self.parse_invert(val)?;
-        let v = p.val.to_lowercase();
+        let v = if p.val.is_ascii() {
+            let mut v = p.val;
+            v.make_ascii_lowercase();
+            v
+        } else {
+            p.val.to_lowercase()
+        };
         let proto = |name: &str| Proto { invert: p.invert, any: false, name: Some(name.to_owned()) };
-        Some(match v.as_str() {
-            "all" | "any" | "*" => vec![Proto { invert: p.invert, any: true, name: None }],
-            "1" | "icmp" => vec![proto("icmp")],
-            "58" | "icmpv6" | "ipv6-icmp" => vec![proto("ipv6-icmp")],
-            "tcpudp" => vec![proto("tcp"), proto("udp")],
-            "6" => vec![proto("tcp")],
-            "17" => vec![proto("udp")],
-            other => vec![proto(other)],
-        })
+        let name = match v.as_str() {
+            "all" | "any" | "*" => return Some(vec![Proto { invert: p.invert, any: true, name: None }]),
+            "1" | "icmp" => "icmp",
+            "58" | "icmpv6" | "ipv6-icmp" => "ipv6-icmp",
+            "tcpudp" => return Some(vec![proto("tcp"), proto("udp")]),
+            "6" => "tcp",
+            "17" => "udp",
+            // the lowercased value itself is the protocol name
+            _ => return Some(vec![Proto { invert: p.invert, any: false, name: Some(v) }]),
+        };
+        Some(vec![proto(name)])
     }
 
     pub fn parse_mac(&self, val: &Json) -> Option<Mac> {
@@ -1102,8 +1126,8 @@ mod tests {
     fn fw() -> Fw4 {
         Fw4 {
             inputs: Inputs::mock(vec![], false),
-            firewall: Config::empty(),
-            helpers_cfg: Config::empty(),
+            firewall: Rc::new(Config::empty()),
+            helpers_cfg: Rc::new(Config::empty()),
             state: State::default(),
             kernel: 0,
             quiet: true,

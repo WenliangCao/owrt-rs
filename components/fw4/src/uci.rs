@@ -38,26 +38,27 @@ impl Config {
             .find(|s| s.get(".name").and_then(Json::as_str) == Some(name))
     }
 
-    /// uc_uci_to_section() over every section of a loaded package.
-    pub fn from_package(p: &Package) -> Config {
+    /// uc_uci_to_section() over every section of a loaded package.  The
+    /// package is consumed: section and option names move into the JSON
+    /// objects instead of being copied.
+    pub fn from_package(p: Package) -> Config {
         let sections = p
             .sections
-            .iter()
+            .into_iter()
             .enumerate()
             .map(|(i, s)| {
-                let mut o: Vec<(String, Json)> = vec![
-                    (".anonymous".into(), Json::Bool(s.anonymous)),
-                    (".type".into(), Json::Str(s.ty.clone())),
-                    (".name".into(), Json::Str(s.name.clone())),
-                    (".index".into(), Json::Int(i as i64)),
-                ];
-                for opt in &s.options {
+                let mut o: Vec<(String, Json)> = Vec::with_capacity(4 + s.options.len());
+                o.push((".anonymous".into(), Json::Bool(s.anonymous)));
+                o.push((".type".into(), Json::Str(s.ty)));
+                o.push((".name".into(), Json::Str(s.name)));
+                o.push((".index".into(), Json::Int(i as i64)));
+                for opt in s.options {
                     let v = match &opt.value {
                         // libuci values are raw bytes; the ruleset is text (DEVIATION: non-UTF-8 -> U+FFFD)
                         OptionValue::Str(v) => Json::Str(String::from_utf8_lossy(v).into_owned()),
                         OptionValue::List(items) => Json::Array(items.iter().map(|v| Json::Str(String::from_utf8_lossy(v).into_owned())).collect()),
                     };
-                    o.push((opt.name.clone(), v));
+                    o.push((opt.name, v));
                 }
                 Json::Object(o)
             })
@@ -72,7 +73,7 @@ impl Config {
         let mut ctx = Context::new();
         ctx.set_confdir(confdir);
         match owrt_uci::file::load(&mut ctx, name) {
-            Ok(idx) => Config::from_package(&ctx.root[idx]),
+            Ok(idx) => Config::from_package(ctx.root.swap_remove(idx)),
             Err(_) => Config::empty(),
         }
     }
@@ -82,7 +83,7 @@ impl Config {
         let mut ctx = Context::new();
         let mut reader = std::io::Cursor::new(text.as_bytes());
         match owrt_uci::parse::import(&mut ctx, &mut reader, Some(name), None, true) {
-            Ok(Some(idx)) => Config::from_package(&ctx.root[idx]),
+            Ok(Some(idx)) => Config::from_package(ctx.root.swap_remove(idx)),
             _ => Config::empty(),
         }
     }

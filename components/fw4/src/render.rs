@@ -88,7 +88,7 @@ fn xmark_expr(x: &Mark) -> String {
 
 /// `{% fw4.includes(...) %}` on its own line.
 fn inc(fw: &Fw4, position: &str, chain: Option<&str>, out: &mut String) {
-    out.push_str(&fw.includes(position, chain));
+    fw.write_includes(position, chain, out);
 }
 
 impl Fw4 {
@@ -638,9 +638,9 @@ impl Fw4 {
 
     pub fn render_ruleset(&mut self) -> String {
         let flowtable_devices = self.resolve_offload_devices();
-        let available_helpers: Vec<Helper> = self.state.helpers.iter().filter(|h| h.available).cloned().collect();
-        let defined_ipsets = self.state.ipsets.clone();
-        let zones_with_limits: Vec<Zone> = self.state.zones.iter().filter(|z| z.log_limit.is_some()).cloned().collect();
+        let available_helpers: Vec<&Helper> = self.state.helpers.iter().filter(|h| h.available).collect();
+        let defined_ipsets = &self.state.ipsets;
+        let zones_with_limits: Vec<&Zone> = self.state.zones.iter().filter(|z| z.log_limit.is_some()).collect();
         let d = self.defaults();
         let drop_invalid = d.drop_invalid.unwrap_or(false);
         let synflood = d.synflood_protect.unwrap_or(false) && d.synflood_rate.is_some();
@@ -676,7 +676,7 @@ impl Fw4 {
         }
         if !defined_ipsets.is_empty() {
             out.push_str("\t#\n\t# Set definitions\n\t#\n\n");
-            for set_ in &defined_ipsets {
+            for set_ in defined_ipsets {
                 out.push_str(&format!("\tset {} {{\n", set_.name));
                 if let Some(c) = set_.comment.as_deref().filter(|c| !c.is_empty()) {
                     out.push_str(&format!("\t\tcomment {}\n", quote(c, true)));
@@ -838,7 +838,7 @@ impl Fw4 {
         // per-zone chains
         let nzones = self.state.zones.len();
         for zi in 0..nzones {
-            let zone = self.state.zones[zi].clone();
+            let zone = &self.state.zones[zi];
             let n = &zone.name;
             out.push_str(&format!("\tchain input_{n} {{\n"));
             inc(self, "chain-prepend", Some(&format!("input_{n}")), &mut out);
@@ -882,7 +882,7 @@ impl Fw4 {
                     out.push_str(&format!("\tchain {verdict}_from_{n} {{\n"));
                     for mr in &zone.match_rules {
                         out.push_str("\t\t");
-                        self.render_zone_verdict(&zone, zone.log_bits(), mr, false, verdict, &mut out);
+                        self.render_zone_verdict(zone, zone.log_bits(), mr, false, verdict, &mut out);
                     }
                     out.push_str("\t}\n\n");
                 }
@@ -891,10 +891,10 @@ impl Fw4 {
                     for mr in &zone.match_rules {
                         if !drop_invalid && verdict == "accept" && (zone.masq || zone.masq6) && !zone.masq_allow_invalid {
                             out.push_str("\t\t");
-                            self.render_zone_drop_invalid(&zone, zone.log_bits(), mr, &mut out);
+                            self.render_zone_drop_invalid(zone, zone.log_bits(), mr, &mut out);
                         }
                         out.push_str("\t\t");
-                        self.render_zone_verdict(&zone, zone.log_bits(), mr, true, verdict, &mut out);
+                        self.render_zone_verdict(zone, zone.log_bits(), mr, true, verdict, &mut out);
                     }
                     out.push_str("\t}\n\n");
                 }
@@ -916,7 +916,7 @@ impl Fw4 {
         inc(self, "chain-append", Some("srcnat"), &mut out);
         out.push_str("\t}\n\n");
         for zi in 0..nzones {
-            let zone = self.state.zones[zi].clone();
+            let zone = &self.state.zones[zi];
             let n = &zone.name;
             if zone.dflags.has("dnat") {
                 out.push_str(&format!("\tchain dstnat_{n} {{\n"));
@@ -939,7 +939,7 @@ impl Fw4 {
                     for saddrs in &zone.masq4_src_subnets {
                         for daddrs in &zone.masq4_dest_subnets {
                             out.push_str("\t\t");
-                            self.render_zone_masq(&zone, 4, saddrs, daddrs, &mut out);
+                            self.render_zone_masq(zone, 4, saddrs, daddrs, &mut out);
                         }
                     }
                 }
@@ -947,7 +947,7 @@ impl Fw4 {
                     for saddrs in &zone.masq6_src_subnets {
                         for daddrs in &zone.masq6_dest_subnets {
                             out.push_str("\t\t");
-                            self.render_zone_masq(&zone, 6, saddrs, daddrs, &mut out);
+                            self.render_zone_masq(zone, 6, saddrs, daddrs, &mut out);
                         }
                     }
                 }
@@ -986,7 +986,7 @@ impl Fw4 {
         inc(self, "chain-append", Some("raw_output"), &mut out);
         out.push_str("\t}\n\n");
         for zi in 0..nzones {
-            let zone = self.state.zones[zi].clone();
+            let zone = &self.state.zones[zi];
             if zone.dflags.has("notrack") {
                 out.push_str(&format!("\tchain notrack_{} {{\n", zone.name));
                 self.chain_rules(&format!("notrack_{}", zone.name), Some(zi), &mut out);

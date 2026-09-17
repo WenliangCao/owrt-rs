@@ -57,8 +57,8 @@ fn new_fw4(quiet: bool) -> Fw4 {
     };
     Fw4 {
         inputs,
-        firewall: uci::Config::empty(),
-        helpers_cfg: uci::Config::empty(),
+        firewall: std::rc::Rc::new(uci::Config::empty()),
+        helpers_cfg: std::rc::Rc::new(uci::Config::empty()),
         state: state::State::default(),
         kernel: 0,
         quiet: quiet || std::env::var("QUIET").map(|q| !q.is_empty()).unwrap_or(false),

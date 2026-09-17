@@ -1,6 +1,7 @@
 //! Section parsers (`parse_helper` .. `parse_ipset`), ubus state gathering and
 //! `load()` — the second half of fw4.uc.
 
+use std::rc::Rc;
 use crate::emit;
 use crate::parse::*;
 use crate::state::*;
@@ -590,10 +591,11 @@ impl Fw4 {
         let mut helper_rules: Vec<Rule> = Vec::new();
         if (z.auto_helper && !(z.masq || z.masq6)) || z.helper.as_ref().map(|h| !h.is_empty()).unwrap_or(false) {
             dflags.set("helper");
-            let helpers: Vec<Helper> = match &z.helper {
-                Some(h) if !h.is_empty() => h.iter().map(|c| c.helper.clone()).collect(),
-                _ => self.state.helpers.clone(),
+            let helpers: Vec<&Helper> = match &z.helper {
+                Some(h) if !h.is_empty() => h.iter().map(|c| &c.helper).collect(),
+                _ => self.state.helpers.iter().collect(),
             };
+            let mut aborted = false;
             for helper in helpers {
                 if !helper.available {
                     continue;
@@ -601,7 +603,7 @@ impl Fw4 {
                 // `this.port(helper.port)` with no port: ucode dies on
                 // `p.min` of null (no shipped helper lacks a port).
                 if helper.port.is_none() {
-                    self.aborted = true;
+                    aborted = true;
                     continue;
                 }
                 for proto in helper.proto.iter().flatten() {
@@ -622,6 +624,7 @@ impl Fw4 {
                     });
                 }
             }
+            self.aborted |= aborted;
         }
         let zone = Zone {
             name: z.name,
@@ -2170,16 +2173,20 @@ impl Fw4 {
     /// `Err` propagates ucode's abort out of `parse_defaults`; nothing is
     /// rendered and no state file is written.
     pub fn load(&mut self) -> Result<(), ()> {
-        self.firewall = self.inputs.uci_load("firewall");
-        self.helpers_cfg = self.inputs.uci_load("/usr/share/firewall4/helpers");
+        self.firewall = Rc::new(self.inputs.uci_load("firewall"));
+        self.helpers_cfg = Rc::new(self.inputs.uci_load("/usr/share/firewall4/helpers"));
         self.read_ubus();
         self.kernel = self.read_kernel_version();
 
-        for h in self.helpers_cfg.of_type("helper").cloned().collect::<Vec<_>>() {
-            self.parse_helper(&h);
+        // Rc handles let the section walk borrow the configs while each
+        // parser borrows `self` mutably; nothing is cloned.
+        let helpers_cfg = Rc::clone(&self.helpers_cfg);
+        let firewall = Rc::clone(&self.firewall);
+        for h in helpers_cfg.of_type("helper") {
+            self.parse_helper(h);
         }
-        for d in self.firewall.of_type("defaults").cloned().collect::<Vec<_>>() {
-            self.parse_defaults(&d)?;
+        for d in firewall.of_type("defaults") {
+            self.parse_defaults(d)?;
         }
         if self.state.defaults.is_none() {
             self.parse_defaults(&Json::Object(vec![]))?;
@@ -2187,35 +2194,35 @@ impl Fw4 {
         for r in self.ubus_rules_of("ipset") {
             self.parse_ipset(&r);
         }
-        for x in self.firewall.of_type("ipset").cloned().collect::<Vec<_>>() {
-            self.parse_ipset(&x);
+        for x in firewall.of_type("ipset") {
+            self.parse_ipset(x);
         }
-        for z in self.firewall.of_type("zone").cloned().collect::<Vec<_>>() {
-            self.parse_zone(&z);
+        for z in firewall.of_type("zone") {
+            self.parse_zone(z);
         }
         for r in self.ubus_rules_of("rule") {
             self.parse_rule(&r);
         }
-        for x in self.firewall.of_type("rule").cloned().collect::<Vec<_>>() {
-            self.parse_rule(&x);
+        for x in firewall.of_type("rule") {
+            self.parse_rule(x);
         }
-        for x in self.firewall.of_type("forwarding").cloned().collect::<Vec<_>>() {
-            self.parse_forwarding(&x);
+        for x in firewall.of_type("forwarding") {
+            self.parse_forwarding(x);
         }
         for r in self.ubus_rules_of("redirect") {
             self.parse_redirect(&r);
         }
-        for x in self.firewall.of_type("redirect").cloned().collect::<Vec<_>>() {
-            self.parse_redirect(&x);
+        for x in firewall.of_type("redirect") {
+            self.parse_redirect(x);
         }
         for r in self.ubus_rules_of("nat") {
             self.parse_nat(&r);
         }
-        for x in self.firewall.of_type("nat").cloned().collect::<Vec<_>>() {
-            self.parse_nat(&x);
+        for x in firewall.of_type("nat") {
+            self.parse_nat(x);
         }
-        for x in self.firewall.of_type("include").cloned().collect::<Vec<_>>() {
-            self.parse_include(&x)?;
+        for x in firewall.of_type("include") {
+            self.parse_include(x)?;
         }
         if self.defaults().auto_includes.unwrap_or(false) {
             for position in ["ruleset-pre", "ruleset-post", "table-pre", "table-post", "chain-pre", "chain-post"] {
@@ -2267,8 +2274,8 @@ mod tests {
         std::fs::write(dir.join("uci/firewall.json"), cfg).unwrap();
         Fw4 {
             inputs: Inputs::mock(vec![dir.to_str().unwrap().to_owned()], false),
-            firewall: Config::empty(),
-            helpers_cfg: Config::empty(),
+            firewall: Rc::new(Config::empty()),
+            helpers_cfg: Rc::new(Config::empty()),
             state: State::default(),
             kernel: 0,
             quiet: true,

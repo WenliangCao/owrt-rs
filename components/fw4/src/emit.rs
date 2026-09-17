@@ -62,15 +62,23 @@ pub fn port(p: &Port) -> String {
 }
 
 pub fn set(v: &[String], force: bool) -> String {
-    let mut seen: Vec<&String> = Vec::new();
+    // first occurrence of each item, in order (ucode `uniq`)
+    let mut seen: Vec<&String> = Vec::with_capacity(v.len());
     for item in v {
         if !seen.contains(&item) {
             seen.push(item);
         }
     }
     if force || seen.len() != 1 {
-        let items: Vec<String> = seen.iter().map(|s| quote(s, false)).collect();
-        format!("{{ {} }}", items.join(", "))
+        let mut out = String::from("{ ");
+        for (i, item) in seen.iter().enumerate() {
+            if i > 0 {
+                out.push_str(", ");
+            }
+            out.push_str(&quote(item, false));
+        }
+        out.push_str(" }");
+        out
     } else {
         quote(seen[0], false)
     }
@@ -177,20 +185,35 @@ impl Fw4 {
         }
     }
 
-    pub fn defaults(&self) -> Defaults {
-        self.state.defaults.clone().unwrap_or_default()
+    pub fn defaults(&self) -> &Defaults {
+        static EMPTY: Defaults = Defaults {
+            input: None,
+            output: None,
+            forward: None,
+            drop_invalid: None,
+            tcp_reject_code: None,
+            any_reject_code: None,
+            synflood_protect: None,
+            synflood_rate: None,
+            synflood_burst: None,
+            auto_helper: None,
+            flow_offloading: None,
+            flow_offloading_hw: None,
+            auto_includes: None,
+        };
+        self.state.defaults.as_ref().unwrap_or(&EMPTY)
     }
 
     fn policy(&self, which: &str, reject_as_drop: bool) -> String {
         let d = self.defaults();
         let p = match which {
-            "input" => d.input,
-            "output" => d.output,
-            _ => d.forward,
+            "input" => &d.input,
+            "output" => &d.output,
+            _ => &d.forward,
         };
-        match p {
+        match p.as_deref() {
             Some(p) if reject_as_drop && p == "reject" => "drop".into(),
-            Some(p) => p,
+            Some(p) => p.to_owned(),
             None => "null".into(),
         }
     }
@@ -213,26 +236,29 @@ impl Fw4 {
         self.state.redirects.iter().filter(move |r| r.chain == chain)
     }
 
-    /// `fw4.includes(position, chain)` output.
-    pub fn includes(&self, position: &str, chain: Option<&str>) -> String {
+    /// `fw4.includes(position, chain)` output, appended to `out`: the leading
+    /// separator only when at least one include matches.
+    pub fn write_includes(&self, position: &str, chain: Option<&str>, out: &mut String) {
         let (pad, pre) = match position {
             "table-prepend" | "table-append" => ("\t", "\n"),
             "chain-prepend" | "chain-append" => ("\t\t", ""),
             _ => ("", "\n"),
         };
-        let mut stmts = vec![pre.to_owned()];
+        let mut any = false;
         for inc in &self.state.includes {
             if inc.ty == "nftables"
                 && inc.position == position
                 && (chain.is_none() || inc.chain.as_deref() == chain)
             {
-                stmts.push(format!("{pad}include \"{}\"\n", inc.path));
+                if !any {
+                    out.push_str(pre);
+                    any = true;
+                }
+                out.push_str(pad);
+                out.push_str("include \"");
+                out.push_str(&inc.path);
+                out.push_str("\"\n");
             }
-        }
-        if stmts.len() > 1 {
-            stmts.concat()
-        } else {
-            String::new()
         }
     }
 
