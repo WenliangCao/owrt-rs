@@ -141,12 +141,15 @@ R89 与候选对 C 均 identical——本轮唯一门工具改动。报告 `docs
 R92 acl/client/server 界限。R93 accept 暂态错误有界重试与 100 ms 恢复（`r93_ubusd_accept_probe.py` 8/8）；
 prefix lookup 背压下 64 个大签名对象漏 DATA（`3262a56`，只在严格工具复现，矩阵不覆盖）。ACL 目录须 root 属主（沙箱陷阱）。
 
-## netifd ☐
+## netifd ✅
 
-**实机差距（R93）**：14 条全部优于 C；相对 R89：wireless_status CPU 25→26.5（+6.0%）/延迟 +1.9%、wireless_status_c4 CPU +4.6%；
-interface_dump_c4 CPU 63.49→65.48；device_status_c4 延迟 2406→2481、lan_status_c4 477→489、device_status_all_c4 3773→3869。
-
-**提示**：wireless status 是纯序列化路径，看每次调用重建的字符串/Vec；并发延迟退步看主循环里是否有同步 netlink 查询被串行化。
+**已攻克（R94，2026-09-17，实机三侧四轮 168 观测，候选 `5f20a5a4`）**：先量再改——`strace` 发现 `network.device status` 每请求约 85 次系统调用，
+其中 70 次是逐文件读 23 个 sysfs 计数器（C 相同）；改为每设备一次 `RTM_GETLINK` 取 `IFLA_STATS64`（同一 `rtnl_link_stats64`，值逐字节相同，按 C 列主序映射，
+无属性时回退 sysfs），85→19；netlink 回复缓冲常驻（去掉每次 64 KiB mmap/munmap）；`perf` 定位 32 接口 dump 的用户态在 blob 编码与回复缓冲增长，
+只读回复共用一个有界 BlobBuf、地址栈上格式化、静态地址不读时钟。实机：14/14 对 C 双优；对 R89 13/14 双优、CPU 范围除 `wireless_status` 外全不重叠：
+`device_status` CPU -38.5%（372-382 对 612-618）、`_all_c4` -54.7%、`interface_dump_32` -37.3%（332-337 对 527-556）、`dump_c4` -19.8%、`lan_status_c4` -16.7%、
+`wireless_status_c4` -23.3%。R93 记录的五项 R89 偏高全部反转；唯 `wireless_status` 延迟 +0.3%（1 µs 内，CPU 持平）。
+报告 `docs/reviews/R94_NETIFD_NETLINK_STATS.md`；9/9 门绿（套件 31/31 含对 C 的 devstatus 逐字节差分、R92 溢出恢复/重启兼容、R93 双故障重连、r90/r91）；未部署。
 
 **已修复缺陷**：R81 F03 无 SIGTERM 处理致 udhcpc/odhcp6c 孤儿；F04 删除接口后 ProtoState 直接 drop；F05 任何选项变化都 ifdown+ifup；
 F06 peerdns/defaultroute 不生效；F07 墙钟当 uptime；F08 IPv6 preferred/valid 与 prefix 输出；F09 teardown/handler 无超时且阻塞 wait；
