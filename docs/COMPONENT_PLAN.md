@@ -50,7 +50,7 @@
 | ✅ | netifd | R94 实机 14/14 双优（`device_status` CPU −43…−60%） | R94 实机 13/14 双优，CPU 范围除 `wireless_status` 外全不重叠（`device_status` −38.5%，`interface_dump_32` −37.3%）；`wireless_status` 延迟 +0.3% | 完成（候选 `5f20a5a4`，未部署） |
 | ✅ | fw4 | R94 实机全胜（print 延迟 −95.8%、CPU −96.7%；check −63.3%/−87.5%） | R94 实机 2/2 双优，四项范围不重叠（print 延迟 −61.9%、CPU −66.3%；check −8.4%/−32.7%） | 完成（候选 `3be616b0`，未部署） |
 | ✅ | uci | R94 实机全胜（export_network CPU −56.2%，export_64 −49.2%，set_commit_get −30.6%） | R94 实机 3/3 双优，六项范围不重叠（−17.2%、−10.8%、−9.4% CPU；延迟 −13.6%、−10.0%、−9.6%） | 完成（候选 `c3b51560`，未部署） |
-| ☐ | reload-config | 全胜 | 26270 vs 26420 µs（重叠，不宣布稳定胜出） | 覆盖改动传播场景后打勾 |
+| ✅ | reload-config | R94 实机全胜（unchanged_config 延迟 −88.9%、CPU −90.2%） | R94 实机 1/1 双优，两项范围不重叠（延迟 −82.5%、CPU −84.6%）；R93 的持平反转 | 完成（候选 `e22deec6`，未部署） |
 
 ---
 
@@ -174,11 +174,11 @@ R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` �
 
 **已修复缺陷**：Round 4 非 UTF-8 输入；R81 F25 偏差；R92 ops 界限、非法 UTF-8 rename 原子拒绝合同（r83）；libuci 忠实度测试（r16/r24 1000 例）。开放：U1 同 batch 非 UTF-8 改名的 U+FFFD。
 
-## reload-config ☐
+## reload-config ✅
 
 **实机差距（R93）**：unchanged_config 25417 µs / CPU 26270 vs C 40214/41440、R89 25695/26420；与 R89 四轮重叠。
 
-**提示**：一次性进程，成本是 md5 编排与子进程；只覆盖 unchanged-config，改动传播与事件风暴未测。补测后打勾。
+**R94 结果（2026-09-17，候选 `e22deec6`，`docs/reviews/R94_RELOAD_CONFIG_INPROCESS.md`）**：先弄清它在算什么——合同 C1-01 的比较对象是 `uci show` 的字节，持久副作用只有 `/var/run/config.md5`，并没有要求子进程；R05 照搬 shell 结构，一轮 unchanged_config 是 24 个 `uci show` 子进程 + 1 个 `md5sum`（execve 50、每等一个子进程起一个线程）。改动两个提交：`71a9e2e` 把 CLI 的 show 渲染器搬进 `owrt_uci::show`（`show::tuple` 复刻 cli.c 的查找顺序，CLI 改调库并去掉每次 show 的 Package clone）；`98c827b` reload-config 在进程内渲染 + RFC 1321 MD5（hashlib 校验的向量），一轮共用一个 Context，不再创建 `config.check`，子进程等待改 `pidfd_open`+`poll`（不再每子进程一线程，剩余唯一子进程是有变更时的 `ubus call`）。r1 门的 f02/f09 原本断言子进程设计，改为两种设计各自判定并记录 `normalizer`/`uci_shim_invoked`。Oracle：墙钟 1 062 vs R89 7 028 µs，系统调用 1 147→223，execve 50→1；门 3/3 + uci 5/5 重跑（r1 11 参考 + 9 故障全绿）。实机三侧四轮 12 观测：p50 4 450 [4 368–4 522] vs R89 25 404 vs C 40 082，CPU 4 070 vs 26 350 vs 41 570；两项范围不重叠。二进制 477 931 字节，预算 524 288 内。
 
 **已修复缺陷**：R81 F26 偏差。R88 F1 运行锁不可取消（`LOCK_NB` + 10 ms 轮询）。R92 engine/json/trace（两套 JSON 转义 F3）。
 合同：512 KiB 尺寸预算（opt-level s），F2 4096 项硬上限待写入合同。
@@ -195,3 +195,4 @@ R88 F1/F2 两处延迟 null 访问不中止（现退出 254）、F4 `-q check` �
 - 2026-09-16 httpd 紧密路径攻坚：每静态响应 syscall 10→4（固定 50 ms 接收超时 + ReadWait、精确 Content-Length、直接 openat、每线程 fd 复用）、lookup 分配 4→1。第三轮 poll 头等待让 jsonrpc_c4 退步 10%，第四轮改固定超时消除。实机终验：紧密 10 条静态低于 R89 14–31%、停放五档低 20–70%，全部低于 C；10 项门全绿。**httpd 完成打勾。**
 - 2026-09-17 fw4 R94（重做）：否决并移除前一轮的自定义分配器方案；内核 flowtable 判定 + 解析/渲染零拷贝。Oracle 门 7/7，print 1 042 µs vs R89 2 591；实机三侧四轮 print/check 延迟与 CPU 四项全部低于 C 与 R89、范围不重叠。**fw4 完成打勾。**
 - 2026-09-17 uci R94：一次执行的系统调用/堆调用逐条对账；零拷贝 export、定长一次 read、去 lseek/dup、stdin 惰性、libc main 跳过 Rust 序言。门 5/5；实机三侧四轮六项全部低于 C 与 R89、范围不重叠（export_network CPU −17.2%，set_commit_get −9.4%）。**uci 完成打勾。**
+- 2026-09-17 reload-config R94：不照抄计划里的提示，先从合同 C1-01 出发确认比较对象是 `uci show` 字节、不要求子进程；把 uci CLI 的 show 渲染器搬入库，reload-config 进程内规范化 + MD5，一轮零子进程，等待改 pidfd。门 3/3（r1 11+9）+ uci 5/5 重跑；实机三侧四轮 unchanged_config p50 4 450 vs R89 25 404 vs C 40 082、CPU 4 070/26 350/41 570，范围不重叠。**reload-config 完成打勾。**
