@@ -1,5 +1,9 @@
 //! cli.c: the /sbin/uci command line tool.
 
+#![cfg_attr(not(test), no_main)]
+#![deny(clippy::undocumented_unsafe_blocks)]
+#![cfg_attr(test, allow(dead_code))]
+
 use owrt_uci::context::{Context, FLAG_EXPORT_NAME, FLAG_PERROR, FLAG_STRICT};
 use owrt_uci::delta;
 use owrt_uci::error::Error;
@@ -51,7 +55,8 @@ struct Cli {
     flags: u32,
     delimiter: String,
     appname: String,
-    input: Box<dyn BufRead>,
+    /// `-f FILE`, or stdin opened on first use (batch / import only)
+    input: Option<Box<dyn BufRead>>,
     /// uci_lookup_section_ref state: (type, idx) list and current ref
     type_list: Vec<(String, u32)>,
     cur_section_ref: Option<String>,
@@ -266,7 +271,9 @@ Options:\n\
         }
         let mut ret = 1;
         let stdout = io::stdout();
-        let mut out = io::BufWriter::new(stdout.lock());
+        // export renders into one sized buffer and writes it whole; only the
+        // per-line commands need the writer's own 8 KiB buffer
+        let mut out = io::BufWriter::with_capacity(if cmd == CliCmd::Export { 0 } else { 8192 }, stdout.lock());
         'out: {
             match cmd {
                 CliCmd::Changes => {
@@ -292,7 +299,12 @@ Options:\n\
                 }
                 CliCmd::Export => {
                     if let Some(pidx) = ptr.p {
-                        if export::export_package(&mut out, self.ctx.flags, &self.ctx.root[pidx], true).is_err() {
+                        // one buffer sized for the package, one write(2)
+                        let p = &self.ctx.root[pidx];
+                        let mut buf = Vec::with_capacity(export::size_hint(p));
+                        if export::export_package(&mut buf, self.ctx.flags, p, true).is_err()
+                            || out.write_all(&buf).is_err()
+                        {
                             break 'out;
                         }
                     }
@@ -326,6 +338,12 @@ Options:\n\
         ret
     }
 
+    /// The batch/import source: `-f FILE`, else stdin, opened lazily so a
+    /// plain `get`/`set`/`export` never allocates a reader it will not use.
+    fn take_input(&mut self) -> Box<dyn BufRead> {
+        self.input.take().unwrap_or_else(|| Box::new(BufReader::new(io::stdin())))
+    }
+
     fn unload_ptr(&mut self, ptr: &Ptr) {
         if let Some(pidx) = ptr.p {
             if pidx < self.ctx.root.len() {
@@ -355,9 +373,9 @@ Options:\n\
                 }
             }
         }
-        let mut input = std::mem::replace(&mut self.input, Box::new(BufReader::new(io::empty())));
+        let mut input = self.take_input();
         let ret = parse::import(&mut self.ctx, &mut *input, name.as_deref(), merge_idx, name.is_some());
-        self.input = input;
+        self.input = Some(input);
         let ret: Result<(), Error> = match ret {
             Err(e) => Err(e),
             Ok(package) => {
@@ -518,7 +536,7 @@ Options:\n\
     /// uci_batch_cmd
     fn batch_cmd(&mut self) -> i32 {
         let mut argv: Vec<Arg> = Vec::new();
-        let mut input = std::mem::replace(&mut self.input, Box::new(BufReader::new(io::empty())));
+        let mut input = self.take_input();
         let mut pctx = Pctx::new(&mut *input);
         // uci_parse_argument reuses ctx->pctx across batch commands, so the
         // line counter (and the grown line buffer) continue where the previous
@@ -558,7 +576,7 @@ Options:\n\
         self.ctx.pctx = Some(carry.info);
         self.batch_carry = Some(carry);
         drop(pctx);
-        self.input = input;
+        self.input = Some(input);
         if too_many {
             self.cli_error("Too many arguments\n");
             return 1;
@@ -647,18 +665,36 @@ Options:\n\
     }
 }
 
-fn main() {
+/// The C entry point.  Taking `main` from libc skips the Rust runtime
+/// prologue a one-shot CLI never needs: the stdio `ppoll`, the SIGPIPE ignore
+/// (libuci's uci leaves SIGPIPE at its default too) and the stack-overflow
+/// handler with its `sigaltstack` mapping -- 13 syscalls and one mapping per
+/// invocation, a third of an `export`.  Everything else in std works as
+/// before; `std::process::exit` still flushes stdout.  `build.rs` supplies the
+/// one link argument the static musl build then needs.
+///
+/// # Safety
+/// Called once by libc with `argc` pointers to NUL-terminated strings.
+#[cfg(not(test))]
+#[no_mangle]
+pub unsafe extern "C" fn main(argc: std::ffi::c_int, argv: *const *const std::ffi::c_char) -> std::ffi::c_int {
     // argv as bytes: values in `set`/`add_list` tuples may hold any byte (libuci
     // does not assume UTF-8); names, paths and commands are converted where needed
-    let raw: Vec<Arg> = std::env::args_os().map(std::os::unix::ffi::OsStringExt::into_vec).collect();
-    let args: Vec<String> = raw.iter().map(|a| s(a)).collect();
-    let appname = args.first().cloned().unwrap_or_else(|| "uci".into());
+    let raw: Vec<Arg> = (0..argc.max(0) as usize)
+        // SAFETY: the caller contract above; each pointer is a C string.
+        .map(|i| unsafe { std::ffi::CStr::from_ptr(*argv.add(i)) }.to_bytes().to_vec())
+        .collect();
+    run(raw)
+}
+
+fn run(raw: Vec<Arg>) -> ! {
+    let appname = raw.first().map(|a| s(a)).unwrap_or_else(|| "uci".into());
     let mut cli = Cli {
         ctx: Context::new(),
         flags: FLAG_SHOW_EXT,
         delimiter: " ".into(),
         appname: appname.clone(),
-        input: Box::new(BufReader::new(io::stdin())),
+        input: None,
         type_list: Vec::new(),
         cur_section_ref: None,
         batch_eof: false,
@@ -670,8 +706,9 @@ fn main() {
     // no permutation, stop at the first non-option.
     const OPTSTRING: &str = "c:C:d:f:LmnNp:P:qsSt:X";
     let mut optind = 1usize;
-    'opts: while optind < args.len() {
-        let arg = &args[optind];
+    'opts: while optind < raw.len() {
+        // only the option words are converted; the command tuple stays bytes
+        let arg = s(&raw[optind]);
         if arg == "--" {
             optind += 1;
             break;
@@ -697,9 +734,9 @@ fn main() {
                     let rest: String = cluster[k..].iter().collect();
                     k = cluster.len();
                     Some(rest)
-                } else if optind < args.len() {
+                } else if optind < raw.len() {
                     optind += 1;
-                    Some(args[optind - 1].clone())
+                    Some(s(&raw[optind - 1]))
                 } else {
                     eprintln!("{appname}: option requires an argument: {c}");
                     cli.usage();
@@ -719,7 +756,7 @@ fn main() {
                     }
                     match std::fs::File::open(optarg.unwrap_or_default()) {
                         Ok(f) => {
-                            cli.input = Box::new(BufReader::new(f));
+                            cli.input = Some(Box::new(BufReader::new(f)));
                             input_is_file = true;
                         }
                         Err(e) => {

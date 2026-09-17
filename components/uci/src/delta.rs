@@ -7,7 +7,7 @@ use crate::model::{Cmd, Delta, Ptr};
 use crate::ops;
 use crate::parse::{self, Pctx};
 use std::fs::File;
-use std::io::{self, BufReader, BufWriter, Seek, SeekFrom, Write};
+use std::io::{self, BufWriter, Seek, SeekFrom, Write};
 use std::os::unix::fs::{DirBuilderExt, MetadataExt};
 
 /// uci_delta_save
@@ -185,8 +185,8 @@ fn load_delta_file(ctx: &mut Context, p: Option<usize>, filename: &str, flush: b
     };
     let mut changes = 0;
     if let Some(pidx) = p {
-        if let Ok(dup) = stream.try_clone() {
-            let mut reader = BufReader::new(dup);
+        if let Ok(data) = file::read_whole(&stream) {
+            let mut reader: &[u8] = &data;
             changes = parse_delta(ctx, &mut reader, pidx);
         }
     }
@@ -236,11 +236,11 @@ fn filter_delta(ctx: &mut Context, name: &str, section: Option<&str>, option: Op
     };
     let mut list: Vec<Delta> = Vec::new();
     let ok = {
-        let Ok(dup) = f.try_clone() else {
+        let Ok(data) = file::read_whole(&f) else {
             crate::sys::unlock(&f);
             return;
         };
-        let mut reader = BufReader::new(dup);
+        let mut reader: &[u8] = &data;
         let mut pctx = Pctx::new(&mut reader);
         let mut ok = true;
         while !pctx.eof {

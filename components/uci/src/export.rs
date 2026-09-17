@@ -21,22 +21,49 @@ pub fn escape(s: &[u8]) -> Vec<u8> {
     out
 }
 
+/// uci_escape written straight to the stream, no intermediate copy.
+fn write_escaped<W: Write>(w: &mut W, s: &[u8]) -> io::Result<()> {
+    let mut rest = s;
+    while let Some(i) = rest.iter().position(|&c| c == b'\'') {
+        w.write_all(&rest[..i])?;
+        w.write_all(b"'\\''")?;
+        rest = &rest[i + 1..];
+    }
+    w.write_all(rest)
+}
+
 fn quoted<W: Write>(w: &mut W, s: &[u8]) -> io::Result<()> {
     w.write_all(b" '")?;
-    w.write_all(&escape(s))?;
+    write_escaped(w, s)?;
     w.write_all(b"'")
+}
+
+/// Bytes one export of `p` needs, give or take the quoting: lets the caller
+/// size an output buffer once instead of growing it.
+pub fn size_hint(p: &Package) -> usize {
+    let mut n = 16 + p.name.len();
+    for sec in &p.sections {
+        n += 12 + sec.ty.len() + sec.name.len();
+        for opt in &sec.options {
+            n += match &opt.value {
+                OptionValue::Str(v) => 14 + opt.name.len() + v.len(),
+                OptionValue::List(items) => items.iter().map(|i| 12 + opt.name.len() + i.len()).sum(),
+            };
+        }
+    }
+    n
 }
 
 /// uci_export_package
 pub fn export_package<W: Write>(w: &mut W, flags: u32, p: &Package, header: bool) -> io::Result<()> {
     if header {
         w.write_all(b"package ")?;
-        w.write_all(&escape(p.name.as_bytes()))?;
+        write_escaped(w, p.name.as_bytes())?;
         w.write_all(b"\n")?;
     }
     for sec in &p.sections {
         w.write_all(b"\nconfig ")?;
-        w.write_all(&escape(sec.ty.as_bytes()))?;
+        write_escaped(w, sec.ty.as_bytes())?;
         if !sec.anonymous || flags & FLAG_EXPORT_NAME != 0 {
             quoted(w, sec.name.as_bytes())?;
         }
@@ -45,14 +72,14 @@ pub fn export_package<W: Write>(w: &mut W, flags: u32, p: &Package, header: bool
             match &opt.value {
                 OptionValue::Str(v) => {
                     w.write_all(b"\toption ")?;
-                    w.write_all(&escape(opt.name.as_bytes()))?;
+                    write_escaped(w, opt.name.as_bytes())?;
                     quoted(w, v)?;
                     w.write_all(b"\n")?;
                 }
                 OptionValue::List(items) => {
                     for item in items {
                         w.write_all(b"\tlist ")?;
-                        w.write_all(&escape(opt.name.as_bytes()))?;
+                        write_escaped(w, opt.name.as_bytes())?;
                         quoted(w, item)?;
                         w.write_all(b"\n")?;
                     }

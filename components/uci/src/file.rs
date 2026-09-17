@@ -8,7 +8,7 @@ use crate::export;
 use crate::parse;
 use crate::sys;
 use std::fs::{self, File, OpenOptions};
-use std::io::{BufReader, Seek, SeekFrom, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 
 fn basename(path: &str) -> &str {
@@ -42,12 +42,39 @@ pub fn open_stream(ctx: &Context, filename: &str, seek_end: bool, write: bool, c
     if sys::lock(&f, if write { sys::LOCK_EX } else { sys::LOCK_SH }).is_err() {
         return Err(Error::Io);
     }
-    let seek = if seek_end { SeekFrom::End(0) } else { SeekFrom::Start(0) };
-    if f.seek(seek).is_err() {
+    // a freshly opened descriptor is already at offset 0
+    if seek_end && f.seek(SeekFrom::End(0)).is_err() {
         sys::unlock(&f);
         return Err(Error::Io);
     }
     Ok(f)
+}
+
+/// The rest of `f` from its current offset.  Sized from fstat so a config
+/// file is normally fetched by one read(2): a regular file that returns
+/// fewer bytes than asked is at EOF, and only a file that grew underneath
+/// the lock is read on to EOF.  Replaces an 8 KiB BufReader (a fresh
+/// mallocng group, mmap and munmap) plus its trailing zero-length read.
+pub(crate) fn read_whole(mut f: &File) -> Result<Vec<u8>> {
+    let hint = f.metadata().map(|m| m.len() as usize).unwrap_or(0);
+    let mut data = vec![0u8; hint + 1];
+    let mut filled = 0;
+    loop {
+        match f.read(&mut data[filled..]) {
+            Ok(0) => break,
+            Ok(n) => {
+                filled += n;
+                if filled < data.len() {
+                    break;
+                }
+                data.resize(data.len() * 2, 0);
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(_) => return Err(Error::Io),
+        }
+    }
+    data.truncate(filled);
+    Ok(data)
 }
 
 /// uci_config_path: None when the (conf2) directory is disabled.
@@ -89,9 +116,15 @@ fn load_impl(ctx: &mut Context, name: &str, cache: Option<&mut crate::ReadCache>
     };
     let file = open_stream(ctx, &filename, false, false, false)?;
     ctx.err = None;
-    // The owner keeps the shared lock alive. Read through a borrow rather than
-    // duplicating the descriptor (which would share this same file offset).
-    let mut reader = BufReader::new(&file);
+    // The owner keeps the shared lock alive while the whole file is read once.
+    let data = match read_whole(&file) {
+        Ok(d) => d,
+        Err(e) => {
+            sys::unlock(&file);
+            return Err(e);
+        }
+    };
+    let mut reader: &[u8] = &data;
     let result = match cache {
         Some(cache) => cache.import(ctx, &mut reader, &pkgname),
         None => parse::import(ctx, &mut reader, Some(&pkgname), None, true),
@@ -153,7 +186,8 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
                 ctx.root.remove(pidx);
                 let mut stream = &f1;
                 stream.seek(SeekFrom::Start(0)).map_err(|_| Error::Io)?;
-                let mut reader = BufReader::new(stream);
+                let data = read_whole(stream)?;
+                let mut reader: &[u8] = &data;
                 let newidx = match parse::import(ctx, &mut reader, Some(&name), None, true)? {
                     Some(i) => i,
                     None => return Err(Error::NotFound),
