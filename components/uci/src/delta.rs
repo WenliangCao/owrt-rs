@@ -156,11 +156,12 @@ fn parse_delta_line(ctx: &mut Context, pidx: usize, pctx: &mut Pctx) -> Result<(
 }
 
 /// uci_parse_delta: returns the number of lines applied successfully.
-fn parse_delta(ctx: &mut Context, reader: &mut dyn io::BufRead, pidx: usize) -> usize {
+fn parse_delta(ctx: &mut Context, reader: &mut dyn io::BufRead, pidx: usize) -> Result<usize> {
     ctx.cleanup();
     let mut pctx = Pctx::new(reader);
     let mut changes = 0;
     while !pctx.eof {
+        ctx.check_io_budget()?;
         pctx.pos = 0;
         pctx.getln(0);
         if pctx.char_at(0) == 0 {
@@ -171,26 +172,31 @@ fn parse_delta(ctx: &mut Context, reader: &mut dyn io::BufRead, pidx: usize) -> 
         }
     }
     ctx.cleanup();
-    changes
+    Ok(changes)
 }
 
 /// uci_load_delta_file: open errors are swallowed (0 changes, no stream).
-fn load_delta_file(ctx: &mut Context, p: Option<usize>, filename: &str, flush: bool) -> (usize, Option<File>) {
+fn load_delta_file(ctx: &mut Context, p: Option<usize>, filename: &str, flush: bool) -> Result<(usize, Option<File>)> {
     let stream = match file::open_stream(ctx, filename, false, flush, false) {
         Ok(f) => f,
+        Err(e @ (Error::TimedOut | Error::Cancelled)) => return ctx.fail(e),
         Err(e) => {
             ctx.err = Some(e);
-            return (0, None);
+            return Ok((0, None));
         }
     };
     let mut changes = 0;
     if let Some(pidx) = p {
-        if let Ok(data) = file::read_whole(&stream) {
-            let mut reader: &[u8] = &data;
-            changes = parse_delta(ctx, &mut reader, pidx);
+        match file::read_whole(ctx, &stream) {
+            Ok(data) => {
+                let mut reader: &[u8] = &data;
+                changes = parse_delta(ctx, &mut reader, pidx)?;
+            }
+            Err(e @ (Error::TimedOut | Error::Cancelled)) => return ctx.fail(e),
+            Err(_) => {}
         }
     }
-    (changes, Some(stream))
+    Ok((changes, Some(stream)))
 }
 
 /// uci_load_delta: apply every delta_path entry, then open (and with
@@ -203,14 +209,14 @@ pub fn load_delta(ctx: &mut Context, pidx: usize, flush: bool) -> Result<usize> 
     let mut changes = 0;
     for dir in ctx.delta_path.clone() {
         let filename = format!("{dir}/{name}");
-        let (c, f) = load_delta_file(ctx, Some(pidx), &filename, false);
+        let (c, f) = load_delta_file(ctx, Some(pidx), &filename, false)?;
         changes += c;
         if let Some(f) = f {
             crate::sys::unlock(&f);
         }
     }
     let filename = format!("{}/{}", ctx.savedir, name);
-    let (_, f) = load_delta_file(ctx, None, &filename, flush);
+    let (_, f) = load_delta_file(ctx, None, &filename, flush)?;
     if let Some(f) = &f {
         if flush && changes > 0 && f.set_len(0).is_err() {
             crate::sys::unlock(f);
@@ -236,7 +242,7 @@ fn filter_delta(ctx: &mut Context, name: &str, section: Option<&str>, option: Op
     };
     let mut list: Vec<Delta> = Vec::new();
     let ok = {
-        let Ok(data) = file::read_whole(&f) else {
+        let Ok(data) = file::read_whole(ctx, &f) else {
             crate::sys::unlock(&f);
             return;
         };

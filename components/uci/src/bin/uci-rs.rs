@@ -52,7 +52,7 @@ fn s(a: &[u8]) -> String {
 }
 
 struct Cli {
-    ctx: Context,
+    ctx: Context<'static>,
     flags: u32,
     delimiter: String,
     appname: String,

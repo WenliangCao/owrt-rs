@@ -640,6 +640,7 @@ impl<'r> Pctx<'r> {
     fn parse_line(&mut self, ctx: &mut Context, single: bool) -> Result<()> {
         self.skip_whitespace();
         loop {
+            ctx.check_io_budget()?;
             let Some(word) = self.strtok_word() else {
                 return Ok(());
             };
@@ -681,6 +682,12 @@ pub fn import(
     let root_before = ctx.root.len();
 
     while !pctx.eof {
+        if let Err(error) = ctx.check_io_budget() {
+            if !pctx.merge {
+                ctx.root.truncate(root_before);
+            }
+            return ctx.fail(error);
+        }
         pctx.pos = 0;
         pctx.getln(0);
         if pctx.char_at(0) == 0 {
@@ -765,7 +772,7 @@ mod tests {
     use super::*;
     use std::io::Cursor;
 
-    fn load(text: &str) -> (Context, usize) {
+    fn load(text: &str) -> (Context<'static>, usize) {
         let mut ctx = Context::new();
         let mut r = Cursor::new(text.as_bytes().to_vec());
         let idx = import(&mut ctx, &mut r, Some("t"), None, true).unwrap().unwrap();

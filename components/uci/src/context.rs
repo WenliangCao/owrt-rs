@@ -2,6 +2,9 @@
 
 use crate::error::{Error, Result};
 use crate::model::Package;
+use std::fs::File;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::{Duration, Instant};
 
 pub const CONFDIR: &str = "/etc/config";
 pub const SAVEDIR: &str = "/tmp/.uci";
@@ -25,7 +28,12 @@ pub struct ParseInfo {
     pub byte: usize,
 }
 
-pub struct Context {
+struct IoBudget<'a> {
+    deadline: Instant,
+    cancelled: &'a AtomicBool,
+}
+
+pub struct Context<'a> {
     /// ctx->root: loaded packages, in load order.
     pub root: Vec<Package>,
     pub flags: u32,
@@ -39,17 +47,20 @@ pub struct Context {
     pub err: Option<Error>,
     /// ctx->pctx, error-reporting view only.
     pub pctx: Option<ParseInfo>,
+    // Opt-in for callers that cannot wait indefinitely. Ordinary libuci/CLI
+    // users retain their existing blocking behavior and error codes.
+    io_budget: Option<IoBudget<'a>>,
 }
 
-impl Default for Context {
+impl Default for Context<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Context {
+impl<'a> Context<'a> {
     /// uci_alloc_context
-    pub fn new() -> Context {
+    pub fn new() -> Self {
         Context {
             root: Vec::new(),
             flags: FLAG_STRICT | FLAG_SAVED_DELTA,
@@ -59,6 +70,43 @@ impl Context {
             delta_path: vec![SAVEDIR.to_owned()],
             err: None,
             pctx: None,
+            io_budget: None,
+        }
+    }
+
+    /// Start one cooperative load budget, shared by base and delta file locks,
+    /// reads and parsing. It does not preempt a kernel filesystem operation.
+    pub fn set_io_budget(&mut self, timeout: Duration, cancelled: &'a AtomicBool) {
+        self.io_budget = Some(IoBudget { deadline: Instant::now() + timeout, cancelled });
+    }
+
+    pub fn check_io_budget(&self) -> Result<()> {
+        if let Some(budget) = &self.io_budget {
+            if budget.cancelled.load(Ordering::Relaxed) {
+                return Err(Error::Cancelled);
+            }
+            if Instant::now() >= budget.deadline {
+                return Err(Error::TimedOut);
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn lock_file(&self, file: &File, operation: i32) -> Result<()> {
+        let Some(budget) = &self.io_budget else {
+            return crate::sys::lock(file, operation).map_err(|_| Error::Io);
+        };
+        loop {
+            self.check_io_budget()?;
+            match crate::sys::lock(file, operation | crate::sys::LOCK_NB) {
+                Ok(()) => return Ok(()),
+                Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
+                Err(_) => return Err(Error::Io),
+            }
+            // Only a contended lock sleeps; uncontended loads do not poll.
+            std::thread::sleep(Duration::from_millis(10).min(
+                budget.deadline.saturating_duration_since(Instant::now())));
         }
     }
 

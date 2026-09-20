@@ -103,6 +103,145 @@
           "exit": 0
         }
       ]
+    },
+    {
+      "component": "reload-config",
+      "candidate_sha256": "2abc0bea7d21f3d01afb62d1fcc5cabf48876d4624f6720f2f2d36cf4fd084fc",
+      "workload_sha256": "b308157cc0fdc9208f57b7c8fa649b5591bc73224f213056ad63b194c06474cb",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "before_candidate_sha256": "4793a15bb5a17e8cd8e7a0d48f103fc4ac97e13e4df9fdd820a5b49f563566d6",
+      "unit_tests": {
+        "sha256": "c712e8eec2f7590a5a01acd1b5b11df07ecedd313ffa40067727989758c0838e",
+        "filter": "",
+        "exit": 0
+      },
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true,
+      "stage": "A03",
+      "sdk_clean_compile_exit": 0,
+      "apk_sha256": "51ccf420726408ab0e0abed45ebf4148e3a361176753b581dde0ec2cb996fb77",
+      "candidate_bytes": 482027,
+      "source_archive_sha256": "48b551496c96c2f942f82db57923d5fc68b244f630ba41cbd640cd50094f8c12",
+      "source_base": "d4594f9",
+      "runtime_sources_match_tested_snapshot": true,
+      "canonical_ci_release": false,
+      "performance_verdict": null,
+      "host_gates_first_build": [
+        {
+          "name": "ubus-unit",
+          "exit": 0
+        },
+        {
+          "name": "uci-unit",
+          "exit": 0
+        },
+        {
+          "name": "uci-clippy",
+          "exit": 0
+        },
+        {
+          "name": "reload-config-unit",
+          "exit": 0
+        },
+        {
+          "name": "reload-config-clippy",
+          "exit": 0
+        },
+        {
+          "name": "ubusd-unit",
+          "exit": 0
+        },
+        {
+          "name": "procd-unit",
+          "exit": 0
+        },
+        {
+          "name": "netifd-unit",
+          "exit": 0
+        },
+        {
+          "name": "logd-unit",
+          "exit": 0
+        },
+        {
+          "name": "httpd-unit",
+          "exit": 0
+        },
+        {
+          "name": "rpcd-unit",
+          "exit": 0
+        },
+        {
+          "name": "fw4-unit",
+          "exit": 0
+        },
+        {
+          "name": "uci-r16",
+          "exit": 0
+        },
+        {
+          "name": "uci-r24",
+          "exit": 0
+        },
+        {
+          "name": "uci-r83",
+          "exit": 0
+        },
+        {
+          "name": "reload-config-r1",
+          "exit": 0
+        }
+      ],
+      "host_gates_final_reload_config": [
+        {
+          "name": "reload-config-unit",
+          "exit": 0
+        },
+        {
+          "name": "reload-config-clippy",
+          "exit": 0
+        },
+        {
+          "name": "reload-config-r1",
+          "exit": 0
+        }
+      ],
+      "device_cases": [
+        "before_config_lock: deadline exceeded; guard killed candidate (expected red)",
+        "config_timeout: continued beta, advanced baseline, next invocation recovered",
+        "config_cancel: exit 75, baseline and deliveries unchanged",
+        "delta_timeout: continued beta, advanced baseline, next invocation recovered",
+        "delta_cancel: exit 75, baseline and deliveries unchanged",
+        "override_timeout: continued beta, advanced baseline, next invocation recovered",
+        "override_cancel: exit 75, baseline and deliveries unchanged"
+      ],
+      "final_uci_device_smoke": {
+        "component": "uci",
+        "candidate_sha256": "95a570ec37715fcb1ebf133714dc90825053f4dbb48c0bc29f946fade3154861",
+        "driver_sha256": "cae0e0929d8c0ce22ecf5237930e3f03735c0e12ba23a784dbd94506e74a3b14",
+        "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+        "correctness_smoke_only": true,
+        "installed": false,
+        "production_mode": "stock",
+        "exit": 0,
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      }
     }
   ]
 }

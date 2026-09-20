@@ -12,6 +12,7 @@ extern "C" {
 
 pub const LOCK_SH: i32 = 1;
 pub const LOCK_EX: i32 = 2;
+pub const LOCK_NB: i32 = 4;
 pub const LOCK_UN: i32 = 8;
 
 /// flock(fd, op). ENOSYS is treated as success like libuci does.

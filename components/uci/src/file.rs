@@ -17,6 +17,7 @@ fn basename(path: &str) -> &str {
 
 /// uci_open_stream(ctx, filename, NULL, pos, write, create)
 pub fn open_stream(ctx: &Context, filename: &str, seek_end: bool, write: bool, create: bool) -> Result<File> {
+    ctx.check_io_budget()?;
     let mut mode = FILEMODE;
     if create {
         let filename2 = format!("{}/{}", ctx.confdir, basename(filename));
@@ -39,9 +40,7 @@ pub fn open_stream(ctx: &Context, filename: &str, seek_end: bool, write: bool, c
         oo.create(true).mode(mode & 0o7777);
     }
     let mut f = oo.open(filename).map_err(|_| Error::Io)?;
-    if sys::lock(&f, if write { sys::LOCK_EX } else { sys::LOCK_SH }).is_err() {
-        return Err(Error::Io);
-    }
+    ctx.lock_file(&f, if write { sys::LOCK_EX } else { sys::LOCK_SH })?;
     // a freshly opened descriptor is already at offset 0
     if seek_end && f.seek(SeekFrom::End(0)).is_err() {
         sys::unlock(&f);
@@ -52,16 +51,18 @@ pub fn open_stream(ctx: &Context, filename: &str, seek_end: bool, write: bool, c
 
 /// Read through EOF from the current offset. Metadata is only an allocation
 /// hint: a successful short read need not mean EOF, even for a regular file.
-pub(crate) fn read_whole(mut f: &File) -> Result<Vec<u8>> {
+pub(crate) fn read_whole(ctx: &Context, mut f: &File) -> Result<Vec<u8>> {
     let hint = f.metadata().map(|m| m.len() as usize).unwrap_or(0);
-    read_all(&mut f, hint)
+    read_all(ctx, &mut f, hint)
 }
 
-fn read_all(mut reader: impl Read, hint: usize) -> Result<Vec<u8>> {
+fn read_all(ctx: &Context, mut reader: impl Read, hint: usize) -> Result<Vec<u8>> {
     let mut data = vec![0u8; hint.saturating_add(1).min(64 * 1024)];
-    let mut filled = 0;
+    let mut filled: usize = 0;
     loop {
-        match reader.read(&mut data[filled..]) {
+        ctx.check_io_budget()?;
+        let end = filled.saturating_add(64 * 1024).min(data.len());
+        match reader.read(&mut data[filled..end]) {
             Ok(0) => break,
             Ok(n) => {
                 filled += n;
@@ -105,7 +106,7 @@ mod read_tests {
         for chunk in [1, 7, 16, bytes.len()] {
             for hint in [0, 3, bytes.len(), bytes.len() + 128] {
                 let reader = Fragmented { bytes: Cursor::new(&bytes[..]), chunk, interrupt: true };
-                assert_eq!(read_all(reader, hint).unwrap(), bytes);
+                assert_eq!(read_all(&Context::new(), reader, hint).unwrap(), bytes);
             }
         }
     }
@@ -115,7 +116,7 @@ mod read_tests {
         let bytes = b"old prefix\nremaining delta\n";
         let mut reader = Cursor::new(&bytes[..]);
         reader.set_position(11);
-        assert_eq!(read_all(reader, bytes.len()).unwrap(), b"remaining delta\n");
+        assert_eq!(read_all(&Context::new(), reader, bytes.len()).unwrap(), b"remaining delta\n");
     }
 }
 
@@ -159,7 +160,7 @@ fn load_impl(ctx: &mut Context, name: &str, cache: Option<&mut crate::ReadCache>
     let file = open_stream(ctx, &filename, false, false, false)?;
     ctx.err = None;
     // The owner keeps the shared lock alive while the whole file is read once.
-    let data = match read_whole(&file) {
+    let data = match read_whole(ctx, &file) {
         Ok(d) => d,
         Err(e) => {
             sys::unlock(&file);
@@ -190,6 +191,11 @@ fn load_impl(ctx: &mut Context, name: &str, cache: Option<&mut crate::ReadCache>
     }
     let r = delta::load_delta(ctx, pidx, false);
     sys::unlock(&file);
+    if let Err(error @ (Error::TimedOut | Error::Cancelled)) = r {
+        // A timed-out delta load is not a successfully cached base package.
+        ctx.root.remove(pidx);
+        return ctx.fail(error);
+    }
     r?;
     Ok(pidx)
 }
@@ -228,7 +234,7 @@ pub fn commit(ctx: &mut Context, pidx: usize, overwrite: bool) -> Result<()> {
                 ctx.root.remove(pidx);
                 let mut stream = &f1;
                 stream.seek(SeekFrom::Start(0)).map_err(|_| Error::Io)?;
-                let data = read_whole(stream)?;
+                let data = read_whole(ctx, stream)?;
                 let mut reader: &[u8] = &data;
                 let newidx = match parse::import(ctx, &mut reader, Some(&name), None, true)? {
                     Some(i) => i,

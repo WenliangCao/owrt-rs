@@ -149,7 +149,7 @@ pub fn tuple(ctx: &mut Context, tuple: &[u8], show: &mut Show, out: &mut impl Wr
 mod tests {
     use super::*;
 
-    fn ctx_with(dir: &std::path::Path, name: &str, text: &str) -> Context {
+    fn ctx_with(dir: &std::path::Path, name: &str, text: &str) -> Context<'static> {
         std::fs::create_dir_all(dir).unwrap();
         std::fs::write(dir.join(name), text).unwrap();
         let mut ctx = Context::new();

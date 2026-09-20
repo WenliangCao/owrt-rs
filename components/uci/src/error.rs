@@ -10,6 +10,9 @@ pub enum Error {
     Parse = 5,
     Duplicate = 6,
     Unknown = 7,
+    /// Extensions returned only after Context::set_io_budget opts in.
+    TimedOut = 8,
+    Cancelled = 9,
 }
 
 impl Error {
@@ -22,6 +25,8 @@ impl Error {
             Error::Parse => "Parse error",
             Error::Duplicate => "Duplicate entry",
             Error::Unknown => "Unknown error",
+            Error::TimedOut => "Operation timed out",
+            Error::Cancelled => "Operation cancelled",
         }
     }
 }

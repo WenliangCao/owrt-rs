@@ -11,7 +11,7 @@ use owrt_uci::model::{OptionValue, Ptr, LOOKUP_DONE};
 use owrt_uci::{ops, parse, Context, Error};
 use std::io::Cursor;
 
-fn load(text: &[u8]) -> (Context, usize) {
+fn load(text: &[u8]) -> (Context<'static>, usize) {
     let mut ctx = Context::new();
     let mut r = Cursor::new(text.to_vec());
     let idx = parse::import(&mut ctx, &mut r, Some("t"), None, true)

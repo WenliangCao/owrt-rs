@@ -109,7 +109,8 @@ pub fn run<W: Write>(
         if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
             return Err(Error::Cancelled);
         }
-        let (output, status) = normalize(&mut ctx, name);
+        ctx.set_io_budget(settings.timeout, cancelled);
+        let (output, status) = normalize(&mut ctx, name)?;
         if let Some(status) = status {
             trace
                 .normalization(&name.to_string_lossy(), &status)
@@ -225,11 +226,20 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<OsString>, Error> {
 /// does not resolve (C-03).  Deltas under /tmp/.uci apply as in the CLI.  Any
 /// failure is what `uci` exits 1 for, so the entry is empty and traced as
 /// `exit_1`.
-fn normalize(ctx: &mut Context, name: &OsStr) -> (Vec<u8>, Option<String>) {
+fn normalize(ctx: &mut Context, name: &OsStr) -> Result<(Vec<u8>, Option<String>), Error> {
     let mut output = Vec::new();
-    match show::tuple(ctx, name.as_bytes(), &mut Show::new(true, b" "), &mut output) {
-        Ok(()) => (output, None),
-        Err(_) => (output, Some("exit_1".into())),
+    let result = show::tuple(ctx, name.as_bytes(), &mut Show::new(true, b" "), &mut output);
+    match ctx.check_io_budget().and(result) {
+        Ok(()) => Ok((output, None)),
+        Err(owrt_uci::Error::Cancelled) => Err(Error::Cancelled),
+        Err(owrt_uci::Error::TimedOut) => {
+            // Never reuse a package whose base/delta load was interrupted.
+            ctx.root.clear();
+            // As with the old killed `uci show`, hash whatever was already
+            // rendered. A timeout while loading/locking has produced no bytes.
+            Ok((output, Some("timeout".into())))
+        }
+        Err(_) => Ok((output, Some("exit_1".into()))),
     }
 }
 

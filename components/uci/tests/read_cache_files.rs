@@ -19,7 +19,7 @@ impl Fixture {
         }
         Self(dir)
     }
-    fn ctx(&self, sid: &str, state: bool) -> Context {
+    fn ctx(&self, sid: &str, state: bool) -> Context<'static> {
         let mut ctx = Context::new();
         ctx.set_confdir(self.0.join("config").to_str().unwrap());
         ctx.set_conf2dir(self.0.join("override").to_str().unwrap());

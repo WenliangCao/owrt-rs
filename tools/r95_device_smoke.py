@@ -26,6 +26,8 @@ def main():
     p.add_argument("--guard", type=Path, required=True, help="SDK-built tools/testsrc/r95_guard.c")
     p.add_argument("--unit-tests", type=Path, help="SDK-built Rust test executable")
     p.add_argument("--unit-filter", default="file::read_tests", help="test name filter, recorded in evidence")
+    p.add_argument("--workload-script", type=Path, help="isolated.sh-compatible correctness probe")
+    p.add_argument("--before-candidate", type=Path, help="optional failing-version control for the probe")
     p.add_argument("--host", default="openwrt")
     p.add_argument("--interface", default="en0")
     a = p.parse_args()
@@ -50,8 +52,12 @@ def main():
     base = "/tmp/r95-check-" + uuid.uuid4().hex
     binary = "reload_config_rs" if a.component == "reload-config" else "uci-rs"
     harness = Path(__file__).parent / "benchmark/isolated.sh"
+    workload = a.workload_script or harness
+    remote_script = f"{base}/probe.sh" if a.workload_script else f"{base}/isolated.sh"
     digest = hashlib.sha256(a.candidate.read_bytes()).hexdigest()
     result = {"component": a.component, "candidate_sha256": digest,
+              "driver_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "workload_sha256": hashlib.sha256(workload.read_bytes()).hexdigest(),
               "guard_sha256": hashlib.sha256(a.guard.read_bytes()).hexdigest(),
               "recovery_gate_sha256": hashlib.sha256(a.recovery_gate.read_bytes()).hexdigest(),
               "correctness_smoke_only": True, "installed": False,
@@ -65,6 +71,15 @@ def main():
             subprocess.run(["scp", "-q", "-O", str(local.resolve()), a.host + ":" + destination], check=True)
         assert remote(f"sha256sum {base}/bundle/{binary}").decode().split()[0] == digest
         assert remote(f"sha256sum {base}/guard").decode().split()[0] == result["guard_sha256"]
+        remote(f"cp {base}/guard {base}/bundle/guard")
+        if a.workload_script:
+            subprocess.run(["scp", "-q", "-O", str(workload.resolve()), a.host + ":" + remote_script], check=True)
+        assert remote(f"sha256sum {remote_script}").decode().split()[0] == result["workload_sha256"]
+        if a.before_candidate:
+            old_sha = hashlib.sha256(a.before_candidate.read_bytes()).hexdigest()
+            subprocess.run(["scp", "-q", "-O", str(a.before_candidate.resolve()), a.host + f":{base}/bundle/before-rs"], check=True)
+            assert remote(f"sha256sum {base}/bundle/before-rs").decode().split()[0] == old_sha
+            result["before_candidate_sha256"] = old_sha
         manifest = json.loads(remote("cat /root/r84/manifest.json"))
         for tool in ("ns-exec", "owrt-benchmark"):
             assert remote(f"sha256sum {base}/bundle/{tool}").decode().split()[0] == manifest["tools"][tool]["sha256"]
@@ -81,9 +96,9 @@ def main():
             unit.check_returncode()
         # Kill the namespace launcher itself on timeout: its init has PDEATHSIG
         # and owns every descendant, including detached child processes.
-        command = (f"{base}/guard 120 {base}/bundle/ns-exec /bin/sh {base}/isolated.sh "
+        command = (f"{base}/guard 120 {base}/bundle/ns-exec /bin/sh {remote_script} "
                    f"--namespace /rom {base}/bundle {a.component} rs {base}/out 10 "
-                   f"{base}/work {base}/isolated.sh")
+                   f"{base}/work {remote_script}")
         with (a.output / "run.log").open("wb") as log:
             run = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)
         result["exit"] = run.returncode
@@ -104,6 +119,19 @@ for p in /proc/[0-9]*; do
         case "$target" in {base}/*) kill -KILL "${{p##*/}}" 2>/dev/null || true ;; esac
     done
 done
+live=1
+for attempt in 1 2 3 4 5; do
+    live=
+    for p in /proc/[0-9]*; do
+        for what in exe root; do
+            target=$(readlink "$p/$what" 2>/dev/null || true)
+            case "$target" in {base}/*) live=1 ;; esac
+        done
+    done
+    [ -n "$live" ] || break
+    sleep 1
+done
+test -z "$live"
 rm -rf -- {shlex.quote(base)}
 test ! -e {shlex.quote(base)}
 """

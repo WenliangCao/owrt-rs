@@ -11,7 +11,7 @@ static NEXT: AtomicU64 = AtomicU64::new(0);
 
 struct Fixture {
     dir: PathBuf,
-    ctx: Context,
+    ctx: Context<'static>,
 }
 
 impl Fixture {
