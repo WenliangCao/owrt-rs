@@ -1,0 +1,50 @@
+#!/bin/sh
+# Direct ubus_send_event workload. The benchmark override is the exact-image
+# C libubus caller and also provides exec-cpu; the daemon remains disposable.
+set -eu
+if [ "${1:-}" = --namespace ]; then
+    exec /bin/sh "$(dirname "$0")/isolated.sh" "$@"
+fi
+[ "${1:-}" = --workload ] && [ "${OWRT_BENCH_NAMESPACE:-}" = 1 ] || exit 125
+[ "$2" = ubusd ] || exit 125
+bin=/tmp/bin/ubusd-rs
+bench=/tmp/bin/owrt-benchmark
+out=/tmp/out
+socket=/var/run/ubus/ubus.sock
+mkdir -p /var/run/ubus
+sha256sum "$bin" > "$out/binary-sha256.txt"
+sha256sum "$bench" /tmp/bin/ns-exec > "$out/benchmark-sha256.txt"
+uname -r > "$out/kernel.txt"
+cat /sys/devices/system/cpu/online > "$out/cpus-online.txt"
+cat /proc/cpuinfo > "$out/cpuinfo.txt"
+frequencies() {
+    for f in /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+        [ ! -r "$f" ] || { printf '%s ' "$f"; cat "$f"; }
+    done
+}
+frequencies > "$out/frequency-before.txt"
+"$bench" exec-cpu 1 "$bin" -s "$socket" > "$out/daemon.log" 2>&1 & pid=$!
+cleanup() {
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+}
+trap cleanup EXIT HUP INT TERM
+tries=0
+until ubus -s "$socket" -t 1 list >/dev/null 2>&1; do
+    kill -0 "$pid"
+    [ "$tries" -lt 20 ]
+    sleep 1
+    tries=$((tries + 1))
+done
+[ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/$pid/status)" = 1 ]
+ubus -s "$socket" list > "$out/objects-before.txt"
+[ ! -s "$out/objects-before.txt" ]
+printf '{"subject_pid":%s,"subject_cpu":1,"client_cpu":0,"iterations":%s,"warmup":2000,"scenarios":["user_1_1","user_8_1","user_1_0"],"exact_image_caller":true}\n' "$pid" "$4" > "$out/meta.json"
+"$bench" user-event "$socket" 1 1 "$4" 2000 "$pid" > "$out/user_1_1.json"
+"$bench" user-event "$socket" 8 1 "$4" 2000 "$pid" > "$out/user_8_1.json"
+"$bench" user-event "$socket" 1 0 "$4" 2000 "$pid" > "$out/user_1_0.json"
+frequencies > "$out/frequency-after.txt"
+ubus -s "$socket" list > "$out/objects-after.txt"
+[ ! -s "$out/objects-after.txt" ]
+printf '{"daemon_pid":%s,"iterations":%s,"warmup":2000,"scenarios":3,"serial_client":true,"event_payload_validated":true}\n' "$pid" "$4" > "$out/summary.json"
+touch "$out/COMPLETE"
