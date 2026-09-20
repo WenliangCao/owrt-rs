@@ -1,0 +1,12 @@
+{
+  "purpose": "Physical router reproduction of pre-existing unseen epoch collision and full fixed unit suite; no performance inference",
+  "base": "5a19517",
+  "artifacts": {
+    "tools/r100_event_epoch.sh": "d761705e15b0e1b8a6d2f328a4b088de386341d023a3a3c7e4843b1f665dfd55",
+    "docs/reviews/r100-event-epoch-repro.patch": "59381fafc2d700094c7ad07946ea6f6dbcdf6828af6691b74d25ba55aeca2376",
+    "docs/reviews/r100-event-epoch-fix.patch": "83a94cc7d21c4177c2230b6a3318e9eb199f57d89a2056f825e3f639107c7a41",
+    "private/r100/event-epoch/unit-before-tests": "48baee4f84ae9a15dfb635ecfd8fb1fdfe0efb543b7020075612b5c387b7feee",
+    "private/r100/event-epoch/unit-fixed-tests": "dcae65ad49b77a019d31ff1b4e6683576e500578d3e1f721b35d7389933f8028"
+  },
+  "production": "C unchanged; guarded namespace; driver verifies cleanup and health"
+}
