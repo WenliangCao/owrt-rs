@@ -1,0 +1,20 @@
+{
+  "reply_candidate_sha256": "345e41e643f19b71aeedc48d6acf4532f37415c4bea0b4ee1fadb0674ede7277",
+  "reply_device_result_sha256": "0ed2cd4950ef8cee8ef20c7b667008bde752e0fcc53255e905cbcee928f01006",
+  "physical_units": 30,
+  "physical_wire_differential": "7 scenarios C/before/candidate passed",
+  "all_checks": {
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  },
+  "combined_candidate_sha256": "b7e16338cc1bcfadc3e09bf29e7b3efcaac6758371e92269d4533717216ab14e",
+  "combined_unit_sha256": "8daba82d8348de7aac07b3f1b467ac4bf505ed1499fbed7efa6bdf65e5339419",
+  "combined_native_units": 32,
+  "combined_native_clippy": "passed",
+  "combined_physical": "pending",
+  "runtime_retention": "neither candidate accepted; separate identities maintained"
+}
