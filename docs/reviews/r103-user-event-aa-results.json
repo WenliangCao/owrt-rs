@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "workload": "direct ubus_send_event, exact-image C caller, 8 alternating C/candidate blocks",
+  "iterations": 20000,
+  "warmup": 2000,
+  "summary": {
+    "user_1_1": {
+      "ratios_candidate_to_c": [
+        0.9569960167560625,
+        0.949656936229943,
+        0.9454686781973066,
+        0.9635164745153544,
+        0.9519224411535376,
+        0.9916229522898719,
+        0.987532097210603,
+        0.9705103970911815
+      ],
+      "median_ratio": 0.9602562456357084,
+      "median_percent": -3.974375436429156
+    },
+    "user_8_1": {
+      "ratios_candidate_to_c": [
+        0.9799019909440291,
+        0.9800270872639493,
+        0.9612664756306334,
+        0.9640244499805798,
+        0.9661952341610206,
+        0.9990632963688001,
+        0.9793220776370082,
+        0.9631627735822736
+      ],
+      "median_ratio": 0.9727586558990144,
+      "median_percent": -2.7241344100985554
+    },
+    "user_1_0": {
+      "ratios_candidate_to_c": [
+        0.9198455478018472,
+        0.915226029642597,
+        0.9135700871536779,
+        0.9197750114173704,
+        0.9166923784244421,
+        0.9291226323015233,
+        0.9330327843454518,
+        0.9200109378940664
+      ],
+      "median_ratio": 0.9198102796096088,
+      "median_percent": -8.018972039039118
+    }
+  },
+  "statistical_unit": "independent physical router block; candidate/C pair order alternated; requests are not independent trials",
+  "all_windows_cleaned_and_stock": true,
+  "final_stock_health": "private/r100/registration-stack/final-health/final-health.json",
+  "limitations": "A/B estimate for this event workload. The small 8-listener effect remains a pilot estimate without a preregistered confidence gate; no whole-system or memory verdict."
+}
