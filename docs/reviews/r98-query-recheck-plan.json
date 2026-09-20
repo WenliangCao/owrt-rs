@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "purpose": "Independent longer-window query recheck with an identical-before control to diagnose small adverse query directions",
+  "runtime_commit": "74e268e plus r98 event-lazy patch",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "before",
+        "candidate",
+        "control"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "candidate",
+        "before",
+        "control"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "candidate",
+        "before",
+        "control"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "control",
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 5,
+      "order": [
+        "candidate",
+        "before",
+        "control"
+      ]
+    },
+    {
+      "block": 6,
+      "order": [
+        "control",
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 7,
+      "order": [
+        "before",
+        "candidate",
+        "control"
+      ]
+    },
+    {
+      "block": 8,
+      "order": [
+        "control",
+        "candidate",
+        "before"
+      ]
+    }
+  ],
+  "seed": 9804,
+  "iterations": 20000,
+  "warmup": 20,
+  "subjects": {
+    "before": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+    "candidate": "1fc485de5261b3090c7bcabe265950fc4071ccf4b8d941cc89f0a232be4a2db1",
+    "control": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r98_query_recheck.sh": "af61e0081fa2c707feea1c1c40d4676c1d5d441f574acfd141924efea6bcf86c"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op",
+    "subject_own_cpu_clock_us_per_op",
+    "dependency_own_cpu_clock_us_per_op",
+    "client_cpu_clock_us_per_op",
+    "ops_per_s"
+  ],
+  "memory": "Separate actual registration heap diagnostics; proc RSS/HWM remain diagnostic, not PSS or full peak acceptance.",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Eight independent randomized triplets: before and control are byte-identical baselines. Publish all per-block ratios, ranges and before/control differences. Do not pool or replace the first four-arm results; no equivalence/superiority verdict.",
+  "runtime_patch_sha256": "76545973751ab69b996a9502c22a0c1d2fd2e7059faae4850f0054d17bbdb41c",
+  "server_source_sha256": "93d49364941dfc9fb258991963ecbe5392576a7fc13c92dc92590f99bf480eee",
+  "hypothesis": "Check recurrence of lookup/prefix CPU, concurrent mean/throughput and tail increases with unchanged runtime/client bytes; repeated baseline quantifies within-block run variation.",
+  "retention_rule": "Defer runtime retention if a selected own-CPU median exceeds +1% or p99 exceeds +5%, with at least six of eight positive pairs, against BOTH identical baseline labels. These are conservative investigation gates, not significance tests. Report all other adverse changes.",
+  "matrix": false,
+  "workloads": [
+    "lookup",
+    "lookup_c4",
+    "lookup_prefix_64",
+    "invoke_c4"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes.",
+  "registry_source_sha256": "75d1f5c6dcd9e8e040a37ecb0c1c52387396b9d6bae2ed2db26d27eaea710b0f",
+  "benchmark_sha256": "d5da0973ff4fd8774cc5952d2363c3a3f48e3884d2b264144abb26bd6ebbe96e",
+  "client_control": "Frozen ca1a912 client and dependencies plus only process CPU clocks; same binary on all four arms. Do not pool R95/R96 measurements.",
+  "metric_directions": "Lower is better except ops_per_s, which is higher-is-better. Registration ops are complete add/remove cycles."
+}
