@@ -1,0 +1,61 @@
+{
+  "candidate_sha256": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+  "before_sha256": "ece562af6e37c83982f20a17ef5709b25d947cee1f22a4b258d5986a8ba76d4d",
+  "probe_sha256": "839cd8bc55b82aa43250f9d89bd35e9e6659157fbb0cc397b7eaa32dd4cdbf91",
+  "physical_unit_tests_passed": 29,
+  "native_unit_tests_passed": 29,
+  "device_result_sha256": "7e8a45079fd5713f5646db167df7815bb31f4d88259a20ee9fecdab5da0ae499",
+  "physical_differential": {
+    "c": [
+      "root r97.wire canonical=true",
+      "root r97.denied canonical=true",
+      "root r97.config canonical=true",
+      "root r97.wildcard canonical=true",
+      "root r97.empty canonical=true",
+      "root r97.padding canonical=true",
+      "root r97.normal canonical=true",
+      "nobody r97.wire visible=true expected=true canonical=true",
+      "nobody r97.denied visible=false expected=false canonical=true",
+      "nobody r97.config visible=true expected=true canonical=true",
+      "nobody r97.wildcard visible=true expected=true canonical=true",
+      "nobody r97.empty visible=true expected=true canonical=true",
+      "nobody r97.padding visible=true expected=true canonical=true",
+      "nobody r97.normal visible=true expected=true canonical=true"
+    ],
+    "before": [
+      "root r97.wire canonical=false",
+      "root r97.denied canonical=false",
+      "root r97.config canonical=true",
+      "root r97.wildcard canonical=true",
+      "root r97.empty canonical=false",
+      "root r97.padding canonical=false",
+      "root r97.normal canonical=true",
+      "nobody r97.wire visible=false expected=true canonical=true",
+      "nobody r97.denied visible=false expected=false canonical=true",
+      "nobody r97.config visible=false expected=true canonical=true",
+      "nobody r97.wildcard visible=false expected=true canonical=true",
+      "nobody r97.empty visible=false expected=true canonical=true",
+      "nobody r97.padding visible=true expected=true canonical=false",
+      "nobody r97.normal visible=true expected=true canonical=true"
+    ],
+    "candidate": [
+      "root r97.wire canonical=true",
+      "root r97.denied canonical=true",
+      "root r97.config canonical=true",
+      "root r97.wildcard canonical=true",
+      "root r97.empty canonical=true",
+      "root r97.padding canonical=true",
+      "root r97.normal canonical=true",
+      "nobody r97.wire visible=true expected=true canonical=true",
+      "nobody r97.denied visible=false expected=false canonical=true",
+      "nobody r97.config visible=true expected=true canonical=true",
+      "nobody r97.wildcard visible=true expected=true canonical=true",
+      "nobody r97.empty visible=true expected=true canonical=true",
+      "nobody r97.padding visible=true expected=true canonical=true",
+      "nobody r97.normal visible=true expected=true canonical=true"
+    ]
+  },
+  "stock_config_boot_mounts_and_cleanup_verified": true,
+  "deployed": false,
+  "scope": "Method names in wire signatures and ACL method grants; not a complete audit of every JSON string boundary"
+}

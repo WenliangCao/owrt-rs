@@ -455,6 +455,67 @@ fn monitor_lookup(sock: &str) {
     println!("exact_data=1 prefix_data=4 mirror_order=true mirror_payloads=true mirror_sequences=true");
 }
 
+// Fixture ACL grants are supplied by r97_ubusd_method_acl.sh in its private
+// namespace. Print observations even on the old failing daemon so the shell
+// can compare all positive and negative controls against the actual C image.
+fn method_acl(sock: &str) {
+    let cases: &[(&str, &str, bool)] = &[
+        ("r97.wire", "ping\0suffix", true),
+        ("r97.denied", "denied\0ping", false),
+        ("r97.config", "ping", true),
+        ("r97.wildcard", "other", true),
+        ("r97.empty", "\0suffix", true),
+        ("r97.padding", "ab", true),
+        ("r97.normal", "ping", true),
+    ];
+    let mut owner = Conn::open(sock);
+    let mut signatures = Vec::new();
+    for &(path, name, _) in cases {
+        let mut raw = BlobBuf::new();
+        let t = raw.msg_open_table(name);
+        raw.msg_u32("policy", 5);
+        raw.msg_close(t);
+        let mut field = raw.payload().to_vec();
+        if path == "r97.padding" { field[9..12].fill(0xa5); }
+        let mut b = BlobBuf::new();
+        b.put_string(attr::OBJPATH, path);
+        let t = b.nest_start(attr::SIGNATURE);
+        b.put_raw_fields(&field);
+        b.nest_end(t);
+        let (code, reply) = owner.request(ty::ADD_OBJECT, 0, &mut b);
+        assert_eq!(code, 0);
+        assert!(attrs(&reply[0].1)[attr::OBJTYPE as usize].is_some());
+        let mut b = BlobBuf::new();
+        b.put_string(attr::OBJPATH, path);
+        let (code, frames) = owner.request(ty::LOOKUP, 0, &mut b);
+        assert_eq!(code, 0);
+        assert_eq!(frames.len(), 1);
+        let signature = attrs(&frames[0].1)[attr::SIGNATURE as usize].unwrap().payload;
+        let mut expected = BlobBuf::new();
+        let t = expected.msg_open_table(name.split('\0').next().unwrap());
+        expected.msg_u32("policy", 5);
+        expected.msg_close(t);
+        println!("root {path} canonical={}", signature == expected.payload());
+        signatures.push(expected.payload().to_vec());
+    }
+    // Only this probe drops credentials; the publishing socket keeps the
+    // root peer identity captured on accept by both daemons.
+    owrt_ubus::sys::drop_privileges(65534, 65534).unwrap();
+    let mut reader = Conn::open(sock);
+    for ((path, _, expected), signature) in cases.iter().zip(signatures) {
+        let mut b = BlobBuf::new();
+        b.put_string(attr::OBJPATH, path);
+        let (code, frames) = reader.request(ty::LOOKUP, 0, &mut b);
+        assert_eq!(code, 0);
+        assert!(frames.len() <= 1);
+        let canonical = frames.first().is_none_or(|(h, reply)| {
+            assert_eq!(h.ty, ty::DATA);
+            attrs(reply)[attr::SIGNATURE as usize].unwrap().payload == signature
+        });
+        println!("nobody {path} visible={} expected={expected} canonical={canonical}", !frames.is_empty());
+    }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
@@ -471,6 +532,7 @@ fn main() {
         "utf8" => utf8(sock),
         "slowlookup" => slowlookup(sock),
         "monitor_lookup" => monitor_lookup(sock),
+        "method_acl" => method_acl(sock),
         other => {
             eprintln!("unknown scenario {other}");
             std::process::exit(2);

@@ -81,7 +81,12 @@ impl Acl {
                 AclType::Listen => e.listen,
                 AclType::Send => e.send,
                 AclType::Access => method.is_some_and(|m| {
-                    e.methods.iter().any(|c| c == "*" || c.as_bytes() == m)
+                    e.methods.iter().any(|c| {
+                        // JSON strings can contain NUL too; C strcmp stops
+                        // there for both named grants and the wildcard.
+                        let c = crate::obj::cstr_bytes(c.as_bytes());
+                        c == b"*" || c == m
+                    })
                 }),
             };
             if ok {
@@ -304,6 +309,20 @@ mod tests {
         e.sort_by(|x, y| x.key.cmp(&y.key));
         a.entries = e;
         a
+    }
+
+    #[test]
+    fn method_grants_use_c_string_names() {
+        let cred = Cred { uid: 1234, gid: 1234, extra_gid: &[] };
+        for (grant, method, allowed) in [("ping\0suffix", &b"ping"[..], true),
+                                         ("*\0suffix", b"other", true),
+                                         ("safe\0ping", b"ping", false),
+                                         ("\0suffix", b"", true)] {
+            let mut e = entry("example", false, 1234);
+            e.methods = vec![grant.to_owned()];
+            let a = acl(vec![e]);
+            assert_eq!(a.check(Some(&cred), Some(b"example"), Some(method), AclType::Access), allowed);
+        }
     }
 
     #[test]

@@ -242,7 +242,10 @@ impl Server {
                 let Some((item, next)) = blob::attr_at(sig.payload, offset) else { break };
                 offset = next;
                 match check_method(&item) {
-                    Some(name) => methods.push(obj::Method { name, blob: raw_attr(&item) }),
+                    Some(name) => {
+                        let blob = method_blob(&item, &name);
+                        methods.push(obj::Method { name, blob });
+                    }
                     None => {
                         ok = false;
                         break;
@@ -1116,14 +1119,20 @@ fn patch_first_u32(blob: &mut [u8], value: u32) {
 
 /// The wire bytes of an attribute: its 4-byte header plus payload, unpadded --
 /// what `blobmsg_add_blob` copies.
-fn raw_attr(a: &blob::Attr) -> Vec<u8> {
-    let mut id_len = (a.id << 24) & 0x7f00_0000;
-    if a.extended {
-        id_len |= blob::EXTENDED;
-    }
-    id_len |= (4 + a.payload.len()) as u32 & 0x00ff_ffff;
-    let mut v = id_len.to_be_bytes().to_vec();
-    v.extend_from_slice(a.payload);
+// C blobmsg_add_blob() rebuilds the method's outer header using strlen,
+// zeroes name padding, and copies only its data unchanged. Canonicalize once
+// at registration rather than preserving an embedded-NUL suffix on lookup.
+fn method_blob(a: &blob::Attr, name: &[u8]) -> Vec<u8> {
+    let declared = u16::from_be_bytes(a.payload[..2].try_into().unwrap()) as usize;
+    let data = &a.payload[crate::client::pad4(2 + declared + 1)..];
+    let header = 4 + crate::client::pad4(2 + name.len() + 1);
+    let raw = header + data.len();
+    let mut v = Vec::with_capacity(raw);
+    v.extend_from_slice(&((a.id << 24) | blob::EXTENDED | raw as u32).to_be_bytes());
+    v.extend_from_slice(&(name.len() as u16).to_be_bytes());
+    v.extend_from_slice(name);
+    v.resize(header, 0);
+    v.extend_from_slice(data);
     v
 }
 
@@ -1171,7 +1180,9 @@ fn check_method(a: &blob::Attr) -> Option<Vec<u8>> {
     if !ok {
         return None;
     }
-    Some(a.payload[2..2 + name_len].to_vec())
+    // libubox validates the declared terminator, but embedded NULs are
+    // legal. ubusd ACLs compare blobmsg_name() as a C string.
+    Some(obj::cstr_bytes(&a.payload[2..2 + name_len]).to_vec())
 }
 
 #[cfg(test)]
@@ -1229,6 +1240,15 @@ mod tests {
         payload.resize(8, 0); // pad4(2 + 4 + 1)
         let a = blob::Attr { id: 2, extended: true, payload: &payload };
         assert_eq!(check_method(&a).as_deref(), Some(&b"ping"[..]));
+        for (wire_name, expected) in [(&b"ping\0suffix"[..], &b"ping"[..]),
+                                      (b"\0suffix", b""), (b"p\xffng", b"p\xffng")] {
+            let mut payload = (wire_name.len() as u16).to_be_bytes().to_vec();
+            payload.extend_from_slice(wire_name);
+            payload.push(0);
+            payload.resize(crate::client::pad4(payload.len()), 0);
+            let attr = blob::Attr { id: 2, extended: true, payload: &payload };
+            assert_eq!(check_method(&attr).as_deref(), Some(expected));
+        }
         // a zero-length name is refused when a name is required
         let mut zero = 0u16.to_be_bytes().to_vec();
         zero.resize(8, 0);

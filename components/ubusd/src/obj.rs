@@ -16,8 +16,8 @@ pub const SYSTEM_OBJECT_EVENT: u32 = 1;
 pub const SYSTEM_OBJECT_ACL: u32 = 2;
 pub const SYSTEM_OBJECT_MONITOR: u32 = 3;
 
-/// One method of an object type: the raw blobmsg attribute as registered, so
-/// the signature is echoed back byte for byte, plus its name for ACL checks.
+/// One validated method: the canonical blobmsg attribute C emits on lookup,
+/// plus its C-string name for ACL checks. The method data remains unchanged.
 pub struct Method {
     pub name: Vec<u8>,
     pub blob: Vec<u8>,
