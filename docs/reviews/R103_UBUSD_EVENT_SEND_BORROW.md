@@ -10,4 +10,14 @@ The failed initial compile against the old pre-lazy source was discarded and not
 
 ## Fanout evidence
 
-A fresh 16-window physical fanout series (four arms × four blocks × `watch_1_1`, `watch_8_1`, and `watch_1_0`) passed all cleanup and byte-validation checks. This workload exercises object add/remove events, so it validates integration of the repaired R100 dispatcher but does not directly exercise `ubus_send_event`; the result is intentionally not a performance verdict for this R103 change. In that object-event condition the candidate remained roughly 5–7% above C daemon CPU for matched receivers and roughly 6% below C with no eligible receiver, while staying materially below R89. A direct user-event sender workload is still required before accepting R103.
+A fresh 16-window physical fanout series (four arms × four blocks × `watch_1_1`, `watch_8_1`, and `watch_1_0`) passed all cleanup and byte-validation checks. This workload exercises object add/remove events and validates integration of the repaired R100 dispatcher, but it does not directly exercise `ubus_send_event`.
+
+## Direct user-event evidence
+
+The exact-image C `libubus` caller was cross-compiled from the matching image sources. It sends a fixed validated blobmsg payload through `ubus_send_event`, pumps one or eight registered handlers synchronously, tests an unmatched pattern, pins the daemon to CPU 1 and the caller to CPU 0, and measures only the daemon's `CLOCK_PROCESS_CPUTIME_ID` interval. Every window validated event count/payload, removed all temporary handlers, and passed stock identity, boot/config/mount and cleanup checks.
+
+Four C/before/R103 blocks at 20,000 sends per scenario are recorded in [`r103-user-event-results.json`](r103-user-event-results.json). Candidate daemon CPU versus C median ratios are 0.9474 (−5.26%) for `user_1_1`, 0.9904 (−0.96%) for `user_8_1`, and 0.9094 (−9.06%) for `user_1_0`. The same run gives R100-before ratios of 0.9969, 1.0060 and 0.9439. Four R89 blocks give candidate/R89 median ratios of 0.7806 (−21.94%), 0.8689 (−13.11%) and 0.6720 (−32.80%).
+
+An additional eight-block alternating C/R103 series is recorded in [`r103-user-event-aa-results.json`](r103-user-event-aa-results.json). Its candidate/C median ratios are 0.9603 (−3.97%), 0.9728 (−2.72%) and 0.9198 (−8.02%); all eight paired ratios are below 1 in each scenario. This is stronger evidence for the direct user-event CPU direction, but it remains a workload-specific pilot estimate rather than a whole-daemon or memory acceptance gate.
+
+The direct user-event path now has physical performance evidence and is no longer an unmeasured R103 tail. Whole-system latency, PSS/heap, sustained concurrent fanout, and the nine-component combined target remain separate acceptance questions.
