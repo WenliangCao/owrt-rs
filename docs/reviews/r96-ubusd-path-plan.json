@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "purpose": "Exploratory four-arm physical matrix for single-copy immutable object paths; new process CPU clock client on all arms",
+  "runtime_commit": "975ab2f plus path patch",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "candidate",
+        "stock",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "candidate",
+        "stock",
+        "before",
+        "r89"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "before",
+        "stock",
+        "r89",
+        "candidate"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "before",
+        "stock",
+        "r89",
+        "candidate"
+      ]
+    }
+  ],
+  "seed": 9601,
+  "iterations": 5000,
+  "warmup": 20,
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "candidate": "ece562af6e37c83982f20a17ef5709b25d947cee1f22a4b258d5986a8ba76d4d",
+    "before": "469408295d88942777e1798501a169ca85e1f67aa9db2207162cf26bd2df9ecb"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op",
+    "subject_own_cpu_clock_us_per_op",
+    "dependency_own_cpu_clock_us_per_op",
+    "client_cpu_clock_us_per_op"
+  ],
+  "memory": "End-of-window proc counts are diagnostic, not precise memory acceptance. Independently measure retained requested heap in the actual Rust registry with identical allocator instrumentation on both versions.",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "All per-block values and paired medians. New high-resolution own-process CPU fields are separate from old tick+reaped-child fields. Four blocks are exploratory, no formal superiority/equivalence verdict. Do not pool pre-power-loss samples.",
+  "runtime_patch_sha256": "41d2af97aeb0fec44fd670e81d2a11bd8419ff2e472fdca36875de7985cef28b",
+  "server_source_sha256": "620f2257aaac1cfa2a27ca066de478d69d91d1acda80dc788a07960984b758da",
+  "hypothesis": "Sharing each immutable path between object and ordered index removes retained duplicate bytes. Refcount and layout changes may cost latency; evaluate all ten lanes, CPU and memory diagnostics.",
+  "retention_rule": "Reject correctness failures. Do not claim full superiority or promote this runtime change on pilot point estimates alone. Report all latency/CPU signs, memory diagnostics, and allocation-only evidence separately. Investigate apparent new regressions before retaining.",
+  "matrix": true,
+  "workloads": [
+    "lookup",
+    "lookup_all_64",
+    "invoke",
+    "lookup_c4",
+    "lookup_all_64_c4",
+    "invoke_c4",
+    "lookup_prefix_64",
+    "lookup_prefix_64_c4",
+    "lookup_all_128",
+    "lookup_all_128_c4"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes.",
+  "registry_source_sha256": "93fd4417b72437063f94737181291bfb8c100cbcabf632530ee0720d263e9f37",
+  "benchmark_sha256": "885ee761626ea2752061b162f91c912777a54a13c5aebe37bfe7ca301dec308d"
+}
