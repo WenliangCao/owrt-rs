@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "reviewed_commit": "9db9575ef2879d0acdbe3233f3af1c3f77db9f93",
+  "date": "2026-09-20",
+  "platform": "Linux AArch64 Oracle build host; no physical router access",
+  "scope": "Synthetic temporary files on the Linux build host. Package staging layout reproduced, not a complete SDK make/image build. Green controls modify temporary copies only. Short-read probe uses a native GNU build, not the static device artifact.",
+  "source_match": {
+    "remote_files_checked": 38,
+    "all_equal_to_reviewed_worktree": true
+  },
+  "raw_evidence": {
+    "private/r94/audit-20260920/probes.py": {
+      "sha256": "97d726146c3531521073f263b2e59cebcc864fabf6a59d95e4d02b5e9a6eaae6"
+    },
+    "private/r94/audit-20260920/probes.json": {
+      "sha256": "eb42a486015dd0999bb4fe80266e607dcd6fd7d3018c518575349686874a322c"
+    },
+    "private/r94/audit-20260920/short-read.py": {
+      "sha256": "4c11c54d6f48b34cd57d789c6ccbd684d11c9a591318ab67e6066c856e624b90"
+    },
+    "private/r94/audit-20260920/short-read.json": {
+      "sha256": "fc5a21c15f1861e6f93cad54c0b9508df320c4778c60179bf8e8546d98146475"
+    }
+  },
+  "probes": [
+    {
+      "probe": "held_uci_config_lock",
+      "side": "pre-change",
+      "binary_sha256": "1f0bb7896b51a2093c846e71c849cba1d6da23adc62d8a585d7362ac8294ac35",
+      "timeout_ms": 100,
+      "elapsed_s": 0.108,
+      "exceeded_500ms": false,
+      "alive_500ms_after_sigterm": false,
+      "exit": 0,
+      "trace": "{\"schema\":1,\"kind\":\"normalization\",\"package\":\"alpha\",\"status\":\"timeout\"}\n{\"schema\":1,\"kind\":\"comparison\",\"compared_count\":0,\"changed_entries\":[],\"new_baseline_count\":1}\n{\"schema\":1,\"kind\":\"complete\",\"baseline_rewritten\":true,\"delivery_failures\":0}\n",
+      "baseline_created": true
+    },
+    {
+      "probe": "held_uci_config_lock",
+      "side": "candidate",
+      "binary_sha256": "e22deec64229a94745dbe30c8815368889b84061f9cc936ba829c4561551d9a4",
+      "timeout_ms": 100,
+      "elapsed_s": 1.003,
+      "exceeded_500ms": true,
+      "alive_500ms_after_sigterm": true,
+      "exit": -9,
+      "trace": "",
+      "baseline_created": false
+    },
+    {
+      "probe": "package_prepare_layout",
+      "component": "reload-config",
+      "control_with_missing_input_added": false,
+      "exit": 101,
+      "diagnostics": [
+        "error: failed to get `owrt-uci` as a dependency of package `owrt-reload-config v0.2.0 (<temporary-staging>/owrt-reload-config)`",
+        "failed to load source for dependency `owrt-uci`",
+        "failed to read `<temporary-staging>/uci/Cargo.toml`",
+        "No such file or directory (os error 2)"
+      ]
+    },
+    {
+      "probe": "package_prepare_layout",
+      "component": "reload-config",
+      "control_with_missing_input_added": true,
+      "exit": 0,
+      "diagnostics": [
+        "Finished `release` profile [optimized] target(s) in 6.74s"
+      ]
+    },
+    {
+      "probe": "package_prepare_layout",
+      "component": "uci",
+      "control_with_missing_input_added": false,
+      "exit": 101,
+      "diagnostics": [
+        "error: linking with `aarch64-openwrt-linux-musl-gcc` failed: exit status: 1",
+        "/checkout/library/compiler-builtins/compiler-builtins/./lib/builtins/cpu_model/aarch64/lse_atomics/getauxval.inc:2:(.text.startup.init_have_lse_atomics+0x8): undefined reference to `getauxval'",
+        "/checkout/library/compiler-builtins/compiler-builtins/./lib/builtins/cpu_model/aarch64/fmv/getauxval.inc:13:(.text.startup.__init_cpu_features+0x1c): undefined reference to `getauxval'",
+        "/checkout/library/compiler-builtins/compiler-builtins/./lib/builtins/cpu_model/aarch64/fmv/getauxval.inc:14:(.text.startup.__init_cpu_features+0x28): undefined reference to `getauxval'",
+        "collect2: error: ld returned 1 exit status",
+        "error: could not compile `owrt-uci` (bin \"uci-rs\") due to 1 previous error"
+      ]
+    },
+    {
+      "probe": "package_prepare_layout",
+      "component": "uci",
+      "control_with_missing_input_added": true,
+      "exit": 0,
+      "diagnostics": [
+        "Finished `release` profile [optimized] target(s) in 7.13s"
+      ]
+    },
+    {
+      "probe": "uci_regular_file_short_reads",
+      "scope": "native GNU build of current source; fault-injected read fragmentation, not an observed router filesystem incident",
+      "binary_sha256": "a5d7cc9975f409d92f2cedbee857aee1d1ff472a3e6c021016f8f6ba4ca5a9a5",
+      "file_rs_sha256": "83635d0ad7fbce41e27e101bd3ea5072fb21a4826140bc0fbec77548ba3abbaf",
+      "config_bytes": 60,
+      "results": [
+        {
+          "injected_16_byte_reads": false,
+          "exit": 0,
+          "stdout": "alpha.s=test\nalpha.s.v='visible'\nalpha.s.tail='retained'\n",
+          "stderr": ""
+        },
+        {
+          "injected_16_byte_reads": true,
+          "exit": 0,
+          "stdout": "alpha.s=test\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

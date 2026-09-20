@@ -1,0 +1,56 @@
+{
+  "logd": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 24,
+    "acceptance_eligible": true
+  },
+  "httpd": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 192,
+    "acceptance_eligible": true
+  },
+  "rpcd": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 216,
+    "acceptance_eligible": true
+  },
+  "procd": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 96,
+    "acceptance_eligible": true
+  },
+  "ubusd": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 120,
+    "acceptance_eligible": true
+  },
+  "netifd": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 168,
+    "acceptance_eligible": true
+  },
+  "fw4": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 24,
+    "acceptance_eligible": true
+  },
+  "uci": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 36,
+    "acceptance_eligible": true
+  },
+  "reload-config": {
+    "raw_rederived": true,
+    "summary_identical": true,
+    "observations": 12,
+    "acceptance_eligible": true
+  }
+}

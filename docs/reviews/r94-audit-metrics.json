@@ -1,0 +1,2361 @@
+{
+  "schema_version": 1,
+  "scope": "74 workload lanes, separately built R94 device candidates; not final HEAD or integrated deployment",
+  "method": "Median of four per-run metrics, independently recomputed from runs. Range overlap is descriptive, not a statistical equivalence test. Positive deltas mean worse.",
+  "components": {
+    "logd": {
+      "source": "private/r94/device-r94-01-derived/logd/results.json",
+      "source_sha256": "f703e85aa8e8e8299e0c0dbf5792d987eaed82ee47e544a74a23e8ebe73dfee2",
+      "subjects": {
+        "stock": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+        "r89": "a6f738144c561047bdd34188b084888ca5050ef01a7b7105a2b9f8d9152b975f",
+        "candidate": "08c833fd36e591724068e94c0389d7428809e95b6bce591cb01957b742b1af5d"
+      },
+      "workloads": 2,
+      "observations": 24,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [],
+      "resident_kib_or_count": {
+        "VmRSS": {
+          "stock": {
+            "median": 1020.0,
+            "min": 996,
+            "max": 1024
+          },
+          "r89": {
+            "median": 504.0,
+            "min": 320,
+            "max": 508
+          },
+          "candidate": {
+            "median": 516.0,
+            "min": 516,
+            "max": 520
+          }
+        },
+        "RssAnon": {
+          "stock": {
+            "median": 240.0,
+            "min": 240,
+            "max": 240
+          },
+          "r89": {
+            "median": 174.0,
+            "min": 172,
+            "max": 176
+          },
+          "candidate": {
+            "median": 120.0,
+            "min": 120,
+            "max": 124
+          }
+        },
+        "RssFile": {
+          "stock": {
+            "median": 780.0,
+            "min": 756,
+            "max": 784
+          },
+          "r89": {
+            "median": 332.0,
+            "min": 144,
+            "max": 332
+          },
+          "candidate": {
+            "median": 4.0,
+            "min": 4,
+            "max": 4
+          }
+        },
+        "RssShmem": {
+          "stock": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "r89": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "candidate": {
+            "median": 392.0,
+            "min": 392,
+            "max": 392
+          }
+        },
+        "VmHWM": {
+          "stock": {
+            "median": 1022.0,
+            "min": 1020,
+            "max": 1076
+          },
+          "r89": {
+            "median": 520.0,
+            "min": 320,
+            "max": 520
+          },
+          "candidate": {
+            "median": 516.0,
+            "min": 516,
+            "max": 520
+          }
+        },
+        "Threads": {
+          "stock": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "r89": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "candidate": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "fds": {
+          "stock": {
+            "median": 10.0,
+            "min": 10,
+            "max": 10
+          },
+          "r89": {
+            "median": 7.0,
+            "min": 7,
+            "max": 7
+          },
+          "candidate": {
+            "median": 7.0,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    "httpd": {
+      "source": "private/r94/device-r94-03-derived/httpd/results.json",
+      "source_sha256": "c26e1a4e393b8443d675466b053b07cabf03719e8600c2e959d49b95e6ba0cfc",
+      "subjects": {
+        "stock": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+        "r89": "1e54a6d8d80e0ebfb61cfdccfb0fc58c3710eadac99eda5c74f9640e63c6b31d",
+        "candidate": "16fa25d9b9f9eaeadc047ce094e5af281af7ef972d7d4e14bc5078e86b90c902"
+      },
+      "workloads": 16,
+      "observations": 192,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 15,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 16,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 16,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 16,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 16,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 15,
+            "equal": 1,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 12,
+            "equal": 0,
+            "higher": 4,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 13,
+            "equal": 0,
+            "higher": 3,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [
+        {
+          "baseline": "stock",
+          "workload": "jsonrpc_c4",
+          "metric": "subject_cpu_us_per_op",
+          "delta_pct": 1.6077170418006492,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 470.23809523809524,
+            "min": 452.3809523809524,
+            "max": 493.05555555555554
+          },
+          "stock": {
+            "median": 462.79761904761904,
+            "min": 427.57936507936506,
+            "max": 472.22222222222223
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "static_1m_dat_c4",
+          "metric": "p50_us",
+          "delta_pct": 0.10539601592467474,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 12662.7665,
+            "min": 12066.666,
+            "max": 12814.064
+          },
+          "r89": {
+            "median": 12649.4345,
+            "min": 12575.88,
+            "max": 13079.521
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "cgi",
+          "metric": "mean_us",
+          "delta_pct": 1.1408752825759816,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2211.624399,
+            "min": 2195.52358,
+            "max": 2220.3220180000003
+          },
+          "r89": {
+            "median": 2186.6771400000002,
+            "min": 2153.9779479999997,
+            "max": 2223.981248
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "cgi",
+          "metric": "p50_us",
+          "delta_pct": 1.555550843264486,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2155.1205,
+            "min": 2135.461,
+            "max": 2165.547
+          },
+          "r89": {
+            "median": 2122.11,
+            "min": 2083.6,
+            "max": 2164.46
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "cgi",
+          "metric": "p95_us",
+          "delta_pct": 0.37885665898473864,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2529.1,
+            "min": 2500.014,
+            "max": 2551.644
+          },
+          "r89": {
+            "median": 2519.5545,
+            "min": 2464.698,
+            "max": 2605.262
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "jsonrpc",
+          "metric": "p99_us",
+          "delta_pct": 0.7723305939392855,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 1089.4279999999999,
+            "min": 1068.962,
+            "max": 1109.973
+          },
+          "r89": {
+            "median": 1081.0785,
+            "min": 1063.959,
+            "max": 1086.811
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "cgi_c4",
+          "metric": "p50_us",
+          "delta_pct": 0.06379096489541602,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 5785.071,
+            "min": 5639.342,
+            "max": 5912.341
+          },
+          "r89": {
+            "median": 5781.383,
+            "min": 5709.735,
+            "max": 6065.211
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "cgi_c4",
+          "metric": "p95_us",
+          "delta_pct": 1.0609447888578316,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 9915.299500000001,
+            "min": 9135.688,
+            "max": 10220.968
+          },
+          "r89": {
+            "median": 9811.207999999999,
+            "min": 9474.292,
+            "max": 9920.946
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "jsonrpc_c4",
+          "metric": "subject_cpu_us_per_op",
+          "delta_pct": 0.0,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 470.23809523809524,
+            "min": 452.3809523809524,
+            "max": 493.05555555555554
+          },
+          "r89": {
+            "median": 470.23809523809524,
+            "min": 453.37301587301585,
+            "max": 491.07142857142856
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "jsonrpc_c4",
+          "metric": "mean_us",
+          "delta_pct": 1.2714788161647617,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2485.15624055,
+            "min": 2429.8047079,
+            "max": 2511.1944940999997
+          },
+          "r89": {
+            "median": 2453.9547260500003,
+            "min": 2392.4910361,
+            "max": 2494.4245156
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "jsonrpc_c4",
+          "metric": "p50_us",
+          "delta_pct": 0.06805804352378875,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2429.727,
+            "min": 2401.604,
+            "max": 2473.547
+          },
+          "r89": {
+            "median": 2428.0744999999997,
+            "min": 2366.361,
+            "max": 2463.387
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "jsonrpc_c4",
+          "metric": "p95_us",
+          "delta_pct": 2.926013691213747,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 3341.228,
+            "min": 3219.04,
+            "max": 3411.472
+          },
+          "r89": {
+            "median": 3246.2425000000003,
+            "min": 3149.172,
+            "max": 3348.916
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "jsonrpc_c4",
+          "metric": "p99_us",
+          "delta_pct": 5.814368281730231,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 3871.0155,
+            "min": 3670.231,
+            "max": 4385.486
+          },
+          "r89": {
+            "median": 3658.308,
+            "min": 3552.658,
+            "max": 3809.185
+          }
+        }
+      ],
+      "resident_kib_or_count": {
+        "VmRSS": {
+          "stock": {
+            "median": 1024.0,
+            "min": 976,
+            "max": 1036
+          },
+          "r89": {
+            "median": 996.0,
+            "min": 996,
+            "max": 1000
+          },
+          "candidate": {
+            "median": 1134.0,
+            "min": 1132,
+            "max": 1140
+          }
+        },
+        "RssAnon": {
+          "stock": {
+            "median": 124.0,
+            "min": 120,
+            "max": 128
+          },
+          "r89": {
+            "median": 128.0,
+            "min": 128,
+            "max": 132
+          },
+          "candidate": {
+            "median": 138.0,
+            "min": 136,
+            "max": 144
+          }
+        },
+        "RssFile": {
+          "stock": {
+            "median": 900.0,
+            "min": 852,
+            "max": 912
+          },
+          "r89": {
+            "median": 868.0,
+            "min": 868,
+            "max": 868
+          },
+          "candidate": {
+            "median": 4.0,
+            "min": 4,
+            "max": 4
+          }
+        },
+        "RssShmem": {
+          "stock": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "r89": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "candidate": {
+            "median": 992.0,
+            "min": 992,
+            "max": 992
+          }
+        },
+        "VmHWM": {
+          "stock": {
+            "median": 1028.0,
+            "min": 976,
+            "max": 1036
+          },
+          "r89": {
+            "median": 1180.0,
+            "min": 1172,
+            "max": 1312
+          },
+          "candidate": {
+            "median": 1300.0,
+            "min": 1292,
+            "max": 1308
+          }
+        },
+        "Threads": {
+          "stock": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "r89": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "candidate": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "fds": {
+          "stock": {
+            "median": 8.0,
+            "min": 8,
+            "max": 8
+          },
+          "r89": {
+            "median": 11.0,
+            "min": 11,
+            "max": 11
+          },
+          "candidate": {
+            "median": 11.0,
+            "min": 11,
+            "max": 11
+          }
+        }
+      }
+    },
+    "rpcd": {
+      "source": "private/r94/device-rpcd-01/report/results.json",
+      "source_sha256": "458589c6977fabb52dda61d67639891db0a21a3670c2dabcdc924de5afca79e0",
+      "subjects": {
+        "stock": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+        "r89": "a58c2f7039369c4dde7b0f0fdb45053c147f823c178651b1867c7843e3217a18",
+        "candidate": "a362c4682ff9418b3f8b728a8abb847caa6cde9325780bfaf6dee9ba8ba45b41"
+      },
+      "workloads": 18,
+      "observations": 216,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 18,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 18,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 18,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 16,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 17,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 16,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 17,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 15,
+            "equal": 0,
+            "higher": 3,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 15,
+            "equal": 0,
+            "higher": 3,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 4,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [
+        {
+          "baseline": "stock",
+          "workload": "uci_configs",
+          "metric": "p95_us",
+          "delta_pct": 3.8871135703443027,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 217.9775,
+            "min": 212.437,
+            "max": 226.133
+          },
+          "stock": {
+            "median": 209.82150000000001,
+            "min": 203.589,
+            "max": 248.524
+          }
+        },
+        {
+          "baseline": "stock",
+          "workload": "session_access_64",
+          "metric": "p95_us",
+          "delta_pct": 0.4441094285631886,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 104.6035,
+            "min": 94.793,
+            "max": 113.412
+          },
+          "stock": {
+            "median": 104.141,
+            "min": 101.948,
+            "max": 117.26
+          }
+        },
+        {
+          "baseline": "stock",
+          "workload": "session_access_64",
+          "metric": "p99_us",
+          "delta_pct": 0.7351427142675115,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 205.4735,
+            "min": 203.05,
+            "max": 217.131
+          },
+          "stock": {
+            "median": 203.974,
+            "min": 197.126,
+            "max": 223.978
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_configs_c4",
+          "metric": "p99_us",
+          "delta_pct": 0.417253049764188,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 731.374,
+            "min": 659.087,
+            "max": 787.657
+          },
+          "r89": {
+            "median": 728.335,
+            "min": 651.546,
+            "max": 1161.673
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_network_c4",
+          "metric": "p99_us",
+          "delta_pct": 0.4834993991252645,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 1686.9195,
+            "min": 1543.691,
+            "max": 1837.149
+          },
+          "r89": {
+            "median": 1678.8025,
+            "min": 1616.478,
+            "max": 2140.301
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "file_stat_c4",
+          "metric": "p50_us",
+          "delta_pct": 1.4477674626637738,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 371.9765,
+            "min": 358.319,
+            "max": 373.939
+          },
+          "r89": {
+            "median": 366.668,
+            "min": 355.858,
+            "max": 385.557
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "session_access_c4",
+          "metric": "p50_us",
+          "delta_pct": 4.668889520862218,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 233.7115,
+            "min": 204.743,
+            "max": 262.065
+          },
+          "r89": {
+            "median": 223.2865,
+            "min": 208.282,
+            "max": 264.604
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "session_access_c4",
+          "metric": "p95_us",
+          "delta_pct": 2.52870234975604,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 354.08799999999997,
+            "min": 337.392,
+            "max": 385.249
+          },
+          "r89": {
+            "median": 345.355,
+            "min": 325.003,
+            "max": 457.037
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_64",
+          "metric": "subject_cpu_us_per_op",
+          "delta_pct": 0.746268656716409,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 675.0,
+            "min": 670.0,
+            "max": 680.0
+          },
+          "r89": {
+            "median": 670.0,
+            "min": 670.0,
+            "max": 730.0
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_64",
+          "metric": "mean_us",
+          "delta_pct": 1.6108406406780684,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 956.6070139999999,
+            "min": 942.722588,
+            "max": 995.386541
+          },
+          "r89": {
+            "median": 941.4418855,
+            "min": 937.6531970000001,
+            "max": 1157.26469
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_64",
+          "metric": "p50_us",
+          "delta_pct": 1.5189572693233844,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 910.1875,
+            "min": 903.763,
+            "max": 914.689
+          },
+          "r89": {
+            "median": 896.569,
+            "min": 892.607,
+            "max": 1134.282
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_64",
+          "metric": "p95_us",
+          "delta_pct": 2.0460483544521235,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 1164.674,
+            "min": 1104.659,
+            "max": 1220.381
+          },
+          "r89": {
+            "median": 1141.322,
+            "min": 1128.896,
+            "max": 1445.898
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_64",
+          "metric": "p99_us",
+          "delta_pct": 0.6115497459264096,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 1316.4810000000002,
+            "min": 1271.316,
+            "max": 1494.218
+          },
+          "r89": {
+            "median": 1308.4789999999998,
+            "min": 1284.012,
+            "max": 1606.322
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_64_c4",
+          "metric": "subject_cpu_us_per_op",
+          "delta_pct": 2.0979020979021046,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 675.9259259259259,
+            "min": 657.4074074074074,
+            "max": 694.4444444444445
+          },
+          "r89": {
+            "median": 662.037037037037,
+            "min": 648.1481481481482,
+            "max": 740.7407407407408
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "uci_get_64_c4",
+          "metric": "p95_us",
+          "delta_pct": 0.6677943369230777,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 5474.668,
+            "min": 5319.246,
+            "max": 5568.999
+          },
+          "r89": {
+            "median": 5438.351000000001,
+            "min": 5338.019,
+            "max": 5792.363
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "session_access_granted",
+          "metric": "p99_us",
+          "delta_pct": 0.2309303490974024,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 217.0155,
+            "min": 190.971,
+            "max": 228.133
+          },
+          "r89": {
+            "median": 216.5155,
+            "min": 203.127,
+            "max": 267.374
+          }
+        }
+      ],
+      "resident_kib_or_count": {
+        "VmRSS": {
+          "stock": {
+            "median": 1980.0,
+            "min": 1948,
+            "max": 2012
+          },
+          "r89": {
+            "median": 1178.0,
+            "min": 1176,
+            "max": 1180
+          },
+          "candidate": {
+            "median": 1264.0,
+            "min": 1264,
+            "max": 1264
+          }
+        },
+        "RssAnon": {
+          "stock": {
+            "median": 608.0,
+            "min": 608,
+            "max": 612
+          },
+          "r89": {
+            "median": 122.0,
+            "min": 120,
+            "max": 124
+          },
+          "candidate": {
+            "median": 140.0,
+            "min": 140,
+            "max": 140
+          }
+        },
+        "RssFile": {
+          "stock": {
+            "median": 1372.0,
+            "min": 1340,
+            "max": 1400
+          },
+          "r89": {
+            "median": 1056.0,
+            "min": 1056,
+            "max": 1056
+          },
+          "candidate": {
+            "median": 4.0,
+            "min": 4,
+            "max": 4
+          }
+        },
+        "RssShmem": {
+          "stock": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "r89": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "candidate": {
+            "median": 1120.0,
+            "min": 1120,
+            "max": 1120
+          }
+        },
+        "VmHWM": {
+          "stock": {
+            "median": 1980.0,
+            "min": 1948,
+            "max": 2012
+          },
+          "r89": {
+            "median": 1178.0,
+            "min": 1176,
+            "max": 1180
+          },
+          "candidate": {
+            "median": 1264.0,
+            "min": 1264,
+            "max": 1264
+          }
+        },
+        "Threads": {
+          "stock": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "r89": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "candidate": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "fds": {
+          "stock": {
+            "median": 11.0,
+            "min": 11,
+            "max": 11
+          },
+          "r89": {
+            "median": 7.0,
+            "min": 7,
+            "max": 7
+          },
+          "candidate": {
+            "median": 7.0,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    "procd": {
+      "source": "private/r94/device-procd-02/report/results.json",
+      "source_sha256": "b82e11eb5958515d39520adc845253ae91c153d742d0356dad587f61f572f0cf",
+      "subjects": {
+        "stock": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+        "r89": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98",
+        "candidate": "0df4baae8f72f62aefd0c937ad1ea314b8a7aba1ecc153ec3a854483cf6a08d4"
+      },
+      "workloads": 8,
+      "observations": 96,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 8,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 8,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 8,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 8,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 7,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 8,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 7,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 7,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 6,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 5,
+            "equal": 0,
+            "higher": 3,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [
+        {
+          "baseline": "stock",
+          "workload": "service_list_128_c4",
+          "metric": "p99_us",
+          "delta_pct": 2.5735839935110194,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 5202.525,
+            "min": 5085.65,
+            "max": 5229.455
+          },
+          "stock": {
+            "median": 5071.993,
+            "min": 4966.159,
+            "max": 5581.158
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "service_list_32",
+          "metric": "p95_us",
+          "delta_pct": 0.06949426784863544,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 333.3525,
+            "min": 329.312,
+            "max": 338.623
+          },
+          "r89": {
+            "median": 333.121,
+            "min": 318.617,
+            "max": 499.509
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "service_list_32",
+          "metric": "p99_us",
+          "delta_pct": 0.6235813702583082,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 633.273,
+            "min": 627.541,
+            "max": 641.391
+          },
+          "r89": {
+            "median": 629.3485,
+            "min": 628.08,
+            "max": 711.87
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "service_list_128",
+          "metric": "p99_us",
+          "delta_pct": 1.4222921765648877,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 949.159,
+            "min": 932.232,
+            "max": 1021.562
+          },
+          "r89": {
+            "median": 935.8485000000001,
+            "min": 892.298,
+            "max": 1132.282
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "service_list_128_c4",
+          "metric": "mean_us",
+          "delta_pct": 1.7432951533106422,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2197.30929725,
+            "min": 2159.6007382999996,
+            "max": 2215.9705131
+          },
+          "r89": {
+            "median": 2159.6600482999997,
+            "min": 2145.5956023,
+            "max": 2238.3676336
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "service_list_128_c4",
+          "metric": "p50_us",
+          "delta_pct": 0.7235311421613488,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2169.117,
+            "min": 2151.15,
+            "max": 2200.163
+          },
+          "r89": {
+            "median": 2153.5355,
+            "min": 2120.143,
+            "max": 2211.319
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "service_list_128_c4",
+          "metric": "p95_us",
+          "delta_pct": 1.0790015519597462,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 4086.902,
+            "min": 4016.538,
+            "max": 4110.022
+          },
+          "r89": {
+            "median": 4043.2749999999996,
+            "min": 3967.218,
+            "max": 4091.71
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "service_list_128_c4",
+          "metric": "p99_us",
+          "delta_pct": 1.1882191999565972,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 5202.525,
+            "min": 5085.65,
+            "max": 5229.455
+          },
+          "r89": {
+            "median": 5141.433499999999,
+            "min": 4909.375,
+            "max": 5293.933
+          }
+        }
+      ],
+      "resident_kib_or_count": {
+        "VmRSS": {
+          "stock": {
+            "median": 1140.0,
+            "min": 1132,
+            "max": 1144
+          },
+          "r89": {
+            "median": 984.0,
+            "min": 984,
+            "max": 984
+          },
+          "candidate": {
+            "median": 932.0,
+            "min": 932,
+            "max": 936
+          }
+        },
+        "RssAnon": {
+          "stock": {
+            "median": 208.0,
+            "min": 204,
+            "max": 208
+          },
+          "r89": {
+            "median": 196.0,
+            "min": 196,
+            "max": 196
+          },
+          "candidate": {
+            "median": 208.0,
+            "min": 208,
+            "max": 212
+          }
+        },
+        "RssFile": {
+          "stock": {
+            "median": 932.0,
+            "min": 924,
+            "max": 940
+          },
+          "r89": {
+            "median": 788.0,
+            "min": 788,
+            "max": 788
+          },
+          "candidate": {
+            "median": 4.0,
+            "min": 4,
+            "max": 4
+          }
+        },
+        "RssShmem": {
+          "stock": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "r89": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "candidate": {
+            "median": 720.0,
+            "min": 720,
+            "max": 720
+          }
+        },
+        "VmHWM": {
+          "stock": {
+            "median": 1140.0,
+            "min": 1132,
+            "max": 1144
+          },
+          "r89": {
+            "median": 984.0,
+            "min": 984,
+            "max": 984
+          },
+          "candidate": {
+            "median": 932.0,
+            "min": 932,
+            "max": 936
+          }
+        },
+        "Threads": {
+          "stock": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "r89": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "candidate": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "fds": {
+          "stock": {
+            "median": 8.0,
+            "min": 8,
+            "max": 8
+          },
+          "r89": {
+            "median": 7.0,
+            "min": 7,
+            "max": 7
+          },
+          "candidate": {
+            "median": 8.0,
+            "min": 8,
+            "max": 8
+          }
+        }
+      }
+    },
+    "ubusd": {
+      "source": "private/r94/device-ubusd-01/report/results.json",
+      "source_sha256": "f4d6995117ddcad46539b74824c6083c0fb31fde4324ace03693600c5afff2e0",
+      "subjects": {
+        "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+        "candidate": "bb95efdc0d4701c64820d649f72dcdd4eb7bc6cbeb2e3a40255b6feea52cd354"
+      },
+      "workloads": 10,
+      "observations": 120,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 10,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 10,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 9,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 1
+          },
+          "p95_us": {
+            "lower": 10,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 10,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 10,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 9,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 9,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 8,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 7,
+            "equal": 0,
+            "higher": 3,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [
+        {
+          "baseline": "stock",
+          "workload": "lookup_all_128",
+          "metric": "p50_us",
+          "delta_pct": 2.5582092752380214,
+          "ranges_overlap": false,
+          "candidate": {
+            "median": 1415.853,
+            "min": 1402.734,
+            "max": 1428.279
+          },
+          "stock": {
+            "median": 1380.536,
+            "min": 1361.724,
+            "max": 1392.808
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "lookup",
+          "metric": "p99_us",
+          "delta_pct": 4.4320255842876355,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 96.9855,
+            "min": 90.407,
+            "max": 131.033
+          },
+          "r89": {
+            "median": 92.8695,
+            "min": 90.792,
+            "max": 100.948
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "lookup_prefix_64",
+          "metric": "mean_us",
+          "delta_pct": 0.531806770021026,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 685.2238508,
+            "min": 675.0317160999999,
+            "max": 719.0499863
+          },
+          "r89": {
+            "median": 681.59906085,
+            "min": 680.7741245999999,
+            "max": 715.6228832
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "lookup_prefix_64",
+          "metric": "p95_us",
+          "delta_pct": 3.302696412716566,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 861.5605,
+            "min": 829.592,
+            "max": 945.389
+          },
+          "r89": {
+            "median": 834.0155,
+            "min": 829.514,
+            "max": 962.701
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "lookup_prefix_64",
+          "metric": "p99_us",
+          "delta_pct": 3.5978807687787384,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 1026.871,
+            "min": 974.781,
+            "max": 1143.208
+          },
+          "r89": {
+            "median": 991.2085,
+            "min": 975.012,
+            "max": 1167.907
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "lookup_prefix_64_c4",
+          "metric": "p95_us",
+          "delta_pct": 2.6385438156342866,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 2912.2254999999996,
+            "min": 2731.757,
+            "max": 3265.428
+          },
+          "r89": {
+            "median": 2837.3605,
+            "min": 2799.313,
+            "max": 3020.445
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "lookup_prefix_64_c4",
+          "metric": "p99_us",
+          "delta_pct": 4.972580685644212,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 3659.4885,
+            "min": 3400.155,
+            "max": 4933.69
+          },
+          "r89": {
+            "median": 3486.1375,
+            "min": 3449.782,
+            "max": 3715.079
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "lookup_all_128",
+          "metric": "p50_us",
+          "delta_pct": 0.36549308604185704,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 1415.853,
+            "min": 1402.734,
+            "max": 1428.279
+          },
+          "r89": {
+            "median": 1410.6970000000001,
+            "min": 1403.042,
+            "max": 1420.353
+          }
+        }
+      ],
+      "resident_kib_or_count": {
+        "VmRSS": {
+          "stock": {
+            "median": 980.0,
+            "min": 968,
+            "max": 984
+          },
+          "r89": {
+            "median": 620.0,
+            "min": 616,
+            "max": 620
+          },
+          "candidate": {
+            "median": 628.0,
+            "min": 624,
+            "max": 628
+          }
+        },
+        "RssAnon": {
+          "stock": {
+            "median": 144.0,
+            "min": 144,
+            "max": 144
+          },
+          "r89": {
+            "median": 164.0,
+            "min": 160,
+            "max": 164
+          },
+          "candidate": {
+            "median": 172.0,
+            "min": 168,
+            "max": 172
+          }
+        },
+        "RssFile": {
+          "stock": {
+            "median": 836.0,
+            "min": 824,
+            "max": 840
+          },
+          "r89": {
+            "median": 456.0,
+            "min": 456,
+            "max": 456
+          },
+          "candidate": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "RssShmem": {
+          "stock": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "r89": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "candidate": {
+            "median": 456.0,
+            "min": 456,
+            "max": 456
+          }
+        },
+        "VmHWM": {
+          "stock": {
+            "median": 980.0,
+            "min": 968,
+            "max": 984
+          },
+          "r89": {
+            "median": 620.0,
+            "min": 616,
+            "max": 620
+          },
+          "candidate": {
+            "median": 628.0,
+            "min": 624,
+            "max": 628
+          }
+        },
+        "Threads": {
+          "stock": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "r89": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "candidate": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "fds": {
+          "stock": {
+            "median": 11.0,
+            "min": 11,
+            "max": 11
+          },
+          "r89": {
+            "median": 8.0,
+            "min": 8,
+            "max": 8
+          },
+          "candidate": {
+            "median": 8.0,
+            "min": 8,
+            "max": 8
+          }
+        }
+      }
+    },
+    "netifd": {
+      "source": "private/r94/device-netifd-02/report/results.json",
+      "source_sha256": "92c59bce40895b803d43a56292310cad4de9f4facef0ddce5c9895fd5cbba1ee",
+      "subjects": {
+        "stock": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+        "r89": "b127c49888b70a1f1e59318c0b05661623e05030b923975881e4b2279388a478",
+        "candidate": "5f20a5a4f68832dc5e6904d48f02445b0479c1b7f004e6b3dc7b7be93fea00af"
+      },
+      "workloads": 14,
+      "observations": 168,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 12,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 14,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 13,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 13,
+            "equal": 0,
+            "higher": 1,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 12,
+            "equal": 0,
+            "higher": 2,
+            "higher_disjoint_ranges": 1
+          },
+          "p99_us": {
+            "lower": 11,
+            "equal": 0,
+            "higher": 3,
+            "higher_disjoint_ranges": 1
+          }
+        }
+      },
+      "not_strictly_lower": [
+        {
+          "baseline": "stock",
+          "workload": "device_status_c4",
+          "metric": "p99_us",
+          "delta_pct": 1.319144092005442,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 3315.3625,
+            "min": 2735.295,
+            "max": 4408.635
+          },
+          "stock": {
+            "median": 3272.1975,
+            "min": 3095.769,
+            "max": 3384.611
+          }
+        },
+        {
+          "baseline": "stock",
+          "workload": "interface_named_32",
+          "metric": "p99_us",
+          "delta_pct": 0.6099226732986018,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 355.396,
+            "min": 330.467,
+            "max": 377.248
+          },
+          "stock": {
+            "median": 353.2415,
+            "min": 345.778,
+            "max": 500.586
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "wireless_status",
+          "metric": "mean_us",
+          "delta_pct": 0.30640953785505687,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 93.355124,
+            "min": 92.2567524,
+            "max": 95.1769146
+          },
+          "r89": {
+            "median": 93.06994879999999,
+            "min": 92.5710192,
+            "max": 93.4621068
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "wireless_status",
+          "metric": "p95_us",
+          "delta_pct": 11.552426340978371,
+          "ranges_overlap": false,
+          "candidate": {
+            "median": 111.0655,
+            "min": 102.949,
+            "max": 141.958
+          },
+          "r89": {
+            "median": 99.5635,
+            "min": 98.025,
+            "max": 101.795
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "wireless_status",
+          "metric": "p99_us",
+          "delta_pct": 4.409156760452881,
+          "ranges_overlap": false,
+          "candidate": {
+            "median": 212.24450000000002,
+            "min": 208.36,
+            "max": 221.824
+          },
+          "r89": {
+            "median": 203.2815,
+            "min": 199.588,
+            "max": 207.437
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "interface_dump_c4",
+          "metric": "p99_us",
+          "delta_pct": 2.5744388489002956,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 1434.7415,
+            "min": 1348.951,
+            "max": 1553.385
+          },
+          "r89": {
+            "median": 1398.732,
+            "min": 1295.86,
+            "max": 1684.111
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "device_status_c4",
+          "metric": "p99_us",
+          "delta_pct": 6.134461340867903,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 3315.3625,
+            "min": 2735.295,
+            "max": 4408.635
+          },
+          "r89": {
+            "median": 3123.7380000000003,
+            "min": 2951.349,
+            "max": 3759.704
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "wireless_status_c4",
+          "metric": "p50_us",
+          "delta_pct": 5.976230899830237,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 260.6035,
+            "min": 213.823,
+            "max": 277.993
+          },
+          "r89": {
+            "median": 245.90749999999997,
+            "min": 211.899,
+            "max": 288.995
+          }
+        },
+        {
+          "baseline": "r89",
+          "workload": "wireless_status_c4",
+          "metric": "p95_us",
+          "delta_pct": 2.5687881513976274,
+          "ranges_overlap": true,
+          "candidate": {
+            "median": 382.5185,
+            "min": 308.461,
+            "max": 489.044
+          },
+          "r89": {
+            "median": 372.9385,
+            "min": 324.004,
+            "max": 381.71
+          }
+        }
+      ],
+      "resident_kib_or_count": {
+        "VmRSS": {
+          "stock": {
+            "median": 2228.0,
+            "min": 2204,
+            "max": 2228
+          },
+          "r89": {
+            "median": 1208.0,
+            "min": 1208,
+            "max": 1208
+          },
+          "candidate": {
+            "median": 1352.0,
+            "min": 1352,
+            "max": 1352
+          }
+        },
+        "RssAnon": {
+          "stock": {
+            "median": 764.0,
+            "min": 764,
+            "max": 764
+          },
+          "r89": {
+            "median": 284.0,
+            "min": 284,
+            "max": 284
+          },
+          "candidate": {
+            "median": 364.0,
+            "min": 364,
+            "max": 364
+          }
+        },
+        "RssFile": {
+          "stock": {
+            "median": 1464.0,
+            "min": 1440,
+            "max": 1464
+          },
+          "r89": {
+            "median": 924.0,
+            "min": 924,
+            "max": 924
+          },
+          "candidate": {
+            "median": 4.0,
+            "min": 4,
+            "max": 4
+          }
+        },
+        "RssShmem": {
+          "stock": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "r89": {
+            "median": 0.0,
+            "min": 0,
+            "max": 0
+          },
+          "candidate": {
+            "median": 984.0,
+            "min": 984,
+            "max": 984
+          }
+        },
+        "VmHWM": {
+          "stock": {
+            "median": 2228.0,
+            "min": 2204,
+            "max": 2228
+          },
+          "r89": {
+            "median": 1220.0,
+            "min": 1208,
+            "max": 1308
+          },
+          "candidate": {
+            "median": 1352.0,
+            "min": 1352,
+            "max": 1352
+          }
+        },
+        "Threads": {
+          "stock": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "r89": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          },
+          "candidate": {
+            "median": 1.0,
+            "min": 1,
+            "max": 1
+          }
+        },
+        "fds": {
+          "stock": {
+            "median": 19.0,
+            "min": 19,
+            "max": 19
+          },
+          "r89": {
+            "median": 10.0,
+            "min": 10,
+            "max": 10
+          },
+          "candidate": {
+            "median": 11.0,
+            "min": 11,
+            "max": 11
+          }
+        }
+      }
+    },
+    "fw4": {
+      "source": "private/r94/device-fw4-02/report/results.json",
+      "source_sha256": "727391caf7988b8a3defdb02ff28176c2813efae6dc3537a27867970db98900f",
+      "subjects": {
+        "stock": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+        "r89": "c8837ab990128efc30b993442ce73145a5c852cc2225ece1fb6b16d352d10cbf",
+        "candidate": "3be616b0e3f75a98a273c1a7b9e78061d72abe72023d58230aead8bdb61920db"
+      },
+      "workloads": 2,
+      "observations": 24,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 2,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [],
+      "resident_kib_or_count": {}
+    },
+    "uci": {
+      "source": "private/r94/device-uci-01/report/results.json",
+      "source_sha256": "d23badcd768645005ebf15a4434360de9f865abbd3871bdf16d5ddcfc89370e3",
+      "subjects": {
+        "stock": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+        "r89": "1758125b86c80a1a09c2db55df83952f5cbef6542527f1de1f37a088cba115cf",
+        "candidate": "c3b51560a3b595281a3b919e8881fecf28806fd46a59292c9cc64610be261857"
+      },
+      "workloads": 3,
+      "observations": 36,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 3,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [],
+      "resident_kib_or_count": {}
+    },
+    "reload-config": {
+      "source": "private/r94/device-rc-01/report/results.json",
+      "source_sha256": "67611d7d8982da5b6f076d05dbb7a05871c683032b356facd5407e0f5d7815b2",
+      "subjects": {
+        "stock": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+        "r89": "f38ffe36b404964ef53ca023167d3154f47139110c34c4e44435f9c198846ae4",
+        "candidate": "e22deec64229a94745dbe30c8815368889b84061f9cc936ba829c4561551d9a4"
+      },
+      "workloads": 1,
+      "observations": 12,
+      "comparison_counts": {
+        "stock": {
+          "subject_cpu_us_per_op": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        },
+        "r89": {
+          "subject_cpu_us_per_op": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "mean_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p50_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p95_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          },
+          "p99_us": {
+            "lower": 1,
+            "equal": 0,
+            "higher": 0,
+            "higher_disjoint_ranges": 0
+          }
+        }
+      },
+      "not_strictly_lower": [],
+      "resident_kib_or_count": {}
+    }
+  }
+}
