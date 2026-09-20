@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run one candidate in a disposable router namespace; production must be C.
 
-This is a correctness smoke, not a performance comparison. The candidate is
-never installed. A router-side timeout bounds the namespace lifetime, and the
-finally block removes this invocation's processes and temporary directory.
+Defaults to a correctness smoke. Explicit pilots gather exploratory data,
+never a confirmation verdict. The candidate is never installed. A router-side
+timeout bounds the namespace lifetime, and finally removes owned processes
+and the temporary directory.
 """
 import argparse
 import hashlib
@@ -29,9 +30,14 @@ def main():
     p.add_argument("--unit-filter", default="file::read_tests", help="test name filter, recorded in evidence")
     p.add_argument("--workload-script", type=Path, help="isolated.sh-compatible correctness probe")
     p.add_argument("--before-candidate", type=Path, help="optional failing-version control for the probe")
+    p.add_argument("--implementation", choices=("c", "rs"), default="rs")
+    p.add_argument("--iterations", type=int, default=10)
+    p.add_argument("--pilot", action="store_true", help="exploration only; requires an explicit workload")
     p.add_argument("--host", default="openwrt")
     p.add_argument("--interface", default="en0")
     a = p.parse_args()
+    if a.iterations <= 0 or (a.pilot and not a.workload_script):
+        p.error("iterations must be positive; pilots require --workload-script")
     a.output.mkdir(parents=True, exist_ok=False, mode=0o700)
     ssh = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
            "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3", a.host]
@@ -61,7 +67,8 @@ def main():
               "workload_sha256": hashlib.sha256(workload.read_bytes()).hexdigest(),
               "guard_sha256": hashlib.sha256(a.guard.read_bytes()).hexdigest(),
               "recovery_gate_sha256": hashlib.sha256(a.recovery_gate.read_bytes()).hexdigest(),
-              "correctness_smoke_only": True, "installed": False,
+              "correctness_smoke_only": not a.pilot, "pilot_only": a.pilot,
+              "implementation": a.implementation, "iterations": a.iterations, "installed": False,
               "production_mode": "stock", "remote": base}
     try:
         remote(f"test ! -e {base} && mkdir -p {base}/bundle {base}/out {base}/work")
@@ -82,6 +89,8 @@ def main():
             assert remote(f"sha256sum {base}/bundle/before-rs").decode().split()[0] == old_sha
             result["before_candidate_sha256"] = old_sha
         manifest = json.loads(remote("cat /root/r84/manifest.json"))
+        if a.implementation == "c":
+            assert digest == manifest["components"][a.component]["original"]["sha256"]
         for tool in ("ns-exec", "owrt-benchmark"):
             assert remote(f"sha256sum {base}/bundle/{tool}").decode().split()[0] == manifest["tools"][tool]["sha256"]
         if a.unit_tests:
@@ -98,7 +107,7 @@ def main():
         # Kill the namespace launcher itself on timeout: its init has PDEATHSIG
         # and owns every descendant, including detached child processes.
         command = (f"{base}/guard 120 {base}/bundle/ns-exec /bin/sh {remote_script} "
-                   f"--namespace /rom {base}/bundle {a.component} rs {base}/out 10 "
+                   f"--namespace /rom {base}/bundle {a.component} {a.implementation} {base}/out {a.iterations} "
                    f"{base}/work {remote_script}")
         with (a.output / "run.log").open("wb") as log:
             run = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "purpose": "Exploratory device-only reproduction of lookup_all_128; no superiority verdict",
+  "runtime_commit": "5dabcb4",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "candidate",
+        "r89",
+        "stock"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "candidate",
+        "stock",
+        "r89"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "r89",
+        "stock",
+        "candidate"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "r89",
+        "stock",
+        "candidate"
+      ]
+    },
+    {
+      "block": 5,
+      "order": [
+        "r89",
+        "stock",
+        "candidate"
+      ]
+    },
+    {
+      "block": 6,
+      "order": [
+        "stock",
+        "r89",
+        "candidate"
+      ]
+    }
+  ],
+  "seed": 9501,
+  "iterations": 2000,
+  "warmup": 100,
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "candidate": "0eea3291e99a4e02e50c11be568c3c4b5bf39673eaec665a1e4655f27813d7b5"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "35cfd591c7032b076400a1ceb464b290e034cb6d3b0bfe48dc18c02052e4aa50",
+    "tools/r95_ubusd_pilot.sh": "1c95ff25472880fc707c11dd84d8eb3d5a455f2cc6197425746a8e61809747b5",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op"
+  ],
+  "memory": "RSS diagnostic only, not precise peak or PSS",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Report all run values, paired exploratory ratios, CPU tick resolution; pilot never promoted to confirmation"
+}
