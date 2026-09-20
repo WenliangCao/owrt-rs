@@ -521,6 +521,43 @@ fn main_inner(a: &[String]) -> Result<()> {
                 || Ok(()),
             )
         }
+        "register-cycle" => {
+            require(a.len() == 8, "register-cycle SOCKET METHODS NAME_BYTES N WARMUP PIDS")?;
+            let count: usize = a[3].parse()?;
+            let name_bytes: usize = a[4].parse()?;
+            require((1..=64).contains(&count) && (8..=128).contains(&name_bytes),
+                    "registration fixture outside supported bounds")?;
+            let names: Vec<String> = (0..count).map(|i| {
+                format!("{i:08}{}", "x".repeat(name_bytes - 8))
+            }).collect();
+            let policy = [("policy", MsgType::Int32)];
+            let methods: Vec<_> = names.iter().map(|name| (name.as_str(), &policy[..])).collect();
+            let mut expected = BlobBuf::new();
+            for name in &names {
+                let table = expected.msg_open_table(name);
+                expected.msg_u32("policy", MsgType::Int32 as u32);
+                expected.msg_close(table);
+            }
+            let mut c = Connection::connect(Some(&a[2]))?;
+            let path = "bench.cycle";
+            let id = c.add_object(path, &methods, 5000)?;
+            let found = c.lookup(Some(path), 5000)?;
+            require(found.len() == 1 && found[0].id == id
+                    && found[0].path == path && found[0].signature == expected.payload(),
+                    "registration signature failed full byte validation")?;
+            c.remove_object(id, 5000)?;
+            require(c.lookup(None, 5000)?.is_empty(), "registration preflight left an object")?;
+            // Each operation includes encoding, ADD_OBJECT and REMOVE_OBJECT.
+            // Preflight signature validation and the final empty check are
+            // outside both latency and measured CPU intervals.
+            measure(a[5].parse()?, a[6].parse()?, &pid_list(&a[7])?, |_| {
+                let start = Instant::now();
+                let id = c.add_object(path, &methods, 5000)?;
+                c.remove_object(id, 5000)?;
+                Ok(start.elapsed().as_nanos() as u64)
+            }, || Ok(()))?;
+            require(c.lookup(None, 5000)?.is_empty(), "registration cycle left an object")
+        }
         "lookup" => {
             require(a.len() == 7, "lookup SOCKET PATH_OR_* N WARMUP PIDS")?;
             let mut c = Connection::connect(Some(&a[2]))?;

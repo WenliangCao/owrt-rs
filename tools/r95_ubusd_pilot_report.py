@@ -56,7 +56,7 @@ def main():
     lanes = plan.get("workloads", ("lookup_all_128",))
     multiple = len(lanes) > 1
     counts = (a.object_count,) if a.object_count is not None else ((64, 128) if matrix else (128,))
-    assert all(count > 0 for count in counts)
+    assert all(count >= 0 for count in counts)
     rows = []
     residents = []
     boots, clients, recoveries = set(), set(), set()
@@ -98,7 +98,8 @@ def main():
             for count in counts:
                 prefix = f"objects-{count}" if matrix else "objects"
                 assert (raw / f"{prefix}-before.txt").read_bytes() == (raw / f"{prefix}-after.txt").read_bytes()
-                expected = [f"bench.filler{i:04d}" for i in range(1, count)] + ["bench.target"]
+                expected = ([f"bench.filler{i:04d}" for i in range(1, count)] + ["bench.target"]
+                            if count else [])
                 assert (raw / f"{prefix}-before.txt").read_text().splitlines() == expected
             common = {"block": block["block"], "side": side, "position": position,
                       "result_sha256": digest(root / "result.json"),
