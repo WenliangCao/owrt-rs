@@ -24,6 +24,8 @@ def main():
     p.add_argument("output", type=Path)
     p.add_argument("--recovery-gate", type=Path, required=True)
     p.add_argument("--guard", type=Path, required=True, help="SDK-built tools/testsrc/r95_guard.c")
+    p.add_argument("--unit-tests", type=Path, help="SDK-built Rust test executable")
+    p.add_argument("--unit-filter", default="file::read_tests", help="test name filter, recorded in evidence")
     p.add_argument("--host", default="openwrt")
     p.add_argument("--interface", default="en0")
     a = p.parse_args()
@@ -66,6 +68,17 @@ def main():
         manifest = json.loads(remote("cat /root/r84/manifest.json"))
         for tool in ("ns-exec", "owrt-benchmark"):
             assert remote(f"sha256sum {base}/bundle/{tool}").decode().split()[0] == manifest["tools"][tool]["sha256"]
+        if a.unit_tests:
+            unit_sha = hashlib.sha256(a.unit_tests.read_bytes()).hexdigest()
+            subprocess.run(["scp", "-q", "-O", str(a.unit_tests.resolve()), a.host + f":{base}/unit-tests"], check=True)
+            assert remote(f"sha256sum {base}/unit-tests").decode().split()[0] == unit_sha
+            remote(f"mkdir {base}/unit-tmp")
+            command = (f"TMPDIR={base}/unit-tmp {base}/guard 120 {base}/bundle/ns-exec "
+                       f"{base}/unit-tests {shlex.quote(a.unit_filter)} --test-threads=1 --nocapture")
+            with (a.output / "unit-tests.log").open("wb") as log:
+                unit = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)
+            result["unit_tests"] = {"sha256": unit_sha, "filter": a.unit_filter, "exit": unit.returncode}
+            unit.check_returncode()
         # Kill the namespace launcher itself on timeout: its init has PDEATHSIG
         # and owns every descendant, including detached child processes.
         command = (f"{base}/guard 120 {base}/bundle/ns-exec /bin/sh {base}/isolated.sh "

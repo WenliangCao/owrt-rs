@@ -50,24 +50,25 @@ pub fn open_stream(ctx: &Context, filename: &str, seek_end: bool, write: bool, c
     Ok(f)
 }
 
-/// The rest of `f` from its current offset.  Sized from fstat so a config
-/// file is normally fetched by one read(2): a regular file that returns
-/// fewer bytes than asked is at EOF, and only a file that grew underneath
-/// the lock is read on to EOF.  Replaces an 8 KiB BufReader (a fresh
-/// mallocng group, mmap and munmap) plus its trailing zero-length read.
+/// Read through EOF from the current offset. Metadata is only an allocation
+/// hint: a successful short read need not mean EOF, even for a regular file.
 pub(crate) fn read_whole(mut f: &File) -> Result<Vec<u8>> {
     let hint = f.metadata().map(|m| m.len() as usize).unwrap_or(0);
-    let mut data = vec![0u8; hint + 1];
+    read_all(&mut f, hint)
+}
+
+fn read_all(mut reader: impl Read, hint: usize) -> Result<Vec<u8>> {
+    let mut data = vec![0u8; hint.saturating_add(1).min(64 * 1024)];
     let mut filled = 0;
     loop {
-        match f.read(&mut data[filled..]) {
+        match reader.read(&mut data[filled..]) {
             Ok(0) => break,
             Ok(n) => {
                 filled += n;
-                if filled < data.len() {
-                    break;
+                if filled == data.len() {
+                    let size = data.len().checked_mul(2).ok_or(Error::Mem)?;
+                    data.resize(size, 0);
                 }
-                data.resize(data.len() * 2, 0);
             }
             Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
             Err(_) => return Err(Error::Io),
@@ -75,6 +76,47 @@ pub(crate) fn read_whole(mut f: &File) -> Result<Vec<u8>> {
     }
     data.truncate(filled);
     Ok(data)
+}
+
+#[cfg(test)]
+mod read_tests {
+    use super::*;
+    use std::io::{self, Cursor};
+
+    struct Fragmented<'a> {
+        bytes: Cursor<&'a [u8]>,
+        chunk: usize,
+        interrupt: bool,
+    }
+
+    impl Read for Fragmented<'_> {
+        fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+            if std::mem::take(&mut self.interrupt) {
+                return Err(io::ErrorKind::Interrupted.into());
+            }
+            let len = out.len().min(self.chunk);
+            self.bytes.read(&mut out[..len])
+        }
+    }
+
+    #[test]
+    fn short_reads_and_interrupted_reads_preserve_every_byte() {
+        let bytes = b"config test 's'\n option v 'visible'\n option tail 'retained'\n";
+        for chunk in [1, 7, 16, bytes.len()] {
+            for hint in [0, 3, bytes.len(), bytes.len() + 128] {
+                let reader = Fragmented { bytes: Cursor::new(&bytes[..]), chunk, interrupt: true };
+                assert_eq!(read_all(reader, hint).unwrap(), bytes);
+            }
+        }
+    }
+
+    #[test]
+    fn reads_only_the_remaining_bytes_after_a_seek() {
+        let bytes = b"old prefix\nremaining delta\n";
+        let mut reader = Cursor::new(&bytes[..]);
+        reader.set_position(11);
+        assert_eq!(read_all(reader, bytes.len()).unwrap(), b"remaining delta\n");
+    }
 }
 
 /// uci_config_path: None when the (conf2) directory is disabled.

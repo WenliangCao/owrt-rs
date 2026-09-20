@@ -51,6 +51,58 @@
       "source_change": "packaging/openwrt/owrt-uci/Makefile",
       "canonical_ci_release": false,
       "performance_verdict": null
+    },
+    {
+      "component": "uci",
+      "candidate_sha256": "89f370738d5ba427c76a963e56f01a2b428bdcfa53993ac0b95a4b88bc6b6508",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "unit_tests": {
+        "sha256": "a8f43282476647ad46c7797a8ddd345530c440a7cc12755fcff18487780fd048",
+        "filter": "file::read_tests",
+        "exit": 0
+      },
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true,
+      "stage": "A04",
+      "sdk_clean_compile_exit": 0,
+      "apk_sha256": "e9f885ec38fd6803183ce1fec4376f13cc2944f43615be03cf81a589956811c4",
+      "candidate_bytes": 486155,
+      "source_archive_sha256": "84006bf430b260072ea554be7a0bbf3be6bb117f9b9d537ad88c8b5dac8d377c",
+      "source_base": "49a2a88",
+      "source_change": "components/uci/src/file.rs",
+      "canonical_ci_release": false,
+      "performance_verdict": null,
+      "host_gates": [
+        {
+          "name": "uci-unit",
+          "exit": 0
+        },
+        {
+          "name": "uci-clippy",
+          "exit": 0
+        },
+        {
+          "name": "uci-r16",
+          "exit": 0
+        },
+        {
+          "name": "uci-r24",
+          "exit": 0
+        },
+        {
+          "name": "uci-r83",
+          "exit": 0
+        }
+      ]
     }
   ]
 }
