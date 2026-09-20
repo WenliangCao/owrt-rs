@@ -5,7 +5,13 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 C 原件全程保留，任何一步都能回退。
 
-**现状（2026-09-15）：R92 九组件已通过 Wi-Fi 部署，原计划第 2–5 批和最终实机验收完成。
+**现状（2026-09-20）：路由器生产运行精确 C 原版；R95 只做隔离测试，不部署候选。**
+[R94 审计](docs/reviews/R94_COMPLETION_AUDIT.md)发现四项实际缺陷及性能/内存证据缺口；
+[R95 修复](docs/reviews/R95_DEFECT_FIXES.md)已逐项提交并在路由器验证。
+九组件“全面胜 C、尽可能胜 R89”的目标尚未完成，后续遵循
+[实机研究与验收规则](docs/R95_PERFORMANCE_RESEARCH.md)。
+
+**历史里程碑（2026-09-15）：R92 九组件曾通过 Wi-Fi 部署，原计划第 2–5 批和该轮实机验收完成。
 内核、驱动、数据面和无线 handler 脚本保留，本轮没有刷写固件。**
 运行时固定为 `ca1a9121df0380448a19d474e29796066b6734e8`，
 [正式构建 34874442503](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/34874442503)；
@@ -20,8 +26,8 @@ mixed **+4.35%**，mixed 吞吐 **−3.73%**；不能宣称全面无回退。Mem
 副本缓存控制不支持把全部差额归于静态二进制。[性能报告](reports/ax3000t-stock-openwrt-25.12.5/R92_PERFORMANCE.md)
 保留各轮范围、同机 HTTP 控制、尾延迟、停放成本及内存边界。
 
-设备保留精确 C、正式 R89、已接受 R90 和当前 R92；诊断文件已核验清理。
-[回退与包保留](docs/R92_RELEASE_AND_ROLLBACK.md)、[续接说明](docs/R92_RESUME.md)给出当前身份与复核入口。
+该轮保留精确 C、正式 R89、已接受 R90 和 R92；诊断文件在当时核验清理。
+[回退与包保留](docs/R92_RELEASE_AND_ROLLBACK.md)、[续接说明](docs/R92_RESUME.md)记录该轮身份与复核入口。
 [R90](reports/ax3000t-stock-openwrt-25.12.5/R90_BATCH1_LIFECYCLE.md)记录已经完成的第一批生命周期修复。
 
 历史 [R86 报告](reports/ax3000t-stock-openwrt-25.12.5/R86_PERFORMANCE_REVIEW.md)（发布提交 `f612e30`）记录了信号唤醒、HTTPD资源耗尽和
