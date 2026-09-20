@@ -1,0 +1,374 @@
+--- a/components/ubusd/src/server.rs
++++ b/components/ubusd/src/server.rs
+@@ -92,14 +92,15 @@
+             return;
+         }
+         let seq = self.acl.seq;
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, 0);
+-        b.put_string(attr::METHOD, "ubus.acl.sequence");
+-        let d = b.nest_start(attr::DATA);
+-        b.msg_u32("sequence", seq);
+-        b.nest_end(d);
+-        let payload = b.as_bytes().to_vec();
+-        self.dispatch_event(None, b"ubus.acl.sequence", payload);
++        self.dispatch_event(None, b"ubus.acl.sequence", || {
++            let mut b = BlobBuf::new();
++            b.put_u32(attr::OBJID, 0);
++            b.put_string(attr::METHOD, "ubus.acl.sequence");
++            let d = b.nest_start(attr::DATA);
++            b.msg_u32("sequence", seq);
++            b.nest_end(d);
++            b.as_bytes().to_vec()
++        });
+     }
+ 
+     // ---------------------------------------------------------------- clients
+@@ -164,6 +165,27 @@
+         }
+         if let Some(c) = self.clients.get_mut(&client) {
+             c.send_borrowed(header, blob, fd);
++            self.touched.push(client);
++        }
++    }
++
++    /// ADD/REMOVE DATA contains only OBJID and an optional OBJTYPE. Keep
++    /// its fixed 12/20-byte wire form on the stack instead of growing scratch.
++    /// send_borrowed copies any bytes that must survive in a client's queue.
++    fn send_object_reply(&mut self, client: u32, request: &InMsg, id: u32, type_id: Option<u32>) {
++        let mut blob = [0u8; 20];
++        let len = if type_id.is_some() { 20 } else { 12 };
++        blob[..4].copy_from_slice(&(len as u32).to_be_bytes());
++        blob[4..8].copy_from_slice(&((attr::OBJID << 24) | 8).to_be_bytes());
++        blob[8..12].copy_from_slice(&id.to_be_bytes());
++        if let Some(type_id) = type_id {
++            blob[12..16].copy_from_slice(&((attr::OBJTYPE << 24) | 8).to_be_bytes());
++            blob[16..20].copy_from_slice(&type_id.to_be_bytes());
++        }
++        let header = Header { ty: ty::DATA, seq: request.header.seq, peer: request.header.peer };
++        Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &header, &blob[..len], true);
++        if let Some(c) = self.clients.get_mut(&client) {
++            c.send_borrowed(header, &blob[..len], None);
+             self.touched.push(client);
+         }
+     }
+@@ -277,8 +299,8 @@
+ 
+         if let Some(p) = attrs[attr::OBJPATH as usize] {
+             let path = obj::cstr_bytes(p.payload).to_vec();
+-            let cred = self.cred_of(client);
+-            let allowed = self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&path), None, AclType::Publish);
++            let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
++            let allowed = self.acl.check(cred.as_ref(), Some(&path), None, AclType::Publish);
+             if !allowed || !self.reg.set_path(id, path) {
+                 self.reg.destroy(id);
+                 return Outcome::Status(status::INVALID_ARGUMENT);
+@@ -293,15 +315,8 @@
+             c.objects.insert(0, id);
+         }
+ 
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, id);
+-        if attrs[attr::SIGNATURE as usize].is_some() {
+-            if let Some(t) = type_id {
+-                b.put_u32(attr::OBJTYPE, t);
+-            }
+-        }
+-        let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
+-        self.send(client, out);
++        let reply_type = if attrs[attr::SIGNATURE as usize].is_some() { type_id } else { None };
++        self.send_object_reply(client, msg, id, reply_type);
+         Outcome::Status(status::OK)
+     }
+ 
+@@ -316,16 +331,9 @@
+         if o.client != Some(client) {
+             return Outcome::Status(status::PERMISSION_DENIED);
+         }
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, id);
+-        // The type id is echoed only when this removal destroys it.
+-        if let Some(t) = o.type_id {
+-            if self.reg.types.get(&t).is_some_and(|t| t.refcount == 1) {
+-                b.put_u32(attr::OBJTYPE, t);
+-            }
+-        }
+-        let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
+-        self.send(client, out);
++        // Echo the type id only if removal destroys its last reference.
++        let reply_type = o.type_id.filter(|t| self.reg.types.get(t).is_some_and(|t| t.refcount == 1));
++        self.send_object_reply(client, msg, id, reply_type);
+         self.free_object(id);
+         Outcome::Status(status::OK)
+     }
+@@ -872,12 +880,13 @@
+         if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&id), None, AclType::Send) {
+             return status::PERMISSION_DENIED;
+         }
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, 0);
+-        b.put(attr::METHOD, &with_nul(&id));
+-        b.put(attr::DATA, &payload);
+-        let blob = b.as_bytes().to_vec();
+-        self.dispatch_event(Some(client), &id, blob);
++        self.dispatch_event(Some(client), &id, || {
++            let mut b = BlobBuf::new();
++            b.put_u32(attr::OBJID, 0);
++            b.put(attr::METHOD, &with_nul(&id));
++            b.put(attr::DATA, &payload);
++            b.as_bytes().to_vec()
++        });
+         status::OK
+     }
+ 
+@@ -885,20 +894,22 @@
+         let name: &[u8] = if add { b"ubus.object.add" } else { b"ubus.object.remove" };
+         let Some(o) = self.reg.get(id) else { return };
+         let Some(path) = o.path.clone() else { return };
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, 0);
+-        b.put(attr::METHOD, &with_nul(name));
+-        let d = b.nest_start(attr::DATA);
+-        b.msg_u32("id", id);
+-        b.msg_field(MsgType::String as u32, "path", &with_nul(&path));
+-        b.nest_end(d);
+-        let blob = b.as_bytes().to_vec();
+-        self.dispatch_event(None, name, blob);
+-    }
+-
+-    /// Walk the pattern list and deliver `blob` to every matching listener.
++        self.dispatch_event(None, name, || {
++            let mut b = BlobBuf::new();
++            b.put_u32(attr::OBJID, 0);
++            b.put(attr::METHOD, &with_nul(name));
++            let d = b.nest_start(attr::DATA);
++            b.msg_u32("id", id);
++            b.msg_field(MsgType::String as u32, "path", &with_nul(&path));
++            b.nest_end(d);
++            b.as_bytes().to_vec()
++        });
++    }
++
++    /// Walk the pattern list and deliver to every matching listener. Like
++    /// C's event_fill_cb, encode once, only after an eligible receiver exists.
+     /// `from` is the sending client, whose own objects never see the event.
+-    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], blob: Vec<u8>) {
++    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], build: impl FnOnce() -> Vec<u8>) {
+         self.obj_event_seq = self.obj_event_seq.wrapping_add(1);
+         if self.obj_event_seq == 0 {
+             // Zero means unseen. Reusing any old epoch without clearing the
+@@ -911,7 +922,12 @@
+         let round = self.obj_event_seq;
+ 
+         let mut match_len = 0usize;
+-        let mut targets: Vec<u32> = Vec::new();
++        let mut build = Some(build);
++        let mut blob = Vec::new();
++        // Sending only changes client queues/monitors. Patterns and object
++        // ownership cannot change until this single-threaded handler returns,
++        // so neither a target snapshot nor a payload copy per receiver is
++        // needed. send_borrowed owns any bytes that have to wait in a queue.
+         for p in &self.patterns {
+             let (full, cur) = obj::strmatch_len(id, &p.key);
+             if cur < match_len {
+@@ -921,11 +937,7 @@
+             if !full && (!p.partial || match_len != p.key.len()) {
+                 continue;
+             }
+-            targets.push(p.obj);
+-        }
+-
+-        for obj_id in targets {
+-            let Some(o) = self.reg.get_mut(obj_id) else { continue };
++            let Some(o) = self.reg.get_mut(p.obj) else { continue };
+             if o.client == from && from.is_some() {
+                 continue;
+             }
+@@ -934,13 +946,17 @@
+             }
+             o.event_seen = round;
+             let Some(owner) = o.client else { continue };
+-            // Each receiver sees its own object id patched into the message
+-            // and its own sequence number: `(*ub)->hdr.seq = ++event_seq`
+-            // runs once per delivered copy, not once per event.
+-            let mut per = blob.clone();
+-            patch_first_u32(&mut per, obj_id);
++            if let Some(build) = build.take() {
++                blob = build();
++            }
++            patch_first_u32(&mut blob, p.obj);
+             self.event_seq = self.event_seq.wrapping_add(1);
+-            self.send(owner, OutMsg::new(ty::INVOKE, self.event_seq, 0, per));
++            let header = Header { ty: ty::INVOKE, seq: self.event_seq, peer: 0 };
++            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, owner, &header, &blob, true);
++            if let Some(client) = self.clients.get_mut(&owner) {
++                client.send_borrowed(header, &blob, None);
++                self.touched.push(owner);
++            }
+         }
+     }
+ 
+@@ -1270,6 +1286,154 @@
+         assert!(check_method(&a).is_none());
+     }
+     #[cfg(target_os = "linux")]
++    #[test]
++    fn registration_replies_remain_owned_while_queued_and_monitored() {
++        for monitored in [false, true] {
++            let mut s = Server::new(String::new()).unwrap();
++            let (caller, mut peer) = lookup_client();
++            let (monitor, mut monitor_peer) = lookup_client();
++            s.clients.insert(2000, caller);
++            s.clients.insert(2001, monitor);
++            if monitored { s.monitors.push((2001, 0)); }
++            let mut expected = Vec::new();
++            for i in 0..64u16 {
++                let path = format!("queue.{i:03}");
++                let mut b = BlobBuf::new();
++                b.put_string(attr::OBJPATH, &path);
++                let signature = b.nest_start(attr::SIGNATURE);
++                let method = b.msg_open_table("method");
++                b.msg_u32("policy", 5);
++                b.msg_close(method);
++                b.nest_end(signature);
++                let header = Header { ty: ty::ADD_OBJECT, seq: i * 2, peer: 123 };
++                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
++                let id = s.reg.by_path(path.as_bytes()).unwrap();
++                let type_id = s.reg.get(id).unwrap().type_id.unwrap();
++                let mut data = BlobBuf::new();
++                data.put_u32(attr::OBJID, id);
++                data.put_u32(attr::OBJTYPE, type_id);
++                let data = data.as_bytes().to_vec();
++                let mut status_blob = BlobBuf::new();
++                status_blob.put_u32(attr::STATUS, status::OK as u32);
++                let status_blob = status_blob.as_bytes().to_vec();
++                expected.push((Header { ty: ty::DATA, ..header }, data.clone()));
++                expected.push((Header { ty: ty::STATUS, ..header }, status_blob.clone()));
++                let mut b = BlobBuf::new();
++                b.put_u32(attr::OBJID, id);
++                let header = Header { ty: ty::REMOVE_OBJECT, seq: i * 2 + 1, peer: 456 };
++                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
++                expected.push((Header { ty: ty::DATA, ..header }, data));
++                expected.push((Header { ty: ty::STATUS, ..header }, status_blob));
++                assert!(s.reg.get(id).is_none());
++                assert!(s.reg.types.is_empty());
++            }
++            assert!(!s.clients[&2000].tx_empty(), "fixture must queue replies before reading");
++            assert!(s.reg.paths.is_empty() && s.clients[&2000].objects.is_empty());
++            let actual = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
++            assert_eq!(actual.len(), expected.len());
++            for ((h, b), (wanted_h, wanted_b)) in actual.iter().zip(&expected) {
++                assert_eq!(h.encode(), wanted_h.encode());
++                assert_eq!(b, wanted_b);
++            }
++            let mirrors = lookup_frames(&drain_lookup(&mut s, 2001, &mut monitor_peer));
++            if monitored {
++                assert_eq!(mirrors.len(), 64 * 6);
++                let mut outgoing = expected.iter();
++                for (i, (h, b)) in mirrors.iter().enumerate() {
++                    assert_eq!((h.ty, h.seq, h.peer), (ty::MONITOR, i as u16 + 1, 0));
++                    // Monitor attributes have their own types: SEND is u8,
++                    // whereas the same index is a string in the bus policy.
++                    let mut attrs = [None; 6];
++                    let mut offset = 0;
++                    while let Some((a, next)) = blob::attr_at(&b[4..], offset) {
++                        attrs[a.id as usize] = Some(a);
++                        offset = next;
++                    }
++                    assert_eq!(attrs[0].unwrap().as_u32(), Some(2000));
++                    if attrs[2].unwrap().payload == [1] {
++                        let (header, blob) = outgoing.next().unwrap();
++                        assert_eq!(attrs[1].unwrap().as_u32(), Some(header.peer));
++                        assert_eq!(attrs[3].unwrap().as_u32(), Some(header.seq as u32));
++                        assert_eq!(attrs[4].unwrap().as_u32(), Some(header.ty as u32));
++                        assert_eq!(attrs[5].unwrap().payload, &blob[4..]);
++                    }
++                }
++                assert!(outgoing.next().is_none());
++            } else {
++                assert!(mirrors.is_empty());
++            }
++        }
++    }
++
++    #[test]
++    fn events_without_eligible_receivers_do_not_encode_but_advance_round() {
++        for case in 0..5 {
++            let mut s = Server::new(String::new()).unwrap();
++            let object = 4000;
++            if case != 4 {
++                s.reg.create(None, Some(object)).unwrap();
++                s.reg.get_mut(object).unwrap().client = if case == 3 { None } else { Some(2000) };
++            }
++            if case != 0 {
++                s.patterns.push(Pattern { key: if case == 1 { b"other".to_vec() } else { b"event".to_vec() },
++                    partial: false, obj: object });
++            }
++            let round = s.obj_event_seq;
++            s.dispatch_event(Some(2000), b"event", || panic!("no receiver in case {case}"));
++            assert_eq!(s.obj_event_seq, round + 1);
++            assert_eq!(s.event_seq, 0);
++        }
++    }
++
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn deferred_event_preserves_dedup_sequences_monitor_and_queued_payload() {
++        let mut s = Server::new(String::new()).unwrap();
++        let (owner, mut peer) = lookup_client();
++        let (monitor, mut monitor_peer) = lookup_client();
++        s.clients.insert(2000, owner);
++        s.clients.insert(2001, monitor);
++        s.monitors.push((2001, 0));
++        for id in [4000, 4001] {
++            s.reg.create(None, Some(id)).unwrap();
++            s.reg.get_mut(id).unwrap().client = Some(2000);
++            for _ in 0..2 {
++                s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: id });
++            }
++        }
++        let mut expected = BlobBuf::new();
++        expected.put_u32(attr::OBJID, 0);
++        expected.put_string(attr::METHOD, "event");
++        expected.put(attr::DATA, &vec![0x5a; 32768]);
++        let expected = expected.as_bytes().to_vec();
++        s.event_seq = u16::MAX;
++        let builds = std::cell::Cell::new(0);
++        s.dispatch_event(None, b"event", || {
++            builds.set(builds.get() + 1);
++            expected.clone()
++        });
++        assert_eq!(builds.get(), 1);
++        assert!(!s.clients[&2000].tx_empty(), "large payload must force queue ownership");
++        let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
++        assert_eq!(frames.len(), 2, "two objects on one connection, no duplicate deliveries");
++        for (i, (header, actual)) in frames.iter().enumerate() {
++            assert_eq!((header.ty, header.seq, header.peer), (ty::INVOKE, i as u16, 0));
++            let mut wanted = expected.clone();
++            patch_first_u32(&mut wanted, 4000 + i as u32);
++            assert_eq!(*actual, wanted);
++        }
++        let mirrors = lookup_frames(&drain_lookup(&mut s, 2001, &mut monitor_peer));
++        assert_eq!(mirrors.len(), 2);
++        assert!(mirrors.iter().all(|(h, _)| h.ty == ty::MONITOR));
++        s.free_object(4001);
++        s.dispatch_event(None, b"event", || expected.clone());
++        let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
++        assert_eq!(frames.len(), 1, "deleted listener patterns must not survive");
++        assert_eq!(frames[0].0.seq, 2);
++        assert_eq!(attrs_of(&frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000));
++    }
++
++    #[cfg(target_os = "linux")]
+     fn check_event_round_wrap(last_seen: u32) {
+         let mut s = Server::new(String::new()).unwrap();
+         let (owner, mut peer) = lookup_client();
+@@ -1286,7 +1450,7 @@
+         b.put_u32(attr::OBJID, 0);
+         b.put_string(attr::METHOD, "event");
+         b.put(attr::DATA, &[]);
+-        s.dispatch_event(None, b"event", b.as_bytes().to_vec());
++        s.dispatch_event(None, b"event", || b.as_bytes().to_vec());
+         let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
+         assert_eq!(frames.len(), 1, "last_seen={last_seen}: wrap must deliver once, not omit or duplicate");
+         assert_eq!((frames[0].0.ty, frames[0].0.seq, frames[0].0.peer), (ty::INVOKE, 1, 0));

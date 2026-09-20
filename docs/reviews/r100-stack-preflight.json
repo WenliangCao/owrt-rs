@@ -1,0 +1,38 @@
+{
+  "candidate_sha256": "5083f49ba344646532c6b407b5ea22d036c8bba083146e13e8a0e458152d0b99",
+  "unit_sha256": "b6272da0d8d763dd1ffdb2601bf212f127f66c4206d6b0f939b7fd8131624404",
+  "patch_sha256": "02efd019665d0c040effaa1705258ef10fac1c44b0261a3dd4ae32b5db8e1949",
+  "correctness_base_sha256": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+  "physical": {
+    "component": "ubusd",
+    "candidate_sha256": "5083f49ba344646532c6b407b5ea22d036c8bba083146e13e8a0e458152d0b99",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "implementation": "rs",
+    "iterations": 10,
+    "installed": false,
+    "matrix": false,
+    "production_mode": "stock",
+    "remote": "/tmp/r95-check-31460704091a4633a127fd345009d5e2",
+    "benchmark_sha256": "bcad2d4652b81c6c252b61f4bd8dd8424f85bd19bea2dd848236640967fdca26",
+    "before_candidate_sha256": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+    "unit_tests": {
+      "sha256": "b6272da0d8d763dd1ffdb2601bf212f127f66c4206d6b0f939b7fd8131624404",
+      "filter": "",
+      "exit": 0
+    },
+    "exit": 0,
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  },
+  "native_units": 35,
+  "status": "experimental; host gates and fresh performance series pending"
+}
