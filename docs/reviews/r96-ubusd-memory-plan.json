@@ -1,0 +1,29 @@
+{
+  "purpose": "Requested retained and construction-peak Rust heap in actual Registry, not RSS/PSS or full daemon peak. Validate index lookup and held path survival after delete/drop; all owners released must return live allocation count to baseline.",
+  "order": [
+    "before",
+    "candidate",
+    "candidate",
+    "before"
+  ],
+  "objects": [
+    1,
+    64,
+    128,
+    512
+  ],
+  "path_bytes": [
+    16,
+    64,
+    256
+  ],
+  "iterations": 1,
+  "subjects": {
+    "before": "4e0d9cd4a988e25b6e4d3ea3ce28e4c0ec0599f222f3bde764c804fcaefd0862",
+    "candidate": "ad920149b2a522a8c178a5f37dac615ade4236082c4298146958aab95a8e5b10"
+  },
+  "profile_source_sha256": "e89a676f96ddb4cbc915d45c40584a40dcc366f57d3033ff1ab0b3e3a50a17e3",
+  "workload_sha256": "9b729f3ab1f1884908209ad65d7d490581bbd3ddd348ae445d2f6f224175d913",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "hypothesis": "Single immutable path copy reduces retained requested heap and construction peak despite reference-count metadata. Counter records successful Rust GlobalAlloc layout sizes, not libc allocator rounding or kernel memory. Both versions share identical fixture and counter source."
+}
