@@ -12,6 +12,8 @@ use std::os::unix::net::UnixDatagram;
 use std::process::Command;
 use std::time::{Duration, Instant};
 
+mod cpu_clock;
+
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn obj(fields: impl IntoIterator<Item = (impl Into<String>, Json)>) -> Json {
@@ -57,6 +59,7 @@ struct ProcSample {
     start_ticks: u64,
     cpu_ticks: u64,
     child_ticks: u64,
+    cpu_clock: cpu_clock::Sample,
     values: BTreeMap<String, u64>,
 }
 
@@ -100,6 +103,7 @@ fn proc_sample(pid: u32) -> Result<ProcSample> {
         start_ticks: n(19)?,
         cpu_ticks: n(11)? + n(12)?,
         child_ticks: n(13)? + n(14)?,
+        cpu_clock: cpu_clock::sample(pid)?,
         values,
     })
 }
@@ -115,6 +119,8 @@ fn proc_json(pid: u32, sample: &ProcSample) -> Json {
         ("start_ticks".into(), integer(sample.start_ticks)),
         ("cpu_ticks".into(), integer(sample.cpu_ticks)),
         ("child_cpu_ticks".into(), integer(sample.child_ticks)),
+        ("process_cpu_ns".into(), integer(sample.cpu_clock.ns)),
+        ("process_cpu_resolution_ns".into(), integer(sample.cpu_clock.resolution_ns)),
     ]);
     Json::Object(fields)
 }
@@ -230,6 +236,7 @@ where
         )?;
         daemons.push(obj([
             ("pid", integer(pid as u64)),
+            ("cpu_clock_ns", integer(a.cpu_clock.ns.checked_sub(b.cpu_clock.ns).ok_or("CPU clock regressed")?)),
             (
                 "cpu_s",
                 num((a
@@ -278,6 +285,7 @@ where
             "child_cpu_s",
             num((own_after.child_ticks - own_before.child_ticks) as f64 / hz),
         ),
+        ("client_cpu_clock_ns", integer(own_after.cpu_clock.ns.checked_sub(own_before.cpu_clock.ns).ok_or("client CPU clock regressed")?)),
         ("clock_ticks_per_second", num(hz)),
     ]));
     Ok(())

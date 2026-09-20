@@ -1,0 +1,22 @@
+{
+  "production": "C; no deployment",
+  "recovery_gate_refreshed_after_power_loss": true,
+  "offline_archives_fully_read": 5,
+  "recovery_images_verified": 2,
+  "benchmark_sha256": "885ee761626ea2752061b162f91c912777a54a13c5aebe37bfe7ca301dec308d",
+  "benchmark_unit_sha256": "d5ff437f86aae231121f9052793c40239b70ace5d4c647a1ffaf2bc493fd3abb",
+  "physical_clock_tests_passed": 2,
+  "physical_clock_tests": [
+    "external live child CPU, sleeping child, dead process rejection",
+    "whole-process clock includes a terminated worker thread; invalid PID rejection"
+  ],
+  "smoke_successful": true,
+  "cleanup_verified": true,
+  "stock_identity_config_boot_mounts_preserved": true,
+  "device_result_sha256": "3976a377b893cb5fb4d41cfc15aed10fcdbf7da6065cf0bb841169f4a76d893f",
+  "source_sha256": {
+    "tools/benchmark/src/main.rs": "cbdb819235a051150a4cd4037a5279189fe05e5a98a6018eb168250f667041cf",
+    "tools/benchmark/src/cpu_clock.rs": "600aba0da5e1206f28373d10040c598e2d22b76ba2208a4cb2a49cefa9bfeccb"
+  },
+  "scope": "CPU accounting capability validation only; not a performance victory or exact-memory validation"
+}

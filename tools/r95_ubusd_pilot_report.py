@@ -71,6 +71,8 @@ def main():
                         "same_production_identity", "same_host_mounts"):
                 assert result[key], (root, key)
             assert result["candidate_sha256"] == plan["subjects"][side]
+            if "benchmark_sha256" in plan:
+                assert result["benchmark_sha256"] == plan["benchmark_sha256"]
             assert result["driver_sha256"] == plan["source_scripts"]["tools/r95_device_smoke.py"]
             assert result["workload_sha256"] == plan["source_scripts"][workload_script]
             assert result.get("matrix", False) == matrix
@@ -85,6 +87,8 @@ def main():
             assert (raw / "COMPLETE").is_file()
             assert (raw / "binary-sha256.txt").read_text().split()[0] == plan["subjects"][side]
             clients.add(tuple(line.split()[0] for line in (raw / "benchmark-sha256.txt").read_text().splitlines()))
+            if "benchmark_sha256" in plan:
+                assert (raw / "benchmark-sha256.txt").read_text().split()[0] == plan["benchmark_sha256"]
             meta = read(raw / "meta.json")
             assert meta["iterations"] == plan["iterations"]
             if matrix:

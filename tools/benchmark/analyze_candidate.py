@@ -24,13 +24,31 @@ def read(path):
     return json.loads(path.read_text())
 
 
+def process_clock_delta(before, after):
+    assert before["pid"] == after["pid"] and before["start_ticks"] == after["start_ticks"], "CPU clock process replaced"
+    assert before["process_cpu_resolution_ns"] == after["process_cpu_resolution_ns"] > 0, "CPU clock resolution changed"
+    delta = after["process_cpu_ns"] - before["process_cpu_ns"]
+    assert delta >= 0, "process CPU clock regressed"
+    return delta
+
+
 def serial(path, subject):
     data = native(path)
     own = next((p for p in data["daemon_cpu"] if p["pid"] == subject), None)
     assert subject is None or own is not None, "measured daemon is missing"
     cpu = data["child_cpu_s"] if subject is None else own["cpu_s"] + own["child_cpu_s"]
     count = data["successful"]
-    return {**timing(data), "warmup": data["warmup"],
+    clocks = {}
+    if "client_cpu_clock_ns" in data:
+        assert data["client_cpu_clock_ns"] >= 0
+        clocks["client_cpu_clock_us_per_op"] = data["client_cpu_clock_ns"] / 1000 / count
+        if subject is not None:
+            for p in data["daemon_cpu"]:
+                assert p["cpu_clock_ns"] == process_clock_delta(p["before"], p["after"])
+            clocks["subject_own_cpu_clock_us_per_op"] = own["cpu_clock_ns"] / 1000 / count
+            clocks["dependency_own_cpu_clock_us_per_op"] = sum(p["cpu_clock_ns"] for p in data["daemon_cpu"]
+                                                             if p["pid"] != subject) / 1000 / count
+    return {**timing(data), **clocks, "warmup": data["warmup"],
             "subject_cpu_us_per_op": cpu * 1e6 / count,
             "dependency_cpu_us_per_op": sum(p["cpu_s"] for p in data["daemon_cpu"]
                                             if p["pid"] != subject) * 1e6 / count,
@@ -61,10 +79,19 @@ def parallel(path, subject):
         child = p["child_cpu_ticks"] - old[pid]["child_cpu_ticks"]
         assert own >= 0 and child >= 0
         cpu[pid] = (own + child) / hz
+    clocks = {}
+    if "process_cpu_ns" in old[subject]:
+        own_ns = {pid: process_clock_delta(old[pid], p) for pid, p in new.items()}
+        assert all(c["client_cpu_clock_ns"] >= 0 for c in clients)
+        clocks = {
+            "subject_own_cpu_clock_us_per_op": own_ns[subject] / 1000 / (count + warm),
+            "dependency_own_cpu_clock_us_per_op": sum(v for pid, v in own_ns.items() if pid != subject) / 1000 / (count + warm),
+            "client_cpu_clock_us_per_op": sum(c["client_cpu_clock_ns"] for c in clients) / 1000 / count,
+        }
     # The native client's rounded (n - 1) index, pooled within one
     # run only. Each run remains one independent observation in the summary.
     quantile = lambda p: samples[math.floor((len(samples) - 1) * p + .5)] / 1000
-    return {"successful": count, "warmup": warm, "wall_s": elapsed,
+    return {**clocks, "successful": count, "warmup": warm, "wall_s": elapsed,
             "ops_per_s": count / elapsed, "mean_us": statistics.mean(samples) / 1000,
             "p50_us": quantile(.50), "p95_us": quantile(.95), "p99_us": quantile(.99),
             "subject_cpu_us_per_op": cpu[subject] * 1e6 / (count + warm),
