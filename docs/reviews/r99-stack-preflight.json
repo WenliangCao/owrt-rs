@@ -4,6 +4,48 @@
   "patch_sha256": "4715513075da9780884d3f365efc77971101f303cee811d71aa56e696310e823",
   "native_units": 32,
   "native_clippy": "passed",
-  "physical": "must pass before timed comparisons",
-  "hypothesis": "Fixed 12/20-byte DATA reply on stack removes retained scratch growth while preserving borrowed send, owned queue and monitor ordering. Includes previously tested credential borrowing and lazy single-pass event delivery; not an accepted runtime."
+  "physical": "32 units and seven C/before/candidate protocol differentials passed; four physical heap windows passed",
+  "hypothesis": "Fixed 12/20-byte DATA reply on stack removes retained scratch growth while preserving borrowed send, owned queue and monitor ordering. Includes previously tested credential borrowing and lazy single-pass event delivery; not an accepted runtime.",
+  "device_result_sha256": "b092c15a410995af3fa258362d69885895e7ecf1098834877d3ea562e1c3c08f",
+  "host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "log_sha256": "71a5575b5a7ba86eecf7d2eac64524f5b0fe08cb5ba516f948c19819fc631878"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "log_sha256": "7c21bfb4aee54dbd9e165a2ce6f03a048eea7a8a6dad299eedc284c80c448c0f"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "log_sha256": "f80d0489b3f2eae8d5b513b9874793813c6ebabbfb3913a1e516d50dc7f110ed"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ],
+  "host_gate_archive_sha256": "1cea27b804842224189650365f6b398bc51054d1fb29e2d1d75e024f49e39afd",
+  "all_device_checks": {
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  }
 }

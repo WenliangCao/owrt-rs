@@ -1,0 +1,46 @@
+{
+  "reason": "New pre-existing u32 event deduplication epoch wrap omission reproduced in native test; correctness work takes priority before retaining performance candidates",
+  "performance_data_inspected_for_stop_decision": false,
+  "controller_stop": "Stopped only the local launcher; in-flight router window finished normally and passed cleanup before launcher termination",
+  "last_window": "cpu-stock/03",
+  "completed_windows": [
+    {
+      "comparator": "stock",
+      "block": 1,
+      "result_sha256": "6b1b2f1ec8e9a1794e956f38fbf0f41a45cb17dd2fc901e53fc0a9e15f9bc8fc"
+    },
+    {
+      "comparator": "stock",
+      "block": 2,
+      "result_sha256": "2b6512c7f369574ebec61a0f02fb0fc31097373a9275e06c5b904bd4ebe0f584"
+    },
+    {
+      "comparator": "stock",
+      "block": 3,
+      "result_sha256": "552cca394329dff7a2c8bd953bddcb867a178d77bbfcebfde6f4af532b9ca1d5"
+    },
+    {
+      "comparator": "r89",
+      "block": 1,
+      "result_sha256": "a1ca53069efa45b3901369689c5a2b981823883ccb08b587542cb3c44c97d7c3"
+    },
+    {
+      "comparator": "r89",
+      "block": 2,
+      "result_sha256": "deb5a7a81033f0567a787c292ce8d5a342514c73cc6415648bafeb54383d4a40"
+    },
+    {
+      "comparator": "before",
+      "block": 1,
+      "result_sha256": "83c5f9f975d5a5a8fcadabd7f8dac7a8889f793391a256bd059f875f8853876a"
+    },
+    {
+      "comparator": "before",
+      "block": 2,
+      "result_sha256": "e8365252a82e4fafba1fb96f4009ea5af4249aaa921ad605c06dbbad23635adf"
+    }
+  ],
+  "series_complete": false,
+  "comparison_verdict": null,
+  "retention": "All completed and incomplete-series evidence retained; do not pool with future fixed-runtime measurements"
+}
