@@ -34,5 +34,6 @@
     "same_host_mounts": true
   },
   "native_units": 35,
-  "status": "experimental; host gates and fresh performance series pending"
+  "status": "experimental; host gates and fresh performance series pending",
+  "memory": "Four physical ABBA windows, seven scenarios, exact repeats; retained requested heap unchanged in all; construction peak never increases. Requested Rust heap only, not RSS/PSS/kernel or C memory comparison."
 }

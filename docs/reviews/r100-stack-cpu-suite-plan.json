@@ -1,0 +1,97 @@
+{
+  "seed": 9910,
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "r89",
+        "before",
+        "stock"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "before",
+        "r89",
+        "stock"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "stock",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "stock",
+        "before",
+        "r89"
+      ]
+    },
+    {
+      "block": 5,
+      "order": [
+        "before",
+        "r89",
+        "stock"
+      ]
+    },
+    {
+      "block": 6,
+      "order": [
+        "stock",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 7,
+      "order": [
+        "stock",
+        "before",
+        "r89"
+      ]
+    },
+    {
+      "block": 8,
+      "order": [
+        "r89",
+        "before",
+        "stock"
+      ]
+    },
+    {
+      "block": 9,
+      "order": [
+        "before",
+        "stock",
+        "r89"
+      ]
+    },
+    {
+      "block": 10,
+      "order": [
+        "stock",
+        "before",
+        "r89"
+      ]
+    }
+  ],
+  "plans": {
+    "stock": "docs/reviews/r100-stack-stock-cpu-plan.json",
+    "r89": "docs/reviews/r100-stack-r89-cpu-plan.json",
+    "before": "docs/reviews/r100-stack-before-cpu-plan.json"
+  },
+  "plan_sha256": {
+    "stock": "10a7c959594271be229f896a9cbf9c8667ad95f3da5db9fd17ad442d2fd8e682",
+    "r89": "4575a81f5f942283105232844b9596930fe58d0beb2a332cd1dc273f4fb1bd1e",
+    "before": "ced80ad16bb506a6ec45f742bd9108c5642f96358e45c0fc49f48d267acc02e9"
+  },
+  "family_comparisons": 12,
+  "purpose": "Fresh R100 suite after pre-existing epoch fix; R99 incomplete windows excluded in entirety; same frozen schedule and precision limits"
+}
