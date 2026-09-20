@@ -1,0 +1,489 @@
+{
+  "schema_version": 1,
+  "workload": "direct ubus_send_event via exact-image libubus client",
+  "iterations": 20000,
+  "warmup": 2000,
+  "blocks": [
+    {
+      "block": 1,
+      "c": {
+        "user_1_1": {
+          "subject_cpu_us": 632607.022,
+          "wall_us": 1189176.873,
+          "client_cpu_us": 615467.538,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2186948.029,
+          "wall_us": 3366164.609,
+          "client_cpu_us": 2491083.57,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 370303.154,
+          "wall_us": 797202.623,
+          "client_cpu_us": 378961.634,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "before": {
+        "user_1_1": {
+          "subject_cpu_us": 631087.127,
+          "wall_us": 1192903.156,
+          "client_cpu_us": 609167.243,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2260372.705,
+          "wall_us": 3869556.199,
+          "client_cpu_us": 2644741.074,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 346469.31,
+          "wall_us": 772983.13,
+          "client_cpu_us": 370338.342,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "candidate": {
+        "user_1_1": {
+          "subject_cpu_us": 605529.338,
+          "wall_us": 1177037.422,
+          "client_cpu_us": 618642.017,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2190062.378,
+          "wall_us": 3540332.62,
+          "client_cpu_us": 2598139.67,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 333392.923,
+          "wall_us": 750663.419,
+          "client_cpu_us": 369509.098,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "r89": {
+        "user_1_1": {
+          "subject_cpu_us": 776709.073,
+          "wall_us": 1317711.862,
+          "client_cpu_us": 612988.62,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2459015.944,
+          "wall_us": 3729725.184,
+          "client_cpu_us": 2520678.134,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 499590.116,
+          "wall_us": 899509.913,
+          "client_cpu_us": 375262.99,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      }
+    },
+    {
+      "block": 2,
+      "c": {
+        "user_1_1": {
+          "subject_cpu_us": 640666.057,
+          "wall_us": 1203752.796,
+          "client_cpu_us": 625131.413,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2321336.355,
+          "wall_us": 3493761.289,
+          "client_cpu_us": 2560698.749,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 363397.468,
+          "wall_us": 771781.567,
+          "client_cpu_us": 371728.882,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "before": {
+        "user_1_1": {
+          "subject_cpu_us": 638206.291,
+          "wall_us": 1224313.952,
+          "client_cpu_us": 621162.162,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2245979.2,
+          "wall_us": 3629557.459,
+          "client_cpu_us": 2613283.054,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 345185.68,
+          "wall_us": 765243.852,
+          "client_cpu_us": 372130.346,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "candidate": {
+        "user_1_1": {
+          "subject_cpu_us": 602714.062,
+          "wall_us": 1169792.239,
+          "client_cpu_us": 613074.058,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2189161.294,
+          "wall_us": 3537491.608,
+          "client_cpu_us": 2583237.755,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 333443.097,
+          "wall_us": 762634.187,
+          "client_cpu_us": 378185.107,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "r89": {
+        "user_1_1": {
+          "subject_cpu_us": 770125.925,
+          "wall_us": 1317598.101,
+          "client_cpu_us": 623023.766,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2548184.998,
+          "wall_us": 3651223.736,
+          "client_cpu_us": 2548818.665,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 492246.281,
+          "wall_us": 890526.108,
+          "client_cpu_us": 372793.478,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      }
+    },
+    {
+      "block": 3,
+      "c": {
+        "user_1_1": {
+          "subject_cpu_us": 643533.472,
+          "wall_us": 1251425.78,
+          "client_cpu_us": 626078.231,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2169335.316,
+          "wall_us": 3326276.272,
+          "client_cpu_us": 2456423.966,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 366475.984,
+          "wall_us": 784992.874,
+          "client_cpu_us": 373620.434,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "before": {
+        "user_1_1": {
+          "subject_cpu_us": 632522.704,
+          "wall_us": 1208629.98,
+          "client_cpu_us": 625125.389,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2229273.929,
+          "wall_us": 3582358.898,
+          "client_cpu_us": 2594983.213,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 345696.17,
+          "wall_us": 778642.512,
+          "client_cpu_us": 373498.334,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "candidate": {
+        "user_1_1": {
+          "subject_cpu_us": 604482.295,
+          "wall_us": 1167034.557,
+          "client_cpu_us": 615066.707,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2217001.415,
+          "wall_us": 3590596.559,
+          "client_cpu_us": 2647837.679,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 330258.198,
+          "wall_us": 751498.684,
+          "client_cpu_us": 373144.562,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "r89": {
+        "user_1_1": {
+          "subject_cpu_us": 773489.433,
+          "wall_us": 1324413.22,
+          "client_cpu_us": 620175.089,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2547679.14,
+          "wall_us": 3648217.873,
+          "client_cpu_us": 2546179.793,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 496141.465,
+          "wall_us": 899212.63,
+          "client_cpu_us": 376612.373,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      }
+    },
+    {
+      "block": 4,
+      "c": {
+        "user_1_1": {
+          "subject_cpu_us": 630149.231,
+          "wall_us": 1178323.103,
+          "client_cpu_us": 608527.508,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2259744.679,
+          "wall_us": 3484518.243,
+          "client_cpu_us": 2516247.099,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 363385.785,
+          "wall_us": 776020.29,
+          "client_cpu_us": 374295.956,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "before": {
+        "user_1_1": {
+          "subject_cpu_us": 639164.701,
+          "wall_us": 1219678.876,
+          "client_cpu_us": 625708.002,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2224597.729,
+          "wall_us": 3652743.593,
+          "client_cpu_us": 2658923.379,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 343252.447,
+          "wall_us": 765206.012,
+          "client_cpu_us": 373499.158,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "candidate": {
+        "user_1_1": {
+          "subject_cpu_us": 601229.85,
+          "wall_us": 1158689.32,
+          "client_cpu_us": 607943.545,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2213213.563,
+          "wall_us": 3610615.048,
+          "client_cpu_us": 2668534.862,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 333520.124,
+          "wall_us": 761658.717,
+          "client_cpu_us": 377377.707,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      },
+      "r89": {
+        "user_1_1": {
+          "subject_cpu_us": 773946.386,
+          "wall_us": 1316726.954,
+          "client_cpu_us": 620880.659,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_8_1": {
+          "subject_cpu_us": 2550979.613,
+          "wall_us": 3633183.935,
+          "client_cpu_us": 2552318.547,
+          "payload_checked": true,
+          "handlers_removed": true
+        },
+        "user_1_0": {
+          "subject_cpu_us": 492922.565,
+          "wall_us": 888265.95,
+          "client_cpu_us": 373195.172,
+          "payload_checked": true,
+          "handlers_removed": true
+        }
+      }
+    }
+  ],
+  "summary": {
+    "user_1_1": {
+      "before": {
+        "ratios_to_c": [
+          0.99759741,
+          0.99616061,
+          0.98289014,
+          1.01430688
+        ],
+        "median_ratio": 0.9968790109064454,
+        "median_percent": -0.3120989093554627
+      },
+      "candidate": {
+        "ratios_to_c": [
+          0.95719667,
+          0.94076166,
+          0.93931757,
+          0.95410709
+        ],
+        "median_ratio": 0.9474343747437406,
+        "median_percent": -5.256562525625941
+      },
+      "r89": {
+        "ratios_candidate_to_r89": [
+          0.77960894,
+          0.78261755,
+          0.78150039,
+          0.77683656
+        ],
+        "median_ratio": 0.7805546665229272,
+        "median_percent": -21.944533347707285
+      }
+    },
+    "user_8_1": {
+      "before": {
+        "ratios_to_c": [
+          1.03357404,
+          0.96753717,
+          1.02762994,
+          0.9844465
+        ],
+        "median_ratio": 1.0060382194674333,
+        "median_percent": 0.6038219467433326
+      },
+      "candidate": {
+        "ratios_to_c": [
+          1.00142406,
+          0.94306079,
+          1.02197267,
+          0.97940868
+        ],
+        "median_ratio": 0.9904163730356437,
+        "median_percent": -0.9583626964356329
+      },
+      "r89": {
+        "ratios_candidate_to_r89": [
+          0.89062553,
+          0.85910611,
+          0.87020433,
+          0.86759359
+        ],
+        "median_ratio": 0.8688989596974808,
+        "median_percent": -13.110104030251923
+      }
+    },
+    "user_1_0": {
+      "before": {
+        "ratios_to_c": [
+          0.93563694,
+          0.94988466,
+          0.94329829,
+          0.94459514
+        ],
+        "median_ratio": 0.9439467170673567,
+        "median_percent": -5.605328293264334
+      },
+      "candidate": {
+        "ratios_to_c": [
+          0.90032429,
+          0.91757133,
+          0.90117283,
+          0.9178128
+        ],
+        "median_ratio": 0.9093720763593186,
+        "median_percent": -9.06279236406814
+      },
+      "r89": {
+        "ratios_candidate_to_r89": [
+          0.6673329,
+          0.67739079,
+          0.66565329,
+          0.67661768
+        ],
+        "median_ratio": 0.6719752937538312,
+        "median_percent": -32.80247062461687
+      }
+    }
+  },
+  "statistical_unit": "one independent physical router window; four windows per comparison; request samples are not independent trials",
+  "health_and_cleanup": "Every window passed r95_device_smoke health, stock-production identity, boot/config/mount equality and disposable namespace cleanup. Every workload validated event payload bytes/count and removed handlers.",
+  "limitations": "Pilot/performance evidence for the direct user-event path. It does not by itself establish whole-system latency, memory, or all event patterns."
+}
