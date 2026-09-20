@@ -1,0 +1,84 @@
+diff --git a/tools/benchmark/src/main.rs b/tools/benchmark/src/main.rs
+index 351e5c9..c4baadb 100644
+--- a/tools/benchmark/src/main.rs
++++ b/tools/benchmark/src/main.rs
+@@ -465,6 +465,27 @@ impl HttpClient {
+     }
+ }
+ 
++fn drain_object_events(listener: &mut Connection, recipients: &[u32], method: &str,
++                       object: u32, path: &str, sequence: &mut Option<u16>) -> Result<()> {
++    if recipients.is_empty() { return Ok(()); }
++    let mut expected = BlobBuf::new();
++    expected.msg_u32("id", object);
++    expected.msg_string("path", path);
++    for &recipient in recipients {
++        let Some(Incoming::Invoke(event)) = listener.next_incoming(5000)? else {
++            return Err("expected object event INVOKE".into());
++        };
++        require(event.objid == recipient && event.peer == 0 && event.method == method
++                && event.data == expected.payload() && event.fd.is_none(),
++                "object event failed full payload validation")?;
++        if let Some(previous) = *sequence {
++            require(event.seq == previous.wrapping_add(1), "object event sequence gap")?;
++        }
++        *sequence = Some(event.seq);
++    }
++    Ok(())
++}
++
+ fn main_inner(a: &[String]) -> Result<()> {
+     let mode = a
+         .get(1)
+@@ -558,6 +579,51 @@ fn main_inner(a: &[String]) -> Result<()> {
+             }, || Ok(()))?;
+             require(c.lookup(None, 5000)?.is_empty(), "registration cycle left an object")
+         }
++        "register-watch" => {
++            require(a.len() == 8, "register-watch SOCKET LISTENERS MATCHED_0_OR_1 N WARMUP PIDS")?;
++            let count: usize = a[3].parse()?;
++            require((1..=8).contains(&count), "listener count outside fixture bounds")?;
++            require(a[4] == "0" || a[4] == "1", "invalid event matching flag")?;
++            let matched = a[4] == "1";
++            let mut c = Connection::connect(Some(&a[2]))?;
++            let mut listener = Connection::connect(Some(&a[2]))?;
++            let mut recipients = Vec::new();
++            for _ in 0..count {
++                let id = listener.add_anonymous_object(5000)?;
++                listener.register_event_handler(id, Some(if matched { "ubus.object.*" } else { "unrelated.*" }), 5000)?;
++                recipients.push(id);
++            }
++            let receiving = if matched { &recipients[..] } else { &[] };
++            let mut sequence = None;
++            let path = "bench.cycle";
++            let policy = [("policy", MsgType::Int32)];
++            let methods = [("00000000", &policy[..])];
++            let id = c.add_object(path, &methods, 5000)?;
++            drain_object_events(&mut listener, receiving, "ubus.object.add", id, path, &mut sequence)?;
++            let found = c.lookup(Some(path), 5000)?;
++            require(found.len() == 1 && found[0].id == id && found[0].path == path,
++                    "watched registration preflight failed")?;
++            c.remove_object(id, 5000)?;
++            drain_object_events(&mut listener, receiving, "ubus.object.remove", id, path, &mut sequence)?;
++            require(c.lookup(None, 5000)?.is_empty(), "watched registration left an object")?;
++            // Timed cycles include full event draining and byte validation;
++            // caller and listener CPU share this one benchmark process.
++            measure(a[5].parse()?, a[6].parse()?, &pid_list(&a[7])?, |_| {
++                let start = Instant::now();
++                let id = c.add_object(path, &methods, 5000)?;
++                drain_object_events(&mut listener, receiving, "ubus.object.add", id, path, &mut sequence)?;
++                c.remove_object(id, 5000)?;
++                drain_object_events(&mut listener, receiving, "ubus.object.remove", id, path, &mut sequence)?;
++                Ok(start.elapsed().as_nanos() as u64)
++            }, || Ok(()))?;
++            require(c.lookup(None, 5000)?.is_empty(), "watched registration cycle left an object")?;
++            // These reply barriers also park any unexpected asynchronous
++            // copies in the connection's pending queue. Check it and the
++            // socket after removal, including the nonmatching scenario.
++            for id in recipients { listener.remove_object(id, 5000)?; }
++            require(listener.next_incoming(0)?.is_none(), "unexpected extra object event")?;
++            Ok(())
++        }
+         "lookup" => {
+             require(a.len() == 7, "lookup SOCKET PATH_OR_* N WARMUP PIDS")?;
+             let mut c = Connection::connect(Some(&a[2]))?;
