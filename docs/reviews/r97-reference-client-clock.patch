@@ -1,0 +1,170 @@
+diff --git a/tools/benchmark/src/cpu_clock.rs b/tools/benchmark/src/cpu_clock.rs
+new file mode 100644
+index 0000000..3e7f05e
+--- /dev/null
++++ b/tools/benchmark/src/cpu_clock.rs
+@@ -0,0 +1,110 @@
++//! Read an entire process's POSIX CPU clock, including its threads but not
++//! children. Unlike /proc/PID/stat, this is not quantized to clock ticks.
++//! Failure stays an error; no silent switch to a different counter.
++use std::io;
++
++#[derive(Clone, Copy)]
++pub struct Sample {
++    pub ns: u64,
++    pub resolution_ns: u64,
++}
++
++#[cfg(all(target_os = "linux", target_pointer_width = "64"))]
++pub fn sample(pid: u32) -> io::Result<Sample> {
++    use std::ffi::{c_int, c_long};
++    #[repr(C)]
++    #[derive(Default)]
++    struct Timespec {
++        sec: c_long,
++        nsec: c_long,
++    }
++    unsafe extern "C" {
++        fn clock_getcpuclockid(pid: c_int, clock: *mut c_int) -> c_int;
++        fn clock_gettime(clock: c_int, time: *mut Timespec) -> c_int;
++        fn clock_getres(clock: c_int, time: *mut Timespec) -> c_int;
++    }
++    fn ns(time: Timespec) -> io::Result<u64> {
++        if time.sec < 0 || !(0..1_000_000_000).contains(&time.nsec) {
++            return Err(io::Error::other("invalid process CPU timespec"));
++        }
++        (time.sec as u64).checked_mul(1_000_000_000)
++            .and_then(|s| s.checked_add(time.nsec as u64))
++            .ok_or_else(|| io::Error::other("process CPU clock overflow"))
++    }
++    let pid = c_int::try_from(pid).map_err(|_| io::Error::other("PID outside pid_t"))?;
++    let mut clock = 0;
++    // SAFETY: clock is a valid output pointer; positive pid or 0 is accepted
++    // by the POSIX API. Its return value is an error number, not errno.
++    let error = unsafe { clock_getcpuclockid(pid, &mut clock) };
++    if error != 0 {
++        return Err(io::Error::from_raw_os_error(error));
++    }
++    let mut resolution = Timespec::default();
++    let mut time = Timespec::default();
++    // SAFETY: clock came from libc and both outputs match the Linux 64-bit
++    // ABI's time_t/long timespec. Neither call changes the target process.
++    let failed = unsafe {
++        clock_getres(clock, &mut resolution) != 0 || clock_gettime(clock, &mut time) != 0
++    };
++    if failed {
++        return Err(io::Error::last_os_error());
++    }
++    let resolution_ns = ns(resolution)?;
++    if resolution_ns == 0 {
++        return Err(io::Error::other("zero CPU clock resolution"));
++    }
++    Ok(Sample { ns: ns(time)?, resolution_ns })
++}
++
++#[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
++pub fn sample(_: u32) -> io::Result<Sample> {
++    Err(io::Error::new(io::ErrorKind::Unsupported, "CPU clock ABI requires 64-bit Linux"))
++}
++
++#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
++mod tests {
++    use super::*;
++    use std::io::{BufRead, BufReader, Write};
++    use std::process::{Command, Stdio};
++
++    #[test]
++    fn process_clock_counts_worker_threads_and_rejects_invalid_pid() {
++        assert!(sample(u32::MAX).is_err());
++        let before = sample(std::process::id()).unwrap();
++        std::thread::spawn(|| {
++            let end = std::time::Instant::now() + std::time::Duration::from_millis(30);
++            while std::time::Instant::now() < end {
++                std::hint::black_box(123u64.wrapping_mul(456));
++            }
++        }).join().unwrap();
++        let after = sample(std::process::id()).unwrap();
++        assert_eq!(before.resolution_ns, after.resolution_ns);
++        assert!(after.ns > before.ns + 1_000_000, "worker CPU was omitted");
++    }
++
++    #[test]
++    fn external_process_clock_excludes_sleep_and_does_not_follow_exit() {
++        // A pipe handshake keeps the child alive at both measurements. The
++        // shell builtin loop supplies CPU without spawning measured children.
++        let mut child = Command::new("/bin/sh").arg("-c")
++            .arg("echo ready; read go; i=0; while [ $i -lt 20000 ]; do i=$((i+1)); done; echo done; read stop")
++            .stdin(Stdio::piped()).stdout(Stdio::piped()).spawn().unwrap();
++        let mut output = BufReader::new(child.stdout.take().unwrap());
++        let mut line = String::new();
++        output.read_line(&mut line).unwrap();
++        assert_eq!(line.trim(), "ready");
++        let before = sample(child.id()).unwrap();
++        std::thread::sleep(std::time::Duration::from_millis(20));
++        let sleeping = sample(child.id()).unwrap();
++        child.stdin.as_mut().unwrap().write_all(b"go\n").unwrap();
++        line.clear();
++        output.read_line(&mut line).unwrap();
++        assert_eq!(line.trim(), "done");
++        let after = sample(child.id()).unwrap();
++        child.stdin.take().unwrap().write_all(b"stop\n").unwrap();
++        assert!(child.wait().unwrap().success());
++        assert!(sample(child.id()).is_err());
++        assert!(after.ns > sleeping.ns + 1_000_000);
++        assert!(sleeping.ns - before.ns < after.ns - sleeping.ns);
++    }
++}
+diff --git a/tools/benchmark/src/main.rs b/tools/benchmark/src/main.rs
+index 56e7eee..ee07987 100644
+--- a/tools/benchmark/src/main.rs
++++ b/tools/benchmark/src/main.rs
+@@ -12,6 +12,8 @@ use std::os::unix::net::UnixDatagram;
+ use std::process::Command;
+ use std::time::{Duration, Instant};
+ 
++mod cpu_clock;
++
+ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+ 
+ fn obj(fields: impl IntoIterator<Item = (impl Into<String>, Json)>) -> Json {
+@@ -57,6 +59,7 @@ struct ProcSample {
+     start_ticks: u64,
+     cpu_ticks: u64,
+     child_ticks: u64,
++    cpu_clock: cpu_clock::Sample,
+     values: BTreeMap<String, u64>,
+ }
+ 
+@@ -100,6 +103,7 @@ fn proc_sample(pid: u32) -> Result<ProcSample> {
+         start_ticks: n(19)?,
+         cpu_ticks: n(11)? + n(12)?,
+         child_ticks: n(13)? + n(14)?,
++        cpu_clock: cpu_clock::sample(pid)?,
+         values,
+     })
+ }
+@@ -115,6 +119,8 @@ fn proc_json(pid: u32, sample: &ProcSample) -> Json {
+         ("start_ticks".into(), integer(sample.start_ticks)),
+         ("cpu_ticks".into(), integer(sample.cpu_ticks)),
+         ("child_cpu_ticks".into(), integer(sample.child_ticks)),
++        ("process_cpu_ns".into(), integer(sample.cpu_clock.ns)),
++        ("process_cpu_resolution_ns".into(), integer(sample.cpu_clock.resolution_ns)),
+     ]);
+     Json::Object(fields)
+ }
+@@ -230,6 +236,7 @@ where
+         )?;
+         daemons.push(obj([
+             ("pid", integer(pid as u64)),
++            ("cpu_clock_ns", integer(a.cpu_clock.ns.checked_sub(b.cpu_clock.ns).ok_or("CPU clock regressed")?)),
+             (
+                 "cpu_s",
+                 num((a
+@@ -278,6 +285,7 @@ where
+             "child_cpu_s",
+             num((own_after.child_ticks - own_before.child_ticks) as f64 / hz),
+         ),
++        ("client_cpu_clock_ns", integer(own_after.cpu_clock.ns.checked_sub(own_before.cpu_clock.ns).ok_or("client CPU clock regressed")?)),
+         ("clock_ticks_per_second", num(hz)),
+     ]));
+     Ok(())

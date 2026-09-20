@@ -1,0 +1,11 @@
+{
+  "source_base": "ca1a9121df0380448a19d474e29796066b6734e8",
+  "cpu_patch_sha256": "2fd71951a6dd5e5a8f9152657fc92cd9c03b0a4d8728445fe7bf8ade5b4f797c",
+  "benchmark_sha256": "d5da0973ff4fd8774cc5952d2363c3a3f48e3884d2b264144abb26bd6ebbe96e",
+  "source_archive_sha256": "d5a47db5ed3525b51414e1851e9f9bcd3c9beb493bacd0eb4d1f3cb550b886a6",
+  "intent": "Restore frozen client and dependency source, adding only CPU clock sampling; do not include later read-ahead code",
+  "physical_clock_tests_passed": 2,
+  "physical_smoke_result_sha256": "1210ed37cac8e14e82cac8e234cb0726ae271950a9f3e44bd016de9e09521f89",
+  "same_boot_config_stock_mounts_cleaned": true,
+  "scope": "Meter validation, not performance comparison"
+}
