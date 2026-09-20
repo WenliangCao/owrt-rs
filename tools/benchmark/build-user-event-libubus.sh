@@ -13,7 +13,7 @@ mkdir -p "$out_arg"
 out=$(cd "$out_arg" && pwd)
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
-"$(cd "$(dirname "$0")/.." && pwd)/build-register-libubus.sh" "$sdk" "$src" "$tmp/register"
+"$(cd "$(dirname "$0")" && pwd)/build-register-libubus.sh" "$sdk" "$src" "$tmp/register"
 mkdir -p "$out/link-only"
 cp "$tmp/register/link-only/libubox.so.20260213" "$out/link-only/"
 cp "$tmp/register/link-only/libubus.so.20251202" "$out/link-only/"
