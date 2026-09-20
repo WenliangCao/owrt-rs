@@ -1,0 +1,301 @@
+{
+  "plan_sha256": "dd4f81a917c1018327c1749428bfe39fb1c7facc71066aa62d3392a47c5ffa14",
+  "plan": {
+    "purpose": "Requested retained and construction-peak heap of actual ADD_OBJECT dispatch. Verify counts, method payload lengths, reply types, drained queues and all owners released; no CPU or RSS/PSS verdict.",
+    "order": [
+      "before",
+      "candidate",
+      "candidate",
+      "before"
+    ],
+    "dimensions": [
+      "objects",
+      "methods",
+      "name_bytes"
+    ],
+    "scenarios": [
+      [
+        1,
+        1,
+        8
+      ],
+      [
+        1,
+        16,
+        8
+      ],
+      [
+        1,
+        64,
+        8
+      ],
+      [
+        128,
+        1,
+        8
+      ],
+      [
+        128,
+        1,
+        32
+      ],
+      [
+        128,
+        16,
+        32
+      ],
+      [
+        128,
+        1,
+        128
+      ]
+    ],
+    "csv": "methods.csv",
+    "iterations": 1,
+    "subjects": {
+      "before": "c80c643c3aa48d6a0a708bf60911801b1bd088fb66cd3bef3bad32b80685acd8",
+      "candidate": "92086726287bbe699b7eedf4201e9b9ca6b4253396a6af61383983d67bc9c22e"
+    },
+    "profile_source_sha256": "23599da59dd42a536fc1cbc48fd6329815302e6e34798af41afcd4802580e1cf",
+    "counter_source_sha256": "eaeea6384012cd1e439e7df6614c33a5226726edb148c650ce1912cc68011ec3",
+    "workload_sha256": "57d5d027e7ee2b8947b108f93638dbe65be8565946b58e5af40e34c0e4728851",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "report_sha256": "701a0ab5d54908106874a2d01d8bfb7bd41f216b603eaa3becaffd75ebf0bc78",
+    "scope": "Requested Rust heap of actual registration dispatch including retained server/client state; excludes allocator rounding, libc internals, stack, code and kernel. Construction peak tracks successful logical Rust realloc sizes, not physical allocator transient peak.",
+    "hypothesis": "Shared canonical method name and exact-capacity immutable lists reduce retained heap. Both versions use identical fixture/counter sources; candidate differs only by the frozen runtime patch."
+  },
+  "all_windows_cleaned_and_production_stock": true,
+  "repeat_exact_agreement": true,
+  "superiority_verdict": null,
+  "scope": "Requested Rust heap of actual registration dispatch including retained server/client state; excludes allocator rounding, libc internals, stack, code and kernel. Construction peak tracks successful logical Rust realloc sizes, not physical allocator transient peak.",
+  "runs": [
+    {
+      "index": 1,
+      "side": "before",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2796,
+          "construction_peak_requested_bytes": 3016
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4032,
+          "construction_peak_requested_bytes": 4792
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8448,
+          "construction_peak_requested_bytes": 10936
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76644,
+          "construction_peak_requested_bytes": 78328
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82788,
+          "construction_peak_requested_bytes": 83632
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333156,
+          "construction_peak_requested_bytes": 334344
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107364,
+          "construction_peak_requested_bytes": 107748
+        }
+      ],
+      "result_sha256": "56094d6d8680f5971c48b53d66262923a160d949e13b41183fa23359f5b051ad",
+      "raw_sha256": "0d5532bd9ff30f229f71c0c9b93b5ff2bf69f329d0b97a4bf9ddee68e9550d46"
+    },
+    {
+      "index": 2,
+      "side": "candidate",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2580,
+          "construction_peak_requested_bytes": 2800
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 3360,
+          "construction_peak_requested_bytes": 4120
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 5856,
+          "construction_peak_requested_bytes": 8344
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 51044,
+          "construction_peak_requested_bytes": 57064
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 54116,
+          "construction_peak_requested_bytes": 59728
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 200036,
+          "construction_peak_requested_bytes": 201224
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 66404,
+          "construction_peak_requested_bytes": 70384
+        }
+      ],
+      "result_sha256": "2e5f2e8727715670896400b52f4dfcf35275297d735dbb6c52e4fe3cf4b41811",
+      "raw_sha256": "6de925c00ae42accc491e0cf169c59781390223a20d139ffccdc4cc1753a7f98"
+    },
+    {
+      "index": 3,
+      "side": "candidate",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2580,
+          "construction_peak_requested_bytes": 2800
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 3360,
+          "construction_peak_requested_bytes": 4120
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 5856,
+          "construction_peak_requested_bytes": 8344
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 51044,
+          "construction_peak_requested_bytes": 57064
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 54116,
+          "construction_peak_requested_bytes": 59728
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 200036,
+          "construction_peak_requested_bytes": 201224
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 66404,
+          "construction_peak_requested_bytes": 70384
+        }
+      ],
+      "result_sha256": "a3cb27ebdfecfc0d646ef27cb1d2c49f71321fbb153c1045e0d1e307374a1b04",
+      "raw_sha256": "a226ccfa0fa22ad7356a8a627401111f5f77e2bdc1f017fd2a81049b840a6d3e"
+    },
+    {
+      "index": 4,
+      "side": "before",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2796,
+          "construction_peak_requested_bytes": 3016
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4032,
+          "construction_peak_requested_bytes": 4792
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8448,
+          "construction_peak_requested_bytes": 10936
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76644,
+          "construction_peak_requested_bytes": 78328
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82788,
+          "construction_peak_requested_bytes": 83632
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333156,
+          "construction_peak_requested_bytes": 334344
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107364,
+          "construction_peak_requested_bytes": 107748
+        }
+      ],
+      "result_sha256": "df447f7fe8678e263cc63e8d147134e19e2caf91cdfc5be169ac16363f1bd35b",
+      "raw_sha256": "9183c3b05a4b429a7c369aa4f3deaf4b3424c1cb08cd78391ee52cac7c015031"
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+diff --git a/components/ubusd/examples/profile.rs b/components/ubusd/examples/profile.rs
+index 6faadb0..b4b3783 100644
+--- a/components/ubusd/examples/profile.rs
++++ b/components/ubusd/examples/profile.rs
+@@ -43,15 +43,15 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
+     let (owner, owner_peer) = connection();
+     s.clients.insert(CALLER, caller);
+     s.clients.insert(OWNER, owner);
+-    let methods = (0..methods).map(|i| {
++    let methods: Vec<_> = (0..methods).map(|i| {
+         let name = format!("method_{i:04}");
+         let mut b = BlobBuf::new();
+         let table = b.msg_open_table(&name);
+         b.msg_u32("value", 5);
+         b.msg_close(table);
+-        obj::Method { name: name.into_bytes(), blob: b.payload().to_vec() }
++        obj::Method::new(b.payload().to_vec())
+     }).collect();
+-    s.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods });
++    s.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods: methods.into() });
+     for i in 0..count {
+         let id = OBJECT + i as u32;
+         s.reg.create(Some(TYPE), Some(id)).unwrap();
+@@ -99,7 +99,7 @@ fn backpressure(n: u64, filter: &str) {
+         let table = signature.msg_open_table("method_0000");
+         signature.msg_string("large", &"x".repeat(16384));
+         signature.msg_close(table);
+-        s.reg.types.get_mut(&TYPE).unwrap().methods[0].blob = signature.payload().to_vec();
++        s.reg.types.get_mut(&TYPE).unwrap().methods[0].blob = signature.payload().into();
+         for mode in ["all", "prefix"] {
+             let mut b = BlobBuf::new();
+             if mode == "prefix" {
+diff --git a/components/ubusd/examples/registry_memory.rs b/components/ubusd/examples/registry_memory.rs
+index 0caec7d..61001d5 100644
+--- a/components/ubusd/examples/registry_memory.rs
++++ b/components/ubusd/examples/registry_memory.rs
+@@ -8,51 +8,7 @@ mod obj;
+ #[path = "../src/sys.rs"]
+ mod sys;
+ 
+-use std::alloc::{GlobalAlloc, Layout, System};
+-use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+-
+-struct Heap;
+-static LIVE: AtomicUsize = AtomicUsize::new(0);
+-static PEAK: AtomicUsize = AtomicUsize::new(0);
+-
+-fn add(bytes: usize) {
+-    let now = LIVE.fetch_add(bytes, Relaxed) + bytes;
+-    PEAK.fetch_max(now, Relaxed);
+-}
+-
+-// SAFETY: every operation forwards the caller's allocation and layout to
+-// System unchanged. Atomic accounting neither allocates nor dereferences it.
+-unsafe impl GlobalAlloc for Heap {
+-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+-        // SAFETY: the caller supplied a valid layout.
+-        let ptr = unsafe { System.alloc(layout) };
+-        if !ptr.is_null() { add(layout.size()); }
+-        ptr
+-    }
+-    unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
+-        // SAFETY: the caller supplied a valid layout.
+-        let ptr = unsafe { System.alloc_zeroed(layout) };
+-        if !ptr.is_null() { add(layout.size()); }
+-        ptr
+-    }
+-    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+-        LIVE.fetch_sub(layout.size(), Relaxed);
+-        // SAFETY: forward the original live allocation and its layout.
+-        unsafe { System.dealloc(ptr, layout) };
+-    }
+-    unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, size: usize) -> *mut u8 {
+-        // SAFETY: forward the caller's valid allocation, layout and new size.
+-        let next = unsafe { System.realloc(ptr, layout, size) };
+-        if !next.is_null() {
+-            if size >= layout.size() { add(size - layout.size()); }
+-            else { LIVE.fetch_sub(layout.size() - size, Relaxed); }
+-        }
+-        next
+-    }
+-}
+-
+-#[global_allocator]
+-static ALLOCATOR: Heap = Heap;
++mod heap_support;
+ 
+ fn path(index: u32, len: usize) -> Vec<u8> {
+     let mut bytes = vec![b'x'; len];
+@@ -68,16 +24,16 @@ fn main() {
+     drop(obj::Registry::default());
+     for len in [16, 64, 256] {
+         for count in [1u32, 64, 128, 512] {
+-            let baseline = LIVE.load(Relaxed);
+-            PEAK.store(baseline, Relaxed);
++            let baseline = heap_support::live();
++            heap_support::reset_peak();
+             let mut r = obj::Registry::default();
+-            r.types.insert(2048, obj::ObjType { refcount: 0, methods: Vec::new() });
++            r.types.insert(2048, obj::ObjType { refcount: 0, methods: Box::default() });
+             for i in 0..count {
+                 r.create(Some(2048), Some(4096 + i)).unwrap();
+                 assert!(r.set_path(4096 + i, path(i, len)));
+             }
+-            let retained = LIVE.load(Relaxed) - baseline;
+-            let peak = PEAK.load(Relaxed) - baseline;
++            let retained = heap_support::live() - baseline;
++            let peak = heap_support::peak() - baseline;
+             for i in 0..count {
+                 assert_eq!(r.by_path(&path(i, len)), Some(4096 + i));
+             }
+@@ -90,7 +46,7 @@ fn main() {
+             drop(r);
+             assert_eq!(&held[..], path(0, len).as_slice());
+             drop(held);
+-            assert_eq!(LIVE.load(Relaxed), baseline, "registry allocations retained after drop");
++            assert_eq!(heap_support::live(), baseline, "registry allocations retained after drop");
+             println!("{count},{len},{retained},{peak}");
+         }
+     }

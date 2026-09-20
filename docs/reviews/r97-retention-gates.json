@@ -1,0 +1,78 @@
+{
+  "defer_runtime_retention": true,
+  "scope": "Predeclared conservative investigation gates only; not significance, equivalence or superiority",
+  "checks": [
+    {
+      "experiment": "method-recheck",
+      "lane": "lookup",
+      "metric": "p99_us",
+      "median_delta_pct": 2.7517585642358178,
+      "positive_pairs": 7,
+      "threshold_pct": 5,
+      "defer": false
+    },
+    {
+      "experiment": "method-recheck",
+      "lane": "lookup_c4",
+      "metric": "p99_us",
+      "median_delta_pct": 1.242769018345452,
+      "positive_pairs": 4,
+      "threshold_pct": 5,
+      "defer": false
+    },
+    {
+      "experiment": "method-recheck",
+      "lane": "lookup_all_64",
+      "metric": "p99_us",
+      "median_delta_pct": 0.24578770781698567,
+      "positive_pairs": 4,
+      "threshold_pct": 5,
+      "defer": false
+    },
+    {
+      "experiment": "method-recheck",
+      "lane": "invoke",
+      "metric": "p99_us",
+      "median_delta_pct": -2.201822846149415,
+      "positive_pairs": 3,
+      "threshold_pct": 5,
+      "defer": false
+    },
+    {
+      "experiment": "registration-recheck",
+      "lane": "register_1_8",
+      "metric": "p99_us",
+      "median_delta_pct": 3.973406562346904,
+      "positive_pairs": 6,
+      "threshold_pct": 5,
+      "defer": false
+    },
+    {
+      "experiment": "registration-recheck",
+      "lane": "register_1_8",
+      "metric": "subject_own_cpu_clock_us_per_op",
+      "median_delta_pct": 1.623787361832918,
+      "positive_pairs": 8,
+      "threshold_pct": 1,
+      "defer": true
+    },
+    {
+      "experiment": "registration-recheck",
+      "lane": "register_16_8",
+      "metric": "p99_us",
+      "median_delta_pct": -5.782317687870275,
+      "positive_pairs": 0,
+      "threshold_pct": 5,
+      "defer": false
+    },
+    {
+      "experiment": "registration-recheck",
+      "lane": "register_16_8",
+      "metric": "subject_own_cpu_clock_us_per_op",
+      "median_delta_pct": -8.064560455904235,
+      "positive_pairs": 0,
+      "threshold_pct": 1,
+      "defer": false
+    }
+  ]
+}

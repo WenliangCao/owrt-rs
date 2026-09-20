@@ -1,0 +1,93 @@
+{
+  "runtime_base": "5a19517",
+  "candidate_sha256": "bdade5c6ac95498105ac81a604d8ce8ed4f6ac0887f274758d26f2a3bb1f66b6",
+  "before_sha256": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+  "runtime_patch_sha256": "d1ab48bc011e9c191613662b9577a4a3f8daf0a27b5f2f2c698eb03f663a7b6e",
+  "fixture_patch_sha256": "d4bf3cb2deebf10838b8506331bde14790d29811e88189d8623c19fd44a5544c",
+  "candidate_runtime_files": {
+    "components/ubusd/src/obj.rs": "0dcc1bc62e4d3cfeedeb1a75916632a05c293cf3d527919c934cd66a9eff98c8",
+    "components/ubusd/src/server.rs": "9695fe4337f7c1c62f1073512eea1142f3a823bb050fa90a35cb703b238f43f2"
+  },
+  "runtime_binary_bytes": 507880,
+  "before_binary_bytes": 507880,
+  "physical_daemon_unit_tests": 29,
+  "build_host_daemon_unit_tests": 29,
+  "physical_method_wire_acl_observations_matching_c": 14,
+  "physical_meter_tests": 3,
+  "build_host_current_meter_tests": 3,
+  "clippy": "passed -D clippy::undocumented_unsafe_blocks; diagnostic examples retain unused-import warnings",
+  "build_host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "6fc5e9b8c8ecf4b9d79b1b1720660c727e9fe452a2779ec1c8eef5dac0c57f50"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "1d1b31d2040a37b8e6bfba132e6ccdc867711a34c6d3cf5b448015a3e940c023"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "2099467783175ff25db87a57fab606929595e1fbfec9d133c47e7fff3a13a946"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ],
+  "build_host_gates_archive_sha256": "8d1c9fcb8032b3e075afd0bbf909df9aa36b9cf583e8370a1b98689a20981635",
+  "physical_performance_windows": 64,
+  "physical_heap_windows": 4,
+  "heap_scenarios_per_window": 7,
+  "physical_correctness_windows": 3,
+  "physical_windows_checked": 71,
+  "lookup_invoke_timed_requests": 2080000,
+  "registration_timed_add_remove_cycles": 448000,
+  "registration_timed_protocol_requests": 896000,
+  "meter_clients": {
+    "lookup": "d5da0973ff4fd8774cc5952d2363c3a3f48e3884d2b264144abb26bd6ebbe96e",
+    "registration": "15d1046591d88663dbb3e23751cf33dbbe943714e53496bb20c81d2d6cfee59f"
+  },
+  "memory_repeat_exact_agreement": true,
+  "all_windows_cleaned": true,
+  "production": "stock C throughout; no installation or deployment",
+  "final_health_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+  "final_cleanup_sha256": "b1282d51f29872076fde422fe12c7f861756537cbe02155626d33e34ff12e5dc",
+  "final_configuration_matches_current_boot_backup": true,
+  "final_test_directories": 0,
+  "final_test_process_references": 0,
+  "final_test_host_mounts": 0,
+  "retention_investigation_gate_triggered": true,
+  "limitations": [
+    "Exploratory paired medians only, no formal superiority/equivalence verdict",
+    "All original adverse windows retained; independent follow-ups not pooled",
+    "Requested Rust heap is not allocator footprint, complete daemon peak, PSS or kernel memory",
+    "Full original-libubus caller matrix and integrated nine-component acceptance remain open"
+  ],
+  "runtime_decision": "deferred; experiment patch retained; working runtime restored to the verified 5a19517 compatibility fix",
+  "retained_runtime_source_matches_verified_method_fix": true,
+  "retained_runtime_files": {
+    "components/ubusd/src/obj.rs": "75d1f5c6dcd9e8e040a37ecb0c1c52387396b9d6bae2ed2db26d27eaea710b0f",
+    "components/ubusd/src/server.rs": "f05649e6623aecf7d8f1e99f4b466202e4098c3b2d408459450fb19cee862d87",
+    "components/ubusd/src/acl.rs": "1f8c4b4cca678cb47519bdb8af95f4f31feb69c6b705b952aa84344decf77333"
+  }
+}
