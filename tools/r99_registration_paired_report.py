@@ -68,7 +68,9 @@ def main():
     assert (a.root / 'COMPLETE').exists()
     plan = json.loads(a.plan.read_text())
     runs = [verify_window(a.root / f"{b['block']:02d}", plan, b) for b in plan['blocks']]
-    m = len(plan['contrasts']) * len(plan['interval_metrics'])
+    local_comparisons = len(plan['contrasts']) * len(plan['interval_metrics'])
+    m = plan.get('family_comparisons', local_comparisons)
+    assert m >= local_comparisons
     summaries = []
     for numerator, denominator in plan['contrasts']:
         for metric in plan['metrics']:

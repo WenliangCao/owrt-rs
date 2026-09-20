@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "kind": "comparison",
+  "purpose": "Fixed stack reply and event candidate vs before: one-method registration CPU and loop wall time only",
+  "subjects": {
+    "baseline": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+    "candidate": "e2421d5b8e85e7f407eb65426faa272bfb4bd2748115616ae9c38b570e96cf80"
+  },
+  "benchmark_sha256": "efe7a431cb749e1856cf6555ca90ad42052d14ded153ae53facef1ca3de92350",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "workload_sha256": "027432889e5f14c95b4440e038d458614170ccbd5902e1d5c7122fb836afb331",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "iterations": 10000,
+  "warmup": 2000,
+  "subject_cpu": 1,
+  "client_cpu": 0,
+  "seed": 9913,
+  "blocks": [
+    {
+      "block": 1,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 2,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 3,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 4,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 5,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 6,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 7,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 8,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 9,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 10,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    }
+  ],
+  "contrasts": [
+    [
+      "candidate",
+      "baseline"
+    ]
+  ],
+  "metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us",
+    "wall_us"
+  ],
+  "interval_metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us",
+    "wall_us"
+  ],
+  "statistical_unit": "One physical paired window yields one ratio of sums across 20 equal-size segments per side. Ten independent windows per comparator; never treat 40 segments as independent trials.",
+  "reference": "https://online.stat.psu.edu/stat415/lesson/19/19.1",
+  "preflight": "Completed R99 A/A retained separately. Stack candidate must pass physical 32-unit/protocol differential, four requested-heap windows, and six build-host gates before timing. Verify all identities/cleanup each window.",
+  "production": "stock C throughout; only new disposable namespace processes are pinned; no governor/IRQ/production affinity changes",
+  "failure_rule": "Stop on identity, correctness, collection, health, affinity or cleanup failure. Preserve failed window; never infer success from missing results.",
+  "segments_per_window": 40,
+  "quartets": 10,
+  "cycles_per_side_per_window": 200000,
+  "design": "Two independently started subject daemons pinned CPU 1; one serial client pinned CPU 0. Ten quartets alternating slot ABBA/BAAB, 2000 untimed warmup cycles per segment. Randomized candidate/baseline slot assignment per window and randomized comparator order per suite block. This co-resident comparison is diagnostic, not full-system latency/memory acceptance.",
+  "references": [
+    "https://www.itl.nist.gov/div898/handbook/pri/section3/pri332.htm",
+    "https://online.stat.psu.edu/stat415/lesson/19/19.1"
+  ],
+  "previous_data": "Separate from both A/A calibrations and all older client/workload matrices; no pooling. Endpoint is conditional on this client and paired process arrangement.",
+  "family_comparisons": 12,
+  "comparison_family": "Three baselines x four planned metrics = 12 simultaneous intervals. Ten independent paired windows per baseline; segment requests are not replicates.",
+  "source_implementations": {
+    "baseline": "rs",
+    "candidate": "rs"
+  },
+  "slot_semantics": "Both slots use uploaded unmodified ELF bytes; driver implementation=rs selects upload handling, not both languages. Actual implementations are determined by frozen hashes above; stock hash is the exact original C binary.",
+  "interpretation_rule": "Intervals require frozen family multiplicity and independent paired-run assumptions. Interleaved A/A median interval (-0.75%,+1.24%) did not meet +/-0.5% calibration. Changes near 1%, including point effects <=2% in magnitude, remain unconfirmed pending independent evidence; do not use an arbitrary 1% sign gate. Large effects still require interval direction, every adverse metric is reported, and no automatic runtime retention or full ubusd superiority is claimed."
+}

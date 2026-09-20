@@ -1,0 +1,96 @@
+{
+  "seed": 9910,
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "r89",
+        "before",
+        "stock"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "before",
+        "r89",
+        "stock"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "stock",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "stock",
+        "before",
+        "r89"
+      ]
+    },
+    {
+      "block": 5,
+      "order": [
+        "before",
+        "r89",
+        "stock"
+      ]
+    },
+    {
+      "block": 6,
+      "order": [
+        "stock",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 7,
+      "order": [
+        "stock",
+        "before",
+        "r89"
+      ]
+    },
+    {
+      "block": 8,
+      "order": [
+        "r89",
+        "before",
+        "stock"
+      ]
+    },
+    {
+      "block": 9,
+      "order": [
+        "before",
+        "stock",
+        "r89"
+      ]
+    },
+    {
+      "block": 10,
+      "order": [
+        "stock",
+        "before",
+        "r89"
+      ]
+    }
+  ],
+  "plans": {
+    "stock": "docs/reviews/r99-stack-stock-cpu-plan.json",
+    "r89": "docs/reviews/r99-stack-r89-cpu-plan.json",
+    "before": "docs/reviews/r99-stack-before-cpu-plan.json"
+  },
+  "plan_sha256": {
+    "stock": "a2c64ef18bcbba327c582541e2d3e5c2ccb7c71b3f7448cf349b1b8679586407",
+    "r89": "34374b7cc8c4342d4ec4a48eb4fefd1c09a3892356e981c94b8d393a501d129b",
+    "before": "cac8529a24d43aeadef56b461655267e1175cc3169c1e640bca4e8bc330ae28a"
+  },
+  "family_comparisons": 12
+}

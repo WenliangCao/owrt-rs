@@ -1,0 +1,9 @@
+{
+  "candidate_sha256": "e2421d5b8e85e7f407eb65426faa272bfb4bd2748115616ae9c38b570e96cf80",
+  "unit_sha256": "4d85973ff90fb40396a211f7b7ac898ab2b5b19d4308b2332a03a159a2b81426",
+  "patch_sha256": "4715513075da9780884d3f365efc77971101f303cee811d71aa56e696310e823",
+  "native_units": 32,
+  "native_clippy": "passed",
+  "physical": "must pass before timed comparisons",
+  "hypothesis": "Fixed 12/20-byte DATA reply on stack removes retained scratch growth while preserving borrowed send, owned queue and monitor ordering. Includes previously tested credential borrowing and lazy single-pass event delivery; not an accepted runtime."
+}

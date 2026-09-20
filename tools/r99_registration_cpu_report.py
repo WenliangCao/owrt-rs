@@ -47,6 +47,7 @@ def verify_sample(j, plan, n):
         assert allowed(j[who + '_status']) == str(cpu)
     return {'subject_cpu_us': j['subject_cpu_clock_ns'] / n / 1000,
             'client_cpu_us': j['client_cpu_clock_ns'] / n / 1000,
+            'total_cpu_us': (j['subject_cpu_clock_ns'] + j['client_cpu_clock_ns']) / n / 1000,
             'wall_us': j['wall_s'] / n * 1e6,
             'wall_s': j['wall_s'], 'ops_per_s': j['ops_per_s'],
             'subject_before': j['subject_before'], 'subject_after': j['subject_after'],
