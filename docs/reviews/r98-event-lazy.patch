@@ -1,0 +1,176 @@
+diff --git a/components/ubusd/src/server.rs b/components/ubusd/src/server.rs
+index 516a7ee..77fd3f7 100644
+--- a/components/ubusd/src/server.rs
++++ b/components/ubusd/src/server.rs
+@@ -92,14 +92,15 @@ impl Server {
+             return;
+         }
+         let seq = self.acl.seq;
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, 0);
+-        b.put_string(attr::METHOD, "ubus.acl.sequence");
+-        let d = b.nest_start(attr::DATA);
+-        b.msg_u32("sequence", seq);
+-        b.nest_end(d);
+-        let payload = b.as_bytes().to_vec();
+-        self.dispatch_event(None, b"ubus.acl.sequence", payload);
++        self.dispatch_event(None, b"ubus.acl.sequence", || {
++            let mut b = BlobBuf::new();
++            b.put_u32(attr::OBJID, 0);
++            b.put_string(attr::METHOD, "ubus.acl.sequence");
++            let d = b.nest_start(attr::DATA);
++            b.msg_u32("sequence", seq);
++            b.nest_end(d);
++            b.as_bytes().to_vec()
++        });
+     }
+ 
+     // ---------------------------------------------------------------- clients
+@@ -872,12 +873,13 @@ impl Server {
+         if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&id), None, AclType::Send) {
+             return status::PERMISSION_DENIED;
+         }
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, 0);
+-        b.put(attr::METHOD, &with_nul(&id));
+-        b.put(attr::DATA, &payload);
+-        let blob = b.as_bytes().to_vec();
+-        self.dispatch_event(Some(client), &id, blob);
++        self.dispatch_event(Some(client), &id, || {
++            let mut b = BlobBuf::new();
++            b.put_u32(attr::OBJID, 0);
++            b.put(attr::METHOD, &with_nul(&id));
++            b.put(attr::DATA, &payload);
++            b.as_bytes().to_vec()
++        });
+         status::OK
+     }
+ 
+@@ -885,20 +887,22 @@ impl Server {
+         let name: &[u8] = if add { b"ubus.object.add" } else { b"ubus.object.remove" };
+         let Some(o) = self.reg.get(id) else { return };
+         let Some(path) = o.path.clone() else { return };
+-        let mut b = BlobBuf::new();
+-        b.put_u32(attr::OBJID, 0);
+-        b.put(attr::METHOD, &with_nul(name));
+-        let d = b.nest_start(attr::DATA);
+-        b.msg_u32("id", id);
+-        b.msg_field(MsgType::String as u32, "path", &with_nul(&path));
+-        b.nest_end(d);
+-        let blob = b.as_bytes().to_vec();
+-        self.dispatch_event(None, name, blob);
++        self.dispatch_event(None, name, || {
++            let mut b = BlobBuf::new();
++            b.put_u32(attr::OBJID, 0);
++            b.put(attr::METHOD, &with_nul(name));
++            let d = b.nest_start(attr::DATA);
++            b.msg_u32("id", id);
++            b.msg_field(MsgType::String as u32, "path", &with_nul(&path));
++            b.nest_end(d);
++            b.as_bytes().to_vec()
++        });
+     }
+ 
+-    /// Walk the pattern list and deliver `blob` to every matching listener.
++    /// Walk the pattern list and deliver to every matching listener. Like
++    /// C's event_fill_cb, encode once, only after an eligible receiver exists.
+     /// `from` is the sending client, whose own objects never see the event.
+-    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], blob: Vec<u8>) {
++    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], build: impl FnOnce() -> Vec<u8>) {
+         self.obj_event_seq = self.obj_event_seq.wrapping_add(1);
+         let round = self.obj_event_seq;
+ 
+@@ -916,6 +920,8 @@ impl Server {
+             targets.push(p.obj);
+         }
+ 
++        let mut build = Some(build);
++        let mut blob = Vec::new();
+         for obj_id in targets {
+             let Some(o) = self.reg.get_mut(obj_id) else { continue };
+             if o.client == from && from.is_some() {
+@@ -926,6 +932,9 @@ impl Server {
+             }
+             o.event_seen = round;
+             let Some(owner) = o.client else { continue };
++            if let Some(build) = build.take() {
++                blob = build();
++            }
+             // Each receiver sees its own object id patched into the message
+             // and its own sequence number: `(*ub)->hdr.seq = ++event_seq`
+             // runs once per delivered copy, not once per event.
+@@ -1261,6 +1270,74 @@ mod tests {
+         let a = blob::Attr { id: 9, extended: true, payload: &payload };
+         assert!(check_method(&a).is_none());
+     }
++    #[test]
++    fn events_without_eligible_receivers_do_not_encode_but_advance_round() {
++        for case in 0..5 {
++            let mut s = Server::new(String::new()).unwrap();
++            let object = 4000;
++            if case != 4 {
++                s.reg.create(None, Some(object)).unwrap();
++                s.reg.get_mut(object).unwrap().client = if case == 3 { None } else { Some(2000) };
++            }
++            if case != 0 {
++                s.patterns.push(Pattern { key: if case == 1 { b"other".to_vec() } else { b"event".to_vec() },
++                    partial: false, obj: object });
++            }
++            let round = s.obj_event_seq;
++            s.dispatch_event(Some(2000), b"event", || panic!("no receiver in case {case}"));
++            assert_eq!(s.obj_event_seq, round + 1);
++            assert_eq!(s.event_seq, 0);
++        }
++    }
++
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn deferred_event_preserves_dedup_sequences_monitor_and_queued_payload() {
++        let mut s = Server::new(String::new()).unwrap();
++        let (owner, mut peer) = lookup_client();
++        let (monitor, mut monitor_peer) = lookup_client();
++        s.clients.insert(2000, owner);
++        s.clients.insert(2001, monitor);
++        s.monitors.push((2001, 0));
++        for id in [4000, 4001] {
++            s.reg.create(None, Some(id)).unwrap();
++            s.reg.get_mut(id).unwrap().client = Some(2000);
++            for _ in 0..2 {
++                s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: id });
++            }
++        }
++        let mut expected = BlobBuf::new();
++        expected.put_u32(attr::OBJID, 0);
++        expected.put_string(attr::METHOD, "event");
++        expected.put(attr::DATA, &vec![0x5a; 32768]);
++        let expected = expected.as_bytes().to_vec();
++        s.event_seq = u16::MAX;
++        let builds = std::cell::Cell::new(0);
++        s.dispatch_event(None, b"event", || {
++            builds.set(builds.get() + 1);
++            expected.clone()
++        });
++        assert_eq!(builds.get(), 1);
++        assert!(!s.clients[&2000].tx_empty(), "large payload must force queue ownership");
++        let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
++        assert_eq!(frames.len(), 2, "two objects on one connection, no duplicate deliveries");
++        for (i, (header, actual)) in frames.iter().enumerate() {
++            assert_eq!((header.ty, header.seq, header.peer), (ty::INVOKE, i as u16, 0));
++            let mut wanted = expected.clone();
++            patch_first_u32(&mut wanted, 4000 + i as u32);
++            assert_eq!(*actual, wanted);
++        }
++        let mirrors = lookup_frames(&drain_lookup(&mut s, 2001, &mut monitor_peer));
++        assert_eq!(mirrors.len(), 2);
++        assert!(mirrors.iter().all(|(h, _)| h.ty == ty::MONITOR));
++        s.free_object(4001);
++        s.dispatch_event(None, b"event", || expected.clone());
++        let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
++        assert_eq!(frames.len(), 1, "deleted listener patterns must not survive");
++        assert_eq!(frames[0].0.seq, 2);
++        assert_eq!(attrs_of(&frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000));
++    }
++
+     #[cfg(target_os = "linux")]
+     fn lookup_client() -> (Client, std::os::unix::net::UnixStream) {
+         use std::os::fd::AsRawFd;

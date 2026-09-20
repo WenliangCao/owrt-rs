@@ -235,6 +235,48 @@ fn events(sock: &str) {
     }
 }
 
+fn object_events(sock: &str) {
+    let mut listener = Conn::open(sock);
+    let mut owner = Conn::open(sock);
+    let remove = |conn: &mut Conn, id| {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, id);
+        assert_eq!(conn.request(ty::REMOVE_OBJECT, 0, &mut b).0, 0);
+    };
+    let unseen = owner.add_object(Some("r98.unobserved"), &["method"]);
+    remove(&mut owner, unseen);
+    let first = listener.add_object(None, &[]);
+    let second = listener.add_object(None, &[]);
+    for (id, pattern) in [(first, "ubus.object.*"), (first, "ubus.object.add"),
+                          (second, "ubus.object.*")] {
+        assert_eq!(listener.event_register(pattern, id), 0);
+    }
+    let mut sequence = 0u16;
+    for round in 0..2 {
+        let path = format!("r98.visible.{round}");
+        let id = owner.add_object(Some(&path), &["method"]);
+        for (kind, receivers) in [("add", if round == 0 { vec![first, second] } else { vec![second] }),
+                                  ("remove", if round == 0 { vec![first, second] } else { vec![second] })] {
+            if kind == "remove" { remove(&mut owner, id); }
+            for receiver in receivers {
+                sequence += 1;
+                let (header, actual) = listener.recv().expect("object event");
+                assert_eq!((header.ty, header.seq, header.peer), (ty::INVOKE, sequence, 0));
+                let mut expected = BlobBuf::new();
+                expected.put_u32(attr::OBJID, receiver);
+                expected.put_string(attr::METHOD, &format!("ubus.object.{kind}"));
+                let data = expected.nest_start(attr::DATA);
+                expected.msg_u32("id", id);
+                expected.msg_string("path", &path);
+                expected.nest_end(data);
+                assert_eq!(actual, expected.as_bytes());
+                println!("round={round} kind={kind} sequence={sequence} canonical=true");
+            }
+        }
+        if round == 0 { remove(&mut listener, first); }
+    }
+}
+
 fn monitor(sock: &str) {
     let mut a = Conn::open(sock);
     let (code, mut mirrored) = a.invoke(MONITOR_OBJ, "add", None);
@@ -526,6 +568,7 @@ fn main() {
     match args[2].as_str() {
         "pathless" => pathless(sock),
         "events" => events(sock),
+        "object_events" => object_events(sock),
         "monitor" => monitor(sock),
         "release" => release(sock),
         "aclquery" => aclquery(sock),
