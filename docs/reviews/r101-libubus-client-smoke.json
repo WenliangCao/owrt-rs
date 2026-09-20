@@ -1,0 +1,55 @@
+{
+  "purpose": "Exact image libubus caller correctness and CPU-meter smoke only; no performance verdict",
+  "source_sha256": "fe9f92aa07bf1049663a763617dd69747b8d63cf328d548ad1955ff291c909a6",
+  "client_sha256": "a506df0e83814faeda49840286ef2f27305ee3cfd0427b02f1be222973d20842",
+  "device_result": {
+    "component": "ubusd",
+    "candidate_sha256": "5083f49ba344646532c6b407b5ea22d036c8bba083146e13e8a0e458152d0b99",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "workload_sha256": "26aab4b3b133a040d88ee2cb671e5be736195bb6db93609e8670e0889e40503f",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "implementation": "rs",
+    "iterations": 1000,
+    "installed": false,
+    "matrix": false,
+    "production_mode": "stock",
+    "remote": "/tmp/r95-check-9c9099c1de164890ae392af635f2154f",
+    "benchmark_sha256": "a506df0e83814faeda49840286ef2f27305ee3cfd0427b02f1be222973d20842",
+    "before_candidate_sha256": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+    "exit": 0,
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  },
+  "device_result_sha256": "fec6f40e4c4d64d30b5b992ced5b827d9012bfc732bb1b17200cd7076baf581c",
+  "raw_sha256": "6149167d59cfecdc80f956272473375e15a1567268fbd427745ea48a8b6496a2",
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "library_identity": "All four hashes match extracted exact image; no RPATH/RUNPATH, LD_LIBRARY_PATH/LD_PRELOAD unset; only client ELF uploaded",
+  "sides": [
+    "c",
+    "before",
+    "candidate"
+  ],
+  "cycles_per_side": 1000,
+  "warmup_per_side": 100,
+  "checks": [
+    "full signature byte match",
+    "fresh type creation every cycle",
+    "last-type ID reset on each remove",
+    "final empty lookup",
+    "positive external daemon and self process CPU deltas",
+    "fixed CPU masks",
+    "stable subject PID/start ticks and one thread"
+  ]
+}
