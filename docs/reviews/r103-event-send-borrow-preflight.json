@@ -35,5 +35,8 @@
     "same_host_mounts": true
   },
   "scope": "event_send only: borrow id/data fields and defer relay blob construction until an eligible receiver; no fanout or performance inference yet",
-  "full_gates": "running"
+  "full_gates": "running",
+  "host_gates": "passed",
+  "gates_log_sha256": "4c6bcf43d5711143e7fa2725b6ebbaeb30fea45c1288be7848ac262b2696a85b",
+  "status": "correctness accepted for performance study; not runtime accepted"
 }
