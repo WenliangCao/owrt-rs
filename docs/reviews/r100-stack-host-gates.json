@@ -1,0 +1,210 @@
+{
+  "first_attempt_results": [
+    {
+      "group": "functional",
+      "name": "ubusd-r36",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r100/registration-stack/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r36_ubusd_diff.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r100/registration-stack/bins-final/ubusd-rs",
+        "/home/ubuntu/r100/registration-stack/gates-final/ubusd-r36"
+      ],
+      "log_sha256": "f4d0320460840f52174bcc1acba3baf597657bf62a727757b4cdf831300460df",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r100/registration-stack/source/tools/r92_validate.py",
+        "--namespace-command",
+        "env",
+        "DAEMON_USER=ubus",
+        "sh",
+        "tools/r36_ubusd_diff.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r100/registration-stack/bins-final/ubusd-rs",
+        "/home/ubuntu/r100/registration-stack/gates-final/ubusd-r36-user"
+      ],
+      "log_sha256": "cb214240c0e9deff260e4fe35db9f8a8eb669673f5435eb0d7dc6f2d7cb2f448",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r83",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r100/registration-stack/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r83_ubusd_acl.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r100/registration-stack/bins-final/ubusd-rs",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/wireprobe",
+        "/home/ubuntu/r100/registration-stack/gates-final/ubusd-r83"
+      ],
+      "log_sha256": "30b3a58a1933859e77eb53490435863c9fafee23f33fbfb6c022fc88484b631e",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r42",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r100/registration-stack/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r42_ubusd_fuzz.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/fuzz",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+        "/home/ubuntu/r100/registration-stack/bins-final/ubusd-rs",
+        "/home/ubuntu/r100/registration-stack/gates-final/ubusd-r42"
+      ],
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r41",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r100/registration-stack/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r41_limits.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/bench",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+        "/home/ubuntu/r100/registration-stack/bins-final/ubusd-rs",
+        "/home/ubuntu/r100/registration-stack/gates-final/ubusd-r41"
+      ],
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+      "original_busy_control": false
+    },
+    {
+      "group": "recovery",
+      "name": "r92-recovery",
+      "exit": 1,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r100/registration-stack/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sudo",
+        "-n",
+        "python3",
+        "tools/r92_recovery_probe.py",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r100/registration-stack/bins-final",
+        "/home/ubuntu/r100/registration-stack/gates-final/r92-recovery",
+        "--output-helper",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/output_lifecycle"
+      ],
+      "log_sha256": "c963325e12987393aa7546ce5a94af5a566a8527d63ab27ab5a8a7a261a16c03",
+      "original_busy_control": false
+    }
+  ],
+  "recovery_recheck_results": [
+    {
+      "group": "recovery",
+      "name": "r92-recovery",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r100/registration-stack/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sudo",
+        "-n",
+        "python3",
+        "tools/r92_recovery_probe.py",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r100/registration-stack/bins-final",
+        "/home/ubuntu/r100/registration-stack/gates-recovery-recheck/r92-recovery",
+        "--output-helper",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/output_lifecycle"
+      ],
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536",
+      "original_busy_control": false
+    }
+  ],
+  "first_archive_sha256": "077836468c361ee99e28ae689471d59ee9be04f4aadfe8488e5781808e0a7144",
+  "recheck_archive_sha256": "2aac6832afa8771f31588edd585040906554281af73df0424a5dc0315320c701",
+  "first_failure": {
+    "checks": {
+      "identity": true,
+      "overflow_reached": true,
+      "removed_device_seen": true,
+      "buffer_grown": true,
+      "subsequent_events": false,
+      "serving": true
+    },
+    "observations": {
+      "before": {
+        "buffer": 131070,
+        "drops": 0
+      },
+      "stopped": {
+        "buffer": 131070,
+        "drops": 7429
+      },
+      "after": {
+        "buffer": 262140,
+        "drops": 7429
+      },
+      "subject_exit": null
+    }
+  },
+  "interpretation": "Original C netifd subsequent-events check failed once; all candidate checks passed. Original netlink receive queue remained nonempty in captured after.ss. Concurrent SDK build is a possible influence, not an established cause. Same unchanged complete recovery group passed after build completion; failed evidence retained. No ubusd candidate failure inferred or hidden."
+}
