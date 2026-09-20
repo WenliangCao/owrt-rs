@@ -1,0 +1,849 @@
+{
+  "schema_version": 1,
+  "scope": "Build-host test-result classification only; no router or runtime changes",
+  "classifier_sha256": "d275ce3bfe2e99616d46bad66f2385d963fc1e3788730d6752afc2579280c9e5",
+  "candidate_invariants_unchanged": true,
+  "original_expected_failure_optional_only": "ubusd_halfclose.complete_reply",
+  "observations": [
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "ubusd_halfclose",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": false,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "complete_reply": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "ubusd_lookup_delete",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "procd_disconnect_logs",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "writer_progress_without_bus": true,
+        "writer_completed_after_reconnect": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "procd_watchdog",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "pumped": false,
+        "magic_close": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "pumped": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "netifd_overflow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "overflow_reached": true,
+        "removed_device_seen": true,
+        "buffer_grown": true,
+        "subsequent_events": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "logd_slow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "queue_bounded": false,
+        "slow_disconnected": false,
+        "healthy_reader": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "queue_bounded": false,
+        "slow_disconnected": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "rpcd_closed_output",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": false,
+        "deadline_observed": false,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "deadline_observed": false,
+        "child_reaped": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "rpcd_closed_empty",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "deadline_observed": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "rpcd_output_limit",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": false,
+        "limit_status": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "child_reaped": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "original",
+      "case": "httpd_batch",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "complete_order": true,
+        "queue_bounded": false,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "queue_bounded": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "ubusd_halfclose",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": true,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "ubusd_lookup_delete",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": true,
+        "continued_to_end": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "procd_disconnect_logs",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "writer_progress_without_bus": true,
+        "writer_completed_after_reconnect": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "procd_watchdog",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "pumped": true,
+        "magic_close": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "netifd_overflow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "overflow_reached": true,
+        "removed_device_seen": true,
+        "buffer_grown": true,
+        "subsequent_events": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "logd_slow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "queue_bounded": true,
+        "slow_disconnected": true,
+        "healthy_reader": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "rpcd_closed_output",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "deadline_observed": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "rpcd_closed_empty",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "deadline_observed": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "rpcd_output_limit",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "limit_status": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-first",
+      "source_sha256": "f0bfe5c81f7ac42d30c5fdfd82068953b70f3652da532db97ae66364e93e1eed",
+      "side": "candidate",
+      "case": "httpd_batch",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "complete_order": true,
+        "queue_bounded": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "ubusd_halfclose",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": true,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "legacy_passed": false,
+      "expected_original_failures": {
+        "complete_reply": false
+      },
+      "original_failure_not_reproduced": [
+        "complete_reply"
+      ],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "ubusd_lookup_delete",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "procd_disconnect_logs",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "writer_progress_without_bus": true,
+        "writer_completed_after_reconnect": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "procd_watchdog",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "pumped": false,
+        "magic_close": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "pumped": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "netifd_overflow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "overflow_reached": true,
+        "removed_device_seen": true,
+        "buffer_grown": true,
+        "subsequent_events": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "logd_slow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "queue_bounded": false,
+        "slow_disconnected": false,
+        "healthy_reader": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "queue_bounded": false,
+        "slow_disconnected": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "rpcd_closed_output",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": false,
+        "deadline_observed": false,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "deadline_observed": false,
+        "child_reaped": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "rpcd_closed_empty",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "deadline_observed": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "rpcd_output_limit",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": false,
+        "limit_status": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "child_reaped": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "original",
+      "case": "httpd_batch",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "complete_order": true,
+        "queue_bounded": false,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {
+        "queue_bounded": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "ubusd_halfclose",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": true,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "ubusd_lookup_delete",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": true,
+        "continued_to_end": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "procd_disconnect_logs",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "writer_progress_without_bus": true,
+        "writer_completed_after_reconnect": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "procd_watchdog",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "pumped": true,
+        "magic_close": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "netifd_overflow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "overflow_reached": true,
+        "removed_device_seen": true,
+        "buffer_grown": true,
+        "subsequent_events": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "logd_slow",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "queue_bounded": true,
+        "slow_disconnected": true,
+        "healthy_reader": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "rpcd_closed_output",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "deadline_observed": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "rpcd_closed_empty",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "deadline_observed": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "rpcd_output_limit",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "child_reaped": true,
+        "limit_status": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "source": "recovery-recheck",
+      "source_sha256": "0c32bbc33e0d90b5c3b38e718c9798e0c3d760d0e9b3f04d7e95b8240abe8b7d",
+      "side": "candidate",
+      "case": "httpd_batch",
+      "observed_exit": 0,
+      "checks": {
+        "identity": true,
+        "complete_order": true,
+        "queue_bounded": true,
+        "serving": true
+      },
+      "legacy_passed": true,
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    }
+  ],
+  "new_executions": [
+    {
+      "run": 1,
+      "source_sha256": "3ae508fd4fb2a46e305fbd3c9b690df760fa5d42230f4454ed0d153b2bb7264b",
+      "rows": [
+        {
+          "side": "original",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": false,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "passed": true,
+          "original_failure_not_reproduced": []
+        },
+        {
+          "side": "candidate",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": true,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "passed": true,
+          "original_failure_not_reproduced": []
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "source_sha256": "73d971e4657190a15b4aac7122bdf629dc9d74b31032127f335fa0f2f83d0c61",
+      "rows": [
+        {
+          "side": "original",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": false,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "passed": true,
+          "original_failure_not_reproduced": []
+        },
+        {
+          "side": "candidate",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": true,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "passed": true,
+          "original_failure_not_reproduced": []
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "source_sha256": "deadf7b0395cf893419f995aaeceeaf0d6246cf73fc2c8aa0b520ef4e58bbc19",
+      "rows": [
+        {
+          "side": "original",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": true,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "passed": true,
+          "original_failure_not_reproduced": [
+            "complete_reply"
+          ]
+        },
+        {
+          "side": "candidate",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": true,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "passed": true,
+          "original_failure_not_reproduced": []
+        }
+      ]
+    }
+  ]
+}

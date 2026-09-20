@@ -53,6 +53,29 @@ ORIGINAL_DIFFERENCES = {
 }
 
 
+def classify_checks(case, side, exit_code, checks):
+    """Keep candidate invariants strict; report an intermittent C control.
+
+    The same original ubusd has both completed and truncated the half-close
+    reply in this fixture. Its successful reply is a valid observation, not
+    a candidate failure or proof that the original defect no longer exists.
+    All other original expectations remain strict.
+    """
+    expected = ORIGINAL_DIFFERENCES.get(case, {}) if side == "original" else {}
+    not_reproduced = []
+    mismatches = []
+    for key, value in checks.items():
+        if value is expected.get(key, True):
+            continue
+        if side == "original" and case == "ubusd_halfclose" and key == "complete_reply" and value is True:
+            not_reproduced.append(key)
+        else:
+            mismatches.append(key)
+    return {"expected_original_failures": expected,
+            "original_failure_not_reproduced": not_reproduced,
+            "passed": exit_code == 0 and checks.keys() == CHECKS[case] and not mismatches}
+
+
 def run(*args, **kwargs):
     return subprocess.run([str(a) for a in args], check=True, **kwargs)
 
@@ -578,11 +601,8 @@ def main():
                 shutil.copytree(root / "tmp/out", destination / "raw")
             path = destination / "raw/result.json"
             values = json.loads(path.read_text()) if path.exists() else {"checks": {}, "observations": {}}
-            expected = ORIGINAL_DIFFERENCES.get(case, {}) if side == "original" else {}
             row = {"side": side, "case": case, "exit": result.returncode, **values,
-                   "expected_original_failures": expected,
-                   "passed": result.returncode == 0 and values["checks"].keys() == CHECKS[case]
-                   and all(value is expected.get(key, True) for key, value in values["checks"].items())}
+                   **classify_checks(case, side, result.returncode, values["checks"])}
             rows.append(row)
             write(args.output / "results.json", json.dumps(rows, indent=2) + "\n")
             print(json.dumps({key: value for key, value in row.items() if key != "observations"}), flush=True)
