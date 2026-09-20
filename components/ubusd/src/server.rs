@@ -900,6 +900,14 @@ impl Server {
     /// `from` is the sending client, whose own objects never see the event.
     fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], blob: Vec<u8>) {
         self.obj_event_seq = self.obj_event_seq.wrapping_add(1);
+        if self.obj_event_seq == 0 {
+            // Zero means unseen. Reusing any old epoch without clearing the
+            // stamps can suppress a listener's first event after wraparound.
+            for object in self.reg.objects.values_mut() {
+                object.event_seen = 0;
+            }
+            self.obj_event_seq = 1;
+        }
         let round = self.obj_event_seq;
 
         let mut match_len = 0usize;
@@ -1261,6 +1269,41 @@ mod tests {
         let a = blob::Attr { id: 9, extended: true, payload: &payload };
         assert!(check_method(&a).is_none());
     }
+    #[cfg(target_os = "linux")]
+    fn check_event_round_wrap(last_seen: u32) {
+        let mut s = Server::new(String::new()).unwrap();
+        let (owner, mut peer) = lookup_client();
+        s.clients.insert(2000, owner);
+        s.reg.create(None, Some(4000)).unwrap();
+        let o = s.reg.get_mut(4000).unwrap();
+        o.client = Some(2000);
+        o.event_seen = last_seen;
+        for _ in 0..2 {
+            s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: 4000 });
+        }
+        s.obj_event_seq = u32::MAX;
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, 0);
+        b.put_string(attr::METHOD, "event");
+        b.put(attr::DATA, &[]);
+        s.dispatch_event(None, b"event", b.as_bytes().to_vec());
+        let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
+        assert_eq!(frames.len(), 1, "last_seen={last_seen}: wrap must deliver once, not omit or duplicate");
+        assert_eq!((frames[0].0.ty, frames[0].0.seq, frames[0].0.peer), (ty::INVOKE, 1, 0));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn event_round_wrap_unseen_listener() { check_event_round_wrap(0); }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn event_round_wrap_old_epoch_listener() { check_event_round_wrap(1); }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn event_round_wrap_recent_listener() { check_event_round_wrap(u32::MAX); }
+
     #[cfg(target_os = "linux")]
     fn lookup_client() -> (Client, std::os::unix::net::UnixStream) {
         use std::os::fd::AsRawFd;

@@ -1,0 +1,108 @@
+{
+  "base": "5a19517",
+  "release_sha256": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+  "source_sha256": "54467227e08cdf887d5a8dc2507e2d678584b556e2b59d051ee2839a6bd94cfa",
+  "forced_epoch": true,
+  "full_epoch_cycles_executed": false,
+  "router_windows": [
+    {
+      "kind": "device-repro",
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "dcae65ad49b77a019d31ff1b4e6683576e500578d3e1f721b35d7389933f8028",
+        "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+        "workload_sha256": "d761705e15b0e1b8a6d2f328a4b088de386341d023a3a3c7e4843b1f665dfd55",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": true,
+        "pilot_only": false,
+        "implementation": "rs",
+        "iterations": 10,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "remote": "/tmp/r95-check-15a2689eb8f14e77a9eb882e9c47d9f1",
+        "before_candidate_sha256": "48baee4f84ae9a15dfb635ecfd8fb1fdfe0efb543b7020075612b5c387b7feee",
+        "exit": 0,
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "result_sha256": "988989c3c3b94273d579cc8dd08a323d15468ba09f95a8b22d8c8e0c9b69d659",
+      "raw_sha256": "76e5b9d1bbeeefe47d2181b85f96ef4af4b69d9546523192de4c49509c2a7ad5"
+    },
+    {
+      "kind": "device-release",
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+        "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+        "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": true,
+        "pilot_only": false,
+        "implementation": "rs",
+        "iterations": 10,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "remote": "/tmp/r95-check-b95fe62c26c7409aaf58e49c5222c024",
+        "benchmark_sha256": "bcad2d4652b81c6c252b61f4bd8dd8424f85bd19bea2dd848236640967fdca26",
+        "before_candidate_sha256": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+        "unit_tests": {
+          "sha256": "f4d2d1e42fdeece98afb080a7db0e7837486e98d7659bfa95f3bebe1d2bc0919",
+          "filter": "",
+          "exit": 0
+        },
+        "exit": 0,
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "result_sha256": "cd07b576a3d41c601002bc9e931236789011a474c96e3a3068c0b3f19364af5f",
+      "raw_sha256": "926b69feaecf9582b517a332f2ecb47c4806ed9035dadc6d0d4175997daa1b2c"
+    }
+  ],
+  "seven_wire_differentials": "byte-identical",
+  "host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "log_sha256": "efb67576ca152bab237d4771b087dd0e930529c4d7c1d7464bff06d895ba16b2"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "log_sha256": "863eaff6a789623f1c9643345f8a4fdcdc1ff7ee48422812add20b8427161017"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "log_sha256": "c44c6e38b9c96b57d311f311aea6c9976ac90c0150ca2ce14a2f00fae508cd83"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "log_sha256": "956f8a3077bd8a7ef8c1f63db13d3d1071184a1e462e4c3925deecb316e9b036"
+    }
+  ],
+  "host_archive_sha256": "62828dc65da7e66442b6666eb781f68777bd0e3161015d86ed79eb64cf9ea872",
+  "host_files_read": 221
+}
