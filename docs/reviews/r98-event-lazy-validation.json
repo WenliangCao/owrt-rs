@@ -1,0 +1,90 @@
+{
+  "runtime_base": "74e268e (accepted runtime 5a19517)",
+  "candidate_sha256": "1fc485de5261b3090c7bcabe265950fc4071ccf4b8d941cc89f0a232be4a2db1",
+  "before_sha256": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+  "runtime_patch_sha256": "76545973751ab69b996a9502c22a0c1d2fd2e7059faae4850f0054d17bbdb41c",
+  "candidate_server_source_sha256": "93d49364941dfc9fb258991963ecbe5392576a7fc13c92dc92590f99bf480eee",
+  "candidate_and_before_bytes": [
+    507880,
+    507880
+  ],
+  "native_unit_tests": 31,
+  "physical_unit_tests": 31,
+  "physical_meter_unit_tests": 3,
+  "current_meter_host_unit_tests": 3,
+  "physical_differential_scenarios": [
+    "object_events",
+    "events",
+    "monitor",
+    "release",
+    "utf8",
+    "monitor_lookup",
+    "method_acl"
+  ],
+  "physical_wireprobe_sha256": "bcad2d4652b81c6c252b61f4bd8dd8424f85bd19bea2dd848236640967fdca26",
+  "physical_differential_result_sha256": "c568c782a0a7d9cf79385023926818551b720d8e56d442a93d72d1060bc3ce6d",
+  "build_host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "c88e1bf73848d1f0aae01c95157d505e16cc25e9a0d796a85ef756d96e3643c5"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "edf461b0b322496db45be2763ebf73886f0abc58eb4b88b27ff849e6b73ab91b"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "006e43b4ca75ef758d412a722dd302b448be824d2763d97adb1e41720d484f20"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ],
+  "clippy": "passed specified undocumented-unsafe-blocks gate; diagnostic examples retain unused-import warnings",
+  "physical_windows_checked": 79,
+  "performance_windows": 72,
+  "heap_windows": 4,
+  "correctness_windows": 3,
+  "timed_lookup_invoke_requests": 2720000,
+  "timed_registration_cycles": 320000,
+  "timed_fanout_cycles": 240000,
+  "timed_fanout_delivered_events": 1440000,
+  "heap_repeat_exact_agreement": true,
+  "query_investigation_gate_triggered": true,
+  "decision": "defer first event-lazy candidate; retain patch/evidence; continue investigating borrowed single-pass delivery in a separate candidate",
+  "production": "stock C throughout; no deployment",
+  "all_windows_cleaned": true,
+  "final_stock_health_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+  "final_cleanup_sha256": "b1282d51f29872076fde422fe12c7f861756537cbe02155626d33e34ff12e5dc",
+  "final_test_directories": 0,
+  "final_test_process_references": 0,
+  "final_test_host_mounts": 0,
+  "final_configuration_matches_backup": true,
+  "scope_limits": [
+    "Exploratory results and conservative gates, no superiority/equivalence claim",
+    "Exact C/R89 comparisons remain workload and client specific",
+    "Requested Rust heap and proc counters do not establish PSS or full process/kernel peak",
+    "No original-libubus performance matrix or integrated nine-component acceptance"
+  ]
+}
