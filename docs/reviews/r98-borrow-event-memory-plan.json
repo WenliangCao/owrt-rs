@@ -1,0 +1,137 @@
+{
+  "purpose": "Diagnostic requested event heap and actual observed allocator calls; no timing claims",
+  "runtime_base": "accepted 5a19517; lazy 1fc485de; borrowed 4fe9d5e2",
+  "order": [
+    "before",
+    "lazy",
+    "candidate",
+    "candidate",
+    "lazy",
+    "before"
+  ],
+  "subjects": {
+    "before": "841860619f048a82c791ebecd4a8e0be80d7fa5cde19281abb2a0713904204ce",
+    "lazy": "4ca2acb4001cc19833cf7cbb3f8a34e2fd74315ae8e4c30aea0d4ce93c8a7889",
+    "candidate": "c1e827ab64f13417d44a6cb376ed79de98c3f230edeb465309f751018225acb7"
+  },
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "workload_sha256": "d02ea9823cfc70582fe89149dc3bbd325cecb694321dd84ef1ac7cd925e62689",
+  "iterations": 1,
+  "csv": "events.csv",
+  "dimensions": [
+    "listeners",
+    "matched",
+    "payload_bytes",
+    "warm"
+  ],
+  "scenarios": [
+    [
+      0,
+      0,
+      16,
+      0
+    ],
+    [
+      0,
+      0,
+      16,
+      1
+    ],
+    [
+      0,
+      0,
+      32768,
+      0
+    ],
+    [
+      0,
+      0,
+      32768,
+      1
+    ],
+    [
+      1,
+      0,
+      16,
+      0
+    ],
+    [
+      1,
+      0,
+      16,
+      1
+    ],
+    [
+      1,
+      0,
+      32768,
+      0
+    ],
+    [
+      1,
+      0,
+      32768,
+      1
+    ],
+    [
+      1,
+      1,
+      16,
+      0
+    ],
+    [
+      1,
+      1,
+      16,
+      1
+    ],
+    [
+      1,
+      1,
+      32768,
+      0
+    ],
+    [
+      1,
+      1,
+      32768,
+      1
+    ],
+    [
+      8,
+      1,
+      16,
+      0
+    ],
+    [
+      8,
+      1,
+      16,
+      1
+    ],
+    [
+      8,
+      1,
+      32768,
+      0
+    ],
+    [
+      8,
+      1,
+      32768,
+      1
+    ]
+  ],
+  "fixture_sha256": "cac2136b1fdb77f76f1042e767ad7759c429c5dd976edb769da39ff6ecf475f0",
+  "heap_support_sha256": "01d0572e7e26b603b30e63fa76e09451bab80229eb1ebb8a72ed2abda7b267d2",
+  "source_runtime_sha256": {
+    "before": "f05649e6623aecf7d8f1e99f4b466202e4098c3b2d408459450fb19cee862d87",
+    "lazy": "93d49364941dfc9fb258991963ecbe5392576a7fc13c92dc92590f99bf480eee",
+    "candidate": "2f0892c401524985ea4a7a6294e23ed742972ef371afd312ffcebba22125c7f8"
+  },
+  "scope": "Same Server, registry, clients and event protocol handling as each runtime. Retained includes live server/listener/requested queue capacity after drain. Peak and in-flight measured during one complete receive, including constructing its owned input frame; fixture buffers preallocated outside baseline. Successful alloc/zeroed and realloc callbacks counted separately; optimizer may remove calls; diagnostic binary only. 32 KiB matches must queue at 4096-byte socket send buffer; 16-byte matches must send directly. Full payload/order/sequence/status checked with nonallocating drains. Requested layouts exclude allocator rounding/internal realloc overlap, libc, stack/code, socket/kernel buffers, PSS/full peak; does not establish C/R89 memory superiority.",
+  "source_references": [
+    "https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html"
+  ],
+  "performance_isolation": "Run only after all frozen timing windows finish, no overlapping router measurements."
+}

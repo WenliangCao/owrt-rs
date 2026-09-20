@@ -6,6 +6,8 @@ use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 struct Heap;
 static LIVE: AtomicUsize = AtomicUsize::new(0);
 static PEAK: AtomicUsize = AtomicUsize::new(0);
+static ALLOCS: AtomicUsize = AtomicUsize::new(0);
+static REALLOCS: AtomicUsize = AtomicUsize::new(0);
 
 fn add(bytes: usize) {
     let now = LIVE.fetch_add(bytes, Relaxed) + bytes;
@@ -18,13 +20,19 @@ unsafe impl GlobalAlloc for Heap {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         // SAFETY: the caller supplied a valid layout.
         let ptr = unsafe { System.alloc(layout) };
-        if !ptr.is_null() { add(layout.size()); }
+        if !ptr.is_null() {
+            ALLOCS.fetch_add(1, Relaxed);
+            add(layout.size());
+        }
         ptr
     }
     unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
         // SAFETY: the caller supplied a valid layout.
         let ptr = unsafe { System.alloc_zeroed(layout) };
-        if !ptr.is_null() { add(layout.size()); }
+        if !ptr.is_null() {
+            ALLOCS.fetch_add(1, Relaxed);
+            add(layout.size());
+        }
         ptr
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
@@ -36,6 +44,7 @@ unsafe impl GlobalAlloc for Heap {
         // SAFETY: forward the caller's valid allocation, layout and new size.
         let next = unsafe { System.realloc(ptr, layout, size) };
         if !next.is_null() {
+            REALLOCS.fetch_add(1, Relaxed);
             if size >= layout.size() { add(size - layout.size()); }
             else { LIVE.fetch_sub(layout.size() - size, Relaxed); }
         }
@@ -49,3 +58,8 @@ static ALLOCATOR: Heap = Heap;
 pub fn live() -> usize { LIVE.load(Relaxed) }
 pub fn reset_peak() { PEAK.store(live(), Relaxed); }
 pub fn peak() -> usize { PEAK.load(Relaxed) }
+pub fn reset_calls() {
+    ALLOCS.store(0, Relaxed);
+    REALLOCS.store(0, Relaxed);
+}
+pub fn calls() -> (usize, usize) { (ALLOCS.load(Relaxed), REALLOCS.load(Relaxed)) }

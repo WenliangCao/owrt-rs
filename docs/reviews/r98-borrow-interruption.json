@@ -1,0 +1,16 @@
+{
+  "reason": "post-window external HTTPS health fetch exit 8; driver stopped before result.json for candidate",
+  "completed_windows": 3,
+  "incomplete_window": "01-candidate",
+  "partial_block_excluded_in_full": true,
+  "performance_values_inspected_before_exclusion": false,
+  "retry_policy": "Fresh collection from block 1 with unchanged frozen subjects, clients, seeds and order; no pooling of aborted attempt. Failure data retained.",
+  "failed_log_sha256": "4b39b7a1825bdba2e29a60b8526b0495b9f07d1c8410b7081224c5adc618b0f3",
+  "failed_window_raw_sha256": "b25e82050257096f3898f771754348d73959889fceba7432e5f9c5493f1a1085",
+  "fresh_stock_health_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+  "cleanup_sha256": "b1282d51f29872076fde422fe12c7f861756537cbe02155626d33e34ff12e5dc",
+  "same_boot_and_configuration": true,
+  "test_directories": 0,
+  "test_process_references": 0,
+  "test_host_mounts": 0
+}
