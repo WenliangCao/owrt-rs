@@ -19,3 +19,9 @@ The client was built with SDK GCC 14.3, -O2, -Wall -Wextra -Werror. The SDK's em
 One guarded router namespace ran C, accepted epoch-fixed Rust and the experimental stack/event candidate sequentially, each with 100 warmup and 1000 measured cycles. All protocol and clock checks passed. Subject PID/start time and single-thread status remained stable. Production C, boot, configuration and host mounts were unchanged, and cleanup passed. Identities are recorded in `r101-libubus-client-smoke.json`.
 
 These short runs validate the instrument, not relative speed. No C-client calibration or complete paired comparison exists yet. Future measurement must also validate the per-window process identity, library hashes and aggregated sampling unit before making an inference. RSS/PSS, kernel buffers and integrated-system behaviour remain outside this diagnostic.
+
+## Paired collection tooling
+
+The new paired harness alternates ten ABBA/BAAB quartets with serial requests. It records subject stat/status before and after every segment, frozen library hashes and all existing router cleanup checks. The report validates identity, start ticks, one thread, masks, full signature/type-reset checks, positive bounded CPU intervals and exact segment count. It aggregates equal-size segments into one ratio per physical window.
+
+Four verifier tests include thirteen corrupted-field cases, PID reuse, affinity/thread changes and a process name containing parentheses. They pass, as does verification of all three real smoke samples. The full paired harness has not yet run on the router; its single-window smoke plan is frozen separately. It will run only after the current R100 series and cleanup. No C-caller performance inference is authorized by this smoke.

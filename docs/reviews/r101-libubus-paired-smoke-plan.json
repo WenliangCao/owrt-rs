@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "kind": "smoke",
+  "purpose": "Single paired C-caller instrumentation smoke; not comparative inference or calibration",
+  "subjects": {
+    "baseline": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+    "candidate": "5083f49ba344646532c6b407b5ea22d036c8bba083146e13e8a0e458152d0b99"
+  },
+  "benchmark_sha256": "a506df0e83814faeda49840286ef2f27305ee3cfd0427b02f1be222973d20842",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "workload_sha256": "c1f2777c815053193bc44ee7c8ed107513604b511d9d66d6a94724907ad8d8b8",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "iterations": 1000,
+  "warmup": 2000,
+  "subject_cpu": 1,
+  "client_cpu": 0,
+  "seed": 9913,
+  "blocks": [
+    {
+      "block": 1,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    }
+  ],
+  "contrasts": [
+    [
+      "candidate",
+      "baseline"
+    ]
+  ],
+  "metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us",
+    "wall_us"
+  ],
+  "interval_metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us",
+    "wall_us"
+  ],
+  "statistical_unit": "No inference: one paired instrumentation-smoke window.",
+  "reference": "https://online.stat.psu.edu/stat415/lesson/19/19.1",
+  "preflight": "Run only after R100 suite is terminal and router cleanup verified. This one-window smoke checks full paired collection and verifier; no interval or relative performance conclusion.",
+  "production": "stock C throughout; only new disposable namespace processes are pinned; no governor/IRQ/production affinity changes",
+  "failure_rule": "Stop on identity, correctness, collection, health, affinity or cleanup failure. Preserve failed window; never infer success from missing results.",
+  "segments_per_window": 40,
+  "quartets": 10,
+  "cycles_per_side_per_window": 20000,
+  "design": "Two independently started subject daemons pinned CPU 1; one serial client pinned CPU 0. Ten quartets alternating slot ABBA/BAAB, 2000 untimed warmup cycles per segment. Randomized candidate/baseline slot assignment per window and randomized comparator order per suite block. This co-resident comparison is diagnostic, not full-system latency/memory acceptance.",
+  "references": [
+    "https://www.itl.nist.gov/div898/handbook/pri/section3/pri332.htm",
+    "https://online.stat.psu.edu/stat415/lesson/19/19.1"
+  ],
+  "previous_data": "C-caller three-side correctness smoke; no C-caller A/A or completed paired measurement yet.",
+  "family_comparisons": 4,
+  "comparison_family": "No inference from a single window.",
+  "source_implementations": {
+    "baseline": "rs",
+    "candidate": "rs"
+  },
+  "slot_semantics": "Both slots use uploaded unmodified ELF bytes; driver implementation=rs selects upload handling, not both languages. Actual implementations are determined by frozen hashes above; stock hash is the exact original C binary.",
+  "interpretation_rule": "Correctness and instrument validation only. Never combine with R100 Rust-caller data.",
+  "correctness_base_release": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "clock_resolution_ns": 1
+}
