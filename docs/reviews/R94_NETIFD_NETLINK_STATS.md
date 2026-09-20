@@ -24,7 +24,11 @@
 
 **对 C：14/14 双优**，`device_status` 系 CPU -43%…-60%，`interface_dump_32` -56%，`wireless_status` -95%（C 起脚本）。
 
-**对 R89：13/14 双优，CPU 逐轮范围除 `wireless_status` 外全部不重叠。**
+**对 R89：13/14 的平均延迟和 CPU 中位数较低。** 2026-09-20 更正：
+CPU 逐轮范围中 `wireless_status`、`interface_named_32`、`wireless_status_c4` 均有重叠。
+`wireless_status` 的 p95/p99 分别高 **11.55%/4.41%**，四轮范围均不重叠；
+VmRSS/RssAnon 中位数分别增加 144/80 KiB（诊断计数，非精确整体峰值）。
+完整边界见 [R94 审计](R94_COMPLETION_AUDIT.md)，本表不证明全面胜过 R89。
 
 | 负载 | 候选延迟比 R89 | 候选 CPU（范围）| R89 CPU（范围）| CPU 比 R89 |
 |---|---:|---:|---:|---:|
