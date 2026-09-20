@@ -1,0 +1,19 @@
+{
+  "purpose": "Mechanism-only physical allocation diagnostics. Profile timing includes dispatch, request clone and socket-pair drain, excludes daemon event loop; not a latency/peak-memory acceptance test.",
+  "order": [
+    "before",
+    "candidate",
+    "candidate",
+    "before"
+  ],
+  "iterations": 1000,
+  "subjects": {
+    "before": "9c92e30a6aa290d6b00e29e0a12a0e93b3f65698ccab09c29ebe7ba8c96cd7a4",
+    "candidate": "71d2aad7ce90cef4e22459e58ffc553526946747e9e0e5186dd27de62dc6889d"
+  },
+  "profile_source_sha256": "ea50a110e492466a10216228df34dce25f0239ffc7a3d7a17c94285c0622fcd1",
+  "counter_source_sha256": "9366e2e73da005a40b3d00995d812f72ccb9ee88c54926f44e781b4b33d2d6ab",
+  "workload_sha256": "19916cbabca23ad16b127e9b7dea08dfd9b6930700a21afb4744450062c2ccea",
+  "driver_sha256": "62ba3eca64df6582d698b4886bdc512396bc4cc396ea225d066f3c4d14cc6b1d",
+  "expectation": "No result ID-vector/prefix-bound allocations in candidate. One remaining request-blob clone is fixture overhead. Report requested allocation/reallocation bytes per measured dispatch, not live or peak heap. No changes to candidate after observing matrix outcomes."
+}
