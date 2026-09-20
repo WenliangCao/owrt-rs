@@ -47,11 +47,15 @@ unsafe impl GlobalAlloc for CountingAllocator {
 #[global_allocator]
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
-pub fn measure(name: &str, n: u64, filter: &str, mut run: impl FnMut()) {
+pub fn measure(name: &str, n: u64, filter: &str, run: impl FnMut()) {
+    measure_with_warmup(name, n, 100, filter, run);
+}
+
+pub fn measure_with_warmup(name: &str, n: u64, warmup: u64, filter: &str, mut run: impl FnMut()) {
     if !name.contains(filter) {
         return;
     }
-    for _ in 0..100 {
+    for _ in 0..warmup {
         run();
     }
     let start = Instant::now();
@@ -72,4 +76,3 @@ pub fn measure(name: &str, n: u64, filter: &str, mut run: impl FnMut()) {
         BYTES.load(Relaxed)
     );
 }
-

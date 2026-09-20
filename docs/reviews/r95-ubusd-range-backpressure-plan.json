@@ -1,0 +1,20 @@
+{
+  "purpose": "Physical scaling diagnostic under forced repeated backpressure, 16/64/256 objects with 16 KiB method payload each. Validate every reply and at least count-1 command resumes. Whole-dispatch CPU/wall and requested allocation volume, not C comparison or peak/RSS.",
+  "order": [
+    "before",
+    "candidate",
+    "candidate",
+    "before"
+  ],
+  "iterations": 10,
+  "subjects": {
+    "before": "02763a97fc5eb3d8ee440dd8cc4078fe75a7b7f97ef4563c0ff60dd30678bc95",
+    "candidate": "2a90831b578f2d1dee0a7dd0b2b066d5d3fb0e1ca82699d636377bbca05e5132"
+  },
+  "profile_source_sha256": "685973d34961b2f29a8489ca613115edd5ea0e78b9ec111eb1cc441d71a5a7fd",
+  "counter_source_sha256": "072c26ae6d474f5c211338d49b06a905b3a40c876e05734f3ddca6b95763b550",
+  "workload_sha256": "98e13e8b131a0828deac90f61a6ffaad8ecf45185ec6b709f689775e5b3249a9",
+  "driver_sha256": "62ba3eca64df6582d698b4886bdc512396bc4cc396ea225d066f3c4d14cc6b1d",
+  "expectation": "Old implementation collects each remaining suffix on resume, potentially quadratic total ID-vector work; borrowed traversal should eliminate that work. Socket-frame ownership, command path copies and request fixture copies remain.",
+  "warmup": 3
+}

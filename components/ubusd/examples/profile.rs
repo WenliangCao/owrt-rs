@@ -82,10 +82,97 @@ fn drain(peer: &mut UnixStream, frames: usize, scratch: &mut Vec<u8>) {
     }
 }
 
+// Force repeated command parking. The regular profile's replies fit in the
+// socket buffer and cannot reveal repeated work over the unconsumed suffix.
+fn backpressure(n: u64, filter: &str) {
+    unsafe extern "C" {
+        fn setsockopt(fd: i32, level: i32, name: i32, value: *const i32, len: u32) -> i32;
+    }
+    for count in [16, 64, 256] {
+        let (mut s, mut peer, _provider) = fixture(count, 1);
+        peer.set_nonblocking(true).unwrap();
+        let size: i32 = 4096;
+        // SAFETY: the live Linux socket and i32 value have the declared size;
+        // SOL_SOCKET/SO_SNDBUF changes this fixture's socket only.
+        assert_eq!(unsafe { setsockopt(s.clients[&CALLER].fd(), 1, 7, &size, 4) }, 0);
+        let mut signature = BlobBuf::new();
+        let table = signature.msg_open_table("method_0000");
+        signature.msg_string("large", &"x".repeat(16384));
+        signature.msg_close(table);
+        s.reg.types.get_mut(&TYPE).unwrap().methods[0].blob = signature.payload().to_vec();
+        for mode in ["all", "prefix"] {
+            let mut b = BlobBuf::new();
+            if mode == "prefix" {
+                b.put_string(attr::OBJPATH, "bench.object*");
+            }
+            let msg = input(ty::LOOKUP, b);
+            let mut bytes = Vec::new();
+            let mut parked = 0;
+            let mut run = || {
+                bytes.clear();
+                parked = 0;
+                assert!(s.receive(CALLER, copy(&msg)));
+                let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+                loop {
+                    assert!(std::time::Instant::now() < deadline);
+                    let mut buffer = [0; 4096];
+                    loop {
+                        match peer.read(&mut buffer) {
+                            Ok(0) => panic!("unexpected EOF"),
+                            Ok(n) => bytes.extend_from_slice(&buffer[..n]),
+                            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => break,
+                            Err(e) => panic!("read: {e}"),
+                        }
+                    }
+                    let c = s.clients.get_mut(&CALLER).unwrap();
+                    if c.tx_empty() && c.cmd_queue.is_empty() {
+                        break;
+                    }
+                    assert!(c.flush());
+                    if c.tx_empty() && !c.cmd_queue.is_empty() {
+                        parked += 1;
+                        s.process_cmd_queue(CALLER);
+                    }
+                    s.touched.clear();
+                }
+                s.touched.clear();
+                assert!(parked >= count - 1, "fixture must repeatedly park");
+                black_box(&bytes);
+            };
+            run();
+            profile_support::measure_with_warmup(&format!("backpressure_{mode}_{count}"), n, 3, filter, &mut run);
+            // Validate every frame outside timing, including payloads and the
+            // terminating status. Object IDs are fixed by fixture().
+            let mut rest = bytes.as_slice();
+            for i in 0..=count {
+                let h = Header::decode(rest[..Header::LEN].try_into().unwrap()).unwrap();
+                let len = client::blob_raw_len(&rest[Header::LEN..]);
+                assert_eq!((h.seq, h.peer), (1, 0));
+                let fields: Vec<_> = owrt_ubus::blob::iter(&rest[Header::LEN + 4..Header::LEN + len]).collect();
+                if i == count {
+                    assert_eq!(h.ty, ty::STATUS);
+                    assert_eq!(fields[0].as_u32(), Some(0));
+                } else {
+                    assert_eq!(h.ty, ty::DATA);
+                    assert_eq!(fields[1].as_u32(), Some(OBJECT + i as u32));
+                    assert_eq!(obj::cstr_bytes(fields[0].payload), format!("bench.object{i:04}").as_bytes());
+                    assert_eq!(fields[3].payload, signature.payload());
+                }
+                rest = &rest[Header::LEN + len..];
+            }
+            assert!(rest.is_empty());
+        }
+    }
+}
+
 fn main() {
     let n = std::env::args().nth(1).unwrap_or_else(|| "5000".into()).parse().unwrap();
     let filter = std::env::args().nth(2).unwrap_or_default();
     println!("stage,iterations,ns_per_op,allocations,reallocations,allocated_bytes");
+    if filter == "backpressure" {
+        backpressure(n, &filter);
+        return;
+    }
     for (count, methods) in [(1, 1), (64, 1), (128, 1), (1, 64)] {
         let (mut s, mut peer, _provider) = fixture(count, methods);
         for mode in ["exact", "all", "prefix"] {
