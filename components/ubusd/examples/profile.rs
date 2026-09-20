@@ -98,11 +98,16 @@ fn main() {
             let mut bytes = Vec::new();
             assert!(s.receive(CALLER, copy(&msg)));
             assert!(s.clients[&CALLER].tx_empty());
+            s.touched.clear();
             drain(&mut peer, frames, &mut bytes);
             let expected = bytes.clone();
             let name = format!("lookup_{mode}_objects_{count}_methods_{methods}");
             profile_support::measure(&name, n, &filter, || {
                 assert!(s.receive(CALLER, copy(&msg)));
+                // The real event loop consumes these after each dispatch.
+                // Retaining them here makes the fixture grow with iteration
+                // count and contaminates allocation diagnostics.
+                s.touched.clear();
                 drain(&mut peer, frames, &mut bytes);
                 black_box(&bytes);
             });
@@ -119,10 +124,12 @@ fn main() {
         let msg = input(ty::INVOKE, b);
         let mut bytes = Vec::new();
         assert!(s.receive(CALLER, copy(&msg)));
+        s.touched.clear();
         drain(&mut peer, 1, &mut bytes);
         let expected = bytes.clone();
         profile_support::measure(&format!("invoke_forward_{size}"), n, &filter, || {
             assert!(s.receive(CALLER, copy(&msg)));
+            s.touched.clear();
             drain(&mut peer, 1, &mut bytes);
             black_box(&bytes);
         });
