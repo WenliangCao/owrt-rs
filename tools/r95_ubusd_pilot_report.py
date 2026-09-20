@@ -46,11 +46,17 @@ def main():
     p.add_argument("root", type=Path)
     p.add_argument("output", type=Path)
     p.add_argument("--plan", type=Path, default=Path("docs/reviews/r95-ubusd-pilot-plan.json"))
+    p.add_argument("--workload-script", help="custom collector script; SHA must match the frozen plan")
+    p.add_argument("--object-count", type=int, help="complete object set for a custom workload")
     a = p.parse_args()
     assert (a.root / "COMPLETE").is_file(), "collection incomplete"
     plan = read(a.plan)
     matrix = plan.get("matrix", False)
-    workload_script = "tools/benchmark/isolated.sh" if matrix else "tools/r95_ubusd_pilot.sh"
+    workload_script = a.workload_script or ("tools/benchmark/isolated.sh" if matrix else "tools/r95_ubusd_pilot.sh")
+    lanes = plan.get("workloads", ("lookup_all_128",))
+    multiple = len(lanes) > 1
+    counts = (a.object_count,) if a.object_count is not None else ((64, 128) if matrix else (128,))
+    assert all(count > 0 for count in counts)
     rows = []
     residents = []
     boots, clients, recoveries = set(), set(), set()
@@ -85,7 +91,7 @@ def main():
                 assert meta["component"] == "ubusd" and meta["implementation"] == result["implementation"]
             else:
                 assert meta["pilot_only"]
-            for count in ((64, 128) if matrix else (128,)):
+            for count in counts:
                 prefix = f"objects-{count}" if matrix else "objects"
                 assert (raw / f"{prefix}-before.txt").read_bytes() == (raw / f"{prefix}-after.txt").read_bytes()
                 expected = [f"bench.filler{i:04d}" for i in range(1, count)] + ["bench.target"]
@@ -94,7 +100,7 @@ def main():
                       "result_sha256": digest(root / "result.json"),
                       "raw_archive_sha256": digest(root / "raw.tar.gz"),
                       "kernel": (raw / "kernel.txt").read_text().strip()}
-            for lane in (plan["workloads"] if matrix else ("lookup_all_128",)):
+            for lane in lanes:
                 concurrent = lane.endswith("_c4")
                 if concurrent:
                     metrics = parallel(raw / lane, meta["subject_pid"])
@@ -106,7 +112,7 @@ def main():
                 assert metrics["warmup"] == plan["warmup"] * (4 if concurrent else 1)
                 assert hz > 0
                 denominator = metrics["successful"] + (metrics["warmup"] if concurrent else 0)
-                rows.append({**common, **({"workload": lane} if matrix else {}),
+                rows.append({**common, **({"workload": lane} if multiple else {}),
                              "cpu_tick_us_per_op": 1e6 / hz / denominator, **metrics})
             if matrix:
                 memory = read(raw / "resident.json")
@@ -114,11 +120,13 @@ def main():
                 residents.append({"block": block["block"], "side": side, **{k: subject[k] for k in
                     ("VmRSS", "RssAnon", "RssFile", "RssShmem", "VmHWM", "Threads", "fds")}})
     assert len(boots) == len(clients) == len(recoveries) == 1, "collection identities changed"
-    summary = ({lane: summarize([r for r in rows if r["workload"] == lane], plan) for lane in plan["workloads"]}
-               if matrix else summarize(rows, plan))
+    summary = ({lane: summarize([r for r in rows if r["workload"] == lane], plan) for lane in lanes}
+               if multiple else summarize(rows, plan))
     result = {"schema_version": 1, "plan_sha256": digest(a.plan), "plan": plan,
               "method": "Paired exploratory blocks; full per-run values; no confidence or equivalence claim",
-              "superiority_verdict": None, "scope": "ubusd only, private router namespace, 10 lanes" if matrix else "single component, private router namespace, 128 objects",
+              "superiority_verdict": None, "scope": f"ubusd only, private router namespace, {len(lanes)} lanes; object counts {counts}",
+              "analysis_workload_script": workload_script,
+              "analysis_object_counts": counts,
               "all_windows_cleaned_and_production_stock": True, "runs": rows, "summary": summary}
     if matrix:
         result["resident_diagnostics"] = residents

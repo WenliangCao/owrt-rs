@@ -1,0 +1,602 @@
+{
+  "plan_sha256": "f027d578795182287383dd1237ef678a4902f8740b469659d9d426949ccd59d2",
+  "plan": {
+    "purpose": "Mechanism-only physical allocation diagnostics. Profile timing includes dispatch, request clone and socket-pair drain, excludes daemon event loop; not a latency/peak-memory acceptance test.",
+    "order": [
+      "before",
+      "candidate",
+      "candidate",
+      "before"
+    ],
+    "iterations": 1000,
+    "subjects": {
+      "before": "9c92e30a6aa290d6b00e29e0a12a0e93b3f65698ccab09c29ebe7ba8c96cd7a4",
+      "candidate": "71d2aad7ce90cef4e22459e58ffc553526946747e9e0e5186dd27de62dc6889d"
+    },
+    "profile_source_sha256": "ea50a110e492466a10216228df34dce25f0239ffc7a3d7a17c94285c0622fcd1",
+    "counter_source_sha256": "9366e2e73da005a40b3d00995d812f72ccb9ee88c54926f44e781b4b33d2d6ab",
+    "workload_sha256": "19916cbabca23ad16b127e9b7dea08dfd9b6930700a21afb4744450062c2ccea",
+    "driver_sha256": "62ba3eca64df6582d698b4886bdc512396bc4cc396ea225d066f3c4d14cc6b1d",
+    "expectation": "No result ID-vector/prefix-bound allocations in candidate. One remaining request-blob clone is fixture overhead. Report requested allocation/reallocation bytes per measured dispatch, not live or peak heap. No changes to candidate after observing matrix outcomes."
+  },
+  "scope": "Instrumented Rust dispatch/socket-pair fixture; no C comparison, no daemon event loop",
+  "memory_scope": "Requested bytes summed across allocation/reallocation calls, not peak/live heap or RSS",
+  "all_windows_cleaned_and_production_stock": true,
+  "superiority_verdict": null,
+  "runs": [
+    {
+      "index": 1,
+      "side": "before",
+      "metrics": [
+        {
+          "stage": "lookup_exact_objects_1_methods_1",
+          "ns_per_op": 10756.59,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_1",
+          "ns_per_op": 10324.72,
+          "allocations": 2,
+          "reallocations": 0,
+          "allocated_bytes": 20
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_1",
+          "ns_per_op": 11115.84,
+          "allocations": 3,
+          "reallocations": 0,
+          "allocated_bytes": 52
+        },
+        {
+          "stage": "lookup_exact_objects_64_methods_1",
+          "ns_per_op": 10339.18,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_64_methods_1",
+          "ns_per_op": 206806.58,
+          "allocations": 2,
+          "reallocations": 4,
+          "allocated_bytes": 500
+        },
+        {
+          "stage": "lookup_prefix_objects_64_methods_1",
+          "ns_per_op": 214964.68,
+          "allocations": 3,
+          "reallocations": 4,
+          "allocated_bytes": 532
+        },
+        {
+          "stage": "lookup_exact_objects_128_methods_1",
+          "ns_per_op": 10419.2,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_128_methods_1",
+          "ns_per_op": 410288.72,
+          "allocations": 2,
+          "reallocations": 5,
+          "allocated_bytes": 1012
+        },
+        {
+          "stage": "lookup_prefix_objects_128_methods_1",
+          "ns_per_op": 421644.77,
+          "allocations": 3,
+          "reallocations": 5,
+          "allocated_bytes": 1044
+        },
+        {
+          "stage": "lookup_exact_objects_1_methods_64",
+          "ns_per_op": 15931.8,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_64",
+          "ns_per_op": 16857.72,
+          "allocations": 2,
+          "reallocations": 0,
+          "allocated_bytes": 20
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_64",
+          "ns_per_op": 17169.11,
+          "allocations": 3,
+          "reallocations": 0,
+          "allocated_bytes": 52
+        }
+      ],
+      "result_sha256": "0336ba438413c3d08fa48bdc0abb0e69bc0a3c1c1cf8e99263881a28b6040edc",
+      "raw_sha256": "22b4a6c6f8df5bb6ad1e2ae3786a5a2ca2715605eb7ae56d7194871109a457c6"
+    },
+    {
+      "index": 2,
+      "side": "candidate",
+      "metrics": [
+        {
+          "stage": "lookup_exact_objects_1_methods_1",
+          "ns_per_op": 11258.57,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_1",
+          "ns_per_op": 10403.51,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_1",
+          "ns_per_op": 10738.43,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        },
+        {
+          "stage": "lookup_exact_objects_64_methods_1",
+          "ns_per_op": 11040.9,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_64_methods_1",
+          "ns_per_op": 204992.98,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_64_methods_1",
+          "ns_per_op": 215774.42,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        },
+        {
+          "stage": "lookup_exact_objects_128_methods_1",
+          "ns_per_op": 10603.56,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_128_methods_1",
+          "ns_per_op": 403741.09,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_128_methods_1",
+          "ns_per_op": 422030.33,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        },
+        {
+          "stage": "lookup_exact_objects_1_methods_64",
+          "ns_per_op": 15344.73,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_64",
+          "ns_per_op": 15969.35,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_64",
+          "ns_per_op": 16198.33,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        }
+      ],
+      "result_sha256": "2585a3e4f29f9d94bdc785b96da512d41f5671ba60aaf6224ab8e243818f49ca",
+      "raw_sha256": "e76dae0adc4c854154a4c9863ca2db9b0d0864bc60eab88fca005b74f36f094d"
+    },
+    {
+      "index": 3,
+      "side": "candidate",
+      "metrics": [
+        {
+          "stage": "lookup_exact_objects_1_methods_1",
+          "ns_per_op": 11238.1,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_1",
+          "ns_per_op": 10361.42,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_1",
+          "ns_per_op": 11053.74,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        },
+        {
+          "stage": "lookup_exact_objects_64_methods_1",
+          "ns_per_op": 10436.9,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_64_methods_1",
+          "ns_per_op": 211265.61,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_64_methods_1",
+          "ns_per_op": 218288.97,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        },
+        {
+          "stage": "lookup_exact_objects_128_methods_1",
+          "ns_per_op": 10718.89,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_128_methods_1",
+          "ns_per_op": 403115.55,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_128_methods_1",
+          "ns_per_op": 422620.24,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        },
+        {
+          "stage": "lookup_exact_objects_1_methods_64",
+          "ns_per_op": 15344.73,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_64",
+          "ns_per_op": 15925.88,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 4
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_64",
+          "ns_per_op": 17071.93,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 24
+        }
+      ],
+      "result_sha256": "49ee9a0f228d304112f32f219b60da001fc20d95622cf4cadd4024b1feb5493d",
+      "raw_sha256": "a03f090437db9be8bccc8c66fe8d88544fbdf1d4683deaa6d964ba220c15f978"
+    },
+    {
+      "index": 4,
+      "side": "before",
+      "metrics": [
+        {
+          "stage": "lookup_exact_objects_1_methods_1",
+          "ns_per_op": 10879.01,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_1",
+          "ns_per_op": 11224.02,
+          "allocations": 2,
+          "reallocations": 0,
+          "allocated_bytes": 20
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_1",
+          "ns_per_op": 11225.71,
+          "allocations": 3,
+          "reallocations": 0,
+          "allocated_bytes": 52
+        },
+        {
+          "stage": "lookup_exact_objects_64_methods_1",
+          "ns_per_op": 10938.49,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_64_methods_1",
+          "ns_per_op": 210954.76,
+          "allocations": 2,
+          "reallocations": 4,
+          "allocated_bytes": 500
+        },
+        {
+          "stage": "lookup_prefix_objects_64_methods_1",
+          "ns_per_op": 213607.35,
+          "allocations": 3,
+          "reallocations": 4,
+          "allocated_bytes": 532
+        },
+        {
+          "stage": "lookup_exact_objects_128_methods_1",
+          "ns_per_op": 10468.68,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_128_methods_1",
+          "ns_per_op": 412311.68,
+          "allocations": 2,
+          "reallocations": 5,
+          "allocated_bytes": 1012
+        },
+        {
+          "stage": "lookup_prefix_objects_128_methods_1",
+          "ns_per_op": 427764.52,
+          "allocations": 3,
+          "reallocations": 5,
+          "allocated_bytes": 1044
+        },
+        {
+          "stage": "lookup_exact_objects_1_methods_64",
+          "ns_per_op": 15349.04,
+          "allocations": 1,
+          "reallocations": 0,
+          "allocated_bytes": 28
+        },
+        {
+          "stage": "lookup_all_objects_1_methods_64",
+          "ns_per_op": 15721.13,
+          "allocations": 2,
+          "reallocations": 0,
+          "allocated_bytes": 20
+        },
+        {
+          "stage": "lookup_prefix_objects_1_methods_64",
+          "ns_per_op": 16983.52,
+          "allocations": 3,
+          "reallocations": 0,
+          "allocated_bytes": 52
+        }
+      ],
+      "result_sha256": "d3c61289bb92befe657bb5ef5502b7e7f5abc94f9f0a8b75adb9eb5939be94d1",
+      "raw_sha256": "e596eddfcd0b45881f7a9dc55c51107c418623e168aaa01a2a508677d620766b"
+    }
+  ],
+  "summary": {
+    "lookup_all_objects_128_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 411300.19999999995,
+          "allocations": 2.0,
+          "reallocations": 5.0,
+          "allocated_bytes": 1012.0
+        },
+        "candidate": {
+          "ns_per_op": 403428.32,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 4.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -1.9139013304637187
+    },
+    "lookup_all_objects_1_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 10774.369999999999,
+          "allocations": 2.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 20.0
+        },
+        "candidate": {
+          "ns_per_op": 10382.465,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 4.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -3.6373820464676743
+    },
+    "lookup_all_objects_1_methods_64": {
+      "sides": {
+        "before": {
+          "ns_per_op": 16289.425,
+          "allocations": 2.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 20.0
+        },
+        "candidate": {
+          "ns_per_op": 15947.615,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 4.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -2.09835522125551
+    },
+    "lookup_all_objects_64_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 208880.66999999998,
+          "allocations": 2.0,
+          "reallocations": 4.0,
+          "allocated_bytes": 500.0
+        },
+        "candidate": {
+          "ns_per_op": 208129.29499999998,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 4.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -0.35971495112496754
+    },
+    "lookup_exact_objects_128_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 10443.94,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        },
+        "candidate": {
+          "ns_per_op": 10661.224999999999,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": 2.0804887810538686
+    },
+    "lookup_exact_objects_1_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 10817.8,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        },
+        "candidate": {
+          "ns_per_op": 11248.335,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": 3.97987576032095
+    },
+    "lookup_exact_objects_1_methods_64": {
+      "sides": {
+        "before": {
+          "ns_per_op": 15640.42,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        },
+        "candidate": {
+          "ns_per_op": 15344.73,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -1.890550253765566
+    },
+    "lookup_exact_objects_64_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 10638.835,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        },
+        "candidate": {
+          "ns_per_op": 10738.9,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 28.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": 0.9405635109483335
+    },
+    "lookup_prefix_objects_128_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 424704.645,
+          "allocations": 3.0,
+          "reallocations": 5.0,
+          "allocated_bytes": 1044.0
+        },
+        "candidate": {
+          "ns_per_op": 422325.28500000003,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 24.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -0.5602387513326978
+    },
+    "lookup_prefix_objects_1_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 11170.775,
+          "allocations": 3.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 52.0
+        },
+        "candidate": {
+          "ns_per_op": 10896.085,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 24.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -2.4590057538532495
+    },
+    "lookup_prefix_objects_1_methods_64": {
+      "sides": {
+        "before": {
+          "ns_per_op": 17076.315000000002,
+          "allocations": 3.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 52.0
+        },
+        "candidate": {
+          "ns_per_op": 16635.13,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 24.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -2.5836077631503085
+    },
+    "lookup_prefix_objects_64_methods_1": {
+      "sides": {
+        "before": {
+          "ns_per_op": 214286.015,
+          "allocations": 3.0,
+          "reallocations": 4.0,
+          "allocated_bytes": 532.0
+        },
+        "candidate": {
+          "ns_per_op": 217031.695,
+          "allocations": 1.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 24.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": 1.2813155352205285
+    }
+  }
+}

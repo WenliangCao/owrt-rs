@@ -1,0 +1,74 @@
+{
+  "runtime_base": "abb3816",
+  "patch_sha256": "9f21c53877407b568dc660fe95f8837ac2c57c6474f45a4609e7b7832744edb5",
+  "runtime_files": {
+    "components/ubusd/src/server.rs": "b4df75d621d39395cac170cd2dcc1f226624d89cba92126b026eb4bf91fcfd2a",
+    "components/ubusd/src/obj.rs": "3a38a8619194263e398b200041f03e4674e27291910688cee3b03f12f2de877a"
+  },
+  "candidate_sha256": "469408295d88942777e1798501a169ca85e1f67aa9db2207162cf26bd2df9ecb",
+  "before_sha256": "0eea3291e99a4e02e50c11be568c3c4b5bf39673eaec665a1e4655f27813d7b5",
+  "binary_size_bytes": 507880,
+  "build_host_unit_tests": 28,
+  "build_host_clippy": "passed -D clippy::undocumented_unsafe_blocks; pre-existing unused-import warning in diagnostic example",
+  "build_host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "24122f6378b82666e8f83b80fabb49a8c5185de86ee07973d86325152f3273be"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "37abaac296419b34f710e1a18e83c8b56a533cb9308492865fb2e10ad349e693"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "c3e19434dd7a6ad42e9047824d59b5fe1b3ccfa6805bf6cf67eca8abc4509f54"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ],
+  "physical_unit_tests": {
+    "passed": 28,
+    "sha256": "022c6aa9166eafb13fb26945057a964453a3bfd9c8c56701ae2fd4985fa3716a"
+  },
+  "physical_smoke_result_sha256": "3b294e36d3fe5fab9942056817121b436f3f2df694d0c4fea14d5237c2096395",
+  "matrix_windows": 16,
+  "matrix_timed_requests": 320000,
+  "independent_recheck_windows": 16,
+  "independent_recheck_timed_requests": 960000,
+  "diagnostic_windows": 8,
+  "production": "stock C throughout; never installed",
+  "all_windows_cleaned": true,
+  "final_stock_health_verified": true,
+  "final_test_directories": 0,
+  "final_test_process_references": 0,
+  "final_health_sha256": "a6ba85b7a0455ed4f7ad694036e52f06985e46e7f8177afe564a85236c5ccff3",
+  "final_cleanup_sha256": "737e6a131a5af5246d9f04ab3376281db0219412a23e0ec2de91cddfe176dd60",
+  "scope_limits": [
+    "No formal superiority or equivalence confirmation",
+    "Memory diagnostics are not peak/PSS",
+    "No nine-component integrated acceptance",
+    "Backpressure profiles compare Rust revisions, not C"
+  ]
+}

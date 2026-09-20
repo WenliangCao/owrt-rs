@@ -1,0 +1,333 @@
+{
+  "plan_sha256": "92e3196d6cd0acbb0c1d2750e85a00036acc86e6d3395c4688887e10bea3d9b0",
+  "plan": {
+    "purpose": "Physical scaling diagnostic under forced repeated backpressure, 16/64/256 objects with 16 KiB method payload each. Validate every reply and at least count-1 command resumes. Whole-dispatch CPU/wall and requested allocation volume, not C comparison or peak/RSS.",
+    "order": [
+      "before",
+      "candidate",
+      "candidate",
+      "before"
+    ],
+    "iterations": 10,
+    "subjects": {
+      "before": "02763a97fc5eb3d8ee440dd8cc4078fe75a7b7f97ef4563c0ff60dd30678bc95",
+      "candidate": "2a90831b578f2d1dee0a7dd0b2b066d5d3fb0e1ca82699d636377bbca05e5132"
+    },
+    "profile_source_sha256": "685973d34961b2f29a8489ca613115edd5ea0e78b9ec111eb1cc441d71a5a7fd",
+    "counter_source_sha256": "072c26ae6d474f5c211338d49b06a905b3a40c876e05734f3ddca6b95763b550",
+    "workload_sha256": "98e13e8b131a0828deac90f61a6ffaad8ecf45185ec6b709f689775e5b3249a9",
+    "driver_sha256": "62ba3eca64df6582d698b4886bdc512396bc4cc396ea225d066f3c4d14cc6b1d",
+    "expectation": "Old implementation collects each remaining suffix on resume, potentially quadratic total ID-vector work; borrowed traversal should eliminate that work. Socket-frame ownership, command path copies and request fixture copies remain.",
+    "warmup": 3
+  },
+  "scope": "Instrumented Rust dispatch/socket-pair fixture; no C comparison, no daemon event loop",
+  "memory_scope": "Requested bytes summed across allocation/reallocation calls, not peak/live heap or RSS",
+  "all_windows_cleaned_and_production_stock": true,
+  "superiority_verdict": null,
+  "runs": [
+    {
+      "index": 1,
+      "side": "before",
+      "metrics": [
+        {
+          "stage": "backpressure_all_16",
+          "ns_per_op": 1266791.4,
+          "allocations": 49,
+          "reallocations": 20,
+          "allocated_bytes": 264896
+        },
+        {
+          "stage": "backpressure_prefix_16",
+          "ns_per_op": 1002125.7,
+          "allocations": 50,
+          "reallocations": 20,
+          "allocated_bytes": 264928
+        },
+        {
+          "stage": "backpressure_all_64",
+          "ns_per_op": 3736897.0,
+          "allocations": 193,
+          "reallocations": 196,
+          "allocated_bytes": 1075840
+        },
+        {
+          "stage": "backpressure_prefix_64",
+          "ns_per_op": 4098833.1,
+          "allocations": 194,
+          "reallocations": 196,
+          "allocated_bytes": 1075872
+        },
+        {
+          "stage": "backpressure_all_256",
+          "ns_per_op": 16696422.6,
+          "allocations": 769,
+          "reallocations": 1284,
+          "allocated_bytes": 4565376
+        },
+        {
+          "stage": "backpressure_prefix_256",
+          "ns_per_op": 20113240.2,
+          "allocations": 770,
+          "reallocations": 1284,
+          "allocated_bytes": 4565408
+        }
+      ],
+      "result_sha256": "7bcee72cc89e29b20550bb5c7291920f0d17011269532ccd5a9be85f678f1f23",
+      "raw_sha256": "8464903f9bc29fab276de769cfccc64124f5e42a8637060ee92054d435d26bae"
+    },
+    {
+      "index": 2,
+      "side": "candidate",
+      "metrics": [
+        {
+          "stage": "backpressure_all_16",
+          "ns_per_op": 1026624.1,
+          "allocations": 33,
+          "reallocations": 0,
+          "allocated_bytes": 263744
+        },
+        {
+          "stage": "backpressure_prefix_16",
+          "ns_per_op": 983513.4,
+          "allocations": 33,
+          "reallocations": 0,
+          "allocated_bytes": 263764
+        },
+        {
+          "stage": "backpressure_all_64",
+          "ns_per_op": 3436607.2,
+          "allocations": 129,
+          "reallocations": 0,
+          "allocated_bytes": 1054976
+        },
+        {
+          "stage": "backpressure_prefix_64",
+          "ns_per_op": 4047443.4,
+          "allocations": 129,
+          "reallocations": 0,
+          "allocated_bytes": 1054996
+        },
+        {
+          "stage": "backpressure_all_256",
+          "ns_per_op": 15096733.0,
+          "allocations": 513,
+          "reallocations": 0,
+          "allocated_bytes": 4219904
+        },
+        {
+          "stage": "backpressure_prefix_256",
+          "ns_per_op": 15068772.3,
+          "allocations": 513,
+          "reallocations": 0,
+          "allocated_bytes": 4219924
+        }
+      ],
+      "result_sha256": "81d41e7c7794e4c19bfdf103c85681195dad8570b6c4fcf0c08bed9b564a5a2a",
+      "raw_sha256": "fd6de877b66f569645ee9dfa6997acf6cd0abc3b77363164f4885a5963687c97"
+    },
+    {
+      "index": 3,
+      "side": "candidate",
+      "metrics": [
+        {
+          "stage": "backpressure_all_16",
+          "ns_per_op": 1046444.4,
+          "allocations": 33,
+          "reallocations": 0,
+          "allocated_bytes": 263744
+        },
+        {
+          "stage": "backpressure_prefix_16",
+          "ns_per_op": 865161.0,
+          "allocations": 33,
+          "reallocations": 0,
+          "allocated_bytes": 263764
+        },
+        {
+          "stage": "backpressure_all_64",
+          "ns_per_op": 3414447.8,
+          "allocations": 129,
+          "reallocations": 0,
+          "allocated_bytes": 1054976
+        },
+        {
+          "stage": "backpressure_prefix_64",
+          "ns_per_op": 3460667.0,
+          "allocations": 129,
+          "reallocations": 0,
+          "allocated_bytes": 1054996
+        },
+        {
+          "stage": "backpressure_all_256",
+          "ns_per_op": 14386979.9,
+          "allocations": 513,
+          "reallocations": 0,
+          "allocated_bytes": 4219904
+        },
+        {
+          "stage": "backpressure_prefix_256",
+          "ns_per_op": 14740844.7,
+          "allocations": 513,
+          "reallocations": 0,
+          "allocated_bytes": 4219924
+        }
+      ],
+      "result_sha256": "2bbd257fa3f69a48761cfe7fa847765563fa1135fed5e94587395422ffb1aae7",
+      "raw_sha256": "59b8bddbe7e8df1ecf98d2db787d4c9bd59ea8cefe37f18fb9169da277c1f918"
+    },
+    {
+      "index": 4,
+      "side": "before",
+      "metrics": [
+        {
+          "stage": "backpressure_all_16",
+          "ns_per_op": 1112699.3,
+          "allocations": 49,
+          "reallocations": 20,
+          "allocated_bytes": 264896
+        },
+        {
+          "stage": "backpressure_prefix_16",
+          "ns_per_op": 1073120.3,
+          "allocations": 50,
+          "reallocations": 20,
+          "allocated_bytes": 264928
+        },
+        {
+          "stage": "backpressure_all_64",
+          "ns_per_op": 3952496.8,
+          "allocations": 193,
+          "reallocations": 196,
+          "allocated_bytes": 1075840
+        },
+        {
+          "stage": "backpressure_prefix_64",
+          "ns_per_op": 3991752.7,
+          "allocations": 194,
+          "reallocations": 196,
+          "allocated_bytes": 1075872
+        },
+        {
+          "stage": "backpressure_all_256",
+          "ns_per_op": 16674170.9,
+          "allocations": 769,
+          "reallocations": 1284,
+          "allocated_bytes": 4565376
+        },
+        {
+          "stage": "backpressure_prefix_256",
+          "ns_per_op": 20327916.6,
+          "allocations": 770,
+          "reallocations": 1284,
+          "allocated_bytes": 4565408
+        }
+      ],
+      "result_sha256": "37e0eec5e229816c924a158d72f8816e2144aa6634bbeda37601f80437d99e32",
+      "raw_sha256": "73d4227c8b560003aeafc558340506497a91e6979a5bd4040d302f01644340ef"
+    }
+  ],
+  "summary": {
+    "backpressure_all_16": {
+      "sides": {
+        "before": {
+          "ns_per_op": 1189745.35,
+          "allocations": 49.0,
+          "reallocations": 20.0,
+          "allocated_bytes": 264896.0
+        },
+        "candidate": {
+          "ns_per_op": 1036534.25,
+          "allocations": 33.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 263744.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -12.877638059270424
+    },
+    "backpressure_all_256": {
+      "sides": {
+        "before": {
+          "ns_per_op": 16685296.75,
+          "allocations": 769.0,
+          "reallocations": 1284.0,
+          "allocated_bytes": 4565376.0
+        },
+        "candidate": {
+          "ns_per_op": 14741856.45,
+          "allocations": 513.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 4219904.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -11.647622029856919
+    },
+    "backpressure_all_64": {
+      "sides": {
+        "before": {
+          "ns_per_op": 3844696.9,
+          "allocations": 193.0,
+          "reallocations": 196.0,
+          "allocated_bytes": 1075840.0
+        },
+        "candidate": {
+          "ns_per_op": 3425527.5,
+          "allocations": 129.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 1054976.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -10.902534345425252
+    },
+    "backpressure_prefix_16": {
+      "sides": {
+        "before": {
+          "ns_per_op": 1037623.0,
+          "allocations": 50.0,
+          "reallocations": 20.0,
+          "allocated_bytes": 264928.0
+        },
+        "candidate": {
+          "ns_per_op": 924337.2,
+          "allocations": 33.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 263764.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -10.91781889954252
+    },
+    "backpressure_prefix_256": {
+      "sides": {
+        "before": {
+          "ns_per_op": 20220578.4,
+          "allocations": 770.0,
+          "reallocations": 1284.0,
+          "allocated_bytes": 4565408.0
+        },
+        "candidate": {
+          "ns_per_op": 14904808.5,
+          "allocations": 513.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 4219924.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -26.288911201471855
+    },
+    "backpressure_prefix_64": {
+      "sides": {
+        "before": {
+          "ns_per_op": 4045292.9000000004,
+          "allocations": 194.0,
+          "reallocations": 196.0,
+          "allocated_bytes": 1075872.0
+        },
+        "candidate": {
+          "ns_per_op": 3754055.2,
+          "allocations": 129.0,
+          "reallocations": 0.0,
+          "allocated_bytes": 1054996.0
+        }
+      },
+      "ratio_of_side_medians_ns_delta_pct": -7.199421826785402
+    }
+  }
+}

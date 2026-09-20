@@ -148,6 +148,7 @@ impl Registry {
     }
 
     /// Path-ordered ids whose path starts with `prefix`.
+    #[cfg(test)]
     pub fn path_prefix(&self, prefix: &[u8]) -> Vec<u32> {
         self.paths
             .range(prefix.to_vec()..)

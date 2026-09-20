@@ -9,6 +9,7 @@ use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::msg::{attr, status, ty, Header};
 use std::collections::HashMap;
 use std::os::fd::OwnedFd;
+use std::ops::Bound::{Included, Unbounded};
 
 /// What a handler decided: reply with this status, reply with nothing (the
 /// handler already sent what was needed), or the command was parked.
@@ -417,20 +418,7 @@ impl Server {
     fn lookup(&mut self, client: u32, msg: &InMsg, resume: Option<Vec<u8>>) -> Result<Outcome, Option<Vec<u8>>> {
         let attrs = attrs_of(msg.payload());
         let Some(p) = attrs[attr::OBJPATH as usize] else {
-            let resumed = resume.is_some();
-            let all: Vec<u32> = self.reg.paths.range(resume.unwrap_or_default()..).map(|(_, &id)| id).collect();
-            // A whole-bus listing is the same bounded frame sequence as a
-            // prefix listing: one write instead of one per object.
-            if !resumed && !all.is_empty() && self.try_batch(client, msg, &all) {
-                return Ok(Outcome::NoStatus);
-            }
-            for id in all {
-                if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
-                    return Err(self.reg.get(id).and_then(|o| o.path.clone()));
-                }
-                self.send_obj(client, id, msg);
-            }
-            return Ok(Outcome::Status(status::OK));
+            return self.lookup_range(client, msg, b"", resume, true);
         };
 
         let path = obj::cstr_bytes(p.payload);
@@ -456,79 +444,76 @@ impl Server {
             return Ok(Outcome::Status(status::OK));
         }
 
-        let prefix = &path[..path.len() - 1];
+        self.lookup_range(client, msg, &path[..path.len() - 1], resume, false)
+    }
+
+    /// Borrow the ordered index throughout this dispatch. Only a parked
+    /// command owns a path; no array proportional to the result is allocated.
+    fn lookup_range(&mut self, client: u32, msg: &InMsg, prefix: &[u8], resume: Option<Vec<u8>>, all: bool)
+        -> Result<Outcome, Option<Vec<u8>>>
+    {
         let resumed = resume.is_some();
-        let matches: Vec<u32> = if let Some(lower) = resume {
-            self.reg.paths.range(lower..)
-                .take_while(|(path, _)| path.starts_with(prefix)).map(|(_, &id)| id).collect()
-        } else {
-            self.reg.path_prefix(prefix)
-        };
-        if matches.is_empty() {
-            // Removing the remaining tail completes a parked lookup; only an
-            // initially unmatched prefix reports NOT_FOUND.
-            return Ok(Outcome::Status(if resumed { status::OK } else { status::NOT_FOUND }));
+        let lower = resume.as_deref().unwrap_or(prefix);
+        let paths = self.reg.paths.range::<[u8], _>((Included(lower), Unbounded))
+            .take_while(|(path, _)| path.starts_with(prefix));
+        if paths.clone().next().is_none() {
+            // An initially unmatched prefix differs from an empty bus or a
+            // continuation whose remaining objects have all been removed.
+            return Ok(Outcome::Status(if all || resumed { status::OK } else { status::NOT_FOUND }));
         }
-        if self.try_batch(client, msg, &matches) {
+        let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
+        // Retain the existing 16 KiB eligibility bound and one-write policy.
+        // Stop the sizing walk immediately when the bound is exceeded.
+        let bytes = if self.monitors.is_empty() && !(all && resumed) {
+            paths.clone().try_fold(Header::LEN + 12, |mut bytes, (_, &id)| {
+                if let Some(o) = self.reg.get(id) {
+                    if let (Some(path), Some(t)) = (o.path.as_deref(), o.type_id.and_then(|id| self.reg.types.get(&id))) {
+                        bytes += Header::LEN + 4 + crate::client::pad4(4 + path.len() + 1) + 8 + 8 + 4;
+                        bytes += t.methods.iter().map(|m| crate::client::pad4(m.blob.len())).sum::<usize>();
+                    }
+                }
+                (bytes <= 16 * 1024).then_some(bytes)
+            })
+        } else {
+            None
+        };
+        if let Some(bytes) = bytes {
+            self.lookup_batch.clear();
+            self.lookup_batch.reserve_exact(bytes);
+            let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
+            for (_, &id) in paths {
+                if Self::encode_obj(&self.reg, &self.acl, cred.as_ref(), id, &mut self.scratch) {
+                    self.lookup_batch.extend_from_slice(&header.encode());
+                    self.lookup_batch.extend_from_slice(self.scratch.as_bytes());
+                }
+            }
+            self.scratch.reset();
+            self.scratch.put_u32(attr::STATUS, status::OK as u32);
+            self.lookup_batch.extend_from_slice(&Header { ty: ty::STATUS, ..header }.encode());
+            self.lookup_batch.extend_from_slice(self.scratch.as_bytes());
+            debug_assert!(self.lookup_batch.len() <= bytes);
+            if let Some(c) = self.clients.get_mut(&client) {
+                c.send_lookup_batch(&self.lookup_batch);
+                self.touched.push(client);
+            }
+            self.lookup_batch.clear();
             return Ok(Outcome::NoStatus);
         }
-        for id in matches {
-            // Prefix replies need the same backpressure boundary as pathless
-            // lookup: never fill the bounded queue then silently lose DATA.
+        for (path, &id) in paths {
             if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
-                return Err(self.reg.get(id).and_then(|o| o.path.clone()));
+                return Err(Some(path.clone()));
             }
-            self.send_obj(client, id, msg);
+            let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
+            if Self::encode_obj(&self.reg, &self.acl, cred.as_ref(), id, &mut self.scratch) {
+                let blob = self.scratch.as_bytes();
+                Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &header, blob, true);
+                if let Some(c) = self.clients.get_mut(&client) {
+                    c.send_borrowed(header, blob, None);
+                    self.touched.push(client);
+                }
+            }
         }
         Ok(Outcome::Status(status::OK))
-    }
-
-    /// Emit every listed object and the final STATUS as one bounded write.
-    /// Used for prefix and whole-bus lookups; the wire bytes are the same
-    /// frames the per-object path sends, so a short write splits back into
-    /// them (see `Client::send_lookup_batch`).
-    fn try_batch(&mut self, client: u32, msg: &InMsg, ids: &[u32]) -> bool {
-        const LIMIT: usize = 16 * 1024;
-        if !self.monitors.is_empty() {
-            return false;
-        }
-        // Bound the whole reply before emitting anything. The signature is
-        // an upper bound: ACL filtering can only remove methods/objects.
-        // This keeps large-listing queue overflow at its original boundaries.
-        let mut bytes = Header::LEN + 12; // final STATUS
-        for id in ids {
-            let Some(o) = self.reg.get(*id) else { continue };
-            let (Some(path), Some(t)) = (o.path.as_deref(), o.type_id.and_then(|id| self.reg.types.get(&id)))
-                else { continue };
-            bytes += Header::LEN + 4 + crate::client::pad4(4 + path.len() + 1) + 8 + 8 + 4;
-            bytes += t.methods.iter().map(|m| crate::client::pad4(m.blob.len())).sum::<usize>();
-            if bytes > LIMIT {
-                return false;
-            }
-        }
-        self.lookup_batch.clear();
-        self.lookup_batch.reserve_exact(bytes);
-        let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
-        for id in ids {
-            if self.build_obj(client, *id) {
-                self.append_lookup_frame(header);
-            }
-        }
-        self.scratch.reset();
-        self.scratch.put_u32(attr::STATUS, status::OK as u32);
-        self.append_lookup_frame(Header { ty: ty::STATUS, ..header });
-        debug_assert!(self.lookup_batch.len() <= bytes);
-        if let Some(c) = self.clients.get_mut(&client) {
-            c.send_lookup_batch(&self.lookup_batch);
-            self.touched.push(client);
-        }
-        self.lookup_batch.clear();
-        true
-    }
-
-    fn append_lookup_frame(&mut self, header: Header) {
-        self.lookup_batch.extend_from_slice(&header.encode());
-        self.lookup_batch.extend_from_slice(self.scratch.as_bytes());
     }
 
     /// One object's description. Objects with no type are invisible, and a
@@ -541,12 +526,16 @@ impl Server {
     }
 
     fn build_obj(&mut self, client: u32, id: u32) -> bool {
-        let Some(o) = self.reg.get(id) else { return false };
+        let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
+        Self::encode_obj(&self.reg, &self.acl, cred.as_ref(), id, &mut self.scratch)
+    }
+
+    fn encode_obj(reg: &Registry, acl: &Acl, cred: Option<&Cred<'_>>, id: u32, b: &mut BlobBuf) -> bool {
+        let Some(o) = reg.get(id) else { return false };
         let Some(type_id) = o.type_id else { return false };
         let Some(path) = o.path.as_deref() else { return false };
-        let Some(t) = self.reg.types.get(&type_id) else { return false };
+        let Some(t) = reg.types.get(&type_id) else { return false };
 
-        let b = &mut self.scratch;
         b.reset();
         b.put_string_bytes(attr::OBJPATH, path);
         b.put_u32(attr::OBJID, id);
@@ -554,10 +543,9 @@ impl Server {
         let s = b.nest_start(attr::SIGNATURE);
         let mut all = 0usize;
         let mut visible = 0usize;
-        let cred_ref = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
         for m in &t.methods {
             all += 1;
-            if self.acl.check(cred_ref.as_ref(), Some(path), Some(&m.name), AclType::Access) {
+            if acl.check(cred, Some(path), Some(&m.name), AclType::Access) {
                 b.put_raw_fields(&m.blob);
                 visible += 1;
             }
@@ -1449,14 +1437,16 @@ mod tests {
     fn prefix_lookup_preserves_acl_typeless_filter_raw_order_and_monitor_frames() {
         const CALLER: u32 = 2000;
         const MONITOR: u32 = 2001;
-        for root in [false, true] {
+        for (root, monitored) in [(false, false), (true, false), (false, true), (true, true)] {
             let mut server = Server::new(String::new()).unwrap();
             let (mut caller, mut peer) = lookup_client();
             caller.uid = if root { 0 } else { 12345 };
             server.clients.insert(CALLER, caller);
             let (monitor, mut monitor_peer) = lookup_client();
             server.clients.insert(MONITOR, monitor);
-            server.monitors.push((MONITOR, 0));
+            if monitored {
+                server.monitors.push((MONITOR, 0));
+            }
             server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: Vec::new() });
             let mut signature = BlobBuf::new();
             let table = signature.msg_open_table("hidden");
@@ -1487,6 +1477,10 @@ mod tests {
             assert_eq!(paths, expected);
             assert_eq!(frames.last().unwrap().0.ty, ty::STATUS);
             let mirrored = lookup_frames(&drain_lookup(&mut server, MONITOR, &mut monitor_peer));
+            if !monitored {
+                assert!(mirrored.is_empty());
+                continue;
+            }
             assert_eq!(mirrored.len(), frames.len() + 1);
             for (index, (header, payload)) in mirrored.iter().enumerate() {
                 assert_eq!(header.ty, ty::MONITOR);
