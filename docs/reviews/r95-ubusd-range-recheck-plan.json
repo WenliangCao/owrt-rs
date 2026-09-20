@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "purpose": "Independent diagnostic recheck of apparent lookup_c4/invoke_c4 regressions. Selected after the first pilot; no pooling or replacement of its adverse results.",
+  "runtime_commit": "abb3816 plus recorded range patch",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "before",
+        "candidate"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 5,
+      "order": [
+        "before",
+        "candidate"
+      ]
+    },
+    {
+      "block": 6,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 7,
+      "order": [
+        "before",
+        "candidate"
+      ]
+    },
+    {
+      "block": 8,
+      "order": [
+        "before",
+        "candidate"
+      ]
+    }
+  ],
+  "seed": 9505,
+  "iterations": 20000,
+  "warmup": 20,
+  "subjects": {
+    "candidate": "469408295d88942777e1798501a169ca85e1f67aa9db2207162cf26bd2df9ecb",
+    "before": "0eea3291e99a4e02e50c11be568c3c4b5bf39673eaec665a1e4655f27813d7b5"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "62ba3eca64df6582d698b4886bdc512396bc4cc396ea225d066f3c4d14cc6b1d",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r95_ubusd_recheck.sh": "25ed19e0d5d0f7f908012d9c37e107fd8ca384bc1d0abf5d8dc6e6a5f2e505f9"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op"
+  ],
+  "memory": "RSS diagnostic only, not precise peak or PSS",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Report every paired per-block metric. No confidence/superiority or equivalence claim from this follow-up; lower CPU tick quantum is 0.5 us/op serial and about 0.498 us/op concurrent. Do not discard failed or slow windows.",
+  "runtime_patch_sha256": "9f21c53877407b568dc660fe95f8837ac2c57c6474f45a4609e7b7832744edb5",
+  "server_source_sha256": "b4df75d621d39395cac170cd2dcc1f226624d89cba92126b026eb4bf91fcfd2a",
+  "hypothesis": "Determine whether the previously observed +9.84% lookup_c4 and +3.25% invoke_c4 mean changes persist with longer independent windows. No algorithm, compiler or release artifact change.",
+  "retention_rule": "Reject correctness failures. Do not claim full superiority or promote this runtime change on pilot point estimates alone. Report all latency/CPU signs, memory diagnostics, and allocation-only evidence separately. Investigate apparent new regressions before retaining.",
+  "matrix": false,
+  "workloads": [
+    "lookup",
+    "lookup_c4",
+    "invoke_c4"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes."
+}
