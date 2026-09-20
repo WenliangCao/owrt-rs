@@ -32,6 +32,27 @@ def allowed(status):
                 if line.startswith('Cpus_allowed_list:'))
 
 
+def verify_sample(j, plan, n):
+    assert j['mode'] == 'serial_cpu_loop' and j['successful'] == n and j['errors'] == 0
+    assert j['warmup'] == plan['warmup']
+    assert j['wall_s'] > 0 and math.isclose(j['ops_per_s'], n / j['wall_s'], rel_tol=1e-8)
+    for who, cpu in [('subject', plan['subject_cpu']), ('client', plan['client_cpu'])]:
+        a, b = j[who + '_before'], j[who + '_after']
+        assert a['pid'] == b['pid'] and a['start_ticks'] == b['start_ticks']
+        assert a['Threads'] == b['Threads'] == 1
+        assert a['process_cpu_resolution_ns'] == b['process_cpu_resolution_ns'] > 0
+        lo, hi = j[who + '_cpu_start_ns'], j[who + '_cpu_end_ns']
+        assert a['process_cpu_ns'] <= lo <= hi <= b['process_cpu_ns']
+        assert j[who + '_cpu_clock_ns'] == hi - lo > 0
+        assert allowed(j[who + '_status']) == str(cpu)
+    return {'subject_cpu_us': j['subject_cpu_clock_ns'] / n / 1000,
+            'client_cpu_us': j['client_cpu_clock_ns'] / n / 1000,
+            'wall_us': j['wall_s'] / n * 1e6,
+            'wall_s': j['wall_s'], 'ops_per_s': j['ops_per_s'],
+            'subject_before': j['subject_before'], 'subject_after': j['subject_after'],
+            'client_before': j['client_before'], 'client_after': j['client_after']}
+
+
 def verify_run(root, plan, side, iterations=None):
     read = lambda p: json.loads((root / p).read_text())
     r = read('result.json')
@@ -61,26 +82,12 @@ def verify_run(root, plan, side, iterations=None):
     assert j['warmup'] == meta['warmup'] == plan['warmup']
     assert meta['iterations'] == n and j['subject_pid'] == meta['subject_pid']
     assert j['wall_s'] > 0 and math.isclose(j['ops_per_s'], n / j['wall_s'], rel_tol=1e-8)
-    for who, cpu in [('subject', plan['subject_cpu']), ('client', plan['client_cpu'])]:
-        a, b = j[who + '_before'], j[who + '_after']
-        assert a['pid'] == b['pid'] and a['start_ticks'] == b['start_ticks']
-        assert a['Threads'] == b['Threads'] == 1
-        assert a['process_cpu_resolution_ns'] == b['process_cpu_resolution_ns'] > 0
-        lo, hi = j[who + '_cpu_start_ns'], j[who + '_cpu_end_ns']
-        assert a['process_cpu_ns'] <= lo <= hi <= b['process_cpu_ns']
-        assert j[who + '_cpu_clock_ns'] == hi - lo > 0
-        assert allowed(j[who + '_status']) == str(cpu)
     assert allowed((root / 'raw/subject-status-before.txt').read_text()) == str(plan['subject_cpu'])
     assert allowed((root / 'raw/subject-status-after.txt').read_text()) == str(plan['subject_cpu'])
-    return {'subject_cpu_us': j['subject_cpu_clock_ns'] / n / 1000,
-            'client_cpu_us': j['client_cpu_clock_ns'] / n / 1000,
-            'wall_us': j['wall_s'] / n * 1e6,
-            'wall_s': j['wall_s'], 'ops_per_s': j['ops_per_s'],
-            'subject_before': j['subject_before'], 'subject_after': j['subject_after'],
-            'client_before': j['client_before'], 'client_after': j['client_after'],
-            'frequency_before': (root / 'raw/frequency-before.txt').read_text(),
-            'frequency_after': (root / 'raw/frequency-after.txt').read_text(),
-            'result_sha256': digest(root / 'result.json'), 'raw_sha256': digest(root / 'raw.tar.gz')}
+    return dict(verify_sample(j, plan, n),
+                frequency_before=(root / 'raw/frequency-before.txt').read_text(),
+                frequency_after=(root / 'raw/frequency-after.txt').read_text(),
+                result_sha256=digest(root / 'result.json'), raw_sha256=digest(root / 'raw.tar.gz'))
 
 
 def main():

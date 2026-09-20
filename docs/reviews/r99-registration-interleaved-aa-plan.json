@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "kind": "aa",
+  "purpose": "Independent calibration of within-window serial interleaving after whole-window A/A failed precision gate",
+  "subjects": {
+    "a": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+    "b": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096"
+  },
+  "benchmark_sha256": "efe7a431cb749e1856cf6555ca90ad42052d14ded153ae53facef1ca3de92350",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "workload_sha256": "027432889e5f14c95b4440e038d458614170ccbd5902e1d5c7122fb836afb331",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "iterations": 10000,
+  "warmup": 2000,
+  "subject_cpu": 1,
+  "client_cpu": 0,
+  "seed": 9902,
+  "blocks": [
+    {
+      "block": 1,
+      "slots": {
+        "a": "a",
+        "b": "b"
+      }
+    },
+    {
+      "block": 2,
+      "slots": {
+        "a": "b",
+        "b": "a"
+      }
+    },
+    {
+      "block": 3,
+      "slots": {
+        "a": "b",
+        "b": "a"
+      }
+    },
+    {
+      "block": 4,
+      "slots": {
+        "a": "b",
+        "b": "a"
+      }
+    },
+    {
+      "block": 5,
+      "slots": {
+        "a": "a",
+        "b": "b"
+      }
+    },
+    {
+      "block": 6,
+      "slots": {
+        "a": "a",
+        "b": "b"
+      }
+    },
+    {
+      "block": 7,
+      "slots": {
+        "a": "a",
+        "b": "b"
+      }
+    },
+    {
+      "block": 8,
+      "slots": {
+        "a": "b",
+        "b": "a"
+      }
+    }
+  ],
+  "contrasts": [
+    [
+      "b",
+      "a"
+    ]
+  ],
+  "metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "wall_us"
+  ],
+  "interval_metrics": [
+    "subject_cpu_us",
+    "client_cpu_us"
+  ],
+  "calibration_median_band": [
+    0.995,
+    1.005
+  ],
+  "calibration_rule": "For each CPU metric, exact paired-run median rank interval with Bonferroni m=2 must fit within +/-0.5% for preliminary ability to study ~1% changes. Report every individual pair/outlier; passing is session/workload-specific, not universal accuracy or equivalence. No candidate data collected under this A/A plan. If not met, improve design/sample evidence before classifying effects near 1%.",
+  "statistical_unit": "One physical paired window yields one ratio of sums across 20 equal-size segments per side. Eight independent windows; never treat 40 segments as 40 independent replicates.",
+  "reference": "https://online.stat.psu.edu/stat415/lesson/19/19.1",
+  "preflight": "After existing R99 memory/device windows: one paired smoke with n=1000 per segment; verify all 40 JSON results, two daemon identities, affinity, counts, returned states and cleanup before collecting n=10000.",
+  "production": "stock C throughout; only new disposable namespace processes are pinned; no governor/IRQ/production affinity changes",
+  "failure_rule": "Stop on identity, correctness, collection, health, affinity or cleanup failure. Preserve failed window; never infer success from missing results.",
+  "segments_per_window": 40,
+  "quartets": 10,
+  "cycles_per_side_per_window": 200000,
+  "design": "Two independent byte-identical daemons pinned CPU 1; one serial client pinned CPU 0. Ten quartets alternating slot ABBA/BAAB, 2000 untimed warmup cycles per segment. Randomized logical side assignment to slots per window. Identical source client as previous calibration. This co-resident comparison is a diagnostic condition, not production latency/memory acceptance.",
+  "references": [
+    "https://www.itl.nist.gov/div898/handbook/pri/section3/pri332.htm",
+    "https://online.stat.psu.edu/stat415/lesson/19/19.1"
+  ],
+  "previous_data": "r99-registration-aa-results.json retained separately; no pooling, replacement or candidate-based selection"
+}
