@@ -501,7 +501,7 @@ impl Server {
         }
         for (path, &id) in paths {
             if self.clients.get(&client).is_some_and(|c| !c.tx_empty()) {
-                return Err(Some(path.clone()));
+                return Err(Some(path.to_vec()));
             }
             let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
             if Self::encode_obj(&self.reg, &self.acl, cred.as_ref(), id, &mut self.scratch) {

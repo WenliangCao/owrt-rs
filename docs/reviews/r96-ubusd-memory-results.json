@@ -1,0 +1,358 @@
+{
+  "plan_sha256": "ecc19418d34a4425ea948a86cb6716e6087a4a8c9e362fc46ca80a865052adb7",
+  "plan": {
+    "purpose": "Requested retained and construction-peak Rust heap in actual Registry, not RSS/PSS or full daemon peak. Validate index lookup and held path survival after delete/drop; all owners released must return live allocation count to baseline.",
+    "order": [
+      "before",
+      "candidate",
+      "candidate",
+      "before"
+    ],
+    "objects": [
+      1,
+      64,
+      128,
+      512
+    ],
+    "path_bytes": [
+      16,
+      64,
+      256
+    ],
+    "iterations": 1,
+    "subjects": {
+      "before": "4e0d9cd4a988e25b6e4d3ea3ce28e4c0ec0599f222f3bde764c804fcaefd0862",
+      "candidate": "ad920149b2a522a8c178a5f37dac615ade4236082c4298146958aab95a8e5b10"
+    },
+    "profile_source_sha256": "e89a676f96ddb4cbc915d45c40584a40dcc366f57d3033ff1ab0b3e3a50a17e3",
+    "workload_sha256": "9b729f3ab1f1884908209ad65d7d490581bbd3ddd348ae445d2f6f224175d913",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "hypothesis": "Single immutable path copy reduces retained requested heap and construction peak despite reference-count metadata. Counter records successful Rust GlobalAlloc layout sizes, not libc allocator rounding or kernel memory. Both versions share identical fixture and counter source."
+  },
+  "all_windows_cleaned_and_production_stock": true,
+  "repeat_exact_agreement": true,
+  "superiority_verdict": null,
+  "scope": "Requested Rust heap of actual Registry only; excludes allocator rounding, libc internals, clients, stack, code and kernel",
+  "runs": [
+    {
+      "index": 1,
+      "side": "before",
+      "rows": [
+        {
+          "objects": 1,
+          "path_bytes": 16,
+          "retained_requested_bytes": 952,
+          "construction_peak_requested_bytes": 952
+        },
+        {
+          "objects": 64,
+          "path_bytes": 16,
+          "retained_requested_bytes": 18964,
+          "construction_peak_requested_bytes": 25116
+        },
+        {
+          "objects": 128,
+          "path_bytes": 16,
+          "retained_requested_bytes": 38164,
+          "construction_peak_requested_bytes": 50460
+        },
+        {
+          "objects": 512,
+          "path_bytes": 16,
+          "retained_requested_bytes": 152020,
+          "construction_peak_requested_bytes": 200444
+        },
+        {
+          "objects": 1,
+          "path_bytes": 64,
+          "retained_requested_bytes": 1048,
+          "construction_peak_requested_bytes": 1048
+        },
+        {
+          "objects": 64,
+          "path_bytes": 64,
+          "retained_requested_bytes": 25108,
+          "construction_peak_requested_bytes": 30492
+        },
+        {
+          "objects": 128,
+          "path_bytes": 64,
+          "retained_requested_bytes": 50452,
+          "construction_peak_requested_bytes": 61212
+        },
+        {
+          "objects": 512,
+          "path_bytes": 64,
+          "retained_requested_bytes": 201172,
+          "construction_peak_requested_bytes": 243452
+        },
+        {
+          "objects": 1,
+          "path_bytes": 256,
+          "retained_requested_bytes": 1432,
+          "construction_peak_requested_bytes": 1432
+        },
+        {
+          "objects": 64,
+          "path_bytes": 256,
+          "retained_requested_bytes": 49684,
+          "construction_peak_requested_bytes": 51996
+        },
+        {
+          "objects": 128,
+          "path_bytes": 256,
+          "retained_requested_bytes": 99604,
+          "construction_peak_requested_bytes": 104220
+        },
+        {
+          "objects": 512,
+          "path_bytes": 256,
+          "retained_requested_bytes": 397780,
+          "construction_peak_requested_bytes": 415484
+        }
+      ],
+      "result_sha256": "e852370a8b84fb744fce1ebdd29718b89c48800d540e20a8cd21db54e4c59c74",
+      "raw_sha256": "0a764cae7d43c7533c172ede4771fd3673a29f659999e784c992d0a2d61c24a0"
+    },
+    {
+      "index": 2,
+      "side": "candidate",
+      "rows": [
+        {
+          "objects": 1,
+          "path_bytes": 16,
+          "retained_requested_bytes": 832,
+          "construction_peak_requested_bytes": 832
+        },
+        {
+          "objects": 64,
+          "path_bytes": 16,
+          "retained_requested_bytes": 17060,
+          "construction_peak_requested_bytes": 22788
+        },
+        {
+          "objects": 128,
+          "path_bytes": 16,
+          "retained_requested_bytes": 34268,
+          "construction_peak_requested_bytes": 45716
+        },
+        {
+          "objects": 512,
+          "path_bytes": 16,
+          "retained_requested_bytes": 136436,
+          "construction_peak_requested_bytes": 181644
+        },
+        {
+          "objects": 1,
+          "path_bytes": 64,
+          "retained_requested_bytes": 880,
+          "construction_peak_requested_bytes": 880
+        },
+        {
+          "objects": 64,
+          "path_bytes": 64,
+          "retained_requested_bytes": 20132,
+          "construction_peak_requested_bytes": 25476
+        },
+        {
+          "objects": 128,
+          "path_bytes": 64,
+          "retained_requested_bytes": 40412,
+          "construction_peak_requested_bytes": 51092
+        },
+        {
+          "objects": 512,
+          "path_bytes": 64,
+          "retained_requested_bytes": 161012,
+          "construction_peak_requested_bytes": 203148
+        },
+        {
+          "objects": 1,
+          "path_bytes": 256,
+          "retained_requested_bytes": 1072,
+          "construction_peak_requested_bytes": 1096
+        },
+        {
+          "objects": 64,
+          "path_bytes": 256,
+          "retained_requested_bytes": 32420,
+          "construction_peak_requested_bytes": 36228
+        },
+        {
+          "objects": 128,
+          "path_bytes": 256,
+          "retained_requested_bytes": 64988,
+          "construction_peak_requested_bytes": 72596
+        },
+        {
+          "objects": 512,
+          "path_bytes": 256,
+          "retained_requested_bytes": 259316,
+          "construction_peak_requested_bytes": 289164
+        }
+      ],
+      "result_sha256": "7c4b8d1056d93ee2ba47ee5329a81fa2e3b508249659f416f7c424124186585b",
+      "raw_sha256": "210cc74101a231fd9805bea60f7d5794ef177ec9a4f968c40ad6b93c9e367179"
+    },
+    {
+      "index": 3,
+      "side": "candidate",
+      "rows": [
+        {
+          "objects": 1,
+          "path_bytes": 16,
+          "retained_requested_bytes": 832,
+          "construction_peak_requested_bytes": 832
+        },
+        {
+          "objects": 64,
+          "path_bytes": 16,
+          "retained_requested_bytes": 17060,
+          "construction_peak_requested_bytes": 22788
+        },
+        {
+          "objects": 128,
+          "path_bytes": 16,
+          "retained_requested_bytes": 34268,
+          "construction_peak_requested_bytes": 45716
+        },
+        {
+          "objects": 512,
+          "path_bytes": 16,
+          "retained_requested_bytes": 136436,
+          "construction_peak_requested_bytes": 181644
+        },
+        {
+          "objects": 1,
+          "path_bytes": 64,
+          "retained_requested_bytes": 880,
+          "construction_peak_requested_bytes": 880
+        },
+        {
+          "objects": 64,
+          "path_bytes": 64,
+          "retained_requested_bytes": 20132,
+          "construction_peak_requested_bytes": 25476
+        },
+        {
+          "objects": 128,
+          "path_bytes": 64,
+          "retained_requested_bytes": 40412,
+          "construction_peak_requested_bytes": 51092
+        },
+        {
+          "objects": 512,
+          "path_bytes": 64,
+          "retained_requested_bytes": 161012,
+          "construction_peak_requested_bytes": 203148
+        },
+        {
+          "objects": 1,
+          "path_bytes": 256,
+          "retained_requested_bytes": 1072,
+          "construction_peak_requested_bytes": 1096
+        },
+        {
+          "objects": 64,
+          "path_bytes": 256,
+          "retained_requested_bytes": 32420,
+          "construction_peak_requested_bytes": 36228
+        },
+        {
+          "objects": 128,
+          "path_bytes": 256,
+          "retained_requested_bytes": 64988,
+          "construction_peak_requested_bytes": 72596
+        },
+        {
+          "objects": 512,
+          "path_bytes": 256,
+          "retained_requested_bytes": 259316,
+          "construction_peak_requested_bytes": 289164
+        }
+      ],
+      "result_sha256": "64d472a147637379acd709d0186f8d6348be257321b063016465f6593bc4d5c4",
+      "raw_sha256": "72950b0b2cb9350daf8e8441515f6a92bbd0fd041f935284a59497e4fc2b847f"
+    },
+    {
+      "index": 4,
+      "side": "before",
+      "rows": [
+        {
+          "objects": 1,
+          "path_bytes": 16,
+          "retained_requested_bytes": 952,
+          "construction_peak_requested_bytes": 952
+        },
+        {
+          "objects": 64,
+          "path_bytes": 16,
+          "retained_requested_bytes": 18964,
+          "construction_peak_requested_bytes": 25116
+        },
+        {
+          "objects": 128,
+          "path_bytes": 16,
+          "retained_requested_bytes": 38164,
+          "construction_peak_requested_bytes": 50460
+        },
+        {
+          "objects": 512,
+          "path_bytes": 16,
+          "retained_requested_bytes": 152020,
+          "construction_peak_requested_bytes": 200444
+        },
+        {
+          "objects": 1,
+          "path_bytes": 64,
+          "retained_requested_bytes": 1048,
+          "construction_peak_requested_bytes": 1048
+        },
+        {
+          "objects": 64,
+          "path_bytes": 64,
+          "retained_requested_bytes": 25108,
+          "construction_peak_requested_bytes": 30492
+        },
+        {
+          "objects": 128,
+          "path_bytes": 64,
+          "retained_requested_bytes": 50452,
+          "construction_peak_requested_bytes": 61212
+        },
+        {
+          "objects": 512,
+          "path_bytes": 64,
+          "retained_requested_bytes": 201172,
+          "construction_peak_requested_bytes": 243452
+        },
+        {
+          "objects": 1,
+          "path_bytes": 256,
+          "retained_requested_bytes": 1432,
+          "construction_peak_requested_bytes": 1432
+        },
+        {
+          "objects": 64,
+          "path_bytes": 256,
+          "retained_requested_bytes": 49684,
+          "construction_peak_requested_bytes": 51996
+        },
+        {
+          "objects": 128,
+          "path_bytes": 256,
+          "retained_requested_bytes": 99604,
+          "construction_peak_requested_bytes": 104220
+        },
+        {
+          "objects": 512,
+          "path_bytes": 256,
+          "retained_requested_bytes": 397780,
+          "construction_peak_requested_bytes": 415484
+        }
+      ],
+      "result_sha256": "bb1123f017150783346b83ef32087291badc3129fb0b554b5ad3bb653a764af6",
+      "raw_sha256": "a2b6cf3a3059d9174189e532b4298e919b35bd2cab502f966d22ca8b825c2ae4"
+    }
+  ]
+}

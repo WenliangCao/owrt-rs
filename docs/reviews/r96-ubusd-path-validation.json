@@ -1,0 +1,77 @@
+{
+  "runtime_base": "975ab2f",
+  "runtime_patch_sha256": "41d2af97aeb0fec44fd670e81d2a11bd8419ff2e472fdca36875de7985cef28b",
+  "runtime_files": {
+    "components/ubusd/src/server.rs": "620f2257aaac1cfa2a27ca066de478d69d91d1acda80dc788a07960984b758da",
+    "components/ubusd/src/obj.rs": "93fd4417b72437063f94737181291bfb8c100cbcabf632530ee0720d263e9f37"
+  },
+  "candidate_sha256": "ece562af6e37c83982f20a17ef5709b25d947cee1f22a4b258d5986a8ba76d4d",
+  "before_sha256": "469408295d88942777e1798501a169ca85e1f67aa9db2207162cf26bd2df9ecb",
+  "candidate_binary_bytes": 507880,
+  "before_binary_bytes": 507880,
+  "benchmark_sha256": "885ee761626ea2752061b162f91c912777a54a13c5aebe37bfe7ca301dec308d",
+  "frozen_old_client_source": "ca1a9121df0380448a19d474e29796066b6734e8",
+  "new_client_source": "975ab2f; shared ubus library includes later f1e1f19 read-ahead changes",
+  "client_scope": "Fresh four-arm experiment with the same new client; neither pooled with R95 nor proof of improvement under the old frozen client",
+  "build_host_unit_tests": 28,
+  "physical_unit_tests": 28,
+  "physical_unit_sha256": "5520f79c24c5f2a4d99a2a3557eb68f6bcd11e31cb3cfe843fc53a34b211b7e6",
+  "build_host_clippy": "passed -D clippy::undocumented_unsafe_blocks; diagnostic examples retain unused-import warnings",
+  "build_host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "e8c0755322d577da50876da8bb32f2933f9b2cd5fa174e4e3a94cf6ce4d801c7"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "96591280d48ae08b6d37447ff35931d71968f42d417a061215176f9d0951d0a3"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "695dfd003612b6708b3970debff5b3fa7a71f5bc138e8a9dfa8e37561acc5bc5"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ],
+  "matrix_windows": 16,
+  "matrix_timed_requests": 800000,
+  "physical_memory_windows": 4,
+  "memory_scenarios_per_window": 12,
+  "memory_lifetime_checks": "lookup correctness, held path survives delete and registry drop, final requested heap returns to baseline",
+  "memory_repeat_exact_agreement": true,
+  "production": "stock C throughout; never installed",
+  "all_windows_cleaned": true,
+  "final_stock_health_verified": true,
+  "final_test_directories": 0,
+  "final_test_process_references": 0,
+  "final_health_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+  "final_cleanup_sha256": "74a12a90499b1ab276c152c188a0d70520700b17131dfd906a0b9933a378df6d",
+  "scope_limits": [
+    "Exploratory performance points, no confidence/equivalence/superiority verdict",
+    "Registry requested heap is not full-process/allocator/kernel memory",
+    "RSS/anonymous diagnostic medians increased by 2 KiB; full memory goal remains open",
+    "No integrated nine-component acceptance"
+  ]
+}

@@ -8,6 +8,7 @@
 
 use std::collections::BTreeMap;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 /// Ids below this are reserved for the built-in system objects.
 pub const SYSTEM_OBJECT_MAX: u32 = 1024;
@@ -30,7 +31,7 @@ pub struct ObjType {
 pub struct Object {
     pub type_id: Option<u32>,
     /// Registered path, without the trailing NUL. `None` for anonymous objects.
-    pub path: Option<Vec<u8>>,
+    pub path: Option<Rc<[u8]>>,
     /// Owning client id; `None` for the three built-in system objects.
     pub client: Option<u32>,
     /// Objects subscribed to this one, newest first.
@@ -60,7 +61,7 @@ pub struct Registry {
     pub objects: HashMap<u32, Object>,
     pub types: HashMap<u32, ObjType>,
     /// path -> object id, ordered by strcmp so lookup can walk prefixes.
-    pub paths: BTreeMap<Vec<u8>, u32>,
+    pub paths: BTreeMap<Rc<[u8]>, u32>,
 }
 
 impl Registry {
@@ -131,9 +132,12 @@ impl Registry {
     /// Bind a path to an object. Fails when the path is already taken, which
     /// in the C daemon makes the whole add_object fail.
     pub fn set_path(&mut self, id: u32, path: Vec<u8>) -> bool {
-        if self.paths.contains_key(&path) {
+        if self.paths.contains_key(path.as_slice()) {
             return false;
         }
+        // Both indexes own the same immutable bytes. The single-threaded
+        // registry needs neither atomics nor a second path allocation.
+        let path: Rc<[u8]> = path.into();
         self.paths.insert(path.clone(), id);
         if let Some(obj) = self.objects.get_mut(&id) {
             obj.path = Some(path);
@@ -151,7 +155,7 @@ impl Registry {
     #[cfg(test)]
     pub fn path_prefix(&self, prefix: &[u8]) -> Vec<u32> {
         self.paths
-            .range(prefix.to_vec()..)
+            .range::<[u8], _>((std::ops::Bound::Included(prefix), std::ops::Bound::Unbounded))
             .take_while(|(k, _)| k.starts_with(prefix))
             .map(|(_, v)| *v)
             .collect()
