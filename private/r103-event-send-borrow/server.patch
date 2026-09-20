@@ -1,0 +1,31 @@
+--- a/components/ubusd/src/server.rs
++++ b/components/ubusd/src/server.rs
+@@ -863,9 +863,10 @@
+         let mut payload = None;
+         for f in blob::fields(data) {
+             match f.name {
+-                // `data` must be a table; its contents become the event payload.
+-                "id" if id.is_none() => id = f.as_bytes().map(<[u8]>::to_vec),
+-                "data" if payload.is_none() && f.ty == MsgType::Table as u32 => payload = Some(f.data.to_vec()),
++                // Borrow request fields; the relay frame is built only after
++                // dispatch_event finds an eligible receiver.
++                "id" if id.is_none() => id = f.as_bytes(),
++                "data" if payload.is_none() && f.ty == MsgType::Table as u32 => payload = Some(f.data),
+                 _ => {}
+             }
+         }
+@@ -880,11 +881,11 @@
+         if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&id), None, AclType::Send) {
+             return status::PERMISSION_DENIED;
+         }
+-        self.dispatch_event(Some(client), &id, || {
++        self.dispatch_event(Some(client), id, || {
+             let mut b = BlobBuf::new();
+             b.put_u32(attr::OBJID, 0);
+-            b.put(attr::METHOD, &with_nul(&id));
+-            b.put(attr::DATA, &payload);
++            b.put_string_bytes(attr::METHOD, id);
++            b.put(attr::DATA, payload);
+             b.as_bytes().to_vec()
+         });
+         status::OK
