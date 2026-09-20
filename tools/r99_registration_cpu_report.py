@@ -37,6 +37,7 @@ def verify_run(root, plan, side, iterations=None):
     r = read('result.json')
     assert r['exit'] == 0 and r['pilot_only'] and not r['installed'] and not r['matrix']
     assert r['production_mode'] == 'stock'
+    assert r['implementation'] == plan.get('implementations', {}).get(side, 'c' if side == 'stock' else 'rs')
     for key in ['passed', 'cleanup_verified', 'same_boot', 'same_config', 'same_production_identity', 'same_host_mounts']:
         assert r[key], (root, key)
     for key, value in [('candidate_sha256', plan['subjects'][side]), ('benchmark_sha256', plan['benchmark_sha256']),
@@ -54,9 +55,12 @@ def verify_run(root, plan, side, iterations=None):
     assert before['boot_id'] == after['boot_id'] == plan['boot_id']
     meta = read('raw/meta.json')
     j = read('raw/register_cpu_1_8.json')
+    assert meta['serial_cpu_loop'] is True
+    assert meta['subject_cpu'] == plan['subject_cpu'] and meta['client_cpu'] == plan['client_cpu']
     assert j['mode'] == 'serial_cpu_loop' and j['successful'] == n and j['errors'] == 0
     assert j['warmup'] == meta['warmup'] == plan['warmup']
     assert meta['iterations'] == n and j['subject_pid'] == meta['subject_pid']
+    assert j['wall_s'] > 0 and math.isclose(j['ops_per_s'], n / j['wall_s'], rel_tol=1e-8)
     for who, cpu in [('subject', plan['subject_cpu']), ('client', plan['client_cpu'])]:
         a, b = j[who + '_before'], j[who + '_after']
         assert a['pid'] == b['pid'] and a['start_ticks'] == b['start_ticks']
