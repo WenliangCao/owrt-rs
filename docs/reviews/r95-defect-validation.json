@@ -26,6 +26,31 @@
       "source_change": "packaging/openwrt/owrt-reload-config/Makefile",
       "canonical_ci_release": false,
       "performance_verdict": null
+    },
+    {
+      "component": "uci",
+      "candidate_sha256": "2b2e8090121740faa472df1759bc831824b58ec24f59396e3299ea8921fe80f1",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true,
+      "stage": "A02",
+      "sdk_clean_compile_exit": 0,
+      "apk_sha256": "3e3b87b74065de76410c35098a6ca062179e7a261670acd69843ddf49380e2b7",
+      "candidate_bytes": 486155,
+      "source_archive_sha256": "c926f88d88963796225898f42daa737cf84b49762acb00c4f5664c89578b09fb",
+      "source_base": "1ca0882",
+      "source_change": "packaging/openwrt/owrt-uci/Makefile",
+      "canonical_ci_release": false,
+      "performance_verdict": null
     }
   ]
 }

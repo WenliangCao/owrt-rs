@@ -38,7 +38,7 @@ define Build/Prepare
 	$(INSTALL_DIR) $(PKG_BUILD_DIR)/uci/src/bin
 	test -f $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml
 	test -f $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.lock
-	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.lock $(PKG_BUILD_DIR)/uci/
+	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.toml $(OWRT_COMPONENTS_SOURCE)/uci/Cargo.lock $(OWRT_COMPONENTS_SOURCE)/uci/build.rs $(PKG_BUILD_DIR)/uci/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/*.rs $(PKG_BUILD_DIR)/uci/src/
 	$(CP) $(OWRT_COMPONENTS_SOURCE)/uci/src/bin/*.rs $(PKG_BUILD_DIR)/uci/src/bin/
 endef
