@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "purpose": "Exploratory full ubusd matrix for borrowed ordered traversal, four paired blocks; not confirmation",
+  "runtime_commit": "abb3816 plus recorded range patch",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "stock",
+        "candidate",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "before",
+        "stock",
+        "r89",
+        "candidate"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "candidate",
+        "stock",
+        "before",
+        "r89"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "candidate",
+        "stock",
+        "r89",
+        "before"
+      ]
+    }
+  ],
+  "seed": 9504,
+  "iterations": 2000,
+  "warmup": 20,
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "candidate": "469408295d88942777e1798501a169ca85e1f67aa9db2207162cf26bd2df9ecb",
+    "before": "0eea3291e99a4e02e50c11be568c3c4b5bf39673eaec665a1e4655f27813d7b5"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "62ba3eca64df6582d698b4886bdc512396bc4cc396ea225d066f3c4d14cc6b1d",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op"
+  ],
+  "memory": "RSS diagnostic only, not precise peak or PSS",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Every lane and CPU/mean/p50/p95/p99 reported separately; C/R89/before/candidate identities frozen; parallel CPU uses one outer interval; diagnostic RSS not PSS or proof of total-memory superiority.",
+  "runtime_patch_sha256": "9f21c53877407b568dc660fe95f8837ac2c57c6474f45a4609e7b7832744edb5",
+  "server_source_sha256": "b4df75d621d39395cac170cd2dcc1f226624d89cba92126b026eb4bf91fcfd2a",
+  "hypothesis": "Borrowed range traversal eliminates per-query ID-vector allocation and prefix lower-bound copying. Two tree walks may cost more than walking the old contiguous ID array; test all lanes, including unchanged invoke/exact lookup.",
+  "retention_rule": "Reject correctness failures. Do not claim full superiority or promote this runtime change on pilot point estimates alone. Report all latency/CPU signs, memory diagnostics, and allocation-only evidence separately. Investigate apparent new regressions before retaining.",
+  "matrix": true,
+  "workloads": [
+    "lookup",
+    "lookup_all_64",
+    "invoke",
+    "lookup_c4",
+    "lookup_all_64_c4",
+    "invoke_c4",
+    "lookup_prefix_64",
+    "lookup_prefix_64_c4",
+    "lookup_all_128",
+    "lookup_all_128_c4"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes."
+}
