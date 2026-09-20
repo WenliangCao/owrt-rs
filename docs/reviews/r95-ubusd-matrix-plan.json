@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "purpose": "Exploratory 10-lane ubusd matrix after bounded batching; four paired blocks, no formal superiority verdict",
+  "runtime_commit": "ad97260 plus recorded server.rs diff",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "candidate",
+        "before",
+        "r89",
+        "stock"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "r89",
+        "candidate",
+        "stock",
+        "before"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "stock",
+        "candidate",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "stock",
+        "candidate",
+        "before",
+        "r89"
+      ]
+    }
+  ],
+  "seed": 9503,
+  "iterations": 2000,
+  "warmup": 20,
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "candidate": "469080f678565f71b7d8bd6e7cfbc42d4c4bfa65e2d643720e6d76a4e736ca86",
+    "before": "0eea3291e99a4e02e50c11be568c3c4b5bf39673eaec665a1e4655f27813d7b5"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "62ba3eca64df6582d698b4886bdc512396bc4cc396ea225d066f3c4d14cc6b1d",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op"
+  ],
+  "memory": "RSS diagnostic only, not precise peak or PSS",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Every lane and CPU/mean/p50/p95/p99 reported separately; C/R89/before/candidate identities frozen; parallel CPU uses one outer interval; diagnostic RSS not PSS or proof of total-memory superiority.",
+  "runtime_patch_sha256": "ab77b56df1369d2cd3783863f6c7d17c6fffea5e82701a860a149a80e818cc0a",
+  "server_source_sha256": "7355cdad017eec6cab3656b430bf376de51aa45ea3e5b4d0387c6813629c4da7",
+  "hypothesis": "Earlier bounded sends improve p50 and reduce common batch-buffer capacity, while CPU remains below C and R89; validate frame order and partial writes separately.",
+  "retention_rule": "Any correctness failure rejects; report all CPU/latency changes against every side, never replace formal confirmation with this pilot.",
+  "matrix": true,
+  "workloads": [
+    "lookup",
+    "lookup_all_64",
+    "invoke",
+    "lookup_c4",
+    "lookup_all_64_c4",
+    "invoke_c4",
+    "lookup_prefix_64",
+    "lookup_prefix_64_c4",
+    "lookup_all_128",
+    "lookup_all_128_c4"
+  ]
+}

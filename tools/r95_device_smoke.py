@@ -32,12 +32,15 @@ def main():
     p.add_argument("--before-candidate", type=Path, help="optional failing-version control for the probe")
     p.add_argument("--implementation", choices=("c", "rs"), default="rs")
     p.add_argument("--iterations", type=int, default=10)
-    p.add_argument("--pilot", action="store_true", help="exploration only; requires an explicit workload")
+    p.add_argument("--pilot", action="store_true", help="exploration only; requires an explicit workload or matrix")
+    p.add_argument("--matrix", action="store_true", help="existing expanded daemon workload matrix")
     p.add_argument("--host", default="openwrt")
     p.add_argument("--interface", default="en0")
     a = p.parse_args()
-    if a.iterations <= 0 or (a.pilot and not a.workload_script):
-        p.error("iterations must be positive; pilots require --workload-script")
+    if a.iterations <= 0 or (a.pilot and not (a.workload_script or a.matrix)):
+        p.error("iterations must be positive; pilots require --workload-script or --matrix")
+    if a.matrix and (a.workload_script or a.component not in ("ubusd", "procd", "netifd", "rpcd", "httpd")):
+        p.error("matrix requires a supported daemon and no custom workload script")
     a.output.mkdir(parents=True, exist_ok=False, mode=0o700)
     ssh = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
            "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3", a.host]
@@ -69,6 +72,7 @@ def main():
               "recovery_gate_sha256": hashlib.sha256(a.recovery_gate.read_bytes()).hexdigest(),
               "correctness_smoke_only": not a.pilot, "pilot_only": a.pilot,
               "implementation": a.implementation, "iterations": a.iterations, "installed": False,
+              "matrix": a.matrix,
               "production_mode": "stock", "remote": base}
     try:
         remote(f"test ! -e {base} && mkdir -p {base}/bundle {base}/out {base}/work")
@@ -109,6 +113,8 @@ def main():
         command = (f"{base}/guard 120 {base}/bundle/ns-exec /bin/sh {remote_script} "
                    f"--namespace /rom {base}/bundle {a.component} {a.implementation} {base}/out {a.iterations} "
                    f"{base}/work {remote_script}")
+        if a.matrix:
+            command = "OWRT_" + a.component.upper() + "_MATRIX=1 " + command
         with (a.output / "run.log").open("wb") as log:
             run = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)
         result["exit"] = run.returncode
