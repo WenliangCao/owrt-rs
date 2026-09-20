@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "purpose": "Four-arm physical event fanout and nonmatching-listener comparison for repaired R100 stack",
+  "runtime_commit": "R100 event epoch repair plus R99 stack candidate",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "candidate",
+        "stock",
+        "r89",
+        "before"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "r89",
+        "before",
+        "candidate",
+        "stock"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "stock",
+        "before",
+        "candidate",
+        "r89"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "r89",
+        "before",
+        "stock",
+        "candidate"
+      ]
+    }
+  ],
+  "seed": 9803,
+  "iterations": 5000,
+  "warmup": 20,
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "candidate": "5083f49ba344646532c6b407b5ea22d036c8bba083146e13e8a0e458152d0b99",
+    "before": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r98_registration_watch.sh": "4ee639c001f47ed42b81a00c7f38eecedcf4fd0226ebff710ff3bf84740b04c6"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op",
+    "subject_own_cpu_clock_us_per_op",
+    "dependency_own_cpu_clock_us_per_op",
+    "client_cpu_clock_us_per_op",
+    "ops_per_s"
+  ],
+  "memory": "Separate actual registration heap diagnostics; proc RSS/HWM remain diagnostic, not PSS or full peak acceptance.",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Four exploratory paired randomized blocks, 3 fanout lanes, exact same frozen event client. One operation includes ADD with event receipt, REMOVE with event receipt; byte validation and sequence barriers run in the client. No 1% superiority verdict from four blocks; report every arm and lane.",
+  "runtime_patch_sha256": "76545973751ab69b996a9502c22a0c1d2fd2e7059faae4850f0054d17bbdb41c",
+  "server_source_sha256": "93d49364941dfc9fb258991963ecbe5392576a7fc13c92dc92590f99bf480eee",
+  "hypothesis": "Check whether lazy borrowed event encoding remains beneficial with one/eight eligible receivers and no eligible receivers after the epoch repair, and whether per-recipient patch/send costs regress.",
+  "retention_rule": "Reject correctness failures. Report every adverse latency, daemon/client CPU, RSS/HWM and throughput direction. This fanout series does not close lookup/invoke or full-system claims.",
+  "matrix": false,
+  "workloads": [
+    "watch_1_1",
+    "watch_8_1",
+    "watch_1_0"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes.",
+  "registry_source_sha256": "75d1f5c6dcd9e8e040a37ecb0c1c52387396b9d6bae2ed2db26d27eaea710b0f",
+  "benchmark_sha256": "2ff373109f7d3d2898562496218238902fc594026917d57d44f66507106e43e0",
+  "client_control": "ca1a912 client/dependencies plus CPU-clock, register-cycle and register-watch patches; identical client on all four fanout arms. Do not pool other client versions.",
+  "registration_patch_sha256": "5847f7f3a873485a5740a86c58075ab4b79252e76320ef18409edbf52d25b12b",
+  "analysis_object_count": 0,
+  "metric_directions": "Lower is better except ops_per_s, which is higher-is-better. Registration ops are complete add/remove cycles.",
+  "event_client_patch_sha256": "5569a4fe5182eb553447455ffab4bbd0c3fedd351d975baec2283908076aceb8",
+  "candidate_source_sha256": "d80cbad7f8f570a45bb024c88789065b9169ca219d720b73c2780d4fde3bf3a0",
+  "before_source_sha256": "54467227e08cdf887d5a8dc2507e2d678584b556e2b59d051ee2839a6bd94cfa"
+}
