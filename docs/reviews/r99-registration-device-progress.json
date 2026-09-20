@@ -15,6 +15,48 @@
   "combined_unit_sha256": "8daba82d8348de7aac07b3f1b467ac4bf505ed1499fbed7efa6bdf65e5339419",
   "combined_native_units": 32,
   "combined_native_clippy": "passed",
-  "combined_physical": "pending",
-  "runtime_retention": "neither candidate accepted; separate identities maintained"
+  "combined_physical": "32 unit tests and seven C/before/candidate wire differentials passed",
+  "runtime_retention": "neither candidate accepted; separate identities maintained",
+  "combined_device_result_sha256": "7dd05e9cb1e65ba16e0217ca112dcff3ed12214d8aaf81f49c3a34523d21bde9",
+  "combined_host_gate_archive_sha256": "99af5987bee17ef2e48a15d26a543ad26ce0966d7200f2fa16fdd055d3419962",
+  "combined_host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "log_sha256": "9f94c9f63094a308f8f5fda6ed708e2857d308021220d610dc808e0973f3a818"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "log_sha256": "99c55b0d1cf34b0fa5ba4119176bea5e71483aff433123b0096552b7edbf1e0c"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "log_sha256": "4bbd094a3523ccbaa295e9e958d72d6a757cb83830c47cc105f83ffb36d29ce5"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ],
+  "combined_all_checks": {
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  }
 }

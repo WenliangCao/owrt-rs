@@ -1,0 +1,511 @@
+{
+  "plan_sha256": "a809a9ddac58d200ef512802a9c9ac00269fc873a9f89dda9d757992c55c2b32",
+  "plan": {
+    "purpose": "Physical requested heap and allocator calls for registration replies and combined event delivery",
+    "order": [
+      "before",
+      "reply",
+      "combined",
+      "combined",
+      "reply",
+      "before"
+    ],
+    "subjects": {
+      "before": "3e0ec168a665d18730d9e94f1ccc145e36d66294f2ee1beb63dad04a03fc930a",
+      "reply": "030cbf005a51613250dceef4f8f197f076497749a4992178b77db0ebef5695a2",
+      "combined": "985b56c25f6ed87773c6842e3c638b1b35c9142d60deace67ac620122022647c"
+    },
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "workload_sha256": "57d5d027e7ee2b8947b108f93638dbe65be8565946b58e5af40e34c0e4728851",
+    "iterations": 1,
+    "csv": "methods.csv",
+    "dimensions": [
+      "objects",
+      "methods",
+      "name_bytes"
+    ],
+    "scenarios": [
+      [
+        1,
+        1,
+        8
+      ],
+      [
+        1,
+        16,
+        8
+      ],
+      [
+        1,
+        64,
+        8
+      ],
+      [
+        128,
+        1,
+        8
+      ],
+      [
+        128,
+        1,
+        32
+      ],
+      [
+        128,
+        16,
+        32
+      ],
+      [
+        128,
+        1,
+        128
+      ]
+    ],
+    "fixture_sha256": "1fd5ba1e042719497353ab152229e62f5b32d21257cb9871544e73a2a29340be",
+    "heap_support_sha256": "01d0572e7e26b603b30e63fa76e09451bab80229eb1ebb8a72ed2abda7b267d2",
+    "runtime_subjects": {
+      "before": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+      "reply": "345e41e643f19b71aeedc48d6acf4532f37415c4bea0b4ee1fadb0674ede7277",
+      "combined": "b7e16338cc1bcfadc3e09bf29e7b3efcaac6758371e92269d4533717216ab14e"
+    },
+    "patches": {
+      "reply": "801ff1c1fafc5f3e202e06172dbcdcfdd179ea46ddc128c51a12da32241c76fa",
+      "combined": "e2f347f14b678b715311d5c4e87f0858d142c58eec56addedc3c1bbf70020311"
+    },
+    "scope": "Actual Server receive ADD_OBJECT with named root user/group and empty supplementary groups. Caller frame construction and setup included; no read-ahead receive buffer. Retained requested allocations and logical construction peak plus successful alloc/realloc callback counts; not physical malloc size, PSS, kernel buffers or whole-process peak. No REMOVE cycle allocation claim. Same fixture/allocation counter for each source, cold-process shape repeated in reverse order.",
+    "hypothesis": "Scratch DATA replies and borrowed Publish credentials reduce allocation calls. Check potential 16-byte extra retained scratch capacity, including whether combining lazy borrowed events changes construction peak. Report all increases as well as decreases.",
+    "production": "C only; namespace fixture after CPU A/A collection; cleanup each window"
+  },
+  "all_windows_cleaned_and_production_stock": true,
+  "repeat_exact_agreement": true,
+  "superiority_verdict": null,
+  "scope": "Actual Server receive ADD_OBJECT with named root user/group and empty supplementary groups. Caller frame construction and setup included; no read-ahead receive buffer. Retained requested allocations and logical construction peak plus successful alloc/realloc callback counts; not physical malloc size, PSS, kernel buffers or whole-process peak. No REMOVE cycle allocation claim. Same fixture/allocation counter for each source, cold-process shape repeated in reverse order.",
+  "runs": [
+    {
+      "index": 1,
+      "side": "before",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2804,
+          "construction_peak_requested_bytes": 3032,
+          "alloc_calls": 27,
+          "realloc_calls": 16
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4040,
+          "construction_peak_requested_bytes": 4808,
+          "alloc_calls": 57,
+          "realloc_calls": 18
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8456,
+          "construction_peak_requested_bytes": 10952,
+          "alloc_calls": 153,
+          "realloc_calls": 20
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76652,
+          "construction_peak_requested_bytes": 78336,
+          "alloc_calls": 2090,
+          "realloc_calls": 1799
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82796,
+          "construction_peak_requested_bytes": 83640,
+          "alloc_calls": 2090,
+          "realloc_calls": 1799
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333164,
+          "construction_peak_requested_bytes": 334360,
+          "alloc_calls": 5930,
+          "realloc_calls": 2055
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107372,
+          "construction_peak_requested_bytes": 107764,
+          "alloc_calls": 2090,
+          "realloc_calls": 1799
+        }
+      ],
+      "result_sha256": "d8d6cecc1ab643531def21c01ba64a2c7ca1030634cedff08473e6d0c40aa8d0",
+      "raw_sha256": "bb3957e7e4e91477608a254d2c54697b52ec7ea9b933b9192f3e8497f080736e"
+    },
+    {
+      "index": 2,
+      "side": "reply",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2820,
+          "construction_peak_requested_bytes": 3024,
+          "alloc_calls": 23,
+          "realloc_calls": 14
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4056,
+          "construction_peak_requested_bytes": 4800,
+          "alloc_calls": 53,
+          "realloc_calls": 16
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8472,
+          "construction_peak_requested_bytes": 10944,
+          "alloc_calls": 149,
+          "realloc_calls": 18
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76668,
+          "construction_peak_requested_bytes": 78352,
+          "alloc_calls": 1578,
+          "realloc_calls": 1416
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82812,
+          "construction_peak_requested_bytes": 83656,
+          "alloc_calls": 1578,
+          "realloc_calls": 1416
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333180,
+          "construction_peak_requested_bytes": 334368,
+          "alloc_calls": 5418,
+          "realloc_calls": 1672
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107388,
+          "construction_peak_requested_bytes": 107772,
+          "alloc_calls": 1578,
+          "realloc_calls": 1416
+        }
+      ],
+      "result_sha256": "794b7f874678e3ef99c69c3d86584e72f02a9c07fe1f7ea0c96c9980f8f791e4",
+      "raw_sha256": "a0bf3214fe0e63d8e4e251edf339b90b4e45e9dccf820efbe63da66b072db1b6"
+    },
+    {
+      "index": 3,
+      "side": "combined",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2820,
+          "construction_peak_requested_bytes": 2952,
+          "alloc_calls": 19,
+          "realloc_calls": 7
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4056,
+          "construction_peak_requested_bytes": 4728,
+          "alloc_calls": 49,
+          "realloc_calls": 9
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8472,
+          "construction_peak_requested_bytes": 10872,
+          "alloc_calls": 145,
+          "realloc_calls": 11
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76668,
+          "construction_peak_requested_bytes": 78352,
+          "alloc_calls": 1066,
+          "realloc_calls": 520
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82812,
+          "construction_peak_requested_bytes": 83656,
+          "alloc_calls": 1066,
+          "realloc_calls": 520
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333180,
+          "construction_peak_requested_bytes": 334175,
+          "alloc_calls": 4906,
+          "realloc_calls": 776
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107388,
+          "construction_peak_requested_bytes": 107579,
+          "alloc_calls": 1066,
+          "realloc_calls": 520
+        }
+      ],
+      "result_sha256": "c96f6914fbbf9db4d3614f0780d9a75f423dc0af72acc40fb4e19d756051a583",
+      "raw_sha256": "aba7f69b29c039f0eedf7b01026aa4f16546c9a672301011cb9d72232c7228c9"
+    },
+    {
+      "index": 4,
+      "side": "combined",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2820,
+          "construction_peak_requested_bytes": 2952,
+          "alloc_calls": 19,
+          "realloc_calls": 7
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4056,
+          "construction_peak_requested_bytes": 4728,
+          "alloc_calls": 49,
+          "realloc_calls": 9
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8472,
+          "construction_peak_requested_bytes": 10872,
+          "alloc_calls": 145,
+          "realloc_calls": 11
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76668,
+          "construction_peak_requested_bytes": 78352,
+          "alloc_calls": 1066,
+          "realloc_calls": 520
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82812,
+          "construction_peak_requested_bytes": 83656,
+          "alloc_calls": 1066,
+          "realloc_calls": 520
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333180,
+          "construction_peak_requested_bytes": 334175,
+          "alloc_calls": 4906,
+          "realloc_calls": 776
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107388,
+          "construction_peak_requested_bytes": 107579,
+          "alloc_calls": 1066,
+          "realloc_calls": 520
+        }
+      ],
+      "result_sha256": "faf7007aff963eb792f3ee3a4ebed036304071bdd8f48b26be27fad38ea6c925",
+      "raw_sha256": "96d50426d7c3698a02f552c4828acdd6ed8343b88a5a2b19fb0c592da74fdc68"
+    },
+    {
+      "index": 5,
+      "side": "reply",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2820,
+          "construction_peak_requested_bytes": 3024,
+          "alloc_calls": 23,
+          "realloc_calls": 14
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4056,
+          "construction_peak_requested_bytes": 4800,
+          "alloc_calls": 53,
+          "realloc_calls": 16
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8472,
+          "construction_peak_requested_bytes": 10944,
+          "alloc_calls": 149,
+          "realloc_calls": 18
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76668,
+          "construction_peak_requested_bytes": 78352,
+          "alloc_calls": 1578,
+          "realloc_calls": 1416
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82812,
+          "construction_peak_requested_bytes": 83656,
+          "alloc_calls": 1578,
+          "realloc_calls": 1416
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333180,
+          "construction_peak_requested_bytes": 334368,
+          "alloc_calls": 5418,
+          "realloc_calls": 1672
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107388,
+          "construction_peak_requested_bytes": 107772,
+          "alloc_calls": 1578,
+          "realloc_calls": 1416
+        }
+      ],
+      "result_sha256": "373f283629907d10777ceb6c91bb260476d8a19986a43fa3d9be1b0007694dcf",
+      "raw_sha256": "6e527ff3278006cfd53a81a1a68de2d6dc9e7bcbfc3e29d7bb771ce5f164ff4e"
+    },
+    {
+      "index": 6,
+      "side": "before",
+      "rows": [
+        {
+          "objects": 1,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 2804,
+          "construction_peak_requested_bytes": 3032,
+          "alloc_calls": 27,
+          "realloc_calls": 16
+        },
+        {
+          "objects": 1,
+          "methods": 16,
+          "name_bytes": 8,
+          "retained_requested_bytes": 4040,
+          "construction_peak_requested_bytes": 4808,
+          "alloc_calls": 57,
+          "realloc_calls": 18
+        },
+        {
+          "objects": 1,
+          "methods": 64,
+          "name_bytes": 8,
+          "retained_requested_bytes": 8456,
+          "construction_peak_requested_bytes": 10952,
+          "alloc_calls": 153,
+          "realloc_calls": 20
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 8,
+          "retained_requested_bytes": 76652,
+          "construction_peak_requested_bytes": 78336,
+          "alloc_calls": 2090,
+          "realloc_calls": 1799
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 32,
+          "retained_requested_bytes": 82796,
+          "construction_peak_requested_bytes": 83640,
+          "alloc_calls": 2090,
+          "realloc_calls": 1799
+        },
+        {
+          "objects": 128,
+          "methods": 16,
+          "name_bytes": 32,
+          "retained_requested_bytes": 333164,
+          "construction_peak_requested_bytes": 334360,
+          "alloc_calls": 5930,
+          "realloc_calls": 2055
+        },
+        {
+          "objects": 128,
+          "methods": 1,
+          "name_bytes": 128,
+          "retained_requested_bytes": 107372,
+          "construction_peak_requested_bytes": 107764,
+          "alloc_calls": 2090,
+          "realloc_calls": 1799
+        }
+      ],
+      "result_sha256": "eb9b364a2ba80903cf92647414f5512311ced2c009938337c31903a9fca6b11c",
+      "raw_sha256": "aa6b5dad207fbc006d0a3863185b54fcb77d27a289bac697bcbbb9ef8d129db9"
+    }
+  ]
+}
