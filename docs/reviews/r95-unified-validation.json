@@ -782,5 +782,13 @@
   },
   "whole_stack_integration_verified": false,
   "production_mode": "stock",
-  "installed": false
+  "installed": false,
+  "final_router_check": {
+    "production_mode": "stock",
+    "health_passed": true,
+    "owned_temporary_directories_remaining": 0,
+    "owned_process_references_remaining": 0,
+    "health_evidence_sha256": "a6ba85b7a0455ed4f7ad694036e52f06985e46e7f8177afe564a85236c5ccff3",
+    "candidate_installed": false
+  }
 }

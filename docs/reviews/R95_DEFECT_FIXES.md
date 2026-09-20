@@ -110,6 +110,7 @@ logd/httpd/rpcd/fw4 执行实际 SDK clean/compile/APK 提取；UCI/reload-confi
 
 ## 后续次序
 
-1. 对统一候选补完整历史合同结果及新增缺陷的实机覆盖。
+1. 在已有实机缺陷回归和九组件冒烟之外，继续补完整实机合同与尚未覆盖的硬件场景。
 2. 按 [实机研究与验收规则](../R95_PERFORMANCE_RESEARCH.md) 逐组件和整栈研究。
    A01–A04 关闭不代表“全面胜 C”已经达成。
+   ubusd 的首个分批发送方案已完成实机探索但未采用，见 [实验记录](R95_UBUSD_BATCH_EXPERIMENT.md)。

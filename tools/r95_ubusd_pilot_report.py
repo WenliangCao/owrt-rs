@@ -8,7 +8,7 @@ import statistics
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent / "benchmark"))
-from analyze_candidate import serial  # noqa: E402
+from analyze_candidate import parallel, serial  # noqa: E402
 
 
 def read(path):
@@ -19,6 +19,28 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def summarize(rows, plan):
+    summary = {}
+    for metric in plan["planned_metrics"]:
+        sides = {}
+        for side in plan["subjects"]:
+            values = [r[metric] for r in rows if r["side"] == side]
+            assert len(values) == len(plan["blocks"])
+            sides[side] = {"median": statistics.median(values), "min": min(values), "max": max(values)}
+        pairs = {}
+        for baseline in (side for side in plan["subjects"] if side != "candidate"):
+            deltas = []
+            for block in plan["blocks"]:
+                values = {r["side"]: r[metric] for r in rows if r["block"] == block["block"]}
+                # Zero CPU counters remain missing ratios, never made into wins.
+                deltas.append(100 * (values["candidate"] / values[baseline] - 1)
+                              if values[baseline] > 0 else None)
+            pairs[baseline] = {"per_block_delta_pct": deltas,
+                               "median_delta_pct": statistics.median(deltas) if None not in deltas else None}
+        summary[metric] = {"sides": sides, "paired_exploration": pairs}
+    return summary
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("root", type=Path)
@@ -27,7 +49,10 @@ def main():
     a = p.parse_args()
     assert (a.root / "COMPLETE").is_file(), "collection incomplete"
     plan = read(a.plan)
+    matrix = plan.get("matrix", False)
+    workload_script = "tools/benchmark/isolated.sh" if matrix else "tools/r95_ubusd_pilot.sh"
     rows = []
+    residents = []
     boots, clients, recoveries = set(), set(), set()
     for block in plan["blocks"]:
         assert set(block["order"]) == set(plan["subjects"])
@@ -41,7 +66,8 @@ def main():
                 assert result[key], (root, key)
             assert result["candidate_sha256"] == plan["subjects"][side]
             assert result["driver_sha256"] == plan["source_scripts"]["tools/r95_device_smoke.py"]
-            assert result["workload_sha256"] == plan["source_scripts"]["tools/r95_ubusd_pilot.sh"]
+            assert result["workload_sha256"] == plan["source_scripts"][workload_script]
+            assert result.get("matrix", False) == matrix
             assert result["iterations"] == plan["iterations"]
             assert result["implementation"] == ("c" if side == "stock" else "rs")
             before = read(root / "health-before.json")
@@ -54,41 +80,49 @@ def main():
             assert (raw / "binary-sha256.txt").read_text().split()[0] == plan["subjects"][side]
             clients.add(tuple(line.split()[0] for line in (raw / "benchmark-sha256.txt").read_text().splitlines()))
             meta = read(raw / "meta.json")
-            assert meta["pilot_only"] and meta["iterations"] == plan["iterations"]
-            assert (raw / "objects-before.txt").read_bytes() == (raw / "objects-after.txt").read_bytes()
-            expected = [f"bench.filler{i:04d}" for i in range(1, 128)] + ["bench.target"]
-            assert (raw / "objects-before.txt").read_text().splitlines() == expected
-            metrics = serial(raw / "lookup_all_128.json", meta["subject_pid"])
-            assert metrics["successful"] == plan["iterations"] and metrics["warmup"] == plan["warmup"]
-            hz = read(raw / "before.json")["clock_ticks_per_second"]
-            assert hz == read(raw / "after.json")["clock_ticks_per_second"] and hz > 0
-            rows.append({"block": block["block"], "side": side, "position": position,
-                         "result_sha256": digest(root / "result.json"),
-                         "raw_archive_sha256": digest(root / "raw.tar.gz"),
-                         "kernel": (raw / "kernel.txt").read_text().strip(),
-                         "cpu_tick_us_per_op": 1e6 / hz / plan["iterations"], **metrics})
+            assert meta["iterations"] == plan["iterations"]
+            if matrix:
+                assert meta["component"] == "ubusd" and meta["implementation"] == result["implementation"]
+            else:
+                assert meta["pilot_only"]
+            for count in ((64, 128) if matrix else (128,)):
+                prefix = f"objects-{count}" if matrix else "objects"
+                assert (raw / f"{prefix}-before.txt").read_bytes() == (raw / f"{prefix}-after.txt").read_bytes()
+                expected = [f"bench.filler{i:04d}" for i in range(1, count)] + ["bench.target"]
+                assert (raw / f"{prefix}-before.txt").read_text().splitlines() == expected
+            common = {"block": block["block"], "side": side, "position": position,
+                      "result_sha256": digest(root / "result.json"),
+                      "raw_archive_sha256": digest(root / "raw.tar.gz"),
+                      "kernel": (raw / "kernel.txt").read_text().strip()}
+            for lane in (plan["workloads"] if matrix else ("lookup_all_128",)):
+                concurrent = lane.endswith("_c4")
+                if concurrent:
+                    metrics = parallel(raw / lane, meta["subject_pid"])
+                    hz = read(raw / lane / "before.json")["clock_ticks_per_second"]
+                else:
+                    metrics = serial(raw / (lane + ".json"), meta["subject_pid"])
+                    hz = read(raw / (lane + ".json"))["clock_ticks_per_second"]
+                assert metrics["successful"] == plan["iterations"]
+                assert metrics["warmup"] == plan["warmup"] * (4 if concurrent else 1)
+                assert hz > 0
+                denominator = metrics["successful"] + (metrics["warmup"] if concurrent else 0)
+                rows.append({**common, **({"workload": lane} if matrix else {}),
+                             "cpu_tick_us_per_op": 1e6 / hz / denominator, **metrics})
+            if matrix:
+                memory = read(raw / "resident.json")
+                subject = next(p for p in memory["processes"] if p["pid"] == meta["subject_pid"])
+                residents.append({"block": block["block"], "side": side, **{k: subject[k] for k in
+                    ("VmRSS", "RssAnon", "RssFile", "RssShmem", "VmHWM", "Threads", "fds")}})
     assert len(boots) == len(clients) == len(recoveries) == 1, "collection identities changed"
-    summary = {}
-    for metric in plan["planned_metrics"]:
-        sides = {}
-        for side in plan["subjects"]:
-            values = [r[metric] for r in rows if r["side"] == side]
-            sides[side] = {"median": statistics.median(values), "min": min(values), "max": max(values)}
-        pairs = {}
-        for baseline in ("stock", "r89"):
-            deltas = []
-            for block in plan["blocks"]:
-                values = {r["side"]: r[metric] for r in rows if r["block"] == block["block"]}
-                # Zero CPU counters remain missing ratios, never made into wins.
-                deltas.append(100 * (values["candidate"] / values[baseline] - 1)
-                              if values[baseline] > 0 else None)
-            pairs[baseline] = {"per_block_delta_pct": deltas,
-                               "median_delta_pct": statistics.median(deltas) if None not in deltas else None}
-        summary[metric] = {"sides": sides, "paired_exploration": pairs}
+    summary = ({lane: summarize([r for r in rows if r["workload"] == lane], plan) for lane in plan["workloads"]}
+               if matrix else summarize(rows, plan))
     result = {"schema_version": 1, "plan_sha256": digest(a.plan), "plan": plan,
-              "method": "Six paired exploratory blocks; full per-run values; no confidence or equivalence claim",
-              "superiority_verdict": None, "scope": "single component, private router namespace, 128 objects",
+              "method": "Paired exploratory blocks; full per-run values; no confidence or equivalence claim",
+              "superiority_verdict": None, "scope": "ubusd only, private router namespace, 10 lanes" if matrix else "single component, private router namespace, 128 objects",
               "all_windows_cleaned_and_production_stock": True, "runs": rows, "summary": summary}
+    if matrix:
+        result["resident_diagnostics"] = residents
+        result["memory_note"] = "End-of-matrix proc counters; not PSS, precise RSS, per-lane peak or whole-system memory"
     a.output.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({"runs": len(rows), "superiority_verdict": None}))
 

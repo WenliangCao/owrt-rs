@@ -1,0 +1,148 @@
+diff --git a/components/ubusd/src/server.rs b/components/ubusd/src/server.rs
+index 74c4e31..8b1d39d 100644
+--- a/components/ubusd/src/server.rs
++++ b/components/ubusd/src/server.rs
+@@ -55,8 +55,8 @@ pub struct Server {
+     /// grow repeatedly for a multi-kilobyte object signature; keeping one
+     /// around means that growth happens once.
+     scratch: BlobBuf,
+-    /// A short prefix query is submitted together. Capacity is acquired only
+-    /// on first use and bounded to 16 KiB; larger queries keep the old path.
++    /// Small lookups stream complete frames in roughly 4 KiB blocks. Capacity
++    /// is acquired on first use; a single larger frame can require 16 KiB.
+     lookup_batch: Vec<u8>,
+     /// Clients written to since the loop last looked: only these can have
+     /// changed whether they need output readiness. Ids may repeat.
+@@ -483,12 +483,13 @@ impl Server {
+         Ok(Outcome::Status(status::OK))
+     }
+ 
+-    /// Emit every listed object and the final STATUS as one bounded write.
++    /// Emit every listed object and the final STATUS in bounded blocks.
+     /// Used for prefix and whole-bus lookups; the wire bytes are the same
+     /// frames the per-object path sends, so a short write splits back into
+     /// them (see `Client::send_lookup_batch`).
+     fn try_batch(&mut self, client: u32, msg: &InMsg, ids: &[u32]) -> bool {
+         const LIMIT: usize = 16 * 1024;
++        const BLOCK: usize = 4 * 1024;
+         if !self.monitors.is_empty() {
+             return false;
+         }
+@@ -496,34 +497,48 @@ impl Server {
+         // an upper bound: ACL filtering can only remove methods/objects.
+         // This keeps large-listing queue overflow at its original boundaries.
+         let mut bytes = Header::LEN + 12; // final STATUS
++        let mut largest_frame = bytes;
+         for id in ids {
+             let Some(o) = self.reg.get(*id) else { continue };
+             let (Some(path), Some(t)) = (o.path.as_deref(), o.type_id.and_then(|id| self.reg.types.get(&id)))
+                 else { continue };
+-            bytes += Header::LEN + 4 + crate::client::pad4(4 + path.len() + 1) + 8 + 8 + 4;
+-            bytes += t.methods.iter().map(|m| crate::client::pad4(m.blob.len())).sum::<usize>();
++            let frame = Header::LEN + 4 + crate::client::pad4(4 + path.len() + 1) + 8 + 8 + 4
++                + t.methods.iter().map(|m| crate::client::pad4(m.blob.len())).sum::<usize>();
++            largest_frame = largest_frame.max(frame);
++            bytes += frame;
+             if bytes > LIMIT {
+                 return false;
+             }
+         }
+         self.lookup_batch.clear();
+-        self.lookup_batch.reserve_exact(bytes);
++        self.lookup_batch.reserve_exact(bytes.min(BLOCK.max(largest_frame)));
+         let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
+         for id in ids {
+             if self.build_obj(client, *id) {
++                let frame_len = Header::LEN + self.scratch.as_bytes().len();
++                if !self.lookup_batch.is_empty() && self.lookup_batch.len() + frame_len > BLOCK {
++                    self.flush_lookup_batch(client);
++                }
+                 self.append_lookup_frame(header);
+             }
+         }
+         self.scratch.reset();
+         self.scratch.put_u32(attr::STATUS, status::OK as u32);
++        if self.lookup_batch.len() + Header::LEN + self.scratch.as_bytes().len() > BLOCK {
++            self.flush_lookup_batch(client);
++        }
+         self.append_lookup_frame(Header { ty: ty::STATUS, ..header });
+         debug_assert!(self.lookup_batch.len() <= bytes);
++        self.flush_lookup_batch(client);
++        self.touched.push(client);
++        true
++    }
++
++    fn flush_lookup_batch(&mut self, client: u32) {
+         if let Some(c) = self.clients.get_mut(&client) {
+             c.send_lookup_batch(&self.lookup_batch);
+-            self.touched.push(client);
+         }
+         self.lookup_batch.clear();
+-        true
+     }
+ 
+     fn append_lookup_frame(&mut self, header: Header) {
+@@ -1311,6 +1326,63 @@ mod tests {
+         frames
+     }
+ 
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn batched_lookup_keeps_full_frames_and_fifo_under_backpressure() {
++        const CALLER: u32 = 2000;
++        const TYPE: u32 = 3000;
++        for (count, signature_len) in [(128, 0), (1, 6000)] {
++            let mut server = Server::new(String::new()).unwrap();
++            let (caller, mut peer) = lookup_client();
++            server.clients.insert(CALLER, caller);
++            let mut methods = Vec::new();
++            if signature_len != 0 {
++                let mut signature = BlobBuf::new();
++                let table = signature.msg_open_table("method");
++                signature.msg_string("large", &"x".repeat(signature_len));
++                signature.msg_close(table);
++                methods.push(obj::Method { name: b"method".to_vec(), blob: signature.payload().to_vec() });
++            }
++            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods });
++            let mut expected = Vec::new();
++            for i in 0..count {
++                let id = 4000 + i;
++                server.reg.create(Some(TYPE), Some(id)).unwrap();
++                assert!(server.reg.set_path(id, format!("lookup.{i:04}").into_bytes()));
++                assert!(server.build_obj(CALLER, id));
++                expected.push(server.scratch.as_bytes().to_vec());
++            }
++            for seq in [10, 11] {
++                let mut blob = BlobBuf::new();
++                assert!(server.receive(CALLER, InMsg {
++                    header: Header { ty: ty::LOOKUP, seq, peer: 1234 },
++                    blob: blob.as_bytes().to_vec(), fd: None,
++                }));
++            }
++            assert!(!server.clients[&CALLER].tx_empty(), "fixture must force queued output");
++            // Queued frames must own their bytes after both assembly buffers
++            // have been reused, including a single frame larger than a block.
++            server.scratch.reset();
++            server.scratch.put_string(attr::OBJPATH, "overwritten");
++            server.lookup_batch.clear();
++            server.lookup_batch.extend_from_slice(b"overwritten");
++            let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
++            assert_eq!(frames.len(), 2 * (count as usize + 1));
++            for (sequence, group) in frames.chunks(count as usize + 1).enumerate() {
++                for ((header, blob), expected) in group[..count as usize].iter().zip(&expected) {
++                    assert_eq!(header.ty, ty::DATA);
++                    assert_eq!(header.seq, 10 + sequence as u16);
++                    assert_eq!(header.peer, 1234);
++                    assert_eq!(blob, expected);
++                }
++                let (header, blob) = group.last().unwrap();
++                assert_eq!(header.ty, ty::STATUS);
++                assert_eq!(header.seq, 10 + sequence as u16);
++                assert_eq!(attrs_of(&blob[4..])[attr::STATUS as usize].unwrap().as_u32(), Some(0));
++            }
++        }
++    }
++
+     #[cfg(target_os = "linux")]
+     #[test]
+     fn prefix_lookup_resumes_by_path_after_delete_or_recreate_and_keeps_queued_bytes() {

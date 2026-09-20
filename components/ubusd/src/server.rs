@@ -1313,6 +1313,63 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     #[test]
+    fn batched_lookup_keeps_full_frames_and_fifo_under_backpressure() {
+        const CALLER: u32 = 2000;
+        const TYPE: u32 = 3000;
+        for (count, signature_len) in [(128, 0), (1, 6000)] {
+            let mut server = Server::new(String::new()).unwrap();
+            let (caller, mut peer) = lookup_client();
+            server.clients.insert(CALLER, caller);
+            let mut methods = Vec::new();
+            if signature_len != 0 {
+                let mut signature = BlobBuf::new();
+                let table = signature.msg_open_table("method");
+                signature.msg_string("large", &"x".repeat(signature_len));
+                signature.msg_close(table);
+                methods.push(obj::Method { name: b"method".to_vec(), blob: signature.payload().to_vec() });
+            }
+            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods });
+            let mut expected = Vec::new();
+            for i in 0..count {
+                let id = 4000 + i;
+                server.reg.create(Some(TYPE), Some(id)).unwrap();
+                assert!(server.reg.set_path(id, format!("lookup.{i:04}").into_bytes()));
+                assert!(server.build_obj(CALLER, id));
+                expected.push(server.scratch.as_bytes().to_vec());
+            }
+            for seq in [10, 11] {
+                let mut blob = BlobBuf::new();
+                assert!(server.receive(CALLER, InMsg {
+                    header: Header { ty: ty::LOOKUP, seq, peer: 1234 },
+                    blob: blob.as_bytes().to_vec(), fd: None,
+                }));
+            }
+            assert!(!server.clients[&CALLER].tx_empty(), "fixture must force queued output");
+            // Queued frames must own their bytes after both assembly buffers
+            // have been reused, including a single frame larger than a block.
+            server.scratch.reset();
+            server.scratch.put_string(attr::OBJPATH, "overwritten");
+            server.lookup_batch.clear();
+            server.lookup_batch.extend_from_slice(b"overwritten");
+            let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
+            assert_eq!(frames.len(), 2 * (count as usize + 1));
+            for (sequence, group) in frames.chunks(count as usize + 1).enumerate() {
+                for ((header, blob), expected) in group[..count as usize].iter().zip(&expected) {
+                    assert_eq!(header.ty, ty::DATA);
+                    assert_eq!(header.seq, 10 + sequence as u16);
+                    assert_eq!(header.peer, 1234);
+                    assert_eq!(blob, expected);
+                }
+                let (header, blob) = group.last().unwrap();
+                assert_eq!(header.ty, ty::STATUS);
+                assert_eq!(header.seq, 10 + sequence as u16);
+                assert_eq!(attrs_of(&blob[4..])[attr::STATUS as usize].unwrap().as_u32(), Some(0));
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
     fn prefix_lookup_resumes_by_path_after_delete_or_recreate_and_keeps_queued_bytes() {
         const CALLER: u32 = 2000;
         const TYPE: u32 = 3000;
