@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "purpose": "Five-arm physical exploration of single-pass borrowed event delivery: registration",
+  "runtime_commit": "9256951 plus r98-event-borrow.patch",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "before",
+        "candidate",
+        "lazy",
+        "stock",
+        "r89"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "r89",
+        "lazy",
+        "before",
+        "candidate",
+        "stock"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "candidate",
+        "before",
+        "r89",
+        "stock",
+        "lazy"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "before",
+        "r89",
+        "lazy",
+        "candidate",
+        "stock"
+      ]
+    }
+  ],
+  "seed": 9812,
+  "iterations": 5000,
+  "warmup": 20,
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "candidate": "4fe9d5e28e4caae8577d578f3693dd1613c412081240579f3b80e5a2fa6cf5d4",
+    "before": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+    "lazy": "1fc485de5261b3090c7bcabe265950fc4071ccf4b8d941cc89f0a232be4a2db1"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r97_registration.sh": "f9bcc61bf093e730aa60a1b00034d4039b56114b9224a7174417d5907f65f935"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op",
+    "subject_own_cpu_clock_us_per_op",
+    "dependency_own_cpu_clock_us_per_op",
+    "client_cpu_clock_us_per_op",
+    "ops_per_s"
+  ],
+  "memory": "Separate actual registration heap diagnostics; proc RSS/HWM remain diagnostic, not PSS or full peak acceptance.",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Four exploratory randomized paired blocks; per-cycle latency includes same client encoding, ADD_OBJECT, REMOVE_OBJECT. Full signature preflight and final empty lookup outside timed/CPU interval. Failed validation invalidates window; no superiority verdict. Five implementations in each block; analyze separately from first-candidate runs, even with identical clients.",
+  "runtime_patch_sha256": "7a38ca1adfd8cdcbcea167e905102f98e49b6dd7be7ea5615f6eef90698f27a6",
+  "server_source_sha256": "2f0892c401524985ea4a7a6294e23ed742972ef371afd312ffcebba22125c7f8",
+  "hypothesis": "Single-pass borrowed pattern traversal eliminates target-vector allocation; existing send_borrowed avoids payload clones unless queued. Preserve exact recipient order, dedup, sender suppression, event round and u16 sequence, monitor-before-delivery, queue caps and owned queued bytes. Lazy arm is the deferred first encoding-only candidate.",
+  "retention_rule": "Reject correctness failures. Report every adverse latency/CPU/throughput/memory direction against all comparators. If at least three of four paired own-CPU changes are positive with median >1%, or p99 median >5% with three positive pairs against accepted before, require a new independently frozen control recheck before retention. Pilot cannot establish full superiority or equivalence.",
+  "matrix": false,
+  "workloads": [
+    "register_1_8",
+    "register_16_8",
+    "register_64_8",
+    "register_1_128"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes.",
+  "registry_source_sha256": "75d1f5c6dcd9e8e040a37ecb0c1c52387396b9d6bae2ed2db26d27eaea710b0f",
+  "benchmark_sha256": "15d1046591d88663dbb3e23751cf33dbbe943714e53496bb20c81d2d6cfee59f",
+  "client_control": "ca1a912 client and dependencies plus frozen CPU-clock patch and register-cycle command; one identical new client for all registration arms. Do not pool with lookup experiment.",
+  "registration_patch_sha256": "5847f7f3a873485a5740a86c58075ab4b79252e76320ef18409edbf52d25b12b",
+  "analysis_object_count": 0,
+  "metric_directions": "Lower is better except ops_per_s, which is higher-is-better. Registration ops are complete add/remove cycles."
+}

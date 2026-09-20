@@ -1,0 +1,45 @@
+{
+  "purpose": "Correctness pre-screen; performance not collected at plan freeze",
+  "candidate_sha256": "4fe9d5e28e4caae8577d578f3693dd1613c412081240579f3b80e5a2fa6cf5d4",
+  "runtime_patch_sha256": "7a38ca1adfd8cdcbcea167e905102f98e49b6dd7be7ea5615f6eef90698f27a6",
+  "candidate_server_source_sha256": "2f0892c401524985ea4a7a6294e23ed742972ef371afd312ffcebba22125c7f8",
+  "native_units": 31,
+  "physical_units": 31,
+  "physical_result_sha256": "813b369553521c6495c5c58b43209ded0290d04c6b67684b689c2914a9286650",
+  "physical_passed": true,
+  "physical_cleanup_verified": true,
+  "native_clippy": "passed",
+  "host_gate_archive_sha256": "b67287700f0bac363902f4fe83baa2520b5928726da33d69c0871f5595fca10f",
+  "host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "log_sha256": "d7a372566f08a7fde24656e1bfc5348256aa82fd3e4438fc8c062d9ebdd5970f"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "log_sha256": "54ecffd934383778cb0afe754969e0989805053c42e4851e57262c0a5811a3c6"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "log_sha256": "3673b0f97467e2b3921af317c89e794bfa8227ee56da17cf346022411f4ce391"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ]
+}

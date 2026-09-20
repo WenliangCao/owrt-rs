@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "purpose": "Five-arm physical exploration of single-pass borrowed event delivery: matrix",
+  "runtime_commit": "9256951 plus r98-event-borrow.patch",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "r89",
+        "lazy",
+        "stock",
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "stock",
+        "r89",
+        "lazy",
+        "before",
+        "candidate"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "stock",
+        "lazy",
+        "before",
+        "r89",
+        "candidate"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "lazy",
+        "before",
+        "candidate",
+        "stock",
+        "r89"
+      ]
+    }
+  ],
+  "seed": 9811,
+  "iterations": 5000,
+  "warmup": 20,
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "candidate": "4fe9d5e28e4caae8577d578f3693dd1613c412081240579f3b80e5a2fa6cf5d4",
+    "before": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+    "lazy": "1fc485de5261b3090c7bcabe265950fc4071ccf4b8d941cc89f0a232be4a2db1"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op",
+    "subject_own_cpu_clock_us_per_op",
+    "dependency_own_cpu_clock_us_per_op",
+    "client_cpu_clock_us_per_op",
+    "ops_per_s"
+  ],
+  "memory": "Separate actual registration heap diagnostics; proc RSS/HWM remain diagnostic, not PSS or full peak acceptance.",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "All per-block values and paired medians. New high-resolution own-process CPU fields are separate from old tick+reaped-child fields. Four blocks are exploratory, no formal superiority/equivalence verdict. Do not pool pre-power-loss samples. Five implementations in each block; analyze separately from first-candidate runs, even with identical clients.",
+  "runtime_patch_sha256": "7a38ca1adfd8cdcbcea167e905102f98e49b6dd7be7ea5615f6eef90698f27a6",
+  "server_source_sha256": "2f0892c401524985ea4a7a6294e23ed742972ef371afd312ffcebba22125c7f8",
+  "hypothesis": "Single-pass borrowed pattern traversal eliminates target-vector allocation; existing send_borrowed avoids payload clones unless queued. Preserve exact recipient order, dedup, sender suppression, event round and u16 sequence, monitor-before-delivery, queue caps and owned queued bytes. Lazy arm is the deferred first encoding-only candidate.",
+  "retention_rule": "Reject correctness failures. Report every adverse latency/CPU/throughput/memory direction against all comparators. If at least three of four paired own-CPU changes are positive with median >1%, or p99 median >5% with three positive pairs against accepted before, require a new independently frozen control recheck before retention. Pilot cannot establish full superiority or equivalence.",
+  "matrix": true,
+  "workloads": [
+    "lookup",
+    "lookup_all_64",
+    "invoke",
+    "lookup_c4",
+    "lookup_all_64_c4",
+    "invoke_c4",
+    "lookup_prefix_64",
+    "lookup_prefix_64_c4",
+    "lookup_all_128",
+    "lookup_all_128_c4"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes.",
+  "registry_source_sha256": "75d1f5c6dcd9e8e040a37ecb0c1c52387396b9d6bae2ed2db26d27eaea710b0f",
+  "benchmark_sha256": "d5da0973ff4fd8774cc5952d2363c3a3f48e3884d2b264144abb26bd6ebbe96e",
+  "client_control": "Frozen ca1a912 client and dependencies plus only process CPU clocks; same binary on all five arms. Do not pool R95/R96 measurements.",
+  "metric_directions": "Lower is better except ops_per_s, which is higher-is-better. Registration ops are complete add/remove cycles."
+}
