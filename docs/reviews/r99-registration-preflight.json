@@ -1,0 +1,42 @@
+{
+  "runtime_base": "5a19517",
+  "candidate_sha256": "345e41e643f19b71aeedc48d6acf4532f37415c4bea0b4ee1fadb0674ede7277",
+  "unit_sha256": "d720e52da2baf245678a6943983a09d2065e54f42445da5bdde858ea9650ebad",
+  "patch_sha256": "801ff1c1fafc5f3e202e06172dbcdcfdd179ea46ddc128c51a12da32241c76fa",
+  "native_units": 30,
+  "host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "log_sha256": "e044ae59859b8f5c348d9d96a44ddaba6951d5c0379d9519641a0606815cac68"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "log_sha256": "95e1ef9886739c5239541dd45b8f91c96f8c2df115902cf5fef4472fb03f7d79"
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "log_sha256": "d3ba1c3d135463c211f91bbeb935138d3d6bd3352c34d3b65b4663a88d5ffdb7"
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+    }
+  ],
+  "host_gate_archive_sha256": "a1d688fe6925c7c86bdce610934058bb3633c5a85a1f00211f1ce5676cfebc08",
+  "native_clippy": "passed",
+  "physical_validation": "pending; no performance or retention claim"
+}
