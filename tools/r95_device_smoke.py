@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Run a packaged CLI in a disposable router namespace; production must be C.
+
+This is a correctness smoke, not a performance comparison. The candidate is
+never installed. A router-side timeout bounds the namespace lifetime, and the
+finally block removes this invocation's processes and temporary directory.
+"""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import shlex
+import subprocess
+import tarfile
+import uuid
+
+from r84_device_probe import probe
+
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("component", choices=("uci", "reload-config"))
+    p.add_argument("candidate", type=Path)
+    p.add_argument("output", type=Path)
+    p.add_argument("--recovery-gate", type=Path, required=True)
+    p.add_argument("--guard", type=Path, required=True, help="SDK-built tools/testsrc/r95_guard.c")
+    p.add_argument("--host", default="openwrt")
+    p.add_argument("--interface", default="en0")
+    a = p.parse_args()
+    a.output.mkdir(parents=True, exist_ok=False, mode=0o700)
+    ssh = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+           "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3", a.host]
+
+    def remote(command, timeout=30):
+        return subprocess.check_output(ssh + [command], timeout=timeout)
+
+    def save(name, value):
+        (a.output / name).write_text(json.dumps(value, indent=2) + "\n")
+
+    gate = json.loads(a.recovery_gate.read_text())
+    assert gate["offline_backup_verified"] and gate["configuration_matches_backup"]
+    before = probe(host=a.host, mode="stock", interface=a.interface)
+    assert before["boot_id"] == gate["boot_id"], "recovery gate is for another boot"
+    save("health-before.json", before)
+    identity = remote("/bin/sh /root/r84/stack-switch.sh verify stock")
+    config = remote("sha256sum /etc/config/*")
+    mounts = remote("cat /proc/self/mountinfo")
+    base = "/tmp/r95-check-" + uuid.uuid4().hex
+    binary = "reload_config_rs" if a.component == "reload-config" else "uci-rs"
+    harness = Path(__file__).parent / "benchmark/isolated.sh"
+    digest = hashlib.sha256(a.candidate.read_bytes()).hexdigest()
+    result = {"component": a.component, "candidate_sha256": digest,
+              "guard_sha256": hashlib.sha256(a.guard.read_bytes()).hexdigest(),
+              "recovery_gate_sha256": hashlib.sha256(a.recovery_gate.read_bytes()).hexdigest(),
+              "correctness_smoke_only": True, "installed": False,
+              "production_mode": "stock", "remote": base}
+    try:
+        remote(f"test ! -e {base} && mkdir -p {base}/bundle {base}/out {base}/work")
+        remote(f"cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark {base}/bundle/")
+        for local, destination in [(a.candidate, f"{base}/bundle/{binary}"),
+                                   (a.guard, f"{base}/guard"),
+                                   (harness, f"{base}/isolated.sh")]:
+            subprocess.run(["scp", "-q", "-O", str(local.resolve()), a.host + ":" + destination], check=True)
+        assert remote(f"sha256sum {base}/bundle/{binary}").decode().split()[0] == digest
+        assert remote(f"sha256sum {base}/guard").decode().split()[0] == result["guard_sha256"]
+        manifest = json.loads(remote("cat /root/r84/manifest.json"))
+        for tool in ("ns-exec", "owrt-benchmark"):
+            assert remote(f"sha256sum {base}/bundle/{tool}").decode().split()[0] == manifest["tools"][tool]["sha256"]
+        # Kill the namespace launcher itself on timeout: its init has PDEATHSIG
+        # and owns every descendant, including detached child processes.
+        command = (f"{base}/guard 120 {base}/bundle/ns-exec /bin/sh {base}/isolated.sh "
+                   f"--namespace /rom {base}/bundle {a.component} rs {base}/out 10 "
+                   f"{base}/work {base}/isolated.sh")
+        with (a.output / "run.log").open("wb") as log:
+            run = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)
+        result["exit"] = run.returncode
+        with (a.output / "raw.tar.gz").open("wb") as archive:
+            subprocess.run(ssh + [f"tar -czf - -C {base}/out ."], stdout=archive, check=True, timeout=30)
+        with tarfile.open(a.output / "raw.tar.gz") as archive:
+            archive.extractall(a.output / "raw", filter="data")
+        run.check_returncode()
+        assert (a.output / "raw/COMPLETE").is_file()
+        assert (a.output / "raw/binary-sha256.txt").read_text().split()[0] == digest
+        result["passed"] = True
+    finally:
+        # Limit cleanup strictly to the fresh UUID-owned namespace/bundle.
+        cleanup = f"""set -eu
+for p in /proc/[0-9]*; do
+    for what in exe root; do
+        target=$(readlink "$p/$what" 2>/dev/null || true)
+        case "$target" in {base}/*) kill -KILL "${{p##*/}}" 2>/dev/null || true ;; esac
+    done
+done
+rm -rf -- {shlex.quote(base)}
+test ! -e {shlex.quote(base)}
+"""
+        remote(cleanup)
+        after = probe(host=a.host, mode="stock", interface=a.interface)
+        save("health-after.json", after)
+        result["cleanup_verified"] = True
+        result["same_boot"] = before["boot_id"] == after["boot_id"]
+        result["same_config"] = config == remote("sha256sum /etc/config/*")
+        result["same_production_identity"] = identity == remote("/bin/sh /root/r84/stack-switch.sh verify stock")
+        result["same_host_mounts"] = mounts == remote("cat /proc/self/mountinfo")
+        save("result.json", result)
+        assert all(result[k] for k in ("same_boot", "same_config", "same_production_identity", "same_host_mounts"))
+    print(json.dumps(result), flush=True)
+
+
+if __name__ == "__main__":
+    main()

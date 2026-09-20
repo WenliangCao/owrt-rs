@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-20",
+  "steps": [
+    {
+      "component": "reload-config",
+      "candidate_sha256": "4793a15bb5a17e8cd8e7a0d48f103fc4ac97e13e4df9fdd820a5b49f563566d6",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true,
+      "stage": "A01",
+      "sdk_clean_compile_exit": 0,
+      "apk_sha256": "b704ee016de0fcc737e927aa6f349ca79fb05097eb9d55fb128db97c8d17692e",
+      "candidate_bytes": 477931,
+      "source_archive_sha256": "bfc41d51aa09411da39634e06d2701c942d46b6d43442c33f12b4ab457accdc0",
+      "source_base": "960e0b9",
+      "source_change": "packaging/openwrt/owrt-reload-config/Makefile",
+      "canonical_ci_release": false,
+      "performance_verdict": null
+    }
+  ]
+}

@@ -32,12 +32,14 @@ endef
 
 define Build/Prepare
 	rm -rf $(PKG_BUILD_DIR)
-	$(INSTALL_DIR) $(PKG_BUILD_DIR)/src
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/reload-config/src $(PKG_BUILD_DIR)/uci/src/bin
 	test -f $(RELOAD_CONFIG_RS_SOURCE)/Cargo.toml
 	test -f $(RELOAD_CONFIG_RS_SOURCE)/Cargo.lock
-	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/Cargo.toml $(PKG_BUILD_DIR)/
-	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/Cargo.lock $(PKG_BUILD_DIR)/
-	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/src/*.rs $(PKG_BUILD_DIR)/src/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/Cargo.toml $(RELOAD_CONFIG_RS_SOURCE)/Cargo.lock $(PKG_BUILD_DIR)/reload-config/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/src/*.rs $(PKG_BUILD_DIR)/reload-config/src/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../uci/Cargo.toml $(RELOAD_CONFIG_RS_SOURCE)/../uci/build.rs $(PKG_BUILD_DIR)/uci/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../uci/src/*.rs $(PKG_BUILD_DIR)/uci/src/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../uci/src/bin/*.rs $(PKG_BUILD_DIR)/uci/src/bin/
 endef
 
 define Build/Configure
@@ -54,7 +56,7 @@ define Build/Compile
 	CARGO_PROFILE_RELEASE_PANIC=abort \
 	CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$(TARGET_CC_NOCACHE)" \
 	RUSTFLAGS="--remap-path-prefix=/tmp/owrt-build/$(PKG_NAME)=/build --remap-path-prefix=$(V1_CARGO_HOME)=/cargo -Clink-arg=-fuse-ld=$(TARGET_LINKER) -Clink-arg=-Wl,-z,max-page-size=4096 -Clink-arg=-Wl,-z,now -Clink-arg=-Wl,-z,relro -Clink-arg=-Wl,-z,pack-relative-relocs" \
-	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/Cargo.toml --target-dir $(PKG_BUILD_DIR)/target
+	$(V1_CARGO) build --release --locked --manifest-path /tmp/owrt-build/$(PKG_NAME)/reload-config/Cargo.toml --target-dir $(PKG_BUILD_DIR)/target
 endef
 
 define Package/owrt-reload-config/install
