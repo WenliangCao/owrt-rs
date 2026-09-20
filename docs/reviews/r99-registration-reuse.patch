@@ -1,0 +1,139 @@
+--- a/components/ubusd/src/server.rs
++++ b/components/ubusd/src/server.rs
+@@ -277,8 +277,8 @@
+ 
+         if let Some(p) = attrs[attr::OBJPATH as usize] {
+             let path = obj::cstr_bytes(p.payload).to_vec();
+-            let cred = self.cred_of(client);
+-            let allowed = self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&path), None, AclType::Publish);
++            let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
++            let allowed = self.acl.check(cred.as_ref(), Some(&path), None, AclType::Publish);
+             if !allowed || !self.reg.set_path(id, path) {
+                 self.reg.destroy(id);
+                 return Outcome::Status(status::INVALID_ARGUMENT);
+@@ -293,15 +293,15 @@
+             c.objects.insert(0, id);
+         }
+ 
+-        let mut b = BlobBuf::new();
++        let b = &mut self.scratch;
++        b.reset();
+         b.put_u32(attr::OBJID, id);
+         if attrs[attr::SIGNATURE as usize].is_some() {
+             if let Some(t) = type_id {
+                 b.put_u32(attr::OBJTYPE, t);
+             }
+         }
+-        let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
+-        self.send(client, out);
++        self.send_scratch(client, Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer }, None);
+         Outcome::Status(status::OK)
+     }
+ 
+@@ -316,7 +316,8 @@
+         if o.client != Some(client) {
+             return Outcome::Status(status::PERMISSION_DENIED);
+         }
+-        let mut b = BlobBuf::new();
++        let b = &mut self.scratch;
++        b.reset();
+         b.put_u32(attr::OBJID, id);
+         // The type id is echoed only when this removal destroys it.
+         if let Some(t) = o.type_id {
+@@ -324,8 +325,7 @@
+                 b.put_u32(attr::OBJTYPE, t);
+             }
+         }
+-        let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, b.as_bytes().to_vec());
+-        self.send(client, out);
++        self.send_scratch(client, Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer }, None);
+         self.free_object(id);
+         Outcome::Status(status::OK)
+     }
+@@ -1262,6 +1262,86 @@
+         assert!(check_method(&a).is_none());
+     }
+     #[cfg(target_os = "linux")]
++    #[test]
++    fn registration_replies_survive_scratch_reuse_while_queued_and_monitored() {
++        for monitored in [false, true] {
++            let mut s = Server::new(String::new()).unwrap();
++            let (caller, mut peer) = lookup_client();
++            let (monitor, mut monitor_peer) = lookup_client();
++            s.clients.insert(2000, caller);
++            s.clients.insert(2001, monitor);
++            if monitored { s.monitors.push((2001, 0)); }
++            let mut expected = Vec::new();
++            for i in 0..64u16 {
++                let path = format!("queue.{i:03}");
++                let mut b = BlobBuf::new();
++                b.put_string(attr::OBJPATH, &path);
++                let signature = b.nest_start(attr::SIGNATURE);
++                let method = b.msg_open_table("method");
++                b.msg_u32("policy", 5);
++                b.msg_close(method);
++                b.nest_end(signature);
++                let header = Header { ty: ty::ADD_OBJECT, seq: i * 2, peer: 123 };
++                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
++                let id = s.reg.by_path(path.as_bytes()).unwrap();
++                let type_id = s.reg.get(id).unwrap().type_id.unwrap();
++                let mut data = BlobBuf::new();
++                data.put_u32(attr::OBJID, id);
++                data.put_u32(attr::OBJTYPE, type_id);
++                let data = data.as_bytes().to_vec();
++                let mut status_blob = BlobBuf::new();
++                status_blob.put_u32(attr::STATUS, status::OK as u32);
++                let status_blob = status_blob.as_bytes().to_vec();
++                expected.push((Header { ty: ty::DATA, ..header }, data.clone()));
++                expected.push((Header { ty: ty::STATUS, ..header }, status_blob.clone()));
++                let mut b = BlobBuf::new();
++                b.put_u32(attr::OBJID, id);
++                let header = Header { ty: ty::REMOVE_OBJECT, seq: i * 2 + 1, peer: 456 };
++                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
++                expected.push((Header { ty: ty::DATA, ..header }, data));
++                expected.push((Header { ty: ty::STATUS, ..header }, status_blob));
++                assert!(s.reg.get(id).is_none());
++                assert!(s.reg.types.is_empty());
++            }
++            assert!(!s.clients[&2000].tx_empty(), "fixture must queue replies before reading");
++            assert!(s.reg.paths.is_empty() && s.clients[&2000].objects.is_empty());
++            let actual = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
++            assert_eq!(actual.len(), expected.len());
++            for ((h, b), (wanted_h, wanted_b)) in actual.iter().zip(&expected) {
++                assert_eq!(h.encode(), wanted_h.encode());
++                assert_eq!(b, wanted_b);
++            }
++            let mirrors = lookup_frames(&drain_lookup(&mut s, 2001, &mut monitor_peer));
++            if monitored {
++                assert_eq!(mirrors.len(), 64 * 6);
++                let mut outgoing = expected.iter();
++                for (i, (h, b)) in mirrors.iter().enumerate() {
++                    assert_eq!((h.ty, h.seq, h.peer), (ty::MONITOR, i as u16 + 1, 0));
++                    // Monitor attributes have their own types: SEND is u8,
++                    // whereas the same index is a string in the bus policy.
++                    let mut attrs = [None; 6];
++                    let mut offset = 0;
++                    while let Some((a, next)) = blob::attr_at(&b[4..], offset) {
++                        attrs[a.id as usize] = Some(a);
++                        offset = next;
++                    }
++                    assert_eq!(attrs[0].unwrap().as_u32(), Some(2000));
++                    if attrs[2].unwrap().payload == [1] {
++                        let (header, blob) = outgoing.next().unwrap();
++                        assert_eq!(attrs[1].unwrap().as_u32(), Some(header.peer));
++                        assert_eq!(attrs[3].unwrap().as_u32(), Some(header.seq as u32));
++                        assert_eq!(attrs[4].unwrap().as_u32(), Some(header.ty as u32));
++                        assert_eq!(attrs[5].unwrap().payload, &blob[4..]);
++                    }
++                }
++                assert!(outgoing.next().is_none());
++            } else {
++                assert!(mirrors.is_empty());
++            }
++        }
++    }
++
++    #[cfg(target_os = "linux")]
+     fn lookup_client() -> (Client, std::os::unix::net::UnixStream) {
+         use std::os::fd::AsRawFd;
+         use std::os::unix::net::UnixStream;

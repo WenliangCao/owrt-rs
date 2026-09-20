@@ -1,0 +1,108 @@
+diff --git a/tools/benchmark/src/main.rs b/tools/benchmark/src/main.rs
+index c4baadb..716eba8 100644
+--- a/tools/benchmark/src/main.rs
++++ b/tools/benchmark/src/main.rs
+@@ -13,6 +13,7 @@ use std::process::Command;
+ use std::time::{Duration, Instant};
+ 
+ mod cpu_clock;
++mod affinity;
+ 
+ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+ 
+@@ -291,6 +292,53 @@ where
+     Ok(())
+ }
+ 
++/// Serial CPU diagnostic: no per-operation timing reads or latency vector.
++/// The service still uses its real socket protocol and production handler.
++fn measure_cpu_loop(n: usize, warmup: usize, pids: &[u32], mut operation: impl FnMut() -> Result<()>) -> Result<()> {
++    require(n > 0 && pids.len() == 1, "CPU loop requires iterations and one daemon PID")?;
++    for _ in 0..warmup { operation()?; }
++    let pid = pids[0];
++    let before = proc_sample(pid)?;
++    let own_before = proc_sample(std::process::id())?;
++    let subject_start = cpu_clock::sample(pid)?;
++    let client_start = cpu_clock::sample(std::process::id())?;
++    let start = Instant::now();
++    for _ in 0..n { operation()?; }
++    let wall = start.elapsed().as_secs_f64();
++    let client_end = cpu_clock::sample(std::process::id())?;
++    let subject_end = cpu_clock::sample(pid)?;
++    let own_after = proc_sample(std::process::id())?;
++    let after = proc_sample(pid)?;
++    require(before.start_ticks == after.start_ticks, "daemon PID was reused")?;
++    require(subject_start.resolution_ns == subject_end.resolution_ns
++            && client_start.resolution_ns == client_end.resolution_ns, "CPU clock resolution changed")?;
++    let daemon_ns = subject_end.ns.checked_sub(subject_start.ns).ok_or("daemon CPU clock regressed")?;
++    let client_ns = client_end.ns.checked_sub(client_start.ns).ok_or("client CPU clock regressed")?;
++    emit(obj([
++        ("schema", Json::Int(1)),
++        ("mode", Json::Str("serial_cpu_loop".into())),
++        ("successful", integer(n as u64)),
++        ("errors", Json::Int(0)),
++        ("warmup", integer(warmup as u64)),
++        ("subject_pid", integer(pid as u64)),
++        ("wall_s", num(wall)),
++        ("ops_per_s", num(n as f64 / wall)),
++        ("subject_cpu_clock_ns", integer(daemon_ns)),
++        ("client_cpu_clock_ns", integer(client_ns)),
++        ("subject_cpu_start_ns", integer(subject_start.ns)),
++        ("subject_cpu_end_ns", integer(subject_end.ns)),
++        ("client_cpu_start_ns", integer(client_start.ns)),
++        ("client_cpu_end_ns", integer(client_end.ns)),
++        ("subject_before", proc_json(pid, &before)),
++        ("subject_after", proc_json(pid, &after)),
++        ("client_before", proc_json(std::process::id(), &own_before)),
++        ("client_after", proc_json(std::process::id(), &own_after)),
++        ("subject_status", Json::Str(fs::read_to_string(format!("/proc/{pid}/status"))?)),
++        ("client_status", Json::Str(fs::read_to_string("/proc/self/status")?)),
++    ]));
++    Ok(())
++}
++
+ fn serve(socket: &str, count: usize) -> Result<()> {
+     require(count > 0, "object count must be positive")?;
+     let mut c = Connection::connect(Some(socket))?;
+@@ -542,7 +590,13 @@ fn main_inner(a: &[String]) -> Result<()> {
+                 || Ok(()),
+             )
+         }
+-        "register-cycle" => {
++        "exec-cpu" => {
++            require(a.len() >= 4, "exec-cpu CPU PROGRAM [ARGS...]")?;
++            affinity::pin(a[2].parse()?)?;
++            use std::os::unix::process::CommandExt;
++            Err(Command::new(&a[3]).args(&a[4..]).exec().into())
++        }
++        "register-cycle" | "register-cpu" => {
+             require(a.len() == 8, "register-cycle SOCKET METHODS NAME_BYTES N WARMUP PIDS")?;
+             let count: usize = a[3].parse()?;
+             let name_bytes: usize = a[4].parse()?;
+@@ -571,12 +625,20 @@ fn main_inner(a: &[String]) -> Result<()> {
+             // Each operation includes encoding, ADD_OBJECT and REMOVE_OBJECT.
+             // Preflight signature validation and the final empty check are
+             // outside both latency and measured CPU intervals.
+-            measure(a[5].parse()?, a[6].parse()?, &pid_list(&a[7])?, |_| {
+-                let start = Instant::now();
+-                let id = c.add_object(path, &methods, 5000)?;
+-                c.remove_object(id, 5000)?;
+-                Ok(start.elapsed().as_nanos() as u64)
+-            }, || Ok(()))?;
++            if a[1] == "register-cpu" {
++                measure_cpu_loop(a[5].parse()?, a[6].parse()?, &pid_list(&a[7])?, || {
++                    let id = c.add_object(path, &methods, 5000)?;
++                    c.remove_object(id, 5000)?;
++                    Ok(())
++                })?;
++            } else {
++                measure(a[5].parse()?, a[6].parse()?, &pid_list(&a[7])?, |_| {
++                    let start = Instant::now();
++                    let id = c.add_object(path, &methods, 5000)?;
++                    c.remove_object(id, 5000)?;
++                    Ok(start.elapsed().as_nanos() as u64)
++                }, || Ok(()))?;
++            }
+             require(c.lookup(None, 5000)?.is_empty(), "registration cycle left an object")
+         }
+         "register-watch" => {
