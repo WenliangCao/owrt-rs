@@ -1,0 +1,157 @@
+diff --git a/components/ubusd/src/obj.rs b/components/ubusd/src/obj.rs
+index 8a3b040..1ceb8ec 100644
+--- a/components/ubusd/src/obj.rs
++++ b/components/ubusd/src/obj.rs
+@@ -16,16 +16,28 @@ pub const SYSTEM_OBJECT_EVENT: u32 = 1;
+ pub const SYSTEM_OBJECT_ACL: u32 = 2;
+ pub const SYSTEM_OBJECT_MONITOR: u32 = 3;
+ 
+-/// One validated method: the canonical blobmsg attribute C emits on lookup,
+-/// plus its C-string name for ACL checks. The method data remains unchanged.
++/// One validated method in the canonical form C emits on lookup. The
++/// immutable bytes already contain the name and its length; do not keep
++/// another allocation or a spare-capacity field for either one.
+ pub struct Method {
+-    pub name: Vec<u8>,
+-    pub blob: Vec<u8>,
++    pub blob: Box<[u8]>,
++}
++
++impl Method {
++    /// `blob` must be a validated, canonical method attribute.
++    pub fn new(blob: Vec<u8>) -> Self {
++        Self { blob: blob.into_boxed_slice() }
++    }
++
++    pub fn name(&self) -> &[u8] {
++        let len = u16::from_be_bytes([self.blob[4], self.blob[5]]) as usize;
++        &self.blob[6..6 + len]
++    }
+ }
+ 
+ pub struct ObjType {
+     pub refcount: u32,
+-    pub methods: Vec<Method>,
++    pub methods: Box<[Method]>,
+ }
+ 
+ pub struct Object {
+@@ -80,7 +92,7 @@ impl Registry {
+ 
+     pub fn new_type(&mut self, methods: Vec<Method>) -> std::io::Result<u32> {
+         let id = Self::alloc_id(|id| self.types.contains_key(&id))?;
+-        self.types.insert(id, ObjType { refcount: 1, methods });
++        self.types.insert(id, ObjType { refcount: 1, methods: methods.into_boxed_slice() });
+         Ok(id)
+     }
+ 
+diff --git a/components/ubusd/src/server.rs b/components/ubusd/src/server.rs
+index 516a7ee..f7eb973 100644
+--- a/components/ubusd/src/server.rs
++++ b/components/ubusd/src/server.rs
+@@ -243,8 +243,8 @@ impl Server {
+                 offset = next;
+                 match check_method(&item) {
+                     Some(name) => {
+-                        let blob = method_blob(&item, &name);
+-                        methods.push(obj::Method { name, blob });
++                        let blob = method_blob(&item, name);
++                        methods.push(obj::Method::new(blob));
+                     }
+                     None => {
+                         ok = false;
+@@ -548,7 +548,7 @@ impl Server {
+         let mut visible = 0usize;
+         for m in &t.methods {
+             all += 1;
+-            if acl.check(cred, Some(path), Some(&m.name), AclType::Access) {
++            if acl.check(cred, Some(path), Some(m.name()), AclType::Access) {
+                 b.put_raw_fields(&m.blob);
+                 visible += 1;
+             }
+@@ -1140,7 +1140,7 @@ fn method_blob(a: &blob::Attr, name: &[u8]) -> Vec<u8> {
+ /// must be extended, carry a non-empty NUL-terminated name that fits inside the
+ /// padded blobmsg header, and hold a payload consistent with its blobmsg type.
+ /// Returns the name.
+-fn check_method(a: &blob::Attr) -> Option<Vec<u8>> {
++fn check_method<'a>(a: &blob::Attr<'a>) -> Option<&'a [u8]> {
+     if !a.extended {
+         return None;
+     }
+@@ -1182,7 +1182,7 @@ fn check_method(a: &blob::Attr) -> Option<Vec<u8>> {
+     }
+     // libubox validates the declared terminator, but embedded NULs are
+     // legal. ubusd ACLs compare blobmsg_name() as a C string.
+-    Some(obj::cstr_bytes(&a.payload[2..2 + name_len]).to_vec())
++    Some(obj::cstr_bytes(&a.payload[2..2 + name_len]))
+ }
+ 
+ #[cfg(test)]
+@@ -1239,7 +1239,7 @@ mod tests {
+         payload.extend_from_slice(b"ping\0");
+         payload.resize(8, 0); // pad4(2 + 4 + 1)
+         let a = blob::Attr { id: 2, extended: true, payload: &payload };
+-        assert_eq!(check_method(&a).as_deref(), Some(&b"ping"[..]));
++        assert_eq!(check_method(&a), Some(&b"ping"[..]));
+         for (wire_name, expected) in [(&b"ping\0suffix"[..], &b"ping"[..]),
+                                       (b"\0suffix", b""), (b"p\xffng", b"p\xffng")] {
+             let mut payload = (wire_name.len() as u16).to_be_bytes().to_vec();
+@@ -1247,7 +1247,7 @@ mod tests {
+             payload.push(0);
+             payload.resize(crate::client::pad4(payload.len()), 0);
+             let attr = blob::Attr { id: 2, extended: true, payload: &payload };
+-            assert_eq!(check_method(&attr).as_deref(), Some(expected));
++            assert_eq!(check_method(&attr), Some(expected));
+         }
+         // a zero-length name is refused when a name is required
+         let mut zero = 0u16.to_be_bytes().to_vec();
+@@ -1334,9 +1334,9 @@ mod tests {
+                 let table = signature.msg_open_table("method");
+                 signature.msg_string("large", &"x".repeat(signature_len));
+                 signature.msg_close(table);
+-                methods.push(obj::Method { name: b"method".to_vec(), blob: signature.payload().to_vec() });
++                methods.push(obj::Method::new(signature.payload().to_vec()));
+             }
+-            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods });
++            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods: methods.into() });
+             let mut expected = Vec::new();
+             for i in 0..count {
+                 let id = 4000 + i;
+@@ -1390,9 +1390,7 @@ mod tests {
+             let table = signature.msg_open_table("method");
+             signature.msg_string("large", &"x".repeat(32768));
+             signature.msg_close(table);
+-            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods: vec![obj::Method {
+-                name: b"method".to_vec(), blob: signature.payload().to_vec(),
+-            }] });
++            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods: vec![obj::Method::new(signature.payload().to_vec())].into() });
+             let mut expected = Vec::new();
+             for i in 0..12 {
+                 let id = FIRST + i;
+@@ -1467,13 +1465,11 @@ mod tests {
+             if monitored {
+                 server.monitors.push((MONITOR, 0));
+             }
+-            server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: Vec::new() });
++            server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: Box::default() });
+             let mut signature = BlobBuf::new();
+             let table = signature.msg_open_table("hidden");
+             signature.msg_close(table);
+-            server.reg.types.insert(3001, obj::ObjType { refcount: 0, methods: vec![obj::Method {
+-                name: b"hidden".to_vec(), blob: signature.payload().to_vec(),
+-            }] });
++            server.reg.types.insert(3001, obj::ObjType { refcount: 0, methods: vec![obj::Method::new(signature.payload().to_vec())].into() });
+             // Deliberately insert in reverse byte order, including non-UTF8.
+             for (id, path, kind) in [(4000, &b"z\xff"[..], Some(3000)),
+                                       (4001, &b"c"[..], Some(3001)),
+@@ -1533,9 +1529,7 @@ mod tests {
+         let table = signature.msg_open_table("method");
+         signature.msg_string("large", &"x".repeat(32768));
+         signature.msg_close(table);
+-        server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: vec![obj::Method {
+-            name: b"method".to_vec(), blob: signature.payload().to_vec(),
+-        }] });
++        server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: vec![obj::Method::new(signature.payload().to_vec())].into() });
+         let mut expected = Vec::new();
+         for i in 0..40 {
+             let id = 4000 + i;

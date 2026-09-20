@@ -1,0 +1,64 @@
+{
+  "purpose": "Requested retained and construction-peak heap of actual ADD_OBJECT dispatch. Verify counts, method payload lengths, reply types, drained queues and all owners released; no CPU or RSS/PSS verdict.",
+  "order": [
+    "before",
+    "candidate",
+    "candidate",
+    "before"
+  ],
+  "dimensions": [
+    "objects",
+    "methods",
+    "name_bytes"
+  ],
+  "scenarios": [
+    [
+      1,
+      1,
+      8
+    ],
+    [
+      1,
+      16,
+      8
+    ],
+    [
+      1,
+      64,
+      8
+    ],
+    [
+      128,
+      1,
+      8
+    ],
+    [
+      128,
+      1,
+      32
+    ],
+    [
+      128,
+      16,
+      32
+    ],
+    [
+      128,
+      1,
+      128
+    ]
+  ],
+  "csv": "methods.csv",
+  "iterations": 1,
+  "subjects": {
+    "before": "c80c643c3aa48d6a0a708bf60911801b1bd088fb66cd3bef3bad32b80685acd8",
+    "candidate": "92086726287bbe699b7eedf4201e9b9ca6b4253396a6af61383983d67bc9c22e"
+  },
+  "profile_source_sha256": "23599da59dd42a536fc1cbc48fd6329815302e6e34798af41afcd4802580e1cf",
+  "counter_source_sha256": "eaeea6384012cd1e439e7df6614c33a5226726edb148c650ce1912cc68011ec3",
+  "workload_sha256": "57d5d027e7ee2b8947b108f93638dbe65be8565946b58e5af40e34c0e4728851",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "report_sha256": "701a0ab5d54908106874a2d01d8bfb7bd41f216b603eaa3becaffd75ebf0bc78",
+  "scope": "Requested Rust heap of actual registration dispatch including retained server/client state; excludes allocator rounding, libc internals, stack, code and kernel. Construction peak tracks successful logical Rust realloc sizes, not physical allocator transient peak.",
+  "hypothesis": "Shared canonical method name and exact-capacity immutable lists reduce retained heap. Both versions use identical fixture/counter sources; candidate differs only by the frozen runtime patch."
+}

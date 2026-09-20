@@ -19,7 +19,9 @@ def main():
     a = p.parse_args()
     plan = json.loads(a.plan.read_text())
     assert (a.root / 'MEMORY_COMPLETE').exists()
-    expected = {(n, size) for n in plan['objects'] for size in plan['path_bytes']}
+    fields = plan.get('dimensions', ['objects', 'path_bytes'])
+    expected = ({tuple(row) for row in plan['scenarios']} if 'scenarios' in plan
+                else {(n, size) for n in plan['objects'] for size in plan['path_bytes']})
     runs, boots, gates = [], set(), set()
     for index, side in enumerate(plan['order'], 1):
         root = a.root / f'memory-{index}-{side}'
@@ -40,10 +42,10 @@ def main():
         gates.add((result['guard_sha256'], result['recovery_gate_sha256']))
         assert (root / 'raw/COMPLETE').exists()
         assert (root / 'raw/binary-sha256.txt').read_text().split()[0] == plan['subjects'][side]
-        with (root / 'raw/registry.csv').open() as stream:
+        with (root / 'raw' / plan.get('csv', 'registry.csv')).open() as stream:
             rows = [{key: int(value) for key, value in row.items()} for row in csv.DictReader(stream)]
         assert len(rows) == len(expected)
-        assert {(r['objects'], r['path_bytes']) for r in rows} == expected
+        assert {tuple(r[key] for key in fields) for r in rows} == expected
         assert all(r['construction_peak_requested_bytes'] >= r['retained_requested_bytes'] > 0 for r in rows)
         runs.append({'index': index, 'side': side, 'rows': rows,
                      'result_sha256': digest(root / 'result.json'),
@@ -56,7 +58,7 @@ def main():
                                    'all_windows_cleaned_and_production_stock': True,
                                    'repeat_exact_agreement': repeat_agreement,
                                    'superiority_verdict': None,
-                                   'scope': 'Requested Rust heap of actual Registry only; excludes allocator rounding, libc internals, clients, stack, code and kernel',
+                                   'scope': plan.get('scope', 'Requested Rust heap of actual Registry only; excludes allocator rounding, libc internals, clients, stack, code and kernel'),
                                    'runs': runs}, indent=2) + '\n')
 
 
