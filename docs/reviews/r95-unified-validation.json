@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-20",
+  "runtime_commit": "5dabcb40ca3515cd2ac5ad0b979f748f03e7ac00",
+  "runtime_sources_match_commit": true,
+  "source_archive_sha256": "6c2e2f1fbc38035af545d997cacbd3c50e71fb668a4a426223c3b98972a2819e",
+  "builder": "Oracle Linux AArch64 with matching OpenWrt SDK; six actual package recipes, three fixed-path core builds",
+  "canonical_ci_release": false,
+  "uci_reload_apks_reused_from": "A03 final packages; runtime sources byte-for-byte match this commit",
+  "build": {
+    "binaries": {
+      "fw4-rs": {
+        "sha256": "8e74fdbc9521d3f94a55eab129e92b379f448529cb5760a47ee38d854465d218",
+        "bytes": 1034963
+      },
+      "httpd-rs": {
+        "sha256": "e66915a2993451f0cfcb5ca76ed0de8b743392d4d6448622ea3c28596cbb1a0c",
+        "bytes": 1604351
+      },
+      "logd-rs": {
+        "sha256": "b4f3c79e2fb9909c0ca800f6e0d5ed5c45d70b1f1e47f9eb805fca3ebde5a749",
+        "bytes": 428731
+      },
+      "netifd-rs": {
+        "sha256": "5f48274aaaf92f646f5df1ba973a4dd069b86b090668c5388dd824eb118603ed",
+        "bytes": 1048640
+      },
+      "procd-rs": {
+        "sha256": "427314e0c870393def190858292ec8e17ac0a02d03598a754825cde2ee74aa8b",
+        "bytes": 872440
+      },
+      "reload_config_rs": {
+        "sha256": "2abc0bea7d21f3d01afb62d1fcc5cabf48876d4624f6720f2f2d36cf4fd084fc",
+        "bytes": 482027
+      },
+      "rpcd-rs": {
+        "sha256": "e582901b413105fb7371cee5abca7f54bc2849b279ab197c355bbdac75032d72",
+        "bytes": 1248019
+      },
+      "ubusd-rs": {
+        "sha256": "0eea3291e99a4e02e50c11be568c3c4b5bf39673eaec665a1e4655f27813d7b5",
+        "bytes": 507880
+      },
+      "uci-rs": {
+        "sha256": "95a570ec37715fcb1ebf133714dc90825053f4dbb48c0bc29f946fade3154861",
+        "bytes": 490251
+      }
+    },
+    "apks": {
+      "owrt-fw4-0.1.0-r12.apk": {
+        "sha256": "a016b8947e0ae7511d10d64cc1d545e841698e6ba1d5d4fd1c513497bfcf5caf",
+        "bytes": 526648
+      },
+      "owrt-httpd-0.1.1-r13.apk": {
+        "sha256": "8e2479159fee54a5eefd064e67378590f74e95ff17c9f877933775c1a6f05f6f",
+        "bytes": 928625
+      },
+      "owrt-logd-0.1.0-r11.apk": {
+        "sha256": "dfc2d62b2a59d905ad1b5843663e8a16dc23517ad33adc23586b28f12333835f",
+        "bytes": 229642
+      },
+      "owrt-reload-config-0.2.0-r8.apk": {
+        "sha256": "51ccf420726408ab0e0abed45ebf4148e3a361176753b581dde0ec2cb996fb77",
+        "bytes": 256887
+      },
+      "owrt-rpcd-0.1.0-r18.apk": {
+        "sha256": "0290aa345041d5266209754d8bbc8c3f633be9880cf22b627eb07595f4cf8a0f",
+        "bytes": 673951
+      },
+      "owrt-uci-0.1.0-r9.apk": {
+        "sha256": "708fb43478a9a801195e9f6fcf24125d8f4b7d9d120f548f8fe30fae9a9989ce",
+        "bytes": 257371
+      }
+    },
+    "logs": {
+      "build-fw4.log": "77d6557ad7e87138219dd2c8e6ecd24ed6bf994b320c778b5d03b25ef90c5888",
+      "build-httpd.log": "490b1fe7c3a6a3b6727ac1b8636a1a680922205bb06f5b0731ca72a4329f7055",
+      "build-logd.log": "ed53e53a65a64aebe306b0ebfb18ec1adcfc6f7148954e6cc5458c77a08b1f19",
+      "build-netifd.log": "a25b8023fa552cfe5a2c4863906cb4ac491000b3c7e8d0f959cd031f57c26567",
+      "build-procd.log": "91e288e12f925f4dcb346371f5797b53b1a0eefff689b1b2c5d4d0da19e71b93",
+      "build-rpcd.log": "602a853a7e45bc3102e7fd6f488d6210ea1955f6e67a2ea77c6165990d24dcc7",
+      "build-ubusd.log": "9ccce8e3ea38ae8b1c5f77631672f9ebbae544c9b74c4c83147c6e68c0b6f6b6",
+      "clean-fw4.log": "3de2e3e22fff1c775fb6c06920c3eff9b525f73bc763b2840d0afb7669a6b672",
+      "clean-httpd.log": "b1d9f15005f0504be59f6100ecda360114a28720fce27152901eec393d21b716",
+      "clean-logd.log": "89fcc07d98adee49fa209c8a316cfa202cba04433c58c6f86d94b45ff41e13ee",
+      "clean-rpcd.log": "d974b18de48e4eafe6673a95b27dd57ea45ce5b5d7cee4bf96aa6efedec238a3",
+      "extract-fw4.log": "9f16ddd23e815ab113bac831ccad6637aabc42ad2b917f9d539ccec5a1ac9bdd",
+      "extract-httpd.log": "0b9d3bdd7e25b895a8b4421b8e7e9b35521fc9e3d350f9c26c3fdfc44fd9d871",
+      "extract-logd.log": "4d7d6b8fcae87d811a26b1c9414d86fa28dabbc9284091c71b051fdda22b3b0f",
+      "extract-rpcd.log": "9caadb4a0eeedd43ca3ad59a545624f50a9c0048b1650b6bba513e4bd6297461"
+    }
+  },
+  "device_smokes": [
+    {
+      "component": "fw4",
+      "candidate_sha256": "8e74fdbc9521d3f94a55eab129e92b379f448529cb5760a47ee38d854465d218",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "httpd",
+      "candidate_sha256": "e66915a2993451f0cfcb5ca76ed0de8b743392d4d6448622ea3c28596cbb1a0c",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "logd",
+      "candidate_sha256": "b4f3c79e2fb9909c0ca800f6e0d5ed5c45d70b1f1e47f9eb805fca3ebde5a749",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "netifd",
+      "candidate_sha256": "5f48274aaaf92f646f5df1ba973a4dd069b86b090668c5388dd824eb118603ed",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "procd",
+      "candidate_sha256": "427314e0c870393def190858292ec8e17ac0a02d03598a754825cde2ee74aa8b",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "reload-config",
+      "candidate_sha256": "2abc0bea7d21f3d01afb62d1fcc5cabf48876d4624f6720f2f2d36cf4fd084fc",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "rpcd",
+      "candidate_sha256": "e582901b413105fb7371cee5abca7f54bc2849b279ab197c355bbdac75032d72",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "ubusd",
+      "candidate_sha256": "0eea3291e99a4e02e50c11be568c3c4b5bf39673eaec665a1e4655f27813d7b5",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    },
+    {
+      "component": "uci",
+      "candidate_sha256": "95a570ec37715fcb1ebf133714dc90825053f4dbb48c0bc29f946fade3154861",
+      "driver_sha256": "ad1c6ca97320322159675bfeaa13915b5cc295b8af345d884accca341210cd93",
+      "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "da2f3331ca05329111e29d23d76ebab1a74377ab8cc524313f1924130cd4bc08",
+      "correctness_smoke_only": true,
+      "installed": false,
+      "production_mode": "stock",
+      "exit": 0,
+      "passed": true,
+      "cleanup_verified": true,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true
+    }
+  ],
+  "performance_verdict": null,
+  "full_functional_gates": "recorded separately when completed",
+  "whole_stack_integration_verified": false,
+  "production_mode": "stock",
+  "installed": false
+}

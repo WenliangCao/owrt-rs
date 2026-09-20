@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a packaged CLI in a disposable router namespace; production must be C.
+"""Run one candidate in a disposable router namespace; production must be C.
 
 This is a correctness smoke, not a performance comparison. The candidate is
 never installed. A router-side timeout bounds the namespace lifetime, and the
@@ -19,7 +19,8 @@ from r84_device_probe import probe
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("component", choices=("uci", "reload-config"))
+    p.add_argument("component", choices=("uci", "reload-config", "fw4", "logd", "rpcd",
+                                         "httpd", "procd", "ubusd", "netifd"))
     p.add_argument("candidate", type=Path)
     p.add_argument("output", type=Path)
     p.add_argument("--recovery-gate", type=Path, required=True)
@@ -50,7 +51,7 @@ def main():
     config = remote("sha256sum /etc/config/*")
     mounts = remote("cat /proc/self/mountinfo")
     base = "/tmp/r95-check-" + uuid.uuid4().hex
-    binary = "reload_config_rs" if a.component == "reload-config" else "uci-rs"
+    binary = "reload_config_rs" if a.component == "reload-config" else a.component + "-rs"
     harness = Path(__file__).parent / "benchmark/isolated.sh"
     workload = a.workload_script or harness
     remote_script = f"{base}/probe.sh" if a.workload_script else f"{base}/isolated.sh"
