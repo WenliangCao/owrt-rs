@@ -1,0 +1,261 @@
+{
+  "candidate_sha256": "5083f49ba344646532c6b407b5ea22d036c8bba083146e13e8a0e458152d0b99",
+  "unit_sha256": "b6272da0d8d763dd1ffdb2601bf212f127f66c4206d6b0f939b7fd8131624404",
+  "windows": 30,
+  "comparisons": {
+    "stock": {
+      "results_sha256": "6bd94953fee55fbb4cf19148e809c9a5da0363d9d256c8796d8792fede27dce3",
+      "runs": 10,
+      "summaries": [
+        {
+          "metric": "subject_cpu_us",
+          "ratio_median": 0.9458722209181321,
+          "interval": {
+            "lower": 0.9241036563029107,
+            "upper": 0.9571524186353386,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -5.412777908186794,
+          "percent_effect_interval": [
+            -7.58963436970893,
+            -4.284758136466138
+          ]
+        },
+        {
+          "metric": "client_cpu_us",
+          "ratio_median": 1.0015507346927488,
+          "interval": {
+            "lower": 0.9913795853577319,
+            "upper": 1.0073026900920254,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": 0.15507346927488008,
+          "percent_effect_interval": [
+            -0.8620414642268148,
+            0.7302690092025443
+          ]
+        },
+        {
+          "metric": "total_cpu_us",
+          "ratio_median": 0.9767652730191368,
+          "interval": {
+            "lower": 0.9602009103712537,
+            "upper": 0.9822947161772778,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -2.323472698086315,
+          "percent_effect_interval": [
+            -3.9799089628746342,
+            -1.7705283822722184
+          ]
+        },
+        {
+          "metric": "wall_us",
+          "ratio_median": 0.9676726652752607,
+          "interval": {
+            "lower": 0.9429671193094349,
+            "upper": 0.9792737403276931,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -3.2327334724739254,
+          "percent_effect_interval": [
+            -5.703288069056511,
+            -2.07262596723069
+          ]
+        }
+      ],
+      "window_result_sha256": [
+        "4fcc4e0d04e3990dd04338660bcb10f04d808586b8a2718b282e1d475d0c3503",
+        "983e61435ca895af2dd51082c0471e9670300c2cb20c183015c7062bf76fdfe6",
+        "c1b0064b6d15627469f033496e3e7f9b16a8e3f29c8a8b285430f97ba293e2a1",
+        "ced8f7a4cd1225b75af965090ac5d25080f965767fb2945d58f46d58ddd439d9",
+        "8bf5d94a9cd9ce30f8fa2596bca44959965b3626d0fc6123562e41c1936549b3",
+        "713fb21ab2ce3c26abefc16d8b7f320fc99bcb25942168484abe7ed66eeb4e4c",
+        "4f693742943afe4807e0ec699aec3851000b07a7c0761227377d72220aa63457",
+        "81152307b5959c33939722160386d6f502e45eea0c68007716c02a3526e4c2c7",
+        "a5f46aad157cfc0671dc755dfaea9e1b21dce6a38732837006c67a4f35bc5db5",
+        "90da3b0c9da506e66ef9c38ffc81d521cb3f737690b4449d45d7726de12be9bf"
+      ]
+    },
+    "r89": {
+      "results_sha256": "c024bf6dafd636ec3b84b4cc4927fe5bd988fd4124a24b5d65cd8ef6b9554305",
+      "runs": 10,
+      "summaries": [
+        {
+          "metric": "subject_cpu_us",
+          "ratio_median": 0.6891413715199259,
+          "interval": {
+            "lower": 0.684298489424209,
+            "upper": 0.6971809047643728,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -31.085862848007405,
+          "percent_effect_interval": [
+            -31.5701510575791,
+            -30.28190952356272
+          ]
+        },
+        {
+          "metric": "client_cpu_us",
+          "ratio_median": 0.993145103277572,
+          "interval": {
+            "lower": 0.988003182110079,
+            "upper": 0.9966413036096338,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -0.6854896722428006,
+          "percent_effect_interval": [
+            -1.1996817889921019,
+            -0.33586963903662337
+          ]
+        },
+        {
+          "metric": "total_cpu_us",
+          "ratio_median": 0.8296237278821168,
+          "interval": {
+            "lower": 0.8251497227122055,
+            "upper": 0.8342100487981738,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -17.03762721178832,
+          "percent_effect_interval": [
+            -17.485027728779446,
+            -16.578995120182615
+          ]
+        },
+        {
+          "metric": "wall_us",
+          "ratio_median": 0.8764788606274074,
+          "interval": {
+            "lower": 0.8605016370413463,
+            "upper": 0.885632381823365,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -12.352113937259258,
+          "percent_effect_interval": [
+            -13.94983629586537,
+            -11.436761817663498
+          ]
+        }
+      ],
+      "window_result_sha256": [
+        "5fa9575312b27f278a7fb119b1bec52be70874065815db03e409d420215af212",
+        "46329794b878f9b5a69da0ae8c73448326bb29fe94fb59cbc0bbd44eb9914fb5",
+        "e10380324037c6391d9d7e0464d85c826f3f24ffcafee0bc57c5dc69d9637bb9",
+        "5221799ff67cdbe54beb16ba23d4fa3a44ab7fb205656767ee1aef1d1e7f283e",
+        "10e1f6f4faf265be16be310ca8a913d14739c75537700638eab4fb920d351d92",
+        "a490e16cf644f79152e349e13e7fff0965caced1b2328609b6c6db986771e913",
+        "999a7282f7729cf8765f0af5815e03f46ce753261324a9fb51b95891efe2f536",
+        "b1833eccdd2b3aea1da2f4d90e9dfa1f0682366fc05e6103dad5e8ec7f24644c",
+        "c99a5650cedec24282b011294766bba0efdc04f7a6036e4fc8b615313baeaf80",
+        "9ffdf6f1cc09864406a25f3fd2c71050984e7aa5f7a7de4eeba13293cf846e12"
+      ]
+    },
+    "before": {
+      "results_sha256": "1e6a592d40fc5b024ea3c691e67d2e766c257cfb7541792ea18502de3d87897e",
+      "runs": 10,
+      "summaries": [
+        {
+          "metric": "subject_cpu_us",
+          "ratio_median": 0.7804383294156193,
+          "interval": {
+            "lower": 0.7667305682675961,
+            "upper": 0.7905096465089508,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -21.95616705843807,
+          "percent_effect_interval": [
+            -23.326943173240387,
+            -20.949035349104918
+          ]
+        },
+        {
+          "metric": "client_cpu_us",
+          "ratio_median": 0.9953515753386816,
+          "interval": {
+            "lower": 0.99023294548632,
+            "upper": 0.9990215710146338,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -0.4648424661318429,
+          "percent_effect_interval": [
+            -0.9767054513679985,
+            -0.09784289853661532
+          ]
+        },
+        {
+          "metric": "total_cpu_us",
+          "ratio_median": 0.8862706471697681,
+          "interval": {
+            "lower": 0.8766128038042376,
+            "upper": 0.8922853521966428,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -11.372935283023189,
+          "percent_effect_interval": [
+            -12.338719619576244,
+            -10.771464780335716
+          ]
+        },
+        {
+          "metric": "wall_us",
+          "ratio_median": 0.9162260072154664,
+          "interval": {
+            "lower": 0.8958886205392687,
+            "upper": 0.9242454978445279,
+            "rank": 1,
+            "marginal_coverage_lower_bound": 0.998046875
+          },
+          "percent_effect_median": -8.377399278453357,
+          "percent_effect_interval": [
+            -10.411137946073135,
+            -7.5754502155472085
+          ]
+        }
+      ],
+      "window_result_sha256": [
+        "a8655d8e4c765893927ec302ad81f5eee760b3a67b0bede448d562d4c8cdfcc3",
+        "e0a357b0cdb012fe5595900d9d865832eb70e875099d0eb806013b0949a19954",
+        "dfdfab3b3135d0771cd1e821ccb162c99ccd06d52230d80996a2017ee65b9316",
+        "9a44cd4e696f3653c34fb05e0d13c098d5b5e2937526175c35a7ded0c44b5955",
+        "0eb5fc350b7312160537e928128d3f6d508d2be934ea99268be5cb65a221d0b3",
+        "3e588a7c717624a5aa679e6ee7e0a485eed3df4c732211da91d9931ada81ded8",
+        "f12fa5b08f61911297d30cc7a8c9bc2a2e9ae3384a75f962eaf1e3da529e3149",
+        "cf680f020338f2788774bb5d2dd483f6750007a1e14c7f40971529f16e543ce9",
+        "a1d09f153d6925340e003ee6da33ac7653b06b777b914b1fedfb33c10a4abdbf",
+        "008b56532b42caeaddd0f3d0d3cbed06641223aee5dea83dde3829651398e282"
+      ]
+    }
+  },
+  "complete_markers": {
+    "stock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "r89": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "performance_complete_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "final_health": {
+    "final-health.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "final-cleanup.txt": "b1282d51f29872076fde422fe12c7f861756537cbe02155626d33e34ff12e5dc",
+    "final-config.sha256": "f4961a2c7835a217ad02a36884ae14ee840507935d527dd182a125ed2f2b9364"
+  },
+  "all_windows_cleaned_and_stock": true,
+  "interpretation": {
+    "statistical_unit": "One ratio per physical paired window; each ratio aggregates 20 equal-size segments per side. Segments are not independent replicates.",
+    "multiplicity": "12 planned intervals per comparator (three comparators x four metrics), exact rank intervals reported by verifier.",
+    "scope": "One-method real-protocol ADD/REMOVE registration, pinned co-resident daemon/client, Rust benchmark caller.",
+    "candidate_status": "Experimental only; no runtime retention or whole-system superiority claim.",
+    "client_cpu_interval_crosses_one_vs_stock": true,
+    "memory_scope": "Separate physical requested-Rust-heap diagnostic; not RSS/PSS/kernel/C allocation comparison."
+  }
+}

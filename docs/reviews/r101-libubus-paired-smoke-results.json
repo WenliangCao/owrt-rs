@@ -1,0 +1,668 @@
+{
+  "plan": {
+    "schema_version": 1,
+    "kind": "smoke",
+    "purpose": "Single paired C-caller instrumentation smoke; not comparative inference or calibration",
+    "subjects": {
+      "baseline": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+      "candidate": "5083f49ba344646532c6b407b5ea22d036c8bba083146e13e8a0e458152d0b99"
+    },
+    "benchmark_sha256": "a506df0e83814faeda49840286ef2f27305ee3cfd0427b02f1be222973d20842",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "workload_sha256": "c1f2777c815053193bc44ee7c8ed107513604b511d9d66d6a94724907ad8d8b8",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+    "iterations": 1000,
+    "warmup": 2000,
+    "subject_cpu": 1,
+    "client_cpu": 0,
+    "seed": 9913,
+    "blocks": [
+      {
+        "block": 1,
+        "slots": {
+          "a": "baseline",
+          "b": "candidate"
+        }
+      }
+    ],
+    "contrasts": [
+      [
+        "candidate",
+        "baseline"
+      ]
+    ],
+    "metrics": [
+      "subject_cpu_us",
+      "client_cpu_us",
+      "total_cpu_us",
+      "wall_us"
+    ],
+    "interval_metrics": [
+      "subject_cpu_us",
+      "client_cpu_us",
+      "total_cpu_us",
+      "wall_us"
+    ],
+    "statistical_unit": "No inference: one paired instrumentation-smoke window.",
+    "reference": "https://online.stat.psu.edu/stat415/lesson/19/19.1",
+    "preflight": "Run only after R100 suite is terminal and router cleanup verified. This one-window smoke checks full paired collection and verifier; no interval or relative performance conclusion.",
+    "production": "stock C throughout; only new disposable namespace processes are pinned; no governor/IRQ/production affinity changes",
+    "failure_rule": "Stop on identity, correctness, collection, health, affinity or cleanup failure. Preserve failed window; never infer success from missing results.",
+    "segments_per_window": 40,
+    "quartets": 10,
+    "cycles_per_side_per_window": 20000,
+    "design": "Two independently started subject daemons pinned CPU 1; one serial client pinned CPU 0. Ten quartets alternating slot ABBA/BAAB, 2000 untimed warmup cycles per segment. Randomized candidate/baseline slot assignment per window and randomized comparator order per suite block. This co-resident comparison is diagnostic, not full-system latency/memory acceptance.",
+    "references": [
+      "https://www.itl.nist.gov/div898/handbook/pri/section3/pri332.htm",
+      "https://online.stat.psu.edu/stat415/lesson/19/19.1"
+    ],
+    "previous_data": "C-caller three-side correctness smoke; no C-caller A/A or completed paired measurement yet.",
+    "family_comparisons": 4,
+    "comparison_family": "No inference from a single window.",
+    "source_implementations": {
+      "baseline": "rs",
+      "candidate": "rs"
+    },
+    "slot_semantics": "Both slots use uploaded unmodified ELF bytes; driver implementation=rs selects upload handling, not both languages. Actual implementations are determined by frozen hashes above; stock hash is the exact original C binary.",
+    "interpretation_rule": "Correctness and instrument validation only. Never combine with R100 Rust-caller data.",
+    "correctness_base_release": "042610fd90e592f93bf31a30b088141dac19d96da627975ba8e8aadb364aaa79",
+    "libraries": {
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+    },
+    "clock_resolution_ns": 1
+  },
+  "run": {
+    "block": 1,
+    "slots": {
+      "a": "baseline",
+      "b": "candidate"
+    },
+    "segments": [
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 48,
+        "subject_cpu_us": 60.004931,
+        "client_cpu_us": 44.703477,
+        "total_cpu_us": 104.70840799999999,
+        "wall_us": 96.473935,
+        "segment": 1,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 53,
+        "subject_cpu_us": 47.109162,
+        "client_cpu_us": 44.631405,
+        "total_cpu_us": 91.740567,
+        "wall_us": 87.637043,
+        "segment": 2,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 58,
+        "subject_cpu_us": 46.728447,
+        "client_cpu_us": 44.610922,
+        "total_cpu_us": 91.339369,
+        "wall_us": 86.26993399999999,
+        "segment": 3,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 63,
+        "subject_cpu_us": 59.362441,
+        "client_cpu_us": 44.442828999999996,
+        "total_cpu_us": 103.80527000000001,
+        "wall_us": 94.343867,
+        "segment": 4,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 68,
+        "subject_cpu_us": 46.823088000000006,
+        "client_cpu_us": 44.724151,
+        "total_cpu_us": 91.547239,
+        "wall_us": 86.720815,
+        "segment": 5,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 73,
+        "subject_cpu_us": 59.531054,
+        "client_cpu_us": 44.422545,
+        "total_cpu_us": 103.953599,
+        "wall_us": 94.164976,
+        "segment": 6,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 78,
+        "subject_cpu_us": 59.574836000000005,
+        "client_cpu_us": 44.151751,
+        "total_cpu_us": 103.726587,
+        "wall_us": 94.080878,
+        "segment": 7,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 83,
+        "subject_cpu_us": 46.528371,
+        "client_cpu_us": 44.338745,
+        "total_cpu_us": 90.867116,
+        "wall_us": 85.406719,
+        "segment": 8,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 88,
+        "subject_cpu_us": 59.602777,
+        "client_cpu_us": 45.283758,
+        "total_cpu_us": 104.88653500000001,
+        "wall_us": 95.720978,
+        "segment": 9,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 93,
+        "subject_cpu_us": 47.010474,
+        "client_cpu_us": 44.556453000000005,
+        "total_cpu_us": 91.56692699999999,
+        "wall_us": 86.69311599999999,
+        "segment": 10,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 98,
+        "subject_cpu_us": 46.529317000000006,
+        "client_cpu_us": 45.243172,
+        "total_cpu_us": 91.77248900000001,
+        "wall_us": 86.149365,
+        "segment": 11,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 103,
+        "subject_cpu_us": 59.627272,
+        "client_cpu_us": 44.859242,
+        "total_cpu_us": 104.486514,
+        "wall_us": 94.87622999999999,
+        "segment": 12,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 108,
+        "subject_cpu_us": 46.526142,
+        "client_cpu_us": 44.636108,
+        "total_cpu_us": 91.16225,
+        "wall_us": 86.35287699999999,
+        "segment": 13,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 113,
+        "subject_cpu_us": 59.786925000000004,
+        "client_cpu_us": 44.272824,
+        "total_cpu_us": 104.059749,
+        "wall_us": 94.845991,
+        "segment": 14,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 118,
+        "subject_cpu_us": 59.309774,
+        "client_cpu_us": 44.538301,
+        "total_cpu_us": 103.848075,
+        "wall_us": 94.452508,
+        "segment": 15,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 123,
+        "subject_cpu_us": 47.065616999999996,
+        "client_cpu_us": 44.656717,
+        "total_cpu_us": 91.722334,
+        "wall_us": 87.28003100000001,
+        "segment": 16,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 128,
+        "subject_cpu_us": 59.993294999999996,
+        "client_cpu_us": 45.072312,
+        "total_cpu_us": 105.065607,
+        "wall_us": 96.257727,
+        "segment": 17,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 133,
+        "subject_cpu_us": 50.873088,
+        "client_cpu_us": 46.295927000000006,
+        "total_cpu_us": 97.169015,
+        "wall_us": 100.511478,
+        "segment": 18,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 138,
+        "subject_cpu_us": 46.699852,
+        "client_cpu_us": 44.434905,
+        "total_cpu_us": 91.134757,
+        "wall_us": 86.195454,
+        "segment": 19,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 143,
+        "subject_cpu_us": 60.00276,
+        "client_cpu_us": 44.986612,
+        "total_cpu_us": 104.989372,
+        "wall_us": 96.270806,
+        "segment": 20,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 148,
+        "subject_cpu_us": 46.509615,
+        "client_cpu_us": 44.365558,
+        "total_cpu_us": 90.87517299999999,
+        "wall_us": 85.327545,
+        "segment": 21,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 153,
+        "subject_cpu_us": 59.516868,
+        "client_cpu_us": 44.95376,
+        "total_cpu_us": 104.47062799999999,
+        "wall_us": 94.766202,
+        "segment": 22,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 158,
+        "subject_cpu_us": 59.865222,
+        "client_cpu_us": 45.035872000000005,
+        "total_cpu_us": 104.901094,
+        "wall_us": 97.074391,
+        "segment": 23,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 163,
+        "subject_cpu_us": 47.445414,
+        "client_cpu_us": 44.870552,
+        "total_cpu_us": 92.315966,
+        "wall_us": 88.199414,
+        "segment": 24,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 168,
+        "subject_cpu_us": 60.85158800000001,
+        "client_cpu_us": 44.937604,
+        "total_cpu_us": 105.789192,
+        "wall_us": 98.061021,
+        "segment": 25,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 173,
+        "subject_cpu_us": 46.489898000000004,
+        "client_cpu_us": 44.514066,
+        "total_cpu_us": 91.00396400000001,
+        "wall_us": 85.824284,
+        "segment": 26,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 178,
+        "subject_cpu_us": 46.754025999999996,
+        "client_cpu_us": 44.703766,
+        "total_cpu_us": 91.457792,
+        "wall_us": 86.542154,
+        "segment": 27,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 183,
+        "subject_cpu_us": 59.601288000000004,
+        "client_cpu_us": 44.917142999999996,
+        "total_cpu_us": 104.51843099999999,
+        "wall_us": 95.22608500000001,
+        "segment": 28,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 188,
+        "subject_cpu_us": 46.623154,
+        "client_cpu_us": 44.685935,
+        "total_cpu_us": 91.309089,
+        "wall_us": 86.367803,
+        "segment": 29,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 193,
+        "subject_cpu_us": 59.978410000000004,
+        "client_cpu_us": 44.870599,
+        "total_cpu_us": 104.84900900000001,
+        "wall_us": 95.833159,
+        "segment": 30,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 198,
+        "subject_cpu_us": 60.124061999999995,
+        "client_cpu_us": 44.807383,
+        "total_cpu_us": 104.93144500000001,
+        "wall_us": 96.895886,
+        "segment": 31,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 203,
+        "subject_cpu_us": 46.430332,
+        "client_cpu_us": 44.252309999999994,
+        "total_cpu_us": 90.682642,
+        "wall_us": 85.688327,
+        "segment": 32,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 208,
+        "subject_cpu_us": 59.623103,
+        "client_cpu_us": 44.998915000000004,
+        "total_cpu_us": 104.622018,
+        "wall_us": 94.787053,
+        "segment": 33,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 213,
+        "subject_cpu_us": 46.351317,
+        "client_cpu_us": 44.956904,
+        "total_cpu_us": 91.308221,
+        "wall_us": 85.638853,
+        "segment": 34,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 218,
+        "subject_cpu_us": 46.538256999999994,
+        "client_cpu_us": 44.356035000000006,
+        "total_cpu_us": 90.89429200000001,
+        "wall_us": 85.83728599999999,
+        "segment": 35,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 223,
+        "subject_cpu_us": 59.837499,
+        "client_cpu_us": 44.748074,
+        "total_cpu_us": 104.58557300000001,
+        "wall_us": 95.53808500000001,
+        "segment": 36,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 228,
+        "subject_cpu_us": 46.68639,
+        "client_cpu_us": 44.552220999999996,
+        "total_cpu_us": 91.238611,
+        "wall_us": 86.097505,
+        "segment": 37,
+        "slot": "b",
+        "side": "candidate"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 233,
+        "subject_cpu_us": 59.600788,
+        "client_cpu_us": 44.365777,
+        "total_cpu_us": 103.966565,
+        "wall_us": 94.425577,
+        "segment": 38,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          38,
+          2168275
+        ],
+        "client_pid": 238,
+        "subject_cpu_us": 59.594913999999996,
+        "client_cpu_us": 45.006874,
+        "total_cpu_us": 104.601788,
+        "wall_us": 95.951881,
+        "segment": 39,
+        "slot": "a",
+        "side": "baseline"
+      },
+      {
+        "subject_identity": [
+          39,
+          2168275
+        ],
+        "client_pid": 243,
+        "subject_cpu_us": 46.712649,
+        "client_cpu_us": 44.392229,
+        "total_cpu_us": 91.104878,
+        "wall_us": 85.871679,
+        "segment": 40,
+        "slot": "b",
+        "side": "candidate"
+      }
+    ],
+    "aggregate": {
+      "baseline": {
+        "subject_cpu_us": 59.76949035,
+        "client_cpu_us": 44.7687826,
+        "total_cpu_us": 104.53827295,
+        "wall_us": 95.5023618
+      },
+      "candidate": {
+        "subject_cpu_us": 46.9217305,
+        "client_cpu_us": 44.68890405,
+        "total_cpu_us": 91.61063455,
+        "wall_us": 87.0305841
+      }
+    },
+    "result_sha256": "1dd8e0ca8f0bc5b26621b5a9161902a3c8dbb87f9c58a982aa685dcf28def181",
+    "raw_sha256": "cdc646aab54815c237b744577ae359f574e0bae625648019264b41510264c8f5",
+    "frequency_before": "",
+    "frequency_after": ""
+  },
+  "inference": null,
+  "all_windows_cleaned_and_stock": true
+}
