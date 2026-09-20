@@ -7,3 +7,7 @@ The change preserves ACL checks, reserved `ubus.` rejection, event round advance
 Build-host tests pass 35/35. On the physical router the candidate passed all seven C/before/candidate wire differentials and its unit binary passed 35/35. Boot/configuration/production identity and cleanup passed. Six host gates are still running; no performance result exists yet.
 
 The failed initial compile against the old pre-lazy source was discarded and not measured; it correctly caught a mixed-base mistake. The accepted candidate was rebuilt from the full R100 source and only this change was applied.
+
+## Fanout evidence
+
+A fresh 16-window physical fanout series (four arms × four blocks × `watch_1_1`, `watch_8_1`, and `watch_1_0`) passed all cleanup and byte-validation checks. This workload exercises object add/remove events, so it validates integration of the repaired R100 dispatcher but does not directly exercise `ubus_send_event`; the result is intentionally not a performance verdict for this R103 change. In that object-event condition the candidate remained roughly 5–7% above C daemon CPU for matched receivers and roughly 6% below C with no eligible receiver, while staying materially below R89. A direct user-event sender workload is still required before accepting R103.
