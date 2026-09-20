@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "purpose": "Independent longer-window recheck of R97 lookup_c4 p99 +14.43%, lookup_all_64 p99 +3.57% and invoke CPU/tails; selected after pilot, no pooling or replacement",
+  "runtime_commit": "5a19517 plus method-storage patch",
+  "production": "C throughout; no candidate installation",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "before",
+        "candidate"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 5,
+      "order": [
+        "before",
+        "candidate"
+      ]
+    },
+    {
+      "block": 6,
+      "order": [
+        "before",
+        "candidate"
+      ]
+    },
+    {
+      "block": 7,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 8,
+      "order": [
+        "candidate",
+        "before"
+      ]
+    }
+  ],
+  "seed": 9703,
+  "iterations": 20000,
+  "warmup": 20,
+  "subjects": {
+    "before": "527f8683395aee6b6ff016c70fbd9dafd7a87edbacaeab7f65333291d2617096",
+    "candidate": "bdade5c6ac95498105ac81a604d8ce8ed4f6ac0887f274758d26f2a3bb1f66b6"
+  },
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r97_ubusd_recheck.sh": "cb5ef47b00497e5e459fad07ce56ca6915cdd83f98dfb4a306181049b1e03d9e"
+  },
+  "safety": "Guarded private mount/PID/net namespace, before/after stock health and owned-directory cleanup per run",
+  "planned_metrics": [
+    "mean_us",
+    "p50_us",
+    "p95_us",
+    "p99_us",
+    "subject_cpu_us_per_op",
+    "dependency_cpu_us_per_op",
+    "client_cpu_us_per_op",
+    "subject_own_cpu_clock_us_per_op",
+    "dependency_own_cpu_clock_us_per_op",
+    "client_cpu_clock_us_per_op"
+  ],
+  "memory": "End-of-window proc counts are diagnostic, not precise memory acceptance. Independently measure retained and construction-peak requested Rust heap with actual ADD_OBJECT dispatch on both versions.",
+  "failure_rule": "Stop on collection, correctness, identity, health or cleanup failure; retain raw failed window",
+  "analysis": "Eight exploratory randomized paired blocks, longer windows; report all per-block signs and ranges. No equivalence or superiority claim. Keep the first four-arm matrix and every adverse result.",
+  "runtime_patch_sha256": "d1ab48bc011e9c191613662b9577a4a3f8daf0a27b5f2f2c698eb03f663a7b6e",
+  "server_source_sha256": "9695fe4337f7c1c62f1073512eea1142f3a823bb050fa90a35cb703b238f43f2",
+  "hypothesis": "Determine whether adverse tails and invoke own CPU repeat in longer independent windows with unchanged runtime/client artifacts.",
+  "retention_rule": "Reject correctness failures. If any selected lane p99 paired median exceeds +5% with at least six of eight positive pairs, defer runtime retention for more diagnosis. Otherwise assess along with all CPU, tail and memory results; lack of recurrence is not proof of no regression.",
+  "matrix": false,
+  "workloads": [
+    "lookup",
+    "lookup_c4",
+    "lookup_all_64",
+    "invoke"
+  ],
+  "build_control": "Same actual /tmp/owrt-core-release/ubusd source root, SDK, toolchain, cwd and release flags as before; previous exact-root reconstruction reproduced before bytes.",
+  "registry_source_sha256": "0dcc1bc62e4d3cfeedeb1a75916632a05c293cf3d527919c934cd66a9eff98c8",
+  "benchmark_sha256": "d5da0973ff4fd8774cc5952d2363c3a3f48e3884d2b264144abb26bd6ebbe96e",
+  "client_control": "Frozen ca1a912 client and dependencies plus only process CPU clocks; same binary on all four arms. Do not pool R95/R96 measurements."
+}
