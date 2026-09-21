@@ -141,5 +141,14 @@
   "evidence": [
     "r110a-r103-low-cpu-results.json",
     "r110a-r103-loaded-cpu-results.json"
-  ]
+  ],
+  "oracle_diagnostic": {
+    "host": "Oracle AArch64",
+    "workload": "exact-image libubus user-event, 1 listener, 300000 timed sends, 10000 warmup",
+    "method": "root perf stat attached to daemon plus subject CLOCK_PROCESS_CPUTIME_ID",
+    "r103_subject_cpu_ns": 10638337960,
+    "r110a_subject_cpu_ns": 10351789920,
+    "r110a_vs_r103_pct": -2.693541426089452,
+    "interpretation": "Oracle does not reproduce router regression and does not show instruction/branch inflation. Router evidence remains authoritative; compare against R109 before rejecting."
+  }
 }
