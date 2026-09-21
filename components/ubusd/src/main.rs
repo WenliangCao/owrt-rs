@@ -156,9 +156,8 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
     poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false)?;
     poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false)?;
     let mut ready: Vec<owrt_ubus::readiness::Ready> = Vec::new();
-    // Empty receive storage is shared by the single-threaded loop. A client
-    // retains only an exact-size residual between readiness rounds.
-    let mut rx_spare = Vec::new();
+    // Initialized once, outside both the readiness and per-message loops.
+    let mut rx = [0u8; client::RX_SIZE];
     // A resource failure removes the level-triggered listener temporarily.
     // Resources may recover without a client disconnect (SCM_RIGHTS fds,
     // system-wide ENFILE, socket memory), so always arm a timed retry.
@@ -213,7 +212,7 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
                     if !server.clients.contains_key(&id) {
                         continue;
                     }
-                    if service_client(server, id, r.revents, &mut rx_spare) {
+                    if service_client(server, id, r.revents, &mut rx) {
                         sync_write_interest(server, &mut poller, id);
                     } else {
                         disconnect(server, &mut poller, id);
@@ -294,7 +293,7 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
 }
 
 /// Drive one connection for this poll round. Returns false to disconnect it.
-fn service_client(server: &mut Server, id: u32, revents: i16, rx_spare: &mut Vec<u8>) -> bool {
+fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; client::RX_SIZE]) -> bool {
     if revents & (sys::POLLERR) != 0 {
         return false;
     }
@@ -313,19 +312,19 @@ fn service_client(server: &mut Server, id: u32, revents: i16, rx_spare: &mut Vec
     }
 
     if revents & (sys::POLLIN | sys::POLLHUP) != 0 {
+        let Some(c) = server.clients.get_mut(&id) else { return false };
+        c.begin_read(rx);
         loop {
             let Some(c) = server.clients.get_mut(&id) else { return false };
-            match c.read_message_with_spare(rx_spare) {
+            match c.read_message(rx) {
                 Ok(Some(msg)) => {
                     if !server.receive(id, msg) {
-                        if let Some(c) = server.clients.get_mut(&id) {
-                            c.discard_receive_state(rx_spare);
-                        }
                         return false;
                     }
                 }
                 Ok(None) => {
-                    let Some(c) = server.clients.get(&id) else { return false };
+                    let Some(c) = server.clients.get_mut(&id) else { return false };
+                    c.end_read(rx);
                     // Hold a half-closed connection open only while there is
                     // still queued output for it.
                     if c.eof && c.tx_empty() {
@@ -333,12 +332,7 @@ fn service_client(server: &mut Server, id: u32, revents: i16, rx_spare: &mut Vec
                     }
                     return true;
                 }
-                Err(_) => {
-                    if let Some(c) = server.clients.get_mut(&id) {
-                        c.discard_receive_state(rx_spare);
-                    }
-                    return false;
-                }
+                Err(_) => return false,
             }
         }
     }

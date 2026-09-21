@@ -83,10 +83,8 @@ pub struct Client {
     txq_ofs: usize,
     /// Bytes still owed, which goes negative after a partial direct write.
     txq_len: i64,
-    /// Read-ahead storage: one recvmsg takes everything the socket holds (up
-    /// to RX_SIZE) and complete frames are cut from it, so a message costs
-    /// one syscall and frames queued behind it need none. Allocated at the
-    /// first read.
+    /// Only an incomplete tail survives a readiness round. Complete input
+    /// lives in the event loop's shared stack buffer during dispatch.
     rx: Vec<u8>,
     rx_start: usize,
     rx_end: usize,
@@ -300,123 +298,37 @@ impl Client {
         true
     }
 
-    /// Read one complete message while borrowing the event loop's shared
-    /// read-ahead buffer. Complete coalesced frames keep that buffer for the
-    /// current service round; only an incomplete tail is copied into exact
-    /// per-client storage before returning it to the event loop.
-    pub fn read_message_with_spare(&mut self, spare: &mut Vec<u8>) -> io::Result<Option<InMsg>> {
-        if self.large.is_none() {
-            self.activate_shared_rx(spare);
-        }
-
-        let result = self.read_message();
-        match result {
-            Ok(Some(msg)) => {
-                if self.rx_start == self.rx_end && self.rx_fds.is_empty() {
-                    self.release_shared_rx(spare);
-                }
-                Ok(Some(msg))
-            }
-            Ok(None) => {
-                if self.rx_start == self.rx_end && self.rx_fds.is_empty() {
-                    self.release_shared_rx(spare);
-                } else if self.large.is_none() {
-                    self.compact_residual(spare);
-                }
-                Ok(None)
-            }
-            Err(e) => Err(e),
+    /// Begin one readiness round. The previous round saved only its unfinished
+    /// tail, with FD marks relative to zero. No complete frame is retained.
+    pub fn begin_read(&mut self, rx: &mut [u8; RX_SIZE]) {
+        if !self.rx.is_empty() {
+            rx[..self.rx.len()].copy_from_slice(&self.rx);
+            self.rx = Vec::new();
         }
     }
 
-    /// Move a client's exact residual into the shared RX_SIZE buffer before
-    /// reading more. The copy is paid only when a frame crossed a service
-    /// boundary; complete batches never enter this path.
-    fn activate_shared_rx(&mut self, spare: &mut Vec<u8>) {
-        if self.rx_start == self.rx_end {
-            if self.rx.len() == RX_SIZE {
-                let shared = std::mem::replace(&mut self.rx, Vec::new());
-                *spare = shared;
-            }
-            if self.rx.is_empty() {
-                if spare.len() != RX_SIZE {
-                    spare.resize(RX_SIZE, 0);
-                }
-                self.rx = std::mem::take(spare);
-                self.rx_start = 0;
-                self.rx_end = 0;
-            }
-            return;
-        }
-
-        if self.rx.len() == RX_SIZE {
-            return;
-        }
-
+    /// End a readiness round before the shared stack buffer serves a different
+    /// client. Only incomplete bytes allocate; idle connections retain none.
+    pub fn end_read(&mut self, rx: &[u8; RX_SIZE]) {
         let start = self.rx_start;
         let end = self.rx_end;
-        let residual = self.rx[start..end].to_vec();
-        while self.rx_fds.front().is_some_and(|(mark, _)| *mark <= start) {
-            self.rx_fds.pop_front();
-        }
-        for (mark, _) in &mut self.rx_fds {
-            *mark -= start;
-        }
-        self.rx = Vec::new();
-        if spare.len() != RX_SIZE {
-            spare.resize(RX_SIZE, 0);
-        }
-        let mut shared = std::mem::take(spare);
-        shared[..residual.len()].copy_from_slice(&residual);
-        self.rx = shared;
-        self.rx_start = 0;
-        self.rx_end = residual.len();
-        self.rx_drained = false;
-    }
-
-    /// Return the shared buffer after a service round with no residual tail.
-    fn release_shared_rx(&mut self, spare: &mut Vec<u8>) {
-        if self.rx.len() == RX_SIZE {
-            *spare = std::mem::replace(&mut self.rx, Vec::new());
+        if start != end {
+            self.rx = rx[start..end].to_vec();
+            while self.rx_fds.front().is_some_and(|(mark, _)| *mark <= start) {
+                self.rx_fds.pop_front();
+            }
+            for (mark, _) in &mut self.rx_fds {
+                *mark -= start;
+            }
         }
         self.rx_start = 0;
-        self.rx_end = 0;
-        self.rx_fds.clear();
-        self.rx_drained = false;
-    }
-
-    /// Return a borrowed shared buffer on an early disconnect/error path.
-    pub(crate) fn discard_receive_state(&mut self, spare: &mut Vec<u8>) {
-        self.release_shared_rx(spare);
-    }
-
-    /// Preserve only the unfinished bytes and their ancillary-data marks.
-    /// `to_vec` gives the client a precise logical allocation instead of the
-    /// former persistent RX_SIZE reservation.
-    fn compact_residual(&mut self, spare: &mut Vec<u8>) {
-        debug_assert_eq!(self.rx.len(), RX_SIZE);
-        let start = self.rx_start;
-        let end = self.rx_end;
-        let residual = self.rx[start..end].to_vec();
-        while self.rx_fds.front().is_some_and(|(mark, _)| *mark <= start) {
-            self.rx_fds.pop_front();
-        }
-        for (mark, _) in &mut self.rx_fds {
-            *mark -= start;
-        }
-        let shared = std::mem::replace(&mut self.rx, residual);
-        self.rx_start = 0;
-        self.rx_end = self.rx.len();
-        self.rx_drained = false;
-        // The old shared allocation is now held by `spare`; the assignment
-        // above replaced it with the exact residual Vec.
-        *spare = shared;
+        self.rx_end = end - start;
     }
 
     /// Read one complete message, if the socket has one. `Ok(None)` means the
     /// message is still incomplete or the socket is drained; `Err` means the
     /// connection must be closed (protocol violation or socket error).
-    pub fn read_message(&mut self) -> io::Result<Option<InMsg>> {
+    pub fn read_message(&mut self, rx: &mut [u8; RX_SIZE]) -> io::Result<Option<InMsg>> {
         loop {
             if let Some(large) = &mut self.large {
                 let n = match sys::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
@@ -439,14 +351,14 @@ impl Client {
             let buffered = self.rx_end - self.rx_start;
             if buffered >= PREFIX_LEN {
                 let s = self.rx_start;
-                let raw_len = blob_raw_len(&self.rx[s + Header::LEN..]);
+                let raw_len = blob_raw_len(&rx[s + Header::LEN..]);
                 if raw_len < 4 || pad4(raw_len) > MAX_MSGLEN {
                     return Err(io::Error::new(io::ErrorKind::InvalidData, "bad message length"));
                 }
                 // ubusd_main.c never looks at hdr.version: it reads the
                 // prefix, checks the blob length and dispatches on the type.
                 // A client sending a nonzero version is served, not dropped.
-                let p = &self.rx[s..s + Header::LEN];
+                let p = &rx[s..s + Header::LEN];
                 let header = Header {
                     ty: p[1],
                     seq: u16::from_be_bytes([p[2], p[3]]),
@@ -456,14 +368,14 @@ impl Client {
                 if total > RX_SIZE {
                     let mut blob = vec![0u8; raw_len];
                     let have = buffered - Header::LEN;
-                    blob[..have].copy_from_slice(&self.rx[s + Header::LEN..self.rx_end]);
+                    blob[..have].copy_from_slice(&rx[s + Header::LEN..self.rx_end]);
                     let fd = self.rx_take_fd(s, s + total);
                     self.rx_reset();
                     self.large = Some(LargeFrame { header, blob, got: have, fd });
                     continue;
                 }
                 if buffered >= total {
-                    let blob = self.rx[s + Header::LEN..s + total].to_vec();
+                    let blob = rx[s + Header::LEN..s + total].to_vec();
                     let fd = self.rx_take_fd(s, s + total);
                     self.rx_start = s + total;
                     if self.rx_start == self.rx_end {
@@ -478,7 +390,7 @@ impl Client {
                 self.rx_drained = false;
                 return Ok(None);
             }
-            match self.rx_fill() {
+            match self.rx_fill(rx) {
                 Ok(true) => {}
                 Ok(false) => return Ok(None),
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
@@ -489,12 +401,9 @@ impl Client {
 
     /// One recvmsg into the read-ahead buffer. Ok(false): nothing to read
     /// now, or the peer closed (`eof` is set).
-    fn rx_fill(&mut self) -> io::Result<bool> {
-        if self.rx.is_empty() {
-            self.rx = vec![0u8; RX_SIZE];
-        }
+    fn rx_fill(&mut self, rx: &mut [u8; RX_SIZE]) -> io::Result<bool> {
         if self.rx_end == RX_SIZE {
-            self.rx.copy_within(self.rx_start..self.rx_end, 0);
+            rx.copy_within(self.rx_start..self.rx_end, 0);
             for (mark, _) in &mut self.rx_fds {
                 *mark -= self.rx_start;
             }
@@ -502,7 +411,7 @@ impl Client {
             self.rx_start = 0;
         }
         let room = RX_SIZE - self.rx_end;
-        match sys::recvmsg_fd(self.sock.as_raw_fd(), &mut self.rx[self.rx_end..], true) {
+        match sys::recvmsg_fd(self.sock.as_raw_fd(), &mut rx[self.rx_end..], true) {
             Ok((0, _)) => {
                 self.eof = true;
                 Ok(false)
@@ -560,7 +469,7 @@ mod tests {
     use super::*;
     use owrt_ubus::blob::BlobBuf;
     use owrt_ubus::msg::attr;
-    use std::io::{Read, Write};
+    use std::io::Read;
     use std::os::unix::net::UnixStream;
     use std::time::{Duration, Instant};
 
@@ -577,86 +486,6 @@ mod tests {
     fn prefix_is_header_plus_blob_header() {
         assert_eq!(PREFIX_LEN, 12);
         assert_eq!(Header::LEN, 8);
-    }
-
-    fn receive_pair() -> (Client, UnixStream) {
-        let (sock, peer) = UnixStream::pair().unwrap();
-        sock.set_nonblocking(true).unwrap();
-        peer.set_write_timeout(Some(Duration::from_secs(3))).unwrap();
-        (
-            Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new()),
-            peer,
-        )
-    }
-
-    fn receive_frame(seq: u16, body_len: usize) -> Vec<u8> {
-        let raw_len = 4 + body_len;
-        let mut frame = Header { ty: ty::DATA, seq, peer: 0x1234_5678 }.encode().to_vec();
-        frame.extend_from_slice(&(raw_len as u32).to_be_bytes());
-        frame.extend(std::iter::repeat_n(seq as u8, body_len));
-        frame
-    }
-
-    fn read_with_spare(c: &mut Client, spare: &mut Vec<u8>) -> InMsg {
-        let deadline = Instant::now() + Duration::from_secs(3);
-        loop {
-            if let Some(msg) = c.read_message_with_spare(spare).unwrap() {
-                return msg;
-            }
-            assert!(!c.eof, "unexpected EOF");
-            assert!(Instant::now() < deadline, "frame did not arrive");
-            std::thread::yield_now();
-        }
-    }
-
-    #[test]
-    fn shared_receive_releases_complete_batches_and_keeps_exact_residual() {
-        let (mut c, mut peer) = receive_pair();
-        let first = receive_frame(7, 24);
-        let second = receive_frame(8, 32);
-        let mut spare = Vec::new();
-        peer.write_all(&[first.clone(), second.clone()].concat()).unwrap();
-
-        let got = read_with_spare(&mut c, &mut spare);
-        assert_eq!(got.header.seq, 7);
-        assert_eq!(got.blob, first[Header::LEN..]);
-        assert!(c.rx.len() == RX_SIZE, "coalesced bytes stay in shared storage");
-        let got = read_with_spare(&mut c, &mut spare);
-        assert_eq!(got.header.seq, 8);
-        assert_eq!(got.blob, second[Header::LEN..]);
-        assert!(c.rx.is_empty());
-        assert_eq!(spare.len(), RX_SIZE);
-
-        let third = receive_frame(9, 48);
-        let cut = 17;
-        peer.write_all(&third[..cut]).unwrap();
-        assert!(c.read_message_with_spare(&mut spare).unwrap().is_none());
-        assert_eq!(c.rx.len(), cut, "only the residual is retained per client");
-        assert_eq!(spare.len(), RX_SIZE);
-        peer.write_all(&third[cut..]).unwrap();
-        let got = read_with_spare(&mut c, &mut spare);
-        assert_eq!(got.header.seq, 9);
-        assert_eq!(got.blob, third[Header::LEN..]);
-        assert!(c.rx.is_empty());
-        assert_eq!(spare.len(), RX_SIZE);
-    }
-
-    #[test]
-    fn shared_receive_returns_buffer_while_large_frame_is_owned() {
-        let (mut c, mut peer) = receive_pair();
-        let frame = receive_frame(11, RX_SIZE * 2);
-        let mut spare = Vec::new();
-        peer.write_all(&frame[..2048]).unwrap();
-        assert!(c.read_message_with_spare(&mut spare).unwrap().is_none());
-        assert!(c.large.is_some());
-        assert!(c.rx.is_empty());
-        assert_eq!(spare.len(), RX_SIZE);
-        peer.write_all(&frame[2048..]).unwrap();
-        let got = read_with_spare(&mut c, &mut spare);
-        assert_eq!(got.header.seq, 11);
-        assert_eq!(got.blob, frame[Header::LEN..]);
-        assert!(c.large.is_none());
-        assert_eq!(spare.len(), RX_SIZE);
     }
 
     #[test]
