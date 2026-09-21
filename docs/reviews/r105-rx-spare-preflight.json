@@ -82,5 +82,11 @@
     }
   ],
   "host_gates_subject_sha256": "99dffae3c9e8ff3517e2d789e9c363da8b0c191c6ab5da26d1b0ff78eb30a5df",
-  "host_gates_results_sha256": "beb46e159b1b09199eada79496eb452ca2e57f0901325599c3452eb2469c9094"
+  "host_gates_results_sha256": "beb46e159b1b09199eada79496eb452ca2e57f0901325599c3452eb2469c9094",
+  "control_rebuild": {
+    "sha256": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+    "matches_tested_before_byte_for_byte": true,
+    "log_sha256": "e445c1074656bbcaf297da98682ea1548d3b0b4034a9104958c16e1cafb2fe6c",
+    "source": "git archive 284d070 components/ubusd components/ubus components/uci components/rpcd, fixed source path and same SDK/flags/cwd"
+  }
 }
