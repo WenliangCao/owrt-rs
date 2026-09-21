@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "requested_heap_diagnostic",
+  "candidate_source": "2fbfd88",
+  "baseline_source": "bd6b6db",
+  "subjects": {
+    "before": "22acf60bf6fc0a7a45ffa46e7d7cab9c4d21eef04faa5bdeaa40dbe31cc874ba",
+    "candidate": "1b8ee566c415ddb391c8d7ffcee5209d8439c0684fd73bc708e58afd6d3e66f7"
+  },
+  "fixture_sha256": "1fd5ba1e042719497353ab152229e62f5b32d21257cb9871544e73a2a29340be",
+  "allocator_sha256": "01d0572e7e26b603b30e63fa76e09451bab80229eb1ebb8a72ed2abda7b267d2",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "workload_sha256": "57d5d027e7ee2b8947b108f93638dbe65be8565946b58e5af40e34c0e4728851",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "order": [
+    "before",
+    "candidate",
+    "candidate",
+    "before"
+  ],
+  "scenarios": [
+    [
+      1,
+      1,
+      8
+    ],
+    [
+      1,
+      16,
+      8
+    ],
+    [
+      1,
+      64,
+      8
+    ],
+    [
+      128,
+      1,
+      8
+    ],
+    [
+      128,
+      1,
+      32
+    ],
+    [
+      128,
+      16,
+      32
+    ],
+    [
+      128,
+      1,
+      128
+    ]
+  ],
+  "validation": "Each side must reproduce all counters twice; compare exact retained/peak requested bytes and allocation/reallocation counts; all objects/types and queued replies validated by fixture and heap returns to baseline after drop.",
+  "limits": "Rust GlobalAlloc requested bytes only; excludes allocator rounding/metadata, peak copying within realloc, libc, kernel buffers, RSS/PSS, stack and text. No CPU inference from instrumented executable."
+}
