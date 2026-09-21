@@ -16,8 +16,8 @@ sample() {
     pid=$1; status=/proc/$pid/status
     awk '/^VmRSS:/ {rss=$2} /^RssAnon:/ {anon=$2} /^VmData:/ {data=$2} END {printf "%s,%s,%s", rss+0, anon+0, data+0}' "$status"
     if [ -r /proc/$pid/smaps_rollup ]; then
-        printf ','; awk '/^Pss:/ {print $2; found=1} END {if (!found) print 0}' /proc/$pid/smaps_rollup
-    else printf ',0'; fi
+        printf ','; awk '/^Pss:/ {print $2; found=1} END {if (!found) print "NA"}' /proc/$pid/smaps_rollup
+    else printf ',NA'; fi
 }
 start_daemon() {
     "$bench" exec-cpu 1 "$bin" -s "$socket" > "$out/daemon-$clients.log" 2>&1 & daemon=$!
@@ -29,19 +29,29 @@ start_daemon() {
 }
 stop_daemon() { kill "$daemon" 2>/dev/null || true; wait "$daemon" 2>/dev/null || true; }
 for clients in 0 1 8 32 64; do
-    start_daemon; before=$(sample "$daemon")
+    start_daemon
+    sleep 1
+    cat /proc/$daemon/status > "$out/status-$clients-before.txt"
+    baseline_fds=$(ls /proc/$daemon/fd | wc -l)
+    before=$(sample "$daemon")
     if [ "$clients" -gt 0 ]; then
-        "$bench" rx-idle "$socket" "$clients" 30 > "$out/clients-$clients.json" 2>&1 & holder=$!
+        "$bench" rx-idle "$socket" "$clients" 30 > "$out/clients-$clients.json" 2> "$out/clients-$clients.err" & holder=$!
         tries=0
-        while [ ! -s "$out/clients-$clients.json" ]; do
+        until grep -q '"replies_validated":true,"holding":true' "$out/clients-$clients.json"; do
             kill -0 "$holder"; [ "$tries" -lt 20 ]; sleep 1; tries=$((tries + 1))
         done
         sleep 1
         kill -0 "$daemon"
+        kill -0 "$holder"
+        [ "$(ls /proc/$daemon/fd | wc -l)" -eq "$((baseline_fds + clients))" ]
         cat /proc/$daemon/status > "$out/status-$clients.txt"
         after=$(sample "$daemon")
-        kill "$holder" 2>/dev/null || true; wait "$holder" 2>/dev/null || true
-    else sleep 1; after=$(sample "$daemon"); fi
+        kill "$holder"; wait "$holder"
+        tries=0
+        while [ "$(ls /proc/$daemon/fd | wc -l)" -ne "$baseline_fds" ]; do
+            kill -0 "$daemon"; [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
+        done
+    else sleep 1; cat /proc/$daemon/status > "$out/status-$clients.txt"; after=$(sample "$daemon"); fi
     before_rss=$(printf '%s' "$before" | cut -d, -f1)
     before_anon=$(printf '%s' "$before" | cut -d, -f2)
     before_data=$(printf '%s' "$before" | cut -d, -f3)
