@@ -16,11 +16,12 @@
 - [R103 直接事件实测](reviews/R103_UBUSD_EVENT_SEND_BORROW.md)已覆盖原版 libubus 调用者；
   这不等于完整组件、内存或九组件组合验收。后面的 R95–R99 记录是历史实验阶段。
 - [R104 接收缓冲即时释放](reviews/R104_UBUSD_RX_RELEASE.md)已因 CPU 退步撤回。
-  R105 正在检查共享空缓冲：41 条实机单测、协议差分及六组构建机功能/恢复门通过；
+  R105 检查了共享空缓冲：41 条实机单测、协议差分及六组构建机功能/恢复门通过；
   [内存四方对照](reviews/r105-rx-spare-memory-results.json)显示 64 连接 RssAnon 中位数
   当前版/候选/C/R89 为 402/100/118/82 KiB。候选未全面胜 R89，VmData 也仍高于 C。
   [直接事件 CPU](reviews/r105-rx-spare-user-event-results.json)相对当前版增加约 1.5–3.1%，
-  已触发独立交错复查，尚未接受运行时改动。不能只报告内存收益。
+  [十窗口独立交错复查](reviews/R105_UBUSD_RX_SPARE.md)确认有接收者时 daemon CPU 增加
+  1.22%–2.30%、总 CPU 也增加；候选已拒绝并移出工作源码，补丁保留。不能只报告内存收益。
 - 保留路径借用遍历、路径共享和方法名字/ACL 兼容性修复。
 - [R97 方法存储候选](reviews/R97_UBUSD_METHOD_STORAGE.md)减少请求堆和部分查询 CPU，
   但单方法注册 CPU 八轮全部上升，中位 +1.62%；已撤回实现，补丁和正负数据完整保留。
