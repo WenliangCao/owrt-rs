@@ -1,0 +1,140 @@
+{
+  "decision": "reverted; exploratory CPU regression, not language limit",
+  "runs": [
+    {
+      "path": "private/r104-rx-device",
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "274528bb4e39b4f6ade9dadf4b8a735543ae3b0de3a1cef8f9cd06b9401c00af",
+        "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+        "workload_sha256": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": true,
+        "pilot_only": false,
+        "implementation": "rs",
+        "iterations": 10,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "remote": "/tmp/r95-check-0c43450007114380849add8befba3b9f",
+        "unit_tests": {
+          "sha256": "a20c821a792141d87d76a066f07a8d550e3b7aeaf7310780d241b24dfd6c737d",
+          "filter": "",
+          "exit": 0
+        },
+        "exit": 0,
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": "27b1689be08f7b9741c9c4cd08da9d2893c97a7a8580bc06b61b9d5c9bcea3db"
+    },
+    {
+      "path": "private/r104-rx-memory",
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "274528bb4e39b4f6ade9dadf4b8a735543ae3b0de3a1cef8f9cd06b9401c00af",
+        "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+        "workload_sha256": "c46d75c4ed65b09712f30225d434048b7e65a168f4412a74162c48ec34640a3d",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": false,
+        "pilot_only": true,
+        "implementation": "rs",
+        "iterations": 1,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "remote": "/tmp/r95-check-7a9ee95ab05b4dc6b253cefa88bbd712",
+        "benchmark_sha256": "829dc1a0a352d7e2f2ee555fcda3f43de74ba0446a0d64fdefb22a371f2d1ea8",
+        "exit": 0,
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": "aa16e8f834b38cc5d59ef52a5012eaff53b9130bf8040e638d66b87b74cf9b0d"
+    },
+    {
+      "path": "private/r104-rx-user-event",
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "274528bb4e39b4f6ade9dadf4b8a735543ae3b0de3a1cef8f9cd06b9401c00af",
+        "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+        "workload_sha256": "0bf1e4c12bf54517295acc44d64bcad897a07638883434b0bc1a79c640fc2026",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": false,
+        "pilot_only": true,
+        "implementation": "rs",
+        "iterations": 20000,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "remote": "/tmp/r95-check-db4f1e51f7114893a25a374e084ae862",
+        "benchmark_sha256": "e80801f8fd82de4f15a96bcb5e1263f2d08ba90b21687dc0489d7260589321f0",
+        "exit": 0,
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": "e362aa62d290617cfbb2a770fef816625f241d8bbd2d3c09fb961082eb1d15d7"
+    },
+    {
+      "path": "private/r104-rx-user-event-c",
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+        "workload_sha256": "0bf1e4c12bf54517295acc44d64bcad897a07638883434b0bc1a79c640fc2026",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": false,
+        "pilot_only": true,
+        "implementation": "c",
+        "iterations": 20000,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "remote": "/tmp/r95-check-a4e4e22608e84de1a0e02d3208f7ed7d",
+        "benchmark_sha256": "e80801f8fd82de4f15a96bcb5e1263f2d08ba90b21687dc0489d7260589321f0",
+        "exit": 0,
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": "867309044925c8dd70248c52d7503b1307964ea2a6063843db6825c5fb58e82a"
+    }
+  ],
+  "cpu": {
+    "user_1_1": {
+      "candidate_us": 35.89041355,
+      "c_us": 31.7900234,
+      "percent": 12.898355243110649
+    },
+    "user_8_1": {
+      "candidate_us": 120.26308335,
+      "c_us": 113.55630165,
+      "percent": 5.906129032514151
+    },
+    "user_1_0": {
+      "candidate_us": 19.5245573,
+      "c_us": 18.526773000000002,
+      "percent": 5.385634616454782
+    }
+  },
+  "memory_csv": "clients,vmrss_before_kb,vmrss_after_kb,rssanon_before_kb,rssanon_after_kb,vmdata_before_kb,vmdata_after_kb,pss_before_kb,pss_after_kb\n0,504,504,48,48,56,56,0,0\n1,500,500,44,44,56,56,0,0\n8,500,508,44,52,56,68,0,0\n32,500,520,44,64,56,76,0,0\n64,500,544,44,88,56,100,0,0\n",
+  "limits": "One window per condition. PSS zero is unavailable, not measured zero. Idle client sends PING but does not validate receipt; this probe needs a reply barrier before confirmatory memory testing. No formal significance or allocation-causality claim."
+}
