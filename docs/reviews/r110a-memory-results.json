@@ -1,0 +1,4850 @@
+{
+  "schema_version": 1,
+  "plan_sha256": "8a39d1ea614f6776d1363073df9abbf37be8df3a3b56bb628e0e0f7514c0522a",
+  "plan": {
+    "schema_version": 1,
+    "runtime_base": "428779c (R109 plus R110-A stack, tests)",
+    "subjects": {
+      "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+      "r103": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+      "before": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+      "candidate": "c9ada3dce76898226bfea3b7d5d429792a943904adada52b99b26633904deca2"
+    },
+    "build_control": "Identical SDK, compiler, fixed source path and flags to R109. No production installation.",
+    "source_scripts": {
+      "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+      "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+      "tools/r104_rx_memory.sh": "c44fa239322636bad6c404ade985ec566cdbd875f67974277368538cb00c7d56",
+      "tools/r103_user_event.sh": "0bf1e4c12bf54517295acc44d64bcad897a07638883434b0bc1a79c640fc2026"
+    },
+    "hypothesis": "Stack temporary allocated once in event loop; Client retains only exact incomplete tails.",
+    "statistical_unit": "Independent physical-router block; paired ratios within a block. Requests are not independent repetitions.",
+    "analysis": "Exploratory screen, no superiority or equivalence verdict. Preserve every adverse direction and complete raw archive. No pooling older runs.",
+    "retention_rule": "RssAnon growth at 64 connections must be <=38.4 KiB in both repeats. No acceptance before CPU and correctness checks. Rejection preserves results.",
+    "failure_rule": "Stop on any identity, correctness, health, cleanup or collection failure; preserve the failed window.",
+    "production": "C throughout; private mount/PID/net namespace, guarded lifetime and cleanup per window.",
+    "blocks": [
+      {
+        "block": 1,
+        "order": [
+          "before",
+          "candidate",
+          "stock",
+          "r89",
+          "r103"
+        ]
+      },
+      {
+        "block": 2,
+        "order": [
+          "r103",
+          "r89",
+          "stock",
+          "candidate",
+          "before"
+        ]
+      }
+    ],
+    "iterations": 1,
+    "workloads": [
+      0,
+      1,
+      8,
+      32,
+      64
+    ],
+    "benchmark_sha256": "da9282f7db440effd47961fa81cb826ef9b8a0753a56cc2194b4ddb529727784",
+    "metrics": [
+      "VmRSS",
+      "RssAnon",
+      "VmData"
+    ],
+    "pss": "Unavailable on this kernel; write NA, never zero.",
+    "readiness": "Exact HELLO, PING DATA and STATUS validation for every held connection; daemon fd count must increase by N and return to baseline."
+  },
+  "all_windows_cleaned_and_production_stock": true,
+  "windows": [
+    {
+      "block": 1,
+      "side": "before",
+      "result_sha256": "203292af7a222e5fd3ceaf7738d3d9fb8ada343f82577292b4a2ccdbb7a9ede2",
+      "raw_archive_sha256": "4ac67b9ef63987d78ca111fef13d4aa5f3c7d73b88b5059ec9ec34e2340a0ab3"
+    },
+    {
+      "block": 1,
+      "side": "candidate",
+      "result_sha256": "2ab786313c53d43bb7979787cf163ba86f7f80779386ce393143c6107b3a9dd0",
+      "raw_archive_sha256": "7e847ea9ec17fc620ec112c1ac19bf83b9ee0c09ef00f442dca58f6bf3ed5295"
+    },
+    {
+      "block": 1,
+      "side": "stock",
+      "result_sha256": "ec9fbbec47dea6a312fd599210f1200b9c301dad708ee97c161893f0f6bc0680",
+      "raw_archive_sha256": "3608fe0bbcb8139ff4416f34cca8672e03e82acfb18b20d224db825277a13c1e"
+    },
+    {
+      "block": 1,
+      "side": "r89",
+      "result_sha256": "b11b770d19f48f4551d0d9f399ca96579a7825770a0e7433589fe1ff071a32c4",
+      "raw_archive_sha256": "b1463af9d296a3282954ef5ab6debfc43a08aa06e0e31c300672149542cd114c"
+    },
+    {
+      "block": 1,
+      "side": "r103",
+      "result_sha256": "e4d57875d4b6f3f3c58bf40d449468b2e982372d6ac2c60a5c5d4e720f79d8fc",
+      "raw_archive_sha256": "5a3b18499e29363860874c04d6451c1eed12efc43b31828c00785218001872a2"
+    },
+    {
+      "block": 2,
+      "side": "r103",
+      "result_sha256": "0d3411f5aaee27f70053402b7e05cf84edc41d9052003e0cd18b78ea03ebc0d4",
+      "raw_archive_sha256": "d98c5baaa81726cea1be560d60924df3e317492f953662d6ded1c953ae8827b5"
+    },
+    {
+      "block": 2,
+      "side": "r89",
+      "result_sha256": "0de5b57a94e61ef58de674062d00fcdf03b5f09c841c04cab543366487c4ae24",
+      "raw_archive_sha256": "fc3091b394f3f75a672048b92628e503a210cff17f95b0a58ceddf880b82e08e"
+    },
+    {
+      "block": 2,
+      "side": "stock",
+      "result_sha256": "14c62bf1fe20e0601488683af82b59176e1aa2cf1ce11fac9e4510e5b9501ce1",
+      "raw_archive_sha256": "a9244172723c2997dbb1e2aef0389d973d1ac0cc8b1fb127aec017c1b2e93771"
+    },
+    {
+      "block": 2,
+      "side": "candidate",
+      "result_sha256": "79f05ff089e29f9adcbda06dd3a6b204a3e5f1421a973d51692b85754108d34d",
+      "raw_archive_sha256": "509988d8377cf0190f4546a91cc2ed5ef7272af7dff07a4484e2f67f467eedef"
+    },
+    {
+      "block": 2,
+      "side": "before",
+      "result_sha256": "1e8cfc6c7dda6ad66de6091048df98507a878cf4ca35af651246aaeb1de891ca",
+      "raw_archive_sha256": "17d640cd2552ba20bc9023c22c99e3c724f000f2ff1080e0e1024fa3582a155d"
+    }
+  ],
+  "runs": [
+    {
+      "block": 1,
+      "side": "before",
+      "workload": 0,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "before",
+      "workload": 1,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 508,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 52,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 72,
+      "vmrss_growth_kb": 8,
+      "rssanon_growth_kb": 8,
+      "vmdata_growth_kb": 16
+    },
+    {
+      "block": 1,
+      "side": "before",
+      "workload": 8,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 544,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 88,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 100,
+      "vmrss_growth_kb": 44,
+      "rssanon_growth_kb": 44,
+      "vmdata_growth_kb": 44
+    },
+    {
+      "block": 1,
+      "side": "before",
+      "workload": 32,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 688,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 232,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 268,
+      "vmrss_growth_kb": 188,
+      "rssanon_growth_kb": 188,
+      "vmdata_growth_kb": 212
+    },
+    {
+      "block": 1,
+      "side": "before",
+      "workload": 64,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 860,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 404,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 420,
+      "vmrss_growth_kb": 356,
+      "rssanon_growth_kb": 356,
+      "vmdata_growth_kb": 364
+    },
+    {
+      "block": 1,
+      "side": "candidate",
+      "workload": 0,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "candidate",
+      "workload": 1,
+      "vmrss_before_kb": 508,
+      "vmrss_after_kb": 508,
+      "rssanon_before_kb": 52,
+      "rssanon_after_kb": 52,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "candidate",
+      "workload": 8,
+      "vmrss_before_kb": 508,
+      "vmrss_after_kb": 512,
+      "rssanon_before_kb": 52,
+      "rssanon_after_kb": 56,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 68,
+      "vmrss_growth_kb": 4,
+      "rssanon_growth_kb": 4,
+      "vmdata_growth_kb": 12
+    },
+    {
+      "block": 1,
+      "side": "candidate",
+      "workload": 32,
+      "vmrss_before_kb": 508,
+      "vmrss_after_kb": 528,
+      "rssanon_before_kb": 52,
+      "rssanon_after_kb": 72,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 76,
+      "vmrss_growth_kb": 20,
+      "rssanon_growth_kb": 20,
+      "vmdata_growth_kb": 20
+    },
+    {
+      "block": 1,
+      "side": "candidate",
+      "workload": 64,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 548,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 92,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 100,
+      "vmrss_growth_kb": 44,
+      "rssanon_growth_kb": 44,
+      "vmdata_growth_kb": 44
+    },
+    {
+      "block": 1,
+      "side": "stock",
+      "workload": 0,
+      "vmrss_before_kb": 900,
+      "vmrss_after_kb": 900,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 72,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 44,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "stock",
+      "workload": 1,
+      "vmrss_before_kb": 916,
+      "vmrss_after_kb": 916,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 72,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 44,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "stock",
+      "workload": 8,
+      "vmrss_before_kb": 916,
+      "vmrss_after_kb": 920,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 76,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 48,
+      "vmrss_growth_kb": 4,
+      "rssanon_growth_kb": 4,
+      "vmdata_growth_kb": 4
+    },
+    {
+      "block": 1,
+      "side": "stock",
+      "workload": 32,
+      "vmrss_before_kb": 896,
+      "vmrss_after_kb": 920,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 96,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 68,
+      "vmrss_growth_kb": 24,
+      "rssanon_growth_kb": 24,
+      "vmdata_growth_kb": 24
+    },
+    {
+      "block": 1,
+      "side": "stock",
+      "workload": 64,
+      "vmrss_before_kb": 848,
+      "vmrss_after_kb": 896,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 120,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 96,
+      "vmrss_growth_kb": 48,
+      "rssanon_growth_kb": 48,
+      "vmdata_growth_kb": 52
+    },
+    {
+      "block": 1,
+      "side": "r89",
+      "workload": 0,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 500,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 44,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "r89",
+      "workload": 1,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 500,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 44,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "r89",
+      "workload": 8,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 68,
+      "vmrss_growth_kb": 4,
+      "rssanon_growth_kb": 4,
+      "vmdata_growth_kb": 12
+    },
+    {
+      "block": 1,
+      "side": "r89",
+      "workload": 32,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 516,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 60,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 72,
+      "vmrss_growth_kb": 16,
+      "rssanon_growth_kb": 16,
+      "vmdata_growth_kb": 16
+    },
+    {
+      "block": 1,
+      "side": "r89",
+      "workload": 64,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 536,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 80,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 92,
+      "vmrss_growth_kb": 36,
+      "rssanon_growth_kb": 36,
+      "vmdata_growth_kb": 36
+    },
+    {
+      "block": 1,
+      "side": "r103",
+      "workload": 0,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 1,
+      "side": "r103",
+      "workload": 1,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 512,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 56,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 72,
+      "vmrss_growth_kb": 8,
+      "rssanon_growth_kb": 8,
+      "vmdata_growth_kb": 16
+    },
+    {
+      "block": 1,
+      "side": "r103",
+      "workload": 8,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 544,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 88,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 100,
+      "vmrss_growth_kb": 44,
+      "rssanon_growth_kb": 44,
+      "vmdata_growth_kb": 44
+    },
+    {
+      "block": 1,
+      "side": "r103",
+      "workload": 32,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 692,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 236,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 268,
+      "vmrss_growth_kb": 188,
+      "rssanon_growth_kb": 188,
+      "vmdata_growth_kb": 212
+    },
+    {
+      "block": 1,
+      "side": "r103",
+      "workload": 64,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 860,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 404,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 420,
+      "vmrss_growth_kb": 356,
+      "rssanon_growth_kb": 356,
+      "vmdata_growth_kb": 364
+    },
+    {
+      "block": 2,
+      "side": "r103",
+      "workload": 0,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "r103",
+      "workload": 1,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 512,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 56,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 72,
+      "vmrss_growth_kb": 8,
+      "rssanon_growth_kb": 8,
+      "vmdata_growth_kb": 16
+    },
+    {
+      "block": 2,
+      "side": "r103",
+      "workload": 8,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 544,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 88,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 100,
+      "vmrss_growth_kb": 44,
+      "rssanon_growth_kb": 44,
+      "vmdata_growth_kb": 44
+    },
+    {
+      "block": 2,
+      "side": "r103",
+      "workload": 32,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 688,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 232,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 268,
+      "vmrss_growth_kb": 188,
+      "rssanon_growth_kb": 188,
+      "vmdata_growth_kb": 212
+    },
+    {
+      "block": 2,
+      "side": "r103",
+      "workload": 64,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 860,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 404,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 420,
+      "vmrss_growth_kb": 356,
+      "rssanon_growth_kb": 356,
+      "vmdata_growth_kb": 364
+    },
+    {
+      "block": 2,
+      "side": "r89",
+      "workload": 0,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 500,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 44,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "r89",
+      "workload": 1,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 500,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 44,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "r89",
+      "workload": 8,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 68,
+      "vmrss_growth_kb": 4,
+      "rssanon_growth_kb": 4,
+      "vmdata_growth_kb": 12
+    },
+    {
+      "block": 2,
+      "side": "r89",
+      "workload": 32,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 520,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 64,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 72,
+      "vmrss_growth_kb": 16,
+      "rssanon_growth_kb": 16,
+      "vmdata_growth_kb": 16
+    },
+    {
+      "block": 2,
+      "side": "r89",
+      "workload": 64,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 540,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 84,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 92,
+      "vmrss_growth_kb": 36,
+      "rssanon_growth_kb": 36,
+      "vmdata_growth_kb": 36
+    },
+    {
+      "block": 2,
+      "side": "stock",
+      "workload": 0,
+      "vmrss_before_kb": 912,
+      "vmrss_after_kb": 912,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 72,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 44,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "stock",
+      "workload": 1,
+      "vmrss_before_kb": 916,
+      "vmrss_after_kb": 916,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 72,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 44,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "stock",
+      "workload": 8,
+      "vmrss_before_kb": 900,
+      "vmrss_after_kb": 904,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 76,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 48,
+      "vmrss_growth_kb": 4,
+      "rssanon_growth_kb": 4,
+      "vmdata_growth_kb": 4
+    },
+    {
+      "block": 2,
+      "side": "stock",
+      "workload": 32,
+      "vmrss_before_kb": 916,
+      "vmrss_after_kb": 940,
+      "rssanon_before_kb": 72,
+      "rssanon_after_kb": 96,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 68,
+      "vmrss_growth_kb": 24,
+      "rssanon_growth_kb": 24,
+      "vmdata_growth_kb": 24
+    },
+    {
+      "block": 2,
+      "side": "stock",
+      "workload": 64,
+      "vmrss_before_kb": 912,
+      "vmrss_after_kb": 960,
+      "rssanon_before_kb": 68,
+      "rssanon_after_kb": 116,
+      "vmdata_before_kb": 44,
+      "vmdata_after_kb": 96,
+      "vmrss_growth_kb": 48,
+      "rssanon_growth_kb": 48,
+      "vmdata_growth_kb": 52
+    },
+    {
+      "block": 2,
+      "side": "candidate",
+      "workload": 0,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "candidate",
+      "workload": 1,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 504,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 48,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "candidate",
+      "workload": 8,
+      "vmrss_before_kb": 508,
+      "vmrss_after_kb": 512,
+      "rssanon_before_kb": 52,
+      "rssanon_after_kb": 56,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 68,
+      "vmrss_growth_kb": 4,
+      "rssanon_growth_kb": 4,
+      "vmdata_growth_kb": 12
+    },
+    {
+      "block": 2,
+      "side": "candidate",
+      "workload": 32,
+      "vmrss_before_kb": 508,
+      "vmrss_after_kb": 528,
+      "rssanon_before_kb": 52,
+      "rssanon_after_kb": 72,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 76,
+      "vmrss_growth_kb": 20,
+      "rssanon_growth_kb": 20,
+      "vmdata_growth_kb": 20
+    },
+    {
+      "block": 2,
+      "side": "candidate",
+      "workload": 64,
+      "vmrss_before_kb": 504,
+      "vmrss_after_kb": 548,
+      "rssanon_before_kb": 48,
+      "rssanon_after_kb": 92,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 100,
+      "vmrss_growth_kb": 44,
+      "rssanon_growth_kb": 44,
+      "vmdata_growth_kb": 44
+    },
+    {
+      "block": 2,
+      "side": "before",
+      "workload": 0,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 500,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 44,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 56,
+      "vmrss_growth_kb": 0,
+      "rssanon_growth_kb": 0,
+      "vmdata_growth_kb": 0
+    },
+    {
+      "block": 2,
+      "side": "before",
+      "workload": 1,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 508,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 52,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 72,
+      "vmrss_growth_kb": 8,
+      "rssanon_growth_kb": 8,
+      "vmdata_growth_kb": 16
+    },
+    {
+      "block": 2,
+      "side": "before",
+      "workload": 8,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 544,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 88,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 100,
+      "vmrss_growth_kb": 44,
+      "rssanon_growth_kb": 44,
+      "vmdata_growth_kb": 44
+    },
+    {
+      "block": 2,
+      "side": "before",
+      "workload": 32,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 688,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 232,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 268,
+      "vmrss_growth_kb": 188,
+      "rssanon_growth_kb": 188,
+      "vmdata_growth_kb": 212
+    },
+    {
+      "block": 2,
+      "side": "before",
+      "workload": 64,
+      "vmrss_before_kb": 500,
+      "vmrss_after_kb": 856,
+      "rssanon_before_kb": 44,
+      "rssanon_after_kb": 400,
+      "vmdata_before_kb": 56,
+      "vmdata_after_kb": 420,
+      "vmrss_growth_kb": 356,
+      "rssanon_growth_kb": 356,
+      "vmdata_growth_kb": 364
+    }
+  ],
+  "summary": {
+    "0": {
+      "vmrss_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              900,
+              912
+            ],
+            "median": 906.0
+          },
+          "r89": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "r103": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          },
+          "before": {
+            "values": [
+              504,
+              500
+            ],
+            "median": 502.0
+          },
+          "candidate": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -396,
+              -408
+            ],
+            "median_difference": -402.0,
+            "per_block_delta_pct": [
+              -43.99999999999999,
+              -44.73684210526315
+            ],
+            "median_delta_pct": -44.368421052631575
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              0.8000000000000007,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 0.8000000000000007
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              4
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 0.40000000000000036
+          }
+        }
+      },
+      "vmrss_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              900,
+              912
+            ],
+            "median": 906.0
+          },
+          "r89": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "r103": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          },
+          "before": {
+            "values": [
+              504,
+              500
+            ],
+            "median": 502.0
+          },
+          "candidate": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -396,
+              -408
+            ],
+            "median_difference": -402.0,
+            "per_block_delta_pct": [
+              -43.99999999999999,
+              -44.73684210526315
+            ],
+            "median_delta_pct": -44.368421052631575
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              0.8000000000000007,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 0.8000000000000007
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              4
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 0.40000000000000036
+          }
+        }
+      },
+      "vmrss_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r89": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r103": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "before": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "candidate": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          }
+        }
+      },
+      "rssanon_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "r89": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r103": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "before": {
+            "values": [
+              48,
+              44
+            ],
+            "median": 46.0
+          },
+          "candidate": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -24,
+              -24
+            ],
+            "median_difference": -24.0,
+            "per_block_delta_pct": [
+              -33.333333333333336,
+              -33.333333333333336
+            ],
+            "median_delta_pct": -33.333333333333336
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              9.090909090909083,
+              9.090909090909083
+            ],
+            "median_delta_pct": 9.090909090909083
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              4
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.0,
+              9.090909090909083
+            ],
+            "median_delta_pct": 4.545454545454541
+          }
+        }
+      },
+      "rssanon_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "r89": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r103": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "before": {
+            "values": [
+              48,
+              44
+            ],
+            "median": 46.0
+          },
+          "candidate": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -24,
+              -24
+            ],
+            "median_difference": -24.0,
+            "per_block_delta_pct": [
+              -33.333333333333336,
+              -33.333333333333336
+            ],
+            "median_delta_pct": -33.333333333333336
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              9.090909090909083,
+              9.090909090909083
+            ],
+            "median_delta_pct": 9.090909090909083
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              4
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.0,
+              9.090909090909083
+            ],
+            "median_delta_pct": 4.545454545454541
+          }
+        }
+      },
+      "rssanon_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r89": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r103": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "before": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "candidate": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          }
+        }
+      },
+      "vmdata_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r89": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "r103": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "before": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              12,
+              12
+            ],
+            "median_difference": 12.0,
+            "per_block_delta_pct": [
+              27.27272727272727,
+              27.27272727272727
+            ],
+            "median_delta_pct": 27.27272727272727
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          }
+        }
+      },
+      "vmdata_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r89": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "r103": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "before": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              12,
+              12
+            ],
+            "median_difference": 12.0,
+            "per_block_delta_pct": [
+              27.27272727272727,
+              27.27272727272727
+            ],
+            "median_delta_pct": 27.27272727272727
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          }
+        }
+      },
+      "vmdata_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r89": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r103": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "before": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "candidate": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          }
+        }
+      }
+    },
+    "1": {
+      "vmrss_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              916,
+              916
+            ],
+            "median": 916.0
+          },
+          "r89": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "r103": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          },
+          "before": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "candidate": {
+            "values": [
+              508,
+              504
+            ],
+            "median": 506.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -408,
+              -412
+            ],
+            "median_difference": -410.0,
+            "per_block_delta_pct": [
+              -44.54148471615721,
+              -44.978165938864635
+            ],
+            "median_delta_pct": -44.759825327510924
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 1.200000000000001
+          },
+          "r103": {
+            "per_block_difference": [
+              4,
+              0
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.7936507936507908,
+              0.0
+            ],
+            "median_delta_pct": 0.3968253968253954
+          },
+          "before": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 1.200000000000001
+          }
+        }
+      },
+      "vmrss_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              916,
+              916
+            ],
+            "median": 916.0
+          },
+          "r89": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "r103": {
+            "values": [
+              512,
+              512
+            ],
+            "median": 512.0
+          },
+          "before": {
+            "values": [
+              508,
+              508
+            ],
+            "median": 508.0
+          },
+          "candidate": {
+            "values": [
+              508,
+              504
+            ],
+            "median": 506.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -408,
+              -412
+            ],
+            "median_difference": -410.0,
+            "per_block_delta_pct": [
+              -44.54148471615721,
+              -44.978165938864635
+            ],
+            "median_delta_pct": -44.759825327510924
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 1.200000000000001
+          },
+          "r103": {
+            "per_block_difference": [
+              -4,
+              -8
+            ],
+            "median_difference": -6.0,
+            "per_block_delta_pct": [
+              -0.78125,
+              -1.5625
+            ],
+            "median_delta_pct": -1.171875
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              -4
+            ],
+            "median_difference": -2.0,
+            "per_block_delta_pct": [
+              0.0,
+              -0.7874015748031482
+            ],
+            "median_delta_pct": -0.3937007874015741
+          }
+        }
+      },
+      "vmrss_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r89": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r103": {
+            "values": [
+              8,
+              8
+            ],
+            "median": 8.0
+          },
+          "before": {
+            "values": [
+              8,
+              8
+            ],
+            "median": 8.0
+          },
+          "candidate": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r103": {
+            "per_block_difference": [
+              -8,
+              -8
+            ],
+            "median_difference": -8.0,
+            "per_block_delta_pct": [
+              -100.0,
+              -100.0
+            ],
+            "median_delta_pct": -100.0
+          },
+          "before": {
+            "per_block_difference": [
+              -8,
+              -8
+            ],
+            "median_difference": -8.0,
+            "per_block_delta_pct": [
+              -100.0,
+              -100.0
+            ],
+            "median_delta_pct": -100.0
+          }
+        }
+      },
+      "rssanon_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "r89": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r103": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "before": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "candidate": {
+            "values": [
+              52,
+              48
+            ],
+            "median": 50.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -20,
+              -24
+            ],
+            "median_difference": -22.0,
+            "per_block_delta_pct": [
+              -27.77777777777778,
+              -33.333333333333336
+            ],
+            "median_delta_pct": -30.555555555555557
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              9.090909090909083
+            ],
+            "median_delta_pct": 13.636363636363635
+          },
+          "r103": {
+            "per_block_difference": [
+              4,
+              0
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              8.333333333333325,
+              0.0
+            ],
+            "median_delta_pct": 4.1666666666666625
+          },
+          "before": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              9.090909090909083
+            ],
+            "median_delta_pct": 13.636363636363635
+          }
+        }
+      },
+      "rssanon_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "r89": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r103": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "before": {
+            "values": [
+              52,
+              52
+            ],
+            "median": 52.0
+          },
+          "candidate": {
+            "values": [
+              52,
+              48
+            ],
+            "median": 50.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -20,
+              -24
+            ],
+            "median_difference": -22.0,
+            "per_block_delta_pct": [
+              -27.77777777777778,
+              -33.333333333333336
+            ],
+            "median_delta_pct": -30.555555555555557
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              9.090909090909083
+            ],
+            "median_delta_pct": 13.636363636363635
+          },
+          "r103": {
+            "per_block_difference": [
+              -4,
+              -8
+            ],
+            "median_difference": -6.0,
+            "per_block_delta_pct": [
+              -7.14285714285714,
+              -14.28571428571429
+            ],
+            "median_delta_pct": -10.714285714285715
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              -4
+            ],
+            "median_difference": -2.0,
+            "per_block_delta_pct": [
+              0.0,
+              -7.692307692307687
+            ],
+            "median_delta_pct": -3.8461538461538436
+          }
+        }
+      },
+      "rssanon_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r89": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r103": {
+            "values": [
+              8,
+              8
+            ],
+            "median": 8.0
+          },
+          "before": {
+            "values": [
+              8,
+              8
+            ],
+            "median": 8.0
+          },
+          "candidate": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r103": {
+            "per_block_difference": [
+              -8,
+              -8
+            ],
+            "median_difference": -8.0,
+            "per_block_delta_pct": [
+              -100.0,
+              -100.0
+            ],
+            "median_delta_pct": -100.0
+          },
+          "before": {
+            "per_block_difference": [
+              -8,
+              -8
+            ],
+            "median_difference": -8.0,
+            "per_block_delta_pct": [
+              -100.0,
+              -100.0
+            ],
+            "median_delta_pct": -100.0
+          }
+        }
+      },
+      "vmdata_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r89": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "r103": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "before": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              12,
+              12
+            ],
+            "median_difference": 12.0,
+            "per_block_delta_pct": [
+              27.27272727272727,
+              27.27272727272727
+            ],
+            "median_delta_pct": 27.27272727272727
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          }
+        }
+      },
+      "vmdata_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r89": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "r103": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "before": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              12,
+              12
+            ],
+            "median_difference": 12.0,
+            "per_block_delta_pct": [
+              27.27272727272727,
+              27.27272727272727
+            ],
+            "median_delta_pct": 27.27272727272727
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -16,
+              -16
+            ],
+            "median_difference": -16.0,
+            "per_block_delta_pct": [
+              -22.22222222222222,
+              -22.22222222222222
+            ],
+            "median_delta_pct": -22.22222222222222
+          },
+          "before": {
+            "per_block_difference": [
+              -16,
+              -16
+            ],
+            "median_difference": -16.0,
+            "per_block_delta_pct": [
+              -22.22222222222222,
+              -22.22222222222222
+            ],
+            "median_delta_pct": -22.22222222222222
+          }
+        }
+      },
+      "vmdata_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r89": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          },
+          "r103": {
+            "values": [
+              16,
+              16
+            ],
+            "median": 16.0
+          },
+          "before": {
+            "values": [
+              16,
+              16
+            ],
+            "median": 16.0
+          },
+          "candidate": {
+            "values": [
+              0,
+              0
+            ],
+            "median": 0.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              null,
+              null
+            ],
+            "median_delta_pct": null
+          },
+          "r103": {
+            "per_block_difference": [
+              -16,
+              -16
+            ],
+            "median_difference": -16.0,
+            "per_block_delta_pct": [
+              -100.0,
+              -100.0
+            ],
+            "median_delta_pct": -100.0
+          },
+          "before": {
+            "per_block_difference": [
+              -16,
+              -16
+            ],
+            "median_difference": -16.0,
+            "per_block_delta_pct": [
+              -100.0,
+              -100.0
+            ],
+            "median_delta_pct": -100.0
+          }
+        }
+      }
+    },
+    "8": {
+      "vmrss_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              916,
+              900
+            ],
+            "median": 908.0
+          },
+          "r89": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "r103": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "before": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "candidate": {
+            "values": [
+              508,
+              508
+            ],
+            "median": 508.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -408,
+              -392
+            ],
+            "median_difference": -400.0,
+            "per_block_delta_pct": [
+              -44.54148471615721,
+              -43.55555555555556
+            ],
+            "median_delta_pct": -44.04852013585638
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              1.6000000000000014
+            ],
+            "median_delta_pct": 1.6000000000000014
+          },
+          "r103": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              1.6000000000000014
+            ],
+            "median_delta_pct": 1.6000000000000014
+          },
+          "before": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              1.6000000000000014
+            ],
+            "median_delta_pct": 1.6000000000000014
+          }
+        }
+      },
+      "vmrss_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              920,
+              904
+            ],
+            "median": 912.0
+          },
+          "r89": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          },
+          "r103": {
+            "values": [
+              544,
+              544
+            ],
+            "median": 544.0
+          },
+          "before": {
+            "values": [
+              544,
+              544
+            ],
+            "median": 544.0
+          },
+          "candidate": {
+            "values": [
+              512,
+              512
+            ],
+            "median": 512.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -408,
+              -392
+            ],
+            "median_difference": -400.0,
+            "per_block_delta_pct": [
+              -44.34782608695652,
+              -43.36283185840708
+            ],
+            "median_delta_pct": -43.855328972681804
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              1.5873015873015817,
+              1.5873015873015817
+            ],
+            "median_delta_pct": 1.5873015873015817
+          },
+          "r103": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -5.882352941176472,
+              -5.882352941176472
+            ],
+            "median_delta_pct": -5.882352941176472
+          },
+          "before": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -5.882352941176472,
+              -5.882352941176472
+            ],
+            "median_delta_pct": -5.882352941176472
+          }
+        }
+      },
+      "vmrss_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              4,
+              4
+            ],
+            "median": 4.0
+          },
+          "r89": {
+            "values": [
+              4,
+              4
+            ],
+            "median": 4.0
+          },
+          "r103": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "before": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "candidate": {
+            "values": [
+              4,
+              4
+            ],
+            "median": 4.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -40,
+              -40
+            ],
+            "median_difference": -40.0,
+            "per_block_delta_pct": [
+              -90.9090909090909,
+              -90.9090909090909
+            ],
+            "median_delta_pct": -90.9090909090909
+          },
+          "before": {
+            "per_block_difference": [
+              -40,
+              -40
+            ],
+            "median_difference": -40.0,
+            "per_block_delta_pct": [
+              -90.9090909090909,
+              -90.9090909090909
+            ],
+            "median_delta_pct": -90.9090909090909
+          }
+        }
+      },
+      "rssanon_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "r89": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r103": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "before": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "candidate": {
+            "values": [
+              52,
+              52
+            ],
+            "median": 52.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -20,
+              -20
+            ],
+            "median_difference": -20.0,
+            "per_block_delta_pct": [
+              -27.77777777777778,
+              -27.77777777777778
+            ],
+            "median_delta_pct": -27.77777777777778
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              18.181818181818187
+            ],
+            "median_delta_pct": 18.181818181818187
+          },
+          "r103": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              18.181818181818187
+            ],
+            "median_delta_pct": 18.181818181818187
+          },
+          "before": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              18.181818181818187
+            ],
+            "median_delta_pct": 18.181818181818187
+          }
+        }
+      },
+      "rssanon_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              76,
+              76
+            ],
+            "median": 76.0
+          },
+          "r89": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "r103": {
+            "values": [
+              88,
+              88
+            ],
+            "median": 88.0
+          },
+          "before": {
+            "values": [
+              88,
+              88
+            ],
+            "median": 88.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -20,
+              -20
+            ],
+            "median_difference": -20.0,
+            "per_block_delta_pct": [
+              -26.315789473684216,
+              -26.315789473684216
+            ],
+            "median_delta_pct": -26.315789473684216
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              16.666666666666675,
+              16.666666666666675
+            ],
+            "median_delta_pct": 16.666666666666675
+          },
+          "r103": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -36.36363636363637,
+              -36.36363636363637
+            ],
+            "median_delta_pct": -36.36363636363637
+          },
+          "before": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -36.36363636363637,
+              -36.36363636363637
+            ],
+            "median_delta_pct": -36.36363636363637
+          }
+        }
+      },
+      "rssanon_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              4,
+              4
+            ],
+            "median": 4.0
+          },
+          "r89": {
+            "values": [
+              4,
+              4
+            ],
+            "median": 4.0
+          },
+          "r103": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "before": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "candidate": {
+            "values": [
+              4,
+              4
+            ],
+            "median": 4.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -40,
+              -40
+            ],
+            "median_difference": -40.0,
+            "per_block_delta_pct": [
+              -90.9090909090909,
+              -90.9090909090909
+            ],
+            "median_delta_pct": -90.9090909090909
+          },
+          "before": {
+            "per_block_difference": [
+              -40,
+              -40
+            ],
+            "median_difference": -40.0,
+            "per_block_delta_pct": [
+              -90.9090909090909,
+              -90.9090909090909
+            ],
+            "median_delta_pct": -90.9090909090909
+          }
+        }
+      },
+      "vmdata_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r89": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "r103": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "before": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              12,
+              12
+            ],
+            "median_difference": 12.0,
+            "per_block_delta_pct": [
+              27.27272727272727,
+              27.27272727272727
+            ],
+            "median_delta_pct": 27.27272727272727
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          }
+        }
+      },
+      "vmdata_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "r89": {
+            "values": [
+              68,
+              68
+            ],
+            "median": 68.0
+          },
+          "r103": {
+            "values": [
+              100,
+              100
+            ],
+            "median": 100.0
+          },
+          "before": {
+            "values": [
+              100,
+              100
+            ],
+            "median": 100.0
+          },
+          "candidate": {
+            "values": [
+              68,
+              68
+            ],
+            "median": 68.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              20,
+              20
+            ],
+            "median_difference": 20.0,
+            "per_block_delta_pct": [
+              41.66666666666667,
+              41.66666666666667
+            ],
+            "median_delta_pct": 41.66666666666667
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -31.999999999999996,
+              -31.999999999999996
+            ],
+            "median_delta_pct": -31.999999999999996
+          },
+          "before": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -31.999999999999996,
+              -31.999999999999996
+            ],
+            "median_delta_pct": -31.999999999999996
+          }
+        }
+      },
+      "vmdata_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              4,
+              4
+            ],
+            "median": 4.0
+          },
+          "r89": {
+            "values": [
+              12,
+              12
+            ],
+            "median": 12.0
+          },
+          "r103": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "before": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "candidate": {
+            "values": [
+              12,
+              12
+            ],
+            "median": 12.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              200.0,
+              200.0
+            ],
+            "median_delta_pct": 200.0
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -72.72727272727273,
+              -72.72727272727273
+            ],
+            "median_delta_pct": -72.72727272727273
+          },
+          "before": {
+            "per_block_difference": [
+              -32,
+              -32
+            ],
+            "median_difference": -32.0,
+            "per_block_delta_pct": [
+              -72.72727272727273,
+              -72.72727272727273
+            ],
+            "median_delta_pct": -72.72727272727273
+          }
+        }
+      }
+    },
+    "32": {
+      "vmrss_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              896,
+              916
+            ],
+            "median": 906.0
+          },
+          "r89": {
+            "values": [
+              500,
+              504
+            ],
+            "median": 502.0
+          },
+          "r103": {
+            "values": [
+              504,
+              500
+            ],
+            "median": 502.0
+          },
+          "before": {
+            "values": [
+              500,
+              500
+            ],
+            "median": 500.0
+          },
+          "candidate": {
+            "values": [
+              508,
+              508
+            ],
+            "median": 508.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -388,
+              -408
+            ],
+            "median_difference": -398.0,
+            "per_block_delta_pct": [
+              -43.30357142857143,
+              -44.54148471615721
+            ],
+            "median_delta_pct": -43.922528072364315
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              0.7936507936507908
+            ],
+            "median_delta_pct": 1.1968253968253961
+          },
+          "r103": {
+            "per_block_difference": [
+              4,
+              8
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              0.7936507936507908,
+              1.6000000000000014
+            ],
+            "median_delta_pct": 1.1968253968253961
+          },
+          "before": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              1.6000000000000014,
+              1.6000000000000014
+            ],
+            "median_delta_pct": 1.6000000000000014
+          }
+        }
+      },
+      "vmrss_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              920,
+              940
+            ],
+            "median": 930.0
+          },
+          "r89": {
+            "values": [
+              516,
+              520
+            ],
+            "median": 518.0
+          },
+          "r103": {
+            "values": [
+              692,
+              688
+            ],
+            "median": 690.0
+          },
+          "before": {
+            "values": [
+              688,
+              688
+            ],
+            "median": 688.0
+          },
+          "candidate": {
+            "values": [
+              528,
+              528
+            ],
+            "median": 528.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -392,
+              -412
+            ],
+            "median_difference": -402.0,
+            "per_block_delta_pct": [
+              -42.608695652173914,
+              -43.82978723404255
+            ],
+            "median_delta_pct": -43.21924144310823
+          },
+          "r89": {
+            "per_block_difference": [
+              12,
+              8
+            ],
+            "median_difference": 10.0,
+            "per_block_delta_pct": [
+              2.3255813953488413,
+              1.538461538461533
+            ],
+            "median_delta_pct": 1.9320214669051872
+          },
+          "r103": {
+            "per_block_difference": [
+              -164,
+              -160
+            ],
+            "median_difference": -162.0,
+            "per_block_delta_pct": [
+              -23.699421965317924,
+              -23.25581395348837
+            ],
+            "median_delta_pct": -23.477617959403148
+          },
+          "before": {
+            "per_block_difference": [
+              -160,
+              -160
+            ],
+            "median_difference": -160.0,
+            "per_block_delta_pct": [
+              -23.25581395348837,
+              -23.25581395348837
+            ],
+            "median_delta_pct": -23.25581395348837
+          }
+        }
+      },
+      "vmrss_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              24,
+              24
+            ],
+            "median": 24.0
+          },
+          "r89": {
+            "values": [
+              16,
+              16
+            ],
+            "median": 16.0
+          },
+          "r103": {
+            "values": [
+              188,
+              188
+            ],
+            "median": 188.0
+          },
+          "before": {
+            "values": [
+              188,
+              188
+            ],
+            "median": 188.0
+          },
+          "candidate": {
+            "values": [
+              20,
+              20
+            ],
+            "median": 20.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -4,
+              -4
+            ],
+            "median_difference": -4.0,
+            "per_block_delta_pct": [
+              -16.666666666666664,
+              -16.666666666666664
+            ],
+            "median_delta_pct": -16.666666666666664
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              25.0,
+              25.0
+            ],
+            "median_delta_pct": 25.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -168,
+              -168
+            ],
+            "median_difference": -168.0,
+            "per_block_delta_pct": [
+              -89.36170212765957,
+              -89.36170212765957
+            ],
+            "median_delta_pct": -89.36170212765957
+          },
+          "before": {
+            "per_block_difference": [
+              -168,
+              -168
+            ],
+            "median_difference": -168.0,
+            "per_block_delta_pct": [
+              -89.36170212765957,
+              -89.36170212765957
+            ],
+            "median_delta_pct": -89.36170212765957
+          }
+        }
+      },
+      "rssanon_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "r89": {
+            "values": [
+              44,
+              48
+            ],
+            "median": 46.0
+          },
+          "r103": {
+            "values": [
+              48,
+              44
+            ],
+            "median": 46.0
+          },
+          "before": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "candidate": {
+            "values": [
+              52,
+              52
+            ],
+            "median": 52.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -20,
+              -20
+            ],
+            "median_difference": -20.0,
+            "per_block_delta_pct": [
+              -27.77777777777778,
+              -27.77777777777778
+            ],
+            "median_delta_pct": -27.77777777777778
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              4
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              8.333333333333325
+            ],
+            "median_delta_pct": 13.257575757575756
+          },
+          "r103": {
+            "per_block_difference": [
+              4,
+              8
+            ],
+            "median_difference": 6.0,
+            "per_block_delta_pct": [
+              8.333333333333325,
+              18.181818181818187
+            ],
+            "median_delta_pct": 13.257575757575756
+          },
+          "before": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              18.181818181818187,
+              18.181818181818187
+            ],
+            "median_delta_pct": 18.181818181818187
+          }
+        }
+      },
+      "rssanon_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              96,
+              96
+            ],
+            "median": 96.0
+          },
+          "r89": {
+            "values": [
+              60,
+              64
+            ],
+            "median": 62.0
+          },
+          "r103": {
+            "values": [
+              236,
+              232
+            ],
+            "median": 234.0
+          },
+          "before": {
+            "values": [
+              232,
+              232
+            ],
+            "median": 232.0
+          },
+          "candidate": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -24,
+              -24
+            ],
+            "median_difference": -24.0,
+            "per_block_delta_pct": [
+              -25.0,
+              -25.0
+            ],
+            "median_delta_pct": -25.0
+          },
+          "r89": {
+            "per_block_difference": [
+              12,
+              8
+            ],
+            "median_difference": 10.0,
+            "per_block_delta_pct": [
+              19.999999999999996,
+              12.5
+            ],
+            "median_delta_pct": 16.25
+          },
+          "r103": {
+            "per_block_difference": [
+              -164,
+              -160
+            ],
+            "median_difference": -162.0,
+            "per_block_delta_pct": [
+              -69.4915254237288,
+              -68.96551724137932
+            ],
+            "median_delta_pct": -69.22852133255407
+          },
+          "before": {
+            "per_block_difference": [
+              -160,
+              -160
+            ],
+            "median_difference": -160.0,
+            "per_block_delta_pct": [
+              -68.96551724137932,
+              -68.96551724137932
+            ],
+            "median_delta_pct": -68.96551724137932
+          }
+        }
+      },
+      "rssanon_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              24,
+              24
+            ],
+            "median": 24.0
+          },
+          "r89": {
+            "values": [
+              16,
+              16
+            ],
+            "median": 16.0
+          },
+          "r103": {
+            "values": [
+              188,
+              188
+            ],
+            "median": 188.0
+          },
+          "before": {
+            "values": [
+              188,
+              188
+            ],
+            "median": 188.0
+          },
+          "candidate": {
+            "values": [
+              20,
+              20
+            ],
+            "median": 20.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -4,
+              -4
+            ],
+            "median_difference": -4.0,
+            "per_block_delta_pct": [
+              -16.666666666666664,
+              -16.666666666666664
+            ],
+            "median_delta_pct": -16.666666666666664
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              25.0,
+              25.0
+            ],
+            "median_delta_pct": 25.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -168,
+              -168
+            ],
+            "median_difference": -168.0,
+            "per_block_delta_pct": [
+              -89.36170212765957,
+              -89.36170212765957
+            ],
+            "median_delta_pct": -89.36170212765957
+          },
+          "before": {
+            "per_block_difference": [
+              -168,
+              -168
+            ],
+            "median_difference": -168.0,
+            "per_block_delta_pct": [
+              -89.36170212765957,
+              -89.36170212765957
+            ],
+            "median_delta_pct": -89.36170212765957
+          }
+        }
+      },
+      "vmdata_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r89": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "r103": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "before": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              12,
+              12
+            ],
+            "median_difference": 12.0,
+            "per_block_delta_pct": [
+              27.27272727272727,
+              27.27272727272727
+            ],
+            "median_delta_pct": 27.27272727272727
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          }
+        }
+      },
+      "vmdata_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              68,
+              68
+            ],
+            "median": 68.0
+          },
+          "r89": {
+            "values": [
+              72,
+              72
+            ],
+            "median": 72.0
+          },
+          "r103": {
+            "values": [
+              268,
+              268
+            ],
+            "median": 268.0
+          },
+          "before": {
+            "values": [
+              268,
+              268
+            ],
+            "median": 268.0
+          },
+          "candidate": {
+            "values": [
+              76,
+              76
+            ],
+            "median": 76.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              11.764705882352944,
+              11.764705882352944
+            ],
+            "median_delta_pct": 11.764705882352944
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              5.555555555555558,
+              5.555555555555558
+            ],
+            "median_delta_pct": 5.555555555555558
+          },
+          "r103": {
+            "per_block_difference": [
+              -192,
+              -192
+            ],
+            "median_difference": -192.0,
+            "per_block_delta_pct": [
+              -71.64179104477613,
+              -71.64179104477613
+            ],
+            "median_delta_pct": -71.64179104477613
+          },
+          "before": {
+            "per_block_difference": [
+              -192,
+              -192
+            ],
+            "median_difference": -192.0,
+            "per_block_delta_pct": [
+              -71.64179104477613,
+              -71.64179104477613
+            ],
+            "median_delta_pct": -71.64179104477613
+          }
+        }
+      },
+      "vmdata_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              24,
+              24
+            ],
+            "median": 24.0
+          },
+          "r89": {
+            "values": [
+              16,
+              16
+            ],
+            "median": 16.0
+          },
+          "r103": {
+            "values": [
+              212,
+              212
+            ],
+            "median": 212.0
+          },
+          "before": {
+            "values": [
+              212,
+              212
+            ],
+            "median": 212.0
+          },
+          "candidate": {
+            "values": [
+              20,
+              20
+            ],
+            "median": 20.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -4,
+              -4
+            ],
+            "median_difference": -4.0,
+            "per_block_delta_pct": [
+              -16.666666666666664,
+              -16.666666666666664
+            ],
+            "median_delta_pct": -16.666666666666664
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              25.0,
+              25.0
+            ],
+            "median_delta_pct": 25.0
+          },
+          "r103": {
+            "per_block_difference": [
+              -192,
+              -192
+            ],
+            "median_difference": -192.0,
+            "per_block_delta_pct": [
+              -90.56603773584906,
+              -90.56603773584906
+            ],
+            "median_delta_pct": -90.56603773584906
+          },
+          "before": {
+            "per_block_difference": [
+              -192,
+              -192
+            ],
+            "median_difference": -192.0,
+            "per_block_delta_pct": [
+              -90.56603773584906,
+              -90.56603773584906
+            ],
+            "median_delta_pct": -90.56603773584906
+          }
+        }
+      }
+    },
+    "64": {
+      "vmrss_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              848,
+              912
+            ],
+            "median": 880.0
+          },
+          "r89": {
+            "values": [
+              500,
+              504
+            ],
+            "median": 502.0
+          },
+          "r103": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          },
+          "before": {
+            "values": [
+              504,
+              500
+            ],
+            "median": 502.0
+          },
+          "candidate": {
+            "values": [
+              504,
+              504
+            ],
+            "median": 504.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -344,
+              -408
+            ],
+            "median_difference": -376.0,
+            "per_block_delta_pct": [
+              -40.56603773584906,
+              -44.73684210526315
+            ],
+            "median_delta_pct": -42.6514399205561
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              0
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.8000000000000007,
+              0.0
+            ],
+            "median_delta_pct": 0.40000000000000036
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              4
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.8000000000000007
+            ],
+            "median_delta_pct": 0.40000000000000036
+          }
+        }
+      },
+      "vmrss_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              896,
+              960
+            ],
+            "median": 928.0
+          },
+          "r89": {
+            "values": [
+              536,
+              540
+            ],
+            "median": 538.0
+          },
+          "r103": {
+            "values": [
+              860,
+              860
+            ],
+            "median": 860.0
+          },
+          "before": {
+            "values": [
+              860,
+              856
+            ],
+            "median": 858.0
+          },
+          "candidate": {
+            "values": [
+              548,
+              548
+            ],
+            "median": 548.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -348,
+              -412
+            ],
+            "median_difference": -380.0,
+            "per_block_delta_pct": [
+              -38.83928571428571,
+              -42.91666666666667
+            ],
+            "median_delta_pct": -40.87797619047619
+          },
+          "r89": {
+            "per_block_difference": [
+              12,
+              8
+            ],
+            "median_difference": 10.0,
+            "per_block_delta_pct": [
+              2.238805970149249,
+              1.4814814814814836
+            ],
+            "median_delta_pct": 1.8601437258153664
+          },
+          "r103": {
+            "per_block_difference": [
+              -312,
+              -312
+            ],
+            "median_difference": -312.0,
+            "per_block_delta_pct": [
+              -36.27906976744186,
+              -36.27906976744186
+            ],
+            "median_delta_pct": -36.27906976744186
+          },
+          "before": {
+            "per_block_difference": [
+              -312,
+              -308
+            ],
+            "median_difference": -310.0,
+            "per_block_delta_pct": [
+              -36.27906976744186,
+              -35.981308411214954
+            ],
+            "median_delta_pct": -36.13018908932841
+          }
+        }
+      },
+      "vmrss_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "r89": {
+            "values": [
+              36,
+              36
+            ],
+            "median": 36.0
+          },
+          "r103": {
+            "values": [
+              356,
+              356
+            ],
+            "median": 356.0
+          },
+          "before": {
+            "values": [
+              356,
+              356
+            ],
+            "median": 356.0
+          },
+          "candidate": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -4,
+              -4
+            ],
+            "median_difference": -4.0,
+            "per_block_delta_pct": [
+              -8.333333333333337,
+              -8.333333333333337
+            ],
+            "median_delta_pct": -8.333333333333337
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              22.222222222222232,
+              22.222222222222232
+            ],
+            "median_delta_pct": 22.222222222222232
+          },
+          "r103": {
+            "per_block_difference": [
+              -312,
+              -312
+            ],
+            "median_difference": -312.0,
+            "per_block_delta_pct": [
+              -87.64044943820225,
+              -87.64044943820225
+            ],
+            "median_delta_pct": -87.64044943820225
+          },
+          "before": {
+            "per_block_difference": [
+              -312,
+              -312
+            ],
+            "median_difference": -312.0,
+            "per_block_delta_pct": [
+              -87.64044943820225,
+              -87.64044943820225
+            ],
+            "median_delta_pct": -87.64044943820225
+          }
+        }
+      },
+      "rssanon_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              72,
+              68
+            ],
+            "median": 70.0
+          },
+          "r89": {
+            "values": [
+              44,
+              48
+            ],
+            "median": 46.0
+          },
+          "r103": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "before": {
+            "values": [
+              48,
+              44
+            ],
+            "median": 46.0
+          },
+          "candidate": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -24,
+              -20
+            ],
+            "median_difference": -22.0,
+            "per_block_delta_pct": [
+              -33.333333333333336,
+              -29.411764705882348
+            ],
+            "median_delta_pct": -31.372549019607842
+          },
+          "r89": {
+            "per_block_difference": [
+              4,
+              0
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              9.090909090909083,
+              0.0
+            ],
+            "median_delta_pct": 4.545454545454541
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              4
+            ],
+            "median_difference": 2.0,
+            "per_block_delta_pct": [
+              0.0,
+              9.090909090909083
+            ],
+            "median_delta_pct": 4.545454545454541
+          }
+        }
+      },
+      "rssanon_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              120,
+              116
+            ],
+            "median": 118.0
+          },
+          "r89": {
+            "values": [
+              80,
+              84
+            ],
+            "median": 82.0
+          },
+          "r103": {
+            "values": [
+              404,
+              404
+            ],
+            "median": 404.0
+          },
+          "before": {
+            "values": [
+              404,
+              400
+            ],
+            "median": 402.0
+          },
+          "candidate": {
+            "values": [
+              92,
+              92
+            ],
+            "median": 92.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -28,
+              -24
+            ],
+            "median_difference": -26.0,
+            "per_block_delta_pct": [
+              -23.33333333333333,
+              -20.68965517241379
+            ],
+            "median_delta_pct": -22.01149425287356
+          },
+          "r89": {
+            "per_block_difference": [
+              12,
+              8
+            ],
+            "median_difference": 10.0,
+            "per_block_delta_pct": [
+              14.999999999999991,
+              9.523809523809534
+            ],
+            "median_delta_pct": 12.261904761904763
+          },
+          "r103": {
+            "per_block_difference": [
+              -312,
+              -312
+            ],
+            "median_difference": -312.0,
+            "per_block_delta_pct": [
+              -77.22772277227723,
+              -77.22772277227723
+            ],
+            "median_delta_pct": -77.22772277227723
+          },
+          "before": {
+            "per_block_difference": [
+              -312,
+              -308
+            ],
+            "median_difference": -310.0,
+            "per_block_delta_pct": [
+              -77.22772277227723,
+              -77.0
+            ],
+            "median_delta_pct": -77.11386138613861
+          }
+        }
+      },
+      "rssanon_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              48,
+              48
+            ],
+            "median": 48.0
+          },
+          "r89": {
+            "values": [
+              36,
+              36
+            ],
+            "median": 36.0
+          },
+          "r103": {
+            "values": [
+              356,
+              356
+            ],
+            "median": 356.0
+          },
+          "before": {
+            "values": [
+              356,
+              356
+            ],
+            "median": 356.0
+          },
+          "candidate": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -4,
+              -4
+            ],
+            "median_difference": -4.0,
+            "per_block_delta_pct": [
+              -8.333333333333337,
+              -8.333333333333337
+            ],
+            "median_delta_pct": -8.333333333333337
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              22.222222222222232,
+              22.222222222222232
+            ],
+            "median_delta_pct": 22.222222222222232
+          },
+          "r103": {
+            "per_block_difference": [
+              -312,
+              -312
+            ],
+            "median_difference": -312.0,
+            "per_block_delta_pct": [
+              -87.64044943820225,
+              -87.64044943820225
+            ],
+            "median_delta_pct": -87.64044943820225
+          },
+          "before": {
+            "per_block_difference": [
+              -312,
+              -312
+            ],
+            "median_difference": -312.0,
+            "per_block_delta_pct": [
+              -87.64044943820225,
+              -87.64044943820225
+            ],
+            "median_delta_pct": -87.64044943820225
+          }
+        }
+      },
+      "vmdata_before_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          },
+          "r89": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "r103": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "before": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          },
+          "candidate": {
+            "values": [
+              56,
+              56
+            ],
+            "median": 56.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              12,
+              12
+            ],
+            "median_difference": 12.0,
+            "per_block_delta_pct": [
+              27.27272727272727,
+              27.27272727272727
+            ],
+            "median_delta_pct": 27.27272727272727
+          },
+          "r89": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "r103": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          },
+          "before": {
+            "per_block_difference": [
+              0,
+              0
+            ],
+            "median_difference": 0.0,
+            "per_block_delta_pct": [
+              0.0,
+              0.0
+            ],
+            "median_delta_pct": 0.0
+          }
+        }
+      },
+      "vmdata_after_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              96,
+              96
+            ],
+            "median": 96.0
+          },
+          "r89": {
+            "values": [
+              92,
+              92
+            ],
+            "median": 92.0
+          },
+          "r103": {
+            "values": [
+              420,
+              420
+            ],
+            "median": 420.0
+          },
+          "before": {
+            "values": [
+              420,
+              420
+            ],
+            "median": 420.0
+          },
+          "candidate": {
+            "values": [
+              100,
+              100
+            ],
+            "median": 100.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              4,
+              4
+            ],
+            "median_difference": 4.0,
+            "per_block_delta_pct": [
+              4.166666666666674,
+              4.166666666666674
+            ],
+            "median_delta_pct": 4.166666666666674
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              8.695652173913038,
+              8.695652173913038
+            ],
+            "median_delta_pct": 8.695652173913038
+          },
+          "r103": {
+            "per_block_difference": [
+              -320,
+              -320
+            ],
+            "median_difference": -320.0,
+            "per_block_delta_pct": [
+              -76.19047619047619,
+              -76.19047619047619
+            ],
+            "median_delta_pct": -76.19047619047619
+          },
+          "before": {
+            "per_block_difference": [
+              -320,
+              -320
+            ],
+            "median_difference": -320.0,
+            "per_block_delta_pct": [
+              -76.19047619047619,
+              -76.19047619047619
+            ],
+            "median_delta_pct": -76.19047619047619
+          }
+        }
+      },
+      "vmdata_growth_kb": {
+        "sides": {
+          "stock": {
+            "values": [
+              52,
+              52
+            ],
+            "median": 52.0
+          },
+          "r89": {
+            "values": [
+              36,
+              36
+            ],
+            "median": 36.0
+          },
+          "r103": {
+            "values": [
+              364,
+              364
+            ],
+            "median": 364.0
+          },
+          "before": {
+            "values": [
+              364,
+              364
+            ],
+            "median": 364.0
+          },
+          "candidate": {
+            "values": [
+              44,
+              44
+            ],
+            "median": 44.0
+          }
+        },
+        "paired_exploration": {
+          "stock": {
+            "per_block_difference": [
+              -8,
+              -8
+            ],
+            "median_difference": -8.0,
+            "per_block_delta_pct": [
+              -15.384615384615385,
+              -15.384615384615385
+            ],
+            "median_delta_pct": -15.384615384615385
+          },
+          "r89": {
+            "per_block_difference": [
+              8,
+              8
+            ],
+            "median_difference": 8.0,
+            "per_block_delta_pct": [
+              22.222222222222232,
+              22.222222222222232
+            ],
+            "median_delta_pct": 22.222222222222232
+          },
+          "r103": {
+            "per_block_difference": [
+              -320,
+              -320
+            ],
+            "median_difference": -320.0,
+            "per_block_delta_pct": [
+              -87.91208791208791,
+              -87.91208791208791
+            ],
+            "median_delta_pct": -87.91208791208791
+          },
+          "before": {
+            "per_block_difference": [
+              -320,
+              -320
+            ],
+            "median_difference": -320.0,
+            "per_block_delta_pct": [
+              -87.91208791208791,
+              -87.91208791208791
+            ],
+            "median_delta_pct": -87.91208791208791
+          }
+        }
+      }
+    }
+  },
+  "superiority_verdict": null,
+  "limitations": "Exploratory paired blocks only. RSS counters may be imprecise; no PSS or kernel-buffer/peak claim. Event loop clocks do not measure per-request tail latency. No pooling earlier runs."
+}
