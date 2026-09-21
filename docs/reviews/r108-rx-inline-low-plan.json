@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "purpose": "R108 one inline(always) hint on read_message, otherwise R106 threshold candidate. Four-block low screen, no attribution from diagnostic symbols or pooling earlier results.",
+  "subjects": {
+    "before": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+    "candidate": "cc0213ea1f20ef629c89c8f8b63dad6f1401be976c4b5668423c6acdb11bd6c9"
+  },
+  "blocks": [
+    {
+      "block": 1,
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 2,
+      "slots": {
+        "a": "candidate",
+        "b": "before"
+      }
+    },
+    {
+      "block": 3,
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 4,
+      "slots": {
+        "a": "candidate",
+        "b": "before"
+      }
+    }
+  ],
+  "lanes": [
+    "user_1_1",
+    "user_8_1",
+    "user_1_0"
+  ],
+  "metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us",
+    "wall_us"
+  ],
+  "iterations": 5000,
+  "warmup": 2000,
+  "segments_per_lane": 8,
+  "segment_order": "a b b a b a a b",
+  "subject_cpu": 1,
+  "client_cpu": 0,
+  "family_comparisons": 12,
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "benchmark_sha256": "2f58c60ddd6421476c140673cd7d4c4310c5f5eda71be1f4d7eab1a4d6c1efcf",
+  "workload_sha256": "f83ba518bade26044f542c920a30e6c2e473972517eb6737a8bb512f998b67dc",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "production": "Stock C; guarded disposable namespace per window, no installation; all before/after health, boot, config, mounts and identity checks and cleanup must pass.",
+  "analysis": "Four independent windows, eight ABBA/BAAB segments per lane aggregated into one ratio per side/window. Pilot cannot yield a finite 95% family rank interval for 12 metrics; report all ratios and no equivalence claim.",
+  "decision": "No runtime acceptance. If >=3/4 own-CPU ratios are adverse and median >1%, this stage fails screening and candidate requires rejection or independent recheck. Report all memory/CPU/latency limits. Low and loaded are separate conditions.",
+  "failure_rule": "Stop on any collection, correctness, identity, health or cleanup failure and retain failed window. First window also validates new paired tool; if tool changes discard series and freeze new identities/order before restart.",
+  "held_clients": 0,
+  "hypothesis": "Restoring inlining may reduce fixed CPU overhead. Rust attributes are hints, not guarantees; https://doc.rust-lang.org/reference/attributes/codegen.html#the-inline-attribute. Measured release binary is authoritative.",
+  "runtime_patch_sha256": "42a20b813aebc6180e2d6ceba46e236d89b9aa2adcff55789a558150dddac731"
+}
