@@ -363,6 +363,15 @@ impl Client {
                 // Nothing more was available at the last read; a readiness
                 // event announces the rest.
                 self.rx_drained = false;
+                // A short read with no partial frame means this connection is
+                // idle. Release the read-ahead page until the next readiness
+                // event; otherwise every quiet client permanently retains
+                // RX_SIZE, unlike the C daemon's prefix-then-body reader.
+                // Keep a partial frame and its descriptor marks intact.
+                if self.rx_start == self.rx_end && self.rx_fds.is_empty() {
+                    self.rx.clear();
+                    self.rx.shrink_to_fit();
+                }
                 return Ok(None);
             }
             match self.rx_fill() {
