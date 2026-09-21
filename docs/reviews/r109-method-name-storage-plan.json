@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "physical_experiment",
+  "revision": "R109",
+  "base_source": "bd6b6dbe59c5a3ac65f3d500ad60da97fb3c083a",
+  "hypothesis": "Remove the duplicate per-method ACL name allocation while retaining Vec<Method> and Vec<u8> blob storage; isolate the R97 layout variables.",
+  "lanes": ["register_1_8", "register_16_8", "register_64_8"],
+  "router": "AX3000T exact OpenWrt image; stock C remains production daemon",
+  "measurement": "serial real-protocol ADD_OBJECT plus REMOVE_OBJECT; process CPU clocks around the loop; signature preflight and final empty lookup outside timing",
+  "statistical_unit": "one ratio per independent physical paired window; serial segments aggregate within a window",
+  "comparators": ["exact-image C daemon", "accepted R103/R100 Rust daemon"],
+  "constraints": [
+    "no candidate installation or boot switch",
+    "fresh disposable namespace for every window",
+    "exact image libubus caller and shared-library hashes",
+    "protocol, identity, health, recovery, and cleanup gates must pass",
+    "no pooling with R97 A/A or prior client implementations"
+  ],
+  "keep_rule": "keep only when compatibility/recovery pass, accepted-Rust registration CPU does not regress, and requested retained/peak heap does not increase",
+  "rejection_rule": "revert source and preserve physical evidence when the one-method lane remains slower or any gate fails"
+}

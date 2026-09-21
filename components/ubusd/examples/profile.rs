@@ -49,7 +49,7 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
         let table = b.msg_open_table(&name);
         b.msg_u32("value", 5);
         b.msg_close(table);
-        obj::Method { name: name.into_bytes(), blob: b.payload().to_vec() }
+        obj::Method::new(b.payload().to_vec())
     }).collect();
     s.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods });
     for i in 0..count {

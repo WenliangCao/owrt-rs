@@ -16,11 +16,23 @@ pub const SYSTEM_OBJECT_EVENT: u32 = 1;
 pub const SYSTEM_OBJECT_ACL: u32 = 2;
 pub const SYSTEM_OBJECT_MONITOR: u32 = 3;
 
-/// One validated method: the canonical blobmsg attribute C emits on lookup,
-/// plus its C-string name for ACL checks. The method data remains unchanged.
+/// One validated method: the canonical blobmsg attribute C emits on lookup.
+/// The ACL name is read from that same blob so registration does not retain a
+/// second allocation for identical bytes.
 pub struct Method {
-    pub name: Vec<u8>,
     pub blob: Vec<u8>,
+}
+
+impl Method {
+    /// `blob` must be a validated, canonical method attribute.
+    pub fn new(blob: Vec<u8>) -> Self {
+        Self { blob }
+    }
+
+    pub fn name(&self) -> &[u8] {
+        let len = u16::from_be_bytes([self.blob[4], self.blob[5]]) as usize;
+        &self.blob[6..6 + len]
+    }
 }
 
 pub struct ObjType {

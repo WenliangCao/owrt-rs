@@ -265,8 +265,8 @@ impl Server {
                 offset = next;
                 match check_method(&item) {
                     Some(name) => {
-                        let blob = method_blob(&item, &name);
-                        methods.push(obj::Method { name, blob });
+                        let blob = method_blob(&item, name);
+                        methods.push(obj::Method::new(blob));
                     }
                     None => {
                         ok = false;
@@ -556,7 +556,7 @@ impl Server {
         let mut visible = 0usize;
         for m in &t.methods {
             all += 1;
-            if acl.check(cred, Some(path), Some(&m.name), AclType::Access) {
+            if acl.check(cred, Some(path), Some(m.name()), AclType::Access) {
                 b.put_raw_fields(&m.blob);
                 visible += 1;
             }
@@ -1165,7 +1165,7 @@ fn method_blob(a: &blob::Attr, name: &[u8]) -> Vec<u8> {
 /// must be extended, carry a non-empty NUL-terminated name that fits inside the
 /// padded blobmsg header, and hold a payload consistent with its blobmsg type.
 /// Returns the name.
-fn check_method(a: &blob::Attr) -> Option<Vec<u8>> {
+fn check_method<'a>(a: &blob::Attr<'a>) -> Option<&'a [u8]> {
     if !a.extended {
         return None;
     }
@@ -1207,7 +1207,7 @@ fn check_method(a: &blob::Attr) -> Option<Vec<u8>> {
     }
     // libubox validates the declared terminator, but embedded NULs are
     // legal. ubusd ACLs compare blobmsg_name() as a C string.
-    Some(obj::cstr_bytes(&a.payload[2..2 + name_len]).to_vec())
+    Some(obj::cstr_bytes(&a.payload[2..2 + name_len]))
 }
 
 #[cfg(test)]
@@ -1542,7 +1542,7 @@ mod tests {
                 let table = signature.msg_open_table("method");
                 signature.msg_string("large", &"x".repeat(signature_len));
                 signature.msg_close(table);
-                methods.push(obj::Method { name: b"method".to_vec(), blob: signature.payload().to_vec() });
+                methods.push(obj::Method::new(signature.payload().to_vec()));
             }
             server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods });
             let mut expected = Vec::new();
@@ -1598,9 +1598,7 @@ mod tests {
             let table = signature.msg_open_table("method");
             signature.msg_string("large", &"x".repeat(32768));
             signature.msg_close(table);
-            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods: vec![obj::Method {
-                name: b"method".to_vec(), blob: signature.payload().to_vec(),
-            }] });
+            server.reg.types.insert(TYPE, obj::ObjType { refcount: 0, methods: vec![obj::Method::new(signature.payload().to_vec())] });
             let mut expected = Vec::new();
             for i in 0..12 {
                 let id = FIRST + i;
@@ -1679,9 +1677,7 @@ mod tests {
             let mut signature = BlobBuf::new();
             let table = signature.msg_open_table("hidden");
             signature.msg_close(table);
-            server.reg.types.insert(3001, obj::ObjType { refcount: 0, methods: vec![obj::Method {
-                name: b"hidden".to_vec(), blob: signature.payload().to_vec(),
-            }] });
+            server.reg.types.insert(3001, obj::ObjType { refcount: 0, methods: vec![obj::Method::new(signature.payload().to_vec())] });
             // Deliberately insert in reverse byte order, including non-UTF8.
             for (id, path, kind) in [(4000, &b"z\xff"[..], Some(3000)),
                                       (4001, &b"c"[..], Some(3001)),
@@ -1741,9 +1737,7 @@ mod tests {
         let table = signature.msg_open_table("method");
         signature.msg_string("large", &"x".repeat(32768));
         signature.msg_close(table);
-        server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: vec![obj::Method {
-            name: b"method".to_vec(), blob: signature.payload().to_vec(),
-        }] });
+        server.reg.types.insert(3000, obj::ObjType { refcount: 0, methods: vec![obj::Method::new(signature.payload().to_vec())] });
         let mut expected = Vec::new();
         for i in 0..40 {
             let id = 4000 + i;
