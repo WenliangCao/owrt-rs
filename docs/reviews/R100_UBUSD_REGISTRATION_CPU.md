@@ -1,6 +1,6 @@
 # R100: registration reply/event candidate CPU comparison
 
-Status: the 30-window router series completed and passed collection/cleanup validation. The candidate remains experimental; no deployment or automatic retention decision follows from this report.
+Status updated 2026-09-21: the 30-window router series completed. The R100 changes were subsequently accepted with R103 in `bd6b6db`. The original measurement and decision-stage notes below are retained; this did not deploy the candidate.
 
 ## Measurement
 
@@ -29,3 +29,10 @@ An independent exact-image `libubus` C-client smoke passed full signature checki
 Machine-readable data: [`r100-stack-cpu-summary.json`](r100-stack-cpu-summary.json), the three per-comparator result files, [`r100-stack-memory-results.json`](r100-stack-memory-results.json), and [`r101-libubus-paired-smoke-results.json`](r101-libubus-paired-smoke-results.json). The router's final stock/cleanup evidence is recorded in `private/r100/registration-stack/final-health/`.
 
 The candidate is not yet accepted as the new runtime. A complete exact-image C-client paired series and broader workloads remain before making a whole-component superiority claim. Other untested algorithmic directions also remain open.
+
+## Subsequent status
+
+The [complete R101 C-caller series](R101_UBUSD_C_CLIENT.md#completed-paired-comparison-and-2026-09-21-evidence-audit)
+has now been verified separately. R100+R103 is the accepted source, while R104–R108
+receive candidates were rejected. The source acceptance does not close the overall
+performance/memory goal or attribute the combined registration gain to one edit.

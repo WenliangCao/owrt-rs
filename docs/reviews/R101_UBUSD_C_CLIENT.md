@@ -1,6 +1,6 @@
 # R101: exact-image C caller cross-check
 
-Status: physical correctness/clock smoke passed; no comparative performance conclusion.
+Status updated 2026-09-21: the ten-window physical C-caller comparison is complete. The smoke and collection notes below record the earlier stage; see the completed series at the end.
 
 The R100 CPU series uses a frozen Rust caller. A separate caller using the image's original libubus is needed to establish whether daemon improvements transfer to C applications. Results from different callers must not be pooled.
 
@@ -25,3 +25,28 @@ These short runs validate the instrument, not relative speed. No C-client calibr
 The new paired harness alternates ten ABBA/BAAB quartets with serial requests. It records subject stat/status before and after every segment, frozen library hashes and all existing router cleanup checks. The report validates identity, start ticks, one thread, masks, full signature/type-reset checks, positive bounded CPU intervals and exact segment count. It aggregates equal-size segments into one ratio per physical window.
 
 Four verifier tests include thirteen corrupted-field cases, PID reuse, affinity/thread changes and a process name containing parentheses. They pass, as does verification of all three real smoke samples. The full paired harness has not yet run on the router; its single-window smoke plan is frozen separately. It will run only after the current R100 series and cleanup. No C-caller performance inference is authorized by this smoke.
+
+## Completed paired comparison and 2026-09-21 evidence audit
+
+The ten-window series in [`r101-libubus-cpu-results.json`](r101-libubus-cpu-results.json)
+compares the R100 stack/event candidate `5083f49b…` with the exact image C daemon,
+using the exact image libubus caller. Each side completed 200,000 timed cycles per
+window; 40 serial segments produce one paired ratio, not 40 independent trials.
+On 2026-09-21 the raw files were rechecked with `verify_window`: all ten archive
+hashes, result hashes, aggregates, paired ratios and exact rank intervals match
+the committed report. Production C and cleanup checks passed in every window.
+
+| Metric | Candidate/C median change | Exact median rank interval |
+| --- | ---: | ---: |
+| Daemon CPU/cycle | −5.66% | −6.29% to −4.10% |
+| Caller CPU/cycle | +0.27% | −0.12% to +0.44% |
+| Daemon + caller CPU/cycle | −2.85% | −3.13% to −1.93% |
+| Wall time/cycle | −3.92% | −4.65% to −2.35% |
+
+These are the four frozen family-adjusted intervals, subject to the independent
+paired-window assumptions. Caller CPU is unresolved, not proven equal. This is
+one-method, eight-byte-name registration with this caller; it is not a tail-latency,
+RSS/PSS, all-registration or full-system verdict. It is not pooled with R100's Rust
+caller, nor is the combined gain attributed solely to the reply allocation change.
+The measured ELF is R100; R103 later retained these changes and additionally changed
+user-event handling. The source was accepted in `bd6b6db`; no deployment followed.
