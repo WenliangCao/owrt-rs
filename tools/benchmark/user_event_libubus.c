@@ -5,6 +5,7 @@
  * the next one is sent. Run only in the disposable router namespace.
  */
 #define _GNU_SOURCE
+#include <dirent.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -50,6 +51,23 @@ static void check_affinity(pid_t pid, int cpu)
 	CPU_ZERO(&set);
 	require(!sched_getaffinity(pid, sizeof(set), &set), "affinity read failed");
 	require(CPU_COUNT(&set) == 1 && CPU_ISSET(cpu, &set), "unexpected affinity");
+}
+
+static unsigned subject_fds(pid_t pid)
+{
+	char path[64];
+	snprintf(path, sizeof(path), "/proc/%d/fd", pid);
+	DIR *dir = opendir(path);
+	require(dir != NULL, "subject fd directory unavailable");
+	unsigned count = 0;
+	struct dirent *entry;
+	errno = 0;
+	while ((entry = readdir(dir)))
+		if (entry->d_name[0] != '.')
+			count++;
+	require(!errno, "subject fd directory read failed");
+	require(!closedir(dir), "subject fd directory close failed");
+	return count;
 }
 
 struct event_state {
@@ -115,7 +133,7 @@ static void drain_unmatched(struct ubus_context *listener, unsigned before)
 }
 
 static int run_user_event(const char *socket, unsigned listeners, int matched,
-			  unsigned n, unsigned warmup, pid_t subject)
+			  unsigned n, unsigned warmup, pid_t subject, unsigned held_clients)
 {
 	cpu_set_t mask;
 	CPU_ZERO(&mask);
@@ -131,6 +149,16 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 	struct ubus_context *sender = ubus_connect(socket);
 	struct ubus_context *listener = ubus_connect(socket);
 	require(sender && listener, "connect failed");
+	unsigned base_fds = subject_fds(subject);
+	struct ubus_context *held[64] = {0};
+	for (unsigned i = 0; i < held_clients; i++) {
+		held[i] = ubus_connect(socket);
+		require(held[i] != NULL, "held connect failed");
+		require(ubus_lookup(held[i], "r106.missing", NULL, NULL) == UBUS_STATUS_NOT_FOUND,
+				"held connection request validation failed");
+	}
+	unsigned held_fds = subject_fds(subject);
+	require(held_fds == base_fds + held_clients, "held connection count mismatch");
 
 	struct ubus_event_handler handlers[8] = {0};
 	struct event_state state = {0};
@@ -181,6 +209,12 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 		exit(1);
 	}
 
+	require(subject_fds(subject) == held_fds, "held connections changed during measurement");
+	for (unsigned i = 0; i < held_clients; i++) {
+		require(ubus_lookup(held[i], "r106.missing", NULL, NULL) == UBUS_STATUS_NOT_FOUND,
+				"held connection lost after measurement");
+		ubus_free(held[i]);
+	}
 	for (unsigned i = 0; i < listeners; i++)
 		require(!ubus_unregister_event_handler(listener, &handlers[i]),
 				"event handler removal failed");
@@ -195,11 +229,11 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 		   "\"client_before_ns\":%" PRIu64 ",\"client_after_ns\":%" PRIu64 ","
 		   "\"wall_before_ns\":%" PRIu64 ",\"wall_after_ns\":%" PRIu64 ","
 		   "\"warmup_received\":%u,\"received\":%u,\"payload_checked\":true,"
-		   "\"handlers_removed\":true}\n",
+		   "\"handlers_removed\":true,\"held_clients\":%u,\"base_fds\":%u,\"held_fds\":%u}\n",
 		   n, warmup, listeners, matched ? "true" : "false", subject, getpid(),
 		   subject_resolution, client_resolution, subject_before, subject_after,
 		   client_before, client_after, wall_before, wall_after, warmup_received,
-		   state.received);
+		   state.received, held_clients, base_fds, held_fds);
 	return 0;
 }
 
@@ -216,13 +250,14 @@ int main(int argc, char **argv)
 		perror("execvp");
 		return 1;
 	}
-	require(argc == 8 && !strcmp(argv[1], "user-event"),
-			"usage: user-event SOCKET LISTENERS MATCHED N WARMUP SUBJECT_PID");
+	require((argc == 8 || argc == 9) && !strcmp(argv[1], "user-event"),
+			"usage: user-event SOCKET LISTENERS MATCHED N WARMUP SUBJECT_PID [HELD_CLIENTS]");
 	unsigned listeners = number(argv[3], 8);
 	unsigned matched = number(argv[4], 1);
 	unsigned n = number(argv[5], 1000000);
 	unsigned warmup = number(argv[6], 100000);
 	pid_t subject = (pid_t)number(argv[7], INT_MAX);
 	require(listeners && n && subject > 0 && subject != getpid(), "invalid workload arguments");
-	return run_user_event(argv[2], listeners, matched != 0, n, warmup, subject);
+	unsigned held_clients = argc == 9 ? number(argv[8], 64) : 0;
+	return run_user_event(argv[2], listeners, matched != 0, n, warmup, subject, held_clients);
 }

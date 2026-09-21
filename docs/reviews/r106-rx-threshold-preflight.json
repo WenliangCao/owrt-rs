@@ -34,5 +34,32 @@
   "native_tests": 41,
   "router_tests": 41,
   "scope": "Experimental threshold 8 connections. Tests and seven wire differentials passed; threshold crossing and sustained loaded traffic remain pending. No performance acceptance.",
-  "build_log_sha256": "b863d7ed25e00809c7aa23cc95f32a01d847c6a2ad62917485f36ce150a53d8d"
+  "build_log_sha256": "b863d7ed25e00809c7aa23cc95f32a01d847c6a2ad62917485f36ce150a53d8d",
+  "loaded_client_smoke": {
+    "component": "ubusd",
+    "candidate_sha256": "ec773fdecf9f3ab68343c8a56789b47d4232488d0142e7d34ead46d2fba1232a",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "workload_sha256": "14aba00e14d06f80dae80701125f053fe0a5233f5ba6cf626970464fd67d83d8",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "implementation": "rs",
+    "iterations": 100,
+    "installed": false,
+    "matrix": false,
+    "production_mode": "stock",
+    "remote": "/tmp/r95-check-2aa37fb3a6e944fe98670ace6463ab25",
+    "benchmark_sha256": "2f58c60ddd6421476c140673cd7d4c4310c5f5eda71be1f4d7eab1a4d6c1efcf",
+    "before_candidate_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "exit": 0,
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  },
+  "loaded_client_smoke_raw_sha256": "7a4f2974090818811c7e0e44ecae4d413000a4d8c674a0290596ba6fe8ef8bad",
+  "loaded_client_smoke_segments": 24
 }

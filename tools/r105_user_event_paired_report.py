@@ -18,6 +18,10 @@ def segment(raw, prefix, plan, pid, lane):
     assert sample['n'] == plan['iterations'] and sample['warmup'] == plan['warmup']
     assert sample['subject_pid'] == pid != sample['client_pid']
     assert sample['subject_cpu'] == 1 and sample['client_cpu'] == 0
+    if 'held_clients' in plan:
+        assert sample['held_clients'] == plan['held_clients']
+        assert sample['base_fds'] > 0
+        assert sample['held_fds'] == sample['base_fds'] + plan['held_clients']
     _, listeners, matched = lane.split('_')
     listeners, matched = int(listeners), bool(int(matched))
     assert sample['listeners'] == listeners and sample['matched'] == matched
