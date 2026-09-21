@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "status": "R110-A CPU unresolved against R109 only at sub-0.4% exploratory direction; no lane all-positive; retain for C comparison.",
+  "results": {
+    "low": [
+      {
+        "lane": "user_1_1",
+        "median_delta_pct": 0.17767483905974935,
+        "interval_pct": [
+          -0.051691896369465695,
+          0.8410532020829642
+        ],
+        "all_positive": false
+      },
+      {
+        "lane": "user_8_1",
+        "median_delta_pct": 0.3663346124921141,
+        "interval_pct": [
+          -0.05930404948110146,
+          3.7117968950028946
+        ],
+        "all_positive": false
+      },
+      {
+        "lane": "user_1_0",
+        "median_delta_pct": 0.3424857001927073,
+        "interval_pct": [
+          -2.17070861779205,
+          2.247650624030273
+        ],
+        "all_positive": false
+      }
+    ],
+    "loaded": [
+      {
+        "lane": "user_1_1",
+        "median_delta_pct": 0.28666450811738464,
+        "interval_pct": [
+          -1.0327337035802797,
+          1.6493677816474372
+        ],
+        "all_positive": false
+      },
+      {
+        "lane": "user_8_1",
+        "median_delta_pct": 0.12727476328255882,
+        "interval_pct": [
+          -0.4166345535278615,
+          0.7839118409746604
+        ],
+        "all_positive": false
+      },
+      {
+        "lane": "user_1_0",
+        "median_delta_pct": 0.038966053643774146,
+        "interval_pct": [
+          -0.7439809982008327,
+          0.6714532484993763
+        ],
+        "all_positive": false
+      }
+    ]
+  },
+  "evidence": [
+    "r110a-r109-low-cpu-results.json",
+    "r110a-r109-loaded-cpu-results.json"
+  ]
+}
