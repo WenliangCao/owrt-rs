@@ -1,0 +1,297 @@
+diff --git a/components/ubusd/src/client.rs b/components/ubusd/src/client.rs
+index cad79aa..691edad 100644
+--- a/components/ubusd/src/client.rs
++++ b/components/ubusd/src/client.rs
+@@ -300,6 +300,27 @@ impl Client {
+         true
+     }
+ 
++    /// Reuse the event loop's spare read-ahead allocation. Buffered bytes and
++    /// descriptor marks stay with this client until consumed. Complete InMsg
++    /// values and LargeFrame already own their payloads, so an empty rx can be
++    /// handed back without copying or freeing the shared spare on each read.
++    pub fn read_message_with_spare(&mut self, spare: &mut Vec<u8>) -> io::Result<Option<InMsg>> {
++        if self.rx.is_empty() && !self.rx_drained && self.large.is_none() {
++            std::mem::swap(&mut self.rx, spare);
++        }
++        let result = self.read_message();
++        if self.rx_start == self.rx_end && self.rx_fds.is_empty() && !self.rx.is_empty() {
++            if spare.is_empty() {
++                std::mem::swap(&mut self.rx, spare);
++            } else {
++                // A fragmented client kept its own buffer while another
++                // client replenished the spare. Retain at most one spare.
++                self.rx = Vec::new();
++            }
++        }
++        result
++    }
++
+     /// Read one complete message, if the socket has one. `Ok(None)` means the
+     /// message is still incomplete or the socket is drained; `Err` means the
+     /// connection must be closed (protocol violation or socket error).
+@@ -447,7 +468,7 @@ mod tests {
+     use super::*;
+     use owrt_ubus::blob::BlobBuf;
+     use owrt_ubus::msg::attr;
+-    use std::io::Read;
++    use std::io::{Read, Write};
+     use std::os::unix::net::UnixStream;
+     use std::time::{Duration, Instant};
+ 
+@@ -466,6 +487,199 @@ mod tests {
+         assert_eq!(Header::LEN, 8);
+     }
+ 
++    fn rx_pair() -> (Client, UnixStream) {
++        let (sock, peer) = UnixStream::pair().unwrap();
++        sock.set_nonblocking(true).unwrap();
++        peer.set_write_timeout(Some(Duration::from_secs(3))).unwrap();
++        (Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new()), peer)
++    }
++
++    fn rx_frame(seq: u16, len: usize) -> Vec<u8> {
++        let mut frame = Header { ty: ty::DATA, seq, peer: 0x87654321 }.encode().to_vec();
++        frame.extend_from_slice(&(len as u32).to_be_bytes());
++        frame.resize(Header::LEN + len, seq as u8);
++        frame
++    }
++
++    fn receive(c: &mut Client, spare: &mut Vec<u8>) -> InMsg {
++        let deadline = Instant::now() + Duration::from_secs(3);
++        loop {
++            if let Some(msg) = c.read_message_with_spare(spare).unwrap() {
++                return msg;
++            }
++            assert!(!c.eof, "unexpected EOF");
++            assert!(Instant::now() < deadline, "frame did not arrive");
++            std::thread::yield_now();
++        }
++    }
++
++    fn check_frame(msg: &InMsg, frame: &[u8]) {
++        assert_eq!(msg.header.encode().as_slice(), &frame[..Header::LEN]);
++        assert_eq!(msg.blob, frame[Header::LEN..]);
++    }
++
++    #[test]
++    fn complete_receives_reuse_one_spare_across_connections() {
++        let mut pairs: Vec<_> = (0..32).map(|_| rx_pair()).collect();
++        let mut spare = Vec::new();
++        let mut allocation = None;
++        for seq in 0..4 {
++            for (c, peer) in &mut pairs {
++                let frame = rx_frame(seq, 28);
++                peer.write_all(&frame).unwrap();
++                let msg = receive(c, &mut spare);
++                check_frame(&msg, &frame);
++                assert!(msg.fd.is_none());
++                assert!(c.rx.is_empty());
++                assert_eq!(spare.len(), RX_SIZE);
++                let first = *allocation.get_or_insert(spare.as_ptr());
++                assert_eq!(spare.as_ptr(), first, "reuse, not release and reallocate");
++                assert!(c.read_message_with_spare(&mut spare).unwrap().is_none());
++            }
++        }
++    }
++
++    #[test]
++    fn fragmented_frames_keep_bytes_and_descriptors_across_clients() {
++        for len in [4, 64, 8192] {
++            for cut in [1, 7, 11, 13, 27].into_iter().filter(|cut| *cut < len + Header::LEN) {
++                let (mut c, mut peer) = rx_pair();
++                let (mut other, mut other_peer) = rx_pair();
++                let (sent_fd, mut witness) = UnixStream::pair().unwrap();
++                let frame = rx_frame(17, len);
++                let mut spare = Vec::new();
++                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[..cut], &[],
++                    Some(sent_fd.as_raw_fd())).unwrap(), cut);
++                drop(sent_fd);
++                assert!(c.read_message_with_spare(&mut spare).unwrap().is_none());
++                assert!(!c.eof);
++                if len + Header::LEN > RX_SIZE && cut >= PREFIX_LEN {
++                    assert_eq!(spare.len(), RX_SIZE, "large body owns separate storage");
++                } else {
++                    assert!(spare.is_empty(), "partial frame still owns its bytes");
++                }
++                let other_frame = rx_frame(29, 36);
++                other_peer.write_all(&other_frame).unwrap();
++                check_frame(&receive(&mut other, &mut spare), &other_frame);
++                peer.write_all(&frame[cut..]).unwrap();
++                let msg = receive(&mut c, &mut spare);
++                check_frame(&msg, &frame);
++                let received_fd = msg.fd.unwrap();
++                witness.write_all(b"fd witness").unwrap();
++                let mut received = UnixStream::from(received_fd);
++                received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
++                let mut bytes = [0; 10];
++                received.read_exact(&mut bytes).unwrap();
++                assert_eq!(&bytes, b"fd witness");
++                assert!(c.rx.is_empty());
++                assert_eq!(spare.len(), RX_SIZE);
++            }
++        }
++    }
++
++    #[test]
++    fn spare_receives_batches_boundaries_and_large_trailing_frames() {
++        for lengths in [vec![4; 700], vec![4088, 4089, 4, 8192, 28], vec![4000, 192, 4]] {
++            let (mut c, mut peer) = rx_pair();
++            let frames: Vec<_> = lengths.into_iter().enumerate()
++                .map(|(i, len)| rx_frame(i as u16, len)).collect();
++            let stream: Vec<u8> = frames.iter().flatten().copied().collect();
++            peer.write_all(&stream).unwrap();
++            peer.shutdown(std::net::Shutdown::Write).unwrap();
++            let mut spare = Vec::new();
++            for frame in frames {
++                let msg = receive(&mut c, &mut spare);
++                check_frame(&msg, &frame);
++                assert!(msg.fd.is_none());
++            }
++            let deadline = Instant::now() + Duration::from_secs(3);
++            while !c.eof {
++                assert!(c.read_message_with_spare(&mut spare).unwrap().is_none());
++                assert!(Instant::now() < deadline, "EOF not detected");
++            }
++            assert!(c.rx.is_empty());
++            assert_eq!(spare.len(), RX_SIZE);
++        }
++    }
++
++    #[test]
++    fn partial_large_body_does_not_pin_the_shared_spare() {
++        let (mut c, mut peer) = rx_pair();
++        let (mut other, mut other_peer) = rx_pair();
++        let frame = rx_frame(2, 8192);
++        peer.write_all(&frame[..2048]).unwrap();
++        let mut spare = Vec::new();
++        assert!(c.read_message_with_spare(&mut spare).unwrap().is_none());
++        assert_eq!(spare.len(), RX_SIZE);
++        let other_frame = rx_frame(3, 4);
++        other_peer.write_all(&other_frame).unwrap();
++        check_frame(&receive(&mut other, &mut spare), &other_frame);
++        peer.write_all(&frame[2048..]).unwrap();
++        check_frame(&receive(&mut c, &mut spare), &frame);
++        assert!(c.rx.is_empty());
++        assert_eq!(spare.len(), RX_SIZE);
++    }
++
++    #[test]
++    fn batched_descriptors_belong_to_their_frames() {
++        let (mut c, mut peer) = rx_pair();
++        let frames: Vec<_> = (0..5).map(|seq| rx_frame(seq, 28)).collect();
++        let mut witnesses = VecDeque::new();
++        for (i, frame) in frames.iter().enumerate() {
++            if i % 2 == 0 {
++                peer.write_all(frame).unwrap();
++            } else {
++                let (sent, mut witness) = UnixStream::pair().unwrap();
++                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), frame, &[],
++                    Some(sent.as_raw_fd())).unwrap(), frame.len());
++                witness.write_all(&[i as u8]).unwrap();
++                witnesses.push_back(witness);
++            }
++        }
++        let mut spare = Vec::new();
++        for (i, frame) in frames.iter().enumerate() {
++            let msg = receive(&mut c, &mut spare);
++            check_frame(&msg, frame);
++            if i % 2 == 0 {
++                assert!(msg.fd.is_none());
++            } else {
++                let mut fd = UnixStream::from(msg.fd.unwrap());
++                fd.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
++                let mut byte = [0];
++                fd.read_exact(&mut byte).unwrap();
++                assert_eq!(byte, [i as u8]);
++                drop(fd);
++                let mut witness = witnesses.pop_front().unwrap();
++                witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
++                assert_eq!(witness.read(&mut byte).unwrap(), 0, "no leaked received fd");
++            }
++        }
++        assert!(c.rx.is_empty());
++        assert_eq!(spare.len(), RX_SIZE);
++    }
++
++    #[test]
++    fn disconnect_mid_frame_closes_held_descriptor() {
++        for cut in [7, 24, 4096] {
++            let (mut c, peer) = rx_pair();
++            let (sent, mut witness) = UnixStream::pair().unwrap();
++            let frame = rx_frame(8, 8192);
++            assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[..cut], &[],
++                Some(sent.as_raw_fd())).unwrap(), cut);
++            drop(sent);
++            drop(peer);
++            let mut spare = Vec::new();
++            let deadline = Instant::now() + Duration::from_secs(3);
++            while !c.eof {
++                assert!(c.read_message_with_spare(&mut spare).unwrap().is_none());
++                assert!(Instant::now() < deadline, "EOF not detected");
++            }
++            drop(c);
++            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
++            assert_eq!(witness.read(&mut [0]).unwrap(), 0);
++        }
++    }
++
+     #[test]
+     fn combined_lookup_preserves_bytes_through_partial_and_queued_writes() {
+         for size in [4, 28, 65536, MAX_MSGLEN] {
+diff --git a/components/ubusd/src/main.rs b/components/ubusd/src/main.rs
+index b71741d..b47ccce 100644
+--- a/components/ubusd/src/main.rs
++++ b/components/ubusd/src/main.rs
+@@ -150,12 +150,17 @@ const TOKEN_LISTENER: u64 = u64::MAX;
+ const TOKEN_WAKE: u64 = u64::MAX - 1;
+ const ACCEPT_RETRY_DELAY: Duration = Duration::from_millis(100);
+ const ACCEPT_TRANSIENT_BUDGET: usize = 16;
++/// Keep the original per-client path at ordinary scale. Once enough
++/// connections are live, empty read-ahead buffers become a resident cost and
++/// may move through one event-loop spare. Partial frames retain ownership.
++const RX_SPARE_CLIENTS: usize = 8;
+ 
+ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std::io::Result<()> {
+     let mut poller = owrt_ubus::readiness::Poller::new()?;
+     poller.add(listener.as_raw_fd(), TOKEN_LISTENER, false)?;
+     poller.add(wake_r.as_raw_fd(), TOKEN_WAKE, false)?;
+     let mut ready: Vec<owrt_ubus::readiness::Ready> = Vec::new();
++    let mut rx_spare = Vec::new();
+     // A resource failure removes the level-triggered listener temporarily.
+     // Resources may recover without a client disconnect (SCM_RIGHTS fds,
+     // system-wide ENFILE, socket memory), so always arm a timed retry.
+@@ -210,7 +215,9 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
+                     if !server.clients.contains_key(&id) {
+                         continue;
+                     }
+-                    if service_client(server, id, r.revents) {
++                    let use_rx_spare = server.clients.len() >= RX_SPARE_CLIENTS;
++                    if service_client(server, id, r.revents,
++                                     use_rx_spare.then_some(&mut rx_spare)) {
+                         sync_write_interest(server, &mut poller, id);
+                     } else {
+                         disconnect(server, &mut poller, id);
+@@ -291,7 +298,8 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
+ }
+ 
+ /// Drive one connection for this poll round. Returns false to disconnect it.
+-fn service_client(server: &mut Server, id: u32, revents: i16) -> bool {
++fn service_client(server: &mut Server, id: u32, revents: i16,
++                  mut rx_spare: Option<&mut Vec<u8>>) -> bool {
+     if revents & (sys::POLLERR) != 0 {
+         return false;
+     }
+@@ -312,7 +320,11 @@ fn service_client(server: &mut Server, id: u32, revents: i16) -> bool {
+     if revents & (sys::POLLIN | sys::POLLHUP) != 0 {
+         loop {
+             let Some(c) = server.clients.get_mut(&id) else { return false };
+-            match c.read_message() {
++            let message = match rx_spare.as_deref_mut() {
++                Some(spare) => c.read_message_with_spare(spare),
++                None => c.read_message(),
++            };
++            match message {
+                 Ok(Some(msg)) => {
+                     if !server.receive(id, msg) {
+                         return false;

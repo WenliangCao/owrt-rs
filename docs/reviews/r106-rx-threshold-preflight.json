@@ -1,0 +1,38 @@
+{
+  "candidate_sha256": "ec773fdecf9f3ab68343c8a56789b47d4232488d0142e7d34ead46d2fba1232a",
+  "runtime_patch_sha256": "1c415afb04eebe0551b0cd02f28b99fa0307ab8f2088ef8488a0352b945c97fb",
+  "router_result": {
+    "component": "ubusd",
+    "candidate_sha256": "ec773fdecf9f3ab68343c8a56789b47d4232488d0142e7d34ead46d2fba1232a",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "implementation": "rs",
+    "iterations": 10,
+    "installed": false,
+    "matrix": false,
+    "production_mode": "stock",
+    "remote": "/tmp/r95-check-adf53a7e37ac4c029a2f3f7bf01d6082",
+    "benchmark_sha256": "bcad2d4652b81c6c252b61f4bd8dd8424f85bd19bea2dd848236640967fdca26",
+    "before_candidate_sha256": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+    "unit_tests": {
+      "sha256": "ad6eed169fdf753ba4466151a634b6a0d983998cad2a6fc5e13f0561de1cd5b7",
+      "filter": "",
+      "exit": 0
+    },
+    "exit": 0,
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  },
+  "native_tests": 41,
+  "router_tests": 41,
+  "scope": "Experimental threshold 8 connections. Tests and seven wire differentials passed; threshold crossing and sustained loaded traffic remain pending. No performance acceptance.",
+  "build_log_sha256": "b863d7ed25e00809c7aa23cc95f32a01d847c6a2ad62917485f36ce150a53d8d"
+}
