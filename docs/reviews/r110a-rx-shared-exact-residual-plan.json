@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "experiment": "R110-A",
+  "status": "frozen-plan",
+  "base_commit": "8e716db382b251f25e502fcb98c9770beaf72285",
+  "base_elf_sha256": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+  "production": "exact-image C ubusd remains active on the router; candidate is isolated and never installed",
+  "router_inventory": {
+    "timestamp_utc": "2026-09-21T21:26:50Z",
+    "image": "OpenWrt 25.12.5 r33051-f5dae5ece4 mediatek/filogic aarch64_cortex-a53",
+    "kernel": "6.12.94",
+    "ubus_long_connections": 17,
+    "ubusd_pid": 869,
+    "ubusd_rssanon_kib": 160,
+    "ubusd_vmdata_kib": 144,
+    "raw_sha256": "dca1382c682c2c23aa0f0b8ad16524bb8a6dffddd08e805fcebda921a3e943c7"
+  },
+  "hypothesis": "A single event-loop receive Vec plus exact-size per-client residual Vec removes the persistent 4096-byte/client reservation without adding per-message allocation or changing owned InMsg/server semantics.",
+  "non_goals": [
+    "borrowed receive dispatch",
+    "borrowed responses",
+    "LOOKUP ownership redesign",
+    "RX_SIZE allocator-class workaround"
+  ],
+  "frozen_design": {
+    "shared_buffer_scope": "one Vec<u8> of RX_SIZE=4096 created outside the event-loop while loop",
+    "complete_batch": "keep shared buffer during one service_client call while coalesced complete frames are dispatched",
+    "partial_frame": "copy only residual [rx_start,rx_end) to exact-size client Vec when service call returns",
+    "large_frame": "retain existing LargeFrame owning allocation",
+    "fd_marks": "subtract residual start when compacting; preserve frame boundary ownership",
+    "server_api": "unchanged owned InMsg and Server::receive"
+  },
+  "comparators": {
+    "before": "R109 accepted Rust",
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef"
+  },
+  "router_measurement": {
+    "lanes": [
+      "user_1_1",
+      "user_8_1",
+      "user_1_0"
+    ],
+    "windows": 10,
+    "ordering": "ABBA/BAAB paired physical windows",
+    "statistical_unit": "one ratio per independent physical window; segments aggregated within window",
+    "metrics": [
+      "daemon CPU",
+      "caller CPU",
+      "total CPU",
+      "wall",
+      "VmRSS",
+      "RssAnon",
+      "VmData"
+    ],
+    "production_cleanup": "stock C production, same boot/config/mount, health and cleanup required after every window"
+  },
+  "decision": {
+    "memory": "64-connection RssAnon growth / 64 <= (36 KiB / 64) + 0.6 KiB = 1.1625 KiB per connection",
+    "cpu": "candidate must not be positive in all three daemon lanes relative to R109; 1-2% rise triggers counter-based diagnosis before any further source change",
+    "reject": [
+      "functional failure",
+      "cleanup/identity failure",
+      "memory threshold failure",
+      "all three daemon lanes positive"
+    ],
+    "next": "R110-B is separately frozen only after R110-A passes"
+  },
+  "references": [
+    "https://www.man7.org/linux/man-pages/man2/recvmsg.2.html",
+    "https://man7.org/linux/man-pages/man7/unix.7.html"
+  ],
+  "source_hashes_at_freeze": {
+    "components/ubusd/src/client.rs": "24c2a043f1b405aec6545e36345fa736bbbd2c50981b8d21d035c0cf74a7ff38",
+    "components/ubusd/src/main.rs": "0ef689498b84f3559b99740cd99aa5997b322b1a08b4ce7a46ace0a31918296c",
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/r104_rx_memory.sh": "c44fa239322636bad6c404ade985ec566cdbd875f67974277368538cb00c7d56",
+    "tools/r103_user_event.sh": "0bf1e4c12bf54517295acc44d64bcad897a07638883434b0bc1a79c640fc2026",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f"
+  }
+}
