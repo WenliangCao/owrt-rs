@@ -49,22 +49,22 @@
     {
       "block": 5,
       "slots": {
-        "a": "candidate",
-        "b": "baseline"
+        "a": "baseline",
+        "b": "candidate"
       }
     },
     {
       "block": 6,
       "slots": {
-        "a": "candidate",
-        "b": "baseline"
+        "a": "baseline",
+        "b": "candidate"
       }
     },
     {
       "block": 7,
       "slots": {
-        "a": "candidate",
-        "b": "baseline"
+        "a": "baseline",
+        "b": "candidate"
       }
     },
     {
@@ -77,15 +77,15 @@
     {
       "block": 9,
       "slots": {
-        "a": "candidate",
-        "b": "baseline"
+        "a": "baseline",
+        "b": "candidate"
       }
     },
     {
       "block": 10,
       "slots": {
-        "a": "candidate",
-        "b": "baseline"
+        "a": "baseline",
+        "b": "candidate"
       }
     }
   ],
@@ -115,7 +115,7 @@
   "segments_per_window": 40,
   "quartets": 10,
   "cycles_per_side_per_window": 200000,
-  "design": "Ten independent paired physical windows, 40 serial segments per window, 10000 timed cycles plus 2000 warmup per segment. Five candidate-a and five candidate-b assignments in seeded shuffled order. Two comparator windows per block in seeded shuffled order. Daemons CPU1, caller CPU0.",
+  "design": "Ten independent paired physical windows, 40 serial segments per window, 10000 timed cycles plus 2000 warmup per segment. Five candidate-a and five candidate-b assignments in seeded shuffled order. Two comparator windows per block in seeded shuffled order. Daemons CPU1, caller CPU0. Slot roles are fixed per driver (a=baseline, b=candidate); quartet order and comparator order are randomized. This avoids an analyzer/driver role ambiguity; role effects are handled by ABBA/BAAB within each window.",
   "references": [
     "https://www.itl.nist.gov/div898/handbook/pri/section3/pri332.htm",
     "https://online.stat.psu.edu/stat415/lesson/19/19.1"
