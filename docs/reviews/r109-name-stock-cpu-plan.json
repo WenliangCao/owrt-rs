@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "kind": "comparison",
+  "purpose": "R109 independent randomized-slot confirmation vs stock",
+  "subjects": {
+    "baseline": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "candidate": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259"
+  },
+  "benchmark_sha256": "a506df0e83814faeda49840286ef2f27305ee3cfd0427b02f1be222973d20842",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "workload_sha256": "c1f2777c815053193bc44ee7c8ed107513604b511d9d66d6a94724907ad8d8b8",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "iterations": 10000,
+  "warmup": 2000,
+  "subject_cpu": 1,
+  "client_cpu": 0,
+  "seed": 10901,
+  "blocks": [
+    {
+      "block": 1,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 2,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 3,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 4,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 5,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 6,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 7,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 8,
+      "slots": {
+        "a": "baseline",
+        "b": "candidate"
+      }
+    },
+    {
+      "block": 9,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    },
+    {
+      "block": 10,
+      "slots": {
+        "a": "candidate",
+        "b": "baseline"
+      }
+    }
+  ],
+  "contrasts": [
+    [
+      "candidate",
+      "baseline"
+    ]
+  ],
+  "metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us",
+    "wall_us"
+  ],
+  "interval_metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us",
+    "wall_us"
+  ],
+  "statistical_unit": "One ratio per physical paired window; 20 equal-size serial segments per side are aggregated. Ten independent router windows; segments are not independent replicates.",
+  "reference": "https://online.stat.psu.edu/stat415/lesson/19/19.1",
+  "preflight": "35 physical unit tests and seven C/accepted/R109 wire differentials passed. Canonical-path release rebuild byte-identical. Complete ABBA heap diagnostic before starting CPU series.",
+  "production": "stock C throughout; only new disposable namespace processes are pinned; no governor/IRQ/production affinity changes",
+  "failure_rule": "Stop on identity, correctness, collection, health, affinity or cleanup failure. Preserve failed window; never infer success from missing results.",
+  "segments_per_window": 40,
+  "quartets": 10,
+  "cycles_per_side_per_window": 200000,
+  "design": "Ten independent paired physical windows, 40 serial segments per window, 10000 timed cycles plus 2000 warmup per segment. Five candidate-a and five candidate-b assignments in seeded shuffled order. Two comparator windows per block in seeded shuffled order. Daemons CPU1, caller CPU0.",
+  "references": [
+    "https://www.itl.nist.gov/div898/handbook/pri/section3/pri332.htm",
+    "https://online.stat.psu.edu/stat415/lesson/19/19.1"
+  ],
+  "previous_data": "R109 fixed-slot 10-window pilot preserved separately. Do not pool with it or any prior round.",
+  "family_comparisons": 8,
+  "comparison_family": "Two comparators x four metrics; 8 planned exact median rank intervals.",
+  "source_implementations": {
+    "baseline": "c",
+    "candidate": "rust"
+  },
+  "slot_semantics": "The runner uploads the logical slot b ELF as candidate and slot a ELF as before-candidate. The workload starts slot a on the first daemon and slot b on the second, so process roles are randomized by block. implementation=rs is only the upload path.",
+  "interpretation_rule": "Registration 1-method/8-byte-name only. Daemon and total CPU intervals below 1 support improvement in this condition. Report caller CPU and wall intervals even when unresolved. No source promotion without broader workloads, memory and compatibility. Unresolved sub-percent effects are not regressions or equivalence.",
+  "correctness_base_release": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "clock_resolution_ns": 1
+}
