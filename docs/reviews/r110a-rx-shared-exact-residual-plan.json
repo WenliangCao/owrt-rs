@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "experiment": "R110-A",
-  "status": "frozen-plan",
+  "status": "amended-before-router-candidate-execution",
   "base_commit": "8e716db382b251f25e502fcb98c9770beaf72285",
   "base_elf_sha256": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
   "production": "exact-image C ubusd remains active on the router; candidate is isolated and never installed",
@@ -9,13 +9,15 @@
     "timestamp_utc": "2026-09-21T21:26:50Z",
     "image": "OpenWrt 25.12.5 r33051-f5dae5ece4 mediatek/filogic aarch64_cortex-a53",
     "kernel": "6.12.94",
-    "ubus_long_connections": 17,
+    "ubus_long_connections": 16,
     "ubusd_pid": 869,
     "ubusd_rssanon_kib": 160,
     "ubusd_vmdata_kib": 144,
-    "raw_sha256": "dca1382c682c2c23aa0f0b8ad16524bb8a6dffddd08e805fcebda921a3e943c7"
+    "raw_sha256": "dca1382c682c2c23aa0f0b8ad16524bb8a6dffddd08e805fcebda921a3e943c7",
+    "ubus_socket_rows": 17,
+    "listening_sockets": 1
   },
-  "hypothesis": "A single event-loop receive Vec plus exact-size per-client residual Vec removes the persistent 4096-byte/client reservation without adding per-message allocation or changing owned InMsg/server semantics.",
+  "hypothesis": "One event-loop stack [u8;4096], initialized once, replaces per-client read-ahead storage. Only incomplete bytes survive in a client-owned exact-length Vec; InMsg remains owned.",
   "non_goals": [
     "borrowed receive dispatch",
     "borrowed responses",
@@ -23,7 +25,7 @@
     "RX_SIZE allocator-class workaround"
   ],
   "frozen_design": {
-    "shared_buffer_scope": "one Vec<u8> of RX_SIZE=4096 created outside the event-loop while loop",
+    "shared_buffer_scope": "one [u8;4096] initialized outside the event-loop while; borrowed for one complete service round, no per-message Vec swapping",
     "complete_batch": "keep shared buffer during one service_client call while coalesced complete frames are dispatched",
     "partial_frame": "copy only residual [rx_start,rx_end) to exact-size client Vec when service call returns",
     "large_frame": "retain existing LargeFrame owning allocation",
@@ -53,11 +55,19 @@
       "RssAnon",
       "VmData"
     ],
-    "production_cleanup": "stock C production, same boot/config/mount, health and cleanup required after every window"
+    "production_cleanup": "stock C production, same boot/config/mount, health and cleanup required after every window",
+    "conditions": [
+      "low connections",
+      "64 validated held connections"
+    ],
+    "comparisons": [
+      "R103 historical receive baseline",
+      "R109 current accepted baseline"
+    ]
   },
   "decision": {
-    "memory": "64-connection RssAnon growth / 64 <= (36 KiB / 64) + 0.6 KiB = 1.1625 KiB per connection",
-    "cpu": "candidate must not be positive in all three daemon lanes relative to R109; 1-2% rise triggers counter-based diagnosis before any further source change",
+    "memory": "In each of two repeated physical blocks: (RssAnon_64 - RssAnon_0_for_same_fresh_process) / 64 <= 0.6 KiB per connection, i.e. growth <=38.4 KiB. Report C, R89, R103 and R109 as fresh controls, all absolute values and page-granularity limits.",
+    "cpu": "For EACH lane, ten-window R110-A/R103 daemon CPU must not all increase; ten positive ratios in ANY lane rejects pending counter-based diagnosis. Also compare against R109 to isolate the code change. Mixed signs do not establish equivalence. Report intervals and total CPU; systematic regression is not accepted just because one sign is negative.",
     "reject": [
       "functional failure",
       "cleanup/identity failure",
@@ -77,5 +87,10 @@
     "tools/r104_rx_memory.sh": "c44fa239322636bad6c404ade985ec566cdbd875f67974277368538cb00c7d56",
     "tools/r103_user_event.sh": "0bf1e4c12bf54517295acc44d64bcad897a07638883434b0bc1a79c640fc2026",
     "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f"
+  },
+  "amendment": {
+    "reason": "Initial draft mistakenly substituted heap Vec swapping for the requested stack array, counted the listener as a connection and loosened the memory threshold. None of its ELFs ran on the router. Correct before testing.",
+    "excluded_draft_commit": "ddd80f7",
+    "excluded_draft_elf": "7f7544ccf67ecd4113b0a591e4004dbbacbaef31a9b7153b87b371c9b1854929"
   }
 }
