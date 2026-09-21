@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "runtime_base": "4d073d1 (R103 runtime)",
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "before": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+    "candidate": "99dffae3c9e8ff3517e2d789e9c363da8b0c191c6ab5da26d1b0ff78eb30a5df"
+  },
+  "runtime_patch_sha256": "cabb730c2f1b84aca3d2d73f6b141ac55635cb7bd6395eb823283b39b6e597eb",
+  "build_control": "Same /tmp/owrt-core-release/ubusd source path, SDK, compiler, working directory and flags as R103; no production installation.",
+  "source_scripts": {
+    "tools/r95_device_smoke.py": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r104_rx_memory.sh": "c44fa239322636bad6c404ade985ec566cdbd875f67974277368538cb00c7d56",
+    "tools/r103_user_event.sh": "0bf1e4c12bf54517295acc44d64bcad897a07638883434b0bc1a79c640fc2026"
+  },
+  "hypothesis": "One shared empty 4096-byte receive buffer removes per-idle-client retention without per-serial-message reallocations. Partial frames and descriptor marks remain owned by their clients. Large bodies remain separately owned.",
+  "statistical_unit": "Independent physical-router block; paired ratios within a block. Requests are not independent repetitions.",
+  "analysis": "Exploratory screen, no superiority or equivalence verdict. Preserve every adverse direction and complete raw archive. No pooling older runs.",
+  "retention_rule": "Correctness failure rejects candidate. In any CPU lane, >=3/4 positive before-pairs and median >1%, or p99 median >5% with >=3/4 positive pairs, requires independent frozen recheck before retention. Other adverse cells remain explicit. Memory counters are diagnostics, not precise PSS/peak.",
+  "failure_rule": "Stop on any identity, correctness, health, cleanup or collection failure; preserve the failed window.",
+  "production": "C throughout; private mount/PID/net namespace, guarded lifetime and cleanup per window.",
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "before",
+        "candidate",
+        "stock",
+        "r89"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "candidate",
+        "r89",
+        "before",
+        "stock"
+      ]
+    },
+    {
+      "block": 3,
+      "order": [
+        "r89",
+        "stock",
+        "candidate",
+        "before"
+      ]
+    },
+    {
+      "block": 4,
+      "order": [
+        "stock",
+        "before",
+        "r89",
+        "candidate"
+      ]
+    }
+  ],
+  "iterations": 20000,
+  "warmup": 2000,
+  "workloads": [
+    "user_1_1",
+    "user_8_1",
+    "user_1_0"
+  ],
+  "benchmark_sha256": "e80801f8fd82de4f15a96bcb5e1263f2d08ba90b21687dc0489d7260589321f0",
+  "metrics": [
+    "subject_cpu_us_per_send",
+    "client_cpu_us_per_send",
+    "wall_us_per_send"
+  ],
+  "scope": "Matching-image libubus caller, daemon CPU1 and caller CPU0; one listener connection with 1 or 8 handler objects, plus unmatched. No per-message latency or multi-process fanout claim."
+}

@@ -1,0 +1,45 @@
+{
+  "candidate_sha256": "99dffae3c9e8ff3517e2d789e9c363da8b0c191c6ab5da26d1b0ff78eb30a5df",
+  "unit_sha256": "ad6eed169fdf753ba4466151a634b6a0d983998cad2a6fc5e13f0561de1cd5b7",
+  "build_log_sha256": "42fe5326929264bef9473f8c838fbec2548f303d4cd447a5016472009df284ed",
+  "native_tests": 41,
+  "router_tests": 41,
+  "router_result": {
+    "component": "ubusd",
+    "candidate_sha256": "99dffae3c9e8ff3517e2d789e9c363da8b0c191c6ab5da26d1b0ff78eb30a5df",
+    "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+    "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "implementation": "rs",
+    "iterations": 10,
+    "installed": false,
+    "matrix": false,
+    "production_mode": "stock",
+    "remote": "/tmp/r95-check-75f9f1d7633a42a79abf7a71ba43461f",
+    "benchmark_sha256": "bcad2d4652b81c6c252b61f4bd8dd8424f85bd19bea2dd848236640967fdca26",
+    "before_candidate_sha256": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+    "unit_tests": {
+      "sha256": "ad6eed169fdf753ba4466151a634b6a0d983998cad2a6fc5e13f0561de1cd5b7",
+      "filter": "",
+      "exit": 0
+    },
+    "exit": 0,
+    "passed": true,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  },
+  "raw_archive_sha256": "10d73cb78b7b61f3c5c50be1b93738c3325d5a6ef7659f999223e8eb60e902a5",
+  "unit_log_sha256": "61cbbe7c81a7e4022d78bee39530e48ede52db1094ff3d9209c5a08988f192fa",
+  "scope": "Correctness prerequisite only, no performance acceptance. Includes partial prefixes/bodies, coalescing, fd transfer and drop, cross-client reuse and large frames.",
+  "build_issues": "Initial source copy lacked rpcd profile-support files needed by clippy; supplied. A new test initially expected a partial large body to retain the spare; corrected fixture to require independent LargeFrame storage. No runtime change from these test/build corrections.",
+  "references": [
+    "https://man7.org/linux/man-pages/man7/unix.7.html",
+    "https://docs.kernel.org/filesystems/proc.html"
+  ]
+}
