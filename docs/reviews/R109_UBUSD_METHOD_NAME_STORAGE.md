@@ -45,3 +45,42 @@ claim. If the one-method lane remains slower, revert this experiment and retain
 the result as evidence that the duplicate name allocation was not its dominant
 cost. A failure to resolve effects near one percent remains evidence-limited;
 it is not a language-limit conclusion.
+
+## Physical result and decision
+
+The canonical release rebuild is ELF `1dfb317c…15259`. It passed the 35-test
+router unit run, the six functional/recovery host gates, and the seven-group
+wire/ACL differential; every candidate window preserved stock production, boot,
+configuration, mounts, and cleanup.
+
+The ten-window fixed-slot comparison against accepted R103 used the exact image
+`libubus` caller and 10,000 timed cycles per serial segment. Candidate/R103
+medians (exact rank intervals) were:
+
+| Metric | Change |
+| --- | ---: |
+| daemon CPU | **−1.19%** (−2.11%, −0.70%) |
+| caller CPU | −0.10% (−0.40%, +0.19%) |
+| total CPU | **−0.66%** (−1.13%, −0.42%) |
+| wall | −0.31% (−1.72%, +0.76%) |
+
+The independent ten-window exact-image C comparison gave daemon CPU **−7.01%**
+(−8.85%, −6.48%), total CPU **−3.77%** (−4.84%, −3.32%), wall **−4.34%**
+(−6.79%, −4.00%), and caller CPU +0.00% (−0.40%, +0.46%). The C comparison
+is the same one-method/8-byte registration workload; it does not establish
+all-signature or whole-component superiority.
+
+The router requested-heap fixture reproduced each side twice. For 128 objects
+with one 8-byte method, retained requested bytes fell from 76,652 to 63,340
+(−17.4%); construction peak fell from 78,336 to 66,896. All listed method/name
+layouts decreased, with identical reallocation counts where only the duplicate
+name allocation was removed. This is allocator-request accounting, not RSS/PSS.
+
+**Decision: accept R109 into the current ubusd source baseline.** The duplicate
+method-name allocation is now removed. The result is accepted for registration
+workloads covered here; 16/64-method CPU, steady-state lookup/invoke, RSS/PSS,
+and nine-component integration remain separate targets.
+
+Evidence: [R109 R103 comparison](r109-name-fixed-slot-cpu-results.json),
+[R109 C comparison](r109-stock-cpu-results.json), [heap plan](r109-name-memory-plan.json),
+and the canonical router gate output retained under `private/r109-method-name-storage/`.
