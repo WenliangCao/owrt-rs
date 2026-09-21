@@ -469,7 +469,7 @@ mod tests {
     use super::*;
     use owrt_ubus::blob::BlobBuf;
     use owrt_ubus::msg::attr;
-    use std::io::Read;
+    use std::io::{Read, Write};
     use std::os::unix::net::UnixStream;
     use std::time::{Duration, Instant};
 
@@ -486,6 +486,195 @@ mod tests {
     fn prefix_is_header_plus_blob_header() {
         assert_eq!(PREFIX_LEN, 12);
         assert_eq!(Header::LEN, 8);
+    }
+
+    fn rx_pair() -> (Client, UnixStream) {
+        let (sock, peer) = UnixStream::pair().unwrap();
+        sock.set_nonblocking(true).unwrap();
+        peer.set_write_timeout(Some(Duration::from_secs(3))).unwrap();
+        (Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new()), peer)
+    }
+
+    fn rx_frame(seq: u16, raw_len: usize) -> Vec<u8> {
+        let mut bytes = Header { ty: ty::DATA, seq, peer: 0x12345678 }.encode().to_vec();
+        bytes.extend_from_slice(&(raw_len as u32).to_be_bytes());
+        bytes.resize(Header::LEN + raw_len, seq as u8);
+        bytes
+    }
+
+    // Drive exactly the production begin/next-until-None/end boundary, then
+    // overwrite the shared storage to simulate a different ready client.
+    fn rx_round(c: &mut Client, rx: &mut [u8; RX_SIZE]) -> Vec<InMsg> {
+        c.begin_read(rx);
+        let mut messages = Vec::new();
+        while let Some(msg) = c.read_message(rx).unwrap() {
+            messages.push(msg);
+        }
+        c.end_read(rx);
+        rx.fill(0xa5);
+        messages
+    }
+
+    fn assert_frame(msg: &InMsg, frame: &[u8]) {
+        assert_eq!(msg.header.encode(), frame[..Header::LEN]);
+        assert_eq!(msg.blob, frame[Header::LEN..]);
+    }
+
+    #[test]
+    fn stack_rx_fragments_survive_other_clients_and_drop_idle_capacity() {
+        let mut rx = [0u8; RX_SIZE];
+        for len in [4, 64, 4088, 4089, 8192] {
+            for cut in [1, 7, 8, 11, 12, 13, 27, 2048, 4096].into_iter()
+                .filter(|cut| *cut < len + Header::LEN) {
+                let (mut c, mut peer) = rx_pair();
+                let (mut other, mut other_peer) = rx_pair();
+                let frame = rx_frame(17, len);
+                peer.write_all(&frame[..cut]).unwrap();
+                assert!(rx_round(&mut c, &mut rx).is_empty());
+                let expected = if len + Header::LEN > RX_SIZE && cut >= PREFIX_LEN { 0 } else { cut };
+                assert_eq!(c.rx.len(), expected);
+                assert_eq!(c.rx.capacity(), expected);
+                let other_frame = rx_frame(29, 36);
+                other_peer.write_all(&other_frame).unwrap();
+                let got = rx_round(&mut other, &mut rx);
+                assert_eq!(got.len(), 1);
+                assert_frame(&got[0], &other_frame);
+                let tail = frame[cut..].to_vec();
+                let writer = std::thread::spawn(move || peer.write_all(&tail).unwrap());
+                let mut got = Vec::new();
+                let deadline = Instant::now() + Duration::from_secs(3);
+                while !c.eof {
+                    got.extend(rx_round(&mut c, &mut rx));
+                    assert!(Instant::now() < deadline);
+                    std::thread::yield_now();
+                }
+                writer.join().unwrap();
+                assert_eq!(got.len(), 1, "len={len} cut={cut}");
+                assert_frame(&got[0], &frame);
+                assert_eq!(c.rx.capacity(), 0);
+                assert!(c.large.is_none());
+            }
+        }
+    }
+
+    #[test]
+    fn stack_rx_batches_cross_buffer_boundaries_and_eof() {
+        let mut rx = [0u8; RX_SIZE];
+        for lengths in [vec![4; 700], vec![4088, 4089, 4, 8192, 28], vec![4000, 192, 4]] {
+            let (mut c, mut peer) = rx_pair();
+            let frames: Vec<_> = lengths.into_iter().enumerate().map(|(i, n)| rx_frame(i as u16, n)).collect();
+            let stream = frames.concat();
+            let writer = std::thread::spawn(move || {
+                peer.write_all(&stream).unwrap();
+                peer.shutdown(std::net::Shutdown::Write).unwrap();
+            });
+            let mut got = Vec::new();
+            let deadline = Instant::now() + Duration::from_secs(3);
+            while !c.eof {
+                got.extend(rx_round(&mut c, &mut rx));
+                assert!(Instant::now() < deadline);
+            }
+            writer.join().unwrap();
+            assert_eq!(got.len(), frames.len());
+            for (msg, frame) in got.iter().zip(&frames) { assert_frame(msg, frame); }
+            assert_eq!(c.rx.capacity(), 0);
+        }
+    }
+
+    #[test]
+    fn stack_rx_complete_short_read_preserves_drained_boundary() {
+        let (mut c, mut peer) = rx_pair();
+        let mut rx = [0u8; RX_SIZE];
+        for seq in 0..20 {
+            let frame = rx_frame(seq, 16);
+            peer.write_all(&frame).unwrap();
+            c.begin_read(&mut rx);
+            assert_frame(&c.read_message(&mut rx).unwrap().unwrap(), &frame);
+            assert!(c.rx_drained, "retain short-read marker until end of round");
+            assert!(c.read_message(&mut rx).unwrap().is_none());
+            assert!(!c.rx_drained);
+            c.end_read(&rx);
+            assert_eq!(c.rx.capacity(), 0);
+        }
+    }
+
+    #[test]
+    fn stack_rx_rejects_bad_lengths_after_fragmented_prefix() {
+        for raw_len in [0, 1, 3, MAX_MSGLEN + 1] {
+            let (mut c, mut peer) = rx_pair();
+            let mut frame = Header { ty: ty::DATA, seq: 0, peer: 0 }.encode().to_vec();
+            frame.extend_from_slice(&(raw_len as u32).to_be_bytes());
+            let mut rx = [0u8; RX_SIZE];
+            peer.write_all(&frame[..7]).unwrap();
+            assert!(rx_round(&mut c, &mut rx).is_empty());
+            peer.write_all(&frame[7..]).unwrap();
+            c.begin_read(&mut rx);
+            assert!(matches!(c.read_message(&mut rx), Err(e) if e.kind() == io::ErrorKind::InvalidData));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn stack_rx_rebases_fd_marks_after_complete_frames_and_partial_tail() {
+        let mut rx = [0u8; RX_SIZE];
+        for cut in [1, 7, 11, 12, 23] {
+            let (mut c, mut peer) = rx_pair();
+            let prefix = rx_frame(1, 28);
+            let tail = rx_frame(2, 64);
+            peer.write_all(&prefix).unwrap();
+            let (sent, mut witness) = UnixStream::pair().unwrap();
+            assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &tail[..cut], &[], Some(sent.as_raw_fd())).unwrap(), cut);
+            drop(sent);
+            let got = rx_round(&mut c, &mut rx);
+            assert_eq!(got.len(), 1);
+            assert_frame(&got[0], &prefix);
+            assert!(got[0].fd.is_none());
+            assert_eq!(c.rx, tail[..cut]);
+            assert_eq!(c.rx_fds.front().unwrap().0, cut);
+            peer.write_all(&tail[cut..]).unwrap();
+            let mut got = rx_round(&mut c, &mut rx);
+            assert_eq!(got.len(), 1);
+            assert_frame(&got[0], &tail);
+            let mut received = UnixStream::from(got[0].fd.take().unwrap());
+            witness.write_all(b"x").unwrap();
+            received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            let mut byte = [0];
+            received.read_exact(&mut byte).unwrap();
+            assert_eq!(byte, *b"x");
+            drop(received);
+            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            assert_eq!(witness.read(&mut byte).unwrap(), 0);
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn stack_rx_fragmented_large_fd_and_disconnect_close_once() {
+        let mut rx = [0u8; RX_SIZE];
+        for cut in [7, 24, 4096] {
+            for finish in [false, true] {
+                let (mut c, mut peer) = rx_pair();
+                let frame = rx_frame(8, 8192);
+                let (sent, mut witness) = UnixStream::pair().unwrap();
+                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[..cut], &[], Some(sent.as_raw_fd())).unwrap(), cut);
+                drop(sent);
+                assert!(rx_round(&mut c, &mut rx).is_empty());
+                if finish { peer.write_all(&frame[cut..]).unwrap(); }
+                drop(peer);
+                let mut got = Vec::new();
+                for _ in 0..5 { if !c.eof { got.extend(rx_round(&mut c, &mut rx)); } }
+                assert!(c.eof);
+                assert_eq!(got.len(), usize::from(finish));
+                if finish {
+                    assert_frame(&got[0], &frame);
+                    assert!(got[0].fd.is_some());
+                }
+                drop(got);
+                drop(c);
+                witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                assert_eq!(witness.read(&mut [0]).unwrap(), 0);
+            }
+        }
     }
 
     #[test]
