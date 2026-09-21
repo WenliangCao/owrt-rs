@@ -230,9 +230,21 @@ fn main() {
         frame.extend_from_slice(&msg.blob);
         profile_support::measure(&format!("socket_write_receive_{size}"), n, &filter, || {
             peer.write_all(&frame).unwrap();
-            let read = client.read_message().unwrap().unwrap();
+            // A short read returns one complete frame, then Ok(None) on the
+            // next call to end the readiness round. Large frames can also
+            // need more than one read. Drive the state machine as the event
+            // loop does instead of assuming every call yields a frame.
+            let mut waiting_since = None;
+            let read = loop {
+                if let Some(read) = client.read_message().unwrap() {
+                    break read;
+                }
+                let started = waiting_since.get_or_insert_with(std::time::Instant::now);
+                assert!(!client.eof && started.elapsed() < std::time::Duration::from_secs(2));
+            };
             assert_eq!(read.blob.len(), msg.blob.len());
             black_box(read);
+            assert!(client.read_message().unwrap().is_none());
         });
     }
 }
