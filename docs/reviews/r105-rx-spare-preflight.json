@@ -41,5 +41,46 @@
   "references": [
     "https://man7.org/linux/man-pages/man7/unix.7.html",
     "https://docs.kernel.org/filesystems/proc.html"
-  ]
+  ],
+  "host_gates_log_sha256": "dc74479f4eaf343217c67563bdc8c47ad7c78ba95b3cabac67d87132aac2d6ad",
+  "host_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0,
+      "log_sha256": "c3f61692dee194a8788d805b53411af3deffd1b8fba548efb538b46a238cb31d",
+      "original_busy_control": false
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "log_sha256": "897b21b80cf2a8be7275ee94dfa3e241486f10778e7a9667fc6f77bf825a5c8b",
+      "original_busy_control": false
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0,
+      "log_sha256": "cc85a4797ca875babbd59fe52e43371468bf8954242b76409700afdf47cf3815",
+      "original_busy_control": false
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0,
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f",
+      "original_busy_control": false
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0,
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+      "original_busy_control": false
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0,
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536",
+      "original_busy_control": false
+    }
+  ],
+  "host_gates_subject_sha256": "99dffae3c9e8ff3517e2d789e9c363da8b0c191c6ab5da26d1b0ff78eb30a5df",
+  "host_gates_results_sha256": "beb46e159b1b09199eada79496eb452ca2e57f0901325599c3452eb2469c9094"
 }
