@@ -969,7 +969,14 @@ impl Server {
             Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, owner, &header, &blob, true);
             if let Some(client) = self.clients.get_mut(&owner) {
                 client.send_borrowed(header, &blob, None);
-                self.touched.push(owner);
+                // A complete direct write leaves no readiness state to
+                // change. Keep the conservative retry cases: a queued
+                // message, a stale WRITE registration, or a READ state whose
+                // registration is stale. This avoids a HashMap lookup and
+                // poller update for the usual synchronous event delivery.
+                if !client.tx_empty() || client.out_registered || (!client.eof != client.in_registered) {
+                    self.touched.push(owner);
+                }
             }
         }
     }
@@ -1445,6 +1452,27 @@ mod tests {
         assert_eq!(frames.len(), 1, "deleted listener patterns must not survive");
         assert_eq!(frames[0].0.seq, 2);
         assert_eq!(attrs_of(&frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn direct_event_write_does_not_mark_interest_dirty() {
+        let mut s = Server::new(String::new()).unwrap();
+        let (owner, mut peer) = lookup_client();
+        s.clients.insert(2000, Box::new(owner));
+        s.reg.create(None, Some(4000)).unwrap();
+        s.reg.get_mut(4000).unwrap().client = Some(2000);
+        s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: 4000 });
+        s.dispatch_event(None, b"event", || {
+            let mut b = BlobBuf::new();
+            b.put_u32(attr::OBJID, 0);
+            b.put_string(attr::METHOD, "event");
+            b.as_bytes().to_vec()
+        });
+        assert!(s.touched.is_empty());
+        let mut buf = [0u8; 128];
+        let n = std::io::Read::read(&mut peer, &mut buf).unwrap();
+        assert!(n > 0);
     }
 
     #[cfg(target_os = "linux")]
