@@ -8,6 +8,7 @@ Plan schema (all paths absolute; sha256 values lowercase hex):
    "client": {"path": "/...", "sha256": "..."},
    "subjects": {"label": {"path": "/...", "sha256": "...", "kind": "static|dynamic"}},
    "runs": [{"subject": "label", "held_clients": 0, "n": 50000, "warmup": 5000}]}
+Each run may specify "listeners": 1 or 8; omission retains the default of 1.
 
 No chroot, mounts, rootfs changes, router access, or daemon source changes.
 Stripped subjects remain valid IP measurements, never full-symbol evidence.
@@ -209,12 +210,13 @@ def summarize_samples(out, symbol_info):
 def sample(out, item, plan, subjects, client, loader, libraries, perf_path, env, symbols):
     out.mkdir()
     label = item['subject']
+    listeners = item.get('listeners', 1)
     subject = subjects[label]
     dynamic = plan['subjects'][label]['kind'] == 'dynamic'
     expected = {**libraries, subject: plan['subjects'][label]['sha256']}
     daemon = perf = client_process = None
     pipes = []
-    meta = {'run': item, 'status': 'starting', 'client_timeout_seconds': 45,
+    meta = {'run': item, 'listeners': listeners, 'status': 'starting', 'client_timeout_seconds': 45,
             'perf_control': 'client enable/ACK after warmup before clocks; disable/ACK after loop and clocks',
             'argv0': '/sbin/ubusd', 'subject_sha256': expected[subject]}
     library_path = f'{plan["rootfs"]["path"]}/lib:{plan["rootfs"]["path"]}/usr/lib'
@@ -265,7 +267,7 @@ def sample(out, item, plan, subjects, client, loader, libraries, perf_path, env,
                 pipes.remove(fd)
             client_env = dict(env, OWRT_PERF_CTL_FD=str(ctl_write), OWRT_PERF_ACK_FD=str(ack_read))
             client_command = [str(loader), '--library-path', library_path, str(client),
-                              'user-event', socket, '1', '1', str(item['n']),
+                              'user-event', socket, str(listeners), '1', str(item['n']),
                               str(item['warmup']), str(daemon.pid), str(item['held_clients'])]
             meta['client_command'] = client_command
             save_json(out / 'meta.json', meta)
@@ -284,10 +286,10 @@ def sample(out, item, plan, subjects, client, loader, libraries, perf_path, env,
             data = json.loads((out / 'client.json').read_text())
             for key in ('perf_controlled', 'payload_checked', 'handlers_removed', 'matched'):
                 require(data.get(key) is True, f'client validation failed: {key}')
-            for key, value in {'received': item['n'], 'n': item['n'], 'warmup': item['warmup'],
-                               'warmup_received': item['warmup'], 'held_clients': item['held_clients'],
+            for key, value in {'received': item['n'] * listeners, 'n': item['n'], 'warmup': item['warmup'],
+                               'warmup_received': item['warmup'] * listeners, 'held_clients': item['held_clients'],
                                'subject_pid': daemon.pid, 'client_pid': client_process.pid,
-                               'subject_cpu': 1, 'client_cpu': 0, 'listeners': 1}.items():
+                               'subject_cpu': 1, 'client_cpu': 0, 'listeners': listeners}.items():
                 require(data.get(key) == value, f'client validation mismatch: {key}')
             meta['status'] = 'recorded'
         except BaseException as exc:
@@ -383,6 +385,8 @@ def main():
     require(plan['runs'], 'plan has no runs')
     for item in plan['runs']:
         require(item['subject'] in subjects, 'run subject missing from plan')
+        listeners = item.get('listeners', 1)
+        require(type(listeners) is int and listeners in (1, 8), 'invalid run listeners')
         for key, minimum, maximum in (('held_clients', 0, 64), ('n', 1, 1000000),
                                       ('warmup', 0, 100000)):
             require(type(item[key]) is int and minimum <= item[key] <= maximum,
