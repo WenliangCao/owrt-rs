@@ -36,8 +36,8 @@
       "sha256": "8a94a9f2abbce632ff096ca1e2046a29bf9e4929883fef4515280dc39277b065"
     },
     "benchmark": {
-      "path": "private/r127-r124-matrix/owrt-benchmark",
-      "sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e"
+      "path": "private/r98/event-client/owrt-benchmark",
+      "sha256": "2ff373109f7d3d2898562496218238902fc594026917d57d44f66507106e43e0"
     },
     "namespace_helper": {
       "path": "private/r90/deployment-r90/bins/ns-exec",
