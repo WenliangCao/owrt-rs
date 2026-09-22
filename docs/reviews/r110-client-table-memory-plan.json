@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "purpose": "Physical router requested-heap anatomy of the accepted Client and an alternative boxed table value; no daemon traffic or performance acceptance.",
+  "layout_sizes": [
+    "Client inline",
+    "Box<Client> separate allocation"
+  ],
+  "counts": [
+    0,
+    1,
+    8,
+    16,
+    32,
+    64,
+    128
+  ],
+  "samples": 1,
+  "measurement": "Real socket pairs and Client constructors; separately count credential/group heap, value wrapper heap and HashMap backing storage. Count current requested bytes and construction peak. Clear/drop assertions require exact recovery. No rx buffers are allocated.",
+  "helper_sha256": "be237a4dde287dbcb7d9eba6c2cb3f51d4fe11d54b8a62db89c5fab5e1941942",
+  "source_sha256": "6fbb1531b11e86844a80500c0817f3968f8cb2e5c633459d44677b86a8a94f68",
+  "client_source_sha256": "24c2a043f1b405aec6545e36345fa736bbbd2c50981b8d21d035c0cf74a7ff38",
+  "heap_source_sha256": "01d0572e7e26b603b30e63fa76e09451bab80229eb1ebb8a72ed2abda7b267d2",
+  "source_tar_sha256": "371a012a25f84aebe902e82a85d1fce840c8d0493a5eafe13dd160a3f5288709",
+  "build_script_sha256": "dd5d4f85792441ae97c0c50875c4eaedb824ca41ff732fbff545d52a81c74c8c",
+  "build_log_sha256": "6b3ee44f26b8152d2bc0e62a937b6303f2ab5babe7dec78347d36e1646bffaa3",
+  "workload_sha256": "1c53a569d54c3704a26565567a1c77d7423f6748ea22295a9f8bb196d2d8584c",
+  "driver_sha256": "9152ce58ecbbd49ee2badff04b47b69e02f51e8939f9a246f6426bc7b7a4542e",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "uploaded_daemon_sha256": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+  "production": "C only; guarded disposable namespace; benchmark uses socket pairs. R109 ELF is uploaded as a harness identity anchor but not executed. Every usual before/after health/config/boot/mount/identity and cleanup check is mandatory.",
+  "limits": [
+    "Requested Rust heap, not malloc class sizes, RSS, PSS, kernel/socket memory or process peak.",
+    "Boxed representation is measured only as an isolated container; no inference that its extra pointer/allocations improve daemon performance.",
+    "Actual retained rx buffers and other daemon registries are not included."
+  ]
+}
