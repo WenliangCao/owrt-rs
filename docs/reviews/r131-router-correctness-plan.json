@@ -1,0 +1,59 @@
+{
+  "scope": "Physical router target units + exact C/R124/R131 event and FD regressions",
+  "files": {
+    "tools/r95_device_smoke.py": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d",
+    "private/r131-event-batch/maps/r131": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+    "private/r130-add-reply/maps/r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+    "private/r95/guard": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "private/r96/recovery-full/recovery-gate.json": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "private/r113-fd-boundary/wireprobe": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+    "private/r131-event-batch/correctness/correctness-01/r131-unit-tests": "29f057776f75c5bdddf4c1c9a6577a192d2362d5ce015ab9b79f3c869a69a3b3",
+    "tools/r98_ubusd_events.sh": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+    "tools/r115_ubusd_fd_boundary.sh": "a7625c0164f7daac05127f1ac0dfaaacebb07f7988017596ab927f4f1d571891"
+  },
+  "commands": [
+    [
+      "python3",
+      "tools/r95_device_smoke.py",
+      "ubusd",
+      "private/r131-event-batch/maps/r131",
+      "private/r131-supplement/router-correctness-existing",
+      "--recovery-gate",
+      "private/r96/recovery-full/recovery-gate.json",
+      "--guard",
+      "private/r95/guard",
+      "--benchmark",
+      "private/r113-fd-boundary/wireprobe",
+      "--before-candidate",
+      "private/r130-add-reply/maps/r124",
+      "--iterations",
+      "1",
+      "--unit-tests",
+      "private/r131-event-batch/correctness/correctness-01/r131-unit-tests",
+      "--unit-filter",
+      "",
+      "--workload-script",
+      "tools/r98_ubusd_events.sh"
+    ],
+    [
+      "python3",
+      "tools/r95_device_smoke.py",
+      "ubusd",
+      "private/r131-event-batch/maps/r131",
+      "private/r131-supplement/router-correctness-fd",
+      "--recovery-gate",
+      "private/r96/recovery-full/recovery-gate.json",
+      "--guard",
+      "private/r95/guard",
+      "--benchmark",
+      "private/r113-fd-boundary/wireprobe",
+      "--before-candidate",
+      "private/r130-add-reply/maps/r124",
+      "--iterations",
+      "1",
+      "--workload-script",
+      "tools/r115_ubusd_fd_boundary.sh"
+    ]
+  ],
+  "required": "Every unit/scenario and per-window health/cleanup must pass; production C unchanged."
+}
