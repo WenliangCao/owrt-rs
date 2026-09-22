@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "purpose": "Oracle exact ELF flat CPU profile; no router performance verdict",
+  "rootfs": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "libraries": {
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+      "/usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153"
+    }
+  },
+  "client": {
+    "path": "/home/ubuntu/r110-rx-stack/perf-sync-client-v2/user-event-perf-v3",
+    "sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7"
+  },
+  "subjects": {
+    "c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic"
+    },
+    "r109": {
+      "path": "/home/ubuntu/r109-method-name-storage/canonical/ubusd-rs",
+      "sha256": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+      "kind": "static"
+    },
+    "r115": {
+      "path": "/home/ubuntu/r115-event-interest/ubusd-rs",
+      "sha256": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde",
+      "kind": "static"
+    }
+  },
+  "runs": [
+    {
+      "subject": "c",
+      "held_clients": 0,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 1
+    },
+    {
+      "subject": "r109",
+      "held_clients": 0,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 1
+    },
+    {
+      "subject": "r115",
+      "held_clients": 0,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 1
+    },
+    {
+      "subject": "c",
+      "held_clients": 64,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 1
+    },
+    {
+      "subject": "r109",
+      "held_clients": 64,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 1
+    },
+    {
+      "subject": "r115",
+      "held_clients": 64,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 1
+    },
+    {
+      "subject": "r115",
+      "held_clients": 64,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 2
+    },
+    {
+      "subject": "r109",
+      "held_clients": 64,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 2
+    },
+    {
+      "subject": "c",
+      "held_clients": 64,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 2
+    },
+    {
+      "subject": "r115",
+      "held_clients": 0,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 2
+    },
+    {
+      "subject": "r109",
+      "held_clients": 0,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 2
+    },
+    {
+      "subject": "c",
+      "held_clients": 0,
+      "n": 500000,
+      "warmup": 5000,
+      "block": 2
+    }
+  ],
+  "runner_sha256": "2ccc319c94236662a706288228e9215ccdb62b7e9f4de723f2eba9bf4fa36f2c",
+  "scope": "Exact-ELF Oracle diagnosis, cpu-clock 499Hz self sampling; no router performance claim; 12 fixed-order runs, no optional stopping.",
+  "instrumentation_smoke": {
+    "raw_path": "private/r121-symbol-profile/smoke-01",
+    "excluded_from_comparison": true,
+    "runs": 3,
+    "all_complete": true,
+    "loss_and_throttle_counts": 0,
+    "reason_for_500000_iterations": "10000-iteration smoke yielded only 50-58 samples in 0.22-0.24s wall; 500000 chosen before comparison to obtain a few thousand samples per run within 45s deadline."
+  },
+  "symbol_evidence": {
+    "r109": {
+      "map_sha256": "450a70dbb08e1b00c374893a3135fe259bb0926587dd9d9b62b4a2277b2d8fdb",
+      "whole_elf_matches_release": true
+    },
+    "r115": {
+      "map_sha256": "262c4293b28216eba9b4163e714a780d14787b69d21e8db6d21fa360cbd3ffbd",
+      "whole_elf_matches_release": true
+    },
+    "c": {
+      "symbols_sha256": "51f91f7d548600ca56ff47516f0a4854c50fb5a1defb768dc8ffabb5a202723b",
+      "text_sha256": "f439a4d464408ec54540c1e8fd13b0704ddd31b747018e809c71dc7a6512bab9"
+    }
+  }
+}
