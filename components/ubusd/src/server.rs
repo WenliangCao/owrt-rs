@@ -608,9 +608,7 @@ impl Server {
 
         let data = attrs[attr::DATA as usize].map(|a| a.payload);
         let Some(owner) = owner else {
-            let data = data.map(<[u8]>::to_vec);
-            let method = method.to_vec();
-            return self.system_object(client, id, &method, msg, data);
+            return self.system_object(client, id, method, &msg, data);
         };
 
         let who = caller.map(|c| (c.user.as_str(), c.group.as_str()));
@@ -793,17 +791,17 @@ impl Server {
         client: u32,
         id: u32,
         method: &[u8],
-        msg: InMsg,
-        data: Option<Vec<u8>>,
+        msg: &InMsg,
+        data: Option<&[u8]>,
     ) -> Outcome {
         match id {
             SYSTEM_OBJECT_EVENT => match method {
-                b"register" => Outcome::Status(self.event_register(client, data.as_deref())),
-                b"send" => Outcome::Status(self.event_send(client, data.as_deref())),
+                b"register" => Outcome::Status(self.event_register(client, data)),
+                b"send" => Outcome::Status(self.event_send(client, data)),
                 _ => Outcome::Status(status::INVALID_COMMAND),
             },
             SYSTEM_OBJECT_ACL => match method {
-                b"query" => self.acl_query(client, &msg),
+                b"query" => self.acl_query(client, msg),
                 _ => Outcome::Status(status::INVALID_COMMAND),
             },
             SYSTEM_OBJECT_MONITOR => {
@@ -1452,6 +1450,92 @@ mod tests {
         assert_eq!(frames.len(), 1, "deleted listener patterns must not survive");
         assert_eq!(frames[0].0.seq, 2);
         assert_eq!(attrs_of(&frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn system_invoke_queued_event_and_monitor_own_borrowed_input() {
+        const OWNER: u32 = 2000;
+        const MONITOR: u32 = 2001;
+        const SENDER: u32 = 2002;
+        const OBJECT: u32 = 4000;
+        let mut s = Server::new(String::new()).unwrap();
+        let (owner, mut peer) = lookup_client();
+        let (monitor, mut monitor_peer) = lookup_client();
+        let (sender, _sender_peer) = lookup_client();
+        s.clients.insert(OWNER, Box::new(owner));
+        s.clients.insert(MONITOR, Box::new(monitor));
+        s.clients.insert(SENDER, Box::new(sender));
+        s.monitors.push((MONITOR, 0));
+        s.reg.create(None, Some(OBJECT)).unwrap();
+        s.reg.get_mut(OBJECT).unwrap().client = Some(OWNER);
+        s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: OBJECT });
+
+        // Fill both sockets first, so even a stack-sized request must leave
+        // its relayed event and monitor copies in owned output queues.
+        let mut filler = BlobBuf::new();
+        filler.put(attr::DATA, &vec![0x5a; 32768]);
+        for id in [OWNER, MONITOR] {
+            s.clients.get_mut(&id).unwrap().send(OutMsg::new(ty::DATA, 0, 0, filler.as_bytes().to_vec()));
+            assert!(!s.clients[&id].tx_empty(), "fixture must queue before invoke");
+        }
+
+        let mut request = BlobBuf::new();
+        request.put_u32(attr::OBJID, SYSTEM_OBJECT_EVENT);
+        request.put_string(attr::METHOD, "send");
+        let data = request.nest_start(attr::DATA);
+        request.msg_string("id", "event");
+        let payload = request.msg_open_table("data");
+        request.msg_u32("value", 0x12345678);
+        request.msg_close(payload);
+        request.nest_end(data);
+        let request = request.as_bytes().to_vec();
+        let header = Header { ty: ty::INVOKE, seq: 123, peer: 456 };
+        {
+            let mut rx = [0u8; crate::client::RX_SIZE];
+            assert!(Header::LEN + request.len() <= rx.len());
+            rx[..request.len()].copy_from_slice(&request);
+            // Exercise receive -> invoke -> system_object, not just the
+            // event helper. Reusing input after dispatch must be harmless.
+            assert!(s.receive(SENDER, InMsg { header, blob: Cow::Borrowed(&rx[..request.len()]), fd: None }));
+            rx.fill(0xa5);
+        }
+
+        let mut event = BlobBuf::new();
+        event.put_u32(attr::OBJID, OBJECT);
+        event.put_string(attr::METHOD, "event");
+        let data = event.nest_start(attr::DATA);
+        event.msg_u32("value", 0x12345678);
+        event.nest_end(data);
+        let event = event.as_bytes().to_vec();
+        let event_header = Header { ty: ty::INVOKE, seq: 1, peer: 0 };
+        let frames = lookup_frames(&drain_lookup(&mut s, OWNER, &mut peer));
+        assert_eq!(frames.len(), 2);
+        assert_eq!(frames[1].0.encode(), event_header.encode());
+        assert_eq!(frames[1].1, event);
+
+        let mut reply = BlobBuf::new();
+        reply.put_u32(attr::STATUS, status::OK as u32);
+        let expected = [
+            (SENDER, false, header, request),
+            (OWNER, true, event_header, event),
+            (SENDER, true, Header { ty: ty::STATUS, ..header }, reply.as_bytes().to_vec()),
+        ];
+        let mirrors = lookup_frames(&drain_lookup(&mut s, MONITOR, &mut monitor_peer));
+        assert_eq!(mirrors.len(), 1 + expected.len());
+        for (i, ((h, bytes), (client, send, header, original))) in mirrors[1..].iter().zip(&expected).enumerate() {
+            assert_eq!((h.ty, h.seq, h.peer), (ty::MONITOR, i as u16 + 1, 0));
+            let mut attrs = [None; 6];
+            for field in blob::iter(&bytes[4..]) {
+                attrs[field.id as usize] = Some(field);
+            }
+            assert_eq!(attrs[0].unwrap().as_u32(), Some(*client));
+            assert_eq!(attrs[1].unwrap().as_u32(), Some(header.peer));
+            assert_eq!(attrs[2].unwrap().payload, &[u8::from(*send)]);
+            assert_eq!(attrs[3].unwrap().as_u32(), Some(header.seq as u32));
+            assert_eq!(attrs[4].unwrap().as_u32(), Some(header.ty as u32));
+            assert_eq!(attrs[5].unwrap().payload, &original[4..]);
+        }
     }
 
     #[cfg(target_os = "linux")]
