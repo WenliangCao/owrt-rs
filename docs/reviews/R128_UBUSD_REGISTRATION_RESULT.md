@@ -11,8 +11,11 @@ C 的启动 argv0 为 `/sbin/ubusd`，R124 为 `/tmp/bin/ubusd-rs`；daemon 和 
 
 在上述实际启动条件下，同一严格 Rust benchmark/caller 对精确 C 与 R124 各执行 8 个新 daemon 窗口，
 C/R124/R124/C 反序四轮，共 16 窗口。
-每个 ADD/REMOVE 周期都构造并发送真实对象，预热和测量外均严格核对 ADD 回复、完整方法签名、REMOVE 回复、
-最终 lookup 为空；测量保留逐次 latency_ns、p50/p95/p99、daemon/client CPU。
+每个 ADD/REMOVE 周期都构造并发送真实对象，ADD 检查成功 STATUS 并解析一个 OBJID，REMOVE 检查成功 STATUS；
+**这不是逐周期完整回复字节校验**。完整方法签名、路径及对象 ID 只在计时前的一次 lookup 中核对，
+预检周期之后和全部计时周期之后检查 registry 为空。`Connection::remove_object` 不逐周期核对
+REMOVE DATA/OBJTYPE，ADD 也不检查回复的全部属性或额外帧。测量保留逐次 latency_ns、p50/p95/p99、daemon/client CPU；
+精确协议字节兼容性需要由独立单测和协议差分门支持，不能从这个计时 caller 的成功状态推导。
 
 | fixture | C 中位 mean µs | R124 中位 mean µs | 四块配对 R124−C 中位 |
 |---|---:|---:|---:|

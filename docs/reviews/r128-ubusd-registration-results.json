@@ -479,7 +479,7 @@
   ],
   "limits": [
     "No A/A or confidence intervals; no tail claim beyond benchmark samples.",
-    "Complete reply/signature and empty-registry checks were run outside measured cycle preflight and after cycle.",
+    "Correction: each timed cycle checks successful ADD/REMOVE STATUS and parses an ADD OBJID; full signature/path/ID validation occurs once in preflight. Registry emptiness is checked after preflight and after all cycles. REMOVE DATA/OBJTYPE and all ADD attributes/extra frames are not fully checked per cycle.",
     "No R124/R123 inference or acceptance score.",
     "Correction: R128 did not implement its claimed daemon CPU1 or normalized argv0. Its custom workload directly launched the selected binary despite exporting OWRT_UBUSD_NORMALIZED=1.",
     "Neither daemon nor caller was explicitly pinned by this launch chain; register-cycle does not pin itself or the daemon. Actual affinity and cmdline were not captured in the raw snapshots.",
@@ -503,5 +503,33 @@
     },
     "benchmark_review": "Only exec-cpu and exec-cpu-as call affinity::pin; register-cycle, measure and measure_cpu_loop do not change affinity.",
     "boundary": "R129 used its own exec-cpu-as launch and has 80 status files all recording Cpus_allowed_list=1; this defect does not invalidate that memory cohort."
+  },
+  "validation_scope_erratum": {
+    "prior_claim": "Complete reply/signature and empty-registry checks were run outside measured cycle preflight and after cycle.",
+    "status": "corrected; measurements and helper unchanged",
+    "every_warmup_and_timed_cycle": [
+      "ADD successful STATUS",
+      "ADD DATA contains a parseable OBJID",
+      "REMOVE successful STATUS"
+    ],
+    "preflight_only": [
+      "one lookup returns exactly one object",
+      "lookup ID equals ADD ID",
+      "lookup path equals requested path",
+      "complete method signature bytes equal fixture"
+    ],
+    "outside_loop": [
+      "registry empty after preflight removal",
+      "registry empty after all timed cycles"
+    ],
+    "not_checked_per_cycle": [
+      "complete ADD DATA attributes or extra frames",
+      "REMOVE DATA or OBJTYPE bytes"
+    ],
+    "supporting_implementation": [
+      "tools/benchmark/src/main.rs register-cycle",
+      "components/ubus/src/conn.rs Connection::add_object_maybe_anonymous and Connection::remove_object"
+    ],
+    "boundary": "Exact reply/monitor byte compatibility and FD semantics require independent unit and protocol checks; successful timing cycles alone do not prove them."
   }
 }

@@ -27,6 +27,12 @@ free_object、订阅通知和删除事件。输入 FD 仍由原 handle 入口关
    5000 次、20 次预热，注册 1/16 方法，每方均为新 daemon。主要指标是周期 mean latency；
    每次 latency、p50/p95/p99、daemon/caller CPU 和内存均保留。独立查询/调用检查作为共享发送函数护栏。
 
+验证范围说明：固定 `register-cycle` caller 每周期检查 ADD/REMOVE 成功 STATUS，并从 ADD DATA 解析 OBJID；
+完整方法签名/路径/ID 只在计时前一次 lookup 中核对，预检及计时循环之后检查 registry 为空。
+它不逐周期核对 REMOVE DATA/OBJTYPE 或 ADD 的全部属性/额外帧。第 1 步的单测和独立协议门负责
+精确 DATA/STATUS/monitor 字节及 FD 行为，报告必须把这些证据与计时 caller 的检查分开说明。
+查询/调用护栏的 `lookup-fixture`/`rpc-fixture` 则逐次核对完整预期结果。本说明不改变计时客户端、采样或判定门槛。
+
 工程判定：主要注册 lane 对 R124 六块同为降低方向且配对中位至少降低 3%，才能写稳定实用收益；
 相对 C 独立报告，不从旧系列拼接。±1% 记工程平手，不是统计等价。注册 p95/p99、daemon CPU 若
 配对中位上升超过 5%，或功能门失败，不接受候选；共享查询/调用若出现明确退步也不接受。
