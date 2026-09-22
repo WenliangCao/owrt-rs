@@ -41,7 +41,7 @@ struct ClientCred {
 /// unnecessary on this hot table. Keep the full hash-map API and use the id
 /// itself as the hash value; object/type tables retain their normal hasher.
 #[derive(Default)]
-struct ClientIdHasher(u64);
+pub(crate) struct ClientIdHasher(u64);
 
 impl Hasher for ClientIdHasher {
     fn finish(&self) -> u64 { self.0 }
@@ -58,7 +58,7 @@ impl Hasher for ClientIdHasher {
     fn write_u32(&mut self, value: u32) { self.0 = u64::from(value); }
 }
 
-type ClientMap = HashMap<u32, Client, BuildHasherDefault<ClientIdHasher>>;
+pub(crate) type ClientMap = HashMap<u32, Client, BuildHasherDefault<ClientIdHasher>>;
 
 impl ClientCred {
     fn as_cred(&self) -> Cred<'_> {
