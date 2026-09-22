@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "purpose": "Investigate R131 1KiB fanout +28KiB VmData guard: fixed-payload plateau after 1/1000/10000 validated events; not another optimization candidate",
+  "subjects": {
+    "c": {
+      "path": "private/r95/ubusd-pilot/stock",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic",
+      "source": "stock exact image"
+    },
+    "r124": {
+      "path": "private/r130-add-reply/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static",
+      "source": "a5b0ff1ec71a38d8c840b6995f859b503a08387d"
+    },
+    "r131": {
+      "path": "private/r131-event-batch/maps/r131",
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static",
+      "source": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc"
+    }
+  },
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "files": {
+    "driver": {
+      "path": "tools/r95_device_smoke.py",
+      "sha256": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d"
+    },
+    "guard": {
+      "path": "private/r95/guard",
+      "sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d"
+    },
+    "recovery_gate": {
+      "path": "private/r96/recovery-full/recovery-gate.json",
+      "sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536"
+    },
+    "harness": {
+      "path": "tools/benchmark/isolated.sh",
+      "sha256": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad"
+    },
+    "helper": {
+      "path": "private/r131-memory-plateau/event-memory-repeat",
+      "sha256": "a7e7a5e121466c131806ad73de484dda6f211fc37411df3a9fbd63c4869a9a00"
+    },
+    "workload": {
+      "path": "tools/r131_event_memory_plateau.sh",
+      "sha256": "8912fadddc0c91ce76f77876942950181ca0b0615543dc4d085e641385883fe3"
+    },
+    "runner": {
+      "path": "tools/r131_memory_plateau.py",
+      "sha256": "fc33b1a992fb26131e87cb57e96d1118d77fd0886fd6333e64ae3668bcb375f0"
+    },
+    "namespace_helper": {
+      "path": "private/r90/deployment-r90/bins/ns-exec",
+      "sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2"
+    }
+  },
+  "runs": [
+    {
+      "name": "01-c",
+      "subject": "c"
+    },
+    {
+      "name": "02-r124",
+      "subject": "r124"
+    },
+    {
+      "name": "03-r131",
+      "subject": "r131"
+    }
+  ],
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+    "/lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+    "/usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153"
+  },
+  "oracle_validation": {
+    "path": "private/r131-memory-plateau/oracle-01-result.json",
+    "sha256": "a0a8877ce25f6a022ba39107c27eae348aed7f8a3d19a2aa2f2536f84123cea2"
+  },
+  "scope": "Same daemon and exact ELF throughout 16B warmup, 1/1000/10000 large events, and disconnect. Samples after 1s/5s held at each phase. Record maps/status, exact live process identity, complete payload/handler validation.",
+  "interpretation": "Report every RssAnon/VmData change after first event. No statistical pass from three diagnostic windows; investigate any sustained increase. Original +24KiB guard and triggering +28KiB observation remain unchanged.",
+  "source": {
+    "tools/benchmark/r131_event_memory_repeat_libubus.c": "83fd3d3fee0dcb42466af6c9b9202dffa837334356b687fb092416396a121a5c",
+    "tools/benchmark/event_memory_libubus.c": "6a1aa1e5296c5fb4998e8118726931ef39af41eb33563161a6c54eaad304ec86",
+    "tools/benchmark/build-r131-event-memory-repeat.sh": "13059d0b4df11f558c6dabc113b4a1b7b541eb217e740574641f557cc3cfd269"
+  }
+}
