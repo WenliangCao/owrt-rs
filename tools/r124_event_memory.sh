@@ -28,7 +28,8 @@ sha256sum "$bin" > "$out/binary-sha256.txt"
 binary_sha=$(awk 'NR == 1 {print $1}' "$out/binary-sha256.txt")
 sha256sum "$bench" /tmp/bin/ns-exec /tmp/bin/guard > "$out/benchmark-sha256.txt"
 sha256sum /tmp/workload.sh > "$out/workload-sha256.txt"
-sha256sum /lib/libubus.so.20251202 /lib/libubox.so.20260213 /lib/libc.so /lib/libgcc_s.so.1 > "$out/libraries.sha256"
+sha256sum /lib/libubus.so.20251202 /lib/libubox.so.20260213 /lib/libc.so /lib/libgcc_s.so.1 \
+    /lib/libblobmsg_json.so.20260213 /usr/lib/libjson-c.so.5.4.0 > "$out/libraries.sha256"
 uname -r > "$out/kernel.txt"
 cat /sys/devices/system/cpu/online > "$out/cpus-online.txt"
 cat /proc/sys/kernel/random/boot_id > "$out/boot-id.txt"
@@ -113,11 +114,17 @@ wait_phase() {
     tries=0
     until grep -q "\"phase\":\"$awaiting\"" "$case_dir/helper.jsonl"; do
         kill -0 "$daemon"
-        kill -0 "$helper"
+        if ! kill -0 "$helper" 2>/dev/null; then
+            # The final phase may have been flushed after grep, just before
+            # helper exit. Its caller still checks the exit status with wait.
+            grep -q "\"phase\":\"$awaiting\"" "$case_dir/helper.jsonl" || return 1
+            break
+        fi
         [ "$tries" -lt 100 ]
         sleep 0.1
         tries=$((tries + 1))
     done
+    kill -0 "$daemon"
     [ "$(grep -c "\"phase\":\"$awaiting\"" "$case_dir/helper.jsonl")" -eq 1 ]
 }
 
