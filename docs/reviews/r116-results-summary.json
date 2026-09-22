@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "status": "R116 receive-scratch ablation rejected; no consistent physical CPU gain over R115",
+  "candidate_sha256": "25a7fdefa8a29f166f5cb4d1ead3c500a3e9371ed1e7e9dedc1b145e74b94188",
+  "correctness": "45 Oracle tests, six Oracle functional/recovery gates, nine extra FD cases, two physical preflights passed; no install.",
+  "cpu_results": {
+    "c-low": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.1082839593009262,
+        "paired_ratios": [
+          1.1183394013153545,
+          1.0982285172864978
+        ]
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.0559104461647553,
+        "paired_ratios": [
+          1.0608908346332748,
+          1.0509300576962357
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.0582950464999805,
+        "paired_ratios": [
+          1.0650583173509853,
+          1.0515317756489755
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.0493946657894988,
+        "paired_ratios": [
+          1.0571240415212904,
+          1.0416652900577072
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.0676950865981563,
+        "paired_ratios": [
+          1.0719099604123383,
+          1.0634802127839744
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.03257893926815,
+        "paired_ratios": [
+          1.0345285623435876,
+          1.030629316192712
+        ]
+      }
+    ],
+    "c-loaded": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.1292062923872863,
+        "paired_ratios": [
+          1.1028595524772618,
+          1.1555530322973107
+        ]
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.069895303616328,
+        "paired_ratios": [
+          1.052991744397016,
+          1.0867988628356395
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.0436707534402836,
+        "paired_ratios": [
+          1.0378770783355722,
+          1.049464428544995
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.0335094495643284,
+        "paired_ratios": [
+          1.0351836894530584,
+          1.0318352096755987
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.0636231385992347,
+        "paired_ratios": [
+          1.0485142428988623,
+          1.0787320342996072
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.031666007412503,
+        "paired_ratios": [
+          1.0253466924664527,
+          1.0379853223585536
+        ]
+      }
+    ],
+    "r114-low": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 0.9970486038244089,
+        "paired_ratios": [
+          0.9852004748405168,
+          1.008896732808301
+        ]
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 0.9992764880570111,
+        "paired_ratios": [
+          0.9905820666663927,
+          1.0079709094476295
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.0022733357078288,
+        "paired_ratios": [
+          1.0025414282220457,
+          1.0020052431936117
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.0080099384482708,
+        "paired_ratios": [
+          1.0127492724495286,
+          1.003270604447013
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.0143583850767852,
+        "paired_ratios": [
+          1.0033143619079303,
+          1.0254024082456403
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.0137255218960763,
+        "paired_ratios": [
+          1.0009315056834585,
+          1.0265195381086942
+        ]
+      }
+    ],
+    "r114-loaded": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.0029086586627718,
+        "paired_ratios": [
+          0.9991236598714508,
+          1.0066936574540928
+        ]
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.0019772693012186,
+        "paired_ratios": [
+          0.9999313632843229,
+          1.0040231753181141
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "median_ratio": 0.979777968856453,
+        "paired_ratios": [
+          0.9855206511390665,
+          0.9740352865738394
+        ]
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "median_ratio": 0.978405239735715,
+        "paired_ratios": [
+          0.9851601422332895,
+          0.9716503372381404
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "median_ratio": 1.009086661781422,
+        "paired_ratios": [
+          1.00767478103423,
+          1.010498542528614
+        ]
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "median_ratio": 1.0030642769862232,
+        "paired_ratios": [
+          0.9975390524850917,
+          1.0085895014873547
+        ]
+      }
+    ]
+  },
+  "decision": "R116 reuses recvmsg iovec/msghdr/SCM_RIGHTS scratch within each readiness callback, matching exact C structure lifetime. Against C, daemon CPU remains +4.37\u201312.92% in the six cells; against R114 it changes mixedly (-2.02 to +1.44%). It adds lifetime-sensitive unsafe syscall state without a consistent router gain, so retain the patch as rejected. No further low-risk algorithmic direction is supported by the measured evidence; remaining C/Rust gap is unassigned, and no language-limit proof is claimed."
+}
