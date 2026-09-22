@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "purpose": "R131 Oracle exact-ELF cpu-clock profile for same-connection eight-event fanout; diagnostic only",
+  "runner_sha256": "92b33e3449d833d64a28076abf8bb12d5d2deb52685ea51788d90c6910789ec9",
+  "rootfs": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "libraries": {
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+      "/usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153"
+    }
+  },
+  "client": {
+    "path": "/home/ubuntu/r110-rx-stack/perf-sync-client-v2/user-event-perf-v3",
+    "sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7"
+  },
+  "subjects": {
+    "c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic"
+    },
+    "r124": {
+      "path": "/home/ubuntu/r131-event-batch/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static"
+    },
+    "r131": {
+      "path": "/home/ubuntu/r131-event-batch/maps/r131",
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static"
+    }
+  },
+  "runs": [
+    {
+      "subject": "c",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r124",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r131",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r131",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r124",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "c",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r124",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "c",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "c",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r131",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r124",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    },
+    {
+      "subject": "r131",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8
+    }
+  ],
+  "scope": "Oracle only; eight handlers on one listener connection, cpu-clock IP samples; no router or caller CPU causality claim"
+}
