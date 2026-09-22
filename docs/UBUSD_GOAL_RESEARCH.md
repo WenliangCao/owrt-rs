@@ -18,7 +18,10 @@ R109 现在仅是历史性能对照，不能称为已完成兼容性验收的可
 现在按精确 C 的 prefix/body 消费边界重建性能基线。R112 的 CPU 确认采样未启动。
 [R113 内存基线](reviews/R113_UBUSD_BOUNDED_RX_BASELINE.md)十窗口已完成：64 连接
 RssAnon 增长两次均 28 KiB，低于同轮 C 的 48 KiB、R89 的 36 KiB，通过冻结门。
-无连接和断连后 VmData 仍比 C 高 4 KiB；CPU 仅启动独立探索，尚无运行时接受结论。
+无连接和断连后 VmData 仍比 C 高 4 KiB；十二个 CPU 探索窗口已完成，C 对照六个
+lane/规模单元的 daemon CPU 两次均上升（中点约 +3.78% 至 +15.32%），尚无运行时接受结论。
+[R114 借用入站派发](reviews/R114_UBUSD_BORROWED_DISPATCH_PLAN.md)独立候选 `579c879`
+已通过 44 条 Oracle 单测及附加 FD 差分，正在进行实机正确性门；尚未测候选性能。
 
 ## 已有证据与当前起点
 
