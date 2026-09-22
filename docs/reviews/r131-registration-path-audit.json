@@ -1,0 +1,158 @@
+{
+  "scope": "Read-only exact-source and exact-ELF registration audit; no new timing/profile/router operation",
+  "c_source_commit": "24864e7840b3a02a9ef76284a373f6b2f00b8a9b",
+  "rust_sources": {
+    "r124": "a5b0ff1ec71a38d8c840b6995f859b503a08387d",
+    "r131": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc"
+  },
+  "elf_sha256": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+    "r131": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a"
+  },
+  "identical_method_source_bodies": [
+    "add_object",
+    "remove_object",
+    "free_object",
+    "send_obj_event",
+    "send_object_reply",
+    "send_status"
+  ],
+  "symbols": {
+    "r124": {
+      "event_send": {
+        "address": "0x00000000004102b4",
+        "bytes": 1580
+      },
+      "free_object": {
+        "address": "0x00000000004108e0",
+        "bytes": 1572
+      },
+      "send_obj_event": {
+        "address": "0x0000000000412718",
+        "bytes": 1196
+      },
+      "send_object_reply": {
+        "address": "0x0000000000412bc4",
+        "bytes": 256
+      },
+      "handle": {
+        "address": "0x0000000000412f10",
+        "bytes": 11016
+      }
+    },
+    "r131": {
+      "event_send": {
+        "address": "0x0000000000410584",
+        "bytes": 2844
+      },
+      "free_object": {
+        "address": "0x00000000004110a0",
+        "bytes": 1572
+      },
+      "send_obj_event": {
+        "address": "0x0000000000412bec",
+        "bytes": 2864
+      },
+      "send_object_reply": {
+        "address": "0x000000000041371c",
+        "bytes": 256
+      },
+      "handle": {
+        "address": "0x0000000000413a68",
+        "bytes": 11020
+      }
+    }
+  },
+  "ordinary_empty_pattern_path": {
+    "assumptions": [
+      "valid object with path",
+      "epoch does not wrap",
+      "Rc path strong count remains nonzero",
+      "patterns empty"
+    ],
+    "instruction_counts_excluding_reg_lookup_callee": {
+      "r124": 48,
+      "r131": 51
+    },
+    "stack_frame_bytes": {
+      "r124": 176,
+      "r131": 208
+    },
+    "delta_instructions_per_object_event": 3,
+    "delta_instructions_per_add_remove_cycle": 6,
+    "blocks": {
+      "r124": [
+        [
+          "0x412718",
+          "0x41279c"
+        ],
+        [
+          "0x412814",
+          "0x412818"
+        ],
+        [
+          "0x412b50",
+          "0x412b7c"
+        ]
+      ],
+      "r131": [
+        [
+          "0x412bec",
+          "0x412c6c"
+        ],
+        [
+          "0x412ce4",
+          "0x412cf4"
+        ],
+        [
+          "0x413670",
+          "0x4136a0"
+        ]
+      ]
+    },
+    "new_work": [
+      "monitor length load and stack spill before empty-pattern branch",
+      "event_batch length zeroed before pattern check and at return"
+    ],
+    "removed_work": [
+      "old path-length stack spill; retained in register in R131"
+    ],
+    "new_batch_allocation_or_event_send_on_this_path": false
+  },
+  "early_path_hypothesis": {
+    "implemented": false,
+    "preserve_epoch_and_wrap": true,
+    "eligible_sites": [
+      "ADD after create and successful set_path",
+      "free_object after event cleanup and explicit existing-path check, before destroy"
+    ],
+    "expected_saved_old_work": [
+      "object registry lookup",
+      "Rc path reference increment/decrement"
+    ],
+    "must_preserve": [
+      "no epoch change for invalid/pathless private send_obj_event calls",
+      "outgoing event_seq unchanged without recipients",
+      "ADD/REMOVE/DATA/STATUS monitor boundaries",
+      "scratch contents",
+      "no new full-pattern pre-scan"
+    ]
+  },
+  "function_level_registration_cause_proven": false,
+  "existing_profile_limit": "R121/R125/R131 user-event profiles exclude timed registration; no causal registration attribution",
+  "inputs": {
+    "private/r131-register-audit/empty-path-instructions.json": "6753e922318e46f7a7494f6a17370acaebffb0e0fcfdc5caae71c50a4ecd0724",
+    "private/r131-register-audit/oracle-identities.txt": "e0ae6ac37d9163fd21ec90010290dd6434495002294aaa3f143936e2a72e7100",
+    "private/r131-register-audit/r124-send-obj-event.asm": "2d933900372fe3ec439e76c39e88071851fa6c0ea98f9e2aaa5e56e0559e5d06",
+    "private/r131-register-audit/r131-send-obj-event.asm": "f5764d7229376c5d120c6e78829b771cac2e511c36f2222bf5ab55c7a70be017",
+    "private/r131-register-audit/ubusd.c": "07f31e0e66be61b248f835b90c7699e5163136fa85471acde88199538c99e5a4",
+    "private/r131-register-audit/ubusd_acl.c": "8a1bb8b74405a3dc756acc76f3b8abf4f649920f21d2e52ae6bbe50a20390192",
+    "private/r131-register-audit/ubusd_event.c": "efc70829dbbfa570b0b453a128bc55e0b5d4356e0e01dd98a830268d19ba73e1",
+    "private/r131-register-audit/ubusd_id.c": "a82b1132911173cc853540272750cfcacdd9f15cc255ae73104fd4678833dca3",
+    "private/r131-register-audit/ubusd_obj.c": "dfd9a60b36e1ea42e17d8fade3bf4f939e48e48fdcf8d27a84fe8fb648eefb10",
+    "private/r131-register-audit/ubusd_proto.c": "815c1ddd6c4c1c0009f899b78d5e143e2b50a7f8e0d389031d717865f5d2aa66",
+    "private/r130-add-reply/maps/r124.map": "7b501ffe94d1fd5ea554c1f37aca7e49bceb7e7fc9dead0544b324be6d1bf546",
+    "private/r131-event-batch/maps/r131.map": "d484cbd5933dac273ff0105e64254183dfbf5fa29e77ec3551a4676e2015d4cf"
+  }
+}
