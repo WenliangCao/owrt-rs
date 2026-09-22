@@ -13,11 +13,13 @@ case "$3" in
     *) exit 125 ;;
 esac
 bench=/tmp/bin/owrt-benchmark
+event_bench=/tmp/bin/event-benchmark
 out=/tmp/out
 socket=/var/run/ubus/ubus.sock
 mkdir -p /var/run/ubus
 sha256sum "$bin" > "$out/binary-sha256.txt"
 sha256sum "$bench" /tmp/bin/ns-exec > "$out/benchmark-sha256.txt"
+sha256sum "$event_bench" > "$out/event-benchmark-sha256.txt"
 uname -r > "$out/kernel.txt"
 cat /sys/devices/system/cpu/online > "$out/cpus-online.txt"
 cat /proc/cpuinfo > "$out/cpuinfo.txt"
@@ -51,9 +53,9 @@ cmp "$out/daemon-before.cmdline" "$out/daemon-expected.cmdline"
 ubus -s "$socket" list > "$out/objects-before.txt"
 [ ! -s "$out/objects-before.txt" ]
 printf '{"subject_pid":%s,"subject_cpu":1,"client_cpu":0,"implementation":"%s","iterations":%s,"warmup":20,"scenarios":["user_1_1","user_8_1","user_1_0"],"exact_image_caller":true,"daemon_argv0":"/sbin/ubusd"}\n' "$pid" "$3" "$4" > "$out/meta.json"
-"$bench" user-event "$socket" 1 1 "$4" 20 "$pid" > "$out/user_1_1.json"
-"$bench" user-event "$socket" 8 1 "$4" 20 "$pid" > "$out/user_8_1.json"
-"$bench" user-event "$socket" 1 0 "$4" 20 "$pid" > "$out/user_1_0.json"
+"$event_bench" user-event "$socket" 1 1 "$4" 20 "$pid" > "$out/user_1_1.json"
+"$event_bench" user-event "$socket" 8 1 "$4" 20 "$pid" > "$out/user_8_1.json"
+"$event_bench" user-event "$socket" 1 0 "$4" 20 "$pid" > "$out/user_1_0.json"
 frequencies > "$out/frequency-after.txt"
 cat /proc/$pid/status > "$out/daemon-after.status"
 cat /proc/$pid/cmdline > "$out/daemon-after.cmdline"
@@ -61,6 +63,7 @@ readlink /proc/$pid/exe > "$out/daemon-after.exe"
 sha256sum /proc/$pid/exe > "$out/daemon-after.exe-sha256"
 sha256sum "$bin" > "$out/binary-after-sha256.txt"
 sha256sum "$bench" /tmp/bin/ns-exec > "$out/benchmark-after-sha256.txt"
+sha256sum "$event_bench" > "$out/event-benchmark-after-sha256.txt"
 awk '{sub(/^.*\) /, ""); print $20}' /proc/$pid/stat > "$out/daemon-after.starttime"
 cmp "$out/daemon-before.cmdline" "$out/daemon-after.cmdline"
 cmp "$out/daemon-before.exe-sha256" "$out/daemon-after.exe-sha256"

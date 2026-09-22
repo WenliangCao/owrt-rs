@@ -37,6 +37,7 @@ def main():
     p.add_argument("--recovery-gate", type=Path, required=True)
     p.add_argument("--guard", type=Path, required=True, help="SDK-built tools/testsrc/r95_guard.c")
     p.add_argument("--benchmark", type=Path, help="explicit diagnostic client override; identity recorded, never installed")
+    p.add_argument("--event-benchmark", type=Path, help="optional separate event caller; copied as /tmp/bin/event-benchmark")
     p.add_argument("--unit-tests", type=Path, help="SDK-built Rust test executable")
     p.add_argument("--unit-filter", default="file::read_tests", help="test name filter, recorded in evidence")
     p.add_argument("--workload-script", type=Path, help="isolated.sh-compatible correctness probe")
@@ -94,6 +95,10 @@ def main():
             result["benchmark_sha256"] = hashlib.sha256(a.benchmark.read_bytes()).hexdigest()
             subprocess.run(["scp", "-q", "-O", str(a.benchmark.resolve()),
                             a.host + f":{base}/bundle/owrt-benchmark"], check=True)
+        if a.event_benchmark:
+            result["event_benchmark_sha256"] = hashlib.sha256(a.event_benchmark.read_bytes()).hexdigest()
+            subprocess.run(["scp", "-q", "-O", str(a.event_benchmark.resolve()),
+                            a.host + f":{base}/bundle/event-benchmark"], check=True)
         for local, destination in [(a.candidate, f"{base}/bundle/{binary}"),
                                    (a.guard, f"{base}/guard"),
                                    (harness, f"{base}/isolated.sh")]:
@@ -116,6 +121,8 @@ def main():
             expected = (result["benchmark_sha256"] if tool == "owrt-benchmark" and a.benchmark
                         else manifest["tools"][tool]["sha256"])
             assert remote(f"sha256sum {base}/bundle/{tool}").decode().split()[0] == expected
+        if a.event_benchmark:
+            assert remote(f"sha256sum {base}/bundle/event-benchmark").decode().split()[0] == result["event_benchmark_sha256"]
         if a.unit_tests:
             unit_sha = hashlib.sha256(a.unit_tests.read_bytes()).hexdigest()
             subprocess.run(["scp", "-q", "-O", str(a.unit_tests.resolve()), a.host + f":{base}/unit-tests"], check=True)

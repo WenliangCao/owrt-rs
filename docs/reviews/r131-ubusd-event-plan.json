@@ -29,13 +29,17 @@
   "files": {
     "driver": {
       "path": "tools/r95_device_smoke.py",
-      "sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b"
+      "sha256": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d"
     },
     "workload": {
       "path": "tools/r131_ubusd_event_batch.sh",
-      "sha256": "294746e3d2d524249bc3c37b2d5bef277a12b814e93a2c508f7d371e254f160f"
+      "sha256": "ec50bc00e5b6176aeff4d1a30aac74569de08acb3580047ff7c0bbb0cdd1b463"
     },
     "benchmark": {
+      "path": "private/r127-r124-matrix/owrt-benchmark",
+      "sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e"
+    },
+    "event_benchmark": {
       "path": "private/r103-event-send-borrow/user-event-libubus",
       "sha256": "e80801f8fd82de4f15a96bcb5e1263f2d08ba90b21687dc0489d7260589321f0"
     },
@@ -196,5 +200,5 @@
     "No R131 result exists until the router series completes and raw evidence is independently checked.",
     "Memory and nine-component integration are outside this event-only pilot."
   ],
-  "orchestrator_sha256": "7d38afb6b7510859b76fec2ce005203822a7717fad1b2e0eafcf11f95209dfbe"
+  "orchestrator_sha256": "b41db21fd53bb22f6d033aa7ae24d803efd26edfbe925c0221d4407e2db605a7"
 }

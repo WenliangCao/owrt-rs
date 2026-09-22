@@ -111,6 +111,8 @@ def verify_window(window: Path, plan: dict, run: dict) -> None:
               f"{window.name}: {key} identity differs")
     check(result.get("benchmark_sha256") == files["benchmark"]["sha256"],
           f"{window.name}: benchmark identity differs")
+    check(result.get("event_benchmark_sha256") == files["event_benchmark"]["sha256"],
+          f"{window.name}: event benchmark identity differs")
     for phase in ("before", "after"):
         health = json.loads((window / f"health-{phase}.json").read_text())
         check(health.get("boot_id") == plan["boot_id"],
@@ -132,6 +134,10 @@ def verify_window(window: Path, plan: dict, run: dict) -> None:
     for filename in ("benchmark-sha256.txt", "benchmark-after-sha256.txt"):
         check(hash_rows(window / f"raw/{filename}") == expected_tools,
               f"{window.name}: benchmark/helper hash differs")
+    for filename in ("event-benchmark-sha256.txt", "event-benchmark-after-sha256.txt"):
+        check(hash_rows(window / f"raw/{filename}") == {
+            "/tmp/bin/event-benchmark": plan["files"]["event_benchmark"]["sha256"]
+        }, f"{window.name}: event benchmark hash differs")
     check(hash_rows(window / "raw/harness-sha256.txt") == {
         "/tmp/workload.sh": plan["files"]["workload"]["sha256"]
     }, f"{window.name}: workload hash differs")
@@ -195,6 +201,8 @@ def main() -> int:
             str(guard),
             "--benchmark",
             str(benchmark),
+            "--event-benchmark",
+            str(ROOT / files["event_benchmark"]["path"]),
             "--workload-script",
             str(workload),
         ]
