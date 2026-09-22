@@ -618,6 +618,10 @@ impl Server {
     /// A reply (STATUS or DATA) travelling from an object's owner back to the
     /// original caller. Every failure here is silent, as in the C daemon.
     fn response(&mut self, client: u32, msg: InMsg) -> Outcome {
+        let dest = msg.header.peer;
+        if !self.clients.contains_key(&dest) {
+            return Outcome::NoStatus;
+        }
         let attrs = attrs_of(msg.payload());
         let Some(id) = attrs[attr::OBJID as usize].and_then(|a| a.as_u32()) else {
             return Outcome::NoStatus;
@@ -629,10 +633,6 @@ impl Server {
             return Outcome::NoStatus;
         }
         if self.reg.get(id).and_then(|o| o.client) != Some(client) {
-            return Outcome::NoStatus;
-        }
-        let dest = msg.header.peer;
-        if !self.clients.contains_key(&dest) {
             return Outcome::NoStatus;
         }
         self.send_received(dest, Header { peer: id, ..msg.header }, msg.blob, msg.fd);
@@ -1302,6 +1302,106 @@ mod tests {
         let a = blob::Attr { id: 9, extended: true, payload: &payload };
         assert!(check_method(&a).is_none());
     }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn missing_response_destination_closes_fd_and_preserves_incoming_monitor() {
+        use std::io::Read;
+        use std::os::unix::net::UnixStream;
+        for ty in [ty::STATUS, ty::DATA] {
+            for dest in [0, 9000] {
+                for malformed in [false, true] {
+                    let mut s = Server::new(String::new()).unwrap();
+                    let (owner, mut owner_peer) = lookup_client();
+                    let (monitor, mut monitor_peer) = lookup_client();
+                    s.clients.insert(2000, Box::new(owner));
+                    s.clients.insert(2001, Box::new(monitor));
+                    s.monitors.push((2001, 0));
+                    s.reg.create(None, Some(4000)).unwrap();
+                    s.reg.get_mut(4000).unwrap().client = Some(2000);
+                    let mut b = BlobBuf::new();
+                    if malformed { b.put(attr::OBJID, &[0, 1]); }
+                    else { b.put_u32(attr::OBJID, 4000); }
+                    if ty == ty::STATUS { b.put_u32(attr::STATUS, 0); }
+                    else { b.put(attr::DATA, b"response"); }
+                    let bytes = b.as_bytes().to_vec();
+                    let header = Header { ty, seq: 77, peer: dest };
+                    let (passed, mut witness) = UnixStream::pair().unwrap();
+                    witness.set_nonblocking(true).unwrap();
+                    assert!(s.receive(2000, InMsg { header, blob: Cow::Borrowed(&bytes), fd: Some(passed.into()) }));
+                    assert_eq!(witness.read(&mut [0]).unwrap(), 0, "discarded response FD must close");
+                    assert!(drain_lookup(&mut s, 2000, &mut owner_peer).is_empty(), "no error response");
+                    let mirrors = lookup_frames(&drain_lookup(&mut s, 2001, &mut monitor_peer));
+                    assert_eq!(mirrors.len(), 1, "only the incoming response is mirrored");
+                    assert_eq!(mirrors[0].0.encode(), Header { ty: ty::MONITOR, seq: 1, peer: 0 }.encode());
+                    let mut expected = BlobBuf::new();
+                    expected.put_u32(0, 2000);
+                    expected.put_u32(1, dest);
+                    expected.put_u32(3, 77);
+                    expected.put_u32(4, ty as u32);
+                    expected.put_u8(2, 0);
+                    expected.put(5, &bytes[4..]);
+                    assert_eq!(mirrors[0].1, expected.as_bytes(), "complete incoming monitor bytes");
+                }
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn existing_response_destination_keeps_validation_and_status_fd_forwarding() {
+        use std::io::{Read, Write};
+        use std::os::unix::net::UnixStream;
+        for ty in [ty::STATUS, ty::DATA] {
+            for case in ["valid", "malformed objid", "missing required attr", "wrong owner"] {
+                let mut s = Server::new(String::new()).unwrap();
+                let (owner, mut owner_peer) = lookup_client();
+                let (dest, dest_peer) = lookup_client();
+                s.clients.insert(2000, Box::new(owner));
+                s.clients.insert(2001, Box::new(dest));
+                let mut receiver = Client::new(dest_peer.into(), crate::sys::Ucred::default(), String::new(), String::new());
+                s.reg.create(None, Some(4000)).unwrap();
+                s.reg.get_mut(4000).unwrap().client = Some(if case == "wrong owner" { 9000 } else { 2000 });
+                let mut b = BlobBuf::new();
+                if case == "malformed objid" { b.put(attr::OBJID, &[0, 1]); }
+                else { b.put_u32(attr::OBJID, 4000); }
+                if case != "missing required attr" {
+                    if ty == ty::STATUS { b.put_u32(attr::STATUS, 0); }
+                    else { b.put(attr::DATA, b"response"); }
+                }
+                let bytes = b.as_bytes().to_vec();
+                let header = Header { ty, seq: 77, peer: 2001 };
+                let (passed, mut witness) = UnixStream::pair().unwrap();
+                witness.set_nonblocking(true).unwrap();
+                assert!(s.receive(2000, InMsg { header, blob: Cow::Owned(bytes.clone()), fd: Some(passed.into()) }));
+                assert!(drain_lookup(&mut s, 2000, &mut owner_peer).is_empty(), "{case}: no error response");
+                assert!(s.clients[&2001].tx_empty(), "small fixture must send directly");
+                let mut rx = [0; crate::client::RX_SIZE];
+                receiver.begin_read(&mut rx);
+                let reply = receiver.read_message(&mut rx).unwrap().map(InMsg::into_owned);
+                if case == "valid" {
+                    let mut reply = reply.expect("valid response must forward");
+                    assert_eq!(reply.header.encode(), Header { peer: 4000, ..header }.encode());
+                    assert_eq!(reply.blob.as_ref(), bytes);
+                    assert_eq!(reply.fd.is_some(), ty == ty::STATUS);
+                    if let Some(fd) = reply.fd.take() {
+                        let mut received = UnixStream::from(fd);
+                        received.set_read_timeout(Some(std::time::Duration::from_secs(2))).unwrap();
+                        witness.write_all(b"x").unwrap();
+                        let mut byte = [0];
+                        received.read_exact(&mut byte).unwrap();
+                        assert_eq!(byte, *b"x", "forwarded STATUS FD remains usable");
+                    }
+                } else {
+                    assert!(reply.is_none(), "{case}: invalid response must not forward");
+                }
+                assert!(receiver.read_message(&mut rx).unwrap().is_none(), "no extra response");
+                receiver.end_read(&rx);
+                assert_eq!(witness.read(&mut [0]).unwrap(), 0, "{case}: response FD must not leak");
+            }
+        }
+    }
+
     #[cfg(target_os = "linux")]
     #[test]
     fn registration_replies_remain_owned_while_queued_and_monitored() {
