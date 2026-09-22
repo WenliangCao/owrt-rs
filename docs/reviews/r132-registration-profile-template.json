@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "mode": "profile",
+  "purpose": "R132 exact-release registration attribution; Oracle diagnostic, not router acceptance",
+  "runner_sha256": "c32372bf8eb4c1cb6a9e755519ef92d3583fe3525a958220ca72f10e308a7be1",
+  "support_sha256": {
+    "r121_perf_record.py": "92b33e3449d833d64a28076abf8bb12d5d2deb52685ea51788d90c6910789ec9",
+    "r121_symbolize.py": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12"
+  },
+  "rootfs": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "libraries": {
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+      "/usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153"
+    }
+  },
+  "client": {
+    "path": "/home/ubuntu/r132-registration-caller/build-02/owrt-register-perf",
+    "sha256": "ad707cee9684aeaccbddf548f59eda18c2b6ce3eb7590cee5436296e18251b4f",
+    "kind": "static"
+  },
+  "perf": {
+    "path": "/usr/bin/perf",
+    "sha256": "2d0953085bf720a25efbe24f853e97d27b1f12f18a398255ff82cbafde254dad"
+  },
+  "subjects": {
+    "c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic",
+      "symbols": {
+        "kind": "symbols_elf",
+        "path": "/home/ubuntu/r121-symbol-profile/c-symbols",
+        "sha256": "51f91f7d548600ca56ff47516f0a4854c50fb5a1defb768dc8ffabb5a202723b"
+      }
+    },
+    "r124": {
+      "path": "/home/ubuntu/r131-event-batch/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static",
+      "symbols": {
+        "kind": "linker_map",
+        "path": "/home/ubuntu/r131-event-batch/maps/r124.map",
+        "sha256": "789129b18238a4c473fa3ee933d91ce42cb050c1c324532d1c0451495da4c9dc"
+      }
+    },
+    "r131": {
+      "path": "/home/ubuntu/r131-event-batch/maps/r131",
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static",
+      "symbols": {
+        "kind": "linker_map",
+        "path": "/home/ubuntu/r131-event-batch/maps/r131.map",
+        "sha256": "d484cbd5933dac273ff0105e64254183dfbf5fa29e77ec3551a4676e2015d4cf"
+      }
+    }
+  },
+  "launch_directory": "/tmp/r132-registration-normalized",
+  "timeout_seconds": 180,
+  "runs": [
+    {
+      "subject": "c",
+      "methods": 1,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r124",
+      "methods": 1,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r131",
+      "methods": 1,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r131",
+      "methods": 1,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r124",
+      "methods": 1,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "c",
+      "methods": 1,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "c",
+      "methods": 16,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r124",
+      "methods": 16,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r131",
+      "methods": 16,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r131",
+      "methods": 16,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "r124",
+      "methods": 16,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    },
+    {
+      "subject": "c",
+      "methods": 16,
+      "name_bytes": 8,
+      "n": 300000,
+      "warmup": 5000
+    }
+  ],
+  "interpretation": "Fixed diagnostic sample count; no automatic extension or router performance verdict",
+  "profile": {
+    "event": "cpu-clock",
+    "frequency_hz": 997,
+    "mmap_buffer": "8M",
+    "callgraph": false
+  }
+}
