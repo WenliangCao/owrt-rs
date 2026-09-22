@@ -108,6 +108,7 @@ sample_phase() {
     sample "$phase" 5 "$expected_fds"
 }
 
+# The exact image's BusyBox sleep accepts integer seconds only.
 wait_phase() {
     awaiting=$1
     current_phase=wait-$awaiting
@@ -120,8 +121,8 @@ wait_phase() {
             grep -q "\"phase\":\"$awaiting\"" "$case_dir/helper.jsonl" || return 1
             break
         fi
-        [ "$tries" -lt 100 ]
-        sleep 0.1
+        [ "$tries" -lt 10 ]
+        sleep 1
         tries=$((tries + 1))
     done
     kill -0 "$daemon"
@@ -138,7 +139,7 @@ for bytes in $sizes; do
     until /tmp/bin/guard 2 ubus -s "$socket" -t 1 list > "$case_dir/ready-$tries.txt" 2> "$case_dir/ready-$tries.log"; do
         kill -0 "$daemon"
         [ "$tries" -lt 4 ]
-        sleep 0.1
+        sleep 1
         tries=$((tries + 1))
     done
     [ ! -s "$case_dir/ready-$tries.txt" ]
@@ -176,8 +177,8 @@ for bytes in $sizes; do
     tries=0
     while [ "$(fd_count)" -ne "$baseline_fds" ]; do
         kill -0 "$daemon"
-        [ "$tries" -lt 50 ]
-        sleep 0.1
+        [ "$tries" -lt 5 ]
+        sleep 1
         tries=$((tries + 1))
     done
     sample_phase disconnected "$baseline_fds"

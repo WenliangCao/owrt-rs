@@ -1,0 +1,29 @@
+{
+  "scope": "Failed collector compatibility preflight; no memory snapshots collected. Not a C or Rust runtime failure.",
+  "plan_sha256": "14c5b16a39a55a77708468dfc2c1f406cdd620ff8ffa3fb94f4de4246638b6ec",
+  "reason": "Exact-router sleep rejects fractional 0.1; first daemon readiness retry exited before first snapshot.",
+  "result": {
+    "component": "ubusd",
+    "candidate_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "workload_sha256": "f048f553cf60e57b0e720facbcb5504f579d1db4510192d7a5452ca8715b1d1a",
+    "benchmark_sha256": "5ed020410fccb32ffea9b852ac58ed50ff567ff0a503ce8af7c96cb82a6b56f3",
+    "passed": false,
+    "exit": 1,
+    "cleanup_verified": true,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true,
+    "production_mode": "stock",
+    "installed": false
+  },
+  "files_sha256": {
+    "private/r124-event-memory/router-01/FAILED.json": "4e645878b46fe15fb155ea1a6621f79d14bb5ce1f19b69b53f4ecf3a097f11f2",
+    "private/r124-event-memory/router-01/01-c/run.log": "7e6636741522f3b365406dc2ee078c9c68fd9ca964a159637d96fa92d410da65",
+    "private/r124-event-memory/router-01/01-c/result.json": "99fb37114592e267b485efac1926db88098248f65875cbca06cd0ff0f6204ff2",
+    "private/r124-event-memory/router-01/01-c/raw/FAILED.json": "3e5be1c20f00bb8ffc3c0ac38ca58e07dc4642e4f260577c478dbe119858aeaf",
+    "private/r124-event-memory/router-01/01-c/raw/memory.csv": "cedb2d82ee2d9a8018499ff42c73d6323ddccc0c942689d388ffabb276ab9363",
+    "private/r124-event-memory/router-01/01-c/raw.tar.gz": "5d541031072ab95bb126d765d58e0456f061c847ffa87a18796c768e988c70b3"
+  },
+  "replacement": "Integer-second retry sleeps, wait_phase at most ten sleeps and disconnect at most five. External commands add execution time; 120-second outer guard remains the hard window bound. Re-freeze a new four-window cohort; no failed output overwrite."
+}
