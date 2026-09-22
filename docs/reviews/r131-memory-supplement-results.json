@@ -1,0 +1,6536 @@
+{
+  "schema_version": 1,
+  "scope": "Physical AX3000T R131 memory supplement and separate fixed-payload plateau investigation",
+  "subjects": {
+    "c": {
+      "path": "private/r95/ubusd-pilot/stock",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic",
+      "source": "stock exact image"
+    },
+    "r124": {
+      "path": "private/r130-add-reply/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static",
+      "source": "a5b0ff1ec71a38d8c840b6995f859b503a08387d"
+    },
+    "r131": {
+      "path": "private/r131-event-batch/maps/r131",
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static",
+      "source": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc"
+    }
+  },
+  "original_plan_sha256": "f49d819cfc472ad6b3c11c211642fa781251d803417020c99f7b526b8ce59f7f",
+  "original_frozen_guard": "Investigate R131/R124 RssAnon or VmData increase greater than 24 KiB for batch cases or 4 KiB for idle/large fallback. No automatic acceptance; correctness failure blocks adoption.",
+  "verification": {
+    "windows": 18,
+    "raw_archive_and_proc_snapshot_audit_passed": true,
+    "auditor_sha256": "99c3d862c87220884ec95ca5790cc77d5c0c557dc6cace7f412b8082545c3c8f",
+    "audit_result_sha256": "7f4c013bdad01fce71e998dc81ec7c6b955bfd3a517622f35736d691468bc512"
+  },
+  "original_guard_status": "flagged_for_investigation",
+  "original_guard_triggers": [
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "held",
+      "delay_seconds": 1,
+      "metric": "vmdata_kb",
+      "threshold_kib": 24,
+      "paired_increase_kib": [
+        28,
+        28
+      ]
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "held",
+      "delay_seconds": 5,
+      "metric": "vmdata_kb",
+      "threshold_kib": 24,
+      "paired_increase_kib": [
+        28,
+        28
+      ]
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "disconnected",
+      "delay_seconds": 1,
+      "metric": "vmdata_kb",
+      "threshold_kib": 24,
+      "paired_increase_kib": [
+        28,
+        28
+      ]
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "disconnected",
+      "delay_seconds": 5,
+      "metric": "vmdata_kb",
+      "threshold_kib": 24,
+      "paired_increase_kib": [
+        28,
+        28
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "kind": "idle",
+      "clients": 0,
+      "measurements_kib": {
+        "c": {
+          "rssanon_after_kb": [
+            72,
+            72
+          ],
+          "vmdata_after_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_after_kb": [
+            44,
+            44
+          ],
+          "vmdata_after_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_after_kb": [
+            44,
+            40
+          ],
+          "vmdata_after_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_after_kb": [
+          0,
+          -4
+        ],
+        "vmdata_after_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "idle",
+      "clients": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_after_kb": [
+            72,
+            72
+          ],
+          "vmdata_after_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_after_kb": [
+            44,
+            44
+          ],
+          "vmdata_after_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_after_kb": [
+            44,
+            44
+          ],
+          "vmdata_after_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_after_kb": [
+          0,
+          0
+        ],
+        "vmdata_after_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "idle",
+      "clients": 8,
+      "measurements_kib": {
+        "c": {
+          "rssanon_after_kb": [
+            76,
+            76
+          ],
+          "vmdata_after_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_after_kb": [
+            44,
+            44
+          ],
+          "vmdata_after_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_after_kb": [
+            40,
+            44
+          ],
+          "vmdata_after_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_after_kb": [
+          -4,
+          0
+        ],
+        "vmdata_after_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "idle",
+      "clients": 32,
+      "measurements_kib": {
+        "c": {
+          "rssanon_after_kb": [
+            96,
+            96
+          ],
+          "vmdata_after_kb": [
+            68,
+            68
+          ]
+        },
+        "r124": {
+          "rssanon_after_kb": [
+            52,
+            56
+          ],
+          "vmdata_after_kb": [
+            60,
+            60
+          ]
+        },
+        "r131": {
+          "rssanon_after_kb": [
+            52,
+            52
+          ],
+          "vmdata_after_kb": [
+            60,
+            60
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_after_kb": [
+          0,
+          -4
+        ],
+        "vmdata_after_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "idle",
+      "clients": 64,
+      "measurements_kib": {
+        "c": {
+          "rssanon_after_kb": [
+            120,
+            120
+          ],
+          "vmdata_after_kb": [
+            96,
+            96
+          ]
+        },
+        "r124": {
+          "rssanon_after_kb": [
+            72,
+            68
+          ],
+          "vmdata_after_kb": [
+            76,
+            76
+          ]
+        },
+        "r131": {
+          "rssanon_after_kb": [
+            68,
+            68
+          ],
+          "vmdata_after_kb": [
+            76,
+            76
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_after_kb": [
+          -4,
+          0
+        ],
+        "vmdata_after_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 32768,
+      "phase": "empty",
+      "delay_seconds": 0,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 32768,
+      "phase": "connected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 32768,
+      "phase": "connected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 32768,
+      "phase": "held",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            108,
+            108
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 32768,
+      "phase": "held",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            108,
+            108
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 32768,
+      "phase": "disconnected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            108,
+            108
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 32768,
+      "phase": "disconnected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            108,
+            108
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 262144,
+      "phase": "empty",
+      "delay_seconds": 0,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            44
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 262144,
+      "phase": "connected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            44
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 262144,
+      "phase": "connected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            44
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 262144,
+      "phase": "held",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            332,
+            332
+          ],
+          "vmdata_kb": [
+            304,
+            304
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            300,
+            304
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            300,
+            300
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 262144,
+      "phase": "held",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            332,
+            332
+          ],
+          "vmdata_kb": [
+            304,
+            304
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            300,
+            304
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            300,
+            300
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 262144,
+      "phase": "disconnected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            332,
+            332
+          ],
+          "vmdata_kb": [
+            304,
+            304
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            300,
+            304
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            300,
+            300
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 262144,
+      "phase": "disconnected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            332,
+            332
+          ],
+          "vmdata_kb": [
+            304,
+            304
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            300,
+            304
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            300,
+            300
+          ],
+          "vmdata_kb": [
+            308,
+            308
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 786432,
+      "phase": "empty",
+      "delay_seconds": 0,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          -4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 786432,
+      "phase": "connected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          -4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 786432,
+      "phase": "connected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          -4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 786432,
+      "phase": "held",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            844,
+            844
+          ],
+          "vmdata_kb": [
+            816,
+            816
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            816,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            812,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          -4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 786432,
+      "phase": "held",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            844,
+            844
+          ],
+          "vmdata_kb": [
+            816,
+            816
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            816,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            812,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          -4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 786432,
+      "phase": "disconnected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            844,
+            844
+          ],
+          "vmdata_kb": [
+            816,
+            816
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            816,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            812,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          -4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "large",
+      "payload_bytes": 786432,
+      "phase": "disconnected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            844,
+            844
+          ],
+          "vmdata_kb": [
+            816,
+            816
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            816,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            812,
+            812
+          ],
+          "vmdata_kb": [
+            820,
+            820
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          -4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "empty",
+      "delay_seconds": 0,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            68,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            40,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "connected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            44
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            44,
+            44
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "connected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            44
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            44,
+            44
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          0,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "held",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            76,
+            80
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            48,
+            48
+          ],
+          "vmdata_kb": [
+            56,
+            56
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            60,
+            60
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          12
+        ],
+        "vmdata_kb": [
+          28,
+          28
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "held",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            76,
+            80
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            48,
+            48
+          ],
+          "vmdata_kb": [
+            56,
+            56
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            60,
+            60
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          12
+        ],
+        "vmdata_kb": [
+          28,
+          28
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "disconnected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            48,
+            48
+          ],
+          "vmdata_kb": [
+            56,
+            56
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            60,
+            60
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          12
+        ],
+        "vmdata_kb": [
+          28,
+          28
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 1024,
+      "phase": "disconnected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            48,
+            48
+          ],
+          "vmdata_kb": [
+            56,
+            56
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            60,
+            60
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          12
+        ],
+        "vmdata_kb": [
+          28,
+          28
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 8192,
+      "phase": "empty",
+      "delay_seconds": 0,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            44
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            44,
+            44
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 8192,
+      "phase": "connected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            48
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            48,
+            48
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 8192,
+      "phase": "connected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            48
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            48,
+            48
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          0
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 8192,
+      "phase": "held",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            96,
+            96
+          ],
+          "vmdata_kb": [
+            76,
+            76
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            64,
+            68
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          8
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 8192,
+      "phase": "held",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            96,
+            96
+          ],
+          "vmdata_kb": [
+            76,
+            76
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            64,
+            68
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          8
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 8192,
+      "phase": "disconnected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            92,
+            92
+          ],
+          "vmdata_kb": [
+            72,
+            72
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            64,
+            68
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          8
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 8192,
+      "phase": "disconnected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            92,
+            92
+          ],
+          "vmdata_kb": [
+            72,
+            72
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            64,
+            68
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          12,
+          8
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 24
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 32768,
+      "phase": "empty",
+      "delay_seconds": 0,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            72,
+            72
+          ],
+          "vmdata_kb": [
+            44,
+            44
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            40,
+            44
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            44,
+            40
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 32768,
+      "phase": "connected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            48
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            48,
+            44
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 32768,
+      "phase": "connected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            76,
+            76
+          ],
+          "vmdata_kb": [
+            48,
+            48
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            44,
+            48
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            48,
+            44
+          ],
+          "vmdata_kb": [
+            52,
+            52
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 32768,
+      "phase": "held",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            112,
+            112
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            80,
+            84
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            84,
+            80
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 32768,
+      "phase": "held",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            112,
+            112
+          ],
+          "vmdata_kb": [
+            84,
+            84
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            80,
+            84
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            84,
+            80
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 32768,
+      "phase": "disconnected",
+      "delay_seconds": 1,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            108,
+            108
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            80,
+            84
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            84,
+            80
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    },
+    {
+      "kind": "fanout",
+      "payload_bytes": 32768,
+      "phase": "disconnected",
+      "delay_seconds": 5,
+      "measurements_kib": {
+        "c": {
+          "rssanon_kb": [
+            108,
+            108
+          ],
+          "vmdata_kb": [
+            80,
+            80
+          ]
+        },
+        "r124": {
+          "rssanon_kb": [
+            80,
+            84
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        },
+        "r131": {
+          "rssanon_kb": [
+            84,
+            80
+          ],
+          "vmdata_kb": [
+            88,
+            88
+          ]
+        }
+      },
+      "r131_minus_r124_paired_kib": {
+        "rssanon_kb": [
+          4,
+          -4
+        ],
+        "vmdata_kb": [
+          0,
+          0
+        ]
+      },
+      "threshold_kib": 4
+    }
+  ],
+  "windows": [
+    {
+      "name": "01-idle-c",
+      "kind": "idle",
+      "subject": "c",
+      "order": 1,
+      "memory": [
+        {
+          "clients": 0,
+          "vmrss_before_kb": 912,
+          "vmrss_after_kb": 912,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 72,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 44,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 1,
+          "vmrss_before_kb": 916,
+          "vmrss_after_kb": 916,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 72,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 44,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 8,
+          "vmrss_before_kb": 912,
+          "vmrss_after_kb": 916,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 76,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 32,
+          "vmrss_before_kb": 916,
+          "vmrss_after_kb": 940,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 96,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 68,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 64,
+          "vmrss_before_kb": 896,
+          "vmrss_after_kb": 944,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 120,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 96,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        }
+      ],
+      "raw_archive_sha256": "560ec66e398f78df742d4bf2df296ba6648255b85484148cf1e91e8672000bc4",
+      "result_sha256": "e91f24ed859bc10809a79b9a7fe1a7a43995099a52ed82eee6089252f8921dc7"
+    },
+    {
+      "name": "02-idle-r124",
+      "kind": "idle",
+      "subject": "r124",
+      "order": 1,
+      "memory": [
+        {
+          "clients": 0,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 1,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 8,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 32,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 508,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 52,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 60,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 64,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 528,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 72,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 76,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        }
+      ],
+      "raw_archive_sha256": "89ffaf8bc1f8b2f8bdd466091853c3511bb96448d156962911cb26d49b902e90",
+      "result_sha256": "7c89c6f9ee00e3977bcbad86a766900817110a24e3228561ebf49bcb41da13d8"
+    },
+    {
+      "name": "03-idle-r131",
+      "kind": "idle",
+      "subject": "r131",
+      "order": 1,
+      "memory": [
+        {
+          "clients": 0,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 1,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 8,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 496,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 40,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 32,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 508,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 52,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 60,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 64,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 524,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 68,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 76,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        }
+      ],
+      "raw_archive_sha256": "1818254e2c01bfef2d40fe4a101736ca081a4faeb17cd8c5603d196d37b4f67b",
+      "result_sha256": "bb8fcce2c2f172dd39f7aaab13c0930466714d8278a224edefda577e79aa0eb3"
+    },
+    {
+      "name": "04-idle-r131",
+      "kind": "idle",
+      "subject": "r131",
+      "order": 2,
+      "memory": [
+        {
+          "clients": 0,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 496,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 40,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 1,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 8,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 32,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 508,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 52,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 60,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 64,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 524,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 68,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 76,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        }
+      ],
+      "raw_archive_sha256": "cb49d349765489505b2548e4b8af8f590ade0cffbde28cf05bb92a8e85566375",
+      "result_sha256": "35917e894d164b10ec410739bf5fc7d778b551e4742bdffc622a272c49dae003"
+    },
+    {
+      "name": "05-idle-r124",
+      "kind": "idle",
+      "subject": "r124",
+      "order": 2,
+      "memory": [
+        {
+          "clients": 0,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 1,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 8,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 500,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 44,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 32,
+          "vmrss_before_kb": 500,
+          "vmrss_after_kb": 512,
+          "rssanon_before_kb": 44,
+          "rssanon_after_kb": 56,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 60,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 64,
+          "vmrss_before_kb": 496,
+          "vmrss_after_kb": 524,
+          "rssanon_before_kb": 40,
+          "rssanon_after_kb": 68,
+          "vmdata_before_kb": 48,
+          "vmdata_after_kb": 76,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        }
+      ],
+      "raw_archive_sha256": "d32ba554ba7e1c5f5f067be262667013ec50bbc8b190459a2d5e38d6adec19ec",
+      "result_sha256": "7f202fe2c578f0b61d8aef32b8d88237ac501a35430a56ba61d783fa21bad4af"
+    },
+    {
+      "name": "06-idle-c",
+      "kind": "idle",
+      "subject": "c",
+      "order": 2,
+      "memory": [
+        {
+          "clients": 0,
+          "vmrss_before_kb": 916,
+          "vmrss_after_kb": 916,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 72,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 44,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 1,
+          "vmrss_before_kb": 896,
+          "vmrss_after_kb": 896,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 72,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 44,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 8,
+          "vmrss_before_kb": 912,
+          "vmrss_after_kb": 916,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 76,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 48,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 32,
+          "vmrss_before_kb": 900,
+          "vmrss_after_kb": 924,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 96,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 68,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        },
+        {
+          "clients": 64,
+          "vmrss_before_kb": 848,
+          "vmrss_after_kb": 896,
+          "rssanon_before_kb": 72,
+          "rssanon_after_kb": 120,
+          "vmdata_before_kb": 44,
+          "vmdata_after_kb": 96,
+          "pss_before_kb": "NA",
+          "pss_after_kb": "NA"
+        }
+      ],
+      "raw_archive_sha256": "aba9b75cf27f9090fb59394cb2012948df3d13ac69b1d1ad1bd18d77f9efd45a",
+      "result_sha256": "8ba6c316c377b333806ae76ada0825dc25a26cfceb8b7a5125b3a633d4a8ab00"
+    },
+    {
+      "name": "07-large-c",
+      "kind": "large",
+      "subject": "c",
+      "order": 1,
+      "memory": [
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 896,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 896,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 896,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 932,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 932,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 932,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 932,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 219,
+          "vmrss_kb": 888,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 888,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 888,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 1148,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 1148,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 1148,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 1148,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 396,
+          "vmrss_kb": 884,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 396,
+          "vmrss_kb": 884,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 396,
+          "vmrss_kb": 884,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 396,
+          "vmrss_kb": 1656,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 396,
+          "vmrss_kb": 1656,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 396,
+          "vmrss_kb": 1656,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 396,
+          "vmrss_kb": 1656,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 10
+        }
+      ],
+      "raw_archive_sha256": "a689d2aedc23baffd61cc04e67c831a5f1ac94ded8dea5c15320d9703223119a",
+      "result_sha256": "9bb094e0da41678398409b26e68dc4237002761915b3e06226fa8e823dd7899a"
+    },
+    {
+      "name": "08-large-r124",
+      "kind": "large",
+      "subject": "r124",
+      "order": 1,
+      "memory": [
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 217,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 217,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 217,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 217,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 217,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 217,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 217,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 391,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 391,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 391,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 391,
+          "vmrss_kb": 1272,
+          "rssanon_kb": 816,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 391,
+          "vmrss_kb": 1272,
+          "rssanon_kb": 816,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 391,
+          "vmrss_kb": 1272,
+          "rssanon_kb": 816,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 391,
+          "vmrss_kb": 1272,
+          "rssanon_kb": 816,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "980ee11bd2f67d6332f1fc6acbab57b904d8c5e487996b949b64a45d695764ea",
+      "result_sha256": "4038d4f794234a973709435daaf1c34a27d488a4a33c269de163dc1fb588d013"
+    },
+    {
+      "name": "09-large-r131",
+      "kind": "large",
+      "subject": "r131",
+      "order": 1,
+      "memory": [
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 219,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "e9efc3c95472bc5cb016c17b0f3ba77e78ae2d50d954528d1967e8f2a58029f1",
+      "result_sha256": "a84b1ff8c0fb5952ba1bd0a70fbcf07a09e495279b340d44c37c516e667f4295"
+    },
+    {
+      "name": "10-large-r131",
+      "kind": "large",
+      "subject": "r131",
+      "order": 2,
+      "memory": [
+        {
+          "payload_bytes": 786432,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 219,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 756,
+          "rssanon_kb": 300,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "a89261df21c6e40f399ac786bc671a7af42ea61d720c3eed09f42d53831c0813",
+      "result_sha256": "632d580ae4f4912d73d92cad49abd9b49625d58af494ef3af423fa4d58b4edcd"
+    },
+    {
+      "name": "11-large-r124",
+      "kind": "large",
+      "subject": "r124",
+      "order": 2,
+      "memory": [
+        {
+          "payload_bytes": 786432,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 1268,
+          "rssanon_kb": 812,
+          "vmdata_kb": 820,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 216,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 216,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 216,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 216,
+          "vmrss_kb": 760,
+          "rssanon_kb": 304,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 216,
+          "vmrss_kb": 760,
+          "rssanon_kb": 304,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 216,
+          "vmrss_kb": 760,
+          "rssanon_kb": 304,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 216,
+          "vmrss_kb": 760,
+          "rssanon_kb": 304,
+          "vmdata_kb": 308,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "2f7c960b456af6041b8ee5b200323c7e4141b8860ed3621f4c6604f090c4aabd",
+      "result_sha256": "35bf3db3e5a90700a79d3dd6e1a51cbc186ee2bc55cf3a7367e845c35613f3f6"
+    },
+    {
+      "name": "12-large-c",
+      "kind": "large",
+      "subject": "c",
+      "order": 2,
+      "memory": [
+        {
+          "payload_bytes": 786432,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 916,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 916,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 916,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 1688,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 1688,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 1688,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 786432,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 1688,
+          "rssanon_kb": 844,
+          "vmdata_kb": 816,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 219,
+          "vmrss_kb": 912,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 912,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 912,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 1172,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 1172,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 1172,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 262144,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 1172,
+          "rssanon_kb": 332,
+          "vmdata_kb": 304,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 396,
+          "vmrss_kb": 892,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 396,
+          "vmrss_kb": 892,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 396,
+          "vmrss_kb": 892,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 396,
+          "vmrss_kb": 928,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 396,
+          "vmrss_kb": 928,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 396,
+          "vmrss_kb": 928,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 396,
+          "vmrss_kb": 928,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        }
+      ],
+      "raw_archive_sha256": "bfd5d95009d3a730c08966e17b5755dd55a385d80a0aa3d9fa9e3f8c680dbad7",
+      "result_sha256": "34b66c32a68492d6065553924d414827db43fd132ee81ed849b3323095b650f8"
+    },
+    {
+      "name": "13-fanout-c",
+      "kind": "fanout",
+      "subject": "c",
+      "order": 1,
+      "memory": [
+        {
+          "payload_bytes": 1024,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 904,
+          "rssanon_kb": 68,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 908,
+          "rssanon_kb": 72,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 908,
+          "rssanon_kb": 72,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 912,
+          "rssanon_kb": 76,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 912,
+          "rssanon_kb": 76,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 908,
+          "rssanon_kb": 72,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 908,
+          "rssanon_kb": 72,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 217,
+          "vmrss_kb": 916,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 217,
+          "vmrss_kb": 920,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 217,
+          "vmrss_kb": 920,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 217,
+          "vmrss_kb": 940,
+          "rssanon_kb": 96,
+          "vmdata_kb": 76,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 217,
+          "vmrss_kb": 940,
+          "rssanon_kb": 96,
+          "vmdata_kb": 76,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 217,
+          "vmrss_kb": 936,
+          "rssanon_kb": 92,
+          "vmdata_kb": 72,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 217,
+          "vmrss_kb": 936,
+          "rssanon_kb": 92,
+          "vmdata_kb": 72,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 394,
+          "vmrss_kb": 848,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 394,
+          "vmrss_kb": 852,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 394,
+          "vmrss_kb": 852,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 394,
+          "vmrss_kb": 888,
+          "rssanon_kb": 112,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 394,
+          "vmrss_kb": 888,
+          "rssanon_kb": 112,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 394,
+          "vmrss_kb": 884,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 394,
+          "vmrss_kb": 884,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        }
+      ],
+      "raw_archive_sha256": "e5296f7e724a59e3cbd560c5f4c415de32f475cdb0adb58f64c6945d25152c16",
+      "result_sha256": "6ff1d3a12c94429c19e38935ef9f20aa226888e0ac1191a429681cf778d6c980"
+    },
+    {
+      "name": "14-fanout-r124",
+      "kind": "fanout",
+      "subject": "r124",
+      "order": 1,
+      "memory": [
+        {
+          "payload_bytes": 1024,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 219,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 520,
+          "rssanon_kb": 64,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 520,
+          "rssanon_kb": 64,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 219,
+          "vmrss_kb": 520,
+          "rssanon_kb": 64,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 219,
+          "vmrss_kb": 520,
+          "rssanon_kb": 64,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 393,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 393,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 393,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "6bfcbf6cb4b5ebd8f1e92e249d21f262ac007c441ecad21069611787b1082d7d",
+      "result_sha256": "df9516e61d64af3dfadc95b12981cca25bcec9043f91cb16e5c0cab4255ec326"
+    },
+    {
+      "name": "15-fanout-r131",
+      "kind": "fanout",
+      "subject": "r131",
+      "order": 1,
+      "memory": [
+        {
+          "payload_bytes": 1024,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 218,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 218,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 218,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 218,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 218,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 218,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 218,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 391,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 391,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 391,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 391,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 391,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 391,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 391,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "6b2a7a1eaa89057257d298e16930b1a0eedcb5930d165e4f98ab877eecf1341c",
+      "result_sha256": "bb0c7113d416bd0151d1f7d93ed643d082ab45ed9e93c8719aec73d8c492f6b2"
+    },
+    {
+      "name": "16-fanout-r131",
+      "kind": "fanout",
+      "subject": "r131",
+      "order": 2,
+      "memory": [
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 536,
+          "rssanon_kb": 80,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 216,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 216,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 216,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 216,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 216,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 216,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 216,
+          "vmrss_kb": 532,
+          "rssanon_kb": 76,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 390,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 390,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 390,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 390,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 390,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 390,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 390,
+          "vmrss_kb": 516,
+          "rssanon_kb": 60,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "3a8c886f634916b449333bb71949a73397279649fd45760ea6de15f39c7fc49c",
+      "result_sha256": "176e383e471e026b04331f6d839700abb36e04dfdcfa602b88b50a7bc1cf202d"
+    },
+    {
+      "name": "17-fanout-r124",
+      "kind": "fanout",
+      "subject": "r124",
+      "order": 2,
+      "memory": [
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 540,
+          "rssanon_kb": 84,
+          "vmdata_kb": 88,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 218,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 218,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 218,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 218,
+          "vmrss_kb": 524,
+          "rssanon_kb": 68,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 218,
+          "vmrss_kb": 524,
+          "rssanon_kb": 68,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 218,
+          "vmrss_kb": 524,
+          "rssanon_kb": 68,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 218,
+          "vmrss_kb": 524,
+          "rssanon_kb": 68,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 397,
+          "vmrss_kb": 496,
+          "rssanon_kb": 40,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 397,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 397,
+          "vmrss_kb": 500,
+          "rssanon_kb": 44,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 397,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 397,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 9
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 397,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 7
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 397,
+          "vmrss_kb": 504,
+          "rssanon_kb": 48,
+          "vmdata_kb": 56,
+          "pss_kb": "NA",
+          "fds": 7
+        }
+      ],
+      "raw_archive_sha256": "fcddeef90dca37491ffb9bf3a35dc845ca502c473ee7da4db8a38b3e3a07d2c5",
+      "result_sha256": "a6fec337e3f7a81cb0c6632ea09c86e255a6809ceaacd0e118f192f2148daca2"
+    },
+    {
+      "name": "18-fanout-c",
+      "kind": "fanout",
+      "subject": "c",
+      "order": 2,
+      "memory": [
+        {
+          "payload_bytes": 32768,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 42,
+          "vmrss_kb": 892,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 896,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 896,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 932,
+          "rssanon_kb": 112,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 932,
+          "rssanon_kb": 112,
+          "vmdata_kb": 84,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 42,
+          "vmrss_kb": 928,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 32768,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 42,
+          "vmrss_kb": 928,
+          "rssanon_kb": 108,
+          "vmdata_kb": 80,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 221,
+          "vmrss_kb": 912,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 221,
+          "vmrss_kb": 916,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 221,
+          "vmrss_kb": 916,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 221,
+          "vmrss_kb": 936,
+          "rssanon_kb": 96,
+          "vmdata_kb": 76,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 221,
+          "vmrss_kb": 936,
+          "rssanon_kb": 96,
+          "vmdata_kb": 76,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 221,
+          "vmrss_kb": 932,
+          "rssanon_kb": 92,
+          "vmdata_kb": 72,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 8192,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 221,
+          "vmrss_kb": 932,
+          "rssanon_kb": 92,
+          "vmdata_kb": 72,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "empty",
+          "delay_seconds": 0,
+          "daemon_pid": 395,
+          "vmrss_kb": 916,
+          "rssanon_kb": 72,
+          "vmdata_kb": 44,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 1,
+          "daemon_pid": 395,
+          "vmrss_kb": 920,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "connected",
+          "delay_seconds": 5,
+          "daemon_pid": 395,
+          "vmrss_kb": 920,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 1,
+          "daemon_pid": 395,
+          "vmrss_kb": 924,
+          "rssanon_kb": 80,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "held",
+          "delay_seconds": 5,
+          "daemon_pid": 395,
+          "vmrss_kb": 924,
+          "rssanon_kb": 80,
+          "vmdata_kb": 52,
+          "pss_kb": "NA",
+          "fds": 12
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 1,
+          "daemon_pid": 395,
+          "vmrss_kb": 920,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 10
+        },
+        {
+          "payload_bytes": 1024,
+          "phase": "disconnected",
+          "delay_seconds": 5,
+          "daemon_pid": 395,
+          "vmrss_kb": 920,
+          "rssanon_kb": 76,
+          "vmdata_kb": 48,
+          "pss_kb": "NA",
+          "fds": 10
+        }
+      ],
+      "raw_archive_sha256": "2f682b5afe5baa27f0c1efa58cb1c4075bdfbd8da56752eb8e176046eedc1b76",
+      "result_sha256": "6b09ae5a4672e22e4d81887b630903f533219e57e20a07141ca840893af0868b"
+    }
+  ],
+  "plateau_investigation": {
+    "status": "collected",
+    "plan_sha256": "da5e0ca95dd4c04164fefe854018995a38303fef4d09e4330523a0a578eb6ff5",
+    "report_sha256": "70d3d3bd15cb47f6ae1bc073770581fc95c95df2f10193f818be8b7c329ca40d",
+    "scope": "Fixed 1 KiB \u00d7 eight-handler residency plateau",
+    "windows": [
+      {
+        "subject": "c",
+        "phases": [
+          {
+            "phase": "READY",
+            "monotonic_ns": 194981086974463,
+            "subject_pid": 42,
+            "helper_pid": 76,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 16,
+            "data_blob_bytes": 36,
+            "request_frame_bytes": 104,
+            "relay_frame_bytes": 72,
+            "received": 8,
+            "total_received": 8,
+            "base_fds": 10,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_1",
+            "monotonic_ns": 194987197047268,
+            "subject_pid": 42,
+            "helper_pid": 76,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 16,
+            "base_fds": 10,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_1000",
+            "monotonic_ns": 194993584368923,
+            "subject_pid": 42,
+            "helper_pid": 76,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 8008,
+            "base_fds": 10,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_10000",
+            "monotonic_ns": 195001924770266,
+            "subject_pid": 42,
+            "helper_pid": 76,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 80008,
+            "base_fds": 10,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "CLOSED",
+            "monotonic_ns": 195007531670115,
+            "subject_pid": 42,
+            "helper_pid": 76,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 80008,
+            "base_fds": 10,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": false,
+            "handlers_removed": true
+          }
+        ],
+        "memory": [
+          {
+            "phase": "empty",
+            "delay_seconds": 0,
+            "vmrss_kb": 916,
+            "rssanon_kb": 72,
+            "vmdata_kb": 44,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 8,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "connected",
+            "delay_seconds": 1,
+            "vmrss_kb": 920,
+            "rssanon_kb": 76,
+            "vmdata_kb": 48,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 12,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "connected",
+            "delay_seconds": 5,
+            "vmrss_kb": 920,
+            "rssanon_kb": 76,
+            "vmdata_kb": 48,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 12,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "held_1",
+            "delay_seconds": 1,
+            "vmrss_kb": 924,
+            "rssanon_kb": 80,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 16,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "held_1",
+            "delay_seconds": 5,
+            "vmrss_kb": 924,
+            "rssanon_kb": 80,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 16,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "held_1000",
+            "delay_seconds": 1,
+            "vmrss_kb": 924,
+            "rssanon_kb": 80,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 16,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "held_1000",
+            "delay_seconds": 5,
+            "vmrss_kb": 924,
+            "rssanon_kb": 80,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 16,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "held_10000",
+            "delay_seconds": 1,
+            "vmrss_kb": 924,
+            "rssanon_kb": 80,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 16,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "held_10000",
+            "delay_seconds": 5,
+            "vmrss_kb": 924,
+            "rssanon_kb": 80,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 16,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "disconnected",
+            "delay_seconds": 1,
+            "vmrss_kb": 920,
+            "rssanon_kb": 76,
+            "vmdata_kb": 48,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 12,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          },
+          {
+            "phase": "disconnected",
+            "delay_seconds": 5,
+            "vmrss_kb": 920,
+            "rssanon_kb": 76,
+            "vmdata_kb": 48,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 12,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 32
+            }
+          }
+        ],
+        "growth_from_first_event_kib": {
+          "rssanon_kb": {
+            "held_1000": 0,
+            "held_10000": 0,
+            "disconnected": -4
+          },
+          "vmdata_kb": {
+            "held_1000": 0,
+            "held_10000": 0,
+            "disconnected": -4
+          }
+        },
+        "raw_archive_sha256": "d881ab71d4519b2f1934b820c3e7db5401fe9dde8dc0855931e619616e8fe596"
+      },
+      {
+        "subject": "r124",
+        "phases": [
+          {
+            "phase": "READY",
+            "monotonic_ns": 195026642216975,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 16,
+            "data_blob_bytes": 36,
+            "request_frame_bytes": 104,
+            "relay_frame_bytes": 72,
+            "received": 8,
+            "total_received": 8,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_1",
+            "monotonic_ns": 195032773275311,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 16,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_1000",
+            "monotonic_ns": 195039185358974,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 8008,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_10000",
+            "monotonic_ns": 195047503831209,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 80008,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "CLOSED",
+            "monotonic_ns": 195053189421902,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 80008,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": false,
+            "handlers_removed": true
+          }
+        ],
+        "memory": [
+          {
+            "phase": "empty",
+            "delay_seconds": 0,
+            "vmrss_kb": 496,
+            "rssanon_kb": 40,
+            "vmdata_kb": 48,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 32,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "connected",
+            "delay_seconds": 1,
+            "vmrss_kb": 500,
+            "rssanon_kb": 44,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 36,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "connected",
+            "delay_seconds": 5,
+            "vmrss_kb": 500,
+            "rssanon_kb": 44,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 36,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1",
+            "delay_seconds": 1,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1",
+            "delay_seconds": 5,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1000",
+            "delay_seconds": 1,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1000",
+            "delay_seconds": 5,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_10000",
+            "delay_seconds": 1,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_10000",
+            "delay_seconds": 5,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "disconnected",
+            "delay_seconds": 1,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "disconnected",
+            "delay_seconds": 5,
+            "vmrss_kb": 504,
+            "rssanon_kb": 48,
+            "vmdata_kb": 56,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 40,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          }
+        ],
+        "growth_from_first_event_kib": {
+          "rssanon_kb": {
+            "held_1000": 0,
+            "held_10000": 0,
+            "disconnected": 0
+          },
+          "vmdata_kb": {
+            "held_1000": 0,
+            "held_10000": 0,
+            "disconnected": 0
+          }
+        },
+        "raw_archive_sha256": "6d7584fb66305d6027b53ed4bcb29ccf87f6c2086f488c1c0cc7db5dcbf25dc4"
+      },
+      {
+        "subject": "r131",
+        "phases": [
+          {
+            "phase": "READY",
+            "monotonic_ns": 195071433342082,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 16,
+            "data_blob_bytes": 36,
+            "request_frame_bytes": 104,
+            "relay_frame_bytes": 72,
+            "received": 8,
+            "total_received": 8,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_1",
+            "monotonic_ns": 195077563472052,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 16,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_1000",
+            "monotonic_ns": 195083965243945,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 8008,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "DELIVERED_10000",
+            "monotonic_ns": 195092222223874,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 80008,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": true,
+            "handlers_removed": false
+          },
+          {
+            "phase": "CLOSED",
+            "monotonic_ns": 195097986971911,
+            "subject_pid": 42,
+            "helper_pid": 73,
+            "subject_cpu": 1,
+            "client_cpu": 0,
+            "large_payload_bytes": 1024,
+            "payload_bytes": 1024,
+            "data_blob_bytes": 1044,
+            "request_frame_bytes": 1112,
+            "relay_frame_bytes": 1080,
+            "received": 8,
+            "total_received": 80008,
+            "base_fds": 7,
+            "payload_checked": true,
+            "listener_barrier": true,
+            "holding": false,
+            "handlers_removed": true
+          }
+        ],
+        "memory": [
+          {
+            "phase": "empty",
+            "delay_seconds": 0,
+            "vmrss_kb": 496,
+            "rssanon_kb": 40,
+            "vmdata_kb": 48,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 32,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "connected",
+            "delay_seconds": 1,
+            "vmrss_kb": 500,
+            "rssanon_kb": 44,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 36,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "connected",
+            "delay_seconds": 5,
+            "vmrss_kb": 500,
+            "rssanon_kb": 44,
+            "vmdata_kb": 52,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 36,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1",
+            "delay_seconds": 1,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1",
+            "delay_seconds": 5,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1000",
+            "delay_seconds": 1,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_1000",
+            "delay_seconds": 5,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_10000",
+            "delay_seconds": 1,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "held_10000",
+            "delay_seconds": 5,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "disconnected",
+            "delay_seconds": 1,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          },
+          {
+            "phase": "disconnected",
+            "delay_seconds": 5,
+            "vmrss_kb": 516,
+            "rssanon_kb": 60,
+            "vmdata_kb": 84,
+            "pss_kb": "NA",
+            "mappings": {
+              "anonymous_rw_kb": 68,
+              "heap_rw_kb": 4,
+              "stack_rw_kb": 132,
+              "other_rw_kb": 12
+            }
+          }
+        ],
+        "growth_from_first_event_kib": {
+          "rssanon_kb": {
+            "held_1000": 0,
+            "held_10000": 0,
+            "disconnected": 0
+          },
+          "vmdata_kb": {
+            "held_1000": 0,
+            "held_10000": 0,
+            "disconnected": 0
+          }
+        },
+        "raw_archive_sha256": "86c1628d75ea3e366e53b066bebecdb78a07ec96cc099b3c0ce3b18cddc56c2a"
+      }
+    ],
+    "limits": [
+      "One window per exact ELF; diagnostic only, not statistical memory superiority.",
+      "Samples after drain barriers; not peak allocator or kernel socket accounting.",
+      "Maps classify private writable virtual mappings; this does not prove allocator ownership."
+    ],
+    "independent_audit_sha256": "c198fa9d75c416065e78f43f362cec0a8b0f0ff5424e613265e7879ba8bf4ee4",
+    "independent_audit": {
+      "scope": "Independent CSV/status/maps/archive plateau check",
+      "windows": [
+        {
+          "window": "01-c",
+          "samples_recomputed": 11,
+          "archive_matches": true,
+          "RssAnon_VmData_plateau_stable_at_both_delays": true,
+          "exact_maps_bytes_stable_after_first_event": true
+        },
+        {
+          "window": "02-r124",
+          "samples_recomputed": 11,
+          "archive_matches": true,
+          "RssAnon_VmData_plateau_stable_at_both_delays": true,
+          "exact_maps_bytes_stable_after_first_event": true
+        },
+        {
+          "window": "03-r131",
+          "samples_recomputed": 11,
+          "archive_matches": true,
+          "RssAnon_VmData_plateau_stable_at_both_delays": true,
+          "exact_maps_bytes_stable_after_first_event": true
+        }
+      ],
+      "passed": true
+    },
+    "conclusion": "All three exact ELFs have unchanged RssAnon, VmData, and exact maps bytes at both 1s/5s snapshots after 1/1000/10000 fixed events. R131 remains +12 KiB RssAnon and +28 KiB VmData versus R124; original guard remains flagged."
+  },
+  "limitations": [
+    "RssAnon is resident anonymous memory; VmData is virtual data mapping, not physical memory consumption.",
+    "Settled snapshots after 1/5 seconds are not peaks, allocator accounting or kernel socket memory.",
+    "No PSS or total physical memory superiority conclusion.",
+    "Two mirrored runs per original fixture, one per subject in plateau; no statistical superiority or equivalence claim.",
+    "Idle snapshots lack archived live executable/cmdline/starttime and FD listing; the fixed workload enforced affinity and FD transitions at run time.",
+    "Batch length limit is 16 KiB; this is not a Vec allocation-capacity limit.",
+    "The original +24 KiB guard is not retroactively changed or marked passed by this report."
+  ],
+  "guard_interpretation": "The 1/8 KiB fanout cases use the +24 KiB batch threshold; 32 KiB fanout uses the +4 KiB large-frame fallback threshold. Idle and one-handler large-event cases also use +4 KiB. A strictly larger observed increase triggers investigation."
+}
