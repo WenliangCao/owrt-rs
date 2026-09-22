@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "purpose": "Physical AX3000T exact-C versus R124 idle connection residency; descriptive memory only.",
+  "subjects": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926"
+  },
+  "benchmark_sha256": "4bb2253ba342f0e4dabe6705c6fda608a6df46423321ed8a725f4723cb5dd8be",
+  "workload_sha256": "13535e390e15ed5939fc54bf2221d8573d0be8081e468ca119a7f54b68285a77",
+  "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "namespace_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+  "workloads": [
+    0,
+    1,
+    8,
+    32,
+    64
+  ],
+  "hold_seconds": 30,
+  "schedule": "C,R124,R124,C repeated twice; 8 fresh guarded windows; no extensions",
+  "metrics": [
+    "VmRSS",
+    "RssAnon",
+    "VmData",
+    "Pss"
+  ],
+  "acceptance": null,
+  "limitations": [
+    "RSS snapshots are not allocator peaks/PSS when unavailable, and do not include kernel socket memory.",
+    "HELLO/PING held idle connections only; no active traffic or full component memory score.",
+    "No confidence intervals or overall 90:10 score; no R124/R123 inference."
+  ]
+}
