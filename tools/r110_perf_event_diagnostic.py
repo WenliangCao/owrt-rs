@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import shutil
 import signal
 import subprocess
 import tempfile
@@ -44,13 +45,21 @@ def sample(out, label, held, args, plan):
         env.pop(key, None)
     with tempfile.TemporaryDirectory(prefix='r110-perf-') as temporary:
         sock = str(Path(temporary) / 'bus.sock')
+        executable = binary
+        if 'launch_names' in plan:
+            name = plan['launch_names'][label]
+            assert name and len(name) <= 128 and all(c.isalnum() or c in '-_' for c in name)
+            executable = Path(temporary) / name
+            shutil.copyfile(binary, executable)
+            executable.chmod(0o755)
+            assert sha(executable) == plan['subjects'][label]
         with (out / 'daemon.log').open('wb') as daemon_log, \
                 (out / 'perf.log').open('wb') as perf_log, \
                 (out / 'client.log').open('wb') as client_log, \
                 (out / 'client.json').open('wb') as client_json:
             try:
-                daemon = subprocess.Popen(['taskset', '-c', '1', str(binary),
-                                           '-s', sock], stdout=daemon_log,
+                daemon_command = ['taskset', '-c', '1', str(executable), '-s', sock]
+                daemon = subprocess.Popen(daemon_command, stdout=daemon_log,
                                           stderr=subprocess.STDOUT, env=env)
                 deadline = time.monotonic() + 5
                 while not Path(sock).exists():
@@ -118,6 +127,8 @@ def sample(out, label, held, args, plan):
                             'perf_control': 'enable/ack before clocks; disable/ack after clocks',
                             'scope': 'Oracle diagnostic only, user-mode PMU counts',
                             'counters': counters,
+                            'daemon_command': daemon_command,
+                            'argv0_bytes': len(os.fsencode(executable)),
                             'perf_command': perf_command,
                             'client_command': client_command}
                 (out / 'meta.json').write_text(json.dumps(metadata, indent=2) + '\n')

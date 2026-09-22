@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "purpose": "Same-ELF launch-path-length calibration after R110-A control instruction count changed between series. Diagnose the instrument before any further runtime variant.",
+  "runner_sha256": "a20696b6fb3d47eef49cd5ea2c3e2e7ab291450915c06de314089a6c37b34179",
+  "client_sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7",
+  "subjects": {
+    "short": "c9ada3dce76898226bfea3b7d5d429792a943904adada52b99b26633904deca2",
+    "long": "c9ada3dce76898226bfea3b7d5d429792a943904adada52b99b26633904deca2"
+  },
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "events": [
+    "{instructions:u,branches:u,branch-misses:u,cycles:u}",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "counter_names": [
+    "instructions:u",
+    "branches:u",
+    "branch-misses:u",
+    "cycles:u",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "iterations": 20000,
+  "warmup": 2000,
+  "sample_timeout_seconds": 30,
+  "runs": [
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "short",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "long",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "long",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "short",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "short",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "long",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "long",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "short",
+      "held_clients": 0
+    }
+  ],
+  "sampling": "Eight fresh daemons, four paired comparisons with alternating order, identical c9ada3dc ELF at the two historical argv[0] lengths. Copy each launch into a unique owned temporary directory; verify /proc/PID/exe before and after. No source or ELF changes.",
+  "analysis": "Only test reproducibility of a launch-path-size dependence. Report all instruction counts and hashes; no CPU acceptance or heap causality claim. If seen, normalize executable launch names in future cohorts and discard cross-cohort attribution.",
+  "decision": "Either outcome stops further runtime edits until counter comparisons use the same launch-path length. Four pairs characterize a deterministic input confound, not a performance significance test.",
+  "boundaries": "Enable ACK after warmup before the three clock reads; disable ACK after the loop and the three clock reads. No per-request instrumentation. Final callback validates delivery; bounded trailing daemon work can straddle the CPU-clock/disable boundary. Counts include this boundary overhead and are divided by 50000.",
+  "sources": [
+    "https://man7.org/linux/man-pages/man1/perf-stat.1.html",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.c#L2078",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.h#L404"
+  ],
+  "launch_names": {
+    "short": "uuuuuuuuuuuuuuuuu",
+    "long": "uuuuuuuuuuuuuuuuuuuuuuuuuu"
+  },
+  "historical_argv0_bytes": {
+    "first_r110a_series": 50,
+    "second_r110a_series": 41
+  }
+}
