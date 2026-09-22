@@ -22,7 +22,7 @@ def main():
     window=None
     try:
       for step in plan['schedule']:
-        assert digest(pp)==ph;verify_inputs(plan);name=step['measurement'];spec=plan['measurements'][name];block=next(b for b in spec['blocks'] if b['block']==step['block']);window=out/name/f'{step["block"]:02d}'; control=plan['artifacts'][spec['subjects'][block['slots']['a']]];cand=plan['artifacts'][spec['subjects'][block['slots']['b']]]
+        assert digest(pp)==ph;verify_inputs(plan);name=step['measurement'];spec=plan['measurements'][name];block=next(b for b in spec['blocks'] if b['block']==step['block']);window=out/name/f'{step["block"]:02d}'; control=plan['artifact_by_hash'][spec['subjects'][block['slots']['a']]];cand=plan['artifact_by_hash'][spec['subjects'][block['slots']['b']]]
         cmd=[sys.executable,str(REPO/'tools/r95_device_smoke.py'),'ubusd',str(REPO/cand),str(window),'--pilot','--iterations',str(spec['iterations']),'--before-candidate',str(REPO/control),'--benchmark',str(REPO/plan['benchmark_path']),'--workload-script',str(REPO/spec['workload_script']),'--guard',str(REPO/plan['guard_path']),'--recovery-gate',str(REPO/plan['recovery_gate_path'])]
         print('START',name,flush=True)
         with window.with_suffix('.log').open('wb') as log:subprocess.run(cmd,cwd=REPO,stdout=log,stderr=subprocess.STDOUT,check=True)
