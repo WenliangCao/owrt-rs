@@ -1,0 +1,66 @@
+{
+  "scope": "R126 Oracle fixed-lane counter screen; no router performance run because pre-frozen A/A gate failed.",
+  "complete": true,
+  "formal_samples": 48,
+  "lanes": {
+    "user_1_1": {
+      "aa_instruction_delta_pct": [
+        0.003368293574390613,
+        -0.0010601259713527433,
+        0.001963788760472873,
+        0.0014728807675279398
+      ],
+      "aa_max_abs_pct": 0.003368293574390613,
+      "comparisons": [
+        {
+          "held_clients": 0,
+          "instruction_median_delta_pct": -6.037059061176759
+        },
+        {
+          "held_clients": 64,
+          "instruction_median_delta_pct": -6.171630481103346
+        }
+      ]
+    },
+    "user_8_1": {
+      "aa_instruction_delta_pct": [
+        -0.0071579288663858875,
+        -0.004713660721988866,
+        0.0004128489021981707,
+        0.9618227425347126
+      ],
+      "aa_max_abs_pct": 0.9618227425347126,
+      "comparisons": [
+        {
+          "held_clients": 0,
+          "instruction_median_delta_pct": -16.5114176983593
+        },
+        {
+          "held_clients": 64,
+          "instruction_median_delta_pct": -16.423195788010638
+        }
+      ]
+    },
+    "user_1_0": {
+      "aa_instruction_delta_pct": [
+        0.002587365828676802,
+        0.004139828170890425,
+        -0.00362199353178827,
+        0.0015523632657776787
+      ],
+      "aa_max_abs_pct": 0.004139828170890425,
+      "comparisons": [
+        {
+          "held_clients": 0,
+          "instruction_median_delta_pct": 0.0012936360548110315
+        },
+        {
+          "held_clients": 64,
+          "instruction_median_delta_pct": 0.0020698337534597044
+        }
+      ]
+    }
+  },
+  "decision": "STOP before physical-router performance. Preserve raw series; do not add samples or change +/-0.5% gate.",
+  "primary_screen": false
+}
