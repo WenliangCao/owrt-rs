@@ -18,12 +18,18 @@
 //!   utf8      a STRING field carrying non-UTF-8 bytes crosses the bus intact
 //!   slowlookup pause a >1 MiB LOOKUP, overwrite scratch via another client,
 //!             then require every original frame in order after resuming
+//!   fd_boundary Linux SCM_RIGHTS placement at frame prefix/body boundaries
 
 use owrt_ubus::blob::{self, Attr, BlobBuf, Field, MsgType};
 use owrt_ubus::msg::{attr, ty, Header};
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
+
+#[cfg(target_os = "linux")]
+#[allow(dead_code, unused_imports)]
+#[path = "../src/sys.rs"]
+mod fd_sys;
 
 const EVENT_OBJ: u32 = 1;
 const ACL_OBJ: u32 = 2;
@@ -558,10 +564,159 @@ fn method_acl(sock: &str) {
     }
 }
 
+#[cfg(target_os = "linux")]
+fn fd_boundary(sock: &str) -> bool {
+    use std::fs::File;
+    use std::io::ErrorKind;
+    use std::os::fd::{AsRawFd, OwnedFd};
+    use std::time::Instant;
+
+    // This receiver never reads beyond the current frame. A bulk receiver
+    // would reproduce the very ambiguity this scenario is meant to detect.
+    fn exact(conn: &Conn, buf: &mut [u8], fds: &mut Vec<OwnedFd>) {
+        let mut offset = 0;
+        while offset < buf.len() {
+            match fd_sys::recvmsg_fd(conn.s.as_raw_fd(), &mut buf[offset..], true) {
+                Ok((n, fd)) => {
+                    assert!(n > 0, "FD probe: unexpected EOF");
+                    fds.extend(fd);
+                    offset += n;
+                }
+                Err(error) if error.kind() == ErrorKind::Interrupted => continue,
+                Err(error) => panic!("FD probe recvmsg: {error}"),
+            }
+        }
+    }
+    fn receive(conn: &Conn) -> (Header, Vec<u8>, Vec<OwnedFd>) {
+        let mut prefix = [0u8; 12];
+        let mut fds = Vec::new();
+        exact(conn, &mut prefix, &mut fds);
+        let header = Header::decode(prefix[..8].try_into().unwrap()).expect("FD probe header");
+        let length = (u32::from_be_bytes(prefix[8..].try_into().unwrap()) & 0x00ff_ffff) as usize;
+        assert!((4..=1_048_576).contains(&length), "FD probe frame length");
+        let mut blob = prefix[8..].to_vec();
+        blob.resize(length, 0);
+        exact(conn, &mut blob[4..], &mut fds);
+        (header, blob, fds)
+    }
+    fn frame(object: u32, seq: u16, method: &str) -> Vec<u8> {
+        let mut blob = BlobBuf::new();
+        blob.put_u32(attr::OBJID, object).put_string(attr::METHOD, method);
+        let mut bytes = Header { ty: ty::INVOKE, seq, peer: 0 }.encode().to_vec();
+        bytes.extend_from_slice(blob.as_bytes());
+        bytes
+    }
+    fn send_fd(conn: &Conn, first: &[u8], second: &[u8], fd: &OwnedFd) {
+        let sent = fd_sys::sendmsg_two(conn.s.as_raw_fd(), first, second, Some(fd.as_raw_fd()))
+            .expect("FD fixture sendmsg");
+        assert_eq!(sent, first.len() + second.len(), "partial FD fixture send");
+    }
+    fn fd_count() -> usize {
+        std::fs::read_dir("/proc/self/fd").expect("probe fd directory")
+            .map(|entry| entry.expect("probe fd entry")).count()
+    }
+    fn run_case(sock: &str, mode: &str) -> [usize; 2] {
+        let mut provider = Conn::open(sock);
+        let mut caller = Conn::open(sock);
+        let object = provider.add_object(None, &["first", "second"]);
+        let first = frame(object, 101, "first");
+        let second = frame(object, 102, "second");
+        let (read_fd, write_fd) = fd_sys::nonblocking_pipe().expect("witness pipe");
+        let witness = b"r113-fd-boundary-witness";
+        assert_eq!(fd_sys::write_fd(write_fd.as_raw_fd(), witness), witness.len() as isize);
+        let mut received = Vec::new();
+        match mode {
+            "separate_waited" => {
+                send_fd(&caller, &first, &[], &read_fd);
+                received.push(receive(&provider));
+                caller.s.write_all(&second).unwrap();
+            }
+            "separate_queued" => {
+                send_fd(&caller, &first, &[], &read_fd);
+                caller.s.write_all(&second).unwrap();
+            }
+            "plain_first_then_fd_second" => {
+                caller.s.write_all(&first).unwrap();
+                send_fd(&caller, &second, &[], &read_fd);
+            }
+            "bundled" => send_fd(&caller, &first, &second, &read_fd),
+            "fd_in_first_body" => {
+                caller.s.write_all(&first[..12]).unwrap();
+                send_fd(&caller, &first[12..], &[], &read_fd);
+                caller.s.write_all(&second).unwrap();
+            }
+            "fd_on_first_body_plus_second_frame" => {
+                caller.s.write_all(&first[..12]).unwrap();
+                send_fd(&caller, &first[12..], &second, &read_fd);
+            }
+            _ => unreachable!(),
+        }
+        drop(read_fd);
+        while received.len() < 2 {
+            received.push(receive(&provider));
+        }
+        let mut counts = [0; 2];
+        let peer = received[0].0.peer;
+        for (index, (header, blob, fds)) in received.into_iter().enumerate() {
+            assert_eq!((header.ty, header.seq), (ty::INVOKE, 101 + index as u16));
+            assert!(peer != 0 && header.peer == peer, "FD probe caller identity changed");
+            let attributes = attrs(&blob);
+            assert!(attributes[attr::OBJID as usize].and_then(|a| a.as_u32()) == Some(object));
+            assert_eq!(attributes[attr::METHOD as usize].and_then(|a| a.as_str()),
+                       Some(if index == 0 { "first" } else { "second" }));
+            counts[index] = fds.len();
+            for fd in fds {
+                let mut file = File::from(fd);
+                let mut bytes = [0; 24];
+                file.read_exact(&mut bytes[..witness.len()]).expect("FD witness bytes");
+                assert_eq!(&bytes[..witness.len()], witness);
+                assert_eq!(file.read(&mut bytes[..1]).unwrap_err().kind(), ErrorKind::WouldBlock,
+                           "unexpected extra witness data");
+            }
+        }
+        assert!(counts.iter().sum::<usize>() <= 1, "duplicate received FD");
+        // Keep the clients connected: EPIPE proves the daemon has released its
+        // witness reference, rather than letting disconnect cleanup hide a leak.
+        let deadline = Instant::now() + Duration::from_secs(3);
+        loop {
+            let n = fd_sys::write_fd(write_fd.as_raw_fd(), b"!");
+            if n < 0 && std::io::Error::last_os_error().kind() == ErrorKind::BrokenPipe {
+                break;
+            }
+            assert!(n == 1, "unexpected witness pipe write result");
+            assert!(Instant::now() < deadline, "daemon retained witness FD");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        counts
+    }
+
+    fd_sys::ignore_signal(fd_sys::SIGPIPE);
+    let baseline = fd_count();
+    let cases = [
+        ("separate_waited", [1, 0]),
+        ("separate_queued", [1, 0]),
+        ("plain_first_then_fd_second", [0, 1]),
+        ("bundled", [1, 0]),
+        ("fd_in_first_body", [0, 0]),
+        ("fd_on_first_body_plus_second_frame", [0, 0]),
+    ];
+    let mut compatible = true;
+    for (mode, expected) in cases {
+        let counts = run_case(sock, mode);
+        assert_eq!(fd_count(), baseline, "probe leaked descriptors");
+        let matches = counts == expected;
+        compatible &= matches;
+        println!("case={mode} invoke_order=first,second seq=101,102 fds={},{} witness=true no_leak=true compatible={matches}",
+                 counts[0], counts[1]);
+    }
+    println!("fd_boundary compatible={compatible} cases=6");
+    compatible
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
-        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|aclquery|utf8|slowlookup|monitor_lookup>");
+        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|aclquery|utf8|slowlookup|monitor_lookup|fd_boundary>");
         std::process::exit(2);
     }
     let sock = &args[1];
@@ -576,6 +731,12 @@ fn main() {
         "slowlookup" => slowlookup(sock),
         "monitor_lookup" => monitor_lookup(sock),
         "method_acl" => method_acl(sock),
+        #[cfg(target_os = "linux")]
+        "fd_boundary" => {
+            if !fd_boundary(sock) {
+                std::process::exit(1);
+            }
+        }
         other => {
             eprintln!("unknown scenario {other}");
             std::process::exit(2);
