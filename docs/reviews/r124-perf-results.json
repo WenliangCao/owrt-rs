@@ -1,0 +1,789 @@
+{
+  "schema_version": 1,
+  "scope": "Oracle user-mode counter diagnosis only",
+  "plan_sha256": "7c80caf0ad903b826ead7331e96ab2b675b8512a71aa42168947763f043c2361",
+  "reporter_sha256": "38bf6958febeb1def1654d073557509eb487d36453aa95a81350cf6ec3999373",
+  "complete_samples": 16,
+  "all_pmu_running_pct": 100,
+  "migrations_in_all_samples": 0,
+  "aa": {
+    "instructions:u": {
+      "median_delta_pct": 0.0009398772084168172,
+      "paired_delta_pct": [
+        0.0008876572037630481,
+        0.0009920972130705863,
+        -0.13829333772642505,
+        0.0034826745492377853
+      ],
+      "range_delta_pct": [
+        -0.13829333772642505,
+        0.0034826745492377853
+      ]
+    },
+    "branches:u": {
+      "median_delta_pct": 0.0005502203615503909,
+      "paired_delta_pct": [
+        0.00046977436101158787,
+        0.0006306663620891939,
+        -0.14539714487550315,
+        0.00293151490644572
+      ],
+      "range_delta_pct": [
+        -0.14539714487550315,
+        0.00293151490644572
+      ]
+    },
+    "branch-misses:u": {
+      "median_delta_pct": -5.619685073496067,
+      "paired_delta_pct": [
+        -2.702225844499795,
+        -5.414510723853505,
+        -5.824859423138628,
+        -6.29824974530897
+      ],
+      "range_delta_pct": [
+        -6.29824974530897,
+        -2.702225844499795
+      ]
+    },
+    "cycles:u": {
+      "median_delta_pct": -1.8617053768436198,
+      "paired_delta_pct": [
+        0.6133297417607597,
+        -1.4141184932189743,
+        -2.3092922604682653,
+        -2.7808775125613194
+      ],
+      "range_delta_pct": [
+        -2.7808775125613194,
+        0.6133297417607597
+      ]
+    },
+    "context-switches": {
+      "median_delta_pct": 0.03906797828220343,
+      "paired_delta_pct": [
+        0.030052290986315455,
+        0.02003044627834072,
+        0.048083665578091406,
+        0.05812205631827716
+      ],
+      "range_delta_pct": [
+        0.02003044627834072,
+        0.05812205631827716
+      ]
+    },
+    "subject_ns_per_send": {
+      "median_delta_pct": 0.73112029184349,
+      "paired_delta_pct": [
+        1.165045267334519,
+        -0.030459316745101717,
+        1.8441107118988276,
+        0.297195316352461
+      ],
+      "range_delta_pct": [
+        -0.030459316745101717,
+        1.8441107118988276
+      ]
+    },
+    "client_ns_per_send": {
+      "median_delta_pct": -0.2714359600108851,
+      "paired_delta_pct": [
+        -0.15414444946136863,
+        -1.5047020049032467,
+        -0.2905153304549324,
+        -0.2523565895668378
+      ],
+      "range_delta_pct": [
+        -1.5047020049032467,
+        -0.15414444946136863
+      ]
+    },
+    "wall_ns_per_send": {
+      "median_delta_pct": 0.7454830917952626,
+      "paired_delta_pct": [
+        1.23567403384508,
+        -0.27362759055830077,
+        1.2838818638696958,
+        0.25529214974544523
+      ],
+      "range_delta_pct": [
+        -0.27362759055830077,
+        1.2838818638696958
+      ]
+    },
+    "total_ns_per_send": {
+      "median_delta_pct": 0.5011896554868778,
+      "paired_delta_pct": [
+        0.8437070369825106,
+        -0.4030441333659929,
+        1.318328826965498,
+        0.15867227399124495
+      ],
+      "range_delta_pct": [
+        -0.4030441333659929,
+        1.318328826965498
+      ]
+    }
+  },
+  "comparisons": [
+    {
+      "held_clients": 0,
+      "candidate": "r124",
+      "control": "r123",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": -40.91961800456421,
+          "paired_delta_pct": [
+            -40.92097698713948,
+            -40.91825902198893
+          ],
+          "range_delta_pct": [
+            -40.92097698713948,
+            -40.91825902198893
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": -46.899723506853874,
+          "paired_delta_pct": [
+            -46.90057903633765,
+            -46.898867977370095
+          ],
+          "range_delta_pct": [
+            -46.90057903633765,
+            -46.898867977370095
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": -46.20975669934995,
+          "paired_delta_pct": [
+            -48.12354696624115,
+            -44.295966432458755
+          ],
+          "range_delta_pct": [
+            -48.12354696624115,
+            -44.295966432458755
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": -38.97662049069052,
+          "paired_delta_pct": [
+            -40.3429887926013,
+            -37.61025218877974
+          ],
+          "range_delta_pct": [
+            -40.3429887926013,
+            -37.61025218877974
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": 0.01803738943912947,
+          "paired_delta_pct": [
+            -0.02602706815086897,
+            0.06210184702912791
+          ],
+          "range_delta_pct": [
+            -0.02602706815086897,
+            0.06210184702912791
+          ]
+        },
+        "subject_ns_per_send": {
+          "median_delta_pct": -5.165461798309712,
+          "paired_delta_pct": [
+            -4.539520081018489,
+            -5.791403515600935
+          ],
+          "range_delta_pct": [
+            -5.791403515600935,
+            -4.539520081018489
+          ]
+        },
+        "client_ns_per_send": {
+          "median_delta_pct": -0.30680638853708975,
+          "paired_delta_pct": [
+            -0.9793470052965492,
+            0.3657342282223697
+          ],
+          "range_delta_pct": [
+            -0.9793470052965492,
+            0.3657342282223697
+          ]
+        },
+        "wall_ns_per_send": {
+          "median_delta_pct": -3.9988537877071515,
+          "paired_delta_pct": [
+            -3.7985605146187873,
+            -4.199147060795516
+          ],
+          "range_delta_pct": [
+            -4.199147060795516,
+            -3.7985605146187873
+          ]
+        },
+        "total_ns_per_send": {
+          "median_delta_pct": -3.9777991991648,
+          "paired_delta_pct": [
+            -3.6652456515656073,
+            -4.290352746763992
+          ],
+          "range_delta_pct": [
+            -4.290352746763992,
+            -3.6652456515656073
+          ]
+        }
+      }
+    },
+    {
+      "held_clients": 64,
+      "candidate": "r124",
+      "control": "r123",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": -44.16414459916426,
+          "paired_delta_pct": [
+            -44.08143387279318,
+            -44.24685532553535
+          ],
+          "range_delta_pct": [
+            -44.24685532553535,
+            -44.08143387279318
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": -49.88146142115049,
+          "paired_delta_pct": [
+            -49.77157419219921,
+            -49.99134865010178
+          ],
+          "range_delta_pct": [
+            -49.99134865010178,
+            -49.77157419219921
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": -40.902559324155526,
+          "paired_delta_pct": [
+            -44.07873360237329,
+            -37.72638504593776
+          ],
+          "range_delta_pct": [
+            -44.07873360237329,
+            -37.72638504593776
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": -37.34137632058734,
+          "paired_delta_pct": [
+            -38.33865726799724,
+            -36.34409537317743
+          ],
+          "range_delta_pct": [
+            -38.33865726799724,
+            -36.34409537317743
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": 0.013023962672892297,
+          "paired_delta_pct": [
+            0.034057216123084544,
+            -0.008009290777299949
+          ],
+          "range_delta_pct": [
+            -0.008009290777299949,
+            0.034057216123084544
+          ]
+        },
+        "subject_ns_per_send": {
+          "median_delta_pct": -4.427329388699181,
+          "paired_delta_pct": [
+            -3.795811972719243,
+            -5.058846804679118
+          ],
+          "range_delta_pct": [
+            -5.058846804679118,
+            -3.795811972719243
+          ]
+        },
+        "client_ns_per_send": {
+          "median_delta_pct": 0.33057878645534333,
+          "paired_delta_pct": [
+            -0.042630362728790505,
+            0.7037879356394772
+          ],
+          "range_delta_pct": [
+            -0.042630362728790505,
+            0.7037879356394772
+          ]
+        },
+        "wall_ns_per_send": {
+          "median_delta_pct": -3.3826803495222046,
+          "paired_delta_pct": [
+            -2.8995097342831344,
+            -3.865850964761275
+          ],
+          "range_delta_pct": [
+            -3.865850964761275,
+            -2.8995097342831344
+          ]
+        },
+        "total_ns_per_send": {
+          "median_delta_pct": -3.281073139467722,
+          "paired_delta_pct": [
+            -2.885625536160641,
+            -3.6765207427748026
+          ],
+          "range_delta_pct": [
+            -3.6765207427748026,
+            -2.885625536160641
+          ]
+        }
+      }
+    }
+  ],
+  "samples": [
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "a",
+      "subject": "r123",
+      "held_clients": 0,
+      "sample": 1,
+      "values": {
+        "instructions:u": 7462.34016,
+        "branches:u": 1289.981,
+        "branch-misses:u": 170.59862,
+        "cycles:u": 7624.5153,
+        "context-switches": 0.99826,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39162.6328,
+        "client_ns_per_send": 12611.5472,
+        "wall_ns_per_send": 51316.2859,
+        "total_ns_per_send": 51774.18
+      },
+      "raw_sha256": {
+        "meta.json": "802f5b476c22c2f97c2a8d012a7556f72c5155ff5b94d7fe0353c8dd6e213c15",
+        "client.json": "b5c53141b5caad8daae84c98afbed4609a12e5db9ad88d30417542eee75c3657",
+        "perf.csv": "20ddda49e75a684062c038eeee28d485a2541e81d6838e6d4ccf60c6fe8b010d",
+        "stat-before.txt": "c6195eeeee27fae5d779fda58e7812f6d6b85d7e6a3927197e5934a1ee64610c",
+        "stat-after.txt": "b5de5590932a573821c9087a2ef179a8a67b0e870d284552e0445fd0f7fb7f39"
+      }
+    },
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "b",
+      "subject": "r123",
+      "held_clients": 0,
+      "sample": 2,
+      "values": {
+        "instructions:u": 7462.4064,
+        "branches:u": 1289.98706,
+        "branch-misses:u": 165.98866,
+        "cycles:u": 7671.27872,
+        "context-switches": 0.99856,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39618.8952,
+        "client_ns_per_send": 12592.1072,
+        "wall_ns_per_send": 51950.38792,
+        "total_ns_per_send": 52211.0024
+      },
+      "raw_sha256": {
+        "meta.json": "604112f0a37f41421398f1c8765a975648991c047941b2e59c028c38cad7ab89",
+        "client.json": "79d92d962edff2955f635c9ea3406cd0588b66edc1b81081ae14c55772200e9e",
+        "perf.csv": "625184077970a3ef096df19e2c7c338c9772ca8d732115e989f3ec42188478ca",
+        "stat-before.txt": "b6f11d51784fa3d396aeecc89211794bd38a65cc75a930b8c755a32bd7665c36",
+        "stat-after.txt": "60dfc2e00ef7f1c6ce45cdbd232f1366bb746e37b98239ec983cd4da622cbe7a"
+      }
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "a",
+      "subject": "r124",
+      "held_clients": 0,
+      "sample": 3,
+      "values": {
+        "instructions:u": 4408.84214,
+        "branches:u": 684.98976,
+        "branch-misses:u": 94.61058,
+        "cycles:u": 4790.47126,
+        "context-switches": 0.99848,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 37574.0536,
+        "client_ns_per_send": 12707.6856,
+        "wall_ns_per_send": 49781.93892,
+        "total_ns_per_send": 50281.739199999996
+      },
+      "raw_sha256": {
+        "meta.json": "cca02d8a248943d8773e4b2ccb8eed6c58ce7aad0d1e09974b9a4b2cc8958ec6",
+        "client.json": "bf5d9254f5a3c95d39d3be920ab801590243b0eb72f13934c1970fc4b9a72cd5",
+        "perf.csv": "573eb4aab93bc3a073bb2651e6a9bb22294ae950c3a8a1c4038a6e75ec1358c6",
+        "stat-before.txt": "dfc221da062cede543c716ec32d03806ba24398bb0d91c072e62012a6f09479c",
+        "stat-after.txt": "37522f5f3b21a621d116a89baba54308ea6567767ef1bc16370286e60a680272"
+      }
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "b",
+      "subject": "r124",
+      "held_clients": 0,
+      "sample": 4,
+      "values": {
+        "instructions:u": 4408.88588,
+        "branches:u": 684.99408,
+        "branch-misses:u": 89.48788,
+        "cycles:u": 4722.72832,
+        "context-switches": 0.99868,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 37562.6088,
+        "client_ns_per_send": 12516.4728,
+        "wall_ns_per_send": 49645.7218,
+        "total_ns_per_send": 50079.081600000005
+      },
+      "raw_sha256": {
+        "meta.json": "bbce3510fa2fe4f70368ba865f92e9c436d2b5311e538bf99de5c20f34ce263c",
+        "client.json": "51f4db8d9a8dccb5a3a6c94dd5ee74a6fc11b801af07f3f91d8a97af065f0590",
+        "perf.csv": "78d5fc8934da10c0d6d56ea90ce4eeb76eeecf46fb8bc969a9ade108ced3973b",
+        "stat-before.txt": "9aafbdf496f7aeb8981751e1eae76f8ca0b85355155b9129f8831b711481bb5d",
+        "stat-after.txt": "60276c055318b518148d84163dff5991ed65a6104ec4ab79b60607e9b163116d"
+      }
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "a",
+      "subject": "r123",
+      "held_clients": 64,
+      "sample": 5,
+      "values": {
+        "instructions:u": 7918.61718,
+        "branches:u": 1371.71882,
+        "branch-misses:u": 173.20418,
+        "cycles:u": 7955.32134,
+        "context-switches": 0.99826,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39107.4568,
+        "client_ns_per_send": 12780.5992,
+        "wall_ns_per_send": 51550.15104,
+        "total_ns_per_send": 51888.056
+      },
+      "raw_sha256": {
+        "meta.json": "8923bebd78faa7530e39c8cbfe91be2871a45b9d78cee2324927722a28932cea",
+        "client.json": "fdfa79e2f3018ef55efa435005f07a12bc2c8f13b4391193decf67cf55eeedcb",
+        "perf.csv": "f63a5097b1f60bed9cd0d77b331608921df1d5fa3c84dfcc145a22f6767be89f",
+        "stat-before.txt": "c365ddad8c227afceb2402fe798bd7bfe7531d4aef1cbfa9860316bd94ed74aa",
+        "stat-after.txt": "0ed6725b3b55d1f1ac51319e66872acd90195585f8c8b6d6bcdcd9ac8e9ba183"
+      }
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "b",
+      "subject": "r123",
+      "held_clients": 64,
+      "sample": 6,
+      "values": {
+        "instructions:u": 7907.66626,
+        "branches:u": 1369.72438,
+        "branch-misses:u": 163.11528,
+        "cycles:u": 7771.60972,
+        "context-switches": 0.99874,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39828.6416,
+        "client_ns_per_send": 12743.4696,
+        "wall_ns_per_send": 52211.99408,
+        "total_ns_per_send": 52572.1112
+      },
+      "raw_sha256": {
+        "meta.json": "d761ac252d9428e571ed852b9afa719b0c45ba642af78d6a738fc683d71579a9",
+        "client.json": "14bb95598a2acd11665504a0ae7ee5749f95a9c5b551338ff2dc3a029dc35766",
+        "perf.csv": "2aa53070a5718cca432b7f4f296b3ee12bd6dd01a78860d4aedbf0f27418d5eb",
+        "stat-before.txt": "29bea1f92e9ae5cc297e5223d77abb7426c85138071fe4d6821a0e9fb67a9658",
+        "stat-after.txt": "e668fbc771f8f9f160e7482962e6c2d470a5e8d83c8fc48baa781386f5baf90f"
+      }
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "a",
+      "subject": "r124",
+      "held_clients": 64,
+      "sample": 7,
+      "values": {
+        "instructions:u": 4408.68068,
+        "branches:u": 684.97008,
+        "branch-misses:u": 104.38138,
+        "cycles:u": 5023.53014,
+        "context-switches": 0.9979,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 37982.2944,
+        "client_ns_per_send": 12800.6168,
+        "wall_ns_per_send": 50341.49312,
+        "total_ns_per_send": 50782.9112
+      },
+      "raw_sha256": {
+        "meta.json": "68bcf0d55d691adab8e5492132cd7dddc3c3b5434ba2abc59b49c20e7b8af7d0",
+        "client.json": "91c6080f829ab624cddcfa2d9ddc9f26be3735bf9d093f2759d95c30070995d9",
+        "perf.csv": "d118288d96033bff153a9ac0e1ceb3d8de05bb6213864caf2747c710b7976faf",
+        "stat-before.txt": "67ca18ecbb6793753ece6e0734bb0f793abf9e4e396cdc5e08904539841b904f",
+        "stat-after.txt": "380e9531963c2092f73a3a67778b16e9f03c2ba9d3d5ab62f10e89226af9c8b6"
+      }
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "b",
+      "subject": "r124",
+      "held_clients": 64,
+      "sample": 8,
+      "values": {
+        "instructions:u": 4408.83422,
+        "branches:u": 684.99016,
+        "branch-misses:u": 97.80718,
+        "cycles:u": 4883.83192,
+        "context-switches": 0.99848,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 38095.176,
+        "client_ns_per_send": 12768.3136,
+        "wall_ns_per_send": 50470.011,
+        "total_ns_per_send": 50863.4896
+      },
+      "raw_sha256": {
+        "meta.json": "edb3e4d1795d53fd1beed5b720c1aecc18f52ae5dc9448892a7d72cec9bcc1bd",
+        "client.json": "6fa3f14be442ec051d12c9a396bb2bd8837440123bb0e76c9489451a1e1bf98d",
+        "perf.csv": "747d78bff3609208ad3620d223ede1d587d2dff6e7acfa9be0f015334676d54e",
+        "stat-before.txt": "f8956ce4699f1cce3fba60974949621ca26ab0ca97595bc24ff3691c0efa16f9",
+        "stat-after.txt": "283cbf135bd70a0dd4299fec3d858cc4a2b89a351625fae4d38b14cc05d023a1"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r123",
+      "held_clients": 0,
+      "sample": 9,
+      "values": {
+        "instructions:u": 7462.7185,
+        "branches:u": 1290.02612,
+        "branch-misses:u": 189.01832,
+        "cycles:u": 8096.96544,
+        "context-switches": 0.99896,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39648.8256,
+        "client_ns_per_send": 12905.9056,
+        "wall_ns_per_send": 52039.61428,
+        "total_ns_per_send": 52554.731199999995
+      },
+      "raw_sha256": {
+        "meta.json": "2081c9c8ac013ed34d0a2348db20ab4ba097e5385fd12ad2f33cf460401c8ce2",
+        "client.json": "ba594f72bcc4a8c2ba1ac3f51c102b586ddf0536240580cb8097d4b0be1a5a77",
+        "perf.csv": "eb57e5b3c4f975a229d4da3cdfa6fb6f0afc4795c84e30c31fb4478f76d55b5a",
+        "stat-before.txt": "808b3fc254519322e31b962c222a1c038e06136e3622dca9a17dbeea0145522f",
+        "stat-after.txt": "db5398e608ed6ec484e991cc0fb8cbb95d1035f517f52b7572a0d071cbd9e780"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r124",
+      "held_clients": 0,
+      "sample": 10,
+      "values": {
+        "instructions:u": 4408.90118,
+        "branches:u": 684.9964,
+        "branch-misses:u": 98.056,
+        "cycles:u": 4830.40758,
+        "context-switches": 0.9987,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 37848.9592,
+        "client_ns_per_send": 12779.512,
+        "wall_ns_per_send": 50062.85804,
+        "total_ns_per_send": 50628.4712
+      },
+      "raw_sha256": {
+        "meta.json": "5406f9eb53303e128f2cce93657e1af327e6c71d7fa7e2fec42ba48dbba3436d",
+        "client.json": "4cbf858265cac4234a1f00b32bd3c6983b14a49b8529177dabffbb05c7fa973a",
+        "perf.csv": "fbd6d82f6573a2f99ec41d2d979f6edf1a85d1c6abc57bed5cf9bf1b37758bf4",
+        "stat-before.txt": "d54d9c12e4c08b3388ff4c1478a6aefb9d5283391880d256663302e09314f24a",
+        "stat-after.txt": "3f3a8339743e24f6cc1973241e86cbe5687c24759f2659dff38c88c8dcde3d0c"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r123",
+      "held_clients": 64,
+      "sample": 11,
+      "values": {
+        "instructions:u": 7907.6136,
+        "branches:u": 1369.71826,
+        "branch-misses:u": 166.43872,
+        "cycles:u": 7873.01798,
+        "context-switches": 0.99832,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39636.1888,
+        "client_ns_per_send": 12689.5472,
+        "wall_ns_per_send": 52007.42602,
+        "total_ns_per_send": 52325.736000000004
+      },
+      "raw_sha256": {
+        "meta.json": "9c2eda884308a3cbb6d7b68213451d5857aae263c47133a9df0ec9bf0834ef31",
+        "client.json": "b940779d0efd5fc7b0690fb79716ad754c65d62d09554d1f8c89908fca2e2845",
+        "perf.csv": "9bb9ccc32bc17116a18f41e475381152c838d403ab89fc4e29b28c15b0cef0b6",
+        "stat-before.txt": "7bc714aae12760f063a3f5516e5147cf816d8ba9bcc853ff699177fd484ce028",
+        "stat-after.txt": "02b89197768896ecf303ced35b0d52e98ca9aa23ca021cb22c978b7254696130"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r124",
+      "held_clients": 64,
+      "sample": 12,
+      "values": {
+        "instructions:u": 4421.82414,
+        "branches:u": 687.98792,
+        "branch-misses:u": 93.07464,
+        "cycles:u": 4854.6086,
+        "context-switches": 0.99866,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 38131.6736,
+        "client_ns_per_send": 12684.1376,
+        "wall_ns_per_send": 50499.46564,
+        "total_ns_per_send": 50815.811200000004
+      },
+      "raw_sha256": {
+        "meta.json": "b0b5d02d91b18628011dd5286ea32e4fc533bf3454ef91a97a3cc9f57848f8fc",
+        "client.json": "365f16b43796e20b973caa9fbb3104a19ab12b72ebf79f9a2373190b18864853",
+        "perf.csv": "86fb4e4347aa0483b88d1584394e38aac14230b73f94b1c7395907e99488d097",
+        "stat-before.txt": "cf4d3cdb93276cd5803d29669526ef8b08eeecb167c8c64796e863d66bbf3678",
+        "stat-after.txt": "897f2481a5bf13cd3b7509f6b855af4265a052cf385a9849313376e9a1fc6ea8"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r124",
+      "held_clients": 64,
+      "sample": 13,
+      "values": {
+        "instructions:u": 4408.79102,
+        "branches:u": 684.98272,
+        "branch-misses:u": 97.921,
+        "cycles:u": 4879.59642,
+        "context-switches": 0.99876,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 37876.688,
+        "client_ns_per_send": 12678.5352,
+        "wall_ns_per_send": 50036.16026,
+        "total_ns_per_send": 50555.2232
+      },
+      "raw_sha256": {
+        "meta.json": "496be38e7ef81f26982d341e530fe92967163fa57a8be31683a6d5387d869603",
+        "client.json": "b924840aba8384b12c09372315da67b6968bed2b78ba9e98e928cb4638191cee",
+        "perf.csv": "7a3ba69beb5560676e76f4de253a9990d1eb442e130048a28e244de690f63177",
+        "stat-before.txt": "719d1a307e16048a844359f9859448f036474398523783f5771e2fd3138a0393",
+        "stat-after.txt": "675077717cb0c61c490fbaa4760afd55d2cdbf6d4e3086eb88fd66bbda6c9d74"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r123",
+      "held_clients": 64,
+      "sample": 14,
+      "values": {
+        "instructions:u": 7907.69928,
+        "branches:u": 1369.72844,
+        "branch-misses:u": 157.24316,
+        "cycles:u": 7665.58334,
+        "context-switches": 0.99884,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39894.9104,
+        "client_ns_per_send": 12589.9288,
+        "wall_ns_per_send": 52048.26876,
+        "total_ns_per_send": 52484.8392
+      },
+      "raw_sha256": {
+        "meta.json": "4f1928786918246236b863c17cb30f6198b9ca5868bbdbf4fa43efe185ac1c6a",
+        "client.json": "840cf5683ff3d362720489852a1af888e8a1d7c492250cd964926dc71204b79c",
+        "perf.csv": "d8a2252cbd84dc13bf09733212c1706984c2075633f90630fb8e18e29817c660",
+        "stat-before.txt": "618b53d14a11986fadd96390ac08ccc8c2cfe9e177455123c6c48f0ae173fbf9",
+        "stat-after.txt": "89e5c893cba7d499f7e02a65a1bf3d50c2f043087c112d1c1e578f49ba80924d"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r124",
+      "held_clients": 0,
+      "sample": 15,
+      "values": {
+        "instructions:u": 4408.97804,
+        "branches:u": 685.00592,
+        "branch-misses:u": 100.83152,
+        "cycles:u": 4910.91504,
+        "context-switches": 0.99898,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 37174.9232,
+        "client_ns_per_send": 12767.8952,
+        "wall_ns_per_send": 49581.87012,
+        "total_ns_per_send": 49942.8184
+      },
+      "raw_sha256": {
+        "meta.json": "f86ee44255edad23ebe737385d1c747632ed30241c578ae9943998295d538897",
+        "client.json": "cf56fa7b57d3e158dce823c544eeb65f2d0eaae94ed09fa8921cfdd61f560843",
+        "perf.csv": "fa6626ae90fc53afdeece26907f2e26dbd6230e2cf55b88780bb39ce550cbfe2",
+        "stat-before.txt": "b69d525c88a18c60bcaf648feaece5b57f6714ad717e4bc4fc9ae1f67e1edefe",
+        "stat-after.txt": "6cb8d570b1129e1f9482dd3da53852f1d9ff8ab6490823949fafe3164438c5b1"
+      }
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r123",
+      "held_clients": 0,
+      "sample": 16,
+      "values": {
+        "instructions:u": 7462.50528,
+        "branches:u": 1290.00248,
+        "branch-misses:u": 181.01296,
+        "cycles:u": 7871.3494,
+        "context-switches": 0.99836,
+        "cpu-migrations": 0.0,
+        "subject_ns_per_send": 39460.224,
+        "client_ns_per_send": 12721.3688,
+        "wall_ns_per_send": 51755.14476,
+        "total_ns_per_send": 52181.5928
+      },
+      "raw_sha256": {
+        "meta.json": "73bf0bed210b58085f66c4f148d46013b149f58a333bb61ca1edfe2784bc519a",
+        "client.json": "e5b405f6be59c7ceed5d93170a96e34f16576b5490adb21f50a1e41e5581f70a",
+        "perf.csv": "8f2a029e8a16848583b146704f5d392faf01f7f1b5e60b9424782fa727e9614d",
+        "stat-before.txt": "521ac07991efb9247a272007d6c7dd37033d99ae1158a2b2576dd5921921116c",
+        "stat-after.txt": "67d697d0a4ecd540c62cdabb0a9b0e630d146766884c0752fc10099443bd5102"
+      }
+    }
+  ],
+  "limits": [
+    "Descriptive balanced permutation cycle; no IID confidence claim.",
+    "A/A spread is an observation, not a guaranteed noise bound.",
+    "User-mode Oracle PMU counts do not establish router CPU performance.",
+    "Final callback/CPU-clock/disable boundaries can include residual work."
+  ],
+  "screen": {
+    "criterion": {
+      "metric": "instructions:u",
+      "max_median_delta_pct": -3.0,
+      "required_held_clients": [
+        0,
+        64
+      ],
+      "aa_pair_max_absolute_instruction_delta_pct": 0.5
+    },
+    "aa_passed": true,
+    "instruction_passed": true,
+    "passed": true
+  },
+  "decision": "Eligible for frozen router correctness/performance and retained-memory measurements. Large user-mode instruction savings do not imply the same CPU or wall change; no router benefit or memory result yet."
+}
