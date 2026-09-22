@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "purpose": "R115 physical CPU ablation: skip redundant event-interest sync after complete direct writes, after R113 FD repair and R114 borrowed input dispatch.",
+  "scope": "Eight router windows: R115 versus exact C and R114 in low/64-held direct user-event lanes, two reversed blocks. Descriptive only: two ratios per lane; no finite confidence interval, equivalence or whole-ubusd acceptance. R114 remains rejected for C CPU despite local instruction savings.",
+  "candidate_sha256": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "artifacts": {
+    "c": "private/r95/ubusd-pilot/stock",
+    "r114": "private/r114-borrowed-dispatch/ubusd-rs",
+    "r115": "private/r115-event-interest/ubusd-rs"
+  },
+  "files": {
+    "private/r112-client-table/user-event-libubus": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+    "private/r113-fd-boundary/wireprobe": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+    "private/r114-borrowed-dispatch/ubusd-rs": "e718287d73094325134998c7d166f939e1c04dd16cdcf6c1e4fa26715689900d",
+    "private/r115-event-interest/gates-results-rerun.json": "de5e725cd98abaf4424b09c4a2798c454510ccd4ea546ad49a47598385df193a",
+    "private/r115-event-interest/preflight-existing/health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r115-event-interest/preflight-existing/health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r115-event-interest/preflight-existing/raw.tar.gz": "d9487d2b1b0a781b67f824e213d6a913af8a611d15bb2bb83370e1ded94b73d2",
+    "private/r115-event-interest/preflight-existing/result.json": "ca3aca2e9cf71ef1f1c600f0e824ddcf4781635ea61eb8558bf6aba3e4a11075",
+    "private/r115-event-interest/preflight-fd/health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r115-event-interest/preflight-fd/health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r115-event-interest/preflight-fd/raw.tar.gz": "55258c129d1267053cfb059c909d5f9e119886a2cd1fda411e0f633c35122402",
+    "private/r115-event-interest/preflight-fd/result.json": "7d3eee4957633558706e39e2f97c38cbb2d3f7f809648e9faf5318046e2e089b",
+    "private/r115-event-interest/ubusd-rs": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde",
+    "private/r115-event-interest/unit-tests": "32e8d29869288ae46ce4c57cb6f1685b750216ec530f091042187f17c96c09a4",
+    "private/r95/guard": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "private/r96/recovery-full/recovery-gate.json": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "tools/r101_libubus_paired_report.py": "d512e1be350adeba35854ba1747342b8d426989fcc84bc2ac4805dd34b60b699",
+    "tools/r105_user_event_paired_report.py": "4282699e2669141874f5c7e5e18bd24fd9e1fa6d9d96580ac30bd0c735d68a36",
+    "tools/r112_user_event_loaded.sh": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+    "tools/r112_user_event_paired.sh": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1",
+    "tools/r115_cpu_runner.py": "8ea18495b2c878a577a48f9b9ca59448427d879aa16eaf17db78c56938cee1bb",
+    "tools/r92_validate.py": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2",
+    "tools/r95_device_smoke.py": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+    "tools/r99_registration_cpu_report.py": "3360baaa1ae821f4feef60ffc2658db0ae414dfd0df2a2e151cf501434cdb901",
+    "tools/r115_ubusd_fd_boundary.sh": "a7625c0164f7daac05127f1ac0dfaaacebb07f7988017596ab927f4f1d571891",
+    "private/r113-fd-boundary/ubusd-rs": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+  },
+  "preflights": [
+    "private/r115-event-interest/preflight-existing",
+    "private/r115-event-interest/preflight-fd"
+  ],
+  "oracle_gates": "private/r115-event-interest/gates-results-rerun.json",
+  "required_gates": [
+    "ubusd-r36",
+    "ubusd-r36-user",
+    "ubusd-r83",
+    "ubusd-r42",
+    "ubusd-r41",
+    "r92-recovery"
+  ],
+  "guard_path": "private/r95/guard",
+  "recovery_gate_path": "private/r96/recovery-full/recovery-gate.json",
+  "benchmark_path": "private/r112-client-table/user-event-libubus",
+  "measurements": {
+    "c-low": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 72,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "candidate": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_paired.sh",
+      "workload_sha256": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1"
+    },
+    "c-loaded": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 72,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "candidate": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_loaded.sh",
+      "workload_sha256": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+      "held_clients": 64
+    },
+    "r114-low": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 72,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "e718287d73094325134998c7d166f939e1c04dd16cdcf6c1e4fa26715689900d",
+        "candidate": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_paired.sh",
+      "workload_sha256": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1"
+    },
+    "r114-loaded": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 72,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "e718287d73094325134998c7d166f939e1c04dd16cdcf6c1e4fa26715689900d",
+        "candidate": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_loaded.sh",
+      "workload_sha256": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+      "held_clients": 64
+    }
+  },
+  "schedule": [
+    {
+      "measurement": "c-low",
+      "block": 1
+    },
+    {
+      "measurement": "r114-loaded",
+      "block": 1
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 1
+    },
+    {
+      "measurement": "r114-low",
+      "block": 1
+    },
+    {
+      "measurement": "r114-low",
+      "block": 2
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 2
+    },
+    {
+      "measurement": "r114-loaded",
+      "block": 2
+    },
+    {
+      "measurement": "c-low",
+      "block": 2
+    }
+  ],
+  "output": "private/r115-event-interest/cpu",
+  "decision": "Do not stop on unfavorable data. Any runner/identity/cleanup failure stops and preserves evidence. R115 may only be considered for a later combined acceptance after C/R89 coverage and all prior correctness gates.",
+  "workload_fd_boundary": "tools/r115_ubusd_fd_boundary.sh"
+}
