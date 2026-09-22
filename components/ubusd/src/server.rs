@@ -1860,10 +1860,17 @@ mod tests {
         for (i, ((event_header, event_blob), (mirror_header, mirror_blob))) in events.iter().zip(&mirrors).enumerate() {
             assert_eq!((event_header.ty, event_header.seq), (ty::INVOKE, i as u16 + 1));
             assert_eq!((mirror_header.ty, mirror_header.seq), (ty::MONITOR, i as u16 + 1));
-            let attrs = attrs_of(&mirror_blob[4..]);
-            assert_eq!(attrs[3].unwrap().as_u32(), Some(event_header.seq as u32));
-            assert_eq!(attrs[4].unwrap().as_u32(), Some(ty::INVOKE as u32));
-            assert_eq!(attrs[5].unwrap().payload, &event_blob[4..]);
+            // Monitor fields use a separate monitor ABI; attr::METHOD/TYPE
+            // ids intentionally overlap and must not be passed through the
+            // request policy parser.
+            let mut wanted = BlobBuf::new();
+            wanted.put_u32(0, 2000);
+            wanted.put_u32(1, 0);
+            wanted.put_u32(3, event_header.seq as u32);
+            wanted.put_u32(4, ty::INVOKE as u32);
+            wanted.put_u8(2, 1);
+            wanted.put(5, &event_blob[4..]);
+            assert_eq!(*mirror_blob, wanted.as_bytes());
         }
     }
 
