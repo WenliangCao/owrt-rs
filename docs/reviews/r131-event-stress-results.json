@@ -1,0 +1,4372 @@
+{
+  "schema_version": 1,
+  "scope": "Physical R131 multi-owner, monitor and bounded slow-reader completion supplement",
+  "decision": {
+    "all_functional_pass": true,
+    "functional_cases": 72,
+    "regression_flags": [],
+    "stress_supplement_passed": true,
+    "overall_r131_accepted": false,
+    "overall_note": "Shared-path registration p95 guards separately failed; this supplement does not override them"
+  },
+  "identities": {
+    "subjects": {
+      "c": {
+        "path": "private/r95/ubusd-pilot/stock",
+        "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "kind": "dynamic",
+        "source": "stock exact image"
+      },
+      "r124": {
+        "path": "private/r130-add-reply/maps/r124",
+        "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+        "kind": "static",
+        "source": "a5b0ff1ec71a38d8c840b6995f859b503a08387d"
+      },
+      "r131": {
+        "path": "private/r131-event-batch/maps/r131",
+        "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "kind": "static",
+        "source": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc"
+      }
+    },
+    "helper_sha256": "1705d989c64640353e556d0cc307899504b08e7b8ccbbcc8963f6821680b3499",
+    "plan_sha256": "008f74f448707f725c8034d168fec934ba1b9cbab19b30c57a801bbad089d37a",
+    "report_sha256": "683bcb5f6e95d41be91cdbc52d27b3ddc60cc9bc390509127c436fbef6625e7a",
+    "independent_audit_sha256": "bccd3ade0d9e941209c24cf75ae402d08f602dbc5c130c429c3d2ed333bce45a"
+  },
+  "guard": {
+    "metrics": [
+      "mean_us",
+      "wall_us_op",
+      "p95_us",
+      "p99_us",
+      "daemon_cpu_us_op"
+    ],
+    "lanes": [
+      "grouped",
+      "interleaved",
+      "monitor"
+    ],
+    "flag": "six R131/R124 paired deltas positive and median > 5%",
+    "functionality": "all cases mandatory",
+    "no_extensions": true
+  },
+  "verified_windows": 18,
+  "comparisons": {
+    "r124": {
+      "grouped": {
+        "mean_us": {
+          "deltas_pct": [
+            -9.377752923904525,
+            -11.232093159661549,
+            -4.962240912370442,
+            -8.354569548647294,
+            -7.647527205714788,
+            -9.127718314513666
+          ],
+          "median_pct": -8.741143931580481,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "wall_us_op": {
+          "deltas_pct": [
+            -9.376341202787508,
+            -11.22739809153912,
+            -4.933453021422885,
+            -8.344292536205023,
+            -7.645370294700027,
+            -9.130017422868963
+          ],
+          "median_pct": -8.737154979536992,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "daemon_cpu_us_op": {
+          "deltas_pct": [
+            -10.608812854698035,
+            -10.978176875381118,
+            -9.019728815545513,
+            -10.568077667694952,
+            -9.321738973152694,
+            -9.753690120128022
+          ],
+          "median_pct": -10.160883893911487,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "caller_cpu_us_op": {
+          "deltas_pct": [
+            -6.419027701492752,
+            -7.162724837388479,
+            -4.856976167484339,
+            -5.822268192039582,
+            -4.615239161912054,
+            -7.136262282227001
+          ],
+          "median_pct": -6.120647946766167,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "p50_us": {
+          "deltas_pct": [
+            -9.277547470802594,
+            -9.376440481299575,
+            -8.7788102806863,
+            -9.135713871109019,
+            -7.641621768823715,
+            -10.048619816115355
+          ],
+          "median_pct": -9.206630670955807,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "p95_us": {
+          "deltas_pct": [
+            -8.286588942660211,
+            -21.497901519181884,
+            8.482930372522567,
+            -7.340943399426703,
+            -6.278531050395975,
+            -5.63974333199303
+          ],
+          "median_pct": -6.809737224911339,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p99_us": {
+          "deltas_pct": [
+            -7.4058414885242785,
+            -24.361745702864546,
+            9.749049724614057,
+            -6.671480280997367,
+            -3.443609022556393,
+            -4.602423976699765
+          ],
+          "median_pct": -5.6369521288485664,
+          "all_lower": false,
+          "all_higher": false
+        }
+      },
+      "interleaved": {
+        "mean_us": {
+          "deltas_pct": [
+            1.7647502196752152,
+            -0.2468356667541638,
+            3.10946488647994,
+            -1.4292148343672317,
+            2.548690155475275,
+            -2.144933491087353
+          ],
+          "median_pct": 0.7589572764605257,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "wall_us_op": {
+          "deltas_pct": [
+            1.7691251163772126,
+            -0.2546731950459291,
+            3.1351235296435354,
+            -1.4318141258816697,
+            2.5473627634220675,
+            -2.1512509650946976
+          ],
+          "median_pct": 0.7572259606656417,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "daemon_cpu_us_op": {
+          "deltas_pct": [
+            1.2759626208510122,
+            1.099196152179216,
+            1.9555329632414242,
+            1.3185772238077487,
+            1.849638445009627,
+            0.480133658068449
+          ],
+          "median_pct": 1.2972699223293804,
+          "all_lower": false,
+          "all_higher": true
+        },
+        "caller_cpu_us_op": {
+          "deltas_pct": [
+            -0.5608869790083015,
+            -0.28621902039386304,
+            0.7944169689482639,
+            -0.2697447073262915,
+            1.8447097177970218,
+            -0.9023446264138979
+          ],
+          "median_pct": -0.2779818638600773,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p50_us": {
+          "deltas_pct": [
+            0.48390732886300913,
+            0.6482598094716518,
+            1.549861657355489,
+            0.8065361395270809,
+            2.6714743589743684,
+            0.7752472359943807
+          ],
+          "median_pct": 0.7908916877607308,
+          "all_lower": false,
+          "all_higher": true
+        },
+        "p95_us": {
+          "deltas_pct": [
+            9.150415129359079,
+            -4.830521396729726,
+            13.484041589682283,
+            -11.668275075511659,
+            0.07092492550579976,
+            -16.034290914513605
+          ],
+          "median_pct": -2.379798235611963,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p99_us": {
+          "deltas_pct": [
+            11.970329890417997,
+            -10.323168275209749,
+            12.72607990055592,
+            -20.53171765533368,
+            9.141980435585072,
+            -28.36501484785834
+          ],
+          "median_pct": -0.5905939198123384,
+          "all_lower": false,
+          "all_higher": false
+        }
+      },
+      "monitor": {
+        "mean_us": {
+          "deltas_pct": [
+            1.5137492032186728,
+            -1.2556055016576972,
+            -2.02807749710332,
+            -4.4062069571808244,
+            -1.6478766144024326,
+            -4.3307933829315415
+          ],
+          "median_pct": -1.8379770557528763,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "wall_us_op": {
+          "deltas_pct": [
+            1.5116736781399354,
+            -1.2625780243035067,
+            -2.028102841255597,
+            -4.409358359967874,
+            -1.6567585583877276,
+            -4.334623860832587
+          ],
+          "median_pct": -1.8424306998216622,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "daemon_cpu_us_op": {
+          "deltas_pct": [
+            1.0454862002045706,
+            -2.0260230466217832,
+            -2.5373816700169693,
+            -2.92375253941638,
+            -1.5131618822149528,
+            -0.16866754416183793
+          ],
+          "median_pct": -1.769592464418368,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "caller_cpu_us_op": {
+          "deltas_pct": [
+            1.3888846391095333,
+            2.603322002967978,
+            -0.5360659521999378,
+            -1.5224696243934188,
+            -1.688997342088494,
+            -4.238445818249891
+          ],
+          "median_pct": -1.0292677882966783,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p50_us": {
+          "deltas_pct": [
+            1.1011701546049357,
+            0.804867725874181,
+            -1.9015731633078126,
+            -1.833383071801531,
+            -1.8742153684723317,
+            -1.8591982808574103
+          ],
+          "median_pct": -1.8462906763294706,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p95_us": {
+          "deltas_pct": [
+            1.2090329652640008,
+            -8.931132083895111,
+            -3.4590511285122028,
+            -13.722730595768272,
+            -2.0312502946095434,
+            -11.514473137106629
+          ],
+          "median_pct": -6.195091606203657,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p99_us": {
+          "deltas_pct": [
+            4.059106694124015,
+            -11.290623981458015,
+            -2.8756222111248952,
+            -18.281264524197848,
+            3.9343283385129046,
+            -19.105976241445475
+          ],
+          "median_pct": -7.083123096291455,
+          "all_lower": false,
+          "all_higher": false
+        }
+      }
+    },
+    "c": {
+      "grouped": {
+        "mean_us": {
+          "deltas_pct": [
+            -16.620797121955842,
+            -13.445956517432567,
+            -2.7230755652171146,
+            -8.726797263864306,
+            -8.004900237752743,
+            -11.809626750895664
+          ],
+          "median_pct": -10.268212007379985,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "wall_us_op": {
+          "deltas_pct": [
+            -16.614487124373024,
+            -13.434297726536004,
+            -2.7077030232486976,
+            -8.722843288288583,
+            -8.00560440085264,
+            -11.805538573687945
+          ],
+          "median_pct": -10.264190930988264,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "daemon_cpu_us_op": {
+          "deltas_pct": [
+            -14.5207424509875,
+            -13.218720098944726,
+            -10.481132975702579,
+            -11.683692574291872,
+            -9.549957539151077,
+            -13.23625153994633
+          ],
+          "median_pct": -12.451206336618299,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "caller_cpu_us_op": {
+          "deltas_pct": [
+            -8.47961276381033,
+            -9.735880890269344,
+            -0.8687629918593953,
+            -3.5289652870997834,
+            -2.190427270004791,
+            -9.622624693149561
+          ],
+          "median_pct": -6.004289025455057,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "p50_us": {
+          "deltas_pct": [
+            -12.613895070071479,
+            -13.367505090308661,
+            -6.916457725237047,
+            -9.098779509269816,
+            -7.260814549509941,
+            -13.704771536824323
+          ],
+          "median_pct": -10.856337289670648,
+          "all_lower": true,
+          "all_higher": false
+        },
+        "p95_us": {
+          "deltas_pct": [
+            -31.19081838248946,
+            -13.353457762621623,
+            6.603332681865681,
+            -11.333111513272687,
+            -13.406798686503151,
+            -4.313570588210314
+          ],
+          "median_pct": -12.343284637947155,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p99_us": {
+          "deltas_pct": [
+            -40.64089342535543,
+            -15.541036803589547,
+            12.376262200025812,
+            0.23467342128791202,
+            -22.24957907604308,
+            -8.50454152249136
+          ],
+          "median_pct": -12.022789163040454,
+          "all_lower": false,
+          "all_higher": false
+        }
+      },
+      "interleaved": {
+        "mean_us": {
+          "deltas_pct": [
+            -2.6129770981292544,
+            -3.1770148677275345,
+            2.744047148311446,
+            -5.695055944801341,
+            4.267287497687433,
+            -2.817576992341697
+          ],
+          "median_pct": -2.7152770452354758,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "wall_us_op": {
+          "deltas_pct": [
+            -2.604736401676022,
+            -3.180872648008992,
+            2.7656366808674004,
+            -5.694677538982173,
+            4.259917960818838,
+            -2.8160186499147644
+          ],
+          "median_pct": -2.7103775257953933,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "daemon_cpu_us_op": {
+          "deltas_pct": [
+            -2.0577426431657164,
+            -3.881971775342896,
+            0.5616495593980586,
+            -0.6939665443378873,
+            1.533734984350299,
+            -1.448445586984981
+          ],
+          "median_pct": -1.0712060656614342,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "caller_cpu_us_op": {
+          "deltas_pct": [
+            -0.9863564244459666,
+            -2.3088680400791484,
+            2.9587000724171864,
+            -1.3480012676362674,
+            5.357049864807739,
+            -3.3689257601393185
+          ],
+          "median_pct": -1.167178846041117,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p50_us": {
+          "deltas_pct": [
+            -0.9549894062322317,
+            -3.7585352589280308,
+            1.9237112305155124,
+            -1.9612340280220075,
+            4.737693929931819,
+            -3.0228962448525576
+          ],
+          "median_pct": -1.4581117171271196,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p95_us": {
+          "deltas_pct": [
+            -5.605444933165538,
+            -2.6126663607159317,
+            12.97244662435082,
+            -22.591380370793424,
+            3.5953352658478988,
+            -4.7074956279481555
+          ],
+          "median_pct": -3.6600809943320436,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p99_us": {
+          "deltas_pct": [
+            -23.2262446878686,
+            -7.403066705732975,
+            4.895077932468173,
+            -27.579469388787835,
+            3.856961997526498,
+            -5.353716633999639
+          ],
+          "median_pct": -6.378391669866307,
+          "all_lower": false,
+          "all_higher": false
+        }
+      },
+      "monitor": {
+        "mean_us": {
+          "deltas_pct": [
+            8.676788329790707,
+            7.280585205028123,
+            3.4588724905928903,
+            4.562464986663262,
+            5.689386038383537,
+            7.608757090892793
+          ],
+          "median_pct": 6.48498562170583,
+          "all_lower": false,
+          "all_higher": true
+        },
+        "wall_us_op": {
+          "deltas_pct": [
+            8.676728395962673,
+            7.27853227672679,
+            3.456029930071547,
+            4.555904637270558,
+            5.696242679986208,
+            7.60628758671309
+          ],
+          "median_pct": 6.487387478356499,
+          "all_lower": false,
+          "all_higher": true
+        },
+        "daemon_cpu_us_op": {
+          "deltas_pct": [
+            16.936065211426854,
+            17.443775131601846,
+            15.929886627357881,
+            15.429326747595852,
+            13.88261865365652,
+            19.21878073080623
+          ],
+          "median_pct": 16.43297591939237,
+          "all_lower": false,
+          "all_higher": true
+        },
+        "caller_cpu_us_op": {
+          "deltas_pct": [
+            2.4370612044727125,
+            1.4270035608437315,
+            -0.5357542148544558,
+            -0.9964218485286613,
+            0.3186406918849638,
+            -0.6828655736838773
+          ],
+          "median_pct": -0.10855676148474602,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p50_us": {
+          "deltas_pct": [
+            8.695630237685602,
+            7.554005200735725,
+            6.215401846556401,
+            5.935425565644192,
+            5.197211815634306,
+            6.964256949043346
+          ],
+          "median_pct": 6.589829397799873,
+          "all_lower": false,
+          "all_higher": true
+        },
+        "p95_us": {
+          "deltas_pct": [
+            9.229687386893627,
+            7.737225043731022,
+            -3.0191305377872513,
+            -1.6723922454129903,
+            7.190305650911011,
+            10.595654729012626
+          ],
+          "median_pct": 7.463765347321017,
+          "all_lower": false,
+          "all_higher": false
+        },
+        "p99_us": {
+          "deltas_pct": [
+            9.734674317881286,
+            8.640571390048946,
+            -6.043039004389927,
+            0.86958184621857,
+            10.587514655396335,
+            11.285677228372414
+          ],
+          "median_pct": 9.187622853965117,
+          "all_lower": false,
+          "all_higher": false
+        }
+      }
+    }
+  },
+  "windows": [
+    {
+      "index": 1,
+      "label": "c",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 209.5033875,
+            "wall_us_op": 209.63484,
+            "daemon_cpu_us_op": 127.87801700000001,
+            "caller_cpu_us_op": 148.201231,
+            "p50_us": 194.587,
+            "p95_us": 290.842,
+            "p99_us": 453.804
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 908,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 912,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 912,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 908,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 203.352165,
+            "wall_us_op": 203.465387,
+            "daemon_cpu_us_op": 126.6007685,
+            "caller_cpu_us_op": 148.322043,
+            "p50_us": 193.51,
+            "p95_us": 256.679,
+            "p99_us": 407.793
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 409.506417,
+            "wall_us_op": 409.6249805,
+            "daemon_cpu_us_op": 228.444503,
+            "caller_cpu_us_op": 306.81153950000004,
+            "p50_us": 396.406,
+            "p95_us": 483.505,
+            "p99_us": 576.989
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 888,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 892,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 892,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 892,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 10
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 61.74727083333334,
+            "wall_us_op": 61.97811458333334,
+            "daemon_cpu_us_op": 37.837322916666665,
+            "caller_cpu_us_op": 20.062911458333332,
+            "p50_us": 41.934,
+            "p95_us": 113.721,
+            "p99_us": 186.046
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 892,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 896,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 12
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 2060,
+              "rssanon_kib": 1240,
+              "vmdata_kib": 1268,
+              "fds": 12
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 908,
+              "rssanon_kib": 88,
+              "vmdata_kib": 60,
+              "fds": 12
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 904,
+              "rssanon_kib": 84,
+              "vmdata_kib": 56,
+              "fds": 10
+            }
+          ]
+        }
+      },
+      "archive_sha256": "8d4bdc440a2df52c82a72a2ac592a97161cacd8985175b8994e43e1fbcadeda0"
+    },
+    {
+      "index": 2,
+      "label": "r124",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 192.758688,
+            "wall_us_op": 192.891226,
+            "daemon_cpu_us_op": 122.28183,
+            "caller_cpu_us_op": 144.9379475,
+            "p50_us": 187.431,
+            "p95_us": 218.208,
+            "p99_us": 290.919
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 194.604339,
+            "wall_us_op": 194.7207955,
+            "daemon_cpu_us_op": 122.4334455,
+            "caller_cpu_us_op": 147.6874185,
+            "p50_us": 190.739,
+            "p95_us": 221.979,
+            "p99_us": 279.608
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 438.4021135,
+            "wall_us_op": 438.53776750000003,
+            "daemon_cpu_us_op": 264.3700605,
+            "caller_cpu_us_op": 309.9834125,
+            "p50_us": 426.183,
+            "p95_us": 521.822,
+            "p99_us": 608.459
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 81,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 78.146,
+            "wall_us_op": 78.375609375,
+            "daemon_cpu_us_op": 56.98684375,
+            "caller_cpu_us_op": 19.991244791666666,
+            "p50_us": 63.631,
+            "p95_us": 225.21,
+            "p99_us": 229.595
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 102,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 102,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 102,
+              "rss_kib": 1664,
+              "rssanon_kib": 1208,
+              "vmdata_kib": 1276,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 102,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 148,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 102,
+              "rss_kib": 512,
+              "rssanon_kib": 56,
+              "vmdata_kib": 124,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "70ea04e83989798d2c4c16c6116f0da4ff8bdc6f0cade8ff5895e68306e05499"
+    },
+    {
+      "index": 3,
+      "label": "r131",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 174.6822545,
+            "wall_us_op": 174.80508650000002,
+            "daemon_cpu_us_op": 109.3091795,
+            "caller_cpu_us_op": 135.63434049999998,
+            "p50_us": 170.042,
+            "p95_us": 200.126,
+            "p99_us": 269.374
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 198.0386195,
+            "wall_us_op": 198.16565,
+            "daemon_cpu_us_op": 123.9956505,
+            "caller_cpu_us_op": 146.859059,
+            "p50_us": 191.662,
+            "p95_us": 242.291,
+            "p99_us": 313.078
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 445.038422,
+            "wall_us_op": 445.1670275,
+            "daemon_cpu_us_op": 267.134013,
+            "caller_cpu_us_op": 314.2887245,
+            "p50_us": 430.876,
+            "p95_us": 528.131,
+            "p99_us": 633.157
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 81,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 89.054515625,
+            "wall_us_op": 89.30219791666667,
+            "daemon_cpu_us_op": 64.71915625,
+            "caller_cpu_us_op": 21.45314583333333,
+            "p50_us": 69.248,
+            "p95_us": 239.752,
+            "p99_us": 282.147
+          },
+          "flooded_received": 574,
+          "received": 582,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 104,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 104,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 104,
+              "rss_kib": 1684,
+              "rssanon_kib": 1228,
+              "vmdata_kib": 1296,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 104,
+              "rss_kib": 556,
+              "rssanon_kib": 100,
+              "vmdata_kib": 168,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 104,
+              "rss_kib": 532,
+              "rssanon_kib": 76,
+              "vmdata_kib": 144,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "76da374d02c16c2535471fa73a3c56eace0ae632e3e6fca56833dbb1208896d0"
+    },
+    {
+      "index": 4,
+      "label": "c",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 201.92639300000002,
+            "wall_us_op": 202.03541750000002,
+            "daemon_cpu_us_op": 126.40753699999999,
+            "caller_cpu_us_op": 150.90112200000002,
+            "p50_us": 197.434,
+            "p95_us": 229.903,
+            "p99_us": 299.536
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 200.26897150000002,
+            "wall_us_op": 200.384162,
+            "daemon_cpu_us_op": 128.73059849999999,
+            "caller_cpu_us_op": 149.88987849999998,
+            "p50_us": 198.588,
+            "p95_us": 217.9,
+            "p99_us": 276.453
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 406.2690315,
+            "wall_us_op": 406.39044900000005,
+            "daemon_cpu_us_op": 223.520621,
+            "caller_cpu_us_op": 306.23711249999997,
+            "p50_us": 394.175,
+            "p95_us": 473.348,
+            "p99_us": 563.678
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 85,
+              "rss_kib": 844,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 85,
+              "rss_kib": 848,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 85,
+              "rss_kib": 848,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 85,
+              "rss_kib": 848,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 10
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 59.93193229166666,
+            "wall_us_op": 60.154744791666666,
+            "daemon_cpu_us_op": 38.7764375,
+            "caller_cpu_us_op": 19.715927083333334,
+            "p50_us": 42.549,
+            "p95_us": 103.641,
+            "p99_us": 141.573
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 108,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 108,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 12
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 108,
+              "rss_kib": 2084,
+              "rssanon_kib": 1240,
+              "vmdata_kib": 1268,
+              "fds": 12
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 108,
+              "rss_kib": 932,
+              "rssanon_kib": 88,
+              "vmdata_kib": 60,
+              "fds": 12
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 108,
+              "rss_kib": 928,
+              "rssanon_kib": 84,
+              "vmdata_kib": 56,
+              "fds": 10
+            }
+          ]
+        }
+      },
+      "archive_sha256": "6c395b69a6a24c026c58870cab8c500261805cf01769121f90a32bb0aea4bfe8"
+    },
+    {
+      "index": 5,
+      "label": "r131",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 174.77545800000001,
+            "wall_us_op": 174.89337799999998,
+            "daemon_cpu_us_op": 109.69807850000001,
+            "caller_cpu_us_op": 136.2095685,
+            "p50_us": 171.042,
+            "p95_us": 199.203,
+            "p99_us": 252.985
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 193.9063965,
+            "wall_us_op": 194.01019699999998,
+            "daemon_cpu_us_op": 123.733313,
+            "caller_cpu_us_op": 146.42911900000001,
+            "p50_us": 191.124,
+            "p95_us": 212.207,
+            "p99_us": 255.987
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 435.8477945,
+            "wall_us_op": 435.96970899999997,
+            "daemon_cpu_us_op": 262.5110555,
+            "caller_cpu_us_op": 310.607127,
+            "p50_us": 423.951,
+            "p95_us": 509.972,
+            "p99_us": 612.383
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 107.60602604166667,
+            "wall_us_op": 107.84325520833333,
+            "daemon_cpu_us_op": 71.69717708333333,
+            "caller_cpu_us_op": 23.09372916666667,
+            "p50_us": 74.48,
+            "p95_us": 238.829,
+            "p99_us": 405.716
+          },
+          "flooded_received": 574,
+          "received": 582,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 1688,
+              "rssanon_kib": 1232,
+              "vmdata_kib": 1296,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 560,
+              "rssanon_kib": 104,
+              "vmdata_kib": 168,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 144,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "7d7a7026d308803d31fa4b52b8a932532f791d4fb297eb42842e6f8177bbc6e2"
+    },
+    {
+      "index": 6,
+      "label": "r124",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 196.8903675,
+            "wall_us_op": 197.012788,
+            "daemon_cpu_us_op": 123.22605250000001,
+            "caller_cpu_us_op": 146.7186195,
+            "p50_us": 188.739,
+            "p95_us": 253.755,
+            "p99_us": 334.467
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 194.386211,
+            "wall_us_op": 194.5055505,
+            "daemon_cpu_us_op": 122.3880285,
+            "caller_cpu_us_op": 146.84942999999998,
+            "p50_us": 189.893,
+            "p95_us": 222.978,
+            "p99_us": 285.455
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 441.3899105,
+            "wall_us_op": 441.5445535,
+            "daemon_cpu_us_op": 267.939573,
+            "caller_cpu_us_op": 302.7261895,
+            "p50_us": 420.566,
+            "p95_us": 559.985,
+            "p99_us": 690.325
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 79.15028645833333,
+            "wall_us_op": 79.38186458333332,
+            "daemon_cpu_us_op": 57.217984375,
+            "caller_cpu_us_op": 20.071770833333332,
+            "p50_us": 63.477,
+            "p95_us": 228.287,
+            "p99_us": 283.147
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 1668,
+              "rssanon_kib": 1212,
+              "vmdata_kib": 1276,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 540,
+              "rssanon_kib": 84,
+              "vmdata_kib": 148,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 516,
+              "rssanon_kib": 60,
+              "vmdata_kib": 124,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "1d5236363753752f338e0f7bfe29cbc0c17288b7a64ba4af65dc8ce767394237"
+    },
+    {
+      "index": 7,
+      "label": "r124",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 195.00921400000001,
+            "wall_us_op": 195.113817,
+            "daemon_cpu_us_op": 122.2852175,
+            "caller_cpu_us_op": 145.79703,
+            "p50_us": 188.431,
+            "p95_us": 231.288,
+            "p99_us": 309.384
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 193.2339235,
+            "wall_us_op": 193.3381075,
+            "daemon_cpu_us_op": 122.3916725,
+            "caller_cpu_us_op": 146.02526699999999,
+            "p50_us": 188.662,
+            "p95_us": 220.824,
+            "p99_us": 289.61
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 450.38266600000003,
+            "wall_us_op": 450.498506,
+            "daemon_cpu_us_op": 270.782913,
+            "caller_cpu_us_op": 317.1498755,
+            "p50_us": 436.954,
+            "p95_us": 542.75,
+            "p99_us": 620.77
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 79.857140625,
+            "wall_us_op": 80.13445833333333,
+            "daemon_cpu_us_op": 57.236723958333336,
+            "caller_cpu_us_op": 20.379421875,
+            "p50_us": 63.092,
+            "p95_us": 227.748,
+            "p99_us": 237.982
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 104,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 104,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 104,
+              "rss_kib": 1664,
+              "rssanon_kib": 1208,
+              "vmdata_kib": 1276,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 104,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 148,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 104,
+              "rss_kib": 512,
+              "rssanon_kib": 56,
+              "vmdata_kib": 124,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "3acb2998f40a578ed92abc5ca619163de022361ed034495afa269e723bd31fca"
+    },
+    {
+      "index": 8,
+      "label": "c",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 190.52040150000002,
+            "wall_us_op": 190.65021,
+            "daemon_cpu_us_op": 124.2815355,
+            "caller_cpu_us_op": 139.931375,
+            "p50_us": 184.661,
+            "p95_us": 235.366,
+            "p99_us": 302.151
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 896,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 900,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 900,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 896,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 193.921176,
+            "wall_us_op": 194.0332415,
+            "daemon_cpu_us_op": 124.08814149999999,
+            "caller_cpu_us_op": 142.9556865,
+            "p50_us": 187.97,
+            "p95_us": 221.824,
+            "p99_us": 311.231
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 908,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 912,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 912,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 908,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 426.4965835,
+            "wall_us_op": 426.617891,
+            "daemon_cpu_us_op": 227.64804199999998,
+            "caller_cpu_us_op": 317.1488815,
+            "p50_us": 403.562,
+            "p95_us": 540.288,
+            "p99_us": 641.697
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 900,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 10
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 66.02158854166667,
+            "wall_us_op": 66.24359375,
+            "daemon_cpu_us_op": 39.70109375,
+            "caller_cpu_us_op": 20.327723958333333,
+            "p50_us": 43.165,
+            "p95_us": 139.266,
+            "p99_us": 209.282
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 900,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 12
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 2068,
+              "rssanon_kib": 1240,
+              "vmdata_kib": 1268,
+              "fds": 12
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 916,
+              "rssanon_kib": 88,
+              "vmdata_kib": 60,
+              "fds": 12
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 912,
+              "rssanon_kib": 84,
+              "vmdata_kib": 56,
+              "fds": 10
+            }
+          ]
+        }
+      },
+      "archive_sha256": "7aa5a562ad6097849cbbcb1da2e389f7a78b413da72f01dbe8ef255c663703ee"
+    },
+    {
+      "index": 9,
+      "label": "r131",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 185.33238699999998,
+            "wall_us_op": 185.4879685,
+            "daemon_cpu_us_op": 111.2554225,
+            "caller_cpu_us_op": 138.71570300000002,
+            "p50_us": 171.889,
+            "p95_us": 250.908,
+            "p99_us": 339.546
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 199.2424645,
+            "wall_us_op": 199.39949600000003,
+            "daemon_cpu_us_op": 124.78508199999999,
+            "caller_cpu_us_op": 147.1853165,
+            "p50_us": 191.586,
+            "p95_us": 250.6,
+            "p99_us": 326.466
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 441.2485565,
+            "wall_us_op": 441.361933,
+            "daemon_cpu_us_op": 263.912117,
+            "caller_cpu_us_op": 315.449743,
+            "p50_us": 428.645,
+            "p95_us": 523.976,
+            "p99_us": 602.919
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 81,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 86.58680208333332,
+            "wall_us_op": 86.805984375,
+            "daemon_cpu_us_op": 63.83334375,
+            "caller_cpu_us_op": 20.803729166666667,
+            "p50_us": 67.709,
+            "p95_us": 237.905,
+            "p99_us": 257.063
+          },
+          "flooded_received": 574,
+          "received": 582,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 102,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 102,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 102,
+              "rss_kib": 1688,
+              "rssanon_kib": 1232,
+              "vmdata_kib": 1296,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 102,
+              "rss_kib": 560,
+              "rssanon_kib": 104,
+              "vmdata_kib": 168,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 102,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 144,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "1a3b5b836005eba30682b28aa1ebbf9178e1f1dc1437b2e24b483d09c4a4b4dd"
+    },
+    {
+      "index": 10,
+      "label": "r124",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 195.715194,
+            "wall_us_op": 195.821724,
+            "daemon_cpu_us_op": 122.76816000000001,
+            "caller_cpu_us_op": 146.605373,
+            "p50_us": 189.509,
+            "p95_us": 235.828,
+            "p99_us": 317.156
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 197.94994649999998,
+            "wall_us_op": 198.0738595,
+            "daemon_cpu_us_op": 122.4664715,
+            "caller_cpu_us_op": 147.5671215,
+            "p50_us": 190.816,
+            "p95_us": 239.367,
+            "p99_us": 324.157
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 454.407968,
+            "wall_us_op": 454.551782,
+            "daemon_cpu_us_op": 271.79547149999996,
+            "caller_cpu_us_op": 313.35259,
+            "p50_us": 432.261,
+            "p95_us": 566.294,
+            "p99_us": 710.022
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 85,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 85,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 85,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 85,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 82.30969270833333,
+            "wall_us_op": 82.54330729166666,
+            "daemon_cpu_us_op": 57.46754166666666,
+            "caller_cpu_us_op": 21.251614583333332,
+            "p50_us": 63.4,
+            "p95_us": 228.134,
+            "p99_us": 245.907
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 1664,
+              "rssanon_kib": 1208,
+              "vmdata_kib": 1276,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 148,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 512,
+              "rssanon_kib": 56,
+              "vmdata_kib": 124,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "7ff583cf7179d54340db183d13871c8cffdc4cf6dc6e0d6027fa4da386a8af8c"
+    },
+    {
+      "index": 11,
+      "label": "r131",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 179.364032,
+            "wall_us_op": 179.4817865,
+            "daemon_cpu_us_op": 109.7939255,
+            "caller_cpu_us_op": 138.069615,
+            "p50_us": 172.196,
+            "p95_us": 218.516,
+            "p99_us": 295.997
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 195.1208165,
+            "wall_us_op": 195.23781,
+            "daemon_cpu_us_op": 124.0812865,
+            "caller_cpu_us_op": 147.169067,
+            "p50_us": 192.355,
+            "p95_us": 211.437,
+            "p99_us": 257.602
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 434.3858125,
+            "wall_us_op": 434.50896500000005,
+            "daemon_cpu_us_op": 263.8488445,
+            "caller_cpu_us_op": 308.581892,
+            "p50_us": 424.336,
+            "p95_us": 488.583,
+            "p99_us": 580.221
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 81,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 81,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 81,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 86.8616875,
+            "wall_us_op": 87.09411979166667,
+            "daemon_cpu_us_op": 63.61133854166666,
+            "caller_cpu_us_op": 20.465932291666668,
+            "p50_us": 68.479,
+            "p95_us": 232.057,
+            "p99_us": 237.367
+          },
+          "flooded_received": 574,
+          "received": 582,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 104,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 104,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 104,
+              "rss_kib": 1684,
+              "rssanon_kib": 1228,
+              "vmdata_kib": 1296,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 104,
+              "rss_kib": 556,
+              "rssanon_kib": 100,
+              "vmdata_kib": 168,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 104,
+              "rss_kib": 532,
+              "rssanon_kib": 76,
+              "vmdata_kib": 144,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "fa8e402e90520a56193454d47a2135b14fd53af0f80d84684d2b3cec8916cfa5"
+    },
+    {
+      "index": 12,
+      "label": "c",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 196.513354,
+            "wall_us_op": 196.633849,
+            "daemon_cpu_us_op": 124.31897199999999,
+            "caller_cpu_us_op": 143.12028,
+            "p50_us": 189.432,
+            "p95_us": 246.446,
+            "p99_us": 295.304
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 912,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 916,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 916,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 912,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 206.904122,
+            "wall_us_op": 207.02735,
+            "daemon_cpu_us_op": 124.9483865,
+            "caller_cpu_us_op": 149.1800155,
+            "p50_us": 196.203,
+            "p95_us": 273.144,
+            "p99_us": 355.703
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 415.4318785,
+            "wall_us_op": 415.575731,
+            "daemon_cpu_us_op": 228.580424,
+            "caller_cpu_us_op": 311.6876155,
+            "p50_us": 400.561,
+            "p95_us": 496.893,
+            "p99_us": 575.219
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 900,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 10
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 60.05895833333334,
+            "wall_us_op": 60.28458333333334,
+            "daemon_cpu_us_op": 37.619791666666664,
+            "caller_cpu_us_op": 19.930692708333332,
+            "p50_us": 42.703,
+            "p95_us": 100.794,
+            "p99_us": 179.121
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 912,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 916,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 12
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 2080,
+              "rssanon_kib": 1240,
+              "vmdata_kib": 1268,
+              "fds": 12
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 928,
+              "rssanon_kib": 88,
+              "vmdata_kib": 60,
+              "fds": 12
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 924,
+              "rssanon_kib": 84,
+              "vmdata_kib": 56,
+              "fds": 10
+            }
+          ]
+        }
+      },
+      "archive_sha256": "4394df11256cb5fdef40510aab8310846e91d1908ce58f103cf872e9791eb5a5"
+    },
+    {
+      "index": 13,
+      "label": "r131",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 177.421777,
+            "wall_us_op": 177.5299185,
+            "daemon_cpu_us_op": 110.995065,
+            "caller_cpu_us_op": 138.257562,
+            "p50_us": 172.966,
+            "p95_us": 206.743,
+            "p99_us": 269.682
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 195.70928,
+            "wall_us_op": 195.8164155,
+            "daemon_cpu_us_op": 124.082092,
+            "caller_cpu_us_op": 147.2854345,
+            "p50_us": 192.201,
+            "p95_us": 217.285,
+            "p99_us": 283.839
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 433.928248,
+            "wall_us_op": 434.077821,
+            "daemon_cpu_us_op": 260.20914550000003,
+            "caller_cpu_us_op": 308.6768655,
+            "p50_us": 418.95,
+            "p95_us": 519.59,
+            "p99_us": 630.079
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 94.07300520833333,
+            "wall_us_op": 94.32708333333333,
+            "daemon_cpu_us_op": 65.317328125,
+            "caller_cpu_us_op": 21.5640625,
+            "p50_us": 68.248,
+            "p95_us": 237.443,
+            "p99_us": 399.099
+          },
+          "flooded_received": 574,
+          "received": 582,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 104,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 104,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 104,
+              "rss_kib": 1684,
+              "rssanon_kib": 1228,
+              "vmdata_kib": 1296,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 104,
+              "rss_kib": 556,
+              "rssanon_kib": 100,
+              "vmdata_kib": 168,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 104,
+              "rss_kib": 532,
+              "rssanon_kib": 76,
+              "vmdata_kib": 144,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "a6bf0723a8af6aca90ced720fd116ebcbcd3eba84db9b69592521a44aef32d23"
+    },
+    {
+      "index": 14,
+      "label": "c",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 192.86003,
+            "wall_us_op": 192.9790585,
+            "daemon_cpu_us_op": 122.71422100000001,
+            "caller_cpu_us_op": 141.3538145,
+            "p50_us": 186.508,
+            "p95_us": 238.752,
+            "p99_us": 346.856
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 912,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 916,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 916,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 912,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 187.69959849999998,
+            "wall_us_op": 187.815624,
+            "daemon_cpu_us_op": 122.20774899999999,
+            "caller_cpu_us_op": 139.796468,
+            "p50_us": 183.507,
+            "p95_us": 209.744,
+            "p99_us": 273.298
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 884,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 888,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 888,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 884,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 410.5693715,
+            "wall_us_op": 410.68424949999996,
+            "daemon_cpu_us_op": 228.4889025,
+            "caller_cpu_us_op": 307.6964195,
+            "p50_us": 398.252,
+            "p95_us": 484.736,
+            "p99_us": 569.756
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 85,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 85,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 85,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 85,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 10
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 61.29485416666667,
+            "wall_us_op": 61.51846354166666,
+            "daemon_cpu_us_op": 38.239182291666665,
+            "caller_cpu_us_op": 20.054885416666668,
+            "p50_us": 42.395,
+            "p95_us": 103.411,
+            "p99_us": 192.125
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 12
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 2084,
+              "rssanon_kib": 1240,
+              "vmdata_kib": 1268,
+              "fds": 12
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 932,
+              "rssanon_kib": 88,
+              "vmdata_kib": 60,
+              "fds": 12
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 928,
+              "rssanon_kib": 84,
+              "vmdata_kib": 56,
+              "fds": 10
+            }
+          ]
+        }
+      },
+      "archive_sha256": "1616ddd9bbe20ac05a77c5491ea1e91028fd40d5ed926e2b99d8c8cf0574ac24"
+    },
+    {
+      "index": 15,
+      "label": "r124",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 192.11372649999998,
+            "wall_us_op": 192.2263335,
+            "daemon_cpu_us_op": 122.40537450000001,
+            "caller_cpu_us_op": 144.947223,
+            "p50_us": 187.277,
+            "p95_us": 220.593,
+            "p99_us": 279.3
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 190.8452265,
+            "wall_us_op": 190.952171,
+            "daemon_cpu_us_op": 121.8287015,
+            "caller_cpu_us_op": 144.6176585,
+            "p50_us": 187.2,
+            "p95_us": 217.131,
+            "p99_us": 260.064
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 441.19865749999997,
+            "wall_us_op": 441.39059749999996,
+            "daemon_cpu_us_op": 264.2070255,
+            "caller_cpu_us_op": 313.979979,
+            "p50_us": 426.952,
+            "p95_us": 530.363,
+            "p99_us": 606.228
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 84.26730208333333,
+            "wall_us_op": 84.51415625,
+            "daemon_cpu_us_op": 58.963828125,
+            "caller_cpu_us_op": 21.20074479166667,
+            "p50_us": 66.016,
+            "p95_us": 234.212,
+            "p99_us": 320.003
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 1664,
+              "rssanon_kib": 1208,
+              "vmdata_kib": 1276,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 148,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 512,
+              "rssanon_kib": 56,
+              "vmdata_kib": 124,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "a1cd5f952cda1a9f8a725e1e16e640df7e2037266a454914c7bb51409de573e2"
+    },
+    {
+      "index": 16,
+      "label": "r131",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 178.9395355,
+            "wall_us_op": 179.04775700000002,
+            "daemon_cpu_us_op": 110.62376149999999,
+            "caller_cpu_us_op": 137.0420335,
+            "p50_us": 171.504,
+            "p95_us": 225.287,
+            "p99_us": 304.614
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 194.06922,
+            "wall_us_op": 194.1745865,
+            "daemon_cpu_us_op": 123.700455,
+            "caller_cpu_us_op": 145.4959595,
+            "p50_us": 190.047,
+            "p95_us": 219.593,
+            "p99_us": 274.761
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 430.892916,
+            "wall_us_op": 431.006022,
+            "daemon_cpu_us_op": 264.4636615,
+            "caller_cpu_us_op": 302.821923,
+            "p50_us": 418.334,
+            "p95_us": 504.356,
+            "p99_us": 583.453
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 92.04927083333332,
+            "wall_us_op": 92.30414583333332,
+            "daemon_cpu_us_op": 66.0580625,
+            "caller_cpu_us_op": 21.50841145833333,
+            "p50_us": 69.171,
+            "p95_us": 241.906,
+            "p99_us": 305.384
+          },
+          "flooded_received": 574,
+          "received": 582,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 104,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 104,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 104,
+              "rss_kib": 1688,
+              "rssanon_kib": 1232,
+              "vmdata_kib": 1296,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 104,
+              "rss_kib": 560,
+              "rssanon_kib": 104,
+              "vmdata_kib": 168,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 104,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 144,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "2f32ce501840c231f7e8d9f2e2ee9846b69b7de08c586a39dd3677e3e1eafd0b"
+    },
+    {
+      "index": 17,
+      "label": "r124",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 196.9132195,
+            "wall_us_op": 197.0372965,
+            "daemon_cpu_us_op": 122.57981699999999,
+            "caller_cpu_us_op": 147.5732475,
+            "p50_us": 190.663,
+            "p95_us": 238.752,
+            "p99_us": 319.31
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 198.32311900000002,
+            "wall_us_op": 198.4436065,
+            "daemon_cpu_us_op": 123.1093655,
+            "caller_cpu_us_op": 146.820789,
+            "p50_us": 188.585,
+            "p95_us": 261.527,
+            "p99_us": 383.557
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 450.39875550000005,
+            "wall_us_op": 450.5350205,
+            "daemon_cpu_us_op": 264.9104795,
+            "caller_cpu_us_op": 316.224946,
+            "p50_us": 426.259,
+            "p95_us": 569.987,
+            "p99_us": 721.256
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 81,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 81.74385416666667,
+            "wall_us_op": 81.980671875,
+            "daemon_cpu_us_op": 59.10050520833334,
+            "caller_cpu_us_op": 20.877796875,
+            "p50_us": 63.247,
+            "p95_us": 227.364,
+            "p99_us": 254.447
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 102,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 102,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 102,
+              "rss_kib": 1664,
+              "rssanon_kib": 1208,
+              "vmdata_kib": 1276,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 102,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 148,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 102,
+              "rss_kib": 512,
+              "rssanon_kib": 56,
+              "vmdata_kib": 124,
+              "fds": 7
+            }
+          ]
+        }
+      },
+      "archive_sha256": "4ab1ee76099d1c0b086d03c64760efaa83b72e1716c11bb51d83cf433c45a32b"
+    },
+    {
+      "index": 18,
+      "label": "c",
+      "cases": {
+        "grouped": {
+          "metrics": {
+            "mean_us": 202.90143799999998,
+            "wall_us_op": 203.01474050000002,
+            "daemon_cpu_us_op": 127.4999795,
+            "caller_cpu_us_op": 151.6331195,
+            "p50_us": 198.741,
+            "p95_us": 235.443,
+            "p99_us": 332.928
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 900,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 900,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "interleaved": {
+          "metrics": {
+            "mean_us": 199.695803,
+            "wall_us_op": 199.80102050000002,
+            "daemon_cpu_us_op": 125.5185225,
+            "caller_cpu_us_op": 150.5685005,
+            "p50_us": 195.971,
+            "p95_us": 230.441,
+            "p99_us": 290.303
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 892,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 896,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 896,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 892,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ]
+        },
+        "monitor": {
+          "metrics": {
+            "mean_us": 400.4255115,
+            "wall_us_op": 400.539812,
+            "daemon_cpu_us_op": 221.83053700000002,
+            "caller_cpu_us_op": 304.90400750000003,
+            "p50_us": 391.097,
+            "p95_us": 456.036,
+            "p99_us": 524.284
+          },
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 83,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 83,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 83,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 83,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 10
+            }
+          ]
+        },
+        "slow": {
+          "metrics": {
+            "mean_us": 60.41803645833333,
+            "wall_us_op": 60.64765625,
+            "daemon_cpu_us_op": 38.686640625,
+            "caller_cpu_us_op": 19.446317708333332,
+            "p50_us": 42.088,
+            "p95_us": 105.488,
+            "p99_us": 180.044
+          },
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "memory": [
+            {
+              "phase": "empty",
+              "subject_pid": 106,
+              "rss_kib": 884,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 106,
+              "rss_kib": 888,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 12
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 106,
+              "rss_kib": 2052,
+              "rssanon_kib": 1240,
+              "vmdata_kib": 1268,
+              "fds": 12
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 106,
+              "rss_kib": 900,
+              "rssanon_kib": 88,
+              "vmdata_kib": 60,
+              "fds": 12
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 106,
+              "rss_kib": 896,
+              "rssanon_kib": 84,
+              "vmdata_kib": 56,
+              "fds": 10
+            }
+          ]
+        }
+      },
+      "archive_sha256": "d3f87316d17f08b359f5bb66089deae0baa861150317846ee9ddcc04e83b693d"
+    }
+  ],
+  "slow": {
+    "flood_events": 192,
+    "handlers_per_event": 8,
+    "maximum_deliveries_without_drop": 1536,
+    "survivors_each_of_six_runs": {
+      "c": 542,
+      "r124": 542,
+      "r131": 574
+    },
+    "recovery_deliveries_each_run": 8,
+    "payload_bytes": 2048,
+    "userspace_queue_limit_bytes": 1048576,
+    "interpretation": "Bounded drop is the exact C contract at cap; surviving frame counts need not be equal. All surviving frames had valid payload, target, FIFO and sequence, followed by full recovery. Kernel packing is only a plausible explanation for the count difference, not measured causation."
+  },
+  "limits": [
+    "Regression gate compares R131 with R124. C monitor performance remains worse and is disclosed separately.",
+    "Per-operation latency includes exact libubus send, per-owner polling and listener/monitor validation; it is not daemon-only latency.",
+    "The latency array is not prefaulted; all subjects use the same helper.",
+    "Monitor ordering is checked within each stream, not wall-clock ordering across two sockets.",
+    "AF_UNIX ignores SO_RCVBUF; the actual stress is a fixed flood with a paused reader, independently confirmed by observed drop.",
+    "Slow metrics time sender acknowledgements before drain; no normal-delivery performance gate uses them.",
+    "Immediate memory snapshots do not establish allocator or kernel socket peaks or settled residency.",
+    "No rerun, window exclusion, threshold change, runtime change or deployment was performed."
+  ]
+}
