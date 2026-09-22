@@ -18,6 +18,16 @@ import uuid
 from r84_device_probe import probe
 
 
+def archive_raw(ssh, base, output, name='raw'):
+    """Keep transfer stderr and any partial archive, including on failure."""
+    with (output / f'{name}.tar.gz').open('wb') as archive, \
+            (output / f'{name}-archive.log').open('wb') as log:
+        subprocess.run(ssh + [f'tar -czf - -C {base}/out .'], stdout=archive,
+                       stderr=log, check=True, timeout=30)
+    with tarfile.open(output / f'{name}.tar.gz') as archive:
+        archive.extractall(output / name, filter='data')
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("component", choices=("uci", "reload-config", "fw4", "logd", "rpcd",
@@ -74,7 +84,9 @@ def main():
               "correctness_smoke_only": not a.pilot, "pilot_only": a.pilot,
               "implementation": a.implementation, "iterations": a.iterations, "installed": False,
               "matrix": a.matrix,
-              "production_mode": "stock", "remote": base}
+              "production_mode": "stock", "remote": base,
+              "passed": False, "cleanup_verified": False}
+    failure = None
     try:
         remote(f"test ! -e {base} && mkdir -p {base}/bundle {base}/out {base}/work")
         remote(f"cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark {base}/bundle/")
@@ -125,14 +137,24 @@ def main():
         with (a.output / "run.log").open("wb") as log:
             run = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)
         result["exit"] = run.returncode
-        with (a.output / "raw.tar.gz").open("wb") as archive:
-            subprocess.run(ssh + [f"tar -czf - -C {base}/out ."], stdout=archive, check=True, timeout=30)
-        with tarfile.open(a.output / "raw.tar.gz") as archive:
-            archive.extractall(a.output / "raw", filter="data")
+        archive_raw(ssh, base, a.output)
         run.check_returncode()
         assert (a.output / "raw/COMPLETE").is_file()
         assert (a.output / "raw/binary-sha256.txt").read_text().split()[0] == digest
         result["passed"] = True
+    except BaseException as error:
+        failure = error
+        result["error"] = {"type": type(error).__name__, "message": str(error)}
+        # A timeout can occur before the normal archive step. Preserve what is
+        # available before deleting the owned remote directory; never replace
+        # the original failure or overwrite an earlier (possibly partial) tar.
+        try:
+            archive_raw(ssh, base, a.output, 'failed-raw')
+            result["failure_archive"] = "failed-raw.tar.gz"
+        except BaseException as archive_error:
+            result["failure_archive_error"] = {"type": type(archive_error).__name__,
+                                                "message": str(archive_error)}
+        raise
     finally:
         # Limit cleanup strictly to the fresh UUID-owned namespace/bundle.
         cleanup = f"""set -eu
@@ -158,16 +180,31 @@ test -z "$live"
 rm -rf -- {shlex.quote(base)}
 test ! -e {shlex.quote(base)}
 """
-        remote(cleanup)
-        after = probe(host=a.host, mode="stock", interface=a.interface)
-        save("health-after.json", after)
-        result["cleanup_verified"] = True
-        result["same_boot"] = before["boot_id"] == after["boot_id"]
-        result["same_config"] = config == remote("sha256sum /etc/config/*")
-        result["same_production_identity"] = identity == remote("/bin/sh /root/r84/stack-switch.sh verify stock")
-        result["same_host_mounts"] = mounts == remote("cat /proc/self/mountinfo")
-        save("result.json", result)
-        assert all(result[k] for k in ("same_boot", "same_config", "same_production_identity", "same_host_mounts"))
+        cleanup_failure = None
+        try:
+            remote(cleanup)
+            after = probe(host=a.host, mode="stock", interface=a.interface)
+            save("health-after.json", after)
+            result["cleanup_verified"] = True
+            result["same_boot"] = before["boot_id"] == after["boot_id"]
+            result["same_config"] = config == remote("sha256sum /etc/config/*")
+            result["same_production_identity"] = identity == remote("/bin/sh /root/r84/stack-switch.sh verify stock")
+            result["same_host_mounts"] = mounts == remote("cat /proc/self/mountinfo")
+            assert all(result[k] for k in ("same_boot", "same_config", "same_production_identity", "same_host_mounts"))
+        except BaseException as error:
+            cleanup_failure = error
+            result["passed"] = False
+            result["cleanup_error"] = {"type": type(error).__name__, "message": str(error)}
+            if failure is None:
+                raise
+        finally:
+            try:
+                save("result.json", result)
+            except BaseException as error:
+                original = failure or cleanup_failure
+                if original is None:
+                    raise
+                original.add_note(f"Could not save result.json: {error}")
     print(json.dumps(result), flush=True)
 
 
