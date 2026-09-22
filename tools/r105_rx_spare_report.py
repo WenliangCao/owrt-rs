@@ -16,6 +16,39 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def memory_identity(path):
+    text = path.read_text().strip()
+    pid = int(text.split('(', 1)[0])
+    fields = text.rsplit(')', 1)[1].split()
+    assert fields[0] in ('R', 'S', 'D', 'T', 't', 'I', 'W'), (path, 'daemon exited')
+    start = int(fields[19])
+    assert pid > 0 and start >= 0
+    return pid, start
+
+
+def verify_memory_snapshots(raw, count, metrics):
+    identity = memory_identity(raw / f'stat-{count}-start.txt')
+    for phase, suffix in [('before', '-before'), ('held', ''), ('after-disconnect', '-after-disconnect')]:
+        for boundary in ('before', 'after'):
+            assert memory_identity(raw / f'stat-{count}-{phase}-{boundary}.txt') == identity
+        path = raw / f'status-{count}{suffix}.txt'
+        fields = {}
+        for line in path.read_text().splitlines():
+            if ':' in line:
+                key, value = line.split(':', 1)
+                assert key not in fields, (path, 'duplicate status field', key)
+                fields[key] = value.split()
+        assert fields['State'][0] in ('R', 'S', 'D', 'T', 't', 'I', 'W')
+        assert fields['Pid'] == fields['Tgid'] == [str(identity[0])]
+        assert fields['Threads'] == ['1'] and fields['Cpus_allowed_list'] == ['1']
+        metric_phase = {'before': 'before', 'held': 'after', 'after-disconnect': 'after_disconnect'}[phase]
+        for field in ('VmRSS', 'RssAnon', 'VmData'):
+            value = fields[field]
+            assert len(value) == 2 and value[0].isascii() and value[0].isdigit() and value[1] == 'kB'
+            assert int(value[0]) == metrics[f'{field.lower()}_{metric_phase}_kb'], (path, field)
+    assert (raw / f'exit-{count}.txt').read_text().strip() in ('0', '143')
+
+
 def summarize(rows, plan, metric, lane):
     selected = [r for r in rows if r['workload'] == lane]
     sides = {side: [r[metric] for r in selected if r['side'] == side]
@@ -96,6 +129,9 @@ def collect(root, plan, stage):
                             assert value >= 0
                             metrics[name + '_after_disconnect_kb'] = value
                             metrics[name + '_retained_growth_kb'] = value - metrics[name + '_before_kb']
+                    if script == 'tools/r112_rx_memory.sh':
+                        assert plan.get('after_disconnect')
+                        verify_memory_snapshots(raw, count, metrics)
                     rows.append({**common, 'workload': count, **metrics})
             else:
                 meta = read(raw / 'meta.json')
