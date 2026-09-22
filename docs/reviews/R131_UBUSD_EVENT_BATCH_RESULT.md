@@ -17,6 +17,6 @@ R131 是从精确 R124 ELF 源码分支出的同一 owner 连续事件帧批量�
 
 相对 C 的同一主 lane，中位变化为 wall `−14.96%`、daemon CPU `−19.62%`、caller CPU `−7.46%`，同样六块全降。两个 guard lane 没有触发“六块全升且中位超过 5%”的回退门：`user_1_1` 的 wall/daemon/caller 中位分别为 `+0.89%/+1.39%/+0.19%`，`user_1_0` 分别为 `+1.07%/+1.36%/+0.08%`。
 
-因此 R131 通过本轮预先定义的**均值 wall/CPU fanout 实验门**，可以作为 R124 的事件 fanout 性能候选。该结果没有证明所有事件模式都优于 C，也没有证明整个 ubusd 或九组件组合已完成最终验收；目前应保留 R124 作为可回退基线，只有在组合矩阵中复核后才决定是否采用 R131。
+更正：R131 的均值 wall/CPU 子项显示收益，但原冻结计划还要求尾延迟门；本批未采集 p95/p99，所以完整验收应记为 **pending**，不能事后另定义只有均值的接受门。R131 保留为待补齐的事件 fanout 性能候选。该结果没有证明所有事件模式都优于 C，也没有证明整个 ubusd 或九组件组合已完成最终验收；目前应保留 R124 作为可回退基线，只有在组合矩阵中复核后才决定是否采用 R131。
 
 本次精确事件 caller 只输出整个循环的 wall/process CPU 累计值，没有逐次延迟样本，所以 p95/p99 没有测量，也没有从总计时推导。原始窗口与离线复核结果保存在忽略的 `private/r131-event-batch/router-04/`；复核器为 [`tools/r131_event_report.py`](../../tools/r131_event_report.py)，结果文件为 `router-04/report.json`。此前 `router-01`、`router-02`、`router-03` 的失败分别是 benchmark 模式、daemon/event helper 混用和 harness 证据记录问题，均已保留，不能算作候选功能失败。
