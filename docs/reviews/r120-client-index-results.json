@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "scope": "Exploratory router measurements only; no runtime acceptance",
+  "builds": {
+    "r115": {
+      "commit": "b28dbc83f1de95c3ec49600944d0e44116da52a3",
+      "elf_sha256": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde",
+      "unit_sha256": "32e8d29869288ae46ce4c57cb6f1685b750216ec530f091042187f17c96c09a4",
+      "unit_result": [
+        "test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ]
+    },
+    "r118": {
+      "commit": "3dbab4104e825ff71b6da46f605a28a4bc72f320",
+      "elf_sha256": "51f411ebc43e21f9f1a6d0d824072e2608f8da177894cab327ce4bfd1ba9cb79",
+      "unit_sha256": "4727882fc204d1aeb350ea50ca1acafaa41e6a70cf9d76d3acbbd77214a93ddb",
+      "unit_result": [
+        "test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ]
+    },
+    "r119": {
+      "commit": "4735dc5d8b6b261a051a001a3c73800a141155da",
+      "elf_sha256": "9c191a32ac3446d9a30a756e7ae5ba213727d8d520e28c72cdb11d0c558e90b2",
+      "unit_sha256": "c6af640f9a13050c00fb8d1f8f56059a7a0333192fe1864daa1e80af338eba15",
+      "unit_result": [
+        "test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ]
+    },
+    "r120": {
+      "commit": "0f84cc4cb6f090546f78be0dd092b3bcb4d46852",
+      "elf_sha256": "10046cf319dba6129c88887b234cd49aa6538de3481e5c5be6163eefc160e59c",
+      "unit_sha256": "ac679c1ff029a8570c4943cab5588f2a26c7d96df524dcf33dba4c15a0071000",
+      "unit_result": [
+        "test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ]
+    }
+  },
+  "cpu": {
+    "cpu-low-01": {
+      "raw_sha256": "8ab228af1d5f9cd09e6d36027985a1a552e7d32894559cab4623eb966208fe44",
+      "result_sha256": "e5448f50e6a846cf9f1a56047bd960fa19cfe79d70c040046f69c77bb81ada83",
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      },
+      "delta_percent": {
+        "user_1_1": {
+          "subject_cpu_us": -2.9920890641442766,
+          "client_cpu_us": -0.30643415435369636,
+          "total_cpu_us": -1.736473231678115,
+          "wall_us": -2.1311609725782166
+        },
+        "user_8_1": {
+          "subject_cpu_us": -1.1138603278427528,
+          "client_cpu_us": 2.0714584529151425,
+          "total_cpu_us": 0.5469585457993142,
+          "wall_us": -0.05189292400987755
+        },
+        "user_1_0": {
+          "subject_cpu_us": -2.666529226633918,
+          "client_cpu_us": -0.25630277940791313,
+          "total_cpu_us": -1.4824585555944125,
+          "wall_us": -1.1829802510338605
+        }
+      }
+    },
+    "cpu-low-02": {
+      "raw_sha256": "bc7314bf042d3f234e78ab6e68684fbdb316c03e31e7d633fadd8e92133ff67b",
+      "result_sha256": "c7167af41afed7f215c7869d08d616eda3fcac98b96739b31fa30bb80201cabf",
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      },
+      "delta_percent": {
+        "user_1_1": {
+          "subject_cpu_us": -2.8401665771090046,
+          "client_cpu_us": -0.8485655550595661,
+          "total_cpu_us": -1.9066893574833155,
+          "wall_us": -2.9896282473089286
+        },
+        "user_8_1": {
+          "subject_cpu_us": -2.857872497546987,
+          "client_cpu_us": -1.8409854297607553,
+          "total_cpu_us": -2.3278235086920063,
+          "wall_us": -1.2351594269269128
+        },
+        "user_1_0": {
+          "subject_cpu_us": -2.4445314751567415,
+          "client_cpu_us": -0.1535186055317439,
+          "total_cpu_us": -1.319547073386318,
+          "wall_us": -1.6052533780957168
+        }
+      }
+    },
+    "cpu-loaded-01": {
+      "raw_sha256": "ea73b45d36985964f6091be8b481dcfc8e15a7f70c73a1927172eb512fb4d2e0",
+      "result_sha256": "3d14a31208d8168bdd6d32b6605ba53632cb136ff0804d16262de6c4a99b209b",
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      },
+      "delta_percent": {
+        "user_1_1": {
+          "subject_cpu_us": -1.3347462519019637,
+          "client_cpu_us": -0.5325353986792125,
+          "total_cpu_us": -0.9643205661869714,
+          "wall_us": -1.3180874654878716
+        },
+        "user_8_1": {
+          "subject_cpu_us": 0.06821325829411418,
+          "client_cpu_us": 1.8037715125359899,
+          "total_cpu_us": 0.968509954215313,
+          "wall_us": 1.0106568882429112
+        },
+        "user_1_0": {
+          "subject_cpu_us": -0.08840791231641276,
+          "client_cpu_us": -0.7820450805828383,
+          "total_cpu_us": -0.43052044342660745,
+          "wall_us": -0.4642476173607468
+        }
+      }
+    },
+    "cpu-loaded-02": {
+      "raw_sha256": "5f231e264916f4370e396146e43b6899619abd1ab56019aafd69c31431d067b4",
+      "result_sha256": "11502b50cd448f9c5c58025324d5b3a0472dd894e2ba4e3b26b38649f9149178",
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      },
+      "delta_percent": {
+        "user_1_1": {
+          "subject_cpu_us": -0.2358757953077606,
+          "client_cpu_us": -0.017634429221724535,
+          "total_cpu_us": -0.13507732043099852,
+          "wall_us": -0.10463067488049038
+        },
+        "user_8_1": {
+          "subject_cpu_us": -0.6485031180665346,
+          "client_cpu_us": -1.2282223539533454,
+          "total_cpu_us": -0.9523026838850313,
+          "wall_us": -3.525035463545778
+        },
+        "user_1_0": {
+          "subject_cpu_us": 0.28560416244995945,
+          "client_cpu_us": 0.10010924907537522,
+          "total_cpu_us": 0.19423608124460312,
+          "wall_us": -0.02772561352242242
+        }
+      }
+    },
+    "c-low-01": {
+      "raw_sha256": "e1c7e008ef4e1958523d300cb6311e05da191d68dda28f4bcffb6f290f82846a",
+      "result_sha256": "a89fa29119dbecbea287aa8d9c560a0641ba9b43af92a075b2ebba22659b9d30",
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      },
+      "delta_percent": {
+        "user_1_1": {
+          "subject_cpu_us": 7.408990830558904,
+          "client_cpu_us": 0.13820805360496013,
+          "total_cpu_us": 3.8338278398188708,
+          "wall_us": 3.0249041612578242
+        },
+        "user_8_1": {
+          "subject_cpu_us": 5.567601137186418,
+          "client_cpu_us": 7.593045730596826,
+          "total_cpu_us": 6.6349488675471635,
+          "wall_us": 4.763490715600049
+        },
+        "user_1_0": {
+          "subject_cpu_us": 3.49102450691543,
+          "client_cpu_us": 0.41747947173080835,
+          "total_cpu_us": 1.940432696226746,
+          "wall_us": 0.16209985587447573
+        }
+      }
+    },
+    "c-loaded-01": {
+      "raw_sha256": "3f4a143010851921c7fe3739b82e1d03f37a1cb6e8cbfe881004af586c12e53c",
+      "result_sha256": "77a2b10c1d7bf01a10844edd1cc4c39543fa5228bf8e065c0d047d83a057d172",
+      "slots": {
+        "a": "before",
+        "b": "candidate"
+      },
+      "delta_percent": {
+        "user_1_1": {
+          "subject_cpu_us": 15.198119454768788,
+          "client_cpu_us": 2.692300355851085,
+          "total_cpu_us": 9.216288710668085,
+          "wall_us": 11.518190655825645
+        },
+        "user_8_1": {
+          "subject_cpu_us": 6.66162214526278,
+          "client_cpu_us": 4.6622509071711615,
+          "total_cpu_us": 5.617154520580625,
+          "wall_us": 20.511776512707502
+        },
+        "user_1_0": {
+          "subject_cpu_us": 5.906236161329814,
+          "client_cpu_us": -0.16765992753144943,
+          "total_cpu_us": 2.828423844189154,
+          "wall_us": 0.5341995551125356
+        }
+      }
+    }
+  },
+  "memory": {
+    "memory-r115": {
+      "raw_sha256": "27bab9e22d639b22e9b5cbe7c5656824823179e2c185694c2841922c58a5ca75",
+      "result_sha256": "1d6716c8fcffe3878e043c73c2fb6083c460408678802aceaf923cf0f758d0e6",
+      "64_clients": {
+        "clients": "64",
+        "vmrss_before_kb": "500",
+        "vmrss_after_kb": "528",
+        "rssanon_before_kb": "44",
+        "rssanon_after_kb": "72",
+        "vmdata_before_kb": "48",
+        "vmdata_after_kb": "76",
+        "pss_before_kb": "NA",
+        "pss_after_kb": "NA"
+      },
+      "rssanon_growth_kib": 28,
+      "vmdata_growth_kib": 28,
+      "windows": 1
+    },
+    "memory-r120": {
+      "raw_sha256": "ce270e126bff39e7d33feedf64348a0bbcada62770107a3c25ab2b7f87235feb",
+      "result_sha256": "436db5f9d22e7691805ca7805ff4109c04c7b70f61a3dabc8f3e1c142d2351da",
+      "64_clients": {
+        "clients": "64",
+        "vmrss_before_kb": "496",
+        "vmrss_after_kb": "520",
+        "rssanon_before_kb": "40",
+        "rssanon_after_kb": "64",
+        "vmdata_before_kb": "48",
+        "vmdata_after_kb": "72",
+        "pss_before_kb": "NA",
+        "pss_after_kb": "NA"
+      },
+      "rssanon_growth_kib": 24,
+      "vmdata_growth_kib": 24,
+      "windows": 1
+    },
+    "memory-c": {
+      "raw_sha256": "8c24ebd99fc1e7f112bdc60cd26cc5dbe5691582a2335b76b70d4cfb1fd3181f",
+      "result_sha256": "427661ad4d3e0d61a7b8e5f6c7a05239bfd9c0dac0cadf416287aaadb1029458",
+      "64_clients": {
+        "clients": "64",
+        "vmrss_before_kb": "888",
+        "vmrss_after_kb": "936",
+        "rssanon_before_kb": "72",
+        "rssanon_after_kb": "120",
+        "vmdata_before_kb": "44",
+        "vmdata_after_kb": "96",
+        "pss_before_kb": "NA",
+        "pss_after_kb": "NA"
+      },
+      "rssanon_growth_kib": 48,
+      "vmdata_growth_kib": 52,
+      "windows": 1
+    }
+  },
+  "limitations": [
+    "All R120 router CPU windows used fixed a=control,b=candidate. The promised second-window slot reversal was not executed.",
+    "Two windows per scale against R115 and one per scale against C cannot establish statistical superiority or a theoretical limit.",
+    "Machine-readable one-window plans were constructed after collection for verification; they are not preregistrations. The prose plan predates collection.",
+    "R120 FD preflight initial attempt used the wrong helper and a filter selecting zero tests. Later retained complete run uses the correct wireprobe and all 45 tests. The initial failed directory was overwritten in error; no success is inferred from it.",
+    "Initial common-target build reused stale objects due archived timestamps; all four identical artifacts were rejected before router sampling and rebuilt with separate caches.",
+    "Perf diagnostic setup failed before sampling (uid / library-hash checks); no valid counters or symbol profile exist from this attempt."
+  ],
+  "decision": "Stop R118-R120 sampling; retain R115 as compatibility development baseline. R120 not accepted: exploratory local gains do not close measured C gap. No FD contract changed."
+}
