@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "scope": "R132 independent Rust register-cycle perf caller; tool/fixture verification only",
+  "caller": {
+    "path": "private/r132-registration-caller/owrt-register-perf",
+    "oracle_path": "/home/ubuntu/r132-registration-caller/build-02/owrt-register-perf",
+    "sha256": "ad707cee9684aeaccbddf548f59eda18c2b6ce3eb7590cee5436296e18251b4f",
+    "kind": "static aarch64 Linux musl",
+    "feature": "registration-perf"
+  },
+  "frozen_router_benchmark": {
+    "path": "private/r127-r124-matrix/owrt-benchmark",
+    "sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e",
+    "unchanged": true
+  },
+  "cli": [
+    "owrt-register-perf",
+    "register-cycle",
+    "SOCKET",
+    "METHODS",
+    "NAME_BYTES",
+    "N",
+    "WARMUP",
+    "PID"
+  ],
+  "ack_protocol": {
+    "commands": [
+      "enable\\n",
+      "disable\\n"
+    ],
+    "reply_bytes": [
+      97,
+      99,
+      107,
+      10,
+      0
+    ],
+    "reply_length": 5
+  },
+  "fixture_relation": {
+    "components/ubus/src/conn.rs": {
+      "baseline_sha256": "3b8a0df7a5c6c3e87655803fd2a308f410037e61d30101dfa1d277e5f72d6c7b",
+      "current_sha256": "3b8a0df7a5c6c3e87655803fd2a308f410037e61d30101dfa1d277e5f72d6c7b",
+      "same": true
+    },
+    "components/ubus/src/blob.rs": {
+      "baseline_sha256": "433542ed4072541771f188354eb2f3b61a11835463a076320cc47338a84cbdf4",
+      "current_sha256": "433542ed4072541771f188354eb2f3b61a11835463a076320cc47338a84cbdf4",
+      "same": true
+    },
+    "components/ubus/src/sys.rs": {
+      "baseline_sha256": "0e658ac462ad368efecf81bc0d091cbbfe1931f8d469881eb362614bc50338e5",
+      "current_sha256": "0e658ac462ad368efecf81bc0d091cbbfe1931f8d469881eb362614bc50338e5",
+      "same": true
+    },
+    "fixture_construction_and_preflight_exact_source_match": true
+  },
+  "source_files": {
+    "tools/benchmark/Cargo.toml": "5505496c1974c19510b595c20b7b73754e7f21b5f7f1cef9d0548d66d0b2436b",
+    "tools/benchmark/Cargo.lock": "fe611d3b0c05adff36e806f77da23242cd70fcc837c1e29836efe9acfdde2aae",
+    "tools/benchmark/build-r132-registration-perf.sh": "d68ea081a2750c36fdb71696100a6a656f566630c1d0cdb0d54750137f0cb3be",
+    "tools/benchmark/src/affinity.rs": "ed1f7972c91fae5a9bd5a87bdaa7028c6f45af639796e017ceceead26604f8be",
+    "tools/benchmark/src/registration_perf.rs": "4b9448fe72daacc818065d975a1bde1927c24aee55294844f014a2227bafa330",
+    "tools/benchmark/src/cpu_clock.rs": "600aba0da5e1206f28373d10040c598e2d22b76ba2208a4cb2a49cefa9bfeccb",
+    "tools/benchmark/src/main.rs": "d493f6eb54ec2d1444f6f77f6bf18b628a19560683f90dbdcb924a54ae9b1f93",
+    "components/ubus/Cargo.toml": "104190ac358c75cb88227979ec3729efa476a0e6487fb7f13fcab84e9608ebff",
+    "components/ubus/Cargo.lock": "47030840ec94a66a3c0c05d7ccd1b61cd49becb3d23eb76c1357099108929893",
+    "components/ubus/src/convert.rs": "ebd8bb0fb548c56682f07e3540542629c154d97c1a42486872e047ba24ca8fd1",
+    "components/ubus/src/lib.rs": "e4428a12658e12901790f266e62306ed3f5690849ae4438a51b696d3806402bf",
+    "components/ubus/src/connect.rs": "b4b8b513d307298850eedc6dc8d84169992e7a6c87653e7962a419feaf403839",
+    "components/ubus/src/digest.rs": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+    "components/ubus/src/blob.rs": "433542ed4072541771f188354eb2f3b61a11835463a076320cc47338a84cbdf4",
+    "components/ubus/src/json.rs": "51156077f48c21224334d40b343f8014e7a1a05ddf7bdbefae4248acdaa12642",
+    "components/ubus/src/sys.rs": "0e658ac462ad368efecf81bc0d091cbbfe1931f8d469881eb362614bc50338e5",
+    "components/ubus/src/readiness.rs": "ae672d38dd336addda0fe6b64630ae9d95c236996b0eeb119fecdd94f1b49721",
+    "components/ubus/src/conn.rs": "3b8a0df7a5c6c3e87655803fd2a308f410037e61d30101dfa1d277e5f72d6c7b",
+    "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64"
+  },
+  "source_archive_sha256": "566e96fabeb768c63da909e065a529d4a1ab6f0ba0234b5d96fd37469e2547e4",
+  "oracle_mock_ack_validation": {
+    "scope": "Oracle registration fixture and mock-ACK functionality only; no perf or router conclusions",
+    "caller_sha256": "ad707cee9684aeaccbddf548f59eda18c2b6ce3eb7590cee5436296e18251b4f",
+    "runner_sha256": "88805b5bcbfa7f3844522525444e75f4a380513dc10eea6c7e08ec6167d70da5",
+    "cases": [
+      {
+        "subject": "c",
+        "subject_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "methods": 1,
+        "n": 100,
+        "warmup": 20,
+        "commands": [
+          "enable",
+          "disable"
+        ],
+        "ack": "ack\\n\\0",
+        "warmup_registry_empty_at_enable": true,
+        "live_affinity_checked": true,
+        "caller_output_sha256": "a33c84ba018da645f46a02449e47bdbaf15742952489a88666677aad95cf177f",
+        "passed": true
+      },
+      {
+        "subject": "c",
+        "subject_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "methods": 16,
+        "n": 100,
+        "warmup": 20,
+        "commands": [
+          "enable",
+          "disable"
+        ],
+        "ack": "ack\\n\\0",
+        "warmup_registry_empty_at_enable": true,
+        "live_affinity_checked": true,
+        "caller_output_sha256": "be6ff791638b7642c56fc381c20158e3c36376a6246b58ed9bf0b7fbd6ce213c",
+        "passed": true
+      },
+      {
+        "subject": "r124",
+        "subject_sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+        "methods": 1,
+        "n": 100,
+        "warmup": 20,
+        "commands": [
+          "enable",
+          "disable"
+        ],
+        "ack": "ack\\n\\0",
+        "warmup_registry_empty_at_enable": true,
+        "live_affinity_checked": true,
+        "caller_output_sha256": "37eb94145817da7e7c99e48f991cc60ab4bd0ba8b423654916d9cba5c4d18425",
+        "passed": true
+      },
+      {
+        "subject": "r124",
+        "subject_sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+        "methods": 16,
+        "n": 100,
+        "warmup": 20,
+        "commands": [
+          "enable",
+          "disable"
+        ],
+        "ack": "ack\\n\\0",
+        "warmup_registry_empty_at_enable": true,
+        "live_affinity_checked": true,
+        "caller_output_sha256": "c9b68634e4b429ee03d7aca7dd1a39d22e8fa1aaae8594638c695931778abdc8",
+        "passed": true
+      },
+      {
+        "subject": "r131",
+        "subject_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "methods": 1,
+        "n": 100,
+        "warmup": 20,
+        "commands": [
+          "enable",
+          "disable"
+        ],
+        "ack": "ack\\n\\0",
+        "warmup_registry_empty_at_enable": true,
+        "live_affinity_checked": true,
+        "caller_output_sha256": "1a5782587b69f35f8293430c3f1c4851975a3f35b500c7e59622259cdbcf96af",
+        "passed": true
+      },
+      {
+        "subject": "r131",
+        "subject_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "methods": 16,
+        "n": 100,
+        "warmup": 20,
+        "commands": [
+          "enable",
+          "disable"
+        ],
+        "ack": "ack\\n\\0",
+        "warmup_registry_empty_at_enable": true,
+        "live_affinity_checked": true,
+        "caller_output_sha256": "a51e113e21fed14309122aec82888753eb802547e607a27078602ba98a71709a",
+        "passed": true
+      }
+    ],
+    "actual_perf_control_validation": "pending separate low-n perf stat/record smoke",
+    "passed": true
+  },
+  "build_attempts": [
+    {
+      "name": "build-01",
+      "exit": 101,
+      "log_sha256": "8bc8dbdcb95e2270312ed54e6ca2dfb12da5e68dd169ae80a05ea7a7500c2df2",
+      "source_archive_sha256": "38cfaf55341461922a16fb309b41dbb93bcb44098e951c9f3338ffb4d392a98e",
+      "reason": "Tool compile failure: acknowledgement array incorrectly declared four bytes; Rust correctly rejected comparison with five-byte ack\\n\\0 literal."
+    },
+    {
+      "name": "build-02",
+      "exit": 0,
+      "log_sha256": "168948691d51fb6147213f8894fbe1e9b407a3249176362f6ff57f23c7d7287a",
+      "caller_sha256": "ad707cee9684aeaccbddf548f59eda18c2b6ce3eb7590cee5436296e18251b4f"
+    }
+  ],
+  "instrumentation_changes": [
+    "Extra empty-registry barrier after warmup, outside enabled counters.",
+    "Latency storage allocated and touched before enable ACK.",
+    "Process CPU clocks cached before the loop; outer timestamps exclude enable/disable ACK waits and final lookup.",
+    "Independent JSON emission follows successful final empty-registry verification."
+  ],
+  "limits": [
+    "Independent feature ELF is not a bitwise reproduction of the frozen router benchmark; no historical latency or CPU observations are pooled.",
+    "Original request construction, method names, policies, path and Connection serialization are reused; helper instrument and timing context differ.",
+    "Preflight checks complete signature bytes, ID and path; timed calls check status and ADD object ID. REMOVE DATA/OBJTYPE and every reply byte are not independently checked.",
+    "Mock ACK validates protocol control flow, not actual perf recording/counting. Real low-n perf stat/record checks remain separate before collecting a formal series.",
+    "No router access or daemon modification was performed by this task."
+  ],
+  "build_environment": {
+    "rustup_toolchain": "1.98.1-aarch64-unknown-linux-gnu",
+    "target": "aarch64-unknown-linux-musl",
+    "sdk": "openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64",
+    "cargo_profile": "release",
+    "features": [
+      "registration-perf"
+    ],
+    "new_output_directory": "/home/ubuntu/r132-registration-caller/build-02"
+  }
+}

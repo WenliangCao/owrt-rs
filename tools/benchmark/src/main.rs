@@ -14,6 +14,8 @@ use std::time::{Duration, Instant};
 
 mod cpu_clock;
 mod affinity;
+#[cfg(feature = "registration-perf")]
+mod registration_perf;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -713,6 +715,14 @@ fn main_inner(a: &[String]) -> Result<()> {
         }
         "register-cycle" | "register-cpu" => {
             require(a.len() == 8, "register-cycle SOCKET METHODS NAME_BYTES N WARMUP PIDS")?;
+            #[cfg(feature = "registration-perf")]
+            let profiler = if a[1] == "register-cycle" {
+                let pids = pid_list(&a[7])?;
+                require(pids.len() == 1, "registration profile requires one daemon PID")?;
+                Some(registration_perf::Session::new(pids[0])?)
+            } else {
+                None
+            };
             let count: usize = a[3].parse()?;
             let name_bytes: usize = a[4].parse()?;
             require((1..=64).contains(&count) && (8..=128).contains(&name_bytes),
@@ -737,6 +747,26 @@ fn main_inner(a: &[String]) -> Result<()> {
                     "registration signature failed full byte validation")?;
             c.remove_object(id, 5000)?;
             require(c.lookup(None, 5000)?.is_empty(), "registration preflight left an object")?;
+            #[cfg(feature = "registration-perf")]
+            if let Some(mut profiler) = profiler {
+                let n = a[5].parse()?;
+                let warmup = a[6].parse()?;
+                require(n > 0 && n <= 1_000_000 && warmup <= 100_000, "profile loop count out of bounds")?;
+                for _ in 0..warmup {
+                    let id = c.add_object(path, &methods, 5000)?;
+                    c.remove_object(id, 5000)?;
+                }
+                require(c.lookup(None, 5000)?.is_empty(), "registration warmup left an object")?;
+                let measured = profiler.measure(n, || {
+                    let start = Instant::now();
+                    let id = c.add_object(path, &methods, 5000)?;
+                    c.remove_object(id, 5000)?;
+                    Ok(start.elapsed().as_nanos() as u64)
+                })?;
+                require(c.lookup(None, 5000)?.is_empty(), "registration cycle left an object")?;
+                profiler.emit(measured, warmup, count, name_bytes);
+                return Ok(());
+            }
             // Each operation includes encoding, ADD_OBJECT and REMOVE_OBJECT.
             // Preflight signature validation and the final empty check are
             // outside both latency and measured CPU intervals.
