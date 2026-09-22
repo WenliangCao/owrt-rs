@@ -38,217 +38,121 @@
     {
       "subject": "c",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-1"
     },
     {
       "subject": "r124",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-1"
     },
     {
       "subject": "r131",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-1"
     },
     {
       "subject": "r131",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-1"
     },
     {
       "subject": "r124",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-1"
     },
     {
       "subject": "c",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-1"
     },
     {
       "subject": "r124",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-2"
     },
     {
       "subject": "c",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-2"
     },
     {
       "subject": "c",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-2"
     },
     {
       "subject": "r131",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-2"
     },
     {
       "subject": "r124",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-2"
     },
     {
       "subject": "r131",
       "held_clients": 0,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "0-2"
     },
     {
       "subject": "c",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-1"
     },
     {
       "subject": "r124",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-1"
     },
     {
       "subject": "r131",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-1"
     },
     {
       "subject": "r131",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-1"
     },
     {
       "subject": "r124",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-1"
     },
     {
       "subject": "c",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-1"
     },
     {
       "subject": "r124",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-2"
     },
     {
       "subject": "c",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-2"
     },
     {
       "subject": "c",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-2"
     },
     {
       "subject": "r131",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-2"
     },
     {
       "subject": "r124",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-2"
     },
     {
       "subject": "r131",
       "held_clients": 64,
-      "n": 100000,
-      "warmup": 5000,
-      "listeners": 8,
-      "matched": 1,
       "block": "64-2"
     }
   ],
