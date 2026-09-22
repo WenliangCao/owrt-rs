@@ -844,39 +844,42 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     fn set_send_buffer(fd: RawFd, bytes: i32) -> i32 {
-        use std::ffi::c_void;
-
         unsafe extern "C" {
             fn setsockopt(
                 fd: i32,
                 level: i32,
                 name: i32,
-                value: *const c_void,
+                value: *const i32,
                 len: u32,
             ) -> i32;
             fn getsockopt(
                 fd: i32,
                 level: i32,
                 name: i32,
-                value: *mut c_void,
+                value: *mut sys::Ucred,
                 len: *mut u32,
             ) -> i32;
         }
 
         const SOL_SOCKET: i32 = 1;
         const SO_SNDBUF: i32 = 7;
+        // SAFETY: bytes is a live i32 with the declared byte length; fd is
+        // an owned connected socket created by this test.
         let rc = unsafe {
             setsockopt(
                 fd,
                 SOL_SOCKET,
                 SO_SNDBUF,
-                (&bytes as *const i32).cast(),
+                &bytes,
                 std::mem::size_of::<i32>() as u32,
             )
         };
         assert_eq!(rc, 0, "setsockopt(SO_SNDBUF) failed: {}", io::Error::last_os_error());
         let mut actual = 0i32;
         let mut len = std::mem::size_of::<i32>() as u32;
+        // SAFETY: actual and len are live, correctly sized output values.
+        // The declaration matches sys's SO_PEERCRED use, but SO_SNDBUF and
+        // len tell libc to write only this i32, not a whole Ucred.
         let rc = unsafe {
             getsockopt(
                 fd,
@@ -893,18 +896,28 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn lookup_batch_preserves_frames_when_direct_write_stops_in_frame_two() {
+        assert_direct_batch_short_write(1);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn lookup_batch_preserves_frames_when_direct_write_stops_in_frame_three() {
+        assert_direct_batch_short_write(2);
+    }
+
+    #[cfg(target_os = "linux")]
+    fn assert_direct_batch_short_write(complete_frames: usize) {
         let (sock, mut peer) = UnixStream::pair().unwrap();
         sock.set_nonblocking(true).unwrap();
         peer.set_nonblocking(true).unwrap();
         let actual_buf = set_send_buffer(sock.as_raw_fd(), 4096) as usize;
         assert!(actual_buf >= 1024, "unexpectedly small send buffer: {actual_buf}");
 
-        // Make frame one fit, then make frame two large enough that one
-        // direct send must stop inside it. Frame three is queued behind the
-        // unfinished second frame, which exercises the cross-frame offset
-        // bookkeeping that a per-frame retry can corrupt.
-        let first_total = (actual_buf / 3) & !3;
-        let second_total = (actual_buf - first_total + 128) & !3;
+        // Put one or two complete frames before the partial frame, followed
+        // by another queued frame. Both cases must preserve the partial
+        // frame's offset while the next frame is added to the queue.
+        let first_total = (actual_buf / (3 * complete_frames)) & !3;
+        let partial_total = (actual_buf - complete_frames * first_total + 128) & !3;
         let frame = |seq: u16, total: usize| {
             assert!(total >= Header::LEN + 4 && total % 4 == 0);
             let blob_len = total - Header::LEN;
@@ -914,21 +927,23 @@ mod tests {
             out.extend_from_slice(&blob);
             out
         };
-        let first = frame(101, first_total);
-        let second = frame(102, second_total);
-        let third = frame(103, second_total);
         let mut batch = Vec::new();
-        batch.extend_from_slice(&first);
-        batch.extend_from_slice(&second);
-        batch.extend_from_slice(&third);
+        for i in 0..complete_frames {
+            batch.extend_from_slice(&frame(101 + i as u16, first_total));
+        }
+        let partial_seq = 101 + complete_frames as u16;
+        batch.extend_from_slice(&frame(partial_seq, partial_total));
+        batch.extend_from_slice(&frame(partial_seq + 1, partial_total));
         let expected = batch.clone();
 
         let mut c = Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new());
         c.send_borrowed_batch(&batch);
-        assert_eq!(c.tx.len(), 2, "the direct write must finish frame one and queue frames two and three");
-        assert!(c.txq_ofs > 0 && c.txq_ofs < second.len(), "offset must point inside frame two: {}", c.txq_ofs);
-        assert_eq!(c.tx.front().unwrap().header.seq, 102);
-        assert_eq!(c.tx.back().unwrap().header.seq, 103);
+        assert_eq!(c.tx.len(), 2, "the direct write must queue one partial frame and the next frame");
+        assert!(c.txq_ofs > 0 && c.txq_ofs < partial_total, "offset must point inside frame {}: {}", complete_frames + 1, c.txq_ofs);
+        assert_eq!(c.tx.front().unwrap().header.seq, partial_seq);
+        assert_eq!(c.tx.back().unwrap().header.seq, partial_seq + 1);
+        // Queued bytes must be owned even if the batch scratch is reused.
+        batch.fill(0xa5);
 
         let deadline = Instant::now() + Duration::from_secs(3);
         let mut got = Vec::new();
@@ -943,7 +958,7 @@ mod tests {
             }
             assert!(c.flush());
         }
-        assert_eq!(got, expected, "partial frame two must precede queued frame three");
+        assert_eq!(got, expected, "partial frame must precede the following queued frame");
         assert_eq!((c.txq_len, c.txq_ofs), (0, 0));
     }
 }
