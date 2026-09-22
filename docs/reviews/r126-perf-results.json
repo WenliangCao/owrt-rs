@@ -1,0 +1,2336 @@
+{
+  "scope": "R126 complete descriptive Oracle counters. Failed frozen A/A gate; no physical-router performance inference.",
+  "reports": {
+    "user_1_1": {
+      "schema_version": 1,
+      "scope": "Oracle user-mode counter diagnosis only",
+      "listeners": 1,
+      "matched": 1,
+      "plan_sha256": "b5a3a01334e94893467513362594aafb29a8489cb95b9cb43d5381fa76f965ba",
+      "reporter_sha256": "a729504d432a71ad35a501d86fb4e8341d1f01d158d78fdc4e16fd0fae5b6eed",
+      "complete_samples": 16,
+      "all_pmu_running_pct": 100,
+      "migrations_in_all_samples": 0,
+      "aa": {
+        "instructions:u": {
+          "median_delta_pct": 0.0017183347640004065,
+          "paired_delta_pct": [
+            0.003368293574390613,
+            -0.0010601259713527433,
+            0.001963788760472873,
+            0.0014728807675279398
+          ],
+          "range_delta_pct": [
+            -0.0010601259713527433,
+            0.003368293574390613
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": 0.001830597030827441,
+          "paired_delta_pct": [
+            0.0027679759893928235,
+            -0.0005214660215746569,
+            0.0020204797226197613,
+            0.0016407143390351209
+          ],
+          "range_delta_pct": [
+            -0.0005214660215746569,
+            0.0027679759893928235
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": 0.5080945072897414,
+          "paired_delta_pct": [
+            1.060490012237092,
+            -0.0443009976576092,
+            -1.5275009133854156,
+            1.5309705419057629
+          ],
+          "range_delta_pct": [
+            -1.5275009133854156,
+            1.5309705419057629
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": -0.1104780299232333,
+          "paired_delta_pct": [
+            0.21075923788069773,
+            -0.4317152977271643,
+            -1.4664886790912268,
+            0.39983607686713274
+          ],
+          "range_delta_pct": [
+            -1.4664886790912268,
+            0.39983607686713274
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": -0.018021626529196588,
+          "paired_delta_pct": [
+            0.02402450499510156,
+            -0.03604108683898932,
+            -0.020027237042374857,
+            -0.01601601601601832
+          ],
+          "range_delta_pct": [
+            -0.03604108683898932,
+            0.02402450499510156
+          ]
+        },
+        "subject_ns_per_send": {
+          "median_delta_pct": -0.2658667801002823,
+          "paired_delta_pct": [
+            -0.571572670520426,
+            0.20528479500869778,
+            -0.5797273494105859,
+            0.039839110319861426
+          ],
+          "range_delta_pct": [
+            -0.5797273494105859,
+            0.20528479500869778
+          ]
+        },
+        "client_ns_per_send": {
+          "median_delta_pct": 0.33988674565040844,
+          "paired_delta_pct": [
+            -0.2470913263869723,
+            0.25483976153064525,
+            0.6456533636522988,
+            0.42493372977017163
+          ],
+          "range_delta_pct": [
+            -0.2470913263869723,
+            0.6456533636522988
+          ]
+        },
+        "wall_ns_per_send": {
+          "median_delta_pct": -0.16476448911995067,
+          "paired_delta_pct": [
+            -0.5650122930491719,
+            0.0040979364064996915,
+            -0.33362691464640104,
+            0.4261784854270978
+          ],
+          "range_delta_pct": [
+            -0.5650122930491719,
+            0.4261784854270978
+          ]
+        },
+        "total_ns_per_send": {
+          "median_delta_pct": -0.06993691265622659,
+          "paired_delta_pct": [
+            -0.49076810850000596,
+            0.2177113362298977,
+            -0.2761974802078071,
+            0.13632365489535392
+          ],
+          "range_delta_pct": [
+            -0.49076810850000596,
+            0.2177113362298977
+          ]
+        }
+      },
+      "comparisons": [
+        {
+          "held_clients": 0,
+          "candidate": "r126",
+          "control": "r124",
+          "metrics": {
+            "instructions:u": {
+              "median_delta_pct": -6.037059061176759,
+              "paired_delta_pct": [
+                -6.034181282955875,
+                -6.039936839397642
+              ],
+              "range_delta_pct": [
+                -6.039936839397642,
+                -6.034181282955875
+              ]
+            },
+            "branches:u": {
+              "median_delta_pct": -8.1782087468934,
+              "paired_delta_pct": [
+                -8.175816958045878,
+                -8.180600535740922
+              ],
+              "range_delta_pct": [
+                -8.180600535740922,
+                -8.175816958045878
+              ]
+            },
+            "branch-misses:u": {
+              "median_delta_pct": 2.894824251578132,
+              "paired_delta_pct": [
+                -0.3781136940613772,
+                6.167762197217641
+              ],
+              "range_delta_pct": [
+                -0.3781136940613772,
+                6.167762197217641
+              ]
+            },
+            "cycles:u": {
+              "median_delta_pct": -2.4734995479153756,
+              "paired_delta_pct": [
+                -3.512477672019765,
+                -1.434521423810986
+              ],
+              "range_delta_pct": [
+                -3.512477672019765,
+                -1.434521423810986
+              ]
+            },
+            "context-switches": {
+              "median_delta_pct": -0.0360296245709435,
+              "paired_delta_pct": [
+                -0.026018733488109014,
+                -0.04604051565377798
+              ],
+              "range_delta_pct": [
+                -0.04604051565377798,
+                -0.026018733488109014
+              ]
+            },
+            "subject_ns_per_send": {
+              "median_delta_pct": 0.03195552209312447,
+              "paired_delta_pct": [
+                -0.8496525727405779,
+                0.9135636169268269
+              ],
+              "range_delta_pct": [
+                -0.8496525727405779,
+                0.9135636169268269
+              ]
+            },
+            "client_ns_per_send": {
+              "median_delta_pct": 0.5590362978788788,
+              "paired_delta_pct": [
+                0.19380553416394886,
+                0.9242670615938087
+              ],
+              "range_delta_pct": [
+                0.19380553416394886,
+                0.9242670615938087
+              ]
+            },
+            "wall_ns_per_send": {
+              "median_delta_pct": 0.06143125171577668,
+              "paired_delta_pct": [
+                -0.7631310531306945,
+                0.8859935565622479
+              ],
+              "range_delta_pct": [
+                -0.7631310531306945,
+                0.8859935565622479
+              ]
+            },
+            "total_ns_per_send": {
+              "median_delta_pct": 0.1636173357967785,
+              "paired_delta_pct": [
+                -0.5890226212209471,
+                0.9162572928145041
+              ],
+              "range_delta_pct": [
+                -0.5890226212209471,
+                0.9162572928145041
+              ]
+            }
+          }
+        },
+        {
+          "held_clients": 64,
+          "candidate": "r126",
+          "control": "r124",
+          "metrics": {
+            "instructions:u": {
+              "median_delta_pct": -6.171630481103346,
+              "paired_delta_pct": [
+                -6.310276606742294,
+                -6.032984355464399
+              ],
+              "range_delta_pct": [
+                -6.310276606742294,
+                -6.032984355464399
+              ]
+            },
+            "branches:u": {
+              "median_delta_pct": -8.375502250275396,
+              "paired_delta_pct": [
+                -8.576281403248798,
+                -8.174723097301994
+              ],
+              "range_delta_pct": [
+                -8.576281403248798,
+                -8.174723097301994
+              ]
+            },
+            "branch-misses:u": {
+              "median_delta_pct": 3.9849963302263425,
+              "paired_delta_pct": [
+                6.555918144150663,
+                1.4140745163020219
+              ],
+              "range_delta_pct": [
+                1.4140745163020219,
+                6.555918144150663
+              ]
+            },
+            "cycles:u": {
+              "median_delta_pct": -0.2678872887522721,
+              "paired_delta_pct": [
+                0.8491341106126038,
+                -1.384908688117148
+              ],
+              "range_delta_pct": [
+                -1.384908688117148,
+                0.8491341106126038
+              ]
+            },
+            "context-switches": {
+              "median_delta_pct": -0.010010130254384242,
+              "paired_delta_pct": [
+                -0.016016336663393638,
+                -0.004003923845374846
+              ],
+              "range_delta_pct": [
+                -0.016016336663393638,
+                -0.004003923845374846
+              ]
+            },
+            "subject_ns_per_send": {
+              "median_delta_pct": 0.8772119112589905,
+              "paired_delta_pct": [
+                1.456563484897755,
+                0.297860337620226
+              ],
+              "range_delta_pct": [
+                0.297860337620226,
+                1.456563484897755
+              ]
+            },
+            "client_ns_per_send": {
+              "median_delta_pct": 0.34439738702660705,
+              "paired_delta_pct": [
+                0.5770181607068547,
+                0.11177661334635935
+              ],
+              "range_delta_pct": [
+                0.11177661334635935,
+                0.5770181607068547
+              ]
+            },
+            "wall_ns_per_send": {
+              "median_delta_pct": 0.957322698494889,
+              "paired_delta_pct": [
+                1.3377552323567077,
+                0.5768901646330704
+              ],
+              "range_delta_pct": [
+                0.5768901646330704,
+                1.3377552323567077
+              ]
+            },
+            "total_ns_per_send": {
+              "median_delta_pct": 0.7424080364034302,
+              "paired_delta_pct": [
+                1.2337267263145657,
+                0.25108934649229475
+              ],
+              "range_delta_pct": [
+                0.25108934649229475,
+                1.2337267263145657
+              ]
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "stage": "aa",
+          "block": 1,
+          "slot": "a",
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 1,
+          "values": {
+            "instructions:u": 4408.7606,
+            "branches:u": 684.97704,
+            "branch-misses:u": 90.8712,
+            "cycles:u": 4765.92158,
+            "context-switches": 0.99898,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37919.9376,
+            "client_ns_per_send": 12574.46,
+            "wall_ns_per_send": 50116.5733,
+            "total_ns_per_send": 50494.3976
+          },
+          "raw_sha256": {
+            "meta.json": "b514e414ae8e1eb63fa30cbb560e52e15da6b16312b008cdfdeea7753195274e",
+            "client.json": "de36bd03baaa27b0ae53d6d35251637be54b13b7de0b8da5ad9cfa20619303b4",
+            "perf.csv": "44b9303d2394707edbdbdd2913e3efc0bd39827f13afaf3be03ba8befc062cd3",
+            "stat-before.txt": "ec8c34bf4c10a7b60191f19e40a47acf439456e6c1267f0cc56a2a979ed80ad6",
+            "stat-after.txt": "35a2232318291454e321361f1d8e9333fddce91c5ee32bf615c1d1143ea2ca0a"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 1,
+          "slot": "b",
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 2,
+          "values": {
+            "instructions:u": 4408.9091,
+            "branches:u": 684.996,
+            "branch-misses:u": 91.83488,
+            "cycles:u": 4775.9662,
+            "context-switches": 0.99922,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37703.1976,
+            "client_ns_per_send": 12543.3896,
+            "wall_ns_per_send": 49833.4085,
+            "total_ns_per_send": 50246.5872
+          },
+          "raw_sha256": {
+            "meta.json": "46968ace87be8257fb35a2f0b3fee0d4e7f2df888877ad7c827eb84ccc2a6d46",
+            "client.json": "b19e64b058f886fcc4f4af4f3a015dcad0521649903a2b32d942717b2304915a",
+            "perf.csv": "9bbff130b1e714538845ec826a4aa00a4570fdff41ebf054b7fc047ca0f3fa8c",
+            "stat-before.txt": "b0dc02a88aed8f7157c32d09148a7c9dae3ebc0f4d033ca14427e7949f12c58f",
+            "stat-after.txt": "a6ceb864780521b9d18ba6424fcceb595cd3eab43df6cc0c12c7eb3a8145b0cc"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 2,
+          "slot": "a",
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 3,
+          "values": {
+            "instructions:u": 4142.90388,
+            "branches:u": 628.99592,
+            "branch-misses:u": 93.76764,
+            "cycles:u": 4690.0307,
+            "context-switches": 0.99886,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37641.7552,
+            "client_ns_per_send": 12598.348,
+            "wall_ns_per_send": 49878.27524,
+            "total_ns_per_send": 50240.1032
+          },
+          "raw_sha256": {
+            "meta.json": "622003f42be54e14a91fcca6c4749d25a19c6500453e567cf111aed28cb5fbe2",
+            "client.json": "a811e3250cd6e149d60605569ef686b3212b6b4c9116f0d57ef5f447885f0875",
+            "perf.csv": "749fdd88b26d55a474b543e8fd1b9147e94946e20de7acde5f604b067a909bb9",
+            "stat-before.txt": "cea8ba0b7699bd3a5793fd02bfa6ffd85b7a37d51c9184cfb47b52f0eaf5fa71",
+            "stat-after.txt": "8120c2eb1be8a429814481d8e60652199d9dc18f8a4a3008253994ce702cd614"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 2,
+          "slot": "b",
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 4,
+          "values": {
+            "instructions:u": 4142.85996,
+            "branches:u": 628.99264,
+            "branch-misses:u": 93.7261,
+            "cycles:u": 4669.78312,
+            "context-switches": 0.9985,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37719.028,
+            "client_ns_per_send": 12630.4536,
+            "wall_ns_per_send": 49880.31922,
+            "total_ns_per_send": 50349.4816
+          },
+          "raw_sha256": {
+            "meta.json": "58088d3112d17317567100378cfd6c0db57bcd9e0da9af2b94c518ec16643b8a",
+            "client.json": "144e3898f5ab6a50938440e8f02f35da9dd2a99ce2bba41ce827fefdac540e24",
+            "perf.csv": "a23554132ffb0f7b0a3b45e2e396d304c0010a5b7a80fe7868092a730b77921b",
+            "stat-before.txt": "373fa0be7d56c283c5adf89eb35d18c84bce6fec68cf5fd055beddb09654a205",
+            "stat-after.txt": "ad15dfb8255e26af4177cb9aff3d2c0e1b8c0e9e9bc6594d0080bfe1d518a017"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 3,
+          "slot": "a",
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 5,
+          "values": {
+            "instructions:u": 4408.8245,
+            "branches:u": 684.98584,
+            "branch-misses:u": 93.6078,
+            "cycles:u": 4881.55422,
+            "context-switches": 0.99864,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 38277.856,
+            "client_ns_per_send": 12603.4192,
+            "wall_ns_per_send": 50464.9513,
+            "total_ns_per_send": 50881.275200000004
+          },
+          "raw_sha256": {
+            "meta.json": "bcaa7ce868c40ce3f5dbd1d6ec44ed917376bde1d554878cd409b1658131bf04",
+            "client.json": "5141451f579743b5df9bd30021bd295945017d1288ff7afc390c9aaed988b5ee",
+            "perf.csv": "f89765248b9e327b1ddc039fbe85768788f486b1839d03f0dd5fb59b967116f7",
+            "stat-before.txt": "9905abb021bb0c7f7c739c273bb8404fc893fce9a8fed007e97b0a01a037957c",
+            "stat-after.txt": "790002267781d3d598cc57858cc6b0996ea7354a7842bb6e7a9a97f0dd3e0338"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 3,
+          "slot": "b",
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 6,
+          "values": {
+            "instructions:u": 4408.91108,
+            "branches:u": 684.99968,
+            "branch-misses:u": 92.17794,
+            "cycles:u": 4809.96678,
+            "context-switches": 0.99844,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 38055.9488,
+            "client_ns_per_send": 12684.7936,
+            "wall_ns_per_send": 50296.58664,
+            "total_ns_per_send": 50740.7424
+          },
+          "raw_sha256": {
+            "meta.json": "127b74c57c0744ade8f2e077e07fdde694cfa67f28b4a9515097f3998f91487d",
+            "client.json": "e8342ab1e4219260212d34bbe6af47cf136ac6ac056cbcdc597267362272ef02",
+            "perf.csv": "3b74dfa70ec0c850fdd002ad38189b57f34fa59fcfd1a3240b5e4c82d5fc5f1c",
+            "stat-before.txt": "ad14dad5a1d73659ec6aca92f256465238529b91caa9bbf5220a5e4f26c8693e",
+            "stat-after.txt": "f4bbc4d90db3f294858d25c19d020653ee437fac3ca8a6ad0696323ca3bdbae7"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 4,
+          "slot": "a",
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 7,
+          "values": {
+            "instructions:u": 4142.90154,
+            "branches:u": 628.99432,
+            "branch-misses:u": 92.10236,
+            "cycles:u": 4675.6061,
+            "context-switches": 0.999,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37609.2736,
+            "client_ns_per_send": 12573.0664,
+            "wall_ns_per_send": 49711.9745,
+            "total_ns_per_send": 50182.34
+          },
+          "raw_sha256": {
+            "meta.json": "9f24f2fdd8203dd58952f45a1adb7cc2cbfb7ef90ee098292796d353ca6fe446",
+            "client.json": "136434d251931119a1c97a7eb7e9066e0f3e0ced76ccc11a37a3e7eea5db4812",
+            "perf.csv": "6bf45942487bd279b21e537524da1a74d831df12e74ef2bb6728f3d31206a8d8",
+            "stat-before.txt": "c8fdbc50505cc044e048069df84e68c9a63061a5b8d2977c5416b30546057537",
+            "stat-after.txt": "cc75c3fda6271c8af571451e1bf28b36c2617477817894c9e3d3c7cf514bcb1c"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 4,
+          "slot": "b",
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 8,
+          "values": {
+            "instructions:u": 4142.96256,
+            "branches:u": 629.00464,
+            "branch-misses:u": 93.51242,
+            "cycles:u": 4694.30086,
+            "context-switches": 0.99884,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37624.2568,
+            "client_ns_per_send": 12626.4936,
+            "wall_ns_per_send": 49923.83624,
+            "total_ns_per_send": 50250.750400000004
+          },
+          "raw_sha256": {
+            "meta.json": "e4edb950c798e9357e406c6ecc432f36cd8b8549817978c6ebf6a7eea657a1ed",
+            "client.json": "57565ce89f65db1a1baa967e03ddd8b73abd33c273e4746d1fb2bad53698d1b8",
+            "perf.csv": "1b1cdbddaed55574dd65862a919e6d807d92f1cd29f4619740d045558d95852f",
+            "stat-before.txt": "15004e7abf89489d7ae79983cef5d4d0ae6ea65d8c4662824796c06637601a61",
+            "stat-after.txt": "cd9eb8339f2daf29e8068df6c6fa668ed9f2d7664931cae5e02d6040ba707cc6"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 9,
+          "values": {
+            "instructions:u": 4408.9451,
+            "branches:u": 684.99968,
+            "branch-misses:u": 91.40108,
+            "cycles:u": 4775.5663,
+            "context-switches": 0.99928,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37795.3072,
+            "client_ns_per_send": 12583.3352,
+            "wall_ns_per_send": 50073.81346,
+            "total_ns_per_send": 50378.642400000004
+          },
+          "raw_sha256": {
+            "meta.json": "dc8011c0425f9e9ed92c7a5dd2bab6c32cb39ba22d80ce79386f247675da6bdd",
+            "client.json": "d838e739d3ab2c6177ec28fbe245544736400223202084ad6e160202d769128b",
+            "perf.csv": "2dc5f2dc65a6dd7d16de6cdc9343ccc19a62e23432004669aef9f68e12b2c57e",
+            "stat-before.txt": "8a8f23ed8143f2aee8e95ced51f2b0aa8f02380e817ee82a3a3b4c49b81e84be",
+            "stat-after.txt": "4ba2530a25a809d96b78dc93d7e79c274e004db2a9f117f01028ac5a3e65684f"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 10,
+          "values": {
+            "instructions:u": 4142.90136,
+            "branches:u": 628.99536,
+            "branch-misses:u": 91.05548,
+            "cycles:u": 4607.8256,
+            "context-switches": 0.99902,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37474.1784,
+            "client_ns_per_send": 12607.7224,
+            "wall_ns_per_send": 49691.68464,
+            "total_ns_per_send": 50081.900799999996
+          },
+          "raw_sha256": {
+            "meta.json": "50b70759894f6bccc73ad0859571cf4b58f226f55abb8aa8b411a9ace4c1c9e8",
+            "client.json": "cd419fb084bddfaf28f1d13e1665407cb0cc66f6cae24ea04af4e33bd2c306a0",
+            "perf.csv": "df101e4100f7dc844845173892a313504f4c6042c3e28331c1a0d8ab0bae1fbc",
+            "stat-before.txt": "415bed46e52b2ca4c2eb19f234bc5e934f873eb1721d1164def24b1ca71aa500",
+            "stat-after.txt": "820b3f839c1cd494f5063d8bc7495ee1fdafd3d3a71be9f9b4defdb290a8c5b6"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 11,
+          "values": {
+            "instructions:u": 4421.92692,
+            "branches:u": 687.99888,
+            "branch-misses:u": 93.84986,
+            "cycles:u": 4844.56336,
+            "context-switches": 0.99898,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37393.2208,
+            "client_ns_per_send": 12688.4048,
+            "wall_ns_per_send": 49692.4358,
+            "total_ns_per_send": 50081.6256
+          },
+          "raw_sha256": {
+            "meta.json": "c842459a514661a7ef1a77b43ee3e94824746721e49be02d6eefb7973df46d26",
+            "client.json": "56ea814b487bf06d7ba1467cbf88391d956f066c8db597479e1cbabacc373de8",
+            "perf.csv": "618bc1b0f69f3d49a000d9dd749cb1d5ab5598414dc8b55ec7df8b742e48a200",
+            "stat-before.txt": "3ccd09821c5bdfdca92d6bfd484555353c34a9d242bdb993dfaff063b158361e",
+            "stat-after.txt": "867cddf34c1afcde63be9a2bd7ee74ec7b4ca87b5806d032440af8f22fee8e8c"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 12,
+          "values": {
+            "instructions:u": 4142.8911,
+            "branches:u": 628.99416,
+            "branch-misses:u": 100.00258,
+            "cycles:u": 4885.7002,
+            "context-switches": 0.99882,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37937.8768,
+            "client_ns_per_send": 12761.6192,
+            "wall_ns_per_send": 50357.19896,
+            "total_ns_per_send": 50699.496
+          },
+          "raw_sha256": {
+            "meta.json": "8f3a758c59b1eb2abf72059a51e579374aed1974b84bb6148bf88092e124501a",
+            "client.json": "ae663564cd777f67c65d23a3889f0b08a67d7d3f810daae4234179a53cf50821",
+            "perf.csv": "bdde0449f67318551d4a276e4d920e87bc6b07abc263b08a0c020c86d4e85b5c",
+            "stat-before.txt": "9f5376102cb0c187fe891133333162158572f847c5a18e553b92ef6da4cf01ae",
+            "stat-after.txt": "48e2b916c73b0872c69c982f1424851f63bd5133a8c6a522a9b142fb0ac9c08c"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 13,
+          "values": {
+            "instructions:u": 4142.90136,
+            "branches:u": 628.99536,
+            "branch-misses:u": 94.1423,
+            "cycles:u": 4725.35716,
+            "context-switches": 0.99898,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37649.1328,
+            "client_ns_per_send": 12616.3648,
+            "wall_ns_per_send": 49991.46146,
+            "total_ns_per_send": 50265.4976
+          },
+          "raw_sha256": {
+            "meta.json": "a2441eff4fd4da1b93910eb98d6c47d2d0d3b63e0d6f3b28554a53c0f56c64df",
+            "client.json": "94bc27d337d7aaee4f7341b5945739b1ea4b221f15d9db2998cb20160bf7442d",
+            "perf.csv": "0f2ed876a46e6db2cb896b18f0683311b284d8c207e31b9fe3321e2bd41b14ba",
+            "stat-before.txt": "1ee26a6ef2039cabe9d568a313de5e643b6251ee720c05e749ee4f2ca5d97ced",
+            "stat-after.txt": "b9e52c2cd5ffe2a0f7fb993dda135c005ebc07a84fe8b796453cca57b6b41313"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 14,
+          "values": {
+            "instructions:u": 4408.88894,
+            "branches:u": 684.99152,
+            "branch-misses:u": 92.82962,
+            "cycles:u": 4791.71808,
+            "context-switches": 0.99902,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37537.324,
+            "client_ns_per_send": 12602.2784,
+            "wall_ns_per_send": 49704.71982,
+            "total_ns_per_send": 50139.6024
+          },
+          "raw_sha256": {
+            "meta.json": "0a06058da79042f17689fa8f775a6d27cb1f28b566569086b31bafaa0f97f973",
+            "client.json": "12a68203fe4b319ca25c3c36c4be61d3e4eff3fa32a97250c5dd748f6b5fa7e1",
+            "perf.csv": "00b1c98d23e23df16df020b7878e9f0d12b4466a9812ec087e7257983901ec25",
+            "stat-before.txt": "383f1092c9272dbbba8961e0c79ab8d20da2995a518a71005566dbec958003b6",
+            "stat-after.txt": "30eb17e30997f024d06533849c34b546881a41b4b8752430d0338d90ab76d634"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 15,
+          "values": {
+            "instructions:u": 4142.76024,
+            "branches:u": 628.97912,
+            "branch-misses:u": 103.60638,
+            "cycles:u": 4878.45316,
+            "context-switches": 0.99866,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37972.052,
+            "client_ns_per_send": 12771.3112,
+            "wall_ns_per_send": 50456.36048,
+            "total_ns_per_send": 50743.36320000001
+          },
+          "raw_sha256": {
+            "meta.json": "7455a6034eee138e4a4e01225ebc0dcb09602afb13eb686f2b9ba52a045537af",
+            "client.json": "f619426968817497a6792356be3400b4cb098c2a6573de023cbb7c2fb36a8260",
+            "perf.csv": "3d1d5ace3a655cb3553ad364e0a5d7e29cd63a55120e8f3a517d71be33fdf028",
+            "stat-before.txt": "d91fd72d9d231546ab8aa6f0ab73be7bd9e80c7a9bf7b40653e84123b87e2d07",
+            "stat-after.txt": "c28f26dca518fd911f61b0bf13b4e803ba69bf47c8fd5a9fc1afc2bede113c69"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 16,
+          "values": {
+            "instructions:u": 4409.06498,
+            "branches:u": 685.01768,
+            "branch-misses:u": 97.58742,
+            "cycles:u": 4949.45414,
+            "context-switches": 0.99912,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 37628.2936,
+            "client_ns_per_send": 12654.3512,
+            "wall_ns_per_send": 50013.24634,
+            "total_ns_per_send": 50282.644799999995
+          },
+          "raw_sha256": {
+            "meta.json": "f539b7cdd9b90d41dbe5e0c199aff8b2e88ef0438a33775dca1a728e7740281c",
+            "client.json": "572ee96b3d239206513927f36cf51388661806c57fbaf580595e4e6b86af5d14",
+            "perf.csv": "5f85df6e6f904961cbc9e8bb011ef8a643fdcaad7df73d57b35d5e87241fd713",
+            "stat-before.txt": "497de9b49d27a71b4f96477069d6e445e4ee5ab021d56718f99d9208d7bf9d9b",
+            "stat-after.txt": "41c7ef66f86eaf73299bec4c57833ba8dea98aef891343b69acd801e1876d77c"
+          }
+        }
+      ],
+      "limits": [
+        "Descriptive balanced permutation cycle; no IID confidence claim.",
+        "A/A spread is an observation, not a guaranteed noise bound.",
+        "User-mode Oracle PMU counts do not establish router CPU performance.",
+        "Final callback/CPU-clock/disable boundaries can include residual work."
+      ]
+    },
+    "user_8_1": {
+      "schema_version": 1,
+      "scope": "Oracle user-mode counter diagnosis only",
+      "listeners": 8,
+      "matched": 1,
+      "plan_sha256": "f9c51e617756f926404364917571af8355d1f630015b42c551b97bbb48bcc501",
+      "reporter_sha256": "a729504d432a71ad35a501d86fb4e8341d1f01d158d78fdc4e16fd0fae5b6eed",
+      "complete_samples": 16,
+      "all_pmu_running_pct": 100,
+      "migrations_in_all_samples": 0,
+      "aa": {
+        "instructions:u": {
+          "median_delta_pct": -0.0021504059098953476,
+          "paired_delta_pct": [
+            -0.0071579288663858875,
+            -0.004713660721988866,
+            0.0004128489021981707,
+            0.9618227425347126
+          ],
+          "range_delta_pct": [
+            -0.0071579288663858875,
+            0.9618227425347126
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": -0.0026358117103719714,
+          "paired_delta_pct": [
+            -0.007237034650398044,
+            -0.0056037259287267105,
+            0.00033210250798276775,
+            1.600209970468769
+          ],
+          "range_delta_pct": [
+            -0.007237034650398044,
+            1.600209970468769
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": -0.3208507311634412,
+          "paired_delta_pct": [
+            -9.693522385872356,
+            0.6984033664340306,
+            1.0668177631931064,
+            -1.340104828760913
+          ],
+          "range_delta_pct": [
+            -9.693522385872356,
+            1.0668177631931064
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": 0.036012151174585894,
+          "paired_delta_pct": [
+            -2.64777084759783,
+            0.23475389901645993,
+            -0.16272959666728815,
+            0.7672217665502856
+          ],
+          "range_delta_pct": [
+            -2.64777084759783,
+            0.7672217665502856
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": -0.006996321982916109,
+          "paired_delta_pct": [
+            -0.01998720818675581,
+            -0.011993283761080331,
+            0.0059977208660688675,
+            -0.0019993602047518877
+          ],
+          "range_delta_pct": [
+            -0.01998720818675581,
+            0.0059977208660688675
+          ]
+        },
+        "subject_ns_per_send": {
+          "median_delta_pct": -0.37617397207309056,
+          "paired_delta_pct": [
+            -0.8575678406024689,
+            -0.5450472092956793,
+            -0.20730073485050182,
+            -0.07479129232784709
+          ],
+          "range_delta_pct": [
+            -0.8575678406024689,
+            -0.07479129232784709
+          ]
+        },
+        "client_ns_per_send": {
+          "median_delta_pct": -1.6126781788185107,
+          "paired_delta_pct": [
+            -2.960532464753085,
+            -1.4886257571719796,
+            -0.680800202376719,
+            -1.7367306004650418
+          ],
+          "range_delta_pct": [
+            -2.960532464753085,
+            -0.680800202376719
+          ]
+        },
+        "wall_ns_per_send": {
+          "median_delta_pct": -0.41534333259983236,
+          "paired_delta_pct": [
+            -1.6119830209968433,
+            -0.6359922620689518,
+            -0.19469440313071296,
+            -0.17536269589175646
+          ],
+          "range_delta_pct": [
+            -1.6119830209968433,
+            -0.17536269589175646
+          ]
+        },
+        "total_ns_per_send": {
+          "median_delta_pct": -0.8175034396509018,
+          "paired_delta_pct": [
+            -1.678905705891609,
+            -0.9130207614753361,
+            -0.390858684307438,
+            -0.7219861178264675
+          ],
+          "range_delta_pct": [
+            -1.678905705891609,
+            -0.390858684307438
+          ]
+        }
+      },
+      "comparisons": [
+        {
+          "held_clients": 0,
+          "candidate": "r126",
+          "control": "r124",
+          "metrics": {
+            "instructions:u": {
+              "median_delta_pct": -16.5114176983593,
+              "paired_delta_pct": [
+                -16.38850329412015,
+                -16.63433210259845
+              ],
+              "range_delta_pct": [
+                -16.63433210259845,
+                -16.38850329412015
+              ]
+            },
+            "branches:u": {
+              "median_delta_pct": -23.062695629809184,
+              "paired_delta_pct": [
+                -22.933139499705714,
+                -23.19225175991265
+              ],
+              "range_delta_pct": [
+                -23.19225175991265,
+                -22.933139499705714
+              ]
+            },
+            "branch-misses:u": {
+              "median_delta_pct": -4.838715808684906,
+              "paired_delta_pct": [
+                -0.3148501625324984,
+                -9.362581454837315
+              ],
+              "range_delta_pct": [
+                -9.362581454837315,
+                -0.3148501625324984
+              ]
+            },
+            "cycles:u": {
+              "median_delta_pct": -9.811172981813588,
+              "paired_delta_pct": [
+                -8.396976540365397,
+                -11.225369423261778
+              ],
+              "range_delta_pct": [
+                -11.225369423261778,
+                -8.396976540365397
+              ]
+            },
+            "context-switches": {
+              "median_delta_pct": -0.01798569082873125,
+              "paired_delta_pct": [
+                -0.039970421887802754,
+                0.003999040230340256
+              ],
+              "range_delta_pct": [
+                -0.039970421887802754,
+                0.003999040230340256
+              ]
+            },
+            "subject_ns_per_send": {
+              "median_delta_pct": -0.4036476655321364,
+              "paired_delta_pct": [
+                -1.092514746133011,
+                0.28521941506873816
+              ],
+              "range_delta_pct": [
+                -1.092514746133011,
+                0.28521941506873816
+              ]
+            },
+            "client_ns_per_send": {
+              "median_delta_pct": -1.7112560106126662,
+              "paired_delta_pct": [
+                -2.5217611390277117,
+                -0.9007508821976207
+              ],
+              "range_delta_pct": [
+                -2.5217611390277117,
+                -0.9007508821976207
+              ]
+            },
+            "wall_ns_per_send": {
+              "median_delta_pct": -0.4292840077413429,
+              "paired_delta_pct": [
+                -0.8734461673344573,
+                0.014878151851771548
+              ],
+              "range_delta_pct": [
+                -0.8734461673344573,
+                0.014878151851771548
+              ]
+            },
+            "total_ns_per_send": {
+              "median_delta_pct": -0.9156150169231825,
+              "paired_delta_pct": [
+                -1.6508136465394951,
+                -0.18041638730686982
+              ],
+              "range_delta_pct": [
+                -1.6508136465394951,
+                -0.18041638730686982
+              ]
+            }
+          }
+        },
+        {
+          "held_clients": 64,
+          "candidate": "r126",
+          "control": "r124",
+          "metrics": {
+            "instructions:u": {
+              "median_delta_pct": -16.423195788010638,
+              "paired_delta_pct": [
+                -16.47787471762624,
+                -16.368516858395033
+              ],
+              "range_delta_pct": [
+                -16.47787471762624,
+                -16.368516858395033
+              ]
+            },
+            "branches:u": {
+              "median_delta_pct": -22.93921017935216,
+              "paired_delta_pct": [
+                -23.03217427463744,
+                -22.84624608406688
+              ],
+              "range_delta_pct": [
+                -23.03217427463744,
+                -22.84624608406688
+              ]
+            },
+            "branch-misses:u": {
+              "median_delta_pct": -4.906487727073894,
+              "paired_delta_pct": [
+                -2.259447428306216,
+                -7.553528025841572
+              ],
+              "range_delta_pct": [
+                -7.553528025841572,
+                -2.259447428306216
+              ]
+            },
+            "cycles:u": {
+              "median_delta_pct": -9.996501704534705,
+              "paired_delta_pct": [
+                -8.989717819523534,
+                -11.003285589545875
+              ],
+              "range_delta_pct": [
+                -11.003285589545875,
+                -8.989717819523534
+              ]
+            },
+            "context-switches": {
+              "median_delta_pct": -0.010995142121883461,
+              "paired_delta_pct": [
+                -0.02798824493712715,
+                0.005997960693360227
+              ],
+              "range_delta_pct": [
+                -0.02798824493712715,
+                0.005997960693360227
+              ]
+            },
+            "subject_ns_per_send": {
+              "median_delta_pct": -0.43402035360597946,
+              "paired_delta_pct": [
+                -0.41786855303238557,
+                -0.45017215417957335
+              ],
+              "range_delta_pct": [
+                -0.45017215417957335,
+                -0.41786855303238557
+              ]
+            },
+            "client_ns_per_send": {
+              "median_delta_pct": 0.4402858093348394,
+              "paired_delta_pct": [
+                1.8477260191719802,
+                -0.9671544005023014
+              ],
+              "range_delta_pct": [
+                -0.9671544005023014,
+                1.8477260191719802
+              ]
+            },
+            "wall_ns_per_send": {
+              "median_delta_pct": -0.21408629924377087,
+              "paired_delta_pct": [
+                -0.0733441048979544,
+                -0.35482849358958735
+              ],
+              "range_delta_pct": [
+                -0.35482849358958735,
+                -0.0733441048979544
+              ]
+            },
+            "total_ns_per_send": {
+              "median_delta_pct": -0.09863663922058952,
+              "paired_delta_pct": [
+                0.4539316645547187,
+                -0.6512049429958977
+              ],
+              "range_delta_pct": [
+                -0.6512049429958977,
+                0.4539316645547187
+              ]
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "stage": "aa",
+          "block": 1,
+          "slot": "a",
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 1,
+          "values": {
+            "instructions:u": 12915.74724,
+            "branches:u": 1945.27188,
+            "branch-misses:u": 120.0936,
+            "cycles:u": 9623.94764,
+            "context-switches": 1.00064,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52957.4896,
+            "client_ns_per_send": 33938.1112,
+            "wall_ns_per_send": 65449.03428,
+            "total_ns_per_send": 86895.6008
+          },
+          "raw_sha256": {
+            "meta.json": "050fdc7a7eadce1dabcde5b1cdb273f90ff6c389adc39353badcdcc69202e0db",
+            "client.json": "2bd9e0c2dc40752834921af6cfcb646533c5d6aaa8362ec69e8aaf2421609614",
+            "perf.csv": "cb2a3210d91cf5f3d79c38340bf58ed470fb001c98ced3fe2178a944bfea42ae",
+            "stat-before.txt": "47789af04609a777d06cafc9d9156bfa6641cb96f7f856d0024058b41f1654c3",
+            "stat-after.txt": "73464ae3fe2b0e259ae4b13cb5791fc81f9dad76a67a42f1cb80c7885a1735e6"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 1,
+          "slot": "b",
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 2,
+          "values": {
+            "instructions:u": 12914.82274,
+            "branches:u": 1945.1311,
+            "branch-misses:u": 108.4523,
+            "cycles:u": 9369.12756,
+            "context-switches": 1.00044,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52503.3432,
+            "client_ns_per_send": 32933.3624,
+            "wall_ns_per_send": 64394.00696,
+            "total_ns_per_send": 85436.7056
+          },
+          "raw_sha256": {
+            "meta.json": "5505d1ea42de9ce6fd975931fef7503618d85922a11db87d1bf327ee7215869e",
+            "client.json": "2fbed02b7da2c4f1df2e7c4656158eb2f407a4f425172cdf293cca3920e9f548",
+            "perf.csv": "36411a876cba4993197ee83a11972036b75ad460a9f3ed8dc5f850b7b9ebaf73",
+            "stat-before.txt": "e60eb476c90b2a92847b6e1079775be856987aa149dcd7efae17453d2d423a68",
+            "stat-after.txt": "4a08a0d9d97c9e7cd625b3ac6e5994a0ab6e5fe821e28a6659c650b2591e8835"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 2,
+          "slot": "a",
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 3,
+          "values": {
+            "instructions:u": 10787.36952,
+            "branches:u": 1497.21812,
+            "branch-misses:u": 106.00178,
+            "cycles:u": 8482.10832,
+            "context-switches": 1.00056,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52898.904,
+            "client_ns_per_send": 33817.284,
+            "wall_ns_per_send": 65097.70082,
+            "total_ns_per_send": 86716.188
+          },
+          "raw_sha256": {
+            "meta.json": "5809a80b4a86a0fcac1a5c577a7b2c89f9da962807439df5dd3a28e2511c3703",
+            "client.json": "2302d90615befe7f2e587cc6d49082c3564bf7e1835d7d7d0a03efc5db7665c4",
+            "perf.csv": "c3d2625e0893e5a61543ba2b70ed820c6089c5752fcf69db4f12af081b8f268d",
+            "stat-before.txt": "c3a8156fd00818c55db5fafd065569e7ede73605fd1ef3d5c8db78f050d0a3b1",
+            "stat-after.txt": "3e4e0070bec8f666447d2ad23950f78277e8dcd91a3282b5222743ec3a72d0da"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 2,
+          "slot": "b",
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 4,
+          "values": {
+            "instructions:u": 10786.86104,
+            "branches:u": 1497.13422,
+            "branch-misses:u": 106.7421,
+            "cycles:u": 8502.0204,
+            "context-switches": 1.00044,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52610.58,
+            "client_ns_per_send": 33313.8712,
+            "wall_ns_per_send": 64683.68448,
+            "total_ns_per_send": 85924.45120000001
+          },
+          "raw_sha256": {
+            "meta.json": "62e998f4953b5229522a087749ea00b4bb0ed3fbea8d03a43ad1649ee018dd2e",
+            "client.json": "1057f102de32665d5b5db036378ee5e479038e40141c0f8c1b7fc4d28255b232",
+            "perf.csv": "483de0ecc9d05f2ed42eb4717a2e358b3b520b5fa9ea1118c7e9516332245541",
+            "stat-before.txt": "d823f4614d4a13f8f8d2b2895a20accc04b3abfbb6d91cff3c157eba4f375c33",
+            "stat-after.txt": "6f1f40e77f89d634853f78e7026405ece73f21c3e0b4f1d9bd61fe37c640ae3c"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 3,
+          "slot": "a",
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 5,
+          "values": {
+            "instructions:u": 12915.13668,
+            "branches:u": 1945.18254,
+            "branch-misses:u": 108.3634,
+            "cycles:u": 9490.59072,
+            "context-switches": 1.00038,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 53134.3992,
+            "client_ns_per_send": 33638.6504,
+            "wall_ns_per_send": 65175.13496,
+            "total_ns_per_send": 86773.0496
+          },
+          "raw_sha256": {
+            "meta.json": "6da88711282b2c37f8d543b8edc32e66d2c2c291512f936f376c49947f0774bf",
+            "client.json": "d80e9e4ef7d802b0fc175610b355ec62605a6ebb6044395abaa8bde40b1b3e72",
+            "perf.csv": "0f410603ef33d98025beece0d82219e079219230268d9af267039fa0508d42f4",
+            "stat-before.txt": "0dabc75b919da88da2b745fc496e8ed2835a4e43e4cfe64eda143f3964c2bdec",
+            "stat-after.txt": "7fa02e4db6e13265707e3b5b2393975bc7e2b7fa3f541c50175adeea835c15dc"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 3,
+          "slot": "b",
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 6,
+          "values": {
+            "instructions:u": 12915.19,
+            "branches:u": 1945.189,
+            "branch-misses:u": 109.51944,
+            "cycles:u": 9475.14672,
+            "context-switches": 1.00044,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 53024.2512,
+            "client_ns_per_send": 33409.6384,
+            "wall_ns_per_send": 65048.24262,
+            "total_ns_per_send": 86433.8896
+          },
+          "raw_sha256": {
+            "meta.json": "22ef1c1fb9d3eec367071aa51e47d97b91b8413bf6a390271ce5004edb69aa81",
+            "client.json": "e08d78ecd15cad61e8893dd7c386665c7cff76a670c8e401d3670ca58d2615e5",
+            "perf.csv": "18b9dda8f76692b76ff74a0527e2a062071765c8c1d2384a0ad495c23f77ff34",
+            "stat-before.txt": "d75e11a953ad96c6271770c3d0d67494e4115d26d4bf167446f4286869832eb3",
+            "stat-after.txt": "073eb9b546d4f2bec2a71af1a0a4c237d48269d86d886b97dbc5f8f1d6519188"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 4,
+          "slot": "a",
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 7,
+          "values": {
+            "instructions:u": 10787.26832,
+            "branches:u": 1497.20102,
+            "branch-misses:u": 105.39474,
+            "cycles:u": 8510.9968,
+            "context-switches": 1.00032,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52744.108,
+            "client_ns_per_send": 33639.7136,
+            "wall_ns_per_send": 64859.5298,
+            "total_ns_per_send": 86383.8216
+          },
+          "raw_sha256": {
+            "meta.json": "1ee602f8c937ec800ef6bec93ac95bc1c1e6574819224101a6997070a4392d43",
+            "client.json": "43d0758d39c8524837001c6540dab18cf949e0b1bc954316fe6bc81e8d5a1987",
+            "perf.csv": "225d190a669620b1644502656571693bfc3d89b0b0452f1d2b622056dc6fbece",
+            "stat-before.txt": "3e4509865914a6faed03431b0365ec6ec1cf03b86bee67e34ad4be5f40ecb9c7",
+            "stat-after.txt": "c301effcbf9b70826d1f33d35e8a8324c07fc595f45a06999d050eb6158ab500"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 4,
+          "slot": "b",
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 8,
+          "values": {
+            "instructions:u": 10891.02272,
+            "branches:u": 1521.15938,
+            "branch-misses:u": 103.98234,
+            "cycles:u": 8576.29502,
+            "context-switches": 1.0003,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52704.66,
+            "client_ns_per_send": 33055.4824,
+            "wall_ns_per_send": 64745.79038,
+            "total_ns_per_send": 85760.14240000001
+          },
+          "raw_sha256": {
+            "meta.json": "46eeee8638ddc5354a6dcdde91c259ceb4a5f9b12b73b26738f86c457830ef65",
+            "client.json": "1a56e4433fe9fdd3396464633378e136c7adb5150a16c52b2bdc71da1125718a",
+            "perf.csv": "a818ba80e23fe286ca842afea96bd6e5af2385c9d7de4997c7129ba5382dabb6",
+            "stat-before.txt": "c9dbba6d46b555a8affb81797817b690811ab61ce4269958bce4ff1445f22c49",
+            "stat-after.txt": "db27eab36a527634d220c076e2ae77200693ae96c755824e1db65aec3fbdffb7"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 9,
+          "values": {
+            "instructions:u": 12915.64606,
+            "branches:u": 1945.25586,
+            "branch-misses:u": 106.12032,
+            "cycles:u": 9316.01126,
+            "context-switches": 1.00074,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 53209.204,
+            "client_ns_per_send": 34108.4168,
+            "wall_ns_per_send": 65398.2422,
+            "total_ns_per_send": 87317.6208
+          },
+          "raw_sha256": {
+            "meta.json": "b39099640f20584330656d4f3d1e7df7f1accb59822501afc0d2915e9199536f",
+            "client.json": "ca16fcef05ed9d313e00b758b3e2c7167c7d7753281c8cbaba2f5fddc8b14a12",
+            "perf.csv": "df5543e4488c7e6be43516a06a6ac685370877a5b314e486a944ef0cfc4e4ab7",
+            "stat-before.txt": "6ab069b1cc80f8c5a835248d366252d57c51e495831edd87f6de3bd3d694c6cc",
+            "stat-after.txt": "cdc688dc6ffb70d6a0692810fdfe806fe3ad2a240562c4b23a5505d76f99a38c"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 10,
+          "values": {
+            "instructions:u": 10798.96498,
+            "branches:u": 1499.14762,
+            "branch-misses:u": 105.7862,
+            "cycles:u": 8533.74798,
+            "context-switches": 1.00034,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52627.8856,
+            "client_ns_per_send": 33248.284,
+            "wall_ns_per_send": 64827.02376,
+            "total_ns_per_send": 85876.1696
+          },
+          "raw_sha256": {
+            "meta.json": "97f579d12936777c58cbf6f3bbad1998e102fe96ae8b4589b5cb520e40dd766e",
+            "client.json": "13699427ead3c6ce968850f17ed75d4b2c0296b66fe17bf531eafb981b815fb8",
+            "perf.csv": "5ccf5ada57cb85fba65bfbc68a6ec5a3fec980f6d4e4f5d5213679044b2814a6",
+            "stat-before.txt": "0f175bd706331b101003cc96b6a54750b743d0e42e9a3322105781c7e3bbd0a2",
+            "stat-after.txt": "6d1e04f50a60fc48f6d874bd77af20d54f6dafde98a0f335ba1782dbf16b2394"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 11,
+          "values": {
+            "instructions:u": 12915.31946,
+            "branches:u": 1945.20376,
+            "branch-misses:u": 99.45352,
+            "cycles:u": 9231.4466,
+            "context-switches": 1.00042,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 53064.9168,
+            "client_ns_per_send": 33191.4144,
+            "wall_ns_per_send": 65084.52188,
+            "total_ns_per_send": 86256.3312
+          },
+          "raw_sha256": {
+            "meta.json": "ce52a861c3564761932faeca706a62c456b974b188d1e94aabee657f90c7f520",
+            "client.json": "90d53e0eac31e816bdd412254b1c4e878b9a510bfba5231bbadfd199bb3ad449",
+            "perf.csv": "8eeb8465e4a39869314ebc8544d196640290b881d5737c23a99898ba816edc19",
+            "stat-before.txt": "320d7e175b7ba43049c0b18013a52aec125673901696b8926e5e836469a0b3fb",
+            "stat-after.txt": "efe36d5284256c497a23cd35e4e59180fa626d1311f1578767e9b265b8ea7ebf"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 12,
+          "values": {
+            "instructions:u": 10787.1493,
+            "branches:u": 1497.18104,
+            "branch-misses:u": 97.20642,
+            "cycles:u": 8401.5656,
+            "context-switches": 1.00014,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52843.1752,
+            "client_ns_per_send": 33804.7008,
+            "wall_ns_per_send": 65036.78622,
+            "total_ns_per_send": 86647.87599999999
+          },
+          "raw_sha256": {
+            "meta.json": "3625b60321811bce849cb632548acf260e7c7c5df674fb4f345cd3597a974c96",
+            "client.json": "d82064681d2fc7867c85a5edbe75c00dd7345cdf6d876a8c55dd9da4cc2315c0",
+            "perf.csv": "9e98da0a2736140e59a946450fb0e9515c43caf5631e8d5f4eb7e3edc29b1fe4",
+            "stat-before.txt": "e7d7539ee3e498d803beded29c760e919ded9a1b122911e9cbd0f81d1ce5e407",
+            "stat-after.txt": "f7a2d0d8a04ef7e3ca6e7d3ef9a3d79b11dc67e880697f1312e4e2a2a099e512"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 13,
+          "values": {
+            "instructions:u": 10874.84778,
+            "branches:u": 1513.13882,
+            "branch-misses:u": 105.2509,
+            "cycles:u": 8538.73318,
+            "context-switches": 1.0004,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52585.5512,
+            "client_ns_per_send": 33285.452,
+            "wall_ns_per_send": 64757.72942,
+            "total_ns_per_send": 85871.0032
+          },
+          "raw_sha256": {
+            "meta.json": "884d7a2ae36047c8e01215346192a68ad6515902c06de314b0d548cf4a6cd08e",
+            "client.json": "b42008f1983bad6a11a77ccef3d35808361b94b90639ea5f46354c4b92bdf000",
+            "perf.csv": "dce6e98b1bfb2348fda1a880a87133aa2f06e155538613aa342ce8facb835b64",
+            "stat-before.txt": "073152be1f60423594acb79cf66512f91eedbfd8f4c17d38b5a8b6c2cf83c733",
+            "stat-after.txt": "5012bfbb14293303ef168bbf05dbd9578022723f0c8f68e015f9db708c564689"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 14,
+          "values": {
+            "instructions:u": 13003.29418,
+            "branches:u": 1961.19922,
+            "branch-misses:u": 113.85064,
+            "cycles:u": 9594.43642,
+            "context-switches": 1.00034,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52823.3472,
+            "client_ns_per_send": 33610.5176,
+            "wall_ns_per_send": 64988.32652,
+            "total_ns_per_send": 86433.8648
+          },
+          "raw_sha256": {
+            "meta.json": "c37417e82fc8e10855d3113161d7db7e7f5c95387e4f2cbcd872f09ddf79b204",
+            "client.json": "e1847d032e7df13a478b7a2bf29ca0471662f06e1be45bf3f7eaaa9e716c900e",
+            "perf.csv": "33ea12a67200c09281edfaa4e7944c05d9bad563ed0bdd3e7fd71e2b81be0e21",
+            "stat-before.txt": "2eb3839f69f7cdf526ae9229bd39fac3b6f28e233c193a56a6fd6feac7a46b57",
+            "stat-after.txt": "754b8eb0cbc810fa4c8c7e330967d8b24a5a6b54076a3ecfa23ee72d396a7f39"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 15,
+          "values": {
+            "instructions:u": 10786.88338,
+            "branches:u": 1497.14242,
+            "branch-misses:u": 107.234,
+            "cycles:u": 8481.91908,
+            "context-switches": 1.00028,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52910.7056,
+            "client_ns_per_send": 33797.8552,
+            "wall_ns_per_send": 65024.06516,
+            "total_ns_per_send": 86708.5608
+          },
+          "raw_sha256": {
+            "meta.json": "3354042ace8fbef0a27d96798de38124a0d9feb29cdc7adadfa181b6d88413a8",
+            "client.json": "a13b8d54edf39944758647b820e7e4d52f3d7a7a0e2a5c5359fd31c9c9025fe9",
+            "perf.csv": "a3047f6a3fb6e20684a8dee51a743ad709290816cf5134ceb5823bc8d6f48c87",
+            "stat-before.txt": "5d473a6178e4086a3539dca2415497879adf5e9c82de3c29a6a26466fc369cf3",
+            "stat-after.txt": "314c34bcdc56e7d10993882f95199dc8649d8a746fa735355e65d592a21eaa06"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 16,
+          "values": {
+            "instructions:u": 12939.23944,
+            "branches:u": 1949.20754,
+            "branch-misses:u": 118.31096,
+            "cycles:u": 9554.4403,
+            "context-switches": 1.00024,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 52760.2232,
+            "client_ns_per_send": 34105.0568,
+            "wall_ns_per_send": 65014.39222,
+            "total_ns_per_send": 86865.28
+          },
+          "raw_sha256": {
+            "meta.json": "361d82b30a240fef6029565d91b19e9e66e7e6ff80d07a40a33b4fc2a341965d",
+            "client.json": "4a3f6612526356511ec97984220de7a32bae92a4dec14122dc09fb46f4f7fdb5",
+            "perf.csv": "aeab834882b7428de3a7205538eda8492d4b312f2dea728f0f54595d5eed2f02",
+            "stat-before.txt": "1badc2974f0dfcb9fe5a72881f7c6813412d014fbc5599b645134ab8556f0b3f",
+            "stat-after.txt": "536cba630023b22394fcdc1400092949ca8b54a31616f6019f71af30890eb13f"
+          }
+        }
+      ],
+      "limits": [
+        "Descriptive balanced permutation cycle; no IID confidence claim.",
+        "A/A spread is an observation, not a guaranteed noise bound.",
+        "User-mode Oracle PMU counts do not establish router CPU performance.",
+        "Final callback/CPU-clock/disable boundaries can include residual work."
+      ]
+    },
+    "user_1_0": {
+      "schema_version": 1,
+      "scope": "Oracle user-mode counter diagnosis only",
+      "listeners": 1,
+      "matched": 0,
+      "plan_sha256": "4059958de40ece17cefd00014dccd92bae6d33b1985b795702526bd1bee50517",
+      "reporter_sha256": "a729504d432a71ad35a501d86fb4e8341d1f01d158d78fdc4e16fd0fae5b6eed",
+      "complete_samples": 16,
+      "all_pmu_running_pct": 100,
+      "migrations_in_all_samples": 0,
+      "aa": {
+        "instructions:u": {
+          "median_delta_pct": 0.0020698645472272403,
+          "paired_delta_pct": [
+            0.002587365828676802,
+            0.004139828170890425,
+            -0.00362199353178827,
+            0.0015523632657776787
+          ],
+          "range_delta_pct": [
+            -0.00362199353178827,
+            0.004139828170890425
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": 0.0017298896280104614,
+          "paired_delta_pct": [
+            0.0021623865828157562,
+            0.003459848458642334,
+            -0.0030271186587271792,
+            0.0012973926732051666
+          ],
+          "range_delta_pct": [
+            -0.0030271186587271792,
+            0.003459848458642334
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": 1.6187591129672385,
+          "paired_delta_pct": [
+            1.8527858943401254,
+            -0.7005163531154657,
+            3.4648145017807996,
+            1.3847323315943516
+          ],
+          "range_delta_pct": [
+            -0.7005163531154657,
+            3.4648145017807996
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": 1.055622338928941,
+          "paired_delta_pct": [
+            0.025721441737869277,
+            0.8913415357453491,
+            2.346028809729428,
+            1.2199031421125328
+          ],
+          "range_delta_pct": [
+            0.025721441737869277,
+            2.346028809729428
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": 0.013007083921412477,
+          "paired_delta_pct": [
+            0.036023775691962356,
+            0.012007444615669272,
+            -0.0380000000000047,
+            0.014006723227155682
+          ],
+          "range_delta_pct": [
+            -0.0380000000000047,
+            0.036023775691962356
+          ]
+        },
+        "subject_ns_per_send": {
+          "median_delta_pct": -0.30755790138486394,
+          "paired_delta_pct": [
+            -1.0771306831962368,
+            0.26631906406984207,
+            0.21902222132175186,
+            -0.8341380240914797
+          ],
+          "range_delta_pct": [
+            -1.0771306831962368,
+            0.26631906406984207
+          ]
+        },
+        "client_ns_per_send": {
+          "median_delta_pct": -1.0650035266300262,
+          "paired_delta_pct": [
+            1.20653095333898,
+            -2.016345408293252,
+            -2.7071653125425033,
+            -0.11366164496680042
+          ],
+          "range_delta_pct": [
+            -2.7071653125425033,
+            1.20653095333898
+          ]
+        },
+        "wall_ns_per_send": {
+          "median_delta_pct": -0.13994189186588568,
+          "paired_delta_pct": [
+            -0.35889075037592866,
+            0.20742416679002673,
+            -0.17034226206559255,
+            -0.10954152166617881
+          ],
+          "range_delta_pct": [
+            -0.35889075037592866,
+            0.20742416679002673
+          ]
+        },
+        "total_ns_per_send": {
+          "median_delta_pct": -0.5004868763563985,
+          "paired_delta_pct": [
+            -0.5941057483920709,
+            -0.22333478718814526,
+            -0.40686800432072623,
+            -0.6839183582108221
+          ],
+          "range_delta_pct": [
+            -0.6839183582108221,
+            -0.22333478718814526
+          ]
+        }
+      },
+      "comparisons": [
+        {
+          "held_clients": 0,
+          "candidate": "r126",
+          "control": "r124",
+          "metrics": {
+            "instructions:u": {
+              "median_delta_pct": 0.0012936360548110315,
+              "paired_delta_pct": [
+                0.0015523632657776787,
+                0.0010349088438443843
+              ],
+              "range_delta_pct": [
+                0.0010349088438443843,
+                0.0015523632657776787
+              ]
+            },
+            "branches:u": {
+              "median_delta_pct": 0.0010811605610006048,
+              "paired_delta_pct": [
+                0.0012973926732051666,
+                0.0008649284487960429
+              ],
+              "range_delta_pct": [
+                0.0008649284487960429,
+                0.0012973926732051666
+              ]
+            },
+            "branch-misses:u": {
+              "median_delta_pct": -1.2578297521873671,
+              "paired_delta_pct": [
+                -1.5733561765326587,
+                -0.9423033278420756
+              ],
+              "range_delta_pct": [
+                -1.5733561765326587,
+                -0.9423033278420756
+              ]
+            },
+            "cycles:u": {
+              "median_delta_pct": 0.337771583252644,
+              "paired_delta_pct": [
+                0.4709966084561312,
+                0.20454655804915678
+              ],
+              "range_delta_pct": [
+                0.20454655804915678,
+                0.4709966084561312
+              ]
+            },
+            "context-switches": {
+              "median_delta_pct": 0.013007384237262443,
+              "paired_delta_pct": [
+                0.006002761270185175,
+                0.02001200720433971
+              ],
+              "range_delta_pct": [
+                0.006002761270185175,
+                0.02001200720433971
+              ]
+            },
+            "subject_ns_per_send": {
+              "median_delta_pct": -0.07270301104777555,
+              "paired_delta_pct": [
+                -0.20501891666379057,
+                0.05961289456823948
+              ],
+              "range_delta_pct": [
+                -0.20501891666379057,
+                0.05961289456823948
+              ]
+            },
+            "client_ns_per_send": {
+              "median_delta_pct": -2.330840937765938,
+              "paired_delta_pct": [
+                -3.7988891513792256,
+                -0.8627927241526501
+              ],
+              "range_delta_pct": [
+                -3.7988891513792256,
+                -0.8627927241526501
+              ]
+            },
+            "wall_ns_per_send": {
+              "median_delta_pct": -0.4449167164316259,
+              "paired_delta_pct": [
+                -0.9481940722614879,
+                0.0583606393982361
+              ],
+              "range_delta_pct": [
+                -0.9481940722614879,
+                0.0583606393982361
+              ]
+            },
+            "total_ns_per_send": {
+              "median_delta_pct": -0.546604623405389,
+              "paired_delta_pct": [
+                -0.9637524008199505,
+                -0.1294568459908274
+              ],
+              "range_delta_pct": [
+                -0.9637524008199505,
+                -0.1294568459908274
+              ]
+            }
+          }
+        },
+        {
+          "held_clients": 64,
+          "candidate": "r126",
+          "control": "r124",
+          "metrics": {
+            "instructions:u": {
+              "median_delta_pct": 0.0020698337534597044,
+              "paired_delta_pct": [
+                0.0036222184401246693,
+                0.0005174490667947396
+              ],
+              "range_delta_pct": [
+                0.0005174490667947396,
+                0.0036222184401246693
+              ]
+            },
+            "branches:u": {
+              "median_delta_pct": 0.0017298681192379206,
+              "paired_delta_pct": [
+                0.0030272757545413143,
+                0.00043246048393452696
+              ],
+              "range_delta_pct": [
+                0.00043246048393452696,
+                0.0030272757545413143
+              ]
+            },
+            "branch-misses:u": {
+              "median_delta_pct": -1.5544819382797948,
+              "paired_delta_pct": [
+                2.1480251671694317,
+                -5.256989043729021
+              ],
+              "range_delta_pct": [
+                -5.256989043729021,
+                2.1480251671694317
+              ]
+            },
+            "cycles:u": {
+              "median_delta_pct": -0.5006473048251359,
+              "paired_delta_pct": [
+                2.2941344901495464,
+                -3.295429099799818
+              ],
+              "range_delta_pct": [
+                -3.295429099799818,
+                2.2941344901495464
+              ]
+            },
+            "context-switches": {
+              "median_delta_pct": -0.003000660101992736,
+              "paired_delta_pct": [
+                0.0020009204233950584,
+                -0.00800224062738053
+              ],
+              "range_delta_pct": [
+                -0.00800224062738053,
+                0.0020009204233950584
+              ]
+            },
+            "subject_ns_per_send": {
+              "median_delta_pct": -0.6881075024978367,
+              "paired_delta_pct": [
+                -0.5766866784639224,
+                -0.799528326531751
+              ],
+              "range_delta_pct": [
+                -0.799528326531751,
+                -0.5766866784639224
+              ]
+            },
+            "client_ns_per_send": {
+              "median_delta_pct": -0.7496074541954667,
+              "paired_delta_pct": [
+                -0.9461988612630146,
+                -0.5530160471279189
+              ],
+              "range_delta_pct": [
+                -0.9461988612630146,
+                -0.5530160471279189
+              ]
+            },
+            "wall_ns_per_send": {
+              "median_delta_pct": -0.22030149243538744,
+              "paired_delta_pct": [
+                -0.5472525741207934,
+                0.10664958925001855
+              ],
+              "range_delta_pct": [
+                -0.5472525741207934,
+                0.10664958925001855
+              ]
+            },
+            "total_ns_per_send": {
+              "median_delta_pct": -0.7012832709929973,
+              "paired_delta_pct": [
+                -0.6546328797266687,
+                -0.7479336622593258
+              ],
+              "range_delta_pct": [
+                -0.7479336622593258,
+                -0.6546328797266687
+              ]
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "stage": "aa",
+          "block": 1,
+          "slot": "a",
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 1,
+          "values": {
+            "instructions:u": 2469.69328,
+            "branches:u": 406.95776,
+            "branch-misses:u": 69.39172,
+            "cycles:u": 3239.16524,
+            "context-switches": 0.99934,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34716.0104,
+            "client_ns_per_send": 9312.6496,
+            "wall_ns_per_send": 47857.86756,
+            "total_ns_per_send": 44028.66
+          },
+          "raw_sha256": {
+            "meta.json": "0746334b666f1ad3c61ba52927ae4ba8914c497a74f8a5d56bd2230ca7eab430",
+            "client.json": "962a13268523b21f5cb01e6b59af29ace65b3fb2220460b221c9d08241179469",
+            "perf.csv": "2861c5567da6103e55105290605fd2bf0f08fb2dec5561001a5dc93dd73bafe7",
+            "stat-before.txt": "b4622ba18514db76ff260ddd398845f2c705e18ad7dda8d813f1181623dda8a7",
+            "stat-after.txt": "9737532bfd98a8a4a0ef21becedb1ca0588f9aa7dae09d48e45fd73778c051e9"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 1,
+          "slot": "b",
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 2,
+          "values": {
+            "instructions:u": 2469.75718,
+            "branches:u": 406.96656,
+            "branch-misses:u": 70.6774,
+            "cycles:u": 3239.9984,
+            "context-switches": 0.9997,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34342.0736,
+            "client_ns_per_send": 9425.0096,
+            "wall_ns_per_send": 47686.1101,
+            "total_ns_per_send": 43767.0832
+          },
+          "raw_sha256": {
+            "meta.json": "2174a28a1c5d49970f722f8740639c19061d6f9328ce57b940f1713c2139c9b8",
+            "client.json": "0c742f397cd4b8b19c64bb897bdfe192de64ffe9dd10bff7dc02860c19e1136f",
+            "perf.csv": "e4d27d000216e2b8e0310616330db2b3ca642612721f180cc5cbcbd0870bcd00",
+            "stat-before.txt": "bc13cc9a00eb47a29d50cb0c99664315ed7ac4e2495d80187720ecfaa8ce0c4b",
+            "stat-after.txt": "9d62773a1597090d57993ce73ac682236518dd82ee27b9a05eb0660f2ff9ffdc"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 2,
+          "slot": "a",
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 3,
+          "values": {
+            "instructions:u": 2469.66772,
+            "branches:u": 406.95424,
+            "branch-misses:u": 68.96056,
+            "cycles:u": 3178.28788,
+            "context-switches": 0.99938,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34010.3328,
+            "client_ns_per_send": 9287.8928,
+            "wall_ns_per_send": 46555.4142,
+            "total_ns_per_send": 43298.2256
+          },
+          "raw_sha256": {
+            "meta.json": "8dbe2646d6cf5ad569b54c5edbfa045cf93918e3ed05168b5579a8f2ca0479d2",
+            "client.json": "0eaf850459759a50e822749a51b4538bdb00766e103312eec6393bc5339649f7",
+            "perf.csv": "f540a3129f7400f0975b741f08c0c829e4daaf4ac72534790873276145fe1391",
+            "stat-before.txt": "f4a52c161eb6649c6fe6f7a517b232400809bdf395827bbc8de196e1166ade58",
+            "stat-after.txt": "00af85a98870362f26ea0d7f09bd82cbfdecdee4418ab3954ee884219da6823a"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 2,
+          "slot": "b",
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 4,
+          "values": {
+            "instructions:u": 2469.76996,
+            "branches:u": 406.96832,
+            "branch-misses:u": 68.47748,
+            "cycles:u": 3206.61728,
+            "context-switches": 0.9995,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34100.9088,
+            "client_ns_per_send": 9100.6168,
+            "wall_ns_per_send": 46651.98138,
+            "total_ns_per_send": 43201.52559999999
+          },
+          "raw_sha256": {
+            "meta.json": "bd307e383b428625a478f9f86fa2de9e1cbeeb981cd1367551460ba9c9019a7a",
+            "client.json": "eb880e699a2c79effb8816ca155a538d34be72c7dde7164e01abccfcc82dd567",
+            "perf.csv": "3813b300d26a2d38604e3a8888c1e120d7e59c0bd596d445ce7c572db2837beb",
+            "stat-before.txt": "eefd8425c17c58fc5207ffd5297b1e4c24d9adffd67cb3a82da4de460686a414",
+            "stat-after.txt": "ff563c9e9fd9ee00e090b1ee98f1d121009b6497e3c1eb48c4201a4a7a187256"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 3,
+          "slot": "a",
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 5,
+          "values": {
+            "instructions:u": 2469.91054,
+            "branches:u": 406.98768,
+            "branch-misses:u": 67.79526,
+            "cycles:u": 3172.50324,
+            "context-switches": 1.0,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34115.9904,
+            "client_ns_per_send": 9282.6544,
+            "wall_ns_per_send": 46810.1803,
+            "total_ns_per_send": 43398.6448
+          },
+          "raw_sha256": {
+            "meta.json": "cac3de991efa88fda6acadce030ac48406cd3fb324e5fd1084c37f48142f79b4",
+            "client.json": "52c17e91f3f202a8bf4fbc59d579de7e301a007cd4161f63b3b7984e8cd5a612",
+            "perf.csv": "16ad948e4948c00a7def4cf5dba79b873e8587a62a429dee23d7e65c42a5acba",
+            "stat-before.txt": "c1b3ba94ae49817f6c5b3f199f3ea50f638cdbf5c11324c7608c6bda18231953",
+            "stat-after.txt": "0963f7a5f9b64d407a092a354e3d7869be7fab2d59bfe92c0ad251ab3f6c7231"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 3,
+          "slot": "b",
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 6,
+          "values": {
+            "instructions:u": 2469.82108,
+            "branches:u": 406.97536,
+            "branch-misses:u": 70.14424,
+            "cycles:u": 3246.93108,
+            "context-switches": 0.99962,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34190.712,
+            "client_ns_per_send": 9031.3576,
+            "wall_ns_per_send": 46730.44278,
+            "total_ns_per_send": 43222.0696
+          },
+          "raw_sha256": {
+            "meta.json": "1043561ec7489f4e6a83e76257abbeab83c015b0e602d6dbf0ac247c639a64de",
+            "client.json": "6872937a20ff63b6fefc7031d344eca776e655837d33dfedd6df9ca4e8a65bd3",
+            "perf.csv": "d1db101cbe43aceb9f51fc419547e8161b1681f98642da204ab55a1f2adcdcc6",
+            "stat-before.txt": "6339f1cbaf19143beb2d77cf019067bca1291cad4e7a001799b6ff53fe2130d8",
+            "stat-after.txt": "ccbbdc06627d852c3e08135534f8104920015a33db9bc1835fede8f641ac0a55"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 4,
+          "slot": "a",
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 7,
+          "values": {
+            "instructions:u": 2469.78274,
+            "branches:u": 406.97008,
+            "branch-misses:u": 67.2231,
+            "cycles:u": 3165.2972,
+            "context-switches": 0.99952,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34331.2008,
+            "client_ns_per_send": 9043.684,
+            "wall_ns_per_send": 46723.88992,
+            "total_ns_per_send": 43374.8848
+          },
+          "raw_sha256": {
+            "meta.json": "16c2d189e5c2153eb668fe18c8e5f9358129c1766e0c91c544d0b03d36b1a831",
+            "client.json": "9f9a3934041fd46820ddcae881f464cbcccba6b888a7c620d0512b6eb07b15ad",
+            "perf.csv": "60dbccae6e6aeafd349f46737a9ff9f5a827d40bf3aa974c98b018950636bb73",
+            "stat-before.txt": "8e8eab9d66e396108e3d90ecc380632b00ed33cb389ba287d849c29e83459e36",
+            "stat-after.txt": "cb2894901dcfab5231383c108dc1fcb7c203917144753a3cd6b0772f62b48c05"
+          }
+        },
+        {
+          "stage": "aa",
+          "block": 4,
+          "slot": "b",
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 8,
+          "values": {
+            "instructions:u": 2469.82108,
+            "branches:u": 406.97536,
+            "branch-misses:u": 68.15396,
+            "cycles:u": 3203.91076,
+            "context-switches": 0.99966,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34044.8312,
+            "client_ns_per_send": 9033.4048,
+            "wall_ns_per_send": 46672.70786,
+            "total_ns_per_send": 43078.236000000004
+          },
+          "raw_sha256": {
+            "meta.json": "70db95a9b70003da5c4b916a499884d5a5c8e787c1e917931fe088abafaedc4d",
+            "client.json": "730cbe9b5ffcf008254be7b5036697ba5d208aa623d09e676fbfdc387bced0b7",
+            "perf.csv": "a4bd6fe2b51f107cd65a8d09c9cef343ac729783cf3ba69171dd6e8d21837099",
+            "stat-before.txt": "51eae158c2407522a095f9f6ae70df6fecc55465585ede323f0328c8a3a2f858",
+            "stat-after.txt": "f0d50b1e888ccdec8456b6003a5bed4d9c65957d209abe2c79cf0e38ade8991b"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 9,
+          "values": {
+            "instructions:u": 2469.78274,
+            "branches:u": 406.97008,
+            "branch-misses:u": 71.37354,
+            "cycles:u": 3214.94884,
+            "context-switches": 0.99954,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34278.9832,
+            "client_ns_per_send": 9173.6712,
+            "wall_ns_per_send": 46968.92472,
+            "total_ns_per_send": 43452.6544
+          },
+          "raw_sha256": {
+            "meta.json": "4909280ec37a0229699d4b99dd5d83fa17b945baf3746d461427057e2b44872f",
+            "client.json": "cb057aa4053e6013342dad3086ebce5d1c972d36e34ce061333e2d349935010a",
+            "perf.csv": "998aa97d9520218e5f7645f63d46f724817d443c7c5aad5a92445dac68d84d2a",
+            "stat-before.txt": "f5d7368863cd4dd4af01007415f67259adc29cbbfeeb4acef655a85785e8675c",
+            "stat-after.txt": "a24c786cee85775deaed746a34d838ccad763cbe5112cc2f71c55d17ff6a888b"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 10,
+          "values": {
+            "instructions:u": 2469.82108,
+            "branches:u": 406.97536,
+            "branch-misses:u": 70.25058,
+            "cycles:u": 3230.09114,
+            "context-switches": 0.9996,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34208.7048,
+            "client_ns_per_send": 8825.1736,
+            "wall_ns_per_send": 46523.56816,
+            "total_ns_per_send": 43033.8784
+          },
+          "raw_sha256": {
+            "meta.json": "a84fd410903a0badde58a3f1b00cfa9d98235a6b345b4f6b085ff313628b45e2",
+            "client.json": "1413bf49dcc696b663832c3669e2dda882d431fe8109de355b4e0e5b0e4c5357",
+            "perf.csv": "92b7ba009e68a4c0b516efb3cd4bd6ec176ce04a610c8258f83e0231114f1cfa",
+            "stat-before.txt": "9025945ed3fa1342ae081a06a50f773676d54940c89ff35d3b87df71e980f9c6",
+            "stat-after.txt": "32d2d6635323bc7577c49202256f1309a4d2afcc964d929141d3ad9b564740a0"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 11,
+          "values": {
+            "instructions:u": 2469.75718,
+            "branches:u": 406.96656,
+            "branch-misses:u": 67.24316,
+            "cycles:u": 3176.0274,
+            "context-switches": 0.99954,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34258.3256,
+            "client_ns_per_send": 9158.4976,
+            "wall_ns_per_send": 46867.38302,
+            "total_ns_per_send": 43416.8232
+          },
+          "raw_sha256": {
+            "meta.json": "53cb3411398eabce62d75eb688f0c971d6af85932661697f185d7eea67b964da",
+            "client.json": "8d9aabca6e4063f4974a2f4f7fe01d5908d320330ae617b1f92f2a59cf605a47",
+            "perf.csv": "0b4894505761f167a0b94c8c32f0dad7d5fb3fabc40e2701bec3278c9309ee1d",
+            "stat-before.txt": "a528f1c0883cf8cad172f7037b18fbd8a4181fc9efe497bca8e6b6bc8f935b00",
+            "stat-after.txt": "3ff0e6ef7c2460f8b7992e9601ffe85f4b063fc4fc72e6ee22fd679cc38b1bc3"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 1,
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 12,
+          "values": {
+            "instructions:u": 2469.84664,
+            "branches:u": 406.97888,
+            "branch-misses:u": 68.68756,
+            "cycles:u": 3248.88974,
+            "context-switches": 0.99956,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34060.7624,
+            "client_ns_per_send": 9071.84,
+            "wall_ns_per_send": 46610.90006,
+            "total_ns_per_send": 43132.6024
+          },
+          "raw_sha256": {
+            "meta.json": "06626a4d691c96ac5657ad2aad9e897f519c7c0201899690216b6df58b8315df",
+            "client.json": "005fe0e0c5bf13578f8b33896cbf9e38d0e8e89f3f2234d67befde3126788b63",
+            "perf.csv": "cdcc5ffad3e1f6fa9f013d257eb9492b082831994f670ce22fb949f8a206c56a",
+            "stat-before.txt": "3c5b7f21594e6b5445d121da871c63a5069370597d6872a488b806d77a31c573",
+            "stat-after.txt": "060b6f73e856843ca021e9f8e9e61e7d5db583cac8f827953646706484d25ff9"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r126",
+          "held_clients": 64,
+          "sample": 13,
+          "values": {
+            "instructions:u": 2469.82108,
+            "branches:u": 406.97536,
+            "branch-misses:u": 68.25548,
+            "cycles:u": 3204.71728,
+            "context-switches": 0.99964,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34100.1296,
+            "client_ns_per_send": 9048.7296,
+            "wall_ns_per_send": 46783.46706,
+            "total_ns_per_send": 43148.8592
+          },
+          "raw_sha256": {
+            "meta.json": "89b60d824667667d0396e79fe393e6b95e9224dc1322163b751e3c0aa1ffc595",
+            "client.json": "79231a0407287f3c6401bcdcb3129a32abf393d881ac46beb42cea67d0a43a9b",
+            "perf.csv": "bf39995d3f4e426be0193b5532677c0f403f02ee04d19e22f030cbc8a48238d2",
+            "stat-before.txt": "52b8ef917359f4db6b60db40140dcbf66f940f9f5f26342f9e11a5e18a3cac28",
+            "stat-after.txt": "4fbe1c6fd5284f9afce110d7d6ceb142fa8da5d753f4471c2a84565e58bbc501"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r124",
+          "held_clients": 64,
+          "sample": 14,
+          "values": {
+            "instructions:u": 2469.8083,
+            "branches:u": 406.9736,
+            "branch-misses:u": 72.04276,
+            "cycles:u": 3313.92534,
+            "context-switches": 0.99972,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34374.9672,
+            "client_ns_per_send": 9099.0488,
+            "wall_ns_per_send": 46733.62584,
+            "total_ns_per_send": 43474.016
+          },
+          "raw_sha256": {
+            "meta.json": "33aa53ca939f9505f576160dde05889367d1a7e48e4bd4110b4fbc864fde2e54",
+            "client.json": "3436cb0435971ed406dba6e889f31c6b9da8fb04db8c7f5c6196b088cde53738",
+            "perf.csv": "855af419e1be89083fb84b314c2a788d3317a4f3bfe9e9def4f36eb96a9145ee",
+            "stat-before.txt": "04119615b65d8c78a7588c9556fea70aa210467b7922095ceaf3382db3dde855",
+            "stat-after.txt": "b786c91da9075d8e367ebd68c7c6c5ed67180d0827df4db54d3a0c6d397b3513"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r126",
+          "held_clients": 0,
+          "sample": 15,
+          "values": {
+            "instructions:u": 2469.8083,
+            "branches:u": 406.9736,
+            "branch-misses:u": 70.18428,
+            "cycles:u": 3217.82764,
+            "context-switches": 0.9996,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34144.5032,
+            "client_ns_per_send": 8722.0336,
+            "wall_ns_per_send": 46451.94504,
+            "total_ns_per_send": 42866.5368
+          },
+          "raw_sha256": {
+            "meta.json": "29c68bfe82e9d9734869cda7565c33ef2e2a355f72c40fe9c52d55383cadd0a7",
+            "client.json": "a5323c4b1819cfdfd7d5efb89dd0c372a321fbe0e9ba87dd32a27d422d11412e",
+            "perf.csv": "9834d2a9d83f8e8560012b9578f59657e02b384d4015a9a4cea1b1d154cd5926",
+            "stat-before.txt": "6dfefb78ab64a615b06c1de7d4b8a67754d0983e6b66f5bdb44547c4ac3ed0f5",
+            "stat-after.txt": "b214e2db08c0cf7c17cbd88812914e761f58779767da6572e30a18f6aa7611fa"
+          }
+        },
+        {
+          "stage": "comparison",
+          "block": 2,
+          "subject": "r124",
+          "held_clients": 0,
+          "sample": 16,
+          "values": {
+            "instructions:u": 2469.78274,
+            "branches:u": 406.97008,
+            "branch-misses:u": 70.85192,
+            "cycles:u": 3211.25912,
+            "context-switches": 0.9994,
+            "cpu-migrations": 0.0,
+            "subject_ns_per_send": 34124.1608,
+            "client_ns_per_send": 8797.9416,
+            "wall_ns_per_send": 46424.8512,
+            "total_ns_per_send": 42922.102399999996
+          },
+          "raw_sha256": {
+            "meta.json": "46f8d3fdac99c141c1ce81c10d9b0cc2ac4e74cd12125efc6c42b6a92f1c5536",
+            "client.json": "ed03d9706fc1abc840596376c4b1fde05ee91b31b2df4b613a4960e2cf57b465",
+            "perf.csv": "edbd785187655fdbc0db06ef91e143bcc2e9a1ab86feb9ea7ba0207c1e8c7167",
+            "stat-before.txt": "3ebbc60a359c26b0673802ca40576156820360a248341496f8d35aa37f6fce77",
+            "stat-after.txt": "e253ecfb91ce429f6bd4bc707f9da0f83d1c73a672821f5d032fea4701d44364"
+          }
+        }
+      ],
+      "limits": [
+        "Descriptive balanced permutation cycle; no IID confidence claim.",
+        "A/A spread is an observation, not a guaranteed noise bound.",
+        "User-mode Oracle PMU counts do not establish router CPU performance.",
+        "Final callback/CPU-clock/disable boundaries can include residual work."
+      ]
+    }
+  },
+  "independent_audit_sha256": "322e43490ab87dd2ec758b0303b3f921f80dee4c9eb43a4601082b8d52d33ec1",
+  "decision": "Counter reduction visible, calibration requirement not met. Preserve every result; no acceptance.",
+  "source_commit": "b91113242ed4d6f52ffc4c682fbafccd77f180f5"
+}
