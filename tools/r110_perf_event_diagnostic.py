@@ -21,6 +21,15 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def plan_lane(plan):
+    listeners, matched = plan.get('listeners', 1), plan.get('matched', 1)
+    assert type(listeners) is int and listeners in (1, 8), 'listeners must be integer 1 or 8'
+    assert type(matched) is int and matched in (0, 1), 'matched must be integer 0 or 1'
+    assert all('listeners' not in item and 'matched' not in item for item in plan['runs']), \
+        'listeners and matched must be plan-level fields'
+    return listeners, matched
+
+
 def stop(process, sig=signal.SIGTERM):
     if process is None:
         return
@@ -33,7 +42,7 @@ def stop(process, sig=signal.SIGTERM):
         process.wait(timeout=5)
 
 
-def sample(out, label, held, args, plan):
+def sample(out, label, held, args, plan, listeners, matched):
     out.mkdir()
     daemon = perf = None
     pipes = []
@@ -85,7 +94,7 @@ def sample(out, label, held, args, plan):
                 env['OWRT_PERF_ACK_FD'] = str(ack_read)
                 client_command = [str(rootfs / 'lib/libc.so'), '--library-path',
                                   f'{rootfs}/lib:{rootfs}/usr/lib', str(args.client),
-                                  'user-event', sock, '1', '1',
+                                  'user-event', sock, str(listeners), str(matched),
                                   str(plan['iterations']), str(plan['warmup']),
                                   str(daemon.pid), str(held)]
                 subprocess.run(client_command, pass_fds=(ctl_write, ack_read),
@@ -102,8 +111,11 @@ def sample(out, label, held, args, plan):
                 client_json.flush()
                 data = json.loads((out / 'client.json').read_text())
                 assert data['perf_controlled'] and data['payload_checked']
-                assert data['received'] == data['n'] == plan['iterations']
-                assert data['warmup_received'] == plan['warmup']
+                assert type(data['listeners']) is int and data['listeners'] == listeners
+                assert data['matched'] is bool(matched)
+                assert data['n'] == plan['iterations'] and data['warmup'] == plan['warmup']
+                assert data['received'] == plan['iterations'] * listeners * matched
+                assert data['warmup_received'] == plan['warmup'] * listeners * matched
                 assert data['held_clients'] == held and data['handlers_removed']
                 counts = (out / 'perf.csv').read_text()
                 assert '<not ' not in counts and 'instructions:u' in counts
@@ -122,6 +134,7 @@ def sample(out, label, held, args, plan):
                     counters[event] = value
                 assert set(counters) == set(plan['counter_names'])
                 metadata = {'label': label, 'held_clients': held,
+                            'listeners': listeners, 'matched': matched,
                             'binary_sha256': sha(binary), 'daemon_pid': daemon.pid,
                             'client_sha256': sha(args.client),
                             'perf_control': 'enable/ack before clocks; disable/ack after clocks',
@@ -152,6 +165,7 @@ def main():
     assert os.geteuid() == 0 and platform.machine() == 'aarch64'
     assert not Path('/etc/openwrt_release').exists(), 'never run this tool on OpenWrt'
     plan = json.loads(args.plan.read_text())
+    listeners, matched = plan_lane(plan)
     assert sha(__file__) == plan['runner_sha256']
     assert sha(args.client) == plan['client_sha256']
     for name, digest in plan['libraries'].items():
@@ -168,7 +182,7 @@ def main():
     for index, item in enumerate(plan['runs'], 1):
         label, held = item['subject'], item['held_clients']
         print(f'START {index}/{len(plan["runs"])} {label} held={held}', flush=True)
-        sample(args.out / f'{index:03d}-{label}-{held}', label, held, args, plan)
+        sample(args.out / f'{index:03d}-{label}-{held}', label, held, args, plan, listeners, matched)
     (args.out / 'COMPLETE').touch()
 
 

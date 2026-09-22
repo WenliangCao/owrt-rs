@@ -15,6 +15,15 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def plan_lane(plan):
+    listeners, matched = plan.get('listeners', 1), plan.get('matched', 1)
+    assert type(listeners) is int and listeners in (1, 8), 'listeners must be integer 1 or 8'
+    assert type(matched) is int and matched in (0, 1), 'matched must be integer 0 or 1'
+    assert all('listeners' not in item and 'matched' not in item for item in plan['runs']), \
+        'listeners and matched must be plan-level fields'
+    return listeners, matched
+
+
 def summarize(pairs):
     if not pairs:
         return {}
@@ -31,6 +40,7 @@ def summarize(pairs):
 
 def report(plan_path, raw, comparisons):
     plan = json.loads(plan_path.read_text())
+    listeners, matched = plan_lane(plan)
     assert (raw / 'COMPLETE').is_file()
     assert (raw / 'plan.json').read_bytes() == plan_path.read_bytes()
     samples = []
@@ -45,9 +55,15 @@ def report(plan_path, raw, comparisons):
         assert meta['held_clients'] == client['held_clients'] == item['held_clients']
         assert meta['daemon_pid'] == client['subject_pid']
         assert client['perf_controlled'] and client['payload_checked'] and client['handlers_removed']
-        assert client['matched'] and client['listeners'] == 1
-        assert client['received'] == client['n'] == plan['iterations']
-        assert client['warmup_received'] == client['warmup'] == plan['warmup']
+        # Legacy metadata omitted lane fields; it always represented 1/1.
+        for key, expected in (('listeners', listeners), ('matched', matched)):
+            value = meta.get(key, 1)
+            assert type(value) is int and value == expected, f'metadata {key} differs from plan'
+        assert type(client['listeners']) is int and client['listeners'] == listeners
+        assert client['matched'] is bool(matched)
+        assert client['n'] == plan['iterations'] and client['warmup'] == plan['warmup']
+        assert client['received'] == plan['iterations'] * listeners * matched
+        assert client['warmup_received'] == plan['warmup'] * listeners * matched
         assert client['held_fds'] == client['base_fds'] + item['held_clients']
         assert client['subject_cpu'] == 1 and client['client_cpu'] == 0
         before = (directory / 'stat-before.txt').read_text().rsplit(')', 1)[1].split()
@@ -96,6 +112,7 @@ def report(plan_path, raw, comparisons):
             summary.append({'held_clients': held, 'candidate': candidate,
                             'control': control, 'metrics': summarize(pairs)})
     return {'schema_version': 1, 'scope': 'Oracle user-mode counter diagnosis only',
+            'listeners': listeners, 'matched': matched,
             'plan_sha256': digest(plan_path), 'reporter_sha256': digest(Path(__file__)),
             'complete_samples': len(samples), 'all_pmu_running_pct': 100,
             'migrations_in_all_samples': 0, 'aa': summarize(aa_pairs),
