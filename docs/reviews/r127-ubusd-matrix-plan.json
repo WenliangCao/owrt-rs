@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "purpose": "Physical AX3000T exact-C versus current R124 broad ubusd matrix; descriptive latency/CPU evidence only.",
+  "subjects": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926"
+  },
+  "benchmark_sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e",
+  "workload_sha256": "fd9ba22cb8b4ec0522bb657f98c4fdaa602fd7341ca989f580f75c07370b85ca",
+  "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "namespace_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "daemon_cpu": 1,
+  "caller_cpu": 0,
+  "iterations": 5000,
+  "warmup": 20,
+  "schedule": "C,R124,R124,C repeated four times; 16 fresh guarded windows; no extensions",
+  "primary_metric": "per-operation latency_ns mean/percentiles from strict validated benchmark JSON",
+  "secondary_metrics": [
+    "daemon cpu_clock_ns",
+    "client_cpu_clock_ns",
+    "wall_s"
+  ],
+  "lanes": [
+    "lookup_1",
+    "lookup_all_64",
+    "lookup_prefix_64",
+    "lookup_all_128",
+    "lookup_c4",
+    "lookup_all_64_c4",
+    "lookup_prefix_64_c4",
+    "lookup_all_128_c4",
+    "invoke_1",
+    "invoke_c4"
+  ],
+  "strict_validation": "lookup-fixture checks exact ordered paths, count, unique stable nonzero IDs and complete ping signature; rpc-fixture checks exact OBJID+DATA bytes and no FD. Four-client legacy rpc lane remains supplemental and is fully JSON validated by existing client.",
+  "acceptance": null,
+  "limitations": [
+    "No R124/R123 ratio is inferred.",
+    "This matrix does not measure p99 across an application population; it reports benchmark per-operation samples and existing process CPU intervals.",
+    "Pathless lookup uses strict full returned object bytes parsed by the frozen client; raw wire framing is not captured.",
+    "The four-client daemon interval is shared and overlapping; per-client daemon counters are not summed.",
+    "No overall 90:10 score is invented without workload weights."
+  ]
+}
