@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "scope": "R131 exact release physical AX3000T correctness supplement",
+  "plan_sha256": "2a8834206626ab64790e29e4f10ce9e67549d233977a0a983f7b331605292be6",
+  "production_c_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+  "r124_sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+  "r131_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+  "target_unit_count": 53,
+  "runtime_source_unchanged_from_release": true,
+  "windows": [
+    {
+      "path": "private/r131-supplement/router-correctness-existing",
+      "result_sha256": "296cf121daf02342928fd17d0329b15f01140f7df29dce876f7314b6eb48bb90",
+      "archive_sha256": "2a6e082ad8ef58e91434b713444e34e4da4e6fc92af42b61c98a3e57f551e7d6",
+      "archive_file_count": 48,
+      "scenarios": {
+        "object_events": {
+          "transcript_sha256": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+          "lines": 6,
+          "all_three_equal": true
+        },
+        "events": {
+          "transcript_sha256": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+          "lines": 5,
+          "all_three_equal": true
+        },
+        "monitor": {
+          "transcript_sha256": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+          "lines": 6,
+          "all_three_equal": true
+        },
+        "release": {
+          "transcript_sha256": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+          "lines": 4,
+          "all_three_equal": true
+        },
+        "utf8": {
+          "transcript_sha256": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+          "lines": 3,
+          "all_three_equal": true
+        },
+        "monitor_lookup": {
+          "transcript_sha256": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+          "lines": 1,
+          "all_three_equal": true
+        },
+        "method_acl": {
+          "transcript_sha256": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+          "lines": 14,
+          "all_three_equal": true
+        }
+      },
+      "health": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "unit_tests": {
+        "sha256": "29f057776f75c5bdddf4c1c9a6577a192d2362d5ce015ab9b79f3c869a69a3b3",
+        "filter": "",
+        "exit": 0
+      }
+    },
+    {
+      "path": "private/r131-supplement/router-correctness-fd",
+      "result_sha256": "2e1812be803c6fcf8946cbbb363b682657bc5d9fd29153f0810b8e11b12e6c45",
+      "archive_sha256": "01a1c65534367be69a86058432919036cb3a82cd9b6df4e66f61d513f50a17ba",
+      "archive_file_count": 19,
+      "scenarios": {
+        "fd_boundary": {
+          "transcript_sha256": "7bf6d2d687d49c72cfebe5097d2d68ee4067d20f36bd9c96d88633f1886d9a22",
+          "lines": 7,
+          "all_three_equal": true
+        }
+      },
+      "health": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "unit_tests": null
+    }
+  ],
+  "decision": "pass_router_correctness",
+  "limitations": [
+    "No claim of zero bugs or complete nine-component integration.",
+    "Correctness daemons use their natural argv0 and are not affinity-normalized; no timing comparisons use these windows.",
+    "Scenario identities are launch-file hashes and supervised process lifetimes, not the full live mapping snapshots used for latency and stress.",
+    "Original R124 helper also passes the two new forced short-write tests; no demonstrated old-helper bug."
+  ]
+}
