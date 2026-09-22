@@ -42,7 +42,8 @@ def summarize(rows, plan, metric, lane):
 def collect(root, plan, stage):
     assert (root / 'COMPLETE').is_file(), 'collection incomplete'
     rows, windows, boots, guards = [], [], set(), set()
-    script = 'tools/r104_rx_memory.sh' if stage == 'memory' else 'tools/r103_user_event.sh'
+    script = plan.get('workload_script',
+                      'tools/r104_rx_memory.sh' if stage == 'memory' else 'tools/r103_user_event.sh')
     for block in plan['blocks']:
         for side in block['order']:
             window = root / f"{block['block']:02d}-{side}"
@@ -84,6 +85,17 @@ def collect(root, plan, stage):
                     assert all(v >= 0 for v in metrics.values())
                     for name in ('vmrss', 'rssanon', 'vmdata'):
                         metrics[name + '_growth_kb'] = metrics[name + '_after_kb'] - metrics[name + '_before_kb']
+                    if 'argv0' in plan:
+                        command = (raw / f'cmdline-{count}.txt').read_text().splitlines()
+                        assert len(command) == 3 and command[:2] == [plan['argv0'], '-s']
+                    if plan.get('after_disconnect'):
+                        reclaimed = (raw / f'after-disconnect-{count}.csv').read_text().strip().split(',')
+                        assert len(reclaimed) == 4 and reclaimed[3] == 'NA'
+                        for name, value in zip(('vmrss', 'rssanon', 'vmdata'), reclaimed[:3]):
+                            value = int(value)
+                            assert value >= 0
+                            metrics[name + '_after_disconnect_kb'] = value
+                            metrics[name + '_retained_growth_kb'] = value - metrics[name + '_before_kb']
                     rows.append({**common, 'workload': count, **metrics})
             else:
                 meta = read(raw / 'meta.json')
@@ -127,6 +139,9 @@ def main():
     metrics = ([f'{name}_{suffix}_kb' for name in ('vmrss', 'rssanon', 'vmdata')
                 for suffix in ('before', 'after', 'growth')]
                if args.stage == 'memory' else plan['metrics'])
+    if args.stage == 'memory' and plan.get('after_disconnect'):
+        metrics += [f'{name}_{suffix}_kb' for name in ('vmrss', 'rssanon', 'vmdata')
+                    for suffix in ('after_disconnect', 'retained_growth')]
     summary = {str(lane): {metric: summarize(rows, plan, metric, lane) for metric in metrics}
                for lane in plan['workloads']}
     result = {'schema_version': 1, 'plan_sha256': digest(args.plan), 'plan': plan,

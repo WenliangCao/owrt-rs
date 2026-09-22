@@ -79,11 +79,12 @@ static void send_ping(int fd, unsigned seq) {
             "PING STATUS mismatch");
 }
 int main(int argc, char **argv) {
-    if (argc >= 4 && !strcmp(argv[1], "exec-cpu")) {
+    int explicit_argv0 = argc >= 5 && !strcmp(argv[1], "exec-cpu-as");
+    if (explicit_argv0 || (argc >= 4 && !strcmp(argv[1], "exec-cpu"))) {
         unsigned cpu = number(argv[2], 1); cpu_set_t set;
         CPU_ZERO(&set); CPU_SET(cpu, &set);
         require(!sched_setaffinity(0, sizeof(set), &set), "exec pin failed");
-        execvp(argv[3], &argv[3]); perror("execvp"); return 1;
+        execvp(argv[3], &argv[explicit_argv0 ? 4 : 3]); perror("execvp"); return 1;
     }
     require(argc == 5 && !strcmp(argv[1], "rx-idle"),
             "usage: rx-idle SOCKET CLIENTS HOLD_SECONDS");

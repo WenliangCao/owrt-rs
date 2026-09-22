@@ -62,6 +62,10 @@ def verify_window(root, plan, block):
         assert read(root / f'health-{when}.json')['boot_id'] == plan['boot_id']
     raw = root / 'raw'
     assert (raw / 'COMPLETE').is_file()
+    if 'argv0' in plan:
+        for side in ('a', 'b'):
+            command = (raw / f'{side}-cmdline.txt').read_text().splitlines()
+            assert len(command) == 3 and command[:2] == [plan['argv0'], '-s']
     for name, expected in [('binary-sha256.txt', plan['subjects'][slots['b']]),
                            ('control-sha256.txt', plan['subjects'][slots['a']]),
                            ('benchmark-sha256.txt', plan['benchmark_sha256'])]:
