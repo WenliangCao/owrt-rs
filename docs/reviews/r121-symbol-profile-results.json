@@ -1,0 +1,483 @@
+{
+  "scope": "Oracle exact-ELF cpu-clock profile only; these timings are under sampling, not physical-router performance conclusions",
+  "plan_sha256": "848ccefb4ed32d5a16073fdd15a2f16f3ee2a55e121c56d74b3089807966fa5a",
+  "runner_sha256": "2ccc319c94236662a706288228e9215ccdb62b7e9f4de723f2eba9bf4fa36f2c",
+  "symbolizer_sha256": "cc4138ada32e00bb319b869fbafe227656034cc2eafa30a52580816fbd166d12",
+  "subjects": {
+    "c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic"
+    },
+    "r109": {
+      "path": "/home/ubuntu/r109-method-name-storage/canonical/ubusd-rs",
+      "sha256": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+      "kind": "static"
+    },
+    "r115": {
+      "path": "/home/ubuntu/r115-event-interest/ubusd-rs",
+      "sha256": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde",
+      "kind": "static"
+    }
+  },
+  "symbol_evidence": {
+    "r109": {
+      "map_sha256": "450a70dbb08e1b00c374893a3135fe259bb0926587dd9d9b62b4a2277b2d8fdb",
+      "whole_elf_matches_release": true
+    },
+    "r115": {
+      "map_sha256": "262c4293b28216eba9b4163e714a780d14787b69d21e8db6d21fa360cbd3ffbd",
+      "whole_elf_matches_release": true
+    },
+    "c": {
+      "symbols_sha256": "51f91f7d548600ca56ff47516f0a4854c50fb5a1defb768dc8ffabb5a202723b",
+      "text_sha256": "f439a4d464408ec54540c1e8fd13b0704ddd31b747018e809c71dc7a6512bab9"
+    }
+  },
+  "runs": [
+    {
+      "directory": "001-c-0",
+      "subject": "c",
+      "held_clients": 0,
+      "block": 1,
+      "samples": 2832,
+      "user_samples": 438,
+      "kernel_samples": 2394,
+      "unresolved_user_samples": 203,
+      "under_profiler_daemon_cpu_us_per_event": 12.4772988,
+      "perf_data_sha256": "ad7b2af8d82e28697a28bb2cf9c4e6dc75c5a19079fa64c01a03e6699885f00c",
+      "symbolized_sha256": "a6d09e95ea82da34089ba893037166858ae4ad17c26561fcc08196de69d3e9d0",
+      "maps_sha256": "3d7bf1c7947b64f14fbefbda7e178dd3d4993a366558451e740e074a157b19be",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "002-r109-0",
+      "subject": "r109",
+      "held_clients": 0,
+      "block": 1,
+      "samples": 2418,
+      "user_samples": 416,
+      "kernel_samples": 2002,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 10.9364764,
+      "perf_data_sha256": "def6c8cbe44de9a794735960ed0cdaa72023d7c098940afb8875ee28dfe5a57b",
+      "symbolized_sha256": "e024066dd90778657948f25ce28ffe51074045806116f84ef9cdf6fa733e4f8f",
+      "maps_sha256": "ddb05da5260826c8542adc15e40f5e91e8cb0417b5b0dd5d5dbf1bcc5477dd80",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "003-r115-0",
+      "subject": "r115",
+      "held_clients": 0,
+      "block": 1,
+      "samples": 2887,
+      "user_samples": 504,
+      "kernel_samples": 2383,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 12.73261984,
+      "perf_data_sha256": "b66e19ff3182750d2aad885b13ddc9cea0f51b9583a0870a1ec75cef78cd4c3f",
+      "symbolized_sha256": "e752bd04d3382a5df74d711fe45ea13e0728d2e9b594a6c14983c9040db0283b",
+      "maps_sha256": "4176f6a450810c07e103457f1cd005103bb59b75536de0f5888c549cb6a5e2c9",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "004-c-64",
+      "subject": "c",
+      "held_clients": 64,
+      "block": 1,
+      "samples": 2819,
+      "user_samples": 448,
+      "kernel_samples": 2371,
+      "unresolved_user_samples": 205,
+      "under_profiler_daemon_cpu_us_per_event": 12.446636080000001,
+      "perf_data_sha256": "f5c17cd65e969308cb2f6a052c288915cf418d19d10ed5e5bc3b52fa90c55462",
+      "symbolized_sha256": "47a7f25a02bf19811dc0e140638d59ba647f17fca1aa9341928ad863b1ff9b0c",
+      "maps_sha256": "10f91c63e767df1431227f93af66addc21d4384d644c987bc620e55d7c0df0c2",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "005-r109-64",
+      "subject": "r109",
+      "held_clients": 64,
+      "block": 1,
+      "samples": 2430,
+      "user_samples": 405,
+      "kernel_samples": 2025,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 11.059372719999999,
+      "perf_data_sha256": "902cc5cb24e11cdb4504c4b2be60e8ff99a5b940ae8533acbddb1255ecbfe1e2",
+      "symbolized_sha256": "e8e08701f7a7bcf299a46943f2411b48f58bfc427b48d43313f258b60c408d74",
+      "maps_sha256": "cee31ea79801cfdbec7269ffb1f9c4293316f245a2e1aec65a12cbccee9434e6",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "006-r115-64",
+      "subject": "r115",
+      "held_clients": 64,
+      "block": 1,
+      "samples": 2921,
+      "user_samples": 475,
+      "kernel_samples": 2446,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 12.88535224,
+      "perf_data_sha256": "2644642f1f7406c9cb45a44df408d210da6d999cc4b062cfa21f28bc946cb745",
+      "symbolized_sha256": "8b7ee25206fda5a120c7f575530a9e23b64ecd53e9cf71382962a155fd4d5a7c",
+      "maps_sha256": "2b7a91fb33e73876dd9c096ecf14a6a9ea168428dd9e5fbfb0f2ddf21a50964c",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "007-r115-64",
+      "subject": "r115",
+      "held_clients": 64,
+      "block": 2,
+      "samples": 2890,
+      "user_samples": 525,
+      "kernel_samples": 2365,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 12.74261712,
+      "perf_data_sha256": "dbc4e20a1ec8bea72d8c96560d3c8287cd997439470cfe29dbcd8081a755d6a7",
+      "symbolized_sha256": "4a3adff16a6ff23b1f24f9b6c51074ee4aaa33a5b932c8b16e8dfbbf59e01ba8",
+      "maps_sha256": "f2dd25d5a69bdd8480410372c8914f0d6d6e5760bbbd4b4a41c960870b28e00b",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "008-r109-64",
+      "subject": "r109",
+      "held_clients": 64,
+      "block": 2,
+      "samples": 2423,
+      "user_samples": 446,
+      "kernel_samples": 1977,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 10.9792176,
+      "perf_data_sha256": "652adc4426f856fa6d3b777a20776508f35cde34c8294b87997344f96438507b",
+      "symbolized_sha256": "f0d661081f5d42921f8bfb07bd06d3f329f849b432c9a657301c51137f4bd1be",
+      "maps_sha256": "23af242fcd4d0e3e1cc057397b72ec442902e4126ca85b110afd61f303c9f784",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "009-c-64",
+      "subject": "c",
+      "held_clients": 64,
+      "block": 2,
+      "samples": 2836,
+      "user_samples": 454,
+      "kernel_samples": 2382,
+      "unresolved_user_samples": 218,
+      "under_profiler_daemon_cpu_us_per_event": 12.48087864,
+      "perf_data_sha256": "1c6d268d3b31658c17986a93387fa2a666e8d6fa275aae2d78da28c2d1b12712",
+      "symbolized_sha256": "5f21b1569ec5a2aefe445450f91e0a914d649ecf450c2dfcdce8d952dca01fec",
+      "maps_sha256": "b62d369390f06f65147dbcc4a07549d8ac784829f9f535242b3feecb9127a567",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "010-r115-0",
+      "subject": "r115",
+      "held_clients": 0,
+      "block": 2,
+      "samples": 2885,
+      "user_samples": 455,
+      "kernel_samples": 2430,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 12.720130639999999,
+      "perf_data_sha256": "c543ca6f4ecda40b1fd2badad957d0c2cc08fe8b3799d630f5b25dfd3df91c9b",
+      "symbolized_sha256": "1071673d21aa4b6f8e06d37522d4964490d558877aecc8210ed93354db8784d7",
+      "maps_sha256": "96ec6f7b72a5e6d0223b8785759278a9767b9c15d4492fc853813ac39014bc1a",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "011-r109-0",
+      "subject": "r109",
+      "held_clients": 0,
+      "block": 2,
+      "samples": 2424,
+      "user_samples": 422,
+      "kernel_samples": 2002,
+      "unresolved_user_samples": 0,
+      "under_profiler_daemon_cpu_us_per_event": 11.09410504,
+      "perf_data_sha256": "0728d52c2180173c4eb01a7bfb58d4a1f5a9269e332c4e1ce2e1975e445904fe",
+      "symbolized_sha256": "a8fa90d1b5e8e32c7ec9b1a69aa79991e2d5e65ab96b8151cb794293ad0e4f62",
+      "maps_sha256": "6bdbcbef3e073dea9018ccdfd71e40432501e8b1f1108048f618f5b7d5e9620f",
+      "all_children_reaped": true
+    },
+    {
+      "directory": "012-c-0",
+      "subject": "c",
+      "held_clients": 0,
+      "block": 2,
+      "samples": 2808,
+      "user_samples": 422,
+      "kernel_samples": 2386,
+      "unresolved_user_samples": 203,
+      "under_profiler_daemon_cpu_us_per_event": 12.39741136,
+      "perf_data_sha256": "1eaecec6611188ca8ae33f1eb4b04726e2a1f7f5b6c7ab3037e0b505527c1b46",
+      "symbolized_sha256": "34bb792897b3a1bd6e4d39241927ab546d057f849375ac324926db486c07275b",
+      "maps_sha256": "e80d006c516c2da85023000c8d5e98b1c8804252e551977dec236b85016bdf80",
+      "all_children_reaped": true
+    }
+  ],
+  "aggregate": {
+    "c": {
+      "samples": 11295,
+      "user_samples": 1762,
+      "kernel_samples": 9533,
+      "kernel_fraction": 0.8440017706949978,
+      "unresolved_user_samples": 829,
+      "unresolved_user_fraction": 0.47048808172531215,
+      "top_emitted_functions": [
+        {
+          "function": "client_cb",
+          "samples": 143,
+          "fraction_of_all_samples": 0.012660469234174413
+        },
+        {
+          "function": "uloop_run_timeout",
+          "samples": 71,
+          "fraction_of_all_samples": 0.006285967242142541
+        },
+        {
+          "function": "blobmsg_parse",
+          "samples": 68,
+          "fraction_of_all_samples": 0.006020362992474547
+        },
+        {
+          "function": "ubus_msg_writev",
+          "samples": 58,
+          "fraction_of_all_samples": 0.00513501549358123
+        },
+        {
+          "function": "recvmsg",
+          "samples": 56,
+          "fraction_of_all_samples": 0.004957945993802567
+        },
+        {
+          "function": "blob_parse_untrusted",
+          "samples": 48,
+          "fraction_of_all_samples": 0.004249667994687915
+        },
+        {
+          "function": "ubusd_send_event",
+          "samples": 42,
+          "fraction_of_all_samples": 0.0037184594953519256
+        },
+        {
+          "function": "sendmsg",
+          "samples": 31,
+          "fraction_of_all_samples": 0.0027445772465692782
+        },
+        {
+          "function": "calloc",
+          "samples": 27,
+          "fraction_of_all_samples": 0.002390438247011952
+        },
+        {
+          "function": "blobmsg_check_attr_len",
+          "samples": 26,
+          "fraction_of_all_samples": 0.0023019034971226205
+        },
+        {
+          "function": "blob_put",
+          "samples": 24,
+          "fraction_of_all_samples": 0.0021248339973439574
+        },
+        {
+          "function": "strcmp",
+          "samples": 23,
+          "fraction_of_all_samples": 0.002036299247454626
+        },
+        {
+          "function": "avl_find",
+          "samples": 19,
+          "fraction_of_all_samples": 0.0016821602478972997
+        },
+        {
+          "function": "strlen",
+          "samples": 18,
+          "fraction_of_all_samples": 0.0015936254980079682
+        },
+        {
+          "function": "ubus_msg_send",
+          "samples": 18,
+          "fraction_of_all_samples": 0.0015936254980079682
+        }
+      ]
+    },
+    "r109": {
+      "samples": 9695,
+      "user_samples": 1689,
+      "kernel_samples": 8006,
+      "kernel_fraction": 0.8257864878803507,
+      "unresolved_user_samples": 0,
+      "unresolved_user_fraction": 0.0,
+      "top_emitted_functions": [
+        {
+          "function": "__libc_malloc_impl",
+          "samples": 247,
+          "fraction_of_all_samples": 0.02547705002578649
+        },
+        {
+          "function": "__libc_free",
+          "samples": 223,
+          "fraction_of_all_samples": 0.02300154718927282
+        },
+        {
+          "function": "<hashbrown[bffe3a09c1c0d99]::map::HashMap<u32, ubusd_rs[a851189cab3a627c]::client::Client, std[da54f50892548b27]::hash::random::RandomState>>::get_mut::<u32>",
+          "samples": 164,
+          "fraction_of_all_samples": 0.016915936049510055
+        },
+        {
+          "function": "nontrivial_free",
+          "samples": 134,
+          "fraction_of_all_samples": 0.013821557503867973
+        },
+        {
+          "function": "alloc_slot",
+          "samples": 98,
+          "fraction_of_all_samples": 0.010108303249097473
+        },
+        {
+          "function": "<ubusd_rs[a851189cab3a627c]::server::Server>::event_send",
+          "samples": 76,
+          "fraction_of_all_samples": 0.007839092315626612
+        },
+        {
+          "function": "__syscall_cp_c",
+          "samples": 75,
+          "fraction_of_all_samples": 0.007735946364105209
+        },
+        {
+          "function": "__libc_realloc",
+          "samples": 72,
+          "fraction_of_all_samples": 0.007426508509541001
+        },
+        {
+          "function": "ubusd_rs[a851189cab3a627c]::run",
+          "samples": 67,
+          "fraction_of_all_samples": 0.006910778751933987
+        },
+        {
+          "function": "<hashbrown[bffe3a09c1c0d99]::map::HashMap<u32, ubusd_rs[a851189cab3a627c]::client::Client, std[da54f50892548b27]::hash::random::RandomState>>::get::<u32>",
+          "samples": 62,
+          "fraction_of_all_samples": 0.006395048994326973
+        },
+        {
+          "function": "<ubusd_rs[a851189cab3a627c]::server::Server>::handle",
+          "samples": 51,
+          "fraction_of_all_samples": 0.005260443527591542
+        },
+        {
+          "function": "<hashbrown[bffe3a09c1c0d99]::map::HashMap<u32, ubusd_rs[a851189cab3a627c]::obj::Object, std[da54f50892548b27]::hash::random::RandomState>>::get::<u32>",
+          "samples": 41,
+          "fraction_of_all_samples": 0.004228984012377514
+        },
+        {
+          "function": "ubusd_rs[a851189cab3a627c]::server::attrs_of",
+          "samples": 38,
+          "fraction_of_all_samples": 0.003919546157813306
+        },
+        {
+          "function": "<owrt_ubus[94fb8842cea5915a]::blob::BlobBuf>::put",
+          "samples": 34,
+          "fraction_of_all_samples": 0.003506962351727695
+        },
+        {
+          "function": "__syscall_ret",
+          "samples": 29,
+          "fraction_of_all_samples": 0.002991232594120681
+        }
+      ]
+    },
+    "r115": {
+      "samples": 11583,
+      "user_samples": 1959,
+      "kernel_samples": 9624,
+      "kernel_fraction": 0.8308728308728309,
+      "unresolved_user_samples": 0,
+      "unresolved_user_fraction": 0.0,
+      "top_emitted_functions": [
+        {
+          "function": "__syscall_cp_c",
+          "samples": 199,
+          "fraction_of_all_samples": 0.017180350513683846
+        },
+        {
+          "function": "<hashbrown[bffe3a09c1c0d99]::map::HashMap<u32, alloc[ca0639e201ef4727]::boxed::Box<ubusd_rs[a851189cab3a627c]::client::Client>, std[da54f50892548b27]::hash::random::RandomState>>::get_mut::<u32>",
+          "samples": 187,
+          "fraction_of_all_samples": 0.016144349477682812
+        },
+        {
+          "function": "__libc_malloc_impl",
+          "samples": 186,
+          "fraction_of_all_samples": 0.01605801605801606
+        },
+        {
+          "function": "__libc_free",
+          "samples": 169,
+          "fraction_of_all_samples": 0.014590347923681257
+        },
+        {
+          "function": "ubusd_rs[a851189cab3a627c]::main",
+          "samples": 146,
+          "fraction_of_all_samples": 0.012604679271345938
+        },
+        {
+          "function": "alloc_slot",
+          "samples": 106,
+          "fraction_of_all_samples": 0.009151342484675818
+        },
+        {
+          "function": "nontrivial_free",
+          "samples": 101,
+          "fraction_of_all_samples": 0.008719675386342053
+        },
+        {
+          "function": "__libc_realloc",
+          "samples": 79,
+          "fraction_of_all_samples": 0.006820340153673487
+        },
+        {
+          "function": "recvmsg",
+          "samples": 72,
+          "fraction_of_all_samples": 0.006216006216006216
+        },
+        {
+          "function": "<ubusd_rs[a851189cab3a627c]::server::Server>::event_send",
+          "samples": 68,
+          "fraction_of_all_samples": 0.005870672537339204
+        },
+        {
+          "function": "__syscall_ret",
+          "samples": 65,
+          "fraction_of_all_samples": 0.005611672278338945
+        },
+        {
+          "function": "<ubusd_rs[a851189cab3a627c]::server::Server>::handle",
+          "samples": 59,
+          "fraction_of_all_samples": 0.005093671760338427
+        },
+        {
+          "function": "<hashbrown[bffe3a09c1c0d99]::map::HashMap<u32, ubusd_rs[a851189cab3a627c]::obj::Object, std[da54f50892548b27]::hash::random::RandomState>>::get::<u32>",
+          "samples": 50,
+          "fraction_of_all_samples": 0.00431667098333765
+        },
+        {
+          "function": "<ubusd_rs[a851189cab3a627c]::client::Client>::send_borrowed",
+          "samples": 45,
+          "fraction_of_all_samples": 0.003885003885003885
+        },
+        {
+          "function": "sendmsg",
+          "samples": 40,
+          "fraction_of_all_samples": 0.00345333678667012
+        }
+      ]
+    }
+  },
+  "interpretation": [
+    "On this Oracle event workload, kernel self samples dominate (about 83-84%). R109 has fewer kernel samples than the C and R115 runs with the same event count; this supports investigating receive/syscall work, not a language-limit claim.",
+    "R115 five named allocator functions account for 641/11583 samples (5.53%). This is a hotspot lead, not attribution of the whole difference versus C.",
+    "C user-space symbols remain incomplete: 829/1762 user samples unresolved. Do not compare C unknown allocator addresses as if allocator cost were zero.",
+    "Source audit identifies two owned Vec copies before synchronous system_object dispatch. R122 will test only borrowing these two inputs; no FD contract or receive algorithm change.",
+    "No new optimization or deployment was part of R121; physical router performance conclusions still come from separate isolated experiments."
+  ]
+}
