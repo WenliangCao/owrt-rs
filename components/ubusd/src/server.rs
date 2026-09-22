@@ -26,6 +26,10 @@ struct Pattern {
     obj: u32,
 }
 
+/// Bound the temporary contiguous event write. Larger event payloads stay on
+/// the existing borrowed one-frame path instead of multiplying their bytes.
+const MAX_EVENT_BATCH: usize = 16 * 1024;
+
 /// A client's credentials, copied out so ACL checks do not borrow the table.
 struct ClientCred {
     uid: u32,
@@ -63,6 +67,10 @@ pub struct Server {
     /// Clients written to since the loop last looked: only these can have
     /// changed whether they need output readiness. Ids may repeat.
     pub touched: Vec<u32>,
+    /// Reusable wire storage for the frames after the first event in a
+    /// same-owner run. The first frame remains on the zero-copy path so a
+    /// single-listener event does not pay a new copy.
+    event_batch: Vec<u8>,
 }
 
 impl Server {
@@ -83,6 +91,7 @@ impl Server {
             scratch: BlobBuf::new(),
             lookup_batch: Vec::new(),
             touched: Vec::new(),
+            event_batch: Vec::new(),
         })
     }
 
@@ -930,6 +939,13 @@ impl Server {
 
         let mut match_len = 0usize;
         let mut build = Some(build);
+        // A monitor observes each event at its original send boundary. Keep
+        // that path byte-for-byte unchanged; batching is only a destination
+        // optimization for the common unmonitored case.
+        let batch_events = self.monitors.is_empty();
+        self.event_batch.clear();
+        let mut batch_owner = None;
+        let mut batch_count = 0usize;
         // Sending only changes client queues/monitors. Patterns and object
         // ownership cannot change until this single-threaded handler returns,
         // so neither a target snapshot nor a payload copy per receiver is
@@ -963,18 +979,78 @@ impl Server {
             self.event_seq = self.event_seq.wrapping_add(1);
             let header = Header { ty: ty::INVOKE, seq: self.event_seq, peer: 0 };
             Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, owner, &header, blob, true);
-            if let Some(client) = self.clients.get_mut(&owner) {
-                client.send_borrowed(header, blob, None);
-                // A complete direct write leaves no readiness state to
-                // change. Keep the conservative retry cases: a queued
-                // message, a stale WRITE registration, or a READ state whose
-                // registration is stale. This avoids a HashMap lookup and
-                // poller update for the usual synchronous event delivery.
+            if !batch_events {
+                Self::send_event_frame_to(&mut self.clients, &mut self.touched, owner, header, blob);
+                continue;
+            }
+
+            // A stale registry entry has no destination. Do not retain a
+            // previous owner's batch across it; the old path also emits
+            // nothing for this case.
+            if !self.clients.contains_key(&owner) {
+                Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, batch_owner.take());
+                batch_count = 0;
+                continue;
+            }
+
+            if batch_owner != Some(owner) {
+                Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, batch_owner);
+                batch_owner = Some(owner);
+                batch_count = 0;
+            }
+
+            let frame_len = Header::LEN + blob.len();
+            if batch_count == 0 {
+                // Preserve the single-frame zero-copy path. Only a later
+                // frame in this same owner run is copied into the batch.
+                Self::send_event_frame_to(&mut self.clients, &mut self.touched, owner, header, blob);
+                batch_count = 1;
+            } else if frame_len <= MAX_EVENT_BATCH
+                && self.event_batch.len().saturating_add(frame_len) <= MAX_EVENT_BATCH
+            {
+                self.event_batch.extend_from_slice(&header.encode());
+                self.event_batch.extend_from_slice(blob);
+                batch_count += 1;
+            } else {
+                // Keep large frames and oversized runs on the old path. A
+                // later small frame starts a fresh run after this direct one.
+                Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, Some(owner));
+                Self::send_event_frame_to(&mut self.clients, &mut self.touched, owner, header, blob);
+                batch_count = 1;
+            }
+        }
+        Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, batch_owner);
+    }
+
+    /// Send one event using the existing borrowed path and readiness rules.
+    fn send_event_frame_to(clients: &mut HashMap<u32, Box<Client>>, touched: &mut Vec<u32>, owner: u32, header: Header, blob: &[u8]) {
+        if let Some(client) = clients.get_mut(&owner) {
+            client.send_borrowed(header, blob, None);
+            // A complete direct write leaves no readiness state to change.
+            // Keep the conservative retry cases used by the old inline path.
+            if !client.tx_empty() || client.out_registered || (!client.eof != client.in_registered) {
+                touched.push(owner);
+            }
+        }
+    }
+
+    /// Submit the pending same-owner frames as one stream write. The client
+    /// helper restores individual queue entries if the write is partial.
+    fn flush_event_batch_to(clients: &mut HashMap<u32, Box<Client>>, touched: &mut Vec<u32>, event_batch: &mut Vec<u8>, owner: Option<u32>) {
+        let Some(owner) = owner else {
+            event_batch.clear();
+            return;
+        };
+        if !event_batch.is_empty() {
+            let frames = event_batch.as_slice();
+            if let Some(client) = clients.get_mut(&owner) {
+                client.send_borrowed_batch(frames);
                 if !client.tx_empty() || client.out_registered || (!client.eof != client.in_registered) {
-                    self.touched.push(owner);
+                    touched.push(owner);
                 }
             }
         }
+        event_batch.clear();
     }
 
     fn acl_query(&mut self, client: u32, msg: &InMsg) -> Outcome {
@@ -1706,6 +1782,106 @@ mod tests {
             bytes = &bytes[Header::LEN + len..];
         }
         frames
+    }
+
+    #[cfg(target_os = "linux")]
+    fn event_server_with_owner(objects: &[u32]) -> (Server, std::os::unix::net::UnixStream) {
+        let mut server = Server::new(String::new()).unwrap();
+        let (owner, peer) = lookup_client();
+        server.clients.insert(2000, Box::new(owner));
+        for &object in objects {
+            server.reg.create(None, Some(object)).unwrap();
+            server.reg.get_mut(object).unwrap().client = Some(2000);
+            server.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: object });
+        }
+        (server, peer)
+    }
+
+    #[cfg(target_os = "linux")]
+    fn simple_event(server: &mut Server) {
+        server.dispatch_event(None, b"event", |b| {
+            b.put_u32(attr::OBJID, 0);
+            b.put_string(attr::METHOD, "event");
+            b.msg_u32("value", 0x1234_5678);
+        });
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn same_owner_event_batch_preserves_each_frame() {
+        let objects = [4000, 4001, 4002];
+        let (mut server, mut peer) = event_server_with_owner(&objects);
+        simple_event(&mut server);
+        let frames = lookup_frames(&drain_lookup(&mut server, 2000, &mut peer));
+        assert_eq!(frames.len(), objects.len());
+        assert!(server.event_batch.is_empty());
+        for (i, ((header, blob), object)) in frames.iter().zip(objects).enumerate() {
+            assert_eq!((header.ty, header.seq, header.peer), (ty::INVOKE, i as u16 + 1, 0));
+            assert_eq!(attrs_of(&blob[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(object));
+            assert_eq!(attrs_of(&blob[4..])[attr::METHOD as usize].unwrap().as_bytes(), Some(&b"event\0"[..]));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn interleaved_owners_keep_per_client_and_global_event_order() {
+        let mut server = Server::new(String::new()).unwrap();
+        let (a, mut a_peer) = lookup_client();
+        let (b, mut b_peer) = lookup_client();
+        server.clients.insert(2000, Box::new(a));
+        server.clients.insert(2001, Box::new(b));
+        for (object, owner) in [(4000, 2000), (4001, 2001), (4002, 2000)] {
+            server.reg.create(None, Some(object)).unwrap();
+            server.reg.get_mut(object).unwrap().client = Some(owner);
+            server.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: object });
+        }
+        simple_event(&mut server);
+        let a_frames = lookup_frames(&drain_lookup(&mut server, 2000, &mut a_peer));
+        let b_frames = lookup_frames(&drain_lookup(&mut server, 2001, &mut b_peer));
+        assert_eq!(a_frames.iter().map(|(h, _)| h.seq).collect::<Vec<_>>(), [1, 3]);
+        assert_eq!(b_frames.iter().map(|(h, _)| h.seq).collect::<Vec<_>>(), [2]);
+        assert_eq!(attrs_of(&a_frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000));
+        assert_eq!(attrs_of(&a_frames[1].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4002));
+        assert_eq!(attrs_of(&b_frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4001));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn monitored_event_fanout_keeps_one_mirror_per_frame() {
+        let (mut server, mut owner_peer) = event_server_with_owner(&[4000, 4001, 4002]);
+        let (monitor, mut monitor_peer) = lookup_client();
+        server.clients.insert(2001, Box::new(monitor));
+        server.monitors.push((2001, 0));
+        simple_event(&mut server);
+        let events = lookup_frames(&drain_lookup(&mut server, 2000, &mut owner_peer));
+        let mirrors = lookup_frames(&drain_lookup(&mut server, 2001, &mut monitor_peer));
+        assert_eq!(events.len(), 3);
+        assert_eq!(mirrors.len(), 3);
+        for (i, ((event_header, event_blob), (mirror_header, mirror_blob))) in events.iter().zip(&mirrors).enumerate() {
+            assert_eq!((event_header.ty, event_header.seq), (ty::INVOKE, i as u16 + 1));
+            assert_eq!((mirror_header.ty, mirror_header.seq), (ty::MONITOR, i as u16 + 1));
+            let attrs = attrs_of(&mirror_blob[4..]);
+            assert_eq!(attrs[3].unwrap().as_u32(), Some(event_header.seq as u32));
+            assert_eq!(attrs[4].unwrap().as_u32(), Some(ty::INVOKE as u32));
+            assert_eq!(attrs[5].unwrap().payload, &event_blob[4..]);
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn queued_same_owner_batch_survives_scratch_reuse() {
+        let (mut server, mut peer) = event_server_with_owner(&[4000, 4001, 4002]);
+        let mut filler = BlobBuf::new();
+        filler.put(attr::DATA, &[0x5a; 32 * 1024]);
+        server.clients.get_mut(&2000).unwrap().send(OutMsg::new(ty::DATA, 0, 0, filler.as_bytes().to_vec()));
+        simple_event(&mut server);
+        let frames = lookup_frames(&drain_lookup(&mut server, 2000, &mut peer));
+        assert_eq!(frames.len(), 4);
+        assert_eq!(frames[0].0.ty, ty::DATA);
+        for (i, (header, blob)) in frames.iter().skip(1).enumerate() {
+            assert_eq!((header.ty, header.seq), (ty::INVOKE, i as u16 + 1));
+            assert_eq!(attrs_of(&blob[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000 + i as u32));
+        }
     }
 
     #[cfg(target_os = "linux")]

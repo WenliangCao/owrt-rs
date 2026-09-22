@@ -205,11 +205,20 @@ impl Client {
         }
     }
 
-    /// Submit a bounded sequence of complete descriptor-free LOOKUP frames.
+    /// Submit a bounded sequence of complete descriptor-free frames.
     /// A short write is split back into the original per-frame queue entries,
     /// retaining their offsets and cap checks rather than queueing one giant
     /// synthetic message. `frames` is assembled by Server, never wire input.
-    pub fn send_lookup_batch(&mut self, frames: &[u8]) {
+    ///
+    /// The first frame that a direct write did not finish establishes the
+    /// queue offset exactly once. Every later frame is enqueued directly;
+    /// calling `send_borrowed` for those frames would retry a direct write if
+    /// the first frame was dropped by the queue cap, which could move later
+    /// bytes ahead of it.
+    pub fn send_borrowed_batch(&mut self, frames: &[u8]) {
+        if frames.is_empty() {
+            return;
+        }
         let direct = self.tx.is_empty();
         let written = if direct {
             sys::sendmsg_two(self.fd(), frames, &[], None).unwrap_or(0)
@@ -220,22 +229,33 @@ impl Client {
             return;
         }
         let mut pos = 0;
+        let mut first_unsent = true;
         while pos < frames.len() {
             let header = Header::decode(frames[pos..pos + Header::LEN].try_into().unwrap()).unwrap();
             let start = pos + Header::LEN;
             let end = start + blob_raw_len(&frames[start..]);
             if written < end {
                 let blob = &frames[start..end];
-                if direct && written >= pos {
+                if direct && first_unsent && written >= pos {
                     self.txq_ofs = written - pos;
                     self.txq_len = -(self.txq_ofs as i64);
-                    self.enqueue(OutMsg { header, blob: blob.to_vec(), fd: None });
+                    first_unsent = false;
                 } else {
-                    self.send_borrowed(header, blob, None);
+                    // Either the client already had a queue, or an earlier
+                    // frame in this direct batch is now the queue head.
+                    // Do not retry direct I/O here: preserve stream order if
+                    // the earlier frame was rejected by the cap.
+                    first_unsent = false;
                 }
+                self.enqueue(OutMsg { header, blob: blob.to_vec(), fd: None });
             }
             pos = end;
         }
+    }
+
+    /// Compatibility name for the existing lookup batching call site.
+    pub fn send_lookup_batch(&mut self, frames: &[u8]) {
+        self.send_borrowed_batch(frames);
     }
 
     /// Send a message: try the socket directly when nothing is queued, then
