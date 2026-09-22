@@ -13,7 +13,9 @@
 [R113 FD 帧边界复现](reviews/r113-fd-boundary-discovery.json)已确认 R109/R112 的
 跨帧 read-ahead 会把同一 sendmsg 中的 FD 交给错误请求，并错误保留 body 阶段的 FD。
 R109 现在仅是历史性能对照，不能称为已完成兼容性验收的可部署版本。生产一直为 C。
-先按精确 C 的 prefix/body 消费边界修复，再重建性能基线；R112 的确认采样尚未开始。
+[R113 修复](reviews/r113-correctness-results.json)已通过 44 条实机单测、七组原协议门、
+新增 FD 差分及六组主机功能/恢复门。修复在 `befbb16` 实验分支，尚未接受性能；
+现在按精确 C 的 prefix/body 消费边界重建性能基线。R112 的确认采样未启动。
 
 ## 已有证据与当前起点
 

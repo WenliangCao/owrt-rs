@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "status": "FD boundary correctness repair passed physical router gates; performance not accepted",
+  "source_commit": "befbb16",
+  "fix_commit": "e167351",
+  "candidate_sha256": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+  "unit_tests": {
+    "count": 44,
+    "sha256": "af0aeeaac2133eae082464b4ae819b1ce156ae0eb841754f1bd6143fbec083f2",
+    "physical_log_sha256": "955d0f38151c11cb7f54f0169bc5465e568245b5ac4acba445af706a4b285181"
+  },
+  "oracle_summary_sha256": "5a13f96dbc2cd8ce0a68a37c0ca500ea69daeea129c4aa1e80b5208438efafa7",
+  "host_gates_results_sha256": "80bdcb0c566072cadcb16803f06e59ec755c0aef9e42db4e62587c947e6b1070",
+  "windows": {
+    "preflight-existing": {
+      "component": "ubusd",
+      "candidate_sha256": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "correctness_smoke_only": true,
+      "pilot_only": false,
+      "implementation": "rs",
+      "iterations": 1,
+      "installed": false,
+      "matrix": false,
+      "production_mode": "stock",
+      "passed": true,
+      "cleanup_verified": true,
+      "benchmark_sha256": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+      "before_candidate_sha256": "a6cb56b7d996d38b312058124ace2726169771e04c9018f95bb6e77e34013dee",
+      "unit_tests": {
+        "sha256": "af0aeeaac2133eae082464b4ae819b1ce156ae0eb841754f1bd6143fbec083f2",
+        "filter": "",
+        "exit": 0
+      },
+      "exit": 0,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true,
+      "raw_tar_sha256": "b9c64ddac872b06c823f5af44cef85e63bc8d33cfc4ac54d728eb99d18476ab9"
+    },
+    "preflight-fd": {
+      "component": "ubusd",
+      "candidate_sha256": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "workload_sha256": "bc5a15243980e827d1b5b927fb23ee4903bd5e1a7d399792b3d2d128ab2527c1",
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "correctness_smoke_only": true,
+      "pilot_only": false,
+      "implementation": "rs",
+      "iterations": 1,
+      "installed": false,
+      "matrix": false,
+      "production_mode": "stock",
+      "passed": true,
+      "cleanup_verified": true,
+      "benchmark_sha256": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+      "before_candidate_sha256": "a6cb56b7d996d38b312058124ace2726169771e04c9018f95bb6e77e34013dee",
+      "exit": 0,
+      "same_boot": true,
+      "same_config": true,
+      "same_production_identity": true,
+      "same_host_mounts": true,
+      "raw_tar_sha256": "89f8e026c0aa4bd89fc8bdc298ba9bee8db1d1d00b8abd5847d0d3b7bb83ec27"
+    }
+  },
+  "fd_output_sha256": {
+    "c": "7bf6d2d687d49c72cfebe5097d2d68ee4067d20f36bd9c96d88633f1886d9a22",
+    "before": "eb6b59e0c62c4993a6431e4a724eb301360683c31b045dbeb3acd9703074ffc3",
+    "candidate": "7bf6d2d687d49c72cfebe5097d2d68ee4067d20f36bd9c96d88633f1886d9a22"
+  },
+  "limits": [
+    "Fix matches exact C on six tested FD placement cases, including bundled frames and body ancillary discard. It is not a proof for all inputs.",
+    "Prefix/body boundaries remove the cross-frame read-ahead behavior whose old performance was measured. New CPU, memory and integration evidence is required.",
+    "R112-only performance collection was not started; its rejected/unfinished optimization hypotheses remain separate."
+  ]
+}

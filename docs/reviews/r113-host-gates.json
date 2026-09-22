@@ -1,0 +1,208 @@
+{
+  "started": "2026-09-22T08:31:45.612539+00:00",
+  "groups": [
+    "functional",
+    "recovery"
+  ],
+  "gate_selection": [
+    "ubusd-r36",
+    "ubusd-r36-user",
+    "ubusd-r83",
+    "ubusd-r42",
+    "ubusd-r41",
+    "r92-recovery"
+  ],
+  "driver_sha256": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2",
+  "binary_sha256": {
+    "fw4-rs": "8e74fdbc9521d3f94a55eab129e92b379f448529cb5760a47ee38d854465d218",
+    "httpd-rs": "e66915a2993451f0cfcb5ca76ed0de8b743392d4d6448622ea3c28596cbb1a0c",
+    "logd-rs": "b4f3c79e2fb9909c0ca800f6e0d5ed5c45d70b1f1e47f9eb805fca3ebde5a749",
+    "netifd-rs": "5f48274aaaf92f646f5df1ba973a4dd069b86b090668c5388dd824eb118603ed",
+    "ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "owrt-benchmark": "0d0dac730fc5052b97d30ca5b021cf0fa2f867fb70d1e8b151d293288120da03",
+    "procd-rs": "427314e0c870393def190858292ec8e17ac0a02d03598a754825cde2ee74aa8b",
+    "reload_config_rs": "2abc0bea7d21f3d01afb62d1fcc5cabf48876d4624f6720f2f2d36cf4fd084fc",
+    "rpcd-rs": "e582901b413105fb7371cee5abca7f54bc2849b279ab197c355bbdac75032d72",
+    "ubusd-rs": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+    "uci-rs": "95a570ec37715fcb1ebf133714dc90825053f4dbb48c0bc29f946fade3154861"
+  },
+  "example_sha256": {
+    "bench": "c69fecefbcf3585d5c5bbc55eb3584875b09ca1cd34523157375caeb7d991018",
+    "fuzz": "506d5427c7b5435ad49a04537f0e9d04570443fc6ecf417ecf087496608179dc",
+    "output_lifecycle": "1666b0295f0b10da76a24c39916aff8b5480c4727c6dac438a50b0306cc1d342",
+    "wireprobe": "7432339f0bf88bc1fd527497e0b22b723a84a88da773994f00423a05ace66d94"
+  },
+  "helper_identity": {
+    "compiler": "/usr/bin/aarch64-linux-gnu-gcc",
+    "compiler_sha256": "a20520ee21543f243d40636a9181a142c45ecd989de31ab86b99a8ea5ada870d",
+    "compiler_version": "aarch64-linux-gnu-gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "flags": [
+      "-static",
+      "-O2"
+    ],
+    "test_only": true,
+    "helpers": {
+      "asuser": {
+        "source_sha256": "8f9a9255b9dc7beacd4a487b55a8eba2d507608564765d957e6e0dab48c3264d",
+        "binary_sha256": "61bfaa73d2361c6dbec8160e115ba0baaf9f84e1c88d1778877c4fc4aac9919f"
+      },
+      "busprobe": {
+        "source_sha256": "72291df6cb210f4ceceda2ff6ae1cd05a5b71cd492679aae72dba5bf1d95407c",
+        "binary_sha256": "4c0308acbce01dc3a78d63f4607a90ecb92fd9dd39a2f289e1e462e6b81caa7e"
+      }
+    }
+  },
+  "results": [
+    {
+      "group": "functional",
+      "name": "ubusd-r36",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r113-fd-boundary/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r36_ubusd_diff.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r113-fd-boundary/bins-final/ubusd-rs",
+        "/home/ubuntu/r113-fd-boundary/gates-final/ubusd-r36"
+      ],
+      "log_sha256": "ed6a9522bb3b69b530dae7608dad8e0a1ca36243d3cf576df96aa6aeb324a31f",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r36-user",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r113-fd-boundary/source/tools/r92_validate.py",
+        "--namespace-command",
+        "env",
+        "DAEMON_USER=ubus",
+        "sh",
+        "tools/r36_ubusd_diff.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r113-fd-boundary/bins-final/ubusd-rs",
+        "/home/ubuntu/r113-fd-boundary/gates-final/ubusd-r36-user"
+      ],
+      "log_sha256": "c28ff78f45d265130cdce3ee08a03e312a2aefddd3e7c38df2378136717531ea",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r83",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r113-fd-boundary/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r83_ubusd_acl.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r113-fd-boundary/bins-final/ubusd-rs",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/wireprobe",
+        "/home/ubuntu/r113-fd-boundary/gates-final/ubusd-r83"
+      ],
+      "log_sha256": "fee3c09df74894b4c37c022ddf84c5548cc12bd6735b09b50e930b88b86b5a6b",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r42",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r113-fd-boundary/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r42_ubusd_fuzz.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/fuzz",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+        "/home/ubuntu/r113-fd-boundary/bins-final/ubusd-rs",
+        "/home/ubuntu/r113-fd-boundary/gates-final/ubusd-r42"
+      ],
+      "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f",
+      "original_busy_control": false
+    },
+    {
+      "group": "functional",
+      "name": "ubusd-r41",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r113-fd-boundary/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sh",
+        "tools/r41_limits.sh",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/bench",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+        "/home/ubuntu/r113-fd-boundary/bins-final/ubusd-rs",
+        "/home/ubuntu/r113-fd-boundary/gates-final/ubusd-r41"
+      ],
+      "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd",
+      "original_busy_control": false
+    },
+    {
+      "group": "recovery",
+      "name": "r92-recovery",
+      "exit": 0,
+      "required": true,
+      "command": [
+        "sudo",
+        "-n",
+        "env",
+        "HELPERS=/home/ubuntu/r92-recovery-compat/helpers-canonical",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec",
+        "/usr/bin/python3",
+        "/home/ubuntu/r113-fd-boundary/source/tools/r92_validate.py",
+        "--namespace-command",
+        "sudo",
+        "-n",
+        "python3",
+        "tools/r92_recovery_probe.py",
+        "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+        "/home/ubuntu/r113-fd-boundary/bins-final",
+        "/home/ubuntu/r113-fd-boundary/gates-final/r92-recovery",
+        "--output-helper",
+        "/home/ubuntu/r95/final/target-examples/aarch64-unknown-linux-musl/release/examples/output_lifecycle"
+      ],
+      "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536",
+      "original_busy_control": false
+    }
+  ],
+  "passed": true,
+  "finished": "2026-09-22T08:36:50.986290+00:00"
+}
