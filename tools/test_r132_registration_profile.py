@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Reject invalid registration diagnostics before interpreting them."""
 import copy
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -66,6 +67,19 @@ class RegistrationProfileValidation(unittest.TestCase):
             self.assertEqual({run["n"] for run in plan["runs"]}, {count})
             self.assertEqual({run["warmup"] for run in plan["runs"]}, {5000})
             self.assertNotIn("stat" if mode == "profile" else "profile", plan)
+
+    def test_only_explicit_supported_profile_rates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "plan.json"
+            for frequency in (249, 499, 997, 0, 1000, True):
+                plan = subject.template("profile")
+                plan["profile"]["frequency_hz"] = frequency
+                path.write_text(json.dumps(plan))
+                if type(frequency) is int and frequency in (249, 499, 997):
+                    self.assertEqual(subject.load_plan(path)["profile"]["frequency_hz"], frequency)
+                else:
+                    with self.assertRaises(RuntimeError):
+                        subject.load_plan(path)
 
 
 if __name__ == "__main__":

@@ -114,7 +114,11 @@ def load_plan(path):
         for key, minimum, maximum in (("methods", 1, 64), ("name_bytes", 8, 128), ("n", 1, 1000000), ("warmup", 0, 100000)):
             require(type(item[key]) is int and minimum <= item[key] <= maximum, f"run {key}")
     if plan["mode"] == "profile":
-        require(plan["profile"] == {"event": "cpu-clock", "frequency_hz": 997, "mmap_buffer": "8M", "callgraph": False}, "profile settings")
+        profile = plan["profile"]
+        require(set(profile) == {"event", "frequency_hz", "mmap_buffer", "callgraph"} and
+                profile["event"] == "cpu-clock" and profile["mmap_buffer"] == "8M" and
+                profile["callgraph"] is False and type(profile["frequency_hz"]) is int and
+                profile["frequency_hz"] in (249, 499, 997), "profile settings")
         require("stat" not in plan, "profile and stat must use separate plans")
     else:
         require(plan["stat"] == {"events": EVENTS, "counter_names": COUNTERS, "running_percent_required": 100.0}, "stat settings")
@@ -267,7 +271,7 @@ def sample(out, item, plan, subject, socket, paths, client, loader, libraries, e
             fds.extend((ctl_read, ctl_write, ack_read, ack_write))
             control = ["-D", "-1", "--control", f"fd:{ctl_read},{ack_write}", "-p", str(daemon.pid)]
             if plan["mode"] == "profile":
-                command = [str(perf_path), "record", *control, "-e", "cpu-clock", "-F", "997", "--strict-freq", "-m", "8M", "-T", "-P", "--no-buildid-cache", "-o", str(out / "perf.data")]
+                command = [str(perf_path), "record", *control, "-e", "cpu-clock", "-F", str(plan["profile"]["frequency_hz"]), "--strict-freq", "-m", "8M", "-T", "-P", "--no-buildid-cache", "-o", str(out / "perf.data")]
             else:
                 command = [str(perf_path), "stat", *control, "-x", ";", "-o", str(out / "perf.csv")]
                 for event in plan["stat"]["events"]:
