@@ -1,0 +1,399 @@
+{
+  "schema_version": 1,
+  "purpose": "R124 event scratch reuse: physical exact-C series after same-path Oracle instruction screen; retain all FD and ACL semantics.",
+  "scope": "Twenty fixed router windows: exact C versus R124 at low and 64-held connections, ten windows per scale, interleaved scales and reversed subject slots. Three direct user-event lanes only. Daemon/client/total CPU and sequential mean transaction wall time; no saturation throughput, tail latency, R123 incremental effect, memory, or whole-ubusd acceptance claim.",
+  "candidate_sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "artifacts": {
+    "c": "private/r95/ubusd-pilot/stock",
+    "r124": "private/r124-event-scratch/maps/r124"
+  },
+  "files": {
+    "docs/reviews/R124_UBUSD_EVENT_SCRATCH_PLAN.md": "4c9af4ddb4e4ace95404a7bdb8ec2cdb8f4d16349dc3d66fb4b5e557555dcce0",
+    "docs/reviews/r124-perf-plan.json": "7c80caf0ad903b826ead7331e96ab2b675b8512a71aa42168947763f043c2361",
+    "docs/reviews/r124-perf-results.json": "54c05447581f8ed01d6e08bdd325b4948988ad8077684392cd256d070097226d",
+    "private/r112-client-table/user-event-libubus": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+    "private/r113-fd-boundary/wireprobe": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+    "private/r123-send-credential/maps/r123": "ea229755d2549b2107ff0446b53b453c7a023f42cea5b8ddec7d48ae178e3a28",
+    "private/r124-event-scratch/build.sh": "5f6baca486168d163406ded9682f76357d5005c642220c928bc4ecae63ddf9b1",
+    "private/r124-event-scratch/gates-results.json": "20792461864176c4f6b080b4b41be12e763aff2e87c509691fb3ebd1cc39b565",
+    "private/r124-event-scratch/gates.sh": "cab5ba51e9ec3fd6f7065deb42aca63997ea157543aa8568078e91efec9feac4",
+    "private/r124-event-scratch/maps/r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+    "private/r124-event-scratch/maps/r124-unit-tests": "15b78d5dd09fdd4111019025153e6c973599cbbed2810cc9215c67b20e0ea808",
+    "private/r124-event-scratch/maps/r124-unit.log": "5f4ce36cef637c27ffb01fce04c2dcb96047c41f691318190a88b03d78c6bf03",
+    "private/r124-event-scratch/maps/r124.map": "201a8fb51c037135c00f3d3a9bf356d850563d10424227d077bcf2fd23ba6404",
+    "private/r124-event-scratch/maps/ubus-unit-tests": "aac380efe7303aa48f1bb1434104cc72a88edd5d1c0e802db95fedf1761328c2",
+    "private/r124-event-scratch/maps/ubus-unit.log": "e56e0818e578915c3add077f53c1d42546a293c0a1f18f94f7613c8483979ba3",
+    "private/r124-event-scratch/preflight-existing/health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r124-event-scratch/preflight-existing/health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r124-event-scratch/preflight-existing/raw.tar.gz": "0a49c7ce3a392d9372cbeeeb57e8b7b7daec18955ca698a2cb5ecf8ba9fd3304",
+    "private/r124-event-scratch/preflight-existing/result.json": "d1cc8b43a4cae218644473b5a7c375a76c95e09928ad4b17bdf35d1c1635388d",
+    "private/r124-event-scratch/preflight-existing/unit-tests.log": "ffeec0cffaa30b0878024dd47663dda7573916eacf438a8966e4a9d19c619602",
+    "private/r124-event-scratch/preflight-fd/health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r124-event-scratch/preflight-fd/health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r124-event-scratch/preflight-fd/raw.tar.gz": "6de06c8893d086fb2ab577846f0b85a5656e4350595ba243d4c37427f8ce5283",
+    "private/r124-event-scratch/preflight-fd/result.json": "79a36d3e948529b3e358229883f5a2e6b0ff86436a43c44c5287eff62b93d41f",
+    "private/r124-event-scratch/preflight-fd/unit-tests.log": "7197ad1d5ea1841d2d264f2c327ec70bc74295836a361a4feb80ea41c9cbf5f0",
+    "private/r95/guard": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "private/r95/ubusd-pilot/stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "private/r96/recovery-full/recovery-gate.json": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r101_libubus_paired_report.py": "d512e1be350adeba35854ba1747342b8d426989fcc84bc2ac4805dd34b60b699",
+    "tools/r105_user_event_paired_report.py": "4282699e2669141874f5c7e5e18bd24fd9e1fa6d9d96580ac30bd0c735d68a36",
+    "tools/r112_user_event_loaded.sh": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+    "tools/r112_user_event_paired.sh": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1",
+    "tools/r113_memory_runner.py": "ad8e7a9551054921320267ae2db1bdeb79079e1d33abee9c4c084556cc263642",
+    "tools/r115_cpu_runner.py": "b3204b0a7f094e6ae61ebbbaee881534620a0810071d662416799b820d4bbca1",
+    "tools/r115_ubusd_fd_boundary.sh": "a7625c0164f7daac05127f1ac0dfaaacebb07f7988017596ab927f4f1d571891",
+    "tools/r84_device_probe.py": "89f2ce6b90c1b7a2ba9c6d89e3b4ac7bcf7f7ba07bad46216726173c13233698",
+    "tools/r92_validate.py": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2",
+    "tools/r95_device_smoke.py": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+    "tools/r98_ubusd_events.sh": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+    "tools/r99_registration_cpu_report.py": "3360baaa1ae821f4feef60ffc2658db0ae414dfd0df2a2e151cf501434cdb901"
+  },
+  "preflights": [
+    "private/r124-event-scratch/preflight-existing",
+    "private/r124-event-scratch/preflight-fd"
+  ],
+  "oracle_gates": "private/r124-event-scratch/gates-results.json",
+  "required_gates": [
+    "ubusd-r36",
+    "ubusd-r36-user",
+    "ubusd-r83",
+    "ubusd-r42",
+    "ubusd-r41",
+    "r92-recovery"
+  ],
+  "guard_path": "private/r95/guard",
+  "recovery_gate_path": "private/r96/recovery-full/recovery-gate.json",
+  "benchmark_path": "private/r112-client-table/user-event-libubus",
+  "measurements": {
+    "c-low": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 3,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 4,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 5,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 6,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 7,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 8,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 9,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 10,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 24,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "candidate": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_paired.sh",
+      "workload_sha256": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1"
+    },
+    "c-loaded": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 3,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 4,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 5,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 6,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 7,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 8,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 9,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 10,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 24,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "candidate": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_loaded.sh",
+      "workload_sha256": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+      "held_clients": 64
+    }
+  },
+  "schedule": [
+    {
+      "measurement": "c-low",
+      "block": 1
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 1
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 2
+    },
+    {
+      "measurement": "c-low",
+      "block": 2
+    },
+    {
+      "measurement": "c-low",
+      "block": 3
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 3
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 4
+    },
+    {
+      "measurement": "c-low",
+      "block": 4
+    },
+    {
+      "measurement": "c-low",
+      "block": 5
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 5
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 6
+    },
+    {
+      "measurement": "c-low",
+      "block": 6
+    },
+    {
+      "measurement": "c-low",
+      "block": 7
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 7
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 8
+    },
+    {
+      "measurement": "c-low",
+      "block": 8
+    },
+    {
+      "measurement": "c-low",
+      "block": 9
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 9
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 10
+    },
+    {
+      "measurement": "c-low",
+      "block": 10
+    }
+  ],
+  "output": "private/r124-event-scratch/cpu",
+  "decision": "Collect every pre-frozen window once. Stop only on correctness, identity, execution or cleanup failure and preserve all evidence. Report all 24 metric cells including regressions, paired ratios and rank intervals (i.i.d. window-ratio assumption). Ten same-sign windows are direction evidence, not a global winner or language-limit proof. Differences within +/-1% are operationally treated as ties, never silently excluded. No added significance-chasing windows. R123 incremental benefit is not measured by this C-only series.",
+  "workload_fd_boundary": "tools/r115_ubusd_fd_boundary.sh",
+  "artifact_by_hash": {
+    "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88": "private/r95/ubusd-pilot/stock",
+    "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926": "private/r124-event-scratch/maps/r124"
+  },
+  "primary_metric": "wall_us",
+  "secondary_metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us"
+  ],
+  "engineering_tie_band_pct": [
+    -1,
+    1
+  ],
+  "observation_unit": "Per scale and lane, each window yields one candidate/control ratio from four aggregated segments per subject; ten windows per cell.",
+  "candidate_source_commit": "a5b0ff1ec71a38d8c840b6995f859b503a08387d",
+  "base_source_commit": "948e133d3995550891b35976c3c480090b48ee49"
+}
