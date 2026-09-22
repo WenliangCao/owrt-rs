@@ -37,9 +37,10 @@ struct ClientCred {
 }
 
 /// Client ids are daemon-generated random u32 values. They are not attacker-
-/// chosen map keys, so the general-purpose SipHash used by `HashMap` is
-/// unnecessary on this hot table. Keep the full hash-map API and use the id
-/// itself as the hash value; object/type tables retain their normal hasher.
+/// chosen insertion keys, so the general-purpose SipHash used by `HashMap` is
+/// unnecessary on this hot table. The mix still fills the high bits used by
+/// hashbrown's control-byte tag; returning the raw u32 would make every tag
+/// identical on aarch64 and would turn misses into long equality scans.
 #[derive(Default)]
 pub(crate) struct ClientIdHasher(u64);
 
@@ -47,15 +48,22 @@ impl Hasher for ClientIdHasher {
     fn finish(&self) -> u64 { self.0 }
 
     fn write(&mut self, bytes: &[u8]) {
-        // The u32 `Hash` implementation calls write_u32. Rejecting any other
-        // representation catches an accidental non-integer client key in
-        // debug builds while keeping a deterministic fallback for release.
+        // The u32 `Hash` implementation calls write_u32. Keep a deterministic
+        // fallback for accidental non-integer use; the map key is still u32.
         self.0 = bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| {
             h.wrapping_mul(0x100_0000_01b3).wrapping_add(u64::from(b))
         });
     }
 
-    fn write_u32(&mut self, value: u32) { self.0 = u64::from(value); }
+    fn write_u32(&mut self, value: u32) {
+        // SplitMix64 gives hashbrown useful high tag bits without a per-map
+        // RNG seed or a dependency. Client ids are already random; this is a
+        // cheap avalanche step for the table layout, not a security boundary.
+        let mut z = u64::from(value).wrapping_add(0x9e37_79b9_7f4a_7c15);
+        z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+        self.0 = z ^ (z >> 31);
+    }
 }
 
 pub(crate) type ClientMap = HashMap<u32, Client, BuildHasherDefault<ClientIdHasher>>;
