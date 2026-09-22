@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "purpose": "R113 physical-router HELLO/PING held-connection memory screen; prepare ten frozen serial windows, no installation or performance adoption.",
+  "candidate_source": "R112 boxed-client experiment plus R113 prefix/body-bounded FD receive correction; accepted root runtime remains unchanged.",
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "before": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+    "r112": "a6cb56b7d996d38b312058124ace2726169771e04c9018f95bb6e77e34013dee",
+    "candidate": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+  },
+  "subject_paths": {
+    "stock": "private/r95/ubusd-pilot/stock",
+    "r89": "private/r95/ubusd-pilot/r89",
+    "before": "private/r109-method-name-storage/ubusd-rs",
+    "r112": "private/r112-client-table/ubusd-rs",
+    "candidate": "private/r113-fd-boundary/ubusd-rs"
+  },
+  "source_scripts": {
+    "tools/r113_memory_runner.py": "ad8e7a9551054921320267ae2db1bdeb79079e1d33abee9c4c084556cc263642",
+    "tools/r95_device_smoke.py": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+    "tools/r84_device_probe.py": "89f2ce6b90c1b7a2ba9c6d89e3b4ac7bcf7f7ba07bad46216726173c13233698",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r112_rx_memory.sh": "43c3ec29f5e1d338a28b56c3e3ca148d91b09cd60c6f7e1350eeeaef6be089c3",
+    "tools/r105_rx_spare_report.py": "20133d3371323757cec7e40fce5dea229e581e95aec7d1852dc64ac5db894495",
+    "tools/r92_validate.py": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2"
+  },
+  "benchmark_path": "private/r112-client-table/idle-clients",
+  "benchmark_sha256": "4bb2253ba342f0e4dabe6705c6fda608a6df46423321ed8a725f4723cb5dd8be",
+  "guard_path": "private/r95/guard",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_path": "private/r96/recovery-full/recovery-gate.json",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "namespace_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "workload_script": "tools/r112_rx_memory.sh",
+  "argv0": "/sbin/ubusd",
+  "after_disconnect": true,
+  "blocks": [
+    {
+      "block": 1,
+      "order": [
+        "stock",
+        "r89",
+        "before",
+        "r112",
+        "candidate"
+      ]
+    },
+    {
+      "block": 2,
+      "order": [
+        "candidate",
+        "r112",
+        "before",
+        "r89",
+        "stock"
+      ]
+    }
+  ],
+  "iterations": 1,
+  "workloads": [
+    0,
+    1,
+    8,
+    32,
+    64
+  ],
+  "metrics": [
+    "VmRSS",
+    "RssAnon",
+    "VmData"
+  ],
+  "sampling": "Each window starts a fresh daemon for each connection count. Save one validated status snapshot per before/held/after-disconnect phase, bracket it by PID/starttime checks, and derive CSV from that same snapshot. Pin every subject to CPU1 with identical argv[0].",
+  "readiness": "Exact HELLO and PING DATA/STATUS validation for every held connection; daemon FD count must grow by N and return to baseline. Invalid status, absent fields, changed identity or unexpected exit rejects the window.",
+  "memory_gate": {
+    "subject": "candidate",
+    "clients": 64,
+    "metric": "rssanon_growth_kb",
+    "max_growth_kib": 38.4,
+    "required_repeats": 2
+  },
+  "retention_rule": "Candidate RssAnon growth at 64 held connections must be <=38.4 KiB in both blocks. This fixed screen does not establish runtime adoption; retain and report failing measurements too.",
+  "analysis": "Report both blocks, paired differences, all absolute VmRSS/RssAnon/VmData, held growth, after-disconnect values and retained growth for all five subjects. Do not pool earlier runs; no CPU, FD-workload, whole-memory superiority or equivalence claim.",
+  "pss": "This exact router lacks smaps/smaps_rollup: PSS remains NA, never zero. Process RSS does not measure kernel socket buffers, peaks or removable system RAM.",
+  "known_control_defect": "R109 (before) and R112 have verified SCM_RIGHTS/frame-boundary defects. They remain explicitly labeled historical memory controls; this workload sends validated HELLO/PING only and no FDs. Their memory values do not establish FD compatibility or FD performance.",
+  "preflights": [
+    {
+      "path": "private/r113-fd-boundary/preflight-existing",
+      "sha256": {
+        "result.json": "6e785aa3bc74c8debf2cd7fb7212b4f90dba8c6a20e2c1a22ed9687b2b7e319b",
+        "raw.tar.gz": "b9c64ddac872b06c823f5af44cef85e63bc8d33cfc4ac54d728eb99d18476ab9",
+        "health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "unit-tests.log": "955d0f38151c11cb7f54f0169bc5465e568245b5ac4acba445af706a4b285181"
+      },
+      "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+      "unit_tests_sha256": "af0aeeaac2133eae082464b4ae819b1ce156ae0eb841754f1bd6143fbec083f2"
+    },
+    {
+      "path": "private/r113-fd-boundary/preflight-fd",
+      "sha256": {
+        "result.json": "799f35bcc185a200b0f05dffa8a2156e199052cae60068dda87ec3371ab59ed5",
+        "raw.tar.gz": "89f8e026c0aa4bd89fc8bdc298ba9bee8db1d1d00b8abd5847d0d3b7bb83ec27",
+        "health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      },
+      "workload_sha256": "bc5a15243980e827d1b5b927fb23ee4903bd5e1a7d399792b3d2d128ab2527c1"
+    }
+  ],
+  "oracle_gates": {
+    "path": "private/r113-fd-boundary/gates-results.json",
+    "required": [
+      "ubusd-r36",
+      "ubusd-r36-user",
+      "ubusd-r83",
+      "ubusd-r42",
+      "ubusd-r41",
+      "r92-recovery"
+    ],
+    "validation": "Require the frozen completed report SHA, final passed=true, finished, exactly six required exit-zero results, matching candidate ELF and validator SHA. Require all prerequisite evidence unchanged before and after every window.",
+    "sha256": "80bdcb0c566072cadcb16803f06e59ec755c0aef9e42db4e62587c947e6b1070"
+  },
+  "failure_rule": "No device command until both frozen preflights and all Oracle gates pass. Verify every ELF/helper/script/guard/recovery hash before and after each window, plus result health/boot/config/production/mount identity and cleanup. Stop on any failure; retain failed window and FAILED.json; never skip, resume into an existing root, or substitute artifacts.",
+  "production": "Stock C throughout, guarded disposable mount/PID/net namespaces and no installation. Driver verifies the separate recovery gate and management-client health for every window.",
+  "default_output": "private/r113-fd-boundary/memory",
+  "completion": "After all ten windows validate, run tools/r105_rx_spare_report.py and emit report.json plus memory-gate.json. A failed memory threshold preserves a complete collection and a false gate result; it is not a collection failure."
+}
