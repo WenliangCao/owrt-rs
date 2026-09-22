@@ -141,6 +141,8 @@ R130 证明了系统调用减少本身没有转化为稳定的路由器延迟收
 与 R124 拼接。详见 [R130 机制验证](reviews/R130_UBUSD_ADD_REPLY_MECHANISM.md) 与
 [R130 路由器结果](reviews/R130_UBUSD_ADD_REPLY_RESULT.md)。
 
+R131 在同一 owner 的连续事件帧上做了受限批量发送。候选保持 monitor、跨 owner、FD、短写、已有队列和大帧的逐帧兼容路径；物理路由器 18 窗口全部通过功能、身份和清理门。相对 R124，`user_8_1` 六块 wall/daemon CPU/caller CPU 中位分别下降 20.22%/21.78%/11.40%，相对 C 的同一 lane 也全部六块下降；guard 没有触发全升超过 5% 的回退门。R131 通过本轮均值 wall/CPU 实验门，成为事件 fanout 方向的最新性能候选。精确 caller 没有逐次延迟样本，p95/p99 未测量；这项结果不能替代完整事件矩阵、内存和九组件协同验收。详见 [R131 实机结果](reviews/R131_UBUSD_EVENT_BATCH_RESULT.md)。生产仍运行 C，R124 保留作可回退基线。
+
 ## 停止判断
 
 停止前必须重新审阅热路径、分配、复制、系统调用、数据结构及失败路径，明确哪些成本来自必要协议工作，
