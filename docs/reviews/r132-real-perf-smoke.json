@@ -1,0 +1,503 @@
+{
+  "scope": "Real perf smoke; not formal profiling or router performance",
+  "windows": [
+    {
+      "mode": "stat",
+      "window": "001-c-1",
+      "subject": "c",
+      "subject_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "meta_sha256": "acb57b77b5344f0e267e6c151afd0e91394dc0079ffae0cd81686a363ee3ba35",
+      "caller_sha256": "f0222bdb6178db263a31c0cf9787e5ff0d69db466f8c7aea8bd775e875e2a20d",
+      "returncodes": {
+        "client": 0,
+        "perf": -2,
+        "daemon": 0
+      },
+      "counters": {
+        "instructions:u": {
+          "value": 47998056.0,
+          "enabled_ns": 376818280.0,
+          "running_percent": 100.0
+        },
+        "branches:u": {
+          "value": 9949875.0,
+          "enabled_ns": 376818280.0,
+          "running_percent": 100.0
+        },
+        "branch-misses:u": {
+          "value": 1575631.0,
+          "enabled_ns": 376818280.0,
+          "running_percent": 100.0
+        },
+        "cycles:u": {
+          "value": 62751333.0,
+          "enabled_ns": 376818280.0,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 9998.0,
+          "enabled_ns": 376818280.0,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "enabled_ns": 376818280.0,
+          "running_percent": 100.0
+        }
+      }
+    },
+    {
+      "mode": "stat",
+      "window": "002-r124-1",
+      "subject": "r124",
+      "subject_sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "meta_sha256": "7af2a4fa8a5b9e0ea3a7f1e1857df0ffe02d70e9c558c249c31649c1e3bfe7d4",
+      "caller_sha256": "53c49e0aa3b2aa7207ae5b5a0472fb523ef46ed03d6b5168b7eecf838359b7cf",
+      "returncodes": {
+        "client": 0,
+        "perf": -2,
+        "daemon": 0
+      },
+      "counters": {
+        "instructions:u": {
+          "value": 41660008.0,
+          "enabled_ns": 367961320.0,
+          "running_percent": 100.0
+        },
+        "branches:u": {
+          "value": 5788048.0,
+          "enabled_ns": 367961320.0,
+          "running_percent": 100.0
+        },
+        "branch-misses:u": {
+          "value": 1197764.0,
+          "enabled_ns": 367961320.0,
+          "running_percent": 100.0
+        },
+        "cycles:u": {
+          "value": 51010894.0,
+          "enabled_ns": 367961320.0,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 9999.0,
+          "enabled_ns": 367961320.0,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "enabled_ns": 367961320.0,
+          "running_percent": 100.0
+        }
+      }
+    },
+    {
+      "mode": "stat",
+      "window": "003-r131-1",
+      "subject": "r131",
+      "subject_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "meta_sha256": "32cdf3cf00c545243591002872ba9d53ebc46aaeb66a5887cba641e710416a15",
+      "caller_sha256": "f561d08fecd3a3b27644cdd4d822070511211237df01f2368a151504f07eb543",
+      "returncodes": {
+        "client": 0,
+        "perf": -2,
+        "daemon": 0
+      },
+      "counters": {
+        "instructions:u": {
+          "value": 41751928.0,
+          "enabled_ns": 371135120.0,
+          "running_percent": 100.0
+        },
+        "branches:u": {
+          "value": 5787612.0,
+          "enabled_ns": 371135120.0,
+          "running_percent": 100.0
+        },
+        "branch-misses:u": {
+          "value": 1210503.0,
+          "enabled_ns": 371135120.0,
+          "running_percent": 100.0
+        },
+        "cycles:u": {
+          "value": 52041733.0,
+          "enabled_ns": 371135120.0,
+          "running_percent": 100.0
+        },
+        "context-switches": {
+          "value": 9995.0,
+          "enabled_ns": 371135120.0,
+          "running_percent": 100.0
+        },
+        "cpu-migrations": {
+          "value": 0.0,
+          "enabled_ns": 371135120.0,
+          "running_percent": 100.0
+        }
+      }
+    },
+    {
+      "mode": "profile",
+      "window": "001-c-1",
+      "subject": "c",
+      "subject_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "meta_sha256": "db898650930f605eb969f80e27b331dd4e71391b3f07172ef4c50e1e06a743e9",
+      "caller_sha256": "6312f6e2d1b860371c6adfeaddb66d6eec883f8918f608dfe26435c301f97c64",
+      "returncodes": {
+        "client": 0,
+        "perf": -2,
+        "daemon": 0
+      },
+      "samples": {
+        "scope": "Oracle cpu-clock self samples, user and kernel; no callgraph",
+        "symbolized": false,
+        "symbol_status": "IP evidence; symbol availability and resolution are recorded separately",
+        "subject_elf": {
+          "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+          "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+          "interpreter_present": true,
+          "defined_symtab_functions": 0,
+          "full_symbols_available": false
+        },
+        "parsed_samples": 92,
+        "sample_status": "parsed",
+        "unparsed_lines": 0,
+        "unresolved_samples": 10,
+        "unresolved_fraction_of_parsed_samples": 0.10869565217391304,
+        "total_lost_samples_reported": [
+          0
+        ],
+        "perf_event_stats": {
+          "TOTAL": 199,
+          "MMAP": 0,
+          "LOST": 0,
+          "COMM": 1,
+          "EXIT": 0,
+          "THROTTLE": 0,
+          "UNTHROTTLE": 0,
+          "FORK": 0,
+          "READ": 0,
+          "SAMPLE": 92,
+          "AUX": 0,
+          "ITRACE_START": 0,
+          "LOST_SAMPLES": 0,
+          "SWITCH": 0,
+          "SWITCH_CPU_WIDE": 0,
+          "NAMESPACES": 0,
+          "KSYMBOL": 0,
+          "BPF_EVENT": 0,
+          "CGROUP": 0,
+          "TEXT_POKE": 0,
+          "AUX_OUTPUT_HW_ID": 0,
+          "ATTR": 0,
+          "EVENT_TYPE": 0,
+          "TRACING_DATA": 0,
+          "BUILD_ID": 0,
+          "FINISHED_ROUND": 1,
+          "ID_INDEX": 1,
+          "AUXTRACE_INFO": 0,
+          "AUXTRACE": 0,
+          "AUXTRACE_ERROR": 0,
+          "THREAD_MAP": 1,
+          "CPU_MAP": 1,
+          "STAT_CONFIG": 0,
+          "STAT": 0,
+          "STAT_ROUND": 0,
+          "EVENT_UPDATE": 2,
+          "TIME_CONV": 1,
+          "FEATURE": 0,
+          "COMPRESSED": 0,
+          "FINISHED_INIT": 1,
+          "BPF_METADATA": 0
+        },
+        "by_mode_dso": [
+          {
+            "mode": "K",
+            "dso": "[kernel.kallsyms]",
+            "samples": 82,
+            "unresolved_samples": 0,
+            "unresolved_fraction": 0.0
+          },
+          {
+            "mode": "U",
+            "dso": "/tmp/r132-registration-normalized/ubusd",
+            "samples": 6,
+            "unresolved_samples": 6,
+            "unresolved_fraction": 1.0
+          },
+          {
+            "mode": "U",
+            "dso": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+            "samples": 3,
+            "unresolved_samples": 3,
+            "unresolved_fraction": 1.0
+          },
+          {
+            "mode": "U",
+            "dso": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libubox.so.20260213",
+            "samples": 1,
+            "unresolved_samples": 1,
+            "unresolved_fraction": 1.0
+          }
+        ],
+        "limitations": [
+          "Stripped addresses require symbols matched to this exact ELF before function attribution.",
+          "A resolved exported symbol does not establish full internal symbol coverage.",
+          "No samples at an address do not establish that the code never executed.",
+          "Oracle samples do not establish router performance or causality."
+        ]
+      },
+      "symbols": [
+        "schema_version",
+        "sample_count",
+        "samples_by_mode",
+        "user_sample_count",
+        "symbolized_count",
+        "unknown_count",
+        "unknown_fraction_of_user_samples",
+        "unknown_reasons",
+        "top_functions",
+        "top_unknown_ips",
+        "non_user_perf_symbols",
+        "interpretation",
+        "images",
+        "inputs"
+      ]
+    },
+    {
+      "mode": "profile",
+      "window": "002-r124-1",
+      "subject": "r124",
+      "subject_sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "meta_sha256": "5cd71388c036c2a7e726e67ba3ecf190628e38ff0111151f6c9331b06fa7efaa",
+      "caller_sha256": "30f8ee1d6248d5b464987ebc5c97bd5ed3b886a9da87d3a5b158cb09c3284bc5",
+      "returncodes": {
+        "client": 0,
+        "perf": -2,
+        "daemon": 0
+      },
+      "samples": {
+        "scope": "Oracle cpu-clock self samples, user and kernel; no callgraph",
+        "symbolized": false,
+        "symbol_status": "IP evidence; symbol availability and resolution are recorded separately",
+        "subject_elf": {
+          "path": "/home/ubuntu/r131-event-batch/maps/r124",
+          "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+          "interpreter_present": false,
+          "defined_symtab_functions": 0,
+          "full_symbols_available": false
+        },
+        "parsed_samples": 90,
+        "sample_status": "parsed",
+        "unparsed_lines": 0,
+        "unresolved_samples": 6,
+        "unresolved_fraction_of_parsed_samples": 0.06666666666666667,
+        "total_lost_samples_reported": [
+          0
+        ],
+        "perf_event_stats": {
+          "TOTAL": 192,
+          "MMAP": 0,
+          "LOST": 0,
+          "COMM": 1,
+          "EXIT": 0,
+          "THROTTLE": 0,
+          "UNTHROTTLE": 0,
+          "FORK": 0,
+          "READ": 0,
+          "SAMPLE": 90,
+          "AUX": 0,
+          "ITRACE_START": 0,
+          "LOST_SAMPLES": 0,
+          "SWITCH": 0,
+          "SWITCH_CPU_WIDE": 0,
+          "NAMESPACES": 0,
+          "KSYMBOL": 0,
+          "BPF_EVENT": 0,
+          "CGROUP": 0,
+          "TEXT_POKE": 0,
+          "AUX_OUTPUT_HW_ID": 0,
+          "ATTR": 0,
+          "EVENT_TYPE": 0,
+          "TRACING_DATA": 0,
+          "BUILD_ID": 0,
+          "FINISHED_ROUND": 1,
+          "ID_INDEX": 1,
+          "AUXTRACE_INFO": 0,
+          "AUXTRACE": 0,
+          "AUXTRACE_ERROR": 0,
+          "THREAD_MAP": 1,
+          "CPU_MAP": 1,
+          "STAT_CONFIG": 0,
+          "STAT": 0,
+          "STAT_ROUND": 0,
+          "EVENT_UPDATE": 2,
+          "TIME_CONV": 1,
+          "FEATURE": 0,
+          "COMPRESSED": 0,
+          "FINISHED_INIT": 1,
+          "BPF_METADATA": 0
+        },
+        "by_mode_dso": [
+          {
+            "mode": "K",
+            "dso": "[kernel.kallsyms]",
+            "samples": 84,
+            "unresolved_samples": 0,
+            "unresolved_fraction": 0.0
+          },
+          {
+            "mode": "U",
+            "dso": "/tmp/r132-registration-normalized/ubusd",
+            "samples": 6,
+            "unresolved_samples": 6,
+            "unresolved_fraction": 1.0
+          }
+        ],
+        "limitations": [
+          "Stripped addresses require symbols matched to this exact ELF before function attribution.",
+          "A resolved exported symbol does not establish full internal symbol coverage.",
+          "No samples at an address do not establish that the code never executed.",
+          "Oracle samples do not establish router performance or causality."
+        ]
+      },
+      "symbols": [
+        "schema_version",
+        "sample_count",
+        "samples_by_mode",
+        "user_sample_count",
+        "symbolized_count",
+        "unknown_count",
+        "unknown_fraction_of_user_samples",
+        "unknown_reasons",
+        "top_functions",
+        "top_unknown_ips",
+        "non_user_perf_symbols",
+        "interpretation",
+        "images",
+        "inputs"
+      ]
+    },
+    {
+      "mode": "profile",
+      "window": "003-r131-1",
+      "subject": "r131",
+      "subject_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "meta_sha256": "2ed96bd0bddc3a4ec4c51844d0799d3e38d282eabdf5b84c336c88dc8c8786c1",
+      "caller_sha256": "c961e3b26dd38593965b6cb9f39361893f819c76d55ce576b59ba5748553c5fe",
+      "returncodes": {
+        "client": 0,
+        "perf": -2,
+        "daemon": 0
+      },
+      "samples": {
+        "scope": "Oracle cpu-clock self samples, user and kernel; no callgraph",
+        "symbolized": false,
+        "symbol_status": "IP evidence; symbol availability and resolution are recorded separately",
+        "subject_elf": {
+          "path": "/home/ubuntu/r131-event-batch/maps/r131",
+          "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+          "interpreter_present": false,
+          "defined_symtab_functions": 0,
+          "full_symbols_available": false
+        },
+        "parsed_samples": 89,
+        "sample_status": "parsed",
+        "unparsed_lines": 0,
+        "unresolved_samples": 5,
+        "unresolved_fraction_of_parsed_samples": 0.056179775280898875,
+        "total_lost_samples_reported": [
+          0
+        ],
+        "perf_event_stats": {
+          "TOTAL": 191,
+          "MMAP": 0,
+          "LOST": 0,
+          "COMM": 1,
+          "EXIT": 0,
+          "THROTTLE": 0,
+          "UNTHROTTLE": 0,
+          "FORK": 0,
+          "READ": 0,
+          "SAMPLE": 89,
+          "AUX": 0,
+          "ITRACE_START": 0,
+          "LOST_SAMPLES": 0,
+          "SWITCH": 0,
+          "SWITCH_CPU_WIDE": 0,
+          "NAMESPACES": 0,
+          "KSYMBOL": 0,
+          "BPF_EVENT": 0,
+          "CGROUP": 0,
+          "TEXT_POKE": 0,
+          "AUX_OUTPUT_HW_ID": 0,
+          "ATTR": 0,
+          "EVENT_TYPE": 0,
+          "TRACING_DATA": 0,
+          "BUILD_ID": 0,
+          "FINISHED_ROUND": 1,
+          "ID_INDEX": 1,
+          "AUXTRACE_INFO": 0,
+          "AUXTRACE": 0,
+          "AUXTRACE_ERROR": 0,
+          "THREAD_MAP": 1,
+          "CPU_MAP": 1,
+          "STAT_CONFIG": 0,
+          "STAT": 0,
+          "STAT_ROUND": 0,
+          "EVENT_UPDATE": 2,
+          "TIME_CONV": 1,
+          "FEATURE": 0,
+          "COMPRESSED": 0,
+          "FINISHED_INIT": 1,
+          "BPF_METADATA": 0
+        },
+        "by_mode_dso": [
+          {
+            "mode": "K",
+            "dso": "[kernel.kallsyms]",
+            "samples": 84,
+            "unresolved_samples": 0,
+            "unresolved_fraction": 0.0
+          },
+          {
+            "mode": "U",
+            "dso": "/tmp/r132-registration-normalized/ubusd",
+            "samples": 5,
+            "unresolved_samples": 5,
+            "unresolved_fraction": 1.0
+          }
+        ],
+        "limitations": [
+          "Stripped addresses require symbols matched to this exact ELF before function attribution.",
+          "A resolved exported symbol does not establish full internal symbol coverage.",
+          "No samples at an address do not establish that the code never executed.",
+          "Oracle samples do not establish router performance or causality."
+        ]
+      },
+      "symbols": [
+        "schema_version",
+        "sample_count",
+        "samples_by_mode",
+        "user_sample_count",
+        "symbolized_count",
+        "unknown_count",
+        "unknown_fraction_of_user_samples",
+        "unknown_reasons",
+        "top_functions",
+        "top_unknown_ips",
+        "non_user_perf_symbols",
+        "interpretation",
+        "images",
+        "inputs"
+      ]
+    }
+  ],
+  "passed": true,
+  "profile_archive_sha256": "6632ad1dddc29feee21b18949928af2e06a63246eab4d257e7e07ae677318470",
+  "transfer_note": "Initial unprivileged scp could not read root-owned perf.data. Recovered by sudo tar; every archived file matches local bytes.",
+  "plans": {
+    "stat": "4b04abe249931e63b84daeb3c0e0fb740663a07d2bc9a166019d32029d7aeb22",
+    "profile": "ae32eb83139b0673e108a977e2447431b38953035f99da8aec3bd8e011d529e1"
+  }
+}
