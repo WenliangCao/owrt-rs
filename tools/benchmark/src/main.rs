@@ -2,8 +2,8 @@
 //! configuration values are emitted. A failed operation invalidates a run.
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::{self, Json};
-use owrt_ubus::{BlobBuf, Connection, Incoming, MsgType};
-use std::collections::BTreeMap;
+use owrt_ubus::{BlobBuf, Connection, Incoming, LookupEntry, MsgType};
+use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
@@ -363,6 +363,114 @@ fn serve(socket: &str, count: usize) -> Result<()> {
     }
 }
 
+fn serve_signature() -> Vec<u8> {
+    let mut b = BlobBuf::new();
+    let method = b.msg_open_table("ping");
+    b.msg_u32("n", MsgType::Int32 as u32);
+    b.msg_close(method);
+    b.payload().to_vec()
+}
+
+fn fixture_paths(count: usize) -> Vec<String> {
+    let mut paths: Vec<_> = (1..count).map(|i| format!("bench.filler{i:04}")).collect();
+    // The registry's path order is lexical: all fillers precede bench.target.
+    paths.push("bench.target".into());
+    paths
+}
+
+fn fixture_selector(selector: &str, count: usize) -> Result<(Option<&str>, Vec<String>)> {
+    require(matches!(count, 64 | 128), "fixture object count must be 64 or 128")?;
+    let paths = match selector {
+        "bench.target" => vec!["bench.target".into()],
+        "bench.*" | "*" => fixture_paths(count),
+        _ => return Err("fixture path must be bench.target, bench.*, or *".into()),
+    };
+    // A bare '*' deliberately omits OBJPATH and exercises pathless LOOKUP.
+    Ok((if selector == "*" { None } else { Some(selector) }, paths))
+}
+
+fn validate_fixture_lookup(
+    entries: &[owrt_ubus::LookupEntry],
+    expected_paths: &[String],
+    expected_ids: Option<&[u32]>,
+) -> Result<Vec<u32>> {
+    require(entries.len() == expected_paths.len(), "lookup fixture returned wrong object count")?;
+    let signature = serve_signature();
+    let mut ids = Vec::with_capacity(entries.len());
+    let mut seen = HashSet::with_capacity(entries.len());
+    for (index, (entry, expected_path)) in entries.iter().zip(expected_paths).enumerate() {
+        require(entry.path == *expected_path, "lookup fixture path/order changed")?;
+        require(entry.id != 0 && seen.insert(entry.id), "lookup fixture id is zero or duplicated")?;
+        require(entry.signature == signature, "lookup fixture signature changed")?;
+        if let Some(expected_ids) = expected_ids {
+            require(expected_ids.get(index) == Some(&entry.id), "lookup fixture id changed")?;
+        }
+        ids.push(entry.id);
+    }
+    Ok(ids)
+}
+
+fn lookup_fixture(
+    socket: &str,
+    selector: &str,
+    count: usize,
+    n: usize,
+    warmup: usize,
+    pids: &[u32],
+) -> Result<()> {
+    let (path, expected_paths) = fixture_selector(selector, count)?;
+    let mut c = Connection::connect(Some(socket))?;
+    // Object ids are allocated by the daemon, so establish only this identity
+    // oracle before timing; every warmup and measured reply must repeat it.
+    let ids = validate_fixture_lookup(&c.lookup(path, 5000)?, &expected_paths, None)?;
+    measure(
+        n,
+        warmup,
+        pids,
+        |_| {
+            let start = Instant::now();
+            let entries = c.lookup(path, 5000)?;
+            let elapsed = start.elapsed().as_nanos() as u64;
+            validate_fixture_lookup(&entries, &expected_paths, Some(&ids))?;
+            Ok(elapsed)
+        },
+        || Ok(()),
+    )
+}
+
+fn rpc_fixture(socket: &str, n: usize, warmup: usize, pids: &[u32]) -> Result<()> {
+    let mut c = Connection::connect(Some(socket))?;
+    let expected_paths = vec!["bench.target".into()];
+    let entries = c.lookup(Some("bench.target"), 5000)?;
+    let ids = validate_fixture_lookup(&entries, &expected_paths, None)?;
+    let target = ids[0];
+    let mut args = BlobBuf::new();
+    args.msg_u32("n", 1);
+    let args = args.into_payload();
+    let mut fields = BlobBuf::new();
+    fields.msg_u32("ok", 1);
+    let fields = fields.into_payload();
+    let mut expected = BlobBuf::new();
+    expected.put_u32(owrt_ubus::attr::OBJID, target)
+        .put(owrt_ubus::attr::DATA, &fields);
+    let expected_data = expected.payload().to_vec();
+    measure(
+        n,
+        warmup,
+        pids,
+        |_| {
+            let start = Instant::now();
+            let reply = c.invoke(target, "ping", &args, 5000)?;
+            let elapsed = start.elapsed().as_nanos() as u64;
+            require(reply.fd.is_none(), "rpc fixture unexpectedly returned an FD")?;
+            require(reply.data.len() == 1 && reply.data[0] == expected_data,
+                    "rpc fixture reply bytes changed")?;
+            Ok(elapsed)
+        },
+        || Ok(()),
+    )
+}
+
 struct HttpClient {
     address: String,
     stream: Option<BufReader<HttpStream>>,
@@ -537,7 +645,7 @@ fn drain_object_events(listener: &mut Connection, recipients: &[u32], method: &s
 fn main_inner(a: &[String]) -> Result<()> {
     let mode = a
         .get(1)
-        .ok_or("missing mode: rpc/lookup/exec/http/syslog/serve/snapshot/idle")?;
+        .ok_or("missing mode: rpc/lookup/lookup-fixture/rpc-fixture/exec/http/syslog/serve/snapshot/idle")?;
     match mode.as_str() {
         "rpc" | "rpc-wire" => {
             require(
@@ -717,6 +825,16 @@ fn main_inner(a: &[String]) -> Result<()> {
                 },
                 || Ok(()),
             )
+        }
+        "lookup-fixture" => {
+            require(a.len() == 8,
+                    "lookup-fixture SOCKET PATH_OR_* OBJECT_COUNT N WARMUP PIDS")?;
+            lookup_fixture(&a[2], &a[3], a[4].parse()?, a[5].parse()?,
+                           a[6].parse()?, &pid_list(&a[7])?)
+        }
+        "rpc-fixture" => {
+            require(a.len() == 6, "rpc-fixture SOCKET N WARMUP PIDS")?;
+            rpc_fixture(&a[2], a[3].parse()?, a[4].parse()?, &pid_list(&a[5])?)
         }
         "exec" => {
             require(
@@ -1014,6 +1132,42 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fixture_specs_are_bounded_and_pathless_is_explicit() {
+        assert_eq!(fixture_paths(64).len(), 64);
+        assert_eq!(fixture_paths(128).first().unwrap(), "bench.filler0001");
+        assert_eq!(fixture_paths(128).last().unwrap(), "bench.target");
+        assert_eq!(fixture_selector("*", 64).unwrap().0, None);
+        assert_eq!(fixture_selector("bench.*", 64).unwrap().0, Some("bench.*"));
+        assert!(fixture_selector("*", 63).is_err());
+        assert!(fixture_selector("bench.other", 64).is_err());
+    }
+
+    #[test]
+    fn fixture_lookup_rejects_missing_duplicate_or_changed_bytes() {
+        let paths: Vec<String> = vec!["bench.filler0001".into(), "bench.target".into()];
+        let signature = serve_signature();
+        let entries = paths
+            .iter()
+            .enumerate()
+            .map(|(i, path)| LookupEntry {
+                path: path.clone(),
+                id: (i + 100) as u32,
+                signature: signature.clone(),
+            })
+            .collect::<Vec<_>>();
+        let ids = validate_fixture_lookup(&entries, &paths, None).unwrap();
+        assert_eq!(ids, [100, 101]);
+        assert!(validate_fixture_lookup(&entries[..1], &paths, None).is_err());
+        let mut duplicate = entries.clone();
+        duplicate[1].id = duplicate[0].id;
+        assert!(validate_fixture_lookup(&duplicate, &paths, None).is_err());
+        let mut changed = entries;
+        changed[1].signature.push(0);
+        assert!(validate_fixture_lookup(&changed, &paths, None).is_err());
+    }
+
     #[test]
     fn response_gate_rejects_http_200_rpc_errors_and_missing_data() {
         let expected = json::parse(r#"{"result":[0,{"values":{}}]}"#).unwrap();
