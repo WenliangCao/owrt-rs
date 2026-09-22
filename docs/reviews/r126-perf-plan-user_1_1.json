@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "purpose": "R126 early missing-destination return, fixed-lane Oracle user-mode instruction screen against exact R124; not a router performance conclusion.",
+  "runner_sha256": "5664ae6928266ae67704c777a1b66d1526cbaa97ac01d0131f1747bbd71f721b",
+  "client_sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7",
+  "subjects": {
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+    "r126": "a07a9f2882e27dee14c3f538d35a4c13fe30e9abe8f8f2b2f22150b06a64eb2c"
+  },
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "events": [
+    "{instructions:u,branches:u,branch-misses:u,cycles:u}",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "counter_names": [
+    "instructions:u",
+    "branches:u",
+    "branch-misses:u",
+    "cycles:u",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "iterations": 50000,
+  "warmup": 5000,
+  "sample_timeout_seconds": 30,
+  "runs": [
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "a",
+      "subject": "r124",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "b",
+      "subject": "r124",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "a",
+      "subject": "r126",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "b",
+      "subject": "r126",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "a",
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "b",
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "a",
+      "subject": "r126",
+      "held_clients": 64
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "b",
+      "subject": "r126",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r124",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r126",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r126",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r126",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r126",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r124",
+      "held_clients": 0
+    }
+  ],
+  "sampling": "Exactly 16 fresh-process samples per fixed lane, 48 total in user_1_1 then user_8_1 then user_1_0 order. Four same-ELF A/A pairs cover both subjects/scales, followed by two reversed comparison blocks per scale. 50000 sends after 5000 warmup. Three short instrumentation smoke samples excluded. No extension based on results.",
+  "analysis": "Two descriptive block ratios per scale/lane; no confidence or equivalence claim. Retain all counters and daemon/caller/total CPU and wall, including adverse values.",
+  "decision": "Proceed toward physical-router performance only when the primary user_8_1 lane has median instructions/op <= -3% against R124 at both 0/64 held scales, with every same-ELF instruction A/A pair in all three lanes within +/-0.5%. user_1_1 and user_1_0 are regression observations, not required to improve 3%. Any primary screen failure stops this candidate; no new controls/variants without attribution. These are resource-allocation heuristics, not necessary conditions for performance benefit or a language-limit proof. CPU/op is not latency.",
+  "boundaries": "Enable ACK after warmup before the three clock reads; disable ACK after the loop and the three clock reads. No per-request instrumentation. Final callback validates delivery; bounded trailing daemon work can straddle the CPU-clock/disable boundary. Counts include this boundary overhead and are divided by 50000.",
+  "sources": [
+    "https://man7.org/linux/man-pages/man1/perf-stat.1.html",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.c#L2078",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.h#L404"
+  ],
+  "tool_validation": {
+    "runner_changed": true,
+    "changes": "Optional fixed top-level listeners/matched, default 1/1; historical reports are not regenerated.",
+    "client_unchanged": "Exact v3 consumes full ACK and brackets loop clocks. Unmatched lane validates zero callbacks, not a delivered payload.",
+    "smoke_samples_excluded": 3,
+    "formal_samples_per_lane": 16
+  },
+  "launch_names": {
+    "r124": "ubusd",
+    "r126": "ubusd"
+  },
+  "limitations": [
+    "Unique temporary path content still varies, but path byte lengths, basename and socket argument byte lengths are identical for every subject.",
+    "The pathname dependence mechanism has not been proven to be allocator placement.",
+    "The chosen diagnostic launch name is not a deployment measurement. Router runs still decide performance."
+  ],
+  "candidate_source_commit": "b91113242ed4d6f52ffc4c682fbafccd77f180f5",
+  "base_source_commit": "a5b0ff1ec71a38d8c840b6995f859b503a08387d",
+  "reporter_sha256": "a729504d432a71ad35a501d86fb4e8341d1f01d158d78fdc4e16fd0fae5b6eed",
+  "screen": {
+    "metric": "instructions:u",
+    "primary_lane": "user_8_1",
+    "max_median_delta_pct": -3.0,
+    "required_held_clients": [
+      0,
+      64
+    ],
+    "aa_pair_max_absolute_instruction_delta_pct": 0.5,
+    "aa_required_lanes": [
+      "user_1_1",
+      "user_8_1",
+      "user_1_0"
+    ]
+  },
+  "files": {
+    "docs/reviews/R125_UBUSD_FANOUT_PROFILE_RESULT.md": "e6a203bc247f7e0e220cd20a7c792d04f6cd75ad482a90c2c11c919782afb197",
+    "docs/reviews/R126_UBUSD_RESPONSE_DESTINATION_PLAN.md": "88b9a99cec52ef830dfcf4a57aefbcda1b5c789c77e6c5850648676c60fac8c6",
+    "docs/reviews/r126-perf-smoke-user_1_0.json": "a452d63d11b8b8cd035194ea9d8d64f65e9c028c65f2c58f82f6d4e4fadc4a3a",
+    "docs/reviews/r126-perf-smoke-user_1_1.json": "36c02643e97bf471a1293b5361e3b107f71ec0c99a89164cc7c39491be53eb81",
+    "docs/reviews/r126-perf-smoke-user_8_1.json": "11b5e75a7303534558aff6c7fb195b7b6b82cec818c8b073be8461dc81c41975",
+    "private/r110-rx-stack/perf-sync/client-v3": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7",
+    "private/r126-response-destination/build.sh": "a8cbe18f92b871606f1f8b319388c890aae8d8affd423d887b2dd20cce057d47",
+    "private/r126-response-destination/freeze_perf.py": "07b26d49d9c9b459f0147fe8a81b92872e79305e450fdb41590b01aa2382f7c9",
+    "private/r126-response-destination/gates-results.json": "adcf2929abda52fb4423d9972cb604137775fef050085485fb3b39c5d00b2a03",
+    "private/r126-response-destination/gates.sh": "931c03d2d33b13e2bdda8457e54e6e27a23802283140b985af7218ae82f96eb8",
+    "private/r126-response-destination/inputs/r124.tar": "acfa4d032f39cb407329eb621206592d867783ee161836ceeb89d6f922017f09",
+    "private/r126-response-destination/inputs/r126.tar": "da2c4773a25b5de0508ef6dba61f0f95847962288be15e4f97ac61f6bb3c1f3a",
+    "private/r126-response-destination/maps/r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+    "private/r126-response-destination/maps/r126": "a07a9f2882e27dee14c3f538d35a4c13fe30e9abe8f8f2b2f22150b06a64eb2c",
+    "private/r126-response-destination/maps/r126-unit-tests": "c8e8d4692a80bfa42d02740e481c9ff5ba94ba41ef201d70dbe8a3abeed48093",
+    "private/r126-response-destination/maps/r126-unit.log": "af3c16bebb6ece5fe58248a42817c179d1fa01bcc82e5bde855b68a1505d5c96",
+    "private/r126-response-destination/maps/r126.map": "a340ba24548e5d75ccb8aad5a4968e2eaab31c688e77e73621a4523a8a79ffbd",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/client.json": "680622f9ddede1d91d69bf05de125401af91e943784245d37aa6d5818ac6903b",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/client.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/meta.json": "5d296b628b70dea14677c6302b5b8808328470f80a97137f687c65d382308de6",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/perf.csv": "4fe4eb17e44f7eae8158f219a001d1b902b411f3cf63b2ac8dc967d2a354ceac",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/perf.log": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/stat-after.txt": "e841755183a77331086624c57700cf647d29044e30752b22bd7da9b9858fbb76",
+    "private/r126-response-destination/smoke-user_1_0/001-r124-0/stat-before.txt": "e4abea0d4080751157204aa2dfd5625cbf5da04f5e0db6c7b2d485591057a6f5",
+    "private/r126-response-destination/smoke-user_1_0/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_0/host.json": "a6d235e1a68aa2bd51150b4c4029c05d8f205f1c2a1e2166166ffefacfdf644a",
+    "private/r126-response-destination/smoke-user_1_0/plan.json": "a452d63d11b8b8cd035194ea9d8d64f65e9c028c65f2c58f82f6d4e4fadc4a3a",
+    "private/r126-response-destination/smoke-user_1_0/verified-report.json": "43b8aab07581af150034f4a6d85a472369e4fe306ea449754d827df161d2b92d",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/client.json": "4428a99c60a2b5059f17f08476971f2b685bb96e9debe7932bc2f1d9273c4978",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/client.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/meta.json": "73205200fc255c59ae65c10fe36f96535bb5d5b014c6fdb1bd0defe1d8ea5b75",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/perf.csv": "377b0d31ff4eaf68ae642a12a3bf7d36aceb8e5a0cf479b48e4be520323d8cc6",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/perf.log": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/stat-after.txt": "8ccf1e11ac1bc1aa20f5f44fac0d18030c91d68b72ad8d523428d9ec779fc0dd",
+    "private/r126-response-destination/smoke-user_1_1/001-r124-0/stat-before.txt": "241074c253a4970276f8ba96b5ecf7fb195bd290240f38871031068699b0b156",
+    "private/r126-response-destination/smoke-user_1_1/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_1_1/host.json": "a6d235e1a68aa2bd51150b4c4029c05d8f205f1c2a1e2166166ffefacfdf644a",
+    "private/r126-response-destination/smoke-user_1_1/plan.json": "36c02643e97bf471a1293b5361e3b107f71ec0c99a89164cc7c39491be53eb81",
+    "private/r126-response-destination/smoke-user_1_1/verified-report.json": "dcbff8082ec449cae20650fa27d29b35dbc36e80fe1e966b96ca4734baa504fe",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/client.json": "974ed0843e9e7a4dd32a78d953f3405874e64451fabbb05cd2ed1d9f55260dcf",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/client.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/meta.json": "fa894f2aacb4f750d4986f87d7169f0fb17bbe87bc42c6926dd8265b63457062",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/perf.csv": "eaf94fd77d686ad1c3651cef488d87246e8125d1cdbac25ee3208f94ea1496fa",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/perf.log": "3c6628a9db779f66867bc09c3c99f04c824872bbe05026774af5cc1d48378d98",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/stat-after.txt": "9885dd6c9652314446ec0271bd9a5b0e81eca813f2aba2714c7ad7f2bd39b800",
+    "private/r126-response-destination/smoke-user_8_1/001-r124-0/stat-before.txt": "475ff1d22e68575d87e54d4b612efa15a63ddbcbee0d55b558a2a4fd2d32e4c3",
+    "private/r126-response-destination/smoke-user_8_1/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "private/r126-response-destination/smoke-user_8_1/host.json": "a6d235e1a68aa2bd51150b4c4029c05d8f205f1c2a1e2166166ffefacfdf644a",
+    "private/r126-response-destination/smoke-user_8_1/plan.json": "11b5e75a7303534558aff6c7fb195b7b6b82cec818c8b073be8461dc81c41975",
+    "private/r126-response-destination/smoke-user_8_1/verified-report.json": "2ebee46ddad68c9e6f561f6f5e160f9c170176c40d99f18f54f1b92cab109f7e",
+    "tools/r110_perf_event_diagnostic.py": "5664ae6928266ae67704c777a1b66d1526cbaa97ac01d0131f1747bbd71f721b",
+    "tools/r110_perf_event_report.py": "a729504d432a71ad35a501d86fb4e8341d1f01d158d78fdc4e16fd0fae5b6eed"
+  },
+  "lane": "user_1_1",
+  "listeners": 1,
+  "matched": 1
+}
