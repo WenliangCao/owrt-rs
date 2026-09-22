@@ -493,9 +493,19 @@ mod tests {
                 let frame = rx_frame(17, len);
                 peer.write_all(&frame[..cut]).unwrap();
                 assert!(rx_round(&mut c, &mut rx).is_empty());
-                let expected = if len + Header::LEN > RX_SIZE && cut >= PREFIX_LEN { 0 } else { cut };
+                // Once the bounded prefix is complete, the R117 body lives in
+                // an owned frame state rather than in the shared stack.
+                let expected = if cut >= PREFIX_LEN { 0 } else { cut };
                 assert_eq!(c.rx.len(), expected);
                 assert_eq!(c.rx.capacity(), expected);
+                if cut >= PREFIX_LEN {
+                    let got = cut - PREFIX_LEN + 4;
+                    if len + Header::LEN > RX_SIZE {
+                        assert_eq!(c.large.as_ref().unwrap().got, got);
+                    } else {
+                        assert_eq!(c.small.as_ref().unwrap().got, got);
+                    }
+                }
                 let other_frame = rx_frame(29, 36);
                 other_peer.write_all(&other_frame).unwrap();
                 let got = rx_round(&mut other, &mut rx);
@@ -678,8 +688,18 @@ mod tests {
             assert_eq!(got.len(), 1);
             assert_frame(&got[0], &prefix);
             assert!(got[0].fd.is_none());
-            assert_eq!(c.rx, tail[..cut]);
-            assert!(c.pending_fd.is_some());
+            if cut < PREFIX_LEN {
+                assert_eq!(c.rx, tail[..cut]);
+                assert!(c.small.is_none());
+            } else {
+                assert!(c.rx.is_empty());
+                assert_eq!(c.small.as_ref().unwrap().got, cut - PREFIX_LEN + 4);
+            }
+            if cut < PREFIX_LEN {
+                assert!(c.pending_fd.is_some());
+            } else {
+                assert!(c.small.as_ref().unwrap().fd.is_some());
+            }
             peer.write_all(&tail[cut..]).unwrap();
             let mut got = rx_round(&mut c, &mut rx);
             assert_eq!(got.len(), 1);
