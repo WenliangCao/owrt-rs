@@ -69,6 +69,19 @@ def main():
     windows=[]
     for spec in plan['runs']:
         base=collection.verify_window(a.root,spec,plan);window=a.root/spec['name'];hashes=raw.verify_archive(window)
+        folder=window/'raw';files=plan['files']
+        binary='/sbin/ubusd' if spec['subject']=='c' else '/tmp/bin/ubusd-rs'
+        assert raw.hashes(folder/'binary-sha256.txt')=={binary:plan['subjects'][spec['subject']]['sha256']}
+        helpers={'/tmp/bin/owrt-benchmark':files[spec['kind']+'_helper']['sha256'],
+                 '/tmp/bin/ns-exec':'fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2'}
+        if spec['kind']!='idle':
+            helpers['/tmp/bin/guard']=files['guard']['sha256']
+            assert raw.hashes(folder/'workload-sha256.txt')=={'/tmp/workload.sh':files[spec['kind']+'_workload']['sha256']}
+            libraries=collection.load(collection.ROOT/'docs/reviews/r124-memory-plan-v2.json')['libraries']
+            assert raw.hashes(folder/'libraries.sha256')==libraries
+            assert set((folder/'libraries-verified.txt').read_text().splitlines())=={name+': OK' for name in libraries}
+            assert (folder/'boot-id.txt').read_text().strip()==plan['boot_id']
+        assert raw.hashes(folder/'benchmark-sha256.txt')==helpers
         before=collection.load(window/'health-before.json');after=collection.load(window/'health-after.json');assert before==after and before['mode']=='stock'
         metrics=audit_idle(window) if spec['kind']=='idle' else audit_event(window,spec,plan)
         windows.append({**base,'raw_sha256':hashes,'proc_snapshot_verified':True,'memory':metrics})
