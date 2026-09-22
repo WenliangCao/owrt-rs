@@ -185,8 +185,10 @@ impl Server {
 
     /// ADD/REMOVE DATA contains only OBJID and an optional OBJTYPE. Keep
     /// its fixed 12/20-byte wire form on the stack instead of growing scratch.
-    /// send_borrowed copies any bytes that must survive in a client's queue.
-    fn send_object_reply(&mut self, client: u32, request: &InMsg, id: u32, type_id: Option<u32>) {
+    /// A successful ADD has no action left between DATA and STATUS, so it can
+    /// send both together without a monitor. REMOVE still sends DATA before
+    /// freeing the object and emitting notifications, then returns STATUS.
+    fn send_object_reply(&mut self, client: u32, request: &InMsg, id: u32, type_id: Option<u32>) -> Outcome {
         let mut blob = [0u8; 20];
         let len = if type_id.is_some() { 20 } else { 12 };
         blob[..4].copy_from_slice(&(len as u32).to_be_bytes());
@@ -197,11 +199,19 @@ impl Server {
             blob[16..20].copy_from_slice(&type_id.to_be_bytes());
         }
         let header = Header { ty: ty::DATA, seq: request.header.seq, peer: request.header.peer };
+        if request.header.ty == ty::ADD_OBJECT && self.monitors.is_empty() {
+            if let Some(c) = self.clients.get_mut(&client) {
+                c.send_data_status_reply(header, &blob[..len]);
+                self.touched.push(client);
+            }
+            return Outcome::NoStatus;
+        }
         Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &header, &blob[..len], true);
         if let Some(c) = self.clients.get_mut(&client) {
             c.send_borrowed(header, &blob[..len], None);
             self.touched.push(client);
         }
+        Outcome::Status(status::OK)
     }
 
     // ------------------------------------------------------------- dispatch
@@ -329,8 +339,7 @@ impl Server {
         }
 
         let reply_type = if attrs[attr::SIGNATURE as usize].is_some() { type_id } else { None };
-        self.send_object_reply(client, msg, id, reply_type);
-        Outcome::Status(status::OK)
+        self.send_object_reply(client, msg, id, reply_type)
     }
 
     fn remove_object(&mut self, client: u32, msg: &InMsg) -> Outcome {
@@ -457,7 +466,7 @@ impl Server {
                 if self.build_obj(client, id) {
                     let header = Header { ty: ty::DATA, seq: msg.header.seq, peer: msg.header.peer };
                     if let Some(c) = self.clients.get_mut(&client) {
-                        c.send_lookup_reply(header, self.scratch.as_bytes());
+                        c.send_data_status_reply(header, self.scratch.as_bytes());
                         self.touched.push(client);
                     }
                     return Ok(Outcome::NoStatus);
@@ -1379,6 +1388,79 @@ mod tests {
             } else {
                 assert!(mirrors.is_empty());
             }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn add_reply_preserves_event_order_shapes_errors_and_fd_close() {
+        use std::io::Read;
+        use std::os::unix::net::UnixStream;
+
+        // No type, a newly declared type, a reused type, and an invalid
+        // signature cover both DATA sizes and successful typeless creation.
+        for kind in 0..4 {
+            let mut s = Server::new(String::new()).unwrap();
+            let (caller, mut peer) = lookup_client();
+            s.clients.insert(2000, Box::new(caller));
+            s.reg.create(None, Some(4000)).unwrap();
+            s.reg.get_mut(4000).unwrap().client = Some(2000);
+            s.patterns.push(Pattern { key: b"ubus.object.".to_vec(), partial: true, obj: 4000 });
+
+            let mut request = BlobBuf::new();
+            request.put_string(attr::OBJPATH, "reply.test");
+            match kind {
+                1 => { request.put(attr::SIGNATURE, &[]); }
+                2 => {
+                    let type_id = s.reg.new_type(Vec::new()).unwrap();
+                    request.put_u32(attr::OBJTYPE, type_id);
+                }
+                3 => { request.put(attr::SIGNATURE, &[0, 0, 0, 1]); }
+                _ => {}
+            }
+            let header = Header { ty: ty::ADD_OBJECT, seq: 0xfffe, peer: 0x12345678 };
+            let (sent, mut witness) = UnixStream::pair().unwrap();
+            witness.set_nonblocking(true).unwrap();
+            assert!(s.receive(2000, InMsg { header, blob: request.as_bytes().to_vec().into(), fd: Some(sent.into()) }));
+            assert_eq!(witness.read(&mut [0u8; 1]).unwrap(), 0, "ADD must close its input FD");
+
+            let id = s.reg.by_path(b"reply.test").unwrap();
+            let mut event = BlobBuf::new();
+            event.put_u32(attr::OBJID, 4000);
+            event.put_string(attr::METHOD, "ubus.object.add");
+            let data = event.nest_start(attr::DATA);
+            event.msg_u32("id", id);
+            event.msg_string("path", "reply.test");
+            event.nest_end(data);
+            let mut reply = BlobBuf::new();
+            reply.put_u32(attr::OBJID, id);
+            if kind == 1 {
+                reply.put_u32(attr::OBJTYPE, s.reg.get(id).unwrap().type_id.unwrap());
+            }
+            assert_eq!(reply.as_bytes().len(), if kind == 1 { 20 } else { 12 });
+            let mut ok = BlobBuf::new();
+            ok.put_u32(attr::STATUS, status::OK as u32);
+            let actual = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
+            let expected = [
+                (Header { ty: ty::INVOKE, seq: 1, peer: 0 }, event.as_bytes()),
+                (Header { ty: ty::DATA, ..header }, reply.as_bytes()),
+                (Header { ty: ty::STATUS, ..header }, ok.as_bytes()),
+            ];
+            assert_eq!(actual.len(), expected.len());
+            for ((h, blob), (want_h, want_blob)) in actual.iter().zip(expected) {
+                assert_eq!(h.encode(), want_h.encode());
+                assert_eq!(blob, want_blob);
+            }
+
+            let before = (s.reg.objects.len(), s.reg.types.len(), s.obj_event_seq);
+            assert!(s.receive(2000, InMsg { header, blob: request.as_bytes().to_vec().into(), fd: None }));
+            let actual = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
+            assert_eq!(actual.len(), 1, "duplicate path must have no DATA or object event");
+            assert_eq!(actual[0].0.encode(), Header { ty: ty::STATUS, ..header }.encode());
+            let mut error = BlobBuf::new();
+            error.put_u32(attr::STATUS, status::INVALID_ARGUMENT as u32);
+            assert_eq!(actual[0].1, error.as_bytes());
+            assert_eq!((s.reg.objects.len(), s.reg.types.len(), s.obj_event_seq), before);
         }
     }
 
