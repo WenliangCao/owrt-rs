@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "status": "R115 event-interest ablation passed correctness and reduced some CPU, but remains slower than C",
+  "candidate_sha256": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde",
+  "correctness": "docs/reviews/r114-correctness-results.json plus R115 45 Oracle tests/updated physical preflights",
+  "oracle_gates": "private/r115-event-interest/gates-results-rerun.json",
+  "cpu_results": {
+    "c-low": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.1442808808473521,
+          1.0848939285102983
+        ],
+        "median_ratio": 1.1145874046788253,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.0777066485940436,
+          1.0420234883683723
+        ],
+        "median_ratio": 1.059865068481208,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0816801510851897,
+          1.0213481991990228
+        ],
+        "median_ratio": 1.0515141751421062,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.076540106365837,
+          1.0484871720717583
+        ],
+        "median_ratio": 1.0625136392187977,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.060932585584086,
+          1.0370980745989888
+        ],
+        "median_ratio": 1.0490153300915375,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.097569905763035,
+          1.0541460064343
+        ],
+        "median_ratio": 1.0758579560986674,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.0688038710533692,
+          1.0518532097631974
+        ],
+        "median_ratio": 1.0603285404082832,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.034202967821492,
+          1.029152117932632
+        ],
+        "median_ratio": 1.031677542877062,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0117824736415093,
+          1.0079426712018313
+        ],
+        "median_ratio": 1.0098625724216703,
+        "interval": null
+      }
+    ],
+    "c-loaded": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.1136289985927694,
+          1.121097812447118
+        ],
+        "median_ratio": 1.1173634055199437,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.060505038927911,
+          1.0645363481945411
+        ],
+        "median_ratio": 1.062520693561226,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0519044374685587,
+          1.0510786891751107
+        ],
+        "median_ratio": 1.0514915633218347,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.0453795302400335,
+          1.0835608825972496
+        ],
+        "median_ratio": 1.0644702064186415,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.0343515257544151,
+          1.0727546150673974
+        ],
+        "median_ratio": 1.0535530704109064,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0430930484550236,
+          1.0744261208821004
+        ],
+        "median_ratio": 1.058759584668562,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.0523563131792895,
+          1.0462747311481888
+        ],
+        "median_ratio": 1.0493155221637391,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.0225232531263901,
+          1.0197660029802633
+        ],
+        "median_ratio": 1.0211446280533267,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0025924015274332,
+          1.001009337810418
+        ],
+        "median_ratio": 1.0018008696689256,
+        "interval": null
+      }
+    ],
+    "r114-low": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          0.9979727541530561,
+          1.0267494356567313
+        ],
+        "median_ratio": 1.0123610949048936,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          0.998814579677872,
+          1.0153152720435965
+        ],
+        "median_ratio": 1.0070649258607343,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.002733662370952,
+          1.0125325891559676
+        ],
+        "median_ratio": 1.0076331257634599,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          0.9743171739671894,
+          0.9914046733006943
+        ],
+        "median_ratio": 0.9828609236339418,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          0.9709455604385496,
+          0.9922575902710292
+        ],
+        "median_ratio": 0.9816015753547894,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          0.9547810615716659,
+          1.0061495776821767
+        ],
+        "median_ratio": 0.9804653196269213,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.0071792737925689,
+          1.0036693326564408
+        ],
+        "median_ratio": 1.0054243032245047,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.0016753532366158,
+          1.0021210630375637
+        ],
+        "median_ratio": 1.0018982081370897,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0004519138578063,
+          1.0030827891343481
+        ],
+        "median_ratio": 1.0017673514960772,
+        "interval": null
+      }
+    ],
+    "r114-loaded": [
+      {
+        "lane": "user_1_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.0525886288580473,
+          0.9888316811144201
+        ],
+        "median_ratio": 1.0207101549862336,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.0311103645588013,
+          0.9945130575301557
+        ],
+        "median_ratio": 1.0128117110444785,
+        "interval": null
+      },
+      {
+        "lane": "user_1_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0266779721887118,
+          0.9955688016447943
+        ],
+        "median_ratio": 1.011123386916753,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.0052169867647283,
+          0.997711151128707
+        ],
+        "median_ratio": 1.0014640689467176,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.012352315816548,
+          1.007730646680793
+        ],
+        "median_ratio": 1.0100414812486704,
+        "interval": null
+      },
+      {
+        "lane": "user_8_1",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.0193208948886674,
+          1.0179421120934877
+        ],
+        "median_ratio": 1.0186315034910776,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "subject_cpu_us",
+        "paired_ratios": [
+          1.0063559412930125,
+          0.9898000366219462
+        ],
+        "median_ratio": 0.9980779889574793,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "total_cpu_us",
+        "paired_ratios": [
+          1.0029932801873467,
+          0.9962756551604786
+        ],
+        "median_ratio": 0.9996344676739126,
+        "interval": null
+      },
+      {
+        "lane": "user_1_0",
+        "metric": "wall_us",
+        "paired_ratios": [
+          1.001201031108883,
+          0.9951155240125708
+        ],
+        "median_ratio": 0.998158277560727,
+        "interval": null
+      }
+    ]
+  },
+  "decision": "R115 removes redundant direct-event interest synchronization. Against R114 its total CPU is -1.84% in user_8_1 low, near zero in other lanes; against exact C it remains +3.17% to +11.74% daemon CPU in six cells (both reverse blocks positive). Keep R115 rejected for final adoption; investigate only independently justified remaining paths."
+}
