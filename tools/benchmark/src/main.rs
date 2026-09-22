@@ -596,6 +596,13 @@ fn main_inner(a: &[String]) -> Result<()> {
             use std::os::unix::process::CommandExt;
             Err(Command::new(&a[3]).args(&a[4..]).exec().into())
         }
+        "exec-cpu-as" => {
+            require(a.len() >= 5, "exec-cpu-as CPU PROGRAM ARGV0 [ARGS...]")?;
+            require(!a[3].is_empty() && !a[4].is_empty(), "PROGRAM and ARGV0 must not be empty")?;
+            affinity::pin(a[2].parse()?)?;
+            use std::os::unix::process::CommandExt;
+            Err(Command::new(&a[3]).arg0(&a[4]).args(&a[5..]).exec().into())
+        }
         "register-cycle" | "register-cpu" => {
             require(a.len() == 8, "register-cycle SOCKET METHODS NAME_BYTES N WARMUP PIDS")?;
             let count: usize = a[3].parse()?;
