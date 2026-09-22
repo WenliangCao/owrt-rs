@@ -9,6 +9,7 @@ use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::msg::{attr, status, ty, Header};
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::hash::{BuildHasherDefault, Hasher};
 use std::os::fd::OwnedFd;
 use std::ops::Bound::{Included, Unbounded};
 
@@ -35,6 +36,30 @@ struct ClientCred {
     group: String,
 }
 
+/// Client ids are daemon-generated random u32 values. They are not attacker-
+/// chosen map keys, so the general-purpose SipHash used by `HashMap` is
+/// unnecessary on this hot table. Keep the full hash-map API and use the id
+/// itself as the hash value; object/type tables retain their normal hasher.
+#[derive(Default)]
+struct ClientIdHasher(u64);
+
+impl Hasher for ClientIdHasher {
+    fn finish(&self) -> u64 { self.0 }
+
+    fn write(&mut self, bytes: &[u8]) {
+        // The u32 `Hash` implementation calls write_u32. Rejecting any other
+        // representation catches an accidental non-integer client key in
+        // debug builds while keeping a deterministic fallback for release.
+        self.0 = bytes.iter().fold(0xcbf2_9ce4_8422_2325, |h, &b| {
+            h.wrapping_mul(0x100_0000_01b3).wrapping_add(u64::from(b))
+        });
+    }
+
+    fn write_u32(&mut self, value: u32) { self.0 = u64::from(value); }
+}
+
+type ClientMap = HashMap<u32, Client, BuildHasherDefault<ClientIdHasher>>;
+
 impl ClientCred {
     fn as_cred(&self) -> Cred<'_> {
         Cred { uid: self.uid, gid: self.gid, extra_gid: &self.extra }
@@ -43,7 +68,7 @@ impl ClientCred {
 
 pub struct Server {
     pub reg: Registry,
-    pub clients: HashMap<u32, Client>,
+    pub clients: ClientMap,
     pub acl: Acl,
     pub acl_dir: String,
     /// Event patterns, sorted by key; equal keys keep registration order.
@@ -73,7 +98,7 @@ impl Server {
         }
         Ok(Server {
             reg,
-            clients: HashMap::new(),
+            clients: ClientMap::with_hasher(BuildHasherDefault::default()),
             acl: Acl::default(),
             acl_dir,
             patterns: Vec::new(),
@@ -1014,7 +1039,7 @@ impl Server {
 
     // -------------------------------------------------------------- monitor
 
-    fn mirror(clients: &mut HashMap<u32, Client>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
+    fn mirror(clients: &mut ClientMap, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
         if monitors.is_empty() {
             return;
         }
