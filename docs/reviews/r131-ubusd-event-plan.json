@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "component": "ubusd",
+  "purpose": "Physical AX3000T R131 same-owner event fanout pilot with exact C/R124/R131 identities",
+  "source_commit": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "iterations": 5000,
+  "warmup": 20,
+  "subjects": {
+    "c": {
+      "path": "private/r95/ubusd-pilot/stock",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic",
+      "source": "stock exact image"
+    },
+    "r124": {
+      "path": "private/r130-add-reply/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static",
+      "source": "a5b0ff1ec71a38d8c840b6995f859b503a08387d"
+    },
+    "r131": {
+      "path": "private/r131-event-batch/maps/r131",
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static",
+      "source": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc"
+    }
+  },
+  "files": {
+    "driver": {
+      "path": "tools/r95_device_smoke.py",
+      "sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b"
+    },
+    "workload": {
+      "path": "tools/r131_ubusd_event_batch.sh",
+      "sha256": "8a94a9f2abbce632ff096ca1e2046a29bf9e4929883fef4515280dc39277b065"
+    },
+    "benchmark": {
+      "path": "private/r127-r124-matrix/owrt-benchmark",
+      "sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e"
+    },
+    "namespace_helper": {
+      "path": "private/r90/deployment-r90/bins/ns-exec",
+      "sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2"
+    },
+    "guard": {
+      "path": "private/r95/guard",
+      "sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d"
+    },
+    "recovery_gate": {
+      "path": "private/r96/recovery-full/recovery-gate.json",
+      "sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536"
+    },
+    "harness": {
+      "path": "tools/benchmark/isolated.sh",
+      "sha256": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad"
+    }
+  },
+  "permutations": [
+    ["c", "r124", "r131"],
+    ["c", "r131", "r124"],
+    ["r124", "c", "r131"],
+    ["r124", "r131", "c"],
+    ["r131", "c", "r124"],
+    ["r131", "r124", "c"]
+  ],
+  "runs": [
+    {"index": 1, "label": "c"},
+    {"index": 2, "label": "r124"},
+    {"index": 3, "label": "r131"},
+    {"index": 4, "label": "c"},
+    {"index": 5, "label": "r131"},
+    {"index": 6, "label": "r124"},
+    {"index": 7, "label": "r124"},
+    {"index": 8, "label": "c"},
+    {"index": 9, "label": "r131"},
+    {"index": 10, "label": "r124"},
+    {"index": 11, "label": "r131"},
+    {"index": 12, "label": "c"},
+    {"index": 13, "label": "r131"},
+    {"index": 14, "label": "c"},
+    {"index": 15, "label": "r124"},
+    {"index": 16, "label": "r131"},
+    {"index": 17, "label": "r124"},
+    {"index": 18, "label": "c"}
+  ],
+  "affinity": {
+    "daemon": 1,
+    "caller": 0,
+    "provider": 0
+  },
+  "daemon_argv0": "/sbin/ubusd",
+  "lanes": ["user_1_1", "user_8_1", "user_1_0"],
+  "primary_lane": "user_8_1",
+  "acceptance": {
+    "baseline": "r124",
+    "primary": "R131 vs R124 user_8_1: six paired blocks all lower mean and median <= -3%",
+    "reject_tail": "Reject if user_8_1 p95 or p99 paired median, or daemon CPU median, exceeds +5%",
+    "guard": "user_1_1 and user_1_0 must not show six positive means with median > +5%",
+    "practical_tie_band_pct": 1,
+    "c_comparison": "Independent descriptive comparison; never combine historical ratios",
+    "no_extensions": true
+  },
+  "safety": {
+    "production_mode": "stock C",
+    "candidate_installation": false,
+    "recovery_gate_required": true,
+    "per_window_cleanup_required": true,
+    "physical_router_only": true
+  },
+  "limitations": [
+    "Six paired blocks are an engineering gate, not a statistical equivalence claim.",
+    "The workload is one listener connection with eight event handlers; it does not represent all fanout patterns.",
+    "No R131 result exists until the router series completes and raw evidence is independently checked.",
+    "Memory and nine-component integration are outside this event-only pilot."
+  ],
+  "orchestrator_sha256": "647d271e08429c04cae17fa965d77098571f7002371150053c22d18136a0f2cc"
+}
