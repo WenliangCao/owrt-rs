@@ -41,8 +41,8 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
     let mut s = server::Server::new(String::new()).unwrap();
     let (caller, caller_peer) = connection();
     let (owner, owner_peer) = connection();
-    s.clients.insert(CALLER, Box::new(caller));
-    s.clients.insert(OWNER, Box::new(owner));
+    s.clients.insert(CALLER, caller);
+    s.clients.insert(OWNER, owner);
     let methods = (0..methods).map(|i| {
         let name = format!("method_{i:04}");
         let mut b = BlobBuf::new();

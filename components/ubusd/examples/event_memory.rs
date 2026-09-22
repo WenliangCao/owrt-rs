@@ -107,8 +107,8 @@ fn main() {
                 let mut s = server::Server::new(String::new()).unwrap();
                 let (caller, mut caller_peer) = connection(false);
                 let (listener, mut listener_peer) = connection(payload_bytes == 32768);
-                s.clients.insert(2000, Box::new(caller));
-                s.clients.insert(2001, Box::new(listener));
+                s.clients.insert(2000, caller);
+                s.clients.insert(2001, listener);
                 for i in 0..listeners {
                     let id = 4000 + i;
                     s.reg.create(None, Some(id)).unwrap();
