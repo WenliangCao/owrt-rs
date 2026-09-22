@@ -615,6 +615,93 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     #[test]
+    fn fd_follows_prefix_boundary_when_frames_share_sendmsg() {
+        for fd_on_second in [false, true] {
+            let (mut c, mut peer) = rx_pair();
+            let first = rx_frame(101, 24);
+            let second = rx_frame(102, 24);
+            let (sent, mut witness) = UnixStream::pair().unwrap();
+            if fd_on_second {
+                peer.write_all(&first).unwrap();
+                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &second, &[], Some(sent.as_raw_fd())).unwrap(), second.len());
+            } else {
+                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &first, &second, Some(sent.as_raw_fd())).unwrap(), first.len() + second.len());
+            }
+            drop(sent);
+            let mut rx = [0; RX_SIZE];
+            let mut got = rx_round(&mut c, &mut rx);
+            assert_eq!(got.len(), 2);
+            assert_frame(&got[0], &first);
+            assert_frame(&got[1], &second);
+            assert_eq!([got[0].fd.is_some(), got[1].fd.is_some()], [!fd_on_second, fd_on_second]);
+            let mut received = UnixStream::from(got[usize::from(fd_on_second)].fd.take().unwrap());
+            witness.write_all(b"x").unwrap();
+            received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            let mut byte = [0];
+            received.read_exact(&mut byte).unwrap();
+            assert_eq!(byte, *b"x");
+            drop(received);
+            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            assert_eq!(witness.read(&mut byte).unwrap(), 0);
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn fd_attached_to_body_is_discarded_before_the_next_frame() {
+        for bundle_next in [false, true] {
+            let (mut c, mut peer) = rx_pair();
+            let first = rx_frame(101, 24);
+            let second = rx_frame(102, 24);
+            peer.write_all(&first[..PREFIX_LEN]).unwrap();
+            let (sent, mut witness) = UnixStream::pair().unwrap();
+            let tail = if bundle_next { second.as_slice() } else { &[] };
+            assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &first[PREFIX_LEN..], tail, Some(sent.as_raw_fd())).unwrap(), first.len() - PREFIX_LEN + tail.len());
+            drop(sent);
+            if !bundle_next { peer.write_all(&second).unwrap(); }
+            let mut rx = [0; RX_SIZE];
+            let got = rx_round(&mut c, &mut rx);
+            assert_eq!(got.len(), 2);
+            assert_frame(&got[0], &first);
+            assert_frame(&got[1], &second);
+            assert!(got.iter().all(|msg| msg.fd.is_none()));
+            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            assert_eq!(witness.read(&mut [0]).unwrap(), 0);
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn fd_first_prefix_fragment_wins_and_later_descriptor_is_closed() {
+        let (mut c, peer) = rx_pair();
+        let frame = rx_frame(103, 24);
+        let (first, mut first_witness) = UnixStream::pair().unwrap();
+        let (second, mut second_witness) = UnixStream::pair().unwrap();
+        assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[..7], &[], Some(first.as_raw_fd())).unwrap(), 7);
+        assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[7..11], &[], Some(second.as_raw_fd())).unwrap(), 4);
+        assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &frame[11..], &[], None).unwrap(), frame.len() - 11);
+        drop(first);
+        drop(second);
+        let mut rx = [0; RX_SIZE];
+        let mut got = Vec::new();
+        for _ in 0..4 { got.extend(rx_round(&mut c, &mut rx)); }
+        assert_eq!(got.len(), 1);
+        assert_frame(&got[0], &frame);
+        let mut received = UnixStream::from(got[0].fd.take().unwrap());
+        first_witness.write_all(b"y").unwrap();
+        received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+        let mut byte = [0];
+        received.read_exact(&mut byte).unwrap();
+        assert_eq!(byte, *b"y");
+        drop(received);
+        for witness in [&mut first_witness, &mut second_witness] {
+            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+            assert_eq!(witness.read(&mut byte).unwrap(), 0);
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
     fn stack_rx_rebases_fd_marks_after_complete_frames_and_partial_tail() {
         let mut rx = [0u8; RX_SIZE];
         for cut in [1, 7, 11, 12, 23] {
