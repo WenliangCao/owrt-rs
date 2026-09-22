@@ -1,0 +1,615 @@
+{
+  "schema_version": 1,
+  "scope": "Frozen R131 supplement completion, not acceptance of ubusd or nine-component integration",
+  "source_commit": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc",
+  "subjects": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+    "r131": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a"
+  },
+  "decisions": {
+    "supplement_execution": "complete",
+    "functional_coverage": "all planned gates passed",
+    "r131_promoted_to_general_baseline": false,
+    "reason": "Shared-path frozen p95 regression gates failed on register_1_8 and register_16_8",
+    "conservative_rust_baseline": "R124",
+    "production": "exact image C, never replaced",
+    "memory_guard": "Triggered at +28 KiB VmData; investigation retained separately, not changed to an automatic pass",
+    "language_limit_claim": false
+  },
+  "new_router_windows": 77,
+  "windows": [
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/01-idle-c",
+      "result_sha256": "e91f24ed859bc10809a79b9a7fe1a7a43995099a52ed82eee6089252f8921dc7",
+      "archive_sha256": "560ec66e398f78df742d4bf2df296ba6648255b85484148cf1e91e8672000bc4"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/02-idle-r124",
+      "result_sha256": "7c89c6f9ee00e3977bcbad86a766900817110a24e3228561ebf49bcb41da13d8",
+      "archive_sha256": "89ffaf8bc1f8b2f8bdd466091853c3511bb96448d156962911cb26d49b902e90"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/03-idle-r131",
+      "result_sha256": "bb8fcce2c2f172dd39f7aaab13c0930466714d8278a224edefda577e79aa0eb3",
+      "archive_sha256": "1818254e2c01bfef2d40fe4a101736ca081a4faeb17cd8c5603d196d37b4f67b"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/04-idle-r131",
+      "result_sha256": "35917e894d164b10ec410739bf5fc7d778b551e4742bdffc622a272c49dae003",
+      "archive_sha256": "cb49d349765489505b2548e4b8af8f590ade0cffbde28cf05bb92a8e85566375"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/05-idle-r124",
+      "result_sha256": "7f202fe2c578f0b61d8aef32b8d88237ac501a35430a56ba61d783fa21bad4af",
+      "archive_sha256": "d32ba554ba7e1c5f5f067be262667013ec50bbc8b190459a2d5e38d6adec19ec"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/06-idle-c",
+      "result_sha256": "8ba6c316c377b333806ae76ada0825dc25a26cfceb8b7a5125b3a633d4a8ab00",
+      "archive_sha256": "aba9b75cf27f9090fb59394cb2012948df3d13ac69b1d1ad1bd18d77f9efd45a"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/07-large-c",
+      "result_sha256": "9bb094e0da41678398409b26e68dc4237002761915b3e06226fa8e823dd7899a",
+      "archive_sha256": "a689d2aedc23baffd61cc04e67c831a5f1ac94ded8dea5c15320d9703223119a"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/08-large-r124",
+      "result_sha256": "4038d4f794234a973709435daaf1c34a27d488a4a33c269de163dc1fb588d013",
+      "archive_sha256": "980ee11bd2f67d6332f1fc6acbab57b904d8c5e487996b949b64a45d695764ea"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/09-large-r131",
+      "result_sha256": "a84b1ff8c0fb5952ba1bd0a70fbcf07a09e495279b340d44c37c516e667f4295",
+      "archive_sha256": "e9efc3c95472bc5cb016c17b0f3ba77e78ae2d50d954528d1967e8f2a58029f1"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/10-large-r131",
+      "result_sha256": "632d580ae4f4912d73d92cad49abd9b49625d58af494ef3af423fa4d58b4edcd",
+      "archive_sha256": "a89261df21c6e40f399ac786bc671a7af42ea61d720c3eed09f42d53831c0813"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/11-large-r124",
+      "result_sha256": "35bf3db3e5a90700a79d3dd6e1a51cbc186ee2bc55cf3a7367e845c35613f3f6",
+      "archive_sha256": "2f7c960b456af6041b8ee5b200323c7e4141b8860ed3621f4c6604f090c4aabd"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/12-large-c",
+      "result_sha256": "34b66c32a68492d6065553924d414827db43fd132ee81ed849b3323095b650f8",
+      "archive_sha256": "bfd5d95009d3a730c08966e17b5755dd55a385d80a0aa3d9fa9e3f8c680dbad7"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/13-fanout-c",
+      "result_sha256": "6ff1d3a12c94429c19e38935ef9f20aa226888e0ac1191a429681cf778d6c980",
+      "archive_sha256": "e5296f7e724a59e3cbd560c5f4c415de32f475cdb0adb58f64c6945d25152c16"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/14-fanout-r124",
+      "result_sha256": "df9516e61d64af3dfadc95b12981cca25bcec9043f91cb16e5c0cab4255ec326",
+      "archive_sha256": "6bfcbf6cb4b5ebd8f1e92e249d21f262ac007c441ecad21069611787b1082d7d"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/15-fanout-r131",
+      "result_sha256": "bb0c7113d416bd0151d1f7d93ed643d082ab45ed9e93c8719aec73d8c492f6b2",
+      "archive_sha256": "6b2a7a1eaa89057257d298e16930b1a0eedcb5930d165e4f98ab877eecf1341c"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/16-fanout-r131",
+      "result_sha256": "176e383e471e026b04331f6d839700abb36e04dfdcfa602b88b50a7bc1cf202d",
+      "archive_sha256": "3a8c886f634916b449333bb71949a73397279649fd45760ea6de15f39c7fc49c"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/17-fanout-r124",
+      "result_sha256": "a6fec337e3f7a81cb0c6632ea09c86e255a6809ceaacd0e118f192f2148daca2",
+      "archive_sha256": "fcddeef90dca37491ffb9bf3a35dc845ca502c473ee7da4db8a38b3e3a07d2c5"
+    },
+    {
+      "series": "memory",
+      "path": "private/r131-supplement/memory/router-01/18-fanout-c",
+      "result_sha256": "6b09ae5a4672e22e4d81887b630903f533219e57e20a07141ca840893af0868b",
+      "archive_sha256": "2f682b5afe5baa27f0c1efa58cb1c4075bdfbd8da56752eb8e176046eedc1b76"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/01-c",
+      "result_sha256": "65f3b8a9b64940cf36d3eb101440379ad9562829cf635768a9b9db6a52bd3096",
+      "archive_sha256": "cf829ee96fbda0bf9bf3ad008d0c7b976d5f7fb9e45f46e783b05e5e5cf2921e"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/02-r124",
+      "result_sha256": "b826f6ab5ad18e20329c621092636b8fb9f5342044367177732e63fdf6d85f0e",
+      "archive_sha256": "a5f8809f44923068b6731c6db38b07f252c9916d0ffb806d2a5580ba58e895b7"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/03-r131",
+      "result_sha256": "e42fa73325a894061e1e6cdcc78f077de8b2b14f7017c634f0ef343429a9e48b",
+      "archive_sha256": "6fdeeb6c18369c63fac417bbac0995776c1e202eedcd62bc0ce66120ac0fdc5e"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/04-c",
+      "result_sha256": "132c7513586dd77f4c6708eab1ecb2f7877540ce3e684481eff205f04d1eef04",
+      "archive_sha256": "26e42132a8bd1b0a9e02e974313ca80a0e3b746364523882e1d7401dcf848f32"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/05-r131",
+      "result_sha256": "aa0a39743aca14a68e39d1a28bb204d4c8a1e38d427763c3a64df453ab1d9386",
+      "archive_sha256": "a47c756d31e8cabe97c1144c3b179f1f6524a6721d8eb0ab7caaf1100bc72f92"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/06-r124",
+      "result_sha256": "ba92288f94538c16ff3dc7b80b9d39f8a53bcffe521fdce99a2ee62bda90e47c",
+      "archive_sha256": "461791e75c44a87ab6fde0e57ec28092d9f797e2fbe2190a745b77908192bb80"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/07-r124",
+      "result_sha256": "bd4ca6218c0ba5e1f89a65f0994a5d1dec93aeb970a9ca1171d69318abf23c16",
+      "archive_sha256": "49c787bc13e1dea773a6cafbf12eb6d58fc515ac70574f85e7c8e81b520cde11"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/08-c",
+      "result_sha256": "4cc64f47d644b04582a05636e259a98fc5a83a77e932b0eefd1ca10403dad1ac",
+      "archive_sha256": "70481c04ce9eb70b81b5aa49842a2a91e9b9921b1499e50628d3d9f2b5eddf85"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/09-r131",
+      "result_sha256": "cb2d2d78a67cf6b3044315ea531f87ae25b04b6bfa7ab3263b51609c8a351c2b",
+      "archive_sha256": "6d1250a3155e1e115e407a2cf364e68918c9909c05084db602c034607243ef5d"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/10-r124",
+      "result_sha256": "bea288aa621c24875d0dca1b121dfc6f65b9a32b304e9fc6e5d7a2dda05c1162",
+      "archive_sha256": "b9ef18e529e2822c22c087230e579d31f8882ec4925d438550f474dcd4fb2f6a"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/11-r131",
+      "result_sha256": "d89b73e7ae27accfc9f426ab5f46e869a7c8d02e24a208dc68852b5b6948453c",
+      "archive_sha256": "4b58a85c09fc82a2d4e20aee5b84b8fb8d6505d49b0329f77e751eeb930da909"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/12-c",
+      "result_sha256": "6b1540254cbf74b7198af8c89a554febb9c57d228b37721cda14a53131d45520",
+      "archive_sha256": "a1c00681439b62486441868b39dfe5e1cba81906f2de9c42b5ba9fc0570b4765"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/13-r131",
+      "result_sha256": "19e8e4b88cbcb97dae4cc6f1f88ad8f20eb88623758112cca49aa53bc19ee1f6",
+      "archive_sha256": "5c69ad20bd050e286deb99af63f250bf535f5699a600bf6c9da829641bd8e70a"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/14-c",
+      "result_sha256": "0faa2d9df95af5c921e56b1cd7d2dcb3d2655d3243ee543e59103a620432f5df",
+      "archive_sha256": "bdfb14cf275bbcc1e0b1cf39426f101a5bec980b1559582ce5ce7c9ac51a652d"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/15-r124",
+      "result_sha256": "875f0f47c7d8816b4c07403ce404cd0fc5e9ae8b705384afb0b965cf8eacc666",
+      "archive_sha256": "136e7f7ae9649a427bc82ad7199082eb541d29f5aa394ba66604355063229b1c"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/16-r131",
+      "result_sha256": "3020db8e5624a210ebbb7e93e7443b028ee73a3ce5844862bf9bb0ecc1dea32e",
+      "archive_sha256": "c9229bf9fa28912a0b7bbc69c5f228ed992c00c287497ae4cdb14d920ae6ba5e"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/17-r124",
+      "result_sha256": "d635560b91f405c565585bc7692257eaef6e031971c3efb30ba287dd9cdfd971",
+      "archive_sha256": "dd3458b2b8c0abf15411be085b2056e6317f9c8782f1f985776641eb02a535a4"
+    },
+    {
+      "series": "latency",
+      "path": "private/r131-latency/router-01/18-c",
+      "result_sha256": "55e4d4aec19da0e484d3516128618ae51acfa45d18015d70f7c54c5f7424ad63",
+      "archive_sha256": "bd613582bc560a11ed6de7d8aeaac890160e8748f459ba003a9bb3ff1707192b"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/01-c",
+      "result_sha256": "28d0ca2b82eeb520c4ec4ef5156c0dc86e74e64830ff7da57602a63cb354c49b",
+      "archive_sha256": "d28582af41dd42a801f1aaf2ffe23ffb57f1b66ebe400114ccf10d5f38d862b0"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/02-r124",
+      "result_sha256": "1ed3360cd0f079653d8f4c6c52d98ceb9cc8f5c6a72e44b7aaf408554a79f8f5",
+      "archive_sha256": "3374a27d0076a6619f12e628db1d1601f426c4e2630adae74b56389295f0ebbb"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/03-r131",
+      "result_sha256": "8f86f7aaad2207a265177b54a5c384d23d168a64218d9b1f3c85cc1d6e4e7582",
+      "archive_sha256": "774851f428c0e428ba069f848353b2a1bf9995145dda6a6bff169270ba443ce4"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/04-c",
+      "result_sha256": "ef8a0b106c6c9f5dd83297dcb221504d64395113756a4f4c5dd2744e8b786423",
+      "archive_sha256": "6bcbff99a5c3379533fee956a060a3ba0520faeac8b58d96b99526a4759ed47c"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/05-r131",
+      "result_sha256": "c53f278e5e558d630b05c12ed8fb39c76aa5fb4091039a8265eb1313b3433732",
+      "archive_sha256": "2e6ac5a30b6e7b0e877f97204125c5132c169dc2da3a4661a283b5b16b8dad5f"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/06-r124",
+      "result_sha256": "34cac94aa3a11b38608c39882b27a82785f5f1ead47f4caac6cd675921eba820",
+      "archive_sha256": "a0a1e06caae6f362619209ca256bfd72434994e94e0e01a769d0653f61758d8b"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/07-r124",
+      "result_sha256": "f3f881dea1e9b5e9168ce5f6c4cc41514041cbbdf57d146042aee9fbdbf7069a",
+      "archive_sha256": "5c1d685d98d9a18cd0fe703c62d02bc84a5f226401e10c76565452b2c814c77a"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/08-c",
+      "result_sha256": "c0d0ffc27e81933575bfd925274dc3993c313f29f4b8ea28785e9d8962a8495f",
+      "archive_sha256": "5a28cd45fab7b41e4c5385ec0cbcd904aacbe9dac1d1d2c918a3c061b6ab5b47"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/09-r131",
+      "result_sha256": "1d0b444516735c753d9a0cc408e2f9a274c54177b13f008bbfe64f40c59b28f5",
+      "archive_sha256": "52c8716093761599e0a83fa348fa2984e4803f9abf73a735ad57eb006428de88"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/10-r124",
+      "result_sha256": "059fccbc94cbb54393be132c7a76a2971c76f4ac68ece49f99b1eab45a5b7c98",
+      "archive_sha256": "5ef3f6d32139700b93062c025ce212677b025b14885e2dcaa19cc4f18aae0338"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/11-r131",
+      "result_sha256": "49b4f4ca381706c263ca26b1eda2c8f8009b622b7d235dd63c216397ebe90616",
+      "archive_sha256": "1d7536485fe038f2d2d33f6b6789511e5ecf371474f4818fb11374e14a140964"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/12-c",
+      "result_sha256": "54cdcbecda97580398959e08ace3f7a099d03dc6e21349a193aa42283bc8021a",
+      "archive_sha256": "0bbfc05b207c88098d94ff863ff4fcddd7f296bf752ab30afa0662f3e9a284d1"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/13-r131",
+      "result_sha256": "58faab531f309301ee4917eebe29656ccfd1ced74be8820a7e1e2687a092f6ca",
+      "archive_sha256": "bf300eb4dc257cf908db0f0a8e19af6642b029600e3dab522ff6b2a5e8700db3"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/14-c",
+      "result_sha256": "e799bb4af6e265f4407d6d798eac5244f41bb30877ed212b5bf713053920fa65",
+      "archive_sha256": "6cfaa8c9cac088edb51fa26fc1702846db2f13dbd69d3d84f0abfa96ac929f24"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/15-r124",
+      "result_sha256": "5ffe9112fe41efc892ea3082c4987081d56edf692681b0685d82a41dae1e128b",
+      "archive_sha256": "a715145808f5b271817de6263247a40b80be925ea79e595d5f3ba210a81e966a"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/16-r131",
+      "result_sha256": "f4b3785d113d806d5d3760b5b0c82c5f4ba73a4e6aa84e91ed98e80c5a6ad2b1",
+      "archive_sha256": "931911a1f4363d5d493089eb415fd7e02c1dea8a0f9345af7f6f6e9b0211e777"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/17-r124",
+      "result_sha256": "d5682a66cd579f1b416b5df7a563d45603ad3ae669df3a0fbde7bb6e3447b4f3",
+      "archive_sha256": "17cbc90ccbd20a59762a0e31542b973ef4a646e4ba82e6a8370d473c5ab15c17"
+    },
+    {
+      "series": "shared",
+      "path": "private/r131-supplement/shared-router-01/18-c",
+      "result_sha256": "6f1b33edc9e29bc9d6fa940d6f911e3e9c54e729072bbb61c2a0975ac2ee2c9a",
+      "archive_sha256": "7316f2631d4a6c487ffa611ce2c0bd520b1e948f7bfa862611b81606cf23152b"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/01-c",
+      "result_sha256": "ae058e8fb6e237f9538b6ff4fd1bf9c6732c134d7859b4dea6d0a89cfec98eaa",
+      "archive_sha256": "8d4bdc440a2df52c82a72a2ac592a97161cacd8985175b8994e43e1fbcadeda0"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/02-r124",
+      "result_sha256": "2a168e164c9321bd6216177f8ce2a4c1221c8dcd9716fe256a9012a1126a52cf",
+      "archive_sha256": "70ea04e83989798d2c4c16c6116f0da4ff8bdc6f0cade8ff5895e68306e05499"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/03-r131",
+      "result_sha256": "52e70defcfc7e6528960ba5225a7518ca7f8055972c72abddcbcc122f340cc93",
+      "archive_sha256": "76da374d02c16c2535471fa73a3c56eace0ae632e3e6fca56833dbb1208896d0"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/04-c",
+      "result_sha256": "8308b048726bece7e07dce8bed8f6d9c0731d8b82d6a0997b8178f9957f3abfb",
+      "archive_sha256": "6c395b69a6a24c026c58870cab8c500261805cf01769121f90a32bb0aea4bfe8"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/05-r131",
+      "result_sha256": "bbbbd9710926f449dcd35a5869deafb612120f3d5932c30f158165a4ba212020",
+      "archive_sha256": "7d7a7026d308803d31fa4b52b8a932532f791d4fb297eb42842e6f8177bbc6e2"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/06-r124",
+      "result_sha256": "01a6511d7382a50cedef095084333655e54051f487d7bc99b825b303b0172503",
+      "archive_sha256": "1d5236363753752f338e0f7bfe29cbc0c17288b7a64ba4af65dc8ce767394237"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/07-r124",
+      "result_sha256": "f8e067e11786f0aded2502791d9295e7f536967ed8715d7b66d788dd4bc9e41b",
+      "archive_sha256": "3acb2998f40a578ed92abc5ca619163de022361ed034495afa269e723bd31fca"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/08-c",
+      "result_sha256": "612fb06bbd4628e22a4aa62a6e47b6224d3e0d2cd1763bddaa7b06c23060d5ad",
+      "archive_sha256": "7aa5a562ad6097849cbbcb1da2e389f7a78b413da72f01dbe8ef255c663703ee"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/09-r131",
+      "result_sha256": "dc7f1d266465390130a6818331ca8191e958b62b2ddf9e3ee89d1de229d8bc03",
+      "archive_sha256": "1a3b5b836005eba30682b28aa1ebbf9178e1f1dc1437b2e24b483d09c4a4b4dd"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/10-r124",
+      "result_sha256": "4434423d85185f82bcba850b6ece2d1d088e249d742e38a4e7889a214b63e02b",
+      "archive_sha256": "7ff583cf7179d54340db183d13871c8cffdc4cf6dc6e0d6027fa4da386a8af8c"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/11-r131",
+      "result_sha256": "560483d25911feb40f60387eb6f026b3becde917c35247058dd828f03a9adaa3",
+      "archive_sha256": "fa8e402e90520a56193454d47a2135b14fd53af0f80d84684d2b3cec8916cfa5"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/12-c",
+      "result_sha256": "d2b99e4810090a4ad86fe08ae31972b0e1a2271f7ba09894f72accb224ef6a28",
+      "archive_sha256": "4394df11256cb5fdef40510aab8310846e91d1908ce58f103cf872e9791eb5a5"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/13-r131",
+      "result_sha256": "2854d4b57b795ff6915ad98933dd1e4a2eff260ffdaf20997b9de1fa8df4e132",
+      "archive_sha256": "a6bf0723a8af6aca90ced720fd116ebcbcd3eba84db9b69592521a44aef32d23"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/14-c",
+      "result_sha256": "2f9d89f08c7a66323233e8ff8d8ea9c34bfa184bb2be0dd3042699039b7cc7c8",
+      "archive_sha256": "1616ddd9bbe20ac05a77c5491ea1e91028fd40d5ed926e2b99d8c8cf0574ac24"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/15-r124",
+      "result_sha256": "f8bdc985752cd1d217d6916dfaf8c9314e023ea9c25e3deed9b24591d9152c8c",
+      "archive_sha256": "a1cd5f952cda1a9f8a725e1e16e640df7e2037266a454914c7bb51409de573e2"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/16-r131",
+      "result_sha256": "03d8a866d3cba3af12ceadd8b2a248d21e50554e3e463991752a2df11b5ac183",
+      "archive_sha256": "2f32ce501840c231f7e8d9f2e2ee9846b69b7de08c586a39dd3677e3e1eafd0b"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/17-r124",
+      "result_sha256": "079eda9867515fc021f015884fa8fc1fa4b71ce9ccd1b146688bf3a0013d3f9c",
+      "archive_sha256": "4ab1ee76099d1c0b086d03c64760efaa83b72e1716c11bb51d83cf433c45a32b"
+    },
+    {
+      "series": "stress",
+      "path": "private/r131-completion/stress/router-01/18-c",
+      "result_sha256": "16e539bd37c911dfeb1bc67ce172099bed3d99c3c6bbcb63b19f011573b9a044",
+      "archive_sha256": "d3f87316d17f08b359f5bb66089deae0baa861150317846ee9ddcc04e83b693d"
+    },
+    {
+      "series": "plateau",
+      "path": "private/r131-memory-plateau/router-01/01-c",
+      "result_sha256": "89a454d324ed1ce8c6c32e04aacc8f7787e1e5b776cd045420deaf74121eefe1",
+      "archive_sha256": "d881ab71d4519b2f1934b820c3e7db5401fe9dde8dc0855931e619616e8fe596"
+    },
+    {
+      "series": "plateau",
+      "path": "private/r131-memory-plateau/router-01/02-r124",
+      "result_sha256": "1b5dc5685350c5d96ed5c374df1666004801ea4f5962942824ae80ff6ba65864",
+      "archive_sha256": "6d7584fb66305d6027b53ed4bcb29ccf87f6c2086f488c1c0cc7db5dcbf25dc4"
+    },
+    {
+      "series": "plateau",
+      "path": "private/r131-memory-plateau/router-01/03-r131",
+      "result_sha256": "f5244aa39faaa8a04e87a0467b2147a61e37ec475b56a309c121b33460b53944",
+      "archive_sha256": "86c1628d75ea3e366e53b066bebecdb78a07ec96cc099b3c0ce3b18cddc56c2a"
+    },
+    {
+      "series": "correctness",
+      "path": "private/r131-supplement/router-correctness-existing",
+      "result_sha256": "296cf121daf02342928fd17d0329b15f01140f7df29dce876f7314b6eb48bb90",
+      "archive_sha256": "2a6e082ad8ef58e91434b713444e34e4da4e6fc92af42b61c98a3e57f551e7d6"
+    },
+    {
+      "series": "correctness",
+      "path": "private/r131-supplement/router-correctness-fd",
+      "result_sha256": "2e1812be803c6fcf8946cbbb363b682657bc5d9fd29153f0810b8e11b12e6c45",
+      "archive_sha256": "01a1c65534367be69a86058432919036cb3a82cd9b6df4e66f61d513f50a17ba"
+    }
+  ],
+  "reports": {
+    "latency": {
+      "raw_report_path": "private/r131-latency/router-01/report.json",
+      "raw_report_sha256": "0c24d26412cf390dd20c3fd4499db84ff8642ae094b1f0b37803528c90130b66",
+      "public_result": "docs/reviews/r131-latency-supplement-results.json",
+      "public_result_sha256": "0c24d26412cf390dd20c3fd4499db84ff8642ae094b1f0b37803528c90130b66"
+    },
+    "shared": {
+      "raw_report_path": "private/r131-supplement/shared-router-01/report.json",
+      "raw_report_sha256": "3d2d04fe1c9204dc8022a81375737b98c106c284e9e7539b924997a86b61cea4",
+      "public_result": "docs/reviews/r131-shared-path-results.json",
+      "public_result_sha256": "4062633525c7142ce879d4dac8213f50a70e9a796f1105d91a67c60f25c3c950"
+    },
+    "stress": {
+      "raw_report_path": "private/r131-completion/stress/router-01/report.json",
+      "raw_report_sha256": "683bcb5f6e95d41be91cdbc52d27b3ddc60cc9bc390509127c436fbef6625e7a",
+      "public_result": "docs/reviews/r131-event-stress-results.json",
+      "public_result_sha256": "3758be1de898bc524a0243e8968f821dc2934ade8d8b1b3861997c1fde97fc7d"
+    },
+    "memory": {
+      "raw_report_path": "private/r131-supplement/memory/router-01/report.json",
+      "raw_report_sha256": "6162288916935b9567606cfebf904ca0f31a81fcddb039cde737f1f623d6afdc",
+      "public_result": "docs/reviews/r131-memory-supplement-results.json",
+      "public_result_sha256": "51f5c6af6443fb6e0ace802c2ccfc041c26da32b9a5143b8244bd47797a8b042"
+    },
+    "plateau": {
+      "raw_report_path": "private/r131-memory-plateau/router-01/report.json",
+      "raw_report_sha256": "70d3d3bd15cb47f6ae1bc073770581fc95c95df2f10193f818be8b7c329ca40d",
+      "public_result": null,
+      "public_result_sha256": null
+    },
+    "correctness": {
+      "raw_report_path": "docs/reviews/r131-router-correctness-results.json",
+      "raw_report_sha256": "0a9bc2969d74193bdaee893c5a2e835aee6a13ce0e92293f1e00e7d16b2187b0",
+      "public_result": "docs/reviews/r131-router-correctness-results.json",
+      "public_result_sha256": "0a9bc2969d74193bdaee893c5a2e835aee6a13ce0e92293f1e00e7d16b2187b0"
+    }
+  },
+  "coverage_limits": [
+    "Large fanout payloads 1/8/32 KiB have functionality and settled-memory observations, not payload-scale latency/CPU acceptance.",
+    "No nine-final-Rust-component integration, deployment, saturation-throughput, unbounded-load, PSS/kernel-peak, or long-duration soak conclusion.",
+    "No contemporary R89 comparison; historical figures are not imported.",
+    "Registration end-to-end regression is measured; its symbol-level cause is not established.",
+    "The same original R124 helper passes the newly forced short-write cases."
+  ],
+  "r124_registration_vs_c_same_windows": {
+    "register_1_8": {
+      "mean_us": {
+        "paired_delta_pct": [
+          1.4465713755172915,
+          1.127807096982636,
+          2.990127625354466,
+          0.5663371099952741,
+          3.0100292722897715,
+          1.3889428771565848
+        ],
+        "median_delta_pct": 1.4177571263369382
+      },
+      "p95_us": {
+        "paired_delta_pct": [
+          52.94653297323029,
+          48.91018325520857,
+          61.82892638644253,
+          24.615983443142774,
+          64.46612853785632,
+          43.7105204738552
+        ],
+        "median_delta_pct": 50.928358114219435
+      },
+      "daemon_cpu_us_per_op": {
+        "paired_delta_pct": [
+          2.555572296036557,
+          2.281777955231945,
+          4.287973959686897,
+          2.0206957369381717,
+          4.078894746168871,
+          1.583350721024157
+        ],
+        "median_delta_pct": 2.418675125634251
+      }
+    },
+    "register_16_8": {
+      "mean_us": {
+        "paired_delta_pct": [
+          3.370008280876302,
+          0.5816047728635976,
+          3.431844462533973,
+          -3.556134053217852,
+          3.2582040649701716,
+          1.866994610127315
+        ],
+        "median_delta_pct": 2.5625993375487433
+      },
+      "p95_us": {
+        "paired_delta_pct": [
+          52.89294665234516,
+          27.374952728619828,
+          50.91406927394697,
+          -6.583355426478022,
+          48.266659735038516,
+          39.64066152913672
+        ],
+        "median_delta_pct": 43.95366063208762
+      },
+      "daemon_cpu_us_per_op": {
+        "paired_delta_pct": [
+          9.562879147350834,
+          7.740948191265562,
+          9.25354302527368,
+          4.644378598286547,
+          8.999402778696108,
+          6.087448988563593
+        ],
+        "median_delta_pct": 8.370175484980836
+      }
+    }
+  },
+  "capacity_diagnostic": {
+    "path": "docs/reviews/r131-batch-capacity-accounting.json",
+    "sha256": "257e6b9c179965d3a53e7c9886d397787537910a5cd5202f8b4852b07948ae28",
+    "scope": "Oracle mechanism and capacity accounting; not release allocation-pointer attribution"
+  },
+  "final_router_state": {
+    "path": "private/r131-supplement/final-router-state.json",
+    "sha256": "47eae23bee82ba85ed0327708e4973a2be550a64d48198381a5ea642c946a64b",
+    "production_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "production_pid": 869,
+    "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+    "verified_stock_and_clean": true
+  }
+}

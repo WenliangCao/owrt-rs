@@ -1,5 +1,7 @@
 # R131 ubusd event fanout 实机结果
 
+后续补测已完成：[77 窗完整结论](R131_UBUSD_COMPLETION.md)。事件尾延迟收益得到确认，正确性补测通过，但共享注册 p95 冻结门失败，R131 不提升为通用基线。下文的 pending 是旧 router-04 批次本身的状态，不表示后续补测仍未执行。
+
 R131 是从精确 R124 ELF 源码分支出的同一 owner 连续事件帧批量发送实验。只有连续发往同一连接、没有 monitor 的事件帧进入 batch；跨 owner、monitor、已有队列、短写和大帧路径保留逐帧语义。候选 ELF SHA256 为
 `c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a`，源提交为
 `4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc`。
