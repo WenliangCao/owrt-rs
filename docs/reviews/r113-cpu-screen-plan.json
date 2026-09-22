@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "purpose": "Re-establish exploratory R113 CPU costs after correctness-mandated prefix/body reads, on exact physical AX3000T only. No source change or adoption in this screen.",
+  "scope": "Exactly two swapped-slot windows per C/R89/R109 control and low/64-held condition, three direct event lanes, daemon/client/total CPU and wall time. Twelve windows fixed before collection. Ratios are descriptive; n=2 gives no family median interval and cannot establish equivalence or a 1% effect. Old read-ahead wins do not transfer. R109 is a known-defective historical control; this FD-free workload does not endorse its compatibility.",
+  "common": {
+    "schema_version": 1,
+    "blocks": [
+      {
+        "block": 1,
+        "slots": {
+          "a": "before",
+          "b": "candidate"
+        }
+      },
+      {
+        "block": 2,
+        "slots": {
+          "a": "candidate",
+          "b": "before"
+        }
+      }
+    ],
+    "lanes": [
+      "user_1_1",
+      "user_8_1",
+      "user_1_0"
+    ],
+    "metrics": [
+      "subject_cpu_us",
+      "client_cpu_us",
+      "total_cpu_us",
+      "wall_us"
+    ],
+    "iterations": 5000,
+    "warmup": 2000,
+    "segments_per_lane": 8,
+    "segment_order": "a b b a b a a b",
+    "subject_cpu": 1,
+    "client_cpu": 0,
+    "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+    "libraries": {
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+    },
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "argv0": "/sbin/ubusd",
+    "family_comparisons": 72,
+    "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+    "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b"
+  },
+  "series": [
+    {
+      "name": "c-low",
+      "measurement": {
+        "subjects": {
+          "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+          "candidate": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+        },
+        "workload_script": "tools/r112_user_event_paired.sh",
+        "workload_sha256": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1"
+      }
+    },
+    {
+      "name": "c-loaded",
+      "measurement": {
+        "subjects": {
+          "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+          "candidate": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+        },
+        "workload_script": "tools/r112_user_event_loaded.sh",
+        "workload_sha256": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+        "held_clients": 64
+      }
+    },
+    {
+      "name": "r89-low",
+      "measurement": {
+        "subjects": {
+          "before": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+          "candidate": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+        },
+        "workload_script": "tools/r112_user_event_paired.sh",
+        "workload_sha256": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1"
+      }
+    },
+    {
+      "name": "r89-loaded",
+      "measurement": {
+        "subjects": {
+          "before": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+          "candidate": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+        },
+        "workload_script": "tools/r112_user_event_loaded.sh",
+        "workload_sha256": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+        "held_clients": 64
+      }
+    },
+    {
+      "name": "r109-low",
+      "measurement": {
+        "subjects": {
+          "before": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+          "candidate": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+        },
+        "workload_script": "tools/r112_user_event_paired.sh",
+        "workload_sha256": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1"
+      }
+    },
+    {
+      "name": "r109-loaded",
+      "measurement": {
+        "subjects": {
+          "before": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+          "candidate": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1"
+        },
+        "workload_script": "tools/r112_user_event_loaded.sh",
+        "workload_sha256": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+        "held_clients": 64
+      }
+    }
+  ],
+  "schedule": [
+    {
+      "series": "c-low",
+      "block": 1
+    },
+    {
+      "series": "r109-loaded",
+      "block": 1
+    },
+    {
+      "series": "r89-low",
+      "block": 1
+    },
+    {
+      "series": "c-loaded",
+      "block": 1
+    },
+    {
+      "series": "r109-low",
+      "block": 1
+    },
+    {
+      "series": "r89-loaded",
+      "block": 1
+    },
+    {
+      "series": "r89-loaded",
+      "block": 2
+    },
+    {
+      "series": "r109-low",
+      "block": 2
+    },
+    {
+      "series": "c-loaded",
+      "block": 2
+    },
+    {
+      "series": "r89-low",
+      "block": 2
+    },
+    {
+      "series": "r109-loaded",
+      "block": 2
+    },
+    {
+      "series": "c-low",
+      "block": 2
+    }
+  ],
+  "artifacts": {
+    "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88": "private/r95/ubusd-pilot/stock",
+    "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef": "private/r95/ubusd-pilot/r89",
+    "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259": "private/r109-method-name-storage/ubusd-rs",
+    "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1": "private/r113-fd-boundary/ubusd-rs"
+  },
+  "files": {
+    "private/r95/ubusd-pilot/stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "private/r95/ubusd-pilot/r89": "9b7169b35864bcabd702339795040302e3eaf4e85b23b635578399b2fa0334ef",
+    "private/r109-method-name-storage/ubusd-rs": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+    "private/r113-fd-boundary/ubusd-rs": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+    "tools/r113_cpu_screen.py": "4600a63c40c7b2415fe6b76e8a0018212753dea0bc843ac6d47d6dba8a1b699d",
+    "tools/r113_memory_runner.py": "ad8e7a9551054921320267ae2db1bdeb79079e1d33abee9c4c084556cc263642",
+    "docs/reviews/r113-memory-plan.json": "27a50626e1e60f5d7f9dcb9500eff0a325330fb2763faafb6e10329d7355fc5b",
+    "tools/r105_user_event_paired_report.py": "4282699e2669141874f5c7e5e18bd24fd9e1fa6d9d96580ac30bd0c735d68a36",
+    "tools/r101_libubus_paired_report.py": "d512e1be350adeba35854ba1747342b8d426989fcc84bc2ac4805dd34b60b699",
+    "tools/r99_registration_cpu_report.py": "3360baaa1ae821f4feef60ffc2658db0ae414dfd0df2a2e151cf501434cdb901",
+    "tools/r112_user_event_paired.sh": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1",
+    "tools/r112_user_event_loaded.sh": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+    "private/r112-client-table/user-event-libubus": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+    "tools/r95_device_smoke.py": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+    "tools/r84_device_probe.py": "89f2ce6b90c1b7a2ba9c6d89e3b4ac7bcf7f7ba07bad46216726173c13233698",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r112_rx_memory.sh": "43c3ec29f5e1d338a28b56c3e3ca148d91b09cd60c6f7e1350eeeaef6be089c3",
+    "tools/r105_rx_spare_report.py": "20133d3371323757cec7e40fce5dea229e581e95aec7d1852dc64ac5db894495",
+    "tools/r92_validate.py": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2"
+  },
+  "benchmark_path": "private/r112-client-table/user-event-libubus",
+  "guard_path": "private/r95/guard",
+  "recovery_gate_path": "private/r96/recovery-full/recovery-gate.json",
+  "memory_plan": "docs/reviews/r113-memory-plan.json",
+  "memory_root": "private/r113-fd-boundary/memory",
+  "execution": "Only after completed, cleaned memory collection and frozen R113 physical correctness/host gates. One router window at a time. Each window ABBA+BAAB per lane; reverse slots on block2. Same argv0 and same-length socket paths. Stop and preserve evidence on collection/identity/health/cleanup failure, never on an unfavorable ratio.",
+  "decision": "No acceptance threshold. Preserve all twelve windows and every metric. Use results to size a separate borrowed-dispatch experiment; confirmation must have a new frozen plan and adequate calibration. No promotion based on low n or selecting favorable lanes.",
+  "production": "C throughout; guard-bounded disposable namespaces; no install. Clean and verify every window. No concurrent router activity by subagents."
+}
