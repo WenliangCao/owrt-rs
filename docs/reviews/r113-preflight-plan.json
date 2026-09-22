@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "purpose": "Physical router correctness acceptance of R113 FD/frame-boundary repair, not performance acceptance.",
+  "source_commit": "befbb16",
+  "fix_commit": "e167351",
+  "regression_commit": "ed3ba4f",
+  "candidate_sha256": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+  "known_bad_control_sha256": "a6cb56b7d996d38b312058124ace2726169771e04c9018f95bb6e77e34013dee",
+  "stock_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+  "unit_tests_sha256": "af0aeeaac2133eae082464b4ae819b1ce156ae0eb841754f1bd6143fbec083f2",
+  "unit_filter": "",
+  "unit_tests_count": 44,
+  "wireprobe_sha256": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+  "workloads": {
+    "fd_boundary": {
+      "script": "tools/r113_ubusd_fd_boundary.sh",
+      "sha256": "bc5a15243980e827d1b5b927fb23ee4903bd5e1a7d399792b3d2d128ab2527c1",
+      "expectation": "C and R113 exit0 and identical six-case output, known bad R112 exits1 and exactly reproduces three misassociation/body-FD signatures; witness, no-leak and final object/fd checks must pass."
+    },
+    "existing_protocol": {
+      "script": "tools/r98_ubusd_events.sh",
+      "sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+      "expectation": "C, R112, R113 seven existing protocol groups identical."
+    }
+  },
+  "iterations": 1,
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "build_script_sha256": "131419c64d402cbf000b9a70b9c16c88b0e66506ca603f3bf285dfd5c58da042",
+  "build_log_sha256": "475cdd1783cd5f909b521ff89d1c875953bedce3edbe1c29956a4ea29dde7b2f",
+  "source_tar_sha256": "5061785155e1b26d96169b9fae4f537dbd5afc7bf2e7cfbbc3a91116cd1402eb",
+  "before_fix_test_sha256": "c21ff7da6357f0816b8e50436411cfb37ab87c4a90911d36b852adc1ff09455d",
+  "before_fix_test": "New first-frame FD regression fails R112 with [false,true] versus [true,false].",
+  "production": "C throughout; guarded disposable namespaces; every window verifies boot/config/mounts/production identity and cleanup. No installation.",
+  "decision": "Any unexpected exit, output, descriptor lifetime, identity or cleanup failure stops further windows and retains evidence. Oracle validation is prerequisite but not the final router verdict."
+}
