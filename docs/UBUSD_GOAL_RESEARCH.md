@@ -18,7 +18,7 @@ Oracle 与路由器各 46 条单测、六组功能/恢复门、原协议和 FD �
 [大事件驻留实测](reviews/R124_UBUSD_EVENT_MEMORY_RESULT.md)四窗已完成：32/256/768 KiB 后 C 与 R124 同增 36/260/772 KiB，
 R124 绝对 RssAnon 少 28–32 KiB，VmData 多 4 KiB；不是完整组件或峰值结论。
 八对象先做 R125 函数级采样；这里是同一连接的八个订阅对象，不是八个独立客户端。
-[R126 无目标回复提前退出](reviews/R126_UBUSD_RESPONSE_DESTINATION_PLAN.md)已冻结为独立假说，尚未构建或测量。
+[R126 无目标回复提前退出](reviews/R126_UBUSD_RESPONSE_DESTINATION_PLAN.md)已完成：正确性和 FD/事件回归在路由器通过，但 Oracle 八对象主 lane 的固定 A/A 校准失败（一个 pair +0.9618%，门为 ±0.5%），所以没有把其 −16.4% 指令计数带到路由器，也没有合入运行时。保留 [R126 计数结果](reviews/R126_UBUSD_RESPONSE_DESTINATION_RESULT.md) 和 [路由器回归](reviews/R126_UBUSD_RESPONSE_DESTINATION_ROUTER.md)。
 FD 契约未改变。此前判断不是 Rust/C 理论极限声明。
 不能把一次优化被拒、少数 pilot 波动或尚未定位的开销归因于 Rust/C 的语言极限。
 
