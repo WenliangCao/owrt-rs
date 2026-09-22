@@ -42,7 +42,7 @@ impl ClientCred {
 
 pub struct Server {
     pub reg: Registry,
-    pub clients: HashMap<u32, Client>,
+    pub clients: HashMap<u32, Box<Client>>,
     pub acl: Acl,
     pub acl_dir: String,
     /// Event patterns, sorted by key; equal keys keep registration order.
@@ -116,7 +116,7 @@ impl Server {
             .ok_or_else(|| std::io::Error::other("no group entry for peer gid"))?;
 
         let id = Registry::alloc_id(|id| self.clients.contains_key(&id))?;
-        self.clients.insert(id, Client::new(sock, cred, user, group));
+        self.clients.insert(id, Box::new(Client::new(sock, cred, user, group)));
         // HELLO carries an empty blob and the client's own id as peer. It goes
         // out through Server::send so that it reaches any monitor, which is
         // what ubusd_send_hello -> ubus_msg_send does.
@@ -994,7 +994,7 @@ impl Server {
 
     // -------------------------------------------------------------- monitor
 
-    fn mirror(clients: &mut HashMap<u32, Client>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
+    fn mirror(clients: &mut HashMap<u32, Box<Client>>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
         if monitors.is_empty() {
             return;
         }
@@ -1293,8 +1293,8 @@ mod tests {
             let mut s = Server::new(String::new()).unwrap();
             let (caller, mut peer) = lookup_client();
             let (monitor, mut monitor_peer) = lookup_client();
-            s.clients.insert(2000, caller);
-            s.clients.insert(2001, monitor);
+            s.clients.insert(2000, Box::new(caller));
+            s.clients.insert(2001, Box::new(monitor));
             if monitored { s.monitors.push((2001, 0)); }
             let mut expected = Vec::new();
             for i in 0..64u16 {
@@ -1392,8 +1392,8 @@ mod tests {
         let mut s = Server::new(String::new()).unwrap();
         let (owner, mut peer) = lookup_client();
         let (monitor, mut monitor_peer) = lookup_client();
-        s.clients.insert(2000, owner);
-        s.clients.insert(2001, monitor);
+        s.clients.insert(2000, Box::new(owner));
+        s.clients.insert(2001, Box::new(monitor));
         s.monitors.push((2001, 0));
         for id in [4000, 4001] {
             s.reg.create(None, Some(id)).unwrap();
@@ -1438,7 +1438,7 @@ mod tests {
     fn check_event_round_wrap(last_seen: u32) {
         let mut s = Server::new(String::new()).unwrap();
         let (owner, mut peer) = lookup_client();
-        s.clients.insert(2000, owner);
+        s.clients.insert(2000, Box::new(owner));
         s.reg.create(None, Some(4000)).unwrap();
         let o = s.reg.get_mut(4000).unwrap();
         o.client = Some(2000);
@@ -1535,7 +1535,7 @@ mod tests {
         for (count, signature_len) in [(128, 0), (1, 6000)] {
             let mut server = Server::new(String::new()).unwrap();
             let (caller, mut peer) = lookup_client();
-            server.clients.insert(CALLER, caller);
+            server.clients.insert(CALLER, Box::new(caller));
             let mut methods = Vec::new();
             if signature_len != 0 {
                 let mut signature = BlobBuf::new();
@@ -1593,7 +1593,7 @@ mod tests {
         for (change, pattern) in [("delete", "*"), ("recreate", "lookup.*"), ("delete_tail", "lookup.*")] {
             let mut server = Server::new(String::new()).unwrap();
             let (caller, mut peer) = lookup_client();
-            server.clients.insert(CALLER, caller);
+            server.clients.insert(CALLER, Box::new(caller));
             let mut signature = BlobBuf::new();
             let table = signature.msg_open_table("method");
             signature.msg_string("large", &"x".repeat(32768));
@@ -1667,9 +1667,9 @@ mod tests {
             let mut server = Server::new(String::new()).unwrap();
             let (mut caller, mut peer) = lookup_client();
             caller.uid = if root { 0 } else { 12345 };
-            server.clients.insert(CALLER, caller);
+            server.clients.insert(CALLER, Box::new(caller));
             let (monitor, mut monitor_peer) = lookup_client();
-            server.clients.insert(MONITOR, monitor);
+            server.clients.insert(MONITOR, Box::new(monitor));
             if monitored {
                 server.monitors.push((MONITOR, 0));
             }
@@ -1732,7 +1732,7 @@ mod tests {
         const CALLER: u32 = 2000;
         let mut server = Server::new(String::new()).unwrap();
         let (caller, mut peer) = lookup_client();
-        server.clients.insert(CALLER, caller);
+        server.clients.insert(CALLER, Box::new(caller));
         let mut signature = BlobBuf::new();
         let table = signature.msg_open_table("method");
         signature.msg_string("large", &"x".repeat(32768));

@@ -34,7 +34,7 @@ fn main() {
         let (sock, mut peer) = UnixStream::pair().unwrap();
         sock.set_nonblocking(true).unwrap();
         peer.set_read_timeout(Some(std::time::Duration::from_secs(2))).unwrap();
-        s.clients.insert(2000, client::Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new()));
+        s.clients.insert(2000, Box::new(client::Client::new(sock.into(), sys::Ucred::default(), String::new(), String::new())));
         for i in 0..objects {
             let mut b = BlobBuf::new();
             b.put_string(attr::OBJPATH, &format!("object.{i:04}"));
