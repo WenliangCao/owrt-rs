@@ -1459,7 +1459,7 @@ mod tests {
     fn direct_event_write_does_not_mark_interest_dirty() {
         let mut s = Server::new(String::new()).unwrap();
         let (owner, mut peer) = lookup_client();
-        s.clients.insert(2000, Box::new(owner));
+        s.clients.insert(2000, owner);
         s.reg.create(None, Some(4000)).unwrap();
         s.reg.get_mut(4000).unwrap().client = Some(2000);
         s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: 4000 });
