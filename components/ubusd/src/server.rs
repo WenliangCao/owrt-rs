@@ -8,7 +8,7 @@ use crate::obj::{self, Registry, SYSTEM_OBJECT_ACL, SYSTEM_OBJECT_EVENT, SYSTEM_
 use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::msg::{attr, status, ty, Header};
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::os::fd::OwnedFd;
 use std::ops::Bound::{Included, Unbounded};
 
@@ -43,7 +43,7 @@ impl ClientCred {
 
 pub struct Server {
     pub reg: Registry,
-    pub clients: HashMap<u32, Box<Client>>,
+    pub clients: BTreeMap<u32, Box<Client>>,
     pub acl: Acl,
     pub acl_dir: String,
     /// Event patterns, sorted by key; equal keys keep registration order.
@@ -73,7 +73,7 @@ impl Server {
         }
         Ok(Server {
             reg,
-            clients: HashMap::new(),
+            clients: BTreeMap::new(),
             acl: Acl::default(),
             acl_dir,
             patterns: Vec::new(),
@@ -1014,7 +1014,7 @@ impl Server {
 
     // -------------------------------------------------------------- monitor
 
-    fn mirror(clients: &mut HashMap<u32, Box<Client>>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
+    fn mirror(clients: &mut BTreeMap<u32, Box<Client>>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
         if monitors.is_empty() {
             return;
         }
