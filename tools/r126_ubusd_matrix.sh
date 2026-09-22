@@ -194,7 +194,11 @@ EOF
         label=$1; object=$2; method=$3; input=$4; expected=$5; count=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
-        "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label.json"
+        if [ "$component" = ubusd ] && [ "$object" = bench.target ]; then
+            "$bench" rpc-fixture "$socket" "$count" 20 "$monitors" > "$out/$label.json"
+        else
+            "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label.json"
+        fi
     }
     rpc_four() { # label object method input expected [total iterations]
         label=$1; object=$2; method=$3; input=$4; expected=$5; total=${6:-$n}
@@ -226,7 +230,11 @@ EOF
         "$bench" snapshot "$monitors" > "$out/$label/before.json"
         clients=''; j=1
         while [ "$j" -le 4 ]; do
-            "$bench" lookup "$socket" "$lookup_path" "$count" 20 "$monitors" > "$out/$label/client-$j.json" &
+            if [ "$component" = ubusd ]; then
+                "$bench" lookup-fixture "$socket" "$lookup_path" "$fixture_count" "$count" 20 "$monitors" > "$out/$label/client-$j.json" &
+            else
+                "$bench" lookup "$socket" "$lookup_path" "$count" 20 "$monitors" > "$out/$label/client-$j.json" &
+            fi
             clients="$clients $!"; j=$((j + 1))
         done
         failed=0
@@ -364,14 +372,15 @@ EOF
                 check_bus_objects 64 before
             fi
             start_trace
-            "$bench" lookup "$socket" bench.target "$n" 20 "$monitors" > "$out/lookup.json"
-            "$bench" lookup "$socket" '*' "$n" 20 "$monitors" > "$out/lookup_all_64.json"
-            run_rpc invoke bench.target ping '{"n":1}' '{"ok":1}'
+            fixture_count=64
+            "$bench" lookup-fixture "$socket" bench.target "$fixture_count" "$n" 20 "$monitors" > "$out/lookup.json"
+            "$bench" lookup-fixture "$socket" '*' "$fixture_count" "$n" 20 "$monitors" > "$out/lookup_all_64.json"
+            "$bench" rpc-fixture "$socket" "$n" 20 "$monitors" > "$out/invoke.json"
             if [ "${OWRT_UBUSD_MATRIX:-0}" = 1 ]; then
                 lookup_four lookup_c4 bench.target "$n"
                 lookup_four lookup_all_64_c4 '*' "$n"
                 rpc_four invoke_c4 bench.target ping '{"n":1}' '{"ok":1}' "$n"
-                "$bench" lookup "$socket" 'bench.*' "$n" 20 "$monitors" > "$out/lookup_prefix_64.json"
+                "$bench" lookup-fixture "$socket" 'bench.*' "$fixture_count" "$n" 20 "$monitors" > "$out/lookup_prefix_64.json"
                 lookup_four lookup_prefix_64_c4 'bench.*' "$n"
                 check_bus_objects 64 after
                 kill "$provider"; wait "$provider" 2>/dev/null || true
@@ -385,7 +394,8 @@ EOF
                 wait_object bench.filler0127 "$provider"
                 monitors=$bus,$provider
                 check_bus_objects 128 before
-                "$bench" lookup "$socket" '*' "$n" 20 "$monitors" > "$out/lookup_all_128.json"
+                fixture_count=128
+                "$bench" lookup-fixture "$socket" '*' "$fixture_count" "$n" 20 "$monitors" > "$out/lookup_all_128.json"
                 lookup_four lookup_all_128_c4 '*' "$n"
                 check_bus_objects 128 after
             fi
