@@ -1,0 +1,80 @@
+{
+  "scope": "Oracle-only R131 capacity and same-bundled-musl allocation diagnostic; no runtime change",
+  "candidate_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+  "evidence_root": "private/r131-event-batch/correctness/memory-capacity",
+  "unit_diagnostic": {
+    "passed": 1,
+    "failed": 0,
+    "other_tests_filtered": 53,
+    "relay_bytes": [
+      72,
+      1080
+    ],
+    "events": [
+      0,
+      1,
+      1000,
+      10000
+    ],
+    "capacity_bytes": [
+      576,
+      9216,
+      9216,
+      9216
+    ],
+    "pointer_stable_after_first_large_event": true,
+    "capacity_after_client_removed": 9216
+  },
+  "isolated_vec_diagnostic": {
+    "capacity_sequence": [
+      576,
+      1152,
+      2304,
+      4608,
+      9216
+    ],
+    "retained_frame_bytes": 7560,
+    "mmap_on_final_growth_bytes": 28672,
+    "munmap_on_drop_bytes": 28672,
+    "events_without_further_pointer_or_capacity_change": 10000
+  },
+  "allocator": {
+    "kind": "Rust toolchain bundled static musl 1.2.5",
+    "libc_archive_sha256": "b03473b6f1efb72f700f561b4407a88885b37e0edb5cdb2a64de0df5499e813f",
+    "size_class": 32,
+    "slot_bytes": 9344,
+    "group_slots": 3,
+    "group_header_bytes": 16,
+    "page_bytes": 4096,
+    "rounded_mapping_bytes": 28672,
+    "sources": [
+      "https://git.musl-libc.org/cgit/musl/plain/src/malloc/mallocng/malloc.c?h=v1.2.5",
+      "https://git.musl-libc.org/cgit/musl/plain/src/malloc/mallocng/meta.h?h=v1.2.5"
+    ]
+  },
+  "artifact_sha256": {
+    "server-diagnostic.rs": "7338eb47810af812c6f251e044a1139e3aead2f366dee37bd23ef3de90aff767",
+    "capacity-unit-tests": "21e8f0e1707b8d6047e8b9fd3a234cdbfe27cfe41a8a12cd405b96c5c7a36e0d",
+    "capacity-diagnostic.log": "bf46a520363414e8ad8f35e49cf19a006dfcf05391365af074d808f9d34adfbe",
+    "vec-growth.rs": "874aa0bf050923680c246a33f6e9d16bfe940976110f802c20c91c610e9c0a6a",
+    "vec-growth": "78b6db9048259450bdd7d299f38be2ee7bec4bbf3dfb2a9298cc39a3182b46b4",
+    "vec-growth-combined.trace": "b6dfd6a33b99fbd152088a58a0b3abd1a7141ea5c7412eb25c2de2fb1483f9fa",
+    "libc-identity.txt": "fe7d63085f34bdb1a0a7992d79e66c39d461b32a1e7a77f28fa3226cb28cdffd",
+    "musl-malloc.c": "ea50e97cccc60331d7306f6226949d2af94797ce2d39d474d226aa53cfb830d3",
+    "musl-meta.h": "42865d840d0724b6925d79dc5bc5a8595a67b19466cfd16dff903586211d0fe7",
+    "vec-growth.map": "876f04b543897c442f3bffa709006e14c1c1fe9c2ba1a94823a44cb5a05179ac",
+    "capacity-diagnostic-failed-01.log": "0c2ed4898051ac9c1b4580fa524c6d3c14cc80fa45bdc7b0855b1549754e9000",
+    "capacity-diagnostic-failed-02.log": "387d725989170a45b5c28ad9317577b4fd6d3ed1730fdfe855a19fb721d1bd56",
+    "vec-growth-failed-01.log": "91331fd5d17aa8fa03f5bc14bc5ac1b29defd26023f619227528726553c2310d",
+    "vec-growth-failed-01.trace": "cf6e49c5dfaa3a63aff57ff75f45b2c7044249a9490e06c0e11f6e8f2f4b5d20"
+  },
+  "limits": [
+    "Exact release per-allocation pointer attribution was not traced.",
+    "No physical router access was performed by this diagnostic worker.",
+    "The original >24 KiB VmData guard remains triggered; diagnosis does not redefine its threshold.",
+    "The plateau is for the tested fixed payload and handler count, not a universal no-leak proof.",
+    "Shared workload registration p95 failures remain separate open regressions.",
+    "Failed diagnostic compile/assertion attempts are retained; no performance claim uses them."
+  ],
+  "runtime_link_map_sha256": "d484cbd5933dac273ff0105e64254183dfbf5fa29e77ec3551a4676e2015d4cf"
+}
