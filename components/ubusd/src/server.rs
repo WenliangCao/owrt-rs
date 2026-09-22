@@ -888,8 +888,9 @@ impl Server {
         if id.starts_with(b"ubus.") {
             return status::PERMISSION_DENIED;
         }
-        let cred = self.cred_of(client);
-        if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&id), None, AclType::Send) {
+        let caller = self.clients.get(&client);
+        let cred = caller.map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
+        if !self.acl.check(cred.as_ref(), Some(&id), None, AclType::Send) {
             return status::PERMISSION_DENIED;
         }
         self.dispatch_event(Some(client), id, || {
@@ -1381,6 +1382,37 @@ mod tests {
             } else {
                 assert!(mirrors.is_empty());
             }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn event_send_preserves_group_root_and_missing_client_acl() {
+        const SENDER: u32 = 2000;
+        let mut data = BlobBuf::new();
+        data.msg_string("id", "group.event");
+        let payload = data.msg_open_table("data");
+        data.msg_u32("value", 0x12345678);
+        data.msg_close(payload);
+        for (name, credentials, expected) in [
+            ("supplementary group", Some((100, 7, &[42][..])), status::OK),
+            ("no matching group", Some((100, 7, &[][..])), status::PERMISSION_DENIED),
+            ("primary group", Some((100, 42, &[][..])), status::OK),
+            ("root", Some((0, 7, &[][..])), status::OK),
+            ("missing client", None, status::OK),
+        ] {
+            let mut s = Server::new(String::new()).unwrap();
+            s.acl = Acl::send_group_fixture("group.event", 42);
+            let (mut caller, _peer) = lookup_client();
+            if let Some((uid, gid, extra_gid)) = credentials {
+                caller.uid = uid;
+                caller.gid = gid;
+                caller.extra_gid = extra_gid.to_vec();
+                s.clients.insert(SENDER, Box::new(caller));
+            }
+            let round = s.obj_event_seq;
+            assert_eq!(s.event_send(SENDER, Some(data.payload())), expected, "{name}");
+            assert_eq!(s.obj_event_seq, round + u32::from(expected == status::OK), "{name}: dispatch authorization");
         }
     }
 
