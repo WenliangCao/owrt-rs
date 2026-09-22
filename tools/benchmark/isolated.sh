@@ -333,7 +333,13 @@ EOF
     count_exec=$((n / 20)); [ "$count_exec" -gt 0 ] || count_exec=1
     count_fw=$((n / 100)); [ "$count_fw" -gt 0 ] || count_fw=1
     bus_bin=$(choose ubusd /sbin/ubusd ubusd-rs)
-    "$bus_bin" -s "$socket" > "$out/bus.log" 2>&1 & bus=$!
+    if [ "$component" = ubusd ]; then
+        # Keep C and Rust daemon argv0 identical for the final matrix. The
+        # helper execs in place, so $! remains the real daemon PID.
+        "$bench" exec-cpu-as 1 "$bus_bin" /sbin/ubusd -s "$socket" > "$out/bus.log" 2>&1 & bus=$!
+    else
+        "$bus_bin" -s "$socket" > "$out/bus.log" 2>&1 & bus=$!
+    fi
     tries=0
     until ubus -t 1 list >/dev/null 2>&1; do
         kill -0 "$bus"; [ "$tries" -lt 20 ]; sleep 1; tries=$((tries + 1))
