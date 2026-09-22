@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "purpose": "Physical AX3000T R130 successful ADD reply coalescing; independently normalized exact C/R124/R130 fixed series",
+  "source_commit": "fc8bb458b585412658ae524ca8df183eee4081bf",
+  "subjects": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+    "r130": "2e8316cc3719a789efe266f01047998e0cfe46d1eedc19d31434a56d66b34528"
+  },
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "namespace_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+  "iterations": 5000,
+  "warmup": 20,
+  "runs": [
+    {
+      "index": 1,
+      "label": "c"
+    },
+    {
+      "index": 2,
+      "label": "r124"
+    },
+    {
+      "index": 3,
+      "label": "r130"
+    },
+    {
+      "index": 4,
+      "label": "c"
+    },
+    {
+      "index": 5,
+      "label": "r130"
+    },
+    {
+      "index": 6,
+      "label": "r124"
+    },
+    {
+      "index": 7,
+      "label": "r124"
+    },
+    {
+      "index": 8,
+      "label": "c"
+    },
+    {
+      "index": 9,
+      "label": "r130"
+    },
+    {
+      "index": 10,
+      "label": "r124"
+    },
+    {
+      "index": 11,
+      "label": "r130"
+    },
+    {
+      "index": 12,
+      "label": "c"
+    },
+    {
+      "index": 13,
+      "label": "r130"
+    },
+    {
+      "index": 14,
+      "label": "c"
+    },
+    {
+      "index": 15,
+      "label": "r124"
+    },
+    {
+      "index": 16,
+      "label": "r130"
+    },
+    {
+      "index": 17,
+      "label": "r124"
+    },
+    {
+      "index": 18,
+      "label": "c"
+    }
+  ],
+  "lanes": [
+    "register_1_8",
+    "register_16_8",
+    "guard_lookup_exact",
+    "guard_lookup_all",
+    "guard_lookup_prefix",
+    "guard_invoke"
+  ],
+  "primary_lanes": [
+    "register_1_8",
+    "register_16_8"
+  ],
+  "affinity": {
+    "daemon": 1,
+    "caller": 0,
+    "provider": 0
+  },
+  "daemon_argv0": "/sbin/ubusd",
+  "acceptance": {
+    "baseline": "r124",
+    "registration_mean_each_lane": {
+      "negative_blocks_required": 6,
+      "median_pct_max": -3
+    },
+    "registration_tail_or_daemon_cpu_median_pct_max": 5,
+    "guard_clear_regression": {
+      "positive_blocks_required": 6,
+      "median_mean_pct_min": 5
+    },
+    "practical_tie_band_pct": 1,
+    "c_comparison": "independent six-block descriptive comparison; never combine historical ratios",
+    "no_extensions": true
+  },
+  "validation": "Registration per-cycle successful STATUS and parseable ADD OBJID; complete signature in preflight, final empty lookup; separate tests/protocol gates check full wire. Four guard lanes validate full results every operation.",
+  "limitations": [
+    "Six blocks per comparison, no overall population significance/equivalence claim.",
+    "New CPU0/CPU1 and argv0 assertions; old R128 is not a normalized control.",
+    "No throughput saturation, event fanout or nine-component integration coverage.",
+    "RssAnon/VmData and RSS snapshots are not allocator or kernel peak memory."
+  ],
+  "benchmark_sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e",
+  "workload_sha256": "da6761be5e00d82ef27f720d1e2d61a2d5f56c66740b3b783d68afc9887567f3",
+  "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "harness_sha256": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad",
+  "orchestrator_sha256": "343d6a24243e00de376838e8372a31c0b1f25dbe7cf6bceb3e92d82ceb2e0892"
+}
