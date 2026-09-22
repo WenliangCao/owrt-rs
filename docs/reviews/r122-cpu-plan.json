@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "purpose": "R122 single-change system input borrowing: physical router exact-C comparison after exact-symbol allocation profile; retain R115 FD semantics.",
+  "scope": "Twenty fixed router windows: exact C versus R122 at low and 64-held connections, ten windows per scale, interleaved scales and reversed subject slots. Three direct user-event lanes only. Daemon/client/total CPU and sequential mean transaction wall time; no saturation throughput, tail latency, R115 incremental effect, memory, or whole-ubusd acceptance claim.",
+  "candidate_sha256": "d81f6554925f187b667e82aad5067c7dc6119d1098321e8266406ba92135261c",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "artifacts": {
+    "c": "private/r95/ubusd-pilot/stock",
+    "r122": "private/r122-system-borrow/maps/r122"
+  },
+  "files": {
+    "docs/reviews/R122_UBUSD_SYSTEM_BORROW_PLAN.md": "fd52e5bdae0dc08320cb17882a97c20201609f0f13e8a65ef46899d68bc16012",
+    "private/r112-client-table/user-event-libubus": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+    "private/r113-fd-boundary/wireprobe": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+    "private/r115-event-interest/ubusd-rs": "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde",
+    "private/r122-system-borrow/build.sh": "fe8a99c4196557dd5f358091feee176553b90dee877913cc03b71dca8030abf7",
+    "private/r122-system-borrow/gates-results.json": "246ade8dd61962925571cfa7f522fa3900d3eb429d5b9b0191465ae37d5ffd8a",
+    "private/r122-system-borrow/gates.sh": "ff72366952bb31cb5c3fa59f6a68da2a2ab55646a49afb2266478669f642bf9e",
+    "private/r122-system-borrow/maps/r122": "d81f6554925f187b667e82aad5067c7dc6119d1098321e8266406ba92135261c",
+    "private/r122-system-borrow/maps/r122-unit-tests": "2d547e35b71aa727e58b38daebcf56869170d4dba72ecb891992cef05ece10fb",
+    "private/r122-system-borrow/maps/r122-unit.log": "5767652c196b47c0d8947637ba3b33beb439750f44b6d988431c0d73e35c825b",
+    "private/r122-system-borrow/maps/r122.map": "96d2860e2782ae7f9b38920c600f52da972d23180f4f34abb6f1a3941226d079",
+    "private/r122-system-borrow/preflight-existing/health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r122-system-borrow/preflight-existing/health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r122-system-borrow/preflight-existing/raw.tar.gz": "e78ded6e95ac5ba9209ef430ed8b0d4f73a9b1803cb24f2e7bcdd45abba11196",
+    "private/r122-system-borrow/preflight-existing/result.json": "6cfcf93800bf014bd6619524ece8f3ecd4090b921f78979443af892b650ffa35",
+    "private/r122-system-borrow/preflight-existing/unit-tests.log": "adf1ebccb9a07d30444d9fd4db5b2d9479175e6c3028678d93b2b3cef1bfdf60",
+    "private/r122-system-borrow/preflight-fd/health-after.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r122-system-borrow/preflight-fd/health-before.json": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+    "private/r122-system-borrow/preflight-fd/raw.tar.gz": "adb6bb83c799f42e7dd6f142e3d42007a57ed85f3a9960a8a2352d4382a08b73",
+    "private/r122-system-borrow/preflight-fd/result.json": "d0c64b5913e387020b933f2ebfadcbc163d8597aecbfb5dcab46f8b21abe6ef0",
+    "private/r95/guard": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "private/r95/ubusd-pilot/stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "private/r96/recovery-full/recovery-gate.json": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "tools/benchmark/isolated.sh": "3ed18d19c8ea7002f5ad544cc2a441c608b9fa4a7bac705c3bcc49e2d4760b8f",
+    "tools/r101_libubus_paired_report.py": "d512e1be350adeba35854ba1747342b8d426989fcc84bc2ac4805dd34b60b699",
+    "tools/r105_user_event_paired_report.py": "4282699e2669141874f5c7e5e18bd24fd9e1fa6d9d96580ac30bd0c735d68a36",
+    "tools/r112_user_event_loaded.sh": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+    "tools/r112_user_event_paired.sh": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1",
+    "tools/r113_memory_runner.py": "ad8e7a9551054921320267ae2db1bdeb79079e1d33abee9c4c084556cc263642",
+    "tools/r115_cpu_runner.py": "b3204b0a7f094e6ae61ebbbaee881534620a0810071d662416799b820d4bbca1",
+    "tools/r115_ubusd_fd_boundary.sh": "a7625c0164f7daac05127f1ac0dfaaacebb07f7988017596ab927f4f1d571891",
+    "tools/r84_device_probe.py": "89f2ce6b90c1b7a2ba9c6d89e3b4ac7bcf7f7ba07bad46216726173c13233698",
+    "tools/r92_validate.py": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2",
+    "tools/r95_device_smoke.py": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+    "tools/r98_ubusd_events.sh": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+    "tools/r99_registration_cpu_report.py": "3360baaa1ae821f4feef60ffc2658db0ae414dfd0df2a2e151cf501434cdb901"
+  },
+  "preflights": [
+    "private/r122-system-borrow/preflight-existing",
+    "private/r122-system-borrow/preflight-fd"
+  ],
+  "oracle_gates": "private/r122-system-borrow/gates-results.json",
+  "required_gates": [
+    "ubusd-r36",
+    "ubusd-r36-user",
+    "ubusd-r83",
+    "ubusd-r42",
+    "ubusd-r41",
+    "r92-recovery"
+  ],
+  "guard_path": "private/r95/guard",
+  "recovery_gate_path": "private/r96/recovery-full/recovery-gate.json",
+  "benchmark_path": "private/r112-client-table/user-event-libubus",
+  "measurements": {
+    "c-low": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 3,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 4,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 5,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 6,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 7,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 8,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 9,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 10,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 24,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "candidate": "d81f6554925f187b667e82aad5067c7dc6119d1098321e8266406ba92135261c"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_paired.sh",
+      "workload_sha256": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1"
+    },
+    "c-loaded": {
+      "schema_version": 1,
+      "blocks": [
+        {
+          "block": 1,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 2,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 3,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 4,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 5,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 6,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 7,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 8,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        },
+        {
+          "block": 9,
+          "slots": {
+            "a": "before",
+            "b": "candidate"
+          }
+        },
+        {
+          "block": 10,
+          "slots": {
+            "a": "candidate",
+            "b": "before"
+          }
+        }
+      ],
+      "lanes": [
+        "user_1_1",
+        "user_8_1",
+        "user_1_0"
+      ],
+      "metrics": [
+        "subject_cpu_us",
+        "client_cpu_us",
+        "total_cpu_us",
+        "wall_us"
+      ],
+      "iterations": 5000,
+      "warmup": 2000,
+      "segments_per_lane": 8,
+      "segment_order": "a b b a b a a b",
+      "subject_cpu": 1,
+      "client_cpu": 0,
+      "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+      "libraries": {
+        "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+        "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+        "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+        "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+      "argv0": "/sbin/ubusd",
+      "family_comparisons": 24,
+      "benchmark_sha256": "86f8be6125d81387b7b206fc9b239a26eee9e725aac42f946c9f01ebd6e86daf",
+      "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+      "subjects": {
+        "before": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "candidate": "d81f6554925f187b667e82aad5067c7dc6119d1098321e8266406ba92135261c"
+      },
+      "benchmark_path": "private/r112-client-table/user-event-libubus",
+      "workload_script": "tools/r112_user_event_loaded.sh",
+      "workload_sha256": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
+      "held_clients": 64
+    }
+  },
+  "schedule": [
+    {
+      "measurement": "c-low",
+      "block": 1
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 1
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 2
+    },
+    {
+      "measurement": "c-low",
+      "block": 2
+    },
+    {
+      "measurement": "c-low",
+      "block": 3
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 3
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 4
+    },
+    {
+      "measurement": "c-low",
+      "block": 4
+    },
+    {
+      "measurement": "c-low",
+      "block": 5
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 5
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 6
+    },
+    {
+      "measurement": "c-low",
+      "block": 6
+    },
+    {
+      "measurement": "c-low",
+      "block": 7
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 7
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 8
+    },
+    {
+      "measurement": "c-low",
+      "block": 8
+    },
+    {
+      "measurement": "c-low",
+      "block": 9
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 9
+    },
+    {
+      "measurement": "c-loaded",
+      "block": 10
+    },
+    {
+      "measurement": "c-low",
+      "block": 10
+    }
+  ],
+  "output": "private/r122-system-borrow/cpu",
+  "decision": "Collect every pre-frozen window once. Stop only on correctness, identity, execution or cleanup failure and preserve all evidence. Report all 24 metric cells including regressions, paired ratios and rank intervals (i.i.d. window-ratio assumption). Ten same-sign windows are direction evidence, not a global winner or language-limit proof. Differences within +/-1% are operationally treated as ties, never silently excluded. No added significance-chasing windows. R115 incremental benefit is not measured by this C-only series.",
+  "workload_fd_boundary": "tools/r115_ubusd_fd_boundary.sh",
+  "artifact_by_hash": {
+    "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88": "private/r95/ubusd-pilot/stock",
+    "d81f6554925f187b667e82aad5067c7dc6119d1098321e8266406ba92135261c": "private/r122-system-borrow/maps/r122"
+  },
+  "primary_metric": "wall_us",
+  "secondary_metrics": [
+    "subject_cpu_us",
+    "client_cpu_us",
+    "total_cpu_us"
+  ],
+  "engineering_tie_band_pct": [
+    -1,
+    1
+  ],
+  "observation_unit": "Per scale and lane, each window yields one candidate/control ratio from four aggregated segments per subject; ten windows per cell.",
+  "candidate_source_commit": "6f38c06900a9bafdf3716f3497c1f9dc59e7c80a",
+  "base_source_commit": "b28dbc83f1de95c3ec49600944d0e44116da52a3"
+}

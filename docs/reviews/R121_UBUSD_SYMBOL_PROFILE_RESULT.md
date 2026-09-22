@@ -21,7 +21,7 @@ R109/R115 的 linker Map 来自完整 ELF 逐字节一致的重建；C 主 ELF �
    不能单凭 Oracle 样本解释路由器上全部差距。
 2. R115 的 `__libc_malloc_impl`、`__libc_free`、`alloc_slot`、`nontrivial_free`、
    `__libc_realloc` 合计 641/11583，即 5.53% 样本。客户端表 `get_mut` 为 1.61%；
-   这解释为什么继续换表容器不是足够大的方向，但也不是所有相关哈希工作的上界。
+   仅凭该符号不能评估换表的总收益，也不能把它当作所有相关哈希工作的上界。
 3. 回查 R115 `invoke -> system_object`，同步调用前仍有 `method.to_vec()`、`data.to_vec()`；
    所有系统 handler 在调用返回前结束，不停车保存输入。C 将当前消息直接交给对应 handler。
    下一候选只借用这两个输入，验证有无可测收益；event credentials、relay BlobBuf 和 FD 接收边界全部保留。
