@@ -8,6 +8,13 @@
 每个逻辑步骤独立 commit，预先冻结假设与采样，保留全部反向结果。统计与记账规则见
 [R95 研究规则](R95_PERFORMANCE_RESEARCH.md)。
 
+## 当前阻断性发现
+
+[R113 FD 帧边界复现](reviews/r113-fd-boundary-discovery.json)已确认 R109/R112 的
+跨帧 read-ahead 会把同一 sendmsg 中的 FD 交给错误请求，并错误保留 body 阶段的 FD。
+R109 现在仅是历史性能对照，不能称为已完成兼容性验收的可部署版本。生产一直为 C。
+先按精确 C 的 prefix/body 消费边界修复，再重建性能基线；R112 的确认采样尚未开始。
+
 ## 已有证据与当前起点
 
 - 当前接受源码为 R100+R103 与 R109 方法名存储改动（代码提交 `2fbfd88`），发布 ELF

@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "status": "inherited compatibility defect confirmed; Rust candidates not accepted for release",
+  "source_commit": "24864e7840b3a02a9ef76284a373f6b2f00b8a9b",
+  "scope": "Oracle functionality only. Repeat on physical router after bounded-receive fix; no performance conclusion.",
+  "cases": [
+    {
+      "source_file": "results.json",
+      "subject": "c_exact",
+      "elf_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "modes": {
+        "separate_waited": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "separate_queued": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "bundled": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      },
+      "cleanup_verified": true
+    },
+    {
+      "source_file": "results.json",
+      "subject": "r109",
+      "elf_sha256": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+      "modes": {
+        "separate_waited": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "separate_queued": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "bundled": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "cleanup_verified": true
+    },
+    {
+      "source_file": "results.json",
+      "subject": "r112",
+      "elf_sha256": "a6cb56b7d996d38b312058124ace2726169771e04c9018f95bb6e77e34013dee",
+      "modes": {
+        "separate_waited": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "separate_queued": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "bundled": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "cleanup_verified": true
+    },
+    {
+      "source_file": "edge-results/results.json",
+      "subject": "c_exact",
+      "elf_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "modes": {
+        "plain_first_then_fd_second": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "fd_in_first_body": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "fd_on_first_body_plus_second_frame": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ]
+      },
+      "cleanup_verified": true
+    },
+    {
+      "source_file": "edge-results/results.json",
+      "subject": "r109",
+      "elf_sha256": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+      "modes": {
+        "plain_first_then_fd_second": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "fd_in_first_body": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "fd_on_first_body_plus_second_frame": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "cleanup_verified": true
+    },
+    {
+      "source_file": "edge-results/results.json",
+      "subject": "r112",
+      "elf_sha256": "a6cb56b7d996d38b312058124ace2726169771e04c9018f95bb6e77e34013dee",
+      "modes": {
+        "plain_first_then_fd_second": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "fd_in_first_body": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "fd_on_first_body_plus_second_frame": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "cleanup_verified": true
+    }
+  ],
+  "raw_sha256": {
+    "results.json": "afc3659acac91522e5043d19f5888647f1a34552616cdd4c4743217af5397bdc",
+    "edge-results/results.json": "5c5817d506d5442527440a5451f1fb5880441b7ff25008c7dee5db5c04226c3b",
+    "socket-boundary-results.json": "8c1dc3aca0f3cc3a217d8040393b72600035564468e09397338b01ae1ae7774b",
+    "fd_batch_probe.py": "2a9035ae2d88b0008586a6545cbb12380bca2ecfe14a90bcd9dff139d594f445",
+    "fd_edge_probe.py": "714b7b2e1f89eb7fb7e3e50427dd55af6391fa66bc89e5c0d49c41c5263441cb",
+    "source-evidence.txt": "e7af3ed0b57d70addc183103d8e7d237388606dcd14edb0127cfbfc3b5003016"
+  },
+  "cause": "A large consuming recvmsg merges preceding ordinary bytes and a descriptor-bearing sendmsg. Its returned bytes/cmsg/length omit the descriptor-bearing skb start, so an end marker cannot preserve C per-frame prefix semantics.",
+  "normal_client_scope": "Pinned libubus sends one header+blob per writev_retry; ordinary separate sendmsg controls pass. Custom callers batching frames or attaching descriptors during body reception demonstrate the mismatch.",
+  "decision": "Correctness before performance: retire cross-frame consuming read-ahead. Use prefix-bounded recvmsg and frame-bounded read, retain shared stack and exact residual ownership as independent storage choices.",
+  "references": [
+    "https://github.com/gregkh/linux/blob/v6.12.94/net/unix/af_unix.c",
+    "https://man7.org/linux/man-pages/man7/unix.7.html",
+    "https://github.com/gregkh/linux/blob/v6.12.94/net/core/scm.c",
+    "https://github.com/gregkh/linux/blob/v6.12.94/include/net/scm.h"
+  ]
+}

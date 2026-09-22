@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "name": "R113 exact C descriptor/frame receive boundary",
+  "base_source_commit": "aa0ac58",
+  "priority": "Fix inherited FD misassociation before any further performance acceptance. No claim that previous read-ahead CPU wins preserve all C semantics.",
+  "algorithm": [
+    "recvmsg only the remaining bytes of the current 12-byte prefix. Accept ancillary only while no descriptor is pending.",
+    "Once prefix is validated, read only the remaining body of that frame using read, which discards ancillary as in C. Never consume into a following frame.",
+    "Keep event-loop stack scratch for small frames, exact owned residual bytes across readiness, and existing LargeFrame owned body for large messages.",
+    "Replace rx_fds end markers with one pending_fd; remove rx_drained cross-frame shortcut and obsolete rx_start compaction state.",
+    "Preserve owned InMsg/server API, R111 borrow reuse, R112 Box table, all output optimizations and corrected epoch/ACL/queue behavior."
+  ],
+  "excluded": [
+    "Do not simply reassign a descriptor to the first buffered frame: a preceding plain frame is the counterexample.",
+    "Do not use MSG_PEEK absence of cmsg/MSG_CTRUNC as a safe FD-free predicate: Linux scm_fp_dup allocation failure can hide ancillary on peek.",
+    "No borrowed dispatch, touched optimization or system-object allocation changes in the correctness fix."
+  ],
+  "validation": [
+    "Add failing receive regression for bundled first-frame FD and preceding plain frame before implementing.",
+    "Preserve and adapt residual, batching, large frame, fragmented prefix, fd ownership/drop, malformed length and EOF tests; add body-only FD discard and first-prefix-FD preservation.",
+    "Reproduce the new normalized wireprobe FD scenario against exact C and the known bad R112; fixed candidate must match C on physical router.",
+    "Run 41 existing Linux unit tests plus new cases, seven existing router protocol groups and six functional/recovery gates before resuming performance.",
+    "Re-freeze all performance identities and report any lost read-ahead advantage. R112-only performance plan is superseded before sampling."
+  ],
+  "reference": "r113-fd-boundary-discovery.json"
+}
