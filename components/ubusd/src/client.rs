@@ -63,11 +63,19 @@ pub struct PendingCmd {
     pub next: Option<Vec<u8>>,
 }
 
-/// Shared stack space for one small frame. Larger frames are completed
-/// straight into their own storage. Reads never cross a frame boundary.
+/// Shared stack space for the frame prefix. The body is completed in owned
+/// storage after its length is known, so completion does not copy through the
+/// event-loop buffer. Reads never cross a frame boundary.
 pub(crate) const RX_SIZE: usize = 4096;
 
-/// A frame larger than the read-ahead buffer, being completed in place.
+/// A frame body being completed in place after its bounded prefix was read.
+struct SmallFrame {
+    header: Header,
+    blob: Vec<u8>,
+    got: usize,
+    fd: Option<OwnedFd>,
+}
+
 struct LargeFrame {
     header: Header,
     blob: Vec<u8>,
@@ -90,13 +98,14 @@ pub struct Client {
     txq_ofs: usize,
     /// Bytes still owed, which goes negative after a partial direct write.
     txq_len: i64,
-    /// Only an incomplete frame survives a readiness round. Complete input
-    /// lives in the event loop's shared stack buffer during dispatch.
+    /// Only an incomplete prefix survives a readiness round. Once the length
+    /// is known, the body lives in a precise-size owned buffer across rounds.
     rx: Vec<u8>,
     rx_end: usize,
     /// Only the first descriptor received while filling this frame's prefix
     /// is delivered. Body reads discard ancillary data, matching C.
     pending_fd: Option<OwnedFd>,
+    small: Option<SmallFrame>,
     large: Option<LargeFrame>,
     pub eof: bool,
     /// Whether the readiness set currently asks for output events on this
@@ -122,6 +131,7 @@ impl Client {
             rx: Vec::new(),
             rx_end: 0,
             pending_fd: None,
+            small: None,
             large: None,
             eof: false,
             out_registered: false,
@@ -304,7 +314,8 @@ impl Client {
     }
 
     /// End a readiness round before the shared stack buffer serves a different
-    /// client. Only incomplete bytes allocate; idle connections retain none.
+    /// client. Only an incomplete prefix allocates; an in-progress body keeps
+    /// its exact-size Vec in `small` or `large`.
     pub fn end_read(&mut self, rx: &[u8; RX_SIZE]) {
         if self.rx_end != 0 {
             self.rx = rx[..self.rx_end].to_vec();
@@ -316,6 +327,28 @@ impl Client {
     /// connection must be closed (protocol violation or socket error).
     pub fn read_message<'a>(&mut self, rx: &'a mut [u8; RX_SIZE]) -> io::Result<Option<InMsg<'a>>> {
         loop {
+            if let Some(small) = &mut self.small {
+                if small.got == small.blob.len() {
+                    let done = self.small.take().expect("checked above");
+                    return Ok(Some(InMsg { header: done.header, blob: Cow::Owned(done.blob), fd: done.fd }));
+                }
+                let n = match sys::read_fd(self.sock.as_raw_fd(), &mut small.blob[small.got..]) {
+                    Ok(v) => v,
+                    Err(e) if would_block(&e) => return Ok(None),
+                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                    Err(e) => return Err(e),
+                };
+                if n == 0 {
+                    self.eof = true;
+                    return Ok(None);
+                }
+                small.got += n;
+                if small.got < small.blob.len() {
+                    return Ok(None);
+                }
+                let done = self.small.take().expect("checked above");
+                return Ok(Some(InMsg { header: done.header, blob: Cow::Owned(done.blob), fd: done.fd }));
+            }
             if let Some(large) = &mut self.large {
                 let n = match sys::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
                     Ok(v) => v,
@@ -363,32 +396,15 @@ impl Client {
                 peer: u32::from_be_bytes([rx[4], rx[5], rx[6], rx[7]]),
             };
             let total = Header::LEN + raw_len;
-            if total > RX_SIZE {
-                let mut blob = vec![0u8; raw_len];
-                blob[..4].copy_from_slice(&rx[Header::LEN..PREFIX_LEN]);
-                self.rx_end = 0;
-                self.large = Some(LargeFrame { header, blob, got: 4, fd: self.pending_fd.take() });
-                continue;
-            }
-            if self.rx_end < total {
-                // Like C, body reads discard ancillary data and cannot steal
-                // bytes (or a descriptor) belonging to a later frame.
-                let n = match sys::read_fd(self.fd(), &mut rx[self.rx_end..total]) {
-                    Ok(v) => v,
-                    Err(e) if would_block(&e) => return Ok(None),
-                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                    Err(e) => return Err(e),
-                };
-                if n == 0 {
-                    self.eof = true;
-                    return Ok(None);
-                }
-                self.rx_end += n;
-                if self.rx_end < total { return Ok(None); }
-            }
-            let blob = Cow::Borrowed(&rx[Header::LEN..total]);
+            let mut blob = vec![0u8; raw_len];
+            blob[..4].copy_from_slice(&rx[Header::LEN..PREFIX_LEN]);
             self.rx_end = 0;
-            return Ok(Some(InMsg { header, blob, fd: self.pending_fd.take() }));
+            if total > RX_SIZE {
+                self.large = Some(LargeFrame { header, blob, got: 4, fd: self.pending_fd.take() });
+            } else {
+                self.small = Some(SmallFrame { header, blob, got: 4, fd: self.pending_fd.take() });
+            }
+            continue;
         }
     }
 }
