@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "status": "Nine additional C/R113 Oracle cases match; no runtime mutation",
+  "initial_probe": {
+    "sha256": "8c213d1f51d8205686e8e721716566f85a8fdb13e9889583549486b7fc74a5f3",
+    "results_sha256": "22ac3a55776c6a85002abdd1243d56babedde157018b9f408792f2fe64e96844",
+    "observation": "Immediate pipe write after socket EOF succeeded once in R113 large-prefix EOF case; retained as a failed probe.",
+    "interpretation": "This is insufficient to infer an FD leak: Client.sock is declared before pending_fd/large, and Rust drops struct fields in declaration order. EOF can become observable before the remaining destructor operations finish. This ordering is a plausible explanation, not a measured causal trace."
+  },
+  "recheck": {
+    "probe_sha256": "54ea1645446ba1c1ec9e6fd096ae43c0e4a2f2ccb232238b9b6fc8a5767d6596",
+    "results_sha256": "20c865f80587e352d0caf35fcf01bbfaaf2b5ddb023bff950a612326fbd128ec",
+    "rule": "Require all witness read descriptors to be gone within 3 seconds while daemon and provider remain live; close all helper FDs and restore helper FD count. Bounded leak check, not an assertion of atomic teardown or latency equivalence.",
+    "passed": true,
+    "cases_per_subject": 9,
+    "subjects": {
+      "c_exact": {
+        "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "cases": [
+          {
+            "case": "first-fd-at-prefix-offset-1",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "first-fd-at-prefix-offset-6",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "first-fd-at-prefix-offset-11",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "prefix-fd-eof-11",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "small-body-fd-eof-16",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "large-prefix-fd-eof-12",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "two-fds-in-one-prefix",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "invalid-length-3-with-fd",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "large-frame-fd-followed-by-fd-frame",
+            "fd_payloads": [
+              [
+                "one"
+              ],
+              [
+                "two"
+              ]
+            ],
+            "seq": [
+              101,
+              102
+            ],
+            "forwarded_lengths": [
+              8244,
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          }
+        ],
+        "alive_after_cases": true,
+        "reaped": true,
+        "temporary_directory_removed": true
+      },
+      "r113": {
+        "sha256": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+        "cases": [
+          {
+            "case": "first-fd-at-prefix-offset-1",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "first-fd-at-prefix-offset-6",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "first-fd-at-prefix-offset-11",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "prefix-fd-eof-11",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "small-body-fd-eof-16",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "large-prefix-fd-eof-12",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "two-fds-in-one-prefix",
+            "fd_payloads": [
+              [
+                "one"
+              ]
+            ],
+            "seq": [
+              101
+            ],
+            "forwarded_lengths": [
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "invalid-length-3-with-fd",
+            "fd_payloads": [],
+            "seq": [],
+            "forwarded_lengths": [],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          },
+          {
+            "case": "large-frame-fd-followed-by-fd-frame",
+            "fd_payloads": [
+              [
+                "one"
+              ],
+              [
+                "two"
+              ]
+            ],
+            "seq": [
+              101,
+              102
+            ],
+            "forwarded_lengths": [
+              8244,
+              48
+            ],
+            "all_witness_fds_released": true,
+            "helper_fd_count_restored": true
+          }
+        ],
+        "alive_after_cases": true,
+        "reaped": true,
+        "temporary_directory_removed": true
+      }
+    }
+  },
+  "sources": [
+    "https://doc.rust-lang.org/reference/destructors.html#destructors.operation"
+  ],
+  "limits": [
+    "Oracle correctness only; does not extend physical performance or whole-protocol claims.",
+    "One pass of each extra case per subject; original immediate-EOF failure retained; no code changed to obtain a pass."
+  ]
+}

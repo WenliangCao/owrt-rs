@@ -1,0 +1,9 @@
+{
+  "candidate_64_client_rssanon_growth_kib": [
+    28,
+    28
+  ],
+  "limit_kib": 38.4,
+  "memory_gate_passed": true,
+  "scope": "HELLO/PING held connections only; no CPU, FD-workload, full-memory or adoption verdict."
+}

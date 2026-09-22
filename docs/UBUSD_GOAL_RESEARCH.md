@@ -15,7 +15,10 @@
 R109 现在仅是历史性能对照，不能称为已完成兼容性验收的可部署版本。生产一直为 C。
 [R113 修复](reviews/r113-correctness-results.json)已通过 44 条实机单测、七组原协议门、
 新增 FD 差分及六组主机功能/恢复门。修复在 `befbb16` 实验分支，尚未接受性能；
-现在按精确 C 的 prefix/body 消费边界重建性能基线。R112 的确认采样未启动。
+现在按精确 C 的 prefix/body 消费边界重建性能基线。R112 的 CPU 确认采样未启动。
+[R113 内存基线](reviews/R113_UBUSD_BOUNDED_RX_BASELINE.md)十窗口已完成：64 连接
+RssAnon 增长两次均 28 KiB，低于同轮 C 的 48 KiB、R89 的 36 KiB，通过冻结门。
+无连接和断连后 VmData 仍比 C 高 4 KiB；CPU 仅启动独立探索，尚无运行时接受结论。
 
 ## 已有证据与当前起点
 
