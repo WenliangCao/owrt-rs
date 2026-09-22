@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "known_bad_control_sha256": "a6cb56b7d996d38b312058124ace2726169771e04c9018f95bb6e77e34013dee",
+  "stock_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+  "unit_filter": "",
+  "unit_tests_count": 44,
+  "wireprobe_sha256": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+  "iterations": 1,
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "production": "C throughout; guarded disposable namespaces; every window verifies boot/config/mounts/production identity and cleanup. No installation.",
+  "purpose": "R114 physical correctness preflight for borrowed small-frame dispatch; no performance adoption.",
+  "source_commit": "579c879",
+  "base_commit": "befbb16",
+  "candidate_sha256": "e718287d73094325134998c7d166f939e1c04dd16cdcf6c1e4fa26715689900d",
+  "unit_tests_sha256": "b46964cd4e82247dc0ca7823033fa306db17d281cf94dac5d2d393f0cf8bc742",
+  "workloads": {
+    "fd_boundary": {
+      "script": "tools/r113_ubusd_fd_boundary.sh",
+      "sha256": "bc5a15243980e827d1b5b927fb23ee4903bd5e1a7d399792b3d2d128ab2527c1",
+      "expectation": "C and R114 exit0 with identical six-case output; known-bad R112 exit1 with the three frozen signatures. Verify witnesses, leak checks, empty final registry and FD recovery."
+    },
+    "existing_protocol": {
+      "script": "tools/r98_ubusd_events.sh",
+      "sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+      "expectation": "C, correct R113, R114 seven existing protocol groups identical; R114 44 unit tests pass first."
+    }
+  },
+  "correct_control_sha256": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+  "prerequisites": {
+    "oracle_unit_tests": 44,
+    "oracle_unit_log_sha256": "783d3e1cf13b29f9bfbe1a6d1c7b482690559d55269a7ed9bf47b8c57a9436a1",
+    "oracle_fd_results_sha256": "379f099909cedff813ba7a74203ad8c049fd455a7c99be66aced27e66297fca9",
+    "oracle_fd_probe_sha256": "04159a2e15defb18c269dceaa504b1b1027c4ab0800e5a08dbf82daa5f3e62ae"
+  },
+  "build": {
+    "build.sh": "4d3802c62acd0f7e6be2eccda6cbc541b05ba7aeb10a0c7ce3e0cab7d1773ded",
+    "build.log": "6459107015ccc6b67bbc0742055334689798b9571037681d0c56bb9a78cd0212",
+    "finish-build.sh": "2e0bf8f231165cce62137afd9140aa559871be801a4dc86c45096fa99a027668",
+    "finish-build.log": "ce2c4330e9e22cffe7ff5e1988e85fb58228144e5b32b0579231f7b9ad2a7429",
+    "source.tar": "cad6dbadf64a0b1348b24bd7b26d3003fb5e123b7848c0e53b8831042b3c07e7",
+    "restored-r113-unit.sha256": "8ed57cc0a31d4918581e7efb92328578fb79bca185d22edc22ba3204cfec4595"
+  },
+  "build_note": "Canonical R113 release rebuilt and cmp passed before changing source. Initial script copied the new test executable to the old Oracle R113 test-artifact path, then failed on the missing new path. Finish script copies from the R114 compiler-artifact record and passes all44; old remote R113 test artifact restored from its frozen local file and exact hash verified. Frozen local R113 artifacts and physical CPU inputs were unchanged. Both logs retained.",
+  "decision": "Any unexpected exit/output/identity/cleanup failure stops collection and preserves evidence. Oracle44 plus six wireprobe cases and nine extra FD cases passed before device. Six host functional/recovery gates may run concurrently on Oracle but must pass before any R114 performance test."
+}
