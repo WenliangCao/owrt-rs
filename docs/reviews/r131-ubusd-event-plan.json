@@ -33,11 +33,11 @@
     },
     "workload": {
       "path": "tools/r131_ubusd_event_batch.sh",
-      "sha256": "8a94a9f2abbce632ff096ca1e2046a29bf9e4929883fef4515280dc39277b065"
+      "sha256": "294746e3d2d524249bc3c37b2d5bef277a12b814e93a2c508f7d371e254f160f"
     },
     "benchmark": {
-      "path": "private/r98/event-client/owrt-benchmark",
-      "sha256": "2ff373109f7d3d2898562496218238902fc594026917d57d44f66507106e43e0"
+      "path": "private/r103-event-send-borrow/user-event-libubus",
+      "sha256": "e80801f8fd82de4f15a96bcb5e1263f2d08ba90b21687dc0489d7260589321f0"
     },
     "namespace_helper": {
       "path": "private/r90/deployment-r90/bins/ns-exec",
@@ -57,32 +57,110 @@
     }
   },
   "permutations": [
-    ["c", "r124", "r131"],
-    ["c", "r131", "r124"],
-    ["r124", "c", "r131"],
-    ["r124", "r131", "c"],
-    ["r131", "c", "r124"],
-    ["r131", "r124", "c"]
+    [
+      "c",
+      "r124",
+      "r131"
+    ],
+    [
+      "c",
+      "r131",
+      "r124"
+    ],
+    [
+      "r124",
+      "c",
+      "r131"
+    ],
+    [
+      "r124",
+      "r131",
+      "c"
+    ],
+    [
+      "r131",
+      "c",
+      "r124"
+    ],
+    [
+      "r131",
+      "r124",
+      "c"
+    ]
   ],
   "runs": [
-    {"index": 1, "label": "c"},
-    {"index": 2, "label": "r124"},
-    {"index": 3, "label": "r131"},
-    {"index": 4, "label": "c"},
-    {"index": 5, "label": "r131"},
-    {"index": 6, "label": "r124"},
-    {"index": 7, "label": "r124"},
-    {"index": 8, "label": "c"},
-    {"index": 9, "label": "r131"},
-    {"index": 10, "label": "r124"},
-    {"index": 11, "label": "r131"},
-    {"index": 12, "label": "c"},
-    {"index": 13, "label": "r131"},
-    {"index": 14, "label": "c"},
-    {"index": 15, "label": "r124"},
-    {"index": 16, "label": "r131"},
-    {"index": 17, "label": "r124"},
-    {"index": 18, "label": "c"}
+    {
+      "index": 1,
+      "label": "c"
+    },
+    {
+      "index": 2,
+      "label": "r124"
+    },
+    {
+      "index": 3,
+      "label": "r131"
+    },
+    {
+      "index": 4,
+      "label": "c"
+    },
+    {
+      "index": 5,
+      "label": "r131"
+    },
+    {
+      "index": 6,
+      "label": "r124"
+    },
+    {
+      "index": 7,
+      "label": "r124"
+    },
+    {
+      "index": 8,
+      "label": "c"
+    },
+    {
+      "index": 9,
+      "label": "r131"
+    },
+    {
+      "index": 10,
+      "label": "r124"
+    },
+    {
+      "index": 11,
+      "label": "r131"
+    },
+    {
+      "index": 12,
+      "label": "c"
+    },
+    {
+      "index": 13,
+      "label": "r131"
+    },
+    {
+      "index": 14,
+      "label": "c"
+    },
+    {
+      "index": 15,
+      "label": "r124"
+    },
+    {
+      "index": 16,
+      "label": "r131"
+    },
+    {
+      "index": 17,
+      "label": "r124"
+    },
+    {
+      "index": 18,
+      "label": "c"
+    }
   ],
   "affinity": {
     "daemon": 1,
@@ -90,7 +168,11 @@
     "provider": 0
   },
   "daemon_argv0": "/sbin/ubusd",
-  "lanes": ["user_1_1", "user_8_1", "user_1_0"],
+  "lanes": [
+    "user_1_1",
+    "user_8_1",
+    "user_1_0"
+  ],
   "primary_lane": "user_8_1",
   "acceptance": {
     "baseline": "r124",
