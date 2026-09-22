@@ -31,7 +31,7 @@ fn connection(queued: bool) -> (client::Client, UnixStream) {
 
 fn invoke(s: &mut server::Server, owner: u32, blob: &[u8]) {
     assert!(s.receive(owner, client::InMsg {
-        header: Header { ty: ty::INVOKE, seq: 100, peer: 0 }, blob: blob.to_vec(), fd: None,
+        header: Header { ty: ty::INVOKE, seq: 100, peer: 0 }, blob: blob.to_vec().into(), fd: None,
     }));
 }
 

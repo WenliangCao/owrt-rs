@@ -45,7 +45,7 @@ fn main() {
             let blob = b.as_bytes().to_vec();
             drop(b);
             assert!(s.receive(2000, client::InMsg {
-                header: Header { ty: ty::ADD_OBJECT, seq: i as u16, peer: 0 }, blob, fd: None,
+                header: Header { ty: ty::ADD_OBJECT, seq: i as u16, peer: 0 }, blob: blob.into(), fd: None,
             }));
             for expected in [ty::DATA, ty::STATUS] {
                 let mut prefix = [0; 12];

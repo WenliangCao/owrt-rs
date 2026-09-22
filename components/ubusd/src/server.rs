@@ -7,6 +7,7 @@ use crate::client::{Client, InMsg, OutMsg, PendingCmd};
 use crate::obj::{self, Registry, SYSTEM_OBJECT_ACL, SYSTEM_OBJECT_EVENT, SYSTEM_OBJECT_MAX, SYSTEM_OBJECT_MONITOR};
 use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::msg::{attr, status, ty, Header};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::os::fd::OwnedFd;
 use std::ops::Bound::{Included, Unbounded};
@@ -156,6 +157,21 @@ impl Server {
         }
     }
 
+    /// Reuse received bytes for PING and response forwarding. A borrowed
+    /// payload is copied only if it must wait; owned large frames can move.
+    fn send_received(&mut self, client: u32, header: Header, blob: Cow<'_, [u8]>, fd: Option<OwnedFd>) {
+        if header.ty != ty::MONITOR {
+            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &header, &blob, true);
+        }
+        if let Some(c) = self.clients.get_mut(&client) {
+            match blob {
+                Cow::Borrowed(blob) => { c.send_borrowed(header, blob, fd); }
+                Cow::Owned(blob) => { c.send(OutMsg { header, blob, fd }); }
+            }
+            self.touched.push(client);
+        }
+    }
+
     /// Send the assembled bytes directly. Keeping the buffer in its field
     /// avoids mem::take constructing and dropping an allocated empty buffer.
     fn send_scratch(&mut self, client: u32, header: Header, fd: Option<OwnedFd>) {
@@ -225,8 +241,7 @@ impl Server {
         }
         match msg.header.ty {
             ty::PING => {
-                let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, msg.blob);
-                self.send(client, out);
+                self.send_received(client, Header { ty: ty::DATA, ..msg.header }, msg.blob, None);
                 // The handler returns 0 in the C daemon, so a STATUS follows
                 // the echo; libubus waits for it to complete the request.
                 Outcome::Status(status::OK)
@@ -379,7 +394,7 @@ impl Server {
         let busy = self.clients.get(&client).is_some_and(|c| !c.tx_empty());
         if busy {
             if let Some(c) = self.clients.get_mut(&client) {
-                c.cmd_queue.push_back(PendingCmd { msg, next: None });
+                c.cmd_queue.push_back(PendingCmd { msg: msg.into_owned(), next: None });
             }
             return Outcome::Queued;
         }
@@ -387,7 +402,7 @@ impl Server {
             Ok(outcome) => outcome,
             Err(next) => {
                 if let Some(c) = self.clients.get_mut(&client) {
-                    c.cmd_queue.push_back(PendingCmd { msg, next });
+                    c.cmd_queue.push_back(PendingCmd { msg: msg.into_owned(), next });
                 }
                 Outcome::Queued
             }
@@ -624,9 +639,7 @@ impl Server {
         if !self.clients.contains_key(&dest) {
             return Outcome::NoStatus;
         }
-        let mut out = OutMsg::new(msg.header.ty, msg.header.seq, id, msg.blob);
-        out.fd = msg.fd;
-        self.send(dest, out);
+        self.send_received(dest, Header { peer: id, ..msg.header }, msg.blob, msg.fd);
         Outcome::NoStatus
     }
 
@@ -1307,7 +1320,7 @@ mod tests {
                 b.msg_close(method);
                 b.nest_end(signature);
                 let header = Header { ty: ty::ADD_OBJECT, seq: i * 2, peer: 123 };
-                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
+                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec().into(), fd: None }));
                 let id = s.reg.by_path(path.as_bytes()).unwrap();
                 let type_id = s.reg.get(id).unwrap().type_id.unwrap();
                 let mut data = BlobBuf::new();
@@ -1322,7 +1335,7 @@ mod tests {
                 let mut b = BlobBuf::new();
                 b.put_u32(attr::OBJID, id);
                 let header = Header { ty: ty::REMOVE_OBJECT, seq: i * 2 + 1, peer: 456 };
-                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
+                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec().into(), fd: None }));
                 expected.push((Header { ty: ty::DATA, ..header }, data));
                 expected.push((Header { ty: ty::STATUS, ..header }, status_blob));
                 assert!(s.reg.get(id).is_none());
@@ -1557,7 +1570,7 @@ mod tests {
                 let mut blob = BlobBuf::new();
                 assert!(server.receive(CALLER, InMsg {
                     header: Header { ty: ty::LOOKUP, seq, peer: 1234 },
-                    blob: blob.as_bytes().to_vec(), fd: None,
+                    blob: blob.as_bytes().to_vec().into(), fd: None,
                 }));
             }
             assert!(!server.clients[&CALLER].tx_empty(), "fixture must force queued output");
@@ -1610,7 +1623,7 @@ mod tests {
             let mut blob = BlobBuf::new();
             blob.put_string(attr::OBJPATH, pattern);
             let request = InMsg { header: Header { ty: ty::LOOKUP, seq: 0xabcd, peer: 0x12345678 },
-                blob: blob.as_bytes().to_vec(), fd: None };
+                blob: blob.as_bytes().to_vec().into(), fd: None };
             assert!(server.receive(CALLER, request));
             let next = server.clients[&CALLER].cmd_queue.front().unwrap().next.clone().unwrap();
             assert_eq!(next, b"lookup.01", "first frame must force backpressure");
@@ -1688,10 +1701,12 @@ mod tests {
             }
             let mut blob = BlobBuf::new();
             blob.put_string(attr::OBJPATH, "*");
+            let mut received = blob.as_bytes().to_vec();
             let request = InMsg { header: Header { ty: ty::LOOKUP, seq: 55, peer: 66 },
-                blob: blob.as_bytes().to_vec(), fd: None };
+                blob: Cow::Borrowed(&received), fd: None };
             let input = request.blob[4..].to_vec();
             assert!(server.receive(CALLER, request));
+            received.fill(0xa5);
             let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
             let paths: Vec<_> = frames.iter().filter(|(h, _)| h.ty == ty::DATA).map(|(_, b)| {
                 obj::cstr_bytes(attrs_of(&b[4..])[attr::OBJPATH as usize].unwrap().payload).to_vec()
@@ -1750,14 +1765,19 @@ mod tests {
             let mut blob = BlobBuf::new();
             blob.put_string(attr::OBJPATH, pattern);
             assert!(server.receive(CALLER, InMsg { header: Header { ty: ty::LOOKUP, seq, peer: 55 },
-                blob: blob.as_bytes().to_vec(), fd: None }));
+                blob: Cow::Borrowed(blob.as_bytes()), fd: None }));
+            // Simulate the next input overwriting the shared receive bytes
+            // while this LOOKUP is still parked behind earlier output.
+            blob.reset();
         }
         assert_eq!(server.clients[&CALLER].cmd_queue.len(), 3);
         let mut ping = BlobBuf::new();
         ping.put_string(attr::OBJPATH, "ping");
         let ping_bytes = ping.as_bytes().to_vec();
+        let mut borrowed_ping = ping_bytes.clone();
         assert!(server.receive(CALLER, InMsg { header: Header { ty: ty::PING, seq: 13, peer: 56 },
-            blob: ping_bytes.clone(), fd: None }));
+            blob: Cow::Borrowed(&borrowed_ping), fd: None }));
+        borrowed_ping.fill(0xa5);
         let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
         assert_eq!(frames.len(), 46);
         assert_eq!((frames[0].0.ty, frames[0].0.seq, &frames[0].1), (ty::DATA, 10, &expected[0]));

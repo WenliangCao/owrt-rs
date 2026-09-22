@@ -3,6 +3,7 @@
 
 use crate::sys;
 use owrt_ubus::msg::{ty, Header, MAX_MSGLEN};
+use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::io;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
@@ -14,13 +15,19 @@ pub const MAX_TXQ_LEN: i64 = MAX_MSGLEN as i64;
 
 /// A message as received: header, the whole head blob (its own 4-byte header
 /// included) and at most one descriptor that rode along with it.
-pub struct InMsg {
+pub struct InMsg<'a> {
     pub header: Header,
-    pub blob: Vec<u8>,
+    pub blob: Cow<'a, [u8]>,
     pub fd: Option<OwnedFd>,
 }
 
-impl InMsg {
+impl InMsg<'_> {
+    /// Only a parked command must outlive the current shared receive buffer.
+    /// Large frames already own their bytes and move them without a copy.
+    pub fn into_owned(self) -> InMsg<'static> {
+        InMsg { header: self.header, blob: Cow::Owned(self.blob.into_owned()), fd: self.fd }
+    }
+
     /// Top-level attribute payload -- the blob's contents past its header.
     pub fn payload(&self) -> &[u8] {
         if self.blob.len() > 4 {
@@ -52,7 +59,7 @@ impl OutMsg {
 /// `next` is an owned path lower bound, so deleting the next object cannot
 /// invalidate the cursor or restart the walk at already-delivered objects.
 pub struct PendingCmd {
-    pub msg: InMsg,
+    pub msg: InMsg<'static>,
     pub next: Option<Vec<u8>>,
 }
 
@@ -307,7 +314,7 @@ impl Client {
     /// Read one complete message, if the socket has one. `Ok(None)` means the
     /// message is still incomplete or the socket is drained; `Err` means the
     /// connection must be closed (protocol violation or socket error).
-    pub fn read_message(&mut self, rx: &mut [u8; RX_SIZE]) -> io::Result<Option<InMsg>> {
+    pub fn read_message<'a>(&mut self, rx: &'a mut [u8; RX_SIZE]) -> io::Result<Option<InMsg<'a>>> {
         loop {
             if let Some(large) = &mut self.large {
                 let n = match sys::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
@@ -325,7 +332,7 @@ impl Client {
                     return Ok(None);
                 }
                 let done = self.large.take().expect("checked above");
-                return Ok(Some(InMsg { header: done.header, blob: done.blob, fd: done.fd }));
+                return Ok(Some(InMsg { header: done.header, blob: Cow::Owned(done.blob), fd: done.fd }));
             }
             if self.rx_end < PREFIX_LEN {
                 // A consuming recvmsg must stop at this prefix. Otherwise
@@ -379,7 +386,7 @@ impl Client {
                 self.rx_end += n;
                 if self.rx_end < total { return Ok(None); }
             }
-            let blob = rx[Header::LEN..total].to_vec();
+            let blob = Cow::Borrowed(&rx[Header::LEN..total]);
             self.rx_end = 0;
             return Ok(Some(InMsg { header, blob, fd: self.pending_fd.take() }));
         }
@@ -443,11 +450,11 @@ mod tests {
 
     // Drive exactly the production begin/next-until-None/end boundary, then
     // overwrite the shared storage to simulate a different ready client.
-    fn rx_round(c: &mut Client, rx: &mut [u8; RX_SIZE]) -> Vec<InMsg> {
+    fn rx_round(c: &mut Client, rx: &mut [u8; RX_SIZE]) -> Vec<InMsg<'static>> {
         c.begin_read(rx);
         let mut messages = Vec::new();
         while let Some(msg) = c.read_message(rx).unwrap() {
-            messages.push(msg);
+            messages.push(msg.into_owned());
         }
         c.end_read(rx);
         rx.fill(0xa5);
@@ -456,7 +463,7 @@ mod tests {
 
     fn assert_frame(msg: &InMsg, frame: &[u8]) {
         assert_eq!(msg.header.encode(), frame[..Header::LEN]);
-        assert_eq!(msg.blob, frame[Header::LEN..]);
+        assert_eq!(msg.blob.as_ref(), &frame[Header::LEN..]);
     }
 
     #[test]

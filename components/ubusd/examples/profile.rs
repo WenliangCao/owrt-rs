@@ -61,12 +61,12 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
     (s, caller_peer, owner_peer)
 }
 
-fn input(kind: u8, mut b: BlobBuf) -> InMsg {
-    InMsg { header: Header { ty: kind, seq: 1, peer: 0 }, blob: b.as_bytes().to_vec(), fd: None }
+fn input(kind: u8, mut b: BlobBuf) -> InMsg<'static> {
+    InMsg { header: Header { ty: kind, seq: 1, peer: 0 }, blob: b.as_bytes().to_vec().into(), fd: None }
 }
 
-fn copy(msg: &InMsg) -> InMsg {
-    InMsg { header: msg.header, blob: msg.blob.clone(), fd: None }
+fn copy(msg: &InMsg) -> InMsg<'static> {
+    InMsg { header: msg.header, blob: msg.blob.clone().into_owned().into(), fd: None }
 }
 
 fn drain(peer: &mut UnixStream, frames: usize, scratch: &mut Vec<u8>) {
