@@ -60,7 +60,7 @@ def family(names):
     if re.search(r"ubusd_find_object|Registry::get|Registry(?:3get|7get_mut)|HashMap.*(?:obj6Object|obj::Object).*(?:E3get|E7get_mut|::get)", joined):
         return "registry_object_lookup"
     allocation_names = {"malloc", "calloc", "realloc", "free", "cfree", "aligned_alloc", "posix_memalign",
-                        "__libc_malloc", "__libc_free", "__libc_realloc", "__libc_calloc", "__malloc_alloc_meta",
+                        "__libc_malloc", "__libc_malloc_impl", "__libc_free", "__libc_realloc", "__libc_calloc", "__malloc_alloc_meta",
                         "__malloc_alloc_area", "__malloc_atfork", "__malloc_donate", "__libc_memalign", "alloc_slot",
                         "try_avail", "alloc_group", "nontrivial_free", "free_group", "__rust_alloc", "__rust_dealloc",
                         "__rust_realloc", "__rust_alloc_zeroed"}
