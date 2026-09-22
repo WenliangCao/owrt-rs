@@ -3,7 +3,14 @@
 R124 ELF `42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926` 与精确 C
 `cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88` 各跑 8 个新 daemon 窗口，
 顺序为 C、R124、R124、C 的四轮交错，共 16 窗口。每窗 5000 次、20 次预热；daemon 固定 CPU1，
-同一个新编译 benchmark/caller 固定 CPU0，argv0 统一为 `/sbin/ubusd`。
+同一个新编译 benchmark/caller，daemon argv0 统一为 `/sbin/ubusd`。
+
+**恢复审计勘误：原报告“caller 固定 CPU0”不成立。** 已识别脚本 `fd9ba22c…ca` 确实通过
+`exec-cpu-as 1` 启动 daemon，helper 会检查自身 affinity 后 exec，因此 daemon CPU1 和统一 argv0
+有启动链证据；但 provider、串行 caller 和四客户端 caller 都由脚本直接启动，没有显式绑定 CPU0。
+`lookup-fixture`/`rpc-fixture` 内部也不设置 affinity，raw 未保存这些客户端的实际 mask。
+全部 16 窗的脚本和 helper 身份一致。数值保留为这种客户端调度条件下的实机观察，不能描述成
+daemon/client 分别隔离在 CPU1/CPU0 的受控比较，也不能仅据此将大幅并发差值归因于 Rust 的批量路径。
 
 严格 benchmark 每个操作都检查返回内容：path lookup 检查完整有序路径列表、数量、非零唯一 ID、
 跨请求稳定 ID 和 `ping/{n:Int32}` 签名；pathless `*` 也检查全部返回对象。invoke 检查完整
@@ -24,8 +31,9 @@ R124 ELF `42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926` 与�
 | invoke 四客户端 | 261.88 | 230.90 | −11.0% |
 
 每个 lane 只有四个交错 block 比值，不计算置信区间或总体显著性；p50/p95/p99 和每次 latency_ns
-保留在机器结果中。此组证明 R124 在这些当前覆盖的 lookup/invoke 工作负载上明显快于 C，
-不能外推到注册、事件之外的路径或所有应用负载。四客户端较大的优势与 Rust 当前批量/借用路径一致，
+保留在机器结果中。此组记录 R124 在上述实际启动和调度条件下的 lookup/invoke 耗时均低于 C，
+不能外推到注册、事件之外的路径或所有应用负载。Rust 当前批量/借用路径可能有助于并发优势，
+但客户端 CPU 未控制，本组不能分离批量效果与调度影响。
 仍需通过注册和连接规模检查确认没有内存或功能代价。
 
 第一组 cohort 在第 4 窗上传脚本时 SSH 断线，未启动 daemon；其失败证据保留且不和正式 16 窗拼接。

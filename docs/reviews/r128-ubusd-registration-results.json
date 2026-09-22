@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "Physical router current R124 registration cycles, descriptive four-block pairs",
+  "scope": "Physical router current R124 registration cycles, descriptive four-block pairs with uncontrolled launch affinity and differing argv0; corrected after launcher audit",
   "plan_sha256": "0c0a1788efed0ea5661a0f7563c1e4c8625c2230c9279aeb405e32c887adec03",
   "windows": 16,
   "summary": {
@@ -480,6 +480,28 @@
   "limits": [
     "No A/A or confidence intervals; no tail claim beyond benchmark samples.",
     "Complete reply/signature and empty-registry checks were run outside measured cycle preflight and after cycle.",
-    "No R124/R123 inference or acceptance score."
-  ]
+    "No R124/R123 inference or acceptance score.",
+    "Correction: R128 did not implement its claimed daemon CPU1 or normalized argv0. Its custom workload directly launched the selected binary despite exporting OWRT_UBUSD_NORMALIZED=1.",
+    "Neither daemon nor caller was explicitly pinned by this launch chain; register-cycle does not pin itself or the daemon. Actual affinity and cmdline were not captured in the raw snapshots.",
+    "C launch argv0 was /sbin/ubusd; R124 launch argv0 was /tmp/bin/ubusd-rs. Preserve all measurements but do not attribute the +3.1% or -1.3% descriptive medians to controlled implementation differences. New normalized evidence must remain a separate cohort."
+  ],
+  "launch_condition_erratum": {
+    "prior_claim": "daemon pinned to CPU1 and C/R124 daemon argv0 normalized to /sbin/ubusd",
+    "status": "withdrawn; measurements and outliers retained unchanged",
+    "workload": "tools/r128_ubusd_registration.sh",
+    "workload_sha256": "8429a90afdddd8310e59a8a26bb93a6ad5b949edff32df6e09ff9d1c78950abb",
+    "matching_successful_windows": 16,
+    "benchmark_sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e",
+    "launch": {
+      "daemon": "direct selected binary; normalized isolated.sh workload branch is bypassed",
+      "c_argv0": "/sbin/ubusd",
+      "r124_argv0": "/tmp/bin/ubusd-rs",
+      "daemon_explicit_cpu_binding": false,
+      "caller_explicit_cpu_binding": false,
+      "actual_affinity_observed": false,
+      "actual_cmdline_observed": false
+    },
+    "benchmark_review": "Only exec-cpu and exec-cpu-as call affinity::pin; register-cycle, measure and measure_cpu_loop do not change affinity.",
+    "boundary": "R129 used its own exec-cpu-as launch and has 80 status files all recording Cpus_allowed_list=1; this defect does not invalidate that memory cohort."
+  }
 }

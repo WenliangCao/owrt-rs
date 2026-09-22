@@ -5264,7 +5264,9 @@
     "Four block pairs, no A/A calibration and no confidence intervals.",
     "C4 daemon CPU is one representative overlapping interval, never summed across clients.",
     "Latency samples are strict validated benchmark operations; p99 is within this benchmark sample, not application population tail.",
-    "No acceptance score or R124/R123 inference."
+    "No acceptance score or R124/R123 inference.",
+    "Correction: the daemon was explicitly pinned to CPU1 with normalized argv0, but provider and callers were launched directly. The prior caller CPU0 claim is withdrawn; their actual affinity masks were not captured.",
+    "Measurements apply to the observed caller scheduling conditions, not an isolated CPU1-daemon/CPU0-client experiment; concurrent latency improvements cannot be attributed solely to batching from this cohort."
   ],
   "final_health": {
     "path": "final-stock-check",
@@ -5276,5 +5278,23 @@
   "failed_prior_cohort": {
     "path": "private/r127-r124-matrix/router-01",
     "failure": "window04 upload scp disconnect; windows01-03 complete but cohort excluded; no daemon/performance sample for window04; all cleanup/health passed"
+  },
+  "launch_condition_erratum": {
+    "prior_claim": "benchmark/caller fixed on CPU0",
+    "status": "withdrawn; daemon CPU1 and normalized argv0 retained; measurements unchanged",
+    "workload": "tools/r126_ubusd_matrix.sh",
+    "workload_sha256": "fd9ba22cb8b4ec0522bb657f98c4fdaa602fd7341ca989f580f75c07370b85ca",
+    "matching_successful_windows": 16,
+    "benchmark_sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e",
+    "launch": {
+      "daemon": "exec-cpu-as 1 selected_binary /sbin/ubusd; helper checks affinity before exec",
+      "daemon_explicit_cpu_binding": 1,
+      "daemon_argv0": "/sbin/ubusd",
+      "provider_explicit_cpu_binding": false,
+      "caller_explicit_cpu_binding": false,
+      "provider_actual_affinity_observed": false,
+      "caller_actual_affinity_observed": false
+    },
+    "benchmark_review": "lookup-fixture, rpc-fixture and serve do not call affinity::pin; workload invokes them without an affinity wrapper."
   }
 }

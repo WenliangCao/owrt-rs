@@ -130,7 +130,7 @@ FD 边界，45/45 单测通过，并在未安装候选的路由器 pilot 后完�
 
 [R124 当前 ubusd 实用前沿判断](reviews/R124_UBUSD_FINAL_FRONTIER.md)汇总了最新路由器证据。
 在性能九成、开销一成的取舍下，R124 是当前 Rust 集成候选基线：查询/调用、单接收者事件和连接驻留已明显优于或不高于 C；
-八对象 fanout 约慢 2%，单方法注册约慢 3%，不能称全面胜 C。R126 的功能优化因 A/A 校准失败没有合入。
+八对象 fanout 约慢 2%，注册结论须受控重测，不能称全面胜 C。恢复审计发现 R128 daemon/caller 未显式钉核且启动 argv0 不同，原先 CPU1/统一 argv0 的描述错误；其单方法 +3.1% 只保留为原条件下的观察，不能归因成已确认的实现退步。R127 的 daemon CPU1/统一 argv0 有证据，但 caller CPU0 的原描述也错误，查询/调用数值只适用于客户端未显式钉核的调度条件。R126 的功能优化因 A/A 校准失败没有合入。
 生产继续运行 C；R124 进入九组件协同前，还需以实际组合负载复核这些剩余路径。
 
 ## 停止判断
@@ -146,9 +146,9 @@ R121 profile 后的 R122–R124 已发现并验证新的改进，不能再写成
 R126 的提前退出假说已完成功能回归但因计量 A/A 门失败而停止。
 [R127 当前 ELF 广覆盖矩阵](reviews/R127_UBUSD_MATRIX_RESULT.md)在路由器上严格校验 lookup/invoke：
 单对象耗时低于 C 约 5.7%/6.0%，64/128 全量 lookup 低约 32%–35%，四客户端全量 lookup 低约 59%–61%，
-四客户端 invoke 低约 11%。这是当前 ELF 的新证据，不迁移 R109。
+四客户端 invoke 低约 11%。这是当前 ELF 的新证据，不迁移 R109；恢复审计更正 caller 并未显式绑定 CPU0，不能将此组描述为双端分核的受控比较或单独归因于批量发送。
 [R128 注册实测](reviews/R128_UBUSD_REGISTRATION_RESULT.md)严格校验 ADD/REMOVE 与完整签名：
-1-method/8-byte name 的 R124 中位耗时约高 C 3.1%，16-method 约低 1.3%，但各有异常和反向窗口，不能称稳定胜出；[R129 连接规模内存](reviews/R129_UBUSD_MEMORY_RESULT.md)已补齐：64 个空闲连接 R124 的 RssAnon/VmData 增量为 28/28 KiB，C 为 48/52 KiB；
-8/32 连接也低于 C，0/1 连接持平。它是驻留快照而非峰值或内核 socket 内存结论。
+1-method/8-byte name 的 R124 中位耗时约高 C 3.1%，16-method 约低 1.3%，但各有异常和反向窗口。恢复审计进一步确认该脚本只 export 归一化标志，自己的 workload 却直接启动 daemon；daemon/caller 无显式绑核，C/Rust 启动 argv0 不同，raw 无 mask/cmdline。保留全部数值与负结果，撤回 CPU1/统一 argv0 及已确认单方法退步的表述，须独立重新测量；[R129 连接规模内存](reviews/R129_UBUSD_MEMORY_RESULT.md)已补齐：64 个空闲连接 R124 的 RssAnon/VmData 增量为 28/28 KiB，C 为 48/52 KiB；
+8/32 连接也低于 C，0/1 连接持平。R129 确实使用 `exec-cpu-as 1`，80 份前后 status 的 CPU mask 均为 CPU1，不受 R128 启动缺陷影响。它是驻留快照而非峰值或内核 socket 内存结论。
 历史 R109 的查询/注册胜出、R113 的内存数值及现有正确性门都不能替代当前 ELF 的实机性能覆盖；
 批次平均 wall 也不能推导 p99。停止判断限于最后实际覆盖的硬件、工作负载和正确性约束。
