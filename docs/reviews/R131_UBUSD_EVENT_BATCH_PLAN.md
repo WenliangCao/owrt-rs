@@ -11,9 +11,8 @@ R125 的精确夹具在一个 listener 连接上注册 8 个 handler，R124 对�
 - 每帧仍先执行 mirror、分配 event sequence、patch OBJID，并保持原 pattern 顺序；monitor 非空时全部回退逐帧，以保留 `M1,E1,M2,E2` 顺序；
 - 已有队列、大帧、短写和队列上限均按逐帧语义恢复，未发送帧各自计入 cap；不携带 FD，不改变输入接收边界。
 
-`Client::send_lookup_batch` 的现有短写循环先视为需要修复的潜在缺陷：跨越多个帧时只能设置一次首个未完成帧的偏移，
-后续帧直接按原帧入队，不能反复覆盖 `txq_ofs`。候选必须新增跨 frame2/frame3、EAGAIN、已有队列、cap drop 的逐字节测试，
-并复用该健壮 helper；若无法证明，退回逐帧路径，不实现批量。
+`Client::send_lookup_batch` 的现有短写循环必须用跨 frame2/frame3、EAGAIN、已有队列和 cap drop 的逐字节测试重新核对；
+如果测试显示首个未完成帧的 `txq_ofs` 会被后续帧覆盖，就在候选中修正为只设置一次并逐帧入队；若不能证明安全，退回逐帧路径，不实现批量。
 
 功能门覆盖：三 owner 连续与 A,B,A 交错、重复 pattern dedup、monitor 顺序和镜像、慢读者/已有队列、16 KiB 边界、
 大 payload、大帧短写、sequence wrap、sender exclusion、事件删除、FD wireprobe、ACL/UTF8/release 回归。
