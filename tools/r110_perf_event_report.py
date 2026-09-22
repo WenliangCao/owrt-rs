@@ -16,6 +16,8 @@ def digest(path):
 
 
 def summarize(pairs):
+    if not pairs:
+        return {}
     result = {}
     for key in pairs[0][0]:
         if any(before[key] <= 0 for after, before in pairs):

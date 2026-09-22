@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "status": "withhold attribution; launch-path confound under calibration",
+  "observations": [
+    "R111 uses 4.324% fewer user instructions than its R110-A control at low connections and 4.296% fewer at 64 connections in the first ablation series.",
+    "However R110-A itself shifted from about 8914.63 to 9435.16 user instructions/send at low connections between the two series, with identical ELF/helper hashes. R109 remained about 8645.64.",
+    "R110-A launched from a 50-byte path in the original series and a 41-byte path in the ablation series. main retains argv Strings for the daemon lifetime. Startup allocation state is a hypothesis, not an established cause.",
+    "Do not use the observed 4.3% as an isolated lookup effect until all subjects have the same launch-name length and path sensitivity has been calibrated."
+  ],
+  "evidence": [
+    "r110a-perf-sync-results.json",
+    "r111-perf-sync-results.json",
+    "r111-perf-path-calibration-plan.json"
+  ],
+  "runtime": "Accepted R109 unchanged; experimental R111 worktree preserved, no further runtime variant now."
+}
