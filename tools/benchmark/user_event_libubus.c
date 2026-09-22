@@ -237,6 +237,10 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 	unsigned warmup_received = state.received;
 	state.received = 0;
 	state.bad = 0;
+	#ifdef EVENT_LATENCY_MODE
+	uint64_t *latency_ns = calloc(n, sizeof(*latency_ns));
+	require(latency_ns != NULL, "latency sample allocation failed");
+	#endif
 
 #ifdef OWRT_PERF_CONTROL
 	perf_command("enable\n");
@@ -245,11 +249,19 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 	uint64_t client_before = read_clock(CLOCK_PROCESS_CPUTIME_ID, 0);
 	uint64_t subject_before = read_clock(subject_clock, 0);
 	for (unsigned i = 0; i < n; i++) {
+	#ifdef EVENT_LATENCY_MODE
+		uint64_t operation_before = read_clock(CLOCK_MONOTONIC, 0);
+	#endif
 		require(!ubus_send_event(sender, "bench.user", data.head), "timed send failed");
 		if (matched)
 			pump_until(listener, state.received + target_per_send);
 		else
 			drain_unmatched(listener, state.received);
+	#ifdef EVENT_LATENCY_MODE
+		uint64_t operation_after = read_clock(CLOCK_MONOTONIC, 0);
+		require(operation_after > operation_before, "non-increasing operation clock");
+		latency_ns[i] = operation_after - operation_before;
+	#endif
 	}
 	if (!matched)
 		drain_unmatched(listener, 0);
@@ -291,11 +303,21 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 		   "\"client_before_ns\":%" PRIu64 ",\"client_after_ns\":%" PRIu64 ","
 		   "\"wall_before_ns\":%" PRIu64 ",\"wall_after_ns\":%" PRIu64 ","
 		   "\"warmup_received\":%u,\"received\":%u,\"payload_checked\":true,"
-		   "\"handlers_removed\":true,\"held_clients\":%u,\"base_fds\":%u,\"held_fds\":%u}\n",
+		   "\"handlers_removed\":true,\"held_clients\":%u,\"base_fds\":%u,\"held_fds\":%u",
 		   n, warmup, listeners, matched ? "true" : "false", subject, getpid(),
 		   subject_resolution, client_resolution, subject_before, subject_after,
 		   client_before, client_after, wall_before, wall_after, warmup_received,
 		   state.received, held_clients, base_fds, held_fds);
+	#ifdef EVENT_LATENCY_MODE
+	printf(",\"latency_clock\":\"CLOCK_MONOTONIC\",\"latency_sample_count\":%u,\"latency_ns\":[",
+	       n);
+	for (unsigned i = 0; i < n; i++)
+		printf("%s%" PRIu64, i ? "," : "", latency_ns[i]);
+	printf("]}\n");
+	free(latency_ns);
+	#else
+	printf("}\n");
+	#endif
 	return 0;
 }
 
