@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "purpose": "Physical AX3000T exact-C versus R124 registration cycles with complete reply/signature validation.",
+  "subjects": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926"
+  },
+  "benchmark_sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e",
+  "workload_sha256": "8429a90afdddd8310e59a8a26bb93a6ad5b949edff32df6e09ff9d1c78950abb",
+  "driver_sha256": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
+  "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+  "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+  "iterations": 5000,
+  "warmup": 20,
+  "method_fixtures": [
+    "1:8",
+    "16:8"
+  ],
+  "schedule": "C,R124,R124,C repeated four times; 16 fresh guarded windows; no extensions",
+  "primary_metric": "register-cycle mean_us/p50/p95/p99 and latency_ns",
+  "acceptance": null,
+  "limitations": [
+    "Four paired blocks, no A/A calibration or confidence intervals.",
+    "ADD/REMOVE cycles are not steady-state daemon workload; no tail claim beyond benchmark samples.",
+    "No R124/R123 inference or overall 90:10 score."
+  ]
+}
