@@ -50,6 +50,13 @@ def hash_rows(path: Path) -> dict[str, str]:
     return rows
 
 
+def verify_proc_exe_hash(path: Path, expected: str, label: str) -> None:
+    rows = hash_rows(path)
+    check(len(rows) == 1 and next(iter(rows)).endswith("/exe")
+          and next(iter(rows.values())) == expected,
+          f"{label}: daemon executable hash differs")
+
+
 def load_plan(path: Path) -> dict:
     plan = json.loads(path.read_text())
     check(plan.get("schema_version") == 1, "unsupported R131 plan schema")
@@ -112,9 +119,12 @@ def verify_window(window: Path, plan: dict, run: dict) -> None:
               f"{window.name}: {phase} daemon argv differs")
     executable = "/sbin/ubusd" if label == "c" else "/tmp/bin/ubusd-rs"
     expected_binary = {executable: plan["subjects"][label]["sha256"]}
-    for filename in ("binary-sha256.txt", "binary-after-sha256.txt"):
-        check(hash_rows(window / f"raw/{filename}") == expected_binary,
-              f"{window.name}: executable hash differs")
+    check(hash_rows(window / "raw/binary-sha256.txt") == expected_binary,
+          f"{window.name}: candidate executable hash differs")
+    for phase in ("before", "after"):
+        verify_proc_exe_hash(window / f"raw/daemon-{phase}.exe-sha256",
+                             plan["subjects"][label]["sha256"],
+                             f"{window.name}: daemon {phase}")
     expected_tools = {
         "/tmp/bin/owrt-benchmark": plan["files"]["benchmark"]["sha256"],
         "/tmp/bin/ns-exec": plan["files"]["namespace_helper"]["sha256"],
