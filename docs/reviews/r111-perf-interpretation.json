@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "launch path length effect reproduced; source attribution pending normalized launch comparison",
+  "status": "normalized counter ablation identifies avoidable instructions; CPU acceptance still pending",
   "observations": [
     "R111 uses 4.324% fewer user instructions than its R110-A control at low connections and 4.296% fewer at 64 connections in the first ablation series.",
     "However R110-A itself shifted from about 8914.63 to 9435.16 user instructions/send at low connections between the two series, with identical ELF/helper hashes. R109 remained about 8645.64.",
@@ -11,8 +11,15 @@
     "r110a-perf-sync-results.json",
     "r111-perf-sync-results.json",
     "r111-perf-path-calibration-plan.json",
-    "r111-perf-path-calibration-results.json"
+    "r111-perf-path-calibration-results.json",
+    "r111-perf-normalized-results.json"
   ],
   "runtime": "Accepted R109 unchanged; experimental R111 worktree preserved, no further runtime variant now.",
-  "path_calibration": "Four same-ELF pairs reproduced lower counts for 50-byte than 41-byte launch paths: median -5.517% user instructions; typical counts 8914.62 vs 9435.17. One long-path sample was 9018.66, also retained. This isolates a launch-path dependence, not its allocator mechanism."
+  "path_calibration": "Four same-ELF pairs reproduced lower counts for 50-byte than 41-byte launch paths: median -5.517% user instructions; typical counts 8914.62 vs 9435.17. One long-path sample was 9018.66, also retained. This isolates a launch-path dependence, not its allocator mechanism.",
+  "normalized_result": [
+    "With identical launch basename/path byte lengths, R111/R110-A user instructions fall by median 4.324% (low) and 4.296% (64 held), roughly 408 instructions/send.",
+    "R111/R109 user instructions fall by median 1.517% and 1.506%. This is the net effect in the specified launch configuration, not an isolated assembler cost per hash call.",
+    "Oracle CPU does not improve reliably: R111/R110-A subject CPU medians +0.901% and +0.567%; R111/R109 +0.119% and +2.028%. Oracle is diagnostic only and these adverse results are retained.",
+    "R111 still has R110-A client-table memory overhead and is not accepted. No additional receive control-flow variant is planned."
+  ]
 }

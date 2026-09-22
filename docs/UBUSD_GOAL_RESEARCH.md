@@ -27,6 +27,13 @@
   64 连接增长 44 KiB >38.4 KiB，R103 单监听者 low/loaded CPU 十窗口全增；
   C loaded 单监听者 daemon +3.32%、总 CPU +2.05%。正确性与清理均通过，仍拒绝运行时改动。
   Oracle 旧 perf 计数未同步，不能归因代码布局；先补同步计数，暂不开始借用派发 B。
+- [R111 同步计数与消融](reviews/r111-perf-interpretation.json)发现启动路径长度会改变同 ELF 的
+  指令计数，已用同 ELF 配对重现并统一路径。去掉重复客户端查询后，用户态指令较 R110-A
+  下降约 4.3%，较 R109 下降约 1.5%；Oracle CPU 未显示同等收益，不能替代实机 CPU。
+  实验在独立分支，正式源码仍为 R109。
+- [客户端表实机请求堆诊断](reviews/r110-client-table-memory-results.json)：64 个 Client 内联
+  表与凭据共 41608 字节，其中表本身 41096 字节。Box 容器诊断为 22664 字节；
+  尚未证明实际 daemon RSS 或 CPU 优势。下一步独立验证此存储选择，不继续猜接收控制流。
 - 保留路径借用遍历、路径共享和方法名字/ACL 兼容性修复。
 - [R97 方法存储候选](reviews/R97_UBUSD_METHOD_STORAGE.md)减少请求堆和部分查询 CPU，
   但单方法注册 CPU 八轮全部上升，中位 +1.62%；已撤回实现，补丁和正负数据完整保留。

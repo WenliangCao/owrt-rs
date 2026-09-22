@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "name": "R112 boxed client-table ownership experiment",
+  "accepted_runtime": "R109; R111 stays experimental",
+  "base_source_commit": "99087ef",
+  "hypothesis": "After stack receive removes idle rx allocations, inline HashMap<u32, Client> reserves complete 320-byte entries in unused slots. Store Box<Client> values so table slack contains only key and pointer. Router diagnostic measured 41608 ->22664 requested bytes at 64 clients. Test real daemon RSS and CPU; do not infer them from this container diagnostic.",
+  "one_change": [
+    "HashMap<u32, Client> becomes HashMap<u32, Box<Client>>; box at insert, preserve all access/removal and descriptor ownership semantics.",
+    "Update explicit helper types and fixtures; no custom allocator, hashing, index arena, threshold or protocol changes.",
+    "Keep R111 receive loop, owned InMsg dispatch and LargeFrame unchanged. No borrowed dispatch B."
+  ],
+  "risks": [
+    "One allocation per accepted connection and an extra indirection on lookup can increase CPU.",
+    "Allocator slot sizes may narrow the requested-heap gain; measure on physical router.",
+    "Box allocation does not change existing allocation-failure behavior, but source and tests must preserve field drop order and FD ownership."
+  ],
+  "gates": [
+    "All existing functional/recovery, FD, partial-frame, large-frame, monitor, ACL, backpressure and protocol differential gates before physical timing.",
+    "64-client RssAnon growth <=38.4 KiB in both independent runs; full absolute RssAnon, VmData and post-disconnect behavior disclosed alongside C/R89/R109/R111.",
+    "If the memory gate passes, freeze exact ELFs and router CPU comparison, with identical argv[0] for subjects and all daemon/caller/total/wall metrics.",
+    "Compare against accepted R109 and exact C; attempt R89. The historical R103 no-all-positive guard remains and cannot be waived by a favorable R109 result.",
+    "No final adoption for statistically unresolved CPU, missing functionality, or an unreported losing metric. Separate scoped stage results from full ubusd goal."
+  ],
+  "next": "Implement in another isolated worktree, freeze artifact identities after build, then preflight and memory before lengthy CPU measurements."
+}
