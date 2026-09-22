@@ -22,6 +22,7 @@ from r84_device_probe import probe  # noqa: E402
 
 ORDER = ("stock", "r84", "candidate", "candidate", "r84", "stock",
          "r84", "stock", "candidate", "candidate", "stock", "r84")
+TWO_SIDE_BALANCED = ("stock", "candidate", "candidate", "stock")
 
 
 def main():
@@ -41,6 +42,8 @@ def main():
     parser.add_argument("--baseline-label", default="r84", help="evidence label for that frozen bundle")
     parser.add_argument("--cpus", help="optional fixed taskset CPU list for every isolated subject/client")
     parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
+    parser.add_argument("--schedule", choices=("default", "two-side-balanced"), default="default",
+                        help="use a fixed stock/candidate-only ABBA cycle; requires --sides stock candidate")
     parser.add_argument("--iterations", type=int, default=10000)
     parser.add_argument("--resume", action="store_true",
                         help="continue an interrupted collection with the same owned remote directory and identities")
@@ -115,13 +118,19 @@ def main():
         if baseline["tools"][name]["sha256"] != manifest["tools"][name]["sha256"]:
             raise RuntimeError("frozen baseline and host benchmark tools differ")
     initial("subjects.json", hashes)
-    order = tuple(args.baseline_label if side == "r84" else side
-                  for side in ORDER[:args.repeats * 3] if side in args.sides)
+    if args.schedule == "two-side-balanced":
+        if args.sides != ["stock", "candidate"]:
+            parser.error("two-side-balanced requires exactly --sides stock candidate")
+        order = TWO_SIDE_BALANCED * args.repeats
+    else:
+        order = tuple(args.baseline_label if side == "r84" else side
+                      for side in ORDER[:args.repeats * 3] if side in args.sides)
     initial("order.json", list(order))
     initial("settings.json", {"component": component, "iterations": args.iterations, "matrix": args.matrix,
                            "held_connections": 64 if args.memory_probe else None,
                            "rpc_client_diagnostic": bool(args.rpc_client_probe),
                            "baseline_label": args.baseline_label, "baseline_bundle": args.baseline_bundle,
+                           "schedule": args.schedule,
                            "cpu_affinity": args.cpus,
                            "management_access": args.access, "workload_transport": "namespace loopback"})
     script = Path(__file__).with_name("isolated.sh")
