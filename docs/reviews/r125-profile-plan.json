@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "purpose": "Exact-ELF eight-listener daemon profile for remaining R124 fan-out gap; Oracle diagnosis only.",
+  "rootfs": {
+    "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files",
+    "libraries": {
+      "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "/lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+      "/usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153"
+    }
+  },
+  "client": {
+    "path": "/home/ubuntu/r110-rx-stack/perf-sync-client-v2/user-event-perf-v3",
+    "sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7"
+  },
+  "subjects": {
+    "c": {
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic"
+    },
+    "r124": {
+      "path": "/home/ubuntu/r124-event-scratch/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static"
+    }
+  },
+  "runs": [
+    {
+      "subject": "c",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 1
+    },
+    {
+      "subject": "r124",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 1
+    },
+    {
+      "subject": "c",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 1
+    },
+    {
+      "subject": "r124",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 1
+    },
+    {
+      "subject": "r124",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 2
+    },
+    {
+      "subject": "c",
+      "held_clients": 64,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 2
+    },
+    {
+      "subject": "r124",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 2
+    },
+    {
+      "subject": "c",
+      "held_clients": 0,
+      "n": 100000,
+      "warmup": 5000,
+      "listeners": 8,
+      "block": 2
+    }
+  ],
+  "runner_sha256": "92b33e3449d833d64a28076abf8bb12d5d2deb52685ea51788d90c6910789ec9",
+  "scope": "Eight fixed-order exact-ELF Oracle daemon profile windows, eight listeners, cpu-clock499Hz. No router performance or caller-CPU causal claim, no optional extension.",
+  "symbol_evidence": {
+    "c": {
+      "symbols_sha256": "51f91f7d548600ca56ff47516f0a4854c50fb5a1defb768dc8ffabb5a202723b",
+      "text_sha256": "f439a4d464408ec54540c1e8fd13b0704ddd31b747018e809c71dc7a6512bab9"
+    },
+    "r124": {
+      "map_sha256": "201a8fb51c037135c00f3d3a9bf356d850563d10424227d077bcf2fd23ba6404",
+      "map_generated_with_exact_measured_elf": true
+    }
+  },
+  "instrumentation_smoke": {
+    "passed": true,
+    "excluded_from_comparison": true,
+    "samples": [
+      {
+        "directory": "private/r125-fanout-profile/smoke-01/001-c-0",
+        "subject": "c",
+        "samples": 17,
+        "meta_sha256": "2b98abe04f94cb2a023ff47969050ca9e3da912e532294b9d5e1b63901a66138",
+        "summary_sha256": "d25fae8f81bb9408bab26a70f6a0b2d1c75059457f8da8cec0a975f6da1a9546"
+      },
+      {
+        "directory": "private/r125-fanout-profile/smoke-01/002-r124-0",
+        "subject": "r124",
+        "samples": 17,
+        "meta_sha256": "40dbbbaeaac4c0de2d056ca91f823b5d1af774c6cbdee18f2ace7a7388b21417",
+        "summary_sha256": "25dc87e50e54d96bc9bde886c9c72e37ac93a01c476ffc86c125f6b8ef853abc"
+      }
+    ],
+    "formal_iterations": "100000 and 5000 warmup were fixed by the prose plan before the smoke; no adaptation to observed effects."
+  }
+}
