@@ -1,10 +1,11 @@
 #!/bin/sh
-# SDK COMPONENT_SOURCES NEW_OUTPUT_DIR
+# SDK COMPONENT_SOURCES NEW_OUTPUT_DIR [--perf-control]
 # Build the exact-image-compatible libubus client and matching link-only
 # libraries. Link-only artifacts stay on the build host and are never copied
 # to a router.
 set -eu
-[ "$#" -eq 3 ] || exit 2
+[ "$#" -eq 3 ] || { [ "$#" -eq 4 ] && [ "$4" = --perf-control ]; } || exit 2
+perf_control=${4:-}
 sdk=$(cd "$1" && pwd)
 src=$(cd "$2" && pwd)
 out_arg=$3
@@ -20,7 +21,9 @@ cp "$tmp/register/link-only/libubus.so.20251202" "$out/link-only/"
 export STAGING_DIR="$sdk/staging_dir/target-aarch64_cortex-a53_musl"
 cc="$sdk/staging_dir/toolchain-aarch64_cortex-a53_gcc-14.3.0_musl/bin/aarch64-openwrt-linux-musl-gcc"
 client=$(cd "$(dirname "$0")" && pwd)/user_event_libubus.c
-"$cc" -O2 -Wall -Wextra -Werror -fuse-ld=bfd -I"$src" -I"$src/ubus" \
+set --
+[ -z "$perf_control" ] || set -- -DOWRT_PERF_CONTROL
+"$cc" "$@" -O2 -Wall -Wextra -Werror -fuse-ld=bfd -I"$src" -I"$src/ubus" \
     "$client" "$out/link-only/libubus.so.20251202" \
     "$out/link-only/libubox.so.20260213" -o "$out/user-event-libubus"
 sha256sum "$client" "$out/user-event-libubus" "$out/link-only"/*.so.*

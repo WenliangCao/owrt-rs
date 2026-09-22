@@ -19,6 +19,10 @@
 #include <libubus.h>
 #include <libubox/blobmsg.h>
 
+#ifdef OWRT_PERF_CONTROL
+#include <fcntl.h>
+#endif
+
 static void require(int ok, const char *message)
 {
 	if (!ok) {
@@ -35,6 +39,52 @@ static unsigned number(const char *s, unsigned max)
 	require(*s && !*end && !errno && n <= max, "invalid numeric argument");
 	return (unsigned)n;
 }
+
+#ifdef OWRT_PERF_CONTROL
+/* Diagnostic build only: perf stat starts disabled, and acknowledges both
+ * boundaries outside the measured loop. Inherited pipes avoid changing the
+ * reference rootfs or relying on a timer to guess when the workload finishes. */
+static int perf_ctl, perf_ack;
+
+static void perf_init(void)
+{
+	const char *ctl = getenv("OWRT_PERF_CTL_FD");
+	const char *ack = getenv("OWRT_PERF_ACK_FD");
+	require(ctl && ack, "perf control descriptors required");
+	perf_ctl = (int)number(ctl, INT_MAX);
+	perf_ack = (int)number(ack, INT_MAX);
+	require(perf_ctl > 2 && perf_ack > 2 && perf_ctl != perf_ack &&
+			fcntl(perf_ctl, F_GETFD) >= 0 && fcntl(perf_ack, F_GETFD) >= 0,
+			"invalid perf control descriptors");
+}
+
+static void perf_command(const char *command)
+{
+	size_t len = strlen(command);
+	ssize_t n;
+	do {
+		n = write(perf_ctl, command, len);
+	} while (n < 0 && errno == EINTR);
+	require(n == (ssize_t)len, "perf control write failed");
+	/* Linux perf v6.17 evlist__ctlfd_ack writes sizeof("ack\n"),
+	 * including the NUL. Consume it so it cannot prefix the next ACK. */
+	char reply[sizeof("ack\n")];
+	for (size_t got = 0; got < sizeof(reply);) {
+		struct pollfd pfd = {.fd = perf_ack, .events = POLLIN};
+		int rc;
+		do {
+			rc = poll(&pfd, 1, 10000);
+		} while (rc < 0 && errno == EINTR);
+		require(rc > 0 && (pfd.revents & POLLIN), "perf acknowledgement timeout");
+		n = read(perf_ack, reply + got, sizeof(reply) - got);
+		if (n < 0 && errno == EINTR)
+			continue;
+		require(n > 0, "perf acknowledgement read failed");
+		got += (size_t)n;
+	}
+	require(!memcmp(reply, "ack\n", sizeof(reply)), "invalid perf acknowledgement");
+}
+#endif
 
 static uint64_t read_clock(clockid_t id, int resolution)
 {
@@ -135,6 +185,9 @@ static void drain_unmatched(struct ubus_context *listener, unsigned before)
 static int run_user_event(const char *socket, unsigned listeners, int matched,
 			  unsigned n, unsigned warmup, pid_t subject, unsigned held_clients)
 {
+#ifdef OWRT_PERF_CONTROL
+	perf_init();
+#endif
 	cpu_set_t mask;
 	CPU_ZERO(&mask);
 	CPU_SET(0, &mask);
@@ -185,6 +238,9 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 	state.received = 0;
 	state.bad = 0;
 
+#ifdef OWRT_PERF_CONTROL
+	perf_command("enable\n");
+#endif
 	uint64_t wall_before = read_clock(CLOCK_MONOTONIC, 0);
 	uint64_t client_before = read_clock(CLOCK_PROCESS_CPUTIME_ID, 0);
 	uint64_t subject_before = read_clock(subject_clock, 0);
@@ -200,6 +256,9 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 	uint64_t subject_after = read_clock(subject_clock, 0);
 	uint64_t client_after = read_clock(CLOCK_PROCESS_CPUTIME_ID, 0);
 	uint64_t wall_after = read_clock(CLOCK_MONOTONIC, 0);
+#ifdef OWRT_PERF_CONTROL
+	perf_command("disable\n");
+#endif
 	require(subject_after > subject_before && client_after > client_before &&
 			wall_after > wall_before, "non-increasing measured clock");
 	if (state.bad || state.received != (matched ? n * listeners : 0)) {
@@ -223,6 +282,9 @@ static int run_user_event(const char *socket, unsigned listeners, int matched,
 	ubus_free(sender);
 	uloop_done();
 	printf("{\"n\":%u,\"warmup\":%u,\"listeners\":%u,\"matched\":%s,"
+#ifdef OWRT_PERF_CONTROL
+		   "\"perf_controlled\":true,"
+#endif
 		   "\"subject_pid\":%d,\"client_pid\":%d,\"subject_cpu\":1,\"client_cpu\":0,"
 		   "\"subject_resolution_ns\":%" PRIu64 ",\"client_resolution_ns\":%" PRIu64 ","
 		   "\"subject_before_ns\":%" PRIu64 ",\"subject_after_ns\":%" PRIu64 ","

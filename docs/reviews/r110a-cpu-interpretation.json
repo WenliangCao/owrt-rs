@@ -150,6 +150,7 @@
     "r110a_subject_cpu_ns": 10351789920,
     "r110a_vs_r103_pct": -2.693541426089452,
     "interpretation": "The one Oracle CPU-clock pair has the opposite direction to router R103 comparisons. This does not establish equivalence, a code-layout cause, or lack of instruction/branch inflation. Router evidence remains authoritative; root cause is unresolved.",
-    "measurement_validity": "Exploratory CPU clock result only, one sample per subject. The fixed 14-second perf attachment did not bracket the complete client workload; preceding ad hoc runs also had unsynchronized endpoints. Exclude those counts from instruction-per-operation comparisons."
+    "measurement_validity": "Exploratory CPU clock result only, one sample per subject. The fixed 14-second perf attachment did not bracket the complete client workload; preceding ad hoc runs also had unsynchronized endpoints. Exclude those counts from instruction-per-operation comparisons.",
+    "identity_limit": "Historical ad hoc output did not record /proc/PID/exe hashes. A later check found Oracle r103-event-send-borrow/ubusd-rs has hash 274528bb..., different from accepted R103 2b815fba.... This does not establish which file the historical process used; its R103 label cannot be independently verified. Synchronized diagnostics explicitly use uploaded accepted R103 and verify /proc/PID/exe."
   }
 }

@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "purpose": "Bounded Oracle diagnosis of R110-A/R109/R103 user-mode instruction, branch, branch-miss and cycle counts; no router acceptance conclusion.",
+  "runner_sha256": "63948fb9b73ca49204e0ac23a973d1f79aabd63d051a3836ac2622b2071a9d2c",
+  "client_sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7",
+  "subjects": {
+    "r103": "2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
+    "r109": "1dfb317c4baa50b94b17cffd21a098322be0591174f1f50c067dc5fc00315259",
+    "r110a": "c9ada3dce76898226bfea3b7d5d429792a943904adada52b99b26633904deca2"
+  },
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "events": [
+    "{instructions:u,branches:u,branch-misses:u,cycles:u}",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "counter_names": [
+    "instructions:u",
+    "branches:u",
+    "branch-misses:u",
+    "cycles:u",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "iterations": 50000,
+  "warmup": 5000,
+  "sample_timeout_seconds": 30,
+  "runs": [
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "a",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "b",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "a",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "b",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "a",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "b",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "a",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "b",
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r103",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r110a",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r103",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r109",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r110a",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r103",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r110a",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r109",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r103",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r110a",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "r103",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "r110a",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "r109",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "r103",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 3,
+      "subject": "r110a",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "r109",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "r110a",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "r103",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "r110a",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 4,
+      "subject": "r103",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 5,
+      "subject": "r110a",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 5,
+      "subject": "r103",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 5,
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 5,
+      "subject": "r110a",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 5,
+      "subject": "r103",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 5,
+      "subject": "r109",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 6,
+      "subject": "r110a",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 6,
+      "subject": "r109",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 6,
+      "subject": "r103",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 6,
+      "subject": "r110a",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 6,
+      "subject": "r109",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 6,
+      "subject": "r103",
+      "held_clients": 0
+    }
+  ],
+  "sampling": "Four A/A pairs of the same accepted R109 ELF, followed by six permutations of the three exact ELFs at each connection count. Fresh daemon for every run, CPU1 daemon/CPU0 caller. Fixed 44 samples, no optional extension.",
+  "analysis": "Descriptive paired counts per validated send, report every raw sample and A/A spread. No IID confidence claim for the balanced permutation cycle, no equivalence test or acceptance based on Oracle CPU.",
+  "decision": "Diagnose a candidate instruction/branch increase only when it repeats beyond the observed A/A range; cache/cycle differences need separate localization. Do not infer a router cause or language limit from absence of an Oracle regression.",
+  "boundaries": "Enable ACK after warmup before the three clock reads; disable ACK after the loop and the three clock reads. No per-request instrumentation. Final callback validates delivery; bounded trailing daemon work can straddle the CPU-clock/disable boundary. Counts include this boundary overhead and are divided by 50000.",
+  "sources": [
+    "https://man7.org/linux/man-pages/man1/perf-stat.1.html",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.c#L2078",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.h#L404"
+  ],
+  "tool_validation": {
+    "passed": "two 2000-send pilot samples at 0 and 64 held clients; both ACKs consumed, 100% counter running, payload/fd/affinity checks passed; exact ELF hashes checked before/after.",
+    "prior_failed_pilots": [
+      "ACK NUL byte was initially left unread; full five-byte ACK fixed before data collection.",
+      "Controller initially required perf exit zero although explicit SIGINT is re-raised; permit only its requested SIGINT after successful client completion and live perf."
+    ],
+    "normal_client_sha256_unchanged": "2f58c60ddd6421476c140673cd7d4c4310c5f5eda71be1f4d7eab1a4d6c1efcf",
+    "old_unsynchronized_raw_tar_sha256": "8618092cf9bf20ce4e1f217a4ffe8d6a1ab832bc8abb49608021d2bd59f13734"
+  }
+}
