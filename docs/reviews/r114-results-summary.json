@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "status": "R114 borrowed input dispatch correct and locally cheaper, but rejected for C target",
+  "candidate_sha256": "e718287d73094325134998c7d166f939e1c04dd16cdcf6c1e4fa26715689900d",
+  "correctness": "docs/reviews/r114-correctness-results.json",
+  "memory_report": "private/r114-borrowed-dispatch/measurements/memory/report.json",
+  "screen_report": "private/r114-borrowed-dispatch/measurements/report.json",
+  "oracle_counter_report": "docs/reviews/r114-perf-results.json",
+  "memory": {
+    "r113_64_rssanon_growth_kib": [
+      28,
+      28
+    ],
+    "r114_64_rssanon_growth_kib": [
+      28,
+      28
+    ],
+    "r114_vmdata_after_kib": [
+      76,
+      76
+    ],
+    "gate_limit_kib": 38.4,
+    "gate_passed": true
+  },
+  "cpu_vs_c": {
+    "c-low": {
+      "user_1_1_daemon_pct": [
+        11.46,
+        13.24
+      ],
+      "user_8_1_daemon_pct": [
+        5.64,
+        8.1
+      ],
+      "user_1_0_daemon_pct": [
+        5.56,
+        6.09
+      ]
+    },
+    "c-loaded": {
+      "user_1_1_daemon_pct": [
+        14.39,
+        14.94
+      ],
+      "user_8_1_daemon_pct": [
+        4.51,
+        6.03
+      ],
+      "user_1_0_daemon_pct": [
+        6.34,
+        7.93
+      ]
+    }
+  },
+  "cpu_vs_r113": {
+    "low_user_1_1_daemon_pct": [
+      -3.09,
+      -3.09
+    ],
+    "loaded_user_1_1_daemon_pct": [
+      -0.4,
+      -0.4
+    ],
+    "oracle_instructions_pct": {
+      "0": -6.8636,
+      "64": -6.1012
+    }
+  },
+  "decision": "R114 removes a measured 6\u20137% user-mode instruction component versus R113 and passes the held-connection memory screen, but remains 5.6\u201314.9% slower than exact C in daemon CPU for all six C cells. Two router blocks are descriptive only; no equivalence claim. Keep R114 patch rejected as runtime, continue only with an independently frozen direction."
+}
