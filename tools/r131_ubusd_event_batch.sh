@@ -47,7 +47,7 @@ cat /proc/$pid/cmdline > "$out/daemon-before.cmdline"
 readlink /proc/$pid/exe > "$out/daemon-before.exe"
 sha256sum /proc/$pid/exe > "$out/daemon-before.exe-sha256"
 awk '{sub(/^.*\) /, ""); print $20}' /proc/$pid/stat > "$out/daemon-before.starttime"
-[ "$(cat "$out/daemon-before.cmdline")" = "$(cat "$out/daemon-expected.cmdline")" ]
+cmp "$out/daemon-before.cmdline" "$out/daemon-expected.cmdline"
 ubus -s "$socket" list > "$out/objects-before.txt"
 [ ! -s "$out/objects-before.txt" ]
 printf '{"subject_pid":%s,"subject_cpu":1,"client_cpu":0,"implementation":"%s","iterations":%s,"warmup":20,"scenarios":["user_1_1","user_8_1","user_1_0"],"exact_image_caller":true,"daemon_argv0":"/sbin/ubusd"}\n' "$pid" "$3" "$4" > "$out/meta.json"
