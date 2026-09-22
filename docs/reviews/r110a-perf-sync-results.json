@@ -1,0 +1,497 @@
+{
+  "schema_version": 1,
+  "scope": "Oracle user-mode counter diagnosis only; no router acceptance or causality claim",
+  "plan_sha256": "b62cd1841d52ffb1c2c8fb4cb8225f38a8bc9993327dcd3b5c855bbcff546758",
+  "raw_tar_sha256": "2000d64bae1f60843cdd421b2387de805f62273176d8b761c5ebf28dafe4e866",
+  "complete_samples": 44,
+  "all_pmu_running_pct": 100,
+  "migrations_in_all_samples": 0,
+  "aa_paired_delta_pct": [
+    {
+      "instructions:u": 3.51622415628583e-05,
+      "branches:u": 4.7918120205103776e-05,
+      "branch-misses:u": 12.394443972194825,
+      "cycles:u": 6.373978711696271,
+      "context-switches": -0.0320269025981923,
+      "subject_cpu_ns_per_send": 0.6376854190265346
+    },
+    {
+      "instructions:u": -0.15031615726388559,
+      "branches:u": -0.1295723268618154,
+      "branch-misses:u": -2.2125331641700163,
+      "cycles:u": 0.13905923441996926,
+      "context-switches": 0.024029796948221716,
+      "subject_cpu_ns_per_send": -0.3476885290787046
+    },
+    {
+      "instructions:u": 9.669602407669231e-05,
+      "branches:u": 0.00012950818979451384,
+      "branch-misses:u": 12.0387926978756,
+      "cycles:u": 3.041514941350809,
+      "context-switches": 0.01001361852119853,
+      "subject_cpu_ns_per_send": -0.5829462887283476
+    },
+    {
+      "instructions:u": 0.00010386764019987282,
+      "branches:u": 1.2950863048644123e-06,
+      "branch-misses:u": 8.433020299867145,
+      "cycles:u": 2.507740671270353,
+      "context-switches": 0.04004485023225701,
+      "subject_cpu_ns_per_send": -0.043225550285330705
+    }
+  ],
+  "comparisons": [
+    {
+      "held_clients": 0,
+      "candidate": "r110a",
+      "control": "r109",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": 3.111486900112459,
+          "paired_delta_pct": [
+            3.111283544894361,
+            3.1117242884081353,
+            3.2617412722617534,
+            3.1114293936049364,
+            3.1115234954532944,
+            3.1114503047716235
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": 1.2304160967801847,
+          "paired_delta_pct": [
+            1.2301604574517677,
+            1.2307089791733894,
+            1.3597857202801267,
+            1.2303414735794993,
+            1.2304653440784685,
+            1.230366849481901
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": 6.833167516386041,
+          "paired_delta_pct": [
+            6.058855947556396,
+            9.897288136841166,
+            1.5426253811771984,
+            7.607479085215685,
+            8.7183702440786,
+            2.5476287425149735
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": 2.7839549151905896,
+          "paired_delta_pct": [
+            2.3991605995507204,
+            3.749287651027844,
+            1.879797445070741,
+            3.168749230830459,
+            4.458109322716242,
+            1.9992329646263407
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": 0.016014413074361133,
+          "paired_delta_pct": [
+            0.016013130767245087,
+            -0.012008646225269981,
+            0.01602082707519159,
+            -0.024017773152129607,
+            0.01601569538147718,
+            0.020019619226840923
+          ]
+        },
+        "subject_cpu_ns_per_send": {
+          "median_delta_pct": -0.11350847467476721,
+          "paired_delta_pct": [
+            0.7001495548836445,
+            -0.6228927115052629,
+            0.0713140481310548,
+            -1.0930122065449521,
+            0.25031265986599216,
+            -0.2983309974805892
+          ]
+        }
+      }
+    },
+    {
+      "held_clients": 0,
+      "candidate": "r110a",
+      "control": "r103",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": -2.765282480069675,
+          "paired_delta_pct": [
+            -2.765325378449446,
+            -2.7653481116256984,
+            -2.623725648890818,
+            -2.7651059305588865,
+            -2.7654234846501313,
+            -2.7652395816899045
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": -4.391995168074869,
+          "paired_delta_pct": [
+            -4.392049055143787,
+            -4.392079113217062,
+            -4.269983953814894,
+            -4.391767542751291,
+            -4.392173911086427,
+            -4.391941281005951
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": -13.399868046283448,
+          "paired_delta_pct": [
+            -15.615353658762299,
+            -9.019193707820428,
+            -25.469010462843844,
+            -11.184382433804597,
+            -2.4202355912291695,
+            -19.135984406525807
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": -8.776259469087684,
+          "paired_delta_pct": [
+            -10.21925153739971,
+            -7.3332674007756555,
+            -14.313846965168986,
+            -6.6629332328475455,
+            -3.9166475730375128,
+            -11.25722821150813
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": 0.010008727726928957,
+          "paired_delta_pct": [
+            0.0080059243840358,
+            0.012011531069822112,
+            0.02403316576875536,
+            -0.03802281368820992,
+            -0.004003122435503048,
+            0.022022022022016863
+          ]
+        },
+        "subject_cpu_ns_per_send": {
+          "median_delta_pct": 0.10956647482216475,
+          "paired_delta_pct": [
+            -0.6085817272748262,
+            -0.41550553049432004,
+            -2.2539934943776707,
+            0.7830369740212895,
+            1.0893707760373017,
+            0.6346384801386495
+          ]
+        }
+      }
+    },
+    {
+      "held_clients": 0,
+      "candidate": "r109",
+      "control": "r103",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": -5.69945958769193,
+          "paired_delta_pct": [
+            -5.699287916229978,
+            -5.699713044847742,
+            -5.699561956479937,
+            -5.699208476425488,
+            -5.6996025088917985,
+            -5.699357218903922
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": -5.554108868151559,
+          "paired_delta_pct": [
+            -5.5538877812592595,
+            -5.5544292330771405,
+            -5.554243859227692,
+            -5.553778575169699,
+            -5.554295573031077,
+            -5.553973877075425
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": -18.949681014197772,
+          "paired_delta_pct": [
+            -20.436020559222413,
+            -17.212874098501217,
+            -26.601277781250023,
+            -17.463341469173134,
+            -10.245376020907049,
+            -21.1449191121579
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": -11.502411615757085,
+          "paired_delta_pct": [
+            -12.322769115556397,
+            -10.682054115957772,
+            -15.894853362827554,
+            -9.529709855918222,
+            -8.017335322316155,
+            -12.996628298893054
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": -0.0030019611910236943,
+          "paired_delta_pct": [
+            -0.008005924384046903,
+            0.024023062139644225,
+            0.008011055256251787,
+            -0.014008405043020034,
+            -0.020015612177493036,
+            0.0020020020019995144
+          ]
+        },
+        "subject_cpu_ns_per_send": {
+          "median_delta_pct": 0.5228250846009308,
+          "paired_delta_pct": [
+            -1.2996319150898494,
+            0.20868707760721694,
+            -2.3236504533060476,
+            1.896781230952005,
+            0.8369630915946447,
+            0.9357611431716872
+          ]
+        }
+      }
+    },
+    {
+      "held_clients": 64,
+      "candidate": "r110a",
+      "control": "r109",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": 3.0894413329924375,
+          "paired_delta_pct": [
+            3.08918329933372,
+            3.0895059453406093,
+            2.9353819873736864,
+            3.0894134302611898,
+            3.089653877681653,
+            3.0894692357236853
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": 1.2212241914034805,
+          "paired_delta_pct": [
+            1.220905621094226,
+            1.2213091049057434,
+            1.0908070032944028,
+            1.2211903686696113,
+            1.2214986466536848,
+            1.2212580141373497
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": 4.32919451408138,
+          "paired_delta_pct": [
+            4.674806720935232,
+            5.601168761159969,
+            10.676020598100045,
+            -0.7376960163875901,
+            -2.3267423463012693,
+            3.983582307227529
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": 2.165724088161314,
+          "paired_delta_pct": [
+            2.184488714762134,
+            2.4987969314205216,
+            6.055837658258989,
+            0.21612598572793296,
+            -2.2106022760422173,
+            2.1469594615604937
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": 0.0020016613887730017,
+          "paired_delta_pct": [
+            0.0,
+            -0.014013733458795308,
+            0.03203652163465964,
+            0.020028039254960106,
+            0.0020015211560808766,
+            0.002001801621465127
+          ]
+        },
+        "subject_cpu_ns_per_send": {
+          "median_delta_pct": -0.3581587225677696,
+          "paired_delta_pct": [
+            0.3883138376858275,
+            -0.8577371536600431,
+            1.9049726728646021,
+            0.14141970852450392,
+            -1.462811814179532,
+            -1.1877067816287168
+          ]
+        }
+      }
+    },
+    {
+      "held_clients": 64,
+      "candidate": "r110a",
+      "control": "r103",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": -2.7469099677342013,
+          "paired_delta_pct": [
+            -2.8837282584205814,
+            -2.7469123224282743,
+            -2.7469125242714054,
+            -2.746893185052268,
+            -2.746907613040128,
+            -2.7466395213830985
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": -4.3613877475859155,
+          "paired_delta_pct": [
+            -4.535354413303761,
+            -4.361407654302695,
+            -4.361388409760936,
+            -4.3613665467158835,
+            -4.361387085410895,
+            -4.361054261670716
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": -9.517170376473416,
+          "paired_delta_pct": [
+            -9.6490460623315,
+            -8.329392068549879,
+            -14.886578752607926,
+            -9.385294690615332,
+            -14.636637658463215,
+            15.183742966137936
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": -6.7827218622789065,
+          "paired_delta_pct": [
+            -6.948872345404555,
+            -6.605573117761709,
+            -9.264423373126085,
+            -6.616571379153258,
+            -9.69306832480279,
+            3.782657919300836
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": 0.005005305732319609,
+          "paired_delta_pct": [
+            -0.010009609224859162,
+            -0.006006366748756431,
+            0.018018018018017834,
+            0.004004966158044354,
+            0.022021140294681274,
+            0.0060056453065948645
+          ]
+        },
+        "subject_cpu_ns_per_send": {
+          "median_delta_pct": -0.889590015794578,
+          "paired_delta_pct": [
+            1.0896338233200797,
+            -1.095636535783262,
+            -1.5220057897875283,
+            -0.6835434958058939,
+            -2.1537998868002894,
+            1.9811832382284456
+          ]
+        }
+      }
+    },
+    {
+      "held_clients": 64,
+      "candidate": "r109",
+      "control": "r103",
+      "metrics": {
+        "instructions:u": {
+          "median_delta_pct": -5.6614540993737865,
+          "paired_delta_pct": [
+            -5.793926546504036,
+            -5.661505712194814,
+            -5.520253970925271,
+            -5.661402486552758,
+            -5.661636518488066,
+            -5.661207493232867
+          ]
+        },
+        "branches:u": {
+          "median_delta_pct": -5.515281476734296,
+          "paired_delta_pct": [
+            -5.686829216827716,
+            -5.51535719956211,
+            -5.3933642184473385,
+            -5.515205753906482,
+            -5.515513805573502,
+            -5.514960380188505
+          ]
+        },
+        "branch-misses:u": {
+          "median_delta_pct": -12.897405411102087,
+          "paired_delta_pct": [
+            -13.684145432868444,
+            -13.191672964545354,
+            -23.09678213272045,
+            -8.71186576089893,
+            -12.603137857658819,
+            10.7710855987041
+          ]
+        },
+        "cycles:u": {
+          "median_delta_pct": -8.267014636601939,
+          "paired_delta_pct": [
+            -8.938109076086443,
+            -8.88241649828705,
+            -14.44546700083702,
+            -6.8179619773510725,
+            -7.651612774916828,
+            1.601318792416806
+          ]
+        },
+        "context-switches": {
+          "median_delta_pct": -0.003002922843564626,
+          "paired_delta_pct": [
+            -0.010009609224859162,
+            0.008008488998334506,
+            -0.014014014014018805,
+            -0.016019864632133007,
+            0.020019218449718323,
+            0.00400376353772991
+          ]
+        },
+        "subject_cpu_ns_per_send": {
+          "median_delta_pct": -0.47060178459580326,
+          "paired_delta_pct": [
+            0.6986071972163943,
+            -0.2399575875042692,
+            -3.362915834984248,
+            -0.8237981913293835,
+            -0.7012459816873373,
+            3.2069795332591244
+          ]
+        }
+      }
+    }
+  ],
+  "conclusion": [
+    "R110-A/R109 user instructions increase by median 3.111% at low connections and 3.089% at 64 held connections. All six paired increases at each scale exceed the observed same-ELF A/A range [-0.150%, +0.000%].",
+    "Branches increase by about 1.22-1.23%. Branch-miss/cycle A/A variability is much larger; do not attribute a hardware-specific router cost to those medians.",
+    "Compared with R103 the candidate has fewer user instructions, while the physical router has several CPU regressions. Instruction count alone does not establish total CPU or router performance.",
+    "The R110-A main.rs patch adds a clients.get_mut before the original loop lookup. This is a concrete extra source operation; its causal contribution must be isolated by a single ablation before retaining any runtime change."
+  ],
+  "limits": [
+    "Six balanced permutations form one descriptive cycle, not six IID confirmation blocks.",
+    "A/A uses low-connection R109 only; it is an observed spread, not a guaranteed noise bound at every condition.",
+    "PMU is Oracle hardware and user mode; kernel costs, other microarchitecture behavior and physical router regressions remain outside this localization.",
+    "No per-request instrumentation. Boundary residual work around final callback and disable ACK is not proven zero.",
+    "Prior unsynchronized counters and unverified historical R103 labels are excluded."
+  ],
+  "normal_helper_unchanged_sha256": "2f58c60ddd6421476c140673cd7d4c4310c5f5eda71be1f4d7eab1a4d6c1efcf"
+}
