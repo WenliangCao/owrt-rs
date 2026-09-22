@@ -314,7 +314,7 @@ impl Client {
     /// Read one complete message, if the socket has one. `Ok(None)` means the
     /// message is still incomplete or the socket is drained; `Err` means the
     /// connection must be closed (protocol violation or socket error).
-    pub fn read_message<'a>(&mut self, rx: &'a mut [u8; RX_SIZE]) -> io::Result<Option<InMsg<'a>>> {
+    pub fn read_message<'a>(&mut self, rx: &'a mut [u8; RX_SIZE], recv: &mut sys::RecvScratch) -> io::Result<Option<InMsg<'a>>> {
         loop {
             if let Some(large) = &mut self.large {
                 let n = match sys::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
@@ -338,7 +338,7 @@ impl Client {
                 // A consuming recvmsg must stop at this prefix. Otherwise
                 // sendmsg(frame1 + frame2, fd) and send(frame1) followed by
                 // sendmsg(frame2, fd) can become indistinguishable.
-                let (n, fd) = match sys::recvmsg_fd(self.fd(), &mut rx[self.rx_end..PREFIX_LEN], self.pending_fd.is_none()) {
+                let (n, fd) = match sys::recvmsg_fd_with(self.fd(), &mut rx[self.rx_end..PREFIX_LEN], self.pending_fd.is_none(), recv) {
                     Ok(v) => v,
                     Err(e) if would_block(&e) => return Ok(None),
                     Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
@@ -453,7 +453,8 @@ mod tests {
     fn rx_round(c: &mut Client, rx: &mut [u8; RX_SIZE]) -> Vec<InMsg<'static>> {
         c.begin_read(rx);
         let mut messages = Vec::new();
-        while let Some(msg) = c.read_message(rx).unwrap() {
+        let mut recv = sys::RecvScratch::new();
+        while let Some(msg) = c.read_message(rx, &mut recv).unwrap() {
             messages.push(msg.into_owned());
         }
         c.end_read(rx);
@@ -535,10 +536,10 @@ mod tests {
             let frame = rx_frame(seq, 16);
             peer.write_all(&frame).unwrap();
             c.begin_read(&mut rx);
-            assert_frame(&c.read_message(&mut rx).unwrap().unwrap(), &frame);
+            assert_frame(&c.read_message(&mut rx, &mut sys::RecvScratch::new()).unwrap().unwrap(), &frame);
             assert_eq!(c.rx_end, 0);
             assert!(c.pending_fd.is_none());
-            assert!(c.read_message(&mut rx).unwrap().is_none());
+            assert!(c.read_message(&mut rx, &mut sys::RecvScratch::new()).unwrap().is_none());
             c.end_read(&rx);
             assert_eq!(c.rx.capacity(), 0);
         }
@@ -555,7 +556,7 @@ mod tests {
             assert!(rx_round(&mut c, &mut rx).is_empty());
             peer.write_all(&frame[7..]).unwrap();
             c.begin_read(&mut rx);
-            assert!(matches!(c.read_message(&mut rx), Err(e) if e.kind() == io::ErrorKind::InvalidData));
+            assert!(matches!(c.read_message(&mut rx, &mut sys::RecvScratch::new()), Err(e) if e.kind() == io::ErrorKind::InvalidData));
         }
     }
 

@@ -44,6 +44,23 @@ pub struct Ucred {
 pub use owrt_ubus::sys::{ignore_signal, set_signal_handler, POLLIN, POLLOUT, POLLERR, POLLHUP, SIGPIPE, SIGTERM, SIGINT};
 use owrt_ubus::sys::{IoVec, MsgHdr};
 
+/// Receive structures reused across prefix reads in one readiness callback.
+/// C initializes the equivalent iovec/msghdr/cmsg once in client_cb.
+pub struct RecvScratch {
+    iov: IoVec,
+    control: [u8; CMSG_SPACE_FD],
+    hdr: MsgHdr,
+}
+impl RecvScratch {
+    pub fn new() -> Self {
+        let mut s = Self { iov: IoVec { base: std::ptr::null_mut(), len: 0 }, control: [0; CMSG_SPACE_FD], hdr: MsgHdr { name: std::ptr::null_mut(), namelen: 0, iov: std::ptr::null_mut(), iovlen: 1, control: std::ptr::null_mut(), controllen: 0, flags: 0 } };
+        s.control[0..8].copy_from_slice(&(CMSG_LEN_FD as u64).to_ne_bytes());
+        s.control[8..12].copy_from_slice(&SOL_SOCKET.to_ne_bytes());
+        s.control[12..16].copy_from_slice(&SCM_RIGHTS.to_ne_bytes());
+        s
+    }
+}
+
 /// struct passwd -- only pw_name is read.
 #[repr(C)]
 struct Passwd {
@@ -392,36 +409,29 @@ fn sendmsg_iov(sock: RawFd, iov: &mut [IoVec], fd: Option<RawFd>) -> io::Result<
 /// One recvmsg into `buf`, optionally accepting a single SCM_RIGHTS fd.
 /// `Ok((0, _))` means the peer closed. Short reads are normal.
 pub fn recvmsg_fd(sock: RawFd, buf: &mut [u8], want_fd: bool) -> io::Result<(usize, Option<OwnedFd>)> {
-    let mut iov = [IoVec { base: buf.as_mut_ptr(), len: buf.len() }];
-    let mut control = [0u8; CMSG_SPACE_FD];
-    let mut hdr = MsgHdr {
-        name: std::ptr::null_mut(),
-        namelen: 0,
-        iov: iov.as_mut_ptr(),
-        iovlen: 1,
-        control: if want_fd { control.as_mut_ptr() } else { std::ptr::null_mut() },
-        controllen: if want_fd { CMSG_LEN_FD } else { 0 },
-        flags: 0,
-    };
-    // SAFETY: iov, control and hdr outlive the call; lengths describe them.
-    let n = unsafe { recvmsg(sock, &mut hdr, 0) };
-    if n < 0 {
-        return Err(io::Error::last_os_error());
-    }
+    let mut scratch = RecvScratch::new();
+    recvmsg_fd_with(sock, buf, want_fd, &mut scratch)
+}
+
+pub fn recvmsg_fd_with(sock: RawFd, buf: &mut [u8], want_fd: bool, scratch: &mut RecvScratch) -> io::Result<(usize, Option<OwnedFd>)> {
+    scratch.iov.base = buf.as_mut_ptr();
+    scratch.iov.len = buf.len();
+    scratch.hdr.iov = &mut scratch.iov;
+    scratch.hdr.control = if want_fd { scratch.control.as_mut_ptr() } else { std::ptr::null_mut() };
+    scratch.hdr.controllen = if want_fd { CMSG_LEN_FD } else { 0 };
+    if want_fd { scratch.control[16..20].fill(0xff); }
+    // SAFETY: scratch and its pointed-to fields outlive the syscall.
+    let n = unsafe { recvmsg(sock, &mut scratch.hdr, 0) };
+    if n < 0 { return Err(io::Error::last_os_error()); }
     let mut got = None;
-    if want_fd && hdr.controllen >= CMSG_LEN_FD {
-        let level = i32::from_ne_bytes(control[8..12].try_into().unwrap());
-        let ty = i32::from_ne_bytes(control[12..16].try_into().unwrap());
+    if want_fd && scratch.hdr.controllen >= CMSG_LEN_FD {
+        let level = i32::from_ne_bytes(scratch.control[8..12].try_into().unwrap());
+        let ty = i32::from_ne_bytes(scratch.control[12..16].try_into().unwrap());
         if level == SOL_SOCKET && ty == SCM_RIGHTS {
-            let raw = i32::from_ne_bytes(control[16..20].try_into().unwrap());
-            if raw >= 0 {
-                // SAFETY: the kernel installed this descriptor for us; taking
-                // ownership here is what closes it on drop.
-                got = Some(unsafe { OwnedFd::from_raw_fd(raw) });
-            }
+            let raw = i32::from_ne_bytes(scratch.control[16..20].try_into().unwrap());
+            if raw >= 0 { got = Some(unsafe { OwnedFd::from_raw_fd(raw) }); }
         }
     }
-    let _ = CMSG_HDR;
     Ok((n as usize, got))
 }
 

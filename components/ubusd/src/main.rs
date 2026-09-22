@@ -212,7 +212,7 @@ fn event_loop(server: &mut Server, listener: &OwnedFd, wake_r: &OwnedFd) -> std:
                     if !server.clients.contains_key(&id) {
                         continue;
                     }
-                    if service_client(server, id, r.revents, &mut rx) {
+                    if service_client(server, id, r.revents, &mut rx, &mut sys::RecvScratch::new()) {
                         sync_write_interest(server, &mut poller, id);
                     } else {
                         disconnect(server, &mut poller, id);
@@ -293,7 +293,7 @@ fn accept_all(server: &mut Server, listener: &OwnedFd, poller: &mut owrt_ubus::r
 }
 
 /// Drive one connection for this poll round. Returns false to disconnect it.
-fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; client::RX_SIZE]) -> bool {
+fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; client::RX_SIZE], recv: &mut sys::RecvScratch) -> bool {
     if revents & (sys::POLLERR) != 0 {
         return false;
     }
@@ -315,7 +315,7 @@ fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; clie
         let Some(mut c) = server.clients.get_mut(&id) else { return false };
         c.begin_read(rx);
         loop {
-            match c.read_message(rx) {
+            match c.read_message(rx, recv) {
                 Ok(Some(msg)) => {
                     if !server.receive(id, msg) {
                         return false;
