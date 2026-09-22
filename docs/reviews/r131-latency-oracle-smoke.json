@@ -1,0 +1,118 @@
+{
+  "scope": "Oracle functional validation only; timings excluded from performance claims",
+  "helper_sha256": "aef917bf15119f5108e963e6b2e1745b3aee74fc71b2fcf2f6a7ccf65de859f3",
+  "runner_sha256": "0a0fec6f01ae6061cb1609a1dd86813bb46d02d2a007bd3c937772e7eb0be9d2",
+  "profile_plan_sha256": "a34caed9d743bfcd51375c407165aba4d9a3e1c0ab0a4994c24f23cd38aa1641",
+  "subjects": {
+    "c": {
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic"
+    },
+    "r124": {
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static"
+    },
+    "r131": {
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static"
+    }
+  },
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+    "/lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+    "/usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153"
+  },
+  "rows": [
+    {
+      "subject": "c",
+      "lane": "user_1_1",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "bf41aec411140807bde99350ddafc62fa80207c61df1e54bf00c722b8c5d28e3"
+    },
+    {
+      "subject": "c",
+      "lane": "user_8_1",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "24b38e39e267820e8342d064e170fd2064417463efeda1d7caf3bc1d554cb05d"
+    },
+    {
+      "subject": "c",
+      "lane": "user_1_0",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "4783c735483b44fd91c067abd5f362c44f7865c46441c845af28866129562149"
+    },
+    {
+      "subject": "r124",
+      "lane": "user_1_1",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "ce43c8f931142dfa4d42e38dc62c8b76f5cd8dc64dd3d8100f2708cc00e47e98"
+    },
+    {
+      "subject": "r124",
+      "lane": "user_8_1",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "d03a49b67e5b77dfd6db8d10b6dd584fade9a2b765dc0941f3ae6423fdab45dd"
+    },
+    {
+      "subject": "r124",
+      "lane": "user_1_0",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "f973183adc0fa7a569bd0beacba311ff1c35e955042c3576dba19aa2cc884687"
+    },
+    {
+      "subject": "r131",
+      "lane": "user_1_1",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "d5e5139886943d3b0eb925c6e0a6760415725f0657d33e847ac06021bf0adbec"
+    },
+    {
+      "subject": "r131",
+      "lane": "user_8_1",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "c30d523b3b7f126f4ffaab5bd6a78edd7d3c4468957c2f7464ac67251ddfce9e"
+    },
+    {
+      "subject": "r131",
+      "lane": "user_1_0",
+      "samples": 100,
+      "payload_checked": true,
+      "handlers_removed": true,
+      "output_sha256": "17da211048e25ae479ecd84ac379f2707df7e62dce5a929071e7d6eeebc81172"
+    }
+  ],
+  "passed": true,
+  "source_commit": "74c592b plus latency pre-touch supplement",
+  "build_attempts": [
+    {
+      "name": "build-01",
+      "result": "tool execution permission failure; raw log retained"
+    },
+    {
+      "name": "build-02",
+      "result": "intermediate helper built; not used for planned router measurement"
+    },
+    {
+      "name": "build-03",
+      "result": "final helper built successfully with SDK -O2 -Wall -Wextra -Werror"
+    }
+  ]
+}
