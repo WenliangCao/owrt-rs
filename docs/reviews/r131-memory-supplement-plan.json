@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "subjects": {
+    "c": {
+      "path": "private/r95/ubusd-pilot/stock",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic",
+      "source": "stock exact image"
+    },
+    "r124": {
+      "path": "private/r130-add-reply/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static",
+      "source": "a5b0ff1ec71a38d8c840b6995f859b503a08387d"
+    },
+    "r131": {
+      "path": "private/r131-event-batch/maps/r131",
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static",
+      "source": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc"
+    }
+  },
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "files": {
+    "driver": {
+      "path": "tools/r95_device_smoke.py",
+      "sha256": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d"
+    },
+    "guard": {
+      "path": "private/r95/guard",
+      "sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d"
+    },
+    "recovery_gate": {
+      "path": "private/r96/recovery-full/recovery-gate.json",
+      "sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536"
+    },
+    "harness": {
+      "path": "tools/benchmark/isolated.sh",
+      "sha256": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad"
+    },
+    "idle_helper": {
+      "path": "private/r129-memory/owrt-benchmark",
+      "sha256": "4bb2253ba342f0e4dabe6705c6fda608a6df46423321ed8a725f4723cb5dd8be"
+    },
+    "idle_workload": {
+      "path": "tools/r129_ubusd_connection_memory.sh",
+      "sha256": "13535e390e15ed5939fc54bf2221d8573d0be8081e468ca119a7f54b68285a77"
+    },
+    "large_helper": {
+      "path": "private/r124-event-memory/event-memory-libubus",
+      "sha256": "5ed020410fccb32ffea9b852ac58ed50ff567ff0a503ce8af7c96cb82a6b56f3"
+    },
+    "large_workload": {
+      "path": "tools/r124_event_memory.sh",
+      "sha256": "14a17f00158d523c489abaa865ddd34a56ec0ff936222329a4336d43094be340"
+    },
+    "fanout_helper": {
+      "path": "private/r131-supplement/memory/fanout-memory",
+      "sha256": "55ea2da91dd0bc1f3f7a0a261d36f242169b5a90b9a8609eed9ee12e62b0b4b6"
+    },
+    "fanout_workload": {
+      "path": "tools/r131_fanout_memory.sh",
+      "sha256": "d93ce8cfc39f97e26feac608844b1814d02eb478bb181b53fd33457a1da405fd"
+    },
+    "runner": {
+      "path": "tools/r131_memory_supplement.py",
+      "sha256": "0275a384acdd6137364f7ad4da97f4d5689bf60672b7a330e061bc0c0312c609"
+    }
+  },
+  "runs": [
+    {
+      "name": "01-idle-c",
+      "kind": "idle",
+      "subject": "c",
+      "order": 1
+    },
+    {
+      "name": "02-idle-r124",
+      "kind": "idle",
+      "subject": "r124",
+      "order": 1
+    },
+    {
+      "name": "03-idle-r131",
+      "kind": "idle",
+      "subject": "r131",
+      "order": 1
+    },
+    {
+      "name": "04-idle-r131",
+      "kind": "idle",
+      "subject": "r131",
+      "order": 2
+    },
+    {
+      "name": "05-idle-r124",
+      "kind": "idle",
+      "subject": "r124",
+      "order": 2
+    },
+    {
+      "name": "06-idle-c",
+      "kind": "idle",
+      "subject": "c",
+      "order": 2
+    },
+    {
+      "name": "07-large-c",
+      "kind": "large",
+      "subject": "c",
+      "order": 1
+    },
+    {
+      "name": "08-large-r124",
+      "kind": "large",
+      "subject": "r124",
+      "order": 1
+    },
+    {
+      "name": "09-large-r131",
+      "kind": "large",
+      "subject": "r131",
+      "order": 1
+    },
+    {
+      "name": "10-large-r131",
+      "kind": "large",
+      "subject": "r131",
+      "order": 2
+    },
+    {
+      "name": "11-large-r124",
+      "kind": "large",
+      "subject": "r124",
+      "order": 2
+    },
+    {
+      "name": "12-large-c",
+      "kind": "large",
+      "subject": "c",
+      "order": 2
+    },
+    {
+      "name": "13-fanout-c",
+      "kind": "fanout",
+      "subject": "c",
+      "order": 1
+    },
+    {
+      "name": "14-fanout-r124",
+      "kind": "fanout",
+      "subject": "r124",
+      "order": 1
+    },
+    {
+      "name": "15-fanout-r131",
+      "kind": "fanout",
+      "subject": "r131",
+      "order": 1
+    },
+    {
+      "name": "16-fanout-r131",
+      "kind": "fanout",
+      "subject": "r131",
+      "order": 2
+    },
+    {
+      "name": "17-fanout-r124",
+      "kind": "fanout",
+      "subject": "r124",
+      "order": 2
+    },
+    {
+      "name": "18-fanout-c",
+      "kind": "fanout",
+      "subject": "c",
+      "order": 2
+    }
+  ],
+  "guard": "Investigate R131/R124 RssAnon or VmData increase greater than 24 KiB for batch cases or 4 KiB for idle/large fallback. No automatic acceptance; correctness failure blocks adoption.",
+  "notes": [
+    "Fresh daemon per size/connection count. Mirrored C,R124,R131,R131,R124,C order.",
+    "Fanout: eight handlers on one connection, payloads 1/8/32 KiB; batch, batch-size boundary, unbatched large fallback.",
+    "Large: one handler 32/256/768 KiB; idle:0/1/8/32/64 connections.",
+    "Production C unchanged, private namespace cleanup and health gate every window."
+  ]
+}
