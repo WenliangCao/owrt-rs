@@ -1,5 +1,5 @@
 /*
- * Dedicated large-event memory probe using the exact image's libubus/libubox.
+ * Dedicated event memory probe (one handler or eight-handler batch) using the exact image's libubus/libubox.
  * This is a separate ELF: never replace/rebuild the normal CPU client for it.
  * stdin commands: SEND\n, then CLOSE\n. stdout: READY, DELIVERED, CLOSED JSON.
  * Run inside the guarded disposable namespace; no timing benchmark here.
@@ -23,6 +23,13 @@
 #define EVENT_NAME "r124.memory"
 #define MISSING_OBJECT "r124.memory.no-such-object"
 #define SMALL_BYTES 16
+#ifndef EVENT_MEMORY_HANDLERS
+#define EVENT_MEMORY_HANDLERS 1
+#endif
+#define HANDLERS EVENT_MEMORY_HANDLERS
+_Static_assert(HANDLERS == 1 || HANDLERS == 8, "supported handler counts");
+static struct ubus_event_handler handlers[HANDLERS];
+static unsigned seen_handlers;
 #define MAX_BLOB_BYTES 1048576
 
 static struct {
@@ -131,6 +138,7 @@ static void prepare_data(unsigned bytes)
 	state.payload_bytes = bytes;
 	state.data_blob_bytes = blob_raw_len(state.data.head);
 	state.received = 0;
+	seen_handlers = 0;
 	encoded_lengths();
 }
 
@@ -138,8 +146,9 @@ static void receive_event(struct ubus_context *ctx, struct ubus_event_handler *h
 			  const char *type, struct blob_attr *msg)
 {
 	(void)ctx;
-	(void)handler;
-	require(state.received == 0, "duplicate event received");
+	unsigned index = (unsigned)(handler - handlers);
+	require(index < HANDLERS && !(seen_handlers & (1u << index)), "duplicate or unknown handler");
+	seen_handlers |= 1u << index;
 	require(type && !strcmp(type, EVENT_NAME) && msg, "unexpected event name or absent data");
 	/* Compare every encoded field byte, including field name/type, string
 	 * terminator and padding. This also rejects extra or duplicate fields. */
@@ -172,7 +181,7 @@ static void send_and_validate(struct ubus_context *sender, struct ubus_context *
 	alarm(10);
 	prepare_data(bytes);
 	require(!ubus_send_event(sender, EVENT_NAME, state.data.head), "event send STATUS failed");
-	while (!state.received) {
+	while (state.received < HANDLERS) {
 		struct pollfd pfd = {.fd = listener->sock.fd, .events = POLLIN};
 		int rc = poll(&pfd, 1, 5000);
 		if (rc < 0 && errno == EINTR)
@@ -187,7 +196,7 @@ static void send_and_validate(struct ubus_context *sender, struct ubus_context *
 	require(ubus_lookup(listener, MISSING_OBJECT, NULL, NULL) == UBUS_STATUS_NOT_FOUND,
 		"listener LOOKUP/STATUS barrier failed");
 	drain_pending(listener);
-	require(state.received == 1, "event count mismatch after barrier");
+	require(state.received == HANDLERS, "event count mismatch after barrier");
 	alarm(0);
 }
 
@@ -233,7 +242,8 @@ int main(int argc, char **argv)
 	unsigned bytes = number(argv[3], 786432);
 	pid_t subject = (pid_t)number(argv[4], INT_MAX);
 	unsigned base_fds = number(argv[5], 4096);
-	require(bytes == 32768 || bytes == 262144 || bytes == 786432, "unsupported payload size");
+	require(HANDLERS == 8 ? (bytes == 1024 || bytes == 8192 || bytes == 32768) :
+		(bytes == 32768 || bytes == 262144 || bytes == 786432), "unsupported payload size");
 	require(subject > 0 && subject != getpid() && base_fds > 0, "invalid subject identity");
 	require(signal(SIGALRM, timed_out) != SIG_ERR, "timeout handler failed");
 	pin(0);
@@ -243,21 +253,24 @@ int main(int argc, char **argv)
 	struct ubus_context *sender = ubus_connect(argv[2]);
 	struct ubus_context *listener = ubus_connect(argv[2]);
 	require(sender && listener, "ubus connect failed");
-	struct ubus_event_handler handler = {.cb = receive_event};
-	require(!ubus_register_event_handler(listener, &handler, EVENT_NAME), "event registration failed");
+	for (unsigned i = 0; i < HANDLERS; i++) {
+		handlers[i].cb = receive_event;
+		require(!ubus_register_event_handler(listener, &handlers[i], EVENT_NAME), "event registration failed");
+	}
 	send_and_validate(sender, listener, SMALL_BYTES);
 	require(subject_fds(subject) == base_fds + 2, "READY does not hold exactly two connections");
 	phase("READY", subject, bytes, base_fds, 1);
 	command("SEND\n");
 	send_and_validate(sender, listener, bytes);
-	require(state.total_received == 2 && subject_fds(subject) == base_fds + 2,
+	require(state.total_received == 2 * HANDLERS && subject_fds(subject) == base_fds + 2,
 		"DELIVERED count or held connections changed");
 	phase("DELIVERED", subject, bytes, base_fds, 1);
 	command("CLOSE\n");
 	alarm(10);
 	drain_pending(listener);
-	require(!ubus_unregister_event_handler(listener, &handler), "handler removal failed");
-	require(state.received == 1 && state.total_received == 2, "unexpected event before CLOSE");
+	for (unsigned i = 0; i < HANDLERS; i++)
+		require(!ubus_unregister_event_handler(listener, &handlers[i]), "handler removal failed");
+	require(state.received == HANDLERS && state.total_received == 2 * HANDLERS, "unexpected event before CLOSE");
 	ubus_free(listener);
 	ubus_free(sender);
 	uloop_done();
