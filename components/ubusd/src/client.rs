@@ -188,11 +188,11 @@ impl Client {
         true
     }
 
-    /// The final LOOKUP DATA and its successful STATUS are known together.
+    /// A DATA reply and its immediately following successful STATUS are known together.
     /// Write both immediately, keeping their separate framing and queue caps.
     /// Neither reply carries a descriptor. Monitor users keep the per-message
     /// path so each mirror remains at its original send boundary.
-    pub fn send_lookup_reply(&mut self, header: Header, blob: &[u8]) {
+    pub fn send_data_status_reply(&mut self, header: Header, blob: &[u8]) {
         let status_header = Header { ty: ty::STATUS, ..header };
         let status_blob = [0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0];
         if !self.tx.is_empty() {
@@ -814,6 +814,32 @@ mod tests {
     }
 
     #[test]
+    fn combined_reply_keeps_each_frame_cap_when_already_queued() {
+        for blob_len in [12, 20] {
+            for room in [0, 19, 20, 27, 28, 39, 40, 47, 48] {
+                let (mut combined, _combined_peer) = rx_pair();
+                let (mut separate, _separate_peer) = rx_pair();
+                for client in [&mut combined, &mut separate] {
+                    client.enqueue(OutMsg::new(ty::DATA, 10, 20, vec![0; MAX_MSGLEN - room - Header::LEN]));
+                }
+                let header = Header { ty: ty::DATA, seq: 11, peer: 21 };
+                let mut blob = vec![0x5a; blob_len];
+                blob[..4].copy_from_slice(&(blob_len as u32).to_be_bytes());
+                combined.send_data_status_reply(header, &blob);
+                separate.send_borrowed(header, &blob, None);
+                separate.send_borrowed(Header { ty: ty::STATUS, ..header }, &[0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0], None);
+                assert_eq!((combined.txq_len, combined.txq_ofs, combined.tx.len()),
+                           (separate.txq_len, separate.txq_ofs, separate.tx.len()));
+                for (actual, wanted) in combined.tx.iter().zip(&separate.tx) {
+                    assert_eq!(actual.header.encode(), wanted.header.encode());
+                    assert_eq!(actual.blob, wanted.blob);
+                    assert!(actual.fd.is_none() && wanted.fd.is_none());
+                }
+            }
+        }
+    }
+
+    #[test]
     fn combined_lookup_preserves_bytes_through_partial_and_queued_writes() {
         for size in [4, 28, 65536, MAX_MSGLEN] {
             let (sock, mut peer) = UnixStream::pair().unwrap();
@@ -831,7 +857,7 @@ mod tests {
                 let mut status = BlobBuf::new();
                 status.put_u32(attr::STATUS, 0);
                 expected.extend_from_slice(status.as_bytes());
-                c.send_lookup_reply(header, &blob);
+                c.send_data_status_reply(header, &blob);
                 // Reusing the caller's storage must not corrupt queued output.
                 blob.fill(0xa5);
             }
