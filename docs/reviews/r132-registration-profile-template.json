@@ -24,8 +24,8 @@
     "kind": "static"
   },
   "perf": {
-    "path": "/usr/bin/perf",
-    "sha256": "2d0953085bf720a25efbe24f853e97d27b1f12f18a398255ff82cbafde254dad"
+    "path": "/usr/lib/linux-tools/6.17.0-1020-oracle/perf",
+    "sha256": "758b3135e023e835a64d450cb0babde183ac8eda59a4724f97574a433e1d8c78"
   },
   "subjects": {
     "c": {
