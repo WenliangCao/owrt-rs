@@ -1818,7 +1818,7 @@ mod tests {
         for (i, ((header, blob), object)) in frames.iter().zip(objects).enumerate() {
             assert_eq!((header.ty, header.seq, header.peer), (ty::INVOKE, i as u16 + 1, 0));
             assert_eq!(attrs_of(&blob[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(object));
-            assert_eq!(attrs_of(&blob[4..])[attr::METHOD as usize].unwrap().as_bytes(), Some(&b"event\0"[..]));
+            assert_eq!(attrs_of(&blob[4..])[attr::METHOD as usize].unwrap().payload, b"event\0");
         }
     }
 
