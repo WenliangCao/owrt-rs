@@ -30,8 +30,10 @@ The exact source revision `24864e7840b3a02a9ef76284a373f6b2f00b8a9b` defines
 image build use 1,048,576 bytes. `ubusd.c:143` drops a frame when enqueueing
 it would exceed that cap. The test therefore requires a nonzero strict
 subset of the flooded events, without assuming C and Rust must drop the
-same count. Batching can change kernel socket occupancy before the same
-userspace cap is reached. A later event must still arrive in full.
+same count. In the Oracle check C/R124 retained 542 flooded frames and R131
+retained 574. Changed kernel socket packing is a plausible explanation;
+this test does not establish that mechanism. A later event must still
+arrive in full.
 
 Every callback checks its real `ubus_request_data` target, peer, sequence and
 absence of an attached FD. It compares the entire encoded payload with an
@@ -41,6 +43,13 @@ gaps only. The final lookup/removal barriers and FD-count return to baseline
 check recovery and cleanup. Memory snapshots at empty/registered/delivered
 or flooded/drained/closed are immediate diagnostics, not settled residency
 measurements.
+
+Monitor validation establishes order within each stream, not cross-socket
+mirror/delivery wall-clock order. Each owner's poll and payload checks are
+inside the latency sample. The latency array is not prefaulted, so a few
+samples may include first-write page costs. The same helper is used for
+all subjects; these limitations prohibit treating its tail as daemon-only
+latency.
 
 Oracle validation passed all 12 C/R124/R131 × four-case combinations, using
 100 operations for normal cases and 192 for slow. This is helper protocol

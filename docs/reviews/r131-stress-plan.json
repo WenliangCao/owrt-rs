@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "component": "ubusd",
+  "purpose": "Physical R131 completion: owner order, monitor fallback, bounded slow-reader recovery; no production replacement",
+  "source_commit": "8be0750",
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "iterations": 2000,
+  "warmup": 20,
+  "slow_iterations": 192,
+  "subjects": {
+    "c": {
+      "path": "private/r95/ubusd-pilot/stock",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "kind": "dynamic",
+      "source": "stock exact image"
+    },
+    "r124": {
+      "path": "private/r130-add-reply/maps/r124",
+      "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "kind": "static",
+      "source": "a5b0ff1ec71a38d8c840b6995f859b503a08387d"
+    },
+    "r131": {
+      "path": "private/r131-event-batch/maps/r131",
+      "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "kind": "static",
+      "source": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc"
+    }
+  },
+  "files": {
+    "driver": {
+      "path": "tools/r95_device_smoke.py",
+      "sha256": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d"
+    },
+    "workload": {
+      "path": "tools/r131_ubusd_event_stress.sh",
+      "sha256": "8a11da1895f061cf4b7a37eb5d5c7bc2308697d69d65f6a1ff94b378fe3a3dc5"
+    },
+    "benchmark": {
+      "path": "private/r127-r124-matrix/owrt-benchmark",
+      "sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e"
+    },
+    "event_benchmark": {
+      "path": "private/r131-completion/stress/r131-event-stress-libubus",
+      "sha256": "1705d989c64640353e556d0cc307899504b08e7b8ccbbcc8963f6821680b3499"
+    },
+    "namespace_helper": {
+      "path": "private/r90/deployment-r90/bins/ns-exec",
+      "sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2"
+    },
+    "guard": {
+      "path": "private/r95/guard",
+      "sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d"
+    },
+    "recovery_gate": {
+      "path": "private/r96/recovery-full/recovery-gate.json",
+      "sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536"
+    },
+    "harness": {
+      "path": "tools/benchmark/isolated.sh",
+      "sha256": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad"
+    },
+    "archive_verifier": {
+      "path": "tools/r124_event_memory_report.py",
+      "sha256": "fefb5bfe310bbbcafe23cc2632e33b0f439b47f67993b1d4f5e9ec070eba5814"
+    }
+  },
+  "permutations": [
+    [
+      "c",
+      "r124",
+      "r131"
+    ],
+    [
+      "c",
+      "r131",
+      "r124"
+    ],
+    [
+      "r124",
+      "c",
+      "r131"
+    ],
+    [
+      "r124",
+      "r131",
+      "c"
+    ],
+    [
+      "r131",
+      "c",
+      "r124"
+    ],
+    [
+      "r131",
+      "r124",
+      "c"
+    ]
+  ],
+  "runs": [
+    {
+      "index": 1,
+      "label": "c"
+    },
+    {
+      "index": 2,
+      "label": "r124"
+    },
+    {
+      "index": 3,
+      "label": "r131"
+    },
+    {
+      "index": 4,
+      "label": "c"
+    },
+    {
+      "index": 5,
+      "label": "r131"
+    },
+    {
+      "index": 6,
+      "label": "r124"
+    },
+    {
+      "index": 7,
+      "label": "r124"
+    },
+    {
+      "index": 8,
+      "label": "c"
+    },
+    {
+      "index": 9,
+      "label": "r131"
+    },
+    {
+      "index": 10,
+      "label": "r124"
+    },
+    {
+      "index": 11,
+      "label": "r131"
+    },
+    {
+      "index": 12,
+      "label": "c"
+    },
+    {
+      "index": 13,
+      "label": "r131"
+    },
+    {
+      "index": 14,
+      "label": "c"
+    },
+    {
+      "index": 15,
+      "label": "r124"
+    },
+    {
+      "index": 16,
+      "label": "r131"
+    },
+    {
+      "index": 17,
+      "label": "r124"
+    },
+    {
+      "index": 18,
+      "label": "c"
+    }
+  ],
+  "guard": {
+    "metrics": [
+      "mean_us",
+      "wall_us_op",
+      "p95_us",
+      "p99_us",
+      "daemon_cpu_us_op"
+    ],
+    "lanes": [
+      "grouped",
+      "interleaved",
+      "monitor"
+    ],
+    "flag": "six R131/R124 paired deltas positive and median > 5%",
+    "functionality": "all cases mandatory",
+    "no_extensions": true
+  },
+  "oracle_helper_validation": {
+    "path": "private/r131-completion/stress/stress-oracle-03/result.json",
+    "sha256": "635a1dcc730007677d007a2b15321c29778ae71fc57b6cadf858faf8bf41d81a"
+  },
+  "reporter": {
+    "path": "tools/r131_stress_report.py",
+    "sha256": "511b212d150476969744ef5ed19215f277c19e25f8bd30d52d12cbbdddf1758f"
+  },
+  "runner": {
+    "path": "tools/r131_stress_runner.py",
+    "sha256": "f51636262fe3c536756c1a925d8fa67fc286de8a4d682aa53ba5f980c2b0c4f9"
+  },
+  "helper_source": {
+    "path": "tools/benchmark/r131_event_stress_libubus.c",
+    "sha256": "d2a1e7a37ef4cc901537b75b35deb602a3d7ae8c25d8af86ca68b9e37ee58c64"
+  },
+  "runtime_libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "interpretation": [
+    "C comparisons descriptive; R124 comparisons apply regression gates.",
+    "Callback validation is inside latency. Per-owner poll may add scheduler latency; these are instrument-specific end-to-end measurements.",
+    "No slow-lane performance superiority claim. Different survivor counts do not imply corrupted frames.",
+    "Immediate memory snapshots only; no settled memory conclusion from this series."
+  ]
+}
