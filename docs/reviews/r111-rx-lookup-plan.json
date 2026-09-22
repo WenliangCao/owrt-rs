@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "name": "R111 single lookup ablation",
+  "status": "implementation experiment; accepted runtime remains R109",
+  "hypothesis": "R110-A adds clients.get_mut before a receive loop that immediately performs the same lookup again. Reuse that first mutable Client borrow for the first read, then reacquire only after Server::receive may have changed client state. This may remove part of the measured +3.1% user instructions versus R109.",
+  "change_boundary": [
+    "Use R110-A stack buffer and exact residual code without changes.",
+    "Change only service_client reference lifetime: reuse Client for read/end; reacquire after dispatch, with the same missing-client/disconnect behavior.",
+    "No boxed Client table, borrowed dispatch, threshold, inline hint, allocator size or protocol change.",
+    "Preserve all R110-A boundary tests. Work in an isolated Git worktree; main branch remains accepted R109."
+  ],
+  "validation": [
+    "Compile and run portable boundary tests to validate the borrow structure.",
+    "Build at the original canonical path with original release flags; compare exact R110-A control SHA to preserved artifact.",
+    "Linux/router correctness and byte-differential gates before any physical timing.",
+    "Freeze exact new ELF and synchronized Oracle counter plan after the build; compare R111, R110-A and R109 with fixed permutations at 0/64 held connections.",
+    "A successful counter ablation is evidence for source-level extra work, not proof of router improvement. Only then decide the minimal router timing needed; do not repeat the whole six-series matrix for a known memory-failing candidate."
+  ],
+  "decision": "Do not accept this as a final daemon: the unchanged R110-A memory gate is still failed. If instruction inflation is not removed, retain evidence and inspect generated code rather than trying another control-flow variant. A separate client-table ownership experiment needs its own plan and measurements.",
+  "references": [
+    "r110a-stack-rx.patch",
+    "r110a-perf-sync-results.json",
+    "r110-client-table-memory-plan.json"
+  ]
+}
