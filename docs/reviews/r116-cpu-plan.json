@@ -321,8 +321,7 @@
   "workload_fd_boundary": "tools/r115_ubusd_fd_boundary.sh",
   "artifact_by_hash": {
     "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88": "private/r95/ubusd-pilot/stock",
-    "c8f3aa250785c6f1e22f9d1ed14a97eade6008329ab81754824b57d6b55d9dde": "private/r115-event-interest/ubusd-rs",
-    "e718287d73094325134998c7d166f939e1c04cfefb3bc9309a4992841a3ae09894456": "private/r114-borrowed-dispatch/ubusd-rs",
-    "e718287d73094325134998c7d166f939e1c04dd16cdcf6c1e4fa26715689900d": "private/r114-borrowed-dispatch/ubusd-rs"
+    "e718287d73094325134998c7d166f939e1c04dd16cfefb3bc9309a4992841a3ae09894456": "private/r114-borrowed-dispatch/ubusd-rs",
+    "25a7fdefa8a29f166f5cb4d1ead3c500a3e9371ed1e7e9dedc1b145e74b94188": "private/r116-recv-scratch/ubusd-rs"
   }
 }
