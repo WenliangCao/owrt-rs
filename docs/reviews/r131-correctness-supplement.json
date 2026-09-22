@@ -1,0 +1,178 @@
+{
+  "scope": "R131 supplementary Oracle correctness and syscall mechanism; no physical router result",
+  "runtime_source_commit": "4e45d2ecc41d8548916c2f92f30c7ac4d2bb65dc",
+  "test_source_commit": "18df115deac2e6b6e70155589e0baf35d8d45309",
+  "candidate_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+  "archive_sha256": "aa55d3c27e1a956ca974c31c3de7cbcf755e673a205a689900529f9a4feee107",
+  "raw_evidence": "private/r131-event-batch/correctness/correctness-01",
+  "unit_tests": {
+    "target": 53,
+    "host": 53,
+    "failures": 0,
+    "target_elf_sha256": "29f057776f75c5bdddf4c1c9a6577a192d2362d5ce015ab9b79f3c869a69a3b3",
+    "target_log_sha256": "94bbed786e59c034bfc5eed76c9f6bfe7e6e85caaba00c3d7deb7e69b6f803dd",
+    "host_log_sha256": "30ea1d22ed2bf78393199dd4421f6e9f6cf90a36119d30f984b2e1bbb7290aaf"
+  },
+  "runtime_source_unchanged": true,
+  "short_write_control": {
+    "original_r124_helper_tests": 2,
+    "failures": 0,
+    "scope": "Same R131 tests with original R124 send_lookup_batch body substituted in an isolated copy",
+    "result": "Coverage added; these cases do not establish a defect in the original R124 helper",
+    "log_sha256": "33789d89cdca92cb02313d9afb80ef78a4438b4ad2621df7c3533f0d3b3e9a61"
+  },
+  "six_gates": {
+    "passed": true,
+    "result_sha256": "3fea427c904ffb0084b72c9c7698771a6c100bc77b9ee0f860f9be58a157f632",
+    "results": [
+      {
+        "name": "ubusd-r36",
+        "exit": 0,
+        "log_sha256": "92b6c2f4e08e174611c2c821d05565888969e8e389348ce0856240340eed5d0b"
+      },
+      {
+        "name": "ubusd-r36-user",
+        "exit": 0,
+        "log_sha256": "8889c954a6a08e2ee662d3649bbc667cbe1477bac2a132cf8ae1962975b607d5"
+      },
+      {
+        "name": "ubusd-r83",
+        "exit": 0,
+        "log_sha256": "6a9aecfdf5d10437d26260cdc05b2b5fba68f2e265ab89485af4a0019b24570d"
+      },
+      {
+        "name": "ubusd-r42",
+        "exit": 0,
+        "log_sha256": "0461544ec88d5d3626f474d20b402004297dca534b5066548f2fc8e9c401be3f"
+      },
+      {
+        "name": "ubusd-r41",
+        "exit": 0,
+        "log_sha256": "03f368f66f354cd8f8f006d01b04d1a038875a547bf0bc36a2682178ab8acfcd"
+      },
+      {
+        "name": "r92-recovery",
+        "exit": 0,
+        "log_sha256": "ef1278979ad1fd96cdd0573a370bedd403fb1b71b395fca30abf53375b233536"
+      }
+    ]
+  },
+  "wireprobe": {
+    "sha256": "8703f166d3d5998b1fd71353efaf25e4d7c8ff6530b495eac578702d7a997f93",
+    "scenarios": [
+      "object_events",
+      "events",
+      "monitor",
+      "release",
+      "utf8",
+      "monitor_lookup",
+      "method_acl"
+    ],
+    "three_sides_byte_equal": true,
+    "fd_cases": 6,
+    "fd_boundary_three_sides_byte_equal": true,
+    "fd_returned_to_baseline": true,
+    "object_registry_empty_after": true
+  },
+  "syscall_mechanism": {
+    "scope": "Oracle syscall/frame mechanism only; traced timing and CPU are excluded",
+    "runner_sha256": "4837baff3a91f4436ebfebc15f607870298621214a333c4a718ebe1efe4a926f",
+    "client_sha256": "2f58c60ddd6421476c140673cd7d4c4310c5f5eda71be1f4d7eab1a4d6c1efcf",
+    "library_sha256": {
+      "lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+      "lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+      "lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+      "lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+      "lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+      "usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153"
+    },
+    "samples": [
+      {
+        "subject": "r124",
+        "listeners": 1,
+        "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+        "iterations": 100,
+        "warmup": 20,
+        "sendmsg_calls": 247,
+        "event_sendmsg_calls": 120,
+        "event_frames": 120,
+        "event_frames_per_sendmsg": {
+          "1": 120
+        },
+        "trace_sha256": "ad61b17598ab9b6e73546460d000653140bfde1adff4073aeb29c0c6cd72113f",
+        "caller_sha256": "fd77c04c46eca5e933d522311249a615912d2847ec85ec73f430ddb6fe40d698"
+      },
+      {
+        "subject": "r131",
+        "listeners": 1,
+        "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "iterations": 100,
+        "warmup": 20,
+        "sendmsg_calls": 247,
+        "event_sendmsg_calls": 120,
+        "event_frames": 120,
+        "event_frames_per_sendmsg": {
+          "1": 120
+        },
+        "trace_sha256": "2ff734c0992cab7768483bbc0d3bd5254add8bd45ece828c8e0bd9c993a4f3d4",
+        "caller_sha256": "1ed387221f63051a7802190d3915a1dd99252893332db4f5f7e44aad45b071b6"
+      },
+      {
+        "subject": "r124",
+        "listeners": 8,
+        "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+        "iterations": 100,
+        "warmup": 20,
+        "sendmsg_calls": 1122,
+        "event_sendmsg_calls": 960,
+        "event_frames": 960,
+        "event_frames_per_sendmsg": {
+          "1": 960
+        },
+        "trace_sha256": "f279c4b623ec9f0eef6b913eb6ac2f0cb6384bf94c5a9d6833f2de29e4503578",
+        "caller_sha256": "bb3a1420f144b732a8cb6fd405116584ce41a0fe57583d3b84977640e3bde2bb"
+      },
+      {
+        "subject": "r131",
+        "listeners": 8,
+        "sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "iterations": 100,
+        "warmup": 20,
+        "sendmsg_calls": 402,
+        "event_sendmsg_calls": 240,
+        "event_frames": 960,
+        "event_frames_per_sendmsg": {
+          "1": 120,
+          "7": 120
+        },
+        "trace_sha256": "af15a7df58161977b9a6684035464be968e4a5b45519ddf36cfd91edb7fdbedd",
+        "caller_sha256": "3971d989e66a94fa02c1f9abec5b84064da4b74086eb55834810e02b6f9762ba"
+      }
+    ]
+  },
+  "tool_attempts": [
+    {
+      "attempt": "syscalls-01",
+      "result": "harness launch error: legacy normal caller lacks exec-cpu-as; no workload ran"
+    },
+    {
+      "attempt": "syscalls-02",
+      "result": "Oracle ptrace permission denied; no workload ran"
+    },
+    {
+      "attempt": "syscalls-03",
+      "result": "four structural cases passed; followed by explicit library-identity checks in syscalls-04"
+    },
+    {
+      "attempt": "syscalls-04",
+      "result": "four cases passed with exact library identities"
+    }
+  ],
+  "limits": [
+    "No router access performed by this worker; router gates remain for the serial device runner.",
+    "Test-only commits do not change client runtime source; frozen R131 release ELF was reused, not replaced with a new release.",
+    "Short-write tests use a real nonblocking Linux Unix socket and bounded send buffer; the first incomplete frame is followed by a queued frame.",
+    "Syscall counts are mechanism evidence only; strace latency and CPU measurements are excluded.",
+    "Six combined gates cover R131 with the existing R95 dependency bundle; this is not a full nine-component final integration or performance proof."
+  ]
+}
