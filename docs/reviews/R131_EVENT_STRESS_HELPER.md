@@ -25,6 +25,13 @@ a new instrument; its absolute CPU values are not pooled with the earlier
 aggregate-only caller. Slow-loop latency measures sender acknowledgement
 only and must not be compared to normal end-to-end latency.
 
+The slow helper calls `setsockopt(SO_RCVBUF, 1024)`, but Linux documents that
+`SO_RCVBUF` has no effect for UNIX domain sockets. The effective stressor is
+the fixed flood while the listener does not read, not a proven 1024-byte
+receive-buffer limit. The observed strict subset of deliveries proves that
+the bounded-drop case was exercised; the socket option itself does not.
+See the [Linux unix(7) socket API documentation](https://man7.org/linux/man-pages/man7/unix.7.html).
+
 The exact source revision `24864e7840b3a02a9ef76284a373f6b2f00b8a9b` defines
 `UBUS_CLIENT_MAX_TXQ_LEN` as `UBUS_MAX_MSGLEN`; the matching CMake default and
 image build use 1,048,576 bytes. `ubusd.c:143` drops a frame when enqueueing
