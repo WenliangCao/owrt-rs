@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "purpose": "R124 Oracle-only event scratch reuse counter screen, relative to exact R123. No physical-router performance inference.",
+  "runner_sha256": "a20696b6fb3d47eef49cd5ea2c3e2e7ab291450915c06de314089a6c37b34179",
+  "client_sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7",
+  "subjects": {
+    "r123": "ea229755d2549b2107ff0446b53b453c7a023f42cea5b8ddec7d48ae178e3a28",
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926"
+  },
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "events": [
+    "{instructions:u,branches:u,branch-misses:u,cycles:u}",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "counter_names": [
+    "instructions:u",
+    "branches:u",
+    "branch-misses:u",
+    "cycles:u",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "iterations": 50000,
+  "warmup": 5000,
+  "sample_timeout_seconds": 30,
+  "runs": [
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "a",
+      "subject": "r123",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "b",
+      "subject": "r123",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "a",
+      "subject": "r124",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "b",
+      "subject": "r124",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "a",
+      "subject": "r123",
+      "held_clients": 64
+    },
+    {
+      "stage": "aa",
+      "block": 3,
+      "slot": "b",
+      "subject": "r123",
+      "held_clients": 64
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "a",
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "aa",
+      "block": 4,
+      "slot": "b",
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r123",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r124",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r123",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r124",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r123",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r124",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r123",
+      "held_clients": 0
+    }
+  ],
+  "sampling": "Exactly sixteen fresh-process samples: four same-ELF A/A pairs covering both subjects and scales, then two reversed comparison blocks per scale. Each sample 50000 sends after 5000 warmup. No extension on results.",
+  "analysis": "Use existing raw verifier and descriptive paired counters; two block ratios per scale, no confidence interval or equivalence claim. Keep all CPU/cycle results even when adverse.",
+  "decision": "Counter screen only: require all identities, payload checks, zero migrations and 100% counter runtime. Both scales must have median instructions/op <= -3% relative to R123 to proceed toward router performance. If any same-ELF instruction A/A pair exceeds +/-0.5%, resolve count instability before screening. These are resource-allocation heuristics, not necessary conditions for router performance gain and not language-limit evidence.",
+  "boundaries": "Enable ACK after warmup before the three clock reads; disable ACK after the loop and the three clock reads. No per-request instrumentation. Final callback validates delivery; bounded trailing daemon work can straddle the CPU-clock/disable boundary. Counts include this boundary overhead and are divided by 50000.",
+  "sources": [
+    "https://man7.org/linux/man-pages/man1/perf-stat.1.html",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.c#L2078",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.h#L404"
+  ],
+  "tool_validation": {
+    "reused_exact_client": "v3 consumes full ACK and brackets clocks; previously validated R111 tool, not the failed R120 normal-helper plan.",
+    "runner_unchanged": true,
+    "this_plan_sample_count": 16
+  },
+  "launch_names": {
+    "r123": "ubusd",
+    "r124": "ubusd"
+  },
+  "limitations": [
+    "Unique temporary path content still varies, but path byte lengths, basename and socket argument byte lengths are identical for every subject.",
+    "The pathname dependence mechanism has not been proven to be allocator placement.",
+    "The chosen diagnostic launch name is not a deployment measurement. Router runs still decide performance."
+  ],
+  "candidate_source_commit": "a5b0ff1ec71a38d8c840b6995f859b503a08387d",
+  "base_source_commit": "948e133d3995550891b35976c3c480090b48ee49",
+  "reporter_sha256": "38bf6958febeb1def1654d073557509eb487d36453aa95a81350cf6ec3999373",
+  "screen": {
+    "metric": "instructions:u",
+    "max_median_delta_pct": -3.0,
+    "required_held_clients": [
+      0,
+      64
+    ],
+    "aa_pair_max_absolute_instruction_delta_pct": 0.5
+  },
+  "files": {
+    "private/r124-event-scratch/build.sh": "5f6baca486168d163406ded9682f76357d5005c642220c928bc4ecae63ddf9b1",
+    "private/r124-event-scratch/gates.sh": "cab5ba51e9ec3fd6f7065deb42aca63997ea157543aa8568078e91efec9feac4",
+    "private/r124-event-scratch/gates-results.json": "20792461864176c4f6b080b4b41be12e763aff2e87c509691fb3ebd1cc39b565",
+    "private/r124-event-scratch/maps/r124-unit-tests": "15b78d5dd09fdd4111019025153e6c973599cbbed2810cc9215c67b20e0ea808",
+    "private/r124-event-scratch/maps/r124-unit.log": "5f4ce36cef637c27ffb01fce04c2dcb96047c41f691318190a88b03d78c6bf03",
+    "private/r124-event-scratch/maps/r124.map": "201a8fb51c037135c00f3d3a9bf356d850563d10424227d077bcf2fd23ba6404",
+    "private/r124-event-scratch/maps/ubus-unit-tests": "aac380efe7303aa48f1bb1434104cc72a88edd5d1c0e802db95fedf1761328c2",
+    "private/r124-event-scratch/maps/ubus-unit.log": "e56e0818e578915c3add077f53c1d42546a293c0a1f18f94f7613c8483979ba3",
+    "docs/reviews/R124_UBUSD_EVENT_SCRATCH_PLAN.md": "4c9af4ddb4e4ace95404a7bdb8ec2cdb8f4d16349dc3d66fb4b5e557555dcce0"
+  }
+}
