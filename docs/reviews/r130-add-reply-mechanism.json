@@ -1,0 +1,106 @@
+{
+  "scope": "Structural verification only; router performance not measured yet",
+  "build": {
+    "schema_version": 1,
+    "source_commit": "fc8bb458b585412658ae524ca8df183eee4081bf",
+    "baseline_source": "a5b0ff1ec71a38d8c840b6995f859b503a08387d",
+    "baseline_binary_reproduced": true,
+    "remove_object_and_free_object_unchanged": true,
+    "tests": {
+      "baseline_musl_passed": 47,
+      "candidate_musl_passed": 49,
+      "candidate_native_linux_passed": 49
+    },
+    "build_failures": [
+      {
+        "attempt": 1,
+        "cause": "full native cargo test compiles examples/profile.rs, archive omitted its sibling rpcd/examples/profile_support/mod.rs dependency",
+        "resolution": "include same revision profile_support source in both input archives; no runtime code change"
+      },
+      {
+        "attempt": 2,
+        "cause": "single-use build script refused existing canonical-before directory on rerun",
+        "resolution": "preserve previous directory under attempt suffix before rerun"
+      },
+      {
+        "attempt": 3,
+        "cause": "cached baseline cargo release artifact did not rewrite linker map after maps directory archived",
+        "resolution": "preserve cached target under attempt suffix and rebuild with fresh target"
+      }
+    ],
+    "sha256": {
+      "build.sh": "9ed04bf6e1e881d395dd4d698d0b538f599b8a97954fccc471dde4d82d881bfc",
+      "gates.sh": "5aed699f480c4ee97c81f1debf37b2e5853664019bf48df10e2d3aeed839c8b7",
+      "build.log": "c0489e703447a69c68f9d40da1677363271c0f517c5d6f77ad50ee19a12d7f7d",
+      "build-attempt-01.log": "789f8d3fbac8e70ef82e6963d785ea4e7d4a354909b05e15e8d04c6b414fbaf6",
+      "build-attempt-02.log": "18e1028bdeb091f5522ddb12d09b032db82ea3374bb58cd0bf28702942864f14",
+      "build-attempt-03.log": "7114707043c475ed1b29ad8d33aeb912beb49c4b97b2ee776b57dc655dd53159",
+      "r124.tar": "dae7aea9778c29f60664419fbc5ec3e60018954adc29e9e26d9bc60c1e37c26a",
+      "r130.tar": "cd97f69fd604c63e06b6d9b2611ea33d4d45f16ff1eec32f22471da4351001bf",
+      "maps/r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+      "maps/r130": "2e8316cc3719a789efe266f01047998e0cfe46d1eedc19d31434a56d66b34528",
+      "maps/r124.map": "7b501ffe94d1fd5ea554c1f37aca7e49bceb7e7fc9dead0544b324be6d1bf546",
+      "maps/r130.map": "bcf9519cb8b74c9ca630b589e8867c05c5f34687e1e6e0123ff4d8a8f372e4ae",
+      "maps/r124-unit-tests": "15b78d5dd09fdd4111019025153e6c973599cbbed2810cc9215c67b20e0ea808",
+      "maps/r130-unit-tests": "98efa75b499b325b8e4f266dd122cbfffecbf4a621cd786f3f13ff5525c4879f",
+      "maps/r130-native-unit.log": "a7c86606b83b404bcd1af516e013bae4abbee7708d3980e05725af97cdd8b780",
+      "maps/r124-unit.log": "5f4ce36cef637c27ffb01fce04c2dcb96047c41f691318190a88b03d78c6bf03",
+      "maps/r130-unit.log": "03c51ea76f3d577ef913ea3bda0e9b496bf17dc87da37c0c723ada31de3c7b88"
+    }
+  },
+  "syscalls": {
+    "scope": "Oracle syscall counts only; all traced latency/CPU excluded from performance claims",
+    "runner_sha256": "17f260a567ee760491267ca33228010019c0d7a4865d212438052d9c156b2ce3",
+    "benchmark_sha256": "984f6ec0926e7bc595a9fbe4f536446e7fec2bc7f10f752c895186adfb09cd1e",
+    "samples": [
+      {
+        "subject": "r124",
+        "methods": 1,
+        "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+        "iterations": 100,
+        "warmup": 20,
+        "successful_adds": 121,
+        "sendmsg_calls": 488,
+        "expected_sendmsg_calls": 488,
+        "trace_sha256": "4baae0dca6a99685741147f732e8ac30e3b1c5577d78bd0263d5c5f51f093869",
+        "caller_sha256": "dddf1b629b6b9088e84073aa7a98bb4472787f303cd6b3e9bc434d3b2f48e5cb"
+      },
+      {
+        "subject": "r130",
+        "methods": 1,
+        "sha256": "2e8316cc3719a789efe266f01047998e0cfe46d1eedc19d31434a56d66b34528",
+        "iterations": 100,
+        "warmup": 20,
+        "successful_adds": 121,
+        "sendmsg_calls": 367,
+        "expected_sendmsg_calls": 367,
+        "trace_sha256": "2573966772531a722219037ea5b8a9b67262ae467101e7b6d9431503c61f6a78",
+        "caller_sha256": "6bc4d208037f92619472c802196426810f95f2ad5cbf15dc074b4749d0a619cd"
+      },
+      {
+        "subject": "r124",
+        "methods": 16,
+        "sha256": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926",
+        "iterations": 100,
+        "warmup": 20,
+        "successful_adds": 121,
+        "sendmsg_calls": 488,
+        "expected_sendmsg_calls": 488,
+        "trace_sha256": "6a68e56b517437d8afa1a67d9a9fcef9f97c073b0379dba6413850888bc4bab2",
+        "caller_sha256": "7eb0f237c2ce187b1a4b1ccac2aa3586fd42a1cc439d65b7300e83150a3876ba"
+      },
+      {
+        "subject": "r130",
+        "methods": 16,
+        "sha256": "2e8316cc3719a789efe266f01047998e0cfe46d1eedc19d31434a56d66b34528",
+        "iterations": 100,
+        "warmup": 20,
+        "successful_adds": 121,
+        "sendmsg_calls": 367,
+        "expected_sendmsg_calls": 367,
+        "trace_sha256": "b51aba2db3dd1fe4c057a9f01affa75bf87e722c2826c6739094ae0a9f2ebce2",
+        "caller_sha256": "831a37127269d42d7a3a53ea7f1823d6d2637c03aac12f2131ef47112da16b2c"
+      }
+    ]
+  }
+}
