@@ -30,7 +30,7 @@
     "tools/r105_user_event_paired_report.py": "4282699e2669141874f5c7e5e18bd24fd9e1fa6d9d96580ac30bd0c735d68a36",
     "tools/r112_user_event_loaded.sh": "e97b26948f020af98e8dfc18ea527661d4a3a088053f95f905b52c38736025ac",
     "tools/r112_user_event_paired.sh": "e17cddfae0009990b6d00083d833c5dcccd1d2400a79fc8f24807cba5e77a9f1",
-    "tools/r115_cpu_runner.py": "8ea18495b2c878a577a48f9b9ca59448427d879aa16eaf17db78c56938cee1bb",
+    "tools/r115_cpu_runner.py": "b3204b0a7f094e6ae61ebbbaee881534620a0810071d662416799b820d4bbca1",
     "tools/r92_validate.py": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2",
     "tools/r95_device_smoke.py": "617aef4bf08d4153e55507bbcdf51655cbba868c1ecbf216731fa6aae557d93b",
     "tools/r99_registration_cpu_report.py": "3360baaa1ae821f4feef60ffc2658db0ae414dfd0df2a2e151cf501434cdb901",
