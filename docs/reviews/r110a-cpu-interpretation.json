@@ -2,7 +2,7 @@
   "schema_version": 1,
   "candidate": "c9ada3dce76898226bfea3b7d5d429792a943904adada52b99b26633904deca2",
   "control": "R103 2b815fba0871fe6745fdd52d8e62599eb68087d20e21b391cd170f72f3be22b7",
-  "status": "diagnosis-required",
+  "status": "rejected-by-frozen-router-gates; cause unresolved",
   "summary": [
     {
       "condition": "low",
@@ -137,7 +137,7 @@
       "all_ten_positive": true
     }
   ],
-  "decision": "Reject pending diagnosis: user_1_1 is all-positive in low and loaded screens; user_1_0 is all-positive in loaded screen. Do not retain CPU regression merely because user_8_1 improves. Use Oracle perf stat to compare instructions, branches, branch-misses and cycles before changing source.",
+  "decision": "R110-A fails the frozen memory and R103 CPU gates. Preserve the experiment and restore accepted R109 source. R109 comparison does not waive R103 regressions. No further receive variant before synchronized counter diagnosis.",
   "evidence": [
     "r110a-r103-low-cpu-results.json",
     "r110a-r103-loaded-cpu-results.json"
@@ -149,6 +149,7 @@
     "r103_subject_cpu_ns": 10638337960,
     "r110a_subject_cpu_ns": 10351789920,
     "r110a_vs_r103_pct": -2.693541426089452,
-    "interpretation": "Oracle does not reproduce router regression and does not show instruction/branch inflation. Router evidence remains authoritative; compare against R109 before rejecting."
+    "interpretation": "The one Oracle CPU-clock pair has the opposite direction to router R103 comparisons. This does not establish equivalence, a code-layout cause, or lack of instruction/branch inflation. Router evidence remains authoritative; root cause is unresolved.",
+    "measurement_validity": "Exploratory CPU clock result only, one sample per subject. The fixed 14-second perf attachment did not bracket the complete client workload; preceding ad hoc runs also had unsynchronized endpoints. Exclude those counts from instruction-per-operation comparisons."
   }
 }

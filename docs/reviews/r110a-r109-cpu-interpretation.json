@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "R110-A CPU unresolved against R109 only at sub-0.4% exploratory direction; no lane all-positive; retain for C comparison.",
+  "status": "All six R109 daemon intervals cross zero; equivalence is not established. R110-A rejected independently by frozen memory and R103 gates.",
   "results": {
     "low": [
       {
@@ -64,5 +64,10 @@
   "evidence": [
     "r110a-r109-low-cpu-results.json",
     "r110a-r109-loaded-cpu-results.json"
+  ],
+  "limitations": [
+    "Sub-percent median differences are exploratory; failed prior A/A resolution remains relevant.",
+    "Low-connection user_8_1 total CPU increases in every window: median +0.499%, interval [+0.053%, +3.840%]. Daemon-only summaries omit this result.",
+    "Cross-control comparisons cannot attribute the R103/R109 difference to code layout or method storage without a controlled diagnosis."
   ]
 }
