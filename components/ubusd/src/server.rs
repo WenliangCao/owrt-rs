@@ -93,14 +93,12 @@ impl Server {
             return;
         }
         let seq = self.acl.seq;
-        self.dispatch_event(None, b"ubus.acl.sequence", || {
-            let mut b = BlobBuf::new();
+        self.dispatch_event(None, b"ubus.acl.sequence", |b| {
             b.put_u32(attr::OBJID, 0);
             b.put_string(attr::METHOD, "ubus.acl.sequence");
             let d = b.nest_start(attr::DATA);
             b.msg_u32("sequence", seq);
             b.nest_end(d);
-            b.as_bytes().to_vec()
         });
     }
 
@@ -893,12 +891,10 @@ impl Server {
         if !self.acl.check(cred.as_ref(), Some(&id), None, AclType::Send) {
             return status::PERMISSION_DENIED;
         }
-        self.dispatch_event(Some(client), id, || {
-            let mut b = BlobBuf::new();
+        self.dispatch_event(Some(client), id, |b| {
             b.put_u32(attr::OBJID, 0);
             b.put_string_bytes(attr::METHOD, id);
             b.put(attr::DATA, payload);
-            b.as_bytes().to_vec()
         });
         status::OK
     }
@@ -907,22 +903,20 @@ impl Server {
         let name: &[u8] = if add { b"ubus.object.add" } else { b"ubus.object.remove" };
         let Some(o) = self.reg.get(id) else { return };
         let Some(path) = o.path.clone() else { return };
-        self.dispatch_event(None, name, || {
-            let mut b = BlobBuf::new();
+        self.dispatch_event(None, name, |b| {
             b.put_u32(attr::OBJID, 0);
             b.put(attr::METHOD, &with_nul(name));
             let d = b.nest_start(attr::DATA);
             b.msg_u32("id", id);
             b.msg_field(MsgType::String as u32, "path", &with_nul(&path));
             b.nest_end(d);
-            b.as_bytes().to_vec()
         });
     }
 
     /// Walk the pattern list and deliver to every matching listener. Like
     /// C's event_fill_cb, encode once, only after an eligible receiver exists.
     /// `from` is the sending client, whose own objects never see the event.
-    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], build: impl FnOnce() -> Vec<u8>) {
+    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], build: impl FnOnce(&mut BlobBuf)) {
         self.obj_event_seq = self.obj_event_seq.wrapping_add(1);
         if self.obj_event_seq == 0 {
             // Zero means unseen. Reusing any old epoch without clearing the
@@ -936,7 +930,6 @@ impl Server {
 
         let mut match_len = 0usize;
         let mut build = Some(build);
-        let mut blob = Vec::new();
         // Sending only changes client queues/monitors. Patterns and object
         // ownership cannot change until this single-threaded handler returns,
         // so neither a target snapshot nor a payload copy per receiver is
@@ -960,14 +953,18 @@ impl Server {
             o.event_seen = round;
             let Some(owner) = o.client else { continue };
             if let Some(build) = build.take() {
-                blob = build();
+                // Reuse the existing assembly buffer only when needed. Like
+                // its lookup/invoke users, retain capacity after large frames.
+                self.scratch.reset();
+                build(&mut self.scratch);
             }
-            patch_first_u32(&mut blob, p.obj);
+            let blob = self.scratch.as_mut_bytes();
+            patch_first_u32(blob, p.obj);
             self.event_seq = self.event_seq.wrapping_add(1);
             let header = Header { ty: ty::INVOKE, seq: self.event_seq, peer: 0 };
-            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, owner, &header, &blob, true);
+            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, owner, &header, blob, true);
             if let Some(client) = self.clients.get_mut(&owner) {
-                client.send_borrowed(header, &blob, None);
+                client.send_borrowed(header, blob, None);
                 // A complete direct write leaves no readiness state to
                 // change. Keep the conservative retry cases: a queued
                 // message, a stale WRITE registration, or a READ state whose
@@ -1430,7 +1427,10 @@ mod tests {
                     partial: false, obj: object });
             }
             let round = s.obj_event_seq;
-            s.dispatch_event(Some(2000), b"event", || panic!("no receiver in case {case}"));
+            s.scratch.put_string(attr::METHOD, "untouched");
+            let before = s.scratch.as_bytes().to_vec();
+            s.dispatch_event(Some(2000), b"event", |_| panic!("no receiver in case {case}"));
+            assert_eq!(s.scratch.as_bytes(), before);
             assert_eq!(s.obj_event_seq, round + 1);
             assert_eq!(s.event_seq, 0);
         }
@@ -1459,9 +1459,9 @@ mod tests {
         let expected = expected.as_bytes().to_vec();
         s.event_seq = u16::MAX;
         let builds = std::cell::Cell::new(0);
-        s.dispatch_event(None, b"event", || {
+        s.dispatch_event(None, b"event", |b| {
             builds.set(builds.get() + 1);
-            expected.clone()
+            b.put_raw_fields(&expected[4..]);
         });
         assert_eq!(builds.get(), 1);
         assert!(!s.clients[&2000].tx_empty(), "large payload must force queue ownership");
@@ -1477,7 +1477,7 @@ mod tests {
         assert_eq!(mirrors.len(), 2);
         assert!(mirrors.iter().all(|(h, _)| h.ty == ty::MONITOR));
         s.free_object(4001);
-        s.dispatch_event(None, b"event", || expected.clone());
+        s.dispatch_event(None, b"event", |b| { b.put_raw_fields(&expected[4..]); });
         let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
         assert_eq!(frames.len(), 1, "deleted listener patterns must not survive");
         assert_eq!(frames[0].0.seq, 2);
@@ -1490,7 +1490,7 @@ mod tests {
         const OWNER: u32 = 2000;
         const MONITOR: u32 = 2001;
         const SENDER: u32 = 2002;
-        const OBJECT: u32 = 4000;
+        const OBJECTS: [u32; 2] = [4000, 4001];
         let mut s = Server::new(String::new()).unwrap();
         let (owner, mut peer) = lookup_client();
         let (monitor, mut monitor_peer) = lookup_client();
@@ -1499,12 +1499,14 @@ mod tests {
         s.clients.insert(MONITOR, Box::new(monitor));
         s.clients.insert(SENDER, Box::new(sender));
         s.monitors.push((MONITOR, 0));
-        s.reg.create(None, Some(OBJECT)).unwrap();
-        s.reg.get_mut(OBJECT).unwrap().client = Some(OWNER);
-        s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: OBJECT });
+        for object in OBJECTS {
+            s.reg.create(None, Some(object)).unwrap();
+            s.reg.get_mut(object).unwrap().client = Some(OWNER);
+            s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: object });
+        }
 
-        // Fill both sockets first, so even a stack-sized request must leave
-        // its relayed event and monitor copies in owned output queues.
+        // Fill both sockets first: every subsequent event and mirror must
+        // own queued bytes before another receiver/request mutates scratch.
         let mut filler = BlobBuf::new();
         filler.put(attr::DATA, &vec![0x5a; 32768]);
         for id in [OWNER, MONITOR] {
@@ -1512,61 +1514,85 @@ mod tests {
             assert!(!s.clients[&id].tx_empty(), "fixture must queue before invoke");
         }
 
-        let mut request = BlobBuf::new();
-        request.put_u32(attr::OBJID, SYSTEM_OBJECT_EVENT);
-        request.put_string(attr::METHOD, "send");
-        let data = request.nest_start(attr::DATA);
-        request.msg_string("id", "event");
-        let payload = request.msg_open_table("data");
-        request.msg_u32("value", 0x12345678);
-        request.msg_close(payload);
-        request.nest_end(data);
-        let request = request.as_bytes().to_vec();
-        let header = Header { ty: ty::INVOKE, seq: 123, peer: 456 };
-        {
-            let mut rx = [0u8; crate::client::RX_SIZE];
-            assert!(Header::LEN + request.len() <= rx.len());
-            rx[..request.len()].copy_from_slice(&request);
-            // Exercise receive -> invoke -> system_object, not just the
-            // event helper. Reusing input after dispatch must be harmless.
-            assert!(s.receive(SENDER, InMsg { header, blob: Cow::Borrowed(&rx[..request.len()]), fd: None }));
-            rx.fill(0xa5);
+        let mut expected_events = Vec::new();
+        let mut expected_mirrors = Vec::new();
+        for (round, size) in [32769, 3].into_iter().enumerate() {
+            // An odd-sized nested string checks padding as well as removal
+            // of the large frame's tail when the small frame reuses scratch.
+            let mut payload = BlobBuf::new();
+            payload.msg_u32("value", 0x12345678);
+            let array = payload.msg_open_array("items");
+            let table = payload.msg_open_table("");
+            payload.msg_string("text", &"x".repeat(size));
+            payload.msg_bool("end", true);
+            payload.msg_close(table);
+            payload.msg_close(array);
+            let mut request = BlobBuf::new();
+            request.put_u32(attr::OBJID, SYSTEM_OBJECT_EVENT);
+            request.put_string(attr::METHOD, "send");
+            let data = request.nest_start(attr::DATA);
+            request.msg_string("id", "event");
+            request.msg_field(MsgType::Table as u32, "data", payload.payload());
+            request.nest_end(data);
+            let request = request.as_bytes().to_vec();
+            let header = Header { ty: ty::INVOKE, seq: 123 + round as u16 * 2, peer: 456 };
+            if Header::LEN + request.len() <= crate::client::RX_SIZE {
+                let mut rx = [0u8; crate::client::RX_SIZE];
+                rx[..request.len()].copy_from_slice(&request);
+                assert!(s.receive(SENDER, InMsg { header, blob: Cow::Borrowed(&rx[..request.len()]), fd: None }));
+                rx.fill(0xa5);
+            } else {
+                // Match read_message's owned input for a frame above RX_SIZE;
+                // it is dropped before the queued output is drained.
+                assert!(s.receive(SENDER, InMsg { header, blob: Cow::Owned(request.clone()), fd: None }));
+            }
+            expected_mirrors.push((SENDER, false, header, request));
+            for (offset, object) in OBJECTS.into_iter().enumerate() {
+                let mut event = BlobBuf::new();
+                event.put_u32(attr::OBJID, object);
+                event.put_string(attr::METHOD, "event");
+                event.put(attr::DATA, payload.payload());
+                let event = event.as_bytes().to_vec();
+                let event_header = Header { ty: ty::INVOKE, seq: (round * 2 + offset + 1) as u16, peer: 0 };
+                expected_events.push((event_header, event.clone()));
+                expected_mirrors.push((OWNER, true, event_header, event));
+            }
+            let mut reply = BlobBuf::new();
+            reply.put_u32(attr::STATUS, status::OK as u32);
+            expected_mirrors.push((SENDER, true, Header { ty: ty::STATUS, ..header }, reply.as_bytes().to_vec()));
+
+            if round == 0 {
+                // A different request uses the same scratch before either
+                // queued receiver drains and before the smaller event starts.
+                let mut query = BlobBuf::new();
+                query.put_string(attr::OBJPATH, "r124.missing");
+                let query = query.as_bytes().to_vec();
+                let header = Header { ty: ty::LOOKUP, seq: 124, peer: 456 };
+                assert!(s.receive(SENDER, InMsg { header, blob: Cow::Borrowed(&query), fd: None }));
+                let mut reply = BlobBuf::new();
+                reply.put_u32(attr::STATUS, status::NOT_FOUND as u32);
+                let reply = reply.as_bytes().to_vec();
+                assert_eq!(s.scratch.as_bytes(), reply);
+                expected_mirrors.push((SENDER, false, header, query));
+                expected_mirrors.push((SENDER, true, Header { ty: ty::STATUS, ..header }, reply));
+            }
         }
 
-        let mut event = BlobBuf::new();
-        event.put_u32(attr::OBJID, OBJECT);
-        event.put_string(attr::METHOD, "event");
-        let data = event.nest_start(attr::DATA);
-        event.msg_u32("value", 0x12345678);
-        event.nest_end(data);
-        let event = event.as_bytes().to_vec();
-        let event_header = Header { ty: ty::INVOKE, seq: 1, peer: 0 };
         let frames = lookup_frames(&drain_lookup(&mut s, OWNER, &mut peer));
-        assert_eq!(frames.len(), 2);
-        assert_eq!(frames[1].0.encode(), event_header.encode());
-        assert_eq!(frames[1].1, event);
-
-        let mut reply = BlobBuf::new();
-        reply.put_u32(attr::STATUS, status::OK as u32);
-        let expected = [
-            (SENDER, false, header, request),
-            (OWNER, true, event_header, event),
-            (SENDER, true, Header { ty: ty::STATUS, ..header }, reply.as_bytes().to_vec()),
-        ];
+        assert_eq!(frames.len(), 1 + expected_events.len());
+        assert_eq!(&frames[1..], expected_events.as_slice(), "OBJID, sequence, full payload and no old tail");
         let mirrors = lookup_frames(&drain_lookup(&mut s, MONITOR, &mut monitor_peer));
-        assert_eq!(mirrors.len(), 1 + expected.len());
-        for (i, ((h, bytes), (client, send, header, original))) in mirrors[1..].iter().zip(&expected).enumerate() {
+        assert_eq!(mirrors.len(), 1 + expected_mirrors.len());
+        for (i, ((h, bytes), (client, send, header, original))) in mirrors[1..].iter().zip(&expected_mirrors).enumerate() {
             assert_eq!((h.ty, h.seq, h.peer), (ty::MONITOR, i as u16 + 1, 0));
-            let mut attrs = [None; 6];
-            for field in blob::iter(&bytes[4..]) {
-                attrs[field.id as usize] = Some(field);
-            }
-            assert_eq!(attrs[0].unwrap().as_u32(), Some(*client));
-            assert_eq!(attrs[1].unwrap().as_u32(), Some(header.peer));
-            assert_eq!(attrs[2].unwrap().payload, &[u8::from(*send)]);
-            assert_eq!(attrs[3].unwrap().as_u32(), Some(header.seq as u32));
-            assert_eq!(attrs[4].unwrap().as_u32(), Some(header.ty as u32));
-            assert_eq!(attrs[5].unwrap().payload, &original[4..]);
+            let mut wanted = BlobBuf::new();
+            wanted.put_u32(0, *client);
+            wanted.put_u32(1, header.peer);
+            wanted.put_u32(3, header.seq as u32);
+            wanted.put_u32(4, header.ty as u32);
+            wanted.put_u8(2, u8::from(*send));
+            wanted.put(5, &original[4..]);
+            assert_eq!(bytes, wanted.as_bytes(), "complete monitor frame {i}");
         }
     }
 
@@ -1579,11 +1605,9 @@ mod tests {
         s.reg.create(None, Some(4000)).unwrap();
         s.reg.get_mut(4000).unwrap().client = Some(2000);
         s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: 4000 });
-        s.dispatch_event(None, b"event", || {
-            let mut b = BlobBuf::new();
+        s.dispatch_event(None, b"event", |b| {
             b.put_u32(attr::OBJID, 0);
             b.put_string(attr::METHOD, "event");
-            b.as_bytes().to_vec()
         });
         assert!(s.touched.is_empty());
         let mut buf = [0u8; 128];
@@ -1604,11 +1628,11 @@ mod tests {
             s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: 4000 });
         }
         s.obj_event_seq = u32::MAX;
-        let mut b = BlobBuf::new();
-        b.put_u32(attr::OBJID, 0);
-        b.put_string(attr::METHOD, "event");
-        b.put(attr::DATA, &[]);
-        s.dispatch_event(None, b"event", || b.as_bytes().to_vec());
+        s.dispatch_event(None, b"event", |b| {
+            b.put_u32(attr::OBJID, 0);
+            b.put_string(attr::METHOD, "event");
+            b.put(attr::DATA, &[]);
+        });
         let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
         assert_eq!(frames.len(), 1, "last_seen={last_seen}: wrap must deliver once, not omit or duplicate");
         assert_eq!((frames[0].0.ty, frames[0].0.seq, frames[0].0.peer), (ty::INVOKE, 1, 0));

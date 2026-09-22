@@ -410,6 +410,12 @@ impl BlobBuf {
         &self.data
     }
 
+    /// Whole head attr, finalized as above, for in-place payload updates.
+    pub fn as_mut_bytes(&mut self) -> &mut [u8] {
+        self.as_bytes();
+        &mut self.data
+    }
+
     /// Payload of the head attr: the packed attrs/fields only.
     pub fn payload(&self) -> &[u8] {
         &self.data[4..]
@@ -424,6 +430,47 @@ impl BlobBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn mutable_bytes_finalize_head_and_preserve_nested_padding() {
+        let mut b = BlobBuf::with_capacity(128);
+        b.put_u32(3, 0x11223344);
+        let data = b.nest_start(7);
+        let array = b.msg_open_array("a");
+        let table = b.msg_open_table("");
+        b.msg_u16("v", 0x1234).msg_string("s", "xy");
+        b.msg_close(table);
+        b.msg_close(array);
+        b.nest_end(data);
+        let storage = b.data.as_ptr();
+        // Do not finalize through as_bytes before testing the mutable API.
+        let bytes = b.as_mut_bytes();
+        assert_eq!(bytes.as_ptr(), storage);
+        assert_eq!(bytes, &[
+            0x00, 0x00, 0x00, 0x38, // whole blob: 56 bytes
+            0x03, 0x00, 0x00, 0x08, 0x11, 0x22, 0x33, 0x44,
+            0x07, 0x00, 0x00, 0x2c, // DATA: 44 bytes
+            0x81, 0x00, 0x00, 0x28, 0x00, 0x01, b'a', 0x00,
+            0x82, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00,
+            0x86, 0x00, 0x00, 0x0a, 0x00, 0x01, b'v', 0x00,
+            0x12, 0x34, 0x00, 0x00, // INT16 raw length 10, padded to 12
+            0x83, 0x00, 0x00, 0x0b, 0x00, 0x01, b's', 0x00,
+            b'x', b'y', 0x00, 0x00, // STRING raw length 11, padded to 12
+        ]);
+        bytes[8..12].copy_from_slice(&0xaabbccddu32.to_be_bytes());
+        let (head, next) = attr_at(b.as_bytes(), 0).unwrap();
+        assert_eq!(next, 56);
+        let attrs: Vec<_> = iter(head.payload).collect();
+        assert_eq!(attrs[0].as_u32(), Some(0xaabbccdd));
+        let array = fields(attrs[1].payload).next().unwrap();
+        assert_eq!((array.name, array.ty), ("a", MsgType::Array as u32));
+        let table = array.children().next().unwrap();
+        assert_eq!(table.ty, MsgType::Table as u32);
+        let values: Vec<_> = table.children().collect();
+        assert_eq!(values.len(), 2);
+        assert_eq!((values[0].name, values[0].as_u32()), ("v", Some(0x1234)));
+        assert_eq!((values[1].name, values[1].as_bytes()), ("s", Some(&b"xy"[..])));
+    }
 
     #[test]
     fn bounded_reset_clears_old_fields_and_releases_large_storage() {
