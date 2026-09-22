@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "purpose": "Synchronized Oracle instruction-count ablation of only R114 borrowed input dispatch versus correct R113; physical router collection remains the performance authority.",
+  "runner_sha256": "a20696b6fb3d47eef49cd5ea2c3e2e7ab291450915c06de314089a6c37b34179",
+  "client_sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7",
+  "subjects": {
+    "r113": "8a00bc66d211fa03233a7643df37bc1441be97183469e043e02a553b4fe009b1",
+    "r114": "e718287d73094325134998c7d166f939e1c04dd16cdcf6c1e4fa26715689900d"
+  },
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "events": [
+    "{instructions:u,branches:u,branch-misses:u,cycles:u}",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "counter_names": [
+    "instructions:u",
+    "branches:u",
+    "branch-misses:u",
+    "cycles:u",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "iterations": 50000,
+  "warmup": 5000,
+  "sample_timeout_seconds": 30,
+  "runs": [
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "a",
+      "subject": "r113",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 1,
+      "slot": "b",
+      "subject": "r113",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "a",
+      "subject": "r113",
+      "held_clients": 0
+    },
+    {
+      "stage": "aa",
+      "block": 2,
+      "slot": "b",
+      "subject": "r113",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r113",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r114",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r113",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 1,
+      "subject": "r114",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r114",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r113",
+      "held_clients": 64
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r114",
+      "held_clients": 0
+    },
+    {
+      "stage": "comparison",
+      "block": 2,
+      "subject": "r113",
+      "held_clients": 0
+    }
+  ],
+  "sampling": "Two same-ELF R113 A/A pairs then two reversed-order pairs at each of 0/64 held clients. Fixed12 samples, fresh normalized-length daemon launch each time; no optional extension.",
+  "analysis": "Descriptive paired counts per validated send, report every raw sample and A/A spread. No IID confidence claim for the balanced permutation cycle, no equivalence test or acceptance based on Oracle CPU.",
+  "decision": "Describe instructions, branches, misses, cycles and clocks. This can locate eliminated user-mode work; it cannot show router CPU superiority or remove the C comparison gaps. No causal compiler-layout claim or acceptance from these counters.",
+  "boundaries": "Enable ACK after warmup before the three clock reads; disable ACK after the loop and the three clock reads. No per-request instrumentation. Final callback validates delivery; bounded trailing daemon work can straddle the CPU-clock/disable boundary. Counts include this boundary overhead and are divided by 50000.",
+  "sources": [
+    "https://man7.org/linux/man-pages/man1/perf-stat.1.html",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.c#L2078",
+    "https://github.com/torvalds/linux/blob/v6.17/tools/perf/util/evlist.h#L404"
+  ],
+  "launch_names": {
+    "r113": "ubusd",
+    "r114": "ubusd"
+  },
+  "limitations": [
+    "Unique temporary path content still varies, but path byte lengths, basename and socket argument byte lengths are identical for every subject.",
+    "The pathname dependence mechanism has not been proven to be allocator placement.",
+    "The chosen diagnostic launch name is not a deployment measurement. Router runs still decide performance."
+  ]
+}
