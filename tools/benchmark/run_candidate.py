@@ -43,7 +43,7 @@ def main():
     parser.add_argument("--cpus", help="optional fixed taskset CPU list for every isolated subject/client")
     parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
     parser.add_argument("--schedule", choices=("default", "two-side-balanced"), default="default",
-                        help="use a fixed stock/candidate-only ABBA cycle; requires --sides stock candidate")
+                        help="repeat stock/candidate-only ABBA; --repeats counts four-window cycles (4 means 16 windows); requires --sides stock candidate")
     parser.add_argument("--iterations", type=int, default=10000)
     parser.add_argument("--resume", action="store_true",
                         help="continue an interrupted collection with the same owned remote directory and identities")
@@ -71,6 +71,8 @@ def main():
         parser.error("held-connection memory uses --sides stock candidate without --matrix")
     if args.rpc_client_probe and (args.component != "rpcd" or args.matrix or args.memory_probe or "r84" in args.sides):
         parser.error("RPC client diagnostics require rpcd, --sides stock candidate, and no other experiment mode")
+    if args.schedule == "two-side-balanced" and args.sides != ["stock", "candidate"]:
+        parser.error("two-side-balanced requires exactly --sides stock candidate")
     component = args.component
     binary = "reload_config_rs" if component == "reload-config" else component + "-rs"
     if args.resume and (not (args.output / "STARTED").exists() or (args.output / "COMPLETE").exists()):
@@ -119,20 +121,20 @@ def main():
             raise RuntimeError("frozen baseline and host benchmark tools differ")
     initial("subjects.json", hashes)
     if args.schedule == "two-side-balanced":
-        if args.sides != ["stock", "candidate"]:
-            parser.error("two-side-balanced requires exactly --sides stock candidate")
         order = TWO_SIDE_BALANCED * args.repeats
     else:
         order = tuple(args.baseline_label if side == "r84" else side
                       for side in ORDER[:args.repeats * 3] if side in args.sides)
     initial("order.json", list(order))
-    initial("settings.json", {"component": component, "iterations": args.iterations, "matrix": args.matrix,
+    settings = {"component": component, "iterations": args.iterations, "matrix": args.matrix,
                            "held_connections": 64 if args.memory_probe else None,
                            "rpc_client_diagnostic": bool(args.rpc_client_probe),
                            "baseline_label": args.baseline_label, "baseline_bundle": args.baseline_bundle,
-                           "schedule": args.schedule,
                            "cpu_affinity": args.cpus,
-                           "management_access": args.access, "workload_transport": "namespace loopback"})
+                           "management_access": args.access, "workload_transport": "namespace loopback"}
+    if args.schedule != "default":
+        settings["schedule"] = args.schedule
+    initial("settings.json", settings)
     script = Path(__file__).with_name("isolated.sh")
     if args.resume:
         collector = json.loads((out / "collector.json").read_text())

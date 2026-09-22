@@ -19,6 +19,7 @@ if [ "${OWRT_HTTPD_DIAG:-0}" != 0 ] && [ "$(( ${OWRT_HTTPD_MATRIX:-0} + ${OWRT_H
 fi
 case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_UBUSD_NORMALIZED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
@@ -94,6 +95,7 @@ if [ "${1:-}" = --workload ]; then
     shift
     [ "${OWRT_BENCH_NAMESPACE:-}" = 1 ] || exit 125
     component=$1; impl=$2; n=$3
+    if [ "${OWRT_UBUSD_NORMALIZED:-0}" = 1 ]; then [ "$component" = ubusd ]; fi
     bench=/tmp/bin/owrt-benchmark
     rpc_mode=rpc
     out=/tmp/out
@@ -333,7 +335,8 @@ EOF
     count_exec=$((n / 20)); [ "$count_exec" -gt 0 ] || count_exec=1
     count_fw=$((n / 100)); [ "$count_fw" -gt 0 ] || count_fw=1
     bus_bin=$(choose ubusd /sbin/ubusd ubusd-rs)
-    if [ "$component" = ubusd ]; then
+    if [ "$component" = ubusd ] && [ "${OWRT_UBUSD_NORMALIZED:-0}" = 1 ]; then
+        # Opt-in requires the separately identified exec-cpu-as helper.
         # Keep C and Rust daemon argv0 identical for the final matrix. The
         # helper execs in place, so $! remains the real daemon PID.
         "$bench" exec-cpu-as 1 "$bus_bin" /sbin/ubusd -s "$socket" > "$out/bus.log" 2>&1 & bus=$!
