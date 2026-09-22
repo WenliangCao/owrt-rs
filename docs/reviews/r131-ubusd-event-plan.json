@@ -33,7 +33,7 @@
     },
     "workload": {
       "path": "tools/r131_ubusd_event_batch.sh",
-      "sha256": "ec50bc00e5b6176aeff4d1a30aac74569de08acb3580047ff7c0bbb0cdd1b463"
+      "sha256": "0721689f132f02ce50a04a181029d96a42c6052e4f138ce1b0cda5c96d987cfc"
     },
     "benchmark": {
       "path": "private/r127-r124-matrix/owrt-benchmark",

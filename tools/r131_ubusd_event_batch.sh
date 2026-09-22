@@ -17,6 +17,7 @@ event_bench=/tmp/bin/event-benchmark
 out=/tmp/out
 socket=/var/run/ubus/ubus.sock
 mkdir -p /var/run/ubus
+sha256sum /tmp/workload.sh > "$out/harness-sha256.txt"
 sha256sum "$bin" > "$out/binary-sha256.txt"
 sha256sum "$bench" /tmp/bin/ns-exec > "$out/benchmark-sha256.txt"
 sha256sum "$event_bench" > "$out/event-benchmark-sha256.txt"
