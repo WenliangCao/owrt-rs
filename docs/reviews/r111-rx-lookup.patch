@@ -1,0 +1,30 @@
+diff --git a/components/ubusd/src/main.rs b/components/ubusd/src/main.rs
+index 42f8ffb..d0ce494 100644
+--- a/components/ubusd/src/main.rs
++++ b/components/ubusd/src/main.rs
+@@ -312,18 +312,22 @@ fn service_client(server: &mut Server, id: u32, revents: i16, rx: &mut [u8; clie
+     }
+ 
+     if revents & (sys::POLLIN | sys::POLLHUP) != 0 {
+-        let Some(c) = server.clients.get_mut(&id) else { return false };
++        let Some(mut c) = server.clients.get_mut(&id) else { return false };
+         c.begin_read(rx);
+         loop {
+-            let Some(c) = server.clients.get_mut(&id) else { return false };
+             match c.read_message(rx) {
+                 Ok(Some(msg)) => {
+                     if !server.receive(id, msg) {
+                         return false;
+                     }
++                    // Dispatch can change the client table. Reacquire only
++                    // here; the first read and end_read already have a borrow.
++                    c = match server.clients.get_mut(&id) {
++                        Some(c) => c,
++                        None => return false,
++                    };
+                 }
+                 Ok(None) => {
+-                    let Some(c) = server.clients.get_mut(&id) else { return false };
+                     c.end_read(rx);
+                     // Hold a half-closed connection open only while there is
+                     // still queued output for it.

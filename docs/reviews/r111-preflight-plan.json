@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "purpose": "R111 router correctness before physical timing",
+  "source_commit": "99087ef",
+  "candidate_sha256": "1db80ee229155e135420e37ff2d6ed54fa8c8ac488b72b0773e9833319abbc78",
+  "control_sha256": "c9ada3dce76898226bfea3b7d5d429792a943904adada52b99b26633904deca2",
+  "unit_tests_sha256": "d7e011d4b1f04c9e0905c9b0ff34023a9bc6f73db4c87e59e942727f3376deec",
+  "unit_filter": "",
+  "benchmark_sha256": "bcad2d4652b81c6c252b61f4bd8dd8424f85bd19bea2dd848236640967fdca26",
+  "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+  "iterations": 1,
+  "production": "C only; guard120 disposable namespace and full cleanup checks",
+  "build_script_sha256": "90e3a772771eebda9062cdf6976d54265643f2d802307a19085fc44a82630dfa",
+  "build_log_sha256": "3d02c8599e893e87018cbde8522696bd65a19603fb7ea6b368001ad1029f67ca",
+  "portable_unit_tests": "29 passed",
+  "oracle_unit_tests": "41 passed; same test ELF as R110-A, because service_client is not invoked by unit tests. Full daemon protocol gates remain necessary."
+}
