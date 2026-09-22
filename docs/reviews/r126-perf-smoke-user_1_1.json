@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "libraries": {
+    "/lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "/lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "/lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "/lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c"
+  },
+  "events": [
+    "{instructions:u,branches:u,branch-misses:u,cycles:u}",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "counter_names": [
+    "instructions:u",
+    "branches:u",
+    "branch-misses:u",
+    "cycles:u",
+    "context-switches",
+    "cpu-migrations"
+  ],
+  "sample_timeout_seconds": 30,
+  "purpose": "Excluded R126 counter-tool lane assertion smoke; exact existing R124 only, no performance decision.",
+  "runner_sha256": "5664ae6928266ae67704c777a1b66d1526cbaa97ac01d0131f1747bbd71f721b",
+  "reporter_sha256": "a729504d432a71ad35a501d86fb4e8341d1f01d158d78fdc4e16fd0fae5b6eed",
+  "client_sha256": "d8240a8fd3d7035349e20fed27eac53e51bf07e5098f77a52915044db87e00e7",
+  "subjects": {
+    "r124": "42435a31e2917186fb353e2c70143f4b3f6d82ec3dd53265bf6d826897b69926"
+  },
+  "launch_names": {
+    "r124": "ubusd"
+  },
+  "iterations": 1000,
+  "warmup": 100,
+  "listeners": 1,
+  "matched": 1,
+  "runs": [
+    {
+      "stage": "smoke",
+      "block": 1,
+      "subject": "r124",
+      "held_clients": 0
+    }
+  ],
+  "scope": "Oracle only; three separately frozen fixed-lane plans, one sample each; exclude from formal comparisons."
+}
