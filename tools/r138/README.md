@@ -68,3 +68,27 @@ output tree. Their latency and CPU samples are excluded from timing evidence.
 Oracle exposes an ARMv8 PMU and has `perf` and `strace`; root permission is
 needed (`perf_event_paranoid=4`). PMU availability must still be confirmed by an
 actual bounded counter invocation; do not change sysctls to make it work.
+
+The small PMU wrapper only changes R132's three subject role names. Its exact
+release copying, live mapping/affinity checks, caller-controlled enable/ACK
+after warmup and disable/ACK after measured cycles remain unchanged. The
+existing `owrt-register-perf` caller (`ad707cee...`) is a separate observer;
+its latency is never pooled with the screen. All six original counters must
+run 100%, with zero daemon migrations. Twelve fixed windows cover both method
+counts, all three subjects and two opposite orders (10,000 cycles, 200 warmups).
+
+```sh
+python3 tools/r138/make_perf_plan.py /home/ubuntu/r138/screen-manifest.json \
+  --output /home/ubuntu/r138/perf-plan.json
+sudo -n python3 tools/r138/perf_stat.py --oracle-host-only \
+  --plan /home/ubuntu/r138/perf-plan.json --out /home/ubuntu/r138/perf-01
+sudo -n python3 tools/r138/syscalls.py /home/ubuntu/r138/screen-manifest.json \
+  --oracle-host-only --out /home/ubuntu/r138/syscalls-01
+```
+
+Syscall collection reuses R135's request/phase parser unchanged, with six fixed
+cases (three subjects × 1/16 methods), 100 measured cycles and 20 warmups. Keep
+its prior-request attribution convention and every trace. The mechanism check
+requires exactly 3 → 2 measured `sendmsg` calls per ADD/REMOVE cycle for R136 →
+REMOVE at each method count. PMU results disclose user instructions per cycle;
+there is no extra percentage gate on this diagnostic.
