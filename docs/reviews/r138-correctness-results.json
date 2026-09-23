@@ -1,0 +1,214 @@
+{
+  "scope": "R138 silent REMOVE teardown batching: Oracle exact-image correctness only",
+  "passed": true,
+  "source": {
+    "baseline": "12dd2c0",
+    "probe_commit": "208775e",
+    "runtime_overlay_matches_frozen_candidate": true,
+    "runtime_files_verified": 20,
+    "runtime_identity_manifest_sha256": "702eed58cfd4658c5abcd1f764665c3881281002d388a0928dc7d25dd6849632"
+  },
+  "artifacts": {
+    "candidate_sha256": "85ea7b0ae1861001ad81360ca78d5dbbea916df788dbe4191f7cacbbbc2c83e2",
+    "r136_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+    "exact_c_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "unit_tests_sha256": "a142c39c399c0299c345534d44af522da272c66441b2be66fdfd7d4303a14c0a",
+    "wireprobe_sha256": "5500effd5af3b8ac34c2be91941acd1873a997733174a0d6cc6aaeebd54723f6",
+    "wireprobe_source_sha256": "b06f2918937259cb857b79986b929630b82b96e86a3f1af65661fc29261a271b",
+    "wire_workload_sha256": "6f5eca62a9d26a5310beffe84bf0339154b8d480e2d9821ae758579013d27e7b",
+    "fd_workload_sha256": "3d53bfb0952aea3c354d51cc8a81f87a315207378535a70544d109f2db30a12b"
+  },
+  "unit_tests": {
+    "passed": 55,
+    "failed": 0,
+    "build": "Rust1.98.1 aarch64 musl / matching OpenWrt25.12.5 SDK release flags",
+    "log_sha256": "8115635bd7a779cfe1f30e9216eeb999faead79b3f6785e766964f2863852d82",
+    "existing_transport_cases": [
+      "combined_reply_keeps_each_frame_cap_when_already_queued",
+      "combined_lookup_preserves_bytes_through_partial_and_queued_writes"
+    ],
+    "new_unit_tests": 0
+  },
+  "wire": [
+    {
+      "scenario": "object_events",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "lines": 6
+    },
+    {
+      "scenario": "events",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "lines": 5
+    },
+    {
+      "scenario": "monitor",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "lines": 6
+    },
+    {
+      "scenario": "release",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "lines": 4
+    },
+    {
+      "scenario": "utf8",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "lines": 3
+    },
+    {
+      "scenario": "monitor_lookup",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "lines": 1
+    },
+    {
+      "scenario": "method_acl",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "lines": 14
+    },
+    {
+      "scenario": "remove_reply",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "lines": 5
+    }
+  ],
+  "remove_reply_coverage": [
+    "remove_shapes=typeless_pathless,typeless_named,shared_type,last_type exact_data_status=true",
+    "pathless_listener_removed=true patterns_released=true",
+    "named_remove_sequence=DATA,INVOKE,STATUS event_payload=true",
+    "remove_monitor_order=request,DATA,STATUS exact_payloads=true sequences=true",
+    "subscriber_removed=true target_notify_active=1,0 exact_data_status=true"
+  ],
+  "fd": [
+    {
+      "side": "c",
+      "contract": "c",
+      "transcript_sha256": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true"
+      ]
+    },
+    {
+      "side": "r131",
+      "contract": "c",
+      "transcript_sha256": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true"
+      ]
+    },
+    {
+      "side": "candidate",
+      "contract": "read_ahead",
+      "transcript_sha256": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=read_ahead expected=0,0|1,0 contract_match=true c_placement=false",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false"
+      ]
+    }
+  ],
+  "recovery": [
+    {
+      "side": "original",
+      "case": "ubusd_halfclose",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": false,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "expected_original_failures": {
+        "complete_reply": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "ubusd_lookup_delete",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "expected_original_failures": {
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "ubusd_halfclose",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": true,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "ubusd_lookup_delete",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": true,
+        "continued_to_end": true,
+        "serving": true
+      },
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    }
+  ],
+  "retained_failure": {
+    "directory": "private/r138/correctness-01/wire-fd/fd",
+    "cause": "First wrapper replaced R131 before-rs with R136 but retained old C-exact FD expectation. Three standard cases passed; three hand-crafted cases failed expected contract=c because R136 uses the accepted read-ahead contract. Candidate FD was not reached.",
+    "correction": "Restored R131 baseline in unchanged FD workload and ran new wire-fd-02 directory. Candidate and probe unchanged; all six FD cases passed. Wrapper also repeated eight wire scenarios against C/R131/candidate.",
+    "failed_baseline_transcript_sha256": "ffa67561dd4378e13ba27cc51d8a08daad7df5ac950d89a2171dd01748df27e1"
+  },
+  "evidence": {
+    "archive_path": "private/r138/correctness-01.tar.gz",
+    "archive_sha256": "d86938950bb21532a356a144ae083408e07a9d8c14c012eab4124630bd81c125",
+    "manifest_sha256": "2dfaef66299f1d17c56661fc80df4d79f0e02333fe862176f04fb217f983fb21",
+    "verified_files": 184
+  },
+  "limits": [
+    "Oracle functional evidence only; no physical-router execution or deployment in this report.",
+    "The three hand-crafted FD cases enforce the previously accepted read-ahead contract, not exact C placement.",
+    "Recovery retains known exact-C halfclose and lookup-delete failures as expected baseline failures.",
+    "Outbound subscription teardown uses different owning connections because same-client SUBSCRIBE is rejected; it checks notification presence/payload/sequence, while existing release verifies inbound subscriber DATA/NOTIFY/STATUS order."
+  ]
+}
