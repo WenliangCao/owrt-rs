@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "passed": true,
+  "cases": [
+    {
+      "subject": "c",
+      "passed": true,
+      "daemon_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "snapshots": 16,
+      "mirror_frames": 10,
+      "daemon_exit": 0,
+      "caller_exit": 0,
+      "fd_baseline_restored": true,
+      "raw_sha256": {
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-exe.sha256": "b90c6e8562d9ee45d742a4769d4605e496d05ae837b84b737b4b142a15721708",
+        "after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "caller.argv": "6f4959b9f9ade013d4d0345bafbcca767d23d7570b86ffe1d8ea286051a0dd60",
+        "before.stat": "018d74121b1bc9299fba3847c091a7587db4165298253b0dda5c5fd5c6b62841",
+        "before.status": "a529325f14ec8bec5fd30f3579340ba4f909c677b8743193480b36bb2de45f2b",
+        "after.stat": "af3cef398abd880a603363a6174098ec6b0ec1332cf9442fc1f375552f62efbc",
+        "before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after.status": "a0cf2389e856fc4ad0703356cca3043f364fe548eaf068b22d195a21f6ec55af",
+        "caller.jsonl": "649cfaa2ef9c054794feb54686b1e40285291d41769710bfd28bf256f5cd5b7b",
+        "caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "after-exe.sha256": "b90c6e8562d9ee45d742a4769d4605e496d05ae837b84b737b4b142a15721708"
+      }
+    },
+    {
+      "subject": "r136",
+      "passed": true,
+      "daemon_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "snapshots": 16,
+      "mirror_frames": 10,
+      "daemon_exit": 0,
+      "caller_exit": 0,
+      "fd_baseline_restored": true,
+      "raw_sha256": {
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-exe.sha256": "7f6a74ed2d9609d39f36bd9370b32b42f1d3d90000c0dd319464ca966b737de1",
+        "after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "caller.argv": "2b883bc8bbf1b6c01f41be227756ad2e36451a01c3c81d69297f9a8c8bbd20a7",
+        "before.stat": "8d9f7283d66b5e3c32bf5188895bb250d8b4e744f16f74f077de869c20387173",
+        "before.status": "70ec640155ab9d8d51ddf2f702045fcdf807784be28187177625bddcf37d1d61",
+        "after.stat": "ef6c8bf0627b102f13373cabb7095896f579afb987721cb284b46958f45b035d",
+        "before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after.status": "3f54e51390706d2f8d737b70dca8ff1d37d98719ae811548226eb77e1112a36e",
+        "caller.jsonl": "83ef414c4a7ff4bb67e4c62f8a146323d70d5ff5fde986f91df59ea8f373d729",
+        "caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "after-exe.sha256": "7f6a74ed2d9609d39f36bd9370b32b42f1d3d90000c0dd319464ca966b737de1"
+      }
+    },
+    {
+      "subject": "candidate",
+      "passed": true,
+      "daemon_sha256": "367badc11fb93b25208cda041048133b8439e1c703c2cb07d740312cc140db54",
+      "snapshots": 16,
+      "mirror_frames": 10,
+      "daemon_exit": 0,
+      "caller_exit": 0,
+      "fd_baseline_restored": true,
+      "raw_sha256": {
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-exe.sha256": "a612d0cee05e3d0fe21e5cc380b8d094d3b3f8da853a69963551d8989508c9a2",
+        "after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "caller.argv": "82c301d9c473d46c932bf6542946c4009fe7f08263bea399267ded868fd46786",
+        "before.stat": "669d987cfd566b4ff56737fe5395471241a2b84649adba77b5beb0048c95a91b",
+        "before.status": "28b32d3c6103b3c20edcf753a9097ca26e18fbb5b1a739e0dc4e3d98293e1ef2",
+        "after.stat": "0a37652845d49416dd9f2d81b1c2cebf193866119d8dded1e0a505bff96272b7",
+        "before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after.status": "e31a84400f5afda500c9619aee64061147f336b0487159cd596511dd90520a59",
+        "caller.jsonl": "d13eadab400617d6865540b76909613df94cac9400577005b601cbce9d9ddc70",
+        "caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "after-exe.sha256": "a612d0cee05e3d0fe21e5cc380b8d094d3b3f8da853a69963551d8989508c9a2"
+      }
+    }
+  ],
+  "helper_sha256": "2db999c1d14c641eb689c161c444a6355c617694eb6acaa20aaf4bd142f7b62a",
+  "benchmark_sha256": "0ca42fbafe08b7ace0aaa90f78c08c9c0f69022a64f6d5073ab6ceb77a88e693",
+  "candidate_sha256": "367badc11fb93b25208cda041048133b8439e1c703c2cb07d740312cc140db54",
+  "mode": "smoke",
+  "no_performance_gate": true,
+  "snapshots": 48,
+  "mirror_frames_per_subject": 10,
+  "initial_error": {
+    "directory": "memory-helper-smoke-01",
+    "error": "BusyBox sleep rejected .01 before helper execution",
+    "driver_log_sha256": "0a0a70fb3a0cbd67cb58e0d7417833701555a8f3407ea4af3f404a54161da3e4",
+    "helper_executed": false,
+    "correction": "integer sleep 1 startup wait, fresh smoke-02; same helper and cases"
+  },
+  "plan_sha256": "0e2b2c6df840b5ce6588afb591a33c41bff9424823a8b89a006182c014e094ce",
+  "verifier_sha256": "d17d86ead7e590334a068dbd5a4eefe56a8221dd8c5a895fab478a1f31a42ce1",
+  "evidence": {
+    "archive_sha256": "e219cc30e3c24dac57df698ea264c6efc9488bf4d7bc91d6fc313ab79559df54",
+    "oracle_result_sha256": "f95b26d843abc70846b25e2260d45fe0c53b9b8d756d3dd4723a18a1b45e8468",
+    "initial_attempt_preserved": true
+  }
+}
