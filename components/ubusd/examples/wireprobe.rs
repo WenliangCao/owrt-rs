@@ -13,6 +13,8 @@
 //!   monitor   attribute order and sequence of MONITOR mirror messages
 //!   release   REMOVE_OBJECT of an object that still has a subscriber: the
 //!             owner gets NOTIFY(ACTIVE=0) between DATA and STATUS
+//!   remove_reply exact REMOVE replies, type lifetime, removal event order,
+//!             monitor mirrors and outbound subscription teardown
 //!   aclquery  the blobmsg types inside `acl query`'s private acl table
 //!             (needs an acl.d entry for root with an `acl` table on r83.priv)
 //!   utf8      a STRING field carrying non-UTF-8 bytes crosses the bus intact
@@ -356,6 +358,142 @@ fn release(sock: &str) {
         at[attr::TARGET as usize].and_then(|x| x.as_u32()) == Some(target),
         h.seq
     );
+}
+
+fn remove_reply(sock: &str) {
+    fn expect(c: &mut Conn, header: Header, bytes: &[u8]) {
+        let (actual, blob) = c.recv().expect("remove reply before timeout");
+        assert_eq!(actual.encode(), header.encode(), "remove reply header/order");
+        assert_eq!(blob, bytes, "remove reply attributes/order");
+    }
+    fn start(c: &mut Conn, id: u32, type_id: Option<u32>) -> (Header, Vec<u8>, Vec<u8>) {
+        let header = Header { ty: ty::REMOVE_OBJECT, seq: c.next_seq, peer: 0x12345678 };
+        c.next_seq += 1;
+        let mut request = BlobBuf::new();
+        request.put_u32(attr::OBJID, id);
+        c.send(header.ty, header.seq, header.peer, &mut request);
+        let mut data = BlobBuf::new();
+        data.put_u32(attr::OBJID, id);
+        if let Some(type_id) = type_id { data.put_u32(attr::OBJTYPE, type_id); }
+        expect(c, Header { ty: ty::DATA, ..header }, data.as_bytes());
+        (header, request.as_bytes().to_vec(), data.as_bytes().to_vec())
+    }
+    fn finish(c: &mut Conn, header: Header) -> Vec<u8> {
+        let mut status = BlobBuf::new();
+        status.put_u32(attr::STATUS, 0);
+        expect(c, Header { ty: ty::STATUS, ..header }, status.as_bytes());
+        status.as_bytes().to_vec()
+    }
+    fn add_typed(c: &mut Conn, path: &str, existing: Option<u32>) -> (u32, u32) {
+        let mut request = BlobBuf::new();
+        request.put_string(attr::OBJPATH, path);
+        if let Some(type_id) = existing {
+            request.put_u32(attr::OBJTYPE, type_id);
+        } else {
+            let signature = request.nest_start(attr::SIGNATURE);
+            let method = request.msg_open_table("method");
+            request.msg_close(method);
+            request.nest_end(signature);
+        }
+        let (status, frames) = c.request(ty::ADD_OBJECT, 0, &mut request);
+        assert_eq!(status, 0);
+        assert_eq!(frames.len(), 1);
+        assert_eq!(frames[0].0.ty, ty::DATA);
+        let at = attrs(&frames[0].1);
+        let id = at[attr::OBJID as usize].unwrap().as_u32().unwrap();
+        let type_id = existing.unwrap_or_else(|| at[attr::OBJTYPE as usize].unwrap().as_u32().unwrap());
+        (id, type_id)
+    }
+
+    let mut owner = Conn::open(sock);
+    for path in [None, Some("r138.remove.typeless")] {
+        let id = owner.add_object(path, &[]);
+        let (header, _, _) = start(&mut owner, id, None);
+        finish(&mut owner, header);
+    }
+    let (first, type_id) = add_typed(&mut owner, "r138.remove.first", None);
+    let (last, reused) = add_typed(&mut owner, "r138.remove.last", Some(type_id));
+    assert_eq!(reused, type_id);
+    for (id, reply_type) in [(first, None), (last, Some(type_id))] {
+        let (header, _, _) = start(&mut owner, id, reply_type);
+        finish(&mut owner, header);
+    }
+    println!("remove_shapes=typeless_pathless,typeless_named,shared_type,last_type exact_data_status=true");
+
+    // A pathless listener owns patterns, but cannot emit its own removal event.
+    let listener = owner.add_object(None, &[]);
+    assert_eq!(owner.event_register("ubus.object.remove", listener), 0);
+    let (header, _, _) = start(&mut owner, listener, None);
+    finish(&mut owner, header);
+    let orphan_check = owner.add_object(Some("r138.remove.no_listener"), &[]);
+    let (header, _, _) = start(&mut owner, orphan_check, None);
+    finish(&mut owner, header);
+    println!("pathless_listener_removed=true patterns_released=true");
+
+    // Same connection exposes the required DATA -> event -> STATUS order.
+    let listener = owner.add_object(None, &[]);
+    assert_eq!(owner.event_register("ubus.object.remove", listener), 0);
+    let path = "r138.remove.observed";
+    let target = owner.add_object(Some(path), &[]);
+    let (header, _, _) = start(&mut owner, target, None);
+    let (event_header, event_blob) = owner.recv().expect("named removal event");
+    assert_eq!((event_header.ty, event_header.peer), (ty::INVOKE, 0));
+    let mut event = BlobBuf::new();
+    event.put_u32(attr::OBJID, listener).put_string(attr::METHOD, "ubus.object.remove");
+    let data = event.nest_start(attr::DATA);
+    event.msg_u32("id", target).msg_string("path", path);
+    event.nest_end(data);
+    assert_eq!(event_blob, event.as_bytes());
+    finish(&mut owner, header);
+    let (header, _, _) = start(&mut owner, listener, None);
+    finish(&mut owner, header);
+    println!("named_remove_sequence=DATA,INVOKE,STATUS event_payload=true");
+
+    let (target, type_id) = add_typed(&mut owner, "r138.remove.monitored", None);
+    let mut monitor = Conn::open(sock);
+    let (status, initial) = monitor.invoke(MONITOR_OBJ, "add", None);
+    assert_eq!(status, 0);
+    assert_eq!(initial.len(), 1);
+    let mut last_seq = initial[0].0.seq;
+    let (header, request, data) = start(&mut owner, target, Some(type_id));
+    let status = finish(&mut owner, header);
+    for (kind, send, blob) in [(ty::REMOVE_OBJECT, false, request), (ty::DATA, true, data), (ty::STATUS, true, status)] {
+        let (h, mirror) = monitor.recv().expect("remove mirror");
+        last_seq = last_seq.wrapping_add(1);
+        assert_eq!((h.ty, h.seq), (ty::MONITOR, last_seq));
+        let at = attrs(&mirror);
+        assert_eq!(blob::iter(&mirror[4..]).map(|a| a.id).collect::<Vec<_>>(), [0, 1, 3, 4, 2, 5]);
+        assert_eq!(at[1].unwrap().as_u32(), Some(header.peer));
+        assert_eq!(at[3].unwrap().as_u32(), Some(header.seq as u32));
+        assert_eq!(at[4].unwrap().as_u32(), Some(kind as u32));
+        assert_eq!(at[2].unwrap().payload, &[u8::from(send)]);
+        assert_eq!(at[5].unwrap().payload, &blob[4..]);
+    }
+    let (status, final_mirrors) = monitor.invoke(MONITOR_OBJ, "remove", None);
+    assert_eq!(status, 0);
+    assert_eq!(final_mirrors.len(), 1, "only monitor.remove request remains");
+    println!("remove_monitor_order=request,DATA,STATUS exact_payloads=true sequences=true");
+
+    // Existing `release` covers removal of a target with subscribers. Here
+    // removal of a subscriber must still deactivate its surviving target.
+    let target = owner.add_object(None, &[]);
+    let mut subscriber = Conn::open(sock);
+    let sub = subscriber.add_object(None, &[]);
+    let mut request = BlobBuf::new();
+    request.put_u32(attr::OBJID, sub).put_u32(attr::TARGET, target);
+    assert_eq!(subscriber.request(ty::SUBSCRIBE, 0, &mut request).0, 0);
+    for active in [true, false] {
+        if !active {
+            let (header, _, _) = start(&mut subscriber, sub, None);
+            finish(&mut subscriber, header);
+        }
+        let mut notify = BlobBuf::new();
+        notify.put_u32(attr::OBJID, target).put_u8(attr::ACTIVE, u8::from(active));
+        expect(&mut owner, Header { ty: ty::NOTIFY, seq: if active { 1 } else { 2 }, peer: 0 }, notify.as_bytes());
+    }
+    let (header, _, _) = start(&mut owner, target, None);
+    finish(&mut owner, header);
+    println!("subscriber_removed=true target_notify_active=1,0 exact_data_status=true");
 }
 
 fn aclquery(sock: &str) {
@@ -747,7 +885,7 @@ fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
-        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|aclquery|utf8|slowlookup|monitor_lookup|fd_boundary|fd_boundary_read_ahead>");
+        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|remove_reply|aclquery|utf8|slowlookup|monitor_lookup|fd_boundary|fd_boundary_read_ahead>");
         std::process::exit(2);
     }
     let sock = &args[1];
@@ -757,6 +895,7 @@ fn main() {
         "object_events" => object_events(sock),
         "monitor" => monitor(sock),
         "release" => release(sock),
+        "remove_reply" => remove_reply(sock),
         "aclquery" => aclquery(sock),
         "utf8" => utf8(sock),
         "slowlookup" => slowlookup(sock),
