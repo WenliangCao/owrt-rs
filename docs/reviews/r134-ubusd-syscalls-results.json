@@ -1,0 +1,122 @@
+{
+  "scope": "Oracle structural syscall diagnostic only; all traced latency and CPU are excluded from performance claims.",
+  "result_sha256": "38fe2bfa739305a0a1da3e9f3cc539df13c0ca1d6bee7e6be245f2a078167e2b",
+  "runner_sha256": "abcbf5b71c4b1da6085f32bded7a77563f1426e5d84dbbd3a1c53416509b642e",
+  "benchmark_sha256": "0ca42fbafe08b7ace0aaa90f78c08c9c0f69022a64f6d5073ab6ceb77a88e693",
+  "passed": true,
+  "samples": [
+    {
+      "subject": "c",
+      "methods": 1,
+      "subject_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "cycles": {
+        "preflight": 1,
+        "warmup": 20,
+        "measured": 100
+      },
+      "measured_calls_per_cycle": {
+        "recvmsg": 2.04,
+        "read": 2.0,
+        "sendmsg": 4.0,
+        "getrandom": 2.0
+      },
+      "trace_sha256": "a33947faa0688bfb2592ac6297dfb7bf5865436b3d9ca12ef221de1b31b97de6",
+      "caller_sha256": "cceb64ddf5d8083253f2236748ae9d168eefd7651c550015951ea120be1070f5"
+    },
+    {
+      "subject": "r131",
+      "methods": 1,
+      "subject_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "cycles": {
+        "preflight": 1,
+        "warmup": 20,
+        "measured": 100
+      },
+      "measured_calls_per_cycle": {
+        "recvmsg": 2.01,
+        "read": 2.0,
+        "sendmsg": 4.0,
+        "getrandom": 2.0
+      },
+      "trace_sha256": "ff054e50ef11e121ed2e612859e6ec0542ff1cb8924da455644ea2843bf7b12f",
+      "caller_sha256": "3436a973a78767b478f37b1e827e295cbca6caeb261a383c8908bcb5b12df3e4"
+    },
+    {
+      "subject": "r134",
+      "methods": 1,
+      "subject_sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
+      "cycles": {
+        "preflight": 1,
+        "warmup": 20,
+        "measured": 100
+      },
+      "measured_calls_per_cycle": {
+        "recvmsg": 2.0,
+        "read": 0.0,
+        "sendmsg": 3.0,
+        "getrandom": 0.0
+      },
+      "trace_sha256": "87f948dae464e2039d9f81c96cc2d81249d40e805e63a2ba9dda946f13c83c02",
+      "caller_sha256": "b84f30333ea4531a10e776ee881a6026669fd76f4bbf7b48e94ec6aa7f9129d2"
+    },
+    {
+      "subject": "c",
+      "methods": 16,
+      "subject_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "cycles": {
+        "preflight": 1,
+        "warmup": 20,
+        "measured": 100
+      },
+      "measured_calls_per_cycle": {
+        "recvmsg": 2.03,
+        "read": 2.0,
+        "sendmsg": 4.0,
+        "getrandom": 2.0
+      },
+      "trace_sha256": "79156a12f7614220126b20d233387f94bc9fa8c51ba724ec8453c8b8349f5503",
+      "caller_sha256": "d3b188942405b1aed92debd563c24b0f69c422c8a6883407b7e6203750e9a01b"
+    },
+    {
+      "subject": "r131",
+      "methods": 16,
+      "subject_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "cycles": {
+        "preflight": 1,
+        "warmup": 20,
+        "measured": 100
+      },
+      "measured_calls_per_cycle": {
+        "recvmsg": 2.02,
+        "read": 2.0,
+        "sendmsg": 4.0,
+        "getrandom": 2.0
+      },
+      "trace_sha256": "3531084ecffbb796ca7fb8028b2f03c51119314c658c80de78de06b3fac5a038",
+      "caller_sha256": "7d4142817e36e4d608321991c0423c65bc3e51199baa34f041d102b2a5c939f1"
+    },
+    {
+      "subject": "r134",
+      "methods": 16,
+      "subject_sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
+      "cycles": {
+        "preflight": 1,
+        "warmup": 20,
+        "measured": 100
+      },
+      "measured_calls_per_cycle": {
+        "recvmsg": 2.0,
+        "read": 0.0,
+        "sendmsg": 3.0,
+        "getrandom": 0.0
+      },
+      "trace_sha256": "082332ad8fe5545bb022f7adf69ed1dedeaac8a1736a26c3d21051a290ecf27e",
+      "caller_sha256": "21f598859a7aa928149ffbc90c3a69c4c31fc39ea7621daefcf3c5e8a08b5e8c"
+    }
+  ],
+  "limitations": [
+    "Only recvmsg/read/sendmsg/getrandom counted; no all-syscall total.",
+    "Tracing changes scheduling/EAGAIN frequency; no latency or CPU conclusion.",
+    "100 measured registration cycles, 20 warmups and one preflight; not throughput evidence."
+  ]
+}
