@@ -14,6 +14,7 @@ use std::time::{Duration, Instant};
 
 mod cpu_clock;
 mod affinity;
+mod child;
 #[cfg(feature = "registration-perf")]
 mod registration_perf;
 
@@ -197,13 +198,22 @@ fn snapshot(pids: &[u32]) -> Result<Json> {
     ]))
 }
 
-fn measure<F, G>(
+fn measure<F, G>(n: usize, warmup: usize, pids: &[u32], operation: F, finish: G) -> Result<()>
+where
+    F: FnMut(usize) -> Result<u64>,
+    G: FnMut() -> Result<()>,
+{
+    emit(measure_report(n, warmup, pids, operation, finish)?);
+    Ok(())
+}
+
+fn measure_report<F, G>(
     n: usize,
     warmup: usize,
     pids: &[u32],
     mut operation: F,
     mut finish: G,
-) -> Result<()>
+) -> Result<Json>
 where
     F: FnMut(usize) -> Result<u64>,
     G: FnMut() -> Result<()>,
@@ -262,9 +272,8 @@ where
     }
     let raw = Json::Array(latencies.iter().copied().map(integer).collect());
     latencies.sort_unstable();
-    let percentile =
-        |p: f64| -> Json { num(latencies[((n - 1) as f64 * p).round() as usize] as f64 / 1000.0) };
-    emit(obj([
+    let quantile = |p: f64| -> Json { num(percentile(&latencies, p) as f64 / 1000.0) };
+    Ok(obj([
         ("schema", Json::Int(1)),
         ("successful", integer(n as u64)),
         ("errors", Json::Int(0)),
@@ -275,9 +284,9 @@ where
             "mean_us",
             num(latencies.iter().map(|&v| v as f64).sum::<f64>() / n as f64 / 1000.0),
         ),
-        ("p50_us", percentile(0.50)),
-        ("p95_us", percentile(0.95)),
-        ("p99_us", percentile(0.99)),
+        ("p50_us", quantile(0.50)),
+        ("p95_us", quantile(0.95)),
+        ("p99_us", quantile(0.99)),
         ("latency_ns", raw),
         ("daemon_cpu", Json::Array(daemons)),
         (
@@ -290,8 +299,29 @@ where
         ),
         ("client_cpu_clock_ns", integer(own_after.cpu_clock.ns.checked_sub(own_before.cpu_clock.ns).ok_or("client CPU clock regressed")?)),
         ("clock_ticks_per_second", num(hz)),
-    ]));
-    Ok(())
+    ]))
+}
+
+/// The latency rule: nonnegative rounded (n - 1) index of sorted samples.
+fn percentile(sorted: &[u64], p: f64) -> u64 {
+    sorted[((sorted.len() - 1) as f64 * p).round() as usize]
+}
+
+/// Per-run wait4 usage of exec children, in run order, plus the median by
+/// the latency rule and the maximum. Appended after the existing fields.
+fn child_usage_fields(usage: &[child::Usage]) -> Vec<(String, Json)> {
+    let maxrss: Vec<u64> = usage.iter().map(|u| u.maxrss_kib).collect();
+    let minflt: Vec<u64> = usage.iter().map(|u| u.minflt).collect();
+    let mut fields = Vec::new();
+    for (name, values) in [("child_maxrss_kib", maxrss), ("child_minflt", minflt)] {
+        let mut sorted = values.clone();
+        sorted.sort_unstable();
+        let raw = values.into_iter().map(integer).collect();
+        fields.push((format!("{name}_p50"), integer(percentile(&sorted, 0.50))));
+        fields.push((format!("{name}_max"), integer(sorted[sorted.len() - 1])));
+        fields.push((name.to_string(), Json::Array(raw)));
+    }
+    fields
 }
 
 /// Serial CPU diagnostic: no per-operation timing reads or latency vector.
@@ -872,26 +902,37 @@ fn main_inner(a: &[String]) -> Result<()> {
                 "exec N WARMUP EXPECT_BYTES PIDS -- PROGRAM ARGS...",
             )?;
             let expected = fs::read(&a[4])?;
-            measure(
+            let warmup = a[3].parse()?;
+            let mut usage = Vec::new();
+            let mut report = measure_report(
                 a[2].parse()?,
-                a[3].parse()?,
+                warmup,
                 &pid_list(&a[5])?,
                 |i| {
                     let t = Instant::now();
-                    let output = Command::new(&a[7])
-                        .args(&a[8..])
-                        .env("R84_ITERATION", i.to_string())
-                        .output()?;
+                    let output = child::output(
+                        Command::new(&a[7])
+                            .args(&a[8..])
+                            .env("R84_ITERATION", i.to_string()),
+                    )?;
                     let elapsed = t.elapsed().as_nanos() as u64;
                     require(output.status.success(), "child command failed")?;
                     require(
                         output.stdout == expected,
                         "child stdout failed byte validation",
                     )?;
+                    if i >= warmup {
+                        usage.push(output.usage);
+                    }
                     Ok(elapsed)
                 },
                 || Ok(()),
-            )
+            )?;
+            if let Json::Object(fields) = &mut report {
+                fields.extend(child_usage_fields(&usage));
+            }
+            emit(report);
+            Ok(())
         }
         "http" => {
             require(
@@ -1196,6 +1237,19 @@ mod tests {
         let mut changed = entries;
         changed[1].signature.push(0);
         assert!(validate_fixture_lookup(&changed, &paths, None).is_err());
+    }
+
+    #[test]
+    fn exec_child_usage_keeps_run_order_with_latency_rule_median_and_max() {
+        let usage: Vec<_> = [(900, 70), (700, 50), (1100, 90), (800, 60)]
+            .map(|(maxrss_kib, minflt)| child::Usage { maxrss_kib, minflt })
+            .into();
+        let fields = Json::Object(child_usage_fields(&usage)).to_compact();
+        // Four sorted runs: index round(1.5) = 2 is the latency rule's p50.
+        assert_eq!(
+            fields,
+            r#"{"child_maxrss_kib_p50":900,"child_maxrss_kib_max":1100,"child_maxrss_kib":[900,700,1100,800],"child_minflt_p50":70,"child_minflt_max":90,"child_minflt":[70,50,90,60]}"#
+        );
     }
 
     #[test]
