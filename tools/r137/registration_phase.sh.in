@@ -1,0 +1,83 @@
+#!/bin/sh
+# Independent diagnostic caller; no candidate performance acceptance here.
+set -eu
+if [ "${1:-}" = --namespace ]; then
+    exec /bin/sh "$(dirname "$0")/isolated.sh" "$@"
+fi
+[ "$#" -eq 4 ] && [ "$1" = --workload ] && [ "${OWRT_BENCH_NAMESPACE:-}" = 1 ] || exit 125
+[ "$2" = ubusd ] && [ "$3" = rs ] && [ "$4" = 2000 ] || exit 125
+unset LD_PRELOAD LD_LIBRARY_PATH
+bench=/tmp/bin/owrt-benchmark
+out=/tmp/out
+socket=/var/run/ubus/ubus.sock
+mkdir -p /var/run/ubus
+sha256sum /tmp/bin/ubusd-rs > "$out/binary-sha256.txt"
+sha256sum /sbin/ubusd /tmp/bin/ubusd-rs "$bench" /tmp/bin/ns-exec > "$out/identities.txt"
+cat > "$out/expected-identities.txt" <<'IDENTITIES'
+@C_SHA@  /sbin/ubusd
+@CANDIDATE_SHA@  /tmp/bin/ubusd-rs
+@CALLER_SHA@  /tmp/bin/owrt-benchmark
+@NAMESPACE_SHA@  /tmp/bin/ns-exec
+IDENTITIES
+sha256sum -c "$out/expected-identities.txt" > "$out/identity-check.log"
+cat /proc/sys/kernel/random/boot_id > "$out/boot-id.txt"
+uname -r > "$out/kernel.txt"
+printf '%s\n' '@SIDE_ORDER@' > "$out/side-order.txt"
+printf '%s\n' '@MODE_ORDER@' > "$out/mode-order.txt"
+printf '%s\n' '@METHOD_ORDER@' > "$out/method-order.txt"
+pid=
+cleanup() {
+    if [ -n "$pid" ]; then
+        kill "$pid" 2>/dev/null || true
+        wait "$pid" 2>/dev/null || true
+    fi
+    rm -f "$socket"
+}
+trap cleanup EXIT
+trap 'exit 130' HUP INT TERM
+for side in @SIDE_ORDER@; do
+    case "$side" in
+        c) bin=/sbin/ubusd; expected=@C_SHA@ ;;
+        candidate) bin=/tmp/bin/ubusd-rs; expected=@CANDIDATE_SHA@ ;;
+        *) exit 125 ;;
+    esac
+    dest=$out/$side
+    mkdir "$dest"
+    "$bench" exec-cpu-as 1 "$bin" /sbin/ubusd -s "$socket" > "$dest/daemon.log" 2>&1 & pid=$!
+    tries=0
+    until ubus -s "$socket" -t 1 list >/dev/null 2>&1; do
+        kill -0 "$pid"; [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
+    done
+    printf '/sbin/ubusd\0-s\0%s\0' "$socket" > "$dest/expected.cmdline"
+    cat /proc/$pid/cmdline > "$dest/before.cmdline"
+    cmp "$dest/expected.cmdline" "$dest/before.cmdline"
+    cat /proc/$pid/status > "$dest/before.status"
+    cat /proc/$pid/stat > "$dest/before.stat"
+    sha256sum /proc/$pid/exe > "$dest/before-exe.sha256"
+    [ "$(awk '{print $1}' "$dest/before-exe.sha256")" = "$expected" ]
+    [ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/$pid/status)" = 1 ]
+    for mode in @MODE_ORDER@; do
+        for methods in @METHOD_ORDER@; do
+            [ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/self/status)" = 0-1 ]
+            "$bench" register-phase "$socket" "$methods" 8 2000 200 "$pid" "$mode" 256 \
+                > "$dest/$mode-$methods.json" 2> "$dest/$mode-$methods.log"
+            [ ! -s "$dest/$mode-$methods.log" ]
+        done
+    done
+    cat /proc/$pid/status > "$dest/after.status"
+    cat /proc/$pid/stat > "$dest/after.stat"
+    cat /proc/$pid/cmdline > "$dest/after.cmdline"
+    cmp "$dest/before.cmdline" "$dest/after.cmdline"
+    sha256sum /proc/$pid/exe > "$dest/after-exe.sha256"
+    cmp "$dest/before-exe.sha256" "$dest/after-exe.sha256"
+    ubus -s "$socket" list > "$dest/objects-after.txt"
+    [ ! -s "$dest/objects-after.txt" ] && [ ! -s "$dest/daemon.log" ]
+    kill "$pid"
+    code=0; wait "$pid" 2>/dev/null || code=$?
+    printf '%s\n' "$code" > "$dest/daemon-exit.txt"
+    [ "$code" -eq 0 ] || [ "$code" -eq 143 ]
+    pid=
+    rm -f "$socket"
+    touch "$dest/COMPLETE"
+done
+touch "$out/COMPLETE"
