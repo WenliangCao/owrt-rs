@@ -18,6 +18,8 @@ CPU 正负项均保留：monitor daemon CPU 对 R136 **−9.489171%，6/6 下降
 
 **完整性通过：54 case、108,000 个测量周期、866 个哈希清单内文件全部核验。** 使用原 `1705d989…` helper，caller CPU 0、daemon CPU 1，六个全排列串行执行，54 个新 daemon 的身份、映射、命令、affinity、空日志、FD 恢复与退出清理均通过。七个工具输入、源码/构建/正确性 proof 和全部运行时库均在正式运行前后核验。detached launcher 已退出。
 
+独立审计对全部 raw、54 组 daemon 身份/argv/CPU/映射 inode 与清理、866 个文件、42 组配对和九项否决逐项核验，与主 JSON 完全一致；审计 SHA `6facde4c27b5a9444c95de4c9fd872ca04d59a9aaf682f59ea89ae786d099748`，原始证据保留于 `private/r142/`。
+
 旧 helper 仅使用一个 monitor 和小 payload，延迟包含 caller 的逐 owner poll、收包与验证，数组未预触页；结果不代表纯 daemon 延迟、多个 monitor、大消息、长期内存或路由器表现。JSON 中即时内存快照仅作诊断；另一个大消息 memory helper 的三方功能 smoke 不进入性能数据，也不是完整内存接受证据。本轮不能修复或抵销 R136 无 monitor 注册慢尾。
 
 [完整 JSON](r142-screen-results.json) 含全部 case 七指标、即时内存快照、两控制下 42 组配对比较和九项否决检查。[冻结规则](R142_SCREEN_PLAN.md) 和[采集/分析工具](../../tools/r142/monitor_screen.py) 未改。manifest SHA `d26992778e90e17cf6c33b71f760d65f0048919ac89b672a87309de8d67bc161`；JSON SHA `00ba2b1500501a9d459d4603f84b4437cba04aaeb046b6f508fcd2e07d9e9936`。原始归档、精确启动命令和 launcher 身份位于 ignored `private/r142/`。
