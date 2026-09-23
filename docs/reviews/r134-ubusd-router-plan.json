@@ -1,45 +1,17 @@
 {
   "schema_version": 1,
   "scope": "R134 physical validation only; no production deployment",
-  "output": "private/r134/router-finish-02",
+  "output": "private/r134/router-finish-03",
   "candidate_sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
   "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
   "steps": [
-    {
-      "name": "correctness-events",
-      "argv": [
-        "tools/r95_device_smoke.py",
-        "ubusd",
-        "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/correctness/events",
-        "--guard",
-        "private/r95/guard",
-        "--recovery-gate",
-        "private/r96/recovery-full/recovery-gate.json",
-        "--benchmark",
-        "private/r134/bins-ubusd/wireprobe",
-        "--workload-script",
-        "tools/r98_ubusd_events.sh",
-        "--iterations",
-        "10",
-        "--implementation",
-        "rs",
-        "--before-candidate",
-        "private/r131-event-batch/maps/r131",
-        "--unit-tests",
-        "private/r134/bins-ubusd/unit-tests",
-        "--unit-filter",
-        ""
-      ],
-      "driver_result": "private/r134/router-finish-02/correctness/events/result.json"
-    },
     {
       "name": "correctness-fd",
       "argv": [
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/correctness/fd",
+        "private/r134/router-finish-03/correctness/fd",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -55,7 +27,7 @@
         "--before-candidate",
         "private/r131-event-batch/maps/r131"
       ],
-      "driver_result": "private/r134/router-finish-02/correctness/fd/result.json"
+      "driver_result": "private/r134/router-finish-03/correctness/fd/result.json"
     },
     {
       "name": "correctness-stress-stock",
@@ -63,7 +35,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/correctness/stress-stock",
+        "private/r134/router-finish-03/correctness/stress-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -79,7 +51,7 @@
         "--event-benchmark",
         "private/r131-completion/stress/r131-event-stress-libubus"
       ],
-      "driver_result": "private/r134/router-finish-02/correctness/stress-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/correctness/stress-stock/result.json"
     },
     {
       "name": "correctness-stress-candidate",
@@ -87,7 +59,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/correctness/stress-candidate",
+        "private/r134/router-finish-03/correctness/stress-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -103,14 +75,14 @@
         "--event-benchmark",
         "private/r131-completion/stress/r131-event-stress-libubus"
       ],
-      "driver_result": "private/r134/router-finish-02/correctness/stress-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/correctness/stress-candidate/result.json"
     },
     {
       "name": "matrix",
       "argv": [
         "tools/benchmark/run_candidate.py",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/matrix",
+        "private/r134/router-finish-03/matrix",
         "--component",
         "ubusd",
         "--interface",
@@ -138,7 +110,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/01-stock",
+        "private/r134/router-finish-03/latency/01-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -155,7 +127,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/01-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/01-stock/result.json"
     },
     {
       "name": "latency-02-candidate",
@@ -163,7 +135,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/02-candidate",
+        "private/r134/router-finish-03/latency/02-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -180,7 +152,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/02-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/02-candidate/result.json"
     },
     {
       "name": "latency-03-candidate",
@@ -188,7 +160,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/03-candidate",
+        "private/r134/router-finish-03/latency/03-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -205,7 +177,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/03-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/03-candidate/result.json"
     },
     {
       "name": "latency-04-stock",
@@ -213,7 +185,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/04-stock",
+        "private/r134/router-finish-03/latency/04-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -230,7 +202,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/04-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/04-stock/result.json"
     },
     {
       "name": "latency-05-stock",
@@ -238,7 +210,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/05-stock",
+        "private/r134/router-finish-03/latency/05-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -255,7 +227,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/05-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/05-stock/result.json"
     },
     {
       "name": "latency-06-candidate",
@@ -263,7 +235,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/06-candidate",
+        "private/r134/router-finish-03/latency/06-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -280,7 +252,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/06-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/06-candidate/result.json"
     },
     {
       "name": "latency-07-candidate",
@@ -288,7 +260,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/07-candidate",
+        "private/r134/router-finish-03/latency/07-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -305,7 +277,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/07-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/07-candidate/result.json"
     },
     {
       "name": "latency-08-stock",
@@ -313,7 +285,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/08-stock",
+        "private/r134/router-finish-03/latency/08-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -330,7 +302,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/08-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/08-stock/result.json"
     },
     {
       "name": "latency-09-stock",
@@ -338,7 +310,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/09-stock",
+        "private/r134/router-finish-03/latency/09-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -355,7 +327,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/09-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/09-stock/result.json"
     },
     {
       "name": "latency-10-candidate",
@@ -363,7 +335,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/10-candidate",
+        "private/r134/router-finish-03/latency/10-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -380,7 +352,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/10-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/10-candidate/result.json"
     },
     {
       "name": "latency-11-candidate",
@@ -388,7 +360,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/11-candidate",
+        "private/r134/router-finish-03/latency/11-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -405,7 +377,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/11-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/11-candidate/result.json"
     },
     {
       "name": "latency-12-stock",
@@ -413,7 +385,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/12-stock",
+        "private/r134/router-finish-03/latency/12-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -430,7 +402,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/12-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/12-stock/result.json"
     },
     {
       "name": "latency-13-stock",
@@ -438,7 +410,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/13-stock",
+        "private/r134/router-finish-03/latency/13-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -455,7 +427,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/13-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/13-stock/result.json"
     },
     {
       "name": "latency-14-candidate",
@@ -463,7 +435,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/14-candidate",
+        "private/r134/router-finish-03/latency/14-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -480,7 +452,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/14-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/14-candidate/result.json"
     },
     {
       "name": "latency-15-candidate",
@@ -488,7 +460,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/latency/15-candidate",
+        "private/r134/router-finish-03/latency/15-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -505,7 +477,7 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/15-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/latency/15-candidate/result.json"
     },
     {
       "name": "latency-16-stock",
@@ -513,7 +485,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/latency/16-stock",
+        "private/r134/router-finish-03/latency/16-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -530,8 +502,8 @@
         "private/r131-latency/user-event-latency-libubus",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/latency/16-stock/result.json",
-      "completed_group": "private/r134/router-finish-02/latency"
+      "driver_result": "private/r134/router-finish-03/latency/16-stock/result.json",
+      "completed_group": "private/r134/router-finish-03/latency"
     },
     {
       "name": "memory-idle-01-stock",
@@ -539,7 +511,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/memory/idle/01-stock",
+        "private/r134/router-finish-03/memory/idle/01-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -554,7 +526,7 @@
         "c",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/idle/01-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/idle/01-stock/result.json"
     },
     {
       "name": "memory-idle-02-candidate",
@@ -562,7 +534,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/memory/idle/02-candidate",
+        "private/r134/router-finish-03/memory/idle/02-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -577,7 +549,7 @@
         "rs",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/idle/02-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/idle/02-candidate/result.json"
     },
     {
       "name": "memory-idle-03-candidate",
@@ -585,7 +557,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/memory/idle/03-candidate",
+        "private/r134/router-finish-03/memory/idle/03-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -600,7 +572,7 @@
         "rs",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/idle/03-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/idle/03-candidate/result.json"
     },
     {
       "name": "memory-idle-04-stock",
@@ -608,7 +580,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/memory/idle/04-stock",
+        "private/r134/router-finish-03/memory/idle/04-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -623,7 +595,7 @@
         "c",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/idle/04-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/idle/04-stock/result.json"
     },
     {
       "name": "memory-large-01-stock",
@@ -631,7 +603,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/memory/large/01-stock",
+        "private/r134/router-finish-03/memory/large/01-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -646,7 +618,7 @@
         "c",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/large/01-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/large/01-stock/result.json"
     },
     {
       "name": "memory-large-02-candidate",
@@ -654,7 +626,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/memory/large/02-candidate",
+        "private/r134/router-finish-03/memory/large/02-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -669,7 +641,7 @@
         "rs",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/large/02-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/large/02-candidate/result.json"
     },
     {
       "name": "memory-large-03-candidate",
@@ -677,7 +649,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/memory/large/03-candidate",
+        "private/r134/router-finish-03/memory/large/03-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -692,7 +664,7 @@
         "rs",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/large/03-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/large/03-candidate/result.json"
     },
     {
       "name": "memory-large-04-stock",
@@ -700,7 +672,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/memory/large/04-stock",
+        "private/r134/router-finish-03/memory/large/04-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -715,7 +687,7 @@
         "c",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/large/04-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/large/04-stock/result.json"
     },
     {
       "name": "memory-fanout-01-stock",
@@ -723,7 +695,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/memory/fanout/01-stock",
+        "private/r134/router-finish-03/memory/fanout/01-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -738,7 +710,7 @@
         "c",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/fanout/01-stock/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/fanout/01-stock/result.json"
     },
     {
       "name": "memory-fanout-02-candidate",
@@ -746,7 +718,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/memory/fanout/02-candidate",
+        "private/r134/router-finish-03/memory/fanout/02-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -761,7 +733,7 @@
         "rs",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/fanout/02-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/fanout/02-candidate/result.json"
     },
     {
       "name": "memory-fanout-03-candidate",
@@ -769,7 +741,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r134/bins-ubusd/ubusd-rs",
-        "private/r134/router-finish-02/memory/fanout/03-candidate",
+        "private/r134/router-finish-03/memory/fanout/03-candidate",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -784,7 +756,7 @@
         "rs",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/fanout/03-candidate/result.json"
+      "driver_result": "private/r134/router-finish-03/memory/fanout/03-candidate/result.json"
     },
     {
       "name": "memory-fanout-04-stock",
@@ -792,7 +764,7 @@
         "tools/r95_device_smoke.py",
         "ubusd",
         "private/r95/ubusd-pilot/stock",
-        "private/r134/router-finish-02/memory/fanout/04-stock",
+        "private/r134/router-finish-03/memory/fanout/04-stock",
         "--guard",
         "private/r95/guard",
         "--recovery-gate",
@@ -807,8 +779,8 @@
         "c",
         "--pilot"
       ],
-      "driver_result": "private/r134/router-finish-02/memory/fanout/04-stock/result.json",
-      "completed_group": "private/r134/router-finish-02/memory"
+      "driver_result": "private/r134/router-finish-03/memory/fanout/04-stock/result.json",
+      "completed_group": "private/r134/router-finish-03/memory"
     }
   ],
   "input_sha256": {
@@ -833,11 +805,13 @@
     "tools/r131_fanout_memory.sh": "d93ce8cfc39f97e26feac608844b1814d02eb478bb181b53fd33457a1da405fd",
     "tools/r131_ubusd_event_latency.sh": "66ac6bbfdf74119fd8de503d3b30450bd781f0a6d080ada57335e31fd2f3b2cd",
     "tools/r131_ubusd_event_stress.sh": "8a11da1895f061cf4b7a37eb5d5c7bc2308697d69d65f6a1ff94b378fe3a3dc5",
-    "tools/r134/ubusd_fd_boundary.sh": "3d53bfb0952aea3c354d51cc8a81f87a315207378535a70544d109f2db30a12b",
-    "tools/r134/ubusd_router_finish.py": "5df2b8f6fceff8d4d83bc341cccddab2308cc24499da5678f0eaf51c19eb3cba",
+    "tools/r134/ubusd_fd_boundary.sh": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57",
+    "tools/r134/ubusd_router_finish.py": "26d82bcde9ccf5418d3ccedecfccae8df3605d1640a714b2ef24c14496c77f3f",
     "tools/r84_device_probe.py": "89f2ce6b90c1b7a2ba9c6d89e3b4ac7bcf7f7ba07bad46216726173c13233698",
     "tools/r95_device_smoke.py": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d",
-    "tools/r98_ubusd_events.sh": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d"
+    "tools/r98_ubusd_events.sh": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+    "private/r134/router-finish-02/correctness/events/result.json": "b0b564206cb5a03407246104ffe328356dc39323d3ce4673ce22bb4fb5e8fa7b",
+    "private/r134/router-finish-02/correctness/events/unit-tests.log": "ab5f4adcdb67998a0cf3033411a11d7259c0ad99078c3a5efe66fea3a1272e6f"
   },
   "rules": {
     "matrix": "15 workloads, ABBA x4, n10000, daemon CPU1; same uploaded client both sides",
@@ -847,5 +821,8 @@
     "correctness": "all preceding router correctness and cleanup gates mandatory; first failure stops collection",
     "historical": "No matched R89/R131 performance conclusion from this C/R134 collection"
   },
-  "plan_revision_note": "FD probe now asserts each contract; preceding queued collection cancelled before any router test. Runtime candidate unchanged."
+  "plan_revision_note": "Prior physical events and 55 unit tests preserved by hashed prerequisite. FD assertions passed but collector rejected missing binary-sha256.txt; add metadata and rerun FD onward. No performance windows collected yet, runtime/fixtures/decision rules unchanged.",
+  "prerequisites": [
+    "private/r134/router-finish-02/correctness/events/result.json"
+  ]
 }

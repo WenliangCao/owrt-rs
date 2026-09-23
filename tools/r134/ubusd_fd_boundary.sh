@@ -11,6 +11,7 @@ fi
 [ "$2" = ubusd ] && [ "$3" = rs ] || exit 125
 unset LD_PRELOAD LD_LIBRARY_PATH
 out=/tmp/out
+sha256sum /tmp/bin/ubusd-rs > "$out/binary-sha256.txt"
 sha256sum /tmp/bin/ubusd-rs /tmp/bin/before-rs /tmp/bin/owrt-benchmark /sbin/ubusd > "$out/identities.txt"
 mkdir -p /var/run/ubus
 for side in c before candidate; do

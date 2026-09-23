@@ -13,6 +13,8 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[2]
+HEALTH = ("passed", "cleanup_verified", "same_boot", "same_config",
+          "same_production_identity", "same_host_mounts")
 
 
 def read(path):
@@ -33,6 +35,10 @@ def main():
     a = p.parse_args()
     plan = read(a.plan)
     verify(plan)
+    for path in plan.get("prerequisites", []):
+        result = read(ROOT / path)
+        if not all(result.get(k) is True for k in HEALTH) or result.get("candidate_sha256") != plan["candidate_sha256"]:
+            raise ValueError(f"prior correctness gate invalid: {path}")
     out = ROOT / plan["output"]
     out.mkdir(parents=True, exist_ok=False)
     (out / "plan.json").write_bytes(a.plan.read_bytes())
@@ -55,9 +61,7 @@ def main():
         row = {"name": step["name"], "exit": code}
         if code == 0 and step.get("driver_result"):
             result = read(ROOT / step["driver_result"])
-            required = ("passed", "cleanup_verified", "same_boot", "same_config",
-                        "same_production_identity", "same_host_mounts")
-            if not all(result.get(k) is True for k in required):
+            if not all(result.get(k) is True for k in HEALTH):
                 row["exit"] = 1
                 row["error"] = "driver health or cleanup gate failed"
         results.append(row)
