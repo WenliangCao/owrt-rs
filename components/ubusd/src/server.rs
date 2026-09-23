@@ -330,7 +330,7 @@ impl Server {
         }
 
         if let Some(p) = attrs[attr::OBJPATH as usize] {
-            let path = obj::cstr_bytes(p.payload).to_vec();
+            let path = obj::cstr_bytes(p.payload);
             let cred = self.clients.get(&client).map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
             let allowed = self.acl.check(cred.as_ref(), Some(&path), None, AclType::Publish);
             if !allowed || !self.reg.set_path(id, path) {
@@ -923,10 +923,10 @@ impl Server {
         let Some(path) = o.path.clone() else { return };
         self.dispatch_event(None, name, |b| {
             b.put_u32(attr::OBJID, 0);
-            b.put(attr::METHOD, &with_nul(name));
+            b.put_string_bytes(attr::METHOD, name);
             let d = b.nest_start(attr::DATA);
             b.msg_u32("id", id);
-            b.msg_field(MsgType::String as u32, "path", &with_nul(&path));
+            b.msg_string_bytes("path", &path);
             b.nest_end(d);
         });
     }
@@ -1995,7 +1995,7 @@ mod tests {
             for i in 0..count {
                 let id = 4000 + i;
                 server.reg.create(Some(TYPE), Some(id)).unwrap();
-                assert!(server.reg.set_path(id, format!("lookup.{i:04}").into_bytes()));
+                assert!(server.reg.set_path(id, &format!("lookup.{i:04}").into_bytes()));
                 assert!(server.build_obj(CALLER, id));
                 expected.push(server.scratch.as_bytes().to_vec());
             }
@@ -2049,7 +2049,7 @@ mod tests {
             for i in 0..12 {
                 let id = FIRST + i;
                 server.reg.create(Some(TYPE), Some(id)).unwrap();
-                assert!(server.reg.set_path(id, format!("lookup.{i:02}").into_bytes()));
+                assert!(server.reg.set_path(id, &format!("lookup.{i:02}").into_bytes()));
                 assert!(server.build_obj(CALLER, id));
                 expected.push(server.scratch.as_bytes().to_vec());
             }
@@ -2064,7 +2064,7 @@ mod tests {
             server.reg.destroy(removed).unwrap();
             if change == "recreate" {
                 server.reg.create(Some(TYPE), Some(9000)).unwrap();
-                assert!(server.reg.set_path(9000, next));
+                assert!(server.reg.set_path(9000, &next));
                 assert!(server.build_obj(CALLER, 9000));
                 expected[1] = server.scratch.as_bytes().to_vec();
             } else if change == "delete_tail" {
@@ -2078,10 +2078,10 @@ mod tests {
             // A newly inserted path before the saved lower bound must not
             // restart the completed prefix or appear in this continuation.
             server.reg.create(Some(TYPE), Some(9001)).unwrap();
-            assert!(server.reg.set_path(9001, b"lookup.00a".to_vec()));
+            assert!(server.reg.set_path(9001, b"lookup.00a"));
             if pattern != "*" {
                 server.reg.create(Some(TYPE), Some(9002)).unwrap();
-                assert!(server.reg.set_path(9002, b"outside".to_vec()));
+                assert!(server.reg.set_path(9002, b"outside"));
             }
             // The first DATA is partially sent and queued. Deleting its
             // registry entry and overwriting scratch must not alter its tail.
@@ -2130,7 +2130,7 @@ mod tests {
                                       (4002, &b"b"[..], None),
                                       (4003, &b"a"[..], Some(3000))] {
                 server.reg.create(kind, Some(id)).unwrap();
-                assert!(server.reg.set_path(id, path.to_vec()));
+                assert!(server.reg.set_path(id, path));
             }
             let mut blob = BlobBuf::new();
             blob.put_string(attr::OBJPATH, "*");
@@ -2190,7 +2190,7 @@ mod tests {
         for i in 0..40 {
             let id = 4000 + i;
             server.reg.create(Some(3000), Some(id)).unwrap();
-            assert!(server.reg.set_path(id, format!("lookup.{i:02}").into_bytes()));
+            assert!(server.reg.set_path(id, &format!("lookup.{i:02}").into_bytes()));
             assert!(server.build_obj(CALLER, id));
             expected.push(server.scratch.as_bytes().to_vec());
         }

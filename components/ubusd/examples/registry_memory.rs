@@ -74,7 +74,7 @@ fn main() {
             r.types.insert(2048, obj::ObjType { refcount: 0, methods: Vec::new() });
             for i in 0..count {
                 r.create(Some(2048), Some(4096 + i)).unwrap();
-                assert!(r.set_path(4096 + i, path(i, len)));
+                assert!(r.set_path(4096 + i, &path(i, len)));
             }
             let retained = LIVE.load(Relaxed) - baseline;
             let peak = PEAK.load(Relaxed) - baseline;

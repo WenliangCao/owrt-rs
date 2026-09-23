@@ -7,7 +7,7 @@
 //! order, and the path index is a byte-ordered map (avl_strcmp).
 
 use std::collections::BTreeMap;
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Entry};
 use std::rc::Rc;
 
 /// Ids below this are reserved for the built-in system objects.
@@ -91,9 +91,13 @@ impl Registry {
     }
 
     pub fn new_type(&mut self, methods: Vec<Method>) -> std::io::Result<u32> {
-        let id = Self::alloc_id(|id| self.types.contains_key(&id))?;
-        self.types.insert(id, ObjType { refcount: 1, methods });
-        Ok(id)
+        loop {
+            let id = crate::sys::random_id(SYSTEM_OBJECT_MAX)?;
+            if let Entry::Vacant(slot) = self.types.entry(id) {
+                slot.insert(ObjType { refcount: 1, methods });
+                return Ok(id);
+            }
+        }
     }
 
     /// Take a reference to an existing type, as `ubus_get_obj_type` does.
@@ -104,10 +108,11 @@ impl Registry {
     }
 
     pub fn unref_type(&mut self, id: u32) {
-        if let Some(t) = self.types.get_mut(&id) {
+        if let Entry::Occupied(mut slot) = self.types.entry(id) {
+            let t = slot.get_mut();
             t.refcount -= 1;
             if t.refcount == 0 {
-                self.types.remove(&id);
+                slot.remove();
             }
         }
     }
@@ -115,18 +120,25 @@ impl Registry {
     /// Create an object with a fresh random id (or the given fixed id, for the
     /// three system objects). Takes a reference on `type_id` when present.
     pub fn create(&mut self, type_id: Option<u32>, fixed_id: Option<u32>) -> std::io::Result<u32> {
-        let id = match fixed_id {
-            Some(id) => id,
-            None => Self::alloc_id(|id| self.objects.contains_key(&id))?,
-        };
-        if self.objects.contains_key(&id) {
-            return Err(std::io::Error::new(std::io::ErrorKind::AlreadyExists, "object id in use"));
+        loop {
+            let id = match fixed_id {
+                Some(id) => id,
+                None => crate::sys::random_id(SYSTEM_OBJECT_MAX)?,
+            };
+            match self.objects.entry(id) {
+                Entry::Occupied(_) if fixed_id.is_some() => {
+                    return Err(std::io::Error::new(std::io::ErrorKind::AlreadyExists, "object id in use"));
+                }
+                Entry::Occupied(_) => continue,
+                Entry::Vacant(slot) => {
+                    if let Some(t) = type_id.and_then(|t| self.types.get_mut(&t)) {
+                        t.refcount += 1;
+                    }
+                    slot.insert(Object::new(type_id));
+                    return Ok(id);
+                }
+            }
         }
-        if let Some(t) = type_id.and_then(|t| self.types.get_mut(&t)) {
-            t.refcount += 1;
-        }
-        self.objects.insert(id, Object::new(type_id));
-        Ok(id)
     }
 
     pub fn get(&self, id: u32) -> Option<&Object> {
@@ -143,8 +155,8 @@ impl Registry {
 
     /// Bind a path to an object. Fails when the path is already taken, which
     /// in the C daemon makes the whole add_object fail.
-    pub fn set_path(&mut self, id: u32, path: Vec<u8>) -> bool {
-        if self.paths.contains_key(path.as_slice()) {
+    pub fn set_path(&mut self, id: u32, path: &[u8]) -> bool {
+        if self.paths.contains_key(path) {
             return false;
         }
         // Both indexes own the same immutable bytes. The single-threaded
@@ -267,7 +279,7 @@ mod tests {
         {
             let id = 2000 + i as u32;
             r.objects.insert(id, Object::new(None));
-            assert!(r.set_path(id, p.to_vec()));
+            assert!(r.set_path(id, p));
         }
         assert_eq!(r.path_prefix(b"network").len(), 3);
         assert_eq!(r.path_prefix(b"network.").len(), 2);
@@ -275,7 +287,7 @@ mod tests {
         assert_eq!(r.path_order().len(), 4);
         // duplicate path is refused, which makes add_object fail in the C daemon
         r.objects.insert(3000, Object::new(None));
-        assert!(!r.set_path(3000, b"network".to_vec()));
+        assert!(!r.set_path(3000, b"network"));
     }
 
     #[test]

@@ -55,7 +55,7 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
     for i in 0..count {
         let id = OBJECT + i as u32;
         s.reg.create(Some(TYPE), Some(id)).unwrap();
-        assert!(s.reg.set_path(id, format!("bench.object{i:04}").into_bytes()));
+        assert!(s.reg.set_path(id, &format!("bench.object{i:04}").into_bytes()));
         s.reg.get_mut(id).unwrap().client = Some(OWNER);
     }
     (s, caller_peer, owner_peer)
