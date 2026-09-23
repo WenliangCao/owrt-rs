@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build router candidates on the Oracle host with the canonical SDK flags.
-# usage: build.sh SRC_COMPONENTS_DIR OUT_DIR COMPONENT...
+# usage: [EXAMPLES=1] build.sh SRC_COMPONENTS_DIR OUT_DIR COMPONENT...
 # Builds in a fixed path so equal sources give equal bytes; strips like the
 # SDK package (sstrip -z) and keeps an unstripped copy for profiling.
 set -euo pipefail
@@ -29,4 +29,9 @@ for comp in "$@"; do
   cp "$OUT/target/aarch64-unknown-linux-musl/release/$bin" "$OUT/$bin"
   "$STAGING_ROOT/host/bin/sstrip" -z "$OUT/$bin"
   echo "BUILT $comp $bin $(sha256sum "$OUT/$bin" | cut -d' ' -f1) $(stat -c%s "$OUT/$bin")"
+  if [ -n "${EXAMPLES:-}" ]; then
+    cargo build --release --locked --examples --manifest-path "$FIXED/$comp/Cargo.toml" --target-dir "$OUT/target" 2>&1 | tail -2
+    mkdir -p "$OUT/examples"
+    find "$OUT/target/aarch64-unknown-linux-musl/release/examples" -maxdepth 1 -type f -perm -u+x ! -name '*-*' -exec cp {} "$OUT/examples/" \;
+  fi
 done
