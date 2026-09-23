@@ -41,8 +41,8 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
     let mut s = server::Server::new(String::new()).unwrap();
     let (caller, caller_peer) = connection();
     let (owner, owner_peer) = connection();
-    s.clients.insert(CALLER, caller);
-    s.clients.insert(OWNER, owner);
+    s.clients.insert(CALLER, Box::new(caller));
+    s.clients.insert(OWNER, Box::new(owner));
     let methods = (0..methods).map(|i| {
         let name = format!("method_{i:04}");
         let mut b = BlobBuf::new();
@@ -61,12 +61,12 @@ fn fixture(count: usize, methods: usize) -> (server::Server, UnixStream, UnixStr
     (s, caller_peer, owner_peer)
 }
 
-fn input(kind: u8, mut b: BlobBuf) -> InMsg {
-    InMsg { header: Header { ty: kind, seq: 1, peer: 0 }, blob: b.as_bytes().to_vec(), fd: None }
+fn input(kind: u8, mut b: BlobBuf) -> InMsg<'static> {
+    InMsg { header: Header { ty: kind, seq: 1, peer: 0 }, blob: b.as_bytes().to_vec().into(), fd: None }
 }
 
-fn copy(msg: &InMsg) -> InMsg {
-    InMsg { header: msg.header, blob: msg.blob.clone(), fd: None }
+fn copy(msg: &InMsg) -> InMsg<'static> {
+    InMsg { header: msg.header, blob: msg.blob.clone().into_owned().into(), fd: None }
 }
 
 fn drain(peer: &mut UnixStream, frames: usize, scratch: &mut Vec<u8>) {
@@ -226,17 +226,19 @@ fn main() {
             black_box(copy(black_box(&msg)));
         });
         let (mut client, mut peer) = connection();
+        let mut rx = [0u8; client::RX_SIZE];
         let mut frame = msg.header.encode().to_vec();
         frame.extend_from_slice(&msg.blob);
         profile_support::measure(&format!("socket_write_receive_{size}"), n, &filter, || {
             peer.write_all(&frame).unwrap();
+            client.begin_read(&mut rx);
             // A short read returns one complete frame, then Ok(None) on the
             // next call to end the readiness round. Large frames can also
             // need more than one read. Drive the state machine as the event
             // loop does instead of assuming every call yields a frame.
             let mut waiting_since = None;
             let read = loop {
-                if let Some(read) = client.read_message().unwrap() {
+                if let Some(read) = client.read_message(&mut rx).unwrap() {
                     break read;
                 }
                 let started = waiting_since.get_or_insert_with(std::time::Instant::now);
@@ -244,7 +246,8 @@ fn main() {
             };
             assert_eq!(read.blob.len(), msg.blob.len());
             black_box(read);
-            assert!(client.read_message().unwrap().is_none());
+            assert!(client.read_message(&mut rx).unwrap().is_none());
+            client.end_read(&rx);
         });
     }
 }

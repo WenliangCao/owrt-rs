@@ -35,7 +35,7 @@ fn main() {
         let (sock, mut peer) = UnixStream::pair().unwrap();
         sock.set_nonblocking(true).unwrap();
         peer.set_read_timeout(Some(std::time::Duration::from_secs(2))).unwrap();
-        s.clients.insert(2000, client::Client::new(sock.into(), sys::Ucred::default(), "root".into(), "root".into()));
+        s.clients.insert(2000, Box::new(client::Client::new(sock.into(), sys::Ucred::default(), "root".into(), "root".into())));
         for i in 0..objects {
             let mut b = BlobBuf::new();
             b.put_string(attr::OBJPATH, &format!("object.{i:04}"));
@@ -45,7 +45,7 @@ fn main() {
             let blob = b.as_bytes().to_vec();
             drop(b);
             assert!(s.receive(2000, client::InMsg {
-                header: Header { ty: ty::ADD_OBJECT, seq: i as u16, peer: 0 }, blob, fd: None,
+                header: Header { ty: ty::ADD_OBJECT, seq: i as u16, peer: 0 }, blob: blob.into(), fd: None,
             }));
             for expected in [ty::DATA, ty::STATUS] {
                 let mut prefix = [0; 12];

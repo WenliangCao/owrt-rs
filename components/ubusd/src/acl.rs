@@ -311,6 +311,17 @@ mod tests {
         a
     }
 
+    impl Acl {
+        pub(crate) fn send_group_fixture(key: &str, gid: u32) -> Self {
+            let mut e = entry(key, false, -1);
+            e.gid = i64::from(gid);
+            e.methods.clear();
+            e.publish = false;
+            e.send = true;
+            acl(vec![e])
+        }
+    }
+
     #[test]
     fn method_grants_use_c_string_names() {
         let cred = Cred { uid: 1234, gid: 1234, extra_gid: &[] };

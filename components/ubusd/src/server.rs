@@ -7,6 +7,7 @@ use crate::client::{Client, InMsg, OutMsg, PendingCmd};
 use crate::obj::{self, Registry, SYSTEM_OBJECT_ACL, SYSTEM_OBJECT_EVENT, SYSTEM_OBJECT_MAX, SYSTEM_OBJECT_MONITOR};
 use owrt_ubus::blob::{self, BlobBuf, MsgType};
 use owrt_ubus::msg::{attr, status, ty, Header};
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::os::fd::OwnedFd;
 use std::ops::Bound::{Included, Unbounded};
@@ -25,6 +26,10 @@ struct Pattern {
     obj: u32,
 }
 
+/// Bound the temporary contiguous event write. Larger event payloads stay on
+/// the existing borrowed one-frame path instead of multiplying their bytes.
+const MAX_EVENT_BATCH: usize = 16 * 1024;
+
 /// A client's credentials, copied out so ACL checks do not borrow the table.
 struct ClientCred {
     uid: u32,
@@ -42,7 +47,7 @@ impl ClientCred {
 
 pub struct Server {
     pub reg: Registry,
-    pub clients: HashMap<u32, Client>,
+    pub clients: HashMap<u32, Box<Client>>,
     pub acl: Acl,
     pub acl_dir: String,
     /// Event patterns, sorted by key; equal keys keep registration order.
@@ -62,6 +67,10 @@ pub struct Server {
     /// Clients written to since the loop last looked: only these can have
     /// changed whether they need output readiness. Ids may repeat.
     pub touched: Vec<u32>,
+    /// Reusable wire storage for the frames after the first event in a
+    /// same-owner run. The first frame remains on the zero-copy path so a
+    /// single-listener event does not pay a new copy.
+    event_batch: Vec<u8>,
 }
 
 impl Server {
@@ -82,6 +91,7 @@ impl Server {
             scratch: BlobBuf::new(),
             lookup_batch: Vec::new(),
             touched: Vec::new(),
+            event_batch: Vec::new(),
         })
     }
 
@@ -92,14 +102,12 @@ impl Server {
             return;
         }
         let seq = self.acl.seq;
-        self.dispatch_event(None, b"ubus.acl.sequence", || {
-            let mut b = BlobBuf::new();
+        self.dispatch_event(None, b"ubus.acl.sequence", |b| {
             b.put_u32(attr::OBJID, 0);
             b.put_string(attr::METHOD, "ubus.acl.sequence");
             let d = b.nest_start(attr::DATA);
             b.msg_u32("sequence", seq);
             b.nest_end(d);
-            b.as_bytes().to_vec()
         });
     }
 
@@ -116,7 +124,7 @@ impl Server {
             .ok_or_else(|| std::io::Error::other("no group entry for peer gid"))?;
 
         let id = Registry::alloc_id(|id| self.clients.contains_key(&id))?;
-        self.clients.insert(id, Client::new(sock, cred, user, group));
+        self.clients.insert(id, Box::new(Client::new(sock, cred, user, group)));
         // HELLO carries an empty blob and the client's own id as peer. It goes
         // out through Server::send so that it reaches any monitor, which is
         // what ubusd_send_hello -> ubus_msg_send does.
@@ -152,6 +160,21 @@ impl Server {
         }
         if let Some(c) = self.clients.get_mut(&client) {
             c.send(msg);
+            self.touched.push(client);
+        }
+    }
+
+    /// Reuse received bytes for PING and response forwarding. A borrowed
+    /// payload is copied only if it must wait; owned large frames can move.
+    fn send_received(&mut self, client: u32, header: Header, blob: Cow<'_, [u8]>, fd: Option<OwnedFd>) {
+        if header.ty != ty::MONITOR {
+            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &header, &blob, true);
+        }
+        if let Some(c) = self.clients.get_mut(&client) {
+            match blob {
+                Cow::Borrowed(blob) => { c.send_borrowed(header, blob, fd); }
+                Cow::Owned(blob) => { c.send(OutMsg { header, blob, fd }); }
+            }
             self.touched.push(client);
         }
     }
@@ -225,8 +248,7 @@ impl Server {
         }
         match msg.header.ty {
             ty::PING => {
-                let out = OutMsg::new(ty::DATA, msg.header.seq, msg.header.peer, msg.blob);
-                self.send(client, out);
+                self.send_received(client, Header { ty: ty::DATA, ..msg.header }, msg.blob, None);
                 // The handler returns 0 in the C daemon, so a STATUS follows
                 // the echo; libubus waits for it to complete the request.
                 Outcome::Status(status::OK)
@@ -379,7 +401,7 @@ impl Server {
         let busy = self.clients.get(&client).is_some_and(|c| !c.tx_empty());
         if busy {
             if let Some(c) = self.clients.get_mut(&client) {
-                c.cmd_queue.push_back(PendingCmd { msg, next: None });
+                c.cmd_queue.push_back(PendingCmd { msg: msg.into_owned(), next: None });
             }
             return Outcome::Queued;
         }
@@ -387,7 +409,7 @@ impl Server {
             Ok(outcome) => outcome,
             Err(next) => {
                 if let Some(c) = self.clients.get_mut(&client) {
-                    c.cmd_queue.push_back(PendingCmd { msg, next });
+                    c.cmd_queue.push_back(PendingCmd { msg: msg.into_owned(), next });
                 }
                 Outcome::Queued
             }
@@ -593,9 +615,7 @@ impl Server {
 
         let data = attrs[attr::DATA as usize].map(|a| a.payload);
         let Some(owner) = owner else {
-            let data = data.map(<[u8]>::to_vec);
-            let method = method.to_vec();
-            return self.system_object(client, id, &method, msg, data);
+            return self.system_object(client, id, method, &msg, data);
         };
 
         let who = caller.map(|c| (c.user.as_str(), c.group.as_str()));
@@ -624,9 +644,7 @@ impl Server {
         if !self.clients.contains_key(&dest) {
             return Outcome::NoStatus;
         }
-        let mut out = OutMsg::new(msg.header.ty, msg.header.seq, id, msg.blob);
-        out.fd = msg.fd;
-        self.send(dest, out);
+        self.send_received(dest, Header { peer: id, ..msg.header }, msg.blob, msg.fd);
         Outcome::NoStatus
     }
 
@@ -780,17 +798,17 @@ impl Server {
         client: u32,
         id: u32,
         method: &[u8],
-        msg: InMsg,
-        data: Option<Vec<u8>>,
+        msg: &InMsg,
+        data: Option<&[u8]>,
     ) -> Outcome {
         match id {
             SYSTEM_OBJECT_EVENT => match method {
-                b"register" => Outcome::Status(self.event_register(client, data.as_deref())),
-                b"send" => Outcome::Status(self.event_send(client, data.as_deref())),
+                b"register" => Outcome::Status(self.event_register(client, data)),
+                b"send" => Outcome::Status(self.event_send(client, data)),
                 _ => Outcome::Status(status::INVALID_COMMAND),
             },
             SYSTEM_OBJECT_ACL => match method {
-                b"query" => self.acl_query(client, &msg),
+                b"query" => self.acl_query(client, msg),
                 _ => Outcome::Status(status::INVALID_COMMAND),
             },
             SYSTEM_OBJECT_MONITOR => {
@@ -877,16 +895,15 @@ impl Server {
         if id.starts_with(b"ubus.") {
             return status::PERMISSION_DENIED;
         }
-        let cred = self.cred_of(client);
-        if !self.acl.check(cred.as_ref().map(|c| c.as_cred()).as_ref(), Some(&id), None, AclType::Send) {
+        let caller = self.clients.get(&client);
+        let cred = caller.map(|c| Cred { uid: c.uid, gid: c.gid, extra_gid: &c.extra_gid });
+        if !self.acl.check(cred.as_ref(), Some(&id), None, AclType::Send) {
             return status::PERMISSION_DENIED;
         }
-        self.dispatch_event(Some(client), id, || {
-            let mut b = BlobBuf::new();
+        self.dispatch_event(Some(client), id, |b| {
             b.put_u32(attr::OBJID, 0);
             b.put_string_bytes(attr::METHOD, id);
             b.put(attr::DATA, payload);
-            b.as_bytes().to_vec()
         });
         status::OK
     }
@@ -895,22 +912,20 @@ impl Server {
         let name: &[u8] = if add { b"ubus.object.add" } else { b"ubus.object.remove" };
         let Some(o) = self.reg.get(id) else { return };
         let Some(path) = o.path.clone() else { return };
-        self.dispatch_event(None, name, || {
-            let mut b = BlobBuf::new();
+        self.dispatch_event(None, name, |b| {
             b.put_u32(attr::OBJID, 0);
             b.put(attr::METHOD, &with_nul(name));
             let d = b.nest_start(attr::DATA);
             b.msg_u32("id", id);
             b.msg_field(MsgType::String as u32, "path", &with_nul(&path));
             b.nest_end(d);
-            b.as_bytes().to_vec()
         });
     }
 
     /// Walk the pattern list and deliver to every matching listener. Like
     /// C's event_fill_cb, encode once, only after an eligible receiver exists.
     /// `from` is the sending client, whose own objects never see the event.
-    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], build: impl FnOnce() -> Vec<u8>) {
+    fn dispatch_event(&mut self, from: Option<u32>, id: &[u8], build: impl FnOnce(&mut BlobBuf)) {
         self.obj_event_seq = self.obj_event_seq.wrapping_add(1);
         if self.obj_event_seq == 0 {
             // Zero means unseen. Reusing any old epoch without clearing the
@@ -924,7 +939,13 @@ impl Server {
 
         let mut match_len = 0usize;
         let mut build = Some(build);
-        let mut blob = Vec::new();
+        // A monitor observes each event at its original send boundary. Keep
+        // that path byte-for-byte unchanged; batching is only a destination
+        // optimization for the common unmonitored case.
+        let batch_events = self.monitors.is_empty();
+        self.event_batch.clear();
+        let mut batch_owner = None;
+        let mut batch_count = 0usize;
         // Sending only changes client queues/monitors. Patterns and object
         // ownership cannot change until this single-threaded handler returns,
         // so neither a target snapshot nor a payload copy per receiver is
@@ -948,17 +969,88 @@ impl Server {
             o.event_seen = round;
             let Some(owner) = o.client else { continue };
             if let Some(build) = build.take() {
-                blob = build();
+                // Reuse the existing assembly buffer only when needed. Like
+                // its lookup/invoke users, retain capacity after large frames.
+                self.scratch.reset();
+                build(&mut self.scratch);
             }
-            patch_first_u32(&mut blob, p.obj);
+            let blob = self.scratch.as_mut_bytes();
+            patch_first_u32(blob, p.obj);
             self.event_seq = self.event_seq.wrapping_add(1);
             let header = Header { ty: ty::INVOKE, seq: self.event_seq, peer: 0 };
-            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, owner, &header, &blob, true);
-            if let Some(client) = self.clients.get_mut(&owner) {
-                client.send_borrowed(header, &blob, None);
-                self.touched.push(owner);
+            Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, owner, &header, blob, true);
+            if !batch_events {
+                Self::send_event_frame_to(&mut self.clients, &mut self.touched, owner, header, blob);
+                continue;
+            }
+
+            // A stale registry entry has no destination. Do not retain a
+            // previous owner's batch across it; the old path also emits
+            // nothing for this case.
+            if !self.clients.contains_key(&owner) {
+                Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, batch_owner.take());
+                batch_count = 0;
+                continue;
+            }
+
+            if batch_owner != Some(owner) {
+                Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, batch_owner);
+                batch_owner = Some(owner);
+                batch_count = 0;
+            }
+
+            let frame_len = Header::LEN + blob.len();
+            if batch_count == 0 {
+                // Preserve the single-frame zero-copy path. Only a later
+                // frame in this same owner run is copied into the batch.
+                Self::send_event_frame_to(&mut self.clients, &mut self.touched, owner, header, blob);
+                batch_count = 1;
+            } else if frame_len <= MAX_EVENT_BATCH
+                && self.event_batch.len().saturating_add(frame_len) <= MAX_EVENT_BATCH
+            {
+                self.event_batch.extend_from_slice(&header.encode());
+                self.event_batch.extend_from_slice(blob);
+                batch_count += 1;
+            } else {
+                // Keep large frames and oversized runs on the old path. A
+                // later small frame starts a fresh run after this direct one.
+                Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, Some(owner));
+                Self::send_event_frame_to(&mut self.clients, &mut self.touched, owner, header, blob);
+                batch_count = 1;
             }
         }
+        Self::flush_event_batch_to(&mut self.clients, &mut self.touched, &mut self.event_batch, batch_owner);
+    }
+
+    /// Send one event using the existing borrowed path and readiness rules.
+    fn send_event_frame_to(clients: &mut HashMap<u32, Box<Client>>, touched: &mut Vec<u32>, owner: u32, header: Header, blob: &[u8]) {
+        if let Some(client) = clients.get_mut(&owner) {
+            client.send_borrowed(header, blob, None);
+            // A complete direct write leaves no readiness state to change.
+            // Keep the conservative retry cases used by the old inline path.
+            if !client.tx_empty() || client.out_registered || (!client.eof != client.in_registered) {
+                touched.push(owner);
+            }
+        }
+    }
+
+    /// Submit the pending same-owner frames as one stream write. The client
+    /// helper restores individual queue entries if the write is partial.
+    fn flush_event_batch_to(clients: &mut HashMap<u32, Box<Client>>, touched: &mut Vec<u32>, event_batch: &mut Vec<u8>, owner: Option<u32>) {
+        let Some(owner) = owner else {
+            event_batch.clear();
+            return;
+        };
+        if !event_batch.is_empty() {
+            let frames = event_batch.as_slice();
+            if let Some(client) = clients.get_mut(&owner) {
+                client.send_borrowed_batch(frames);
+                if !client.tx_empty() || client.out_registered || (!client.eof != client.in_registered) {
+                    touched.push(owner);
+                }
+            }
+        }
+        event_batch.clear();
     }
 
     fn acl_query(&mut self, client: u32, msg: &InMsg) -> Outcome {
@@ -994,7 +1086,7 @@ impl Server {
 
     // -------------------------------------------------------------- monitor
 
-    fn mirror(clients: &mut HashMap<u32, Client>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
+    fn mirror(clients: &mut HashMap<u32, Box<Client>>, monitors: &mut [(u32, u16)], touched: &mut Vec<u32>, client: u32, header: &Header, blob: &[u8], send: bool) {
         if monitors.is_empty() {
             return;
         }
@@ -1293,8 +1385,8 @@ mod tests {
             let mut s = Server::new(String::new()).unwrap();
             let (caller, mut peer) = lookup_client();
             let (monitor, mut monitor_peer) = lookup_client();
-            s.clients.insert(2000, caller);
-            s.clients.insert(2001, monitor);
+            s.clients.insert(2000, Box::new(caller));
+            s.clients.insert(2001, Box::new(monitor));
             if monitored { s.monitors.push((2001, 0)); }
             let mut expected = Vec::new();
             for i in 0..64u16 {
@@ -1307,7 +1399,7 @@ mod tests {
                 b.msg_close(method);
                 b.nest_end(signature);
                 let header = Header { ty: ty::ADD_OBJECT, seq: i * 2, peer: 123 };
-                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
+                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec().into(), fd: None }));
                 let id = s.reg.by_path(path.as_bytes()).unwrap();
                 let type_id = s.reg.get(id).unwrap().type_id.unwrap();
                 let mut data = BlobBuf::new();
@@ -1322,7 +1414,7 @@ mod tests {
                 let mut b = BlobBuf::new();
                 b.put_u32(attr::OBJID, id);
                 let header = Header { ty: ty::REMOVE_OBJECT, seq: i * 2 + 1, peer: 456 };
-                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec(), fd: None }));
+                assert!(s.receive(2000, InMsg { header, blob: b.as_bytes().to_vec().into(), fd: None }));
                 expected.push((Header { ty: ty::DATA, ..header }, data));
                 expected.push((Header { ty: ty::STATUS, ..header }, status_blob));
                 assert!(s.reg.get(id).is_none());
@@ -1366,6 +1458,37 @@ mod tests {
         }
     }
 
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn event_send_preserves_group_root_and_missing_client_acl() {
+        const SENDER: u32 = 2000;
+        let mut data = BlobBuf::new();
+        data.msg_string("id", "group.event");
+        let payload = data.msg_open_table("data");
+        data.msg_u32("value", 0x12345678);
+        data.msg_close(payload);
+        for (name, credentials, expected) in [
+            ("supplementary group", Some((100, 7, &[42][..])), status::OK),
+            ("no matching group", Some((100, 7, &[][..])), status::PERMISSION_DENIED),
+            ("primary group", Some((100, 42, &[][..])), status::OK),
+            ("root", Some((0, 7, &[][..])), status::OK),
+            ("missing client", None, status::OK),
+        ] {
+            let mut s = Server::new(String::new()).unwrap();
+            s.acl = Acl::send_group_fixture("group.event", 42);
+            let (mut caller, _peer) = lookup_client();
+            if let Some((uid, gid, extra_gid)) = credentials {
+                caller.uid = uid;
+                caller.gid = gid;
+                caller.extra_gid = extra_gid.to_vec();
+                s.clients.insert(SENDER, Box::new(caller));
+            }
+            let round = s.obj_event_seq;
+            assert_eq!(s.event_send(SENDER, Some(data.payload())), expected, "{name}");
+            assert_eq!(s.obj_event_seq, round + u32::from(expected == status::OK), "{name}: dispatch authorization");
+        }
+    }
+
     #[test]
     fn events_without_eligible_receivers_do_not_encode_but_advance_round() {
         for case in 0..5 {
@@ -1380,7 +1503,10 @@ mod tests {
                     partial: false, obj: object });
             }
             let round = s.obj_event_seq;
-            s.dispatch_event(Some(2000), b"event", || panic!("no receiver in case {case}"));
+            s.scratch.put_string(attr::METHOD, "untouched");
+            let before = s.scratch.as_bytes().to_vec();
+            s.dispatch_event(Some(2000), b"event", |_| panic!("no receiver in case {case}"));
+            assert_eq!(s.scratch.as_bytes(), before);
             assert_eq!(s.obj_event_seq, round + 1);
             assert_eq!(s.event_seq, 0);
         }
@@ -1392,8 +1518,8 @@ mod tests {
         let mut s = Server::new(String::new()).unwrap();
         let (owner, mut peer) = lookup_client();
         let (monitor, mut monitor_peer) = lookup_client();
-        s.clients.insert(2000, owner);
-        s.clients.insert(2001, monitor);
+        s.clients.insert(2000, Box::new(owner));
+        s.clients.insert(2001, Box::new(monitor));
         s.monitors.push((2001, 0));
         for id in [4000, 4001] {
             s.reg.create(None, Some(id)).unwrap();
@@ -1409,9 +1535,9 @@ mod tests {
         let expected = expected.as_bytes().to_vec();
         s.event_seq = u16::MAX;
         let builds = std::cell::Cell::new(0);
-        s.dispatch_event(None, b"event", || {
+        s.dispatch_event(None, b"event", |b| {
             builds.set(builds.get() + 1);
-            expected.clone()
+            b.put_raw_fields(&expected[4..]);
         });
         assert_eq!(builds.get(), 1);
         assert!(!s.clients[&2000].tx_empty(), "large payload must force queue ownership");
@@ -1427,7 +1553,7 @@ mod tests {
         assert_eq!(mirrors.len(), 2);
         assert!(mirrors.iter().all(|(h, _)| h.ty == ty::MONITOR));
         s.free_object(4001);
-        s.dispatch_event(None, b"event", || expected.clone());
+        s.dispatch_event(None, b"event", |b| { b.put_raw_fields(&expected[4..]); });
         let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
         assert_eq!(frames.len(), 1, "deleted listener patterns must not survive");
         assert_eq!(frames[0].0.seq, 2);
@@ -1435,10 +1561,141 @@ mod tests {
     }
 
     #[cfg(target_os = "linux")]
+    #[test]
+    fn system_invoke_queued_event_and_monitor_own_borrowed_input() {
+        const OWNER: u32 = 2000;
+        const MONITOR: u32 = 2001;
+        const SENDER: u32 = 2002;
+        const OBJECTS: [u32; 2] = [4000, 4001];
+        let mut s = Server::new(String::new()).unwrap();
+        let (owner, mut peer) = lookup_client();
+        let (monitor, mut monitor_peer) = lookup_client();
+        let (sender, _sender_peer) = lookup_client();
+        s.clients.insert(OWNER, Box::new(owner));
+        s.clients.insert(MONITOR, Box::new(monitor));
+        s.clients.insert(SENDER, Box::new(sender));
+        s.monitors.push((MONITOR, 0));
+        for object in OBJECTS {
+            s.reg.create(None, Some(object)).unwrap();
+            s.reg.get_mut(object).unwrap().client = Some(OWNER);
+            s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: object });
+        }
+
+        // Fill both sockets first: every subsequent event and mirror must
+        // own queued bytes before another receiver/request mutates scratch.
+        let mut filler = BlobBuf::new();
+        filler.put(attr::DATA, &vec![0x5a; 32768]);
+        for id in [OWNER, MONITOR] {
+            s.clients.get_mut(&id).unwrap().send(OutMsg::new(ty::DATA, 0, 0, filler.as_bytes().to_vec()));
+            assert!(!s.clients[&id].tx_empty(), "fixture must queue before invoke");
+        }
+
+        let mut expected_events = Vec::new();
+        let mut expected_mirrors = Vec::new();
+        for (round, size) in [32769, 3].into_iter().enumerate() {
+            // An odd-sized nested string checks padding as well as removal
+            // of the large frame's tail when the small frame reuses scratch.
+            let mut payload = BlobBuf::new();
+            payload.msg_u32("value", 0x12345678);
+            let array = payload.msg_open_array("items");
+            let table = payload.msg_open_table("");
+            payload.msg_string("text", &"x".repeat(size));
+            payload.msg_bool("end", true);
+            payload.msg_close(table);
+            payload.msg_close(array);
+            let mut request = BlobBuf::new();
+            request.put_u32(attr::OBJID, SYSTEM_OBJECT_EVENT);
+            request.put_string(attr::METHOD, "send");
+            let data = request.nest_start(attr::DATA);
+            request.msg_string("id", "event");
+            request.msg_field(MsgType::Table as u32, "data", payload.payload());
+            request.nest_end(data);
+            let request = request.as_bytes().to_vec();
+            let header = Header { ty: ty::INVOKE, seq: 123 + round as u16 * 2, peer: 456 };
+            if Header::LEN + request.len() <= crate::client::RX_SIZE {
+                let mut rx = [0u8; crate::client::RX_SIZE];
+                rx[..request.len()].copy_from_slice(&request);
+                assert!(s.receive(SENDER, InMsg { header, blob: Cow::Borrowed(&rx[..request.len()]), fd: None }));
+                rx.fill(0xa5);
+            } else {
+                // Match read_message's owned input for a frame above RX_SIZE;
+                // it is dropped before the queued output is drained.
+                assert!(s.receive(SENDER, InMsg { header, blob: Cow::Owned(request.clone()), fd: None }));
+            }
+            expected_mirrors.push((SENDER, false, header, request));
+            for (offset, object) in OBJECTS.into_iter().enumerate() {
+                let mut event = BlobBuf::new();
+                event.put_u32(attr::OBJID, object);
+                event.put_string(attr::METHOD, "event");
+                event.put(attr::DATA, payload.payload());
+                let event = event.as_bytes().to_vec();
+                let event_header = Header { ty: ty::INVOKE, seq: (round * 2 + offset + 1) as u16, peer: 0 };
+                expected_events.push((event_header, event.clone()));
+                expected_mirrors.push((OWNER, true, event_header, event));
+            }
+            let mut reply = BlobBuf::new();
+            reply.put_u32(attr::STATUS, status::OK as u32);
+            expected_mirrors.push((SENDER, true, Header { ty: ty::STATUS, ..header }, reply.as_bytes().to_vec()));
+
+            if round == 0 {
+                // A different request uses the same scratch before either
+                // queued receiver drains and before the smaller event starts.
+                let mut query = BlobBuf::new();
+                query.put_string(attr::OBJPATH, "r124.missing");
+                let query = query.as_bytes().to_vec();
+                let header = Header { ty: ty::LOOKUP, seq: 124, peer: 456 };
+                assert!(s.receive(SENDER, InMsg { header, blob: Cow::Borrowed(&query), fd: None }));
+                let mut reply = BlobBuf::new();
+                reply.put_u32(attr::STATUS, status::NOT_FOUND as u32);
+                let reply = reply.as_bytes().to_vec();
+                assert_eq!(s.scratch.as_bytes(), reply);
+                expected_mirrors.push((SENDER, false, header, query));
+                expected_mirrors.push((SENDER, true, Header { ty: ty::STATUS, ..header }, reply));
+            }
+        }
+
+        let frames = lookup_frames(&drain_lookup(&mut s, OWNER, &mut peer));
+        assert_eq!(frames.len(), 1 + expected_events.len());
+        assert_eq!(&frames[1..], expected_events.as_slice(), "OBJID, sequence, full payload and no old tail");
+        let mirrors = lookup_frames(&drain_lookup(&mut s, MONITOR, &mut monitor_peer));
+        assert_eq!(mirrors.len(), 1 + expected_mirrors.len());
+        for (i, ((h, bytes), (client, send, header, original))) in mirrors[1..].iter().zip(&expected_mirrors).enumerate() {
+            assert_eq!((h.ty, h.seq, h.peer), (ty::MONITOR, i as u16 + 1, 0));
+            let mut wanted = BlobBuf::new();
+            wanted.put_u32(0, *client);
+            wanted.put_u32(1, header.peer);
+            wanted.put_u32(3, header.seq as u32);
+            wanted.put_u32(4, header.ty as u32);
+            wanted.put_u8(2, u8::from(*send));
+            wanted.put(5, &original[4..]);
+            assert_eq!(bytes, wanted.as_bytes(), "complete monitor frame {i}");
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn direct_event_write_does_not_mark_interest_dirty() {
+        let mut s = Server::new(String::new()).unwrap();
+        let (owner, mut peer) = lookup_client();
+        s.clients.insert(2000, Box::new(owner));
+        s.reg.create(None, Some(4000)).unwrap();
+        s.reg.get_mut(4000).unwrap().client = Some(2000);
+        s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: 4000 });
+        s.dispatch_event(None, b"event", |b| {
+            b.put_u32(attr::OBJID, 0);
+            b.put_string(attr::METHOD, "event");
+        });
+        assert!(s.touched.is_empty());
+        let mut buf = [0u8; 128];
+        let n = std::io::Read::read(&mut peer, &mut buf).unwrap();
+        assert!(n > 0);
+    }
+
+    #[cfg(target_os = "linux")]
     fn check_event_round_wrap(last_seen: u32) {
         let mut s = Server::new(String::new()).unwrap();
         let (owner, mut peer) = lookup_client();
-        s.clients.insert(2000, owner);
+        s.clients.insert(2000, Box::new(owner));
         s.reg.create(None, Some(4000)).unwrap();
         let o = s.reg.get_mut(4000).unwrap();
         o.client = Some(2000);
@@ -1447,11 +1704,11 @@ mod tests {
             s.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: 4000 });
         }
         s.obj_event_seq = u32::MAX;
-        let mut b = BlobBuf::new();
-        b.put_u32(attr::OBJID, 0);
-        b.put_string(attr::METHOD, "event");
-        b.put(attr::DATA, &[]);
-        s.dispatch_event(None, b"event", || b.as_bytes().to_vec());
+        s.dispatch_event(None, b"event", |b| {
+            b.put_u32(attr::OBJID, 0);
+            b.put_string(attr::METHOD, "event");
+            b.put(attr::DATA, &[]);
+        });
         let frames = lookup_frames(&drain_lookup(&mut s, 2000, &mut peer));
         assert_eq!(frames.len(), 1, "last_seen={last_seen}: wrap must deliver once, not omit or duplicate");
         assert_eq!((frames[0].0.ty, frames[0].0.seq, frames[0].0.peer), (ty::INVOKE, 1, 0));
@@ -1528,6 +1785,113 @@ mod tests {
     }
 
     #[cfg(target_os = "linux")]
+    fn event_server_with_owner(objects: &[u32]) -> (Server, std::os::unix::net::UnixStream) {
+        let mut server = Server::new(String::new()).unwrap();
+        let (owner, peer) = lookup_client();
+        server.clients.insert(2000, Box::new(owner));
+        for &object in objects {
+            server.reg.create(None, Some(object)).unwrap();
+            server.reg.get_mut(object).unwrap().client = Some(2000);
+            server.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: object });
+        }
+        (server, peer)
+    }
+
+    #[cfg(target_os = "linux")]
+    fn simple_event(server: &mut Server) {
+        server.dispatch_event(None, b"event", |b| {
+            b.put_u32(attr::OBJID, 0);
+            b.put_string(attr::METHOD, "event");
+            b.msg_u32("value", 0x1234_5678);
+        });
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn same_owner_event_batch_preserves_each_frame() {
+        let objects = [4000, 4001, 4002];
+        let (mut server, mut peer) = event_server_with_owner(&objects);
+        simple_event(&mut server);
+        let frames = lookup_frames(&drain_lookup(&mut server, 2000, &mut peer));
+        assert_eq!(frames.len(), objects.len());
+        assert!(server.event_batch.is_empty());
+        for (i, ((header, blob), object)) in frames.iter().zip(objects).enumerate() {
+            assert_eq!((header.ty, header.seq, header.peer), (ty::INVOKE, i as u16 + 1, 0));
+            assert_eq!(attrs_of(&blob[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(object));
+            assert_eq!(attrs_of(&blob[4..])[attr::METHOD as usize].unwrap().payload, b"event\0");
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn interleaved_owners_keep_per_client_and_global_event_order() {
+        let mut server = Server::new(String::new()).unwrap();
+        let (a, mut a_peer) = lookup_client();
+        let (b, mut b_peer) = lookup_client();
+        server.clients.insert(2000, Box::new(a));
+        server.clients.insert(2001, Box::new(b));
+        for (object, owner) in [(4000, 2000), (4001, 2001), (4002, 2000)] {
+            server.reg.create(None, Some(object)).unwrap();
+            server.reg.get_mut(object).unwrap().client = Some(owner);
+            server.patterns.push(Pattern { key: b"event".to_vec(), partial: false, obj: object });
+        }
+        simple_event(&mut server);
+        let a_frames = lookup_frames(&drain_lookup(&mut server, 2000, &mut a_peer));
+        let b_frames = lookup_frames(&drain_lookup(&mut server, 2001, &mut b_peer));
+        assert_eq!(a_frames.iter().map(|(h, _)| h.seq).collect::<Vec<_>>(), [1, 3]);
+        assert_eq!(b_frames.iter().map(|(h, _)| h.seq).collect::<Vec<_>>(), [2]);
+        assert_eq!(attrs_of(&a_frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000));
+        assert_eq!(attrs_of(&a_frames[1].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4002));
+        assert_eq!(attrs_of(&b_frames[0].1[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4001));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn monitored_event_fanout_keeps_one_mirror_per_frame() {
+        let (mut server, mut owner_peer) = event_server_with_owner(&[4000, 4001, 4002]);
+        let (monitor, mut monitor_peer) = lookup_client();
+        server.clients.insert(2001, Box::new(monitor));
+        server.monitors.push((2001, 0));
+        simple_event(&mut server);
+        let events = lookup_frames(&drain_lookup(&mut server, 2000, &mut owner_peer));
+        let mirrors = lookup_frames(&drain_lookup(&mut server, 2001, &mut monitor_peer));
+        assert_eq!(events.len(), 3);
+        assert_eq!(mirrors.len(), 3);
+        for (i, ((event_header, event_blob), (mirror_header, mirror_blob))) in events.iter().zip(&mirrors).enumerate() {
+            assert_eq!((event_header.ty, event_header.seq), (ty::INVOKE, i as u16 + 1));
+            assert_eq!((mirror_header.ty, mirror_header.seq), (ty::MONITOR, i as u16 + 1));
+            // Monitor fields use a separate monitor ABI; attr::METHOD/TYPE
+            // ids intentionally overlap and must not be passed through the
+            // request policy parser.
+            let mut wanted = BlobBuf::new();
+            wanted.put_u32(0, 2000);
+            wanted.put_u32(1, 0);
+            wanted.put_u32(3, event_header.seq as u32);
+            wanted.put_u32(4, ty::INVOKE as u32);
+            wanted.put_u8(2, 1);
+            wanted.put(5, &event_blob[4..]);
+            assert_eq!(*mirror_blob, wanted.as_bytes());
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn queued_same_owner_batch_survives_scratch_reuse() {
+        let (mut server, mut peer) = event_server_with_owner(&[4000, 4001, 4002]);
+        let mut filler = BlobBuf::new();
+        filler.put(attr::DATA, &[0x5a; 32 * 1024]);
+        server.clients.get_mut(&2000).unwrap().send(OutMsg::new(ty::DATA, 0, 0, filler.as_bytes().to_vec()));
+        simple_event(&mut server);
+        let frames = lookup_frames(&drain_lookup(&mut server, 2000, &mut peer));
+        assert_eq!(frames.len(), 4);
+        assert_eq!(frames[0].0.ty, ty::DATA);
+        for (i, (header, blob)) in frames.iter().skip(1).enumerate() {
+            assert_eq!((header.ty, header.seq), (ty::INVOKE, i as u16 + 1));
+            assert_eq!(attrs_of(&blob[4..])[attr::OBJID as usize].unwrap().as_u32(), Some(4000 + i as u32));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
     #[test]
     fn batched_lookup_keeps_full_frames_and_fifo_under_backpressure() {
         const CALLER: u32 = 2000;
@@ -1535,7 +1899,7 @@ mod tests {
         for (count, signature_len) in [(128, 0), (1, 6000)] {
             let mut server = Server::new(String::new()).unwrap();
             let (caller, mut peer) = lookup_client();
-            server.clients.insert(CALLER, caller);
+            server.clients.insert(CALLER, Box::new(caller));
             let mut methods = Vec::new();
             if signature_len != 0 {
                 let mut signature = BlobBuf::new();
@@ -1557,7 +1921,7 @@ mod tests {
                 let mut blob = BlobBuf::new();
                 assert!(server.receive(CALLER, InMsg {
                     header: Header { ty: ty::LOOKUP, seq, peer: 1234 },
-                    blob: blob.as_bytes().to_vec(), fd: None,
+                    blob: blob.as_bytes().to_vec().into(), fd: None,
                 }));
             }
             assert!(!server.clients[&CALLER].tx_empty(), "fixture must force queued output");
@@ -1593,7 +1957,7 @@ mod tests {
         for (change, pattern) in [("delete", "*"), ("recreate", "lookup.*"), ("delete_tail", "lookup.*")] {
             let mut server = Server::new(String::new()).unwrap();
             let (caller, mut peer) = lookup_client();
-            server.clients.insert(CALLER, caller);
+            server.clients.insert(CALLER, Box::new(caller));
             let mut signature = BlobBuf::new();
             let table = signature.msg_open_table("method");
             signature.msg_string("large", &"x".repeat(32768));
@@ -1610,7 +1974,7 @@ mod tests {
             let mut blob = BlobBuf::new();
             blob.put_string(attr::OBJPATH, pattern);
             let request = InMsg { header: Header { ty: ty::LOOKUP, seq: 0xabcd, peer: 0x12345678 },
-                blob: blob.as_bytes().to_vec(), fd: None };
+                blob: blob.as_bytes().to_vec().into(), fd: None };
             assert!(server.receive(CALLER, request));
             let next = server.clients[&CALLER].cmd_queue.front().unwrap().next.clone().unwrap();
             assert_eq!(next, b"lookup.01", "first frame must force backpressure");
@@ -1667,9 +2031,9 @@ mod tests {
             let mut server = Server::new(String::new()).unwrap();
             let (mut caller, mut peer) = lookup_client();
             caller.uid = if root { 0 } else { 12345 };
-            server.clients.insert(CALLER, caller);
+            server.clients.insert(CALLER, Box::new(caller));
             let (monitor, mut monitor_peer) = lookup_client();
-            server.clients.insert(MONITOR, monitor);
+            server.clients.insert(MONITOR, Box::new(monitor));
             if monitored {
                 server.monitors.push((MONITOR, 0));
             }
@@ -1688,10 +2052,12 @@ mod tests {
             }
             let mut blob = BlobBuf::new();
             blob.put_string(attr::OBJPATH, "*");
+            let mut received = blob.as_bytes().to_vec();
             let request = InMsg { header: Header { ty: ty::LOOKUP, seq: 55, peer: 66 },
-                blob: blob.as_bytes().to_vec(), fd: None };
+                blob: Cow::Borrowed(&received), fd: None };
             let input = request.blob[4..].to_vec();
             assert!(server.receive(CALLER, request));
+            received.fill(0xa5);
             let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
             let paths: Vec<_> = frames.iter().filter(|(h, _)| h.ty == ty::DATA).map(|(_, b)| {
                 obj::cstr_bytes(attrs_of(&b[4..])[attr::OBJPATH as usize].unwrap().payload).to_vec()
@@ -1732,7 +2098,7 @@ mod tests {
         const CALLER: u32 = 2000;
         let mut server = Server::new(String::new()).unwrap();
         let (caller, mut peer) = lookup_client();
-        server.clients.insert(CALLER, caller);
+        server.clients.insert(CALLER, Box::new(caller));
         let mut signature = BlobBuf::new();
         let table = signature.msg_open_table("method");
         signature.msg_string("large", &"x".repeat(32768));
@@ -1750,14 +2116,19 @@ mod tests {
             let mut blob = BlobBuf::new();
             blob.put_string(attr::OBJPATH, pattern);
             assert!(server.receive(CALLER, InMsg { header: Header { ty: ty::LOOKUP, seq, peer: 55 },
-                blob: blob.as_bytes().to_vec(), fd: None }));
+                blob: Cow::Borrowed(blob.as_bytes()), fd: None }));
+            // Simulate the next input overwriting the shared receive bytes
+            // while this LOOKUP is still parked behind earlier output.
+            blob.reset();
         }
         assert_eq!(server.clients[&CALLER].cmd_queue.len(), 3);
         let mut ping = BlobBuf::new();
         ping.put_string(attr::OBJPATH, "ping");
         let ping_bytes = ping.as_bytes().to_vec();
+        let mut borrowed_ping = ping_bytes.clone();
         assert!(server.receive(CALLER, InMsg { header: Header { ty: ty::PING, seq: 13, peer: 56 },
-            blob: ping_bytes.clone(), fd: None }));
+            blob: Cow::Borrowed(&borrowed_ping), fd: None }));
+        borrowed_ping.fill(0xa5);
         let frames = lookup_frames(&drain_lookup(&mut server, CALLER, &mut peer));
         assert_eq!(frames.len(), 46);
         assert_eq!((frames[0].0.ty, frames[0].0.seq, &frames[0].1), (ty::DATA, 10, &expected[0]));
