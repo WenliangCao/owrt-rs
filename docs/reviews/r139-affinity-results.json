@@ -1,0 +1,2412 @@
+{
+  "schema_version": 1,
+  "scope": "Four-window exact-caller R139 placement diagnostic; no adoption",
+  "verified": true,
+  "windows_verified": 4,
+  "case_count": 24,
+  "subjects": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "candidate": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330"
+  },
+  "benchmark_sha256": "0ca42fbafe08b7ace0aaa90f78c08c9c0f69022a64f6d5073ab6ceb77a88e693",
+  "plan_sha256": "78816ccf98f294840b3452fa205df18f02166254e44402643de0577978221a27",
+  "analyzer_sha256": "0235e50f976046fc39f1be1c76ee97684a7f4d21e3a4817d66b33f95d39e6e41",
+  "support_sha256": {
+    "tools/r130_registration_report.py": "40a7ccbc53b9397992efceac7b5d3abe758c0644ae6e8ba733c6497748c4c4fb",
+    "tools/r139/make_affinity_plan.py": "7aa345844f375d05c5ef9316145fa12bc186ee9722ed9c7c0e98f3b76cbf0349"
+  },
+  "decision_rules": {
+    "primary_metric": "p95_us",
+    "gap_pct": "g[w,p] = 100 * (candidate[w,p] / c[w,p] - 1)",
+    "replication": "median(g[w,allowed]) > 5 and g[w,allowed] > 0 in at least 3/4 windows",
+    "interaction_pp": "d[w,p] = g[w,p] - g[w,allowed], p in split,colocated",
+    "placement_sensitivity": "abs(median(d[w,p])) >= 10 percentage points and at least 3/4 d[w,p] strictly share its sign",
+    "interpretation": "Without replication, placement effects do not explain the original slow tail. With replication, a qualifying interaction signals placement sensitivity only, not a scheduler mechanism or a runtime fix.",
+    "required_metrics": [
+      "mean_us",
+      "p50_us",
+      "p95_us",
+      "p99_us",
+      "daemon_cpu_us_per_op",
+      "caller_cpu_us_per_op"
+    ],
+    "required_reporting": "All 24 cases, four paired gaps at every placement, both interaction series, all metrics and correctness/health/archive/cleanup checks.",
+    "stopping": "Exactly four complete clean windows; no retries, changed thresholds, excluded windows or data-dependent extra windows."
+  },
+  "windows": [
+    {
+      "window": 0,
+      "order": [
+        "c-allowed",
+        "candidate-allowed",
+        "c-split",
+        "candidate-split",
+        "c-colocated",
+        "candidate-colocated"
+      ],
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "binary-sha256.txt": "0d46ebca13970644c1112efef978836b4007a73c6f428ec992840c3e80cd0302",
+        "boot-id.txt": "2798bc38167f612ca579c1f451ba88e66d7f177cf78ac333d9da24d512676975",
+        "c-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/after-exe.sha256": "6af1782a25b83b2e84062688fd9c14b16ee49de621b22bf93b23f51383fc3cb2",
+        "c-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/after.stat": "f5020779055e31e6efa1a1e59661cab5d74bd39c2427b2aec3c5923942909208",
+        "c-allowed/after.status": "0d940fbf011f2141391e8a09ee75f1b8ee5b254ee5d68956b0418cf7320f11dd",
+        "c-allowed/before-exe.sha256": "6af1782a25b83b2e84062688fd9c14b16ee49de621b22bf93b23f51383fc3cb2",
+        "c-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/before.stat": "ccee6c98e6cf2f3781372ca5d6c616a06af1082642450f4d9f4a76901dc9a354",
+        "c-allowed/before.status": "b406064fbd0d64b97e2dfd16f4103e59875d462dc6babe91f52ee332d85c7bc8",
+        "c-allowed/caller-command.argv": "54ae6a81c3e4fdd0a166c968d859ff448b28bb0c4cc90edc703248e36adcd683",
+        "c-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/parent-before.status": "d73e4172d708cb742fe28b956f5ec0956d43fc0593bf8eef702942d902daa58b",
+        "c-allowed/register_1.json": "bfacc9b11d792a3dfb39aeb944849e37fecf52c78f71b9d8c5d4e2fc8658a2e7",
+        "c-allowed/system-after.stat": "f583c56f85238fac0989ce66dd82929fbbc045d7c1a60e1e07cd9e76c18fe50c",
+        "c-allowed/system-before.stat": "26a6745219340fdd9d352a7f06475acef0bb018cb99fc8a3f995d90dad40ce39",
+        "c-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/after-exe.sha256": "e623926ac2c5d10c672ad21b9bc7f926d382378c864a5b4fc56594ba0a3c40fe",
+        "c-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/after.stat": "e1a62ff55c0cff0043fff39a1dd34cd57c0d16745edfaa56e5cc3f4e316d801a",
+        "c-colocated/after.status": "993674ceb9faf6d64f761d6fe0913855627c40bdb3e4736e06e1cf5bb6d1bec6",
+        "c-colocated/before-exe.sha256": "e623926ac2c5d10c672ad21b9bc7f926d382378c864a5b4fc56594ba0a3c40fe",
+        "c-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/before.stat": "d066191f672858bd28acb4aa836038bb6cceaa7e8d4f68152aefd89dd23b6f95",
+        "c-colocated/before.status": "7a52acbe5d98c11b1439f51a4ba171f9d3f89a1a45f05b911f972721f237719b",
+        "c-colocated/caller-command.argv": "88b09bac2d36ae2b1fbe3bd2afc391d1e798770853d849bf210502c9e3c8d45e",
+        "c-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/parent-before.status": "ae3886a6a7430b750973e360e2d700b40fc791020680e9f767d1bd2ca70a1c46",
+        "c-colocated/register_1.json": "e79e2060c620251c52818538d318614af690f32e9577aad54e956fae6130153b",
+        "c-colocated/system-after.stat": "01c41977bafca169d65099ab41526b1e9ebcbcc164adfeb378a0ac7ba133ec27",
+        "c-colocated/system-before.stat": "f3e59844686da21e0ac745c139c2b92d2c2da92855b774f8a107a086a6594a4b",
+        "c-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/after-exe.sha256": "c66416d9c38bd067aefad49769a3fcf353c5b9203544e1ba17a839fa8636973f",
+        "c-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/after.stat": "e362dd6358950d57dfb16b88459d29e08efe8819f2945cb82d50354cb095e264",
+        "c-split/after.status": "d056c425d387bff16e5bcdf522032b53c74ff9474cbc7a62c0c76b29891ca718",
+        "c-split/before-exe.sha256": "c66416d9c38bd067aefad49769a3fcf353c5b9203544e1ba17a839fa8636973f",
+        "c-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/before.stat": "d9f64118239a25096c7e6fe497f8366ee009f2e9fccfe8c82ef6bbacef9df4d9",
+        "c-split/before.status": "a01ec6f47aeaee455667a8a82a252e76300f229487f0c00500618ece55b1eb72",
+        "c-split/caller-command.argv": "5c30792f325c95b926f2606f365a1f428d5cfe5a22b8701e383c8cffa82c0d27",
+        "c-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/parent-before.status": "a5eeae369ec457459f61de478e21d4f5e41070569b69d099fbb345e85cf344c7",
+        "c-split/register_1.json": "e07e965d2d56436cdfd5e294793df8c2c3c3cf32d86c18f677c01fcda4261005",
+        "c-split/system-after.stat": "3f4bf5c29436dda5d1fb0754eab6970c7c4c152ca25076d4c95e4eb82ece72b2",
+        "c-split/system-before.stat": "dee59574fdcba6f82cd2ee793d82d5f68912707fc1a877c690c20962794e5461",
+        "candidate-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/after-exe.sha256": "dfdcf68fd87a462bcfb31001f343095e6650b2d4ab9bc0b2933c63adec1bdc2e",
+        "candidate-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/after.stat": "1acbf73e1daa1c10986cd759efe4a8824e665fbbaf36870bbfb5b50bfc7f521f",
+        "candidate-allowed/after.status": "cce96e2c40a923221245678c5235f1486ff279b1bd5d6c201afe7f7b1c09e0e2",
+        "candidate-allowed/before-exe.sha256": "dfdcf68fd87a462bcfb31001f343095e6650b2d4ab9bc0b2933c63adec1bdc2e",
+        "candidate-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/before.stat": "1087b0f8cb9f0899890ed7fbdf9dcae288fe7806fc3587df06a6ca4034354cd8",
+        "candidate-allowed/before.status": "d77cdf1b706a85554faecdd495061e753483ba9ff4034e2974421602a02200a6",
+        "candidate-allowed/caller-command.argv": "ca2c5fba2071af67ace6710988da40ae166326f7206c1346d814f6383c22bc33",
+        "candidate-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/parent-before.status": "a965bdbe14b095e25b3da03f7966d79d5230810a040d169d30e7933a258d1b33",
+        "candidate-allowed/register_1.json": "64a209928d23fdd25047fa24ec77b4dc2e09ca2aa9787361a27a3c5de95765ad",
+        "candidate-allowed/system-after.stat": "de91a1be9b2e6d457951fba1350c02095b56f21f949001b85c14169733818e55",
+        "candidate-allowed/system-before.stat": "7959641b1a9bfc5678120bafe7999cc54f4a8c02e89e1ffb35b078708f47d124",
+        "candidate-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/after-exe.sha256": "b0b050c24f90a3ad2ad430b21f82275e622171cee6978443973ff4b4be4ce346",
+        "candidate-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/after.stat": "2162c2552f20f109646ccc72e5fa3868f84d691ddafc86bae97510ffd8680a67",
+        "candidate-colocated/after.status": "6078e74919c182a831f706ec915cd7df32d7c9fe41b0ca5f088cd121e8fea5a4",
+        "candidate-colocated/before-exe.sha256": "b0b050c24f90a3ad2ad430b21f82275e622171cee6978443973ff4b4be4ce346",
+        "candidate-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/before.stat": "d9262a28b1000de010f4b717e4beb3e763a47c72f4f08a276010eded5e82c3f4",
+        "candidate-colocated/before.status": "e92717f4d2f656b7e2ba0bd1635a9ef96304858dc345aa77c8f98344d91cd22e",
+        "candidate-colocated/caller-command.argv": "1a3015902d692998bb29d0f30e116dfd67b7703b57f6752f8eba378efca6f0ec",
+        "candidate-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/parent-before.status": "3488e56e51d27ffd64cbfcc677c230b1f69c2d53add1411cc6987f1813cde992",
+        "candidate-colocated/register_1.json": "c2b9c58544d1a9d1e8fba7fa008aad87637629498e4cbef6d6685dacf4445205",
+        "candidate-colocated/system-after.stat": "678c1bfea510e3fcbdb39d627c0b3e3709726c834bcc7b68df5bca82927475b4",
+        "candidate-colocated/system-before.stat": "1eeb67b35fe2c0a762f9dfc5d1b9b3d061ba4fa9499021dfb6a2d587f61089d5",
+        "candidate-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/after-exe.sha256": "a8f0658261cad982bece3428d7bee436ad039ed47449b4671bad2b34558bcc23",
+        "candidate-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/after.stat": "915f98837f4bf458474c64ad9a00328d42dd8dc4066c628f3a89d5067dcbb482",
+        "candidate-split/after.status": "695a448f4f538a4a4e77c3f8a701cdf08e6724af3f2166ddbd1a164133000667",
+        "candidate-split/before-exe.sha256": "a8f0658261cad982bece3428d7bee436ad039ed47449b4671bad2b34558bcc23",
+        "candidate-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/before.stat": "1dff5ab23abfe6fad561efb0c93084ab16601c2a9d130abb1f42a768b3b9c5db",
+        "candidate-split/before.status": "76d2f386a09de69fab95d211eece2ee7f2588014bd8c54ea067b0e5284a4331c",
+        "candidate-split/caller-command.argv": "edf7f5fc97ecdf3b603d7a8ae5a3e48f38a6191776d71f691c25c029f89fd98c",
+        "candidate-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/parent-before.status": "3bc8204a892b87fe47a9b386946a8549c742ae6be0d956f13c3835169952b60b",
+        "candidate-split/register_1.json": "fe4832d6622397750e045c2dfef9bbf8e8c2ae905ddf807f97380caec9286606",
+        "candidate-split/system-after.stat": "3451c626f6c7c9385086ccc4cf184e2d1d08005ef761f94bed8f9352c9f1c57c",
+        "candidate-split/system-before.stat": "f55648f1caf2480b0dd954f6a9eb5af696e60e506e44ff9a411f01a6fd016c14",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "expected-identities.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "helper-cpu-0.status": "7331e15288e03997929545d96ac012af0769532f980f6ae3d863818a36ac0e8a",
+        "helper-cpu-1.status": "19ea1153542e0517aadca31eba98a588554e709bb670823d1580e8637884a85a",
+        "identities-after.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identities-before.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identity-check.log": "336aa21fc7db3c52128dccf62a89436b18d65c803a1f094f050659f37d9ae610",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "order.txt": "2722d353c0211c096b5a99e6759dea4bed6a50700eba64c1d176dffae87170f0",
+        "parent-after.status": "250ad5f427bd07a1d3a5811765ee721404683072ef9297d18a5fb06db53d7720",
+        "parent-before.status": "1e712ce45e9d9f77d54c68fbdeda78ffbb213c763b1cde4e7b43284f06d47a11"
+      },
+      "archive_sha256": "697307704183f67c5de04de6efd184694a6b4ce32d4aa6711598c20b8f3a691f",
+      "result_sha256": "70f614f535516725a638135a859d370e595e0ec97408aa27d2130b441de8b3c4",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "window": 1,
+      "order": [
+        "candidate-colocated",
+        "c-colocated",
+        "candidate-split",
+        "c-split",
+        "candidate-allowed",
+        "c-allowed"
+      ],
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "binary-sha256.txt": "0d46ebca13970644c1112efef978836b4007a73c6f428ec992840c3e80cd0302",
+        "boot-id.txt": "2798bc38167f612ca579c1f451ba88e66d7f177cf78ac333d9da24d512676975",
+        "c-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/after-exe.sha256": "b2398b8eee75df06b68673794fb535b1a259f270ff880eb092ab8a2e0d442ab1",
+        "c-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/after.stat": "fa87f48397f0bf5ebee44856b4b230fa9e9a62cff05ce65a209d29039b32488c",
+        "c-allowed/after.status": "5569961b55bfef17d0f88bc2853bc298ee14eb5a6b5c8f117d9da4510bd74466",
+        "c-allowed/before-exe.sha256": "b2398b8eee75df06b68673794fb535b1a259f270ff880eb092ab8a2e0d442ab1",
+        "c-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/before.stat": "c11f42604c49700a30e6cb294381bdb9b49cdce737c79de0766eddd17590c8db",
+        "c-allowed/before.status": "a076c54e2fb4359419878f95967071594b2828a0abfc72208db4a8b05e46113c",
+        "c-allowed/caller-command.argv": "48c366e3733185592fbf2270f7fc90a59de61fccf4bdcc86a8885588e4e01f46",
+        "c-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/parent-before.status": "9978ce07572aa2c6118b21659dc0c63681a27e8deb6e68379d586119cd7a2a10",
+        "c-allowed/register_1.json": "abefd4e07c161624be43218acf99edece917a33ea5023aea921409d38cb1851c",
+        "c-allowed/system-after.stat": "e3a41423262fb495f39b20afe9dba7810d1dcf655e772da38a81ba21761cc365",
+        "c-allowed/system-before.stat": "6c67fc0bbdf5737f4a1879aa4d33f304c65ec5f29058da81a06b80eee2533e49",
+        "c-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/after-exe.sha256": "5b0c052338748f846f5283b2d9e4226a28b6820ce166c2a9172a6dc12e6c1ee8",
+        "c-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/after.stat": "0229757a6c1bcf47fb6e774c0081f71703f43e914051b473b0e7207c4a63d025",
+        "c-colocated/after.status": "1c6bae51558dd619a7429e5265f585edbec70dfa14cc4a5f348398e79f0c7477",
+        "c-colocated/before-exe.sha256": "5b0c052338748f846f5283b2d9e4226a28b6820ce166c2a9172a6dc12e6c1ee8",
+        "c-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/before.stat": "ad06c4bb9512c688b2ae474281ca0b9f768af2d25d23c54e7190c6f41b9ff55a",
+        "c-colocated/before.status": "60ec4b3a9346d02bdee03a35901f81f59b3450adba9b641618f0d163b1fa3f7a",
+        "c-colocated/caller-command.argv": "81ea4f27f51e4b85b4d8484fb80c038f2cb9a42e85740dd4ca4715fcce6bd85c",
+        "c-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/parent-before.status": "d989503d6398a1dbdf9d74aecb21181db744783335f4606e7908a44c41591a15",
+        "c-colocated/register_1.json": "83184c32334de91b2daeb29ee46945a7581d6a4d6e0222c35e352a2fb5ce1ded",
+        "c-colocated/system-after.stat": "0037c937c32bcac9220e3a12dc145adb913772a35571e4abcfb8ce1f756817a0",
+        "c-colocated/system-before.stat": "efd11f40deeb9733c5e4afbb071deba01f46faf16db4b9774160b84cfda51cd7",
+        "c-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/after-exe.sha256": "46ccc53ad7a58feaeca6a8b4f3ae3e0e4655a4cd0a30e1c3d6cf9c97c6a06bcd",
+        "c-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/after.stat": "28e69020658df58bd1ccd3a52d78294eabb7be1b850105b7e686acc1d14f658c",
+        "c-split/after.status": "1360819bab4244622f60060cc7c1b13bfbd808c8aaf7776f33d636716c484426",
+        "c-split/before-exe.sha256": "46ccc53ad7a58feaeca6a8b4f3ae3e0e4655a4cd0a30e1c3d6cf9c97c6a06bcd",
+        "c-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/before.stat": "8a5708c7926ec4f22fdc290a1879224e7d8bb0a1396f5540da844de49eb1270e",
+        "c-split/before.status": "7001b199c118fb896503f815ac8572bc6417675616cad46d6f47f1fb3c4d3ac5",
+        "c-split/caller-command.argv": "edf7f5fc97ecdf3b603d7a8ae5a3e48f38a6191776d71f691c25c029f89fd98c",
+        "c-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/parent-before.status": "06dbf5159b87c9553b5ffc2c1ffbcd379aa8e042a9216e5e349af40efe067039",
+        "c-split/register_1.json": "2bee77f6456cb799fccb6afb1772b4a2be33360e9ee795b4361037b8644d8c91",
+        "c-split/system-after.stat": "84b076207e744a73f45cb5d29fe062ca289b417cec1e9b5b71825390e5f56052",
+        "c-split/system-before.stat": "f966e8235bb1b6b7b3f17ec52f16f79bb998410915e5e0445c636ad65520de5f",
+        "candidate-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/after-exe.sha256": "6ddc024d6129897e8298d1e69a330c4045933faaeee53ee7bc833260b6c0e905",
+        "candidate-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/after.stat": "dececc07d4672b08c36aa8c0d79affd3fe5796697bcef93af466460e59127667",
+        "candidate-allowed/after.status": "edc560b829afd43678b4ee92160456ae3522ecc063a7c467f236acd9c1698aae",
+        "candidate-allowed/before-exe.sha256": "6ddc024d6129897e8298d1e69a330c4045933faaeee53ee7bc833260b6c0e905",
+        "candidate-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/before.stat": "c3af85fedd2d8c972cc3bc3f3b5dca8b0a060ceb46f4a8f0f9ca7a17cf5eb0f6",
+        "candidate-allowed/before.status": "58136f4c0d6b0a891e90b656ab7c8ed35f5b55b2c16060aac915444040c69d36",
+        "candidate-allowed/caller-command.argv": "c63922a6c988129e9b13759fdb0455d9aa57ee459d4b54d1442410dbcd45750c",
+        "candidate-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/parent-before.status": "324b6445ab3677668514b5b58a06301e2a2e5defd4a4233ae539ce30f3c2b1a4",
+        "candidate-allowed/register_1.json": "66c704d30188ad9056246b64f7387bed2ca5185b7cd7cb5d16db12e3559f7011",
+        "candidate-allowed/system-after.stat": "871f1c125fa1ef9a9bf2bd3cb82b648f56644a0d693d3fb848fcef076643221e",
+        "candidate-allowed/system-before.stat": "25df01bdfade5ade0f67da9a5a9449b37772db87e729466a173af9e1369deda3",
+        "candidate-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/after-exe.sha256": "7539085140840eefbcdf8e112b41a86fe1698a68b2eb98aa28d9aff8d32313ab",
+        "candidate-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/after.stat": "bac206ea11cd8c91965107de323a0ddda63c8c194ec8dcd303e9a2bb15137f4c",
+        "candidate-colocated/after.status": "a1f06f874169d3af0686934675064c1440e2aa1c4597edac93f74f3fdb5ecd13",
+        "candidate-colocated/before-exe.sha256": "7539085140840eefbcdf8e112b41a86fe1698a68b2eb98aa28d9aff8d32313ab",
+        "candidate-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/before.stat": "767e49f92ec3848d98fff69acc9c638ad3e5a9180f736811d8dc5f465e55f25c",
+        "candidate-colocated/before.status": "7bbdeebb3096744c1cce7b2c0d88efc92e5caea01d67c200f89296100e83c1e9",
+        "candidate-colocated/caller-command.argv": "c3d97ee81178e6735692df6bfd79e793312f24d2c3f68b0b954e006e5354c7a7",
+        "candidate-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/parent-before.status": "b63f1d4e6db8d8c04e813f5d2108e15cfe110ee4007a8ba65047be6ce863bbe3",
+        "candidate-colocated/register_1.json": "fd1485887f0523c09f217505a32d577c70dd50ff60755a97a6f74e50ac8e4225",
+        "candidate-colocated/system-after.stat": "c522cb6fac81b90a55a9900eeebbc8bf119659d34429a08daf8c5a3e3cd060a7",
+        "candidate-colocated/system-before.stat": "276a235f2871a40cdbb951aadbceadb0f7ae0950b1492e4ecd37120e98a2d149",
+        "candidate-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/after-exe.sha256": "b82662e29ce0d9b2c096526401a0c40597c3abf859190ee05bc3899f0f561d55",
+        "candidate-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/after.stat": "083d2af8f818214329ca92eefe22d8be266489d5949bb3b5db2e714ba5d070ff",
+        "candidate-split/after.status": "5b134f159c679aee7e24d82791a1ccd8c4f30a506face639d12f39342378dd79",
+        "candidate-split/before-exe.sha256": "b82662e29ce0d9b2c096526401a0c40597c3abf859190ee05bc3899f0f561d55",
+        "candidate-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/before.stat": "83a8202ca12aa78fa7c8c8ae808df24794637e9278500e9b70156a71ed0f3e0e",
+        "candidate-split/before.status": "2772f7eea6855f6e344d03b936b0da47cc6ed2308cf3d91879e832fcd055ef45",
+        "candidate-split/caller-command.argv": "5c30792f325c95b926f2606f365a1f428d5cfe5a22b8701e383c8cffa82c0d27",
+        "candidate-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/parent-before.status": "c676fcd63d45a29446b856ee6351dbbf839ec73b91e6010d1810701701ba8b14",
+        "candidate-split/register_1.json": "3969ee003ddb8f6fd09e47311ff38055170d9dab305d74e29957bc527cee957c",
+        "candidate-split/system-after.stat": "6649f62c27fb0469edc1a55952864e341810dd60fc265e957c93ee4bd7c193f8",
+        "candidate-split/system-before.stat": "359fc9878d46944e4dbc6077b8ade7a9792f41ba2ad55a5f661d85e085cfb299",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "expected-identities.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "helper-cpu-0.status": "2290504b7cb73940d2ae6e41dcf7ea481db951cb5f916b7df699337e419478c4",
+        "helper-cpu-1.status": "bd9627b21da35babeebd6be177f1aad7899350c5cdd4b5f2a163bbc52dcb9994",
+        "identities-after.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identities-before.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identity-check.log": "336aa21fc7db3c52128dccf62a89436b18d65c803a1f094f050659f37d9ae610",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "order.txt": "c67645895b8a5069c1166b89ad22ee5f7778af7b04759155c1968be3ed433d41",
+        "parent-after.status": "443c830906c330dd5e1c2d1cdbd9ae3830e82826323603d817225c82259d42b7",
+        "parent-before.status": "bcd13e0e67dc2c7233b6477390622b9554fee768c10b6e6da585cc702d8c5169"
+      },
+      "archive_sha256": "d5b803fc307cd93e4a4836c4af78beca2705a6ab24545ad1409b1e506ee14e52",
+      "result_sha256": "42b454265ec6dbce7085e9fc711f67b706b117dbb97a9d7f085d8cb58a429b9f",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "window": 2,
+      "order": [
+        "candidate-split",
+        "c-split",
+        "candidate-colocated",
+        "c-colocated",
+        "candidate-allowed",
+        "c-allowed"
+      ],
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "binary-sha256.txt": "0d46ebca13970644c1112efef978836b4007a73c6f428ec992840c3e80cd0302",
+        "boot-id.txt": "2798bc38167f612ca579c1f451ba88e66d7f177cf78ac333d9da24d512676975",
+        "c-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/after-exe.sha256": "ce29fe2c461ac64f9e7bc5d3f919ff0ae5209ae82a5f38a1a75cb4aba1ee828e",
+        "c-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/after.stat": "2262bd66fe69faad5b457b67392276bd468ca6c3e7bde43c83c96abe8bbff191",
+        "c-allowed/after.status": "64b4ff3ce9d524c5df9786fe4e920e55a6ea562e2a551c81b15dccd33349bef3",
+        "c-allowed/before-exe.sha256": "ce29fe2c461ac64f9e7bc5d3f919ff0ae5209ae82a5f38a1a75cb4aba1ee828e",
+        "c-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/before.stat": "1a24155d47042aff1253aed3adf53b1bb1d3cfdb9a7521cfbb37811e28eee07d",
+        "c-allowed/before.status": "8471c4c391e451145ae942f00eee823b20aea24ca98b65192d2bec3a804bcc8f",
+        "c-allowed/caller-command.argv": "a4bb03693cf5d81c9fe9b5528616368ca983928a707ea2cbc7ef059da10db360",
+        "c-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/parent-before.status": "05fa0e515b511f199cb9ca02cb1c095d2735928418da3711212b1ba53c5b0ee8",
+        "c-allowed/register_1.json": "abd4db9794235e95f4bcdb093b4f8065315f5d2dc5a0d825aa54f63d4f399b6f",
+        "c-allowed/system-after.stat": "41dc02f59677a7173dba78f9611ad2739769c6def8cbbbd0cbb39862ed91cd12",
+        "c-allowed/system-before.stat": "e926b46ec0760cf46b845e39afe205cf96938dd7babf580ffbaa2af499b7094f",
+        "c-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/after-exe.sha256": "46ccc53ad7a58feaeca6a8b4f3ae3e0e4655a4cd0a30e1c3d6cf9c97c6a06bcd",
+        "c-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/after.stat": "23e81984f940c54cc5b2de565d0e2c1a79cc1fc81c824b6994479afd63f4ba6d",
+        "c-colocated/after.status": "346bc4845f838819159841d1b36852d952a2a21fbe3ba79ff033aee2cd157dc6",
+        "c-colocated/before-exe.sha256": "46ccc53ad7a58feaeca6a8b4f3ae3e0e4655a4cd0a30e1c3d6cf9c97c6a06bcd",
+        "c-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/before.stat": "089d1d5dd22ff33dee58692b98440e7be73336735072c4d6195fc3d1e61b74d6",
+        "c-colocated/before.status": "5448e021bbbd4b28378f6942f095d36abe214826929cdd0330cb09b3376f3d8c",
+        "c-colocated/caller-command.argv": "e140c4f113eedc6353ff40f468bd8f1e96bbf8366f668af097a3197a31736368",
+        "c-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/parent-before.status": "d3a3549d4e0d7557a0dd6d05bbce256495d1b41096cb82f455bbc2d0cefca4e1",
+        "c-colocated/register_1.json": "ffdcf7f7cad7154ed9a814f56c4a61825de6abfebc9b21b5074d37207eea3a52",
+        "c-colocated/system-after.stat": "b3a7940db2d41ec2c0d4c60f2d963188dd13d24e22943dc002169cae6b5496eb",
+        "c-colocated/system-before.stat": "81932ab7cd6f96ab2f605d893cb7df81dd7a5ab4f967f53bc5aa8876066e4457",
+        "c-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/after-exe.sha256": "5b0c052338748f846f5283b2d9e4226a28b6820ce166c2a9172a6dc12e6c1ee8",
+        "c-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/after.stat": "115273a9f0aa5509e644d61a5bddc1cad3f02ca269c18d575edde250a093568d",
+        "c-split/after.status": "371ce4d0b4702b4b64a73c3fb229e9e917903e21b6d747808a4284645e200274",
+        "c-split/before-exe.sha256": "5b0c052338748f846f5283b2d9e4226a28b6820ce166c2a9172a6dc12e6c1ee8",
+        "c-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/before.stat": "b0d7ad652d8431d6badfdfd761748c9fb631d8db68b563427019590c5b1c2136",
+        "c-split/before.status": "326d36676473c8877217b87bc50d66844de22bcb9436547e985b233d027ec20a",
+        "c-split/caller-command.argv": "bc64da5b210c978866aa402ba4f13d70f8d83174df90901b9d047c2c3fdd9f3e",
+        "c-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/parent-before.status": "b194647e593f6b3aa49c010eeb11493ebc97f460f44519c996670fc3f780e84d",
+        "c-split/register_1.json": "f5fe2d58f29e6dab0c1a21ea5e653e06b842f115aae32be0a5916309a5944f3a",
+        "c-split/system-after.stat": "19125cf8353affc449393dfb8ac2fd9b6ba86f9bdb93f62dee7c2663237d8982",
+        "c-split/system-before.stat": "fab21dff250ef65567247383b1d6962852ec08a379136b0ea562da9110cb642a",
+        "candidate-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/after-exe.sha256": "6ddc024d6129897e8298d1e69a330c4045933faaeee53ee7bc833260b6c0e905",
+        "candidate-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/after.stat": "a9ac9ee3a119e554f72ceac2af5ab1613cfe6fac2c889175df7407501e753060",
+        "candidate-allowed/after.status": "a156ef81bedb8ac49b14006553cb7ad539c5fcdce3dedae08e6e932e5d62e435",
+        "candidate-allowed/before-exe.sha256": "6ddc024d6129897e8298d1e69a330c4045933faaeee53ee7bc833260b6c0e905",
+        "candidate-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/before.stat": "db09838f88a74ac794eb5628b9d8eb5394ebbcaa89a53d88d8299abb6ea1b1db",
+        "candidate-allowed/before.status": "137ff9ef30057bbd131972a50383335aab25c329d396020dade4eedb0f45d6b6",
+        "candidate-allowed/caller-command.argv": "c63922a6c988129e9b13759fdb0455d9aa57ee459d4b54d1442410dbcd45750c",
+        "candidate-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/parent-before.status": "4ce10999e819d15f8261fa30e56092a6412a74f5aa30fa3d8dab15ba4156c1c7",
+        "candidate-allowed/register_1.json": "422c7e31dcdcc66f6617f8839553fcd53fc0cc1e8dd0329527ed37e373f3b376",
+        "candidate-allowed/system-after.stat": "c87b98a1702fc52adfbf85fa8efb9a2dabe7af3562deb6379282f98c231266bf",
+        "candidate-allowed/system-before.stat": "97606cc6326d41ba01e88ce682eac7e0baf11de5108a7b82d89ee33933e22d31",
+        "candidate-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/after-exe.sha256": "b82662e29ce0d9b2c096526401a0c40597c3abf859190ee05bc3899f0f561d55",
+        "candidate-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/after.stat": "6e6b5e4173d9d5badba6d91807e34b6bd355cec256f922cbbf5b4582cd995397",
+        "candidate-colocated/after.status": "3be710795d7cb9a29c952ea1851a02af967178b65dfbdc372d7dbe9af651e232",
+        "candidate-colocated/before-exe.sha256": "b82662e29ce0d9b2c096526401a0c40597c3abf859190ee05bc3899f0f561d55",
+        "candidate-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/before.stat": "2bc2f95da756b28e865b65e354e5e4cdeec15405f17619168ab8c2f4f1a295f8",
+        "candidate-colocated/before.status": "4d39da6a5bfdd57526cd140c3a9c59dfcd4bf0156007ee4717f23aeb6138347f",
+        "candidate-colocated/caller-command.argv": "b153ad0526e0cd29013f9d8ae1d77f58bde4a4bc4bfd5ba14bb55c4d65b197c8",
+        "candidate-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/parent-before.status": "0ab06ae3b65a69fe0cd4f65a02e9c5eb2cca57447a3de9e23870da1d51b9479e",
+        "candidate-colocated/register_1.json": "2b57232708c32ab1306ef504881cc2f480ab2b09b6522ee1c26db6ccb12464e4",
+        "candidate-colocated/system-after.stat": "4db9a9301d6cc7b2f098d2cc1585ed34b51d6aeded8cbd7a842d57da057566f8",
+        "candidate-colocated/system-before.stat": "da517f55cc6c7c23fc88fc1583b1b4cb457ae070f7abc83fb8c068b7d0f0dc58",
+        "candidate-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/after-exe.sha256": "7539085140840eefbcdf8e112b41a86fe1698a68b2eb98aa28d9aff8d32313ab",
+        "candidate-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/after.stat": "108d41b167c4b0abafc8f0cfb584a30c8aacf446b4b5352685a8009433978eb6",
+        "candidate-split/after.status": "a4d1674bce2136bcf2813913c478d9b94c04f026b91916099a2868a421568b79",
+        "candidate-split/before-exe.sha256": "7539085140840eefbcdf8e112b41a86fe1698a68b2eb98aa28d9aff8d32313ab",
+        "candidate-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/before.stat": "24f19bdf7032db6bef7bf763034c4dab5ea45218a4290cc612b83f34f6a2eca9",
+        "candidate-split/before.status": "0cc35a0bf7638f85ba51b50d8f9bec0da4ff3efc899a62c5d2bf42422b47f7c8",
+        "candidate-split/caller-command.argv": "77d3ddfd3a35eb8c67710d13c031e8f8126b5bc546f8e6c4cae7f07e17fd55b8",
+        "candidate-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/parent-before.status": "4aec6a19eb93d9763bef9efe3b654c1ee838624a4be90845419148dfd2061fe3",
+        "candidate-split/register_1.json": "717fb9498ae522d8423b8617c38b675fb67b09b9d9cf11b3beacc823c06535f2",
+        "candidate-split/system-after.stat": "718c051cbed98da94236f4cc112fea5747fdbaaed171ff49daab6fa08f01263f",
+        "candidate-split/system-before.stat": "bf7576039d4883133a7d7f39aeaaff1d164262be229b8636aaa6f71410450686",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "expected-identities.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "helper-cpu-0.status": "47a87bf9fba4c20212b4825f9c9bd5bc44d1b6b0eaf87e42a6fc49f748828db9",
+        "helper-cpu-1.status": "507fe1c9d59b49ff0118c6cd1683bc836377a2dfd261a03be04cd8154eead005",
+        "identities-after.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identities-before.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identity-check.log": "336aa21fc7db3c52128dccf62a89436b18d65c803a1f094f050659f37d9ae610",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "order.txt": "3ab6bb36b5d7a95f098040208ce5eeb1fbd2fcb876ea840abd1d7a9cf204960a",
+        "parent-after.status": "c889c654a129a3d4e8051347b7786dbef275d12d333e1954796bcde995cc1733",
+        "parent-before.status": "6e2df35db4b83ff058fef4f62d783865054248e27515d4b16f52df638feb59c3"
+      },
+      "archive_sha256": "60b1bed3f2a7651ee1c829e79d8e31ac63f2a2b4e6e04bb75784dd3a9d328df4",
+      "result_sha256": "d14a07d2026a3653be4a399a18e7d6d9859329dff936195f67bd9512d9fd30f7",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "window": 3,
+      "order": [
+        "c-allowed",
+        "candidate-allowed",
+        "c-colocated",
+        "candidate-colocated",
+        "c-split",
+        "candidate-split"
+      ],
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "binary-sha256.txt": "0d46ebca13970644c1112efef978836b4007a73c6f428ec992840c3e80cd0302",
+        "boot-id.txt": "2798bc38167f612ca579c1f451ba88e66d7f177cf78ac333d9da24d512676975",
+        "c-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/after-exe.sha256": "6af1782a25b83b2e84062688fd9c14b16ee49de621b22bf93b23f51383fc3cb2",
+        "c-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/after.stat": "6d19d862a18a335098c762885fd7fbd91a9026a28564eea2442148e7d7f50ef4",
+        "c-allowed/after.status": "22a3bc828f522c2b5971e9052079ee4636cf4a02465959b2f5edd5ee85c5e0d3",
+        "c-allowed/before-exe.sha256": "6af1782a25b83b2e84062688fd9c14b16ee49de621b22bf93b23f51383fc3cb2",
+        "c-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/before.stat": "3e62eebee2a687df930e05845d8d0d22ca9a31536947b33db234d2ec02370cbe",
+        "c-allowed/before.status": "da1183f4f028c3d28dfc0f1580cf6d6ab0209d883c65e6c71cabc8706c5f9bb5",
+        "c-allowed/caller-command.argv": "54ae6a81c3e4fdd0a166c968d859ff448b28bb0c4cc90edc703248e36adcd683",
+        "c-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-allowed/parent-before.status": "4e44cd9b071e4439b827d26b2db99e1245d07f33b8212b15b7ceeed4a1642c18",
+        "c-allowed/register_1.json": "a7ae8397e8b2e7b4d15f262451aa25765a2aa13bfff9b5c7973fdf9b47346844",
+        "c-allowed/system-after.stat": "faea513934b5b85066b82c97254355822bbc9d96a2cc8707e445949c43395d8d",
+        "c-allowed/system-before.stat": "e07ab64cad07ed6518c0fe0dbbe8f50385ce3eff01ef60949552b3186f2e0498",
+        "c-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/after-exe.sha256": "c66416d9c38bd067aefad49769a3fcf353c5b9203544e1ba17a839fa8636973f",
+        "c-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/after.stat": "e84971cf8cc8edf08d8c7c8e4bfcfdf14b98768bac3f8945ba8dc230705257a3",
+        "c-colocated/after.status": "3035ea7ee7847d23338e0a71c51d93e467698a07fb6eaf9c603e461b5e582528",
+        "c-colocated/before-exe.sha256": "c66416d9c38bd067aefad49769a3fcf353c5b9203544e1ba17a839fa8636973f",
+        "c-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/before.stat": "bb1c93c842a329e9bcd333a609522eb60554f9b8e552fd807c78660c11a4e383",
+        "c-colocated/before.status": "eff809c177196690a233b95052f9133bc1901703a6380e8550b550d14c4bd576",
+        "c-colocated/caller-command.argv": "b153ad0526e0cd29013f9d8ae1d77f58bde4a4bc4bfd5ba14bb55c4d65b197c8",
+        "c-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-colocated/parent-before.status": "e1bf0f7e644102c3973e72fe2378113f4a88152b8215d82061bd1b0701ee9cb6",
+        "c-colocated/register_1.json": "b54bf09a6b6a4b6361d8e5f50da2cc37eef30ed4a9817a5853d9b0ec7fe70a92",
+        "c-colocated/system-after.stat": "e0250eb6a8a39ef9a20de93c1c55108805c2f6824940cc4066dc58f668822343",
+        "c-colocated/system-before.stat": "1d890447062228d89a25477c9b0c3475a0f748c7cb95e81a04b16f34eb1f1d70",
+        "c-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/after-exe.sha256": "e623926ac2c5d10c672ad21b9bc7f926d382378c864a5b4fc56594ba0a3c40fe",
+        "c-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/after.stat": "de10e769d87e9aaa61282f9d9dc9f4fa1a2dfe7693f5b598156f65a29ecb993f",
+        "c-split/after.status": "8c41e6a3d76a76d5a9488c3b82c5f35926f468967fa9e032cbd3fbc202bf6b49",
+        "c-split/before-exe.sha256": "e623926ac2c5d10c672ad21b9bc7f926d382378c864a5b4fc56594ba0a3c40fe",
+        "c-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/before.stat": "4431a135173ae68a7a9b901a4abbd4e3c77fdba4d7338dab04e4511795eff3b2",
+        "c-split/before.status": "db6044464cea6bdd1e06a8e5b78b569c10cb8ba81165099ee26e4944b48f052d",
+        "c-split/caller-command.argv": "b7693df672e942769b5ff10f321e868345bb18d76360255ec78561b5ec01c533",
+        "c-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "c-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "c-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-split/parent-before.status": "ad47eb1413403b7e8e7386bd12b54f5e72c9cf436b7fd25eb07aa7fc3782c8a7",
+        "c-split/register_1.json": "1550ab5537cbd14368c9dffdfffe6f7a266bb463997ce0328877f08501307f5c",
+        "c-split/system-after.stat": "1dfb95700369d9197b1ff7e33167f1e2cc89b73091a9a1ee0a104d11d970ac2e",
+        "c-split/system-before.stat": "ae39c1e51eecf60ecc2536bcf573f84acff21f744ed9f9b75c0080438010ebcd",
+        "candidate-allowed/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/after-exe.sha256": "dfdcf68fd87a462bcfb31001f343095e6650b2d4ab9bc0b2933c63adec1bdc2e",
+        "candidate-allowed/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/after.stat": "de8503dbf1dadfb142c72f2fd8245012082b70fed3a5dd0504de2903f8db6585",
+        "candidate-allowed/after.status": "4c34c02455fb6ef58be682400cbd707a4a805c16ba181f9641cfb053526986ec",
+        "candidate-allowed/before-exe.sha256": "dfdcf68fd87a462bcfb31001f343095e6650b2d4ab9bc0b2933c63adec1bdc2e",
+        "candidate-allowed/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/before.stat": "8ccbd64fd321de51aa1a8ce001f34bc0a5aed79530278334268cac512a112ba7",
+        "candidate-allowed/before.status": "cf3f45504d58f9e41dea9f0bfd24602a5f8cf6b818260a943a54db0c6b4d5510",
+        "candidate-allowed/caller-command.argv": "ca2c5fba2071af67ace6710988da40ae166326f7206c1346d814f6383c22bc33",
+        "candidate-allowed/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-allowed/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-allowed/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-allowed/parent-before.status": "2e2d202c7e6b51992a065f1ba841cc7da59b6234c73407988f535c8ee6e2c73c",
+        "candidate-allowed/register_1.json": "db5fe37e9798975d42e9995f5433864acabac0e645b1b424a123657d16af5fad",
+        "candidate-allowed/system-after.stat": "bc6cc806f165c17b1c00adf193ac81e0aaead22e397f7308f560e53cf7deede9",
+        "candidate-allowed/system-before.stat": "5f54121600081097f49d51b9bff9fe30587b993a30e0f1556338e73046389ca0",
+        "candidate-colocated/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/after-exe.sha256": "a8f0658261cad982bece3428d7bee436ad039ed47449b4671bad2b34558bcc23",
+        "candidate-colocated/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/after.stat": "760e1deb713fdf9dec4982774856d441a4231fa80a6d8b0a2af57789024c0581",
+        "candidate-colocated/after.status": "6cbb5f742c64585f477d73852c083d98dfb338480521024450f74c7c1a92fa33",
+        "candidate-colocated/before-exe.sha256": "a8f0658261cad982bece3428d7bee436ad039ed47449b4671bad2b34558bcc23",
+        "candidate-colocated/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/before.stat": "48586ea8f703eb6c88a3023e43acab13c60ff2a36f0495ded7dd2da9226cb906",
+        "candidate-colocated/before.status": "1cb6ba2641aa49a65981cac39cd391213a5da653b993f53c19507f7f7f92033c",
+        "candidate-colocated/caller-command.argv": "e140c4f113eedc6353ff40f468bd8f1e96bbf8366f668af097a3197a31736368",
+        "candidate-colocated/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-colocated/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-colocated/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-colocated/parent-before.status": "6d2ce19475d13fafde5efa52288a510553043308104fa5c81ee99faa2d44a1ff",
+        "candidate-colocated/register_1.json": "d476d918e416583a3a7528bfc2cea8b4dc83435e9c17e09a7e9977ca89a2ad89",
+        "candidate-colocated/system-after.stat": "1d0a073b1b5b0f2e9965deba93e02f1226c9f32d38805cb7de9fcbb8b37bc28a",
+        "candidate-colocated/system-before.stat": "98c01c65bdda1751d2b6b28aab2dab1062d7d6a0852d4e7f5232121d5622d7f7",
+        "candidate-split/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/after-exe.sha256": "8698eb556dbcfa0896f4775b4716a0442412be903d51d7cd66bc76f57fb14af0",
+        "candidate-split/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/after.stat": "78108127aafa38d603432fae6f138b612ed05677852707178c8a98c688995e9e",
+        "candidate-split/after.status": "632b7bcbae6a42d0aa3f7b365314b8f7bd724542accf87073c75666ce52bac5c",
+        "candidate-split/before-exe.sha256": "8698eb556dbcfa0896f4775b4716a0442412be903d51d7cd66bc76f57fb14af0",
+        "candidate-split/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/before.stat": "ec72a730963690fd9b7f990d448981fa8b6f2a7fa2ad767d68655988d398d5cf",
+        "candidate-split/before.status": "5f0a5a8c4c27b2554163f8b8013c84ed0f0015a03734b961a88c5708e67af502",
+        "candidate-split/caller-command.argv": "ea9264e9ac4f161b102427d3d87c13adc3fe40b7d7f3a786d0ff746ee0af39ec",
+        "candidate-split/caller-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/caller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/daemon-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+        "candidate-split/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "candidate-split/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-split/parent-before.status": "58aea39b322967ab87f4fc6a833ef6ed83db6f4987f7b0d3cfc690163ebbf323",
+        "candidate-split/register_1.json": "d24d2bbee1d91fdebb580237a55a17912bccd2bbc039cdbbb96532668e0a4c78",
+        "candidate-split/system-after.stat": "882d7a8e98c69e246afe680355ebc450af7adf5da391caac2fb592e87a727de0",
+        "candidate-split/system-before.stat": "33c46abef1977c16455d12ae92495649f86fa2c371e42f4295076eb0df0d9267",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "expected-identities.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "helper-cpu-0.status": "7331e15288e03997929545d96ac012af0769532f980f6ae3d863818a36ac0e8a",
+        "helper-cpu-1.status": "2ba829891423bbb2ec4941c7e3760e07c1260d027bb2bc15ae364e00dc39c13f",
+        "identities-after.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identities-before.txt": "77dbeb70cc5cc2d72f2d97e500553c4561606a02e59da50e6fda3afd93f45546",
+        "identity-check.log": "336aa21fc7db3c52128dccf62a89436b18d65c803a1f094f050659f37d9ae610",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "order.txt": "795f66bfb213fa8980ccd8f0e4cd41cff99ca80e71de01e1b98f5646d4a0a7f4",
+        "parent-after.status": "3204a8d6a7f2411c955a29b72ef5f167b04853d69081cbcc5a2a111ad7aefcd3",
+        "parent-before.status": "1e57d2c9fc0382e41b5080a9989abe907c52cb5c66cd93f189eee4298c8b2a19"
+      },
+      "archive_sha256": "7203bf271ca232e1a18c6f571a04b9868f3051ac77de50c519dd9e5b68ba1044",
+      "result_sha256": "0b101d9774e636a561669c612cea2c38265a69f0ec33f07c53257eb9f1858393",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    }
+  ],
+  "records": [
+    {
+      "window": 0,
+      "side": "c",
+      "placement": "allowed",
+      "raw_sha256": "bfacc9b11d792a3dfb39aeb944849e37fecf52c78f71b9d8c5d4e2fc8658a2e7",
+      "metrics": {
+        "mean_us": 92.1642249,
+        "p50_us": 86.714,
+        "p95_us": 119.491,
+        "p99_us": 206.359,
+        "daemon_cpu_us_per_op": 51.6148019,
+        "caller_cpu_us_per_op": 49.5278599
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19829,
+        "nonvoluntary_ctxt_switches": 550
+      }
+    },
+    {
+      "window": 0,
+      "side": "candidate",
+      "placement": "allowed",
+      "raw_sha256": "64a209928d23fdd25047fa24ec77b4dc2e09ca2aa9787361a27a3c5de95765ad",
+      "metrics": {
+        "mean_us": 86.9844115,
+        "p50_us": 77.327,
+        "p95_us": 146.96,
+        "p99_us": 209.976,
+        "daemon_cpu_us_per_op": 41.0411995,
+        "caller_cpu_us_per_op": 48.9435345
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19192,
+        "nonvoluntary_ctxt_switches": 1641
+      }
+    },
+    {
+      "window": 0,
+      "side": "c",
+      "placement": "split",
+      "raw_sha256": "e07e965d2d56436cdfd5e294793df8c2c3c3cf32d86c18f677c01fcda4261005",
+      "metrics": {
+        "mean_us": 90.5172849,
+        "p50_us": 85.637,
+        "p95_us": 116.721,
+        "p99_us": 203.82,
+        "daemon_cpu_us_per_op": 50.5639021,
+        "caller_cpu_us_per_op": 48.9400868
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19964,
+        "nonvoluntary_ctxt_switches": 58
+      }
+    },
+    {
+      "window": 0,
+      "side": "candidate",
+      "placement": "split",
+      "raw_sha256": "fe4832d6622397750e045c2dfef9bbf8e8c2ae905ddf807f97380caec9286606",
+      "metrics": {
+        "mean_us": 83.5708192,
+        "p50_us": 76.25,
+        "p95_us": 143.343,
+        "p99_us": 212.361,
+        "daemon_cpu_us_per_op": 39.5074709,
+        "caller_cpu_us_per_op": 49.9340292
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19977,
+        "nonvoluntary_ctxt_switches": 35
+      }
+    },
+    {
+      "window": 0,
+      "side": "c",
+      "placement": "colocated",
+      "raw_sha256": "e79e2060c620251c52818538d318614af690f32e9577aad54e956fae6130153b",
+      "metrics": {
+        "mean_us": 114.3354238,
+        "p50_us": 115.49,
+        "p95_us": 156.808,
+        "p99_us": 232.212,
+        "daemon_cpu_us_per_op": 56.1341816,
+        "caller_cpu_us_per_op": 54.7862962
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 18287,
+        "nonvoluntary_ctxt_switches": 9112
+      }
+    },
+    {
+      "window": 0,
+      "side": "candidate",
+      "placement": "colocated",
+      "raw_sha256": "c2b9c58544d1a9d1e8fba7fa008aad87637629498e4cbef6d6685dacf4445205",
+      "metrics": {
+        "mean_us": 92.8498013,
+        "p50_us": 78.173,
+        "p95_us": 159.116,
+        "p99_us": 229.595,
+        "daemon_cpu_us_per_op": 42.6729856,
+        "caller_cpu_us_per_op": 46.5087616
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 17595,
+        "nonvoluntary_ctxt_switches": 4795
+      }
+    },
+    {
+      "window": 1,
+      "side": "candidate",
+      "placement": "colocated",
+      "raw_sha256": "fd1485887f0523c09f217505a32d577c70dd50ff60755a97a6f74e50ac8e4225",
+      "metrics": {
+        "mean_us": 89.957301,
+        "p50_us": 76.942,
+        "p95_us": 145.344,
+        "p99_us": 213.899,
+        "daemon_cpu_us_per_op": 41.9443414,
+        "caller_cpu_us_per_op": 45.5429195
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 17531,
+        "nonvoluntary_ctxt_switches": 4917
+      }
+    },
+    {
+      "window": 1,
+      "side": "c",
+      "placement": "colocated",
+      "raw_sha256": "83184c32334de91b2daeb29ee46945a7581d6a4d6e0222c35e352a2fb5ce1ded",
+      "metrics": {
+        "mean_us": 114.8624533,
+        "p50_us": 113.49,
+        "p95_us": 146.267,
+        "p99_us": 262.296,
+        "daemon_cpu_us_per_op": 56.165692,
+        "caller_cpu_us_per_op": 53.0996038
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 18690,
+        "nonvoluntary_ctxt_switches": 8141
+      }
+    },
+    {
+      "window": 1,
+      "side": "candidate",
+      "placement": "split",
+      "raw_sha256": "3969ee003ddb8f6fd09e47311ff38055170d9dab305d74e29957bc527cee957c",
+      "metrics": {
+        "mean_us": 115.0427866,
+        "p50_us": 76.095,
+        "p95_us": 180.506,
+        "p99_us": 1010.405,
+        "daemon_cpu_us_per_op": 43.6683233,
+        "caller_cpu_us_per_op": 54.5140756
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19987,
+        "nonvoluntary_ctxt_switches": 22
+      }
+    },
+    {
+      "window": 1,
+      "side": "c",
+      "placement": "split",
+      "raw_sha256": "2bee77f6456cb799fccb6afb1772b4a2be33360e9ee795b4361037b8644d8c91",
+      "metrics": {
+        "mean_us": 141.8982079,
+        "p50_us": 86.329,
+        "p95_us": 174.967,
+        "p99_us": 1521.3,
+        "daemon_cpu_us_per_op": 55.9693498,
+        "caller_cpu_us_per_op": 55.2657073
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19982,
+        "nonvoluntary_ctxt_switches": 65
+      }
+    },
+    {
+      "window": 1,
+      "side": "candidate",
+      "placement": "allowed",
+      "raw_sha256": "66c704d30188ad9056246b64f7387bed2ca5185b7cd7cb5d16db12e3559f7011",
+      "metrics": {
+        "mean_us": 83.9586573,
+        "p50_us": 76.096,
+        "p95_us": 145.805,
+        "p99_us": 211.052,
+        "daemon_cpu_us_per_op": 39.7412902,
+        "caller_cpu_us_per_op": 49.8758584
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19919,
+        "nonvoluntary_ctxt_switches": 146
+      }
+    },
+    {
+      "window": 1,
+      "side": "c",
+      "placement": "allowed",
+      "raw_sha256": "abefd4e07c161624be43218acf99edece917a33ea5023aea921409d38cb1851c",
+      "metrics": {
+        "mean_us": 90.3370432,
+        "p50_us": 85.56,
+        "p95_us": 117.029,
+        "p99_us": 202.512,
+        "daemon_cpu_us_per_op": 50.5386894,
+        "caller_cpu_us_per_op": 48.8239469
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19963,
+        "nonvoluntary_ctxt_switches": 73
+      }
+    },
+    {
+      "window": 2,
+      "side": "candidate",
+      "placement": "split",
+      "raw_sha256": "717fb9498ae522d8423b8617c38b675fb67b09b9d9cf11b3beacc823c06535f2",
+      "metrics": {
+        "mean_us": 85.5394444,
+        "p50_us": 75.634,
+        "p95_us": 157.962,
+        "p99_us": 224.595,
+        "daemon_cpu_us_per_op": 39.5069369,
+        "caller_cpu_us_per_op": 50.4080311
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19977,
+        "nonvoluntary_ctxt_switches": 33
+      }
+    },
+    {
+      "window": 2,
+      "side": "c",
+      "placement": "split",
+      "raw_sha256": "f5fe2d58f29e6dab0c1a21ea5e653e06b842f115aae32be0a5916309a5944f3a",
+      "metrics": {
+        "mean_us": 90.0872608,
+        "p50_us": 85.099,
+        "p95_us": 117.414,
+        "p99_us": 200.203,
+        "daemon_cpu_us_per_op": 50.2787214,
+        "caller_cpu_us_per_op": 48.6456288
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19974,
+        "nonvoluntary_ctxt_switches": 58
+      }
+    },
+    {
+      "window": 2,
+      "side": "candidate",
+      "placement": "colocated",
+      "raw_sha256": "2b57232708c32ab1306ef504881cc2f480ab2b09b6522ee1c26db6ccb12464e4",
+      "metrics": {
+        "mean_us": 92.3678349,
+        "p50_us": 78.173,
+        "p95_us": 158.347,
+        "p99_us": 227.826,
+        "daemon_cpu_us_per_op": 42.6257505,
+        "caller_cpu_us_per_op": 46.4245648
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 17572,
+        "nonvoluntary_ctxt_switches": 4822
+      }
+    },
+    {
+      "window": 2,
+      "side": "c",
+      "placement": "colocated",
+      "raw_sha256": "ffdcf7f7cad7154ed9a814f56c4a61825de6abfebc9b21b5074d37207eea3a52",
+      "metrics": {
+        "mean_us": 116.0323307,
+        "p50_us": 114.952,
+        "p95_us": 180.352,
+        "p99_us": 277.608,
+        "daemon_cpu_us_per_op": 56.9340416,
+        "caller_cpu_us_per_op": 53.8805446
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 18835,
+        "nonvoluntary_ctxt_switches": 8041
+      }
+    },
+    {
+      "window": 2,
+      "side": "candidate",
+      "placement": "allowed",
+      "raw_sha256": "422c7e31dcdcc66f6617f8839553fcd53fc0cc1e8dd0329527ed37e373f3b376",
+      "metrics": {
+        "mean_us": 83.8093953,
+        "p50_us": 76.327,
+        "p95_us": 142.574,
+        "p99_us": 207.051,
+        "daemon_cpu_us_per_op": 39.8230213,
+        "caller_cpu_us_per_op": 50.1158296
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19978,
+        "nonvoluntary_ctxt_switches": 28
+      }
+    },
+    {
+      "window": 2,
+      "side": "c",
+      "placement": "allowed",
+      "raw_sha256": "abd4db9794235e95f4bcdb093b4f8065315f5d2dc5a0d825aa54f63d4f399b6f",
+      "metrics": {
+        "mean_us": 119.3863445,
+        "p50_us": 96.101,
+        "p95_us": 183.43,
+        "p99_us": 368.63,
+        "daemon_cpu_us_per_op": 56.1136877,
+        "caller_cpu_us_per_op": 55.5051469
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 18119,
+        "nonvoluntary_ctxt_switches": 6072
+      }
+    },
+    {
+      "window": 3,
+      "side": "c",
+      "placement": "allowed",
+      "raw_sha256": "a7ae8397e8b2e7b4d15f262451aa25765a2aa13bfff9b5c7973fdf9b47346844",
+      "metrics": {
+        "mean_us": 96.9262001,
+        "p50_us": 86.329,
+        "p95_us": 138.65,
+        "p99_us": 225.825,
+        "daemon_cpu_us_per_op": 52.1683124,
+        "caller_cpu_us_per_op": 49.4799717
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19958,
+        "nonvoluntary_ctxt_switches": 103
+      }
+    },
+    {
+      "window": 3,
+      "side": "candidate",
+      "placement": "allowed",
+      "raw_sha256": "db5fe37e9798975d42e9995f5433864acabac0e645b1b424a123657d16af5fad",
+      "metrics": {
+        "mean_us": 86.1799317,
+        "p50_us": 76.019,
+        "p95_us": 158.424,
+        "p99_us": 233.443,
+        "daemon_cpu_us_per_op": 40.4166396,
+        "caller_cpu_us_per_op": 50.0519917
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19905,
+        "nonvoluntary_ctxt_switches": 185
+      }
+    },
+    {
+      "window": 3,
+      "side": "c",
+      "placement": "colocated",
+      "raw_sha256": "b54bf09a6b6a4b6361d8e5f50da2cc37eef30ed4a9817a5853d9b0ec7fe70a92",
+      "metrics": {
+        "mean_us": 111.4485642,
+        "p50_us": 114.413,
+        "p95_us": 144.729,
+        "p99_us": 228.672,
+        "daemon_cpu_us_per_op": 56.0165654,
+        "caller_cpu_us_per_op": 52.470989
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 18989,
+        "nonvoluntary_ctxt_switches": 7790
+      }
+    },
+    {
+      "window": 3,
+      "side": "candidate",
+      "placement": "colocated",
+      "raw_sha256": "d476d918e416583a3a7528bfc2cea8b4dc83435e9c17e09a7e9977ca89a2ad89",
+      "metrics": {
+        "mean_us": 93.9047019,
+        "p50_us": 79.02,
+        "p95_us": 153.654,
+        "p99_us": 243.984,
+        "daemon_cpu_us_per_op": 43.0014407,
+        "caller_cpu_us_per_op": 46.4064134
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 17824,
+        "nonvoluntary_ctxt_switches": 4488
+      }
+    },
+    {
+      "window": 3,
+      "side": "c",
+      "placement": "split",
+      "raw_sha256": "1550ab5537cbd14368c9dffdfffe6f7a266bb463997ce0328877f08501307f5c",
+      "metrics": {
+        "mean_us": 187.017447,
+        "p50_us": 90.946,
+        "p95_us": 264.989,
+        "p99_us": 2927.112,
+        "daemon_cpu_us_per_op": 60.7885229,
+        "caller_cpu_us_per_op": 62.4370995
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19970,
+        "nonvoluntary_ctxt_switches": 91
+      }
+    },
+    {
+      "window": 3,
+      "side": "candidate",
+      "placement": "split",
+      "raw_sha256": "d24d2bbee1d91fdebb580237a55a17912bccd2bbc039cdbbb96532668e0a4c78",
+      "metrics": {
+        "mean_us": 182.8255107,
+        "p50_us": 81.559,
+        "p95_us": 291.226,
+        "p99_us": 2860.402,
+        "daemon_cpu_us_per_op": 54.8499681,
+        "caller_cpu_us_per_op": 62.9015182
+      },
+      "daemon_context_switch_deltas": {
+        "voluntary_ctxt_switches": 19963,
+        "nonvoluntary_ctxt_switches": 69
+      }
+    }
+  ],
+  "comparisons": {
+    "candidate_vs_c_gap_pct": {
+      "allowed": {
+        "mean_us": {
+          "by_window": [
+            -5.620199600897419,
+            -7.060653829325244,
+            -29.799848005229777,
+            -11.087062516546546
+          ],
+          "median": -9.073858172935894,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "p50_us": {
+          "by_window": [
+            -10.825241598819106,
+            -11.061243571762505,
+            -20.57626871728702,
+            -11.94268438184156
+          ],
+          "median": -11.501963976802033,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "p95_us": {
+          "by_window": [
+            22.988342218242376,
+            24.588777140708714,
+            -22.273346780788312,
+            14.261810313739632
+          ],
+          "median": 18.625076265991005,
+          "positive_windows": 3,
+          "negative_windows": 1,
+          "zero_windows": 0
+        },
+        "p99_us": {
+          "by_window": [
+            1.7527706569618966,
+            4.217034052303074,
+            -43.832297968152346,
+            3.373408612863943
+          ],
+          "median": 2.5630896349129197,
+          "positive_windows": 3,
+          "negative_windows": 1,
+          "zero_windows": 0
+        },
+        "daemon_cpu_us_per_op": {
+          "by_window": [
+            -20.48560105003522,
+            -21.364620507946928,
+            -29.03153770091642,
+            -22.526457650947513
+          ],
+          "median": -21.94553907944722,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "caller_cpu_us_per_op": {
+          "by_window": [
+            -1.1797913359870411,
+            2.1544991070764907,
+            -9.709581184803602,
+            1.1560637169887469
+          ],
+          "median": -0.01186380949914716,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        }
+      },
+      "split": {
+        "mean_us": {
+          "by_window": [
+            -7.674186988346134,
+            -18.925835426283772,
+            -5.048234744417937,
+            -2.241468038006101
+          ],
+          "median": -6.361210866382035,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "p50_us": {
+          "by_window": [
+            -10.961383514135246,
+            -11.8546490750501,
+            -11.122339862983115,
+            -10.321509467156334
+          ],
+          "median": -11.04186168855918,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "p95_us": {
+          "by_window": [
+            22.80823502197548,
+            3.1657398252241853,
+            34.534212274515816,
+            9.90116570876527
+          ],
+          "median": 16.354700365370373,
+          "positive_windows": 4,
+          "negative_windows": 0,
+          "zero_windows": 0
+        },
+        "p99_us": {
+          "by_window": [
+            4.190462172505152,
+            -33.582791033984094,
+            12.183633611883938,
+            -2.279038178245315
+          ],
+          "median": 0.9557119971299184,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        },
+        "daemon_cpu_us_per_op": {
+          "by_window": [
+            -21.86625387046622,
+            -21.978147939821163,
+            -21.42414166482762,
+            -9.769203982418201
+          ],
+          "median": -21.64519776764692,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "caller_cpu_us_per_op": {
+          "by_window": [
+            2.0309371416971005,
+            -1.3600327159840764,
+            3.622940731727164,
+            0.7438185048938732
+          ],
+          "median": 1.387377823295487,
+          "positive_windows": 3,
+          "negative_windows": 1,
+          "zero_windows": 0
+        }
+      },
+      "colocated": {
+        "mean_us": {
+          "by_window": [
+            -18.791746062518204,
+            -21.682587812182835,
+            -20.394743135156208,
+            -15.741667401400223
+          ],
+          "median": -19.593244598837206,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "p50_us": {
+          "by_window": [
+            -32.31188847519266,
+            -32.2037183892854,
+            -31.995093604287007,
+            -30.93442178773391
+          ],
+          "median": -32.0994059967862,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "p95_us": {
+          "by_window": [
+            1.4718636804244682,
+            -0.6310377597134008,
+            -12.201139992902768,
+            6.166697759260411
+          ],
+          "median": 0.42041296035553366,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        },
+        "p99_us": {
+          "by_window": [
+            -1.1269874080581537,
+            -18.451291670479154,
+            -17.932480331978905,
+            6.696053736356004
+          ],
+          "median": -9.52973387001853,
+          "positive_windows": 1,
+          "negative_windows": 3,
+          "zero_windows": 0
+        },
+        "daemon_cpu_us_per_op": {
+          "by_window": [
+            -23.980390586116606,
+            -25.320351434466435,
+            -25.131346199740015,
+            -23.23442111643639
+          ],
+          "median": -24.55586839292831,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "caller_cpu_us_per_op": {
+          "by_window": [
+            -15.108768385770162,
+            -14.231150063684655,
+            -13.837981511419244,
+            -11.557959389711522
+          ],
+          "median": -14.03456578755195,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        }
+      }
+    },
+    "gap_shift_vs_allowed_pp": {
+      "split": {
+        "mean_us": {
+          "by_window": [
+            -2.0539873874487147,
+            -11.865181596958529,
+            24.75161326081184,
+            8.845594478540445
+          ],
+          "median": 3.395803545545865,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        },
+        "p50_us": {
+          "by_window": [
+            -0.13614191531613878,
+            -0.7934055032875932,
+            9.453928854303907,
+            1.621174914685225
+          ],
+          "median": 0.7425164996845431,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        },
+        "p95_us": {
+          "by_window": [
+            -0.18010719626689808,
+            -21.423037315484528,
+            56.807559055304125,
+            -4.360644604974363
+          ],
+          "median": -2.2703759006206305,
+          "positive_windows": 1,
+          "negative_windows": 3,
+          "zero_windows": 0
+        },
+        "p99_us": {
+          "by_window": [
+            2.4376915155432552,
+            -37.799825086287164,
+            56.01593158003629,
+            -5.652446791109258
+          ],
+          "median": -1.6073776377830016,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        },
+        "daemon_cpu_us_per_op": {
+          "by_window": [
+            -1.380652820430997,
+            -0.6135274318742351,
+            7.607396036088802,
+            12.757253668529312
+          ],
+          "median": 3.496934302107283,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        },
+        "caller_cpu_us_per_op": {
+          "by_window": [
+            3.2107284776841416,
+            -3.514531823060567,
+            13.332521916530766,
+            -0.4122452120948735
+          ],
+          "median": 1.399241632794634,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        }
+      },
+      "colocated": {
+        "mean_us": {
+          "by_window": [
+            -13.171546461620784,
+            -14.621933982857591,
+            9.405104870073568,
+            -4.654604884853678
+          ],
+          "median": -8.91307567323723,
+          "positive_windows": 1,
+          "negative_windows": 3,
+          "zero_windows": 0
+        },
+        "p50_us": {
+          "by_window": [
+            -21.486646876373552,
+            -21.142474817522892,
+            -11.418824886999985,
+            -18.99173740589235
+          ],
+          "median": -20.067106111707623,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        },
+        "p95_us": {
+          "by_window": [
+            -21.51647853781791,
+            -25.219814900422115,
+            10.072206787885543,
+            -8.095112554479222
+          ],
+          "median": -14.805795546148566,
+          "positive_windows": 1,
+          "negative_windows": 3,
+          "zero_windows": 0
+        },
+        "p99_us": {
+          "by_window": [
+            -2.87975806502005,
+            -22.668325722782228,
+            25.89981763617344,
+            3.32264512349206
+          ],
+          "median": 0.22144352923600488,
+          "positive_windows": 2,
+          "negative_windows": 2,
+          "zero_windows": 0
+        },
+        "daemon_cpu_us_per_op": {
+          "by_window": [
+            -3.4947895360813837,
+            -3.955730926519508,
+            3.900191501176404,
+            -0.7079634654888762
+          ],
+          "median": -2.10137650078513,
+          "positive_windows": 1,
+          "negative_windows": 3,
+          "zero_windows": 0
+        },
+        "caller_cpu_us_per_op": {
+          "by_window": [
+            -13.928977049783121,
+            -16.38564917076115,
+            -4.128400326615642,
+            -12.71402310670027
+          ],
+          "median": -13.321500078241696,
+          "positive_windows": 0,
+          "negative_windows": 4,
+          "zero_windows": 0
+        }
+      }
+    },
+    "within_side_placement_vs_allowed": {
+      "c": {
+        "split": {
+          "mean_us": {
+            "allowed_by_window_us": [
+              92.1642249,
+              90.3370432,
+              119.3863445,
+              96.9262001
+            ],
+            "placement_by_window_us": [
+              90.5172849,
+              141.8982079,
+              90.0872608,
+              187.017447
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -1.64694,
+                51.5611647,
+                -29.2990837,
+                90.0912469
+              ],
+              "median": 24.95711235,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -1.7869623509414443,
+                57.076436059399384,
+                -24.54140280675065,
+                92.94829138772768
+              ],
+              "median": 27.64473685422897,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          },
+          "p50_us": {
+            "allowed_by_window_us": [
+              86.714,
+              85.56,
+              96.101,
+              86.329
+            ],
+            "placement_by_window_us": [
+              85.637,
+              86.329,
+              85.099,
+              90.946
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -1.077,
+                0.769,
+                -11.002,
+                4.617
+              ],
+              "median": -0.154,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -1.2420139769818022,
+                0.8987844787283777,
+                -11.448372025265085,
+                5.34814488758123
+              ],
+              "median": -0.17161474912671226,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          },
+          "p95_us": {
+            "allowed_by_window_us": [
+              119.491,
+              117.029,
+              183.43,
+              138.65
+            ],
+            "placement_by_window_us": [
+              116.721,
+              174.967,
+              117.414,
+              264.989
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -2.77,
+                57.938,
+                -66.016,
+                126.339
+              ],
+              "median": 27.584,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -2.318166221723812,
+                49.50738705790872,
+                -35.989750858638175,
+                91.12080778939776
+              ],
+              "median": 23.594610418092454,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          },
+          "p99_us": {
+            "allowed_by_window_us": [
+              206.359,
+              202.512,
+              368.63,
+              225.825
+            ],
+            "placement_by_window_us": [
+              203.82,
+              1521.3,
+              200.203,
+              2927.112
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -2.539,
+                1318.788,
+                -168.427,
+                2701.287
+              ],
+              "median": 658.1245,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -1.2303800658076458,
+                651.2147428300545,
+                -45.689987250088166,
+                1196.1859847226835
+              ],
+              "median": 324.9921813821234,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          },
+          "daemon_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              51.6148019,
+              50.5386894,
+              56.1136877,
+              52.1683124
+            ],
+            "placement_by_window_us": [
+              50.5639021,
+              55.9693498,
+              50.2787214,
+              60.7885229
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -1.0508998,
+                5.4306604,
+                -5.8349663,
+                8.6202105
+              ],
+              "median": 2.1898803,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -2.036043462950887,
+                10.745550516788827,
+                -10.398472349911161,
+                16.52384388803806
+              ],
+              "median": 4.35475352691897,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          },
+          "caller_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              49.5278599,
+              48.8239469,
+              55.5051469,
+              49.4799717
+            ],
+            "placement_by_window_us": [
+              48.9400868,
+              55.2657073,
+              48.6456288,
+              62.4370995
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -0.5877731,
+                6.4417604,
+                -6.8595181,
+                12.9571278
+              ],
+              "median": 2.92699365,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -1.1867524685838484,
+                13.193854264166422,
+                -12.358345996918711,
+                26.186611177871793
+              ],
+              "median": 6.003550897791287,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          }
+        },
+        "colocated": {
+          "mean_us": {
+            "allowed_by_window_us": [
+              92.1642249,
+              90.3370432,
+              119.3863445,
+              96.9262001
+            ],
+            "placement_by_window_us": [
+              114.3354238,
+              114.8624533,
+              116.0323307,
+              111.4485642
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                22.1711989,
+                24.5254101,
+                -3.3540138,
+                14.5223641
+              ],
+              "median": 18.3467815,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                24.056187662898687,
+                27.148785516150255,
+                -2.8093780859501902,
+                14.982908733672723
+              ],
+              "median": 19.519548198285705,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            }
+          },
+          "p50_us": {
+            "allowed_by_window_us": [
+              86.714,
+              85.56,
+              96.101,
+              86.329
+            ],
+            "placement_by_window_us": [
+              115.49,
+              113.49,
+              114.952,
+              114.413
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                28.776,
+                27.93,
+                18.851,
+                28.084
+              ],
+              "median": 28.007,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                33.1849528334525,
+                32.6437587657784,
+                19.615820855141987,
+                32.53136257804446
+              ],
+              "median": 32.58756067191143,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          },
+          "p95_us": {
+            "allowed_by_window_us": [
+              119.491,
+              117.029,
+              183.43,
+              138.65
+            ],
+            "placement_by_window_us": [
+              156.808,
+              146.267,
+              180.352,
+              144.729
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                37.317,
+                29.238,
+                -3.078,
+                6.079
+              ],
+              "median": 17.6585,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                31.22996711049368,
+                24.98355108562835,
+                -1.6780243144523797,
+                4.384421204471692
+              ],
+              "median": 14.683986145050019,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            }
+          },
+          "p99_us": {
+            "allowed_by_window_us": [
+              206.359,
+              202.512,
+              368.63,
+              225.825
+            ],
+            "placement_by_window_us": [
+              232.212,
+              262.296,
+              277.608,
+              228.672
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                25.853,
+                59.784,
+                -91.022,
+                2.847
+              ],
+              "median": 14.35,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                12.528166932384824,
+                29.521213557715097,
+                -24.6919675555435,
+                1.260710727333112
+              ],
+              "median": 6.894438829858968,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            }
+          },
+          "daemon_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              51.6148019,
+              50.5386894,
+              56.1136877,
+              52.1683124
+            ],
+            "placement_by_window_us": [
+              56.1341816,
+              56.165692,
+              56.9340416,
+              56.0165654
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                4.5193797,
+                5.6270026,
+                0.8203539,
+                3.848253
+              ],
+              "median": 4.18381635,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                8.755976064300269,
+                11.134049313118911,
+                1.4619497196225084,
+                7.376610097128617
+              ],
+              "median": 8.066293080714443,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          },
+          "caller_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              49.5278599,
+              48.8239469,
+              55.5051469,
+              49.4799717
+            ],
+            "placement_by_window_us": [
+              54.7862962,
+              53.0996038,
+              53.8805446,
+              52.470989
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                5.2584363,
+                4.2756569,
+                -1.6246023,
+                2.9910173
+              ],
+              "median": 3.6333371,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                10.617128037870257,
+                8.757294670906665,
+                -2.9269399159089513,
+                6.044905033767431
+              ],
+              "median": 7.4010998523370475,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            }
+          }
+        }
+      },
+      "candidate": {
+        "split": {
+          "mean_us": {
+            "allowed_by_window_us": [
+              86.9844115,
+              83.9586573,
+              83.8093953,
+              86.1799317
+            ],
+            "placement_by_window_us": [
+              83.5708192,
+              115.0427866,
+              85.5394444,
+              182.8255107
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -3.4135923,
+                31.0841293,
+                1.7300491,
+                96.645579
+              ],
+              "median": 16.4070892,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -3.9243724721871573,
+                37.02313769612893,
+                2.0642662959292344,
+                112.14394940162154
+              ],
+              "median": 19.54370199602908,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            }
+          },
+          "p50_us": {
+            "allowed_by_window_us": [
+              77.327,
+              76.096,
+              76.327,
+              76.019
+            ],
+            "placement_by_window_us": [
+              76.25,
+              76.095,
+              75.634,
+              81.559
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -1.077,
+                -0.001,
+                -0.693,
+                5.54
+              ],
+              "median": -0.347,
+              "positive_windows": 1,
+              "negative_windows": 3,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -1.3927864782029562,
+                -0.0013141295206055509,
+                -0.9079355929094554,
+                7.28765177126771
+              ],
+              "median": -0.4546248612150305,
+              "positive_windows": 1,
+              "negative_windows": 3,
+              "zero_windows": 0
+            }
+          },
+          "p95_us": {
+            "allowed_by_window_us": [
+              146.96,
+              145.805,
+              142.574,
+              158.424
+            ],
+            "placement_by_window_us": [
+              143.343,
+              180.506,
+              157.962,
+              291.226
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -3.617,
+                34.701,
+                15.388,
+                132.802
+              ],
+              "median": 25.0445,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -2.461213935764834,
+                23.799595349953705,
+                10.792991709568364,
+                83.82694541231126
+              ],
+              "median": 17.296293529761034,
+              "positive_windows": 3,
+              "negative_windows": 1,
+              "zero_windows": 0
+            }
+          },
+          "p99_us": {
+            "allowed_by_window_us": [
+              209.976,
+              211.052,
+              207.051,
+              233.443
+            ],
+            "placement_by_window_us": [
+              212.361,
+              1010.405,
+              224.595,
+              2860.402
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                2.385,
+                799.353,
+                17.544,
+                2626.959
+              ],
+              "median": 408.4485,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                1.1358440964681678,
+                378.7469438811288,
+                8.473274700436125,
+                1125.3106754111282
+              ],
+              "median": 193.61010929078248,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          },
+          "daemon_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              41.0411995,
+              39.7412902,
+              39.8230213,
+              40.4166396
+            ],
+            "placement_by_window_us": [
+              39.5074709,
+              43.6683233,
+              39.5069369,
+              54.8499681
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -1.5337286,
+                3.9270331,
+                -0.3160844,
+                14.4333285
+              ],
+              "median": 1.80547435,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -3.7370462332612866,
+                9.881493731675576,
+                -0.7937228007358648,
+                35.71135216298388
+              ],
+              "median": 4.543885465469856,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          },
+          "caller_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              48.9435345,
+              49.8758584,
+              50.1158296,
+              50.0519917
+            ],
+            "placement_by_window_us": [
+              49.9340292,
+              54.5140756,
+              50.4080311,
+              62.9015182
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                0.9904947,
+                4.6382172,
+                0.2922015,
+                12.8495265
+              ],
+              "median": 2.81435595,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                2.0237498376828507,
+                9.29952355466628,
+                0.5830523056930499,
+                25.672358009281776
+              ],
+              "median": 5.661636696174565,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          }
+        },
+        "colocated": {
+          "mean_us": {
+            "allowed_by_window_us": [
+              86.9844115,
+              83.9586573,
+              83.8093953,
+              86.1799317
+            ],
+            "placement_by_window_us": [
+              92.8498013,
+              89.957301,
+              92.3678349,
+              93.9047019
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                5.8653898,
+                5.9986437,
+                8.5584396,
+                7.7247702
+              ],
+              "median": 6.86170695,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                6.74303556103268,
+                7.14475897174692,
+                10.211790180998955,
+                8.963537157224273
+              ],
+              "median": 8.054148064485597,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          },
+          "p50_us": {
+            "allowed_by_window_us": [
+              77.327,
+              76.096,
+              76.327,
+              76.019
+            ],
+            "placement_by_window_us": [
+              78.173,
+              76.942,
+              78.173,
+              79.02
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                0.846,
+                0.846,
+                1.846,
+                3.001
+              ],
+              "median": 1.346,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                1.0940551165828236,
+                1.111753574432296,
+                2.4185412763504397,
+                3.9476972862047646
+              ],
+              "median": 1.7651474253913677,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          },
+          "p95_us": {
+            "allowed_by_window_us": [
+              146.96,
+              145.805,
+              142.574,
+              158.424
+            ],
+            "placement_by_window_us": [
+              159.116,
+              145.344,
+              158.347,
+              153.654
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                12.156,
+                -0.461,
+                15.773,
+                -4.77
+              ],
+              "median": 5.8475,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                8.27163854109962,
+                -0.31617571413874695,
+                11.06302691935416,
+                -3.0109074382669294
+              ],
+              "median": 3.977731413480436,
+              "positive_windows": 2,
+              "negative_windows": 2,
+              "zero_windows": 0
+            }
+          },
+          "p99_us": {
+            "allowed_by_window_us": [
+              209.976,
+              211.052,
+              207.051,
+              233.443
+            ],
+            "placement_by_window_us": [
+              229.595,
+              213.899,
+              227.826,
+              243.984
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                19.619,
+                2.847,
+                20.775,
+                10.541
+              ],
+              "median": 15.08,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                9.343448775098107,
+                1.348956655231886,
+                10.03375979831056,
+                4.515449167462721
+              ],
+              "median": 6.929448971280414,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          },
+          "daemon_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              41.0411995,
+              39.7412902,
+              39.8230213,
+              40.4166396
+            ],
+            "placement_by_window_us": [
+              42.6729856,
+              41.9443414,
+              42.6257505,
+              43.0014407
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                1.6317861,
+                2.2030512,
+                2.8027292,
+                2.5848011
+              ],
+              "median": 2.39392615,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                3.975970780288719,
+                5.543481826868319,
+                7.037962235175763,
+                6.395388447880759
+              ],
+              "median": 5.969435137374538,
+              "positive_windows": 4,
+              "negative_windows": 0,
+              "zero_windows": 0
+            }
+          },
+          "caller_cpu_us_per_op": {
+            "allowed_by_window_us": [
+              48.9435345,
+              49.8758584,
+              50.1158296,
+              50.0519917
+            ],
+            "placement_by_window_us": [
+              46.5087616,
+              45.5429195,
+              46.4245648,
+              46.4064134
+            ],
+            "absolute_delta_us": {
+              "by_window": [
+                -2.4347729,
+                -4.3329389,
+                -3.6912648,
+                -3.6455783
+              ],
+              "median": -3.66842155,
+              "positive_windows": 0,
+              "negative_windows": 4,
+              "zero_windows": 0
+            },
+            "delta_pct": {
+              "by_window": [
+                -4.974656867088338,
+                -8.687447272085446,
+                -7.365466818492016,
+                -7.2835828828765665
+              ],
+              "median": -7.324524850684291,
+              "positive_windows": 0,
+              "negative_windows": 4,
+              "zero_windows": 0
+            }
+          }
+        }
+      }
+    },
+    "primary_p95_diagnostic": {
+      "original_allowance_tail_replicated": true,
+      "placements": {
+        "split": {
+          "interaction_threshold_met": false,
+          "same_sign_windows": 3,
+          "replicated_tail_placement_sensitive": false
+        },
+        "colocated": {
+          "interaction_threshold_met": true,
+          "same_sign_windows": 3,
+          "replicated_tail_placement_sensitive": true
+        }
+      }
+    },
+    "interpretation": "Descriptive four-window gates only. Without baseline replication, placement effects do not explain the original tail. No kernel cause or candidate adoption is assigned."
+  },
+  "limitations": [
+    "All 24 cases and all four same-boot stock-production windows are retained; no new formal performance ranking or adoption.",
+    "Same-window C/R136 ratios stay separate for each placement. Interactions are differences of these percentage gaps, in percentage points.",
+    "Fresh daemon per case and balanced order do not eliminate temporal variation. Four descriptive windows are not a mechanism proof.",
+    "Exact exec-cpu helper masks were exercised before timing; parent mask, launch argv, successful exit and daemon live identity are checked. No live caller mask or per-cycle migration evidence exists.",
+    "Daemon CPU delta is recomputed from process-clock snapshots. Original caller CPU provides a positive clock delta only, so no independent caller before/after reconstruction is possible; no tick fallback.",
+    "Daemon context switches are window-boundary counts, not per-operation traces or waiting durations. CPU and wall are not subtracted.",
+    "Guard assertions cover configuration/mount/production identity within each window; health/boot and exact input identities agree across windows. Raw host process identities are not separately archived.",
+    "Only one-method ADD/REMOVE is exercised; event_1, event_nomatch, user events, memory and integration remain outside this diagnostic."
+  ]
+}

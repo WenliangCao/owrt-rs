@@ -60,7 +60,7 @@ shell allowance、完整启动 argv 与成功退出，没有计时中 live mask 
 daemon context 只是窗口边界计数，未以 wall 减 CPU 估计等待。
 
 全部六指标的 24 case 原值、每放置的四个配对差距、两组交互、每侧放置相对
-allowed 的绝对/百分比变化，以及证据哈希由分析器输出。复现命令：
+allowed 的绝对/百分比变化，以及证据哈希见[完整脱敏结果](r139-affinity-results.json)。复现命令：
 
 ```sh
 python3 tools/r139/analyze_affinity.py private/r139/affinity-01 \
