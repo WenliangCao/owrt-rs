@@ -1,0 +1,1923 @@
+{
+  "schema": 1,
+  "verified": true,
+  "phase": "screen",
+  "cases": 72,
+  "new_caller_sha256": "7adea8683e2ccd726ea918c700fec595fc77200c3f5c2cfc59bb1abc27b1d9ca",
+  "old_caller_sha256": "85dd537a070e39373a4a21a6bf982da9359bc70e61e53cdf93516b9c34684b1d",
+  "daemon_sha256": {
+    "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "r136": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330"
+  },
+  "manifest_sha256": "5d4fb15b346d1574242ab75f7ead4ed332ab64aaaff82181b9a9ec3005864f69",
+  "policy_sha256": "235cba130a8030fadac38ce9e48205c546cbd150bc19988d28068eb6a71c0503",
+  "hash_manifest_sha256": "ada15494d78d4a102525cc46344d8ca41ff2b0645ddd80260a38994466f86e83",
+  "verified_files": 1706,
+  "records": [
+    {
+      "block": 0,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "cf884a9abd395900917b8155246142f834953c1689d48b3d37cfd863582c5895",
+      "metrics": {
+        "mean_us": 34.4051175,
+        "wall_us_per_op": 34.45383,
+        "daemon_cpu_us_per_op": 19.243632,
+        "caller_cpu_us_per_op": 18.068396,
+        "p50_us": 33.56,
+        "p95_us": 39.24,
+        "p99_us": 47.12
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "b97ecdedb30dde49e4014c8f325e26af54559afd07f345c23aac0d2914470d98",
+      "metrics": {
+        "mean_us": 17.2242747,
+        "wall_us_per_op": 17.3297199,
+        "daemon_cpu_us_per_op": 9.36048,
+        "caller_cpu_us_per_op": 9.457908,
+        "p50_us": 16.84,
+        "p95_us": 18.92,
+        "p99_us": 24.4
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "5e7e38daa363b02ce994ee542a4e9f0fadcdc1ba108ce380beac77e03f4e81fd",
+      "metrics": {
+        "mean_us": 43.2447502,
+        "wall_us_per_op": 43.9981012,
+        "daemon_cpu_us_per_op": 21.221844,
+        "caller_cpu_us_per_op": 13.647452,
+        "p50_us": 42.441,
+        "p95_us": 49.0,
+        "p99_us": 59.161
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "e9af76fc2922c0bd51065de62070fcf0cfbb638d537734f92ce7568f6adeac49",
+      "metrics": {
+        "mean_us": 33.6811118,
+        "wall_us_per_op": 33.7360721,
+        "daemon_cpu_us_per_op": 19.049956,
+        "caller_cpu_us_per_op": 17.779364,
+        "p50_us": 33.08,
+        "p95_us": 38.0,
+        "p99_us": 46.401
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "b20a935eb41b609211a7f08b47391d0a2a515135d2e547b94faa54bfbf9c4db7",
+      "metrics": {
+        "mean_us": 16.9716486,
+        "wall_us_per_op": 17.0814858,
+        "daemon_cpu_us_per_op": 9.274952,
+        "caller_cpu_us_per_op": 9.319968,
+        "p50_us": 16.601,
+        "p95_us": 18.6,
+        "p99_us": 24.12
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "3c864f38567ea38feafbc56ce88cc26aabea5eca7542fb1197e389350fb7a93b",
+      "metrics": {
+        "mean_us": 42.7250214,
+        "wall_us_per_op": 43.5062611,
+        "daemon_cpu_us_per_op": 21.164424,
+        "caller_cpu_us_per_op": 13.334064,
+        "p50_us": 41.88,
+        "p95_us": 49.081,
+        "p99_us": 59.8
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "ad9b2264ee8a2251522395bae7ac8b11d85e505bd2e0b9cd17d63efc66bca19d",
+      "metrics": {
+        "mean_us": 30.9776611,
+        "wall_us_per_op": 31.0235935,
+        "daemon_cpu_us_per_op": 15.285648,
+        "caller_cpu_us_per_op": 17.349356,
+        "p50_us": 30.12,
+        "p95_us": 35.12,
+        "p99_us": 44.8
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "63565735db30e10b207afc0db530070f1908efef3108f3ebef0a14eec012cf27",
+      "metrics": {
+        "mean_us": 14.9764446,
+        "wall_us_per_op": 15.0810212,
+        "daemon_cpu_us_per_op": 6.839948,
+        "caller_cpu_us_per_op": 8.513632,
+        "p50_us": 14.641,
+        "p95_us": 15.72,
+        "p99_us": 21.96
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "d88e381fec31cf936fd716e7fa60dbe74423c9fed0ef6841ec8913d53de8f926",
+      "metrics": {
+        "mean_us": 41.6975227,
+        "wall_us_per_op": 42.4587405,
+        "daemon_cpu_us_per_op": 17.753192,
+        "caller_cpu_us_per_op": 13.472824,
+        "p50_us": 41.12,
+        "p95_us": 44.52,
+        "p99_us": 55.881
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "7959485fb6c77f44caa072f05bd43a3c65f87e63fe17eff9c84d63bd27f67f5c",
+      "metrics": {
+        "mean_us": 30.3966805,
+        "wall_us_per_op": 30.4491247,
+        "daemon_cpu_us_per_op": 15.129388,
+        "caller_cpu_us_per_op": 17.16092,
+        "p50_us": 29.84,
+        "p95_us": 34.56,
+        "p99_us": 42.801
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "f34f49297f8c49fc301e50ce297ea79a9d05059b3a56a8abf5a0f27e53b1b558",
+      "metrics": {
+        "mean_us": 14.807591,
+        "wall_us_per_op": 14.9169278,
+        "daemon_cpu_us_per_op": 6.676084,
+        "caller_cpu_us_per_op": 8.528356,
+        "p50_us": 14.48,
+        "p95_us": 15.96,
+        "p99_us": 21.84
+      }
+    },
+    {
+      "block": 0,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "b1929e1a886d7bd15bf00b7a84593d35e5351480dd031126fc45709097fd5ba1",
+      "metrics": {
+        "mean_us": 41.6416294,
+        "wall_us_per_op": 42.4132241,
+        "daemon_cpu_us_per_op": 17.809472,
+        "caller_cpu_us_per_op": 13.464276,
+        "p50_us": 41.12,
+        "p95_us": 44.96,
+        "p99_us": 55.96
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "3b78cca2d128ffa4b14fd05ae56c913e00b95f22dc5c8794d9b3c61e36430f33",
+      "metrics": {
+        "mean_us": 31.2763479,
+        "wall_us_per_op": 31.3295321,
+        "daemon_cpu_us_per_op": 15.424108,
+        "caller_cpu_us_per_op": 17.434104,
+        "p50_us": 30.04,
+        "p95_us": 35.081,
+        "p99_us": 44.201
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "c062a165df182d4c1935a9de903695505218946639f829bd5bbcc1ea631f4b9d",
+      "metrics": {
+        "mean_us": 42.1848787,
+        "wall_us_per_op": 42.9669007,
+        "daemon_cpu_us_per_op": 17.8265,
+        "caller_cpu_us_per_op": 13.498956,
+        "p50_us": 41.361,
+        "p95_us": 45.92,
+        "p99_us": 58.96
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "47f6f233a3f42f235914cc418a83298e7edc0bb3faef1af0b5b45155a3c7aff7",
+      "metrics": {
+        "mean_us": 14.946244,
+        "wall_us_per_op": 15.056613,
+        "daemon_cpu_us_per_op": 6.708676,
+        "caller_cpu_us_per_op": 8.568268,
+        "p50_us": 14.6,
+        "p95_us": 16.08,
+        "p99_us": 22.041
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "a7b847e86cb30cc4b7f5b1616affced31279452a3fa06219883d735329ad29c4",
+      "metrics": {
+        "mean_us": 30.6690941,
+        "wall_us_per_op": 30.7144189,
+        "daemon_cpu_us_per_op": 15.14902,
+        "caller_cpu_us_per_op": 17.332796,
+        "p50_us": 30.04,
+        "p95_us": 34.88,
+        "p99_us": 44.4
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "70368db466ce13d2e5106c8a97a602ff830d996ac12061fc5f7e758001531304",
+      "metrics": {
+        "mean_us": 41.5862519,
+        "wall_us_per_op": 42.3487235,
+        "daemon_cpu_us_per_op": 17.640924,
+        "caller_cpu_us_per_op": 13.521792,
+        "p50_us": 40.96,
+        "p95_us": 45.04,
+        "p99_us": 57.04
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "f059a535de2789ca49d5e74f83a687dc487fa946bf5a6cd1377c4af791b937b2",
+      "metrics": {
+        "mean_us": 15.2447868,
+        "wall_us_per_op": 15.3570595,
+        "daemon_cpu_us_per_op": 6.853236,
+        "caller_cpu_us_per_op": 8.79054,
+        "p50_us": 14.92,
+        "p95_us": 16.12,
+        "p99_us": 22.32
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "63f63dcdbe4f766f22ca69578fc9f756738401ce2d14be77948814a32e743bcf",
+      "metrics": {
+        "mean_us": 33.8546447,
+        "wall_us_per_op": 33.9099015,
+        "daemon_cpu_us_per_op": 19.080096,
+        "caller_cpu_us_per_op": 17.880848,
+        "p50_us": 33.28,
+        "p95_us": 38.28,
+        "p99_us": 46.241
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "2ad7132d72d9e960ab8b9a8d382a488af6c207649577a1fd7b3228d533476268",
+      "metrics": {
+        "mean_us": 46.2689288,
+        "wall_us_per_op": 47.0454105,
+        "daemon_cpu_us_per_op": 22.18256,
+        "caller_cpu_us_per_op": 13.648108,
+        "p50_us": 42.4,
+        "p95_us": 55.36,
+        "p99_us": 70.721
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "bb23a0d5649453b8ebdbc425b012a7ca675afc02c574d0439fa286a71ae24ef4",
+      "metrics": {
+        "mean_us": 17.0463534,
+        "wall_us_per_op": 17.1591464,
+        "daemon_cpu_us_per_op": 9.29744,
+        "caller_cpu_us_per_op": 9.384212,
+        "p50_us": 16.68,
+        "p95_us": 18.88,
+        "p99_us": 24.44
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "c4c5bd2817062328b822ca52b3da4e3a16ab1512c0f47d8a250ab2e9bf0c78b1",
+      "metrics": {
+        "mean_us": 34.2102564,
+        "wall_us_per_op": 34.2592564,
+        "daemon_cpu_us_per_op": 19.28406,
+        "caller_cpu_us_per_op": 18.115308,
+        "p50_us": 33.56,
+        "p95_us": 38.72,
+        "p99_us": 47.0
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "547ffcf3f2e5196415ecfbeeef992554f6ba0366aee5f8ee5f4b476a8e9573b8",
+      "metrics": {
+        "mean_us": 42.8746155,
+        "wall_us_per_op": 43.6280302,
+        "daemon_cpu_us_per_op": 21.424752,
+        "caller_cpu_us_per_op": 13.29654,
+        "p50_us": 41.841,
+        "p95_us": 48.84,
+        "p99_us": 59.961
+      }
+    },
+    {
+      "block": 1,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "95f0c9110dfacf860bd396191f0d4930dc5c718caf10c8fbde5737e8f3a5baea",
+      "metrics": {
+        "mean_us": 16.9326204,
+        "wall_us_per_op": 17.0390974,
+        "daemon_cpu_us_per_op": 9.175168,
+        "caller_cpu_us_per_op": 9.368408,
+        "p50_us": 16.56,
+        "p95_us": 18.8,
+        "p99_us": 24.44
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "fa5490dee343e027127eef1dcc20fcc2e1684c104e13481a3a7a4a5b33d103dc",
+      "metrics": {
+        "mean_us": 16.8739887,
+        "wall_us_per_op": 16.983593,
+        "daemon_cpu_us_per_op": 9.213552,
+        "caller_cpu_us_per_op": 9.274768,
+        "p50_us": 16.52,
+        "p95_us": 18.92,
+        "p99_us": 24.0
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "e57a909f025124e82020140a7affd68fe675023cae8be43c0292d8416aff510b",
+      "metrics": {
+        "mean_us": 34.1955437,
+        "wall_us_per_op": 34.2505803,
+        "daemon_cpu_us_per_op": 19.433088,
+        "caller_cpu_us_per_op": 17.905456,
+        "p50_us": 33.601,
+        "p95_us": 38.48,
+        "p99_us": 46.96
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "ff297031617552fe9636b8b5b729f73f3c9abbad69868619f225bc7d9f121794",
+      "metrics": {
+        "mean_us": 43.286859,
+        "wall_us_per_op": 44.0678178,
+        "daemon_cpu_us_per_op": 21.43774,
+        "caller_cpu_us_per_op": 13.407072,
+        "p50_us": 42.201,
+        "p95_us": 48.8,
+        "p99_us": 60.12
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "3fcb209ad08cca64fc11fab9a3b16f991f535db3fbaa383cd22bb6e7112db1de",
+      "metrics": {
+        "mean_us": 15.062529,
+        "wall_us_per_op": 15.173474,
+        "daemon_cpu_us_per_op": 6.926208,
+        "caller_cpu_us_per_op": 8.552148,
+        "p50_us": 14.76,
+        "p95_us": 16.0,
+        "p99_us": 21.68
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "46382bdcd796972d97268ebaa8f06e1e2c3c089b46e8ffba72f8cb22766b7d18",
+      "metrics": {
+        "mean_us": 30.5706657,
+        "wall_us_per_op": 30.6250703,
+        "daemon_cpu_us_per_op": 15.18678,
+        "caller_cpu_us_per_op": 17.17866,
+        "p50_us": 29.92,
+        "p95_us": 34.68,
+        "p99_us": 43.96
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "41db18ed7526c424435eb8c56f1c15a2bcccbe6bc74f3275de56d5ee269575e4",
+      "metrics": {
+        "mean_us": 41.7442231,
+        "wall_us_per_op": 42.5182329,
+        "daemon_cpu_us_per_op": 17.899884,
+        "caller_cpu_us_per_op": 13.515748,
+        "p50_us": 41.081,
+        "p95_us": 45.84,
+        "p99_us": 56.44
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "b232acfd3601e8ccafb1d54dad584652b500d087bb7aef8f4a4ceafb07b03a1c",
+      "metrics": {
+        "mean_us": 17.1397101,
+        "wall_us_per_op": 17.2436792,
+        "daemon_cpu_us_per_op": 9.300152,
+        "caller_cpu_us_per_op": 9.47118,
+        "p50_us": 16.8,
+        "p95_us": 19.2,
+        "p99_us": 24.32
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "578d3155454294b5476af56838401bde7a319915a68128e0014d8e883f095b2a",
+      "metrics": {
+        "mean_us": 33.9100656,
+        "wall_us_per_op": 33.9586339,
+        "daemon_cpu_us_per_op": 19.104404,
+        "caller_cpu_us_per_op": 18.016028,
+        "p50_us": 33.28,
+        "p95_us": 38.28,
+        "p99_us": 46.961
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "8557d75e67ef33733065c47c6bbe5187a73bb17cb078cd20c5dffdea45289086",
+      "metrics": {
+        "mean_us": 43.2103702,
+        "wall_us_per_op": 43.9634209,
+        "daemon_cpu_us_per_op": 21.505272,
+        "caller_cpu_us_per_op": 13.52258,
+        "p50_us": 42.32,
+        "p95_us": 49.24,
+        "p99_us": 59.0
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "5505459391875266fd3fd0dda9b40213bdb822f30275b1af1c2cc619c5584249",
+      "metrics": {
+        "mean_us": 14.9241723,
+        "wall_us_per_op": 15.0290528,
+        "daemon_cpu_us_per_op": 6.758808,
+        "caller_cpu_us_per_op": 8.55746,
+        "p50_us": 14.521,
+        "p95_us": 15.84,
+        "p99_us": 22.6
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "bb457c7f0e4abd4266ae599cfc1c5045843bf86463c1e2dc932f5973517333f1",
+      "metrics": {
+        "mean_us": 31.159683,
+        "wall_us_per_op": 31.2078111,
+        "daemon_cpu_us_per_op": 15.457868,
+        "caller_cpu_us_per_op": 17.614044,
+        "p50_us": 30.481,
+        "p95_us": 35.28,
+        "p99_us": 44.28
+      }
+    },
+    {
+      "block": 2,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "088cac41e0fec33a7057ff0539d69e954734d1b1854c00a88210c28d6e0b89f0",
+      "metrics": {
+        "mean_us": 43.0452003,
+        "wall_us_per_op": 43.7947395,
+        "daemon_cpu_us_per_op": 18.592356,
+        "caller_cpu_us_per_op": 13.632032,
+        "p50_us": 41.0,
+        "p95_us": 52.401,
+        "p99_us": 62.721
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "286a6cb6943e4f7e035d5fd410deeceb23061417ad91e64c6eee7cfca1ce5efd",
+      "metrics": {
+        "mean_us": 15.1474659,
+        "wall_us_per_op": 15.2516746,
+        "daemon_cpu_us_per_op": 6.796876,
+        "caller_cpu_us_per_op": 8.726532,
+        "p50_us": 14.8,
+        "p95_us": 16.04,
+        "p99_us": 22.64
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "d7c7943815ecd3b34fc585fe6c3cffca31c0d6d26bb13c687cb3ffa12fb51f88",
+      "metrics": {
+        "mean_us": 41.4935755,
+        "wall_us_per_op": 42.2413587,
+        "daemon_cpu_us_per_op": 17.930272,
+        "caller_cpu_us_per_op": 13.400136,
+        "p50_us": 40.961,
+        "p95_us": 44.321,
+        "p99_us": 54.401
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "1ca2f73958d2405ae2213bd0dfa594eefd074008c869155441a8f3b4264b8b40",
+      "metrics": {
+        "mean_us": 30.7339312,
+        "wall_us_per_op": 30.7801555,
+        "daemon_cpu_us_per_op": 15.333596,
+        "caller_cpu_us_per_op": 17.327696,
+        "p50_us": 30.24,
+        "p95_us": 34.88,
+        "p99_us": 42.921
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "a9c458a9dfde4b4414860f9c1d33630f5cd6b5bf000100de081fa51b9008779f",
+      "metrics": {
+        "mean_us": 17.1495785,
+        "wall_us_per_op": 17.2581512,
+        "daemon_cpu_us_per_op": 9.349448,
+        "caller_cpu_us_per_op": 9.426508,
+        "p50_us": 16.8,
+        "p95_us": 19.04,
+        "p99_us": 24.44
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "6cce686efe5f2645f523de3eb72a61e578323c12e1a3c20f007abf6cd771c759",
+      "metrics": {
+        "mean_us": 43.0413654,
+        "wall_us_per_op": 43.7990836,
+        "daemon_cpu_us_per_op": 21.633996,
+        "caller_cpu_us_per_op": 13.304,
+        "p50_us": 42.161,
+        "p95_us": 49.881,
+        "p99_us": 60.121
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "09c960f9cd15999ea1a19c04af020225375802abd94b465697ce86350cb61f13",
+      "metrics": {
+        "mean_us": 34.7281643,
+        "wall_us_per_op": 34.7748806,
+        "daemon_cpu_us_per_op": 19.497024,
+        "caller_cpu_us_per_op": 18.231384,
+        "p50_us": 34.0,
+        "p95_us": 39.241,
+        "p99_us": 47.88
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "1ef76b7cf2b4df5d146cfb6468ff0d734550bc48cfd945abb6d16e9608ce28be",
+      "metrics": {
+        "mean_us": 14.8997917,
+        "wall_us_per_op": 15.0109246,
+        "daemon_cpu_us_per_op": 6.752452,
+        "caller_cpu_us_per_op": 8.493108,
+        "p50_us": 14.56,
+        "p95_us": 15.96,
+        "p99_us": 21.96
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "3c3821a5df689f002528c4a812ec53cab16d44d15aad0ad9c2e0c138c64a3ca6",
+      "metrics": {
+        "mean_us": 42.2916904,
+        "wall_us_per_op": 43.0697895,
+        "daemon_cpu_us_per_op": 17.981204,
+        "caller_cpu_us_per_op": 13.537484,
+        "p50_us": 41.64,
+        "p95_us": 46.16,
+        "p99_us": 58.961
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "866872ce2636b656deeb11ef5307f29667b7b0edefe2ae13eec4a4762cdc32f8",
+      "metrics": {
+        "mean_us": 30.7878597,
+        "wall_us_per_op": 30.841908,
+        "daemon_cpu_us_per_op": 15.284372,
+        "caller_cpu_us_per_op": 17.339528,
+        "p50_us": 30.24,
+        "p95_us": 35.0,
+        "p99_us": 43.24
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "7e294e2c432a20a989bdbcc1d41876b4d5aaac823bde229565b43d75ea594f6e",
+      "metrics": {
+        "mean_us": 16.8450596,
+        "wall_us_per_op": 16.9566327,
+        "daemon_cpu_us_per_op": 9.141264,
+        "caller_cpu_us_per_op": 9.27324,
+        "p50_us": 16.48,
+        "p95_us": 18.44,
+        "p99_us": 24.52
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "2a23d1310d61829a1eb7e6454f8f032b4093b16ad5d5481253af542a1e481f6d",
+      "metrics": {
+        "mean_us": 43.2215727,
+        "wall_us_per_op": 44.0014373,
+        "daemon_cpu_us_per_op": 21.207556,
+        "caller_cpu_us_per_op": 13.633148,
+        "p50_us": 42.48,
+        "p95_us": 48.841,
+        "p99_us": 59.401
+      }
+    },
+    {
+      "block": 3,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "e66812bb1c21ac0136a24a1a7c0e125d58a2c173c8881d6bebe4ad407edb3bf6",
+      "metrics": {
+        "mean_us": 34.4449261,
+        "wall_us_per_op": 34.4992744,
+        "daemon_cpu_us_per_op": 19.42924,
+        "caller_cpu_us_per_op": 18.059364,
+        "p50_us": 33.88,
+        "p95_us": 38.92,
+        "p99_us": 47.0
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "a1331feebb8f418f7bc1305025d820057c3d63c987e7d9c466f9bc8af3801d77",
+      "metrics": {
+        "mean_us": 42.6371784,
+        "wall_us_per_op": 43.4104724,
+        "daemon_cpu_us_per_op": 21.24512,
+        "caller_cpu_us_per_op": 13.397088,
+        "p50_us": 41.84,
+        "p95_us": 48.56,
+        "p99_us": 57.92
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "795febef66c4ec5e56931f0b06430b39d376b4a5377b63e79bd46b749346843a",
+      "metrics": {
+        "mean_us": 34.1207713,
+        "wall_us_per_op": 34.1675356,
+        "daemon_cpu_us_per_op": 19.134216,
+        "caller_cpu_us_per_op": 18.153804,
+        "p50_us": 33.52,
+        "p95_us": 38.6,
+        "p99_us": 46.96
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "f265d1ef457e116007e82f3f8a04785af833e9ece52106eb461f8cdffbfae070",
+      "metrics": {
+        "mean_us": 17.1451706,
+        "wall_us_per_op": 17.2498952,
+        "daemon_cpu_us_per_op": 9.386232,
+        "caller_cpu_us_per_op": 9.409268,
+        "p50_us": 16.84,
+        "p95_us": 18.801,
+        "p99_us": 24.161
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "6a880e1a0bb0e268c50bce6d451923bd49824c4b351890ac9c709b829d3fe511",
+      "metrics": {
+        "mean_us": 41.8857186,
+        "wall_us_per_op": 42.6738982,
+        "daemon_cpu_us_per_op": 17.948376,
+        "caller_cpu_us_per_op": 13.43546,
+        "p50_us": 40.96,
+        "p95_us": 45.681,
+        "p99_us": 57.841
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "c90519153e025d53902ee5ea72ecbb542c9002e16b14b73a082412c6eb1100f7",
+      "metrics": {
+        "mean_us": 30.9418926,
+        "wall_us_per_op": 30.9953973,
+        "daemon_cpu_us_per_op": 15.39088,
+        "caller_cpu_us_per_op": 17.387416,
+        "p50_us": 30.32,
+        "p95_us": 35.28,
+        "p99_us": 44.2
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "e222fd6719b1d45f1eff7fd9ca8bb98d36bf049a200a5027c643d631e9d439c2",
+      "metrics": {
+        "mean_us": 15.0936455,
+        "wall_us_per_op": 15.2043743,
+        "daemon_cpu_us_per_op": 6.780488,
+        "caller_cpu_us_per_op": 8.6838,
+        "p50_us": 14.76,
+        "p95_us": 16.08,
+        "p99_us": 22.72
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "f2df0e83cd8dba7cce9d76efb56c656a461132569244758f773893632875ce96",
+      "metrics": {
+        "mean_us": 41.6802175,
+        "wall_us_per_op": 42.4293242,
+        "daemon_cpu_us_per_op": 17.909152,
+        "caller_cpu_us_per_op": 13.478332,
+        "p50_us": 41.161,
+        "p95_us": 44.68,
+        "p99_us": 55.761
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "820dbd00ee02b57ae81e2ea8d4800e830edba15a21431784d382a5df9f9be97c",
+      "metrics": {
+        "mean_us": 30.469301,
+        "wall_us_per_op": 30.5172373,
+        "daemon_cpu_us_per_op": 15.172732,
+        "caller_cpu_us_per_op": 17.27876,
+        "p50_us": 29.84,
+        "p95_us": 34.681,
+        "p99_us": 43.961
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "f2f6b70bfcfec2ee81c329910b066ea46666d1b0819cf69114817bfb059b6f4f",
+      "metrics": {
+        "mean_us": 15.1330379,
+        "wall_us_per_op": 15.2377625,
+        "daemon_cpu_us_per_op": 6.78114,
+        "caller_cpu_us_per_op": 8.745548,
+        "p50_us": 14.76,
+        "p95_us": 16.2,
+        "p99_us": 23.72
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "c775cd6fb5d9368cbaa56a4afb1700b5b6c97202a1ad1112206635e38226c485",
+      "metrics": {
+        "mean_us": 43.0990556,
+        "wall_us_per_op": 43.8753322,
+        "daemon_cpu_us_per_op": 21.2554,
+        "caller_cpu_us_per_op": 13.513172,
+        "p50_us": 42.28,
+        "p95_us": 48.64,
+        "p99_us": 61.041
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "e3f897b279cae85c963a1ec62a56b4a6f0a78dfe49335a471eb624e343910b96",
+      "metrics": {
+        "mean_us": 34.1343795,
+        "wall_us_per_op": 34.1880838,
+        "daemon_cpu_us_per_op": 19.549008,
+        "caller_cpu_us_per_op": 17.8824,
+        "p50_us": 33.56,
+        "p95_us": 38.36,
+        "p99_us": 46.641
+      }
+    },
+    {
+      "block": 4,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "287541cda49dfd700262f95d574e22432d8cf9db277a127d7d5ee687b62ed5de",
+      "metrics": {
+        "mean_us": 17.0030773,
+        "wall_us_per_op": 17.1147701,
+        "daemon_cpu_us_per_op": 9.341012,
+        "caller_cpu_us_per_op": 9.328056,
+        "p50_us": 16.64,
+        "p95_us": 18.88,
+        "p99_us": 24.281
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "ac188d2aae9f70ed45f532477b9a53d619d40bdcca6adc5256e86a75fd6e8f8e",
+      "metrics": {
+        "mean_us": 42.8464207,
+        "wall_us_per_op": 43.6185821,
+        "daemon_cpu_us_per_op": 21.418744,
+        "caller_cpu_us_per_op": 13.383724,
+        "p50_us": 42.001,
+        "p95_us": 49.321,
+        "p99_us": 61.081
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "b720f1b5f282ccde54f03ef8622808bfd310c5726f4b34ff341707c08a09134d",
+      "metrics": {
+        "mean_us": 17.050034,
+        "wall_us_per_op": 17.1610664,
+        "daemon_cpu_us_per_op": 9.35858,
+        "caller_cpu_us_per_op": 9.341392,
+        "p50_us": 16.68,
+        "p95_us": 18.6,
+        "p99_us": 24.52
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "c",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "b7ca429fa442a03409aa5fd74eca0c21c8649839838029556dc2694ef3f90e4b",
+      "metrics": {
+        "mean_us": 33.9264619,
+        "wall_us_per_op": 33.9814901,
+        "daemon_cpu_us_per_op": 19.190344,
+        "caller_cpu_us_per_op": 17.94354,
+        "p50_us": 33.32,
+        "p95_us": 38.16,
+        "p99_us": 47.481
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "7d00b95dcafd9b377b11bc483cc94bdf9af0b451382cfc19febc7cd85980da51",
+      "metrics": {
+        "mean_us": 41.5657067,
+        "wall_us_per_op": 42.3198953,
+        "daemon_cpu_us_per_op": 18.140096,
+        "caller_cpu_us_per_op": 13.420972,
+        "p50_us": 41.04,
+        "p95_us": 44.041,
+        "p99_us": 55.32
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "d26741338f4644af36033116fb05c508466e883714a5434d3aa0ebfa3aa97035",
+      "metrics": {
+        "mean_us": 14.857983,
+        "wall_us_per_op": 14.9637882,
+        "daemon_cpu_us_per_op": 6.779188,
+        "caller_cpu_us_per_op": 8.502612,
+        "p50_us": 14.52,
+        "p95_us": 15.681,
+        "p99_us": 21.601
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "r136",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "22dee67d008130ee2814b57fd5cee46f045502f4c12d5953bd54ebff2661100b",
+      "metrics": {
+        "mean_us": 30.8347837,
+        "wall_us_per_op": 30.8861964,
+        "daemon_cpu_us_per_op": 15.412208,
+        "caller_cpu_us_per_op": 17.322008,
+        "p50_us": 30.24,
+        "p95_us": 35.04,
+        "p99_us": 43.801
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "invoke_1",
+      "raw_sha256": "d5336d5df7702ff1619b72c14eb1c62b077b2f516ae845e0b6292ccc84ceb086",
+      "metrics": {
+        "mean_us": 41.5749589,
+        "wall_us_per_op": 42.3398555,
+        "daemon_cpu_us_per_op": 18.016296,
+        "caller_cpu_us_per_op": 13.358164,
+        "p50_us": 41.041,
+        "p95_us": 44.721,
+        "p99_us": 55.72
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "lookup_1",
+      "raw_sha256": "32b577773727fa7c3f25c2c0ff4b516615c933d33a4929b39d22c02402dad39f",
+      "metrics": {
+        "mean_us": 15.3346794,
+        "wall_us_per_op": 15.4445722,
+        "daemon_cpu_us_per_op": 6.997796,
+        "caller_cpu_us_per_op": 8.732764,
+        "p50_us": 15.04,
+        "p95_us": 16.52,
+        "p99_us": 22.04
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "r136",
+      "caller": "new",
+      "lane": "register_1",
+      "raw_sha256": "6a6e59f4b9f9360c3a4d6660caf1896b90d54e3e84aff1bfdfb55577fd4345d6",
+      "metrics": {
+        "mean_us": 30.9328089,
+        "wall_us_per_op": 30.9855812,
+        "daemon_cpu_us_per_op": 15.416812,
+        "caller_cpu_us_per_op": 17.37864,
+        "p50_us": 30.361,
+        "p95_us": 35.0,
+        "p99_us": 43.241
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "invoke_1",
+      "raw_sha256": "ed70cd0d41c0fefe2a648cecc9bd22d757e70b7497c13d6f126735da659952ae",
+      "metrics": {
+        "mean_us": 43.4168043,
+        "wall_us_per_op": 44.1663666,
+        "daemon_cpu_us_per_op": 21.48664,
+        "caller_cpu_us_per_op": 13.341452,
+        "p50_us": 41.8,
+        "p95_us": 51.0,
+        "p99_us": 66.681
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "lookup_1",
+      "raw_sha256": "7dca0a072847269b5f08dda5fe24a0c798c1f154fb0e43ece0dd42be5e23409b",
+      "metrics": {
+        "mean_us": 17.0334336,
+        "wall_us_per_op": 17.1371182,
+        "daemon_cpu_us_per_op": 9.2456,
+        "caller_cpu_us_per_op": 9.405192,
+        "p50_us": 16.68,
+        "p95_us": 18.68,
+        "p99_us": 24.32
+      }
+    },
+    {
+      "block": 5,
+      "daemon": "c",
+      "caller": "old",
+      "lane": "register_1",
+      "raw_sha256": "3c87611d9d6a8077a9645f7c0eb4aa60aa57e9b9e374d751f1fdaaf635d3b9c6",
+      "metrics": {
+        "mean_us": 34.2017118,
+        "wall_us_per_op": 34.2479642,
+        "daemon_cpu_us_per_op": 19.138304,
+        "caller_cpu_us_per_op": 18.20932,
+        "p50_us": 33.52,
+        "p95_us": 38.68,
+        "p99_us": 49.761
+      }
+    }
+  ],
+  "performance_gate": true,
+  "router_acceptance": false,
+  "comparisons": [
+    {
+      "daemon": "c",
+      "lane": "register_1",
+      "metric": "mean_us",
+      "ratios_by_block": [
+        0.9789564532078694,
+        0.9896051144474907,
+        1.008418683212456,
+        0.991844135568087,
+        1.0003988245130906,
+        0.9919521601255058
+      ],
+      "median_delta_pct": -0.8101852153203606,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "register_1",
+      "metric": "p50_us",
+      "ratios_by_block": [
+        0.9856972586412396,
+        0.9916567342073898,
+        1.0096454326923077,
+        0.9964705882352941,
+        1.0011933174224343,
+        0.9940334128878282
+      ],
+      "median_delta_pct": -0.474799943843886,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "register_1",
+      "metric": "p95_us",
+      "ratios_by_block": [
+        0.9683995922528033,
+        0.9886363636363636,
+        1.0052246603970743,
+        0.9918197803317959,
+        0.9937823834196892,
+        0.9865563598759048
+      ],
+      "median_delta_pct": -0.9771928015920269,
+      "lower_blocks": 5,
+      "higher_blocks": 1,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "register_1",
+      "metric": "p99_us",
+      "ratios_by_block": [
+        0.9847410865874363,
+        0.9838510638297873,
+        0.9999787057345457,
+        0.9816207184628237,
+        0.9932069846678024,
+        0.9541809851088202
+      ],
+      "median_delta_pct": -1.5703924791388217,
+      "lower_blocks": 6,
+      "higher_blocks": 0,
+      "direction": "descriptive_lower"
+    },
+    {
+      "daemon": "c",
+      "lane": "register_1",
+      "metric": "daemon_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9899355797284005,
+        0.9894231816329134,
+        1.0172046194165492,
+        0.9965233668481918,
+        1.0216780243308636,
+        1.002719154215546
+      ],
+      "median_delta_pct": -0.03787394681311198,
+      "lower_blocks": 3,
+      "higher_blocks": 3,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "register_1",
+      "metric": "caller_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9840034500018706,
+        0.9870573550281342,
+        0.993862576146085,
+        0.9905646219727476,
+        0.9850497449460179,
+        0.9854041776409004
+      ],
+      "median_delta_pct": -1.3769233665482705,
+      "lower_blocks": 6,
+      "higher_blocks": 0,
+      "direction": "descriptive_lower"
+    },
+    {
+      "daemon": "c",
+      "lane": "register_1",
+      "metric": "wall_us_per_op",
+      "ratios_by_block": [
+        0.9791675439276272,
+        0.9898026128786613,
+        1.0085971185077618,
+        0.9920745608541356,
+        1.0006013954369013,
+        0.9922192718246301
+      ],
+      "median_delta_pct": -0.7853083660617148,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "lookup_1",
+      "metric": "mean_us",
+      "ratios_by_block": [
+        0.9853331356820499,
+        1.0067167985411165,
+        0.9844967389500946,
+        0.9822433595088066,
+        0.9917123425998455,
+        1.0009745774334071
+      ],
+      "median_delta_pct": -1.147726085905224,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "descriptive_lower"
+    },
+    {
+      "daemon": "c",
+      "lane": "lookup_1",
+      "metric": "p50_us",
+      "ratios_by_block": [
+        0.9858076009501188,
+        1.0072463768115942,
+        0.9833333333333333,
+        0.9809523809523809,
+        0.9881235154394299,
+        1.0
+      ],
+      "median_delta_pct": -1.3034441805225654,
+      "lower_blocks": 4,
+      "higher_blocks": 1,
+      "direction": "descriptive_lower"
+    },
+    {
+      "daemon": "c",
+      "lane": "lookup_1",
+      "metric": "p95_us",
+      "ratios_by_block": [
+        0.9830866807610994,
+        1.004255319148936,
+        0.9854166666666667,
+        0.9684873949579832,
+        1.0042019041540344,
+        0.9957173447537473
+      ],
+      "median_delta_pct": -0.9432994289793005,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "lookup_1",
+      "metric": "p99_us",
+      "ratios_by_block": [
+        0.9885245901639345,
+        1.0,
+        0.9868421052631579,
+        1.0032733224222585,
+        1.004966681842639,
+        1.0082236842105263
+      ],
+      "median_delta_pct": 0.16366612111292964,
+      "lower_blocks": 2,
+      "higher_blocks": 3,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "lookup_1",
+      "metric": "daemon_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9908628617335863,
+        1.0133264044865447,
+        0.9906883242338405,
+        0.9777330169652797,
+        0.9951823053169792,
+        1.0122198667474258
+      ],
+      "median_delta_pct": -0.6977416474717261,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "lookup_1",
+      "metric": "caller_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9854153793841091,
+        1.0016869461705766,
+        0.9792621405146983,
+        0.9837407447169195,
+        0.9913689353943367,
+        0.9932165127516801
+      ],
+      "median_delta_pct": -1.1607842610777113,
+      "lower_blocks": 5,
+      "higher_blocks": 1,
+      "direction": "descriptive_lower"
+    },
+    {
+      "daemon": "c",
+      "lane": "lookup_1",
+      "metric": "wall_us_per_op",
+      "ratios_by_block": [
+        0.9856758157989617,
+        1.0070455023045999,
+        0.9849170123740182,
+        0.9825289223332335,
+        0.9921666132789027,
+        1.001397446158713
+      ],
+      "median_delta_pct": -1.1078785461067826,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "descriptive_lower"
+    },
+    {
+      "daemon": "c",
+      "lane": "invoke_1",
+      "metric": "mean_us",
+      "ratios_by_block": [
+        0.9879816903185626,
+        1.079168367119234,
+        1.0017701491481321,
+        1.0041868397604319,
+        1.0108327337157939,
+        0.9868626074812236
+      ],
+      "median_delta_pct": 0.29784944542819936,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "invoke_1",
+      "metric": "p50_us",
+      "ratios_by_block": [
+        0.9867816498197498,
+        1.01336010133601,
+        0.9971880907372401,
+        1.0075662341974811,
+        1.0105162523900573,
+        1.0048086124401914
+      ],
+      "median_delta_pct": 0.6187423318836236,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "invoke_1",
+      "metric": "p95_us",
+      "ratios_by_block": [
+        1.0016530612244898,
+        1.1334971334971335,
+        0.9910641754670999,
+        0.9791503778994006,
+        1.00164744645799,
+        0.967078431372549
+      ],
+      "median_delta_pct": -0.3644189037454983,
+      "lower_blocks": 3,
+      "higher_blocks": 3,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "invoke_1",
+      "metric": "p99_us",
+      "ratios_by_block": [
+        1.0108010344652727,
+        1.1794499758176147,
+        1.0189830508474575,
+        0.9880241512948886,
+        1.0538846685082872,
+        0.9160180561179346
+      ],
+      "median_delta_pct": 1.4892042656365179,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "descriptive_higher"
+    },
+    {
+      "daemon": "c",
+      "lane": "invoke_1",
+      "metric": "daemon_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9972942973287335,
+        1.035370677802945,
+        0.9968597467634913,
+        0.9802884312264826,
+        1.0004838758265429,
+        0.9968400829538727
+      ],
+      "median_delta_pct": -0.29229779538875794,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "invoke_1",
+      "metric": "caller_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9770368857131719,
+        1.0264405627328614,
+        0.9914581389054455,
+        1.0247405291641611,
+        1.0086648680668515,
+        1.0031684707181796
+      ],
+      "median_delta_pct": 0.5916669392515621,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "c",
+      "lane": "invoke_1",
+      "metric": "wall_us_per_op",
+      "ratios_by_block": [
+        0.9888213334988193,
+        1.0783299242329762,
+        1.0023746309514325,
+        1.0046200441508781,
+        1.0107084713503371,
+        0.9875972478116414
+      ],
+      "median_delta_pct": 0.3497337551155353,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "register_1",
+      "metric": "mean_us",
+      "ratios_by_block": [
+        0.981245175414486,
+        1.019800187055411,
+        0.9810968134688661,
+        1.0017546892927254,
+        1.0155104181746737,
+        1.0031790461367822
+      ],
+      "median_delta_pct": 0.24668677147538187,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "register_1",
+      "metric": "p50_us",
+      "ratios_by_block": [
+        0.9907038512616202,
+        1.0,
+        0.9815950920245399,
+        1.0,
+        1.0160857908847185,
+        1.0040013227513227
+      ],
+      "median_delta_pct": 0.0,
+      "lower_blocks": 2,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "register_1",
+      "metric": "p95_us",
+      "ratios_by_block": [
+        0.9840546697038725,
+        1.0057626146788992,
+        0.9829931972789115,
+        1.003440366972477,
+        1.0172717049681381,
+        0.9988584474885844
+      ],
+      "median_delta_pct": 0.11494072305307695,
+      "lower_blocks": 3,
+      "higher_blocks": 3,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "register_1",
+      "metric": "p99_us",
+      "ratios_by_block": [
+        0.9553794642857143,
+        0.995518018018018,
+        0.992773261065944,
+        1.0074322592670255,
+        1.005436637019176,
+        0.9872149037693203
+      ],
+      "median_delta_pct": -0.5854360458018995,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "register_1",
+      "metric": "daemon_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9897773388475255,
+        1.018158798390919,
+        0.9824627820602427,
+        0.9967897941226572,
+        1.0143776348254223,
+        1.0002987242321153
+      ],
+      "median_delta_pct": -0.145574082261379,
+      "lower_blocks": 3,
+      "higher_blocks": 3,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "register_1",
+      "metric": "caller_cpu_us_per_op",
+      "ratios_by_block": [
+        0.989138732296461,
+        1.0058448734987708,
+        0.9752819965704639,
+        1.0006828374643693,
+        1.0062884142149089,
+        1.0032693669232804
+      ],
+      "median_delta_pct": 0.19761021938248347,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "register_1",
+      "metric": "wall_us_per_op",
+      "ratios_by_block": [
+        0.9814828414380816,
+        1.0200268545533187,
+        0.9813270851283767,
+        1.0020062439255708,
+        1.015668521868459,
+        1.003217774008586
+      ],
+      "median_delta_pct": 0.2612008967078365,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "lookup_1",
+      "metric": "mean_us",
+      "ratios_by_block": [
+        0.9887253881338431,
+        0.9804167284254838,
+        1.0092706447780693,
+        0.9836491330209893,
+        0.9973969271563115,
+        1.0320835203540077
+      ],
+      "median_delta_pct": -0.6938842354922691,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "lookup_1",
+      "metric": "p50_us",
+      "ratios_by_block": [
+        0.9890034833686223,
+        0.9785522788203753,
+        1.016458921561876,
+        0.9837837837837838,
+        1.0,
+        1.0358126721763086
+      ],
+      "median_delta_pct": -0.5498258315688819,
+      "lower_blocks": 3,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "lookup_1",
+      "metric": "p95_us",
+      "ratios_by_block": [
+        1.015267175572519,
+        0.9975186104218362,
+        1.0101010101010102,
+        0.9950124688279302,
+        0.9925925925925926,
+        1.0535042408009694
+      ],
+      "median_delta_pct": 0.3809810261423165,
+      "lower_blocks": 3,
+      "higher_blocks": 3,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "lookup_1",
+      "metric": "p99_us",
+      "ratios_by_block": [
+        0.994535519125683,
+        0.9875,
+        0.95929203539823,
+        0.9699646643109541,
+        0.9578414839797639,
+        1.0203231331882783
+      ],
+      "median_delta_pct": -2.126766784452297,
+      "lower_blocks": 5,
+      "higher_blocks": 1,
+      "direction": "descriptive_lower"
+    },
+    {
+      "daemon": "r136",
+      "lane": "lookup_1",
+      "metric": "daemon_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9760430927252663,
+        0.9789063152064222,
+        1.024767680928353,
+        0.9934640561340239,
+        0.9999038509749099,
+        1.0322469298682968
+      ],
+      "median_delta_pct": -0.33160464455331257,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "lookup_1",
+      "metric": "caller_cpu_us_per_op",
+      "ratios_by_block": [
+        1.001729461644572,
+        0.9747146364159653,
+        0.9993792550593283,
+        0.9732512296981206,
+        0.9929394933284913,
+        1.027068387925969
+      ],
+      "median_delta_pct": -0.3840625806090199,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "lookup_1",
+      "metric": "wall_us_per_op",
+      "ratios_by_block": [
+        0.98911921163535,
+        0.9804359356685438,
+        1.0096094678701242,
+        0.9842148481190387,
+        0.9978088515292189,
+        1.0321298319365413
+      ],
+      "median_delta_pct": -0.6535968417715531,
+      "lower_blocks": 4,
+      "higher_blocks": 2,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "invoke_1",
+      "metric": "mean_us",
+      "ratios_by_block": [
+        0.9986595534607143,
+        1.0143948245549872,
+        0.969776486322913,
+        1.0192346620020731,
+        1.0049304229278555,
+        1.0002225921495038
+      ],
+      "median_delta_pct": 0.25765075386796316,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "invoke_1",
+      "metric": "p50_us",
+      "ratios_by_block": [
+        1.0,
+        1.0097900390625,
+        1.0019756097560975,
+        1.0165767437318425,
+        0.995116736716795,
+        1.000024366471735
+      ],
+      "median_delta_pct": 0.09999881139162269,
+      "lower_blocks": 1,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "invoke_1",
+      "metric": "p95_us",
+      "ratios_by_block": [
+        1.009883198562444,
+        1.019538188277087,
+        0.8747924657926376,
+        1.0414927461022991,
+        1.0224037600716205,
+        1.0154401580345587
+      ],
+      "median_delta_pct": 1.748917315582287,
+      "lower_blocks": 1,
+      "higher_blocks": 5,
+      "direction": "descriptive_higher"
+    },
+    {
+      "daemon": "r136",
+      "lane": "invoke_1",
+      "metric": "p99_us",
+      "ratios_by_block": [
+        1.0014137184373937,
+        1.0336605890603086,
+        0.8998581017522042,
+        1.0838219885663867,
+        1.037302056993239,
+        1.007230657989877
+      ],
+      "median_delta_pct": 2.0445623525092818,
+      "lower_blocks": 1,
+      "higher_blocks": 5,
+      "direction": "descriptive_higher"
+    },
+    {
+      "daemon": "r136",
+      "lane": "invoke_1",
+      "metric": "daemon_cpu_us_per_op",
+      "ratios_by_block": [
+        1.0031701341370047,
+        1.0105196303776378,
+        0.9627550160937107,
+        1.002840559250858,
+        1.0021901651178124,
+        0.9931753393146321
+      ],
+      "median_delta_pct": 0.25153621843351903,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "invoke_1",
+      "metric": "caller_cpu_us_per_op",
+      "ratios_by_block": [
+        0.9993655376185423,
+        0.998311170590407,
+        0.9914697970192559,
+        1.0102497467189886,
+        0.9968191909800115,
+        0.9953201601195502
+      ],
+      "median_delta_pct": -0.24348192147907874,
+      "lower_blocks": 5,
+      "higher_blocks": 1,
+      "direction": "unresolved_within_1pct"
+    },
+    {
+      "daemon": "r136",
+      "lane": "invoke_1",
+      "metric": "wall_us_per_op",
+      "ratios_by_block": [
+        0.9989279851577322,
+        1.0145973042139038,
+        0.970852513005586,
+        1.0196118407526509,
+        1.005764268100221,
+        1.0004716505052411
+      ],
+      "median_delta_pct": 0.31179593027311636,
+      "lower_blocks": 2,
+      "higher_blocks": 4,
+      "direction": "unresolved_within_1pct"
+    }
+  ],
+  "primary": [
+    {
+      "daemon": "c",
+      "geometric_ratios_by_block": [
+        "0.984083127832835933595713195947",
+        "1.024439112225636521853905335216",
+        "0.998177441121507099989001110586",
+        "0.992717517667234376662501414980",
+        "1.000950796391759556461049631116",
+        "0.993245995812897179288997842333"
+      ],
+      "median_geometric_ratio": "0.9957117184672021396389994764595",
+      "median_delta_pct": -0.428828153279786,
+      "lower_blocks": 4,
+      "passed": false
+    },
+    {
+      "daemon": "r136",
+      "geometric_ratios_by_block": [
+        "0.989517684928969092766337418903",
+        "1.004718212931016522590573876605",
+        "0.986575634704465151111111286118",
+        "1.001440752975475793687971603348",
+        "1.005918513135224464626695098171",
+        "1.011726949586589384485775810269"
+      ],
+      "median_geometric_ratio": "1.0030794829532461581392727399765",
+      "median_delta_pct": 0.3079482953246158,
+      "lower_blocks": 2,
+      "passed": false
+    }
+  ],
+  "veto_items": 18,
+  "vetoes": [],
+  "screen_passed": false
+}
