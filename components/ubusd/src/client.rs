@@ -63,8 +63,9 @@ pub struct PendingCmd {
     pub next: Option<Vec<u8>>,
 }
 
-/// Shared stack space for one small frame. Larger frames are completed
-/// straight into their own storage. Reads never cross a frame boundary.
+/// Shared read-ahead space in the event loop. One recvmsg takes whatever the
+/// socket holds up to this size and complete frames are dispatched straight
+/// from it; a frame larger than this is completed in its own storage.
 pub(crate) const RX_SIZE: usize = 4096;
 
 /// A frame larger than the read-ahead buffer, being completed in place.
@@ -91,12 +92,23 @@ pub struct Client {
     /// Bytes still owed, which goes negative after a partial direct write.
     txq_len: i64,
     /// Only an incomplete frame survives a readiness round. Complete input
-    /// lives in the event loop's shared stack buffer during dispatch.
+    /// lives in the event loop's shared buffer during dispatch.
     rx: Vec<u8>,
+    /// Unconsumed input in the shared buffer during a round: rx_start is the
+    /// first byte of the next frame.
+    rx_start: usize,
     rx_end: usize,
-    /// Only the first descriptor received while filling this frame's prefix
-    /// is delivered. Body reads discard ancillary data, matching C.
+    /// A descriptor from the last recvmsg, with the buffer index one past the
+    /// last byte that read delivered and the index where the read began. The
+    /// kernel ends a read after the buffer carrying ancillary data, so the
+    /// frame holding that last byte owns the descriptor.
+    rx_fd: Option<(usize, usize, OwnedFd)>,
+    /// The descriptor owned by the frame at rx_start.
     pending_fd: Option<OwnedFd>,
+    /// The last recvmsg returned less than it was offered and carried no
+    /// descriptor, so the socket was empty; wait for readiness instead of
+    /// probing for EAGAIN (the readiness set is level-triggered).
+    rx_drained: bool,
     large: Option<LargeFrame>,
     pub eof: bool,
     /// Whether the readiness set currently asks for output events on this
@@ -120,8 +132,11 @@ impl Client {
             txq_ofs: 0,
             txq_len: 0,
             rx: Vec::new(),
+            rx_start: 0,
             rx_end: 0,
+            rx_fd: None,
             pending_fd: None,
+            rx_drained: false,
             large: None,
             eof: false,
             out_registered: false,
@@ -317,17 +332,41 @@ impl Client {
 
     /// Begin one readiness round, restoring only its unfinished frame.
     pub fn begin_read(&mut self, rx: &mut [u8; RX_SIZE]) {
+        self.rx_start = 0;
+        self.rx_end = self.rx.len();
+        self.rx_drained = false;
         if !self.rx.is_empty() {
             rx[..self.rx.len()].copy_from_slice(&self.rx);
             self.rx = Vec::new();
         }
     }
 
-    /// End a readiness round before the shared stack buffer serves a different
+    /// End a readiness round before the shared buffer serves a different
     /// client. Only incomplete bytes allocate; idle connections retain none.
     pub fn end_read(&mut self, rx: &[u8; RX_SIZE]) {
-        if self.rx_end != 0 {
-            self.rx = rx[..self.rx_end].to_vec();
+        self.settle_fd();
+        if self.rx_start < self.rx_end {
+            self.rx = rx[self.rx_start..self.rx_end].to_vec();
+        }
+        self.rx_start = 0;
+        self.rx_end = 0;
+    }
+
+    /// Give the last read's descriptor to the frame at rx_start, which holds
+    /// its last byte once every complete frame before it has been cut.
+    fn settle_fd(&mut self) {
+        if let Some((_, began, fd)) = self.rx_fd.take() {
+            self.adopt_fd(began, fd);
+        }
+    }
+
+    /// The frame at rx_start receives a descriptor that arrived in a read
+    /// beginning at `began`. C takes descriptors only while reading a prefix
+    /// and keeps the first: a frame whose prefix was already complete before
+    /// that read (C would be in its body read) or that has one closes it.
+    fn adopt_fd(&mut self, began: usize, fd: OwnedFd) {
+        if began < self.rx_start + PREFIX_LEN && self.pending_fd.is_none() {
+            self.pending_fd = Some(fd);
         }
     }
 
@@ -337,6 +376,8 @@ impl Client {
     pub fn read_message<'a>(&mut self, rx: &'a mut [u8; RX_SIZE]) -> io::Result<Option<InMsg<'a>>> {
         loop {
             if let Some(large) = &mut self.large {
+                // Like C's body read: never past this frame, and ancillary
+                // data arriving here is discarded by the kernel.
                 let n = match sys::read_fd(self.sock.as_raw_fd(), &mut large.blob[large.got..]) {
                     Ok(v) => v,
                     Err(e) if would_block(&e) => return Ok(None),
@@ -354,61 +395,76 @@ impl Client {
                 let done = self.large.take().expect("checked above");
                 return Ok(Some(InMsg { header: done.header, blob: Cow::Owned(done.blob), fd: done.fd }));
             }
-            if self.rx_end < PREFIX_LEN {
-                // A consuming recvmsg must stop at this prefix. Otherwise
-                // sendmsg(frame1 + frame2, fd) and send(frame1) followed by
-                // sendmsg(frame2, fd) can become indistinguishable.
-                let (n, fd) = match sys::recvmsg_fd(self.fd(), &mut rx[self.rx_end..PREFIX_LEN], self.pending_fd.is_none()) {
-                    Ok(v) => v,
-                    Err(e) if would_block(&e) => return Ok(None),
-                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                    Err(e) => return Err(e),
-                };
-                if let Some(fd) = fd { self.pending_fd = Some(fd); }
-                if n == 0 {
-                    self.eof = true;
-                    return Ok(None);
+            let s = self.rx_start;
+            if self.rx_end - s >= PREFIX_LEN {
+                let raw_len = blob_raw_len(&rx[s + Header::LEN..s + PREFIX_LEN]);
+                if raw_len < 4 || pad4(raw_len) > MAX_MSGLEN {
+                    return Err(io::Error::new(io::ErrorKind::InvalidData, "bad message length"));
                 }
-                self.rx_end += n;
-                if self.rx_end < PREFIX_LEN { return Ok(None); }
+                // The matching C daemon ignores hdr.version.
+                let header = Header {
+                    ty: rx[s + 1],
+                    seq: u16::from_be_bytes([rx[s + 2], rx[s + 3]]),
+                    peer: u32::from_be_bytes([rx[s + 4], rx[s + 5], rx[s + 6], rx[s + 7]]),
+                };
+                let total = Header::LEN + raw_len;
+                if total > RX_SIZE {
+                    // Every buffered byte from s belongs to this frame.
+                    self.settle_fd();
+                    let have = self.rx_end - s - Header::LEN;
+                    let mut blob = vec![0u8; raw_len];
+                    blob[..have].copy_from_slice(&rx[s + Header::LEN..self.rx_end]);
+                    self.rx_start = 0;
+                    self.rx_end = 0;
+                    self.large = Some(LargeFrame { header, blob, got: have, fd: self.pending_fd.take() });
+                    continue;
+                }
+                let e = s + total;
+                if e <= self.rx_end {
+                    if self.rx_fd.as_ref().is_some_and(|(last, _, _)| *last <= e) {
+                        self.settle_fd();
+                    }
+                    let fd = self.pending_fd.take();
+                    if e == self.rx_end {
+                        self.rx_start = 0;
+                        self.rx_end = 0;
+                    } else {
+                        self.rx_start = e;
+                    }
+                    return Ok(Some(InMsg { header, blob: Cow::Borrowed(&rx[s + Header::LEN..e]), fd }));
+                }
             }
-            let raw_len = blob_raw_len(&rx[Header::LEN..PREFIX_LEN]);
-            if raw_len < 4 || pad4(raw_len) > MAX_MSGLEN {
-                return Err(io::Error::new(io::ErrorKind::InvalidData, "bad message length"));
+            if self.rx_drained {
+                return Ok(None);
             }
-            // The matching C daemon ignores hdr.version.
-            let header = Header {
-                ty: rx[1],
-                seq: u16::from_be_bytes([rx[2], rx[3]]),
-                peer: u32::from_be_bytes([rx[4], rx[5], rx[6], rx[7]]),
-            };
-            let total = Header::LEN + raw_len;
-            if total > RX_SIZE {
-                let mut blob = vec![0u8; raw_len];
-                blob[..4].copy_from_slice(&rx[Header::LEN..PREFIX_LEN]);
+            // Only the frame at rx_start is buffered now; it owns any
+            // descriptor still unassigned. Move it to the front if its
+            // remaining bytes would not fit.
+            self.settle_fd();
+            if self.rx_start == self.rx_end {
+                self.rx_start = 0;
                 self.rx_end = 0;
-                self.large = Some(LargeFrame { header, blob, got: 4, fd: self.pending_fd.take() });
-                continue;
+            } else if self.rx_start > 0 {
+                rx.copy_within(self.rx_start..self.rx_end, 0);
+                self.rx_end -= self.rx_start;
+                self.rx_start = 0;
             }
-            if self.rx_end < total {
-                // Like C, body reads discard ancillary data and cannot steal
-                // bytes (or a descriptor) belonging to a later frame.
-                let n = match sys::read_fd(self.fd(), &mut rx[self.rx_end..total]) {
-                    Ok(v) => v,
-                    Err(e) if would_block(&e) => return Ok(None),
-                    Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
-                    Err(e) => return Err(e),
-                };
-                if n == 0 {
-                    self.eof = true;
-                    return Ok(None);
-                }
-                self.rx_end += n;
-                if self.rx_end < total { return Ok(None); }
+            let began = self.rx_end;
+            let (n, fd) = match sys::recvmsg_fd(self.fd(), &mut rx[began..], true) {
+                Ok(v) => v,
+                Err(e) if would_block(&e) => return Ok(None),
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e) => return Err(e),
+            };
+            if n == 0 {
+                self.eof = true;
+                return Ok(None);
             }
-            let blob = Cow::Borrowed(&rx[Header::LEN..total]);
-            self.rx_end = 0;
-            return Ok(Some(InMsg { header, blob, fd: self.pending_fd.take() }));
+            self.rx_end += n;
+            self.rx_drained = n < RX_SIZE - began && fd.is_none();
+            if let Some(fd) = fd {
+                self.rx_fd = Some((self.rx_end, began, fd));
+            }
         }
     }
 }
@@ -556,8 +612,8 @@ mod tests {
             peer.write_all(&frame).unwrap();
             c.begin_read(&mut rx);
             assert_frame(&c.read_message(&mut rx).unwrap().unwrap(), &frame);
-            assert_eq!(c.rx_end, 0);
-            assert!(c.pending_fd.is_none());
+            assert_eq!((c.rx_start, c.rx_end), (0, 0));
+            assert!(c.pending_fd.is_none() && c.rx_fd.is_none());
             assert!(c.read_message(&mut rx).unwrap().is_none());
             c.end_read(&rx);
             assert_eq!(c.rx.capacity(), 0);
@@ -581,7 +637,10 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     #[test]
-    fn fd_follows_prefix_boundary_when_frames_share_sendmsg() {
+    fn fd_goes_to_the_frame_holding_the_last_byte_of_its_read() {
+        // Separate sendmsgs (every libubus/ubusd/owrt-ubus sender) match C.
+        // One sendmsg carrying two frames plus a descriptor is the documented
+        // difference: C gives it to the first frame, read-ahead to the second.
         for fd_on_second in [false, true] {
             let (mut c, mut peer) = rx_pair();
             let first = rx_frame(101, 24);
@@ -599,8 +658,8 @@ mod tests {
             assert_eq!(got.len(), 2);
             assert_frame(&got[0], &first);
             assert_frame(&got[1], &second);
-            assert_eq!([got[0].fd.is_some(), got[1].fd.is_some()], [!fd_on_second, fd_on_second]);
-            let mut received = UnixStream::from(got[usize::from(fd_on_second)].fd.take().unwrap());
+            assert_eq!([got[0].fd.is_some(), got[1].fd.is_some()], [false, true]);
+            let mut received = UnixStream::from(got[1].fd.take().unwrap());
             witness.write_all(b"x").unwrap();
             received.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
             let mut byte = [0];
@@ -614,25 +673,49 @@ mod tests {
 
     #[cfg(target_os = "linux")]
     #[test]
-    fn fd_attached_to_body_is_discarded_before_the_next_frame() {
-        for bundle_next in [false, true] {
-            let (mut c, mut peer) = rx_pair();
-            let first = rx_frame(101, 24);
-            let second = rx_frame(102, 24);
-            peer.write_all(&first[..PREFIX_LEN]).unwrap();
-            let (sent, mut witness) = UnixStream::pair().unwrap();
-            let tail = if bundle_next { second.as_slice() } else { &[] };
-            assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &first[PREFIX_LEN..], tail, Some(sent.as_raw_fd())).unwrap(), first.len() - PREFIX_LEN + tail.len());
-            drop(sent);
-            if !bundle_next { peer.write_all(&second).unwrap(); }
-            let mut rx = [0; RX_SIZE];
-            let got = rx_round(&mut c, &mut rx);
-            assert_eq!(got.len(), 2);
-            assert_frame(&got[0], &first);
-            assert_frame(&got[1], &second);
-            assert!(got.iter().all(|msg| msg.fd.is_none()));
-            witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
-            assert_eq!(witness.read(&mut [0]).unwrap(), 0);
+    fn fd_attached_to_body_is_discarded_once_the_prefix_was_read() {
+        // C reads a body with read(2), which drops ancillary data. A read
+        // that begins after the frame's prefix therefore closes its
+        // descriptor. If the prefix and a descriptor-carrying body arrive in
+        // one read, read-ahead cannot see where that body began and delivers
+        // the descriptor with the frame holding the read's last byte -- the
+        // documented difference for descriptors not riding on a frame's
+        // first sendmsg, which no libubus/ubusd/owrt-ubus sender produces.
+        for prefix_read_first in [true, false] {
+            for bundle_next in [false, true] {
+                let (mut c, mut peer) = rx_pair();
+                let first = rx_frame(101, 24);
+                let second = rx_frame(102, 24);
+                let mut rx = [0; RX_SIZE];
+                let mut got = Vec::new();
+                peer.write_all(&first[..PREFIX_LEN]).unwrap();
+                if prefix_read_first {
+                    got.extend(rx_round(&mut c, &mut rx));
+                }
+                let (sent, mut witness) = UnixStream::pair().unwrap();
+                let tail = if bundle_next { second.as_slice() } else { &[] };
+                assert_eq!(sys::sendmsg_two(peer.as_raw_fd(), &first[PREFIX_LEN..], tail, Some(sent.as_raw_fd())).unwrap(), first.len() - PREFIX_LEN + tail.len());
+                drop(sent);
+                if !bundle_next { peer.write_all(&second).unwrap(); }
+                got.extend(rx_round(&mut c, &mut rx));
+                assert_eq!(got.len(), 2);
+                assert_frame(&got[0], &first);
+                assert_frame(&got[1], &second);
+                // Only a body-only read that ends inside the same frame is
+                // known to be C's body read; otherwise the last-byte frame
+                // owns the descriptor (the documented difference).
+                let owner = match (prefix_read_first, bundle_next) {
+                    (true, false) => None,
+                    (_, true) => Some(1),
+                    (false, false) => Some(0),
+                };
+                for (i, msg) in got.iter().enumerate() {
+                    assert_eq!(msg.fd.is_some(), owner == Some(i));
+                }
+                drop(got);
+                witness.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+                assert_eq!(witness.read(&mut [0]).unwrap(), 0);
+            }
         }
     }
 
