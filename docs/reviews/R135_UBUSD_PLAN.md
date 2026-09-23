@@ -25,3 +25,11 @@
 Oracle 和路由器同为 Linux/aarch64 只减少了一部分平台差异；微架构、内核、虚拟化和调度条件仍不同。[Linux CPU capacity 文档](https://docs.kernel.org/scheduler/sched-capacity.html)说明相同工作在不同 CPU 能力下也会有不同利用率。结构性削减可作筛选依据，尾延迟相关性必须用实机检验。
 
 本轮不能以大量候选增加“碰巧胜出”的机会：完整公开全部八组合，优选结果必须用新窗口确认；若 Oracle 不复现慢尾，记录不可迁移性，仅将结构诊断带回实机。
+
+## 预筛后的定向检查（实机采集前冻结）
+
+双组初筛 480 case 已完成，随后在同一 CPU 对串行复核 C、R134、`s0b1k1`、`s1b0k1` 各四块。服务器没有复现 R134 的实机厚慢尾。`s0b1k1` 注册有小幅延迟方向，CPU 更高；`s1b0k1` 不作为性能赢家，而因原 R130 的合并发送已出现尾部代价，保留作唤醒时序反证。
+
+因此实机仅做四窗、每窗四版本的定向诊断：C、R134、继续读到 EAGAIN（drain）、分开发 ADD（split）。四个 Williams 平衡顺序，客户端独核/允许 0–1 两条件交替，各 register_1/register_16/event_1 每窗 10,000 周期。守护进程始终 CPU 1，argv0/socket/ACL 相同。角色映射为主 candidate=drain、before=R134、额外 ELF=split；借用收集器的 event-benchmark 文件槽承载后者，实际调用角色在脚本明确记录。
+
+生成器为 `tools/r135/make_router_plan.py`，冻结输入哈希与窗口脚本保存在 ignored `private/r135/router-plan-01/plan.json`。这是少量假设判别窗，不能用四窗替代原 7/8 门或正式宣布胜利；若出现可重复改善，再用独立正式窗口验证。没有改变 R134 既有负项、±1%规则或生产状态。Oracle 功能门完成后才启动这四窗。

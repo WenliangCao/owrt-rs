@@ -1,0 +1,79 @@
+#!/bin/sh
+# R135 targeted diagnostic. Four existing ELFs, no deployment or verdict.
+set -eu
+if [ "${1:-}" = --namespace ]; then
+    exec /bin/sh "$(dirname "$0")/isolated.sh" "$@"
+fi
+[ "${1:-}" = --workload ] && [ "${OWRT_BENCH_NAMESPACE:-}" = 1 ] || exit 125
+[ "$2" = ubusd ] && [ "$3" = rs ] && [ "$4" = 10000 ] || exit 125
+unset LD_PRELOAD LD_LIBRARY_PATH
+bench=/tmp/bin/owrt-benchmark
+out=/tmp/out
+socket=/var/run/ubus/r135.sock
+mkdir -p /var/run/ubus /tmp/r135-acl
+sha256sum /tmp/bin/ubusd-rs > "$out/binary-sha256.txt"
+sha256sum /sbin/ubusd /tmp/bin/ubusd-rs /tmp/bin/before-rs /tmp/bin/event-benchmark "$bench" /tmp/bin/ns-exec > "$out/identities.txt"
+cat /proc/sys/kernel/random/boot_id > "$out/boot-id.txt"
+uname -r > "$out/kernel.txt"
+pid=
+cleanup() {
+    if [ -n "$pid" ]; then
+        kill "$pid" 2>/dev/null || true
+        wait "$pid" 2>/dev/null || true
+    fi
+    rm -f "$socket"
+}
+trap cleanup EXIT
+trap 'exit 130' HUP INT TERM
+for side in @ORDER@; do
+    case "$side" in
+        c) bin=/sbin/ubusd ;;
+        r134) bin=/tmp/bin/before-rs ;;
+        drain) bin=/tmp/bin/ubusd-rs ;;
+        split) bin=/tmp/bin/event-benchmark ;;
+        *) exit 125 ;;
+    esac
+    dest=$out/$side
+    mkdir "$dest"
+    "$bench" exec-cpu-as 1 "$bin" /sbin/ubusd -s "$socket" -A /tmp/r135-acl > "$dest/daemon.log" 2>&1 & pid=$!
+    tries=0
+    until ubus -s "$socket" -t 1 list >/dev/null 2>&1; do
+        kill -0 "$pid"; [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
+    done
+    [ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/$pid/status)" = 1 ]
+    printf '/sbin/ubusd\0-s\0%s\0-A\0/tmp/r135-acl\0' "$socket" > "$dest/expected.cmdline"
+    cat /proc/$pid/cmdline > "$dest/before.cmdline"
+    cmp "$dest/expected.cmdline" "$dest/before.cmdline"
+    sha256sum /proc/$pid/exe > "$dest/before-exe.sha256"
+    cat /proc/$pid/status > "$dest/before.status"
+    cat /proc/stat > "$dest/system-before.stat"
+    for affinity in @AFFINITIES@; do
+        for lane in register_1 register_16 event_1; do
+            case "$lane" in
+                register_1) set -- register-cycle "$socket" 1 8 10000 20 "$pid" ;;
+                register_16) set -- register-cycle "$socket" 16 8 10000 20 "$pid" ;;
+                event_1) set -- register-watch "$socket" 1 1 10000 20 "$pid" ;;
+            esac
+            if [ "$affinity" = split ]; then
+                "$bench" exec-cpu 0 "$bench" "$@" > "$dest/$affinity-$lane.json" 2> "$dest/$affinity-$lane.log"
+            else
+                [ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/self/status)" = 0-1 ]
+                "$bench" "$@" > "$dest/$affinity-$lane.json" 2> "$dest/$affinity-$lane.log"
+            fi
+            [ ! -s "$dest/$affinity-$lane.log" ]
+        done
+    done
+    cat /proc/$pid/status > "$dest/after.status"
+    cat /proc/stat > "$dest/system-after.stat"
+    sha256sum /proc/$pid/exe > "$dest/after-exe.sha256"
+    cmp "$dest/before-exe.sha256" "$dest/after-exe.sha256"
+    ubus -s "$socket" list > "$dest/objects-after.txt"
+    [ ! -s "$dest/objects-after.txt" ]
+    kill "$pid"
+    code=0; wait "$pid" 2>/dev/null || code=$?
+    [ "$code" -eq 0 ] || [ "$code" -eq 143 ]
+    pid=
+    rm -f "$socket"
+    touch "$dest/COMPLETE"
+done
+touch "$out/COMPLETE"
