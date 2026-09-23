@@ -13,7 +13,7 @@ import statistics
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
-for path in (ROOT / "tools", ROOT / "tools/benchmark", ROOT / "tools/r134"):
+for path in (ROOT / "tools", ROOT / "tools/benchmark", ROOT / "tools/r134", ROOT / "tools/r137"):
     sys.path.insert(0, str(path))
 import analyze_candidate
 import ubusd_report as matrix_report
@@ -24,6 +24,9 @@ import r124_event_memory_report as memory_raw
 import r131_stress_report as stress_report
 from r130_registration_report import archive_hashes, check, digest, hashes, read
 from make_completion_plan import CANDIDATE_SHA, C_SHA, HEALTH, RULES
+from resume_completion import owned_processes
+
+INTERRUPTED_PLAN_SHA = "937cdaa1bd9570cbe69c145eadc3f032f9f1eeba10ee86400f38829a8bee4d65"
 
 COMPONENTS = {"procd", "ubusd", "netifd", "rpcd", "logd", "httpd", "uci", "fw4", "reload-config"}
 FLAGS = {"--guard": "guard", "--recovery-gate": "recovery_gate",
@@ -299,6 +302,99 @@ def analyze_stress(root, plan):
             "limit": "One window per side is a functional check, not a performance comparison; slow sender ACK is not event-delivery latency."}
 
 
+def resume_events(path):
+    events = []
+    for line in path.read_text().splitlines():
+        if line.startswith('{'):
+            item = json.loads(line)
+            if item.get("event") in ("preserved", "started", "complete"):
+                events.append((item["event"], item["index"], item["side"]))
+    expected = [("preserved", i, side) for i, side in enumerate(matrix_report.ORDER[:12], 1)]
+    expected += [(event, i, side) for i, side in enumerate(matrix_report.ORDER[12:], 13)
+                 for event in ("started", "complete")]
+    check(events == expected, "resume must preserve 1–12 and measure only 13–16, exactly once")
+
+
+def verify_transport_recovery(root, plan, plan_sha):
+    audit = root / "transport-recovery"
+    resumed = list((root / "matrix").glob("resume-health-*.json"))
+    required = plan_sha == INTERRUPTED_PLAN_SHA or audit.exists() or resumed or (root / "matrix-continued.log").exists()
+    if not required:
+        return {"present": False}
+    check((audit / "recovery.json").is_file(), "interrupted collection requires its recovery record")
+    recovery = read(audit / "recovery.json")
+    expected = {"schema": 1, "window": "12-stock", "original_ssh_exit_observed": False,
+                "host_after_delayed": True, "remote_complete_existed_before_download": True,
+                "repeated_measurements": 0, "production_health_config_identity_unchanged": True,
+                "original_test_daemon_absent": True, "host_has_no_owned_test_mount": True,
+                "original_plan_sha256": plan_sha}
+    check(all(type(recovery.get(key)) is type(value) and recovery[key] == value for key, value in expected.items()),
+          "recovery record does not describe the original interruption")
+    provenance_path = (audit / recovery["provenance"]).resolve()
+    check(provenance_path.is_relative_to(audit.resolve()), "recovery provenance path escapes evidence")
+    provenance = read(provenance_path)
+    check(provenance["schema"] == 1 and provenance["original_plan_sha256"] == plan_sha and
+          provenance["actual_argv"] == recovery["actual_argv"], "recovery invocation provenance differs")
+    tool = "tools/r137/resume_completion.py"
+    check(provenance["tool_path"] == tool and provenance["tool_sha256"] == recovery["recovery_tool_sha256"] == digest(ROOT / tool),
+          "recovery tool identity differs")
+    invocation = provenance["actual_argv"]
+    check(len(invocation) == 3 and (ROOT / invocation[1]).resolve() == ROOT / tool and
+          invocation[2] == "--resume-transport" and provenance["resume_transport"] is True,
+          "recovery invocation must preserve the first attempt's downloaded evidence")
+    failed_log = (root / "continuation.log").read_text()
+    check("test ! -d /proc/40" in failed_log and "returned non-zero exit status 1" in failed_log,
+          "first recovery failure evidence differs")
+    first_invocation = read(root / "continuation-process.json")
+    check(first_invocation["argv"] == invocation[:2] and first_invocation["detached"] is True,
+          "first recovery invocation differs")
+    check(read(root / "continuation-process-02.json")["argv"] == invocation, "corrected detached invocation differs")
+    attempt = provenance_path.parent
+    baseline_health = read(root / "matrix/health-before.json")
+    check(read(attempt / "health.json") == baseline_health, "recovery production health differs")
+    check(len(resumed) == 1 and read(resumed[0]) == baseline_health, "resume health checkpoint differs")
+    remote = read(root / "matrix/collector.json")["remote"]
+    check(not owned_processes((attempt / "process-inventory.tsv").read_bytes(), remote), "owned process remained at recovery")
+    mounts = (attempt / "mountinfo.txt").read_bytes()
+    check(remote.encode() not in mounts and b"r84-isolated." not in mounts, "owned host mount remained at recovery")
+    preserved = {name: digest(root / "matrix" / name / "raw.tar.gz") for name in matrix_report.RUNS[:12]}
+    check(recovery["preserved_archive_sha256"] == preserved, "previously measured archives changed during recovery")
+    window = root / "matrix/12-stock"
+    check(recovery["host_after_sha256"] == digest(window / "host-after.json"), "delayed host-after was replaced")
+    check(recovery["raw_files_verified"] == len(archive_hashes(window)), "recovered raw file count differs")
+    commands = read(audit / "commands.json")
+    expected_commands = [{"name": step["name"], "argv": [invocation[0], *step["argv"],
+                         *(["--resume"] if step["name"] == "matrix" else [])]} for step in plan["steps"][2:]]
+    check([{key: command[key] for key in ("name", "argv")} for command in commands] == expected_commands,
+          "actual continuation commands differ from frozen steps plus matrix --resume")
+    resume_events(root / "matrix-continued.log")
+    end = read(window / "raw/resident.json")["uptime_s"]
+    delayed = read(window / "host-after.json")["uptime_s"]
+    next_start = read(root / "matrix/13-stock/host-before.json")["uptime_s"]
+    check(end < delayed < next_start, "recovery snapshot/pause chronology differs")
+    return {"present": True, "protocol_deviation": True, "window": "12-stock",
+            "original_plan_sha256": plan_sha, "original_ssh_exit_observed": False,
+            "host_after_delayed": True, "repeated_measurements": 0,
+            "tool_path": tool, "tool_sha256": provenance["tool_sha256"], "actual_argv": invocation,
+            "first_recovery_attempt": {"actual_argv": first_invocation["argv"],
+                                       "failure": "A namespace-local PID was incorrectly checked in the host PID namespace; SSH check returned 1 before any timing resumed.",
+                                       "failure_log_sha256": digest(root / "continuation.log"),
+                                       "invocation_record_sha256": digest(root / "continuation-process.json")},
+            "actual_continuation_commands": commands, "preserved_archive_sha256": preserved,
+            "recovered_at_unix_ns": recovery["recovered_at_unix_ns"],
+            "delayed_host_after_seconds_since_resident": delayed - end,
+            "pause_to_window13_seconds_since_resident": next_start - end,
+            "evidence_sha256": {"recovery": digest(audit / "recovery.json"), "provenance": digest(provenance_path),
+                                "commands": digest(audit / "commands.json"), "resume_log": digest(root / "matrix-continued.log"),
+                                **{name: digest(attempt / name) for name in ("health.json", "mountinfo.txt", "process-inventory.tsv")}},
+            "limitations": [
+                "The original SSH exit for window 12 was not observed; its completed raw evidence and recovery checks do not prove that missing exit was zero.",
+                "Window 12 host-after was captured later during recovery, not immediately after measurement; contemporaneous host state at completion is unavailable.",
+                "Collection paused after window 12 and before 13, between ABBA blocks and disjoint pairs. The same frozen samples and rules are retained; the pause remains a temporal limitation.",
+                "The first recovery attempt stopped at an invalid host lookup of a namespace-local PID. Its downloaded raw and delayed host-after were preserved; the corrected attempt verified host process ownership.",
+                "Continuation logs and preserved archive hashes verify no measured window was repeated. This is an explicitly disclosed execution deviation from the uninterrupted frozen collection."]}
+
+
 def analyze(root, plan_path):
     check(__debug__, "do not run with Python -O: reused auditors require assertions")
     plan = read(plan_path)
@@ -316,17 +412,20 @@ def analyze(root, plan_path):
     for path in plan["prerequisites"]:
         result = read(ROOT / path)
         check(result["candidate_sha256"] == CANDIDATE_SHA and all(result.get(key) is True for key in HEALTH), "correctness prerequisite")
+    recovery = verify_transport_recovery(root, plan, digest(plan_path))
     matrix, send, memory, stress = (analyze_matrix(root, plan), analyze_send(root, plan),
                                     analyze_memory(root, plan), analyze_stress(root, plan))
     return {"schema_version": 1, "scope": "R136 frozen physical completion coverage; no deployment",
             "verified": True, "physical_windows_verified": 46, "all_windows_cleaned_and_stock": True,
             "subjects": plan["subjects"], "plan_sha256": digest(plan_path),
             "reporter_sha256": digest(Path(__file__)), "frozen_input_sha256": plan["input_sha256"],
+            "transport_recovery": recovery,
             "rules": plan["rules"], "matrix": matrix, "direct_send": send, "memory": memory, "stress": stress,
             "limits": ["Prior R134/R135/R136 targeted and Oracle samples are not pooled into this independent completion series.",
                        "Primary decision uses the paired-percentage median ±1% band and 7/8 signs. Historical R134 side-median decisions remain separately named.",
                        "No global performance/adoption verdict, equivalence proof, multiplicity-adjusted significance, long-term stability or nine-Rust-component integration claim.",
-                       "Every timing metric and resident increase is retained, including unresolved higher medians; previous negative findings are not erased."]}
+                       "Every timing metric and resident increase is retained, including unresolved higher medians; previous negative findings are not erased.",
+                       *recovery.get("limitations", [])]}
 
 
 def public_report(report):
@@ -338,6 +437,24 @@ def public_report(report):
     result["subjects"] = {side: item["sha256"] for side, item in report["subjects"].items()}
     result["support_sha256"] = {path: value for path, value in report["frozen_input_sha256"].items()
                                 if path.startswith(("tools/", "docs/"))}
+    recovery = report["transport_recovery"]
+    result["transport_recovery"] = {key: value for key, value in recovery.items()
+                                    if key not in ("actual_argv", "actual_continuation_commands", "first_recovery_attempt")}
+    if recovery["present"]:
+        def redact_argv(argv):
+            return [Path(value).name if index == 0 else
+                    ("<private:" + Path(value).name + ">") if "private/" in value else
+                    value[value.index("tools/"):] if "tools/" in value else value
+                    for index, value in enumerate(argv)]
+        result["transport_recovery"]["actual_argv_redacted"] = redact_argv(recovery["actual_argv"])
+        result["transport_recovery"]["first_recovery_attempt"] = {
+            key: value for key, value in recovery["first_recovery_attempt"].items() if key != "actual_argv"}
+        result["transport_recovery"]["first_recovery_attempt"]["actual_argv_redacted"] = redact_argv(
+            recovery["first_recovery_attempt"]["actual_argv"])
+        result["transport_recovery"]["actual_continuation_commands_redacted"] = [
+            {"name": command["name"], "argv": redact_argv(command["argv"]),
+             "started_at_unix_ns": command["started_at_unix_ns"]}
+            for command in recovery["actual_continuation_commands"]]
     timing = ("lanes", "decision_counts", "all_higher_medians", "windows_verified", "tools", "limits")
     result["matrix"] = pick(report["matrix"], (*timing, "sources", "order", "records", "resident",
                                                 "raw_files_verified", "production_process_verification",
