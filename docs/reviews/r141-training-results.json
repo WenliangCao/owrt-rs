@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "passed": true,
+  "frozen_plan_sha256": "1c7611cc90a925300c540352eb7c08b2349bb8239775ad901beaec9a25dce9ed",
+  "instrumented_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+  "profdata_tool_sha256": "c7160d195180796edf7cc4c3f087f72b5425fc9ec2d9734b956a265e506f982e",
+  "profdata_sha256": "566a73250308a19e97715b40ff2b2f4043f07ed836b89b205d50d810ef07c4f8",
+  "profdata_bytes": 95640,
+  "merged_once": true,
+  "no_timing_selection": true,
+  "smoke_excluded": true,
+  "merged_counters": {
+    "Total functions": 322,
+    "Maximum function count": 4466453,
+    "Maximum internal block count": 3665960,
+    "Total number of blocks": 3892,
+    "Total count": 51559052
+  },
+  "training_commit": "20fd3fb",
+  "training_result_sha256": "81059d6cc19d3845f39654f1075f4cb904822ca5d92f881354339ee6678b05dc",
+  "archive_sha256": "eb3d955031225fb7a12948dbc2ff7e896e9c156ff34063c72ee8a8dee9335f2c",
+  "profiles": [
+    {
+      "class": "registration",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "aa8fc7f05991d5a3a055215c7b3aed15a1f7127049e84a94da212ff43d4b06fb",
+      "profile_bytes": 60632,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 173585,
+        "Maximum internal block count": 2360552,
+        "Total number of blocks": 3892,
+        "Total count": 4935796
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 4
+    },
+    {
+      "class": "lookup",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "c8d57579b256d6d0808455a1498c5fdb9f1ace227e83b4433047efd38deb082c",
+      "profile_bytes": 61608,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 3992047,
+        "Maximum internal block count": 1662001,
+        "Total number of blocks": 3892,
+        "Total count": 32462226
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 9
+    },
+    {
+      "class": "invoke",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "797563956b7ba1e647071d0a490d1097b358a400c6ed45217be2eae1985e0b08",
+      "profile_bytes": 60760,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 42284,
+        "Maximum internal block count": 42296,
+        "Total number of blocks": 3892,
+        "Total count": 719818
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 5
+    },
+    {
+      "class": "object_events",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "b1e58ffdacef308b12a4fbae5f0d5e9da870663cf1fb6906eca1036327a5b064",
+      "profile_bytes": 60904,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 138400,
+        "Maximum internal block count": 242998,
+        "Total number of blocks": 3892,
+        "Total count": 2805433
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 3
+    },
+    {
+      "class": "user_events",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "052e8af746d5d1f93d382d1958e61ba5b5daf7ffa3a85b00b3910c0e1abfca68",
+      "profile_bytes": 60680,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 93146,
+        "Maximum internal block count": 93164,
+        "Total number of blocks": 3892,
+        "Total count": 1840579
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 3
+    },
+    {
+      "class": "ownership",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "53c46aab61e6435a0267e69f704ad6b67edbccdef8f7e5cfc1fdf5e3d63b15af",
+      "profile_bytes": 60888,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 288217,
+        "Maximum internal block count": 273327,
+        "Total number of blocks": 3892,
+        "Total count": 6527586
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 3
+    },
+    {
+      "class": "transport",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "c02484bbf5f9e8eebaf8e0c044882c92b73e850d71b81f97a1fb65b8797d2443",
+      "profile_bytes": 61640,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 66777,
+        "Maximum internal block count": 1280066,
+        "Total number of blocks": 3892,
+        "Total count": 2239088
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 3
+    },
+    {
+      "class": "lifecycle",
+      "passed": true,
+      "daemon_pid": 35,
+      "daemon_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+      "daemon_exit": 0,
+      "profile_sha256": "226c1d7c696ba54de73cfacd21a6284b62042d17bda151308b3ec93ce1d5b7a2",
+      "profile_bytes": 61768,
+      "counters": {
+        "Total functions": 322,
+        "Maximum function count": 1140,
+        "Maximum internal block count": 1193,
+        "Total number of blocks": 3892,
+        "Total count": 28526
+      },
+      "profile_file": "profile-35.profraw",
+      "commands": 6
+    }
+  ],
+  "profile_environment": "LLVM_PROFILE_FILE=/tmp/out/profile-%p.profraw",
+  "per_class_namespace": true,
+  "normal_daemon_exits": 8,
+  "raw_count": 8,
+  "counter_sum_matches_merge": true,
+  "no_retries": true,
+  "smoke": {
+    "schema": 1,
+    "passed": true,
+    "candidate_sha256": "9452594e10f36ea2008382ea513525e5bdadfa7f32bf954031f1fca36a7451c9",
+    "profile_count": 1,
+    "daemon_exit": 0,
+    "profile_sha256": "183abe1b2d6e195956fabe259124de3a078275c06406fe15fc88e78d86550f35",
+    "profile_bytes": 60600,
+    "counters": {
+      "Total functions": 322,
+      "Maximum function count": 610,
+      "Maximum internal block count": 509,
+      "Total number of blocks": 3892,
+      "Total count": 13286
+    },
+    "excluded_from_training": true,
+    "default_directory_empty": true
+  },
+  "affinity": {
+    "daemon": "1",
+    "rust_callers_default": "0-1",
+    "providers": "0",
+    "native_event_callers": "0"
+  },
+  "documentation_correction": "Frozen prose caller/provider CPU0-1 was imprecise: provider commands actually pin CPU0; frozen commands and collected data are unchanged.",
+  "scope": "Training validity only; no performance or adoption conclusion."
+}
