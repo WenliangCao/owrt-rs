@@ -11,7 +11,7 @@ import subprocess
 
 CANONICAL = '/home/ubuntu/r135/repo'
 RECIPE_SHA = '1fb454a9c3ce2e8973c160e1a1184679f693790f976fe2f2a2aa3f8ca08b4167'
-NAMESPACE = '''set -euo pipefail
+NAMESPACE = r'''set -euo pipefail
 source=$1 recipe=$2 out=$3 host_ns=$4
 [[ $(id -u) == 0 && $(readlink /proc/self/ns/mnt) != "$host_ns" ]]
 [[ $(findmnt --noheadings --output PROPAGATION /) == private ]]
