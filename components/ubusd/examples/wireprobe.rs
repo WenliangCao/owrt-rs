@@ -692,22 +692,32 @@ fn fd_boundary(sock: &str) -> bool {
 
     fd_sys::ignore_signal(fd_sys::SIGPIPE);
     let baseline = fd_count();
+    // C's placement for each case. The first three are how libubus, C ubusd
+    // and owrt-ubus send (a descriptor rides on the sendmsg that starts its
+    // frame) and must match. The last three hand-craft a descriptor on a
+    // sendmsg that also carries another frame's bytes or starts mid-frame;
+    // a read-ahead receiver may place it differently (R134 contract), so they
+    // are reported, while witness, single delivery and no-leak still assert.
     let cases = [
-        ("separate_waited", [1, 0]),
-        ("separate_queued", [1, 0]),
-        ("plain_first_then_fd_second", [0, 1]),
-        ("bundled", [1, 0]),
-        ("fd_in_first_body", [0, 0]),
-        ("fd_on_first_body_plus_second_frame", [0, 0]),
+        ("separate_waited", [1, 0], true),
+        ("separate_queued", [1, 0], true),
+        ("plain_first_then_fd_second", [0, 1], true),
+        ("bundled", [1, 0], false),
+        ("fd_in_first_body", [0, 0], false),
+        ("fd_on_first_body_plus_second_frame", [0, 0], false),
     ];
     let mut compatible = true;
-    for (mode, expected) in cases {
+    for (mode, expected, sender_framed) in cases {
         let counts = run_case(sock, mode);
         assert_eq!(fd_count(), baseline, "probe leaked descriptors");
         let matches = counts == expected;
-        compatible &= matches;
-        println!("case={mode} invoke_order=first,second seq=101,102 fds={},{} witness=true no_leak=true compatible={matches}",
-                 counts[0], counts[1]);
+        if sender_framed {
+            compatible &= matches;
+            println!("case={mode} invoke_order=first,second seq=101,102 fds={},{} witness=true no_leak=true compatible={matches}",
+                     counts[0], counts[1]);
+        } else {
+            println!("case={mode} invoke_order=first,second seq=101,102 witness=true no_leak=true handcrafted c_placement={matches}");
+        }
     }
     println!("fd_boundary compatible={compatible} cases=6");
     compatible
