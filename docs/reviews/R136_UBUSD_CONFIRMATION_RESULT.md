@@ -56,7 +56,7 @@
 
 冻结计划中的“原版 libubus 调用者”是文字误写。本轮实际使用统一的 **Rust `owrt_ubus::Connection` benchmark**，三侧均为同一个 `85dd537a070e39373a4a21a6bf982da9359bc70e61e53cdf93516b9c34684b1d`。计划和实测 ELF 身份一致，测量期间没有修改冻结文件；本轮不作原版 libubus 调用者性能结论。
 
-本页结果只属于实测 combined ELF `ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330`。**当前源码的 canonical 构建身份尚未复现确认**：source02 重建得到不同 SHA，主线正在核查，不能把新产物当作已通过本轮的同一 ELF，也不能直接宣称当前 HEAD 性能已确认。
+本页结果属于实测 combined ELF `ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330`。**source02／主线 `195e45f` 已用原固定源码根和全新 target 逐字复现该 ELF**。先前不同 SHA 来自构建源码绝对路径变化；已测产物未被替换。后续复现须使用[已验证 recipe](R136_BUILD_IDENTITY.md)。本轮不同候选使用不同 work_root，路径引发的代码布局也是筛选混杂因素，不能把微小差距精确归因某个结构修改；精确 ELF 的实机对比仍有效。
 
 三个运行时优化和两处 examples 接口同步已通过 `195e45f` 采纳到源码，最终 release ELF 身份核验仍单独待办。这不是 ubusd 完结、全面胜 C 或达到语言极限。本候选的完整性能矩阵和内存负载尚未重跑，本页也不覆盖九组件协同。±1% 是预定工程带，不是 A/A 证明的等效区间；这些描述性规则没有多指标显著性校正。
 

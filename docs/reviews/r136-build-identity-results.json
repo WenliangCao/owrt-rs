@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "passed": true,
+  "conclusion": "The measured combined ELF is reproducible from source02/main195e45f when the original absolute source root is fixed. Changing source root altered Cargo dependency identity and code bytes; this was not runtime source drift.",
+  "builds": {
+    "tested": {
+      "source_root": "/tmp/owrt-build/r135/r136-combined-01",
+      "source_snapshot": "source01",
+      "fresh_target": false,
+      "release_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "release_size": 514771,
+      "before_sstrip_sha256": "8d86a8dc876cab195089b4b369408b72c712f3cd13d79bc085ceb014e75c0528",
+      "before_sstrip_size": 516072
+    },
+    "changed_root": {
+      "source_root": "/tmp/owrt-build/r135/r136-combined-verify-02",
+      "source_snapshot": "source02",
+      "fresh_target": true,
+      "release_sha256": "52114e36dd5aa4f3edc692021de27d3c2dbcaaf15a0537a8b8dbe2a140f76d54",
+      "release_size": 514771,
+      "before_sstrip_sha256": "1f91ddc2df89b018426770be3adad9d6970e1a1639555120f4fd1f919c3edfec",
+      "before_sstrip_size": 516072
+    },
+    "fresh_target_original_source": {
+      "source_root": "/tmp/owrt-build/r135/r136-combined-01",
+      "source_snapshot": "source01",
+      "fresh_target": true,
+      "release_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "release_size": 514771,
+      "before_sstrip_sha256": "8d86a8dc876cab195089b4b369408b72c712f3cd13d79bc085ceb014e75c0528",
+      "before_sstrip_size": 516072
+    },
+    "fresh_target_source02": {
+      "source_root": "/tmp/owrt-build/r135/r136-combined-01",
+      "source_snapshot": "source02",
+      "fresh_target": true,
+      "release_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "release_size": 514771,
+      "before_sstrip_sha256": "8d86a8dc876cab195089b4b369408b72c712f3cd13d79bc085ceb014e75c0528",
+      "before_sstrip_size": 516072
+    }
+  },
+  "changed_root_section_differences": {
+    ".text": {
+      "same_size": true,
+      "differing_byte_positions": 2876
+    },
+    ".eh_frame_hdr": {
+      "same_size": true,
+      "differing_byte_positions": 74
+    },
+    ".eh_frame": {
+      "same_size": true,
+      "differing_byte_positions": 803
+    },
+    ".data.rel.ro": {
+      "same_size": true,
+      "differing_byte_positions": 24
+    }
+  },
+  "source01_to_source02_changed_files": [
+    "ubusd/examples/profile.rs",
+    "ubusd/examples/registry_memory.rs"
+  ],
+  "runtime_cargo_lock_and_manifest_identical": true,
+  "main_commit": "195e45f",
+  "main_30_snapshot_files_equal_source02": true,
+  "canonical_recipe": {
+    "builder": "tools/r135/build_variant.sh",
+    "builder_sha256": "da5692bb202c7ee10ce7d1f56966dfc06262101e8e96ef4e133c745db90c3bc5",
+    "source_root": "/tmp/owrt-build/r135/r136-combined-01",
+    "cwd": "/home/ubuntu",
+    "toolchain": "1.98.1-aarch64-unknown-linux-gnu",
+    "rustc_commit": "48a229ceaefd4985c50990b14116b6d856af0985",
+    "target": "aarch64-unknown-linux-musl",
+    "linker": "aarch64-openwrt-linux-musl-gcc (OpenWrt 25.12.5 SDK GCC 14.3.0)",
+    "profile": {
+      "opt_level": 3,
+      "lto": true,
+      "codegen_units": 1,
+      "panic": "abort",
+      "strip": true
+    },
+    "postprocess": "SDK sstrip -z",
+    "flags_file": "tools/r135/build_variant.sh",
+    "source_sha256": {
+      "ubus/Cargo.lock": "47030840ec94a66a3c0c05d7ccd1b61cd49becb3d23eb76c1357099108929893",
+      "ubus/Cargo.toml": "104190ac358c75cb88227979ec3729efa476a0e6487fb7f13fcab84e9608ebff",
+      "ubus/src/blob.rs": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
+      "ubus/src/conn.rs": "3b8a0df7a5c6c3e87655803fd2a308f410037e61d30101dfa1d277e5f72d6c7b",
+      "ubus/src/connect.rs": "b4b8b513d307298850eedc6dc8d84169992e7a6c87653e7962a419feaf403839",
+      "ubus/src/convert.rs": "ebd8bb0fb548c56682f07e3540542629c154d97c1a42486872e047ba24ca8fd1",
+      "ubus/src/digest.rs": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+      "ubus/src/json.rs": "51156077f48c21224334d40b343f8014e7a1a05ddf7bdbefae4248acdaa12642",
+      "ubus/src/lib.rs": "e4428a12658e12901790f266e62306ed3f5690849ae4438a51b696d3806402bf",
+      "ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+      "ubus/src/readiness.rs": "ae672d38dd336addda0fe6b64630ae9d95c236996b0eeb119fecdd94f1b49721",
+      "ubus/src/sys.rs": "0e658ac462ad368efecf81bc0d091cbbfe1931f8d469881eb362614bc50338e5",
+      "ubusd/Cargo.lock": "36afe0e3be4ea65398fffedfba3fd939578ce113dfba0d34face047384b44c96",
+      "ubusd/Cargo.toml": "e4e158586f13cd14c262e690d7edd80fc010eb14ba1bd72c75233a7169d16665",
+      "ubusd/examples/bench.rs": "a8c7a6b5d49cceb594a3f81d4d2a0f15b1a062ba61ebd1044db7c5ef15882d95",
+      "ubusd/examples/connection_memory.rs": "6fbb1531b11e86844a80500c0817f3968f8cb2e5c633459d44677b86a8a94f68",
+      "ubusd/examples/event_memory.rs": "ee6b043c330116c4f148b2bcd99d50766fa0280764ed663e82fd0373b9110b53",
+      "ubusd/examples/fuzz.rs": "600ef79150f31d9218a76b91db13bf9f91d4b2fc994eb1a12d10eda520cf62ba",
+      "ubusd/examples/heap_support/mod.rs": "01d0572e7e26b603b30e63fa76e09451bab80229eb1ebb8a72ed2abda7b267d2",
+      "ubusd/examples/method_memory.rs": "ad3a0bf928de8a33240d226986a330a5040d3b5805ab4f8e2c1d583f999f8eda",
+      "ubusd/examples/profile.rs": "c25a8f9119c3d93164edc82affe28ecab05cf53f73c1d262dc6564f9b1da8762",
+      "ubusd/examples/registration_memory.rs": "95fbbd96c0b1d2c4c5e1cd7b304e440942b9dd38acc9e79f29fa8c018a43ced2",
+      "ubusd/examples/registry_memory.rs": "b8e3471a7bdcc974268f59b1d92a700938776dad47c7f74a5f9fea0751b9fa3b",
+      "ubusd/examples/wireprobe.rs": "9b28020a1e0ffb101c6dbd0ef6cc33de467c73a553c60e978ba476605ab3b940",
+      "ubusd/src/acl.rs": "4da8ba56df2fc1d87eccd27b3612d2a860f3fc0b1c00570bc0dd9a9d95e0007f",
+      "ubusd/src/client.rs": "08aa80e27f404d0316101af2ea9a52c39c14b1f6e76b8d3356a9ae94c043e5d5",
+      "ubusd/src/main.rs": "e9f14b79baf54777f2897d3b7bf14a233c28d80c537a897e9d754010055b1cb4",
+      "ubusd/src/obj.rs": "c23aa5a11a74efd3b91f61bfc0499165d2fbbe748c87407b83c2df62fda718d2",
+      "ubusd/src/server.rs": "438ba02dc9180b1fd52d55ce965217856862666922bae7968c2dd3d536e33805",
+      "ubusd/src/sys.rs": "f35e2cb52f550309256852ec1226497532781a88601f353824a9cc302bf01187"
+    },
+    "output_and_target_directory_may_be_new": true
+  },
+  "cargo_dependency_path_fingerprint": {
+    "original_root": 5879673876014263723,
+    "changed_root": 14288679624558716278
+  },
+  "evidence": {
+    "elf-comparison.json": "33387da3b3c88193c9b7e6dd9b0f4ff46d0a2dd06ede2e991200f5bda021d824",
+    "original-source-root.tar.gz": "1db98dd2299249b4c736091175d9766f2abdf0a7ec23e446f0ee29d707d42385",
+    "original-source-sha256.json": "f5b5aad3fd836739b4d35238ec9c6f794df2d23b0f5258facd71b8d92f141670",
+    "source02-source-sha256.json": "7ab95bb926ae044e9516d788f420289fd4cf8d45f3fb550961599bf733b1e9cd",
+    "rebuild-original-root.sh": "b2a0cf7ccab6a5e8a29375f6829cd03a136056da81f33fcd84075adf793cb374",
+    "rebuild-original-root.log": "005a1a786f1a53db5404ef0e79c5f837b58a4090dc4a3d7b6fe55dd84238b3a7",
+    "rebuild-source02-original-root.sh": "5ba8783bca5386ea23901994da0301a002c6089b52de73226c7c1e8545d6b91b",
+    "rebuild-source02-original-root.log": "923b5ce4655d5d628d9256ac4cb8a79e1d8a834324fbab1af8dd16eb44c78161"
+  },
+  "limitations": [
+    "This round built candidates at different work roots, so small differences cannot be attributed solely to algorithm/source edits.",
+    "This confounding does not invalidate exact-ELF router comparisons; it limits attribution of individual code changes.",
+    "The internal compiler/linker ordering mechanism was not exhaustively traced.",
+    "Future parallel comparisons should bind each independent build namespace to the same absolute source root; no new screening or ELF replacement was performed in this diagnosis."
+  ]
+}
