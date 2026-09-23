@@ -80,7 +80,13 @@
           ]
         ]
       },
-      "body_alternatives": "Prefix/body writes may be read together or separately; both obey the explicit receive-call contract."
+      "body_alternatives": "Prefix/body writes may be read together or separately; both obey the explicit receive-call contract.",
+      "negative_control": {
+        "candidate_substituted_with": "exact C",
+        "exit": 1,
+        "complete_marker_absent": true,
+        "purpose": "Wrong receive contract must be rejected; not a defect claim about C."
+      }
     }
   },
   "prefix": {
