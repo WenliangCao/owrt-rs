@@ -1,0 +1,1137 @@
+{
+  "schema": 1,
+  "scope": "R136 independent combined source review, exact Oracle candidate gates, and completed physical-router correctness gates; no performance or deployment verdict",
+  "review": {
+    "decision": "No blocking correctness defect found in the reviewed combined runtime diff; scoped evidence does not prove absence of every bug.",
+    "base_commit": "db6a6b6",
+    "runtime_changed_files": {
+      "ubusd/src/obj.rs": {
+        "base_sha256": "ea30946904852f6b6c75a828a1fff41408c4a23cafe3ea374e8296026ff9759d",
+        "combined_sha256": "c23aa5a11a74efd3b91f61bfc0499165d2fbbe748c87407b83c2df62fda718d2"
+      },
+      "ubusd/src/server.rs": {
+        "base_sha256": "16bab6e2cc3f743612ddf4307150323f47cedc070df311fea81d21cd413d234e",
+        "combined_sha256": "438ba02dc9180b1fd52d55ce965217856862666922bae7968c2dd3d536e33805"
+      }
+    },
+    "source01_source02_runtime_equal": true,
+    "entry_and_id_collisions": "Random occupied IDs retry without incrementing a type reference; fixed occupied IDs return AlreadyExists before mutation. Vacant insertion takes exactly one type reference. new_type retains methods until a vacant entry; no existing object/type is overwritten.",
+    "type_reference_lifetime": "Temporary ADD reference is released after create, failed publication destroys the object and its reference, and destroy removes the type only after its last reference. Occupied-entry removal preserves the previous zero-count condition.",
+    "borrowed_path": "cstr_bytes and ACL/duplicate checks precede Rc allocation. Rc<[u8]>::from copies before the received buffer can be reused; the map and object own cloned Rc handles. Event dispatch clones Rc before mutating server state. Existing set_path valid-object/single-bind precondition remains unchanged.",
+    "strings_and_wire": "Object-event method names are fixed NUL-free bytes. The only runtime set_path caller canonicalizes at the first NUL, so msg_string_bytes truncation cannot change a stored path. Both new writers append one terminator and retain raw non-UTF8 bytes; type/header/padding/nesting are unchanged.",
+    "not_claimed": [
+      "Forced random-ID collisions were structurally reviewed, not fault-injected.",
+      "Reference counter overflow behavior is pre-existing and unchanged.",
+      "Passing wire cases are a finite corpus, not exhaustive behavioral equivalence."
+    ]
+  },
+  "candidates": {
+    "combined": {
+      "passed": true,
+      "candidate_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "reference_sha256": {
+        "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "r131": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "frozen_verify03_probe": "c7b9945410b5588d4374bd6999194655ad6212ff49bcf311ea0548301e84d74f"
+      },
+      "wire_scenarios": {
+        "object_events": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+            "before": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+            "candidate": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec"
+          }
+        },
+        "events": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+            "before": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+            "candidate": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5"
+          }
+        },
+        "monitor": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+            "before": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+            "candidate": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34"
+          }
+        },
+        "release": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+            "before": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+            "candidate": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5"
+          }
+        },
+        "utf8": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+            "before": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+            "candidate": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4"
+          }
+        },
+        "monitor_lookup": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+            "before": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+            "candidate": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd"
+          }
+        },
+        "method_acl": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+            "before": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+            "candidate": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc"
+          }
+        }
+      },
+      "fd": {
+        "summary": {
+          "passed": true,
+          "cases_per_side": 6,
+          "c_r131_all_equal": true,
+          "candidate_sender_framed_c_equal": true,
+          "candidate_handcrafted_contract": "read_ahead; all three contract_match=true; C placement is not required for these three"
+        },
+        "transcripts": {
+          "c": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "fd_boundary compatible=true cases=6"
+          ],
+          "before": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "fd_boundary compatible=true cases=6"
+          ],
+          "candidate": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=read_ahead expected=0,0|1,0 contract_match=true c_placement=false",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+            "fd_boundary compatible=true cases=6"
+          ]
+        }
+      },
+      "recovery": [
+        {
+          "side": "original",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": false,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "observations": {
+            "cpu_seconds_in_0_8s": 0.0,
+            "reply_status": null,
+            "paths": [
+              "r92.a",
+              "r92.m0000",
+              "r92.m0001",
+              "r92.m0002",
+              "r92.m0003",
+              "r92.m0004",
+              "r92.m0005",
+              "r92.m0006",
+              "r92.m0007",
+              "r92.m0008",
+              "r92.m0009",
+              "r92.m0010",
+              "r92.m0011",
+              "r92.m0012",
+              "r92.m0013",
+              "r92.m0014",
+              "r92.m0015",
+              "r92.m0016",
+              "r92.m0017",
+              "r92.m0018",
+              "r92.m0019",
+              "r92.m0020"
+            ],
+            "subject_exit": null
+          },
+          "expected_original_failures": {
+            "complete_reply": false
+          },
+          "original_failure_not_reproduced": [],
+          "passed": true
+        },
+        {
+          "side": "original",
+          "case": "ubusd_lookup_delete",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_duplicate": false,
+            "continued_to_end": false,
+            "serving": false
+          },
+          "observations": {
+            "subject_exit": -11
+          },
+          "expected_original_failures": {
+            "no_duplicate": false,
+            "continued_to_end": false,
+            "serving": false
+          },
+          "original_failure_not_reproduced": [],
+          "passed": true
+        },
+        {
+          "side": "candidate",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": true,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "observations": {
+            "cpu_seconds_in_0_8s": 0.0,
+            "reply_status": 0,
+            "paths": [
+              "r92.a",
+              "r92.m0000",
+              "r92.m0001",
+              "r92.m0002",
+              "r92.m0003",
+              "r92.m0004",
+              "r92.m0005",
+              "r92.m0006",
+              "r92.m0007",
+              "r92.m0008",
+              "r92.m0009",
+              "r92.m0010",
+              "r92.m0011",
+              "r92.m0012",
+              "r92.m0013",
+              "r92.m0014",
+              "r92.m0015",
+              "r92.m0016",
+              "r92.m0017",
+              "r92.m0018",
+              "r92.m0019",
+              "r92.m0020",
+              "r92.m0021",
+              "r92.m0022",
+              "r92.m0023",
+              "r92.m0024",
+              "r92.m0025",
+              "r92.m0026",
+              "r92.m0027",
+              "r92.m0028",
+              "r92.m0029",
+              "r92.m0030",
+              "r92.m0031",
+              "r92.m0032",
+              "r92.m0033",
+              "r92.m0034",
+              "r92.m0035",
+              "r92.m0036",
+              "r92.m0037",
+              "r92.m0038",
+              "r92.m0039",
+              "r92.m0040",
+              "r92.m0041",
+              "r92.m0042",
+              "r92.m0043",
+              "r92.m0044",
+              "r92.m0045",
+              "r92.m0046",
+              "r92.m0047",
+              "r92.m0048",
+              "r92.m0049",
+              "r92.m0050",
+              "r92.m0051",
+              "r92.m0052",
+              "r92.m0053",
+              "r92.m0054",
+              "r92.m0055",
+              "r92.m0056",
+              "r92.m0057",
+              "r92.m0058",
+              "r92.m0059",
+              "r92.m0060",
+              "r92.m0061",
+              "r92.m0062",
+              "r92.m0063",
+              "r92.m0064",
+              "r92.m0065",
+              "r92.m0066",
+              "r92.m0067",
+              "r92.m0068",
+              "r92.m0069",
+              "r92.m0070",
+              "r92.m0071",
+              "r92.m0072",
+              "r92.m0073",
+              "r92.m0074",
+              "r92.m0075",
+              "r92.m0076",
+              "r92.m0077",
+              "r92.m0078",
+              "r92.m0079",
+              "r92.m0080",
+              "r92.m0081",
+              "r92.m0082",
+              "r92.m0083",
+              "r92.m0084",
+              "r92.m0085",
+              "r92.m0086",
+              "r92.m0087",
+              "r92.m0088",
+              "r92.m0089",
+              "r92.m0090",
+              "r92.m0091",
+              "r92.m0092",
+              "r92.m0093",
+              "r92.m0094",
+              "r92.m0095",
+              "r92.m0096",
+              "r92.m0097",
+              "r92.m0098",
+              "r92.m0099",
+              "r92.m0100",
+              "r92.m0101",
+              "r92.m0102",
+              "r92.m0103",
+              "r92.m0104",
+              "r92.m0105",
+              "r92.m0106",
+              "r92.m0107",
+              "r92.m0108",
+              "r92.m0109",
+              "r92.m0110",
+              "r92.m0111",
+              "r92.m0112",
+              "r92.m0113",
+              "r92.m0114",
+              "r92.m0115",
+              "r92.m0116",
+              "r92.m0117",
+              "r92.m0118",
+              "r92.m0119",
+              "r92.m0120",
+              "r92.m0121",
+              "r92.m0122",
+              "r92.m0123",
+              "r92.m0124",
+              "r92.m0125",
+              "r92.m0126",
+              "r92.m0127",
+              "r92.z"
+            ],
+            "subject_exit": null
+          },
+          "expected_original_failures": {},
+          "original_failure_not_reproduced": [],
+          "passed": true
+        },
+        {
+          "side": "candidate",
+          "case": "ubusd_lookup_delete",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_duplicate": true,
+            "continued_to_end": true,
+            "serving": true
+          },
+          "observations": {
+            "paths": [
+              "r92.a",
+              "r92.m0000",
+              "r92.m0001",
+              "r92.m0002",
+              "r92.m0003",
+              "r92.m0004",
+              "r92.m0005",
+              "r92.m0006",
+              "r92.m0007",
+              "r92.m0008",
+              "r92.m0009",
+              "r92.z"
+            ],
+            "subject_exit": null
+          },
+          "expected_original_failures": {},
+          "original_failure_not_reproduced": [],
+          "passed": true
+        }
+      ],
+      "owned_processes_remaining": [],
+      "evidence": {
+        "root": "private/r136/correctness-combined-01",
+        "result_sha256": "cbe9d1ee959d7888eec6150cc3d2615b8d9684b5df71228792a02f09e36035d6",
+        "archive_files_verified": 99,
+        "sha256sums_sha256": "e27dfed2bc3faa0239b0f570558963dd8a621e93ba518534b6bff2fd366f039c"
+      },
+      "unit_tests": {
+        "label": "combined",
+        "passed": 55,
+        "failed": 0,
+        "scope": "ubusd-rs binary unit tests only",
+        "candidate_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+        "test_sha256": "fc80fe5f5af3ac52313c3ee9738990a3f0b8ba4c665d20ea35b70000099e8d5a",
+        "log": "private/r136/units-01/combined-bin/tests.log",
+        "log_sha256": "8115635bd7a779cfe1f30e9216eeb999faead79b3f6785e766964f2863852d82"
+      }
+    },
+    "sendmmsg_raw": {
+      "passed": true,
+      "candidate_sha256": "c3cf584e4e516f96df03ac087d52a1e2c8051c37c7ba927498ca2e1fe74927ad",
+      "reference_sha256": {
+        "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "r131": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "frozen_verify03_probe": "c7b9945410b5588d4374bd6999194655ad6212ff49bcf311ea0548301e84d74f"
+      },
+      "wire_scenarios": {
+        "object_events": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+            "before": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+            "candidate": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec"
+          }
+        },
+        "events": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+            "before": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+            "candidate": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5"
+          }
+        },
+        "monitor": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+            "before": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+            "candidate": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34"
+          }
+        },
+        "release": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+            "before": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+            "candidate": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5"
+          }
+        },
+        "utf8": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+            "before": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+            "candidate": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4"
+          }
+        },
+        "monitor_lookup": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+            "before": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+            "candidate": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd"
+          }
+        },
+        "method_acl": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+            "before": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+            "candidate": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc"
+          }
+        }
+      },
+      "fd": {
+        "summary": {
+          "passed": true,
+          "cases_per_side": 6,
+          "c_r131_all_equal": true,
+          "candidate_sender_framed_c_equal": true,
+          "candidate_handcrafted_contract": "read_ahead; all three contract_match=true; C placement is not required for these three"
+        },
+        "transcripts": {
+          "c": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "fd_boundary compatible=true cases=6"
+          ],
+          "before": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "fd_boundary compatible=true cases=6"
+          ],
+          "candidate": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=read_ahead expected=0,0|1,0 contract_match=true c_placement=false",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+            "fd_boundary compatible=true cases=6"
+          ]
+        }
+      },
+      "recovery": [
+        {
+          "side": "original",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": false,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "observations": {
+            "cpu_seconds_in_0_8s": 0.0,
+            "reply_status": null,
+            "paths": [
+              "r92.a",
+              "r92.m0000",
+              "r92.m0001",
+              "r92.m0002",
+              "r92.m0003",
+              "r92.m0004",
+              "r92.m0005",
+              "r92.m0006",
+              "r92.m0007",
+              "r92.m0008",
+              "r92.m0009",
+              "r92.m0010",
+              "r92.m0011",
+              "r92.m0012",
+              "r92.m0013",
+              "r92.m0014",
+              "r92.m0015",
+              "r92.m0016",
+              "r92.m0017",
+              "r92.m0018",
+              "r92.m0019",
+              "r92.m0020"
+            ],
+            "subject_exit": null
+          },
+          "expected_original_failures": {
+            "complete_reply": false
+          },
+          "original_failure_not_reproduced": [],
+          "passed": true
+        },
+        {
+          "side": "original",
+          "case": "ubusd_lookup_delete",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_duplicate": false,
+            "continued_to_end": false,
+            "serving": false
+          },
+          "observations": {
+            "subject_exit": -11
+          },
+          "expected_original_failures": {
+            "no_duplicate": false,
+            "continued_to_end": false,
+            "serving": false
+          },
+          "original_failure_not_reproduced": [],
+          "passed": true
+        },
+        {
+          "side": "candidate",
+          "case": "ubusd_halfclose",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_read_spin": true,
+            "complete_reply": true,
+            "closed_after_reply": true,
+            "serving": true
+          },
+          "observations": {
+            "cpu_seconds_in_0_8s": 0.0,
+            "reply_status": 0,
+            "paths": [
+              "r92.a",
+              "r92.m0000",
+              "r92.m0001",
+              "r92.m0002",
+              "r92.m0003",
+              "r92.m0004",
+              "r92.m0005",
+              "r92.m0006",
+              "r92.m0007",
+              "r92.m0008",
+              "r92.m0009",
+              "r92.m0010",
+              "r92.m0011",
+              "r92.m0012",
+              "r92.m0013",
+              "r92.m0014",
+              "r92.m0015",
+              "r92.m0016",
+              "r92.m0017",
+              "r92.m0018",
+              "r92.m0019",
+              "r92.m0020",
+              "r92.m0021",
+              "r92.m0022",
+              "r92.m0023",
+              "r92.m0024",
+              "r92.m0025",
+              "r92.m0026",
+              "r92.m0027",
+              "r92.m0028",
+              "r92.m0029",
+              "r92.m0030",
+              "r92.m0031",
+              "r92.m0032",
+              "r92.m0033",
+              "r92.m0034",
+              "r92.m0035",
+              "r92.m0036",
+              "r92.m0037",
+              "r92.m0038",
+              "r92.m0039",
+              "r92.m0040",
+              "r92.m0041",
+              "r92.m0042",
+              "r92.m0043",
+              "r92.m0044",
+              "r92.m0045",
+              "r92.m0046",
+              "r92.m0047",
+              "r92.m0048",
+              "r92.m0049",
+              "r92.m0050",
+              "r92.m0051",
+              "r92.m0052",
+              "r92.m0053",
+              "r92.m0054",
+              "r92.m0055",
+              "r92.m0056",
+              "r92.m0057",
+              "r92.m0058",
+              "r92.m0059",
+              "r92.m0060",
+              "r92.m0061",
+              "r92.m0062",
+              "r92.m0063",
+              "r92.m0064",
+              "r92.m0065",
+              "r92.m0066",
+              "r92.m0067",
+              "r92.m0068",
+              "r92.m0069",
+              "r92.m0070",
+              "r92.m0071",
+              "r92.m0072",
+              "r92.m0073",
+              "r92.m0074",
+              "r92.m0075",
+              "r92.m0076",
+              "r92.m0077",
+              "r92.m0078",
+              "r92.m0079",
+              "r92.m0080",
+              "r92.m0081",
+              "r92.m0082",
+              "r92.m0083",
+              "r92.m0084",
+              "r92.m0085",
+              "r92.m0086",
+              "r92.m0087",
+              "r92.m0088",
+              "r92.m0089",
+              "r92.m0090",
+              "r92.m0091",
+              "r92.m0092",
+              "r92.m0093",
+              "r92.m0094",
+              "r92.m0095",
+              "r92.m0096",
+              "r92.m0097",
+              "r92.m0098",
+              "r92.m0099",
+              "r92.m0100",
+              "r92.m0101",
+              "r92.m0102",
+              "r92.m0103",
+              "r92.m0104",
+              "r92.m0105",
+              "r92.m0106",
+              "r92.m0107",
+              "r92.m0108",
+              "r92.m0109",
+              "r92.m0110",
+              "r92.m0111",
+              "r92.m0112",
+              "r92.m0113",
+              "r92.m0114",
+              "r92.m0115",
+              "r92.m0116",
+              "r92.m0117",
+              "r92.m0118",
+              "r92.m0119",
+              "r92.m0120",
+              "r92.m0121",
+              "r92.m0122",
+              "r92.m0123",
+              "r92.m0124",
+              "r92.m0125",
+              "r92.m0126",
+              "r92.m0127",
+              "r92.z"
+            ],
+            "subject_exit": null
+          },
+          "expected_original_failures": {},
+          "original_failure_not_reproduced": [],
+          "passed": true
+        },
+        {
+          "side": "candidate",
+          "case": "ubusd_lookup_delete",
+          "exit": 0,
+          "checks": {
+            "identity": true,
+            "no_duplicate": true,
+            "continued_to_end": true,
+            "serving": true
+          },
+          "observations": {
+            "paths": [
+              "r92.a",
+              "r92.m0000",
+              "r92.m0001",
+              "r92.m0002",
+              "r92.m0003",
+              "r92.m0004",
+              "r92.m0005",
+              "r92.m0006",
+              "r92.m0007",
+              "r92.m0008",
+              "r92.m0009",
+              "r92.z"
+            ],
+            "subject_exit": null
+          },
+          "expected_original_failures": {},
+          "original_failure_not_reproduced": [],
+          "passed": true
+        }
+      ],
+      "owned_processes_remaining": [],
+      "evidence": {
+        "root": "private/r136/correctness-sendmmsg-raw-01",
+        "result_sha256": "cee7e6767c408382b2b9b3d4df29d9040b19805b9373078e930b1adfaa615661",
+        "archive_files_verified": 99,
+        "sha256sums_sha256": "1e312a018db99ad483b010f5e15dc195bbc53d7c20a14602ac59e6671427851a"
+      },
+      "unit_tests": {
+        "passed": 59,
+        "failed": 0,
+        "scope": "SDK musl static daemon binary tests from runtime-identical raw source; not the release executable",
+        "log": "private/r136-sendmmsg/sdk-tests-raw.txt",
+        "log_sha256": "4446fe3531730e278f723dbc927580565d85d48db01e2b9975a511ad62f78aee",
+        "runtime_source_equal_to_screen_source": true
+      }
+    }
+  },
+  "retained_rejections": [
+    {
+      "candidate": "sendmmsg_libc_draft",
+      "decision": "Rejected before performance screening",
+      "patch": "tools/r136/sendmmsg-add.patch",
+      "patch_sha256": "2d9cf8030aa4ca2d3539477dfaeefd8be4574176846dc67ae7f7f067a462555a",
+      "reason": "64-bit musl sendmmsg emulates multiple sendmsg calls without the Linux syscall short-entry stop. It violates the one-syscall hypothesis and could send the next frame after a short first entry.",
+      "initial_tests_passed": 59,
+      "initial_test_success_does_not_validate_draft": true,
+      "observed_syscall_trace": "private/r136-sendmmsg/sdk-libc-sendmmsg-syscalls.txt",
+      "trace_sha256": "8acadbe3f33a0fae21704d04121dc28b558d1f5995e98200b94265078bf0bc48",
+      "corrected_raw_patch": "tools/r136/sendmmsg-add-raw.patch",
+      "corrected_raw_patch_sha256": "6a7170bbd47b78f8e4e7b609f8e91a9207103e74171b2ed95dede3fcdc67c37b",
+      "corrected_raw_trace": "private/r136-sendmmsg/sdk-raw-sendmmsg-syscalls.txt",
+      "corrected_raw_trace_sha256": "a4826dcca2ea450f580ccb5444ced301febbb11c83054c1a2e0fcb031ca84a07"
+    },
+    {
+      "path": "private/r136/units-01/path/artifacts.jsonl",
+      "kind": "full cargo test build failed before running tests",
+      "cause": "path set_path borrowed API did not update registry_memory example; profile example also retained old Vec call",
+      "resolved_by_root_source_02": true,
+      "full_examples_recheck_pending": false,
+      "full_examples_recheck": "private/r136/units-02/audit.json"
+    }
+  ],
+  "source02_compile_only": {
+    "schema": 1,
+    "scope": "source02 separate test overlay; all-target compile-only, no performance test",
+    "fixed_roots": [
+      "/tmp/owrt-build/r135/r136-tests02-path",
+      "/tmp/owrt-build/r135/r136-tests02-combined"
+    ],
+    "source01_to_source02_changes": {
+      "path": [
+        "ubusd/examples/profile.rs",
+        "ubusd/examples/registry_memory.rs"
+      ],
+      "combined": [
+        "ubusd/examples/profile.rs",
+        "ubusd/examples/registry_memory.rs"
+      ]
+    },
+    "overlay_support": {
+      "git_commit": "db6a6b6",
+      "git_path": "components/rpcd/examples/profile_support",
+      "reason": "profile example has a relative include outside the reduced ubus+ubusd snapshot",
+      "archive_sha256": "0369026e3a4ff8b766bf8ed698d6a2995f72968c3b6a6cc892e6957227b43d7d"
+    },
+    "no_runtime_source_difference": true,
+    "passed": true,
+    "cases": [
+      {
+        "label": "path",
+        "cargo_test_no_run": "passed",
+        "examples_compiled": [
+          "bench",
+          "connection_memory",
+          "event_memory",
+          "fuzz",
+          "method_memory",
+          "profile",
+          "registration_memory",
+          "registry_memory",
+          "wireprobe"
+        ],
+        "test_target_compiled": true,
+        "tests_executed": false,
+        "source02_file_count_verified": 30,
+        "build_log": "private/r136/units-02/path/build.log"
+      },
+      {
+        "label": "combined",
+        "cargo_test_no_run": "passed",
+        "examples_compiled": [
+          "bench",
+          "connection_memory",
+          "event_memory",
+          "fuzz",
+          "method_memory",
+          "profile",
+          "registration_memory",
+          "registry_memory",
+          "wireprobe"
+        ],
+        "test_target_compiled": true,
+        "tests_executed": false,
+        "source02_file_count_verified": 30,
+        "build_log": "private/r136/units-02/combined/build.log"
+      }
+    ],
+    "claim": "Both path and combined source02 copies compiled all nine declared ubusd examples and the unit test target. Examples were not executed. Earlier source01 example failure is retained.",
+    "files_sha256": {
+      "plan.json": "b0d4382a72c7326ef815663aedbff2a530930426020f4d4762c92250608a4ded",
+      "run-one.sh": "842ceb8cb5437bb1b40cd99bf58dd1a188cfb8a2aebebfc510097693ac32f84e",
+      "profile-support.tar": "0369026e3a4ff8b766bf8ed698d6a2995f72968c3b6a6cc892e6957227b43d7d",
+      "path/artifacts.jsonl": "88ec4f88962dff5130477f092abc12f004c47a6d2f28947cd234974e99171a17",
+      "path/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path/support-archive.sha256": "727138c1c88e209c4846915770eedde17c67733e9660091890be4857310a29c8",
+      "path/input-sha256.txt": "b552e62c8607fe72e71b7ef054e1109301a91b5c560295200923b05f8a5cf89b",
+      "path/compiled-targets.json": "268dd6a8778e770d7f55e45554eb2a51895abc0f0d7839125f203bebc985d1c8",
+      "path/build.log": "bfb453f15c1f79974cbb99461c37144293931ed0c84a1fcdceb50fa22ef1c434",
+      "combined/artifacts.jsonl": "74f47902cddd466463ff58ae1ee34eaeb767f9561717f8cdb185534a03fce008",
+      "combined/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "combined/support-archive.sha256": "727138c1c88e209c4846915770eedde17c67733e9660091890be4857310a29c8",
+      "combined/input-sha256.txt": "ab29fc46225652b64691c8bc061efe3aac665c0e745feb882ad380c32bf176f4",
+      "combined/compiled-targets.json": "478075825b603b4b25879b6c5c5427564b2d97e906dc0eb4ad496f265e74c859",
+      "combined/build.log": "15aae0fec0883d3ff2a905c3509e97144696a59e056897cc51e11627f84a2a82"
+    }
+  },
+  "limits": [
+    "Only the seven frozen wire scenarios, six FD cases, two named ubusd recovery cases and listed daemon unit tests are claimed.",
+    "FD handcrafted cases follow the accepted read-ahead contract, not complete C placement equivalence.",
+    "Original C recovery failures remain recorded as expected failures; PASS means the existing differential gate passed.",
+    "Example targets were compiled, not executed.",
+    "Physical-router correctness is included; performance decisions belong to the separate router performance report."
+  ],
+  "router_combined": {
+    "events": {
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+        "driver_sha256": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d",
+        "workload_sha256": "1a8d48e431cb3b96f0326dc703ffb6f80c53af8acb3dfa606c0aacbdf5dcf93d",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": true,
+        "pilot_only": false,
+        "implementation": "rs",
+        "iterations": 10,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "passed": true,
+        "cleanup_verified": true,
+        "benchmark_sha256": "c7b9945410b5588d4374bd6999194655ad6212ff49bcf311ea0548301e84d74f",
+        "before_candidate_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "exit": 0,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "evidence": {
+        "root": "private/r136/router-correctness-01/events",
+        "result_sha256": "9520f567f167d21d26c175d364b7c40802665eab4486edee14908f540583737d",
+        "raw_archive_sha256": "bf7b440a65f6e9c2df4737429be1f6e062f56b5b887bb8188dbc8cc932671fed",
+        "raw_files_verified": 48,
+        "raw_sha256": {
+          "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+          "before-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+          "before-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+          "before-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+          "before-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+          "before-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+          "before-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+          "binary-sha256.txt": "0d46ebca13970644c1112efef978836b4007a73c6f428ec992840c3e80cd0302",
+          "c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+          "c-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+          "c-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+          "c-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+          "c-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+          "c-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+          "c-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+          "candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+          "candidate-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+          "candidate-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+          "candidate-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+          "candidate-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+          "candidate-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+          "candidate-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+          "probe-identities.txt": "980bd501c5467d8e686c8defa4d53fe65fc69759361d80e1ec215aa8d0238524"
+        },
+        "health_before_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "health_after_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      },
+      "wire_scenarios": {
+        "object_events": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+            "before": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+            "candidate": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec"
+          }
+        },
+        "events": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+            "before": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+            "candidate": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5"
+          }
+        },
+        "monitor": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+            "before": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+            "candidate": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34"
+          }
+        },
+        "release": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+            "before": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+            "candidate": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5"
+          }
+        },
+        "utf8": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+            "before": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+            "candidate": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4"
+          }
+        },
+        "monitor_lookup": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+            "before": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+            "candidate": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd"
+          }
+        },
+        "method_acl": {
+          "three_sides_equal": true,
+          "sha256": {
+            "c": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+            "before": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+            "candidate": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc"
+          }
+        }
+      }
+    },
+    "fd": {
+      "result": {
+        "component": "ubusd",
+        "candidate_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+        "driver_sha256": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d",
+        "workload_sha256": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57",
+        "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+        "recovery_gate_sha256": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+        "correctness_smoke_only": true,
+        "pilot_only": false,
+        "implementation": "rs",
+        "iterations": 10,
+        "installed": false,
+        "matrix": false,
+        "production_mode": "stock",
+        "passed": true,
+        "cleanup_verified": true,
+        "benchmark_sha256": "c7b9945410b5588d4374bd6999194655ad6212ff49bcf311ea0548301e84d74f",
+        "before_candidate_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+        "unit_tests": {
+          "sha256": "fc80fe5f5af3ac52313c3ee9738990a3f0b8ba4c665d20ea35b70000099e8d5a",
+          "filter": "",
+          "exit": 0
+        },
+        "exit": 0,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "evidence": {
+        "root": "private/r136/router-correctness-01/fd",
+        "result_sha256": "afa5c25c7e52bbe6a1c4e6da83682f25ba7b0e3b52ddfd23ead6d5b4ee49b3a7",
+        "raw_archive_sha256": "35e6068d76d20969cfab2d738d9c81223963e5ff0abcb59a2388fae876f06364",
+        "raw_files_verified": 17,
+        "raw_sha256": {
+          "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "before-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+          "before-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "binary-sha256.txt": "0d46ebca13970644c1112efef978836b4007a73c6f428ec992840c3e80cd0302",
+          "c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "c-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+          "c-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+          "c-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "candidate-fd_boundary.txt": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+          "candidate-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+          "candidate-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "identities.txt": "57e4e2c5a16a2cf66dbd0b9fcefa1e4f16b350eab06d601471faac34f748a526"
+        },
+        "health_before_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "health_after_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      },
+      "fd": {
+        "transcripts": {
+          "c": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "fd_boundary compatible=true cases=6"
+          ],
+          "before": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+            "fd_boundary compatible=true cases=6"
+          ],
+          "candidate": [
+            "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+            "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+            "case=bundled invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+            "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=read_ahead expected=0,0|1,0 contract_match=true c_placement=false",
+            "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+            "fd_boundary compatible=true cases=6"
+          ]
+        },
+        "passed": true,
+        "cases_per_side": 6,
+        "sender_framed_c_equal": true,
+        "handcrafted_read_ahead_contract": true
+      },
+      "unit_tests": {
+        "passed": 55,
+        "failed": 0,
+        "log_sha256": "de2dfcfeb11b4706cd3b1cbacc7dec5f2e303c38fc2745e6248cb092c1d7fb4b",
+        "sha256": "fc80fe5f5af3ac52313c3ee9738990a3f0b8ba4c665d20ea35b70000099e8d5a",
+        "filter": "",
+        "exit": 0
+      }
+    }
+  }
+}
