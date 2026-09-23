@@ -1,0 +1,779 @@
+{
+  "schema_version": 1,
+  "scope": "Offline physical R134 correctness audit only; no router access or performance verdict",
+  "passed": true,
+  "candidate_sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
+  "totals": {
+    "physical_windows": 4,
+    "unit_tests": 55,
+    "event_transcripts_each_subject": 7,
+    "event_transcripts_total": 21,
+    "fd_cases_each_subject": 6,
+    "fd_cases_total": 18,
+    "stress_cases_each_subject": 4,
+    "stress_cases_total": 8
+  },
+  "excluded_attempt": "router-finish-02/correctness/fd rejected by collector artifact interface (missing binary-sha256); formal FD evidence is router-finish-03 only",
+  "limits": [
+    "No physical performance effect estimated from these correctness windows.",
+    "Cleanup/configuration/production identity flags are verified as recorded by the driver, not independently re-observed on the router in this offline audit.",
+    "FD candidate contract intentionally differs from C on handcrafted bundled/body send patterns; sender-framed records match.",
+    "Stress checks per-owner and monitor stream order, not cross-socket wall-clock arrival ordering.",
+    "Bounded backpressure drops are expected; survivor counts need not equal across implementations.",
+    "Unit executable identity comes from driver metadata; test log is outside raw.tar.gz and separately hashed."
+  ],
+  "audit_sha256": "bc2cb9d2f25e722548a6aed3e9f2bdb0f4ff1e0f1a954bc40b6b93b880300beb",
+  "windows": {
+    "events": {
+      "path": "private/r134/router-finish-02/correctness/events",
+      "passed": true,
+      "raw_file_count": 48,
+      "archive_sha256": "00e64894a431383d45f411d8bfebeeb7a4fb8e98d71bb59d3a4f0f8fa8b2a1ea",
+      "result_sha256": "b0b564206cb5a03407246104ffe328356dc39323d3ce4673ce22bb4fb5e8fa7b",
+      "health_equal": true,
+      "health_before_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "health_after_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "driver_reported_gates": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+        "before-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+        "before-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+        "before-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+        "before-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+        "before-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+        "before-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+        "c-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+        "c-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+        "c-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+        "c-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+        "c-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+        "c-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+        "candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+        "candidate-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+        "candidate-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+        "candidate-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+        "candidate-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+        "candidate-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+        "candidate-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+        "probe-identities.txt": "980bd501c5467d8e686c8defa4d53fe65fc69759361d80e1ec215aa8d0238524"
+      },
+      "unit_tests_passed": 55,
+      "unit_log_sha256": "ab5f4adcdb67998a0cf3033411a11d7259c0ad99078c3a5efe66fea3a1272e6f",
+      "transcripts": {
+        "events": {
+          "equal_c_r131_r134": true,
+          "bytes": 189,
+          "sha256": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5"
+        },
+        "object_events": {
+          "equal_c_r131_r134": true,
+          "bytes": 267,
+          "sha256": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec"
+        },
+        "monitor": {
+          "equal_c_r131_r134": true,
+          "bytes": 318,
+          "sha256": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34"
+        },
+        "monitor_lookup": {
+          "equal_c_r131_r134": true,
+          "bytes": 88,
+          "sha256": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd"
+        },
+        "release": {
+          "equal_c_r131_r134": true,
+          "bytes": 178,
+          "sha256": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5"
+        },
+        "utf8": {
+          "equal_c_r131_r134": true,
+          "bytes": 60,
+          "sha256": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4"
+        },
+        "method_acl": {
+          "equal_c_r131_r134": true,
+          "bytes": 639,
+          "sha256": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc"
+        }
+      }
+    },
+    "fd": {
+      "path": "private/r134/router-finish-03/correctness/fd",
+      "passed": true,
+      "raw_file_count": 17,
+      "archive_sha256": "8abda71c1f8bc4f904006f9d9081f1759b02166abb7b70331051997e70960a0c",
+      "result_sha256": "a0a1788b1411a9bdd4d7180db5af81ab8c94fa56082314f816edea6d424408fb",
+      "health_equal": true,
+      "health_before_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "health_after_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "driver_reported_gates": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "before-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+        "before-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "c-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+        "c-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+        "c-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "candidate-fd_boundary.txt": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+        "candidate-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+        "candidate-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "identities.txt": "00e06b209538fe2bfe2afe0aa45a2499b01074afb653483d32968e72140b9cdb"
+      },
+      "cases_by_subject": {
+        "c": {
+          "separate_waited": [
+            1,
+            0
+          ],
+          "separate_queued": [
+            1,
+            0
+          ],
+          "plain_first_then_fd_second": [
+            0,
+            1
+          ],
+          "bundled": [
+            1,
+            0
+          ],
+          "fd_in_first_body": [
+            0,
+            0
+          ],
+          "fd_on_first_body_plus_second_frame": [
+            0,
+            0
+          ]
+        },
+        "before": {
+          "separate_waited": [
+            1,
+            0
+          ],
+          "separate_queued": [
+            1,
+            0
+          ],
+          "plain_first_then_fd_second": [
+            0,
+            1
+          ],
+          "bundled": [
+            1,
+            0
+          ],
+          "fd_in_first_body": [
+            0,
+            0
+          ],
+          "fd_on_first_body_plus_second_frame": [
+            0,
+            0
+          ]
+        },
+        "candidate": {
+          "separate_waited": [
+            1,
+            0
+          ],
+          "separate_queued": [
+            1,
+            0
+          ],
+          "plain_first_then_fd_second": [
+            0,
+            1
+          ],
+          "bundled": [
+            0,
+            1
+          ],
+          "fd_in_first_body": [
+            1,
+            0
+          ],
+          "fd_on_first_body_plus_second_frame": [
+            0,
+            1
+          ]
+        }
+      },
+      "total_cases": 18
+    },
+    "stress-stock": {
+      "path": "private/r134/router-finish-03/correctness/stress-stock",
+      "passed": true,
+      "raw_file_count": 73,
+      "archive_sha256": "b760722810535654841fcb18938f3046bd22bc4fe53844d199dcb002d08291ad",
+      "result_sha256": "308be4edfba4bb4e5dfe2cc8ea83d63ae515d64a76b47a9c371e9f6d193ad791",
+      "health_equal": true,
+      "health_before_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "health_after_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "driver_reported_gates": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "event-benchmark-after-sha256.txt": "3d3235bd1c523b3b2087e12fd39d64195aacbd497ef1621f879c828e3838d2ff",
+        "event-benchmark-sha256.txt": "3d3235bd1c523b3b2087e12fd39d64195aacbd497ef1621f879c828e3838d2ff",
+        "grouped/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "grouped/after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "grouped/after.starttime": "be4f20deb471abb6ec655776d0da1e424df9169e0e12a03e60d927c5dc04862e",
+        "grouped/after.status": "131de0daf424e508413aaf3191625fb1f57e931e06c0673fcf7d138653457dfd",
+        "grouped/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "grouped/before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "grouped/before.starttime": "be4f20deb471abb6ec655776d0da1e424df9169e0e12a03e60d927c5dc04862e",
+        "grouped/before.status": "6d86fc13f85233e7fb02bf5e55dbf4d0cb207762e47dba33592fa378dc9f60d1",
+        "grouped/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "grouped/helper.jsonl": "0ee56cddb3fd86ed275f7c7f718fa0a5be030ae3fef747e88ce6fc39bdd6dca3",
+        "grouped/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "interleaved/after.exe-sha256": "335e53a68a68809163e80a026e86df363171ab9e656d7c504821981018e7510f",
+        "interleaved/after.starttime": "9194b8360c9680bcc5e291ed46962308cdc402eef6bf1c209a39906c3c9ed7dc",
+        "interleaved/after.status": "8ccc8bd74232190614430732591cb08896c13eb96665eff1971d3eba6e143e7d",
+        "interleaved/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "interleaved/before.exe-sha256": "335e53a68a68809163e80a026e86df363171ab9e656d7c504821981018e7510f",
+        "interleaved/before.starttime": "9194b8360c9680bcc5e291ed46962308cdc402eef6bf1c209a39906c3c9ed7dc",
+        "interleaved/before.status": "31916bebb8251d4164da90df719fe5f12a9f5e49109e4c4f3650d7825dfa1bf3",
+        "interleaved/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "interleaved/helper.jsonl": "40cad27e2492b226ce5cb6f6b8d41f434b0840bfb3f1574326f7693c57421728",
+        "interleaved/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "libraries-verified.txt": "ddc75cb5cdb774d65882dbeb941263ae2517c2338e882610acb3f7cca373cb2d",
+        "libraries.sha256": "e759bd339d85b978b0d2ac16c5f21865a1260dc7bd1310ba0f87ee26e246390f",
+        "meta.json": "59ccec757c4f86b53d850b76d1eec2f4e4375acf6bb7daa97dcd13ddc7964e87",
+        "monitor/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "monitor/after.exe-sha256": "dc815041ddb74a9a7697d3d4e96b6ca86f90f89dcf29430460467cf39109e143",
+        "monitor/after.starttime": "f97d01e6262308fe21d508e899211839bd5b596a355f9bcdd1ed313b8c27f6fd",
+        "monitor/after.status": "c48a5abe254363a081d2e2029a39665329199ffff3f1d768f1fdafd3f4b7536b",
+        "monitor/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "monitor/before.exe-sha256": "dc815041ddb74a9a7697d3d4e96b6ca86f90f89dcf29430460467cf39109e143",
+        "monitor/before.starttime": "f97d01e6262308fe21d508e899211839bd5b596a355f9bcdd1ed313b8c27f6fd",
+        "monitor/before.status": "3e201151c7952adea81e133188070a02d262eff4e4bfeb60d34b0b009b7fceb4",
+        "monitor/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "monitor/helper.jsonl": "34cb7f69f74c0873f38783477538d50aec412e88663935468e480255a68e608d",
+        "monitor/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "slow/after.exe-sha256": "446fa03adbcf6a5f524a17815ce024bb74478f287e26c7fcbd2489fd79d621b4",
+        "slow/after.starttime": "12bc883e5f97b6dbee6d1f7273c7e0256ca7adf12966636ee75e6c7fd8da0d20",
+        "slow/after.status": "9935d3a9e5def5ec308911deb3a1e8ccb459fc19d6599bf15314a249d4942dc0",
+        "slow/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "slow/before.exe-sha256": "446fa03adbcf6a5f524a17815ce024bb74478f287e26c7fcbd2489fd79d621b4",
+        "slow/before.starttime": "12bc883e5f97b6dbee6d1f7273c7e0256ca7adf12966636ee75e6c7fd8da0d20",
+        "slow/before.status": "ca630fd2a103d48155df90926d7e34ad03f37e3857ebf7096553ac5a80706889",
+        "slow/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "slow/helper.jsonl": "f21e828eb6b693f2649ff369e428c4f44209309b0ce88a83f15f021d1a1320c9",
+        "slow/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "workload-sha256.txt": "627ff2591d9e51e24e8e4f28e96c3540527b7b0570f28c8a921752ca9cf1d77f"
+      },
+      "cases": {
+        "grouped": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 900,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 904,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 900,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ],
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "functional_pass": true
+        },
+        "interleaved": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 62,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 62,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            }
+          ],
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "functional_pass": true
+        },
+        "monitor": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 85,
+              "rss_kib": 916,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 85,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 85,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 13
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 85,
+              "rss_kib": 920,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 10
+            }
+          ],
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "functional_pass": true
+        },
+        "slow": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 108,
+              "rss_kib": 908,
+              "rssanon_kib": 72,
+              "vmdata_kib": 44,
+              "fds": 10
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 108,
+              "rss_kib": 912,
+              "rssanon_kib": 76,
+              "vmdata_kib": 48,
+              "fds": 12
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 108,
+              "rss_kib": 2076,
+              "rssanon_kib": 1240,
+              "vmdata_kib": 1268,
+              "fds": 12
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 108,
+              "rss_kib": 924,
+              "rssanon_kib": 88,
+              "vmdata_kib": 60,
+              "fds": 12
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 108,
+              "rss_kib": 920,
+              "rssanon_kib": 84,
+              "vmdata_kib": 56,
+              "fds": 10
+            }
+          ],
+          "flooded_received": 542,
+          "received": 550,
+          "mirrored": 0,
+          "functional_pass": true
+        }
+      }
+    },
+    "stress-candidate": {
+      "path": "private/r134/router-finish-03/correctness/stress-candidate",
+      "passed": true,
+      "raw_file_count": 73,
+      "archive_sha256": "41c1c57a8eb79ce605cf6dde45546caac3033db24e83cb934b99047f3fb8e504",
+      "result_sha256": "de1996582b42cd2898ff884992cd088199f2c2911dc7c737d8ee87900e2daf0a",
+      "health_equal": true,
+      "health_before_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "health_after_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+      "driver_reported_gates": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "raw_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "event-benchmark-after-sha256.txt": "3d3235bd1c523b3b2087e12fd39d64195aacbd497ef1621f879c828e3838d2ff",
+        "event-benchmark-sha256.txt": "3d3235bd1c523b3b2087e12fd39d64195aacbd497ef1621f879c828e3838d2ff",
+        "grouped/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "grouped/after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "grouped/after.starttime": "bb43091344338b8d821d2ce7734b5b0e108fb11ab2070a91fa85c81e0160add0",
+        "grouped/after.status": "95139cc7c04502dec7d6ef66d3376a28690da6038cc0ce922eec91868a59a641",
+        "grouped/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "grouped/before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "grouped/before.starttime": "bb43091344338b8d821d2ce7734b5b0e108fb11ab2070a91fa85c81e0160add0",
+        "grouped/before.status": "de9a680e11f23bd450ad21349b87c09ff90fe13bb120fbd47874dfd728e10a06",
+        "grouped/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "grouped/helper.jsonl": "e51cc1257cb1a1e6ab8bf548a8325ffe296db718c6e18aa1f9103d88a86d84bf",
+        "grouped/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "grouped/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "interleaved/after.exe-sha256": "86d2d45a077f012bf72f8c2d45855e3b97f68078b8efff8c2e28eb01d80d60f1",
+        "interleaved/after.starttime": "7280eadc8fcd728625cc0f6d162eb6fc8847a6960a321169eb8afb11842869b8",
+        "interleaved/after.status": "ce8bfe8e7c7ce91f3eab3329d8a7a65ca6c07ecb4ccf8dbe18cd78517596ccd0",
+        "interleaved/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "interleaved/before.exe-sha256": "86d2d45a077f012bf72f8c2d45855e3b97f68078b8efff8c2e28eb01d80d60f1",
+        "interleaved/before.starttime": "7280eadc8fcd728625cc0f6d162eb6fc8847a6960a321169eb8afb11842869b8",
+        "interleaved/before.status": "3f7a0b87af4ea42bf41c37e582a9db9ced2d0f8a80f168df82e375b56d1fc843",
+        "interleaved/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "interleaved/helper.jsonl": "4e63cac28674a522569bb5f9cc241ac76952722befec1c25a356be5be2553fdd",
+        "interleaved/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "interleaved/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "libraries-verified.txt": "ddc75cb5cdb774d65882dbeb941263ae2517c2338e882610acb3f7cca373cb2d",
+        "libraries.sha256": "e759bd339d85b978b0d2ac16c5f21865a1260dc7bd1310ba0f87ee26e246390f",
+        "meta.json": "09ded8f87d3ee3710134a39bd00ac5785e41ea833c39395044a5fea5a22816ee",
+        "monitor/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "monitor/after.exe-sha256": "4420eadcbbc870d0058691d2d0d3bb93bf263fd86d2d7c4f3215013b647d37bf",
+        "monitor/after.starttime": "bbe26bd7339d69aa22a6d5781041006a12cd687ba38f33823f6648db2e773c21",
+        "monitor/after.status": "30f787e783937917b9a4fd8a74ddb7a9a4814a5ffef46aebd94cd55f0c852c25",
+        "monitor/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "monitor/before.exe-sha256": "4420eadcbbc870d0058691d2d0d3bb93bf263fd86d2d7c4f3215013b647d37bf",
+        "monitor/before.starttime": "bbe26bd7339d69aa22a6d5781041006a12cd687ba38f33823f6648db2e773c21",
+        "monitor/before.status": "315848452436abfad3b0701c64222d6432cfa767447ebc2b607122892b0b5526",
+        "monitor/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "monitor/helper.jsonl": "dbb19ee7ca10a9d0fab982e27c22a28c83866b4e918bc983b74cd86ba338bc3b",
+        "monitor/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "monitor/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "slow/after.exe-sha256": "420052cbe4d9cb405c8ea902ed9f870b4555f711503a736149177e2162d7c2ad",
+        "slow/after.starttime": "24091d5982b0f841a25b0ef3a5e9c3c1cf0518a9d1c028ba161f37bbce27d012",
+        "slow/after.status": "6fb03bafb49900242e6c2d5d2bd9f878e0c94b496919af9ff8008840e8472be6",
+        "slow/before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "slow/before.exe-sha256": "420052cbe4d9cb405c8ea902ed9f870b4555f711503a736149177e2162d7c2ad",
+        "slow/before.starttime": "24091d5982b0f841a25b0ef3a5e9c3c1cf0518a9d1c028ba161f37bbce27d012",
+        "slow/before.status": "64b93b864300aa90a7921752d1b58af82b4d6049cba4ae3dba3f772b9e910d2c",
+        "slow/daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "slow/helper.jsonl": "51b4d981944f4f8bca8666aaf59348242ca3ff8d24883183ee2a9dd7cf9d2e9a",
+        "slow/helper.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/ready.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "slow/ready.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "workload-sha256.txt": "627ff2591d9e51e24e8e4f28e96c3540527b7b0570f28c8a921752ca9cf1d77f"
+      },
+      "cases": {
+        "grouped": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 39,
+              "rss_kib": 496,
+              "rssanon_kib": 40,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 39,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ],
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "functional_pass": true
+        },
+        "interleaved": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 60,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 60,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ],
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 0,
+          "functional_pass": true
+        },
+        "monitor": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 81,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 81,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "delivered",
+              "subject_pid": 81,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 10
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 81,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 7
+            }
+          ],
+          "flooded_received": 0,
+          "received": 16000,
+          "mirrored": 16000,
+          "functional_pass": true
+        },
+        "slow": {
+          "memory_diagnostic": [
+            {
+              "phase": "empty",
+              "subject_pid": 104,
+              "rss_kib": 500,
+              "rssanon_kib": 44,
+              "vmdata_kib": 48,
+              "fds": 7
+            },
+            {
+              "phase": "registered",
+              "subject_pid": 104,
+              "rss_kib": 504,
+              "rssanon_kib": 48,
+              "vmdata_kib": 52,
+              "fds": 9
+            },
+            {
+              "phase": "flooded",
+              "subject_pid": 104,
+              "rss_kib": 1688,
+              "rssanon_kib": 1232,
+              "vmdata_kib": 1296,
+              "fds": 9
+            },
+            {
+              "phase": "drained",
+              "subject_pid": 104,
+              "rss_kib": 560,
+              "rssanon_kib": 104,
+              "vmdata_kib": 168,
+              "fds": 9
+            },
+            {
+              "phase": "closed",
+              "subject_pid": 104,
+              "rss_kib": 536,
+              "rssanon_kib": 80,
+              "vmdata_kib": 144,
+              "fds": 7
+            }
+          ],
+          "flooded_received": 574,
+          "received": 582,
+          "mirrored": 0,
+          "functional_pass": true
+        }
+      }
+    }
+  }
+}
