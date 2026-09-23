@@ -35,6 +35,11 @@ def path_borrow(root):
     data = data.replace('set_path(9002, b"outside".to_vec())', 'set_path(9002, b"outside")')
     data = data.replace('set_path(id, path.to_vec())', 'set_path(id, path)')
     server.write_text(data)
+    replace(root / 'ubusd/examples/registry_memory.rs',
+            'set_path(4096 + i, path(i, len))', 'set_path(4096 + i, &path(i, len))')
+    replace(root / 'ubusd/examples/profile.rs',
+            'set_path(id, format!("bench.object{i:04}").into_bytes())',
+            'set_path(id, &format!("bench.object{i:04}").into_bytes())')
 
 
 def event_strings(root):
