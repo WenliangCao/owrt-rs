@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "scope": "R135 independent eight-window physical-router registration confirmation; no deployment",
+  "output": "private/r135/formal-01",
+  "window_count": 8,
+  "orders": [
+    [
+      "c",
+      "r134",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "r134",
+      "c"
+    ],
+    [
+      "c",
+      "r134",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "r134",
+      "c"
+    ],
+    [
+      "c",
+      "r134",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "r134",
+      "c"
+    ],
+    [
+      "c",
+      "r134",
+      "candidate"
+    ],
+    [
+      "candidate",
+      "r134",
+      "c"
+    ]
+  ],
+  "subjects": {
+    "c": {
+      "path": "private/r95/ubusd-pilot/stock",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+    },
+    "r134": {
+      "path": "private/r134/bins-ubusd/ubusd-rs",
+      "sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0"
+    },
+    "candidate": {
+      "path": "private/r135/build-promoted-01/ubusd-rs",
+      "sha256": "c6f002dad50f4cc7fbe6e19738246a4c55e20aa82285272ec81f0b133f403615"
+    }
+  },
+  "candidate_sha256": "c6f002dad50f4cc7fbe6e19738246a4c55e20aa82285272ec81f0b133f403615",
+  "benchmark": {
+    "path": "private/r135/owrt-benchmark",
+    "sha256": "85dd537a070e39373a4a21a6bf982da9359bc70e61e53cdf93516b9c34684b1d"
+  },
+  "namespace_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+  "iterations": 10000,
+  "warmup": 20,
+  "lanes": [
+    {
+      "name": "register_1",
+      "command": "register-cycle",
+      "parameters": [
+        1,
+        8
+      ],
+      "iterations": 10000,
+      "warmup": 20
+    },
+    {
+      "name": "register_16",
+      "command": "register-cycle",
+      "parameters": [
+        16,
+        8
+      ],
+      "iterations": 10000,
+      "warmup": 20
+    },
+    {
+      "name": "event_1",
+      "command": "register-watch",
+      "parameters": [
+        1,
+        1
+      ],
+      "iterations": 10000,
+      "warmup": 20
+    },
+    {
+      "name": "event_8",
+      "command": "register-watch",
+      "parameters": [
+        8,
+        1
+      ],
+      "iterations": 10000,
+      "warmup": 20
+    },
+    {
+      "name": "event_nomatch",
+      "command": "register-watch",
+      "parameters": [
+        1,
+        0
+      ],
+      "iterations": 10000,
+      "warmup": 20
+    }
+  ],
+  "runtime": {
+    "daemon_cpu": 1,
+    "caller_allowed_cpus": [
+      0,
+      1
+    ],
+    "socket": "/var/run/ubus/ubus.sock",
+    "default_acl": true,
+    "daemon_argv0": "/sbin/ubusd",
+    "event_benchmark_slot": false,
+    "lane_order": [
+      "register_1",
+      "register_16",
+      "event_1",
+      "event_8",
+      "event_nomatch"
+    ]
+  },
+  "decision_rules": {
+    "pairing": "same window and lane; each of the eight guarded windows is one pair",
+    "effect": "median of eight (candidate / baseline - 1) * 100 paired changes",
+    "lower_is_better": true,
+    "comparisons": [
+      "candidate_vs_r134",
+      "candidate_vs_c"
+    ],
+    "descriptive": {
+      "win": "median_delta_pct < -1 and lower_windows >= 7",
+      "loss": "median_delta_pct > 1 and higher_windows >= 7",
+      "otherwise": "unresolved; values inside the inclusive [-1, 1] band are a practical tie"
+    },
+    "primary": {
+      "lane": "register_1",
+      "metric": "p95_us",
+      "baseline": "r134",
+      "pass": "median_delta_pct < -5 and lower_windows >= 7"
+    },
+    "required_metrics": [
+      "mean_us",
+      "p50_us",
+      "p95_us",
+      "p99_us",
+      "daemon_cpu_us_per_op",
+      "caller_cpu_us_per_op"
+    ],
+    "required_reporting": "all five lanes, both controls, all eight paired changes and all required metrics",
+    "interpretation": "descriptive per-metric decisions, not familywise all-metric dominance or language limit proof",
+    "stopping": "exactly eight complete clean windows; no data-dependent additions, retries, or excluded windows"
+  },
+  "collection_notes": [
+    "The inherited driver uses --pilot only to permit this custom timed workload; this plan freezes the independent decision rules.",
+    "Each subject runs all five lanes in fixed order in one daemon; candidate/C endpoint order alternates, R134 remains in the middle.",
+    "Caller CPU allowance is 0-1, not exclusive CPU pinning; last_processor is a boundary snapshot, not a migration count.",
+    "Registration event lanes validate ubus.object events; they do not cover general user SEND, memory or full-system integration.",
+    "The guarded driver must retain all six health/cleanup flags; host production stays C throughout."
+  ],
+  "steps": [
+    {
+      "name": "window-0",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-0",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-0.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-0/result.json"
+    },
+    {
+      "name": "window-1",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-1",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-1.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-1/result.json"
+    },
+    {
+      "name": "window-2",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-2",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-2.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-2/result.json"
+    },
+    {
+      "name": "window-3",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-3",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-3.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-3/result.json"
+    },
+    {
+      "name": "window-4",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-4",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-4.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-4/result.json"
+    },
+    {
+      "name": "window-5",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-5",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-5.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-5/result.json"
+    },
+    {
+      "name": "window-6",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-6",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-6.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-6/result.json"
+    },
+    {
+      "name": "window-7",
+      "argv": [
+        "tools/r95_device_smoke.py",
+        "ubusd",
+        "private/r135/build-promoted-01/ubusd-rs",
+        "private/r135/formal-01/window-7",
+        "--recovery-gate",
+        "private/r96/recovery-full/recovery-gate.json",
+        "--guard",
+        "private/r95/guard",
+        "--benchmark",
+        "private/r135/owrt-benchmark",
+        "--before-candidate",
+        "private/r134/bins-ubusd/ubusd-rs",
+        "--workload-script",
+        "private/r135/formal-plan-01/window-7.sh",
+        "--iterations",
+        "10000",
+        "--pilot"
+      ],
+      "driver_result": "private/r135/formal-01/window-7/result.json"
+    }
+  ],
+  "input_sha256": {
+    "tools/r95_device_smoke.py": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d",
+    "tools/r84_device_probe.py": "89f2ce6b90c1b7a2ba9c6d89e3b4ac7bcf7f7ba07bad46216726173c13233698",
+    "tools/benchmark/isolated.sh": "909e9f2485d355d67b81ffb3ff4bb404f19395617afea892485446b3ed0a2d29",
+    "tools/r134/ubusd_router_finish.py": "26d82bcde9ccf5418d3ccedecfccae8df3605d1640a714b2ef24c14496c77f3f",
+    "tools/r135/formal.sh.in": "a83b5564c3d0ce6f9bfaf77474f8bbad12855f5034bf24c963308f2cce697b6e",
+    "tools/r135/make_formal_plan.py": "3fc019ef096392e7fb64ef1846418ec32af49c7bbe884b462b72b1644538d34a",
+    "private/r95/guard": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "private/r96/recovery-full/recovery-gate.json": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "private/r135/owrt-benchmark": "85dd537a070e39373a4a21a6bf982da9359bc70e61e53cdf93516b9c34684b1d",
+    "private/r95/ubusd-pilot/stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "private/r134/bins-ubusd/ubusd-rs": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
+    "private/r135/build-promoted-01/ubusd-rs": "c6f002dad50f4cc7fbe6e19738246a4c55e20aa82285272ec81f0b133f403615",
+    "private/r135/formal-plan-01/window-0.sh": "30543e964041d4ccfbcd23acecc812a949afe2a3c752e078e0ce3ffb0505c1a4",
+    "private/r135/formal-plan-01/window-1.sh": "c4319338f1815c72826ae6623a2d603e5e858e3439343e820701cc8f25a85284",
+    "private/r135/formal-plan-01/window-2.sh": "30543e964041d4ccfbcd23acecc812a949afe2a3c752e078e0ce3ffb0505c1a4",
+    "private/r135/formal-plan-01/window-3.sh": "c4319338f1815c72826ae6623a2d603e5e858e3439343e820701cc8f25a85284",
+    "private/r135/formal-plan-01/window-4.sh": "30543e964041d4ccfbcd23acecc812a949afe2a3c752e078e0ce3ffb0505c1a4",
+    "private/r135/formal-plan-01/window-5.sh": "c4319338f1815c72826ae6623a2d603e5e858e3439343e820701cc8f25a85284",
+    "private/r135/formal-plan-01/window-6.sh": "30543e964041d4ccfbcd23acecc812a949afe2a3c752e078e0ce3ffb0505c1a4",
+    "private/r135/formal-plan-01/window-7.sh": "c4319338f1815c72826ae6623a2d603e5e858e3439343e820701cc8f25a85284"
+  }
+}

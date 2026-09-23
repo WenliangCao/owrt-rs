@@ -1,0 +1,92 @@
+#!/bin/sh
+# R135 frozen confirmation; production C remains outside this namespace.
+set -eu
+if [ "${1:-}" = --namespace ]; then
+    exec /bin/sh "$(dirname "$0")/isolated.sh" "$@"
+fi
+[ "$#" -eq 4 ] && [ "$1" = --workload ] && [ "${OWRT_BENCH_NAMESPACE:-}" = 1 ] || exit 125
+[ "$2" = ubusd ] && [ "$3" = rs ] && [ "$4" = 10000 ] || exit 125
+unset LD_PRELOAD LD_LIBRARY_PATH
+bench=/tmp/bin/owrt-benchmark
+out=/tmp/out
+socket=/var/run/ubus/ubus.sock
+mkdir -p /var/run/ubus
+sha256sum /tmp/bin/ubusd-rs > "$out/binary-sha256.txt"
+sha256sum /sbin/ubusd /tmp/bin/ubusd-rs /tmp/bin/before-rs "$bench" /tmp/bin/ns-exec > "$out/identities.txt"
+cat > "$out/expected-identities.txt" <<'IDENTITIES'
+@C_SHA256@  /sbin/ubusd
+@CANDIDATE_SHA256@  /tmp/bin/ubusd-rs
+@R134_SHA256@  /tmp/bin/before-rs
+@BENCHMARK_SHA256@  /tmp/bin/owrt-benchmark
+@NAMESPACE_SHA256@  /tmp/bin/ns-exec
+IDENTITIES
+sha256sum -c "$out/expected-identities.txt" > "$out/identity-check.log"
+cat /proc/sys/kernel/random/boot_id > "$out/boot-id.txt"
+uname -r > "$out/kernel.txt"
+printf '%s\n' '@ORDER@' > "$out/order.txt"
+pid=
+cleanup() {
+    if [ -n "$pid" ]; then
+        kill "$pid" 2>/dev/null || true
+        wait "$pid" 2>/dev/null || true
+    fi
+    rm -f "$socket"
+}
+trap cleanup EXIT
+trap 'exit 130' HUP INT TERM
+for side in @ORDER@; do
+    case "$side" in
+        c) bin=/sbin/ubusd; expected_sha=@C_SHA256@ ;;
+        r134) bin=/tmp/bin/before-rs; expected_sha=@R134_SHA256@ ;;
+        candidate) bin=/tmp/bin/ubusd-rs; expected_sha=@CANDIDATE_SHA256@ ;;
+        *) exit 125 ;;
+    esac
+    dest=$out/$side
+    mkdir "$dest"
+    "$bench" exec-cpu-as 1 "$bin" /sbin/ubusd -s "$socket" > "$dest/daemon.log" 2>&1 & pid=$!
+    tries=0
+    until ubus -s "$socket" -t 1 list >/dev/null 2>&1; do
+        kill -0 "$pid"; [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
+    done
+    [ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/$pid/status)" = 1 ]
+    printf '/sbin/ubusd\0-s\0%s\0' "$socket" > "$dest/expected.cmdline"
+    cat /proc/$pid/cmdline > "$dest/before.cmdline"
+    cmp "$dest/expected.cmdline" "$dest/before.cmdline"
+    sha256sum /proc/$pid/exe > "$dest/before-exe.sha256"
+    [ "$(awk '{print $1}' "$dest/before-exe.sha256")" = "$expected_sha" ]
+    cat /proc/$pid/status > "$dest/before.status"
+    cat /proc/$pid/stat > "$dest/before.stat"
+    cat /proc/stat > "$dest/system-before.stat"
+    for lane in register_1 register_16 event_1 event_8 event_nomatch; do
+        case "$lane" in
+            register_1) set -- register-cycle "$socket" 1 8 10000 20 "$pid" ;;
+            register_16) set -- register-cycle "$socket" 16 8 10000 20 "$pid" ;;
+            event_1) set -- register-watch "$socket" 1 1 10000 20 "$pid" ;;
+            event_8) set -- register-watch "$socket" 8 1 10000 20 "$pid" ;;
+            event_nomatch) set -- register-watch "$socket" 1 0 10000 20 "$pid" ;;
+        esac
+        [ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/self/status)" = 0-1 ]
+        "$bench" "$@" > "$dest/$lane.json" 2> "$dest/$lane.log"
+        [ ! -s "$dest/$lane.log" ]
+    done
+    cat /proc/$pid/status > "$dest/after.status"
+    cat /proc/$pid/stat > "$dest/after.stat"
+    [ "$(awk '/^Cpus_allowed_list:/ {print $2}' "$dest/after.status")" = 1 ]
+    cat /proc/$pid/cmdline > "$dest/after.cmdline"
+    cmp "$dest/before.cmdline" "$dest/after.cmdline"
+    cat /proc/stat > "$dest/system-after.stat"
+    sha256sum /proc/$pid/exe > "$dest/after-exe.sha256"
+    cmp "$dest/before-exe.sha256" "$dest/after-exe.sha256"
+    ubus -s "$socket" list > "$dest/objects-after.txt"
+    [ ! -s "$dest/objects-after.txt" ]
+    [ ! -s "$dest/daemon.log" ]
+    kill "$pid"
+    code=0; wait "$pid" 2>/dev/null || code=$?
+    printf '%s\n' "$code" > "$dest/daemon-exit.txt"
+    [ "$code" -eq 0 ] || [ "$code" -eq 143 ]
+    pid=
+    rm -f "$socket"
+    [ ! -e "$socket" ]
+    touch "$dest/COMPLETE"
+done
+touch "$out/COMPLETE"
