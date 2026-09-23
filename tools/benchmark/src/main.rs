@@ -16,6 +16,8 @@ mod cpu_clock;
 mod affinity;
 #[cfg(feature = "registration-perf")]
 mod registration_perf;
+#[cfg(feature = "registration-phase")]
+mod registration_phase;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -671,6 +673,8 @@ fn main_inner(a: &[String]) -> Result<()> {
         .get(1)
         .ok_or("missing mode: rpc/lookup/lookup-fixture/rpc-fixture/exec/http/syslog/serve/snapshot/idle")?;
     match mode.as_str() {
+        #[cfg(feature = "registration-phase")]
+        "register-phase" => registration_phase::run(a),
         "rpc" | "rpc-wire" => {
             require(
                 a.len() == 10,

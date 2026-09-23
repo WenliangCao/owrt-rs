@@ -1,0 +1,307 @@
+{
+  "scope": "Oracle correctness smoke only; no router performance claim",
+  "caller_sha256": "4930759767aeadb8f5c3267a1346a2d76e75862cd8575da59881a81081c68d0f",
+  "runner_sha256": "0ff6d477f2488b6df003c994f1200b77ce28c6c93a9fe0a49055229af45bd18c",
+  "manifest_sha256": "324c61fe9161fef6613a8af3324c77eb531159f503dcb7992a61c53e249af643",
+  "subjects": [
+    {
+      "label": "c",
+      "kind": "c",
+      "path": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/sbin/ubusd",
+      "sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+    },
+    {
+      "label": "combined",
+      "kind": "rust",
+      "path": "/home/ubuntu/r136/build-01/combined/ubusd-rs",
+      "sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330"
+    }
+  ],
+  "cases": [
+    {
+      "case": "c-1-cycle-wall",
+      "passed": true,
+      "file_sha256": "5d4e98774da7ee61bc32a00860eba49ba88c4ba139caa7105af0d75a3f759304",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        360.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "c-1-phase-wall",
+      "passed": true,
+      "file_sha256": "35e95c90bb8684b2d28d31a488f2111df4cf5a6bf3d9f0c99bdb16d10a253cae",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        360.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "c-1-phase-cpu",
+      "passed": true,
+      "file_sha256": "82151c69dd3ea56524a59eb0f2fcdf3402e237d5ce65e992ef3494345074aade",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        360.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "c-16-cycle-wall",
+      "passed": true,
+      "file_sha256": "9206ade43ed7eefd358311df58bd177352b8a4177b303d6e27952aed0533f35e",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        320.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "c-16-phase-wall",
+      "passed": true,
+      "file_sha256": "7312a47890a080457c7af546688cd4c541d19d091ab79f632644875c16f942ff",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        320.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "c-16-phase-cpu",
+      "passed": true,
+      "file_sha256": "83fde456f7656ccbae4ca688ba52b448b5364925efa7da8ddac6c1f7cbf81d18",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        320.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "combined-1-cycle-wall",
+      "passed": true,
+      "file_sha256": "ebed44d462710f57efa3fe7e48431fefc8139d20b838d4de30a36e8170a03792",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        360.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "combined-1-phase-wall",
+      "passed": true,
+      "file_sha256": "555078cf8312d4bdb62fd085cf519cc5dc763d28af6cad5d5cb34784bbd1fed3",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        320.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "combined-1-phase-cpu",
+      "passed": true,
+      "file_sha256": "57939df998e51ea29529c747b6f61d1eb2f83bc7acfda9dbe6f3a5dccb1fd300",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        320.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "combined-16-cycle-wall",
+      "passed": true,
+      "file_sha256": "fd5b14c568b4b6a4d9ea9ba2045ff0628cd3befe181ab8fdd69fd836febbcf03",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        360.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "combined-16-phase-wall",
+      "passed": true,
+      "file_sha256": "5790dbc45498b41b1ec1b57113c1a7179e741fb85ce647e01c774bc733ad7ff3",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        360.0,
+        240.0,
+        560.0
+      ]
+    },
+    {
+      "case": "combined-16-phase-cpu",
+      "passed": true,
+      "file_sha256": "4c7ed3ab3c263b5b4e217563e18c34c7988c0b20763a89c1488ee6b99280d639",
+      "perf_capability": {
+        "available": true,
+        "errno": 0,
+        "event": "PERF_TYPE_SOFTWARE/PERF_COUNT_SW_TASK_CLOCK; disabled=1; context_switch=1; self thread only; immediately closed"
+      },
+      "n": 100,
+      "warmup": 20,
+      "clock_resolution_ns": [
+        1,
+        1,
+        1
+      ],
+      "clock_probe_median_ns": [
+        80.0,
+        320.0,
+        240.0,
+        560.0
+      ]
+    }
+  ],
+  "passed": true,
+  "schema": 1,
+  "source_commit_before_tool_change": "195e45f",
+  "initial_failure": {
+    "reason": "First smoke ran as non-root; exact C rejected registration with ubus Invalid argument (2). No timing result accepted. Runner now requires root before spawning daemons.",
+    "retained_at": "private/r137-phase/r137-phase-smoke-01"
+  },
+  "build_log_sha256": "f2da190c5631ee8b8d138aa1aabd176f06bbf36b5fcb41d4cbe44e4d9eb0f8e5",
+  "build_identities_sha256": "3f41c4e3ae8de6438128a619c335b5f3278b4e5aafac000231c9b0c6c9fd3255"
+}

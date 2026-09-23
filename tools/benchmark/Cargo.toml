@@ -7,6 +7,7 @@ publish = false
 
 [features]
 registration-perf = []
+registration-phase = []
 
 [dependencies]
 owrt-ubus = { path = "../../components/ubus" }
