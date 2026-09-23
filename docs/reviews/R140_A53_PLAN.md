@@ -4,7 +4,7 @@
 
 0017 的 target-cpu 否决仅来自 UCI 的短进程测试，其六包不含 ubusd。ubusd 从创建起使用 opt3/LTO；代码历史没有该组件的 A53、PGO 或 BOLT 对照。R107 的 codegen 实验是 const 泛型专门化，不是 CPU 编译目标实验。
 
-机制依据是匹配 [LLVM 22.1.8 的 processor 定义](https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-22.1.8/llvm/lib/Target/AArch64/AArch64Processors.td)：generic 使用 CortexA510Model，cortex-a53 使用 CortexA53Model，并具有不同的调度/指令成本选项；[A53 模型](https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-22.1.8/llvm/lib/Target/AArch64/AArch64SchedA53.td)明确描述顺序执行、双发射及 load/branch 成本。这里预测可能改变本组件生成代码，不预测收益方向，也不宣称其能解决内核主导的慢尾。
+机制线索来自同版本号的[上游 LLVM 22.1.8 processor 定义](https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-22.1.8/llvm/lib/Target/AArch64/AArch64Processors.td)：generic 使用 CortexA510Model，cortex-a53 使用 CortexA53Model，并具有不同的调度/指令成本选项；[A53 模型](https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-22.1.8/llvm/lib/Target/AArch64/AArch64SchedA53.td)描述顺序执行、双发射及 load/branch 成本。尚未将 Rust 使用的 LLVM fork gitlink 逐字映射到这些文件，故不将上游模型当成已核对的实际编译器内部实现；构建前读取精确 compiler 的版本和 target-cpus，构建后以有效 flags 与产物为证。这里预测可能改变本组件生成代码，不预测收益方向，也不宣称其能解决内核主导的慢尾。
 
 硬件依据为既有 `private/r136/completion-01/matrix/01-stock/raw/cpuinfo.txt`：两核 CPU part 均为 `0xd03`，均含 fp/asimd/aes/pmull/sha1/sha2/crc32。构建器在运行前核对这份存档，并冻结其哈希；不重新访问路由器。A53 目标启用的 CRC/AES/SHA 能力在该证据内。精确 [Rust target](https://raw.githubusercontent.com/rust-lang/rust/48a229ceaefd4985c50990b14116b6d856af0985/compiler/rustc_target/src/spec/targets/aarch64_unknown_linux_musl.rs)已有 A53 843419 linker mitigation，此项保持不变。
 
