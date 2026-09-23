@@ -1,0 +1,350 @@
+{
+  "scope": "R140 same-source Cortex-A53-only Oracle correctness; no performance verdict",
+  "passed": true,
+  "source": {
+    "same_runtime_as_r136": true,
+    "runtime_files_verified": 20,
+    "source_unchanged": true,
+    "runtime_identity_manifest_sha256": "cceffb97c7b6bc38cf3cd728b5c4e8f68653a3d1b24a1e287e3e8cd3c3cfea59",
+    "build_plan_sha256": "50a4b4433f68ca9af7690512720cae69d83a1ec3e9c4f0f9f7204195ef1e9503",
+    "build_results_sha256": "b058554b6f0365cdf305da17250e4a4c4c6cd7c25ffe3c3dc94b18c548572077"
+  },
+  "artifacts": {
+    "candidate_sha256": "d491a90b8c4c518648d7aa034acd64b0046ea6c2e6c46c19fda3229bf9285488",
+    "r136_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+    "r131_fd_control_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+    "exact_c_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "unit_tests_sha256": "c5c8508b5bab016238c2b5b1204a996c1dde830851ee51bcf5db5c6b7c72ffc4",
+    "wireprobe_sha256": "5500effd5af3b8ac34c2be91941acd1873a997733174a0d6cc6aaeebd54723f6",
+    "wire_workload_sha256": "6f5eca62a9d26a5310beffe84bf0339154b8d480e2d9821ae758579013d27e7b",
+    "fd_workload_sha256": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57"
+  },
+  "unit_tests": {
+    "passed": 55,
+    "failed": 0,
+    "flags_match_release": true,
+    "target_cpu": "cortex-a53",
+    "build": "Rust 1.98.1 aarch64 musl / OpenWrt 25.12.5 SDK release test profile",
+    "canonical_source_path_matches_release": true,
+    "log_sha256": "8115635bd7a779cfe1f30e9216eeb999faead79b3f6785e766964f2863852d82",
+    "new_unit_tests": 0
+  },
+  "wire": [
+    {
+      "scenario": "object_events",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "lines": 6
+    },
+    {
+      "scenario": "events",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "lines": 5
+    },
+    {
+      "scenario": "monitor",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "lines": 6
+    },
+    {
+      "scenario": "release",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "lines": 4
+    },
+    {
+      "scenario": "utf8",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "lines": 3
+    },
+    {
+      "scenario": "monitor_lookup",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "lines": 1
+    },
+    {
+      "scenario": "method_acl",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "lines": 14
+    },
+    {
+      "scenario": "remove_reply",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "lines": 5
+    }
+  ],
+  "fd": [
+    {
+      "side": "c",
+      "contract": "c",
+      "transcript_sha256": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true"
+      ]
+    },
+    {
+      "side": "r131",
+      "contract": "c",
+      "transcript_sha256": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true"
+      ]
+    },
+    {
+      "side": "candidate",
+      "contract": "read_ahead",
+      "transcript_sha256": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=read_ahead expected=0,0|1,0 contract_match=true c_placement=false",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false"
+      ]
+    }
+  ],
+  "recovery": [
+    {
+      "side": "original",
+      "case": "ubusd_halfclose",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": false,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "expected_original_failures": {
+        "complete_reply": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "ubusd_lookup_delete",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "expected_original_failures": {
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "ubusd_halfclose",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": true,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "ubusd_lookup_delete",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": true,
+        "continued_to_end": true,
+        "serving": true
+      },
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    }
+  ],
+  "evidence": {
+    "archive_sha256": "7b26c7cee4ce6d1d4aaef2ea5ee11b1087149c1c9d89ad8cfaf0b7e33a3658f7",
+    "manifest_sha256": "b24c14d63dcd26f395c892bff39ee35f6990100b7b3ef5c113fe5ea71c7cee5c",
+    "verified_files": 141,
+    "files": {
+      "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bins/ubusd-rs": "d491a90b8c4c518648d7aa034acd64b0046ea6c2e6c46c19fda3229bf9285488",
+      "build-proof/a53-recipe.sh": "f1d7eb74f68b02a7a442e03a36799349d700eb4e0e8cf0e82f183b760ef10fc4",
+      "build-proof/frozen-plan.json": "50a4b4433f68ca9af7690512720cae69d83a1ec3e9c4f0f9f7204195ef1e9503",
+      "build-proof/results.json": "b058554b6f0365cdf305da17250e4a4c4c6cd7c25ffe3c3dc94b18c548572077",
+      "evidence-manifest.json": "b24c14d63dcd26f395c892bff39ee35f6990100b7b3ef5c113fe5ea71c7cee5c",
+      "gates-command.json": "c6075e5a4f6eb679a1bf66d7875d99faea20af7389353cba32a86bb277650d17",
+      "gates-exit.json": "3e42a2ad3dbeab9d1167d20261ad6305bdea31103ffc09c30f25558345966de2",
+      "gates.log": "41af120450008f47666ff4d0e3c5e8dc71dd2cd0a0bdab32e49f1adc76018b39",
+      "gates/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/bundle/before-rs": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "gates/fd/bundle/ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "gates/fd/bundle/owrt-benchmark": "5500effd5af3b8ac34c2be91941acd1873a997733174a0d6cc6aaeebd54723f6",
+      "gates/fd/bundle/ubusd-rs": "d491a90b8c4c518648d7aa034acd64b0046ea6c2e6c46c19fda3229bf9285488",
+      "gates/fd/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/inputs-after.log": "55ea348d8d977990d67e33d0c6ea11b11fd55c8dd60553ddbdd503a9ab56e375",
+      "gates/fd/inputs.sha256": "f34a6436e8c454d576d9e985d632c825471ead3fb7ca048fa739e91adb7b4e50",
+      "gates/fd/raw/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/before-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/before-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "gates/fd/raw/before-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/binary-sha256.txt": "bf65b8ddcdb67b2915b3650c9025e76f58ff93b76740fb6e8029399ebb0ce02d",
+      "gates/fd/raw/c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/c-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/c-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "gates/fd/raw/c-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+      "gates/fd/raw/c-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/candidate-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/candidate-fd_boundary.txt": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+      "gates/fd/raw/candidate-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+      "gates/fd/raw/candidate-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/identities.txt": "87834a1cc2daac676f77c515ad85d10bf9a20987dea563f073d3cb6dffa739a7",
+      "gates/fd/tools/isolated.sh": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad",
+      "gates/fd/tools/workload.sh": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57",
+      "gates/wire/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/bundle/before-rs": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "gates/wire/bundle/ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "gates/wire/bundle/owrt-benchmark": "5500effd5af3b8ac34c2be91941acd1873a997733174a0d6cc6aaeebd54723f6",
+      "gates/wire/bundle/ubusd-rs": "d491a90b8c4c518648d7aa034acd64b0046ea6c2e6c46c19fda3229bf9285488",
+      "gates/wire/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/inputs-after.log": "37166f1e09b81269f4d940451f216ed298b64fa6d8c4413d67f9bed47ab7c0d6",
+      "gates/wire/inputs.sha256": "384d4351079d994d988b6e548f2f3f42f0e8fbecf9f2832f5eed2f8bd2931d7f",
+      "gates/wire/raw/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "gates/wire/raw/before-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "gates/wire/raw/before-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "gates/wire/raw/before-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "gates/wire/raw/before-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "gates/wire/raw/before-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "gates/wire/raw/before-remove_reply.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-remove_reply.txt": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "gates/wire/raw/before-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "gates/wire/raw/binary-sha256.txt": "bf65b8ddcdb67b2915b3650c9025e76f58ff93b76740fb6e8029399ebb0ce02d",
+      "gates/wire/raw/c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "gates/wire/raw/c-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "gates/wire/raw/c-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "gates/wire/raw/c-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "gates/wire/raw/c-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "gates/wire/raw/c-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "gates/wire/raw/c-remove_reply.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-remove_reply.txt": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "gates/wire/raw/c-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "gates/wire/raw/candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "gates/wire/raw/candidate-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "gates/wire/raw/candidate-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "gates/wire/raw/candidate-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "gates/wire/raw/candidate-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "gates/wire/raw/candidate-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "gates/wire/raw/candidate-remove_reply.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-remove_reply.txt": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "gates/wire/raw/candidate-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "gates/wire/raw/probe-identities.txt": "177d23b6c2725b4ca077e6f872a9fec0fe6192dcb3401c74e1aeffd7bb23820c",
+      "gates/wire/tools/isolated.sh": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad",
+      "gates/wire/tools/workload.sh": "6f5eca62a9d26a5310beffe84bf0339154b8d480e2d9821ae758579013d27e7b",
+      "plan.json": "cfd2c7f425a8a156cc37d550482bb90a2652ffdf43727a9269b269027a4fb20a",
+      "recovery-command.json": "705270aeceea6ea2c02ef2c8d1bbc37ac4cc0ca34deb7a161109ec3ae6a59e42",
+      "recovery-exit.json": "3e42a2ad3dbeab9d1167d20261ad6305bdea31103ffc09c30f25558345966de2",
+      "recovery.log": "11a38858d306467fa05d19f7d4cf09497b6621dc7a284733dc62952ff0a864b4",
+      "recovery/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/binaries.json": "3424713ee030f48f004148ca1b600e94cae9626051ebcb13f092995341eb8f64",
+      "recovery/candidate-ubusd_halfclose/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/candidate-ubusd_halfclose/raw/result.json": "5627612e57a5f3c2cc60b37c6669b20ec5f5636c7be59d28d65ee2040fc48952",
+      "recovery/candidate-ubusd_halfclose/raw/ubusd-rs.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/candidate-ubusd_lookup_delete/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/candidate-ubusd_lookup_delete/raw/result.json": "968ebd41c328a182478e439e888e47051b65c182fadd9a73628bf6c99321c1ec",
+      "recovery/candidate-ubusd_lookup_delete/raw/ubusd-rs.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_halfclose/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_halfclose/raw/result.json": "1926c31953fb84e7310284f76b248bce2f654f5b2aadf409d9a6f4de3b320a2a",
+      "recovery/original-ubusd_halfclose/raw/ubusd.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_lookup_delete/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_lookup_delete/raw/result.json": "dc279e9b3f82137612334dd1f70311b4aea4afc382969798f3423a1d8de7a497",
+      "recovery/original-ubusd_lookup_delete/raw/ubusd.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/results.json": "72b0ecc64fdead4c3be1b890d416597c7eafbc397cc59bf220af866a8cef4cc6",
+      "result.json": "e189beb1b42e774302e51662fc0f78fa843d3864352ef1ecf30d869a4535ad88",
+      "scripts/gates.sh": "5081781bc44c515bb0125adde30ecfd096cc0bcad4a4d97558512503bc5fbf84",
+      "scripts/r92_recovery_probe.py": "d275ce3bfe2e99616d46bad66f2385d963fc1e3788730d6752afc2579280c9e5",
+      "scripts/run.py": "5b54a21eadafe5ca99d7896b79893effd7c73b347a32ba187c684ab534330298",
+      "scripts/ubusd_fd_boundary.sh": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57",
+      "scripts/unit_namespace.sh": "9c8719a1cf477d15ba8e0a23159dd1f9f5c541b327c632a10505b8415c17fdab",
+      "scripts/units.sh": "3ce43b68118113bb619e6cea082069d2f28919b680469488b152904c4e3fd1d2",
+      "scripts/wire.sh": "6f5eca62a9d26a5310beffe84bf0339154b8d480e2d9821ae758579013d27e7b",
+      "source-runtime-identity.json": "cceffb97c7b6bc38cf3cd728b5c4e8f68653a3d1b24a1e287e3e8cd3c3cfea59",
+      "units-command.json": "97a5bf21e440cc7ffea54057eb0a7a2dcc54e7f1008f2d89f47862a22639e886",
+      "units-exit.json": "3e42a2ad3dbeab9d1167d20261ad6305bdea31103ffc09c30f25558345966de2",
+      "units.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "units/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "units/artifact-identities.txt": "8900b07de5dead38be9c1779aa9b51fd0f60d816780a7ba1d2c34e30c5e65e5d",
+      "units/artifacts.jsonl": "570473001d1b82370e81a8be0aebb79bef9515350c45c269642b7c0561417d82",
+      "units/build.log": "3c1ea537055b7ef071d7fdf78b8848de29ced6cf14ee6f2d639f20b877e92d46",
+      "units/namespace.json": "fa0a319ee683072dcb40f08a0b88f3d3f19d45a0a51ba72a82b4ecf8448e770a",
+      "units/rustflags.txt": "5a0fb3b2c4fc18cbd6d92af45925f815f28ff2f986b2ac309005416a1eb26abc",
+      "units/test-path.txt": "73f0211ae486befab3a923937dcd39573cc923d95f2b030620b0e5e87ab43d75",
+      "units/tests.log": "8115635bd7a779cfe1f30e9216eeb999faead79b3f6785e766964f2863852d82",
+      "units/ubusd-tests": "c5c8508b5bab016238c2b5b1204a996c1dde830851ee51bcf5db5c6b7c72ffc4"
+    },
+    "analyzer_sha256": "7094a5d37f223d6f0794d08148efe0af79f229822772a314374f973213597e70",
+    "support_sha256": {
+      "tools/r130_registration_report.py": "40a7ccbc53b9397992efceac7b5d3abe758c0644ae6e8ba733c6497748c4c4fb",
+      "tools/r92_recovery_probe.py": "d275ce3bfe2e99616d46bad66f2385d963fc1e3788730d6752afc2579280c9e5",
+      "docs/reviews/r138-correctness-results.json": "b97c8768eac2405bfed6bac8624c3408ebb680a4b0fdf76869468be1b4df289b"
+    }
+  },
+  "limits": [
+    "Oracle functional evidence only; no router task, deployment, or comparative wall-performance gate.",
+    "Unit test ELF is separately built under the release test profile with exactly the A53 release RUSTFLAGS; it is not the deployed candidate ELF.",
+    "Three handcrafted FD cases enforce the accepted read-ahead contract, not exact C placement.",
+    "Known exact-C halfclose/lookup-delete failures remain the unchanged recovery gate expectations.",
+    "All existing functional probes are reused; no new test cases or runtime source changes."
+  ]
+}
