@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "passed": true,
+  "conclusion": "Two simultaneous builds from distinct snapshots of main195e45f reproduce the measured R136 ELF at one canonical Cargo source path. This removes a build-path confound; it is not a runtime or performance improvement.",
+  "implementation_commit": "404d623",
+  "source_revision": "195e45f",
+  "source_identity_reference": "r136-build-identity-results.json:canonical_recipe.source_sha256",
+  "source_file_count": 30,
+  "source_inputs_match_reference": true,
+  "recipe": {
+    "schema": 1,
+    "scope": "Oracle build identity only; no performance or router execution",
+    "input_manifest_sha256": "6335dc9a370a6559056d6c40e91ee7da429936a8d3c1854e07b804fb5153cd38",
+    "canonical_source_root": "/tmp/owrt-build/r135/r136-combined-01",
+    "cwd": "/home/ubuntu",
+    "cargo_user": "ubuntu",
+    "jobs": 2,
+    "builder": "/home/ubuntu/r136/tools/build_variant.sh",
+    "builder_sha256": "da5692bb202c7ee10ce7d1f56966dfc06262101e8e96ef4e133c745db90c3bc5",
+    "namespace_runner_sha256": "55bed7dda6db4edf124f24e4aef8229a1c7619bc02ac1d1a5acb9610a64c839f",
+    "batch_wrapper_sha256": "8fb261176feab486b84a3667393ee7da1ec141d356794cd89f9894050c941d71"
+  },
+  "parent_mount_namespace": "mnt:[4026531832]",
+  "builds": [
+    {
+      "label": "control-a",
+      "started_ns": 1790179145720812754,
+      "status": "built",
+      "sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "size": 514771,
+      "namespace": {
+        "mount_namespace": "mnt:[4026533253]",
+        "build_uid": 1001,
+        "canonical_source_root": "/tmp/owrt-build/r135/r136-combined-01",
+        "cargo_dependency_fingerprints": {
+          "target/aarch64-unknown-linux-musl/release/.fingerprint/owrt-ubus-9de60bde893c607a/lib-owrt_ubus.json": {
+            "rustc": 9796743202043143334,
+            "features": "[]",
+            "declared_features": "[]",
+            "target": 4837589301858856732,
+            "profile": 5676177281124120482,
+            "path": 5879673876014263723,
+            "deps": [],
+            "local": [
+              {
+                "CheckDepInfo": {
+                  "dep_info": "aarch64-unknown-linux-musl/release/.fingerprint/owrt-ubus-9de60bde893c607a/dep-lib-owrt_ubus",
+                  "checksum": false
+                }
+              }
+            ],
+            "rustflags": [
+              "--remap-path-prefix=/tmp/owrt-build/r135/r136-combined-01=/build",
+              "--remap-path-prefix=/home/ubuntu/.cargo=/cargo",
+              "-Clink-arg=-fuse-ld=bfd",
+              "-Clink-arg=-Wl,-z,max-page-size=4096",
+              "-Clink-arg=-Wl,-z,now",
+              "-Clink-arg=-Wl,-z,relro",
+              "-Clink-arg=-Wl,-z,pack-relative-relocs"
+            ],
+            "config": 1277391983508120509,
+            "compile_kind": 6952671608860567167
+          }
+        }
+      },
+      "source_unchanged": true,
+      "finished_ns": 1790179154547379050,
+      "log_sha256": "23d035498079c12a55b377c2cc2451ffd9cafff4ed668e05becb82824cbde87a",
+      "input_components": "/home/ubuntu/r137/inputs-01/control-a/components",
+      "output": "/home/ubuntu/r137/control-build-01/control-a/ubusd-rs"
+    },
+    {
+      "label": "control-b",
+      "started_ns": 1790179145721087677,
+      "status": "built",
+      "sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "size": 514771,
+      "namespace": {
+        "mount_namespace": "mnt:[4026533255]",
+        "build_uid": 1001,
+        "canonical_source_root": "/tmp/owrt-build/r135/r136-combined-01",
+        "cargo_dependency_fingerprints": {
+          "target/aarch64-unknown-linux-musl/release/.fingerprint/owrt-ubus-9de60bde893c607a/lib-owrt_ubus.json": {
+            "rustc": 9796743202043143334,
+            "features": "[]",
+            "declared_features": "[]",
+            "target": 4837589301858856732,
+            "profile": 5676177281124120482,
+            "path": 5879673876014263723,
+            "deps": [],
+            "local": [
+              {
+                "CheckDepInfo": {
+                  "dep_info": "aarch64-unknown-linux-musl/release/.fingerprint/owrt-ubus-9de60bde893c607a/dep-lib-owrt_ubus",
+                  "checksum": false
+                }
+              }
+            ],
+            "rustflags": [
+              "--remap-path-prefix=/tmp/owrt-build/r135/r136-combined-01=/build",
+              "--remap-path-prefix=/home/ubuntu/.cargo=/cargo",
+              "-Clink-arg=-fuse-ld=bfd",
+              "-Clink-arg=-Wl,-z,max-page-size=4096",
+              "-Clink-arg=-Wl,-z,now",
+              "-Clink-arg=-Wl,-z,relro",
+              "-Clink-arg=-Wl,-z,pack-relative-relocs"
+            ],
+            "config": 1277391983508120509,
+            "compile_kind": 6952671608860567167
+          }
+        }
+      },
+      "source_unchanged": true,
+      "finished_ns": 1790179154550812999,
+      "log_sha256": "d2533f26a097c7b6be8249647fd7be639d6f1cf80a20b6fdf42ad332e52dc3d3",
+      "input_components": "/home/ubuntu/r137/inputs-01/control-b/components",
+      "output": "/home/ubuntu/r137/control-build-01/control-b/ubusd-rs"
+    }
+  ],
+  "postchecks": {
+    "schema": 1,
+    "passed": true,
+    "source_revision": "195e45f",
+    "source_files": 30,
+    "two_distinct_input_paths_match_r136_main_source_hashes": true,
+    "host_canonical_tree_sha256_and_metadata_unchanged": true,
+    "host_canonical_entries": 37,
+    "elf_cmp_exit_code": 0,
+    "distinct_child_mount_namespaces": true,
+    "both_build_intervals_overlap": true,
+    "cargo_user_uid": 1001,
+    "cargo_dependency_fingerprints_identical": true,
+    "cargo_dependency_path_fingerprint": 5879673876014263723,
+    "temporary_mount_directories_removed": true,
+    "no_host_mount_leaked": true,
+    "child_namespaces_not_live_after_build": true,
+    "before_sstrip_sha256": {
+      "control-a": "8d86a8dc876cab195089b4b369408b72c712f3cd13d79bc085ceb014e75c0528",
+      "control-b": "8d86a8dc876cab195089b4b369408b72c712f3cd13d79bc085ceb014e75c0528"
+    }
+  },
+  "local_validation": [
+    "Python syntax compilation",
+    "bash -n",
+    "git diff --check",
+    "frozen plan source identities",
+    "duplicate labels rejected",
+    "source symlinks rejected",
+    "paths hidden by mount rejected",
+    "existing evidence file overwrite rejected"
+  ],
+  "evidence_directory": "private/r137/fixed-build-01",
+  "evidence_sha256": {
+    "control-a-result.json": "8df56e97bccb36a8685bd6abad9c84483eab404feabb83078d8311fbebf6ac81",
+    "control-a.log": "23d035498079c12a55b377c2cc2451ffd9cafff4ed668e05becb82824cbde87a",
+    "control-b-result.json": "a724eda5450cf6aada9882c0ec53942e7e6f6d2ec2f3e99b09d1a2b5a54b7740",
+    "control-b.log": "d2533f26a097c7b6be8249647fd7be639d6f1cf80a20b6fdf42ad332e52dc3d3",
+    "control-plan-01.json": "6335dc9a370a6559056d6c40e91ee7da429936a8d3c1854e07b804fb5153cd38",
+    "control-postchecks-01.json": "9c33f6bad49425ab83e4edd59431ceb0939097b821ecef35656ddc3850bca006",
+    "frozen-plan.json": "25f4728f3b5659c067d8a7acaa31525bc8d83b1f6e176f4752429c87dbe83ee1",
+    "host-canonical-after-01.json": "69764868102a8bb99d0ac0ed12e54643567acf1dae93fa21a0f781e90b809253",
+    "host-canonical-before-01.json": "69764868102a8bb99d0ac0ed12e54643567acf1dae93fa21a0f781e90b809253",
+    "results.json": "85a6181d866f48427f52e86cab1641d3ac85875c7634994d0ff54e4e05f205d6"
+  },
+  "limitations": [
+    "Only unchanged main195e45f controls were compiled; no optimization candidates or performance measurements were run.",
+    "The existing SDK runas.so preload warnings remain visible in both build logs; no toolchain or flag changes were made.",
+    "No router access, runtime source edit, old build-script edit, or replacement of measured artifacts was performed."
+  ]
+}
