@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "scope": "R134 Oracle correctness and reproducible build; no router performance inference",
+  "source_commit": "94d4f13458128a9bd4409cecdcdf38a8a14a57e3",
+  "candidate_sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
+  "candidate_bytes": 518867,
+  "wireprobe_sha256": "dd11e59736edcc0392334b11f8cd6d9e3662401a6d184810559a3bd347a67d2f",
+  "unit_test_elf_sha256": "00ca98d3c09558e3c56f46ea543033d9ac314e0385211575167a373f0cf09cde",
+  "benchmark_sha256": "0ca42fbafe08b7ace0aaa90f78c08c9c0f69022a64f6d5073ab6ceb77a88e693",
+  "unit_tests": {
+    "passed": 55,
+    "failed": 0,
+    "log_sha256": "455ca57b275abadce4126af91b2cd593752e303a874fb516a55adc40f6709592",
+    "note": "Static musl test ELF ran directly on AArch64 Oracle. Initial attempt incorrectly used the musl dynamic loader and failed before tests; both logs retained."
+  },
+  "r92_gates": [
+    {
+      "name": "ubusd-r36",
+      "exit": 0
+    },
+    {
+      "name": "ubusd-r36-user",
+      "exit": 0
+    },
+    {
+      "name": "ubusd-r83",
+      "exit": 0
+    },
+    {
+      "name": "ubusd-r42",
+      "exit": 0
+    },
+    {
+      "name": "ubusd-r41",
+      "exit": 0
+    },
+    {
+      "name": "r92-recovery",
+      "exit": 0
+    }
+  ],
+  "events": {
+    "scenarios": 7,
+    "C_R131_R134_transcripts_equal": true
+  },
+  "fd": {
+    "cases_per_subject": 6,
+    "sender_framed_equal_to_C": 3,
+    "handcrafted_contract_cases": 3,
+    "witness_single_delivery_no_leak": true,
+    "all_inputs_C_equal": false
+  },
+  "prefix": {
+    "cases": [
+      {
+        "case": "full",
+        "passed": true
+      },
+      {
+        "case": "pipeline",
+        "passed": true
+      },
+      {
+        "case": "acl",
+        "passed": true
+      }
+    ],
+    "result_sha256": "ddc01f08a74f7f30338eb626bbbc0a2e57039b9d3da28c18e2d3956c22989ddb"
+  },
+  "stress": {
+    "cases": 12,
+    "passed": true,
+    "modes": [
+      "grouped",
+      "interleaved",
+      "monitor",
+      "slow"
+    ],
+    "result_sha256": "98c554fa944c14e6f9d9ad9a3378bd9a28c79684744cc9d933e13405311d4b91"
+  },
+  "rebuild": {
+    "first": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
+    "comment_only_rebuild_identical": true,
+    "fixed_source_path": "/tmp/owrt-build/r134"
+  },
+  "limitations": [
+    "Oracle functional evidence only, not router timing or memory.",
+    "Three handcrafted FD placements have a documented contract difference from C.",
+    "Retained RandomState seed is not claimed equivalent to fresh kernel CSPRNG draws.",
+    "Short finite tests do not establish absence of all bugs."
+  ]
+}
