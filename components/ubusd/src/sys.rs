@@ -1,5 +1,5 @@
 //! The syscalls ubusd needs that std does not expose: unix socket server
-//! setup, non-blocking accept, SO_PEERCRED, getpwuid/getgrgid, getrandom,
+//! setup, non-blocking accept, SO_PEERCRED, getpwuid/getgrgid,
 //! and partial-progress sendmsg/recvmsg with SCM_RIGHTS.
 //!
 //! Layout of every #[repr(C)] struct here is asserted against the target's
@@ -109,8 +109,6 @@ extern "C" {
     fn getgrgid(gid: u32) -> *const Group;
     fn getpwnam(name: *const u8) -> *const Passwd;
     fn getgrnam(name: *const u8) -> *const Group;
-    #[cfg(target_os = "linux")]
-    fn getrandom(buf: *mut u8, len: usize, flags: u32) -> isize;
     fn umask(mask: u32) -> u32;
     fn mkdir(path: *const u8, mode: u32) -> i32;
     fn unlink(path: *const u8) -> i32;
@@ -120,40 +118,31 @@ extern "C" {
 }
 
 pub const SIGHUP: i32 = 1;
-/// getrandom(2) GRND_INSECURE: ids only need to be hard to guess, and this
-/// must not stall boot on a board whose entropy pool seeds late.
-const GRND_INSECURE: u32 = 0x0004;
-
-/// A u32 that is hard to guess. Mirrors ubusd_id.c: retry until the value is
-/// at least `min`, so ids never collide with the reserved system objects.
+/// A u32 that is hard to guess. ubusd_id.c asks getrandom(2) for every id;
+/// here each id is the keyed SipHash of a counter, with the key drawn from
+/// the OS once (std's RandomState; like C's GRND_INSECURE it never blocks on
+/// a board whose entropy pool seeds late), so allocating an id costs no
+/// syscall and is just as unpredictable without the key. Like C, retry until the value is
+/// at least `min`, so ids never collide with the reserved system objects; the
+/// registry retries on a collision with a live id.
 pub fn random_id(min: u32) -> io::Result<u32> {
+    use std::cell::Cell;
+    use std::hash::{BuildHasher, RandomState};
+    thread_local! {
+        static KEY: RandomState = RandomState::new();
+        static NEXT: Cell<u64> = const { Cell::new(0) };
+    }
     loop {
-        let mut buf = [0u8; 4];
-        fill_random(&mut buf)?;
-        let v = u32::from_ne_bytes(buf);
+        let n = NEXT.with(|c| {
+            let n = c.get();
+            c.set(n.wrapping_add(1));
+            n
+        });
+        let v = KEY.with(|k| k.hash_one(n)) as u32;
         if v >= min {
             return Ok(v);
         }
     }
-}
-
-#[cfg(target_os = "linux")]
-fn fill_random(buf: &mut [u8; 4]) -> io::Result<()> {
-    // SAFETY: writing 4 bytes into a 4-byte local buffer.
-    let n = unsafe { getrandom(buf.as_mut_ptr(), buf.len(), GRND_INSECURE) };
-    if n != buf.len() as isize {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
-}
-
-/// Host-only shim so the crate builds and its tests run off-target. The
-/// device is Linux and always takes the getrandom(2) path above.
-#[cfg(not(target_os = "linux"))]
-fn fill_random(buf: &mut [u8; 4]) -> io::Result<()> {
-    use std::io::Read;
-    let _ = GRND_INSECURE;
-    std::fs::File::open("/dev/urandom")?.read_exact(buf)
 }
 
 fn sockaddr(path: &str) -> io::Result<(SockaddrUn, u32)> {
