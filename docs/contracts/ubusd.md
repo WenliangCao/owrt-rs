@@ -55,6 +55,14 @@ STRING 检查把整个属性丢掉，LOOKUP 于是走**无路径分支、把所�
 3. 再 `read()` 剩下的 `raw_len - 4` 字节。
 4. 收齐后 `ub.fd = pending_msg_fd`，`pending_msg_fd = -1`，派发，然后**立刻重试下一条**。
 
+R134 候选使用事件循环共享的 4096 字节读前缓冲，完整帧借用派发，只有残帧跨轮保存。
+短读且无 FD 时让出本轮，剩余数据由 level-triggered readiness 再次唤醒。
+它有一项显式差异：FD 按携带它的那次 `recvmsg` 最后一个字节所在帧归属；
+若该次读取开始前该帧前缀已经收齐，或该帧已有 FD，则关闭新 FD。
+一帧一次发送、FD 随帧首的镜像客户端保持兼容；把多帧与 FD 装进同一次发送的
+手工客户端并不保证与 C 归属相同。三个 sender-framed 差分用例须与 C 一致；
+三个手工构帧用例另外验证此契约、单次交付和无泄漏，不能算作 C 全输入等价。
+
 `UBUS_MAX_MSGLEN` 是编译期常量，上游 CMake 默认 `1048576`。**已用设备自带的 `/sbin/ubusd`
 二分确认**（r41）：声明 1048576 字节的消息被接受，1048577 被断开。两端一致。
 
@@ -78,6 +86,15 @@ STRING 检查把整个属性丢掉，LOOKUP 于是走**无路径分支、把所�
 
 `ubusd_id.c`：`getrandom(GRND_INSECURE)` 取 u32，**必须 ≥ 1024**（`UBUS_SYSTEM_OBJECT_MAX`），
 冲突就重取。client id 与 object id 用同一套规则、各自独立的表。
+
+R134 候选改为线程内计数器加带密钥哈希，包括 client/object/type ID；保留保留值过滤
+与活跃 ID 碰撞重试。固定 Rust 1.98.1 的
+[RandomState 实现](https://raw.githubusercontent.com/rust-lang/rust/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/hash/random.rs)
+使用 SipHash-1-3 和线程内缓存种子；
+[Linux 种子路径](https://raw.githubusercontent.com/rust-lang/rust/48a229ceaefd4985c50990b14116b6d856af0985/library/std/src/sys/random/linux.rs)
+不等待 CRNG 初始化。它不是 CSPRNG 等价性保证：早期种子的质量会被保留，
+后续不会像 C 的逐次系统随机数调用那样获得新熵。ID 仍只用于寻址，所有权和 ACL
+检查独立执行。此处记录机制和边界，不宣称其随机安全性与 C 完全相同。
 
 系统对象固定 id：`EVENT=1`、`ACL=2`、`MONITOR=3`。它们 `client == NULL`，走内建 `recv_msg`。
 

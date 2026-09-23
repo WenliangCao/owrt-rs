@@ -118,13 +118,13 @@ extern "C" {
 }
 
 pub const SIGHUP: i32 = 1;
-/// A u32 that is hard to guess. ubusd_id.c asks getrandom(2) for every id;
-/// here each id is the keyed SipHash of a counter, with the key drawn from
-/// the OS once (std's RandomState; like C's GRND_INSECURE it never blocks on
-/// a board whose entropy pool seeds late), so allocating an id costs no
-/// syscall and is just as unpredictable without the key. Like C, retry until the value is
-/// at least `min`, so ids never collide with the reserved system objects; the
-/// registry retries on a collision with a live id.
+/// Generate ID candidates with a thread-local keyed counter hash
+/// (RandomState uses SipHash-1-3 in pinned Rust 1.98.1). On Linux, std seeds
+/// its thread-local cache without waiting for CRNG initialization; subsequent
+/// candidates need no randomness syscall. This is not a cryptographic RNG:
+/// output quality depends on the retained initial seed. Reject values below
+/// `min` to exclude reserved system IDs; the registry separately retries
+/// collisions with live IDs, as C does.
 pub fn random_id(min: u32) -> io::Result<u32> {
     use std::cell::Cell;
     use std::hash::{BuildHasher, RandomState};

@@ -106,8 +106,8 @@ pub struct Client {
     /// The descriptor owned by the frame at rx_start.
     pending_fd: Option<OwnedFd>,
     /// The last recvmsg returned less than it was offered and carried no
-    /// descriptor, so the socket was empty; wait for readiness instead of
-    /// probing for EAGAIN (the readiness set is level-triggered).
+    /// descriptor; yield instead of probing for EAGAIN. If input remains,
+    /// level-triggered readiness schedules another round.
     rx_drained: bool,
     large: Option<LargeFrame>,
     pub eof: bool,

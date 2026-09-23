@@ -2,7 +2,8 @@
 # Build router candidates on the Oracle host with the canonical SDK flags.
 # usage: [EXAMPLES=1] build.sh SRC_COMPONENTS_DIR OUT_DIR COMPONENT...
 # Builds in a fixed path so equal sources give equal bytes; strips like the
-# SDK package (sstrip -z) and keeps an unstripped copy for profiling.
+# SDK package (sstrip -z). Cargo's release profile already strips symbols;
+# the target-directory copy is before sstrip, not a symbolized profiling ELF.
 set -euo pipefail
 SRC=$(realpath "$1"); OUT=$2; shift 2
 SDK=/home/ubuntu/release/25.12.5/openwrt-sdk-25.12.5-mediatek-filogic_gcc-14.3.0_musl.Linux-x86_64
