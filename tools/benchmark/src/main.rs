@@ -62,6 +62,11 @@ struct ProcSample {
     start_ticks: u64,
     cpu_ticks: u64,
     child_ticks: u64,
+    // /proc/<pid>/stat field 39: only the last CPU observed, not a
+    // migration count or proof that the task stayed there between samples.
+    last_processor: u64,
+    cpus_allowed: String,
+    cpus_allowed_list: String,
     cpu_clock: cpu_clock::Sample,
     values: BTreeMap<String, u64>,
 }
@@ -70,12 +75,18 @@ fn proc_sample(pid: u32) -> Result<ProcSample> {
     let stat = fs::read_to_string(format!("/proc/{pid}/stat"))?;
     let tail = stat.rsplit_once(") ").ok_or("invalid proc stat")?.1;
     let fields: Vec<_> = tail.split_whitespace().collect();
-    require(fields.len() >= 20, "short proc stat")?;
+    require(fields.len() >= 37, "short proc stat")?;
     let n = |index: usize| -> Result<u64> { Ok(fields[index].parse()?) };
     let mut values = BTreeMap::new();
+    let mut cpus_allowed = None;
+    let mut cpus_allowed_list = None;
     for line in fs::read_to_string(format!("/proc/{pid}/status"))?.lines() {
         if let Some((key, value)) = line.split_once(':') {
-            if matches!(
+            if key == "Cpus_allowed" {
+                cpus_allowed = Some(value.trim().to_owned());
+            } else if key == "Cpus_allowed_list" {
+                cpus_allowed_list = Some(value.trim().to_owned());
+            } else if matches!(
                 key,
                 "VmRSS"
                     | "RssAnon"
@@ -106,6 +117,10 @@ fn proc_sample(pid: u32) -> Result<ProcSample> {
         start_ticks: n(19)?,
         cpu_ticks: n(11)? + n(12)?,
         child_ticks: n(13)? + n(14)?,
+        // The parsed tail starts at stat field 3 (state).
+        last_processor: n(36)?,
+        cpus_allowed: cpus_allowed.ok_or("missing Cpus_allowed")?,
+        cpus_allowed_list: cpus_allowed_list.ok_or("missing Cpus_allowed_list")?,
         cpu_clock: cpu_clock::sample(pid)?,
         values,
     })
@@ -122,6 +137,9 @@ fn proc_json(pid: u32, sample: &ProcSample) -> Json {
         ("start_ticks".into(), integer(sample.start_ticks)),
         ("cpu_ticks".into(), integer(sample.cpu_ticks)),
         ("child_cpu_ticks".into(), integer(sample.child_ticks)),
+        ("last_processor".into(), integer(sample.last_processor)),
+        ("Cpus_allowed".into(), Json::Str(sample.cpus_allowed.clone())),
+        ("Cpus_allowed_list".into(), Json::Str(sample.cpus_allowed_list.clone())),
         ("process_cpu_ns".into(), integer(sample.cpu_clock.ns)),
         ("process_cpu_resolution_ns".into(), integer(sample.cpu_clock.resolution_ns)),
     ]);
@@ -280,6 +298,10 @@ where
         ("p99_us", percentile(0.99)),
         ("latency_ns", raw),
         ("daemon_cpu", Json::Array(daemons)),
+        // Reuse the snapshots already taken outside the timed interval.
+        // Context switches and CPU placement are boundary observations only.
+        ("client_before", proc_json(std::process::id(), &own_before)),
+        ("client_after", proc_json(std::process::id(), &own_after)),
         (
             "client_cpu_s",
             num((own_after.cpu_ticks - own_before.cpu_ticks) as f64 / hz),
