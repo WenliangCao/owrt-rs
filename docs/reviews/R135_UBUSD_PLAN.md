@@ -33,3 +33,5 @@ Oracle 和路由器同为 Linux/aarch64 只减少了一部分平台差异；微�
 因此实机仅做四窗、每窗四版本的定向诊断：C、R134、继续读到 EAGAIN（drain）、分开发 ADD（split）。四个 Williams 平衡顺序，客户端独核/允许 0–1 两条件交替，各 register_1/register_16/event_1 每窗 10,000 周期。守护进程始终 CPU 1，argv0/socket/ACL 相同。角色映射为主 candidate=drain、before=R134、额外 ELF=split；借用收集器的 event-benchmark 文件槽承载后者，实际调用角色在脚本明确记录。
 
 生成器为 `tools/r135/make_router_plan.py`，冻结输入哈希与窗口脚本保存在 ignored `private/r135/router-plan-02/plan.json`。01 尚未运行，在采集前核对旧矩阵时发现它使用默认 socket 和默认 ACL，因此 02 恢复相同参数，避免增加初始配置差异；01 原计划保留，不覆盖。这是少量假设判别窗，不能用四窗替代原 7/8 门或正式宣布胜利；若出现可重复改善，再用独立正式窗口验证。没有改变 R134 既有负项、±1%规则或生产状态。Oracle 功能门完成后才启动这四窗。
+
+Oracle 前置门结果：drain 整套通过；split 的 events、FD、五个 ubusd functional 项、两个 ubusd recovery 项均通过，但通用 recovery 套件中的 **original/C netifd_overflow subsequent_events=false**，因此 split 整套 aggregate 仍为失败。该案例 `component=netifd, side=original`，使用 `/sbin/netifd` 和 `/sbin/ubusd`，未执行本轮候选；完整失败保留，不推断是并发导致，也不通过重试刷绿。实机继续的依据限定于已通过的 ubusd 前置项，不声称所有组件恢复检查通过。
