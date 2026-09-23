@@ -194,9 +194,9 @@ impl Server {
 
     /// ADD/REMOVE DATA contains only OBJID and an optional OBJTYPE. Keep
     /// its fixed 12/20-byte wire form on the stack instead of growing scratch.
-    /// DATA and STATUS use separate sends. The router's registration-tail
-    /// diagnostic favored this over combining the two small replies.
-    /// REMOVE still frees the object and emits notifications before STATUS.
+    /// A successful ADD has no action left between DATA and STATUS, so it can
+    /// send both together without a monitor. REMOVE still sends DATA before
+    /// freeing the object and emitting notifications, then returns STATUS.
     fn send_object_reply(&mut self, client: u32, request: &InMsg, id: u32, type_id: Option<u32>) -> Outcome {
         let mut blob = [0u8; 20];
         let len = if type_id.is_some() { 20 } else { 12 };
@@ -208,6 +208,13 @@ impl Server {
             blob[16..20].copy_from_slice(&type_id.to_be_bytes());
         }
         let header = Header { ty: ty::DATA, seq: request.header.seq, peer: request.header.peer };
+        if request.header.ty == ty::ADD_OBJECT && self.monitors.is_empty() {
+            if let Some(c) = self.clients.get_mut(&client) {
+                c.send_data_status_reply(header, &blob[..len]);
+                self.touched.push(client);
+            }
+            return Outcome::NoStatus;
+        }
         Self::mirror(&mut self.clients, &mut self.monitors, &mut self.touched, client, &header, &blob[..len], true);
         if let Some(c) = self.clients.get_mut(&client) {
             c.send_borrowed(header, &blob[..len], None);
