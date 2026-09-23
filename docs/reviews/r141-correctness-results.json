@@ -1,0 +1,356 @@
+{
+  "scope": "R141 same-source generic profile-use Oracle correctness; no performance verdict",
+  "passed": true,
+  "source": {
+    "same_runtime_as_r136": true,
+    "runtime_files_verified": 20,
+    "source_unchanged": true,
+    "runtime_identity_manifest_sha256": "cceffb97c7b6bc38cf3cd728b5c4e8f68653a3d1b24a1e287e3e8cd3c3cfea59",
+    "build_plan_sha256": "aa660621e724f491b3df1b131a30bba9def467c2325cb24af2c064b666dfa4ca",
+    "build_results_sha256": "51ce393b05caa6d7a21f29ef527e8501ed57908de78d8e5f75da25f3693e71c0"
+  },
+  "profile": {
+    "sha256": "566a73250308a19e97715b40ff2b2f4043f07ed836b89b205d50d810ef07c4f8",
+    "training_result_sha256": "81059d6cc19d3845f39654f1075f4cb904822ca5d92f881354339ee6678b05dc"
+  },
+  "artifacts": {
+    "candidate_sha256": "70e7174c648ef676800a5f03d557ba7a0e1f07de2450c5d0d6ed334d3aa862eb",
+    "r136_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+    "r131_fd_control_sha256": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+    "exact_c_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "unit_tests_sha256": "4e1738036b4ed58fb1856b71a0cbd583c9c73881aec913ad52d492891827b9ac",
+    "wireprobe_sha256": "5500effd5af3b8ac34c2be91941acd1873a997733174a0d6cc6aaeebd54723f6",
+    "wire_workload_sha256": "6f5eca62a9d26a5310beffe84bf0339154b8d480e2d9821ae758579013d27e7b",
+    "fd_workload_sha256": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57"
+  },
+  "unit_tests": {
+    "passed": 55,
+    "failed": 0,
+    "flags_match_release": true,
+    "target_cpu": "generic; unchanged",
+    "build": "Rust 1.98.1 aarch64 musl / OpenWrt 25.12.5 SDK release test profile",
+    "canonical_source_path_matches_release": true,
+    "log_sha256": "8115635bd7a779cfe1f30e9216eeb999faead79b3f6785e766964f2863852d82",
+    "new_unit_tests": 0
+  },
+  "wire": [
+    {
+      "scenario": "object_events",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "lines": 6
+    },
+    {
+      "scenario": "events",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "lines": 5
+    },
+    {
+      "scenario": "monitor",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "lines": 6
+    },
+    {
+      "scenario": "release",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "lines": 4
+    },
+    {
+      "scenario": "utf8",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "lines": 3
+    },
+    {
+      "scenario": "monitor_lookup",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "lines": 1
+    },
+    {
+      "scenario": "method_acl",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "lines": 14
+    },
+    {
+      "scenario": "remove_reply",
+      "c_r136_candidate_identical": true,
+      "transcript_sha256": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "lines": 5
+    }
+  ],
+  "fd": [
+    {
+      "side": "c",
+      "contract": "c",
+      "transcript_sha256": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true"
+      ]
+    },
+    {
+      "side": "r131",
+      "contract": "c",
+      "transcript_sha256": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=c expected=1,0 contract_match=true c_placement=true",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,0 witness=true no_leak=true handcrafted contract=c expected=0,0 contract_match=true c_placement=true"
+      ]
+    },
+    {
+      "side": "candidate",
+      "contract": "read_ahead",
+      "transcript_sha256": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+      "cases": [
+        "case=separate_waited invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=separate_queued invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true compatible=true",
+        "case=plain_first_then_fd_second invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true compatible=true",
+        "case=bundled invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false",
+        "case=fd_in_first_body invoke_order=first,second seq=101,102 fds=1,0 witness=true no_leak=true handcrafted contract=read_ahead expected=0,0|1,0 contract_match=true c_placement=false",
+        "case=fd_on_first_body_plus_second_frame invoke_order=first,second seq=101,102 fds=0,1 witness=true no_leak=true handcrafted contract=read_ahead expected=0,1 contract_match=true c_placement=false"
+      ]
+    }
+  ],
+  "recovery": [
+    {
+      "side": "original",
+      "case": "ubusd_halfclose",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": false,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "expected_original_failures": {
+        "complete_reply": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "original",
+      "case": "ubusd_lookup_delete",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "expected_original_failures": {
+        "no_duplicate": false,
+        "continued_to_end": false,
+        "serving": false
+      },
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "ubusd_halfclose",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_read_spin": true,
+        "complete_reply": true,
+        "closed_after_reply": true,
+        "serving": true
+      },
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    },
+    {
+      "side": "candidate",
+      "case": "ubusd_lookup_delete",
+      "exit": 0,
+      "checks": {
+        "identity": true,
+        "no_duplicate": true,
+        "continued_to_end": true,
+        "serving": true
+      },
+      "expected_original_failures": {},
+      "original_failure_not_reproduced": [],
+      "passed": true
+    }
+  ],
+  "evidence": {
+    "archive_sha256": "de7b958be7ee3f1da8b4de0128f6c9c5e39fb48c62680e48ffc4a026e5a851f1",
+    "manifest_sha256": "93f1da22b4cc490573d0c2b80d72a4f442be0aabc1c5a83f1185193584b1f4eb",
+    "verified_files": 143,
+    "files": {
+      "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bins/ubusd-rs": "70e7174c648ef676800a5f03d557ba7a0e1f07de2450c5d0d6ed334d3aa862eb",
+      "build-proof/frozen-plan.json": "aa660621e724f491b3df1b131a30bba9def467c2325cb24af2c064b666dfa4ca",
+      "build-proof/merged.profdata": "566a73250308a19e97715b40ff2b2f4043f07ed836b89b205d50d810ef07c4f8",
+      "build-proof/results.json": "51ce393b05caa6d7a21f29ef527e8501ed57908de78d8e5f75da25f3693e71c0",
+      "build-proof/training-result.json": "81059d6cc19d3845f39654f1075f4cb904822ca5d92f881354339ee6678b05dc",
+      "build-proof/use-recipe.sh": "634676d7dcfb3ef24d8f9e0b7898fb10274471f8b51725ec96f02d7883590d6f",
+      "evidence-manifest.json": "93f1da22b4cc490573d0c2b80d72a4f442be0aabc1c5a83f1185193584b1f4eb",
+      "gates-command.json": "a324b1ee8cc252ef5bc8d99402fad9cb6e66c18741f14019252dfa7b6d1c8109",
+      "gates-exit.json": "3e42a2ad3dbeab9d1167d20261ad6305bdea31103ffc09c30f25558345966de2",
+      "gates.log": "41af120450008f47666ff4d0e3c5e8dc71dd2cd0a0bdab32e49f1adc76018b39",
+      "gates/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/bundle/before-rs": "c5bcf6e7c6f2ed565140e183ba3aa97c1ef60274bbde8398771ac13680da839a",
+      "gates/fd/bundle/ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "gates/fd/bundle/owrt-benchmark": "5500effd5af3b8ac34c2be91941acd1873a997733174a0d6cc6aaeebd54723f6",
+      "gates/fd/bundle/ubusd-rs": "70e7174c648ef676800a5f03d557ba7a0e1f07de2450c5d0d6ed334d3aa862eb",
+      "gates/fd/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/inputs-after.log": "7691c9e5e68c8df376833a5425e50e4c68d3db91fbc57e0e6feb639f1ee1b673",
+      "gates/fd/inputs.sha256": "67aa06e395d0dd7c9a108710fd466986c5bef665710bd9f9d3bbd776fe662eca",
+      "gates/fd/raw/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/before-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/before-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "gates/fd/raw/before-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/binary-sha256.txt": "d3da82069fe26a6484cb932c9f401b804c19c986359fcbaa93dc35a66da2d609",
+      "gates/fd/raw/c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/c-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/c-fd_boundary.txt": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "gates/fd/raw/c-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+      "gates/fd/raw/c-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/candidate-fd_boundary.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/candidate-fd_boundary.txt": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+      "gates/fd/raw/candidate-framed.txt": "0f7e6d4647741f829cc1af302c287cc5083db68328d5319c7152d69ce2016fb1",
+      "gates/fd/raw/candidate-objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/fd/raw/identities.txt": "be7e7af6276ef358c7b66d5913dee3d58378d9af7f199ff7e091725d9dadbb5d",
+      "gates/fd/tools/isolated.sh": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad",
+      "gates/fd/tools/workload.sh": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57",
+      "gates/wire/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/bundle/before-rs": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+      "gates/wire/bundle/ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "gates/wire/bundle/owrt-benchmark": "5500effd5af3b8ac34c2be91941acd1873a997733174a0d6cc6aaeebd54723f6",
+      "gates/wire/bundle/ubusd-rs": "70e7174c648ef676800a5f03d557ba7a0e1f07de2450c5d0d6ed334d3aa862eb",
+      "gates/wire/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/inputs-after.log": "2117e5904350a0673934a3eae24c0c8cbb9e092d8c0c5f0e6b0e5e34b0145324",
+      "gates/wire/inputs.sha256": "fc84c9fa22c5bc4f96fef1e192216f889afb023264deee269d5527adfbbaf02a",
+      "gates/wire/raw/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "gates/wire/raw/before-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "gates/wire/raw/before-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "gates/wire/raw/before-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "gates/wire/raw/before-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "gates/wire/raw/before-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "gates/wire/raw/before-remove_reply.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-remove_reply.txt": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "gates/wire/raw/before-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/before-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "gates/wire/raw/binary-sha256.txt": "d3da82069fe26a6484cb932c9f401b804c19c986359fcbaa93dc35a66da2d609",
+      "gates/wire/raw/c-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "gates/wire/raw/c-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "gates/wire/raw/c-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "gates/wire/raw/c-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "gates/wire/raw/c-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "gates/wire/raw/c-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "gates/wire/raw/c-remove_reply.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-remove_reply.txt": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "gates/wire/raw/c-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/c-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "gates/wire/raw/candidate-daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-events.txt": "e928eb5d6a5559494295ee72eaa539ca2a4dfcc8378dd90c6f77d69909a391a5",
+      "gates/wire/raw/candidate-method_acl.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-method_acl.txt": "cc51fe5dd5af1c5bea1f696b9837f0b6658bed0e3b6986bb33ac0983757389dc",
+      "gates/wire/raw/candidate-monitor.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-monitor.txt": "facc2cb1e58033b48489a85fae990bebfebe2b49d6a605414505358a72058c34",
+      "gates/wire/raw/candidate-monitor_lookup.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-monitor_lookup.txt": "e9503810dd1f1bdfc6bb98e046da041bae2ff3041856168493b7b7c3e01697cd",
+      "gates/wire/raw/candidate-object_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-object_events.txt": "2747fb98bb62c35fc323ce0666b913bcbc7f236330ace24dbe5f7be001d422ec",
+      "gates/wire/raw/candidate-release.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-release.txt": "649581f677d0530ade8e4430df1482b0dc50a6b7a5787f17e45fc4a2552ff7d5",
+      "gates/wire/raw/candidate-remove_reply.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-remove_reply.txt": "0cd3123bd4475e96350ba0293c9e40e1a0dc0a567fc0d713bf5da4741f9441a5",
+      "gates/wire/raw/candidate-utf8.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gates/wire/raw/candidate-utf8.txt": "adcf07d333374c4f461730da474f78bea3d9d28e5e7bfa4de295768733a1d8b4",
+      "gates/wire/raw/probe-identities.txt": "177d23b6c2725b4ca077e6f872a9fec0fe6192dcb3401c74e1aeffd7bb23820c",
+      "gates/wire/tools/isolated.sh": "9fcd55e80b316c80b8a8996773a47a6ad58a56e4a32afe4b6468e2e08a986fad",
+      "gates/wire/tools/workload.sh": "6f5eca62a9d26a5310beffe84bf0339154b8d480e2d9821ae758579013d27e7b",
+      "plan.json": "5f4dccf747d6dd21fbd1da60ba384ecfa48909144ae166433e15af12dbc89200",
+      "recovery-command.json": "b5f3f13ba9f00be008c6f43266d883d134b6ad4ddbde960509bf5d08e6e52f02",
+      "recovery-exit.json": "3e42a2ad3dbeab9d1167d20261ad6305bdea31103ffc09c30f25558345966de2",
+      "recovery.log": "11a38858d306467fa05d19f7d4cf09497b6621dc7a284733dc62952ff0a864b4",
+      "recovery/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/binaries.json": "8832f2b658e0d1d9eb796e0720aa5a0ba6a30b957f7f8deddfdc6c0e306ac944",
+      "recovery/candidate-ubusd_halfclose/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/candidate-ubusd_halfclose/raw/result.json": "5627612e57a5f3c2cc60b37c6669b20ec5f5636c7be59d28d65ee2040fc48952",
+      "recovery/candidate-ubusd_halfclose/raw/ubusd-rs.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/candidate-ubusd_lookup_delete/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/candidate-ubusd_lookup_delete/raw/result.json": "968ebd41c328a182478e439e888e47051b65c182fadd9a73628bf6c99321c1ec",
+      "recovery/candidate-ubusd_lookup_delete/raw/ubusd-rs.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_halfclose/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_halfclose/raw/result.json": "5eef5a12e8d48828cb7016af2b6459379892ae49f5a9f30371c26e892fc458b9",
+      "recovery/original-ubusd_halfclose/raw/ubusd.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_lookup_delete/driver.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/original-ubusd_lookup_delete/raw/result.json": "dc279e9b3f82137612334dd1f70311b4aea4afc382969798f3423a1d8de7a497",
+      "recovery/original-ubusd_lookup_delete/raw/ubusd.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "recovery/results.json": "f5e9bbd7e85ddae48355a871de6599dc9900eb17b3676c212e01580f1d082f3a",
+      "result.json": "04ee0857d285864024e5fcb8717cb42481d40626effda5f6cdcf5d8c2e8a5cde",
+      "scripts/gates.sh": "5081781bc44c515bb0125adde30ecfd096cc0bcad4a4d97558512503bc5fbf84",
+      "scripts/r92_recovery_probe.py": "d275ce3bfe2e99616d46bad66f2385d963fc1e3788730d6752afc2579280c9e5",
+      "scripts/run.py": "f669c28159efd3aff817a1bc1ec7e85e0ca94d3429c9d217dc6021f56ea35395",
+      "scripts/ubusd_fd_boundary.sh": "fa2fab0a398b0ff6eec6a50e9ea01b6309f96d7a8cd2e61f8fbbc7b327e65c57",
+      "scripts/unit_namespace.sh": "9c8719a1cf477d15ba8e0a23159dd1f9f5c541b327c632a10505b8415c17fdab",
+      "scripts/units.sh": "4b7afe4dfd77dc1cb3877e33e3e9cafcfa3fd9f2defcb29a6f9790103c41d1a6",
+      "scripts/wire.sh": "6f5eca62a9d26a5310beffe84bf0339154b8d480e2d9821ae758579013d27e7b",
+      "source-runtime-identity.json": "cceffb97c7b6bc38cf3cd728b5c4e8f68653a3d1b24a1e287e3e8cd3c3cfea59",
+      "units-command.json": "ead3d541528403901e8bf6d5356a36313883871441e15ee126b50da12a0b8f79",
+      "units-exit.json": "3e42a2ad3dbeab9d1167d20261ad6305bdea31103ffc09c30f25558345966de2",
+      "units.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "units/COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "units/artifact-identities.txt": "52db276cc9ce06fb9d9e0cef8f04e093cfa5507f94601cb607715adbec654817",
+      "units/artifacts.jsonl": "92ff4e7d7b626b3d3415b54fd8b81c31268610159ecd51c2108f03989f3a97bb",
+      "units/build.log": "66e39ef5891b9a392ca3b17b251a31f9c75266c5b27ae7eddacb25224e62b4d0",
+      "units/namespace.json": "dfa6e7d4b6d637b9aa17f88a27f9b4d8b9783e5da6bd7b7d473a00148f13c765",
+      "units/rustflags.txt": "43efe46fa82a9d908fdd4319dce9370232d9bb845469adba7fb709de317b87fa",
+      "units/test-path.txt": "da000d2e6c20e835bb507bc5a3bec98a48bd8ffe98d0526b2391fc964dc65bb5",
+      "units/tests.log": "8115635bd7a779cfe1f30e9216eeb999faead79b3f6785e766964f2863852d82",
+      "units/ubusd-tests": "4e1738036b4ed58fb1856b71a0cbd583c9c73881aec913ad52d492891827b9ac"
+    },
+    "analyzer_sha256": "cc3e9d8e3bf787958fb26ba27f7c66c686a2bc807ca5ee90b7e79d13e23052dc",
+    "support_sha256": {
+      "tools/r130_registration_report.py": "40a7ccbc53b9397992efceac7b5d3abe758c0644ae6e8ba733c6497748c4c4fb",
+      "tools/r92_recovery_probe.py": "d275ce3bfe2e99616d46bad66f2385d963fc1e3788730d6752afc2579280c9e5",
+      "docs/reviews/r138-correctness-results.json": "b97c8768eac2405bfed6bac8624c3408ebb680a4b0fdf76869468be1b4df289b"
+    }
+  },
+  "limits": [
+    "Oracle functional evidence only; no router task, deployment, or comparative wall-performance gate.",
+    "Unit test ELF is separately built under the release test profile with exactly the profile-use release RUSTFLAGS; it is not the deployed candidate ELF.",
+    "Three handcrafted FD cases enforce the accepted read-ahead contract, not exact C placement.",
+    "Known exact-C halfclose/lookup-delete failures remain the unchanged recovery gate expectations.",
+    "All existing functional probes are reused; no new test cases or runtime source changes."
+  ]
+}
