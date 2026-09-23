@@ -63,6 +63,27 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual(report.owned_processes((host + production + owned).encode(), '/tmp/test'), [1000])
 
 
+@unittest.skipUnless((report.ROOT / "private/r136/completion-01/FAILED").exists(),
+                     "requires retained failed R136 evidence")
+class FailedCollectionTests(unittest.TestCase):
+    def test_old_failure_cannot_be_promoted(self):
+        root = report.ROOT / "private/r136/completion-01"
+        plan_path = report.ROOT / "private/r136/completion-plan-01.json"
+        plan = report.read(plan_path)
+        with self.assertRaisesRegex(ValueError, "completion incomplete/failed"):
+            report.analyze(root, plan_path)
+        with self.assertRaisesRegex(ValueError, "health/cleanup gate"):
+            report.verify_memory_window(root, plan, "large", "03-candidate")
+
+    def test_recovery_history_uses_exact_stopped_prefix(self):
+        root = report.ROOT / "private/r136/completion-01"
+        plan_path = report.ROOT / "private/r136/completion-plan-01.json"
+        plan = report.read(plan_path)
+        self.assertTrue(report.verify_transport_recovery(root, plan, report.digest(plan_path), stopped_after=26)["present"])
+        with self.assertRaisesRegex(ValueError, "continuation commands differ"):
+            report.verify_transport_recovery(root, plan, report.digest(plan_path), stopped_after=25)
+
+
 @unittest.skipUnless((report.ROOT / "private/r134/router-finish-03/COMPLETE").exists(),
                      "requires retained local R134 raw evidence; never contacts router")
 class EvidenceTests(unittest.TestCase):

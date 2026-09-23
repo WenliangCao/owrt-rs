@@ -233,38 +233,45 @@ def memory_summary(windows):
     return {"measurements": result, "all_candidate_increases": [row for row in result if row["candidate_minus_stock"] > 0]}
 
 
+def verify_memory_window(root, plan, kind, name):
+    folder = root / "memory"
+    index = matrix_report.RUNS[:4].index(name)
+    side = matrix_report.ORDER[index]
+    libraries = read(ROOT / "docs/reviews/r124-memory-plan-v2.json")["libraries"]
+    step = next(step for step in plan["steps"] if step["name"] == f"memory-{kind}-{name}")
+    window = verify_guarded(root, plan, step)
+    files = step_tools(plan, step)
+    files[kind + "_helper"], files[kind + "_workload"] = files["benchmark"], files["workload"]
+    spec = {"name": f"{kind}/{name}", "kind": kind, "subject": "c" if side == "stock" else side,
+            "order": 1 if index < 2 else 2}
+    inputs = {"boot_id": plan["boot_id"], "subjects": {spec["subject"]: plan["subjects"][side]}, "files": files}
+    base = memory_collection.verify_window(folder, spec, inputs)
+    raw, archived = window / "raw", archive_hashes(window)
+    executable = "/sbin/ubusd" if side == "stock" else "/tmp/bin/ubusd-rs"
+    check(hashes(raw / "binary-sha256.txt") == {executable: plan["subjects"][side]["sha256"]}, "memory executable")
+    helpers = {"/tmp/bin/owrt-benchmark": files["benchmark"]["sha256"],
+               "/tmp/bin/ns-exec": plan["namespace_sha256"]}
+    if kind != "idle":
+        helpers["/tmp/bin/guard"] = files["guard"]["sha256"]
+        check(hashes(raw / "workload-sha256.txt") == {"/tmp/workload.sh": files["workload"]["sha256"]}, "memory workload")
+        check(hashes(raw / "libraries.sha256") == libraries and
+              set((raw / "libraries-verified.txt").read_text().splitlines()) == {name + ": OK" for name in libraries}, "memory libraries")
+        check((raw / "boot-id.txt").read_text().strip() == plan["boot_id"], "memory boot")
+    check(hashes(raw / "benchmark-sha256.txt") == helpers, "memory helpers")
+    metrics = memory_audit.audit_idle(window) if kind == "idle" else memory_audit.audit_event(window, spec, inputs)
+    return {**base, "side": side, "raw_files_verified": len(archived),
+            "proc_snapshot_verified": True, "memory": metrics}
+
+
 def analyze_memory(root, plan):
     folder = root / "memory"
     check((folder / "COMPLETE").is_file(), "memory incomplete")
     check({p.name for p in folder.iterdir() if p.is_dir()} == {"idle", "large", "fanout"}, "memory fixture set")
     windows = []
-    libraries = read(ROOT / "docs/reviews/r124-memory-plan-v2.json")["libraries"]
     for kind in ("idle", "large", "fanout"):
         check({p.name for p in (folder / kind).iterdir() if p.is_dir()} == set(matrix_report.RUNS[:4]), "memory window set")
-        for index, (name, side) in enumerate(zip(matrix_report.RUNS[:4], matrix_report.ORDER[:4])):
-            step = next(step for step in plan["steps"] if step["name"] == f"memory-{kind}-{name}")
-            window = verify_guarded(root, plan, step)
-            files = step_tools(plan, step)
-            files[kind + "_helper"], files[kind + "_workload"] = files["benchmark"], files["workload"]
-            spec = {"name": f"{kind}/{name}", "kind": kind, "subject": "c" if side == "stock" else side,
-                    "order": 1 if index < 2 else 2}
-            inputs = {"boot_id": plan["boot_id"], "subjects": {spec["subject"]: plan["subjects"][side]}, "files": files}
-            base = memory_collection.verify_window(folder, spec, inputs)
-            raw, archived = window / "raw", archive_hashes(window)
-            executable = "/sbin/ubusd" if side == "stock" else "/tmp/bin/ubusd-rs"
-            check(hashes(raw / "binary-sha256.txt") == {executable: plan["subjects"][side]["sha256"]}, "memory executable")
-            helpers = {"/tmp/bin/owrt-benchmark": files["benchmark"]["sha256"],
-                       "/tmp/bin/ns-exec": plan["namespace_sha256"]}
-            if kind != "idle":
-                helpers["/tmp/bin/guard"] = files["guard"]["sha256"]
-                check(hashes(raw / "workload-sha256.txt") == {"/tmp/workload.sh": files["workload"]["sha256"]}, "memory workload")
-                check(hashes(raw / "libraries.sha256") == libraries and
-                      set((raw / "libraries-verified.txt").read_text().splitlines()) == {name + ": OK" for name in libraries}, "memory libraries")
-                check((raw / "boot-id.txt").read_text().strip() == plan["boot_id"], "memory boot")
-            check(hashes(raw / "benchmark-sha256.txt") == helpers, "memory helpers")
-            metrics = memory_audit.audit_idle(window) if kind == "idle" else memory_audit.audit_event(window, spec, inputs)
-            windows.append({**base, "side": side, "raw_files_verified": len(archived),
-                            "proc_snapshot_verified": True, "memory": metrics})
+        for name in matrix_report.RUNS[:4]:
+            windows.append(verify_memory_window(root, plan, kind, name))
     return {"windows_verified": len(windows), "windows": windows, **memory_summary(windows),
             "limits": ["Two windows per side/fixture; descriptive snapshots, not peaks, confidence intervals or equivalence tests.",
                        "VmRSS includes shared pages and is not system-wide savings; unavailable PSS stays NA.",
@@ -315,7 +322,7 @@ def resume_events(path):
     check(events == expected, "resume must preserve 1–12 and measure only 13–16, exactly once")
 
 
-def verify_transport_recovery(root, plan, plan_sha):
+def verify_transport_recovery(root, plan, plan_sha, stopped_after=None):
     audit = root / "transport-recovery"
     resumed = list((root / "matrix").glob("resume-health-*.json"))
     required = plan_sha == INTERRUPTED_PLAN_SHA or audit.exists() or resumed or (root / "matrix-continued.log").exists()
@@ -364,7 +371,7 @@ def verify_transport_recovery(root, plan, plan_sha):
     check(recovery["raw_files_verified"] == len(archive_hashes(window)), "recovered raw file count differs")
     commands = read(audit / "commands.json")
     expected_commands = [{"name": step["name"], "argv": [invocation[0], *step["argv"],
-                         *(["--resume"] if step["name"] == "matrix" else [])]} for step in plan["steps"][2:]]
+                         *(["--resume"] if step["name"] == "matrix" else [])]} for step in plan["steps"][2:stopped_after]]
     check([{key: command[key] for key in ("name", "argv")} for command in commands] == expected_commands,
           "actual continuation commands differ from frozen steps plus matrix --resume")
     resume_events(root / "matrix-continued.log")
