@@ -1,0 +1,1096 @@
+{
+  "schema_version": 1,
+  "scope": "R132 exact-PC Oracle registration profile audit; 12 formal windows, 997 Hz rejected predecessor not pooled",
+  "all_checks_passed": true,
+  "raw_series": "private/r132-registration-attribution/profile-02",
+  "audit_dir": "private/r132-registration-attribution/profile-audit-04",
+  "raw_plan_sha256": "81e69427a767fe92cbe3b37a8e4df0cd136552c1e6dcb27478900651127c314c",
+  "auditor_sha256": "f764f5b4015b04b96e10b0476504c9e7131695547259593b05c7931440ce11b9",
+  "collector_sha256": "b04130d90ee66e5dee8a44e8078fcbd2ba022eebe9d18a5f29ab5e3126367638",
+  "collector_commit": "f0da992",
+  "sample_frequency_hz": 499,
+  "windows": [
+    "001-c-1",
+    "002-r124-1",
+    "003-r131-1",
+    "004-r131-1",
+    "005-r124-1",
+    "006-c-1",
+    "007-c-16",
+    "008-r124-16",
+    "009-r131-16",
+    "010-r131-16",
+    "011-r124-16",
+    "012-c-16"
+  ],
+  "window_integrity": {
+    "count": 12,
+    "all_complete": true,
+    "all_perf_lost_zero": true,
+    "all_throttle_zero": true,
+    "all_sample_parsed": true
+  },
+  "groups": {
+    "c-1": {
+      "sample_counts": {
+        "sample_count": 5542,
+        "user_sample_count": 837,
+        "symbolized_count": 361,
+        "unknown_count": 476
+      },
+      "user_families": {
+        "object_event": {
+          "samples": 0,
+          "fraction_of_all_samples": 0.0,
+          "fraction_of_user_samples": 0.0
+        },
+        "handle_or_free_object": {
+          "samples": 23,
+          "fraction_of_all_samples": 0.004150126308191988,
+          "fraction_of_user_samples": 0.027479091995221028
+        },
+        "registry_object_lookup": {
+          "samples": 0,
+          "fraction_of_all_samples": 0.0,
+          "fraction_of_user_samples": 0.0
+        },
+        "allocator": {
+          "samples": 19,
+          "fraction_of_all_samples": 0.003428365211115121,
+          "fraction_of_user_samples": 0.022700119474313024
+        },
+        "allocation_support": {
+          "samples": 0,
+          "fraction_of_all_samples": 0.0,
+          "fraction_of_user_samples": 0.0
+        },
+        "other_user": {
+          "samples": 319,
+          "fraction_of_all_samples": 0.05756044749188019,
+          "fraction_of_user_samples": 0.3811230585424134
+        }
+      },
+      "selected_functions": [
+        {
+          "family": "malloc",
+          "entries": [
+            {
+              "samples": 2,
+              "fraction_user": 0.0023894862604540022,
+              "names": [
+                "malloc"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "free",
+          "entries": [
+            {
+              "samples": 8,
+              "fraction_user": 0.009557945041816009,
+              "names": [
+                "ubus_msg_free"
+              ]
+            },
+            {
+              "samples": 5,
+              "fraction_user": 0.005973715651135006,
+              "names": [
+                "ubusd_free_object"
+              ]
+            }
+          ]
+        }
+      ],
+      "kernel_families": {
+        "other_kernel_reported": 2489,
+        "scheduler_reported": 912,
+        "socket_ipc_reported": 1304
+      },
+      "unknown_user_by_dso_reason": [
+        {
+          "dso": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+          "reason": "no_function_range",
+          "samples": 404
+        },
+        {
+          "dso": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libubox.so.20260213",
+          "reason": "no_function_range",
+          "samples": 72
+        }
+      ]
+    },
+    "r124-1": {
+      "sample_counts": {
+        "sample_count": 5443,
+        "user_sample_count": 633,
+        "symbolized_count": 633,
+        "unknown_count": 0
+      },
+      "user_families": {
+        "object_event": {
+          "samples": 8,
+          "fraction_of_all_samples": 0.0014697776961234614,
+          "fraction_of_user_samples": 0.01263823064770932
+        },
+        "handle_or_free_object": {
+          "samples": 67,
+          "fraction_of_all_samples": 0.012309388205033989,
+          "fraction_of_user_samples": 0.10584518167456557
+        },
+        "registry_object_lookup": {
+          "samples": 47,
+          "fraction_of_all_samples": 0.008634943964725335,
+          "fraction_of_user_samples": 0.07424960505529225
+        },
+        "allocator": {
+          "samples": 87,
+          "fraction_of_all_samples": 0.01598383244534264,
+          "fraction_of_user_samples": 0.13744075829383887
+        },
+        "allocation_support": {
+          "samples": 6,
+          "fraction_of_all_samples": 0.001102333272092596,
+          "fraction_of_user_samples": 0.009478672985781991
+        },
+        "other_user": {
+          "samples": 418,
+          "fraction_of_all_samples": 0.07679588462245085,
+          "fraction_of_user_samples": 0.660347551342812
+        }
+      },
+      "selected_functions": [
+        {
+          "family": "send_obj_event",
+          "entries": [
+            {
+              "samples": 8,
+              "fraction_user": 0.01263823064770932,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server14send_obj_event"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "handle",
+          "entries": [
+            {
+              "samples": 66,
+              "fraction_user": 0.10426540284360189,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server6handle"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_object_reply",
+          "entries": [
+            {
+              "samples": 12,
+              "fraction_user": 0.018957345971563982,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server17send_object_reply"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_scratch",
+          "entries": [
+            {
+              "samples": 11,
+              "fraction_user": 0.017377567140600316,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server12send_scratch"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get",
+          "entries": [
+            {
+              "samples": 35,
+              "fraction_user": 0.05529225908372828,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE3getmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get_mut",
+          "entries": [
+            {
+              "samples": 12,
+              "fraction_user": 0.018957345971563982,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE7get_mutmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_contains",
+          "entries": [
+            {
+              "samples": 8,
+              "fraction_user": 0.01263823064770932,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE12contains_keymEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "malloc",
+          "entries": [
+            {
+              "samples": 27,
+              "fraction_user": 0.04265402843601896,
+              "names": [
+                "__libc_malloc_impl"
+              ]
+            },
+            {
+              "samples": 1,
+              "fraction_user": 0.001579778830963665,
+              "names": [
+                "malloc"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "free",
+          "entries": [
+            {
+              "samples": 42,
+              "fraction_user": 0.06635071090047394,
+              "names": [
+                "__libc_free"
+              ]
+            },
+            {
+              "samples": 5,
+              "fraction_user": 0.007898894154818325,
+              "names": [
+                "nontrivial_free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "alloc_slot",
+          "entries": [
+            {
+              "samples": 9,
+              "fraction_user": 0.014218009478672985,
+              "names": [
+                "alloc_slot"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "nontrivial_free",
+          "entries": [
+            {
+              "samples": 5,
+              "fraction_user": 0.007898894154818325,
+              "names": [
+                "nontrivial_free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "raw_vec",
+          "entries": [
+            {
+              "samples": 4,
+              "fraction_user": 0.00631911532385466,
+              "names": [
+                "_RNvMs5_NtCshlmZ2E5RoO1_5alloc7raw_vecNtB5_11RawVecInner11finish_growCserWFv0FHtmW_8ubusd_rs"
+              ]
+            },
+            {
+              "samples": 2,
+              "fraction_user": 0.00315955766192733,
+              "names": [
+                "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCserWFv0FHtmW_8ubusd_rs3obj6MethodE8grow_oneBQ_"
+              ]
+            }
+          ]
+        }
+      ],
+      "kernel_families": {
+        "scheduler_reported": 917,
+        "other_kernel_reported": 2303,
+        "socket_ipc_reported": 1590
+      },
+      "unknown_user_by_dso_reason": []
+    },
+    "r131-1": {
+      "sample_counts": {
+        "sample_count": 5407,
+        "user_sample_count": 634,
+        "symbolized_count": 634,
+        "unknown_count": 0
+      },
+      "user_families": {
+        "object_event": {
+          "samples": 7,
+          "fraction_of_all_samples": 0.0012946180876641392,
+          "fraction_of_user_samples": 0.011041009463722398
+        },
+        "handle_or_free_object": {
+          "samples": 63,
+          "fraction_of_all_samples": 0.011651562788977252,
+          "fraction_of_user_samples": 0.09936908517350158
+        },
+        "registry_object_lookup": {
+          "samples": 37,
+          "fraction_of_all_samples": 0.0068429813205104495,
+          "fraction_of_user_samples": 0.0583596214511041
+        },
+        "allocator": {
+          "samples": 72,
+          "fraction_of_all_samples": 0.013316071758831144,
+          "fraction_of_user_samples": 0.11356466876971609
+        },
+        "allocation_support": {
+          "samples": 2,
+          "fraction_of_all_samples": 0.000369890882189754,
+          "fraction_of_user_samples": 0.0031545741324921135
+        },
+        "other_user": {
+          "samples": 453,
+          "fraction_of_all_samples": 0.08378028481597928,
+          "fraction_of_user_samples": 0.7145110410094637
+        }
+      },
+      "selected_functions": [
+        {
+          "family": "send_obj_event",
+          "entries": [
+            {
+              "samples": 7,
+              "fraction_user": 0.011041009463722398,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server14send_obj_event"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "handle",
+          "entries": [
+            {
+              "samples": 55,
+              "fraction_user": 0.08675078864353312,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server6handle"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_object_reply",
+          "entries": [
+            {
+              "samples": 7,
+              "fraction_user": 0.011041009463722398,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server17send_object_reply"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_scratch",
+          "entries": [
+            {
+              "samples": 11,
+              "fraction_user": 0.017350157728706624,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server12send_scratch"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get",
+          "entries": [
+            {
+              "samples": 28,
+              "fraction_user": 0.04416403785488959,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE3getmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get_mut",
+          "entries": [
+            {
+              "samples": 9,
+              "fraction_user": 0.014195583596214511,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE7get_mutmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_contains",
+          "entries": [
+            {
+              "samples": 12,
+              "fraction_user": 0.01892744479495268,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE12contains_keymEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "malloc",
+          "entries": [
+            {
+              "samples": 24,
+              "fraction_user": 0.03785488958990536,
+              "names": [
+                "__libc_malloc_impl"
+              ]
+            },
+            {
+              "samples": 2,
+              "fraction_user": 0.0031545741324921135,
+              "names": [
+                "malloc"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "free",
+          "entries": [
+            {
+              "samples": 27,
+              "fraction_user": 0.04258675078864353,
+              "names": [
+                "__libc_free"
+              ]
+            },
+            {
+              "samples": 4,
+              "fraction_user": 0.006309148264984227,
+              "names": [
+                "nontrivial_free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "alloc_slot",
+          "entries": [
+            {
+              "samples": 11,
+              "fraction_user": 0.017350157728706624,
+              "names": [
+                "alloc_slot"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "nontrivial_free",
+          "entries": [
+            {
+              "samples": 4,
+              "fraction_user": 0.006309148264984227,
+              "names": [
+                "nontrivial_free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "raw_vec",
+          "entries": [
+            {
+              "samples": 2,
+              "fraction_user": 0.0031545741324921135,
+              "names": [
+                "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCserWFv0FHtmW_8ubusd_rs3obj6MethodE8grow_oneBQ_"
+              ]
+            }
+          ]
+        }
+      ],
+      "kernel_families": {
+        "other_kernel_reported": 2541,
+        "socket_ipc_reported": 1309,
+        "scheduler_reported": 923
+      },
+      "unknown_user_by_dso_reason": []
+    },
+    "c-16": {
+      "sample_counts": {
+        "sample_count": 5948,
+        "user_sample_count": 1174,
+        "symbolized_count": 456,
+        "unknown_count": 718
+      },
+      "user_families": {
+        "object_event": {
+          "samples": 0,
+          "fraction_of_all_samples": 0.0,
+          "fraction_of_user_samples": 0.0
+        },
+        "handle_or_free_object": {
+          "samples": 39,
+          "fraction_of_all_samples": 0.006556825823806321,
+          "fraction_of_user_samples": 0.03321976149914821
+        },
+        "registry_object_lookup": {
+          "samples": 2,
+          "fraction_of_all_samples": 0.0003362474781439139,
+          "fraction_of_user_samples": 0.0017035775127768314
+        },
+        "allocator": {
+          "samples": 35,
+          "fraction_of_all_samples": 0.005884330867518494,
+          "fraction_of_user_samples": 0.029812606473594547
+        },
+        "allocation_support": {
+          "samples": 0,
+          "fraction_of_all_samples": 0.0,
+          "fraction_of_user_samples": 0.0
+        },
+        "other_user": {
+          "samples": 380,
+          "fraction_of_all_samples": 0.06388702084734364,
+          "fraction_of_user_samples": 0.32367972742759793
+        }
+      },
+      "selected_functions": [
+        {
+          "family": "free",
+          "entries": [
+            {
+              "samples": 8,
+              "fraction_user": 0.0068143100511073255,
+              "names": [
+                "ubus_msg_free"
+              ]
+            },
+            {
+              "samples": 3,
+              "fraction_user": 0.002555366269165247,
+              "names": [
+                "free"
+              ]
+            },
+            {
+              "samples": 3,
+              "fraction_user": 0.002555366269165247,
+              "names": [
+                "ubusd_free_object"
+              ]
+            }
+          ]
+        }
+      ],
+      "kernel_families": {
+        "socket_ipc_reported": 1245,
+        "other_kernel_reported": 2583,
+        "scheduler_reported": 946
+      },
+      "unknown_user_by_dso_reason": [
+        {
+          "dso": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libc.so",
+          "reason": "no_function_range",
+          "samples": 656
+        },
+        {
+          "dso": "/home/ubuntu/owrt-evidence/ax3000t-stock-openwrt-25.12.5/extracted/rootfs-files/lib/libubox.so.20260213",
+          "reason": "no_function_range",
+          "samples": 62
+        }
+      ]
+    },
+    "r124-16": {
+      "sample_counts": {
+        "sample_count": 5921,
+        "user_sample_count": 1062,
+        "symbolized_count": 1062,
+        "unknown_count": 0
+      },
+      "user_families": {
+        "object_event": {
+          "samples": 7,
+          "fraction_of_all_samples": 0.0011822327309576085,
+          "fraction_of_user_samples": 0.006591337099811676
+        },
+        "handle_or_free_object": {
+          "samples": 132,
+          "fraction_of_all_samples": 0.02229353149805776,
+          "fraction_of_user_samples": 0.12429378531073447
+        },
+        "registry_object_lookup": {
+          "samples": 45,
+          "fraction_of_all_samples": 0.007600067556156055,
+          "fraction_of_user_samples": 0.0423728813559322
+        },
+        "allocator": {
+          "samples": 416,
+          "fraction_of_all_samples": 0.0702584022969093,
+          "fraction_of_user_samples": 0.391713747645951
+        },
+        "allocation_support": {
+          "samples": 11,
+          "fraction_of_all_samples": 0.0018577942915048134,
+          "fraction_of_user_samples": 0.010357815442561206
+        },
+        "other_user": {
+          "samples": 451,
+          "fraction_of_all_samples": 0.07616956595169735,
+          "fraction_of_user_samples": 0.4246704331450094
+        }
+      },
+      "selected_functions": [
+        {
+          "family": "send_obj_event",
+          "entries": [
+            {
+              "samples": 7,
+              "fraction_user": 0.006591337099811676,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server14send_obj_event"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "handle",
+          "entries": [
+            {
+              "samples": 132,
+              "fraction_user": 0.12429378531073447,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server6handle"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_object_reply",
+          "entries": [
+            {
+              "samples": 5,
+              "fraction_user": 0.004708097928436911,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server17send_object_reply"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_scratch",
+          "entries": [
+            {
+              "samples": 9,
+              "fraction_user": 0.00847457627118644,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server12send_scratch"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get",
+          "entries": [
+            {
+              "samples": 33,
+              "fraction_user": 0.031073446327683617,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE3getmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get_mut",
+          "entries": [
+            {
+              "samples": 12,
+              "fraction_user": 0.011299435028248588,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE7get_mutmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_contains",
+          "entries": [
+            {
+              "samples": 17,
+              "fraction_user": 0.0160075329566855,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE12contains_keymEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "malloc",
+          "entries": [
+            {
+              "samples": 115,
+              "fraction_user": 0.10828625235404897,
+              "names": [
+                "__libc_malloc_impl"
+              ]
+            },
+            {
+              "samples": 13,
+              "fraction_user": 0.01224105461393597,
+              "names": [
+                "__malloc_alloc_meta"
+              ]
+            },
+            {
+              "samples": 2,
+              "fraction_user": 0.0018832391713747645,
+              "names": [
+                "malloc"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "free",
+          "entries": [
+            {
+              "samples": 120,
+              "fraction_user": 0.11299435028248588,
+              "names": [
+                "__libc_free"
+              ]
+            },
+            {
+              "samples": 71,
+              "fraction_user": 0.06685499058380415,
+              "names": [
+                "nontrivial_free"
+              ]
+            },
+            {
+              "samples": 4,
+              "fraction_user": 0.003766478342749529,
+              "names": [
+                "free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "alloc_slot",
+          "entries": [
+            {
+              "samples": 73,
+              "fraction_user": 0.0687382297551789,
+              "names": [
+                "alloc_slot"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "nontrivial_free",
+          "entries": [
+            {
+              "samples": 71,
+              "fraction_user": 0.06685499058380415,
+              "names": [
+                "nontrivial_free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "raw_vec",
+          "entries": [
+            {
+              "samples": 6,
+              "fraction_user": 0.005649717514124294,
+              "names": [
+                "_RNvMs5_NtCshlmZ2E5RoO1_5alloc7raw_vecNtB5_11RawVecInner11finish_growCserWFv0FHtmW_8ubusd_rs"
+              ]
+            },
+            {
+              "samples": 5,
+              "fraction_user": 0.004708097928436911,
+              "names": [
+                "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCserWFv0FHtmW_8ubusd_rs3obj6MethodE8grow_oneBQ_"
+              ]
+            }
+          ]
+        }
+      ],
+      "kernel_families": {
+        "socket_ipc_reported": 1713,
+        "other_kernel_reported": 2223,
+        "scheduler_reported": 923
+      },
+      "unknown_user_by_dso_reason": []
+    },
+    "r131-16": {
+      "sample_counts": {
+        "sample_count": 5827,
+        "user_sample_count": 1057,
+        "symbolized_count": 1057,
+        "unknown_count": 0
+      },
+      "user_families": {
+        "object_event": {
+          "samples": 7,
+          "fraction_of_all_samples": 0.0012013042732109147,
+          "fraction_of_user_samples": 0.006622516556291391
+        },
+        "handle_or_free_object": {
+          "samples": 155,
+          "fraction_of_all_samples": 0.02660030890681311,
+          "fraction_of_user_samples": 0.1466414380321665
+        },
+        "registry_object_lookup": {
+          "samples": 52,
+          "fraction_of_all_samples": 0.008923974600995366,
+          "fraction_of_user_samples": 0.04919583727530748
+        },
+        "allocator": {
+          "samples": 352,
+          "fraction_of_all_samples": 0.06040844345289171,
+          "fraction_of_user_samples": 0.3330179754020814
+        },
+        "allocation_support": {
+          "samples": 18,
+          "fraction_of_all_samples": 0.003089068131113781,
+          "fraction_of_user_samples": 0.017029328287606435
+        },
+        "other_user": {
+          "samples": 473,
+          "fraction_of_all_samples": 0.08117384588982324,
+          "fraction_of_user_samples": 0.4474929044465468
+        }
+      },
+      "selected_functions": [
+        {
+          "family": "send_obj_event",
+          "entries": [
+            {
+              "samples": 7,
+              "fraction_user": 0.006622516556291391,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server14send_obj_event"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "handle",
+          "entries": [
+            {
+              "samples": 147,
+              "fraction_user": 0.1390728476821192,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server6handle"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_object_reply",
+          "entries": [
+            {
+              "samples": 9,
+              "fraction_user": 0.008514664143803218,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server17send_object_reply"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "send_scratch",
+          "entries": [
+            {
+              "samples": 9,
+              "fraction_user": 0.008514664143803218,
+              "names": [
+                "_RNvMs_NtCserWFv0FHtmW_8ubusd_rs6serverNtB4_6Server12send_scratch"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get",
+          "entries": [
+            {
+              "samples": 44,
+              "fraction_user": 0.041627246925260174,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE3getmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_get_mut",
+          "entries": [
+            {
+              "samples": 8,
+              "fraction_user": 0.007568590350047304,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE7get_mutmEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "object_contains",
+          "entries": [
+            {
+              "samples": 15,
+              "fraction_user": 0.014191106906338695,
+              "names": [
+                "_RINvMs1_NtCs11S9oZKZy51_9hashbrown3mapINtB6_7HashMapmNtNtCserWFv0FHtmW_8ubusd_rs3obj6ObjectNtNtNtCsiKaSbYLw9fL_3std4hash6random11RandomStateE12contains_keymEBT_"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "malloc",
+          "entries": [
+            {
+              "samples": 113,
+              "fraction_user": 0.10690633869441817,
+              "names": [
+                "__libc_malloc_impl"
+              ]
+            },
+            {
+              "samples": 2,
+              "fraction_user": 0.001892147587511826,
+              "names": [
+                "malloc"
+              ]
+            },
+            {
+              "samples": 2,
+              "fraction_user": 0.001892147587511826,
+              "names": [
+                "__malloc_alloc_meta"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "free",
+          "entries": [
+            {
+              "samples": 102,
+              "fraction_user": 0.09649952696310313,
+              "names": [
+                "__libc_free"
+              ]
+            },
+            {
+              "samples": 60,
+              "fraction_user": 0.05676442762535478,
+              "names": [
+                "nontrivial_free"
+              ]
+            },
+            {
+              "samples": 4,
+              "fraction_user": 0.003784295175023652,
+              "names": [
+                "free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "alloc_slot",
+          "entries": [
+            {
+              "samples": 46,
+              "fraction_user": 0.043519394512771994,
+              "names": [
+                "alloc_slot"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "nontrivial_free",
+          "entries": [
+            {
+              "samples": 60,
+              "fraction_user": 0.05676442762535478,
+              "names": [
+                "nontrivial_free"
+              ]
+            }
+          ]
+        },
+        {
+          "family": "raw_vec",
+          "entries": [
+            {
+              "samples": 14,
+              "fraction_user": 0.013245033112582781,
+              "names": [
+                "_RNvMs5_NtCshlmZ2E5RoO1_5alloc7raw_vecNtB5_11RawVecInner11finish_growCserWFv0FHtmW_8ubusd_rs"
+              ]
+            },
+            {
+              "samples": 4,
+              "fraction_user": 0.003784295175023652,
+              "names": [
+                "_RNvMs4_NtCshlmZ2E5RoO1_5alloc7raw_vecINtB5_6RawVecNtNtCserWFv0FHtmW_8ubusd_rs3obj6MethodE8grow_oneBQ_"
+              ]
+            }
+          ]
+        }
+      ],
+      "kernel_families": {
+        "other_kernel_reported": 2450,
+        "socket_ipc_reported": 1427,
+        "scheduler_reported": 893
+      },
+      "unknown_user_by_dso_reason": []
+    }
+  },
+  "interpretation": {
+    "r131_vs_r124_profile": {
+      "methods_1": "R131 has lower flat user-sample fractions in object-event (1.10% vs 1.26%), handle/free (9.94% vs 10.58%), registry lookup (5.84% vs 7.42%), allocator (11.36% vs 13.74%); these are composition fractions, not elapsed-time or causal estimates.",
+      "methods_16": "R131 has similar object-event (0.66% vs 0.66%), higher handle/free (14.66% vs 12.43%) and registry lookup (4.92% vs 4.24%), lower allocator (33.30% vs 39.17%); these are composition fractions, not elapsed-time or causal estimates."
+    },
+    "send_obj_event": "send_obj_event is only 7/8 flat user samples in every Rust method group (0.66%-1.26% of user samples); profile does not isolate whether those samples are empty-pattern calls.",
+    "registry_get": "Registry/object HashMap lookup family is 37-52 flat samples in Rust groups (4.24%-7.42% user samples). This identifies a possible bounded target, but does not prove the calls are on empty-pattern paths or explain router p95.",
+    "allocator": "The 16-method R131 allocator family is lower than R124 in flat share (33.30% vs 39.17%), while handle/free is higher; this suggests no simple allocator-only story.",
+    "flat_limit": "perf cpu-clock flat samples record emitted PCs, not call counts, inclusive time, p95 latency, branch paths, or per-operation attribution. A zero/low sample count cannot prove non-execution.",
+    "c_symbol_limit": "C user samples are only partially symbolized because dynamic-library exported ranges are used; unresolved libc/libubox samples remain explicit (not assigned to Rust families).",
+    "r133_empty_patterns": "R133 empty-pattern bypass remains a hypothesis worth a separate static+unit+router experiment. This profile alone is insufficient to green-light it, and must not be presented as a discovered p95 root cause. Any candidate needs explicit proof of object-path validity, epoch/wrap behavior, recipient ordering, monitor boundaries, scratch ownership and no-pattern semantics before timing."
+  },
+  "decision": "Passes evidence-integrity audit; attribution inconclusive. Supports prioritizing a narrowly scoped empty-pattern experiment, not implementing or accepting it from flat samples alone."
+}
