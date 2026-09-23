@@ -16,13 +16,19 @@ cp "$cand" "$out/bundle/ubusd-rs"
 cp "$before" "$out/bundle/before-rs"
 cp /home/ubuntu/r90-batch1/baseline/ns-exec "$out/bundle/ns-exec"
 cp "$probe/isolated.sh" "$probe/r98_ubusd_events.sh" "$repo/tools/r134/ubusd_fd_boundary.sh" "$out/tools/"
+failed=0
 for spec in events fd; do
     case $spec in events) script=$out/tools/r98_ubusd_events.sh ;; fd) script=$out/tools/ubusd_fd_boundary.sh ;; esac
     mkdir "$out/$spec" "$out/$spec-work"
     rc=0
     sudo -n "$out/bundle/ns-exec" /bin/sh "$script" --namespace "$rootfs" "$out/bundle" ubusd rs "$out/$spec" 1 "$out/$spec-work" "$script" > "$out/$spec.log" 2>&1 || rc=$?
     sudo -n chown -R ubuntu:ubuntu "$out/$spec" "$out/$spec-work" 2>/dev/null || true
-    if [ -e "$out/$spec/COMPLETE" ]; then echo "GATE $spec PASS"; else echo "GATE $spec FAIL rc=$rc"; fi
+    if [ "$rc" -eq 0 ] && [ -e "$out/$spec/COMPLETE" ]; then
+        echo "GATE $spec PASS"
+    else
+        echo "GATE $spec FAIL rc=$rc"
+        failed=1
+    fi
 done
 mkdir "$out/bins"
 cp -a /home/ubuntu/r95/final/bins/. "$out/bins/"
@@ -38,3 +44,13 @@ python3 tools/r92_validate.py "$rootfs" "$out/bins" "$out/gates" --baseline /hom
     --helpers /home/ubuntu/r92-recovery-compat/helpers-canonical --target-dir "$out/native" \
     --groups functional recovery --gates ubusd-r36 ubusd-r36-user ubusd-r83 ubusd-r42 ubusd-r41 r92-recovery > "$out/r92.log" 2>&1 || rc=$?
 echo "GATE r92 rc=$rc"
+if [ "$rc" -ne 0 ] || [ ! -e "$out/gates/COMPLETE" ]; then
+    failed=1
+elif ! python3 - "$out/gates/results.json" <<'PY'
+import json, sys
+assert json.load(open(sys.argv[1]))["passed"] is True
+PY
+then
+    failed=1
+fi
+exit "$failed"
