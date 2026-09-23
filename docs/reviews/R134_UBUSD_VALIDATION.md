@@ -21,6 +21,11 @@
 R92 `passed != true` 均返回失败。第一次运行单测时误把静态 ELF 交给动态加载器，
 测试尚未开始就失败；直接执行后 55 项通过，两个日志均保留。
 
+复核发现原 FD 探针对三个手工用例只记录 C 差异，未断言新契约。补强后的探针
+恢复 C/R131 全六案严格检查，并给 R134 独立的契约模式：bundled 与 body+next
+必须为 `[0,1]`；仅 body 附 FD 时，根据前缀是否已独立读取允许 `[0,0]` 或 `[1,0]`。
+新 Oracle 门已通过，运行时 ELF 未变。原先宽松探针的通过记录不作为契约证明。
+
 派生身份及检查范围见 [JSON](r134-ubusd-oracle-results.json)。原始日志在 ignored
 `private/r134/verification/` 和 `private/r134/stress-verify-01/`。
 有限正确性测试不能证明“没有任何 bug”；FD 和 ID 机制边界见

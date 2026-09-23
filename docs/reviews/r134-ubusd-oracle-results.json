@@ -48,7 +48,40 @@
     "sender_framed_equal_to_C": 3,
     "handcrafted_contract_cases": 3,
     "witness_single_delivery_no_leak": true,
-    "all_inputs_C_equal": false
+    "all_inputs_C_equal": false,
+    "initial_limit": "Original probe only reported handcrafted placement; this was not sufficient contract validation.",
+    "explicit_contract_recheck": {
+      "passed": true,
+      "wireprobe_sha256": "c7b9945410b5588d4374bd6999194655ad6212ff49bcf311ea0548301e84d74f",
+      "workload_sha256": "3d53bfb0952aea3c354d51cc8a81f87a315207378535a70544d109f2db30a12b",
+      "candidate_transcript_sha256": "ecce7d55757b3c6445e9d401583c08fc1aeb1407aef18c52f4c74ccadb1192f4",
+      "c_transcript_sha256": "225586502365dd0e7f708071aa370749b4736f272afc07befdfa9a2e0921b80d",
+      "expectations": {
+        "bundled": [
+          [
+            0,
+            1
+          ]
+        ],
+        "fd_in_first_body": [
+          [
+            0,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "fd_on_first_body_plus_second_frame": [
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "body_alternatives": "Prefix/body writes may be read together or separately; both obey the explicit receive-call contract."
+    }
   },
   "prefix": {
     "cases": [

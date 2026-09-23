@@ -18,7 +18,8 @@
 //!   utf8      a STRING field carrying non-UTF-8 bytes crosses the bus intact
 //!   slowlookup pause a >1 MiB LOOKUP, overwrite scratch via another client,
 //!             then require every original frame in order after resuming
-//!   fd_boundary Linux SCM_RIGHTS placement at frame prefix/body boundaries
+//!   fd_boundary Linux SCM_RIGHTS placement with exact C expectations
+//!   fd_boundary_read_ahead Linux SCM_RIGHTS placement with the R134 contract
 
 use owrt_ubus::blob::{self, Attr, BlobBuf, Field, MsgType};
 use owrt_ubus::msg::{attr, ty, Header};
@@ -565,7 +566,7 @@ fn method_acl(sock: &str) {
 }
 
 #[cfg(target_os = "linux")]
-fn fd_boundary(sock: &str) -> bool {
+fn fd_boundary(sock: &str, read_ahead_contract: bool) -> bool {
     use std::fs::File;
     use std::io::ErrorKind;
     use std::os::fd::{AsRawFd, OwnedFd};
@@ -692,12 +693,16 @@ fn fd_boundary(sock: &str) -> bool {
 
     fd_sys::ignore_signal(fd_sys::SIGPIPE);
     let baseline = fd_count();
-    // C's placement for each case. The first three are how libubus, C ubusd
-    // and owrt-ubus send (a descriptor rides on the sendmsg that starts its
-    // frame) and must match. The last three hand-craft a descriptor on a
-    // sendmsg that also carries another frame's bytes or starts mid-frame;
-    // a read-ahead receiver may place it differently (R134 contract), so they
-    // are reported, while witness, single delivery and no-leak still assert.
+    // C reads exactly a 12-byte prefix with recvmsg, then the body with
+    // read, so body descriptors are discarded. Restore these assertions for
+    // fd_boundary; read-ahead has its own explicit scenario below.
+    //
+    // Linux ancillary data forms a receive barrier (unix(7), Ancillary
+    // messages): a read may include preceding plain bytes, but ends after
+    // the descriptor-bearing data. These fixture writes fit in one read-ahead
+    // buffer. R134 assigns the descriptor to the frame holding that read's
+    // last byte unless that frame's prefix was already buffered.
+    // https://man7.org/linux/man-pages/man7/unix.7.html
     let cases = [
         ("separate_waited", [1, 0], true),
         ("separate_queued", [1, 0], true),
@@ -707,16 +712,32 @@ fn fd_boundary(sock: &str) -> bool {
         ("fd_on_first_body_plus_second_frame", [0, 0], false),
     ];
     let mut compatible = true;
-    for (mode, expected, sender_framed) in cases {
+    for (mode, c_expected, sender_framed) in cases {
         let counts = run_case(sock, mode);
         assert_eq!(fd_count(), baseline, "probe leaked descriptors");
-        let matches = counts == expected;
+        let c_matches = counts == c_expected;
+        let (matches, expectation) = if !read_ahead_contract || sender_framed {
+            (c_matches, match c_expected { [1, 0] => "1,0", [0, 1] => "0,1", _ => "0,0" })
+        } else {
+            match mode {
+                "bundled" | "fd_on_first_body_plus_second_frame" => (counts == [0, 1], "0,1"),
+                // The sender does not synchronize between prefix and body.
+                // If recvmsg first consumes just the plain prefix, R134
+                // closes the later body FD. If one recvmsg includes both,
+                // the last-byte frame is the first frame and receives it.
+                "fd_in_first_body" => (counts == [0, 0] || counts == [1, 0], "0,0|1,0"),
+                _ => unreachable!(),
+            }
+        };
+        compatible &= matches;
         if sender_framed {
-            compatible &= matches;
+            // Byte-identical records allow C/R131/R134 framed comparison.
             println!("case={mode} invoke_order=first,second seq=101,102 fds={},{} witness=true no_leak=true compatible={matches}",
                      counts[0], counts[1]);
         } else {
-            println!("case={mode} invoke_order=first,second seq=101,102 witness=true no_leak=true handcrafted c_placement={matches}");
+            let contract = if read_ahead_contract { "read_ahead" } else { "c" };
+            println!("case={mode} invoke_order=first,second seq=101,102 fds={},{} witness=true no_leak=true handcrafted contract={contract} expected={expectation} contract_match={matches} c_placement={c_matches}",
+                     counts[0], counts[1]);
         }
     }
     println!("fd_boundary compatible={compatible} cases=6");
@@ -726,7 +747,7 @@ fn fd_boundary(sock: &str) -> bool {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
-        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|aclquery|utf8|slowlookup|monitor_lookup|fd_boundary>");
+        eprintln!("usage: wireprobe <socket> <pathless|events|monitor|release|aclquery|utf8|slowlookup|monitor_lookup|fd_boundary|fd_boundary_read_ahead>");
         std::process::exit(2);
     }
     let sock = &args[1];
@@ -742,8 +763,8 @@ fn main() {
         "monitor_lookup" => monitor_lookup(sock),
         "method_acl" => method_acl(sock),
         #[cfg(target_os = "linux")]
-        "fd_boundary" => {
-            if !fd_boundary(sock) {
+        "fd_boundary" | "fd_boundary_read_ahead" => {
+            if !fd_boundary(sock, args[2] == "fd_boundary_read_ahead") {
                 std::process::exit(1);
             }
         }

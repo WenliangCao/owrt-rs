@@ -1,7 +1,8 @@
 #!/bin/sh
 # R134 FD placement differential (guarded namespace only). C and R131 (C-exact
 # receive) must agree on all six cases; the R134 candidate must match C on the
-# three sender-framed cases and pass witness/single-delivery/no-leak on all.
+# three sender-framed cases and explicitly enforce its read-ahead contract on
+# the three handcrafted cases. Witness/single-delivery/no-leak apply to all.
 set -eu
 if [ "${1:-}" = --namespace ]; then
     exec /bin/sh "$(dirname "$0")/isolated.sh" "$@"
@@ -23,8 +24,10 @@ for side in c before candidate; do
     done
     sleep 1
     baseline_fds=$(ls /proc/$pid/fd | wc -l)
+    scenario=fd_boundary
+    [ "$side" != candidate ] || scenario=fd_boundary_read_ahead
     code=0
-    /tmp/bin/owrt-benchmark "$socket" fd_boundary > "$out/$side-fd_boundary.txt" 2> "$out/$side-fd_boundary.log" || code=$?
+    /tmp/bin/owrt-benchmark "$socket" "$scenario" > "$out/$side-fd_boundary.txt" 2> "$out/$side-fd_boundary.log" || code=$?
     [ "$code" -eq 0 ]
     [ ! -s "$out/$side-fd_boundary.log" ]
     tries=0
@@ -38,7 +41,10 @@ for side in c before candidate; do
     [ "$code" -eq 0 ] || [ "$code" -eq 143 ]
     [ "$(wc -l < "$out/$side-fd_boundary.txt")" -eq 7 ]
     grep -qx 'fd_boundary compatible=true cases=6' "$out/$side-fd_boundary.txt"
-    [ "$(grep -c ' handcrafted c_placement=' "$out/$side-fd_boundary.txt")" -eq 3 ]
+    contract=c
+    [ "$side" != candidate ] || contract=read_ahead
+    [ "$(grep -c " handcrafted contract=$contract .* contract_match=true c_placement=" "$out/$side-fd_boundary.txt")" -eq 3 ]
+    [ "$(grep -c ' fds=' "$out/$side-fd_boundary.txt")" -eq 6 ]
 done
 cmp "$out/c-fd_boundary.txt" "$out/before-fd_boundary.txt"
 [ "$(grep -c 'c_placement=true' "$out/c-fd_boundary.txt")" -eq 3 ]
