@@ -1,0 +1,2627 @@
+{
+  "schema_version": 1,
+  "scope": "R134 exact-image caller user-event latency on the physical AX3000T",
+  "physical_router_windows_verified": 16,
+  "all_windows_cleaned_and_stock": true,
+  "boot_id": "75a17130-62f9-43f8-bd28-7bbbb44ad5c8",
+  "subjects": {
+    "stock": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "candidate": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0"
+  },
+  "tools": {
+    "driver": "f2ba002279ac538966d1a5df3688cfc8e0c8252266921247a33a2e8a87ad5e6d",
+    "workload": "66ac6bbfdf74119fd8de503d3b30450bd781f0a6d080ada57335e31fd2f3b2cd",
+    "guard": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate": "08b3009b8e3464c895ec60092b19e304b88b4c960ca7d6870570415bce94f536",
+    "benchmark": "0ca42fbafe08b7ace0aaa90f78c08c9c0f69022a64f6d5073ab6ceb77a88e693",
+    "event_benchmark": "aef917bf15119f5108e963e6b2e1745b3aee74fc71b2fcf2f6a7ccf65de859f3",
+    "namespace_helper": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2"
+  },
+  "iterations": 5000,
+  "warmup": 200,
+  "reporter_sha256": "e21b67e9767d9f9cdf187e1664f6cdacaa357d96a0f7fb90b909cc037636f681",
+  "support_sha256": {
+    "r130_registration_report.py": "40a7ccbc53b9397992efceac7b5d3abe758c0644ae6e8ba733c6497748c4c4fb",
+    "r131_latency_report.py": "0fa5f8867c01a04f1145ab82f5c6ad4b7597820778b9cf549334b3c54298d996",
+    "r134/ubusd_report.py": "bba1f80f8e5afd250299a0ee328efbb92a6c0e1b2660e38e101148a24d917d16"
+  },
+  "order": [
+    "stock",
+    "candidate",
+    "candidate",
+    "stock",
+    "stock",
+    "candidate",
+    "candidate",
+    "stock",
+    "stock",
+    "candidate",
+    "candidate",
+    "stock",
+    "stock",
+    "candidate",
+    "candidate",
+    "stock"
+  ],
+  "pairing": [
+    {
+      "stock": "01-stock",
+      "candidate": "02-candidate"
+    },
+    {
+      "stock": "04-stock",
+      "candidate": "03-candidate"
+    },
+    {
+      "stock": "05-stock",
+      "candidate": "06-candidate"
+    },
+    {
+      "stock": "08-stock",
+      "candidate": "07-candidate"
+    },
+    {
+      "stock": "09-stock",
+      "candidate": "10-candidate"
+    },
+    {
+      "stock": "12-stock",
+      "candidate": "11-candidate"
+    },
+    {
+      "stock": "13-stock",
+      "candidate": "14-candidate"
+    },
+    {
+      "stock": "16-stock",
+      "candidate": "15-candidate"
+    }
+  ],
+  "rule": "Lower side median and at least 7/8 lower pairs: win; higher side median and at least 7/8 higher pairs: loss; otherwise tie. No effect-size band.",
+  "cpu_source": "daemon CLOCK_PROCESS_CPUTIME interval divided by 5000 timed operations; no tick fallback",
+  "metric_decisions": {
+    "win": 12,
+    "loss": 0,
+    "tie": 3
+  },
+  "table": [
+    {
+      "lane": "user_1_1",
+      "metrics": {
+        "mean_us": {
+          "stock_median": 60.298982800000005,
+          "candidate_median": 53.80072989999999,
+          "delta_pct": -10.776720598344836,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        },
+        "p50_us": {
+          "stock_median": 57.8215,
+          "candidate_median": 51.282,
+          "delta_pct": -11.309806905735764,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        },
+        "p95_us": {
+          "stock_median": 62.7465,
+          "candidate_median": 57.129000000000005,
+          "delta_pct": -8.952690588319657,
+          "lower_pairs": 5,
+          "higher_pairs": 3,
+          "decision": "tie"
+        },
+        "p99_us": {
+          "stock_median": 133.726,
+          "candidate_median": 134.07150000000001,
+          "delta_pct": 0.2583641176734597,
+          "lower_pairs": 4,
+          "higher_pairs": 4,
+          "decision": "tie"
+        },
+        "daemon_cpu_us_per_op": {
+          "stock_median": 31.6106566,
+          "candidate_median": 24.714989,
+          "delta_pct": -21.814376358129806,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        }
+      }
+    },
+    {
+      "lane": "user_8_1",
+      "metrics": {
+        "mean_us": {
+          "stock_median": 172.1976037,
+          "candidate_median": 154.37700289999998,
+          "delta_pct": -10.348924965905326,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        },
+        "p50_us": {
+          "stock_median": 166.69549999999998,
+          "candidate_median": 149.653,
+          "delta_pct": -10.223731294486049,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        },
+        "p95_us": {
+          "stock_median": 207.0895,
+          "candidate_median": 182.0065,
+          "delta_pct": -12.112154406669584,
+          "lower_pairs": 7,
+          "higher_pairs": 1,
+          "decision": "win"
+        },
+        "p99_us": {
+          "stock_median": 273.9525,
+          "candidate_median": 243.714,
+          "delta_pct": -11.03786240315383,
+          "lower_pairs": 7,
+          "higher_pairs": 1,
+          "decision": "win"
+        },
+        "daemon_cpu_us_per_op": {
+          "stock_median": 113.23998470000001,
+          "candidate_median": 85.0969814,
+          "delta_pct": -24.85253188134703,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        }
+      }
+    },
+    {
+      "lane": "user_1_0",
+      "metrics": {
+        "mean_us": {
+          "stock_median": 39.3634536,
+          "candidate_median": 36.289939700000005,
+          "delta_pct": -7.808039231598308,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        },
+        "p50_us": {
+          "stock_median": 37.8175,
+          "candidate_median": 34.778,
+          "delta_pct": -8.03728432603954,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        },
+        "p95_us": {
+          "stock_median": 39.202,
+          "candidate_median": 36.3165,
+          "delta_pct": -7.360593847252694,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        },
+        "p99_us": {
+          "stock_median": 92.561,
+          "candidate_median": 88.445,
+          "delta_pct": -4.446797247220768,
+          "lower_pairs": 6,
+          "higher_pairs": 2,
+          "decision": "tie"
+        },
+        "daemon_cpu_us_per_op": {
+          "stock_median": 18.1883395,
+          "candidate_median": 14.7022349,
+          "delta_pct": -19.166700731531872,
+          "lower_pairs": 8,
+          "higher_pairs": 0,
+          "decision": "win"
+        }
+      }
+    }
+  ],
+  "lanes": {
+    "user_1_1": {
+      "mean_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 60.672752800000005,
+            "candidate": 53.545156999999996,
+            "delta": -7.127595800000009,
+            "delta_pct": -11.74760575557734
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 60.6328066,
+            "candidate": 56.8574552,
+            "delta": -3.7753514000000052,
+            "delta_pct": -6.22658196396273
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 60.669258199999994,
+            "candidate": 53.786706599999995,
+            "delta": -6.882551599999999,
+            "delta_pct": -11.34438067020902
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 59.347377,
+            "candidate": 53.518546199999996,
+            "delta": -5.828830800000006,
+            "delta_pct": -9.821547462830594
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 59.5451186,
+            "candidate": 56.06315,
+            "delta": -3.481968600000002,
+            "delta_pct": -5.847613846217115
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 59.965159,
+            "candidate": 54.104631399999995,
+            "delta": -5.860527600000005,
+            "delta_pct": -9.773221146632839
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 59.9216436,
+            "candidate": 52.889171600000005,
+            "delta": -7.0324719999999985,
+            "delta_pct": -11.736113326504283
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 60.959756999999996,
+            "candidate": 53.8147532,
+            "delta": -7.145003799999998,
+            "delta_pct": -11.720853480436277
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 60.298982800000005,
+          "candidate": 53.80072989999999
+        },
+        "side_median_delta": -6.498252900000011,
+        "ratio_of_side_medians_delta_pct": -10.776720598344836,
+        "median_paired_delta_pct": -10.582964066519807,
+        "decision": "win"
+      },
+      "p50_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 57.783,
+            "candidate": 51.552,
+            "delta": -6.231000000000002,
+            "delta_pct": -10.783448419085195
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 58.322,
+            "candidate": 51.551,
+            "delta": -6.771000000000001,
+            "delta_pct": -11.609684167209632
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 58.014,
+            "candidate": 51.32,
+            "delta": -6.694000000000003,
+            "delta_pct": -11.538594132450797
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 57.476,
+            "candidate": 51.166,
+            "delta": -6.310000000000002,
+            "delta_pct": -10.978495371981356
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 57.63,
+            "candidate": 51.552,
+            "delta": -6.078000000000003,
+            "delta_pct": -10.546590317542947
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 57.86,
+            "candidate": 51.244,
+            "delta": -6.616,
+            "delta_pct": -11.434497061873483
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 57.553,
+            "candidate": 51.09,
+            "delta": -6.462999999999994,
+            "delta_pct": -11.229649192917822
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 58.553,
+            "candidate": 51.09,
+            "delta": -7.462999999999994,
+            "delta_pct": -12.745717555035597
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 57.8215,
+          "candidate": 51.282
+        },
+        "side_median_delta": -6.539500000000004,
+        "ratio_of_side_medians_delta_pct": -11.309806905735764,
+        "median_paired_delta_pct": -11.332073127395653,
+        "decision": "win"
+      },
+      "p95_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 69.018,
+            "candidate": 56.783,
+            "delta": -12.235,
+            "delta_pct": -17.72725955547828
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 62.631,
+            "candidate": 88.252,
+            "delta": 25.620999999999995,
+            "delta_pct": 40.90785713145246
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 68.325,
+            "candidate": 57.475,
+            "delta": -10.850000000000001,
+            "delta_pct": -15.879985364068794
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 60.4,
+            "candidate": 56.783,
+            "delta": -3.6169999999999973,
+            "delta_pct": -5.988410596026483
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 60.784,
+            "candidate": 64.324,
+            "delta": 3.539999999999999,
+            "delta_pct": 5.8239010265859426
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 62.246,
+            "candidate": 62.247,
+            "delta": 0.0009999999999976694,
+            "delta_pct": 0.0016065289335731592
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 62.862,
+            "candidate": 53.783,
+            "delta": -9.079,
+            "delta_pct": -14.442747605866824
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 63.554,
+            "candidate": 56.476,
+            "delta": -7.078000000000003,
+            "delta_pct": -11.136985870283544
+          }
+        ],
+        "lower_pairs": 5,
+        "higher_pairs": 3,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 62.7465,
+          "candidate": 57.129000000000005
+        },
+        "side_median_delta": -5.617499999999993,
+        "ratio_of_side_medians_delta_pct": -8.952690588319657,
+        "median_paired_delta_pct": -8.562698233155015,
+        "decision": "tie"
+      },
+      "p99_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 148.653,
+            "candidate": 116.644,
+            "delta": -32.008999999999986,
+            "delta_pct": -21.53269695196194
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 134.265,
+            "candidate": 170.966,
+            "delta": 36.70100000000002,
+            "delta_pct": 27.33474844523891
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 145.343,
+            "candidate": 133.725,
+            "delta": -11.617999999999995,
+            "delta_pct": -7.993505019161562
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 126.724,
+            "candidate": 128.339,
+            "delta": 1.6149999999999949,
+            "delta_pct": 1.2744231558347252
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 129.801,
+            "candidate": 170.504,
+            "delta": 40.703,
+            "delta_pct": 31.358001864392413
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 131.494,
+            "candidate": 138.342,
+            "delta": 6.848000000000013,
+            "delta_pct": 5.207842182913303
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 133.187,
+            "candidate": 119.722,
+            "delta": -13.465000000000018,
+            "delta_pct": -10.109845555497166
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 144.652,
+            "candidate": 134.418,
+            "delta": -10.23399999999998,
+            "delta_pct": -7.07491082045183
+          }
+        ],
+        "lower_pairs": 4,
+        "higher_pairs": 4,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 133.726,
+          "candidate": 134.07150000000001
+        },
+        "side_median_delta": 0.34550000000001546,
+        "ratio_of_side_medians_delta_pct": 0.2583641176734597,
+        "median_paired_delta_pct": -2.9002438323085524,
+        "decision": "tie"
+      },
+      "daemon_cpu_us_per_op": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 31.9616898,
+            "candidate": 24.7418606,
+            "delta": -7.2198291999999995,
+            "delta_pct": -22.589009671197047
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 31.922541399999997,
+            "candidate": 25.3234948,
+            "delta": -6.599046599999998,
+            "delta_pct": -20.6720590234711
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 31.522932400000002,
+            "candidate": 24.5109782,
+            "delta": -7.011954200000002,
+            "delta_pct": -22.243978164924783
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 31.175826,
+            "candidate": 24.428900600000002,
+            "delta": -6.7469253999999985,
+            "delta_pct": -21.641528920516805
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 31.604233,
+            "candidate": 24.8156784,
+            "delta": -6.788554600000001,
+            "delta_pct": -21.47989036785041
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 31.6170802,
+            "candidate": 24.6881174,
+            "delta": -6.928962800000001,
+            "delta_pct": -21.91525199724167
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 31.3727334,
+            "candidate": 24.499943,
+            "delta": -6.872790400000003,
+            "delta_pct": -21.906890650465293
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 32.417718199999996,
+            "candidate": 24.8409006,
+            "delta": -7.576817599999995,
+            "delta_pct": -23.3724580899096
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 31.6106566,
+          "candidate": 24.714989
+        },
+        "side_median_delta": -6.8956675999999995,
+        "ratio_of_side_medians_delta_pct": -21.814376358129806,
+        "median_paired_delta_pct": -21.91107132385348,
+        "decision": "win"
+      }
+    },
+    "user_8_1": {
+      "mean_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 172.11233900000002,
+            "candidate": 154.8682322,
+            "delta": -17.244106800000026,
+            "delta_pct": -10.019099676520016
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 173.091027,
+            "candidate": 158.1507558,
+            "delta": -14.940271199999984,
+            "delta_pct": -8.631453321956418
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 170.42324119999998,
+            "candidate": 154.47030379999998,
+            "delta": -15.952937399999996,
+            "delta_pct": -9.36077572968962
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 171.149838,
+            "candidate": 154.2483616,
+            "delta": -16.90147639999998,
+            "delta_pct": -9.875251181949684
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 172.2828684,
+            "candidate": 153.138323,
+            "delta": -19.1445454,
+            "delta_pct": -11.112274585277337
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 174.358041,
+            "candidate": 156.54900419999998,
+            "delta": -17.8090368,
+            "delta_pct": -10.214061076770186
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 169.6036508,
+            "candidate": 154.28370199999998,
+            "delta": -15.31994880000002,
+            "delta_pct": -9.03279423982778
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 205.816623,
+            "candidate": 153.6276562,
+            "delta": -52.1889668,
+            "delta_pct": -25.35702220709355
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 172.1976037,
+          "candidate": 154.37700289999998
+        },
+        "side_median_delta": -17.820600800000022,
+        "ratio_of_side_medians_delta_pct": -10.348924965905326,
+        "median_paired_delta_pct": -9.94717542923485,
+        "decision": "win"
+      },
+      "p50_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 165.195,
+            "candidate": 150.114,
+            "delta": -15.080999999999989,
+            "delta_pct": -9.12921093253427
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 167.503,
+            "candidate": 151.422,
+            "delta": -16.08099999999999,
+            "delta_pct": -9.600425067013719
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 164.118,
+            "candidate": 149.498,
+            "delta": -14.620000000000005,
+            "delta_pct": -8.908224570126377
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 166.195,
+            "candidate": 149.653,
+            "delta": -16.542,
+            "delta_pct": -9.95336803152923
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 167.196,
+            "candidate": 149.191,
+            "delta": -18.004999999999995,
+            "delta_pct": -10.76879829660996
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 168.349,
+            "candidate": 149.729,
+            "delta": -18.619999999999976,
+            "delta_pct": -11.060356758875889
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 165.349,
+            "candidate": 149.653,
+            "delta": -15.695999999999998,
+            "delta_pct": -9.492648882061584
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 167.503,
+            "candidate": 148.653,
+            "delta": -18.849999999999994,
+            "delta_pct": -11.253529787526196
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 166.69549999999998,
+          "candidate": 149.653
+        },
+        "side_median_delta": -17.04249999999999,
+        "ratio_of_side_medians_delta_pct": -10.223731294486049,
+        "median_paired_delta_pct": -9.776896549271473,
+        "decision": "win"
+      },
+      "p95_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 211.437,
+            "candidate": 184.045,
+            "delta": -27.392000000000024,
+            "delta_pct": -12.955159220004075
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 206.59,
+            "candidate": 206.666,
+            "delta": 0.0759999999999934,
+            "delta_pct": 0.03678784065055396
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 207.589,
+            "candidate": 187.047,
+            "delta": -20.542,
+            "delta_pct": -9.89551469490194
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 194.048,
+            "candidate": 179.66,
+            "delta": -14.388000000000005,
+            "delta_pct": -7.414660290237474
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 204.128,
+            "candidate": 176.582,
+            "delta": -27.545999999999992,
+            "delta_pct": -13.494474055494587
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 211.822,
+            "candidate": 195.741,
+            "delta": -16.08099999999999,
+            "delta_pct": -7.591751564993244
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 197.972,
+            "candidate": 177.044,
+            "delta": -20.927999999999997,
+            "delta_pct": -10.571191885721209
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 238.136,
+            "candidate": 179.968,
+            "delta": -58.168000000000006,
+            "delta_pct": -24.426378204051467
+          }
+        ],
+        "lower_pairs": 7,
+        "higher_pairs": 1,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 207.0895,
+          "candidate": 182.0065
+        },
+        "side_median_delta": -25.083,
+        "ratio_of_side_medians_delta_pct": -12.112154406669584,
+        "median_paired_delta_pct": -10.233353290311575,
+        "decision": "win"
+      },
+      "p99_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 281.685,
+            "candidate": 243.599,
+            "delta": -38.08600000000001,
+            "delta_pct": -13.520776754175767
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 276.838,
+            "candidate": 266.912,
+            "delta": -9.926000000000045,
+            "delta_pct": -3.5854904312269453
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 282.301,
+            "candidate": 243.829,
+            "delta": -38.47199999999998,
+            "delta_pct": -13.628006985451691
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 267.759,
+            "candidate": 242.445,
+            "delta": -25.31400000000002,
+            "delta_pct": -9.45402395437689
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 264.143,
+            "candidate": 237.29,
+            "delta": -26.85299999999998,
+            "delta_pct": -10.166084280105848
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 271.067,
+            "candidate": 272.837,
+            "delta": 1.7699999999999818,
+            "delta_pct": 0.6529750947182666
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 257.063,
+            "candidate": 243.829,
+            "delta": -13.23399999999998,
+            "delta_pct": -5.148154343487777
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 557.523,
+            "candidate": 241.752,
+            "delta": -315.771,
+            "delta_pct": -56.63820147330245
+          }
+        ],
+        "lower_pairs": 7,
+        "higher_pairs": 1,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 273.9525,
+          "candidate": 243.714
+        },
+        "side_median_delta": -30.238499999999988,
+        "ratio_of_side_medians_delta_pct": -11.03786240315383,
+        "median_paired_delta_pct": -9.810054117241368,
+        "decision": "win"
+      },
+      "daemon_cpu_us_per_op": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 112.46405499999999,
+            "candidate": 85.2439952,
+            "delta": -27.220059799999987,
+            "delta_pct": -24.203341947789447
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 113.547045,
+            "candidate": 85.5789802,
+            "delta": -27.968064799999993,
+            "delta_pct": -24.63125729075556
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 109.6957562,
+            "candidate": 85.095108,
+            "delta": -24.60064820000001,
+            "delta_pct": -22.42625335035523
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 112.9329244,
+            "candidate": 85.2220328,
+            "delta": -27.71089160000001,
+            "delta_pct": -24.537478106783183
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 114.3268008,
+            "candidate": 85.0962864,
+            "delta": -29.230514400000004,
+            "delta_pct": -25.56750840175701
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 115.7105858,
+            "candidate": 84.910946,
+            "delta": -30.79963980000001,
+            "delta_pct": -26.617823760079872
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 110.4159274,
+            "candidate": 85.0976764,
+            "delta": -25.318251000000004,
+            "delta_pct": -22.929890275956698
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 116.07227499999999,
+            "candidate": 84.524174,
+            "delta": -31.54810099999999,
+            "delta_pct": -27.179704197234
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 113.23998470000001,
+          "candidate": 85.0969814
+        },
+        "side_median_delta": -28.143003300000004,
+        "ratio_of_side_medians_delta_pct": -24.85253188134703,
+        "median_paired_delta_pct": -24.58436769876937,
+        "decision": "win"
+      }
+    },
+    "user_1_0": {
+      "mean_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 39.217033,
+            "candidate": 36.065494,
+            "delta": -3.1515389999999996,
+            "delta_pct": -8.036148476607085
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 39.601439400000004,
+            "candidate": 37.131332199999996,
+            "delta": -2.470107200000008,
+            "delta_pct": -6.23741772376084
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 39.4313628,
+            "candidate": 36.425445399999994,
+            "delta": -3.0059174000000084,
+            "delta_pct": -7.623163863867289
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 39.1011758,
+            "candidate": 36.470862999999994,
+            "delta": -2.630312800000006,
+            "delta_pct": -6.72694042106019
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 39.1927834,
+            "candidate": 36.2449366,
+            "delta": -2.9478468000000007,
+            "delta_pct": -7.521402014024858
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 39.3438,
+            "candidate": 36.157822800000005,
+            "delta": -3.1859771999999964,
+            "delta_pct": -8.097787198999583
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 39.3831072,
+            "candidate": 36.3349428,
+            "delta": -3.0481643999999974,
+            "delta_pct": -7.739776306933943
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 39.61835,
+            "candidate": 36.1232428,
+            "delta": -3.4951071999999996,
+            "delta_pct": -8.821940338252354
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 39.3634536,
+          "candidate": 36.289939700000005
+        },
+        "side_median_delta": -3.0735138999999947,
+        "ratio_of_side_medians_delta_pct": -7.808039231598308,
+        "median_paired_delta_pct": -7.6814700854006155,
+        "decision": "win"
+      },
+      "p50_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 37.779,
+            "candidate": 34.855,
+            "delta": -2.9240000000000066,
+            "delta_pct": -7.739749596336609
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 38.087,
+            "candidate": 34.701,
+            "delta": -3.386000000000003,
+            "delta_pct": -8.890172499803084
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 38.163,
+            "candidate": 34.701,
+            "delta": -3.461999999999996,
+            "delta_pct": -9.07161386683436
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 37.701,
+            "candidate": 34.932,
+            "delta": -2.7689999999999984,
+            "delta_pct": -7.344632768361581
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 37.779,
+            "candidate": 34.932,
+            "delta": -2.8470000000000013,
+            "delta_pct": -7.535932661002143
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 37.702,
+            "candidate": 34.7,
+            "delta": -3.0019999999999953,
+            "delta_pct": -7.962442310752738
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 37.856,
+            "candidate": 34.778,
+            "delta": -3.078000000000003,
+            "delta_pct": -8.130811496196122
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 38.01,
+            "candidate": 34.778,
+            "delta": -3.2319999999999993,
+            "delta_pct": -8.503025519600104
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 37.8175,
+          "candidate": 34.778
+        },
+        "side_median_delta": -3.039500000000004,
+        "ratio_of_side_medians_delta_pct": -8.03728432603954,
+        "median_paired_delta_pct": -8.04662690347443,
+        "decision": "win"
+      },
+      "p95_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 39.164,
+            "candidate": 36.086,
+            "delta": -3.078000000000003,
+            "delta_pct": -7.859258502706579
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 39.702,
+            "candidate": 39.009,
+            "delta": -0.6929999999999978,
+            "delta_pct": -1.7455040048360182
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 39.317,
+            "candidate": 36.239,
+            "delta": -3.078000000000003,
+            "delta_pct": -7.828674619121512
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 38.702,
+            "candidate": 36.701,
+            "delta": -2.0009999999999977,
+            "delta_pct": -5.170275437961857
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 38.933,
+            "candidate": 35.855,
+            "delta": -3.078000000000003,
+            "delta_pct": -7.90588960521923
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 39.164,
+            "candidate": 36.394,
+            "delta": -2.770000000000003,
+            "delta_pct": -7.072821979368815
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 39.24,
+            "candidate": 36.625,
+            "delta": -2.615000000000002,
+            "delta_pct": -6.664118246687057
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 39.471,
+            "candidate": 36.009,
+            "delta": -3.461999999999996,
+            "delta_pct": -8.770996427757083
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 39.202,
+          "candidate": 36.3165
+        },
+        "side_median_delta": -2.8855000000000004,
+        "ratio_of_side_medians_delta_pct": -7.360593847252694,
+        "median_paired_delta_pct": -7.450748299245163,
+        "decision": "win"
+      },
+      "p99_us": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 90.945,
+            "candidate": 79.789,
+            "delta": -11.155999999999992,
+            "delta_pct": -12.266754631920385
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 92.946,
+            "candidate": 115.644,
+            "delta": 22.698000000000008,
+            "delta_pct": 24.420631334323172
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 90.099,
+            "candidate": 98.255,
+            "delta": 8.155999999999992,
+            "delta_pct": 9.0522647310181
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 88.33,
+            "candidate": 85.713,
+            "delta": -2.6170000000000044,
+            "delta_pct": -2.9627533114457205
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 92.561,
+            "candidate": 84.867,
+            "delta": -7.694000000000003,
+            "delta_pct": -8.312356175927228
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 103.411,
+            "candidate": 91.946,
+            "delta": -11.465000000000003,
+            "delta_pct": -11.086828287126128
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 92.561,
+            "candidate": 91.177,
+            "delta": -1.3840000000000003,
+            "delta_pct": -1.4952301725348671
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 96.717,
+            "candidate": 74.942,
+            "delta": -21.775000000000006,
+            "delta_pct": -22.514139189594385
+          }
+        ],
+        "lower_pairs": 6,
+        "higher_pairs": 2,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 92.561,
+          "candidate": 88.445
+        },
+        "side_median_delta": -4.116000000000014,
+        "ratio_of_side_medians_delta_pct": -4.446797247220768,
+        "median_paired_delta_pct": -5.637554743686474,
+        "decision": "tie"
+      },
+      "daemon_cpu_us_per_op": {
+        "pairs": [
+          {
+            "stock_run": "01-stock",
+            "candidate_run": "02-candidate",
+            "stock": 18.1430808,
+            "candidate": 14.759296399999998,
+            "delta": -3.3837844000000015,
+            "delta_pct": -18.650550241720808
+          },
+          {
+            "stock_run": "04-stock",
+            "candidate_run": "03-candidate",
+            "stock": 18.335807799999998,
+            "candidate": 14.798290999999999,
+            "delta": -3.537516799999999,
+            "delta_pct": -19.292942195870964
+          },
+          {
+            "stock_run": "05-stock",
+            "candidate_run": "06-candidate",
+            "stock": 18.187570400000002,
+            "candidate": 14.629867,
+            "delta": -3.557703400000001,
+            "delta_pct": -19.561180090332464
+          },
+          {
+            "stock_run": "08-stock",
+            "candidate_run": "07-candidate",
+            "stock": 18.016184000000003,
+            "candidate": 14.7058132,
+            "delta": -3.310370800000003,
+            "delta_pct": -18.374428236301334
+          },
+          {
+            "stock_run": "09-stock",
+            "candidate_run": "10-candidate",
+            "stock": 18.1997694,
+            "candidate": 14.6255056,
+            "delta": -3.5742638000000007,
+            "delta_pct": -19.639060921288376
+          },
+          {
+            "stock_run": "12-stock",
+            "candidate_run": "11-candidate",
+            "stock": 18.1891086,
+            "candidate": 14.6986566,
+            "delta": -3.490452000000001,
+            "delta_pct": -19.189791411768255
+          },
+          {
+            "stock_run": "13-stock",
+            "candidate_run": "14-candidate",
+            "stock": 18.0979806,
+            "candidate": 14.7694784,
+            "delta": -3.328502199999999,
+            "delta_pct": -18.391566846966334
+          },
+          {
+            "stock_run": "16-stock",
+            "candidate_run": "15-candidate",
+            "stock": 18.424195599999997,
+            "candidate": 14.693162000000001,
+            "delta": -3.7310335999999964,
+            "delta_pct": -20.250727255631162
+          }
+        ],
+        "lower_pairs": 8,
+        "higher_pairs": 0,
+        "equal_pairs": 0,
+        "side_median": {
+          "stock": 18.1883395,
+          "candidate": 14.7022349
+        },
+        "side_median_delta": -3.486104600000001,
+        "ratio_of_side_medians_delta_pct": -19.166700731531872,
+        "median_paired_delta_pct": -19.24136680381961,
+        "decision": "win"
+      }
+    }
+  },
+  "windows": [
+    {
+      "run": "01-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23115013,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 60.672752800000005,
+          "wall_us_op": 60.779148,
+          "daemon_cpu_us_op": 31.9616898,
+          "caller_cpu_us_op": 31.0867528,
+          "p50_us": 57.783,
+          "p95_us": 69.018,
+          "p99_us": 148.653
+        },
+        "user_8_1": {
+          "mean_us": 172.11233900000002,
+          "wall_us_op": 172.2304762,
+          "daemon_cpu_us_op": 112.46405499999999,
+          "caller_cpu_us_op": 125.95666460000001,
+          "p50_us": 165.195,
+          "p95_us": 211.437,
+          "p99_us": 281.685
+        },
+        "user_1_0": {
+          "mean_us": 39.217033,
+          "wall_us_op": 39.3209348,
+          "daemon_cpu_us_op": 18.1430808,
+          "caller_cpu_us_op": 18.919960200000002,
+          "p50_us": 37.779,
+          "p95_us": 39.164,
+          "p99_us": 90.945
+        }
+      },
+      "raw_archive_sha256": "0985b64da8dad571747e55f710452a8a396b3ba9e7b165a18e46197d50ec7c0c",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "71b6db575da0dbd661bf4ca8443bb5ecd5b5f04ff557a08c7344d88f694c66ae",
+        "daemon-after.status": "0ac015cf7d4336ed1ea0b18c74c34827a7799db7f39e70dd7b64d6d447f938cb",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "71b6db575da0dbd661bf4ca8443bb5ecd5b5f04ff557a08c7344d88f694c66ae",
+        "daemon-before.status": "edadfec0cd94d27c9496b39d777377e8964d0a61b573d0ed735c5ff8c5c141ce",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "c504cd060abdd78714c15c7ebb3abf5ecff1cc9ffbe85d3c1c804563602dafa4",
+        "user_1_1.json": "298c8aaf69f4bba5b4f8fa3ecc9fce3c95bbecdb1b5565fd4a44e3514789c1ce",
+        "user_8_1.json": "c294d444c3d3b60c438ad0596c3e90d90eeb3528dc6384e84b45edb48b02acb3"
+      },
+      "driver_result_sha256": "c4d8c37e6ff38bad24dfc26181edf4e6f6c71a82188b598e16da7e3214e732a2",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "02-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23116536,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 53.545156999999996,
+          "wall_us_op": 53.6493648,
+          "daemon_cpu_us_op": 24.7418606,
+          "caller_cpu_us_op": 31.5051852,
+          "p50_us": 51.552,
+          "p95_us": 56.783,
+          "p99_us": 116.644
+        },
+        "user_8_1": {
+          "mean_us": 154.8682322,
+          "wall_us_op": 154.9929558,
+          "daemon_cpu_us_op": 85.2439952,
+          "caller_cpu_us_op": 124.9076048,
+          "p50_us": 150.114,
+          "p95_us": 184.045,
+          "p99_us": 243.599
+        },
+        "user_1_0": {
+          "mean_us": 36.065494,
+          "wall_us_op": 36.159366199999994,
+          "daemon_cpu_us_op": 14.759296399999998,
+          "caller_cpu_us_op": 18.9229224,
+          "p50_us": 34.855,
+          "p95_us": 36.086,
+          "p99_us": 79.789
+        }
+      },
+      "raw_archive_sha256": "355e4975a4c57ffdbd647fc838df660b5e29e02dd9225d91cf2d677f0549eec0",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "6b0ed4a5257a13f0829e09f816dd2f955f1ce3d5ae7affdbd4497cb99cb3316c",
+        "daemon-after.status": "427c8a72f8b73c0f02f90672f1a93ea5897ba09577f76e6cf33617133a26be99",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "6b0ed4a5257a13f0829e09f816dd2f955f1ce3d5ae7affdbd4497cb99cb3316c",
+        "daemon-before.status": "fcd3093dbd0795e0ff7d3c6504acfeb5c0c851e92e12ad22ce1bcf554ecabf55",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "beb1611759fe89e7e09e8de0f59cd998cdfcd618268614645aebded4a1627015",
+        "user_1_1.json": "376fd6487513c6fdf08e461c0febafaf8d6a05a40449aef763898babf0373bbb",
+        "user_8_1.json": "5e622631c3343f7f15250358da23d5e5d0f26e1a6656fd8420598024aba3a033"
+      },
+      "driver_result_sha256": "26d3906db6c0c9cf98a3b27d55be05f44445ba5023d1b21c6ef7ebea671e8287",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "03-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23117936,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 56.8574552,
+          "wall_us_op": 56.9891158,
+          "daemon_cpu_us_op": 25.3234948,
+          "caller_cpu_us_op": 31.9207274,
+          "p50_us": 51.551,
+          "p95_us": 88.252,
+          "p99_us": 170.966
+        },
+        "user_8_1": {
+          "mean_us": 158.1507558,
+          "wall_us_op": 158.29603640000002,
+          "daemon_cpu_us_op": 85.5789802,
+          "caller_cpu_us_op": 126.1096864,
+          "p50_us": 151.422,
+          "p95_us": 206.666,
+          "p99_us": 266.912
+        },
+        "user_1_0": {
+          "mean_us": 37.131332199999996,
+          "wall_us_op": 37.2255538,
+          "daemon_cpu_us_op": 14.798290999999999,
+          "caller_cpu_us_op": 18.880585200000002,
+          "p50_us": 34.701,
+          "p95_us": 39.009,
+          "p99_us": 115.644
+        }
+      },
+      "raw_archive_sha256": "c00a51458bb1108b2267920e1dac218624a681cc27ce3e9884de31976e898548",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "8ca99589636d218f1c550ad039c12810be28b9bba2f93dd634dab8788dcfc277",
+        "daemon-after.status": "0db76c43e03bf829ca180f5e52e48d03b77ced86f3277475928abe61d275cc21",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "8ca99589636d218f1c550ad039c12810be28b9bba2f93dd634dab8788dcfc277",
+        "daemon-before.status": "fcd3093dbd0795e0ff7d3c6504acfeb5c0c851e92e12ad22ce1bcf554ecabf55",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "cc93bb80bb00b654a64abc0287a574b47c96e88ede3876a4004f5fc06888f579",
+        "user_1_1.json": "f0d86a8d4546c65de9f569823a2f677d1b036e05941569e62a92ca8c734fdeee",
+        "user_8_1.json": "5cbd2f610dad5b6deeb6b62e9c0f08781bdf4f0254e7ee51bb13d98e2fc36772"
+      },
+      "driver_result_sha256": "43f22a82b7e2e7a32f0aca493a645f44951d4eea25b7f460af17be13c8cf0c3a",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "04-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23119332,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 60.6328066,
+          "wall_us_op": 60.7427236,
+          "daemon_cpu_us_op": 31.922541399999997,
+          "caller_cpu_us_op": 31.463159,
+          "p50_us": 58.322,
+          "p95_us": 62.631,
+          "p99_us": 134.265
+        },
+        "user_8_1": {
+          "mean_us": 173.091027,
+          "wall_us_op": 173.1993168,
+          "daemon_cpu_us_op": 113.547045,
+          "caller_cpu_us_op": 128.035934,
+          "p50_us": 167.503,
+          "p95_us": 206.59,
+          "p99_us": 276.838
+        },
+        "user_1_0": {
+          "mean_us": 39.601439400000004,
+          "wall_us_op": 39.711031600000005,
+          "daemon_cpu_us_op": 18.335807799999998,
+          "caller_cpu_us_op": 19.064324,
+          "p50_us": 38.087,
+          "p95_us": 39.702,
+          "p99_us": 92.946
+        }
+      },
+      "raw_archive_sha256": "f7fdf97c108d955b2fc8ed4606a55c0961b8fad8cf3ad524b3250558f42d7abf",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "6e30df00bcf20354b7b53a2060742a25b80faa11df6012c506089b9450541669",
+        "daemon-after.status": "6b1bb3c0194417ca85a01a5077844c0b35f9ce366e79d32e1cc571e710b6400b",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "6e30df00bcf20354b7b53a2060742a25b80faa11df6012c506089b9450541669",
+        "daemon-before.status": "1fbfb38cdb8884214fdafb59746d9d9fe017ad016fa10291a2629101c5e05566",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "e5e797e53fa8a4416ab4da7d0abc1989a0976d557d4559d90c317bfbd6811a69",
+        "user_1_1.json": "789a0f2234a4304f9efbaad2b04a7ab30875074c7092ce10d89a9bade2570b2c",
+        "user_8_1.json": "62b84c5c93c07f5d907749c53be52b330fb123199f769a72cf13922a4c63aa43"
+      },
+      "driver_result_sha256": "2adc83ad3e8f2d66db3b74326cc5091e1bd5281b6530f2a406e64361e2f5fee1",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "05-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23120849,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 60.669258199999994,
+          "wall_us_op": 60.776439599999996,
+          "daemon_cpu_us_op": 31.522932400000002,
+          "caller_cpu_us_op": 31.5117966,
+          "p50_us": 58.014,
+          "p95_us": 68.325,
+          "p99_us": 145.343
+        },
+        "user_8_1": {
+          "mean_us": 170.42324119999998,
+          "wall_us_op": 170.5356562,
+          "daemon_cpu_us_op": 109.6957562,
+          "caller_cpu_us_op": 125.6180788,
+          "p50_us": 164.118,
+          "p95_us": 207.589,
+          "p99_us": 282.301
+        },
+        "user_1_0": {
+          "mean_us": 39.4313628,
+          "wall_us_op": 39.5320488,
+          "daemon_cpu_us_op": 18.187570400000002,
+          "caller_cpu_us_op": 19.2879138,
+          "p50_us": 38.163,
+          "p95_us": 39.317,
+          "p99_us": 90.099
+        }
+      },
+      "raw_archive_sha256": "b2df94d1bdee61f01e1eeacdfea944761b136428a2251ed10424ab2780448e79",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "8911c558af15d85453d68ca30a3639a43e8bc48281addecfa62b5ab3910ee3ee",
+        "daemon-after.status": "cd2f08803f973b46231f48e9627aede9f5f7ca228539f9caf25e2178493b87e0",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "8911c558af15d85453d68ca30a3639a43e8bc48281addecfa62b5ab3910ee3ee",
+        "daemon-before.status": "0661a8688d6870f8dde0f154b463b04c0b4a23fcaede4a81796af137b74ecf02",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "ec1f457154fb645cf2721d658269a7ee0ba5c570984eb813874664276915cf57",
+        "user_1_1.json": "8b33db222ca84fb1d953f9eca6844ff67b9121b022f2038a9f9228df0aa40c1b",
+        "user_8_1.json": "590843e45c225b90288b6c75dfd423748d54baa31fc3c1084a5fccfe84355f14"
+      },
+      "driver_result_sha256": "81b6740ecae52b9b794f07a1bdca37b63d58f6b4e8ad1107c006b66df0a30c49",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "06-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23122399,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 53.786706599999995,
+          "wall_us_op": 53.9024122,
+          "daemon_cpu_us_op": 24.5109782,
+          "caller_cpu_us_op": 31.4905598,
+          "p50_us": 51.32,
+          "p95_us": 57.475,
+          "p99_us": 133.725
+        },
+        "user_8_1": {
+          "mean_us": 154.47030379999998,
+          "wall_us_op": 154.58046919999998,
+          "daemon_cpu_us_op": 85.095108,
+          "caller_cpu_us_op": 124.6574144,
+          "p50_us": 149.498,
+          "p95_us": 187.047,
+          "p99_us": 243.829
+        },
+        "user_1_0": {
+          "mean_us": 36.425445399999994,
+          "wall_us_op": 36.520286399999996,
+          "daemon_cpu_us_op": 14.629867,
+          "caller_cpu_us_op": 18.962217,
+          "p50_us": 34.701,
+          "p95_us": 36.239,
+          "p99_us": 98.255
+        }
+      },
+      "raw_archive_sha256": "d3280ec41ae6b83b2a5171066bf5153bf0bf3f2f5e3ff4bb271d2d5718138329",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "3ef4c90d8c315633a982cb36d0ec72120f3056526d89f00a86a430ea6a78a637",
+        "daemon-after.status": "65c34a65e825f01dc139cc04507a5a50b49fa26cf48ae35687f79c49e2056386",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "3ef4c90d8c315633a982cb36d0ec72120f3056526d89f00a86a430ea6a78a637",
+        "daemon-before.status": "2f80c07216a0152ab11af268cc47f6d67da1d590906d1b05d5e56f0f5f6dccde",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "c4381e54c962aa83db673f893e61db43509b9b5d9587f156decad547b2b24805",
+        "user_1_1.json": "f7d03ae8c993e41ad916f57433414ca08407408141846186c9fb820bbe7e4b29",
+        "user_8_1.json": "40d58c03cb7665f5d8663bbe63b6797e80e9d1ba918fbdc0df4b5724988bb9b5"
+      },
+      "driver_result_sha256": "5a2a5e5bc350f65cb530319018aa5739553b8740a21ac6eedce62a6bc1591c25",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "07-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23123813,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 53.518546199999996,
+          "wall_us_op": 53.6305446,
+          "daemon_cpu_us_op": 24.428900600000002,
+          "caller_cpu_us_op": 31.3363534,
+          "p50_us": 51.166,
+          "p95_us": 56.783,
+          "p99_us": 128.339
+        },
+        "user_8_1": {
+          "mean_us": 154.2483616,
+          "wall_us_op": 154.3653698,
+          "daemon_cpu_us_op": 85.2220328,
+          "caller_cpu_us_op": 124.6775048,
+          "p50_us": 149.653,
+          "p95_us": 179.66,
+          "p99_us": 242.445
+        },
+        "user_1_0": {
+          "mean_us": 36.470862999999994,
+          "wall_us_op": 36.5709606,
+          "daemon_cpu_us_op": 14.7058132,
+          "caller_cpu_us_op": 19.157669000000002,
+          "p50_us": 34.932,
+          "p95_us": 36.701,
+          "p99_us": 85.713
+        }
+      },
+      "raw_archive_sha256": "9d3cc306ccd7f5e73d9d696625a0ce8864f7b7a9b9796eab0fce5e22c5afb210",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "b78a5a9d58efe45e2e443084d25544f937976707f4d6c0665690d30fe6388c26",
+        "daemon-after.status": "0685bccf790d3882826481feb45ea02ea467f2fdd2be48e7a0efe8e4395037e8",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "b78a5a9d58efe45e2e443084d25544f937976707f4d6c0665690d30fe6388c26",
+        "daemon-before.status": "bc2428b3bae43d9fbcb1bdfb23a703420bc2f588e4dcbdaa2695d7f5db0ef886",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "3f3244d7d6f8c23db4e9f423c10e95ea45a122793899888ab9e281843ee019d7",
+        "user_1_1.json": "53425daada032f13d8d58e1cc0d0107e603f7aec3a716b735be4c13459a371b1",
+        "user_8_1.json": "b0fcc2672c67609a5a4193338ca925ca35b31e6af31e843765a52389014daf50"
+      },
+      "driver_result_sha256": "5a4c824ff25e7d025511d04c838b89b1eeff475b6a2623ae7d3207119c594ddf",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "08-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23125218,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 59.347377,
+          "wall_us_op": 59.456697999999996,
+          "daemon_cpu_us_op": 31.175826,
+          "caller_cpu_us_op": 31.1720464,
+          "p50_us": 57.476,
+          "p95_us": 60.4,
+          "p99_us": 126.724
+        },
+        "user_8_1": {
+          "mean_us": 171.149838,
+          "wall_us_op": 171.2701892,
+          "daemon_cpu_us_op": 112.9329244,
+          "caller_cpu_us_op": 127.07634420000001,
+          "p50_us": 166.195,
+          "p95_us": 194.048,
+          "p99_us": 267.759
+        },
+        "user_1_0": {
+          "mean_us": 39.1011758,
+          "wall_us_op": 39.212831400000006,
+          "daemon_cpu_us_op": 18.016184000000003,
+          "caller_cpu_us_op": 18.9669836,
+          "p50_us": 37.701,
+          "p95_us": 38.702,
+          "p99_us": 88.33
+        }
+      },
+      "raw_archive_sha256": "a3847d42eda9819a823deb25ac2fcedacef2ea7f6a0343fe07439be14d5e86c0",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "89288c0f677a59d2bfb6384812bfb4060b18af7bcf6349c0be02ba0afa8d9678",
+        "daemon-after.status": "76e75ece396fe8a42bdf673f389b9c2ad489961ef85dabdbd534820ade904f3c",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "89288c0f677a59d2bfb6384812bfb4060b18af7bcf6349c0be02ba0afa8d9678",
+        "daemon-before.status": "a0085c6818b3ab6d7b8e3164dc53e3ded352f6dfa41e51be6c40ce103ff5c330",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "1613eecfafaf054d345edc1ef428dfc0fc8c73a4115a0b87b7fa9fd9dd0c20bf",
+        "user_1_1.json": "74dcbbb519e9d94ac20b3243ef76820bbede6824be6af3108b8ebcabb7c871c6",
+        "user_8_1.json": "2b2ae9788c2e1495e1c4f8b645f4655b29c9a582e8e251bb6bd8fe08fc5edf95"
+      },
+      "driver_result_sha256": "97ce708f854b392e1343a9a69fbd024ca644e0ad116adede8e227b209ebb9b7b",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "09-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23126726,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 59.5451186,
+          "wall_us_op": 59.658748200000005,
+          "daemon_cpu_us_op": 31.604233,
+          "caller_cpu_us_op": 30.7703758,
+          "p50_us": 57.63,
+          "p95_us": 60.784,
+          "p99_us": 129.801
+        },
+        "user_8_1": {
+          "mean_us": 172.2828684,
+          "wall_us_op": 172.3958994,
+          "daemon_cpu_us_op": 114.3268008,
+          "caller_cpu_us_op": 127.3805772,
+          "p50_us": 167.196,
+          "p95_us": 204.128,
+          "p99_us": 264.143
+        },
+        "user_1_0": {
+          "mean_us": 39.1927834,
+          "wall_us_op": 39.295067,
+          "daemon_cpu_us_op": 18.1997694,
+          "caller_cpu_us_op": 18.944050200000003,
+          "p50_us": 37.779,
+          "p95_us": 38.933,
+          "p99_us": 92.561
+        }
+      },
+      "raw_archive_sha256": "c81cae1003661c460242284f75d5059386a56bc7023bb6ab309e74e4e2b87f8f",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "d339857fb39398f014eeb72720631a9e4ff43c14c5251c5098bf93aa7d58e1ff",
+        "daemon-after.status": "35cc22a41c6be13ea16696c3ba1a73629ddfd215b7c524b7081d4c37598b9c8c",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "d339857fb39398f014eeb72720631a9e4ff43c14c5251c5098bf93aa7d58e1ff",
+        "daemon-before.status": "cf56afe822f6364b3e63ada2ef0938d4a8a82120dc487e776b12e87e544f93e2",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "4e295a7f23291c0a0f3cba86aa0599f3b415c011906ef31b42e6e1ce377e4c3f",
+        "user_1_1.json": "6cb7be049fa96dc325e1e254f39fd1fc60595018f9a1e83459b3a0c593b5ef69",
+        "user_8_1.json": "0a398b70d979e7626b42583d44d33b6df0960912b6e2274f011721cf131e366a"
+      },
+      "driver_result_sha256": "e1e84a343a86c81c26f5aa1a3c19a93b93c5a5fd3a52e5087e29f745d54ae740",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "10-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23128244,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 56.06315,
+          "wall_us_op": 56.1786668,
+          "daemon_cpu_us_op": 24.8156784,
+          "caller_cpu_us_op": 31.904653600000003,
+          "p50_us": 51.552,
+          "p95_us": 64.324,
+          "p99_us": 170.504
+        },
+        "user_8_1": {
+          "mean_us": 153.138323,
+          "wall_us_op": 153.2480284,
+          "daemon_cpu_us_op": 85.0962864,
+          "caller_cpu_us_op": 124.2506364,
+          "p50_us": 149.191,
+          "p95_us": 176.582,
+          "p99_us": 237.29
+        },
+        "user_1_0": {
+          "mean_us": 36.2449366,
+          "wall_us_op": 36.346118000000004,
+          "daemon_cpu_us_op": 14.6255056,
+          "caller_cpu_us_op": 19.1782748,
+          "p50_us": 34.932,
+          "p95_us": 35.855,
+          "p99_us": 84.867
+        }
+      },
+      "raw_archive_sha256": "f80690b53626a298f8c8e778cfc2bbfab828c8427fba3f57f14a54d87a8724f7",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "34d167274a4a5890d7013dc2787eb26474b1010dea897b8a5af84b4f09a22780",
+        "daemon-after.status": "7c8eb076d9db76951d7c1831a58103e17dba25f2b7408e3fb080074a25eefe0b",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "34d167274a4a5890d7013dc2787eb26474b1010dea897b8a5af84b4f09a22780",
+        "daemon-before.status": "2f80c07216a0152ab11af268cc47f6d67da1d590906d1b05d5e56f0f5f6dccde",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "7446e97153df1d925f5abe2b022f1309a60852bd319eca83acf8b1555d6e9ce7",
+        "user_1_1.json": "c87fe3b6b3e6bd65bfedc09041fc6d34cefb161f452681f3960b523fd693935f",
+        "user_8_1.json": "503984a98dca7425ade52176da1685f5c58749a8fc5d775e1481ed05a1345582"
+      },
+      "driver_result_sha256": "fe8b52ae76c8abc731e3280096db974d80cdd6bd56157157d292b6edd8155ac6",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "11-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23129623,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 54.104631399999995,
+          "wall_us_op": 54.211469799999996,
+          "daemon_cpu_us_op": 24.6881174,
+          "caller_cpu_us_op": 31.143593799999998,
+          "p50_us": 51.244,
+          "p95_us": 62.247,
+          "p99_us": 138.342
+        },
+        "user_8_1": {
+          "mean_us": 156.54900419999998,
+          "wall_us_op": 156.6741726,
+          "daemon_cpu_us_op": 84.910946,
+          "caller_cpu_us_op": 124.9469544,
+          "p50_us": 149.729,
+          "p95_us": 195.741,
+          "p99_us": 272.837
+        },
+        "user_1_0": {
+          "mean_us": 36.157822800000005,
+          "wall_us_op": 36.2680062,
+          "daemon_cpu_us_op": 14.6986566,
+          "caller_cpu_us_op": 18.8615098,
+          "p50_us": 34.7,
+          "p95_us": 36.394,
+          "p99_us": 91.946
+        }
+      },
+      "raw_archive_sha256": "95037bb2f85715207000c06b62b429413a50ba7fbfa8d9e1da4dff4bbbd48425",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "5099de62bade107773b75a936826b68eb0d17583d365a526b841b437682b37fe",
+        "daemon-after.status": "591337349f91e84fc40e4d211cce63ae7c46ea5a03100b41c4402963446c68a8",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "5099de62bade107773b75a936826b68eb0d17583d365a526b841b437682b37fe",
+        "daemon-before.status": "e24889bbd35a6aea1488d6e9170bd4e8b8a044028fa59255cf7d7046c95e7d0c",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "0bd938a0d584328e724fac130b6a59b469e597b41339267807aa3fc3c55859bb",
+        "user_1_1.json": "2ffd3d0a79b774b10396c3b4776b37adea1afdef4e025b3bad0b474f1517a5e9",
+        "user_8_1.json": "2c1136639d11072faf5db30b7d8ce8b7648433ffd25cd737d14f1c9de830117e"
+      },
+      "driver_result_sha256": "a1b7e0638827d28cd2ee42eda651bc9e2f1ff166feb11bb379114ea7f1b28b81",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "12-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23130999,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 59.965159,
+          "wall_us_op": 60.0708348,
+          "daemon_cpu_us_op": 31.6170802,
+          "caller_cpu_us_op": 31.3515926,
+          "p50_us": 57.86,
+          "p95_us": 62.246,
+          "p99_us": 131.494
+        },
+        "user_8_1": {
+          "mean_us": 174.358041,
+          "wall_us_op": 174.4773392,
+          "daemon_cpu_us_op": 115.7105858,
+          "caller_cpu_us_op": 128.5180254,
+          "p50_us": 168.349,
+          "p95_us": 211.822,
+          "p99_us": 271.067
+        },
+        "user_1_0": {
+          "mean_us": 39.3438,
+          "wall_us_op": 39.4643706,
+          "daemon_cpu_us_op": 18.1891086,
+          "caller_cpu_us_op": 18.9890112,
+          "p50_us": 37.702,
+          "p95_us": 39.164,
+          "p99_us": 103.411
+        }
+      },
+      "raw_archive_sha256": "047ec2cf47ff43923d9d41309ae0b84e209c21fc7fce7f677be7c9394fb23f4d",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "abc0b0384d755eb685ab6850698bbe70f04156f19523c624028a6b0e26da06b0",
+        "daemon-after.status": "646822adffff64a490b512fc62db92ef35cb4462e97cd4c9c04666f333d9654d",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "abc0b0384d755eb685ab6850698bbe70f04156f19523c624028a6b0e26da06b0",
+        "daemon-before.status": "cf56afe822f6364b3e63ada2ef0938d4a8a82120dc487e776b12e87e544f93e2",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "605180cad7dc0cbcd895f271069716a902adca6226d5802d0032f4fc382d9c3c",
+        "user_1_1.json": "cdbcf4e77733b0f69e1d04b0f3b0e7229c5635ac664007a867aba885ba2cc940",
+        "user_8_1.json": "182087568cfda9c6b6c780cf9b856465fb9166143f2b4ab4a6def246675227cc"
+      },
+      "driver_result_sha256": "ae44a5ddbc37bd82ff708ebe9c5d5339f6a0223f24e38b50fe943b07da932d23",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "13-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23132476,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 59.9216436,
+          "wall_us_op": 60.038488,
+          "daemon_cpu_us_op": 31.3727334,
+          "caller_cpu_us_op": 31.242493200000002,
+          "p50_us": 57.553,
+          "p95_us": 62.862,
+          "p99_us": 133.187
+        },
+        "user_8_1": {
+          "mean_us": 169.6036508,
+          "wall_us_op": 169.71690859999998,
+          "daemon_cpu_us_op": 110.4159274,
+          "caller_cpu_us_op": 126.2168438,
+          "p50_us": 165.349,
+          "p95_us": 197.972,
+          "p99_us": 257.063
+        },
+        "user_1_0": {
+          "mean_us": 39.3831072,
+          "wall_us_op": 39.483406,
+          "daemon_cpu_us_op": 18.0979806,
+          "caller_cpu_us_op": 19.134511999999997,
+          "p50_us": 37.856,
+          "p95_us": 39.24,
+          "p99_us": 92.561
+        }
+      },
+      "raw_archive_sha256": "8ab49f0a48691594ee4d0a2148af451faac52cf93073c1040be5d80bb818e02f",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "d03038b9bd9c837bc25516eaa3077b7b6508100a39e9b4abe9fc62e59a10e78c",
+        "daemon-after.status": "6f6077f5b2c616ce437aa28fa8d698891773f03768221dee548cb33c22a88fe2",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "d03038b9bd9c837bc25516eaa3077b7b6508100a39e9b4abe9fc62e59a10e78c",
+        "daemon-before.status": "453e2b2400ff279602d0adf1388dc92a5a1dbad5d56483deb0cf5ce82d996287",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "eb3416149ce8a80d30b16bc7d0281699d0b229ed4a6489e9ae5fab97187e62fe",
+        "user_1_1.json": "339d6c212b6b6b893b833f20716f8502f1971254840762f82501f9af09fc7898",
+        "user_8_1.json": "59f9f4298256e16c722ae923fd153837068edbc024cedb6449b8c7ef50708a15"
+      },
+      "driver_result_sha256": "21acf3c2c5ff3e771fe7e563aed94fa43a9d6a8413fe29da3781621a91d19cdd",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "14-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23133958,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 52.889171600000005,
+          "wall_us_op": 53.006508000000004,
+          "daemon_cpu_us_op": 24.499943,
+          "caller_cpu_us_op": 30.862765800000002,
+          "p50_us": 51.09,
+          "p95_us": 53.783,
+          "p99_us": 119.722
+        },
+        "user_8_1": {
+          "mean_us": 154.28370199999998,
+          "wall_us_op": 154.39345060000002,
+          "daemon_cpu_us_op": 85.0976764,
+          "caller_cpu_us_op": 124.66191719999999,
+          "p50_us": 149.653,
+          "p95_us": 177.044,
+          "p99_us": 243.829
+        },
+        "user_1_0": {
+          "mean_us": 36.3349428,
+          "wall_us_op": 36.4360786,
+          "daemon_cpu_us_op": 14.7694784,
+          "caller_cpu_us_op": 18.9658024,
+          "p50_us": 34.778,
+          "p95_us": 36.625,
+          "p99_us": 91.177
+        }
+      },
+      "raw_archive_sha256": "d18f44dd8487299ce8ef87d2df07183c503294638fc2e1d85528a7c96f00f06a",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "af20960a5ff3c0f3ad6f4dcc2383ce0f4be05948b503ffb2c367e8c36762d25c",
+        "daemon-after.status": "b3e72733e0fecb53d1a005fb77c74e6d757a1cb936938b293dd1cf4a889ea2a7",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "af20960a5ff3c0f3ad6f4dcc2383ce0f4be05948b503ffb2c367e8c36762d25c",
+        "daemon-before.status": "2f80c07216a0152ab11af268cc47f6d67da1d590906d1b05d5e56f0f5f6dccde",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "2d75627098701dda27edc2eebab99fa0b74780c8b1b1ecf2c837ee1ca602e61b",
+        "user_1_1.json": "47ee4daf9e9bfefd9210d04a61277179d867bfb6fc0e76924efdcf15ccbf784d",
+        "user_8_1.json": "9e3054a1a2de59e0460bea5d300c6bfef5dd7476d2bfac5fc11b1bae15806c8d"
+      },
+      "driver_result_sha256": "b6260e436bc73b89a02d56330221168bdd2c4be1d2e6bed37e9c5e90648dcfa6",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "15-candidate",
+      "side": "candidate",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23135343,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 53.8147532,
+          "wall_us_op": 53.932738400000005,
+          "daemon_cpu_us_op": 24.8409006,
+          "caller_cpu_us_op": 30.9190792,
+          "p50_us": 51.09,
+          "p95_us": 56.476,
+          "p99_us": 134.418
+        },
+        "user_8_1": {
+          "mean_us": 153.6276562,
+          "wall_us_op": 153.7405186,
+          "daemon_cpu_us_op": 84.524174,
+          "caller_cpu_us_op": 123.5739478,
+          "p50_us": 148.653,
+          "p95_us": 179.968,
+          "p99_us": 241.752
+        },
+        "user_1_0": {
+          "mean_us": 36.1232428,
+          "wall_us_op": 36.218886,
+          "daemon_cpu_us_op": 14.693162000000001,
+          "caller_cpu_us_op": 18.9068764,
+          "p50_us": 34.778,
+          "p95_us": 36.009,
+          "p99_us": 74.942
+        }
+      },
+      "raw_archive_sha256": "f360ad466638d264d646464f6cf5db573f163ab35e7e1da6f64d325e92b61ace",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "binary-sha256.txt": "8701a0754aae9023dbf96d13bb9015fdb84133bb437441291705719349248c9b",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-after.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-after.starttime": "8a9fd8daac8e560d58c90029e65c1d5b03fc9c8bb59e83b57526e86e3b512d2b",
+        "daemon-after.status": "c7d7dd6a6de708ddb1e12194b2038264cec0793e2c27614e7b98bf108bf647a1",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "064d423a1872a922002c08c0b606a901cb27f3f56f8bac6da475f672214fd91f",
+        "daemon-before.exe-sha256": "d4794c29d04a0432524e1165206c5b113b1edf68eeac08f0c5f06ccb7a811803",
+        "daemon-before.starttime": "8a9fd8daac8e560d58c90029e65c1d5b03fc9c8bb59e83b57526e86e3b512d2b",
+        "daemon-before.status": "7760df082d99f0bd7bfc4b3b59419e08014c4707e6d46fcc4d60b151c937d83c",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "ac5ada100521cf9195b9c3dba292de9d1c29d0982e6abbe3728b13f8d7a10ca6",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "6aac295938c6fb610c2409506073fff08015b639ac05367f3a519755cbfbbd5b",
+        "user_1_1.json": "9ab47cf1a7eeab77e5144b8e95e3c4a162fa64c74ade20c9a887b89318905fa7",
+        "user_8_1.json": "f659018280c1f8d8e43faf6fc3ab63f6544b2c295357629e3f9c51eee6459fda"
+      },
+      "driver_result_sha256": "e86499efc3e61bf825fc23558c87ed8a1bf1ef6569ebb4ff8bdf6cd4c1ba326a",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    },
+    {
+      "run": "16-stock",
+      "side": "stock",
+      "daemon_pid": 39,
+      "daemon_start_ticks": 23136843,
+      "metrics": {
+        "user_1_1": {
+          "mean_us": 60.959756999999996,
+          "wall_us_op": 61.074084,
+          "daemon_cpu_us_op": 32.417718199999996,
+          "caller_cpu_us_op": 31.3035268,
+          "p50_us": 58.553,
+          "p95_us": 63.554,
+          "p99_us": 144.652
+        },
+        "user_8_1": {
+          "mean_us": 205.816623,
+          "wall_us_op": 205.9589992,
+          "daemon_cpu_us_op": 116.07227499999999,
+          "caller_cpu_us_op": 130.2685108,
+          "p50_us": 167.503,
+          "p95_us": 238.136,
+          "p99_us": 557.523
+        },
+        "user_1_0": {
+          "mean_us": 39.61835,
+          "wall_us_op": 39.7132782,
+          "daemon_cpu_us_op": 18.424195599999997,
+          "caller_cpu_us_op": 18.9805036,
+          "p50_us": 38.01,
+          "p95_us": 39.471,
+          "p99_us": 96.717
+        }
+      },
+      "raw_archive_sha256": "e6675bd6e18a74633d0b2ec6c3583ade10343637ae4ca7849264534fe128eadf",
+      "raw_files_sha256": {
+        "COMPLETE": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "benchmark-after-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "benchmark-sha256.txt": "0fdd491cf8ca722cd87d4ad2189e4039172e3c8ef48c4fbb2701b8a86cd466ab",
+        "binary-after-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "binary-sha256.txt": "107314a49d0a7ad0016abba38d3f77785f10c3c4f1f08dc9dbe4e85a28dea84f",
+        "cpuinfo.txt": "ce6958a18460bc4b2b5d9700afc4129a1b096671e97561997d00d1953c577040",
+        "cpus-online.txt": "06c7168eabf724fe9d8184b87c401160ff4c740c5782a6445495523f811d3cfd",
+        "daemon-after.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-after.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-after.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-after.starttime": "c8906e0574788d93190e1bd659fb65980872256ac5dfd030632968a303990b07",
+        "daemon-after.status": "ea70a6aceec59adf9159220869e5c42d36b51adf5430b0b69255413f731100fe",
+        "daemon-before.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon-before.exe": "49ca4f8dcba1a4526eac0a8328baf77b4021edf480402aabd074a541ca809d7d",
+        "daemon-before.exe-sha256": "9bc8461fce0444412ee3467341b738f4d06ae3b0a287521b5200b66ebd0e80d0",
+        "daemon-before.starttime": "c8906e0574788d93190e1bd659fb65980872256ac5dfd030632968a303990b07",
+        "daemon-before.status": "0606e8589f87d5583bb4802e44f94a50e371e314881e7abc529cf824e37258c5",
+        "daemon-expected.cmdline": "9762cee816aacff9d9372e83669f06f72dacef172eca9e234197657b97da9f64",
+        "daemon.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "event-benchmark-after-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "event-benchmark-sha256.txt": "83e0b2ad25e9b26abde3d1e4fad8abb5706388100b9eb249e2872cb4c2c8b62b",
+        "frequency-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "frequency-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "harness-sha256.txt": "e5455a79d9016d20110675e2cdc9120441e93ce59f1ef6ef55eb090e084f0690",
+        "kernel.txt": "85ba0d5c876f4fb89a5f4942442b48ae97efdc168a8b753caf67742d97385501",
+        "meta.json": "c75078da72c48ba09f59a3d4ab6addfb0bfa53e434f914dfea26026c8044c49e",
+        "objects-after.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "objects-before.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "summary.json": "4f66c34c27cec695a1142126932db51b223d92c2c87dc6fdcec037521bee3340",
+        "user_1_0.json": "98aa8830df97e3c4388766a4ee9a7f68e426904515c31471f4e0a093df3f614a",
+        "user_1_1.json": "86f16c25738eef17942139ac220e26a69d7a8f4309e150d30f47ce63296d0735",
+        "user_8_1.json": "26d74eb4301d0dcabcc14a84fc5d2b37196a8061f3790db86ed9747afcfac9ff"
+      },
+      "driver_result_sha256": "c3953cf19a62ef860881606cb4913bbb71aa29ab63eb1b32c10f10266f4fa40d",
+      "health_sha256": {
+        "before": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+        "after": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f"
+      }
+    }
+  ],
+  "limitations": [
+    "A complete sixteen-window physical series is required. Per-operation samples are not independent router windows; tail percentiles are computed within each window.",
+    "Caller samples cover SEND through all callbacks, or the unmatched drain barrier. Two monotonic reads and payload validation remain included; no overhead is subtracted.",
+    "These are user SEND events, unlike the main matrix's registration-generated object events. Eight handlers share one listener connection.",
+    "Reports fifteen separate sign decisions, not a global ubusd pass or multiplicity-adjusted statistical claim. Tie does not prove equivalence.",
+    "Raw archive contents, expanded files and recorded identities are reconciled. Configuration, production process and mount stability rely on the frozen driver's assertions; its raw before/after strings are not archived.",
+    "Monitor, grouped/interleaved owners, slow readers, memory and nine-component integration are outside this supplement."
+  ]
+}

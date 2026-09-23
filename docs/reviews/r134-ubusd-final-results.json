@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "scope": "Frozen R134 exact-router validation; no deployment or language-limit claim",
+  "candidate_sha256": "98d7ff9ddd04db45d9d71b8f7a4f317f193c3539752532c30f01075e0e7197c0",
+  "runtime_unchanged_during_validation": true,
+  "matrix": {
+    "windows": 16,
+    "workloads": 15,
+    "metric_decisions": {
+      "win": 62,
+      "loss": 5,
+      "tie": 8
+    },
+    "report_sha256": "f2c54dc251badac4419fc8a0e77f4d1d518b22b9474f249a606dd24459ecfd21"
+  },
+  "user_events": {
+    "windows": 16,
+    "workloads": 3,
+    "metric_decisions": {
+      "win": 12,
+      "loss": 0,
+      "tie": 3
+    },
+    "report_sha256": "438b0b3409d8a451542f532c0e85b0608483e7eb0e958a0a64891d0a011dd5f9"
+  },
+  "memory": {
+    "windows": 12,
+    "report_sha256": "635641652373dfe00d1d01d3176ceaff0cb22501aedeadbce8216c8358d0ac87",
+    "descriptive_only": true
+  },
+  "correctness": {
+    "report_sha256": "a8fe7162d8d6704a28ad66a7609731db4b7ddf4c659c4ba49b52bf5b5a70afe6",
+    "passed": true
+  },
+  "cleanup": {
+    "passed": true,
+    "no_owned_test_directories": true,
+    "production": "all nine exact C components",
+    "ubusd_pid": 869,
+    "same_boot": true,
+    "candidate_installed": false,
+    "no_owned_test_processes": true
+  },
+  "final_health_sha256": "37635e4ab61e6702d82689f41096ff8d38290f51820a2e82441c4a7d4ae3dc1f",
+  "production_socket_snapshot": {
+    "named_ubus_socket_rows": 17,
+    "listeners": 1,
+    "connected_server_rows": 16
+  },
+  "vm_diagnostic": {
+    "host": "Oracle",
+    "report_sha256": "a4426197601ebc3e85f00cede3f1e5f83ff53ab0ae91bdbeb299e56e0937a347",
+    "steady_mmap_munmap_mremap_madvise_brk": 0,
+    "cases": 4,
+    "cycles_per_case": 10000,
+    "no_router_tail_causality_claim": true
+  },
+  "limits": [
+    "Five registration/object-event tail metrics lose against C; no blanket superiority claim.",
+    "Small eight-handler fanout increases anonymous residency by 12 KiB more than C relative to connected state.",
+    "No matched R89/R131 performance comparison in this series.",
+    "Only target component replaced inside test namespaces; no nine-Rust-component integration claim.",
+    "FD contract differs for handcrafted send patterns; RandomState ID generation is not claimed CSPRNG-equivalent.",
+    "Finite tests do not prove absence of all bugs; PSS unavailable and no allocator peak/system-wide memory score."
+  ]
+}
