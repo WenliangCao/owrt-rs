@@ -1,0 +1,311 @@
+--- a/components/ubusd/src/client.rs
++++ b/components/ubusd/src/client.rs
+@@ -220,6 +220,50 @@
+         }
+     }
+ 
++    /// Experimental fixed ADD reply: two protocol writes in one Linux
++    /// syscall. Keep LOOKUP, monitored replies, and queued output unchanged.
++    pub fn send_add_status_reply(&mut self, header: Header, blob: &[u8]) {
++        #[cfg(target_os = "linux")]
++        if self.tx.is_empty() && matches!(blob.len(), 12 | 20) {
++            let status_header = Header { ty: ty::STATUS, ..header };
++            let status_blob = [0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0];
++            let sent = sys::sendmmsg_two(self.fd(), (&header.encode(), blob),
++                (&status_header.encode(), &status_blob))
++                .unwrap_or(sys::SendMmsgResult { completed: 0, lens: [0, 0] });
++            self.queue_add_status_tail(header, blob, sent);
++            return;
++        }
++        self.send_data_status_reply(header, blob);
++    }
++
++    #[cfg(target_os = "linux")]
++    fn queue_add_status_tail(&mut self, header: Header, blob: &[u8], sent: sys::SendMmsgResult) {
++        debug_assert!(self.tx.is_empty());
++        debug_assert!(matches!(blob.len(), 12 | 20));
++        let first_len = Header::LEN + blob.len();
++        let status_header = Header { ty: ty::STATUS, ..header };
++        let status_blob = [0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0];
++        let second_len = Header::LEN + status_blob.len();
++        let first_written = if sent.completed > 0 { sent.lens[0] } else { 0 };
++        let second_written = if sent.completed > 1 { sent.lens[1] } else { 0 };
++        debug_assert!(sent.completed <= 2 && first_written <= first_len && second_written <= second_len);
++        // Linux stops the vector on a short stream write, so an incomplete
++        // DATA can never be followed by any STATUS bytes from this syscall.
++        debug_assert!(sent.completed < 2 || first_written == first_len);
++        if first_written < first_len {
++            self.txq_ofs = first_written;
++            self.txq_len = -(first_written as i64);
++            self.enqueue(OutMsg { header, blob: blob.to_vec(), fd: None });
++            self.enqueue(OutMsg { header: status_header, blob: status_blob.to_vec(), fd: None });
++        } else if second_written < second_len {
++            self.txq_ofs = second_written;
++            self.txq_len = -(second_written as i64);
++            self.enqueue(OutMsg { header: status_header, blob: status_blob.to_vec(), fd: None });
++        }
++        // Both frames total at most 48 bytes with an initially empty queue,
++        // therefore neither enqueue can cross the unchanged queue cap.
++    }
++
+     /// Submit a bounded sequence of complete descriptor-free frames.
+     /// A short write is split back into the original per-frame queue entries,
+     /// retaining their offsets and cap checks rather than queueing one giant
+@@ -813,6 +857,93 @@
+         }
+     }
+ 
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn sendmmsg_add_resumes_every_short_write_offset_once() {
++        for blob_len in [12, 20] {
++            let header = Header { ty: ty::DATA, seq: 0xfffe, peer: 0x12345678 };
++            let mut blob = vec![0x5a; blob_len];
++            blob[..4].copy_from_slice(&(blob_len as u32).to_be_bytes());
++            let first_len = Header::LEN + blob_len;
++            let mut expected = header.encode().to_vec();
++            expected.extend_from_slice(&blob);
++            expected.extend_from_slice(&Header { ty: ty::STATUS, ..header }.encode());
++            expected.extend_from_slice(&[0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0]);
++            for prefix in 0..=expected.len() {
++                let (mut c, mut peer) = rx_pair();
++                peer.set_nonblocking(true).unwrap();
++                if prefix > 0 {
++                    assert_eq!(sys::sendmsg_two(c.fd(), &expected[..prefix], &[], None).unwrap(), prefix);
++                }
++                // Counted entries can be short. completed==0 models any
++                // no-progress error (EAGAIN, EINTR, fatal) without retrying.
++                let result = if prefix == 0 {
++                    sys::SendMmsgResult { completed: 0, lens: [0, 0] }
++                } else if prefix <= first_len {
++                    sys::SendMmsgResult { completed: 1, lens: [prefix, 0] }
++                } else {
++                    sys::SendMmsgResult { completed: 2, lens: [first_len, prefix - first_len] }
++                };
++                c.queue_add_status_tail(header, &blob, result);
++                assert_eq!(c.txq_len, (expected.len() - prefix) as i64);
++                assert!(c.tx.iter().all(|m| m.fd.is_none()));
++                let mut got = Vec::new();
++                let mut buf = [0u8; 128];
++                let deadline = Instant::now() + Duration::from_secs(3);
++                while got.len() < expected.len() || !c.tx_empty() {
++                    assert!(Instant::now() < deadline);
++                    assert!(c.flush());
++                    match peer.read(&mut buf) {
++                        Ok(0) => panic!("EOF"),
++                        Ok(n) => got.extend_from_slice(&buf[..n]),
++                        Err(e) if would_block(&e) => {},
++                        Err(e) => panic!("{e}"),
++                    }
++                }
++                assert_eq!(got, expected, "blob={blob_len}, prefix={prefix}");
++                assert_eq!((c.txq_len, c.txq_ofs), (0, 0));
++                assert!(matches!(peer.read(&mut buf), Err(e) if would_block(&e)));
++            }
++        }
++    }
++
++    #[cfg(target_os = "linux")]
++    #[test]
++    fn sendmmsg_add_backpressure_and_live_fast_path_keep_bytes() {
++        let (mut c, mut peer) = rx_pair();
++        peer.set_nonblocking(true).unwrap();
++        set_send_buffer(c.fd(), 4096);
++        let mut expected = Vec::new();
++        for seq in 0..400 {
++            let len = if seq % 2 == 0 { 12usize } else { 20 };
++            let header = Header { ty: ty::DATA, seq, peer: 0xdeadbeef };
++            let mut blob = vec![0x5a; len];
++            blob[..4].copy_from_slice(&(len as u32).to_be_bytes());
++            expected.extend_from_slice(&header.encode());
++            expected.extend_from_slice(&blob);
++            expected.extend_from_slice(&Header { ty: ty::STATUS, ..header }.encode());
++            expected.extend_from_slice(&[0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0]);
++            c.send_add_status_reply(header, &blob);
++            blob.fill(0xa5);
++        }
++        assert!(!c.tx_empty(), "must exercise EAGAIN then queued fallback");
++        let mut got = Vec::new();
++        let mut buf = [0u8; 8192];
++        let deadline = Instant::now() + Duration::from_secs(3);
++        while got.len() < expected.len() || !c.tx_empty() {
++            assert!(Instant::now() < deadline);
++            match peer.read(&mut buf) {
++                Ok(0) => panic!("EOF"),
++                Ok(n) => got.extend_from_slice(&buf[..n]),
++                Err(e) if would_block(&e) => {},
++                Err(e) => panic!("{e}"),
++            }
++            assert!(c.flush());
++        }
++        assert_eq!(got, expected);
++        assert_eq!((c.txq_len, c.txq_ofs), (0, 0));
++    }
++
+     #[test]
+     fn combined_reply_keeps_each_frame_cap_when_already_queued() {
+         for blob_len in [12, 20] {
+@@ -825,7 +956,7 @@
+                 let header = Header { ty: ty::DATA, seq: 11, peer: 21 };
+                 let mut blob = vec![0x5a; blob_len];
+                 blob[..4].copy_from_slice(&(blob_len as u32).to_be_bytes());
+-                combined.send_data_status_reply(header, &blob);
++                combined.send_add_status_reply(header, &blob);
+                 separate.send_borrowed(header, &blob, None);
+                 separate.send_borrowed(Header { ty: ty::STATUS, ..header }, &[0, 0, 0, 12, 1, 0, 0, 8, 0, 0, 0, 0], None);
+                 assert_eq!((combined.txq_len, combined.txq_ofs, combined.tx.len()),
+--- a/components/ubusd/src/server.rs
++++ b/components/ubusd/src/server.rs
+@@ -210,7 +210,7 @@
+         let header = Header { ty: ty::DATA, seq: request.header.seq, peer: request.header.peer };
+         if request.header.ty == ty::ADD_OBJECT && self.monitors.is_empty() {
+             if let Some(c) = self.clients.get_mut(&client) {
+-                c.send_data_status_reply(header, &blob[..len]);
++                c.send_add_status_reply(header, &blob[..len]);
+                 self.touched.push(client);
+             }
+             return Outcome::NoStatus;
+--- a/components/ubusd/src/sys.rs
++++ b/components/ubusd/src/sys.rs
+@@ -103,6 +103,8 @@
+     fn fcntl(fd: i32, cmd: i32, arg: i32) -> i32;
+     fn getsockopt(fd: i32, level: i32, name: i32, val: *mut Ucred, len: *mut u32) -> i32;
+     fn sendmsg(fd: i32, msg: *const MsgHdr, flags: i32) -> isize;
++    #[cfg(target_os = "linux")]
++    fn syscall(number: std::os::raw::c_long, ...) -> std::os::raw::c_long;
+     fn recvmsg(fd: i32, msg: *mut MsgHdr, flags: i32) -> isize;
+     fn pipe2(fds: *mut i32, flags: i32) -> i32;
+     fn getpwuid(uid: u32) -> *const Passwd;
+@@ -118,6 +120,57 @@
+ }
+ 
+ pub const SIGHUP: i32 = 1;
++
++/// Linux's `struct mmsghdr`; the member offset and padded size are ABI tested.
++#[cfg(target_os = "linux")]
++#[repr(C)]
++struct MMsgHdr {
++    msg_hdr: MsgHdr,
++    msg_len: u32,
++}
++
++#[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
++#[test]
++fn sendmmsg_abi_layout() {
++    assert_eq!(std::mem::size_of::<MsgHdr>(), 56);
++    assert_eq!(std::mem::size_of::<MMsgHdr>(), 64);
++    assert_eq!(std::mem::align_of::<MMsgHdr>(), 8);
++    assert_eq!(std::mem::offset_of!(MMsgHdr, msg_len), 56);
++}
++
++#[cfg(all(test, target_os = "linux"))]
++#[test]
++fn sendmmsg_stream_reports_partial_and_eagain_without_second_frame() {
++    use std::io::Read;
++    use std::os::fd::AsRawFd;
++    use std::os::unix::net::UnixStream;
++    let (sock, mut peer) = UnixStream::pair().unwrap();
++    sock.set_nonblocking(true).unwrap();
++    peer.set_nonblocking(true).unwrap();
++    let first = vec![0xa5; 1024 * 1024];
++    let second = [0x5a; 20];
++    let sent = sendmmsg_two(sock.as_raw_fd(), (&first, &[]), (&second, &[])).unwrap();
++    assert_eq!(sent.completed, 1);
++    assert!(sent.lens[0] > 0 && sent.lens[0] < first.len());
++    assert_eq!(sent.lens[1], 0);
++    let blocked = sendmmsg_two(sock.as_raw_fd(), (&second, &[]), (&second, &[])).unwrap_err();
++    assert_eq!(blocked.kind(), io::ErrorKind::WouldBlock);
++    let mut got = Vec::new();
++    let mut buf = [0; 8192];
++    loop {
++        match peer.read(&mut buf) {
++            Ok(n) => got.extend_from_slice(&buf[..n]),
++            Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
++            other => panic!("read: {other:?}"),
++        }
++    }
++    assert_eq!(got, first[..sent.lens[0]]);
++    let sent = sendmmsg_two(sock.as_raw_fd(), (&second[..8], &second[8..]), (&second, &[])).unwrap();
++    assert_eq!(sent, SendMmsgResult { completed: 2, lens: [20, 20] });
++    let mut got = [0; 40];
++    peer.read_exact(&mut got).unwrap();
++    assert_eq!(got, [0x5a; 40]);
++}
+ /// Generate ID candidates with a thread-local keyed counter hash
+ /// (RandomState uses SipHash-1-3 in pinned Rust 1.98.1). On Linux, std seeds
+ /// its thread-local cache without waiting for CRNG initialization; subsequent
+@@ -351,6 +404,74 @@
+     sendmsg_iov(sock, &mut iov, None)
+ }
+ 
++/// The number of entries sent and each entry's byte count.  Even a counted
++/// entry may be short on a stream.  If an error follows a sent entry Linux
++/// returns the count and suppresses that error; uncounted lengths are zero.
++#[cfg(target_os = "linux")]
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub struct SendMmsgResult {
++    pub completed: usize,
++    pub lens: [usize; 2],
++}
++
++/// Submit two descriptor-free stream frames in one Linux `sendmmsg(2)`.
++/// The caller must resume incomplete entries at `lens[i]`, never retry a
++/// whole partially written frame.  The kernel stops after a short entry.
++#[cfg(target_os = "linux")]
++pub fn sendmmsg_two(
++    sock: RawFd,
++    first: (&[u8], &[u8]),
++    second: (&[u8], &[u8]),
++) -> io::Result<SendMmsgResult> {
++    // Call the kernel directly. musl's 64-bit sendmmsg is a sendmsg loop
++    // (for libc/kernel msghdr ABI adaptation) and does not stop on a short
++    // stream entry. Our MsgHdr is already the Linux 64-bit syscall layout.
++    #[cfg(target_arch = "aarch64")]
++    const NR_SENDMMSG: std::os::raw::c_long = 269;
++    #[cfg(target_arch = "x86_64")]
++    const NR_SENDMMSG: std::os::raw::c_long = 307;
++    #[cfg(not(any(target_arch = "aarch64", target_arch = "x86_64")))]
++    compile_error!("sendmmsg experiment requires the audited Linux 64-bit ABI");
++    let mut iov = [
++        [
++            IoVec { base: first.0.as_ptr() as *mut u8, len: first.0.len() },
++            IoVec { base: first.1.as_ptr() as *mut u8, len: first.1.len() },
++        ],
++        [
++            IoVec { base: second.0.as_ptr() as *mut u8, len: second.0.len() },
++            IoVec { base: second.1.as_ptr() as *mut u8, len: second.1.len() },
++        ],
++    ];
++    let mut vec = [
++        MMsgHdr {
++            msg_hdr: MsgHdr {
++                name: std::ptr::null_mut(), namelen: 0,
++                iov: iov[0].as_mut_ptr(), iovlen: 2,
++                control: std::ptr::null_mut(), controllen: 0, flags: 0,
++            },
++            msg_len: 0,
++        },
++        MMsgHdr {
++            msg_hdr: MsgHdr {
++                name: std::ptr::null_mut(), namelen: 0,
++                iov: iov[1].as_mut_ptr(), iovlen: 2,
++                control: std::ptr::null_mut(), controllen: 0, flags: 0,
++            },
++            msg_len: 0,
++        },
++    ];
++    // SAFETY: vec and its iovecs point to live slices throughout the syscall;
++    // Linux writes only msg_len fields, and all descriptors are borrowed.
++    let n = unsafe { syscall(NR_SENDMMSG, sock, vec.as_mut_ptr(), 2u32, 0i32) };
++    if n < 0 {
++        return Err(io::Error::last_os_error());
++    }
++    Ok(SendMmsgResult {
++        completed: n as usize,
++        lens: [vec[0].msg_len as usize, vec[1].msg_len as usize],
++    })
++}
++
+ fn sendmsg_iov(sock: RawFd, iov: &mut [IoVec], fd: Option<RawFd>) -> io::Result<usize> {
+     let mut control = [0u8; CMSG_SPACE_FD];
+     let mut hdr = MsgHdr {
