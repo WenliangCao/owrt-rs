@@ -9,8 +9,8 @@ fi
 unset LD_PRELOAD LD_LIBRARY_PATH
 bench=/tmp/bin/owrt-benchmark
 out=/tmp/out
-socket=/var/run/ubus/r135.sock
-mkdir -p /var/run/ubus /tmp/r135-acl
+socket=/var/run/ubus/ubus.sock
+mkdir -p /var/run/ubus
 sha256sum /tmp/bin/ubusd-rs > "$out/binary-sha256.txt"
 sha256sum /sbin/ubusd /tmp/bin/ubusd-rs /tmp/bin/before-rs /tmp/bin/event-benchmark "$bench" /tmp/bin/ns-exec > "$out/identities.txt"
 cat /proc/sys/kernel/random/boot_id > "$out/boot-id.txt"
@@ -35,13 +35,13 @@ for side in @ORDER@; do
     esac
     dest=$out/$side
     mkdir "$dest"
-    "$bench" exec-cpu-as 1 "$bin" /sbin/ubusd -s "$socket" -A /tmp/r135-acl > "$dest/daemon.log" 2>&1 & pid=$!
+    "$bench" exec-cpu-as 1 "$bin" /sbin/ubusd -s "$socket" > "$dest/daemon.log" 2>&1 & pid=$!
     tries=0
     until ubus -s "$socket" -t 1 list >/dev/null 2>&1; do
         kill -0 "$pid"; [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
     done
     [ "$(awk '/^Cpus_allowed_list:/ {print $2}' /proc/$pid/status)" = 1 ]
-    printf '/sbin/ubusd\0-s\0%s\0-A\0/tmp/r135-acl\0' "$socket" > "$dest/expected.cmdline"
+    printf '/sbin/ubusd\0-s\0%s\0' "$socket" > "$dest/expected.cmdline"
     cat /proc/$pid/cmdline > "$dest/before.cmdline"
     cmp "$dest/expected.cmdline" "$dest/before.cmdline"
     sha256sum /proc/$pid/exe > "$dest/before-exe.sha256"
