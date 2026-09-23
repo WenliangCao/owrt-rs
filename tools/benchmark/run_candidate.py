@@ -54,6 +54,10 @@ def main():
                         help="separate diagnostic client: compare repeated JSON decoding with complete wire-byte validation")
     parser.add_argument("--sides", nargs="+", choices=("stock", "r84", "candidate"),
                         default=["stock", "r84", "candidate"])
+    parser.add_argument("--bench", type=Path,
+                        help="benchmark client for both sides instead of the host bundle's (stock and candidate only)")
+    parser.add_argument("--extended", action="store_true",
+                        help="ubusd: registration/event lanes and normalized daemon start (requires --bench)")
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z][a-z0-9_-]*", args.baseline_label) or args.baseline_label in ("stock", "candidate"):
         parser.error("invalid baseline label")
@@ -71,6 +75,10 @@ def main():
         parser.error("held-connection memory uses --sides stock candidate without --matrix")
     if args.rpc_client_probe and (args.component != "rpcd" or args.matrix or args.memory_probe or "r84" in args.sides):
         parser.error("RPC client diagnostics require rpcd, --sides stock candidate, and no other experiment mode")
+    if (args.bench or args.extended) and ("r84" in args.sides or args.memory_probe or args.rpc_client_probe):
+        parser.error("--bench/--extended compare stock and candidate only")
+    if args.extended and (args.component != "ubusd" or not args.bench):
+        parser.error("--extended is a ubusd mode and needs --bench")
     if args.schedule == "two-side-balanced" and args.sides != ["stock", "candidate"]:
         parser.error("two-side-balanced requires exactly --sides stock candidate")
     component = args.component
@@ -119,6 +127,9 @@ def main():
     for name in ("ns-exec", "owrt-benchmark"):
         if baseline["tools"][name]["sha256"] != manifest["tools"][name]["sha256"]:
             raise RuntimeError("frozen baseline and host benchmark tools differ")
+    tool_hashes = {name: manifest["tools"][name]["sha256"] for name in ("ns-exec", "owrt-benchmark")}
+    if args.bench:
+        tool_hashes["owrt-benchmark"] = hashlib.sha256(args.bench.read_bytes()).hexdigest()
     initial("subjects.json", hashes)
     if args.schedule == "two-side-balanced":
         order = TWO_SIDE_BALANCED * args.repeats
@@ -134,6 +145,10 @@ def main():
                            "management_access": args.access, "workload_transport": "namespace loopback"}
     if args.schedule != "default":
         settings["schedule"] = args.schedule
+    if args.bench:
+        settings["bench_sha256"] = tool_hashes["owrt-benchmark"]
+    if args.extended:
+        settings["extended"] = True
     initial("settings.json", settings)
     script = Path(__file__).with_name("isolated.sh")
     if args.resume:
@@ -147,8 +162,16 @@ def main():
         ssh("test ! -e " + remote + " && mkdir -p " + remote + "/bundle")
         save("collector.json", {"remote": remote, "harness_sha256": hashlib.sha256(script.read_bytes()).hexdigest()})
     bundle = remote + "/bundle"
+    # With --bench both sides run the same uploaded client: the candidate
+    # from its bundle, stock from a tools-only bundle next to it.
+    stock_bundle = remote + "/stock-bundle" if args.bench else args.baseline_bundle + "/bins"
     if not args.resume:
-        ssh("cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark " + bundle + "/")
+        if args.bench:
+            ssh("mkdir " + stock_bundle + " && cp /root/r84/bins/ns-exec " + bundle + "/ && cp /root/r84/bins/ns-exec " + stock_bundle + "/")
+            for target in (bundle, stock_bundle):
+                subprocess.run(["scp", "-O", str(args.bench.resolve()), args.host + ":" + target + "/owrt-benchmark"], check=True)
+        else:
+            ssh("cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark " + bundle + "/")
         for local, target in ((args.candidate, bundle + "/" + binary), (script, remote + "/isolated.sh")):
             subprocess.run(["scp", "-O", str(local.resolve()), args.host + ":" + target], check=True)
     if args.memory_probe:
@@ -166,8 +189,9 @@ def main():
             raise RuntimeError("RPC client probe upload checksum mismatch")
         initial("client-probe.json", {"sha256": digest, "diagnostic_only": True})
     for name in ("ns-exec", "owrt-benchmark"):
-        if ssh("sha256sum " + bundle + "/" + name).decode().split()[0] != manifest["tools"][name]["sha256"]:
-            raise RuntimeError("benchmark identity mismatch: " + name)
+        for where in ((bundle, stock_bundle) if args.bench else (bundle,)):
+            if ssh("sha256sum " + where + "/" + name).decode().split()[0] != tool_hashes[name]:
+                raise RuntimeError("benchmark identity mismatch: " + name)
     if ssh("sha256sum " + bundle + "/" + binary).decode().split()[0] != hashes["candidate"]:
         raise RuntimeError("candidate upload checksum mismatch")
     monitors = ",".join(line.split()[1] for line in identity.decode().splitlines()
@@ -190,7 +214,7 @@ def main():
             continue
         local.mkdir(mode=0o700)
         run_out = remote + f"/run-{index:02d}"
-        selected = bundle if side == "candidate" or args.memory_probe or args.rpc_client_probe else args.baseline_bundle + "/bins"
+        selected = bundle if side == "candidate" or args.memory_probe or args.rpc_client_probe else stock_bundle
         impl = "c" if side == "stock" else "rs"
         (local / "host-before.json").write_bytes(ssh(snapshot))
         print(json.dumps({"event": "started", "side": side, "index": index,
@@ -201,6 +225,8 @@ def main():
             command = "taskset -c " + shlex.quote(args.cpus) + " " + command
         if args.matrix:
             command = "OWRT_" + component.upper() + "_MATRIX=1 " + command
+        if args.extended:
+            command = "OWRT_UBUSD_EXTENDED=1 OWRT_UBUSD_NORMALIZED=1 " + command
         if args.memory_probe:
             command = "OWRT_HTTPD_MEMORY=1 " + command
         if args.rpc_client_probe:

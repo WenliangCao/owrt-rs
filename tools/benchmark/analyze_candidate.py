@@ -15,6 +15,7 @@ STATIC = ("static_512_dat", "static_16k_dat", "static_16k_css",
 RPCD_EXTRA = ("uci_get_64", "uci_get_authorized", "session_access_granted", "file_list", "session_access_64")
 PROCD_EXTRA = ("service_list_128", "service_list_named_128")
 UBUSD_EXTRA = ("lookup_prefix_64", "lookup_all_128")
+UBUSD_EXTENDED = ("register_1", "register_16", "event_1", "event_8", "event_nomatch")
 NETIFD_EXTRA = ("device_status_all", "interface_dump_32", "interface_named_32")
 METRICS = ("mean_us", "p50_us", "p95_us", "p99_us", "ops_per_s",
            "subject_cpu_us_per_op", "dependency_cpu_us_per_op", "client_cpu_us_per_op")
@@ -148,6 +149,9 @@ def derive(root, label):
         workloads += [name + suffix for name in NETIFD_EXTRA for suffix in ("", "_c4")]
     else:
         assert not matrix, "unsupported workload matrix"
+    if read(root / "settings.json").get("extended"):
+        assert component == "ubusd", "extended lanes are ubusd only"
+        workloads += list(UBUSD_EXTENDED)
     for index, side in enumerate(order, 1):
         local = root / f"{index:02d}-{side}"
         raw = local / "raw"

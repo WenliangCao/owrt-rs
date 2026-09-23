@@ -20,6 +20,7 @@ fi
 case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_NORMALIZED:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_UBUSD_EXTENDED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
@@ -351,6 +352,16 @@ EOF
     case "$component" in
         ubusd)
             bin=$bus_bin
+            if [ "${OWRT_UBUSD_EXTENDED:-0}" = 1 ]; then
+                # On the empty bus: ADD/REMOVE cycles (1 and 16 methods,
+                # 8-byte names), then the same cycle with 1 or 8 matching
+                # ubus.object.* listeners on one connection, or 1 unrelated.
+                "$bench" register-cycle "$socket" 1 8 "$n" 20 "$monitors" > "$out/register_1.json"
+                "$bench" register-cycle "$socket" 16 8 "$n" 20 "$monitors" > "$out/register_16.json"
+                "$bench" register-watch "$socket" 1 1 "$n" 20 "$monitors" > "$out/event_1.json"
+                "$bench" register-watch "$socket" 8 1 "$n" 20 "$monitors" > "$out/event_8.json"
+                "$bench" register-watch "$socket" 1 0 "$n" 20 "$monitors" > "$out/event_nomatch.json"
+            fi
             "$bench" serve "$socket" 64 > "$out/provider.log" 2>&1 & provider=$!
             wait_object bench.target "$provider"
             monitors=$bus,$provider
