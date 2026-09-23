@@ -45,7 +45,7 @@ self.monitors.is_empty()
 ## 针对性验证
 
 - 具名对象 + 空 patterns、无名对象 + 非空 patterns：仅 DATA/STATUS，正确 seq/peer、type 最后引用字段、owner/registry/type 清理；具名路径仍推进 obj_event_seq。
-- 同一 client 的对象之间有订阅：验证 DATA → UNSUBSCRIBE/NOTIFY → STATUS，包含 targets 退订与最后 subscriber 离开的两个方向。
+- 两个 client 的对象之间有订阅（同一 client 的 SUBSCRIBE 会被拒绝）：删除 target 时验证 owner 的 DATA → NOTIFY → STATUS 与另一个 client 的 UNSUBSCRIBE；删除 subscriber 时验证另一个 client 的 target 收到最后退订 NOTIFY。两个方向的全局发送次序可由 monitor 核对。
 - 同一 client 的另一个对象监听 `ubus.object.remove`：验证 DATA → INVOKE → STATUS，event payload 与 sequence 不变；被删对象自己的 patterns 先清理。
 - 有 monitor 时：验证请求镜像、DATA、teardown 通知、STATUS 的完整镜像顺序与独立序号。
 - 无 OBJID、不存在对象、非 owner：保持单条错误 STATUS；共享 type 删除不能提前回传或删除 type。
