@@ -1,0 +1,151 @@
+#!/bin/sh
+# One class, one instrumented daemon, one normal-exit raw profile.
+set -eu
+if [ "${1:-}" = --namespace ]; then
+    exec /bin/sh "$(dirname "$0")/isolated.sh" "$@"
+fi
+[ "$#" -eq 4 ] && [ "$1" = --workload ] && [ "${OWRT_BENCH_NAMESPACE:-}" = 1 ] || exit 125
+[ "$2" = ubusd ] && [ "$3" = rs ] && [ "$4" = 1 ] || exit 125
+unset LD_PRELOAD LD_LIBRARY_PATH LLVM_PROFILE_FILE
+class=@CLASS@
+out=/tmp/out
+bench=/tmp/bin/owrt-benchmark
+wire=/tmp/bin/wireprobe
+socket=/var/run/ubus/ubus.sock
+mkdir -p /var/run/ubus
+cat > /usr/share/acl.d/r97-method.json <<'JSON'
+{"user":"nobody","access":{"r97.wire":{"methods":["ping"]},"r97.denied":{"methods":["ping"]},"r97.config":{"methods":["ping\u0000suffix"]},"r97.wildcard":{"methods":["*\u0000suffix"]},"r97.empty":{"methods":[""]},"r97.padding":{"methods":["ab"]},"r97.normal":{"methods":["ping"]}}}
+JSON
+chmod 644 /usr/share/acl.d/r97-method.json
+sha256sum /tmp/bin/* > "$out/binaries-before.txt"
+pid=
+provider=
+cleanup() {
+    if [ -n "$provider" ]; then kill "$provider" 2>/dev/null || true; wait "$provider" 2>/dev/null || true; fi
+    if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; fi
+    rm -f "$socket"
+}
+trap cleanup EXIT
+trap 'exit 130' HUP INT TERM
+LLVM_PROFILE_FILE=/tmp/out/profile-%p.profraw "$bench" exec-cpu-as 1 /tmp/bin/ubusd-rs /sbin/ubusd -s "$socket" > "$out/daemon.log" 2>&1 & pid=$!
+printf '%s\n' "$pid" > "$out/daemon.pid"
+tries=0
+until ubus -s "$socket" -t 1 list >/dev/null 2>&1; do
+    kill -0 "$pid"; [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
+done
+sha256sum /proc/$pid/exe > "$out/daemon-exe.sha256"
+[ "$(awk '{print $1}' "$out/daemon-exe.sha256")" = @ELF_SHA@ ]
+cat /proc/$pid/stat > "$out/daemon-before.stat"
+cat /proc/$pid/status > "$out/daemon-before.status"
+cat /proc/$pid/environ > "$out/daemon.environ"
+cat /proc/$pid/cmdline > "$out/daemon.cmdline"
+[ "$(awk '/^Cpus_allowed_list:/ {print $2}' "$out/daemon-before.status")" = 1 ]
+call() {
+    name=$1; shift
+    printf '%s\0' "$@" > "$out/$name.argv"
+    "$@" > "$out/$name.stdout" 2> "$out/$name.stderr"
+    [ ! -s "$out/$name.stderr" ]
+    printf '0\n' > "$out/$name.exit"
+}
+empty_bus() {
+    tries=0
+    while :; do
+        ubus -s "$socket" list > "$out/objects-after.txt"
+        [ -s "$out/objects-after.txt" ] || break
+        [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
+    done
+}
+start_provider() {
+    count=$1
+    "$bench" exec-cpu 0 "$bench" serve "$socket" "$count" > "$out/provider-$count.log" 2>&1 & provider=$!
+    tries=0
+    until ubus -s "$socket" list > "$out/provider-$count.objects" && [ "$(wc -l < "$out/provider-$count.objects")" -eq "$count" ]; do
+        kill -0 "$provider"; [ "$tries" -lt 10 ]; sleep 1; tries=$((tries + 1))
+    done
+}
+stop_provider() {
+    kill "$provider"
+    code=0; wait "$provider" 2>/dev/null || code=$?
+    [ "$code" -eq 0 ] || [ "$code" -eq 143 ]
+    printf '%s\n' "$code" > "$out/provider-$count.exit"
+    provider=
+    [ ! -s "$out/provider-$count.log" ]
+    empty_bus
+}
+case "$class" in
+    smoke)
+        call registration "$bench" register-cycle "$socket" 1 8 10 2 "$pid"
+        ;;
+    registration)
+        for methods in 1 16; do for bytes in 8 128; do
+            call "register-$methods-$bytes" "$bench" register-cycle "$socket" "$methods" "$bytes" 1000 20 "$pid"
+        done; done
+        ;;
+    lookup)
+        for count in 1 64 128; do
+            start_provider "$count"
+            for selector in bench.target 'bench.*' '*'; do
+                case "$selector" in bench.target) label=exact ;; 'bench.*') label=prefix ;; '*') label=all ;; esac
+                if [ "$count" -eq 1 ]; then
+                    call "lookup-$count-$label" "$bench" lookup "$socket" "$selector" 1000 20 "$pid"
+                else
+                    call "lookup-$count-$label" "$bench" lookup-fixture "$socket" "$selector" "$count" 1000 20 "$pid"
+                fi
+            done
+            stop_provider
+        done
+        ;;
+    invoke)
+        start_provider 1
+        printf '%s\n' '{"n":1}' > "$out/input.data"
+        printf '%s\n' '{"ok":1}' > "$out/expected.data"
+        call invoke-single "$bench" rpc "$socket" bench.target ping "$out/input.data" "$out/expected.data" 1000 20 "$pid"
+        callers=
+        for index in 1 2 3 4; do
+            call "invoke-concurrent-$index" "$bench" rpc "$socket" bench.target ping "$out/input.data" "$out/expected.data" 250 20 "$pid" & callers="$callers $!"
+        done
+        for caller in $callers; do wait "$caller"; done
+        stop_provider
+        ;;
+    object_events)
+        call event-1 "$bench" register-watch "$socket" 1 1 1000 20 "$pid"
+        call event-8 "$bench" register-watch "$socket" 8 1 1000 20 "$pid"
+        call event-nomatch "$bench" register-watch "$socket" 1 0 1000 20 "$pid"
+        ;;
+    user_events)
+        call user-1 /tmp/bin/user-event user-event "$socket" 1 1 1000 20 "$pid"
+        call user-8 /tmp/bin/user-event user-event "$socket" 8 1 1000 20 "$pid"
+        call user-nomatch /tmp/bin/user-event user-event "$socket" 1 0 1000 20 "$pid"
+        ;;
+    ownership)
+        for mode in grouped interleaved monitor; do
+            call "stress-$mode" /tmp/bin/event-stress event-stress "$socket" "$mode" 1000 "$pid"
+        done
+        ;;
+    transport)
+        call fd "$wire" "$socket" fd_boundary_read_ahead
+        call slowlookup "$wire" "$socket" slowlookup
+        call stress-slow /tmp/bin/event-stress event-stress "$socket" slow 192 "$pid"
+        ;;
+    lifecycle)
+        for scenario in pathless release remove_reply method_acl monitor_lookup utf8; do
+            call "$scenario" "$wire" "$socket" "$scenario"
+        done
+        ;;
+    *) exit 125 ;;
+esac
+empty_bus
+cat /proc/$pid/stat > "$out/daemon-after.stat"
+cat /proc/$pid/status > "$out/daemon-after.status"
+kill -TERM "$pid"
+code=0; wait "$pid" 2>/dev/null || code=$?
+printf '%s\n' "$code" > "$out/daemon.exit"
+[ "$code" -eq 0 ]
+[ ! -s "$out/daemon.log" ]
+[ -s "$out/profile-$pid.profraw" ]
+printf 'profile-%s.profraw\n' "$pid" > "$out/profile-path.txt"
+pid=
+[ ! -e "$socket" ]
+sha256sum /tmp/bin/* > "$out/binaries-after.txt"
+cmp "$out/binaries-before.txt" "$out/binaries-after.txt"
+touch "$out/COMPLETE"
