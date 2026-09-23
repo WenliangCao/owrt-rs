@@ -23,3 +23,11 @@
 源码快照生成器 `tools/r136/make_sources.py` 同时生成基线、三个单项和组合，运行时工作树不改；sendmmsg 使用独立补丁。记录源码与最终 ELF 哈希，一旦计时开始不再修改注释或重编译替换。主机最多两组 CPU 对并行筛选，构建/单测/trace 不和计时混跑。
 
 每组至少四个正反平衡重复、五条 register/object-event 负载（1/16 方法、1/8/no-match监听），保留所有样本。主指标是 mean 和 daemon CPU，并公开 p50/p95/p99/caller CPU；±1% 记未分辨。Oracle 只作方向筛选，不能依据不复现的 router tail 作否决。优选候选进入少数独立实机窗，旧结果不能拼接为新 ELF 的全系统性能声明。
+
+## 筛选前修正与身份
+
+`source01` 的 path/combined daemon 均通过 55 项 SDK 单测，但全目标编译发现两个 examples 仍按 Vec 传路径；`source02` 仅修正 examples 调用。原编译失败保留，计时 ELF 不重新替换。另需在测试 overlay 补回同 revision 的 `rpcd/examples/profile_support`，因为最小 ubus/ubusd 快照没有该跨组件示例依赖。
+
+libc sendmmsg 草案在 SDK 跟踪中暴露为 musl 的多次 sendmsg 模拟，存在短写后顺序风险，**排除原 ELF `085962f7975e…`**。使用已核实 ABI 和匹配内核源码的 raw syscall 修正版 `c3cf584e4e516f96df03ac087d52a1e2c8051c37c7ba927498ca2e1fe74927ad`；59 项 SDK 单测与真实 syscall 跟踪通过。详见 [sendmmsg 研究](R136_SENDMMSG_RESEARCH.md)。
+
+本轮冻结清单为 ignored `private/r136/screen-manifest-02.json`，01 保留作已拒 libc 草案的身份记录。两次每条 20 周期的工具 smoke 不进入性能筛选；正式采用两组 CPU 对、各四块、每条 10,000 周期，共七侧（C/R134/五候选）×80 = 560 case。工具和测试已提交；主运行时代码尚未改变。
