@@ -10,6 +10,8 @@
 
 已有小帧流程为 rx→Message Vec→Reply Vec，STATUS 的 Message Vec 则解析后丢弃。候选最多去掉每个小 DATA/STATUS 的一个临时 Vec；典型 ADD+REMOVE cycle 为四次分配/释放、约64字节复制。最终 Reply、请求编码、往返和 daemon 工作不消失；实际端到端收益尚未测量。
 
+匹配 revision `24864e7840b3a02a9ef76284a373f6b2f00b8a9b` 的 C libubus [接收层](https://raw.githubusercontent.com/openwrt/ubus/24864e7840b3a02a9ef76284a373f6b2f00b8a9b/libubus-io.c) 复用消息缓冲区；[请求层](https://raw.githubusercontent.com/openwrt/ubus/24864e7840b3a02a9ef76284a373f6b2f00b8a9b/libubus-req.c) 对非 blocked DATA 直接调用 callback，blocked 才建立拥有副本，STATUS 直接解析。Rust 返回拥有数据的 Reply，因此保留最终 payload 复制，不改为借用公共返回值。
+
 必须保持 pending FIFO、错seq/peer与同标识异类帧的拥有语义、匹配 DATA FD 关闭、STATUS FD 转移、重复状态最后项覆盖、1/2/4-byte数值兼容和缺失/非法状态默认 INVALID_ARGUMENT。复用所有 shared library 单测与 doc-tests，另加入真实 socket transcript：合包/碎片回复、异步pending和FD、独立STATUS FD、重复/缺失状态、大帧及后续小帧所有权、错误与超时边界。单测是独立 test ELF，记录完整测试命令/flags/数量及结果，不称测试 ELF 等于计时 caller。
 
 实验设计另冻旧/新 caller × C/R136 daemon，provider 固定旧ELF；报告每个 daemon 内的新/旧 caller变化及caller CPU，不将其归为 daemon 优化。原0ca42/85dd系列旧负项继续有效。这里只授权源码快照、构建和正确性，不授权计时、部署或路由器访问。
