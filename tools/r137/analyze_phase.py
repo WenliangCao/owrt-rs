@@ -262,7 +262,7 @@ def router_report(root, plan_path):
     plan, settings, boot = load_plan(plan_path)
     check((root / "COMPLETE").is_file() and digest(root / "plan.json") == digest(plan_path),
           "series incomplete or captured plan differs")
-    check({p.name for p in root.glob("window-*")} == {"window-0", "window-1"},
+    check({p.name for p in root.glob("window-*") if p.is_dir()} == {"window-0", "window-1"},
           "exactly two windows required; no excluded/replacement windows")
     records, windows = [], []
     for index, expected in enumerate(settings):
