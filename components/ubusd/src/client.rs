@@ -188,6 +188,34 @@ impl Client {
         true
     }
 
+    /// Send one monitor frame without assembling a copy of its body. The
+    /// 48-byte envelope includes the root and all monitor attribute headers.
+    /// Queued frames still own their full blob and use the ordinary offset/cap.
+    pub fn send_monitor(&mut self, seq: u16, envelope: &[u8; 48], body: &[u8]) {
+        let header = Header { ty: ty::MONITOR, seq, peer: 0 };
+        let padding = [0u8; 3];
+        let padding = &padding[..pad4(body.len()) - body.len()];
+        let blob_len = envelope.len() + body.len() + padding.len();
+        if self.tx.is_empty() {
+            let mut prefix = [0u8; Header::LEN + 48];
+            prefix[..Header::LEN].copy_from_slice(&header.encode());
+            prefix[Header::LEN..].copy_from_slice(envelope);
+            let written = sys::sendmsg_three(self.fd(), [&prefix, body, padding]).unwrap_or(0);
+            if written >= Header::LEN + blob_len {
+                return;
+            }
+            self.txq_ofs = written;
+            self.txq_len = -(written as i64);
+        }
+        // Preserve the complete frame for flush(), even after a partial write.
+        // enqueue applies the same per-frame cap and silent drop as send().
+        let mut blob = Vec::with_capacity(blob_len);
+        blob.extend_from_slice(envelope);
+        blob.extend_from_slice(body);
+        blob.extend_from_slice(padding);
+        self.enqueue(OutMsg { header, blob, fd: None });
+    }
+
     /// A DATA reply and its immediately following successful STATUS are known together.
     /// Write both immediately, keeping their separate framing and queue caps.
     /// Neither reply carries a descriptor. Monitor users keep the per-message
@@ -811,6 +839,144 @@ mod tests {
                 assert_eq!(witness.read(&mut [0]).unwrap(), 0);
             }
         }
+    }
+
+    fn monitor_blob(body: &[u8]) -> Vec<u8> {
+        let mut b = BlobBuf::new();
+        b.put_u32(0, 2000).put_u32(1, 3000).put_u32(3, 41).put_u32(4, ty::PING as u32);
+        b.put_u8(2, 1).put(5, body);
+        b.as_bytes().to_vec()
+    }
+
+    #[test]
+    fn monitor_split_preserves_queued_bytes_and_per_frame_cap() {
+        for len in [0, 1, 2, 3, 4, 257, 65537, MAX_MSGLEN - 4] {
+            let mut body = vec![0x5a; len];
+            let blob = monitor_blob(&body);
+            let mut envelope: [u8; 48] = blob[..48].try_into().unwrap();
+            let total = Header::LEN + blob.len();
+            for room in [0, total - 1, total, total + 1] {
+                if room >= MAX_MSGLEN - Header::LEN { continue; }
+                let (mut split, _split_peer) = rx_pair();
+                let (mut original, _original_peer) = rx_pair();
+                for client in [&mut split, &mut original] {
+                    client.enqueue(OutMsg::new(ty::DATA, 10, 20, vec![0; MAX_MSGLEN - room - Header::LEN]));
+                }
+                split.send_monitor(42, &envelope, &body);
+                original.send(OutMsg::new(ty::MONITOR, 42, 0, blob.clone()));
+                assert_eq!((split.txq_len, split.txq_ofs, split.tx.len()),
+                           (original.txq_len, original.txq_ofs, original.tx.len()));
+                for (a, b) in split.tx.iter().zip(&original.tx) {
+                    assert_eq!(a.header.encode(), b.header.encode());
+                    assert_eq!(a.blob, b.blob);
+                    assert!(a.fd.is_none());
+                }
+            }
+            let (mut c, _peer) = rx_pair();
+            c.enqueue(OutMsg::new(ty::DATA, 0, 0, vec![0; 4]));
+            c.send_monitor(42, &envelope, &body);
+            body.fill(0xa5);
+            envelope.fill(0xa5);
+            if total + 12 <= MAX_MSGLEN {
+                assert_eq!(c.tx.back().unwrap().blob, blob);
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn monitor_owned_frames_resume_at_header_body_and_padding_boundaries() {
+        let body = b"abcde";
+        let blob = monitor_blob(body);
+        let mut expected = Header { ty: ty::MONITOR, seq: 9, peer: 0 }.encode().to_vec();
+        expected.extend_from_slice(&blob);
+        for offset in [0, 1, 7, 8, 9, 55, 56, 57, 60, 61, 62, 63] {
+            let (mut c, mut peer) = rx_pair();
+            // Force the production owned fallback, then model an arbitrary
+            // short-write boundary. Real sockets cannot force every tiny cut.
+            c.enqueue(OutMsg::new(ty::DATA, 0, 0, vec![0; 4]));
+            c.send_monitor(9, blob[..48].try_into().unwrap(), body);
+            c.tx.pop_front();
+            c.txq_ofs = offset;
+            c.txq_len = (expected.len() - offset) as i64;
+            if offset > 0 {
+                assert_eq!(sys::sendmsg_two(c.fd(), &expected[..offset], &[], None).unwrap(), offset);
+            }
+            assert!(c.flush());
+            let mut actual = vec![0; expected.len()];
+            peer.read_exact(&mut actual).unwrap();
+            assert_eq!(actual, expected, "offset {offset}");
+            assert!(c.tx_empty());
+            assert_eq!((c.txq_ofs, c.txq_len), (0, 0));
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn monitor_split_short_write_and_following_frame_keep_fifo() {
+        let (mut c, mut peer) = rx_pair();
+        peer.set_nonblocking(true).unwrap();
+        let mut body = vec![0x5a; 768 * 1024 + 1];
+        let blob = monitor_blob(&body);
+        let mut envelope: [u8; 48] = blob[..48].try_into().unwrap();
+        c.send_monitor(65535, &envelope, &body);
+        assert!(!c.tx_empty() && c.txq_ofs > 0, "must exercise a partial direct write");
+        let mut expected = Header { ty: ty::MONITOR, seq: 65535, peer: 0 }.encode().to_vec();
+        expected.extend_from_slice(&blob);
+        let small = monitor_blob(b"end");
+        c.send_monitor(0, small[..48].try_into().unwrap(), b"end");
+        expected.extend_from_slice(&Header { ty: ty::MONITOR, seq: 0, peer: 0 }.encode());
+        expected.extend_from_slice(&small);
+        body.fill(0xa5);
+        envelope.fill(0xa5);
+        let deadline = Instant::now() + Duration::from_secs(3);
+        let mut got = Vec::new();
+        let mut buf = [0u8; 8192];
+        while got.len() < expected.len() || !c.tx_empty() {
+            assert!(Instant::now() < deadline, "monitor queue did not drain");
+            match peer.read(&mut buf) {
+                Ok(n) if n > 0 => got.extend_from_slice(&buf[..n]),
+                Err(e) if would_block(&e) => {},
+                other => panic!("unexpected read: {other:?}"),
+            }
+            assert!(c.flush());
+        }
+        assert_eq!(got, expected);
+        assert_eq!((c.txq_ofs, c.txq_len), (0, 0));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn monitor_oversize_zero_write_drop_does_not_park_next_small_frame() {
+        let (mut c, mut peer) = rx_pair();
+        peer.set_nonblocking(true).unwrap();
+        let filler = [0x5a; 4096];
+        let mut filled = 0;
+        loop {
+            match sys::sendmsg_two(c.fd(), &filler, &[], None) {
+                Ok(n) if n > 0 => filled += n,
+                Err(e) if would_block(&e) => break,
+                other => panic!("unexpected send: {other:?}"),
+            }
+        }
+        let body = vec![0; MAX_MSGLEN - 4];
+        let blob = monitor_blob(&body);
+        c.send_monitor(1, blob[..48].try_into().unwrap(), &body);
+        assert!(c.tx_empty(), "oversize mirror must be dropped at the cap");
+        let mut buf = [0; 4096];
+        while filled > 0 {
+            let n = peer.read(&mut buf).unwrap();
+            assert!(n > 0);
+            filled -= n;
+        }
+        let small = monitor_blob(b"ok");
+        c.send_monitor(2, small[..48].try_into().unwrap(), b"ok");
+        assert!(c.tx_empty(), "next frame must retry direct I/O");
+        let mut expected = Header { ty: ty::MONITOR, seq: 2, peer: 0 }.encode().to_vec();
+        expected.extend_from_slice(&small);
+        let mut actual = vec![0; expected.len()];
+        peer.read_exact(&mut actual).unwrap();
+        assert_eq!(actual, expected);
     }
 
     #[test]
