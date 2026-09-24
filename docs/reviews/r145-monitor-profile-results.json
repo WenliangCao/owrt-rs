@@ -1,0 +1,893 @@
+{
+  "schema_version": 1,
+  "scope": "Oracle cpu-clock flat self samples of complete helper invocations; not a performance acceptance test",
+  "passed_evidence_audit": true,
+  "collection": {
+    "phase_order": [
+      "c",
+      "r136",
+      "r136",
+      "c"
+    ],
+    "invocations_per_phase": 10,
+    "helper_invocations": 40,
+    "measured_cycles": 200000,
+    "warmup_cycles": 800,
+    "n": 5000,
+    "warmup": 20,
+    "sampling_event": "cpu-clock",
+    "frequency_hz": 499,
+    "strict_frequency": true,
+    "ring_buffer": "8 MiB",
+    "clock": "CLOCK_MONOTONIC",
+    "callgraph": false,
+    "daemon_cpu": 1,
+    "caller_cpu": 0,
+    "collector_cpus": [
+      2,
+      3
+    ],
+    "daemon_minimum_samples_per_phase": 1000,
+    "extension": false
+  },
+  "checks": {
+    "phases": 4,
+    "caller_invocations": 40,
+    "profiles": 44,
+    "samples": 15656,
+    "identities": 48,
+    "distinct_subject_and_caller_processes": 44,
+    "acks": 80,
+    "ack_hex": "61636b0a00",
+    "helper_latency_values_shape_checked_without_performance_analysis": 200000,
+    "cleanup_records": 4,
+    "lost": 0,
+    "lost_samples": 0,
+    "throttle": 0,
+    "unthrottle": 0,
+    "unparsed_sample_lines": 0,
+    "daemon_undersampled_phases": 0,
+    "input_hash_checks_per_boundary_recorded_by_runner": 28,
+    "local_runner_recorder_symbolizer_hashes_checked": 3,
+    "archive_files_byte_compared": 1189
+  },
+  "identity": {
+    "subjects": {
+      "c": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "r136": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330"
+    },
+    "helper_sha256": "1705d989c64640353e556d0cc307899504b08e7b8ccbbcc8963f6821680b3499",
+    "runner_before_ack_fix_sha256": "8ce4bafcb8db15915151ec5efd6c08c17fdfbe8ee75363e8dacd54bcc300db22",
+    "runner_after_ack_fix_sha256": "b246a7537455187daca4e6d5533d14ccf5c67052e07930c49f3bde1e1825855a",
+    "symbol_identity": {
+      "c": {
+        "elf_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+        "sidecar_sha256": "51f91f7d548600ca56ff47516f0a4854c50fb5a1defb768dc8ffabb5a202723b",
+        "text_sha256": "f439a4d464408ec54540c1e8fd13b0704ddd31b747018e809c71dc7a6512bab9",
+        "ranges": 62
+      },
+      "r136": {
+        "elf_sha256": "ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330",
+        "sidecar_sha256": "8d86a8dc876cab195089b4b369408b72c712f3cd13d79bc085ceb014e75c0528",
+        "text_sha256": "76eab1910a428edee03573c442352a5c6760e33773102ecdc5cb8e61e5e497d3",
+        "ranges": 908
+      }
+    },
+    "old_new_plans_only_changed_input_content": "ACK-fix runner; other 27 input contents unchanged despite relocated paths",
+    "frozen_control_symbols_and_original_r136_release_hashes_equal": true,
+    "post_collection_input_check_basis": "Hash-matched run() rechecks all 28 frozen inputs after 44 reports, before writing passed results and COMPLETE; archived results and COMPLETE exist. No separate per-input post-check log is emitted.",
+    "local_identity_limit": "The collection archive does not contain all original ELF/build/symbol inputs. Their full-byte build match and range verification are retained frozen/live identity evidence, not a fresh local ELF rebuild or re-symbolization."
+  },
+  "allocation_family_definition": {
+    "exact_symbol_names": [
+      "__libc_free",
+      "__libc_malloc_impl",
+      "__libc_realloc",
+      "__malloc_alloc_meta",
+      "alloc_slot",
+      "calloc",
+      "free",
+      "malloc",
+      "nontrivial_free",
+      "realloc"
+    ],
+    "counting": "Sum disjoint emitted-code self PC ranges once, including alias groups once. Denominators include every sample / every user sample, including unknown and pre-snapshot samples. Aggregates sum counts rather than averaging percentages.",
+    "exclusions": "RawVec growth wrapper PCs are reported separately; memcpy, memset, locks, atomics, blob builders and kernel samples are excluded. No allocator callee is charged to its caller.",
+    "caller_zero_interpretation": "Zero resolved allocator-family samples is not zero allocator CPU: dynamic hidden symbols and other unknown user samples remain unassigned."
+  },
+  "prior_failure": {
+    "run": "profile-01",
+    "status": "FAILED",
+    "reason": "unexpected perf control ACK: previous strip-based comparison rejected ack newline NUL",
+    "completed_helpers": 0,
+    "cleanup_passed": true,
+    "excluded_from_profile02_totals": true
+  },
+  "phases": [
+    {
+      "phase": 1,
+      "subject": "c",
+      "helper_invocations": 10,
+      "acks_checked": 20,
+      "daemon": {
+        "samples": 1603,
+        "kernel_samples": 1286,
+        "user_samples": 317,
+        "symbolized_user_samples": 154,
+        "unknown_user_samples": 163,
+        "unknown_fraction_of_user_samples": 0.5141955835962145,
+        "unknown_reasons": {
+          "no_function_range": 163
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 110,
+          "libubox.so.20260213": 53
+        },
+        "pre_snapshot_user_samples": 0,
+        "allocator_family": {
+          "self_samples": 2,
+          "fraction_of_all_samples": 0.0012476606363069245,
+          "fraction_of_user_samples": 0.006309148264984227,
+          "members": {
+            "calloc": 2
+          }
+        },
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "raw_perf_sha256": "97f2513c37d832a65126191b9f126eab81226b1b8a08e8153c412a360155ece0",
+        "symbolized_sha256": "9423dd1f937d7f0c2cb389eff4ac0b5b25d502345f58b8ffb1018501a0a5dd5f"
+      },
+      "caller_aggregate": {
+        "samples": 2286,
+        "kernel_samples": 1909,
+        "user_samples": 377,
+        "symbolized_user_samples": 135,
+        "unknown_user_samples": 242,
+        "pre_snapshot_user_samples": 2,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "unknown_fraction_of_user_samples": 0.6419098143236074,
+        "unknown_reasons": {
+          "no_function_range": 221,
+          "before_live_snapshot": 2,
+          "image_not_configured": 19
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 97,
+          "libubox.so.20260213": 43,
+          "libubus.so.20251202": 74,
+          "r131-event-stress-libubus": 9,
+          "[vdso]": 19
+        },
+        "allocator_family": {
+          "self_samples": 0,
+          "fraction_of_all_samples": 0,
+          "fraction_of_user_samples": 0,
+          "members": {}
+        }
+      },
+      "callers": [
+        {
+          "invocation": 1,
+          "samples": 228,
+          "user_samples": 35,
+          "unknown_user_samples": 22,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "f8a7ac0b9231872ecc28751b65e66e619e777777adb9d1dc1bb905afd6d2179d",
+          "symbolized_sha256": "60f4e450edb64b6868aa23c96b936dce11e7f50c70e11b0b9e5583af42acef99"
+        },
+        {
+          "invocation": 2,
+          "samples": 229,
+          "user_samples": 37,
+          "unknown_user_samples": 24,
+          "pre_snapshot_user_samples": 1,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "f004c093adc8eed733a2d8965dde7a04b3485926f71f624c92402dfde6618532",
+          "symbolized_sha256": "1b6a73116b2d457ef8ac035a9b4fcdb53a78967323057cbef32086e01200ffd3"
+        },
+        {
+          "invocation": 3,
+          "samples": 229,
+          "user_samples": 31,
+          "unknown_user_samples": 18,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "2ec6ac74f2a47bd23f6f43cd622c3a026672e0b0eb3c703ff7d35200b5a18ec5",
+          "symbolized_sha256": "1fc92e9b0fc19f1aaf4212b97e7d16b90b276d03143e3936eb50f432ded7123a"
+        },
+        {
+          "invocation": 4,
+          "samples": 233,
+          "user_samples": 44,
+          "unknown_user_samples": 28,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "b1f2d7af889dfef9848c6e3450c2405dbb52b09d77edb0ce89bbd6904dcd1cec",
+          "symbolized_sha256": "b4ccffd0716316e27892c2195c0e6925622ea2e02ad63911a4cfdef8af03979c"
+        },
+        {
+          "invocation": 5,
+          "samples": 233,
+          "user_samples": 37,
+          "unknown_user_samples": 25,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "defb32a4df44fb6b032b5d32fd249703b4e537ef516efe6b53382ae8a286a864",
+          "symbolized_sha256": "684786c31d4520ad3da761103145c3bae05de4db7a882207ae40ecfd9c8da476"
+        },
+        {
+          "invocation": 6,
+          "samples": 230,
+          "user_samples": 38,
+          "unknown_user_samples": 24,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "28b400556cf12c0372cbd45001d7d47ecaf0d5c75df157c322b9bdf233f7c04b",
+          "symbolized_sha256": "3370ec9762ee721ac8fdc7a5373e19558f86d336afed9814c760d42643890dbf"
+        },
+        {
+          "invocation": 7,
+          "samples": 225,
+          "user_samples": 53,
+          "unknown_user_samples": 34,
+          "pre_snapshot_user_samples": 1,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "6739ca6c02649c7ae25970714a4269760a25ebe51eaf69a4a340f8fb00db61b2",
+          "symbolized_sha256": "91e388139a50a2a2dd9bc2acf729ce19e8335ad904af7f55cccb727ed61a72a3"
+        },
+        {
+          "invocation": 8,
+          "samples": 228,
+          "user_samples": 34,
+          "unknown_user_samples": 22,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "de2100b10fd65bbfbe126d111a97497d04fbf03c7d9932f6a3c559708d14c312",
+          "symbolized_sha256": "0c9fca1e2dca07ff5108217a78ab041c5de6b2ce88b3d8936b7f5b8681a90e31"
+        },
+        {
+          "invocation": 9,
+          "samples": 224,
+          "user_samples": 34,
+          "unknown_user_samples": 25,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "b52937a165fcb1aaca926d09f09e651c102ebe79a82fc548089cd7f10f086171",
+          "symbolized_sha256": "699a3142e382c2aa366bbfd5e078d88b806a7b9552486fc75bef5599d40b05bd"
+        },
+        {
+          "invocation": 10,
+          "samples": 227,
+          "user_samples": 34,
+          "unknown_user_samples": 20,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "61ed97ae9ed9e9d072512ea38521ff0dea8c8a096628f88ea90939492c1c3aa1",
+          "symbolized_sha256": "31173cd6a450e983f4a371ad888ce8f8213198e81ab10f0ddbac601b8350c3ed"
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "subject": "r136",
+      "helper_invocations": 10,
+      "acks_checked": 20,
+      "daemon": {
+        "samples": 1632,
+        "kernel_samples": 1186,
+        "user_samples": 446,
+        "symbolized_user_samples": 446,
+        "unknown_user_samples": 0,
+        "unknown_fraction_of_user_samples": 0,
+        "unknown_reasons": {},
+        "unknown_dso_basenames": {},
+        "pre_snapshot_user_samples": 0,
+        "allocator_family": {
+          "self_samples": 244,
+          "fraction_of_all_samples": 0.14950980392156862,
+          "fraction_of_user_samples": 0.547085201793722,
+          "members": {
+            "__libc_malloc_impl": 70,
+            "__libc_free": 61,
+            "nontrivial_free": 40,
+            "alloc_slot": 38,
+            "__libc_realloc": 31,
+            "__malloc_alloc_meta": 4
+          }
+        },
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 13,
+        "raw_perf_sha256": "df6817fcd25f5047381cfff35184c6a34c8d3130224457432766ac13b6e0cf16",
+        "symbolized_sha256": "1f18795155a95a2ad2f68d4f310c8b3bf06368f31073723535724cd6069cf3b1"
+      },
+      "caller_aggregate": {
+        "samples": 2300,
+        "kernel_samples": 1895,
+        "user_samples": 405,
+        "symbolized_user_samples": 138,
+        "unknown_user_samples": 267,
+        "pre_snapshot_user_samples": 1,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "unknown_fraction_of_user_samples": 0.6592592592592592,
+        "unknown_reasons": {
+          "no_function_range": 224,
+          "image_not_configured": 22,
+          "before_live_snapshot": 1,
+          "no_unique_executable_mapping": 20
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 104,
+          "libubus.so.20251202": 87,
+          "libubox.so.20260213": 47,
+          "[vdso]": 22,
+          "r131-event-stress-libubus": 7
+        },
+        "allocator_family": {
+          "self_samples": 0,
+          "fraction_of_all_samples": 0,
+          "fraction_of_user_samples": 0,
+          "members": {}
+        }
+      },
+      "callers": [
+        {
+          "invocation": 1,
+          "samples": 229,
+          "user_samples": 46,
+          "unknown_user_samples": 32,
+          "pre_snapshot_user_samples": 1,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "df1d29e30bafb205670ffebb91a6d8d60013915c2e5291cc594421376a8573ba",
+          "symbolized_sha256": "6acce8fac74e9dfef9e34c2483aa25be04a97098fdb99d138ff70c012320d435"
+        },
+        {
+          "invocation": 2,
+          "samples": 227,
+          "user_samples": 31,
+          "unknown_user_samples": 24,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "68479a7885405b4d01bdcd413ca95e8100682a2f9f18226e3f2533d4c1d3d46b",
+          "symbolized_sha256": "528d7b81def615b9bc5bd01184fecb33a2e183bf3c7983ead5d954892a06d631"
+        },
+        {
+          "invocation": 3,
+          "samples": 228,
+          "user_samples": 44,
+          "unknown_user_samples": 28,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "d538fcccdc4b167df29818d129ac8ae5c542ffd4ac98edf1552ade79e4cdd2d6",
+          "symbolized_sha256": "001e2c3fc92b89e7204711c2cce74ee978aa18943d0ee090e11520edc6012384"
+        },
+        {
+          "invocation": 4,
+          "samples": 228,
+          "user_samples": 47,
+          "unknown_user_samples": 30,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "72d36a47dfc95657ba8b009dd58005d2fe6622b4f0384b582a37128aecf06cda",
+          "symbolized_sha256": "41c6a4b9a719510942d9b35313f6fd46a491b854dccc869c6a8bdfb43ce1b25c"
+        },
+        {
+          "invocation": 5,
+          "samples": 232,
+          "user_samples": 33,
+          "unknown_user_samples": 23,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "aed18f4862e4290ebc011ff1b20e0ea8072387282e3efa33a57b37c9593313a6",
+          "symbolized_sha256": "8a1b9a468b6b2b62bed55cd771e1e534d8b91463b1ef383dc4bd1d6acf871258"
+        },
+        {
+          "invocation": 6,
+          "samples": 234,
+          "user_samples": 45,
+          "unknown_user_samples": 26,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "d0be0e02241b30549dcabac99e6a22e07cba2a644b4889649cc35cfe89076542",
+          "symbolized_sha256": "8154152aa59065e4b98a2955d0fbbc1e14e0ffb799da67d0bb82e16a0ca30008"
+        },
+        {
+          "invocation": 7,
+          "samples": 231,
+          "user_samples": 45,
+          "unknown_user_samples": 25,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "31339f824ed87a798ee95ac6f41df2eb811826f0a53e9895052d43863d71c68d",
+          "symbolized_sha256": "f04687399d90059eee9152c433fd1858991e9722e69851f05681350cda48eae6"
+        },
+        {
+          "invocation": 8,
+          "samples": 233,
+          "user_samples": 34,
+          "unknown_user_samples": 24,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "84c362d4c99335e8a53a1e71149051882dea43e6830cd960ed1edce62cd4c9a6",
+          "symbolized_sha256": "953a19f2f7708e866fb4fae78a3f78f93fae9f57a49efeed84cfeb816cea36bc"
+        },
+        {
+          "invocation": 9,
+          "samples": 229,
+          "user_samples": 37,
+          "unknown_user_samples": 21,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "df93c89aa236a872ff2be58f68b2a9cbdb23006717ad6801e7c6af5c1bb7b657",
+          "symbolized_sha256": "959781bdba0462f63605c66de3a2d97d740796bf6f39a462f6f1f6a4bd908518"
+        },
+        {
+          "invocation": 10,
+          "samples": 229,
+          "user_samples": 43,
+          "unknown_user_samples": 34,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "dd110cd3486df441706ff3d3b46ea6960250744eece28e32079cdc1510892f91",
+          "symbolized_sha256": "24e30d7ec4752fb03659429f3218bb5627d5693177092e2288f22c75deef40be"
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "subject": "r136",
+      "helper_invocations": 10,
+      "acks_checked": 20,
+      "daemon": {
+        "samples": 1628,
+        "kernel_samples": 1256,
+        "user_samples": 372,
+        "symbolized_user_samples": 372,
+        "unknown_user_samples": 0,
+        "unknown_fraction_of_user_samples": 0,
+        "unknown_reasons": {},
+        "unknown_dso_basenames": {},
+        "pre_snapshot_user_samples": 0,
+        "allocator_family": {
+          "self_samples": 215,
+          "fraction_of_all_samples": 0.13206388206388206,
+          "fraction_of_user_samples": 0.5779569892473119,
+          "members": {
+            "__libc_malloc_impl": 60,
+            "__libc_free": 46,
+            "alloc_slot": 43,
+            "__libc_realloc": 34,
+            "nontrivial_free": 32
+          }
+        },
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 20,
+        "raw_perf_sha256": "68bf9088fba2898468f2badd761ac0c9e0bd1ccbeeb7c49620b13d8124e758f7",
+        "symbolized_sha256": "e41ae44cac51924a30286a790b5adf9f9fd60d949970c7244b6a96506517de81"
+      },
+      "caller_aggregate": {
+        "samples": 2313,
+        "kernel_samples": 1966,
+        "user_samples": 347,
+        "symbolized_user_samples": 135,
+        "unknown_user_samples": 212,
+        "pre_snapshot_user_samples": 0,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "unknown_fraction_of_user_samples": 0.6109510086455331,
+        "unknown_reasons": {
+          "no_function_range": 192,
+          "image_not_configured": 20
+        },
+        "unknown_dso_basenames": {
+          "libubox.so.20260213": 48,
+          "libubus.so.20251202": 59,
+          "libc.so": 79,
+          "[vdso]": 20,
+          "r131-event-stress-libubus": 6
+        },
+        "allocator_family": {
+          "self_samples": 0,
+          "fraction_of_all_samples": 0,
+          "fraction_of_user_samples": 0,
+          "members": {}
+        }
+      },
+      "callers": [
+        {
+          "invocation": 1,
+          "samples": 229,
+          "user_samples": 27,
+          "unknown_user_samples": 15,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "ea75d249ff3e52822d4bea8dfc9d53226c3a8ff7187fbcfa486db9aad4354170",
+          "symbolized_sha256": "37c40f8943d1ef7b33dd8ff39cadf5970bbfab653e947d48edf60a5bbbf93a03"
+        },
+        {
+          "invocation": 2,
+          "samples": 233,
+          "user_samples": 48,
+          "unknown_user_samples": 29,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "73e622aedaccc71eb313ea0b34dc0e6e33d8a117075a3fe0ea92c75f894ebaff",
+          "symbolized_sha256": "248e13d2ff6b0920b6ba88ce10c7cfce2e7f08bf182f4f1ce009ef918124659b"
+        },
+        {
+          "invocation": 3,
+          "samples": 233,
+          "user_samples": 33,
+          "unknown_user_samples": 25,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "52bf756b6014c67df46e7ce96321055356d2838da2d2e47c61b06e8b78d7d41a",
+          "symbolized_sha256": "82d63895743a6a707db16a02d698bb4eeae73f5e1502329da81b74eda24b12f2"
+        },
+        {
+          "invocation": 4,
+          "samples": 232,
+          "user_samples": 38,
+          "unknown_user_samples": 25,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "77e6df16764b3506eb168ed60e50a0b0d8b328a0f1cd4f948d7d0771543c7680",
+          "symbolized_sha256": "b55100bd5d7f84a6e800d411cc7031e608f71e914183e0b1e9cacf08096b7b4e"
+        },
+        {
+          "invocation": 5,
+          "samples": 234,
+          "user_samples": 34,
+          "unknown_user_samples": 22,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "ee3bd37751a817751767dd8f411a7831065d7454e804d13084b539ab338587d5",
+          "symbolized_sha256": "d6b469ee77391d94f7d174c0c6a0b0c419e39025253a6b754ee1566f4dabbed7"
+        },
+        {
+          "invocation": 6,
+          "samples": 231,
+          "user_samples": 38,
+          "unknown_user_samples": 20,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "67c1eac844ffa88021f2f049c4b040cb129e6b10076e1f56442912e4271689b1",
+          "symbolized_sha256": "517613e3bb211d1b8bffedeb136f9df8b4841600fa11e1f51cfd2b3512771e2d"
+        },
+        {
+          "invocation": 7,
+          "samples": 229,
+          "user_samples": 37,
+          "unknown_user_samples": 24,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "488f25f98998a571c253451670256fe739a75cb05119875a160e18de6d454996",
+          "symbolized_sha256": "3675c6960fecf9b28aed739dda3ed8af6e5f964c6dd9015ab8b6f4ceb2d244fc"
+        },
+        {
+          "invocation": 8,
+          "samples": 232,
+          "user_samples": 29,
+          "unknown_user_samples": 20,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "cc3e75a66de9351015a5a21e555cdf8ba7655fc3cbb04a28224d264a0abd1dd0",
+          "symbolized_sha256": "eb78d3d699b7cd28bc09e5c25df23fb27157eef0481e3a7e733fdf047cee87b9"
+        },
+        {
+          "invocation": 9,
+          "samples": 230,
+          "user_samples": 33,
+          "unknown_user_samples": 18,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "dc6167eff6749f0f0447dae19f90be2b2b91388dd295eea38c023cdcfc240960",
+          "symbolized_sha256": "3c112c3d98c2009c7094556ce206b312f3b9266815f65d3a650437dd0ce0ed04"
+        },
+        {
+          "invocation": 10,
+          "samples": 230,
+          "user_samples": 30,
+          "unknown_user_samples": 14,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "bdb38abfea2bf1c389d4d4e94db0c8ed2f40e8cfd456cda425ecd95f103ed57b",
+          "symbolized_sha256": "4e2a28de221a63fc705e9a30369490f56390dd861ccc18e4dea0e0790e43c555"
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "subject": "c",
+      "helper_invocations": 10,
+      "acks_checked": 20,
+      "daemon": {
+        "samples": 1598,
+        "kernel_samples": 1340,
+        "user_samples": 258,
+        "symbolized_user_samples": 131,
+        "unknown_user_samples": 127,
+        "unknown_fraction_of_user_samples": 0.49224806201550386,
+        "unknown_reasons": {
+          "no_function_range": 127
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 77,
+          "libubox.so.20260213": 50
+        },
+        "pre_snapshot_user_samples": 0,
+        "allocator_family": {
+          "self_samples": 4,
+          "fraction_of_all_samples": 0.0025031289111389237,
+          "fraction_of_user_samples": 0.015503875968992248,
+          "members": {
+            "calloc": 3,
+            "malloc": 1
+          }
+        },
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "raw_perf_sha256": "42d43316496fef36a2ca1653a905a96184a149be2d9e4fdbc018c6812b8bd959",
+        "symbolized_sha256": "b2bb33c0d94f03e9021c7c5dc48f85ac7d75110d6ea6e2897eaa63a12d120e91"
+      },
+      "caller_aggregate": {
+        "samples": 2296,
+        "kernel_samples": 1931,
+        "user_samples": 365,
+        "symbolized_user_samples": 136,
+        "unknown_user_samples": 229,
+        "pre_snapshot_user_samples": 2,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "unknown_fraction_of_user_samples": 0.6273972602739726,
+        "unknown_reasons": {
+          "no_function_range": 188,
+          "image_not_configured": 20,
+          "no_unique_executable_mapping": 19,
+          "before_live_snapshot": 2
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 69,
+          "libubus.so.20251202": 78,
+          "libubox.so.20260213": 50,
+          "[vdso]": 20,
+          "r131-event-stress-libubus": 12
+        },
+        "allocator_family": {
+          "self_samples": 0,
+          "fraction_of_all_samples": 0,
+          "fraction_of_user_samples": 0,
+          "members": {}
+        }
+      },
+      "callers": [
+        {
+          "invocation": 1,
+          "samples": 233,
+          "user_samples": 38,
+          "unknown_user_samples": 26,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "1b9d525ed35c0acc0c66ff21d58ff6908c5744e5e3ddaffd07bc0264b19a8e5d",
+          "symbolized_sha256": "35b47fa7fee249eb8aa1cbd504faa7ed695e02967c910d5d233bbb755c16cfdb"
+        },
+        {
+          "invocation": 2,
+          "samples": 232,
+          "user_samples": 40,
+          "unknown_user_samples": 25,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "18d82b04397605a0f1bb76ae019465b22a944468e2d88e085d98ad9461b6f1fd",
+          "symbolized_sha256": "689b9750009ed35b0bb637d5b0423b664d9ff9bb0b3ce86d3a10d971d40c7d4c"
+        },
+        {
+          "invocation": 3,
+          "samples": 232,
+          "user_samples": 37,
+          "unknown_user_samples": 21,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "70aad77851a91b534c46cb7bd647d812afd3d744e2a8681596e5011d005352b4",
+          "symbolized_sha256": "746f835430f15ffa5a26f67a4ae884d5f9ee8e33229f925648aec190a48ce659"
+        },
+        {
+          "invocation": 4,
+          "samples": 227,
+          "user_samples": 31,
+          "unknown_user_samples": 24,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "1ea080d9f9ccde3a8bde07b9e1fe171aea57b021d956ad1757c4c9095cccb5ba",
+          "symbolized_sha256": "7dcd7e682da2e7467c153c504557d5f9957643ef7b70ae6de733df83935e502a"
+        },
+        {
+          "invocation": 5,
+          "samples": 228,
+          "user_samples": 39,
+          "unknown_user_samples": 28,
+          "pre_snapshot_user_samples": 1,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "3e59c3d0eebba0dd161744376290efadcd0946914f6b918daf62161054bc7566",
+          "symbolized_sha256": "c32b34d60a8bda101402c493f4365cf091f838ba3bc91f75c85008b421ec349d"
+        },
+        {
+          "invocation": 6,
+          "samples": 232,
+          "user_samples": 45,
+          "unknown_user_samples": 33,
+          "pre_snapshot_user_samples": 1,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "956435326f6b36d77661fb1613f312be59d154210f7501b3249b3b80fcbce276",
+          "symbolized_sha256": "292cd8bb1391d559559790842cbd091eacc379276a0dd8fcffa25915c8adb93e"
+        },
+        {
+          "invocation": 7,
+          "samples": 229,
+          "user_samples": 33,
+          "unknown_user_samples": 16,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "8e7ad2f1f11fbe7f293a0f27bb43f2edf85e4e32e80326706f4e16a5391a287b",
+          "symbolized_sha256": "b2a0b311845ede07116b7908a155aabc6cd1699775a468e906f28c0d3f27ef7d"
+        },
+        {
+          "invocation": 8,
+          "samples": 228,
+          "user_samples": 37,
+          "unknown_user_samples": 21,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "b669b5e00c8a1f67dc355f75f6d1d95660542215533a867b2ca6cb05e6001db5",
+          "symbolized_sha256": "16a3d4a1b460d1a61d7a490dcd060c8b8c245cfc1fc0b5ba765e43ae8ba28bac"
+        },
+        {
+          "invocation": 9,
+          "samples": 226,
+          "user_samples": 29,
+          "unknown_user_samples": 19,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "b21cf68be95deafbadcfb00aedb88aec8795b29d26b141e10131fa971309018f",
+          "symbolized_sha256": "5ed68ae0054027b6dfd083f8454402d14fbac87c0db59026c9e1924d4e0bb490"
+        },
+        {
+          "invocation": 10,
+          "samples": 229,
+          "user_samples": 36,
+          "unknown_user_samples": 16,
+          "pre_snapshot_user_samples": 0,
+          "allocator_family_self_samples": 0,
+          "raw_perf_sha256": "6bd2853542f7b0fbb454701896e94460c846fcc9594e41bc7e3534e568dfcc1a",
+          "symbolized_sha256": "a1e7c829ee8df1f79d621932e97193a7466d55dd20ae1f9c101c3cd311d9cf80"
+        }
+      ]
+    }
+  ],
+  "totals_by_subject": {
+    "c": {
+      "daemon": {
+        "samples": 3201,
+        "kernel_samples": 2626,
+        "user_samples": 575,
+        "symbolized_user_samples": 285,
+        "unknown_user_samples": 290,
+        "pre_snapshot_user_samples": 0,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "unknown_fraction_of_user_samples": 0.5043478260869565,
+        "unknown_reasons": {
+          "no_function_range": 290
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 187,
+          "libubox.so.20260213": 103
+        },
+        "allocator_family": {
+          "self_samples": 6,
+          "fraction_of_all_samples": 0.0018744142455482662,
+          "fraction_of_user_samples": 0.010434782608695653,
+          "members": {
+            "calloc": 5,
+            "malloc": 1
+          }
+        }
+      },
+      "caller": {
+        "samples": 4582,
+        "kernel_samples": 3840,
+        "user_samples": 742,
+        "symbolized_user_samples": 271,
+        "unknown_user_samples": 471,
+        "pre_snapshot_user_samples": 4,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "unknown_fraction_of_user_samples": 0.6347708894878706,
+        "unknown_reasons": {
+          "no_function_range": 409,
+          "before_live_snapshot": 4,
+          "image_not_configured": 39,
+          "no_unique_executable_mapping": 19
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 166,
+          "libubox.so.20260213": 93,
+          "libubus.so.20251202": 152,
+          "r131-event-stress-libubus": 21,
+          "[vdso]": 39
+        },
+        "allocator_family": {
+          "self_samples": 0,
+          "fraction_of_all_samples": 0,
+          "fraction_of_user_samples": 0,
+          "members": {}
+        }
+      }
+    },
+    "r136": {
+      "daemon": {
+        "samples": 3260,
+        "kernel_samples": 2442,
+        "user_samples": 818,
+        "symbolized_user_samples": 818,
+        "unknown_user_samples": 0,
+        "pre_snapshot_user_samples": 0,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 33,
+        "unknown_fraction_of_user_samples": 0,
+        "unknown_reasons": {},
+        "unknown_dso_basenames": {},
+        "allocator_family": {
+          "self_samples": 459,
+          "fraction_of_all_samples": 0.14079754601226993,
+          "fraction_of_user_samples": 0.5611246943765281,
+          "members": {
+            "__libc_malloc_impl": 130,
+            "__libc_free": 107,
+            "nontrivial_free": 72,
+            "alloc_slot": 81,
+            "__libc_realloc": 65,
+            "__malloc_alloc_meta": 4
+          }
+        }
+      },
+      "caller": {
+        "samples": 4613,
+        "kernel_samples": 3861,
+        "user_samples": 752,
+        "symbolized_user_samples": 273,
+        "unknown_user_samples": 479,
+        "pre_snapshot_user_samples": 1,
+        "rawvec_growth_wrapper_self_samples_excluded_from_family": 0,
+        "unknown_fraction_of_user_samples": 0.636968085106383,
+        "unknown_reasons": {
+          "no_function_range": 416,
+          "image_not_configured": 42,
+          "before_live_snapshot": 1,
+          "no_unique_executable_mapping": 20
+        },
+        "unknown_dso_basenames": {
+          "libc.so": 183,
+          "libubus.so.20251202": 146,
+          "libubox.so.20260213": 95,
+          "[vdso]": 42,
+          "r131-event-stress-libubus": 13
+        },
+        "allocator_family": {
+          "self_samples": 0,
+          "fraction_of_all_samples": 0,
+          "fraction_of_user_samples": 0,
+          "members": {}
+        }
+      }
+    }
+  },
+  "evidence": {
+    "archive_sha256": "9754d0230b3985e8202378c26e07f5ac1be928bc9d0c8f66dd69f3c7c6ec918b",
+    "plan01_sha256": "009e2baca1aa03d406d833055d82356ee0a4595d532d476e6775bea4f28a4867",
+    "plan02_sha256": "6aa61bb7cd59288608073561b1c437485fed7b59588d9b50f479fbdda3133480",
+    "results_sha256": "6ff70e94c48eecad66e2faed5d0e436178ccc86e8988d55177f0dbbffc4cfae9",
+    "relative_file_hash_index_sha256": "c3145ce5f5654cb7383c153c2947abb3d4ff760817124a9f4122af5d73e963ef",
+    "hash_index_encoding": "UTF-8 JSON object mapping archive-relative regular-file paths to SHA-256; sorted keys, compact separators",
+    "files": 1189
+  },
+  "limitations": [
+    "Whole invocation: includes initialization, connections, handler/monitor registration, warmup, timed cycles, validation, teardown and output. Daemon enable/disable ACK windows additionally bracket launcher/recorder overhead; callers include launcher/loader samples.",
+    "Only cpu-clock contributes sampled PCs; perf daemon metadata also declares an automatic dummy:u event, with no samples attributed to it.",
+    "Oracle aarch64 profile proportions cannot be transferred to Cortex-A53/router behavior.",
+    "Flat self samples are not inclusive costs, allocation counts, bytes, waiting time, causal attribution, or expected speedup. No performance change is inferred from proportions.",
+    "All pre-snapshot user samples remain unknown; later mapping snapshots are not applied retroactively. C and caller hidden-library costs remain unknown.",
+    "Two R136 phases and pooled counts are descriptive; pooling does not create an additional independent phase or establish phase stability."
+  ]
+}

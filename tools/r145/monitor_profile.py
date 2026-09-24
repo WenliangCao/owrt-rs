@@ -143,9 +143,20 @@ def caller_snapshot(perf, out, client, loader, expected, command):
 def control(write_fd, read_fd, command):
     requested = time.monotonic_ns()
     os.write(write_fd, command.encode() + b'\n')
-    check(select.select([read_fd], [], [], 5)[0], 'perf control ACK timed out')
-    check(os.read(read_fd, 64).strip() == b'ack', 'unexpected perf control ACK')
-    return {'command': command, 'requested_monotonic_ns': requested, 'ack_monotonic_ns': time.monotonic_ns()}
+    # perf v6.17 writes sizeof("ack\n"), including the terminating NUL.
+    # Pipes may split reads; consume exactly one ACK without eating the next.
+    expected = b'ack\n\0'
+    reply = bytearray()
+    deadline = time.monotonic() + 5
+    while len(reply) < len(expected):
+        remaining = deadline - time.monotonic()
+        check(remaining > 0 and select.select([read_fd], [], [], remaining)[0], 'perf control ACK timed out')
+        part = os.read(read_fd, len(expected) - len(reply))
+        check(part, 'perf control ACK pipe closed')
+        reply.extend(part)
+    check(reply == expected, 'unexpected perf control ACK')
+    return {'command': command, 'requested_monotonic_ns': requested,
+            'ack_monotonic_ns': time.monotonic_ns(), 'ack_hex': reply.hex()}
 
 
 def stop_group(process):
