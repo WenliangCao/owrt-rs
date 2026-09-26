@@ -4,6 +4,12 @@
 原始输入、配置、ELF、候选补丁和失败构建只放在 ignored `private/netifd-20260926/`。
 Oracle 对应 `/home/ubuntu/netifd-research-20260926/`。本报告只提交派生事实，不提交设备秘密。
 
+最新证据修正：H9 前置检查发现并精确清理了旧 suite 遗留的66个进程，其中16个 odhcp6c
+在有 monotonic 起止的一秒采样中合计消耗3.99 CPU秒。此前 Oracle 耗时和CPU排名只能作为
+存在未控制宿主竞争的探索观察，不能据此声称空闲宿主接受证据；不能回算污染时间或修正系数。
+源码、逐进程syscall/分配机制、精确身份和独立路由器数据仍保留。旧31/31也不证明子孙进程回收。
+详见下文最新阶段；前文的“尚未构建”等措辞记录各历史阶段，不代表最新候选状态。
+
 ## 身份与最小证据地图
 
 | 对象 | 身份 / 证据 | 边界 |
@@ -341,3 +347,55 @@ DSA数据的单查询回退。ELF `0f059d9d983ce3c13ff8e4fcb28c3f8089df07a159ccb
 共用fill_info，但单查询另有linkwatch_sync_dev；因此仍需事件/lateport/overflow收敛门，
 不能凭属性相同宣称整次请求完全等价。只读DSA工具已在Oracle用两个普通接口及ENODEV负例验证，
 尚不构成真实DSA或H9性能结果。
+
+## 清洁宿主后的有限筛选与测试修复
+
+旧 r52/r53/r56/r83/r83c 只有 mount/network namespace；helper 在父进程退出后可被宿主PID1
+接管。已逐个保存PID/starttime、argv、root、namespace及镜像ELF hash，使用pidfd验证后TERM
+清理全部66个对象，没有KILL，没有信号发给该集合以外的进程。宿主网络前后JSON一致。
+准确采样为1.003917–1.003977秒、HZ100、399ticks；早期错误的一秒标签已单独标为无效并保留。
+旧性能数据和拒绝决定不重写、不追认、不与新清洁样本拼接。纠正报告
+`ORACLE_HOST_HYGIENE_CORRECTION.md` SHA为
+`783c8f2c0afe3173761555837bebe78a981caffbab71f4ec35a190d0b6ef28aa`。
+
+H9在清洁Oracle按原计划完成2个strace窗及4对未插桩窗。own CPU比值
+0.977222/0.999776/0.962921/0.966473，中位0.971848，未达冻结≤0.95，拒绝。
+sendto/recvfrom各减少5125次，机制成立；依赖/caller方向混合，不能相互抵消。
+报告 `H9_SCREEN_RESULTS.md` SHA为
+`d948fad28dd9c8319edcfd18bcf547972b61ea0cc78da26d4d40ed42958fefac`，
+584项证据索引SHA为`b2aad56d8a6b4226e99fdffa82e3046f8543e169543711211a41dc5a6615f656`。
+DSA只读核验另在AX3000T的lan2/lan3/lan4/wan完成32次请求，dump/single的属性与状态guard一致；
+生产C身份、boot/config与Wi-Fi健康不变，collector已清理。这不改变H9拒绝决定。
+
+H8主假设已由精确链接musl的allocator源码/机器码排除：当前128KiB和低usage32KiB请求
+走已知零页映射，不存在预想的大块清零；高usage例外所需映射内存超过已观测VmPeak。
+这只关闭已观测压力下的假设，不证明任意未来allocator负载相同。省略寿命的替代screen保持UNRUN，
+不为旧失败换参数补跑。H6/H7/H8/H9均不在当前候选中。
+
+H4b延迟缓存只存为未构建审查记录。H4c改为在既有same_config分类后移动未变化radio/vif的
+配置blob，初次load与changed/added仍立即编码，不增加缓存状态。ELF为
+`b292b0cdbf3daeeef27309ab2a9939c93c4d68a5a22ecbeab691780f7e44e69f`；
+164单测、clippy/release/ABI通过。性能与新隔离功能门尚待验证，不能宣称解决reload成本。
+
+测试修复复用现有 `benchmark/ns_exec.c`：suite逐case隔离，上述五场景再逐C/Rust侧隔离，
+由私有PID1退出统一回收子孙；namespace非零退出不再被忽略。R83删除尾部宽pkill并限定真实脚本argv。
+R52在ifdown前验证helper身份并等待该实例消失；updated探针用pidfd STOP保持接口up，前后均确认
+无运行子脚本，完整status与同一helper身份必须通过。该修改没有改变netifd或镜像协议脚本。
+本地工具语法检查及19+3项断言测试通过，包含缺失身份、错误实例、未退出、未停止、有子进程、
+四阶段接口down等负例。C/H4c的R52/R53/R56/R83在validation-01通过；R83c的C侧在新增
+errexit下暴露disabled ghost不存在device对象的预期错误，退出1并保留root及日志。
+工具修正为保存完整stdout/stderr/CLI退出码，仅veth3允许254、空stdout及Invalid argument；
+两侧错误码继续比较。validation-02只重跑R83c，C/H4c通过。全部10个侧的namespace退出0，
+逐侧pid/net/mnt census无成员、无读取错误；最终宿主mount/network/namespace完全不变，
+项目root存活进程为0。ns-exec正常退出、setsid子孙、launcher死亡回收及退出37传播也通过。
+这些是五场景工具验证，不能替代最终组合或正式CI ELF的完整31场景。
+结果索引为`suite-isolation-validation-result.json`；最终工具清单SHA为
+`60d5408369e284a21232907186c7c3ae17e900febef93742b132bd09faba3c5c`。
+
+H7b在清洁Oracle按原2strace+4对计划完成。主体CPU比为0.92806/0.85356/1.01918/0.93498，
+中位0.93152，三对改善、最差≤1.02，通过冻结CPU门；fstat减少100%，fcntl减少约95.0%。
+第3对ubusd/caller分别增加8.04%/8.89%，settled三角色child增加36ticks，不能由±12ticks
+量化区间解释，也没有同期frequency/steal证据把它认定为噪声。该回退保留未闭合。
+稳态Anon差在−8至+4KiB，fd均12→14→10、线程1；只支持进入完整功能/恢复门，尚非全系统接受。
+`H7B_SCREEN_RESULTS.md` SHA为`c4101d9215778d50405decb308310a531d2a3c35e97a0b2a160527e19e919b76`，
+1208项索引SHA为`21d3e5010b47d6cfd5f81dfe067c1be205629836e3967c56c5bec6505ed407e7`。
