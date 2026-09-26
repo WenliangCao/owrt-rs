@@ -41,6 +41,7 @@ def main():
     p.add_argument("--unit-tests", type=Path, help="SDK-built Rust test executable")
     p.add_argument("--unit-filter", default="file::read_tests", help="test name filter, recorded in evidence")
     p.add_argument("--workload-script", type=Path, help="isolated.sh-compatible correctness probe")
+    p.add_argument("--netifd-fixture", type=Path, help="private wireless config/schema/stub and expected reply")
     p.add_argument("--before-candidate", type=Path, help="optional failing-version control for the probe")
     p.add_argument("--implementation", choices=("c", "rs"), default="rs")
     p.add_argument("--iterations", type=int, default=10)
@@ -53,6 +54,15 @@ def main():
         p.error("iterations must be positive; pilots require --workload-script or --matrix")
     if a.matrix and (a.workload_script or a.component not in ("ubusd", "procd", "netifd", "rpcd", "httpd")):
         p.error("matrix requires a supported daemon and no custom workload script")
+    if a.netifd_fixture and a.component != "netifd":
+        p.error("--netifd-fixture requires netifd")
+    fixture_hashes = {}
+    if a.netifd_fixture:
+        for name in ("wireless", "handler-schema.json", "mac80211.sh", "expected-wireless.json"):
+            path = a.netifd_fixture / name
+            if not path.is_file():
+                p.error("missing netifd fixture file: " + str(path))
+            fixture_hashes[name] = hashlib.sha256(path.read_bytes()).hexdigest()
     a.output.mkdir(parents=True, exist_ok=False, mode=0o700)
     ssh = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
            "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3", a.host]
@@ -85,12 +95,20 @@ def main():
               "correctness_smoke_only": not a.pilot, "pilot_only": a.pilot,
               "implementation": a.implementation, "iterations": a.iterations, "installed": False,
               "matrix": a.matrix,
+              "netifd_fixture_sha256": fixture_hashes,
               "production_mode": "stock", "remote": base,
               "passed": False, "cleanup_verified": False}
     failure = None
     try:
         remote(f"test ! -e {base} && mkdir -p {base}/bundle {base}/out {base}/work")
         remote(f"cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark {base}/bundle/")
+        if fixture_hashes:
+            remote(f"mkdir {base}/bundle/netifd-fixture")
+            for name, expected in fixture_hashes.items():
+                destination = f"{base}/bundle/netifd-fixture/{name}"
+                subprocess.run(["scp", "-q", "-O", str((a.netifd_fixture / name).resolve()),
+                                a.host + ":" + destination], check=True)
+                assert remote(f"sha256sum {destination}").decode().split()[0] == expected
         if a.benchmark:
             result["benchmark_sha256"] = hashlib.sha256(a.benchmark.read_bytes()).hexdigest()
             subprocess.run(["scp", "-q", "-O", str(a.benchmark.resolve()),
