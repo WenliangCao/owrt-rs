@@ -14,7 +14,8 @@ from unittest.mock import patch
 from pathlib import Path
 
 from audit_checks import (interfaces, kernel, lease, mask_session_ids, resources,
-                          output_archive, transcript36, transcript41, transcript42, volatile_netifd_path)
+                          output_archive, transcript36, transcript41, transcript42, validate,
+                          volatile_netifd_path)
 import r16_uci_check
 import r19_lucirpc_check
 import r24_uci_fuzz
@@ -134,6 +135,51 @@ class EvidenceGates(unittest.TestCase):
         for text in ('{}', '{"up":false}', '{"up":true,"ipv4-address":[]}'):
             with self.assertRaises(ValueError):
                 lease(text)
+
+    def test_dhcp_gate_requires_verified_exit_and_quiescent_up_helper(self):
+        loop = {'interface': 'loopback', 'up': True,
+                'ipv4-address': [{'address': '127.0.0.1'}]}
+        wan = {'interface': 'wan', 'up': True,
+               'ipv4-address': [{'address': '10.0.0.100'}]}
+        helper = {'pid': 42, 'starttime': 123456, 'exe_sha256': 'f' * 64,
+                  'argv_hex': b'udhcpc\0-p\0/var/run/udhcpc-veth1.pid\0'.hex()}
+        stopped = {**helper, 'pid': 84, 'starttime': 123999, 'state': 'T', 'children': []}
+        files = {
+            'kernel.txt': '--- ip addr\ninet 127.0.0.1/8\n',
+            'ubus.txt': '--- interface dump\n' + json.dumps({'interface': [loop, wan]})
+                        + '\n--- wan status\n' + json.dumps(wan),
+            'reup-status.txt': json.dumps(wan),
+            'veth0-before.txt': 'inet 10.0.0.1/24\ninet6 fe80::ff:fe00:0/64',
+            'veth0-after.txt': 'inet6 fe80::ff:fe00:0/64',
+            'down.txt': 'udhcpc stopped by the teardown',
+            'helper-before-down.json': json.dumps(helper),
+            'helper-before-down.json.exit.json': json.dumps({**helper, 'result': 'exited'}),
+            'helper-stopped.json': json.dumps(stopped),
+            'helper-stopped.json.verified.json': json.dumps(stopped),
+        }
+        for phase in ('prestop', 'baseline', 'first', 'repeat'):
+            files[f'upd-{phase}.json'] = json.dumps(wan)
+        mutations = [
+            ('helper-before-down.json', {}),
+            ('helper-before-down.json.exit.json', {**helper, 'result': 'alive'}),
+            ('helper-before-down.json.exit.json', {**helper, 'starttime': 1, 'result': 'exited'}),
+            ('helper-stopped.json', {**stopped, 'state': 'S'}),
+            ('helper-stopped.json', {**stopped, 'children': ['900']}),
+            ('helper-stopped.json.verified.json', {**stopped, 'pid': 85}),
+        ] + [(f'upd-{phase}.json', {**wan, 'up': False})
+             for phase in ('prestop', 'baseline', 'first', 'repeat')]
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            for side in ('c', 'rs'):
+                for name, text in files.items():
+                    (out / f'{side}-{name}').write_text(text)
+            validate('r52', out)
+            for name, value in mutations:
+                path = out / f'c-{name}'
+                with self.subTest(name=name, value=value), self.assertRaises(ValueError):
+                    path.write_text(json.dumps(value))
+                    validate('r52', out)
+                path.write_text(files[name])
 
     def test_cycles_fail_on_skipped_work_leaks_and_failed_calls(self):
         text = ('before rss_kb=1000 fds=10 threads=1\ncycles: 200\nfailed calls: 0\n'

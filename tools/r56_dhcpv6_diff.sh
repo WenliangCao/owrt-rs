@@ -19,6 +19,9 @@
 set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r56-out}
 mkdir -p "$out"
+here=$(cd "$(dirname "$0")" && pwd)
+. "$here/netifd_test_ns.sh"
+netifd_test_ns_init "$here" "$out"
 
 CFG='config interface "loopback"
 	option device "lo"
@@ -111,8 +114,10 @@ echo "--- interface dump"
 ubus call network.interface dump
 PROBE
 
-	sudo -n unshare --mount --net --fork /bin/sh -c '
+	side_rc=0
+	sudo -n "$NETIFD_TEST_NS_EXEC" /bin/sh -eu -c '
 		root=$1; tag=$2; out=$3
+		for ns in pid net mnt; do readlink "/proc/self/ns/$ns"; done > "$out/$tag-namespace.txt"
 		mount --make-rprivate /
 		mount -t sysfs sysfs /sys
 		mount -t proc proc "$root/proc"; mount -t sysfs sysfs "$root/sys"
@@ -120,7 +125,6 @@ PROBE
 		mknod -m 666 "$root/dev/null" c 1 3
 		mknod -m 666 "$root/dev/urandom" c 1 9
 		mknod -m 666 "$root/dev/zero" c 1 5
-		trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 
 		ip link set lo up
 		ip link add veth0 address 02:00:00:00:00:00 type veth \
@@ -198,11 +202,15 @@ PROBE
 		cp "$root/tmp/out/hotplug.txt" "$out/$tag-hotplug.txt" 2>/dev/null || \
 			: > "$out/$tag-hotplug.txt"
 
-		for f in server netifd ubusd cand; do
-			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
-			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
-		done
-		' sh "$root" "$tag" "$out" > "$out/$tag-outer.log" 2>&1 || true
+		# ns-exec destroys every remaining descendant when this shell exits.
+		exit 0
+		' sh "$root" "$tag" "$out" > "$out/$tag-outer.log" 2>&1 || side_rc=$?
+	printf "%s\n" "$side_rc" > "$out/$tag-namespace-exit.txt"
+	if [ "$side_rc" -ne 0 ]; then
+		printf "%s\n" "$tmp" > "$out/$tag-failed-root.txt"
+		echo "RESULT($tag): namespace failed (rc=$side_rc); preserved $tmp" >&2
+		return "$side_rc"
+	fi
 
 	sudo -n chown "$(id -u):$(id -g)" "$out"/$tag-* 2>/dev/null || true
 	sudo -n rm -rf "$tmp"

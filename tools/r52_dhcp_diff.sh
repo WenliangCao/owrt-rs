@@ -17,6 +17,9 @@
 set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r52-out}
 mkdir -p "$out"
+here=$(cd "$(dirname "$0")" && pwd)
+. "$here/netifd_test_ns.sh"
+netifd_test_ns_init "$here" "$out"
 
 CFG='config interface "loopback"
 	option device "lo"
@@ -81,27 +84,26 @@ ubus call network.interface.wan status
 
 PROBE
 
-	# `updated` on an interface that is genuinely up, driven only by notifies
-	# sent from here. This runs last, after everything that depends on the
-	# DHCP client, and stops that client first: while udhcpc is alive its own
-	# notifies interleave with these two and the answer depends on which one
-	# landed last. That cost one spurious failure in about eight runs before
-	# it was pinned down.
+	# Final updated-mask probe: the outer driver verifies and SIGSTOPs the
+	# real helper after re-up. Its exit would trigger LINK_LOST + teardown.
+	# No active DHCP script child is permitted when it is stopped.
 	sudo -n tee "$root/tmp/updprobe.sh" >/dev/null <<'UPROBE'
-set -u
-p=$(cat /var/run/udhcpc-veth1.pid 2>/dev/null || true)
-[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
-sleep 1
-upd() { ubus call network.interface.wan status | tr -d " \t\n" \
-	| grep -oE '"updated":\[[^]]*\]' || echo '"updated":ABSENT'; }
+set -eu
+upd() {
+	ubus call network.interface.wan status > "/tmp/out/upd-$1.json"
+	tr -d " \t\n" < "/tmp/out/upd-$1.json" | grep -q '"up":true'
+	tr -d " \t\n" < "/tmp/out/upd-$1.json" \
+		| grep -oE '"updated":\[[^]]*\]' || echo '"updated":ABSENT'
+}
 N='{"action":0,"link-up":true,"ifname":"veth1","ipaddr":[{"ipaddr":"10.0.0.100","mask":24}]}'
-echo "--- upd baseline"; upd
+sleep 1
+echo "--- upd baseline"; upd baseline
 ubus call network.interface.wan notify_proto "$N" >/dev/null 2>&1
 sleep 1
-echo "--- upd after first notify"; upd
+echo "--- upd after first notify"; upd first
 ubus call network.interface.wan notify_proto "$N" >/dev/null 2>&1
 sleep 1
-echo "--- upd after identical repeat"; upd
+echo "--- upd after identical repeat"; upd repeat
 UPROBE
 
 	# A single-address pool: both runs must get 10.0.0.100.
@@ -120,8 +122,10 @@ pidfile $tmp/udhcpd.pid
 UD
 	: > "$tmp/udhcpd.leases"
 
-	sudo -n unshare --mount --net --fork /bin/sh -c '
-		root=$1; tag=$2; tmp=$3; out=$4
+	side_rc=0
+	sudo -n "$NETIFD_TEST_NS_EXEC" /bin/sh -eu -c '
+		root=$1; tag=$2; tmp=$3; out=$4; here=$5
+		for ns in pid net mnt; do readlink "/proc/self/ns/$ns"; done > "$out/$tag-namespace.txt"
 		mount --make-rprivate /
 		mount -t sysfs sysfs /sys
 		mount -t proc proc "$root/proc"; mount -t sysfs sysfs "$root/sys"
@@ -129,7 +133,6 @@ UD
 		mknod -m 666 "$root/dev/null" c 1 3
 		mknod -m 666 "$root/dev/urandom" c 1 9
 		mknod -m 666 "$root/dev/zero" c 1 5
-		trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 
 		ip link set lo up
 		ip link add veth0 type veth peer name veth1
@@ -173,7 +176,8 @@ UD
 		# ifdown must stop the helper and take the lease off the device, and
 		# ifup must get it back. A teardown command that never runs leaves
 		# udhcpc alive, which only a real cycle shows.
-		chroot "$root" ubus call network.interface.wan down >/dev/null 2>&1 || true
+		python3 "$here/netifd_test_process.py" capture "$root" "$out/$tag-helper-before-down.json"
+		chroot "$root" ubus call network.interface.wan down >/dev/null 2>&1
 		j=0
 		while [ $j -lt 15 ]; do
 			chroot "$root" ubus call network.interface.wan status 2>/dev/null \
@@ -182,23 +186,7 @@ UD
 		done
 		{
 			echo "--- after ifdown: is the DHCP helper still alive"
-			# What matters is whether the teardown stops the helper AT ALL --
-			# a teardown command that never runs leaves it alive forever.
-			# Sampling the instant is a race: the address goes first and the
-			# process exits shortly after, so one side can be caught
-			# mid-exit. Wait a bounded time and report the property, not the
-			# moment. By pid file, not by parsing ps: busybox ps repeats lines.
-			p=$(cat "$root/var/run/udhcpc-veth1.pid" 2>/dev/null || true)
-			k=0
-			while [ $k -lt 10 ]; do
-				[ -n "$p" ] && [ -d "/proc/$p" ] || break
-				k=$((k+1)); sleep 1
-			done
-			if [ -n "$p" ] && [ -d "/proc/$p" ]; then
-				echo "udhcpc still running after 10s"
-			else
-				echo "udhcpc stopped by the teardown"
-			fi
+			python3 "$here/netifd_test_process.py" wait-exit "$root" "$out/$tag-helper-before-down.json"
 			echo "--- after ifdown: veth1"
 			# the C sets the state and emits the event before it touches the
 			# kernel, so give both sides the same chance to finish
@@ -207,7 +195,7 @@ UD
 			ip -o addr show dev veth1 | sed -E "s/^[0-9]+: //"
 			echo "--- after ifdown: wan status"
 			chroot "$root" ubus call network.interface.wan status 2>/dev/null
-		} > "$out/$tag-down.txt" 2>&1 || true
+		} > "$out/$tag-down.txt" 2>&1
 
 		chroot "$root" ubus call network.interface.wan up >/dev/null 2>&1 || true
 		j=0
@@ -234,15 +222,24 @@ UD
 		chroot "$root" /bin/sh -c "ps 2>/dev/null | grep -c udhcpc" \
 			> "$out/$tag-udhcpc-count.txt" 2>&1 || true
 
-		chroot "$root" /bin/sh /tmp/updprobe.sh > "$out/$tag-upd.txt" 2>&1 || true
-
-		p=$(cat "$tmp/udhcpd.hostpid" 2>/dev/null || true)
-		[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
-		for f in netifd ubusd cand; do
-			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
-			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
+		chroot "$root" ubus call network.interface.wan status > "$out/$tag-upd-prestop.json"
+		tr -d " \t\n" < "$out/$tag-upd-prestop.json" | grep -q "\"up\":true"
+		python3 "$here/netifd_test_process.py" stop "$root" "$out/$tag-helper-stopped.json"
+		chroot "$root" /bin/sh /tmp/updprobe.sh > "$out/$tag-upd.txt" 2>&1
+		python3 "$here/netifd_test_process.py" verify-stopped "$root" "$out/$tag-helper-stopped.json"
+		for phase in baseline first repeat; do
+			cp "$root/tmp/out/upd-$phase.json" "$out/$tag-upd-$phase.json"
 		done
-		' sh "$root" "$tag" "$tmp" "$out" > "$out/$tag-outer.log" 2>&1 || true
+
+		# ns-exec destroys every remaining descendant when this shell exits.
+		exit 0
+		' sh "$root" "$tag" "$tmp" "$out" "$here" > "$out/$tag-outer.log" 2>&1 || side_rc=$?
+	printf "%s\n" "$side_rc" > "$out/$tag-namespace-exit.txt"
+	if [ "$side_rc" -ne 0 ]; then
+		printf "%s\n" "$tmp" > "$out/$tag-failed-root.txt"
+		echo "RESULT($tag): namespace failed (rc=$side_rc); preserved $tmp" >&2
+		return "$side_rc"
+	fi
 
 	sudo -n chown "$(id -u):$(id -g)" "$out"/$tag-* 2>/dev/null || true
 	sudo -n rm -rf "$tmp"

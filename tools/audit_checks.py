@@ -198,6 +198,24 @@ def validate(case, out, cycles=200):
             require("10.0.0.1/24" in addr[0] and addr[1] == {"fe80::ff:fe00:0/64"},
                     "unconfigured parent veth0 did not follow reference clear-state behavior")
             require("udhcpc stopped by the teardown" in read(side, "down.txt"), "DHCP helper survived teardown")
+            helper = object_json(read(side, "helper-before-down.json"))
+            exited = object_json(read(side, "helper-before-down.json.exit.json"))
+            stopped = object_json(read(side, "helper-stopped.json"))
+            for identity in (helper, stopped):
+                require(isinstance(identity.get("pid"), int) and identity["pid"] > 1
+                        and isinstance(identity.get("starttime"), int)
+                        and re.fullmatch(r"[0-9a-f]{64}", identity.get("exe_sha256", ""))
+                        and bytes.fromhex(identity.get("argv_hex", "")).startswith(b"udhcpc\0"),
+                        "missing verified DHCP helper identity")
+            require({key: exited.get(key) for key in helper} == helper
+                    and exited.get("result") in ("exited", "pid-reused"),
+                    "original DHCP helper exit was not verified")
+            require(stopped.get("state") == "T" and stopped.get("children") == [],
+                    "updated probe helper was not stopped and quiescent")
+            require(object_json(read(side, "helper-stopped.json.verified.json")) == stopped,
+                    "helper identity was not reverified after notifications")
+            for phase in ("prestop", "baseline", "first", "repeat"):
+                lease(read(side, "upd-" + phase + ".json"))
         elif case == "r53":
             for phase in ("initial", "renewed"):
                 lease(read(side, f"{phase}-lease.json"))

@@ -21,6 +21,9 @@
 set -eu
 rootfs=$1; cand=$2; out=${3:-/tmp/r83-out}
 mkdir -p "$out"
+here=$(cd "$(dirname "$0")" && pwd)
+. "$here/netifd_test_ns.sh"
+netifd_test_ns_init "$here" "$out"
 
 CFG='config interface "loopback"
 	option device "lo"
@@ -113,8 +116,10 @@ set -u
 echo $! > /tmp/out/netifd.pid
 RN
 
-	sudo -n unshare --mount --net --fork /bin/sh -c '
+	side_rc=0
+	sudo -n "$NETIFD_TEST_NS_EXEC" /bin/sh -eu -c '
 		root=$1; tag=$2; tmp=$3; out=$4; tagnum=$5
+		for ns in pid net mnt; do readlink "/proc/self/ns/$ns"; done > "$out/$tag-namespace.txt"
 		mount --make-rprivate /
 		mount -t sysfs sysfs /sys
 		mount -t proc proc "$root/proc"; mount -t sysfs sysfs "$root/sys"
@@ -122,7 +127,6 @@ RN
 		mknod -m 666 "$root/dev/null" c 1 3
 		mknod -m 666 "$root/dev/urandom" c 1 9
 		mknod -m 666 "$root/dev/zero" c 1 5
-		trap "umount $root/dev 2>/dev/null; umount $root/sys 2>/dev/null; umount $root/proc 2>/dev/null" EXIT
 
 		ip link set lo up
 		ip link add veth0 address 02:00:00:00:00:00 type veth peer name veth1 address 02:00:00:00:00:01
@@ -137,7 +141,7 @@ RN
 
 		st() { chroot "$root" ubus call network.interface.$1 status 2>/dev/null | tr -d " \n"; }
 		helpers() { pgrep -fc "^sleep 1$tagnum\$" || true; }
-		scripts() { pgrep -fc "slowsetup.sh" || true; }
+		scripts() { pgrep -fc "^(/bin/)?sh (\./|/lib/netifd/proto/)slowsetup[.]sh( |$)" || true; }
 		wait_up() {
 			i=0
 			while [ $i -lt 30 ]; do
@@ -201,14 +205,15 @@ RN
 		echo "sigterm: before[$before] alive=$alive helpers=$(helpers) scripts=$(scripts)" >> "$res"
 
 		cp "$root/tmp/out/netifd.log" "$out/$tag-daemon.log" 2>/dev/null || true
-		pkill -9 -f "^sleep 1$tagnum\$" 2>/dev/null || true
-		pkill -9 -f "^sleep 6$tagnum\$" 2>/dev/null || true
-		pkill -9 -f "slowsetup.sh" 2>/dev/null || true
-		for f in netifd ubusd; do
-			p=$(cat "$root/tmp/out/$f.pid" 2>/dev/null || true)
-			[ -n "$p" ] && kill -9 "$p" 2>/dev/null || true
-		done
-		' sh "$root" "$tag" "$tmp" "$out" "$tagnum" > "$out/$tag-outer.log" 2>&1 || true
+		# ns-exec destroys every remaining descendant when this shell exits.
+		exit 0
+		' sh "$root" "$tag" "$tmp" "$out" "$tagnum" > "$out/$tag-outer.log" 2>&1 || side_rc=$?
+	printf "%s\n" "$side_rc" > "$out/$tag-namespace-exit.txt"
+	if [ "$side_rc" -ne 0 ]; then
+		printf "%s\n" "$tmp" > "$out/$tag-failed-root.txt"
+		echo "RESULT($tag): namespace failed (rc=$side_rc); preserved $tmp" >&2
+		return "$side_rc"
+	fi
 
 	sudo -n chown "$(id -u):$(id -g)" "$out"/$tag-* 2>/dev/null || true
 	sudo -n rm -rf "$tmp"

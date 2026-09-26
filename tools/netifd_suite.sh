@@ -71,6 +71,9 @@ if [ $missing -ne 0 ]; then
 	exit 2
 fi
 
+. "$here/netifd_test_ns.sh"
+netifd_test_ns_init "$here" "$out" || exit 2
+
 pass=0; failn=0; skipped=0; total=0
 while IFS= read -r line; do
 	[ -n "$line" ] || continue
@@ -100,7 +103,7 @@ while IFS= read -r line; do
 		r50) args=("$rootfs" "$bin" "${CYCLES:-200}" "$out/$name") ;;
 		r63) args=("$rootfs" "$bin" "$NETWORK_CONFIG" "$WIRELESS_CONFIG" "$out/$name") ;;
 	esac
-	if env $envs bash "$here/$script" "${args[@]}" > "$out/$name.log" 2>&1; then
+	if env $envs "$NETIFD_TEST_NS_EXEC" bash "$here/$script" "${args[@]}" > "$out/$name.log" 2>&1; then
 		v=ok; pass=$((pass+1))
 	else
 		v=FAILED; failn=$((failn+1))
