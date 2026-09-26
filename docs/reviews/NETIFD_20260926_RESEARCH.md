@@ -42,13 +42,13 @@ Oracle 对应 `/home/ubuntu/netifd-research-20260926/`。本报告只提交派�
 
 ## 独立假设和候选索引
 
-所有候选均从同一起点生成，尚未组合。下表 SHA 为 Oracle SDK release + sstrip 诊断 ELF。
+以下是从同一起点独立筛选的历史候选；H0/H1/H2/H3c/H5 已组合，H4 已拒绝。表中早期 SHA 为 Oracle SDK release + sstrip 诊断 ELF；最终 ELF 与 selector 正确性修复的身份见后文。
 
 | 候选 | 单一假设 / 改动 | SHA-256 | 当前证据 |
 |---|---|---|---|
 | base | 当前代码；仅诊断 example 增强 | `0665583158fc32cd019e5df2e32d4675a586757fb1c450c1a4ed71c590f4caa0` | 157 单测；完整 suite 31/31；clippy 项目门通过 |
 | H0 | Option 持有回复缓冲，消除 mem::take 的默认占位分配；错误早退归还缓存 | `72f17bdb44ff9abfcc1ad91e7acc3de41d1692850cc92179a85ad47164252106` | 取用微探针每次减少 1 allocation / 4 requested bytes；尚无实机收益结论 |
-| H1 | wireless status 直接从借用配置按原字段顺序编码 blob；handler JSON 不改 | `23a77c43c9df70fef12bba4da59cdb87392cdf4536b7cece50c29ae42de685aa` | 158 单测；真实配置投影 byte-for-byte 相同；完整 suite 运行中 |
+| H1 | wireless status 直接从借用配置按原字段顺序编码 blob；handler JSON 不改 | `23a77c43c9df70fef12bba4da59cdb87392cdf4536b7cece50c29ae42de685aa` | 158 单测；真实配置投影 byte-for-byte 相同；完整 suite 31/31 通过 |
 | H2 | netlink 回复仍保留至少 64 KiB 接收容量；只将 recv 实际写入的 n 字节设为 initialized | `ead0b44ee8113fa630962a391f90fb39c5dbcf091b8645e99d178ec7b0713ba6` | 157 单测；overflow、restart、两种重连故障通过；Oracle RSS/Anon 各少 64 KiB |
 | H3 | 回复保留上界单独从 64 KiB 改成 128 KiB | `010c3131c36be06ede7fcb397c9e0ec3a8466bbee1cfcae5002cea2adafb0bb4` | 128 接口微探针扩容消失；实际 daemon 128 接口和常驻取舍待筛查 |
 
@@ -89,7 +89,7 @@ A/A plan 在采样前冻结于 `aa-plan-01.json`：正式 R89 同一临时路径
 collector 和 harness 复制到 `frozen-01/` 后不改；完整 hash 见 plan 和每轮输出。
 确认实验的样本量、实际门槛、比较集合尚未冻结；不得用本阶段最好的窗口作胜出结果。
 
-## 未完成与停止条件
+## 初始审查快照（后续状态见下文）
 
 仍需：H1/组合完整功能恢复门；H3 实际128接口筛查；真实配置 stub 的三侧 daemon 差分与硬件负载；
 正式 core recipe/最终身份构建；A/A 结果和冻结的 C/R89/候选确认；netlink buffer/队列、关闭后回收及
@@ -104,11 +104,11 @@ A correctness gap found during the final contract review was fixed before genera
 
 The final Oracle SDK/aarch64 release build (formal recipe flags, ABI check, Rust 1.98.1, musl) is `private/netifd-20260926/final-candidate/netifd-rs`, SHA-256 `13d21f6fecc0223e006e786bed7b078cfd75e3baf5ad154bb98194d895c268f6`. Its source archive is `private/netifd-20260926/final-candidate/source.tar.gz`, SHA-256 `b8375d63a62b85f37cd0da626468529fd28b9ca145e82ecfb7f9774991d82555`. This is a recipe/ABI build and is not a canonical GitHub workflow artifact; no release, install, switch, reboot, or flash was performed. Unit tests pass (159), and the project clippy gate `--all-targets -- -D clippy::undocumented_unsafe_blocks` passes with existing warnings.
 
-The full `tools/netifd_suite.sh` run for this exact final ELF is running on Oracle under `/home/ubuntu/netifd-research-20260926/final-selector-suite`; its log and every case directory are retained. The earlier H1/H2 recovery and suite outputs remain separate and are not relabeled as final-ELF evidence.
+The full `tools/netifd_suite.sh` run for this exact final ELF completed 31/31 on Oracle under `/home/ubuntu/netifd-research-20260926/final-selector-suite`; its log and every case directory are retained. The earlier H1/H2 recovery and suite outputs remain separate and are not relabeled as final-ELF evidence.
 
 ## Frozen hardware confirmation design
 
-The two R89 A/A rounds are calibration only. They are not pooled with confirmation and cannot establish equivalence. The confirmation family is frozen as 24 workload strata: 14 primary 32-interface/empty-wireless lanes, four 64-interface lanes, four 128-interface lanes, and two lanes from the non-empty two-radio configuration (`wireless_status` and its four-client form). The eight formal performance metrics are request mean, p50, p95, p99, throughput, subject CPU, dependency CPU, and caller CPU, each against C and formal R89 (`m = 384` planned comparisons). RSS, anonymous RSS, HWM, fd/thread counts, netlink socket buffer/drop observations, and close/reap behavior are reported as engineering/resource evidence, outside the superiority family because current HWM/RSS are diagnostic counters rather than independent peak/PSS measurements.
+The two R89 A/A rounds are calibration only. They are not pooled with confirmation and cannot establish equivalence. The confirmation family is frozen as 24 workload strata: 14 primary 32-interface/empty-wireless lanes, four 64-interface lanes, four 128-interface lanes, and two lanes from the captured non-empty two-radio configuration projected through an isolated mac80211 stub (no real radio reconfiguration) (`wireless_status` and its four-client form). The eight formal performance metrics are request mean, p50, p95, p99, throughput, subject CPU, dependency CPU, and caller CPU, each against C and formal R89 (`m = 384` planned comparisons). RSS, anonymous RSS, HWM, fd/thread counts, netlink socket buffer/drop observations, and close/reap behavior are reported as engineering/resource evidence, outside the superiority family because current HWM/RSS are diagnostic counters rather than independent peak/PSS measurements.
 
 Each stratum uses 19 independent `random-blocks` blocks (57 fresh namespaces) with the C/formal-R89/final-ELF order uniformly shuffled inside each block and a pre-recorded seed. For `m=384`, the exact two-sided Bonferroni rank interval first permits one adverse block at `n=19` (`k=2`, order statistics 2 through 18); six or eight windows cannot provide that family-level finite interval. Fast lanes use a separate frozen run with `N=40000`; other lanes may use `N=10000`. Outputs from separate lane runs are never paired across runs. Calibration windows, failed windows, and identity/cleanup failures are preserved and excluded from superiority claims.
 
