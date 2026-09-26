@@ -829,6 +829,12 @@ pub struct IfIoctl {
     fd: std::os::fd::OwnedFd,
 }
 
+impl AsRawFd for IfIoctl {
+    fn as_raw_fd(&self) -> std::os::fd::RawFd {
+        self.fd.as_raw_fd()
+    }
+}
+
 impl IfIoctl {
     pub fn open() -> io::Result<Self> {
         const SOCK_DGRAM: i32 = 2;

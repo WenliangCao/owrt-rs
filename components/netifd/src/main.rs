@@ -245,12 +245,13 @@ struct Netifd {
     netlink_resync: bool,
     restart_at: Option<u64>,
     ethtool: ethtool::Ethtool,
-    ifioctl: sys::IfIoctl,
     conn: Connection,
     /// Storage for read replies, reused across requests so a 32-interface
     /// dump does not regrow a fresh buffer from 1 KiB through several
     /// reallocations every time. Bounded after each send.
-    reply: BlobBuf,
+    reply: Option<BlobBuf>,
+    // Allocation hint only; large dump bytes are still released after sending.
+    dump_capacity_hint: usize,
     objects: ubus::Objects,
     confdir: String,
     /// `resolv_conf` (-r): where interface_write_resolv_conf writes.
@@ -368,9 +369,9 @@ impl Netifd {
             claimed_main: Vec::new(),
             claimed_l3: Vec::new(),
             ethtool: ethtool::Ethtool::open()?,
-            ifioctl: sys::IfIoctl::open()?,
             conn,
-            reply: BlobBuf::new(),
+            reply: Some(BlobBuf::new()),
+            dump_capacity_hint: 0,
             objects,
             confdir: confdir.to_string(),
             resolvconf: DEFAULT_RESOLV_CONF.to_string(),
@@ -1106,7 +1107,7 @@ impl Netifd {
                 d.active = self.claims.iter().any(|(n, c)| n == name && *c > 0);
             }
             d.link_active = flags & sys::IFF_LOWER_UP != 0;
-            d.orig_settings = device::read_settings(name, &self.ethtool, &self.ifioctl);
+            d.orig_settings = device::read_settings(name, &self.ethtool, self.ethtool.if_ioctl());
             pending.push(d);
         }
         for mut d in pending {
@@ -3797,15 +3798,15 @@ impl Netifd {
     }
 
     fn take_reply(&mut self) -> BlobBuf {
-        std::mem::take(&mut self.reply)
+        self.reply.take().unwrap_or_default()
     }
 
     /// Send `b` as the DATA + STATUS reply and keep its storage for the next
     /// request, dropping it if an unusually large reply inflated it.
-    fn send_reply(&mut self, req: &Request, b: BlobBuf) -> io::Result<()> {
+    fn send_reply(&mut self, req: &Request, mut b: BlobBuf) -> io::Result<()> {
         let result = reply_fields(&mut self.conn, req, b.payload());
-        self.reply = b;
-        self.reply.reset_bounded(64 * 1024);
+        b.reset_bounded(64 * 1024);
+        self.reply = Some(b);
         result
     }
 
@@ -3864,13 +3865,39 @@ impl Netifd {
             // `interface_set_down(NULL)`, which does NOT clear autostart --
             // so everything comes back up afterwards.
             (ubus::Target::Wireless, "status") => {
+                let selected = match self.wireless_selector(&req.data) {
+                    Ok(selected) => selected,
+                    Err(code) => {
+                        let _ = self.conn.reply_status(req, code, None);
+                        return;
+                    }
+                };
+                if let Some(index) = selected {
+                    if self.wconfig.get(index).is_none() {
+                        let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
+                        return;
+                    }
+                }
                 let mut b = self.take_reply();
-                wireless::json_text_into_blob(&mut b, &self.wireless_status_json());
+                self.wireless_status_into_blob(&mut b, selected);
                 self.send_reply(req, b)
             }
             (ubus::Target::Wireless, "get_validate") => {
+                let selected = match self.wireless_selector(&req.data) {
+                    Ok(selected) => selected,
+                    Err(code) => {
+                        let _ = self.conn.reply_status(req, code, None);
+                        return;
+                    }
+                };
+                if let Some(index) = selected {
+                    if self.wconfig.get(index).is_none() {
+                        let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
+                        return;
+                    }
+                }
                 let mut b = self.take_reply();
-                let text = wireless::get_validate_json(&self.wconfig, &self.whandlers);
+                let text = wireless::get_validate_json_selected(&self.wconfig, &self.whandlers, selected);
                 wireless::json_text_into_blob(&mut b, &text);
                 self.send_reply(req, b)
             }
@@ -3949,6 +3976,7 @@ impl Netifd {
                     // object with no kernel device is still dumped
                     Some(n) => {
                         if self.devices.get(&n).is_none() {
+                            self.reply = Some(b);
                             let _ =
                                 self.conn.reply_status(req, status::INVALID_ARGUMENT, None);
                             return;
@@ -3997,6 +4025,9 @@ impl Netifd {
             (ubus::Target::Device, m) => ubus::not_supported(&mut self.conn, req, m),
             (ubus::Target::Interface(_), "dump") => {
                 let mut b = self.take_reply();
+                if self.dump_capacity_hint > 64 * 1024 {
+                    b = BlobBuf::with_capacity(self.dump_capacity_hint);
+                }
                 let arr = b.msg_open_array("interface");
                 for i in &self.interfaces {
                     let t = b.msg_open_table("");
@@ -4004,6 +4035,7 @@ impl Netifd {
                     b.msg_close(t);
                 }
                 b.msg_close(arr);
+                self.dump_capacity_hint = (b.payload().len() + 4).min(256 * 1024);
                 self.send_reply(req, b)
             }
             (ubus::Target::Interface(Some(name)), "status") => {
@@ -4012,7 +4044,7 @@ impl Netifd {
                 let name = name.to_string();
                 let mut b = self.take_reply();
                 let Some(i) = interface::find_by_name(&self.interfaces, &name) else {
-                    self.reply = b;
+                    self.reply = Some(b);
                     let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
                     return;
                 };
@@ -5019,9 +5051,33 @@ impl Netifd {
     /// `status`, from the live radio state rather than the no-hardware
     /// defaults: `up`/`pending` follow the state machine, and `ifname` comes
     /// from whatever the handler reported through `notify`.
-    fn wireless_status_json(&self) -> String {
-        let mut out: Vec<(String, String)> = Vec::new();
-        for cfg in &self.wconfig {
+    fn wireless_selector(&self, data: &[u8]) -> Result<Option<usize>, i32> {
+        let mut device = None;
+        for field in blob::fields(data) {
+            if field.name != "device" || field.ty != MsgType::String as u32 || device.is_some() {
+                return Err(status::INVALID_ARGUMENT);
+            }
+            let Some(value) = field.as_str() else {
+                return Err(status::INVALID_ARGUMENT);
+            };
+            device = Some(value);
+        }
+        let Some(device) = device else { return Ok(None) };
+        if device.is_empty() {
+            return Ok(None);
+        }
+        self.wconfig
+            .iter()
+            .position(|radio| radio.name == device)
+            .ok_or(status::NOT_FOUND)
+            .map(Some)
+    }
+
+    fn wireless_status_into_blob(&self, b: &mut BlobBuf, selected: Option<usize>) {
+        for (index, cfg) in self.wconfig.iter().enumerate() {
+            if selected.is_some_and(|wanted| wanted != index) {
+                continue;
+            }
             let Some(r) = self.wradios.iter().find(|r| r.name == cfg.name) else { continue };
             let st = wireless::RadioState {
                 up: r.state == wireless::WState::Up,
@@ -5032,16 +5088,8 @@ impl Netifd {
                 autostart: r.autostart,
                 retry_setup_failed: r.retry_setup_failed,
             };
-            let one =
-                wireless::status_json(std::slice::from_ref(cfg), &self.whandlers, st, &r.ifnames);
-            // status_json returns a whole object keyed by radio; take the body
-            let body = one
-                .find(':')
-                .map(|i| one[i + 1..one.len() - 1].to_string())
-                .unwrap_or_else(|| "{}".to_string());
-            out.push((cfg.name.clone(), body));
+            wireless::status_into_blob(b, cfg, &self.whandlers, st, &r.ifnames);
         }
-        format!("{{{}}}", out.iter().map(|(k, v)| format!("\"{k}\":{v}")).collect::<Vec<_>>().join(","))
     }
 
     /// `notify`. The handler scripts call this back while their setup runs.

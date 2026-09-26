@@ -12,9 +12,6 @@ use crate::ethtool_modes::{
     ETHTOOL_LINK_MODE_ASYM_PAUSE_BIT, ETHTOOL_LINK_MODE_PAUSE_BIT, ETHTOOL_MODES,
 };
 
-const AF_INET: i32 = 2;
-const SOCK_DGRAM: i32 = 2;
-const SOCK_CLOEXEC: i32 = 0o2000000;
 const SIOCETHTOOL: u64 = 0x8946;
 
 const ETHTOOL_GPAUSEPARAM: u32 = 0x12;
@@ -32,7 +29,6 @@ const DUPLEX_HALF: u8 = 0;
 const SPEED_UNKNOWN: u32 = u32::MAX;
 
 extern "C" {
-    fn socket(domain: i32, ty: i32, proto: i32) -> i32;
     fn ioctl(fd: i32, req: u64, arg: *mut u8) -> i32;
     fn openat(dir: i32, path: *const std::ffi::c_char, flags: i32, ...) -> i32;
 }
@@ -40,7 +36,7 @@ extern "C" {
 /// The ioctl socket netifd keeps open for the lifetime of the process
 /// (`sock_ioctl` in system-linux.c).
 pub struct Ethtool {
-    fd: OwnedFd,
+    ioctl: crate::sys::IfIoctl,
 }
 
 /// `struct ifreq`: a 16-byte name followed by a union whose largest member is
@@ -80,15 +76,12 @@ pub struct LinkInfo {
 
 impl Ethtool {
     pub fn open() -> io::Result<Self> {
-        // SAFETY: socket(2) with constant arguments; the result is checked
-        // before being adopted as a descriptor.
-        let raw = unsafe { socket(AF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0) };
-        if raw < 0 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: socket(2) just returned this descriptor and nothing else
-        // holds it.
-        Ok(Self { fd: unsafe { OwnedFd::from_raw_fd(raw) } })
+        Ok(Self { ioctl: crate::sys::IfIoctl::open()? })
+    }
+
+    /// SIOCGIF* and SIOCETHTOOL use the same unbound datagram socket.
+    pub fn if_ioctl(&self) -> &crate::sys::IfIoctl {
+        &self.ioctl
     }
 
     fn call(&self, name: &str, buf: &mut [u8]) -> io::Result<()> {
@@ -96,7 +89,7 @@ impl Ethtool {
         // SAFETY: ioctl(2) on our own socket. `req` describes a live buffer
         // whose lifetime spans the call; the kernel writes only inside `buf`,
         // whose length each caller sized from the command's own header.
-        if unsafe { ioctl(self.fd.as_raw_fd(), SIOCETHTOOL, req.as_mut_ptr()) } < 0 {
+        if unsafe { ioctl(self.ioctl.as_raw_fd(), SIOCETHTOOL, req.as_mut_ptr()) } < 0 {
             return Err(io::Error::last_os_error());
         }
         Ok(())

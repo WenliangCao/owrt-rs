@@ -52,6 +52,9 @@ def main():
                         help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--netifd-scale", type=int, choices=(32, 64, 128), default=32)
+    parser.add_argument("--netifd-fixture", type=Path, help="private wireless config, schema, stub and exact expected reply")
+    parser.add_argument("--netifd-workloads", nargs="+", help="explicit subset of the netifd matrix")
+    parser.add_argument("--netifd-warmup", type=int, default=20)
     parser.add_argument("--memory-probe", type=Path,
                         help="separate diagnostic binary with http-resident mode; measure 64 held connections only")
     parser.add_argument("--rpc-client-probe", type=Path,
@@ -88,6 +91,23 @@ def main():
         parser.error("expanded matrices are defined for the five main daemons")
     if args.netifd_scale != 32 and (args.component != "netifd" or not args.matrix):
         parser.error("--netifd-scale requires a netifd matrix")
+    fixture_hashes = {}
+    if args.netifd_workloads or args.netifd_warmup != 20:
+        if args.component != "netifd" or not args.matrix:
+            parser.error("netifd workload/warmup controls require its matrix")
+    if not 0 <= args.netifd_warmup <= 100000:
+        parser.error("netifd warmup must be in 0..100000")
+    if args.netifd_workloads:
+        lanes = ["interface_dump", "lan_status", "device_status", "wireless_status", "device_status_all",
+                 f"interface_dump_{args.netifd_scale}", f"interface_named_{args.netifd_scale}"]
+        allowed = {name + suffix for name in lanes for suffix in ("", "_c4")}
+        if len(set(args.netifd_workloads)) != len(args.netifd_workloads) or not set(args.netifd_workloads) <= allowed:
+            parser.error("invalid or duplicate netifd workload")
+    if args.netifd_fixture:
+        if args.component != "netifd" or not args.matrix or not args.bench:
+            parser.error("--netifd-fixture requires a netifd matrix and --bench for private bundles")
+        for name in ("wireless", "handler-schema.json", "mac80211.sh", "expected-wireless.json"):
+            fixture_hashes[name] = hashlib.sha256((args.netifd_fixture / name).read_bytes()).hexdigest()
     if args.memory_probe and (args.matrix or "r84" in args.sides):
         parser.error("held-connection memory uses --sides stock candidate without --matrix")
     if args.rpc_client_probe and (args.component != "rpcd" or args.matrix or args.memory_probe or "r84" in args.sides):
@@ -185,6 +205,11 @@ def main():
         settings["seed"] = args.seed
     if component == "netifd":
         settings["netifd_scale"] = args.netifd_scale
+        settings["netifd_warmup"] = args.netifd_warmup
+        if args.netifd_workloads:
+            settings["netifd_workloads"] = args.netifd_workloads
+        if fixture_hashes:
+            settings["netifd_fixture_sha256"] = fixture_hashes
     if args.guard:
         settings["guard_sha256"] = hashlib.sha256(args.guard.read_bytes()).hexdigest()
         settings["namespace_timeout_seconds"] = 600
@@ -247,6 +272,17 @@ def main():
         initial("client-probe.json", {"sha256": digest, "diagnostic_only": True})
     assert ssh("sha256sum " + remote + "/isolated.sh").decode().split()[0] == hashlib.sha256(script.read_bytes()).hexdigest()
     bundle_targets = (bundle, stock_bundle, baseline_bundle) if baseline_bundle else (bundle, stock_bundle)
+    if fixture_hashes:
+        for target in bundle_targets:
+            directory = target + "/netifd-fixture"
+            if not args.resume:
+                ssh("mkdir " + shlex.quote(directory))
+                for name in fixture_hashes:
+                    subprocess.run(["scp", "-O", str((args.netifd_fixture / name).resolve()),
+                                    args.host + ":" + directory + "/" + name], check=True)
+                ssh("chmod 755 " + shlex.quote(directory + "/mac80211.sh"))
+            for name, digest in fixture_hashes.items():
+                assert ssh("sha256sum " + shlex.quote(directory + "/" + name)).decode().split()[0] == digest
     for name in ("ns-exec", "owrt-benchmark"):
         for where in bundle_targets:
             if ssh("sha256sum " + where + "/" + name).decode().split()[0] != tool_hashes[name]:
@@ -300,7 +336,10 @@ def main():
         if args.matrix:
             command = "OWRT_" + component.upper() + "_MATRIX=1 " + command
             if component == "netifd":
-                command = "OWRT_NETIFD_SCALE=" + str(args.netifd_scale) + " " + command
+                command = ("OWRT_NETIFD_SCALE=" + str(args.netifd_scale)
+                           + " OWRT_NETIFD_WARMUP=" + str(args.netifd_warmup) + " " + command)
+                if args.netifd_workloads:
+                    command = "OWRT_NETIFD_WORKLOADS=" + shlex.quote(" ".join(args.netifd_workloads)) + " " + command
         if args.guard:
             command = "OWRT_BENCH_GUARD=" + remote + "/guard " + command
         if args.extended:

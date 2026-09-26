@@ -190,9 +190,15 @@ fn handler_from(script: &Path, j: &Json) -> Option<Handler> {
         let mut dumped: Vec<(String, u32)> = Vec::new();
         if let Some(list) = j.get(kind).and_then(|l| l.as_array()) {
             for entry in list {
-                let Some(pair) = entry.as_array() else { continue };
-                let Some(attr) = pair.first().and_then(|a| a.as_str()) else { continue };
-                let Some(Json::Int(code)) = pair.get(1) else { continue };
+                let Some(pair) = entry.as_array() else {
+                    continue;
+                };
+                let Some(attr) = pair.first().and_then(|a| a.as_str()) else {
+                    continue;
+                };
+                let Some(Json::Int(code)) = pair.get(1) else {
+                    continue;
+                };
                 dumped.push((attr.to_string(), *code as u32));
             }
         }
@@ -215,7 +221,9 @@ pub fn discover(dir: &Path) -> Vec<Handler> {
     let mut names: Vec<PathBuf> = rd.filter_map(|e| e.ok().map(|e| e.path())).collect();
     names.sort();
     for path in names {
-        let Some(file) = path.file_name().and_then(|f| f.to_str()) else { continue };
+        let Some(file) = path.file_name().and_then(|f| f.to_str()) else {
+            continue;
+        };
         let Ok(o) = std::process::Command::new(format!("./{file}"))
             .arg("")
             .arg("dump")
@@ -230,7 +238,11 @@ pub fn discover(dir: &Path) -> Vec<Handler> {
             if line.is_empty() {
                 continue;
             }
-            if let Some(h) = json::parse(line).ok().as_ref().and_then(|j| handler_from(&path, j)) {
+            if let Some(h) = json::parse(line)
+                .ok()
+                .as_ref()
+                .and_then(|j| handler_from(&path, j))
+            {
                 out.push(h);
                 break;
             }
@@ -277,7 +289,11 @@ mod tests {
         assert_eq!(d[2].0, "acs_chan_bias");
 
         let x = h(r#"{"name":"mac80211","iface":[["device",1],["ssid",3]]}"#);
-        let names: Vec<&str> = x.attrs_of("iface").iter().map(|(n, _)| n.as_str()).collect();
+        let names: Vec<&str> = x
+            .attrs_of("iface")
+            .iter()
+            .map(|(n, _)| n.as_str())
+            .collect();
         assert_eq!(names[6], "device");
         assert_eq!(x.attrs_of("iface")[6].1, TYPE_ARRAY);
         assert_eq!(names.last(), Some(&"ssid"));
@@ -287,10 +303,16 @@ mod tests {
     fn a_validator_rides_on_the_name_after_a_colon() {
         let x = h(r#"{"name":"m","device":[["chanbw:range(5,20)",5]]}"#);
         assert_eq!(x.attrs_of("device").last().unwrap().0, "chanbw");
-        assert_eq!(x.validate_of("device"), [("chanbw".into(), "range(5,20)".into())]);
+        assert_eq!(
+            x.validate_of("device"),
+            [("chanbw".into(), "range(5,20)".into())]
+        );
         let info = x.validate_info();
         assert_eq!(info[0].0, "device");
-        assert_eq!(info[0].1.last().unwrap(), &("chanbw".into(), "range(5,20)".into()));
+        assert_eq!(
+            info[0].1.last().unwrap(),
+            &("chanbw".into(), "range(5,20)".into())
+        );
     }
 
     #[test]
@@ -316,8 +338,10 @@ mod tests {
     }
 
     fn mac80211() -> Vec<Handler> {
-        vec![h(r#"{"name":"mac80211","device":[["path",3],["disabled",7]],
-                   "iface":[["ssid",3],["encryption",3],["radios",1]]}"#)]
+        vec![h(
+            r#"{"name":"mac80211","device":[["path",3],["disabled",7]],
+                   "iface":[["ssid",3],["encryption",3],["radios",1]]}"#,
+        )]
     }
 
     // Each of these was a real difference against the C before it was fixed;
@@ -357,7 +381,11 @@ mod tests {
         );
         let r = load(&c, &hs);
         assert!(!r[0].disabled());
-        assert_eq!(r[0].vifs.len(), 1, "the iface survives an unparsable disabled");
+        assert_eq!(
+            r[0].vifs.len(),
+            1,
+            "the iface survives an unparsable disabled"
+        );
         // and it reaches the caller as a present-but-empty key
         assert!(status_json(&r, &hs, RadioState::default(), &[]).contains("\"disabled\":null"));
     }
@@ -374,7 +402,11 @@ mod tests {
         let r = load(&c, &hs);
         assert_eq!(r[0].vifs.len(), 1);
         assert_eq!(r[1].vifs.len(), 1);
-        assert_eq!(r[0].vifs[0].radios, [0, 1], "radios covers every named device");
+        assert_eq!(
+            r[0].vifs[0].radios,
+            [0, 1],
+            "radios covers every named device"
+        );
     }
 
     // `config.radios` is assigned after parse_attribute_list, so it is last
@@ -452,10 +484,7 @@ fn project(v: &Val, ty: u32) -> Projected {
 
 /// `parse_attribute_list`: walk the schema in order, keep the attributes the
 /// section actually sets. The schema's order is the reply's order.
-pub fn attribute_list(
-    opts: &[(String, Val)],
-    spec: &[(String, u32)],
-) -> Vec<(String, Projected)> {
+pub fn attribute_list(opts: &[(String, Val)], spec: &[(String, u32)]) -> Vec<(String, Projected)> {
     spec.iter()
         .filter_map(|(name, ty)| {
             let v = opts.iter().find(|(n, _)| n == name)?;
@@ -495,10 +524,13 @@ pub struct Radio {
 impl Radio {
     /// `option type`, which selects the handler.
     pub fn kind(&self) -> Option<&str> {
-        self.opts.iter().find(|(n, _)| n == "type").and_then(|(_, v)| match v {
-            Val::Str(s) => Some(s.as_str()),
-            Val::List(l) => l.first().map(|s| s.as_str()),
-        })
+        self.opts
+            .iter()
+            .find(|(n, _)| n == "type")
+            .and_then(|(_, v)| match v {
+                Val::Str(s) => Some(s.as_str()),
+                Val::List(l) => l.first().map(|s| s.as_str()),
+            })
     }
 
     pub fn disabled(&self) -> bool {
@@ -530,11 +562,11 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
     };
     let pkg = &ctx.root[idx];
     let val = |o: &owrt_uci::model::Opt| match &o.value {
-        owrt_uci::model::OptionValue::Str(v) => {
-            Val::Str(String::from_utf8_lossy(v).into_owned())
-        }
+        owrt_uci::model::OptionValue::Str(v) => Val::Str(String::from_utf8_lossy(v).into_owned()),
         owrt_uci::model::OptionValue::List(v) => Val::List(
-            v.iter().map(|x| String::from_utf8_lossy(x).into_owned()).collect(),
+            v.iter()
+                .map(|x| String::from_utf8_lossy(x).into_owned())
+                .collect(),
         ),
     };
     let opts_of = |s: &owrt_uci::model::Section| -> Vec<(String, Val)> {
@@ -548,7 +580,9 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
     };
     // `parse_bool(data.disabled)`, on the raw option
     let raw_disabled = |o: &[(String, Val)]| -> bool {
-        scalar(o, "disabled").and_then(|v| parse_bool(&v)).unwrap_or(false)
+        scalar(o, "disabled")
+            .and_then(|v| parse_bool(&v))
+            .unwrap_or(false)
     };
 
     let mut radios: Vec<Radio> = Vec::new();
@@ -565,7 +599,11 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
         if let Some(n) = scalar(&opts, "radio").and_then(|v| v.trim().parse::<i64>().ok()) {
             radio_idx.push((s.name.clone(), n));
         }
-        radios.push(Radio { name: s.name.clone(), opts, vifs: Vec::new() });
+        radios.push(Radio {
+            name: s.name.clone(),
+            opts,
+            ..Default::default()
+        });
     }
 
     for s in pkg.sections.iter().filter(|s| s.ty == "wifi-iface") {
@@ -602,7 +640,11 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
     // `wifi-vlan` and `wifi-station` name the wifi-iface SECTIONS they belong
     // to in `iface`, as an array; an empty list means every vif. A disabled
     // one is dropped like any non-device section.
-    for s in pkg.sections.iter().filter(|s| s.ty == "wifi-vlan" || s.ty == "wifi-station") {
+    for s in pkg
+        .sections
+        .iter()
+        .filter(|s| s.ty == "wifi-vlan" || s.ty == "wifi-station")
+    {
         let opts = opts_of(s);
         if raw_disabled(&opts) {
             continue;
@@ -615,7 +657,10 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
                 if !want.is_empty() && !want.contains(&v.section) {
                     continue;
                 }
-                let sub = Sub { section: s.name.clone(), opts: opts.clone() };
+                let sub = Sub {
+                    section: s.name.clone(),
+                    opts: opts.clone(),
+                };
                 if s.ty == "wifi-vlan" {
                     v.vlans.push(sub);
                 } else {
@@ -626,7 +671,6 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
     }
     radios
 }
-
 
 // ---------------------------------------------------------------------------
 // The two read methods
@@ -665,8 +709,10 @@ fn projected(v: &Projected) -> Option<String> {
 }
 
 fn obj(fields: &[(String, String)]) -> String {
-    let body: Vec<String> =
-        fields.iter().map(|(k, v)| format!("\"{}\":{}", esc(k), v)).collect();
+    let body: Vec<String> = fields
+        .iter()
+        .map(|(k, v)| format!("\"{}\":{}", esc(k), v))
+        .collect();
     format!("{{{}}}", body.join(","))
 }
 
@@ -693,7 +739,12 @@ impl Default for RadioState {
     fn default() -> Self {
         // `wdev_create` sets autostart; a setup that never succeeded leaves
         // state "down" and retry_setup_failed set.
-        RadioState { up: false, pending: false, autostart: true, retry_setup_failed: true }
+        RadioState {
+            up: false,
+            pending: false,
+            autostart: true,
+            retry_setup_failed: true,
+        }
     }
 }
 
@@ -758,7 +809,10 @@ pub fn status_json(
                 ("pending".into(), st.pending.to_string()),
                 ("autostart".into(), st.autostart.to_string()),
                 ("disabled".into(), r.disabled().to_string()),
-                ("retry_setup_failed".into(), st.retry_setup_failed.to_string()),
+                (
+                    "retry_setup_failed".into(),
+                    st.retry_setup_failed.to_string(),
+                ),
                 ("config".into(), attr_obj(&r.opts, dev_spec)),
                 ("interfaces".into(), format!("[{}]", ifaces.join(","))),
             ]),
@@ -767,8 +821,286 @@ pub fn status_json(
     obj(&out)
 }
 
+/// The status projection in wire order, borrowing the configuration. Handler
+/// commands still use their existing JSON contract; only the ubus reply skips
+/// the temporary JSON strings and parse tree.
+pub fn status_into_blob(
+    b: &mut owrt_ubus::blob::BlobBuf,
+    r: &Radio,
+    handlers: &[Handler],
+    st: RadioState,
+    ifnames: &[(String, String)],
+) {
+    let h = r.kind().and_then(|k| handlers.iter().find(|h| h.name == k));
+    let spec = |kind| h.map(|h| h.attrs_of(kind)).unwrap_or(&[]);
+    let radio = b.msg_open_table(&r.name);
+    b.msg_bool("up", st.up);
+    b.msg_bool("pending", st.pending);
+    b.msg_bool("autostart", st.autostart);
+    b.msg_bool("disabled", r.disabled());
+    b.msg_bool("retry_setup_failed", st.retry_setup_failed);
+    config_into_blob(b, &r.opts, spec("device"), None);
+    let interfaces = b.msg_open_array("interfaces");
+    for v in &r.vifs {
+        let iface = b.msg_open_table("");
+        b.msg_string("section", &v.section);
+        config_into_blob(b, &v.opts, spec("iface"), Some(&v.radios));
+        if let Some((_, name)) = ifnames.iter().find(|(section, _)| *section == v.section) {
+            b.msg_string("ifname", name);
+        }
+        for (name, subs, kind) in [
+            ("vlans", &v.vlans, "vlan"),
+            ("stations", &v.stas, "station"),
+        ] {
+            let list = b.msg_open_array(name);
+            for sub in subs {
+                let item = b.msg_open_table("");
+                b.msg_string("section", &sub.section);
+                let config = b.msg_open_table("config");
+                attrs_into_blob(b, &sub.opts, spec(kind), false);
+                b.msg_close(config);
+                b.msg_close(item);
+            }
+            b.msg_close(list);
+        }
+        b.msg_close(iface);
+    }
+    b.msg_close(interfaces);
+    b.msg_close(radio);
+}
+
+fn config_into_blob(
+    b: &mut owrt_ubus::blob::BlobBuf,
+    opts: &[(String, Val)],
+    spec: &[(String, u32)],
+    radios: Option<&[i64]>,
+) {
+    let config = b.msg_open_table("config");
+    attrs_into_blob(b, opts, spec, radios.is_some());
+    if let Some(radios) = radios {
+        let list = b.msg_open_array("radios");
+        for n in radios {
+            b.msg_i64("", *n);
+        }
+        b.msg_close(list);
+    }
+    b.msg_close(config);
+}
+
+fn attrs_into_blob(
+    b: &mut owrt_ubus::blob::BlobBuf,
+    opts: &[(String, Val)],
+    spec: &[(String, u32)],
+    skip_radios: bool,
+) {
+    for (name, ty) in spec {
+        if skip_radios && name == "radios" {
+            continue;
+        }
+        let Some((_, value)) = opts.iter().find(|(key, _)| key == name) else {
+            continue;
+        };
+        match (ty, value) {
+            (_, Val::List(items)) => {
+                let list = b.msg_open_array(name);
+                for item in items {
+                    b.msg_string("", item);
+                }
+                b.msg_close(list);
+            }
+            (&TYPE_ARRAY, Val::Str(value)) => {
+                let list = b.msg_open_array(name);
+                for item in value.split_whitespace() {
+                    b.msg_string("", item);
+                }
+                b.msg_close(list);
+            }
+            (&TYPE_INT, Val::Str(value)) => {
+                b.msg_i64(name, value.trim().parse().unwrap_or(0));
+            }
+            (&TYPE_BOOL, Val::Str(value)) => {
+                match parse_bool(value) {
+                    Some(value) => b.msg_bool(name, value),
+                    None => b.msg_null(name),
+                };
+            }
+            (_, Val::Str(value)) => {
+                b.msg_string(name, value);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod status_blob_tests {
+    use super::*;
+    use owrt_ubus::blob::BlobBuf;
+
+    #[test]
+    fn reloading_rebuilds_config_and_radio_associations() {
+        let dir = std::env::temp_dir().join(format!("netifd-status-cache-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let handlers = vec![Handler {
+            name: "test".into(),
+            attrs: vec![
+                ("device".into(), vec![("channel".into(), TYPE_INT)]),
+                ("iface".into(), vec![("ssid".into(), TYPE_STRING)]),
+            ],
+            ..Default::default()
+        }];
+        let mut previous = Vec::new();
+        for (index, devices) in [(1, "radio0"), (2, "radio0 radio1")] {
+            std::fs::write(dir.join("wireless"), format!(
+                "config wifi-device 'radio0'\n option type 'test'\n option radio '{index}'\n option channel '{index}'\n\
+                 config wifi-device 'radio1'\n option type 'test'\n option radio '7'\n\
+                 config wifi-iface 'ap'\n option device '{devices}'\n option ssid 'value-{index}'\n"
+            )).unwrap();
+            let radios = load(&dir.to_string_lossy(), &handlers);
+            assert_eq!(radios.len(), 2);
+            assert_eq!(radios[0].vifs[0].radios[0], index);
+            let mut actual = BlobBuf::new();
+            for radio in &radios {
+                status_into_blob(&mut actual, radio, &handlers, RadioState::default(), &[]);
+            }
+            let mut expected = BlobBuf::new();
+            json_text_into_blob(
+                &mut expected,
+                &status_json(&radios, &handlers, RadioState::default(), &[]),
+            );
+            assert_eq!(actual.payload(), expected.payload());
+            assert_ne!(actual.payload(), previous);
+            previous = actual.payload().to_vec();
+        }
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn direct_status_matches_json_wire_bytes() {
+        let attrs: Vec<_> = [
+            ("text", TYPE_STRING),
+            ("list", TYPE_ARRAY),
+            ("number", TYPE_INT),
+            ("flag", TYPE_BOOL),
+            ("unknown", 99),
+            ("radios", TYPE_STRING),
+        ]
+        .into_iter()
+        .map(|(n, t)| (n.into(), t))
+        .collect();
+        let handler = Handler {
+            name: "test".into(),
+            attrs: ["device", "iface", "vlan", "station"]
+                .into_iter()
+                .map(|kind| (kind.into(), attrs.clone()))
+                .collect(),
+            ..Default::default()
+        };
+        for flag in ["0", "1", "true", "false", "on", "", "TRUE"] {
+            for list in [
+                Val::Str(" alpha\tbeta\nγ ".into()),
+                Val::List(vec!["a b".into(), "".into()]),
+            ] {
+                for number in [
+                    "-1",
+                    " 42 ",
+                    "9223372036854775807",
+                    "9223372036854775808",
+                    "bad",
+                ] {
+                    let opts = vec![
+                        (
+                            "text".into(),
+                            Val::Str("quote\" slash\\ newline\n tab\t cr\r 中文".into()),
+                        ),
+                        ("list".into(), list.clone()),
+                        ("number".into(), Val::Str(number.into())),
+                        ("flag".into(), Val::Str(flag.into())),
+                        ("unknown".into(), Val::List(vec!["kept".into()])),
+                        ("radios".into(), Val::Str("replaced".into())),
+                    ];
+                    let sub = Sub {
+                        section: "sub".into(),
+                        opts: opts.clone(),
+                    };
+                    let mut radio = Radio {
+                        name: "radio0".into(),
+                        opts: opts.clone(),
+                        vifs: vec![Vif {
+                            section: "vif".into(),
+                            opts,
+                            radios: vec![0, 7],
+                            vlans: vec![sub.clone()],
+                            stas: vec![sub],
+                            ..Default::default()
+                        }],
+                        ..Default::default()
+                    };
+                    radio.opts.push(("type".into(), Val::Str("test".into())));
+                    radio.opts.push(("disabled".into(), Val::Str(flag.into())));
+                    for bits in 0..16 {
+                        let state = RadioState {
+                            up: bits & 1 != 0,
+                            pending: bits & 2 != 0,
+                            autostart: bits & 4 != 0,
+                            retry_setup_failed: bits & 8 != 0,
+                        };
+                        for ifnames in [vec![], vec![("vif".into(), "phy0-ap0".into())]] {
+                            let mut expected = BlobBuf::new();
+                            json_text_into_blob(
+                                &mut expected,
+                                &status_json(
+                                    std::slice::from_ref(&radio),
+                                    std::slice::from_ref(&handler),
+                                    state,
+                                    &ifnames,
+                                ),
+                            );
+                            let mut actual = BlobBuf::new();
+                            status_into_blob(
+                                &mut actual,
+                                &radio,
+                                std::slice::from_ref(&handler),
+                                state,
+                                &ifnames,
+                            );
+                            assert_eq!(
+                                actual.payload(),
+                                expected.payload(),
+                                "flag={flag} number={number} bits={bits}"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// `get_validate`, as compact JSON: the whole schema, keyed by radio.
 pub fn get_validate_json(radios: &[Radio], handlers: &[Handler]) -> String {
+    get_validate_json_iter(radios.iter(), handlers)
+}
+
+/// `network.wireless get_validate` with an optional device selector.  Keeping
+/// the filtering here means the selected reply follows the same radio order
+/// and handler projection as the all-radios form.
+pub fn get_validate_json_selected(
+    radios: &[Radio],
+    handlers: &[Handler],
+    selected: Option<usize>,
+) -> String {
+    get_validate_json_iter(
+        radios.iter().enumerate().filter_map(|(index, radio)| {
+            (selected.is_none() || selected == Some(index)).then_some(radio)
+        }),
+        handlers,
+    )
+}
+
+fn get_validate_json_iter<'a, I>(radios: I, handlers: &[Handler]) -> String
+where
+    I: IntoIterator<Item = &'a Radio>,
+{
     let mut out: Vec<(String, String)> = Vec::new();
     for r in radios {
         let Some(h) = r.kind().and_then(|k| handlers.iter().find(|h| h.name == k)) else {
@@ -831,7 +1163,9 @@ pub enum WState {
 /// says is equal must be left completely alone by a reload.
 pub fn same_config(a: &Radio, b: &Radio) -> bool {
     let subs = |x: &[Sub]| -> Vec<(String, Vec<(String, Val)>)> {
-        x.iter().map(|s| (s.section.clone(), s.opts.clone())).collect()
+        x.iter()
+            .map(|s| (s.section.clone(), s.opts.clone()))
+            .collect()
     };
     a.name == b.name
         && a.opts == b.opts
@@ -850,7 +1184,9 @@ pub fn same_config(a: &Radio, b: &Radio) -> bool {
 /// keyed by a two-digit index from 1, and `vlans`/`stas` as objects rather
 /// than the arrays `status` reports.
 pub fn handler_json(radio: &Radio, handlers: &[Handler], device_data: &str) -> String {
-    let h = radio.kind().and_then(|k| handlers.iter().find(|h| h.name == k));
+    let h = radio
+        .kind()
+        .and_then(|k| handlers.iter().find(|h| h.name == k));
     let dev_spec = h.map(|h| h.attrs_of("device")).unwrap_or(&[]);
     let if_spec = h.map(|h| h.attrs_of("iface")).unwrap_or(&[]);
 
@@ -1028,7 +1364,9 @@ pub fn json_into_blob(b: &mut owrt_ubus::blob::BlobBuf, name: &str, v: &Json) {
 /// Parse one of this module's JSON emitters and write its fields at the top
 /// level of `b`.
 pub fn json_text_into_blob(b: &mut owrt_ubus::blob::BlobBuf, text: &str) {
-    let Ok(Json::Object(items)) = json::parse(text) else { return };
+    let Ok(Json::Object(items)) = json::parse(text) else {
+        return;
+    };
     for (k, v) in &items {
         json_into_blob(b, k, v);
     }

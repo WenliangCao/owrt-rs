@@ -26,6 +26,7 @@ case "${OWRT_NETIFD_SCALE:-32}" in 32|64|128) ;; *) exit 2 ;; esac
 netifd_scale=${OWRT_NETIFD_SCALE:-32}
 netifd_digits=2
 [ "$netifd_scale" -ne 128 ] || netifd_digits=3
+case "${OWRT_NETIFD_WARMUP:-20}" in ''|*[!0-9]*) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -60,6 +61,10 @@ if [ "${1:-}" = --namespace ]; then
     mount --bind "$root/tmp/acl" "$root/usr/share/acl.d"
     mount --bind "$bundle" "$root/tmp/bin"
     mount -o remount,bind,ro "$root/tmp/bin"
+    if [ "$component" = netifd ] && [ -d "$bundle/netifd-fixture" ]; then
+        mount --bind "$bundle/netifd-fixture/mac80211.sh" "$root/lib/netifd/wireless/mac80211.sh"
+        mount -o remount,bind,ro "$root/lib/netifd/wireless/mac80211.sh"
+    fi
     mount --bind "$out" "$root/tmp/out"
     mount --bind /proc "$root/proc"
     mount -t sysfs sysfs "$root/sys"
@@ -127,7 +132,11 @@ config interface 'lan'
     option ipaddr '192.0.2.1/24'
     option ip6addr '2001:db8:84::1/64'
 EOF
-    : > /etc/config/wireless
+    if [ "$component" = netifd ] && [ -d /tmp/bin/netifd-fixture ]; then
+        cp /tmp/bin/netifd-fixture/wireless /etc/config/wireless
+    else
+        : > /etc/config/wireless
+    fi
     cat > /etc/config/firewall <<'EOF'
 config defaults
     option input 'ACCEPT'
@@ -192,23 +201,31 @@ EOF
         done
         echo "object readiness failed: $object" >&2; exit 1
     }
+    netifd_lane_selected() {
+        [ "$component" = netifd ] && [ -n "${OWRT_NETIFD_WORKLOADS:-}" ] || return 0
+        case " $OWRT_NETIFD_WORKLOADS " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+    }
+    rpc_warmup=20
+    [ "$component" != netifd ] || rpc_warmup=${OWRT_NETIFD_WARMUP:-20}
     run_rpc() { # label object method input expected [iterations]
+        netifd_lane_selected "$1" || return 0
         label=$1; object=$2; method=$3; input=$4; expected=$5; count=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
-        "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label.json"
+        "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" "$rpc_warmup" "$monitors" > "$out/$label.json"
     }
     rpc_four() { # label object method input expected [total iterations]
+        netifd_lane_selected "$1" || return 0
         label=$1; object=$2; method=$3; input=$4; expected=$5; total=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
         count=$((total / 4)); [ "$count" -gt 0 ] || count=1
         mkdir "$out/$label"
-        printf '{"clients":4,"iterations_per_client":%s,"warmup_per_client":20}\n' "$count" > "$out/$label/group.json"
+        printf '{"clients":4,"iterations_per_client":%s,"warmup_per_client":%s}\n' "$count" "$rpc_warmup" > "$out/$label/group.json"
         "$bench" snapshot "$monitors" > "$out/$label/before.json"
         clients=''; j=1
         while [ "$j" -le 4 ]; do
-            "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" 20 "$monitors" > "$out/$label/client-$j.json" &
+            "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" "$rpc_warmup" "$monitors" > "$out/$label/client-$j.json" &
             clients="$clients $!"; j=$((j + 1))
         done
         failed=0
@@ -520,15 +537,26 @@ EOF
                     wait_netifd_hotplug 2
                     sha256sum /etc/config/network /etc/config/wireless > "$out/netifd-fixtures.sha256"
                 fi
+                wireless_expected='{}'
+                if [ -d /tmp/bin/netifd-fixture ]; then
+                    tries=0
+                    until ubus -S call network.wireless status > "$out/wireless-before.json" &&
+                          cmp -s "$out/wireless-before.json" /tmp/bin/netifd-fixture/expected-wireless.json; do
+                        kill -0 "$subject"; [ "$tries" -lt 30 ]; sleep 1; tries=$((tries + 1))
+                    done
+                    netifd_children_reaped
+                    sha256sum /tmp/bin/netifd-fixture/* >> "$out/netifd-fixtures.sha256"
+                    wireless_expected=$(cat /tmp/bin/netifd-fixture/expected-wireless.json)
+                fi
                 run_rpc interface_dump network.interface dump '{}' "$interface_expected"
                 run_rpc lan_status network.interface.lan status '{}' '{"up":true,"proto":"static"}'
                 run_rpc device_status network.device status '{"name":"br-bench"}' '{"present":true,"type":"bridge"}'
-                run_rpc wireless_status network.wireless status '{}' '{}'
+                run_rpc wireless_status network.wireless status '{}' "$wireless_expected"
                 if [ "${OWRT_NETIFD_MATRIX:-0}" = 1 ]; then
                     rpc_four interface_dump_c4 network.interface dump '{}' "$interface_expected"
                     rpc_four lan_status_c4 network.interface.lan status '{}' '{"up":true,"proto":"static"}'
                     rpc_four device_status_c4 network.device status '{"name":"br-bench"}' '{"present":true,"type":"bridge"}'
-                    rpc_four wireless_status_c4 network.wireless status '{}' '{}'
+                    rpc_four wireless_status_c4 network.wireless status '{}' "$wireless_expected"
                     rpc_pair device_status_all network.device status '{}' '{"br-bench":{"present":true,"type":"bridge"},"lo":{"present":true}}'
                     check_netifd_interfaces 2 after
                     # Multiple static interfaces on the same bridge exercise
@@ -552,6 +580,11 @@ EOF
                     rpc_pair "interface_dump_$netifd_scale" network.interface dump '{}' "$(cat /tmp/expect-interfaces-scale.json)"
                     rpc_pair "interface_named_$netifd_scale" "network.interface.$netifd_last" status '{}' "{\"up\":true,\"proto\":\"static\",\"ipv4-address\":[{\"address\":\"198.18.$((netifd_scale - 3)).1\",\"mask\":24}]}"
                     check_netifd_interfaces "$netifd_scale" after
+                fi
+                if [ -d /tmp/bin/netifd-fixture ]; then
+                    ubus -S call network.wireless status > "$out/wireless-after.json"
+                    cmp "$out/wireless-after.json" /tmp/bin/netifd-fixture/expected-wireless.json
+                    netifd_children_reaped
                 fi
             else
                 bin=$(choose fw4 /sbin/fw4 fw4-rs)

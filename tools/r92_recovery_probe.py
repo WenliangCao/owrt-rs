@@ -388,7 +388,12 @@ def inner(root, side, case):
                 # Only netifd subscribes to rtnetlink group LINK in this namespace.
                 # inet_diag can list the same multicast socket in both its
                 # port-id and multicast walks. Require one distinct record.
-                lines = sorted({line for line in data.splitlines() if "groups=0x00000001" in line
+                # `ss -m -e` may render the same netlink record with different
+                # trailing alignment spaces. Normalize whitespace before
+                # deduplicating; otherwise one socket is falsely reported as
+                # two and the recovery probe fails before testing netifd.
+                lines = sorted({" ".join(line.split()) for line in data.splitlines()
+                                if "groups=0x00000001" in line
                                 and re.search(r"\s0:\d+\s", line)})
                 assert len(lines) == 1, lines
                 return {"buffer": int(re.search(r"\brb(\d+)", lines[0])[1]),

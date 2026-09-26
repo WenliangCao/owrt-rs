@@ -177,6 +177,10 @@ def derive(root, label):
     if read(root / "settings.json").get("extended"):
         assert component == "ubusd", "extended lanes are ubusd only"
         workloads += list(UBUSD_EXTENDED)
+    if settings.get("netifd_workloads"):
+        requested = settings["netifd_workloads"]
+        assert component == "netifd" and set(requested) <= set(workloads)
+        workloads = [name for name in workloads if name in requested]
     for index, side in enumerate(order, 1):
         local = root / f"{index:02d}-{side}"
         raw = local / "raw"
@@ -295,6 +299,15 @@ def main():
     result = derive(args.private, args.label)
     args.output.mkdir(parents=True, exist_ok=False)
     (args.output / "results.json").write_text(json.dumps(result, indent=2) + "\n")
+    if result["measured_sides"] == ("candidate",):
+        lines = [f"# {args.label}：同身份校准", "", "仅用于估计测量噪声和漂移，不是实现间的比较。", "",
+                 "| 负载 | mean 中位数 µs | p99 最小–最大 µs |", "|---|---:|---:|"]
+        for name, sides in result["summary"].items():
+            metrics = sides["candidate"]
+            lines.append(f"| {name} | {metrics['mean_us']['median']:.2f} | {metrics['p99_us']['min']:.2f}–{metrics['p99_us']['max']:.2f} |")
+        (args.output / "results.md").write_text("\n".join(lines) + "\n")
+        print(f"{args.label}: {len(result['runs'])} calibration measurements verified")
+        return
     lines = [f"# {args.label}：{result['component']} 实机对照", "",
              "单位：延迟和 CPU 为 µs/请求；数值是逐轮统计的中位数。负百分比表示开销下降。", "",
              f"| 负载 | 原版延迟 | {result['baseline_label'].upper()} 延迟 | 候选延迟 | 候选比原版 | 原版 CPU | 候选 CPU | 候选比原版 |",
@@ -308,8 +321,7 @@ def main():
                      f"{v('stock', 'subject_cpu_us_per_op'):.2f} | {v('candidate', 'subject_cpu_us_per_op'):.2f} | "
                      f"{delta['subject_cpu_us_per_op']:+.2f}% |")
     if result["limitations"]:
-        lines += ["", "**本组不能用于完整性能验收：** 查询前缺少完整的初始化完成证据，",
-                  "须同时检查hotplug回调、通过proc status的PPid确认子进程已回收，并验证子进程CPU稳定。原始结果保留，使用完整门复测。"]
+        lines += ["", "**测量边界：**", *["- " + item for item in result["limitations"]]]
     lines += ["", "每侧运行次数：" + str(len(result["order"]) // len(result["measured_sides"])) + "。所列完整运行的请求均成功，原版依赖和正式运行栈保持相同。",
               "", "c4 的 CPU 包含并计数每客户端 20 次预热，使用唯一外层区间；吞吐包括预热和启动，",
               "计时精度来自 /proc/uptime。客户端校验也使用路由器 CPU，不能把这里的吞吐视为服务端极限。",

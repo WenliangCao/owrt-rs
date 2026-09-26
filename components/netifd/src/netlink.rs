@@ -387,15 +387,20 @@ impl Netlink {
     /// an error. `Ok(None)` means the kernel acknowledged with no payload.
     pub fn dump_one(&mut self, ty: u16, hdr: &[u8], attrs: &[u8]) -> io::Result<Option<Msg>> {
         let seq = self.send_msg(ty, NLM_F_REQUEST, hdr, attrs)?;
-        if self.reply.len() < 1 << 16 {
-            self.reply.resize(1 << 16, 0);
-        }
+        // Reserve the same receive capacity without touching pages beyond
+        // the kernel's reply. recv initializes exactly its returned length.
+        self.reply.clear();
+        self.reply.reserve(1 << 16);
         loop {
-            // SAFETY: reply is a live allocation of the length passed.
-            let n = unsafe { recv(self.fd.as_raw_fd(), self.reply.as_mut_ptr(), self.reply.len(), 0) };
+            // SAFETY: reply owns capacity() writable bytes. recv does not
+            // read them, and no uninitialized byte is exposed as a Rust slice.
+            let n = unsafe { recv(self.fd.as_raw_fd(), self.reply.as_mut_ptr(), self.reply.capacity(), 0) };
             if n < 0 {
                 return Err(io::Error::last_os_error());
             }
+            // SAFETY: recv without MSG_TRUNC returns at most the supplied
+            // capacity and has initialized all n bytes, including on reuse.
+            unsafe { self.reply.set_len(n as usize) };
             for m in split(&self.reply[..n as usize]) {
                 if m.seq != seq {
                     continue;

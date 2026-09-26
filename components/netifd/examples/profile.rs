@@ -58,6 +58,7 @@ fn main() {
     let mut reply = BlobBuf::with_capacity(1024);
     profile_support::measure("reply_take_default", n, &filter, || {
         let mut b = std::mem::take(&mut reply);
+        black_box(&reply);
         black_box(b.payload());
         b.reset_bounded(64 * 1024);
         reply = b;
@@ -65,6 +66,7 @@ fn main() {
     let mut reply = Some(BlobBuf::with_capacity(1024));
     profile_support::measure("reply_take_option", n, &filter, || {
         let mut b = reply.take().unwrap_or_default();
+        black_box(&reply);
         black_box(b.payload());
         b.reset_bounded(64 * 1024);
         reply = Some(b);
@@ -77,6 +79,53 @@ fn main() {
         b.reset_bounded(64 * 1024);
         reply = Some(b);
     });
+    // When run in the image namespace these are the captured configuration
+    // and image handler schemas; neither setup nor radio reconfiguration runs.
+    if let Some(confdir) = std::env::args().nth(3) {
+        let handlerdir = std::env::args().nth(4).expect("wireless handler directory");
+        let handlers = wireless::discover(std::path::Path::new(&handlerdir));
+        let radios = wireless::load(&confdir, &handlers);
+        assert!(!radios.is_empty(), "wireless profile requires nonempty config");
+        let mut uncached = radios.clone();
+        for radio in &mut uncached {
+            radio.status_config.clear();
+            for vif in &mut radio.vifs {
+                vif.status_config.clear();
+            }
+        }
+        eprintln!("status_config_cache_bytes={}", radios.iter().map(|radio|
+            radio.status_config.len() + radio.vifs.iter().map(|v| v.status_config.len()).sum::<usize>()
+        ).sum::<usize>());
+        let state = wireless::RadioState::default();
+        let mut expected = BlobBuf::new();
+        wireless::json_text_into_blob(&mut expected, &wireless::status_json(&radios, &handlers, state, &[]));
+        let mut b = BlobBuf::new();
+        for radio in &radios {
+            wireless::status_into_blob(&mut b, radio, &handlers, state, &[]);
+        }
+        assert_eq!(b.payload(), expected.payload());
+        b.reset();
+        profile_support::measure("wireless_config_json_blob", n, &filter, || {
+            let text = wireless::status_json(&radios, &handlers, state, &[]);
+            wireless::json_text_into_blob(&mut b, black_box(&text));
+            black_box(b.payload());
+            b.reset_bounded(64 * 1024);
+        });
+        profile_support::measure("wireless_config_direct_blob", n, &filter, || {
+            for radio in &uncached {
+                wireless::status_into_blob(&mut b, radio, &handlers, state, &[]);
+            }
+            black_box(b.payload());
+            b.reset_bounded(64 * 1024);
+        });
+        profile_support::measure("wireless_config_cached_blob", n, &filter, || {
+            for radio in &radios {
+                wireless::status_into_blob(&mut b, radio, &handlers, state, &[]);
+            }
+            black_box(b.payload());
+            b.reset_bounded(64 * 1024);
+        });
+    }
     for count in [2, 32, 64, 128] {
         let interfaces: Vec<_> = (0..count).map(interface).collect();
         let times: Vec<_> = interfaces.iter().map(|i| (i.name.clone(), 60u64)).collect();
