@@ -135,7 +135,7 @@ collector 和 harness 复制到 `frozen-01/` 后不改；完整 hash 见 plan �
 |---|---|
 | 精确 C / 正式 R89 / 生产 C | 已核实；未部署、刷写、重启或改生产网络状态 |
 | 独立算法筛选 | H0/H1/H2/H3a/b/c/H4/H5 已有源码/profile；H4 需有限实机取舍 |
-| 全部功能与恢复 | A06/B06均通过31/31及完整恢复；新增参数修复的A09/B09已过unit/clippy/ABI/raw66，完整suite待复核 |
+| 全部功能与恢复 | A09/B09均通过164单测、clippy/release/ABI、raw66、31/31及overflow/restart/两种reconnect；后续算法仍需自身门 |
 | A/A 校准 | 两轮已结束，不再追加校准，不并入实现对照 |
 | 正式性能确认 | 尚未开始有效确认；现有 13 窗为探索，不追认冻结 |
 | 真实无线 | 实际配置/schema + 隔离 mac80211 stub；不执行真实 radio 重配置 |
@@ -238,3 +238,106 @@ C 的 HWM 从2584降至2404，实际观察已经证明这些 proc 计数不能�
 样本和成本检查线，更新已修复的ELF/源码/manifest身份；控制器等待两侧完整suite和恢复门后才开启硬件。
 设备 `/proc/self/smaps` 与 `smaps_rollup` 不可读，现有image无法用这些接口精确核实PSS/物理峰值；
 保留status/statm可见值及其观测限制，不把不可测部分写成相同。
+
+## 剩余查找与短字符串方向的有限筛选
+
+`hotspots-02/raw/micro-micro/raw` 保存当前B06算法的musl诊断三批，每批50万次，不作为A53效应量。
+
+| 接口数 | 对象route ns/op范围 | 当前find_by_name ns/op范围 |
+|---|---|---|
+| 2 | 3.02–5.96 | 22.52–28.53 |
+| 32 | 23.21–29.32 | 95.96–139.89 |
+| 64 | 50.86–78.23 | 114.96–129.56 |
+| 128 | 104.48–123.05 | 129.09–129.60 |
+
+两类查找均零分配。3/7/8/64字节名字clone分别为37.57–43.30 / 36.83–42.58 /
+35.47–46.42 / 49.79–64.41ns，每次1次分配、请求字节等于名字长度。
+route/find/clone的最保守上界相加仍只有317.06ns，低于事先确定的0.5us研究优先级线；
+不据此增加HashMap或单独开名字借用硬件候选。这是算法筛选取舍，不是A53等效或非劣证明。
+事件与PD的专用诊断已结束，前置工具兼容失败均保留，不计为性能样本。
+
+## 事件与临时缓冲的后续筛选
+
+`hotspots-derived-01.json` 索引537项原始文件。精确B06 release的strace显示：1024个事件动作
+产生100353次openat、207871次read、97280次fstat、102405次fcntl；源码对应每次全量重扫所有
+已知设备设置。PD更新256次产生1664次mmap/munmap与2048次sendto/recvfrom。PD owner status
+50000次全部成功，没有文件或netlink I/O。符号诊断ELF的events/PD status/PD update只有
+957/798/74个perf样本，均未达事先1000样本门；不能报告精确函数占比或凭未命中排除路径。
+
+| 独立候选 | 精确ELF SHA-256 | 有限筛选 |
+|---|---|---|
+| H7 | `ee3f6e7a2001f064c863e3ac69367207dd8f6dbd0f3f8b7dfbd25f0197adbc1b` | 小proc文件完整读到EOF，减少std文件大小/标志探测；只改device.rs |
+| H8 | `3d721606e3d8f64a60215442e4214e84f8a1af03cc67f89fdbb8a7896edb2575` | 临时netlink接收区仅初始化实收字节；只改netlink.rs |
+
+两侧各自以A09为基线，没有叠加H4或彼此改动，均通过164单测、clippy/release/ABI。
+Oracle固定每项2个strace窗及4组AB/BA/BA/AB未插桩配对，按H7后H8顺序执行。
+H7 plan SHA为`6d0fee2b4e6d7f4d9f1f8f345772486a8a7b006d2db8bbf57d444fa20437a92c`；
+H8为`7d47da425355e4601190bb2bf07cd96451166322017e994b801c397b1e457b7b`。
+H8允许settled Anon每对至少少8KiB或每窗minor fault至少少128作为资源复核信号，
+HWM单独不触发；主体/依赖/caller与child成本分别披露。三角色两侧child累计tick差最保守
+有±12tick量化不确定性，不能把该区间当允许退步或成本相同。
+
+H6事件设置缓存仍是私有、未构建原型。C/A09的有界Oracle差分已确认：MTU1500改1400，
+C status保持1500而A09变1400；rp_filter2改0并触发普通NEWLINK后，C保持2而A09变0。
+这是Oracle6.17.0-1020-oracle证据，不冒充AX3000T6.12.94结果。
+源码审查发现直接缓存需要处理同名同ifindex重建失效；直接迁到C首次claim采样又涉及
+配置值投影，因为当前Rust运行路径未写入Device.settings。原型尚未通过合同审查，
+不得将减少设置读取视为已经获得的收益。`h6-orig-settings-01/`保留原始状态、内核状态、
+namespace身份及宿主网络未变证据。
+
+## H4 实机有限筛选完成，仍未选定最终缓存
+
+计划04的24窗、72条lane观测已完成，错误数0，全部原始文件/身份/配置/生产健康已复核。
+窗口08有明确采集偏差：本地controller和SSH waiter消失，原因没有被记录，但设备端冻结
+workload已写COMPLETE。恢复时下载48文件并逐项核验hash、计数、输出和身份，独立检查无隔离
+进程/临时根/残留挂载，生产九组件与boot/config、Wi-Fi健康通过。保留 `exit:null`，不伪造0；
+从09按原顺序继续，没有重跑08。第3block有额外间隔，全部八组仍保留，不能称原流程无偏差通过。
+恢复审计见 `H4_WINDOW08_RECOVERY_AUDIT.md`；attestation SHA为
+`750f52f0e1cc620bdd6160501df9a3dd4cdcbf38369db5e63eec82ce278d8688`。
+
+恢复版派生器SHA为`376eca32a08a2691e10c4d1cff8d133a84a6b8464c2a8fbc2a889769ae1229af`，
+仅对明确的08和attestation哈希接受恢复路径；原派生器保留。
+`h4-derived-plan04-recovered.json` SHA为
+`6065be21f42d5dd8f371ed70d4d87ed68da7ba6a3f0a4fa7fd8b78558ffcfd84`。
+
+| 负载，B09/A09 配对log中位数 | own CPU | mean | p95 | p99 | 外层吞吐 |
+|---|---:|---:|---:|---:|---:|
+| 实际配置 wireless_status | −55.54% | −31.32% | −25.21% | −2.45% | +26.21% |
+| 实际配置 wireless_status_c4 | −60.82% | −30.79% | −26.19% | −27.19% | +28.80% |
+| unchanged reload，32接口 | +4.56% | +5.53% | +7.32% | +11.97% | −5.24% |
+
+两个无线CPU信号通过预冻结筛选门，但reload存在多项成本越界，不能据无线收益抵消。
+wireless单客户端p99第8组、四客户端mean第6组及p95/p99第6/8组也越过成本复核线，
+全配对值保留。B09比A09的Anon七组多4KiB、一组多8KiB；fd/线程差0。这是proc诊断值，
+不能宣称精确物理内存增加量。三条负载的主体CPU/mean中位方向均优于C；正式R89不在本次
+消融中，尚不能作最终双基线结论。
+
+处置：H4 eager版本暂不晋级；一次有限筛选到此结束，不追加同版本轮次。源码确认 `load`
+每次都预编码缓存，包括无变化reload。私有H4b仅将该不可变配置缓存延迟到该generation首次
+status编码，使用固定Rust revision的 `OnceCell`；不缓存动态状态/handler ifname，不更改无线
+脚本或生命周期。它尚未构建、筛选，不能把预期reload收益写成结果。
+
+## H7 拒绝、H8 时间边界与 H9 后续
+
+H7-02完成固定4对，own CPU比值为0.965820/0.950722/0.932308/0.972288，中位0.958271，
+未达≤0.95。fstat 97375→0，但fcntl 102505→102505，原双机制门也失败；拒绝并从工作树撤回，
+不修改冻结门。实际链接的Rust musl `open` 在CLOEXEC成功路径额外执行F_SETFD，`openat`
+没有这一步；精确libc archive与ELF反汇编支持，见 `h7-fcntl-source-review.md`。
+私有H7b保留完整读取、errno/EINTR/UTF8/trim与CLOEXEC，只单独更换打开原语，尚未构建。
+
+H8-02在第二个strace窗后的完整PD状态比较失败，CPU配对一窗未开。三处差异均为合法的
+prefix renewal跨整秒后 `updated:["prefixes"]` 有/无；C和A09/H8都比较绝对deadline，
+两侧实际更新回调数不同，不能当相同工作量的性能比较，不能删updated字段使旧门通过。
+全部失败保留；另行准备省略prefix寿命的新诊断schema，固定renew/replace次数并明确字段
+及通知合同，有限寿命正确性仍须通过原门。它不是原失败窗口的补跑或追认。
+
+H6设置缓存经源码和双侧探针筛选后拒绝：完整C激活采样迁移还需要配置字段投影、原设置
+恢复和external/bridge生命周期处理。C本身会保留部分成功的激活采样，普通事件不重试；
+不能以“失败采样必须重试”作为错误的拒绝理由。详见 `H6_CONTRACT_REVIEW.md`。
+
+替代H9只复用同次full link dump中的DSA信息，不改变设置读取和生命周期，并保留不完整
+DSA数据的单查询回退。ELF `0f059d9d983ce3c13ff8e4fcb28c3f8089df07a159ccb9e75802537dabef3362`
+已通过167单测、clippy/release/ABI，完整功能/恢复门进行中。精确6.12.94源码的dump/getlink
+共用fill_info，但单查询另有linkwatch_sync_dev；因此仍需事件/lateport/overflow收敛门，
+不能凭属性相同宣称整次请求完全等价。只读DSA工具已在Oracle用两个普通接口及ENODEV负例验证，
+尚不构成真实DSA或H9性能结果。
