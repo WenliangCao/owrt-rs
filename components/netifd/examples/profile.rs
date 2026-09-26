@@ -86,16 +86,6 @@ fn main() {
         let handlers = wireless::discover(std::path::Path::new(&handlerdir));
         let radios = wireless::load(&confdir, &handlers);
         assert!(!radios.is_empty(), "wireless profile requires nonempty config");
-        let mut uncached = radios.clone();
-        for radio in &mut uncached {
-            radio.status_config.clear();
-            for vif in &mut radio.vifs {
-                vif.status_config.clear();
-            }
-        }
-        eprintln!("status_config_cache_bytes={}", radios.iter().map(|radio|
-            radio.status_config.len() + radio.vifs.iter().map(|v| v.status_config.len()).sum::<usize>()
-        ).sum::<usize>());
         let state = wireless::RadioState::default();
         let mut expected = BlobBuf::new();
         wireless::json_text_into_blob(&mut expected, &wireless::status_json(&radios, &handlers, state, &[]));
@@ -111,14 +101,7 @@ fn main() {
             black_box(b.payload());
             b.reset_bounded(64 * 1024);
         });
-        profile_support::measure("wireless_config_direct_blob", n, &filter, || {
-            for radio in &uncached {
-                wireless::status_into_blob(&mut b, radio, &handlers, state, &[]);
-            }
-            black_box(b.payload());
-            b.reset_bounded(64 * 1024);
-        });
-        profile_support::measure("wireless_config_cached_blob", n, &filter, || {
+        profile_support::measure("wireless_config_blob", n, &filter, || {
             for radio in &radios {
                 wireless::status_into_blob(&mut b, radio, &handlers, state, &[]);
             }

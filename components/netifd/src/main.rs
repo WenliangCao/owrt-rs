@@ -3872,12 +3872,6 @@ impl Netifd {
                         return;
                     }
                 };
-                if let Some(index) = selected {
-                    if self.wconfig.get(index).is_none() {
-                        let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
-                        return;
-                    }
-                }
                 let mut b = self.take_reply();
                 self.wireless_status_into_blob(&mut b, selected);
                 self.send_reply(req, b)
@@ -3890,14 +3884,11 @@ impl Netifd {
                         return;
                     }
                 };
-                if let Some(index) = selected {
-                    if self.wconfig.get(index).is_none() {
-                        let _ = self.conn.reply_status(req, status::NOT_FOUND, None);
-                        return;
-                    }
-                }
                 let mut b = self.take_reply();
-                let text = wireless::get_validate_json_selected(&self.wconfig, &self.whandlers, selected);
+                let radios = selected.map_or(self.wconfig.as_slice(), |index| {
+                    std::slice::from_ref(&self.wconfig[index])
+                });
+                let text = wireless::get_validate_json(radios, &self.whandlers);
                 wireless::json_text_into_blob(&mut b, &text);
                 self.send_reply(req, b)
             }
@@ -5048,31 +5039,21 @@ impl Netifd {
 }
 
 impl Netifd {
-    /// `status`, from the live radio state rather than the no-hardware
-    /// defaults: `up`/`pending` follow the state machine, and `ifname` comes
-    /// from whatever the handler reported through `notify`.
     fn wireless_selector(&self, data: &[u8]) -> Result<Option<usize>, i32> {
-        let mut device = None;
-        for field in blob::fields(data) {
-            if field.name != "device" || field.ty != MsgType::String as u32 || device.is_some() {
-                return Err(status::INVALID_ARGUMENT);
-            }
-            let Some(value) = field.as_str() else {
-                return Err(status::INVALID_ARGUMENT);
-            };
-            device = Some(value);
-        }
+        let device = ubus::wireless_read_device(data)?;
         let Some(device) = device else { return Ok(None) };
         if device.is_empty() {
             return Ok(None);
         }
         self.wconfig
             .iter()
-            .position(|radio| radio.name == device)
+            .position(|radio| radio.name.as_bytes() == device)
             .ok_or(status::NOT_FOUND)
             .map(Some)
     }
 
+    /// `status` follows the live state machine; only the configuration is
+    /// shared with the no-hardware projection. ifnames come from notify.
     fn wireless_status_into_blob(&self, b: &mut BlobBuf, selected: Option<usize>) {
         for (index, cfg) in self.wconfig.iter().enumerate() {
             if selected.is_some_and(|wanted| wanted != index) {

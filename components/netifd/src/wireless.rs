@@ -880,7 +880,7 @@ fn config_into_blob(
     if let Some(radios) = radios {
         let list = b.msg_open_array("radios");
         for n in radios {
-            b.msg_i64("", *n);
+            status_integer(b, "", *n);
         }
         b.msg_close(list);
     }
@@ -916,7 +916,7 @@ fn attrs_into_blob(
                 b.msg_close(list);
             }
             (&TYPE_INT, Val::Str(value)) => {
-                b.msg_i64(name, value.trim().parse().unwrap_or(0));
+                status_integer(b, name, value.trim().parse().unwrap_or(0));
             }
             (&TYPE_BOOL, Val::Str(value)) => {
                 match parse_bool(value) {
@@ -1078,29 +1078,6 @@ mod status_blob_tests {
 
 /// `get_validate`, as compact JSON: the whole schema, keyed by radio.
 pub fn get_validate_json(radios: &[Radio], handlers: &[Handler]) -> String {
-    get_validate_json_iter(radios.iter(), handlers)
-}
-
-/// `network.wireless get_validate` with an optional device selector.  Keeping
-/// the filtering here means the selected reply follows the same radio order
-/// and handler projection as the all-radios form.
-pub fn get_validate_json_selected(
-    radios: &[Radio],
-    handlers: &[Handler],
-    selected: Option<usize>,
-) -> String {
-    get_validate_json_iter(
-        radios.iter().enumerate().filter_map(|(index, radio)| {
-            (selected.is_none() || selected == Some(index)).then_some(radio)
-        }),
-        handlers,
-    )
-}
-
-fn get_validate_json_iter<'a, I>(radios: I, handlers: &[Handler]) -> String
-where
-    I: IntoIterator<Item = &'a Radio>,
-{
     let mut out: Vec<(String, String)> = Vec::new();
     for r in radios {
         let Some(h) = r.kind().and_then(|k| handlers.iter().find(|h| h.name == k)) else {
@@ -1324,6 +1301,16 @@ mod handler_tests {
 /// and get_validate projections are built and tested as JSON text against the
 /// C's replies, so this converts that verified text rather than duplicating
 /// the ordering logic in blobmsg calls.
+/// ucode's ubus integer encoder uses INT32 for the signed 32-bit range.
+/// The numeric JSON value alone does not describe this wire contract.
+fn status_integer(b: &mut owrt_ubus::blob::BlobBuf, name: &str, value: i64) {
+    if let Ok(value) = i32::try_from(value) {
+        b.msg_u32(name, value as u32);
+    } else {
+        b.msg_i64(name, value);
+    }
+}
+
 pub fn json_into_blob(b: &mut owrt_ubus::blob::BlobBuf, name: &str, v: &Json) {
     match v {
         Json::Null => {
@@ -1333,7 +1320,7 @@ pub fn json_into_blob(b: &mut owrt_ubus::blob::BlobBuf, name: &str, v: &Json) {
             b.msg_bool(name, *x);
         }
         Json::Int(n) => {
-            b.msg_i64(name, *n);
+            status_integer(b, name, *n);
         }
         Json::Float(f) => {
             b.msg_double(name, *f);

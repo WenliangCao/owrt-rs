@@ -78,6 +78,57 @@ pub const WIRELESS_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("get_validate", &[("device", MsgType::String)]),
 ];
 
+/// ucode validates every field before converting the request to an object.
+/// Repeated valid strings are legal and the last one wins; a later string
+/// cannot hide an earlier invalid type or an unknown argument.
+pub fn wireless_read_device(data: &[u8]) -> Result<Option<&[u8]>, i32> {
+    let mut device = None;
+    for field in owrt_ubus::blob::fields(data) {
+        if field.name != "device" {
+            return Err(status::INVALID_ARGUMENT);
+        }
+        // ucode strings retain arbitrary bytes; an unknown non-UTF-8 name
+        // reaches the radio lookup and must not become INVALID_ARGUMENT.
+        device = Some(field.as_bytes().ok_or(status::INVALID_ARGUMENT)?);
+    }
+    Ok(device)
+}
+
+#[cfg(test)]
+mod wireless_argument_tests {
+    use super::*;
+
+    #[test]
+    fn repeated_strings_use_the_last_value() {
+        let mut b = BlobBuf::new();
+        assert_eq!(wireless_read_device(b.payload()), Ok(None));
+        b.msg_string("device", "radio0");
+        b.msg_string("device", "radio1");
+        assert_eq!(wireless_read_device(b.payload()), Ok(Some(b"radio1".as_slice())));
+        b.msg_string("device", "");
+        assert_eq!(wireless_read_device(b.payload()), Ok(Some(b"".as_slice())));
+    }
+
+    #[test]
+    fn invalid_argument_is_not_hidden_by_another_field() {
+        for bad_first in [false, true] {
+            for unknown_name in [false, true] {
+                let mut b = BlobBuf::new();
+                for bad in [bad_first, !bad_first] {
+                    if !bad {
+                        b.msg_string("device", "radio0");
+                    } else if unknown_name {
+                        b.msg_string("extra", "ignored?");
+                    } else {
+                        b.msg_bool("device", true);
+                    }
+                }
+                assert_eq!(wireless_read_device(b.payload()), Err(status::INVALID_ARGUMENT));
+            }
+        }
+    }
+}
+
 /// `iface_object_methods`.
 pub const IFACE_METHODS: &[(&str, &[(&str, MsgType)])] = &[
     ("up", &[]),

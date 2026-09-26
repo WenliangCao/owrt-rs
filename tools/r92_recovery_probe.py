@@ -76,6 +76,48 @@ def classify_checks(case, side, exit_code, checks):
             "passed": exit_code == 0 and checks.keys() == CHECKS[case] and not mismatches}
 
 
+def owned_link_socket(table, socket_inodes):
+    """Identify the subject's ROUTE/LINK socket by proc inode, not queue size."""
+    lines = table.splitlines()
+    header = lines[0].split()
+    records = [dict(zip(header, line.split(), strict=True)) for line in lines[1:]]
+    owned = {(int(row["Pid"]) & 0xffffffff, int(row["Inode"])) for row in records
+             if int(row["Eth"]) == 0 and int(row["Groups"], 16) & 1
+             and int(row["Inode"]) in socket_inodes}
+    assert len(owned) == 1, ("ambiguous subject LINK socket", sorted(owned))
+    return next(iter(owned))
+
+
+def netlink_socket_sample(text, port_id):
+    """ss may visit one socket twice while its queue or buffer is changing.
+
+    Keep both readings and use conservative ranges. Recv-Q and `sk=0` are
+    not identities (iproute2 6.1 prints a literal zero for this sk field).
+    """
+    samples = []
+    identities = set()
+    for line in text.splitlines():
+        address = re.search(r"\s(\d+):(-?\d+)\s", line)
+        groups = re.search(r"\bgroups=0x([0-9a-fA-F]+)", line)
+        if not address or not groups or int(address[1]) != 0 or not int(groups[1], 16) & 1:
+            continue
+        observed = int(address[2]) & 0xffffffff
+        identities.add(observed)
+        if observed != port_id:
+            continue
+        values = {}
+        for label, key in (("recv", "r"), ("buffer", "rb"), ("drops", "d")):
+            value = re.search(r"(?:\(|,)" + key + r"(\d+)(?=[,)])", line)
+            assert value is not None, ("incomplete socket memory record", line)
+            values[label] = int(value[1])
+        samples.append(values)
+    assert identities == {port_id} and samples, ("unexpected LINK socket identities", identities)
+    return {**{key + suffix: function(s[key] for s in samples)
+               for key in ("recv", "buffer", "drops")
+               for suffix, function in (("_min", min), ("_max", max))},
+            "port_id": port_id, "readings": samples}
+
+
 def run(*args, **kwargs):
     return subprocess.run([str(a) for a in args], check=True, **kwargs)
 
@@ -382,22 +424,26 @@ def inner(root, side, case):
             assert wait_for(lambda: call("network.interface.probe", "status").get("up"))
             checks["identity"] = digest(Path(f"/proc/{subject.pid}/exe")) == digest(root / binary[1:])
 
+            event_identity = None
             def event_socket(label):
+                nonlocal event_identity
+                inodes = set()
+                for fd in Path(f"/proc/{subject.pid}/fd").iterdir():
+                    try:
+                        match = re.fullmatch(r"socket:\[(\d+)\]", os.readlink(fd))
+                    except FileNotFoundError:
+                        continue
+                    if match:
+                        inodes.add(int(match[1]))
+                table = Path("/proc/net/netlink").read_text()
+                write(output / (label + ".netlink"), table)
+                identity = owned_link_socket(table, inodes)
+                if event_identity is None:
+                    event_identity = identity
+                assert identity == event_identity, "event socket replaced"
                 data = run("ss", "-f", "netlink", "-a", "-n", "-m", "-e", capture_output=True).stdout.decode()
                 write(output / (label + ".ss"), data)
-                # Only netifd subscribes to rtnetlink group LINK in this namespace.
-                # inet_diag can list the same multicast socket in both its
-                # port-id and multicast walks. Require one distinct record.
-                # `ss -m -e` may render the same netlink record with different
-                # trailing alignment spaces. Normalize whitespace before
-                # deduplicating; otherwise one socket is falsely reported as
-                # two and the recovery probe fails before testing netifd.
-                lines = sorted({" ".join(line.split()) for line in data.splitlines()
-                                if "groups=0x00000001" in line
-                                and re.search(r"\s0:\d+\s", line)})
-                assert len(lines) == 1, lines
-                return {"buffer": int(re.search(r"\brb(\d+)", lines[0])[1]),
-                        "drops": int(re.search(r",d(\d+)\)", lines[0])[1])}
+                return {"inode": identity[1], **netlink_socket_sample(data, identity[0])}
 
             before = event_socket("before")
             subject.send_signal(signal.SIGSTOP)
@@ -405,11 +451,11 @@ def inner(root, side, case):
             write(output / "flood.ip", commands)
             run("ip", "-batch", output / "flood.ip", capture_output=True)
             lost = event_socket("stopped")
-            checks["overflow_reached"] = lost["drops"] > 0
+            checks["overflow_reached"] = lost["drops_min"] > before["drops_max"]
             subject.send_signal(signal.SIGCONT)
             checks["removed_device_seen"] = wait_for(lambda: call("network.interface.probe", "status").get("available") is False)
             after = event_socket("after")
-            checks["buffer_grown"] = after["buffer"] > before["buffer"]
+            checks["buffer_grown"] = after["buffer_min"] > before["buffer_max"]
             observations.update(before=before, stopped=lost, after=after)
             run("ip", "link", "add", "probe0", "type", "veth", "peer", "name", "probe1")
             run("ip", "link", "set", "probe0", "up")
