@@ -28,6 +28,8 @@ mod rt;
 mod sys;
 #[path = "../src/ubus.rs"]
 mod ubus;
+#[path = "../src/wireless.rs"]
+mod wireless;
 #[path = "../../rpcd/examples/profile_support/mod.rs"]
 mod profile_support;
 
@@ -53,7 +55,29 @@ fn main() {
     let n = std::env::args().nth(1).unwrap_or_else(|| "1000".into()).parse().unwrap();
     let filter = std::env::args().nth(2).unwrap_or_default();
     println!("stage,iterations,ns_per_op,allocations,reallocations,allocated_bytes");
-    for count in [2, 32, 128] {
+    let mut reply = BlobBuf::with_capacity(1024);
+    profile_support::measure("reply_take_default", n, &filter, || {
+        let mut b = std::mem::take(&mut reply);
+        black_box(b.payload());
+        b.reset_bounded(64 * 1024);
+        reply = b;
+    });
+    let mut reply = Some(BlobBuf::with_capacity(1024));
+    profile_support::measure("reply_take_option", n, &filter, || {
+        let mut b = reply.take().unwrap_or_default();
+        black_box(b.payload());
+        b.reset_bounded(64 * 1024);
+        reply = Some(b);
+    });
+    profile_support::measure("wireless_empty_json_blob", n, &filter, || {
+        let text = wireless::status_json(&[], &[], wireless::RadioState::default(), &[]);
+        let mut b = reply.take().unwrap();
+        wireless::json_text_into_blob(&mut b, black_box(&text));
+        black_box(b.payload());
+        b.reset_bounded(64 * 1024);
+        reply = Some(b);
+    });
+    for count in [2, 32, 64, 128] {
         let interfaces: Vec<_> = (0..count).map(interface).collect();
         let times: Vec<_> = interfaces.iter().map(|i| (i.name.clone(), 60u64)).collect();
         let objects = ubus::Objects {
@@ -91,7 +115,7 @@ fn main() {
         iface.dump_status(&mut b);
         black_box(b.payload());
     });
-    for count in [2, 32, 128] {
+    for count in [2, 32, 64, 128] {
         let interfaces: Vec<_> = (0..count).map(interface).collect();
         profile_support::measure(&format!("interface_dump_snapshots_{count}"), n, &filter, || {
             let mut b = BlobBuf::with_capacity(1024);
@@ -118,6 +142,21 @@ fn main() {
             b.msg_close(arr);
             black_box(b.payload());
         });
+        for limit in [64 * 1024, 128 * 1024] {
+        let mut b = BlobBuf::with_capacity(1024);
+        profile_support::measure(&format!("interface_dump_reused_{count}_limit{limit}"), n, &filter, || {
+            let arr = b.msg_open_array("interface");
+            for i in &interfaces {
+                let table = b.msg_open_table("");
+                b.msg_string("interface", &i.name);
+                i.dump_status_with(&mut b, i.uptime, &i.proto_ip.prefixes);
+                b.msg_close(table);
+            }
+            b.msg_close(arr);
+            black_box(b.payload());
+            b.reset_bounded(limit);
+        });
+        }
     }
     let ethtool = ethtool::Ethtool::open().unwrap();
     let ioctl = sys::IfIoctl::open().unwrap();

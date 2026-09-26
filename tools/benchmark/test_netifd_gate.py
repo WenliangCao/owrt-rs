@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise the actual shell gate with a proc tree lacking task/children."""
 from pathlib import Path
+import json
 import re
 import subprocess
 import tempfile
@@ -41,6 +42,23 @@ class ChildReapingGateTests(unittest.TestCase):
 
     def test_unreadable_proc_tree_is_not_an_empty_child_list(self):
         self.assertNotEqual(self.check(), 0)
+
+
+class ScaleFixtureTests(unittest.TestCase):
+    def test_full_fixture_order_crosses_one_hundred_interfaces(self):
+        script = Path(__file__).with_name("isolated.sh").read_text()
+        function = re.search(r"    netifd_expect\(\).*?^    \}", script, flags=re.S | re.M).group()
+        for count in (2, 32, 64, 128):
+            digits = 3 if count == 128 else 2
+            output = subprocess.check_output(["sh", "-c", function +
+                '\nnetifd_digits=$1\nnetifd_expect "$2"', "fixture", str(digits), str(count)])
+            interfaces = json.loads(output)["interface"]
+            names = [i["interface"] for i in interfaces]
+            self.assertEqual(len(names), count)
+            self.assertEqual(names, sorted(set(names)))
+            self.assertEqual(names[-2:], ["lan", "loopback"])
+            for index, iface in enumerate(interfaces[:-2]):
+                self.assertEqual(iface["ipv4-address"][0]["address"], f"198.18.{index}.1")
 
 
 if __name__ == "__main__":

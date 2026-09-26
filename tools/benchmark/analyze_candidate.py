@@ -19,6 +19,8 @@ UBUSD_EXTENDED = ("register_1", "register_16", "event_1", "event_8", "event_noma
 NETIFD_EXTRA = ("device_status_all", "interface_dump_32", "interface_named_32")
 METRICS = ("mean_us", "p50_us", "p95_us", "p99_us", "ops_per_s",
            "subject_cpu_us_per_op", "dependency_cpu_us_per_op", "client_cpu_us_per_op")
+CLOCK_METRICS = ("subject_own_cpu_clock_us_per_op", "dependency_own_cpu_clock_us_per_op",
+                 "client_cpu_clock_us_per_op")
 
 
 def read(path):
@@ -31,6 +33,17 @@ def process_clock_delta(before, after):
     delta = after["process_cpu_ns"] - before["process_cpu_ns"]
     assert delta >= 0, "process CPU clock regressed"
     return delta
+
+
+def resource_pair(before, after, subject, pid=None):
+    pid = before.get("pid", pid)
+    assert pid is not None and after.get("pid", pid) == pid
+    assert before["start_ticks"] == after["start_ticks"]
+    fields = ("VmRSS", "RssAnon", "RssFile", "RssShmem", "VmHWM", "fds", "Threads",
+              "process_cpu_resolution_ns", "voluntary_ctxt_switches", "nonvoluntary_ctxt_switches")
+    return {"pid": pid, "role": "subject" if pid == subject else "dependency",
+            "before": {key: before[key] for key in fields if key in before},
+            "after": {key: after[key] for key in fields if key in after}}
 
 
 def serial(path, subject):
@@ -49,7 +62,11 @@ def serial(path, subject):
             clocks["subject_own_cpu_clock_us_per_op"] = own["cpu_clock_ns"] / 1000 / count
             clocks["dependency_own_cpu_clock_us_per_op"] = sum(p["cpu_clock_ns"] for p in data["daemon_cpu"]
                                                              if p["pid"] != subject) / 1000 / count
-    return {**timing(data), **clocks, "warmup": data["warmup"],
+    return {**timing(data), **clocks, "warmup": data["warmup"], "errors": data["errors"],
+            "resources": [resource_pair(p["before"], p["after"], subject, p["pid"]) for p in data["daemon_cpu"]],
+            "clock_ticks_per_second": data.get("clock_ticks_per_second"),
+            "subject_reaped_child_cpu_us_per_op": own["child_cpu_s"] * 1e6 / count if own else None,
+            "dependency_reaped_child_cpu_us_per_op": sum(p["child_cpu_s"] for p in data["daemon_cpu"] if p["pid"] != subject) * 1e6 / count,
             "subject_cpu_us_per_op": cpu * 1e6 / count,
             "dependency_cpu_us_per_op": sum(p["cpu_s"] for p in data["daemon_cpu"]
                                             if p["pid"] != subject) * 1e6 / count,
@@ -93,6 +110,10 @@ def parallel(path, subject):
     # run only. Each run remains one independent observation in the summary.
     quantile = lambda p: samples[math.floor((len(samples) - 1) * p + .5)] / 1000
     return {**clocks, "successful": count, "warmup": warm, "wall_s": elapsed,
+            "errors": sum(c["errors"] for c in clients), "clock_ticks_per_second": hz,
+            "resources": [resource_pair(old[pid], p, subject) for pid, p in new.items()],
+            "subject_reaped_child_cpu_us_per_op": (new[subject]["child_cpu_ticks"] - old[subject]["child_cpu_ticks"]) / hz * 1e6 / (count + warm),
+            "dependency_reaped_child_cpu_us_per_op": sum(p["child_cpu_ticks"] - old[pid]["child_cpu_ticks"] for pid, p in new.items() if pid != subject) / hz * 1e6 / (count + warm),
             "ops_per_s": count / elapsed, "mean_us": statistics.mean(samples) / 1000,
             "p50_us": quantile(.50), "p95_us": quantile(.95), "p99_us": quantile(.99),
             "subject_cpu_us_per_op": cpu[subject] * 1e6 / (count + warm),
@@ -121,7 +142,8 @@ def derive(root, label):
     assert component in COMPONENT_WORK
     baseline_label = settings.get("baseline_label", "r84")
     measured_sides = tuple(side for side in ("stock", baseline_label, "candidate") if side in order)
-    assert {"stock", "candidate"}.issubset(measured_sides)
+    calibration = settings.get("schedule") == "calibration"
+    assert measured_sides == ("candidate",) if calibration else {"stock", "candidate"}.issubset(measured_sides)
     assert len({order.count(side) for side in measured_sides}) == 1
     before, after = read(root / "health-before.json"), read(root / "health-after.json")
     assert before["boot_id"] == after["boot_id"]
@@ -131,6 +153,8 @@ def derive(root, label):
     identities = set()
     fixtures = set()
     matrix = read(root / "settings.json")["matrix"]
+    netifd_scale = settings.get("netifd_scale", 32)
+    assert netifd_scale in (32, 64, 128)
     workloads = list(COMPONENT_WORK[component])
     if matrix and component == "httpd":
         workloads = ([f"{name}_{clients}" for name in STATIC for clients in ("c1", "c4")]
@@ -146,7 +170,8 @@ def derive(root, label):
         workloads += [name + suffix for name in UBUSD_EXTRA for suffix in ("", "_c4")]
     elif matrix and component == "netifd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
-        workloads += [name + suffix for name in NETIFD_EXTRA for suffix in ("", "_c4")]
+        extra = ("device_status_all", f"interface_dump_{netifd_scale}", f"interface_named_{netifd_scale}")
+        workloads += [name + suffix for name in extra for suffix in ("", "_c4")]
     else:
         assert not matrix, "unsupported workload matrix"
     if read(root / "settings.json").get("extended"):
@@ -183,10 +208,11 @@ def derive(root, label):
                     for phase in ("before", "after"):
                         assert (raw / f"objects-{count}-{phase}.txt").read_text().splitlines() == expected_paths
             if component == "netifd":
-                settled = (raw / "hotplug-settled-32.txt").is_file()
+                settled = (raw / f"hotplug-settled-{netifd_scale}.txt").is_file()
                 initialization_settled.append(settled)
-                for count in (2, 32):
-                    expected_names = [f"bench{i:02d}" for i in range(count - 2)] + ["lan", "loopback"]
+                for count in (2, netifd_scale):
+                    digits = 3 if netifd_scale == 128 else 2
+                    expected_names = [f"bench{i:0{digits}d}" for i in range(count - 2)] + ["lan", "loopback"]
                     if settled:
                         children_checked = check_netifd_hotplug(raw, subject, count, expected_names)
                         initialization_settled[-1] = initialization_settled[-1] and children_checked
@@ -229,19 +255,25 @@ def derive(root, label):
     for row in rows:
         groups[(row["workload"], row["side"])].append(row)
     summary = {}
+    metrics = METRICS + tuple(metric for metric in CLOCK_METRICS if all(metric in row for row in rows))
     for name in workloads:
-        sides = {side: {metric: stats(r[metric] for r in groups[(name, side)]) for metric in METRICS}
+        sides = {side: {metric: stats(r[metric] for r in groups[(name, side)]) for metric in metrics}
                  for side in measured_sides}
-        sides["candidate_vs_stock_pct"] = {
-            metric: (sides["candidate"][metric]["median"] / sides["stock"][metric]["median"] - 1) * 100
-            for metric in METRICS if sides["stock"][metric]["median"] > 0}
+        if not calibration:
+            sides["candidate_vs_stock_pct"] = {
+                metric: (sides["candidate"][metric]["median"] / sides["stock"][metric]["median"] - 1) * 100
+                for metric in metrics if sides["stock"][metric]["median"] > 0}
         if baseline_label in sides:
             sides["candidate_vs_baseline_pct"] = {
                 metric: (sides["candidate"][metric]["median"] / sides[baseline_label][metric]["median"] - 1) * 100
-                for metric in METRICS if sides[baseline_label][metric]["median"] > 0}
+                for metric in metrics if sides[baseline_label][metric]["median"] > 0}
         summary[name] = sides
     client, namespace, harness = next(iter(identities))
     limitations = []
+    if calibration:
+        limitations.append("Same-identity calibration only; no between-implementation acceptance claim.")
+    if not all(metric in metrics for metric in CLOCK_METRICS):
+        limitations.append("Process CPU-clock metrics are unavailable for some observations; legacy ticks remain separate.")
     if initialization_settled and not all(initialization_settled):
         limitations.append("This netifd matrix lacks complete evidence for finished hotplug callbacks, reaped children checked through proc status PPid, and stable child CPU before queries. Timings/CPU are retained for diagnosis, not acceptance; rerun with the complete initialization gate.")
     return {"schema_version": 1, "label": label, "component": component, "matrix": matrix, "subjects": subjects,

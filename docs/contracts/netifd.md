@@ -76,8 +76,8 @@ netifd-rs 用 Rust 复刻同一套语义，handler 脚本仍是设备自带的 `
 - **对象注册**：`network.wireless` 恒注册（up/down/retry/reconf/status/get_validate/notify），
   监管与 daemon 两种模式都在。此前"不注册"的取舍（R59 头注）已作废——radio 生命周期已实现。
 - **配置投影**：`wifi-device`/`wifi-iface` 按 handler 的 schema（`default_attrs` + handler 声明的
-  attr/validate）投影成 blobmsg；`disabled` 走 parse_bool（UCI 接受的拼写里只有 0/1/true/false/on/off/
-  yes/no 生效，其余当未禁用）；list-where-scalar、int-typed option 的处理与 C 逐字段对齐（r59 三例）。
+  attr/validate）投影成 blobmsg；`disabled` 走 parse_bool（只有 0/1/true/false 生效，
+  on/off/yes/no 等拼写返回 undefined，判断禁用时为 false）；list-where-scalar、int-typed option 的处理与 C 逐字段对齐（r59 三例）。
 - **handler 协议**（wireless-device.uc 的 wdev 状态机）：setup→notify(up/set-retry/set-ifname/
   process-add)→teardown，一次一个串行；notify 命令 `up`/`down`/`set_retry`/`process_add`/
   `set_data`（device_data 记录）逐条复刻；注册的进程消失即拆除 radio；retry 预算耗尽置

@@ -11,6 +11,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import random
 import shlex
 import subprocess
 import sys
@@ -41,13 +42,16 @@ def main():
                         help="frozen comparison bundle on the router, including manifest.json")
     parser.add_argument("--baseline-label", default="r84", help="evidence label for that frozen bundle")
     parser.add_argument("--cpus", help="optional fixed taskset CPU list for every isolated subject/client")
-    parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
-    parser.add_argument("--schedule", choices=("default", "two-side-balanced", "three-side-sequential"), default="default",
+    parser.add_argument("--repeats", type=int, default=4)
+    parser.add_argument("--schedule", choices=("default", "two-side-balanced", "three-side-sequential", "calibration", "random-blocks"), default="default",
                         help="default interleaving, stock/candidate ABBA, or C then baseline then candidate; --repeats is windows per side for three-side-sequential")
+    parser.add_argument("--seed", type=int, help="frozen seed for independent random three-side blocks")
+    parser.add_argument("--guard", type=Path, help="router-side lifetime guard for each namespace (600 seconds)")
     parser.add_argument("--iterations", type=int, default=10000)
     parser.add_argument("--resume", action="store_true",
                         help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
+    parser.add_argument("--netifd-scale", type=int, choices=(32, 64, 128), default=32)
     parser.add_argument("--memory-probe", type=Path,
                         help="separate diagnostic binary with http-resident mode; measure 64 held connections only")
     parser.add_argument("--rpc-client-probe", type=Path,
@@ -59,25 +63,38 @@ def main():
     parser.add_argument("--extended", action="store_true",
                         help="ubusd: registration/event lanes and normalized daemon start")
     args = parser.parse_args()
+    if not 1 <= args.repeats <= 64:
+        parser.error("repeats must be in 1..64")
+    if args.schedule in ("default", "two-side-balanced") and args.repeats not in (2, 4):
+        parser.error("legacy schedules require 2 or 4 repeats")
+    if args.schedule in ("calibration", "random-blocks") and not args.guard:
+        parser.error("new experiments require a router-side lifetime guard")
+    if (args.schedule == "random-blocks") != (args.seed is not None):
+        parser.error("--seed is required only for random-blocks")
     if not re.fullmatch(r"[a-z][a-z0-9_-]*", args.baseline_label) or args.baseline_label in ("stock", "candidate"):
         parser.error("invalid baseline label")
     if not args.baseline_bundle.startswith("/") or (args.cpus and not re.fullmatch(r"[0-9,-]+", args.cpus)):
         parser.error("baseline path must be absolute; CPU list must be numeric")
     if args.iterations <= 0:
         parser.error("iterations must be positive")
-    if len(set(args.sides)) != len(args.sides) or not {"stock", "candidate"}.issubset(args.sides):
+    if args.schedule == "calibration":
+        if args.sides != ["candidate"]:
+            parser.error("calibration requires exactly --sides candidate")
+    elif len(set(args.sides)) != len(args.sides) or not {"stock", "candidate"}.issubset(args.sides):
         parser.error("sides must include stock and candidate, without duplicates")
     if args.component != "httpd" and args.memory_probe:
         parser.error("held-connection memory currently requires HTTPD")
     if args.matrix and args.component not in ("httpd", "rpcd", "procd", "ubusd", "netifd"):
         parser.error("expanded matrices are defined for the five main daemons")
+    if args.netifd_scale != 32 and (args.component != "netifd" or not args.matrix):
+        parser.error("--netifd-scale requires a netifd matrix")
     if args.memory_probe and (args.matrix or "r84" in args.sides):
         parser.error("held-connection memory uses --sides stock candidate without --matrix")
     if args.rpc_client_probe and (args.component != "rpcd" or args.matrix or args.memory_probe or "r84" in args.sides):
         parser.error("RPC client diagnostics require rpcd, --sides stock candidate, and no other experiment mode")
     if args.bench and (args.memory_probe or args.rpc_client_probe):
         parser.error("--bench is not used with diagnostic probes")
-    if args.bench and "r84" in args.sides and args.schedule != "three-side-sequential":
+    if args.bench and "r84" in args.sides and args.schedule not in ("three-side-sequential", "random-blocks"):
         parser.error("--bench with a frozen baseline requires three-side-sequential")
     if args.extended and args.component != "ubusd":
         parser.error("--extended is a ubusd mode")
@@ -85,6 +102,8 @@ def main():
         parser.error("two-side-balanced requires exactly --sides stock candidate")
     if args.schedule == "three-side-sequential" and args.sides != ["stock", "r84", "candidate"]:
         parser.error("three-side-sequential requires exactly --sides stock r84 candidate")
+    if args.schedule == "random-blocks" and args.sides != ["stock", "r84", "candidate"]:
+        parser.error("random-blocks requires exactly --sides stock r84 candidate")
     component = args.component
     binary = "reload_config_rs" if component == "reload-config" else component + "-rs"
     if args.resume and (not (args.output / "STARTED").exists() or (args.output / "COMPLETE").exists()):
@@ -135,7 +154,16 @@ def main():
     if args.bench:
         tool_hashes["owrt-benchmark"] = hashlib.sha256(args.bench.read_bytes()).hexdigest()
     initial("subjects.json", hashes)
-    if args.schedule == "two-side-balanced":
+    initial("host-manifest.json", manifest)
+    initial("baseline-manifest.json", baseline)
+    initial("tool-identities.json", {**tool_hashes, "driver": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()})
+    if args.schedule == "calibration":
+        order = ("candidate",) * args.repeats
+    elif args.schedule == "random-blocks":
+        rng = random.Random(args.seed)
+        order = tuple(side for _ in range(args.repeats)
+                      for side in rng.sample(["stock", args.baseline_label, "candidate"], 3))
+    elif args.schedule == "two-side-balanced":
         order = TWO_SIDE_BALANCED * args.repeats
     elif args.schedule == "three-side-sequential":
         order = tuple(args.baseline_label if side == "r84" else side
@@ -153,6 +181,13 @@ def main():
                            "management_access": args.access, "workload_transport": "namespace loopback"}
     if args.schedule != "default":
         settings["schedule"] = args.schedule
+    if args.seed is not None:
+        settings["seed"] = args.seed
+    if component == "netifd":
+        settings["netifd_scale"] = args.netifd_scale
+    if args.guard:
+        settings["guard_sha256"] = hashlib.sha256(args.guard.read_bytes()).hexdigest()
+        settings["namespace_timeout_seconds"] = 600
     if args.bench:
         settings["bench_sha256"] = tool_hashes["owrt-benchmark"]
     if args.extended:
@@ -170,6 +205,10 @@ def main():
         ssh("test ! -e " + remote + " && mkdir -p " + remote + "/bundle")
         save("collector.json", {"remote": remote, "harness_sha256": hashlib.sha256(script.read_bytes()).hexdigest()})
     bundle = remote + "/bundle"
+    if args.guard:
+        if not args.resume:
+            subprocess.run(["scp", "-O", str(args.guard.resolve()), args.host + ":" + remote + "/guard"], check=True)
+        assert ssh("sha256sum " + remote + "/guard").decode().split()[0] == settings["guard_sha256"]
     # With --bench, use the same uploaded client in every selected bundle.
     # A three-side run gets a third temporary bundle containing the frozen
     # baseline ELF; the baseline directory itself remains untouched.
@@ -206,14 +245,15 @@ def main():
         if ssh("sha256sum " + bundle + "/rpc-client-probe").decode().split()[0] != digest:
             raise RuntimeError("RPC client probe upload checksum mismatch")
         initial("client-probe.json", {"sha256": digest, "diagnostic_only": True})
-    bundle_targets = (bundle, stock_bundle, baseline_bundle) if baseline_bundle else ((bundle, stock_bundle) if args.bench else (bundle,))
+    assert ssh("sha256sum " + remote + "/isolated.sh").decode().split()[0] == hashlib.sha256(script.read_bytes()).hexdigest()
+    bundle_targets = (bundle, stock_bundle, baseline_bundle) if baseline_bundle else (bundle, stock_bundle)
     for name in ("ns-exec", "owrt-benchmark"):
         for where in bundle_targets:
             if ssh("sha256sum " + where + "/" + name).decode().split()[0] != tool_hashes[name]:
                 raise RuntimeError("benchmark identity mismatch: " + name)
     if ssh("sha256sum " + bundle + "/" + binary).decode().split()[0] != hashes["candidate"]:
         raise RuntimeError("candidate upload checksum mismatch")
-    if baseline_bundle and ssh("sha256sum " + baseline_bundle + "/" + binary).decode().split()[0] != hashes[args.baseline_label]:
+    if "r84" in args.sides and ssh("sha256sum " + (baseline_bundle or stock_bundle) + "/" + binary).decode().split()[0] != hashes[args.baseline_label]:
         raise RuntimeError("baseline upload checksum mismatch")
     monitors = ",".join(line.split()[1] for line in identity.decode().splitlines()
                         if line.split()[1] != "-")
@@ -243,6 +283,14 @@ def main():
             selected = stock_bundle
         impl = "c" if side == "stock" else "rs"
         (local / "host-before.json").write_bytes(ssh(snapshot))
+        mounts = ssh("cat /proc/self/mountinfo")
+        (local / "mounts-before.txt").write_bytes(mounts)
+        for suffix, cmd in (("config-before.sha256", "sha256sum /etc/config/*"),
+                            ("production-before.txt", "/bin/sh /root/r84/stack-switch.sh verify " + args.stack)):
+            value = ssh(cmd)
+            (local / suffix).write_bytes(value)
+            assert value == (config if suffix.startswith("config") else identity), "production state changed"
+        (local / "environment-before.txt").write_bytes(ssh("cat /proc/uptime /proc/loadavg; for f in /sys/class/thermal/thermal_zone*/temp; do test ! -f \"$f\" || cat \"$f\"; done"))
         print(json.dumps({"event": "started", "side": side, "index": index,
                           "at": datetime.datetime.now(datetime.timezone.utc).isoformat()}), flush=True)
         command = (f"/bin/sh {remote}/isolated.sh /rom {shlex.quote(selected)} {component} {impl} "
@@ -251,6 +299,10 @@ def main():
             command = "taskset -c " + shlex.quote(args.cpus) + " " + command
         if args.matrix:
             command = "OWRT_" + component.upper() + "_MATRIX=1 " + command
+            if component == "netifd":
+                command = "OWRT_NETIFD_SCALE=" + str(args.netifd_scale) + " " + command
+        if args.guard:
+            command = "OWRT_BENCH_GUARD=" + remote + "/guard " + command
         if args.extended:
             command = "OWRT_UBUSD_EXTENDED=1 OWRT_UBUSD_NORMALIZED=1 " + command
         if args.memory_probe:
@@ -258,32 +310,65 @@ def main():
         if args.rpc_client_probe:
             mode_order = "tree-first" if index % 2 else "wire-first"
             command = "OWRT_RPCD_CLIENT_DIAGNOSTIC=1 OWRT_RPCD_CLIENT_ORDER=" + mode_order + " " + command
-        with (local / "run.log").open("xb") as log:
-            run = subprocess.run(ssh_args + [command], stdout=log, stderr=subprocess.STDOUT, timeout=1800)
-        (local / "host-after.json").write_bytes(ssh(snapshot))
+        failures = []
+        run_exit = None
+        try:
+            with (local / "run.log").open("xb") as log:
+                run_exit = subprocess.run(ssh_args + [command], stdout=log, stderr=subprocess.STDOUT, timeout=1800).returncode
+            if run_exit != 0:
+                failures.append(f"namespace exited {run_exit}")
+        except Exception as exc:
+            failures.append(f"launch: {type(exc).__name__}: {exc}")
+        # Preserve a failed window before raising, including collection errors.
+        # The router-side guard remains responsible for bounded termination.
         archive = local / "raw.tar.gz"
-        with archive.open("xb") as target:
-            subprocess.run(ssh_args + ["tar -czf - -C " + shlex.quote(run_out) + " ."],
-                           stdout=target, check=True, timeout=180)
-        checksums = ssh("cd " + shlex.quote(run_out) + " && find . -type f -exec sha256sum '{}' ';'")
-        (local / "raw.sha256").write_bytes(checksums)
         raw = local / "raw"
-        raw.mkdir(mode=0o700)
-        with tarfile.open(archive) as tar:
-            tar.extractall(raw, filter="data")
-        for line in checksums.decode().splitlines():
-            digest, name = line.split(None, 1)
-            path = raw / name
-            if not path.resolve().is_relative_to(raw) or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
-                raise RuntimeError("download checksum mismatch")
+        try:
+            with archive.open("xb") as target:
+                subprocess.run(ssh_args + ["tar -czf - -C " + shlex.quote(run_out) + " ."],
+                               stdout=target, check=True, timeout=180)
+            checksums = ssh("cd " + shlex.quote(run_out) + " && find . -type f -exec sha256sum '{}' ';'")
+            (local / "raw.sha256").write_bytes(checksums)
+            raw.mkdir(mode=0o700)
+            with tarfile.open(archive) as tar:
+                tar.extractall(raw, filter="data")
+            for line in checksums.decode().splitlines():
+                digest, name = line.split(None, 1)
+                path = raw / name
+                assert path.resolve().is_relative_to(raw) and hashlib.sha256(path.read_bytes()).hexdigest() == digest, "download checksum mismatch"
+            assert (raw / "COMPLETE").exists(), "incomplete isolated run"
+            assert (raw / "binary-sha256.txt").read_text().split()[0] == hashes[side], "subject identity mismatch"
+            if (raw / "subject-sha256.txt").exists():
+                assert (raw / "subject-sha256.txt").read_text().split()[0] == hashes[side], "live subject identity mismatch"
+            assert (raw / "boot-id.txt").read_text().strip() == pre["boot_id"], "host boot changed"
+            assert (raw / "harness-sha256.txt").read_text().split()[0] == hashlib.sha256(script.read_bytes()).hexdigest(), "harness identity mismatch"
+            observed_tools = {Path(path).name: digest for digest, path in
+                              (line.split() for line in (raw / "benchmark-sha256.txt").read_text().splitlines())}
+            assert observed_tools == tool_hashes, "measured tool identities differ"
+        except Exception as exc:
+            failures.append(f"raw evidence: {type(exc).__name__}: {exc}")
+        for filename, cmd, expected_value in (
+                ("host-after.json", snapshot, None),
+                ("environment-after.txt", "cat /proc/uptime /proc/loadavg; for f in /sys/class/thermal/thermal_zone*/temp; do test ! -f \"$f\" || cat \"$f\"; done", None),
+                ("mounts-after.txt", "cat /proc/self/mountinfo", mounts),
+                ("config-after.sha256", "sha256sum /etc/config/*", config),
+                ("production-after.txt", "/bin/sh /root/r84/stack-switch.sh verify " + args.stack, identity)):
+            try:
+                value = ssh(cmd)
+                (local / filename).write_bytes(value)
+                assert expected_value is None or value == expected_value, filename + " changed"
+            except Exception as exc:
+                failures.append(f"{filename}: {type(exc).__name__}: {exc}")
+        if failures:
+            try:
+                save(local.name + "/health-after-failure.json", probe(host=args.host, mode=args.stack, interface=args.interface))
+            except Exception as exc:
+                failures.append(f"health: {type(exc).__name__}: {exc}")
+        save(local.name + "/result.json", {"command": command, "exit": run_exit, "failures": failures,
+                                          "remote_evidence_retained": run_out if failures else None})
+        if failures:
+            raise RuntimeError("window failed; evidence preserved: " + "; ".join(failures))
         ssh("rm -rf -- " + shlex.quote(run_out))
-        run.check_returncode()
-        if not (raw / "COMPLETE").exists():
-            raise RuntimeError("incomplete isolated run")
-        if (raw / "binary-sha256.txt").read_text().split()[0] != hashes[side]:
-            raise RuntimeError("subject identity mismatch")
-        if (raw / "boot-id.txt").read_text().strip() != pre["boot_id"]:
-            raise RuntimeError("host boot changed")
         (local / "COMPLETE").touch()
         print(json.dumps({"event": "complete", "side": side, "index": index}), flush=True)
     post = probe(host=args.host, mode=args.stack, interface=args.interface)

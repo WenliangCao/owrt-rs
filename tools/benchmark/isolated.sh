@@ -22,6 +22,10 @@ case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_NORMALIZED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_EXTENDED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_NETIFD_SCALE:-32}" in 32|64|128) ;; *) exit 2 ;; esac
+netifd_scale=${OWRT_NETIFD_SCALE:-32}
+netifd_digits=2
+[ "$netifd_scale" -ne 128 ] || netifd_digits=3
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -268,7 +272,7 @@ EOF
         printf '{"interface":['
         netifd_index=0; netifd_sep=''
         while [ "$netifd_index" -lt "$(($1 - 2))" ]; do
-            printf '%s{"interface":"bench%02d","up":true,"proto":"static","ipv4-address":[{"address":"198.18.%s.1","mask":24}]}' "$netifd_sep" "$netifd_index" "$netifd_index"
+            printf '%s{"interface":"bench%0*d","up":true,"proto":"static","ipv4-address":[{"address":"198.18.%s.1","mask":24}]}' "$netifd_sep" "$netifd_digits" "$netifd_index" "$netifd_index"
             netifd_sep=,; netifd_index=$((netifd_index + 1))
         done
         printf '%s{"interface":"lan","up":true,"proto":"static","ipv4-address":[{"address":"192.0.2.1","mask":24}]},{"interface":"loopback","up":true,"proto":"static","ipv4-address":[{"address":"127.0.0.1","mask":8}]}]}\n' "$netifd_sep"
@@ -277,7 +281,7 @@ EOF
         netifd_index=0
         : > /tmp/netifd-names.expected
         while [ "$netifd_index" -lt "$(($1 - 2))" ]; do
-            printf 'bench%02d\n' "$netifd_index" >> /tmp/netifd-names.expected
+            printf 'bench%0*d\n' "$netifd_digits" "$netifd_index" >> /tmp/netifd-names.expected
             netifd_index=$((netifd_index + 1))
         done
         printf 'lan\nloopback\n' >> /tmp/netifd-names.expected
@@ -530,23 +534,24 @@ EOF
                     # Multiple static interfaces on the same bridge exercise
                     # live status projection without requiring extra hardware.
                     netifd_index=0
-                    while [ "$netifd_index" -lt 30 ]; do
-                        printf "config interface 'bench%02d'\n option device 'br-bench'\n option proto 'static'\n option ipaddr '198.18.%s.1/24'\n" "$netifd_index" "$netifd_index" >> /etc/config/network
+                    while [ "$netifd_index" -lt "$((netifd_scale - 2))" ]; do
+                        printf "config interface 'bench%0*d'\n option device 'br-bench'\n option proto 'static'\n option ipaddr '198.18.%s.1/24'\n" "$netifd_digits" "$netifd_index" "$netifd_index" >> /etc/config/network
                         netifd_index=$((netifd_index + 1))
                     done
                     ubus call network reload >/dev/null
-                    wait_object network.interface.bench29 "$subject"
+                    netifd_last=$(printf "bench%0*d" "$netifd_digits" "$((netifd_scale - 3))")
+                    wait_object "network.interface.$netifd_last" "$subject"
                     tries=0
-                    until [ "$(ubus call network.interface.bench29 status | jsonfilter -e '@.up')" = true ]; do
+                    until [ "$(ubus call "network.interface.$netifd_last" status | jsonfilter -e '@.up')" = true ]; do
                         kill -0 "$subject"; [ "$tries" -lt 20 ]; sleep 1; tries=$((tries + 1))
                     done
-                    netifd_expect 32 > /tmp/expect-interfaces-32.json
-                    sha256sum /etc/config/network /tmp/expect-interfaces-2.json /tmp/expect-interfaces-32.json >> "$out/netifd-fixtures.sha256"
-                    check_netifd_interfaces 32 before
-                    wait_netifd_hotplug 32
-                    rpc_pair interface_dump_32 network.interface dump '{}' "$(cat /tmp/expect-interfaces-32.json)"
-                    rpc_pair interface_named_32 network.interface.bench29 status '{}' '{"up":true,"proto":"static","ipv4-address":[{"address":"198.18.29.1","mask":24}]}'
-                    check_netifd_interfaces 32 after
+                    netifd_expect "$netifd_scale" > /tmp/expect-interfaces-scale.json
+                    sha256sum /etc/config/network /tmp/expect-interfaces-2.json /tmp/expect-interfaces-scale.json >> "$out/netifd-fixtures.sha256"
+                    check_netifd_interfaces "$netifd_scale" before
+                    wait_netifd_hotplug "$netifd_scale"
+                    rpc_pair "interface_dump_$netifd_scale" network.interface dump '{}' "$(cat /tmp/expect-interfaces-scale.json)"
+                    rpc_pair "interface_named_$netifd_scale" "network.interface.$netifd_last" status '{}' "{\"up\":true,\"proto\":\"static\",\"ipv4-address\":[{\"address\":\"198.18.$((netifd_scale - 3)).1\",\"mask\":24}]}"
+                    check_netifd_interfaces "$netifd_scale" after
                 fi
             else
                 bin=$(choose fw4 /sbin/fw4 fw4-rs)
@@ -729,5 +734,9 @@ case "$n" in ''|*[!0-9]*) exit 2 ;; esac
 script=$(cd "$(dirname "$0")" && pwd)/$(basename "$0")
 work=$(mktemp -d /tmp/r84-isolated.XXXXXX)
 trap 'rm -rf "$work"' EXIT INT TERM
-"$bundle/ns-exec" /bin/sh "$script" --namespace "$image" "$bundle" "$component" "$impl" "$out" "$n" "$work" "$script"
+if [ -n "${OWRT_BENCH_GUARD:-}" ]; then
+    "$OWRT_BENCH_GUARD" 600 "$bundle/ns-exec" /bin/sh "$script" --namespace "$image" "$bundle" "$component" "$impl" "$out" "$n" "$work" "$script"
+else
+    "$bundle/ns-exec" /bin/sh "$script" --namespace "$image" "$bundle" "$component" "$impl" "$out" "$n" "$work" "$script"
+fi
 [ -e "$out/COMPLETE" ]
