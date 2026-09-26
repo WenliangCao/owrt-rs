@@ -27,7 +27,8 @@ pub fn sample(pid: u32) -> io::Result<Sample> {
         if time.sec < 0 || !(0..1_000_000_000).contains(&time.nsec) {
             return Err(io::Error::other("invalid process CPU timespec"));
         }
-        (time.sec as u64).checked_mul(1_000_000_000)
+        (time.sec as u64)
+            .checked_mul(1_000_000_000)
             .and_then(|s| s.checked_add(time.nsec as u64))
             .ok_or_else(|| io::Error::other("process CPU clock overflow"))
     }
@@ -53,12 +54,18 @@ pub fn sample(pid: u32) -> io::Result<Sample> {
     if resolution_ns == 0 {
         return Err(io::Error::other("zero CPU clock resolution"));
     }
-    Ok(Sample { ns: ns(time)?, resolution_ns })
+    Ok(Sample {
+        ns: ns(time)?,
+        resolution_ns,
+    })
 }
 
 #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
 pub fn sample(_: u32) -> io::Result<Sample> {
-    Err(io::Error::new(io::ErrorKind::Unsupported, "CPU clock ABI requires 64-bit Linux"))
+    Err(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "CPU clock ABI requires 64-bit Linux",
+    ))
 }
 
 #[cfg(all(test, target_os = "linux", target_pointer_width = "64"))]
@@ -76,7 +83,9 @@ mod tests {
             while std::time::Instant::now() < end {
                 std::hint::black_box(123u64.wrapping_mul(456));
             }
-        }).join().unwrap();
+        })
+        .join()
+        .unwrap();
         let after = sample(std::process::id()).unwrap();
         assert_eq!(before.resolution_ns, after.resolution_ns);
         assert!(after.ns > before.ns + 1_000_000, "worker CPU was omitted");

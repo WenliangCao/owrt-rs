@@ -23,7 +23,10 @@ mod linux {
 
     pub fn pin(cpu: usize) -> io::Result<()> {
         if cpu >= 1024 {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "CPU outside mask"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "CPU outside mask",
+            ));
         }
         let mut mask = [0; 16];
         mask[cpu / 64] = 1 << (cpu % 64);
@@ -45,11 +48,22 @@ mod linux {
         fn pin_available_cpu_in_disposable_thread() {
             std::thread::spawn(|| {
                 let mask = current().unwrap();
-                let cpu = (0..1024).find(|&i| mask[i / 64] & (1 << (i % 64)) != 0).unwrap();
+                let cpu = (0..1024)
+                    .find(|&i| mask[i / 64] & (1 << (i % 64)) != 0)
+                    .unwrap();
                 assert!(pin(1024).is_err());
                 pin(cpu).unwrap();
-                assert_eq!(current().unwrap().iter().map(|x| x.count_ones()).sum::<u32>(), 1);
-            }).join().unwrap();
+                assert_eq!(
+                    current()
+                        .unwrap()
+                        .iter()
+                        .map(|x| x.count_ones())
+                        .sum::<u32>(),
+                    1
+                );
+            })
+            .join()
+            .unwrap();
         }
     }
 }
@@ -59,5 +73,8 @@ pub use linux::pin;
 
 #[cfg(not(all(target_os = "linux", target_pointer_width = "64")))]
 pub fn pin(_: usize) -> io::Result<()> {
-    Err(io::Error::new(io::ErrorKind::Unsupported, "affinity ABI requires 64-bit Linux"))
+    Err(io::Error::new(
+        io::ErrorKind::Unsupported,
+        "affinity ABI requires 64-bit Linux",
+    ))
 }

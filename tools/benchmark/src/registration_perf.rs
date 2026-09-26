@@ -12,9 +12,16 @@ compile_error!("registration-perf is a 64-bit Linux-only diagnostic");
 
 #[repr(C)]
 #[derive(Default)]
-struct Timespec { sec: c_long, nsec: c_long }
+struct Timespec {
+    sec: c_long,
+    nsec: c_long,
+}
 #[repr(C)]
-struct PollFd { fd: c_int, events: i16, revents: i16 }
+struct PollFd {
+    fd: c_int,
+    events: i16,
+    revents: i16,
+}
 type CpuMask = [u64; 16];
 unsafe extern "C" {
     fn clock_getcpuclockid(pid: c_int, clock: *mut c_int) -> c_int;
@@ -28,10 +35,23 @@ unsafe extern "C" {
 fn clock_read(clock: c_int, resolution: bool) -> Result<u64> {
     let mut value = Timespec::default();
     // SAFETY: this diagnostic is Linux 64-bit; Timespec matches time_t/long.
-    let rc = unsafe { if resolution { clock_getres(clock, &mut value) } else { clock_gettime(clock, &mut value) } };
-    if rc != 0 { return Err(io::Error::last_os_error().into()); }
-    require(value.sec >= 0 && (0..1_000_000_000).contains(&value.nsec), "invalid clock value")?;
-    Ok((value.sec as u64).checked_mul(1_000_000_000).and_then(|x| x.checked_add(value.nsec as u64))
+    let rc = unsafe {
+        if resolution {
+            clock_getres(clock, &mut value)
+        } else {
+            clock_gettime(clock, &mut value)
+        }
+    };
+    if rc != 0 {
+        return Err(io::Error::last_os_error().into());
+    }
+    require(
+        value.sec >= 0 && (0..1_000_000_000).contains(&value.nsec),
+        "invalid clock value",
+    )?;
+    Ok((value.sec as u64)
+        .checked_mul(1_000_000_000)
+        .and_then(|x| x.checked_add(value.nsec as u64))
         .ok_or("clock overflow")?)
 }
 
@@ -39,7 +59,9 @@ fn process_clock(pid: u32) -> Result<c_int> {
     let mut clock = 0;
     // SAFETY: clock is a valid writable output; pid is range-checked.
     let rc = unsafe { clock_getcpuclockid(c_int::try_from(pid)?, &mut clock) };
-    if rc != 0 { return Err(io::Error::from_raw_os_error(rc).into()); }
+    if rc != 0 {
+        return Err(io::Error::from_raw_os_error(rc).into());
+    }
     Ok(clock)
 }
 
@@ -48,7 +70,14 @@ fn affinity(pid: u32, cpu: usize) -> Result<()> {
     let mut expected = [0; 16];
     expected[cpu / 64] = 1 << (cpu % 64);
     // SAFETY: CpuMask is the aligned 128-byte Linux mask and pid fits pid_t.
-    if unsafe { sched_getaffinity(c_int::try_from(pid)?, std::mem::size_of::<CpuMask>(), &mut actual) } != 0 {
+    if unsafe {
+        sched_getaffinity(
+            c_int::try_from(pid)?,
+            std::mem::size_of::<CpuMask>(),
+            &mut actual,
+        )
+    } != 0
+    {
         return Err(io::Error::last_os_error().into());
     }
     require(actual == expected, "unexpected CPU affinity")
@@ -76,13 +105,19 @@ pub struct Measurement {
 
 impl Session {
     pub fn new(subject: u32) -> Result<Self> {
-        require(subject > 0 && subject != std::process::id(), "invalid subject PID")?;
+        require(
+            subject > 0 && subject != std::process::id(),
+            "invalid subject PID",
+        )?;
         let ctl: c_int = std::env::var("OWRT_PERF_CTL_FD")?.parse()?;
         let ack: c_int = std::env::var("OWRT_PERF_ACK_FD")?.parse()?;
         // F_GETFD is 1 on the Linux ABI selected above. These descriptors are
         // inherited specifically for this diagnostic and owned only here.
         require(ctl > 2 && ack > 2 && ctl != ack, "invalid perf descriptors")?;
-        require(unsafe { fcntl(ctl, 1) } >= 0 && unsafe { fcntl(ack, 1) } >= 0, "perf descriptor not open")?;
+        require(
+            unsafe { fcntl(ctl, 1) } >= 0 && unsafe { fcntl(ack, 1) } >= 0,
+            "perf descriptor not open",
+        )?;
         super::affinity::pin(0)?;
         affinity(0, 0)?;
         affinity(subject, 1)?;
@@ -91,8 +126,11 @@ impl Session {
         Ok(Self {
             // SAFETY: both distinct open descriptors were transferred by the
             // runner; no other File in this process owns or accesses them.
-            ctl: unsafe { File::from_raw_fd(ctl) }, ack: unsafe { File::from_raw_fd(ack) }, subject,
-            subject_clock, client_clock,
+            ctl: unsafe { File::from_raw_fd(ctl) },
+            ack: unsafe { File::from_raw_fd(ack) },
+            subject,
+            subject_clock,
+            client_clock,
             subject_resolution: clock_read(subject_clock, true)?,
             client_resolution: clock_read(client_clock, true)?,
         })
@@ -105,11 +143,20 @@ impl Session {
         let mut reply = [0; 5];
         let mut got = 0;
         while got < reply.len() {
-            let mut fd = PollFd { fd: self.ack.as_raw_fd(), events: 1, revents: 0 };
+            let mut fd = PollFd {
+                fd: self.ack.as_raw_fd(),
+                events: 1,
+                revents: 0,
+            };
             // SAFETY: fd names one live pollfd with a valid inherited fd.
             let rc = unsafe { poll(&mut fd, 1, 10_000) };
-            if rc < 0 && io::Error::last_os_error().kind() == io::ErrorKind::Interrupted { continue; }
-            require(rc > 0 && fd.revents & 1 != 0, "perf acknowledgement timeout or pipe failure")?;
+            if rc < 0 && io::Error::last_os_error().kind() == io::ErrorKind::Interrupted {
+                continue;
+            }
+            require(
+                rc > 0 && fd.revents & 1 != 0,
+                "perf acknowledgement timeout or pipe failure",
+            )?;
             match self.ack.read(&mut reply[got..]) {
                 Ok(0) => return Err("perf acknowledgement pipe closed".into()),
                 Ok(n) => got += n,
@@ -120,23 +167,39 @@ impl Session {
         require(reply == *b"ack\n\0", "invalid perf acknowledgement")
     }
 
-    pub fn measure(&mut self, n: usize, mut operation: impl FnMut() -> Result<u64>) -> Result<Measurement> {
+    pub fn measure(
+        &mut self,
+        n: usize,
+        mut operation: impl FnMut() -> Result<u64>,
+    ) -> Result<Measurement> {
         let mut latency = vec![0; n];
         for value in &mut latency {
             // SAFETY: each element is uniquely borrowed; touch all sample
             // pages before enabling counters instead of faulting in-loop.
-            unsafe { std::ptr::write_volatile(value, 0); }
+            unsafe {
+                std::ptr::write_volatile(value, 0);
+            }
         }
         self.control(b"enable\n")?;
         let measured = (|| -> Result<Measurement> {
             let wall_before = clock_read(1, false)?; // CLOCK_MONOTONIC
             let client_before = clock_read(self.client_clock, false)?;
             let subject_before = clock_read(self.subject_clock, false)?;
-            for value in &mut latency { *value = operation()?; }
+            for value in &mut latency {
+                *value = operation()?;
+            }
             let subject_after = clock_read(self.subject_clock, false)?;
             let client_after = clock_read(self.client_clock, false)?;
             let wall_after = clock_read(1, false)?;
-            Ok(Measurement { latency, wall_before, wall_after, subject_before, subject_after, client_before, client_after })
+            Ok(Measurement {
+                latency,
+                wall_before,
+                wall_after,
+                subject_before,
+                subject_after,
+                client_before,
+                client_after,
+            })
         })();
         // Attempt the stop handshake even when an operation/clock failed;
         // retain that primary error and never emit a successful measurement.
@@ -145,29 +208,49 @@ impl Session {
         disabled?;
         affinity(0, 0)?;
         affinity(self.subject, 1)?;
-        require(measured.latency.iter().all(|&x| x > 0) && measured.wall_after > measured.wall_before
-                && measured.subject_after > measured.subject_before && measured.client_after > measured.client_before,
-                "non-increasing measurement clock")?;
+        require(
+            measured.latency.iter().all(|&x| x > 0)
+                && measured.wall_after > measured.wall_before
+                && measured.subject_after > measured.subject_before
+                && measured.client_after > measured.client_before,
+            "non-increasing measurement clock",
+        )?;
         Ok(measured)
     }
 
     pub fn emit(&self, m: Measurement, warmup: usize, methods: usize, name_bytes: usize) {
         emit(obj([
-            ("schema", integer(1)), ("fixture", Json::Str("rust_register_cycle".into())),
-            ("n", integer(m.latency.len() as u64)), ("successful", integer(m.latency.len() as u64)),
-            ("errors", integer(0)), ("warmup", integer(warmup as u64)),
-            ("methods", integer(methods as u64)), ("name_bytes", integer(name_bytes as u64)),
-            ("subject_pid", integer(self.subject as u64)), ("client_pid", integer(std::process::id() as u64)),
-            ("subject_cpu", integer(1)), ("client_cpu", integer(0)), ("perf_controlled", Json::Bool(true)),
-            ("subject_resolution_ns", integer(self.subject_resolution)), ("client_resolution_ns", integer(self.client_resolution)),
-            ("subject_before_ns", integer(m.subject_before)), ("subject_after_ns", integer(m.subject_after)),
-            ("client_before_ns", integer(m.client_before)), ("client_after_ns", integer(m.client_after)),
-            ("wall_before_ns", integer(m.wall_before)), ("wall_after_ns", integer(m.wall_after)),
+            ("schema", integer(1)),
+            ("fixture", Json::Str("rust_register_cycle".into())),
+            ("n", integer(m.latency.len() as u64)),
+            ("successful", integer(m.latency.len() as u64)),
+            ("errors", integer(0)),
+            ("warmup", integer(warmup as u64)),
+            ("methods", integer(methods as u64)),
+            ("name_bytes", integer(name_bytes as u64)),
+            ("subject_pid", integer(self.subject as u64)),
+            ("client_pid", integer(std::process::id() as u64)),
+            ("subject_cpu", integer(1)),
+            ("client_cpu", integer(0)),
+            ("perf_controlled", Json::Bool(true)),
+            ("subject_resolution_ns", integer(self.subject_resolution)),
+            ("client_resolution_ns", integer(self.client_resolution)),
+            ("subject_before_ns", integer(m.subject_before)),
+            ("subject_after_ns", integer(m.subject_after)),
+            ("client_before_ns", integer(m.client_before)),
+            ("client_after_ns", integer(m.client_after)),
+            ("wall_before_ns", integer(m.wall_before)),
+            ("wall_after_ns", integer(m.wall_after)),
             ("latency_clock", Json::Str("CLOCK_MONOTONIC".into())),
             ("latency_sample_count", integer(m.latency.len() as u64)),
-            ("latency_ns", Json::Array(m.latency.into_iter().map(integer).collect())),
-            ("full_signature_checked", Json::Bool(true)), ("warmup_empty", Json::Bool(true)),
-            ("final_empty", Json::Bool(true)), ("wire_reply_bytes_checked", Json::Bool(false)),
+            (
+                "latency_ns",
+                Json::Array(m.latency.into_iter().map(integer).collect()),
+            ),
+            ("full_signature_checked", Json::Bool(true)),
+            ("warmup_empty", Json::Bool(true)),
+            ("final_empty", Json::Bool(true)),
+            ("wire_reply_bytes_checked", Json::Bool(false)),
         ]));
     }
 }
