@@ -511,6 +511,8 @@ pub struct Vif {
     /// names. Set unconditionally after the schema attributes, so it is the
     /// last key in the reply even when it is empty.
     pub radios: Vec<i64>,
+    /// Immutable config table, rebuilt with the radio generation by load.
+    pub status_config: Vec<u8>,
 }
 
 /// One `config wifi-device`.
@@ -519,6 +521,8 @@ pub struct Radio {
     pub name: String,
     pub opts: Vec<(String, Val)>,
     pub vifs: Vec<Vif>,
+    /// Dynamic state and handler ifnames are never stored here.
+    pub status_config: Vec<u8>,
 }
 
 impl Radio {
@@ -555,6 +559,16 @@ impl Radio {
 ///   * `device` is an array, so one `wifi-iface` can appear under several
 ///     radios, and one naming no known radio appears nowhere.
 pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
+    let mut radios = load_config(confdir, handlers);
+    for radio in &mut radios {
+        cache_status_config(radio, handlers);
+    }
+    radios
+}
+
+/// Read a fresh configuration before the daemon reconciles it with the old
+/// generation. Status caches are populated or transferred after that decision.
+pub fn load_config(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
     let mut ctx = owrt_uci::context::Context::new();
     ctx.confdir = confdir.to_string();
     let Ok(idx) = owrt_uci::file::load(&mut ctx, "wireless") else {
@@ -633,6 +647,7 @@ pub fn load(confdir: &str, handlers: &[Handler]) -> Vec<Radio> {
                 radios: radios_of.clone(),
                 vlans: Vec::new(),
                 stas: Vec::new(),
+                status_config: Vec::new(),
             });
         }
     }
@@ -839,12 +854,20 @@ pub fn status_into_blob(
     b.msg_bool("autostart", st.autostart);
     b.msg_bool("disabled", r.disabled());
     b.msg_bool("retry_setup_failed", st.retry_setup_failed);
-    config_into_blob(b, &r.opts, spec("device"), None);
+    if r.status_config.is_empty() {
+        config_into_blob(b, &r.opts, spec("device"), None);
+    } else {
+        b.put_raw_fields(&r.status_config);
+    }
     let interfaces = b.msg_open_array("interfaces");
     for v in &r.vifs {
         let iface = b.msg_open_table("");
         b.msg_string("section", &v.section);
-        config_into_blob(b, &v.opts, spec("iface"), Some(&v.radios));
+        if v.status_config.is_empty() {
+            config_into_blob(b, &v.opts, spec("iface"), Some(&v.radios));
+        } else {
+            b.put_raw_fields(&v.status_config);
+        }
         if let Some((_, name)) = ifnames.iter().find(|(section, _)| *section == v.section) {
             b.msg_string("ifname", name);
         }
@@ -885,6 +908,19 @@ fn config_into_blob(
         b.msg_close(list);
     }
     b.msg_close(config);
+}
+
+pub fn cache_status_config(radio: &mut Radio, handlers: &[Handler]) {
+    let handler = radio.kind().and_then(|kind| handlers.iter().find(|h| h.name == kind));
+    let spec = |kind| handler.map(|h| h.attrs_of(kind)).unwrap_or(&[]);
+    let mut b = owrt_ubus::blob::BlobBuf::new();
+    config_into_blob(&mut b, &radio.opts, spec("device"), None);
+    radio.status_config = b.payload().to_vec();
+    for vif in &mut radio.vifs {
+        b.reset();
+        config_into_blob(&mut b, &vif.opts, spec("iface"), Some(&vif.radios));
+        vif.status_config = b.payload().to_vec();
+    }
 }
 
 fn attrs_into_blob(
@@ -957,6 +993,15 @@ mod status_blob_tests {
             )).unwrap();
             let radios = load(&dir.to_string_lossy(), &handlers);
             assert_eq!(radios.len(), 2);
+            assert!(radios.iter().all(|radio| !radio.status_config.is_empty()));
+            let unencoded = load_config(&dir.to_string_lossy(), &handlers);
+            assert!(unencoded.iter().all(|radio| radio.status_config.is_empty()
+                && radio.vifs.iter().all(|vif| vif.status_config.is_empty())));
+            assert!(radios.iter().zip(&unencoded).all(|(old, fresh)| same_config(old, fresh)));
+            let mut uncached_reply = BlobBuf::new();
+            for radio in &unencoded {
+                status_into_blob(&mut uncached_reply, radio, &handlers, RadioState::default(), &[]);
+            }
             assert_eq!(radios[0].vifs[0].radios[0], index);
             let mut actual = BlobBuf::new();
             for radio in &radios {
@@ -968,6 +1013,7 @@ mod status_blob_tests {
                 &status_json(&radios, &handlers, RadioState::default(), &[]),
             );
             assert_eq!(actual.payload(), expected.payload());
+            assert_eq!(actual.payload(), uncached_reply.payload());
             assert_ne!(actual.payload(), previous);
             previous = actual.payload().to_vec();
         }
@@ -1037,6 +1083,7 @@ mod status_blob_tests {
                     };
                     radio.opts.push(("type".into(), Val::Str("test".into())));
                     radio.opts.push(("disabled".into(), Val::Str(flag.into())));
+                    cache_status_config(&mut radio, std::slice::from_ref(&handler));
                     for bits in 0..16 {
                         let state = RadioState {
                             up: bits & 1 != 0,

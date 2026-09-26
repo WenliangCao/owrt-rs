@@ -399,3 +399,37 @@ H7b在清洁Oracle按原2strace+4对计划完成。主体CPU比为0.92806/0.8535
 稳态Anon差在−8至+4KiB，fd均12→14→10、线程1；只支持进入完整功能/恢复门，尚非全系统接受。
 `H7B_SCREEN_RESULTS.md` SHA为`c4101d9215778d50405decb308310a531d2a3c35e97a0b2a160527e19e919b76`，
 1208项索引SHA为`21d3e5010b47d6cfd5f81dfe067c1be205629836e3967c56c5bec6505ed407e7`。
+
+## H4c 筛选停止与最终组合验证入口（2026-09-27）
+
+H4c 的精确 ELF 已通过修复后的完整31场景、overflow、restart、两种reconnect及C/raw66
+逐字节/顺序/错误码门。四组三侧Oracle筛选执行了12窗，但**原筛选未完成通过**：最后A09窗
+namespace退出0后，宿主post gate的aggregate CPU为12.5%，crowdsec同一PID/starttime
+在约2.063秒消耗19ticks（单核9.21%），超过冻结5%上限。该观察不证明干扰与timed lane
+重叠，但原门必须遵守；失败原文/无COMPLETE保持，不补跑，不以稍后clean覆盖。
+
+第7窗曾因同一内核workqueue线程的动态comm描述变化误报，经独立身份/flags/原始输出/
+清理审计后允许继续原剩余顺序；observer仅修正此识别，原失败文件保持。这个恢复与block3
+间隔继续披露。最后一窗是真实负载门失败，与第7窗不同，不做恢复接受。
+
+12窗原始数据位于ignored `private/netifd-20260926/h4c-screen-return-02/h4c-screen-01/`。
+失败审计SHA为`ce3a918b081b3b169954011ad49be6d77ee64114db526098e8af27e24f2cf2e6`；
+不完整派生SHA为`fa1691fc32793a0891ae40dccc28eebccb1abd1335faf0b4f3a5fc981955f4a0`。
+只对前三个完整block作事后探索描述，第四组全三侧单列无效附录，原N与阈值不变。
+
+| 前三组描述性主体CPU比值中位数 | H4c/A09 | H4c/B09 |
+|---|---:|---:|
+| 实际配置warm wireless c1 | −44.80% | +2.65% |
+| 实际配置warm wireless c4 | −49.99% | +1.15% |
+| unchanged reload32 | −2.86% | −4.39% |
+| reload→立即首次status整对 | −4.82% | −4.16% |
+
+warm c1的H4c/B09中位数超过原1.02保留线，不能声称筛选信号通过。该三对绝对变化
+为+0.258/+0.732/−0.157us；c4第3组p99较B09高10.24%/13.68us，first-status第2组mean
+高9.32%/8.23us；多组reload caller增加2.44–6.88us。完整15个成本/资源review和18个
+child量化跨线项保存在派生结果，不用无线CPU收益抵消。最终settled Anon三个block均
+H4c336/A09328/B09332KiB，fd10、线程1；这是proc近似诊断，不是物理内存等价结论。
+
+H4c源码保留为进入独立最终验证的候选：初次和变化配置仍立即编码，只转移same_config
+已经证明不变的缓存，避免把reload工作推迟到first status。现有证据支持继续验证这一
+机制，**没有给它硬件接受或全面非劣结论**。不重跑同一Oracle筛选追分。

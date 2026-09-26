@@ -4540,7 +4540,7 @@ impl Netifd {
         if self.whandlers.is_empty() {
             return;
         }
-        let fresh = wireless::load(&self.confdir, &self.whandlers);
+        let mut fresh = wireless::load_config(&self.confdir, &self.whandlers);
 
         // gone: destroy
         let gone: Vec<String> = self
@@ -4574,6 +4574,22 @@ impl Netifd {
             .map(|f| f.name.clone())
             .collect();
 
+        // The schema is unchanged during reload. same_config already proved
+        // the exact radio/VIF option and association order for these survivors.
+        // Move their immutable bytes instead of re-encoding or shifting that
+        // work to the next status request.
+        for radio in &mut fresh {
+            if let Some(old) = self.wconfig.iter_mut()
+                .find(|old| old.name == radio.name && !changed.contains(&radio.name))
+            {
+                radio.status_config = std::mem::take(&mut old.status_config);
+                for (vif, previous) in radio.vifs.iter_mut().zip(&mut old.vifs) {
+                    vif.status_config = std::mem::take(&mut previous.status_config);
+                }
+            } else {
+                wireless::cache_status_config(radio, &self.whandlers);
+            }
+        }
         self.wconfig = fresh;
         // A deleted radio still owns a handler and bridge ports until its
         // teardown completes. Dropping it here skips both kinds of cleanup.
