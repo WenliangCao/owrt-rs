@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""R85 component experiment: original image, frozen R84, and one candidate.
+"""Component experiment: exact original image, frozen baseline, and candidate.
 
 Physical use requires the already-authorized recovery gate. The production
 stack stays active; each subject runs in the existing isolated harness. Every
@@ -42,8 +42,8 @@ def main():
     parser.add_argument("--baseline-label", default="r84", help="evidence label for that frozen bundle")
     parser.add_argument("--cpus", help="optional fixed taskset CPU list for every isolated subject/client")
     parser.add_argument("--repeats", type=int, choices=(2, 4), default=4)
-    parser.add_argument("--schedule", choices=("default", "two-side-balanced"), default="default",
-                        help="repeat stock/candidate-only ABBA; --repeats counts four-window cycles (4 means 16 windows); requires --sides stock candidate")
+    parser.add_argument("--schedule", choices=("default", "two-side-balanced", "three-side-sequential"), default="default",
+                        help="default interleaving, stock/candidate ABBA, or C then baseline then candidate; --repeats is windows per side for three-side-sequential")
     parser.add_argument("--iterations", type=int, default=10000)
     parser.add_argument("--resume", action="store_true",
                         help="continue an interrupted collection with the same owned remote directory and identities")
@@ -55,9 +55,9 @@ def main():
     parser.add_argument("--sides", nargs="+", choices=("stock", "r84", "candidate"),
                         default=["stock", "r84", "candidate"])
     parser.add_argument("--bench", type=Path,
-                        help="benchmark client for both sides instead of the host bundle's (stock and candidate only)")
+                        help="benchmark client uploaded into every selected temporary bundle")
     parser.add_argument("--extended", action="store_true",
-                        help="ubusd: registration/event lanes and normalized daemon start (requires --bench)")
+                        help="ubusd: registration/event lanes and normalized daemon start")
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z][a-z0-9_-]*", args.baseline_label) or args.baseline_label in ("stock", "candidate"):
         parser.error("invalid baseline label")
@@ -75,12 +75,16 @@ def main():
         parser.error("held-connection memory uses --sides stock candidate without --matrix")
     if args.rpc_client_probe and (args.component != "rpcd" or args.matrix or args.memory_probe or "r84" in args.sides):
         parser.error("RPC client diagnostics require rpcd, --sides stock candidate, and no other experiment mode")
-    if (args.bench or args.extended) and ("r84" in args.sides or args.memory_probe or args.rpc_client_probe):
-        parser.error("--bench/--extended compare stock and candidate only")
-    if args.extended and (args.component != "ubusd" or not args.bench):
-        parser.error("--extended is a ubusd mode and needs --bench")
+    if args.bench and (args.memory_probe or args.rpc_client_probe):
+        parser.error("--bench is not used with diagnostic probes")
+    if args.bench and "r84" in args.sides and args.schedule != "three-side-sequential":
+        parser.error("--bench with a frozen baseline requires three-side-sequential")
+    if args.extended and args.component != "ubusd":
+        parser.error("--extended is a ubusd mode")
     if args.schedule == "two-side-balanced" and args.sides != ["stock", "candidate"]:
         parser.error("two-side-balanced requires exactly --sides stock candidate")
+    if args.schedule == "three-side-sequential" and args.sides != ["stock", "r84", "candidate"]:
+        parser.error("three-side-sequential requires exactly --sides stock r84 candidate")
     component = args.component
     binary = "reload_config_rs" if component == "reload-config" else component + "-rs"
     if args.resume and (not (args.output / "STARTED").exists() or (args.output / "COMPLETE").exists()):
@@ -133,6 +137,10 @@ def main():
     initial("subjects.json", hashes)
     if args.schedule == "two-side-balanced":
         order = TWO_SIDE_BALANCED * args.repeats
+    elif args.schedule == "three-side-sequential":
+        order = tuple(args.baseline_label if side == "r84" else side
+                      for side in (("stock",) * args.repeats + ("r84",) * args.repeats
+                                   + ("candidate",) * args.repeats))
     else:
         order = tuple(args.baseline_label if side == "r84" else side
                       for side in ORDER[:args.repeats * 3] if side in args.sides)
@@ -162,14 +170,24 @@ def main():
         ssh("test ! -e " + remote + " && mkdir -p " + remote + "/bundle")
         save("collector.json", {"remote": remote, "harness_sha256": hashlib.sha256(script.read_bytes()).hexdigest()})
     bundle = remote + "/bundle"
-    # With --bench both sides run the same uploaded client: the candidate
-    # from its bundle, stock from a tools-only bundle next to it.
+    # With --bench, use the same uploaded client in every selected bundle.
+    # A three-side run gets a third temporary bundle containing the frozen
+    # baseline ELF; the baseline directory itself remains untouched.
     stock_bundle = remote + "/stock-bundle" if args.bench else args.baseline_bundle + "/bins"
+    baseline_bundle = remote + "/baseline-bundle" if args.bench and "r84" in args.sides else None
     if not args.resume:
         if args.bench:
-            ssh("mkdir " + stock_bundle + " && cp /root/r84/bins/ns-exec " + bundle + "/ && cp /root/r84/bins/ns-exec " + stock_bundle + "/")
-            for target in (bundle, stock_bundle):
+            targets = [bundle, stock_bundle]
+            if baseline_bundle:
+                targets.append(baseline_bundle)
+            ssh("mkdir -p " + " ".join(shlex.quote(target) for target in targets)
+                + " && " + " && ".join("cp /root/r84/bins/ns-exec " + shlex.quote(target) + "/"
+                                       for target in targets))
+            for target in targets:
                 subprocess.run(["scp", "-O", str(args.bench.resolve()), args.host + ":" + target + "/owrt-benchmark"], check=True)
+            if baseline_bundle:
+                ssh("cp " + shlex.quote(args.baseline_bundle + "/bins/" + binary)
+                    + " " + shlex.quote(baseline_bundle + "/" + binary))
         else:
             ssh("cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark " + bundle + "/")
         for local, target in ((args.candidate, bundle + "/" + binary), (script, remote + "/isolated.sh")):
@@ -188,12 +206,15 @@ def main():
         if ssh("sha256sum " + bundle + "/rpc-client-probe").decode().split()[0] != digest:
             raise RuntimeError("RPC client probe upload checksum mismatch")
         initial("client-probe.json", {"sha256": digest, "diagnostic_only": True})
+    bundle_targets = (bundle, stock_bundle, baseline_bundle) if baseline_bundle else ((bundle, stock_bundle) if args.bench else (bundle,))
     for name in ("ns-exec", "owrt-benchmark"):
-        for where in ((bundle, stock_bundle) if args.bench else (bundle,)):
+        for where in bundle_targets:
             if ssh("sha256sum " + where + "/" + name).decode().split()[0] != tool_hashes[name]:
                 raise RuntimeError("benchmark identity mismatch: " + name)
     if ssh("sha256sum " + bundle + "/" + binary).decode().split()[0] != hashes["candidate"]:
         raise RuntimeError("candidate upload checksum mismatch")
+    if baseline_bundle and ssh("sha256sum " + baseline_bundle + "/" + binary).decode().split()[0] != hashes[args.baseline_label]:
+        raise RuntimeError("baseline upload checksum mismatch")
     monitors = ",".join(line.split()[1] for line in identity.decode().splitlines()
                         if line.split()[1] != "-")
     snapshot = "/root/r84/bins/owrt-benchmark snapshot " + monitors
@@ -214,7 +235,12 @@ def main():
             continue
         local.mkdir(mode=0o700)
         run_out = remote + f"/run-{index:02d}"
-        selected = bundle if side == "candidate" or args.memory_probe or args.rpc_client_probe else stock_bundle
+        if side == "candidate" or args.memory_probe or args.rpc_client_probe:
+            selected = bundle
+        elif side == args.baseline_label and baseline_bundle:
+            selected = baseline_bundle
+        else:
+            selected = stock_bundle
         impl = "c" if side == "stock" else "rs"
         (local / "host-before.json").write_bytes(ssh(snapshot))
         print(json.dumps({"event": "started", "side": side, "index": index,
