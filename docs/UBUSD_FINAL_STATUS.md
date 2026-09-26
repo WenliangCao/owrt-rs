@@ -11,6 +11,7 @@
 | 项目 | 身份 |
 |---|---|
 | Rust 运行时来源 | `195e45f`，R136 运行时代码提交 |
+| 当前运行时范围 | `components/ubusd/src` 与 `195e45f` 一致；后续差异只有正确性探针 `examples/wireprobe.rs` |
 | R136 release ELF | `ce3d1aa29e49a8ea51bb7afa2587846ccd7563aa4b7c983cf401a6b4d6de2330` |
 | 匹配 C release ELF | `cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88` |
 | 当前本地主线 | `main`，冻结说明提交后指向 R136 基线 |
@@ -61,6 +62,11 @@ Rust 表达方式很难稳定改变端到端结果。
 
 ## 仓库整理记录
 
-本次收口会把主线切到 `main`，并将旧 ubusd 分支、未提交的 R133 工作树和 R146
-实验工作树分别保留为归档标签、补丁或归档分支。历史 raw evidence 仍在 ignored
-`private` 下，不进入 Git。归档动作不会把 R146 的运行时代码带入 `main`。
+本次收口已经把主线切到 `main`，本地分支从 24 个减为 5 个，工作树从 23 个减为 4 个。
+旧 ubusd 分支已保留为 `archive/ubusd/*` 标签；R146 作为
+`archive/ubusd/r146-closeout` 分支保留，便于查看完整候选和否决证据。未提交的 R133
+工作树已保存为 ignored 补丁，R145/R146 的 raw evidence 已复制到
+`private/archive-20260926/`，并生成同一目录下的 Git bundle。归档动作没有把 R146
+运行时代码带入 `main`。
+
+这次只更新了本地仓库；没有向 `origin` 推送，也没有修改设备。
