@@ -7,7 +7,9 @@
 //! `configured | original | valid`, meaning a field appears once the system
 //! could read it even if no configuration mentions it.
 
-use std::io;
+use std::ffi::{CStr, CString};
+use std::io::{self, Read};
+use std::os::fd::FromRawFd;
 
 use owrt_ubus::blob::BlobBuf;
 
@@ -156,10 +158,45 @@ pub fn merge_settings(configured: &Settings, orig: &Settings) -> Settings {
     }
 }
 
+fn open_sysctl(path: &CStr) -> io::Result<std::fs::File> {
+    extern "C" {
+        fn openat(dir: i32, path: *const std::ffi::c_char, flags: i32, ...) -> i32;
+    }
+    const AT_FDCWD: i32 = -100;
+    const O_CLOEXEC: i32 = 0o2000000;
+    loop {
+        // SAFETY: path is live and NUL-terminated. O_RDONLY | O_CLOEXEC
+        // needs no mode argument; the Linux kernel sets CLOEXEC atomically.
+        let fd = unsafe { openat(AT_FDCWD, path.as_ptr(), O_CLOEXEC) };
+        if fd >= 0 {
+            // SAFETY: openat returned a new, uniquely owned descriptor.
+            return Ok(unsafe { std::fs::File::from_raw_fd(fd) });
+        }
+        let error = io::Error::last_os_error();
+        if error.kind() != io::ErrorKind::Interrupted {
+            return Err(error);
+        }
+    }
+}
+
 fn sysctl(prefix: &str, ifname: &str, file: &str) -> Option<String> {
-    std::fs::read_to_string(format!("/proc/sys/net/{prefix}/{ifname}/{file}"))
-        .ok()
-        .map(|s| s.trim().to_string())
+    let path = CString::new(format!("/proc/sys/net/{prefix}/{ifname}/{file}")).ok()?;
+    // musl open adds a redundant F_SETFD on this Linux target; openat
+    // preserves atomic CLOEXEC without that compatibility syscall.
+    let mut file = open_sysctl(&path).ok()?;
+    // These proc files are small. Avoid File::read_to_end's size/flag
+    // probes, while preserving complete reads and the same text handling.
+    let mut bytes = Vec::with_capacity(32);
+    let mut chunk = [0u8; 64];
+    loop {
+        match file.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(n) => bytes.extend_from_slice(&chunk[..n]),
+            Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+            Err(_) => return None,
+        }
+    }
+    String::from_utf8(bytes).ok().map(|s| s.trim().to_string())
 }
 
 /// `strtoul(buf, NULL, 0)`: a leading number in any base, 0 when there is none.
@@ -637,6 +674,26 @@ impl sys::IfIoctl {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn sysctl_open_keeps_close_on_exec_and_open_errors() {
+        use std::os::fd::AsRawFd;
+        extern "C" {
+            fn fcntl(fd: i32, cmd: i32, ...) -> i32;
+        }
+        let file = open_sysctl(c"/proc/sys/kernel/osrelease").unwrap();
+        // SAFETY: file owns a live descriptor; F_GETFD takes no extra argument.
+        let flags = unsafe { fcntl(file.as_raw_fd(), 1) };
+        assert!(flags >= 0);
+        assert_ne!(flags & 1, 0, "FD_CLOEXEC must remain set");
+        assert_eq!(open_sysctl(c"/proc/sys/h7b-nonexistent").unwrap_err().kind(), io::ErrorKind::NotFound);
+    }
+
+    #[test]
+    fn sysctl_rejects_interior_nul_without_opening_a_prefix_path() {
+        assert!(sysctl("ipv4/conf", "lo\0ignored", "rp_filter").is_none());
+    }
 
     #[test]
     fn strtoul_reads_a_leading_number_only() {
