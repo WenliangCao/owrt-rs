@@ -5045,6 +5045,7 @@ impl Netifd {
         if device.is_empty() {
             return Ok(None);
         }
+        let device = device.split(|byte| *byte == 0).next().unwrap();
         self.wconfig
             .iter()
             .position(|radio| radio.name.as_bytes() == device)

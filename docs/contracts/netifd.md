@@ -83,6 +83,13 @@ netifd-rs 用 Rust 复刻同一套语义，handler 脚本仍是设备自带的 `
   `set_data`（device_data 记录）逐条复刻；注册的进程消失即拆除 radio；retry 预算耗尽置
   `retry_setup_failed`（r60 六变体：up/fail × cmds，flood/token/proc）。
 - **notify 面**：`up`/`down`/`retry`/`reconf` 命令，`status`/`get_validate` 读方法。
+- **读方法参数**：`status`/`get_validate` 缺少 `device` 或传空字符串时返回全部；已知名称只返回
+  该 radio，未知名称返回 NOT_FOUND（4）。逐个校验属性，未知字段或非 STRING 返回
+  INVALID_ARGUMENT（2）；重复合法 `device` 最后一个生效，不能掩盖前面的坏类型。
+  ucode 保留非 UTF-8 与内部 NUL 字节：先用完整字符串长度判断是否为空，再按 C 字符串键查找。
+  因而 `"radio0\0tail"` 查 radio0，`"\0tail"` 查空名称并返回4，不能当成空 selector。
+  字段名本身必须声明6字节的 `device`，名称终止 NUL 与 STRING 最后一个 NUL 都须有效。
+  不完整的尾部属性按 libubox 遍历规则忽略；可遍历但校验失败的属性仍返回2。
 - **reload**：`network.reload` 重读 wireless；未变的 radio 完全不动（same_config 判等，
   等价 C 的 `is_equal(this.data,data)` 提前返回），变了的重置预算重跑，消失的销毁——
   不重启没人问的 radio。

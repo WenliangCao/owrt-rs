@@ -83,13 +83,38 @@ pub const WIRELESS_METHODS: &[(&str, &[(&str, MsgType)])] = &[
 /// cannot hide an earlier invalid type or an unknown argument.
 pub fn wireless_read_device(data: &[u8]) -> Result<Option<&[u8]>, i32> {
     let mut device = None;
-    for field in owrt_ubus::blob::fields(data) {
-        if field.name != "device" {
+    let mut remaining = data;
+    while remaining.len() >= 4 {
+        let word = u32::from_be_bytes(remaining[..4].try_into().unwrap());
+        let raw_len = (word & 0x00ff_ffff) as usize;
+        let padded = owrt_ubus::blob::pad4(raw_len);
+        // libubox stops at an incomplete trailing attribute. A raw length
+        // of 1..3 still enters its loop, then fails blobmsg validation.
+        if padded < 4 || padded > remaining.len() {
+            break;
+        }
+        let (attr, _) = owrt_ubus::blob::attr_at(remaining, 0)
+            .ok_or(status::INVALID_ARGUMENT)?;
+        if !attr.extended || attr.id != MsgType::String as u32 || attr.payload.len() < 2 {
             return Err(status::INVALID_ARGUMENT);
         }
-        // ucode strings retain arbitrary bytes; an unknown non-UTF-8 name
-        // reaches the radio lookup and must not become INVALID_ARGUMENT.
-        device = Some(field.as_bytes().ok_or(status::INVALID_ARGUMENT)?);
+        let name_len = u16::from_be_bytes(attr.payload[..2].try_into().unwrap()) as usize;
+        let header_len = owrt_ubus::blob::pad4(2 + name_len + 1);
+        if attr.payload.len() < header_len || attr.payload[2 + name_len] != 0 {
+            return Err(status::INVALID_ARGUMENT);
+        }
+        let name = &attr.payload[2..2 + name_len];
+        if name != b"device" {
+            return Err(status::INVALID_ARGUMENT);
+        }
+        let value = &attr.payload[header_len..];
+        if value.last() != Some(&0) {
+            return Err(status::INVALID_ARGUMENT);
+        }
+        // ucode retains arbitrary bytes and internal NULs. It tests the
+        // full string length before looking up a C-string object key.
+        device = Some(&value[..value.len() - 1]);
+        remaining = &remaining[padded..];
     }
     Ok(device)
 }
@@ -125,6 +150,71 @@ mod wireless_argument_tests {
                 }
                 assert_eq!(wireless_read_device(b.payload()), Err(status::INVALID_ARGUMENT));
             }
+        }
+    }
+
+    #[test]
+    fn malformed_attributes_are_rejected_instead_of_skipped() {
+        let mut b = BlobBuf::new();
+        b.msg_string("device", "radio0");
+        let valid = b.payload().to_vec();
+        let mut bad_name_nul = valid.clone();
+        bad_name_nul[4 + 2 + 6] = b'x';
+        let mut bad_name_utf8 = valid.clone();
+        bad_name_utf8[4 + 2] = 0xff;
+        for bad in [
+            vec![3, 0, 0, 4],                 // non-extended
+            vec![0x83, 0, 0, 5, 0, 0, 0, 0], // short field header
+            vec![0x83, 0, 0, 8, 0xff, 0xff, 0, 0],
+            bad_name_nul,
+            bad_name_utf8,
+        ] {
+            for prefix in [false, true] {
+                let mut request = if prefix { valid.clone() } else { Vec::new() };
+                request.extend_from_slice(&bad);
+                assert_eq!(wireless_read_device(&request), Err(status::INVALID_ARGUMENT));
+            }
+        }
+        for value in [b"".as_slice(), b"radio0", b"radio0\0tail"] {
+            b.reset();
+            b.msg_field(MsgType::String as u32, "device", value);
+            assert_eq!(wireless_read_device(b.payload()), Err(status::INVALID_ARGUMENT));
+        }
+    }
+
+    #[test]
+    fn incomplete_tail_follows_libubox_iteration_boundary() {
+        let mut b = BlobBuf::new();
+        b.msg_string("device", "radio0");
+        for tail in [
+            vec![0xff], vec![0xff; 3], vec![0x83, 0, 0, 0],
+            vec![0x83, 0, 0, 100], vec![0x83, 0, 0, 5, b'x'],
+        ] {
+            let mut request = b.payload().to_vec();
+            request.extend_from_slice(&tail);
+            assert_eq!(wireless_read_device(&request), Ok(Some(b"radio0".as_slice())));
+        }
+        for raw_len in 1..=3 {
+            let mut request = b.payload().to_vec();
+            request.extend_from_slice(&[0x83, 0, 0, raw_len]);
+            assert_eq!(wireless_read_device(&request), Err(status::INVALID_ARGUMENT));
+        }
+    }
+
+    #[test]
+    fn strings_keep_internal_nuls_until_selector_lookup() {
+        let mut b = BlobBuf::new();
+        for value in [b"radio0\0tail".as_slice(), b"\0tail", b"\xff"] {
+            b.reset();
+            let mut encoded = value.to_vec();
+            encoded.push(0);
+            b.msg_field(MsgType::String as u32, "device", &encoded);
+            assert_eq!(wireless_read_device(b.payload()), Ok(Some(value)));
+        }
+        for name in ["device\0suffix", "device\0"] {
+            b.reset();
+            b.msg_string(name, "radio0");
+            assert_eq!(wireless_read_device(b.payload()), Err(status::INVALID_ARGUMENT));
         }
     }
 }

@@ -36,13 +36,14 @@ Oracle 对应 `/home/ubuntu/netifd-research-20260926/`。本报告只提交派�
 
 - 无线 parse_bool 只接受 0/1/true/false。合同原写 on/off/yes/no 也生效不正确；本次只改正文，
   不改实现。精确 utils.uc、既有单测和 C 差分相互支持。
-- 研究初期发现 Rust `network.wireless status/get_validate` 未处理 `device` selector；最终候选已在
-  正式性能确认前单独补齐，并通过 C/candidate 参数矩阵逐字节差分。重复 `device` 字段仍未由现有
-  ubus 客户端构造，报告中单独列为未覆盖输入。
+- 研究初期发现 Rust `network.wireless status/get_validate` 未处理 `device` selector；当前 A/B 筛选
+  候选均已单独补齐，并通过 C/A/B 的 22 组 raw 参数矩阵逐字节差分，包含重复 `device` 字段、
+  错误类型先后排列与非 UTF-8 字符串。正式 R89 的既有差异另外保留。
 
 ## 独立假设和候选索引
 
-以下是从同一起点独立筛选的历史候选；H0/H1/H2/H3c/H5 已组合，H4 已拒绝。表中早期 SHA 为 Oracle SDK release + sstrip 诊断 ELF；最终 ELF 与 selector 正确性修复的身份见后文。
+以下是从同一起点独立筛选的历史候选；H0/H1/H2/H3c/H5 已组合，H4 处于一次有限实机消融筛选。
+表中早期 SHA 为 Oracle SDK release + sstrip 诊断 ELF；当前 A/B ELF 与 selector 正确性修复的身份见后文。
 
 | 候选 | 单一假设 / 改动 | SHA-256 | 当前证据 |
 |---|---|---|---|
@@ -134,11 +135,11 @@ collector 和 harness 复制到 `frozen-01/` 后不改；完整 hash 见 plan �
 |---|---|
 | 精确 C / 正式 R89 / 生产 C | 已核实；未部署、刷写、重启或改生产网络状态 |
 | 独立算法筛选 | H0/H1/H2/H3a/b/c/H4/H5 已有源码/profile；H4 需有限实机取舍 |
-| 全部功能与恢复 | 旧探索 ELF 31/31；新 selector/H4 身份必须重新验证相关及完整门 |
+| 全部功能与恢复 | A06/B06均通过31/31及完整恢复；新增参数修复的A09/B09已过unit/clippy/ABI/raw66，完整suite待复核 |
 | A/A 校准 | 两轮已结束，不再追加校准，不并入实现对照 |
 | 正式性能确认 | 尚未开始有效确认；现有 13 窗为探索，不追认冻结 |
 | 真实无线 | 实际配置/schema + 隔离 mac80211 stub；不执行真实 radio 重配置 |
-| 内存/fd/线程/netlink/关闭回收 | 旧探索 smoke/诊断存在；最终三侧完整资源证据仍待测 |
+| 内存/fd/线程/netlink/关闭回收 | C/R89/B 同夹具独立诊断已完成；最终选择后核对适用 ELF |
 | 其余热点 | PD 投影、事件通知、reload/proto 调用链需完成有限 profile/源码排除表 |
 | 最终报告和停止理由 | 未完成；不宣布 netifd 收尾或全面优于 |
 
@@ -156,3 +157,84 @@ B（仅增加 H4）为 `e4cae77344c5d0a00182b7274629ee932faf675adc1e1bf97867523f
 先前发现的 5 个无线整数字段是 C INT32 / R89 INT64；这 20 字节 wire 差异的修复仅限 netifd 无线，
 按 [ucode 的范围规则](https://github.com/jow-/ucode/blob/85922056ef7abeace3cca3ab28bc1ac2d88e31b1/lib/ubus.c#L386)
 选择整数宽度，不改共享库，不计入 H0/H1/H2/H3c/H4/H5 算法收益。两侧完整 suite/恢复复核已顺序启动。
+
+
+## 候选索引补全与排除依据
+
+下列 `h*` 路径相对私有研究根；每个有独立源码归档、源码清单、patch 与 Oracle 构建记录。
+H4 的进一步 A/B 对照不是多项未知改动叠加：两侧共享正确性修复与其他已筛选优化，差别仅为缓存。
+
+| 实验 | SDK/sstrip ELF SHA-256 | 处置 / 证据 |
+|---|---|---|
+| H3b | `e21698cfc91c70719ddd33ad8264eed1a1d9bfa95ec32f7b5e10a02e075c1bf7` | 大回复释放后保留 1KiB；128 接口 ownCPU 235.66us，较 H3c 差；不选 |
+| H3c | `7d3d82db622a06daf95dc2dbfb2f2a7dd5cce59ff05dc4c9efd5f88c4889c684` | 上次 dump 长度提示，64KiB 常驻上限不变；128 接口 ownCPU182.04us、RSS/Anon1588/596KiB；选入组合待确认 |
+| H4 | `54d1a1d7addac39e300cc832cc69fd2621d80edddf00d2a25c026b104a9da39f` | 配置 blob 缓存；四对 CPU 支持、reload/尾延迟取舍未决；`h4-paired-screen/` |
+| H5 | `197d028bab9ad9bc7c474e07a262f3f964031ef413cd7c6f947d8e58c64c0ed0` | ethtool 与设备 ioctl 共用同类 socket；fd11→10；`profile-h5-dev-cpu/` |
+| combined-01 | `215e19496b1d4d3242c91ab15d9f6e5b20737aed715d611df7d53374a30bfa64` | 早期组合；尚缺 selector/wire 修复，不是最终候选 |
+| combined-01/core-recipe | `136a19dcaa06f966dcba6ff114086d0320363c4577798cbf9cfe7d4ffbd94221` | 早期正式编译片段产物，非 canonical CI；不混入 SDK/sstrip 结果 |
+
+H3a 的 128KiB 常驻缓存虽有更低的探索 CPU（147.35us），其 RSS/Anon 为1676/684KiB，
+比 base 的1628/636高48KiB。H3c 保留了更小的常驻上限且已有实测收益，故不选 H3a。
+Oracle 四侧数值只用于筛选，不外推 AX3000T 的效应量。
+
+## 实机资源诊断：C / R89 / B
+
+`resources-device-c-01` / `resources-device-r89-01` / `resources-device-b-01` 是单独诊断，不能混入 latency 确认。
+工具用 pidfd 短暂复制隔离目标的 fd，只调用 getsockopt/getsockname/fstat，不收发消息。
+已在 Oracle 私有 namespace 用已知131070字节接收缓冲核验，并验证目标 fd 数不变。
+helper SHA 为 `2fb61e01e6c480f21c77ad607d7ff6cfec394708e034d46065796693d592b640`，
+harness SHA 为 `9db0d5469ea3cbedb789e33ef3e585b877fecd186e4571760bb8911b02baf7ea`。
+
+| 阶段 | C RSS/Anon/HWM KiB | R89 RSS/Anon/HWM KiB | B RSS/Anon/HWM KiB |
+|---|---|---|---|
+| 2 接口 | 2116/668/2116 | 1096/172/1176 | 1112/188/1112 |
+| 128 接口 | 2584/1136/2584 | 1472/548/1688 | 1460/536/1560 |
+| 缩回 2 接口 | 2328/880/2404 | 1352/428/1688 | 1364/440/1560 |
+
+C fd19/线程1，R89/B fd10/线程1，全阶段不增长；关闭后目标 PID 消失，所有已观测 netlink inode
+均从该 namespace 的 netlink 表消失。C route 命令 socket rcvbuf/sndbuf=65536/65536，LINK 与
+uevent socket 为131070/65536；R89 route 命令和 LINK socket均为212992/212992。
+B route 命令 socket 为212992/212992，LINK为131070/212992；没有把 rcvbuf 的配置上限当实际占用。
+C 的 HWM 从2584降至2404，实际观察已经证明这些 proc 计数不能作为精确、单调物理峰值；
+因此保留全部原始数值，不用它们声称 PSS 或精确峰值优势。B 的小规模 Anon 较 R89 多16KiB、
+大规模少12KiB、缩容后多12KiB；这些是单窗描述值，尚不能作泄漏或等效结论。三窗均通过生产
+身份、配置、boot、挂载与清理检查。
+
+`resources-derived-02.json` 的 SHA 为 `f5ded69caead1d1388261136b1b40f3c924178f9d340bafb7a08b399f2c500e5`；
+每侧114个归档成员与下载后的 raw 逐字节核验。无线夹具为空，因此这些页差不来自 H4 的 radio/vif
+缓存，也不能替代非空无线资源验收。B 缩容后 Anon 较初始仍高252KiB，R89高256KiB；不能称完全回落。
+采样边界 netlink Rmem/Wmem/Drops 均为0，不代表已测得两个采样点之间的瞬时队列峰值。
+
+对照正式 R89 manifest 指向的 `d9c10483d95590143f9d6a1f41310e2a13e63fb3`，Interface、Device
+结构与 config.rs 没有增加每接口状态。明确增加的常驻来源是 ubus Connection 的4096字节接收区、
+小回复复用及命令 netlink 回复实际触页；事件 socket 的用户态 reply 向量没有接收 dump、容量为0。
+这些加上分配器布局可以解释数页差异，但没有逐分配测量，不能将16KiB精确拆账。超过64KiB的大回复
+会释放，缩容后100次小dump会降低预分配提示，因此不能把缩容残留解释成保留了128接口的大回复。
+
+## 新增畸形无线请求复核
+
+`screen-a-06` / `screen-b-06` 均已通过完整31场景和 overflow/restart/两种 reconnect。
+但进一步源码审查发现 read-method 参数校验会跳过无效属性。`selector-malformed-01` 的66组
+实测中，A06/B06各有22组不同于C，原始错误码与payload全部保留。发现时 H4 控制器仍在等待，
+已停止且没有开启性能窗；计划01–03不再执行，不改称已通过。
+
+修复局限于 netifd 的无线读参数 helper：遵循 libubox 的尾部遍历边界，校验名称和STRING终止，
+保留任意字节与内部NUL的ucode查找规则。依据为
+[libubox遍历与校验](https://github.com/openwrt/libubox/blob/7dd127841e82eb1cfb61185da37dde7b9bd9ba6d/blobmsg.c#L35)
+及 [ucode逐字段参数校验](https://github.com/jow-/ucode/blob/85922056ef7abeace3cca3ab28bc1ac2d88e31b1/lib/ubus.c#L1441)。
+07源码快照在构建前被审查拒绝：字段名也错误地按首个NUL截断；ucode会先检查声明的名称长度为6。
+07没有生成ELF或采样，保留 `UNBUILT_REJECTED.json`。B08的新增单测失败：测试使用的
+`msg_string_bytes` 本来就按首个NUL截断，不能构造需要验证的输入；失败日志与ELF保留，未计为通过。
+09改用原始字段构造，A09/B09各通过164单测、all-target clippy、release、ABI，且66组raw请求
+的错误码、完整DATA、字段顺序均与C一致。正式R89的已有差异保留，不改写其基线。
+
+| 侧 | ELF SHA-256 | 算法差异 |
+|---|---|---|
+| A09 | `3a53cbd751b0b0f45abdde8ae9add707f15a851e786bf1fc00d936e5894df0f7` | H0/H1/H2/H3c/H5与全部参数合同修复 |
+| B09 | `2e6acc30714906dc9811d0ea521dbbd8ccb33b19666dfe420138f8265e3911a6` | 仅另加H4缓存 |
+
+两侧源码清单仅wireless.rs不同。H4计划04 SHA为
+`025d0b966ca34802f86cd9d5aa3508813eb58ab75d7b14cfbff447a489f93240`，保留原8block、负载、顺序、
+样本和成本检查线，更新已修复的ELF/源码/manifest身份；控制器等待两侧完整suite和恢复门后才开启硬件。
+设备 `/proc/self/smaps` 与 `smaps_rollup` 不可读，现有image无法用这些接口精确核实PSS/物理峰值；
+保留status/statm可见值及其观测限制，不把不可测部分写成相同。
