@@ -53,6 +53,8 @@ def main():
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--netifd-scale", type=int, choices=(32, 64, 128), default=32)
     parser.add_argument("--netifd-fixture", type=Path, help="private wireless config, schema, stub and exact expected reply")
+    parser.add_argument("--netifd-event-contracts", type=Path,
+                        help="frozen stock.json, <baseline-label>.json, candidate.json event output contracts")
     parser.add_argument("--netifd-workloads", nargs="+", help="explicit subset of the netifd matrix")
     parser.add_argument("--netifd-warmup", type=int, default=20)
     parser.add_argument("--memory-probe", type=Path,
@@ -100,9 +102,23 @@ def main():
     if args.netifd_workloads:
         lanes = ["interface_dump", "lan_status", "device_status", "wireless_status", "device_status_all",
                  f"interface_dump_{args.netifd_scale}", f"interface_named_{args.netifd_scale}"]
-        allowed = {name + suffix for name in lanes for suffix in ("", "_c4")}
+        allowed = {name + suffix for name in lanes for suffix in ("", "_c4")} | {"events_static2", "reload_unchanged"}
         if len(set(args.netifd_workloads)) != len(args.netifd_workloads) or not set(args.netifd_workloads) <= allowed:
             parser.error("invalid or duplicate netifd workload")
+    events = args.netifd_workloads == ["events_static2"]
+    if args.netifd_workloads and "events_static2" in args.netifd_workloads and not events:
+        parser.error("events_static2 requires its own fixture and separate run")
+    if events != bool(args.netifd_event_contracts) or (events and (not args.bench or args.netifd_fixture)):
+        parser.error("event lane requires --bench and --netifd-event-contracts, with no wireless fixture")
+    event_contracts = {}
+    if events:
+        for side in ("stock", args.baseline_label, "candidate"):
+            path = args.netifd_event_contracts / (side + ".json")
+            contract = json.loads(path.read_text())
+            if contract.get("schema") != 1 or set(contract.get("steps", {})) != {"lan-down", "lan-up", "wired-down", "wired-up"}:
+                parser.error("invalid event contract: " + str(path))
+            event_contracts[side] = {"sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                                     "reference_subject_sha256": contract["reference_subject_sha256"]}
     if args.netifd_fixture:
         if args.component != "netifd" or not args.matrix or not args.bench:
             parser.error("--netifd-fixture requires a netifd matrix and --bench for private bundles")
@@ -208,6 +224,14 @@ def main():
         settings["netifd_warmup"] = args.netifd_warmup
         if args.netifd_workloads:
             settings["netifd_workloads"] = args.netifd_workloads
+        if event_contracts:
+            # Candidate must match C. Formal R89 retains its actual baseline
+            # contract; source/output differences are reviewed before calibration.
+            for side in event_contracts:
+                expected_source = hashes[args.baseline_label] if side == args.baseline_label else hashes["stock"]
+                assert event_contracts[side]["reference_subject_sha256"] == expected_source, "event contract source identity mismatch"
+            assert (args.netifd_event_contracts / "candidate.json").read_bytes() == (args.netifd_event_contracts / "stock.json").read_bytes(), "candidate contract must match the frozen C contract"
+            settings["netifd_event_contracts"] = event_contracts
         if fixture_hashes:
             settings["netifd_fixture_sha256"] = fixture_hashes
     if args.guard:
@@ -283,6 +307,15 @@ def main():
                 ssh("chmod 755 " + shlex.quote(directory + "/mac80211.sh"))
             for name, digest in fixture_hashes.items():
                 assert ssh("sha256sum " + shlex.quote(directory + "/" + name)).decode().split()[0] == digest
+    if event_contracts:
+        selections = [(bundle, "candidate"), (stock_bundle, "stock")]
+        if baseline_bundle: selections.append((baseline_bundle, args.baseline_label))
+        for target, side in selections:
+            destination = target + "/event-contract.json"
+            if not args.resume:
+                subprocess.run(["scp", "-O", str((args.netifd_event_contracts / (side + ".json")).resolve()),
+                                args.host + ":" + destination], check=True)
+            assert ssh("sha256sum " + shlex.quote(destination)).decode().split()[0] == event_contracts[side]["sha256"]
     for name in ("ns-exec", "owrt-benchmark"):
         for where in bundle_targets:
             if ssh("sha256sum " + where + "/" + name).decode().split()[0] != tool_hashes[name]:

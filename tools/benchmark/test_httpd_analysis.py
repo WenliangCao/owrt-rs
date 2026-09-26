@@ -21,7 +21,7 @@ class ParallelIntervalTests(unittest.TestCase):
             {"pid": 42, "start_ticks": 10, "cpu_ticks": 110, "child_cpu_ticks": 12}]}
         self.put("before.json", self.before)
         self.put("after.json", self.after)
-        self.clients = [{"successful": 25, "warmup": 5,
+        self.clients = [{"successful": 25, "warmup": 5, "errors": 0,
                          "latency_ns": [n * 1000 for n in range(i * 25, (i + 1) * 25)],
                          "client_cpu_s": .002,
                          # These overlap. A sum of them is deliberately very
@@ -42,6 +42,8 @@ class ParallelIntervalTests(unittest.TestCase):
         self.assertEqual(result["mean_us"], 49.5)
         self.assertEqual(result["p95_us"], 94)
         self.assertEqual(result["p99_us"], 98)
+        self.assertNotIn("client_reaped_child_cpu_us_per_op", result)
+        self.assertNotIn("tree_cpu_components", result)
 
     def test_replaced_server_invalidates_the_group(self):
         self.after["processes"][0]["start_ticks"] = 99

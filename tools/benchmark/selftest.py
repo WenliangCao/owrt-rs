@@ -55,6 +55,12 @@ def main():
         measured = json.loads(result.stdout)
         assert measured["successful"] == len(measured["latency_ns"]) == 7
 
+        from selftest_lanes import accounting_tests, event_analyzer_tests, native_tests
+        lane_root = root / "lanes"; lane_root.mkdir()
+        accounting_tests(lane_root)
+        event_analyzer_tests(lane_root)
+        native_tests(bench, lane_root)
+
         class ErrorResponse(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
                 body = b'{"jsonrpc":"2.0","id":1,"result":[6]}'

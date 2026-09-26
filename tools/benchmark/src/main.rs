@@ -2,7 +2,7 @@
 //! configuration values are emitted. A failed operation invalidates a run.
 use owrt_ubus::convert::{fields_to_json, object_to_payload};
 use owrt_ubus::json::{self, Json};
-use owrt_ubus::{BlobBuf, Connection, Incoming, LookupEntry, MsgType};
+use owrt_ubus::{BlobBuf, Connection, Incoming, MsgType};
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
@@ -12,8 +12,14 @@ use std::os::unix::net::UnixDatagram;
 use std::process::Command;
 use std::time::{Duration, Instant};
 
-mod cpu_clock;
+#[cfg(test)]
+use owrt_ubus::LookupEntry;
+
 mod affinity;
+mod child_cpu;
+mod cpu_clock;
+mod event_evidence;
+mod exec_journal;
 #[cfg(feature = "registration-perf")]
 mod registration_perf;
 #[cfg(feature = "registration-phase")]
@@ -64,6 +70,8 @@ struct ProcSample {
     start_ticks: u64,
     cpu_ticks: u64,
     child_ticks: u64,
+    // Only the caller can read RUSAGE_CHILDREN; external PIDs retain ticks.
+    children_rusage: Option<child_cpu::Sample>,
     // /proc/<pid>/stat field 39: only the last CPU observed, not a
     // migration count or proof that the task stayed there between samples.
     last_processor: u64,
@@ -119,6 +127,11 @@ fn proc_sample(pid: u32) -> Result<ProcSample> {
         start_ticks: n(19)?,
         cpu_ticks: n(11)? + n(12)?,
         child_ticks: n(13)? + n(14)?,
+        children_rusage: if pid == std::process::id() {
+            Some(child_cpu::sample()?)
+        } else {
+            None
+        },
         // The parsed tail starts at stat field 3 (state).
         last_processor: n(36)?,
         cpus_allowed: cpus_allowed.ok_or("missing Cpus_allowed")?,
@@ -140,11 +153,33 @@ fn proc_json(pid: u32, sample: &ProcSample) -> Json {
         ("cpu_ticks".into(), integer(sample.cpu_ticks)),
         ("child_cpu_ticks".into(), integer(sample.child_ticks)),
         ("last_processor".into(), integer(sample.last_processor)),
-        ("Cpus_allowed".into(), Json::Str(sample.cpus_allowed.clone())),
-        ("Cpus_allowed_list".into(), Json::Str(sample.cpus_allowed_list.clone())),
+        (
+            "Cpus_allowed".into(),
+            Json::Str(sample.cpus_allowed.clone()),
+        ),
+        (
+            "Cpus_allowed_list".into(),
+            Json::Str(sample.cpus_allowed_list.clone()),
+        ),
         ("process_cpu_ns".into(), integer(sample.cpu_clock.ns)),
-        ("process_cpu_resolution_ns".into(), integer(sample.cpu_clock.resolution_ns)),
+        (
+            "process_cpu_resolution_ns".into(),
+            integer(sample.cpu_clock.resolution_ns),
+        ),
     ]);
+    if let Some(children) = sample.children_rusage {
+        fields.extend([
+            ("rusage_children_user_us".into(), integer(children.user_us)),
+            (
+                "rusage_children_system_us".into(),
+                integer(children.system_us),
+            ),
+            (
+                "rusage_children_counter_source".into(),
+                Json::Str("getrusage(RUSAGE_CHILDREN)".into()),
+            ),
+        ]);
+    }
     Json::Object(fields)
 }
 
@@ -259,7 +294,15 @@ where
         )?;
         daemons.push(obj([
             ("pid", integer(pid as u64)),
-            ("cpu_clock_ns", integer(a.cpu_clock.ns.checked_sub(b.cpu_clock.ns).ok_or("CPU clock regressed")?)),
+            (
+                "cpu_clock_ns",
+                integer(
+                    a.cpu_clock
+                        .ns
+                        .checked_sub(b.cpu_clock.ns)
+                        .ok_or("CPU clock regressed")?,
+                ),
+            ),
             (
                 "cpu_s",
                 num((a
@@ -312,7 +355,16 @@ where
             "child_cpu_s",
             num((own_after.child_ticks - own_before.child_ticks) as f64 / hz),
         ),
-        ("client_cpu_clock_ns", integer(own_after.cpu_clock.ns.checked_sub(own_before.cpu_clock.ns).ok_or("client CPU clock regressed")?)),
+        (
+            "client_cpu_clock_ns",
+            integer(
+                own_after
+                    .cpu_clock
+                    .ns
+                    .checked_sub(own_before.cpu_clock.ns)
+                    .ok_or("client CPU clock regressed")?,
+            ),
+        ),
         ("clock_ticks_per_second", num(hz)),
     ]));
     Ok(())
@@ -320,26 +372,50 @@ where
 
 /// Serial CPU diagnostic: no per-operation timing reads or latency vector.
 /// The service still uses its real socket protocol and production handler.
-fn measure_cpu_loop(n: usize, warmup: usize, pids: &[u32], mut operation: impl FnMut() -> Result<()>) -> Result<()> {
-    require(n > 0 && pids.len() == 1, "CPU loop requires iterations and one daemon PID")?;
-    for _ in 0..warmup { operation()?; }
+fn measure_cpu_loop(
+    n: usize,
+    warmup: usize,
+    pids: &[u32],
+    mut operation: impl FnMut() -> Result<()>,
+) -> Result<()> {
+    require(
+        n > 0 && pids.len() == 1,
+        "CPU loop requires iterations and one daemon PID",
+    )?;
+    for _ in 0..warmup {
+        operation()?;
+    }
     let pid = pids[0];
     let before = proc_sample(pid)?;
     let own_before = proc_sample(std::process::id())?;
     let subject_start = cpu_clock::sample(pid)?;
     let client_start = cpu_clock::sample(std::process::id())?;
     let start = Instant::now();
-    for _ in 0..n { operation()?; }
+    for _ in 0..n {
+        operation()?;
+    }
     let wall = start.elapsed().as_secs_f64();
     let client_end = cpu_clock::sample(std::process::id())?;
     let subject_end = cpu_clock::sample(pid)?;
     let own_after = proc_sample(std::process::id())?;
     let after = proc_sample(pid)?;
-    require(before.start_ticks == after.start_ticks, "daemon PID was reused")?;
-    require(subject_start.resolution_ns == subject_end.resolution_ns
-            && client_start.resolution_ns == client_end.resolution_ns, "CPU clock resolution changed")?;
-    let daemon_ns = subject_end.ns.checked_sub(subject_start.ns).ok_or("daemon CPU clock regressed")?;
-    let client_ns = client_end.ns.checked_sub(client_start.ns).ok_or("client CPU clock regressed")?;
+    require(
+        before.start_ticks == after.start_ticks,
+        "daemon PID was reused",
+    )?;
+    require(
+        subject_start.resolution_ns == subject_end.resolution_ns
+            && client_start.resolution_ns == client_end.resolution_ns,
+        "CPU clock resolution changed",
+    )?;
+    let daemon_ns = subject_end
+        .ns
+        .checked_sub(subject_start.ns)
+        .ok_or("daemon CPU clock regressed")?;
+    let client_ns = client_end
+        .ns
+        .checked_sub(client_start.ns)
+        .ok_or("client CPU clock regressed")?;
     emit(obj([
         ("schema", Json::Int(1)),
         ("mode", Json::Str("serial_cpu_loop".into())),
@@ -359,8 +435,14 @@ fn measure_cpu_loop(n: usize, warmup: usize, pids: &[u32], mut operation: impl F
         ("subject_after", proc_json(pid, &after)),
         ("client_before", proc_json(std::process::id(), &own_before)),
         ("client_after", proc_json(std::process::id(), &own_after)),
-        ("subject_status", Json::Str(fs::read_to_string(format!("/proc/{pid}/status"))?)),
-        ("client_status", Json::Str(fs::read_to_string("/proc/self/status")?)),
+        (
+            "subject_status",
+            Json::Str(fs::read_to_string(format!("/proc/{pid}/status"))?),
+        ),
+        (
+            "client_status",
+            Json::Str(fs::read_to_string("/proc/self/status")?),
+        ),
     ]));
     Ok(())
 }
@@ -405,14 +487,24 @@ fn fixture_paths(count: usize) -> Vec<String> {
 }
 
 fn fixture_selector(selector: &str, count: usize) -> Result<(Option<&str>, Vec<String>)> {
-    require(matches!(count, 64 | 128), "fixture object count must be 64 or 128")?;
+    require(
+        matches!(count, 64 | 128),
+        "fixture object count must be 64 or 128",
+    )?;
     let paths = match selector {
         "bench.target" => vec!["bench.target".into()],
         "bench.*" | "*" => fixture_paths(count),
         _ => return Err("fixture path must be bench.target, bench.*, or *".into()),
     };
     // A bare '*' deliberately omits OBJPATH and exercises pathless LOOKUP.
-    Ok((if selector == "*" { None } else { Some(selector) }, paths))
+    Ok((
+        if selector == "*" {
+            None
+        } else {
+            Some(selector)
+        },
+        paths,
+    ))
 }
 
 fn validate_fixture_lookup(
@@ -420,16 +512,31 @@ fn validate_fixture_lookup(
     expected_paths: &[String],
     expected_ids: Option<&[u32]>,
 ) -> Result<Vec<u32>> {
-    require(entries.len() == expected_paths.len(), "lookup fixture returned wrong object count")?;
+    require(
+        entries.len() == expected_paths.len(),
+        "lookup fixture returned wrong object count",
+    )?;
     let signature = serve_signature();
     let mut ids = Vec::with_capacity(entries.len());
     let mut seen = HashSet::with_capacity(entries.len());
     for (index, (entry, expected_path)) in entries.iter().zip(expected_paths).enumerate() {
-        require(entry.path == *expected_path, "lookup fixture path/order changed")?;
-        require(entry.id != 0 && seen.insert(entry.id), "lookup fixture id is zero or duplicated")?;
-        require(entry.signature == signature, "lookup fixture signature changed")?;
+        require(
+            entry.path == *expected_path,
+            "lookup fixture path/order changed",
+        )?;
+        require(
+            entry.id != 0 && seen.insert(entry.id),
+            "lookup fixture id is zero or duplicated",
+        )?;
+        require(
+            entry.signature == signature,
+            "lookup fixture signature changed",
+        )?;
         if let Some(expected_ids) = expected_ids {
-            require(expected_ids.get(index) == Some(&entry.id), "lookup fixture id changed")?;
+            require(
+                expected_ids.get(index) == Some(&entry.id),
+                "lookup fixture id changed",
+            )?;
         }
         ids.push(entry.id);
     }
@@ -477,7 +584,8 @@ fn rpc_fixture(socket: &str, n: usize, warmup: usize, pids: &[u32]) -> Result<()
     fields.msg_u32("ok", 1);
     let fields = fields.into_payload();
     let mut expected = BlobBuf::new();
-    expected.put_u32(owrt_ubus::attr::OBJID, target)
+    expected
+        .put_u32(owrt_ubus::attr::OBJID, target)
         .put(owrt_ubus::attr::DATA, &fields);
     let expected_data = expected.payload().to_vec();
     measure(
@@ -488,9 +596,14 @@ fn rpc_fixture(socket: &str, n: usize, warmup: usize, pids: &[u32]) -> Result<()
             let start = Instant::now();
             let reply = c.invoke(target, "ping", &args, 5000)?;
             let elapsed = start.elapsed().as_nanos() as u64;
-            require(reply.fd.is_none(), "rpc fixture unexpectedly returned an FD")?;
-            require(reply.data.len() == 1 && reply.data[0] == expected_data,
-                    "rpc fixture reply bytes changed")?;
+            require(
+                reply.fd.is_none(),
+                "rpc fixture unexpectedly returned an FD",
+            )?;
+            require(
+                reply.data.len() == 1 && reply.data[0] == expected_data,
+                "rpc fixture reply bytes changed",
+            )?;
             Ok(elapsed)
         },
         || Ok(()),
@@ -647,9 +760,17 @@ impl HttpClient {
     }
 }
 
-fn drain_object_events(listener: &mut Connection, recipients: &[u32], method: &str,
-                       object: u32, path: &str, sequence: &mut Option<u16>) -> Result<()> {
-    if recipients.is_empty() { return Ok(()); }
+fn drain_object_events(
+    listener: &mut Connection,
+    recipients: &[u32],
+    method: &str,
+    object: u32,
+    path: &str,
+    sequence: &mut Option<u16>,
+) -> Result<()> {
+    if recipients.is_empty() {
+        return Ok(());
+    }
     let mut expected = BlobBuf::new();
     expected.msg_u32("id", object);
     expected.msg_string("path", path);
@@ -657,11 +778,19 @@ fn drain_object_events(listener: &mut Connection, recipients: &[u32], method: &s
         let Some(Incoming::Invoke(event)) = listener.next_incoming(5000)? else {
             return Err("expected object event INVOKE".into());
         };
-        require(event.objid == recipient && event.peer == 0 && event.method == method
-                && event.data == expected.payload() && event.fd.is_none(),
-                "object event failed full payload validation")?;
+        require(
+            event.objid == recipient
+                && event.peer == 0
+                && event.method == method
+                && event.data == expected.payload()
+                && event.fd.is_none(),
+            "object event failed full payload validation",
+        )?;
         if let Some(previous) = *sequence {
-            require(event.seq == previous.wrapping_add(1), "object event sequence gap")?;
+            require(
+                event.seq == previous.wrapping_add(1),
+                "object event sequence gap",
+            )?;
         }
         *sequence = Some(event.seq);
     }
@@ -669,9 +798,9 @@ fn drain_object_events(listener: &mut Connection, recipients: &[u32], method: &s
 }
 
 fn main_inner(a: &[String]) -> Result<()> {
-    let mode = a
-        .get(1)
-        .ok_or("missing mode: rpc/lookup/lookup-fixture/rpc-fixture/exec/http/syslog/serve/snapshot/idle")?;
+    let mode = a.get(1).ok_or(
+        "missing mode: rpc/lookup/lookup-fixture/rpc-fixture/exec/http/syslog/serve/snapshot/idle",
+    )?;
     match mode.as_str() {
         #[cfg(feature = "registration-phase")]
         "register-phase" => registration_phase::run(a),
@@ -734,30 +863,44 @@ fn main_inner(a: &[String]) -> Result<()> {
         }
         "exec-cpu-as" => {
             require(a.len() >= 5, "exec-cpu-as CPU PROGRAM ARGV0 [ARGS...]")?;
-            require(!a[3].is_empty() && !a[4].is_empty(), "PROGRAM and ARGV0 must not be empty")?;
+            require(
+                !a[3].is_empty() && !a[4].is_empty(),
+                "PROGRAM and ARGV0 must not be empty",
+            )?;
             affinity::pin(a[2].parse()?)?;
             use std::os::unix::process::CommandExt;
             Err(Command::new(&a[3]).arg0(&a[4]).args(&a[5..]).exec().into())
         }
         "register-cycle" | "register-cpu" => {
-            require(a.len() == 8, "register-cycle SOCKET METHODS NAME_BYTES N WARMUP PIDS")?;
+            require(
+                a.len() == 8,
+                "register-cycle SOCKET METHODS NAME_BYTES N WARMUP PIDS",
+            )?;
             #[cfg(feature = "registration-perf")]
             let profiler = if a[1] == "register-cycle" {
                 let pids = pid_list(&a[7])?;
-                require(pids.len() == 1, "registration profile requires one daemon PID")?;
+                require(
+                    pids.len() == 1,
+                    "registration profile requires one daemon PID",
+                )?;
                 Some(registration_perf::Session::new(pids[0])?)
             } else {
                 None
             };
             let count: usize = a[3].parse()?;
             let name_bytes: usize = a[4].parse()?;
-            require((1..=64).contains(&count) && (8..=128).contains(&name_bytes),
-                    "registration fixture outside supported bounds")?;
-            let names: Vec<String> = (0..count).map(|i| {
-                format!("{i:08}{}", "x".repeat(name_bytes - 8))
-            }).collect();
+            require(
+                (1..=64).contains(&count) && (8..=128).contains(&name_bytes),
+                "registration fixture outside supported bounds",
+            )?;
+            let names: Vec<String> = (0..count)
+                .map(|i| format!("{i:08}{}", "x".repeat(name_bytes - 8)))
+                .collect();
             let policy = [("policy", MsgType::Int32)];
-            let methods: Vec<_> = names.iter().map(|name| (name.as_str(), &policy[..])).collect();
+            let methods: Vec<_> = names
+                .iter()
+                .map(|name| (name.as_str(), &policy[..]))
+                .collect();
             let mut expected = BlobBuf::new();
             for name in &names {
                 let table = expected.msg_open_table(name);
@@ -768,28 +911,44 @@ fn main_inner(a: &[String]) -> Result<()> {
             let path = "bench.cycle";
             let id = c.add_object(path, &methods, 5000)?;
             let found = c.lookup(Some(path), 5000)?;
-            require(found.len() == 1 && found[0].id == id
-                    && found[0].path == path && found[0].signature == expected.payload(),
-                    "registration signature failed full byte validation")?;
+            require(
+                found.len() == 1
+                    && found[0].id == id
+                    && found[0].path == path
+                    && found[0].signature == expected.payload(),
+                "registration signature failed full byte validation",
+            )?;
             c.remove_object(id, 5000)?;
-            require(c.lookup(None, 5000)?.is_empty(), "registration preflight left an object")?;
+            require(
+                c.lookup(None, 5000)?.is_empty(),
+                "registration preflight left an object",
+            )?;
             #[cfg(feature = "registration-perf")]
             if let Some(mut profiler) = profiler {
                 let n = a[5].parse()?;
                 let warmup = a[6].parse()?;
-                require(n > 0 && n <= 1_000_000 && warmup <= 100_000, "profile loop count out of bounds")?;
+                require(
+                    n > 0 && n <= 1_000_000 && warmup <= 100_000,
+                    "profile loop count out of bounds",
+                )?;
                 for _ in 0..warmup {
                     let id = c.add_object(path, &methods, 5000)?;
                     c.remove_object(id, 5000)?;
                 }
-                require(c.lookup(None, 5000)?.is_empty(), "registration warmup left an object")?;
+                require(
+                    c.lookup(None, 5000)?.is_empty(),
+                    "registration warmup left an object",
+                )?;
                 let measured = profiler.measure(n, || {
                     let start = Instant::now();
                     let id = c.add_object(path, &methods, 5000)?;
                     c.remove_object(id, 5000)?;
                     Ok(start.elapsed().as_nanos() as u64)
                 })?;
-                require(c.lookup(None, 5000)?.is_empty(), "registration cycle left an object")?;
+                require(
+                    c.lookup(None, 5000)?.is_empty(),
+                    "registration cycle left an object",
+                )?;
                 profiler.emit(measured, warmup, count, name_bytes);
                 return Ok(());
             }
@@ -803,19 +962,34 @@ fn main_inner(a: &[String]) -> Result<()> {
                     Ok(())
                 })?;
             } else {
-                measure(a[5].parse()?, a[6].parse()?, &pid_list(&a[7])?, |_| {
-                    let start = Instant::now();
-                    let id = c.add_object(path, &methods, 5000)?;
-                    c.remove_object(id, 5000)?;
-                    Ok(start.elapsed().as_nanos() as u64)
-                }, || Ok(()))?;
+                measure(
+                    a[5].parse()?,
+                    a[6].parse()?,
+                    &pid_list(&a[7])?,
+                    |_| {
+                        let start = Instant::now();
+                        let id = c.add_object(path, &methods, 5000)?;
+                        c.remove_object(id, 5000)?;
+                        Ok(start.elapsed().as_nanos() as u64)
+                    },
+                    || Ok(()),
+                )?;
             }
-            require(c.lookup(None, 5000)?.is_empty(), "registration cycle left an object")
+            require(
+                c.lookup(None, 5000)?.is_empty(),
+                "registration cycle left an object",
+            )
         }
         "register-watch" => {
-            require(a.len() == 8, "register-watch SOCKET LISTENERS MATCHED_0_OR_1 N WARMUP PIDS")?;
+            require(
+                a.len() == 8,
+                "register-watch SOCKET LISTENERS MATCHED_0_OR_1 N WARMUP PIDS",
+            )?;
             let count: usize = a[3].parse()?;
-            require((1..=8).contains(&count), "listener count outside fixture bounds")?;
+            require(
+                (1..=8).contains(&count),
+                "listener count outside fixture bounds",
+            )?;
             require(a[4] == "0" || a[4] == "1", "invalid event matching flag")?;
             let matched = a[4] == "1";
             let mut c = Connection::connect(Some(&a[2]))?;
@@ -823,7 +997,15 @@ fn main_inner(a: &[String]) -> Result<()> {
             let mut recipients = Vec::new();
             for _ in 0..count {
                 let id = listener.add_anonymous_object(5000)?;
-                listener.register_event_handler(id, Some(if matched { "ubus.object.*" } else { "unrelated.*" }), 5000)?;
+                listener.register_event_handler(
+                    id,
+                    Some(if matched {
+                        "ubus.object.*"
+                    } else {
+                        "unrelated.*"
+                    }),
+                    5000,
+                )?;
                 recipients.push(id);
             }
             let receiving = if matched { &recipients[..] } else { &[] };
@@ -832,29 +1014,76 @@ fn main_inner(a: &[String]) -> Result<()> {
             let policy = [("policy", MsgType::Int32)];
             let methods = [("00000000", &policy[..])];
             let id = c.add_object(path, &methods, 5000)?;
-            drain_object_events(&mut listener, receiving, "ubus.object.add", id, path, &mut sequence)?;
+            drain_object_events(
+                &mut listener,
+                receiving,
+                "ubus.object.add",
+                id,
+                path,
+                &mut sequence,
+            )?;
             let found = c.lookup(Some(path), 5000)?;
-            require(found.len() == 1 && found[0].id == id && found[0].path == path,
-                    "watched registration preflight failed")?;
+            require(
+                found.len() == 1 && found[0].id == id && found[0].path == path,
+                "watched registration preflight failed",
+            )?;
             c.remove_object(id, 5000)?;
-            drain_object_events(&mut listener, receiving, "ubus.object.remove", id, path, &mut sequence)?;
-            require(c.lookup(None, 5000)?.is_empty(), "watched registration left an object")?;
+            drain_object_events(
+                &mut listener,
+                receiving,
+                "ubus.object.remove",
+                id,
+                path,
+                &mut sequence,
+            )?;
+            require(
+                c.lookup(None, 5000)?.is_empty(),
+                "watched registration left an object",
+            )?;
             // Timed cycles include full event draining and byte validation;
             // caller and listener CPU share this one benchmark process.
-            measure(a[5].parse()?, a[6].parse()?, &pid_list(&a[7])?, |_| {
-                let start = Instant::now();
-                let id = c.add_object(path, &methods, 5000)?;
-                drain_object_events(&mut listener, receiving, "ubus.object.add", id, path, &mut sequence)?;
-                c.remove_object(id, 5000)?;
-                drain_object_events(&mut listener, receiving, "ubus.object.remove", id, path, &mut sequence)?;
-                Ok(start.elapsed().as_nanos() as u64)
-            }, || Ok(()))?;
-            require(c.lookup(None, 5000)?.is_empty(), "watched registration cycle left an object")?;
+            measure(
+                a[5].parse()?,
+                a[6].parse()?,
+                &pid_list(&a[7])?,
+                |_| {
+                    let start = Instant::now();
+                    let id = c.add_object(path, &methods, 5000)?;
+                    drain_object_events(
+                        &mut listener,
+                        receiving,
+                        "ubus.object.add",
+                        id,
+                        path,
+                        &mut sequence,
+                    )?;
+                    c.remove_object(id, 5000)?;
+                    drain_object_events(
+                        &mut listener,
+                        receiving,
+                        "ubus.object.remove",
+                        id,
+                        path,
+                        &mut sequence,
+                    )?;
+                    Ok(start.elapsed().as_nanos() as u64)
+                },
+                || Ok(()),
+            )?;
+            require(
+                c.lookup(None, 5000)?.is_empty(),
+                "watched registration cycle left an object",
+            )?;
             // These reply barriers also park any unexpected asynchronous
             // copies in the connection's pending queue. Check it and the
             // socket after removal, including the nonmatching scenario.
-            for id in recipients { listener.remove_object(id, 5000)?; }
-            require(listener.next_incoming(0)?.is_none(), "unexpected extra object event")?;
+            for id in recipients {
+                listener.remove_object(id, 5000)?;
+            }
+            require(
+                listener.next_incoming(0)?.is_none(),
+                "unexpected extra object event",
+            )?;
             Ok(())
         }
         "lookup" => {
@@ -883,10 +1112,18 @@ fn main_inner(a: &[String]) -> Result<()> {
             )
         }
         "lookup-fixture" => {
-            require(a.len() == 8,
-                    "lookup-fixture SOCKET PATH_OR_* OBJECT_COUNT N WARMUP PIDS")?;
-            lookup_fixture(&a[2], &a[3], a[4].parse()?, a[5].parse()?,
-                           a[6].parse()?, &pid_list(&a[7])?)
+            require(
+                a.len() == 8,
+                "lookup-fixture SOCKET PATH_OR_* OBJECT_COUNT N WARMUP PIDS",
+            )?;
+            lookup_fixture(
+                &a[2],
+                &a[3],
+                a[4].parse()?,
+                a[5].parse()?,
+                a[6].parse()?,
+                &pid_list(&a[7])?,
+            )
         }
         "rpc-fixture" => {
             require(a.len() == 6, "rpc-fixture SOCKET N WARMUP PIDS")?;
@@ -898,27 +1135,25 @@ fn main_inner(a: &[String]) -> Result<()> {
                 "exec N WARMUP EXPECT_BYTES PIDS -- PROGRAM ARGS...",
             )?;
             let expected = fs::read(&a[4])?;
+            let warmup = a[3].parse()?;
+            let mut journal = exec_journal::Journal::from_env(warmup)?;
             measure(
                 a[2].parse()?,
-                a[3].parse()?,
+                warmup,
                 &pid_list(&a[5])?,
-                |i| {
-                    let t = Instant::now();
-                    let output = Command::new(&a[7])
-                        .args(&a[8..])
-                        .env("R84_ITERATION", i.to_string())
-                        .output()?;
-                    let elapsed = t.elapsed().as_nanos() as u64;
-                    require(output.status.success(), "child command failed")?;
-                    require(
-                        output.stdout == expected,
-                        "child stdout failed byte validation",
-                    )?;
-                    Ok(elapsed)
-                },
+                |i| exec_journal::operation(&mut journal, i, &a[7], &a[8..], &expected),
                 || Ok(()),
             )
         }
+        "sleep-ms" => {
+            require(a.len() == 3, "sleep-ms MILLISECONDS")?;
+            let ms = a[2].parse::<u64>()?;
+            require(ms <= 60_000, "sleep exceeds 60 seconds")?;
+            std::thread::sleep(Duration::from_millis(ms));
+            Ok(())
+        }
+        "event-evidence" => event_evidence::run(&a[2..]),
+
         "http" => {
             require(
                 a.len() == 11,
@@ -965,26 +1200,46 @@ fn main_inner(a: &[String]) -> Result<()> {
         "http-paced" => {
             // Diagnostic-only build: the release comparison keeps its frozen
             // client. Controlled gaps exercise HTTPD's 50 ms parking boundary.
-            require(a.len() == 9, "http-paced ADDRESS PATH EXPECT_BYTES N CLIENTS GAP_MS PID")?;
+            require(
+                a.len() == 9,
+                "http-paced ADDRESS PATH EXPECT_BYTES N CLIENTS GAP_MS PID",
+            )?;
             let count: usize = a[5].parse()?;
             let concurrency: usize = a[6].parse()?;
             let gap = Duration::from_millis(a[7].parse()?);
             let pid: u32 = a[8].parse()?;
-            require((1..=64).contains(&concurrency) && count >= concurrency
-                && count.is_multiple_of(concurrency) && pid != 0, "invalid paced workload")?;
+            require(
+                (1..=64).contains(&concurrency)
+                    && count >= concurrency
+                    && count.is_multiple_of(concurrency)
+                    && pid != 0,
+                "invalid paced workload",
+            )?;
             let expected = fs::read(&a[4])?;
             let mut clients = Vec::new();
             for _ in 0..concurrency {
-                let mut client = HttpClient { address: a[2].clone(), stream: None };
-                require(client.request("GET", &a[3], &[])? == expected, "warm-up response mismatch")?;
-                require(client.stream.is_some(), "server closed a diagnostic connection")?;
+                let mut client = HttpClient {
+                    address: a[2].clone(),
+                    stream: None,
+                };
+                require(
+                    client.request("GET", &a[3], &[])? == expected,
+                    "warm-up response mismatch",
+                )?;
+                require(
+                    client.stream.is_some(),
+                    "server closed a diagnostic connection",
+                )?;
                 clients.push(client);
             }
             let before = proc_sample(pid)?;
             let stop = std::sync::atomic::AtomicBool::new(false);
             let barrier = std::sync::Barrier::new(concurrency + 1);
-            let baseline_tasks: std::collections::BTreeSet<_> = fs::read_dir(format!("/proc/{pid}/task"))?
-                .filter_map(|e| e.ok()).map(|e| e.file_name()).collect();
+            let baseline_tasks: std::collections::BTreeSet<_> =
+                fs::read_dir(format!("/proc/{pid}/task"))?
+                    .filter_map(|e| e.ok())
+                    .map(|e| e.file_name())
+                    .collect();
             let started = Instant::now();
             let (samples, tasks) = std::thread::scope(|scope| -> Result<_> {
                 let observer = scope.spawn(|| {
@@ -1002,43 +1257,61 @@ fn main_inner(a: &[String]) -> Result<()> {
                     let expected = &expected;
                     let path = &a[3];
                     let barrier = &barrier;
-                    workers.push(scope.spawn(move || -> std::result::Result<Vec<u64>, String> {
-                        barrier.wait();
-                        let mut samples = Vec::new();
-                        for _ in 0..count / concurrency {
-                            if !gap.is_zero() { std::thread::sleep(gap); }
-                            let t = Instant::now();
-                            let body = client.request("GET", path, &[]).map_err(|e| e.to_string())?;
-                            samples.push(t.elapsed().as_nanos() as u64);
-                            if body != *expected || client.stream.is_none() {
-                                return Err("paced response mismatch or connection closed".into());
+                    workers.push(
+                        scope.spawn(move || -> std::result::Result<Vec<u64>, String> {
+                            barrier.wait();
+                            let mut samples = Vec::new();
+                            for _ in 0..count / concurrency {
+                                if !gap.is_zero() {
+                                    std::thread::sleep(gap);
+                                }
+                                let t = Instant::now();
+                                let body = client
+                                    .request("GET", path, &[])
+                                    .map_err(|e| e.to_string())?;
+                                samples.push(t.elapsed().as_nanos() as u64);
+                                if body != *expected || client.stream.is_none() {
+                                    return Err(
+                                        "paced response mismatch or connection closed".into()
+                                    );
+                                }
                             }
-                        }
-                        Ok(samples)
-                    }));
+                            Ok(samples)
+                        }),
+                    );
                 }
                 barrier.wait();
                 let results: Vec<_> = workers.into_iter().map(|w| w.join()).collect();
                 stop.store(true, std::sync::atomic::Ordering::Relaxed);
                 let tasks = observer.join().map_err(|_| "observer panicked")?;
                 let mut samples = Vec::new();
-                for result in results { samples.extend(result.map_err(|_| "client panicked")??); }
+                for result in results {
+                    samples.extend(result.map_err(|_| "client panicked")??);
+                }
                 Ok((samples, tasks))
             })?;
             let wall = started.elapsed();
             let after = proc_sample(pid)?;
-            require(before.start_ticks == after.start_ticks && samples.len() == count,
-                "server replaced or requests missing")?;
+            require(
+                before.start_ticks == after.start_ticks && samples.len() == count,
+                "server replaced or requests missing",
+            )?;
             emit(obj([
                 ("diagnostic_only", Json::Bool(true)),
-                ("successful", integer(count as u64)), ("errors", integer(0)),
-                ("clients", integer(concurrency as u64)), ("gap_ms", integer(gap.as_millis() as u64)),
+                ("successful", integer(count as u64)),
+                ("errors", integer(0)),
+                ("clients", integer(concurrency as u64)),
+                ("gap_ms", integer(gap.as_millis() as u64)),
                 ("wall_ns", integer(wall.as_nanos() as u64)),
                 ("thread_births_observed_lower_bound", integer(tasks as u64)),
                 ("observer_interval_ms", integer(2)),
                 ("ticks_per_second", integer(ticks_per_second()?)),
-                ("before", proc_json(pid, &before)), ("after", proc_json(pid, &after)),
-                ("latency_ns", Json::Array(samples.into_iter().map(integer).collect())),
+                ("before", proc_json(pid, &before)),
+                ("after", proc_json(pid, &after)),
+                (
+                    "latency_ns",
+                    Json::Array(samples.into_iter().map(integer).collect()),
+                ),
             ]));
             Ok(())
         }

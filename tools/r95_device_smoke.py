@@ -46,12 +46,16 @@ def main():
     p.add_argument("--implementation", choices=("c", "rs"), default="rs")
     p.add_argument("--iterations", type=int, default=10)
     p.add_argument("--pilot", action="store_true", help="exploration only; requires an explicit workload or matrix")
+    p.add_argument("--capture-only", action="store_true",
+                   help="untimed reference capture; requires --pilot and --workload-script")
     p.add_argument("--matrix", action="store_true", help="existing expanded daemon workload matrix")
     p.add_argument("--host", default="openwrt")
     p.add_argument("--interface", default="en0")
     a = p.parse_args()
     if a.iterations <= 0 or (a.pilot and not (a.workload_script or a.matrix)):
         p.error("iterations must be positive; pilots require --workload-script or --matrix")
+    if a.capture_only and not (a.pilot and a.workload_script):
+        p.error("--capture-only requires --pilot and --workload-script")
     if a.matrix and (a.workload_script or a.component not in ("ubusd", "procd", "netifd", "rpcd", "httpd")):
         p.error("matrix requires a supported daemon and no custom workload script")
     if a.netifd_fixture and a.component != "netifd":
@@ -93,6 +97,7 @@ def main():
               "guard_sha256": hashlib.sha256(a.guard.read_bytes()).hexdigest(),
               "recovery_gate_sha256": hashlib.sha256(a.recovery_gate.read_bytes()).hexdigest(),
               "correctness_smoke_only": not a.pilot, "pilot_only": a.pilot,
+              "capture_only": a.capture_only,
               "implementation": a.implementation, "iterations": a.iterations, "installed": False,
               "matrix": a.matrix,
               "netifd_fixture_sha256": fixture_hashes,
@@ -164,7 +169,10 @@ def main():
         result["exit"] = run.returncode
         archive_raw(ssh, base, a.output)
         run.check_returncode()
-        assert (a.output / "raw/COMPLETE").is_file()
+        marker = "CAPTURE_COMPLETE" if a.capture_only else "COMPLETE"
+        assert (a.output / "raw" / marker).is_file()
+        if a.capture_only:
+            assert not (a.output / "raw/COMPLETE").exists(), "capture cannot be a measured run"
         assert (a.output / "raw/binary-sha256.txt").read_text().split()[0] == digest
         result["passed"] = True
     except BaseException as error:

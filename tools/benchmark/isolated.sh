@@ -23,6 +23,10 @@ case "${OWRT_UBUSD_NORMALIZED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_EXTENDED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_SCALE:-32}" in 32|64|128) ;; *) exit 2 ;; esac
+case "${OWRT_NETIFD_EVENT_CAPTURE:-0}" in 0|1) ;; *) exit 2 ;; esac
+netifd_events=0
+if [ "${OWRT_NETIFD_WORKLOADS:-}" = events_static2 ]; then netifd_events=1; fi
+case " ${OWRT_NETIFD_WORKLOADS:-} " in *" events_static2 "*) [ "$netifd_events" = 1 ] || exit 2 ;; esac
 netifd_scale=${OWRT_NETIFD_SCALE:-32}
 netifd_digits=2
 [ "$netifd_scale" -ne 128 ] || netifd_digits=3
@@ -132,6 +136,33 @@ config interface 'lan'
     option ipaddr '192.0.2.1/24'
     option ip6addr '2001:db8:84::1/64'
 EOF
+    if [ "$netifd_events" = 1 ]; then
+        [ "$component" = netifd ] && [ "${OWRT_NETIFD_MATRIX:-0}" = 1 ]
+        cat > /etc/config/network <<'EOF'
+config interface 'loopback'
+ option device 'lo'
+ option proto 'static'
+ option ipaddr '127.0.0.1/8'
+config device
+ option name 'br-event0'
+ option macaddr '02:00:00:ee:00:01'
+ option type 'bridge'
+ option bridge_empty '1'
+config interface 'lan'
+ option device 'br-event0'
+ option proto 'static'
+ option ipaddr '192.0.2.1/24'
+config device
+ option name 'br-event1'
+ option macaddr '02:00:00:ee:00:02'
+ option type 'bridge'
+ option bridge_empty '1'
+config interface 'wired'
+ option device 'br-event1'
+ option proto 'static'
+ option ipaddr '198.51.100.1/24'
+EOF
+    fi
     if [ "$component" = netifd ] && [ -d /tmp/bin/netifd-fixture ]; then
         cp /tmp/bin/netifd-fixture/wireless /etc/config/wireless
     else
@@ -207,12 +238,116 @@ EOF
     }
     rpc_warmup=20
     [ "$component" != netifd ] || rpc_warmup=${OWRT_NETIFD_WARMUP:-20}
+    netifd_no_spawn() ( # lane phase; all work is outside benchmark intervals
+        [ "$component" = netifd ] || return 0
+        set -eu
+        nsp_lane=$1; nsp_phase=$2; nsp_root=${3:-/proc}
+        nsp_dir=$out/no-spawn/$nsp_lane/$nsp_phase
+        [ ! -e "$nsp_dir" ]; mkdir -p "$nsp_dir"
+        trap 'nsp_rc=$?; if [ "$nsp_rc" -ne 0 ]; then printf "%s\n" "$nsp_rc" > "$nsp_dir/FAILED"; fi' EXIT
+        nsp_roles=bus
+        [ "$nsp_lane" != events_static2 ] || nsp_roles='bus listen subscribe'
+        printf 'schema=1\nlane=%s\nphase=%s\nexpected_ppid=%s\n' "$nsp_lane" "$nsp_phase" "$$" > "$nsp_dir/scope.txt"
+        # Keep the complete census and read errors. Missing/unreadable status
+        # is never accepted as an empty child set.
+        set --
+        for nsp_proc in "$nsp_root"/[0-9]*; do
+            [ -d "$nsp_proc" ]; set -- "$@" "$nsp_proc/status"
+        done
+        if awk '
+            function flush() { if (file != "") { if (pid !~ /^[0-9]+$/ || parent !~ /^[0-9]+$/) bad=1; else print pid, parent, file } }
+            FNR == 1 { flush(); file=FILENAME; pid=""; parent="" }
+            $1 == "Pid:" { pid=$2 } $1 == "PPid:" { parent=$2 }
+            END { flush(); if (bad) exit 1 }
+        ' "$@" > "$nsp_dir/ppid-census.txt" 2> "$nsp_dir/ppid-census.stderr"; then nsp_scan_rc=0; else nsp_scan_rc=$?; fi
+        printf '%s\n' "$nsp_scan_rc" > "$nsp_dir/ppid-census.rc"
+        [ "$nsp_scan_rc" = 0 ] && [ ! -s "$nsp_dir/ppid-census.stderr" ] && [ -s "$nsp_dir/ppid-census.txt" ] || exit 1
+        for nsp_role in $nsp_roles; do
+            case "$nsp_role" in
+                bus) nsp_pid=$bus; nsp_exe=/sbin/ubusd; nsp_sha=cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88; nsp_id=c-ubusd-24864e78 ;;
+                listen) nsp_pid=$event_listen; nsp_exe=/bin/ubus; nsp_sha=9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb; nsp_id=c-ubus-cli-24864e78-listen ;;
+                subscribe) nsp_pid=$event_subscribe; nsp_exe=/bin/ubus; nsp_sha=9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb; nsp_id=c-ubus-cli-24864e78-subscribe ;;
+            esac
+            case "$nsp_pid" in ''|*[!0-9]*) exit 1 ;; esac
+            [ "$nsp_pid" -gt 1 ] && [ "$nsp_pid" != "$$" ] && [ "$nsp_pid" != "$subject" ] || exit 1
+            nsp_one=$nsp_dir/$nsp_role; mkdir "$nsp_one"
+            printf '%s %s %s\n' "$nsp_role" "$nsp_pid" "$nsp_exe" >> "$nsp_dir/targets.txt"
+            awk -v parent="$nsp_pid" '$2 == parent' "$nsp_dir/ppid-census.txt" > "$nsp_one/children.txt"
+            [ ! -s "$nsp_one/children.txt" ]
+            cat "$nsp_root/$nsp_pid/stat" > "$nsp_one/stat.before"
+            cat "$nsp_root/$nsp_pid/status" > "$nsp_one/status.before"
+            readlink "$nsp_root/$nsp_pid/exe" > "$nsp_one/exe-link.txt"
+            sha256sum "$nsp_root/$nsp_pid/exe" > "$nsp_one/exe.sha256"
+            [ "$(awk '{print $1}' "$nsp_one/exe.sha256")" = "$nsp_sha" ]
+            cat "$nsp_root/$nsp_pid/maps" > "$nsp_one/maps.txt"
+            : > "$nsp_one/non-file-mappings.txt"
+            # A pathname with whitespace/escapes, deleted file or unknown
+            # pseudo-path is unsupported and fails; raw maps remain intact.
+            awk -v special="$nsp_one/non-file-mappings.txt" '
+                NF < 5 { exit 1 }
+                NF == 5 { if ($2 ~ /x/ || $5 != "0") exit 1; print "anonymous\t" $0 >> special; next }
+                NF != 6 { exit 1 }
+                $6 ~ /^\// { if ($6 ~ /\\/) exit 1; print $6; next }
+                $6 ~ /^\[(heap|stack|vdso|vvar|vvar_vclock)\]$/ || $6 ~ /^\[anon(_shmem)?:[^]]+\]$/ { if ($2 ~ /x/ && $6 != "[vdso]") exit 1; print $6 "\t" $0 >> special; next }
+                { exit 1 }
+            ' "$nsp_one/maps.txt" > "$nsp_one/mapped-paths.unsorted"
+            LC_ALL=C sort -u "$nsp_one/mapped-paths.unsorted" > "$nsp_one/mapped-paths.txt"
+            [ -s "$nsp_one/mapped-paths.txt" ]; : > "$nsp_one/mapped-files.sha256"
+            while IFS= read -r nsp_file; do
+                nsp_real=$(readlink -f "$nsp_file")
+                [ -f "$nsp_real" ] && [ -r "$nsp_real" ] || exit 1
+                printf '%s\t%s\n' "$nsp_file" "$nsp_real" >> "$nsp_one/mapped-canonical.tsv"
+                sha256sum "$nsp_real" >> "$nsp_one/mapped-files.sha256"
+            done < "$nsp_one/mapped-paths.txt"
+            # Filter real NUL records, not newline projections. Non-LD values
+            # never reach disk/stdout even if they contain fake LD_ lines.
+            mkfifo "$nsp_one/environ.pipe"
+            hexdump -v -e '1/1 "%u "' "$nsp_root/$nsp_pid/environ" > "$nsp_one/environ.pipe" 2> "$nsp_one/environ-read.stderr" & nsp_reader=$!
+            if LC_ALL=C awk '
+                { for (i=1; i<=NF; i++) { b=$i; if (b !~ /^[0-9]+$/ || b>255) exit 1;
+                  if (b==0) { if (keep && eq) print hex; n=0; keep=1; eq=0; hex=""; continue }
+                  n++; if ((n==1 && b!=76) || (n==2 && b!=68) || (n==3 && b!=95)) keep=0;
+                  if (keep) { hex=hex sprintf("%02x",b); if (n>3 && b==61) eq=1 }
+                } }
+                BEGIN { keep=1 } END { if (n!=0) exit 1 }
+            ' < "$nsp_one/environ.pipe" > "$nsp_one/LD-environ.hex"; then nsp_filter_rc=0; else nsp_filter_rc=$?; fi
+            if wait "$nsp_reader"; then nsp_read_rc=0; else nsp_read_rc=$?; fi
+            rm "$nsp_one/environ.pipe"
+            [ "$nsp_filter_rc" = 0 ] && [ "$nsp_read_rc" = 0 ] && [ ! -s "$nsp_one/environ-read.stderr" ] || exit 1
+            cat "$nsp_root/$nsp_pid/stat" > "$nsp_one/stat.after"
+            cat "$nsp_root/$nsp_pid/status" > "$nsp_one/status.after"
+            sha256sum "$nsp_root/$nsp_pid/exe" > "$nsp_one/exe-after.sha256"
+            cmp "$nsp_one/exe.sha256" "$nsp_one/exe-after.sha256"
+            for nsp_point in before after; do
+                awk -v pid="$nsp_pid" -v parent="$$" '
+                    { if (NR != 1 || $1 != pid) exit 1; sub(/^[0-9]+ \(.*\) /,"",$0);
+                      if (NF<20 || $2!=parent || $14!=0 || $15!=0 || $20 !~ /^[0-9]+$/) exit 1;
+                      print pid, $2, $20 }
+                    END { if (NR != 1) exit 1 }
+                ' "$nsp_one/stat.$nsp_point" > "$nsp_one/identity.$nsp_point"
+                [ "$(awk '$1=="Pid:" {print $2}' "$nsp_one/status.$nsp_point")" = "$nsp_pid" ]
+                [ "$(awk '$1=="PPid:" {print $2}' "$nsp_one/status.$nsp_point")" = "$$" ]
+            done
+            cmp "$nsp_one/identity.before" "$nsp_one/identity.after"
+            nsp_start=$(awk '{print $3}' "$nsp_one/identity.before")
+            if [ "$nsp_phase" = after ]; then
+                nsp_before=$out/no-spawn/$nsp_lane/before/$nsp_role
+                for nsp_identity in identity.before exe-link.txt exe.sha256 mapped-files.sha256 mapped-canonical.tsv LD-environ.hex; do
+                    cmp "$nsp_before/$nsp_identity" "$nsp_one/$nsp_identity"
+                done
+            fi
+            printf '{"schema":1,"lane":"%s","phase":"%s","pid":%s,"ppid":%s,"expected_ppid":%s,"start_ticks":%s,"role":"%s","proposed_exemption_id":"%s","exe_sha256":"%s","child_user_ticks":0,"child_system_ticks":0,"status":"evidence-ready","requires_static_proof":true}\n' "$nsp_lane" "$nsp_phase" "$nsp_pid" "$$" "$$" "$nsp_start" "$nsp_role" "$nsp_id" "$nsp_sha" > "$nsp_one/identity.json"
+        done
+        printf 'evidence-ready; static no-spawn closure required\n' > "$nsp_dir/EVIDENCE_READY"
+    )
     run_rpc() { # label object method input expected [iterations]
         netifd_lane_selected "$1" || return 0
         label=$1; object=$2; method=$3; input=$4; expected=$5; count=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
+        netifd_no_spawn "$label" before
         "$bench" "$rpc_mode" "$socket" "$object" "$method" /tmp/input.json /tmp/expect.json "$count" "$rpc_warmup" "$monitors" > "$out/$label.json"
+        netifd_no_spawn "$label" after
     }
     rpc_four() { # label object method input expected [total iterations]
         netifd_lane_selected "$1" || return 0
@@ -222,6 +357,7 @@ EOF
         count=$((total / 4)); [ "$count" -gt 0 ] || count=1
         mkdir "$out/$label"
         printf '{"clients":4,"iterations_per_client":%s,"warmup_per_client":%s}\n' "$count" "$rpc_warmup" > "$out/$label/group.json"
+        netifd_no_spawn "$label" before
         "$bench" snapshot "$monitors" > "$out/$label/before.json"
         clients=''; j=1
         while [ "$j" -le 4 ]; do
@@ -231,6 +367,7 @@ EOF
         failed=0
         for client in $clients; do wait "$client" || failed=1; done
         "$bench" snapshot "$monitors" > "$out/$label/after.json"
+        netifd_no_spawn "$label" after
         [ "$failed" = 0 ]
     }
     rpc_pair() { # c1 then c4 with identical arguments and validation
@@ -335,6 +472,132 @@ EOF
         netifd_children_reaped
         printf 'proc-status-ppid\n' > "$out/hotplug-child-check-$1.txt"
         "$bench" snapshot "$monitors" > "$out/hotplug-settled-$1-after.json"
+    }
+    run_netifd_events() {
+        # Invoked only for the separate two-bridge event fixture.
+        event_root=$out/events_static2
+        mkdir "$event_root"
+        for channel in listen subscribe hotplug; do : > "$event_root/$channel.txt"; done
+        ubus -S listen network.interface > "$event_root/listen.txt" 2> "$event_root/listen.stderr" & event_listen=$!
+        ubus -S subscribe network.interface > "$event_root/subscribe.txt" 2> "$event_root/subscribe.stderr" & event_subscribe=$!
+        monitors=$subject,$bus,$event_listen,$event_subscribe
+        "$bench" snapshot "$monitors" > "$out/event-role-snapshot.json"
+        printf '{"schema":1,"processes":[' > "$out/roles.json"
+        role_index=0; role_sep=''
+        for role_spec in "$subject:subject" "$bus:dependency" "$event_listen:caller_instrumentation" "$event_subscribe:caller_instrumentation"; do
+            role_pid=${role_spec%:*}; role_name=${role_spec#*:}
+            role_start=$(jsonfilter -i "$out/event-role-snapshot.json" -e "@.processes[$role_index].start_ticks")
+            case "$role_start" in ''|*[!0-9]*) exit 1 ;; esac
+            printf '%s{"pid":%s,"start_ticks":%s,"role":"%s"}' "$role_sep" "$role_pid" "$role_start" "$role_name" >> "$out/roles.json"
+            role_sep=,; role_index=$((role_index + 1))
+        done
+        printf ']}\n' >> "$out/roles.json"
+        cp /tmp/netifd-hotplug.done "$out/event-setup-hotplug.txt"
+        "$bench" event-evidence mark "$event_root" "$event_root/cursor.json"
+        cat > /tmp/netifd-cycle.sh <<'CYCLE'
+#!/bin/sh
+set -eu
+bench=/tmp/bin/owrt-benchmark
+root=/tmp/out/events_static2
+iteration=${R84_ITERATION:-prelude}
+case "$iteration" in prelude) cycle=$root/prelude ;; *) cycle=$(printf '%s/iteration-%06d' "$root" "$iteration") ;; esac
+mkdir -p "$cycle"
+fail() { printf '%s\n' "$1" > "$cycle/FAILED"; exit 1; }
+trap 'rc=$?; if [ "$rc" -ne 0 ] && [ -d /tmp/netifd-event-action ]; then cp -a /tmp/netifd-event-action "$cycle/failed-action"; fi' EXIT
+read -r cycle_start rest < /proc/uptime
+cycle_start=${cycle_start%.*}
+deadline() {
+    read -r current rest < /proc/uptime
+    [ "$(( ${current%.*} - cycle_start ))" -lt 30 ] || fail coarse-cycle-deadline
+    kill -0 "$NETIFD_SUBJECT" "$NETIFD_LISTEN" "$NETIFD_SUBSCRIBE" || fail process-exited
+}
+child_scans=0; child_scan_errors=0
+children_reaped() {
+    child_scans=$((child_scans + 1))
+    if children=$(awk -v parent="$NETIFD_SUBJECT" '$1 == "PPid:" && $2 == parent {print FILENAME}' /proc/[0-9]*/status 2>> "$cycle/child-scan-errors.txt"); then :; else
+        child_scan_errors=$((child_scan_errors + 1)); return 1
+    fi
+    [ -z "$children" ]
+}
+for action in lan-down lan-up wired-down wired-up; do
+    deadline
+    interface=${action%-*}; method=${action#*-}; dir=/tmp/netifd-event-action
+    rm -rf "$dir"; mkdir "$dir"
+    : > "$dir/evidence-errors.txt"
+    printf '%s\n' "$action" >> "$cycle/actions.txt"
+    if ubus -S -t 2 call "network.interface.$interface" "$method" > "$dir/command.stdout" 2> "$dir/command.stderr"; then rc=0; else rc=$?; fi
+    printf '%s\n' "$rc" > "$dir/command.rc"
+    [ "$rc" = 0 ] || fail "$action-command"
+    polls=0
+    while :; do
+        deadline
+        if ubus -S -t 2 call "network.interface.$interface" status > "$dir/status.json" 2>> "$dir/status.stderr"; then :; else fail "$action-status"; fi
+        cat "$dir/status.json" >> "$dir/status-polls.jsonl"
+        polls=$((polls + 1)); printf '%s\n' "$polls" > "$dir/polls.txt"
+        ip -o address show > "$dir/addresses.txt"
+        sed 's/^[0-9]*: //' "$dir/addresses.txt" | LC_ALL=C sort > "$dir/kernel-addresses.txt"
+        ip route show table all > "$dir/routes-unsorted.txt" || fail kernel-routes
+        ip -6 route show table all > "$dir/routes6-unsorted.txt" || fail kernel-routes6
+        LC_ALL=C sort "$dir/routes-unsorted.txt" > "$dir/routes.txt"
+        LC_ALL=C sort "$dir/routes6-unsorted.txt" > "$dir/routes6.txt"
+        if children_reaped; then
+            if [ "$NETIFD_EVENT_MODE" = capture ]; then
+                # Untimed reference discovery only. Measurement uses exact
+                # frozen per-action transcripts, not this settling heuristic.
+                "$bench" sleep-ms 250
+            fi
+            if "$bench" event-evidence "$NETIFD_EVENT_MODE" "$NETIFD_EVENT_CONTRACT" "$action" "$root" "$root/cursor.json" "$dir" "$cycle/records.jsonl" 2>> "$dir/evidence-errors.txt"; then break; fi
+        fi
+        "$bench" sleep-ms 5
+    done
+done
+while ! children_reaped; do
+    deadline
+    "$bench" sleep-ms 5
+done
+ubus -S -t 2 call network.interface dump > "$cycle/final-interfaces.json" 2> "$cycle/final-interfaces.stderr" || fail final-dump
+[ "$(jsonfilter -i "$cycle/final-interfaces.json" -e '@.interface[*].interface')" = "$(printf 'lan\nloopback\nwired')" ] || fail final-names
+[ "$(jsonfilter -i "$cycle/final-interfaces.json" -e '@.interface[*].up')" = "$(printf 'true\ntrue\ntrue')" ] || fail final-up
+[ "$(jsonfilter -i "$cycle/final-interfaces.json" -e '@.interface[*].pending')" = "$(printf 'false\nfalse\nfalse')" ] || fail final-pending
+while ! children_reaped; do
+    deadline
+    "$bench" sleep-ms 5
+done
+cp "$root/cursor.json" "$cycle/cursor-final.json"
+printf 'proc-status-ppid\n' > "$cycle/children-reaped.txt"
+printf '{"scans":%s,"scan_errors":%s}\n' "$child_scans" "$child_scan_errors" > "$cycle/child-scans.json"
+touch "$cycle/COMPLETE"
+printf 'event-cycle-ok\n'
+CYCLE
+        export NETIFD_SUBJECT=$subject NETIFD_LISTEN=$event_listen NETIFD_SUBSCRIBE=$event_subscribe
+        export NETIFD_EVENT_MODE=check NETIFD_EVENT_CONTRACT=/tmp/bin/event-contract.json
+        if [ "${OWRT_NETIFD_EVENT_CAPTURE:-0}" = 1 ]; then
+            NETIFD_EVENT_MODE=capture NETIFD_EVENT_CONTRACT=-
+        else
+            [ -s "$NETIFD_EVENT_CONTRACT" ]
+            sha256sum "$NETIFD_EVENT_CONTRACT" > "$out/event-contract-sha256.txt"
+            cp "$NETIFD_EVENT_CONTRACT" "$out/event-contract.json"
+        fi
+        # The full prelude is outside timing and proves both registrations by
+        # receiving all expected records. A missing subscription fails here.
+        "$bench" sleep-ms 50
+        R84_ITERATION=prelude /bin/sh /tmp/netifd-cycle.sh > "$event_root/prelude.stdout"
+        "$bench" sleep-ms 50
+        "$bench" event-evidence mark "$event_root" "$event_root/prelude-cursor-after.json"
+        cmp "$event_root/cursor.json" "$event_root/prelude-cursor-after.json"
+        netifd_no_spawn events_static2 before
+        if [ "${OWRT_NETIFD_EVENT_CAPTURE:-0}" = 1 ]; then netifd_no_spawn events_static2 after; return; fi
+        printf 'event-cycle-ok\n' > /tmp/event.expected
+        OWRT_BENCH_EXEC_JOURNAL=$out/events_static2-journal.jsonl \
+        OWRT_BENCH_EXEC_ARTIFACTS=$event_root \
+            "$bench" exec "$n" "$rpc_warmup" /tmp/event.expected "$monitors" -- /bin/sh /tmp/netifd-cycle.sh > "$out/events_static2.json"
+        # Detect late extra records after the final completion boundary too.
+        "$bench" sleep-ms 50
+        "$bench" event-evidence mark "$event_root" "$event_root/cursor-after.json"
+        cmp "$event_root/cursor.json" "$event_root/cursor-after.json"
+        netifd_children_reaped
+        [ ! -s "$event_root/listen.stderr" ] && [ ! -s "$event_root/subscribe.stderr" ]
+        netifd_no_spawn events_static2 after
     }
     http_four() { # label method path body expected total format
         # Four clients share ONE outer CPU interval. Their overlapping
@@ -513,6 +776,9 @@ EOF
 /sbin/hotplug-call "$@"
 status=$?
 printf '%s %s %s\n' "$INTERFACE" "$ACTION" "$status" >> /tmp/netifd-hotplug.done
+if [ -d /tmp/out/events_static2 ]; then
+    printf '%s|%s|%s|%s|%s|%s|%s|%s|%s\n' "$1" "${INTERFACE:-}" "${ACTION:-}" "${DEVICE:-}" "${IFUPDATE_ADDRESSES:-}" "${IFUPDATE_ROUTES:-}" "${IFUPDATE_PREFIXES:-}" "${IFUPDATE_DATA:-}" "$status" >> /tmp/out/events_static2/hotplug.txt
+fi
 exit "$status"
 EOF
                 chmod +x /tmp/netifd-hotplug
@@ -529,6 +795,13 @@ EOF
             done
             monitors=$subject,$bus
             if [ "$component" = netifd ]; then
+                if [ "$netifd_events" = 1 ]; then
+                    wait_object network.interface.wired "$subject"
+                    printf 'lan\nloopback\nwired\n' > /tmp/netifd-names.expected
+                    wait_netifd_hotplug 3
+                    sha256sum /etc/config/network /etc/config/wireless > "$out/netifd-fixtures.sha256"
+                    run_netifd_events
+                else
                 interface_expected='{"interface":[]}'
                 if [ "${OWRT_NETIFD_MATRIX:-0}" = 1 ]; then
                     netifd_expect 2 > /tmp/expect-interfaces-2.json
@@ -586,6 +859,27 @@ EOF
                     cmp "$out/wireless-after.json" /tmp/bin/netifd-fixture/expected-wireless.json
                     netifd_children_reaped
                 fi
+                if [ -n "${OWRT_NETIFD_WORKLOADS:-}" ] && netifd_lane_selected reload_unchanged; then
+                    # Existing H4 unchanged-reload contract: 32/64/128 settled
+                    # static interfaces, synchronous RPC, unchanged scripts/state.
+                    cp /tmp/netifd-hotplug.done "$out/hotplug-before-reload.txt"
+                    if [ -f "$out/handler-calls.log" ]; then cp "$out/handler-calls.log" "$out/handler-before-reload.log"; fi
+                    sha256sum /etc/config/network /etc/config/wireless > "$out/reload-config-before.sha256"
+                    "$bench" snapshot "$monitors" > "$out/reload-before.json"
+                    run_rpc reload_unchanged network reload '{}' '{}' "$n"
+                    netifd_children_reaped
+                    cmp /tmp/netifd-hotplug.done "$out/hotplug-before-reload.txt"
+                    if [ -f "$out/handler-before-reload.log" ]; then cmp "$out/handler-before-reload.log" "$out/handler-calls.log"; fi
+                    sha256sum /etc/config/network /etc/config/wireless > "$out/reload-config-after.sha256"
+                    cmp "$out/reload-config-before.sha256" "$out/reload-config-after.sha256"
+                    ubus -S -t 2 call network.wireless status > "$out/wireless-after-reload.json"
+                    if [ -d /tmp/bin/netifd-fixture ]; then cmp "$out/wireless-after-reload.json" /tmp/bin/netifd-fixture/expected-wireless.json; else cmp "$out/wireless-after-reload.json" /tmp/empty.json; fi
+                    check_netifd_interfaces "$netifd_scale" after-reload
+                    cp /tmp/netifd-hotplug.done "$out/hotplug-after-reload.txt"
+                    "$bench" snapshot "$monitors" > "$out/reload-after.json"
+                    printf 'proc-status-ppid\n' > "$out/reload-children-reaped.txt"
+                fi
+                fi # query/reload fixture versus separate event fixture
             else
                 bin=$(choose fw4 /sbin/fw4 fw4-rs)
                 /sbin/fw4 print > /tmp/expected.rules 2> "$out/reference-stderr.log"
@@ -745,7 +1039,7 @@ EOF
         [ "$(awk '/^TracerPid:/ {print $2}' /proc/"$subject"/status)" = 0 ]
         [ -s "$out/syscalls.txt" ]
     fi
-    touch "$out/COMPLETE"
+    if [ "${OWRT_NETIFD_EVENT_CAPTURE:-0}" = 1 ]; then touch "$out/CAPTURE_COMPLETE"; else touch "$out/COMPLETE"; fi
     # Namespace PID 1 destroys every descendant after this shell exits.
     exit 0
 fi
@@ -772,4 +1066,4 @@ if [ -n "${OWRT_BENCH_GUARD:-}" ]; then
 else
     "$bundle/ns-exec" /bin/sh "$script" --namespace "$image" "$bundle" "$component" "$impl" "$out" "$n" "$work" "$script"
 fi
-[ -e "$out/COMPLETE" ]
+[ -e "$out/COMPLETE" ] || { [ "${OWRT_NETIFD_EVENT_CAPTURE:-0}" = 1 ] && [ -e "$out/CAPTURE_COMPLETE" ]; }
