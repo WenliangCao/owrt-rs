@@ -639,3 +639,80 @@ C ubusd的分配/释放、帧长度、转发指针与部分发送。不修改ubu
 
 仅上述已知小额内存失败得到继续性能研究的明确处置；新错误、泄漏/积压迹象、持久fd/
 线程增加、恢复失败或生产状态变化仍须停止调查，不能自动套用内存余量理由豁免。
+
+
+### H10 冻结确认实验与已完成主组（阶段记录）
+
+最终 C／正式 R89／canonical H10 确认已按
+`private/netifd-20260927/final-confirmation-02/plan.json` 启动，计划 SHA 为
+`6236ab71a23185b62ffa7bbbf2e32857b8c4b420106e2017fd5aa3ba4c4ec293`。
+此前“尚未启动”描述保留其历史时点，本节记录后续进展，**仍未宣布组件收尾**。
+八组共26个strata，每组20个随机三侧block，共480个namespace窗口、1560条lane观察；
+11项own/tree CPU、延迟及吞吐指标形成572个metric×baseline对比；每个对比对ratio与
+practical-margin各作一项推断，共1144项，每项自身均有区间上下界。
+既定rank2–19的家族覆盖下界95.4177856%以共同目标中位数、独立符号及无未解决系统漂移
+等冻结假设为条件，随机顺序和质量门不能自行证明这些假设。
+
+主体/依赖/caller CPU、mean、p50的实际门槛为max(2%,2us)，p95/p99为max(5%,10us)，
+吞吐为2%；子进程计数保留原保守表示误差，不因观察到零而缩窄。整份计划已按hash冻结；
+其中 `practical_budgets.status` 仍保留继承自草案的行政标签，未据此改变预算或原文件。
+原collector、analyzer和数值deriver的SHA分别为：
+
+- `f81fe2ad49b3fb808ed0a77e1e995736e6cd09bcb6462c9239f945deecdcc306`
+- `8c5728a593bb6d43b36879bf8ba65117a5bf975d4bea71befb7bd747d833217c`
+- `528efa71bf504843d9f9d31f6b631ad3f9e5484bf616a25b7168f4911b1cbc08`
+
+main-32已完成60窗、720条lane观察，40920个raw文件逐项核验；退出、身份、boot、配置、
+生产九组件C、健康、计数和错误门均通过。下表仅为**全部20个配对log-ratio中位数换算的百分比**，
+不是最终家族区间或接受判定；吞吐正值较好，其余负值较好。
+
+| lane | 基线 | 主体own CPU | mean | p95 | p99 | 吞吐 |
+|---|---|---:|---:|---:|---:|---:|
+| device_status | C |−42.83%|−33.49%|−31.47%|−28.24%|+40.83%|
+| device_status | R89 |−38.43%|−30.33%|−28.92%|−26.29%|+35.41%|
+| interface_dump_32 | C |−56.31%|−39.82%|−30.56%|−25.88%|+18.66%|
+| interface_dump_32 | R89 |−37.46%|−19.94%|−13.19%|−13.71%|+6.36%|
+| interface_named_32 | C |−24.54%|−8.23%|+0.37%|+0.95%|+7.01%|
+| interface_named_32 | R89 |+0.33%|+0.57%|+4.50%|+0.66%|−0.46%|
+| lan_status | C |−21.58%|−9.66%|−6.69%|−4.54%|+5.31%|
+| lan_status | R89 |+1.60%|−0.76%|+0.87%|+0.25%|+0.89%|
+
+named32相对R89的mean配对绝对增量中位数为0.58485us，p95为6.1165us；lan_status
+主体own CPU为+0.8603us。这些点估计低于相关绝对门槛不等于区间已证明可接受，更不等于
+“相同”。所有12个lane、两基线、依赖/caller以及11指标计数在
+`final-confirmation-02/stage-main32-audit/` 保留，不用上述代表行抵消其余非胜出或慢窗口。
+该目录 `verified.json` SHA为
+`15f92b7de7c1116d28c24352a1d57bf6873e7d801b3de5c999e93504f79a0067`，
+描述性完整配对表SHA为
+`43de2dbd60decfb716364dde5fb8a4b85b5157b03c1bb9f58148edf4b698be96`。
+
+scale64第48窗在namespace退出0、archive已取回之后，checksum SSH退出255而停止；
+原stderr未保存，原因UNKNOWN。独立审核随后从保留raw补取manifest并逐项匹配250文件，
+计数/健康/清理均通过。`recovery48-01` 的显式hash证书与非空恢复marker允许继续，
+原失败result和STOPPED均保留；1–48窗没有重跑。原collector不变，私有分析adapter仅扩展
+准入/来源metadata，统计函数保持原样；原deriver仍会拒绝该非正常窗口。
+恢复发生在block16结束与block17开始之间，原队列停止记录至第49窗启动间隔
+1063.473212秒；不因此宣称
+无漂移。证书SHA为 `b5001ddec1319c49fd1f9238885948b8f9caa4b98ca0ba4cd0c82647328bed11`。
+
+第58窗在后续会话中断时丢失本地outer observer，原本地只留下六个pre/log文件；远端
+raw COMPLETE存在，250文件已取回核对。namespace及outer退出均UNKNOWN/null，不能
+推定0。独立质量审核及显式恢复代码审查均已通过；补采host/config/健康仅为延迟观测。
+此次间隔处于block20内部，R89已经测量、candidate/C尚未测量，必须在最终推断中保留
+漂移边界；不删除block、不重跑第58窗，也不修改N、顺序或门槛。
+
+第58窗恢复质量审计SHA为
+`4f0e931080377d459b2d1b426fc93e1e8e4f0f11168d0f709a3d6084052c329d`；
+`recovery58-01/certificate.json` SHA为
+`af11c9e3246aa7696a38c0302a4cc8b99727d809a552c8452d6efc61151d2f36`，
+冻结amendment SHA为
+`b86f19e6968f2aaa8f5a91c3f7a66b0b22dce1f3dc2765217dcfa41478064bb1`；
+独立代码审查SHA为
+`bf33bdda9a4be84f35752605aa55458a5fa0b33f66f7184d23efc23059b0c421`。
+35项合成准入检查和原统计selftest通过，48原规则不变；新增58准入保留null退出及原result
+不存在的事实。新analysis-plan只增加恢复绑定/来源元数据，数值deriver与48版逐字节相同。
+恢复runner已独立会话启动，原collector日志确认1–58全部preserved，第59窗为candidate，
+随后仍为第60窗C及其余六组原命令；没有重采或替换。独立本地进程及只读设备census已排除
+并发实验；防休眠只绑定该runner生命周期，未修改持久电源设置。
+第58→59窗collector启动记录相隔2612.943851秒（包含第58窗运行时间）；
+原实际停止/完成时点未知，不能称为精确空闲间隔。来源为 `recovery58-01/gap.json`。
