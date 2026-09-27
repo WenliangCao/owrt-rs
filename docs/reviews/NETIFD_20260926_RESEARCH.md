@@ -1,7 +1,10 @@
 # netifd 性能研究：2026-09-26
 
 状态：进行中；没有候选完成实机确认，没有宣布收尾。沿用当前工作线；ubusd R136 已关闭。
-原始输入、配置、ELF、候选补丁和失败构建只放在 ignored `private/netifd-20260926/`。
+最新阶段：H10 精确 canonical ELF 的功能、恢复、raw66 和类型生命周期门已通过；
+AX3000T 资源04仍有三项冻结预算失败，正式三方性能确认尚未启动，见文末。
+原始输入、配置、ELF、候选补丁和失败构建只放在 ignored `private/netifd-20260926/`
+及 `private/netifd-20260927/`。
 Oracle 对应 `/home/ubuntu/netifd-research-20260926/`。本报告只提交派生事实，不提交设备秘密。
 
 最新证据修正：H9 前置检查发现并精确清理了旧 suite 遗留的66个进程，其中16个 odhcp6c
@@ -492,5 +495,147 @@ Linux官方v6.12.94源码解释了reported VmHWM可能下降：`task_mem`汇总�
 `hwm-source-audit-01/`，报告SHA为
 `5e37100b1222bf5cd1d0ecfed1bdff85a1f1d47b988a10494663c6e0611a0299`。
 
-H10尚须删除重建/重连的类型与签名门、正式构建精确ELF完整合同门，以及同预算硬件资源
-复核。最终三方性能确认尚未启动；原绑定8208…的设计草案不是H10的冻结计划。
+## H10 精确正式产物、合同门和资源04（2026-09-27）
+
+H10提交为 `dc055aee2d576599699c52479bd58c0566584626`，研究tag为
+`research-netifd-20260927-h10`。host CI `36308638556`、release-image
+`36308634604` 均在该commit成功；正式 netifd SHA256为
+`4c0420503a93dd33bd98ad9197bb8da156578fd012dda346507bff54645c41ad`，
+不同于Oracle筛选的 `a81b61…`。canonical身份、core manifest和两项CI记录见
+`private/netifd-20260927/h10-canonical-ci-01/verified.json`，SHA为
+`086a8858baf3a50aa87d16761c83cde96413dd2e28eee18aca74b1f66647e669`。
+
+精确4c…产物已重新执行完整31场景、overflow、restart、两种reconnect及raw66，
+不是把Oracle a81…的通过结果转移过来。31项无遗漏或失败；r46/r47/r48使用另行核验
+身份的Oracle helper，其余28项使用canonical守护进程，不把helper称为CI产物。
+overflow保留原socket身份，收到7446次记录的drop后将rcvbuf从131070扩至262140，
+队列归零且后续事件可用；该故障门的 `subject_exit=null` 保持原值。独立审计核验
+2127项门证据文件和448项源码输入。新的三侧raw66共198个blob均核验长度、hash和
+有序DATA帧；候选对C为0/66差异，正式R89对C仍为63/66既有差异，不计作性能收益。
+
+类型生命周期也已用精确4c…另行重跑：C/候选各七阶段，覆盖动态添加、删除、同名重加、
+同broker重连、broker重启及netifd reexec。72条LOOKUP记录仅规范化opaque ID的值，
+保留属性槽位、顺序和完整签名后相同；同连接的固定类型anchor保持，新的连接完成注册。
+生命周期50项证据及归档逐字节核验，审计为
+`h10-canonical-type-lifecycle-01/independent-review-01/verified.json`，SHA为
+`ba778cc315c15e15fb8a200099ea5ee3ced395ac59848908970a2bc4bc858bda`。
+上述全部门的总审计为
+`h10-canonical-gates-01/independent-review-01/verified.json`，SHA为
+`d06d3b352cfc9454ba439f1994a29206c20969d82c5e39c34d7728497b04b805`。
+这里及下文未带前缀的本阶段证据路径均相对 `private/netifd-20260927/`。
+
+三项观察限制继续保留，不把这批工具执行写成无异常：
+
+- C侧生命周期helper的Proxy在故意重启broker时记录一次后端connect的
+  `FileNotFoundError`，连接计数从2变为4，随后一代完整注册且所有恢复后查询与身份门
+  通过。异常没有时间戳或connection ID，关联到具体尝试只是推断；canonical对应日志
+  为空。没有更换窗口或抹掉traceback。
+- 冻结的 `post-raw-check.py` 仍检查旧 `canonical-raw-01/COMPLETE`。该断言不能证明
+  本次raw66完成，未追溯修改或重跑。独立证明来自新 `h10-canonical-raw-01/` 的完成
+  标记、198个当前blob、当前结果及差分、raw driver自身候选/C断言和正常退出的`&&`链。
+  实际post-host/census观察仍保留；该observer没有独立的 `ip -6 route` 快照。
+- 远端run-all明确记录 `driver-exit.txt=0`；外层SSH的原自然退出仍为 **UNKNOWN**。
+  首次本地停止检查因comm路径不符拒绝且没有发信号；确认远端无匹配任务后，仅TERM
+  已核PID/PPID/argv的本地SSH。后写且位于远端原始归档之外的
+  `observer/tool-exit.json` 记录工具退出255；不把255或UNKNOWN补写为0，也不猜测传输原因。
+
+### 资源04：固定阶段机制成立，原预算仍失败
+
+`final-resources-04/plan.json` SHA为
+`205a3865001dc7f7952df4ede08dff384915cfde5c76607ec7e42068bdb0d18a`。
+保持C→正式R89→canonical4c…三窗、实际相关无线配置/stub、N20、缩回后100次小dump、
+原120秒guard和原32/64KiB预算。三窗采集、生产C健康/身份及清理门均通过；各36个RPC
+lane的错误数为0、完成数正确，完整fixture及工具hash相同。独立审计逐项核验三个raw
+归档的2386/2486/2462个文件。**采集完成不等于资源预算通过**：
+
+| 基线 | 角色／阶段 | 指标 | 候选 KiB | 基线 KiB | 增量 KiB | 冻结预算 KiB |
+|---|---|---|---:|---:|---:|---:|
+| C | 依赖，全生命周期采样最大 | VmRSS |1068|952|116|64|
+| C | 依赖，全生命周期采样最大 | RssAnon |224|140|84|64|
+| 正式R89 | 主体，active128边界 | reported VmHWM |1560|1484|76|64|
+
+H10的active128依赖Anon已为136KiB，本轮C观察也是136KiB，正式R89为244KiB；
+这支持类型复用消除固定阶段重复注册成本的机制，但不是统计等效，也不抵消表中峰值失败。
+候选主体初始RSS/Anon相对R89各多24KiB，缩回时各多4KiB；全部110项角色/阶段/基线对比、
+14项正增量及46项观测零差保留。不能把观测零差写成等效。
+
+候选依赖的1068/224KiB峰只在 `resource-samples/00512.json` 命中一次，采样括界为
+uptime 586817.85–586817.86；前后样本均为980/136KiB。它位于named128_c4的after
+快照586817.84之后、active128资源快照586817.91之前；按固定脚本顺序对应
+`check_netifd_interfaces 128 after` 的dump、名字及对象列表对账区间。当时依赖fd为12，
+记录的两条netlink队列为0。这只能定位区间，不能证明哪次分配造成峰值；也不能将
+10ms采样括界当作真实峰持续时间或把netlink为空当作Unix发送队列为空。
+
+主体HWM的76KiB差也保持冻结门失败：候选早在扩容时已导出1560KiB；R89在大dump期间
+曾导出1576KiB，随后active128快照降为1484KiB。全生命周期采样最大HWM候选1572、
+R891576，不能用这个相反方向的指标替换按阶段冻结的比较。前述6.12.94计数源码解释
+只支持近似与非单调限制，未重建实机counter状态，不能据此扣除假定误差或改变门槛。
+
+三侧settled主体fd为19/10/10，依赖为12/11/11，关闭后依赖均为10；记录到的线程均为1。
+主体采样最大fd为21/17/17，依赖为16/15/15。没有候选常驻fd/线程增长；各阶段netlink
+队列归零，记录的Drops均为0，采样Rmem最大为0/33024/33024字节。该Rmem是观测最大，
+不代表未采样瞬间的积压上界。主体wait/关闭退出0、PID消失、观察到的netlink inode消失及
+namespace清理通过；并未逐类普查所有socket inode，也没有PSS、caller/后代瞬时峰值或
+任意重复周期无增长证明。
+
+资源04全部样本数为565/590/584，采样跨度37.42/38.53/38.42秒。原50ms名义间隔加
+probe开销后，实际起点间隔分别为60–140/60–100/60–100ms；不能归一化为相同观测暴露。
+C有一次proc读取失败；R89有一次pending child和两次读取失败；候选有一次pending child
+和一次读取失败，分别增加1/3/2次原有一秒等待。所有记录保留，不称作噪声或从结果扣除。
+
+资源04独立结果为 `final-resources-04/independent-audit/verified.json`，SHA为
+`bc5d80ae67e03ab4a17a5691fbbbe401c6fe5e61af5ba51019d224020ba35bd2`；
+报告SHA为 `7124eaaf8663d54cbe2c25842fc7776e03d138892f1b3bd97d912d622cba8d8f`。
+`peak-details.json` 保留各角色全量最大值、首次/末次时点、邻近样本、组快照区间和HWM
+变化过程，SHA为 `d4814d1c3112b6d56bd72eefe181fb6dca6f989d6eb0314a46e0d77b20945376`。
+Oracle筛选中另有H10单对reported HWM多128KiB、采样fd最大多4的report-only观察，
+仍单独保留，不当作路由器结果，也不因本轮数值不同而删除。
+
+### 单帧消息生命周期诊断：准备中，尚无运行结论
+
+`resource04-message-lifetime-review-01/REVIEW.md` 的有限源码对账显示，精确C ubusd
+按声明长度分配完整传入DATA消息，转发同一指针；部分发送通常只增加队列节点和引用。
+已审Rust回复路径没有额外的完整payload发送队列。一个消息大小的瞬时分配是当前较强
+假设，但源码不能证明本次只有一帧存活，也不能证明C未采样到的真实峰与H10相同。
+该审查没有找到已成立的netifd独有多余拷贝，更未据此放行三项资源失败。
+
+只准备一次有界Oracle诊断：精确C再canonical4c…，保持原生命周期和caller，观察隔离
+C ubusd的分配/释放、帧长度、转发指针与部分发送。不修改ubusd，不拆逻辑回复，不插入
+逐回复sleep/yield或改socket buffer以让采样漏过峰值。直接offset probe定义和采集接口
+位于 `resource04-message-lifetime-review-01/PROBE_PREPARATION.md`；工具只读资格事实
+不等于分配/返回probe已获运行验证，**C/H10两窗实现对照尚未执行**。缺失配对、丢事件或
+无法完整匹配生命周期应记录未决，不能填成零重叠；插桩结果也不能替换资源04原窗口。
+源码审查SHA为 `52c32fc2aa5878bcb135dddf565cd9450fc284d49f4044ab5a44fa93e0ef50a1`。
+
+当前候选索引为原15项加H10共16项，完整历史处置和精确身份保存在
+`final-report-inputs-h10/candidate-index.json`；该私有输入草稿记录其生成时点，之后功能与
+资源门的最新状态以本节及上述不可混用的审计证据为准。H4c未完成筛选、H7b第三对成本、
+原资源03失败和本次资源04三项失败均未撤销。最终C/正式R89/canonical三方性能确认尚未
+启动；原绑定8208…的设计草案不是H10的冻结计划，没有H10全负载胜负结论。
+
+### 内存研究停止条件与最终性能比较准入
+
+用户随后明确追问：路由器内存充足时，是否值得继续追约100KiB差距。在说明保留原失败、
+完成一次有限诊断后转向CPU/吞吐/尾延迟确认的取舍后，用户要求继续。因此不再以消除这三项
+小额观测增量为调优目标；这是新的实际使用取舍，不是改写原32/64KiB预算或将FAIL改成PASS。
+最终报告仍须逐项列出这些差异，不能声称内存等效、动态因果已证明或完整组件已接受。
+
+唯一一次单帧诊断冻结计划为
+`message-lifetime-profile-01/prepared/plan.json`，SHA为
+`d52f5000375616a4be9e7d3eaf8cc0c7493aebbd67c4aadfa90ca85a0af28a70`。
+它在首窗宿主预检以57/825ticks、6.909% aggregate CPU超过5%门槛而停止。namespace、
+探针和捕获尚未启动；H10窗未运行；外层命令退出1。原计划和14个归档文件逐字节通过
+独立审计，结果为FAILED、单帧动态机制UNRESOLVED，不增加或替换窗口。源码中的
+完整帧分配/同指针转发/释放路径仍是源码证据，不能冒充实测分配轨迹。
+审计为 `message-lifetime-profile-01/independent-failure-audit/REVIEW.md`，SHA为
+`28d1e58241e2b49c5ea2af4694268f2026ef3768eba606b6881344704090e660`。
+
+最终性能比较前的只读健康快照记录MemTotal239024KiB、MemAvailable117656KiB；
+最大116KiB观测增量约占当时可用内存的0.099%。RSS/Anon重叠，三个差异不能相加；
+这也不是未来内存余量保证。九组件C身份、boot、19个配置文件、en0管理链路、DHCP、
+四接口、两AP、DNS/IPv4/IPv6和HTTP/HTTPS检查均通过，四份离线恢复artifact重新hash匹配。
+现有资源04证明该固定生命周期的队列归零、关闭和namespace回收；不声称任意压力或
+任意重复周期无增长。证据为 `final-confirmation-02/preflight/fresh-01/`。
+
+仅上述已知小额内存失败得到继续性能研究的明确处置；新错误、泄漏/积压迹象、持久fd/
+线程增加、恢复失败或生产状态变化仍须停止调查，不能自动套用内存余量理由豁免。
