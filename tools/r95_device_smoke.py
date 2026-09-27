@@ -45,8 +45,6 @@ def main():
     p.add_argument("--before-candidate", type=Path, help="optional failing-version control for the probe")
     p.add_argument("--implementation", choices=("c", "rs"), default="rs")
     p.add_argument("--iterations", type=int, default=10)
-    p.add_argument("--namespace-timeout", type=int, default=120,
-                   help="guard lifetime in seconds for the isolated namespace")
     p.add_argument("--pilot", action="store_true", help="exploration only; requires an explicit workload or matrix")
     p.add_argument("--capture-only", action="store_true",
                    help="untimed reference capture; requires --pilot and --workload-script")
@@ -54,8 +52,6 @@ def main():
     p.add_argument("--host", default="openwrt")
     p.add_argument("--interface", default="en0")
     a = p.parse_args()
-    if not 30 <= a.namespace_timeout <= 600:
-        p.error("--namespace-timeout must be between 30 and 600 seconds")
     if a.iterations <= 0 or (a.pilot and not (a.workload_script or a.matrix)):
         p.error("iterations must be positive; pilots require --workload-script or --matrix")
     if a.capture_only and not (a.pilot and a.workload_script):
@@ -102,7 +98,6 @@ def main():
               "recovery_gate_sha256": hashlib.sha256(a.recovery_gate.read_bytes()).hexdigest(),
               "correctness_smoke_only": not a.pilot, "pilot_only": a.pilot,
               "capture_only": a.capture_only,
-              "namespace_timeout": a.namespace_timeout,
               "implementation": a.implementation, "iterations": a.iterations, "installed": False,
               "matrix": a.matrix,
               "netifd_fixture_sha256": fixture_hashes,
@@ -156,23 +151,21 @@ def main():
             subprocess.run(["scp", "-q", "-O", str(a.unit_tests.resolve()), a.host + f":{base}/unit-tests"], check=True)
             assert remote(f"sha256sum {base}/unit-tests").decode().split()[0] == unit_sha
             remote(f"mkdir {base}/unit-tmp")
-            command = (f"TMPDIR={base}/unit-tmp {base}/guard {a.namespace_timeout} {base}/bundle/ns-exec "
+            command = (f"TMPDIR={base}/unit-tmp {base}/guard 120 {base}/bundle/ns-exec "
                        f"{base}/unit-tests {shlex.quote(a.unit_filter)} --test-threads=1 --nocapture")
             with (a.output / "unit-tests.log").open("wb") as log:
-                unit = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT,
-                                      timeout=a.namespace_timeout + 30)
+                unit = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)
             result["unit_tests"] = {"sha256": unit_sha, "filter": a.unit_filter, "exit": unit.returncode}
             unit.check_returncode()
         # Kill the namespace launcher itself on timeout: its init has PDEATHSIG
         # and owns every descendant, including detached child processes.
-        command = (f"{base}/guard {a.namespace_timeout} {base}/bundle/ns-exec /bin/sh {remote_script} "
+        command = (f"{base}/guard 120 {base}/bundle/ns-exec /bin/sh {remote_script} "
                    f"--namespace /rom {base}/bundle {a.component} {a.implementation} {base}/out {a.iterations} "
                    f"{base}/work {remote_script}")
         if a.matrix:
             command = "OWRT_" + a.component.upper() + "_MATRIX=1 " + command
         with (a.output / "run.log").open("wb") as log:
-            run = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT,
-                                  timeout=a.namespace_timeout + 30)
+            run = subprocess.run(ssh + [command], stdout=log, stderr=subprocess.STDOUT, timeout=150)
         result["exit"] = run.returncode
         archive_raw(ssh, base, a.output)
         run.check_returncode()
