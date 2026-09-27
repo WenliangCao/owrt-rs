@@ -246,6 +246,9 @@ pub struct Objects {
     pub network: u32,
     pub device: u32,
     pub interface: u32,
+    // The fixed interface object keeps this shared method type alive. A fresh
+    // Objects::register on reconnect obtains a new connection-scoped type.
+    interface_type: u32,
     pub wireless: u32,
     /// One per interface, in registration order.
     pub per_interface: Vec<(String, u32)>,
@@ -256,10 +259,14 @@ impl Objects {
     /// interfaces appear, which is also how the C does it — the object list is
     /// not fixed at startup.
     pub fn register(conn: &mut Connection) -> io::Result<Self> {
+        let network = conn.add_object("network", NETWORK_METHODS, 5000)?;
+        let device = conn.add_object("network.device", DEVICE_METHODS, 5000)?;
+        let (interface, interface_type) = conn.add_object_typed("network.interface", IFACE_METHODS, None, 5000)?;
         Ok(Self {
-            network: conn.add_object("network", NETWORK_METHODS, 5000)?,
-            device: conn.add_object("network.device", DEVICE_METHODS, 5000)?,
-            interface: conn.add_object("network.interface", IFACE_METHODS, 5000)?,
+            network,
+            device,
+            interface,
+            interface_type,
             wireless: conn.add_object("network.wireless", WIRELESS_METHODS, 5000)?,
             per_interface: Vec::new(),
         })
@@ -276,7 +283,7 @@ impl Objects {
 
     pub fn add_interface(&mut self, conn: &mut Connection, name: &str) -> io::Result<u32> {
         let path = format!("network.interface.{name}");
-        let id = conn.add_object(&path, IFACE_METHODS, 5000)?;
+        let (id, _) = conn.add_object_typed(&path, &[], Some(self.interface_type), 5000)?;
         self.per_interface.push((name.to_string(), id));
         Ok(id)
     }
@@ -409,6 +416,7 @@ mod tests {
             network: 1,
             device: 2,
             interface: 3,
+            interface_type: 7,
             wireless: 9,
             per_interface: vec![("lan".into(), 4), ("wan".into(), 5)],
         };

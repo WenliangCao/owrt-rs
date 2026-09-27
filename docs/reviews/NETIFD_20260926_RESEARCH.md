@@ -439,3 +439,58 @@ H7b随后单独合入该待验证组合：完整读取小型proc文件到EOF，o
 组合后的精确ELF重新证明功能与整体成本。`final-combined-01/`保留新源码快照、补丁及
 选择理由。166单测、clippy、release和ABI已通过，完整31+恢复门进行中。H7b第3对
 依赖/caller/child增长继续作为未闭合项保留，不因组合而撤销。
+
+## 正式构建资源门与 H10 类型复用（2026-09-27）
+
+H4c/H7b 组合的正式构建源为 `1f9cede1fff402581289e863c44e26d73dc9a9f7`，
+host CI `36280225094`、release-image `36280224625` 均成功。canonical netifd
+为 `8208c20823cec48c61c0b3df9eb7f0bcb752af2a42e026a266e3cfdcde5b83af`，
+不同于 Oracle `c2dadd…`；两者不能混用。canonical 精确 ELF 已通过完整31场景、
+overflow、restart、两种reconnect及raw66。候选66项错误码、DATA字节和顺序均与C一致；
+正式R89的63项既有差异单列，不计为性能收益。证据在
+`private/netifd-20260927/canonical-gates-01/`，独立审计核验2118个文件及448项工具源码。
+外层SSH在远端测试和post门结束后仍未返回，确认无测试残留后仅停止任务所属本地SSH；
+工具退出255，原自然退出未知，不能补记为0。
+
+实际相关无线配置/stub的AX3000T资源诊断 `final-resources-03/` 已完成C、正式R89及
+上述canonical三个窗口，采集、生产身份和清理门通过，**冻结资源预算失败**。
+128接口时canonical所依赖的精确C ubusd相对C侧：RSS多36KiB（预算32），
+Anon多108KiB（预算32）；全生命周期采样最大Anon多104KiB（预算64）。
+R89在128接口时依赖Anon也为244KiB，其采样最大为332KiB，不能据此豁免候选。
+这些是事先冻结的工程预算，不是等效性或物理精度保证。
+
+H10只改变netifd的接口注册方式。精确C netifd的`iface_object_type`由固定
+`network.interface`对象持有，所有具名接口共享它；原Rust和R89却逐接口发送完整
+SIGNATURE，精确C ubusd因此逐份分配type及11个method元数据。Rust依赖Anon在扩容开始
+约1秒已达到244KiB，早于约32秒的大dump，支持注册成本归因。精确ubusd收发直接按帧
+分配，不使用ustream，排除了“合包撑大ustream”解释。本次不改ubusd守护进程。
+
+共享客户端新增显式类型复用API；原API保持行为。netifd从固定接口对象取得类型，
+具名对象只发送OBJTYPE；每次reconnect重新注册并取得新类型。C ubusd仅在请求含
+SIGNATURE时回传OBJTYPE，复用回复只有OBJID；单测覆盖这一合同、缺失类型及错误码。
+类型过期可能静默创建无签名对象，因此成功返回不是充分证据，仍要求LOOKUP和恢复门。
+
+Oracle候选 `a81b61e677b56b6a2e2dc3a728e6789f4d7ae53c78cc2aafe5dd6f7c421058cc`
+通过48项共享客户端和166项netifd单测、ABI、release及clippy。初次源码归档漏收
+rpcd的profile_support，导致all-target clippy失败；补齐tracked文件后通过，原归档和
+失败日志保留，见`h10-01/source-completeness-failure.json`。不把macOS上误跑的
+Linux专用测试作为验收证据。
+
+`h10-resource-screen-01/`冻结计划SHA为
+`ea8c6d1642daba43a56a4537c0e685fd2696f32ddbd54b0fd6fd40b1aa1328ba`。
+C→旧Oracle组合→H10→H10→旧Oracle组合五窗完成，原5%宿主门、namespace及网络身份门
+通过。初始2、扩容128、缩回2的LOOKUP中，C和H10的接口类型数均为1；旧组合分别为
+3/129/3，各对象签名hash与C一致。两对128接口依赖Anon分别减少108/112KiB，超过
+冻结至少64KiB门；主体三个固定阶段Anon差均为0KiB，主体/依赖fd与线程增量均为0。
+这是有界机制/资源筛选，不是延迟、CPU胜负或最终接受；原始采样最大值仍全部保留。
+资源快照之后新增LOOKUP握手，可能影响后续allocator历史，不能冒充无插桩最终资源窗。
+
+Linux官方v6.12.94源码解释了reported VmHWM可能下降：`task_mem`汇总当前各CPU残差，
+持久hiwater更新却使用较粗global计数，读取status不会回写hiwater。源码支持这一可能
+机制，没有重建实机counter值。报告同时保留reported HWM与采样最大、近似及漏峰边界，
+不声称精确物理峰值；三个资源FAIL不变。精确源码URL/hash及退出FD回收路径位于
+`hwm-source-audit-01/`，报告SHA为
+`5e37100b1222bf5cd1d0ecfed1bdff85a1f1d47b988a10494663c6e0611a0299`。
+
+H10尚须删除重建/重连的类型与签名门、正式构建精确ELF完整合同门，以及同预算硬件资源
+复核。最终三方性能确认尚未启动；原绑定8208…的设计草案不是H10的冻结计划。

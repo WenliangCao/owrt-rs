@@ -112,10 +112,8 @@ fn main() {
     for count in [2, 32, 64, 128] {
         let interfaces: Vec<_> = (0..count).map(interface).collect();
         let times: Vec<_> = interfaces.iter().map(|i| (i.name.clone(), 60u64)).collect();
-        let objects = ubus::Objects {
-            per_interface: interfaces.iter().enumerate().map(|(n, i)| (i.name.clone(), 100 + n as u32)).collect(),
-            ..Default::default()
-        };
+        let mut objects = ubus::Objects::default();
+        objects.per_interface = interfaces.iter().enumerate().map(|(n, i)| (i.name.clone(), 100 + n as u32)).collect();
         let name = interfaces.last().unwrap().name.as_str();
         profile_support::measure(&format!("lookup_object_{count}"), n, &filter, || {
             black_box(objects.route(black_box(100 + count as u32 - 1)));

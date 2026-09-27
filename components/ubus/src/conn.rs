@@ -539,49 +539,77 @@ impl Connection {
         methods: &[(&str, &[(&str, MsgType)])],
         timeout_ms: i32,
     ) -> io::Result<u32> {
-        self.add_object_maybe_anonymous(Some(path), methods, timeout_ms)
+        self.add_object_maybe_anonymous(Some(path), methods, None, timeout_ms).map(|(id, _)| id)
+    }
+
+    /// Register an object and retain its method type for other objects on this
+    /// connection. With `type_id`, reuse that live type instead of `methods`.
+    /// The caller must discard the type id when reconnecting and keep an
+    /// object of that type registered for as long as it is reused.
+    pub fn add_object_typed(
+        &mut self,
+        path: &str,
+        methods: &[(&str, &[(&str, MsgType)])],
+        type_id: Option<u32>,
+        timeout_ms: i32,
+    ) -> io::Result<(u32, u32)> {
+        if type_id == Some(0) {
+            return Err(ubus_error(status::INVALID_ARGUMENT));
+        }
+        let (id, assigned_type) = self.add_object_maybe_anonymous(Some(path), methods, type_id, timeout_ms)?;
+        // ubusd returns OBJTYPE only when the request supplied SIGNATURE.
+        // A reused type remains the connection-scoped id supplied by us.
+        let assigned_type = assigned_type.or(type_id).filter(|id| *id != 0).ok_or_else(|| ubus_error(status::NO_DATA))?;
+        Ok((id, assigned_type))
     }
 
     /// Register an object with no path. ubusd assigns an id but the object is
     /// not listed and cannot be invoked by name -- which is what a subscriber
     /// is. `ubus_register_subscriber` does exactly this before subscribing.
     pub fn add_anonymous_object(&mut self, timeout_ms: i32) -> io::Result<u32> {
-        self.add_object_maybe_anonymous(None, &[], timeout_ms)
+        self.add_object_maybe_anonymous(None, &[], None, timeout_ms).map(|(id, _)| id)
     }
 
     fn add_object_maybe_anonymous(
         &mut self,
         path: Option<&str>,
         methods: &[(&str, &[(&str, MsgType)])],
+        type_id: Option<u32>,
         timeout_ms: i32,
-    ) -> io::Result<u32> {
+    ) -> io::Result<(u32, Option<u32>)> {
         let mut b = BlobBuf::new();
         if let Some(path) = path {
             b.put_string(attr::OBJPATH, path);
         }
-        let sig = b.nest_start(attr::SIGNATURE);
-        for (name, policy) in methods {
-            let table = b.msg_open_table(name);
-            for (arg, kind) in *policy {
-                b.msg_u32(arg, *kind as u32);
+        if let Some(id) = type_id {
+            b.put_u32(attr::OBJTYPE, id);
+        } else {
+            let sig = b.nest_start(attr::SIGNATURE);
+            for (name, policy) in methods {
+                let table = b.msg_open_table(name);
+                for (arg, kind) in *policy {
+                    b.msg_u32(arg, *kind as u32);
+                }
+                b.msg_close(table);
             }
-            b.msg_close(table);
+            b.nest_end(sig);
         }
-        b.nest_end(sig);
         let reply = self.request(ty::ADD_OBJECT, 0, &mut b, None, timeout_ms)?;
         if reply.status != status::OK {
             return Err(ubus_error(reply.status));
         }
+        let mut object_id = None;
+        let mut assigned_type = None;
         for payload in &reply.data {
             for a in blob::iter(payload) {
-                if a.id == attr::OBJID {
-                    if let Some(id) = a.as_u32() {
-                        return Ok(id);
-                    }
+                if a.id == attr::OBJID && object_id.is_none() {
+                    object_id = a.as_u32();
+                } else if a.id == attr::OBJTYPE && assigned_type.is_none() {
+                    assigned_type = a.as_u32();
                 }
             }
         }
-        Err(ubus_error(status::NO_DATA))
+        object_id.map(|id| (id, assigned_type)).ok_or_else(|| ubus_error(status::NO_DATA))
     }
 
     /// ubusd's built-in event object. Subscribing to it is how libubus
@@ -854,6 +882,70 @@ mod tests {
         let (a, b) = UnixStream::pair().unwrap();
         let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), rx: Vec::new(), rx_start: 0, rx_end: 0, rx_fds: VecDeque::new(), rx_deadline: None, spare_request: None, server_io_timeout: None };
         (conn(a), conn(b))
+    }
+
+    #[test]
+    fn typed_objects_reuse_server_type_without_repeating_signature() {
+        let (mut client, mut server) = pair();
+        let peer = std::thread::spawn(move || {
+            for (index, path) in ["network.interface", "network.interface.lan"].iter().enumerate() {
+                let request = server.recv().unwrap();
+                assert_eq!(request.header.ty, ty::ADD_OBJECT);
+                let attrs = request.attrs();
+                assert_eq!(attrs[attr::OBJPATH as usize].unwrap().as_str(), Some(*path));
+                if index == 0 {
+                    assert!(attrs[attr::SIGNATURE as usize].is_some());
+                    assert!(attrs[attr::OBJTYPE as usize].is_none());
+                } else {
+                    assert!(attrs[attr::SIGNATURE as usize].is_none());
+                    assert_eq!(attrs[attr::OBJTYPE as usize].unwrap().as_u32(), Some(71));
+                }
+                let mut data = BlobBuf::new();
+                data.put_u32(attr::OBJID, 31 + index as u32);
+                if index == 0 {
+                    data.put_u32(attr::OBJTYPE, 71);
+                }
+                server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+                let mut status = BlobBuf::new();
+                status.put_u32(attr::STATUS, 0);
+                server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+            }
+        });
+        let first = client.add_object_typed("network.interface", &[("status", &[])], None, 1000).unwrap();
+        assert_eq!(first, (31, 71));
+        assert_eq!(client.add_object_typed("network.interface.lan", &[], Some(first.1), 1000).unwrap(), (32, 71));
+        peer.join().unwrap();
+    }
+
+    #[test]
+    fn typed_registration_requires_type_and_preserves_legacy_and_error_replies() {
+        for (typed, code, expected) in [(false, status::OK, None), (true, status::OK, Some(status::NO_DATA)),
+                                      (true, status::PERMISSION_DENIED, Some(status::PERMISSION_DENIED))] {
+            let (mut client, mut server) = pair();
+            let peer = std::thread::spawn(move || {
+                let request = server.recv().unwrap();
+                if code == status::OK {
+                    let mut data = BlobBuf::new();
+                    data.put_u32(attr::OBJID, 31);
+                    server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+                }
+                let mut status = BlobBuf::new();
+                status.put_u32(attr::STATUS, code as u32);
+                server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+            });
+            let result = if typed { client.add_object_typed("probe", &[], None, 1000).map(|(id, _)| id) }
+                         else { client.add_object("probe", &[], 1000) };
+            if let Some(expected) = expected {
+                assert_eq!(error_status(&result.unwrap_err()), Some(expected));
+            } else {
+                assert_eq!(result.unwrap(), 31);
+            }
+            peer.join().unwrap();
+        }
+        let (mut client, _server) = pair();
+        assert_eq!(error_status(&client.add_object_typed("invalid", &[], Some(0), 1000).unwrap_err()),
+                   Some(status::INVALID_ARGUMENT));
+        assert_eq!(client.seq, 0, "invalid type sent no request");
     }
 
     #[test]
