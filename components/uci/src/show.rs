@@ -23,7 +23,13 @@ pub struct Show {
 /// `'…'` with each `'` written as `'\''`.
 pub fn print_value(out: &mut impl Write, v: &[u8]) {
     let _ = out.write_all(b"'");
-    let _ = crate::export::write_escaped(out, v);
+    for &c in v {
+        if c != b'\'' {
+            let _ = out.write_all(&[c]);
+        } else {
+            let _ = out.write_all(b"'\\''");
+        }
+    }
     let _ = out.write_all(b"'");
 }
 
