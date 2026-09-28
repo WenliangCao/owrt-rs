@@ -1129,10 +1129,10 @@ fn main_inner(a: &[String]) -> Result<()> {
             require(a.len() == 6, "rpc-fixture SOCKET N WARMUP PIDS")?;
             rpc_fixture(&a[2], a[3].parse()?, a[4].parse()?, &pid_list(&a[5])?)
         }
-        "exec" => {
+        "exec" | "exec-strict" => {
             require(
                 a.len() >= 8 && a[6] == "--",
-                "exec N WARMUP EXPECT_BYTES PIDS -- PROGRAM ARGS...",
+                "exec[-strict] N WARMUP EXPECT_BYTES PIDS -- PROGRAM ARGS...",
             )?;
             let expected = fs::read(&a[4])?;
             let warmup = a[3].parse()?;
@@ -1141,7 +1141,11 @@ fn main_inner(a: &[String]) -> Result<()> {
                 a[2].parse()?,
                 warmup,
                 &pid_list(&a[5])?,
-                |i| exec_journal::operation(&mut journal, i, &a[7], &a[8..], &expected),
+                |i| {
+                    exec_journal::operation(
+                        &mut journal, i, &a[7], &a[8..], &expected, a[1] == "exec-strict",
+                    )
+                },
                 || Ok(()),
             )
         }

@@ -68,6 +68,7 @@ pub fn operation(
     program: &str,
     args: &[String],
     expected: &[u8],
+    strict_stderr: bool,
 ) -> Result<u64> {
     let path = journal
         .as_ref()
@@ -86,6 +87,7 @@ pub fn operation(
         Err(e) => Some(format!("spawn: {e}")),
         Ok(o) if !o.status.success() => Some(format!("child exit: {}", o.status)),
         Ok(o) if o.stdout != expected => Some("child stdout failed byte validation".into()),
+        Ok(o) if strict_stderr && !o.stderr.is_empty() => Some("child stderr was not empty".into()),
         Ok(_) => None,
     };
     if let (Some(j), Some(path)) = (journal.as_mut(), path.as_ref()) {
@@ -160,9 +162,9 @@ mod tests {
             "test \"$R84_ITERATION\" -lt 3 || { echo bad >&2; exit 9; }; echo ok".into(),
         ];
         for i in 0..3 {
-            operation(&mut journal, i, "/bin/sh", &args, b"ok\n").unwrap();
+            operation(&mut journal, i, "/bin/sh", &args, b"ok\n", false).unwrap();
         }
-        assert!(operation(&mut journal, 3, "/bin/sh", &args, b"ok\n").is_err());
+        assert!(operation(&mut journal, 3, "/bin/sh", &args, b"ok\n", false).is_err());
         let entries: Vec<_> = fs::read_to_string(&path)
             .unwrap()
             .lines()
@@ -176,8 +178,8 @@ mod tests {
             fs::read(artifacts.join("iteration-000003/exec.stderr")).unwrap(),
             b"bad\n"
         );
-        assert!(operation(&mut journal, 4, "/bin/echo", &["wrong".into()], b"ok\n").is_err());
-        assert!(operation(&mut journal, 4, "/bin/echo", &["ok".into()], b"ok\n").is_err());
+        assert!(operation(&mut journal, 4, "/bin/echo", &["wrong".into()], b"ok\n", false).is_err());
+        assert!(operation(&mut journal, 4, "/bin/echo", &["ok".into()], b"ok\n", false).is_err());
         assert_eq!(
             fs::read(artifacts.join("iteration-000004/exec.stdout")).unwrap(),
             b"wrong\n"
@@ -185,4 +187,15 @@ mod tests {
         drop(journal);
         fs::remove_dir_all(root).unwrap();
     }
+
+    #[test]
+    fn strict_exec_rejects_stderr_without_changing_ordinary_exec() {
+        let noisy = ["-c".into(), "printf ok; printf warning >&2".into()];
+        let quiet = ["-c".into(), "printf ok".into()];
+        assert!(operation(&mut None, 0, "/bin/sh", &noisy, b"ok", false).is_ok());
+        let error = operation(&mut None, 0, "/bin/sh", &noisy, b"ok", true).unwrap_err();
+        assert_eq!(error.to_string(), "child stderr was not empty");
+        assert!(operation(&mut None, 0, "/bin/sh", &quiet, b"ok", true).is_ok());
+    }
+
 }
