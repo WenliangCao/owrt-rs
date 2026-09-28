@@ -4,14 +4,15 @@ use std::io;
 use std::os::unix::net::UnixStream;
 use std::time::Instant;
 
-pub(crate) fn stream(path: &str, deadline: Instant) -> io::Result<UnixStream> {
+pub(crate) fn stream(path: &str, deadline: Instant, cancelled: Option<fn() -> bool>) -> io::Result<UnixStream> {
     #[cfg(target_os = "linux")]
-    { linux::stream(path, deadline) }
+    { linux::stream(path, deadline, cancelled) }
     // The client targets Linux. Preserve the existing host-only transport
     // behavior; its HELLO read still uses the shared absolute deadline.
     #[cfg(not(target_os = "linux"))]
     {
         let _ = deadline;
+        crate::sys::check_cancelled(cancelled)?;
         UnixStream::connect(path)
     }
 }
@@ -33,14 +34,15 @@ mod linux {
         fn getsockopt(fd: i32, level: i32, option: i32, value: *mut i32, length: *mut u32) -> i32;
     }
 
-    fn remaining(deadline: Instant) -> io::Result<Duration> {
+    fn remaining(deadline: Instant, cancelled: Option<fn() -> bool>) -> io::Result<Duration> {
+        crate::sys::check_cancelled(cancelled)?;
         let remaining = deadline.saturating_duration_since(Instant::now());
         if remaining.is_zero() {
             Err(io::Error::new(io::ErrorKind::TimedOut, "ubus connect deadline elapsed"))
         } else { Ok(remaining) }
     }
 
-    pub(super) fn stream(path: &str, deadline: Instant) -> io::Result<UnixStream> {
+    pub(super) fn stream(path: &str, deadline: Instant, cancelled: Option<fn() -> bool>) -> io::Result<UnixStream> {
         if path.as_bytes().contains(&0) || path.len() >= 108 {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid unix socket path"));
         }
@@ -52,7 +54,7 @@ mod linux {
         // SAFETY: socket returned a new descriptor, owned only here.
         let socket = unsafe { OwnedFd::from_raw_fd(raw) };
         loop {
-            remaining(deadline)?;
+            remaining(deadline, cancelled)?;
             // SAFETY: address is live and the length includes its trailing NUL.
             let result = unsafe { connect(socket.as_raw_fd(), &address, (2 + path.len() + 1) as u32) };
             if result == 0 { break; }
@@ -62,12 +64,13 @@ mod linux {
                 Some(11) => {
                     // AF_UNIX returns EAGAIN for a full accept backlog. It has
                     // not started connecting: POLLOUT alone is not success.
-                    std::thread::sleep(remaining(deadline)?.min(Duration::from_millis(1)));
+                    std::thread::sleep(remaining(deadline, cancelled)?.min(Duration::from_millis(1)));
                 }
                 Some(115) | Some(114) => { // EINPROGRESS / EALREADY
                     let mut fd = PollFd { fd: socket.as_raw_fd(), events: POLLOUT, revents: 0 };
                     loop {
-                        let timeout = remaining(deadline)?.as_millis().clamp(1, i32::MAX as u128) as i32;
+                        let mut timeout = remaining(deadline, cancelled)?.as_millis().clamp(1, i32::MAX as u128) as i32;
+                        if cancelled.is_some() { timeout = timeout.min(10); }
                         // SAFETY: fd is one live pollfd. EINTR recomputes the deadline.
                         let ready = unsafe { poll(&mut fd, 1, timeout) };
                         if ready == 0 { continue; }

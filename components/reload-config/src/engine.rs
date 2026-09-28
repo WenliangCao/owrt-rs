@@ -1,4 +1,3 @@
-use crate::process::{self, WaitResult};
 use crate::{md5, trace::Trace, unix};
 use owrt_uci::show::{self, Show};
 use owrt_uci::Context;
@@ -9,7 +8,6 @@ use std::io::{self, BufWriter, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
@@ -147,9 +145,10 @@ pub fn run<W: Write>(
         .map_err(|error| Error::Io("write comparison trace", error))?;
 
     let mut failures = 0;
+    let mut bus = None;
     for package in &changed {
         let name = package.to_string_lossy();
-        match dispatch(settings, package, cancelled)? {
+        match dispatch(settings, package, cancelled, &mut bus)? {
             Delivery::Success(code) => trace
                 .delivery(&name, "success", Some(code))
                 .map_err(|error| Error::Io("write delivery trace", error))?,
@@ -158,13 +157,6 @@ pub fn run<W: Write>(
                 trace
                     .delivery(&name, "exit_nonzero", Some(code))
                     .map_err(|error| Error::Io("write delivery trace", error))?;
-            }
-            Delivery::Spawn(error) => {
-                failures += 1;
-                trace
-                    .delivery(&name, "spawn_error", None)
-                    .map_err(|trace_error| Error::Io("write delivery trace", trace_error))?;
-                let _ = error;
             }
             Delivery::Timeout => {
                 failures += 1;
@@ -254,7 +246,6 @@ fn normalize(ctx: &mut Context, name: &OsStr, output: &mut Vec<u8>) -> Result<Op
 enum Delivery {
     Success(i32),
     Exit(i32),
-    Spawn(io::Error),
     Timeout,
 }
 
@@ -262,48 +253,85 @@ fn dispatch(
     settings: &Settings,
     package: &OsStr,
     cancelled: &AtomicBool,
+    bus: &mut Option<owrt_ubus::Connection>,
 ) -> Result<Delivery, Error> {
+    use owrt_ubus::{conn::error_status, status, BlobBuf, Connection};
+    use std::time::Instant;
+
     if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
         return Err(Error::Cancelled);
     }
-    // The shell interpolates `$(basename $c)` raw, so a package name that is
-    // not UTF-8 reaches ubus as those exact bytes; the payload is built as
-    // bytes and handed to execve as an OsStr for that reason.
-    let mut payload = br#"{ "type": "config.change", "data": { "package": ""#.to_vec();
-    payload.extend_from_slice(&crate::json::escape_bytes(package.as_bytes()));
-    payload.extend_from_slice(br#"" } }"#);
-    let payload = OsStr::from_bytes(&payload);
-    let mut child = match Command::new("ubus")
-        .arg("call")
-        .arg("service")
-        .arg("event")
-        .arg(payload)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-    {
-        Ok(child) => child,
-        Err(error) => return Ok(Delivery::Spawn(error)),
-    };
-    match process::wait(&mut child, settings.timeout, cancelled)
-        .map_err(|error| Error::Io("wait for ubus", error))?
-    {
-        WaitResult::Exited(status) => {
-            let code = status.code().unwrap_or(128);
-            if status.success() {
-                Ok(Delivery::Success(code))
+    let deadline = Instant::now() + settings.timeout;
+    let reused = bus.is_some();
+    let mut stage = 0; // connect, lookup, invoke: CLI exit mapping differs.
+    let mut invoke_deadline = deadline;
+    let result = (|| -> io::Result<i32> {
+        if bus.is_none() {
+            *bus = Some(Connection::connect_interruptible(None, deadline, crate::is_cancelled)?);
+        }
+        stage = 1;
+        // Resolve on every event: service may have been re-registered since
+        // the previous invocation. A failed lookup on an old transport can
+        // reconnect safely because no config.change has been sent yet.
+        let id = match bus.as_mut().unwrap().lookup_id_until("service", deadline) {
+            Ok(id) => id,
+            Err(error) if reused && error_status(&error).is_none()
+                && !matches!(error.kind(), io::ErrorKind::TimedOut | io::ErrorKind::Interrupted) => {
+                *bus = None;
+                stage = 0;
+                *bus = Some(Connection::connect_interruptible(None, deadline, crate::is_cancelled)?);
+                stage = 1;
+                bus.as_mut().unwrap().lookup_id_until("service", deadline)?
+            }
+            Err(error) => return Err(error),
+        };
+        let mut fields = BlobBuf::new();
+        fields.msg_string("type", "config.change");
+        let table = fields.msg_open_table("data");
+        // This is the blobmsg string produced by the CLI JSON parser, including
+        // non-UTF-8 bytes; no lossy conversion or second JSON parser is needed.
+        fields.msg_string_bytes("package", package.as_bytes());
+        fields.msg_close(table);
+        stage = 2;
+        // ubus CLI defaults to a 30 s invoke timeout inside the outer budget.
+        invoke_deadline = deadline.min(Instant::now() + Duration::from_secs(30));
+        bus.as_mut().unwrap().invoke_status_until(id, "event", fields.payload(), invoke_deadline)
+    })();
+    if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
+        *bus = None;
+        return Err(Error::Cancelled);
+    }
+    let delivery = match result {
+        Ok(0) => return Ok(Delivery::Success(0)),
+        // CLI stderr is /dev/null (not a tty), so ubus_cli_error returns -N
+        // for an invoke failure, whereas lookup errors are returned as +N.
+        Ok(code) => Delivery::Exit((-code) & 255),
+        Err(error) if error.kind() == io::ErrorKind::TimedOut => {
+            if stage == 2 && invoke_deadline < deadline {
+                Delivery::Exit((-status::TIMEOUT) & 255)
             } else {
-                Ok(Delivery::Exit(code))
+                Delivery::Timeout
             }
         }
-        // C-08: "a send failure affects neither later entries nor the baseline
-        // rewrite". A timeout is a send failure, so the killed child is counted
-        // and the round goes on; returning early used to skip the remaining
-        // packages and leave the baseline unwritten, which then re-sent the
-        // events that had already been delivered.
-        WaitResult::TimedOut => Ok(Delivery::Timeout),
-        WaitResult::Cancelled => Err(Error::Cancelled),
-    }
+        Err(error) => {
+            let code = error_status(&error).unwrap_or_else(|| {
+                if error.kind() == io::ErrorKind::BrokenPipe {
+                    status::INVALID_ARGUMENT
+                } else {
+                    status::CONNECTION_FAILED
+                }
+            });
+            Delivery::Exit(match stage {
+                0 => 255,
+                1 => code & 255,
+                _ => (-code) & 255,
+            })
+        }
+    };
+    // A failed invoke may already have been delivered. Never retry it, and
+    // discard the transport so late replies cannot enter a subsequent event.
+    *bus = None;
+    Ok(delivery)
 }
 
 /// The shell's `md5sum -c $MD5FILE 2>/dev/null | grep FAILED`. busybox skips a
@@ -644,7 +672,7 @@ mod tests {
     fn cancelled_dispatch_does_not_start_a_command() {
         let settings = Settings { root: "/".into(), timeout: Duration::from_secs(1) };
         let cancelled = std::sync::atomic::AtomicBool::new(true);
-        assert!(matches!(super::dispatch(&settings, OsStr::new("alpha"), &cancelled), Err(Error::Cancelled)));
+        assert!(matches!(super::dispatch(&settings, OsStr::new("alpha"), &cancelled, &mut None), Err(Error::Cancelled)));
     }
 
     #[test]

@@ -93,6 +93,9 @@ pub struct Connection {
     spare_request: Option<Request>,
     /// Opt-in bound for daemon reads/replies outside a timed request.
     server_io_timeout: Option<Duration>,
+    /// Opt-in cooperative cancellation for short-lived clients. Daemons keep
+    /// their existing signal and maintenance policy by leaving this unset.
+    cancelled: Option<fn() -> bool>,
 }
 
 const INCOMING_BUFFER_SIZE: usize = 4096;
@@ -169,7 +172,20 @@ impl Connection {
     pub fn connect_timeout(path: Option<&str>, timeout: Duration) -> io::Result<Self> {
         let deadline = Instant::now().checked_add(timeout)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "connect timeout too large"))?;
-        let stream = crate::connect::stream(path.unwrap_or(UBUS_SOCKET), deadline)?;
+        Self::connect_until(path, deadline, None)
+    }
+
+    /// Connect and receive HELLO within an absolute deadline. The callback
+    /// must be cheap and nonblocking; it is checked during admission and I/O
+    /// waits (at most 10 ms between checks), and before subsequent requests.
+    /// Cancellation returns Interrupted. Drop this connection after that
+    /// error: a request may already have reached its recipient.
+    pub fn connect_interruptible(path: Option<&str>, deadline: Instant, cancelled: fn() -> bool) -> io::Result<Self> {
+        Self::connect_until(path, deadline, Some(cancelled))
+    }
+
+    fn connect_until(path: Option<&str>, deadline: Instant, cancelled: Option<fn() -> bool>) -> io::Result<Self> {
+        let stream = crate::connect::stream(path.unwrap_or(UBUS_SOCKET), deadline, cancelled)?;
         let mut conn = Self {
             stream,
             local_id: 0,
@@ -182,6 +198,7 @@ impl Connection {
             rx_deadline: None,
             spare_request: None,
             server_io_timeout: None,
+            cancelled,
         };
         let hello = conn.recv_until(Some(deadline))?;
         if hello.header.ty != ty::HELLO {
@@ -264,6 +281,7 @@ impl Connection {
         let bound = deadline.map_or_else(|| self.server_bound(), sys::Bound::At);
         let sock = self.stream.as_raw_fd();
         while self.rx_end - self.rx_start < need {
+            sys::check_cancelled(self.cancelled)?;
             if self.rx_start + need > INCOMING_BUFFER_SIZE {
                 self.rx.copy_within(self.rx_start..self.rx_end, 0);
                 for (mark, _) in &mut self.rx_fds {
@@ -290,7 +308,7 @@ impl Connection {
                         return Ok(false);
                     }
                     let wait = bound.deadline(&mut self.rx_deadline);
-                    if let Err(e) = sys::wait_until(sock, sys::POLLIN, wait) {
+                    if let Err(e) = sys::wait_until_cancelled(sock, sys::POLLIN, wait, self.cancelled) {
                         // The frame cannot complete: release its bytes and any
                         // descriptor that arrived with them.
                         self.rx_reset();
@@ -369,7 +387,7 @@ impl Connection {
             self.rx_start = s + Header::LEN + have;
             if have < len {
                 let rest = deadline.or_else(|| self.server_deadline());
-                sys::recv_exact_until(self.stream.as_raw_fd(), &mut blob[have..], false, rest)
+                sys::recv_exact_until_cancelled(self.stream.as_raw_fd(), &mut blob[have..], false, rest, self.cancelled)
                     .map_err(sys::partial_timeout)?;
             }
             (s, Body::Owned(blob))
@@ -456,13 +474,14 @@ impl Connection {
             return Err(ubus_error(status::INVALID_ARGUMENT));
         }
         let seq = self.next_seq();
-        sys::send_with_fd_until(self.as_raw_fd(), &Header { ty: cmd, seq, peer }.encode(), blob.as_bytes(), fd, deadline)?;
+        sys::send_parts_until_cancelled(self.as_raw_fd(), [&Header { ty: cmd, seq, peer }.encode(), blob.as_bytes()], fd, deadline.into(), self.cancelled)?;
         let mut reply = Reply {
             status: status::UNKNOWN_ERROR,
             data: Vec::new(),
             fd: None,
         };
         loop {
+            sys::check_cancelled(self.cancelled)?;
             let (header, fd, body) = self.take_frame(false, deadline)?
                 .expect("a waiting frame read yields a frame");
             if header.seq != seq || header.peer != peer
@@ -499,10 +518,37 @@ impl Connection {
 
     /// Resolve an object path to its id.
     pub fn lookup_id(&mut self, path: &str, timeout_ms: i32) -> io::Result<u32> {
+        let deadline = (timeout_ms > 0)
+            .then(|| Instant::now() + Duration::from_millis(timeout_ms as u64));
+        let result = self.lookup_id_deadline(path, deadline);
+        if result.as_ref().is_err_and(|e| e.kind() == io::ErrorKind::TimedOut) {
+            if result.as_ref().is_err_and(sys::is_partial_timeout) { let _ = self.shutdown(); }
+            return Err(ubus_error(status::TIMEOUT));
+        }
+        result
+    }
+
+    /// Resolve a path using the caller's absolute deadline. Unlike lookup_id,
+    /// a local deadline remains io::ErrorKind::TimedOut, distinct from a
+    /// remote UBUS_STATUS_TIMEOUT. An interrupted or expired call closes the
+    /// transport so an abandoned partial request cannot be reused.
+    pub fn lookup_id_until(&mut self, path: &str, deadline: Instant) -> io::Result<u32> {
+        let result = self.lookup_id_deadline(path, Some(deadline));
+        self.absolute_result(result)
+    }
+
+    fn absolute_result<T>(&self, result: io::Result<T>) -> io::Result<T> {
+        if result.as_ref().is_err_and(|error| matches!(error.kind(), io::ErrorKind::TimedOut | io::ErrorKind::Interrupted)) {
+            let _ = self.shutdown();
+        }
+        result
+    }
+
+    fn lookup_id_deadline(&mut self, path: &str, deadline: Option<Instant>) -> io::Result<u32> {
         let mut b = BlobBuf::new();
         b.put_string(attr::OBJPATH, path);
         let mut found = None;
-        let reply = self.request_with_data(ty::LOOKUP, 0, &mut b, None, timeout_ms, |blob| {
+        let reply = self.request_until(ty::LOOKUP, 0, &mut b, None, deadline, &mut |blob| {
             // Keep the first usable matching DATA frame, as the collected path did.
             if found.is_some() { return; }
             let mut id = None;
@@ -562,6 +608,18 @@ impl Connection {
         b.put_u32(attr::OBJID, objid).put_string(attr::METHOD, method);
         b.put(attr::DATA, args);
         self.request(ty::INVOKE, objid, &mut b, None, timeout_ms)
+    }
+
+    /// Invoke within the same absolute budget used for connect and lookup.
+    /// Waits for the final matching STATUS; DATA is consumed without retaining
+    /// it. Local timeout/cancellation closes the transport and is never retried.
+    pub fn invoke_status_until(&mut self, objid: u32, method: &str, args: &[u8], deadline: Instant) -> io::Result<i32> {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, objid).put_string(attr::METHOD, method);
+        b.put(attr::DATA, args);
+        let result = self.request_until(ty::INVOKE, objid, &mut b, None, Some(deadline), &mut |_| {})
+            .map(|reply| reply.status);
+        self.absolute_result(result)
     }
 
     /// Invoke `method` on object `objid`; `args` are packed blobmsg fields.
@@ -945,7 +1003,7 @@ mod tests {
 
     fn pair() -> (Connection, Connection) {
         let (a, b) = UnixStream::pair().unwrap();
-        let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), rx: Vec::new(), rx_start: 0, rx_end: 0, rx_fds: VecDeque::new(), rx_deadline: None, spare_request: None, server_io_timeout: None };
+        let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), rx: Vec::new(), rx_start: 0, rx_end: 0, rx_fds: VecDeque::new(), rx_deadline: None, spare_request: None, server_io_timeout: None, cancelled: None };
         (conn(a), conn(b))
     }
 
