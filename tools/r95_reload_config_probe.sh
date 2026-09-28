@@ -14,7 +14,8 @@ sha256sum "$bin" > "$out/binary-sha256.txt"
 # implements service.event and cannot trigger production service reloads.
 receiver=/tmp/bin/event-benchmark
 [ -x "$receiver" ] || exit 125
-sha256sum /sbin/ubusd /bin/ubus "$receiver" > "$out/protocol-identities.txt"
+sha256sum /sbin/ubusd /bin/ubus /sbin/uci /bin/busybox "$receiver" > "$out/protocol-identities.txt"
+[ "$(sha256sum /sbin/ubusd | cut -d' ' -f1)" = cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88 ]
 mkdir -p /var/run/ubus /tmp/.uci
 /sbin/ubusd -s /var/run/ubus/ubus.sock > "$out/ubusd.log" 2>&1 & bus=$!
 receiver_pid=

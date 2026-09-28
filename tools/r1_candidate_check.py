@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 import r1_reference_oracle as oracle
-from reload_protocol_fixture import ProtocolFixture, raw_events
+from reload_protocol_fixture import C_UBUSD_SHA256, ProtocolFixture, raw_events
 
 
 SIZE_BUDGET_BYTES = 512 * 1024
@@ -855,6 +855,7 @@ def main() -> None:
             "candidate_normalizer_and_digest": "candidate implementation",
             "delivery_adapter": ("private exact C ubusd + trigger-free protocol receiver" if args.receiver else "test-only /bin/ubus shim in disposable rootfs"),
             "receiver_sha256": sha256_file(args.receiver) if args.receiver else None,
+            "receiver_bus_sha256": C_UBUSD_SHA256 if args.receiver else None,
         },
         "source_artifacts": observed,
         "candidate": candidate_info,

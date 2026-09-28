@@ -58,6 +58,7 @@ def main():
     p.add_argument("--wireless-config", type=Path, required=True)
     p.add_argument("--helpers", type=Path, required=True)
     p.add_argument("--target-dir", type=Path, required=True)
+    p.add_argument("--reload-receiver", type=Path, help="benchmark containing reload-fault-service for protocol-level reload-config gates")
     p.add_argument("--groups", nargs="+", choices=("unit", "functional", "recovery", "compat"),
                    default=("unit", "functional", "recovery", "compat"))
     p.add_argument("--gates", nargs="+", help="explicit rerun selection; recorded as a partial scope")
@@ -134,7 +135,8 @@ def main():
     add("functional", "uci-r24", ["sudo", "-n", "python3", "tools/r24_uci_fuzz.py", rootfs, bins / "uci-rs", "--cases", "1000", "--seed", "92", "--keep", out / "uci-r24"])
     add("functional", "uci-r83", ["env", "R92_UCI_RENAME_REJECT=1", "sh", "tools/r83_uci_findings.sh", rootfs, bins / "uci-rs", out / "uci-r83"])
     add("functional", "reload-config-r1", ["sudo", "-n", "python3", "tools/r1_candidate_check.py", "--rootfs", rootfs, "--candidate", bins / "reload_config_rs",
-        "--cases", "tests/reference/config-change-dispatch/cases", "--output", out / "reload-config-r1", "--image-id", "ax3000t-stock-openwrt-25.12.5", "--recorded-at", now])
+        "--cases", "tests/reference/config-change-dispatch/cases", "--output", out / "reload-config-r1", "--image-id", "ax3000t-stock-openwrt-25.12.5", "--recorded-at", now,
+        *(["--receiver", a.reload_receiver.resolve()] if a.reload_receiver else [])])
     add("recovery", "r92-recovery", ["sudo", "-n", "python3", "tools/r92_recovery_probe.py", rootfs, bins, out / "r92-recovery", "--output-helper", examples / "output_lifecycle"])
     add("compat", "r92-compat", ["sudo", "-n", "python3", "tools/r92_compat_probe.py", rootfs, bins, out / "r92-compat"])
     add("compat", "r92-fw4", ["sudo", "-n", "python3", "tools/r92_fw4_probe.py", rootfs, fw4, out / "r92-fw4"])
