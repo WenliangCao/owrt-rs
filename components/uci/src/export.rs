@@ -22,7 +22,7 @@ pub fn escape(s: &[u8]) -> Vec<u8> {
 }
 
 /// uci_escape written straight to the stream, no intermediate copy.
-fn write_escaped<W: Write>(w: &mut W, s: &[u8]) -> io::Result<()> {
+pub(crate) fn write_escaped<W: Write>(w: &mut W, s: &[u8]) -> io::Result<()> {
     let mut rest = s;
     while let Some(i) = rest.iter().position(|&c| c == b'\'') {
         w.write_all(&rest[..i])?;

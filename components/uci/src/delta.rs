@@ -25,13 +25,7 @@ pub fn delta_save<W: Write>(w: &mut W, name: &str, h: &Delta) -> io::Result<()> 
     } else {
         let v = h.value.as_deref().unwrap_or(b"");
         write!(w, "='")?;
-        for &c in v {
-            if c != b'\'' {
-                w.write_all(&[c])?;
-            } else {
-                w.write_all(b"'\\''")?;
-            }
-        }
+        crate::export::write_escaped(w, v)?;
         w.write_all(b"'\n")
     }
 }
