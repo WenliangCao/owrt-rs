@@ -193,22 +193,24 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<OsString>, Error> {
             Err(error) if error.kind() == io::ErrorKind::NotFound => continue,
             Err(error) => return Err(Error::Io("read config directory", error)),
         };
-        let mut source_names = Vec::new();
         for entry in entries {
             let entry = entry.map_err(|error| Error::Io("read config entry", error))?;
+            let name = entry.file_name();
             // The shell original iterates `/var/run/uci/* /etc/config/*`; a
             // shell glob never matches a leading dot, so editor swap files and
             // other dotfiles are outside the scanned set.
-            if entry.file_name().as_bytes().first() == Some(&b'.') {
+            if name.as_bytes().first() == Some(&b'.') || seen.contains(&name) {
                 continue;
             }
-            if entry.path().is_file() {
-                source_names.push(entry.file_name());
-            }
-        }
-        source_names.sort_by(|left, right| left.as_bytes().cmp(right.as_bytes()));
-        for name in source_names {
-            if seen.insert(name.clone()) {
+            // Directory entry types avoid a stat for ordinary files. The
+            // shell's -f follows symlinks, so resolve those as before; a type
+            // lookup error also retains the previous metadata fallback.
+            let is_file = match entry.file_type() {
+                Ok(kind) if !kind.is_symlink() => kind.is_file(),
+                _ => entry.path().is_file(),
+            };
+            if is_file {
+                seen.insert(name.clone());
                 // No size check: the shell hands any regular file to `uci show`
                 // whatever its size, and a 1.4 MiB /etc/config file is dispatched
                 // like any other. Refusing one used to abort the whole round.
@@ -536,6 +538,21 @@ mod tests {
             scan_config_names(&settings).unwrap(),
             ["dhcp.bak", "network"]
         );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn scanner_follows_only_symlinks_to_regular_files() {
+        let root = std::env::temp_dir().join(format!("reload-config-scan-links-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        let directory = root.join("etc/config");
+        fs::create_dir_all(&directory).unwrap();
+        fs::write(root.join("regular"), b"").unwrap();
+        std::os::unix::fs::symlink(root.join("regular"), directory.join("file-link")).unwrap();
+        std::os::unix::fs::symlink(root.join("missing"), directory.join("broken-link")).unwrap();
+        std::os::unix::fs::symlink(&directory, directory.join("dir-link")).unwrap();
+        let settings = Settings { root: root.clone(), timeout: Duration::from_secs(1) };
+        assert_eq!(scan_config_names(&settings).unwrap(), ["file-link"]);
         fs::remove_dir_all(root).unwrap();
     }
 
