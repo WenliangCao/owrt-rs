@@ -1,0 +1,425 @@
+{
+  "schema": 1,
+  "runtime_source_commit": "feb7a4ee2265a8e7207094764f1c8b41d69fe3bb",
+  "canonical": {
+    "conclusion": "success",
+    "headSha": "feb7a4ee2265a8e7207094764f1c8b41d69fe3bb",
+    "status": "completed",
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36485630189"
+  },
+  "manifest_sha256": "7ab78a5b188c3b1e620751d0b38716c7a9e8511818de4544ae92a9f167f56e2e",
+  "image_sha256": "1e098f8ac395a22c01899fdfc17b9e72e6493612b8fd9b3632ccf99e8c367288",
+  "identities": {
+    "source_commit": "feb7a4ee2265a8e7207094764f1c8b41d69fe3bb",
+    "binaries": {
+      "uci-rs": {
+        "sha256": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+        "bytes": 486155,
+        "static_aarch64": true
+      },
+      "fw4-rs": {
+        "sha256": "b591092ca432813452917a84d7c858fa8604a9171bfbb8523b9e3681b5c6d8f1",
+        "bytes": 1034963,
+        "static_aarch64": true
+      },
+      "reload_config_rs": {
+        "sha256": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9",
+        "bytes": 482027,
+        "static_aarch64": true
+      },
+      "logd-rs": {
+        "sha256": "c45ad7d8e69e66b81f833330597e4ffb8cdce0c0b42ba416b0a820bd3a8a2f75",
+        "bytes": 432827,
+        "static_aarch64": true
+      },
+      "httpd-rs": {
+        "sha256": "1ed3ed327f967dd920a33bea79322d5ceb1b60de48eb51c9ec4aef8bb86e42d2",
+        "bytes": 1608447,
+        "static_aarch64": true
+      },
+      "rpcd-rs": {
+        "sha256": "270cb15153173843efcc55fdc0a8e6735103ca38b27c6ee4c75417380666ac71",
+        "bytes": 1256211,
+        "static_aarch64": true
+      },
+      "procd-rs": {
+        "sha256": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+        "bytes": 876536,
+        "static_aarch64": true
+      },
+      "ubusd-rs": {
+        "sha256": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+        "bytes": 516072,
+        "static_aarch64": true
+      },
+      "netifd-rs": {
+        "sha256": "b37b80e19d26e5ef5d47a43f02ce4a5727d9957b992d299121d81e359dcf95b9",
+        "bytes": 1069120,
+        "static_aarch64": true
+      }
+    },
+    "manifest_sha256": "7ab78a5b188c3b1e620751d0b38716c7a9e8511818de4544ae92a9f167f56e2e",
+    "core_manifest_sha256": "9602b421c695f14f06470231211d4b95847eef6c91f75027f45c5173e604f344"
+  },
+  "native": {
+    "raw_results_sha256": "059f515047d3fbe44a24fb289e0e98882e3220ff02ce39db71b2b9ba8d021875",
+    "sources_unchanged": true,
+    "passed": true,
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: aarch64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+    "results": [
+      {
+        "name": "uci-unit",
+        "exit": 0,
+        "elapsed_seconds": 2.811051607131958,
+        "log_sha256": "2f89ff9325cde478b3e10e77bfdaa0823a0d4e150f24d58d205bb607543c906f",
+        "top_level_passed": 49,
+        "top_level_failed": 0,
+        "nested_filtered_harnesses": []
+      },
+      {
+        "name": "uci-clippy",
+        "exit": 0,
+        "elapsed_seconds": 0.9336814880371094,
+        "log_sha256": "09d640969a94c39a768d9c1d83789b66e178474e0f1c66e331fecfe1cfe7b715"
+      },
+      {
+        "name": "rpcd-unit",
+        "exit": 0,
+        "elapsed_seconds": 7.96103048324585,
+        "log_sha256": "ff84c88282503231de035563109bc77df800013d8ff7e860b622af7491d5065b",
+        "top_level_passed": 64,
+        "top_level_failed": 0,
+        "nested_filtered_harnesses": [
+          {
+            "passed": 1,
+            "failed": 0,
+            "ignored": 0,
+            "measured": 0,
+            "filtered_out": 63
+          }
+        ],
+        "note": "RPCD wake pipe test re-executes itself with --exact in a child harness: 64 top-level tests plus one repeated isolated child execution, not 65 distinct tests."
+      },
+      {
+        "name": "rpcd-clippy",
+        "exit": 0,
+        "elapsed_seconds": 2.688103675842285,
+        "log_sha256": "d5e622b6baf21498dbea2ee235d0571f09e3faae4d749f2cffe824527062c0ef"
+      },
+      {
+        "name": "netifd-unit",
+        "exit": 0,
+        "elapsed_seconds": 4.590750455856323,
+        "log_sha256": "fb070df114d27e0e7d2ca2bd9c9b25d539bd62cdf5944a70dbdaf34b7d34dd0b",
+        "top_level_passed": 166,
+        "top_level_failed": 0,
+        "nested_filtered_harnesses": []
+      },
+      {
+        "name": "netifd-clippy",
+        "exit": 0,
+        "elapsed_seconds": 2.3673744201660156,
+        "log_sha256": "4ab816e291a375acb67f0c2a0bc61d3589bb344dc054e12af4a83837059b394d"
+      },
+      {
+        "name": "fw4-unit",
+        "exit": 0,
+        "elapsed_seconds": 3.2519757747650146,
+        "log_sha256": "4c651f469e7f7788b3ada1a2283fd2bdb9a9d5baa315c0ca71cbe30e1c11ae91",
+        "top_level_passed": 17,
+        "top_level_failed": 0,
+        "nested_filtered_harnesses": []
+      },
+      {
+        "name": "fw4-clippy",
+        "exit": 0,
+        "elapsed_seconds": 1.5526456832885742,
+        "log_sha256": "19829a4921399d50229c355e44be330e42a5cac2dc7361587e0cad3b8b1b0b67"
+      },
+      {
+        "name": "reload-config-unit",
+        "exit": 0,
+        "elapsed_seconds": 1.258366584777832,
+        "log_sha256": "10d32e05d2fbf06d8a9656c3c7fbc3f1e26438be396ba1e77bb4e1af87f99a47",
+        "top_level_passed": 14,
+        "top_level_failed": 0,
+        "nested_filtered_harnesses": []
+      },
+      {
+        "name": "reload-config-clippy",
+        "exit": 0,
+        "elapsed_seconds": 0.357541561126709,
+        "log_sha256": "256bafee073b7ae769ce326c513c81c27a9c48676d77ae3b98dd115ca908cfd0"
+      }
+    ],
+    "total_top_level_tests": 310,
+    "total_extra_child_executions": 1
+  },
+  "runtime": {
+    "kind": "canonical-ELF Oracle functional validation, not device/performance",
+    "raw_results_sha256": "87117df2e6a1ac22507f130c2afd35b85d2c0a16982bc6604c56ea854fc6bce8",
+    "passed": true,
+    "input_binary_sha256": {
+      "uci-rs": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+      "rpcd-rs": "270cb15153173843efcc55fdc0a8e6735103ca38b27c6ee4c75417380666ac71",
+      "fw4-rs": "b591092ca432813452917a84d7c858fa8604a9171bfbb8523b9e3681b5c6d8f1",
+      "reload_config_rs": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9",
+      "netifd-rs": "b37b80e19d26e5ef5d47a43f02ce4a5727d9957b992d299121d81e359dcf95b9"
+    },
+    "identity_checks": {
+      "image_unchanged": true,
+      "sources_unchanged": true,
+      "input_binaries_unchanged": true,
+      "runtime_binaries_unchanged": true,
+      "namespace_launcher_unchanged": true
+    },
+    "results": [
+      {
+        "name": "uci-r16",
+        "exit": 0,
+        "elapsed_seconds": 1.0661895899684168,
+        "log_sha256": "3d1f91490d03dca0395162936b7cdfd8fcbab38313d73f89bb01e3c6d296a793",
+        "coverage": "exact C CLI differential, exit/stdout/stderr and filesystem bytes/modes",
+        "observed": {
+          "steps": 193,
+          "identical": 193,
+          "differences": 0
+        }
+      },
+      {
+        "name": "uci-r24",
+        "exit": 0,
+        "elapsed_seconds": 16.649743834044784,
+        "log_sha256": "14fa3b859089d4da4ee1bf152ddefc7604d46fab242fe5f097a49cd0f3a968d2",
+        "coverage": "1000 fixed-seed92 UCI fuzz cases",
+        "observed": {
+          "cases": 1000,
+          "seed": 92,
+          "differences": 0
+        }
+      },
+      {
+        "name": "uci-r83",
+        "exit": 0,
+        "elapsed_seconds": 1.0779238870018162,
+        "log_sha256": "844798527241e517023db179f135535bb00a7c0edce926421b29f6294677d066",
+        "coverage": "UCI findings including approved non-UTF8 rename disposition",
+        "observed": {
+          "output_files": 498,
+          "scratch_files": 56,
+          "files_compared": 554,
+          "declared_difference": "R92 non-UTF8 rename rejects without model/file mutation; C retains raw delta"
+        }
+      },
+      {
+        "name": "rpcd-r17",
+        "exit": 0,
+        "elapsed_seconds": 34.63146667601541,
+        "log_sha256": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+        "coverage": "session/ACL/UCI apply-confirm-rollback; only reload_config marker in isolated fixture",
+        "observed": {
+          "steps": 283,
+          "identical": 283,
+          "differences": 0,
+          "fixture_override": "only sbin/reload_config, private marker"
+        }
+      },
+      {
+        "name": "fw4-upstream",
+        "exit": 0,
+        "elapsed_seconds": 0.16459203697741032,
+        "log_sha256": "c3f4ba1228e06d3b501df007c6a20f0981dc9e4253bc60b0f771f9d980e07153",
+        "coverage": "all upstream mock rule output cases",
+        "observed": {
+          "testcases": 31,
+          "files": 31,
+          "failures": 0
+        }
+      },
+      {
+        "name": "fw4-defaults",
+        "exit": 0,
+        "elapsed_seconds": 0.4650717549957335,
+        "log_sha256": "de9dd46bf7fd8cf25c7c078be33e857527aa86decd11ab7114ff20e468b06ab0",
+        "coverage": "deterministic default rule output",
+        "observed": {
+          "cases": 12,
+          "failures": 0,
+          "boundary": "invalid inputs have documented C 15 stderr lines vs Rust 1; harness checks expected contract, not full stderr equality"
+        }
+      },
+      {
+        "name": "reload-config-r1",
+        "exit": 0,
+        "elapsed_seconds": 5.423701725027058,
+        "log_sha256": "402fff80ebd0b2b5c0c02f1f3f8acfe9d10592e34c2874c541428c4fd642bf33",
+        "coverage": "pristine exact reference; normalization, failure atomicity, timeout/cancel",
+        "observed": {
+          "reference_cases": 11,
+          "fault_cases": 9,
+          "gate_passed": true,
+          "reference": "pristine exact reload_config"
+        }
+      },
+      {
+        "name": "netifd-r83-config",
+        "exit": 0,
+        "elapsed_seconds": 38.93112777499482,
+        "log_sha256": "980a52808e94898f49dd840c2ea73f0e466e5a66c96b329e4b8cfb34354f5a05",
+        "coverage": "actual config reload, routes/lists/rules and kernel/hotplug output",
+        "observed": {
+          "identical_stages": [
+            "baseline",
+            "dns",
+            "metric",
+            "route",
+            "rule",
+            "hotplug",
+            "rc"
+          ]
+        }
+      },
+      {
+        "name": "netifd-restart",
+        "exit": 0,
+        "elapsed_seconds": 2.869347624015063,
+        "log_sha256": "f3db8acfdc0ec2dedd76e7a8e76cc49286d40ba854615b4a7ff75e92d5c49fe1",
+        "coverage": "C/candidate delayed reexec, same PID/argv, fresh objects and serving",
+        "observed": {
+          "original_passed": true,
+          "candidate_passed": true
+        }
+      }
+    ],
+    "total_gates": 9,
+    "passed_gates": 9
+  },
+  "uci_device_smoke": {
+    "component": "uci",
+    "candidate_sha256": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+    "driver_sha256": "2ff3a6368c4c3ecf35c525007c6bb7df5a93c71e51da814d31907fa72973badb",
+    "workload_sha256": "fd38e118d3b4174514fdedfe0b210fe351fdb5ade2f3821cedf044ad2386f38b",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "9b2caf5f8f49f2650a8bf5513a113b04a32598910d35df19eae0def35e4df0b7",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "capture_only": false,
+    "implementation": "rs",
+    "iterations": 200,
+    "installed": false,
+    "matrix": false,
+    "netifd_fixture_sha256": {},
+    "production_mode": "stock",
+    "passed": true,
+    "cleanup_verified": true,
+    "benchmark_sha256": "4102c09176557fb04e5b2e254058b126d9f80435ffef331a671a37933064695d",
+    "exit": 0,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true
+  },
+  "recovery_gate_sha256": "9b2caf5f8f49f2650a8bf5513a113b04a32598910d35df19eae0def35e4df0b7",
+  "upstream": {
+    "revision": "66127cd76c5d0bd46d5a90302cc6110f53a4e2f8",
+    "reference_manifest_sha256": "678ef20eb67cd90878d80f8828c15f32c37060e5803de0507c50ba27220cecc0",
+    "reviewed_source_sha256": {
+      "cli.c": "5bb12361838b588bb263ade8537f5ae1a5e62d54b0a8f0640489db8cc29831d8",
+      "delta.c": "b9d38644110d956005d9ca1bc11b9726c370eb7e75abe061819ec29ca3775086",
+      "file.c": "15a038fe217cd8579ceade1f6d174a5a86706a5878f743bec771a5f5b5ba510f",
+      "list.c": "e2eb3dc06cdf40e3c991869cdd843a999cd32f0ce68e8b195ea697655ea1896c",
+      "libuci.c": "bbc34ea5f391abc3b27416dc3c96b0f71f852c44210faf1cde0990218f68b13a",
+      "parse.c": "1747563f1a50096fea154fa8489b810b7fa7fd0eeee74cbc2b215047aa1c7c66",
+      "util.c": "8bf96f02e0f1716a98e04cd4cad62a1f97544f8571c15a0aaeb940c8fc85c5a7",
+      "uci.h": "8501ac75239f86bcc7d43223ced8d4f091f8be5bb5bb564b5ced2a5f0761fe0b",
+      "uci_internal.h": "8050f5504ae32baee4026717559337923c23061ae715ae9fcfbe601468a57f9b"
+    },
+    "matching_oracle_checkout": true
+  },
+  "shared_device_budget": {
+    "component": "reload-config",
+    "candidate_sha256": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9",
+    "driver_sha256": "2ff3a6368c4c3ecf35c525007c6bb7df5a93c71e51da814d31907fa72973badb",
+    "workload_sha256": "b308157cc0fdc9208f57b7c8fa649b5591bc73224f213056ad63b194c06474cb",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "9b2caf5f8f49f2650a8bf5513a113b04a32598910d35df19eae0def35e4df0b7",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "capture_only": false,
+    "implementation": "rs",
+    "iterations": 10,
+    "installed": false,
+    "matrix": false,
+    "netifd_fixture_sha256": {},
+    "production_mode": "stock",
+    "passed": true,
+    "cleanup_verified": true,
+    "exit": 0,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true,
+    "observed": [
+      "config_timeout: continued beta, advanced baseline, next invocation recovered",
+      "config_cancel: exit 75, baseline and deliveries unchanged",
+      "delta_timeout: continued beta, advanced baseline, next invocation recovered",
+      "delta_cancel: exit 75, baseline and deliveries unchanged",
+      "override_timeout: continued beta, advanced baseline, next invocation recovered",
+      "override_cancel: exit 75, baseline and deliveries unchanged"
+    ]
+  },
+  "device_matrix": {
+    "rounds_per_side": 4,
+    "count_per_lane": 200,
+    "warmup": 5,
+    "measurement_windows": 16,
+    "lane_windows": 128,
+    "resource_samples": 384,
+    "errors": 0,
+    "complete": true,
+    "subjects": {
+      "stock": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+      "r89": "1758125b86c80a1a09c2db55df83952f5cbef6542527f1de1f37a088cba115cf",
+      "candidate": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+      "r94": "c3b51560a3b595281a3b919e8881fecf28806fd46a59292c9cc64610be261857"
+    },
+    "settings": {
+      "component": "uci",
+      "iterations": 4000,
+      "matrix": true,
+      "held_connections": null,
+      "rpc_client_diagnostic": false,
+      "baseline_label": "r89",
+      "baseline_bundle": "/root/r89-before-r90",
+      "cpu_affinity": null,
+      "management_access": "wifi",
+      "workload_transport": "namespace loopback",
+      "schedule": "random-blocks",
+      "seed": 20260928,
+      "extra_baselines": {
+        "r94": {
+          "subject_sha256": "c3b51560a3b595281a3b919e8881fecf28806fd46a59292c9cc64610be261857",
+          "evidence_sha256": "d99d393bdace64c36b08543751006271b7e0fbe6d72a4be1d15939a869795ff4",
+          "provenance": {
+            "subject_sha256": "c3b51560a3b595281a3b919e8881fecf28806fd46a59292c9cc64610be261857",
+            "source_commit": "14c02a6",
+            "formal": false,
+            "reference": "docs/reviews/R94_UCI_EXEC_PATH.md",
+            "limitations": [
+              "original SDK diagnostic ELF",
+              "predates R95 complete-read and I/O deadline fixes",
+              "performance only; every output must validate"
+            ]
+          }
+        }
+      },
+      "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+      "namespace_timeout_seconds": 600,
+      "bench_sha256": "4102c09176557fb04e5b2e254058b126d9f80435ffef331a671a37933064695d",
+      "exec_resource_probe_sha256": "f1a6dbc8b7d682d3609ff81788b955e97cd697f8db6749eb068e750552a55bc8"
+    },
+    "config_unchanged": true,
+    "same_boot": true,
+    "elapsed_seconds": 214.4612865447998
+  }
+}
