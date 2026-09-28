@@ -59,6 +59,21 @@ if [ -n "${OWRT_RPCD_WORKLOADS:-}" ]; then
         rpcd_seen="$rpcd_seen$lane "
     done
 fi
+case "${OWRT_PROCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_PROCD_WARMUP:-20}" in ''|*[!0-9]*) exit 2 ;; esac
+[ "${OWRT_PROCD_WARMUP:-20}" -le 100000 ] || exit 2
+if [ -n "${OWRT_PROCD_WORKLOADS:-}" ]; then
+    [ "${OWRT_PROCD_MATRIX:-0}" = 1 ] || exit 2
+    procd_seen=' '
+    for lane in $OWRT_PROCD_WORKLOADS; do
+        case "$lane" in
+            system_info|system_info_c4|service_list_32|service_list_32_c4|service_list_128|service_list_128_c4|service_list_named_128|service_list_named_128_c4|service_list_instance_fields) ;;
+            *) echo "invalid procd workload: $lane" >&2; exit 2 ;;
+        esac
+        case "$procd_seen" in *" $lane "*) exit 2 ;; esac
+        procd_seen="$procd_seen$lane "
+    done
+fi
 case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_NORMALIZED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_EXTENDED:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -288,7 +303,12 @@ EOF
         [ "$component" = netifd ] && [ -n "${OWRT_NETIFD_WORKLOADS:-}" ] || return 0
         case " $OWRT_NETIFD_WORKLOADS " in *" $1 "*) return 0 ;; *) return 1 ;; esac
     }
+    procd_lane_selected() {
+        [ "$component" = procd ] && [ -n "${OWRT_PROCD_WORKLOADS:-}" ] || return 0
+        case " $OWRT_PROCD_WORKLOADS " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+    }
     rpc_warmup=20
+    [ "$component" != procd ] || rpc_warmup=${OWRT_PROCD_WARMUP:-20}
     [ "$component" != netifd ] || rpc_warmup=${OWRT_NETIFD_WARMUP:-20}
     netifd_no_spawn() ( # lane phase; all work is outside benchmark intervals
         [ "$component" = netifd ] || return 0
@@ -403,6 +423,7 @@ EOF
     run_rpc() { # label object method input expected [iterations]
         netifd_lane_selected "$1" || return 0
         rpcd_lane_selected "$1" || return 0
+        procd_lane_selected "$1" || return 0
         label=$1; object=$2; method=$3; input=$4; expected=$5; count=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
@@ -413,6 +434,7 @@ EOF
     rpc_four() { # label object method input expected [total iterations]
         netifd_lane_selected "$1" || return 0
         rpcd_lane_selected "$1" || return 0
+        procd_lane_selected "$1" || return 0
         label=$1; object=$2; method=$3; input=$4; expected=$5; total=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
@@ -483,6 +505,61 @@ EOF
             service_sep=,; service_index=$((service_index + 1))
         done
         printf '}\n'
+    }
+    procd_instance_fixture() {
+        # Full verbose query: 32 fielded declarations plus running/exited instances.
+        # Setup and cleanup polling are outside the native query interval.
+        instance_index=0
+        while [ "$instance_index" -lt 128 ]; do
+            ubus call service delete "{\"name\":\"r84fixture$instance_index\"}" >/dev/null
+            instance_index=$((instance_index + 1))
+        done
+        # respawn uses atoi(blobmsg_get_string()), so its values must be strings.
+        cat > /tmp/procd-instance-set.json <<'EOF'
+{"name":"r84instances","data":{"purpose":"supervision","generation":1},"triggers":[["procd.bench.never",["run_script","/bin/true"],1]],"instances":{"active":{"command":["/bin/sleep","600"],"term_timeout":1,"env":{"BENCH":"fixed","MODE":"query"},"data":{"enabled":true,"index":7},"limits":{"core":"0"},"reload_signal":1,"respawn":["600","1","1"],"triggers":[["procd.instance.never",["run_script","/bin/true"],1]]},"exited":{"command":["/bin/true"],"term_timeout":1,"data":{"reason":"completed"}},"declared":{"data":{"index":9},"env":{"ROLE":"declaration"},"term_timeout":2}}}
+EOF
+        cat > /tmp/procd-instance-expect.template <<'EOF'
+{"r84instances":{"data":{"purpose":"supervision","generation":1},"instances":{"active":{"running":true,"pid":@PID@,"command":["/bin/sleep","600"],"term_timeout":1,"env":{"BENCH":"fixed","MODE":"query"},"data":{"enabled":true,"index":7},"limits":{"core":"0"},"reload_signal":1,"respawn":{"threshold":600,"timeout":1,"retry":1},"triggers":[["procd.instance.never",["run_script","/bin/true"],1]]},"exited":{"running":false,"command":["/bin/true"],"term_timeout":1,"exit_code":0,"data":{"reason":"completed"}},"declared":{"running":false,"term_timeout":2,"exit_code":0,"env":{"ROLE":"declaration"},"data":{"index":9}}},"triggers":[["procd.bench.never",["run_script","/bin/true"],1]]}
+EOF
+        : > /tmp/procd-fielded-sets.jsonl
+        instance_index=0
+        while [ "$instance_index" -lt 32 ]; do
+            instance_name=$(printf 'r84fields%02d' "$instance_index")
+            printf '{"name":"%s","data":{"index":%s,"group":"management","enabled":true},"instances":{"declared":{"term_timeout":5,"env":{"INTERFACE":"%s","LOG_LEVEL":"info","MODE":"managed"},"data":{"label":"%s","config":{"enabled":true,"network":"lan","protocol":"static","metric":100},"members":["alpha","beta","gamma"],"revision":1},"limits":{"core":"0","nofile":"1024"},"triggers":[["procd.fielded.never",["run_script","/bin/true"],1]]}},"triggers":[["procd.service.never",["run_script","/bin/true"],1]]}\n' "$instance_name" "$instance_index" "$instance_name" "$instance_name" >> /tmp/procd-fielded-sets.jsonl
+            printf ',"%s":{"data":{"index":%s,"group":"management","enabled":true},"instances":{"declared":{"running":false,"term_timeout":5,"exit_code":0,"env":{"INTERFACE":"%s","LOG_LEVEL":"info","MODE":"managed"},"data":{"label":"%s","config":{"enabled":true,"network":"lan","protocol":"static","metric":100},"members":["alpha","beta","gamma"],"revision":1},"limits":{"core":"0","nofile":"1024"},"triggers":[["procd.fielded.never",["run_script","/bin/true"],1]]}},"triggers":[["procd.service.never",["run_script","/bin/true"],1]]}' "$instance_name" "$instance_index" "$instance_name" "$instance_name" >> /tmp/procd-instance-expect.template
+            instance_index=$((instance_index + 1))
+        done
+        printf '}\n' >> /tmp/procd-instance-expect.template
+        while IFS= read -r instance_config; do
+            ubus call service set "$instance_config" >/dev/null
+        done < /tmp/procd-fielded-sets.jsonl
+        sha256sum /tmp/procd-instance-set.json /tmp/procd-fielded-sets.jsonl /tmp/procd-instance-expect.template >> "$out/procd-fixtures.sha256"
+        ubus call service set "$(cat /tmp/procd-instance-set.json)" > "$out/instance-set-reply.json"
+        sleep 1
+        ubus call service list '{"verbose":true}' > "$out/instance-before.json"
+        instance_pid=$(jsonfilter -i "$out/instance-before.json" -e '@.r84instances.instances.active.pid')
+        case "$instance_pid" in ''|*[!0-9]*) echo 'missing instance pid' >&2; exit 1 ;; esac
+        [ "$instance_pid" -gt 1 ] && kill -0 "$instance_pid"
+        [ "$(awk '/^PPid:/ {print $2}' /proc/"$instance_pid"/status)" = "$subject" ]
+        [ "$(jsonfilter -i "$out/instance-before.json" -e '@.r84instances.instances.exited.running')" = false ]
+        sed "s/@PID@/$instance_pid/g" /tmp/procd-instance-expect.template > /tmp/procd-instance-expect.json
+        run_rpc service_list_instance_fields service list '{"verbose":true}' "$(cat /tmp/procd-instance-expect.json)"
+        ubus call service list '{"verbose":true}' > "$out/instance-after.json"
+        cmp "$out/instance-before.json" "$out/instance-after.json"
+        ubus call service delete '{"name":"r84instances"}' > "$out/instance-delete-reply.json"
+        instance_tries=0
+        while [ -e /proc/"$instance_pid" ]; do
+            [ "$instance_tries" -lt 5 ]
+            sleep 1; instance_tries=$((instance_tries + 1))
+        done
+        instance_index=0
+        while [ "$instance_index" -lt 32 ]; do
+            instance_name=$(printf 'r84fields%02d' "$instance_index")
+            ubus call service delete "{\"name\":\"$instance_name\"}" >/dev/null
+            instance_index=$((instance_index + 1))
+        done
+        ubus call service list '{}' > "$out/instance-closed.json"
+        [ "$(tr -d ' \n\r\t' < "$out/instance-closed.json")" = '{}' ]
     }
     netifd_expect() { # total interfaces: the original two, then thirty static aliases
         printf '{"interface":['
@@ -858,6 +935,7 @@ CYCLE
             bin=$(choose procd /sbin/procd procd-rs)
             "$bin" -S -I /tmp/empty-init -R /tmp/empty-rc > "$out/daemon.log" 2>&1 & subject=$!
             wait_object service "$subject"
+            sha256sum /proc/"$bus"/exe > "$out/dependencies-sha256.txt"
             i=0
             while [ "$i" -lt 32 ]; do
                 ubus call service set "{\"name\":\"r84fixture$i\",\"data\":{\"index\":$i}}" >/dev/null
@@ -884,6 +962,9 @@ CYCLE
                 sha256sum /tmp/expect-service-32.json /tmp/expect-service-128.json > "$out/procd-fixtures.sha256"
                 rpc_pair service_list_128 service list '{}' "$(cat /tmp/expect-service-128.json)"
                 rpc_pair service_list_named_128 service list '{"name":"r84fixture127"}' '{"r84fixture127":{"data":{"index":127}}}'
+                if [ -n "${OWRT_PROCD_WORKLOADS:-}" ] && procd_lane_selected service_list_instance_fields; then
+                    procd_instance_fixture
+                fi
             fi
             ;;
         netifd|fw4)

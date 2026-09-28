@@ -299,10 +299,20 @@ def derive(root, label):
     component = settings.get("component", "httpd")
     assert component in COMPONENT_WORK
     baseline_label = settings.get("baseline_label", "r84")
-    measured_sides = tuple(side for side in ("stock", baseline_label, "candidate") if side in order)
+    extra_baselines = settings.get("extra_baselines", {})
+    known_sides = ("stock", baseline_label, *extra_baselines, "candidate")
+    assert set(order) <= set(known_sides), "unknown comparison side"
+    measured_sides = tuple(side for side in known_sides if side in order)
+    for side, evidence in extra_baselines.items():
+        assert side in order, "missing historical comparison side"
+        assert subjects[side] == evidence["subject_sha256"] == evidence["provenance"]["subject_sha256"]
     calibration = settings.get("schedule") == "calibration"
     assert measured_sides == ("candidate",) if calibration else {"stock", "candidate"}.issubset(measured_sides)
     assert len({order.count(side) for side in measured_sides}) == 1
+    if settings.get("schedule") == "random-blocks":
+        width = len(measured_sides)
+        assert all(set(order[index:index + width]) == set(measured_sides)
+                   for index in range(0, len(order), width)), "incomplete comparison block"
     before, after = read(root / "health-before.json"), read(root / "health-after.json")
     assert before["boot_id"] == after["boot_id"]
     assert (root / "config-before.sha256").read_bytes() == (root / "config-after.sha256").read_bytes()
@@ -334,6 +344,11 @@ def derive(root, label):
     elif matrix and component == "procd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in PROCD_EXTRA for suffix in ("", "_c4")]
+        if settings.get("procd_workloads"):
+            selected = settings["procd_workloads"]
+            assert len(set(selected)) == len(selected)
+            assert set(selected) <= set(workloads + ["service_list_instance_fields"])
+            workloads = selected
     elif matrix and component == "ubusd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in UBUSD_EXTRA for suffix in ("", "_c4")]
@@ -372,6 +387,10 @@ def derive(root, label):
         identity = tuple(line.split()[0] for line in (raw / "benchmark-sha256.txt").read_text().splitlines())
         identity += ((raw / "harness-sha256.txt").read_text().split()[0],)
         identities.add(identity)
+        if component == "procd" and "procd_warmup" in settings:
+            expected_bus = read(root / "host-manifest.json")["components"]["ubusd"]["original"]["sha256"]
+            observed = [line.split()[0] for line in (raw / "dependencies-sha256.txt").read_text().splitlines()]
+            assert observed == [expected_bus], "procd dependency is not the exact image C ubusd"
         if matrix:
             fixture_file = {"httpd": "static-fixtures.sha256", "rpcd": "rpc-fixtures.sha256",
                             "procd": "procd-fixtures.sha256", "ubusd": "ubusd-fixtures.sha256",
@@ -436,6 +455,8 @@ def derive(root, label):
             if name.endswith("_c4"):
                 expected = max(1, expected // 4) * 4
             assert data["successful"] == expected, (name, data["successful"], expected)
+            if component == "procd" and "procd_warmup" in settings:
+                assert data["warmup"] == settings["procd_warmup"] * (4 if name.endswith("_c4") else 1), "procd warmup changed"
             rows.append({"run": local.name, "side": side, "workload": name, **data})
         if subject is not None:
             resident = read(raw / "resident.json")
@@ -455,6 +476,11 @@ def derive(root, label):
             sides["candidate_vs_stock_pct"] = {
                 metric: (sides["candidate"][metric]["median"] / sides["stock"][metric]["median"] - 1) * 100
                 for metric in metrics if sides["stock"][metric]["median"] > 0}
+        for baseline_side in extra_baselines:
+            if baseline_side in sides:
+                sides["candidate_vs_" + baseline_side + "_pct"] = {
+                    metric: (sides["candidate"][metric]["median"] / sides[baseline_side][metric]["median"] - 1) * 100
+                    for metric in metrics if sides[baseline_side][metric]["median"] > 0}
         if baseline_label in sides:
             sides["candidate_vs_baseline_pct"] = {
                 metric: (sides["candidate"][metric]["median"] / sides[baseline_label][metric]["median"] - 1) * 100
@@ -473,7 +499,7 @@ def derive(root, label):
             "order": order, "host_gates_passed": True, "acceptance_eligible": not limitations,
             "limitations": limitations, "runs": rows, "summary": summary,
             "measured_sides": measured_sides,
-            "baseline_label": baseline_label, "cpu_affinity": settings.get("cpu_affinity"),
+            "baseline_label": baseline_label, "extra_baselines": extra_baselines, "cpu_affinity": settings.get("cpu_affinity"),
             "resident": residents, "sources": sources,
             "method": "Medians of per-run statistics; c4 CPU uses one outer interval divided by successful plus warm-up operations. c4 outer throughput includes warm-up/startup and uses /proc/uptime resolution. Client validation runs on the same router CPUs."}
 
@@ -496,22 +522,31 @@ def main():
         (args.output / "results.md").write_text("\n".join(lines) + "\n")
         print(f"{args.label}: {len(result['runs'])} calibration measurements verified")
         return
+    cpu_metric = ("subject_own_cpu_clock_us_per_op"
+                  if all("subject_own_cpu_clock_us_per_op" in values["candidate"] for values in result["summary"].values())
+                  else "subject_cpu_us_per_op")
+    comparison_sides = result["measured_sides"]
+    headings = ["负载"] + [side + " mean µs / CPU µs" for side in comparison_sides]
+    headings += ["候选比 " + side + " mean / CPU" for side in comparison_sides if side != "candidate"]
     lines = [f"# {args.label}：{result['component']} 实机对照", "",
              "单位：延迟和 CPU 为 µs/请求；数值是逐轮统计的中位数。负百分比表示开销下降。", "",
-             f"| 负载 | 原版延迟 | {result['baseline_label'].upper()} 延迟 | 候选延迟 | 候选比原版 | 原版 CPU | 候选 CPU | 候选比原版 |",
-             "|---|---:|---:|---:|---:|---:|---:|---:|"]
+             "CPU 口径：" + cpu_metric, "", "| " + " | ".join(headings) + " |",
+             "|" + "|".join(["---"] + ["---:"] * (len(headings) - 1)) + "|"]
     for name, sides in result["summary"].items():
-        v = lambda side, metric: sides[side][metric]["median"]
-        delta = sides["candidate_vs_stock_pct"]
-        baseline = f"{v(result['baseline_label'], 'mean_us'):.2f}" if result["baseline_label"] in sides else "—"
-        lines.append(f"| {name} | {v('stock', 'mean_us'):.2f} | {baseline} | "
-                     f"{v('candidate', 'mean_us'):.2f} | {delta['mean_us']:+.2f}% | "
-                     f"{v('stock', 'subject_cpu_us_per_op'):.2f} | {v('candidate', 'subject_cpu_us_per_op'):.2f} | "
-                     f"{delta['subject_cpu_us_per_op']:+.2f}% |")
+        row = [name]
+        for side in comparison_sides:
+            row.append(f"{sides[side]['mean_us']['median']:.2f} / {sides[side][cpu_metric]['median']:.2f}")
+        for side in comparison_sides:
+            if side == "candidate": continue
+            def delta(metric):
+                reference = sides[side][metric]["median"]
+                return f"{(sides['candidate'][metric]['median'] / reference - 1) * 100:+.2f}%" if reference else "—"
+            row.append(delta("mean_us") + " / " + delta(cpu_metric))
+        lines.append("| " + " | ".join(row) + " |")
     if result["limitations"]:
         lines += ["", "**测量边界：**", *["- " + item for item in result["limitations"]]]
     lines += ["", "每侧运行次数：" + str(len(result["order"]) // len(result["measured_sides"])) + "。所列完整运行的请求均成功，原版依赖和正式运行栈保持相同。",
-              "", "c4 的 CPU 包含并计数每客户端 20 次预热，使用唯一外层区间；吞吐包括预热和启动，",
+              "", "c4 的 CPU 包含并计数已记录的每客户端预热，使用唯一外层区间；吞吐包括预热和启动，",
               "计时精度来自 /proc/uptime。客户端校验也使用路由器 CPU，不能把这里的吞吐视为服务端极限。",
               "", "逐轮均值、p50/p95/p99、CPU、内存、离散程度及产物身份见 [results.json](results.json)。", ""]
     (args.output / "results.md").write_text("\n".join(lines))

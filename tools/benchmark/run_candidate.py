@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Component experiment: exact original image, frozen baseline, and candidate.
+"""Component experiment: exact image, frozen baselines, and candidate.
 
 Physical use requires the already-authorized recovery gate. The production
 stack stays active; each subject runs in the existing isolated harness. Every
@@ -26,6 +26,34 @@ ORDER = ("stock", "r84", "candidate", "candidate", "r84", "stock",
 TWO_SIDE_BALANCED = ("stock", "candidate", "candidate", "stock")
 
 
+def extra_baseline_records(elf_args, evidence_args, baseline_label):
+    """Freeze original ELF/provenance identities without inventing a manifest."""
+    def paths(items):
+        result = {}
+        for item in items:
+            label, sep, path = item.partition("=")
+            if not sep or not re.fullmatch(r"[a-z][a-z0-9_-]*", label) or label in ("stock", "candidate", "r84", baseline_label):
+                raise ValueError("invalid extra baseline label: " + label)
+            if label in result:
+                raise ValueError("duplicate extra baseline label: " + label)
+            result[label] = Path(path).resolve(strict=True)
+        return result
+    elfs, evidence = paths(elf_args), paths(evidence_args)
+    if elfs.keys() != evidence.keys():
+        raise ValueError("each extra baseline requires exactly one ELF and provenance JSON")
+    records = {}
+    for label, path in elfs.items():
+        sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        raw = evidence[label].read_bytes()
+        provenance = json.loads(raw)
+        if not isinstance(provenance, dict) or provenance.get("subject_sha256") != sha:
+            raise ValueError("extra baseline provenance subject_sha256 mismatch: " + label)
+        records[label] = {"subject_sha256": sha, "elf_path": str(path),
+                          "evidence_path": str(evidence[label]),
+                          "evidence_sha256": hashlib.sha256(raw).hexdigest(), "provenance": provenance}
+    return records
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("candidate", type=Path)
@@ -41,11 +69,15 @@ def main():
     parser.add_argument("--baseline-bundle", default="/root/r84",
                         help="frozen comparison bundle on the router, including manifest.json")
     parser.add_argument("--baseline-label", default="r84", help="evidence label for that frozen bundle")
+    parser.add_argument("--extra-baseline", action="append", default=[], metavar="LABEL=ELF",
+                        help="additional historical original ELF; requires random-blocks, --bench and matching evidence")
+    parser.add_argument("--extra-baseline-evidence", action="append", default=[], metavar="LABEL=JSON",
+                        help="provenance JSON with subject_sha256; records diagnostic/build gaps without claiming a formal manifest")
     parser.add_argument("--cpus", help="optional fixed taskset CPU list for every isolated subject/client")
     parser.add_argument("--repeats", type=int, default=4)
     parser.add_argument("--schedule", choices=("default", "two-side-balanced", "three-side-sequential", "calibration", "random-blocks"), default="default",
                         help="default interleaving, stock/candidate ABBA, or C then baseline then candidate; --repeats is windows per side for three-side-sequential")
-    parser.add_argument("--seed", type=int, help="frozen seed for independent random three-side blocks")
+    parser.add_argument("--seed", type=int, help="frozen seed for independent random complete comparison blocks")
     parser.add_argument("--guard", type=Path, help="router-side lifetime guard for each namespace (600 seconds)")
     parser.add_argument("--iterations", type=int, default=10000)
     parser.add_argument("--resume", action="store_true",
@@ -53,6 +85,8 @@ def main():
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--httpd-workloads", nargs="+", help="explicit subset of the HTTP matrix")
     parser.add_argument("--rpcd-workloads", nargs="+", help="explicit RPCD matrix lanes, including targeted UCI/ACL/LuCI queries")
+    parser.add_argument("--procd-workloads", nargs="+", help="explicit procd query lanes; service_list_instance_fields is opt-in")
+    parser.add_argument("--procd-warmup", type=int, default=20)
     parser.add_argument("--fw4-workloads", nargs="+", choices=("print", "check"),
                         help="fw4 command subset; defaults to print check")
     parser.add_argument("--fw4-count", type=int,
@@ -89,6 +123,13 @@ def main():
         parser.error("invalid baseline label")
     if not args.baseline_bundle.startswith("/") or (args.cpus and not re.fullmatch(r"[0-9,-]+", args.cpus)):
         parser.error("baseline path must be absolute; CPU list must be numeric")
+    try:
+        extra_baselines = extra_baseline_records(args.extra_baseline, args.extra_baseline_evidence,
+                                                 args.baseline_label)
+    except (ValueError, OSError, json.JSONDecodeError) as exc:
+        parser.error(str(exc))
+    if extra_baselines and (args.schedule != "random-blocks" or not args.bench or args.netifd_event_contracts):
+        parser.error("extra baselines require random-blocks and --bench; netifd event contracts are not supported")
     if args.iterations <= 0:
         parser.error("iterations must be positive")
     if args.schedule == "calibration":
@@ -114,6 +155,16 @@ def main():
         allowed = {name + suffix for name in lanes for suffix in ("", "_c4")}
         if args.component != "rpcd" or not args.matrix or len(set(args.rpcd_workloads)) != len(args.rpcd_workloads) or not set(args.rpcd_workloads) <= allowed:
             parser.error("invalid RPCD matrix workload subset")
+    if args.procd_workloads or args.procd_warmup != 20:
+        if args.component != "procd" or not args.matrix:
+            parser.error("procd workload/warmup controls require its matrix")
+    if not 0 <= args.procd_warmup <= 100000:
+        parser.error("procd warmup must be in 0..100000")
+    if args.procd_workloads:
+        allowed = {lane + suffix for lane in ("system_info", "service_list_32", "service_list_128", "service_list_named_128")
+                   for suffix in ("", "_c4")} | {"service_list_instance_fields"}
+        if len(set(args.procd_workloads)) != len(args.procd_workloads) or not set(args.procd_workloads) <= allowed:
+            parser.error("invalid or duplicate procd workload")
     if args.fw4_workloads or args.fw4_count is not None or args.fw4_warmup != 3 or args.fw4_fixture:
         if args.component != "fw4":
             parser.error("fw4 controls require --component fw4")
@@ -176,7 +227,7 @@ def main():
     if args.schedule == "three-side-sequential" and args.sides != ["stock", "r84", "candidate"]:
         parser.error("three-side-sequential requires exactly --sides stock r84 candidate")
     if args.schedule == "random-blocks" and args.sides != ["stock", "r84", "candidate"]:
-        parser.error("random-blocks requires exactly --sides stock r84 candidate")
+        parser.error("random-blocks requires base --sides stock r84 candidate; extra baselines are added automatically")
     component = args.component
     binary = "reload_config_rs" if component == "reload-config" else component + "-rs"
     if args.resume and (not (args.output / "STARTED").exists() or (args.output / "COMPLETE").exists()):
@@ -220,6 +271,7 @@ def main():
     hashes = {"stock": manifest["components"][component]["original"]["sha256"],
               args.baseline_label: baseline["components"][component]["rust"]["sha256"],
               "candidate": hashlib.sha256(args.candidate.read_bytes()).hexdigest()}
+    hashes.update({label: record["subject_sha256"] for label, record in extra_baselines.items()})
     for name in ("ns-exec", "owrt-benchmark"):
         if baseline["tools"][name]["sha256"] != manifest["tools"][name]["sha256"]:
             raise RuntimeError("frozen baseline and host benchmark tools differ")
@@ -235,7 +287,7 @@ def main():
     elif args.schedule == "random-blocks":
         rng = random.Random(args.seed)
         order = tuple(side for _ in range(args.repeats)
-                      for side in rng.sample(["stock", args.baseline_label, "candidate"], 3))
+                      for side in rng.sample(["stock", args.baseline_label, *extra_baselines, "candidate"], 3 + len(extra_baselines)))
     elif args.schedule == "two-side-balanced":
         order = TWO_SIDE_BALANCED * args.repeats
     elif args.schedule == "three-side-sequential":
@@ -256,6 +308,12 @@ def main():
         settings["schedule"] = args.schedule
     if args.seed is not None:
         settings["seed"] = args.seed
+    if extra_baselines:
+        settings["extra_baselines"] = extra_baselines
+    if component == "procd":
+        settings["procd_warmup"] = args.procd_warmup
+        if args.procd_workloads:
+            settings["procd_workloads"] = args.procd_workloads
     if args.httpd_workloads:
         settings["httpd_workloads"] = args.httpd_workloads
     if args.rpcd_workloads:
@@ -306,13 +364,14 @@ def main():
             subprocess.run(["scp", "-O", str(args.guard.resolve()), args.host + ":" + remote + "/guard"], check=True)
         assert ssh("sha256sum " + remote + "/guard").decode().split()[0] == settings["guard_sha256"]
     # With --bench, use the same uploaded client in every selected bundle.
-    # A three-side run gets a third temporary bundle containing the frozen
-    # baseline ELF; the baseline directory itself remains untouched.
+    # Every historical side gets its own temporary bundle containing its
+    # original ELF; historical source bundles remain untouched.
     stock_bundle = remote + "/stock-bundle" if args.bench else args.baseline_bundle + "/bins"
     baseline_bundle = remote + "/baseline-bundle" if args.bench and "r84" in args.sides else None
+    extra_bundles = {label: remote + "/baseline-" + label for label in extra_baselines}
     if not args.resume:
         if args.bench:
-            targets = [bundle, stock_bundle]
+            targets = [bundle, stock_bundle, *extra_bundles.values()]
             if baseline_bundle:
                 targets.append(baseline_bundle)
             ssh("mkdir -p " + " ".join(shlex.quote(target) for target in targets)
@@ -325,6 +384,9 @@ def main():
                     + " " + shlex.quote(baseline_bundle + "/" + binary))
         else:
             ssh("cp /root/r84/bins/ns-exec /root/r84/bins/owrt-benchmark " + bundle + "/")
+        for label, target in extra_bundles.items():
+            subprocess.run(["scp", "-O", extra_baselines[label]["elf_path"],
+                            args.host + ":" + target + "/" + binary], check=True)
         for local, target in ((args.candidate, bundle + "/" + binary), (script, remote + "/isolated.sh")):
             subprocess.run(["scp", "-O", str(local.resolve()), args.host + ":" + target], check=True)
     if args.memory_probe:
@@ -342,7 +404,7 @@ def main():
             raise RuntimeError("RPC client probe upload checksum mismatch")
         initial("client-probe.json", {"sha256": digest, "diagnostic_only": True})
     assert ssh("sha256sum " + remote + "/isolated.sh").decode().split()[0] == hashlib.sha256(script.read_bytes()).hexdigest()
-    bundle_targets = (bundle, stock_bundle, baseline_bundle) if baseline_bundle else (bundle, stock_bundle)
+    bundle_targets = [bundle, stock_bundle, *([baseline_bundle] if baseline_bundle else []), *extra_bundles.values()]
     if fw4_fixture_hash:
         for target in bundle_targets:
             destination = target + "/fw4-firewall"
@@ -378,6 +440,9 @@ def main():
         raise RuntimeError("candidate upload checksum mismatch")
     if "r84" in args.sides and ssh("sha256sum " + (baseline_bundle or stock_bundle) + "/" + binary).decode().split()[0] != hashes[args.baseline_label]:
         raise RuntimeError("baseline upload checksum mismatch")
+    for label, target in extra_bundles.items():
+        if ssh("sha256sum " + target + "/" + binary).decode().split()[0] != hashes[label]:
+            raise RuntimeError("extra baseline upload checksum mismatch: " + label)
     monitors = ",".join(line.split()[1] for line in identity.decode().splitlines()
                         if line.split()[1] != "-")
     snapshot = "/root/r84/bins/owrt-benchmark snapshot " + monitors
@@ -400,6 +465,8 @@ def main():
         run_out = remote + f"/run-{index:02d}"
         if side == "candidate" or args.memory_probe or args.rpc_client_probe:
             selected = bundle
+        elif side in extra_bundles:
+            selected = extra_bundles[side]
         elif side == args.baseline_label and baseline_bundle:
             selected = baseline_bundle
         else:
@@ -437,6 +504,10 @@ def main():
             command = "OWRT_HTTPD_WORKLOADS=" + shlex.quote(" ".join(args.httpd_workloads)) + " " + command
         if args.rpcd_workloads:
             command = "OWRT_RPCD_WORKLOADS=" + shlex.quote(" ".join(args.rpcd_workloads)) + " " + command
+        if component == "procd":
+            command = "OWRT_PROCD_WARMUP=" + str(args.procd_warmup) + " " + command
+            if args.procd_workloads:
+                command = "OWRT_PROCD_WORKLOADS=" + shlex.quote(" ".join(args.procd_workloads)) + " " + command
         if args.guard:
             command = "OWRT_BENCH_GUARD=" + remote + "/guard " + command
         if args.extended:
@@ -484,6 +555,9 @@ def main():
             if component == "httpd":
                 dependencies = [line.split()[0] for line in (raw / "dependencies-sha256.txt").read_text().splitlines()]
                 assert dependencies == [manifest["components"][name]["original"]["sha256"] for name in ("rpcd", "ubusd")], "HTTP dependencies are not the exact image C binaries"
+            if component == "procd":
+                dependencies = [line.split()[0] for line in (raw / "dependencies-sha256.txt").read_text().splitlines()]
+                assert dependencies == [manifest["components"]["ubusd"]["original"]["sha256"]], "procd dependency is not the exact image C ubusd"
         except Exception as exc:
             failures.append(f"raw evidence: {type(exc).__name__}: {exc}")
         for filename, cmd, expected_value in (
