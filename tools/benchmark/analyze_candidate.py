@@ -368,6 +368,8 @@ def derive(root, label):
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         extra = ("device_status_all", f"interface_dump_{netifd_scale}", f"interface_named_{netifd_scale}")
         workloads += [name + suffix for name in extra for suffix in ("", "_c4")]
+    elif matrix and component == "uci":
+        workloads += ["get_network", "export_multi", "show_long", "delta_64", "batch_read16"]
     else:
         assert not matrix, "unsupported workload matrix"
     if matrix and component == "netifd":
@@ -406,7 +408,7 @@ def derive(root, label):
         if matrix:
             fixture_file = {"httpd": "static-fixtures.sha256", "rpcd": "rpc-fixtures.sha256",
                             "procd": "procd-fixtures.sha256", "ubusd": "ubusd-fixtures.sha256",
-                            "netifd": "netifd-fixtures.sha256"}[component]
+                            "netifd": "netifd-fixtures.sha256", "uci": "uci-fixtures.sha256"}[component]
             fixture_identity = (raw / fixture_file).read_text()
             if component == "httpd" and any(name.startswith("jsonrpc_large") for name in workloads):
                 fixture_identity += (raw / "large-fixture.sha256").read_text()

@@ -83,6 +83,8 @@ def main():
     parser.add_argument("--resume", action="store_true",
                         help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
+    parser.add_argument("--exec-resource-probe", type=Path,
+                        help="separate wait4 lifecycle probe for UCI; never included in timing samples")
     parser.add_argument("--httpd-workloads", nargs="+", help="explicit subset of the HTTP matrix")
     parser.add_argument("--rpcd-workloads", nargs="+", help="explicit RPCD matrix lanes, including targeted UCI/ACL/LuCI queries")
     parser.add_argument("--procd-workloads", nargs="+", help="explicit procd query lanes; service_list_instance_fields is opt-in")
@@ -139,8 +141,10 @@ def main():
         parser.error("sides must include stock and candidate, without duplicates")
     if args.component != "httpd" and args.memory_probe:
         parser.error("held-connection memory currently requires HTTPD")
-    if args.matrix and args.component not in ("httpd", "rpcd", "procd", "ubusd", "netifd"):
-        parser.error("expanded matrices are defined for the five main daemons")
+    if args.matrix and args.component not in ("httpd", "rpcd", "procd", "ubusd", "netifd", "uci"):
+        parser.error("expanded matrix is not defined for this component")
+    if args.exec_resource_probe and (args.component != "uci" or not args.bench):
+        parser.error("exec resource probe requires UCI and --bench")
     if args.netifd_scale != 32 and (args.component != "netifd" or not args.matrix):
         parser.error("--netifd-scale requires a netifd matrix")
     if args.httpd_workloads:
@@ -344,6 +348,8 @@ def main():
         settings["namespace_timeout_seconds"] = 600
     if args.bench:
         settings["bench_sha256"] = tool_hashes["owrt-benchmark"]
+    if args.exec_resource_probe:
+        settings["exec_resource_probe_sha256"] = hashlib.sha256(args.exec_resource_probe.read_bytes()).hexdigest()
     if args.extended:
         settings["extended"] = True
     initial("settings.json", settings)
@@ -389,6 +395,12 @@ def main():
                             args.host + ":" + target + "/" + binary], check=True)
         for local, target in ((args.candidate, bundle + "/" + binary), (script, remote + "/isolated.sh")):
             subprocess.run(["scp", "-O", str(local.resolve()), args.host + ":" + target], check=True)
+    if args.exec_resource_probe:
+        for target in [bundle, stock_bundle, *extra_bundles.values(), *([baseline_bundle] if baseline_bundle else [])]:
+            if not args.resume:
+                subprocess.run(["scp", "-O", str(args.exec_resource_probe.resolve()),
+                                args.host + ":" + target + "/exec-resource"], check=True)
+            assert ssh("sha256sum " + target + "/exec-resource").decode().split()[0] == settings["exec_resource_probe_sha256"]
     if args.memory_probe:
         digest = hashlib.sha256(args.memory_probe.read_bytes()).hexdigest()
         if not args.resume:

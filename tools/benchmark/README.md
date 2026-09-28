@@ -379,3 +379,32 @@ active executable, mapping and retained-bundle pages after the usual identity
 gate, without faulting file contents or dropping caches. Deduplicate by
 device/inode within groups and retain the limitation that overlay aliases may
 share physical pages. The result is neither exclusive RSS nor removable RAM.
+
+## UCI independent process matrix
+
+`run_candidate.py --component uci --matrix` keeps `export_network`,
+`export_64`, `set_commit_get` and adds `get_network`, `export_multi` (four
+64-section packages), `show_long` (64 sections with 125-byte strings and
+8 × 128-byte list values), `delta_64` (32 deltas), and `batch_read16`.
+The actual command count is `--iterations / 20`, with five warm-ups.
+Every timed execution validates exit, stdout bytes and empty stderr through
+`exec-strict`. Each namespace starts with fresh private tmpfs files. Commit
+performs a real change each iteration; a separate post-run exact-C byte/mode
+and empty-delta check verifies persistence. It is not a flash/fsync benchmark.
+
+Use the existing `random-blocks` schedule and original ELF provenance for
+four-side comparisons. `--exec-resource-probe <SDK-built exec_resource.c>`
+adds three separate `wait4` samples per lane, outside timing. The helper's
+`maxrss_kib` is the peak of the command or a reaped descendant, not concurrent
+sum RSS; `set_commit_get` includes its shell and three UCI processes. Resource
+samples write stdout to a private file, whereas timed runs capture a pipe.
+Both include exec-to-exit; resource samples also include the small launcher
+fork-to-exec interval. Rust allocation instrumentation is separately available
+in `profile_uci_allocations.py`; requested live bytes are not RSS.
+
+The analyzer exposes `command_tree_cpu_us_per_op` from the benchmark's
+`getrusage(RUSAGE_CHILDREN)` snapshots. It excludes warm-up and caller CPU,
+includes descendants reaped by the command, and retains legacy tick fields
+separately. Microsecond encoding is not a claim of microsecond accuracy.
+A short-lived acceptance result requires both this field and the caller CPU
+clock; an empty after-exit resident list cannot establish zero memory.

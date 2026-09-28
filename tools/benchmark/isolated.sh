@@ -60,6 +60,7 @@ if [ -n "${OWRT_RPCD_WORKLOADS:-}" ]; then
     done
 fi
 case "${OWRT_PROCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_UCI_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_PROCD_WARMUP:-20}" in ''|*[!0-9]*) exit 2 ;; esac
 [ "${OWRT_PROCD_WARMUP:-20}" -le 100000 ] || exit 2
 if [ -n "${OWRT_PROCD_WORKLOADS:-}" ]; then
@@ -1102,12 +1103,36 @@ EOF
         uci)
             monitors=-
             bin=$(choose uci /sbin/uci uci-rs)
+            # Every path (including defaults/absolute paths and symlinks) is
+            # beneath the read-only image or the namespace's private tmpfs.
+            uci_exec() {
+                lane=$1; expected=$2; shift 2
+                "$@" > /tmp/uci-preflight.stdout 2> /tmp/uci-preflight.stderr
+                cmp -s "$expected" /tmp/uci-preflight.stdout
+                [ ! -s /tmp/uci-preflight.stderr ]
+                "$bench" exec-strict "$count_exec" 5 "$expected" - -- "$@" > "$out/$lane.json"
+                if [ -x /tmp/bin/exec-resource ]; then
+                    # Separate, untimed full-lifetime samples, never an
+                    # after-exit /proc snapshot or a zero-memory inference.
+                    sample=0
+                    while [ "$sample" -lt 3 ]; do
+                        R84_ITERATION=$((count_exec + 5 + sample)) /tmp/bin/exec-resource \
+                            "$out/$lane-resource-$sample.json" "$@" \
+                            > /tmp/uci-resource.stdout 2> /tmp/uci-resource.stderr
+                        cmp -s "$expected" /tmp/uci-resource.stdout
+                        [ ! -s /tmp/uci-resource.stderr ]
+                        sample=$((sample + 1))
+                    done
+                fi
+            }
+            sha256sum /sbin/uci /lib/libuci.so* /lib/ld-musl-aarch64.so.1 > "$out/uci-dependencies.sha256"
             /sbin/uci -S -n export network > /tmp/expected.network
             /sbin/uci -S -n export r84fixture > /tmp/expected.fixture
-            "$bench" exec "$count_exec" 5 /tmp/expected.network - -- "$bin" -S -n export network > "$out/export_network.json"
-            "$bench" exec "$count_exec" 5 /tmp/expected.fixture - -- "$bin" -S -n export r84fixture > "$out/export_64.json"
+            uci_exec export_network /tmp/expected.network "$bin" -S -n export network
+            uci_exec export_64 /tmp/expected.fixture "$bin" -S -n export r84fixture
             mkdir -p /tmp/uci-config /tmp/uci-save
             cp /etc/config/network /tmp/uci-config/
+            uci_initial_mode=$(ls -ldn /tmp/uci-config/network | awk '{print $1, $3, $4}')
             cat > /tmp/write-uci.sh <<'EOF'
 #!/bin/sh
 set -eu
@@ -1116,7 +1141,53 @@ set -eu
 value=$("$1" -c /tmp/uci-config -t /tmp/uci-save get network.lan.r84)
 [ "$value" = "$R84_ITERATION" ]
 EOF
-            "$bench" exec "$count_exec" 5 /tmp/empty.bytes - -- /bin/sh /tmp/write-uci.sh "$bin" > "$out/set_commit_get.json"
+            R84_ITERATION=preflight uci_exec set_commit_get /tmp/empty.bytes /bin/sh /tmp/write-uci.sh "$bin"
+            # A successful get could otherwise hide a no-op commit by reading
+            # its still-pending delta. Validate persisted bytes outside timing.
+            final_iteration=$((count_exec + 4))
+            [ ! -x /tmp/bin/exec-resource ] || final_iteration=$((count_exec + 7))
+            mkdir /tmp/uci-verify-config /tmp/uci-verify-save /tmp/uci-verify-empty
+            cp /etc/config/network /tmp/uci-verify-config/
+            /sbin/uci -C '' -c /tmp/uci-verify-config -t /tmp/uci-verify-save set "network.lan.r84=$final_iteration"
+            /sbin/uci -C '' -c /tmp/uci-verify-config -t /tmp/uci-verify-save commit network
+            cmp -s /tmp/uci-verify-config/network /tmp/uci-config/network
+            [ -f /tmp/uci-save/network ] && [ ! -s /tmp/uci-save/network ]
+            [ "$(ls -ldn /tmp/uci-config/network | awk '{print $1, $3, $4}')" = "$uci_initial_mode" ]
+            [ "$(/sbin/uci -C '' -c /tmp/uci-config -t /tmp/uci-verify-empty get network.lan.r84)" = "$final_iteration" ]
+            printf '%s\n' "$final_iteration" > "$out/uci-persisted-value.txt"
+            if [ "${OWRT_UCI_MATRIX:-0}" = 1 ]; then
+                /sbin/uci get network.lan.proto > /tmp/expected.get
+                uci_exec get_network /tmp/expected.get "$bin" get network.lan.proto
+                mkdir -p /tmp/uci-multi /tmp/uci-delta
+                for package in alpha beta gamma delta; do cp /etc/config/r84fixture /tmp/uci-multi/$package; done
+                /sbin/uci -C '' -c /tmp/uci-multi export > /tmp/expected.multi
+                uci_exec export_multi /tmp/expected.multi "$bin" -C '' -c /tmp/uci-multi export
+                # 64 named sections, one 125-byte double-quoted value and
+                # eight 128-byte list values per section, including quotes.
+                awk 'BEGIN { v=""; for(j=0;j<120;j++)v=v "x"; for(i=0;i<64;i++) { printf "config bench entry%d\n option value \"%s\047tail\"\n",i,v; for(k=0;k<8;k++) printf " list members \"%s item-%02d\"\n",v,k } }' > /etc/config/ucilong
+                /sbin/uci show ucilong > /tmp/expected.long
+                uci_exec show_long /tmp/expected.long "$bin" show ucilong
+                # Replay 32 current deltas on the unchanged 64-section base.
+                i=0
+                while [ "$i" -lt 32 ]; do
+                    printf "r84fixture.entry%s.value='delta-%s'\n" "$i" "$i"
+                    i=$((i + 1))
+                done > /tmp/uci-delta/r84fixture
+                /sbin/uci -C '' -t /tmp/uci-delta export r84fixture > /tmp/expected.delta
+                uci_exec delta_64 /tmp/expected.delta "$bin" -C '' -t /tmp/uci-delta export r84fixture
+                i=0
+                while [ "$i" -lt 8 ]; do
+                    printf 'get network.lan.proto\nget r84fixture.entry63.value\n'
+                    i=$((i + 1))
+                done > /tmp/uci-read.batch
+                /sbin/uci -f /tmp/uci-read.batch batch > /tmp/expected.batch
+                uci_exec batch_read16 /tmp/expected.batch "$bin" -f /tmp/uci-read.batch batch
+                sha256sum /etc/config/network /etc/config/r84fixture /etc/config/ucilong \
+                    /tmp/uci-multi/* /tmp/uci-delta/* /tmp/uci-read.batch /tmp/write-uci.sh \
+                    /tmp/expected.* > "$out/uci-fixtures.sha256"
+                wc -c /etc/config/network /etc/config/r84fixture /etc/config/ucilong \
+                    /tmp/uci-multi/* /tmp/uci-delta/* > "$out/uci-fixtures-sizes.txt"
+            fi
             ;;
         reload-config)
             monitors=-
