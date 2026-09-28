@@ -13,6 +13,7 @@ mod rrdns;
 #[path = "../src/session.rs"]
 mod session;
 #[path = "../src/util.rs"]
+#[allow(unused_imports)]
 mod util;
 #[path = "../src/glob.rs"]
 mod glob;

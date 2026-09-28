@@ -7,6 +7,7 @@
 #[path = "../src/luci.rs"]
 mod luci;
 #[path = "../src/util.rs"]
+#[allow(unused_imports)]
 mod util;
 #[path = "../src/glob.rs"]
 mod glob;
@@ -16,7 +17,7 @@ mod profile_support;
 
 use owrt_ubus::convert::object_to_payload;
 use owrt_ubus::json::Json;
-use profile_support::measure;
+use profile_support::measure_with_warmup;
 use std::hint::black_box;
 
 pub struct Ctx;
@@ -43,13 +44,14 @@ fn main() {
         let call = || luci::call(&Ctx, method, &[]).expect("successful handler").expect("reply");
         let result = call();
         assert!(matches!(result, Json::Object(_)));
-        measure(&format!("{stage}_handler"), n, filter, || {
+        let warmup = if method == "getFeatures" { 1 } else { 100 };
+        measure_with_warmup(&format!("{stage}_handler"), n, warmup, filter, || {
             black_box(call());
         });
-        measure(&format!("{stage}_encode"), n, filter, || {
+        measure_with_warmup(&format!("{stage}_encode"), n, warmup, filter, || {
             black_box(object_to_payload(&result));
         });
-        measure(&format!("{stage}_reply"), n, filter, || {
+        measure_with_warmup(&format!("{stage}_reply"), n, warmup, filter, || {
             black_box(object_to_payload(&call()));
         });
     }
