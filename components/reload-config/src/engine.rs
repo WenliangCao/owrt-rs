@@ -5,7 +5,7 @@ use owrt_uci::Context;
 use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, Write};
+use std::io::{self, BufWriter, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
@@ -105,12 +105,13 @@ pub fn run<W: Write>(
     let mut ctx = Context::new();
     ctx.set_confdir(&settings.path("/etc/config").to_string_lossy());
     ctx.set_conf2dir(&settings.path("/var/run/uci").to_string_lossy());
+    let mut output = Vec::new();
     for name in &names {
         if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
             return Err(Error::Cancelled);
         }
         ctx.set_io_budget(settings.timeout, cancelled);
-        let (output, status) = normalize(&mut ctx, name)?;
+        let status = normalize(&mut ctx, name, &mut output)?;
         if let Some(status) = status {
             trace
                 .normalization(&name.to_string_lossy(), &status)
@@ -127,6 +128,11 @@ pub fn run<W: Write>(
             continue;
         }
         current.insert(name.clone(), md5::hex(&output));
+        // Reuse ordinary package output without retaining a large temporary
+        // rendering for the rest of the round. This does not limit its size.
+        if output.capacity() > 64 * 1024 {
+            output = Vec::new();
+        }
     }
 
     let baseline_path = settings.path("/var/run/config.md5");
@@ -226,20 +232,20 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<OsString>, Error> {
 /// does not resolve (C-03).  Deltas under /tmp/.uci apply as in the CLI.  Any
 /// failure is what `uci` exits 1 for, so the entry is empty and traced as
 /// `exit_1`.
-fn normalize(ctx: &mut Context, name: &OsStr) -> Result<(Vec<u8>, Option<String>), Error> {
-    let mut output = Vec::new();
-    let result = show::tuple(ctx, name.as_bytes(), &mut Show::new(true, b" "), &mut output);
+fn normalize(ctx: &mut Context, name: &OsStr, output: &mut Vec<u8>) -> Result<Option<&'static str>, Error> {
+    output.clear();
+    let result = show::tuple(ctx, name.as_bytes(), &mut Show::new(true, b" "), output);
     match ctx.check_io_budget().and(result) {
-        Ok(()) => Ok((output, None)),
+        Ok(()) => Ok(None),
         Err(owrt_uci::Error::Cancelled) => Err(Error::Cancelled),
         Err(owrt_uci::Error::TimedOut) => {
             // Never reuse a package whose base/delta load was interrupted.
             ctx.root.clear();
             // As with the old killed `uci show`, hash whatever was already
             // rendered. A timeout while loading/locking has produced no bytes.
-            Ok((output, Some("timeout".into())))
+            Ok(Some("timeout"))
         }
-        Err(_) => Ok((output, Some("exit_1".into()))),
+        Err(_) => Ok(Some("exit_1")),
     }
 }
 
@@ -360,8 +366,9 @@ fn write_baseline(
     temporary_name.push(".reload-config-rs.tmp");
     let temporary = path.with_file_name(temporary_name);
     let result = (|| {
-        let mut output = File::create(&temporary)
+        let file = File::create(&temporary)
             .map_err(|error| Error::Io("create temporary baseline", error))?;
+        let mut output = BufWriter::new(file);
         for name in names {
             // Names whose digest md5sum could not report are absent here, the
             // same entries the shell's own broken md5sum line loses.
@@ -369,14 +376,14 @@ fn write_baseline(
                 continue;
             };
             // The path bytes are md5sum's, so they are written as bytes.
-            let mut line = format!("{digest}  /var/run/config.check/").into_bytes();
-            line.extend_from_slice(name.as_bytes());
-            line.push(b'\n');
-            output
-                .write_all(&line)
-                .map_err(|error| Error::Io("write temporary baseline", error))?;
+            for bytes in [digest.as_bytes(), b"  /var/run/config.check/", name.as_bytes(), b"\n"] {
+                output.write_all(bytes)
+                    .map_err(|error| Error::Io("write temporary baseline", error))?;
+            }
         }
+        output.flush().map_err(|error| Error::Io("write temporary baseline", error))?;
         output
+            .get_ref()
             .sync_all()
             .map_err(|error| Error::Io("sync temporary baseline", error))?;
         drop(output);

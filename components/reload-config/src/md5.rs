@@ -70,9 +70,11 @@ pub fn digest(data: &[u8]) -> [u8; 16] {
 
 /// Lower-case hex, the way `md5sum` prints it.
 pub fn hex(data: &[u8]) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
     let mut s = String::with_capacity(32);
     for byte in digest(data) {
-        s.push_str(&format!("{byte:02x}"));
+        s.push(DIGITS[(byte >> 4) as usize] as char);
+        s.push(DIGITS[(byte & 15) as usize] as char);
     }
     s
 }
