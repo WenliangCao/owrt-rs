@@ -633,7 +633,9 @@ def derive(root, label):
             "measured_sides": measured_sides,
             "baseline_label": baseline_label, "extra_baselines": extra_baselines, "cpu_affinity": settings.get("cpu_affinity"),
             "resident": residents, "sources": sources,
-            "method": "Medians of per-run statistics; c4 CPU uses one outer interval divided by successful plus warm-up operations. c4 outer throughput includes warm-up/startup and uses /proc/uptime resolution. Client validation runs on the same router CPUs."}
+            "method": ("Medians of per-run statistics; prepared reload latency, command-tree CPU and throughput cover exec-to-exit intervals only. Reset, validation, silent repeat and diagnostics are separate. Dependency clocks cover each immediate exec interval; full dependency envelopes retain asynchronous and excluded-work costs separately."
+                       if component == "reload-config" and settings.get("reload_prepared_exec") else
+                       "Medians of per-run statistics; c4 CPU uses one outer interval divided by successful plus warm-up operations. c4 outer throughput includes warm-up/startup and uses /proc/uptime resolution. Client validation runs on the same router CPUs.")}
 
 
 def main():
@@ -680,10 +682,15 @@ def main():
         lines.append("| " + " | ".join(row) + " |")
     if result["limitations"]:
         lines += ["", "**测量边界：**", *["- " + item for item in result["limitations"]]]
-    lines += ["", "每侧运行次数：" + str(len(result["order"]) // len(result["measured_sides"])) + "。所列完整运行的请求均成功，原版依赖和正式运行栈保持相同。",
-              "", "c4 的 CPU 包含并计数已记录的每客户端预热，使用唯一外层区间；吞吐包括预热和启动，",
-              "计时精度来自 /proc/uptime。客户端校验也使用路由器 CPU，不能把这里的吞吐视为服务端极限。",
-              "", "逐轮均值、p50/p95/p99、CPU、内存、离散程度及产物身份见 [results.json](results.json)。", ""]
+    lines += ["", "每侧运行次数：" + str(len(result["order"]) // len(result["measured_sides"])) + "。所列完整运行的请求均成功，原版依赖和正式运行栈保持相同。"]
+    if result["component"] == "reload-config" and all("accounting" in row for row in result["runs"]):
+        lines += ["", "延迟和命令树 CPU 仅覆盖真实 exec 到退出；吞吐使用成功 exec 的时长总和。",
+                  "准备、完整校验、静默重复和资源诊断均单列；依赖 CPU 是立即包围 exec 的窗口，完整依赖 envelope 另存。",
+                  "微秒计数编码不等于微秒精度，caller CPU 也不能作为组件自身成本。"]
+    else:
+        lines += ["", "c4 的 CPU 包含并计数已记录的每客户端预热，使用唯一外层区间；吞吐包括预热和启动，",
+                  "计时精度来自 /proc/uptime。客户端校验也使用路由器 CPU，不能把这里的吞吐视为服务端极限。"]
+    lines += ["", "逐轮均值、p50/p95/p99、CPU、内存、离散程度及产物身份见 [results.json](results.json)。", ""]
     (args.output / "results.md").write_text("\n".join(lines))
     print(f"{args.label}: {len(result['runs'])} workload measurements verified")
 
