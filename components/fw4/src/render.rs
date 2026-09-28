@@ -6,6 +6,7 @@ use crate::emit::*;
 use crate::parse::Fw4;
 use crate::state::*;
 use owrt_ubus::json::Json;
+use std::fmt::Write;
 
 fn opt_set(v: Option<&Vec<String>>) -> String {
     set(v.map(|x| x.as_slice()).unwrap_or(&[]), false)
@@ -39,37 +40,37 @@ fn limit_frag(l: &Limit, burst: Option<crate::val::Num>) -> String {
 
 fn time_frags(start_date: Option<&DateTime>, stop_date: Option<&DateTime>, start_time: Option<&Time>, stop_time: Option<&Time>, weekdays: Option<&Weekdays>, out: &mut String) {
     match (start_date, stop_date) {
-        (Some(a), Some(b)) => out.push_str(&format!("meta time {}-{} ", datestamp(a), datestamp(b))),
-        (Some(a), None) => out.push_str(&format!("meta time >= {} ", datestamp(a))),
-        (None, Some(b)) => out.push_str(&format!("meta time <= {} ", datestamp(b))),
+        (Some(a), Some(b)) => write!(out, "meta time {}-{} ", datestamp(a), datestamp(b)).expect("writing to String cannot fail"),
+        (Some(a), None) => write!(out, "meta time >= {} ", datestamp(a)).expect("writing to String cannot fail"),
+        (None, Some(b)) => write!(out, "meta time <= {} ", datestamp(b)).expect("writing to String cannot fail"),
         _ => {}
     }
     match (start_time, stop_time) {
-        (Some(a), Some(b)) => out.push_str(&format!("meta hour {}-{} ", time(a), time(b))),
-        (Some(a), None) => out.push_str(&format!("meta hour >= {} ", time(a))),
-        (None, Some(b)) => out.push_str(&format!("meta hour <= {} ", time(b))),
+        (Some(a), Some(b)) => write!(out, "meta hour {}-{} ", time(a), time(b)).expect("writing to String cannot fail"),
+        (Some(a), None) => write!(out, "meta hour >= {} ", time(a)).expect("writing to String cannot fail"),
+        (None, Some(b)) => write!(out, "meta hour <= {} ", time(b)).expect("writing to String cannot fail"),
         _ => {}
     }
     if let Some(w) = weekdays {
-        out.push_str(&format!("meta day{} {} ", if w.invert { " !=" } else { "" }, set(&w.days, false)));
+        write!(out, "meta day{} {} ", if w.invert { " !=" } else { "" }, set(&w.days, false)).expect("writing to String cannot fail");
     }
 }
 
 fn mark_frag(m: &Mark, out: &mut String) {
     if m.mask < 0xFFFF_FFFF {
-        out.push_str(&format!("meta mark and {} {} {} ", hex(m.mask), if m.invert { "!=" } else { "==" }, hex(m.mark)));
+        write!(out, "meta mark and {} {} {} ", hex(m.mask), if m.invert { "!=" } else { "==" }, hex(m.mark)).expect("writing to String cannot fail");
     } else {
-        out.push_str(&format!("meta mark{} {} ", if m.invert { " !=" } else { "" }, hex(m.mark)));
+        write!(out, "meta mark{} {} ", if m.invert { " !=" } else { "" }, hex(m.mark)).expect("writing to String cannot fail");
     }
 }
 
 fn setmatch_frag(sm: &SetMatch, out: &mut String) {
-    out.push_str(&format!(
+    write!(out,
         "{}{} @{} ",
         concat(sm.fields.as_deref().unwrap_or(&[])),
         if sm.invert { " !=" } else { "" },
         sm.name
-    ));
+    ).expect("writing to String cannot fail");
 }
 
 fn xmark_expr(x: &Mark) -> String {
@@ -100,64 +101,64 @@ impl Fw4 {
 
     pub fn render_rule(&self, zone: Option<usize>, rule: &Rule, out: &mut String) {
         if rule.family != 0 && !rule.has_addrs {
-            out.push_str(&format!("meta nfproto {} ", nfproto(rule.family, false)));
+            write!(out, "meta nfproto {} ", nfproto(rule.family, false)).expect("writing to String cannot fail");
         }
         if !rule.proto.any && !rule.has_ports && rule.icmp_types.is_none() && rule.icmp_codes.is_none() {
-            out.push_str(&format!("meta l4proto {} ", l4proto(rule.family, &rule.proto)));
+            write!(out, "meta l4proto {} ", l4proto(rule.family, &rule.proto)).expect("writing to String cannot fail");
         }
         if optional(rule.iifnames.as_ref()) {
-            out.push_str(&format!("iifname {} ", opt_set(rule.iifnames.as_ref())));
+            write!(out, "iifname {} ", opt_set(rule.iifnames.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.oifnames.as_ref()) {
-            out.push_str(&format!("oifname {} ", opt_set(rule.oifnames.as_ref())));
+            write!(out, "oifname {} ", opt_set(rule.oifnames.as_ref())).expect("writing to String cannot fail");
         }
         let ipp = ipproto(rule.family);
         if optional(rule.saddrs_pos.as_ref()) {
-            out.push_str(&format!("{ipp} saddr {} ", opt_set(rule.saddrs_pos.as_ref())));
+            write!(out, "{ipp} saddr {} ", opt_set(rule.saddrs_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.saddrs_neg.as_ref()) {
-            out.push_str(&format!("{ipp} saddr != {} ", opt_set(rule.saddrs_neg.as_ref())));
+            write!(out, "{ipp} saddr != {} ", opt_set(rule.saddrs_neg.as_ref())).expect("writing to String cannot fail");
         }
         for a in rule.saddrs_masked.iter().flatten() {
             out.push_str(&masked_frag(rule.family, "saddr", a));
         }
         if optional(rule.daddrs_pos.as_ref()) {
-            out.push_str(&format!("{ipp} daddr {} ", opt_set(rule.daddrs_pos.as_ref())));
+            write!(out, "{ipp} daddr {} ", opt_set(rule.daddrs_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.daddrs_neg.as_ref()) {
-            out.push_str(&format!("{ipp} daddr != {} ", opt_set(rule.daddrs_neg.as_ref())));
+            write!(out, "{ipp} daddr != {} ", opt_set(rule.daddrs_neg.as_ref())).expect("writing to String cannot fail");
         }
         for a in rule.daddrs_masked.iter().flatten() {
             out.push_str(&masked_frag(rule.family, "daddr", a));
         }
         let pn = rule.proto.name();
         if optional(rule.sports_pos.as_ref()) {
-            out.push_str(&format!("{pn} sport {} ", opt_set(rule.sports_pos.as_ref())));
+            write!(out, "{pn} sport {} ", opt_set(rule.sports_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.sports_neg.as_ref()) {
-            out.push_str(&format!("{pn} sport != {} ", opt_set(rule.sports_neg.as_ref())));
+            write!(out, "{pn} sport != {} ", opt_set(rule.sports_neg.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.dports_pos.as_ref()) {
-            out.push_str(&format!("{pn} dport {} ", opt_set(rule.dports_pos.as_ref())));
+            write!(out, "{pn} dport {} ", opt_set(rule.dports_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.dports_neg.as_ref()) {
-            out.push_str(&format!("{pn} dport != {} ", opt_set(rule.dports_neg.as_ref())));
+            write!(out, "{pn} dport != {} ", opt_set(rule.dports_neg.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.smacs_pos.as_ref()) {
-            out.push_str(&format!("ether saddr {} ", opt_set(rule.smacs_pos.as_ref())));
+            write!(out, "ether saddr {} ", opt_set(rule.smacs_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(rule.smacs_neg.as_ref()) {
-            out.push_str(&format!("ether saddr != {} ", opt_set(rule.smacs_neg.as_ref())));
+            write!(out, "ether saddr != {} ", opt_set(rule.smacs_neg.as_ref())).expect("writing to String cannot fail");
         }
         let icmp = if rule.family == 4 { "icmp" } else { "icmpv6" };
         if let Some(t) = &rule.icmp_types {
-            out.push_str(&format!("{icmp} type {} ", set_i64(t, false)));
+            write!(out, "{icmp} type {} ", set_i64(t, false)).expect("writing to String cannot fail");
         }
         if let Some(c) = &rule.icmp_codes {
-            out.push_str(&format!("{icmp} type . {icmp} code {} ", set(c, true)));
+            write!(out, "{icmp} type . {icmp} code {} ", set(c, true)).expect("writing to String cannot fail");
         }
         if let Some(h) = &rule.helper {
-            out.push_str(&format!("ct helper{} {} ", if h.invert { " !=" } else { "" }, quote(&h.helper.name, true)));
+            write!(out, "ct helper{} {} ", if h.invert { " !=" } else { "" }, quote(&h.helper.name, true)).expect("writing to String cannot fail");
         }
         if let Some(l) = &rule.limit {
             out.push_str(&limit_frag(l, rule.limit_burst));
@@ -167,19 +168,19 @@ impl Fw4 {
             mark_frag(m, out);
         }
         if let Some(d) = &rule.dscp {
-            out.push_str(&format!("{ipp} dscp{} {} ", if d.invert { " !=" } else { "" }, hex(d.dscp)));
+            write!(out, "{ipp} dscp{} {} ", if d.invert { " !=" } else { "" }, hex(d.dscp)).expect("writing to String cannot fail");
         }
         if let Some(sm) = &rule.ipset {
             setmatch_frag(sm, out);
         }
         let zone_limit = self.zone(zone).and_then(|z| z.log_limit.as_ref());
         if let (Some(log), Some(ll)) = (&rule.log, &rule.log_limit) {
-            out.push_str(&format!("limit rate {}/{} log prefix {}\n\t\t", num(ll.rate), ll.unit, quote(log, true)));
+            write!(out, "limit rate {}/{} log prefix {}\n\t\t", num(ll.rate), ll.unit, quote(log, true)).expect("writing to String cannot fail");
             let mut inner = rule.clone();
             inner.log = None;
             self.render_rule(zone, &inner, out);
         } else if let (Some(log), Some(z)) = (&rule.log, zone_limit.and(self.zone(zone))) {
-            out.push_str(&format!("limit name \"{}.log_limit\" log prefix {}\n\t\t", z.name, quote(log, true)));
+            write!(out, "limit name \"{}.log_limit\" log prefix {}\n\t\t", z.name, quote(log, true)).expect("writing to String cannot fail");
             let mut inner = rule.clone();
             inner.log = None;
             self.render_rule(zone, &inner, out);
@@ -188,31 +189,31 @@ impl Fw4 {
                 out.push_str("counter ");
             }
             if let Some(log) = &rule.log {
-                out.push_str(&format!("log prefix {} ", quote(log, true)));
+                write!(out, "log prefix {} ", quote(log, true)).expect("writing to String cannot fail");
             }
             match rule.target.as_deref() {
                 Some("mark") => {
                     let x = rule.set_xmark.clone().unwrap_or(Mark { invert: false, mark: 0, mask: 0xFFFF_FFFF });
-                    out.push_str(&format!("meta mark set {} ", xmark_expr(&x)));
+                    write!(out, "meta mark set {} ", xmark_expr(&x)).expect("writing to String cannot fail");
                 }
-                Some("dscp") => out.push_str(&format!(
+                Some("dscp") => write!(out,
                     "{ipp} dscp set {} ",
                     hex(rule.set_dscp.as_ref().map(|d| d.dscp).unwrap_or(0))
-                )),
+                ).expect("writing to String cannot fail"),
                 Some("notrack") => out.push_str("notrack "),
-                Some("helper") => out.push_str(&format!(
+                Some("helper") => write!(out,
                     "ct helper set {} ",
                     quote(rule.set_helper.as_ref().map(|h| h.helper.name.as_str()).unwrap_or("null"), true)
-                )),
+                ).expect("writing to String cannot fail"),
                 _ => {
                     if let Some(j) = &rule.jump_chain {
-                        out.push_str(&format!("jump {j} "));
+                        write!(out, "jump {j} ").expect("writing to String cannot fail");
                     } else if let Some(t) = &rule.target {
-                        out.push_str(&format!("{t} "));
+                        write!(out, "{t} ").expect("writing to String cannot fail");
                     }
                 }
             }
-            out.push_str(&format!("comment {}\n", quote(&format!("!fw4: {}", rule.name), true)));
+            writeln!(out, "comment {}", quote(&format!("!fw4: {}", rule.name), true)).expect("writing to String cannot fail");
         }
     }
 
@@ -220,55 +221,55 @@ impl Fw4 {
 
     pub fn render_redirect(&self, zone: Option<usize>, r: &Redirect, out: &mut String) {
         if r.family != 0 && !r.has_addrs {
-            out.push_str(&format!("meta nfproto {} ", nfproto(r.family, false)));
+            write!(out, "meta nfproto {} ", nfproto(r.family, false)).expect("writing to String cannot fail");
         }
         if !r.proto.any && !r.has_ports {
             let name = if r.proto.name() == "icmp" && r.family == 6 { "ipv6-icmp" } else { r.proto.name() };
-            out.push_str(&format!("meta l4proto {name} "));
+            write!(out, "meta l4proto {name} ").expect("writing to String cannot fail");
         }
         if let Some(d) = &r.device {
-            out.push_str(&format!("oifname {} ", quote(d, true)));
+            write!(out, "oifname {} ", quote(d, true)).expect("writing to String cannot fail");
         }
         let ipp = ipproto(r.family);
         if optional(r.saddrs_pos.as_ref()) {
-            out.push_str(&format!("{ipp} saddr {} ", opt_set(r.saddrs_pos.as_ref())));
+            write!(out, "{ipp} saddr {} ", opt_set(r.saddrs_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(r.saddrs_neg.as_ref()) {
-            out.push_str(&format!("{ipp} saddr != {} ", opt_set(r.saddrs_neg.as_ref())));
+            write!(out, "{ipp} saddr != {} ", opt_set(r.saddrs_neg.as_ref())).expect("writing to String cannot fail");
         }
         for a in r.saddrs_masked.iter().flatten() {
             out.push_str(&masked_frag(r.family, "saddr", a));
         }
         if optional(r.daddrs_pos.as_ref()) {
-            out.push_str(&format!("{ipp} daddr {} ", opt_set(r.daddrs_pos.as_ref())));
+            write!(out, "{ipp} daddr {} ", opt_set(r.daddrs_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(r.daddrs_neg.as_ref()) {
-            out.push_str(&format!("{ipp} daddr != {} ", opt_set(r.daddrs_neg.as_ref())));
+            write!(out, "{ipp} daddr != {} ", opt_set(r.daddrs_neg.as_ref())).expect("writing to String cannot fail");
         }
         for a in r.daddrs_masked.iter().flatten() {
             out.push_str(&masked_frag(r.family, "daddr", a));
         }
         let pn = r.proto.name();
         if optional(r.sports_pos.as_ref()) {
-            out.push_str(&format!("{pn} sport {} ", opt_set(r.sports_pos.as_ref())));
+            write!(out, "{pn} sport {} ", opt_set(r.sports_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(r.sports_neg.as_ref()) {
-            out.push_str(&format!("{pn} sport != {} ", opt_set(r.sports_neg.as_ref())));
+            write!(out, "{pn} sport != {} ", opt_set(r.sports_neg.as_ref())).expect("writing to String cannot fail");
         }
         if optional(r.dports_pos.as_ref()) {
-            out.push_str(&format!("{pn} dport {} ", opt_set(r.dports_pos.as_ref())));
+            write!(out, "{pn} dport {} ", opt_set(r.dports_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(r.dports_neg.as_ref()) {
-            out.push_str(&format!("{pn} dport != {} ", opt_set(r.dports_neg.as_ref())));
+            write!(out, "{pn} dport != {} ", opt_set(r.dports_neg.as_ref())).expect("writing to String cannot fail");
         }
         if optional(r.smacs_pos.as_ref()) {
-            out.push_str(&format!("ether saddr {} ", opt_set(r.smacs_pos.as_ref())));
+            write!(out, "ether saddr {} ", opt_set(r.smacs_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(r.smacs_neg.as_ref()) {
-            out.push_str(&format!("ether saddr != {} ", opt_set(r.smacs_neg.as_ref())));
+            write!(out, "ether saddr != {} ", opt_set(r.smacs_neg.as_ref())).expect("writing to String cannot fail");
         }
         if let Some(h) = &r.helper {
-            out.push_str(&format!("ct helper{} {} ", if h.invert { " !=" } else { "" }, quote(&h.helper.name, true)));
+            write!(out, "ct helper{} {} ", if h.invert { " !=" } else { "" }, quote(&h.helper.name, true)).expect("writing to String cannot fail");
         }
         if let Some(l) = &r.limit {
             out.push_str(&limit_frag(l, r.limit_burst));
@@ -282,12 +283,12 @@ impl Fw4 {
         }
         let zone_limit = self.zone(zone).and_then(|z| z.log_limit.as_ref());
         if let (Some(log), Some(ll)) = (&r.log, &r.log_limit) {
-            out.push_str(&format!("limit rate {}/{} log prefix {}\n\t\t", num(ll.rate), ll.unit, quote(log, true)));
+            write!(out, "limit rate {}/{} log prefix {}\n\t\t", num(ll.rate), ll.unit, quote(log, true)).expect("writing to String cannot fail");
             let mut inner = r.clone();
             inner.log = None;
             self.render_redirect(zone, &inner, out);
         } else if let (Some(log), Some(z)) = (&r.log, zone_limit.and(self.zone(zone))) {
-            out.push_str(&format!("limit name \"{}.log_limit\" log prefix {}\n\t\t", z.name, quote(log, true)));
+            write!(out, "limit name \"{}.log_limit\" log prefix {}\n\t\t", z.name, quote(log, true)).expect("writing to String cannot fail");
             let mut inner = r.clone();
             inner.log = None;
             self.render_redirect(zone, &inner, out);
@@ -296,28 +297,28 @@ impl Fw4 {
                 out.push_str("counter ");
             }
             if let Some(log) = &r.log {
-                out.push_str(&format!("log prefix {} ", quote(log, true)));
+                write!(out, "log prefix {} ", quote(log, true)).expect("writing to String cannot fail");
             }
             match r.target.as_str() {
                 "redirect" => {
                     out.push_str("redirect");
                     if let Some(p) = &r.rport {
-                        out.push_str(&format!(" to {}", port(p)));
+                        write!(out, " to {}", port(p)).expect("writing to String cannot fail");
                     }
                 }
                 "accept" | "masquerade" => out.push_str(&r.target),
                 _ => {
-                    out.push_str(&format!(
+                    write!(out,
                         "{} {}",
                         r.target,
                         r.raddr.as_ref().map(|a| host(a, r.rport.is_some())).unwrap_or_default()
-                    ));
+                    ).expect("writing to String cannot fail");
                     if let Some(p) = &r.rport {
-                        out.push_str(&format!(":{}", port(p)));
+                        write!(out, ":{}", port(p)).expect("writing to String cannot fail");
                     }
                 }
             }
-            out.push_str(&format!(" comment {}\n", quote(&format!("!fw4: {}", r.name), true)));
+            writeln!(out, " comment {}", quote(&format!("!fw4: {}", r.name), true)).expect("writing to String cannot fail");
         }
     }
 
@@ -327,20 +328,20 @@ impl Fw4 {
         let ifn = if egress { "oifname" } else { "iifname" };
         let dir = if egress { "daddr" } else { "saddr" };
         if optional(mr.devices_pos.as_ref()) {
-            out.push_str(&format!("{ifn} {} ", opt_set(mr.devices_pos.as_ref())));
+            write!(out, "{ifn} {} ", opt_set(mr.devices_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(mr.devices_neg.as_ref()) {
-            out.push_str(&format!("{ifn} != {} ", opt_set(mr.devices_neg.as_ref())));
+            write!(out, "{ifn} != {} ", opt_set(mr.devices_neg.as_ref())).expect("writing to String cannot fail");
         }
         for w in mr.devices_neg_wildcard.iter().flatten() {
-            out.push_str(&format!("{ifn} != {} ", quote(w, false)));
+            write!(out, "{ifn} != {} ", quote(w, false)).expect("writing to String cannot fail");
         }
         let ipp = ipproto(mr.family);
         if optional(mr.subnets_pos.as_ref()) {
-            out.push_str(&format!("{ipp} {dir} {} ", opt_set(mr.subnets_pos.as_ref())));
+            write!(out, "{ipp} {dir} {} ", opt_set(mr.subnets_pos.as_ref())).expect("writing to String cannot fail");
         }
         if optional(mr.subnets_neg.as_ref()) {
-            out.push_str(&format!("{ipp} {dir} != {} ", opt_set(mr.subnets_neg.as_ref())));
+            write!(out, "{ipp} {dir} != {} ", opt_set(mr.subnets_neg.as_ref())).expect("writing to String cannot fail");
         }
         for a in mr.subnets_masked.iter().flatten() {
             out.push_str(&masked_frag(mr.family, dir, a));
@@ -349,100 +350,100 @@ impl Fw4 {
 
     fn render_zone_jump(&self, zone: &Zone, mr: &MatchRule, direction: &str, out: &mut String) {
         if mr.family != 0 {
-            out.push_str(&format!("meta nfproto {} ", nfproto(mr.family, false)));
+            write!(out, "meta nfproto {} ", nfproto(mr.family, false)).expect("writing to String cannot fail");
         }
         self.render_zone_match(direction == "output" || direction == "srcnat", mr, out);
-        out.push_str(&format!(
-            "jump {direction}_{} comment \"!fw4: Handle {} {} {direction} {}\"\n",
+        writeln!(out,
+            "jump {direction}_{} comment \"!fw4: Handle {} {} {direction} {}\"",
             zone.name,
             zone.name,
             nfproto(mr.family, true),
             if direction == "helper" { "assignment" } else { "traffic" }
-        ));
+        ).expect("writing to String cannot fail");
     }
 
     fn render_zone_verdict(&self, zone: &Zone, log: i64, mr: &MatchRule, egress: bool, verdict: &str, out: &mut String) {
         if mr.family != 0 {
-            out.push_str(&format!("meta nfproto {} ", nfproto(mr.family, false)));
+            write!(out, "meta nfproto {} ", nfproto(mr.family, false)).expect("writing to String cannot fail");
         }
         self.render_zone_match(egress, mr, out);
         let inout = if egress { "out" } else { "in" };
         if verdict != "accept" && (log & 1) != 0 && zone.log_limit.is_some() {
-            out.push_str(&format!(
+            write!(out,
                 "limit name \"{}.log_limit\" log prefix \"{verdict} {} {inout}: \"\n\t\t",
                 zone.name, zone.name
-            ));
+            ).expect("writing to String cannot fail");
             self.render_zone_verdict(zone, 0, mr, egress, verdict, out);
         } else {
             if zone.counter {
                 out.push_str("counter ");
             }
             if verdict != "accept" && (log & 1) != 0 {
-                out.push_str(&format!("log prefix \"{verdict} {} {inout}: \" ", zone.name));
+                write!(out, "log prefix \"{verdict} {} {inout}: \" ", zone.name).expect("writing to String cannot fail");
             }
             if verdict == "reject" {
-                out.push_str(&format!(
-                    "jump handle_reject comment \"!fw4: reject {} {} traffic\"\n",
+                writeln!(out,
+                    "jump handle_reject comment \"!fw4: reject {} {} traffic\"",
                     zone.name,
                     nfproto(mr.family, true)
-                ));
+                ).expect("writing to String cannot fail");
             } else {
-                out.push_str(&format!(
-                    "{verdict} comment \"!fw4: {verdict} {} {} traffic\"\n",
+                writeln!(out,
+                    "{verdict} comment \"!fw4: {verdict} {} {} traffic\"",
                     zone.name,
                     nfproto(mr.family, true)
-                ));
+                ).expect("writing to String cannot fail");
             }
         }
     }
 
     fn render_zone_masq(&self, zone: &Zone, family: i64, saddrs: &SubnetGroup, daddrs: &SubnetGroup, out: &mut String) {
-        out.push_str(&format!("meta nfproto {} ", nfproto(family, false)));
+        write!(out, "meta nfproto {} ", nfproto(family, false)).expect("writing to String cannot fail");
         let ipp = ipproto(family);
         let cidrs = |v: &Vec<Addr>| -> Vec<String> { v.iter().map(cidr).collect() };
         if let Some(v) = &saddrs.0 {
-            out.push_str(&format!("{ipp} saddr {} ", set(&cidrs(v), false)));
+            write!(out, "{ipp} saddr {} ", set(&cidrs(v), false)).expect("writing to String cannot fail");
         }
         if let Some(v) = &saddrs.1 {
-            out.push_str(&format!("{ipp} saddr != {} ", set(&cidrs(v), false)));
+            write!(out, "{ipp} saddr != {} ", set(&cidrs(v), false)).expect("writing to String cannot fail");
         }
         for a in saddrs.2.iter().flatten() {
             out.push_str(&masked_frag(family, "saddr", a));
         }
         if let Some(v) = &daddrs.0 {
-            out.push_str(&format!("{ipp} daddr {} ", set(&cidrs(v), false)));
+            write!(out, "{ipp} daddr {} ", set(&cidrs(v), false)).expect("writing to String cannot fail");
         }
         if let Some(v) = &daddrs.1 {
-            out.push_str(&format!("{ipp} daddr != {} ", set(&cidrs(v), false)));
+            write!(out, "{ipp} daddr != {} ", set(&cidrs(v), false)).expect("writing to String cannot fail");
         }
         for a in daddrs.2.iter().flatten() {
             out.push_str(&masked_frag(family, "daddr", a));
         }
-        out.push_str(&format!(
-            "masquerade comment \"!fw4: Masquerade {} {} traffic\"\n",
+        writeln!(out,
+            "masquerade comment \"!fw4: Masquerade {} {} traffic\"",
             nfproto(family, true),
             zone.name
-        ));
+        ).expect("writing to String cannot fail");
     }
 
     fn render_zone_drop_invalid(&self, zone: &Zone, log: i64, mr: &MatchRule, out: &mut String) {
         if zone.masq != zone.masq6 {
-            out.push_str(&format!("meta nfproto {} ", nfproto(if zone.masq { 4 } else { 6 }, false)));
+            write!(out, "meta nfproto {} ", nfproto(if zone.masq { 4 } else { 6 }, false)).expect("writing to String cannot fail");
         }
         self.render_zone_match(true, mr, out);
         out.push_str("ct state invalid ");
         if (log & 1) != 0 && zone.log_limit.is_some() {
-            out.push_str(&format!(
+            write!(out,
                 "limit name \"{}.log_limit\" log prefix \"drop {} invalid ct state: \"\n\t\t",
                 zone.name, zone.name
-            ));
+            ).expect("writing to String cannot fail");
             self.render_zone_drop_invalid(zone, 0, mr, out);
         } else {
             if zone.counter {
                 out.push_str("counter ");
             }
             if (log & 1) != 0 {
-                out.push_str(&format!("log prefix \"drop {} invalid ct state: \" ", zone.name));
+                write!(out, "log prefix \"drop {} invalid ct state: \" ", zone.name).expect("writing to String cannot fail");
             }
             out.push_str("drop comment \"!fw4: Prevent NAT leakage\"\n");
         }
@@ -450,19 +451,19 @@ impl Fw4 {
 
     fn render_zone_mssfix(&self, zone: &Zone, mr: &MatchRule, egress: bool, out: &mut String) {
         if mr.family != 0 {
-            out.push_str(&format!("meta nfproto {} ", nfproto(mr.family, false)));
+            write!(out, "meta nfproto {} ", nfproto(mr.family, false)).expect("writing to String cannot fail");
         }
         self.render_zone_match(egress, mr, out);
         out.push_str("tcp flags syn / syn,fin,rst tcp option maxseg size set rt mtu ");
         if (zone.log_bits() & 2) != 0 {
-            out.push_str(&format!("log prefix \"MSSFIX {} out: \" ", zone.name));
+            write!(out, "log prefix \"MSSFIX {} out: \" ", zone.name).expect("writing to String cannot fail");
         }
-        out.push_str(&format!(
-            "comment \"!fw4: Zone {} {} {} MTU fixing\"\n",
+        writeln!(out,
+            "comment \"!fw4: Zone {} {} {} MTU fixing\"",
             zone.name,
             nfproto(mr.family, true),
             if egress { "egress" } else { "ingress" }
-        ));
+        ).expect("writing to String cannot fail");
     }
 
     // ------------------------------------------------------------ offload / nft state
@@ -654,7 +655,7 @@ impl Fw4 {
         out.push_str("\ntable inet fw4 {\n");
         if !flowtable_devices.is_empty() {
             out.push_str("\t#\n\t# Flowtable\n\t#\n\n\tflowtable ft {\n\t\thook ingress priority 0;\n");
-            out.push_str(&format!("\t\tdevices = {};\n\t\tcounter;\n", set(&flowtable_devices, true)));
+            writeln!(out, "\t\tdevices = {};\n\t\tcounter;", set(&flowtable_devices, true)).expect("writing to String cannot fail");
             if self.defaults().flow_offloading_hw.unwrap_or(false) {
                 out.push_str("\t\tflags offload;\n");
             }
@@ -664,12 +665,12 @@ impl Fw4 {
             out.push_str("\t#\n\t# CT helper definitions\n\t#\n\n");
             for helper in &available_helpers {
                 for proto in helper.proto.iter().flatten() {
-                    out.push_str(&format!(
-                        "\tct helper {} {{\n\t\ttype {} protocol {};\n\t}}\n\n",
+                    writeln!(out,
+                        "\tct helper {} {{\n\t\ttype {} protocol {};\n\t}}\n",
                         helper.name,
                         quote(&helper.name, true),
                         proto.name()
-                    ));
+                    ).expect("writing to String cannot fail");
                 }
             }
             out.push('\n');
@@ -677,22 +678,22 @@ impl Fw4 {
         if !defined_ipsets.is_empty() {
             out.push_str("\t#\n\t# Set definitions\n\t#\n\n");
             for set_ in defined_ipsets {
-                out.push_str(&format!("\tset {} {{\n", set_.name));
+                writeln!(out, "\tset {} {{", set_.name).expect("writing to String cannot fail");
                 if let Some(c) = set_.comment.as_deref().filter(|c| !c.is_empty()) {
-                    out.push_str(&format!("\t\tcomment {}\n", quote(c, true)));
+                    writeln!(out, "\t\tcomment {}", quote(c, true)).expect("writing to String cannot fail");
                 }
-                out.push_str(&format!("\t\ttype {}\n", concat(&set_.types)));
+                writeln!(out, "\t\ttype {}", concat(&set_.types)).expect("writing to String cannot fail");
                 if set_.maxelem.map(|m| m.as_f64() > 0.0).unwrap_or(false) {
-                    out.push_str(&format!("\t\tsize {}\n", num(set_.maxelem.unwrap())));
+                    writeln!(out, "\t\tsize {}", num(set_.maxelem.unwrap())).expect("writing to String cannot fail");
                 }
                 if set_.timeout.as_f64() > 0.0 {
-                    out.push_str(&format!("\t\ttimeout {}s\n", num(set_.timeout)));
+                    writeln!(out, "\t\ttimeout {}s", num(set_.timeout)).expect("writing to String cannot fail");
                 }
                 if set_.interval {
                     out.push_str("\t\tauto-merge\n");
                 }
                 if let Some(f) = &set_.flags {
-                    out.push_str(&format!("\t\tflags {}\n", f.join(",")));
+                    writeln!(out, "\t\tflags {}", f.join(",")).expect("writing to String cannot fail");
                 }
                 self.print_setentries(set_, &mut out);
                 out.push_str("\t}\n\n");
@@ -702,18 +703,18 @@ impl Fw4 {
         out.push_str("\t#\n\t# Defines\n\t#\n\n");
         for zone in &self.state.zones {
             let n = if zone.name.starts_with(|c: char| c.is_ascii_digit()) { format!("_{}", zone.name) } else { zone.name.clone() };
-            out.push_str(&format!("\tdefine {n}_devices = {}\n", set(&zone.match_devices, true)));
-            out.push_str(&format!("\tdefine {n}_subnets = {}\n\n", set(&zone.match_subnets, true)));
+            writeln!(out, "\tdefine {n}_devices = {}", set(&zone.match_devices, true)).expect("writing to String cannot fail");
+            writeln!(out, "\tdefine {n}_subnets = {}\n", set(&zone.match_subnets, true)).expect("writing to String cannot fail");
         }
         out.push('\n');
         if !zones_with_limits.is_empty() {
             out.push_str("\t#\n\t# Limits\n\t#\n\n");
             for zone in &zones_with_limits {
                 let l = zone.log_limit.as_ref().unwrap();
-                out.push_str(&format!(
-                    "\tlimit {}.log_limit {{\n\t\tcomment \"{} log limit\"\n\t\trate {}/{}\n\t}}\n\n",
+                writeln!(out,
+                    "\tlimit {}.log_limit {{\n\t\tcomment \"{} log limit\"\n\t\trate {}/{}\n\t}}\n",
                     zone.name, zone.name, num(l.rate), l.unit
-                ));
+                ).expect("writing to String cannot fail");
             }
             out.push('\n');
         }
@@ -729,10 +730,10 @@ impl Fw4 {
         };
 
         // input
-        out.push_str(&format!(
-            "\tchain input {{\n\t\ttype filter hook input priority filter; policy {};\n\n\t\tiif \"lo\" accept comment \"!fw4: Accept traffic from loopback\"\n\n",
+        writeln!(out,
+            "\tchain input {{\n\t\ttype filter hook input priority filter; policy {};\n\n\t\tiif \"lo\" accept comment \"!fw4: Accept traffic from loopback\"\n",
             self.input_policy(true)
-        ));
+        ).expect("writing to String cannot fail");
         inc(self, "chain-prepend", Some("input"), &mut out);
         out.push_str(&vmap("Handle inbound flows"));
         if synflood {
@@ -747,10 +748,10 @@ impl Fw4 {
         out.push_str("\t}\n\n");
 
         // forward
-        out.push_str(&format!(
-            "\tchain forward {{\n\t\ttype filter hook forward priority filter; policy {};\n\n",
+        writeln!(out,
+            "\tchain forward {{\n\t\ttype filter hook forward priority filter; policy {};\n",
             self.forward_policy(true)
-        ));
+        ).expect("writing to String cannot fail");
         if !flowtable_devices.is_empty() {
             out.push_str("\t\tmeta l4proto { tcp, udp } flow offload @ft;\n");
         }
@@ -774,10 +775,10 @@ impl Fw4 {
         out.push_str("\t}\n\n");
 
         // output
-        out.push_str(&format!(
-            "\tchain output {{\n\t\ttype filter hook output priority filter; policy {};\n\n\t\toif \"lo\" accept comment \"!fw4: Accept traffic towards loopback\"\n\n",
+        writeln!(out,
+            "\tchain output {{\n\t\ttype filter hook output priority filter; policy {};\n\n\t\toif \"lo\" accept comment \"!fw4: Accept traffic towards loopback\"\n",
             self.output_policy(true)
-        ));
+        ).expect("writing to String cannot fail");
         inc(self, "chain-prepend", Some("output"), &mut out);
         out.push_str(&vmap("Handle outbound flows"));
         self.chain_rules("output", None, &mut out);
@@ -821,16 +822,16 @@ impl Fw4 {
             Some(c) => format!("icmpx type {c}"),
             None => "icmpx type ".to_owned(),
         };
-        out.push_str(&format!(
-            "\tchain handle_reject {{\n\t\tmeta l4proto tcp reject with {} comment \"!fw4: Reject TCP traffic\"\n\t\treject with {} comment \"!fw4: Reject any other traffic\"\n\t}}\n\n",
+        writeln!(out,
+            "\tchain handle_reject {{\n\t\tmeta l4proto tcp reject with {} comment \"!fw4: Reject TCP traffic\"\n\t\treject with {} comment \"!fw4: Reject any other traffic\"\n\t}}\n",
             reject_with(d.tcp_reject_code.as_deref()),
             reject_with(d.any_reject_code.as_deref())
-        ));
+        ).expect("writing to String cannot fail");
         if synflood {
             let r = d.synflood_rate.as_ref().unwrap();
-            out.push_str(&format!("\tchain syn_flood {{\n\t\tlimit rate {}/{}", num(r.rate), r.unit));
+            write!(out, "\tchain syn_flood {{\n\t\tlimit rate {}/{}", num(r.rate), r.unit).expect("writing to String cannot fail");
             if let Some(b) = d.synflood_burst.filter(|b| b.as_f64() != 0.0) {
-                out.push_str(&format!(" burst {} packets", num(b)));
+                write!(out, " burst {} packets", num(b)).expect("writing to String cannot fail");
             }
             out.push_str(" return comment \"!fw4: Accept SYN packets below rate-limit\"\n\t\tdrop comment \"!fw4: Drop excess packets\"\n\t}\n\n");
         }
@@ -840,46 +841,46 @@ impl Fw4 {
         for zi in 0..nzones {
             let zone = &self.state.zones[zi];
             let n = &zone.name;
-            out.push_str(&format!("\tchain input_{n} {{\n"));
+            writeln!(out, "\tchain input_{n} {{").expect("writing to String cannot fail");
             inc(self, "chain-prepend", Some(&format!("input_{n}")), &mut out);
             self.chain_rules(&format!("input_{n}"), Some(zi), &mut out);
             if zone.dflags.has("dnat") {
                 out.push_str("\t\tct status dnat accept comment \"!fw4: Accept port redirections\"\n");
             }
             inc(self, "chain-append", Some(&format!("input_{n}")), &mut out);
-            out.push_str(&format!("\t\tjump {}_from_{n}\n\t}}\n\n", zone.input));
+            writeln!(out, "\t\tjump {}_from_{n}\n\t}}\n", zone.input).expect("writing to String cannot fail");
 
-            out.push_str(&format!("\tchain output_{n} {{\n"));
+            writeln!(out, "\tchain output_{n} {{").expect("writing to String cannot fail");
             inc(self, "chain-prepend", Some(&format!("output_{n}")), &mut out);
             self.chain_rules(&format!("output_{n}"), Some(zi), &mut out);
             inc(self, "chain-append", Some(&format!("output_{n}")), &mut out);
-            out.push_str(&format!("\t\tjump {}_to_{n}\n\t}}\n\n", zone.output));
+            writeln!(out, "\t\tjump {}_to_{n}\n\t}}\n", zone.output).expect("writing to String cannot fail");
 
-            out.push_str(&format!("\tchain forward_{n} {{\n"));
+            writeln!(out, "\tchain forward_{n} {{").expect("writing to String cannot fail");
             inc(self, "chain-prepend", Some(&format!("forward_{n}")), &mut out);
             self.chain_rules(&format!("forward_{n}"), Some(zi), &mut out);
             if zone.dflags.has("dnat") {
                 out.push_str("\t\tct status dnat accept comment \"!fw4: Accept port forwards\"\n");
             }
             inc(self, "chain-append", Some(&format!("forward_{n}")), &mut out);
-            out.push_str(&format!("\t\tjump {}_to_{n}\n", zone.forward));
+            writeln!(out, "\t\tjump {}_to_{n}", zone.forward).expect("writing to String cannot fail");
             if self.forward_policy(false) != "accept" && (zone.log_bits() & 1) != 0 {
                 out.push_str("\t\t");
                 if zone.log_limit.is_some() {
-                    out.push_str(&format!("limit name \"{n}.log_limit\" "));
+                    write!(out, "limit name \"{n}.log_limit\" ").expect("writing to String cannot fail");
                 }
-                out.push_str(&format!("log prefix \"{} {n} forward: \"\n", self.forward_policy(false)));
+                writeln!(out, "log prefix \"{} {n} forward: \"", self.forward_policy(false)).expect("writing to String cannot fail");
             }
             out.push_str("\t}\n\n");
 
             if zone.dflags.has("helper") {
-                out.push_str(&format!("\tchain helper_{n} {{\n"));
+                writeln!(out, "\tchain helper_{n} {{").expect("writing to String cannot fail");
                 self.chain_rules(&format!("helper_{n}"), Some(zi), &mut out);
                 out.push_str("\t}\n\n");
             }
             for verdict in ["accept", "reject", "drop"] {
                 if zone.sflags.has(verdict) {
-                    out.push_str(&format!("\tchain {verdict}_from_{n} {{\n"));
+                    writeln!(out, "\tchain {verdict}_from_{n} {{").expect("writing to String cannot fail");
                     for mr in &zone.match_rules {
                         out.push_str("\t\t");
                         self.render_zone_verdict(zone, zone.log_bits(), mr, false, verdict, &mut out);
@@ -887,7 +888,7 @@ impl Fw4 {
                     out.push_str("\t}\n\n");
                 }
                 if zone.dflags.has(verdict) {
-                    out.push_str(&format!("\tchain {verdict}_to_{n} {{\n"));
+                    writeln!(out, "\tchain {verdict}_to_{n} {{").expect("writing to String cannot fail");
                     for mr in &zone.match_rules {
                         if !drop_invalid && verdict == "accept" && (zone.masq || zone.masq6) && !zone.masq_allow_invalid {
                             out.push_str("\t\t");
@@ -919,7 +920,7 @@ impl Fw4 {
             let zone = &self.state.zones[zi];
             let n = &zone.name;
             if zone.dflags.has("dnat") {
-                out.push_str(&format!("\tchain dstnat_{n} {{\n"));
+                writeln!(out, "\tchain dstnat_{n} {{").expect("writing to String cannot fail");
                 inc(self, "chain-prepend", Some(&format!("dstnat_{n}")), &mut out);
                 for r in self.redirects(&format!("dstnat_{n}")) {
                     out.push_str("\t\t");
@@ -929,7 +930,7 @@ impl Fw4 {
                 out.push_str("\t}\n\n");
             }
             if zone.dflags.has("snat") {
-                out.push_str(&format!("\tchain srcnat_{n} {{\n"));
+                writeln!(out, "\tchain srcnat_{n} {{").expect("writing to String cannot fail");
                 inc(self, "chain-prepend", Some(&format!("srcnat_{n}")), &mut out);
                 for r in self.redirects(&format!("srcnat_{n}")) {
                     out.push_str("\t\t");
@@ -988,7 +989,7 @@ impl Fw4 {
         for zi in 0..nzones {
             let zone = &self.state.zones[zi];
             if zone.dflags.has("notrack") {
-                out.push_str(&format!("\tchain notrack_{} {{\n", zone.name));
+                writeln!(out, "\tchain notrack_{} {{", zone.name).expect("writing to String cannot fail");
                 self.chain_rules(&format!("notrack_{}", zone.name), Some(zi), &mut out);
                 out.push_str("\t}\n\n");
             }

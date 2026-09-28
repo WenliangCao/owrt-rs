@@ -52,6 +52,13 @@ def main():
                         help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--httpd-workloads", nargs="+", help="explicit subset of the HTTP matrix")
+    parser.add_argument("--fw4-workloads", nargs="+", choices=("print", "check"),
+                        help="fw4 command subset; defaults to print check")
+    parser.add_argument("--fw4-count", type=int,
+                        help="fw4 measured calls per command; defaults to max(iterations / 100, 1)")
+    parser.add_argument("--fw4-warmup", type=int, default=3)
+    parser.add_argument("--fw4-fixture", type=Path,
+                        help="private firewall UCI file; requires --bench for private bundles")
     parser.add_argument("--netifd-scale", type=int, choices=(32, 64, 128), default=32)
     parser.add_argument("--netifd-fixture", type=Path, help="private wireless config, schema, stub and exact expected reply")
     parser.add_argument("--netifd-event-contracts", type=Path,
@@ -99,6 +106,22 @@ def main():
         allowed |= {name + suffix for name in ("static_512_dat", "static_16k_dat", "static_16k_css", "static_image_css", "static_64k_dat", "static_1m_dat") for suffix in ("_c1", "_c4")}
         if args.component != "httpd" or not args.matrix or len(set(args.httpd_workloads)) != len(args.httpd_workloads) or not set(args.httpd_workloads) <= allowed:
             parser.error("invalid HTTP matrix workload subset")
+    if args.fw4_workloads or args.fw4_count is not None or args.fw4_warmup != 3 or args.fw4_fixture:
+        if args.component != "fw4":
+            parser.error("fw4 controls require --component fw4")
+    if args.fw4_workloads and len(set(args.fw4_workloads)) != len(args.fw4_workloads):
+        parser.error("duplicate fw4 workload")
+    if args.fw4_count is not None and args.fw4_count <= 0:
+        parser.error("fw4 count must be positive")
+    if not 0 <= args.fw4_warmup <= 100000:
+        parser.error("fw4 warmup must be in 0..100000")
+    fw4_fixture_hash = None
+    if args.fw4_fixture:
+        if not args.bench:
+            parser.error("--fw4-fixture requires --bench for private bundles")
+        if not args.fw4_fixture.is_file():
+            parser.error("fw4 fixture must be a regular file")
+        fw4_fixture_hash = hashlib.sha256(args.fw4_fixture.read_bytes()).hexdigest()
     fixture_hashes = {}
     if args.netifd_workloads or args.netifd_warmup != 20:
         if args.component != "netifd" or not args.matrix:
@@ -227,6 +250,12 @@ def main():
         settings["seed"] = args.seed
     if args.httpd_workloads:
         settings["httpd_workloads"] = args.httpd_workloads
+    if component == "fw4":
+        settings["fw4_workloads"] = args.fw4_workloads or ["print", "check"]
+        settings["fw4_count"] = args.fw4_count if args.fw4_count is not None else max(args.iterations // 100, 1)
+        settings["fw4_warmup"] = args.fw4_warmup
+        if fw4_fixture_hash:
+            settings["fw4_fixture_sha256"] = fw4_fixture_hash
     if component == "netifd":
         settings["netifd_scale"] = args.netifd_scale
         settings["netifd_warmup"] = args.netifd_warmup
@@ -304,6 +333,13 @@ def main():
         initial("client-probe.json", {"sha256": digest, "diagnostic_only": True})
     assert ssh("sha256sum " + remote + "/isolated.sh").decode().split()[0] == hashlib.sha256(script.read_bytes()).hexdigest()
     bundle_targets = (bundle, stock_bundle, baseline_bundle) if baseline_bundle else (bundle, stock_bundle)
+    if fw4_fixture_hash:
+        for target in bundle_targets:
+            destination = target + "/fw4-firewall"
+            if not args.resume:
+                subprocess.run(["scp", "-O", str(args.fw4_fixture.resolve()),
+                                args.host + ":" + destination], check=True)
+            assert ssh("sha256sum " + shlex.quote(destination)).decode().split()[0] == fw4_fixture_hash
     if fixture_hashes:
         for target in bundle_targets:
             directory = target + "/netifd-fixture"
@@ -381,6 +417,12 @@ def main():
                            + " OWRT_NETIFD_WARMUP=" + str(args.netifd_warmup) + " " + command)
                 if args.netifd_workloads:
                     command = "OWRT_NETIFD_WORKLOADS=" + shlex.quote(" ".join(args.netifd_workloads)) + " " + command
+        if component == "fw4":
+            command = ("OWRT_FW4_WORKLOADS=" + shlex.quote(" ".join(settings["fw4_workloads"]))
+                       + " OWRT_FW4_COUNT=" + str(settings["fw4_count"])
+                       + " OWRT_FW4_WARMUP=" + str(args.fw4_warmup) + " " + command)
+            if fw4_fixture_hash:
+                command = "OWRT_FW4_FIXTURE_SHA256=" + fw4_fixture_hash + " " + command
         if args.httpd_workloads:
             command = "OWRT_HTTPD_WORKLOADS=" + shlex.quote(" ".join(args.httpd_workloads)) + " " + command
         if args.guard:

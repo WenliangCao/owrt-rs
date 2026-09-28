@@ -19,6 +19,23 @@ if [ -n "${OWRT_HTTPD_WORKLOADS:-}" ]; then
         http_seen="$http_seen$lane "
     done
 fi
+fw4_seen=' '
+for lane in ${OWRT_FW4_WORKLOADS:-print check}; do
+    case "$lane" in print|check) ;; *) echo "invalid fw4 workload: $lane" >&2; exit 2 ;; esac
+    case "$fw4_seen" in *" $lane "*) echo "duplicate fw4 workload: $lane" >&2; exit 2 ;; esac
+    fw4_seen="$fw4_seen$lane "
+done
+[ "$fw4_seen" != ' ' ] || exit 2
+if [ -n "${OWRT_FW4_COUNT+x}" ]; then
+    case "$OWRT_FW4_COUNT" in ''|*[!0-9]*) exit 2 ;; esac
+    [ "$OWRT_FW4_COUNT" -gt 0 ] || exit 2
+fi
+case "${OWRT_FW4_WARMUP:-3}" in ''|*[!0-9]*) exit 2 ;; esac
+[ "${OWRT_FW4_WARMUP:-3}" -le 100000 ] || exit 2
+if [ -n "${OWRT_FW4_FIXTURE_SHA256+x}" ]; then
+    case "$OWRT_FW4_FIXTURE_SHA256" in ''|*[!0-9a-f]*) exit 2 ;; esac
+    [ "${#OWRT_FW4_FIXTURE_SHA256}" -eq 64 ] || exit 2
+fi
 case "${OWRT_HTTPD_RPC_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MEMORY:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_DIAG:-0}" in 0|paced|memory) ;; *) exit 2 ;; esac
@@ -192,6 +209,14 @@ config zone
     option output 'ACCEPT'
     option forward 'ACCEPT'
 EOF
+    if [ "$component" = fw4 ]; then
+        if [ -f /tmp/bin/fw4-firewall ] || [ -n "${OWRT_FW4_FIXTURE_SHA256:-}" ]; then
+            [ -n "${OWRT_FW4_FIXTURE_SHA256:-}" ]
+            [ "$(sha256sum /tmp/bin/fw4-firewall | cut -d ' ' -f 1)" = "$OWRT_FW4_FIXTURE_SHA256" ]
+            cp /tmp/bin/fw4-firewall /etc/config/firewall
+        fi
+        sha256sum /etc/config/firewall > "$out/fw4-fixture.sha256"
+    fi
     # A larger, fixed config exercises UCI iteration and reload's MD5 walk.
     i=0
     while [ "$i" -lt 64 ]; do
@@ -640,6 +665,8 @@ CYCLE
     }
     count_exec=$((n / 20)); [ "$count_exec" -gt 0 ] || count_exec=1
     count_fw=$((n / 100)); [ "$count_fw" -gt 0 ] || count_fw=1
+    count_fw=${OWRT_FW4_COUNT:-$count_fw}
+    fw4_warmup=${OWRT_FW4_WARMUP:-3}
     bus_bin=$(choose ubusd /sbin/ubusd ubusd-rs)
     if [ "$component" = ubusd ] && [ "${OWRT_UBUSD_NORMALIZED:-0}" = 1 ]; then
         # Opt-in requires the separately identified exec-cpu-as helper.
@@ -903,12 +930,12 @@ EOF
                 fi # query/reload fixture versus separate event fixture
             else
                 bin=$(choose fw4 /sbin/fw4 fw4-rs)
-                /sbin/fw4 print > /tmp/expected.rules 2> "$out/reference-stderr.log"
-                "$bench" exec "$count_fw" 3 /tmp/expected.rules "$monitors" -- "$bin" print > "$out/print.json"
-                # Kernel nft parsing is part of both commands; this is check
-                # mode inside the throwaway network namespace.
-                /sbin/fw4 check > /tmp/expected.check 2>> "$out/reference-stderr.log"
-                "$bench" exec "$count_fw" 3 /tmp/expected.check "$monitors" -- "$bin" check > "$out/check.json"
+                : > "$out/reference-stderr.log"
+                for lane in ${OWRT_FW4_WORKLOADS:-print check}; do
+                    # check executes real nft validation in the private network namespace.
+                    /sbin/fw4 "$lane" > "/tmp/expected.$lane" 2>> "$out/reference-stderr.log"
+                    "$bench" exec "$count_fw" "$fw4_warmup" "/tmp/expected.$lane" "$monitors" -- "$bin" "$lane" > "$out/$lane.json"
+                done
             fi
             ;;
         logd)
