@@ -7,6 +7,18 @@ set -eu
 case "${OWRT_BENCH_TRACE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_CGI_STRESS:-0}" in 0|1) ;; *) exit 2 ;; esac
+if [ -n "${OWRT_HTTPD_WORKLOADS:-}" ]; then
+    [ "${OWRT_HTTPD_MATRIX:-0}" = 1 ] || exit 2
+    http_seen=' '
+    for lane in $OWRT_HTTPD_WORKLOADS; do
+        case "$lane" in
+            jsonrpc|jsonrpc_c4|jsonrpc_large|jsonrpc_large_c4|cgi|cgi_c4|static_512_dat_c[14]|static_16k_dat_c[14]|static_16k_css_c[14]|static_image_css_c[14]|static_64k_dat_c[14]|static_1m_dat_c[14]) ;;
+            *) echo "invalid HTTP workload: $lane" >&2; exit 2 ;;
+        esac
+        case "$http_seen" in *" $lane "*) exit 2 ;; esac
+        http_seen="$http_seen$lane "
+    done
+fi
 case "${OWRT_HTTPD_RPC_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_MEMORY:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_HTTPD_DIAG:-0}" in 0|paced|memory) ;; *) exit 2 ;; esac
@@ -599,7 +611,16 @@ CYCLE
         [ ! -s "$event_root/listen.stderr" ] && [ ! -s "$event_root/subscribe.stderr" ]
         netifd_no_spawn events_static2 after
     }
+    http_selected() {
+        [ -z "${OWRT_HTTPD_WORKLOADS:-}" ] && return 0
+        case " $OWRT_HTTPD_WORKLOADS " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+    }
+    http_one() { # label method path body expected count warmup format
+        http_selected "$1" || return 0
+        "$bench" http 127.0.0.1:18080 "$2" "$3" "$4" "$5" "$6" "$7" "$monitors" "$8" > "$out/$1.json"
+    }
     http_four() { # label method path body expected total format
+        http_selected "$1" || return 0
         # Four clients share ONE outer CPU interval. Their overlapping
         # per-client daemon counters must never be summed.
         label=$1; method=$2; url=$3; body=$4; expected=$5; total=$6; format=$7
@@ -986,9 +1007,13 @@ EOF
                 # connection stress without unrelated static/RPC traffic.
                 http_four cgi_stress_c4 GET /cgi-bin/bench - /tmp/expected.cgi "$((n * 4))" bytes
             else
-                "$bench" http 127.0.0.1:18080 GET /static.dat - /tmp/www/static.dat "$n" 20 "$monitors" bytes > "$out/static_16k.json"
-                "$bench" http 127.0.0.1:18080 GET /cgi-bin/bench - /tmp/expected.cgi "$count_exec" 5 "$monitors" bytes > "$out/cgi.json"
-                "$bench" http 127.0.0.1:18080 POST /ubus /tmp/http-post.json /tmp/http-expect.json "$n" 20 "$monitors" json > "$out/jsonrpc.json"
+                if [ -z "${OWRT_HTTPD_WORKLOADS:-}" ]; then
+                    http_one static_16k GET /static.dat - /tmp/www/static.dat "$n" 20 bytes
+                elif http_selected static_16k_dat_c1; then
+                    http_one static_16k_dat_c1 GET /static.dat - /tmp/www/static.dat "$n" 20 bytes
+                fi
+                http_one cgi GET /cgi-bin/bench - /tmp/expected.cgi "$count_exec" 5 bytes
+                http_one jsonrpc POST /ubus /tmp/http-post.json /tmp/http-expect.json "$n" 20 json
                 if [ "${OWRT_HTTPD_MATRIX:-0}" = 1 ]; then
                     dd if=/dev/zero of=/tmp/www/small.dat bs=512 count=1 2>/dev/null
                     cp /tmp/www/static.dat /tmp/www/static.css
@@ -1011,14 +1036,26 @@ EOF
                         if [ "$label" = static_16k_dat ]; then
                             # This is the existing measurement, not a second
                             # independent sample of the same workload.
-                            cp "$out/static_16k.json" "$out/${label}_c1.json"
+                            if [ -f "$out/static_16k.json" ]; then cp "$out/static_16k.json" "$out/${label}_c1.json"; fi
                         else
-                            "$bench" http 127.0.0.1:18080 GET "/$filename" - "/tmp/www/$filename" "$matrix_count" 20 "$monitors" bytes > "$out/${label}_c1.json"
+                            http_one "${label}_c1" GET "/$filename" - "/tmp/www/$filename" "$matrix_count" 20 bytes
                         fi
                         http_four "${label}_c4" GET "/$filename" - "/tmp/www/$filename" "$matrix_count" bytes
                     done
                     http_four cgi_c4 GET /cgi-bin/bench - /tmp/expected.cgi "$count_exec" bytes
                     http_four jsonrpc_c4 POST /ubus /tmp/http-post.json /tmp/http-expect.json "$n" json
+                    if [ -n "${OWRT_HTTPD_WORKLOADS:-}" ] && { http_selected jsonrpc_large || http_selected jsonrpc_large_c4; }; then
+                        # Exact C rpcd UCI reply: 256 strings of 120 bytes.
+                        # Generate the independent expected JSON alongside the UCI input.
+                        awk 'BEGIN { s=""; for(i=0;i<120;i++)s=s "x"; print "config bench item"; for(i=0;i<256;i++)printf " list value \047%s\047\n",s }' > /etc/config/httpbench
+                        awk 'BEGIN { s=""; for(i=0;i<120;i++)s=s "x"; printf "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":[0,{\"value\":["; for(i=0;i<256;i++)printf "%s\"%s\"",i?",":"",s; print "]}]}" }' > /tmp/http-large-expect.json
+                        ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"ubus\",\"objects\":[[\"uci\",\"get\"]]}" >/dev/null
+                        ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"uci\",\"objects\":[[\"httpbench\",\"read\"]]}" >/dev/null
+                        printf '{"jsonrpc":"2.0","id":1,"method":"call","params":["%s","uci","get",{"config":"httpbench","section":"item","option":"value"}]}\n' "$sid" > /tmp/http-large-post.json
+                        sha256sum /tmp/http-large-expect.json /etc/config/httpbench > "$out/large-fixture.sha256"
+                        http_one jsonrpc_large POST /ubus /tmp/http-large-post.json /tmp/http-large-expect.json "$n" 20 json
+                        http_four jsonrpc_large_c4 POST /ubus /tmp/http-large-post.json /tmp/http-large-expect.json "$n" json
+                    fi
                 fi
             fi
             ;;

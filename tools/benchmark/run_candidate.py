@@ -51,6 +51,7 @@ def main():
     parser.add_argument("--resume", action="store_true",
                         help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
+    parser.add_argument("--httpd-workloads", nargs="+", help="explicit subset of the HTTP matrix")
     parser.add_argument("--netifd-scale", type=int, choices=(32, 64, 128), default=32)
     parser.add_argument("--netifd-fixture", type=Path, help="private wireless config, schema, stub and exact expected reply")
     parser.add_argument("--netifd-event-contracts", type=Path,
@@ -93,6 +94,11 @@ def main():
         parser.error("expanded matrices are defined for the five main daemons")
     if args.netifd_scale != 32 and (args.component != "netifd" or not args.matrix):
         parser.error("--netifd-scale requires a netifd matrix")
+    if args.httpd_workloads:
+        allowed = {"jsonrpc", "jsonrpc_c4", "jsonrpc_large", "jsonrpc_large_c4", "cgi", "cgi_c4"}
+        allowed |= {name + suffix for name in ("static_512_dat", "static_16k_dat", "static_16k_css", "static_image_css", "static_64k_dat", "static_1m_dat") for suffix in ("_c1", "_c4")}
+        if args.component != "httpd" or not args.matrix or len(set(args.httpd_workloads)) != len(args.httpd_workloads) or not set(args.httpd_workloads) <= allowed:
+            parser.error("invalid HTTP matrix workload subset")
     fixture_hashes = {}
     if args.netifd_workloads or args.netifd_warmup != 20:
         if args.component != "netifd" or not args.matrix:
@@ -219,6 +225,8 @@ def main():
         settings["schedule"] = args.schedule
     if args.seed is not None:
         settings["seed"] = args.seed
+    if args.httpd_workloads:
+        settings["httpd_workloads"] = args.httpd_workloads
     if component == "netifd":
         settings["netifd_scale"] = args.netifd_scale
         settings["netifd_warmup"] = args.netifd_warmup
@@ -373,6 +381,8 @@ def main():
                            + " OWRT_NETIFD_WARMUP=" + str(args.netifd_warmup) + " " + command)
                 if args.netifd_workloads:
                     command = "OWRT_NETIFD_WORKLOADS=" + shlex.quote(" ".join(args.netifd_workloads)) + " " + command
+        if args.httpd_workloads:
+            command = "OWRT_HTTPD_WORKLOADS=" + shlex.quote(" ".join(args.httpd_workloads)) + " " + command
         if args.guard:
             command = "OWRT_BENCH_GUARD=" + remote + "/guard " + command
         if args.extended:

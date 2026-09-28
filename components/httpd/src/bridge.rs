@@ -2,7 +2,7 @@
 //! codes, plus blobmsg <-> JSON conversion.
 
 use crate::http::{Method, Request, Response, Sink};
-use owrt_ubus::convert::{fields_to_json, json_to_fields};
+use owrt_ubus::convert::{append_fields_json, fields_to_json, json_to_fields};
 use owrt_ubus::json::{self, Json};
 use owrt_ubus::{blob, BlobBuf, Connection};
 use std::borrow::Cow;
@@ -152,7 +152,12 @@ fn rpc_id(obj: Option<&Json>) -> Json {
 struct RpcResponse {
     id: Json,
     error: bool,
-    value: Json,
+    value: RpcValue,
+}
+
+enum RpcValue {
+    Json(Json),
+    Encoded(Vec<u8>),
 }
 
 impl RpcResponse {
@@ -160,7 +165,10 @@ impl RpcResponse {
         out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"id\":");
         self.id.append_to(out);
         out.extend_from_slice(if self.error { b",\"error\":" } else { b",\"result\":" });
-        self.value.append_to(out);
+        match &self.value {
+            RpcValue::Json(value) => value.append_to(out),
+            RpcValue::Encoded(bytes) => out.extend_from_slice(bytes),
+        }
         out.push(b'}');
     }
 
@@ -187,14 +195,14 @@ fn rpc_batch(responses: impl Iterator<Item = RpcResponse>, mut emit: impl FnMut(
 
 fn rpc_error(id: Json, error: RpcError) -> RpcResponse {
     let (code, message) = error.code_message();
-    RpcResponse { id, error: true, value: Json::Object(vec![
+    RpcResponse { id, error: true, value: RpcValue::Json(Json::Object(vec![
         ("code".into(), Json::Int(code)),
         ("message".into(), Json::Str(message.into())),
-    ]) }
+    ])) }
 }
 
 fn rpc_result(id: Json, result: Json) -> RpcResponse {
-    RpcResponse { id, error: false, value: result }
+    RpcResponse { id, error: false, value: RpcValue::Json(result) }
 }
 
 /// Most replies carry a single DATA attr. Borrow that payload; multiple DATA
@@ -271,25 +279,27 @@ fn do_call(
         Ok(reply) => {
             let data = reply_fields(&reply);
             let has_data = !data.is_empty();
-            if legacy {
-                let mut result = Vec::with_capacity(2);
-                result.push(Json::Int(reply.status as i64));
-                if has_data {
-                    result.push(fields_to_json(&data));
-                }
-                return rpc_result(id, Json::Array(result));
-            }
-            if reply.status != 0 {
-                return RpcResponse { id, error: true, value: Json::Object(vec![
+            if !legacy && reply.status != 0 {
+                return RpcResponse { id, error: true, value: RpcValue::Json(Json::Object(vec![
                     ("code".into(), Json::Int(reply.status as i64)),
                     ("message".into(), Json::Str(owrt_ubus::status::name(reply.status))),
-                ]) };
+                ])) };
+            }
+            // Serialize one reply directly from its borrowed blob fields.
+            // Batch emission still flushes before evaluating the next RPC.
+            let mut value = Vec::with_capacity(128);
+            if legacy {
+                value.push(b'[');
+                Json::Int(reply.status as i64).append_to(&mut value);
+                if has_data { value.push(b','); }
             }
             if has_data {
-                rpc_result(id, fields_to_json(&data))
-            } else {
-                rpc_result(id, Json::Null)
+                append_fields_json(&data, &mut value);
+            } else if !legacy {
+                value.extend_from_slice(b"null");
             }
+            if legacy { value.push(b']'); }
+            RpcResponse { id, error: false, value: RpcValue::Encoded(value) }
         }
     }
 }

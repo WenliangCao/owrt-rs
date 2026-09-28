@@ -150,6 +150,27 @@ fn serve_to(output: &mut http::Out<'_, Discard>, request: &http::Request, pi: &f
     output.finish_request().unwrap();
 }
 
+fn profile_reply(n: u64, filter: &str, label: &str, fields: &[u8]) {
+    let value = owrt_ubus::convert::fields_to_json(fields);
+    let mut direct = Vec::new();
+    owrt_ubus::convert::append_fields_json(fields, &mut direct);
+    assert_eq!(direct, value.to_bytes());
+    measure(&format!("rpc_{label}_reply_direct"), n, filter, || {
+        let mut out = Vec::new();
+        owrt_ubus::convert::append_fields_json(black_box(fields), &mut out);
+        black_box(out);
+    });
+    measure(&format!("rpc_{label}_reply_tree"), n, filter, || {
+        black_box(owrt_ubus::convert::fields_to_json(black_box(fields)));
+    });
+    measure(&format!("rpc_{label}_reply_serialize"), n, filter, || {
+        black_box(value.to_bytes());
+    });
+    measure(&format!("rpc_{label}_reply_convert"), n, filter, || {
+        black_box(owrt_ubus::convert::fields_to_json(black_box(fields)).to_bytes());
+    });
+}
+
 fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
     let body = std::fs::read(fixture)?;
     let mut head = BufReader::new(Cursor::new(REQUEST));
@@ -187,6 +208,46 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
     measure("rpc_json_parse", n, filter, || {
         black_box(owrt_ubus::json::parse_prefix_bytes(black_box(&body)).unwrap());
     });
+    // These stages use one already-connected transport. Lookup stays fresh in
+    // the real bridge; pre-resolved IDs here only separate transaction costs.
+    let parsed = owrt_ubus::json::parse_prefix_bytes(&body).unwrap();
+    let params = parsed.get("params").and_then(owrt_ubus::json::Json::as_array).unwrap();
+    let sid = params[0].as_str().unwrap();
+    let object = params[1].as_str().unwrap();
+    let function = params[2].as_str().unwrap();
+    let mut conn = owrt_ubus::Connection::connect(None)?;
+    let object_id = conn.lookup_id(object, bridge.timeout_ms)?;
+    let session_id = conn.lookup_id("session", bridge.timeout_ms)?;
+    let mut access = owrt_ubus::BlobBuf::new();
+    access.msg_string("ubus_rpc_session", sid).msg_string("object", object)
+        .msg_string("function", function);
+    let mut args = owrt_ubus::BlobBuf::new();
+    if let owrt_ubus::json::Json::Object(fields) = &params[3] {
+        for (name, value) in fields {
+            owrt_ubus::convert::json_to_fields(&mut args, name, value);
+        }
+    }
+    args.msg_string("ubus_rpc_session", sid);
+    measure("rpc_target_lookup", n, filter, || {
+        assert_eq!(conn.lookup_id(object, bridge.timeout_ms).unwrap(), object_id);
+    });
+    measure("rpc_session_lookup", n, filter, || {
+        assert_eq!(conn.lookup_id("session", bridge.timeout_ms).unwrap(), session_id);
+    });
+    measure("rpc_access_invoke", n, filter, || {
+        black_box(conn.invoke(session_id, "access", access.payload(), bridge.timeout_ms / 2).unwrap());
+    });
+    measure("rpc_target_invoke", n, filter, || {
+        black_box(conn.invoke(object_id, function, args.payload(), bridge.timeout_ms).unwrap());
+    });
+    let reply = conn.invoke(object_id, function, args.payload(), bridge.timeout_ms)?;
+    profile_reply(n, filter, "small", &reply.fields());
+    let mut large = owrt_ubus::BlobBuf::new();
+    let text = "x".repeat(1000);
+    for index in 0..32 {
+        large.msg_string(&format!("field{index}"), &text);
+    }
+    profile_reply(n, filter, "32k", large.payload());
     let client = RefCell::new(BufReader::new(Discard));
     let mut out = http::Out::new(&client, -1, 16384, Duration::from_secs(30));
     measure("rpc_handle_reused", n, filter, || {

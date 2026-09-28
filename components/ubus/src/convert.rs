@@ -13,6 +13,30 @@ pub fn fields_to_json(payload: &[u8]) -> Json {
     )
 }
 
+/// Serialize blobmsg fields with the same byte semantics as `fields_to_json`,
+/// without allocating an intermediate tree of owned names and strings.
+pub fn append_fields_json(payload: &[u8], out: &mut Vec<u8>) {
+    append_container(payload, out, true);
+}
+
+fn append_container(payload: &[u8], out: &mut Vec<u8>, object: bool) {
+    out.push(if object { b'{' } else { b'[' });
+    for (index, field) in blob::fields(payload).enumerate() {
+        if index != 0 { out.push(b','); }
+        if object {
+            crate::json::write_string(out, field.name.as_bytes());
+            out.push(b':');
+        }
+        match field.ty {
+            t if t == MsgType::Table as u32 => append_container(field.data, out, true),
+            t if t == MsgType::Array as u32 => append_container(field.data, out, false),
+            t if t == MsgType::String as u32 => crate::json::write_string(out, field.as_bytes().unwrap_or(b"")),
+            _ => field_to_json(&field).append_to(out),
+        }
+    }
+    out.push(if object { b'}' } else { b']' });
+}
+
 pub fn field_to_json(field: &Field) -> Json {
     match field.ty {
         t if t == MsgType::Table as u32 => Json::Object(
@@ -100,6 +124,35 @@ pub fn object_to_payload(value: &Json) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn direct_serialization_preserves_nested_and_malformed_field_bytes() {
+        let nested = Json::Object(vec![
+            ("quoted\"key".into(), Json::Array(vec![Json::Int(-55), Json::Bool(true),
+                Json::Null, Json::Float(1.25), Json::Bytes(b"raw\xff\n\t\\\"".to_vec())])),
+            ("table".into(), Json::Object(vec![("empty".into(), Json::Array(vec![]))])),
+        ]);
+        let check = |payload: &[u8]| {
+            let mut direct = b"prefix".to_vec();
+            append_fields_json(payload, &mut direct);
+            let mut expected = b"prefix".to_vec();
+            fields_to_json(payload).append_to(&mut expected);
+            assert_eq!(direct, expected);
+        };
+        check(&object_to_payload(&nested));
+        // Preserve existing defaults for truncated numeric/string payloads,
+        // unknown types, invalid UTF-8 and malformed nested containers.
+        for ty in 0..=12 {
+            for len in 0..=32 {
+                let mut b = BlobBuf::new();
+                let mut bytes = (0..len).map(|i| (i * 37) as u8).collect::<Vec<_>>();
+                b.msg_field(ty, "control\nkey", &bytes);
+                bytes.reverse();
+                b.msg_field(ty, "control\nkey", &bytes);
+                check(b.payload());
+            }
+        }
+    }
 
     // libubox blobmsg_json: signed 32-bit range -> INT32, else INT64.
     #[test]

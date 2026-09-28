@@ -317,6 +317,11 @@ def derive(root, label):
     if matrix and component == "httpd":
         workloads = ([f"{name}_{clients}" for name in STATIC for clients in ("c1", "c4")]
                      + ["cgi", "jsonrpc", "cgi_c4", "jsonrpc_c4"])
+        if settings.get("httpd_workloads"):
+            selected = settings["httpd_workloads"]
+            assert len(set(selected)) == len(selected)
+            assert set(selected) <= set(workloads + ["jsonrpc_large", "jsonrpc_large_c4"])
+            workloads = selected
     elif matrix and component == "rpcd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in RPCD_EXTRA for suffix in ("", "_c4")]
@@ -365,7 +370,10 @@ def derive(root, label):
             fixture_file = {"httpd": "static-fixtures.sha256", "rpcd": "rpc-fixtures.sha256",
                             "procd": "procd-fixtures.sha256", "ubusd": "ubusd-fixtures.sha256",
                             "netifd": "netifd-fixtures.sha256"}[component]
-            fixtures.add((raw / fixture_file).read_text())
+            fixture_identity = (raw / fixture_file).read_text()
+            if component == "httpd" and any(name.startswith("jsonrpc_large") for name in workloads):
+                fixture_identity += (raw / "large-fixture.sha256").read_text()
+            fixtures.add(fixture_identity)
             if component == "ubusd":
                 for count in (64, 128):
                     expected_paths = [f"bench.filler{i:04d}" for i in range(1, count)] + ["bench.target"]

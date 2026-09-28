@@ -411,21 +411,33 @@ impl Connection {
             fd: None,
         };
         loop {
-            let mut message = self.recv_until(deadline)?;
-            if message.header.seq != seq || message.header.peer != peer {
-                self.pending.push_back(message);
+            let (header, fd, body) = self.take_frame(false, deadline)?
+                .expect("a waiting frame read yields a frame");
+            if header.seq != seq || header.peer != peer
+                || !matches!(header.ty, ty::DATA | ty::STATUS)
+            {
+                let blob = self.blob_of(body);
+                self.pending.push_back(Message { header, blob, fd });
                 continue;
             }
-            match message.header.ty {
-                ty::DATA => reply.data.push(message.blob[4..].to_vec()),
+            // Matching replies need no intermediate owned Message. DATA
+            // still has one owned copy in Reply; STATUS is consumed in place.
+            let bytes = match &body {
+                Body::Buffered(range) => &self.rx[range.clone()],
+                Body::Owned(bytes) => bytes,
+            };
+            match header.ty {
+                ty::DATA => reply.data.push(bytes[4..].to_vec()),
                 ty::STATUS => {
                     // libubus-req.c defaults a STATUS without a status attr
                     // to UBUS_STATUS_INVALID_ARGUMENT.
-                    reply.status = message.status().unwrap_or(status::INVALID_ARGUMENT);
-                    reply.fd = message.fd.take();
+                    reply.status = Message::attrs_from(bytes)[attr::STATUS as usize]
+                        .and_then(|a| a.as_u32()).map(|v| v as i32)
+                        .unwrap_or(status::INVALID_ARGUMENT);
+                    reply.fd = fd;
                     return Ok(reply);
                 }
-                _ => self.pending.push_back(message),
+                _ => unreachable!("only matching DATA and STATUS reach this point"),
             }
         }
     }
@@ -882,6 +894,32 @@ mod tests {
         let (a, b) = UnixStream::pair().unwrap();
         let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), rx: Vec::new(), rx_start: 0, rx_end: 0, rx_fds: VecDeque::new(), rx_deadline: None, spare_request: None, server_io_timeout: None };
         (conn(a), conn(b))
+    }
+
+    #[test]
+    fn synchronous_reply_owns_data_and_preserves_unmatched_frames() {
+        for size in [16, INCOMING_BUFFER_SIZE * 2] {
+            let (mut client, mut server) = pair();
+            let peer = std::thread::spawn(move || {
+                let req = server.recv().unwrap();
+                let mut b = BlobBuf::new();
+                b.put(attr::DATA, &vec![0xa5; size]);
+                server.send(Header { ty: ty::DATA, seq: req.header.seq + 1, peer: 42 }, &mut b, None).unwrap();
+                server.send(Header { ty: ty::DATA, seq: req.header.seq, peer: 42 }, &mut b, None).unwrap();
+                b = BlobBuf::new();
+                b.put_u32(attr::STATUS, 3).put_u32(attr::STATUS, 0);
+                server.send(Header { ty: ty::STATUS, seq: req.header.seq, peer: 42 }, &mut b, None).unwrap();
+            });
+            let reply = client.request(ty::INVOKE, 42, &mut BlobBuf::new(), None, 1000).unwrap();
+            assert_eq!(reply.status, status::OK, "last STATUS attr wins");
+            assert_eq!(reply.data.len(), 1);
+            assert_eq!(blob::iter(&reply.data[0]).next().unwrap().payload, vec![0xa5; size]);
+            let queued = client.pending.pop_front().unwrap();
+            assert_eq!(queued.header.seq, 2);
+            assert_eq!(queued.blob[4..], reply.data[0]);
+            assert!(client.pending.is_empty());
+            peer.join().unwrap();
+        }
     }
 
     #[test]

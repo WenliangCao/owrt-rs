@@ -149,7 +149,7 @@ fn trim_fraction(s: &str) -> &str {
     s.strip_suffix('.').unwrap_or(s)
 }
 
-fn write_string(out: &mut Vec<u8>, s: &[u8]) {
+pub(crate) fn write_string(out: &mut Vec<u8>, s: &[u8]) {
     out.push(b'"');
     for &c in s {
         match c {

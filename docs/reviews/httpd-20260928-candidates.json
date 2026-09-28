@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "scope": "httpd engineering closure; exact C dependencies; no production deployment",
+  "candidates": [
+    {"id":"base","status":"control","oracle_elf_sha256":"96a84eac3010ad14728bdd3156953e8d8a98cc7613dfff3e165dc92404a34e40","note":"Current runtime sources before this turn, not formal R89."},
+    {"id":"H1","status":"screened; incorporated in H2","mechanism":"Borrow matching synchronous ubus replies instead of allocating Message blobs","oracle_elf_sha256":"4201583eb33ab2edc2792da78a5959cc9d2323dd5098e7d548b6de4a889efd10"},
+    {"id":"H2","status":"frozen; formal gates pending; not accepted","mechanism":"H1 plus direct Blob-to-JSON serialization for HTTP RPC replies","oracle_elf_sha256":"639ef4247b769abafe9c5be176470cba7a717983682439a06553cfb9afd51639"}
+  ],
+  "not_pursued": [
+    {"direction":"session/object caching or removing pool liveness checks","reason":"Profile identified avoidable allocation instead; keep fresh authorization and recovery semantics."},
+    {"direction":"event-loop or thread-model rewrite","reason":"Two small mechanisms show useful gains; no evidence justifies broader compatibility risk."},
+    {"direction":"RSS micro-tuning","reason":"No growth/recovery anomaly established; disclose residency instead of extending research."}
+  ]
+}
