@@ -14,6 +14,7 @@ struct Entry {
     flags: u32,
     name: String,
     package: Option<Package>,
+    retained_bytes: usize,
 }
 
 /// One successful strict base-file parse, plus a bounded read buffer.
@@ -22,12 +23,14 @@ struct Entry {
 /// avoiding model copies for cold or alternating files. A hit requires the
 /// same package name, flags and complete current bytes.
 /// The caller receives an independent model; current deltas are applied later.
-/// Entries account for at most 128 KiB of input/model capacities, and scratch
+/// The base entry and a returned working model together retain at most
+/// 128 KiB of input/model capacities, and scratch
 /// for at most 32 KiB. Allocator bookkeeping is additional to these bounds.
 #[derive(Default)]
 pub struct ReadCache {
     entry: Option<Entry>,
     scratch: Vec<u8>,
+    spare: Option<Package>,
 }
 
 /// Replay prefetched bytes and any read error exactly once before continuing
@@ -91,7 +94,54 @@ fn model_bytes(p: &Package) -> usize {
     bytes
 }
 
+// A recycled result may contain another session's deltas. Overwrite every
+// model field from the validated base before any current delta is replayed.
+fn reuse_model(target: &mut Package, source: &Package) {
+    target.name.clone_from(&source.name);
+    target.has_delta = source.has_delta;
+    target.uses_conf2 = source.uses_conf2;
+    target.path.clone_from(&source.path);
+    target.n_section = source.n_section;
+    target.delta.clone_from(&source.delta);
+    target.saved_delta.clone_from(&source.saved_delta);
+    target.sections.resize_with(source.sections.len(), || crate::Section {
+        name: String::new(), ty: String::new(), anonymous: false, options: Vec::new(),
+    });
+    for (dst, src) in target.sections.iter_mut().zip(&source.sections) {
+        dst.name.clone_from(&src.name);
+        dst.ty.clone_from(&src.ty);
+        dst.anonymous = src.anonymous;
+        dst.options.resize_with(src.options.len(), || crate::Opt {
+            name: String::new(), value: OptionValue::Str(Default::default()),
+        });
+        for (dst, src) in dst.options.iter_mut().zip(&src.options) {
+            dst.name.clone_from(&src.name);
+            match (&mut dst.value, &src.value) {
+                (OptionValue::Str(dst), OptionValue::Str(src)) => dst.clone_from(src),
+                (OptionValue::List(dst), OptionValue::List(src)) => dst.clone_from(src),
+                _ => dst.value = src.value.clone(),
+            }
+        }
+    }
+}
+
 impl ReadCache {
+    /// Return an owned result for allocation reuse on the next identical base
+    /// read. Its contents are never authoritative: every field is overwritten
+    /// before the next caller's current delta chain is applied.
+    pub fn recycle(&mut self, mut package: Package) {
+        self.spare = None;
+        let Some(entry) = &self.entry else { return };
+        if entry.package.is_none() { return; }
+        package.path = None;
+        package.delta = Vec::new();
+        package.saved_delta = Vec::new();
+        if entry.retained_bytes + model_bytes(&package) <= ENTRY_LIMIT
+        {
+            self.spare = Some(package);
+        }
+    }
+
     pub(crate) fn import(&mut self, ctx: &mut Context, reader: &mut dyn BufRead, name: &str) -> Result<Option<usize>> {
         // Non-strict parsing may succeed after emitting errors. Preserve all
         // those side effects, and existing-package/duplicate handling too.
@@ -124,12 +174,17 @@ impl ReadCache {
             if let Some(entry) = &self.entry {
                 if let Some(package) = &entry.package {
                     ctx.cleanup();
-                    ctx.root.push(package.clone());
+                    let package = match self.spare.take() {
+                        Some(mut spare) => { reuse_model(&mut spare, package); spare }
+                        None => package.clone(),
+                    };
+                    ctx.root.push(package);
                     self.scratch = input;
                     return Ok(Some(0));
                 }
             }
         }
+        self.spare = None;
         let mut replay = Replay { prefix: &input, eof, error, reader };
         let result = parse::import(ctx, &mut replay, Some(name), None, true);
         // Only an unambiguous successful base parse can become an entry.
@@ -140,7 +195,8 @@ impl ReadCache {
             .then(|| ctx.root[0].clone());
         let mut spare = self.entry.take().map(|e| e.bytes).unwrap_or_default();
         if success {
-            self.entry = Some(Entry { bytes: input, flags: ctx.flags, name: name.to_owned(), package });
+            let retained_bytes = input.capacity() + name.len() + package.as_ref().map_or(0, model_bytes);
+            self.entry = Some(Entry { bytes: input, flags: ctx.flags, name: name.to_owned(), package, retained_bytes });
             spare.clear();
             self.scratch = spare;
         } else {
@@ -195,7 +251,8 @@ mod tests {
                     assert!(cache.scratch.capacity() <= INPUT_LIMIT);
                     if let Some(entry) = &cache.entry {
                         assert!(entry.bytes.capacity() + entry.name.capacity()
-                            + entry.package.as_ref().map_or(0, model_bytes) <= ENTRY_LIMIT);
+                            + entry.package.as_ref().map_or(0, model_bytes)
+                            + cache.spare.as_ref().map_or(0, model_bytes) <= ENTRY_LIMIT);
                     }
                 }
             }
@@ -250,6 +307,34 @@ mod tests {
                 assert!(cache.entry.is_none());
             }
         }
+    }
+
+    #[test]
+    fn recycled_models_are_bounded_and_overwritten_after_arbitrary_mutation() {
+        let bytes = b"config example a\noption value 'long base scalar value'\nlist x one\nlist x two\n";
+        let mut cache = ReadCache::default();
+        for _ in 0..3 { observe(Some(&mut cache), &mut Cursor::new(bytes), "one", FLAG_STRICT).0.unwrap(); }
+        let expected = observe(None, &mut Cursor::new(bytes), "one", FLAG_STRICT);
+        let mut working = expected.1[0].clone();
+        working.name = "another".to_owned();
+        working.sections[0].options[0].value = OptionValue::List(vec!["different".into()]);
+        working.sections[0].options[1].value = OptionValue::Str("different".into());
+        working.n_section = 100;
+        working.has_delta = true;
+        working.uses_conf2 = true;
+        working.path = Some("other/path".to_owned());
+        cache.recycle(working);
+        assert!(cache.spare.is_some());
+        assert_eq!(observe(Some(&mut cache), &mut Cursor::new(bytes), "one", FLAG_STRICT), expected);
+        let mut oversized = expected.1[0].clone();
+        oversized.sections.reserve(ENTRY_LIMIT);
+        cache.recycle(oversized);
+        assert!(cache.spare.is_none());
+        cache.recycle(expected.1[0].clone());
+        assert!(cache.spare.is_some());
+        assert!(observe(Some(&mut cache), &mut Cursor::new(b"invalid command\n"), "one", FLAG_STRICT).0.is_err());
+        assert!(cache.entry.is_none());
+        assert!(cache.spare.is_none());
     }
 
     #[test]

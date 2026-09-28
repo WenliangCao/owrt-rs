@@ -52,13 +52,28 @@ pub struct Delta {
 /// Owned immutable UCI value. Short values need no separate heap allocation;
 /// longer values retain their complete bytes in an exact-sized allocation.
 /// The inline size keeps this representation the size of Vec on 64-bit hosts.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Bytes(StoredBytes);
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum StoredBytes {
     Inline { len: u8, data: [u8; 15] },
     Heap(Box<[u8]>),
+}
+
+impl Clone for Bytes {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+
+    fn clone_from(&mut self, source: &Self) {
+        match (&mut self.0, &source.0) {
+            (StoredBytes::Heap(dst), StoredBytes::Heap(src)) if dst.len() == src.len() => {
+                dst.copy_from_slice(src);
+            }
+            _ => self.0 = source.0.clone(),
+        }
+    }
 }
 
 impl Bytes {
