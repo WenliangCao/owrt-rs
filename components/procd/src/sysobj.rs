@@ -275,7 +275,7 @@ impl Meminfo {
 /// The MemAvailable and Cached values (bytes) as the C parses them:
 /// `strtok(line, " :")` for the key, `strtok(NULL, " ")` for the value,
 /// `strcasecmp` on the key, and a line without both parts is skipped.
-fn scan_meminfo(text: &[u8]) -> (u64, u64) {
+pub(crate) fn scan_meminfo(text: &[u8]) -> (u64, u64) {
     let mut available: u64 = 0;
     let mut cached: u64 = 0;
     for line in text.split(|&b| b == b'\n') {
@@ -284,18 +284,22 @@ fn scan_meminfo(text: &[u8]) -> (u64, u64) {
             None => continue,
         };
         let line = &line[start..];
-        let key_end = line.iter().position(|&b| b == b' ' || b == b':').unwrap_or(line.len());
-        let key = &line[..key_end];
-        // Only the two wanted keys need the value; every other line costs a
-        // single length check.
-        let target = if key.len() == 12 && key.eq_ignore_ascii_case(b"MemAvailable") {
-            &mut available
-        } else if key.len() == 6 && key.eq_ignore_ascii_case(b"Cached") {
-            &mut cached
+        // Compare only the two complete keys we consume. The boundary check
+        // preserves strtok's space/colon delimiter and last occurrence wins.
+        let (target, key_end) = if line.len() > 12
+            && matches!(line[12], b' ' | b':')
+            && line[..12].eq_ignore_ascii_case(b"MemAvailable")
+        {
+            (&mut available, 12)
+        } else if line.len() > 6
+            && matches!(line[6], b' ' | b':')
+            && line[..6].eq_ignore_ascii_case(b"Cached")
+        {
+            (&mut cached, 6)
         } else {
             continue;
         };
-        let rest = &line[(key_end + 1).min(line.len())..];
+        let rest = &line[key_end + 1..];
         let Some(val_start) = rest.iter().position(|&b| b != b' ') else { continue };
         let Ok(val) = std::str::from_utf8(&rest[val_start..]) else { continue };
         *target = 1024 * crate::sys::atoi_u32(val) as u64;
@@ -375,6 +379,22 @@ mod tests {
         // A key without a value is skipped (strtok returns NULL for val).
         assert_eq!(scan_meminfo(b"Cached:\nMemAvailable\n"), (0, 0));
         assert_eq!(scan_meminfo(b"Cached:5\nMemAvailable:6 kB"), (6 * 1024, 5 * 1024));
+    }
+
+    #[test]
+    fn meminfo_keys_require_a_complete_token_and_keep_last_value() {
+        for (text, expected) in [
+            (&b"CachedExtra: 9\nMemAvailableExtra: 8"[..], (0, 0)),
+            (&b"Cached\t9\nMemAvailable\t8"[..], (0, 0)),
+            (&b"::  cAcHeD 7\n :mEmAvAiLaBlE: 8"[..], (8 * 1024, 7 * 1024)),
+            (&b"Cached: 7\nCached:\nCached\nMemAvailable: 8\nMemAvailable "[..], (8 * 1024, 7 * 1024)),
+            (&b"Cached: 7\nCached 9\nMemAvailable: 8\nMemAvailable 10"[..], (10 * 1024, 9 * 1024)),
+            // strtok uses only space after the first delimiter: the second
+            // colon reaches atoi and changes the previous value to zero.
+            (&b"Cached: 7\nCached::9\nMemAvailable: 8\nMemAvailable::10"[..], (0, 0)),
+        ] {
+            assert_eq!(scan_meminfo(text), expected, "{text:?}");
+        }
     }
 
     #[test]
