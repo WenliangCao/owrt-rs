@@ -2,11 +2,12 @@
 """Prepared reload evidence rejects false no-ops and CPU from reset/check work."""
 import copy
 import json
+import shutil
 from pathlib import Path
 import tempfile
 import unittest
 
-from analyze_candidate import prepared_exec
+from analyze_candidate import derive, prepared_exec
 
 
 class ReloadEvidenceTests(unittest.TestCase):
@@ -69,6 +70,49 @@ class ReloadEvidenceTests(unittest.TestCase):
         self.assertEqual(result['prepare_us_per_op'], 9000)
         self.assertEqual(result['validation_us_per_op'], 8000)
         self.assertEqual(result['ops_per_s'], 1000)
+
+    def test_complete_four_side_collection_keeps_new_cpu_and_fixture_gates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sides = ['stock', 'r89', 'r94', 'candidate']
+            subjects = dict(zip(sides, ['a' * 64, 'b' * 64, 'c' * 64, 'd' * 64]))
+            settings = {'component': 'reload-config', 'matrix': True, 'baseline_label': 'r89',
+                        'schedule': 'random-blocks', 'reload_prepared_exec': True,
+                        'reload_workloads': ['single_change'], 'reload_warmup': 0,
+                        'extra_baselines': {'r94': {'subject_sha256': subjects['r94'],
+                            'provenance': {'subject_sha256': subjects['r94']}}}}
+            for name, value in {'order.json': sides, 'subjects.json': subjects,
+                                'settings.json': settings,
+                                'host-manifest.json': {'components': {'ubusd': {'original': {'sha256': 'bus'}}}}}.items():
+                (root / name).write_text(json.dumps(value))
+            for phase in ('before', 'after'):
+                (root / ('health-' + phase + '.json')).write_text(json.dumps({'boot_id': 'boot'}))
+                (root / ('config-' + phase + '.sha256')).write_text('unchanged production')
+            (root / 'COMPLETE').touch()
+            for index, side in enumerate(sides, 1):
+                local = root / f'{index:02d}-{side}'
+                raw = local / 'raw'
+                shutil.copytree(self.raw, raw)
+                (local / 'COMPLETE').touch(); (raw / 'COMPLETE').touch()
+                (local / 'raw.tar.gz').write_bytes(b'archive fixture')
+                (raw / 'single_change.json').write_text(json.dumps({**self.data, 'errors': 0, 'daemon_cpu': []}))
+                (raw / 'meta.json').write_text(json.dumps({'component': 'reload-config',
+                    'dependencies': 'original OpenWrt', 'subject_pid': None, 'iterations': 20}))
+                values = {'binary-sha256.txt': subjects[side], 'boot-id.txt': 'boot',
+                          'benchmark-sha256.txt': 'bench /bench\nns /ns',
+                          'harness-sha256.txt': 'harness /harness', 'kernel.txt': 'kernel',
+                          'reload-fixtures.sha256': 'unchanged fixture',
+                          'reload-running-dependencies.sha256': 'bus /proc/1/exe\nbench /proc/2/exe\nlog /proc/3/exe',
+                          'reload-dependencies.sha256': 'bus /sbin/ubusd\nlog /sbin/logd\n' + subjects['stock'] + ' /sbin/reload_config'}
+                for name, value in values.items(): (raw / name).write_text(value + '\n')
+            result = derive(root, 'four-side prepared fixture')
+            self.assertTrue(result['acceptance_eligible'])
+            summary = result['summary']['single_change']
+            self.assertEqual(summary['candidate']['command_tree_cpu_us_per_op']['median'], 300)
+            self.assertEqual(summary['candidate']['receiver_cpu_clock_us_per_op']['median'], 1)
+            self.assertIn('candidate_vs_r94_pct', summary)
+            (root / '03-r94/raw/reload-fixtures.sha256').write_text('wrong fixture')
+            with self.assertRaisesRegex(AssertionError, 'fixtures changed'): derive(root, 'bad')
 
     def test_missing_duplicate_wrong_order_or_nonzero_result_is_rejected(self):
         for bad in (b'', self.events * 2, self.events[:-1] + b'\1', b'network\n'):

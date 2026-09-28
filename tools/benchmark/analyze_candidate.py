@@ -465,6 +465,8 @@ def derive(root, label):
         workloads += [name + suffix for name in extra for suffix in ("", "_c4")]
     elif matrix and component == "uci":
         workloads += ["get_network", "export_multi", "show_long", "delta_64", "batch_read16"]
+    elif matrix and component == "reload-config" and settings.get("reload_prepared_exec"):
+        pass # explicit reload workload set was validated above
     else:
         assert not matrix, "unsupported workload matrix"
     if matrix and component == "netifd":
