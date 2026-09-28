@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "scope": "Oracle aarch64 correctness only; no performance or router measurements",
+  "runtime_source_commit": "43b98a138bea2b37713634c012a37a9d7186a20b",
+  "canonical_run": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36491554447",
+  "candidate": {
+    "sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+    "size_budget_bytes": 524288,
+    "size_bytes": 465643,
+    "within_size_budget": true
+  },
+  "receiver_sha256": "07828e8e63e1ef8287b96b04d64561b097eedec042cccc3e7dc8bdf15bb2a9bd",
+  "exact_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+  "tool_commit": "f6e85cb",
+  "input_identities": [
+    {
+      "path": "/home/ubuntu/reload-next-20260928/canonical/bins/reload_config_rs",
+      "sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553"
+    },
+    {
+      "path": "/home/ubuntu/reload-next-20260928/candidate/benchmark-protocol2/owrt-benchmark",
+      "sha256": "07828e8e63e1ef8287b96b04d64561b097eedec042cccc3e7dc8bdf15bb2a9bd"
+    },
+    {
+      "path": "/home/ubuntu/reload-next-20260928/candidate/source/tools/r1_candidate_check.py",
+      "sha256": "6288a88987886ffe2038098d3dc698351c96445a435aa7060f59aa9306c80a01"
+    },
+    {
+      "path": "/home/ubuntu/reload-next-20260928/candidate/source/tools/r1_reference_oracle.py",
+      "sha256": "1306a76acec9738161fd4dac2f1d0825d3389dca6b84f49ed8e21b7fdb402e81"
+    },
+    {
+      "path": "/home/ubuntu/reload-next-20260928/candidate/source/tools/reload_protocol_fixture.py",
+      "sha256": "b21e66b07cf2d1783533ce5f0b4b56b8e800f483de8704d4a99aec6967a2b547"
+    },
+    {
+      "path": "/home/ubuntu/reload-next-20260928/candidate/source/tools/r95_reload_config_probe.sh",
+      "sha256": "999d1c576f786cba00b4dfb56e03e10b9008e3fc9d4f4d847135097dd4c37172"
+    },
+    {
+      "path": "/home/ubuntu/reload-next-20260928/candidate/source/tools/benchmark/isolated.sh",
+      "sha256": "1b91816976dcbfedad6323c9d482eb2f8398a0ae2e34f22be875824d2bdcfff1"
+    }
+  ],
+  "identities_unchanged": true,
+  "r1": {
+    "recorded_at": "2026-09-28T22:27:19Z",
+    "reference_cases": 11,
+    "fault_cases": 17,
+    "gate": {
+      "all_11_reference_cases_passed": true,
+      "baseline_bytes_equivalent": true,
+      "delivery_results_observable": true,
+      "event_sets_equivalent": true,
+      "fault_cases_passed": true,
+      "passed": true,
+      "within_size_budget": true
+    },
+    "reference_case_ids": [
+      "c01-first-run-emits-nothing",
+      "c02-modified-config-emits",
+      "c03-new-config-is-silent",
+      "c04-deleted-config-emits-once",
+      "c05-dotted-name-yields-empty-entry",
+      "c06-dotted-name-change-never-emits",
+      "c07-dotted-rename-to-valid-becomes-live",
+      "c08-var-run-uci-takes-precedence",
+      "c09-comment-only-change-is-invisible",
+      "c10-switchover-must-be-silent",
+      "c11-dotted-name-can-resolve-section"
+    ],
+    "fault_case_ids": [
+      "f01-partial-delivery-is-visible-and-absorbed",
+      "f02-missing-uci-is-visible-and-preserves-baseline",
+      "f03-hung-delivery-is-a-failure-and-the-round-continues",
+      "f04-malformed-uci-remains-compatible-but-visible",
+      "f05-concurrent-run-waits-for-the-lock",
+      "f06-sigterm-cancels-with-retryable-baseline",
+      "f07-run-lock-cancellation-and-following-recovery",
+      "f08-old-baseline-order-survives-new-scan-order",
+      "f07-oversized-config-source-is-dispatched-like-the-shell",
+      "f08-non-utf8-config-filename-is-dispatched-like-the-shell",
+      "f09-killed-uci-show-does-not-abort-the-round",
+      "p01-remote-status-is-not-local-timeout",
+      "p02-disconnect-is-absorbed-and-new-change-recovers",
+      "p04-unavailable-socket-absorbed-and-recovered",
+      "p05-missing-object-lookup-status-and-recovery",
+      "p06-service-object-replaced-between-ordered-events",
+      "p03-raw-package-bytes-json-and-baseline-order"
+    ],
+    "all_cases_passed": true,
+    "raw_report_sha256": "24fff89895d48049763cc67dee868e34ed9873f7aadbb998fdf83309bec85e40",
+    "raw_protocol_ledger_sha256": "7ae944ae2066db1d34d4feed49270455460544aa3732534f50983a508bf52495",
+    "coverage": [
+      "exact shell normalization and full config.md5 byte equality; 11 frozen reference scenarios",
+      "partial delivery failure, missing external uci, event timeout continuation, malformed normalization",
+      "concurrent caller serialization; cancellation during event and run-lock waits, recovery and silent repeat",
+      "arbitrary old baseline order including changed/deleted entries and silent added entry",
+      "oversized sources, non-UTF8 and newline-filename contract boundaries",
+      "remote service statuses 6/7 map to CLI 250/249, distinct from local timeout",
+      "receiver disconnect/reconnect, unavailable socket maps255, missing service lookup maps+4",
+      "service object replaced between alpha and beta: alpha late reply discarded by exact ubusd, alpha timeout visible, beta resolves new object ID",
+      "quote/backslash/tab/control/nonUTF8 package bytes and complete baseline/raw ordered event equivalence"
+    ],
+    "permissions_boundary": "Statuses6/7 are application service replies, not a ubusd ACL denial test. These reload invocations run with root credentials, matching the deployed caller. Shared-library ACL/credential evidence remains a separate gate."
+  },
+  "r95": {
+    "started_at": "2026-09-28T22:27:43Z",
+    "finished_at": "2026-09-28T22:27:50Z",
+    "exit": 0,
+    "complete": true,
+    "results": [
+      "config_timeout: continued beta, full baseline matched, recovery and repeat passed",
+      "config_cancel: exit 75, baseline and deliveries unchanged, recovery and repeat passed",
+      "delta_timeout: continued beta, full baseline matched, recovery and repeat passed",
+      "delta_cancel: exit 75, baseline and deliveries unchanged, recovery and repeat passed",
+      "override_timeout: continued beta, full baseline matched, recovery and repeat passed",
+      "override_cancel: exit 75, baseline and deliveries unchanged, recovery and repeat passed",
+      "event_status: remote 6/7 mapped to 250/249, baseline advanced, no retry",
+      "event_timeout: alpha timed out, beta accepted, baseline advanced, no retry",
+      "event_cancel: exit 75, beta not sent, old baseline preserved, next round recovered",
+      "run_lock_cancel: exit 75 while waiting, baseline/events unchanged, recovery passed"
+    ],
+    "groups": 10,
+    "raw_results_sha256": "a41f2de0bd0990eabb71d851e98bef482b1d0f113e32170dacafa640adc553d8",
+    "raw_protocol_ledger_sha256": "41b817137cf33c0ccc9f131244265423228c8f9739940a3d0e51080a468bfac8",
+    "boundary": "Correctness windows use --trace-stderr, private C ubusd, trigger-free receiver and private config/delta/override/runlock/baseline paths. Every normalization timeout/cancel recovers after lock release and the next repeat is silent."
+  },
+  "cleanup": {
+    "mounts": {
+      "matching_owned_host_mounts": [],
+      "passed": true
+    },
+    "processes": {
+      "matching_owned_process_roots_or_executables": [],
+      "passed": true
+    },
+    "mechanism": "Existing ns-exec owns descendants; r95 guard120s; private fixture stops its direct C ubusd and receiver children."
+  },
+  "archives": {
+    "prototype": {
+      "private_path": "private/reload-next-20260928/validation-evidence/prototype-validation.tar.gz",
+      "sha256": "d919175c38bb0fc5d2f879efc91b61f4314662e182c4064af74e13599aee9966"
+    },
+    "canonical": {
+      "private_path": "private/reload-next-20260928/validation-evidence/canonical-validation.tar.gz",
+      "sha256": "ea2e907cde970671be29da7e9b976391300a73d60edad4dc04ffab8cc83d0a5a"
+    }
+  },
+  "attempts_preserved": [
+    {
+      "id": "validation-01",
+      "result": "prototype r1 11+15 and r95 10groups passed",
+      "timestamp_limitation": "r1 recorded_at was mistakenly passed as static2026-09-28T22:34:00Z. It is unreliable; observed original JSON filemtime2026-09-28T22:16:36.398407569Z is the actual report-completion timestamp. Raw report was not rewritten."
+    },
+    {
+      "id": "validation-02",
+      "result": "new fixture stop_receiver failed with nested sudo process-group kill; no gate success claimed"
+    },
+    {
+      "id": "validation-03",
+      "result": "intended local correction had not reached uploaded tool; same failure retained"
+    },
+    {
+      "id": "validation-04",
+      "result": "nested sudo monitor cleanup timed out; replaced fixture launch with direct root chroot child and direct child signals"
+    },
+    {
+      "id": "validation-05",
+      "result": "provisional replacement scenario wrongly required both replies to succeed; exact ubusd_handle_response discards replies to removed objects. Failed gate and ledger retained; final assertion requires visible alpha timeout, ordered beta success on new object and no retry."
+    },
+    {
+      "id": "validation-06",
+      "result": "prototype r1 11+17 passed with corrected fixture and boundary assertion",
+      "report_sha256": "d01ae00eff13267192434d9cfc912e840ee8cdd4678c0d6744021be885a1895f"
+    },
+    {
+      "id": "canonical-validation-01",
+      "result": "formal ELF r1 11+17 and r95 10groups passed, tools/binaries unchanged and cleanup observed"
+    }
+  ],
+  "not_claimed": [
+    "router measurements in this artifact",
+    "production deployment or real downstream service reload completion",
+    "performance effects of fault injection",
+    "native UCI full-read/EINTR tests or shared-consumer regressions; recorded by the separate final native/shared gate results"
+  ]
+}
