@@ -216,6 +216,9 @@ EOF
             cp /tmp/bin/fw4-firewall /etc/config/firewall
         fi
         sha256sum /etc/config/firewall > "$out/fw4-fixture.sha256"
+        sha256sum /sbin/ubusd /sbin/netifd /sbin/uci /usr/sbin/nft /usr/bin/ucode \
+            /sbin/fw4 /usr/share/ucode/fw4.uc /usr/share/firewall4/main.uc \
+            > "$out/fw4-dependencies.sha256"
     fi
     # A larger, fixed config exercises UCI iteration and reload's MD5 walk.
     i=0
