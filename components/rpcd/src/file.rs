@@ -244,30 +244,37 @@ pub fn md5(ctx: &Ctx, args: &Json) -> Result<Option<Json>, i32> {
 }
 
 fn list(ctx: &Ctx, args: PathArgs<'_>) -> Result<Vec<u8>, i32> {
-    let (path, _) = check_path_args(ctx, args, "list", false, false)?;
+    let (mut path, _) = check_path_args(ctx, args, "list", false, false)?;
     let rd = fs::read_dir(&path).map_err(|e| errno_status(&e))?;
     let mut out = BlobBuf::with_capacity(256);
     let mut names = util::IdentityNames::default();
     let entries = out.msg_open_array("entries");
     for e in rd.flatten() {
         let name = e.file_name();
-        let entrypath = e.path();
-        let Ok(m) = fs::symlink_metadata(&entrypath) else { continue };
+        // Reuse the path storage across entries. Keep full-path lstat rather
+        // than DirEntry::metadata: if the parent is renamed while listing,
+        // the C implementation also resolves the original pathname again.
+        path.push(&name);
+        let Ok(m) = fs::symlink_metadata(&path) else {
+            path.pop();
+            continue;
+        };
         let entry = out.msg_open_table("");
         out.msg_string_bytes("name", name.as_bytes());
         add_stat(&mut out, &m, &mut names);
         if m.file_type().is_symlink() {
             let target = out.msg_open_table("target");
-            if let Ok(link) = fs::read_link(&entrypath) {
+            if let Ok(link) = fs::read_link(&path) {
                 out.msg_string_bytes("name", link.as_os_str().as_bytes());
             }
-            match fs::metadata(&entrypath) {
+            match fs::metadata(&path) {
                 Ok(tm) => add_stat(&mut out, &tm, &mut names),
                 Err(_) => { out.msg_string("type", "broken"); },
             }
             out.msg_close(target);
         }
         out.msg_close(entry);
+        path.pop();
     }
     out.msg_close(entries);
     Ok(out.into_payload())
