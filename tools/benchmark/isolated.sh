@@ -980,6 +980,8 @@ EOF
             "$bin" -f -h /tmp/www -r OpenWrt -x /cgi-bin -u /ubus -t 60 -T 30 -k 20 -A 1 -n 3 -N 100 -R -p 127.0.0.1:18080 > "$out/daemon.log" 2>&1 & subject=$!
             monitors=$subject,$rpc,$bus
             sleep 1; kill -0 "$subject"
+            sha256sum /proc/"$rpc"/exe /proc/"$bus"/exe > "$out/dependencies-sha256.txt"
+            "$bench" snapshot "$monitors" > "$out/startup.json"
             start_trace
             if [ "${OWRT_HTTPD_DIAG:-0}" != 0 ]; then
                 sha256sum /tmp/bin/http-diagnostics > "$out/diagnostic-sha256.txt"
@@ -1062,6 +1064,15 @@ EOF
         *) echo 'unknown component' >&2; exit 2 ;;
     esac
     "$bench" snapshot "$monitors" > "$out/resident.json"
+    if [ "$component" = httpd ]; then
+        sleep 1
+        "$bench" snapshot "$monitors" > "$out/after-close.json"
+        if [ -r /proc/"$subject"/task/"$subject"/children ]; then
+            cat /proc/"$subject"/task/*/children > "$out/after-close-children.txt"
+        else
+            printf 'unavailable: kernel does not expose task children\n' > "$out/after-close-children.txt"
+        fi
+    fi
     case "$component" in uci|reload-config|fw4) subject=null ;; esac
     kernel_log_mask=dev-null
     [ "$component" != logd ] || kernel_log_mask=empty-held-fifo

@@ -427,6 +427,9 @@ def main():
             observed_tools = {Path(path).name: digest for digest, path in
                               (line.split() for line in (raw / "benchmark-sha256.txt").read_text().splitlines())}
             assert observed_tools == tool_hashes, "measured tool identities differ"
+            if component == "httpd":
+                dependencies = [line.split()[0] for line in (raw / "dependencies-sha256.txt").read_text().splitlines()]
+                assert dependencies == [manifest["components"][name]["original"]["sha256"] for name in ("rpcd", "ubusd")], "HTTP dependencies are not the exact image C binaries"
         except Exception as exc:
             failures.append(f"raw evidence: {type(exc).__name__}: {exc}")
         for filename, cmd, expected_value in (
