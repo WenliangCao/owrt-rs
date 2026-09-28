@@ -10,6 +10,7 @@ attempts.  No router is contacted.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
 import os
@@ -22,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 import r1_reference_oracle as oracle
+from reload_protocol_fixture import ProtocolFixture, raw_events
 
 
 SIZE_BUDGET_BYTES = 512 * 1024
@@ -77,9 +79,16 @@ def run_candidate(
         timeout=process_timeout_s,
     )
     traces = parse_traces(result.stderr)
+    received = [item for item in raw_events(root) if item["event"] == "receive"]
+    deliveries = oracle.read_deliveries(root)
+    if (root / "tmp/r1-delivery-ready").exists():
+        assert [bytes.fromhex(item["package_hex"]) for item in received] == [
+            os.fsencode(item["package"]) for item in deliveries
+        ], "raw protocol delivery differs from textual adapter evidence"
     return {
         "exit_status": result.returncode,
-        "deliveries": oracle.read_deliveries(root),
+        "deliveries": deliveries,
+        "raw_events": received,
         "baseline": oracle.parse_baseline(root),
         "baseline_bytes": (root / "var/run/config.md5").read_bytes(),
         "traces": traces,
@@ -164,6 +173,7 @@ def run_reference_cases(
                 "evidence": case["evidence"],
                 "compared_entry_count": len(initial),
                 "candidate_events": candidate_events,
+                "candidate_protocol_events": candidate["raw_events"],
                 "reference_events": reference_events,
                 "baseline_byte_equivalent": candidate["baseline_bytes"]
                 == reference_baseline_bytes,
@@ -698,10 +708,85 @@ def run_f26_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     return results, problems
 
 
+def run_protocol_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
+    results: list[dict[str, Any]] = []
+    problems: list[str] = []
+
+    prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B2"), "gamma": ("G", "G2")})
+    result = run_candidate(root, [6, 7, 0])
+    repeat = run_candidate(root, [])
+    deliveries = trace_of_kind(result, "delivery")
+    passed = (result["exit_status"] == 2 and repeat["exit_status"] == 0
+              and [d["outcome"] for d in deliveries] == ["exit_nonzero", "exit_nonzero", "success"]
+              and [d["status"] for d in deliveries] == [250, 249, 0]
+              and [d["package"] for d in result["deliveries"]] == ["alpha", "beta", "gamma"]
+              and not repeat["deliveries"] and result["baseline_bytes"] == repeat["baseline_bytes"])
+    results.append({"id": "p01-remote-status-is-not-local-timeout", "passed": passed,
+                    "delivery_traces": deliveries, "raw_events": result["raw_events"],
+                    "repeat_events": repeat["deliveries"]})
+    if not passed: problems.append(results[-1]["id"])
+
+    prepare_simple_change(root, {"alpha": ("A", "A2")})
+    ready = root / "tmp/r1-delivery-ready"
+    ready.write_text("before-disconnect\n")
+    result = run_candidate(root, ["disconnect"], timeout_ms=1000)
+    deadline = time.monotonic() + 3
+    while ready.read_text() != "reconnected\n":
+        if time.monotonic() >= deadline: raise RuntimeError("fault receiver did not recover connection")
+        time.sleep(0.01)
+    repeat = run_candidate(root, [])
+    oracle.write_config_set(root, {"alpha": "A3"}, {})
+    recovered = run_candidate(root, [0])
+    final_repeat = run_candidate(root, [])
+    deliveries = trace_of_kind(result, "delivery")
+    passed = (result["exit_status"] == 2 and len(deliveries) == 1
+              and deliveries[0]["outcome"] in ("exit_nonzero", "timeout")
+              and [d["package"] for d in result["deliveries"]] == ["alpha"]
+              and repeat["exit_status"] == recovered["exit_status"] == final_repeat["exit_status"] == 0
+              and not repeat["deliveries"] and not final_repeat["deliveries"]
+              and result["baseline_bytes"] == repeat["baseline_bytes"]
+              and [d["package"] for d in recovered["deliveries"]] == ["alpha"])
+    results.append({"id": "p02-disconnect-is-absorbed-and-new-change-recovers", "passed": passed,
+                    "delivery_traces": deliveries, "raw_events": result["raw_events"],
+                    "recovery_events": recovered["raw_events"]})
+    if not passed: problems.append(results[-1]["id"])
+
+    # The shell's unescaped JSON is an explicitly rejected defect. This case
+    # checks the candidate's declared raw-byte/JSON contract independently.
+    names = [b'quote"name', b'back\\slash', b'raw-\xff', b'tab\tname', b'control-\x01']
+    oracle.clear_directory(root / "etc/config")
+    oracle.clear_directory(root / "var/run/uci")
+    for name in names:
+        (root / "etc/config" / os.fsdecode(name)).write_bytes(b"invalid UCI\n")
+    old_order = list(reversed(names))
+    path = root / "var/run/config.md5"
+    path.write_bytes(b"".join(b"0" * 32 + b"  /var/run/config.check/" + name + b"\n" for name in old_order))
+    expected = b"".join(oracle.EMPTY_MD5.encode() + b"  /var/run/config.check/" + name + b"\n" for name in sorted(names))
+    oracle.write_statuses(root, [0] * len(names))
+    completed = subprocess.run(candidate_command(root, 1000), capture_output=True, timeout=15)
+    received = [item for item in raw_events(root) if item["event"] == "receive"]
+    actual_baseline = path.read_bytes()
+    traces = parse_traces(completed.stderr)
+    oracle.write_statuses(root, [])
+    repeated = subprocess.run(candidate_command(root, 1000), capture_output=True, timeout=15)
+    repeated_raw = [item for item in raw_events(root) if item["event"] == "receive"]
+    passed = (completed.returncode == repeated.returncode == 0
+              and [bytes.fromhex(item["package_hex"]) for item in received] == old_order
+              and actual_baseline == expected == path.read_bytes()
+              and not repeated_raw
+              and len([t for t in traces if t["kind"] == "delivery" and t["outcome"] == "success"]) == len(names))
+    results.append({"id": "p03-raw-package-bytes-json-and-baseline-order", "passed": passed,
+                    "raw_events": received, "expected_package_hex": [n.hex() for n in old_order],
+                    "baseline_bytes_equivalent": actual_baseline == expected,
+                    "repeat_raw_events": repeated_raw})
+    if not passed: problems.append(results[-1]["id"])
+    return results, problems
+
+
 def prepare_rootfs(
-    source: Path, destination: Path, candidate: Path
+    source: Path, destination: Path, candidate: Path, *, protocol: bool = False
 ) -> tuple[dict[str, str], dict[str, Any]]:
-    observed = oracle.prepare_rootfs(source, destination)
+    observed = oracle.prepare_rootfs(source, destination, delivery_adapter=not protocol)
     candidate_info = {
         "sha256": sha256_file(candidate),
         "size_bytes": candidate.stat().st_size,
@@ -722,18 +807,34 @@ def main() -> None:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--image-id", required=True)
     parser.add_argument("--recorded-at", required=True)
+    parser.add_argument("--receiver", type=Path, help="owrt-benchmark with reload-fault-service; use exact private C ubusd and real ubus CLI")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(prefix="owrt-r1-candidate-") as temp:
         root = Path(temp) / "rootfs"
         observed, candidate_info = prepare_rootfs(
-            args.rootfs.resolve(), root, args.candidate.resolve()
+            args.rootfs.resolve(), root, args.candidate.resolve(), protocol=bool(args.receiver)
         )
-        cases, case_problems = run_reference_cases(root, args.cases.resolve())
-        faults, fault_problems = run_fault_cases(root)
-        f26, f26_problems = run_f26_cases(root)
-        faults.extend(f26)
-        fault_problems.extend(f26_problems)
+        fixture = ProtocolFixture(root, args.receiver.resolve()) if args.receiver else contextlib.nullcontext()
+        try:
+            with fixture:
+                cases, case_problems = run_reference_cases(root, args.cases.resolve())
+                faults, fault_problems = run_fault_cases(root)
+                f26, f26_problems = run_f26_cases(root)
+                faults.extend(f26)
+                fault_problems.extend(f26_problems)
+                if args.receiver:
+                    protocol_cases, protocol_problems = run_protocol_cases(root)
+                    faults.extend(protocol_cases)
+                    fault_problems.extend(protocol_problems)
+
+        finally:
+            if args.receiver:
+                evidence = args.output.parent / (args.output.name + "-protocol")
+                evidence.mkdir(parents=True, exist_ok=False)
+                for name in ("r1-bus.log", "r1-receiver.log", "r1-delivery-raw.jsonl", "r1-delivery-all.jsonl"):
+                    if (root / "tmp" / name).exists():
+                        shutil.copy2(root / "tmp" / name, evidence / name)
 
     problems = case_problems + fault_problems
     if not candidate_info["within_size_budget"]:
@@ -752,7 +853,8 @@ def main() -> None:
             "reference_normalizer": "exact image /sbin/uci",
             "reference_digest_tool": "exact image BusyBox md5sum",
             "candidate_normalizer_and_digest": "candidate implementation",
-            "delivery_adapter": "test-only /bin/ubus shim in disposable rootfs",
+            "delivery_adapter": ("private exact C ubusd + trigger-free protocol receiver" if args.receiver else "test-only /bin/ubus shim in disposable rootfs"),
+            "receiver_sha256": sha256_file(args.receiver) if args.receiver else None,
         },
         "source_artifacts": observed,
         "candidate": candidate_info,

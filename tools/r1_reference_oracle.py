@@ -164,6 +164,7 @@ def write_statuses(root: Path, statuses: list[int | str]) -> None:
     tmp = root / "tmp"
     tmp.mkdir(parents=True, exist_ok=True)
     (tmp / "r1-delivery.log").write_text("")
+    (tmp / "r1-delivery-raw.jsonl").write_text("")
     (tmp / "r1-delivery-status").write_text(
         "".join(f"{status}\n" for status in statuses)
     )
@@ -400,7 +401,7 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     return traces, problems
 
 
-def prepare_rootfs(source: Path, destination: Path) -> dict[str, str]:
+def prepare_rootfs(source: Path, destination: Path, *, delivery_adapter: bool = True) -> dict[str, str]:
     observed = {
         path: sha256_file(source / path) for path in EXPECTED_ARTIFACTS
     }
@@ -412,9 +413,10 @@ def prepare_rootfs(source: Path, destination: Path) -> dict[str, str]:
     null = destination / "dev/null"
     null.parent.mkdir(parents=True, exist_ok=True)
     null.touch()
-    adapter = destination / "bin/ubus"
-    adapter.write_text(UBUS_ADAPTER)
-    adapter.chmod(0o755)
+    if delivery_adapter:
+        adapter = destination / "bin/ubus"
+        adapter.write_text(UBUS_ADAPTER)
+        adapter.chmod(0o755)
     return observed
 
 
