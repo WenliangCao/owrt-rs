@@ -156,6 +156,13 @@ impl Session {
         if list.len() <= 8 {
             return list.iter().any(|a| obj.starts_with(&a.key) && matches(a));
         }
+        // A leading wildcard or first literal match was already cheap in the
+        // forward scan. Preserve it before searching the remaining key ranges.
+        let first = &list[0];
+        if obj.starts_with(&first.key) && matches(first) {
+            return true;
+        }
+        let list = &list[1..];
         let mut end = list.partition_point(|a| a.key.as_slice() <= obj);
         while end != 0 {
             let acl = &list[end - 1];
