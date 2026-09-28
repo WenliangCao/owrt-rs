@@ -751,6 +751,31 @@ def run_protocol_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
                     "recovery_events": recovered["raw_events"]})
     if not passed: problems.append(results[-1]["id"])
 
+    # Hide only the private socket pathname. Existing fixture connections stay
+    # alive, while each new candidate sees the same connect failure as CLI.
+    prepare_simple_change(root, {"alpha": ("A", "A2")})
+    socket = root / "var/run/ubus/ubus.sock"
+    hidden_socket = socket.with_name("ubus.sock.offline")
+    socket.rename(hidden_socket)
+    try:
+        result = run_candidate(root, [0])
+    finally:
+        hidden_socket.rename(socket)
+    repeat = run_candidate(root, [])
+    oracle.write_config_set(root, {"alpha": "A3"}, {})
+    recovered = run_candidate(root, [0])
+    deliveries = trace_of_kind(result, "delivery")
+    passed = (result["exit_status"] == 2 and len(deliveries) == 1
+              and deliveries[0]["outcome"] == "exit_nonzero" and deliveries[0]["status"] == 255
+              and not result["deliveries"] and not repeat["deliveries"]
+              and repeat["exit_status"] == recovered["exit_status"] == 0
+              and result["baseline_bytes"] == repeat["baseline_bytes"]
+              and [d["package"] for d in recovered["deliveries"]] == ["alpha"])
+    results.append({"id": "p04-unavailable-socket-absorbed-and-recovered", "passed": passed,
+                    "delivery_traces": deliveries, "raw_events": result["raw_events"],
+                    "recovery_events": recovered["raw_events"]})
+    if not passed: problems.append(results[-1]["id"])
+
     # The shell's unescaped JSON is an explicitly rejected defect. This case
     # checks the candidate's declared raw-byte/JSON contract independently.
     names = [b'quote"name', b'back\\slash', b'raw-\xff', b'tab\tname', b'control-\x01']
