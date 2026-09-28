@@ -27030,6 +27030,192 @@
       ],
       "unmatched_workloads": []
     },
-    "stop_reason": "Selected the most promising tested candidate through code-level C/source/profile studies, rejected original H7 and H11, and completed canonical gates and frozen three-side confirmation. Remaining disclosed tradeoffs do not justify more mechanisms or measurements in this task. No claim of universal optimality."
+    "stop_reason": "Selected the most promising tested candidate through code-level C/source/profile studies, rejected original H7 and H11, and completed canonical gates and frozen three-side confirmation. Remaining disclosed tradeoffs do not justify more mechanisms or measurements in this task. No claim of universal optimality.",
+    "supplemental_repeat64": {
+      "scope": "User-requested short Oracle resource stability check after engineering closure; no new optimization or physical router access",
+      "binary_sha256": "1ed3ed327f967dd920a33bea79322d5ceb1b60de48eb51c9ec4aef8bb86e42d2",
+      "source_commit": "ba37d2c557a3d695a5c3bbce931732ed9f1aa0f7",
+      "started_at": "2026-09-28T10:50:52.006052+00:00",
+      "completed_at": "2026-09-28T10:51:12.006830+00:00",
+      "host": {
+        "kernel": "6.17.0-1020-oracle",
+        "architecture": "aarch64"
+      },
+      "plan": {
+        "rounds": 10,
+        "connections": 64,
+        "requests_per_connection": 2,
+        "response_bytes": 16384,
+        "same_process": true,
+        "settle_after_close_seconds": 1,
+        "final_idle_seconds": 5
+      },
+      "successful_requests": 1280,
+      "errors": 0,
+      "startup_rss_kib": 992,
+      "startup_anon_kib": 56,
+      "rounds": [
+        {
+          "round": 1,
+          "before_rss_kib": 992,
+          "held_rss_kib": 1176,
+          "after_close_rss_kib": 1176,
+          "settled_rss_kib": 1176,
+          "settled_anon_kib": 240,
+          "reported_hwm_kib": 3360,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 2,
+          "before_rss_kib": 1176,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3404,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 3,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3404,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 4,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3404,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 5,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3404,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 6,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3404,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 7,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3528,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 8,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3528,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 9,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3528,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        },
+        {
+          "round": 10,
+          "before_rss_kib": 1200,
+          "held_rss_kib": 1200,
+          "after_close_rss_kib": 1200,
+          "settled_rss_kib": 1200,
+          "settled_anon_kib": 264,
+          "reported_hwm_kib": 3528,
+          "held_fds": 71,
+          "closed_fds": 7,
+          "closed_threads": 1,
+          "closed_children": 0
+        }
+      ],
+      "final_idle_rss_kib": 1200,
+      "final_idle_anon_kib": 264,
+      "round2_minus_round1_rss_kib": 24,
+      "round2_minus_round1_pct": 2.0408163265306123,
+      "round10_minus_round2_rss_kib": 0,
+      "interpretation": "RSS rose 24 KiB after the first cycle, then held at 1200 KiB for rounds 2-10 and five more idle seconds. No continuing closed-state RSS growth observed in these ten cycles. High-water mark rose later; this is not a claim of constant transient peaks or long-duration leak freedom.",
+      "isolation_and_cleanup": {
+        "exit": 0,
+        "wall_seconds_including_namespace_cleanup": 20.097760974022094,
+        "parent_namespaces_unchanged": true,
+        "parent_mountinfo_unchanged": true,
+        "binary_hash_after": "1ed3ed327f967dd920a33bea79322d5ceb1b60de48eb51c9ec4aef8bb86e42d2",
+        "finished_at": "2026-09-28T10:51:12.034994+00:00"
+      },
+      "owned_server_reaped": true,
+      "temporary_root_removed": true,
+      "tool_sha256": {
+        "/home/ubuntu/httpd-20260928/repeat64-20260928.py": "82ed8e3af5ccb03c9693a78da21f684235e0199f9034e9d2f0a08da6e7552164",
+        "/home/ubuntu/httpd-20260928/source/tools/r85_httpd_static.py": "ab220b01b522d93726807852d14e54c729457997c3416df1be699761a093e641",
+        "/home/ubuntu/httpd-20260928/source/tools/r14_httpd_check.py": "7578754ce914c7e688a2b0dee6d37c84cd69730f314d003f44527dd665e2c49b",
+        "/home/ubuntu/r90-batch1/baseline/ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2"
+      },
+      "raw_private_evidence": "private/httpd-20260928/h12-repeat64-20260928",
+      "evidence_sha256": {
+        "plan.json": "7228fc17579e1b5a18b05b1237c8885f38acf6545d63abe7dcdcf76c7dd67270",
+        "result.json": "a7fc88fe528827f83908684beb8296c889b037081e720aa055d31104df769397",
+        "outer.json": "dc73c0d03fb48a927f21182d5bf54f291992050e3b9aedd65e627cff37c53a4e",
+        "worker.log": "07ddf982b7893d029b797fa9097845179f9f5d23dbe314e2575fedfd629e1737",
+        "server.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
   }
 }
