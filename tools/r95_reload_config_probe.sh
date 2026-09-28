@@ -18,6 +18,27 @@ UBUS
 chmod 755 /tmp/probe-bin/ubus
 export PATH=/tmp/probe-bin:$PATH
 
+assert_baseline() {
+    : > "$out/baseline-expected"
+    for name in alpha beta; do
+        if [ "${1:-}" = timeout ] && [ "$name" = alpha ]; then
+            digest=d41d8cd98f00b204e9800998ecf8427e
+        else
+            digest=$(/sbin/uci show "$name" | md5sum | cut -c1-32)
+        fi
+        printf '%s  /var/run/config.check/%s\n' "$digest" "$name" >> "$out/baseline-expected"
+    done
+    cmp /var/run/config.md5 "$out/baseline-expected"
+}
+
+assert_no_repeat() {
+    cp /var/run/config.md5 "$out/baseline-recovered"
+    : > "$out/events"
+    "$bin" --timeout-ms 1000 --trace-stderr > /dev/null 2> "$out/$1-repeat.trace"
+    [ ! -s "$out/events" ]
+    cmp /var/run/config.md5 "$out/baseline-recovered"
+}
+
 reset_case() {
     # These directories are tmpfs in the chroot established by isolated.sh.
     rm -f /etc/config/* /tmp/.uci/* /var/run/config.md5 /tmp/ready /tmp/release
@@ -83,14 +104,17 @@ for kind in config delta override; do
     [ "$(wc -l < "$out/events")" -eq 2 ]
     sed -n '1p' "$out/events" | grep -q '"package": "alpha"'
     sed -n '2p' "$out/events" | grep -q '"package": "beta"'
-    grep -q '^d41d8cd98f00b204e9800998ecf8427e  /var/run/config.check/alpha$' /var/run/config.md5
+    assert_baseline timeout
+    cp "$out/events" "$out/$kind-timeout.events"
     # Next invocation must reload the full package after contention ends.
     : > "$out/events"
     "$bin" --timeout-ms 1000 --trace-stderr > /dev/null 2> "$out/$kind-retry.trace"
     [ "$(wc -l < "$out/events")" -eq 1 ]
     grep -q '"package": "alpha"' "$out/events"
-    if grep -q '^d41d8cd98f00b204e9800998ecf8427e .*alpha$' /var/run/config.md5; then exit 1; fi
-    printf '%s_timeout: continued beta, advanced baseline, next invocation recovered\n' "$kind" >> "$out/results.txt"
+    assert_baseline
+    cp "$out/events" "$out/$kind-timeout-recovery.events"
+    assert_no_repeat "$kind-timeout"
+    printf '%s_timeout: continued beta, full baseline matched, recovery and repeat passed\n' "$kind" >> "$out/results.txt"
 
     reset_case "$kind"
     hold_lock
@@ -103,6 +127,14 @@ for kind in config delta override; do
     [ "$status" = 75 ]
     cmp /var/run/config.md5 "$out/baseline-before"
     [ ! -s "$out/events" ]
-    printf '%s_cancel: exit 75, baseline and deliveries unchanged\n' "$kind" >> "$out/results.txt"
+    cp "$out/events" "$out/$kind-cancel.events"
+    "$bin" --timeout-ms 1000 --trace-stderr > /dev/null 2> "$out/$kind-cancel-recovery.trace"
+    [ "$(wc -l < "$out/events")" -eq 2 ]
+    sed -n '1p' "$out/events" | grep -q '"package": "alpha"'
+    sed -n '2p' "$out/events" | grep -q '"package": "beta"'
+    assert_baseline
+    cp "$out/events" "$out/$kind-cancel-recovery.events"
+    assert_no_repeat "$kind-cancel"
+    printf '%s_cancel: exit 75, baseline and deliveries unchanged, recovery and repeat passed\n' "$kind" >> "$out/results.txt"
 done
 touch "$out/COMPLETE"

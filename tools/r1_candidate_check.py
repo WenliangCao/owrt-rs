@@ -2,8 +2,8 @@
 """Differentially test the R1 candidate in the exact OpenWrt rootfs.
 
 The candidate and the deployed shell implementation run separately from the
-same exact-image baseline and synthetic UCI input.  The real image `uci` and
-BusyBox `md5sum` are used by both.  A disposable ubus adapter records delivery
+same exact-image baseline and synthetic UCI input.  The reference uses the real image `uci` and BusyBox `md5sum`; the candidate
+may normalize and digest in-process.  A disposable ubus adapter records delivery
 attempts.  No router is contacted.
 """
 
@@ -384,9 +384,10 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     if not concurrent_ok:
         problems.append("f05-concurrent-run-waits-for-the-lock")
 
-    initial = prepare_simple_change(root, {"alpha": ("A", "A2")})
+    initial = prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B2")})
     before = oracle.parse_baseline(root)
-    oracle.write_statuses(root, ["sleep:3"])
+    before_bytes = baseline_bytes(root)
+    oracle.write_statuses(root, ["sleep:3", 0])
     pid_file = root / "tmp/r1-candidate.pid"
     interrupted = subprocess.Popen(
         [
@@ -415,9 +416,19 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     _, interrupted_stderr = interrupted.communicate(timeout=5)
     interrupted_traces = parse_traces(interrupted_stderr)
     after = oracle.parse_baseline(root)
+    after_bytes = baseline_bytes(root)
+    cancelled_events = oracle.read_deliveries(root)
+    recovered = run_candidate(root, [0, 0])
+    repeat = run_candidate(root, [])
     cancel_ok = (
         interrupted.returncode == 75
         and before == after
+        and before_bytes == after_bytes
+        and [item["package"] for item in cancelled_events] == ["alpha"]
+        and recovered["exit_status"] == repeat["exit_status"] == 0
+        and [item["package"] for item in recovered["deliveries"]] == ["alpha", "beta"]
+        and not repeat["deliveries"]
+        and recovered["baseline_bytes"] == repeat["baseline_bytes"]
         and len([item for item in interrupted_traces if item["kind"] == "fatal"]) == 1
         and [item for item in interrupted_traces if item["kind"] == "fatal"][0]["class"]
         == "temporary"
@@ -427,12 +438,107 @@ def run_fault_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
             "id": "f06-sigterm-cancels-with-retryable-baseline",
             "compared_entry_count": len(initial),
             "exit_status": interrupted.returncode,
-            "baseline_unchanged": before == after,
+            "baseline_unchanged": before_bytes == after_bytes,
+            "cancelled_events": [item["package"] for item in cancelled_events],
+            "recovery_events": [item["package"] for item in recovered["deliveries"]],
+            "repeat_events": [item["package"] for item in repeat["deliveries"]],
             "passed": cancel_ok,
         }
     )
     if not cancel_ok:
         problems.append("f06-sigterm-cancels-with-retryable-baseline")
+
+    # A caller waiting for the run lock must cancel without normalizing,
+    # dispatching or replacing the old baseline; releasing the lock restores
+    # the complete pending round, not merely the first event.
+    import fcntl
+
+    prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B2")})
+    before_bytes = baseline_bytes(root)
+    oracle.write_statuses(root, [0, 0])
+    pid_file.unlink(missing_ok=True)
+    with (root / "var/run/reload-config-rs.lock").open("a+b") as held:
+        fcntl.flock(held, fcntl.LOCK_EX)
+        waiter = subprocess.Popen(
+            ["sudo", "-n", "chroot", str(root), "/bin/sh", "-c",
+             "echo $$ > /tmp/r1-candidate.pid; "
+             "export PATH=/usr/sbin:/usr/bin:/sbin:/bin; "
+             "exec /sbin/reload_config_rs --trace-stderr --timeout-ms 5000"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        deadline = time.monotonic() + 2
+        try:
+            while not pid_file.exists():
+                if waiter.poll() is not None or time.monotonic() >= deadline:
+                    raise RuntimeError("run-lock waiter did not start")
+                time.sleep(0.01)
+            # The lock is held throughout, so this is only a readiness pause;
+            # this functional gate makes no performance claim.
+            time.sleep(0.1)
+            subprocess.run(
+                ["sudo", "-n", "kill", f"-{signal.SIGTERM}", pid_file.read_text().strip()],
+                check=True, capture_output=True,
+            )
+            _, waiter_stderr = waiter.communicate(timeout=5)
+        finally:
+            if waiter.poll() is None:
+                waiter.kill()
+                waiter.communicate(timeout=5)
+    waiter_traces = parse_traces(waiter_stderr)
+    untouched = baseline_bytes(root) == before_bytes and not oracle.read_deliveries(root)
+    recovered = run_candidate(root, [0, 0])
+    repeat = run_candidate(root, [])
+    lock_cancel_ok = (
+        waiter.returncode == 75 and untouched
+        and len(waiter_traces) == 1
+        and waiter_traces[0].get("kind") == "fatal"
+        and waiter_traces[0].get("class") == "temporary"
+        and recovered["exit_status"] == repeat["exit_status"] == 0
+        and [item["package"] for item in recovered["deliveries"]] == ["alpha", "beta"]
+        and not repeat["deliveries"]
+        and recovered["baseline_bytes"] == repeat["baseline_bytes"]
+    )
+    results.append({
+        "id": "f07-run-lock-cancellation-and-following-recovery",
+        "exit_status": waiter.returncode, "baseline_and_events_unchanged": untouched,
+        "recovery_events": [item["package"] for item in recovered["deliveries"]],
+        "repeat_events": [item["package"] for item in repeat["deliveries"]],
+        "passed": lock_cancel_ok,
+    })
+    if not lock_cancel_ok:
+        problems.append("f07-run-lock-cancellation-and-following-recovery")
+
+    # An arbitrary existing baseline controls dispatch order. A newly sorted
+    # current scan must not replace this ordering before all old entries run.
+    def prepare_reordered() -> None:
+        oracle.establish_baseline(root, {"alpha": "A", "beta": "B", "gamma": "G"})
+        path = root / "var/run/config.md5"
+        path.write_bytes(b"".join(reversed(path.read_bytes().splitlines(keepends=True))))
+        oracle.write_config_set(root, {"alpha": "A2", "gamma": "G2", "new": "N"}, {})
+
+    prepare_reordered()
+    reordered = run_candidate(root, [0, 0, 0])
+    repeat = run_candidate(root, [])
+    prepare_reordered()
+    reference = oracle.run_exact(root, [0, 0, 0])
+    ordered_ok = (
+        reordered["exit_status"] == reference["exit_status"] == repeat["exit_status"] == 0
+        and [item["package"] for item in reordered["deliveries"]]
+            == [item["package"] for item in reference["deliveries"]]
+            == ["gamma", "beta", "alpha"]
+        and reordered["baseline_bytes"] == baseline_bytes(root) == repeat["baseline_bytes"]
+        and not repeat["deliveries"]
+    )
+    results.append({
+        "id": "f08-old-baseline-order-survives-new-scan-order",
+        "candidate_events": [item["package"] for item in reordered["deliveries"]],
+        "reference_events": [item["package"] for item in reference["deliveries"]],
+        "baseline_byte_equivalent": reordered["baseline_bytes"] == baseline_bytes(root),
+        "repeat_events": [item["package"] for item in repeat["deliveries"]],
+        "passed": ordered_ok,
+    })
+    if not ordered_ok:
+        problems.append("f08-old-baseline-order-survives-new-scan-order")
 
     return results, problems
 
@@ -643,8 +749,9 @@ def main() -> None:
             "device_writes": False,
             "rootfs_copy_is_disposable": True,
             "candidate_and_reference_inputs_are_identical": True,
-            "normalizer": "exact image /sbin/uci",
-            "digest_tool": "exact image BusyBox md5sum",
+            "reference_normalizer": "exact image /sbin/uci",
+            "reference_digest_tool": "exact image BusyBox md5sum",
+            "candidate_normalizer_and_digest": "candidate implementation",
             "delivery_adapter": "test-only /bin/ubus shim in disposable rootfs",
         },
         "source_artifacts": observed,
@@ -667,16 +774,15 @@ def main() -> None:
             "passed": not problems,
         },
     }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
     if problems:
         for problem in problems:
             print(f"FAIL {problem}")
         for item in cases + faults:
             if not item.get("passed", True):
                 print(json.dumps(item, indent=2, sort_keys=True, default=str))
-        raise SystemExit(f"{len(problems)} candidate problem(s); output not written")
-
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+        raise SystemExit(f"{len(problems)} candidate problem(s); failure output preserved at {args.output}")
     print(
         json.dumps(
             {
