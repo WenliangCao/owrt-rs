@@ -107,5 +107,104 @@ class FourSideAnalysisTests(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, 'exact image'): derive(self.root, 'bad')
 
 
+class UciFourSideAnalysisTests(unittest.TestCase):
+    workloads = ('export_network', 'export_64', 'set_commit_get', 'get_network',
+                 'export_multi', 'show_long', 'delta_64', 'batch_read16')
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.sides = ['stock', 'r89', 'r94', 'candidate']
+        self.order = self.sides + self.sides[::-1] + ['r89', 'candidate', 'stock', 'r94']
+        subjects = dict(zip(self.sides, ['a' * 64, 'b' * 64, 'c' * 64, 'd' * 64]))
+        settings = {'component': 'uci', 'matrix': True, 'baseline_label': 'r89',
+                    'schedule': 'random-blocks', 'extra_baselines': {
+                        'r94': {'subject_sha256': subjects['r94'],
+                                'provenance': {'subject_sha256': subjects['r94'], 'formal': False}}}}
+        for name, value in {'order.json': self.order, 'subjects.json': subjects,
+                            'settings.json': settings}.items():
+            (self.root / name).write_text(json.dumps(value))
+        for phase in ('before', 'after'):
+            (self.root / ('health-' + phase + '.json')).write_text(json.dumps({'boot_id': 'boot'}))
+            (self.root / ('config-' + phase + '.sha256')).write_text('same config')
+        (self.root / 'COMPLETE').touch()
+        cpu = {'stock': 2100, 'r89': 1400, 'r94': 1100, 'candidate': 1000}
+        for index, side in enumerate(self.order, 1):
+            local = self.root / f'{index:02d}-{side}'; raw = local / 'raw'; raw.mkdir(parents=True)
+            (local / 'COMPLETE').touch(); (raw / 'COMPLETE').touch()
+            (local / 'raw.tar.gz').write_bytes(b'fixture archive')
+            (raw / 'meta.json').write_text(json.dumps({'component': 'uci',
+                'dependencies': 'original OpenWrt', 'subject_pid': None, 'iterations': 80}))
+            for name, value in {'binary-sha256.txt': subjects[side], 'boot-id.txt': 'boot',
+                                'benchmark-sha256.txt': 'client /tool\nnamespace /ns\n',
+                                'harness-sha256.txt': 'harness', 'kernel.txt': 'fixed-kernel',
+                                'uci-fixtures.sha256': 'network /etc/config/network\nlong /etc/config/ucilong\ndelta /tmp/uci-delta/r84fixture\n'}.items():
+                (raw / name).write_text(value.rstrip('\n') + '\n')
+            sample = native_sample(n=4, warm=5)
+            sample.update(daemon_cpu=[], child_cpu_s=0)
+            for phase, extra in (('before', 0), ('after', 2 * cpu[side])):
+                sample['client_' + phase].update(child_cpu_ticks=200,
+                    rusage_children_user_us=1000000 + extra,
+                    rusage_children_system_us=1000000 + extra,
+                    rusage_children_counter_source='getrusage(RUSAGE_CHILDREN)')
+            for workload in self.workloads:
+                (raw / (workload + '.json')).write_text(json.dumps(sample))
+
+    def test_expanded_four_sides_keep_command_cpu_and_three_baseline_comparisons(self):
+        result = derive(self.root, 'UCI expanded fixture')
+        self.assertTrue(result['acceptance_eligible'])
+        self.assertEqual(result['measured_sides'], tuple(self.sides))
+        self.assertEqual(set(result['summary']), set(self.workloads))
+        self.assertEqual(len(result['runs']), 3 * 4 * len(self.workloads))
+        self.assertEqual(result['resident'], [])
+        self.assertFalse(result['extra_baselines']['r94']['provenance']['formal'])
+        for workload in self.workloads:
+            summary = result['summary'][workload]
+            self.assertEqual(summary['candidate']['command_tree_cpu_us_per_op']['median'], 1000)
+            self.assertEqual(summary['candidate']['command_tree_cpu_us_per_op']['n'], 3)
+            self.assertEqual(summary['candidate']['subject_cpu_us_per_op']['median'], 0)
+            for comparison, baseline in (('candidate_vs_stock_pct', 2100),
+                                         ('candidate_vs_baseline_pct', 1400),
+                                         ('candidate_vs_r94_pct', 1100)):
+                self.assertAlmostEqual(summary[comparison]['command_tree_cpu_us_per_op'],
+                                       (1000 / baseline - 1) * 100)
+
+    def test_changed_fixture_on_one_historical_side_is_rejected(self):
+        (self.root / '03-r94/raw/uci-fixtures.sha256').write_text('different delta content\n')
+        with self.assertRaisesRegex(AssertionError, 'fixtures changed'):
+            derive(self.root, 'changed UCI fixture')
+
+    def test_missing_expanded_workload_and_wrong_iteration_count_are_rejected(self):
+        path = self.root / '04-candidate/raw/batch_read16.json'
+        contents = path.read_bytes(); path.unlink()
+        with self.assertRaises(FileNotFoundError):
+            derive(self.root, 'missing batch lane')
+        path.write_bytes(contents)
+        path = self.root / '04-candidate/raw/meta.json'
+        meta = json.loads(path.read_text()); meta['iterations'] = 100
+        path.write_text(json.dumps(meta))
+        with self.assertRaises(AssertionError):
+            derive(self.root, 'wrong UCI sample count')
+
+    def test_one_legacy_row_cannot_claim_fine_command_cpu_for_complete_matrix(self):
+        path = self.root / '04-candidate/raw/delta_64.json'
+        sample = json.loads(path.read_text())
+        del sample['client_after']['rusage_children_system_us']
+        path.write_text(json.dumps(sample))
+        with self.assertRaisesRegex(AssertionError, 'partial'):
+            derive(self.root, 'partial command counter')
+        for phase in ('before', 'after'):
+            for field in list(sample['client_' + phase]):
+                if field.startswith('rusage_children_'):
+                    del sample['client_' + phase][field]
+        path.write_text(json.dumps(sample))
+        result = derive(self.root, 'one legacy row')
+        self.assertFalse(result['acceptance_eligible'])
+        self.assertTrue(any('getrusage' in reason for reason in result['limitations']))
+        self.assertNotIn('command_tree_cpu_us_per_op', result['summary']['delta_64']['candidate'])
+        self.assertEqual(result['summary']['delta_64']['candidate']['subject_cpu_us_per_op']['median'], 0)
+
+
 if __name__ == '__main__':
     unittest.main()
