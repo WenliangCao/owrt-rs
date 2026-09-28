@@ -667,15 +667,15 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
         },
         "grant" | "revoke" => {
             let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
-            let scope = arg_str(raw, "scope").unwrap_or("ubus").to_owned();
-            let objects = arg(raw, "objects", MsgType::Array).map(|f| f.data.to_vec());
+            let scope = arg_str(raw, "scope").unwrap_or("ubus");
+            let objects = arg(raw, "objects", MsgType::Array).map(|f| f.data);
             let grant = method == "grant";
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
             let Some(objects) = objects else {
-                let rc = if grant { ses.grant(&scope, None, None) } else { ses.revoke(&scope, None, None) };
+                let rc = if grant { ses.grant(scope, None, None) } else { ses.revoke(scope, None, None) };
                 return err(rc);
             };
-            for pair in blob::fields(&objects) {
+            for pair in blob::fields(objects) {
                 if pair.ty != MsgType::Array as u32 {
                     continue;
                 }
@@ -687,9 +687,9 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
                 let function = strings.next().and_then(|s| s.as_str());
                 if let (Some(o), Some(f)) = (object, function) {
                     if grant {
-                        ses.grant_bytes(&scope, Some(o), Some(f));
+                        ses.grant_bytes(scope, Some(o), Some(f));
                     } else {
-                        ses.revoke_bytes(&scope, Some(o), Some(f));
+                        ses.revoke_bytes(scope, Some(o), Some(f));
                     }
                 }
             }
@@ -737,9 +737,8 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
             let (Some(sid), Some(values)) = (arg_str(raw, "ubus_rpc_session"), arg(raw, "values", MsgType::Table)) else {
                 return err(status::INVALID_ARGUMENT);
             };
-            let values = values.data.to_vec();
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
-            for f in blob::fields(&values) {
+            for f in blob::fields(values.data) {
                 if f.name.is_empty() {
                     continue;
                 }
@@ -749,13 +748,13 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
         }
         "get" => {
             let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
-            let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data.to_vec());
+            let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data);
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
             let mut b = BlobBuf::new();
             let c = b.msg_open_table("values");
             match keys {
                 Some(keys) => {
-                    for k in blob::fields(&keys) {
+                    for k in blob::fields(keys) {
                         if k.ty != MsgType::String as u32 {
                             continue;
                         }
@@ -772,12 +771,12 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
         }
         "unset" => {
             let Some(sid) = arg_str(raw, "ubus_rpc_session") else { return err(status::INVALID_ARGUMENT) };
-            let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data.to_vec());
+            let keys = arg(raw, "keys", MsgType::Array).map(|f| f.data);
             let Some(ses) = store.get(sid) else { return err(status::NOT_FOUND) };
             match keys {
                 None => ses.data.clear(),
                 Some(keys) => {
-                    for k in blob::fields(&keys) {
+                    for k in blob::fields(keys) {
                         if k.ty != MsgType::String as u32 {
                             continue;
                         }
@@ -848,6 +847,42 @@ pub fn call(store: &mut Store, method: &str, raw: &[u8]) -> Reply {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn borrowed_data_handlers_keep_raw_types_duplicate_keys_and_empty_name_rules() {
+        let mut store = empty_store();
+        store.insert(Session::new("borrowed-data"));
+        let mut request = BlobBuf::new();
+        request.msg_string("ubus_rpc_session", "borrowed-data");
+        let values = request.msg_open_table("values");
+        request.msg_string_bytes("raw", b"value\xff");
+        request.msg_u16("number", 65535);
+        request.msg_string("", "ignored");
+        request.msg_close(values);
+        assert_eq!(call(&mut store, "set", request.payload()).code, 0);
+        assert_eq!(store.sessions["borrowed-data"].data.len(), 2);
+
+        let mut request = BlobBuf::new();
+        request.msg_string("ubus_rpc_session", "borrowed-data");
+        let keys = request.msg_open_array("keys");
+        request.msg_string("", "raw");
+        request.msg_u32("", 5); // non-STRING keys are ignored
+        request.msg_string("", "raw"); // duplicates stay in request order
+        request.msg_string("", "number");
+        request.msg_close(keys);
+        let response = call(&mut store, "get", request.payload());
+        let mut expected = BlobBuf::new();
+        let values = expected.msg_open_table("values");
+        expected.msg_string_bytes("raw", b"value\xff");
+        expected.msg_string_bytes("raw", b"value\xff");
+        expected.msg_u16("number", 65535);
+        expected.msg_close(values);
+        assert_eq!(response.code, 0);
+        assert_eq!(&response.data[0], expected.payload());
+
+        assert_eq!(call(&mut store, "unset", request.payload()).code, 0);
+        assert!(store.sessions["borrowed-data"].data.is_empty());
+    }
 
     #[test]
     fn constant_access_wire_matches_codec_and_grants_are_rechecked() {
