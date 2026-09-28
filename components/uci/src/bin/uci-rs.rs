@@ -529,24 +529,24 @@ Options:\n\
 
     /// uci_cmd
     fn uci_cmd(&mut self, argv: &[Arg]) -> i32 {
-        let c = s(&argv[0]).to_ascii_lowercase();
-        let cmd = match c.as_str() {
-            "batch" if self.flags & FLAG_BATCH == 0 => return self.batch(),
-            "show" => CliCmd::Show,
-            "changes" => CliCmd::Changes,
-            "export" => CliCmd::Export,
-            "commit" => CliCmd::Commit,
-            "get" => CliCmd::Get,
-            "set" => CliCmd::Set,
-            "ren" | "rename" => CliCmd::Rename,
-            "revert" => CliCmd::Revert,
-            "reorder" => CliCmd::Reorder,
-            "del" | "delete" => CliCmd::Del,
-            "import" => CliCmd::Import,
-            "help" => CliCmd::Help,
-            "add" => CliCmd::Add,
-            "add_list" => CliCmd::AddList,
-            "del_list" => CliCmd::DelList,
+        let command = &argv[0];
+        let cmd = match command.as_slice() {
+            c if c.eq_ignore_ascii_case(b"batch") && self.flags & FLAG_BATCH == 0 => return self.batch(),
+            c if c.eq_ignore_ascii_case(b"show") => CliCmd::Show,
+            c if c.eq_ignore_ascii_case(b"changes") => CliCmd::Changes,
+            c if c.eq_ignore_ascii_case(b"export") => CliCmd::Export,
+            c if c.eq_ignore_ascii_case(b"commit") => CliCmd::Commit,
+            c if c.eq_ignore_ascii_case(b"get") => CliCmd::Get,
+            c if c.eq_ignore_ascii_case(b"set") => CliCmd::Set,
+            c if c.eq_ignore_ascii_case(b"ren") || c.eq_ignore_ascii_case(b"rename") => CliCmd::Rename,
+            c if c.eq_ignore_ascii_case(b"revert") => CliCmd::Revert,
+            c if c.eq_ignore_ascii_case(b"reorder") => CliCmd::Reorder,
+            c if c.eq_ignore_ascii_case(b"del") || c.eq_ignore_ascii_case(b"delete") => CliCmd::Del,
+            c if c.eq_ignore_ascii_case(b"import") => CliCmd::Import,
+            c if c.eq_ignore_ascii_case(b"help") => CliCmd::Help,
+            c if c.eq_ignore_ascii_case(b"add") => CliCmd::Add,
+            c if c.eq_ignore_ascii_case(b"add_list") => CliCmd::AddList,
+            c if c.eq_ignore_ascii_case(b"del_list") => CliCmd::DelList,
             _ => return 255,
         };
         match cmd {
@@ -697,12 +697,12 @@ fn run(raw: Vec<Arg>) -> ! {
         }
     }
 
-    let rest: Vec<Arg> = raw[optind..].to_vec();
+    let rest = &raw[optind..];
     if rest.is_empty() {
         cli.usage();
         std::process::exit(0);
     }
-    let ret = cli.uci_cmd(&rest);
+    let ret = cli.uci_cmd(rest);
     if ret == 255 {
         cli.usage();
     }
