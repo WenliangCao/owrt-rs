@@ -1,0 +1,505 @@
+{
+  "schema": 1,
+  "source_commit": "349d42a13d360ca84708190528c11f0e45b115db",
+  "canonical_sha256": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+  "canonical_workflow": 36467001032,
+  "formal_build": "success; manifest/archive/ELF verified",
+  "all_required_passed": true,
+  "unit_tests": 86,
+  "results": [
+    {
+      "name": "procd-unit",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "d851eaed5a58fd3d80b1773cbefa1ceacd2cbc7c73bfe4a0c0fa8d10855f0e4d"
+    },
+    {
+      "name": "procd-clippy",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "22911b2e37812e25a3d5d077c12d10eedfc9006e1b7a6a9878cae663c3ef05ae"
+    },
+    {
+      "name": "procd-watchdog-status",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "bb9431c4fb8806b72e7b5bb6dc1c16cd5171621772d5c6ff4968947474e9df66"
+    },
+    {
+      "name": "procd-tick",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "72e8effff2f2d0f7c0a310c84ac0a9e9dde34c547a41da69d8f17bfef119500d"
+    },
+    {
+      "name": "procd-busy-original",
+      "exit": 0,
+      "required": false,
+      "log_sha256": "8fbb81eabbd66da1b92499b92a09a428aba1267c3588b14b35a04308f7d17e5b"
+    },
+    {
+      "name": "procd-busy-candidate",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "41e54752302e0b3d432b6790fbfbbb083bb53195e3c0e9170c66eaf187bd4af8"
+    },
+    {
+      "name": "procd-r65",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114"
+    },
+    {
+      "name": "procd-r83",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "614988974a37000205b5298f6daac6c3a4d9feab5cc306de00b63ee853daed30"
+    },
+    {
+      "name": "procd-r71-hotplug",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "bd1681b893dfa26ff2360483a157c6588200e44a6693467d62fa966d93c54c7a"
+    },
+    {
+      "name": "procd-r72",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "ef95f932b165e99bfd15c1ce3061b1b56488c74b09cfb171d801a74dcc97ea99"
+    },
+    {
+      "name": "procd-r75",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "0f16f94b9af1730ced88b777ce6bd58d9f72adaca96b0050438f7e8a5d405b42"
+    },
+    {
+      "name": "procd-r90",
+      "exit": 0,
+      "required": true,
+      "log_sha256": "37100bc9a42189e3a06175ec0109dc1f70f2157a77de3fed8971148899c7ce8c"
+    },
+    {
+      "name": "procd_disconnect_logs-candidate",
+      "exit": 0,
+      "passed": true,
+      "checks": {
+        "identity": true,
+        "writer_progress_without_bus": true,
+        "writer_completed_after_reconnect": true,
+        "serving": true
+      },
+      "evidence_sha256": "5d8f27e7b9d56ad73ef2a3e6a97c657355730ad39e8d63879f793bdf1b9c2215"
+    },
+    {
+      "name": "procd_watchdog-candidate",
+      "exit": 0,
+      "passed": true,
+      "checks": {
+        "identity": true,
+        "pumped": true,
+        "magic_close": true,
+        "serving": true
+      },
+      "evidence_sha256": "5d8f27e7b9d56ad73ef2a3e6a97c657355730ad39e8d63879f793bdf1b9c2215"
+    },
+    {
+      "name": "procd_bundle-original",
+      "exit": 0,
+      "passed": true,
+      "checks": {
+        "identity": {
+          "actual": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+          "expected": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+          "passed": true
+        },
+        "bundle_only_spawn": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "bundle_only_argv": {
+          "actual": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "expected": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "passed": true
+        },
+        "bundle_only_running": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "bundle_ignored_spawn": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "bundle_ignored_argv": {
+          "actual": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "expected": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "passed": true
+        },
+        "bundle_ignored_running": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "serving": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        }
+      },
+      "evidence_sha256": "4fc2ba1aedf5cb7f6b66b42bfaaad8ef50e147410ed143e4e800d52c2ae30712"
+    },
+    {
+      "name": "procd_bundle-candidate",
+      "exit": 0,
+      "passed": true,
+      "checks": {
+        "identity": {
+          "actual": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+          "expected": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+          "passed": true
+        },
+        "bundle_only_spawn": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "bundle_only_argv": {
+          "actual": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "expected": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "passed": true
+        },
+        "bundle_only_running": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "bundle_ignored_spawn": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "bundle_ignored_argv": {
+          "actual": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "expected": [
+            "-t",
+            "5",
+            "-n",
+            "r92",
+            "-J",
+            "/tmp/bundle-r92",
+            "--"
+          ],
+          "passed": true
+        },
+        "bundle_ignored_running": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        },
+        "serving": {
+          "actual": true,
+          "expected": true,
+          "passed": true
+        }
+      },
+      "evidence_sha256": "4fc2ba1aedf5cb7f6b66b42bfaaad8ef50e147410ed143e4e800d52c2ae30712"
+    },
+    {
+      "name": "watch",
+      "exit": 0,
+      "passed": true,
+      "checks": {
+        "all_six_subscribed": true,
+        "trigger_executes": true,
+        "recreated_id_is_new": true,
+        "recreated_subscribed": true,
+        "immediate_set_add_subscribed": true,
+        "immediate_set_add_delivered": true,
+        "service_start_subscribed": true,
+        "service_start_delivered": true,
+        "missing_paths_do_not_wait_for_creation": true,
+        "same_supervisor": true,
+        "identity": true
+      },
+      "observations": {
+        "all_subscribed_seconds": 0.010489567997865379,
+        "immediate_trials": [
+          {
+            "method": "set",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 13.48002115264535
+          },
+          {
+            "method": "add",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 9.760027751326561
+          },
+          {
+            "method": "set",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.160015568137169
+          },
+          {
+            "method": "add",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 10.47999830916524
+          },
+          {
+            "method": "set",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.401053491979837
+          },
+          {
+            "method": "add",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 7.480033673346043
+          },
+          {
+            "method": "set",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.600007276982069
+          },
+          {
+            "method": "add",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.720031473785639
+          },
+          {
+            "method": "set",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.35995888337493
+          },
+          {
+            "method": "add",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.839997462928295
+          },
+          {
+            "method": "set",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.400005754083395
+          },
+          {
+            "method": "add",
+            "subscribed": true,
+            "delivered": true,
+            "return_to_notify_us": 8.839997462928295
+          }
+        ],
+        "service_start_trials": [
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          },
+          {
+            "subscribed": true,
+            "delivered": true
+          }
+        ],
+        "missing_set_seconds": 0.0007036059978418052
+      },
+      "subject_sha256": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+      "probe_sha256": "d185916a0a2640d6c179943fe00e6077dd44fcba8e0a98faeb1ef29b14fe87fe",
+      "evidence_sha256": "34b3de3bf2a010606740c1f552e5973b755f35991ae5e7142056e86d6ba6d5d3"
+    },
+    {
+      "name": "data-trigger-fixed",
+      "exit": 0,
+      "passed": true,
+      "checks": {
+        "all_trials_completed": true,
+        "identity": true
+      },
+      "observations": {
+        "trials": [
+          {
+            "round": 0,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 1,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 2,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 3,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 4,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 5,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 6,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 7,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 8,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 9,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 10,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          },
+          {
+            "round": 11,
+            "subscribed_on_data_trigger": true,
+            "trigger_received": true
+          }
+        ],
+        "data_subscriptions": 12,
+        "delivered_triggers": 12
+      },
+      "subject_sha256": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+      "probe_sha256": "8462be2f61ca91441547319a638262c954e22a04c4f068a73d3ea56d6c31f667",
+      "evidence_sha256": "a9c6efe9e0a22bfd6103310daa1bee094d1ac43b048f53f75ce5944139fe38b7"
+    }
+  ],
+  "umbrella_driver_sha256": "35045d6de21286c8881eaf7099f0b972897069fd602931f5b8e842bc9a1c40c2",
+  "example_sha256": {
+    "notifier": "f539b04f73fac153e6e1b3f71e23e0e711e9cc2426b413e766cf3132f04ea398",
+    "ptyhold": "abbb93fcba6983aae3d5ef2284e619b1cbbc1f9a2fbe11e316543a71125cccf8",
+    "watchdog_status": "fc2eaf9f74233d00427dcdaccd07327443a40481501a0043d580a0d7c4b01f0f"
+  },
+  "limits": [
+    "Oracle exact-image/private namespace correctness; no production PID1 or cold boot acceptance",
+    "data-trigger first invocation failed import before probe; explicit PYTHONPATH fixed only this probe; original log retained"
+  ],
+  "archive_sha256": "44aa6c33405be4435dc1e41d0f9ce706b21183e084b2909017b5fca506effd56"
+}

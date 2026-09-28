@@ -1,0 +1,311 @@
+{
+  "scope": "Offline symbolization of existing current-start Oracle namespace profile; no new samples or timing",
+  "subject_sha256": "2c0e101ec6ff4a8b0078625d95f000f97b851b549860040521d2aaa8962237d4",
+  "requests": 30000,
+  "warmup": 20,
+  "frequency_hz": 999,
+  "callgraph": "dwarf,8192",
+  "symbol_recovery": "Same ELF SHA256 copied under private symfs using original host-visible namespace-root pathname recorded in MMAP2; no historical or substitute ELF. ELF virtual-address base 0x400000. Host current kallsyms used for matching kernel.",
+  "limits": [
+    "Only 1118 / 1203 cycle samples; ranking evidence, not precise percentages or performance comparison.",
+    "Self entries are exclusive sampled instruction cost; inclusive children costs overlap and must not be added.",
+    "maintain/pump_logs/reap have no named samples; inlining and sparse samples prevent interpreting this as zero runtime cost.",
+    "scan_meminfo is inlined in build_info; parser-specific cost comes from the corrected separate phase, not this stack percentage.",
+    "vdso offsets remain unresolved; original raw profiles and reports are retained.",
+    "These are current-start symbol-build diagnostics, not formal candidate timing or AX3000T evidence."
+  ],
+  "lanes": {
+    "service_list_128": {
+      "samples": 1118,
+      "lost_samples": 0,
+      "period": 1468161121,
+      "userspace_percent": 53.02904469161461,
+      "kernel_percent": 46.97095530838539,
+      "unresolved_vdso_percent": 1.1226207916998778,
+      "selected_functions": {
+        "<procd_rs::service::Service>::dump": {
+          "self_percent_display": 16.17,
+          "samples": 176,
+          "period": 237368411,
+          "dso": "procd-rs",
+          "symbol": "<procd_rs::service::Service>::dump",
+          "inclusive_percent_display": 27.93
+        },
+        "procd_rs::service::dump_list": {
+          "self_percent_display": 2.1,
+          "samples": 23,
+          "period": 30854754,
+          "dso": "procd-rs",
+          "symbol": "procd_rs::service::dump_list",
+          "inclusive_percent_display": 38.76
+        },
+        "<owrt_ubus::blob::BlobBuf>::msg_open_bytes": {
+          "self_percent_display": 6.86,
+          "samples": 74,
+          "period": 100746649,
+          "dso": "procd-rs",
+          "symbol": "<owrt_ubus::blob::BlobBuf>::msg_open_bytes",
+          "inclusive_percent_display": 13.31
+        },
+        "<owrt_ubus::blob::BlobBuf>::msg_field": {
+          "self_percent_display": 4.9,
+          "samples": 52,
+          "period": 71953061,
+          "dso": "procd-rs",
+          "symbol": "<owrt_ubus::blob::BlobBuf>::msg_field",
+          "inclusive_percent_display": 7.19
+        },
+        "memcpy": {
+          "self_percent_display": 6.06,
+          "samples": 65,
+          "period": 89031505,
+          "dso": "procd-rs",
+          "symbol": "memcpy",
+          "inclusive_percent_display": 6.06
+        },
+        "memset": {
+          "self_percent_display": 2.98,
+          "samples": 33,
+          "period": 43812918,
+          "dso": "procd-rs",
+          "symbol": "memset",
+          "inclusive_percent_display": 2.98
+        },
+        "<procd_rs::Procd>::wait_activity": {
+          "self_percent_display": 3.03,
+          "samples": 34,
+          "period": 44528391,
+          "dso": "procd-rs",
+          "symbol": "<procd_rs::Procd>::wait_activity",
+          "inclusive_percent_display": 14.1
+        },
+        "<procd_rs::Procd>::dispatch": {
+          "self_percent_display": 0.76,
+          "samples": 8,
+          "period": 11160059,
+          "dso": "procd-rs",
+          "symbol": "<procd_rs::Procd>::dispatch",
+          "inclusive_percent_display": 64.7
+        },
+        "<procd_rs::Procd>::handle": {
+          "self_percent_display": 0.61,
+          "samples": 7,
+          "period": 9026482,
+          "dso": "procd-rs",
+          "symbol": "<procd_rs::Procd>::handle",
+          "inclusive_percent_display": 63.56
+        },
+        "procd_rs::run": {
+          "self_percent_display": 1.61,
+          "samples": 18,
+          "period": 23621659,
+          "dso": "procd-rs",
+          "symbol": "procd_rs::run",
+          "inclusive_percent_display": 98.88
+        },
+        "procd_rs::sysobj::build_info": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "recvmsg": {
+          "self_percent_display": 0.17,
+          "samples": 2,
+          "period": 2541862,
+          "dso": "procd-rs",
+          "symbol": "recvmsg",
+          "inclusive_percent_display": 14.24
+        },
+        "sendmsg": {
+          "self_percent_display": 0.15,
+          "samples": 2,
+          "period": 2237513,
+          "dso": "procd-rs",
+          "symbol": "sendmsg",
+          "inclusive_percent_display": 23.66
+        },
+        "poll": {
+          "self_percent_display": 0.09,
+          "samples": 1,
+          "period": 1376752,
+          "dso": "procd-rs",
+          "symbol": "poll",
+          "inclusive_percent_display": 11.07
+        },
+        "pread": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "statvfs": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "__lsysinfo": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "meminfo_proc_show": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "<procd_rs::Procd>::maintain": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "<procd_rs::Procd>::pump_logs": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "<procd_rs::Procd>::reap": {
+          "status": "no_named_samples; not zero cost"
+        }
+      },
+      "perf_data_sha256": "4625bc41fa66c4b1daf3ea0963617211a70e8be03974d25d8c543362b5069f84",
+      "self_report_sha256": "4d7089e1748542c652e52cc8a0b3103d445003c239ea1f17ae84b2512c7ebbfb",
+      "children_report_sha256": "e2825ce0a14a8f58c0142a27c853e5c292f9aff6e89ded7a50139bfc8f71fd5b"
+    },
+    "system_info": {
+      "samples": 1203,
+      "lost_samples": 0,
+      "period": 1515337879,
+      "userspace_percent": 32.242671932838284,
+      "kernel_percent": 67.75732806716171,
+      "unresolved_vdso_percent": 1.3645540236640517,
+      "selected_functions": {
+        "<procd_rs::service::Service>::dump": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "procd_rs::service::dump_list": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "<owrt_ubus::blob::BlobBuf>::msg_open_bytes": {
+          "self_percent_display": 1.88,
+          "samples": 21,
+          "period": 28413111,
+          "dso": "procd-rs",
+          "symbol": "<owrt_ubus::blob::BlobBuf>::msg_open_bytes",
+          "inclusive_percent_display": 2.96
+        },
+        "<owrt_ubus::blob::BlobBuf>::msg_field": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "memcpy": {
+          "self_percent_display": 0.85,
+          "samples": 10,
+          "period": 12882865,
+          "dso": "procd-rs",
+          "symbol": "memcpy",
+          "inclusive_percent_display": 0.85
+        },
+        "memset": {
+          "self_percent_display": 0.94,
+          "samples": 11,
+          "period": 14168650,
+          "dso": "procd-rs",
+          "symbol": "memset",
+          "inclusive_percent_display": 0.94
+        },
+        "<procd_rs::Procd>::wait_activity": {
+          "self_percent_display": 2.14,
+          "samples": 26,
+          "period": 32416334,
+          "dso": "procd-rs",
+          "symbol": "<procd_rs::Procd>::wait_activity",
+          "inclusive_percent_display": 11.99
+        },
+        "<procd_rs::Procd>::dispatch": {
+          "self_percent_display": 0.19,
+          "samples": 2,
+          "period": 2833603,
+          "dso": "procd-rs",
+          "symbol": "<procd_rs::Procd>::dispatch",
+          "inclusive_percent_display": 71.59
+        },
+        "<procd_rs::Procd>::handle": {
+          "self_percent_display": 0.51,
+          "samples": 5,
+          "period": 7737938,
+          "dso": "procd-rs",
+          "symbol": "<procd_rs::Procd>::handle",
+          "inclusive_percent_display": 70.51
+        },
+        "procd_rs::run": {
+          "self_percent_display": 0.5,
+          "samples": 6,
+          "period": 7637157,
+          "dso": "procd-rs",
+          "symbol": "procd_rs::run",
+          "inclusive_percent_display": 98.64
+        },
+        "procd_rs::sysobj::build_info": {
+          "self_percent_display": 12.92,
+          "samples": 148,
+          "period": 195812937,
+          "dso": "procd-rs",
+          "symbol": "procd_rs::sysobj::build_info",
+          "inclusive_percent_display": 54.56
+        },
+        "recvmsg": {
+          "self_percent_display": 0.23,
+          "samples": 4,
+          "period": 3548500,
+          "dso": "procd-rs",
+          "symbol": "recvmsg",
+          "inclusive_percent_display": 10.27
+        },
+        "sendmsg": {
+          "self_percent_display": 0.13,
+          "samples": 1,
+          "period": 1957360,
+          "dso": "procd-rs",
+          "symbol": "sendmsg",
+          "inclusive_percent_display": 14.79
+        },
+        "poll": {
+          "self_percent_display": 0.09,
+          "samples": 1,
+          "period": 1336488,
+          "dso": "procd-rs",
+          "symbol": "poll",
+          "inclusive_percent_display": 9.85
+        },
+        "pread": {
+          "self_percent_display": 0.06,
+          "samples": 1,
+          "period": 935945,
+          "dso": "procd-rs",
+          "symbol": "pread",
+          "inclusive_percent_display": 22.17
+        },
+        "statvfs": {
+          "self_percent_display": 0.43,
+          "samples": 4,
+          "period": 6554025,
+          "dso": "procd-rs",
+          "symbol": "statvfs",
+          "inclusive_percent_display": 10.09
+        },
+        "__lsysinfo": {
+          "self_percent_display": 0.14,
+          "samples": 2,
+          "period": 2081737,
+          "dso": "procd-rs",
+          "symbol": "__lsysinfo",
+          "inclusive_percent_display": 2.83
+        },
+        "meminfo_proc_show": {
+          "self_percent_display": 0.23,
+          "samples": 2,
+          "period": 3461038,
+          "dso": "[kernel.kallsyms]",
+          "symbol": "meminfo_proc_show",
+          "inclusive_percent_display": 16.88
+        },
+        "<procd_rs::Procd>::maintain": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "<procd_rs::Procd>::pump_logs": {
+          "status": "no_named_samples; not zero cost"
+        },
+        "<procd_rs::Procd>::reap": {
+          "status": "no_named_samples; not zero cost"
+        }
+      },
+      "perf_data_sha256": "3208ac2c18fb4b8dc3c4259076d483e297094c950336bf2f1e889367a5dd983a",
+      "self_report_sha256": "824677f0803ea3b79ab062beeca382dd292c09f63405c37c3ff622e4d798f203",
+      "children_report_sha256": "ecf6021efe96947e8217583f06faeab68a0e4bdbae7658e6c7343de69e45d03d"
+    }
+  }
+}

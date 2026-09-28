@@ -1,0 +1,1121 @@
+{
+  "schema": 1,
+  "rounds": 5,
+  "scope": "same-process startup->active33->expanded129->released0 repeated5->close; all five rounds retained; snapshots not continuous peaks",
+  "live_queries": false,
+  "queue": null,
+  "sides": {
+    "stock": {
+      "sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+      "driver_sha256": "3015457407f9d6fc03e5a894116c01d072fbfab76231ffc34ba99617cbf8f2db",
+      "workload_sha256": "7ac015077504ae1124a06c296a55bcf1d040abe832d90761b13b9188f5cd0ff5",
+      "checks": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "rows": [
+        {
+          "round": 0,
+          "phase": "startup",
+          "role": "subject",
+          "VmRSS": 1080,
+          "RssAnon": 128,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1080,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 1,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1192,
+          "RssAnon": 240,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1192,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1584,
+          "RssAnon": 632,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1584,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 1212,
+          "RssAnon": 260,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1500,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 2,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1320,
+          "RssAnon": 368,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1500,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1672,
+          "RssAnon": 720,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1672,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 1212,
+          "RssAnon": 260,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1500,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 3,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1320,
+          "RssAnon": 368,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1500,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1672,
+          "RssAnon": 720,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1672,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 1212,
+          "RssAnon": 260,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1576,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 4,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1320,
+          "RssAnon": 368,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1576,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1672,
+          "RssAnon": 720,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1672,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 1212,
+          "RssAnon": 260,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1576,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 5,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1320,
+          "RssAnon": 368,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1576,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1672,
+          "RssAnon": 720,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1672,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 1212,
+          "RssAnon": 260,
+          "RssFile": 952,
+          "RssShmem": 0,
+          "VmHWM": 1576,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        }
+      ],
+      "close": {
+        "subject_present": false,
+        "exit_status": 0,
+        "queue": null,
+        "queue_note": "internal queues not exposed by this snapshot probe"
+      },
+      "released_first_to_last": {
+        "VmRSS": 0,
+        "RssAnon": 0,
+        "VmHWM": 76,
+        "fds": 0,
+        "Threads": 0
+      },
+      "released_ranges": {
+        "VmRSS": [
+          1212,
+          1212
+        ],
+        "RssAnon": [
+          260,
+          260
+        ],
+        "VmHWM": [
+          1500,
+          1576
+        ],
+        "fds": [
+          8,
+          8
+        ],
+        "Threads": [
+          1,
+          1
+        ]
+      },
+      "archive": {
+        "sha256": "68c47efabeae4fdc008481d746ed70d06d5f863246e59d20977a99c49b151661",
+        "files_verified": 765
+      }
+    },
+    "r89": {
+      "sha256": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98",
+      "driver_sha256": "3015457407f9d6fc03e5a894116c01d072fbfab76231ffc34ba99617cbf8f2db",
+      "workload_sha256": "7ac015077504ae1124a06c296a55bcf1d040abe832d90761b13b9188f5cd0ff5",
+      "checks": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "rows": [
+        {
+          "round": 0,
+          "phase": "startup",
+          "role": "subject",
+          "VmRSS": 752,
+          "RssAnon": 28,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 752,
+          "fds": 7,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 1,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1136,
+          "RssAnon": 348,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1136,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1992,
+          "RssAnon": 1204,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1992,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 860,
+          "RssAnon": 72,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1808,
+          "fds": 7,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 2,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1152,
+          "RssAnon": 364,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1808,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1996,
+          "RssAnon": 1208,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1996,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 860,
+          "RssAnon": 72,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1876,
+          "fds": 7,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 3,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1152,
+          "RssAnon": 364,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1876,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1996,
+          "RssAnon": 1208,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1996,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 860,
+          "RssAnon": 72,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1876,
+          "fds": 7,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 4,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1152,
+          "RssAnon": 364,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1876,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1996,
+          "RssAnon": 1208,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1996,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 860,
+          "RssAnon": 72,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1876,
+          "fds": 7,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 5,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1152,
+          "RssAnon": 364,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1876,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1996,
+          "RssAnon": 1208,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1996,
+          "fds": 9,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 860,
+          "RssAnon": 72,
+          "RssFile": 4,
+          "RssShmem": 784,
+          "VmHWM": 1876,
+          "fds": 7,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        }
+      ],
+      "close": {
+        "subject_present": false,
+        "exit_status": 143,
+        "queue": null,
+        "queue_note": "internal queues not exposed by this snapshot probe"
+      },
+      "released_first_to_last": {
+        "VmRSS": 0,
+        "RssAnon": 0,
+        "VmHWM": 68,
+        "fds": 0,
+        "Threads": 0
+      },
+      "released_ranges": {
+        "VmRSS": [
+          860,
+          860
+        ],
+        "RssAnon": [
+          72,
+          72
+        ],
+        "VmHWM": [
+          1808,
+          1876
+        ],
+        "fds": [
+          7,
+          7
+        ],
+        "Threads": [
+          1,
+          1
+        ]
+      },
+      "archive": {
+        "sha256": "6eb88aab511ae57be85c0892f7504e9063ce06e4d1be70a53d6e8fe75a2e5523",
+        "files_verified": 765
+      }
+    },
+    "r94": {
+      "sha256": "0df4baae8f72f62aefd0c937ad1ea314b8a7aba1ecc153ec3a854483cf6a08d4",
+      "driver_sha256": "3015457407f9d6fc03e5a894116c01d072fbfab76231ffc34ba99617cbf8f2db",
+      "workload_sha256": "7ac015077504ae1124a06c296a55bcf1d040abe832d90761b13b9188f5cd0ff5",
+      "checks": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "rows": [
+        {
+          "round": 0,
+          "phase": "startup",
+          "role": "subject",
+          "VmRSS": 768,
+          "RssAnon": 44,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 768,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 1,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1080,
+          "RssAnon": 356,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1080,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1912,
+          "RssAnon": 1188,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1912,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 804,
+          "RssAnon": 80,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1808,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 2,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1808,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1916,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1844,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 3,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1844,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1916,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1856,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 4,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1856,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1916,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1856,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 5,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1856,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1916,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1856,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        }
+      ],
+      "close": {
+        "subject_present": false,
+        "exit_status": 143,
+        "queue": null,
+        "queue_note": "internal queues not exposed by this snapshot probe"
+      },
+      "released_first_to_last": {
+        "VmRSS": 4,
+        "RssAnon": 4,
+        "VmHWM": 48,
+        "fds": 0,
+        "Threads": 0
+      },
+      "released_ranges": {
+        "VmRSS": [
+          804,
+          808
+        ],
+        "RssAnon": [
+          80,
+          84
+        ],
+        "VmHWM": [
+          1808,
+          1856
+        ],
+        "fds": [
+          8,
+          8
+        ],
+        "Threads": [
+          1,
+          1
+        ]
+      },
+      "archive": {
+        "sha256": "d627e7595e0e48f31e69b69e9bb7479d6380d0419cf428d2b2b854f6f1befeac",
+        "files_verified": 765
+      }
+    },
+    "candidate": {
+      "sha256": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+      "driver_sha256": "3015457407f9d6fc03e5a894116c01d072fbfab76231ffc34ba99617cbf8f2db",
+      "workload_sha256": "7ac015077504ae1124a06c296a55bcf1d040abe832d90761b13b9188f5cd0ff5",
+      "checks": {
+        "passed": true,
+        "cleanup_verified": true,
+        "same_boot": true,
+        "same_config": true,
+        "same_production_identity": true,
+        "same_host_mounts": true
+      },
+      "rows": [
+        {
+          "round": 0,
+          "phase": "startup",
+          "role": "subject",
+          "VmRSS": 768,
+          "RssAnon": 44,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 768,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 1,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1080,
+          "RssAnon": 356,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1080,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1912,
+          "RssAnon": 1188,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1912,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 1,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 804,
+          "RssAnon": 80,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 2,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 2,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 3,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 3,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 4,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 4,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        },
+        {
+          "round": 5,
+          "phase": "active",
+          "role": "subject",
+          "VmRSS": 1096,
+          "RssAnon": 372,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "expanded",
+          "role": "subject",
+          "VmRSS": 1916,
+          "RssAnon": 1192,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 10,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 1
+        },
+        {
+          "round": 5,
+          "phase": "released",
+          "role": "subject",
+          "VmRSS": 808,
+          "RssAnon": 84,
+          "RssFile": 4,
+          "RssShmem": 720,
+          "VmHWM": 1936,
+          "fds": 8,
+          "Threads": 1,
+          "queue": null,
+          "child_count": 0
+        }
+      ],
+      "close": {
+        "subject_present": false,
+        "exit_status": 143,
+        "queue": null,
+        "queue_note": "internal queues not exposed by this snapshot probe"
+      },
+      "released_first_to_last": {
+        "VmRSS": 4,
+        "RssAnon": 4,
+        "VmHWM": 0,
+        "fds": 0,
+        "Threads": 0
+      },
+      "released_ranges": {
+        "VmRSS": [
+          804,
+          808
+        ],
+        "RssAnon": [
+          80,
+          84
+        ],
+        "VmHWM": [
+          1936,
+          1936
+        ],
+        "fds": [
+          8,
+          8
+        ],
+        "Threads": [
+          1,
+          1
+        ]
+      },
+      "archive": {
+        "sha256": "ccb8bada7c6ce8fbb88873a8ca675084ff07fb0f24542c3472756c096547ea3f",
+        "files_verified": 765
+      }
+    }
+  }
+}

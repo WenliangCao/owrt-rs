@@ -1,0 +1,10 @@
+{
+  "manifest_sha256": "5d2620fcd42ef74176195a9fac80b59c89d43b90a6d8ae3a2a7dc5fda816fcb4",
+  "files": 4986,
+  "bytes": 40582444,
+  "private_root": "private/procd-h1",
+  "canonical_sha256": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+  "device_matrix_windows": 12,
+  "device_resource_sides": 4,
+  "failures_preserved": true
+}

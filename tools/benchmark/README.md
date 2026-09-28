@@ -338,6 +338,27 @@ R92 retains the frozen benchmark and explicitly selects the R89 bundle with
 `--cpus 0` applies the same affinity to each isolated subject and its clients;
 these follow-up runs are kept separate from the normal two-CPU matrix.
 
+Additional historical ELF files can join the same complete random blocks with
+`--extra-baseline r94=PATH --extra-baseline-evidence r94=PROVENANCE.json`.
+The provenance JSON must contain the ELF's `subject_sha256`; describe missing
+source/build records honestly instead of inventing a canonical manifest.
+This requires `--bench`, `--guard`, `--schedule random-blocks` and a fixed
+`--seed`. With one extra baseline, `--repeats 3` means twelve windows, one of
+each side per block. Uploads use separate temporary bundles; historical
+bundles and production processes remain untouched. Resume verifies the same
+ELF, provenance, tools and settings. Analysis rejects missing/duplicate sides
+or changed dependencies and retains each historical comparison.
+
+Procd accepts `--procd-workloads` and `--procd-warmup` with `--matrix`.
+The eight existing query lanes remain the default. Explicitly include
+`service_list_instance_fields` for a full verbose query over 32 fielded
+declarations plus a service with running, exited and declared instances.
+Fixture updates, readiness polling and deletion occur outside query timing.
+The fixed harness determines lane order; the subset argument selects coverage.
+CPU clocks cover the subject, exact C ubusd and native callers; an unmonitored
+live service child is missing data, not zero CPU. Keep the separate lifecycle,
+notification and recovery probes as correctness gates.
+
 HTTP diagnostics use a separately built `http-diagnostics` executable from
 this directory. It must never replace the frozen `owrt-benchmark`. In an
 isolated run, `OWRT_HTTPD_DIAG=paced` selects four persistent clients;

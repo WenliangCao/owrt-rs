@@ -1,0 +1,1136 @@
+{
+  "schema_version": 1,
+  "component": "procd",
+  "status": "engineering_closed_keymatch_retained_no_deployment",
+  "source_start_commit": "78bb5b718a8eb3382ae2da9608e725b7438cb0e3",
+  "selected_source_commit": "349d42a13d360ca84708190528c11f0e45b115db",
+  "start_archive_sha256": "a0848dfcb2f53ec3162aa857ae9865a5f8ba448276faf2ca11e8afe3e556096c",
+  "baseline_subjects": {
+    "c": {
+      "sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+      "kind": "exact image C",
+      "matching_upstream_revision": "58eb263d5abe03f8c1280bdfa65a3b052614215d"
+    },
+    "r89": {
+      "sha256": "89d84b197c5af7b6c4d729c7d9d68f00ba5992e6f3a4a4cdd59f3d73a02b0a98",
+      "kind": "canonical",
+      "canonical_run_id": 34724293710,
+      "source_commit": "d9c10483d95590143f9d6a1f41310e2a13e63fb3"
+    },
+    "r94": {
+      "sha256": "0df4baae8f72f62aefd0c937ad1ea314b8a7aba1ecc153ec3a854483cf6a08d4",
+      "kind": "original historical SDK diagnostic ELF; not canonical",
+      "provenance_limits": [
+        "Recovered source directory and build recipes lack contemporaneous signed source-to-ELF manifest or clean source commit.",
+        "Recovered procd source files equal current starting files; this does not establish what produced the original historical ELF.",
+        "Original ELF is required; no rebuild or historical-score reuse."
+      ]
+    }
+  },
+  "candidate_artifact": {
+    "canonical_run_id": 36467001032,
+    "status": "canonical_verified_functional_and_device_gates_passed",
+    "canonical_sha256": "8eb463b484e4e646e7ea1b1d140a1ea8ccd5bcc0a5e838fcef54e5058c0980bf",
+    "screening_daemon_sha256": "4085c60338feb7edabb244bb6ab9fd1fa0b65e9afef118db1cb09ab52d2a2ce6",
+    "screening_kind": "Oracle SDK diagnostic; not final canonical artifact",
+    "core_manifest_sha256": "531530a3afcf2d3cc4958971d9d59222752bfe708c5242738b8699f17483eca9"
+  },
+  "screening": {
+    "scope": "Oracle AArch64 encoding/full system builder; no daemon IPC; allocation pass separate",
+    "iterations": 5000,
+    "warmup": 100,
+    "rounds": 3,
+    "orders": [
+      [
+        "start",
+        "meminfo",
+        "cap64",
+        "scalar"
+      ],
+      [
+        "scalar",
+        "cap64",
+        "meminfo",
+        "start"
+      ],
+      [
+        "cap64",
+        "start",
+        "scalar",
+        "meminfo"
+      ]
+    ],
+    "profile_executable_sha256": {
+      "start": "4057b895731b4fd940d4d4e5f45ebdeeddafa650ae88eeaf9485a60c483179b9",
+      "meminfo": "6624a73142f015c6d53c64bafc50ae5dbd19d05453669280fc8ed01468d028e9",
+      "cap64": "8e67672a846e73d1668463c0cbb1458c8a0d3c30f646cd4eca03c931c4076b93",
+      "scalar": "514ae5eff011bf833e785f2da361f5cf94ef579003a3fd0a0563132c19a12433"
+    },
+    "elapsed_seconds": 31.269229441008065,
+    "statistics": "median of process-window means; all windows retained; no statistical significance claim",
+    "derived": {
+      "service_list_1": {
+        "start": {
+          "windows_ns_per_op": [
+            50.38,
+            52.31,
+            46.41
+          ],
+          "median_ns_per_op": 50.38,
+          "range_ns_per_op": [
+            46.41,
+            52.31
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            46.46,
+            50.22,
+            53.15
+          ],
+          "median_ns_per_op": 50.22,
+          "range_ns_per_op": [
+            46.46,
+            53.15
+          ],
+          "delta_ns_per_op": -0.1600000000000037,
+          "delta_percent": -0.31758634378722395
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            46.35,
+            46.34,
+            46.35
+          ],
+          "median_ns_per_op": 46.35,
+          "range_ns_per_op": [
+            46.34,
+            46.35
+          ],
+          "delta_ns_per_op": -4.030000000000001,
+          "delta_percent": -7.999206034140538
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            46.47,
+            53.03,
+            51.98
+          ],
+          "median_ns_per_op": 51.98,
+          "range_ns_per_op": [
+            46.47,
+            53.03
+          ],
+          "delta_ns_per_op": 1.5999999999999943,
+          "delta_percent": 3.1758634378721506
+        }
+      },
+      "service_list_32": {
+        "start": {
+          "windows_ns_per_op": [
+            1403.56,
+            1402.18,
+            1409.76
+          ],
+          "median_ns_per_op": 1403.56,
+          "range_ns_per_op": [
+            1402.18,
+            1409.76
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            1404.48,
+            1399.8,
+            1405.24
+          ],
+          "median_ns_per_op": 1404.48,
+          "range_ns_per_op": [
+            1399.8,
+            1405.24
+          ],
+          "delta_ns_per_op": 0.9200000000000728,
+          "delta_percent": 0.06554760751233957
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            1405.41,
+            1408.44,
+            1415.14
+          ],
+          "median_ns_per_op": 1408.44,
+          "range_ns_per_op": [
+            1405.41,
+            1415.14
+          ],
+          "delta_ns_per_op": 4.880000000000109,
+          "delta_percent": 0.3476873094132138
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            1437.16,
+            1427.69,
+            1422.73
+          ],
+          "median_ns_per_op": 1427.69,
+          "range_ns_per_op": [
+            1422.73,
+            1437.16
+          ],
+          "delta_ns_per_op": 24.13000000000011,
+          "delta_percent": 1.7191997492091549
+        }
+      },
+      "service_list_128": {
+        "start": {
+          "windows_ns_per_op": [
+            5629.39,
+            5584.77,
+            5607.93
+          ],
+          "median_ns_per_op": 5607.93,
+          "range_ns_per_op": [
+            5584.77,
+            5629.39
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            5599.69,
+            5607.47,
+            5607.85
+          ],
+          "median_ns_per_op": 5607.47,
+          "range_ns_per_op": [
+            5599.69,
+            5607.85
+          ],
+          "delta_ns_per_op": -0.4600000000000364,
+          "delta_percent": -0.008202670147450242
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            5602.65,
+            5575.59,
+            5581.71
+          ],
+          "median_ns_per_op": 5581.71,
+          "range_ns_per_op": [
+            5575.59,
+            5602.65
+          ],
+          "delta_ns_per_op": -26.220000000000255,
+          "delta_percent": -0.4675521984047637
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            5694.63,
+            5667.17,
+            5678.01
+          ],
+          "median_ns_per_op": 5678.01,
+          "range_ns_per_op": [
+            5667.17,
+            5694.63
+          ],
+          "delta_ns_per_op": 70.07999999999993,
+          "delta_percent": 1.2496589650726753
+        }
+      },
+      "service_list_fielded_32": {
+        "start": {
+          "windows_ns_per_op": [
+            21152.22,
+            21139.97,
+            21194.13
+          ],
+          "median_ns_per_op": 21152.22,
+          "range_ns_per_op": [
+            21139.97,
+            21194.13
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            21234.71,
+            21153.99,
+            21233.88
+          ],
+          "median_ns_per_op": 21233.88,
+          "range_ns_per_op": [
+            21153.99,
+            21234.71
+          ],
+          "delta_ns_per_op": 81.65999999999985,
+          "delta_percent": 0.38605876829949093
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            18051.06,
+            18058.12,
+            18069.3
+          ],
+          "median_ns_per_op": 18058.12,
+          "range_ns_per_op": [
+            18051.06,
+            18069.3
+          ],
+          "delta_ns_per_op": -3094.100000000002,
+          "delta_percent": -14.627779022721976
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            20194.98,
+            20088.71,
+            20121.32
+          ],
+          "median_ns_per_op": 20121.32,
+          "range_ns_per_op": [
+            20088.71,
+            20194.98
+          ],
+          "delta_ns_per_op": -1030.9000000000015,
+          "delta_percent": -4.87372011070234
+        }
+      },
+      "service_list_fielded_32_named": {
+        "start": {
+          "windows_ns_per_op": [
+            601.64,
+            600.08,
+            600.12
+          ],
+          "median_ns_per_op": 600.12,
+          "range_ns_per_op": [
+            600.08,
+            601.64
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            600.18,
+            601.8,
+            596.65
+          ],
+          "median_ns_per_op": 600.18,
+          "range_ns_per_op": [
+            596.65,
+            601.8
+          ],
+          "delta_ns_per_op": 0.05999999999994543,
+          "delta_percent": 0.009998000399913387
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            599.6,
+            601.53,
+            601.21
+          ],
+          "median_ns_per_op": 601.21,
+          "range_ns_per_op": [
+            599.6,
+            601.53
+          ],
+          "delta_ns_per_op": 1.0900000000000318,
+          "delta_percent": 0.18163034059854866
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            564.39,
+            561.56,
+            559.12
+          ],
+          "median_ns_per_op": 561.56,
+          "range_ns_per_op": [
+            559.12,
+            564.39
+          ],
+          "delta_ns_per_op": -38.56000000000006,
+          "delta_percent": -6.425381590348611
+        }
+      },
+      "service_list_fielded_32_verbose": {
+        "start": {
+          "windows_ns_per_op": [
+            49936.02,
+            49442.19,
+            50307.9
+          ],
+          "median_ns_per_op": 49936.02,
+          "range_ns_per_op": [
+            49442.19,
+            50307.9
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            49309.71,
+            49478.88,
+            49855.86
+          ],
+          "median_ns_per_op": 49478.88,
+          "range_ns_per_op": [
+            49309.71,
+            49855.86
+          ],
+          "delta_ns_per_op": -457.1399999999994,
+          "delta_percent": -0.9154514116263113
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            26838.99,
+            26849.12,
+            26839.85
+          ],
+          "median_ns_per_op": 26839.85,
+          "range_ns_per_op": [
+            26838.99,
+            26849.12
+          ],
+          "delta_ns_per_op": -23096.17,
+          "delta_percent": -46.251523449405866
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            49476.27,
+            49061.35,
+            49034.79
+          ],
+          "median_ns_per_op": 49061.35,
+          "range_ns_per_op": [
+            49034.79,
+            49476.27
+          ],
+          "delta_ns_per_op": -874.6699999999983,
+          "delta_percent": -1.751581323461493
+        }
+      },
+      "service_list_fielded_128": {
+        "start": {
+          "windows_ns_per_op": [
+            141694.79,
+            141566.85,
+            143955.05
+          ],
+          "median_ns_per_op": 141694.79,
+          "range_ns_per_op": [
+            141566.85,
+            143955.05
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            140812.77,
+            140043.57,
+            142160.51
+          ],
+          "median_ns_per_op": 140812.77,
+          "range_ns_per_op": [
+            140043.57,
+            142160.51
+          ],
+          "delta_ns_per_op": -882.0200000000186,
+          "delta_percent": -0.6224787799184561
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            200060.96,
+            198796.53,
+            201931.72
+          ],
+          "median_ns_per_op": 200060.96,
+          "range_ns_per_op": [
+            198796.53,
+            201931.72
+          ],
+          "delta_ns_per_op": 58366.169999999984,
+          "delta_percent": 41.19147217762911
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            137963.9,
+            137484.97,
+            136309.28
+          ],
+          "median_ns_per_op": 137484.97,
+          "range_ns_per_op": [
+            136309.28,
+            137963.9
+          ],
+          "delta_ns_per_op": -4209.820000000007,
+          "delta_percent": -2.971047841632013
+        }
+      },
+      "service_list_fielded_128_named": {
+        "start": {
+          "windows_ns_per_op": [
+            620.68,
+            616.0,
+            627.48
+          ],
+          "median_ns_per_op": 620.68,
+          "range_ns_per_op": [
+            616.0,
+            627.48
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            611.97,
+            611.5,
+            610.31
+          ],
+          "median_ns_per_op": 611.5,
+          "range_ns_per_op": [
+            610.31,
+            611.97
+          ],
+          "delta_ns_per_op": -9.17999999999995,
+          "delta_percent": -1.4790230070245491
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            611.35,
+            637.11,
+            617.33
+          ],
+          "median_ns_per_op": 617.33,
+          "range_ns_per_op": [
+            611.35,
+            637.11
+          ],
+          "delta_ns_per_op": -3.349999999999909,
+          "delta_percent": -0.5397306180318195
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            571.92,
+            575.28,
+            576.05
+          ],
+          "median_ns_per_op": 575.28,
+          "range_ns_per_op": [
+            571.92,
+            576.05
+          ],
+          "delta_ns_per_op": -45.39999999999998,
+          "delta_percent": -7.3145582264612985
+        }
+      },
+      "service_list_fielded_128_verbose": {
+        "start": {
+          "windows_ns_per_op": [
+            252724.29,
+            252175.71,
+            255317.52
+          ],
+          "median_ns_per_op": 252724.29,
+          "range_ns_per_op": [
+            252175.71,
+            255317.52
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            255192.86,
+            250444.65,
+            253033.7
+          ],
+          "median_ns_per_op": 253033.7,
+          "range_ns_per_op": [
+            250444.65,
+            255192.86
+          ],
+          "delta_ns_per_op": 309.4100000000035,
+          "delta_percent": 0.12242986220278862
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            316254.16,
+            309136.07,
+            310688.15
+          ],
+          "median_ns_per_op": 310688.15,
+          "range_ns_per_op": [
+            309136.07,
+            316254.16
+          ],
+          "delta_ns_per_op": 57963.860000000015,
+          "delta_percent": 22.935610977480646
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            250539.35,
+            248917.73,
+            251698.45
+          ],
+          "median_ns_per_op": 250539.35,
+          "range_ns_per_op": [
+            248917.73,
+            251698.45
+          ],
+          "delta_ns_per_op": -2184.9400000000023,
+          "delta_percent": -0.8645548079292298
+        }
+      },
+      "system_info": {
+        "start": {
+          "windows_ns_per_op": [
+            6658.62,
+            6657.35,
+            6724.45
+          ],
+          "median_ns_per_op": 6658.62,
+          "range_ns_per_op": [
+            6657.35,
+            6724.45
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            6653.05,
+            6623.54,
+            6608.91
+          ],
+          "median_ns_per_op": 6623.54,
+          "range_ns_per_op": [
+            6608.91,
+            6653.05
+          ],
+          "delta_ns_per_op": -35.07999999999993,
+          "delta_percent": -0.5268358909203408
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            6679.95,
+            6673.45,
+            6692.84
+          ],
+          "median_ns_per_op": 6679.95,
+          "range_ns_per_op": [
+            6673.45,
+            6692.84
+          ],
+          "delta_ns_per_op": 21.329999999999927,
+          "delta_percent": 0.3203366463321311
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            6661.19,
+            6680.61,
+            6695.85
+          ],
+          "median_ns_per_op": 6680.61,
+          "range_ns_per_op": [
+            6661.19,
+            6695.85
+          ],
+          "delta_ns_per_op": 21.98999999999978,
+          "delta_percent": 0.33024861007235895
+        }
+      },
+      "system_info_parse_meminfo": {
+        "start": {
+          "windows_ns_per_op": [
+            1846.45,
+            1847.71,
+            1848.62
+          ],
+          "median_ns_per_op": 1847.71,
+          "range_ns_per_op": [
+            1846.45,
+            1848.62
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            1850.59,
+            1843.8,
+            1853.12
+          ],
+          "median_ns_per_op": 1850.59,
+          "range_ns_per_op": [
+            1843.8,
+            1853.12
+          ],
+          "delta_ns_per_op": 2.8799999999998818,
+          "delta_percent": 0.15586861574596877
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            1845.82,
+            1843.14,
+            1843.38
+          ],
+          "median_ns_per_op": 1843.38,
+          "range_ns_per_op": [
+            1843.14,
+            1845.82
+          ],
+          "delta_ns_per_op": -4.329999999999927,
+          "delta_percent": -0.23434413409030297
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            1845.34,
+            1845.06,
+            1846.67
+          ],
+          "median_ns_per_op": 1845.34,
+          "range_ns_per_op": [
+            1845.06,
+            1846.67
+          ],
+          "delta_ns_per_op": -2.3700000000001182,
+          "delta_percent": -0.12826688170762823
+        }
+      },
+      "hotplug_object_miss_8": {
+        "start": {
+          "windows_ns_per_op": [
+            26.02,
+            26.02,
+            21.7
+          ],
+          "median_ns_per_op": 26.02,
+          "range_ns_per_op": [
+            21.7,
+            26.02
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            28.86,
+            27.3,
+            25.88
+          ],
+          "median_ns_per_op": 27.3,
+          "range_ns_per_op": [
+            25.88,
+            28.86
+          ],
+          "delta_ns_per_op": 1.2800000000000011,
+          "delta_percent": 4.919292851652579
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            26.02,
+            26.02,
+            26.02
+          ],
+          "median_ns_per_op": 26.02,
+          "range_ns_per_op": [
+            26.02,
+            26.02
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            26.02,
+            20.81,
+            20.77
+          ],
+          "median_ns_per_op": 20.81,
+          "range_ns_per_op": [
+            20.77,
+            26.02
+          ],
+          "delta_ns_per_op": -5.210000000000001,
+          "delta_percent": -20.02305918524212
+        }
+      },
+      "hotplug_object_miss_32": {
+        "start": {
+          "windows_ns_per_op": [
+            85.37,
+            87.79,
+            85.37
+          ],
+          "median_ns_per_op": 85.37,
+          "range_ns_per_op": [
+            85.37,
+            87.79
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            90.24,
+            89.69,
+            89.7
+          ],
+          "median_ns_per_op": 89.7,
+          "range_ns_per_op": [
+            89.69,
+            90.24
+          ],
+          "delta_ns_per_op": 4.329999999999998,
+          "delta_percent": 5.072039358088309
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            86.07,
+            85.36,
+            85.36
+          ],
+          "median_ns_per_op": 85.36,
+          "range_ns_per_op": [
+            85.36,
+            86.07
+          ],
+          "delta_ns_per_op": -0.010000000000005116,
+          "delta_percent": -0.011713716762329351
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            86.22,
+            86.27,
+            85.36
+          ],
+          "median_ns_per_op": 86.22,
+          "range_ns_per_op": [
+            85.36,
+            86.27
+          ],
+          "delta_ns_per_op": 0.8499999999999943,
+          "delta_percent": 0.9956659247979394
+        }
+      },
+      "hotplug_object_miss_128": {
+        "start": {
+          "windows_ns_per_op": [
+            406.43,
+            407.63,
+            410.4
+          ],
+          "median_ns_per_op": 407.63,
+          "range_ns_per_op": [
+            406.43,
+            410.4
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "meminfo": {
+          "windows_ns_per_op": [
+            375.23,
+            381.03,
+            372.13
+          ],
+          "median_ns_per_op": 375.23,
+          "range_ns_per_op": [
+            372.13,
+            381.03
+          ],
+          "delta_ns_per_op": -32.39999999999998,
+          "delta_percent": -7.9483845644334306
+        },
+        "cap64": {
+          "windows_ns_per_op": [
+            410.23,
+            407.7,
+            409.43
+          ],
+          "median_ns_per_op": 409.43,
+          "range_ns_per_op": [
+            407.7,
+            410.23
+          ],
+          "delta_ns_per_op": 1.8000000000000114,
+          "delta_percent": 0.44157692024631157
+        },
+        "scalar": {
+          "windows_ns_per_op": [
+            407.33,
+            405.27,
+            408.08
+          ],
+          "median_ns_per_op": 407.33,
+          "range_ns_per_op": [
+            405.27,
+            408.08
+          ],
+          "delta_ns_per_op": -0.30000000000001137,
+          "delta_percent": -0.07359615337438896
+        }
+      }
+    }
+  },
+  "keymatch_screen": {
+    "scope": "corrected resident-fd system builder and fixed-snapshot parser phase, not daemon latency",
+    "order": [
+      "start",
+      "keymatch",
+      "keymatch",
+      "start"
+    ],
+    "iterations": 20000,
+    "warmup": 100,
+    "profile_sha256": "d25188db59b55637ff6f9aa3a2a7f5f5e2ce61f45803195872981ff5e49d372b",
+    "derived": {
+      "system_info": {
+        "start": {
+          "windows_ns_per_op": [
+            6650.57,
+            6649.78
+          ],
+          "median_ns_per_op": 6650.174999999999,
+          "range_ns_per_op": [
+            6649.78,
+            6650.57
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "keymatch": {
+          "windows_ns_per_op": [
+            6132.84,
+            6128.84
+          ],
+          "median_ns_per_op": 6130.84,
+          "range_ns_per_op": [
+            6128.84,
+            6132.84
+          ],
+          "delta_ns_per_op": -519.3349999999991,
+          "delta_percent": -7.809343363144572
+        }
+      },
+      "system_info_parse_meminfo": {
+        "start": {
+          "windows_ns_per_op": [
+            1842.57,
+            1846.41
+          ],
+          "median_ns_per_op": 1844.49,
+          "range_ns_per_op": [
+            1842.57,
+            1846.41
+          ],
+          "delta_ns_per_op": 0.0,
+          "delta_percent": 0.0
+        },
+        "keymatch": {
+          "windows_ns_per_op": [
+            1335.65,
+            1330.8
+          ],
+          "median_ns_per_op": 1333.225,
+          "range_ns_per_op": [
+            1330.8,
+            1335.65
+          ],
+          "delta_ns_per_op": -511.2650000000001,
+          "delta_percent": -27.71850213338105
+        }
+      }
+    },
+    "steady_state_allocations": 0,
+    "steady_state_reallocations": 0
+  },
+  "candidates": [
+    {
+      "id": "keymatch",
+      "decision": "selected_for_final_validation",
+      "production_files": [
+        "components/procd/src/sysobj.rs"
+      ],
+      "mechanism": "Compare complete wanted key plus delimiter before scanning any unrelated key name. Continue across all lines so duplicate last-value semantics remain.",
+      "preserved": [
+        "resident fd and offset-zero pread",
+        "fresh syscall-derived values",
+        "space/colon token boundary",
+        "ASCII case-insensitivity",
+        "last valid repeated key wins",
+        "current numeric conversion behavior"
+      ],
+      "targeted_correctness": {
+        "sysobj_tests": 5,
+        "passed": 5,
+        "status": "passed_on_Oracle_diagnostic_source"
+      },
+      "remaining": [
+        "canonical artifact and runtime identity",
+        "full relevant correctness gates",
+        "four-side device confirmation",
+        "resource/cleanup/health checks"
+      ]
+    },
+    {
+      "id": "meminfo-storage",
+      "decision": "rejected",
+      "mechanism": "Preserve initialized meminfo scratch length after pread, returning only current prefix.",
+      "reason": "system_info median -0.53%; small effect is insufficient to justify retention; parser unaffected.",
+      "changed_shared_library": false
+    },
+    {
+      "id": "scalar",
+      "decision": "rejected",
+      "mechanism": "Generate four mandatory instance scalar headers at compile time; fill current values every reply.",
+      "reason": "Approximately 4.9% fielded32 and 6.4% named32 stage savings, only 1.75% verbose32; extra private codec surface not justified by affected workload and no device evidence.",
+      "correctness": "9 local pure codec tests passed; this is not full procd/canonical validation.",
+      "changed_shared_library": false
+    },
+    {
+      "id": "cap64",
+      "decision": "rejected",
+      "mechanism": "Raise procd reply capacity retention limit from 16 to 64 KiB, still rebuilding every response.",
+      "resource_tradeoff": "Up to 48 KiB more retained reply allocation.",
+      "reason": "fielded32/verbose32 phase gains -14.6%/-46.2% and steady-state alloc/realloc eliminated, but full-stage sequence fielded128/verbose128 regressions +41.2%/+22.9% remain unattributed and too large to accept.",
+      "bounded_diagnostic": {
+        "order": [
+          "start",
+          "cap64",
+          "cap64",
+          "start"
+        ],
+        "iterations": 5000,
+        "filter": "service_list_fielded_128",
+        "source": "cap64-large-diagnostic.csv",
+        "fielded128_ns_per_op": {
+          "start": [
+            200115.87,
+            201793.24
+          ],
+          "cap64": [
+            204204.31,
+            198342.17
+          ]
+        },
+        "verbose128_ns_per_op": {
+          "start": [
+            318441.68,
+            313545.94
+          ],
+          "cap64": [
+            316072.61,
+            313908.95
+          ]
+        },
+        "interpretation": "Overlapping large-only windows demonstrate sequence dependence; they do not erase the original failed sequence or attribute its cause."
+      },
+      "changed_shared_library": false
+    },
+    {
+      "id": "schedule-fd-index",
+      "decision": "not_implemented",
+      "mechanism": "Retain poll fd membership to avoid walking services/instances in wait_activity.",
+      "reason": "Current request path already suppresses unnecessary maintenance and waitpid when SIGCHLD is clear; extra fd membership invalidation needs current material CPU evidence. No event loop rewrite justified."
+    },
+    {
+      "id": "cross-request-state-cache",
+      "decision": "rejected_at_source_stage",
+      "reason": "Invalidation would cover lifecycle/config/watch/data/triggers; no measured need justifies added stale-state risk."
+    },
+    {
+      "id": "retain-config-wire-representation",
+      "decision": "deferred_at_source_stage",
+      "reason": "Exact C retains command/data blobs; replacing Rust public mutable config representation requires broader mutation-contract changes than supported by this study."
+    },
+    {
+      "id": "two-pass-reply-sizing",
+      "decision": "rejected_at_source_stage",
+      "reason": "Would add a full traversal; measured allocation issue can be tested more simply with bounded capacity, which itself was rejected."
+    }
+  ],
+  "measurement_limits": [
+    "Synthetic fielded profile never spawns children and measures encoding only.",
+    "Corrected full system_info profile keeps Meminfo open outside iterations like daemon.",
+    "Parser-only profile uses one snapshot, never a live-value cache in production.",
+    "No current profile percentage is a four-side device claim.",
+    "No inherited BTreeMap named lookup, fixed dispatch, shared-library optimization, resident meminfo fd, or existing 16KiB reuse is credited as a new change."
+  ],
+  "evidence_sha256": {
+    "profile-screen/derived.json": "828749660da0599df740bc22b9392a980d7e3410ddf6cd7c29ce4f931ca396bc",
+    "profile-screen/plan.json": "b4ae4bb8694fb474b5fa7c8081f262cb93695c8c986feb60b1e555650c5b216a",
+    "profile-screen/complete.json": "baffca9ac29817b7609ad15b34fd81f83bb211eb6c2ca4f8c1101ed65413078a",
+    "profile-pilot.csv": "d6c752c5cfdcde427a8b1de8108a51d9e291f0350a491a50f1e306a8d62cdce3",
+    "profile-pilot.stderr": "75f56620b092e24b869882403a3b7cf25720c8ee5491c12daa7fb9399ce3fd6f",
+    "cap64-large-diagnostic.csv": "105ac3c830bc2179841f38bc1354a7035f6adbd9a3fd029ce661506373da779b",
+    "keymatch-screen.csv": "8c77b87f393e0733cdc35de2d7ef1edec06c02a311c307528f6efe0a889c496d",
+    "keymatch-build-test.log": "7c3792e7e74fd7e91568613d3ac8129b128488918969d3e911b3a105c2d1cafb",
+    "evidence/r94-identity.json": "409fb43e51ddf9bc938c1b5771bf4c14e6b3e2a3751adff64da2f7d3f4dffcf8",
+    "source-freeze.json": "87c93f823f5ba956d319cd8ccd579421ab27f95254335f2d2c15ab58d86b80c3"
+  },
+  "four_side_device_confirmation": {
+    "status": "passed",
+    "required_sides": [
+      "c",
+      "r89",
+      "r94",
+      "candidate"
+    ],
+    "blocks": 3,
+    "process_windows": 12,
+    "metrics": "procd-20260928-metrics.json"
+  },
+  "final_gates": {
+    "status": "passed",
+    "canonical_build": "success_verified",
+    "full_unit": 86,
+    "clippy_release": true,
+    "r92_procd_gates": true,
+    "r93_watch_notification": true,
+    "disconnect_logs_watchdog": true,
+    "resources": true,
+    "final_health_identity_cleanup": true,
+    "gate_records": 18,
+    "details": "procd-20260928-validation.json"
+  },
+  "current_daemon_profile": {
+    "scope": "Oracle current-start symbol build; offline symbol recovery of existing samples",
+    "derived_path": "perf-symbols-reports/derived.json",
+    "derived_sha256": "738121480e7fccfd0d91cb800451b9c966b2e812f56c67e25aa4380523f8e6eb",
+    "samples": {
+      "service_list_128": 1118,
+      "system_info": 1203
+    },
+    "not_final_device_confirmation": true
+  },
+  "pilot": {
+    "status": "verified_four_sides_complete",
+    "elapsed_seconds_approx": 53,
+    "preserved_anomaly": "Initial C fixture RPC validation failure; string fixture corrected before four-side pilot.",
+    "elapsed_seconds": 52.94489987500128,
+    "results_sha256": "57a9ffca6d25c6d6a1662472534a9f718d4f410f3a34c10144d26dcb0a925c8a"
+  },
+  "final_confirmation": {
+    "blocks": 3,
+    "windows": 12,
+    "workload_observations": 108,
+    "iterations_per_lane": 6000,
+    "warmup_per_client": 20,
+    "seconds": 610.3916159579967,
+    "source_results_sha256": "a77af1698e2be950692adb05d742665ac15b91d5026b4f6c265a2d81a6d6eeb0",
+    "all_window_identities_and_cleanup_verified": true
+  },
+  "source_tooling_commit": "481e68b",
+  "attribution_limit": "keymatch parser/full-builder reduction is measured; Oracle c1 daemon own CPU +0.607%, c4 -2.580%. Final C/R89/R94 differences include inherited code and build provenance; not all attributed to this round."
+}
