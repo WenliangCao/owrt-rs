@@ -182,8 +182,8 @@ Options:\n\
             match cmd {
                 CliCmd::Changes => {
                     if let Some(pidx) = ptr.p {
-                        let p = self.ctx.root[pidx].clone();
-                        self.show_changes(&mut out, &p);
+                        let p = &self.ctx.root[pidx];
+                        self.show_changes(&mut out, p);
                     }
                 }
                 CliCmd::Commit => {

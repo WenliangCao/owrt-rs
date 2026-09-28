@@ -199,17 +199,16 @@ pub fn load_delta(ctx: &mut Context, pidx: usize, flush: bool) -> Result<usize> 
     if !ctx.root[pidx].has_delta {
         return Ok(0);
     }
-    let name = ctx.root[pidx].name.clone();
     let mut changes = 0;
-    for dir in ctx.delta_path.clone() {
-        let filename = format!("{dir}/{name}");
+    for i in 0..ctx.delta_path.len() {
+        let filename = format!("{}/{}", ctx.delta_path[i], ctx.root[pidx].name);
         let (c, f) = load_delta_file(ctx, Some(pidx), &filename, false)?;
         changes += c;
         if let Some(f) = f {
             crate::sys::unlock(&f);
         }
     }
-    let filename = format!("{}/{}", ctx.savedir, name);
+    let filename = format!("{}/{}", ctx.savedir, ctx.root[pidx].name);
     let (_, f) = load_delta_file(ctx, None, &filename, flush)?;
     if let Some(f) = &f {
         if flush && changes > 0 && f.set_len(0).is_err() {
@@ -271,12 +270,12 @@ fn filter_delta(ctx: &mut Context, name: &str, section: Option<&str>, option: Op
                 }
             }
             if !matched {
-                if let Some(sec) = &ptr.section {
+                if let Some(sec) = ptr.section {
                     list.push(Delta {
                         cmd: c,
-                        section: sec.clone(),
-                        option: ptr.option.clone(),
-                        value: ptr.value.clone(),
+                        section: sec,
+                        option: ptr.option,
+                        value: ptr.value,
                     });
                 }
             }
