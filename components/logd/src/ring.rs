@@ -202,14 +202,35 @@ pub fn normalize(raw: &[u8], source: u32) -> Option<(u32, &[u8])> {
     }
     let mut priority = 0u32;
     if bytes.first() == Some(&b'<') {
-        if let Some(close) = bytes.iter().position(|&b| b == b'>') {
-            if bytes[1..close].iter().all(|b| b.is_ascii_digit()) {
-                priority = std::str::from_utf8(&bytes[1..close])
-                    .ok()
-                    .and_then(|s| s.parse().ok())
-                    .unwrap_or(0);
-                bytes = &bytes[close + 1..];
+        // Find the closing delimiter and parse its decimal interior in one
+        // pass. The old path scanned the same short prefix for `>`, digits,
+        // and then `str::parse`.
+        let mut parsed = 0u32;
+        let mut valid = true;
+        let mut overflow = false;
+        let mut index = 1usize;
+        while index < bytes.len() {
+            let digit = bytes[index];
+            if digit == b'>' {
+                break;
             }
+            if !digit.is_ascii_digit() {
+                valid = false;
+            } else if !overflow {
+                let value = (digit - b'0') as u32;
+                if parsed > 429_496_729 || (parsed == 429_496_729 && value > 5) {
+                    overflow = true;
+                } else {
+                    parsed = parsed * 10 + value;
+                }
+            }
+            index += 1;
+        }
+        if index < bytes.len() && bytes[index] == b'>' && valid {
+            // Match `str::parse::<u32>()`: an out-of-range value becomes
+            // zero, but the syntactically valid `<digits>` prefix is consumed.
+            priority = if overflow { 0 } else { parsed };
+            bytes = &bytes[index + 1..];
         }
     }
     // strip "Mmm dd hh:mm:ss " syslog timestamp
@@ -266,6 +287,11 @@ mod tests {
             Some((30, vec![0xff, 0xfe, b' ', 0x80]))
         );
         assert_eq!(stored(b"<184>discard", SOURCE_SYSLOG), None);
+        // Decimal syntax is consumed even when u32 conversion overflows;
+        // malformed interiors remain part of the message.
+        assert_eq!(stored(b"<4294967295>max", SOURCE_SYSLOG), Some((u32::MAX, b"max".to_vec())));
+        assert_eq!(stored(b"<4294967296>overflow", SOURCE_SYSLOG), Some((0, b"overflow".to_vec())));
+        assert_eq!(stored(b"<12x>malformed", SOURCE_SYSLOG), Some((0, b"<12x>malformed".to_vec())));
         for raw in [b"".as_slice(), b" \t\n", b"\0ignored", b"<0>", b"<>"] {
             let (_, bytes) = stored(raw, SOURCE_SYSLOG).unwrap();
             assert!(bytes.is_empty(), "{raw:?}");
