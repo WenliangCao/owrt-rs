@@ -1,0 +1,542 @@
+{
+  "scope": "Oracle SDK hypothesis screening only; not canonical, not router, not final four-side acceptance",
+  "schema": 1,
+  "start_source": "287d75cba0e71afa920f7c3434ec10b9c92a5c22",
+  "input_sha256": {
+    "screen24-summary.json": "963dd3ed014ba01622d96809599fe1eac61613af7fa53b5930c52bf3dab0dac2",
+    "scan-scale-summary.json": "84879558e0fd286ec77fa38b8d1d1e4d3c241b626a9cd2d3d434271596f303ca",
+    "oracle-screen/screen24/plan.json": "81661eda3c7bf96615694847cc342be9d729f689bb3900eacba4edca19ef50c5",
+    "oracle-screen/scan-scale/plan.json": "850da284f40a89422439b0726e7a13ac355b339796573638c88cdb5995a42f41"
+  },
+  "screen_plan": {
+    "count_per_lane": 100,
+    "warmup": 5,
+    "rounds": 2,
+    "order": [
+      [
+        24,
+        "h3-diagnostic"
+      ],
+      [
+        24,
+        "h2"
+      ],
+      [
+        24,
+        "h1"
+      ],
+      [
+        24,
+        "base"
+      ],
+      [
+        24,
+        "h1"
+      ],
+      [
+        24,
+        "h3-diagnostic"
+      ],
+      [
+        24,
+        "base"
+      ],
+      [
+        24,
+        "h2"
+      ]
+    ],
+    "scope": "serialized Oracle SDK screen, not device or canonical; H3 diagnostic is not eligible",
+    "tools": {
+      "benchmark": "8db700f0d9f06ec61e3ced06443075d43e11a157216139f9558e438d2c82a0c0",
+      "isolated": "ec23a7d54934820e240a2d0b4d162a7b76741950f4d9fb4330c277963470a6a7"
+    },
+    "variants": {
+      "base": "a8ce65aa592631116aa78649ce78d424358d4c66db00d06adf9350841d50a9f2",
+      "h1": "cb1dce50daad035d2972ceaee3a044d19f0a7facd06a9d3755f3c61278e45422",
+      "h2": "057ee06942d5974861337666aa7a6c0c6f76c59521977a0109ed0f8ac1baf69d",
+      "h3-diagnostic": "506d3098c242993e0512b808882f62e06ccb04fc6c28a493d4991f0d6734d3b4"
+    },
+    "decision": "mechanism and repeat direction; retain small H1/H2 if common-load CPU benefit or small neutral cost; H3 must show >15% changed workload benefit to warrant shared callback and fault complexity"
+  },
+  "screen24": [
+    {
+      "packages": 24,
+      "lane": "comment_only",
+      "variant": "base",
+      "windows": [
+        {
+          "cpu": 1235.28,
+          "mean_us": 1293.59069
+        },
+        {
+          "cpu": 1260.98,
+          "mean_us": 1322.95365
+        }
+      ],
+      "cpu_median": 1248.13,
+      "mean_median": 1308.27217
+    },
+    {
+      "packages": 24,
+      "lane": "comment_only",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 1194.53,
+          "mean_us": 1250.6038600000002
+        },
+        {
+          "cpu": 1181.39,
+          "mean_us": 1238.78297
+        }
+      ],
+      "cpu_median": 1187.96,
+      "mean_median": 1244.6934150000002
+    },
+    {
+      "packages": 24,
+      "lane": "comment_only",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 1144.46,
+          "mean_us": 1203.8990800000001
+        },
+        {
+          "cpu": 1148.18,
+          "mean_us": 1205.0730700000001
+        }
+      ],
+      "cpu_median": 1146.3200000000002,
+      "mean_median": 1204.4860750000003
+    },
+    {
+      "packages": 24,
+      "lane": "comment_only",
+      "variant": "h3-diagnostic",
+      "windows": [
+        {
+          "cpu": 1172.37,
+          "mean_us": 1232.44252
+        },
+        {
+          "cpu": 1192.31,
+          "mean_us": 1248.3086899999998
+        }
+      ],
+      "cpu_median": 1182.34,
+      "mean_median": 1240.375605
+    },
+    {
+      "packages": 24,
+      "lane": "first_baseline",
+      "variant": "base",
+      "windows": [
+        {
+          "cpu": 1207.32,
+          "mean_us": 1265.20446
+        },
+        {
+          "cpu": 1287.32,
+          "mean_us": 1348.9687
+        }
+      ],
+      "cpu_median": 1247.32,
+      "mean_median": 1307.08658
+    },
+    {
+      "packages": 24,
+      "lane": "first_baseline",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 1085.08,
+          "mean_us": 1141.9774
+        },
+        {
+          "cpu": 1114.32,
+          "mean_us": 1174.8528700000002
+        }
+      ],
+      "cpu_median": 1099.6999999999998,
+      "mean_median": 1158.4151350000002
+    },
+    {
+      "packages": 24,
+      "lane": "first_baseline",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 1082.83,
+          "mean_us": 1148.03225
+        },
+        {
+          "cpu": 1064.51,
+          "mean_us": 1126.3368600000001
+        }
+      ],
+      "cpu_median": 1073.67,
+      "mean_median": 1137.184555
+    },
+    {
+      "packages": 24,
+      "lane": "first_baseline",
+      "variant": "h3-diagnostic",
+      "windows": [
+        {
+          "cpu": 1109.37,
+          "mean_us": 1168.2751899999998
+        },
+        {
+          "cpu": 1135.03,
+          "mean_us": 1189.14183
+        }
+      ],
+      "cpu_median": 1122.1999999999998,
+      "mean_median": 1178.70851
+    },
+    {
+      "packages": 24,
+      "lane": "multi_change",
+      "variant": "base",
+      "windows": [
+        {
+          "cpu": 3651.88,
+          "mean_us": 4193.868
+        },
+        {
+          "cpu": 3541.58,
+          "mean_us": 4070.4130299999997
+        }
+      ],
+      "cpu_median": 3596.73,
+      "mean_median": 4132.140515
+    },
+    {
+      "packages": 24,
+      "lane": "multi_change",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 3545.23,
+          "mean_us": 4085.75998
+        },
+        {
+          "cpu": 3469.82,
+          "mean_us": 3976.2414700000004
+        }
+      ],
+      "cpu_median": 3507.525,
+      "mean_median": 4031.000725
+    },
+    {
+      "packages": 24,
+      "lane": "multi_change",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 3433.88,
+          "mean_us": 4074.74067
+        },
+        {
+          "cpu": 3459.54,
+          "mean_us": 3989.6623799999998
+        }
+      ],
+      "cpu_median": 3446.71,
+      "mean_median": 4032.201525
+    },
+    {
+      "packages": 24,
+      "lane": "multi_change",
+      "variant": "h3-diagnostic",
+      "windows": [
+        {
+          "cpu": 1313.26,
+          "mean_us": 1677.4109799999999
+        },
+        {
+          "cpu": 1564.76,
+          "mean_us": 1987.6331100000002
+        }
+      ],
+      "cpu_median": 1439.01,
+      "mean_median": 1832.5220450000002
+    },
+    {
+      "packages": 24,
+      "lane": "single_change",
+      "variant": "base",
+      "windows": [
+        {
+          "cpu": 2128.67,
+          "mean_us": 2375.3043399999997
+        },
+        {
+          "cpu": 2063.07,
+          "mean_us": 2304.3445
+        }
+      ],
+      "cpu_median": 2095.87,
+      "mean_median": 2339.82442
+    },
+    {
+      "packages": 24,
+      "lane": "single_change",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 2011.41,
+          "mean_us": 2248.19202
+        },
+        {
+          "cpu": 2058.63,
+          "mean_us": 2335.94436
+        }
+      ],
+      "cpu_median": 2035.02,
+      "mean_median": 2292.06819
+    },
+    {
+      "packages": 24,
+      "lane": "single_change",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 1996.38,
+          "mean_us": 2343.97769
+        },
+        {
+          "cpu": 2020.18,
+          "mean_us": 2260.58898
+        }
+      ],
+      "cpu_median": 2008.2800000000002,
+      "mean_median": 2302.283335
+    },
+    {
+      "packages": 24,
+      "lane": "single_change",
+      "variant": "h3-diagnostic",
+      "windows": [
+        {
+          "cpu": 1322.83,
+          "mean_us": 1589.15788
+        },
+        {
+          "cpu": 1343.6,
+          "mean_us": 1601.81556
+        }
+      ],
+      "cpu_median": 1333.215,
+      "mean_median": 1595.4867199999999
+    },
+    {
+      "packages": 24,
+      "lane": "unchanged_config",
+      "variant": "base",
+      "windows": [
+        {
+          "cpu": 1258.37,
+          "mean_us": 1317.35679
+        },
+        {
+          "cpu": 1248.78,
+          "mean_us": 1314.58439
+        }
+      ],
+      "cpu_median": 1253.5749999999998,
+      "mean_median": 1315.97059
+    },
+    {
+      "packages": 24,
+      "lane": "unchanged_config",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 1162.53,
+          "mean_us": 1221.78845
+        },
+        {
+          "cpu": 1179.12,
+          "mean_us": 1237.90016
+        }
+      ],
+      "cpu_median": 1170.8249999999998,
+      "mean_median": 1229.844305
+    },
+    {
+      "packages": 24,
+      "lane": "unchanged_config",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 1137.95,
+          "mean_us": 1200.27938
+        },
+        {
+          "cpu": 1153.32,
+          "mean_us": 1209.97477
+        }
+      ],
+      "cpu_median": 1145.635,
+      "mean_median": 1205.1270749999999
+    },
+    {
+      "packages": 24,
+      "lane": "unchanged_config",
+      "variant": "h3-diagnostic",
+      "windows": [
+        {
+          "cpu": 1199.13,
+          "mean_us": 1256.3187
+        },
+        {
+          "cpu": 1182.59,
+          "mean_us": 1242.28299
+        }
+      ],
+      "cpu_median": 1190.8600000000001,
+      "mean_median": 1249.300845
+    }
+  ],
+  "scan_scale": [
+    {
+      "packages": 128,
+      "lane": "unchanged_config",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 3047.31,
+          "mean_us": 3126.4905
+        },
+        {
+          "cpu": 3046.97,
+          "mean_us": 3117.97879
+        }
+      ],
+      "cpu_median": 3047.14,
+      "mean_median": 3122.234645
+    },
+    {
+      "packages": 128,
+      "lane": "unchanged_config",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 2939.84,
+          "mean_us": 3016.48318
+        },
+        {
+          "cpu": 2946.01,
+          "mean_us": 3016.1983999999998
+        }
+      ],
+      "cpu_median": 2942.925,
+      "mean_median": 3016.34079
+    },
+    {
+      "packages": 24,
+      "lane": "unchanged_config",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 1201.88,
+          "mean_us": 1259.68073
+        },
+        {
+          "cpu": 1212.98,
+          "mean_us": 1268.72398
+        }
+      ],
+      "cpu_median": 1207.43,
+      "mean_median": 1264.202355
+    },
+    {
+      "packages": 24,
+      "lane": "unchanged_config",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 1131.34,
+          "mean_us": 1195.9466100000002
+        },
+        {
+          "cpu": 1146.04,
+          "mean_us": 1206.33348
+        }
+      ],
+      "cpu_median": 1138.69,
+      "mean_median": 1201.140045
+    },
+    {
+      "packages": 4,
+      "lane": "unchanged_config",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 723.67,
+          "mean_us": 778.00606
+        },
+        {
+          "cpu": 739.25,
+          "mean_us": 792.45091
+        }
+      ],
+      "cpu_median": 731.46,
+      "mean_median": 785.2284850000001
+    },
+    {
+      "packages": 4,
+      "lane": "unchanged_config",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 738.71,
+          "mean_us": 791.76495
+        },
+        {
+          "cpu": 721.36,
+          "mean_us": 777.70288
+        }
+      ],
+      "cpu_median": 730.0350000000001,
+      "mean_median": 784.733915
+    },
+    {
+      "packages": 64,
+      "lane": "unchanged_config",
+      "variant": "h1",
+      "windows": [
+        {
+          "cpu": 1929.52,
+          "mean_us": 1994.378
+        },
+        {
+          "cpu": 1949.85,
+          "mean_us": 2017.65383
+        }
+      ],
+      "cpu_median": 1939.685,
+      "mean_median": 2006.015915
+    },
+    {
+      "packages": 64,
+      "lane": "unchanged_config",
+      "variant": "h2",
+      "windows": [
+        {
+          "cpu": 1712.22,
+          "mean_us": 1782.1747
+        },
+        {
+          "cpu": 1712.38,
+          "mean_us": 1777.77657
+        }
+      ],
+      "cpu_median": 1712.3000000000002,
+      "mean_median": 1779.975635
+    }
+  ]
+}
