@@ -56,8 +56,12 @@ pub(crate) fn read_whole(ctx: &Context, mut f: &File) -> Result<Vec<u8>> {
     read_all(ctx, &mut f, hint)
 }
 
-fn read_all(ctx: &Context, mut reader: impl Read, hint: usize) -> Result<Vec<u8>> {
-    let mut data = vec![0u8; hint.saturating_add(1).min(64 * 1024)];
+fn read_all(ctx: &Context, reader: impl Read, hint: usize) -> Result<Vec<u8>> {
+    read_into(ctx, reader, hint, Vec::new())
+}
+
+fn read_into(ctx: &Context, mut reader: impl Read, hint: usize, mut data: Vec<u8>) -> Result<Vec<u8>> {
+    data.resize(hint.saturating_add(1).min(64 * 1024), 0);
     let mut filled: usize = 0;
     loop {
         ctx.check_io_budget()?;
@@ -105,9 +109,25 @@ mod read_tests {
         let bytes = b"config test 's'\n option v 'visible'\n option tail 'retained'\n";
         for chunk in [1, 7, 16, bytes.len()] {
             for hint in [0, 3, bytes.len(), bytes.len() + 128] {
-                let reader = Fragmented { bytes: Cursor::new(&bytes[..]), chunk, interrupt: true };
-                assert_eq!(read_all(&Context::new(), reader, hint).unwrap(), bytes);
+                for buffer in [Vec::new(), vec![0xa5; 4096]] {
+                    let reader = Fragmented { bytes: Cursor::new(&bytes[..]), chunk, interrupt: true };
+                    assert_eq!(read_into(&Context::new(), reader, hint, buffer).unwrap(), bytes);
+                }
             }
+        }
+    }
+
+    #[test]
+    fn read_errors_never_return_a_partial_or_reused_buffer() {
+        struct FailAfter<'a>(&'a [u8]);
+        impl Read for FailAfter<'_> {
+            fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+                if self.0.is_empty() { return Err(io::ErrorKind::Other.into()); }
+                self.0.read(out)
+            }
+        }
+        for buffer in [Vec::new(), vec![0xa5; 4096]] {
+            assert_eq!(read_into(&Context::new(), FailAfter(b"prefix"), 6, buffer), Err(Error::Io));
         }
     }
 
@@ -140,7 +160,7 @@ pub fn load_cached(ctx: &mut Context, name: &str, cache: &mut crate::ReadCache) 
     load_impl(ctx, name, Some(cache))
 }
 
-fn load_impl(ctx: &mut Context, name: &str, cache: Option<&mut crate::ReadCache>) -> Result<usize> {
+fn load_impl(ctx: &mut Context, name: &str, mut cache: Option<&mut crate::ReadCache>) -> Result<usize> {
     let (filename, pkgname, confdir, conf2) = match name.as_bytes().first() {
         Some(b'.') if name.as_bytes().get(1) != Some(&b'/') => return Err(Error::NotFound),
         Some(b'.') | Some(b'/') => {
@@ -160,17 +180,23 @@ fn load_impl(ctx: &mut Context, name: &str, cache: Option<&mut crate::ReadCache>
     let file = open_stream(ctx, &filename, false, false, false)?;
     ctx.err = None;
     // The owner keeps the shared lock alive while the whole file is read once.
-    let data = match read_whole(ctx, &file) {
+    let read_result = match cache.as_deref_mut() {
+        Some(cache) => {
+            let hint = file.metadata().map(|m| m.len() as usize).unwrap_or(0);
+            read_into(ctx, &file, hint, cache.take_buffer())
+        }
+        None => read_whole(ctx, &file),
+    };
+    let data = match read_result {
         Ok(d) => d,
         Err(e) => {
             sys::unlock(&file);
             return Err(e);
         }
     };
-    let mut reader: &[u8] = &data;
     let result = match cache {
-        Some(cache) => cache.import(ctx, &mut reader, &pkgname),
-        None => parse::import(ctx, &mut reader, Some(&pkgname), None, true),
+        Some(cache) => cache.import(ctx, data, &pkgname),
+        None => parse::import(ctx, &mut data.as_slice(), Some(&pkgname), None, true),
     };
     let pidx = match result {
         Ok(Some(i)) => i,
