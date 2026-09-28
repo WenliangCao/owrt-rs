@@ -1,0 +1,486 @@
+{
+  "schema": 1,
+  "acceptance": "passed within documented functional/recovery scope; performance accepted with disclosed limitations",
+  "source_commit": "da7b9e2283e3b3cd2cb17b949c91aed41172c0e1",
+  "canonical_workflow": 36457327815,
+  "production": "exact image C; no deployment, reboot or flash",
+  "gate_count": 36,
+  "native_test_count": 425,
+  "extra_linux_file_fixture_tests": 1,
+  "r26_steps": 733,
+  "r26_fuzz_calls": 729,
+  "r26_differences": 0,
+  "fw4_upstream_cases": 31,
+  "benchmark_tool_tests": 45,
+  "gates": [
+    {
+      "name": "rpcd-unit",
+      "coverage": "complete native unit/integration suite",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 7.604630378016736,
+      "started": "2026-09-28T17:33:05.857823+00:00",
+      "finished": "2026-09-28T17:33:13.464314+00:00",
+      "log_sha256": "57b23da82e1eebf0dae26ef17bbf2ef5ef6696c4ba9dd049cfa26d16f096d681",
+      "tests_passed": 65,
+      "effective_exit": 0
+    },
+    {
+      "name": "ubus-unit",
+      "coverage": "complete native unit/integration suite",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 3.4740217170328833,
+      "started": "2026-09-28T17:33:13.473576+00:00",
+      "finished": "2026-09-28T17:33:16.949534+00:00",
+      "log_sha256": "14a654232156466f9d5b38637eccfcfe498379a2c3c0a0899e01650a08bb9fcd",
+      "tests_passed": 55,
+      "effective_exit": 0
+    },
+    {
+      "name": "uci-unit",
+      "coverage": "complete native unit/integration suite; includes read_cache_files, io_budget locks/cancellation/EOF, fidelity and config_listing",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 3.178206334996503,
+      "started": "2026-09-28T17:33:16.958007+00:00",
+      "finished": "2026-09-28T17:33:20.137676+00:00",
+      "log_sha256": "88cbc7bfe273168699945e662834201ed0fb55fe6a7da2b0b2d0abb44e70f5d8",
+      "tests_passed": 49,
+      "effective_exit": 0
+    },
+    {
+      "name": "fw4-unit",
+      "coverage": "complete native unit/integration suite",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 3.324124749051407,
+      "started": "2026-09-28T17:33:20.146221+00:00",
+      "finished": "2026-09-28T17:33:23.471865+00:00",
+      "log_sha256": "c9cac9486ae68c38093b31a7696e794cde6a2cf93e5f5af005977d7561f25fc5",
+      "tests_passed": 17,
+      "effective_exit": 0
+    },
+    {
+      "name": "netifd-unit",
+      "coverage": "complete native unit/integration suite",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 5.381005229020957,
+      "started": "2026-09-28T17:33:23.480314+00:00",
+      "finished": "2026-09-28T17:33:28.862765+00:00",
+      "log_sha256": "a43f3fc267f41b5e2edd6ebc33ae7deafc7e5b91e6b4fef179eb1e6919c8f44f",
+      "tests_passed": 166,
+      "effective_exit": 0
+    },
+    {
+      "name": "reload-config-unit",
+      "coverage": "complete native unit/integration suite",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 1.3177802080172114,
+      "started": "2026-09-28T17:33:28.871257+00:00",
+      "finished": "2026-09-28T17:33:30.190594+00:00",
+      "log_sha256": "2422d1ed2fdc7100bf5ab510ab508c0890e7d5776a6900d619da94b39c41ca5d",
+      "tests_passed": 14,
+      "effective_exit": 0
+    },
+    {
+      "name": "httpd-unit",
+      "coverage": "complete native unit/integration suite",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 15.606383860984351,
+      "started": "2026-09-28T17:33:30.199122+00:00",
+      "finished": "2026-09-28T17:33:45.807081+00:00",
+      "log_sha256": "e2e6d03963a500e414a2ba947aa186cda248c33b3e92181ce7e1004a1d520fb0",
+      "tests_passed": 59,
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-clippy",
+      "coverage": "all targets and undocumented unsafe lint",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 3.221801975974813,
+      "started": "2026-09-28T17:33:45.815804+00:00",
+      "finished": "2026-09-28T17:33:49.039145+00:00",
+      "log_sha256": "e837bb2910add70108a4d0c1d409865e4ce68b3762a50ac6b5aa6197e449cb0e",
+      "effective_exit": 0
+    },
+    {
+      "name": "uci-clippy",
+      "coverage": "all targets and undocumented unsafe lint",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 1.0166377419955097,
+      "started": "2026-09-28T17:33:49.047840+00:00",
+      "finished": "2026-09-28T17:33:50.066189+00:00",
+      "log_sha256": "a9f5678c3d4126031d6905a5c7bc76b722a4edefdb0ec906716f6299bda1c401",
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-file-example",
+      "coverage": "Linux raw/long filenames, file type and symlink parent resolution; assert the named test actually ran",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 2.0690332609810866,
+      "started": "2026-09-28T17:33:50.077693+00:00",
+      "finished": "2026-09-28T17:33:52.155123+00:00",
+      "log_sha256": "d6d6b4e4862de26647ec8d977a779bceb2efa683ff6094affc4223cb98cd230d",
+      "effective_exit": 0
+    },
+    {
+      "name": "r13_rpcd_check",
+      "coverage": "file/luci differential; original C vs candidate",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 11.332533167034853,
+      "started": "2026-09-28T17:33:52.164011+00:00",
+      "finished": "2026-09-28T17:34:03.498217+00:00",
+      "log_sha256": "02c48b282d5a82e27fdaebf79833717931153dc59ce0b1825ae07a1298e34e79",
+      "effective_exit": 0
+    },
+    {
+      "name": "r17_rpcd_core_check",
+      "coverage": "session/ACL/UCI apply-confirm-rollback and rc; reload helper stubbed",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 33.52352739300113,
+      "started": "2026-09-28T17:34:03.507146+00:00",
+      "finished": "2026-09-28T17:34:37.032325+00:00",
+      "log_sha256": "f95338cf2e6640bdc57183c07d3b541efad27e27e32124b67c91036cc13eb0c6",
+      "effective_exit": 0
+    },
+    {
+      "name": "r18_rpcd_plugins_check",
+      "coverage": "sys/iwinfo/rrdns differential; sysupgrade helper stubbed",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 14.537113999016583,
+      "started": "2026-09-28T17:34:37.041111+00:00",
+      "finished": "2026-09-28T17:34:51.579901+00:00",
+      "log_sha256": "428b3f47a9c464a85331dfdf47a1a3e01c9d616adaad53f659044322330c2779",
+      "effective_exit": 0
+    },
+    {
+      "name": "r19_lucirpc_check",
+      "coverage": "luci-rpc differential with namespace-local DNS",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 5.373162363015581,
+      "started": "2026-09-28T17:34:51.588773+00:00",
+      "finished": "2026-09-28T17:34:56.963631+00:00",
+      "log_sha256": "048e3dd88e75b6a3d8691cd6f11cc95e44d4e88d50b56df7f440003a4b515586",
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-busy",
+      "coverage": "timer expiry and worker completion under load",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 14.814656707982067,
+      "started": "2026-09-28T17:34:56.972507+00:00",
+      "finished": "2026-09-28T17:35:11.788840+00:00",
+      "log_sha256": "88cc715671c31caaf71caef98514859c38fe4f7c39fabe759378f0d4e569c7ec",
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-r26",
+      "coverage": "fixed seed26, 10 cases/method; historical 733-case stable feature corpus",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 98.8846459670458,
+      "started": "2026-09-28T17:35:11.798944+00:00",
+      "finished": "2026-09-28T17:36:50.686057+00:00",
+      "log_sha256": "cc70ec171f5476ec6818a60408e9cd818802c2549ed2fc9ce63c6f6d2dcfd346",
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-real-features",
+      "coverage": "32 real helper calls with/without SIGCHLD",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 21.802273384993896,
+      "started": "2026-09-28T17:36:50.695978+00:00",
+      "finished": "2026-09-28T17:37:12.500538+00:00",
+      "log_sha256": "65a562f718f1e1653081bc6fa32e2b83a05d5a998df02d14b69413aa84958ceb",
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-bytes",
+      "coverage": "real blob transport, byte preservation and ACL denial",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 4.726581699971575,
+      "started": "2026-09-28T17:37:12.510622+00:00",
+      "finished": "2026-09-28T17:37:17.239630+00:00",
+      "log_sha256": "22896d5c64742a63035c91a126efb9c5bb9c4e419610d0ff0dd4aa22fca58273",
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-defer",
+      "coverage": "delayed workers/reexec; harness supplies marker-only upgrade/reload helpers",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 19.343751642038114,
+      "started": "2026-09-28T17:37:17.248337+00:00",
+      "finished": "2026-09-28T17:37:36.593825+00:00",
+      "log_sha256": "d52b6a7fd53a4710de25aba0f6f6c96b5166db633497e1c24a49dfe45640b96f",
+      "effective_exit": 0
+    },
+    {
+      "name": "uci-r16",
+      "coverage": "full historical UCI CLI differential",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 1.1161120889591984,
+      "started": "2026-09-28T17:37:36.602735+00:00",
+      "finished": "2026-09-28T17:37:37.720627+00:00",
+      "log_sha256": "8c29a4affb3a283a52885c9527b4812c712e720e6ccebd4a5fc1ebf97dc84780",
+      "effective_exit": 0
+    },
+    {
+      "name": "uci-r83",
+      "coverage": "UCI bytes, tuples, deltas, CLI errors and approved rename disposition",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 1.1169029760058038,
+      "started": "2026-09-28T17:37:37.731377+00:00",
+      "finished": "2026-09-28T17:37:38.850722+00:00",
+      "log_sha256": "0cf783e9bcece16a6da6101e98aefea4638db334b004feeb4ee6112ccb071c1e",
+      "effective_exit": 0
+    },
+    {
+      "name": "fw4-upstream",
+      "coverage": "shared-UCI consumer; full upstream mock suite",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 0.264326760021504,
+      "started": "2026-09-28T17:37:38.859750+00:00",
+      "finished": "2026-09-28T17:37:39.125974+00:00",
+      "log_sha256": "be79b01169be402caabcce9e00ac7498806ce639b22937b7c7a3581e62ddcc59",
+      "effective_exit": 0
+    },
+    {
+      "name": "fw4-defaults",
+      "coverage": "shared-UCI consumer; deterministic defaults regression",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 0.5649789429735392,
+      "started": "2026-09-28T17:37:39.135041+00:00",
+      "finished": "2026-09-28T17:37:39.701883+00:00",
+      "log_sha256": "51978d72b18433dbe4721bb36d8a790b941a363581304bb0a9aa32c27398d9c2",
+      "effective_exit": 0
+    },
+    {
+      "name": "reload-config-r1",
+      "coverage": "shared-UCI consumer; isolated config dispatcher/stub bus",
+      "status": "passed-after-fixture-correction",
+      "elapsed_seconds": 0.2643859200179577,
+      "started": "2026-09-28T17:37:39.711014+00:00",
+      "finished": "2026-09-28T17:37:39.977341+00:00",
+      "log_sha256": "87c608787460d0c251629c8e1d617ada6ae5f021c9856a70ec9dd2beb06c229a",
+      "original_status": "failed-tool-fixture",
+      "replacement": {
+        "summary": {
+          "fault_cases": 9,
+          "gate_passed": true,
+          "output_sha256": "8037026ef92014ae5f7e57e6be36bbead4d4ece8b8312ca5f05fc42ae8929669",
+          "reference_cases": 11
+        },
+        "log_sha256": "4cb07cb77a4d93394410c3a55cc76ebdbcb03adc5a4ca9e5980c64fc5c0f662a",
+        "reason": "The RPCD safety fixture replaced reload_config; this separate consumer gate requires the exact reference script. Re-run with original rootfs and its own isolated ubus shim; unchanged canonical candidate."
+      },
+      "effective_exit": 0,
+      "original_exit": 1
+    },
+    {
+      "name": "compat-rpcd_compat",
+      "coverage": "both C and candidate; explicit expected byte/type/permission/lifecycle boundaries",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 0.6652040969929658,
+      "started": "2026-09-28T17:37:39.986569+00:00",
+      "finished": "2026-09-28T17:37:40.653712+00:00",
+      "log_sha256": "3620ae8595139b6f88c5781377d56afe3ba93c44df0fb81831b01d822b22842d",
+      "effective_exit": 0
+    },
+    {
+      "name": "compat-rpcd_features",
+      "coverage": "both C and candidate; explicit expected byte/type/permission/lifecycle boundaries",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 24.75525112095056,
+      "started": "2026-09-28T17:37:40.662939+00:00",
+      "finished": "2026-09-28T17:38:05.420135+00:00",
+      "log_sha256": "eafaef45cfafe6b20dd3b513446b955d0537e721d18156878db0ea7ff1c40fb3",
+      "effective_exit": 0
+    },
+    {
+      "name": "compat-rpcd_lease_boundary",
+      "coverage": "both C and candidate; explicit expected byte/type/permission/lifecycle boundaries",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 0.6149738379754126,
+      "started": "2026-09-28T17:38:05.429047+00:00",
+      "finished": "2026-09-28T17:38:06.045986+00:00",
+      "log_sha256": "d6b212df74f96e3b2a5be9154a6397b47fd501c9336b26971b9f8c26abc27eb0",
+      "effective_exit": 0
+    },
+    {
+      "name": "compat-rpcd_plugin_boundaries",
+      "coverage": "both C and candidate; explicit expected byte/type/permission/lifecycle boundaries",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 0.6150126389693469,
+      "started": "2026-09-28T17:38:06.054863+00:00",
+      "finished": "2026-09-28T17:38:06.671774+00:00",
+      "log_sha256": "d783d5e38769cbdcecf60e04b6b5133c2a16bb707707ed43d0bea82e60a15052",
+      "effective_exit": 0
+    },
+    {
+      "name": "compat-uci_rename",
+      "coverage": "both C and candidate; explicit expected byte/type/permission/lifecycle boundaries",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 0.6155482829781249,
+      "started": "2026-09-28T17:38:06.680799+00:00",
+      "finished": "2026-09-28T17:38:07.298241+00:00",
+      "log_sha256": "e833d38f36174ca68413ccd2c8cda95f94d979095c0100ab62698479f0c6ca14",
+      "effective_exit": 0
+    },
+    {
+      "name": "compat-netifd_restart",
+      "coverage": "both C and candidate; explicit expected byte/type/permission/lifecycle boundaries",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 2.8688822790281847,
+      "started": "2026-09-28T17:38:07.307251+00:00",
+      "finished": "2026-09-28T17:38:10.178100+00:00",
+      "log_sha256": "f3db8acfdc0ec2dedd76e7a8e76cc49286d40ba854615b4a7ff75e92d5c49fe1",
+      "effective_exit": 0
+    },
+    {
+      "name": "recovery-rpcd_closed_output",
+      "coverage": "both C and candidate; expected C deficiencies remain explicit, never waived for candidate",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 2.067756050033495,
+      "started": "2026-09-28T17:38:10.188322+00:00",
+      "finished": "2026-09-28T17:38:12.258610+00:00",
+      "log_sha256": "d493ac96d021de961d9ce24b87a86210a090dbea859b185da4178befd8d5ab26",
+      "effective_exit": 0
+    },
+    {
+      "name": "recovery-rpcd_closed_empty",
+      "coverage": "both C and candidate; expected C deficiencies remain explicit, never waived for candidate",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 2.6191060399869457,
+      "started": "2026-09-28T17:38:12.268717+00:00",
+      "finished": "2026-09-28T17:38:14.890266+00:00",
+      "log_sha256": "2478e900454c4f0154fc8031c2bfbfbdbab112e740af8fe271d543108d436bda",
+      "effective_exit": 0
+    },
+    {
+      "name": "recovery-rpcd_output_limit",
+      "coverage": "both C and candidate; expected C deficiencies remain explicit, never waived for candidate",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 1.1159318879945204,
+      "started": "2026-09-28T17:38:14.899294+00:00",
+      "finished": "2026-09-28T17:38:16.017287+00:00",
+      "log_sha256": "842b86f677c6ff586b4e52612a5cb615563ec987cc8b7a1ed2a2fc7e5ce811e8",
+      "effective_exit": 0
+    },
+    {
+      "name": "reconnect-disconnect",
+      "coverage": "apply file recovery, private Python service stub, session expiry, stale worker isolation",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 15.087230652978178,
+      "started": "2026-09-28T17:38:16.026391+00:00",
+      "finished": "2026-09-28T17:38:31.115721+00:00",
+      "log_sha256": "ac291068d86738175c9663c9d9ce91dcae415d171444b61b9e1b6d786093ad3b",
+      "effective_exit": 0
+    },
+    {
+      "name": "reconnect-half_header",
+      "coverage": "apply file recovery, private Python service stub, session expiry, stale worker isolation",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 15.088018618989736,
+      "started": "2026-09-28T17:38:31.124764+00:00",
+      "finished": "2026-09-28T17:38:46.214800+00:00",
+      "log_sha256": "85fbe2eb96e5307f0e1aa7b46423ead1f85270a5603c27f20831d3855c429535",
+      "effective_exit": 0
+    },
+    {
+      "name": "rpcd-host-hints",
+      "coverage": "both exact binaries, synthetic neighbors in private network namespace",
+      "status": "passed",
+      "exit": 0,
+      "elapsed_seconds": 0.7152292320388369,
+      "started": "2026-09-28T17:38:46.224027+00:00",
+      "finished": "2026-09-28T17:38:46.941427+00:00",
+      "log_sha256": "1ace828059757b564fc350396e6d8e05838432580fea0d9be695ca2c5884e7e1",
+      "effective_exit": 0
+    }
+  ],
+  "runtime_sha256": {
+    "fw4-rs": "58b05244dd221af54cc795a4c61bbd0bf99af1cf9d58e633acc5b9c122683aba",
+    "httpd-rs": "1ed3ed327f967dd920a33bea79322d5ceb1b60de48eb51c9ec4aef8bb86e42d2",
+    "netifd-rs": "a8c489983d50b423157c77f91a440281c6448a5f6eb19e9c7e7d39c8366a6c2d",
+    "reload_config_rs": "02397f2ffcd946b3dd76be6e946ed4980943b934c4433b5454ba85d784b60fce",
+    "rpcd-rs": "158031f2382c832fc067f2d20e2a2683a877b8ff491723f4df869301f37cc309",
+    "uci-rs": "76634691d7546c9f996daa94258842f68fe0212fe5ec6dc8cf787038f7530085"
+  },
+  "original_sha256": {
+    "etc/openwrt_release": "017848337d8ac3d858c8708a99efe5ac36fa0817212cd9e8bf8ac5a6079ca1be",
+    "sbin/reload_config": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "sbin/rpcd": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+    "sbin/sysupgrade": "a24e6fec8f95643736e2b67844621f72e5f57339c5a3cfc07541f750f09d1c29",
+    "sbin/ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "sbin/uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+  },
+  "fixture_stubs": {
+    "sbin/reload_config": {
+      "original_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+      "stub_sha256": "c7717ad871b626963a0765b96ca4bc15d9ff9316de6cf381ecb677d7dfd51e64"
+    },
+    "sbin/sysupgrade": {
+      "original_sha256": "a24e6fec8f95643736e2b67844621f72e5f57339c5a3cfc07541f750f09d1c29",
+      "stub_sha256": "8e25482ce772c87e1fdf9e2dd9b096cf8f29a3a6565f9ed45a3c8dbb8808b2f9"
+    }
+  },
+  "source_unchanged": true,
+  "original_unchanged": true,
+  "gate_driver_sha256": "fd99a2fa63171dd20b76e2a6a85767eb6c7338ff0b55ec3c74da1a7e9b318e6a",
+  "original_aggregate_status": false,
+  "original_aggregate_sha256": "50bee0e2e87df3165cf6f1b56d0449d10f421b85b108962b92407a9be870181d",
+  "original_failed_evidence_retained": true,
+  "device": {
+    "measurements": 216,
+    "workloads": 24,
+    "sides": {
+      "stock": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+      "r89": "a58c2f7039369c4dde7b0f0fdb45053c147f823c178651b1867c7843e3217a18",
+      "candidate": "158031f2382c832fc067f2d20e2a2683a877b8ff491723f4df869301f37cc309"
+    },
+    "host_gates_passed": true,
+    "final_raw_results_sha256": "928df0763459300bfcd52f3c882a07ed234406c6d4e170cec8ed1f21169ee6a2",
+    "failed_window_disposition": "Window 5 successful load but SSH metadata fetch exit255; excluded before score inspection, raw retained; same frozen settings/order resumed from 5, first four preserved."
+  },
+  "evidence_archive_sha256": "3e5094f7c6a0afdccd958bcaf2a011d0d5aa664e8f64269af7242660ab736d4b",
+  "limitations": [
+    "Functional gate corpus runs on the Linux host; physical timing/resources and canonical APK/ELF identities are separately validated and linked by this record.",
+    "sysupgrade and reload_config dispatch use controlled stubs on both sides",
+    "HTTPD does not link UCI; its unit suite is a boundary regression, no new HTTPD research",
+    "r92 --baseline argument contains only the freshly built namespace launcher",
+    "native tests and fresh musl examples are diagnostic artifacts, separate from runtime inputs",
+    "Physical timing/resource validation is separately reported; no HTTP end-to-end timing.",
+    "Wireless execution plane unchanged; no new production radio scan or upgrade action."
+  ],
+  "final_source_and_dependency_files_reverified": 70
+}

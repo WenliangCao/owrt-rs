@@ -1,0 +1,969 @@
+{
+  "schema": 1,
+  "plan": {
+    "iterations": 3000,
+    "rounds": 3,
+    "order": [
+      [
+        "current",
+        "h1"
+      ],
+      [
+        "h1",
+        "current"
+      ],
+      [
+        "current",
+        "h1"
+      ]
+    ],
+    "alternating_unit": "one op = two requests network then r84fixture, single Ctx",
+    "semantics": "each stage full validation before and after timing",
+    "runtime_unchanged": true,
+    "purpose": "diagnostic handler profile, not formal daemon result"
+  },
+  "identities": {
+    "current": {
+      "profile_elf": "59c5481189182a331352f967f314f8da05989ac818fc2f13159200b1b5b1b760",
+      "fixture": "70e23865d2c4a8c9f88354a462664f30a8def39c1db310519808636dae2f9bb4"
+    },
+    "h1": {
+      "profile_elf": "355893124289993b9c5df4ab12f2ab1140994ff44ad61d3405fa68d2479ca52a",
+      "fixture": "70e23865d2c4a8c9f88354a462664f30a8def39c1db310519808636dae2f9bb4"
+    }
+  },
+  "sources": {
+    "current": "f5233e50e25fe3602523f43947eb521acd0898e1",
+    "h1": "da7b9e2283e3b3cd2cb17b949c91aed41172c0e1"
+  },
+  "evidence": [
+    {
+      "path": "private/rpcd-20260928/extended-screen/1-current/uci_reply-profile.csv",
+      "sha256": "3659b4d1b50278f37fc496040ef1843491783fbbce5249a57362572c36f0c0b8"
+    },
+    {
+      "path": "private/rpcd-20260928/extended-screen/2-current/uci_reply-profile.csv",
+      "sha256": "7faeefa1075deadac3ff9fa6a3f81308129d9fc7ef980079a648c82bb19d1683"
+    },
+    {
+      "path": "private/rpcd-20260928/extended-screen/3-current/uci_reply-profile.csv",
+      "sha256": "954d5da8456f1d09b8e2018ba61d355743614caea858a5483a20fa6b409e93cf"
+    },
+    {
+      "path": "private/rpcd-20260928/extended-screen/1-h1/uci_reply-profile.csv",
+      "sha256": "7ee5babdf84f01487b4a2b2bf59da1f33c1f74d93e0619cbb03d6d17d1c2d392"
+    },
+    {
+      "path": "private/rpcd-20260928/extended-screen/2-h1/uci_reply-profile.csv",
+      "sha256": "dd1f13b0b6ab91a19a0b60535d5deb5b97d65b292fab1991d6fd9b63ad965e35"
+    },
+    {
+      "path": "private/rpcd-20260928/extended-screen/3-h1/uci_reply-profile.csv",
+      "sha256": "a2aba34bf0ea0b9ed4dda101d80ff38b5e125d51f9f88c23c4abe8a4d69ffd0b"
+    }
+  ],
+  "metrics": [
+    {
+      "stage": "uci_configs_payload",
+      "requests_per_op": 1,
+      "sides": {
+        "current": {
+          "ns_per_op": {
+            "samples": [
+              4136.02,
+              4148.86,
+              4155.86
+            ],
+            "median": 4148.86,
+            "min": 4136.02,
+            "max": 4155.86
+          },
+          "allocs": {
+            "samples": [
+              12.0,
+              12.0,
+              12.0
+            ],
+            "median": 12.0,
+            "min": 12.0,
+            "max": 12.0
+          },
+          "reallocs": {
+            "samples": [
+              2.0,
+              2.0,
+              2.0
+            ],
+            "median": 2.0,
+            "min": 2.0,
+            "max": 2.0
+          },
+          "requested_bytes": {
+            "samples": [
+              999.0,
+              999.0,
+              999.0
+            ],
+            "median": 999.0,
+            "min": 999.0,
+            "max": 999.0
+          }
+        },
+        "h1": {
+          "ns_per_op": {
+            "samples": [
+              4173.46,
+              4189.42,
+              4150.02
+            ],
+            "median": 4173.46,
+            "min": 4150.02,
+            "max": 4189.42
+          },
+          "allocs": {
+            "samples": [
+              12.0,
+              12.0,
+              12.0
+            ],
+            "median": 12.0,
+            "min": 12.0,
+            "max": 12.0
+          },
+          "reallocs": {
+            "samples": [
+              2.0,
+              2.0,
+              2.0
+            ],
+            "median": 2.0,
+            "min": 2.0,
+            "max": 2.0
+          },
+          "requested_bytes": {
+            "samples": [
+              999.0,
+              999.0,
+              999.0
+            ],
+            "median": 999.0,
+            "min": 999.0,
+            "max": 999.0
+          }
+        }
+      },
+      "delta": {
+        "ns_per_op": {
+          "absolute": 24.600000000000364,
+          "percent": 0.5929339625825092,
+          "paired_absolute": [
+            37.4399999999996,
+            40.5600000000004,
+            -5.839999999999236
+          ]
+        },
+        "allocs": {
+          "absolute": 0.0,
+          "percent": 0.0,
+          "paired_absolute": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "reallocs": {
+          "absolute": 0.0,
+          "percent": 0.0,
+          "paired_absolute": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "requested_bytes": {
+          "absolute": 0.0,
+          "percent": 0.0,
+          "paired_absolute": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    {
+      "stage": "uci_get_network_payload",
+      "requests_per_op": 1,
+      "sides": {
+        "current": {
+          "ns_per_op": {
+            "samples": [
+              12358.93,
+              12249.37,
+              12189.97
+            ],
+            "median": 12249.37,
+            "min": 12189.97,
+            "max": 12358.93
+          },
+          "allocs": {
+            "samples": [
+              42.0,
+              42.0,
+              42.0
+            ],
+            "median": 42.0,
+            "min": 42.0,
+            "max": 42.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              3854.0,
+              3854.0,
+              3854.0
+            ],
+            "median": 3854.0,
+            "min": 3854.0,
+            "max": 3854.0
+          }
+        },
+        "h1": {
+          "ns_per_op": {
+            "samples": [
+              10303.75,
+              10320.88,
+              10331.59
+            ],
+            "median": 10320.88,
+            "min": 10303.75,
+            "max": 10331.59
+          },
+          "allocs": {
+            "samples": [
+              19.0,
+              19.0,
+              19.0
+            ],
+            "median": 19.0,
+            "min": 19.0,
+            "max": 19.0
+          },
+          "reallocs": {
+            "samples": [
+              4.0,
+              4.0,
+              4.0
+            ],
+            "median": 4.0,
+            "min": 4.0,
+            "max": 4.0
+          },
+          "requested_bytes": {
+            "samples": [
+              1359.0,
+              1359.0,
+              1359.0
+            ],
+            "median": 1359.0,
+            "min": 1359.0,
+            "max": 1359.0
+          }
+        }
+      },
+      "delta": {
+        "ns_per_op": {
+          "absolute": -1928.4900000000016,
+          "percent": -15.74358518029908,
+          "paired_absolute": [
+            -2055.1800000000003,
+            -1928.4900000000016,
+            -1858.3799999999992
+          ]
+        },
+        "allocs": {
+          "absolute": -23.0,
+          "percent": -54.761904761904766,
+          "paired_absolute": [
+            -23.0,
+            -23.0,
+            -23.0
+          ]
+        },
+        "reallocs": {
+          "absolute": -2.0,
+          "percent": -33.333333333333336,
+          "paired_absolute": [
+            -2.0,
+            -2.0,
+            -2.0
+          ]
+        },
+        "requested_bytes": {
+          "absolute": -2495.0,
+          "percent": -64.73793461338869,
+          "paired_absolute": [
+            -2495.0,
+            -2495.0,
+            -2495.0
+          ]
+        }
+      }
+    },
+    {
+      "stage": "uci_get_64_payload",
+      "requests_per_op": 1,
+      "sides": {
+        "current": {
+          "ns_per_op": {
+            "samples": [
+              69606.94,
+              70627.91,
+              69237.59
+            ],
+            "median": 69606.94,
+            "min": 69237.59,
+            "max": 70627.91
+          },
+          "allocs": {
+            "samples": [
+              406.0,
+              406.0,
+              406.0
+            ],
+            "median": 406.0,
+            "min": 406.0,
+            "max": 406.0
+          },
+          "reallocs": {
+            "samples": [
+              12.0,
+              12.0,
+              12.0
+            ],
+            "median": 12.0,
+            "min": 12.0,
+            "max": 12.0
+          },
+          "requested_bytes": {
+            "samples": [
+              56076.0,
+              56076.0,
+              56076.0
+            ],
+            "median": 56076.0,
+            "min": 56076.0,
+            "max": 56076.0
+          }
+        },
+        "h1": {
+          "ns_per_op": {
+            "samples": [
+              28578.94,
+              28605.22,
+              28555.65
+            ],
+            "median": 28578.94,
+            "min": 28555.65,
+            "max": 28605.22
+          },
+          "allocs": {
+            "samples": [
+              19.0,
+              19.0,
+              19.0
+            ],
+            "median": 19.0,
+            "min": 19.0,
+            "max": 19.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              11851.0,
+              11851.0,
+              11851.0
+            ],
+            "median": 11851.0,
+            "min": 11851.0,
+            "max": 11851.0
+          }
+        }
+      },
+      "delta": {
+        "ns_per_op": {
+          "absolute": -41028.0,
+          "percent": -58.94239855968385,
+          "paired_absolute": [
+            -41028.0,
+            -42022.69,
+            -40681.939999999995
+          ]
+        },
+        "allocs": {
+          "absolute": -387.0,
+          "percent": -95.32019704433498,
+          "paired_absolute": [
+            -387.0,
+            -387.0,
+            -387.0
+          ]
+        },
+        "reallocs": {
+          "absolute": -6.0,
+          "percent": -50.0,
+          "paired_absolute": [
+            -6.0,
+            -6.0,
+            -6.0
+          ]
+        },
+        "requested_bytes": {
+          "absolute": -44225.0,
+          "percent": -78.86618161067122,
+          "paired_absolute": [
+            -44225.0,
+            -44225.0,
+            -44225.0
+          ]
+        }
+      }
+    },
+    {
+      "stage": "uci_get_section_payload",
+      "requests_per_op": 1,
+      "sides": {
+        "current": {
+          "ns_per_op": {
+            "samples": [
+              42411.01,
+              43262.2,
+              42288.92
+            ],
+            "median": 42411.01,
+            "min": 42288.92,
+            "max": 43262.2
+          },
+          "allocs": {
+            "samples": [
+              408.0,
+              408.0,
+              408.0
+            ],
+            "median": 408.0,
+            "min": 408.0,
+            "max": 408.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              23832.0,
+              23832.0,
+              23832.0
+            ],
+            "median": 23832.0,
+            "min": 23832.0,
+            "max": 23832.0
+          }
+        },
+        "h1": {
+          "ns_per_op": {
+            "samples": [
+              17212.83,
+              17172.02,
+              17196.29
+            ],
+            "median": 17196.29,
+            "min": 17172.02,
+            "max": 17212.83
+          },
+          "allocs": {
+            "samples": [
+              21.0,
+              21.0,
+              21.0
+            ],
+            "median": 21.0,
+            "min": 21.0,
+            "max": 21.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              1131.0,
+              1131.0,
+              1131.0
+            ],
+            "median": 1131.0,
+            "min": 1131.0,
+            "max": 1131.0
+          }
+        }
+      },
+      "delta": {
+        "ns_per_op": {
+          "absolute": -25214.72,
+          "percent": -59.45324103340146,
+          "paired_absolute": [
+            -25198.18,
+            -26090.179999999997,
+            -25092.629999999997
+          ]
+        },
+        "allocs": {
+          "absolute": -387.0,
+          "percent": -94.85294117647058,
+          "paired_absolute": [
+            -387.0,
+            -387.0,
+            -387.0
+          ]
+        },
+        "reallocs": {
+          "absolute": 0.0,
+          "percent": 0.0,
+          "paired_absolute": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "requested_bytes": {
+          "absolute": -22701.0,
+          "percent": -95.25427995971802,
+          "paired_absolute": [
+            -22701.0,
+            -22701.0,
+            -22701.0
+          ]
+        }
+      }
+    },
+    {
+      "stage": "uci_get_option_payload",
+      "requests_per_op": 1,
+      "sides": {
+        "current": {
+          "ns_per_op": {
+            "samples": [
+              42213.81,
+              42576.28,
+              42365.8
+            ],
+            "median": 42365.8,
+            "min": 42213.81,
+            "max": 42576.28
+          },
+          "allocs": {
+            "samples": [
+              410.0,
+              410.0,
+              410.0
+            ],
+            "median": 410.0,
+            "min": 410.0,
+            "max": 410.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              23842.0,
+              23842.0,
+              23842.0
+            ],
+            "median": 23842.0,
+            "min": 23842.0,
+            "max": 23842.0
+          }
+        },
+        "h1": {
+          "ns_per_op": {
+            "samples": [
+              17228.06,
+              17111.15,
+              17234.05
+            ],
+            "median": 17228.06,
+            "min": 17111.15,
+            "max": 17234.05
+          },
+          "allocs": {
+            "samples": [
+              23.0,
+              23.0,
+              23.0
+            ],
+            "median": 23.0,
+            "min": 23.0,
+            "max": 23.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              1141.0,
+              1141.0,
+              1141.0
+            ],
+            "median": 1141.0,
+            "min": 1141.0,
+            "max": 1141.0
+          }
+        }
+      },
+      "delta": {
+        "ns_per_op": {
+          "absolute": -25137.74,
+          "percent": -59.334982462269096,
+          "paired_absolute": [
+            -24985.749999999996,
+            -25465.129999999997,
+            -25131.750000000004
+          ]
+        },
+        "allocs": {
+          "absolute": -387.0,
+          "percent": -94.39024390243902,
+          "paired_absolute": [
+            -387.0,
+            -387.0,
+            -387.0
+          ]
+        },
+        "reallocs": {
+          "absolute": 0.0,
+          "percent": 0.0,
+          "paired_absolute": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "requested_bytes": {
+          "absolute": -22701.0,
+          "percent": -95.21432765707574,
+          "paired_absolute": [
+            -22701.0,
+            -22701.0,
+            -22701.0
+          ]
+        }
+      }
+    },
+    {
+      "stage": "uci_get_filtered_payload",
+      "requests_per_op": 1,
+      "sides": {
+        "current": {
+          "ns_per_op": {
+            "samples": [
+              49341.25,
+              49871.02,
+              49631.8
+            ],
+            "median": 49631.8,
+            "min": 49341.25,
+            "max": 49871.02
+          },
+          "allocs": {
+            "samples": [
+              470.0,
+              470.0,
+              470.0
+            ],
+            "median": 470.0,
+            "min": 470.0,
+            "max": 470.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              24268.0,
+              24268.0,
+              24268.0
+            ],
+            "median": 24268.0,
+            "min": 24268.0,
+            "max": 24268.0
+          }
+        },
+        "h1": {
+          "ns_per_op": {
+            "samples": [
+              24712.08,
+              24660.33,
+              24729.47
+            ],
+            "median": 24712.08,
+            "min": 24660.33,
+            "max": 24729.47
+          },
+          "allocs": {
+            "samples": [
+              83.0,
+              83.0,
+              83.0
+            ],
+            "median": 83.0,
+            "min": 83.0,
+            "max": 83.0
+          },
+          "reallocs": {
+            "samples": [
+              6.0,
+              6.0,
+              6.0
+            ],
+            "median": 6.0,
+            "min": 6.0,
+            "max": 6.0
+          },
+          "requested_bytes": {
+            "samples": [
+              1567.0,
+              1567.0,
+              1567.0
+            ],
+            "median": 1567.0,
+            "min": 1567.0,
+            "max": 1567.0
+          }
+        }
+      },
+      "delta": {
+        "ns_per_op": {
+          "absolute": -24919.72,
+          "percent": -50.20918040449873,
+          "paired_absolute": [
+            -24629.17,
+            -25210.689999999995,
+            -24902.33
+          ]
+        },
+        "allocs": {
+          "absolute": -387.0,
+          "percent": -82.34042553191489,
+          "paired_absolute": [
+            -387.0,
+            -387.0,
+            -387.0
+          ]
+        },
+        "reallocs": {
+          "absolute": 0.0,
+          "percent": 0.0,
+          "paired_absolute": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "requested_bytes": {
+          "absolute": -22701.0,
+          "percent": -93.54293720125267,
+          "paired_absolute": [
+            -22701.0,
+            -22701.0,
+            -22701.0
+          ]
+        }
+      }
+    },
+    {
+      "stage": "uci_get_alternating_pair_payload",
+      "requests_per_op": 2,
+      "sides": {
+        "current": {
+          "ns_per_op": {
+            "samples": [
+              156807.57,
+              158463.31,
+              156989.1
+            ],
+            "median": 156989.1,
+            "min": 156807.57,
+            "max": 158463.31
+          },
+          "allocs": {
+            "samples": [
+              457.0,
+              457.0,
+              457.0
+            ],
+            "median": 457.0,
+            "min": 457.0,
+            "max": 457.0
+          },
+          "reallocs": {
+            "samples": [
+              24.0,
+              24.0,
+              24.0
+            ],
+            "median": 24.0,
+            "min": 24.0,
+            "max": 24.0
+          },
+          "requested_bytes": {
+            "samples": [
+              75359.0,
+              75359.0,
+              75359.0
+            ],
+            "median": 75359.0,
+            "min": 75359.0,
+            "max": 75359.0
+          }
+        },
+        "h1": {
+          "ns_per_op": {
+            "samples": [
+              147977.64,
+              148588.3,
+              148063.01
+            ],
+            "median": 148063.01,
+            "min": 147977.64,
+            "max": 148588.3
+          },
+          "allocs": {
+            "samples": [
+              455.0,
+              455.0,
+              455.0
+            ],
+            "median": 455.0,
+            "min": 455.0,
+            "max": 455.0
+          },
+          "reallocs": {
+            "samples": [
+              16.0,
+              16.0,
+              16.0
+            ],
+            "median": 16.0,
+            "min": 16.0,
+            "max": 16.0
+          },
+          "requested_bytes": {
+            "samples": [
+              46464.0,
+              46464.0,
+              46464.0
+            ],
+            "median": 46464.0,
+            "min": 46464.0,
+            "max": 46464.0
+          }
+        }
+      },
+      "delta": {
+        "ns_per_op": {
+          "absolute": -8926.089999999997,
+          "percent": -5.685802390102246,
+          "paired_absolute": [
+            -8829.929999999993,
+            -9875.01000000001,
+            -8926.089999999997
+          ]
+        },
+        "allocs": {
+          "absolute": -2.0,
+          "percent": -0.4376367614879695,
+          "paired_absolute": [
+            -2.0,
+            -2.0,
+            -2.0
+          ]
+        },
+        "reallocs": {
+          "absolute": -8.0,
+          "percent": -33.333333333333336,
+          "paired_absolute": [
+            -8.0,
+            -8.0,
+            -8.0
+          ]
+        },
+        "requested_bytes": {
+          "absolute": -28895.0,
+          "percent": -38.343130880186834,
+          "paired_absolute": [
+            -28895.0,
+            -28895.0,
+            -28895.0
+          ]
+        }
+      }
+    }
+  ],
+  "semantics": "All seven stages validated before and after timings in every run; exact namespace fixture; no runtime source modification.",
+  "limitations": [
+    "Oracle handler mean timings, not AX3000T response percentiles",
+    "Alternating pair is two requests and forces single-entry misses; not cold filesystem cache or first daemon request",
+    "Diagnostic artifacts are not canonical runtime binaries"
+  ]
+}

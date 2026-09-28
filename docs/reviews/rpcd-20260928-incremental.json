@@ -1,0 +1,2191 @@
+{
+  "schema": 1,
+  "scope": "same-batch Oracle canonical current versus H1 incremental evidence; not final physical acceptance",
+  "sources": [
+    {
+      "path": "private/rpcd-20260928/canonical-incremental.json",
+      "sha256": "13e08ad6b362f590eae79a2f6b121659db5624ae6356b25e25a6bfec73a47b4b"
+    },
+    {
+      "path": "private/rpcd-20260928/shared-child-cpu.json",
+      "sha256": "5b1ad0ba43e1a585ab6630d76ee4745975507c1e89c7babd41d7f60ccfd636f8"
+    },
+    {
+      "path": "private/rpcd-20260928/shared-derived.json",
+      "sha256": "c7873959c6c2537c49592171bcad74cf2fe278f5b98da816ad2271cdeb223f4f"
+    }
+  ],
+  "identities": {
+    "current_source": "f5233e50e25fe3602523f43947eb521acd0898e1",
+    "H1_runtime": "7a00581",
+    "H1_source": "da7b9e2283e3b3cd2cb17b949c91aed41172c0e1",
+    "current_rpcd_elf": "679f86c29f9bf19d6b2e911ce14ae59d5ee95e680ca84d5addabc9fa6138013e",
+    "H1_rpcd_elf": "158031f2382c832fc067f2d20e2a2683a877b8ff491723f4df869301f37cc309"
+  },
+  "rpcd_plan": {
+    "iterations": 4000,
+    "warmup_per_client": 20,
+    "rounds": 3,
+    "order": ["current", "candidate", "candidate", "current", "current", "candidate"],
+    "workloads": ["uci_configs", "uci_get_network", "file_stat", "session_access", "uci_configs_c4", "uci_get_network_c4", "file_stat_c4", "session_access_c4", "uci_get_64", "uci_get_64_c4", "uci_get_authorized", "uci_get_authorized_c4", "session_access_granted", "session_access_granted_c4", "file_list", "file_list_c4", "session_access_64", "session_access_64_c4", "uci_state_network", "uci_get_delta", "session_access_acl256", "luci_version", "luci_features", "luci_devices"],
+    "scope": "Oracle canonical current vs combined candidate; exact C dependencies"
+  },
+  "rpcd_paired_windows": [["01-current", "02-candidate"], ["04-current", "03-candidate"], ["05-current", "06-candidate"]],
+  "rpcd_lanes": [
+    {
+      "lane": "uci_configs",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 13.99004, "min": 13.193370000000002, "max": 15.41551},
+          "H1": {"median": 14.658, "min": 13.599920000000001, "max": 18.71691},
+          "delta": 0.667959999999999,
+          "percent": 4.77453960103044,
+          "direction": "higher",
+          "current_runs": [["01-current", 13.193370000000002], ["04-current", 13.99004], ["05-current", 15.41551]],
+          "H1_runs": [["02-candidate", 18.71691], ["03-candidate", 14.658], ["06-candidate", 13.599920000000001]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 38.372499499999996, "min": 37.2602825, "max": 41.399763},
+          "H1": {"median": 40.051153250000006, "min": 37.2631325, "max": 47.58553725},
+          "delta": 1.6786537500000094,
+          "percent": 4.374627068533832,
+          "direction": "higher",
+          "current_runs": [["01-current", 38.372499499999996], ["04-current", 37.2602825], ["05-current", 41.399763]],
+          "H1_runs": [["02-candidate", 47.58553725], ["03-candidate", 40.051153250000006], ["06-candidate", 37.2631325]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 65.961, "min": 62.4, "max": 76.361},
+          "H1": {"median": 65.361, "min": 65.241, "max": 107.921},
+          "delta": -0.5999999999999943,
+          "percent": -0.909628416791732,
+          "direction": "lower",
+          "current_runs": [["01-current", 62.4], ["04-current", 65.961], ["05-current", 76.361]],
+          "H1_runs": [["02-candidate", 107.921], ["03-candidate", 65.241], ["06-candidate", 65.361]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 25112.402170399626, "min": 23241.264921647424, "max": 25777.745017128058},
+          "H1": {"median": 24010.251368903962, "min": 20177.349825155696, "max": 25801.522523332653},
+          "delta": -1102.1508014956635,
+          "percent": -4.388870463355296,
+          "direction": "lower",
+          "current_runs": [["01-current", 25112.402170399626], ["04-current", 25777.745017128058], ["05-current", 23241.264921647424]],
+          "H1_runs": [["02-candidate", 20177.349825155696], ["03-candidate", 24010.251368903962], ["06-candidate", 25801.522523332653]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "uci_get_network",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 22.68684, "min": 21.33746, "max": 23.40844},
+          "H1": {"median": 20.78044, "min": 20.23441, "max": 28.085169999999998},
+          "delta": -1.9064000000000014,
+          "percent": -8.403109467867722,
+          "direction": "lower",
+          "current_runs": [["01-current", 23.40844], ["04-current", 21.33746], ["05-current", 22.68684]],
+          "H1_runs": [["02-candidate", 28.085169999999998], ["03-candidate", 20.78044], ["06-candidate", 20.23441]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 48.21547475, "min": 44.964433, "max": 49.3001625},
+          "H1": {"median": 46.01943375, "min": 44.89229125, "max": 60.285208250000004},
+          "delta": -2.196041000000001,
+          "percent": -4.554639379548992,
+          "direction": "lower",
+          "current_runs": [["01-current", 49.3001625], ["04-current", 44.964433], ["05-current", 48.21547475]],
+          "H1_runs": [["02-candidate", 60.285208250000004], ["03-candidate", 46.01943375], ["06-candidate", 44.89229125]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 82.081, "min": 78.28, "max": 88.601},
+          "H1": {"median": 83.401, "min": 77.801, "max": 129.601},
+          "delta": 1.3199999999999932,
+          "percent": 1.6081675418184394,
+          "direction": "higher",
+          "current_runs": [["01-current", 88.601], ["04-current", 78.28], ["05-current", 82.081]],
+          "H1_runs": [["02-candidate", 129.601], ["03-candidate", 83.401], ["06-candidate", 77.801]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 19152.118569770155, "min": 18752.72837547294, "max": 20452.308111485614},
+          "H1": {"median": 20005.378946264176, "min": 15425.40020207814, "max": 20498.06779063585},
+          "delta": 853.2603764940213,
+          "percent": 4.455174885147243,
+          "direction": "higher",
+          "current_runs": [["01-current", 18752.72837547294], ["04-current", 20452.308111485614], ["05-current", 19152.118569770155]],
+          "H1_runs": [["02-candidate", 15425.40020207814], ["03-candidate", 20005.378946264176], ["06-candidate", 20498.06779063585]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "file_stat",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 15.22125, "min": 14.39095, "max": 15.90408},
+          "H1": {"median": 15.92508, "min": 14.67521, "max": 16.62256},
+          "delta": 0.70383,
+          "percent": 4.623996058142399,
+          "direction": "higher",
+          "current_runs": [["01-current", 15.90408], ["04-current", 15.22125], ["05-current", 14.39095]],
+          "H1_runs": [["02-candidate", 16.62256], ["03-candidate", 15.92508], ["06-candidate", 14.67521]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 38.60027875, "min": 38.106035750000004, "max": 41.21384475},
+          "H1": {"median": 40.596058, "min": 38.282109250000005, "max": 42.7786775},
+          "delta": 1.9957792499999982,
+          "percent": 5.170375226888739,
+          "direction": "higher",
+          "current_runs": [["01-current", 41.21384475], ["04-current", 38.106035750000004], ["05-current", 38.60027875]],
+          "H1_runs": [["02-candidate", 42.7786775], ["03-candidate", 40.596058], ["06-candidate", 38.282109250000005]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 64.08, "min": 64.04, "max": 64.48},
+          "H1": {"median": 62.84, "min": 60.041, "max": 75.641},
+          "delta": -1.2399999999999949,
+          "percent": -1.9350811485642867,
+          "direction": "lower",
+          "current_runs": [["01-current", 64.48], ["04-current", 64.08], ["05-current", 64.04]],
+          "H1_runs": [["02-candidate", 75.641], ["03-candidate", 62.84], ["06-candidate", 60.041]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 24589.225613607836, "min": 23018.100277398607, "max": 24890.039229066377},
+          "H1": {"median": 23380.96409815553, "min": 22181.76010392066, "max": 24777.95483553682},
+          "delta": -1208.2615154523046,
+          "percent": -4.9137843315555445,
+          "direction": "lower",
+          "current_runs": [["01-current", 23018.100277398607], ["04-current", 24890.039229066377], ["05-current", 24589.225613607836]],
+          "H1_runs": [["02-candidate", 22181.76010392066], ["03-candidate", 23380.96409815553], ["06-candidate", 24777.95483553682]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "session_access",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 8.261790000000001, "min": 8.17199, "max": 8.47522},
+          "H1": {"median": 8.07982, "min": 7.51162, "max": 8.24286},
+          "delta": -0.18197000000000152,
+          "percent": -2.202549326477694,
+          "direction": "lower",
+          "current_runs": [["01-current", 8.47522], ["04-current", 8.261790000000001], ["05-current", 8.17199]],
+          "H1_runs": [["02-candidate", 8.24286], ["03-candidate", 7.51162], ["06-candidate", 8.07982]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 32.1976295, "min": 31.789895, "max": 34.483228499999996},
+          "H1": {"median": 33.2970475, "min": 31.9906345, "max": 33.42028825},
+          "delta": 1.099418,
+          "percent": 3.414592990456021,
+          "direction": "higher",
+          "current_runs": [["01-current", 34.483228499999996], ["04-current", 31.789895], ["05-current", 32.1976295]],
+          "H1_runs": [["02-candidate", 33.2970475], ["03-candidate", 31.9906345], ["06-candidate", 33.42028825]],
+          "paired_directions": ["lower", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 52.281, "min": 47.88, "max": 52.281},
+          "H1": {"median": 52.601, "min": 45.681, "max": 54.44},
+          "delta": 0.3200000000000003,
+          "percent": 0.6120770451980648,
+          "direction": "higher",
+          "current_runs": [["01-current", 52.281], ["04-current", 47.88], ["05-current", 52.281]],
+          "H1_runs": [["02-candidate", 54.44], ["03-candidate", 45.681], ["06-candidate", 52.601]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 30566.838561066383, "min": 28544.90484973438, "max": 30927.32267827274},
+          "H1": {"median": 29538.474553567867, "min": 29471.311925028516, "max": 30784.489930478},
+          "delta": -1028.364007498516,
+          "percent": -3.364312620829439,
+          "direction": "lower",
+          "current_runs": [["01-current", 28544.90484973438], ["04-current", 30927.32267827274], ["05-current", 30566.838561066383]],
+          "H1_runs": [["02-candidate", 29538.474553567867], ["03-candidate", 30784.489930478], ["06-candidate", 29471.311925028516]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "uci_configs_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 10.72200980392157, "min": 10.652000000000001, "max": 11.645029411764707},
+          "H1": {"median": 11.272470588235294, "min": 10.998794117647058, "max": 11.653372549019608},
+          "delta": 0.5504607843137244,
+          "percent": 5.133932857554314,
+          "direction": "higher",
+          "current_runs": [["01-current", 10.72200980392157], ["04-current", 11.645029411764707], ["05-current", 10.652000000000001]],
+          "H1_runs": [["02-candidate", 11.272470588235294], ["03-candidate", 11.653372549019608], ["06-candidate", 10.998794117647058]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 59.90953725, "min": 57.258366499999994, "max": 62.97803325},
+          "H1": {"median": 63.71934125, "min": 57.72628925, "max": 65.91847775000001},
+          "delta": 3.8098039999999997,
+          "percent": 6.35926127104245,
+          "direction": "higher",
+          "current_runs": [["01-current", 59.90953725], ["04-current", 62.97803325], ["05-current", 57.258366499999994]],
+          "H1_runs": [["02-candidate", 65.91847775000001], ["03-candidate", 63.71934125], ["06-candidate", 57.72628925]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 104.961, "min": 98.561, "max": 108.121},
+          "H1": {"median": 107.481, "min": 95.84, "max": 108.561},
+          "delta": 2.519999999999996,
+          "percent": 2.400891759796492,
+          "direction": "higher",
+          "current_runs": [["01-current", 104.961], ["04-current", 108.121], ["05-current", 98.561]],
+          "H1_runs": [["02-candidate", 108.561], ["03-candidate", 107.481], ["06-candidate", 95.84]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 66666.6666045785, "min": 49999.99998981366, "max": 66666.66666925367},
+          "H1": {"median": 57142.85718467162, "min": 49999.99998981366, "max": 66666.66666925367},
+          "delta": -9523.809419906873,
+          "percent": -14.285714143164917,
+          "direction": "lower",
+          "current_runs": [["01-current", 66666.66666925367], ["04-current", 49999.99998981366], ["05-current", 66666.6666045785]],
+          "H1_runs": [["02-candidate", 49999.99998981366], ["03-candidate", 57142.85718467162], ["06-candidate", 66666.66666925367]],
+          "paired_directions": ["lower", "higher", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "uci_get_network_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 16.898872549019607, "min": 16.672950980392155, "max": 17.614509803921568},
+          "H1": {"median": 15.672009803921569, "min": 15.25028431372549, "max": 16.14199019607843},
+          "delta": -1.226862745098039,
+          "percent": -7.260027209147841,
+          "direction": "lower",
+          "current_runs": [["01-current", 16.672950980392155], ["04-current", 16.898872549019607], ["05-current", 17.614509803921568]],
+          "H1_runs": [["02-candidate", 15.672009803921569], ["03-candidate", 15.25028431372549], ["06-candidate", 16.14199019607843]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 65.3490335, "min": 63.321305249999995, "max": 72.20232150000001},
+          "H1": {"median": 60.002699500000006, "min": 57.799583, "max": 70.83346},
+          "delta": -5.346333999999999,
+          "percent": -8.181198272809954,
+          "direction": "lower",
+          "current_runs": [["01-current", 63.321305249999995], ["04-current", 65.3490335], ["05-current", 72.20232150000001]],
+          "H1_runs": [["02-candidate", 60.002699500000006], ["03-candidate", 57.799583], ["06-candidate", 70.83346]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 156.922, "min": 124.721, "max": 172.802},
+          "H1": {"median": 134.841, "min": 133.281, "max": 149.241},
+          "delta": -22.08099999999999,
+          "percent": -14.07132205809255,
+          "direction": "lower",
+          "current_runs": [["01-current", 124.721], ["04-current", 156.922], ["05-current", 172.802]],
+          "H1_runs": [["02-candidate", 133.281], ["03-candidate", 134.841], ["06-candidate", 149.241]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 57142.857137155166, "min": 49999.99998981366, "max": 57142.857137155166},
+          "H1": {"median": 57142.857137155166, "min": 50000.00002619345, "max": 57142.857137155166},
+          "delta": 0.0,
+          "percent": 0.0,
+          "direction": "equal",
+          "current_runs": [["01-current", 57142.857137155166], ["04-current", 57142.857137155166], ["05-current", 49999.99998981366]],
+          "H1_runs": [["02-candidate", 57142.857137155166], ["03-candidate", 57142.857137155166], ["06-candidate", 50000.00002619345]],
+          "paired_directions": ["equal", "equal", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "file_stat_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 11.480892156862746, "min": 11.3455, "max": 11.87114705882353},
+          "H1": {"median": 11.28271568627451, "min": 10.61007843137255, "max": 11.457823529411764},
+          "delta": -0.19817647058823518,
+          "percent": -1.7261417308042082,
+          "direction": "lower",
+          "current_runs": [["01-current", 11.3455], ["04-current", 11.87114705882353], ["05-current", 11.480892156862746]],
+          "H1_runs": [["02-candidate", 11.28271568627451], ["03-candidate", 10.61007843137255], ["06-candidate", 11.457823529411764]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 59.977610500000004, "min": 59.4516725, "max": 64.424454},
+          "H1": {"median": 57.288173, "min": 55.28096875, "max": 62.546462500000004},
+          "delta": -2.689437500000004,
+          "percent": -4.484069101085652,
+          "direction": "lower",
+          "current_runs": [["01-current", 59.977610500000004], ["04-current", 64.424454], ["05-current", 59.4516725]],
+          "H1_runs": [["02-candidate", 57.288173], ["03-candidate", 55.28096875], ["06-candidate", 62.546462500000004]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 107.2, "min": 102.041, "max": 121.321},
+          "H1": {"median": 108.681, "min": 90.001, "max": 117.801},
+          "delta": 1.4809999999999945,
+          "percent": 1.3815298507462634,
+          "direction": "higher",
+          "current_runs": [["01-current", 107.2], ["04-current", 121.321], ["05-current", 102.041]],
+          "H1_runs": [["02-candidate", 108.681], ["03-candidate", 90.001], ["06-candidate", 117.801]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 57142.857137155166, "min": 57142.857137155166, "max": 57142.857137155166},
+          "H1": {"median": 57142.857137155166, "min": 57142.857137155166, "max": 66666.66666925367},
+          "delta": 0.0,
+          "percent": 0.0,
+          "direction": "equal",
+          "current_runs": [["01-current", 57142.857137155166], ["04-current", 57142.857137155166], ["05-current", 57142.857137155166]],
+          "H1_runs": [["02-candidate", 57142.857137155166], ["03-candidate", 66666.66666925367], ["06-candidate", 57142.857137155166]],
+          "paired_directions": ["equal", "higher", "equal"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "session_access_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 4.447107843137255, "min": 4.2646274509803925, "max": 4.674401960784314},
+          "H1": {"median": 4.572970588235294, "min": 4.395166666666666, "max": 4.770656862745097},
+          "delta": 0.12586274509803896,
+          "percent": 2.830215716317054,
+          "direction": "higher",
+          "current_runs": [["01-current", 4.447107843137255], ["04-current", 4.674401960784314], ["05-current", 4.2646274509803925]],
+          "H1_runs": [["02-candidate", 4.572970588235294], ["03-candidate", 4.770656862745097], ["06-candidate", 4.395166666666666]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 44.87118425, "min": 42.60093525, "max": 57.3369395},
+          "H1": {"median": 45.785840750000006, "min": 45.64023925, "max": 47.6164655},
+          "delta": 0.9146565000000066,
+          "percent": 2.038405081764711,
+          "direction": "higher",
+          "current_runs": [["01-current", 44.87118425], ["04-current", 57.3369395], ["05-current", 42.60093525]],
+          "H1_runs": [["02-candidate", 45.64023925], ["03-candidate", 45.785840750000006], ["06-candidate", 47.6164655]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 73.601, "min": 72.041, "max": 134.641},
+          "H1": {"median": 80.76, "min": 79.201, "max": 94.6},
+          "delta": 7.159000000000006,
+          "percent": 9.726770016711736,
+          "direction": "higher",
+          "current_runs": [["01-current", 73.601], ["04-current", 134.641], ["05-current", 72.041]],
+          "H1_runs": [["02-candidate", 80.76], ["03-candidate", 79.201], ["06-candidate", 94.6]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 66666.66666925367, "min": 57142.857137155166, "max": 80000.00001862645},
+          "H1": {"median": 80000.00001862645, "min": 66666.66666925367, "max": 80000.00001862645},
+          "delta": 13333.333349372784,
+          "percent": 20.000000023283075,
+          "direction": "higher",
+          "current_runs": [["01-current", 66666.66666925367], ["04-current", 57142.857137155166], ["05-current", 80000.00001862645]],
+          "H1_runs": [["02-candidate", 80000.00001862645], ["03-candidate", 66666.66666925367], ["06-candidate", 80000.00001862645]],
+          "paired_directions": ["higher", "higher", "equal"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "uci_get_64",
+      "successful_per_window": [400],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [400],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 85.6978, "min": 85.0372, "max": 88.3101},
+          "H1": {"median": 44.255, "min": 43.4807, "max": 46.1836},
+          "delta": -41.4428,
+          "percent": -48.359234426087944,
+          "direction": "lower",
+          "current_runs": [["01-current", 85.6978], ["04-current", 88.3101], ["05-current", 85.0372]],
+          "H1_runs": [["02-candidate", 43.4807], ["03-candidate", 44.255], ["06-candidate", 46.1836]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 124.53183250000001, "min": 122.57934, "max": 126.7168475},
+          "H1": {"median": 81.6606575, "min": 79.5979625, "max": 83.6109975},
+          "delta": -42.87117500000001,
+          "percent": -34.42587661271266,
+          "direction": "lower",
+          "current_runs": [["01-current", 124.53183250000001], ["04-current", 126.7168475], ["05-current", 122.57934]],
+          "H1_runs": [["02-candidate", 79.5979625], ["03-candidate", 81.6606575], ["06-candidate", 83.6109975]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 197.841, "min": 191.482, "max": 213.362},
+          "H1": {"median": 135.561, "min": 113.681, "max": 146.321},
+          "delta": -62.28,
+          "percent": -31.479824707719835,
+          "direction": "lower",
+          "current_runs": [["01-current", 197.841], ["04-current", 213.362], ["05-current", 191.482]],
+          "H1_runs": [["02-candidate", 113.681], ["03-candidate", 135.561], ["06-candidate", 146.321]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 4111.821393991745, "min": 4084.2275962375484, "max": 4133.255922960904},
+          "H1": {"median": 4999.858379011414, "min": 4943.139498869214, "max": 5091.76545179604},
+          "delta": 888.0369850196694,
+          "percent": 21.597168260209024,
+          "direction": "higher",
+          "current_runs": [["01-current", 4133.255922960904], ["04-current", 4084.2275962375484], ["05-current", 4111.821393991745]],
+          "H1_runs": [["02-candidate", 5091.76545179604], ["03-candidate", 4999.858379011414], ["06-candidate", 4943.139498869214]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": false
+        }
+      }
+    },
+    {
+      "lane": "uci_get_64_c4",
+      "successful_per_window": [400],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [480],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 83.56633333333333, "min": 82.2075, "max": 83.58383333333333},
+          "H1": {"median": 47.119416666666666, "min": 46.96816666666667, "max": 48.250750000000004},
+          "delta": -36.44691666666667,
+          "percent": -43.614354265473736,
+          "direction": "lower",
+          "current_runs": [["01-current", 83.58383333333333], ["04-current", 83.56633333333333], ["05-current", 82.2075]],
+          "H1_runs": [["02-candidate", 46.96816666666667], ["03-candidate", 47.119416666666666], ["06-candidate", 48.250750000000004]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 306.87847999999997, "min": 301.26051, "max": 351.11073749999997},
+          "H1": {"median": 208.76273, "min": 203.9420125, "max": 217.0169325},
+          "delta": -98.11574999999996,
+          "percent": -31.97218325638213,
+          "direction": "lower",
+          "current_runs": [["01-current", 301.26051], ["04-current", 306.87847999999997], ["05-current", 351.11073749999997]],
+          "H1_runs": [["02-candidate", 203.9420125], ["03-candidate", 208.76273], ["06-candidate", 217.0169325]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 602.845, "min": 483.724, "max": 611.126},
+          "H1": {"median": 421.804, "min": 418.404, "max": 626.685},
+          "delta": -181.04100000000005,
+          "percent": -30.03110252220721,
+          "direction": "lower",
+          "current_runs": [["01-current", 602.845], ["04-current", 611.126], ["05-current", 483.724]],
+          "H1_runs": [["02-candidate", 421.804], ["03-candidate", 626.685], ["06-candidate", 418.404]],
+          "paired_directions": ["lower", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 6666.666666925367, "min": 6666.666666925367, "max": 6666.666666925367},
+          "H1": {"median": 8000.000001862645, "min": 7999.999992549419, "max": 8000.000001862645},
+          "delta": 1333.3333349372779,
+          "percent": 20.000000023283064,
+          "direction": "higher",
+          "current_runs": [["01-current", 6666.666666925367], ["04-current", 6666.666666925367], ["05-current", 6666.666666925367]],
+          "H1_runs": [["02-candidate", 7999.999992549419], ["03-candidate", 8000.000001862645], ["06-candidate", 8000.000001862645]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": false
+        }
+      }
+    },
+    {
+      "lane": "uci_get_authorized",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 24.79154, "min": 22.94613, "max": 25.0634},
+          "H1": {"median": 21.67512, "min": 21.485310000000002, "max": 23.36443},
+          "delta": -3.1164200000000015,
+          "percent": -12.570497839182243,
+          "direction": "lower",
+          "current_runs": [["01-current", 25.0634], ["04-current", 24.79154], ["05-current", 22.94613]],
+          "H1_runs": [["02-candidate", 21.485310000000002], ["03-candidate", 21.67512], ["06-candidate", 23.36443]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 50.09029275, "min": 48.57106175, "max": 50.38235075},
+          "H1": {"median": 46.8311865, "min": 46.00854325, "max": 49.462022250000004},
+          "delta": -3.259106250000002,
+          "percent": -6.506462771671467,
+          "direction": "lower",
+          "current_runs": [["01-current", 50.09029275], ["04-current", 50.38235075], ["05-current", 48.57106175]],
+          "H1_runs": [["02-candidate", 46.8311865], ["03-candidate", 46.00854325], ["06-candidate", 49.462022250000004]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 91.16, "min": 90.521, "max": 113.481},
+          "H1": {"median": 80.08, "min": 78.641, "max": 104.44},
+          "delta": -11.079999999999998,
+          "percent": -12.154453707766562,
+          "direction": "lower",
+          "current_runs": [["01-current", 90.521], ["04-current", 113.481], ["05-current", 91.16]],
+          "H1_runs": [["02-candidate", 80.08], ["03-candidate", 78.641], ["06-candidate", 104.44]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 18399.520471697466, "min": 18310.40566896019, "max": 19007.504885213868},
+          "H1": {"median": 19653.990128016954, "min": 18620.41806674366, "max": 19944.049959446267},
+          "delta": 1254.4696563194884,
+          "percent": 6.817947556019954,
+          "direction": "higher",
+          "current_runs": [["01-current", 18399.520471697466], ["04-current", 18310.40566896019], ["05-current", 19007.504885213868]],
+          "H1_runs": [["02-candidate", 19653.990128016954], ["03-candidate", 19944.049959446267], ["06-candidate", 18620.41806674366]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "uci_get_authorized_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 17.809049019607844, "min": 17.696343137254903, "max": 17.94906862745098},
+          "H1": {"median": 16.04443137254902, "min": 15.906333333333333, "max": 16.1501568627451},
+          "delta": -1.7646176470588237,
+          "percent": -9.908545061086484,
+          "direction": "lower",
+          "current_runs": [["01-current", 17.809049019607844], ["04-current", 17.696343137254903], ["05-current", 17.94906862745098]],
+          "H1_runs": [["02-candidate", 16.04443137254902], ["03-candidate", 16.1501568627451], ["06-candidate", 15.906333333333333]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 67.16050800000001, "min": 66.749309, "max": 67.8253825},
+          "H1": {"median": 61.48441225, "min": 60.6029055, "max": 61.553256000000005},
+          "delta": -5.676095750000009,
+          "percent": -8.451537844234306,
+          "direction": "lower",
+          "current_runs": [["01-current", 67.16050800000001], ["04-current", 66.749309], ["05-current", 67.8253825]],
+          "H1_runs": [["02-candidate", 61.48441225], ["03-candidate", 60.6029055], ["06-candidate", 61.553256000000005]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 139.001, "min": 138.962, "max": 141.841},
+          "H1": {"median": 128.761, "min": 128.481, "max": 135.681},
+          "delta": -10.240000000000009,
+          "percent": -7.36685347587428,
+          "direction": "lower",
+          "current_runs": [["01-current", 139.001], ["04-current", 138.962], ["05-current", 141.841]],
+          "H1_runs": [["02-candidate", 135.681], ["03-candidate", 128.761], ["06-candidate", 128.481]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 49999.99998981366, "min": 49999.99998981366, "max": 57142.857137155166},
+          "H1": {"median": 57142.857137155166, "min": 49999.99998981366, "max": 57142.857137155166},
+          "delta": 7142.857147341507,
+          "percent": 14.285714297593398,
+          "direction": "higher",
+          "current_runs": [["01-current", 49999.99998981366], ["04-current", 57142.857137155166], ["05-current", 49999.99998981366]],
+          "H1_runs": [["02-candidate", 49999.99998981366], ["03-candidate", 57142.857137155166], ["06-candidate", 57142.857137155166]],
+          "paired_directions": ["equal", "equal", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "session_access_granted",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 8.35939, "min": 8.154, "max": 8.88749},
+          "H1": {"median": 7.95821, "min": 7.15209, "max": 8.55015},
+          "delta": -0.4011799999999992,
+          "percent": -4.799154005256356,
+          "direction": "lower",
+          "current_runs": [["01-current", 8.154], ["04-current", 8.35939], ["05-current", 8.88749]],
+          "H1_runs": [["02-candidate", 7.95821], ["03-candidate", 7.15209], ["06-candidate", 8.55015]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 33.61875025, "min": 30.91326725, "max": 34.747328249999995},
+          "H1": {"median": 33.243076, "min": 31.12436925, "max": 33.559489},
+          "delta": -0.3756742499999959,
+          "percent": -1.1174545371447766,
+          "direction": "lower",
+          "current_runs": [["01-current", 30.91326725], ["04-current", 33.61875025], ["05-current", 34.747328249999995]],
+          "H1_runs": [["02-candidate", 33.243076], ["03-candidate", 31.12436925], ["06-candidate", 33.559489]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 53.401, "min": 43.961, "max": 56.48},
+          "H1": {"median": 50.521, "min": 44, "max": 57.121},
+          "delta": -2.8800000000000026,
+          "percent": -5.393157431508778,
+          "direction": "lower",
+          "current_runs": [["01-current", 43.961], ["04-current", 53.401], ["05-current", 56.48]],
+          "H1_runs": [["02-candidate", 50.521], ["03-candidate", 44], ["06-candidate", 57.121]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 29277.455026773245, "min": 28309.657860303545, "max": 31816.481010341264},
+          "H1": {"median": 29622.1332551072, "min": 29305.897796545956, "max": 31627.57068004962},
+          "delta": 344.6782283339562,
+          "percent": 1.1772820691510228,
+          "direction": "higher",
+          "current_runs": [["01-current", 31816.481010341264], ["04-current", 29277.455026773245], ["05-current", 28309.657860303545]],
+          "H1_runs": [["02-candidate", 29622.1332551072], ["03-candidate", 31627.57068004962], ["06-candidate", 29305.897796545956]],
+          "paired_directions": ["lower", "higher", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "session_access_granted_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 4.680529411764706, "min": 4.3334117647058825, "max": 4.722029411764706},
+          "H1": {"median": 4.684137254901961, "min": 4.228774509803922, "max": 4.72528431372549},
+          "delta": 0.003607843137254818,
+          "percent": 0.07708194564884806,
+          "direction": "higher",
+          "current_runs": [["01-current", 4.3334117647058825], ["04-current", 4.680529411764706], ["05-current", 4.722029411764706]],
+          "H1_runs": [["02-candidate", 4.684137254901961], ["03-candidate", 4.228774509803922], ["06-candidate", 4.72528431372549]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 44.218508, "min": 42.049241, "max": 45.51156925},
+          "H1": {"median": 44.9261215, "min": 41.84974975, "max": 45.4117475},
+          "delta": 0.7076135000000008,
+          "percent": 1.6002654363643405,
+          "direction": "higher",
+          "current_runs": [["01-current", 42.049241], ["04-current", 44.218508], ["05-current", 45.51156925]],
+          "H1_runs": [["02-candidate", 44.9261215], ["03-candidate", 41.84974975], ["06-candidate", 45.4117475]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 80.881, "min": 70.88, "max": 85.52},
+          "H1": {"median": 74.4, "min": 68.6, "max": 83.841},
+          "delta": -6.4809999999999945,
+          "percent": -8.013006763022211,
+          "direction": "lower",
+          "current_runs": [["01-current", 70.88], ["04-current", 80.881], ["05-current", 85.52]],
+          "H1_runs": [["02-candidate", 74.4], ["03-candidate", 68.6], ["06-candidate", 83.841]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 80000.00001862645, "min": 80000.00001862645, "max": 80000.00001862645},
+          "H1": {"median": 80000.00001862645, "min": 79999.9999254942, "max": 80000.00001862645},
+          "delta": 0.0,
+          "percent": 0.0,
+          "direction": "equal",
+          "current_runs": [["01-current", 80000.00001862645], ["04-current", 80000.00001862645], ["05-current", 80000.00001862645]],
+          "H1_runs": [["02-candidate", 80000.00001862645], ["03-candidate", 79999.9999254942], ["06-candidate", 80000.00001862645]],
+          "paired_directions": ["equal", "lower", "equal"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "file_list",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 37.05057, "min": 36.843059999999994, "max": 37.530260000000006},
+          "H1": {"median": 35.81789, "min": 35.65932, "max": 36.26208999999999},
+          "delta": -1.232680000000002,
+          "percent": -3.3270203400379588,
+          "direction": "lower",
+          "current_runs": [["01-current", 37.530260000000006], ["04-current", 36.843059999999994], ["05-current", 37.05057]],
+          "H1_runs": [["02-candidate", 35.65932], ["03-candidate", 35.81789], ["06-candidate", 36.26208999999999]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 63.37079625, "min": 63.26013975, "max": 63.7815635},
+          "H1": {"median": 61.7958825, "min": 61.205329, "max": 63.21888425},
+          "delta": -1.5749137500000003,
+          "percent": -2.4852358549936957,
+          "direction": "lower",
+          "current_runs": [["01-current", 63.26013975], ["04-current", 63.37079625], ["05-current", 63.7815635]],
+          "H1_runs": [["02-candidate", 61.7958825], ["03-candidate", 61.205329], ["06-candidate", 63.21888425]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 109.601, "min": 106.761, "max": 110.721},
+          "H1": {"median": 105.601, "min": 99.641, "max": 107.121},
+          "delta": -4.0,
+          "percent": -3.649601737210427,
+          "direction": "lower",
+          "current_runs": [["01-current", 106.761], ["04-current", 109.601], ["05-current", 110.721]],
+          "H1_runs": [["02-candidate", 99.641], ["03-candidate", 105.601], ["06-candidate", 107.121]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 10166.051393939104, "min": 9973.69393343434, "max": 10189.845301003916},
+          "H1": {"median": 10316.226728039997, "min": 10008.227588756734, "max": 10346.72233865475},
+          "delta": 150.17533410089345,
+          "percent": 1.477223833340312,
+          "direction": "higher",
+          "current_runs": [["01-current", 10189.845301003916], ["04-current", 10166.051393939104], ["05-current", 9973.69393343434]],
+          "H1_runs": [["02-candidate", 10346.72233865475], ["03-candidate", 10316.226728039997], ["06-candidate", 10008.227588756734]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "file_list_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 32.58640196078431, "min": 32.11212745098039, "max": 33.246754901960784},
+          "H1": {"median": 33.286843137254905, "min": 32.52999019607843, "max": 33.549392156862744},
+          "delta": 0.7004411764705978,
+          "percent": 2.1494891559784195,
+          "direction": "higher",
+          "current_runs": [["01-current", 32.11212745098039], ["04-current", 32.58640196078431], ["05-current", 33.246754901960784]],
+          "H1_runs": [["02-candidate", 32.52999019607843], ["03-candidate", 33.549392156862744], ["06-candidate", 33.286843137254905]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 97.24445225000001, "min": 94.67779275, "max": 106.79624249999999},
+          "H1": {"median": 110.19218099999999, "min": 108.0686385, "max": 121.88289049999999},
+          "delta": 12.947728749999982,
+          "percent": 13.314619446581316,
+          "direction": "higher",
+          "current_runs": [["01-current", 94.67779275], ["04-current", 97.24445225000001], ["05-current", 106.79624249999999]],
+          "H1_runs": [["02-candidate", 108.0686385], ["03-candidate", 121.88289049999999], ["06-candidate", 110.19218099999999]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 191.321, "min": 188.001, "max": 221.002},
+          "H1": {"median": 269.842, "min": 215.481, "max": 376.403},
+          "delta": 78.52099999999999,
+          "percent": 41.04149570616921,
+          "direction": "higher",
+          "current_runs": [["01-current", 191.321], ["04-current", 188.001], ["05-current", 221.002]],
+          "H1_runs": [["02-candidate", 215.481], ["03-candidate", 376.403], ["06-candidate", 269.842]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 26666.666662527456, "min": 25000.000004001777, "max": 28571.428568577583},
+          "H1": {"median": 23529.411766961683, "min": 23529.41175890526, "max": 25000.000004001777},
+          "delta": -3137.254895565773,
+          "percent": -11.76470586019777,
+          "direction": "lower",
+          "current_runs": [["01-current", 28571.428568577583], ["04-current", 26666.666662527456], ["05-current", 25000.000004001777]],
+          "H1_runs": [["02-candidate", 25000.000004001777], ["03-candidate", 23529.41175890526], ["06-candidate", 23529.411766961683]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "session_access_64",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 8.64298, "min": 7.31834, "max": 9.23513},
+          "H1": {"median": 8.82559, "min": 8.252799999999999, "max": 9.085040000000001},
+          "delta": 0.18261000000000038,
+          "percent": 2.112812941832567,
+          "direction": "higher",
+          "current_runs": [["01-current", 7.31834], ["04-current", 9.23513], ["05-current", 8.64298]],
+          "H1_runs": [["02-candidate", 8.252799999999999], ["03-candidate", 9.085040000000001], ["06-candidate", 8.82559]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 33.492579250000006, "min": 31.1610505, "max": 34.02185275},
+          "H1": {"median": 33.45397825, "min": 32.8513225, "max": 34.46830875},
+          "delta": -0.03860100000000699,
+          "percent": -0.1152523957975168,
+          "direction": "lower",
+          "current_runs": [["01-current", 31.1610505], ["04-current", 33.492579250000006], ["05-current", 34.02185275]],
+          "H1_runs": [["02-candidate", 32.8513225], ["03-candidate", 34.46830875], ["06-candidate", 33.45397825]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 56.281, "min": 47.16, "max": 59.001},
+          "H1": {"median": 54.64, "min": 49.48, "max": 60.28},
+          "delta": -1.6409999999999982,
+          "percent": -2.91572644409303,
+          "direction": "lower",
+          "current_runs": [["01-current", 47.16], ["04-current", 56.281], ["05-current", 59.001]],
+          "H1_runs": [["02-candidate", 49.48], ["03-candidate", 54.64], ["06-candidate", 60.28]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 29355.27005696258, "min": 28937.230300492156, "max": 31635.555114977727},
+          "H1": {"median": 29406.719723642706, "min": 28556.031567150872, "max": 29987.266656895816},
+          "delta": 51.44966668012421,
+          "percent": 0.1752655198888937,
+          "direction": "higher",
+          "current_runs": [["01-current", 31635.555114977727], ["04-current", 29355.27005696258], ["05-current", 28937.230300492156]],
+          "H1_runs": [["02-candidate", 29987.266656895816], ["03-candidate", 28556.031567150872], ["06-candidate", 29406.719723642706]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "session_access_64_c4",
+      "successful_per_window": [4000],
+      "warmup_per_window": [80],
+      "own_cpu_denominator_per_window": [4080],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 5.067254901960784, "min": 5.059470588235294, "max": 5.232901960784314},
+          "H1": {"median": 5.186725490196078, "min": 5.178539215686274, "max": 5.35056862745098},
+          "delta": 0.119470588235294,
+          "percent": 2.3576984096273628,
+          "direction": "higher",
+          "current_runs": [["01-current", 5.067254901960784], ["04-current", 5.059470588235294], ["05-current", 5.232901960784314]],
+          "H1_runs": [["02-candidate", 5.186725490196078], ["03-candidate", 5.178539215686274], ["06-candidate", 5.35056862745098]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 46.79626875, "min": 45.418237500000004, "max": 48.75959625},
+          "H1": {"median": 47.41118375, "min": 47.31860275, "max": 50.080687},
+          "delta": 0.6149149999999963,
+          "percent": 1.3140257042394994,
+          "direction": "higher",
+          "current_runs": [["01-current", 46.79626875], ["04-current", 45.418237500000004], ["05-current", 48.75959625]],
+          "H1_runs": [["02-candidate", 47.41118375], ["03-candidate", 47.31860275], ["06-candidate", 50.080687]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 90.001, "min": 88.92, "max": 100.961},
+          "H1": {"median": 91.841, "min": 85.0, "max": 102.36},
+          "delta": 1.8399999999999892,
+          "percent": 2.0444217286474475,
+          "direction": "higher",
+          "current_runs": [["01-current", 90.001], ["04-current", 88.92], ["05-current", 100.961]],
+          "H1_runs": [["02-candidate", 85.0], ["03-candidate", 91.841], ["06-candidate", 102.36]],
+          "paired_directions": ["lower", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 80000.00001862645, "min": 80000.00001862645, "max": 80000.00001862645},
+          "H1": {"median": 80000.00001862645, "min": 80000.00001862645, "max": 80000.00001862645},
+          "delta": 0.0,
+          "percent": 0.0,
+          "direction": "equal",
+          "current_runs": [["01-current", 80000.00001862645], ["04-current", 80000.00001862645], ["05-current", 80000.00001862645]],
+          "H1_runs": [["02-candidate", 80000.00001862645], ["03-candidate", 80000.00001862645], ["06-candidate", 80000.00001862645]],
+          "paired_directions": ["equal", "equal", "equal"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "uci_state_network",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 33.660940000000004, "min": 30.73078, "max": 35.04026},
+          "H1": {"median": 28.4618, "min": 27.569490000000002, "max": 29.25641},
+          "delta": -5.199140000000003,
+          "percent": -15.445617383234106,
+          "direction": "lower",
+          "current_runs": [["01-current", 35.04026], ["04-current", 30.73078], ["05-current", 33.660940000000004]],
+          "H1_runs": [["02-candidate", 28.4618], ["03-candidate", 29.25641], ["06-candidate", 27.569490000000002]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 58.46027675, "min": 55.125555500000004, "max": 61.654612},
+          "H1": {"median": 52.876754500000004, "min": 52.09097725, "max": 53.766076500000004},
+          "delta": -5.583522249999994,
+          "percent": -9.550967871529952,
+          "direction": "lower",
+          "current_runs": [["01-current", 61.654612], ["04-current", 55.125555500000004], ["05-current", 58.46027675]],
+          "H1_runs": [["02-candidate", 52.876754500000004], ["03-candidate", 53.766076500000004], ["06-candidate", 52.09097725]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 98.881, "min": 88.84, "max": 106.321},
+          "H1": {"median": 83.841, "min": 80.401, "max": 92.121},
+          "delta": -15.040000000000006,
+          "percent": -15.21020216219497,
+          "direction": "lower",
+          "current_runs": [["01-current", 98.881], ["04-current", 88.84], ["05-current", 106.321]],
+          "H1_runs": [["02-candidate", 80.401], ["03-candidate", 92.121], ["06-candidate", 83.841]],
+          "paired_directions": ["lower", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 15900.831348730697, "min": 15098.655787058466, "max": 16845.6307167543},
+          "H1": {"median": 17530.279910055113, "min": 17202.024119173042, "max": 17784.27876159815},
+          "delta": 1629.448561324416,
+          "percent": 10.247568354056462,
+          "direction": "higher",
+          "current_runs": [["01-current", 15098.655787058466], ["04-current", 16845.6307167543], ["05-current", 15900.831348730697]],
+          "H1_runs": [["02-candidate", 17530.279910055113], ["03-candidate", 17202.024119173042], ["06-candidate", 17784.27876159815]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": false
+        }
+      }
+    },
+    {
+      "lane": "uci_get_delta",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 32.59324, "min": 30.63382, "max": 33.02771},
+          "H1": {"median": 28.984720000000003, "min": 27.85359, "max": 29.392919999999997},
+          "delta": -3.6085199999999986,
+          "percent": -11.071375536767743,
+          "direction": "lower",
+          "current_runs": [["01-current", 33.02771], ["04-current", 32.59324], ["05-current", 30.63382]],
+          "H1_runs": [["02-candidate", 29.392919999999997], ["03-candidate", 27.85359], ["06-candidate", 28.984720000000003]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 57.619060749999996, "min": 54.18420075, "max": 59.3619075},
+          "H1": {"median": 53.9953275, "min": 51.1812325, "max": 54.104699249999996},
+          "delta": -3.6237332499999937,
+          "percent": -6.289122389069825,
+          "direction": "lower",
+          "current_runs": [["01-current", 59.3619075], ["04-current", 57.619060749999996], ["05-current", 54.18420075]],
+          "H1_runs": [["02-candidate", 54.104699249999996], ["03-candidate", 51.1812325], ["06-candidate", 53.9953275]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 96.601, "min": 92.081, "max": 102.841},
+          "H1": {"median": 85.64, "min": 83.161, "max": 88.161},
+          "delta": -10.960999999999999,
+          "percent": -11.346673429881678,
+          "direction": "lower",
+          "current_runs": [["01-current", 102.841], ["04-current", 96.601], ["05-current", 92.081]],
+          "H1_runs": [["02-candidate", 88.161], ["03-candidate", 83.161], ["06-candidate", 85.64]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 16084.096017710519, "min": 15648.210207790707, "max": 17096.855829656193},
+          "H1": {"median": 17151.262584621007, "min": 17119.410520489786, "max": 18023.866194277954},
+          "delta": 1067.1665669104877,
+          "percent": 6.6349179073254065,
+          "direction": "higher",
+          "current_runs": [["01-current", 15648.210207790707], ["04-current", 16084.096017710519], ["05-current", 17096.855829656193]],
+          "H1_runs": [["02-candidate", 17119.410520489786], ["03-candidate", 18023.866194277954], ["06-candidate", 17151.262584621007]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": false
+        }
+      }
+    },
+    {
+      "lane": "session_access_acl256",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 10.390780000000001, "min": 10.25562, "max": 10.76624},
+          "H1": {"median": 9.21539, "min": 8.78267, "max": 9.29517},
+          "delta": -1.175390000000002,
+          "percent": -11.311855317887606,
+          "direction": "lower",
+          "current_runs": [["01-current", 10.76624], ["04-current", 10.390780000000001], ["05-current", 10.25562]],
+          "H1_runs": [["02-candidate", 9.21539], ["03-candidate", 8.78267], ["06-candidate", 9.29517]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 35.5360855, "min": 34.5567505, "max": 36.224722},
+          "H1": {"median": 35.150344, "min": 31.36005025, "max": 36.24205225},
+          "delta": -0.38574150000000174,
+          "percent": -1.085492379288658,
+          "direction": "lower",
+          "current_runs": [["01-current", 36.224722], ["04-current", 35.5360855], ["05-current", 34.5567505]],
+          "H1_runs": [["02-candidate", 36.24205225], ["03-candidate", 31.36005025], ["06-candidate", 35.150344]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 57.001, "min": 56.4, "max": 57.641},
+          "H1": {"median": 61.601, "min": 47.6, "max": 78.321},
+          "delta": 4.600000000000001,
+          "percent": 8.070033859055107,
+          "direction": "higher",
+          "current_runs": [["01-current", 57.641], ["04-current", 56.4], ["05-current", 57.001]],
+          "H1_runs": [["02-candidate", 78.321], ["03-candidate", 47.6], ["06-candidate", 61.601]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 27704.71409770515, "min": 27178.5908260773, "max": 28457.839106634437},
+          "H1": {"median": 27946.029956243783, "min": 27102.315060780867, "max": 31261.648627588227},
+          "delta": 241.31585853863362,
+          "percent": 0.8710281495329433,
+          "direction": "higher",
+          "current_runs": [["01-current", 27178.5908260773], ["04-current", 27704.71409770515], ["05-current", 28457.839106634437]],
+          "H1_runs": [["02-candidate", 27102.315060780867], ["03-candidate", 31261.648627588227], ["06-candidate", 27946.029956243783]],
+          "paired_directions": ["lower", "higher", "lower"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "luci_version",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [4000],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 14.97835, "min": 14.6187, "max": 15.476809999999999},
+          "H1": {"median": 14.90818, "min": 14.71319, "max": 15.498389999999999},
+          "delta": -0.07017000000000095,
+          "percent": -0.4684761672680966,
+          "direction": "lower",
+          "current_runs": [["01-current", 14.6187], ["04-current", 15.476809999999999], ["05-current", 14.97835]],
+          "H1_runs": [["02-candidate", 15.498389999999999], ["03-candidate", 14.71319], ["06-candidate", 14.90818]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 39.5080495, "min": 39.385428999999995, "max": 45.677051500000005},
+          "H1": {"median": 39.880083, "min": 39.5325195, "max": 39.980673499999995},
+          "delta": 0.37203350000000057,
+          "percent": 0.9416650649888464,
+          "direction": "higher",
+          "current_runs": [["01-current", 39.385428999999995], ["04-current", 45.677051500000005], ["05-current", 39.5080495]],
+          "H1_runs": [["02-candidate", 39.980673499999995], ["03-candidate", 39.5325195], ["06-candidate", 39.880083]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 70.92, "min": 69.48, "max": 81.281},
+          "H1": {"median": 66.6, "min": 66.24, "max": 66.64},
+          "delta": -4.320000000000007,
+          "percent": -6.091370558375645,
+          "direction": "lower",
+          "current_runs": [["01-current", 70.92], ["04-current", 81.281], ["05-current", 69.48]],
+          "H1_runs": [["02-candidate", 66.64], ["03-candidate", 66.24], ["06-candidate", 66.6]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 24811.36200594701, "min": 21512.034897167203, "max": 24915.608342981486},
+          "H1": {"median": 24589.44917758897, "min": 24481.200518903526, "max": 24793.63283145091},
+          "delta": -221.9128283580394,
+          "percent": -0.8944000265074096,
+          "direction": "lower",
+          "current_runs": [["01-current", 24915.608342981486], ["04-current", 21512.034897167203], ["05-current", 24811.36200594701]],
+          "H1_runs": [["02-candidate", 24481.200518903526], ["03-candidate", 24793.63283145091], ["06-candidate", 24589.44917758897]],
+          "paired_directions": ["lower", "higher", "lower"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "luci_features",
+      "successful_per_window": [40],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [40],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 1797.8229999999999, "min": 1729.494, "max": 1802.916},
+          "H1": {"median": 1776.324, "min": 1768.009, "max": 1814.184},
+          "delta": -21.498999999999796,
+          "percent": -1.1958351851099802,
+          "direction": "lower",
+          "current_runs": [["01-current", 1729.494], ["04-current", 1802.916], ["05-current", 1797.8229999999999]],
+          "H1_runs": [["02-candidate", 1776.324], ["03-candidate", 1814.184], ["06-candidate", 1768.009]],
+          "paired_directions": ["higher", "higher", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 45951.1535, "min": 45323.349225, "max": 46456.868700000006},
+          "H1": {"median": 46857.496975, "min": 45198.687375, "max": 48704.23345},
+          "delta": 906.3434750000015,
+          "percent": 1.9724063618990577,
+          "direction": "higher",
+          "current_runs": [["01-current", 46456.868700000006], ["04-current", 45951.1535], ["05-current", 45323.349225]],
+          "H1_runs": [["02-candidate", 45198.687375], ["03-candidate", 48704.23345], ["06-candidate", 46857.496975]],
+          "paired_directions": ["lower", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 50041.696, "min": 48039.8, "max": 54183.851},
+          "H1": {"median": 48577.684, "min": 47005.151, "max": 53129.963},
+          "delta": -1464.0120000000024,
+          "percent": -2.9255842967432644,
+          "direction": "lower",
+          "current_runs": [["01-current", 54183.851], ["04-current", 50041.696], ["05-current", 48039.8]],
+          "H1_runs": [["02-candidate", 47005.151], ["03-candidate", 53129.963], ["06-candidate", 48577.684]],
+          "paired_directions": ["lower", "higher", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 21.74191110705064, "min": 21.506022889133284, "max": 22.042399032859766},
+          "H1": {"median": 21.322897566098124, "min": 20.513132827897707, "max": 22.104461147547884},
+          "delta": -0.4190135409525162,
+          "percent": -1.927215776430229,
+          "direction": "lower",
+          "current_runs": [["01-current", 21.506022889133284], ["04-current", 21.74191110705064], ["05-current", 22.042399032859766]],
+          "H1_runs": [["02-candidate", 22.104461147547884], ["03-candidate", 20.513132827897707], ["06-candidate", 21.322897566098124]],
+          "paired_directions": ["higher", "lower", "lower"],
+          "ranges_overlap": true
+        }
+      }
+    },
+    {
+      "lane": "luci_devices",
+      "successful_per_window": [400],
+      "warmup_per_window": [20],
+      "own_cpu_denominator_per_window": [400],
+      "errors": 0,
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 204.33360000000002, "min": 203.34060000000002, "max": 207.2857},
+          "H1": {"median": 202.3163, "min": 200.5532, "max": 204.04840000000002},
+          "delta": -2.017300000000006,
+          "percent": -0.9872580916697037,
+          "direction": "lower",
+          "current_runs": [["01-current", 207.2857], ["04-current", 204.33360000000002], ["05-current", 203.34060000000002]],
+          "H1_runs": [["02-candidate", 200.5532], ["03-candidate", 202.3163], ["06-candidate", 204.04840000000002]],
+          "paired_directions": ["lower", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 233.09774, "min": 231.56013750000002, "max": 235.1949475},
+          "H1": {"median": 236.6183725, "min": 230.74470749999998, "max": 241.1334925},
+          "delta": 3.520632500000005,
+          "percent": 1.5103674964845242,
+          "direction": "higher",
+          "current_runs": [["01-current", 235.1949475], ["04-current", 231.56013750000002], ["05-current", 233.09774]],
+          "H1_runs": [["02-candidate", 241.1334925], ["03-candidate", 230.74470749999998], ["06-candidate", 236.6183725]],
+          "paired_directions": ["higher", "lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 323.483, "min": 323.482, "max": 325.482},
+          "H1": {"median": 372.163, "min": 328.123, "max": 449.483},
+          "delta": 48.68000000000001,
+          "percent": 15.048704259574695,
+          "direction": "higher",
+          "current_runs": [["01-current", 323.483], ["04-current", 323.482], ["05-current", 325.482]],
+          "H1_runs": [["02-candidate", 449.483], ["03-candidate", 328.123], ["06-candidate", 372.163]],
+          "paired_directions": ["higher", "higher", "higher"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 4044.7845420630947, "min": 3999.2580176599836, "max": 4082.95186314076},
+          "H1": {"median": 3970.9107360213097, "min": 3896.5537456431416, "max": 4060.004429464833},
+          "delta": -73.87380604178497,
+          "percent": -1.8263965675685827,
+          "direction": "lower",
+          "current_runs": [["01-current", 3999.2580176599836], ["04-current", 4082.95186314076], ["05-current", 4044.7845420630947]],
+          "H1_runs": [["02-candidate", 3896.5537456431416], ["03-candidate", 4060.004429464833], ["06-candidate", 3970.9107360213097]],
+          "paired_directions": ["lower", "lower", "lower"],
+          "ranges_overlap": true
+        }
+      }
+    }
+  ],
+  "shared_plan": {
+    "order": ["current", "candidate", "candidate", "current"],
+    "components": ["uci", "fw4", "netifd", "reload-config"],
+    "iterations": 4000,
+    "fw4_count": 200,
+    "fw4_workloads": "print",
+    "scope": "canonical shared UCI consumer key regression, exact C dependencies"
+  },
+  "shared_lanes": [
+    {
+      "component": "fw4",
+      "lane": "print",
+      "successful_per_window": [200],
+      "warmup_per_window": [3],
+      "errors": 0,
+      "paired_windows": [["fw4-01-current", "fw4-02-candidate"], ["fw4-04-current", "fw4-03-candidate"]],
+      "metrics": {
+        "reaped_child_cpu_us": {
+          "current": {"median": 758.685, "min": 742.72, "max": 774.65},
+          "H1": {"median": 717.2825, "min": 713.495, "max": 721.07},
+          "delta": -41.40249999999992,
+          "percent": -5.457139656115506,
+          "direction": "lower",
+          "current_runs": [["fw4-01-current", 774.65], ["fw4-04-current", 742.72]],
+          "H1_runs": [["fw4-02-candidate", 721.07], ["fw4-03-candidate", 713.495]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 983.5434975000001, "min": 973.14872, "max": 993.938275},
+          "H1": {"median": 956.614455, "min": 937.572985, "max": 975.655925},
+          "delta": -26.929042500000037,
+          "percent": -2.737961520608806,
+          "direction": "lower",
+          "current_runs": [["fw4-01-current", 993.938275], ["fw4-04-current", 973.14872]],
+          "H1_runs": [["fw4-02-candidate", 975.655925], ["fw4-03-candidate", 937.572985]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 1100.529, "min": 1074.409, "max": 1126.649},
+          "H1": {"median": 1181.9295, "min": 1082.489, "max": 1281.37},
+          "delta": 81.40049999999997,
+          "percent": 7.396488416025381,
+          "direction": "higher",
+          "current_runs": [["fw4-01-current", 1126.649], ["fw4-04-current", 1074.409]],
+          "H1_runs": [["fw4-02-candidate", 1281.37], ["fw4-03-candidate", 1082.489]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": true
+        },
+        "window_wall_ms": {
+          "current": {"median": 197.733486, "min": 195.68254900000002, "max": 199.78442299999998},
+          "H1": {"median": 192.29238099999998, "min": 188.481009, "max": 196.10375299999998},
+          "delta": -5.441105000000022,
+          "percent": -2.751736749333404,
+          "direction": "lower",
+          "current_runs": [["fw4-01-current", 199.78442299999998], ["fw4-04-current", 195.68254900000002]],
+          "H1_runs": [["fw4-02-candidate", 196.10375299999998], ["fw4-03-candidate", 188.481009]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 1011.5712972460715, "min": 1001.0790480897502, "max": 1022.0635464023927},
+          "H1": {"median": 1040.4915783368497, "min": 1019.868293902565, "max": 1061.1148627711345},
+          "delta": 28.92028109077819,
+          "percent": 2.8589463905818135,
+          "direction": "higher",
+          "current_runs": [["fw4-01-current", 1001.0790480897502], ["fw4-04-current", 1022.0635464023927]],
+          "H1_runs": [["fw4-02-candidate", 1019.868293902565], ["fw4-03-candidate", 1061.1148627711345]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": true
+        }
+      },
+      "cpu_basis": "getrusage(RUSAGE_CHILDREN); command tree reaped by benchmark caller; excludes benchmark own CPU and unrelated persistent dependencies",
+      "reaped_counter_records": [
+        {
+          "run": "fw4-01-current",
+          "child_cpu_us": 154930,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "fw4-02-candidate",
+          "child_cpu_us": 144214,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "fw4-03-candidate",
+          "child_cpu_us": 142699,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "fw4-04-current",
+          "child_cpu_us": 148544,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        }
+      ],
+      "binaries": {
+        "current": {
+          "elf_sha256": "dce40da22acb56678010261a060e09b81e626494a92ebad0d40501a6a1e9a614",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/fw4-01-current/binary-sha256.txt",
+            "sha256": "89ce6efe9c978e1bb06c778c27cc88d006863ddcec8f6bf66206b423fe1f8b05"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "58b05244dd221af54cc795a4c61bbd0bf99af1cf9d58e633acc5b9c122683aba",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/fw4-02-candidate/binary-sha256.txt",
+            "sha256": "913679c8b7a28b2576c6ad512d98e14d64903549376d2a611af10925ccf060b1"
+          }
+        }
+      }
+    },
+    {
+      "component": "netifd",
+      "lane": "device_status",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "errors": 0,
+      "paired_windows": [["netifd-01-current", "netifd-02-candidate"], ["netifd-04-current", "netifd-03-candidate"]],
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 40.805065, "min": 40.26231, "max": 41.34782},
+          "H1": {"median": 40.24575, "min": 39.674879999999995, "max": 40.81662},
+          "delta": -0.559314999999998,
+          "percent": -1.3706999363926955,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 41.34782], ["netifd-04-current", 40.26231]],
+          "H1_runs": [["netifd-02-candidate", 40.81662], ["netifd-03-candidate", 39.674879999999995]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 70.4655245, "min": 69.6877175, "max": 71.2433315},
+          "H1": {"median": 67.916903125, "min": 66.26091375, "max": 69.5728925},
+          "delta": -2.548621374999996,
+          "percent": -3.616834463497105,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 71.2433315], ["netifd-04-current", 69.6877175]],
+          "H1_runs": [["netifd-02-candidate", 69.5728925], ["netifd-03-candidate", 66.26091375]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 129.0015, "min": 127.641, "max": 130.362},
+          "H1": {"median": 121.161, "min": 119.201, "max": 123.121},
+          "delta": -7.840499999999992,
+          "percent": -6.077836304229014,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 130.362], ["netifd-04-current", 127.641]],
+          "H1_runs": [["netifd-02-candidate", 123.121], ["netifd-03-candidate", 119.201]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        },
+        "window_wall_ms": {
+          "current": {"median": 366.9926145, "min": 361.576969, "max": 372.40826},
+          "H1": {"median": 356.82765, "min": 352.075691, "max": 361.579609},
+          "delta": -10.164964499999996,
+          "percent": -2.7698008347794683,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 372.40826], ["netifd-04-current", 361.576969]],
+          "H1_runs": [["netifd-02-candidate", 361.579609], ["netifd-03-candidate", 352.075691]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 10901.775913447542, "min": 10740.900322672758, "max": 11062.651504222327},
+          "H1": {"median": 11211.882042274987, "min": 11062.57073252159, "max": 11361.193352028384},
+          "delta": 310.106128827445,
+          "percent": 2.8445469003350485,
+          "direction": "higher",
+          "current_runs": [["netifd-01-current", 10740.900322672758], ["netifd-04-current", 11062.651504222327]],
+          "H1_runs": [["netifd-02-candidate", 11062.57073252159], ["netifd-03-candidate", 11361.193352028384]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": true
+        }
+      },
+      "cpu_basis": "process-clock own CPU",
+      "same_precision_reaped_child_cpu": "missing; proc child ticks are not substituted",
+      "binaries": {
+        "current": {
+          "elf_sha256": "aa162db83daf48120f2e98837dc7f44b1236235183c15415e735ada82494a073",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-01-current/binary-sha256.txt",
+            "sha256": "897cd055edfb43f473c84c5d2359aa65ad18d2d573fe08665e06f9d9bbcdff32"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "a8c489983d50b423157c77f91a440281c6448a5f6eb19e9c7e7d39c8366a6c2d",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-02-candidate/binary-sha256.txt",
+            "sha256": "02f56c22625823336151c802e2e86314f40a8fafe8bffe92616b2548067f0206"
+          }
+        }
+      }
+    },
+    {
+      "component": "netifd",
+      "lane": "interface_dump",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "errors": 0,
+      "paired_windows": [["netifd-01-current", "netifd-02-candidate"], ["netifd-04-current", "netifd-03-candidate"]],
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 11.441025, "min": 11.41888, "max": 11.46317},
+          "H1": {"median": 11.249095, "min": 10.798680000000001, "max": 11.69951},
+          "delta": -0.19192999999999927,
+          "percent": -1.6775594843993373,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 11.41888], ["netifd-04-current", 11.46317]],
+          "H1_runs": [["netifd-02-candidate", 10.798680000000001], ["netifd-03-candidate", 11.69951]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 37.74365525, "min": 37.637021999999995, "max": 37.850288500000005},
+          "H1": {"median": 36.341654875, "min": 35.7030955, "max": 36.980214249999996},
+          "delta": -1.402000375,
+          "percent": -3.7145325902159407,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 37.850288500000005], ["netifd-04-current", 37.637021999999995]],
+          "H1_runs": [["netifd-02-candidate", 35.7030955], ["netifd-03-candidate", 36.980214249999996]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 67.64, "min": 65.4, "max": 69.88},
+          "H1": {"median": 68.261, "min": 67.761, "max": 68.761},
+          "delta": 0.6209999999999951,
+          "percent": 0.9180958013009981,
+          "direction": "higher",
+          "current_runs": [["netifd-01-current", 65.4], ["netifd-04-current", 69.88]],
+          "H1_runs": [["netifd-02-candidate", 68.761], ["netifd-03-candidate", 67.761]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        },
+        "window_wall_ms": {
+          "current": {"median": 265.55151049999995, "min": 262.52822599999996, "max": 268.574795},
+          "H1": {"median": 261.008913, "min": 259.188758, "max": 262.829068},
+          "delta": -4.542597499999943,
+          "percent": -1.7106276260476942,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 268.574795], ["netifd-04-current", 262.52822599999996]],
+          "H1_runs": [["netifd-02-candidate", 259.188758], ["netifd-03-candidate", 262.829068]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 15064.943618313595, "min": 14893.430338464934, "max": 15236.456898162258},
+          "H1": {"median": 15325.892454356497, "min": 15219.016794595946, "max": 15432.768114117047},
+          "delta": 260.94883604290226,
+          "percent": 1.7321593937177542,
+          "direction": "higher",
+          "current_runs": [["netifd-01-current", 14893.430338464934], ["netifd-04-current", 15236.456898162258]],
+          "H1_runs": [["netifd-02-candidate", 15432.768114117047], ["netifd-03-candidate", 15219.016794595946]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        }
+      },
+      "cpu_basis": "process-clock own CPU",
+      "same_precision_reaped_child_cpu": "missing; proc child ticks are not substituted",
+      "binaries": {
+        "current": {
+          "elf_sha256": "aa162db83daf48120f2e98837dc7f44b1236235183c15415e735ada82494a073",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-01-current/binary-sha256.txt",
+            "sha256": "897cd055edfb43f473c84c5d2359aa65ad18d2d573fe08665e06f9d9bbcdff32"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "a8c489983d50b423157c77f91a440281c6448a5f6eb19e9c7e7d39c8366a6c2d",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-02-candidate/binary-sha256.txt",
+            "sha256": "02f56c22625823336151c802e2e86314f40a8fafe8bffe92616b2548067f0206"
+          }
+        }
+      }
+    },
+    {
+      "component": "netifd",
+      "lane": "lan_status",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "errors": 0,
+      "paired_windows": [["netifd-01-current", "netifd-02-candidate"], ["netifd-04-current", "netifd-03-candidate"]],
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 10.85609, "min": 10.72843, "max": 10.98375},
+          "H1": {"median": 10.515439999999998, "min": 10.370569999999999, "max": 10.660309999999999},
+          "delta": -0.3406500000000019,
+          "percent": -3.137870080295962,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 10.72843], ["netifd-04-current", 10.98375]],
+          "H1_runs": [["netifd-02-candidate", 10.370569999999999], ["netifd-03-candidate", 10.660309999999999]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 36.2370545, "min": 35.89713375, "max": 36.576975250000004},
+          "H1": {"median": 35.058492875, "min": 34.505841000000004, "max": 35.61114475},
+          "delta": -1.1785616250000004,
+          "percent": -3.252365958717755,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 35.89713375], ["netifd-04-current", 36.576975250000004]],
+          "H1_runs": [["netifd-02-candidate", 35.61114475], ["netifd-03-candidate", 34.505841000000004]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 62.181, "min": 59.241, "max": 65.121},
+          "H1": {"median": 61.3405, "min": 60.72, "max": 61.961},
+          "delta": -0.8404999999999987,
+          "percent": -1.3516990720638116,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 59.241], ["netifd-04-current", 65.121]],
+          "H1_runs": [["netifd-02-candidate", 60.72], ["netifd-03-candidate", 61.961]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        },
+        "window_wall_ms": {
+          "current": {"median": 195.5680875, "min": 193.741212, "max": 197.39496300000002},
+          "H1": {"median": 190.81448849999998, "min": 189.885381, "max": 191.743596},
+          "delta": -4.753599000000008,
+          "percent": -2.430661904386629,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 193.741212], ["netifd-04-current", 197.39496300000002]],
+          "H1_runs": [["netifd-02-candidate", 191.743596], ["netifd-03-candidate", 189.885381]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 20455.019666024527, "min": 20263.941588013062, "max": 20646.097744035997},
+          "H1": {"median": 20963.26578143992, "min": 20861.192151627325, "max": 21065.33941125252},
+          "delta": 508.24611541539343,
+          "percent": 2.484701181977265,
+          "direction": "higher",
+          "current_runs": [["netifd-01-current", 20646.097744035997], ["netifd-04-current", 20263.941588013062]],
+          "H1_runs": [["netifd-02-candidate", 20861.192151627325], ["netifd-03-candidate", 21065.33941125252]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        }
+      },
+      "cpu_basis": "process-clock own CPU",
+      "same_precision_reaped_child_cpu": "missing; proc child ticks are not substituted",
+      "binaries": {
+        "current": {
+          "elf_sha256": "aa162db83daf48120f2e98837dc7f44b1236235183c15415e735ada82494a073",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-01-current/binary-sha256.txt",
+            "sha256": "897cd055edfb43f473c84c5d2359aa65ad18d2d573fe08665e06f9d9bbcdff32"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "a8c489983d50b423157c77f91a440281c6448a5f6eb19e9c7e7d39c8366a6c2d",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-02-candidate/binary-sha256.txt",
+            "sha256": "02f56c22625823336151c802e2e86314f40a8fafe8bffe92616b2548067f0206"
+          }
+        }
+      }
+    },
+    {
+      "component": "netifd",
+      "lane": "wireless_status",
+      "successful_per_window": [4000],
+      "warmup_per_window": [20],
+      "errors": 0,
+      "paired_windows": [["netifd-01-current", "netifd-02-candidate"], ["netifd-04-current", "netifd-03-candidate"]],
+      "metrics": {
+        "own_cpu_us": {
+          "current": {"median": 8.25824, "min": 7.79887, "max": 8.71761},
+          "H1": {"median": 8.258915, "min": 8.21416, "max": 8.30367},
+          "delta": 0.000674999999999315,
+          "percent": 0.008173654434834964,
+          "direction": "higher",
+          "current_runs": [["netifd-01-current", 8.71761], ["netifd-04-current", 7.79887]],
+          "H1_runs": [["netifd-02-candidate", 8.30367], ["netifd-03-candidate", 8.21416]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 31.56231825, "min": 30.5122445, "max": 32.612392},
+          "H1": {"median": 31.395900499999996, "min": 31.040056749999998, "max": 31.751744249999998},
+          "delta": -0.16641775000000436,
+          "percent": -0.5272671946396218,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 32.612392], ["netifd-04-current", 30.5122445]],
+          "H1_runs": [["netifd-02-candidate", 31.040056749999998], ["netifd-03-candidate", 31.751744249999998]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 48.5005, "min": 43.921, "max": 53.08},
+          "H1": {"median": 51.7805, "min": 51.561, "max": 52},
+          "delta": 3.280000000000001,
+          "percent": 6.7628168781765154,
+          "direction": "higher",
+          "current_runs": [["netifd-01-current", 53.08], ["netifd-04-current", 43.921]],
+          "H1_runs": [["netifd-02-candidate", 52], ["netifd-03-candidate", 51.561]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "window_wall_ms": {
+          "current": {"median": 127.265859, "min": 123.021064, "max": 131.51065400000002},
+          "H1": {"median": 126.65621449999999, "min": 125.23800299999999, "max": 128.074426},
+          "delta": -0.6096445000000159,
+          "percent": -0.4790322438321937,
+          "direction": "lower",
+          "current_runs": [["netifd-01-current", 131.51065400000002], ["netifd-04-current", 123.021064]],
+          "H1_runs": [["netifd-02-candidate", 125.23800299999999], ["netifd-03-candidate", 128.074426]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 31465.271839316352, "min": 30415.786693601265, "max": 32514.756985031443},
+          "H1": {"median": 31585.513585158362, "min": 31231.840148945896, "max": 31939.187021370824},
+          "delta": 120.24174584200955,
+          "percent": 0.38214113151809986,
+          "direction": "higher",
+          "current_runs": [["netifd-01-current", 30415.786693601265], ["netifd-04-current", 32514.756985031443]],
+          "H1_runs": [["netifd-02-candidate", 31939.187021370824], ["netifd-03-candidate", 31231.840148945896]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        }
+      },
+      "cpu_basis": "process-clock own CPU",
+      "same_precision_reaped_child_cpu": "missing; proc child ticks are not substituted",
+      "binaries": {
+        "current": {
+          "elf_sha256": "aa162db83daf48120f2e98837dc7f44b1236235183c15415e735ada82494a073",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-01-current/binary-sha256.txt",
+            "sha256": "897cd055edfb43f473c84c5d2359aa65ad18d2d573fe08665e06f9d9bbcdff32"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "a8c489983d50b423157c77f91a440281c6448a5f6eb19e9c7e7d39c8366a6c2d",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/netifd-02-candidate/binary-sha256.txt",
+            "sha256": "02f56c22625823336151c802e2e86314f40a8fafe8bffe92616b2548067f0206"
+          }
+        }
+      }
+    },
+    {
+      "component": "reload-config",
+      "lane": "unchanged_config",
+      "successful_per_window": [200],
+      "warmup_per_window": [5],
+      "errors": 0,
+      "paired_windows": [["reload-config-01-current", "reload-config-02-candidate"], ["reload-config-04-current", "reload-config-03-candidate"]],
+      "metrics": {
+        "reaped_child_cpu_us": {
+          "current": {"median": 929.9925000000001, "min": 927.62, "max": 932.365},
+          "H1": {"median": 943.8025, "min": 935.06, "max": 952.545},
+          "delta": 13.809999999999945,
+          "percent": 1.4849582120285856,
+          "direction": "higher",
+          "current_runs": [["reload-config-01-current", 932.365], ["reload-config-04-current", 927.62]],
+          "H1_runs": [["reload-config-02-candidate", 935.06], ["reload-config-03-candidate", 952.545]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 1003.4262549999999, "min": 1001.5639399999999, "max": 1005.2885699999999},
+          "H1": {"median": 1015.7551575, "min": 1003.6445550000001, "max": 1027.86576},
+          "delta": 12.32890250000014,
+          "percent": 1.2286804773710194,
+          "direction": "higher",
+          "current_runs": [["reload-config-01-current", 1005.2885699999999], ["reload-config-04-current", 1001.5639399999999]],
+          "H1_runs": [["reload-config-02-candidate", 1003.6445550000001], ["reload-config-03-candidate", 1027.86576]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 1129.9899999999998, "min": 1124.37, "max": 1135.61},
+          "H1": {"median": 1160.03, "min": 1124.45, "max": 1195.61},
+          "delta": 30.04000000000019,
+          "percent": 2.6584306055805977,
+          "direction": "higher",
+          "current_runs": [["reload-config-01-current", 1124.37], ["reload-config-04-current", 1135.61]],
+          "H1_runs": [["reload-config-02-candidate", 1124.45], ["reload-config-03-candidate", 1195.61]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": true
+        },
+        "window_wall_ms": {
+          "current": {"median": 200.744091, "min": 200.37438799999998, "max": 201.113794},
+          "H1": {"median": 203.210012, "min": 200.789192, "max": 205.63083200000003},
+          "delta": 2.4659210000000087,
+          "percent": 1.2283903290583078,
+          "direction": "higher",
+          "current_runs": [["reload-config-01-current", 201.113794], ["reload-config-04-current", 200.37438799999998]],
+          "H1_runs": [["reload-config-02-candidate", 200.789192], ["reload-config-03-candidate", 205.63083200000003]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 996.2967146412834, "min": 994.4618716705229, "max": 998.1315576120438},
+          "H1": {"median": 984.3431703207841, "min": 972.616791240722, "max": 996.0695494008462},
+          "delta": -11.953544320499304,
+          "percent": -1.19979762502812,
+          "direction": "lower",
+          "current_runs": [["reload-config-01-current", 994.4618716705229], ["reload-config-04-current", 998.1315576120438]],
+          "H1_runs": [["reload-config-02-candidate", 996.0695494008462], ["reload-config-03-candidate", 972.616791240722]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        }
+      },
+      "cpu_basis": "getrusage(RUSAGE_CHILDREN); command tree reaped by benchmark caller; excludes benchmark own CPU and unrelated persistent dependencies",
+      "reaped_counter_records": [
+        {
+          "run": "reload-config-01-current",
+          "child_cpu_us": 186473,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "reload-config-02-candidate",
+          "child_cpu_us": 187012,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "reload-config-03-candidate",
+          "child_cpu_us": 190509,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "reload-config-04-current",
+          "child_cpu_us": 185524,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        }
+      ],
+      "binaries": {
+        "current": {
+          "elf_sha256": "c141c52a242421d245fc315639f00fba8eed2e0dd63ec5b4a747a940263837a8",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/reload-config-01-current/binary-sha256.txt",
+            "sha256": "0b95e2c33a44da54cb423caa7f59621b8c195129b328f2d44ab230d1a762d3eb"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "02397f2ffcd946b3dd76be6e946ed4980943b934c4433b5454ba85d784b60fce",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/reload-config-02-candidate/binary-sha256.txt",
+            "sha256": "6690171b693cfb4741af3a027d03196d3ee16f662cb01f57d7f256f1d97e4759"
+          }
+        }
+      }
+    },
+    {
+      "component": "uci",
+      "lane": "export_64",
+      "successful_per_window": [200],
+      "warmup_per_window": [5],
+      "errors": 0,
+      "paired_windows": [["uci-01-current", "uci-02-candidate"], ["uci-04-current", "uci-03-candidate"]],
+      "metrics": {
+        "reaped_child_cpu_us": {
+          "current": {"median": 404.42499999999995, "min": 400.52, "max": 408.33},
+          "H1": {"median": 417.735, "min": 416.8, "max": 418.67},
+          "delta": 13.31000000000006,
+          "percent": 3.2910922915250196,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 400.52], ["uci-04-current", 408.33]],
+          "H1_runs": [["uci-02-candidate", 416.8], ["uci-03-candidate", 418.67]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 454.18117500000005, "min": 450.61695000000003, "max": 457.7454},
+          "H1": {"median": 465.44317, "min": 464.050245, "max": 466.836095},
+          "delta": 11.261994999999956,
+          "percent": 2.479626109558582,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 450.61695000000003], ["uci-04-current", 457.7454]],
+          "H1_runs": [["uci-02-candidate", 464.050245], ["uci-03-candidate", 466.836095]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 545.5450000000001, "min": 542.485, "max": 548.605},
+          "H1": {"median": 571.425, "min": 561.485, "max": 581.365},
+          "delta": 25.87999999999988,
+          "percent": 4.743879973237749,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 548.605], ["uci-04-current", 542.485]],
+          "H1_runs": [["uci-02-candidate", 561.485], ["uci-03-candidate", 581.365]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "window_wall_ms": {
+          "current": {"median": 92.1862675, "min": 91.455202, "max": 92.917333},
+          "H1": {"median": 94.44432549999999, "min": 94.165583, "max": 94.723068},
+          "delta": 2.2580579999999912,
+          "percent": 2.449451595379964,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 91.455202], ["uci-04-current", 92.917333]],
+          "H1_runs": [["uci-02-candidate", 94.165583], ["uci-03-candidate", 94.723068]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 2169.6569800730244, "min": 2152.4509318406717, "max": 2186.863028305377},
+          "H1": {"median": 2117.6681722560343, "min": 2111.4180972263275, "max": 2123.9182472857415},
+          "delta": -51.988807816990175,
+          "percent": -2.396176367715065,
+          "direction": "lower",
+          "current_runs": [["uci-01-current", 2186.863028305377], ["uci-04-current", 2152.4509318406717]],
+          "H1_runs": [["uci-02-candidate", 2123.9182472857415], ["uci-03-candidate", 2111.4180972263275]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        }
+      },
+      "cpu_basis": "getrusage(RUSAGE_CHILDREN); command tree reaped by benchmark caller; excludes benchmark own CPU and unrelated persistent dependencies",
+      "reaped_counter_records": [
+        {
+          "run": "uci-01-current",
+          "child_cpu_us": 80104,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-02-candidate",
+          "child_cpu_us": 83360,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-03-candidate",
+          "child_cpu_us": 83734,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-04-current",
+          "child_cpu_us": 81666,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        }
+      ],
+      "binaries": {
+        "current": {
+          "elf_sha256": "bb9b757df11bf6752a66dd655ca9f094d4bac14122f780f932900204a366a6f4",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/uci-01-current/binary-sha256.txt",
+            "sha256": "e47c6f602f74894ea26544cccfdf62f1a63af7c99ea327d11ec824263cb3c368"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "76634691d7546c9f996daa94258842f68fe0212fe5ec6dc8cf787038f7530085",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/uci-02-candidate/binary-sha256.txt",
+            "sha256": "4a5625e22227121005d2ea7ea8188ce6233714783680adb577bd9dcf4cf0a612"
+          }
+        }
+      }
+    },
+    {
+      "component": "uci",
+      "lane": "export_network",
+      "successful_per_window": [200],
+      "warmup_per_window": [5],
+      "errors": 0,
+      "paired_windows": [["uci-01-current", "uci-02-candidate"], ["uci-04-current", "uci-03-candidate"]],
+      "metrics": {
+        "reaped_child_cpu_us": {
+          "current": {"median": 224.16000000000003, "min": 220.085, "max": 228.235},
+          "H1": {"median": 238.1825, "min": 233.51, "max": 242.855},
+          "delta": 14.02249999999998,
+          "percent": 6.255576374018548,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 220.085], ["uci-04-current", 228.235]],
+          "H1_runs": [["uci-02-candidate", 233.51], ["uci-03-candidate", 242.855]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "mean_us": {
+          "current": {"median": 282.397445, "min": 281.74694, "max": 283.04795},
+          "H1": {"median": 292.53172499999994, "min": 289.09959999999995, "max": 295.96385},
+          "delta": 10.134279999999933,
+          "percent": 3.588658530533069,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 281.74694], ["uci-04-current", 283.04795]],
+          "H1_runs": [["uci-02-candidate", 289.09959999999995], ["uci-03-candidate", 295.96385]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "p99_us": {
+          "current": {"median": 436.56399999999996, "min": 415.604, "max": 457.524},
+          "H1": {"median": 407.264, "min": 393.964, "max": 420.564},
+          "delta": -29.299999999999955,
+          "percent": -6.711501635499023,
+          "direction": "lower",
+          "current_runs": [["uci-01-current", 415.604], ["uci-04-current", 457.524]],
+          "H1_runs": [["uci-02-candidate", 393.964], ["uci-03-candidate", 420.564]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": true
+        },
+        "window_wall_ms": {
+          "current": {"median": 56.951414, "min": 56.857113, "max": 57.045714999999994},
+          "H1": {"median": 58.978611, "min": 58.303005, "max": 59.654217},
+          "delta": 2.027197000000001,
+          "percent": 3.559520049844594,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 56.857113], ["uci-04-current", 57.045714999999994]],
+          "H1_runs": [["uci-02-candidate", 58.303005], ["uci-03-candidate", 59.654217]],
+          "paired_directions": ["higher", "higher"],
+          "ranges_overlap": false
+        },
+        "throughput_ops_s": {
+          "current": {"median": 3511.7749376003458, "min": 3505.9600883256526, "max": 3517.589786875039},
+          "H1": {"median": 3391.5048849852938, "min": 3352.654850871649, "max": 3430.3549190989384},
+          "delta": -120.27005261505201,
+          "percent": -3.4247653893570567,
+          "direction": "lower",
+          "current_runs": [["uci-01-current", 3517.589786875039], ["uci-04-current", 3505.9600883256526]],
+          "H1_runs": [["uci-02-candidate", 3430.3549190989384], ["uci-03-candidate", 3352.654850871649]],
+          "paired_directions": ["lower", "lower"],
+          "ranges_overlap": false
+        }
+      },
+      "cpu_basis": "getrusage(RUSAGE_CHILDREN); command tree reaped by benchmark caller; excludes benchmark own CPU and unrelated persistent dependencies",
+      "reaped_counter_records": [
+        {
+          "run": "uci-01-current",
+          "child_cpu_us": 44017,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-02-candidate",
+          "child_cpu_us": 46702,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-03-candidate",
+          "child_cpu_us": 48571,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-04-current",
+          "child_cpu_us": 45647,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        }
+      ],
+      "binaries": {
+        "current": {
+          "elf_sha256": "bb9b757df11bf6752a66dd655ca9f094d4bac14122f780f932900204a366a6f4",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/uci-01-current/binary-sha256.txt",
+            "sha256": "e47c6f602f74894ea26544cccfdf62f1a63af7c99ea327d11ec824263cb3c368"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "76634691d7546c9f996daa94258842f68fe0212fe5ec6dc8cf787038f7530085",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/uci-02-candidate/binary-sha256.txt",
+            "sha256": "4a5625e22227121005d2ea7ea8188ce6233714783680adb577bd9dcf4cf0a612"
+          }
+        }
+      }
+    },
+    {
+      "component": "uci",
+      "lane": "set_commit_get",
+      "successful_per_window": [200],
+      "warmup_per_window": [5],
+      "errors": 0,
+      "paired_windows": [["uci-01-current", "uci-02-candidate"], ["uci-04-current", "uci-03-candidate"]],
+      "metrics": {
+        "reaped_child_cpu_us": {
+          "current": {"median": 1995.3325, "min": 1931.66, "max": 2059.005},
+          "H1": {"median": 1961.3674999999998, "min": 1928.445, "max": 1994.29},
+          "delta": -33.965000000000146,
+          "percent": -1.7022225619038505,
+          "direction": "lower",
+          "current_runs": [["uci-01-current", 1931.66], ["uci-04-current", 2059.005]],
+          "H1_runs": [["uci-02-candidate", 1994.29], ["uci-03-candidate", 1928.445]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        },
+        "mean_us": {
+          "current": {"median": 2022.405635, "min": 1956.762285, "max": 2088.048985},
+          "H1": {"median": 1984.4284225000001, "min": 1954.768675, "max": 2014.08817},
+          "delta": -37.97721249999995,
+          "percent": -1.877823708694322,
+          "direction": "lower",
+          "current_runs": [["uci-01-current", 1956.762285], ["uci-04-current", 2088.048985]],
+          "H1_runs": [["uci-02-candidate", 2014.08817], ["uci-03-candidate", 1954.768675]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        },
+        "p99_us": {
+          "current": {"median": 2260.819, "min": 2113.698, "max": 2407.94},
+          "H1": {"median": 2245.4584999999997, "min": 2174.458, "max": 2316.459},
+          "delta": -15.36050000000023,
+          "percent": -0.6794219263019388,
+          "direction": "lower",
+          "current_runs": [["uci-01-current", 2113.698], ["uci-04-current", 2407.94]],
+          "H1_runs": [["uci-02-candidate", 2316.459], ["uci-03-candidate", 2174.458]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        },
+        "window_wall_ms": {
+          "current": {"median": 404.59330750000004, "min": 391.457738, "max": 417.728877},
+          "H1": {"median": 397.00336500000003, "min": 391.06989599999997, "max": 402.93683400000003},
+          "delta": -7.5899425000000065,
+          "percent": -1.87594365979472,
+          "direction": "lower",
+          "current_runs": [["uci-01-current", 391.457738], ["uci-04-current", 417.728877]],
+          "H1_runs": [["uci-02-candidate", 402.93683400000003], ["uci-03-candidate", 391.06989599999997]],
+          "paired_directions": ["higher", "lower"],
+          "ranges_overlap": true
+        },
+        "throughput_ops_s": {
+          "current": {"median": 494.8451404007982, "min": 478.7794452620521, "max": 510.9108355395442},
+          "H1": {"median": 503.88662173342016, "min": 496.3557141564278, "max": 511.4175293104126},
+          "delta": 9.04148133262197,
+          "percent": 1.8271334998458006,
+          "direction": "higher",
+          "current_runs": [["uci-01-current", 510.9108355395442], ["uci-04-current", 478.7794452620521]],
+          "H1_runs": [["uci-02-candidate", 496.3557141564278], ["uci-03-candidate", 511.4175293104126]],
+          "paired_directions": ["lower", "higher"],
+          "ranges_overlap": true
+        }
+      },
+      "cpu_basis": "getrusage(RUSAGE_CHILDREN); command tree reaped by benchmark caller; excludes benchmark own CPU and unrelated persistent dependencies",
+      "reaped_counter_records": [
+        {
+          "run": "uci-01-current",
+          "child_cpu_us": 386332,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-02-candidate",
+          "child_cpu_us": 398858,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-03-candidate",
+          "child_cpu_us": 385689,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        },
+        {
+          "run": "uci-04-current",
+          "child_cpu_us": 411801,
+          "successful": 200,
+          "window_export_representation_error_us": 2
+        }
+      ],
+      "binaries": {
+        "current": {
+          "elf_sha256": "bb9b757df11bf6752a66dd655ca9f094d4bac14122f780f932900204a366a6f4",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/uci-01-current/binary-sha256.txt",
+            "sha256": "e47c6f602f74894ea26544cccfdf62f1a63af7c99ea327d11ec824263cb3c368"
+          }
+        },
+        "candidate": {
+          "elf_sha256": "76634691d7546c9f996daa94258842f68fe0212fe5ec6dc8cf787038f7530085",
+          "record": {
+            "path": "private/rpcd-20260928/shared-regression/uci-02-candidate/binary-sha256.txt",
+            "sha256": "4a5625e22227121005d2ea7ea8188ce6233714783680adb577bd9dcf4cf0a612"
+          }
+        }
+      }
+    }
+  ],
+  "measurement_notes": ["Medians and ranges describe three Oracle RPCD windows per side or two shared-consumer windows per side; deltas subtract independently summarized medians.", "RPCD CPU uses process-clock own CPU, not coarse proc tick/tree CPU. Required helper children are outside this own-CPU column.", "Concurrent c4 CPU window includes80 warmups and denominator is successful+80. Mean/p99 exclude warmups; c4 throughput uses successful divided by group uptime snapshot interval including setup/warmup, with0.01s export resolution.", "Command reaped CPU comes only from getrusage(RUSAGE_CHILDREN) counters in shared-child-cpu.json; coarse subject_cpu_us_per_op tick values are not used.", "Netifd CPU uses process-clock own CPU. No same-precision reaped child counter exists in these inputs; no-spawn proof/other gates belong to the main report."]
+}
