@@ -114,7 +114,7 @@ pub fn run<W: Write>(
         let status = normalize(&mut ctx, name, &mut output)?;
         if let Some(status) = status {
             trace
-                .normalization(&name.to_string_lossy(), &status)
+                .normalization(&name.to_string_lossy(), status)
                 .map_err(|error| Error::Io("write normalization trace", error))?;
         }
         // md5sum printed `<digest>  /var/run/config.check/<name>`; a newline in
