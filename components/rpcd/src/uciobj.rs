@@ -332,7 +332,7 @@ fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
             (Some(s), None) => dump_section(&mut b, &p.sections[s], "values", -1),
             (Some(s), Some(o)) => dump_option(&mut b, &p.sections[s].options[o].value, "value"),
         }
-        result = Reply::one(0, b.into_payload());
+        result = Reply::blob(0, b);
     }
     // out: uci_unload resets the cursor error before rpc_uci_status()
     rctx.uci_read_cache.borrow_mut().recycle(ctx.root.remove(pidx));
