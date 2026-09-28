@@ -502,7 +502,11 @@ def derive(root, label):
     limitations = []
     if calibration:
         limitations.append("Same-identity calibration only; no between-implementation acceptance claim.")
-    if not all(metric in metrics for metric in CLOCK_METRICS):
+    if component in ("uci", "reload-config", "fw4"):
+        required_cpu = ("client_cpu_clock_us_per_op", "command_tree_cpu_us_per_op")
+        if not all(metric in metrics for metric in required_cpu):
+            limitations.append("Caller CPU-clock or getrusage command-tree CPU is unavailable for some short-lived observations; legacy ticks remain separate.")
+    elif not all(metric in metrics for metric in CLOCK_METRICS):
         limitations.append("Process CPU-clock metrics are unavailable for some observations; legacy ticks remain separate.")
     if initialization_settled and not all(initialization_settled):
         limitations.append("This netifd matrix lacks complete evidence for finished hotplug callbacks, reaped children checked through proc status PPid, and stable child CPU before queries. Timings/CPU are retained for diagnosis, not acceptance; rerun with the complete initialization gate.")
