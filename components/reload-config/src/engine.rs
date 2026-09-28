@@ -226,7 +226,11 @@ fn scan_config_names(settings: &Settings) -> Result<Vec<OsString>, Error> {
 /// does not resolve (C-03).  Deltas under /tmp/.uci apply as in the CLI.  Any
 /// failure is what `uci` exits 1 for, so the entry is empty and traced as
 /// `exit_1`.
-fn normalize(ctx: &mut Context, name: &OsStr, output: &mut Vec<u8>) -> Result<Option<&'static str>, Error> {
+fn normalize(
+    ctx: &mut Context,
+    name: &OsStr,
+    output: &mut Vec<u8>,
+) -> Result<Option<&'static str>, Error> {
     output.clear();
     let result = show::tuple(ctx, name.as_bytes(), &mut Show::new(true, b" "), output);
     match ctx.check_io_budget().and(result) {
@@ -267,7 +271,11 @@ fn dispatch(
     let mut invoke_deadline = deadline;
     let result = (|| -> io::Result<i32> {
         if bus.is_none() {
-            *bus = Some(Connection::connect_interruptible(None, deadline, crate::is_cancelled)?);
+            *bus = Some(Connection::connect_interruptible(
+                None,
+                deadline,
+                crate::is_cancelled,
+            )?);
         }
         stage = 1;
         // Resolve on every event: service may have been re-registered since
@@ -275,11 +283,21 @@ fn dispatch(
         // reconnect safely because no config.change has been sent yet.
         let id = match bus.as_mut().unwrap().lookup_id_until("service", deadline) {
             Ok(id) => id,
-            Err(error) if reused && error_status(&error).is_none()
-                && !matches!(error.kind(), io::ErrorKind::TimedOut | io::ErrorKind::Interrupted) => {
+            Err(error)
+                if reused
+                    && error_status(&error).is_none()
+                    && !matches!(
+                        error.kind(),
+                        io::ErrorKind::TimedOut | io::ErrorKind::Interrupted
+                    ) =>
+            {
                 *bus = None;
                 stage = 0;
-                *bus = Some(Connection::connect_interruptible(None, deadline, crate::is_cancelled)?);
+                *bus = Some(Connection::connect_interruptible(
+                    None,
+                    deadline,
+                    crate::is_cancelled,
+                )?);
                 stage = 1;
                 bus.as_mut().unwrap().lookup_id_until("service", deadline)?
             }
@@ -295,7 +313,9 @@ fn dispatch(
         stage = 2;
         // ubus CLI defaults to a 30 s invoke timeout inside the outer budget.
         invoke_deadline = deadline.min(Instant::now() + Duration::from_secs(30));
-        bus.as_mut().unwrap().invoke_status_until(id, "event", fields.payload(), invoke_deadline)
+        bus.as_mut()
+            .unwrap()
+            .invoke_status_until(id, "event", fields.payload(), invoke_deadline)
     })();
     if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
         *bus = None;
@@ -413,12 +433,20 @@ fn write_baseline(
                 continue;
             };
             // The path bytes are md5sum's, so they are written as bytes.
-            for bytes in [digest.as_bytes(), b"  /var/run/config.check/", name.as_bytes(), b"\n"] {
-                output.write_all(bytes)
+            for bytes in [
+                digest.as_bytes(),
+                b"  /var/run/config.check/",
+                name.as_bytes(),
+                b"\n",
+            ] {
+                output
+                    .write_all(bytes)
                     .map_err(|error| Error::Io("write temporary baseline", error))?;
             }
         }
-        output.flush().map_err(|error| Error::Io("write temporary baseline", error))?;
+        output
+            .flush()
+            .map_err(|error| Error::Io("write temporary baseline", error))?;
         output
             .get_ref()
             .sync_all()
@@ -571,7 +599,8 @@ mod tests {
 
     #[test]
     fn scanner_follows_only_symlinks_to_regular_files() {
-        let root = std::env::temp_dir().join(format!("reload-config-scan-links-{}", std::process::id()));
+        let root =
+            std::env::temp_dir().join(format!("reload-config-scan-links-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         let directory = root.join("etc/config");
         fs::create_dir_all(&directory).unwrap();
@@ -579,7 +608,10 @@ mod tests {
         std::os::unix::fs::symlink(root.join("regular"), directory.join("file-link")).unwrap();
         std::os::unix::fs::symlink(root.join("missing"), directory.join("broken-link")).unwrap();
         std::os::unix::fs::symlink(&directory, directory.join("dir-link")).unwrap();
-        let settings = Settings { root: root.clone(), timeout: Duration::from_secs(1) };
+        let settings = Settings {
+            root: root.clone(),
+            timeout: Duration::from_secs(1),
+        };
         assert_eq!(scan_config_names(&settings).unwrap(), ["file-link"]);
         fs::remove_dir_all(root).unwrap();
     }
@@ -663,44 +695,78 @@ mod tests {
         let names = vec![OsString::from("alpha")];
         let current = HashMap::from([(OsString::from("alpha"), "a".repeat(32))]);
 
-        assert!(write_baseline(&path, &names, &current, &std::sync::atomic::AtomicBool::new(false)).is_err());
+        assert!(write_baseline(
+            &path,
+            &names,
+            &current,
+            &std::sync::atomic::AtomicBool::new(false)
+        )
+        .is_err());
         assert_eq!(fs::read_to_string(&path).unwrap(), "previous baseline\n");
         fs::remove_dir_all(directory).unwrap();
     }
 
     #[test]
     fn cancelled_dispatch_does_not_start_a_command() {
-        let settings = Settings { root: "/".into(), timeout: Duration::from_secs(1) };
+        let settings = Settings {
+            root: "/".into(),
+            timeout: Duration::from_secs(1),
+        };
         let cancelled = std::sync::atomic::AtomicBool::new(true);
-        assert!(matches!(super::dispatch(&settings, OsStr::new("alpha"), &cancelled, &mut None), Err(Error::Cancelled)));
+        assert!(matches!(
+            super::dispatch(&settings, OsStr::new("alpha"), &cancelled, &mut None),
+            Err(Error::Cancelled)
+        ));
     }
 
     #[test]
     fn reused_normalization_buffer_discards_previous_package_on_failure() {
-        let root = std::env::temp_dir().join(format!("reload-config-normalize-reuse-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "reload-config-normalize-reuse-{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(&root).unwrap();
-        fs::write(root.join("alpha"), b"config test 's'\noption value 'first'\n").unwrap();
+        fs::write(
+            root.join("alpha"),
+            b"config test 's'\noption value 'first'\n",
+        )
+        .unwrap();
         let mut ctx = owrt_uci::Context::new();
         ctx.set_confdir(root.to_str().unwrap());
         ctx.set_conf2dir(root.join("missing").to_str().unwrap());
         let mut output = Vec::new();
-        assert_eq!(super::normalize(&mut ctx, OsStr::new("alpha"), &mut output).unwrap(), None);
+        assert_eq!(
+            super::normalize(&mut ctx, OsStr::new("alpha"), &mut output).unwrap(),
+            None
+        );
         assert_eq!(output, b"alpha.s=test\nalpha.s.value='first'\n");
-        assert_eq!(super::normalize(&mut ctx, OsStr::new("alpha.absent"), &mut output).unwrap(), Some("exit_1"));
+        assert_eq!(
+            super::normalize(&mut ctx, OsStr::new("alpha.absent"), &mut output).unwrap(),
+            Some("exit_1")
+        );
         assert!(output.is_empty());
-        assert_eq!(super::normalize(&mut ctx, OsStr::new("alpha.s.value"), &mut output).unwrap(), None);
+        assert_eq!(
+            super::normalize(&mut ctx, OsStr::new("alpha.s.value"), &mut output).unwrap(),
+            None
+        );
         assert_eq!(output, b"alpha.s.value='first'\n");
         fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
     fn buffered_baseline_preserves_all_bytes_across_flushes() {
-        let root = std::env::temp_dir().join(format!("reload-config-baseline-buffer-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "reload-config-baseline-buffer-{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(&root).unwrap();
         let names: Vec<OsString> = (0..256).map(|i| format!("package{i:04}").into()).collect();
-        let current: HashMap<_, _> = names.iter().map(|name| (name.clone(), crate::md5::hex(name.as_bytes()))).collect();
+        let current: HashMap<_, _> = names
+            .iter()
+            .map(|name| (name.clone(), crate::md5::hex(name.as_bytes())))
+            .collect();
         let mut expected = Vec::new();
         for name in &names {
             expected.extend_from_slice(current[name].as_bytes());
@@ -710,7 +776,13 @@ mod tests {
         }
         assert!(expected.len() > 2 * 8192);
         let path = root.join("baseline");
-        write_baseline(&path, &names, &current, &std::sync::atomic::AtomicBool::new(false)).unwrap();
+        write_baseline(
+            &path,
+            &names,
+            &current,
+            &std::sync::atomic::AtomicBool::new(false),
+        )
+        .unwrap();
         assert_eq!(fs::read(&path).unwrap(), expected);
         assert_eq!(read_baseline(&path).unwrap().len(), names.len());
         assert!(!root.join("baseline.reload-config-rs.tmp").exists());
@@ -727,9 +799,14 @@ mod tests {
                 self.0.store(true, Ordering::Relaxed);
                 Ok(bytes.len())
             }
-            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+            fn flush(&mut self) -> io::Result<()> {
+                Ok(())
+            }
         }
-        let root = std::env::temp_dir().join(format!("reload-config-cancel-commit-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!(
+            "reload-config-cancel-commit-{}",
+            std::process::id()
+        ));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join("etc/config")).unwrap();
         fs::create_dir_all(root.join("var/run")).unwrap();
@@ -740,10 +817,18 @@ mod tests {
         fs::write(&baseline, previous).unwrap();
         let cancelled = AtomicBool::new(false);
         let mut trace = crate::trace::Trace::new(CancelOnWrite(&cancelled));
-        let settings = Settings { root: root.clone(), timeout: Duration::from_secs(1) };
-        assert!(matches!(run(&settings, &cancelled, &mut trace), Err(Error::Cancelled)));
+        let settings = Settings {
+            root: root.clone(),
+            timeout: Duration::from_secs(1),
+        };
+        assert!(matches!(
+            run(&settings, &cancelled, &mut trace),
+            Err(Error::Cancelled)
+        ));
         assert_eq!(fs::read(&baseline).unwrap(), previous);
-        assert!(!root.join("var/run/config.md5.reload-config-rs.tmp").exists());
+        assert!(!root
+            .join("var/run/config.md5.reload-config-rs.tmp")
+            .exists());
         fs::remove_dir_all(root).unwrap();
     }
 }

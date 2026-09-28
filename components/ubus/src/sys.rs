@@ -161,8 +161,17 @@ pub(crate) fn send_parts_until<const N: usize>(sock: RawFd, parts: [&[u8]; N], f
     send_parts_until_cancelled(sock, parts, fd, bound, None)
 }
 
-pub(crate) fn send_parts_until_cancelled<const N: usize>(sock: RawFd, parts: [&[u8]; N], fd: Option<RawFd>, bound: Bound, cancelled: Option<fn() -> bool>) -> io::Result<()> {
-    let mut iov = parts.map(|part| IoVec { base: part.as_ptr() as *mut u8, len: part.len() });
+pub(crate) fn send_parts_until_cancelled<const N: usize>(
+    sock: RawFd,
+    parts: [&[u8]; N],
+    fd: Option<RawFd>,
+    bound: Bound,
+    cancelled: Option<fn() -> bool>,
+) -> io::Result<()> {
+    let mut iov = parts.map(|part| IoVec {
+        base: part.as_ptr() as *mut u8,
+        len: part.len(),
+    });
     let mut control = [0u8; CMSG_SPACE_FD];
     let mut attach = fd;
     let mut index = 0;
@@ -191,13 +200,24 @@ pub(crate) fn send_parts_until_cancelled<const N: usize>(sock: RawFd, parts: [&[
         }
         // SAFETY: hdr, the iovec array it points at and the control buffer all
         // outlive this call, and their lengths describe them.
-        let sent = unsafe { sendmsg(sock, &hdr, if bound.nonblocking() || cancelled.is_some() { MSG_DONTWAIT } else { 0 }) };
+        let sent = unsafe {
+            sendmsg(
+                sock,
+                &hdr,
+                if bound.nonblocking() || cancelled.is_some() {
+                    MSG_DONTWAIT
+                } else {
+                    0
+                },
+            )
+        };
         if sent < 0 {
             let error = io::Error::last_os_error();
             match error.kind() {
                 io::ErrorKind::Interrupted => continue,
                 io::ErrorKind::WouldBlock => {
-                    wait_until_cancelled(sock, POLLOUT, bound.deadline(&mut deadline), cancelled).map_err(|e| after_progress(e, started))?;
+                    wait_until_cancelled(sock, POLLOUT, bound.deadline(&mut deadline), cancelled)
+                        .map_err(|e| after_progress(e, started))?;
                     continue;
                 }
                 _ => return Err(error),
@@ -233,14 +253,25 @@ pub(crate) fn recv_exact_until(sock: RawFd, buf: &mut [u8], want_fd: bool, deadl
     recv_exact_until_cancelled(sock, buf, want_fd, deadline, None)
 }
 
-pub(crate) fn recv_exact_until_cancelled(sock: RawFd, buf: &mut [u8], want_fd: bool, deadline: Option<Instant>, cancelled: Option<fn() -> bool>) -> io::Result<Option<OwnedFd>> {
+pub(crate) fn recv_exact_until_cancelled(
+    sock: RawFd,
+    buf: &mut [u8],
+    want_fd: bool,
+    deadline: Option<Instant>,
+    cancelled: Option<fn() -> bool>,
+) -> io::Result<Option<OwnedFd>> {
     let mut received_fd = None;
     let mut offset = 0;
     let mut first = want_fd;
     while offset < buf.len() {
         check_cancelled(cancelled)?;
         check_deadline(deadline).map_err(|e| after_progress(e, offset > 0))?;
-        match recv_into(sock, &mut buf[offset..], first, deadline.is_some() || cancelled.is_some()) {
+        match recv_into(
+            sock,
+            &mut buf[offset..],
+            first,
+            deadline.is_some() || cancelled.is_some(),
+        ) {
             Ok((0, _)) => {
                 return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
             }
@@ -252,7 +283,8 @@ pub(crate) fn recv_exact_until_cancelled(sock: RawFd, buf: &mut [u8], want_fd: b
             Err(error) => match error.kind() {
                 io::ErrorKind::Interrupted => continue,
                 io::ErrorKind::WouldBlock => {
-                    wait_until_cancelled(sock, POLLIN, deadline, cancelled).map_err(|e| after_progress(e, offset > 0))?;
+                    wait_until_cancelled(sock, POLLIN, deadline, cancelled)
+                        .map_err(|e| after_progress(e, offset > 0))?;
                 }
                 _ => return Err(error),
             },
@@ -323,13 +355,21 @@ pub(crate) fn check_deadline(deadline: Option<Instant>) -> io::Result<()> {
 
 pub(crate) fn check_cancelled(cancelled: Option<fn() -> bool>) -> io::Result<()> {
     if cancelled.is_some_and(|check| check()) {
-        Err(io::Error::new(io::ErrorKind::Interrupted, "ubus operation cancelled"))
+        Err(io::Error::new(
+            io::ErrorKind::Interrupted,
+            "ubus operation cancelled",
+        ))
     } else {
         Ok(())
     }
 }
 
-pub(crate) fn wait_until_cancelled(fd: RawFd, events: i16, deadline: Option<Instant>, cancelled: Option<fn() -> bool>) -> io::Result<()> {
+pub(crate) fn wait_until_cancelled(
+    fd: RawFd,
+    events: i16,
+    deadline: Option<Instant>,
+    cancelled: Option<fn() -> bool>,
+) -> io::Result<()> {
     let mut pfd = [PollFd {
         fd,
         events,
@@ -341,8 +381,16 @@ pub(crate) fn wait_until_cancelled(fd: RawFd, events: i16, deadline: Option<Inst
     loop {
         check_cancelled(cancelled)?;
         check_deadline(deadline)?;
-        let mut timeout = deadline.map(|end| end.saturating_duration_since(Instant::now()).as_millis().clamp(1, i32::MAX as u128) as i32).unwrap_or(-1);
-        if cancelled.is_some() { timeout = if timeout < 0 { 10 } else { timeout.min(10) }; }
+        let mut timeout = deadline
+            .map(|end| {
+                end.saturating_duration_since(Instant::now())
+                    .as_millis()
+                    .clamp(1, i32::MAX as u128) as i32
+            })
+            .unwrap_or(-1);
+        if cancelled.is_some() {
+            timeout = if timeout < 0 { 10 } else { timeout.min(10) };
+        }
         // SAFETY: pfd is one live pollfd. Recompute the deadline after EINTR
         // instead of restarting the full timeout under repeated signals.
         let ready = unsafe { poll(pfd.as_mut_ptr(), 1, timeout) };
