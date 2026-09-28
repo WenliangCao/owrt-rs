@@ -20,6 +20,7 @@ fn record(prefix: &str, event: &str, request: &Request, package: &[u8], status: 
         ("event", Json::Str(event.into())),
         ("peer", integer(request.peer as u64)),
         ("seq", integer(request.seq as u64)),
+        ("object_id", integer(request.objid as u64)),
         ("method", Json::Str(request.method.clone())),
         ("type", Json::Str("config.change".into())),
         ("package_hex", Json::Str(package_hex)),
@@ -60,7 +61,7 @@ pub fn serve(socket: &str, prefix: &str) -> Result<()> {
         let index = fs::read(&log_path).unwrap_or_default().iter().filter(|&&b| b == b'\n').count();
         let plan = fs::read_to_string(format!("{prefix}-status")).unwrap_or_default();
         let action = plan.lines().nth(index).unwrap_or("0");
-        let pending = action.starts_with("sleep:") || action == "drop" || action == "disconnect";
+        let pending = action.starts_with("sleep:") || action == "drop" || action == "disconnect" || action == "replace";
         let status = if pending { None } else { Some(action.parse::<i32>()?) };
         record(prefix, "receive", &request, package, status)?;
         // Legacy textual log lets old r1 scenarios keep their result assertions.
@@ -73,6 +74,13 @@ pub fn serve(socket: &str, prefix: &str) -> Result<()> {
         if let Some(seconds) = action.strip_prefix("sleep:") {
             require(delayed.len() < 64, "too many pending fault requests")?;
             delayed.push((Instant::now() + Duration::from_secs(seconds.parse()?), request, package.to_vec()));
+        } else if action == "replace" {
+            connection.remove_object(object, 3000)?;
+            object = connection.add_object("service", &[("event", &[("type", MsgType::String), ("data", MsgType::Table)])], 3000)?;
+            require(object != request.objid, "replacement reused the old object id")?;
+            record(prefix, "replace", &request, package, None)?;
+            record(prefix, "reply", &request, package, Some(0))?;
+            connection.reply_status(&request, 0, None)?;
         } else if action == "disconnect" {
             record(prefix, "disconnect", &request, package, None)?;
             drop(connection);

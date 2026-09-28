@@ -79,7 +79,8 @@ def run_candidate(
         timeout=process_timeout_s,
     )
     traces = parse_traces(result.stderr)
-    received = [item for item in raw_events(root) if item["event"] == "receive"]
+    records = raw_events(root)
+    received = [item for item in records if item["event"] == "receive"]
     deliveries = oracle.read_deliveries(root)
     if (root / "tmp/r1-delivery-ready").exists():
         assert [bytes.fromhex(item["package_hex"]) for item in received] == [
@@ -89,6 +90,7 @@ def run_candidate(
         "exit_status": result.returncode,
         "deliveries": deliveries,
         "raw_events": received,
+        "protocol_records": records,
         "baseline": oracle.parse_baseline(root),
         "baseline_bytes": (root / "var/run/config.md5").read_bytes(),
         "traces": traces,
@@ -708,7 +710,7 @@ def run_f26_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     return results, problems
 
 
-def run_protocol_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
+def run_protocol_cases(root: Path, fixture: ProtocolFixture) -> tuple[list[dict[str, Any]], list[str]]:
     results: list[dict[str, Any]] = []
     problems: list[str] = []
 
@@ -774,6 +776,57 @@ def run_protocol_cases(root: Path) -> tuple[list[dict[str, Any]], list[str]]:
     results.append({"id": "p04-unavailable-socket-absorbed-and-recovered", "passed": passed,
                     "delivery_traces": deliveries, "raw_events": result["raw_events"],
                     "recovery_events": recovered["raw_events"]})
+    if not passed: problems.append(results[-1]["id"])
+
+    prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B2")})
+    fixture.stop_receiver()
+    try:
+        missing = subprocess.run(
+            ["sudo", "-n", "chroot", str(root), "/bin/ubus", "call", "service", "event", "{}"],
+            capture_output=True, timeout=5,
+        )
+        if missing.returncode != 4:
+            raise RuntimeError(f"exact CLI missing-object status is {missing.returncode}, expected 4")
+        result = run_candidate(root, [0, 0])
+    finally:
+        fixture.start_receiver()
+    repeat = run_candidate(root, [])
+    oracle.write_config_set(root, {"alpha": "A3", "beta": "B3"}, {})
+    recovered = run_candidate(root, [0, 0])
+    deliveries = trace_of_kind(result, "delivery")
+    passed = (result["exit_status"] == 2 and len(deliveries) == 2
+              and [d["status"] for d in deliveries] == [4, 4]
+              and all(d["outcome"] == "exit_nonzero" for d in deliveries)
+              and not result["deliveries"] and not repeat["deliveries"]
+              and result["baseline_bytes"] == repeat["baseline_bytes"]
+              and repeat["exit_status"] == recovered["exit_status"] == 0
+              and [d["package"] for d in recovered["deliveries"]] == ["alpha", "beta"])
+    results.append({"id": "p05-missing-object-lookup-status-and-recovery", "passed": passed,
+                    "exact_cli_status": missing.returncode, "delivery_traces": deliveries,
+                    "raw_events": result["raw_events"], "recovery_events": recovered["raw_events"]})
+    if not passed: problems.append(results[-1]["id"])
+
+    prepare_simple_change(root, {"alpha": ("A", "A2"), "beta": ("B", "B2")})
+    result = run_candidate(root, ["replace", 0], timeout_ms=100)
+    repeat = run_candidate(root, [])
+    accepted = result["raw_events"]
+    replies = [r for r in result["protocol_records"] if r["event"] == "reply"]
+    # Exact ubusd_handle_response drops replies to an object already removed.
+    # Alpha was accepted once but its late reply cannot complete the request;
+    # timeout must remain visible while beta resolves the replacement object.
+    deliveries = trace_of_kind(result, "delivery")
+    passed = (result["exit_status"] == 2 and repeat["exit_status"] == 0
+              and [d["outcome"] for d in deliveries] == ["timeout", "success"]
+              and [d["package"] for d in result["deliveries"]] == ["alpha", "beta"]
+              and len(accepted) == 2 and accepted[0]["object_id"] != accepted[1]["object_id"]
+              and [r["status"] for r in replies] == [0, 0]
+              and [(r["peer"], r["seq"]) for r in replies] == [(r["peer"], r["seq"]) for r in accepted]
+              and result["baseline_bytes"] == repeat["baseline_bytes"]
+              and not repeat["deliveries"])
+    results.append({"id": "p06-service-object-replaced-between-ordered-events", "passed": passed,
+                    "delivery_traces": deliveries, "protocol_records": result["protocol_records"],
+                    "reply_boundary": "exact ubusd discards reply for removed object; caller times out then resolves beta anew",
+                    "repeat_events": repeat["deliveries"]})
     if not passed: problems.append(results[-1]["id"])
 
     # The shell's unescaped JSON is an explicitly rejected defect. This case
@@ -849,7 +902,7 @@ def main() -> None:
                 faults.extend(f26)
                 fault_problems.extend(f26_problems)
                 if args.receiver:
-                    protocol_cases, protocol_problems = run_protocol_cases(root)
+                    protocol_cases, protocol_problems = run_protocol_cases(root, fixture)
                     faults.extend(protocol_cases)
                     fault_problems.extend(protocol_problems)
 
