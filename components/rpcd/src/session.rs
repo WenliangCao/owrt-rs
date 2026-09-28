@@ -147,15 +147,33 @@ impl Session {
     }
 
     fn allowed_bytes(&self, scope: &str, obj: &[u8], fun: &str) -> bool {
-        // The key is the pattern's literal prefix (FNM_NOESCAPE), so an object
-        // that does not start with it cannot match; C filters with the same
-        // strncmp before fnmatch.
-        match self.acls.get(scope) {
-            Some(list) => list.iter().any(|a| {
-                obj.starts_with(&a.key) && fnmatch(&a.object, obj) && fnmatch(a.function.as_bytes(), fun.as_bytes())
-            }),
-            None => false,
+        let Some(list) = self.acls.get(scope) else { return false };
+        let matches = |a: &Acl| {
+            fnmatch(&a.object, obj) && fnmatch(a.function.as_bytes(), fun.as_bytes())
+        };
+        // Small scopes benefit from a simple scan, including the usual single
+        // wildcard grant. Larger scopes are already sorted by literal prefix.
+        if list.len() <= 8 {
+            return list.iter().any(|a| obj.starts_with(&a.key) && matches(a));
         }
+        let mut end = list.partition_point(|a| a.key.as_slice() <= obj);
+        while end != 0 {
+            let acl = &list[end - 1];
+            if obj.starts_with(&acl.key) {
+                if matches(acl) {
+                    return true;
+                }
+                end -= 1;
+            } else {
+                // A smaller key that prefixes obj cannot extend beyond the
+                // first differing byte: all longer prefixes sort after acl.
+                // Jump over that whole unrelated key range, keeping equal
+                // prefix keys (and the empty wildcard prefix) in consideration.
+                let common = acl.key.iter().zip(obj).take_while(|(a, b)| a == b).count();
+                end = list[..end - 1].partition_point(|a| a.key.as_slice() <= &obj[..common]);
+            }
+        }
+        false
     }
 
     /// rpc_session_set: same-named value is replaced; the value keeps its type.
@@ -849,6 +867,80 @@ mod tests {
         assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_TRUE);
         store.get(&sid).unwrap().revoke("ubus", Some("changing"), Some("read"));
         assert_eq!(&call(&mut store, "access", &raw).data[0], ACCESS_FALSE);
+    }
+
+    #[test]
+    fn indexed_acl_lookup_keeps_shorter_prefixes_duplicates_and_raw_bytes() {
+        let mut session = Session::new("indexed-acl");
+        for index in 0..64 {
+            session.grant("ubus", Some(&format!("a{index:02}*")), Some("denied"));
+        }
+        for (object, function) in [
+            (b"a*".as_slice(), "read"),
+            (b"a[0-9]*", "write"),
+            (b"a?9", "stat"),
+            (b"", "empty"),
+            (b"\xff*", "raw"),
+            (b"nu\0ignored", "nul"),
+            (b"*", "wildcard"),
+        ] {
+            assert_eq!(session.grant_bytes("ubus", Some(object), Some(function)), 0);
+        }
+        let before = session.to_blob(true);
+        session.grant("ubus", Some("a*"), Some("read"));
+        assert_eq!(before, session.to_blob(true));
+        for (object, function) in [
+            (b"a99".as_slice(), "read"), // skips a00..a63 but must keep a*
+            (b"a99", "write"),          // equal keys retain every function
+            (b"a99", "stat"),
+            (b"", "empty"),
+            (b"\xff", "raw"),
+            (b"nu\0tail", "nul"),
+            (b"zzzzz", "wildcard"),
+        ] {
+            assert!(session.allowed_bytes("ubus", object, function), "{object:?} {function}");
+            assert!(!session.allowed_bytes("missing", object, function));
+        }
+        assert!(!session.allowed("ubus", "a99", "denied"));
+        session.revoke("ubus", Some("a*"), Some("read"));
+        assert!(!session.allowed("ubus", "a99", "read"));
+        assert!(session.allowed("ubus", "a99", "write"));
+        session.revoke("ubus", None, None);
+        assert!(!session.allowed("ubus", "a99", "write"));
+    }
+
+    #[test]
+    fn indexed_acl_lookup_matches_linear_scan_across_generated_patterns() {
+        let mut session = Session::new("indexed-acl-generated");
+        let mut state = 0xa076_1d64_78bd_642fu64;
+        let mut next = || {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            state as usize
+        };
+        let alphabet = b"abcde012*?[]\0\xff";
+        let functions = ["read", "r*", "[rw]rite", "?", "", "all"];
+        for count in 0..128 {
+            let len = next() % 12;
+            let object: Vec<u8> = (0..len).map(|_| alphabet[next() % alphabet.len()]).collect();
+            let function = functions[next() % functions.len()];
+            session.grant_bytes("ubus", Some(&object), Some(function));
+            let list = &session.acls["ubus"];
+            assert!(list.windows(2).all(|a| a[0].key <= a[1].key));
+            for _ in 0..128 {
+                let len = next() % 14;
+                let object: Vec<u8> = (0..len).map(|_| alphabet[next() % alphabet.len()]).collect();
+                let function = functions[next() % functions.len()];
+                let linear = list.iter().any(|a| {
+                    object.starts_with(&a.key)
+                        && fnmatch(&a.object, &object)
+                        && fnmatch(a.function.as_bytes(), function.as_bytes())
+                });
+                assert_eq!(session.allowed_bytes("ubus", &object, function), linear,
+                    "{count} rules: {object:?} {function}");
+            }
+        }
     }
 
     fn empty_store() -> Store {
