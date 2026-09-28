@@ -4,7 +4,7 @@ use owrt_uci::Context;
 use std::collections::{HashMap, HashSet};
 use std::ffi::{OsStr, OsString};
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufWriter, Write};
+use std::io::{self, BufWriter, Read, Write};
 use std::os::fd::AsRawFd;
 use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
@@ -359,21 +359,32 @@ fn dispatch(
 /// carries on with the rest, so a broken line -- which is what a config
 /// filename containing a newline produces -- must not fail the round.
 fn read_baseline(path: &Path) -> Result<Vec<BaselineEntry>, Error> {
-    match fs::metadata(path) {
-        Ok(metadata) if metadata.len() > MAX_BASELINE_BYTES => {
-            return Err(Error::InvalidInput(format!(
-                "baseline is {} bytes; limit is {MAX_BASELINE_BYTES}",
-                metadata.len()
-            )))
-        }
-        Ok(_) => {}
+    let file = match File::open(path) {
+        Ok(file) => file,
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
-        Err(error) => return Err(Error::Io("stat baseline", error)),
-    }
-    let content = match fs::read(path) {
-        Ok(content) => content,
         Err(error) => return Err(Error::Io("read baseline", error)),
     };
+    let size = file
+        .metadata()
+        .map_err(|error| Error::Io("stat baseline", error))?
+        .len();
+    if size > MAX_BASELINE_BYTES {
+        return Err(Error::InvalidInput(format!(
+            "baseline is {size} bytes; limit is {MAX_BASELINE_BYTES}"
+        )));
+    }
+    let mut content = Vec::with_capacity(size as usize);
+    // The open file can grow after metadata. Read through EOF (including
+    // short reads/EINTR), but stop one byte past the limit to detect overflow
+    // before any event is delivered or a replacement baseline is written.
+    file.take(MAX_BASELINE_BYTES + 1)
+        .read_to_end(&mut content)
+        .map_err(|error| Error::Io("read baseline", error))?;
+    if content.len() as u64 > MAX_BASELINE_BYTES {
+        return Err(Error::InvalidInput(format!(
+            "baseline exceeds {MAX_BASELINE_BYTES} bytes"
+        )));
+    }
     let mut entries = Vec::new();
     for line in content.split(|&byte| byte == b'\n') {
         if line.len() < 35 || &line[32..34] != b"  " {
@@ -572,6 +583,26 @@ mod tests {
             .unwrap();
         assert!(read_baseline(&path).is_err());
         fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn baseline_limit_applies_when_metadata_understates_readable_bytes() {
+        use std::io::Write;
+        use std::os::fd::AsRawFd;
+        let (reader, writer) = owrt_ubus::sys::pipe().unwrap();
+        let path = format!("/proc/self/fd/{}", reader.as_raw_fd());
+        assert_eq!(fs::metadata(&path).unwrap().len(), 0);
+        let sender = std::thread::spawn(move || {
+            File::from(writer)
+                .write_all(&vec![b'x'; MAX_BASELINE_BYTES as usize + 1])
+                .unwrap();
+        });
+        assert!(matches!(
+            read_baseline(std::path::Path::new(&path)),
+            Err(Error::InvalidInput(_))
+        ));
+        sender.join().unwrap();
     }
 
     #[test]
