@@ -191,7 +191,7 @@ pub(crate) fn send_parts_until_cancelled<const N: usize>(sock: RawFd, parts: [&[
         }
         // SAFETY: hdr, the iovec array it points at and the control buffer all
         // outlive this call, and their lengths describe them.
-        let sent = unsafe { sendmsg(sock, &hdr, if bound.nonblocking() { MSG_DONTWAIT } else { 0 }) };
+        let sent = unsafe { sendmsg(sock, &hdr, if bound.nonblocking() || cancelled.is_some() { MSG_DONTWAIT } else { 0 }) };
         if sent < 0 {
             let error = io::Error::last_os_error();
             match error.kind() {
@@ -240,7 +240,7 @@ pub(crate) fn recv_exact_until_cancelled(sock: RawFd, buf: &mut [u8], want_fd: b
     while offset < buf.len() {
         check_cancelled(cancelled)?;
         check_deadline(deadline).map_err(|e| after_progress(e, offset > 0))?;
-        match recv_into(sock, &mut buf[offset..], first, deadline.is_some()) {
+        match recv_into(sock, &mut buf[offset..], first, deadline.is_some() || cancelled.is_some()) {
             Ok((0, _)) => {
                 return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
             }
@@ -314,7 +314,7 @@ pub fn poll_fds(fds: &mut [PollFd], timeout_ms: i32) -> io::Result<usize> {
     }
 }
 
-fn check_deadline(deadline: Option<Instant>) -> io::Result<()> {
+pub(crate) fn check_deadline(deadline: Option<Instant>) -> io::Result<()> {
     if deadline.is_some_and(|end| Instant::now() >= end) {
         return Err(io::Error::new(io::ErrorKind::TimedOut, "ubus I/O deadline elapsed"));
     }

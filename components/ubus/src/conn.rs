@@ -281,7 +281,6 @@ impl Connection {
         let bound = deadline.map_or_else(|| self.server_bound(), sys::Bound::At);
         let sock = self.stream.as_raw_fd();
         while self.rx_end - self.rx_start < need {
-            sys::check_cancelled(self.cancelled)?;
             if self.rx_start + need > INCOMING_BUFFER_SIZE {
                 self.rx.copy_within(self.rx_start..self.rx_end, 0);
                 for (mark, _) in &mut self.rx_fds {
@@ -291,7 +290,13 @@ impl Connection {
                 self.rx_start = 0;
             }
             let idle = self.rx_end == self.rx_start;
-            match sys::recv_into(sock, &mut self.rx[self.rx_end..], true, bound.nonblocking() || (start && idle)) {
+            if let Err(error) = sys::check_cancelled(self.cancelled)
+                .and_then(|()| sys::check_deadline(deadline.or(self.rx_deadline)))
+            {
+                self.rx_reset();
+                return Err(sys::after_progress(error, !idle));
+            }
+            match sys::recv_into(sock, &mut self.rx[self.rx_end..], true, bound.nonblocking() || self.cancelled.is_some() || (start && idle)) {
                 Ok((0, _)) => {
                     self.rx_reset();
                     return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "ubus connection closed"));
@@ -482,6 +487,7 @@ impl Connection {
         };
         loop {
             sys::check_cancelled(self.cancelled)?;
+            sys::check_deadline(deadline)?;
             let (header, fd, body) = self.take_frame(false, deadline)?
                 .expect("a waiting frame read yields a frame");
             if header.seq != seq || header.peer != peer
@@ -537,9 +543,11 @@ impl Connection {
         self.absolute_result(result)
     }
 
-    fn absolute_result<T>(&self, result: io::Result<T>) -> io::Result<T> {
+    fn absolute_result<T>(&mut self, result: io::Result<T>) -> io::Result<T> {
         if result.as_ref().is_err_and(|error| matches!(error.kind(), io::ErrorKind::TimedOut | io::ErrorKind::Interrupted)) {
             let _ = self.shutdown();
+            self.rx_reset();
+            self.pending.clear();
         }
         result
     }
@@ -1005,6 +1013,105 @@ mod tests {
         let (a, b) = UnixStream::pair().unwrap();
         let conn = |stream| Connection { stream, local_id: 0, seq: 0, pending: VecDeque::new(), rx: Vec::new(), rx_start: 0, rx_end: 0, rx_fds: VecDeque::new(), rx_deadline: None, spare_request: None, server_io_timeout: None, cancelled: None };
         (conn(a), conn(b))
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn cancellation_bounds_reply_prefixes_and_send_backpressure() {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        static CANCEL: AtomicBool = AtomicBool::new(false);
+        fn cancelled() -> bool { CANCEL.load(Ordering::Relaxed) }
+        for prefix in [0, 1, 12, 5000] {
+            CANCEL.store(false, Ordering::Relaxed);
+            let (mut client, mut server) = pair();
+            client.cancelled = Some(cancelled);
+            let (passed, mut observer) = UnixStream::pair().unwrap();
+            let peer = std::thread::spawn(move || {
+                let req = server.recv().unwrap();
+                let mut b = BlobBuf::new();
+                b.put(attr::DATA, &vec![0; 8192]);
+                let mut wire = Header { ty: ty::DATA, seq: req.header.seq, peer: 42 }.encode().to_vec();
+                wire.extend_from_slice(b.as_bytes());
+                if prefix != 0 {
+                    sys::send_with_fd(server.as_raw_fd(), &wire[..prefix], &[], Some(passed.as_raw_fd())).unwrap();
+                }
+                drop(passed);
+                std::thread::sleep(Duration::from_millis(20));
+                CANCEL.store(true, Ordering::Relaxed);
+                server.stream.set_read_timeout(Some(Duration::from_millis(500))).unwrap();
+                assert_eq!(server.stream.read(&mut [0]).unwrap(), 0, "cancelled request was retried or transport stayed open");
+            });
+            let start = Instant::now();
+            let error = client.invoke_status_until(42, "event", &[], start + Duration::from_secs(2)).unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::Interrupted);
+            assert!(start.elapsed() < Duration::from_millis(300));
+            peer.join().unwrap();
+            observer.set_nonblocking(true).unwrap();
+            assert_eq!(observer.read(&mut [0]).unwrap(), 0, "cancelled partial frame retained SCM_RIGHTS");
+        }
+        CANCEL.store(false, Ordering::Relaxed);
+        let (mut client, mut server) = pair();
+        client.cancelled = Some(cancelled);
+        let cancel = std::thread::spawn(|| {
+            std::thread::sleep(Duration::from_millis(20));
+            CANCEL.store(true, Ordering::Relaxed);
+        });
+        let start = Instant::now();
+        let error = client.invoke_status_until(42, "event", &vec![0; MAX_MSGLEN - 128], start + Duration::from_secs(2)).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::Interrupted);
+        assert!(start.elapsed() < Duration::from_millis(300));
+        cancel.join().unwrap();
+        server.stream.set_nonblocking(true).unwrap();
+        let mut bytes = Vec::new();
+        server.stream.read_to_end(&mut bytes).unwrap();
+        assert!(!bytes.is_empty() && bytes.len() < MAX_MSGLEN - 128);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn absolute_budget_spans_lookup_and_invoke_and_keeps_remote_timeout_status() {
+        let (mut client, mut server) = pair();
+        let peer = std::thread::spawn(move || {
+            let lookup = server.recv().unwrap();
+            std::thread::sleep(Duration::from_millis(35));
+            let mut b = BlobBuf::new();
+            b.put_u32(attr::OBJID, 42).put_string(attr::OBJPATH, "service");
+            server.send(Header { ty: ty::DATA, seq: lookup.header.seq, peer: 0 }, &mut b, None).unwrap();
+            let mut b = BlobBuf::new();
+            b.put_u32(attr::STATUS, status::OK as u32);
+            server.send(Header { ty: ty::STATUS, seq: lookup.header.seq, peer: 0 }, &mut b, None).unwrap();
+            let invoke = server.recv().unwrap();
+            assert_eq!(invoke.header.ty, ty::INVOKE);
+            // Client must close at the original deadline, not 70 ms after lookup.
+            server.stream.set_read_timeout(Some(Duration::from_millis(65))).unwrap();
+            assert_eq!(server.stream.read(&mut [0]).unwrap(), 0);
+        });
+        let deadline = Instant::now() + Duration::from_millis(70);
+        let id = client.lookup_id_until("service", deadline).unwrap();
+        let error = client.invoke_status_until(id, "event", &[], deadline).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
+        assert_eq!(error_status(&error), None);
+        peer.join().unwrap();
+
+        let (mut client, mut server) = pair();
+        let peer = std::thread::spawn(move || {
+            let req = server.recv().unwrap();
+            let mut b = BlobBuf::new();
+            b.put_u32(attr::STATUS, status::TIMEOUT as u32);
+            server.send(Header { ty: ty::STATUS, seq: req.header.seq, peer: 42 }, &mut b, None).unwrap();
+        });
+        assert_eq!(client.invoke_status_until(42, "event", &[], Instant::now() + Duration::from_secs(1)).unwrap(), status::TIMEOUT);
+        peer.join().unwrap();
+    }
+
+    #[test]
+    fn expired_receive_budget_rejects_even_ready_frame_bytes() {
+        let (mut client, mut server) = pair();
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::STATUS, status::OK as u32);
+        server.send(Header { ty: ty::STATUS, seq: 1, peer: 42 }, &mut b, None).unwrap();
+        let error = client.recv_until(Some(Instant::now() - Duration::from_millis(1))).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::TimedOut);
     }
 
     #[test]

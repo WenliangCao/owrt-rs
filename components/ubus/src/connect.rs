@@ -131,6 +131,53 @@ mod tests {
     }
 
     #[test]
+    fn cancellation_interrupts_hello_prefixes_and_full_backlog() {
+        use std::sync::atomic::AtomicBool;
+        static CANCEL: AtomicBool = AtomicBool::new(false);
+        fn cancelled() -> bool { CANCEL.load(Ordering::Relaxed) }
+        for prefix in [0, 1, 12] {
+            CANCEL.store(false, Ordering::Relaxed);
+            let fixture = Fixture::new();
+            let listener = fixture.listener.try_clone().unwrap();
+            let peer = std::thread::spawn(move || {
+                let (mut accepted, _) = listener.accept().unwrap();
+                let mut blob = BlobBuf::new();
+                blob.put_u32(crate::attr::STATUS, 0);
+                let mut wire = Header { ty: ty::HELLO, seq: 0, peer: 1234 }.encode().to_vec();
+                wire.extend_from_slice(blob.as_bytes());
+                accepted.write_all(&wire[..prefix]).unwrap();
+                std::thread::sleep(Duration::from_millis(20));
+                CANCEL.store(true, Ordering::Relaxed);
+                accepted.set_read_timeout(Some(Duration::from_millis(500))).unwrap();
+                assert_eq!(accepted.read(&mut [0]).unwrap(), 0);
+            });
+            let start = Instant::now();
+            let error = Connection::connect_interruptible(Some(fixture.path()), start + Duration::from_secs(2), cancelled)
+                .err().expect("HELLO must be cancelled");
+            assert_eq!(error.kind(), io::ErrorKind::Interrupted);
+            assert!(start.elapsed() < Duration::from_millis(300));
+            peer.join().unwrap();
+        }
+        CANCEL.store(false, Ordering::Relaxed);
+        let fixture = Fixture::new();
+        extern "C" { fn listen(fd: i32, backlog: i32) -> i32; }
+        // SAFETY: the fixture owns this listening socket; reduce its backlog.
+        assert_eq!(unsafe { listen(fixture.listener.as_raw_fd(), 0) }, 0);
+        let filler = UnixStream::connect(fixture.path()).unwrap();
+        let cancel = std::thread::spawn(|| {
+            std::thread::sleep(Duration::from_millis(20));
+            CANCEL.store(true, Ordering::Relaxed);
+        });
+        let start = Instant::now();
+        let error = Connection::connect_interruptible(Some(fixture.path()), start + Duration::from_secs(2), cancelled)
+            .err().expect("admission must be cancelled");
+        assert_eq!(error.kind(), io::ErrorKind::Interrupted);
+        assert!(start.elapsed() < Duration::from_millis(300));
+        cancel.join().unwrap();
+        drop(filler);
+    }
+
+    #[test]
     fn hello_deadline_bounds_absent_partial_header_and_partial_body() {
         for prefix in [0, 1, 12] {
             let fixture = Fixture::new();
