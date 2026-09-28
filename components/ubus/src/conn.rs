@@ -3,6 +3,7 @@
 use crate::blob::{self, BlobBuf, MsgType};
 use crate::msg::{attr, status, ty, Header, Message, MAX_MSGLEN, UBUS_SOCKET};
 use crate::sys;
+use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::io;
 use std::os::fd::{AsRawFd, OwnedFd, RawFd};
@@ -100,6 +101,38 @@ const INCOMING_BUFFER_SIZE: usize = 4096;
 enum Body {
     Buffered(std::ops::Range<usize>),
     Owned(Vec<u8>),
+}
+
+/// Remove the root header without a new allocation. SDK musl memmove falls
+/// back to byte copies for this four-byte misalignment; fixed-size loads keep
+/// the overlapping move efficient and read each word before overwriting it.
+fn remove_root_header(bytes: &mut Vec<u8>) {
+    assert!(bytes.len() >= 4);
+    let length = bytes.len() - 4;
+    let mut index = 0;
+    while length - index >= 4 {
+        // Read the entire overlapping source block before writing any of it.
+        let block: [u8; 4] = bytes[index + 4..index + 4 + 4].try_into().unwrap();
+        bytes[index..index + 4].copy_from_slice(&block);
+        index += 4;
+    }
+    while index < length {
+        bytes[index] = bytes[index + 4];
+        index += 1;
+    }
+    bytes.truncate(length);
+}
+
+/// Reply DATA excludes only the root blob header. Reuse large frame storage;
+/// removing its four-byte prefix still moves the payload within that storage.
+fn reply_payload(blob: Cow<'_, [u8]>) -> Vec<u8> {
+    match blob {
+        Cow::Borrowed(bytes) => bytes[4..].to_vec(),
+        Cow::Owned(mut bytes) => {
+            remove_root_header(&mut bytes);
+            bytes
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -382,11 +415,30 @@ impl Connection {
         fd: Option<RawFd>,
         timeout_ms: i32,
     ) -> io::Result<Reply> {
+        let mut data = Vec::new();
+        let mut reply = self.request_with_data(cmd, peer, blob, fd, timeout_ms,
+            |blob| data.push(reply_payload(blob)))?;
+        reply.data = data;
+        Ok(reply)
+    }
+
+    /// Consume each DATA blob, including its root header. Small frames borrow
+    /// receive storage; large frames transfer ownership. Scalar lookups need no
+    /// retained metadata/signature, but still wait for final STATUS.
+    fn request_with_data(
+        &mut self,
+        cmd: u8,
+        peer: u32,
+        blob: &mut BlobBuf,
+        fd: Option<RawFd>,
+        timeout_ms: i32,
+        mut on_data: impl FnMut(Cow<'_, [u8]>),
+    ) -> io::Result<Reply> {
         // One deadline covers sending and every byte of every reply. A
         // readable prefix alone must not turn a bounded call into a hang.
         let deadline = (timeout_ms > 0)
             .then(|| Instant::now() + Duration::from_millis(timeout_ms as u64));
-        let result = self.request_until(cmd, peer, blob, fd, deadline);
+        let result = self.request_until(cmd, peer, blob, fd, deadline, &mut on_data);
         if result.as_ref().is_err_and(|e| e.kind() == io::ErrorKind::TimedOut) {
             // Only a partial frame loses its framing boundary. A clean
             // request timeout must keep object servers connected: rpcd may
@@ -399,7 +451,7 @@ impl Connection {
         result
     }
 
-    fn request_until(&mut self, cmd: u8, peer: u32, blob: &mut BlobBuf, fd: Option<RawFd>, deadline: Option<Instant>) -> io::Result<Reply> {
+    fn request_until(&mut self, cmd: u8, peer: u32, blob: &mut BlobBuf, fd: Option<RawFd>, deadline: Option<Instant>, on_data: &mut impl FnMut(Cow<'_, [u8]>)) -> io::Result<Reply> {
         if blob.as_bytes().len() > MAX_MSGLEN {
             return Err(ubus_error(status::INVALID_ARGUMENT));
         }
@@ -421,14 +473,17 @@ impl Connection {
                 continue;
             }
             // Matching replies need no intermediate owned Message. DATA
-            // still has one owned copy in Reply; STATUS is consumed in place.
-            let bytes = match &body {
-                Body::Buffered(range) => &self.rx[range.clone()],
-                Body::Owned(bytes) => bytes,
-            };
+            // is consumed by the caller; STATUS is consumed in place.
             match header.ty {
-                ty::DATA => reply.data.push(bytes[4..].to_vec()),
+                ty::DATA => on_data(match body {
+                    Body::Buffered(range) => Cow::Borrowed(&self.rx[range]),
+                    Body::Owned(bytes) => Cow::Owned(bytes),
+                }),
                 ty::STATUS => {
+                    let bytes = match &body {
+                        Body::Buffered(range) => &self.rx[range.clone()],
+                        Body::Owned(bytes) => bytes,
+                    };
                     // libubus-req.c defaults a STATUS without a status attr
                     // to UBUS_STATUS_INVALID_ARGUMENT.
                     reply.status = Message::attrs_from(bytes)[attr::STATUS as usize]
@@ -446,27 +501,25 @@ impl Connection {
     pub fn lookup_id(&mut self, path: &str, timeout_ms: i32) -> io::Result<u32> {
         let mut b = BlobBuf::new();
         b.put_string(attr::OBJPATH, path);
-        let reply = self.request(ty::LOOKUP, 0, &mut b, None, timeout_ms)?;
-        if reply.status != status::OK {
-            return Err(ubus_error(reply.status));
-        }
-        for payload in &reply.data {
+        let mut found = None;
+        let reply = self.request_with_data(ty::LOOKUP, 0, &mut b, None, timeout_ms, |blob| {
+            // Keep the first usable matching DATA frame, as the collected path did.
+            if found.is_some() { return; }
             let mut id = None;
             let mut matches = false;
-            for a in blob::iter(payload) {
+            for a in blob::iter(&blob[4..]) {
                 if a.id == attr::OBJID {
                     id = a.as_u32();
                 } else if a.id == attr::OBJPATH {
                     matches = a.as_str() == Some(path);
                 }
             }
-            if matches {
-                if let Some(id) = id {
-                    return Ok(id);
-                }
-            }
+            if matches { found = id; }
+        })?;
+        if reply.status != status::OK {
+            return Err(ubus_error(reply.status));
         }
-        Err(ubus_error(status::NOT_FOUND))
+        found.ok_or_else(|| ubus_error(status::NOT_FOUND))
     }
 
     /// List objects (all when `path` is None) with id and raw signature fields.
@@ -897,8 +950,60 @@ mod tests {
     }
 
     #[test]
+    fn owned_reply_payload_keeps_allocation_attributes_and_padding() {
+        let mut b = BlobBuf::new();
+        b.put_u32(attr::OBJID, 17).put(attr::DATA, b"abc\xff\0")
+            .put(attr::DATA, b"second");
+        let samples = [b.as_bytes().to_vec(), vec![0, 0, 0, 4], vec![0, 0, 0, 7, 1, 2, 3]];
+        let lengths = (0..=256).chain([4080, 4084, 8192, 32768]);
+        for blob in samples.into_iter().chain(lengths.map(|len| {
+            (0..len + 4).map(|i| (i % 251) as u8).collect()
+        })) {
+            let expected = blob[4..].to_vec();
+            assert_eq!(reply_payload(Cow::Borrowed(&blob)), expected);
+            let pointer = blob.as_ptr();
+            let capacity = blob.capacity();
+            let payload = reply_payload(Cow::Owned(blob));
+            assert_eq!(payload, expected, "only the root header is removed");
+            assert_eq!(payload.as_ptr(), pointer, "large frame storage was replaced");
+            assert_eq!(payload.capacity(), capacity);
+        }
+    }
+
+    #[test]
+    fn lookup_reduction_preserves_first_match_and_waits_for_final_status() {
+        for final_status in [status::OK, status::NOT_FOUND] {
+            let (mut client, mut server) = pair();
+            let peer = std::thread::spawn(move || {
+                for path in ["fixture", "next"] {
+                    let request = server.recv().unwrap();
+                    assert_eq!(request.header.ty, ty::LOOKUP);
+                    for (name, id) in [("wrong", 11), (path, 23), (path, 99)] {
+                        let mut data = BlobBuf::new();
+                        data.put_string(attr::OBJPATH, "overridden").put_string(attr::OBJPATH, name)
+                            .put_u32(attr::OBJID, 1).put_u32(attr::OBJID, id)
+                            .put(attr::SIGNATURE, &[0xa5; 8192]);
+                        server.send(Header { ty: ty::DATA, seq: request.header.seq, peer: 0 }, &mut data, None).unwrap();
+                    }
+                    let mut status = BlobBuf::new();
+                    status.put_u32(attr::STATUS, if path == "fixture" { final_status as u32 } else { 0 });
+                    server.send(Header { ty: ty::STATUS, seq: request.header.seq, peer: 0 }, &mut status, None).unwrap();
+                }
+            });
+            let result = client.lookup_id("fixture", 1000);
+            if final_status == status::OK { assert_eq!(result.unwrap(), 23); }
+            else { assert_eq!(error_status(&result.unwrap_err()), Some(final_status)); }
+            assert_eq!(client.lookup_id("next", 1000).unwrap(), 23);
+            assert!(client.pending.is_empty());
+            peer.join().unwrap();
+        }
+    }
+
+    #[test]
     fn synchronous_reply_owns_data_and_preserves_unmatched_frames() {
-        for size in [16, INCOMING_BUFFER_SIZE * 2] {
+        // The wire has an eight-byte ubus header, four-byte root blob header
+        // and four-byte DATA attr header: these straddle the rx boundary.
+        for size in [16, INCOMING_BUFFER_SIZE - 16, INCOMING_BUFFER_SIZE - 12, INCOMING_BUFFER_SIZE * 2] {
             let (mut client, mut server) = pair();
             let peer = std::thread::spawn(move || {
                 let req = server.recv().unwrap();

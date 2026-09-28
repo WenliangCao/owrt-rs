@@ -75,7 +75,7 @@ impl Json {
         match self {
             Json::Null => out.extend_from_slice(b"null"),
             Json::Bool(b) => out.extend_from_slice(if *b { b"true" } else { b"false" }),
-            Json::Int(i) => out.extend_from_slice(i.to_string().as_bytes()),
+            Json::Int(i) => append_int(out, *i),
             Json::Float(f) => {
                 let mut text = String::new();
                 write_double(&mut text, *f);
@@ -107,6 +107,34 @@ impl Json {
             }
         }
     }
+}
+
+// Two decimal digits per step; 20 bytes also hold the sign of i64::MIN.
+// Keep formatting on the stack instead of allocating a String per field.
+fn append_int(out: &mut Vec<u8>, value: i64) {
+    const DIGITS: &[u8; 200] = b"00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899";
+    let mut bytes = [0u8; 20];
+    let mut end = bytes.len();
+    let mut magnitude = value.unsigned_abs();
+    while magnitude >= 100 {
+        let pair = (magnitude % 100) as usize * 2;
+        end -= 2;
+        bytes[end..end + 2].copy_from_slice(&DIGITS[pair..pair + 2]);
+        magnitude /= 100;
+    }
+    if magnitude < 10 {
+        end -= 1;
+        bytes[end] = b'0' + magnitude as u8;
+    } else {
+        let pair = magnitude as usize * 2;
+        end -= 2;
+        bytes[end..end + 2].copy_from_slice(&DIGITS[pair..pair + 2]);
+    }
+    if value < 0 {
+        end -= 1;
+        bytes[end] = b'-';
+    }
+    out.extend_from_slice(&bytes[end..]);
 }
 
 /// `printf("%.17g", d)` -- what libubox blobmsg_format_json emits for a DOUBLE
@@ -149,20 +177,50 @@ fn trim_fraction(s: &str) -> &str {
     s.strip_suffix('.').unwrap_or(s)
 }
 
+// Detect any control byte, quote or backslash in eight bytes. The subtraction
+// tests may also flag a neighbouring byte after a borrow; only the any-bit
+// result is used, then the entire flagged block is checked byte by byte.
+fn string_needs_escape(word: u64) -> bool {
+    const LO: u64 = 0x0101_0101_0101_0101;
+    const HI: u64 = 0x8080_8080_8080_8080;
+    let below_space = word.wrapping_sub(LO * 0x20) & !word & HI;
+    let quote = word ^ (LO * u64::from(b'"'));
+    let slash = word ^ (LO * u64::from(b'\\'));
+    let quote = quote.wrapping_sub(LO) & !quote & HI;
+    let slash = slash.wrapping_sub(LO) & !slash & HI;
+    (below_space | quote | slash) != 0
+}
+
 pub(crate) fn write_string(out: &mut Vec<u8>, s: &[u8]) {
     out.push(b'"');
-    for &c in s {
-        match c {
-            b'"' => out.extend_from_slice(b"\\\""),
-            b'\\' => out.extend_from_slice(b"\\\\"),
-            b'\n' => out.extend_from_slice(b"\\n"),
-            b'\r' => out.extend_from_slice(b"\\r"),
-            b'\t' => out.extend_from_slice(b"\\t"),
-            8 => out.extend_from_slice(b"\\b"),
-            c if c < 0x20 => out.extend_from_slice(format!("\\u{c:04x}").as_bytes()),
-            c => out.push(c),
+    let mut start = 0;
+    for (block_index, block) in s.chunks(8).enumerate() {
+        if block.len() == 8 && !string_needs_escape(u64::from_ne_bytes(block.try_into().unwrap())) {
+            continue;
         }
+        let index = block_index * 8;
+        if index != start { out.extend_from_slice(&s[start..index]); }
+        // Escaped blocks keep the original scalar encoder. This avoids
+        // repeated empty-range copies for adjacent escape characters.
+        for &c in block {
+            match c {
+                b'"' => out.extend_from_slice(b"\\\""),
+                b'\\' => out.extend_from_slice(b"\\\\"),
+                b'\n' => out.extend_from_slice(b"\\n"),
+                b'\r' => out.extend_from_slice(b"\\r"),
+                b'\t' => out.extend_from_slice(b"\\t"),
+                8 => out.extend_from_slice(b"\\b"),
+                c if c < 0x20 => {
+                    const HEX: &[u8; 16] = b"0123456789abcdef";
+                    out.extend_from_slice(&[b'\\', b'u', b'0', b'0',
+                        HEX[(c >> 4) as usize], HEX[(c & 15) as usize]]);
+                }
+                c => out.push(c),
+            }
+        }
+        start = index + block.len();
     }
+    out.extend_from_slice(&s[start..]);
     out.push(b'"');
 }
 
@@ -414,6 +472,102 @@ impl<'a> Parser<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn scalar_string(out: &mut Vec<u8>, s: &[u8]) {
+        out.push(b'"');
+        for &c in s {
+            match c {
+                b'"' => out.extend_from_slice(b"\\\""),
+                b'\\' => out.extend_from_slice(b"\\\\"),
+                b'\n' => out.extend_from_slice(b"\\n"),
+                b'\r' => out.extend_from_slice(b"\\r"),
+                b'\t' => out.extend_from_slice(b"\\t"),
+                8 => out.extend_from_slice(b"\\b"),
+                c if c < 0x20 => out.extend_from_slice(format!("\\u{c:04x}").as_bytes()),
+                c => out.push(c),
+            }
+        }
+        out.push(b'"');
+    }
+
+    #[test]
+    fn integer_output_matches_standard_formatting_at_boundaries_and_full_width() {
+        let check = |value: i64| {
+            let mut out = b"prefix".to_vec();
+            Json::Int(value).append_to(&mut out);
+            assert_eq!(out, format!("prefix{value}").as_bytes());
+        };
+        for value in [i64::MIN, i64::MIN + 1, i64::MAX - 1, i64::MAX] { check(value); }
+        for value in -1000..=1000 { check(value); }
+        let mut power = 1i64;
+        loop {
+            for value in [power - 1, power, power + 1] { check(value); check(-value); }
+            let Some(next) = power.checked_mul(10) else { break };
+            power = next;
+        }
+        let mut random = 0x0123_4567_89ab_cdefu64;
+        for _ in 0..100_000 {
+            random = random.wrapping_mul(6364136223846793005).wrapping_add(1);
+            check(random as i64);
+        }
+    }
+
+    #[test]
+    fn word_escape_detection_matches_scalar_bytes() {
+        let check = |bytes: [u8; 8]| {
+            let expected = bytes.iter().any(|&c| c < 0x20 || c == b'"' || c == b'\\');
+            assert_eq!(string_needs_escape(u64::from_ne_bytes(bytes)), expected, "{bytes:?}");
+        };
+        for background in [0, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x5b, 0x5c, 0x5d, 0x7f, 0x80, 0xff] {
+            for lane in 0..8 {
+                for byte in 0..=255 {
+                    let mut bytes = [background; 8];
+                    bytes[lane] = byte;
+                    check(bytes);
+                }
+            }
+        }
+        let mut word = 0x0123_4567_89ab_cdefu64;
+        for _ in 0..100_000 {
+            word = word.wrapping_mul(6364136223846793005).wrapping_add(1);
+            check(word.to_ne_bytes());
+        }
+    }
+
+    #[test]
+    fn bulk_string_runs_preserve_every_byte_and_append_boundary() {
+        for offset in 0..32 {
+            for byte in 0..=255u8 {
+                let mut input = vec![b'a'; 64];
+                input[offset] = byte;
+                input[63 - offset] = byte;
+                let mut expected = b"prefix".to_vec();
+                scalar_string(&mut expected, &input);
+                for spare in [0, 1, 7, 64, 128] {
+                    let mut actual = Vec::with_capacity(6 + spare);
+                    actual.extend_from_slice(b"prefix");
+                    write_string(&mut actual, &input);
+                    assert_eq!(actual, expected, "offset {offset}, byte {byte}");
+                }
+            }
+        }
+        // Exercise every tail length after zero, one and two complete words.
+        for len in 1..=24 {
+            for byte in [b'a', b'"', b'\\', 0, 0x1f, 0x80, 0xff] {
+                let mut input = vec![b'a'; len];
+                input[len - 1] = byte;
+                let mut expected = Vec::new();
+                scalar_string(&mut expected, &input);
+                assert_eq!(Json::Bytes(input).to_bytes(), expected);
+            }
+        }
+        for input in [vec![], (0..=255u8).collect(), vec![b'x'; 32768],
+                      b"\n\t\r\\\"\x08\x00\xff".repeat(100)] {
+            let mut expected = Vec::new();
+            scalar_string(&mut expected, &input);
+            assert_eq!(Json::Bytes(input).to_bytes(), expected);
+        }
+    }
+
 
     #[test]
     fn roundtrip() {

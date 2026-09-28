@@ -152,6 +152,13 @@ fn serve_to(output: &mut http::Out<'_, Discard>, request: &http::Request, pi: &f
 
 fn profile_reply(n: u64, filter: &str, label: &str, fields: &[u8]) {
     let value = owrt_ubus::convert::fields_to_json(fields);
+    for capacity in [128, fields.len() + 128] {
+        measure(&format!("rpc_{label}_reply_capacity_{capacity}"), n, filter, || {
+            let mut out = Vec::with_capacity(capacity);
+            owrt_ubus::convert::append_fields_json(black_box(fields), &mut out);
+            black_box(out);
+        });
+    }
     let mut direct = Vec::new();
     owrt_ubus::convert::append_fields_json(fields, &mut direct);
     assert_eq!(direct, value.to_bytes());
@@ -248,6 +255,32 @@ fn profile_rpc(n: u64, filter: &str, fixture: &str) -> io::Result<()> {
         large.msg_string(&format!("field{index}"), &text);
     }
     profile_reply(n, filter, "32k", large.payload());
+    for (name, pattern) in [("plain120", "x".repeat(120).into_bytes()),
+        ("escaped120", b"a\\\"\n\r\t".repeat(20)),
+        ("utf8", "你好，路由器 🌐".repeat(10).into_bytes())] {
+        let mut sample = owrt_ubus::BlobBuf::new();
+        let array = sample.msg_open_array("values");
+        for _ in 0..256 { sample.msg_string_bytes("", &pattern); }
+        sample.msg_close(array);
+        profile_reply(n, filter, name, sample.payload());
+    }
+    for (name, position) in [("escape_early", 0), ("escape_middle", 512), ("escape_late", 999)] {
+        let mut text = vec![b'x'; 1000];
+        text[position] = b'"';
+        let mut sample = owrt_ubus::BlobBuf::new();
+        for index in 0..32 { sample.msg_string_bytes(&format!("field{index}"), &text); }
+        profile_reply(n, filter, name, sample.payload());
+    }
+    for (name, control) in [("integers", false), ("control_bytes", true)] {
+        let mut sample = owrt_ubus::BlobBuf::new();
+        let array = sample.msg_open_array("values");
+        for index in 0..1024 {
+            if control { sample.msg_string_bytes("", &[1, 2, 3, 4, 5, 6, 7, 0x0b, 0x0c, 0x1f]); }
+            else { sample.msg_i64("", i64::MIN.wrapping_add(index * 1_000_000_007)); }
+        }
+        sample.msg_close(array);
+        profile_reply(n, filter, name, sample.payload());
+    }
     let client = RefCell::new(BufReader::new(Discard));
     let mut out = http::Out::new(&client, -1, 16384, Duration::from_secs(30));
     measure("rpc_handle_reused", n, filter, || {

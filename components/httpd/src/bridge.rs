@@ -147,32 +147,33 @@ fn rpc_id(obj: Option<&Json>) -> Json {
     obj.and_then(|o| o.get("id")).cloned().unwrap_or(Json::Null)
 }
 
-/// The envelope has fixed field names. Keep only its variable values instead
-/// of allocating a generic JSON object, then serialize once into the wire body.
-struct RpcResponse {
-    id: Json,
-    error: bool,
-    value: RpcValue,
+/// Successful calls already own their complete wire envelope. Other methods
+/// keep variable JSON values until serialization; batch output stays lazy.
+enum RpcResponse {
+    Json { id: Json, error: bool, value: Json },
+    Encoded(Vec<u8>),
 }
 
-enum RpcValue {
-    Json(Json),
-    Encoded(Vec<u8>),
+fn append_rpc_header(out: &mut Vec<u8>, id: &Json, error: bool) {
+    out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"id\":");
+    id.append_to(out);
+    out.extend_from_slice(if error { b",\"error\":" } else { b",\"result\":" });
 }
 
 impl RpcResponse {
     fn append_to(&self, out: &mut Vec<u8>) {
-        out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"id\":");
-        self.id.append_to(out);
-        out.extend_from_slice(if self.error { b",\"error\":" } else { b",\"result\":" });
-        match &self.value {
-            RpcValue::Json(value) => value.append_to(out),
-            RpcValue::Encoded(bytes) => out.extend_from_slice(bytes),
+        match self {
+            Self::Json { id, error, value } => {
+                append_rpc_header(out, id, *error);
+                value.append_to(out);
+                out.push(b'}');
+            }
+            Self::Encoded(bytes) => out.extend_from_slice(bytes),
         }
-        out.push(b'}');
     }
 
-    fn to_bytes(&self) -> Vec<u8> {
+    fn into_bytes(self) -> Vec<u8> {
+        if let Self::Encoded(bytes) = self { return bytes; }
         let mut out = Vec::with_capacity(128);
         self.append_to(&mut out);
         out
@@ -195,14 +196,14 @@ fn rpc_batch(responses: impl Iterator<Item = RpcResponse>, mut emit: impl FnMut(
 
 fn rpc_error(id: Json, error: RpcError) -> RpcResponse {
     let (code, message) = error.code_message();
-    RpcResponse { id, error: true, value: RpcValue::Json(Json::Object(vec![
+    RpcResponse::Json { id, error: true, value: Json::Object(vec![
         ("code".into(), Json::Int(code)),
         ("message".into(), Json::Str(message.into())),
-    ])) }
+    ]) }
 }
 
 fn rpc_result(id: Json, result: Json) -> RpcResponse {
-    RpcResponse { id, error: false, value: RpcValue::Json(result) }
+    RpcResponse::Json { id, error: false, value: result }
 }
 
 /// Most replies carry a single DATA attr. Borrow that payload; multiple DATA
@@ -276,32 +277,40 @@ fn do_call(
     match conn.invoke_status(objid, function, b.payload(), bridge.timeout_ms) {
         Err(e) if e.to_string().contains("timed out") => rpc_error(id, RpcError::Timeout),
         Err(_) => rpc_error(id, RpcError::Internal),
-        Ok(reply) => {
-            let data = reply_fields(&reply);
-            let has_data = !data.is_empty();
-            if !legacy && reply.status != 0 {
-                return RpcResponse { id, error: true, value: RpcValue::Json(Json::Object(vec![
-                    ("code".into(), Json::Int(reply.status as i64)),
-                    ("message".into(), Json::Str(owrt_ubus::status::name(reply.status))),
-                ])) };
-            }
-            // Serialize one reply directly from its borrowed blob fields.
-            // Batch emission still flushes before evaluating the next RPC.
-            let mut value = Vec::with_capacity(128);
-            if legacy {
-                value.push(b'[');
-                Json::Int(reply.status as i64).append_to(&mut value);
-                if has_data { value.push(b','); }
-            }
-            if has_data {
-                append_fields_json(&data, &mut value);
-            } else if !legacy {
-                value.extend_from_slice(b"null");
-            }
-            if legacy { value.push(b']'); }
-            RpcResponse { id, error: false, value: RpcValue::Encoded(value) }
-        }
+        Ok(reply) => rpc_call_result(id, legacy, &reply),
     }
+}
+
+fn rpc_call_result(id: Json, legacy: bool, reply: &owrt_ubus::Reply) -> RpcResponse {
+    if !legacy && reply.status != 0 {
+        return RpcResponse::Json { id, error: true, value: Json::Object(vec![
+            ("code".into(), Json::Int(reply.status as i64)),
+            ("message".into(), Json::Str(owrt_ubus::status::name(reply.status))),
+        ]) };
+    }
+    let data = reply_fields(reply);
+    let has_data = !data.is_empty();
+    // Encode into the final envelope while the reply and connection lease
+    // still have their original lifetimes. Single calls can move this buffer
+    // to HTTP output; batch calls append it before their per-result flush.
+    // Blob length is a useful estimate for ordinary replies (as in libubox).
+    // Bound the initial reservation: a large malformed or non-string field
+    // can render as a very short value. Escaped output may still grow normally.
+    let mut out = Vec::with_capacity(data.len().clamp(128, 32 * 1024));
+    append_rpc_header(&mut out, &id, false);
+    if legacy {
+        out.push(b'[');
+        Json::Int(reply.status as i64).append_to(&mut out);
+        if has_data { out.push(b','); }
+    }
+    if has_data {
+        append_fields_json(&data, &mut out);
+    } else if !legacy {
+        out.extend_from_slice(b"null");
+    }
+    if legacy { out.push(b']'); }
+    out.push(b'}');
+    RpcResponse::Encoded(out)
 }
 
 fn do_list(bridge: &Bridge, id: Json, params: Option<&Json>) -> RpcResponse {
@@ -409,7 +418,7 @@ fn send_json<W: Write>(
 }
 
 fn error_only(error: RpcError) -> Vec<u8> {
-    rpc_error(Json::Null, error).to_bytes()
+    rpc_error(Json::Null, error).into_bytes()
 }
 
 /// uh_ubus_data_send's failure exit (ubus.c:944-952): the body could not be
@@ -516,7 +525,7 @@ pub fn handle<W: Sink>(
             if rest.is_empty() || rest == "/" {
                 return match parsed {
                     Some(obj @ Json::Object(_)) => {
-                        let out = handle_object(bridge, &obj, true).to_bytes();
+                        let out = handle_object(bridge, &obj, true).into_bytes();
                         send_json(resp, bridge, request, 200, "OK", &out)
                     }
                     Some(Json::Array(items)) => {
@@ -564,7 +573,7 @@ pub fn handle<W: Sink>(
                     }
                     _ => rpc_error(Json::Null, RpcError::Parse),
                 };
-                return send_json(resp, bridge, request, 200, "OK", out.to_bytes());
+                return send_json(resp, bridge, request, 200, "OK", out.into_bytes());
             }
             resp.status(404, "Not Found")?;
             resp.end_headers()?;
@@ -649,14 +658,14 @@ mod tests {
         let result = rpc_result(Json::Bytes(b"id\xff\"".to_vec()),
                                 Json::Array(vec![Json::Int(0), Json::Bytes(b"a\n\x80".to_vec())]));
         let expected = b"{\"jsonrpc\":\"2.0\",\"id\":\"id\xff\\\"\",\"result\":[0,\"a\\n\x80\"]}";
-        assert_eq!(result.to_bytes(), expected);
         let mut prefixed = b"prefix".to_vec();
         result.append_to(&mut prefixed);
         assert_eq!(&prefixed[..6], b"prefix");
         assert_eq!(&prefixed[6..], expected);
+        assert_eq!(result.into_bytes(), expected);
 
         let failure = rpc_error(Json::Null, RpcError::Parse);
-        assert_eq!(failure.to_bytes(),
+        assert_eq!(rpc_error(Json::Null, RpcError::Parse).into_bytes(),
                    br#"{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}"#);
         let collect = |items: Vec<RpcResponse>| {
             let mut out = Vec::new();
@@ -668,13 +677,67 @@ mod tests {
         assert_eq!(batch,
                    br#"[{"jsonrpc":"2.0","id":1,"result":null},{"jsonrpc":"2.0","id":null,"error":{"code":-32700,"message":"Parse error"}}]"#);
         let large = rpc_result(Json::Array(vec![Json::Bool(true)]), Json::Str("x".repeat(8192)));
-        let parsed = json::parse_bytes(&large.to_bytes()).unwrap();
+        let parsed = json::parse_bytes(&large.into_bytes()).unwrap();
         assert_eq!(parsed.get("id"), Some(&Json::Array(vec![Json::Bool(true)])));
         assert_eq!(parsed.get("result").and_then(Json::as_str), Some("x".repeat(8192).as_str()));
     }
 
     #[test]
+    fn call_envelopes_preserve_status_empty_data_and_wire_bytes() {
+        use owrt_ubus::{attr, Reply};
+        let id = Json::Array(vec![Json::Bytes(b"id\xff\"".to_vec()), Json::Int(-3)]);
+        let mut fields = BlobBuf::new();
+        fields.msg_string_bytes("raw", b"a\xff\n");
+        let mut data = BlobBuf::new();
+        data.put(attr::DATA, fields.payload());
+        let mut malformed = BlobBuf::new();
+        malformed.put(attr::DATA, &[0]);
+        for payloads in [vec![], vec![data.into_payload()], vec![malformed.into_payload()]] {
+            for status in [0, owrt_ubus::status::PERMISSION_DENIED] {
+                for legacy in [false, true] {
+                    let reply = Reply { status, data: payloads.clone(), fd: None };
+                    let fields = reply_fields(&reply);
+                    let has_data = !fields.is_empty();
+                    let expected = if !legacy && status != 0 {
+                        RpcResponse::Json { id: id.clone(), error: true, value: Json::Object(vec![
+                            ("code".into(), Json::Int(status as i64)),
+                            ("message".into(), Json::Str(owrt_ubus::status::name(status))),
+                        ]) }
+                    } else if legacy {
+                        let mut result = vec![Json::Int(status as i64)];
+                        if has_data { result.push(fields_to_json(&fields)); }
+                        rpc_result(id.clone(), Json::Array(result))
+                    } else {
+                        rpc_result(id.clone(), if has_data { fields_to_json(&fields) } else { Json::Null })
+                    }.into_bytes();
+                    let response = rpc_call_result(id.clone(), legacy, &reply);
+                    let mut appended = b"prefix".to_vec();
+                    response.append_to(&mut appended);
+                    assert_eq!(&appended[6..], expected);
+                    assert_eq!(response.into_bytes(), expected);
+                }
+            }
+        }
+        // A large DATA value that contains no valid fields renders briefly;
+        // the initial estimate must not reserve its entire received size.
+        let mut malformed = BlobBuf::new();
+        malformed.put(attr::DATA, &vec![0; 128 * 1024]);
+        let bytes = rpc_call_result(Json::Null, false,
+            &Reply { status: 0, data: vec![malformed.into_payload()], fd: None }).into_bytes();
+        assert_eq!(bytes, br#"{"jsonrpc":"2.0","id":null,"result":{}}"#);
+        assert!(bytes.capacity() <= 32 * 1024);
+        // The encoded fast path returns its original allocation to the caller.
+        let response = rpc_call_result(Json::Int(1), true,
+            &Reply { status: 0, data: vec![], fd: None });
+        let RpcResponse::Encoded(ref bytes) = response else { panic!("call not encoded") };
+        let allocation = bytes.as_ptr();
+        assert_eq!(response.into_bytes().as_ptr(), allocation);
+    }
+
+    #[test]
     fn a_failed_batch_writer_stops_before_executing_the_next_rpc() {
+        let never = std::iter::once_with(|| panic!("RPC ran after opening write failed"));
+        assert!(rpc_batch(never, |_| Err(io::Error::from(io::ErrorKind::BrokenPipe))).is_err());
         let mut handled = 0;
         let responses = (0..100).map(|id| {
             handled += 1;

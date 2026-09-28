@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use std::cell::{Cell, RefCell};
 use std::net::TcpStream;
 use owrt_ubus::sys::{poll_fds, PollFd, POLLIN, POLLOUT};
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, BufRead, BufReader, Read, Write, IoSlice};
 use std::os::fd::RawFd;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -281,6 +281,9 @@ impl Read for Sock {
 impl Write for Sock {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.0.write(buf)
+    }
+    fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
+        self.0.write_vectored(bufs)
     }
     fn flush(&mut self) -> io::Result<()> {
         self.0.flush()
@@ -774,6 +777,7 @@ pub struct Out<'a, T: Read + Write> {
     /// Budget for one blocking drain, from the configured network timeout.
     timeout: Duration,
     deferred: bool,
+    plain_vectored: bool,
 }
 
 impl<'a, T: Read + Write> Out<'a, T> {
@@ -786,7 +790,13 @@ impl<'a, T: Read + Write> Out<'a, T> {
     pub fn with_buffer(client: &'a RefCell<BufReader<T>>, fd: RawFd, window: usize,
                        timeout: Duration, buf: Vec<u8>) -> Self {
         Out { client, fd, buf, start: 0, end: 0,
-              window, timeout, deferred: false }
+              window, timeout, deferred: false, plain_vectored: false }
+    }
+
+    /// Plain sockets can combine queued headers and a borrowed large body in
+    /// one transport write. TLS keeps the ordinary buffered path.
+    pub fn enable_plain_vectored(&mut self) {
+        self.plain_vectored = true;
     }
 
     /// Return initialized storage only after a completed response. The next
@@ -820,7 +830,10 @@ impl<'a, T: Read + Write> Out<'a, T> {
     /// Push until the window is empty. The budget covers the whole drain, not
     /// one write, so many small partial writes cannot extend it.
     fn drain_blocking(&mut self) -> io::Result<()> {
-        let deadline = Instant::now() + self.timeout;
+        self.drain_until(Instant::now() + self.timeout)
+    }
+
+    fn drain_until(&mut self, deadline: Instant) -> io::Result<()> {
         while self.pending() != 0 {
             let before = self.pending();
             self.drain_ready()?;
@@ -900,16 +913,52 @@ impl<T: Read + Write> Sink for Out<'_, T> {
 }
 
 impl<T: Read + Write> Write for Out<'_, T> {
-    fn write(&mut self, data: &[u8]) -> io::Result<usize> {
+    fn write(&mut self, mut data: &[u8]) -> io::Result<usize> {
+        let length = data.len();
+        let deadline = if self.plain_vectored && !self.deferred && length >= self.window {
+            let deadline = Instant::now() + self.timeout;
+            let queued = self.pending();
+            let result = borrow(self.client)?.get_mut().write_vectored(&[
+                IoSlice::new(&self.buf[self.start..self.end]), IoSlice::new(data),
+            ]);
+            match result {
+                Ok(0) => return Err(io::Error::new(io::ErrorKind::WriteZero, "client accepted nothing")),
+                Ok(n) => {
+                    self.start += n.min(queued);
+                    data = &data[n.saturating_sub(queued)..];
+                    if self.start == self.end {
+                        self.start = 0;
+                        self.end = 0;
+                    }
+                    if data.is_empty() {
+                        return Ok(length);
+                    }
+                }
+                // One optimistic attempt only. EINTR has consumed no bytes;
+                // both transient errors fall back using the original budget.
+                Err(e) if matches!(e.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::Interrupted) => {}
+                Err(e) => return Err(e),
+            }
+            if Instant::now() >= deadline {
+                return Err(io::Error::new(io::ErrorKind::TimedOut, "response write deadline"));
+            }
+            Some(deadline)
+        } else {
+            None
+        };
         self.compact();
         let initialized = (self.buf.len() - self.end).min(data.len());
         self.buf[self.end..self.end + initialized].copy_from_slice(&data[..initialized]);
         self.buf.extend_from_slice(&data[initialized..]);
         self.end += data.len();
-        if !self.deferred && self.pending() >= self.window {
+        if let Some(deadline) = deadline {
+            // The original large write crossed the window: even a short
+            // suffix must drain before this call reports success.
+            self.drain_until(deadline)?;
+        } else if !self.deferred && self.pending() >= self.window {
             self.drain_blocking()?;
         }
-        Ok(data.len())
+        Ok(length)
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -1757,6 +1806,181 @@ mod tests {
         heads.recycle(request);
         assert!(heads.spare.is_none());
         assert_eq!(heads.line.capacity(), 0);
+    }
+
+    // The transport script covers slice boundaries independently of sockets.
+    // Real readiness / TLS / batch recovery stay in the integration gates.
+    enum FirstWrite {
+        Accept(usize),
+        Error(io::ErrorKind),
+    }
+    struct VectorWrites {
+        first: FirstWrite,
+        delay: Duration,
+        bytes: Vec<u8>,
+        vectors: usize,
+        scalars: usize,
+        scalar_limit: usize,
+        scalar_error: Option<io::ErrorKind>,
+    }
+    impl VectorWrites {
+        fn new(first: FirstWrite) -> Self {
+            Self { first, delay: Duration::ZERO, bytes: Vec::new(), vectors: 0,
+                scalars: 0, scalar_limit: 7, scalar_error: None }
+        }
+    }
+    impl Read for VectorWrites {
+        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> { Ok(0) }
+    }
+    impl Write for VectorWrites {
+        fn write(&mut self, data: &[u8]) -> io::Result<usize> {
+            self.scalars += 1;
+            if let Some(error) = self.scalar_error.take() { return Err(error.into()); }
+            let n = data.len().min(self.scalar_limit);
+            self.bytes.extend_from_slice(&data[..n]);
+            Ok(n)
+        }
+        fn write_vectored(&mut self, parts: &[IoSlice<'_>]) -> io::Result<usize> {
+            self.vectors += 1;
+            assert_eq!(self.vectors, 1, "optimistic attempt repeated");
+            std::thread::sleep(self.delay);
+            let mut left = match self.first {
+                FirstWrite::Accept(n) => n.min(parts.iter().map(|p| p.len()).sum()),
+                FirstWrite::Error(error) => return Err(error.into()),
+            };
+            let total = left;
+            for part in parts {
+                let n = left.min(part.len());
+                self.bytes.extend_from_slice(&part[..n]);
+                left -= n;
+            }
+            Ok(total)
+        }
+        fn flush(&mut self) -> io::Result<()> { Ok(()) }
+    }
+
+    #[test]
+    fn large_vectored_write_accounts_for_every_prefix_body_boundary() {
+        let header = b"head:";
+        let body: Vec<_> = (0..129).map(|i| (i % 251) as u8).collect();
+        let total = header.len() + body.len();
+        for accepted in [1, header.len() - 1, header.len(), header.len() + 1, total - 1, total] {
+            let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(accepted))));
+            let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
+            out.enable_plain_vectored();
+            out.write_all(header).unwrap();
+            let capacity = out.buf.capacity();
+            assert_eq!(out.write(&body).unwrap(), body.len());
+            assert_eq!(out.pending(), 0, "even a short fallback tail must drain");
+            if accepted == total {
+                assert_eq!(out.buf.capacity(), capacity, "complete write copied or grew output storage");
+                assert_eq!(client.borrow().get_ref().scalars, 0);
+            }
+            let mut expected = header.to_vec();
+            expected.extend_from_slice(&body);
+            assert_eq!(client.borrow().get_ref().bytes, expected);
+            out.write_all(b"tail").unwrap();
+            out.finish_request().unwrap();
+            expected.extend_from_slice(b"tail");
+            assert_eq!(client.borrow().get_ref().bytes, expected);
+            assert_eq!(client.borrow().get_ref().vectors, 1);
+            assert!(out.buf.capacity() <= 128);
+        }
+    }
+
+    #[test]
+    fn large_vectored_transient_errors_fall_back_without_another_attempt() {
+        for error in [io::ErrorKind::WouldBlock, io::ErrorKind::Interrupted] {
+            let mut writer = VectorWrites::new(FirstWrite::Error(error));
+            writer.scalar_error = Some(io::ErrorKind::Interrupted);
+            let client = RefCell::new(BufReader::new(writer));
+            let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
+            out.enable_plain_vectored();
+            out.write_all(b"head:").unwrap();
+            out.write_all(&[42; 129]).unwrap();
+            assert_eq!(out.pending(), 0);
+            let writer = client.borrow();
+            let writer = writer.get_ref();
+            assert_eq!(writer.vectors, 1);
+            assert!(writer.scalars > 1);
+            assert_eq!(writer.bytes, [b"head:".as_slice(), &[42; 129]].concat());
+        }
+    }
+
+    #[test]
+    fn large_vectored_errors_propagate_and_do_not_write_later_bytes() {
+        for (first, expected) in [
+            (FirstWrite::Accept(0), io::ErrorKind::WriteZero),
+            (FirstWrite::Error(io::ErrorKind::BrokenPipe), io::ErrorKind::BrokenPipe),
+        ] {
+            let client = RefCell::new(BufReader::new(VectorWrites::new(first)));
+            let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
+            out.enable_plain_vectored();
+            out.write_all(b"head:").unwrap();
+            assert_eq!(out.write_all(&[42; 129]).unwrap_err().kind(), expected);
+            assert!(client.borrow().get_ref().bytes.is_empty());
+            assert_eq!(client.borrow().get_ref().scalars, 0);
+        }
+        let mut writer = VectorWrites::new(FirstWrite::Accept(7));
+        writer.scalar_error = Some(io::ErrorKind::BrokenPipe);
+        let client = RefCell::new(BufReader::new(writer));
+        let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
+        out.enable_plain_vectored();
+        out.write_all(b"head:").unwrap();
+        assert_eq!(out.write_all(&[42; 129]).unwrap_err().kind(), io::ErrorKind::BrokenPipe);
+        assert_eq!(client.borrow().get_ref().bytes, b"head:**");
+        assert_eq!(client.borrow().get_ref().scalars, 1);
+    }
+
+    #[test]
+    fn large_vectored_attempt_cannot_start_a_fresh_fallback_deadline() {
+        for first in [FirstWrite::Accept(7), FirstWrite::Error(io::ErrorKind::WouldBlock),
+                      FirstWrite::Error(io::ErrorKind::Interrupted)] {
+            let mut writer = VectorWrites::new(first);
+            writer.delay = Duration::from_millis(20);
+            let client = RefCell::new(BufReader::new(writer));
+            let mut out = Out::new(&client, -1, 64, Duration::from_millis(5));
+            out.enable_plain_vectored();
+            out.write_all(b"head:").unwrap();
+            assert_eq!(out.write_all(&[42; 129]).unwrap_err().kind(), io::ErrorKind::TimedOut);
+            assert_eq!(client.borrow().get_ref().vectors, 1);
+            assert_eq!(client.borrow().get_ref().scalars, 0);
+        }
+    }
+
+    #[test]
+    fn large_vectored_path_requires_plain_opt_in_and_defers_to_cgi_readiness() {
+        // TLS does not opt in, and even an opted-in plain CGI sink defers.
+        for (plain, deferred) in [(false, false), (true, true)] {
+            let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(usize::MAX))));
+            let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
+            if plain { out.enable_plain_vectored(); }
+            out.set_deferred(deferred);
+            out.write_all(b"head:").unwrap();
+            out.write_all(&[42; 129]).unwrap();
+            assert_eq!(client.borrow().get_ref().vectors, 0);
+            if deferred {
+                assert_eq!(out.pending(), 134);
+                assert!(client.borrow().get_ref().bytes.is_empty());
+                assert_eq!(client.borrow().get_ref().scalars, 0);
+                out.drain_ready().unwrap();
+                assert_eq!(out.pending(), 0);
+            }
+            assert_eq!(client.borrow().get_ref().bytes, [b"head:".as_slice(), &[42; 129]].concat());
+        }
+    }
+
+    #[test]
+    fn large_vectored_opt_in_leaves_direct_file_reads_unchanged() {
+        let client = RefCell::new(BufReader::new(VectorWrites::new(FirstWrite::Accept(usize::MAX))));
+        let mut out = Out::new(&client, -1, 64, Duration::from_secs(1));
+        out.enable_plain_vectored();
+        out.write_all(b"head:").unwrap();
+        let source = [42; 257];
+        out.copy_from(&mut io::Cursor::new(source), 129).unwrap();
+        out.finish_request().unwrap();
+        assert_eq!(client.borrow().get_ref().vectors, 0);
+        assert_eq!(client.borrow().get_ref().bytes, [b"head:".as_slice(), &[42; 129]].concat());
     }
 
     #[test]

@@ -423,6 +423,13 @@ impl Write for Transport {
             Transport::Tls(s) => s.write(buf),
         }
     }
+    fn write_vectored(&mut self, bufs: &[io::IoSlice<'_>]) -> io::Result<usize> {
+        match self {
+            Transport::Plain(s) => s.write_vectored(bufs),
+            // The TLS Out never opts in; preserve Write's scalar fallback.
+            Transport::Tls(s) => s.write_vectored(bufs),
+        }
+    }
     fn flush(&mut self) -> io::Result<()> {
         match self {
             Transport::Plain(s) => s.flush(),
@@ -607,6 +614,9 @@ impl Server {
             let buffer = self.output_buffers.lock().unwrap_or_else(|e| e.into_inner())
                 .pop().unwrap_or_else(|| Vec::with_capacity(512));
             let mut out = http::Out::with_buffer(&client, conn.fd, OUT_WINDOW, network_timeout, buffer);
+            if !conn.tls {
+                out.enable_plain_vectored();
+            }
             // The body is decoded on demand: CGI streams it straight to the
             // script's stdin, so an upload never has to fit in memory first.
             let mut body = http::BodyReader::new(&client, &request);
@@ -1202,6 +1212,22 @@ mod connection_tests {
         let parking = Arc::new(Parking { inbox: Mutex::new(Vec::new()), wake: owned.into() });
         server.listeners.lock().unwrap().push(Arc::downgrade(&parking));
         (parking, read)
+    }
+
+    #[test]
+    fn large_vectored_plain_transport_forwards_both_slices() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let mut peer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (socket, _) = listener.accept().unwrap();
+        peer.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
+        let mut transport = Transport::Plain(http::Sock::new(socket));
+        let written = transport.write_vectored(&[
+            io::IoSlice::new(b"header:"), io::IoSlice::new(b"body"),
+        ]).unwrap();
+        assert_eq!(written, 11);
+        let mut received = [0; 11];
+        peer.read_exact(&mut received).unwrap();
+        assert_eq!(&received, b"header:body");
     }
 
     #[test]
