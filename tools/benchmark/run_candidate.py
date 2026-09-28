@@ -52,6 +52,7 @@ def main():
                         help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--httpd-workloads", nargs="+", help="explicit subset of the HTTP matrix")
+    parser.add_argument("--rpcd-workloads", nargs="+", help="explicit RPCD matrix lanes, including targeted UCI/ACL/LuCI queries")
     parser.add_argument("--fw4-workloads", nargs="+", choices=("print", "check"),
                         help="fw4 command subset; defaults to print check")
     parser.add_argument("--fw4-count", type=int,
@@ -106,6 +107,13 @@ def main():
         allowed |= {name + suffix for name in ("static_512_dat", "static_16k_dat", "static_16k_css", "static_image_css", "static_64k_dat", "static_1m_dat") for suffix in ("_c1", "_c4")}
         if args.component != "httpd" or not args.matrix or len(set(args.httpd_workloads)) != len(args.httpd_workloads) or not set(args.httpd_workloads) <= allowed:
             parser.error("invalid HTTP matrix workload subset")
+    if args.rpcd_workloads:
+        lanes = ("uci_configs", "uci_get_network", "file_stat", "session_access", "uci_get_64",
+                 "uci_get_authorized", "session_access_granted", "file_list", "session_access_64",
+                 "uci_state_network", "uci_get_delta", "session_access_acl256", "luci_version", "luci_features", "luci_devices")
+        allowed = {name + suffix for name in lanes for suffix in ("", "_c4")}
+        if args.component != "rpcd" or not args.matrix or len(set(args.rpcd_workloads)) != len(args.rpcd_workloads) or not set(args.rpcd_workloads) <= allowed:
+            parser.error("invalid RPCD matrix workload subset")
     if args.fw4_workloads or args.fw4_count is not None or args.fw4_warmup != 3 or args.fw4_fixture:
         if args.component != "fw4":
             parser.error("fw4 controls require --component fw4")
@@ -250,6 +258,8 @@ def main():
         settings["seed"] = args.seed
     if args.httpd_workloads:
         settings["httpd_workloads"] = args.httpd_workloads
+    if args.rpcd_workloads:
+        settings["rpcd_workloads"] = args.rpcd_workloads
     if component == "fw4":
         settings["fw4_workloads"] = args.fw4_workloads or ["print", "check"]
         settings["fw4_count"] = args.fw4_count if args.fw4_count is not None else max(args.iterations // 100, 1)
@@ -425,6 +435,8 @@ def main():
                 command = "OWRT_FW4_FIXTURE_SHA256=" + fw4_fixture_hash + " " + command
         if args.httpd_workloads:
             command = "OWRT_HTTPD_WORKLOADS=" + shlex.quote(" ".join(args.httpd_workloads)) + " " + command
+        if args.rpcd_workloads:
+            command = "OWRT_RPCD_WORKLOADS=" + shlex.quote(" ".join(args.rpcd_workloads)) + " " + command
         if args.guard:
             command = "OWRT_BENCH_GUARD=" + remote + "/guard " + command
         if args.extended:

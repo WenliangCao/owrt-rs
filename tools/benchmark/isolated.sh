@@ -47,6 +47,18 @@ if [ "${OWRT_HTTPD_DIAG:-0}" != 0 ] && [ "$(( ${OWRT_HTTPD_MATRIX:-0} + ${OWRT_H
     exit 2
 fi
 case "${OWRT_RPCD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+if [ -n "${OWRT_RPCD_WORKLOADS:-}" ]; then
+    [ "${OWRT_RPCD_MATRIX:-0}" = 1 ] || exit 2
+    rpcd_seen=' '
+    for lane in $OWRT_RPCD_WORKLOADS; do
+        case "${lane%_c4}" in
+            uci_configs|uci_get_network|file_stat|session_access|uci_get_64|uci_get_authorized|session_access_granted|file_list|session_access_64|uci_state_network|uci_get_delta|session_access_acl256|luci_version|luci_features|luci_devices) ;;
+            *) echo "invalid RPCD workload: $lane" >&2; exit 2 ;;
+        esac
+        case "$rpcd_seen" in *" $lane "*) exit 2 ;; esac
+        rpcd_seen="$rpcd_seen$lane "
+    done
+fi
 case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_NORMALIZED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_EXTENDED:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -63,7 +75,7 @@ case "${OWRT_NETIFD_WARMUP:-20}" in ''|*[!0-9]*) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_CLIENT_ORDER:-tree-first}" in tree-first|wire-first) ;; *) exit 2 ;; esac
 case "${OWRT_RPCD_PROFILE:-0}" in 0|1) ;; *) exit 2 ;; esac
-case "${OWRT_RPCD_PROFILE_KIND:-rpc}" in rpc|file|uci_reply|uci|readiness) ;; *) exit 2 ;; esac
+case "${OWRT_RPCD_PROFILE_KIND:-rpc}" in rpc|file|uci_reply|uci|readiness|session_acl|luci|lucirpc) ;; *) exit 2 ;; esac
 if [ "${OWRT_RPCD_PROFILE:-0}" = 1 ] && [ "${OWRT_RPCD_MATRIX:-0}" = 1 ]; then
     echo 'RPC profiling and the performance matrix are separate runs' >&2
     exit 2
@@ -380,8 +392,17 @@ EOF
         done
         printf 'evidence-ready; static no-spawn closure required\n' > "$nsp_dir/EVIDENCE_READY"
     )
+    rpcd_lane_selected() {
+        [ "$component" = rpcd ] && [ -n "${OWRT_RPCD_WORKLOADS:-}" ] || return 0
+        case " $OWRT_RPCD_WORKLOADS " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+    }
+    rpcd_extra_selected() {
+        [ -n "${OWRT_RPCD_WORKLOADS:-}" ] || return 1
+        rpcd_lane_selected "$1" || rpcd_lane_selected "${1}_c4"
+    }
     run_rpc() { # label object method input expected [iterations]
         netifd_lane_selected "$1" || return 0
+        rpcd_lane_selected "$1" || return 0
         label=$1; object=$2; method=$3; input=$4; expected=$5; count=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
@@ -391,6 +412,7 @@ EOF
     }
     rpc_four() { # label object method input expected [total iterations]
         netifd_lane_selected "$1" || return 0
+        rpcd_lane_selected "$1" || return 0
         label=$1; object=$2; method=$3; input=$4; expected=$5; total=${6:-$n}
         printf '%s\n' "$input" > /tmp/input.json
         printf '%s\n' "$expected" > /tmp/expect.json
@@ -738,10 +760,12 @@ CYCLE
             "$bin" -s "$socket" -t 60 > "$out/daemon.log" 2>&1 & subject=$!
             wait_object uci "$subject"; wait_object file "$subject"
             monitors=$subject,$bus
+            "$bench" snapshot "$monitors" > "$out/startup.json"
             run_rpc uci_configs uci configs '{}' '{"configs":[]}'
             run_rpc uci_get_network uci get '{"config":"network"}' '{"values":{"lan":{"proto":"static"}}}'
             run_rpc file_stat file stat '{"path":"/etc/config/network"}' '{"type":"file"}'
             run_rpc session_access session access '{"ubus_rpc_session":"00000000000000000000000000000000","scope":"ubus","object":"uci","function":"get"}' '{"access":false}'
+            "$bench" snapshot "$monitors" > "$out/active.json"
             if [ "${OWRT_RPCD_CLIENT_DIAGNOSTIC:-0}" = 1 ]; then
                 sha256sum /tmp/bin/rpc-client-probe > "$out/client-probe-sha256.txt"
                 sha256sum /etc/config/network /etc/config/r84fixture > "$out/rpc-fixtures.sha256"
@@ -773,17 +797,61 @@ CYCLE
                 rpc_pair uci_get_64 uci get '{"config":"r84fixture"}' "$(cat /tmp/expect-large.json)" "$large"
                 sid=$(ubus call session create '{"timeout":0}' | jsonfilter -e '@.ubus_rpc_session')
                 [ "${#sid}" = 32 ]
+                printf '%s\n' "$sid" > /tmp/rpcd-session-ids
                 ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"uci\",\"objects\":[[\"net*\",\"r*\"]]}" >/dev/null
                 rpc_pair uci_get_authorized uci get "{\"config\":\"network\",\"ubus_rpc_session\":\"$sid\"}" '{"values":{"lan":{"proto":"static"}}}'
                 access="{\"ubus_rpc_session\":\"$sid\",\"scope\":\"uci\",\"object\":\"network\",\"function\":\"read\"}"
                 rpc_pair session_access_granted session access "$access" '{"access":true}'
                 rpc_pair file_list file list '{"path":"/etc/config"}' '{"entries":[{}]}'
+                if rpcd_extra_selected uci_state_network; then
+                    printf "network.lan.bench_state='state-visible'\n" > /var/state/network
+                    rpc_pair uci_state_network uci state '{"config":"network"}' '{"values":{"lan":{"proto":"static","bench_state":"state-visible"}}}'
+                fi
+                if rpcd_extra_selected uci_get_delta; then
+                    ubus call session grant "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"uci\",\"objects\":[[\"network\",\"write\"]]}" >/dev/null
+                    ubus call uci set "{\"ubus_rpc_session\":\"$sid\",\"config\":\"network\",\"section\":\"lan\",\"values\":{\"bench_marker\":\"delta-visible\"}}" >/dev/null
+                    rpc_pair uci_get_delta uci get "{\"ubus_rpc_session\":\"$sid\",\"config\":\"network\"}" '{"values":{"lan":{"bench_marker":"delta-visible"}}}'
+                fi
+                if rpcd_extra_selected session_access_acl256; then
+                    printf '{"ubus_rpc_session":"%s","scope":"bench","objects":[' "$sid" > /tmp/acl256.json
+                    i=0
+                    while [ "$i" -lt 256 ]; do
+                        [ "$i" -eq 0 ] || printf ',' >> /tmp/acl256.json
+                        printf '["object%03d*","r[ea]ad"]' "$i" >> /tmp/acl256.json
+                        i=$((i + 1))
+                    done
+                    printf ']}' >> /tmp/acl256.json
+                    ubus call session grant "$(cat /tmp/acl256.json)" >/dev/null
+                    rpc_pair session_access_acl256 session access "{\"ubus_rpc_session\":\"$sid\",\"scope\":\"bench\",\"object\":\"object255-suffix\",\"function\":\"read\"}" '{"access":true}'
+                fi
+                if rpcd_extra_selected luci_version; then
+                    /usr/bin/ucode -e 'import { revision, branch } from "luci.version"; print({revision, branch});' > /tmp/luci-version.json
+                    rpc_pair luci_version luci getVersion '{}' "$(cat /tmp/luci-version.json)"
+                fi
+                if rpcd_extra_selected luci_features; then
+                    features=$((n / 100)); [ "$features" -gt 0 ] || features=1
+                    # Stable exact-image capabilities; the complete dynamic
+                    # feature object is checked separately by the feature gate.
+                    rpc_pair luci_features luci getFeatures '{}' '{"firewall":true,"firewall4":true,"apk":true,"opkg":false,"wifi":true,"dropbear":true,"netifd_vrf":true}' "$features"
+                fi
+                if rpcd_extra_selected luci_devices; then
+                    devices=$((n / 10)); [ "$devices" -gt 0 ] || devices=1
+                    rpc_pair luci_devices luci-rpc getNetworkDevices '{}' '{"lo":{"name":"lo"}}' "$devices"
+                fi
                 i=0
                 while [ "$i" -lt 62 ]; do
-                    ubus call session create '{"timeout":3600}' >/dev/null
+                    extra_sid=$(ubus call session create '{"timeout":3600}' | jsonfilter -e '@.ubus_rpc_session')
+                    [ "${#extra_sid}" = 32 ]
+                    printf '%s\n' "$extra_sid" >> /tmp/rpcd-session-ids
                     i=$((i + 1))
                 done
                 rpc_pair session_access_64 session access "$access" '{"access":true}'
+                "$bench" snapshot "$monitors" > "$out/expanded.json"
+                while read -r extra_sid; do
+                    ubus call session destroy "{\"ubus_rpc_session\":\"$extra_sid\"}" >/dev/null
+                done < /tmp/rpcd-session-ids
+                sleep 1
+                "$bench" snapshot "$monitors" > "$out/after-close.json"
             fi
             ;;
         procd)

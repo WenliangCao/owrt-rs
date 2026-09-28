@@ -325,6 +325,12 @@ def derive(root, label):
     elif matrix and component == "rpcd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in RPCD_EXTRA for suffix in ("", "_c4")]
+        if settings.get("rpcd_workloads"):
+            extra = ("uci_state_network", "uci_get_delta", "session_access_acl256", "luci_version", "luci_features", "luci_devices")
+            selected = settings["rpcd_workloads"]
+            assert len(set(selected)) == len(selected)
+            assert set(selected) <= set(workloads + [name + suffix for name in extra for suffix in ("", "_c4")])
+            workloads = selected
     elif matrix and component == "procd":
         workloads += [name + "_c4" for name in COMPONENT_WORK[component]]
         workloads += [name + suffix for name in PROCD_EXTRA for suffix in ("", "_c4")]
@@ -419,6 +425,10 @@ def derive(root, label):
                     own = next(p for p in native(raw / (name + ".json"))["daemon_cpu"] if p["pid"] == subject)
                     assert own["child_cpu_s"] == 0, (name, "query includes child setup CPU")
             expected = max(1, meta["iterations"] // (20 if name.startswith("cgi") else 10 if name.startswith(("static_1m", "uci_get_64")) else 1))
+            if component == "rpcd" and name.startswith("luci_features"):
+                expected = max(1, meta["iterations"] // 100)
+            if component == "rpcd" and name.startswith("luci_devices"):
+                expected = max(1, meta["iterations"] // 10)
             if component in ("uci", "reload-config", "fw4"):
                 expected = max(1, meta["iterations"] // (100 if component == "fw4" else 20))
             elif name == "syslog_128":
