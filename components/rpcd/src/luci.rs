@@ -8,31 +8,35 @@ use owrt_ubus::json::{self, Json};
 use owrt_ubus::{status, MsgType};
 use std::process::Command;
 
-pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
+const METHODS: &[(&str, &[(&str, MsgType)])] = {
     use MsgType::*;
-    vec![
-        ("getVersion", vec![]),
-        ("getInitList", vec![("name", String)]),
-        ("setInitAction", vec![("name", String), ("action", String)]),
-        ("getUnixtime", vec![]),
-        ("setLocaltime", vec![("localtime", Int32)]),
-        ("getTimezones", vec![]),
-        ("getLEDs", vec![]),
-        ("getUSBDevices", vec![]),
-        ("getConntrackHelpers", vec![]),
-        ("getFeatures", vec![]),
-        ("getSwconfigFeatures", vec![("switch", String)]),
-        ("getSwconfigPortState", vec![("switch", String)]),
-        ("setPassword", vec![("username", String), ("password", String)]),
-        ("getBlockDevices", vec![]),
-        ("setBlockDetect", vec![]),
-        ("getMountPoints", vec![]),
-        ("getRealtimeStats", vec![("mode", String), ("device", String)]),
-        ("getConntrackList", vec![]),
-        ("getProcessList", vec![]),
-        ("getBuiltinEthernetPorts", vec![]),
-        ("getOdhcp6cStats", vec![]),
+    &[
+        ("getVersion", &[]),
+        ("getInitList", &[("name", String)]),
+        ("setInitAction", &[("name", String), ("action", String)]),
+        ("getUnixtime", &[]),
+        ("setLocaltime", &[("localtime", Int32)]),
+        ("getTimezones", &[]),
+        ("getLEDs", &[]),
+        ("getUSBDevices", &[]),
+        ("getConntrackHelpers", &[]),
+        ("getFeatures", &[]),
+        ("getSwconfigFeatures", &[("switch", String)]),
+        ("getSwconfigPortState", &[("switch", String)]),
+        ("setPassword", &[("username", String), ("password", String)]),
+        ("getBlockDevices", &[]),
+        ("setBlockDetect", &[]),
+        ("getMountPoints", &[]),
+        ("getRealtimeStats", &[("mode", String), ("device", String)]),
+        ("getConntrackList", &[]),
+        ("getProcessList", &[]),
+        ("getBuiltinEthernetPorts", &[]),
+        ("getOdhcp6cStats", &[]),
     ]
+};
+
+pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
+    METHODS.iter().map(|(method, policy)| (*method, policy.to_vec())).collect()
 }
 
 // ----------------------------------------------------------- helpers
@@ -127,8 +131,7 @@ fn unescape_octal(v: &str) -> String {
 /// ucode.so argument validation: every field must be in the policy with the
 /// declared type, except `ubus_rpc_session` (string).
 fn validate(method: &str, raw: &[u8]) -> Result<(), i32> {
-    let sig = signature();
-    let Some((_, policy)) = sig.iter().find(|(n, _)| *n == method) else { return Err(status::METHOD_NOT_FOUND) };
+    let Some((_, policy)) = METHODS.iter().find(|(n, _)| *n == method) else { return Err(status::METHOD_NOT_FOUND) };
     for f in blob::fields(raw) {
         match policy.iter().find(|(n, _)| *n == f.name) {
             Some((_, ty)) => {
@@ -997,4 +1000,38 @@ pub fn call(ctx: &Ctx, method: &str, raw: &[u8]) -> Result<Option<Json>, i32> {
         _ => return Err(status::METHOD_NOT_FOUND),
     };
     Ok(Some(out))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use owrt_ubus::BlobBuf;
+
+    #[test]
+    fn validation_checks_every_supplied_field_and_preserves_the_session_exception() {
+        for (method, policy) in signature() {
+            assert_eq!(validate(method, &[]), Ok(()));
+            let mut args = BlobBuf::new();
+            for (name, ty) in &policy {
+                args.msg_field(*ty as u32, name, &[0; 4]);
+            }
+            args.msg_string("ubus_rpc_session", "session");
+            assert_eq!(validate(method, &args.into_payload()), Ok(()), "{method}");
+
+            let mut args = BlobBuf::new();
+            args.msg_u32("ubus_rpc_session", 1);
+            assert_eq!(validate(method, &args.into_payload()), Err(status::INVALID_ARGUMENT), "{method}");
+            let mut args = BlobBuf::new();
+            args.msg_string("unexpected", "value");
+            assert_eq!(validate(method, &args.into_payload()), Err(status::INVALID_ARGUMENT), "{method}");
+
+            for (name, ty) in policy {
+                let mut args = BlobBuf::new();
+                args.msg_field(ty as u32, name, &[0; 4]);
+                args.msg_bool(name, true);
+                assert_eq!(validate(method, &args.into_payload()), Err(status::INVALID_ARGUMENT), "{method}.{name}");
+            }
+        }
+        assert_eq!(validate("not-a-method", &[]), Err(status::METHOD_NOT_FOUND));
+    }
 }

@@ -28,22 +28,20 @@ pub fn signature() -> Vec<(&'static str, Vec<(&'static str, MsgType)>)> {
 /// readstr(): first 127 bytes of the file, trailing whitespace trimmed; ""
 /// when unreadable (a directory opens but fread fails -> "").
 pub fn readstr(path: &str) -> String {
-    let mut data = Vec::new();
+    let mut buf = [0u8; 127];
+    let mut got = 0;
     if let Ok(mut f) = fs::File::open(path) {
-        let mut buf = [0u8; 127];
-        let mut got = 0;
         while got < buf.len() {
             match std::io::Read::read(&mut f, &mut buf[got..]) {
                 Ok(0) | Err(_) => break,
                 Ok(n) => got += n,
             }
         }
-        data.extend_from_slice(&buf[..got]);
     }
-    while data.last().is_some_and(|c| c.is_ascii_whitespace()) {
-        data.pop();
+    while got > 0 && buf[got - 1].is_ascii_whitespace() {
+        got -= 1;
     }
-    String::from_utf8_lossy(&data).into_owned()
+    String::from_utf8_lossy(&buf[..got]).into_owned()
 }
 
 /// atoi()
@@ -943,6 +941,33 @@ pub fn call(ctx: &Ctx, req: Request, deferrer: &Deferrer) -> Outcome {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn readstr_preserves_limits_whitespace_and_lossy_bytes() {
+        let root = std::env::temp_dir().join(format!("rpcd-readstr-{}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        let path = root.join("value");
+        let name = path.to_str().unwrap();
+        assert_eq!(readstr(name), "");
+        assert_eq!(readstr(root.to_str().unwrap()), "");
+        for (bytes, expected) in [
+            (b"".as_slice(), ""),
+            (b" \t\r\n", ""),
+            (b" leading and internal\nspace \t\r\n", " leading and internal\nspace"),
+            (b"raw-\xff\n", "raw-\u{fffd}"),
+            (b"nul\0byte\n", "nul\0byte"),
+        ] {
+            fs::write(&path, bytes).unwrap();
+            assert_eq!(readstr(name), expected);
+        }
+        let mut boundary = vec![b'x'; 126];
+        boundary.extend_from_slice(b"\xe4\xb8\xad");
+        fs::write(&path, boundary).unwrap();
+        assert_eq!(readstr(name), format!("{}\u{fffd}", "x".repeat(126)));
+        fs::write(&path, vec![b'y'; 256]).unwrap();
+        assert_eq!(readstr(name), "y".repeat(127));
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn mac_and_duid() {

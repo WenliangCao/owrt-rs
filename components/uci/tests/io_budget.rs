@@ -1,6 +1,6 @@
 //! Exercise the public loading path: delta errors must not be swallowed and
 //! interrupted packages must not enter the context's loaded-package cache.
-use owrt_uci::{delta, file, sys, Context, Error};
+use owrt_uci::{delta, file, sys, Context, Error, ReadCache};
 use std::fs::{self, File};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -95,4 +95,32 @@ fn releasing_a_lock_before_the_deadline_loads_the_current_delta() {
         assert_eq!(ctx.root[p].sections[0].options[0].value,
                    owrt_uci::OptionValue::Str(b"staged".to_vec().into()));
     });
+}
+
+#[test]
+fn cached_load_rechecks_base_and_delta_locks_and_cancellation() {
+    for kind in ["config", "delta"] {
+        let f = Fixture::new();
+        let cancelled = AtomicBool::new(false);
+        let mut cache = ReadCache::default();
+        for _ in 0..3 {
+            let mut ctx = f.context(Duration::from_secs(2), &cancelled);
+            file::load_cached(&mut ctx, "alpha", &mut cache).unwrap();
+        }
+        let holder = f.hold(kind);
+        let mut ctx = f.context(Duration::from_millis(40), &cancelled);
+        assert_eq!(file::load_cached(&mut ctx, "alpha", &mut cache), Err(Error::TimedOut));
+        assert!(ctx.root.is_empty());
+        cancelled.store(true, Ordering::Relaxed);
+        ctx.set_io_budget(Duration::from_secs(2), &cancelled);
+        assert_eq!(file::load_cached(&mut ctx, "alpha", &mut cache), Err(Error::Cancelled));
+        assert!(ctx.root.is_empty());
+        drop(holder);
+        cancelled.store(false, Ordering::Relaxed);
+        fs::write(f.0.join("delta/alpha"), "alpha.s.value='recovered'\n").unwrap();
+        ctx.set_io_budget(Duration::from_secs(2), &cancelled);
+        let p = file::load_cached(&mut ctx, "alpha", &mut cache).unwrap();
+        assert_eq!(ctx.root[p].sections[0].options[0].value,
+                   owrt_uci::OptionValue::Str(b"recovered".to_vec().into()));
+    }
 }

@@ -43,7 +43,8 @@ fn main() -> std::io::Result<()> {
         measure(&stage, n, filter, || {
             let mut ctx = Context::new();
             ctx.set_confdir(dir);
-            file::load_cached(&mut ctx, name, &mut cache).unwrap();
+            let pidx = file::load_cached(&mut ctx, name, &mut cache).unwrap();
+            cache.recycle(black_box(ctx.root.remove(pidx)));
             black_box(ctx);
         });
         let stage = format!("cached_cold_{name}");
@@ -63,7 +64,10 @@ fn main() -> std::io::Result<()> {
             for name in ["network", "r84fixture"] {
                 let mut ctx = Context::new();
                 ctx.set_confdir(dir);
-                if cached { file::load_cached(&mut ctx, name, &mut cache).unwrap(); }
+                if cached {
+                    let pidx = file::load_cached(&mut ctx, name, &mut cache).unwrap();
+                    cache.recycle(black_box(ctx.root.remove(pidx)));
+                }
                 else { file::load(&mut ctx, name).unwrap(); }
                 black_box(ctx);
             }

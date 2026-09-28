@@ -261,6 +261,29 @@ fn dump_package(b: &mut BlobBuf, p: &owrt_uci::Package, name: &str, ty: Option<&
     b.msg_close(c);
 }
 
+// Whole-package dumps visit every section, so size their Blob once. This is
+// only an allocation hint: oversized replies retain normal BlobBuf growth.
+fn package_reply_capacity(p: &owrt_uci::Package) -> usize {
+    fn header(name: &str) -> usize { 4 + blob::pad4(3 + name.len()) }
+    fn string(name: &str, len: usize) -> usize { header(name) + blob::pad4(len + 1) }
+    let mut size = 4 + header("values");
+    for s in &p.sections {
+        size += header(&s.name) + header(".anonymous") + 4
+            + string(".type", s.ty.len()) + string(".name", s.name.len())
+            + header(".index") + 4;
+        for o in &s.options {
+            size += match &o.value {
+                OptionValue::Str(value) => string(&o.name, value.len()),
+                OptionValue::List(values) => header(&o.name)
+                    + values.iter().map(|v| string("", v.len())).sum::<usize>(),
+            };
+        }
+        // Avoid reserving an unbounded estimate before serialization.
+        if size >= 64 * 1024 { return 64 * 1024; }
+    }
+    size
+}
+
 fn code(c: i32) -> Reply {
     Reply::empty(c)
 }
@@ -296,17 +319,23 @@ fn get_common(rctx: &Ctx, raw: &[u8], use_state: bool) -> Reply {
     }
     let mut result = Reply::empty(0);
     if lookup(&mut ctx, &mut ptr).is_ok() && ptr.flags & LOOKUP_COMPLETE != 0 {
-        let mut b = BlobBuf::with_capacity(256);
         let p = &ctx.root[pidx];
+        let (ty, matches) = if ptr.s.is_none() {
+            (arg_str(raw, "type"), field_data(raw, "match", MsgType::Table))
+        } else { (None, None) };
+        let capacity = if ptr.s.is_none() && ty.is_none() && matches.is_none() {
+            package_reply_capacity(p)
+        } else { 256 };
+        let mut b = BlobBuf::with_capacity(capacity);
         match (ptr.s, ptr.o) {
-            (None, _) => dump_package(&mut b, p, "values", arg_str(raw, "type"), field_data(raw, "match", MsgType::Table)),
+            (None, _) => dump_package(&mut b, p, "values", ty, matches),
             (Some(s), None) => dump_section(&mut b, &p.sections[s], "values", -1),
             (Some(s), Some(o)) => dump_option(&mut b, &p.sections[s].options[o].value, "value"),
         }
-        result = Reply::one(0, b.into_payload());
+        result = Reply::blob(0, b);
     }
     // out: uci_unload resets the cursor error before rpc_uci_status()
-    ctx.unload(pidx);
+    rctx.uci_read_cache.borrow_mut().recycle(ctx.root.remove(pidx));
     ctx.err = None;
     result.code = uci_status(&ctx);
     result
@@ -1133,5 +1162,40 @@ pub fn call(rctx: &Ctx, conn: &mut Connection, method: &str, raw: &[u8]) -> Repl
         "rollback" => rollback(rctx, conn, raw),
         "reload_config" => reload_config(rctx),
         _ => code(status::METHOD_NOT_FOUND),
+    }
+}
+
+#[cfg(test)]
+mod reply_capacity_tests {
+    use super::*;
+
+    #[test]
+    fn whole_package_capacity_covers_padding_lists_and_raw_values() {
+        for sections in [0, 1, 64] {
+            let mut p = owrt_uci::Package::new("sample");
+            for i in 0..sections {
+                p.sections.push(owrt_uci::Section {
+                    name: format!("section{i}"), ty: "example".into(), anonymous: i % 2 != 0,
+                    options: vec![
+                        owrt_uci::Opt { name: "raw".into(), value: OptionValue::Str(b"raw\xff".as_slice().into()) },
+                        owrt_uci::Opt { name: "list".into(), value: OptionValue::List(vec!["".into(), "123456789".into()]) },
+                    ],
+                });
+            }
+            let capacity = package_reply_capacity(&p);
+            let mut b = BlobBuf::with_capacity(capacity);
+            dump_package(&mut b, &p, "values", None, None);
+            assert_eq!(b.into_payload().len() + 4, capacity);
+        }
+        let mut p = owrt_uci::Package::new("sample");
+        p.sections.push(owrt_uci::Section {
+            name: "s".into(), ty: "t".into(), anonymous: false,
+            options: vec![owrt_uci::Opt { name: "large".into(),
+                value: OptionValue::Str(vec![b'x'; 100_000].into()) }],
+        });
+        assert_eq!(package_reply_capacity(&p), 64 * 1024);
+        let mut b = BlobBuf::with_capacity(package_reply_capacity(&p));
+        dump_package(&mut b, &p, "values", None, None);
+        assert!(b.into_payload().len() > 100_000);
     }
 }
