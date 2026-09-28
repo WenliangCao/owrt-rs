@@ -648,6 +648,48 @@ mod tests {
     }
 
     #[test]
+    fn reused_normalization_buffer_discards_previous_package_on_failure() {
+        let root = std::env::temp_dir().join(format!("reload-config-normalize-reuse-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        fs::write(root.join("alpha"), b"config test 's'\noption value 'first'\n").unwrap();
+        let mut ctx = owrt_uci::Context::new();
+        ctx.set_confdir(root.to_str().unwrap());
+        ctx.set_conf2dir(root.join("missing").to_str().unwrap());
+        let mut output = Vec::new();
+        assert_eq!(super::normalize(&mut ctx, OsStr::new("alpha"), &mut output).unwrap(), None);
+        assert_eq!(output, b"alpha.s=test\nalpha.s.value='first'\n");
+        assert_eq!(super::normalize(&mut ctx, OsStr::new("alpha.absent"), &mut output).unwrap(), Some("exit_1"));
+        assert!(output.is_empty());
+        assert_eq!(super::normalize(&mut ctx, OsStr::new("alpha.s.value"), &mut output).unwrap(), None);
+        assert_eq!(output, b"alpha.s.value='first'\n");
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn buffered_baseline_preserves_all_bytes_across_flushes() {
+        let root = std::env::temp_dir().join(format!("reload-config-baseline-buffer-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let names: Vec<OsString> = (0..256).map(|i| format!("package{i:04}").into()).collect();
+        let current: HashMap<_, _> = names.iter().map(|name| (name.clone(), crate::md5::hex(name.as_bytes()))).collect();
+        let mut expected = Vec::new();
+        for name in &names {
+            expected.extend_from_slice(current[name].as_bytes());
+            expected.extend_from_slice(b"  /var/run/config.check/");
+            expected.extend_from_slice(name.as_bytes());
+            expected.push(b'\n');
+        }
+        assert!(expected.len() > 2 * 8192);
+        let path = root.join("baseline");
+        write_baseline(&path, &names, &current, &std::sync::atomic::AtomicBool::new(false)).unwrap();
+        assert_eq!(fs::read(&path).unwrap(), expected);
+        assert_eq!(read_baseline(&path).unwrap().len(), names.len());
+        assert!(!root.join("baseline.reload-config-rs.tmp").exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn cancellation_after_comparison_preserves_baseline_with_no_changes() {
         use std::io::{self, Write};
         use std::sync::atomic::{AtomicBool, Ordering};
