@@ -540,9 +540,12 @@ def main():
         (args.output / "results.md").write_text("\n".join(lines) + "\n")
         print(f"{args.label}: {len(result['runs'])} calibration measurements verified")
         return
-    cpu_metric = ("subject_own_cpu_clock_us_per_op"
-                  if all("subject_own_cpu_clock_us_per_op" in values["candidate"] for values in result["summary"].values())
-                  else "subject_cpu_us_per_op")
+    if all("command_tree_cpu_us_per_op" in row for row in result["runs"]):
+        cpu_metric = "command_tree_cpu_us_per_op"
+    else:
+        cpu_metric = ("subject_own_cpu_clock_us_per_op"
+                      if all("subject_own_cpu_clock_us_per_op" in values["candidate"] for values in result["summary"].values())
+                      else "subject_cpu_us_per_op")
     comparison_sides = result["measured_sides"]
     headings = ["负载"] + [side + " mean µs / CPU µs" for side in comparison_sides]
     headings += ["候选比 " + side + " mean / CPU" for side in comparison_sides if side != "candidate"]

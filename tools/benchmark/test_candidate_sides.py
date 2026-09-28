@@ -3,6 +3,8 @@
 import copy
 import hashlib
 import json
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -93,6 +95,15 @@ class FourSideAnalysisTests(unittest.TestCase):
         self.assertIn('candidate_vs_r94_pct', result['summary']['system_info'])
         self.assertEqual(result['summary']['system_info']['r94']['mean_us']['n'], 3)
 
+    def test_markdown_keeps_daemon_own_cpu_clock(self):
+        output = self.root / 'published'
+        subprocess.run([sys.executable, str(Path(__file__).with_name('analyze_candidate.py')),
+                        str(self.root), '--output', str(output), '--label', 'daemon fixture'],
+                       check=True, capture_output=True)
+        markdown = (output / 'results.md').read_text()
+        self.assertIn('CPU 口径：subject_own_cpu_clock_us_per_op', markdown)
+        self.assertIn('1.00 / 5000.00', markdown)
+
     def test_missing_fourth_side_is_rejected_before_reading_windows(self):
         self.put('order.json', [side for side in self.order if side != 'r94'])
         with self.assertRaisesRegex(AssertionError, 'missing historical'): derive(self.root, 'bad')
@@ -169,6 +180,18 @@ class UciFourSideAnalysisTests(unittest.TestCase):
                                          ('candidate_vs_r94_pct', 1100)):
                 self.assertAlmostEqual(summary[comparison]['command_tree_cpu_us_per_op'],
                                        (1000 / baseline - 1) * 100)
+
+    def test_markdown_uses_fine_command_cpu_instead_of_zero_legacy_ticks(self):
+        output = self.root / 'published'
+        subprocess.run([sys.executable, str(Path(__file__).with_name('analyze_candidate.py')),
+                        str(self.root), '--output', str(output), '--label', 'UCI fixture'],
+                       check=True, capture_output=True)
+        markdown = (output / 'results.md').read_text()
+        self.assertIn('CPU 口径：command_tree_cpu_us_per_op', markdown)
+        for workload in self.workloads:
+            self.assertIn('| ' + workload + ' | 1.00 / 2100.00 | 1.00 / 1400.00 | '
+                          '1.00 / 1100.00 | 1.00 / 1000.00 |', markdown)
+        self.assertIn('+0.00% / -52.38% | +0.00% / -28.57% | +0.00% / -9.09%', markdown)
 
     def test_changed_fixture_on_one_historical_side_is_rejected(self):
         (self.root / '03-r94/raw/uci-fixtures.sha256').write_text('different delta content\n')
