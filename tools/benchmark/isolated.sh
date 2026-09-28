@@ -78,6 +78,10 @@ fi
 case "${OWRT_UBUSD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_NORMALIZED:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_UBUSD_EXTENDED:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_RELOAD_CONFIG_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
+case "${OWRT_RELOAD_CONFIG_WARMUP:-5}" in ''|*[!0-9]*) exit 2 ;; esac
+[ "${OWRT_RELOAD_CONFIG_WARMUP:-5}" -le 100000 ] || exit 2
+case "${OWRT_RELOAD_CONFIG_PACKAGES:-4}" in 4|24|64|128) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_MATRIX:-0}" in 0|1) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_SCALE:-32}" in 32|64|128) ;; *) exit 2 ;; esac
 case "${OWRT_NETIFD_EVENT_CAPTURE:-0}" in 0|1) ;; *) exit 2 ;; esac
@@ -1190,17 +1194,69 @@ EOF
             fi
             ;;
         reload-config)
-            monitors=-
             bin=$(choose reload-config /sbin/reload_config reload_config_rs)
-            # Both sides invoke the original uci and have private /var/run.
-            # Establish each implementation's baseline before timing no-ops.
-            /sbin/reload_config > /tmp/reference.stdout 2> /tmp/reference.stderr
-            cp /var/run/config.md5 /tmp/reference.md5
-            rm /var/run/config.md5
-            "$bin" > "$out/prime.stdout" 2> "$out/prime.stderr"
-            cmp -s /var/run/config.md5 /tmp/reference.md5
-            "$bench" exec "$count_exec" 5 /tmp/empty.bytes - -- "$bin" > "$out/unchanged_config.json"
-            cmp -s /var/run/config.md5 /tmp/reference.md5
+            fixture=/tmp/reload-fixture
+            mkdir -p "$fixture/base" /etc/config
+            # Fixed public corpus; no production configuration/delta/override.
+            cp /etc/config/network /etc/config/firewall /etc/config/wireless /etc/config/r84fixture "$fixture/base/"
+            reload_package=4
+            while [ "$reload_package" -lt "${OWRT_RELOAD_CONFIG_PACKAGES:-4}" ]; do
+                printf "config bench 'main'\n option value 'fixed'\n" > "$fixture/base/$(printf 'reloadp%03d' "$reload_package")"
+                reload_package=$((reload_package + 1))
+            done
+            cp -a "$fixture/base" "$fixture/single"
+            cp -a "$fixture/base" "$fixture/multi"
+            cp -a "$fixture/base" "$fixture/comment"
+            sed 's/192.0.2.1/192.0.2.2/' "$fixture/base/network" > "$fixture/single/network"
+            cp "$fixture/single/network" "$fixture/multi/network"
+            sed "s/REJECT/DROP/" "$fixture/base/firewall" > "$fixture/multi/firewall"
+            sed "s/fixed-63/changed-63/" "$fixture/base/r84fixture" > "$fixture/multi/r84fixture"
+            printf '\n# normalizes to the same UCI show bytes\n   \n' >> "$fixture/comment/network"
+            # Freeze independently generated complete old/new baselines. Each
+            # reference starts absent, so it cannot send service events.
+            for variant in base single multi comment; do
+                rm -f /etc/config/* /var/run/config.md5
+                cp "$fixture/$variant/"* /etc/config/
+                /sbin/reload_config > "$out/reference-$variant.stdout" 2> "$out/reference-$variant.stderr"
+                [ ! -s "$out/reference-$variant.stdout" ] && [ ! -s "$out/reference-$variant.stderr" ]
+                cp /var/run/config.md5 "$fixture/$variant.md5"
+            done
+            cmp "$fixture/base.md5" "$fixture/comment.md5"
+            ! cmp -s "$fixture/base.md5" "$fixture/single.md5"
+            ! cmp -s "$fixture/base.md5" "$fixture/multi.md5"
+            sha256sum "$fixture"/*/* "$fixture"/*.md5 > "$out/reload-fixtures.sha256"
+            cp "$fixture"/*.md5 "$out/"
+            sha256sum /sbin/reload_config /bin/busybox /sbin/uci /bin/ubus /sbin/ubusd /sbin/logd /lib/libuci.so* /lib/libubus.so* /lib/libubox.so* /lib/libblobmsg_json.so* /lib/ld-musl-aarch64.so.1 > "$out/reload-dependencies.sha256"
+            "$bench" reload-service "$socket" "$fixture/events.bin" > "$out/reload-service.stdout" 2> "$out/reload-service.stderr" & receiver=$!
+            wait_object service "$receiver"
+            # Preserve default runtime syslog observability in private /dev;
+            # no production /dev/log or service trigger exists in this root.
+            /sbin/logd -S 64 > "$out/reload-logd.log" 2>&1 & reload_logd=$!
+            wait_object log "$reload_logd"
+            [ -S /dev/log ]
+            monitors=$bus,$receiver,$reload_logd
+            printf '{"ubusd":%s,"receiver":%s,"logd":%s}\n' "$bus" "$receiver" "$reload_logd" > "$out/reload-roles.json"
+            sha256sum /proc/"$bus"/exe /proc/"$receiver"/exe /proc/"$reload_logd"/exe > "$out/reload-running-dependencies.sha256"
+            resource=-
+            if [ -x /tmp/bin/exec-resource ]; then
+                resource=/tmp/bin/exec-resource
+                sha256sum /tmp/bin/exec-resource > "$out/reload-resource-probe.sha256"
+            fi
+            if [ -x /tmp/bin/exec-task-counts ]; then
+                export OWRT_RELOAD_TASK_PROBE=/tmp/bin/exec-task-counts
+                sha256sum /tmp/bin/exec-task-counts > "$out/reload-task-probe.sha256"
+            fi
+            reload_lanes=unchanged_config
+            if [ "${OWRT_RELOAD_CONFIG_MATRIX:-0}" = 1 ]; then
+                reload_lanes='first_baseline unchanged_config single_change multi_change comment_only'
+            fi
+            reload_lanes=${OWRT_RELOAD_CONFIG_WORKLOADS:-$reload_lanes}
+            for lane in $reload_lanes; do
+                "$bench" reload-exec "$lane" "$count_exec" "${OWRT_RELOAD_CONFIG_WARMUP:-5}" "$fixture" "$out/$lane" "$monitors" "$resource" -- "$bin" > "$out/$lane.json"
+                kill -0 "$bus" "$receiver" "$reload_logd"
+            done
+            ubus -S call log read '{"lines":100,"stream":false}' > "$out/reload-syslog.json"
+            [ ! -s "$out/reload-service.stdout" ] && [ ! -s "$out/reload-service.stderr" ]
             ;;
         httpd)
             /sbin/rpcd -s "$socket" -t 60 > "$out/rpcd.log" 2>&1 & rpc=$!

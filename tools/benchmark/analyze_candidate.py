@@ -23,6 +23,8 @@ RUSAGE_CHILD_FIELDS = ("rusage_children_user_us", "rusage_children_system_us", "
 NETIFD_EXTRA = ("device_status_all", "interface_dump_32", "interface_named_32")
 METRICS = ("mean_us", "p50_us", "p95_us", "p99_us", "ops_per_s",
            "subject_cpu_us_per_op", "dependency_cpu_us_per_op", "client_cpu_us_per_op")
+RELOAD_METRICS = ("ubusd_cpu_clock_us_per_op", "receiver_cpu_clock_us_per_op", "logd_cpu_clock_us_per_op",
+                  "prepare_us_per_op", "validation_us_per_op")
 CLOCK_METRICS = ("subject_own_cpu_clock_us_per_op", "dependency_own_cpu_clock_us_per_op",
                  "client_cpu_clock_us_per_op")
 
@@ -130,8 +132,97 @@ def serial_trees(data, groups):
             "tree_cpu_components": values}
 
 
+def prepared_exec(path, data):
+    """Only exec intervals count; reset/check/repeat/resource work is separate."""
+    count = data["successful"]
+    samples = data["measured"]
+    assert data["mode"] == "prepared-exec" and len(samples) == count
+    assert [s["latency_ns"] for s in samples] == data["latency_ns"]
+    assert data["timeouts"] == 0 and data["resource_samples"] in (0, 3)
+    assert data["task_samples"] in (0, 1)
+    assert math.isclose(data["wall_s"], sum(data["latency_ns"]) / 1e9), "prepared wall includes reset/check work"
+    assert data["envelope_s"] >= data["wall_s"]
+    raw = path.parent; lane = path.stem; artifacts = raw / lane
+    variant = {"single_change": "single", "multi_change": "multi", "comment_only": "comment"}.get(lane, "base")
+    expected_md5 = (raw / (variant + ".md5")).read_bytes()
+    packages = {"single_change": [b"network"], "multi_change": [b"firewall", b"network", b"r84fixture"]}.get(lane, [])
+    expected_events = b"".join(len(p).to_bytes(4, "little") + p + bytes(4) for p in packages)
+    assert (artifacts / "expected.md5").read_bytes() == expected_md5
+    assert (artifacts / "expected.events").read_bytes() == expected_events
+    journal = [json.loads(line) for line in (artifacts / "samples.jsonl").read_text().splitlines()]
+    total = data["warmup"] + count + data["resource_samples"] + data["task_samples"]
+    assert len(journal) == total * 2
+    measured = []
+    resources = []; tasks = []
+    for index in range(total):
+        start, end = journal[index * 2:index * 2 + 2]
+        phase = "warmup" if index < data["warmup"] else "measured" if index < data["warmup"] + count else "resource" if index < data["warmup"] + count + data["resource_samples"] else "tasks"
+        assert start["iteration"] == end["iteration"] == index and start["phase"] == end["phase"] == phase
+        assert start["event"] == "started" and end["event"] == "completed"
+        assert end["baseline_matches"] and end["events_match"] and end["repeat_silent"]
+        one = artifacts / f"iteration-{index:06}"
+        for execution in ("exec", "repeat"):
+            assert not (one / (execution + ".stdout")).read_bytes()
+            assert not (one / (execution + ".stderr")).read_bytes()
+            assert (one / (execution + ".status")).read_text().strip() == "exit status: 0"
+        assert (one / "after.md5").read_bytes() == (one / "repeat.md5").read_bytes() == expected_md5
+        assert (one / "after.events").read_bytes() == expected_events
+        assert not (one / "repeat.events").read_bytes()
+        if phase == "measured": measured.append(end)
+        if phase == "resource":
+            resource = read(one / "resource.json")
+            assert resource["schema"] == 1 and resource["method"] == "wait4" and resource["exit"] == 0
+            resources.append(resource)
+        if phase == "tasks":
+            task = read(one / "tasks.json")
+            assert task["schema"] == 1 and task["method"] == "ptrace" and task["exit"] == 0
+            assert task["processes"] >= 1 and task["threads"] >= 1 and task["live_remaining"] == 0
+            tasks.append(task)
+    assert measured == samples, "timing series differs from durable per-invocation evidence"
+    roles = read(raw / "reload-roles.json")
+    assert set(roles) == {"ubusd", "receiver", "logd"} and len(set(roles.values())) == 3
+    dependency_ns = {role: 0 for role in roles}
+    command_us = caller_ns = preparation_ns = validation_ns = 0
+    for sample in samples:
+        assert sample["phase"] == "measured"
+        for key in ("command_user_us", "command_system_us", "caller_cpu_ns", "prepare_ns", "validation_ns"):
+            assert type(sample[key]) is int and sample[key] >= 0
+        assert sample["child_counter_source"] == "getrusage(RUSAGE_CHILDREN)"
+        for field in ("user", "system"):
+            assert sample["command_" + field + "_us"] == sample["command_after"][field + "_us"] - sample["command_before"][field + "_us"], "command CPU differs from per-exec raw counters"
+        command_us += sample["command_user_us"] + sample["command_system_us"]
+        caller_ns += sample["caller_cpu_ns"]
+        preparation_ns += sample["prepare_ns"]; validation_ns += sample["validation_ns"]
+        processes = {p["pid"]: p for p in sample["dependencies"]}
+        assert processes.keys() == set(roles.values())
+        for role, pid in roles.items():
+            process = processes[pid]
+            assert process["cpu_clock_ns"] == process_clock_delta(process["before"], process["after"])
+            assert process["before"]["child_cpu_ticks"] == process["after"]["child_cpu_ticks"]
+            dependency_ns[role] += process["cpu_clock_ns"]
+    envelope = {process["pid"]: process for process in data["dependency_envelope"]}
+    assert envelope.keys() == set(roles.values())
+    for process in envelope.values():
+        assert process["cpu_clock_ns"] == process_clock_delta(process["before"], process["after"])
+    return {**timing(data), "warmup": data["warmup"], "errors": 0, "timeouts": 0,
+            "command_tree_cpu_us_per_op": command_us / count,
+            "client_cpu_clock_us_per_op": caller_ns / 1000 / count,
+            "dependency_own_cpu_clock_us_per_op": sum(dependency_ns.values()) / 1000 / count,
+            **{role + "_cpu_clock_us_per_op": ns / 1000 / count for role, ns in dependency_ns.items()},
+            "subject_cpu_us_per_op": command_us / count,
+            "dependency_cpu_us_per_op": sum(dependency_ns.values()) / 1000 / count,
+            "client_cpu_us_per_op": caller_ns / 1000 / count,
+            "prepare_us_per_op": preparation_ns / 1000 / count, "validation_us_per_op": validation_ns / 1000 / count,
+            "envelope_s": data["envelope_s"], "resources": resources, "task_diagnostics": tasks,
+            "dependency_envelope_cpu_us": {role: envelope[pid]["cpu_clock_ns"] / 1000 for role, pid in roles.items()},
+            "accounting": data["accounting"], "resource_method": "separate wait4 lifecycle; maxrss is not concurrent tree RSS"}
+
+
 def serial(path, subject, roles=None):
     data = native(path)
+    if data.get("mode") == "prepared-exec":
+        assert subject is None
+        return prepared_exec(path, data)
     groups = role_groups(data, subject, roles)
     dependencies = [p for p in data["daemon_cpu"] if p["pid"] in groups["dependency"]]
     observers = [p for p in data["daemon_cpu"] if p["pid"] in groups["caller_instrumentation"]]
@@ -336,6 +427,10 @@ def derive(root, label):
     netifd_scale = settings.get("netifd_scale", 32)
     assert netifd_scale in (32, 64, 128)
     workloads = list(COMPONENT_WORK[component])
+    if component == "reload-config" and settings.get("reload_prepared_exec"):
+        workloads = settings["reload_workloads"]
+        assert workloads and len(set(workloads)) == len(workloads)
+        assert set(workloads) <= {"first_baseline", "unchanged_config", "single_change", "multi_change", "comment_only"}
     if matrix and component == "httpd":
         workloads = ([f"{name}_{clients}" for name in STATIC for clients in ("c1", "c4")]
                      + ["cgi", "jsonrpc", "cgi_c4", "jsonrpc_c4"])
@@ -405,10 +500,25 @@ def derive(root, label):
             expected_bus = read(root / "host-manifest.json")["components"]["ubusd"]["original"]["sha256"]
             observed = [line.split()[0] for line in (raw / "dependencies-sha256.txt").read_text().splitlines()]
             assert observed == [expected_bus], "procd dependency is not the exact image C ubusd"
+        if component == "reload-config" and settings.get("reload_prepared_exec"):
+            expected_bus = read(root / "host-manifest.json")["components"]["ubusd"]["original"]["sha256"]
+            running = [line.split()[0] for line in (raw / "reload-running-dependencies.sha256").read_text().splitlines()]
+            assert len(running) == 3 and running[:2] == [expected_bus, identity[0]], "reload receiver or C ubusd identity differs"
+            dependency_text = (raw / "reload-dependencies.sha256").read_text()
+            dependencies = {line.split()[1]: line.split()[0] for line in dependency_text.splitlines()}
+            assert dependencies["/sbin/ubusd"] == expected_bus and dependencies["/sbin/logd"] == running[2]
+            assert dependencies["/sbin/reload_config"] == subjects.get("stock", dependencies["/sbin/reload_config"])
+            for setting, file in (("exec_resource_probe_sha256", "reload-resource-probe.sha256"),
+                                  ("exec_task_probe_sha256", "reload-task-probe.sha256")):
+                if setting in settings:
+                    assert (raw / file).read_text().split()[0] == settings[setting], "reload diagnostic probe identity differs"
+            identity += (dependency_text,)
+            identities.discard(identity[:-1]); identities.add(identity)
         if matrix:
             fixture_file = {"httpd": "static-fixtures.sha256", "rpcd": "rpc-fixtures.sha256",
                             "procd": "procd-fixtures.sha256", "ubusd": "ubusd-fixtures.sha256",
-                            "netifd": "netifd-fixtures.sha256", "uci": "uci-fixtures.sha256"}[component]
+                            "netifd": "netifd-fixtures.sha256", "uci": "uci-fixtures.sha256",
+                            "reload-config": "reload-fixtures.sha256"}[component]
             fixture_identity = (raw / fixture_file).read_text()
             if component == "httpd" and any(name.startswith("jsonrpc_large") for name in workloads):
                 fixture_identity += (raw / "large-fixture.sha256").read_text()
@@ -469,6 +579,8 @@ def derive(root, label):
             if name.endswith("_c4"):
                 expected = max(1, expected // 4) * 4
             assert data["successful"] == expected, (name, data["successful"], expected)
+            if component == "reload-config" and settings.get("reload_prepared_exec"):
+                assert data["warmup"] == settings["reload_warmup"]
             if component == "procd" and "procd_warmup" in settings:
                 assert data["warmup"] == settings["procd_warmup"] * (4 if name.endswith("_c4") else 1), "procd warmup changed"
             rows.append({"run": local.name, "side": side, "workload": name, **data})
@@ -482,7 +594,7 @@ def derive(root, label):
     for row in rows:
         groups[(row["workload"], row["side"])].append(row)
     summary = {}
-    metrics = METRICS + tuple(metric for metric in CLOCK_METRICS + TREE_METRICS if all(metric in row for row in rows))
+    metrics = METRICS + tuple(metric for metric in CLOCK_METRICS + TREE_METRICS + RELOAD_METRICS if all(metric in row for row in rows))
     for name in workloads:
         sides = {side: {metric: stats(r[metric] for r in groups[(name, side)]) for metric in metrics}
                  for side in measured_sides}
@@ -500,7 +612,7 @@ def derive(root, label):
                 metric: (sides["candidate"][metric]["median"] / sides[baseline_label][metric]["median"] - 1) * 100
                 for metric in metrics if sides[baseline_label][metric]["median"] > 0}
         summary[name] = sides
-    client, namespace, harness = next(iter(identities))
+    client, namespace, harness = next(iter(identities))[:3]
     limitations = []
     if calibration:
         limitations.append("Same-identity calibration only; no between-implementation acceptance claim.")

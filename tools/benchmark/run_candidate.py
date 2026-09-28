@@ -84,7 +84,12 @@ def main():
                         help="continue an interrupted collection with the same owned remote directory and identities")
     parser.add_argument("--matrix", action="store_true", help="expanded component workloads, including four clients")
     parser.add_argument("--exec-resource-probe", type=Path,
-                        help="separate wait4 lifecycle probe for UCI; never included in timing samples")
+                        help="separate wait4 lifecycle probe for UCI/reload-config; never included in timing samples")
+    parser.add_argument("--exec-task-probe", type=Path,
+                        help="separate task lifecycle probe for reload-config; diagnostic only")
+    parser.add_argument("--reload-packages", type=int, choices=(4, 24, 64, 128), default=4)
+    parser.add_argument("--reload-workloads", nargs="+", choices=("first_baseline", "unchanged_config", "single_change", "multi_change", "comment_only"))
+    parser.add_argument("--reload-warmup", type=int, default=5)
     parser.add_argument("--httpd-workloads", nargs="+", help="explicit subset of the HTTP matrix")
     parser.add_argument("--rpcd-workloads", nargs="+", help="explicit RPCD matrix lanes, including targeted UCI/ACL/LuCI queries")
     parser.add_argument("--procd-workloads", nargs="+", help="explicit procd query lanes; service_list_instance_fields is opt-in")
@@ -141,10 +146,19 @@ def main():
         parser.error("sides must include stock and candidate, without duplicates")
     if args.component != "httpd" and args.memory_probe:
         parser.error("held-connection memory currently requires HTTPD")
-    if args.matrix and args.component not in ("httpd", "rpcd", "procd", "ubusd", "netifd", "uci"):
+    if args.matrix and args.component not in ("httpd", "rpcd", "procd", "ubusd", "netifd", "uci", "reload-config"):
         parser.error("expanded matrix is not defined for this component")
-    if args.exec_resource_probe and (args.component != "uci" or not args.bench):
-        parser.error("exec resource probe requires UCI and --bench")
+    if args.exec_resource_probe and (args.component not in ("uci", "reload-config") or not args.bench):
+        parser.error("exec resource probe requires UCI/reload-config and --bench")
+    if args.exec_task_probe and (args.component != "reload-config" or not args.bench):
+        parser.error("exec task probe requires reload-config and --bench")
+    if args.reload_workloads or args.reload_warmup != 5 or args.reload_packages != 4:
+        if args.component != "reload-config" or not args.matrix:
+            parser.error("reload workload/warmup controls require its matrix")
+    if not 0 <= args.reload_warmup <= 100000:
+        parser.error("reload warmup must be in 0..100000")
+    if args.reload_workloads and len(set(args.reload_workloads)) != len(args.reload_workloads):
+        parser.error("duplicate reload workload")
     if args.netifd_scale != 32 and (args.component != "netifd" or not args.matrix):
         parser.error("--netifd-scale requires a netifd matrix")
     if args.httpd_workloads:
@@ -322,6 +336,11 @@ def main():
         settings["httpd_workloads"] = args.httpd_workloads
     if args.rpcd_workloads:
         settings["rpcd_workloads"] = args.rpcd_workloads
+    if component == "reload-config":
+        settings["reload_workloads"] = args.reload_workloads or (["first_baseline", "unchanged_config", "single_change", "multi_change", "comment_only"] if args.matrix else ["unchanged_config"])
+        settings["reload_warmup"] = args.reload_warmup
+        settings["reload_packages"] = args.reload_packages
+        settings["reload_prepared_exec"] = True
     if component == "fw4":
         settings["fw4_workloads"] = args.fw4_workloads or ["print", "check"]
         settings["fw4_count"] = args.fw4_count if args.fw4_count is not None else max(args.iterations // 100, 1)
@@ -350,6 +369,8 @@ def main():
         settings["bench_sha256"] = tool_hashes["owrt-benchmark"]
     if args.exec_resource_probe:
         settings["exec_resource_probe_sha256"] = hashlib.sha256(args.exec_resource_probe.read_bytes()).hexdigest()
+    if args.exec_task_probe:
+        settings["exec_task_probe_sha256"] = hashlib.sha256(args.exec_task_probe.read_bytes()).hexdigest()
     if args.extended:
         settings["extended"] = True
     initial("settings.json", settings)
@@ -401,6 +422,12 @@ def main():
                 subprocess.run(["scp", "-O", str(args.exec_resource_probe.resolve()),
                                 args.host + ":" + target + "/exec-resource"], check=True)
             assert ssh("sha256sum " + target + "/exec-resource").decode().split()[0] == settings["exec_resource_probe_sha256"]
+    if args.exec_task_probe:
+        for target in [bundle, stock_bundle, *([baseline_bundle] if baseline_bundle else []), *extra_bundles.values()]:
+            if not args.resume:
+                subprocess.run(["scp", "-O", str(args.exec_task_probe.resolve()),
+                                args.host + ":" + target + "/exec-task-counts"], check=True)
+            assert ssh("sha256sum " + target + "/exec-task-counts").decode().split()[0] == settings["exec_task_probe_sha256"]
     if args.memory_probe:
         digest = hashlib.sha256(args.memory_probe.read_bytes()).hexdigest()
         if not args.resume:
@@ -500,12 +527,16 @@ def main():
         if args.cpus:
             command = "taskset -c " + shlex.quote(args.cpus) + " " + command
         if args.matrix:
-            command = "OWRT_" + component.upper() + "_MATRIX=1 " + command
+            command = "OWRT_" + component.upper().replace("-", "_") + "_MATRIX=1 " + command
             if component == "netifd":
                 command = ("OWRT_NETIFD_SCALE=" + str(args.netifd_scale)
                            + " OWRT_NETIFD_WARMUP=" + str(args.netifd_warmup) + " " + command)
                 if args.netifd_workloads:
                     command = "OWRT_NETIFD_WORKLOADS=" + shlex.quote(" ".join(args.netifd_workloads)) + " " + command
+        if component == "reload-config":
+            command = ("OWRT_RELOAD_CONFIG_WORKLOADS=" + shlex.quote(" ".join(settings["reload_workloads"]))
+                       + " OWRT_RELOAD_CONFIG_WARMUP=" + str(args.reload_warmup)
+                       + " OWRT_RELOAD_CONFIG_PACKAGES=" + str(args.reload_packages) + " " + command)
         if component == "fw4":
             command = ("OWRT_FW4_WORKLOADS=" + shlex.quote(" ".join(settings["fw4_workloads"]))
                        + " OWRT_FW4_COUNT=" + str(settings["fw4_count"])

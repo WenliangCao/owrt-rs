@@ -20,6 +20,7 @@ mod child_cpu;
 mod cpu_clock;
 mod event_evidence;
 mod exec_journal;
+mod reload_exec;
 #[cfg(feature = "registration-perf")]
 mod registration_perf;
 #[cfg(feature = "registration-phase")]
@@ -1129,6 +1130,11 @@ fn main_inner(a: &[String]) -> Result<()> {
             require(a.len() == 6, "rpc-fixture SOCKET N WARMUP PIDS")?;
             rpc_fixture(&a[2], a[3].parse()?, a[4].parse()?, &pid_list(&a[5])?)
         }
+        "reload-service" => {
+            require(a.len() == 4, "reload-service SOCKET TRANSCRIPT")?;
+            reload_exec::serve(&a[2], &a[3])
+        }
+        "reload-exec" => reload_exec::measure(&a[2..]),
         "exec" | "exec-strict" => {
             require(
                 a.len() >= 8 && a[6] == "--",

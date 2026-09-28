@@ -72,7 +72,7 @@ generation/checks operate only inside the isolated network namespace.
 | logd | 128-byte-class syslog datagrams with final-delivery check; 100-line reads |
 | uci | Network/64-section export; scratch set + commit + verified get |
 | fw4 | Byte-validated print; kernel nft check |
-| reload-config | Unchanged configuration walk with original uci |
+| reload-config | Prepared first/unchanged/single/multi/comment-only configuration and event validation |
 | httpd | 16 KiB static file, CGI, authenticated JSON-RPC |
 
 R85 HTTPD optimization uses `run_httpd.py CANDIDATE PRIVATE_OUT --interface enX`:
@@ -408,3 +408,57 @@ includes descendants reaped by the command, and retains legacy tick fields
 separately. Microsecond encoding is not a claim of microsecond accuracy.
 A short-lived acceptance result requires both this field and the caller CPU
 clock; an empty after-exit resident list cannot establish zero memory.
+
+
+## Reload-config prepared process matrix
+
+`run_candidate.py --component reload-config --matrix --reload-packages 24`
+runs `first_baseline`, `unchanged_config`, `single_change`, `multi_change`,
+and `comment_only`. Select screening lanes with `--reload-workloads` and
+warm-up count with `--reload-warmup` (default 5). Measured invocations per lane
+remain `max(--iterations / 20, 1)`. Package counts 4, 24, 64 and 128 support
+bounded scale screening; the default 4 reproduces the small common corpus.
+Use the existing four-side random-block schedule and provenance flags.
+
+Every invocation restores fixed config bytes and the independent exact-image
+old baseline outside timing. First baseline always starts absent. Single
+change modifies `network`; multi change modifies `firewall`, `network`, and
+`r84fixture`, in old-baseline order. Comment-only adds whitespace/comments
+while preserving the entire normalized baseline. Reference baselines are
+created by the exact-image script, UCI and BusyBox before collection, with no
+existing baseline and hence no reference events. Each timed exec must exit
+successfully with empty stdout/stderr, match every baseline byte and match
+all framed raw package bytes, order, multiplicity and receiver status. An
+untimed repeat must preserve the complete baseline and emit no events. All
+invocations, including warm-ups and diagnostics, retain these artifacts and
+a started/completed journal; failed windows remain failures.
+
+The namespace always uses the exact C ubusd, a trigger-free `service.event`
+receiver, and a private exact-image logd at `/dev/log`. Receiving the event
+means successful service acceptance, not completion of any downstream reload.
+No production socket, configuration, saved delta or override directory is
+used. The current Rust implementation normalizes UCI and hashes in-process;
+older sides may spawn UCI, md5sum and ubus, and those children are included.
+
+`reload-exec` sums per-invocation `getrusage(RUSAGE_CHILDREN)` deltas across
+only the measured exec-to-exit windows, including baseline commit and reply
+completion. Caller, ubusd, receiver and logd CPU clocks are listed separately.
+Reset, complete checking, repeat and resource runs are excluded from latency,
+throughput and command CPU. `prepare_us_per_op`, `validation_us_per_op` and
+`envelope_s` expose those excluded costs. Throughput is successful operations
+divided by the sum of their exec durations; it excludes reset/check wall time.
+Raw before/after counters remain available for each measured operation. These
+are microsecond exports, not a microsecond accuracy claim. Dependency clocks
+cover the immediate exec interval; asynchronous trailing syslog work may run
+later. Separate dependency envelope clocks include all warm-up/reset/repeat
+and diagnostic work, and must not be used as per-operation runtime CPU.
+
+`--exec-resource-probe` adds three separate wait4 lifecycle samples per lane.
+`--exec-task-probe` adds one separately traced task-lifecycle sample per lane
+using `exec_task_counts.c`. Both reset and validate the same workload. The
+ptrace sample reports process/task births and complete reaping; its latency,
+CPU and memory must never be treated as normal performance. wait4 maxrss is
+a peak among the command/reaped descendants, not their concurrent RSS sum.
+The receiver and logd remain available for separate resident observations.
+Config baselines live in private tmpfs; sync and atomic rename remain active,
+so these measurements do not estimate flash persistence latency.
