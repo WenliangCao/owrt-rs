@@ -9,6 +9,7 @@ publish = false
 
 [dependencies]
 owrt-uci = { path = "../uci" }
+owrt-ubus = { path = "../ubus" }
 
 [[bin]]
 name = "reload-config-rs"

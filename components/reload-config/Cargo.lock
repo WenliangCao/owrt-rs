@@ -6,8 +6,13 @@ version = 4
 name = "owrt-reload-config"
 version = "0.2.0"
 dependencies = [
+ "owrt-ubus",
  "owrt-uci",
 ]
+
+[[package]]
+name = "owrt-ubus"
+version = "0.1.0"
 
 [[package]]
 name = "owrt-uci"

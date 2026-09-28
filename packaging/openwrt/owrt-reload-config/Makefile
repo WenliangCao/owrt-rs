@@ -40,6 +40,9 @@ define Build/Prepare
 	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../uci/Cargo.toml $(RELOAD_CONFIG_RS_SOURCE)/../uci/build.rs $(PKG_BUILD_DIR)/uci/
 	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../uci/src/*.rs $(PKG_BUILD_DIR)/uci/src/
 	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../uci/src/bin/*.rs $(PKG_BUILD_DIR)/uci/src/bin/
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)/ubus/src
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../ubus/Cargo.toml $(PKG_BUILD_DIR)/ubus/
+	$(CP) $(RELOAD_CONFIG_RS_SOURCE)/../ubus/src/*.rs $(PKG_BUILD_DIR)/ubus/src/
 endef
 
 define Build/Configure

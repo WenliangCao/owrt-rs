@@ -1,12 +1,11 @@
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![deny(unsafe_op_in_unsafe_fn)]
-// the pidfd child wait is Linux-only; smoke builds elsewhere just have to compile
+// The ubus transport targets Linux; other hosts only provide smoke builds.
 #![cfg_attr(not(target_os = "linux"), allow(dead_code, unused_imports))]
 
 mod engine;
 mod json;
 mod md5;
-mod process;
 mod syslog;
 mod trace;
 mod unix;
@@ -26,6 +25,10 @@ const EX_TEMPFAIL: i32 = 75;
 const DEFAULT_TIMEOUT_MS: u64 = 10_000;
 
 static CANCELLED: AtomicBool = AtomicBool::new(false);
+
+fn is_cancelled() -> bool {
+    CANCELLED.load(Ordering::Relaxed)
+}
 
 extern "C" fn handle_signal(_: i32) {
     CANCELLED.store(true, Ordering::Relaxed);
