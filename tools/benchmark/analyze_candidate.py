@@ -17,7 +17,9 @@ PROCD_EXTRA = ("service_list_128", "service_list_named_128")
 UBUSD_EXTRA = ("lookup_prefix_64", "lookup_all_128")
 UBUSD_EXTENDED = ("register_1", "register_16", "event_1", "event_8", "event_nomatch")
 NETIFD_SERIAL = ("reload_unchanged", "events_static2")
-TREE_METRICS = ("subject_tree_cpu_us_per_op", "dependency_tree_cpu_us_per_op", "client_tree_cpu_us_per_op")
+TREE_METRICS = ("subject_tree_cpu_us_per_op", "dependency_tree_cpu_us_per_op", "client_tree_cpu_us_per_op",
+                "command_tree_cpu_us_per_op")
+RUSAGE_CHILD_FIELDS = ("rusage_children_user_us", "rusage_children_system_us", "rusage_children_counter_source")
 NETIFD_EXTRA = ("device_status_all", "interface_dump_32", "interface_named_32")
 METRICS = ("mean_us", "p50_us", "p95_us", "p99_us", "ops_per_s",
            "subject_cpu_us_per_op", "dependency_cpu_us_per_op", "client_cpu_us_per_op")
@@ -76,7 +78,7 @@ def child_cpu_parent(before, after, hz, *, caller=False, proc_child_s=None):
     assert tick_delta >= 0, "child CPU ticks regressed"
     if proc_child_s is not None:
         assert math.isclose(proc_child_s, tick_delta / hz, rel_tol=1e-12, abs_tol=1e-12), "child summary differs from raw ticks"
-    fields = ("rusage_children_user_us", "rusage_children_system_us", "rusage_children_counter_source")
+    fields = RUSAGE_CHILD_FIELDS
     present = [field in p for p in (before, after) for field in fields]
     source = "proc-stat-cutime+cstime"
     child_us, error_us = tick_delta * 1e6 / hz, 2 * 1e6 / hz
@@ -147,10 +149,20 @@ def serial(path, subject, roles=None):
             clocks["subject_own_cpu_clock_us_per_op"] = own["cpu_clock_ns"] / 1000 / count
             clocks["dependency_own_cpu_clock_us_per_op"] = sum(p["cpu_clock_ns"] for p in dependencies) / 1000 / count
     trees = serial_trees(data, groups) if subject is not None and clocks else {}
+    command_cpu = {}
+    snapshots = (data.get("client_before", {}), data.get("client_after", {}))
+    if subject is None and any(field in snapshot for snapshot in snapshots for field in RUSAGE_CHILD_FIELDS):
+        # Snapshots bracket only measured operations. Reaped descendants are
+        # included (for set/commit/get: the shell and all three UCI processes).
+        # Keep the legacy tick fields separate, and do not invent a fine count
+        # for old tools without complete getrusage evidence.
+        parent = child_cpu_parent(*snapshots, data["clock_ticks_per_second"],
+                                  caller=True, proc_child_s=data["child_cpu_s"])
+        command_cpu["command_tree_cpu_us_per_op"] = parent["child_cpu_us"] / count
     resources = [resource_pair(p["before"], p["after"], subject, p["pid"]) for p in data["daemon_cpu"]]
     for resource in resources:
         resource["role"] = next(role for role, pids in groups.items() if resource["pid"] in pids)
-    return {**timing(data), **clocks, **trees, "warmup": data["warmup"], "errors": data["errors"],
+    return {**timing(data), **clocks, **trees, **command_cpu, "warmup": data["warmup"], "errors": data["errors"],
             "resources": resources,
             "clock_ticks_per_second": data.get("clock_ticks_per_second"),
             "subject_reaped_child_cpu_us_per_op": own["child_cpu_s"] * 1e6 / count if own else None,

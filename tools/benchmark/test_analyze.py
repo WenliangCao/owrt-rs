@@ -83,6 +83,50 @@ class AnalysisGates(unittest.TestCase):
         with self.assertRaises(AssertionError):
             serial(self.path, 99)
 
+    def command_sample(self):
+        data = {**self.valid, "warmup": 5, "child_cpu_s": 0, "client_cpu_s": .002,
+                "clock_ticks_per_second": 100, "daemon_cpu": []}
+        data["client_before"] = {"pid": 23, "start_ticks": 17, "child_cpu_ticks": 0,
+                                 "rusage_children_user_us": 100000,
+                                 "rusage_children_system_us": 50000,
+                                 "rusage_children_counter_source": "getrusage(RUSAGE_CHILDREN)"}
+        data["client_after"] = {**data["client_before"], "rusage_children_user_us": 101100,
+                                "rusage_children_system_us": 50300}
+        return data
+
+    def test_one_shot_command_cpu_uses_measured_delta_and_count(self):
+        from analyze_candidate import serial
+        data = self.command_sample()
+        for warmup in (5, 65):
+            data["warmup"] = warmup
+            self.path.write_text(json.dumps(data))
+            result = serial(self.path, None)
+            self.assertEqual(result["command_tree_cpu_us_per_op"], 700)
+            self.assertEqual(result["subject_cpu_us_per_op"], 0)  # retained legacy ticks
+            self.assertEqual(result["client_reaped_child_cpu_us_per_op"], 0)
+
+    def test_one_shot_command_cpu_rejects_partial_regressed_or_wrong_source(self):
+        from analyze_candidate import serial
+        for patch in ({"rusage_children_user_us": 99999},
+                      {"rusage_children_counter_source": "wrong"},
+                      {"start_ticks": 99}):
+            data = self.command_sample()
+            data["client_after"].update(patch)
+            self.path.write_text(json.dumps(data))
+            with self.assertRaises(AssertionError):
+                serial(self.path, None)
+        data = self.command_sample()
+        del data["client_after"]["rusage_children_system_us"]
+        self.path.write_text(json.dumps(data))
+        with self.assertRaisesRegex(AssertionError, "partial"):
+            serial(self.path, None)
+        for snapshot in (data["client_before"], data["client_after"]):
+            for field in list(snapshot):
+                if field.startswith("rusage_children_"):
+                    del snapshot[field]
+        self.path.write_text(json.dumps(data))
+        self.assertNotIn("command_tree_cpu_us_per_op", serial(self.path, None))
+
     def test_one_shot_collection_does_not_require_a_resident_process_hash(self):
         from analyze_candidate import derive
         root = Path(self.directory.name)
@@ -120,6 +164,14 @@ class AnalysisGates(unittest.TestCase):
         self.assertEqual(result["resident"], [])
         self.assertEqual(len(result["runs"]), 6)
         self.assertTrue(all(r["subject_cpu_us_per_op"] == 2000 for r in result["runs"]))
+
+        # Fine command-tree CPU is aggregated when all short-lived runs have it.
+        for path in root.glob("*/raw/*.json"):
+            if path.stem in ("export_network", "export_64", "set_commit_get"):
+                path.write_text(json.dumps(self.command_sample()))
+        result = derive(root, "one-shot fine CPU fixture")
+        for workload in ("export_network", "export_64", "set_commit_get"):
+            self.assertEqual(result["summary"][workload]["candidate"]["command_tree_cpu_us_per_op"]["median"], 700)
 
         # Declaring a daemon to have no PID must not bypass its live identity check.
         save("settings.json", {"component": "rpcd", "matrix": False})
