@@ -175,7 +175,7 @@ pub fn run<W: Write>(
         }
     }
 
-    write_baseline(&baseline_path, &names, &current)?;
+    write_baseline(&baseline_path, &names, &current, cancelled)?;
     trace
         .complete(true, failures)
         .map_err(|error| Error::Io("write completion trace", error))?;
@@ -261,6 +261,9 @@ fn dispatch(
     package: &OsStr,
     cancelled: &AtomicBool,
 ) -> Result<Delivery, Error> {
+    if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
+        return Err(Error::Cancelled);
+    }
     // The shell interpolates `$(basename $c)` raw, so a package name that is
     // not UTF-8 reaches ubus as those exact bytes; the payload is built as
     // bytes and handed to execve as an OsStr for that reason.
@@ -358,7 +361,11 @@ fn write_baseline(
     path: &Path,
     names: &[OsString],
     current: &HashMap<OsString, String>,
+    cancelled: &AtomicBool,
 ) -> Result<(), Error> {
+    if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
+        return Err(Error::Cancelled);
+    }
     let mut temporary_name = path
         .file_name()
         .unwrap_or_else(|| OsStr::new("config.md5"))
@@ -387,6 +394,9 @@ fn write_baseline(
             .sync_all()
             .map_err(|error| Error::Io("sync temporary baseline", error))?;
         drop(output);
+        if cancelled.load(std::sync::atomic::Ordering::Relaxed) {
+            return Err(Error::Cancelled);
+        }
         fs::rename(&temporary, path).map_err(|error| Error::Io("commit temporary baseline", error))
     })();
     if result.is_err() {
@@ -608,8 +618,45 @@ mod tests {
         let names = vec![OsString::from("alpha")];
         let current = HashMap::from([(OsString::from("alpha"), "a".repeat(32))]);
 
-        assert!(write_baseline(&path, &names, &current).is_err());
+        assert!(write_baseline(&path, &names, &current, &std::sync::atomic::AtomicBool::new(false)).is_err());
         assert_eq!(fs::read_to_string(&path).unwrap(), "previous baseline\n");
         fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn cancelled_dispatch_does_not_start_a_command() {
+        let settings = Settings { root: "/".into(), timeout: Duration::from_secs(1) };
+        let cancelled = std::sync::atomic::AtomicBool::new(true);
+        assert!(matches!(super::dispatch(&settings, OsStr::new("alpha"), &cancelled), Err(Error::Cancelled)));
+    }
+
+    #[test]
+    fn cancellation_after_comparison_preserves_baseline_with_no_changes() {
+        use std::io::{self, Write};
+        use std::sync::atomic::{AtomicBool, Ordering};
+        struct CancelOnWrite<'a>(&'a AtomicBool);
+        impl Write for CancelOnWrite<'_> {
+            fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+                self.0.store(true, Ordering::Relaxed);
+                Ok(bytes.len())
+            }
+            fn flush(&mut self) -> io::Result<()> { Ok(()) }
+        }
+        let root = std::env::temp_dir().join(format!("reload-config-cancel-commit-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("etc/config")).unwrap();
+        fs::create_dir_all(root.join("var/run")).unwrap();
+        fs::write(root.join("etc/config/alpha"), b"").unwrap();
+        let baseline = root.join("var/run/config.md5");
+        // Same digest, but rewriting would change case and the recorded path.
+        let previous = b"D41D8CD98F00B204E9800998ECF8427E  /old/alpha\n";
+        fs::write(&baseline, previous).unwrap();
+        let cancelled = AtomicBool::new(false);
+        let mut trace = crate::trace::Trace::new(CancelOnWrite(&cancelled));
+        let settings = Settings { root: root.clone(), timeout: Duration::from_secs(1) };
+        assert!(matches!(run(&settings, &cancelled, &mut trace), Err(Error::Cancelled)));
+        assert_eq!(fs::read(&baseline).unwrap(), previous);
+        assert!(!root.join("var/run/config.md5.reload-config-rs.tmp").exists());
+        fs::remove_dir_all(root).unwrap();
     }
 }
