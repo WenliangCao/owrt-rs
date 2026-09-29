@@ -1,0 +1,3790 @@
+{
+  "schema": 1,
+  "scope": "Oracle AArch64/Linux canonical incremental comparison, not a fifth AX3000T matrix side",
+  "status": "COMPLETE",
+  "source_plan_sha256": "1364e0441d50eadbf3d870bd7d78e165b5406ae43d0b96437d5affa067aabf4f",
+  "order": [
+    "current",
+    "candidate",
+    "candidate",
+    "current"
+  ],
+  "pairing": [
+    {
+      "current": "01-current",
+      "candidate": "02-candidate"
+    },
+    {
+      "current": "04-current",
+      "candidate": "03-candidate"
+    }
+  ],
+  "subjects": {
+    "current": {
+      "sha256": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9",
+      "source_commit": "feb7a4ee2265a8e7207094764f1c8b41d69fe3bb",
+      "bytes": 482027,
+      "canonical_run": 36485630189
+    },
+    "candidate": {
+      "sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+      "source_commit": "43b98a138bea2b37713634c012a37a9d7186a20b",
+      "bytes": 465643,
+      "canonical_run": 36491554447
+    }
+  },
+  "input_sha256": {
+    "current": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9",
+    "candidate": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+    "benchmark": "07828e8e63e1ef8287b96b04d64561b097eedec042cccc3e7dc8bdf15bb2a9bd",
+    "harness": "1b91816976dcbfedad6323c9d482eb2f8398a0ae2e34f22be875824d2bdcfff1",
+    "ns": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "runner": "27dc36c09bf84da2c5225233fb5b4b715826d681ac69ba8343e7e309785ae563"
+  },
+  "kernel": "6.17.0-1020-oracle",
+  "settings": {
+    "packages": 24,
+    "measured_per_lane_window": 100,
+    "warmup_per_lane_window": 5,
+    "windows_per_side": 2,
+    "workloads": [
+      "first_baseline",
+      "unchanged_config",
+      "single_change",
+      "multi_change",
+      "comment_only"
+    ],
+    "instrumentation": false,
+    "resource_probe": false,
+    "task_probe": false,
+    "default_runtime_syslog": true,
+    "filesystem": "private tmpfs"
+  },
+  "elapsed_seconds": 13.392588039976545,
+  "validation": {
+    "windows": 4,
+    "lane_windows": 20,
+    "prepared_cycles": 2100,
+    "measured_calls": 2000,
+    "warmup_calls": 100,
+    "calls_including_silent_repeat": 4200,
+    "independent_reference_baseline_calls_outside_cycles": 16,
+    "accepted_events": 1680,
+    "errors": 0,
+    "timeouts": 0,
+    "complete_baseline_bytes_checked_every_cycle": true,
+    "raw_event_bytes_order_count_status_checked_every_cycle": true,
+    "silent_repeat_checked_every_cycle": true,
+    "command_counter_checks": 2100,
+    "input_sha256_unchanged_every_window": true,
+    "same_fixture_and_dependency_manifests": true,
+    "actual_downloaded_binary_hashes_match": true
+  },
+  "windows": [
+    {
+      "window": "01-current",
+      "side": "current",
+      "complete": true,
+      "input_identity_unchanged": true,
+      "actual_elf_sha256": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9",
+      "input_record_sha256": "7c9431e8678ccdb6f3b51ab041ce3f59dfaaf8ad68ce4f598c3c5b3676cbfade",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fixture_manifest_sha256": "350424be1df1ad39a0d20beb33cf59acd596f507082adc25777c39d35b1247b7",
+      "dependency_manifest_sha256": "f9ca87dd0b82d87002dc922f38dccf811ed6534378c6eb107c9985a684cf2003",
+      "all_reference_outputs_empty": true,
+      "default_syslog_observed": true
+    },
+    {
+      "window": "02-candidate",
+      "side": "candidate",
+      "complete": true,
+      "input_identity_unchanged": true,
+      "actual_elf_sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+      "input_record_sha256": "7c9431e8678ccdb6f3b51ab041ce3f59dfaaf8ad68ce4f598c3c5b3676cbfade",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fixture_manifest_sha256": "350424be1df1ad39a0d20beb33cf59acd596f507082adc25777c39d35b1247b7",
+      "dependency_manifest_sha256": "f9ca87dd0b82d87002dc922f38dccf811ed6534378c6eb107c9985a684cf2003",
+      "all_reference_outputs_empty": true,
+      "default_syslog_observed": true
+    },
+    {
+      "window": "03-candidate",
+      "side": "candidate",
+      "complete": true,
+      "input_identity_unchanged": true,
+      "actual_elf_sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+      "input_record_sha256": "7c9431e8678ccdb6f3b51ab041ce3f59dfaaf8ad68ce4f598c3c5b3676cbfade",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fixture_manifest_sha256": "350424be1df1ad39a0d20beb33cf59acd596f507082adc25777c39d35b1247b7",
+      "dependency_manifest_sha256": "f9ca87dd0b82d87002dc922f38dccf811ed6534378c6eb107c9985a684cf2003",
+      "all_reference_outputs_empty": true,
+      "default_syslog_observed": true
+    },
+    {
+      "window": "04-current",
+      "side": "current",
+      "complete": true,
+      "input_identity_unchanged": true,
+      "actual_elf_sha256": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9",
+      "input_record_sha256": "7c9431e8678ccdb6f3b51ab041ce3f59dfaaf8ad68ce4f598c3c5b3676cbfade",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fixture_manifest_sha256": "350424be1df1ad39a0d20beb33cf59acd596f507082adc25777c39d35b1247b7",
+      "dependency_manifest_sha256": "f9ca87dd0b82d87002dc922f38dccf811ed6534378c6eb107c9985a684cf2003",
+      "all_reference_outputs_empty": true,
+      "default_syslog_observed": true
+    }
+  ],
+  "rows": [
+    {
+      "lane": "first_baseline",
+      "metric": "command_tree_cpu_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1189.83,
+          1195.94
+        ],
+        "candidate": [
+          1079.5,
+          1088.82
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1192.885,
+          "min": 1189.83,
+          "max": 1195.94
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1084.1599999999999,
+          "min": 1079.5,
+          "max": 1088.82
+        }
+      },
+      "difference": {
+        "absolute": -108.72500000000014,
+        "percent": -9.1144578060752,
+        "paired_absolute": [
+          -110.32999999999993,
+          -107.12000000000012
+        ],
+        "paired_percent": [
+          -9.272753250464346,
+          -8.956971085505971
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "mean_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1246.49675,
+          1261.90888
+        ],
+        "candidate": [
+          1136.2298999999998,
+          1139.8915200000001
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1254.202815,
+          "min": 1246.49675,
+          "max": 1261.90888
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1138.06071,
+          "min": 1136.2298999999998,
+          "max": 1139.8915200000001
+        }
+      },
+      "difference": {
+        "absolute": -116.14210500000013,
+        "percent": -9.26023316252883,
+        "paired_absolute": [
+          -110.2668500000002,
+          -122.01735999999983
+        ],
+        "paired_percent": [
+          -8.846140192503526,
+          -9.669268671760186
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "p50_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1244.45,
+          1257.25
+        ],
+        "candidate": [
+          1131.009,
+          1131.29
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1250.85,
+          "min": 1244.45,
+          "max": 1257.25
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1131.1495,
+          "min": 1131.009,
+          "max": 1131.29
+        }
+      },
+      "difference": {
+        "absolute": -119.70049999999992,
+        "percent": -9.569532717751922,
+        "paired_absolute": [
+          -113.44100000000003,
+          -125.96000000000004
+        ],
+        "paired_percent": [
+          -9.115753947527022,
+          -10.01869158878505
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "p95_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1335.051,
+          1372.172
+        ],
+        "candidate": [
+          1213.17,
+          1234.89
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1353.6115,
+          "min": 1335.051,
+          "max": 1372.172
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1224.0300000000002,
+          "min": 1213.17,
+          "max": 1234.89
+        }
+      },
+      "difference": {
+        "absolute": -129.58149999999978,
+        "percent": -9.573020028272499,
+        "paired_absolute": [
+          -121.88099999999986,
+          -137.28199999999993
+        ],
+        "paired_percent": [
+          -9.12931416103204,
+          -10.004722440043953
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "p99_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1363.572,
+          1415.771
+        ],
+        "candidate": [
+          1250.091,
+          1255.691
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1389.6715,
+          "min": 1363.572,
+          "max": 1415.771
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1252.891,
+          "min": 1250.091,
+          "max": 1255.691
+        }
+      },
+      "difference": {
+        "absolute": -136.78049999999985,
+        "percent": -9.842649863654817,
+        "paired_absolute": [
+          -113.481,
+          -160.07999999999993
+        ],
+        "paired_percent": [
+          -8.322332814108826,
+          -11.306913335560619
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "ops_per_s",
+      "unit": "ops/s",
+      "rounds": {
+        "current": [
+          802.2483813134692,
+          792.450244109543
+        ],
+        "candidate": [
+          880.1035776298442,
+          877.2764622373891
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 797.3493127115061,
+          "min": 792.450244109543,
+          "max": 802.2483813134692
+        },
+        "candidate": {
+          "n": 2,
+          "median": 878.6900199336167,
+          "min": 877.2764622373891,
+          "max": 880.1035776298442
+        }
+      },
+      "difference": {
+        "absolute": 81.34070722211061,
+        "percent": 10.201389268838687,
+        "paired_absolute": [
+          77.85519631637499,
+          84.82621812784612
+        ],
+        "paired_percent": [
+          9.70462491789734,
+          10.7042957912346
+        ],
+        "directions": [
+          "↑",
+          "↑"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "client_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          93.24,
+          103.6336
+        ],
+        "candidate": [
+          90.6164,
+          83.28479999999999
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 98.4368,
+          "min": 93.24,
+          "max": 103.6336
+        },
+        "candidate": {
+          "n": 2,
+          "median": 86.9506,
+          "min": 83.28479999999999,
+          "max": 90.6164
+        }
+      },
+      "difference": {
+        "absolute": -11.48620000000001,
+        "percent": -11.66860361165744,
+        "paired_absolute": [
+          -2.623599999999996,
+          -20.34880000000001
+        ],
+        "paired_percent": [
+          -2.81381381381381,
+          -19.635330626360574
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "ubusd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          0.0,
+          0.0
+        ],
+        "candidate": [
+          0.0,
+          0.0
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "candidate": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "difference": {
+        "absolute": 0.0,
+        "percent": null,
+        "paired_absolute": [
+          0.0,
+          0.0
+        ],
+        "paired_percent": [
+          null,
+          null
+        ],
+        "directions": [
+          "=",
+          "="
+        ],
+        "range_separated": false,
+        "evidence": "全部同值，不证明等价"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "receiver_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          0.0,
+          0.0
+        ],
+        "candidate": [
+          0.0,
+          0.0
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "candidate": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "difference": {
+        "absolute": 0.0,
+        "percent": null,
+        "paired_absolute": [
+          0.0,
+          0.0
+        ],
+        "paired_percent": [
+          null,
+          null
+        ],
+        "directions": [
+          "=",
+          "="
+        ],
+        "range_separated": false,
+        "evidence": "全部同值，不证明等价"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "logd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          28.544,
+          32.2352
+        ],
+        "candidate": [
+          30.4232,
+          29.895599999999998
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 30.3896,
+          "min": 28.544,
+          "max": 32.2352
+        },
+        "candidate": {
+          "n": 2,
+          "median": 30.159399999999998,
+          "min": 29.895599999999998,
+          "max": 30.4232
+        }
+      },
+      "difference": {
+        "absolute": -0.2302000000000035,
+        "percent": -0.7574959854687244,
+        "paired_absolute": [
+          1.8792000000000009,
+          -2.339600000000001
+        ],
+        "paired_percent": [
+          6.5835201793722,
+          -7.2579044026405946
+        ],
+        "directions": [
+          "↑",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "dependency_own_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          28.544,
+          32.2352
+        ],
+        "candidate": [
+          30.4232,
+          29.895599999999998
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 30.3896,
+          "min": 28.544,
+          "max": 32.2352
+        },
+        "candidate": {
+          "n": 2,
+          "median": 30.159399999999998,
+          "min": 29.895599999999998,
+          "max": 30.4232
+        }
+      },
+      "difference": {
+        "absolute": -0.2302000000000035,
+        "percent": -0.7574959854687244,
+        "paired_absolute": [
+          1.8792000000000009,
+          -2.339600000000001
+        ],
+        "paired_percent": [
+          6.5835201793722,
+          -7.2579044026405946
+        ],
+        "directions": [
+          "↑",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "prepare_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          401.35618999999997,
+          407.13746
+        ],
+        "candidate": [
+          392.31245,
+          384.55114000000003
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 404.24682499999994,
+          "min": 401.35618999999997,
+          "max": 407.13746
+        },
+        "candidate": {
+          "n": 2,
+          "median": 388.431795,
+          "min": 384.55114000000003,
+          "max": 392.31245
+        }
+      },
+      "difference": {
+        "absolute": -15.815029999999922,
+        "percent": -3.912221202974179,
+        "paired_absolute": [
+          -9.043739999999957,
+          -22.586319999999944
+        ],
+        "paired_percent": [
+          -2.2532952587575537,
+          -5.547590732623804
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "first_baseline",
+      "metric": "validation_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1515.3418599999998,
+          1559.3601800000001
+        ],
+        "candidate": [
+          1414.29736,
+          1412.53366
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1537.35102,
+          "min": 1515.3418599999998,
+          "max": 1559.3601800000001
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1413.41551,
+          "min": 1412.53366,
+          "max": 1414.29736
+        }
+      },
+      "difference": {
+        "absolute": -123.93551000000002,
+        "percent": -8.061627330887648,
+        "paired_absolute": [
+          -101.04449999999974,
+          -146.82652000000007
+        ],
+        "paired_percent": [
+          -6.6680993026880255,
+          -9.41581822359989
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "command_tree_cpu_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1228.64,
+          1247.49
+        ],
+        "candidate": [
+          1167.21,
+          1151.94
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1238.065,
+          "min": 1228.64,
+          "max": 1247.49
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1159.575,
+          "min": 1151.94,
+          "max": 1167.21
+        }
+      },
+      "difference": {
+        "absolute": -78.49000000000001,
+        "percent": -6.3397317588333415,
+        "paired_absolute": [
+          -61.430000000000064,
+          -95.54999999999995
+        ],
+        "paired_percent": [
+          -4.999837218387816,
+          -7.659380035110498
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "mean_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1288.85747,
+          1307.40643
+        ],
+        "candidate": [
+          1229.1006200000002,
+          1205.5301100000001
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1298.13195,
+          "min": 1288.85747,
+          "max": 1307.40643
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1217.3153650000002,
+          "min": 1205.5301100000001,
+          "max": 1229.1006200000002
+        }
+      },
+      "difference": {
+        "absolute": -80.8165849999998,
+        "percent": -6.225606341481681,
+        "paired_absolute": [
+          -59.75684999999976,
+          -101.87631999999985
+        ],
+        "paired_percent": [
+          -4.636420348326007,
+          -7.792245598792095
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "p50_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1290.21,
+          1307.171
+        ],
+        "candidate": [
+          1215.81,
+          1199.49
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1298.6905000000002,
+          "min": 1290.21,
+          "max": 1307.171
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1207.65,
+          "min": 1199.49,
+          "max": 1215.81
+        }
+      },
+      "difference": {
+        "absolute": -91.04050000000007,
+        "percent": -7.01017678962001,
+        "paired_absolute": [
+          -74.40000000000009,
+          -107.68100000000004
+        ],
+        "paired_percent": [
+          -5.766503127397872,
+          -8.237713351963901
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "p95_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1382.892,
+          1389.612
+        ],
+        "candidate": [
+          1331.011,
+          1286.411
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1386.252,
+          "min": 1382.892,
+          "max": 1389.612
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1308.711,
+          "min": 1286.411,
+          "max": 1331.011
+        }
+      },
+      "difference": {
+        "absolute": -77.54099999999994,
+        "percent": -5.593571731546641,
+        "paired_absolute": [
+          -51.881000000000085,
+          -103.20100000000002
+        ],
+        "paired_percent": [
+          -3.751630640715261,
+          -7.426605412158215
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "p99_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1407.052,
+          1429.491
+        ],
+        "candidate": [
+          1377.692,
+          1354.132
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1418.2714999999998,
+          "min": 1407.052,
+          "max": 1429.491
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1365.912,
+          "min": 1354.132,
+          "max": 1377.692
+        }
+      },
+      "difference": {
+        "absolute": -52.3594999999998,
+        "percent": -3.6917825677241494,
+        "paired_absolute": [
+          -29.3599999999999,
+          -75.35899999999992
+        ],
+        "paired_percent": [
+          -2.0866321926979174,
+          -5.271736583161413
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "ops_per_s",
+      "unit": "ops/s",
+      "rounds": {
+        "current": [
+          775.8809824021891,
+          764.8730930595163
+        ],
+        "candidate": [
+          813.6030392694782,
+          829.5105959651228
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 770.3770377308527,
+          "min": 764.8730930595163,
+          "max": 775.8809824021891
+        },
+        "candidate": {
+          "n": 2,
+          "median": 821.5568176173006,
+          "min": 813.6030392694782,
+          "max": 829.5105959651228
+        }
+      },
+      "difference": {
+        "absolute": 51.17977988644782,
+        "percent": 6.643471622310806,
+        "paired_absolute": [
+          37.7220568672891,
+          64.63750290560642
+        ],
+        "paired_percent": [
+          4.861835477717035,
+          8.45074869179335
+        ],
+        "directions": [
+          "↑",
+          "↑"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "client_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          98.84479999999999,
+          95.70639999999999
+        ],
+        "candidate": [
+          94.4084,
+          82.9816
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 97.2756,
+          "min": 95.70639999999999,
+          "max": 98.84479999999999
+        },
+        "candidate": {
+          "n": 2,
+          "median": 88.695,
+          "min": 82.9816,
+          "max": 94.4084
+        }
+      },
+      "difference": {
+        "absolute": -8.580600000000004,
+        "percent": -8.82091706450539,
+        "paired_absolute": [
+          -4.436399999999992,
+          -12.724799999999988
+        ],
+        "paired_percent": [
+          -4.488248243711346,
+          -13.29566256802052
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "ubusd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          0.0,
+          0.0
+        ],
+        "candidate": [
+          0.0,
+          0.0
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "candidate": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "difference": {
+        "absolute": 0.0,
+        "percent": null,
+        "paired_absolute": [
+          0.0,
+          0.0
+        ],
+        "paired_percent": [
+          null,
+          null
+        ],
+        "directions": [
+          "=",
+          "="
+        ],
+        "range_separated": false,
+        "evidence": "全部同值，不证明等价"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "receiver_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          0.0,
+          0.0
+        ],
+        "candidate": [
+          0.0,
+          0.0
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "candidate": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "difference": {
+        "absolute": 0.0,
+        "percent": null,
+        "paired_absolute": [
+          0.0,
+          0.0
+        ],
+        "paired_percent": [
+          null,
+          null
+        ],
+        "directions": [
+          "=",
+          "="
+        ],
+        "range_separated": false,
+        "evidence": "全部同值，不证明等价"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "logd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          30.323600000000003,
+          29.4012
+        ],
+        "candidate": [
+          30.066799999999997,
+          29.9916
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 29.8624,
+          "min": 29.4012,
+          "max": 30.323600000000003
+        },
+        "candidate": {
+          "n": 2,
+          "median": 30.029199999999996,
+          "min": 29.9916,
+          "max": 30.066799999999997
+        }
+      },
+      "difference": {
+        "absolute": 0.16679999999999495,
+        "percent": 0.5585619374196145,
+        "paired_absolute": [
+          -0.25680000000000547,
+          0.5903999999999989
+        ],
+        "paired_percent": [
+          -0.8468651479375979,
+          2.0080813028039635
+        ],
+        "directions": [
+          "↓",
+          "↑"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "dependency_own_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          30.323600000000003,
+          29.4012
+        ],
+        "candidate": [
+          30.066799999999997,
+          29.9916
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 29.8624,
+          "min": 29.4012,
+          "max": 30.323600000000003
+        },
+        "candidate": {
+          "n": 2,
+          "median": 30.029199999999996,
+          "min": 29.9916,
+          "max": 30.066799999999997
+        }
+      },
+      "difference": {
+        "absolute": 0.16679999999999495,
+        "percent": 0.5585619374196145,
+        "paired_absolute": [
+          -0.25680000000000547,
+          0.5903999999999989
+        ],
+        "paired_percent": [
+          -0.8468651479375979,
+          2.0080813028039635
+        ],
+        "directions": [
+          "↓",
+          "↑"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "prepare_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          403.79732,
+          400.61330999999996
+        ],
+        "candidate": [
+          393.11133,
+          381.55517999999995
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 402.205315,
+          "min": 400.61330999999996,
+          "max": 403.79732
+        },
+        "candidate": {
+          "n": 2,
+          "median": 387.333255,
+          "min": 381.55517999999995,
+          "max": 393.11133
+        }
+      },
+      "difference": {
+        "absolute": -14.872059999999976,
+        "percent": -3.697628908757702,
+        "paired_absolute": [
+          -10.685990000000004,
+          -19.058130000000006
+        ],
+        "paired_percent": [
+          -2.6463746713326386,
+          -4.757238345375995
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "unchanged_config",
+      "metric": "validation_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1502.3757199999998,
+          1515.1954199999998
+        ],
+        "candidate": [
+          1511.4261999999999,
+          1405.65964
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1508.7855699999998,
+          "min": 1502.3757199999998,
+          "max": 1515.1954199999998
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1458.5429199999999,
+          "min": 1405.65964,
+          "max": 1511.4261999999999
+        }
+      },
+      "difference": {
+        "absolute": -50.24264999999991,
+        "percent": -3.330005999460872,
+        "paired_absolute": [
+          9.050480000000107,
+          -109.5357799999997
+        ],
+        "paired_percent": [
+          0.6024112264008172,
+          -7.229151999416664
+        ],
+        "directions": [
+          "↑",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "command_tree_cpu_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          2118.05,
+          2128.66
+        ],
+        "candidate": [
+          1292.52,
+          1270.61
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 2123.355,
+          "min": 2118.05,
+          "max": 2128.66
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1281.565,
+          "min": 1270.61,
+          "max": 1292.52
+        }
+      },
+      "difference": {
+        "absolute": -841.79,
+        "percent": -39.6443364392671,
+        "paired_absolute": [
+          -825.5300000000002,
+          -858.05
+        ],
+        "paired_percent": [
+          -38.97594485493733,
+          -40.30939652175547
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "mean_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          2349.87235,
+          2372.78449
+        ],
+        "candidate": [
+          1579.1503300000002,
+          1555.64891
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 2361.32842,
+          "min": 2349.87235,
+          "max": 2372.78449
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1567.3996200000001,
+          "min": 1555.64891,
+          "max": 1579.1503300000002
+        }
+      },
+      "difference": {
+        "absolute": -793.9287999999997,
+        "percent": -33.622125295048946,
+        "paired_absolute": [
+          -770.7220199999999,
+          -817.1355800000001
+        ],
+        "paired_percent": [
+          -32.7984632867398,
+          -34.4378338379985
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "p50_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          2339.46,
+          2375.9
+        ],
+        "candidate": [
+          1571.173,
+          1540.813
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 2357.6800000000003,
+          "min": 2339.46,
+          "max": 2375.9
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1555.993,
+          "min": 1540.813,
+          "max": 1571.173
+        }
+      },
+      "difference": {
+        "absolute": -801.6870000000004,
+        "percent": -34.003215024939784,
+        "paired_absolute": [
+          -768.287,
+          -835.087
+        ],
+        "paired_percent": [
+          -32.84035632154429,
+          -35.148238562229054
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "p95_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          2493.42,
+          2518.581
+        ],
+        "candidate": [
+          1706.494,
+          1700.814
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 2506.0005,
+          "min": 2493.42,
+          "max": 2518.581
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1703.654,
+          "min": 1700.814,
+          "max": 1706.494
+        }
+      },
+      "difference": {
+        "absolute": -802.3465000000001,
+        "percent": -32.017012765959144,
+        "paired_absolute": [
+          -786.9260000000002,
+          -817.767
+        ],
+        "paired_percent": [
+          -31.560106199517136,
+          -32.469354767625106
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "p99_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          2568.902,
+          2582.982
+        ],
+        "candidate": [
+          1782.655,
+          1729.334
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 2575.942,
+          "min": 2568.902,
+          "max": 2582.982
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1755.9945,
+          "min": 1729.334,
+          "max": 1782.655
+        }
+      },
+      "difference": {
+        "absolute": -819.9475,
+        "percent": -31.830976784415178,
+        "paired_absolute": [
+          -786.2470000000001,
+          -853.6479999999999
+        ],
+        "paired_percent": [
+          -30.60634465619942,
+          -33.048933364615
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "ops_per_s",
+      "unit": "ops/s",
+      "rounds": {
+        "current": [
+          425.5550306807091,
+          421.4457757181311
+        ],
+        "candidate": [
+          633.2519336521939,
+          642.8185650192754
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 423.5004031994201,
+          "min": 421.4457757181311,
+          "max": 425.5550306807091
+        },
+        "candidate": {
+          "n": 2,
+          "median": 638.0352493357346,
+          "min": 633.2519336521939,
+          "max": 642.8185650192754
+        }
+      },
+      "difference": {
+        "absolute": 214.53484613631457,
+        "percent": 50.65753055146285,
+        "paired_absolute": [
+          207.6969029714848,
+          221.37278930114434
+        ],
+        "paired_percent": [
+          48.8061209473325,
+          52.52699209617933
+        ],
+        "directions": [
+          "↑",
+          "↑"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "client_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          101.2876,
+          97.9584
+        ],
+        "candidate": [
+          110.9824,
+          108.0036
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 99.62299999999999,
+          "min": 97.9584,
+          "max": 101.2876
+        },
+        "candidate": {
+          "n": 2,
+          "median": 109.493,
+          "min": 108.0036,
+          "max": 110.9824
+        }
+      },
+      "difference": {
+        "absolute": 9.870000000000005,
+        "percent": 9.907350712184943,
+        "paired_absolute": [
+          9.6948,
+          10.045200000000008
+        ],
+        "paired_percent": [
+          9.57155663674527,
+          10.254557036456301
+        ],
+        "directions": [
+          "↑",
+          "↑"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "ubusd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          140.2392,
+          151.6448
+        ],
+        "candidate": [
+          145.4232,
+          129.6316
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 145.942,
+          "min": 140.2392,
+          "max": 151.6448
+        },
+        "candidate": {
+          "n": 2,
+          "median": 137.5274,
+          "min": 129.6316,
+          "max": 145.4232
+        }
+      },
+      "difference": {
+        "absolute": -8.414600000000007,
+        "percent": -5.765715147113242,
+        "paired_absolute": [
+          5.1839999999999975,
+          -22.013200000000012
+        ],
+        "paired_percent": [
+          3.6965413379425986,
+          -14.516290700373514
+        ],
+        "directions": [
+          "↑",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "receiver_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          48.5036,
+          49.0208
+        ],
+        "candidate": [
+          53.0924,
+          68.1332
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 48.7622,
+          "min": 48.5036,
+          "max": 49.0208
+        },
+        "candidate": {
+          "n": 2,
+          "median": 60.6128,
+          "min": 53.0924,
+          "max": 68.1332
+        }
+      },
+      "difference": {
+        "absolute": 11.8506,
+        "percent": 24.302841135141566,
+        "paired_absolute": [
+          4.588799999999999,
+          19.1124
+        ],
+        "paired_percent": [
+          9.460741058395664,
+          38.98834780338142
+        ],
+        "directions": [
+          "↑",
+          "↑"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "logd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          50.8316,
+          54.4632
+        ],
+        "candidate": [
+          43.595200000000006,
+          47.23
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 52.647400000000005,
+          "min": 50.8316,
+          "max": 54.4632
+        },
+        "candidate": {
+          "n": 2,
+          "median": 45.4126,
+          "min": 43.595200000000006,
+          "max": 47.23
+        }
+      },
+      "difference": {
+        "absolute": -7.234800000000007,
+        "percent": -13.7419891580591,
+        "paired_absolute": [
+          -7.236399999999996,
+          -7.233200000000004
+        ],
+        "paired_percent": [
+          -14.23602640876934,
+          -13.28089425520352
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "dependency_own_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          239.5744,
+          255.1288
+        ],
+        "candidate": [
+          242.1108,
+          244.9948
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 247.35160000000002,
+          "min": 239.5744,
+          "max": 255.1288
+        },
+        "candidate": {
+          "n": 2,
+          "median": 243.5528,
+          "min": 242.1108,
+          "max": 244.9948
+        }
+      },
+      "difference": {
+        "absolute": -3.7988000000000284,
+        "percent": -1.535789540071715,
+        "paired_absolute": [
+          2.5364000000000146,
+          -10.134000000000015
+        ],
+        "paired_percent": [
+          1.058710780450672,
+          -3.9721113414087372
+        ],
+        "directions": [
+          "↑",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "prepare_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          402.92133,
+          394.41571000000005
+        ],
+        "candidate": [
+          402.71326999999997,
+          407.23138
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 398.66852000000006,
+          "min": 394.41571000000005,
+          "max": 402.92133
+        },
+        "candidate": {
+          "n": 2,
+          "median": 404.97232499999996,
+          "min": 402.71326999999997,
+          "max": 407.23138
+        }
+      },
+      "difference": {
+        "absolute": 6.3038049999998975,
+        "percent": 1.5812146391693773,
+        "paired_absolute": [
+          -0.20806000000004587,
+          12.815669999999955
+        ],
+        "paired_percent": [
+          -0.0516378718396581,
+          3.24927980176042
+        ],
+        "directions": [
+          "↓",
+          "↑"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "single_change",
+      "metric": "validation_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1531.54115,
+          1538.5775899999999
+        ],
+        "candidate": [
+          1456.01692,
+          1447.30643
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1535.05937,
+          "min": 1531.54115,
+          "max": 1538.5775899999999
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1451.661675,
+          "min": 1447.30643,
+          "max": 1456.01692
+        }
+      },
+      "difference": {
+        "absolute": -83.39769499999989,
+        "percent": -5.432864463085874,
+        "paired_absolute": [
+          -75.52422999999999,
+          -91.27115999999978
+        ],
+        "paired_percent": [
+          -4.931256989079268,
+          -5.932177915057231
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "command_tree_cpu_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          3552.82,
+          3619.17
+        ],
+        "candidate": [
+          1299.76,
+          1313.78
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 3585.995,
+          "min": 3552.82,
+          "max": 3619.17
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1306.77,
+          "min": 1299.76,
+          "max": 1313.78
+        }
+      },
+      "difference": {
+        "absolute": -2279.225,
+        "percent": -63.559067985315096,
+        "paired_absolute": [
+          -2253.0600000000004,
+          -2305.3900000000003
+        ],
+        "paired_percent": [
+          -63.4161032644491,
+          -63.699411743576576
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "mean_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          4078.5319,
+          4145.01486
+        ],
+        "candidate": [
+          1689.9756499999999,
+          1738.68366
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 4111.7733800000005,
+          "min": 4078.5319,
+          "max": 4145.01486
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1714.329655,
+          "min": 1689.9756499999999,
+          "max": 1738.68366
+        }
+      },
+      "difference": {
+        "absolute": -2397.4437250000005,
+        "percent": -58.30680593102143,
+        "paired_absolute": [
+          -2388.55625,
+          -2406.3312000000005
+        ],
+        "paired_percent": [
+          -58.56411837798793,
+          -58.053620584607515
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "p50_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          4024.473,
+          4137.634
+        ],
+        "candidate": [
+          1691.374,
+          1722.815
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 4081.0535,
+          "min": 4024.473,
+          "max": 4137.634
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1707.0945000000002,
+          "min": 1691.374,
+          "max": 1722.815
+        }
+      },
+      "difference": {
+        "absolute": -2373.959,
+        "percent": -58.17024942211613,
+        "paired_absolute": [
+          -2333.099,
+          -2414.819
+        ],
+        "paired_percent": [
+          -57.97278302028614,
+          -58.36231527486482
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "p95_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          4273.196,
+          4356.636
+        ],
+        "candidate": [
+          1813.976,
+          1938.496
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 4314.916,
+          "min": 4273.196,
+          "max": 4356.636
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1876.236,
+          "min": 1813.976,
+          "max": 1938.496
+        }
+      },
+      "difference": {
+        "absolute": -2438.6800000000003,
+        "percent": -56.51743857817858,
+        "paired_absolute": [
+          -2459.22,
+          -2418.1400000000003
+        ],
+        "paired_percent": [
+          -57.54989941954452,
+          -55.504751831458954
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "p99_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          4535.758,
+          4421.357
+        ],
+        "candidate": [
+          1901.456,
+          2074.058
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 4478.5575,
+          "min": 4421.357,
+          "max": 4535.758
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1987.757,
+          "min": 1901.456,
+          "max": 2074.058
+        }
+      },
+      "difference": {
+        "absolute": -2490.8005,
+        "percent": -55.61613309642669,
+        "paired_absolute": [
+          -2634.3019999999997,
+          -2347.299
+        ],
+        "paired_percent": [
+          -58.07853946352517,
+          -53.09001286256685
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "ops_per_s",
+      "unit": "ops/s",
+      "rounds": {
+        "current": [
+          245.1862642045291,
+          241.25365861776427
+        ],
+        "candidate": [
+          591.7245020660505,
+          575.1477528695473
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 243.2199614111467,
+          "min": 241.25365861776427,
+          "max": 245.1862642045291
+        },
+        "candidate": {
+          "n": 2,
+          "median": 583.4361274677989,
+          "min": 575.1477528695473,
+          "max": 591.7245020660505
+        }
+      },
+      "difference": {
+        "absolute": 340.2161660566522,
+        "percent": 139.8800345509224,
+        "paired_absolute": [
+          346.5382378615214,
+          333.89409425178303
+        ],
+        "paired_percent": [
+          141.33672576880028,
+          138.39959823398814
+        ],
+        "directions": [
+          "↑",
+          "↑"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "client_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          100.45280000000001,
+          93.93879999999999
+        ],
+        "candidate": [
+          98.6636,
+          99.54440000000001
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 97.19579999999999,
+          "min": 93.93879999999999,
+          "max": 100.45280000000001
+        },
+        "candidate": {
+          "n": 2,
+          "median": 99.10400000000001,
+          "min": 98.6636,
+          "max": 99.54440000000001
+        }
+      },
+      "difference": {
+        "absolute": 1.908200000000022,
+        "percent": 1.9632535562236457,
+        "paired_absolute": [
+          -1.7892000000000081,
+          5.605600000000024
+        ],
+        "paired_percent": [
+          -1.7811350206266106,
+          5.967289341571347
+        ],
+        "directions": [
+          "↓",
+          "↑"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "ubusd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          393.24160000000006,
+          394.57959999999997
+        ],
+        "candidate": [
+          203.72799999999998,
+          222.4928
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 393.91060000000004,
+          "min": 393.24160000000006,
+          "max": 394.57959999999997
+        },
+        "candidate": {
+          "n": 2,
+          "median": 213.11039999999997,
+          "min": 203.72799999999998,
+          "max": 222.4928
+        }
+      },
+      "difference": {
+        "absolute": -180.80020000000007,
+        "percent": -45.89879023311382,
+        "paired_absolute": [
+          -189.51360000000008,
+          -172.08679999999998
+        ],
+        "paired_percent": [
+          -48.19266323807045,
+          -43.612695638598645
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "receiver_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          116.9956,
+          124.94120000000001
+        ],
+        "candidate": [
+          114.564,
+          113.16
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 120.9684,
+          "min": 116.9956,
+          "max": 124.94120000000001
+        },
+        "candidate": {
+          "n": 2,
+          "median": 113.862,
+          "min": 113.16,
+          "max": 114.564
+        }
+      },
+      "difference": {
+        "absolute": -7.106400000000008,
+        "percent": -5.874592042219297,
+        "paired_absolute": [
+          -2.431600000000003,
+          -11.781200000000013
+        ],
+        "paired_percent": [
+          -2.0783687591670144,
+          -9.429395587684457
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "logd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          87.8092,
+          86.35600000000001
+        ],
+        "candidate": [
+          66.5552,
+          65.7592
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 87.08260000000001,
+          "min": 86.35600000000001,
+          "max": 87.8092
+        },
+        "candidate": {
+          "n": 2,
+          "median": 66.1572,
+          "min": 65.7592,
+          "max": 66.5552
+        }
+      },
+      "difference": {
+        "absolute": -20.92540000000001,
+        "percent": -24.02936981670277,
+        "paired_absolute": [
+          -21.254000000000005,
+          -20.5968
+        ],
+        "paired_percent": [
+          -24.20475303271184,
+          -23.85103524943258
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "dependency_own_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          598.0464,
+          605.8768
+        ],
+        "candidate": [
+          384.8472,
+          401.412
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 601.9616,
+          "min": 598.0464,
+          "max": 605.8768
+        },
+        "candidate": {
+          "n": 2,
+          "median": 393.1296,
+          "min": 384.8472,
+          "max": 401.412
+        }
+      },
+      "difference": {
+        "absolute": -208.832,
+        "percent": -34.69191390281374,
+        "paired_absolute": [
+          -213.19919999999996,
+          -204.46480000000003
+        ],
+        "paired_percent": [
+          -35.64927403626207,
+          -33.746926767950185
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "prepare_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          398.69729,
+          396.58412
+        ],
+        "candidate": [
+          395.06095999999997,
+          399.39291
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 397.640705,
+          "min": 396.58412,
+          "max": 398.69729
+        },
+        "candidate": {
+          "n": 2,
+          "median": 397.22693499999997,
+          "min": 395.06095999999997,
+          "max": 399.39291
+        }
+      },
+      "difference": {
+        "absolute": -0.41377000000005637,
+        "percent": -0.10405624846683047,
+        "paired_absolute": [
+          -3.6363300000000436,
+          2.8087899999999877
+        ],
+        "paired_percent": [
+          -0.9120528509235775,
+          0.7082457058542807
+        ],
+        "directions": [
+          "↓",
+          "↑"
+        ],
+        "range_separated": false,
+        "evidence": "方向混合，保留全部数值"
+      }
+    },
+    {
+      "lane": "multi_change",
+      "metric": "validation_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1523.48468,
+          1567.72623
+        ],
+        "candidate": [
+          1434.52951,
+          1453.57366
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1545.605455,
+          "min": 1523.48468,
+          "max": 1567.72623
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1444.0515850000002,
+          "min": 1434.52951,
+          "max": 1453.57366
+        }
+      },
+      "difference": {
+        "absolute": -101.55386999999973,
+        "percent": -6.570491173635237,
+        "paired_absolute": [
+          -88.95516999999995,
+          -114.15256999999997
+        ],
+        "paired_percent": [
+          -5.838927766572615,
+          -7.281409713990686
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "command_tree_cpu_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1273.12,
+          1273.89
+        ],
+        "candidate": [
+          1161.72,
+          1174.16
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1273.505,
+          "min": 1273.12,
+          "max": 1273.89
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1167.94,
+          "min": 1161.72,
+          "max": 1174.16
+        }
+      },
+      "difference": {
+        "absolute": -105.56500000000005,
+        "percent": -8.289327485954121,
+        "paired_absolute": [
+          -111.39999999999986,
+          -99.73000000000002
+        ],
+        "paired_percent": [
+          -8.750157094382295,
+          -7.828776424966049
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "mean_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1336.1288200000001,
+          1333.19951
+        ],
+        "candidate": [
+          1225.21302,
+          1232.9042299999999
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1334.6641650000001,
+          "min": 1333.19951,
+          "max": 1336.1288200000001
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1229.058625,
+          "min": 1225.21302,
+          "max": 1232.9042299999999
+        }
+      },
+      "difference": {
+        "absolute": -105.60554000000025,
+        "percent": -7.912517828033559,
+        "paired_absolute": [
+          -110.91580000000022,
+          -100.29528000000005
+        ],
+        "paired_percent": [
+          -8.301280410971167,
+          -7.522901054771619
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "p50_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1318.611,
+          1326.051
+        ],
+        "candidate": [
+          1219.37,
+          1223.531
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1322.3310000000001,
+          "min": 1318.611,
+          "max": 1326.051
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1221.4505,
+          "min": 1219.37,
+          "max": 1223.531
+        }
+      },
+      "difference": {
+        "absolute": -100.88050000000021,
+        "percent": -7.628990018384217,
+        "paired_absolute": [
+          -99.24100000000021,
+          -102.51999999999998
+        ],
+        "paired_percent": [
+          -7.526177166730765,
+          -7.731226023735134
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "p95_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1462.612,
+          1440.092
+        ],
+        "candidate": [
+          1335.691,
+          1346.651
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1451.352,
+          "min": 1440.092,
+          "max": 1462.612
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1341.171,
+          "min": 1335.691,
+          "max": 1346.651
+        }
+      },
+      "difference": {
+        "absolute": -110.18100000000004,
+        "percent": -7.591611132240837,
+        "paired_absolute": [
+          -126.92100000000005,
+          -93.44100000000003
+        ],
+        "paired_percent": [
+          -8.677694426136258,
+          -6.488543787480245
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "p99_us",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1723.095,
+          1447.972
+        ],
+        "candidate": [
+          1361.731,
+          1372.691
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1585.5335,
+          "min": 1447.972,
+          "max": 1723.095
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1367.211,
+          "min": 1361.731,
+          "max": 1372.691
+        }
+      },
+      "difference": {
+        "absolute": -218.3225,
+        "percent": -13.769655450357876,
+        "paired_absolute": [
+          -361.36400000000003,
+          -75.28099999999995
+        ],
+        "paired_percent": [
+          -20.97179784051373,
+          -5.19906462279657
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "ops_per_s",
+      "unit": "ops/s",
+      "rounds": {
+        "current": [
+          748.4308286980892,
+          750.0752831809847
+        ],
+        "candidate": [
+          816.1846011071609,
+          811.0930076053028
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 749.2530559395369,
+          "min": 748.4308286980892,
+          "max": 750.0752831809847
+        },
+        "candidate": {
+          "n": 2,
+          "median": 813.6388043562318,
+          "min": 811.0930076053028,
+          "max": 816.1846011071609
+        }
+      },
+      "difference": {
+        "absolute": 64.38574841669492,
+        "percent": 8.593324766084198,
+        "paired_absolute": [
+          67.75377240907176,
+          61.01772442431809
+        ],
+        "paired_percent": [
+          9.05277679794816,
+          8.13488003038159
+        ],
+        "directions": [
+          "↑",
+          "↑"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "client_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          103.29879999999999,
+          94.4908
+        ],
+        "candidate": [
+          97.9264,
+          88.89479999999999
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 98.89479999999999,
+          "min": 94.4908,
+          "max": 103.29879999999999
+        },
+        "candidate": {
+          "n": 2,
+          "median": 93.41059999999999,
+          "min": 88.89479999999999,
+          "max": 97.9264
+        }
+      },
+      "difference": {
+        "absolute": -5.484200000000001,
+        "percent": -5.5454887415718535,
+        "paired_absolute": [
+          -5.372399999999985,
+          -5.596000000000004
+        ],
+        "paired_percent": [
+          -5.200834859649857,
+          -5.922269681281145
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "两对同向，范围重叠"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "ubusd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          0.0,
+          0.0
+        ],
+        "candidate": [
+          0.0,
+          0.0
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "candidate": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "difference": {
+        "absolute": 0.0,
+        "percent": null,
+        "paired_absolute": [
+          0.0,
+          0.0
+        ],
+        "paired_percent": [
+          null,
+          null
+        ],
+        "directions": [
+          "=",
+          "="
+        ],
+        "range_separated": false,
+        "evidence": "全部同值，不证明等价"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "receiver_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          0.0,
+          0.0
+        ],
+        "candidate": [
+          0.0,
+          0.0
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "candidate": {
+          "n": 2,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "difference": {
+        "absolute": 0.0,
+        "percent": null,
+        "paired_absolute": [
+          0.0,
+          0.0
+        ],
+        "paired_percent": [
+          null,
+          null
+        ],
+        "directions": [
+          "=",
+          "="
+        ],
+        "range_separated": false,
+        "evidence": "全部同值，不证明等价"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "logd_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          32.1704,
+          31.1608
+        ],
+        "candidate": [
+          31.5656,
+          29.534000000000002
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 31.665599999999998,
+          "min": 31.1608,
+          "max": 32.1704
+        },
+        "candidate": {
+          "n": 2,
+          "median": 30.5498,
+          "min": 29.534000000000002,
+          "max": 31.5656
+        }
+      },
+      "difference": {
+        "absolute": -1.1157999999999966,
+        "percent": -3.5236976403415587,
+        "paired_absolute": [
+          -0.6048000000000009,
+          -1.6267999999999958
+        ],
+        "paired_percent": [
+          -1.879989058264743,
+          -5.220661857205194
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "两对同向，范围重叠"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "dependency_own_cpu_clock_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          32.1704,
+          31.1608
+        ],
+        "candidate": [
+          31.5656,
+          29.534000000000002
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 31.665599999999998,
+          "min": 31.1608,
+          "max": 32.1704
+        },
+        "candidate": {
+          "n": 2,
+          "median": 30.5498,
+          "min": 29.534000000000002,
+          "max": 31.5656
+        }
+      },
+      "difference": {
+        "absolute": -1.1157999999999966,
+        "percent": -3.5236976403415587,
+        "paired_absolute": [
+          -0.6048000000000009,
+          -1.6267999999999958
+        ],
+        "paired_percent": [
+          -1.879989058264743,
+          -5.220661857205194
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": false,
+        "evidence": "两对同向，范围重叠"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "prepare_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          406.09451,
+          405.44172
+        ],
+        "candidate": [
+          405.235,
+          393.9717
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 405.76811499999997,
+          "min": 405.44172,
+          "max": 406.09451
+        },
+        "candidate": {
+          "n": 2,
+          "median": 399.60335,
+          "min": 393.9717,
+          "max": 405.235
+        }
+      },
+      "difference": {
+        "absolute": -6.1647649999999885,
+        "percent": -1.5192827558666084,
+        "paired_absolute": [
+          -0.8595100000000002,
+          -11.470019999999977
+        ],
+        "paired_percent": [
+          -0.21165270123942337,
+          -2.829018187866798
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    },
+    {
+      "lane": "comment_only",
+      "metric": "validation_us_per_op",
+      "unit": "us",
+      "rounds": {
+        "current": [
+          1535.91957,
+          1542.5356299999999
+        ],
+        "candidate": [
+          1431.83434,
+          1448.2220000000002
+        ]
+      },
+      "summary": {
+        "current": {
+          "n": 2,
+          "median": 1539.2276,
+          "min": 1535.91957,
+          "max": 1542.5356299999999
+        },
+        "candidate": {
+          "n": 2,
+          "median": 1440.02817,
+          "min": 1431.83434,
+          "max": 1448.2220000000002
+        }
+      },
+      "difference": {
+        "absolute": -99.1994299999999,
+        "percent": -6.444753849268289,
+        "paired_absolute": [
+          -104.08522999999991,
+          -94.31362999999965
+        ],
+        "paired_percent": [
+          -6.776737013644531,
+          -6.114194587518193
+        ],
+        "directions": [
+          "↓",
+          "↓"
+        ],
+        "range_separated": true,
+        "evidence": "两对同向且范围分离"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "window": "01-current",
+      "side": "current",
+      "lane": "first_baseline",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1189.83,
+      "mean_us": 1246.49675,
+      "p50_us": 1244.45,
+      "p95_us": 1335.051,
+      "p99_us": 1363.572,
+      "ops_per_s": 802.2483813134692,
+      "client_cpu_clock_us_per_op": 93.24,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 28.544,
+      "dependency_own_cpu_clock_us_per_op": 28.544,
+      "prepare_us_per_op": 401.35618999999997,
+      "validation_us_per_op": 1515.3418599999998,
+      "dependency_envelope_s": 0.372615297,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6190.48
+      },
+      "lane_json_sha256": "74ce0835b830e3bbaf4bf51d0ea65a9ba047b4e37ff33e99bf5c2d2ed1cff2e2",
+      "samples_jsonl_sha256": "80092f911ef0bd397f7515035a418e3c2ecd4bd81833a1f8c519e035a46952dd"
+    },
+    {
+      "window": "01-current",
+      "side": "current",
+      "lane": "unchanged_config",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1228.64,
+      "mean_us": 1288.85747,
+      "p50_us": 1290.21,
+      "p95_us": 1382.892,
+      "p99_us": 1407.052,
+      "ops_per_s": 775.8809824021891,
+      "client_cpu_clock_us_per_op": 98.84479999999999,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 30.323600000000003,
+      "dependency_own_cpu_clock_us_per_op": 30.323600000000003,
+      "prepare_us_per_op": 403.79732,
+      "validation_us_per_op": 1502.3757199999998,
+      "dependency_envelope_s": 0.375321759,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6423.48
+      },
+      "lane_json_sha256": "f22500f1ed43f66882a51074e6306d5418f4de096d7ab29fc23dc9759ba2ab1a",
+      "samples_jsonl_sha256": "c977d3b8426c07d348d24ce7233812845e8ba91267dd3dd212053cede0e86c33"
+    },
+    {
+      "window": "01-current",
+      "side": "current",
+      "lane": "single_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 2118.05,
+      "mean_us": 2349.87235,
+      "p50_us": 2339.46,
+      "p95_us": 2493.42,
+      "p99_us": 2568.902,
+      "ops_per_s": 425.5550306807091,
+      "client_cpu_clock_us_per_op": 101.2876,
+      "ubusd_cpu_clock_us_per_op": 140.2392,
+      "receiver_cpu_clock_us_per_op": 48.5036,
+      "logd_cpu_clock_us_per_op": 50.8316,
+      "dependency_own_cpu_clock_us_per_op": 239.5744,
+      "prepare_us_per_op": 402.92133,
+      "validation_us_per_op": 1531.54115,
+      "dependency_envelope_s": 0.490530957,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 14887.64,
+        "receiver": 5159.44,
+        "logd": 8810.4
+      },
+      "lane_json_sha256": "e67c61b5cfc1bb581d079694f056aa25b2f0752f8dad1fe52c5a546b67ad72c7",
+      "samples_jsonl_sha256": "4551b4ae510e31414460d5f8945ccdd1812d2de5064cfe5f6e099538db970f1e"
+    },
+    {
+      "window": "01-current",
+      "side": "current",
+      "lane": "multi_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 3552.82,
+      "mean_us": 4078.5319,
+      "p50_us": 4024.473,
+      "p95_us": 4273.196,
+      "p99_us": 4535.758,
+      "ops_per_s": 245.1862642045291,
+      "client_cpu_clock_us_per_op": 100.45280000000001,
+      "ubusd_cpu_clock_us_per_op": 393.24160000000006,
+      "receiver_cpu_clock_us_per_op": 116.9956,
+      "logd_cpu_clock_us_per_op": 87.8092,
+      "dependency_own_cpu_clock_us_per_op": 598.0464,
+      "prepare_us_per_op": 398.69729,
+      "validation_us_per_op": 1523.48468,
+      "dependency_envelope_s": 0.671480501,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 41481.92,
+        "receiver": 12317.04,
+        "logd": 12730.32
+      },
+      "lane_json_sha256": "3b3c731c0e44850dc192c39a306fda2c734a040f23b673665d03d92257a2bc05",
+      "samples_jsonl_sha256": "d405db52dc82f187107adf0b80948b14542a28f1e8847fd5896689f908db136f"
+    },
+    {
+      "window": "01-current",
+      "side": "current",
+      "lane": "comment_only",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1273.12,
+      "mean_us": 1336.1288200000001,
+      "p50_us": 1318.611,
+      "p95_us": 1462.612,
+      "p99_us": 1723.095,
+      "ops_per_s": 748.4308286980892,
+      "client_cpu_clock_us_per_op": 103.29879999999999,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 32.1704,
+      "dependency_own_cpu_clock_us_per_op": 32.1704,
+      "prepare_us_per_op": 406.09451,
+      "validation_us_per_op": 1535.91957,
+      "dependency_envelope_s": 0.384269634,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6622.24
+      },
+      "lane_json_sha256": "cafec25cb2923a63d42934e1603990078e4fe976448e7252f5b300a9e6961308",
+      "samples_jsonl_sha256": "ed03795a62207dc02c5d509ab554556bb754202f55ce00accae07a08073ba75c"
+    },
+    {
+      "window": "02-candidate",
+      "side": "candidate",
+      "lane": "first_baseline",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1079.5,
+      "mean_us": 1136.2298999999998,
+      "p50_us": 1131.009,
+      "p95_us": 1213.17,
+      "p99_us": 1250.091,
+      "ops_per_s": 880.1035776298442,
+      "client_cpu_clock_us_per_op": 90.6164,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 30.4232,
+      "dependency_own_cpu_clock_us_per_op": 30.4232,
+      "prepare_us_per_op": 392.31245,
+      "validation_us_per_op": 1414.29736,
+      "dependency_envelope_s": 0.349095942,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6354.24
+      },
+      "lane_json_sha256": "7d1b5ef078505622b3740df2aa557e3b81628c998735b3aca656ef4cadabe580",
+      "samples_jsonl_sha256": "073e88dee12a9f774683fa58cbe706f3e9c8b952a5953c4d32f6f9ffca62603a"
+    },
+    {
+      "window": "02-candidate",
+      "side": "candidate",
+      "lane": "unchanged_config",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1167.21,
+      "mean_us": 1229.1006200000002,
+      "p50_us": 1215.81,
+      "p95_us": 1331.011,
+      "p99_us": 1377.692,
+      "ops_per_s": 813.6030392694782,
+      "client_cpu_clock_us_per_op": 94.4084,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 30.066799999999997,
+      "dependency_own_cpu_clock_us_per_op": 30.066799999999997,
+      "prepare_us_per_op": 393.11133,
+      "validation_us_per_op": 1511.4261999999999,
+      "dependency_envelope_s": 0.366966571,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6246.4
+      },
+      "lane_json_sha256": "6c416691ff4d1bb444dddb0feb259915b687f6f8370562568cfa4dedc73a9c3a",
+      "samples_jsonl_sha256": "23616c33e192ff807bba0339292bf5684b49a4e010a37a3823320df91e1a9c29"
+    },
+    {
+      "window": "02-candidate",
+      "side": "candidate",
+      "lane": "single_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1292.52,
+      "mean_us": 1579.1503300000002,
+      "p50_us": 1571.173,
+      "p95_us": 1706.494,
+      "p99_us": 1782.655,
+      "ops_per_s": 633.2519336521939,
+      "client_cpu_clock_us_per_op": 110.9824,
+      "ubusd_cpu_clock_us_per_op": 145.4232,
+      "receiver_cpu_clock_us_per_op": 53.0924,
+      "logd_cpu_clock_us_per_op": 43.595200000000006,
+      "dependency_own_cpu_clock_us_per_op": 242.1108,
+      "prepare_us_per_op": 402.71326999999997,
+      "validation_us_per_op": 1456.01692,
+      "dependency_envelope_s": 0.400762771,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 15425.88,
+        "receiver": 5552.0,
+        "logd": 7697.6
+      },
+      "lane_json_sha256": "e4f70ce64f2c7c0a348c599213a6e660c1dc69d0e2b275fcb17d9105d2d7b70a",
+      "samples_jsonl_sha256": "2a79a1dc1291170076d236554a798b43c6f6d2859bdcf5568ee4cbd69b19913e"
+    },
+    {
+      "window": "02-candidate",
+      "side": "candidate",
+      "lane": "multi_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1299.76,
+      "mean_us": 1689.9756499999999,
+      "p50_us": 1691.374,
+      "p95_us": 1813.976,
+      "p99_us": 1901.456,
+      "ops_per_s": 591.7245020660505,
+      "client_cpu_clock_us_per_op": 98.6636,
+      "ubusd_cpu_clock_us_per_op": 203.72799999999998,
+      "receiver_cpu_clock_us_per_op": 114.564,
+      "logd_cpu_clock_us_per_op": 66.5552,
+      "dependency_own_cpu_clock_us_per_op": 384.8472,
+      "prepare_us_per_op": 395.06095999999997,
+      "validation_us_per_op": 1434.52951,
+      "dependency_envelope_s": 0.4089906,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 21593.56,
+        "receiver": 12056.96,
+        "logd": 10163.88
+      },
+      "lane_json_sha256": "771c1241a104008e4f63e099ecfcbce62e4d7405d7430d5cfe0a3be13c78f393",
+      "samples_jsonl_sha256": "233933b35740934ad2f1ae6db50c27201838db6a7e35a97133738c5c244d24dc"
+    },
+    {
+      "window": "02-candidate",
+      "side": "candidate",
+      "lane": "comment_only",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1161.72,
+      "mean_us": 1225.21302,
+      "p50_us": 1219.37,
+      "p95_us": 1335.691,
+      "p99_us": 1361.731,
+      "ops_per_s": 816.1846011071609,
+      "client_cpu_clock_us_per_op": 97.9264,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 31.5656,
+      "dependency_own_cpu_clock_us_per_op": 31.5656,
+      "prepare_us_per_op": 405.235,
+      "validation_us_per_op": 1431.83434,
+      "dependency_envelope_s": 0.361904248,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6646.44
+      },
+      "lane_json_sha256": "59ccfb7ec72477926fa145ca0acc27d190d41aa3ca3b64d48cf56310eaac6583",
+      "samples_jsonl_sha256": "159fbedd9782eb89ae021a9e1469857b323cd6f15403048964456f3d74b37324"
+    },
+    {
+      "window": "03-candidate",
+      "side": "candidate",
+      "lane": "first_baseline",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1088.82,
+      "mean_us": 1139.8915200000001,
+      "p50_us": 1131.29,
+      "p95_us": 1234.89,
+      "p99_us": 1255.691,
+      "ops_per_s": 877.2764622373891,
+      "client_cpu_clock_us_per_op": 83.28479999999999,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 29.895599999999998,
+      "dependency_own_cpu_clock_us_per_op": 29.895599999999998,
+      "prepare_us_per_op": 384.55114000000003,
+      "validation_us_per_op": 1412.53366,
+      "dependency_envelope_s": 0.346192837,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6345.6
+      },
+      "lane_json_sha256": "4dc6d968ae16809542b6882f2364f5e0c1536e48c699f706ccb908de2f7ff05e",
+      "samples_jsonl_sha256": "7aa1966eba921378c328644a9b72ac63e3bc350345a06f75b148e4cc42b0c8db"
+    },
+    {
+      "window": "03-candidate",
+      "side": "candidate",
+      "lane": "unchanged_config",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1151.94,
+      "mean_us": 1205.5301100000001,
+      "p50_us": 1199.49,
+      "p95_us": 1286.411,
+      "p99_us": 1354.132,
+      "ops_per_s": 829.5105959651228,
+      "client_cpu_clock_us_per_op": 82.9816,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 29.9916,
+      "dependency_own_cpu_clock_us_per_op": 29.9916,
+      "prepare_us_per_op": 381.55517999999995,
+      "validation_us_per_op": 1405.65964,
+      "dependency_envelope_s": 0.352058286,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6255.76
+      },
+      "lane_json_sha256": "f2814131e2ff61624441f05ccc08dba68d7f33d8226fb291576a991e25ae0976",
+      "samples_jsonl_sha256": "b826066a09527a5d02c93defb60f470718a039b7d80882d7916b6418ca615151"
+    },
+    {
+      "window": "03-candidate",
+      "side": "candidate",
+      "lane": "single_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1270.61,
+      "mean_us": 1555.64891,
+      "p50_us": 1540.813,
+      "p95_us": 1700.814,
+      "p99_us": 1729.334,
+      "ops_per_s": 642.8185650192754,
+      "client_cpu_clock_us_per_op": 108.0036,
+      "ubusd_cpu_clock_us_per_op": 129.6316,
+      "receiver_cpu_clock_us_per_op": 68.1332,
+      "logd_cpu_clock_us_per_op": 47.23,
+      "dependency_own_cpu_clock_us_per_op": 244.9948,
+      "prepare_us_per_op": 407.23138,
+      "validation_us_per_op": 1447.30643,
+      "dependency_envelope_s": 0.406056815,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 13925.88,
+        "receiver": 7118.32,
+        "logd": 8644.56
+      },
+      "lane_json_sha256": "1b927ea7ebaf5ea9fe4416b70056c928e02232c8d91c397d385970ae67c118df",
+      "samples_jsonl_sha256": "61ae0521c2a2aefed2e2578e3facf2e12e6044ac83a2eff65480bfc439e63e9d"
+    },
+    {
+      "window": "03-candidate",
+      "side": "candidate",
+      "lane": "multi_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1313.78,
+      "mean_us": 1738.68366,
+      "p50_us": 1722.815,
+      "p95_us": 1938.496,
+      "p99_us": 2074.058,
+      "ops_per_s": 575.1477528695473,
+      "client_cpu_clock_us_per_op": 99.54440000000001,
+      "ubusd_cpu_clock_us_per_op": 222.4928,
+      "receiver_cpu_clock_us_per_op": 113.16,
+      "logd_cpu_clock_us_per_op": 65.7592,
+      "dependency_own_cpu_clock_us_per_op": 401.412,
+      "prepare_us_per_op": 399.39291,
+      "validation_us_per_op": 1453.57366,
+      "dependency_envelope_s": 0.418017834,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 23537.28,
+        "receiver": 12009.4,
+        "logd": 10404.4
+      },
+      "lane_json_sha256": "9f96d6be947b692ef9eea6b415f6008a1c12543c6e3da149aa3f84846a63330b",
+      "samples_jsonl_sha256": "1763aaeb9c8300667bc8f955da63ddb128b9939112bd9057afab6fcb577b2c1a"
+    },
+    {
+      "window": "03-candidate",
+      "side": "candidate",
+      "lane": "comment_only",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1174.16,
+      "mean_us": 1232.9042299999999,
+      "p50_us": 1223.531,
+      "p95_us": 1346.651,
+      "p99_us": 1372.691,
+      "ops_per_s": 811.0930076053028,
+      "client_cpu_clock_us_per_op": 88.89479999999999,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 29.534000000000002,
+      "dependency_own_cpu_clock_us_per_op": 29.534000000000002,
+      "prepare_us_per_op": 393.9717,
+      "validation_us_per_op": 1448.2220000000002,
+      "dependency_envelope_s": 0.361918368,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6195.52
+      },
+      "lane_json_sha256": "e47136e9be953038ab68cacc0d86b0310e79e5a2b60800b1740e8066c75d6f38",
+      "samples_jsonl_sha256": "1e277920a99f48bc50e212218da6a07d7a21fded28de5f27a81d505a9b2e1eb8"
+    },
+    {
+      "window": "04-current",
+      "side": "current",
+      "lane": "first_baseline",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1195.94,
+      "mean_us": 1261.90888,
+      "p50_us": 1257.25,
+      "p95_us": 1372.172,
+      "p99_us": 1415.771,
+      "ops_per_s": 792.450244109543,
+      "client_cpu_clock_us_per_op": 103.6336,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 32.2352,
+      "dependency_own_cpu_clock_us_per_op": 32.2352,
+      "prepare_us_per_op": 407.13746,
+      "validation_us_per_op": 1559.3601800000001,
+      "dependency_envelope_s": 0.380417322,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6776.96
+      },
+      "lane_json_sha256": "a1104974df06b5315866e6dd07d9f89f745c0479de31c007c285222a2c6cfa8c",
+      "samples_jsonl_sha256": "7d3709d41114cab11c4e423b424ac38a7e003b1de40900d20077ad2a5dbe8e0d"
+    },
+    {
+      "window": "04-current",
+      "side": "current",
+      "lane": "unchanged_config",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1247.49,
+      "mean_us": 1307.40643,
+      "p50_us": 1307.171,
+      "p95_us": 1389.612,
+      "p99_us": 1429.491,
+      "ops_per_s": 764.8730930595163,
+      "client_cpu_clock_us_per_op": 95.70639999999999,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 29.4012,
+      "dependency_own_cpu_clock_us_per_op": 29.4012,
+      "prepare_us_per_op": 400.61330999999996,
+      "validation_us_per_op": 1515.1954199999998,
+      "dependency_envelope_s": 0.377847301,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6536.76
+      },
+      "lane_json_sha256": "1a066b48e7c344ec0a79ba9827636770dd8fc6de8437734a78607ca428ec53c8",
+      "samples_jsonl_sha256": "c6ae1c0830774f8489e2e10a57d45112364df3ee6d66bcc9bbc1028ec8f6fd23"
+    },
+    {
+      "window": "04-current",
+      "side": "current",
+      "lane": "single_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 2128.66,
+      "mean_us": 2372.78449,
+      "p50_us": 2375.9,
+      "p95_us": 2518.581,
+      "p99_us": 2582.982,
+      "ops_per_s": 421.4457757181311,
+      "client_cpu_clock_us_per_op": 97.9584,
+      "ubusd_cpu_clock_us_per_op": 151.6448,
+      "receiver_cpu_clock_us_per_op": 49.0208,
+      "logd_cpu_clock_us_per_op": 54.4632,
+      "dependency_own_cpu_clock_us_per_op": 255.1288,
+      "prepare_us_per_op": 394.41571000000005,
+      "validation_us_per_op": 1538.5775899999999,
+      "dependency_envelope_s": 0.492287052,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 16059.08,
+        "receiver": 5149.24,
+        "logd": 9380.52
+      },
+      "lane_json_sha256": "5de402c389645152a042051ea58b0d8da586a512aa3c79a93fdb2d8801dbae44",
+      "samples_jsonl_sha256": "b343e379d8d3d434148d63ca7599d1006ab3bb1e3efd12ddab931636993e57f3"
+    },
+    {
+      "window": "04-current",
+      "side": "current",
+      "lane": "multi_change",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 3619.17,
+      "mean_us": 4145.01486,
+      "p50_us": 4137.634,
+      "p95_us": 4356.636,
+      "p99_us": 4421.357,
+      "ops_per_s": 241.25365861776427,
+      "client_cpu_clock_us_per_op": 93.93879999999999,
+      "ubusd_cpu_clock_us_per_op": 394.57959999999997,
+      "receiver_cpu_clock_us_per_op": 124.94120000000001,
+      "logd_cpu_clock_us_per_op": 86.35600000000001,
+      "dependency_own_cpu_clock_us_per_op": 605.8768,
+      "prepare_us_per_op": 396.58412,
+      "validation_us_per_op": 1567.72623,
+      "dependency_envelope_s": 0.682485072,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 41670.64,
+        "receiver": 13167.32,
+        "logd": 12532.4
+      },
+      "lane_json_sha256": "c00c3f4891ed1e4569ccb6936803b6b304decaa8390e25ab10c04070dba879d2",
+      "samples_jsonl_sha256": "b200964ec535ae814410dd4ca00b5cc9b524d7ef120dfcd0c4c382c4a2dd140a"
+    },
+    {
+      "window": "04-current",
+      "side": "current",
+      "lane": "comment_only",
+      "successful": 100,
+      "errors": 0,
+      "timeouts": 0,
+      "command_tree_cpu_us_per_op": 1273.89,
+      "mean_us": 1333.19951,
+      "p50_us": 1326.051,
+      "p95_us": 1440.092,
+      "p99_us": 1447.972,
+      "ops_per_s": 750.0752831809847,
+      "client_cpu_clock_us_per_op": 94.4908,
+      "ubusd_cpu_clock_us_per_op": 0.0,
+      "receiver_cpu_clock_us_per_op": 0.0,
+      "logd_cpu_clock_us_per_op": 31.1608,
+      "dependency_own_cpu_clock_us_per_op": 31.1608,
+      "prepare_us_per_op": 405.44172,
+      "validation_us_per_op": 1542.5356299999999,
+      "dependency_envelope_s": 0.384158833,
+      "dependency_envelope_cpu_us": {
+        "ubusd": 0.0,
+        "receiver": 0.0,
+        "logd": 6792.76
+      },
+      "lane_json_sha256": "6718165a984a1d7c0f7f1a38e4808402595e368bee2483409f2125019a52792a",
+      "samples_jsonl_sha256": "3182e80032daa4b9fd28ea1ccd11bd8332588732911cf39d08e9f39e0e26942c"
+    }
+  ],
+  "method": [
+    "Use original canonical current f65 and final f8 ELFs; neither is rebuilt for this comparison.",
+    "Per-call getrusage(RUSAGE_CHILDREN) counts only measured exec intervals. Caller CPU is separate. Reset, complete validation, silent repeat and warmup are excluded.",
+    "Dependency process clocks cover only immediate exec intervals. Full envelope CPU, including warmup and repeats, is retained separately without a per-operation denominator.",
+    "ABBA sequence pairs first current with first candidate and second current with second candidate. Rows report medians and ranges of two window statistics; these are descriptive, not significance tests.",
+    "p99 is a finite 100-sample window order statistic. Microsecond encoding and clock resolution are not accuracy claims."
+  ],
+  "limitations": [
+    "Oracle timing does not replace the four-side AX3000T measurements and is not appended as a fifth router side.",
+    "This comparison isolates the final round from the latest UCI canonical starting artifact. Do not add or splice previously reported UCI or SDK percentage gains.",
+    "Old and final are different canonical builds as well as source variants; this does not separately quantify compiler-layout versus source effects.",
+    "No syscall instrumentation or wait4/ptrace resource probe ran in these windows. Resource claims remain in the separately collected router matrix.",
+    "Baseline sync_all and atomic rename run on private tmpfs; these results do not predict flash persistence. service.event acceptance does not prove downstream reload completion."
+  ]
+}

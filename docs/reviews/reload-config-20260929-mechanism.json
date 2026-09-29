@@ -1,0 +1,723 @@
+{
+  "attribution": "Counts only: ptrace perturbs execution. Timestamps select/merge processes; no elapsed syscall time, latency, throughput, or phase CPU is derived. Subject starts at its successful execve, excluding parent driver preparation and child pre-exec setup. Descendants are linked by successful clone/fork returns translated into the host PID namespace. BusyBox in-process applets need not generate an execve. A wire count is a successful sendmsg/writev with an untruncated first iovec beginning with one full ubus header; it is not an independent receiver acknowledgement. Existing fixture validation proves ordered event acceptance and complete baseline bytes. Unknown tree edges or wire encodings lower attribution completeness, never become zero.",
+  "cleanup": {
+    "evidence_sha256": "c9571336a0817a1aad18f9ac90e39332af2994a37e5009972cc2a2798d3b8fbe",
+    "owned_work_directories": 3,
+    "passed": true,
+    "remaining_directories": 0,
+    "remaining_host_mounts": 0,
+    "remaining_processes": 0
+  },
+  "input_sha256": {
+    "benchmark": "07828e8e63e1ef8287b96b04d64561b097eedec042cccc3e7dc8bdf15bb2a9bd",
+    "c": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "final": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+    "image:bin/busybox": "54d4139265132254e5601cb65d8617a928d5d5867c044ef701d53b973daafe09",
+    "image:bin/ubus": "9bc20e73e500c724e0ad8132b894e7dba7ca49a41cd20c38dd0b9fa23f9412eb",
+    "image:etc/openwrt_release": "017848337d8ac3d858c8708a99efe5ac36fa0817212cd9e8bf8ac5a6079ca1be",
+    "image:lib/ld-musl-aarch64.so.1": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "image:lib/libblobmsg_json.so.20260213": "e6a2a2cdf07f453c28f703537c636516e92d17b63ad732ec606b5cd99bd5ef97",
+    "image:lib/libc.so": "8afe4bccb74f595fd45e3c499c1e7e2520ac03c0881f439a8ccb994bf8d3ee5b",
+    "image:lib/libfstools.so": "bd437ba9883c01571a59985f5a4d96a513f04f6b7f14dc7087a310924133e7eb",
+    "image:lib/libgcc_s.so.1": "33a47a54f9d8d901055aa0812dfcb4b1b4630061c9c0052f9b8e267c7279c16c",
+    "image:lib/libjson_script.so.20260213": "9bb718c0c703323a42e565d5119e77b0a67601d4fd244b4a58023e211daea1ad",
+    "image:lib/libpreload-seccomp.so": "e391e7d37113c956c59934b634da2b26f92cbc8911f64c0bbf4f56812467572b",
+    "image:lib/libpreload-trace.so": "460e6171df96205dbd564e0cf0d126b1b696ef457a295b5c5f5b92446f9bdc41",
+    "image:lib/libsetlbf.so": "3fccdc13338e48bdec050594430b3a0b718c1af4c2ae7b97c789ebc811555cca",
+    "image:lib/libubox.so.20260213": "a808d6aeff85a7ba31c8a87dda9496692b0b1b349a6012404f4a76d1fbbe4063",
+    "image:lib/libubus.so.20251202": "2967f7ce6e29e290eac0b76e88fc6b5d639763fa78be1e1b889fb088d9acda04",
+    "image:lib/libuci.so.20250120": "bdfc94c8daca8c900e48bdd41c7c0f134ac92d1d1831a20c9b0179c8232fe5b0",
+    "image:lib/libustream-ssl.so": "b62c4319863b939fe022aea483d52a31ae6f8e3916e9bfc9f159ca0950f0d6e0",
+    "image:lib/libvalidate.so": "a0a4d6499c939cb4fba82fab3984856782901cabbab0df797ff60578fd1d33fa",
+    "image:sbin/logd": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+    "image:sbin/ubusd": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+    "image:sbin/uci": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+    "image:usr/lib/libiwinfo.so.20230701": "98cfb9ce55c0e57eb840b0c124d8569284752be79885dff822270f8da37d8174",
+    "image:usr/lib/libjansson.so.4": "24600316952a7b61a1db802ad2986e4a8c04a545a3df179b1b51896a03c5dafc",
+    "image:usr/lib/libjansson.so.4.14.0": "24600316952a7b61a1db802ad2986e4a8c04a545a3df179b1b51896a03c5dafc",
+    "image:usr/lib/libjson-c.so.5": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153",
+    "image:usr/lib/libjson-c.so.5.4.0": "830799c5682eff7f75800482dabd65a1fe2e925374a19da2a25a2da708d8a153",
+    "image:usr/lib/liblucihttp.so.0": "ebd493734e92f532f582e5ee6272145816dba0407bf5ba325856498cea968ac8",
+    "image:usr/lib/liblucihttp.so.0.1": "ebd493734e92f532f582e5ee6272145816dba0407bf5ba325856498cea968ac8",
+    "image:usr/lib/libmbedcrypto.so.16": "a706d21b671066892985ed8c1a1adafed1f474c2b58a5e832987bb133aca81a1",
+    "image:usr/lib/libmbedcrypto.so.3.6.6": "a706d21b671066892985ed8c1a1adafed1f474c2b58a5e832987bb133aca81a1",
+    "image:usr/lib/libmbedtls.so.21": "d7408472dbd44a5f82293e0ba24326608ba7d8a5bb48e3616001b6622287d77e",
+    "image:usr/lib/libmbedtls.so.3.6.6": "d7408472dbd44a5f82293e0ba24326608ba7d8a5bb48e3616001b6622287d77e",
+    "image:usr/lib/libmbedx509.so.3.6.6": "ebf2c5defdc319d0903af3569ee32e2bc6fc7a188470ae90a4ea24b3e9777dbd",
+    "image:usr/lib/libmbedx509.so.7": "ebf2c5defdc319d0903af3569ee32e2bc6fc7a188470ae90a4ea24b3e9777dbd",
+    "image:usr/lib/libmnl.so.0": "4f13016b4961a217d5050ca9081a9467c37d2742fc3ad70b4aa135c8768ba260",
+    "image:usr/lib/libmnl.so.0.2.0": "4f13016b4961a217d5050ca9081a9467c37d2742fc3ad70b4aa135c8768ba260",
+    "image:usr/lib/libnftables.so": "defaca49ed2c54912b21fe2a0444d5321ddd5e9bde2e5a8b801a7381a620c538",
+    "image:usr/lib/libnftables.so.1": "defaca49ed2c54912b21fe2a0444d5321ddd5e9bde2e5a8b801a7381a620c538",
+    "image:usr/lib/libnftables.so.1.1.0": "defaca49ed2c54912b21fe2a0444d5321ddd5e9bde2e5a8b801a7381a620c538",
+    "image:usr/lib/libnftnl.so.11": "036f26edd85e5378aeeb6328a838594a0f54b0354d30c1e5cf3534323ebd5751",
+    "image:usr/lib/libnftnl.so.11.7.0": "036f26edd85e5378aeeb6328a838594a0f54b0354d30c1e5cf3534323ebd5751",
+    "image:usr/lib/libnl-tiny.so.1": "4abb1ddbece1565ca8b6b5a77f4d86a6e9ed240f604eb32187e5978600c9caea",
+    "image:usr/lib/libuclient.so": "b6e79922f28a367250dc04e884169bcbb038719f15371aa4f0bf2780e5d0bc30",
+    "image:usr/lib/libucode.so.20230711": "0feefc04e1f7ebd24545808887b0ac5784d79f8f60cd16e84402b3fd62d824d3",
+    "image:usr/lib/libudebug.so": "56958bcd2dd706f841ed68f7f9241afd85f52a05b82cc5cf3ad510fd8895ef9c",
+    "image:usr/lib/libz.so": "ed25552914b550bd39c1621a9625ec308cdac2deaecb610a1e5c2ff752a49aea",
+    "image:usr/lib/libz.so.1": "ed25552914b550bd39c1621a9625ec308cdac2deaecb610a1e5c2ff752a49aea",
+    "image:usr/lib/libz.so.1.3.1": "ed25552914b550bd39c1621a9625ec308cdac2deaecb610a1e5c2ff752a49aea",
+    "image:usr/lib/uhttpd_ubus.so": "fa33486ca0b68e99efe376462ca1c151cb6ec7a8c01787cb76a1e1064a942ebb",
+    "isolated": "1b91816976dcbfedad6323c9d482eb2f8398a0ae2e34f22be875824d2bdcfff1",
+    "ns": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "script": "de76ee30370c6e1b75fbc4d15682f09d0631d691aceabd894bf3046c6de215f2",
+    "strace": "33b3ea325915f1213dc477d80e0f0b2b09ffeff5e81d98b25a35320fbcbcaf42",
+    "uci-start": "f65cb90270beeec62b09752c20a2b84f19d31d040f5a97eccd6b54f05dff5ba9"
+  },
+  "limitations": [
+    "syscalls_attempted contains calls with numeric returns; non-returning exit_group calls are audited separately by exit code.",
+    "One traced multi-change and one independently validated silent repeat per side; counts are mechanism evidence, not a distribution.",
+    "Tracing perturbs execution and scheduling; no trace timestamp, duration or CPU comparison is used.",
+    "Wire LOOKUP/INVOKE counts are sends containing a complete header. Receiver byte/count/order/status checks independently establish acceptance.",
+    "Connection reuse does not reduce object lookup count: every changed entry still resolves service before invoking.",
+    "Write totals cover all subject-tree descriptors, including pipes, logs and sockets, and are not baseline-only write counts.",
+    "C denotes the exact shell script and its actual BusyBox/UCI/ubus command tree; in-process BusyBox applets need not exec.",
+    "The old UCI canonical ELF is a short incremental reference, not a fifth side in the formal router matrix."
+  ],
+  "packages": 24,
+  "raw_archive_sha256": "4f89197b870b40d01301846595ca5b445535931c333ad898eee4cb6df0c1f8e9",
+  "recorded_at": "2026-09-29T07:15:47.844384+00:00",
+  "scope": "Oracle-only, one traced multi_change and one silent repeat per side; no timing conclusion",
+  "sides": [
+    {
+      "attribution_sha256": "ca235917e53a15bac437add69599102f73b8c20c8d4a02349012a2bda31a732a",
+      "driver_validation": {
+        "artifact_sha256": {
+          "binary-sha256.txt": "abd070fd76635350499ee2c09ad4e57b36d375da57e110e2d77df9532c108427",
+          "multi_change.json": "93a1434577b4655a97562028e7e483f15c9fd26409b3da7e786f17d592485542",
+          "multi_change/iteration-000000/after.events": "0ac818334bc7dfcc761c328821d7d42c392c24ac44dc800c32409eef04c929ae",
+          "multi_change/iteration-000000/after.md5": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f",
+          "multi_change/iteration-000000/repeat.events": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "multi_change/iteration-000000/repeat.md5": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f"
+        },
+        "baseline_sha256": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f",
+        "events_sha256": "0ac818334bc7dfcc761c328821d7d42c392c24ac44dc800c32409eef04c929ae",
+        "expected_packages_hex": [
+          "6669726577616c6c",
+          "6e6574776f726b",
+          "72383466697874757265"
+        ],
+        "repeat_silent": true,
+        "successful_measured_calls": 1,
+        "warmup": 0
+      },
+      "measured": {
+        "attribution_complete": true,
+        "exec_failure_total": 0,
+        "exec_success_total": 38,
+        "failed_exec_paths": {},
+        "failed_ubus_exec_search_attempts": 0,
+        "observed_process_births": 38,
+        "observed_thread_births": 0,
+        "pid_tree_complete": true,
+        "poll_calls": {
+          "ppoll": 6
+        },
+        "positive_write_return_bytes_by_syscall": {
+          "sendmsg": 380,
+          "write": 86,
+          "writev": 11038
+        },
+        "processes_including_root": 39,
+        "successful_exec_paths": {
+          "/bin/grep": 1,
+          "/bin/mkdir": 1,
+          "/bin/rm": 2,
+          "/bin/ubus": 3,
+          "/sbin/reload_config": 1,
+          "/sbin/uci": 24,
+          "/usr/bin/basename": 3,
+          "/usr/bin/cut": 1,
+          "/usr/bin/md5sum": 2
+        },
+        "sync_calls": {
+          "fdatasync": 0,
+          "fsync": 0
+        },
+        "syscalls_attempted": {
+          "clone": 38,
+          "close": 338,
+          "connect": 3,
+          "dup3": 107,
+          "execve": 38,
+          "flock": 48,
+          "fstat": 98,
+          "getdents64": 6,
+          "newfstatat": 230,
+          "openat": 270,
+          "ppoll": 6,
+          "recvmsg": 18,
+          "sendmsg": 6,
+          "socket": 3,
+          "wait4": 74,
+          "write": 4,
+          "writev": 61
+        },
+        "syscalls_failed": {
+          "newfstatat": 140,
+          "openat": 45,
+          "wait4": 36
+        },
+        "syscalls_successful": {
+          "clone": 38,
+          "close": 338,
+          "connect": 3,
+          "dup3": 107,
+          "execve": 38,
+          "flock": 48,
+          "fstat": 98,
+          "getdents64": 6,
+          "newfstatat": 90,
+          "openat": 225,
+          "ppoll": 6,
+          "recvmsg": 18,
+          "sendmsg": 6,
+          "socket": 3,
+          "wait4": 38,
+          "write": 4,
+          "writev": 61
+        },
+        "tasks_including_root": 39,
+        "unix_connects": {
+          "ubus": {
+            "attempts": 3,
+            "success": 3
+          }
+        },
+        "wait_calls": {
+          "wait4": 74
+        },
+        "wire_header_counts_match_expected_events": true,
+        "wire_headers": {
+          "INVOKE": {
+            "header_attempts": 3,
+            "successful_full_header_sends": 3
+          },
+          "LOOKUP": {
+            "header_attempts": 3,
+            "successful_full_header_sends": 3
+          }
+        },
+        "write_calls": {
+          "sendmsg": 6,
+          "sendto": 0,
+          "write": 4,
+          "writev": 61
+        }
+      },
+      "raw_trace_and_driver_artifact_hashes_verified": true,
+      "raw_trace_count": 307,
+      "side": "c",
+      "silent_repeat": {
+        "attribution_complete": true,
+        "exec_failure_total": 0,
+        "exec_success_total": 32,
+        "failed_exec_paths": {},
+        "failed_ubus_exec_search_attempts": 0,
+        "observed_process_births": 32,
+        "observed_thread_births": 0,
+        "pid_tree_complete": true,
+        "poll_calls": {},
+        "positive_write_return_bytes_by_syscall": {
+          "writev": 10814
+        },
+        "processes_including_root": 33,
+        "successful_exec_paths": {
+          "/bin/grep": 1,
+          "/bin/mkdir": 1,
+          "/bin/rm": 2,
+          "/sbin/reload_config": 1,
+          "/sbin/uci": 24,
+          "/usr/bin/cut": 1,
+          "/usr/bin/md5sum": 2
+        },
+        "sync_calls": {
+          "fdatasync": 0,
+          "fsync": 0
+        },
+        "syscalls_attempted": {
+          "clone": 32,
+          "close": 299,
+          "dup3": 104,
+          "execve": 32,
+          "flock": 48,
+          "fstat": 80,
+          "getdents64": 6,
+          "newfstatat": 212,
+          "openat": 240,
+          "wait4": 62,
+          "writev": 57
+        },
+        "syscalls_failed": {
+          "newfstatat": 126,
+          "openat": 33,
+          "wait4": 30
+        },
+        "syscalls_successful": {
+          "clone": 32,
+          "close": 299,
+          "dup3": 104,
+          "execve": 32,
+          "flock": 48,
+          "fstat": 80,
+          "getdents64": 6,
+          "newfstatat": 86,
+          "openat": 207,
+          "wait4": 32,
+          "writev": 57
+        },
+        "tasks_including_root": 33,
+        "unix_connects": {},
+        "wait_calls": {
+          "wait4": 62
+        },
+        "wire_header_counts_match_expected_events": true,
+        "wire_headers": {},
+        "write_calls": {
+          "sendmsg": 0,
+          "sendto": 0,
+          "write": 0,
+          "writev": 57
+        }
+      },
+      "subject_nonreturning_exit_group_calls_by_code": {
+        "measured": {
+          "0": 38,
+          "1": 1
+        },
+        "silent_repeat": {
+          "0": 32,
+          "1": 1
+        }
+      },
+      "unparsed_trace_lines": 307
+    },
+    {
+      "attribution_sha256": "eb7aad7fd1581d3e554f85e9c686345352ea07f987966aa6b927b0665ab5497b",
+      "driver_validation": {
+        "artifact_sha256": {
+          "binary-sha256.txt": "5a83e3c93106063b2032af8ab103dafe1f11bd74b7716899730ec593229c2919",
+          "multi_change.json": "2150a80a685217022c9290c3642af025b926bf82dc34d17b45f76013cce6aec2",
+          "multi_change/iteration-000000/after.events": "0ac818334bc7dfcc761c328821d7d42c392c24ac44dc800c32409eef04c929ae",
+          "multi_change/iteration-000000/after.md5": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f",
+          "multi_change/iteration-000000/repeat.events": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "multi_change/iteration-000000/repeat.md5": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f"
+        },
+        "baseline_sha256": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f",
+        "events_sha256": "0ac818334bc7dfcc761c328821d7d42c392c24ac44dc800c32409eef04c929ae",
+        "expected_packages_hex": [
+          "6669726577616c6c",
+          "6e6574776f726b",
+          "72383466697874757265"
+        ],
+        "repeat_silent": true,
+        "successful_measured_calls": 1,
+        "warmup": 0
+      },
+      "measured": {
+        "attribution_complete": true,
+        "exec_failure_total": 15,
+        "exec_success_total": 4,
+        "failed_exec_paths": {
+          "/sbin/ubus": 3,
+          "/usr/bin/ubus": 3,
+          "/usr/local/bin/ubus": 3,
+          "/usr/local/sbin/ubus": 3,
+          "/usr/sbin/ubus": 3
+        },
+        "failed_ubus_exec_search_attempts": 15,
+        "observed_process_births": 3,
+        "observed_thread_births": 0,
+        "pid_tree_complete": true,
+        "poll_calls": {
+          "ppoll": 10
+        },
+        "positive_write_return_bytes_by_syscall": {
+          "sendmsg": 380,
+          "write": 2176
+        },
+        "processes_including_root": 4,
+        "successful_exec_paths": {
+          "/bin/ubus": 3,
+          "/tmp/bin/reload_config_rs": 1
+        },
+        "sync_calls": {
+          "fdatasync": 0,
+          "fsync": 1
+        },
+        "syscalls_attempted": {
+          "clone": 3,
+          "close": 64,
+          "connect": 4,
+          "dup3": 6,
+          "execve": 19,
+          "flock": 49,
+          "fstat": 40,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 122,
+          "openat": 59,
+          "pidfd_open": 3,
+          "ppoll": 10,
+          "recvmsg": 18,
+          "renameat": 1,
+          "sendmsg": 6,
+          "socket": 4,
+          "wait4": 3,
+          "write": 29
+        },
+        "syscalls_failed": {
+          "execve": 15,
+          "newfstatat": 72,
+          "openat": 10
+        },
+        "syscalls_successful": {
+          "clone": 3,
+          "close": 64,
+          "connect": 4,
+          "dup3": 6,
+          "execve": 4,
+          "flock": 49,
+          "fstat": 40,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 50,
+          "openat": 49,
+          "pidfd_open": 3,
+          "ppoll": 10,
+          "recvmsg": 18,
+          "renameat": 1,
+          "sendmsg": 6,
+          "socket": 4,
+          "wait4": 3,
+          "write": 29
+        },
+        "tasks_including_root": 4,
+        "unix_connects": {
+          "devlog": {
+            "attempts": 1,
+            "success": 1
+          },
+          "ubus": {
+            "attempts": 3,
+            "success": 3
+          }
+        },
+        "wait_calls": {
+          "wait4": 3
+        },
+        "wire_header_counts_match_expected_events": true,
+        "wire_headers": {
+          "INVOKE": {
+            "header_attempts": 3,
+            "successful_full_header_sends": 3
+          },
+          "LOOKUP": {
+            "header_attempts": 3,
+            "successful_full_header_sends": 3
+          }
+        },
+        "write_calls": {
+          "sendmsg": 6,
+          "sendto": 0,
+          "write": 29,
+          "writev": 0
+        }
+      },
+      "raw_trace_and_driver_artifact_hashes_verified": true,
+      "raw_trace_count": 238,
+      "side": "uci-start",
+      "silent_repeat": {
+        "attribution_complete": true,
+        "exec_failure_total": 0,
+        "exec_success_total": 1,
+        "failed_exec_paths": {},
+        "failed_ubus_exec_search_attempts": 0,
+        "observed_process_births": 0,
+        "observed_thread_births": 0,
+        "pid_tree_complete": true,
+        "poll_calls": {
+          "ppoll": 1
+        },
+        "positive_write_return_bytes_by_syscall": {
+          "write": 1824
+        },
+        "processes_including_root": 1,
+        "successful_exec_paths": {
+          "/tmp/bin/reload_config_rs": 1
+        },
+        "sync_calls": {
+          "fdatasync": 0,
+          "fsync": 1
+        },
+        "syscalls_attempted": {
+          "close": 28,
+          "connect": 1,
+          "execve": 1,
+          "flock": 49,
+          "fstat": 25,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 122,
+          "openat": 29,
+          "ppoll": 1,
+          "renameat": 1,
+          "socket": 1,
+          "write": 26
+        },
+        "syscalls_failed": {
+          "newfstatat": 72,
+          "openat": 1
+        },
+        "syscalls_successful": {
+          "close": 28,
+          "connect": 1,
+          "execve": 1,
+          "flock": 49,
+          "fstat": 25,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 50,
+          "openat": 28,
+          "ppoll": 1,
+          "renameat": 1,
+          "socket": 1,
+          "write": 26
+        },
+        "tasks_including_root": 1,
+        "unix_connects": {
+          "devlog": {
+            "attempts": 1,
+            "success": 1
+          }
+        },
+        "wait_calls": {},
+        "wire_header_counts_match_expected_events": true,
+        "wire_headers": {},
+        "write_calls": {
+          "sendmsg": 0,
+          "sendto": 0,
+          "write": 26,
+          "writev": 0
+        }
+      },
+      "subject_nonreturning_exit_group_calls_by_code": {
+        "measured": {
+          "0": 4
+        },
+        "silent_repeat": {
+          "0": 1
+        }
+      },
+      "unparsed_trace_lines": 238
+    },
+    {
+      "attribution_sha256": "36ccf8cbbda55b901eb61c502c70a74a1170c706abe02f01738ef947a333035d",
+      "driver_validation": {
+        "artifact_sha256": {
+          "binary-sha256.txt": "058122a033655a047237927de9cd21e00d973228e1d552de664b8d98ce1cc57a",
+          "multi_change.json": "bc9c92b3517eef621e6ac90e3e87df781e824151be7b895f6629667a877fbf15",
+          "multi_change/iteration-000000/after.events": "0ac818334bc7dfcc761c328821d7d42c392c24ac44dc800c32409eef04c929ae",
+          "multi_change/iteration-000000/after.md5": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f",
+          "multi_change/iteration-000000/repeat.events": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "multi_change/iteration-000000/repeat.md5": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f"
+        },
+        "baseline_sha256": "f352d1bdedfa5fb5ed75c7e31ed3e2f4059a5a9b382343469041f6c41ca7ff1f",
+        "events_sha256": "0ac818334bc7dfcc761c328821d7d42c392c24ac44dc800c32409eef04c929ae",
+        "expected_packages_hex": [
+          "6669726577616c6c",
+          "6e6574776f726b",
+          "72383466697874757265"
+        ],
+        "repeat_silent": true,
+        "successful_measured_calls": 1,
+        "warmup": 0
+      },
+      "measured": {
+        "attribution_complete": true,
+        "exec_failure_total": 0,
+        "exec_success_total": 1,
+        "failed_exec_paths": {},
+        "failed_ubus_exec_search_attempts": 0,
+        "observed_process_births": 0,
+        "observed_thread_births": 0,
+        "pid_tree_complete": true,
+        "poll_calls": {
+          "ppoll": 8
+        },
+        "positive_write_return_bytes_by_syscall": {
+          "sendmsg": 380,
+          "write": 2176
+        },
+        "processes_including_root": 1,
+        "successful_exec_paths": {
+          "/tmp/bin/reload_config_rs": 1
+        },
+        "sync_calls": {
+          "fdatasync": 0,
+          "fsync": 1
+        },
+        "syscalls_attempted": {
+          "close": 29,
+          "connect": 2,
+          "execve": 1,
+          "flock": 49,
+          "fstat": 25,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 97,
+          "openat": 29,
+          "ppoll": 8,
+          "recvmsg": 16,
+          "renameat": 1,
+          "sendmsg": 6,
+          "socket": 2,
+          "write": 6
+        },
+        "syscalls_failed": {
+          "newfstatat": 72,
+          "openat": 1,
+          "recvmsg": 7
+        },
+        "syscalls_successful": {
+          "close": 29,
+          "connect": 2,
+          "execve": 1,
+          "flock": 49,
+          "fstat": 25,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 25,
+          "openat": 28,
+          "ppoll": 8,
+          "recvmsg": 9,
+          "renameat": 1,
+          "sendmsg": 6,
+          "socket": 2,
+          "write": 6
+        },
+        "tasks_including_root": 1,
+        "unix_connects": {
+          "devlog": {
+            "attempts": 1,
+            "success": 1
+          },
+          "ubus": {
+            "attempts": 1,
+            "success": 1
+          }
+        },
+        "wait_calls": {},
+        "wire_header_counts_match_expected_events": true,
+        "wire_headers": {
+          "INVOKE": {
+            "header_attempts": 3,
+            "successful_full_header_sends": 3
+          },
+          "LOOKUP": {
+            "header_attempts": 3,
+            "successful_full_header_sends": 3
+          }
+        },
+        "write_calls": {
+          "sendmsg": 6,
+          "sendto": 0,
+          "write": 6,
+          "writev": 0
+        }
+      },
+      "raw_trace_and_driver_artifact_hashes_verified": true,
+      "raw_trace_count": 235,
+      "side": "final",
+      "silent_repeat": {
+        "attribution_complete": true,
+        "exec_failure_total": 0,
+        "exec_success_total": 1,
+        "failed_exec_paths": {},
+        "failed_ubus_exec_search_attempts": 0,
+        "observed_process_births": 0,
+        "observed_thread_births": 0,
+        "pid_tree_complete": true,
+        "poll_calls": {
+          "ppoll": 1
+        },
+        "positive_write_return_bytes_by_syscall": {
+          "write": 1824
+        },
+        "processes_including_root": 1,
+        "successful_exec_paths": {
+          "/tmp/bin/reload_config_rs": 1
+        },
+        "sync_calls": {
+          "fdatasync": 0,
+          "fsync": 1
+        },
+        "syscalls_attempted": {
+          "close": 28,
+          "connect": 1,
+          "execve": 1,
+          "flock": 49,
+          "fstat": 25,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 97,
+          "openat": 29,
+          "ppoll": 1,
+          "renameat": 1,
+          "socket": 1,
+          "write": 3
+        },
+        "syscalls_failed": {
+          "newfstatat": 72,
+          "openat": 1
+        },
+        "syscalls_successful": {
+          "close": 28,
+          "connect": 1,
+          "execve": 1,
+          "flock": 49,
+          "fstat": 25,
+          "fsync": 1,
+          "getdents64": 2,
+          "newfstatat": 25,
+          "openat": 28,
+          "ppoll": 1,
+          "renameat": 1,
+          "socket": 1,
+          "write": 3
+        },
+        "tasks_including_root": 1,
+        "unix_connects": {
+          "devlog": {
+            "attempts": 1,
+            "success": 1
+          }
+        },
+        "wait_calls": {},
+        "wire_header_counts_match_expected_events": true,
+        "wire_headers": {},
+        "write_calls": {
+          "sendmsg": 0,
+          "sendto": 0,
+          "write": 3,
+          "writev": 0
+        }
+      },
+      "subject_nonreturning_exit_group_calls_by_code": {
+        "measured": {
+          "0": 1
+        },
+        "silent_repeat": {
+          "0": 1
+        }
+      },
+      "unparsed_trace_lines": 235
+    }
+  ],
+  "source_results_sha256": "c1b492432f3f21e31f775de35025387e91320482203aed8f39e395502573367b",
+  "strace_version": "strace -- version 6.8\nCopyright (c) 1991-2024 The strace developers <https://strace.io>.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\nOptional features enabled: no-m32-mpers",
+  "timing_acceptance_eligible": false,
+  "workload": "multi_change"
+}

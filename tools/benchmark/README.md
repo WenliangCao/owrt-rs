@@ -462,3 +462,17 @@ a peak among the command/reaped descendants, not their concurrent RSS sum.
 The receiver and logd remain available for separate resident observations.
 Config baselines live in private tmpfs; sync and atomic rename remain active,
 so these measurements do not estimate flash persistence latency.
+
+Render an archived four-side reload-config collection with full raw-file,
+prepared-cycle and host-gate validation:
+
+```sh
+python3 tools/benchmark/render_reload_report.py COLLECTION REPORT.md \
+  --stage formal --label 'reload-config canonical comparison' \
+  --budget-seconds 1200
+```
+
+The command writes Markdown and a matching JSON with per-window values,
+three baseline deltas, direction/range evidence, dependency envelopes and
+separate wait4/ptrace diagnostics. Pass the budget frozen before collection;
+this renderer does not run benchmarks or change a device.

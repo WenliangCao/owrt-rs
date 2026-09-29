@@ -1,0 +1,493 @@
+{
+  "schema": 1,
+  "status": "COMPLETE",
+  "scope": "reload-config final optimization and nine-component engineering closeout; no production deployment or combined-stack acceptance",
+  "runtime_source_commit": "e106123f9e4121d56adb9f3ed83336181b7a9ebc",
+  "canonical": {
+    "conclusion": "success",
+    "headSha": "43b98a138bea2b37713634c012a37a9d7186a20b",
+    "status": "completed",
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36491554447",
+    "source_commit": "43b98a138bea2b37713634c012a37a9d7186a20b",
+    "binaries": {
+      "uci-rs": {
+        "sha256": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+        "bytes": 486155,
+        "static_aarch64": true
+      },
+      "fw4-rs": {
+        "sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+        "bytes": 1034963,
+        "static_aarch64": true
+      },
+      "reload_config_rs": {
+        "sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+        "bytes": 465643,
+        "static_aarch64": true
+      },
+      "logd-rs": {
+        "sha256": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+        "bytes": 428731,
+        "static_aarch64": true
+      },
+      "httpd-rs": {
+        "sha256": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+        "bytes": 1612543,
+        "static_aarch64": true
+      },
+      "rpcd-rs": {
+        "sha256": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+        "bytes": 1252115,
+        "static_aarch64": true
+      },
+      "procd-rs": {
+        "sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+        "bytes": 876536,
+        "static_aarch64": true
+      },
+      "ubusd-rs": {
+        "sha256": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+        "bytes": 516072,
+        "static_aarch64": true
+      },
+      "netifd-rs": {
+        "sha256": "0f9814c608e85dd863002007c967cebcce696fbcba624bbb5a33fe23e6637ec4",
+        "bytes": 1069120,
+        "static_aarch64": true
+      }
+    },
+    "manifest_sha256": "b7b1ad3e3a906b18a1734eb248c79f7ccf76a187530c6f0dcb93a9df68ce3261",
+    "core_manifest_sha256": "a21aa7e179a595d24f72015c1e3ff350d86670feefa02e3a640f7f9b29b558ad",
+    "reload_apk_sha256": "0adfa795ddbf933ba81ae05f232f40ca179056a3b3734b047a19427a3ce6216e",
+    "image": {
+      "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "size": 11735328,
+      "sha256": "be5fdeda64307594541c67577bdad8622c3749cd8e8ab09fcad4b8bc8c1b0131"
+    },
+    "toolchain": {
+      "requested": "1.98.1",
+      "rustc": "rustc 1.98.1 (48a229cea 2026-09-01); binary: rustc; commit-hash: 48a229ceaefd4985c50990b14116b6d856af0985; commit-date: 2026-09-01; host: x86_64-unknown-linux-gnu; release: 1.98.1; LLVM version: 22.1.8",
+      "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+      "target_gcc": "aarch64-openwrt-linux-gcc (OpenWrt GCC 14.3.0 r33051-f5dae5ece4) 14.3.0",
+      "target": "aarch64-unknown-linux-musl",
+      "cargo_lock_sha256": "5a5e277b82d74d073452c531761b79e3dbc46732055910b04ff2584ce04484f6",
+      "official": true,
+      "override": null
+    },
+    "apk_image_test_elf_match": true,
+    "image_installed_binaries": {
+      "uci-rs": {
+        "sha256": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+        "bytes": 486155
+      },
+      "fw4-rs": {
+        "sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+        "bytes": 1034963
+      },
+      "reload_config_rs": {
+        "sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+        "bytes": 465643
+      },
+      "logd-rs": {
+        "sha256": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+        "bytes": 428731
+      },
+      "httpd-rs": {
+        "sha256": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+        "bytes": 1612543
+      },
+      "rpcd-rs": {
+        "sha256": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+        "bytes": 1252115
+      }
+    },
+    "size_budget_bytes": 524288,
+    "size_budget_passed": true,
+    "runtime_unchanged_since_canonical": true
+  },
+  "native": {
+    "host": "Oracle aarch64 Linux",
+    "gates": [
+      {
+        "name": "ubus-test",
+        "exit": 0,
+        "seconds": 2.7232769589754753,
+        "log_sha256": "e8b8ffbdf0a34eb9f69767c23faae529362f10ac0e8d12f7b4b75e900287b651",
+        "test_summaries": [
+          {
+            "passed": 59,
+            "failed": 0,
+            "ignored": 0
+          },
+          {
+            "passed": 0,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "ubus-clippy",
+        "exit": 0,
+        "seconds": 0.8658218019991182,
+        "log_sha256": "9fd3fb01eba1a342ee7768ab2392c00ac25a70eb3224f811152d24679acddd8d"
+      },
+      {
+        "name": "reload-config-test",
+        "exit": 0,
+        "seconds": 2.4724538159789518,
+        "log_sha256": "8ad618b21da8e6449e00e21c98f45ad558be681058959ce5ab86b9df5535c205",
+        "test_summaries": [
+          {
+            "passed": 20,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "reload-config-clippy",
+        "exit": 0,
+        "seconds": 0.7654208960011601,
+        "log_sha256": "4135852fadd1bbeae2d7d44f7c477cce60d76c1830bc51b653f90119f850ecef"
+      },
+      {
+        "name": "rpcd-test",
+        "exit": 0,
+        "seconds": 6.2025757360388525,
+        "log_sha256": "89047e432a766080fb2d4862c81ceb92c48613bdc07b9ce7feb7425745c3cdfb",
+        "test_summaries": [
+          {
+            "passed": 1,
+            "failed": 0,
+            "ignored": 0
+          },
+          {
+            "passed": 64,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "rpcd-clippy",
+        "exit": 0,
+        "seconds": 2.5717840729630552,
+        "log_sha256": "441cdbda09faf68e412e420f4559eb573e9fbfc0cb5646cb909462932279c458"
+      },
+      {
+        "name": "netifd-test",
+        "exit": 0,
+        "seconds": 5.6303942710510455,
+        "log_sha256": "41fe97b9e295d7e03ba3a29df3c43983fea824410acb6b5f3e722bb88e2f4b0b",
+        "test_summaries": [
+          {
+            "passed": 166,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "netifd-clippy",
+        "exit": 0,
+        "seconds": 2.4198041029740125,
+        "log_sha256": "889cdd9df575c1e26e908a542796ef752b37da419b2ff72cf3114fdf2667ca5a"
+      },
+      {
+        "name": "fw4-test",
+        "exit": 0,
+        "seconds": 3.3236569379805587,
+        "log_sha256": "520da015a8e8655f607a983ba7e5abb3c02b80de9a45cc8e7ba65a822fc62acc",
+        "test_summaries": [
+          {
+            "passed": 17,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "fw4-clippy",
+        "exit": 0,
+        "seconds": 1.5674277719808742,
+        "log_sha256": "c46de40de5aba0366323e574d38bb4a3d5f76eb6d924af04f1f4934de450c17a"
+      },
+      {
+        "name": "httpd-test",
+        "exit": 0,
+        "seconds": 12.75828178098891,
+        "log_sha256": "6de4340beec35a0d14e3b347bf5c71306b3b2dd58a743ed48232119fb7ecbe4f",
+        "test_summaries": [
+          {
+            "passed": 59,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "httpd-clippy",
+        "exit": 0,
+        "seconds": 5.575340338982642,
+        "log_sha256": "a613e1dac6f82475d49d535bcc8542698b0c05ce38e8ca09a12463455289a3ee"
+      },
+      {
+        "name": "procd-test",
+        "exit": 0,
+        "seconds": 9.744127870013472,
+        "log_sha256": "aa365cad0745596bff64ff341633cdd27af3b0dca091bac4db86ef352ecc6ca7",
+        "test_summaries": [
+          {
+            "passed": 86,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "procd-clippy",
+        "exit": 0,
+        "seconds": 1.417380259023048,
+        "log_sha256": "7c6f43381cc076b03b12539ed28fefd5198d64dd92d67c02f1cbc142331ebf56"
+      },
+      {
+        "name": "logd-test",
+        "exit": 0,
+        "seconds": 1.4165845719981007,
+        "log_sha256": "87060f6505a8899ce578c53dfc2b5334b2129cc8c54aa5ecb721012374a347b3",
+        "test_summaries": [
+          {
+            "passed": 18,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "logd-clippy",
+        "exit": 0,
+        "seconds": 0.4147452909965068,
+        "log_sha256": "0a5c2675490e936a62d34c478109a0bae7422d060ff8b265afc5e65f4a183b4b"
+      },
+      {
+        "name": "ubusd-test",
+        "exit": 0,
+        "seconds": 4.496556187048554,
+        "log_sha256": "2905651f7e0aed77e529d8deca3a324f09770209a83c772956a98c675e9defd9",
+        "test_summaries": [
+          {
+            "passed": 55,
+            "failed": 0,
+            "ignored": 0
+          }
+        ]
+      },
+      {
+        "name": "ubusd-clippy",
+        "exit": 0,
+        "seconds": 1.368347454990726,
+        "log_sha256": "ef563aef285d9a2e575ccdd95b3f61302f12ab0433db3a8d8673b78c195fba0a"
+      }
+    ],
+    "passed": true,
+    "clippy_policy": "ubus and reload-config --all-targets -D warnings; existing seven consumers --all-targets with existing warnings"
+  },
+  "oracle_functional": {
+    "report": "reload-config-20260928-functional-validation.json",
+    "r1_reference_cases": 11,
+    "r1_fault_cases": 17,
+    "r95_groups": 10,
+    "passed": true,
+    "failed_prototype_attempts_preserved": true
+  },
+  "device_recovery": {
+    "component": "reload-config",
+    "candidate_sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+    "driver_sha256": "2ff3a6368c4c3ecf35c525007c6bb7df5a93c71e51da814d31907fa72973badb",
+    "workload_sha256": "999d1c576f786cba00b4dfb56e03e10b9008e3fc9d4f4d847135097dd4c37172",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "recovery_gate_sha256": "2c99e10362ce74d8edc31d153ed7dd2a00e4c08fd73eab3f6fa035b315d9d54a",
+    "correctness_smoke_only": true,
+    "pilot_only": false,
+    "capture_only": false,
+    "implementation": "rs",
+    "iterations": 10,
+    "installed": false,
+    "matrix": false,
+    "netifd_fixture_sha256": {},
+    "production_mode": "stock",
+    "passed": true,
+    "cleanup_verified": true,
+    "event_benchmark_sha256": "07828e8e63e1ef8287b96b04d64561b097eedec042cccc3e7dc8bdf15bb2a9bd",
+    "exit": 0,
+    "same_boot": true,
+    "same_config": true,
+    "same_production_identity": true,
+    "same_host_mounts": true,
+    "groups": 10
+  },
+  "device_formal": {
+    "report": "RELOAD_CONFIG_20260929_BENCHMARKS.json",
+    "plan_sha256": "e13ba0cf1706748035d7c726905da1c81c48e9404613af11d809b5653859d613",
+    "subjects": {
+      "stock": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+      "r89": "f38ffe36b404964ef53ca023167d3154f47139110c34c4e44435f9c198846ae4",
+      "candidate": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+      "r94": "e22deec64229a94745dbe30c8815368889b84061f9cc936ba829c4561551d9a4"
+    },
+    "lanes": 5,
+    "windows": 16,
+    "measured_per_lane_window": 100,
+    "warmup": 5,
+    "audit": {
+      "checksummed_files": 88368,
+      "prepared_cycles": 8720,
+      "reload_executions_including_repeat": 17440,
+      "accepted_events": 6976,
+      "initial_final_health_equal": true,
+      "all_window_production_config_mounts_equal": true,
+      "source_archive_sha256": {
+        "01-candidate": "a8604422afb4dc4b4c79d6b1976d468aa89f7965fa78aed7ae3128f55a965043",
+        "02-r94": "ec0abec0a12e9d8c32d74e557883812b099e5f332b8305d4831070fef7f091b6",
+        "03-r89": "bf4da4ef84ae51d06c3c0508fecf480141d7567538544d1a3525af573b872d22",
+        "04-stock": "d4fe8a88b53bcbf9b55c2f39ed2abcc77a79e87a5a9ac82c79677d1eba2c0979",
+        "05-r89": "da79298a61307af99a60ff28bd3ac13bb0349559233f7b7bf602401b4ea10fd5",
+        "06-candidate": "b30922f51b7f678757af6cda73d38d95ac6a22a2e89145c1ccea8ad5b47522e7",
+        "07-stock": "ed3d4a8f9783c4b9c8bade1ac386c64d8388ac287d81c4a76596e9a86dcf8239",
+        "08-r94": "1f550a801e8ffc205dc1be9b0df1bed9cf301dd67372d13c9f3573424f633151",
+        "09-candidate": "40d2cae11e46eb847fbea86dafa2c09b38425161efad2e073e82add9f11d91d5",
+        "10-stock": "2fd8c4aa70df82d572e8f38201e09d4dacadfdeb3920bf917991b01f119436d2",
+        "11-r94": "6488ed2db49abfd95049db83f941e00330e938c63f4881200fb6d1e2d192cdbe",
+        "12-r89": "7d3529841cb792bd212a066ca32a38f8b4e836a74e528d2cb4ce76e504c61294",
+        "13-candidate": "5dbaeb90e7a3a7f325d451b5607bbc0bb901b33f8b579fa5af973cf5f6262ce6",
+        "14-r89": "e96e599183cc73cb03a6114d923f09a2d83dc34e5473568b014e3394b4ca75f3",
+        "15-r94": "d8e36419c81b42743644c6ea500881fe3a0c52f91026c1dc500816683851e10e",
+        "16-stock": "001902727b0b97f957f28bb5ccd1bf50617950b33b5ddac14cf51f0060402cab"
+      }
+    },
+    "errors": 0,
+    "timeouts": 0,
+    "elapsed_seconds": 919.6183638572693,
+    "budget_seconds": 1200,
+    "within_budget": true,
+    "host_gates_passed": true
+  },
+  "shared_consumers": {
+    "report": "RELOAD_CONFIG_20260929_SHARED_GATES.json",
+    "consumers": 7,
+    "gates": 11,
+    "functional_gates_passed": true,
+    "collection_status": "COMPLETE_WITH_INTERRUPTION",
+    "original_collection_passed": false,
+    "uninterrupted_collection": false,
+    "control_interruption_preserved": true,
+    "cleanup": {
+      "owned_processes": [],
+      "owned_mounts": [],
+      "original_runner_pid_3162155_exists": false,
+      "fresh_sudo_census_rechecked_after_completion": true,
+      "resume_runner_pid_3172166_absent": true
+    }
+  },
+  "incremental_attribution": {
+    "report": "reload-config-20260929-increment.json",
+    "status": "COMPLETE",
+    "validation": {
+      "windows": 4,
+      "lane_windows": 20,
+      "prepared_cycles": 2100,
+      "measured_calls": 2000,
+      "warmup_calls": 100,
+      "calls_including_silent_repeat": 4200,
+      "independent_reference_baseline_calls_outside_cycles": 16,
+      "accepted_events": 1680,
+      "errors": 0,
+      "timeouts": 0,
+      "complete_baseline_bytes_checked_every_cycle": true,
+      "raw_event_bytes_order_count_status_checked_every_cycle": true,
+      "silent_repeat_checked_every_cycle": true,
+      "command_counter_checks": 2100,
+      "input_sha256_unchanged_every_window": true,
+      "same_fixture_and_dependency_manifests": true,
+      "actual_downloaded_binary_hashes_match": true
+    },
+    "elapsed_seconds": 13.392588039976545
+  },
+  "syscall_mechanism": {
+    "report": "reload-config-20260929-mechanism.json",
+    "timing_acceptance_eligible": false,
+    "cleanup": {
+      "evidence_sha256": "c9571336a0817a1aad18f9ac90e39332af2994a37e5009972cc2a2798d3b8fbe",
+      "owned_work_directories": 3,
+      "passed": true,
+      "remaining_directories": 0,
+      "remaining_host_mounts": 0,
+      "remaining_processes": 0
+    },
+    "raw_archive_sha256": "4f89197b870b40d01301846595ca5b445535931c333ad898eee4cb6df0c1f8e9"
+  },
+  "recovery_authorization": {
+    "offline_archives_reread_and_sha_verified": 5,
+    "configuration_matches_backup": true,
+    "management_access": "wifi",
+    "client_interface": "en0",
+    "recovery_gate_sha256": "2c99e10362ce74d8edc31d153ed7dd2a00e4c08fd73eab3f6fa035b315d9d54a",
+    "guard_sha256": "58b96cc6307dc7d3810003fcc557f361901630227ae32100575b0da342a65d6d",
+    "production_remained_stock": true,
+    "deployed": false,
+    "flashed": false,
+    "rebooted": false
+  },
+  "accounting_review": {
+    "metric_rows": 145,
+    "contrasts": 435,
+    "normal_and_instrumented_scopes_separate": true,
+    "public_renderer_reproduced_all_145_metric_rows_and_audit": true,
+    "note": "Independent audit predates metadata-only frozen-budget addition; exact metric rows and raw audit reproduced unchanged.",
+    "audit_sha256": {
+      "accounting-independent-audit.json": "8276959d1fb29e83e8d3ad1dacfa2b2647bd6f9b770bfd9764abadbfddade48e",
+      "accounting-audit-supplement.json": "1954b69af3bd19a703dc75f347506cecbd32c7f15ca12cbe01786959576dbd2c",
+      "shared-final-review.json": "32cc08bc7cf39d1812f8c99898ca45c060b6b57d501da346265843a6ac2a4e1e"
+    }
+  },
+  "source_tool_sha256": {
+    "components/reload-config/src/engine.rs": "130f0450c09807cf6576a65b7ef14f377cb101f71776e8a1ad425ce95178c9a8",
+    "components/reload-config/src/md5.rs": "dab2b5c879f42a39d8eb31257f8849553edacf926be2016dad202b63cebfc594",
+    "components/ubus/src/conn.rs": "e7dc64391eb981a3be86ff2f8ece52ed5d07b2518521241c2e325afaea071b57",
+    "components/ubus/src/connect.rs": "7c568f49fdad2bc6ea4b0aa57c2a957d6f71896a3efeec0e45192acf86848999",
+    "components/ubus/src/sys.rs": "23203d875c3adf20e70eed077f3911da65aa7baf6084fa2557698fbf59bd1a15",
+    "packaging/openwrt/owrt-reload-config/Makefile": "9607b5726481fcdc501fba10d682ce59bae3ab5e3c7f8b038d89fd0f271f6a70",
+    "tools/benchmark/src/reload_exec.rs": "9635948bdc756803c6d8f2efa6778328b8186ce79279567e07795b9114d31edc",
+    "tools/benchmark/src/reload_fault.rs": "1ca10253f2be14b5807fdbd35e28eed33e1a1ffa74d13e327455b769e58c0ef7",
+    "tools/benchmark/exec_task_counts.c": "44eb1f93aab6b580a7fb0a8bf801207c59b0e1e54e6c7861c12b91d9a5f3ef25",
+    "tools/benchmark/isolated.sh": "1b91816976dcbfedad6323c9d482eb2f8398a0ae2e34f22be875824d2bdcfff1",
+    "tools/benchmark/run_candidate.py": "18ef94a2cc0e084cc807b17442f96e01ea5d8a238b53e5f9ab43229fdc3c4747",
+    "tools/benchmark/analyze_candidate.py": "4064db50278b48d25eb5c94b042bba81d95da669bcce6d1d71f606660649afd7",
+    "tools/benchmark/render_reload_report.py": "1e3550652c5ee13458730075910f6375d0f9f3a12e091894584aa42f794cce4b",
+    "tools/r1_candidate_check.py": "6288a88987886ffe2038098d3dc698351c96445a435aa7060f59aa9306c80a01",
+    "tools/reload_protocol_fixture.py": "b21e66b07cf2d1783533ce5f0b4b56b8e800f483de8704d4a99aec6967a2b547",
+    "tools/r95_reload_config_probe.sh": "999d1c576f786cba00b4dfb56e03e10b9008e3fc9d4f4d847135097dd4c37172"
+  },
+  "report_sha256": {
+    "RELOAD_CONFIG_20260929_RESEARCH.md": "937244c7eb7347b272de2fc480dc9a9be13761652b747b98faf99972c9ea934b",
+    "RELOAD_CONFIG_20260929_CANDIDATES.md": "fe1c22e96dd1f14fee4dba11c6552b3991ff508f6e903a77acc60845ba314b86",
+    "RELOAD_CONFIG_20260929_BENCHMARKS.md": "8fbcf57907ae3ec2bc651bd68952800445a1b3c0aed45cb3db4ca2aa8a852d05",
+    "RELOAD_CONFIG_20260929_BENCHMARKS.json": "24b6c61aef1d98215db873b5e07f8301c61c2d5812e43d8bf333dd4192f7161b",
+    "reload-config-20260928-functional-validation.json": "ed61f885f091c5cf1315fcee619fd403533ae6bdc6e203697fe008262b62c4e2",
+    "RELOAD_CONFIG_20260929_SHARED_GATE_PLAN.md": "30046871f9213b48024d6385aa3c8094e63f9bef120658bade79575103d2bfeb",
+    "RELOAD_CONFIG_20260929_SHARED_GATES.json": "97255efbd9ebafbc524db2f29d739ef081d7529e13a82c6aa479a7d4743dbf97",
+    "reload-config-20260929-increment.json": "22c40cc5e0d872cab8f508b74ee8a0bc4fe5c511690076446eabb4943e400bc9",
+    "reload-config-20260929-mechanism.json": "b520b565a1f7473a194d2c140b445d400f8522dd51ac65c74a86ea23c2b78797"
+  },
+  "retained_limits": [
+    "first-baseline p95/p99 increased in the first paired R94 window despite lower aggregate medians",
+    "minor faults increased in no-change classes; dependency log CPU costs retained",
+    "SDK pilot had unfavorable no-change CPU against R94; different ELF/tool/sample identities are not pooled",
+    "maxrss is not simultaneous process-tree RSS; ptrace timing is excluded",
+    "tmpfs persistence does not estimate flash behavior",
+    "service.event acknowledgement is not downstream service reload completion",
+    "seven shared consumers received new-binary functional regression, not new complete performance matrices",
+    "original/R89/R94 differences include historical algorithm and artifact differences; Oracle current/final short comparison isolates this round at artifact level"
+  ]
+}
