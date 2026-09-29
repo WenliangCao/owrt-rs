@@ -52,6 +52,10 @@ Linux 构建环境下的 `make ci-image VERSION=25.12.5` 运行相同三个阶�
 
 已验收的生产回溯节点采用设备专用标签，例如 `ax3000t-rust9-v0.1.0`：annotated tag 直接指向实际构建提交，从保存的正式产物晋升到 Release，不重新构建。`tools/native_release_prepare.py` 核验固件与真机报告的身份，生成可刷写镜像、组件 SHA256、发布 manifest、验收摘要、恢复说明与装配包归档。先上传草稿并下载复核全部资产，再发布为 Latest。标签的构建提交和后续验收/文档提交分别记录，后续研究使用新版本，不移动已有发布标签。
 
+后续稳定节点使用 `ax3000t-rust9-vMAJOR.MINOR.PATCH`。发布工具从标签读取版本，从正式 manifest 读取 OpenWrt 与统一包版本、镜像大小、装配包数量，从匹配的验收记录读取文件和配置数量；不沿用 v0.1.0 的固定数字。新源码或镜像必须有匹配身份的验收记录，不能借用旧报告。`make check-harnesses` 包含后续版本和身份拒绝的发布工具回归。
+
+通用 `v*` 标签触发的自动构建只发布为 prerelease，并显式设置 `--latest=false`。构建成功不代表真机验收完成，也不应取代已验收的 Latest 回溯节点；正式节点继续走上面的产物晋升流程。
+
 ## 保留配置与首次迁移
 
 sysupgrade 的默认保留配置流程备份选定文件、安装新系统，再由原 preinit 实现恢复。它不保留整个 overlay。个人网络、Wi-Fi、密码、证书与定时任务通过配置备份迁移，不进入公共镜像。额外保留项仍由 `/etc/sysupgrade.conf` 和 `/lib/upgrade/keep.d/*` 决定。

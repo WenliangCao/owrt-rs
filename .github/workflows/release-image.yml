@@ -98,6 +98,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME} (OpenWrt ${OPENWRT_VERSION})" \
-            --notes "Built by release-image from ${GITHUB_SHA}. Not flashed; see docs/RELEASE.md." \
+            --prerelease --latest=false \
+            --notes "Build candidate from ${GITHUB_SHA}; hardware qualification is separate. See docs/RELEASE.md." \
             work/native/out/*.apk work/native/out/*-sysupgrade.bin work/native/out/SHA256SUMS \
             work/native/out/binary-sha256.txt work/native/out/manifest.json work/native/out/build-inputs.json

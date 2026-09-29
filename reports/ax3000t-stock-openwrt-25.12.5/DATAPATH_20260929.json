@@ -1,0 +1,728 @@
+{
+  "date": "2026-09-29",
+  "firmware": "ax3000t-rust9-v0.1.0",
+  "iperf": "3.21",
+  "tcp_p95_method": "nearest rank, successful probes only; failed probes counted separately",
+  "network_path": "LAN: Mac Wi-Fi to Windows gigabit LAN; WAN: Mac Wi-Fi to Apple HTTPS endpoints",
+  "pure_wired_WAN_measured": false,
+  "windows_sender_TCP_retransmit_count": "unavailable, not zero",
+  "windows": {
+    "lan": {
+      "rounds": [
+        {
+          "trial": 1,
+          "direction": "upload",
+          "receiver_mbps": 727.1072561394612,
+          "sender_retransmits": 455,
+          "endpoint_cpu": {
+            "host_total": 5.749677992704904,
+            "host_user": 0.07858216207807127,
+            "host_system": 5.67110169890867,
+            "remote_total": 10.821055672364503,
+            "remote_user": 3.205803796587639,
+            "remote_system": 7.615251875776864
+          },
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 56.529570699489646,
+              "softirq_pct": 14.830381266886821,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 48.974668275030155,
+              "softirq_pct": 17.792521109770806,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 64.05970149253731,
+              "softirq_pct": 11.880597014925373,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 1,
+          "direction": "download",
+          "receiver_mbps": 621.5189501885634,
+          "sender_retransmits": null,
+          "endpoint_cpu": {
+            "host_total": 6.178658736427302,
+            "host_user": 0.17096967734841872,
+            "host_system": 6.0076949262606725,
+            "remote_total": 7.16735702210486,
+            "remote_user": 0.18815047145804387,
+            "remote_system": 6.979206550646815
+          },
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 58.73388042203986,
+              "softirq_pct": 12.6905041031653,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 44.827586206896555,
+              "softirq_pct": 2.5715955581531267,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 72.70588235294117,
+              "softirq_pct": 22.88235294117647,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "direction": "upload",
+          "receiver_mbps": 836.4868929512685,
+          "sender_retransmits": 66,
+          "endpoint_cpu": {
+            "host_total": 7.11697687932522,
+            "host_user": 0.0816413976885195,
+            "host_system": 7.035353090680707,
+            "remote_total": 6.607411401220522,
+            "remote_user": 1.1922706795091251,
+            "remote_system": 5.415140721711396
+          },
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 68.61356932153393,
+              "softirq_pct": 15.870206489675516,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 60.79478054567023,
+              "softirq_pct": 19.276393831553975,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 76.26321974148061,
+              "softirq_pct": 12.45593419506463,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "direction": "download",
+          "receiver_mbps": 655.2074462974186,
+          "sender_retransmits": null,
+          "endpoint_cpu": {
+            "host_total": 6.92862359350334,
+            "host_user": 0.18619416450308157,
+            "host_system": 6.742429429000256,
+            "remote_total": 4.686799479312455,
+            "remote_user": 0.5527718331936898,
+            "remote_system": 4.134027646118765
+          },
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 50.4860088365243,
+              "softirq_pct": 13.16642120765832,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 28.63905325443787,
+              "softirq_pct": 2.366863905325444,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 72.14076246334311,
+              "softirq_pct": 23.929618768328446,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "direction": "upload",
+          "receiver_mbps": 797.207371057457,
+          "sender_retransmits": 134,
+          "endpoint_cpu": {
+            "host_total": 6.65727149671325,
+            "host_user": 0.08343748158306587,
+            "host_system": 6.573828168484427,
+            "remote_total": 6.60355687313357,
+            "remote_user": 2.29126973356058,
+            "remote_system": 4.31228713957299
+          },
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 70.83580320094843,
+              "softirq_pct": 14.285714285714286,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 65.11768255884128,
+              "softirq_pct": 17.380808690404344,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 76.2958648806057,
+              "softirq_pct": 11.24053581828771,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "direction": "download",
+          "receiver_mbps": 627.7213060897357,
+          "sender_retransmits": null,
+          "endpoint_cpu": {
+            "host_total": 6.908863951314505,
+            "host_user": 0.18446401989058464,
+            "host_system": 6.724417539112987,
+            "remote_total": 4.874916350198936,
+            "remote_user": 0.18817529940454278,
+            "remote_system": 4.686741050794393
+          },
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 52.43866390777416,
+              "softirq_pct": 13.094886195684303,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 32.83403235470342,
+              "softirq_pct": 2.516476932294787,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 71.56177156177156,
+              "softirq_pct": 23.426573426573427,
+              "iowait_pct": 0.0
+            }
+          }
+        }
+      ],
+      "idle_tcp": {
+        "samples": 20,
+        "failures": 0,
+        "p50_ms": 7.633687506313436,
+        "p95_ms": 13.65091600746382,
+        "max_ms": 54.886209007236175
+      },
+      "upload": {
+        "router_cpu_pct": {
+          "min": 56.529570699489646,
+          "median": 68.61356932153393,
+          "max": 70.83580320094843
+        },
+        "loaded_tcp": {
+          "samples": 102,
+          "failures": 0,
+          "p50_ms": 20.719187494250946,
+          "p95_ms": 50.89812498772517,
+          "max_ms": 103.54179100249894
+        },
+        "receiver_mbps": {
+          "min": 727.1072561394612,
+          "median": 797.207371057457,
+          "max": 836.4868929512685
+        },
+        "sender_retransmits": [
+          455,
+          66,
+          134
+        ]
+      },
+      "download": {
+        "router_cpu_pct": {
+          "min": 50.4860088365243,
+          "median": 52.43866390777416,
+          "max": 58.73388042203986
+        },
+        "loaded_tcp": {
+          "samples": 102,
+          "failures": 0,
+          "p50_ms": 6.872833997476846,
+          "p95_ms": 19.24912500544451,
+          "max_ms": 58.91854100627825
+        },
+        "receiver_mbps": {
+          "min": 621.5189501885634,
+          "median": 627.7213060897357,
+          "max": 655.2074462974186
+        },
+        "sender_retransmits": [
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "software_before": {
+      "rounds": [
+        {
+          "trial": 1,
+          "duration_s": 17.594730750002782,
+          "download_mbps": 381.207392,
+          "upload_mbps": 490.592032,
+          "base_rtt_ms": 17.646331787109375,
+          "responsiveness_rpm": 445.81494140625,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 65.15457960127131,
+              "softirq_pct": 17.682750650101127,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 43.376318874560376,
+              "softirq_pct": 9.964830011723329,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 86.33257403189066,
+              "softirq_pct": 25.170842824601365,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "duration_s": 13.071616208995692,
+          "download_mbps": 389.290112,
+          "upload_mbps": 411.583008,
+          "base_rtt_ms": 19.61282730102539,
+          "responsiveness_rpm": 592.25244140625,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 62.53454401894986,
+              "softirq_pct": 17.686537702329254,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 43.06106264869152,
+              "softirq_pct": 9.912767644726408,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 81.90401258851298,
+              "softirq_pct": 25.413060582218726,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "duration_s": 23.28820712500601,
+          "download_mbps": 339.222208,
+          "upload_mbps": 534.507808,
+          "base_rtt_ms": 18.22041893005371,
+          "responsiveness_rpm": 578.941162109375,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 70.50518420472093,
+              "softirq_pct": 18.75137877785131,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 52.084267144778124,
+              "softirq_pct": 10.578216046615868,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 88.3528900478053,
+              "softirq_pct": 26.68405041286397,
+              "iowait_pct": 0.0
+            }
+          }
+        }
+      ],
+      "idle_tcp": {
+        "samples": 20,
+        "failures": 0,
+        "p50_ms": 6.115228999988176,
+        "p95_ms": 11.176749991136603,
+        "max_ms": 43.81904199544806
+      },
+      "simultaneous": {
+        "router_cpu_pct": {
+          "min": 62.53454401894986,
+          "median": 65.15457960127131,
+          "max": 70.50518420472093
+        },
+        "loaded_tcp": {
+          "samples": 103,
+          "failures": 1,
+          "p50_ms": 45.022229496680666,
+          "p95_ms": 100.8967920060968,
+          "max_ms": 121.71020900132135
+        },
+        "download_mbps": {
+          "min": 339.222208,
+          "median": 381.207392,
+          "max": 389.290112
+        },
+        "upload_mbps": {
+          "min": 411.583008,
+          "median": 490.592032,
+          "max": 534.507808
+        },
+        "base_rtt_ms": {
+          "min": 17.646331787109375,
+          "median": 18.22041893005371,
+          "max": 19.61282730102539
+        },
+        "responsiveness_rpm": {
+          "min": 445.81494140625,
+          "median": 578.941162109375,
+          "max": 592.25244140625
+        }
+      }
+    },
+    "hardware": {
+      "rounds": [
+        {
+          "trial": 1,
+          "duration_s": 14.470451041997876,
+          "download_mbps": 366.938528,
+          "upload_mbps": 461.828832,
+          "base_rtt_ms": 20.06333351135254,
+          "responsiveness_rpm": 610.706298828125,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 63.47670250896057,
+              "softirq_pct": 18.566308243727597,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 49.78510028653295,
+              "softirq_pct": 15.830945558739256,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 77.17157214644652,
+              "softirq_pct": 21.249102656137833,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "duration_s": 18.16732145899732,
+          "download_mbps": 345.67104,
+          "upload_mbps": 532.922976,
+          "base_rtt_ms": 21.115041732788086,
+          "responsiveness_rpm": 475.1447448730469,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 70.54483541430193,
+              "softirq_pct": 19.324631101021566,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 59.129937034917,
+              "softirq_pct": 16.428162564396107,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 81.74157303370787,
+              "softirq_pct": 22.134831460674157,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "duration_s": 20.794814416993177,
+          "download_mbps": 409.91424,
+          "upload_mbps": 463.840448,
+          "base_rtt_ms": 19.80671501159668,
+          "responsiveness_rpm": 718.4927978515625,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 66.66666666666667,
+              "softirq_pct": 21.49578999504705,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 48.869914615770966,
+              "softirq_pct": 16.725263686589653,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 83.96871945259042,
+              "softirq_pct": 26.148582600195503,
+              "iowait_pct": 0.0
+            }
+          }
+        }
+      ],
+      "idle_tcp": {
+        "samples": 20,
+        "failures": 0,
+        "p50_ms": 3.025499499926809,
+        "p95_ms": 11.790415999712422,
+        "max_ms": 55.35391600278672
+      },
+      "simultaneous": {
+        "router_cpu_pct": {
+          "min": 63.47670250896057,
+          "median": 66.66666666666667,
+          "max": 70.54483541430193
+        },
+        "loaded_tcp": {
+          "samples": 100,
+          "failures": 0,
+          "p50_ms": 36.370374997204635,
+          "p95_ms": 82.08199999353383,
+          "max_ms": 107.19000000972301
+        },
+        "download_mbps": {
+          "min": 345.67104,
+          "median": 366.938528,
+          "max": 409.91424
+        },
+        "upload_mbps": {
+          "min": 461.828832,
+          "median": 463.840448,
+          "max": 532.922976
+        },
+        "base_rtt_ms": {
+          "min": 19.80671501159668,
+          "median": 20.06333351135254,
+          "max": 21.115041732788086
+        },
+        "responsiveness_rpm": {
+          "min": 475.1447448730469,
+          "median": 610.706298828125,
+          "max": 718.4927978515625
+        }
+      }
+    },
+    "software_after": {
+      "rounds": [
+        {
+          "trial": 1,
+          "duration_s": 18.054426542003057,
+          "download_mbps": 403.597888,
+          "upload_mbps": 460.65312,
+          "base_rtt_ms": 40.698123931884766,
+          "responsiveness_rpm": 447.6138916015625,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 69.80337078651685,
+              "softirq_pct": 17.415730337078653,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 51.710376282782214,
+              "softirq_pct": 9.863169897377423,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 87.38240177089098,
+              "softirq_pct": 24.737133370226896,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 2,
+          "duration_s": 14.657664124999428,
+          "download_mbps": 385.639104,
+          "upload_mbps": 480.553792,
+          "base_rtt_ms": 18.782949447631836,
+          "responsiveness_rpm": 540.01171875,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 66.73728813559322,
+              "softirq_pct": 15.8545197740113,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 53.333333333333336,
+              "softirq_pct": 9.787234042553191,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 80.028129395218,
+              "softirq_pct": 21.940928270042193,
+              "iowait_pct": 0.0
+            }
+          }
+        },
+        {
+          "trial": 3,
+          "duration_s": 15.316785749993869,
+          "download_mbps": 413.576384,
+          "upload_mbps": 416.757696,
+          "base_rtt_ms": 22.548742294311523,
+          "responsiveness_rpm": 494.8506164550781,
+          "router_cpu": {
+            "cpu": {
+              "busy_pct": 65.67214213878646,
+              "softirq_pct": 16.62755615152531,
+              "iowait_pct": 0.0
+            },
+            "cpu0": {
+              "busy_pct": 47.05084745762712,
+              "softirq_pct": 9.491525423728813,
+              "iowait_pct": 0.0
+            },
+            "cpu1": {
+              "busy_pct": 83.81962864721486,
+              "softirq_pct": 23.607427055702917,
+              "iowait_pct": 0.0
+            }
+          }
+        }
+      ],
+      "idle_tcp": {
+        "samples": 20,
+        "failures": 0,
+        "p50_ms": 2.967124499264173,
+        "p95_ms": 7.147666998207569,
+        "max_ms": 48.830042011104524
+      },
+      "simultaneous": {
+        "router_cpu_pct": {
+          "min": 65.67214213878646,
+          "median": 66.73728813559322,
+          "max": 69.80337078651685
+        },
+        "loaded_tcp": {
+          "samples": 88,
+          "failures": 1,
+          "p50_ms": 41.591665998566896,
+          "p95_ms": 97.28695900412276,
+          "max_ms": 137.6290420012083
+        },
+        "download_mbps": {
+          "min": 385.639104,
+          "median": 403.597888,
+          "max": 413.576384
+        },
+        "upload_mbps": {
+          "min": 416.757696,
+          "median": 460.65312,
+          "max": 480.553792
+        },
+        "base_rtt_ms": {
+          "min": 18.782949447631836,
+          "median": 22.548742294311523,
+          "max": 40.698123931884766
+        },
+        "responsiveness_rpm": {
+          "min": 447.6138916015625,
+          "median": 494.8506164550781,
+          "max": 540.01171875
+        }
+      }
+    }
+  },
+  "hardware_candidate": {
+    "delta_vs_six_software_round_medians_pct": {
+      "cpu_pct": 0.697762279498626,
+      "download_mbps": -5.297536749472609,
+      "upload_mbps": -1.4370927186731053
+    },
+    "whole_router_hardware_connection_samples": [
+      2,
+      12,
+      2,
+      10,
+      6,
+      26
+    ],
+    "hardware_sample_order": "trial 1 before/after, trial 2 before/after, trial 3 before/after",
+    "hardware_sample_scope": "all clients, not proof every measured flow used hardware",
+    "gates": {
+      "hardware_connections_observed_on_router": true,
+      "cpu_reduction_at_least_15pct": false,
+      "download_not_down_over_10pct": true,
+      "upload_not_down_over_10pct": true,
+      "tcp_failures_not_above_either_software_window": true,
+      "tcp_p95_not_up_over_20pct_against_either_software_window": true
+    },
+    "accepted": false
+  },
+  "raw_sha256": {
+    "lan-terminal-baseline/01-download-after.txt": "e21c1b22e7bc7ea443c5d44268275c560f437cecfe4d790de964a3af88938c8e",
+    "lan-terminal-baseline/01-download-before.txt": "139120cd7b0708cc2f892a35fb3f96b5d61666fb6288a6652be7b7e47cf34cc0",
+    "lan-terminal-baseline/01-download-probes.json": "c67637973dc6beb67e8ef1c390617dcdb230bde7b48ebd97ae1b4106523bac5e",
+    "lan-terminal-baseline/01-download.json": "f8bd2a91a7d9939c20d842040b262f72444aa27173354208d3ee3098d2ac03fd",
+    "lan-terminal-baseline/01-download.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lan-terminal-baseline/01-upload-after.txt": "fae8506839a22b8b67348a29320442849f6e7dd18e1998f48c49a60ae18adfbc",
+    "lan-terminal-baseline/01-upload-before.txt": "596dc1c60b30d36a9a5ff947539e19b82152b0a351681f0f866b145e69fca7a5",
+    "lan-terminal-baseline/01-upload-probes.json": "14916dbcdd9075ec17842cb5264cff019517a3ddbc7117088568371471983452",
+    "lan-terminal-baseline/01-upload.json": "8ed52856a851b6af524a1a90fa0002ad9e684463c6fb96bdad0bb2225a087002",
+    "lan-terminal-baseline/01-upload.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lan-terminal-baseline/02-download-after.txt": "41a39b2efa93ad7fc0c043ed8176125f7f207b6770648a77b19f220ec67b6b37",
+    "lan-terminal-baseline/02-download-before.txt": "336937762602fbe51261c6e265da029c82de8ad9caaf1f748f91b213d6e058ce",
+    "lan-terminal-baseline/02-download-probes.json": "866ce9f0705b1d85470e12c853ed8ff6674ad41f0af41466874d0cc80b6cfb0b",
+    "lan-terminal-baseline/02-download.json": "cac97badc672df1f8811663e50bdf181e8ea370fdc2d339becbaa005e3cc8b73",
+    "lan-terminal-baseline/02-download.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lan-terminal-baseline/02-upload-after.txt": "8db3d533c4baa538bbef2188b773b9f7f40000f95e83657034d95a74135eda95",
+    "lan-terminal-baseline/02-upload-before.txt": "0805ed3055419ffe6c511de0885e4f6dccf2f3e1c9eedf1f83a7d97e64975d08",
+    "lan-terminal-baseline/02-upload-probes.json": "ba19a6f30343e175f30a24f3a8bd8e96306fcf7e5ed51ea77f717d6dcd92c868",
+    "lan-terminal-baseline/02-upload.json": "d2bb4d0a0bca939f51b50835004e6ac6609e02f6fb657b9771e7b07ed9527abd",
+    "lan-terminal-baseline/02-upload.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lan-terminal-baseline/03-download-after.txt": "44fa3575f2407e268514fcd37e562da36538dce372009125adb814f8eb3e6c80",
+    "lan-terminal-baseline/03-download-before.txt": "8a1f7417bda77007064020df9bf6903ab1ad5a009936698a4cacdebf50badea1",
+    "lan-terminal-baseline/03-download-probes.json": "c5c89e220c1241f904d8d93f802d679818d4cbd57dbf4bb5ee98100460255fd5",
+    "lan-terminal-baseline/03-download.json": "3978abd5a810b80a56806513246059f602d2c31af4f0540632eb15bc8cd76035",
+    "lan-terminal-baseline/03-download.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lan-terminal-baseline/03-upload-after.txt": "c76dc61d7b1c6e5f4fecc315c241cbb642136506cf02540bf6b48d1cc4ca38d2",
+    "lan-terminal-baseline/03-upload-before.txt": "a651b975331f7d9211170f7ccc75ed7ee435ac47705f0d36d7e70692628330ca",
+    "lan-terminal-baseline/03-upload-probes.json": "ca5dc664fe88f472180a1848a2d254386a58d9cc496afe31df5fd1c23cfda4c5",
+    "lan-terminal-baseline/03-upload.json": "f169961de0a63977d3affee873239605ad31d7899c6a9139dce06c52ece822c2",
+    "lan-terminal-baseline/03-upload.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lan-terminal-baseline/idle-probes.json": "b1148721c00f4eb5d06f1f3a018635bb98d3bb1144a887c6630e0143fe3437b3",
+    "lan-terminal-baseline/plan.json": "b4eb43c23c82721b175c6301b3e13805fa2513323943977d9f9c65cade80e310",
+    "lan-terminal-baseline/summary.json": "476c88ef72a16af3d1fb62273155d5e50401ab49df078673a9de6422a22cb29f",
+    "wan-final-software-before/01.after.txt": "9e8b5ed37c34a2839dd6942d8a74ac285c879c3128b6fb139dd2a54b59d27f01",
+    "wan-final-software-before/01.before.txt": "a645f673338a44f7121d50d2cb97fd238e1b748c10c8dd94348146d29bd7d871",
+    "wan-final-software-before/01.json": "e93f51034676a1e1b47cdf77eed6fcff271371669fe5643d470980cf76d503fb",
+    "wan-final-software-before/01.probes.json": "678be3068ece24cb7e2183bdd50e08cc2f3a445f9ee9dadbdb502fd9ecf08ce7",
+    "wan-final-software-before/01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-software-before/02.after.txt": "779cdfd861b20c7e4d9803213ca40eafed3ab3270b8183c0618e746a0b702794",
+    "wan-final-software-before/02.before.txt": "5de2e2331d6840e959bde74c767fccae359c1c7d31dea8c2267a564d1ab5e9ac",
+    "wan-final-software-before/02.json": "5b95eeb30e7044199a963d722532c65915ca9040ec95e896cc12d13bc6eda700",
+    "wan-final-software-before/02.probes.json": "b44a8071a46c4e0155cc9007774ec916bc3fc3ed6d84a30aacf315fdcccc3118",
+    "wan-final-software-before/02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-software-before/03.after.txt": "53fbac2c5497de7f149319b7f19fb2b81147a6024595c8e719831aee757a9d41",
+    "wan-final-software-before/03.before.txt": "d90c25e5f8a2605cbd46f8be86cf5e68bc9b5367dcca637799b4ac6d885a3554",
+    "wan-final-software-before/03.json": "2591de167131961e8c095593c87b60a0ae3235ce686aaab89e752bf55ed93ce2",
+    "wan-final-software-before/03.probes.json": "528ab8ee8dab3a44822a0b3f684f1e7a8db475bc11f86688e805d6fca6b7cd99",
+    "wan-final-software-before/03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-software-before/idle-probes.json": "a14001992eeb86233c78209236d1e658f8a03fe4d16e2f83f292a09946e746a6",
+    "wan-final-software-before/summary.json": "0fee673da3f3d05d366a136260d4cfbbde0ed1183aad20e70ac75f0b35e0fe36",
+    "wan-final-hardware/01.after.txt": "ce16330b712a1b3f9994480793c236d25127824ac3bc80e33b80994b846f79a7",
+    "wan-final-hardware/01.before.txt": "60113cf2ba53d831d4a3d7250e58f1157b48aa533291f98c1e56c21a511b5547",
+    "wan-final-hardware/01.json": "77b14c9eb874af079a68a2677d93395a4b836c023b026b2c12c14778efdfafd1",
+    "wan-final-hardware/01.probes.json": "b3a7eda93c8da2c76e80a2e21aacfe1065b3a9125f7a58932477d4c2527c907a",
+    "wan-final-hardware/01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-hardware/02.after.txt": "318a7d0a01401c8df8403b681ac8022f890097a1980b9c36f3e6f11c7ff97710",
+    "wan-final-hardware/02.before.txt": "dab642c8c693aed7ff18168f9b45f4b436cd73de01f27d699aa965f6302be133",
+    "wan-final-hardware/02.json": "e3ed970a056cdda044fa599c1b358b566079453ebaa5740c1536134df8fe58ec",
+    "wan-final-hardware/02.probes.json": "67fd1c229f52149ec34896be219c3de59eb1c7aeb88adc90d052361687c597bb",
+    "wan-final-hardware/02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-hardware/03.after.txt": "137aad8e19d568e9208d86d30b28b6b28b3a78f7bb69a1dbb8cdea846f136592",
+    "wan-final-hardware/03.before.txt": "5ff4c1ad60fccf118477fc5d1f1f4b09d62dbd32f1747e7e6e030832a74f76be",
+    "wan-final-hardware/03.json": "ce4ae57d1fb8f47fc8c2f40599425a55310f0a7e761a09821852f682bc11dd42",
+    "wan-final-hardware/03.probes.json": "5dbf1462cd36dd3b7fcfae4c27fceeec8d449048ea73b88962ce872b5f4b9ce5",
+    "wan-final-hardware/03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-hardware/idle-probes.json": "770584737c8c731ef79769c4750ecf002c94b6ccc7bcc68953d2009d5ff4c2a4",
+    "wan-final-hardware/summary.json": "94cba21b4aec1439472b609d20cce94244b2a7dec220ccecd840a0b6f141a1e6",
+    "wan-final-software-after/01.after.txt": "5b9b7853b0026bf05610714e1031c5387d685858bc77ff0cb4d0d99c727e0427",
+    "wan-final-software-after/01.before.txt": "9b6f4d8f8ebfb0a18def089fa81fb0c5a9e8116b53cfc46d196c7cd234e0363d",
+    "wan-final-software-after/01.json": "96d4a2e719051fe91939fcc5258a64e05ce3b3b2d1657b3298d31cf5105c98c2",
+    "wan-final-software-after/01.probes.json": "9b02941f1c2b6f3ed6f534a8ccf4a5fab7a580fa7ce41adcb7fdc9d65f53c5b9",
+    "wan-final-software-after/01.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-software-after/02.after.txt": "91ad3cde8108b0f554e389617f9a1db2b3c5a591a02c322206b58e153e40d14b",
+    "wan-final-software-after/02.before.txt": "54122fc1d643ce3cdfa707277f1838d1671e5cef590fab06671721fbf7293870",
+    "wan-final-software-after/02.json": "85a023501e3e631c245138c0b7e8ac0865fb0261279e9e9a44406d0041f5bfb4",
+    "wan-final-software-after/02.probes.json": "2e902079ad480b6d96a1f65569892b354626b9bb2261e8dd2d4b1d5c7c7ff234",
+    "wan-final-software-after/02.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-software-after/03.after.txt": "1531f8c61e525bde2b478181101c4a9e272375095dac9226838f6272701852f6",
+    "wan-final-software-after/03.before.txt": "599c664fdc2bf6610b0c4b849e846a5f7d86d2e326b05a7ce540f68c9b44ffad",
+    "wan-final-software-after/03.json": "3e621b0dc61efc8326ed7292b2c6a6ccb2fc759ad08f7b57bcaf4ea53f463eba",
+    "wan-final-software-after/03.probes.json": "409d5e8610d0c0560c61d6e9cf5b25b56375bbde894b278c6a1b54c5a835698a",
+    "wan-final-software-after/03.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wan-final-software-after/idle-probes.json": "b89b70f39516e6f74cb121caaa99f88ae840044c8584af6f9d47f48f4f184c21",
+    "wan-final-software-after/summary.json": "e6976f92e44ef2016d385ceefc9b77796a736e2408903d887f6ba4fb626e491d"
+  }
+}
