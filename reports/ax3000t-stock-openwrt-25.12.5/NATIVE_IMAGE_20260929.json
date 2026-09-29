@@ -1,0 +1,327 @@
+{
+  "schema": 1,
+  "date": "2026-09-29",
+  "status": "canonical_native_nine_image_built; final_offline_gates_passed; not_flashed",
+  "source_commit": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+  "canonical_run": {
+    "conclusion": "success",
+    "databaseId": 36592957923,
+    "headSha": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+    "status": "completed",
+    "url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36592957923"
+  },
+  "openwrt": "25.12.5",
+  "profile": "xiaomi_mi-router-ax3000t",
+  "deployment_layout": "native-nine",
+  "native_package": {
+    "name": "owrt-control-plane",
+    "version": "0.1.0-r2",
+    "bytes": 4407346,
+    "sha256": "65a33a71fe6ac16d9d29eb8bb7000403a0043866dbdabf472e727f98de69bc49"
+  },
+  "image": {
+    "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+    "size": 12759328,
+    "sha256": "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720"
+  },
+  "component_identities": {
+    "fw4": {
+      "path": "/sbin/fw4",
+      "rust_sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+      "stock_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6"
+    },
+    "httpd": {
+      "path": "/usr/sbin/uhttpd",
+      "rust_sha256": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+      "stock_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3"
+    },
+    "logd": {
+      "path": "/sbin/logd",
+      "rust_sha256": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+      "stock_sha256": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89"
+    },
+    "netifd": {
+      "path": "/sbin/netifd",
+      "rust_sha256": "adcf2bee51a4d985cea4ed01497da42988b8d0c9ab71eaf2d49eef821afc0a1f",
+      "stock_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90"
+    },
+    "procd": {
+      "path": "/sbin/procd",
+      "rust_sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+      "stock_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a"
+    },
+    "reload-config": {
+      "path": "/sbin/reload_config",
+      "rust_sha256": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+      "stock_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15"
+    },
+    "rpcd": {
+      "path": "/sbin/rpcd",
+      "rust_sha256": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+      "stock_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947"
+    },
+    "ubusd": {
+      "path": "/sbin/ubusd",
+      "rust_sha256": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+      "stock_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+    },
+    "uci": {
+      "path": "/sbin/uci",
+      "rust_sha256": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506",
+      "stock_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278"
+    }
+  },
+  "same_nine_ELFs_as_production": {
+    "verified": true,
+    "source_commit": "6a4a405e0c4e1df81a95967a95cbe17897313430",
+    "canonical_run": 36575083891
+  },
+  "baseline": {
+    "stock_image": {
+      "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+      "sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+      "url": "https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin"
+    },
+    "kernel": {
+      "bytes": 4336328,
+      "sha256": "c20bee280c72744dd203a1832c968156480da6b6f92c210d295fd8c63940d1c6",
+      "matches_pinned_original": true,
+      "active_router_kernel_flash_hashed": false
+    },
+    "CONTROL_and_firmware_metadata_match_original": true,
+    "stock_package_versions_preserved": 159,
+    "stock_regular_files_unchanged": 867,
+    "original_symlinks_modes_and_owners_checked": true,
+    "original_content_exceptions": [
+      "nine component paths",
+      "/lib/apk/db/* and /etc/apk/world"
+    ],
+    "matching_production_Chinese_catalogs": 4,
+    "total_packages": 164,
+    "rolling_feed_resolution_for_final_rootfs": false,
+    "luci_source": {
+      "revision": "128a7812f4be233c5dd7f7466f534fd888785caf",
+      "sha256": "927f2518ab2f727c553b0b492041c2df31ed2aedae5ff5922ee2fbb7a23e4f2d",
+      "url": "https://codeload.github.com/openwrt/luci/tar.gz/128a7812f4be233c5dd7f7466f534fd888785caf",
+      "version": "26.180.75667~128a781"
+    },
+    "live_ROM_comparison": {
+      "files_hashed": 893,
+      "known_original_image_vs_live_ROM_differences": {
+        "BusyBox": "8 bytes in build-time string: Jun 29 12:59:20 versus Jun 30 07:11:43, 2026",
+        "libnftables": "4 bytes in two big-endian build-time constants: 1782737960 versus 1782803503",
+        "LuCI": "same source revision; detached versus openwrt-25.12 branch label",
+        "Chinese_packages_and_APK_database": "four catalogs restored from pinned matching LuCI source; package metadata regenerated"
+      },
+      "binary_patches_applied": false
+    }
+  },
+  "offline_validation": {
+    "environment": "native aarch64 Linux; disposable rootfs copies and mount/network/PID namespaces",
+    "image_configuration_recovery_and_package_checks": {
+      "layered_migration_configuration_and_service_policy": true,
+      "native_upgrade_configuration_and_service_policy": true,
+      "corrupt_recovery_rejected_before_any_replacement": true,
+      "mounted_target_rejected_before_any_replacement": true,
+      "all_nine_C_staged_idempotently_with_configuration_unchanged": true,
+      "stock_package_reinstall_preserves_nine_Rust_files": true,
+      "native_package_reinstall_preserves_Rust_and_recovery_files": true,
+      "firmware_metadata_accepts_AX3000T_keep_config_and_rejects_wrong_board": true
+    },
+    "native_Rust_PID1_boot": {
+      "pid1_and_five_daemon_identities": true,
+      "standard_service_paths": true,
+      "synthetic_LAN_and_WAN_up": true,
+      "HTTP_and_HTTPS_content": true,
+      "first_boot_certificate_generation": true,
+      "log_roundtrip": true,
+      "uci_and_reload_config": true,
+      "fw4_matches_stock_and_checks": true,
+      "no_executable_bind_mounts": true,
+      "PID1_reboot_exits_namespace": true,
+      "physical_hardware_tested": false
+    },
+    "C_PID1_boot_after_running_recovery_helper": {
+      "pid1_and_five_daemon_identities": true,
+      "standard_service_paths": true,
+      "synthetic_LAN_and_WAN_up": true,
+      "HTTP_and_HTTPS_content": true,
+      "first_boot_certificate_generation": true,
+      "log_roundtrip": true,
+      "uci_and_reload_config": true,
+      "fw4_matches_stock_and_checks": true,
+      "no_executable_bind_mounts": true,
+      "PID1_reboot_exits_namespace": true,
+      "physical_hardware_tested": false
+    },
+    "delayed_WAN": {
+      "passed": true,
+      "cases": 8,
+      "scenarios_per_implementation": [
+        "early_shared_WAN_WAN6",
+        "late_shared_WAN_WAN6",
+        "late_single_WAN",
+        "disabled_WAN"
+      ],
+      "implementations": [
+        "stock_C",
+        "canonical_image_Rust_netifd"
+      ],
+      "uses_original_C_bus_and_synthetic_protocol_helpers": true,
+      "lifecycle_phases_checked": true
+    },
+    "preinit_hotplug": {
+      "passed": true,
+      "C_and_Rust_effects_match": true,
+      "input": "real loopback add uevent within a network namespace",
+      "full_physical_preinit_tested": false
+    },
+    "APK_fixture_scope": {
+      "original_signed_owner_APKs_available": false,
+      "owner_payloads_rebuilt_from_pinned_original_image": 8,
+      "native_APK_is_final_canonical_artifact": true,
+      "unsigned": true,
+      "lifecycle_scripts_run": false,
+      "test_purpose": "file ownership and payload collision on reinstall",
+      "explicit_local_payloads_reinstalled": true,
+      "deleted_owner_file_lists_restored": 8,
+      "deleted_native_recovery_original_restored": true,
+      "skipped_reinstallation_rejected": true
+    },
+    "check_result_sources": {
+      "configuration_recovery_firmware": "final-check-01 (six checks; old package checks invalidated)",
+      "package_reinstall": "final-package-check-02",
+      "skip_rejection": [
+        "final-package-skip-stock-red-02",
+        "final-package-skip-native-red-02"
+      ]
+    },
+    "package_skip_negative_controls": {
+      "stock": {
+        "expected_failure_detected": true,
+        "case": "stock",
+        "reason": "APK returned success after skipping reinstallation"
+      },
+      "native": {
+        "expected_failure_detected": true,
+        "case": "native",
+        "reason": "APK returned success after skipping reinstallation"
+      }
+    }
+  },
+  "migration": {
+    "first_adoption_enables_formerly_disabled_log_rpcd_uhttpd": true,
+    "native_to_native_honors_user_service_disables": true,
+    "saved_network_wireless_password_cron_rc_local_and_custom_keep_files_preserved_in_fixtures": true,
+    "persistent_layout_marker": "/etc/owrt-control-plane-layout",
+    "old_component_boot_enable_flags_excluded": true
+  },
+  "recovery": {
+    "helper": "/usr/sbin/owrt-recover-c",
+    "stock_originals": "/usr/libexec/owrt-stock/",
+    "verifies_all_nine_and_stages_before_replacement": true,
+    "changes_user_configuration": false,
+    "reboots_automatically": false,
+    "cross_file_atomicity": false,
+    "native_ROM_executables_are_Rust": true,
+    "first_boot_automatic_fallback_implemented_and_tested": false,
+    "factory_reset_restores_Rust_defaults": true
+  },
+  "preserved_failed_or_rejected_attempts": [
+    {
+      "kind": "CI",
+      "run": 36586181711,
+      "source": "7b8bb74",
+      "reason": "root-owned /root was unreadable by non-root final audit",
+      "fix": "run rootfs audit with sudo"
+    },
+    {
+      "kind": "rejected_candidate",
+      "run": 36587233360,
+      "source": "83f32c5",
+      "reason": "41 stock package versions drifted through rolling feeds despite initial checks passing",
+      "fix": "assemble from pinned original rootfs and compare to that rootfs"
+    },
+    {
+      "kind": "offline_fixture",
+      "paths": [
+        "prototype-check-01",
+        "prototype-check-02"
+      ],
+      "reason": "missing /var/lock; nounset inherited by stock preinit",
+      "fix": "complete fixture and match stock shell environment"
+    },
+    {
+      "kind": "offline_fixture",
+      "paths": [
+        "prototype-boot-01",
+        "prototype-boot-02",
+        "prototype-boot-03"
+      ],
+      "reason": "missing runtime directories; missing synthetic system config; missing inittab shutdown line",
+      "fix": "complete fixture with stock shutdown entry; reject stalled reboot"
+    },
+    {
+      "kind": "preview_assembly",
+      "path": "exact-preview-work/native-attempt-01",
+      "reason": "builder umask changed /usr directory mode via APK payload",
+      "fix": "preserve original directory modes"
+    },
+    {
+      "kind": "APK_fixture",
+      "path": "apk-fixtures-exact.log",
+      "reason": "indexing unsigned test packages requires allow-untrusted",
+      "fix": "explicit unsigned fixture indexing"
+    },
+    {
+      "kind": "invalidated_false_positive",
+      "path": "final-check-01/package-*-reinstall.log",
+      "reason": "apk fix --reinstall returned success while skipping unavailable installed APK identities; unchanged hashes did not prove reinstallation",
+      "fix": "explicit local APK add --force-reinstall; require restoration of deleted package files and reject skipped payloads",
+      "accepted_retest": "final-package-check-02",
+      "negative_controls": [
+        "final-package-skip-stock-red-02",
+        "final-package-skip-native-red-02"
+      ]
+    }
+  ],
+  "scope": {
+    "router_modified": false,
+    "firmware_flashed": false,
+    "physical_boot_tested": false,
+    "physical_WiFi_tested_in_this_image": false,
+    "physical_power_cycle_tested_in_this_image": false,
+    "performance_or_live_storage_savings_measured": false,
+    "next_deployment_gate": "separate flash authorization; verify offline backups, image identity, new-layout automatic fallback and client health, then perform physical acceptance"
+  },
+  "evidence": {
+    "private_directory": "private/integrated-image-20260929",
+    "canonical_artifacts": "canonical-a4053dd/",
+    "offline_archive": {
+      "file": "final-offline-evidence-02.tar.gz",
+      "sha256": "7ec8d2798c7d19f0e31df5cb51b8b555088cd58d3fb13174fa77eeac0867925b",
+      "bytes": 193427,
+      "regular_members_verified": 346,
+      "revised_tool_archive_path": "native_image_check-final-02.py"
+    },
+    "validation_tool_sha256": {
+      "tools/native_image.py": "bc6b1ce22e870a9a784e3fabba1fc5a737871a5cd4561ba4d86a04c7d48e2351",
+      "tools/ci_integrate_image.sh": "bbf7e46621095014e01c2d4d371dd4e690672c52f7bcd9ba4fe5ce11f5928f7d",
+      "tools/native_image_check.py": "faafbdb934258b4111d7c023dad6a446463262a18dbcd76a0dffcd165e4952e0",
+      "tools/native_boot_check.sh": "bfb4c1556677bce2d579ebd6309055c0978cd724c9a110cde367a8ad0dbc4156",
+      "tools/native_apk_fixtures.py": "cf7f9b9fe3fa20665da069b0a35e211be17403b3b10b427c11951995bb8ab353",
+      "tools/netifd_delayed_wan_gate.sh": "2c6cd852ae6d051e7620050e50e436af7e5caf4e4b838c55af2b0c55f21314aa",
+      "tools/r72_hotplug_daemon_probe.sh": "93c85f449fa43e3179344ded8d4b314d32d70cf20e5c26439bbf6f51a91b987c"
+    },
+    "raw_rootfs_copies_retained_on_build_host": true,
+    "raw_artifacts_committed": false,
+    "validation_tool_note": "native_image_check.py adds metadata validation and fixes skipped-reinstall false positives after the image source commit; exact executed tool hash is recorded above",
+    "earlier_offline_archive_retained": "final-offline-evidence-01.tar.gz",
+    "image_check_tool_sha256_by_result": {
+      "final-check-01": "0e696c2d3f4d1c6a7b9a9d28ac9e1b9c01031255eab89d7496c6d8633e49b2d3",
+      "final-package-check-02": "faafbdb934258b4111d7c023dad6a446463262a18dbcd76a0dffcd165e4952e0",
+      "final-package-skip-stock-red-02": "faafbdb934258b4111d7c023dad6a446463262a18dbcd76a0dffcd165e4952e0",
+      "final-package-skip-native-red-02": "faafbdb934258b4111d7c023dad6a446463262a18dbcd76a0dffcd165e4952e0"
+    }
+  }
+}

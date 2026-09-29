@@ -7,7 +7,8 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 
 **现状（2026-09-29）：九个修复后的 Rust 组件在路由器运行，一轮物理断电与延迟接回 WAN 已通过；试验工具已清理。**
 见[修复记录](docs/reviews/POWER_RECOVERY_20260929_FIX.md)与[清理记录](docs/reviews/POWER_RECOVERY_20260929_CLEANUP.md)。
-完整九组件固件正在进行离线验收，尚未刷入路由器；统一安装布局和配置迁移见[发布说明](docs/RELEASE.md)。
+完整九组件固件已构建并通过离线验收，尚未刷入路由器；见[镜像验收](docs/reviews/NATIVE_IMAGE_20260929.md)。
+统一安装布局、配置迁移和 C 恢复方式见[发布说明](docs/RELEASE.md)。
 
 **历史状态（2026-09-20）：当时路由器运行精确 C 原版；R95 只做隔离测试。**
 [R94 审计](docs/reviews/R94_COMPLETION_AUDIT.md)发现四项实际缺陷及性能/内存证据缺口；

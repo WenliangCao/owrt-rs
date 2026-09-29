@@ -4,6 +4,8 @@
 
 当前适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定九个标准路径、C 原件哈希及原软件包所有者。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
 
+首份正式集成镜像 `owrt-control-plane 0.1.0-r2` 已完成构建和离线验收，尚未刷入路由器。[验收记录](reviews/NATIVE_IMAGE_20260929.md)固定最终产物身份、配置迁移、恢复后 C 启动和延迟 WAN 回归结果。
+
 ## 安装布局
 
 | 组件 | 镜像内的实际程序路径 |
@@ -76,7 +78,7 @@ reboot
 
 ## 验收边界
 
-`tools/native_image_check.py` 在 aarch64 Linux 的独立 mount/network/PID namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误恢复身份拒绝、完整 C 恢复及 APK 重装检查。`tools/native_apk_fixtures.py` 从固定原始镜像的文件清单重建八个原包载荷，用于 `--no-scripts` 文件归属重装测试；这些测试包不是原始签名 APK。
+`tools/native_image_check.py` 在 aarch64 Linux 的独立 mount/network/PID namespace 与镜像副本中运行精确 sysupgrade 备份、preinit 配置恢复、首次迁移、后续原生升级、错误恢复身份拒绝、完整 C 恢复及 APK 重装检查。`tools/native_apk_fixtures.py` 从固定原始镜像的文件清单重建八个原包载荷，用于 `--no-scripts` 文件归属重装测试；这些测试包不是原始签名 APK。重装检查显式安装本地载荷，要求恢复事先删除的文件，并拒绝 APK 返回成功但跳过载荷的情况。
 
 `tools/native_boot_check.sh` 使用镜像内的 PID1、总线和标准启动脚本，验证模拟 LAN/WAN、RPCD、日志、HTTP/HTTPS、首次证书生成、UCI、reload_config、fw4 与无额外命令挂载。物理无线、闪存写入和断电行为仍由真机验收负责，隔离测试不能替代这些项目。
 
