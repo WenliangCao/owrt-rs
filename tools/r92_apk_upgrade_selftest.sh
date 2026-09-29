@@ -58,7 +58,9 @@ echo 'PASS: six installed hashes replaced; active CLI mounts, configuration and 
 
 kill -0 "$daemon"
 [ "$(sha256sum /proc/"$daemon"/exe | awk '{print $1}')" = "$old_hash" ]
-[ "$(sha256sum /usr/sbin/rpcd-rs | awk '{print $1}')" != "$old_hash" ]
+# A stack update can change only netifd. The installed RPCD must match the
+# new bundle even when its bytes are identical to the previous bundle.
+[ "$(sha256sum /usr/sbin/rpcd-rs | awk '{print $1}')" = "$(sha256sum /tmp/new/bins/rpcd-rs | awk '{print $1}')" ]
 ubus call session list '{}' > /tmp/session-after.json
 cmp /tmp/session-before.json /tmp/session-after.json
 echo 'PASS: existing rpcd retains its old executable identity and still serves requests'
