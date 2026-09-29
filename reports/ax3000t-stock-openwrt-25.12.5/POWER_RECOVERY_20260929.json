@@ -1,0 +1,332 @@
+{
+  "date": "2026-09-29",
+  "outcome": "physical_test_failed; restored_to_stock_C",
+  "runtime_source": "d7bfcf831ca5c73447cb638fdb7253d44ebd32ed",
+  "runtime_build": "36558448787",
+  "upstream_netifd_revision": "cbb83a1857407a28a63dc09412a1f209195914ef",
+  "root_cause": "setup_interfaces releases claimed WAN devices when protocol state is Down while awaiting carrier",
+  "physical_evidence": {
+    "raw_archive_sha256": "b1fea8ab34cc6879b7ed781244bec00443ca487fa49c0554d59550f8f03a96d4",
+    "raw_files_verified": 71,
+    "wan_newlink_events": {
+      "failed_rust": [
+        {
+          "uptime_s": 17.536452,
+          "flags": "0x1002",
+          "admin_up": false,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 17.540932,
+          "flags": "0x1002",
+          "admin_up": false,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 17.541963,
+          "flags": "0x1003",
+          "admin_up": true,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 17.549472,
+          "flags": "0x1002",
+          "admin_up": false,
+          "lower_up": false,
+          "ifindex": 3
+        }
+      ],
+      "recovered_c": [
+        {
+          "uptime_s": 17.368688,
+          "flags": "0x1002",
+          "admin_up": false,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 17.401957,
+          "flags": "0x1003",
+          "admin_up": true,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 21.52135,
+          "flags": "0x11043",
+          "admin_up": true,
+          "lower_up": true,
+          "ifindex": 3
+        }
+      ],
+      "successful_rust": [
+        {
+          "uptime_s": 17.349409,
+          "flags": "0x1002",
+          "admin_up": false,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 17.353966,
+          "flags": "0x1002",
+          "admin_up": false,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 17.355019,
+          "flags": "0x1003",
+          "admin_up": true,
+          "lower_up": false,
+          "ifindex": 3
+        },
+        {
+          "uptime_s": 17.356257,
+          "flags": "0x11043",
+          "admin_up": true,
+          "lower_up": true,
+          "ifindex": 3
+        }
+      ]
+    },
+    "failed_snapshots": 59,
+    "failed_snapshot_range_s": [
+      11.48,
+      608.84
+    ],
+    "all_snapshot_exit_codes_zero": true,
+    "wan_status_snapshots": 58,
+    "wan_status_in_every_protocol_snapshot": {
+      "up": false,
+      "pending": false,
+      "available": true,
+      "autostart": true
+    },
+    "dhcp_client_processes_seen": false,
+    "pcap_file_bytes": 24,
+    "pcap_packets": 0,
+    "capture_socket_received": 0,
+    "capture_socket_dropped": 0,
+    "guard_restore_start_uptime_s": 614,
+    "guard_restore_staged_uptime_s": 615,
+    "C_wan_ipv4_address_installed_uptime_s": 22.03181,
+    "C_wan_ipv4_default_route_installed_uptime_s": 22.032212,
+    "unchanged_config_files": 19,
+    "post_restore_health": {
+      "client_dhcp": true,
+      "dns_ipv4": true,
+      "dns_ipv6": true,
+      "interfaces_up": [
+        "loopback",
+        "lan",
+        "wan",
+        "wan6"
+      ],
+      "local_http_https": true,
+      "mode": "stock",
+      "router_internet_https": true,
+      "verified_components": [
+        "procd",
+        "ubusd",
+        "netifd",
+        "rpcd",
+        "logd",
+        "httpd",
+        "uci",
+        "fw4",
+        "reload-config"
+      ],
+      "watchdog_running": true,
+      "access_point_count": 2
+    },
+    "time_basis": "boot monotonic seconds; cross-boot UTC from client; failed device wall clock stale",
+    "cable_reinsertion_time_known": false
+  },
+  "causal_experiment": {
+    "environment": "isolated Linux build host namespaces; exact image C dependencies; only netifd varies; upstream veth peer in a separate netns",
+    "probe": "tools/netifd_delayed_wan_probe.py",
+    "probe_sha256": "e940fa4cba0c2bde24206684c652a91aa93b6fd92581b22f8eb77a8e7e9beae8",
+    "archive_sha256": "5f109c53166a966b731f528352658d55ef99244676407a13c66a6003477342b8",
+    "local_file_hash_entries": 196,
+    "late_upstream_delay_s": 3,
+    "post_upstream_timeout_s": 12,
+    "initial_fixture_failure": "canonical-01 retained: ip -j -4 addr returns an empty list before an IPv4 address is installed",
+    "diagnostic_change": "remove the startup device-release loop; retain rescan_devices",
+    "production_source_modified": false,
+    "diagnostic_deployed_on_router": false,
+    "runs": {
+      "canonical-02": [
+        {
+          "side": "c",
+          "upstream": "early",
+          "before_wan_admin_up": true,
+          "before_protocol_up": true,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 1.0158795139868744,
+          "binary_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "rust",
+          "upstream": "early",
+          "before_wan_admin_up": true,
+          "before_protocol_up": true,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 1.015292388969101,
+          "binary_sha256": "3dffc7f8af52b433830b9bf76dafbeaf77c75303088b9d2232e1e52fe79f7f8d",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "c",
+          "upstream": "late",
+          "before_wan_admin_up": true,
+          "before_protocol_up": false,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 3.029720749997068,
+          "binary_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "rust",
+          "upstream": "late",
+          "before_wan_admin_up": false,
+          "before_protocol_up": false,
+          "after_wan_admin_up": false,
+          "after_protocol_up": false,
+          "after_DHCP_helper_count": 0,
+          "after_default_route": false,
+          "post_plug_observation_s": 12.091460886003915,
+          "binary_sha256": "3dffc7f8af52b433830b9bf76dafbeaf77c75303088b9d2232e1e52fe79f7f8d",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        }
+      ],
+      "control-01": [
+        {
+          "side": "c",
+          "upstream": "early",
+          "before_wan_admin_up": true,
+          "before_protocol_up": true,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 1.0161149839987047,
+          "binary_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "rust",
+          "upstream": "early",
+          "before_wan_admin_up": true,
+          "before_protocol_up": true,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 1.0151323350146413,
+          "binary_sha256": "2e319a2329981992e3a267c1cba4d2da9626294eaa39c5b0247ca664970c2910",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "c",
+          "upstream": "late",
+          "before_wan_admin_up": true,
+          "before_protocol_up": false,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 3.0308466050191782,
+          "binary_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "rust",
+          "upstream": "late",
+          "before_wan_admin_up": false,
+          "before_protocol_up": false,
+          "after_wan_admin_up": false,
+          "after_protocol_up": false,
+          "after_DHCP_helper_count": 0,
+          "after_default_route": false,
+          "post_plug_observation_s": 12.09292176400777,
+          "binary_sha256": "2e319a2329981992e3a267c1cba4d2da9626294eaa39c5b0247ca664970c2910",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        }
+      ],
+      "diagnostic-01": [
+        {
+          "side": "c",
+          "upstream": "early",
+          "before_wan_admin_up": true,
+          "before_protocol_up": true,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 1.0157313009840436,
+          "binary_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "rust",
+          "upstream": "early",
+          "before_wan_admin_up": true,
+          "before_protocol_up": true,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 1.014985534013249,
+          "binary_sha256": "316b679bccf796c25989cbf85a5a1cafd896b4ec08bf967d19f201a5db1feba1",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "c",
+          "upstream": "late",
+          "before_wan_admin_up": true,
+          "before_protocol_up": false,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 3.0369628550251946,
+          "binary_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        },
+        {
+          "side": "rust",
+          "upstream": "late",
+          "before_wan_admin_up": true,
+          "before_protocol_up": false,
+          "after_wan_admin_up": true,
+          "after_protocol_up": true,
+          "after_DHCP_helper_count": 2,
+          "after_default_route": true,
+          "post_plug_observation_s": 3.0295675939996727,
+          "binary_sha256": "316b679bccf796c25989cbf85a5a1cafd896b4ec08bf967d19f201a5db1feba1",
+          "original_C_bus_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88"
+        }
+      ]
+    }
+  },
+  "remaining_release_checks": [
+    "formal source fix",
+    "regression gate covering delayed WAN, ownership and explicit teardown",
+    "existing netifd regression suite",
+    "fresh physical power-before-WAN acceptance"
+  ]
+}
