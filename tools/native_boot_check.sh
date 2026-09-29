@@ -18,6 +18,9 @@ for entry in S12log S12rpcd S20network S50uhttpd; do
     service=$(printf '%s' "$entry" | cut -c4-)
     ln -s "../init.d/$service" "$root/etc/rc.d/$entry"
 done
+if [ -x "$root/etc/init.d/owrt-native-trial" ]; then
+    ln -s ../init.d/owrt-native-trial "$root/etc/rc.d/S01owrt-native-trial"
+fi
 mkdir -p "$root/tmp/out" "$root/var/run"
 cat > "$root/etc/config/system" <<'SYSTEM'
 config system
@@ -104,6 +107,11 @@ for name in ubusd netifd rpcd logd uhttpd; do
     printf '%s %s\n' "$name" "$(sha256sum /proc/$pid/exe | awk '{print $1}')" >> /tmp/out/daemons.sha256
 done
 if awk '$5 == "/sbin/uci" || $5 == "/sbin/reload_config" || $5 == "/sbin/fw4" { found=1 } END {exit !found}' /proc/self/mountinfo; then exit 1; fi
+if [ -f /root/owrt-native-trial/armed ]; then
+    kill -0 "$(cat /tmp/owrt-native-guard-lock/pid)"
+    grep -q 'Rust-boot pending_count=' /root/owrt-native-trial/guard.log
+    cp /root/owrt-native-trial/guard.log /tmp/out/trial-guard.log
+fi
 echo PASS > /tmp/out/verdict
 trap - EXIT
 ubus -S -t 3 call system reboot
@@ -165,6 +173,9 @@ result={'pid1_and_five_daemon_identities':True,'standard_service_paths':True,
         'uci_and_reload_config':True,'fw4_matches_stock_and_checks':True,
         'no_executable_bind_mounts':True,'PID1_reboot_exits_namespace':True,
         'physical_hardware_tested':False}
+if (root/'root/owrt-native-trial/armed').exists():
+    assert 'Rust-boot pending_count=' in (out/'trial-guard.log').read_text()
+    result['temporary_trial_guard_started_and_alive']=True
 (out/'result.json').write_text(json.dumps(result,indent=2)+'\n')
 print(json.dumps(result,indent=2))
 PY

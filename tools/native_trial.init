@@ -1,0 +1,6 @@
+#!/bin/sh /etc/rc.common
+# Temporary deployment service. Independent of ubus and runs before network.
+START=01
+start() {
+    /bin/sh /root/owrt-native-trial/native_trial_guard.sh run </dev/null >>/root/owrt-native-trial/stderr.log 2>&1 &
+}
