@@ -1,0 +1,254 @@
+{
+  "schema": 1,
+  "date": "2026-09-29",
+  "scope": {
+    "read_only_production_observation": true,
+    "new_production_test_load": false,
+    "new_firmware_deployed": false,
+    "non_atomic_snapshots": true
+  },
+  "collection_started_utc": "2026-09-29T19:18:19.362895+00:00",
+  "collection_finished_utc": "2026-09-29T19:29:06.827197+00:00",
+  "firmware": {
+    "release": "ax3000t-rust9-v0.1.0",
+    "build_commit": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+    "openwrt": "25.12.5",
+    "kernel": "6.12.94"
+  },
+  "configuration_unchanged": true,
+  "no_pending_uci_changes": true,
+  "nine_rust_hashes_match": true,
+  "forwarding": {
+    "software_offload": true,
+    "hardware_offload": false,
+    "wed_enabled": false,
+    "default_qdisc": "fq_codel",
+    "default_qdisc_is_not_actual_per_interface_dump": true,
+    "tc_available": false,
+    "device_queues": {
+      "wan": {
+        "rx": 1,
+        "tx": 1
+      },
+      "eth0": {
+        "rx": 1,
+        "tx": 16
+      },
+      "br-lan": {
+        "rx": 1,
+        "tx": 1
+      },
+      "phy0-ap0": {
+        "rx": 1,
+        "tx": 1
+      },
+      "phy1-ap0": {
+        "rx": 1,
+        "tx": 1
+      }
+    },
+    "wireless_aql_enabled": {
+      "phy0": true,
+      "phy1": true
+    }
+  },
+  "dns": {
+    "version": "2.93",
+    "cache_size": 1000,
+    "metrics": {
+      "dns_queries_forwarded": 806,
+      "dns_local_answered": 203,
+      "dns_cache_inserted": 36,
+      "dns_cache_live_freed": 0,
+      "dns_stale_answered": 0,
+      "dns_unanswered": 0
+    },
+    "metrics_not_a_common_accumulation_window": true,
+    "local_answered_is_not_pure_cache_hits": true,
+    "new_latency_or_qps_measurements": false
+  },
+  "ipv6": {
+    "interfaces_up": {
+      "lan": true,
+      "wan": true,
+      "wan6": true
+    },
+    "lan_requested_prefix_length": 60,
+    "lan_service_options": {
+      "dhcpv6": [
+        "server"
+      ],
+      "ra": [
+        "server"
+      ],
+      "ra_slaac": [
+        "1"
+      ],
+      "ra_flags": [
+        "managed-config",
+        "other-config"
+      ]
+    },
+    "wan_delegated_prefixes": [
+      {
+        "scope": "GUA",
+        "length": 64
+      }
+    ],
+    "lan_prefix_assignment_order": [
+      {
+        "scope": "GUA",
+        "length": 64
+      },
+      {
+        "scope": "ULA",
+        "length": 60
+      }
+    ],
+    "ra_internal_records": [
+      {
+        "scope": "GUA",
+        "internal_length": 64,
+        "stale": false
+      },
+      {
+        "scope": "ULA",
+        "internal_length": 60,
+        "stale": false
+      }
+    ],
+    "ra_records_are_not_wire_capture": true,
+    "lease_counts": {
+      "bound": 4,
+      "IA_NA": 4,
+      "IA_PD": 0,
+      "accept_reconfigure": 0
+    },
+    "resources_snapshot": {
+      "odhcpd": {
+        "VmRSS": 1088,
+        "RssAnon": 148,
+        "RssFile": 940,
+        "Threads": 1
+      },
+      "odhcp6c": {
+        "VmRSS": 912,
+        "RssAnon": 84,
+        "RssFile": 828,
+        "Threads": 1
+      }
+    },
+    "resource_units": "memory KiB, Threads count; RSS includes shared pages, not USS or peak",
+    "exact_protocol_sources": {
+      "odhcpd": {
+        "commit": "5d7be43f8b9dec0eb47e245cfab81108bb131273",
+        "worktree_clean": true
+      },
+      "odhcp6c": {
+        "commit": "07d324ee7222c0e15b9975281f18236fdccc11bd",
+        "worktree_clean": true
+      },
+      "archive_sha256": "8886de615f4686bf8ec883ad9e41d6eeb7fd961e58ff623ac2615736523b9e6a"
+    }
+  },
+  "raw_sha256": {
+    "runtime/collection.json": "8664ac785f98b837bfb9faaafb27e5b389c8037ab7c88ec08cdc0895d6fb20d4",
+    "runtime/config-hashes-after.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/config-hashes-after.out": "f4961a2c7835a217ad02a36884ae14ee840507935d527dd182a125ed2f2b9364",
+    "runtime/config-hashes-before.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/config-hashes-before.out": "f4961a2c7835a217ad02a36884ae14ee840507935d527dd182a125ed2f2b9364",
+    "runtime/config-hashes-final.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/config-hashes-final.out": "f4961a2c7835a217ad02a36884ae14ee840507935d527dd182a125ed2f2b9364",
+    "runtime/debug-paths.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/debug-paths.out": "27923236a9bcd2abdaa6f24dd82f41e169267432553e96768ac05c6c888d2fe6",
+    "runtime/default-qdisc.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/default-qdisc.out": "7b3f645ed5d1123d4e52999449fc6c55d413dfc68f346acfc5a98c1b043a4c46",
+    "runtime/dhcp-config.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/dhcp-config.out": "e8719a7017556954c97e44613598dc8fe385da3cf342d8d032041d8e35bce0d0",
+    "runtime/dns-extra-config.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/dns-extra-config.out": "a55c29c253b5afa998aa6565048b8fffdd6282e731f4fa243e4a7bf0c308a55c",
+    "runtime/dns-metrics.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/dns-metrics.out": "2c1b7ed011fb0998b540a88642441b3878e006b7f2d9a3d83a8966bb192f507e",
+    "runtime/dns-runtime-files.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/dns-runtime-files.out": "44d61e552774f9085aee1ab67c6351a9c546af23ede5738bcb29e949a1ead317",
+    "runtime/dnsmasq-version.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/dnsmasq-version.out": "e19dcadc54e19be098f732b687a6ddf6dada30192b5ec23645d98fc324f56b8e",
+    "runtime/firewall-config.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/firewall-config.out": "744d53fa34dee3a9c911bcec5ef81ab99906b98aac367a316d650b5a9087b537",
+    "runtime/flowtable.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/flowtable.out": "13cf26fa9306ac292106d711fef3f051d00fd777064ac44d2140309652770ac7",
+    "runtime/identity.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/identity.out": "54adf692c02ee5f87d0807a766199da390ba56a9ab0b633756a4578d7e9b85e8",
+    "runtime/interface-dump.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/interface-dump.out": "f27f659edc651594075305408037370ca878b8dcdb120ac3f40968f14ff51f23",
+    "runtime/interrupts.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/interrupts.out": "c5476f772c0d77c14d1a7e251e5ee119fd650d305bfdb03f44b81eab8f2b890a",
+    "runtime/ipv6-addresses.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ipv6-addresses.out": "1bdd1e2363737b4293bf1fb713fcb2503ae128d5b771637f0b1df5bff9055372",
+    "runtime/ipv6-firewall.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ipv6-firewall.out": "38edddd2ae5ecc67d6efc7de6ad228765dadaa106fc7b39794016011425aa708",
+    "runtime/ipv6-leases.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ipv6-leases.out": "e351226222404c4349f545b3f234632f88abd698069a61e69143c712c1c68d01",
+    "runtime/ipv6-ra.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ipv6-ra.out": "6e1c55c49f2d225b6476f3f40dda9972912f08674af21a6d6d9b4c57e66806a1",
+    "runtime/ipv6-routes.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ipv6-routes.out": "b706c2e42d345d1208fd5f885c99eafe1281d701791622a4cf0a075ea4fa8a50",
+    "runtime/kernel-config.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/kernel-config.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/links-basic.err": "ddb73ca6e059feb5d7a49ebc7731c9032f67385addd541a11438a7dc3a17b46b",
+    "runtime/links-basic.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/links-plain.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/links-plain.out": "31abc1d08bbfb20a868184586703278e725323ddfafb485488925098d6cc907c",
+    "runtime/links.err": "ddb73ca6e059feb5d7a49ebc7731c9032f67385addd541a11438a7dc3a17b46b",
+    "runtime/links.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/modules.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/modules.out": "70caaa92c05cbcbf49fbba3079d8e665815441b4c75fb359a858e04b25dbdaa2",
+    "runtime/network-config.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/network-config.out": "407eb0fde4b16bac5d639521064304f99e897253fd856f2669bc170aeddade7f",
+    "runtime/network-thread-affinity.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/network-thread-affinity.out": "7ea1351595595cb692016c2552ebbce4938fbaa249f2c350b99c6b0ce24117c9",
+    "runtime/offload-debug-paths.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/offload-debug-paths.out": "f530f03a6740df8dd59e7d2bbf6514e96db145171f9c2e275738d76007fb418a",
+    "runtime/offload-final.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/offload-final.out": "4a86f05897254207a4073de5e1908eb15dbae0d27952ba3be87bf11ca006b781",
+    "runtime/package-db.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/package-db.out": "1ecb7ab3a271994348fb06e6a9a89b16f47bdf05ed5b837e671cae25c283ba9d",
+    "runtime/processes.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/processes.out": "a9c7e0f3e13bf1dd92dbde625708976af2ff9e416c7864a2ab01f6caedf59cd3",
+    "runtime/psched.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/psched.out": "780d8b7759d7f1ac24df2e27aced0a833d2e45eaa585b04dbd6a5d4a673f9d29",
+    "runtime/qdisc.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/qdisc.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/queue-files.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/queue-files.out": "56a13d310aa4ee8a4934e591b2e9673165ebc089ca53f5f08dba2d244ac44534",
+    "runtime/rps-affinity.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/rps-affinity.out": "ba5fe86d6dfc5d727ca0aa4bf7f8bfcc580b7a4acb97baa27305717b38e3837e",
+    "runtime/rust-hashes-final.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/rust-hashes-final.out": "ca4a0ab3d47cd88877e32be4010fc6181a8194f096ff8756cfb1cb9afffb7938",
+    "runtime/service-status.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/service-status.out": "7bfd1d9525a2fbfb7b5a1bcdee1ee1ae9ae89c36c1060541ca1a87a675ef1982",
+    "runtime/softirqs.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/softirqs.out": "ce04b8a52976ca2c11a9f4dc21eb3e88bf2fc430b02bc85222a8e1078fd36458",
+    "runtime/ubus-dhcp.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ubus-dhcp.out": "1022fe7a99367d6ff786d4bc572a008587dbc0a022c82e93de3f9725fc6fd973",
+    "runtime/ubus-dnsmasq.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ubus-dnsmasq.out": "0f5a3f8a8cd76a90a816a4c859f557c0dc63c04e276b97d25e0f273ecff25180",
+    "runtime/ubus-interfaces.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/ubus-interfaces.out": "47cc7e7a3968ce0ea24827436797b6c242e15dcc0fd57a2faf845e56ebd83cfe",
+    "runtime/ubus-methods.err": "5a66627a89f5456fb2d4d97fe83ef4c7ffbc31a1fbcdf23982459c5853a6dc5b",
+    "runtime/ubus-methods.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/uci-pending-final.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/uci-pending-final.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/uci-pending.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/uci-pending.out": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/wed.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/wed.out": "28312e346b76a3f91e8283519baab5f103d79547dedff5fb7ccc0dc3c5119bbe",
+    "runtime/wireless-queue-details.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/wireless-queue-details.out": "a27d76652145b79a60b9671cd723fbc61c7ef2b595711e422d115edbf026aabf"
+  },
+  "input_sha256": {
+    "manifests/ax3000t-stock-openwrt-25.12.5/source-baseline.json": "0601e0a2f160a2deadce26f4453ac3d0307bec8f0aeebb26dbcd69e40adfdc1d",
+    "manifests/ax3000t-stock-openwrt-25.12.5/sources.json": "678ef20eb67cd90878d80f8828c15f32c37060e5803de0507c50ba27220cecc0",
+    "reports/ax3000t-stock-openwrt-25.12.5/DATAPATH_20260929.json": "56595b382e2f2a4cc49ff36cafa88c5e7b1b033afb133aac6d90c83687039b4c"
+  }
+}
