@@ -1,0 +1,373 @@
+{
+  "date": "2026-09-29",
+  "status": "all_nine_Rust_running; software_reboot_accepted; physical_retest_pending",
+  "runtime_source": "6a4a405e0c4e1df81a95967a95cbe17897313430",
+  "validation_tools_commit": "f09b553572882fcbecbed0faace61b780b75997f",
+  "canonical_run": 36575083891,
+  "host_ci_run": 36575082996,
+  "changed_runtime_components": [
+    "netifd"
+  ],
+  "runtime_sha256": {
+    "fw4": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+    "httpd": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+    "logd": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+    "netifd": "adcf2bee51a4d985cea4ed01497da42988b8d0c9ab71eaf2d49eef821afc0a1f",
+    "procd": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+    "reload-config": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+    "rpcd": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+    "ubusd": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+    "uci": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506"
+  },
+  "fixes": [
+    "retain autostart device ownership while awaiting carrier",
+    "release main-device ownership on final interface removal"
+  ],
+  "validation": {
+    "netifd_unit_tests_passed": 170,
+    "full_source_build_differential_suite": {
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0
+    },
+    "canonical_delayed_WAN_cases": 8,
+    "canonical_additional_differentials": [
+      "R52",
+      "R56",
+      "R62",
+      "R64",
+      "R90",
+      "R91"
+    ],
+    "old_runtime_rejected_by": "startup-port-enabled",
+    "startup_only_diagnostic_rejected_by": "removed-config-releases-device",
+    "stack_switch_and_recovery": true,
+    "same_version_APK_install": true,
+    "guard_and_archive_tests": true,
+    "canonical_delayed_WAN_phases": {
+      "c-early": [
+        {
+          "phase": "startup-port-enabled",
+          "passed": true,
+          "elapsed_s": 3.0094560720026493
+        },
+        {
+          "phase": "obtained-lease-and-default-route",
+          "passed": true,
+          "elapsed_s": 4.026378782989923
+        }
+      ],
+      "c-late": [
+        {
+          "phase": "startup-port-enabled",
+          "passed": true,
+          "elapsed_s": 3.0096570330206305
+        },
+        {
+          "phase": "startup-waiting-for-carrier",
+          "passed": true,
+          "elapsed_s": 3.0096570330206305
+        },
+        {
+          "phase": "obtained-lease-and-default-route",
+          "passed": true,
+          "elapsed_s": 6.0475392999942414
+        },
+        {
+          "phase": "link-lost-device-still-held",
+          "passed": true,
+          "elapsed_s": 6.272914558998309
+        },
+        {
+          "phase": "link-restored",
+          "passed": true,
+          "elapsed_s": 6.4923576500150375
+        },
+        {
+          "phase": "one-shared-owner-remains",
+          "passed": true,
+          "elapsed_s": 6.503994866041467
+        },
+        {
+          "phase": "last-owner-releases-device",
+          "passed": true,
+          "elapsed_s": 6.723635438014753
+        },
+        {
+          "phase": "manual-up-waits-for-carrier",
+          "passed": true,
+          "elapsed_s": 6.737138830008917
+        },
+        {
+          "phase": "unchanged-reload-preserves-waiting-device",
+          "passed": true,
+          "elapsed_s": 7.748499335022643
+        },
+        {
+          "phase": "link-restored-after-reload",
+          "passed": true,
+          "elapsed_s": 7.967117058986332
+        },
+        {
+          "phase": "removed-config-releases-device",
+          "passed": true,
+          "elapsed_s": 8.187654438021127
+        },
+        {
+          "phase": "readded-config-waits-for-carrier",
+          "passed": true,
+          "elapsed_s": 8.200680545996875
+        },
+        {
+          "phase": "readded-config-obtains-lease",
+          "passed": true,
+          "elapsed_s": 8.419813194021117
+        }
+      ],
+      "c-late-single": [
+        {
+          "phase": "startup-port-enabled",
+          "passed": true,
+          "elapsed_s": 3.0090953889884986
+        },
+        {
+          "phase": "startup-waiting-for-carrier",
+          "passed": true,
+          "elapsed_s": 3.0090953889884986
+        },
+        {
+          "phase": "obtained-lease-and-default-route",
+          "passed": true,
+          "elapsed_s": 6.045459522982128
+        }
+      ],
+      "c-disabled": [
+        {
+          "phase": "auto-disabled",
+          "passed": true,
+          "elapsed_s": 3.016978294006549
+        },
+        {
+          "phase": "manual-up",
+          "passed": true,
+          "elapsed_s": 5.122025263961405
+        }
+      ],
+      "rust-early": [
+        {
+          "phase": "startup-port-enabled",
+          "passed": true,
+          "elapsed_s": 3.0100961169810034
+        },
+        {
+          "phase": "obtained-lease-and-default-route",
+          "passed": true,
+          "elapsed_s": 4.027518711984158
+        }
+      ],
+      "rust-late": [
+        {
+          "phase": "startup-port-enabled",
+          "passed": true,
+          "elapsed_s": 3.0091601100284606
+        },
+        {
+          "phase": "startup-waiting-for-carrier",
+          "passed": true,
+          "elapsed_s": 3.0091601100284606
+        },
+        {
+          "phase": "obtained-lease-and-default-route",
+          "passed": true,
+          "elapsed_s": 6.046053049038164
+        },
+        {
+          "phase": "link-lost-device-still-held",
+          "passed": true,
+          "elapsed_s": 6.272151954006404
+        },
+        {
+          "phase": "link-restored",
+          "passed": true,
+          "elapsed_s": 6.4977409359999
+        },
+        {
+          "phase": "one-shared-owner-remains",
+          "passed": true,
+          "elapsed_s": 6.50931503099855
+        },
+        {
+          "phase": "last-owner-releases-device",
+          "passed": true,
+          "elapsed_s": 6.729020524013322
+        },
+        {
+          "phase": "manual-up-waits-for-carrier",
+          "passed": true,
+          "elapsed_s": 6.742339714022819
+        },
+        {
+          "phase": "unchanged-reload-preserves-waiting-device",
+          "passed": true,
+          "elapsed_s": 7.753189734998159
+        },
+        {
+          "phase": "link-restored-after-reload",
+          "passed": true,
+          "elapsed_s": 7.972852827049792
+        },
+        {
+          "phase": "removed-config-releases-device",
+          "passed": true,
+          "elapsed_s": 8.19464905699715
+        },
+        {
+          "phase": "readded-config-waits-for-carrier",
+          "passed": true,
+          "elapsed_s": 8.213547933031805
+        },
+        {
+          "phase": "readded-config-obtains-lease",
+          "passed": true,
+          "elapsed_s": 8.433829191024415
+        }
+      ],
+      "rust-late-single": [
+        {
+          "phase": "startup-port-enabled",
+          "passed": true,
+          "elapsed_s": 3.0092256710049696
+        },
+        {
+          "phase": "startup-waiting-for-carrier",
+          "passed": true,
+          "elapsed_s": 3.0092256710049696
+        },
+        {
+          "phase": "obtained-lease-and-default-route",
+          "passed": true,
+          "elapsed_s": 6.045744166010991
+        }
+      ],
+      "rust-disabled": [
+        {
+          "phase": "auto-disabled",
+          "passed": true,
+          "elapsed_s": 3.016603691969067
+        },
+        {
+          "phase": "manual-up",
+          "passed": true,
+          "elapsed_s": 5.126732264005113
+        }
+      ]
+    }
+  },
+  "deployment": {
+    "window_status": "healthy",
+    "first_new_boot_SSH_s": 54.5683668749989,
+    "window_elapsed_s": 275.063275959008,
+    "health_samples": 14,
+    "continuous_health_s": 180.06322379199264,
+    "additional_final_observation_s": 30,
+    "health": {
+      "mode": "rust",
+      "verified_components": [
+        "procd",
+        "ubusd",
+        "netifd",
+        "rpcd",
+        "logd",
+        "httpd",
+        "uci",
+        "fw4",
+        "reload-config"
+      ],
+      "client_dhcp": true,
+      "interfaces_up": [
+        "loopback",
+        "lan",
+        "wan",
+        "wan6"
+      ],
+      "watchdog_running": true,
+      "local_http_https": true,
+      "dns_ipv4": true,
+      "dns_ipv6": true,
+      "router_internet_https": true,
+      "access_point_count": 2
+    },
+    "unchanged_config_files": 19,
+    "extra_gates": {
+      "new_boot_capture_live": true,
+      "completed_boot_archives_verified": true,
+      "fw4_matches_current_C_reference": true,
+      "fw4_check": true,
+      "guard_timeout_s": 300
+    },
+    "startup_WAN_events": {
+      "events": [
+        {
+          "uptime_s": 18.595046,
+          "admin_up": false,
+          "carrier": false,
+          "flags": "0x1002"
+        },
+        {
+          "uptime_s": 18.632481,
+          "admin_up": false,
+          "carrier": false,
+          "flags": "0x1002"
+        },
+        {
+          "uptime_s": 18.644202,
+          "admin_up": true,
+          "carrier": false,
+          "flags": "0x1003"
+        },
+        {
+          "uptime_s": 18.654027,
+          "admin_up": true,
+          "carrier": true,
+          "flags": "0x11043"
+        }
+      ],
+      "incomplete_trailing_records": 0
+    },
+    "guard_healthy_at_uptime_s": 58,
+    "guard_remains_armed": true,
+    "unconfirmed_boot_count": 0,
+    "overlay_available_kib_after_activation": 17880
+  },
+  "recovery": {
+    "fresh_offline_archives_verified": 5,
+    "recovery_images_verified": 2,
+    "WAN_failure_window_s": 300,
+    "consecutive_unconfirmed_boot_limit": 3,
+    "confirmation_health_samples": 3,
+    "completed_boots_losslessly_compressed": true,
+    "current_boot_not_compressed": true,
+    "previous_failed_boot_files_preserved": 10,
+    "Mac_read_only_observer_duration_s": 14400
+  },
+  "evidence": {
+    "offline_archive_sha256": "1c58c62f79e510df37b894017a1d9fc94f7156044d873bd472ad604ecfd67525",
+    "deployment_archive_sha256": "f942a2db3525e41800e2b28c5016794a33730d0eb80078d2c7ada3f70a86ddf0",
+    "ready_archive_verification": {
+      "archive_sha256": "7121a270303f7c69b193b72ba62793ba2ee74ca7b9a0a44b6d3c42f871d2530a",
+      "files_verified": 88,
+      "previous_failed_boot_files_restored_byte_for_byte": 10
+    },
+    "private_directory": "private/power-recovery-fix-20260929"
+  },
+  "next_physical_test": {
+    "WAN_reconnection_delays_s": [
+      30,
+      60,
+      120
+    ],
+    "power_off_pause_s": 20,
+    "online_hold_before_next_round_s": 60,
+    "performed": false
+  }
+}
