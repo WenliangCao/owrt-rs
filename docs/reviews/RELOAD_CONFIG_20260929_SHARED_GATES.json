@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "status": "COMPLETE_WITH_INTERRUPTION",
+  "functional_gates_passed": true,
+  "uninterrupted_collection": false,
+  "original_collection_passed": false,
+  "scope": "Seven newly rebuilt canonical ubus consumers; 11 serial functional gates on isolated Oracle Linux namespaces; no router or deployment acceptance",
+  "started_utc": "2026-09-28T22:27:00.984490+00:00",
+  "resumed_utc": "2026-09-28T22:47:31.999765+00:00",
+  "finished_utc": "2026-09-28T22:49:09.793237+00:00",
+  "canonical": {
+    "source_commit": "43b98a138bea2b37713634c012a37a9d7186a20b",
+    "runtime_source_revision": "e106123",
+    "run_url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36491554447",
+    "manifest_sha256": "b7b1ad3e3a906b18a1734eb248c79f7ccf76a187530c6f0dcb93a9df68ce3261",
+    "binaries": {
+      "fw4-rs": {
+        "sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+        "bytes": 1034963,
+        "static_aarch64": true
+      },
+      "logd-rs": {
+        "sha256": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+        "bytes": 428731,
+        "static_aarch64": true
+      },
+      "httpd-rs": {
+        "sha256": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+        "bytes": 1612543,
+        "static_aarch64": true
+      },
+      "rpcd-rs": {
+        "sha256": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+        "bytes": 1252115,
+        "static_aarch64": true
+      },
+      "procd-rs": {
+        "sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+        "bytes": 876536,
+        "static_aarch64": true
+      },
+      "ubusd-rs": {
+        "sha256": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+        "bytes": 516072,
+        "static_aarch64": true
+      },
+      "netifd-rs": {
+        "sha256": "0f9814c608e85dd863002007c967cebcce696fbcba624bbb5a33fe23e6637ec4",
+        "bytes": 1069120,
+        "static_aarch64": true
+      }
+    },
+    "installed_elf_checked_against_apk_and_image": [
+      "httpd-rs",
+      "logd-rs",
+      "fw4-rs",
+      "rpcd-rs"
+    ],
+    "canonical_direct_build_elf": [
+      "ubusd-rs",
+      "procd-rs",
+      "netifd-rs"
+    ]
+  },
+  "source_sha256": {
+    "components/ubus/Cargo.lock": "47030840ec94a66a3c0c05d7ccd1b61cd49becb3d23eb76c1357099108929893",
+    "components/ubus/Cargo.toml": "104190ac358c75cb88227979ec3729efa476a0e6487fb7f13fcab84e9608ebff",
+    "components/ubus/src/blob.rs": "c57472349f5f9acd04ea556956c4411fa5daf0aa041375602df625a7b83a36cc",
+    "components/ubus/src/conn.rs": "e7dc64391eb981a3be86ff2f8ece52ed5d07b2518521241c2e325afaea071b57",
+    "components/ubus/src/connect.rs": "7c568f49fdad2bc6ea4b0aa57c2a957d6f71896a3efeec0e45192acf86848999",
+    "components/ubus/src/convert.rs": "3cf3ca60d1e673d368d18ef2b80336929865dd4fd7f01e7b8aba1d30faf0f83a",
+    "components/ubus/src/digest.rs": "1d1e213d0ec2efc51f9dbc153de9696d22d4900e4faa2bf4adf5d06561f2ccff",
+    "components/ubus/src/json.rs": "a5fcb9cd3e0e63eff4ad2457b83a8aacd0e064099f3921505afd8d962a111d98",
+    "components/ubus/src/lib.rs": "e4428a12658e12901790f266e62306ed3f5690849ae4438a51b696d3806402bf",
+    "components/ubus/src/msg.rs": "d84a4fc05818ecf06611cbd69362b5b26031b12e51b65739712d1318635d0b64",
+    "components/ubus/src/readiness.rs": "ae672d38dd336addda0fe6b64630ae9d95c236996b0eeb119fecdd94f1b49721",
+    "components/ubus/src/sys.rs": "23203d875c3adf20e70eed077f3911da65aa7baf6084fa2557698fbf59bd1a15"
+  },
+  "gates": [
+    {
+      "name": "ubusd-r36",
+      "consumer": "ubusd-rs",
+      "exit": 0,
+      "elapsed_seconds": 67.78248440998141,
+      "coverage": "exact C CLI differential: objects, invocation, notifications, ACL and raw protocol",
+      "log_sha256": "9ca8eccb9f69af37b4aaa172839f6f07013dcb05f64cc2e50fee9650eb4089cd",
+      "canonical_consumer_sha256": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+      "runtime_consumer_sha256_after": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "preserved-before-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "ubusd-r36-user",
+      "consumer": "ubusd-rs",
+      "exit": 0,
+      "elapsed_seconds": 68.78579089901177,
+      "coverage": "same protocol/ACL differential with daemon uid ubus",
+      "log_sha256": "499837ac46331fe93a1936852d781232a6614d0a457d8c17d0ae5112ae885279",
+      "canonical_consumer_sha256": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+      "runtime_consumer_sha256_after": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "preserved-before-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "procd-r65",
+      "consumer": "procd-rs",
+      "exit": 0,
+      "elapsed_seconds": 400.291667537007,
+      "coverage": "non-PID1 service lifecycle/ordered events and notifier subscription differential",
+      "log_sha256": "6a05d11d979f301cb9c944f83af4b2f47ce5b1088ea0a1a0c4adfd8588df2114",
+      "canonical_consumer_sha256": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+      "runtime_consumer_sha256_after": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "preserved-before-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "httpd-r14",
+      "consumer": "httpd-rs",
+      "exit": 0,
+      "elapsed_seconds": 10.43184515699977,
+      "coverage": "exact-image HTTP and ubus JSON-RPC success/error output differential",
+      "log_sha256": "644794d948f81e662d9c01239ffb06c2d6e8807611d7822f8b38957b39f9ec29",
+      "canonical_consumer_sha256": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+      "runtime_consumer_sha256_after": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "preserved-before-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "logd-r15",
+      "consumer": "logd-rs",
+      "exit": 0,
+      "elapsed_seconds": 10.682588060968556,
+      "coverage": "syslog/read/follow transport and byte output differential",
+      "log_sha256": "adcbb74ab4d3d8a354b4bf1a4e89ca780e4fb63bc1df5a002d2037ad097a080f",
+      "canonical_consumer_sha256": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+      "runtime_consumer_sha256_after": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "resumed-after-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "logd-reconnect",
+      "consumer": "logd-rs",
+      "exit": 0,
+      "elapsed_seconds": 8.228355961036868,
+      "coverage": "private ubusd outage/reconnect and ring retention; kmsg disabled by existing case",
+      "log_sha256": "c0aa6e5877b5905eae71c665224dd12508f273584f3db2b9c6c4661dd20729e6",
+      "canonical_consumer_sha256": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+      "runtime_consumer_sha256_after": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "resumed-after-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "fw4-upstream",
+      "consumer": "fw4-rs",
+      "exit": 0,
+      "elapsed_seconds": 0.1642180040362291,
+      "coverage": "matching upstream mock rule-output cases",
+      "log_sha256": "c3f4ba1228e06d3b501df007c6a20f0981dc9e4253bc60b0f771f9d980e07153",
+      "canonical_consumer_sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+      "runtime_consumer_sha256_after": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "resumed-after-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "fw4-image",
+      "consumer": "fw4-rs",
+      "exit": 0,
+      "elapsed_seconds": 2.2178145740181208,
+      "coverage": "one real print and one nft check against exact-image output; incidental timings are not performance evidence",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "canonical_consumer_sha256": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+      "runtime_consumer_sha256_after": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "resumed-after-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "rpcd-r17",
+      "consumer": "rpcd-rs",
+      "exit": 0,
+      "elapsed_seconds": 34.377602985012345,
+      "coverage": "session/ACL/UCI apply-confirm-rollback; only reload_config marker in fresh image copy",
+      "log_sha256": "32266d3ae54b893b40b518b57dfa37960442e11f01252d4109093f3ccdb80cdf",
+      "canonical_consumer_sha256": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+      "runtime_consumer_sha256_after": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "resumed-after-control-interruption",
+      "rootfs_mutation_scope": "private image copy with only reload_config marker; all test changes in disposable namespaces"
+    },
+    {
+      "name": "netifd-r83-config",
+      "consumer": "netifd-rs",
+      "exit": 0,
+      "elapsed_seconds": 38.93120884796372,
+      "coverage": "actual config reload, routes, lists, rules, kernel and hotplug output differential",
+      "log_sha256": "980a52808e94898f49dd840c2ea73f0e466e5a66c96b329e4b8cfb34354f5a05",
+      "canonical_consumer_sha256": "0f9814c608e85dd863002007c967cebcce696fbcba624bbb5a33fe23e6637ec4",
+      "runtime_consumer_sha256_after": "0f9814c608e85dd863002007c967cebcce696fbcba624bbb5a33fe23e6637ec4",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "resumed-after-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    },
+    {
+      "name": "netifd-restart",
+      "consumer": "netifd-rs",
+      "exit": 0,
+      "elapsed_seconds": 2.869157218025066,
+      "coverage": "C/canonical candidate delayed reexec, same PID/argv, fresh objects and serving",
+      "log_sha256": "f3db8acfdc0ec2dedd76e7a8e76cc49286d40ba854615b4a7ff75e92d5c49fe1",
+      "canonical_consumer_sha256": "0f9814c608e85dd863002007c967cebcce696fbcba624bbb5a33fe23e6637ec4",
+      "runtime_consumer_sha256_after": "0f9814c608e85dd863002007c967cebcce696fbcba624bbb5a33fe23e6637ec4",
+      "namespace_launcher_sha256": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+      "execution_segment": "resumed-after-control-interruption",
+      "rootfs_mutation_scope": "disposable namespace copies; pristine image input unchanged"
+    }
+  ],
+  "additional_assertions": {
+    "httpd_requests_identical": 61,
+    "logd_outputs_identical": 10,
+    "fw4_upstream_cases": 31,
+    "rpcd_steps_identical": 283,
+    "netifd_config_output_groups_identical": [
+      "baseline",
+      "dns",
+      "metric",
+      "route",
+      "rule",
+      "hotplug",
+      "rc"
+    ],
+    "netifd_restart_original_and_candidate_passed": true,
+    "fw4_image": {
+      "print_successes": 1,
+      "check_successes": 1,
+      "errors": 0,
+      "performance_claim": false
+    }
+  },
+  "interruptions": [
+    {
+      "cause": "undetermined control interruption; prior runner absent and next gate not started",
+      "completed_gates": [
+        "ubusd-r36",
+        "ubusd-r36-user",
+        "procd-r65",
+        "httpd-r14"
+      ],
+      "next_gate": "logd-r15",
+      "original_results_sha256": "6862b155c535c3fb59e4bd62402c1bc5d6776f0a253afb21b684066551991719",
+      "adoption_identity_checks": {
+        "image": true,
+        "source": true,
+        "fw4_source": true,
+        "input_binaries": true,
+        "runtime_binaries": true,
+        "runtime_helpers": true,
+        "input_manifest": true,
+        "input_helper_manifest": true,
+        "namespace_source": true,
+        "host_namespaces": true,
+        "namespace_launcher": true,
+        "input_helpers": true
+      },
+      "original_interruption_preserved": true,
+      "component_failure_inferred": false
+    }
+  ],
+  "final_identity_checks": {
+    "image": true,
+    "source": true,
+    "fw4_source": true,
+    "input_binaries": true,
+    "runtime_binaries": true,
+    "runtime_helpers": true,
+    "input_manifest": true,
+    "input_helper_manifest": true,
+    "namespace_source": true,
+    "host_namespaces": true,
+    "namespace_launcher": true,
+    "input_helpers": true
+  },
+  "cleanup": {
+    "owned_processes": [],
+    "owned_mounts": [],
+    "original_runner_pid_3162155_exists": false,
+    "fresh_sudo_census_rechecked_after_completion": true,
+    "resume_runner_pid_3172166_absent": true
+  },
+  "rpcd_fixture": {
+    "changed_paths": [
+      "sbin/reload_config"
+    ],
+    "original_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+    "stub_sha256": "586eb969f0c3d85a35fb8383bc9e18d388644447d5cd34a3ae8963b39b8afede",
+    "other_helpers_replaced": [],
+    "image_unchanged": true
+  },
+  "helpers_sha256": {
+    "asuser": "61bfaa73d2361c6dbec8160e115ba0baaf9f84e1c88d1778877c4fc4aac9919f",
+    "busprobe": "4c0308acbce01dc3a78d63f4607a90ecb92fd9dd39a2f289e1e462e6b81caa7e",
+    "notifier": "f539b04f73fac153e6e1b3f71e23e0e711e9cc2426b413e766cf3132f04ea398",
+    "ns-exec": "fd9f853b341168ffad52e891913d3ba6a414ce0b9272a74a3f624952fcbb14c2",
+    "owrt-benchmark": "8db700f0d9f06ec61e3ced06443075d43e11a157216139f9558e438d2c82a0c0"
+  },
+  "provenance": {
+    "raw_results_sha256": "1fe5e59b2dbd76132e4618422d9df3621fad283fd95b0145ad98750452036f55",
+    "runner_sha256": "817c9c428dde6d74966c6e267c44b876c48037f792c6837dbad3515c274f1fd7",
+    "resume_runner_sha256": "0049d22f2c6da2c073e6cd7f1a7e8c70f9c2bf98a68635822b43315ef9601446",
+    "input_helper_manifest_sha256": "9fd12729a62e4c10d498b28211f5b61b1d47f0842afcc70f561779d460519178",
+    "expected_binaries_manifest_sha256": "0d099643deef04ef81f489ee2b3444d353f6b2b32dace8bea0a34b3a0be55d99",
+    "interruption_record_sha256": "96afdb76e5076de6faa9a079739a385c9bf693257fe5e9a5d13c7490a4eafe85",
+    "resume_log_sha256": "de3b763528900f738e9f1782af80107486a7df587750934cbb7bf0e27d75c708",
+    "namespace_source_sha256": "df412cfee15cc89318147dc8bf1606d5edd9675cb53ffc00a38c79276bffa7dc",
+    "raw_private_archive": "private/reload-next-20260928/shared-functional-archive"
+  },
+  "limits": [
+    "This is bounded shared-library functional regression, not whole-stack deployment or full security coverage.",
+    "Incidental fw4 timing is not performance evidence.",
+    "Original control interruption cause remains undetermined; preserved passes plus verified resumed suffix establish functional result.",
+    "RPCD marker proves request only; reload-config delivery is separately covered by dedicated canonical R1/R95 and router workload gates.",
+    "No physical Wi-Fi, PID1, watchdog, reboot, upgrade or production firewall changes were tested here."
+  ]
+}
