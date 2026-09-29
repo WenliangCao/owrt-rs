@@ -14,7 +14,13 @@ fn append(path: &str, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
-fn record(prefix: &str, event: &str, request: &Request, package: &[u8], status: Option<i32>) -> Result<()> {
+fn record(
+    prefix: &str,
+    event: &str,
+    request: &Request,
+    package: &[u8],
+    status: Option<i32>,
+) -> Result<()> {
     let package_hex: String = package.iter().map(|b| format!("{b:02x}")).collect();
     let mut value = obj([
         ("event", Json::Str(event.into())),
@@ -36,7 +42,14 @@ fn record(prefix: &str, event: &str, request: &Request, package: &[u8], status: 
 fn connect(socket: &str) -> Result<(Connection, u32)> {
     let mut connection = Connection::connect(Some(socket))?;
     connection.set_server_io_timeout(Duration::from_secs(2));
-    let object = connection.add_object("service", &[("event", &[("type", MsgType::String), ("data", MsgType::Table)])], 3000)?;
+    let object = connection.add_object(
+        "service",
+        &[(
+            "event",
+            &[("type", MsgType::String), ("data", MsgType::Table)],
+        )],
+        3000,
+    )?;
     Ok((connection, object))
 }
 
@@ -47,37 +60,88 @@ pub fn serve(socket: &str, prefix: &str) -> Result<()> {
     loop {
         let mut index = 0;
         while index < delayed.len() {
-            if delayed[index].0 > Instant::now() { index += 1; continue; }
+            if delayed[index].0 > Instant::now() {
+                index += 1;
+                continue;
+            }
             let (_, request, package) = delayed.remove(index);
             record(prefix, "reply", &request, &package, Some(0))?;
             connection.reply_status(&request, 0, None)?;
         }
-        let Some(Incoming::Invoke(request)) = connection.next_incoming(10)? else { continue };
+        let Some(Incoming::Invoke(request)) = connection.next_incoming(10)? else {
+            continue;
+        };
         let payload = fields_to_json(&request.data);
-        require(request.objid == object && request.method == "event" && request.fd.is_none(), "unexpected fault service request")?;
-        let package = payload.get("data").and_then(|d| d.get("package")).and_then(Json::as_bytes).ok_or("missing raw package")?;
-        require(payload == obj([("type", Json::Str("config.change".into())), ("data", obj([("package", Json::from_string_bytes(package.to_vec()))]))]), "unexpected fault event payload")?;
+        require(
+            request.objid == object && request.method == "event" && request.fd.is_none(),
+            "unexpected fault service request",
+        )?;
+        let package = payload
+            .get("data")
+            .and_then(|d| d.get("package"))
+            .and_then(Json::as_bytes)
+            .ok_or("missing raw package")?;
+        require(
+            payload
+                == obj([
+                    ("type", Json::Str("config.change".into())),
+                    (
+                        "data",
+                        obj([("package", Json::from_string_bytes(package.to_vec()))]),
+                    ),
+                ]),
+            "unexpected fault event payload",
+        )?;
         let log_path = format!("{prefix}.log");
-        let index = fs::read(&log_path).unwrap_or_default().iter().filter(|&&b| b == b'\n').count();
+        let index = fs::read(&log_path)
+            .unwrap_or_default()
+            .iter()
+            .filter(|&&b| b == b'\n')
+            .count();
         let plan = fs::read_to_string(format!("{prefix}-status")).unwrap_or_default();
         let action = plan.lines().nth(index).unwrap_or("0");
-        let pending = action.starts_with("sleep:") || action == "drop" || action == "disconnect" || action == "replace";
-        let status = if pending { None } else { Some(action.parse::<i32>()?) };
+        let pending = action.starts_with("sleep:")
+            || action == "drop"
+            || action == "disconnect"
+            || action == "replace";
+        let status = if pending {
+            None
+        } else {
+            Some(action.parse::<i32>()?)
+        };
         record(prefix, "receive", &request, package, status)?;
         // Legacy textual log lets old r1 scenarios keep their result assertions.
         // The raw JSONL above is authoritative for all filename bytes.
         let mut line = package.to_vec();
         line.extend_from_slice(b"\t");
-        line.extend_from_slice(if pending { b"pending" } else { action.as_bytes() });
+        line.extend_from_slice(if pending {
+            b"pending"
+        } else {
+            action.as_bytes()
+        });
         line.push(b'\n');
         append(&log_path, &line)?;
         if let Some(seconds) = action.strip_prefix("sleep:") {
             require(delayed.len() < 64, "too many pending fault requests")?;
-            delayed.push((Instant::now() + Duration::from_secs(seconds.parse()?), request, package.to_vec()));
+            delayed.push((
+                Instant::now() + Duration::from_secs(seconds.parse()?),
+                request,
+                package.to_vec(),
+            ));
         } else if action == "replace" {
             connection.remove_object(object, 3000)?;
-            object = connection.add_object("service", &[("event", &[("type", MsgType::String), ("data", MsgType::Table)])], 3000)?;
-            require(object != request.objid, "replacement reused the old object id")?;
+            object = connection.add_object(
+                "service",
+                &[(
+                    "event",
+                    &[("type", MsgType::String), ("data", MsgType::Table)],
+                )],
+                3000,
+            )?;
+            require(
+                object != request.objid,
+                "replacement reused the old object id",
+            )?;
             record(prefix, "replace", &request, package, None)?;
             record(prefix, "reply", &request, package, Some(0))?;
             connection.reply_status(&request, 0, None)?;

@@ -178,7 +178,15 @@ mod tests {
             fs::read(artifacts.join("iteration-000003/exec.stderr")).unwrap(),
             b"bad\n"
         );
-        assert!(operation(&mut journal, 4, "/bin/echo", &["wrong".into()], b"ok\n", false).is_err());
+        assert!(operation(
+            &mut journal,
+            4,
+            "/bin/echo",
+            &["wrong".into()],
+            b"ok\n",
+            false
+        )
+        .is_err());
         assert!(operation(&mut journal, 4, "/bin/echo", &["ok".into()], b"ok\n", false).is_err());
         assert_eq!(
             fs::read(artifacts.join("iteration-000004/exec.stdout")).unwrap(),
@@ -197,5 +205,4 @@ mod tests {
         assert_eq!(error.to_string(), "child stderr was not empty");
         assert!(operation(&mut None, 0, "/bin/sh", &quiet, b"ok", true).is_ok());
     }
-
 }

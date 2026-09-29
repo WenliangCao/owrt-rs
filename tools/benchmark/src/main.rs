@@ -20,12 +20,12 @@ mod child_cpu;
 mod cpu_clock;
 mod event_evidence;
 mod exec_journal;
-mod reload_exec;
-mod reload_fault;
 #[cfg(feature = "registration-perf")]
 mod registration_perf;
 #[cfg(feature = "registration-phase")]
 mod registration_phase;
+mod reload_exec;
+mod reload_fault;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -1154,7 +1154,12 @@ fn main_inner(a: &[String]) -> Result<()> {
                 &pid_list(&a[5])?,
                 |i| {
                     exec_journal::operation(
-                        &mut journal, i, &a[7], &a[8..], &expected, a[1] == "exec-strict",
+                        &mut journal,
+                        i,
+                        &a[7],
+                        &a[8..],
+                        &expected,
+                        a[1] == "exec-strict",
                     )
                 },
                 || Ok(()),
