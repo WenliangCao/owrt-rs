@@ -105,6 +105,175 @@
     "size_budget_passed": true,
     "runtime_unchanged_since_canonical": true
   },
+  "final_host_ci": {
+    "run": {
+      "conclusion": "success",
+      "headSha": "106aef40d17d52f14e4a55cfdad513bea53d9852",
+      "jobs": [
+        {
+          "completedAt": "2026-09-29T07:25:02Z",
+          "conclusion": "success",
+          "databaseId": 109301096140,
+          "name": "host-tests",
+          "startedAt": "2026-09-29T07:23:21Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-29T07:23:23Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-29T07:23:22Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:23:25Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v4",
+              "number": 2,
+              "startedAt": "2026-09-29T07:23:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:23:25Z",
+              "conclusion": "success",
+              "name": "rust toolchain (pinned by rust-toolchain.toml)",
+              "number": 3,
+              "startedAt": "2026-09-29T07:23:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:23:34Z",
+              "conclusion": "success",
+              "name": "Run dtolnay/rust-toolchain@master",
+              "number": 4,
+              "startedAt": "2026-09-29T07:23:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:23:44Z",
+              "conclusion": "success",
+              "name": "host deps (libcrypt for rpcd session tests, nft for fw4 tests)",
+              "number": 5,
+              "startedAt": "2026-09-29T07:23:34Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:23:45Z",
+              "conclusion": "success",
+              "name": "cache cargo",
+              "number": 6,
+              "startedAt": "2026-09-29T07:23:44Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:24:51Z",
+              "conclusion": "success",
+              "name": "Run make test",
+              "number": 7,
+              "startedAt": "2026-09-29T07:23:45Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:24:51Z",
+              "conclusion": "success",
+              "name": "Run make check-toolchain",
+              "number": 8,
+              "startedAt": "2026-09-29T07:24:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:24:52Z",
+              "conclusion": "success",
+              "name": "Run make check-toolchain-negative",
+              "number": 9,
+              "startedAt": "2026-09-29T07:24:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:24:52Z",
+              "conclusion": "success",
+              "name": "Run make check-tools",
+              "number": 10,
+              "startedAt": "2026-09-29T07:24:52Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:24:52Z",
+              "conclusion": "success",
+              "name": "Run make check-harnesses",
+              "number": 11,
+              "startedAt": "2026-09-29T07:24:52Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:24:56Z",
+              "conclusion": "success",
+              "name": "Run make check-benchmark",
+              "number": 12,
+              "startedAt": "2026-09-29T07:24:52Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:25:00Z",
+              "conclusion": "success",
+              "name": "Post cache cargo",
+              "number": 23,
+              "startedAt": "2026-09-29T07:24:56Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:25:00Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v4",
+              "number": 24,
+              "startedAt": "2026-09-29T07:25:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-29T07:25:00Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 25,
+              "startedAt": "2026-09-29T07:25:00Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36536322705/job/109301096140"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36536322705"
+    },
+    "format_failure": {
+      "root_cause": "check-benchmark cargo fmt --check failed for tools/benchmark/src/{exec_journal,main,reload_fault}.rs; not runtime or release artifact failure",
+      "canonical_ci_run": 36491555111,
+      "canonical_failed_log_sha256": "a16c788d0c39cbeb6348527d26b242974b1dca0ac1822aefe4cdd04a6ceb87b5",
+      "format_check_passed_after_fix": true,
+      "local_validation": {
+        "rust_unit_tests": 8,
+        "python_tests": 45,
+        "linux_c_syntax": "not available on macOS: sys/prctl.h absent; check-benchmark stops at ns_exec.c, socket_constants.c not run",
+        "reload_evidence_tests_added_to_ci": 6,
+        "reload_evidence_log_sha256": "5364bc59c974600f54aeb8e9a535c025995eb09740598b8b3426f0ac87bb813e"
+      },
+      "local_check_benchmark_log_sha256": "f5b7f59e1551fffa2b95d8e970f824ec239198ff611052afe0b0937cd54cbc4f",
+      "files_changed": [
+        "tools/benchmark/src/exec_journal.rs",
+        "tools/benchmark/src/main.rs",
+        "tools/benchmark/src/reload_fault.rs",
+        "Makefile"
+      ],
+      "change_scope": "rustfmt in three benchmark Rust files; add six existing quick reload evidence tests to Makefile check-benchmark; runtime source and measured ELF identities unchanged"
+    },
+    "earlier_closeout_run": {
+      "run": 36536059220,
+      "conclusion": "failure",
+      "failed_gate": "make check-benchmark: cargo fmt --check",
+      "log_sha256": "4a914908cda54bccedf4f535bae6117c51d37c3a48c92ecfd65d7387e640d2eb"
+    },
+    "measured_runtime_and_benchmark_elf_unchanged": true
+  },
   "native": {
     "host": "Oracle aarch64 Linux",
     "gates": [
@@ -451,7 +620,11 @@
       "shared-final-review.json": "32cc08bc7cf39d1812f8c99898ca45c060b6b57d501da346265843a6ac2a4e1e"
     }
   },
+  "source_tool_hash_scope": "Final repository files after benchmark-only rustfmt. Actual measurement tool ELF and original source hashes remain bound to the frozen plans and individual functional reports; no performance data was reattributed to a rebuilt helper.",
   "source_tool_sha256": {
+    "Makefile": "55d93c764ef4d6c87542fafceecc5bef0175ad8756a3d9e860e3e31da9c2cf0c",
+    "tools/benchmark/src/exec_journal.rs": "2e05d4988351c9a5e72a3f220d180722e348cb621a2069e9845a24a8c2e51668",
+    "tools/benchmark/src/main.rs": "83a874caaa65cf048d05ec750f09be04bda3af221949cca504fca0ac9db71cf2",
     "components/reload-config/src/engine.rs": "130f0450c09807cf6576a65b7ef14f377cb101f71776e8a1ad425ce95178c9a8",
     "components/reload-config/src/md5.rs": "dab2b5c879f42a39d8eb31257f8849553edacf926be2016dad202b63cebfc594",
     "components/ubus/src/conn.rs": "e7dc64391eb981a3be86ff2f8ece52ed5d07b2518521241c2e325afaea071b57",
@@ -459,7 +632,7 @@
     "components/ubus/src/sys.rs": "23203d875c3adf20e70eed077f3911da65aa7baf6084fa2557698fbf59bd1a15",
     "packaging/openwrt/owrt-reload-config/Makefile": "9607b5726481fcdc501fba10d682ce59bae3ab5e3c7f8b038d89fd0f271f6a70",
     "tools/benchmark/src/reload_exec.rs": "9635948bdc756803c6d8f2efa6778328b8186ce79279567e07795b9114d31edc",
-    "tools/benchmark/src/reload_fault.rs": "1ca10253f2be14b5807fdbd35e28eed33e1a1ffa74d13e327455b769e58c0ef7",
+    "tools/benchmark/src/reload_fault.rs": "2b26c38b3d1ba01d3ee2b0922425fe3cb7d0209002ed7ad8e5f4c1a935b706e3",
     "tools/benchmark/exec_task_counts.c": "44eb1f93aab6b580a7fb0a8bf801207c59b0e1e54e6c7861c12b91d9a5f3ef25",
     "tools/benchmark/isolated.sh": "1b91816976dcbfedad6323c9d482eb2f8398a0ae2e34f22be875824d2bdcfff1",
     "tools/benchmark/run_candidate.py": "18ef94a2cc0e084cc807b17442f96e01ea5d8a238b53e5f9ab43229fdc3c4747",
@@ -470,7 +643,7 @@
     "tools/r95_reload_config_probe.sh": "999d1c576f786cba00b4dfb56e03e10b9008e3fc9d4f4d847135097dd4c37172"
   },
   "report_sha256": {
-    "RELOAD_CONFIG_20260929_RESEARCH.md": "937244c7eb7347b272de2fc480dc9a9be13761652b747b98faf99972c9ea934b",
+    "RELOAD_CONFIG_20260929_RESEARCH.md": "921ba8d7225a2f3d262ff5ed4b9724d9ab7c57121327495c5beab9f3d68a5600",
     "RELOAD_CONFIG_20260929_CANDIDATES.md": "fe1c22e96dd1f14fee4dba11c6552b3991ff508f6e903a77acc60845ba314b86",
     "RELOAD_CONFIG_20260929_BENCHMARKS.md": "8fbcf57907ae3ec2bc651bd68952800445a1b3c0aed45cb3db4ca2aa8a852d05",
     "RELOAD_CONFIG_20260929_BENCHMARKS.json": "24b6c61aef1d98215db873b5e07f8301c61c2d5812e43d8bf333dd4192f7161b",

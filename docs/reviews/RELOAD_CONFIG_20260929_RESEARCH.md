@@ -145,6 +145,12 @@ SDK路由器pilot的无变化类CPU对R94曾增加2.96%–5.86%，该不利结�
 
 这些是一次插桩调用的操作证据；ptrace会改变调度，ppoll次数受到达时序影响，不据此推导阶段CPU占比或性能分布。STATUS完成由独立接收器断言证明，不以成功写socket代替。未单独精确分离JSON编码、连接、查询、等待的CPU耗时；正式性能只给完整exec和独立进程角色成本。首次清理路径提取误收模板/换行的派生断言失败记录原样保留，修正解析后确认三处隔离目录及相关进程、挂载全部回收，没有重测或隐藏工作负载失败。
 
+## 最终仓库检查
+
+正式镜像构建成功之外，普通host CI曾在run36491555111及收尾run36536059220的 `make check-benchmark` 被工具 `rustfmt --check` 拒绝，失败日志保留。`106aef40d17d52f14e4a55cfdad513bea53d9852` 仅格式化三个benchmark Rust文件，并把已有6项reload证据测试加入Makefile；没有修改components运行时，也没有替换已测benchmark ELF。最终[Linux CI run36536322705](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36536322705)全部通过：host tests、工具链正/负门、工具语法、harness及benchmark门。benchmark门包括8项Rust、45项Python测试及两项Linux C语法检查。本机Mac曾因缺少 `sys/prctl.h` 停在C语法门，该平台限制由Linux CI补齐，未伪报本机全过。
+
+总验证清单将最终仓库工具源码hash与实际测量时的工具ELF/源码身份分别记录；格式变化后的工具没有重新归属旧成绩。随后只更新结案文档及验证状态，不触发新的运行时或性能研究。
+
 ## 工程结案
 
 H1/H2在普通24包与合理较大规模有依据，H3在实际配置变更中给出明显收益；可取消组合已用独立正式产物重新计量并通过故障、恢复和共享消费者门。继续缓存对象ID、并发投递、重试不明事件或绕过完整读取会破坏合同；流式摘要、全局索引与编译调参没有足够新证据支持额外复杂度。接受已量化的少量minor faults、日志依赖CPU和个别慢尾窗口代价，保留所有SDK pilot与正式不利结果。本轮不再机械增加变体或测量轮次。
