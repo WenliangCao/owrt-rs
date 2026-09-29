@@ -20,6 +20,7 @@ mod child_cpu;
 mod cpu_clock;
 mod event_evidence;
 mod exec_journal;
+mod fw4_output;
 #[cfg(feature = "registration-perf")]
 mod registration_perf;
 #[cfg(feature = "registration-phase")]
@@ -1140,28 +1141,38 @@ fn main_inner(a: &[String]) -> Result<()> {
             reload_exec::serve(&a[2], &a[3])
         }
         "reload-exec" => reload_exec::measure(&a[2..]),
-        "exec" | "exec-strict" => {
+        "fw4-compare" => {
+            require(a.len() == 4, "fw4-compare EXPECTED_FILE ACTUAL_FILE")?;
+            require(
+                fw4_output::normalize(&fs::read(&a[2])?)
+                    == fw4_output::normalize(&fs::read(&a[3])?),
+                "fw4 output differs after subnet-member ordering normalization",
+            )
+        }
+        "exec" | "exec-strict" | "exec-fw4" => {
             require(
                 a.len() >= 8 && a[6] == "--",
-                "exec[-strict] N WARMUP EXPECT_BYTES PIDS -- PROGRAM ARGS...",
+                "exec[-strict|-fw4] N WARMUP EXPECT_BYTES PIDS -- PROGRAM ARGS...",
             )?;
             let expected = fs::read(&a[4])?;
             let warmup = a[3].parse()?;
             let mut journal = exec_journal::Journal::from_env(warmup)?;
+            let validation = match mode.as_str() {
+                "exec-strict" => exec_journal::Validation::Strict,
+                "exec-fw4" => {
+                    require(
+                        journal.is_some(),
+                        "exec-fw4 requires a journal and output artifacts",
+                    )?;
+                    exec_journal::Validation::Fw4
+                }
+                _ => exec_journal::Validation::Bytes,
+            };
             measure(
                 a[2].parse()?,
                 warmup,
                 &pid_list(&a[5])?,
-                |i| {
-                    exec_journal::operation(
-                        &mut journal,
-                        i,
-                        &a[7],
-                        &a[8..],
-                        &expected,
-                        a[1] == "exec-strict",
-                    )
-                },
+                |i| exec_journal::operation(&mut journal, i, &a[7], &a[8..], &expected, validation),
                 || Ok(()),
             )
         }

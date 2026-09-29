@@ -64,12 +64,15 @@ check-tools:
 check-harnesses:
 	@python3 tools/test_audit_checks.py
 	@python3 tools/test_r85_procd_busy_gate.py
+	@python3 tools/test_stack_manifest.py
 
 # The load generator must reject failed requests and count every operation.
 # Full namespace/rollback gates additionally run on the image's build host.
 check-benchmark:
 	cargo fmt --manifest-path tools/benchmark/Cargo.toml --check
 	cargo test --locked --manifest-path tools/benchmark/Cargo.toml
+	cargo build --locked --manifest-path tools/benchmark/Cargo.toml
+	python3 tools/benchmark/test_fw4_cli.py tools/benchmark/target/debug/owrt-benchmark
 	python3 tools/benchmark/test_http_client.py
 	python3 tools/benchmark/test_analyze.py
 	python3 tools/benchmark/test_httpd_analysis.py
@@ -77,6 +80,8 @@ check-benchmark:
 	python3 tools/benchmark/test_netifd_gate.py
 	python3 tools/benchmark/test_r92_analysis.py
 	python3 tools/benchmark/test_reload_exec.py
+	python3 tools/benchmark/test_stack_analysis.py
+	$(CC) -std=c11 -Wall -Wextra -Werror -fsyntax-only tools/benchmark/stack_config_cycle.c
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/ns_exec.c
 	$(CC) -Wall -Wextra -Werror -fsyntax-only tools/benchmark/socket_constants.c
 

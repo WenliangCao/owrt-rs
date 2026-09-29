@@ -169,13 +169,37 @@ isolated mode is `OWRT_HTTPD_MEMORY=1`, with `memory-probe` in BUNDLE.
 
 ## Whole-system comparisons
 
-Physical cold switching uses `tools/r84_stack_switch.sh` and the detached Mac
+Physical stack switching by software reboot uses `tools/r84_stack_switch.sh` and the detached Mac
 `tools/r84_window.py`. The latter checks the selected client interface, all
-nine identities, DHCP (or explicitly selected static addressing), DNS, IPv4/IPv6
-HTTPS, both AP bridges and the watchdog. It requires 180 seconds of continuous
+nine identities, DHCP (or explicitly selected static addressing), router DNS
+A/AAAA answers, local HTTP/HTTPS, router HTTPS egress, both AP bridges and the
+watchdog. It requires 180 seconds of continuous
 health and a final observation before confirming Rust. An unconfirmed Rust boot
 restores all nine originals at 900 seconds; **a failure before the canary starts
 still requires physical failsafe recovery**.
+
+These SSH `reboot` windows do not test electrical power loss/restoration. The
+confirmed-boot timer is removed after confirmation; it is not a persistent
+boot-count rollback policy. Power-on recovery needs a separate protocol.
+
+The live fw4 lane uses a current benchmark with `exec-fw4` and `fw4-compare`.
+Every round brackets the candidate calls with `/rom/sbin/fw4 print` references,
+outside the candidate CPU/latency intervals. Only member order in plain IP/CIDR
+`*_subnets` definitions is normalized. Changed members, duplicates, rule order
+and all other text remain significant. A changed C reference marks the round
+`INVALID_ENV`; candidate stdout/stderr and a journal retain the exact failed
+call. Bracketing detects drift but does not provide an atomic network snapshot.
+The CLI tests exercise success, changed membership, nonzero exit, missing
+evidence and retained failure bytes. Rebuild the benchmark and record its new
+identity before using the updated collector; historical frozen trials keep
+their original tool hashes and validation limits.
+
+`python3 tools/stack_manifest.py BUNDLE ORIGINAL_MANIFEST WORKFLOW_JSON NEW_OUTPUT`
+generates fresh metadata from both canonical manifests, actual nine binaries
+and successful workflow metadata (`gh run view --json databaseId,headSha,conclusion`).
+It verifies their common source, recalculates tool/script identities, and does
+not inherit old builder labels or validation results. It refuses to overwrite
+historical manifests. New bundles still need their own recovery and runtime gates.
 
 Prepare the release bundle and its checksum manifests, verify offline backups,
 and confirm that the recovery procedure is available. A LAN cable is not a
@@ -188,7 +212,7 @@ together. Test installation, staging and rollback first with:
 sudo sh tools/r84_switch_selftest.sh ROOTFS DEPLOYMENT_BUNDLE PRIVATE_OUT
 ```
 
-Use four cold-boot windows: **Rust, stock, stock, Rust**, with identical settings
+Use four software-reboot windows: **Rust, stock, stock, Rust**, with identical settings
 and workload counts in each. This validates the deployment first, supplies two
 fresh original boots and two Rust boots, balances time order, and ends on Rust.
 Warm/test HTTPS consistently before each live workload:

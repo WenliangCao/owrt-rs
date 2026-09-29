@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "at": "2026-09-29T10:19:49.915638+00:00",
+  "scope": "offline source/tool correction and reanalysis of unchanged 2026-09-29 samples",
+  "workspace_base_commit": "9f251f6e880f22afa27e6d130a43da767d9275ea",
+  "runtime_deployed": false,
+  "physical_router_modified": false,
+  "power_cycles_performed": 0,
+  "exact_image_netifd_reference": {
+    "revision": "cbb83a1857407a28a63dc09412a1f209195914ef",
+    "interface_ip_sha256": "215fc5b419756ef932df4b50f9b51283338503b13cc5cb1a92c53d5b73153d83",
+    "interface_ip_h_sha256": "ede5d2bfe6f207f463585556eb97f5e03f9c03333786953cc78a9f654b5769ba",
+    "ubus_c_sha256": "3ae2788070d1b0160ffaca536d33bf7514c7c1c546e3067fc975173ab0646205"
+  },
+  "rust_toolchain": "1.98.1-aarch64-unknown-linux-gnu",
+  "checks": {
+    "netifd_unit_tests_passed": 170,
+    "new_prefix_order_regressions": 4,
+    "benchmark_rust_tests_passed": 14,
+    "fw4_cli_tests_passed": 4,
+    "stack_analysis_tests_passed": 8,
+    "stack_manifest_tests_passed": 3,
+    "make_check_tools": true,
+    "make_check_harnesses": true,
+    "make_check_benchmark": true,
+    "all_726_memory_samples_match_page_rounded_model": true,
+    "historical_archive_and_frozen_plan_unchanged": true,
+    "manifest_generator_verified_on_original_nine_canonical_artifacts": true
+  },
+  "tested_source_sha256": {
+    "components/netifd/src/ip.rs": "a5b555935d640d4261d9f91b39e3e06d3e813f65b04af5dc950f7acad405b2f0",
+    "components/netifd/src/main.rs": "b71dc54af2e26542b7e31e74c641ab3465ffca6cb7abfe3bf2ea6b6b67ef2eca",
+    "tools/benchmark/src/fw4_output.rs": "e04460db604b221fa18c356ac41ab0deba0de490e88301ca4229a5470fc27b77",
+    "tools/benchmark/src/exec_journal.rs": "5ebd976f971d0b1854baa388e641efeeae2dddc661362628eb147c71bd84b356",
+    "tools/benchmark/src/main.rs": "9616e0d20395632c1583e8c627cd2d443794e8d4e5488edabd31e1ca14f1f485",
+    "tools/benchmark/live.sh": "969a6fbacc096349a2cb4c3f9d61fd56d90394014144ede03d5daab63ac35a12",
+    "tools/benchmark/test_fw4_cli.py": "0c2b57adc56e7276cb3db4905d28937c5cd7c403f477c8f5f21248e8fd9dc7f3",
+    "tools/stack_manifest.py": "720c9d1d5f940b4ed2e1d6bcfa0e8c333ef3389f940847356b0eb291ff08f110",
+    "tools/test_stack_manifest.py": "489e8eb5fffaeb47890042e2be22adad156cdd4c5bf40c3500062aef2c8a7df6",
+    "tools/benchmark/analyze_stack_trial.py": "09cb7ff9274c2a0a08fecd95e8b3e866a3e4b32a7bb12a4f0de01c1acaa96922",
+    "tools/benchmark/test_stack_analysis.py": "5aa298e9c0524c4f606bd21ebe9d8ca51761d7151d19eb74b528cbb209cb59a0"
+  },
+  "private_evidence_sha256": {
+    "linux-test-01.log": "ec855aa0f013b5e9be860ffb0ebd6d6039f7f094ffc59dade0d58d2ab8e95061",
+    "linux-test-02.log": "e3935104f2edbf7cb4976b78d0f05a060a7f138121bd6b5dc5edc4e85ed8a8c2",
+    "linux-final-checks.log": "c1d6995fc91d018f5a340a53cca7598de664614eac1af5ff8ee34c5eb9392433",
+    "netifd-final.log": "b7e5f6c2589467b27697233653a3698b39367c28d21eeddc9019854d5337ae8d",
+    "tested-source.sha256": "8dc9c905d31333db878ebafd8e8cd02f4d10bd6f4b62c12baea1f0de5f1b7902",
+    "canonical-run.json": "1d7f75e6b63d532b5f1c66c790171420e88a3fb62619302c6ebd45a4b766e4d1",
+    "corrected-manifest.json": "69f4b12fe25e7dbd3dfae5d448c441a0ce4493dcb83b2c58f98b0de1a8a646d2"
+  },
+  "qualification_notes": [
+    "Initial source copy omitted the shared RPCD profile example support; the build failure is retained and the complete-source run passed.",
+    "Unit and CLI validation do not replace deployment or electrical power-on testing.",
+    "The corrected manifest is a new derived file; the original deployment archive remains unchanged."
+  ]
+}

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whole control-plane workload on the router after a verified cold boot.
+# Whole control-plane workload on the router after a verified reboot.
 # Usage: sh live.sh stock|rust OUT [N=10000] [REPEATS=5] [IDLE_SECONDS=120]
 # Both modes use the same client and unchanged kernel/drivers/execution plane.
 # Requires /root/r84/bins/owrt-benchmark and stack-switch.sh's hash manifests.
@@ -17,6 +17,8 @@ mkdir -p "$out"
 [ ! -e "$out/STARTED" ] || { echo 'refusing to mix benchmark runs' >&2; exit 2; }
 touch "$out/STARTED"
 bench=/root/r84/bins/owrt-benchmark
+# Fail before collecting loads when an older, frozen client lacks this gate.
+"$bench" fw4-compare /dev/null /dev/null
 sha256sum "$bench" > "$out/benchmark-sha256.txt"
 /bin/sh /root/r84/stack-switch.sh verify "$mode" > "$out/running-hashes.txt"
 monitors=$(awk '$2 != "-" {if (sep) printf ","; printf "%s", $2; sep=1}' "$out/running-hashes.txt")
@@ -44,7 +46,7 @@ printf '{"lines":100,"stream":false}\n' > "$out/input-log.json"
 printf '{"log":[{}]}\n' > "$out/expect-log.json"
 : > "$out/empty.bytes"
 /rom/sbin/uci -S -n export network > "$out/expected-uci.bytes"
-/sbin/fw4 print > "$out/expected-fw4.bytes" 2> "$out/fw4-stderr.txt"
+/rom/sbin/fw4 print > "$out/expected-fw4.bytes" 2> "$out/fw4-stderr.txt"
 css=/luci-static/bootstrap/cascade.css
 cp "/www$css" "$out/expected-css.bytes"
 
@@ -65,7 +67,41 @@ printf '{"id":1,"result":[0,{"values":{"lan":{}}}]}\n' > "$out/http-expect.json"
 
 rpc() { # file object method input expected count
     file=$1; object=$2; method=$3; input=$4; expected=$5; count=$6
+    "$bench" snapshot "$monitors" > "$out/$file-system-before.json"
     "$bench" rpc "$socket" "$object" "$method" "$out/$input" "$out/$expected" "$count" 30 "$monitors" > "$out/$file.json"
+    "$bench" snapshot "$monitors" > "$out/$file-system-after.json"
+}
+
+measured() { # name command...
+    label=$1; shift
+    "$bench" snapshot "$monitors" > "$out/$label-system-before.json" || return $?
+    "$@" > "$out/$label.json" || return $?
+    "$bench" snapshot "$monitors" > "$out/$label-system-after.json"
+}
+
+fw4_round() {
+    local oracle="$out/$r-fw4-oracle" rc=0
+    mkdir "$oracle" "$oracle/samples"
+    ubus call network.interface dump > "$oracle/network-before.json"
+    /rom/sbin/fw4 print > "$oracle/before.stdout" 2> "$oracle/before.stderr"
+    [ -s "$oracle/before.stdout" ]
+    # The C reference calls are outside the target CPU and latency intervals.
+    # Retain every actual stdout, including a failed warm-up or measurement.
+    if OWRT_BENCH_EXEC_JOURNAL="$oracle/samples.jsonl" \
+       OWRT_BENCH_EXEC_ARTIFACTS="$oracle/samples" \
+       measured "$r-fw4" "$bench" exec-fw4 30 3 "$oracle/before.stdout" "$monitors" -- /sbin/fw4 print; then
+        rc=0
+    else
+        rc=$?
+    fi
+    /rom/sbin/fw4 print > "$oracle/after.stdout" 2> "$oracle/after.stderr"
+    [ -s "$oracle/after.stdout" ]
+    ubus call network.interface dump > "$oracle/network-after.json"
+    if ! "$bench" fw4-compare "$oracle/before.stdout" "$oracle/after.stdout"; then
+        echo 'fw4 window INVALID_ENV: original output changed during this round' >&2
+        return 1
+    fi
+    return "$rc"
 }
 
 # Fault in the code/data used by the same warm-up workload in both systems.
@@ -107,13 +143,13 @@ while [ "$r" -le "$repeats" ]; do
             log) rpc "$r-log" log read input-log.json expect-log.json "$n" ;;
         esac
     done
-    "$bench" exec 100 5 "$out/expected-uci.bytes" "$monitors" -- /sbin/uci -S -n export network > "$out/$r-uci.json"
-    "$bench" exec 30 3 "$out/expected-fw4.bytes" "$monitors" -- /sbin/fw4 print > "$out/$r-fw4.json"
-    "$bench" http 127.0.0.1:80 GET "$css" - "$out/expected-css.bytes" "$n" 30 "$monitors" bytes > "$out/$r-http-static.json"
-    "$bench" http 127.0.0.1:80 POST /ubus "$out/http-post.json" "$out/http-expect.json" "$n" 30 "$monitors" json > "$out/$r-http-jsonrpc.json"
+    measured "$r-uci" "$bench" exec 100 5 "$out/expected-uci.bytes" "$monitors" -- /sbin/uci -S -n export network
+    fw4_round
+    measured "$r-http-static" "$bench" http 127.0.0.1:80 GET "$css" - "$out/expected-css.bytes" "$n" 30 "$monitors" bytes
+    measured "$r-http-jsonrpc" "$bench" http 127.0.0.1:80 POST /ubus "$out/http-post.json" "$out/http-expect.json" "$n" 30 "$monitors" json
     # The outer measurement supplies a single, non-overlapping CPU interval
     # for all four lanes. Do not add their overlapping daemon CPU counters.
-    "$bench" exec 1 0 "$out/empty.bytes" "$monitors" -- /bin/sh "$out/mixed.sh" "$bench" "$socket" "$out" "$n" "$monitors" "$r-mixed" > "$out/$r-mixed-total.json"
+    measured "$r-mixed-total" "$bench" exec 1 0 "$out/empty.bytes" "$monitors" -- /bin/sh "$out/mixed.sh" "$bench" "$socket" "$out" "$n" "$monitors" "$r-mixed"
     printf 'round %s complete\n' "$r"
     r=$((r + 1))
 done

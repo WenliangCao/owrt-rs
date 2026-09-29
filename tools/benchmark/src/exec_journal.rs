@@ -7,6 +7,22 @@ use std::path::PathBuf;
 use std::process::{Command, Output};
 use std::time::Instant;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Validation {
+    Bytes,
+    Strict,
+    Fw4,
+}
+impl Validation {
+    fn matches(self, actual: &[u8], expected: &[u8]) -> bool {
+        if self == Self::Fw4 {
+            super::fw4_output::normalize(actual) == super::fw4_output::normalize(expected)
+        } else {
+            actual == expected
+        }
+    }
+}
+
 pub struct Journal {
     file: File,
     artifacts: PathBuf,
@@ -68,7 +84,7 @@ pub fn operation(
     program: &str,
     args: &[String],
     expected: &[u8],
-    strict_stderr: bool,
+    validation: Validation,
 ) -> Result<u64> {
     let path = journal
         .as_ref()
@@ -86,8 +102,12 @@ pub fn operation(
     let error = match &output {
         Err(e) => Some(format!("spawn: {e}")),
         Ok(o) if !o.status.success() => Some(format!("child exit: {}", o.status)),
-        Ok(o) if o.stdout != expected => Some("child stdout failed byte validation".into()),
-        Ok(o) if strict_stderr && !o.stderr.is_empty() => Some("child stderr was not empty".into()),
+        Ok(o) if !validation.matches(&o.stdout, expected) => {
+            Some("child stdout failed byte validation".into())
+        }
+        Ok(o) if validation == Validation::Strict && !o.stderr.is_empty() => {
+            Some("child stderr was not empty".into())
+        }
         Ok(_) => None,
     };
     if let (Some(j), Some(path)) = (journal.as_mut(), path.as_ref()) {
@@ -162,9 +182,25 @@ mod tests {
             "test \"$R84_ITERATION\" -lt 3 || { echo bad >&2; exit 9; }; echo ok".into(),
         ];
         for i in 0..3 {
-            operation(&mut journal, i, "/bin/sh", &args, b"ok\n", false).unwrap();
+            operation(
+                &mut journal,
+                i,
+                "/bin/sh",
+                &args,
+                b"ok\n",
+                Validation::Bytes,
+            )
+            .unwrap();
         }
-        assert!(operation(&mut journal, 3, "/bin/sh", &args, b"ok\n", false).is_err());
+        assert!(operation(
+            &mut journal,
+            3,
+            "/bin/sh",
+            &args,
+            b"ok\n",
+            Validation::Bytes
+        )
+        .is_err());
         let entries: Vec<_> = fs::read_to_string(&path)
             .unwrap()
             .lines()
@@ -184,10 +220,18 @@ mod tests {
             "/bin/echo",
             &["wrong".into()],
             b"ok\n",
-            false
+            Validation::Bytes
         )
         .is_err());
-        assert!(operation(&mut journal, 4, "/bin/echo", &["ok".into()], b"ok\n", false).is_err());
+        assert!(operation(
+            &mut journal,
+            4,
+            "/bin/echo",
+            &["ok".into()],
+            b"ok\n",
+            Validation::Bytes
+        )
+        .is_err());
         assert_eq!(
             fs::read(artifacts.join("iteration-000004/exec.stdout")).unwrap(),
             b"wrong\n"
@@ -200,9 +244,10 @@ mod tests {
     fn strict_exec_rejects_stderr_without_changing_ordinary_exec() {
         let noisy = ["-c".into(), "printf ok; printf warning >&2".into()];
         let quiet = ["-c".into(), "printf ok".into()];
-        assert!(operation(&mut None, 0, "/bin/sh", &noisy, b"ok", false).is_ok());
-        let error = operation(&mut None, 0, "/bin/sh", &noisy, b"ok", true).unwrap_err();
+        assert!(operation(&mut None, 0, "/bin/sh", &noisy, b"ok", Validation::Bytes).is_ok());
+        let error =
+            operation(&mut None, 0, "/bin/sh", &noisy, b"ok", Validation::Strict).unwrap_err();
         assert_eq!(error.to_string(), "child stderr was not empty");
-        assert!(operation(&mut None, 0, "/bin/sh", &quiet, b"ok", true).is_ok());
+        assert!(operation(&mut None, 0, "/bin/sh", &quiet, b"ok", Validation::Strict).is_ok());
     }
 }

@@ -41,6 +41,24 @@ impl DevicePrefix {
     }
 }
 
+/// Replace one owner's prefixes in protocol callback order. The reference
+/// `interface_update_prefix` unlinks the old node and uses list_add at the
+/// head even on renewal. This order is observable: network_get_ipaddr6 uses
+/// the first prefix assignment when the interface has no explicit address.
+pub fn replace_prefixes(
+    prefixes: &mut Vec<DevicePrefix>,
+    iface: Option<&str>,
+    fresh: Vec<DevicePrefix>,
+) -> usize {
+    let before = prefixes.len();
+    prefixes.retain(|p| p.iface.as_deref() != iface);
+    let removed = before - prefixes.len();
+    for prefix in fresh {
+        prefixes.insert(0, prefix);
+    }
+    removed
+}
+
 /// `clear_if_addr`: zero every bit below the prefix length.
 pub fn clear_if_addr(addr: Ipv6Addr, length: u8) -> Ipv6Addr {
     let mut o = addr.octets();
@@ -222,6 +240,74 @@ mod tests {
 
     fn req(name: &str, length: u8) -> AssignRequest {
         AssignRequest { name: name.into(), length, hint: None, weight: 0, classes: vec![] }
+    }
+
+    #[test]
+    fn delegated_prefix_precedes_ula_in_the_address_selected_by_network_sh() {
+        let ula = DevicePrefix::new("fd00:1234::".parse().unwrap(), 48, "local", None);
+        let pd = DevicePrefix::new("2001:db8:1::".parse().unwrap(), 64, "wan6", Some("wan6"));
+        let mut prefixes = Vec::new();
+        replace_prefixes(&mut prefixes, None, vec![ula]);
+        replace_prefixes(&mut prefixes, Some("wan6"), vec![pd]);
+
+        // Project the assignments through the real status encoder. On this
+        // LAN ipv6-address is empty and network.sh selects assignment[0].
+        let mut lan = crate::interface::Interface::new("lan");
+        lan.state = crate::interface::State::Up;
+        for p in &prefixes {
+            for assignment in assign(p, &[req("lan", 60)]) {
+                let addr = assignment_address(p, assignment.assigned);
+                lan.prefix_assignments.push(crate::interface::PrefixAssignment {
+                    addr,
+                    length: assignment.length,
+                    preferred_until: None,
+                    valid_until: None,
+                    local: Some((local_address(addr, "::1".parse().unwrap()), assignment.length)),
+                    owner: Some((p.iface.clone(), p.addr, p.length)),
+                });
+            }
+        }
+        let mut buf = owrt_ubus::BlobBuf::new();
+        lan.dump_status(&mut buf);
+        let status = owrt_ubus::convert::fields_to_json(buf.payload());
+        let owrt_ubus::json::Json::Array(addresses) = status.get("ipv6-address").unwrap() else { panic!() };
+        assert!(addresses.is_empty());
+        let owrt_ubus::json::Json::Array(assignments) = status.get("ipv6-prefix-assignment").unwrap() else { panic!() };
+        assert_eq!(assignments.len(), 2);
+        let first = assignments[0].get("local-address").unwrap();
+        assert_eq!(first.get("address").and_then(owrt_ubus::json::Json::as_str), Some("2001:db8:1::1"));
+    }
+
+    #[test]
+    fn renewal_ula_replacement_and_withdrawal_follow_c_list_add_order() {
+        let prefix = |addr: &str, iface: Option<&str>| {
+            DevicePrefix::new(addr.parse().unwrap(), 64, iface.unwrap_or("local"), iface)
+        };
+        let ula = prefix("fd00::", None);
+        let wan = prefix("2001:db8:1::", Some("wan6"));
+        let other = prefix("2001:db8:2::", Some("other6"));
+        let mut prefixes = Vec::new();
+        replace_prefixes(&mut prefixes, None, vec![ula.clone()]);
+        replace_prefixes(&mut prefixes, Some("wan6"), vec![wan.clone()]);
+        replace_prefixes(&mut prefixes, Some("other6"), vec![other.clone()]);
+        assert_eq!(prefixes, vec![other.clone(), wan.clone(), ula.clone()]);
+        // Even an unchanged PD renewal moves that owner's node to the head.
+        assert_eq!(replace_prefixes(&mut prefixes, Some("wan6"), vec![wan.clone()]), 1);
+        assert_eq!(prefixes, vec![wan.clone(), other.clone(), ula]);
+        let new_ula = prefix("fd01::", None);
+        replace_prefixes(&mut prefixes, None, vec![new_ula.clone()]);
+        assert_eq!(prefixes, vec![new_ula.clone(), wan, other.clone()]);
+        assert_eq!(replace_prefixes(&mut prefixes, Some("wan6"), vec![]), 1);
+        assert_eq!(prefixes, vec![new_ula, other]);
+    }
+
+    #[test]
+    fn multiple_pd_callbacks_are_prepended_in_notification_order() {
+        let first = DevicePrefix::new("2001:db8:1::".parse().unwrap(), 64, "wan6", Some("wan6"));
+        let last = DevicePrefix::new("2001:db8:2::".parse().unwrap(), 64, "wan6", Some("wan6"));
+        let mut prefixes = Vec::new();
+        replace_prefixes(&mut prefixes, Some("wan6"), vec![first.clone(), last.clone()]);
+        assert_eq!(prefixes, vec![last, first]);
     }
 
     #[test]

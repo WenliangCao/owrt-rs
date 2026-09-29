@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Detached Mac orchestrator for an already prepared, authorized cold switch.
+"""Detached Mac orchestrator for an authorized software-reboot stack switch.
 
 Run only after recovery artifacts and offline backups have been verified.
 Wi-Fi management is authorized; no LAN cable is required. This checks preflight, stages the chosen stack,
 requires a new boot and 180 seconds of continuous client health, and confirms
 Rust before its all-stock rollback deadline. It never restarts a live ubusd.
+This uses SSH reboot; it does not test loss and restoration of electrical power.
 """
 import argparse
 import datetime

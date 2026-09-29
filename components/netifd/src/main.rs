@@ -225,6 +225,46 @@ fn in_prefix(addr: IpAddr, prefix: IpAddr, len: u8) -> bool {
     }
 }
 
+/// `ipv6-prefix` walks an interface's prefix vlist (address, then mask),
+/// unlike `ipv6-prefix-assignment`, which walks the global head-inserted list.
+fn status_prefixes(
+    prefixes: &[ip::DevicePrefix],
+    interfaces: &[Interface],
+    name: &str,
+) -> Vec<interface::Prefix> {
+    let mut result: Vec<_> = prefixes
+        .iter()
+        .filter(|p| p.iface.as_deref() == Some(name))
+        .map(|p| {
+            let mut assigned: Vec<(String, Ipv6Addr, u8)> = interfaces
+                .iter()
+                .flat_map(|i| {
+                    i.prefix_assignments
+                        .iter()
+                        .filter(|a| {
+                            a.owner.as_ref().is_some_and(|(owner, addr, length)| {
+                                owner.as_deref() == Some(name)
+                                    && *addr == p.addr && *length == p.length
+                            })
+                        })
+                        .map(move |a| (i.name.clone(), a.addr, a.length))
+                })
+                .collect();
+            assigned.sort_by_key(|(_, a, _)| *a);
+            interface::Prefix {
+                addr: p.addr,
+                length: p.length,
+                preferred_until: p.preferred_until,
+                valid_until: p.valid_until,
+                class: p.class.clone(),
+                assigned,
+            }
+        })
+        .collect();
+    result.sort_unstable_by_key(|p| (p.addr, p.length));
+    result
+}
+
 /// `system_get_rtime`: seconds on the monotonic clock. See `clock`.
 fn now() -> u64 {
     clock::now()
@@ -742,37 +782,7 @@ impl Netifd {
     /// Construct only the daemon-owned part of the status view. The live
     /// interface's addresses, routes, DNS, settings and data stay borrowed.
     fn dump_interface_status(&self, b: &mut BlobBuf, i: &Interface) {
-        let prefixes: Vec<_> = self
-            .prefixes
-            .iter()
-            .filter(|p| p.iface.as_deref() == Some(i.name.as_str()))
-            .map(|p| {
-                let mut assigned: Vec<(String, Ipv6Addr, u8)> = self
-                    .interfaces
-                    .iter()
-                    .flat_map(|x| {
-                        x.prefix_assignments
-                            .iter()
-                            .filter(|a| {
-                                a.owner.as_ref().is_some_and(|(owner, addr, length)| {
-                                    owner.as_deref() == Some(i.name.as_str())
-                                        && *addr == p.addr && *length == p.length
-                                })
-                            })
-                            .map(move |a| (x.name.clone(), a.addr, a.length))
-                    })
-                    .collect();
-                assigned.sort_by_key(|(_, a, _)| *a);
-                interface::Prefix {
-                    addr: p.addr,
-                    length: p.length,
-                    preferred_until: p.preferred_until,
-                    valid_until: p.valid_until,
-                    class: p.class.clone(),
-                    assigned,
-                }
-            })
-            .collect();
+        let prefixes = status_prefixes(&self.prefixes, &self.interfaces, &i.name);
         i.dump_status_with(b, i.current_uptime(), &prefixes);
     }
 
@@ -1339,10 +1349,11 @@ impl Netifd {
             null.nodev = true;
             let _ = self.sys.del_route(0, &null);
         }
-        self.prefixes.retain(|p| p.iface.is_some());
-        if let Some((addr, len)) = fresh {
-            self.prefixes.push(ip::DevicePrefix::new(addr, len, "local", None));
-        }
+        let fresh = fresh
+            .map(|(addr, len)| ip::DevicePrefix::new(addr, len, "local", None))
+            .into_iter()
+            .collect();
+        ip::replace_prefixes(&mut self.prefixes, None, fresh);
         if !self.interfaces.is_empty() {
             self.refresh_prefix_assignments();
         }
@@ -4676,7 +4687,7 @@ impl Netifd {
     /// Replace the prefixes delegated to one interface. `class` and `iface`
     /// are the uplink's name, which is what the C reports and what the
     /// assignments are keyed by; the ULA keeps `local`.
-    fn set_delegated_prefixes(&mut self, iface: &str, mut fresh: Vec<ip::DevicePrefix>) -> bool {
+    fn set_delegated_prefixes(&mut self, iface: &str, fresh: Vec<ip::DevicePrefix>) -> bool {
         // interface_update_prefix sets IUF_PREFIX for added/removed entries,
         // or when a renewal changes either deadline on an existing entry.
         let old: Vec<_> = self.prefixes.iter().filter(|p| p.iface.as_deref() == Some(iface)).collect();
@@ -4684,7 +4695,6 @@ impl Netifd {
             !old.iter().any(|p| p.addr == n.addr && p.length == n.length
                 && p.preferred_until == n.preferred_until && p.valid_until == n.valid_until)
         });
-        let before = self.prefixes.len();
         // The null route belongs to the parent prefix, and the C removes it in
         // the same `node_old` branch that withdraws the assignments
         // (`system_del_route(NULL, &route)`). This has to be decided against
@@ -4703,10 +4713,8 @@ impl Netifd {
             null.nodev = true;
             let _ = self.sys.del_route(0, &null);
         }
-        self.prefixes.retain(|p| p.iface.as_deref() != Some(iface));
-        let removed = before - self.prefixes.len();
         let added = fresh.len();
-        self.prefixes.append(&mut fresh);
+        let removed = ip::replace_prefixes(&mut self.prefixes, Some(iface), fresh);
         if removed != 0 || added != 0 {
             self.refresh_prefix_assignments();
         }
@@ -5390,4 +5398,34 @@ fn loading_the_same_config_twice_reports_no_change() {
     let ch = classify_change(x, y, None);
     assert!(!ch.reload && !ch.reload_ip && !ch.delegation && !ch.assignment, "{ch:?}\nA: {x:#?}\nB: {y:#?}");
 }
+}
+
+#[cfg(test)]
+mod prefix_status_tests {
+    use super::*;
+    use owrt_ubus::json::Json;
+
+    #[test]
+    fn uplink_prefix_status_keeps_vlist_order_without_reordering_lan_assignments() {
+        let expected = [("2001:db8:1::", 56), ("2001:db8:1::", 64), ("2001:db8:2::", 64)];
+        let fresh = expected.iter().map(|(addr, len)| {
+            ip::DevicePrefix::new(addr.parse().unwrap(), *len, "wan6", Some("wan6"))
+        }).collect();
+        let mut prefixes = Vec::new();
+        ip::replace_prefixes(&mut prefixes, Some("wan6"), fresh);
+        let assignment_order = prefixes.clone();
+        let view = status_prefixes(&prefixes, &[], "wan6");
+        let mut wan = Interface::new("wan6");
+        wan.state = State::Up;
+        let mut buf = BlobBuf::new();
+        wan.dump_status_with(&mut buf, 0, &view);
+        let status = owrt_ubus::convert::fields_to_json(buf.payload());
+        let Some(Json::Array(rows)) = status.get("ipv6-prefix") else { panic!() };
+        assert_eq!(rows.len(), expected.len());
+        for (row, (addr, mask)) in rows.iter().zip(expected) {
+            assert_eq!(row.get("address").and_then(Json::as_str), Some(addr));
+            assert_eq!(row.get("mask"), Some(&Json::Int(mask as i64)));
+        }
+        assert_eq!(prefixes, assignment_order);
+    }
 }
