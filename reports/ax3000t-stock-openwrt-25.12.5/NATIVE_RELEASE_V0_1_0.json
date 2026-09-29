@@ -1,0 +1,60 @@
+{
+  "verified_at": "2026-09-29T17:09:56.023681+00:00",
+  "tag": "ax3000t-rust9-v0.1.0",
+  "tag_object_sha": "46d66d039f3603d541e2195daa4a3f6f497aaa89",
+  "build_source_commit": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+  "evidence_commit": "c37a2abe827c3a70197e49e7855192e0fd9ed85c",
+  "release_id": 399359821,
+  "release_url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0",
+  "firmware_url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/owrt-rust9-v0.1.0-openwrt-25.12.5-ax3000t-sysupgrade.bin",
+  "firmware_sha256": "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720",
+  "published_at": "2026-09-29T17:09:53Z",
+  "latest": true,
+  "draft": false,
+  "prerelease": false,
+  "asset_count": 8,
+  "all_assets_downloaded_and_hash_verified_before_publish": true,
+  "published_asset_digests_match": true,
+  "assets": {
+    "build-inputs-and-packages.tar.gz": {
+      "bytes": 4488691,
+      "sha256": "5b6431a8cff5b8ed66459d3abb584362d2726aa92d8ec6d41f95f8a4d7bf7abd",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/build-inputs-and-packages.tar.gz"
+    },
+    "components.sha256": {
+      "bytes": 710,
+      "sha256": "7dca18a810099d8af9013f07c73eda98c94caedc186fb668716ae1ed8c266ca8",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/components.sha256"
+    },
+    "owrt-rust9-v0.1.0-openwrt-25.12.5-ax3000t-sysupgrade.bin": {
+      "bytes": 12759328,
+      "sha256": "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/owrt-rust9-v0.1.0-openwrt-25.12.5-ax3000t-sysupgrade.bin"
+    },
+    "RECOVERY.md": {
+      "bytes": 1417,
+      "sha256": "250150ce599efd11a3f12f11487654c5e0326796af2700974b1f6700c412ff41",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/RECOVERY.md"
+    },
+    "release-manifest.json": {
+      "bytes": 6966,
+      "sha256": "a884057bbdbb44bd20db811dc8cca9786115bd85aded8b8971858a8614b86610",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/release-manifest.json"
+    },
+    "RELEASE_NOTES.md": {
+      "bytes": 3282,
+      "sha256": "5f943f674a3f0bb240ac3df377a2c06ad4a5fc0e842097891e81772523447577",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/RELEASE_NOTES.md"
+    },
+    "SHA256SUMS": {
+      "bytes": 645,
+      "sha256": "0398c8633ab63ee5b01356f8e5e1bf4cf15d9f7a7b050434bca90bb453ff8a78",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/SHA256SUMS"
+    },
+    "validation-summary.json": {
+      "bytes": 8971,
+      "sha256": "bc890229babccd465eebe1fce7acda7d7e24b4a8536c399473adaab0f3ac8f6a",
+      "url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/download/ax3000t-rust9-v0.1.0/validation-summary.json"
+    }
+  }
+}
