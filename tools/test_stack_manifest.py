@@ -61,6 +61,14 @@ class StackManifestTests(unittest.TestCase):
         (self.root / "canonical-core-manifest.json").write_text(json.dumps(core))
         with self.assertRaisesRegex(AssertionError, "canonical manifest"): build(self.root, self.old, self.workflow)
 
+    def test_native_image_is_rejected_by_legacy_deployment(self):
+        path = self.root / "canonical-manifest.json"
+        image = json.loads(path.read_text())
+        image["deployment_layout"] = "native-nine"
+        path.write_text(json.dumps(image))
+        with self.assertRaisesRegex(AssertionError, "legacy bind-mount"):
+            build(self.root, self.old, self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

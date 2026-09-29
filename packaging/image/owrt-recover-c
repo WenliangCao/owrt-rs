@@ -1,0 +1,49 @@
+#!/bin/sh
+# Native-image recovery. Stages verified C originals; never reboots itself.
+# Also works from failsafe after mount_root, without ubus or a running netifd.
+set -eu
+[ "$#" -eq 0 ] || { echo 'usage: owrt-recover-c (then reboot)' >&2; exit 2; }
+base=/usr/libexec/owrt-stock
+manifest=/usr/share/owrt-control-plane/stock.sha256
+test -r /proc/self/mountinfo
+test "$(wc -l < "$manifest")" -eq 9
+test "$(awk '{print $2}' "$manifest" | sort -u | wc -l)" -eq 9
+sha256sum -c "$manifest" >/dev/null
+
+# Refuse a layered installation: replacing a mounted executable would not
+# change the next boot in the intended way.
+while read -r hash source; do
+    target=${source#"$base"}
+    case "$target" in
+        /sbin/procd|/sbin/ubusd|/sbin/netifd|/sbin/rpcd|/sbin/logd|/sbin/uci|/sbin/fw4|/sbin/reload_config|/usr/sbin/uhttpd) ;;
+        *) echo "invalid recovery path: $source" >&2; exit 1 ;;
+    esac
+    if awk -v target="$target" '$5 == target { found = 1 } END { exit !found }' /proc/self/mountinfo; then
+        echo "recovery target is mounted: $target" >&2
+        exit 1
+    fi
+done < "$manifest"
+
+cleanup() {
+    while read -r hash source; do
+        rm -f "${source#"$base"}.owrt-recovery-new"
+    done < "$manifest"
+}
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
+
+# Prepare and verify the entire set before changing any active path.
+while read -r hash source; do
+    target=${source#"$base"}
+    cp -p "$source" "$target.owrt-recovery-new"
+    cmp -s "$source" "$target.owrt-recovery-new"
+    test -x "$target.owrt-recovery-new"
+done < "$manifest"
+sync
+while read -r hash source; do
+    target=${source#"$base"}
+    mv -f "$target.owrt-recovery-new" "$target"
+    cmp -s "$source" "$target"
+done < "$manifest"
+sync
+echo 'All nine C originals staged. Reboot to activate the complete C stack.'

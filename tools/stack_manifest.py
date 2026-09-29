@@ -22,6 +22,8 @@ def sha(path):
 
 def build(bundle, original, workflow):
     image = read(bundle / "canonical-manifest.json")
+    assert image.get("deployment_layout", "layered-six") == "layered-six", \
+        "native firmware must not be deployed using the legacy bind-mount bundle"
     core = read(bundle / "canonical-core-manifest.json")
     source = image["source_commit"]
     assert source == core["source_commit"] == workflow["headSha"], "canonical source mismatch"

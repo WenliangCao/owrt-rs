@@ -1,7 +1,8 @@
 name: release-image
-# Builds the seven owrt-* apks with the official OpenWrt SDK and a
-# xiaomi_mi-router-ax3000t sysupgrade image with the ImageBuilder, then
-# validates the image content offline. Nothing is flashed: the image is an
+# Builds all nine Rust programs with the official OpenWrt SDK, assembles one
+# native owrt-control-plane APK and AX3000T sysupgrade image, then validates
+# file ownership, stock recovery and execution-plane identity. The six legacy
+# packages/image are build intermediates. Nothing is flashed: the image is an
 # artifact (and a GitHub release when triggered by a v* tag).
 on:
   workflow_dispatch:
@@ -64,23 +65,17 @@ jobs:
       - name: build standalone core components
         run: sh tools/ci_build_core.sh "$GITHUB_WORKSPACE/work"
 
+      - name: integrate nine native components and verify the final image
+        run: sh tools/ci_integrate_image.sh "$GITHUB_WORKSPACE/work"
+
       - name: summary
         run: |
-          { echo '### owrt-control-plane-rs image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          { echo '### Native nine-component image for OpenWrt ${{ env.OPENWRT_VERSION }}'; echo; echo '```'; cat work/native/out/SHA256SUMS; echo '```'; echo; echo '#### shipped binaries'; echo '```'; cat work/native/out/binary-sha256.txt; echo '```'; echo; echo '```json'; cat work/native/out/manifest.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
           name: owrt-image-${{ env.OPENWRT_VERSION }}-${{ github.sha }}
-          path: |
-            work/out/*.apk
-            work/out/*-sysupgrade.bin
-            work/out/SHA256SUMS
-            work/out/binary-sha256.txt
-            work/out/manifest.json
-            work/out/core-binaries.tar.gz
-            work/out/core-binary-sha256.txt
-            work/out/core-manifest.json
-            work/out/*.log
+          path: work/native/out/*
           if-no-files-found: error
           retention-days: 90
 
@@ -91,5 +86,5 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME} (OpenWrt ${OPENWRT_VERSION})" \
             --notes "Built by release-image from ${GITHUB_SHA}. Not flashed; see docs/RELEASE.md." \
-            work/out/*.apk work/out/*-sysupgrade.bin work/out/SHA256SUMS work/out/binary-sha256.txt work/out/manifest.json \
-            work/out/core-binaries.tar.gz work/out/core-binary-sha256.txt work/out/core-manifest.json
+            work/native/out/*.apk work/native/out/*-sysupgrade.bin work/native/out/SHA256SUMS \
+            work/native/out/binary-sha256.txt work/native/out/manifest.json work/native/out/build-inputs.json

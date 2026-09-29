@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "openwrt": "25.12.5",
+  "profile": "xiaomi_mi-router-ax3000t",
+  "architecture": "aarch64_cortex-a53",
+  "package": "owrt-control-plane",
+  "version": "0.1.0-r1",
+  "components": {
+    "fw4": {
+      "path": "/sbin/fw4",
+      "stock_sha256": "c240b413a4cf80617ac1a71f601d2e0edae46b0493e3c00fbe883b2446e4a1a6",
+      "stock_package": "firewall4",
+      "binary": "fw4-rs"
+    },
+    "httpd": {
+      "path": "/usr/sbin/uhttpd",
+      "stock_sha256": "1f8dc03d563489626215a1e7b33ebac693737e39e3f8d862a5d836c178b491b3",
+      "stock_package": "uhttpd",
+      "binary": "httpd-rs"
+    },
+    "logd": {
+      "path": "/sbin/logd",
+      "stock_sha256": "894c81b683662b57756e0462f66d12c1a3a5c0255863e645d9210e122e9b7a89",
+      "stock_package": "logd",
+      "binary": "logd-rs"
+    },
+    "netifd": {
+      "path": "/sbin/netifd",
+      "stock_sha256": "8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90",
+      "stock_package": "netifd",
+      "binary": "netifd-rs"
+    },
+    "procd": {
+      "path": "/sbin/procd",
+      "stock_sha256": "36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a",
+      "stock_package": "procd",
+      "binary": "procd-rs"
+    },
+    "reload-config": {
+      "path": "/sbin/reload_config",
+      "stock_sha256": "f1527a793209e14b6325e8afd57e0e11600a285016e5b854f299a59bb6fa4e15",
+      "stock_package": "procd",
+      "binary": "reload_config_rs"
+    },
+    "rpcd": {
+      "path": "/sbin/rpcd",
+      "stock_sha256": "94bed60981a6e71638b5bb4552c1f3539c550d4625af7d5ada7d71bbafdb8947",
+      "stock_package": "rpcd",
+      "binary": "rpcd-rs"
+    },
+    "ubusd": {
+      "path": "/sbin/ubusd",
+      "stock_sha256": "cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88",
+      "stock_package": "ubusd",
+      "binary": "ubusd-rs"
+    },
+    "uci": {
+      "path": "/sbin/uci",
+      "stock_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
+      "stock_package": "uci",
+      "binary": "uci-rs"
+    }
+  }
+}
