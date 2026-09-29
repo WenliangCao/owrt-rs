@@ -5,9 +5,12 @@ AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5da
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
 保留精确 C 原件与离线恢复材料。
 
-**现状（2026-09-29）：九个修复后的 Rust 组件在路由器运行，一轮物理断电与延迟接回 WAN 已通过；试验工具已清理。**
-见[修复记录](docs/reviews/POWER_RECOVERY_20260929_FIX.md)与[清理记录](docs/reviews/POWER_RECOVERY_20260929_CLEANUP.md)。
-完整九组件固件已构建并通过离线验收，尚未刷入路由器；见[镜像验收](docs/reviews/NATIVE_IMAGE_20260929.md)。
+**现状（2026-09-29）：完整九组件 Rust 固件已保留配置刷入，客户端验收与用户物理断电复测通过，试验工具已清理。**
+固定回溯节点：[AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)，
+构建源码 `a4053dd`；Release 保存实际刷入镜像、完整组件身份和校验资料。
+见[部署记录](docs/reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)与[镜像验收](docs/reviews/NATIVE_IMAGE_20260929.md)。
+前一次分层部署的断电修复和清理见
+[修复记录](docs/reviews/POWER_RECOVERY_20260929_FIX.md)与[清理记录](docs/reviews/POWER_RECOVERY_20260929_CLEANUP.md)。
 统一安装布局、配置迁移和 C 恢复方式见[发布说明](docs/RELEASE.md)。
 
 **历史状态（2026-09-20）：当时路由器运行精确 C 原版；R95 只做隔离测试。**
@@ -73,7 +76,9 @@ ubusd CPU不再随客户端数增长；正式构建随后走完隔离矩阵与�
 
 ## 控制面组件
 
-| 组件（crate） | 替代 | 上游参考 | 上线形态 | 首次上线 | 报告 |
+下表的安装形态记录首次分层上线。当前九个标准入口均由统一 `owrt-control-plane` 包原位提供。
+
+| 组件（crate） | 替代 | 上游参考 | 首次上线形态 | 首次上线 | 报告 |
 |---|---|---|---|---|---|
 | `components/reload-config` | `/sbin/reload_config`（procd 配置变更分发） | procd 触发链 | apk `owrt-reload-config`，bind mount | 2026-09-02 | R05_GO_LIVE |
 | `components/logd` | logd | ubox | apk `owrt-logd`，服务替换 | 2026-09-02 | R15_LOGD |
@@ -89,7 +94,7 @@ ubusd CPU不再随客户端数增长；正式构建随后走完隔离矩阵与�
 前六个通过 apk 包安装，`owrt-<name>-switch enable|disable|boot-enable` 显式切换，`owrt-switch status`
 一处查看；后三个是"失效即失联"的组件，在 bind mount 生效之前就已运行，所以改为在 overlay 上直接
 替换 `/sbin/<x>`。冗余 `.c-orig` 已在 2026-09-29 清理，stock `/rom` 原件与离线备份保留。
-这段描述的是当前真机的分层部署；完整集成镜像中九个程序均原位安装，C 救援原件另存于 `/usr/libexec/owrt-stock/`。
+这段描述的是此前的分层部署；当前集成固件中九个程序均原位安装，C 救援原件另存于 `/usr/libexec/owrt-stock/`。
 
 第三方依赖只有 httpd 的 rustls/ring（TLS）。其余全部标准库 + 自写 FFI。发布构建 opt-level 3、
 静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。
@@ -121,8 +126,12 @@ R84 版本的逐组件、CPU、延迟、内存、存储和测量边界以该报�
 
 ## 回退
 
-当前九组件部署优先使用 [R92 整栈冷回退流程](docs/R92_RELEASE_AND_ROLLBACK.md)。
-回到 R90 必须先重装其保存的 APK；仅交换 bundle 目录不够。
+当前原生固件使用 `owrt-recover-c` 准备九组件 C 栈，然后单独重启；failsafe 中先 `mount_root`。
+详见[救援手册第 7 节](docs/RUNBOOK_AX3000T_RECOVERY.md#7-完整九组件集成镜像的-c-恢复)。
+当前 `/rom` 内的九个入口也是 Rust，不能作为 C 原件。
+
+下表仅记录历史 stock + overlay 部署的恢复方式，已删除的 `/root/r84` 工具需要从离线备份恢复后才可使用。
+历史 [R92 整栈冷回退流程](docs/R92_RELEASE_AND_ROLLBACK.md)不适用于当前原生镜像。
 
 | 组件 | 回退 |
 |---|---|

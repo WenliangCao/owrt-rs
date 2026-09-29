@@ -1,0 +1,239 @@
+{
+  "date": "2026-09-29",
+  "status": "native_nine_firmware_qualified_and_cleaned",
+  "canonical_run": 36592957923,
+  "firmware_source_commit": "a4053dd5d4b4b2dbed3ff8a56d595aeabd33e0d0",
+  "firmware_sha256": "144c1283da1fb3ead5e4ee7b8b55f66b7d9e872f785892f87cadf9fca6ed0720",
+  "deployment_tools_commit": "c00f9f73a03be314fc8078268570a857382787eb",
+  "flash_requested_at": "2026-09-29T16:39:53.891225+00:00",
+  "confirmed_at": "2026-09-29T16:44:19.297542+00:00",
+  "first_full_client_health_s": 80.2,
+  "continuous_client_health_s": 182.45436033399892,
+  "continuous_health_samples": 15,
+  "previous_boot_id": "f15e1a83-1e08-41f6-99d5-f990c7116c4f",
+  "firmware_identity": {
+    "installed_package_versions_match_canonical": 164,
+    "ROM_regular_file_hashes_match_canonical": 910
+  },
+  "runtime_identity": {
+    "runtime_daemons": {
+      "procd": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+      "ubusd": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+      "netifd": "adcf2bee51a4d985cea4ed01497da42988b8d0c9ab71eaf2d49eef821afc0a1f",
+      "rpcd": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+      "logd": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+      "uhttpd": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa"
+    },
+    "ROM_components_verified": 9,
+    "executable_bind_mounts": 0
+  },
+  "configuration": {
+    "config_files_unchanged": 19,
+    "other_protected_files_unchanged": 9,
+    "protected_categories": [
+      "LED cron",
+      "rc.local",
+      "sysupgrade.conf",
+      "password files",
+      "SSH host keys",
+      "TLS certificate and key"
+    ],
+    "original_sysupgrade_backup_members_preserved": 45,
+    "unchanged_default_omitted_by_sysupgrade_verified_in_live_ROM_and_final_image": [
+      "/etc/sysupgrade.conf"
+    ]
+  },
+  "health": {
+    "boot_id": "60a8f095-66b1-4bb7-b38f-c52fa318afbf",
+    "mode": "existing",
+    "client_interface": "en0",
+    "client_dhcp": true,
+    "interfaces_up": [
+      "loopback",
+      "lan",
+      "wan",
+      "wan6"
+    ],
+    "ap_bridges": [
+      "phy0-ap0",
+      "phy1-ap0"
+    ],
+    "watchdog_running": true,
+    "local_http_https": true,
+    "dns_ipv4": true,
+    "dns_ipv6": true,
+    "router_internet_https": true
+  },
+  "additional_egress": {
+    "ipv4_egress": {
+      "returncode": 0
+    },
+    "ipv6_egress": {
+      "returncode": 0
+    },
+    "ipv6_https": {
+      "returncode": 0
+    },
+    "client_global_IPv6_addresses": 3,
+    "wan6_up": true,
+    "WAN_global_IPv6_addresses": 1,
+    "delegated_prefixes": 1
+  },
+  "package_ownership": "all nine standard paths owned by owrt-control-plane-0.1.0-r2",
+  "executable_bind_mounts": 0,
+  "legacy_component_services_and_boot_flags_present": false,
+  "storage": {
+    "before": {
+      "total_kib": 62044,
+      "used_kib": 5084,
+      "available_kib": 53752
+    },
+    "after": {
+      "total_kib": 59060,
+      "used_kib": 276,
+      "available_kib": 55728
+    },
+    "available_gain_kib": 1976,
+    "notes": "The after reading includes the temporary guard; after_cleanup is the final clean native image deployment. Overlay total shrank as the read-only rootfs grew.",
+    "after_cleanup": {
+      "total_kib": 59060,
+      "used_kib": 72,
+      "available_kib": 55932
+    },
+    "available_gain_after_cleanup_kib": 2180
+  },
+  "automatic_recovery": {
+    "installed": false,
+    "source": "private config archive; not baked into firmware",
+    "first_confirmation_timeout_s": 600,
+    "accepted_health_failure_timeout_s": 300,
+    "unhealthy_boot_limit": 3,
+    "client_confirmation_preserves_future_boot_guard": true,
+    "current_unhealthy_boot_count": 0,
+    "guard_payload_hashes_verified": true,
+    "fallback_occurred": false,
+    "activation_boundary": "S01 under native procd; earlier boot/flash failures require failsafe or external recovery",
+    "C_source": "/usr/libexec/owrt-stock; not /rom/sbin",
+    "packet_or_continuous_state_collector_running": false,
+    "removed_at_user_request": true,
+    "removed_at": "2026-09-29T16:58:39.490630+00:00"
+  },
+  "offline_recovery_gate": {
+    "guard_cases": {
+      "first_boot_requires_client_confirmation": true,
+      "accepted_but_no_network_restores_after_300s": true,
+      "third_unhealthy_boot_restores": true,
+      "healthy_accepted_boot_resets_counter": true,
+      "health_lost_after_acceptance_restores": true,
+      "matching_client_confirmation_accepted": true,
+      "stale_client_confirmation_rejected": true,
+      "damaged_C_original_blocks_recovery": true,
+      "recovered_C_boot_does_not_reboot": true
+    },
+    "restore_and_migration": {
+      "native_configuration_restore_keeps_guard_and_migrates_old_service_disables": true
+    },
+    "native_startup_with_guard": {
+      "pid1_and_five_daemon_identities": true,
+      "standard_service_paths": true,
+      "synthetic_LAN_and_WAN_up": true,
+      "HTTP_and_HTTPS_content": true,
+      "first_boot_certificate_generation": true,
+      "log_roundtrip": true,
+      "uci_and_reload_config": true,
+      "fw4_matches_stock_and_checks": true,
+      "no_executable_bind_mounts": true,
+      "PID1_reboot_exits_namespace": true,
+      "physical_hardware_tested": false,
+      "temporary_trial_guard_started_and_alive": true
+    },
+    "C_Rust_sysupgrade_handover": true,
+    "source_sha256": {
+      "native_trial.init": "9c081b6a0e13c19ae613bbd854964a6f055b0b514a179ce945101bfee2098ae1",
+      "native_trial_guard_selftest.py": "255b8eba1411035bfec4916d5ceeb38eb869ad843be9213ff130c1deb8dc1918",
+      "native_trial_guard.sh": "c1819e98e1836d8f6e66232457fd21e3ca9b4131b50d4c7017609cf91847b761",
+      "native_boot_check.sh": "89218e9c4a9962453bbad3cb8645467549c605017b38f8b7bab01c50215c2ab1"
+    },
+    "bounded_helper_sha256": "6601157ffeec54f054029455c3e6da5129be6efcbc2ecceadec6f9c3e74c39eb",
+    "evidence_sha256": "fd08102d0ac65d5093ae77451ba32dab7233e7e163bb9b352006f63e46c36fec",
+    "earliest_failed_fixture_retained": "guard-test-01 missed fake /proc/self/mountinfo; recovery refused, then fixture corrected and final cases rerun"
+  },
+  "backups": {
+    "config-backup.tar.gz": {
+      "bytes": 9626,
+      "sha256": "e3a7ee85fbf647d6b8e388c5dd93ab6c3a3fa0c538aecd7d0e4a025bba52bd8b",
+      "members": 45
+    },
+    "overlay-upper.tar.gz": {
+      "bytes": 4264527,
+      "sha256": "647f13ab5209b57b66c004a88b591aae38b518ecf7c91c7527432bad07d01c06",
+      "members": 152
+    }
+  },
+  "offline_recovery_images_verified": 2,
+  "scope": {
+    "preserve_config_flash": true,
+    "upgrade_reboot_completed": true,
+    "physical_power_cycle_tested": true,
+    "performance_benchmark_performed": false,
+    "client_path": "DHCP, LAN route, AP bridge state and HTTP/HTTPS checked from Mac; internet DNS/HTTPS checked on router due client VPN filtering"
+  },
+  "evidence": {
+    "private_directory": "private/native-deploy-20260929",
+    "raw_artifacts_committed": false,
+    "sysupgrade_client_disconnect": "expected exec handover disconnect; accepted only after new boot, ROM identity and continuous client health verification"
+  },
+  "upgrade_boot_id": "60a8f095-66b1-4bb7-b38f-c52fa318afbf",
+  "current_boot_id": "4c98205c-b151-4533-975e-5d47c121de03",
+  "physical_retest": {
+    "user_report": "User removed/reconnected power and the WAN cable during the reply interval; connectivity returned quickly and the old failure did not recur.",
+    "observed_new_boot": true,
+    "successful_trials_observed": 1,
+    "prescribed_delay_series_performed": false,
+    "guard_started_uptime_s": 10,
+    "guard_recorded_stable_health_uptime_s": 56,
+    "C_fallback_occurred": false
+  },
+  "final_health": {
+    "boot_id": "4c98205c-b151-4533-975e-5d47c121de03",
+    "mode": "existing",
+    "client_interface": "en0",
+    "client_dhcp": true,
+    "interfaces_up": [
+      "loopback",
+      "lan",
+      "wan",
+      "wan6"
+    ],
+    "ap_bridges": [
+      "phy0-ap0",
+      "phy1-ap0"
+    ],
+    "watchdog_running": true,
+    "local_http_https": true,
+    "dns_ipv4": true,
+    "dns_ipv6": true,
+    "router_internet_https": true
+  },
+  "cleanup": {
+    "at": "2026-09-29T16:58:39.490630+00:00",
+    "temporary_guard_removed": true,
+    "same_nine_Rust_runtime_processes": true,
+    "no_restart_or_reboot_during_cleanup": true,
+    "client_health_passed": true,
+    "guard_archive": {
+      "file": "native-trial-retired.tar.gz",
+      "sha256": "f24442c4a4c2fa06b056a0a1caf30778b506f7e9f6ffddcc7bb6acc9daceabb1",
+      "regular_files_verified": 10
+    },
+    "clean_config_backup": {
+      "file": "native-clean-config.tar.gz",
+      "sha256": "b74a28a388ec29b482e427c80f3624851af556533f242932312091fc1b0ef5ac"
+    },
+    "physical_retest_observed": true,
+    "physical_boot_id": "4c98205c-b151-4533-975e-5d47c121de03",
+    "C_fallback_occurred": false
+  },
+  "release_tag": "ax3000t-rust9-v0.1.0",
+  "release_url": "https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0"
+}

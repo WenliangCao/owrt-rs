@@ -4,7 +4,7 @@
 
 当前适配范围固定为 OpenWrt **25.12.5**、`mediatek/filogic`、`xiaomi_mi-router-ax3000t`。[配方](../packaging/image/native-25.12.5.json)固定九个标准路径、C 原件哈希及原软件包所有者。[镜像配方说明](../packaging/image/README.md)描述安装与迁移约定。
 
-首份正式集成镜像 `owrt-control-plane 0.1.0-r2` 已完成构建和离线验收，尚未刷入路由器。[验收记录](reviews/NATIVE_IMAGE_20260929.md)固定最终产物身份、配置迁移、恢复后 C 启动和延迟 WAN 回归结果。
+首份正式集成镜像 `owrt-control-plane 0.1.0-r2` 已完成构建、离线验收、保留配置真机部署和用户物理断电复测。固定版本为 [AX3000T Rust9 v0.1.0](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)。[镜像验收](reviews/NATIVE_IMAGE_20260929.md)固定产物身份与离线证据；[部署记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)记录实际运行和清理结果。临时保护已移除，正式镜像本身也不包含试验服务。
 
 ## 安装布局
 
@@ -50,6 +50,8 @@ Linux 构建环境下的 `make ci-image VERSION=25.12.5` 运行相同三个阶�
 
 失败流水线另存诊断日志和已生成的候选镜像。未通过的候选不作为发布完成证据。推送 `v*` 标签才创建 GitHub Release；普通 workflow_dispatch 只生成 Actions artifact。
 
+已验收的生产回溯节点采用设备专用标签，例如 `ax3000t-rust9-v0.1.0`：annotated tag 直接指向实际构建提交，从保存的正式产物晋升到 Release，不重新构建。`tools/native_release_prepare.py` 核验固件与真机报告的身份，生成可刷写镜像、组件 SHA256、发布 manifest、验收摘要、恢复说明与装配包归档。先上传草稿并下载复核全部资产，再发布为 Latest。标签的构建提交和后续验收/文档提交分别记录，后续研究使用新版本，不移动已有发布标签。
+
 ## 保留配置与首次迁移
 
 sysupgrade 的默认保留配置流程备份选定文件、安装新系统，再由原 preinit 实现恢复。它不保留整个 overlay。个人网络、Wi-Fi、密码、证书与定时任务通过配置备份迁移，不进入公共镜像。额外保留项仍由 `/etc/sysupgrade.conf` 和 `/lib/upgrade/keep.d/*` 决定。
@@ -83,6 +85,8 @@ reboot
 `tools/native_boot_check.sh` 使用镜像内的 PID1、总线和标准启动脚本，验证模拟 LAN/WAN、RPCD、日志、HTTP/HTTPS、首次证书生成、UCI、reload_config、fw4 与无额外命令挂载。物理无线、闪存写入和断电行为仍由真机验收负责，隔离测试不能替代这些项目。
 
 刷机前需重新核验离线备份、正式镜像身份、适用于新布局的自动回退及客户端健康。现有分层部署的 `/rom` 恢复假设和 `/root/r84` 工具不适用于此镜像。Wi-Fi 管理仍获授权；网线不是普通部署的前提，实际 failsafe/TFTP 操作见[救援手册](RUNBOOK_AX3000T_RECOVERY.md)。
+
+首次原生部署使用的临时保护见[冻结计划](reviews/NATIVE_DEPLOYMENT_20260929_PLAN.md)，已在用户物理复测通过后按要求清理。该计划保留为历史执行依据，当前常规恢复使用镜像内的 `owrt-recover-c`。
 
 ## 后续 OpenWrt 版本
 

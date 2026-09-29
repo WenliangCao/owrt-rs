@@ -1,5 +1,9 @@
 # AX3000T 救援手册（离线可用）
 
+**当前状态（2026-09-29）：已刷入完整九组件原生 Rust 固件。首先按本页第 7 节恢复，
+`/rom/sbin/*` 也是 Rust。** 本页第 1–3 节的 stock C 原件与恢复出厂回到 C 的描述仅适用于历史镜像；
+按键、lan4 和 TFTP 救援步骤继续作为硬件恢复参考。当前部署见[记录](reviews/NATIVE_DEPLOYMENT_20260929_RESULT.md)。
+
 适用：Xiaomi AX3000T（RD03，MT7981，原厂小米 bootloader），OpenWrt 25.12.5 stock 布局，
 本项目六个 Rust 组件以 boot-enable 运行，procd/ubusd/netifd 在 overlay 中替换。写给失联时独自操作的人；每一级都比上一级更重，
 **先试轻的**。数字与路径都按 2026-09-03 设备实测。
@@ -177,7 +181,7 @@ Factory 分区含 Wi-Fi 校准数据，丢失后无法从任何镜像补回；�
 ## 7. 完整九组件集成镜像的 C 恢复
 
 适用于 `/usr/share/owrt-control-plane/release.json` 标识 `native-nine` 的固件。
-2026-09-29 当前真机仍是前述 stock + overlay 部署；这段为集成固件准备。
+2026-09-29 真机已从前述 stock + overlay 部署迁移到此布局，保留配置验收通过。
 
 集成镜像在标准路径直接内置 Rust，`/rom/sbin/procd` 等也已是 Rust。九份固定版本的 C 原件改存于
 `/usr/libexec/owrt-stock/`，保留原目录结构。原版内核、早期 init、preinit/failsafe 与执行面保留。
@@ -188,6 +192,10 @@ SSH 仍可用时执行 `owrt-recover-c`；failsafe 中先执行 `mount_root`，�
 
 这个入口保留用户配置，仅安排九组件恢复原版。首次迁移时用的是原 `log/rpcd/uhttpd` 启动服务，
 所以恢复 C 不需要重建另一套开关脚本。若服务被用户手工禁用，按实际故障恢复对应服务的启动项。
+
+首次部署使用过的 `/root/owrt-native-trial/` 和 `S01owrt-native-trial` 已在用户物理复测通过后移除，
+资料归档在电脑上的 `private/native-deploy-20260929/`。当前没有试验自动回退进程，按本节手动恢复。
+固定的可刷写版本与身份清单保存在 [AX3000T Rust9 v0.1.0 Release](https://github.com/WenliangCao/owrt-control-plane-rs/releases/tag/ax3000t-rust9-v0.1.0)。
 
 恢复出厂会清空 overlay 并重新使用镜像内的 Rust。需要永久恢复官方固件时，应使用独立验证过的
 官方镜像与配置备份，不能把当前集成镜像的 `/rom` 当成完整 C 根文件系统。
