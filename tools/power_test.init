@@ -1,0 +1,10 @@
+#!/bin/sh /etc/rc.common
+# Start before S10boot/S20network, using only the original shell and helper.
+# shellcheck disable=SC2034
+START=01
+start() {
+    if [ -f /root/owrt-power-test/capture-enabled ]; then
+        /bin/sh /root/owrt-power-test/power_capture.sh start </dev/null >>/root/owrt-power-test/start.log 2>&1 || true
+    fi
+    /bin/sh /root/owrt-power-test/power_guard.sh run </dev/null >>/root/owrt-power-test/guard-stderr.log 2>&1 &
+}

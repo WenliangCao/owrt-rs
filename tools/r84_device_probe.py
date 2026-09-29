@@ -142,7 +142,7 @@ def main():
     try:
         print(json.dumps(probe(args.host, args.mode, args.interface, not args.ipv4_only,
                                args.static_client), sort_keys=True))
-    except (RuntimeError, OSError, ValueError, KeyError, http.client.HTTPException,
+    except (RuntimeError, OSError, ValueError, KeyError,
             subprocess.TimeoutExpired) as exc:
         print(json.dumps({"error": str(exc)}))
         return 1
