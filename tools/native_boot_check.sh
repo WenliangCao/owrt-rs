@@ -19,6 +19,11 @@ for entry in S12log S12rpcd S20network S50uhttpd; do
     ln -s "../init.d/$service" "$root/etc/rc.d/$entry"
 done
 mkdir -p "$root/tmp/out" "$root/var/run"
+cat > "$root/etc/config/system" <<'SYSTEM'
+config system
+ option hostname 'native-fixture'
+ option log_size '64'
+SYSTEM
 cat > "$root/etc/config/network" <<'NETWORK'
 config interface 'loopback'
  option device 'lo'
@@ -108,6 +113,7 @@ DRIVE
 chmod 755 "$root/tmp/native-drive.sh"
 cat > "$root/etc/inittab" <<'INITTAB'
 ::sysinit:/etc/init.d/rcS S boot
+::shutdown:/etc/init.d/rcS K shutdown
 ::respawn:/bin/sh /tmp/native-drive.sh
 INITTAB
 
@@ -127,6 +133,7 @@ container=1 timeout -s KILL 90 unshare --mount --net --pid --uts --ipc --fork --
     ip link set lo up
     ip link add lan1 type dummy
     ip link add wan type dummy
+    chroot "$root" /bin/mkdir -p /var/lock /var/run /var/log /var/state /tmp/resolv.conf.d
     exec chroot "$root" /sbin/procd
 ' sh "$root" > "$out/pid1.log" 2>&1
 status=$?

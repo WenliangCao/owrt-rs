@@ -4,7 +4,7 @@
   "profile": "xiaomi_mi-router-ax3000t",
   "architecture": "aarch64_cortex-a53",
   "package": "owrt-control-plane",
-  "version": "0.1.0-r1",
+  "version": "0.1.0-r2",
   "components": {
     "fw4": {
       "path": "/sbin/fw4",
@@ -59,6 +59,43 @@
       "stock_sha256": "050e9ab320b794f636174536ca4dbca2f615a1c6c37bc19e9ca06bfd6d6e7278",
       "stock_package": "uci",
       "binary": "uci-rs"
+    }
+  },
+  "stock_image": {
+    "file": "openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin",
+    "sha256": "a94ac2c7177b451a29c576970cb19ed2d669031f65aca2ded80fc71ae91b9eea",
+    "url": "https://downloads.openwrt.org/releases/25.12.5/targets/mediatek/filogic/openwrt-25.12.5-mediatek-filogic-xiaomi_mi-router-ax3000t-squashfs-sysupgrade.bin"
+  },
+  "luci_source": {
+    "revision": "128a7812f4be233c5dd7f7466f534fd888785caf",
+    "sha256": "927f2518ab2f727c553b0b492041c2df31ed2aedae5ff5922ee2fbb7a23e4f2d",
+    "url": "https://codeload.github.com/openwrt/luci/tar.gz/128a7812f4be233c5dd7f7466f534fd888785caf",
+    "version": "26.180.75667~128a781"
+  },
+  "translations": {
+    "base": {
+      "source": "modules/luci-base",
+      "package": "luci-base",
+      "license": "Apache-2.0",
+      "sha256": "fa04f44225efb1c597d11b16d737cd8bfbb8cf9e2bdc4c5dd063efa56b8e55d9"
+    },
+    "firewall": {
+      "source": "applications/luci-app-firewall",
+      "package": "luci-app-firewall",
+      "license": "Apache-2.0",
+      "sha256": "6cb776abf7791ac65eb66ac14c4231aba86e5ad5217c4984ae970b37e3b2f3c4"
+    },
+    "package-manager": {
+      "source": "applications/luci-app-package-manager",
+      "package": "luci-app-package-manager",
+      "license": "Apache-2.0",
+      "sha256": "b40e458dd0699dff99861d4227cbc9f2cffd9831b24a2c3d129f5852b6f7da3e"
+    },
+    "attendedsysupgrade": {
+      "source": "applications/luci-app-attendedsysupgrade",
+      "package": "luci-app-attendedsysupgrade",
+      "license": "GPL-2.0",
+      "sha256": "50c9d04bcf421e787e98accc876ebc13c04559dcf01805fedf185b4d44ff3f8c"
     }
   }
 }

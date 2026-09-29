@@ -10,9 +10,9 @@ conflict with this package and are excluded from the final image.
 
 The canonical workflow builds the existing SDK artifacts first, then runs
 `tools/ci_integrate_image.sh`. It creates one native APK and rebuilds the image
-with the official services enabled and without boot-enable flags, bind mounts,
+from the pinned original stock image with the official services enabled and without boot-enable flags,
 trial collectors or per-component activation scripts. Final deliverables are
-under `work/native/out/`; `work/out/` contains intermediate build evidence.
+under `work/native/out/`; `work/out/` contains intermediate build evidence. Final assembly uses an offline APK install and the exact ImageBuilder squashfs, sysupgrade-tar and fwtool tools. It never resolves rolling feeds for the final rootfs. Four Chinese catalogs are rebuilt from the pinned matching LuCI source, checked against production hashes, and delivered as four ordinary translation APKs.
 
 Upgrade the complete firmware using sysupgrade with selected configuration
 retention. The native APK is an image construction input, not a supported live

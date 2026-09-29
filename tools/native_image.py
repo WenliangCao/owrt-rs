@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import urllib.request
 
 
 REPO = Path(__file__).resolve().parent.parent
@@ -50,9 +51,35 @@ def install(source, target):
     target.chmod(0o755)
 
 
+def preserve_directory_modes(payload, base):
+    # APK applies directory modes too. Match the original image instead of
+    # letting the builder's umask silently change shared /usr or /etc paths.
+    for path in [payload, *payload.rglob("*")]:
+        reference = base / path.relative_to(payload)
+        if path.is_dir() and not path.is_symlink() and reference.is_dir():
+            path.chmod(reference.stat().st_mode & 0o7777)
+
+
+def fetch(work, spec, apk):
+    del apk
+    native = work / "native"
+    native.mkdir(exist_ok=False)
+    for key, filename in (("stock_image", spec["stock_image"]["file"]),
+                          ("luci_source", "luci-" + spec["luci_source"]["revision"] + ".tar.gz")):
+        source = spec[key]
+        target = work / "dl" / filename
+        if not target.exists():
+            with urllib.request.urlopen(source["url"], timeout=90) as response, target.open("wb") as stream:
+                shutil.copyfileobj(response, stream)
+        assert sha(target) == source["sha256"], f"immutable input mismatch: {key}"
+    subprocess.run(["tar", "-xf", str(work / "dl" / ("luci-" + spec["luci_source"]["revision"] + ".tar.gz")),
+                    "-C", str(native)], check=True)
+
+
 def prepare(work, spec, apk):
     out = work / "out"
-    root = work / "verify/rootfs"
+    root = work / "native/base-rootfs"
+    binary_root = work / "verify/rootfs"
     image = read(out / "manifest.json")
     core = read(out / "core-manifest.json")
     assert image["source_commit"] == core["source_commit"]
@@ -73,7 +100,7 @@ def prepare(work, spec, apk):
         owner = run(apk, "--root", root, "--no-network", "info", "--who-owns", c["path"])
         assert owner.endswith(" is owned by " + c["stock_package"] + "-" + installed[c["stock_package"]]["version"])
         binary = (out / "core-binaries" if name in ("procd", "ubusd", "netifd")
-                  else root / "usr/sbin") / c["binary"]
+                  else binary_root / "usr/sbin") / c["binary"]
         assert sha(binary) == hashes[c["binary"]], f"Rust identity drift: {name}"
         install(binary, payload / path)
         install(original, payload / STOCK / path)
@@ -86,6 +113,8 @@ def prepare(work, spec, apk):
         "openwrt": spec["openwrt"], "profile": spec["profile"],
         "package": spec["package"], "version": spec["version"],
         "components": components,
+        "stock_image": spec["stock_image"],
+        "luci_source": spec["luci_source"], "translations": spec["translations"],
         "stock_packages": {p: installed[p] for p in owners},
         "recovery": "owrt-recover-c stages all nine stock programs; reboot separately",
     }
@@ -102,6 +131,7 @@ def prepare(work, spec, apk):
     listing.parent.mkdir(parents=True, exist_ok=True)
     listing.write_text("\n".join(sorted("/" + str(p.relative_to(payload))
                        for p in payload.rglob("*") if p.is_file())) + "\n")
+    preserve_directory_modes(payload, root)
     epoch = int(run("git", "-C", REPO, "show", "-s", "--format=%ct", image["source_commit"]))
     for path in [*payload.rglob("*"), payload]:
         os.utime(path, (epoch, epoch))
@@ -121,24 +151,52 @@ def prepare(work, spec, apk):
     for key, value in info.items():
         args += ["--info", key + ":" + value]
     subprocess.run(args, check=True)
+    # Match the four Chinese catalogs already in production, from the exact
+    # LuCI source revision. Rolling feeds would silently upgrade unrelated code.
+    luci = work / "native" / ("luci-" + spec["luci_source"]["revision"])
+    compiler = luci / "modules/luci-base/src/po2lmo"
+    subprocess.run(["make", "-C", str(compiler.parent), "po2lmo"], check=True)
+    for name, translation in spec["translations"].items():
+        package_name = "luci-i18n-" + name + "-zh-cn"
+        files = work / "native/translations" / package_name
+        catalog = files / "usr/lib/lua/luci/i18n" / (name + ".zh-cn.lmo")
+        catalog.parent.mkdir(parents=True, exist_ok=True)
+        run(compiler, luci / translation["source"] / "po/zh_Hans" / (name + ".po"), catalog)
+        assert sha(catalog) == translation["sha256"], f"production translation drift: {name}"
+        defaults = files / "etc/uci-defaults" / package_name
+        defaults.parent.mkdir(parents=True, exist_ok=True)
+        defaults.write_text("uci set luci.languages.zh_cn='简体中文 (Simplified Chinese)'; uci commit luci\n")
+        listing = files / "lib/apk/packages" / (package_name + ".list")
+        listing.parent.mkdir(parents=True, exist_ok=True)
+        listing.write_text("/" + str(defaults.relative_to(files)) + "\n/" + str(catalog.relative_to(files)) + "\n")
+        preserve_directory_modes(files, root)
+        for path in [*files.rglob("*"), files]:
+            os.utime(path, (epoch, epoch))
+        subprocess.run(["sudo", "-n", "chown", "-R", "0:0", str(files)], check=True)
+        run(apk, "mkpkg", "--files", files,
+            "--output", work / "native" / (package_name + "-" + spec["luci_source"]["version"] + ".apk"),
+            "--info", "name:" + package_name, "--info", "version:" + spec["luci_source"]["version"],
+            "--info", "arch:noarch", "--info", "license:" + translation["license"],
+            "--info", "description:Chinese translation for " + translation["package"],
+            "--info", "depends:libc " + translation["package"] + "=" + installed[translation["package"]]["version"])
     write(work / "native/build-inputs.json", {"image": image, "core": core,
           "package_metadata": info, "package_sha256": sha(package)})
-    wanted = (REPO / "packaging/image" / f"packages-{spec['openwrt']}.txt").read_text().splitlines()
-    wanted = [p for p in wanted if p not in LEGACY] + [spec["package"]]
-    (work / "native/packages.txt").write_text("\n".join(sorted(wanted)) + "\n")
     print(f"Prepared {package.name}: nine native paths, nine verified stock recovery copies")
 
 
 def verify(work, spec, apk):
     root = work / "native/rootfs"
-    before = work / "verify/rootfs"
+    before = work / "native/base-rootfs"
     manifest = read(work / "native/payload" / METADATA / "release.json")
     assert read(root / METADATA / "release.json") == manifest
     installed, previous = packages(apk, root), packages(apk, before)
-    assert set(installed) == (set(previous) - LEGACY) | {spec["package"]}
+    translations = {"luci-i18n-" + n + "-zh-cn" for n in spec["translations"]}
+    assert set(installed) == set(previous) | {spec["package"]} | translations
     for name, pkg in previous.items():
-        if name not in LEGACY:
-            assert installed[name] == pkg, f"execution-plane package drift: {name}"
+        assert installed[name] == pkg, f"execution-plane package drift: {name}"
+    for name, translation in spec["translations"].items():
+        assert sha(root / "usr/lib/lua/luci/i18n" / (name + ".zh-cn.lmo")) == translation["sha256"]
+        assert installed["luci-i18n-" + name + "-zh-cn"]["version"] == spec["luci_source"]["version"]
     for c in manifest["components"].values():
         assert sha(root / c["path"].lstrip("/")) == c["rust_sha256"]
         assert sha(root / c["recovery_path"].lstrip("/")) == c["stock_sha256"]
@@ -156,43 +214,46 @@ def verify(work, spec, apk):
         assert (root / "etc" / name).read_bytes() == (before / "etc" / name).read_bytes()
     for path in (before / "etc/config").iterdir():
         assert path.read_bytes() == (root / "etc/config" / path.name).read_bytes(), path.name
-    # Same installed packages must also retain their execution-plane contents.
-    # Ignore only replaced paths and build-generated package/signing metadata.
+    # Compare the entire original filesystem, not another image assembled from
+    # today's feed. Package versions alone do not prove unchanged content.
     replaced = {c["path"].lstrip("/") for c in manifest["components"].values()}
     excluded = {"etc/apk/world"}
     checked = 0
-    for name in set(previous) - LEGACY:
-        listing = before / "lib/apk/packages" / (name + ".list")
-        if not listing.exists():
+    for src in before.rglob("*"):
+        relative = str(src.relative_to(before))
+        if relative in replaced or relative in excluded or relative.startswith("lib/apk/db/"):
             continue
-        for line in listing.read_text().splitlines():
-            relative = line.lstrip("/")
-            if relative in replaced or relative in excluded or relative.startswith(("lib/apk/", "etc/apk/keys/")):
-                continue
-            src, dst = before / relative, root / relative
-            if src.is_symlink():
-                assert dst.is_symlink() and os.readlink(src) == os.readlink(dst), relative
-            elif src.is_file():
-                assert dst.is_file() and sha(src) == sha(dst), relative
-                checked += 1
+        dst = root / relative
+        assert dst.lstat().st_mode == src.lstat().st_mode, relative
+        assert (dst.lstat().st_uid, dst.lstat().st_gid) == (src.lstat().st_uid, src.lstat().st_gid), relative
+        if src.is_symlink():
+            assert dst.is_symlink() and os.readlink(src) == os.readlink(dst), relative
+        elif src.is_file():
+            assert dst.is_file() and sha(src) == sha(dst), relative
+            checked += 1
     # Keep raw intermediate artifacts outside the final release directory.
     output = work / "native/out"
     output.mkdir(exist_ok=False)
     image = next((work / "native/bin").glob("*-sysupgrade.bin"))
-    package = next((work / "native").glob("*.apk"))
-    for source in (image, package):
+    apks = sorted((work / "native").glob("*.apk"))
+    for source in (image, *apks):
         shutil.copy2(source, output / source.name)
     inputs = read(work / "native/build-inputs.json")
     hashes = {c["binary"]: c["rust_sha256"] for c in manifest["components"].values()}
     result = dict(inputs["image"], schema_version=2, deployment_layout="native-nine",
-                  packages={spec["package"]: spec["version"]}, components=manifest["components"],
+                  packages={n: installed[n]["version"] for n in translations | {spec["package"]}}, components=manifest["components"],
                   binary_sha256=hashes, stock_packages=manifest["stock_packages"],
                   image={"file": image.name, "size": image.stat().st_size, "sha256": sha(image)},
-                  apk_sha256={package.name: sha(package)},
-                  imagebuilder_args={"ADD_LOCAL_KEY": 1, "FILES": None, "DISABLED_SERVICES": ""},
+                  apk_sha256={p.name: sha(p) for p in apks}, stock_image=spec["stock_image"],
+                  luci_source=spec["luci_source"], translations=spec["translations"],
+                  kernel_sha256=sha(next((work / "native/base-image").glob("sysupgrade-*/kernel"))),
+                  imagebuilder_args={"assembly": "verified stock rootfs + offline APK install + official image tools",
+                                     "rolling_feeds_used_for_final_rootfs": False},
                   validation={"nine_native_paths": True, "package_ownership": True,
                               "stock_recovery_hashes": True, "stock_service_scripts": True,
                               "stock_config_defaults": True, "unchanged_execution_files": checked,
+                              "stock_package_versions_unchanged": len(previous),
+                              "production_Chinese_catalogs_identical": len(translations),
                               "physical_boot_tested": False},
                   recovery=manifest["recovery"], flashed=False)
     write(output / "manifest.json", result)
@@ -209,12 +270,12 @@ def verify(work, spec, apk):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("prepare", "verify"))
+    parser.add_argument("action", choices=("fetch", "prepare", "verify"))
     parser.add_argument("work", type=Path)
     parser.add_argument("spec", type=Path)
     parser.add_argument("apk", type=Path)
     args = parser.parse_args()
-    {"prepare": prepare, "verify": verify}[args.action](
+    {"fetch": fetch, "prepare": prepare, "verify": verify}[args.action](
         args.work.resolve(), read(args.spec), args.apk.resolve())
 
 

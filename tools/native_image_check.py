@@ -49,6 +49,7 @@ class Check:
     def shell(self, name, root, script, success=True):
         command = ["unshare", "--mount", "--net", "--pid", "--uts", "--ipc", "--fork", "--kill-child",
                    "/bin/sh", "-c", NAMESPACE, "sh", str(root)]
+        script = "mkdir -p /var/lock /var/run /var/log /var/state\n" + script
         result = subprocess.run(command, input=script, text=True, capture_output=True, timeout=90)
         (self.out / (name + ".log")).write_text(result.stdout + result.stderr)
         assert (result.returncode == 0) == success, (name, result.returncode, result.stdout, result.stderr)
@@ -98,8 +99,10 @@ for s in {disable} cron; do /etc/init.d/$s disable; done
 mount_root() { :; }
 boot_run_hook() { :; }
 boot_hook_add() { :; }
+set +u
 . /lib/preinit/80_mount_root
 do_mount_root
+set -u
 /bin/sh /etc/uci-defaults/05-owrt-native
 /bin/sh /etc/uci-defaults/10_disable_services
 test "$(cat /etc/owrt-control-plane-layout)" = native-nine-v1
@@ -140,19 +143,25 @@ mount -o bind /sbin/uci /sbin/uci
 
     def package_reinstall(self, apk_dir):
         root = self.copy("package-reinstall")
-        shutil.copytree(apk_dir, root / "tmp/native-apks")
+        cache = root / "tmp/native-apks"
+        cache.mkdir()
+        for source in [*apk_dir.glob("*.apk"), apk_dir / "packages.adb"]:
+            shutil.copy2(source, cache / source.name)
         owners = " ".join(self.manifest["stock_packages"])
+        ownership = "\n".join(
+            f"apk info --who-owns {c['path']} | grep -Fx '{c['path']} is owned by owrt-control-plane-{self.manifest['version']}'"
+            for c in self.manifest["components"].values()) + "\n"
         self.shell("package-stock-reinstall", root, f'''
 apk --no-scripts --no-network --allow-untrusted -X /tmp/native-apks/packages.adb fix --reinstall {owners}
 sha256sum -c /usr/share/owrt-control-plane/rust.sha256
-''')
+''' + ownership)
         self.identities(root)
         self.passed("stock_package_reinstall_preserves_nine_Rust_files")
         self.shell("package-native-reinstall", root, '''
 apk --no-scripts --no-network --allow-untrusted -X /tmp/native-apks/packages.adb fix --reinstall owrt-control-plane
 sha256sum -c /usr/share/owrt-control-plane/rust.sha256
 sha256sum -c /usr/share/owrt-control-plane/stock.sha256
-''')
+''' + ownership)
         self.identities(root)
         self.passed("native_package_reinstall_preserves_Rust_and_recovery_files")
 

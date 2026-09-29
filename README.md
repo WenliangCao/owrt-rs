@@ -3,9 +3,13 @@
 在一台**真实运行**的 OpenWrt 路由器上，把控制面逐个换成 Rust 实现。目标设备是 Xiaomi Mi Router
 AX3000T（MT7981B，双核 A53），部署规格是 OpenWrt 25.12.5 `r33051-f5dae5ece4` 官方 `sysupgrade.bin`，
 内核 6.12。每一步都以三类依据为准：精确镜像里的内容、该镜像对应的上游源码、脱敏后的设备实测行为。
-C 原件全程保留，任何一步都能回退。
+保留精确 C 原件与离线恢复材料。
 
-**现状（2026-09-20）：路由器生产运行精确 C 原版；R95 只做隔离测试，不部署候选。**
+**现状（2026-09-29）：九个修复后的 Rust 组件在路由器运行，一轮物理断电与延迟接回 WAN 已通过；试验工具已清理。**
+见[修复记录](docs/reviews/POWER_RECOVERY_20260929_FIX.md)与[清理记录](docs/reviews/POWER_RECOVERY_20260929_CLEANUP.md)。
+完整九组件固件正在进行离线验收，尚未刷入路由器；统一安装布局和配置迁移见[发布说明](docs/RELEASE.md)。
+
+**历史状态（2026-09-20）：当时路由器运行精确 C 原版；R95 只做隔离测试。**
 [R94 审计](docs/reviews/R94_COMPLETION_AUDIT.md)发现四项实际缺陷及性能/内存证据缺口；
 [R95 修复](docs/reviews/R95_DEFECT_FIXES.md)已逐项提交并在路由器验证。
 九组件“全面胜 C、尽可能胜 R89”的目标尚未完成，后续遵循
@@ -76,14 +80,15 @@ ubusd CPU不再随客户端数增长；正式构建随后走完隔离矩阵与�
 | `components/fw4` | firewall4 规则生成器（`fw4.uc` + 模板） | firewall4 b6e51575 | apk `owrt-fw4`，bind mount `/sbin/fw4` | 2026-09-02 | R09_FW4 |
 | `components/rpcd` | rpcd 全部对象：session/uci/rc、file/luci、luci-rpc/iwinfo/rpc-sys/network.rrdns | rpcd 28faf640 | apk `owrt-rpcd`，服务替换 | 2026-09-02 | R13/R17/R18 |
 | `components/uci` | libuci + `/sbin/uci` | uci 66127cd7 | apk `owrt-uci`，bind mount `/sbin/uci` | 2026-09-02 | R16_UCI |
-| `components/procd` | procd：服务监管、trigger、PID 1、rcS、hotplug/coldplug、watchdog、sysupgrade 移交 | procd 58eb263d | 直接替换 `/sbin/procd`，原件 `/sbin/procd.c-orig` | 2026-09-09 | R65–R75 |
-| `components/ubusd` | ubusd（系统消息总线） | ubus 24864e78 | 直接替换 `/sbin/ubusd`，原件 `.c-orig` | 2026-09-09 | R36–R42、R76 |
-| `components/netifd` | netifd：设备/接口/协议/路由/DHCP 生命周期 + 无线编排状态机 | netifd cbb83a18、wifi-scripts f0a60eee | 直接替换 `/sbin/netifd`，原件 `.c-orig` | 2026-09-09 | R45–R64、R77–R80 |
+| `components/procd` | procd：服务监管、trigger、PID 1、rcS、hotplug/coldplug、watchdog、sysupgrade 移交 | procd 58eb263d | 直接替换 `/sbin/procd`，原件在 stock `/rom` | 2026-09-09 | R65–R75 |
+| `components/ubusd` | ubusd（系统消息总线） | ubus 24864e78 | 直接替换 `/sbin/ubusd`，原件在 stock `/rom` | 2026-09-09 | R36–R42、R76 |
+| `components/netifd` | netifd：设备/接口/协议/路由/DHCP 生命周期 + 无线编排状态机 | netifd cbb83a18、wifi-scripts f0a60eee | 直接替换 `/sbin/netifd`，原件在 stock `/rom` | 2026-09-09 | R45–R64、R77–R80 |
 | `components/ubus` | libubus/libubox 客户端与对象服务器、blobmsg、json_script | ubus 24864e78 | 库，被上述 crate 使用 | — | — |
 
 前六个通过 apk 包安装，`owrt-<name>-switch enable|disable|boot-enable` 显式切换，`owrt-switch status`
 一处查看；后三个是"失效即失联"的组件，在 bind mount 生效之前就已运行，所以改为在 overlay 上直接
-替换 `/sbin/<x>` 并保留 `<x>.c-orig`。failsafe（mesh 键 + lan4）启动的是原封 `/rom`。
+替换 `/sbin/<x>`。冗余 `.c-orig` 已在 2026-09-29 清理，stock `/rom` 原件与离线备份保留。
+这段描述的是当前真机的分层部署；完整集成镜像中九个程序均原位安装，C 救援原件另存于 `/usr/libexec/owrt-stock/`。
 
 第三方依赖只有 httpd 的 rustls/ring（TLS）。其余全部标准库 + 自写 FFI。发布构建 opt-level 3、
 静态 musl（决策 0017），正式发布由 GitHub Actions `release-image` 生成（决策 0018）。

@@ -13,6 +13,7 @@ IPv4/IPv6 出网和服务状态。需要时由用户将电脑切到热点继续�
 三份 `.c-orig` 冗余副本也已删除，以下恢复步骤使用当前 stock 镜像中经过哈希核验的 `/rom/sbin/*`。
 离线备份见 `private/production-cleanup-20260929/`。将来若刷入 Rust 集成镜像，必须按新镜像重新验证恢复入口；
 本页的 `/rom` 恢复命令仅适用于这里固定的 stock 镜像。
+完整九组件集成镜像使用本页第 7 节的专用恢复入口；其构建与配置迁移约定见[发布说明](RELEASE.md)。
 
 ## 0. 先记住的四件事
 
@@ -172,3 +173,21 @@ sudo dnsmasq --no-daemon --interface=<有线口名> --bind-dynamic \
 | 重启前参考态（r23 pre） | `r23/pre/` |
 
 Factory 分区含 Wi-Fi 校准数据，丢失后无法从任何镜像补回；其余分区都可从官方镜像重建。
+
+## 7. 完整九组件集成镜像的 C 恢复
+
+适用于 `/usr/share/owrt-control-plane/release.json` 标识 `native-nine` 的固件。
+2026-09-29 当前真机仍是前述 stock + overlay 部署；这段为集成固件准备。
+
+集成镜像在标准路径直接内置 Rust，`/rom/sbin/procd` 等也已是 Rust。九份固定版本的 C 原件改存于
+`/usr/libexec/owrt-stock/`，保留原目录结构。原版内核、早期 init、preinit/failsafe 与执行面保留。
+
+SSH 仍可用时执行 `owrt-recover-c`；failsafe 中先执行 `mount_root`，再执行同一命令。
+它逐项校验全部 C 原件、准备九份临时副本后再改名替换，不依赖 ubus，也不主动重启。
+成功提示后普通运行状态用 `reboot`，failsafe 用 `reboot -f`。任何校验失败时先保留现场排查。
+
+这个入口保留用户配置，仅安排九组件恢复原版。首次迁移时用的是原 `log/rpcd/uhttpd` 启动服务，
+所以恢复 C 不需要重建另一套开关脚本。若服务被用户手工禁用，按实际故障恢复对应服务的启动项。
+
+恢复出厂会清空 overlay 并重新使用镜像内的 Rust。需要永久恢复官方固件时，应使用独立验证过的
+官方镜像与配置备份，不能把当前集成镜像的 `/rom` 当成完整 C 根文件系统。
