@@ -18,6 +18,12 @@ Upgrade the complete firmware using sysupgrade with selected configuration
 retention. The native APK is an image construction input, not a supported live
 PID1/bus upgrade mechanism. Do not mix it with the old layered deployment tools.
 
+On first migration, `05-owrt-native` removes the old log/rpcd/uhttpd disable
+commands from sysupgrade's generated `10_disable_services`. These names now
+start Rust. It records `native-nine-v1` in `/etc/owrt-control-plane-layout`, which
+the package's keep.d entry preserves. Later native-to-native upgrades therefore
+honor the user's service-disable choices. No daemon or trial collector is added.
+
 `owrt-recover-c` verifies all nine stock recovery programs under
 `/usr/libexec/owrt-stock/`, prepares all replacement files, and stages them at
 their standard paths. It leaves reboot to the operator and works from failsafe

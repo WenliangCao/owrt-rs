@@ -79,6 +79,19 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: preserve failed build evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owrt-image-failed-${{ github.sha }}
+          path: |
+            work/out/*.log
+            work/out/*manifest.json
+            work/native/*.log
+            work/native/build-inputs.json
+            work/native/bin/*-sysupgrade.bin
+          retention-days: 90
+
       - name: github release (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
         env:

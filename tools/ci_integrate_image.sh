@@ -29,5 +29,5 @@ set -- "$work"/native/unpacked/sysupgrade-*/root
 sudo -n unsquashfs -n -d "$work/native/rootfs" "$1" > "$work/native/unpack.log" 2>&1
 # Verify the kernel payload itself, not just its package version.
 cmp "$work"/verify/sysupgrade-*/kernel "$work"/native/unpacked/sysupgrade-*/kernel
-python3 "$repo/tools/native_image.py" verify "$work" "$spec" "$apk"
+sudo -n python3 "$repo/tools/native_image.py" verify "$work" "$spec" "$apk"
 echo 'Native nine-component image assembled and audited; no device was flashed.'

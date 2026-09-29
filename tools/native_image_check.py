@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""Exercise native firmware configuration migration and C recovery off-device.
+
+Run as root on an aarch64 Linux build host. Every case uses a disposable image
+copy plus mount/network/PID namespaces, never a physical router or live bus.
+"""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import shutil
+import subprocess
+import tarfile
+
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+NAMESPACE = r'''
+set -eu
+root=$1
+mount --make-rprivate /
+mount -t proc proc "$root/proc"
+mount -t tmpfs -o mode=0755 tmpfs "$root/dev"
+mknod -m 666 "$root/dev/null" c 1 3
+mknod -m 666 "$root/dev/zero" c 1 5
+mknod -m 666 "$root/dev/urandom" c 1 9
+exec chroot "$root" /bin/sh -eu
+'''
+
+
+class Check:
+    def __init__(self, source, out):
+        self.source = source
+        self.out = out
+        out.mkdir(parents=True, exist_ok=False)
+        self.manifest = json.loads((source / "usr/share/owrt-control-plane/release.json").read_text())
+        self.results = {}
+
+    def copy(self, name):
+        root = self.out / name
+        assert not root.exists()
+        subprocess.run(["cp", "-a", str(self.source), str(root)], check=True)
+        return root
+
+    def shell(self, name, root, script, success=True):
+        command = ["unshare", "--mount", "--net", "--pid", "--uts", "--ipc", "--fork", "--kill-child",
+                   "/bin/sh", "-c", NAMESPACE, "sh", str(root)]
+        result = subprocess.run(command, input=script, text=True, capture_output=True, timeout=90)
+        (self.out / (name + ".log")).write_text(result.stdout + result.stderr)
+        assert (result.returncode == 0) == success, (name, result.returncode, result.stdout, result.stderr)
+
+    def identities(self, root, mode="rust"):
+        for c in self.manifest["components"].values():
+            assert sha(root / c["path"].lstrip("/")) == c[mode + "_sha256"], c["path"]
+
+    def passed(self, name):
+        self.results[name] = True
+        (self.out / "result.json").write_text(json.dumps(self.results, indent=2) + "\n")
+        print("PASS:", name, flush=True)
+
+    def configuration(self, native):
+        case = "native_upgrade" if native else "layered_migration"
+        old = self.copy(case + "-old")
+        (old / "etc/config/network").write_text("config interface 'lan'\n option proto 'static'\n option ipaddr '192.0.2.1'\n")
+        (old / "etc/config/wireless").write_text("config wifi-iface 'fixture'\n option ssid 'upgrade-fixture'\n option disabled '1'\n")
+        (old / "etc/crontabs").mkdir(exist_ok=True)
+        (old / "etc/crontabs/root").write_text("# retained synthetic LED schedule\n")
+        (old / "etc/rc.local").write_text("# retained fixture\nexit 0\n")
+        (old / "etc/sysupgrade.conf").write_text("/etc/native-config-fixture\n")
+        (old / "etc/native-config-fixture").write_text("selected by sysupgrade.conf\n")
+        if native:
+            (old / "etc/owrt-control-plane-layout").write_text("native-nine-v1\n")
+            disable = "uhttpd"
+        else:
+            disable = "log rpcd uhttpd"
+            for c in ("uci", "reload-config", "logd", "httpd", "fw4", "rpcd"):
+                (old / ("etc/owrt-" + c + ".boot-enable")).touch()
+        self.shell(case + "-backup", old, f'''
+for s in {disable} cron; do /etc/init.d/$s disable; done
+/sbin/sysupgrade -b /tmp/native-config.tar.gz
+''')
+        archive = old / "tmp/native-config.tar.gz"
+        with tarfile.open(archive) as tar:
+            members = {m.name.lstrip("/"): m for m in tar.getmembers()}
+            disabled = tar.extractfile(members["etc/uci-defaults/10_disable_services"]).read().decode()
+            for s in disable.split():
+                assert f"/etc/init.d/{s} disable" in disabled
+            assert not any("owrt-" in n and n.endswith(".boot-enable") for n in members)
+        new = self.copy(case + "-new")
+        shutil.copy2(archive, new / "sysupgrade.tgz")
+        # Execute the exact image's restore implementation. Only hardware root
+        # mounting and hook registration are stubbed inside this disposable fs.
+        self.shell(case + "-restore", new, '''
+mount_root() { :; }
+boot_run_hook() { :; }
+boot_hook_add() { :; }
+. /lib/preinit/80_mount_root
+do_mount_root
+/bin/sh /etc/uci-defaults/05-owrt-native
+/bin/sh /etc/uci-defaults/10_disable_services
+test "$(cat /etc/owrt-control-plane-layout)" = native-nine-v1
+/etc/init.d/log enabled
+/etc/init.d/rpcd enabled
+if /etc/init.d/cron enabled; then exit 1; fi
+''' + ("if /etc/init.d/uhttpd enabled; then exit 1; fi\n" if native else "/etc/init.d/uhttpd enabled\n"))
+        for relative in ("etc/config/network", "etc/config/wireless", "etc/crontabs/root",
+                         "etc/rc.local", "etc/sysupgrade.conf", "etc/native-config-fixture",
+                         "etc/passwd", "etc/shadow"):
+            assert (old / relative).read_bytes() == (new / relative).read_bytes(), relative
+        self.identities(new)
+        self.passed(case + "_configuration_and_service_policy")
+
+    def recovery(self):
+        root = self.copy("recovery")
+        original = root / "usr/libexec/owrt-stock/sbin/netifd"
+        good = original.read_bytes()
+        original.write_bytes(good + b"corrupt")
+        self.shell("recovery-corrupt", root, "/usr/sbin/owrt-recover-c\n", success=False)
+        self.identities(root)
+        self.passed("corrupt_recovery_rejected_before_any_replacement")
+        original.write_bytes(good)
+        self.shell("recovery-mounted", root, '''
+mount -o bind /sbin/uci /sbin/uci
+/usr/sbin/owrt-recover-c
+''', success=False)
+        self.identities(root)
+        self.passed("mounted_target_rejected_before_any_replacement")
+        self.shell("recovery-stage", root, "/usr/sbin/owrt-recover-c\n")
+        self.identities(root, "stock")
+        assert not list(root.rglob("*.owrt-recovery-new"))
+        self.shell("recovery-repeat", root, "/usr/sbin/owrt-recover-c\n")
+        self.identities(root, "stock")
+        for path in (self.source / "etc/config").iterdir():
+            assert path.read_bytes() == (root / "etc/config" / path.name).read_bytes()
+        self.passed("all_nine_C_staged_idempotently_with_configuration_unchanged")
+
+    def package_reinstall(self, apk_dir):
+        root = self.copy("package-reinstall")
+        shutil.copytree(apk_dir, root / "tmp/native-apks")
+        owners = " ".join(self.manifest["stock_packages"])
+        self.shell("package-stock-reinstall", root, f'''
+apk --no-scripts --no-network --allow-untrusted -X /tmp/native-apks/packages.adb fix --reinstall {owners}
+sha256sum -c /usr/share/owrt-control-plane/rust.sha256
+''')
+        self.identities(root)
+        self.passed("stock_package_reinstall_preserves_nine_Rust_files")
+        self.shell("package-native-reinstall", root, '''
+apk --no-scripts --no-network --allow-untrusted -X /tmp/native-apks/packages.adb fix --reinstall owrt-control-plane
+sha256sum -c /usr/share/owrt-control-plane/rust.sha256
+sha256sum -c /usr/share/owrt-control-plane/stock.sha256
+''')
+        self.identities(root)
+        self.passed("native_package_reinstall_preserves_Rust_and_recovery_files")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("rootfs", type=Path)
+    parser.add_argument("output", type=Path)
+    parser.add_argument("--apk-dir", type=Path,
+                        help="offline index containing the native APK and pinned stock owner APKs")
+    args = parser.parse_args()
+    assert os.geteuid() == 0 and platform.system() == "Linux"
+    assert platform.machine() == "aarch64" and not Path("/etc/openwrt_release").exists()
+    check = Check(args.rootfs.resolve(), args.output.resolve())
+    check.configuration(native=False)
+    check.configuration(native=True)
+    check.recovery()
+    if args.apk_dir:
+        check.package_reinstall(args.apk_dir.resolve())
+
+
+if __name__ == "__main__":
+    main()

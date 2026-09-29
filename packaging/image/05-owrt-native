@@ -1,0 +1,19 @@
+#!/bin/sh
+# sysupgrade synthesizes 10_disable_services from the old installation.
+# The layered Rust deployment disabled the three stock service names. They
+# are the native Rust service names now, so migrate only on first adoption.
+set -eu
+marker=/etc/owrt-control-plane-layout
+if [ "$(cat "$marker" 2>/dev/null || true)" != native-nine-v1 ]; then
+    disabled=/etc/uci-defaults/10_disable_services
+    if [ -f "$disabled" ]; then
+        sed -i '\|^/etc/init.d/log disable$|d; \|^/etc/init.d/rpcd disable$|d; \|^/etc/init.d/uhttpd disable$|d' "$disabled"
+    fi
+    for service in log rpcd uhttpd; do
+        /etc/init.d/$service enable
+    done
+    printf '%s\n' native-nine-v1 > "$marker.new"
+    mv -f "$marker.new" "$marker"
+    sync
+fi
+exit 0

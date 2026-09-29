@@ -93,6 +93,10 @@ def prepare(work, spec, apk):
     (payload / METADATA / "rust.sha256").write_text("".join(rust_sums))
     (payload / METADATA / "stock.sha256").write_text("".join(stock_sums))
     install(REPO / "packaging/image/owrt-recover-c", payload / "usr/sbin/owrt-recover-c")
+    install(REPO / "packaging/image/05-owrt-native", payload / "etc/uci-defaults/05-owrt-native")
+    keep = payload / "lib/upgrade/keep.d/owrt-control-plane"
+    keep.parent.mkdir(parents=True, exist_ok=True)
+    keep.write_text("/etc/owrt-control-plane-layout\n")
     # OpenWrt's conffile tooling also expects its package file list.
     listing = payload / "lib/apk/packages" / (spec["package"] + ".list")
     listing.parent.mkdir(parents=True, exist_ok=True)
@@ -155,7 +159,7 @@ def verify(work, spec, apk):
     # Same installed packages must also retain their execution-plane contents.
     # Ignore only replaced paths and build-generated package/signing metadata.
     replaced = {c["path"].lstrip("/") for c in manifest["components"].values()}
-    excluded = {"etc/apk/world", "etc/uci-defaults/99-owrt-key"}
+    excluded = {"etc/apk/world"}
     checked = 0
     for name in set(previous) - LEGACY:
         listing = before / "lib/apk/packages" / (name + ".list")
