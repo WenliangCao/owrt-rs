@@ -1,0 +1,143 @@
+{
+  "date": "2026-09-29",
+  "status": "one_physical_power_retest_passed; trial_tools_removed; all_nine_Rust_healthy",
+  "runtime_source": "6a4a405e0c4e1df81a95967a95cbe17897313430",
+  "canonical_run": 36575083891,
+  "runtime_sha256": {
+    "fw4": "f75a2c2a4c5b0579836a02607e4db0ac9b6e8938ae3a893a38d7cc2a531503ee",
+    "httpd": "76e8f50a8615c81d7b9827d4542d9fbdd72bdfff93326602f701cf04de42afaa",
+    "logd": "24e3eccfc485f098e192e18ac5bc3ef8a4d6b7b91998a5db1e75956773bb53ec",
+    "netifd": "adcf2bee51a4d985cea4ed01497da42988b8d0c9ab71eaf2d49eef821afc0a1f",
+    "procd": "3d4bfdfaa0e4ea035339b17d5ade1c14fcc59fff9d014b6aacc9e4a0dcff7f62",
+    "reload-config": "f8ab20df721780239fdcffe15e9d96950738623e490cbe531fe42cdb8d149553",
+    "rpcd": "c798ea0dc6c7cdb9b408d2cef7f4e748a20987f576ba5f128c559bf568f9e841",
+    "ubusd": "494c5c0a37fbbaa766bff7c52233927189528bfff74e71a8faec375552a87c92",
+    "uci": "336164c7b49908a356eccf934e40528398811ff2595e2b926170278a15c5c506"
+  },
+  "physical_retest": {
+    "user_report": "Power removed, WAN disconnected, power restored, WAN reconnected after an approximate uncontrolled 11–20 second wait; connectivity returned. No prescribed 30/60/120-second series was performed.",
+    "controlled_delay_series_performed": false,
+    "successful_trials_observed": 1,
+    "events": [
+      {
+        "uptime_s": 18.788815,
+        "event": "wan_link",
+        "admin_up": false,
+        "carrier": false
+      },
+      {
+        "uptime_s": 18.83787,
+        "event": "wan_link",
+        "admin_up": false,
+        "carrier": false
+      },
+      {
+        "uptime_s": 18.844283,
+        "event": "wan_link",
+        "admin_up": true,
+        "carrier": false
+      },
+      {
+        "uptime_s": 62.569673,
+        "event": "wan_link",
+        "admin_up": true,
+        "carrier": true
+      },
+      {
+        "uptime_s": 63.101673,
+        "event": "wan_ipv4_address"
+      },
+      {
+        "uptime_s": 63.101905,
+        "event": "wan_ipv4_default_route"
+      }
+    ],
+    "port_enabled_without_carrier_s": 43.72539,
+    "carrier_to_default_route_s": 0.532232,
+    "trial_guard_healthy_at_uptime_s": 103,
+    "C_fallback_occurred": false,
+    "scope": "matches the known delayed-carrier failure condition; not exhaustive power-loss validation"
+  },
+  "cleanup": {
+    "at": "2026-09-29T14:26:46.743626+00:00",
+    "status": "cleaned; same nine Rust processes and boot; healthy",
+    "persistent_paths_removed": 21,
+    "before_available_kib": 17004,
+    "after_available_kib": 53752,
+    "freed_kib": 36748,
+    "configuration_files_unchanged": 19,
+    "LED_schedule_and_other_protected_config_unchanged": true,
+    "automatic_trial_rollback_removed": true,
+    "recorder_processes_removed": true,
+    "runtime_and_next_boot_hashes_verified": 9,
+    "no_restart_or_reboot": true
+  },
+  "health": {
+    "mode": "rust",
+    "client_dhcp": true,
+    "interfaces_up": [
+      "loopback",
+      "lan",
+      "wan",
+      "wan6"
+    ],
+    "watchdog_running": true,
+    "local_http_https": true,
+    "dns_ipv4": true,
+    "dns_ipv6": true,
+    "router_internet_https": true,
+    "verified_components": [
+      "fw4",
+      "httpd",
+      "logd",
+      "netifd",
+      "procd",
+      "reload-config",
+      "rpcd",
+      "ubusd",
+      "uci"
+    ],
+    "access_point_count": 2
+  },
+  "recovery": {
+    "prior_offline_archives_verified": 5,
+    "recovery_images_verified": 2,
+    "fresh_archives": {
+      "root.tar.gz": {
+        "sha256": "3d7765fdd8442a164c849b888a7bb687002588763b21ffcc11eb9c5585149adb",
+        "bytes": 33186530,
+        "regular_members_read": 236
+      },
+      "overlay-upper.tar.gz": {
+        "sha256": "813da80c571562185292832cc153f06ede160acc75a0e9c8d015c6182692a2df",
+        "bytes": 37614206,
+        "regular_members_read": 328
+      },
+      "config.tar.gz": {
+        "sha256": "91695d30dbbb09f3edf223d9106a5becda502b6fa4bfcbabbf4a1baadd6a2138",
+        "bytes": 3736,
+        "regular_members_read": 19
+      }
+    },
+    "root_file_content_hashes_verified": 262,
+    "stock_read_only_ROM_preserved": true,
+    "hardware_watchdog_running": true,
+    "trial_guard_removed": true,
+    "C_original_duplicate_copies_removed": true,
+    "manual_recovery_runbook_updated": true
+  },
+  "image_integration": {
+    "current_image_embedded_Rust_components": 6,
+    "separately_built_core_components": [
+      "procd",
+      "ubusd",
+      "netifd"
+    ],
+    "integrated_nine_component_image_built": false,
+    "firmware_flashed": false
+  },
+  "evidence": {
+    "private_directory": "private/production-cleanup-20260929",
+    "raw_artifacts_committed": false
+  }
+}

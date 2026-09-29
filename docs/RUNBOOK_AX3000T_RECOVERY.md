@@ -1,13 +1,18 @@
 # AX3000T 救援手册（离线可用）
 
 适用：Xiaomi AX3000T（RD03，MT7981，原厂小米 bootloader），OpenWrt 25.12.5 stock 布局，
-本项目六个 Rust 组件以 boot-enable 运行。写给失联时独自操作的人；每一级都比上一级更重，
+本项目六个 Rust 组件以 boot-enable 运行，procd/ubusd/netifd 在 overlay 中替换。写给失联时独自操作的人；每一级都比上一级更重，
 **先试轻的**。数字与路径都按 2026-09-03 设备实测。
 
 **部署策略更新（2026-09-12）：** 用户已授权通过 Wi-Fi 部署，不再要求预先连接 lan4 网线。
 部署前核对离线备份、二进制身份和自动回退；重启后从客户端验收 DHCP、双频无线、DNS、
 IPv4/IPv6 出网和服务状态。需要时由用户将电脑切到热点继续协作。
 以下 lan4／有线步骤保留为实际进入 failsafe 或 TFTP 救援时的操作方法，不是日常部署前置条件。
+
+**清理更新（2026-09-29）：** 九组件继续运行；试验采集器、临时自动回退和 `/root` 部署包已离机归档并删除。
+三份 `.c-orig` 冗余副本也已删除，以下恢复步骤使用当前 stock 镜像中经过哈希核验的 `/rom/sbin/*`。
+离线备份见 `private/production-cleanup-20260929/`。将来若刷入 Rust 集成镜像，必须按新镜像重新验证恢复入口；
+本页的 `/rom` 恢复命令仅适用于这里固定的 stock 镜像。
 
 ## 0. 先记住的四件事
 
@@ -26,9 +31,9 @@ IPv4/IPv6 出网和服务状态。需要时由用户将电脑切到热点继续�
 ```
 ssh root@192.168.1.1
 owrt-switch status              # 六个组件的 switch / boot-enable / pid
-# procd / ubusd / netifd 不走 switch：看运行中的是哪份
-md5sum /sbin/procd /sbin/ubusd /sbin/netifd; ls /sbin/*.c-orig
-# 回退其中一个（下次启动生效）：mv /sbin/<x>.c-orig /sbin/<x> && reboot
+# procd / ubusd / netifd 不走 switch；分别核对运行映像和下一次启动文件
+sha256sum /proc/1/exe /proc/$(pidof ubusd)/exe /proc/$(pidof netifd)/exe
+sha256sum /sbin/procd /sbin/ubusd /sbin/netifd
 logread | grep -iE "owrt|rpcd-rs|httpd-rs|logd-rs|fw4|uci-rs"
 ```
 
@@ -39,10 +44,41 @@ owrt-<name>-switch disable        # name: uci reload-config logd httpd fw4 rpcd
 owrt-<name>-switch boot-enable off
 ```
 
-全部回退到原厂实现：`owrt-switch disable && owrt-switch boot-enable off`。
-procd/ubusd/netifd 的回退是把 `/sbin/<x>.c-orig` `mv` 回 `/sbin/<x>` 再重启；三份原件与 `/rom` 逐字节相同，
-failsafe 启动的就是 `/rom`，所以即使 overlay 上的替换全坏，failsafe 仍是完整的原厂控制面。
+上述六组件全部切回 C：`owrt-switch disable-all && owrt-switch boot-enable off`。
 rpcd 特别说明：`owrt-rpcd-switch disable` 会重新 enable 并启动原 `/etc/init.d/rpcd`。
+
+**完整九组件回退并重启**用下面一段。先校验只读 C 原件，再复制到临时文件并逐字节核验，最后改名替换下一次启动文件。
+改名保留当前运行进程的映像；不要直接覆盖正在执行的文件，也不要通过删除 `/sbin/<x>` 试图露出 ROM：overlay 的 whiteout 会继续遮住原件。
+
+```sh
+/bin/sh -eu <<'RECOVER' && reboot
+    sha256sum -c <<'SHA256'
+36269ae10ae267b9753233bfecdea48bd6fed4b2f7980f722f96413bd2ca681a  /rom/sbin/procd
+cfb83044bbe82052fe063adaf4580e721dc85a03fb174217b5ea8fb801193a88  /rom/sbin/ubusd
+8ed0c6bc794fb3c56b8421347173165637d60efdd46782e7a575e67f89b3ba90  /rom/sbin/netifd
+SHA256
+    for c in procd ubusd netifd; do
+        cp -p "/rom/sbin/$c" "/sbin/$c.restore"
+        test -x "/sbin/$c.restore"
+        cmp -s "/rom/sbin/$c" "/sbin/$c.restore"
+    done
+    for c in procd ubusd netifd; do
+        mv -f "/sbin/$c.restore" "/sbin/$c"
+        cmp -s "/rom/sbin/$c" "/sbin/$c"
+    done
+    for c in uci reload-config logd httpd fw4 rpcd; do
+        rm -f "/etc/owrt-$c.boot-enable"
+        /etc/init.d/owrt-$c disable
+    done
+    for service in log rpcd uhttpd; do
+        /etc/init.d/$service enable
+    done
+    sync
+RECOVER
+```
+
+所有复制与启动项调整成功后才会重启；任何校验失败时保留现场排查。
+当前 stock 镜像的 failsafe 使用只读 C 控制面，不依赖已经删除的试验脚本。
 
 ## 2. 第二级：SSH 不通、蓝灯不亮 → failsafe
 
@@ -57,24 +93,20 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@192.168.1.1
 
 ```
 mount_root
-owrt-switch boot-enable off       # 六个组件开机都不再接管
-# 或者只关一个： owrt-<name>-switch boot-enable off
-sync; reboot -f
 ```
 
-5. 重启后原厂 uci/reload_config/logd/uhttpd/fw4/rpcd 全部恢复（注意：`owrt-logd-switch`、
-   `owrt-httpd-switch`、`owrt-rpcd-switch` 的 `boot-enable off` 会重新 enable 原服务；
-   若在 failsafe 里没法执行脚本，手工做：
+5. 执行第一级的“完整九组件回退并重启”代码，将其中的 `reboot` 改为 `reboot -f`。
+   `owrt-rpcd-switch boot-enable off` 只删除标记，不会重新 enable C rpcd；完整步骤已显式恢复三个 C 服务。
+   若 `/etc/init.d/owrt-* disable` 无法执行，可将该代码中的两个启动项循环替换为下面的手工命令；
+   三个核心文件仍须完成前面的复制与核验：
 
 ```
-mount_root
 rm -f /etc/owrt-*.boot-enable
 rm -f /etc/rc.d/S00owrt-uci /etc/rc.d/S11owrt-reload-config /etc/rc.d/S11owrt-rpcd \
       /etc/rc.d/S12owrt-logd /etc/rc.d/S18owrt-fw4 /etc/rc.d/S50owrt-httpd
 ln -sf ../init.d/rpcd /etc/rc.d/S12rpcd
 ln -sf ../init.d/log /etc/rc.d/S12log
 ln -sf ../init.d/uhttpd /etc/rc.d/S50uhttpd
-sync; reboot -f
 ```
 
 ## 3. 第三级：failsafe 也修不好 → 恢复出厂 + 恢复配置备份

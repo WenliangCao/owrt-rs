@@ -1,5 +1,7 @@
 # WAN 延迟恢复修复与九组件重新部署
 
+后续状态：用户已完成一轮物理断电复测，九组件保持 Rust 并恢复联网；随后按要求清理试验工具。见[断电复测与生产清理记录](POWER_RECOVERY_20260929_CLEANUP.md)。下文保留重新部署完成时的验收记录。
+
 2026-09-29。用户明确授权修复后重新部署全部九个 Rust 组件，并自行进行多轮断电复测。**九组件已重新接管，软件重启验收通过；本次修复后的物理断电验收等待用户操作。**
 
 运行源码为 `6a4a405e0c4e1df81a95967a95cbe17897313430`，正式构建为 [release-image 36575083891](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36575083891)。[常规 CI 36575082996](https://github.com/WenliangCao/owrt-control-plane-rs/actions/runs/36575082996) 同提交通过。新 netifd ELF SHA256 为 `adcf2bee51a4d985cea4ed01497da42988b8d0c9ab71eaf2d49eef821afc0a1f`；另外八个 ELF 与上一轮正式产物逐字节相同。保留原 OpenWrt 内核、驱动、执行面和配置，没有刷固件。
